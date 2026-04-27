@@ -1,81 +1,79 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9543E3B19BA
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 09:21:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43612F39AB
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 11:27:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777281722; cv=none; b=fuwlU/1Uj3Ua7FBoSrH5plSV2fNCq4pXQWVBcVcs5vuqo1DSvYeir0fs50Pde/2jDBa/3COSExr9iE3bQUqrtbNt5W1Cg1eqJvPX/r9t22ZGiQlYAz7pt+r1hTIiqjbH/mzMOfA4Ak6IqHB3QqNMxQPBfQV9aJIPYyGDryLHhSg=
+	t=1777289265; cv=none; b=i78I7Sv5tl9XYFkCZ7x5/9GGQTSADEVbKquQZ4H46xhFjeWfshes1yQAkD4MAsoub8CLCZ9K3St1+NeL11Y17pZpHuvuoe1B52UOQcLk4za86PDgyhPovvCNi3DYtnuRbMk9T09IzdWr3mGh7HSiXVxMtyaP0WdcRRB7aJ2D5/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777281722; c=relaxed/simple;
-	bh=eCn3k8u/63/LHwU0IpVlIKdIDI/o5V1LiBuq5/heX5M=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=miB6wHRw1K+MrqFCww7fIelxe+kxTczZ9SEE//RX/kpWyRZO5KDWIcqdMA32MZAxvMUB8itkbMgwUjKo+l3df/HkGW/zjBCFWqDzxNUmh/wieKz0MbXg3CRUEbB4XsFedmgR9Bc0CwrFcKBcrfelqsQG6toahBgVBZr3jbdY1BY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cOW3K+Jw; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=t7pWqeIV; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cOW3K+Jw; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=t7pWqeIV; arc=none smtp.client-ip=195.135.223.131
+	s=arc-20240116; t=1777289265; c=relaxed/simple;
+	bh=zE9lE7tXHu1N8bQGQevHhdhp3yEztjauQVoLoYT+heU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DCqoy4+9RrmoJi70t9wjFfCPUynYHbapirstemaVkjWd3Wtuvz/5AnT58QTg3V+hkBjxjcsRklkJJFgvQ6iKOpp7N81eSA8Y4gjZFGPRim/L4geG0gyLbVJbfirORtMSB8WVWBbcACoYgS4DDGtetoLXnSLh4SKtrAuX9R3z7bk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=eNLcuHco; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=sDZucj+x; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=eNLcuHco; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=sDZucj+x; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cOW3K+Jw";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="t7pWqeIV";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cOW3K+Jw";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="t7pWqeIV"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="eNLcuHco";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="sDZucj+x";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="eNLcuHco";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="sDZucj+x"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 3F4985BCCD;
-	Mon, 27 Apr 2026 09:21:57 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 6894B6A8EA;
+	Mon, 27 Apr 2026 11:27:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1777281717; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1777289262; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=k5y3pjY1aXRQOQV4DE2hjR7vsDXg5H9bmpiES3KwAB8=;
-	b=cOW3K+JwboD0xyIqMjgKHowG4D0LPbTuZaf82PgEpus14FwbQApj9WpwN8niKQvHgi+lO2
-	8g/7+fk7z1lyzgVrZXLo8cnIIlm9gFu3bGDNLeC9Ng/dJ366rn+HpnphxKKqdDIAgtPJgV
-	O6cseuYCCBYxAzk6PCSNg+ddpntK8K8=
+	bh=sKCU0l/xvjIXGxXWxz31UFpwzqOV0fWt8DuK0iC+hxY=;
+	b=eNLcuHcoDMqdcC/YSVGM81xwufd9cLRTtkLbO3BGLkipun7uQp8iubddm2aKx/cmJ8+Ejc
+	Je1McAIXWSmckYzlMD0T+qlSZhwapiF0A+lvVquZvzqzOVpTekJlfJkZKAQtOx9TcYqpZ2
+	CjmgorOxPzsMH+J0UniJqE9yGRdjGKs=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1777281717;
+	s=susede2_ed25519; t=1777289262;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=k5y3pjY1aXRQOQV4DE2hjR7vsDXg5H9bmpiES3KwAB8=;
-	b=t7pWqeIVhkDPme/j4RSV3IDo1Ez3M31UBRgJnrPdeY3Lz7O5au389dDmAKPAKMfb4b4q51
-	myoKhEysxzTsjHBg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=cOW3K+Jw;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=t7pWqeIV
+	bh=sKCU0l/xvjIXGxXWxz31UFpwzqOV0fWt8DuK0iC+hxY=;
+	b=sDZucj+xNSW5DNyNwaAUrpr9DUUIUY0Z6akvkiaBxxMzlZWtCHaH4l3+VbOCDxe5jTREWX
+	kDI+LHNT0ELkkNDw==
+Authentication-Results: smtp-out1.suse.de;
+	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1777281717; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1777289262; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=k5y3pjY1aXRQOQV4DE2hjR7vsDXg5H9bmpiES3KwAB8=;
-	b=cOW3K+JwboD0xyIqMjgKHowG4D0LPbTuZaf82PgEpus14FwbQApj9WpwN8niKQvHgi+lO2
-	8g/7+fk7z1lyzgVrZXLo8cnIIlm9gFu3bGDNLeC9Ng/dJ366rn+HpnphxKKqdDIAgtPJgV
-	O6cseuYCCBYxAzk6PCSNg+ddpntK8K8=
+	bh=sKCU0l/xvjIXGxXWxz31UFpwzqOV0fWt8DuK0iC+hxY=;
+	b=eNLcuHcoDMqdcC/YSVGM81xwufd9cLRTtkLbO3BGLkipun7uQp8iubddm2aKx/cmJ8+Ejc
+	Je1McAIXWSmckYzlMD0T+qlSZhwapiF0A+lvVquZvzqzOVpTekJlfJkZKAQtOx9TcYqpZ2
+	CjmgorOxPzsMH+J0UniJqE9yGRdjGKs=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1777281717;
+	s=susede2_ed25519; t=1777289262;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=k5y3pjY1aXRQOQV4DE2hjR7vsDXg5H9bmpiES3KwAB8=;
-	b=t7pWqeIVhkDPme/j4RSV3IDo1Ez3M31UBRgJnrPdeY3Lz7O5au389dDmAKPAKMfb4b4q51
-	myoKhEysxzTsjHBg==
+	bh=sKCU0l/xvjIXGxXWxz31UFpwzqOV0fWt8DuK0iC+hxY=;
+	b=sDZucj+xNSW5DNyNwaAUrpr9DUUIUY0Z6akvkiaBxxMzlZWtCHaH4l3+VbOCDxe5jTREWX
+	kDI+LHNT0ELkkNDw==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C4701593B0;
-	Mon, 27 Apr 2026 09:21:56 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 051A8593B0;
+	Mon, 27 Apr 2026 11:27:41 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id TcAVLbQq72l2UAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 27 Apr 2026 09:21:56 +0000
+	id EY73OS1I72kaWgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 27 Apr 2026 11:27:41 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
-	jeremy@azazel.net,
 	phil@nwl.cc,
 	fw@strlen.de,
 	pablo@netfilter.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf v4] netfilter: nft_bitwise: fix dst corruption in same register shifts
-Date: Mon, 27 Apr 2026 11:21:18 +0200
-Message-ID: <20260427092117.4160-2-fmancera@suse.de>
+Subject: [PATCH 1/3 nf v4] netfilter: nf_socket: skip socket lookup for non-first fragments
+Date: Mon, 27 Apr 2026 13:27:18 +0200
+Message-ID: <20260427112720.5128-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -84,124 +82,92 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_TLS_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:mid,suse.de:email];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Queue-Id: 3F4985BCCD
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
+X-Spam-Score: -2.80
 X-Spam-Level: 
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-0.984];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RCPT_COUNT_FIVE(0.00)[6];
+	RCVD_TLS_ALL(0.00)[]
+X-Spam-Flag: NO
 
-For lshift and rshift, the shift operations are performed in a loop over
-32-bit words. The loop calculates the shifted value and write it to dst,
-and then immediately reads from src to calculate the carry for the next
-iteration. Because src and dst could point to the same memory location,
-the carry is incorrectly calculated using the newly modified dst value
-instead of the original src value.
+Both nft_socket and xt_socket relies on L4 headers to perform socket
+lookup in the slow path. For fragmented packets, while the IP protocol
+remains constant across all fragments, only the first fragment contains
+the actual L4 header.
 
-Adding a temporary local variable to cache the original value before
-writing to dst and using it for the carry calculation solves the
-problem. In addition, partial overlap is rejected from control plane for
-all kind of operations. This was tested with the following bytecode:
+As the expression/match could be attached to a chain with a priority
+lower than -400, it could bypass defragmentation.
 
-table test_table ip flags 0 use 1 handle 1
-ip test_table test_chain use 3 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
-ip test_table test_chain 2
-  [ immediate reg 1 0x44332211 0x88776655 ]
-  [ bitwise reg 1 = ( reg 1 << 0x08000000 ) ]
-  [ cmp eq reg 1 0x66443322 0x00887766 ]
-  [ counter pkts 0 bytes 0 ]
-ip test_table test_chain 4 3
-  [ immediate reg 1 0x44332211 0x88776655 ]
-  [ bitwise reg 1 = ( reg 1 << 0x08000000 ) ]
-  [ cmp eq reg 1 0x55443322 0x00887766 ]
-  [ counter pkts 21794 bytes 1917798 ]
+Add a check for fragmentation in the lookup functions directly so the
+problem is handled for both nft_socket and xt_socket at the same time.
+In addition, future users of the functions would not need to care about
+this.
 
-Fixes: 567d746b55bc ("netfilter: bitwise: add support for shifts.")
+Fixes: 902d6a4c2a4f ("netfilter: nf_defrag: Skip defrag if NOTRACK is set")
+Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
-v2: handled partially register overlap
-v3: reject partially overlap from control plane
-v4: applied the partial overlap check to all operations
+v3: added this patch to the series, I splitted this as the fix is
+generic for both nft_socket and xt_socket
+v4: no changes
 ---
- net/netfilter/nft_bitwise.c | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_socket_ipv4.c | 3 +++
+ net/ipv6/netfilter/nf_socket_ipv6.c | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 13808e9cd999..76e7ae96429d 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -43,8 +43,10 @@ static void nft_bitwise_eval_lshift(u32 *dst, const u32 *src,
- 	u32 carry = 0;
+diff --git a/net/ipv4/netfilter/nf_socket_ipv4.c b/net/ipv4/netfilter/nf_socket_ipv4.c
+index 5080fa5fbf6a..f9c6755f5ec5 100644
+--- a/net/ipv4/netfilter/nf_socket_ipv4.c
++++ b/net/ipv4/netfilter/nf_socket_ipv4.c
+@@ -94,6 +94,9 @@ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
+ #endif
+ 	int doff = 0;
  
- 	for (i = DIV_ROUND_UP(priv->len, sizeof(u32)); i > 0; i--) {
--		dst[i - 1] = (src[i - 1] << shift) | carry;
--		carry = src[i - 1] >> (BITS_PER_TYPE(u32) - shift);
-+		u32 tmp_src = src[i - 1];
++	if (ntohs(iph->frag_off) & IP_OFFSET)
++		return NULL;
 +
-+		dst[i - 1] = (tmp_src << shift) | carry;
-+		carry = tmp_src >> (BITS_PER_TYPE(u32) - shift);
+ 	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
+ 		struct tcphdr _hdr;
+ 		struct udphdr *hp;
+diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
+index ced8bd44828e..893f2aeb4711 100644
+--- a/net/ipv6/netfilter/nf_socket_ipv6.c
++++ b/net/ipv6/netfilter/nf_socket_ipv6.c
+@@ -100,6 +100,7 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 	const struct in6_addr *daddr = NULL, *saddr = NULL;
+ 	struct ipv6hdr *iph = ipv6_hdr(skb), ipv6_var;
+ 	struct sk_buff *data_skb = NULL;
++	unsigned short fragoff = 0;
+ 	int doff = 0;
+ 	int thoff = 0, tproto;
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+@@ -107,8 +108,8 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 	struct nf_conn const *ct;
+ #endif
+ 
+-	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
+-	if (tproto < 0) {
++	tproto = ipv6_find_hdr(skb, &thoff, -1, &fragoff, NULL);
++	if (tproto < 0 || fragoff) {
+ 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
+ 		return NULL;
  	}
- }
- 
-@@ -56,8 +58,10 @@ static void nft_bitwise_eval_rshift(u32 *dst, const u32 *src,
- 	u32 carry = 0;
- 
- 	for (i = 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++) {
--		dst[i] = carry | (src[i] >> shift);
--		carry = src[i] << (BITS_PER_TYPE(u32) - shift);
-+		u32 tmp_src = src[i];
-+
-+		dst[i] = carry | (tmp_src >> shift);
-+		carry = tmp_src << (BITS_PER_TYPE(u32) - shift);
- 	}
- }
- 
-@@ -244,6 +248,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 			    const struct nlattr * const tb[])
- {
- 	struct nft_bitwise *priv = nft_expr_priv(expr);
-+	unsigned int n;
- 	u32 len;
- 	int err;
- 
-@@ -264,6 +269,12 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
-+	n = DIV_ROUND_UP(priv->len, sizeof(u32));
-+	if (priv->sreg != priv->dreg &&
-+	    priv->dreg < priv->sreg + n &&
-+	    priv->sreg < priv->dreg + n)
-+		return -EINVAL;
-+
- 	if (tb[NFTA_BITWISE_OP]) {
- 		priv->op = ntohl(nla_get_be32(tb[NFTA_BITWISE_OP]));
- 		switch (priv->op) {
 -- 
 2.53.0
 
