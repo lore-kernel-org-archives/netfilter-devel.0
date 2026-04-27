@@ -1,144 +1,178 @@
-Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EA30359A65
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:27:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C9940DFA9
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 20:00:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777310851; cv=none; b=O3XnU59/47dsAkhpvDsGqkjm46snq9VpIuVLyN3LZo10KaXIl5WxLuJ8ig4F+F79bQAJAKfHxNKyUx/BPrtZV/vpoburQYHg2tR3Fg3aQWmB1E4X31lXqz/vpYiabU85rb7Ptii7IybfF/am0zhPv2mACej3mFdi4QzcxGQU38Q=
+	t=1777320042; cv=none; b=T4VTxmDTx3npuAsKxT3Rsmbrg/ayA0fW47m0MVZ3FiJzdZc2cKt/QhtUWle0htQRQKxcRlatlqjt0LGie8Im2SrUU2+3DvfmJ5uI8R1L71/MPSY4i2kOl3+E6y5Fc/eCdU2yoYIlxJMOOyGxwFlf/1UIATHLpQy8E1mOF2utV7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777310851; c=relaxed/simple;
-	bh=cshR2R8EYWLHnttddvuQPhrhTqxK3mfBoXOPWgeDAtI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=fE3+lWIk8M8IlB79ngd3gPqW1OKcyYMMsOCxbXVimynBLYjUJEG9xVWpMTg86mWEcvzBCf0noEmcpLJgLoZ/NT9gg517Uk0mgOQDt1EPpLJRhNwn9/fgqvag+gn4PvgpI21vMguqlNueH1Sg9QhtiOcfcPYwwR3aWoXCd49He4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-69492bc3a38so8311356eaf.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 10:27:29 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777310848; x=1777915648;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=CYjopPpYaJxYSiyLuTK+YXWn9hsUD1ElXWVwEnYsnlo=;
-        b=HAZQ1orjGMyf4v9BzcgVfQuEg3s2mk9UDOJtr9OUZtSy6cl+KxT2luwC06rB0XWIIh
-         ddmwHKGp7wQW7hHhofJHYK5oAFQoRMgiq/P9IUadgu3AT98pnZJJQpfx9RYqCoRNcFrH
-         Z+wAzK++FNrramYbgU9WQpmO00/BjGg0bOVRKoLhr4kOInMd5ziQBUpXZ47U9X3VAPAY
-         WibYpZC+W3UDLAlE3Z59friZ3AbcoEhI5YLjrH1tBqphnF19r6+MsnQfdbXzKIApDl9M
-         IWTpk+30i31bRmwJ995VsFbT6mlwN8rpZ8e6EalqvfpFbTUsXmFkjDW8UGqZMkrX/7GZ
-         ol2w==
-X-Forwarded-Encrypted: i=1; AFNElJ8kLnF3OGaJulnYn05SnL6gnYa5ELcrG+C4OWRRzgbC6Q08FAw0v6XA38pjo7VcXNEEbgBBf+pC0tYPifmn34Q=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyFzEKhl01IWQcrtF6DAkzn/r8Y7NtpqNEB7jkY6qezexsZLRe8
-	VdWw51MTVL58kvQ3AqigzOuB8Gq/4xIKJGN7w7FZ00mj/1Pg+sJ2wOtRffJx7TC29uVnoh1syfL
-	jiXzxz/gDenuKTzSK67sBJCDFg8Ws0c2So+RlrgCOv7cUSwG/igByc9qrYI8=
+	s=arc-20240116; t=1777320042; c=relaxed/simple;
+	bh=C0OBtAx/FF4Flfmg2AD8MJGK9mVKZtM50SvFQPg70Kg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nxLlN1cuLYB3j+4E82TxfZXZYsloU4Ib4b2j4gm4q6ZFIvQYKQqrnGIh/uPaAAHdjScMAWUIUxxscUSLtwHjwB9WLn7mrV7GPZ3sAQot+Lq0WuYk4rIL+NzN7MPlviZLS3gFpKTOoZP9JRzIkEg45o4ImmN7SkwXqDRiBwlg7os=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sGJNfHxz; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=PUgqJNSd; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=mDi0L5Uo; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=r/DIi7wZ; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sGJNfHxz";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="PUgqJNSd";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="mDi0L5Uo";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="r/DIi7wZ"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id B39A66A826;
+	Mon, 27 Apr 2026 20:00:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1777320038; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=VQzb5GxonsLziXI8kqQNlfhFLV2eHYtws8FQ98jDVz0=;
+	b=sGJNfHxzfvfpPaPaNim/gWGE1tYmDuyN2GYIKRixlNjRCWdjUkDqlP8bvzZbNZwwrl4i7P
+	3vXfv5bUspkCqJgUqFqaMew66q0nXAFKkFydsBs3k4cVcLZlAT+VtnzCJAPOFWCkx2NE72
+	YU8fMIyEckj9ZsWsw6Slfp35pQ+AMlE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1777320038;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=VQzb5GxonsLziXI8kqQNlfhFLV2eHYtws8FQ98jDVz0=;
+	b=PUgqJNSdETHtV66bhTdvQRtu6hU8tuGTTP5alos0i/juiFvtHPBPfA9g3pYeB66lHIhw+T
+	vaiGtS+B5b2W6LAA==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=mDi0L5Uo;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="r/DIi7wZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1777320035; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=VQzb5GxonsLziXI8kqQNlfhFLV2eHYtws8FQ98jDVz0=;
+	b=mDi0L5UoCMOBld/aJ3luiyfQZf46XC3mDKtV82sSdHG0W0+VEOpRR86fHB5e+Hk7qFwk2g
+	LLLzCyd9M4WpBap2KTnP1q1XCsGOnQQDpbZ+e9zfG+UxGUw3+L09IKcTTpBRlDPrr4etGD
+	T9E2U+eMZsFCOFHV/NH3QNKtW5Rz+BU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1777320035;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=VQzb5GxonsLziXI8kqQNlfhFLV2eHYtws8FQ98jDVz0=;
+	b=r/DIi7wZoqOgz5bdoisO0lqfNw8etSIFPBziAf/ree8s9m3wVdupbrF9rcXK3JcJJWWIuh
+	lDMN2b2OsRPDrQCA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 613B4593B0;
+	Mon, 27 Apr 2026 20:00:35 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id /B+WFGPA72lmXwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 27 Apr 2026 20:00:35 +0000
+Message-ID: <1fa9bf99-aa1f-4559-93bb-238a0d856582@suse.de>
+Date: Mon, 27 Apr 2026 22:00:26 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:1987:b0:696:21ad:a4f0 with SMTP id
- 006d021491bc7-69621ada98fmr10066287eaf.36.1777310848618; Mon, 27 Apr 2026
- 10:27:28 -0700 (PDT)
-Date: Mon, 27 Apr 2026 10:27:28 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <69ef9c80.050a0220.18b4f.0005.GAE@google.com>
-Subject: [syzbot] [lvs?] UBSAN: shift-out-of-bounds in ip_vs_rht_desired_size
-From: syzbot <syzbot+217f1db9c791e27fe54a@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@verge.net.au, ja@ssi.bg, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/3 nf v4] netfilter: xtables: fix L4 header parsing for
+ non-first fragments
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc
+References: <20260427112720.5128-1-fmancera@suse.de>
+ <20260427112720.5128-3-fmancera@suse.de> <ae-MRZ47QurmXY7z@chamomile>
+ <ae-P4Sbl-0vpFrUY@strlen.de> <ae-bk_I_8CZyg5qA@chamomile>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <ae-bk_I_8CZyg5qA@chamomile>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	URIBL_BLOCKED(0.00)[suse.de:dkim,suse.de:mid,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,netfilter.org:email];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	ARC_NA(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[5];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:dkim,suse.de:mid,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -4.51
+X-Spam-Level: 
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Queue-Id: B39A66A826
 
-Hello,
+On 4/27/26 7:23 PM, Pablo Neira Ayuso wrote:
+> On Mon, Apr 27, 2026 at 06:33:37PM +0200, Florian Westphal wrote:
+>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>> -               if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
+>>> +               if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+>>>                          return false;
+>>
+>> What is NFT_PKTINFO_L4PROTO supposed to mean?
+> 
+> "IP packet has been fully parsed"
+> 
 
-syzbot found the following issue on:
+I thought it was something different. Actually, I saw check before and 
+thought it was safe.
 
-HEAD commit:    e728258debd5 Merge tag 'net-7.1-rc1' of git://git.kernel.o..
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=169022ce580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ca77bfc4078c8193
-dashboard link: https://syzkaller.appspot.com/bug?extid=217f1db9c791e27fe54a
-compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+Let me adjust it on a v5 and thanks for pointing it out.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+>> I thought it meant there is an l4 header but its set unconditionally
+>> for ipv4.
+> 
+> Flag name is a misleading.
+> 
+> See my recent comment in this function:
+> 
+> static void nft_meta_pktinfo_may_update(struct nft_pktinfo *pkt)
+> {
+>          struct sk_buff *skb = pkt->skb;
+>          struct vlan_ethhdr *veth;
+>          __be16 ethertype;
+>          int nhoff;
+>                  
+>          /* Is this an IP packet? Then, skip. */
+>          if (pkt->flags)
+>                  return;
+> 
+>> Only the ipv6 handling makes sense to me.
+> 
+> Maybe a helper function can be added, eg. nft_ip() then this flag can
+> be renamed.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/24195bde5d1d/disk-e728258d.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/78131d1b0e14/vmlinux-e728258d.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/836d0dd78c10/bzImage-e728258d.xz
+I will revisit the flag and its usage. Because there might be some more 
+problematic uses. Anyway, the helper sounds like a good thing. Added to 
+my nf-next TO-DO list.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+217f1db9c791e27fe54a@syzkaller.appspotmail.com
+Thanks,
+Fernando.
 
-wlan0: No active IBSS STAs - trying to scan for other IBSS networks with same SSID (merge)
-------------[ cut here ]------------
-UBSAN: shift-out-of-bounds in ./include/linux/log2.h:57:13
-shift exponent 64 is too large for 64-bit type 'unsigned long'
-CPU: 1 UID: 0 PID: 77 Comm: kworker/u8:4 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/18/2026
-Workqueue: events_unbound conn_resize_work_handler
-Call Trace:
- <TASK>
- dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
- ubsan_epilogue+0xa/0x30 lib/ubsan.c:233
- __ubsan_handle_shift_out_of_bounds+0x385/0x410 lib/ubsan.c:494
- __roundup_pow_of_two include/linux/log2.h:57 [inline]
- ip_vs_rht_desired_size+0x2cf/0x410 net/netfilter/ipvs/ip_vs_core.c:240
- ip_vs_conn_desired_size net/netfilter/ipvs/ip_vs_conn.c:765 [inline]
- conn_resize_work_handler+0x1b6/0x14c0 net/netfilter/ipvs/ip_vs_conn.c:822
- process_one_work kernel/workqueue.c:3302 [inline]
- process_scheduled_works+0xb5d/0x1860 kernel/workqueue.c:3385
- worker_thread+0xa53/0xfc0 kernel/workqueue.c:3466
- kthread+0x388/0x470 kernel/kthread.c:436
- ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
----[ end trace ]---
-Kernel panic - not syncing: UBSAN: panic_on_warn set ...
-CPU: 1 UID: 0 PID: 77 Comm: kworker/u8:4 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/18/2026
-Workqueue: events_unbound conn_resize_work_handler
-Call Trace:
- <TASK>
- vpanic+0x56c/0xa60 kernel/panic.c:650
- panic+0xc5/0xd0 kernel/panic.c:787
- check_panic_on_warn+0x89/0xb0 kernel/panic.c:524
- __ubsan_handle_shift_out_of_bounds+0x385/0x410 lib/ubsan.c:494
- __roundup_pow_of_two include/linux/log2.h:57 [inline]
- ip_vs_rht_desired_size+0x2cf/0x410 net/netfilter/ipvs/ip_vs_core.c:240
- ip_vs_conn_desired_size net/netfilter/ipvs/ip_vs_conn.c:765 [inline]
- conn_resize_work_handler+0x1b6/0x14c0 net/netfilter/ipvs/ip_vs_conn.c:822
- process_one_work kernel/workqueue.c:3302 [inline]
- process_scheduled_works+0xb5d/0x1860 kernel/workqueue.c:3385
- worker_thread+0xa53/0xfc0 kernel/workqueue.c:3466
- kthread+0x388/0x470 kernel/kthread.c:436
- ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
