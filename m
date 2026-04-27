@@ -1,42 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 109D83B637A
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 12:37:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1793B95E9
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 12:37:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777293427; cv=none; b=Z/6Pe8M4ahBbkrH4oSljKSwfgCqf7ZKtJuwUHt9aamOfBYq3LnyK8mcOyLAoFMFWP0hdde9YpRtLA4AMgFL96f/E4QrsDCKrGwy1nckmrx+nhRPBsOFTs2vOYq49GG6I754fHRmt1WQdnhESqgg8MubWeil6J9Uvdm03rDA/PVI=
+	t=1777293427; cv=none; b=gBC0NlGNLsGTHCohtWlWERaxgdoPvmnaebxN9B6kAPwRXBs1Rp197pgP2J+5SRPWFP4CyAx63VPqsfY9bUxmCDDh7D2W8NPGgmrJQwJ0UJaJH/tLqHewRZAohuMgHS/ifyY9oY8IzIIcjzxx9oXhGHhHkFnb2OXr6v+QOOlTCUg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1777293427; c=relaxed/simple;
-	bh=YAHDj6OrMxAA7NeBV0yqj38YpnxdAl8VWbsE+s1EVEk=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O1EHyoWzEYo6V6DRhiTbNzZtXThzbGtBPVnUgVur3A3BBgoZ7xX4ChpJOfecCZCms7zDO5FDtPKRWUm3TtdOdistR5fnFdh6u4nIrAYyxpGVGzoqWFj6wEJPgIkEZjxnfujuUhmQWc7JNb5l595HJxrPfl1cpYCLr0xiFe9Yt/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rALDie6K; arc=none smtp.client-ip=217.70.190.124
+	bh=Tt+Xt1t1RuZ+3o09ttPFrf1YfKb/s9pIJyjK/3mOxUY=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=BLRnWLmAWZCwkxU65Ka5tVG25Br87J5BI6axGESFfEDjdfKiP0sxdtmjrpsV6+KXt5W5CP44vdd4bsd0jHOzAEalHaIidtt9sBmSHDFuoRaHP7BWigfYT1dQsi/T4rFii8HB0ZUalpUnKw+feyiAFQ1BcQfsL/bCzbztWSEVXpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uNx+0bjz; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rALDie6K"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uNx+0bjz"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3C1FC60181
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 14:36:59 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 02EAB6017D
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 14:36:56 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777293419;
-	bh=IYahGO1JvXj4O7AaxKnasc2U4IVAPVVPf90rIZQP5bA=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=rALDie6KzyPFYrA0+PlgKxxoq0Z0NKY44oE8kAjsfaGdxyNtuWmvtxDRUkcmNakGh
-	 OiGUwvcOLjZuHpyMlr5YKp7X9BHRKjAuGMscjK8DXqQE72GnfRpOQzEnWMAESaLx6M
-	 47Nbo8RYeTFkq03rJ6i3NZxfoBGchc+ZrlH5XygiCX6sDrzVhsRHjv0bnnLjkGQEZI
-	 VvBJxzVJ3tch5U8gQShJXuu04Df1pxljJaHCd4qjIJgrBSr2KH3tii88rLJsdYtadc
-	 DEWBdDuyJofaVDFLeNP5UjeOUh16VSfH5J2iqN1hHf1ZNGP0Ms639MXtYy8PWONXUH
-	 ONg5LW2idbw6g==
+	s=2025; t=1777293417;
+	bh=PzWJWJqTQju2F307osBi9NgoCltIXMSM13ktWnoYJ+4=;
+	h=From:To:Subject:Date:From;
+	b=uNx+0bjzH8+GuAMHtKqNoYTXCMR62GluIJ7ub2etErwal+SVaZ7LwatrG9dvE9KzF
+	 NpEeqyRGBSRKc4URywVVuQ/LiS1D1Elm60wU03XD67k/5J5Cgrrk+DrRT4BWK69Gj1
+	 bAbaMZEtrHNfURRelyfbcfqo/cZSUXZB60Wn5tj7EGM0ZmV36qhLQxmzKd0cItFkp/
+	 pRQz6tg5N5LRsO+JFQCmCd6VSoOFlVWGYTY8tBnG8nY+twmOdIL9vszGSZay6YQfnR
+	 uuDrd4rbwjBo3GmnY9FHozvQy77xofRmBlmECpZlEG4UbP/fVhBoJ/CyzgODzuCr1p
+	 /gyiKmAzdEO3g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v5 2/3] netfilter: nft_fwd_netdev: add device and headroom validate with neigh forwarding
-Date: Mon, 27 Apr 2026 14:36:52 +0200
-Message-ID: <20260427123653.9103-2-pablo@netfilter.org>
+Subject: [PATCH nf,v5 1/3] netfilter: replace skb_try_make_writable() by skb_ensure_writable()
+Date: Mon, 27 Apr 2026 14:36:51 +0200
+Message-ID: <20260427123653.9103-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260427123653.9103-1-pablo@netfilter.org>
-References: <20260427123653.9103-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,44 +42,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The ttl field has been decremented already and evaluation of this rule
-would proceed, just drop this packet instead if there is no destination
-device to forwards this packet. This is exactly what nf_dup already does
-in this case.
+skb_try_make_writable() only works on clones and uncloned packets might
+have their network header in paged fragments.
 
-Moreover, use skb_cow_head() to ensure there is sufficient headroom when
-forwarding this via neigh_xmit().
+nft_fwd needs to work for the ingress and egress hooks, but the egress
+hook where skb->data points to the mac header, use skb_network_offset()
+to include the mac header. The flowtable is fine since it already uses
+the transport offset.
 
 Fixes: d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer")
+Fixes: 7d2086871762 ("netfilter: nf_flow_table: move ipv4 offload hook code to nf_flow_table")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v5: rewrite patch title and add skb_cow_head() call
+v5: no changes
 
- net/netfilter/nft_fwd_netdev.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 4 ++--
+ net/netfilter/nft_fwd_netdev.c   | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 2cc809303ce8..94d6397f10a8 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -153,8 +153,15 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index fd56d663cb5b..dbd7644fdbeb 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -524,7 +524,7 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 		return 0;
  	}
  
- 	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
--	if (dev == NULL)
--		return;
-+	if (dev == NULL) {
-+		verdict = NF_DROP;
-+		goto out;
-+	}
-+
-+	if (skb_cow_head(skb, LL_RESERVED_SPACE(dev))) {
-+		verdict = NF_DROP;
-+		goto out;
-+	}
+-	if (skb_try_make_writable(skb, thoff + ctx->hdrsize))
++	if (skb_ensure_writable(skb, thoff + ctx->hdrsize))
+ 		return -1;
  
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
+ 	flow_offload_refresh(flow_table, flow, false);
+@@ -1037,7 +1037,7 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 		return 0;
+ 	}
+ 
+-	if (skb_try_make_writable(skb, thoff + ctx->hdrsize))
++	if (skb_ensure_writable(skb, thoff + ctx->hdrsize))
+ 		return -1;
+ 
+ 	flow_offload_refresh(flow_table, flow, false);
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index 4bce36c3a6a0..2cc809303ce8 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -100,6 +100,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 	int oif = regs->data[priv->sreg_dev];
+ 	unsigned int verdict = NF_STOLEN;
+ 	struct sk_buff *skb = pkt->skb;
++	int nhoff = skb_network_offset(skb);
+ 	struct net_device *dev;
+ 	int neigh_table;
+ 
+@@ -111,7 +112,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 			verdict = NFT_BREAK;
+ 			goto out;
+ 		}
+-		if (skb_try_make_writable(skb, sizeof(*iph))) {
++		if (skb_ensure_writable(skb, nhoff + sizeof(*iph))) {
+ 			verdict = NF_DROP;
+ 			goto out;
+ 		}
+@@ -132,7 +133,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 			verdict = NFT_BREAK;
+ 			goto out;
+ 		}
+-		if (skb_try_make_writable(skb, sizeof(*ip6h))) {
++		if (skb_ensure_writable(skb, nhoff + sizeof(*ip6h))) {
+ 			verdict = NF_DROP;
+ 			goto out;
+ 		}
 -- 
 2.47.3
 
