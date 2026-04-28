@@ -1,48 +1,48 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50394394462
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 15:19:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98EC2359A6C
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 15:19:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777389567; cv=none; b=KAurIzORoFdHe/yRVsp4XHPIxBfTCKv1M9PFcrI4yE/yPZJRDx+FyVYDZFxK6kunTP6OBNB6+jJBb2B8cgvS4iXVIi+vssPd9xzgy1Q8GTtEPm3US8C3+6/WzVJ4RyX21MddLO7Uelom1MK9K6Nd1W+2elyTDlyodyGZosoRJGc=
+	t=1777389567; cv=none; b=nuY9SEAyNQeGzpC2/cqY19QV0kaHUxOkqkifTt36XqBAQc2Qy1x/I50khW2mJi5XKYOTAXLOYwncpMGvCydA7TJrPlw48kJKqRSlIaPU32yyzBMw7PbKctum2CNfMIIVz6jXbLQhmD33/ncAV2qODYW5EraFFf2EarupRxSOL+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1777389567; c=relaxed/simple;
-	bh=ITnA7v/F1DvuPPmA/wUB9GEIZno4TChrND7eOq8ZZGY=;
+	bh=4PR3s4ldTqxK1IGlliu6c4u0Nh+fexsvb2N/I/y//FU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=OQMgZlRcj2bwZBXJUiGZVZ9YO9y0pueS0WYIj4jYNdQ+lGO6sTUBFquxbhTkNvcnX+rRUmnoTuq3XWO2AXflCfRB/ZxwqrZAYLL3od2id6Ct331pUhZtC2TTA7OhvmSEaZVCULtMKtCcp78aYREzA+Cs1obPD9xEUm4IBoOEYiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=G+I443EE; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=L5ppiW2p7QmRWOZC1pPQTS6z+RilPbWKF4rAVIPlj72P4LKyMIiONd427tu5x6/CXndxXCT9gUyUrm2JH7dw4ZiGmNoAF3nue2scLjTXHZ3UsK8JFv5/aWjmX6E+XSXm0AD9oUIC+CF0hPkcb/25OVq33LA9GIIs67M4WI3Oxtc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=QpMTFViJ; arc=none smtp.client-ip=148.6.0.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="G+I443EE"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="QpMTFViJ"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4g4kcN2N71z7s855;
-	Tue, 28 Apr 2026 17:19:16 +0200 (CEST)
+	by smtp1.kfki.hu (Postfix) with ESMTP id 4g4kcP2ndvzGFDMp;
+	Tue, 28 Apr 2026 17:19:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1777389553; x=1779203954; bh=SkiYUmAqLu
-	PoVPmdekXfHm/shyVNvuXhpy51pSOKYiY=; b=G+I443EE0n9NROOfpWw/LfGcT1
-	sZ02pwftDkXCB8lAyvDLqv32Vdzi6osegJVQiIKo+JVt1mH0wFu3c6c1DRLOI86a
-	m6pv1S6EDb0FpiNJpwigUGG3IYpvr4evtX9CIM9suSSgW6W/XYiH2x1w2AIW9yQ3
-	doXIRjGsvAGJBdeJE=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id RQGEkG-hgrRo; Tue, 28 Apr 2026 17:19:13 +0200 (CEST)
+	:received; s=20151130; t=1777389555; x=1779203956; bh=+xEURBhmlT
+	Ydd40zS6SZGv9bqG2AzPA3XWbRQNRV1X0=; b=QpMTFViJmSI3+p1gck0Qz5jeVc
+	i4ZZwgxVz1S0AtrGFbAQTqdVUloxIXcJTLdNJBe8lI3j4gY0ieatvtWoohewxh/8
+	ntrOnyStYMPnTVdfb9GxszSYDS1MIFntcbQ8Ca4urUa7XeE8VKXq/hES8PSL+NXd
+	s4wi5jsoCj90fG4FY=
+X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+ by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id 0sR2Fo5mGjpz; Tue, 28 Apr 2026 17:19:15 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (unknown [148.6.40.64])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4g4kcK4tMSz7s857;
+	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4g4kcK61mgzGFDMr;
 	Tue, 28 Apr 2026 17:19:13 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 7D3511413C5; Tue, 28 Apr 2026 17:19:13 +0200 (CEST)
+	id 81F191414AF; Tue, 28 Apr 2026 17:19:13 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/5] netfilter: ipset: annotate "pos" for concurrent readers/writers
-Date: Tue, 28 Apr 2026 17:19:11 +0200
-Message-Id: <20260428151913.584739-4-kadlec@netfilter.org>
+Subject: [PATCH 5/5] netfilter: ipset: fix order of usage counters
+Date: Tue, 28 Apr 2026 17:19:13 +0200
+Message-Id: <20260428151913.584739-6-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260428151913.584739-1-kadlec@netfilter.org>
 References: <20260428151913.584739-1-kadlec@netfilter.org>
@@ -54,278 +54,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-The "pos" structure member of struct hbucket stores the first
-free slot in the hash bucket of a hash type of set and there
-are concurrent readers/writers. Annotate accesses properly.
+Eulgyu Kim reported a slab-use-after-free issue when resizing
+a set and gc runs in parallel. Resizing may run parallel with
+already running gc or gc can start but notice that resizing
+started. The operation which finishes last must destroy the
+original set. The logic for the testing is: "I was the last
+user of the set and it was resized". However setting the
+counters in resizing was: "the set will be resized and I'm
+going to use the set". That created a small racing window
+at the testing phase. Fix the order in the resizing functions.
 
+Reported by: Eulgyu Kim <eulgyukim@snu.ac.kr>
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 62 ++++++++++++++++-----------
- 1 file changed, 38 insertions(+), 24 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
 ip_set_hash_gen.h
-index 133ce4611eed..04e4627ddfc1 100644
+index cc490460c52b..29af68347799 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -386,8 +386,9 @@ static void
- mtype_ext_cleanup(struct ip_set *set, struct hbucket *n)
- {
- 	int i;
-+	u8 pos =3D smp_load_acquire(&n->pos);
-=20
--	for (i =3D 0; i < n->pos; i++)
-+	for (i =3D 0; i < pos; i++)
- 		if (test_bit(i, n->used))
- 			ip_set_ext_destroy(set, ahash_data(n, i, set->dsize));
- }
-@@ -490,7 +491,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, stru=
-ct htable *t, u32 r)
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 k;
- #endif
--	u8 htable_bits =3D t->htable_bits;
-+	u8 pos, htable_bits =3D t->htable_bits;
-=20
- 	spin_lock_bh(&t->hregion[r].lock);
- 	for (i =3D ahash_bucket_start(r, htable_bits);
-@@ -498,7 +499,8 @@ mtype_gc_do(struct ip_set *set, struct htype *h, stru=
-ct htable *t, u32 r)
- 		n =3D __ipset_dereference(hbucket(t, i));
- 		if (!n)
- 			continue;
--		for (j =3D 0, d =3D 0; j < n->pos; j++) {
-+		pos =3D smp_load_acquire(&n->pos);
-+		for (j =3D 0, d =3D 0; j < pos; j++) {
- 			if (!test_bit(j, n->used)) {
- 				d++;
- 				continue;
-@@ -534,7 +536,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, stru=
-ct htable *t, u32 r)
- 				/* Still try to delete expired elements. */
- 				continue;
- 			tmp->size =3D n->size - AHASH_INIT_SIZE;
--			for (j =3D 0, d =3D 0; j < n->pos; j++) {
-+			for (j =3D 0, d =3D 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data =3D ahash_data(n, j, dsize);
-@@ -623,7 +625,7 @@ mtype_resize(struct ip_set *set, bool retried)
- {
- 	struct htype *h =3D set->data;
- 	struct htable *t, *orig;
--	u8 htable_bits;
-+	u8 pos, htable_bits;
- 	size_t hsize, dsize =3D set->dsize;
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 flags;
-@@ -685,7 +687,8 @@ mtype_resize(struct ip_set *set, bool retried)
- 			n =3D __ipset_dereference(hbucket(orig, i));
- 			if (!n)
- 				continue;
--			for (j =3D 0; j < n->pos; j++) {
-+			pos =3D smp_load_acquire(&n->pos);
-+			for (j =3D 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data =3D ahash_data(n, j, dsize);
-@@ -809,9 +812,10 @@ mtype_ext_size(struct ip_set *set, u32 *elements, si=
-ze_t *ext_size)
- {
- 	struct htype *h =3D set->data;
- 	const struct htable *t;
--	u32 i, j, r;
- 	struct hbucket *n;
- 	struct mtype_elem *data;
-+	u32 i, j, r;
-+	u8 pos;
-=20
- 	t =3D rcu_dereference_bh(h->table);
- 	for (r =3D 0; r < ahash_numof_locks(t->htable_bits); r++) {
-@@ -820,7 +824,8 @@ mtype_ext_size(struct ip_set *set, u32 *elements, siz=
-e_t *ext_size)
- 			n =3D rcu_dereference_bh(hbucket(t, i));
- 			if (!n)
- 				continue;
--			for (j =3D 0; j < n->pos; j++) {
-+			pos =3D smp_load_acquire(&n->pos);
-+			for (j =3D 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data =3D ahash_data(n, j, set->dsize);
-@@ -844,10 +849,11 @@ mtype_add(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	const struct mtype_elem *d =3D value;
- 	struct mtype_elem *data;
- 	struct hbucket *n, *old =3D ERR_PTR(-ENOENT);
--	int i, j =3D -1, npos =3D 0, ret;
-+	int i, j =3D -1, ret;
- 	bool flag_exist =3D flags & IPSET_FLAG_EXIST;
- 	bool deleted =3D false, forceadd =3D false, reuse =3D false;
- 	u32 r, key, multi =3D 0, elements, maxelem;
-+	u8 npos =3D 0;
-=20
- 	rcu_read_lock_bh();
- 	t =3D rcu_dereference_bh(h->table);
-@@ -889,8 +895,8 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 			ext_size(AHASH_INIT_SIZE, set->dsize);
- 		goto copy_elem;
- 	}
--	npos =3D n->pos;
--	for (i =3D 0; i < n->pos; i++) {
-+	npos =3D smp_load_acquire(&n->pos);
-+	for (i =3D 0; i < npos; i++) {
- 		if (!test_bit(i, n->used)) {
- 			/* Reuse first deleted entry */
- 			if (j =3D=3D -1) {
-@@ -934,7 +940,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	if (elements >=3D maxelem)
- 		goto set_full;
- 	/* Create a new slot */
--	if (n->pos >=3D n->size) {
-+	if (npos >=3D n->size) {
- #ifdef IP_SET_HASH_WITH_MULTI
- 		if (h->bucketsize >=3D AHASH_MAX_TUNED)
- 			goto set_full;
-@@ -963,8 +969,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	}
-=20
- copy_elem:
--	j =3D npos;
--	npos =3D n->pos + 1;
-+	j =3D npos++;
- 	data =3D ahash_data(n, j, set->dsize);
- copy_data:
- 	t->hregion[r].elements++;
-@@ -987,7 +992,8 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	if (SET_WITH_TIMEOUT(set))
- 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
- 	smp_mb__before_atomic();
--	n->pos =3D npos;
-+	/* Ensure all data writes are visible before updating position */
-+	smp_store_release(&n->pos, npos);
- 	set_bit(j, n->used);
- 	if (old !=3D ERR_PTR(-ENOENT)) {
- 		rcu_assign_pointer(hbucket(t, key), n);
-@@ -1046,6 +1052,7 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	int i, j, k, r, ret =3D -IPSET_ERR_EXIST;
- 	u32 key, multi =3D 0;
- 	size_t dsize =3D set->dsize;
-+	u8 pos;
-=20
- 	/* Userspace add and resize is excluded by the mutex.
- 	 * Kernespace add does not trigger resize.
-@@ -1061,7 +1068,8 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	n =3D rcu_dereference_bh(hbucket(t, key));
- 	if (!n)
- 		goto out;
--	for (i =3D 0, k =3D 0; i < n->pos; i++) {
-+	pos =3D smp_load_acquire(&n->pos);
-+	for (i =3D 0, k =3D 0; i < pos; i++) {
- 		if (!test_bit(i, n->used)) {
- 			k++;
- 			continue;
-@@ -1075,8 +1083,8 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 		ret =3D 0;
- 		clear_bit(i, n->used);
- 		smp_mb__after_atomic();
--		if (i + 1 =3D=3D n->pos)
--			n->pos--;
-+		if (i + 1 =3D=3D pos)
-+			smp_store_release(&n->pos, --pos);
- 		t->hregion[r].elements--;
- #ifdef IP_SET_HASH_WITH_NETS
- 		for (j =3D 0; j < IPSET_NET_COUNT; j++)
-@@ -1097,11 +1105,11 @@ mtype_del(struct ip_set *set, void *value, const =
-struct ip_set_ext *ext,
- 				x->flags =3D flags;
- 			}
- 		}
--		for (; i < n->pos; i++) {
-+		for (; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				k++;
- 		}
--		if (k =3D=3D n->pos) {
-+		if (k =3D=3D pos) {
- 			t->hregion[r].ext_size -=3D ext_size(n->size, dsize);
- 			rcu_assign_pointer(hbucket(t, key), NULL);
- 			kfree_rcu(n, rcu);
-@@ -1112,7 +1120,7 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 			if (!tmp)
- 				goto out;
- 			tmp->size =3D n->size - AHASH_INIT_SIZE;
--			for (j =3D 0, k =3D 0; j < n->pos; j++) {
-+			for (j =3D 0, k =3D 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data =3D ahash_data(n, j, dsize);
-@@ -1173,6 +1181,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_e=
-lem *d,
- 	int ret, i, j =3D 0;
- #endif
- 	u32 key, multi =3D 0;
-+	u8 pos;
-=20
- 	pr_debug("test by nets\n");
- 	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
-@@ -1190,7 +1199,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_e=
-lem *d,
- 		n =3D rcu_dereference_bh(hbucket(t, key));
- 		if (!n)
- 			continue;
--		for (i =3D 0; i < n->pos; i++) {
-+		pos =3D smp_load_acquire(&n->pos);
-+		for (i =3D 0; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				continue;
- 			data =3D ahash_data(n, i, set->dsize);
-@@ -1224,6 +1234,7 @@ mtype_test(struct ip_set *set, void *value, const s=
-truct ip_set_ext *ext,
- 	struct mtype_elem *data;
- 	int i, ret =3D 0;
- 	u32 key, multi =3D 0;
-+	u8 pos;
-=20
- 	rcu_read_lock_bh();
- 	t =3D rcu_dereference_bh(h->table);
-@@ -1246,7 +1257,8 @@ mtype_test(struct ip_set *set, void *value, const s=
-truct ip_set_ext *ext,
- 		ret =3D 0;
- 		goto out;
- 	}
--	for (i =3D 0; i < n->pos; i++) {
-+	pos =3D smp_load_acquire(&n->pos);
-+	for (i =3D 0; i < pos; i++) {
- 		if (!test_bit(i, n->used))
- 			continue;
- 		data =3D ahash_data(n, i, set->dsize);
-@@ -1363,6 +1375,7 @@ mtype_list(const struct ip_set *set,
- 	/* We assume that one hash bucket fills into one page */
- 	void *incomplete;
- 	int i, ret =3D 0;
-+	u8 pos;
-=20
- 	atd =3D nla_nest_start(skb, IPSET_ATTR_ADT);
- 	if (!atd)
-@@ -1381,7 +1394,8 @@ mtype_list(const struct ip_set *set,
- 			 cb->args[IPSET_CB_ARG0], t, n);
- 		if (!n)
- 			continue;
--		for (i =3D 0; i < n->pos; i++) {
-+		pos =3D smp_load_acquire(&n->pos);
-+		for (i =3D 0; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				continue;
- 			e =3D ahash_data(n, i, set->dsize);
+@@ -681,8 +681,8 @@ mtype_resize(struct ip_set *set, bool retried)
+ 	 * between the original and resized sets.
+ 	 */
+ 	orig =3D ipset_dereference_bh_nfnl(h->table);
+-	atomic_set(&orig->ref, 1);
+ 	atomic_inc(&orig->uref);
++	atomic_set(&orig->ref, 1);
+ 	pr_debug("attempt to resize set %s from %u to %u, t %p\n",
+ 		 set->name, orig->htable_bits, htable_bits, orig);
+ 	for (r =3D 0; r < ahash_numof_locks(orig->htable_bits); r++) {
 --=20
 2.39.5
 
