@@ -1,396 +1,192 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E19503E0C78;
-	Tue, 28 Apr 2026 09:58:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5689B3E276B;
+	Tue, 28 Apr 2026 10:02:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777370343; cv=none; b=GmBeWDJadUid5Lk+QcK8FJ30dmXBS1r+nF0h56jcKoCDH01TyJVgHtI5GPMvMYFPh/ZmTXqJakpwrUcLSeb8ipVp1WUH0P7a6O6wjdzVqQXyw9CjZxc4ejPs4aiNotu2daFQ8MDnDgK4PLyFPp0VTu3rphjaxWOpZwBnck7emqo=
+	t=1777370529; cv=none; b=PWd254C5aHad+gZcZw3/QfUvioEHybQ5txMkzZtsfrUju2OStek0jrIaRqaVblTTv1s9pGxbUjE7Cyzh5CtenzMdNgeGFoqKlCz8fehZDkMuukFPu5p3RqzVF0rgZjr0ciQRRNT6P+jC51LcgjJKHDS11JzBgBcYhu7CM6fV33I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777370343; c=relaxed/simple;
-	bh=cpeGSgO18OqL+TuUAJLCl28+Fjl0FsGL9cyD7ZaR20s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LhHp5Tebb9sHasKCVOAG0348qmMEt8dUPhOlINv7WTFEAu2qrwnD7yE80ukIB3M3I3JzvwkEcZBxx7twCRIoS6sGIMxSjxNl4QhcqVtvZfy+t0YvEigbwDpUF94keFW6i42C26vuAbFGNWpgK1dl1P3oulFzMa/cPaiLeYcmIGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=U6uWztjT; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777370529; c=relaxed/simple;
+	bh=7wZnek3T2WzkDUClNEn0Q4evHVM7o6mrY/FfK1YGXAs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EcwXk62Smy6N+veuvBpW0D20QncBq/vvs6C4QqGEAeUbCwIFgOBv92Oo3ay9UuFZqaN4JuiTSfpmXgt5FFL90izsISUNlUjP+AdiPfwgM5BEVzwylyGWfEB1q7eh6E3SYW/5qH745fzUtkrMRVH4cml8/1/wECGOjXNfPyKvmGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vZ+vV/f/; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="U6uWztjT"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9F76C60262;
-	Tue, 28 Apr 2026 11:58:55 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vZ+vV/f/"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id EF79060254;
+	Tue, 28 Apr 2026 12:02:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777370336;
-	bh=f2Kp6vJ3fdlnMrcG9G/X4zX1T8TZAUaDUHVJK78MrBY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=U6uWztjT7atPRyOJhYyM5c1lQ2Koxhw7oNzLZ7KAIX6uKPUdc+k/IA14CJJwqScav
-	 1VeqRkqEvOy5idxcQA0ZVoHu+73L0Fn2J3Fmfw31I934qY7/fllWqMLth4zdXKCyV2
-	 oxXYGDBfLsOgEzktjIfJ4EXRuP4SWODkcWTQ7UB9cIWjy4XWPwRTiEktf0lxWiLAcw
-	 k2+KjMenjRscWSv3DdW5cSE/Q9NedZeCYXg7o4GLzytGuZZPaJbQlKRU/cK06F8L1/
-	 UiwgxVacAqp7CZdlvBIP5q1OQT6AnJ89s2MFxfmFinpi+aADSTQOsUX4yZHoqJxH54
-	 kbXs7yElYkIWA==
+	s=2025; t=1777370522;
+	bh=mX1aKSwyKUDAIurw50IRSKGuAlkO8nsP16/ASR0ldxs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vZ+vV/f/JRxh0cPRGa3wlOvfVbLbtsfxjccG0rLLOfkFly+ptt3Hr2F08V7vcuJtT
+	 Bi0Pf+eDbdOxgxv+MQiFSGOAqeOfBvvwNgsBU1tHuy9jU866+0p1iaGscWN0SOkRZs
+	 EhXE++jtayzlJt701JfwctW4Lzp/dWNw3ZvDFh5oD1vdNqzA73xalIp4IE235lFXeA
+	 Xhj4iEmbhVopTbpWNdl/z1q4f0nUEal3n7lp0ymDiQSSvqeyZOTGn47xG26KsfGEy7
+	 VJc+NDuOng9gTbNohkziirJf7igXPXzGtzJZiu6a0qlSH3Rc2vUq6FSl4KBHLwzyni
+	 IwvG20crSREsg==
+Date: Tue, 28 Apr 2026 12:01:59 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 8/8] netfilter: nf_conntrack_sip: don't use simple_strtoul
-Date: Tue, 28 Apr 2026 11:58:39 +0200
-Message-ID: <20260428095840.51961-9-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260428095840.51961-1-pablo@netfilter.org>
-References: <20260428095840.51961-1-pablo@netfilter.org>
+To: Mathias Krause <minipli@grsecurity.net>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: nf_nat: avoid invalid nat_net pointer use
+ on failed nf_nat_init()
+Message-ID: <afCFlxjOiEs2ouKY@chamomile>
+References: <20260428090917.3851366-1-minipli@grsecurity.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260428090917.3851366-1-minipli@grsecurity.net>
 
-From: Florian Westphal <fw@strlen.de>
+On Tue, Apr 28, 2026 at 11:09:17AM +0200, Mathias Krause wrote:
+> We ran into below KASAN splat, which is mostly uninteresting, beside
+> for having nf_nat_register_fn() in the call chain as a cause for the
+> offending access:
+> 
+> ==================================================================
+> BUG: KASAN: slab-out-of-bounds in nf_nat_register_fn+0x5f9/0x640
+> Read of size 8 at addr ffff890031e54c20 by task iptables/9510
+> 
+> CPU: 0 UID: 0 PID: 9510 Comm: iptables Not tainted 6.18.18-grsec-full-20260320181326 #1 PREEMPT(voluntary)
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> Call Trace:
+>  <TASK>
+>  […] dump_stack_lvl+0xee/0x160 ffff88004117eeb8
+>  […] print_report+0x6e/0x640 ffff88004117eee0
+>  […] ? __phys_addr+0x8e/0x140 ffff88004117eef0
+>  […] ? kasan_addr_to_slab+0x51/0xe0 ffff88004117ef08
+>  […] ? complete_report_info+0xec/0x1c0 ffff88004117ef20
+>  […] ? nf_nat_register_fn+0x5f9/0x640 ffff88004117ef48
+>  […] kasan_report+0xbc/0x140 ffff88004117ef50
+>  […] ? nf_nat_register_fn+0x5f9/0x640 ffff88004117ef90
+>  […] nf_nat_register_fn+0x5f9/0x640 ffff88004117eff8
+>  […] ? nf_nat_icmp_reply_translation+0x6e0/0x6e0 ffff88004117f070
+>  […] nf_tables_register_hook.part.0+0xa0/0x220 ffff88004117f080
+>  […] nf_tables_addchain.constprop.0+0x1054/0x1fc0 ffff88004117f0b8
+>  […] ? nft_chain_lookup.part.0+0x4ce/0xac0 ffff88004117f130
+>  […] ? nf_tables_abort+0x3d80/0x3d80 ffff88004117f190
+>  […] ? nf_tables_dumpreset_obj+0x100/0x100 ffff88004117f1c8
+>  […] ? nft_table_lookup.part.0+0x255/0x300 ffff88004117f310
+>  […] ? nf_tables_newchain+0x21a4/0x2fa0 ffff88004117f358
+>  […] nf_tables_newchain+0x21a4/0x2fa0 ffff88004117f360
+>  […] ? nf_tables_addchain.constprop.0+0x1fc0/0x1fc0 ffff88004117f458
+>  […] ? nla_get_range_signed+0x4a0/0x4a0 ffff88004117f488
+>  […] ? lock_acquire+0x16f/0x320 ffff88004117f490
+>  […] ? find_held_lock+0x3b/0xe0 ffff88004117f4b0
+>  […] ? __nla_parse+0x45/0x80 ffff88004117f500
+>  […] nfnetlink_rcv_batch+0xbca/0x19a0 ffff88004117f550
+>  […] ? nfnetlink_net_exit_batch+0x120/0x120 ffff88004117f618
+>  […] ? __sanitizer_cov_trace_switch+0x63/0xe0 ffff88004117f720
+>  […] ? gr_acl_handle_mmap+0x1c4/0x320 ffff88004117f7c0
+>  […] ? nla_get_range_signed+0x4a0/0x4a0 ffff88004117f7e8
+>  […] ? gr_is_capable+0x6f/0xe0 ffff88004117f830
+>  […] ? __nla_parse+0x45/0x80 ffff88004117f860
+>  […] ? skb_pull+0x103/0x1a0 ffff88004117f880
+>  […] nfnetlink_rcv+0x3db/0x4a0 ffff88004117f8b0
+>  […] ? nfnetlink_rcv_batch+0x19a0/0x19a0 ffff88004117f8d8
+>  […] ? netlink_lookup+0xe2/0x240 ffff88004117f900
+>  […] netlink_unicast+0x74b/0xb00 ffff88004117f930
+>  […] ? netlink_attachskb+0xb20/0xb20 ffff88004117f980
+>  […] ? __check_object_size+0x3e/0xaa0 ffff88004117f998
+>  […] ? security_netlink_send+0x51/0x160 ffff88004117f9c8
+>  […] netlink_sendmsg+0xa03/0x1200 ffff88004117f9f8
+>  […] ? netlink_unicast+0xb00/0xb00 ffff88004117fa70
+>  […] ? netlink_unicast+0xb00/0xb00 ffff88004117fac8
+>  […] ? ____sys_sendmsg+0xe2a/0x1040 ffff88004117faf8
+>  […] ____sys_sendmsg+0xe2a/0x1040 ffff88004117fb00
+>  […] ? kernel_recvmsg+0x300/0x300 ffff88004117fb60
+>  […] ? reacquire_held_locks+0xe9/0x260 ffff88004117fbc8
+>  […] ___sys_sendmsg+0x138/0x200 ffff88004117fbf8
+>  […] ? do_recvmmsg+0x7e0/0x7e0 ffff88004117fc30
+>  […] ? lockdep_hardirqs_on_prepare+0x101/0x1e0 ffff88004117fc50
+>  […] ? lock_acquire+0x16f/0x320 ffff88004117fd20
+>  […] ? lock_acquire+0x16f/0x320 ffff88004117fd58
+>  […] ? find_held_lock+0x3b/0xe0 ffff88004117fd70
+>  […] __sys_sendmsg+0x17a/0x260 ffff88004117fdc8
+>  […] ? __sys_sendmsg_sock+0x80/0x80 ffff88004117fdf0
+>  […] ? syscall_trace_enter+0x15e/0x2c0 ffff88004117fe98
+>  […] do_syscall_64+0x7d/0x400 ffff88004117fec8
+>  […] entry_SYSCALL_64_safe_stack+0x4a/0x60 ffff88004117fef8
+>  </TASK>
+> ==================================================================
+> 
+> The out-of-bounds report, though, is a red herring as it is for an
+> access that shouldn't have happened in the first place.
+> 
+> When nf_nat_init() fails to register its BPF kfuncs, it'll unwind and,
+> among others, call unregister_pernet_subsys() to deregister its per-net
+> ops. This makes the previously allocated net id available for reuse by
+> the next caller of register_pernet_subsys(), in our case, synproxy.
+> However, 'nat_net_id' will still hold the previously allocated value.
+> 
+> If nf_nat.o gets build as a module, all this doesn't matter. A failed
+> initialization routine makes the module fail to load and any dependent
+> module won't be able to load either. However, if nf_nat.o is built-in,
+> a failing init won't /completely/ make its functionality unavailable to
+> dependent modules, namely the code and static data is still there, free
+> to be called by modules like nft_chain_nat.ko.
+> 
+> Case in point, nft_chain_nat registers hooks that'll call into nf_nat
+> which, in our case, failed to initialize and therefore won't have a
+> valid net id nor related net_nat object any more.
+> 
+> Code in nf_nat, namely nf_nat_register_fn() and nf_nat_unregister_fn(),
+> still making use of the reallocated net id, lead to a type confusion as
+> the call to net_generic() will no longer return memory belonging to an
+> object suited to fit 'struct nat_net' but 'struct synproxy_net' instead.
+> The latter is only 24 bytes on 64-bit systems, much smaller than struct
+> nat_net which is 176 bytes, perfectly explaining the OOB KASAN report.
+> 
+> Detect and handle a failed nf_nat_init() by testing the 'nf_nat_hook'
+> pointer which will be reset to NULL on initialization errors to prevent
+> the usage of an invalid nat_net pointer.
+> 
+> As this check is only needed when nf_nat.o is built-in, guard it by
+> '#ifndef MODULE...'.
+> 
+> Fixes: cbc1dd5b659f ("netfilter: nf_nat: Fix possible memory leak in nf_nat_init()")
+> Signed-off-by: Mathias Krause <minipli@grsecurity.net>
+> ---
+>  net/netfilter/nf_nat_core.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index 3b5434e4ec9c..76a150b9d418 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -1187,6 +1187,16 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+>  	struct nf_hook_ops *nat_ops;
+>  	int i, ret;
+>  
+> +#ifndef MODULE
+> +	/* If nf_nat_core is built-in and nf_nat_init() fails, dependent
+> +	 * modules like nft_chain_nat.ko may still call this function.
+> +	 * However, nat_net would be invalid, likely pointing to some other
+> +	 * per-net structure.
 
-Replace unsafe port parsing in epaddr_len(), ct_sip_parse_header_uri(),
-and ct_sip_parse_request() with a new sip_parse_port() helper that
-validates each digit against the buffer limit, eliminating the use of
-simple_strtoul() which assumes NUL-terminated strings.
+Hm, if nf_nat_init() fails, then nft_chain_nat should fail to load.
 
-The previous code dereferenced pointers without bounds checks after
-sip_parse_addr() and relied on simple_strtoul() on non-NUL-terminated
-skb data. A port that reaches the buffer limit without a trailing
-character is also rejected as malformed.
+Maybe there is a different way to validate this dependency?
 
-Also get rid of all simple_strtoul() usage in conntrack, prefer a
-stricter version instead.  There are intentional changes:
-
-- Bail out if number is > UINT_MAX and indicate a failure, same for
-  too long sequences.
-  While we do accept 05535 as port 5535, we will not accept e.g.
-  'sip:10.0.0.1:005060'.  While its syntactically valid under RFC 3261,
-  we should restrict this to not waste cycles when presented with
-  malformed packets with 64k '0' characters.
-
-- Force base 10 in ct_sip_parse_numerical_param(). This is used to fetch
-  'expire=' and 'rports='; both are expected to use base-10.
-
-- In nf_nat_sip.c, only accept the parsed value if its within the 1k-64k
-  range.
-
-- epaddr_len now returns 0 if the port is invalid, as it already does
-  for invalid ip addresses.  This is intentional. nf_conntrack_sip
-  performs lots of guesswork to find the right parts of the message
-  to parse.  Being stricter could break existing setups.
-  Connection tracking helpers are designed to allow traffic to
-  pass, not to block it.
-
-Based on an earlier patch from Jenny Guanni Qu <qguanni@gmail.com>.
-
-Fixes: 05e3ced297fe ("[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper")
-Reported-by: Klaudia Kloc <klaudia@vidocsecurity.com>
-Reported-by: Dawid Moczadło <dawid@vidocsecurity.com>
-Reported-by: Jenny Guanni Qu <qguanni@gmail.com>.
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_sip.c | 152 ++++++++++++++++++++++++-------
- net/netfilter/nf_nat_sip.c       |   1 +
- 2 files changed, 119 insertions(+), 34 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 182cfb119448..1eb55907d470 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -181,6 +181,57 @@ static int sip_parse_addr(const struct nf_conn *ct, const char *cp,
- 	return 1;
- }
- 
-+/* Parse optional port number after IP address.
-+ * Returns false on malformed input, true otherwise.
-+ * If port is non-NULL, stores parsed port in network byte order.
-+ * If no port is present, sets *port to default SIP port.
-+ */
-+static bool sip_parse_port(const char *dptr, const char **endp,
-+			   const char *limit, __be16 *port)
-+{
-+	unsigned int p = 0;
-+	int len = 0;
-+
-+	if (dptr >= limit)
-+		return false;
-+
-+	if (*dptr != ':') {
-+		if (port)
-+			*port = htons(SIP_PORT);
-+		if (endp)
-+			*endp = dptr;
-+		return true;
-+	}
-+
-+	dptr++; /* skip ':' */
-+
-+	while (dptr < limit && isdigit(*dptr)) {
-+		p = p * 10 + (*dptr - '0');
-+		dptr++;
-+		len++;
-+		if (len > 5) /* max "65535" */
-+			return false;
-+	}
-+
-+	if (len == 0)
-+		return false;
-+
-+	/* reached limit while parsing port */
-+	if (dptr >= limit)
-+		return false;
-+
-+	if (p < 1024 || p > 65535)
-+		return false;
-+
-+	if (port)
-+		*port = htons(p);
-+
-+	if (endp)
-+		*endp = dptr;
-+
-+	return true;
-+}
-+
- /* skip ip address. returns its length. */
- static int epaddr_len(const struct nf_conn *ct, const char *dptr,
- 		      const char *limit, int *shift)
-@@ -193,11 +244,8 @@ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
- 		return 0;
- 	}
- 
--	/* Port number */
--	if (*dptr == ':') {
--		dptr++;
--		dptr += digits_len(ct, dptr, limit, shift);
--	}
-+	if (!sip_parse_port(dptr, &dptr, limit, NULL))
-+		return 0;
- 	return dptr - aux;
- }
- 
-@@ -228,6 +276,51 @@ static int skp_epaddr_len(const struct nf_conn *ct, const char *dptr,
- 	return epaddr_len(ct, dptr, limit, shift);
- }
- 
-+/* simple_strtoul stops after first non-number character.
-+ * But as we're not dealing with c-strings, we can't rely on
-+ * hitting \r,\n,\0 etc. before moving past end of buffer.
-+ *
-+ * This is a variant of simple_strtoul, but doesn't require
-+ * a c-string.
-+ *
-+ * If value exceeds UINT_MAX, 0 is returned.
-+ */
-+static unsigned int sip_strtouint(const char *cp, unsigned int len, char **endp)
-+{
-+	const unsigned int max = sizeof("4294967295");
-+	unsigned int olen = len;
-+	const char *s = cp;
-+	u64 result = 0;
-+
-+	if (len > max)
-+		len = max;
-+
-+	while (olen > 0 && isdigit(*s)) {
-+		unsigned int value;
-+
-+		if (len == 0)
-+			goto err;
-+
-+		value = *s - '0';
-+		result = result * 10 + value;
-+
-+		if (result > UINT_MAX)
-+			goto err;
-+		s++;
-+		len--;
-+		olen--;
-+	}
-+
-+	if (endp)
-+		*endp = (char *)s;
-+
-+	return result;
-+err:
-+	if (endp)
-+		*endp = (char *)cp;
-+	return 0;
-+}
-+
- /* Parse a SIP request line of the form:
-  *
-  * Request-Line = Method SP Request-URI SP SIP-Version CRLF
-@@ -241,7 +334,6 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- {
- 	const char *start = dptr, *limit = dptr + datalen, *end;
- 	unsigned int mlen;
--	unsigned int p;
- 	int shift = 0;
- 
- 	/* Skip method and following whitespace */
-@@ -267,14 +359,8 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- 
- 	if (!sip_parse_addr(ct, dptr, &end, addr, limit, true))
- 		return -1;
--	if (end < limit && *end == ':') {
--		end++;
--		p = simple_strtoul(end, (char **)&end, 10);
--		if (p < 1024 || p > 65535)
--			return -1;
--		*port = htons(p);
--	} else
--		*port = htons(SIP_PORT);
-+	if (!sip_parse_port(end, &end, limit, port))
-+		return -1;
- 
- 	if (end == dptr)
- 		return 0;
-@@ -509,7 +595,6 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 			    union nf_inet_addr *addr, __be16 *port)
- {
- 	const char *c, *limit = dptr + datalen;
--	unsigned int p;
- 	int ret;
- 
- 	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
-@@ -520,14 +605,8 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 
- 	if (!sip_parse_addr(ct, dptr + *matchoff, &c, addr, limit, true))
- 		return -1;
--	if (*c == ':') {
--		c++;
--		p = simple_strtoul(c, (char **)&c, 10);
--		if (p < 1024 || p > 65535)
--			return -1;
--		*port = htons(p);
--	} else
--		*port = htons(SIP_PORT);
-+	if (!sip_parse_port(c, &c, limit, port))
-+		return -1;
- 
- 	if (dataoff)
- 		*dataoff = c - dptr;
-@@ -609,7 +688,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
- 		return 0;
- 
- 	start += strlen(name);
--	*val = simple_strtoul(start, &end, 0);
-+	*val = sip_strtouint(start, limit - start, (char **)&end);
- 	if (start == end)
- 		return -1;
- 	if (matchoff && matchlen) {
-@@ -1064,6 +1143,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
- 
- 	mediaoff = sdpoff;
- 	for (i = 0; i < ARRAY_SIZE(sdp_media_types); ) {
-+		char *end;
-+
- 		if (ct_sip_get_sdp_header(ct, *dptr, mediaoff, *datalen,
- 					  SDP_HDR_MEDIA, SDP_HDR_UNSPEC,
- 					  &mediaoff, &medialen) <= 0)
-@@ -1079,8 +1160,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
- 		mediaoff += t->len;
- 		medialen -= t->len;
- 
--		port = simple_strtoul(*dptr + mediaoff, NULL, 10);
--		if (port == 0)
-+		port = sip_strtouint(*dptr + mediaoff, *datalen - mediaoff, (char **)&end);
-+		if (port == 0 || *dptr + mediaoff == end)
- 			continue;
- 		if (port < 1024 || port > 65535) {
- 			nf_ct_helper_log(skb, ct, "wrong port %u", port);
-@@ -1254,7 +1335,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	 */
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
-+		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
- 
- 	ret = ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
- 				      SIP_HDR_CONTACT, NULL,
-@@ -1358,7 +1439,7 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
-+		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
- 
- 	while (1) {
- 		unsigned int c_expires = expires;
-@@ -1418,10 +1499,12 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	unsigned int matchoff, matchlen, matchend;
- 	unsigned int code, cseq, i;
-+	char *end;
- 
- 	if (*datalen < strlen("SIP/2.0 200"))
- 		return NF_ACCEPT;
--	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
-+	code = sip_strtouint(*dptr + strlen("SIP/2.0 "),
-+			     *datalen - strlen("SIP/2.0 "), NULL);
- 	if (!code) {
- 		nf_ct_helper_log(skb, ct, "cannot get code");
- 		return NF_DROP;
-@@ -1432,8 +1515,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 		nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 		return NF_DROP;
- 	}
--	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
--	if (!cseq && *(*dptr + matchoff) != '0') {
-+	cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
-+	if (*dptr + matchoff == end) {
- 		nf_ct_helper_log(skb, ct, "cannot get cseq");
- 		return NF_DROP;
- 	}
-@@ -1482,6 +1565,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 
- 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
- 		const struct sip_handler *handler;
-+		char *end;
- 
- 		handler = &sip_handlers[i];
- 		if (handler->request == NULL)
-@@ -1498,8 +1582,8 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 			nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 			return NF_DROP;
- 		}
--		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
--		if (!cseq && *(*dptr + matchoff) != '0') {
-+		cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
-+		if (*dptr + matchoff == end) {
- 			nf_ct_helper_log(skb, ct, "cannot get cseq");
- 			return NF_DROP;
- 		}
-@@ -1575,7 +1659,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 				      &matchoff, &matchlen) <= 0)
- 			break;
- 
--		clen = simple_strtoul(dptr + matchoff, (char **)&end, 10);
-+		clen = sip_strtouint(dptr + matchoff, datalen - matchoff, (char **)&end);
- 		if (dptr + matchoff == end)
- 			break;
- 
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index c845b6d1a2bd..9fbfc6bff0c2 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -246,6 +246,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
- 						 "rport=", &poff, &plen,
- 						 &n) > 0 &&
-+		    n >= 1024 && n <= 65535 &&
- 		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
- 		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
- 			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
--- 
-2.47.3
-
+> +	 */
+> +	if (WARN_ON_ONCE(!nf_nat_hook))
+> +		return -EOPNOTSUPP;
+> +#endif
+> +
+>  	if (WARN_ON_ONCE(pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
+>  		return -EINVAL;
+>  
+> -- 
+> 2.47.3
+> 
