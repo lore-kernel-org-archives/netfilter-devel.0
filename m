@@ -1,27 +1,62 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E2AD44D022
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 17:41:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F66338D007;
+	Tue, 28 Apr 2026 17:57:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777398114; cv=none; b=qTQfinbYhOCg952lNf+PtETg/tI6Xm4O+Rg2O0V9oH4X86oqKnIEmfXQ3UYdpPInibMm7NDU7ghSqBeWJRPWrGdh0UVCZ6Mke+leOFLNdGX4ynmZFE7OPYeW8IYGhv6C/zDr79f7sy13a7uycpMSv13WiWnFhv9Juaq6HzFJCWA=
+	t=1777399081; cv=none; b=tisOUuRTTgtv2Wt57ecj8mayexfYnTdDGpt1BDpt/syDIGYEBtEdO45jRdUihuN886E2+RaRaHXbVHrIipeQlXsDgJMe/qhMnQ4ZFZXjd2fA8F2+qeDjFAGXUrISjg9hjkofSobzbaQaldgYDR6PVsBhyxsAYJaUG0pAXMY65YY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777398114; c=relaxed/simple;
-	bh=8mUgn8gYZ7wybOzSRhjEXcennaKpyJGHLCbcD26Pb/M=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TlbOsAAEACc2JHXQwPop0w+ePQMJjyE059LyhXN64ZZH8ctl0okNYw5GAFqaxNpU1cn8JZ14Z65ZlwESpGaj/P6Jeoo1N3kEfwJ0yD54OoSMpXH4Ykzp9+9zDAbPb0vPqrTDGj5WASp70NQz3sEao2Dqz5XXBn9J38aRMB8zlUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 39F3760420; Tue, 28 Apr 2026 19:41:51 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH conntrack-tools] tests: nfct: make it suitable for CI pipeline
-Date: Tue, 28 Apr 2026 19:41:26 +0200
-Message-ID: <20260428174130.14287-1-fw@strlen.de>
+	s=arc-20240116; t=1777399081; c=relaxed/simple;
+	bh=jkm7r/R3dWnnO03jj/+18wNZJ5urLHsZyk9p+l5sH2M=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ZUu8Z4DtSRCxK01xKEKauvrOQiit425equVtsrCptZKAB4KNV4E83fJ/flkbrnMCNANlDZrWPrZL2S6P51OUSc3/FbQW0uha8XxtiNWWWa9vOE9BCHqPhIgrRGTzFZwGJ15Sm3/iJePWjeVt9KcCR80VsWv2eG9ghks9Tg6D7k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=srD0yW1/; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="srD0yW1/"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id B5EA4211C1;
+	Tue, 28 Apr 2026 20:57:53 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=yGih8EcvEzdVGxUHmXhJRDRnWAJYxMzx8DbWAxAe2F8=; b=srD0yW1/A1Tn
+	2PXZQGInSot5R9eWIdfi7BrsfDJSo9hW+wNkbFP3wtDeeo/NswSyi5hOHFki2XYW
+	yKUwluSjjcZWcLmYd5KQ8m/9zeUNT32efkd3F+6S/hNlzl1EwIIwSPrs7z2f2V5K
+	Nr/7l0qviBeSdpxxctd83k6L/wt/8ZjNkKPu2JAaPWzx23vq420+VCTze/KbwLOL
+	f02gE2+jVf4WrUq8sfxs3miHKWNmOa0H/qYTbQ+g0AjgfogFV1iq8D6IwKOINhpM
+	kF5x81VAlyHmM7xEGeJ64/r3bg2VUg3G342+/7H8jIGdWItRyBRxlchRABf1DHqI
+	raGctBS3GkozU40OP1lpBWFcTg68EnZtthhGy38chVaxS5KpwHROgUh7HX6Xpk48
+	uzCsojMhHs2aJoHxjVL59GSfaX2isiq3zPSzwaDUFnXRYtP2qBJanuFzyV277eSq
+	BzrLf+spqT9slvVxJdM1MbL1NuqCPbF8i6FznwiQclutVSVX7OGvTVlcNGpNW9IE
+	SaeTTC+c/e+l5w5tW7zYfUsjhRTE4jykTC5Wv9CXq9vyCSjduBc8pwX7CpOMlY4T
+	w9TwxzRJlE18e0fOWweBTHnO49ATks9wePC95WFsbg+d8w2xsAX0L/Z/l6bkpI49
+	SdzM0A1s+rD40QObew5jjDYBjJofkPo=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Tue, 28 Apr 2026 20:57:52 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 55AD66089E;
+	Tue, 28 Apr 2026 20:57:50 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63SHvnGS072082;
+	Tue, 28 Apr 2026 20:57:49 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 63SHvnAO072081;
+	Tue, 28 Apr 2026 20:57:49 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        Waiman Long <longman@redhat.com>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/7] ipvs: fixes for the new ip_vs_status info
+Date: Tue, 28 Apr 2026 20:57:19 +0300
+Message-ID: <20260428175725.72050-2-ja@ssi.bg>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260428175725.72050-1-ja@ssi.bg>
+References: <20260428175725.72050-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,280 +65,199 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-1. make run-test.sh call test prog via unshare -n.
-2. remove various modprobe calls, these are all built into
-   nf_conntrack.ko.
-3. make test.c exit nonzero when bad tests are detected.
-4. remove dccp+udplite, they fail on modern kernels due to removal of
-   these protocols.
-5. update test-live.sh.  Auto-rexec via unshare. Streamline output:
+Sashiko reports some problems for the recently added
+/proc/net/ip_vs_status:
 
-Check timeout policy test-generic for protocol 13
-    [NEW] unknown  13 3 src=10.0.0.1 dst=8.8.8.8 [UNREPLIED] src=8.8.8.8 dst=10.0.0.1
-Check timeout policy test-tcp for protocol tcp
-    [NEW] tcp      6 2 SYN_SENT src=10.0.0.1 dst=8.8.8.8 sport=5050 dport=80 [UNREPLIED] src=8.8.8.8 dst=10.0.0.1 sport=80 dport=5050
-Check timeout policy test-icmp for protocol icmp
-    [NEW] icmp     1 4 src=10.0.0.1 dst=8.8.8.8 type=8 code=0 id=41473 [UNREPLIED] src=8.8.8.8 dst=10.0.0.1 type=0 code=0 id=41473
+* ip_vs_status_show() as a table reader may run long after the
+conn_tab and svc_table table are released. While ip_vs_conn_flush()
+properly changes the conn_tab_changes counter when conn_tab is removed,
+ip_vs_del_service() and ip_vs_flush() were missing such change for
+the svc_table_changes counter. As result, readers like
+ip_vs_dst_event() and ip_vs_status_show() may continue to use
+a freed table after a cond_resched_rcu() call.
 
-The effective timeout is validated by checking the new timeout reported
-via ctnetlink.
+* While counting the buckets in ip_vs_status_show() make sure we
+traverse only the needed number of entries in the chain. This also
+prevents possible overflow of the 'count' variable.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+* Add check for 'loops' to prevent infinite loops while restarting
+the traversal on table change.
+
+* While IP_VS_CONN_TAB_MAX_BITS is 20 on 32-bit platforms and
+there is no risk to overflow when multiplying the number of
+conn_tab buckets to 100, prefer the div_u64() helper to make
+the following dividing safer.
+
+* Use 0440 permissions for ip_vs_status to restrict the
+info only to root due to the exported information for hash
+distribution.
+
+Link: https://sashiko.dev/#/patchset/20260410112352.23599-1-fw%40strlen.de
+Fixes: 9a9ccef907a7 ("ipvs: add ip_vs_status info")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- tests/nfct/run-test.sh       |  15 +----
- tests/nfct/test-live.sh      | 125 +++++++++++++++++++++++------------
- tests/nfct/test.c            |   4 ++
- tests/nfct/timeout/03udplite |  16 -----
- tests/nfct/timeout/07dccp    |  16 -----
- 5 files changed, 89 insertions(+), 87 deletions(-)
- mode change 100644 => 100755 tests/nfct/run-test.sh
- mode change 100644 => 100755 tests/nfct/test-live.sh
- delete mode 100644 tests/nfct/timeout/03udplite
- delete mode 100644 tests/nfct/timeout/07dccp
+ net/netfilter/ipvs/ip_vs_ctl.c | 51 ++++++++++++++++++++++++----------
+ 1 file changed, 36 insertions(+), 15 deletions(-)
 
-diff --git a/tests/nfct/run-test.sh b/tests/nfct/run-test.sh
-old mode 100644
-new mode 100755
-index f5f220baebf1..88999f8c8517
---- a/tests/nfct/run-test.sh
-+++ b/tests/nfct/run-test.sh
-@@ -7,16 +7,5 @@ then
- 	exit 1
- fi
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 6632daa87ded..27e50afe9a54 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2032,6 +2032,9 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
+ 		cancel_delayed_work_sync(&ipvs->svc_resize_work);
+ 		if (t) {
+ 			rcu_assign_pointer(ipvs->svc_table, NULL);
++			/* Inform readers that table is removed */
++			smp_mb__before_atomic();
++			atomic_inc(&ipvs->svc_table_changes);
+ 			while (1) {
+ 				p = rcu_dereference_protected(t->new_tbl, 1);
+ 				call_rcu(&t->rcu_head, ip_vs_rht_rcu_free);
+@@ -2078,6 +2081,9 @@ static int ip_vs_flush(struct netns_ipvs *ipvs, bool cleanup)
+ 	t = rcu_dereference_protected(ipvs->svc_table, 1);
+ 	if (t) {
+ 		rcu_assign_pointer(ipvs->svc_table, NULL);
++		/* Inform readers that table is removed */
++		smp_mb__before_atomic();
++		atomic_inc(&ipvs->svc_table_changes);
+ 		while (1) {
+ 			p = rcu_dereference_protected(t->new_tbl, 1);
+ 			call_rcu(&t->rcu_head, ip_vs_rht_rcu_free);
+@@ -3004,7 +3010,8 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 	int old_gen, new_gen;
+ 	u32 counts[8];
+ 	u32 bucket;
+-	int count;
++	u32 count;
++	int loops;
+ 	u32 sum1;
+ 	u32 sum;
+ 	int i;
+@@ -3020,6 +3027,7 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 	if (!atomic_read(&ipvs->conn_count))
+ 		goto after_conns;
+ 	old_gen = atomic_read(&ipvs->conn_tab_changes);
++	loops = 0;
  
--gcc test.c -o test
--#
--# XXX: module auto-load not support by nfnetlink_cttimeout yet :-(
--#
--# any or all of these might be built-ins rather than modules, so don't error
--# out on failure from modprobe
--modprobe nf_conntrack_ipv4 || true
--modprobe nf_conntrack_ipv6 || true
--modprobe nf_conntrack_proto_udplite || true
--modprobe nf_conntrack_proto_sctp || true
--modprobe nf_conntrack_proto_dccp || true
--modprobe nf_conntrack_proto_gre || true
--./test timeout
-+test -x test || gcc test.c -o test
-+exec unshare -n ./test timeout
-diff --git a/tests/nfct/test-live.sh b/tests/nfct/test-live.sh
-old mode 100644
-new mode 100755
-index 22570875f4e6..6f752ee61f59
---- a/tests/nfct/test-live.sh
-+++ b/tests/nfct/test-live.sh
-@@ -3,71 +3,112 @@
- # simple testing for cttimeout infrastructure using one single computer
- #
+ repeat_conn:
+ 	smp_rmb(); /* ipvs->conn_tab and conn_tab_changes */
+@@ -3032,8 +3040,11 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 			resched_score++;
+ 			ip_vs_rht_walk_bucket_rcu(t, bucket, head) {
+ 				count = 0;
+-				hlist_bl_for_each_entry_rcu(hn, e, head, node)
++				hlist_bl_for_each_entry_rcu(hn, e, head, node) {
+ 					count++;
++					if (count >= ARRAY_SIZE(counts) - 1)
++						break;
++				}
+ 			}
+ 			resched_score += count;
+ 			if (resched_score >= 100) {
+@@ -3042,37 +3053,41 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 				new_gen = atomic_read(&ipvs->conn_tab_changes);
+ 				/* New table installed ? */
+ 				if (old_gen != new_gen) {
++					/* Too many changes? */
++					if (++loops >= 5)
++						goto after_conns;
+ 					old_gen = new_gen;
+ 					goto repeat_conn;
+ 				}
+ 			}
+-			counts[min(count, (int)ARRAY_SIZE(counts) - 1)]++;
++			counts[count]++;
+ 		}
+ 	}
+ 	for (sum = 0, i = 0; i < ARRAY_SIZE(counts); i++)
+ 		sum += counts[i];
+ 	sum1 = sum - counts[0];
+-	seq_printf(seq, "Conn buckets empty:\t%u (%lu%%)\n",
+-		   counts[0], (unsigned long)counts[0] * 100 / max(sum, 1U));
++	seq_printf(seq, "Conn buckets empty:\t%u (%llu%%)\n",
++		   counts[0], div_u64((u64)counts[0] * 100U, max(sum, 1U)));
+ 	for (i = 1; i < ARRAY_SIZE(counts); i++) {
+ 		if (!counts[i])
+ 			continue;
+-		seq_printf(seq, "Conn buckets len-%d:\t%u (%lu%%)\n",
++		seq_printf(seq, "Conn buckets len-%d:\t%u (%llu%%)\n",
+ 			   i, counts[i],
+-			   (unsigned long)counts[i] * 100 / max(sum1, 1U));
++			   div_u64((u64)counts[i] * 100U, max(sum1, 1U)));
+ 	}
  
--WAIT_BETWEEN_TESTS=10
--
--# flush cttimeout table
--nfct flush timeout
--
--# flush the conntrack table
--conntrack -F
-+if [ "$1" != "run" ] ;then
-+	exec unshare -n ./$0 "run"
-+fi
-+
-+die() {
-+	echo "$@"
-+	exit 1
-+}
-+
-+warn() {
-+	echo "WARN: $@"
-+}
-+
-+tmp=$(mktemp)
-+cleanup()
-+{
-+	ip link del eth0
-+	rm -f "$tmp"
-+}
-+trap cleanup EXIT
-+
-+ret=0
-+check_timeout() {
-+	local proto="$1"
-+	local timeout="$2"
-+
-+	if ! grep '[NEW]' "$tmp" | grep "$proto $timeout";then
-+		warn "Did not find expected output, got:"
-+		cat "$tmp"
-+		echo ----- EOF -----
-+		ret=1
-+	fi
-+}
-+
-+add_rule() {
-+	local proto="$1"
-+	local name="$2"
-+
-+	echo "Check timeout policy $name for protocol $proto"
-+	iptables -I OUTPUT -t raw -p "$proto" -j CT --timeout "$name" || die "can't add -p $proto -j CT $name"
-+}
-+
-+rm_rules() {
-+	local proto="$1"
-+	local name="$2"
-+
-+	iptables -D OUTPUT -t raw -p $proto -j CT --timeout "$name" || warn "can't remove $proto $name rule"
-+	nfct del timeout "$name" || warn "can't remove $name policy"
-+}
-+
-+ip link add eth0 type dummy
-+ip link set eth0 up
-+ip link set lo up
-+ip addr add 10.0.0.1/8 dev eth0
-+ip route add default via 10.0.0.99 dev eth0
-+
-+WAIT_BETWEEN_TESTS=5
+ after_conns:
+ 	t = rcu_dereference(ipvs->svc_table);
  
- #
- # No.1: test generic timeout policy
- #
-+conntrack -E -p 13 > "$tmp" 2>/dev/null &
-+pid=$!
+ 	count = ip_vs_get_num_services(ipvs);
+-	seq_printf(seq, "Services:\t%d\n", count);
++	seq_printf(seq, "Services:\t%u\n", count);
+ 	seq_printf(seq, "Service buckets:\t%d (%d bits, lfactor %d)\n",
+ 		   t ? t->size : 0, t ? t->bits : 0, t ? t->lfactor : 0);
  
--echo "---- test no. 1 ----"
--
--conntrack -E -p 13 &
--
--nfct add timeout test-generic inet generic timeout 100
--iptables -I OUTPUT -t raw -p all -j CT --timeout test-generic
--hping3 -c 1 -V -I eth0 -0 8.8.8.8 -H 13
--
--killall -15 conntrack
--
--echo "---- end test no. 1 ----"
-+nfct add timeout "test-generic" inet generic timeout 3 || die "can't add generic timeout"
-+add_rule 13 "test-generic"
-+hping3 -c 1 -I eth0 -0 8.8.8.8 -H 13 > /dev/null 2>&1
-+check_timeout 13 3
-+kill $pid
+ 	if (!count)
+ 		goto after_svc;
+ 	old_gen = atomic_read(&ipvs->svc_table_changes);
++	loops = 0;
  
- sleep $WAIT_BETWEEN_TESTS
--
--iptables -D OUTPUT -t raw -p all -j CT --timeout test-generic
--nfct del timeout test-generic
-+rm_rules 13 "test-generic"
+ repeat_svc:
+ 	smp_rmb(); /* ipvs->svc_table and svc_table_changes */
+@@ -3086,8 +3101,11 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 			ip_vs_rht_walk_bucket_rcu(t, bucket, head) {
+ 				count = 0;
+ 				hlist_bl_for_each_entry_rcu(svc, e, head,
+-							    s_list)
++							    s_list) {
+ 					count++;
++					if (count >= ARRAY_SIZE(counts) - 1)
++						break;
++				}
+ 			}
+ 			resched_score += count;
+ 			if (resched_score >= 100) {
+@@ -3096,24 +3114,27 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
+ 				new_gen = atomic_read(&ipvs->svc_table_changes);
+ 				/* New table installed ? */
+ 				if (old_gen != new_gen) {
++					/* Too many changes? */
++					if (++loops >= 5)
++						goto after_svc;
+ 					old_gen = new_gen;
+ 					goto repeat_svc;
+ 				}
+ 			}
+-			counts[min(count, (int)ARRAY_SIZE(counts) - 1)]++;
++			counts[count]++;
+ 		}
+ 	}
+ 	for (sum = 0, i = 0; i < ARRAY_SIZE(counts); i++)
+ 		sum += counts[i];
+ 	sum1 = sum - counts[0];
+-	seq_printf(seq, "Service buckets empty:\t%u (%lu%%)\n",
+-		   counts[0], (unsigned long)counts[0] * 100 / max(sum, 1U));
++	seq_printf(seq, "Service buckets empty:\t%u (%llu%%)\n",
++		   counts[0], div_u64((u64)counts[0] * 100U, max(sum, 1U)));
+ 	for (i = 1; i < ARRAY_SIZE(counts); i++) {
+ 		if (!counts[i])
+ 			continue;
+-		seq_printf(seq, "Service buckets len-%d:\t%u (%lu%%)\n",
++		seq_printf(seq, "Service buckets len-%d:\t%u (%llu%%)\n",
+ 			   i, counts[i],
+-			   (unsigned long)counts[i] * 100 / max(sum1, 1U));
++			   div_u64((u64)counts[i] * 100U, max(sum1, 1U)));
+ 	}
  
- #
- # No.2: test TCP timeout policy
- #
- 
--echo "---- test no. 2 ----"
-+conntrack -E -p tcp > "$tmp" 2>/dev/null &
-+pid=$!
- 
--conntrack -E -p tcp &
-+nfct add timeout test-tcp inet tcp syn_sent 2 || die "can't add tcp timeout policy"
-+add_rule "tcp" "test-tcp"
-+hping3 -S -p 80 -s 5050 8.8.8.8 -c 1 > /dev/null 2>&1
- 
--nfct add timeout test-tcp inet tcp syn_sent 100
--iptables -I OUTPUT -t raw -p tcp -j CT --timeout test-tcp
--hping3 -V -S -p 80 -s 5050 8.8.8.8 -c 1
-+check_timeout 6 2
-+kill $pid
- 
- sleep $WAIT_BETWEEN_TESTS
--
--iptables -D OUTPUT -t raw -p tcp -j CT --timeout test-tcp
--nfct del timeout test-tcp
--
--killall -15 conntrack
--
--echo "---- end test no. 2 ----"
-+rm_rules "tcp" "test-tcp"
- 
- #
- # No. 3: test ICMP timeout policy
- #
- 
--echo "---- test no. 3 ----"
-+conntrack -E -p icmp > "$tmp" 2>/dev/null &
-+pid=$!
- 
--conntrack -E -p icmp &
-+nfct add timeout test-icmp inet icmp timeout 4 || die "can't add test-icmp policy"
-+add_rule "icmp" "test-icmp"
- 
--nfct add timeout test-icmp inet icmp timeout 50
--iptables -I OUTPUT -t raw -p icmp -j CT --timeout test-icmp
--hping3 -1 8.8.8.8 -c 2
-+hping3 -1 8.8.8.8 -c 2 > /dev/null 2>&1
- 
--iptables -D OUTPUT -t raw -p icmp -j CT --timeout test-icmp
--nfct del timeout test-icmp
-+check_timeout 1 4
-+kill "$pid"
- 
--killall -15 conntrack
-+sleep $WAIT_BETWEEN_TESTS
-+rm_rules "icmp" "test-icmp"
- 
--echo "---- end test no. 3 ----"
-+exit $ret
-diff --git a/tests/nfct/test.c b/tests/nfct/test.c
-index a833dcc9e99b..bce927829190 100644
---- a/tests/nfct/test.c
-+++ b/tests/nfct/test.c
-@@ -97,4 +97,8 @@ int main(int argc, char *argv[])
- 	closedir(d);
- 
- 	fprintf(stdout, "OK: %d BAD: %d\n", ok, bad);
-+	if (bad)
-+		return 1;
-+
-+	return ok > 0 ? 0 : 1;
- }
-diff --git a/tests/nfct/timeout/03udplite b/tests/nfct/timeout/03udplite
-deleted file mode 100644
-index 8ed345901651..000000000000
---- a/tests/nfct/timeout/03udplite
-+++ /dev/null
-@@ -1,16 +0,0 @@
--# add policy object `test'
--nfct add timeout test inet udplite unreplied 10 ; OK
--# get policy object `test'
--nfct get timeout test ; OK
--# delete policy object `test'
--nfct delete timeout test ; OK
--# get unexistent policy object `dummy'
--nfct get timeout test ; BAD
--# delete policy object `test', however, it does not exists anymore
--nfct delete timeout test ; BAD
--# add policy object `test'
--nfct add timeout test inet udplite unreplied 1 replied 2 ; OK
--# get policy object `test'
--nfct get timeout test ; OK
--# delete policy object `test'
--nfct delete timeout test ; OK
-diff --git a/tests/nfct/timeout/07dccp b/tests/nfct/timeout/07dccp
-deleted file mode 100644
-index 1d885853f577..000000000000
---- a/tests/nfct/timeout/07dccp
-+++ /dev/null
-@@ -1,16 +0,0 @@
--# add policy object `test'
--nfct add timeout test inet dccp request 100 ; OK
--# get policy object `test'
--nfct get timeout test ; OK
--# delete policy object `test'
--nfct delete timeout test ; OK
--# get unexistent policy object `dummy'
--nfct get timeout test ; BAD
--# delete policy object `test', however, it does not exists anymore
--nfct delete timeout test ; BAD
--# add policy object `test'
--nfct add timeout test inet dccp request 1 respond 2 partopen 3 open 4 closereq 5 closing 6 timewait 7 ; OK
--# get policy object `test'
--nfct get timeout test ; OK
--# delete policy object `test'
--nfct delete timeout test ; OK
+ after_svc:
+@@ -5039,7 +5060,7 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 				    ipvs->net->proc_net,
+ 				    ip_vs_stats_percpu_show, NULL))
+ 		goto err_percpu;
+-	if (!proc_create_net_single("ip_vs_status", 0, ipvs->net->proc_net,
++	if (!proc_create_net_single("ip_vs_status", 0440, ipvs->net->proc_net,
+ 				    ip_vs_status_show, NULL))
+ 		goto err_status;
+ #endif
 -- 
 2.53.0
+
 
