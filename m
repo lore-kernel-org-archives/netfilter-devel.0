@@ -1,177 +1,111 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C4D125FA05
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 20:15:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0184337BE6A
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 21:02:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.215.179
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777407354; cv=pass; b=afULjdDVFbWztcKSKHMEsFNgALPBLi2QeluQQtkA/4LhLFyrUMa/SuewkH0WesYndsUwLdgl4WZmq7ogd3FeK4NRqvzGdVUj9eSMGDVhWKPsQRaFv1dNQf9Ab5MSbAfr/Nt1wehCTeg1Uusp3sSHav7AS3nBx65kvvsVNxFVegU=
+	t=1777410163; cv=pass; b=Cb3y3UuviNbFTCA3lsS25MmclcR/6KTHPlH2bUuEfUn5llXfUfaSjHZW5Co4zyBDBMequqwLqd+Cg1gZXHMCfcYYdNhlhalrrLGT7K/axBl+Q289LkcprjxqE7y17ousq9HRTLCwKqNkEI0MVzizVl0FcxEHGlr+vH0pR2P4bqQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777407354; c=relaxed/simple;
-	bh=jubsY6PGHnTXGhA5KKyDi/LWS9PbjTsPha5xbgCuu/I=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CcjcT6rr2t5oltJf5MBanZGTM+8puySF1Nora7X8u/Jt6IlU2oMecEHGCajrIDWl16RJjGWVhlmyayMnLa9Snh90On0TdmWUHRiRtgBHypMzMkj+wz7iRIK7Yk8oeKqMtRm8Bz+XHiPuaHBNNYAfHB2i7GFIkSTiXeECFlvCvok=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KlhTZCEL; arc=pass smtp.client-ip=209.85.210.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777410163; c=relaxed/simple;
+	bh=QZ5g0rywRPmTuJ69hvkprtR7MFhY68sDBLhcgw0FtUk=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=DzHoTN1xYtp/jkbcn9irhf6txT251CEjhLUQeCIe1mwe7kMGOlqA9qGn4hukzmUI/sfo6GsqsJDZvs8I0Bc9vWFqZgAsiMtVUkPMgDUf7t5YqkTn235KL3zGQmTvo5DaFQAiv5FXPRiY3NUCeWgCItKok72nPp2CKraMor4bX7I=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20251104.gappssmtp.com header.i=@mojatatu-com.20251104.gappssmtp.com header.b=SiHaxxoU; arc=pass smtp.client-ip=209.85.215.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KlhTZCEL"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-82f9fdfc965so4822745b3a.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 13:15:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777407353; cv=none;
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20251104.gappssmtp.com header.i=@mojatatu-com.20251104.gappssmtp.com header.b="SiHaxxoU"
+Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-c79467f11abso8030605a12.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 14:02:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1777410161; cv=none;
         d=google.com; s=arc-20240605;
-        b=igBXgRMatx4MYrVwNxfDT1GOSX1gbdvwYWIr9mF4LYgU5faU8xz0ftUQQlIewrLyY6
-         Csv3WRYck+o5FGa2l3+QkXFUu7qhM4tlzXs5/+tdbJVYagVyf9ae83t7rK28gcGKGHzu
-         +ter1LGewNaYYd4ql4Tz7I5gCBlpzfGBQISu00BHgNTawdg9pHaRDW6/RzBXBW6vyCGx
-         82QsPTpB6k2nGF2bDfikFDH6uEzL1cD/cTG55conIJv4RBnGYORimNUTWVLNdWbYMu1o
-         FtiP/pE1US1ZouUSl0DNHgvj6dtRIIggVPa3zjSOwL8Zmv0bwcWoMYgYHYBSSPxUB9Vb
-         nSag==
+        b=fE3qGf6JuFUld7MNN2jBSe9xmjd5jzK5cFxsF3yQv6yOoT0x1zc+TYa5oTUQShUqXD
+         3aoxIhnoVvuZsi+iyVvT4JLMS57kJFQ9iHsHjqXGEmelqAzShzZqdNyyWvX7lY6MCtJq
+         EVpzy3JkoFXelGURChhDhvhj32zeZQNqnrwIkwCCdBswPv5//QDf0EH51En7ljxI1yU3
+         YP7fVehmZKTbOrfxJJJqXZjw6W66k/beAgIMSLj3JLQKUTOu7PV1k8ImSnitMY2PBoIi
+         srhlgpcM40PP5vafst9rYpdr2uHgl8w0FK7ySp7Zzi9bTkMg7yIT1ia23KTv3ybOm6hp
+         w7tg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=uQV+ZUo0kltumkkS/38YnBQvpZ5Ru0K+aNTeRpdyz74=;
-        fh=/qhlLF6Ita+oB42LPl2GTS5UkBhHCTiZ8SE+c0x9POg=;
-        b=SovVt7WMxA7bnMCWEUitsLQlmt0qK4w6/zihYgjwQihf9dOqNb5sii39YfOOjy2ufY
-         xDm4XxFNKHGSTOf/VnlvzSKVuy/66ImM5d6vsI1CXyNkfVnMYgL4UKGaGOrP3aViQd5t
-         kRlWT18z3QxqaoRAw3cRRb96GhT3q3P8Nyl3UikG7q19VbBFfrMcNBsI6LQG+0H1wbmd
-         sN5Y4OwokfPgU8A6ncIf9KY6k/Lt0KXxlpIawNDMqbC/T3ooRfT50Th9XEN8OdUSmCdh
-         PIoDiUrzUCEl6iNtiEvNBeElOPEgDclYAhwQDhd8FoF4rF21FzmY5MFI/vnqkByBkZa0
-         BWGQ==;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=QZ5g0rywRPmTuJ69hvkprtR7MFhY68sDBLhcgw0FtUk=;
+        fh=h+oGYf/KwoE/RRxUoSr9uvNH0S+lbqUBetgQcSkX1zM=;
+        b=kBHbr/K2vneZX2BA2r3PxoDVwDEqBrYf+NLlAW2OAzBqWsSAkH+bBTBy3RKOqr8iDO
+         MKJDdDALDwe+IzcDh0/qGRFMF72sEj+xyk2Yh8lE8h7TJKxmzdnMpoQ5MUbl95bxbSGV
+         No5q7nFhgnX5Wc09pSJjiWUuhqaN7Do+sxJZII75Mmcg7XgjgeyqXAQwm68FQRNR0gsH
+         GaE7q8F/WnqUxsORhDQmG1chs3hQJjLKs8t8aGjWghaBLZMkWAPUOEgRGUqtwVfxV7hU
+         R6AlfYuhQ4zhrDP+UXvg1IEBq5HxeOSnZ36vL9UGr286WMxlYWIP45ifJIL2l6Ph8A1M
+         jXiQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777407353; x=1778012153; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uQV+ZUo0kltumkkS/38YnBQvpZ5Ru0K+aNTeRpdyz74=;
-        b=KlhTZCELSkeBlc2IBRjM/spYNSJcZEx+XzogZUf8EXFJF3JgePK7hmDvz5NuTFJiJv
-         0BK3ai6GXs6Ba5FV/d4g1cdK/BL6ls/W71AfgslX1RqhbkmZGwqATBsS3wGqmGeH6nb/
-         xNU61DVSE4tbJYhfIKjDVbPYfQHKGcxwSbWUEqeSX2GlYVe7n1TWGmwLyTSdTy2lzZnj
-         VNdG2g0+RgBVVsWPCECBHC8P2dK1ajWkNZH/0ZwWaclyCSZEiTKU6Gl1JhiyMvC/Ti3k
-         KiEHqJicHui4HFNs3+FoX2afrvltIR+2kaN7IlVkx5wnlKskFTKJ6aVIH+p0ujd5d0bl
-         zUXg==
+        d=mojatatu-com.20251104.gappssmtp.com; s=20251104; t=1777410161; x=1778014961; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=QZ5g0rywRPmTuJ69hvkprtR7MFhY68sDBLhcgw0FtUk=;
+        b=SiHaxxoU4y/Y2KPdUjP5E1imfmZialfvd/cWpcEqFEvAe6q3YrReObRIgOm9QdUgiy
+         omiqDXA3o/pcWVR+w37kVsh6xf8knA3bem6ruW96/fx0y9GK13FQYckQ0Xfgf8csyMeJ
+         +jGoNoiBStSHfXyEmqgiG/1AU7yw2n0mXS/i1Cb9+BKYfT7Avt+AaDwmvcSBJWjJNkFo
+         bBm3+8EEQdw9J3D4NJtM5b6zDYQKLcfZpz5AsGoEbqyuEoyJqvNatqhJlYuhBVikR4+t
+         DQ7AJ7MegJq48WX/jfB5brsaouFW7v4KMXHm5pup3XvvZbS9HPuKaKyZifysD0lUkB02
+         YNuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777407353; x=1778012153;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=uQV+ZUo0kltumkkS/38YnBQvpZ5Ru0K+aNTeRpdyz74=;
-        b=KyM9oVo16lI3B4ajcCxNY9Q7lMuG55XD65U3XylprZ6qCMyEZ1AX9Ff408iQAw0pOz
-         UIcmfpSmGj+RATas8ii35NN8OFAJaQT1VBu0ZsZbeoN3xUy/+UOV9Wmu6d2h88g9kFYE
-         r/mDFmukzXJLVfo7vTbrjAQNIYl3Dd8QYPr4GVUKVSSYyAG+KZTadw9v+1cCDD97dG0S
-         u4eFvTLYZlhXVRK2G4hFbpixCelGXXQVjKd0IAM3SEzpqOIkplWdTw/ybYzVetLK0MOO
-         pC8vTlESzesl0t7JII0QuTf0dKTWdrKDsqlOGOCwkCQbivsX6HCFcpQ7g9OcVa6AhG9q
-         U06A==
-X-Forwarded-Encrypted: i=1; AFNElJ+19sddNGxjBLtbBYJQBT8y5eETIrSzksHGh+Eg1tx8xY1wZmsxWM8uAv52Qxze4mZ2BsW/tvnyaLmIFV11zDU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJ1OQXwW6K5iVSvMaNE7wfr7UUh19LUp4Bb31Xb+PEQgiocnPI
-	eErS/0ZFNabFwAfpF8+NIp6rRMD6nLc4C6LYaEQrUNKGZdxhEil/VPK9Eaapdzn7jmBB15kGnMB
-	0zLcGP65CjulbNK+ym85pv39xcwuQuzE=
-X-Gm-Gg: AeBDieuzA4/uR9m6yMJuNxODFvXr72bx2A6fkGplkfU6OBZtoavx393UO5X3mUUDmuv
-	He7Bt00oanwp1Ol2R8mS+kS4H194w3eOOAVenC14t8xRdJvcJdRBvY3bTBqhPb2rqHqBQnlgFR9
-	TbfdcRwIdyTOtwvEffgWt7BvglfOTctvE3QZBmez/EcdKoVZwv2fF0xdV+thTmN+oXYobyAJmtI
-	5eorFvc7UY5JCaCuGVbnDM3u2ConcnY6G3fBmhXPraxXtyDOCsA53jfuZl8Io2PYeyz4SV81zjT
-	sQowRSF904apztrytnFjT9Z8EroF6c15ryHm/8jOUkXXyez/THQieYBxMfg/P1R9Ky7ljvLCGKY
-	Y2HU31D8uFadqYgwHX8+0tIxJLCaK0vdl5oE2n9AYN5yKuxFs9g==
-X-Received: by 2002:a05:6a00:f9a:b0:82c:2155:5b6d with SMTP id
- d2e1a72fcca58-834ddabdb7dmr4872052b3a.12.1777407352913; Tue, 28 Apr 2026
- 13:15:52 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1777410161; x=1778014961;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=QZ5g0rywRPmTuJ69hvkprtR7MFhY68sDBLhcgw0FtUk=;
+        b=mspBbJMehH75bQW11IU3O5afP1oipa7i5dDrg8Xr0dM7EUtD6KLvo6zxSA961/pp7B
+         AHWUOa4aXg44/N3x8qVuHUZwO3HIJdc+e4/yKj51IFiYxPpjlfNDqhMZ7cZhjV608w2g
+         CxIEmYufvf7yb1mzdR1BKsIWUBdzZFf0wh8YrVc2JK1cVrkrNSX8aGaaHMh9VR3n3Die
+         STBf4MKK8J2cjt0Cs95nBVvC7GHRK+CQPKCLnhZQWf0swI/qh8y3Ebl3EmjC3iin/3Tp
+         z7G9DGtnJ2lzKMCsAqQUB4N/Sl7T71ibauV9NtZgCEYBmqg2qfQ1smZqSb7P14rB+3AU
+         Q6Yg==
+X-Forwarded-Encrypted: i=1; AFNElJ9eR6AI6vL+/bERle17KdlV3f6kdCtmH8SWG03ZInZCkvoQTGlzgdDuEVSCW/kfXQhnTPPuJex8GhiMIeGDoe4=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxZmnCtgtvEDX6WgFhnv9OHrB43x2RHaZxPalm+W8VmUV3YPFVS
+	dKsEkHBiFwecdYYVdc+/ueQcBY+B91uZV0SNp8JHv0yczf8uoBFUZBEOHhOhBYl7CzmnoCcLfrj
+	dMdjQMMamGjbfWzUAA22+X0xSmPvz5EgMdt9DqNL7
+X-Gm-Gg: AeBDieuCWTy3mdGT3M7sA1NI/TDAET6qIz81Um93xw5Ffm15MlxiAZODncmOrGGpiXI
+	CDxpxKiwRcgXRluSwJiqjdtyJod0XTkgJ1su4vkemKCAy89OlkyopdHj7wj4CPBbe6ks3I6N4WX
+	jE9jPtQlClR/5k7lqEfq2mu7g7u16ABZZ88k52EGijYU92OYlaACqOoNEm5veOlfIOUGAAWHPGr
+	WOYfYtveOqEZza7wgc+2BiKon3RqCbcRL0zpcGYq7eud+qOWHurCTOK0RUOFZqRnwjGLVtqhMAl
+	n07w30hXLW7Nj1tJyrFW9IKQEzOtoQ==
+X-Received: by 2002:a05:6a20:9146:b0:3a2:df61:50e6 with SMTP id
+ adf61e73a8af0-3a39c3da898mr5265488637.47.1777410161237; Tue, 28 Apr 2026
+ 14:02:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1777214801.git.lucien.xin@gmail.com> <20260428140642.GT900403@horms.kernel.org>
-In-Reply-To: <20260428140642.GT900403@horms.kernel.org>
-From: Xin Long <lucien.xin@gmail.com>
-Date: Tue, 28 Apr 2026 16:15:40 -0400
-X-Gm-Features: AVHnY4Kx985VXS0AEmk_DrhzVNCcnQW-CWSjNlk5dYUnFRn6jZWfAV-j5B80K0Q
-Message-ID: <CADvbK_dNRkb8UeGi+x=HhH+tJZSpUTDyHdQLDxUQA1dinbaFNg@mail.gmail.com>
-Subject: Re: [PATCH net v2 0/2] sctp: fix a vtag verification failure caused
- by stale INITs
-To: Simon Horman <horms@kernel.org>
-Cc: network dev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org, 
-	linux-sctp@vger.kernel.org, davem@davemloft.net, kuba@kernel.org, 
-	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, Yi Chen <yiche.cy@gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Tue, 28 Apr 2026 17:02:30 -0400
+X-Gm-Features: AVHnY4IPbL50MGY9wUIpXRQqsPuw4TFCQyKCgR4OtAo8xSoWCQRt5lBPiF8oDqQ
+Message-ID: <CAM0EoMnv9ZDWFSDGMK3iX9dXjXNLs+v30ak-GgsLBq3EQ+hQsw@mail.gmail.com>
+Subject: 0x1A: Call For Submissions is now open!
+To: people <people@netdevconf.info>
+Cc: Christie Geldart <christie@ambedia.com>, Kimberley Jeffries <kimberleyjeffries@gmail.com>, 
+	Stefano Salsano <stefano.salsano@uniroma2.it>, lael.nasan@gmail.com, 
+	PJ Waskiewicz <pjwaskiewicz@gmail.com>, program-committee@netdevconf.info, 
+	Linux Kernel Network Developers <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org, 
+	linux-wireless <linux-wireless@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 28, 2026 at 10:06=E2=80=AFAM Simon Horman <horms@kernel.org> wr=
-ote:
->
-> On Sun, Apr 26, 2026 at 10:46:39AM -0400, Xin Long wrote:
-> > Similar to Scenario B in commit 8e56b063c865 ( netfilter: handle the
-> > connecting collision properly in nf_conntrack_proto_sctp"):
-> >
-> > Scenario B: INIT_ACK is delayed until the peer completes its own handsh=
-ake
-> >
-> >   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-> >     192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-> >     192.168.1.2 > 192.168.1.1: sctp (1) [INIT ACK] [init tag: 392221640=
-8]
-> >     192.168.1.1 > 192.168.1.2: sctp (1) [COOKIE ECHO]
-> >     192.168.1.2 > 192.168.1.1: sctp (1) [COOKIE ACK]
-> >   192.168.1.1 > 192.168.1.2: sctp (1) [INIT ACK] [init tag: 3914796021]=
- *
-> >
-> > There is another case:
-> >
-> > Scenario F: INIT is delayed until the peer completes its own handshake
-> >
-> >   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-> >   (OVS upcall)
-> >     192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-> >     192.168.1.2 > 192.168.1.1: sctp (1) [INIT ACK] [init tag: 392221640=
-8]
-> >     192.168.1.1 > 192.168.1.2: sctp (1) [COOKIE ECHO]
-> >     192.168.1.2 > 192.168.1.1: sctp (1) [COOKIE ACK]
-> >   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-> >   (delayed)
-> >   192.168.1.1 > 192.168.1.2: sctp (1) [INIT ACK] [init tag: 3914796021]=
- *
-> >
-> > In this case, the delayed INIT (e.g. due to OVS upcall) is recorded by
-> > conntrack, which prevents vtag verification from dropping the unexpecte=
-d
-> > INIT-ACK in nf_conntrack_sctp_packet():
-> >
-> >   vtag =3D ct->proto.sctp.vtag[!dir];
-> >   if (!ct->proto.sctp.init[!dir] && vtag && vtag !=3D ih->init_tag)
-> >           goto out_unlock;
-> >
-> > This happens because ct->proto.sctp.init[!dir] is set by the delayed IN=
-IT,
-> > even though it is stale.
-> >
-> > Fix this in two parts:
-> >
-> > - In netfilter: Do not record INITs whose init_tag matches the peer vta=
-g,
-> >   as they carry no new handshake state in the 1st patch.
-> >
-> > - In SCTP: Prevent endpoints from responding to such INITs with INIT-AC=
-K,
-> >   ensuring correctness even when middleboxes lack the netfilter fix in
-> >   the 2nd patch.
-> >
-> > A follow-up selftest for this scenario will be posted in a separate pat=
-ch
-> > by Yi Chen.
->
-> Hi Xin,
->
-> FTR: There is an AI generated review of this patchset available on
-> sashiko.dev. I have looked over this and I do not believe the feedback
-> there should block progress of this patchset.
-Right, the feedback is false in practice::
+We are pleased to announce the opening of Call For Submissions(CFS)
+for Netdev conf 0x1A.
+Netdev conf 0x1A is going to be a hybrid conference with the physical
+component being in Rome, Italy.
 
-- "No response" is not a clean signal
-  (could be loss, firewall, rate limiting, etc.).
-- Even guessing this init_tag does not let attackers hijack the association
-  (they still lack the correct verification tag and state).
+For overview of topics, submissions and requirements please visit:
+https://netdevconf.info/0x1A/news/netdev-0x1a-call-for-submissions.html
+For all submitted sessions, we employ a blind review process carried
+out by the Program Committee.
 
-Thanks.
+Important dates:
+Closing of CFS: June 1st, 2026
+Notification by: June 10th, 2026
+Conference dates: July 13th-16th, 2026
+
+Please take this opportunity to share your work and ideas with the community
+
+cheers,
+jamal
