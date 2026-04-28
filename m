@@ -1,70 +1,79 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB512E88BD
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 10:26:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 121572E88BD
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2026 10:26:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777371970; cv=none; b=sAlZwmfC9sDo1/24jbjQ41UBOvMxdOWYnQEbTwf1vnVsfgosiCcksBCTmN0KBmI0AnOnzSVcprpAkFEaIxN6/oxNcVU3sZlGnkOuPsGt9SQkJzcWg9RHP8ru2k8wMgh4wmh/m+iibdd/1y+cUWq81uxGncwwi3zZWZnylpRVdgk=
+	t=1777371975; cv=none; b=V4Tf9U3xlXLWrn9BC+uskIXSpFLzhPDxjltuRPPIxXLs070fGyErFBQ1OMOICxNUPIeoyVDCtmtukbe10Zl4Y+4Hr7209cAPlmRkmSkiWQ1UNTR1awuGcEazxfxZ0NbGxhps6FKkuxx8EYxoXZJHmsGhVT+QBFV4u2Ps/QpfgAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777371970; c=relaxed/simple;
-	bh=VpSVSZyMW0rSaxr/v22jtaRSenXz6fQFlo/1yOhHEg4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jsKyOBXaEUvYxkLwHh62srfL/xDsByQAfu1rHPQW0jRP30lg92ppphifKj7tPZmAJr4cPoskVH123hF5aDwYYAWxCrd77XQb8ZhcuMshDRUBvVi9SWyFaO2LGtjFzjedipadAlmzDEBbKuJiblMoLg/DqMvGV+37ogm0Dk2hNuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=rxEPXk8t; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cb2hCVou; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=rxEPXk8t; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cb2hCVou; arc=none smtp.client-ip=195.135.223.130
+	s=arc-20240116; t=1777371975; c=relaxed/simple;
+	bh=wF8kQbq3gKXkHwy602InlMerXaRJsV3ZvBXYE7N0R8c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=CAFULq8L47wIe/CXHB3YxtzRhHtF9BkV4XudPp/363PrNtF3tyP6MdX7kzD844vvGdzBWg8Gdb4+rpKwrEKFBcmBCd2u+0ceY6BPJ0tAaLk9zSo08+KNIjfTUdmv4kEbncYo3cFLyu6zgI6Bl7YRjEkJBbP6UiV8ZsctFND5y90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=jU64j3fL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=k4GzsSU7; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=jU64j3fL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=k4GzsSU7; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="rxEPXk8t";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cb2hCVou";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="rxEPXk8t";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cb2hCVou"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="jU64j3fL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="k4GzsSU7";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="jU64j3fL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="k4GzsSU7"
 Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id AC5796A950;
-	Tue, 28 Apr 2026 10:26:07 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 515C55BCCB;
+	Tue, 28 Apr 2026 10:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1777371967; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=9DIzRQ4Gpyib9bPlcvhirpG2scQPykhlmagVx7DewO4=;
-	b=rxEPXk8taPVpGY9j5+iJruS2IWPHEBQR9MkJ8xJ9Quq5yVQS1t/W/en5sh72rCoSQu33m4
-	6+JlUn6SyEhrBEZJcA2Ve7290BM8PRA1veKvKWw4RnkoSpdpvYxsx03uDskI1r73pJFVFD
-	lsf2nxn5+GgsyCCF0AtIR11o2x9ge4w=
+	t=1777371972; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XmC/A0DYDjd545bDdChH92GZFz6jyps73WhO3spjhMU=;
+	b=jU64j3fLqzV+uA1mvAyy/12VAvd7sD6efCAA7Owe7R7DRm9n/OeHPjwYr/0gMZVaoEpddW
+	chJCnuDnMAOWN6AxtpSAFnJqRuUvdIZOV+TeMFinVwnHyHE7UASuVhw/yYHCAZfBf2o0gE
+	1PPNNM54BHrA4Xh7RUydglkhTzu5V6Y=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1777371967;
+	s=susede2_ed25519; t=1777371972;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=9DIzRQ4Gpyib9bPlcvhirpG2scQPykhlmagVx7DewO4=;
-	b=cb2hCVouhsaERp0iIr3VkGbnL5gCVNeWZ7TEBxtz5+LwpponnjcLCKBdBdJsAQh7/Fy1Do
-	gT4eQPwoxRoeKlBw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=rxEPXk8t;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=cb2hCVou
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XmC/A0DYDjd545bDdChH92GZFz6jyps73WhO3spjhMU=;
+	b=k4GzsSU7LATZw56CVGjEOoOLLX7nlKNv9ApYjE3zlj/VKxFEPw3NUbpCdlhT9UIjr/Hvbp
+	5G8rx8DExWj/iPAw==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=jU64j3fL;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=k4GzsSU7
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1777371967; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=9DIzRQ4Gpyib9bPlcvhirpG2scQPykhlmagVx7DewO4=;
-	b=rxEPXk8taPVpGY9j5+iJruS2IWPHEBQR9MkJ8xJ9Quq5yVQS1t/W/en5sh72rCoSQu33m4
-	6+JlUn6SyEhrBEZJcA2Ve7290BM8PRA1veKvKWw4RnkoSpdpvYxsx03uDskI1r73pJFVFD
-	lsf2nxn5+GgsyCCF0AtIR11o2x9ge4w=
+	t=1777371972; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XmC/A0DYDjd545bDdChH92GZFz6jyps73WhO3spjhMU=;
+	b=jU64j3fLqzV+uA1mvAyy/12VAvd7sD6efCAA7Owe7R7DRm9n/OeHPjwYr/0gMZVaoEpddW
+	chJCnuDnMAOWN6AxtpSAFnJqRuUvdIZOV+TeMFinVwnHyHE7UASuVhw/yYHCAZfBf2o0gE
+	1PPNNM54BHrA4Xh7RUydglkhTzu5V6Y=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1777371967;
+	s=susede2_ed25519; t=1777371972;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=9DIzRQ4Gpyib9bPlcvhirpG2scQPykhlmagVx7DewO4=;
-	b=cb2hCVouhsaERp0iIr3VkGbnL5gCVNeWZ7TEBxtz5+LwpponnjcLCKBdBdJsAQh7/Fy1Do
-	gT4eQPwoxRoeKlBw==
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XmC/A0DYDjd545bDdChH92GZFz6jyps73WhO3spjhMU=;
+	b=k4GzsSU7LATZw56CVGjEOoOLLX7nlKNv9ApYjE3zlj/VKxFEPw3NUbpCdlhT9UIjr/Hvbp
+	5G8rx8DExWj/iPAw==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4D8C5593B0;
-	Tue, 28 Apr 2026 10:26:07 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E5DBC593B0;
+	Tue, 28 Apr 2026 10:26:11 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id OG8uED+L8GmULQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 28 Apr 2026 10:26:07 +0000
+	id aKT/NEOL8GmULQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 28 Apr 2026 10:26:11 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -72,10 +81,12 @@ Cc: coreteam@netfilter.org,
 	fw@strlen.de,
 	pablo@netfilter.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 1/3 nf v5] netfilter: nf_socket: skip socket lookup for non-first fragments
-Date: Tue, 28 Apr 2026 12:25:46 +0200
-Message-ID: <20260428102548.6750-1-fmancera@suse.de>
+Subject: [PATCH 2/3 nf v5] netfilter: nf_tables: skip L4 header parsing for non-first fragments
+Date: Tue, 28 Apr 2026 12:25:47 +0200
+Message-ID: <20260428102548.6750-2-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20260428102548.6750-1-fmancera@suse.de>
+References: <20260428102548.6750-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -116,70 +127,104 @@ X-Spam-Flag: NO
 X-Spam-Score: -4.01
 X-Spam-Level: 
 X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: AC5796A950
+X-Rspamd-Queue-Id: 515C55BCCB
 
-Both nft_socket and xt_socket relies on L4 headers to perform socket
-lookup in the slow path. For fragmented packets, while the IP protocol
+The tproxy, osf and exthdr (SCTP) expressions rely on the presence of
+transport layer headers to perform socket lookups, fingerprint matching,
+or chunk extraction. For fragmented packets, while the IP protocol
 remains constant across all fragments, only the first fragment contains
 the actual L4 header.
 
-As the expression/match could be attached to a chain with a priority
-lower than -400, it could bypass defragmentation.
+The expressions could be attached to a chain with a priority lower than
+-400, bypassing defragmentation. Or could be used in stateless
+environments where defragmentation is not happening at all.  This could
+result in garbage data being used for the matching.
 
-Add a check for fragmentation in the lookup functions directly so the
-problem is handled for both nft_socket and xt_socket at the same time.
-In addition, future users of the functions would not need to care about
-this.
+Add a check for pkt->fragoff so only unfragmented packets or the first
+fragment is processed.
 
-Fixes: 902d6a4c2a4f ("netfilter: nf_defrag: Skip defrag if NOTRACK is set")
-Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
+Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
+Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
-v3: added this patch to the series, I splitted this as the fix is
-generic for both nft_socket and xt_socket
+v2: handled fragmented packets for socket expression too,
+squashed nftables expression commits into this one.
+v3: removed changes to nft_socket and created a generic solution for
+xt/nft
 v4: no changes
-v5: no changes
+v5: added check on payload fastpath
 ---
- net/ipv4/netfilter/nf_socket_ipv4.c | 3 +++
- net/ipv6/netfilter/nf_socket_ipv6.c | 5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_core.c | 2 +-
+ net/netfilter/nft_exthdr.c     | 2 +-
+ net/netfilter/nft_osf.c        | 2 +-
+ net/netfilter/nft_tproxy.c     | 8 ++++----
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_socket_ipv4.c b/net/ipv4/netfilter/nf_socket_ipv4.c
-index 5080fa5fbf6a..f9c6755f5ec5 100644
---- a/net/ipv4/netfilter/nf_socket_ipv4.c
-+++ b/net/ipv4/netfilter/nf_socket_ipv4.c
-@@ -94,6 +94,9 @@ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
- #endif
- 	int doff = 0;
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 5ddd5b6e135f..8ab186f86dd4 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -153,7 +153,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 	if (priv->base == NFT_PAYLOAD_NETWORK_HEADER)
+ 		ptr = skb_network_header(skb) + pkt->nhoff;
+ 	else {
+-		if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			return false;
+ 		ptr = skb->data + nft_thoff(pkt);
+ 	}
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 0407d6f708ae..e6a07c0df207 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -376,7 +376,7 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+ 	const struct sctp_chunkhdr *sch;
+ 	struct sctp_chunkhdr _sch;
  
-+	if (ntohs(iph->frag_off) & IP_OFFSET)
-+		return NULL;
-+
- 	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
- 		struct tcphdr _hdr;
- 		struct udphdr *hp;
-diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
-index ced8bd44828e..893f2aeb4711 100644
---- a/net/ipv6/netfilter/nf_socket_ipv6.c
-+++ b/net/ipv6/netfilter/nf_socket_ipv6.c
-@@ -100,6 +100,7 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
- 	const struct in6_addr *daddr = NULL, *saddr = NULL;
- 	struct ipv6hdr *iph = ipv6_hdr(skb), ipv6_var;
- 	struct sk_buff *data_skb = NULL;
-+	unsigned short fragoff = 0;
- 	int doff = 0;
- 	int thoff = 0, tproto;
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
-@@ -107,8 +108,8 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
- 	struct nf_conn const *ct;
- #endif
+-	if (pkt->tprot != IPPROTO_SCTP)
++	if (pkt->tprot != IPPROTO_SCTP || pkt->fragoff)
+ 		goto err;
  
--	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
--	if (tproto < 0) {
-+	tproto = ipv6_find_hdr(skb, &thoff, -1, &fragoff, NULL);
-+	if (tproto < 0 || fragoff) {
- 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
- 		return NULL;
+ 	do {
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index c02d5cb52143..45fe56da5044 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -33,7 +33,7 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		return;
+ 	}
+ 
+-	if (pkt->tprot != IPPROTO_TCP) {
++	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
+index f2101af8c867..89be443734f6 100644
+--- a/net/netfilter/nft_tproxy.c
++++ b/net/netfilter/nft_tproxy.c
+@@ -30,8 +30,8 @@ static void nft_tproxy_eval_v4(const struct nft_expr *expr,
+ 	__be16 tport = 0;
+ 	struct sock *sk;
+ 
+-	if (pkt->tprot != IPPROTO_TCP &&
+-	    pkt->tprot != IPPROTO_UDP) {
++	if ((pkt->tprot != IPPROTO_TCP &&
++	     pkt->tprot != IPPROTO_UDP) || pkt->fragoff) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+@@ -97,8 +97,8 @@ static void nft_tproxy_eval_v6(const struct nft_expr *expr,
+ 
+ 	memset(&taddr, 0, sizeof(taddr));
+ 
+-	if (pkt->tprot != IPPROTO_TCP &&
+-	    pkt->tprot != IPPROTO_UDP) {
++	if ((pkt->tprot != IPPROTO_TCP &&
++	     pkt->tprot != IPPROTO_UDP) || pkt->fragoff) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
  	}
 -- 
 2.53.0
