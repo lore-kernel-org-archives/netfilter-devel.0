@@ -1,126 +1,192 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F13C0208D0;
-	Wed, 29 Apr 2026 05:16:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3FB4299948
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 05:55:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777439816; cv=none; b=Ef0XckXRm8LTQwSB9VJxu41FoJuz1lFLZQ2ZoorPJERBdQqe80r9mbWUhmC6Gre4XAmggMbvdpbrjxhlRdVYhq4Vh3qYdWBNvQNi9TaZAdG3zwl8MHXzeKHzz/hEg2doQZFnE4sjyLPf9l7BZSgiRRwcZgXoJmzpd+YlBTzP4yk=
+	t=1777442138; cv=none; b=YWuEsniWiS9a9U/Su4CWKv0GnFHbg+0XJuxiALkLjjAhJjZEtGVgtX1gw3mI+hAoLLWeTK4sJrb56WSjwhNmd415oAOolXhoeWV+7NbjG8b0IWiJp0QKrCPBXyq2BsoX3NN15nXrjkF3iy2SkuzjUl7bfYMv93BFkBpNXwGRVUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777439816; c=relaxed/simple;
-	bh=d6SItQBhjhxfHzbQ3yzPPdKM7+1IIQe3nMP3RIuH2MA=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=SxlxWbHvLXykKcT6tEMgUqQ+8AfHiKHpK3nSvSCxYfdGPvkfatLDGZ67GzyaxhPz5Dm4RaHciKnvcvFMn7809lWy/aycW6KmNhvuYBV5xHbTmePjTVfiJ5nJNNlS45C8CfUnOhmYXwL+ubl8BXM4YT4gXq+dHFnIZbo1i5upx50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=7Fi/AMUz; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1777442138; c=relaxed/simple;
+	bh=JG42MYuECap9MeD+3XqztVYPkp8Vs1CXy8iMxFfJBjQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YaqBSbiQXVXq2p8G1e/RSJO4XqH4yv/AcjI0UcXNrb32aMvEpua8UPs7TUOwPZOF9P/YWk71XUg3XFGZCnHmU+c9x4BLHgoyIMrdS3AUEqpabHke8e9ekoujIs9lR/K9TXpKII1cZt7fSrxn4rfFycwSD5oJdYpfDhWYiAs8T0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AIAfzYwM; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="7Fi/AMUz"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id EE1C5211C1;
-	Wed, 29 Apr 2026 08:16:42 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=tv5gaK/rTp/1Rb5TMCDfyYjWr7gaWs6l6ycHei8mXEQ=; b=7Fi/AMUzrDEx
-	/HWCxYN2mKK2trtR2mMFsDymKWcozv4VgU5TTnwhpvs4N1yzRrukrUirAWIai2xK
-	MmNZ4XdJm/ZPUkckRHrZwv+YEzSMY185lWDAUtwj+fE580XmLFLX6mz0wP5fdhqv
-	Vnrz8n97un1mJGp+PWYa5lwCt7SX5lc7oQEJYxY8XmeQCRJAo982FX/e9+DY1dnk
-	uSJgCqL2KoOw2urh4xoUVURxp2IWJeqoODcH/8MFjyM3CrpoV8oj6GKpmvpI/oBr
-	XKE38IW3/pIeOxCRVCmBNJT5VQcnGaWAX8X3e5+D+TLxUu841akBHApFrWKXiXGy
-	Imx6GS/vVWsEuS8LtEnCRC2O+Ya3AVEwElLmo8QMGNhQwjyUI0hlGk+ZUunz3wd1
-	0lzSC7LUDQcBVIZ9mS/r2QruFDOz+MZONbdlPNiH/k3mNqNWo0mf6EN5V4xQxlT3
-	GsWbmAMBrW6apuYrXlDCHdtPDQdAmSe3inx0uo76BI96mPHcrv3aQjDWih1lI2Qp
-	tLBjyPCj9x9VBabWyj3fxWEjyaxZYa2EExPgECxRWSVJCytSEc/0R8NJozAKKqs+
-	oXF9TJa85xJ3Qoz0cm0GD35wJOAqxAEIC5biDCiwhJgO6/DY4hCXVj+4LUOUOa5Z
-	me9AKCZt85guaUynmEvp66F+ASk6IMA=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 29 Apr 2026 08:16:41 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 35C0F6298F;
-	Wed, 29 Apr 2026 08:16:39 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63T5GRgn009355;
-	Wed, 29 Apr 2026 08:16:31 +0300
-Date: Wed, 29 Apr 2026 08:16:27 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        Waiman Long <longman@redhat.com>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 0/7] IPVS fixes for nf
-In-Reply-To: <20260428175725.72050-1-ja@ssi.bg>
-Message-ID: <0426d12f-17a1-aff8-69c8-39daea37abda@ssi.bg>
-References: <20260428175725.72050-1-ja@ssi.bg>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AIAfzYwM"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 102B9602A0;
+	Wed, 29 Apr 2026 07:55:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1777442135;
+	bh=RhANZcwapRweOFCO/gSCAmHoSRoWSiz8B5pj9xAsJDs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=AIAfzYwMhI5bPcsMQBfEzIgZTuRxwjR2L125ae/+IYJsgTpiglq/GBOUR5rCYeJLW
+	 h02tnD3DKyejBeFXUSREsTr5kPOTcrUb7vnjLC+MMrUACgV3INjZwBwnJNwlm6Q6lo
+	 mhq/74t0uzfS+GbN6BwMNjeLc5iUJ1X2JoPvJWDBdiwTX9vt9IReVsoRVekmZrV5Gm
+	 Yl/QBChBlPTJgH1TOqvFnpb1ikYolDG9E5iMb1X9oy7SDI1V3BikgFElz5hJZr2bi7
+	 dfyJzXm0SChXOkE0kdR2fXmPnqZNjmOlbe2zrGXX4ggiLdI2foseR4K3fKy3apZWXI
+	 feutDGZBuC3og==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v2 2/2] netfilter: nft_compat: run checkentry() from .validate
+Date: Wed, 29 Apr 2026 07:55:29 +0200
+Message-ID: <20260429055529.104504-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260429055529.104504-1-pablo@netfilter.org>
+References: <20260429055529.104504-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Several matches and one target check that the hook is correct from
+checkentry(), however, the basechain is only available from
+nft_table_validate().
 
-	Hello,
+This patch uses .check_hooks() for matches and targets from the
+nft_compat expression .validate path.
 
-On Tue, 28 Apr 2026, Julian Anastasov wrote:
+This patch sets the table in the nft_ctx struct in nft_table_validate()
+which is required by this patch.
 
->         This patchset contains accumulated fixes for the nf tree:
-> 
-> 1-3) Fixes for the recently added resizable hash tables (v5)
-> 
-> 4) fixed races and locking for the estimation kthreads (v5)
-> 
-> 5) fix for wrong roundup_pow_of_two() usage in the resizable hash
->    tables
-> 
-> 6-7) v2 of the changes from Waiman Long to properly guard against
->   the housekeeping_cpumask() updates:
-> 
->   https://lore.kernel.org/netfilter-devel/20260331165015.2777765-1-longman@redhat.com/
-> 
->   I added Fixes tag to the 7th patch. The original description:
-> 
->   Since commit 041ee6f3727a ("kthread: Rely on HK_TYPE_DOMAIN for preferred
->   affinity management"), the HK_TYPE_KTHREAD housekeeping cpumask may no
->   longer be correct in showing the actual CPU affinity of kthreads that
->   have no predefined CPU affinity. As the ipvs networking code is still
->   using HK_TYPE_KTHREAD, we need to make HK_TYPE_KTHREAD reflect the
->   reality.
-> 
->   This patch series makes HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
->   and uses RCU to protect access to the HK_TYPE_KTHREAD housekeeping
->   cpumask.
-> 
-> Julian Anastasov (5):
->   ipvs: fixes for the new ip_vs_status info
->   ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
->   ipvs: fix the spin_lock usage for RT build
->   ipvs: fix races around est_mutex and est_cpulist
->   ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
-> 
-> Waiman Long (2):
->   sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
->   ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
-> 
->  include/linux/sched/isolation.h |   6 +-
->  include/net/ip_vs.h             |  31 ++++++--
->  net/netfilter/ipvs/ip_vs_conn.c |  76 ++++++++++---------
->  net/netfilter/ipvs/ip_vs_core.c |   2 +-
->  net/netfilter/ipvs/ip_vs_ctl.c  | 127 ++++++++++++++++++++++++--------
->  net/netfilter/ipvs/ip_vs_est.c  |  83 ++++++++++++---------
->  6 files changed, 217 insertions(+), 108 deletions(-)
+Based on patch from Florian Westphal.
 
-	Sashiko found some new issues to address, will
-send v2 later today...
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - adjust commit description to current approach
+    - remove double check for nft_is_base_chain()
+    - propagate error in xt_check_hooks_target() call
+    - remove redudannt call to xt_check_hooks_{match,target}() from .init
 
-https://sashiko.dev/#/patchset/20260428175725.72050-1-ja%40ssi.bg
+ net/netfilter/nf_tables_api.c |  1 +
+ net/netfilter/nft_compat.c    | 44 +++++++++++++++++++++++++++++------
+ 2 files changed, 38 insertions(+), 7 deletions(-)
 
-pw-bot: changes-requested
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d20ce5c36d31..38e33c66c618 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4205,6 +4205,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 	struct nft_chain *chain;
+ 	struct nft_ctx ctx = {
+ 		.net	= net,
++		.table	= (struct nft_table *)table,
+ 		.family	= table->family,
+ 	v};
+ 	int err = 0;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index decc725a33c2..abdf3aad0928 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -261,10 +261,10 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			return ret;
+ 	}
+ 
+-	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+-
+ 	nft_compat_wait_for_destructors(ctx->net);
+ 
++	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
++
+ 	ret = xt_check_target(&par, size, proto, inv);
+ 	if (ret < 0) {
+ 		if (ret == -ENOENT) {
+@@ -353,7 +353,6 @@ static int nft_target_dump(struct sk_buff *skb,
+ static int nft_target_validate(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr)
+ {
+-	struct xt_target *target = expr->ops->data;
+ 	unsigned int hook_mask = 0;
+ 	int ret;
+ 
+@@ -377,11 +376,21 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops;
++		struct xt_target *target = expr->ops->data;
++		void *info = nft_expr_priv(expr);
++		struct xt_tgchk_param par;
++		union nft_entry e = {};
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (target->hooks && !(hook_mask & target->hooks))
+ 			return -EINVAL;
+ 
++		nft_target_set_tgchk_param(&par, ctx, target, info, &e, 0, false);
++
++		ret = xt_check_hooks_target(&par);
++		if (ret < 0)
++			return ret;
++
+ 		ret = nft_compat_chain_validate_dependency(ctx, target->table);
+ 		if (ret < 0)
+ 			return ret;
+@@ -515,10 +524,10 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			return ret;
+ 	}
+ 
+-	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
+-
+ 	nft_compat_wait_for_destructors(ctx->net);
+ 
++	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
++
+ 	return xt_check_match(&par, size, proto, inv);
+ }
+ 
+@@ -614,8 +623,6 @@ static int nft_match_large_dump(struct sk_buff *skb,
+ static int nft_match_validate(const struct nft_ctx *ctx,
+ 			      const struct nft_expr *expr)
+ {
+-	struct xt_match *match = expr->ops->data;
+-	unsigned int hook_mask = 0;
+ 	int ret;
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+@@ -638,11 +645,34 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops;
++		unsigned int hook_mask = 1 << ops->hooknum;
++		struct xt_match *match = expr->ops->data;
++		size_t size = XT_ALIGN(match->matchsize);
++		struct xt_mtchk_param par;
++		union nft_entry e = {};
++		void *info;
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (match->hooks && !(hook_mask & match->hooks))
+ 			return -EINVAL;
+ 
++		if (NFT_EXPR_SIZE(size) > NFT_MATCH_LARGE_THRESH) {
++			struct nft_xt_match_priv *priv = nft_expr_priv(expr);
++
++			info = priv->info;
++		} else {
++			info = nft_expr_priv(expr);
++		}
++
++		if (match->hooks && !(hook_mask & match->hooks))
++			return -EINVAL;
++
++		nft_match_set_mtchk_param(&par, ctx, match, info, &e, 0, false);
++
++		ret = xt_check_hooks_match(&par);
++		if (ret < 0)
++			return ret;
++
+ 		ret = nft_compat_chain_validate_dependency(ctx, match->table);
+ 		if (ret < 0)
+ 			return ret;
+-- 
+2.47.3
 
