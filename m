@@ -1,27 +1,74 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC80737F015
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 15:30:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6874538CFF1
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 17:56:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777476607; cv=none; b=VyF+hm90e8qe1jMq0529iNDPgfy5/Zs9MoBvnOEjMlE518FGT3FSZVMFaHs041O8BM0i5cqCmH08M4MkU1KmDYxCUoPZt4wpeD/kLsci5VyVA/2xRHhQb1sVhlxTXsuUE1Q8XMcHc7VwjnhvwGLwcH2bGxZYIM/7I2CQeTz2q6c=
+	t=1777485377; cv=none; b=egAkwHJ2VDnRa7LMz6w/xY76fCtuPOnJy+kUPaQRHHLhNYBc0lnRfH9nvyRPIiFt4EHz74p9TInoQmQPwW+eNOo6GE4A4uHnlp/QRNcMoNtJWXSU7zQRUD2gIjzf3btcNgjV1R6QGbGU4FosMQuhrNyj938hxP80YMRKGNTjCmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777476607; c=relaxed/simple;
-	bh=VwmfhluF2JeM9TBa2zHAB8/mq3bzEWet/djKNle3VfU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iT1gc8qtwmzP0DbhTuB0IsF2UTPfmaEpzcTfqhllc9osr75d9Sy37IrVZQQ2jnQZF/LEn7f730su57WfGFkxrbUa+xZafWSB0Yq4UWKGbI9L5ygYaDxwAWH51JQKdOLKf+R/eUi83vq2l2fM9HMwM0h11XEWAHuvwZezg0psIRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3B53F60336; Wed, 29 Apr 2026 17:29:56 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH conntrack-tools] conntrackd-netns-test.sh: rework for CI pipelines
-Date: Wed, 29 Apr 2026 17:29:45 +0200
-Message-ID: <20260429152950.12610-1-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
+	s=arc-20240116; t=1777485377; c=relaxed/simple;
+	bh=3OxTu4QNmh4FcfaWOckhLbkPnokTjOz1m2MKBETIPtI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DoI9P9hoV+lk8JV0RUlhi++C3q55shYLihpNgBdBMgIriopzEPMkE39SzNllwxzJM+hcpq03EbSwn8cl8JpVdIR3KVEKVFdbIZbbDefqHdbx+kDf+F0M4kit1MfcQgUNujyLGrZLVHOYaW1+1f8QgO5HZwbDzDveoBzmXW9Pg30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TUoc0w6z; arc=none smtp.client-ip=209.85.221.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TUoc0w6z"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-43fe608cb92so48063f8f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 10:56:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777485375; x=1778090175; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=r4NsrOL1q9Am89S8Z+OaW8+HqXPWLvbAymgwFLwuQBI=;
+        b=TUoc0w6z/793eup5Y2+Wx9TN1zDZbPFz7ps9hUwk1FFnuKRsVcFPeL+2Gq8TFj89xb
+         7Skqkqp11WXWfyvxwc5pt52RHGC0dZLWcwch9vNGyG4875Z+B/wyt9li1PAtEMgabhX2
+         NAZURJLcsimuTEDpkjqf4u+CE231mnvJGzJBVSK6Lg9KcJck9Il4jsOXaFuZ9LInqSCe
+         zJWqpPTf6ZIbfuCglXtkTCD2xaLMo3D+gOFzvPhMhx6XwGIJjDlNbJDFyu4yG1fGYpm1
+         /AUJxiXGWdnk2TS1xCTzSN9l5Lk0i9gSlOZbQHCgZzLJ6292xcU5CEItS1RBXWvh3iwc
+         HJYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777485375; x=1778090175;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=r4NsrOL1q9Am89S8Z+OaW8+HqXPWLvbAymgwFLwuQBI=;
+        b=DhArQ+ZicPo4i9xZ2QxQqkCG4Vb/LerV1ov+7mV4l8a/c7IFoFADPd2EwY/owidv4A
+         /NUuH0HMPM4enI+9QTbjhjxFmT6KfaC8VePFZPrDvxoB9cRhwHGa9no5/rOfhOGqFm/q
+         6Aki8M1J16vs1fsQB7ZnGfCvlXldV0D0wsTy/KoF1lL1EVgIohB9F3LeTnAnNBiqbLTj
+         r89rNTsaoi51Y2Q9mdznUp3dSqJthUBFagTE1u153L4/E71wdu3uScL0gI1hH7cltjvV
+         aLeyXzPXMYQ+A1190AdQlbwqFTriGzFdo97ZSHhdC2LxY5xjD2weANzyH/PIu70wOzgs
+         2yiQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8yY+j3SyAwqAcndlRIG+/X0nF711IwwmUpSRtDNVIhyLbBNcfdWbGBaz8tf5ttrVENOeHIo7WBWLnMqLsjYh8=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyf/DFqp8vrOKwPVEYFyCy42JcJOV3jJ9Rkw/K8MPaHWTB8A+X/
+	kwCKMcQg2IkAN64JeH3+F95g6Xse3DEkmNo902NHWU+yIla4Kw9qgDU=
+X-Gm-Gg: AeBDieubqcsy8Dbpp/rnmpRlmGkrIwL2zOz27Mt6Ztt3JBPYlULBAc4y6+dysYMNhth
+	5BW09xhhJl0+vSds4sPjxusHYVR5DoRETnqG0Lujg6VXtzFmQA5Sa9VYPOwYkIhXTvL7jPD9ssA
+	kg6NPRW+5JensYZwIAv81vah/aTvQTddSax+TMd2I4Ip6flh0TZjE5C0yepyvPvVIGgzgTHc0nG
+	ErRIgg2peMw2+ob3APyLT9G8NJUPURgeg1USX9ryXoLJEZ6+M0WkiyfDxKnHRCVUfUxDoN5tkz4
+	GVwEGn7uoQFA1l7Bni+5qXHNtUi9L9WY3Gl9ZHQMZu9qVqD8dBBYktlv1PPGEchDGEYOjRWc5cP
+	VmEEPcNkqRS6KsGwtJSJbPmVCG/1LZbqiIvBobk364PjAc+glaz3d1pDerM1nuOdugM6GbLMCck
+	sjRt4=
+X-Received: by 2002:a05:6000:2305:b0:441:3144:efc5 with SMTP id ffacd0b85a97d-4464a1682b5mr16117702f8f.42.1777485374554;
+        Wed, 29 Apr 2026 10:56:14 -0700 (PDT)
+Received: from debian.. ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-447b3d48517sm6183750f8f.5.2026.04.29.10.56.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Apr 2026 10:56:13 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	stable@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Tristan Madani <tristan@talencesecurity.com>
+Subject: [PATCH 0/2] netfilter: fix NULL ops race in iptable lazy init
+Date: Wed, 29 Apr 2026 17:56:10 +0000
+Message-ID: <20260429175613.1459342-1-tristmd@gmail.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,231 +77,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-1. Randomize the netns names so it won't collide with
-   other tests that could run in parallel.
+From: Tristan Madani <tristan@talencesecurity.com>
 
-2. Exit with 1 if there are errors.
+ipt_register_table() and ip6t_register_table() call xt_register_table()
+which adds the new table to the per-netns list, making it visible to
+other code paths.  Only afterwards do they allocate the per-net copy of
+hook ops via kmemdup_array().  This leaves a window where the table is
+findable via xt_find_table() but has ops=NULL.
 
-3. Add a 'test' parameter:
-   Behaves like 'start' followed by single tcp syn plus check that this
-   request can be found in the internal resp. external caches of the two
-   conntrackd instances.
+If cleanup_net runs during this window (racing namespace teardown against
+lazy table init), ipt_unregister_table_pre_exit() /
+ip6t_unregister_table_pre_exit() finds the table and passes the NULL ops
+pointer to nf_unregister_net_hooks(), causing a general protection fault.
 
-This script can still be used for manual testing:
-'start' will keep the netns/conntrackd instances running.
+Fix both ip_tables.c and ip6_tables.c by moving the ops allocation
+before xt_register_table(), so the table is never in the list with a
+NULL ops pointer.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../conntrackd/netns/conntrackd-netns-test.sh | 181 +++++++++++++-----
- 1 file changed, 131 insertions(+), 50 deletions(-)
+Tristan Madani (2):
+  netfilter: ip_tables: allocate hook ops before making table visible
+  netfilter: ip6_tables: allocate hook ops before making table visible
 
-diff --git a/tests/conntrackd/netns/conntrackd-netns-test.sh b/tests/conntrackd/netns/conntrackd-netns-test.sh
-index f6b11e26dcf7..39be56f05b21 100755
---- a/tests/conntrackd/netns/conntrackd-netns-test.sh
-+++ b/tests/conntrackd/netns/conntrackd-netns-test.sh
-@@ -6,71 +6,152 @@ then
- 	exit 0
- fi
- 
-+ret=0
-+R1=""
-+R2=""
-+NS1=""
-+NS2=""
-+statedir=""
-+
-+die() {
-+	echo "Error: $@"
-+	exit 1
-+}
-+
-+warn() {
-+	echo "Error: $@"
-+	ret=1
-+}
-+
-+cleanup() {
-+	for n in "$R1" "$R2" "$NS1" "$NS2"; do
-+		kill $(ip netns pid "$n") 2>/dev/null
-+		ip netns del "$n"
-+	done
-+	test -d "$statedir" && (
-+		rm -f "$statedir/r1"
-+		rm -f "$statedir/r2"
-+		rm -f "$statedir/ns1"
-+		rm -f "$statedir/ns2"
-+		rmdir "$statedir"
-+	)
-+}
-+
-+dump_state() {
-+	statedir="$(mktemp -d -t ctd-state-XXXXXXXX)" || exit 1
-+
-+	echo "$R1" > "$statedir/r1"
-+	echo "$R2" > "$statedir/r2"
-+	echo "$NS1" > "$statedir/ns1"
-+	echo "$NS2" > "$statedir/ns2"
-+}
-+
-+restore_state() {
-+	read R1 < "$statedir/r1"
-+	read R2 < "$statedir/r2"
-+	read NS1 < "$statedir/ns1"
-+	read NS2 < "$statedir/ns2"
-+}
-+
- start () {
--	ip netns add ns1
--	ip netns add ns2
--	ip netns add nsr1
--	ip netns add nsr2
--
--	ip link add veth0 netns ns1 type veth peer name veth1 netns nsr1
--	ip link add veth0 netns nsr1 type veth peer name veth0 netns ns2
--	ip link add veth2 netns nsr1 type veth peer name veth0 netns nsr2
--
--	ip -net ns1 addr add 192.168.10.2/24 dev veth0
--	ip -6 -net ns1 addr add bbbb::2/64 dev veth0
--	ip -net ns1 link set up dev veth0
--	ip -net ns1 ro add 10.0.1.0/24 via 192.168.10.1 dev veth0
--	ip -6 -net ns1 ro add aaaa::/64 via bbbb::1 dev veth0
--
--	ip -net nsr1 addr add 10.0.1.1/24 dev veth0
--	ip -net nsr1 addr add 192.168.10.1/24 dev veth1
--	ip -6 -net nsr1 addr add aaaa::1/64 dev veth0
--	ip -6 -net nsr1 addr add bbbb::1/64 dev veth1
--	ip -net nsr1 link set up dev veth0
--	ip -net nsr1 link set up dev veth1
--	ip -net nsr1 route add default via 192.168.10.2
--	ip -6 -net nsr1 route add default via bbbb::2
--	ip netns exec nsr1 sysctl net.ipv4.ip_forward=1
--	ip netns exec nsr1 sysctl net.ipv6.conf.all.forwarding=1
--
--	ip -net nsr1 addr add 192.168.100.2/24 dev veth2
--	ip -6 -net nsr1 addr add cccc::2/96 dev veth2
--	ip -net nsr1 link set up dev veth2
--	ip -net nsr2 addr add 192.168.100.3/24 dev veth0
--	ip -6 -net nsr2 addr add cccc::3/96 dev veth0
--	ip -net nsr2 link set up dev veth0
--
--	ip -net ns2 addr add 10.0.1.2/24 dev veth0
--	ip -6 -net ns2 addr add aaaa::2/64 dev veth0
--	ip -net ns2 link set up dev veth0
--	ip -net ns2 route add default via 10.0.1.1
--	ip -6 -net ns2 route add default via aaaa::1
-+	local rnd=$(mktemp -u XXXXXXXX)
-+
-+	R1="ctd-r1-$rnd"
-+	R2="ctd-r2-$rnd"
-+	NS1="ctd-ns1-$rnd"
-+	NS2="ctd-ns2-$rnd"
-+
-+	for n in "$R1" "$R2" "$NS1" "$NS2"; do
-+		ip netns add "$n"
-+	done
-+
-+	ip link add veth0 netns "$NS1" type veth peer name veth1 netns "$R1"
-+	ip link add veth0 netns "$R1" type veth peer name veth0 netns "$NS2"
-+	ip link add veth2 netns "$R1" type veth peer name veth0 netns "$R2"
-+
-+	ip -net "$NS1" addr add 192.168.10.2/24 dev veth0
-+	ip -6 -net "$NS1" addr add bbbb::2/64 dev veth0
-+	ip -net "$NS1" link set up dev veth0
-+	ip -net "$NS1" ro add 10.0.1.0/24 via 192.168.10.1 dev veth0
-+	ip -6 -net "$NS1" ro add aaaa::/64 via bbbb::1 dev veth0
-+
-+	ip -net "$R1" addr add 10.0.1.1/24 dev veth0
-+	ip -net "$R1" addr add 192.168.10.1/24 dev veth1
-+	ip -6 -net "$R1" addr add aaaa::1/64 dev veth0
-+	ip -6 -net "$R1" addr add bbbb::1/64 dev veth1
-+	ip -net "$R1" link set up dev veth0
-+	ip -net "$R1" link set up dev veth1
-+	ip -net "$R1" route add default via 192.168.10.2
-+	ip -6 -net "$R1" route add default via bbbb::2
-+	ip netns exec "$R1" sysctl -q net.ipv4.ip_forward=1
-+	ip netns exec "$R1" sysctl -q net.ipv6.conf.all.forwarding=1
-+
-+	ip -net "$R1" addr add 192.168.100.2/24 dev veth2
-+	ip -6 -net "$R1" addr add cccc::2/96 dev veth2
-+	ip -net "$R1" link set up dev veth2
-+	ip -net "$R2" addr add 192.168.100.3/24 dev veth0
-+	ip -6 -net "$R2" addr add cccc::3/96 dev veth0
-+	ip -net "$R2" link set up dev veth0
-+
-+	ip -net "$NS2" addr add 10.0.1.2/24 dev veth0
-+	ip -6 -net "$NS2" addr add aaaa::2/64 dev veth0
-+	ip -net "$NS2" link set up dev veth0
-+	ip -net "$NS2" route add default via 10.0.1.1
-+	ip -6 -net "$NS2" route add default via aaaa::1
- 
- 	echo 1 > /proc/sys/net/netfilter/nf_log_all_netns
- 
--	ip netns exec nsr1 nft -f ruleset-nsr1.nft
--	ip netns exec nsr1 conntrackd -C conntrackd-nsr1.conf -d
--	ip netns exec nsr2 conntrackd -C conntrackd-nsr2.conf -d
-+	ip netns exec "$R1" nft -f ruleset-nsr1.nft
-+	ip netns exec "$R1" conntrackd -C conntrackd-nsr1.conf -d
-+	ip netns exec "$R2" conntrackd -C conntrackd-nsr2.conf -d
- }
- 
--stop () {
--	ip netns del ns1
--	ip netns del ns2
--	ip netns del nsr1
--	ip netns del nsr2
--	killall -15 conntrackd
-+selftest() {
-+	# This will time out, but we only want to make sure this appears both in nsr1 and nsr2 conntrackd
-+	# instances.
-+	timeout 10 ip netns exec "$NS1" socat -u STDIN TCP-connect:10.0.1.31:12345 > /dev/null &
-+	local pid=$!
-+
-+	sleep 1
-+	if ! ip netns exec "$R1" conntrackd -C conntrackd-nsr1.conf -i | grep -q "src=192.168.10.2 dst=10.0.1.31"; then
-+		warn "nsr1 had no record in internal cache."
-+	fi
-+
-+	if ! ip netns exec "$R2" conntrackd -C conntrackd-nsr2.conf -e | grep -q "src=192.168.10.2 dst=10.0.1.31"; then
-+		warn "nsr2 had no record in external cache."
-+	fi
-+
-+	if [ $ret -eq 0 ];then
-+		echo "PASS: Found connection in external cache in nsr2."
-+		kill $pid
-+	fi
- }
- 
- case $1 in
- start)
-+	trap cleanup EXIT
- 	start
-+	dump_state
-+	echo "Running with: $NS1 $NS2 $R1 $R2, stop with $0 stop $statedir"
-+	trap - EXIT
- 	;;
- stop)
--	stop
-+	if [ "$2"x = ""x ]; then
-+		echo "$0 stop <statedir>"
-+	fi
-+	test -d "$2" || die "$2 not found"
-+	statedir="$2"
-+	trap cleanup EXIT
-+	restore_state
-+	;;
-+test)
-+	trap cleanup EXIT
-+	start
-+	selftest
- 	;;
- *)
--	echo "$0 [start|stop]"
-+	echo "$0 [start|stop|test]"
- 	;;
- esac
- 
--exit 0
-+exit $ret
+ net/ipv4/netfilter/ip_tables.c  | 31 ++++++++++++++++---------------
+ net/ipv6/netfilter/ip6_tables.c | 28 ++++++++++++++++------------
+ 2 files changed, 32 insertions(+), 27 deletions(-)
+
 -- 
-2.53.0
-
+2.47.3
