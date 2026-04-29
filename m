@@ -1,110 +1,226 @@
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44E49399001
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 23:19:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2609A1C84A6
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 23:57:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777504755; cv=none; b=cbVubn9IYlIZolWJenXLMKTuSgH7Qt18BzviFlkoHiSGF0d5D2lI07fuEiPZHJhlcgkppsbs7ILRpVHsxvtNAdedUvLczNOUH+G35yJiYxr/pmpjqWHuI5ucvuCzlBEg7n3C07BBKJEfvmkXe5Urc63iVsFrZcTktxZtcy/xJDI=
+	t=1777507026; cv=none; b=AiLUbH6i0259Vlm8OlxEzMkELFo/XWYuPDK54li7DlOASgqnRonfzswpUYR3nfRe7eu7qnDIFPeRfCDIQVvm29umaTrcN6IUDBlPAvMzDjmJ0ZdSGcyjPoUugwtIIw3t9hcjw2r1dGXNEuq+Buqz32zd8TgJUyqobNhhsEwA5tE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777504755; c=relaxed/simple;
-	bh=vnf9u5bZr2Jh4vHEhpzns0hJLI6h1CacL4VAyx/kSbw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=J/mXdQQGk+EP4Ll7ZWGke1TVdZr3VJLUyd/5BjZLMgywbWhMx9yJN7xY6rnXvXfe1k+6jY2OznJD5nXatpXYB514EIbNcMDqzeBeO471arq+8yD+nkOFWMLnPqA8Sdkmc/RuIrhjLyZkMDBf7sAxaJj/cIyOrF5tTrxUG6kMipg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Hnc4IVGS; arc=none smtp.client-ip=209.85.221.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777507026; c=relaxed/simple;
+	bh=9msOQsMF2yVYrbZs/Ad0bAFOhXYrAUpJFmsfkuNmZv4=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=SGTh3s9N94uGmarS+hprWsqBTXxCf20p5sj03UPwRYq9prn2aMXP+OcWKs60tXEDkGZ9PrHJB6v1yWBd6mqXsYeqU7T6d8nLTJDXdX+6aoXFrhF3b3DKqKEVlBeIRvsfwq8LLkmuVUeJ3o4h+HJraY4zQoXdcEGWiZy/O1JfsCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qOvdHgAu; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Hnc4IVGS"
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-43d43e09de5so146046f8f.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 16:19:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777504753; x=1778109553; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Xg4uL55KM0rpFJAt2ymSaCICrZWf1oCpfyBNCgcrMb4=;
-        b=Hnc4IVGS5eyTt3dBGI3jm2Yi6bpyGq2/IUGR094lMMJWJAtbIgU/AOcylkkxkIsEvz
-         Dfss/BJgqLchl9JUobzRcrZ/hzevpBuKHvo5Qtt5BL6Ha9wZgK6iZh7huH5HQ4QizekW
-         6wfl2WkpR6hreV1/2kHsZxbrwaQpi3TphNw/dgR716Vz06x0TF0VfHIlMWs/DGvGw61G
-         UVLQu2Ahx/yphAhkflW72+qQdlyef0tjbrqq7B1RqzWv7rd67inn/DiHm6cEy/oKnvQ4
-         iq1GElBXS9UIav1DK2Cj5W0W71i6HVJEfPDJDJbt1OgXhDcI+GaXZdwJf7DKa1WHB27R
-         TtrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777504753; x=1778109553;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Xg4uL55KM0rpFJAt2ymSaCICrZWf1oCpfyBNCgcrMb4=;
-        b=dK83S+GBNMBIv//DO1hjpBBB3pWzkMbG7sJ900/IcXB5SfxGcl+cn4unKrQe5ewDA0
-         jfA17M6RHJxplj+5dE+QbGo1XtC7wYLdqE4jfH1qzDB/7Zkl2ktnoixfRMesjruU3WeI
-         L9S0qJxXHw3w0tal6O5AXhlBH4zM9z15F7HoxZRAZHkbSKOXXjCPiTfbqG8iTip894mn
-         RP2DVDlPZ3cD53KxAv4L3fPOXPY4EQ99v5wgMgw4PtmtOC4ZwQqFPFcU/2QqXETsMRvw
-         E3MPn6JSeCNO1y24FOBkiVt8CakK93ZZ5Qu7gskQ0AYNVBfsHxVVbLQb9hz3UqIwlmUa
-         kFPA==
-X-Forwarded-Encrypted: i=1; AFNElJ8O5VpiiRiVm5+ILVzgq9fqs6kq9sXkXzN6FTkcm+vQbTTFSVTTg2lIb3uxZj2eJ3reG6vdK3wEE0kR7yvlswg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YySap7K1KVo7lTvuX0JbeQgTa8dEDChVZx+F0HF+pEnrL5eEogr
-	XaFZhj/O5fMI86koSOYRT4EgMZTtu8S5w7eouiSg9JFw/dPpEZFQ3mM=
-X-Gm-Gg: AeBDies2biooxS6lwX+060LKNFIZkwqBhojPmtL9GMt1OyhlAtV4l20/W0OOtg3XZTJ
-	51fwTZJq9WuxRcnHLGoL9M/vFe8cgk/H0VruyqdssGEO+PlBlz1CM2edQC9G++Bmd6oeb5ONagQ
-	cOEjy4JDVCmQEj+24wavj0XnNcixUQGMAiwnJ2cFIrBpTiK0+WsLgaY7SrWIPbcfWwyB7qfv22O
-	v5yAVg5ug6DEYf0fPzaybSmC8Rz5rYjxKznNa/Pg8j2p6edErttaZrsr47EiMxS17/7Oxw52pvZ
-	f4dfH8hoiW8cFys7Q8BMtB08IhXR9y2q1ApM2FdMIgjyMcxD6XYtVUJA/3oA+Krb2GS1cgzKKc3
-	inwfuu0Ux5PUIqrUWO+qT8D+PqS6tcSsfKpKobZA0x+uVs0HkisERIaFDTBDUPYDHX+2Fl5y7Ca
-	TQkHXwfC3vJBVZyg==
-X-Received: by 2002:a05:6000:611:b0:43e:a81d:c475 with SMTP id ffacd0b85a97d-4493cf2d583mr611329f8f.6.1777504752636;
-        Wed, 29 Apr 2026 16:19:12 -0700 (PDT)
-Received: from debian ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-447b3d48517sm7502180f8f.5.2026.04.29.16.19.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Apr 2026 16:19:12 -0700 (PDT)
-From: Tristan Madani <tristmd@gmail.com>
-X-Google-Original-From: Tristan Madani <tristan@talencesecurity.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
- stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/2] netfilter: ip6_tables: guard
- ip6t_unregister_table_pre_exit against NULL ops
-Date: Wed, 29 Apr 2026 23:19:11 -0000
-Message-ID: <177750475157.3021974.6858117535916205046@talencesecurity.com>
-In-Reply-To: <177750472539.3004201.15967003942391945312@talencesecurity.com>
-References: <20260429175613.1459342-1-tristmd@gmail.com>
- <177750472539.3004201.15967003942391945312@talencesecurity.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qOvdHgAu"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id F1F62600B5
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 01:56:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1777507015;
+	bh=dLtj7SNOvU4uGQXkQYkHVqJ1P6+ozK0Ypr85JVsmt+Y=;
+	h=From:To:Subject:Date:From;
+	b=qOvdHgAuxrBDKd0TFcuxxiInXo5AVt52nMw/D/2WASBPFsIFkpbntjK53/CiFLda9
+	 KyEi340OxjDQugWt/ixnUGCaztVO1ieeISYmIP2W92/6SaBNz7uTW8ssIaVDKbyCbm
+	 8RXT5Crz08QRJ04M2OB45Er515vZY5/CBedxVIFpE+sxBUjWZrXqCF9LgJG68qAN5Q
+	 CBeP3vRQBQWDy7KWFIVcJ42ze/1iHP0V8viFKAXG+Wb8LMM3GVgzKDxbZbiK3cBQE5
+	 DqZ5dGHGfAV5NR+6EHECAZIR8dCzI25YeeJYt5TkskCQZWOlpc4QvpOvbWRmQyLQIB
+	 rYaDFEw3hVaTg==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v3 1/2] netfilter: flowtable: fix inline vlan encapsulation in xmit path
+Date: Thu, 30 Apr 2026 01:56:47 +0200
+Message-ID: <20260429235648.213770-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Same race as the ipv4 counterpart: ip6t_register_table() adds the
-table to the per-netns list before assigning new_table->ops.
-cleanup_net can find the table with a NULL ops pointer and crash in
-nf_unregister_net_hooks().
+Several issues in the inline vlan support:
 
-Guard against this by checking table->ops before the call.
+- The layer 2 encapsulation representation in the tuple takes encap[0] as
+  the outer header and encap[1] as the inner header as seen from the ingress
+  path. Reverse the encap loop to push first the inner then the outer vlan
+  header.
 
-Fixes: ee177a54413a ("netfilter: ip6_tables: Use xt_register_table()")
-Cc: stable@vger.kernel.org
-Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
+- Postpone pushing the layer 2 header once destination device is known.
+  This allows to calculate the needed hearoom via LL_RESERVED_SPACE to
+  accommodate the layer 2 headers.
+
+- Add and use nf_flow_vlan_push() as suggested by Eric Woudstra, this
+  is a simplified version of skb_vlan_push() for egress path only.
+
+Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6_tables.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v3: no changes
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index XXXXXXX..XXXXXXX 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1804,7 +1804,7 @@ void ip6t_unregister_table_pre_exit(struct net *net, co=
-nst char *name)
- {
- 	struct xt_table *table =3D xt_find_table(net, NFPROTO_IPV6, name);
+ net/netfilter/nf_flow_table_ip.c | 91 ++++++++++++++++++++++----------
+ 1 file changed, 63 insertions(+), 28 deletions(-)
 
--	if (table)
-+	if (table && table->ops)
- 		nf_unregister_net_hooks(net, table->ops, hweight32(table->valid_hooks));
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index dbd7644fdbeb..6da0bc3965df 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -462,23 +462,6 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
+ 		nf_flow_ip_tunnel_pop(ctx, skb);
  }
+ 
+-struct nf_flow_xmit {
+-	const void		*dest;
+-	const void		*source;
+-	struct net_device	*outdev;
+-};
+-
+-static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+-				       struct nf_flow_xmit *xmit)
+-{
+-	skb->dev = xmit->outdev;
+-	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
+-			xmit->dest, xmit->source, skb->len);
+-	dev_queue_xmit(skb);
+-
+-	return NF_STOLEN;
+-}
+-
+ static struct flow_offload_tuple_rhash *
+ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+ 		       struct nf_flowtable *flow_table, struct sk_buff *skb)
+@@ -544,6 +527,31 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 	return 1;
+ }
+ 
++/* Similar to skb_vlan_push. */
++static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
++			     u32 needed_headroom)
++{
++	if (skb_vlan_tag_present(skb)) {
++		struct vlan_hdr *vhdr;
++
++		if (skb_cow_head(skb, needed_headroom + VLAN_HLEN))
++			return -1;
++
++		__skb_push(skb, VLAN_HLEN);
++		if (skb_mac_header_was_set(skb))
++			skb->mac_header -= VLAN_HLEN;
++
++		vhdr = (struct vlan_hdr *)skb->data;
++		skb->network_header -= VLAN_HLEN;
++		vhdr->h_vlan_TCI = htons(skb_vlan_tag_get(skb));
++		vhdr->h_vlan_encapsulated_proto = skb->protocol;
++		skb->protocol = skb->vlan_proto;
++	}
++	__vlan_hwaccel_put_tag(skb, proto, id);
++
++	return 0;
++}
++
+ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
+ {
+ 	int data_len = skb->len + sizeof(__be16);
+@@ -730,17 +738,19 @@ static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
+ }
+ 
+ static int nf_flow_encap_push(struct sk_buff *skb,
+-			      struct flow_offload_tuple *tuple)
++			      struct flow_offload_tuple *tuple,
++			      struct net_device *outdev)
+ {
++	u32 needed_headroom = LL_RESERVED_SPACE(outdev);
+ 	int i;
+ 
+-	for (i = 0; i < tuple->encap_num; i++) {
++	for (i = tuple->encap_num - 1; i >= 0; i--) {
+ 		switch (tuple->encap[i].proto) {
+ 		case htons(ETH_P_8021Q):
+ 		case htons(ETH_P_8021AD):
+-			skb_reset_mac_header(skb);
+-			if (skb_vlan_push(skb, tuple->encap[i].proto,
+-					  tuple->encap[i].id) < 0)
++			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
++					      tuple->encap[i].id,
++					      needed_headroom) < 0)
+ 				return -1;
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+@@ -753,6 +763,35 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++struct nf_flow_xmit {
++	const void		*dest;
++	const void		*source;
++	struct net_device	*outdev;
++	struct flow_offload_tuple *tuple;
++};
++
++static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
++				    struct nf_flow_xmit *xmit)
++{
++	skb->dev = xmit->outdev;
++	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
++			xmit->dest, xmit->source, skb->len);
++	dev_queue_xmit(skb);
++}
++
++static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
++				       struct nf_flow_xmit *xmit)
++{
++	if (xmit->tuple->encap_num) {
++		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
++			return NF_DROP;
++	}
++
++	__nf_flow_queue_xmit(net, skb, xmit);
++
++	return NF_STOLEN;
++}
++
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+@@ -797,9 +836,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
+ 		return NF_DROP;
+ 
+-	if (nf_flow_encap_push(skb, other_tuple) < 0)
+-		return NF_DROP;
+-
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rtable(tuplehash->tuple.dst_cache);
+@@ -829,6 +865,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 		WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
++	xmit.tuple = other_tuple;
+ 
+ 	return nf_flow_queue_xmit(state->net, skb, &xmit);
+ }
+@@ -1119,9 +1156,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 				   &ip6_daddr, encap_limit) < 0)
+ 		return NF_DROP;
+ 
+-	if (nf_flow_encap_push(skb, other_tuple) < 0)
+-		return NF_DROP;
+-
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+@@ -1151,6 +1185,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 		WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
++	xmit.tuple = other_tuple;
+ 
+ 	return nf_flow_queue_xmit(state->net, skb, &xmit);
+ }
+-- 
+2.47.3
 
