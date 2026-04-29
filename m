@@ -1,87 +1,112 @@
-Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com [209.85.210.72])
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 430092C08D4
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 20:32:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B892D36EAB9
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 21:03:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777494759; cv=none; b=EdmFm48DpSuLvkdDAmrsh9PFIaR4rwqK/6DzxsoRPCAWJcc30qqQBPXqsORRfcPRKdlBvvNwaaiazT3fCLSTPhjrsMFUUfzeaKp+8LAgcZsbjZEMAJyfqtNh4mLKSaHiHcMG8/egk6k54EaBrBTwseJW8tPFFE+qXvmVLVy1TEg=
+	t=1777496630; cv=none; b=atucqW9PjaM+eq8QL7KpIjS5rise2k8xGDC+jXFGKC8Ll//2ks+8gXa63JO9GsLx2+Xy+kUXgsreCAmfFrNSxHgl4v75IjFiQ4Y5vboYJmE4Fm96idpLEV6Wav7pLjvZIUuQbcm7yxGWSzlcsOcFovhBXmsfh7Kk1CYUGVWzxco=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777494759; c=relaxed/simple;
-	bh=kyDam3w5LTuUUMJlNUNEC+4wSMr9edfUCp37kx3oR/8=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=jfvaD9NE9SzoYuioN33fRrQAvadI6w/qucZaYzYQkBXETlt6YLU20IUQZr4GqQ6sZEAVyn6t2/Uv7S6l4eMdMBNaijup/3YmMR5UfPzdXfskdAmWj7jZyApuO16UpET57UtAvgWX1+9kxH9Ic7mrsjDB9wEowQiRHz2nK3DycKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-ot1-f72.google.com with SMTP id 46e09a7af769-7dc41904354so581102a34.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 13:32:38 -0700 (PDT)
+	s=arc-20240116; t=1777496630; c=relaxed/simple;
+	bh=2aA3uWTswagHEVLFA8v5skfAX/JT54EYEV9OQ+OofHQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Pnt6MLVfD2vMz3LpusH8QxHABv1j+5084Q0PuIpZrkD4H/XVzo2T0dKPMgP+5JockAebQ25hpf9xY1aLAGKo0oxN0yUOWPLOStDQALLpoUlwzBHf61sFwZRzjaq3xRAQY0vi0nj/DIsEpauGCb2JSgVIuLNnELfPM+jnxYTctnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MVLDABHH; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MVLDABHH"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-48334ee0aeaso1577385e9.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 14:03:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777496627; x=1778101427; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9eaYTnlxpHCY09/j5CrSkFztBrg3e6wlR9rFliILkCQ=;
+        b=MVLDABHH2s+wca68H4L+y5daBBNCnTUMhWl6HRklW6MSdEAY4a6yOrY5kF9H2KYkxy
+         nMNeIbT2Bp9W649poDIzsnnBlgtFphG1BsOmUM7RBiqNYf9eo7Z6bYShIjfKQgNufM2J
+         1Tg61FURYlgeIfbFgNo8oKo1nzyRdmOqwVd2Ipzp4KKbZUVS+vR9elLc79ExJ/79Ijp2
+         YDyL72gafLeamh7GrT0yuUYsnCdFACHI2ENscvafXVJsfrbQitd3Xgq5bME2LnQ1yAoh
+         ob1NstAwBzNdtWtfzA09d5ECVRx+U5gXGcbSukpebnoPW1y8rFHisrwQ2v+LDiJ6g25D
+         sqbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777494757; x=1778099557;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=n1mJTmE2rQEg/vhqk5b7ffjI2+vmg/PVDr1JbkSZPfE=;
-        b=s3g/xSbj5YrpYx1Coq+yPHwT5LGq4Iu+pvaUej8YuRFbd1GMobsYpLLYIH5kGW8kxu
-         6kuUWwbOJ3SNtopL7hPXS9VcBrY9FFm0lnRSPnLX2+CGps8b9lnVbo6XAx5NYt3XOwWZ
-         K/MZxIkkeEZNXbGLL+dcti3+jt0Ve+pQA1+5FaX0lA2H4aqS0+SYDM0OQ7dhXZzgnsH3
-         kGrJRkeyTJ67+VbDNhDcP7GhHidsDdexS9F15Lk86Mu6FEauUGQ7H0QjBW8DZR6k/kAz
-         ZUvmbM2Wg9rQVg2kM9vmrw6oNMq3w3c0Ym+Hl5cxh+C2jnexMTba95JO0JpJasNNuy5v
-         SRWQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9jy3rUcBaII2jeVo9cOHOS23Uy8tllPORrZJiGu6OCgkLGIzto219iMEBf9TuCUZcAhCckAdL34EM/6vV1hBE=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyVM+veGWh2P7aStph0QhjAfBg9PvmsSr26r6qYFBUMX19G3zvK
-	JzuCMOyFQ1bG+Nmz0/Q94tcwXwf8h8TwJq9pA0xXACjA46EuVYMYJA/+Gz+jVYYIiGTN5x8qu8r
-	oDl1Hx63JI47gyj/tjLpTBr0qZ8qyrh40+qY/yc0PnziKB7kZWND/U8yRK9g=
+        d=1e100.net; s=20251104; t=1777496627; x=1778101427;
+        h=mime-version:content-transfer-encoding:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=9eaYTnlxpHCY09/j5CrSkFztBrg3e6wlR9rFliILkCQ=;
+        b=MHkXyJqwpeXbNE7wx4LQRC7br2h3lTDhkt4LvGlg1RSuDCYoMk7tBxQKnE1LaEsaU5
+         I15kYrqaENVDEXTRSIlJ+yV0och2eIl4vx/CocMBk7M5SbIc/X7IxjNjwqYFBldmbat2
+         M5kChh/B61cuKnEyLi93ZUqJSjlYVApupqKt7XEqjMHteIz6nc8JsbK71jrYU5eJeayk
+         ia378CDfUrrrZRZCjA55x/7jy/3zhg82iInJ/Aaz43aRNe8Wh4tU+7PMgSA0TBInrSKp
+         p9Lg3UtjYBTo6yy0ba7dp8dVhiSEtbnJ0+MbJuEuXQqhHmrvYbePthS9p843LbCGbjhN
+         iWnQ==
+X-Forwarded-Encrypted: i=1; AFNElJ++AAPbfR8XKCqmvzrM+X4ESbLtHZuIwK5WoO3J6TVAaFhFbQepEKj6rwIH8s2X/2QNaKEnfY21ZizGk45OMAo=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz9wOaSw4Fo7iBi13BKYltQC9RYfFsCkk4JPOnuKIcqnLJudJDh
+	1x9bXl3qzTYwzFy85jtnc/l1FVrwe26KrF2JzF35HTMZEbqbdB1C+6s=
+X-Gm-Gg: AeBDievN/es0k8/ML478pUbKPTw/nWdcuRN9X62k1dhk6kEP3YTS3lyWvE2aikRkuaQ
+	vpedtg8JEzFMeKPdE8Dnw/X5mURBnCsOUv+EgD825JwtvPG3Qggi8O//02sucYmpPSA+h0KBn8y
+	zr0nz9hiNPi9yp0cXrOXz0rrgGDDas9FQmSbAKpw1egBuud4uowArqnacJzVqOtOAhQrJ1n9vBh
+	8aOY2TGas3SEYV5mjqZoOCtsHmz3YCCl90WAckzNwXowahaBPVdZOpoFOBqk2EIU8uxT9l2/Hdm
+	LQFApP4Jw0VAhpEqr++VBhQqpSuATxXeMDaTfENmn75tlBo9npnjWoXOWNgaqEtfDshpTllhdkx
+	9Az/ZRtUHOeiGp7LPfFk5X0cfG3Vh3tqJhFF7WOEM8h6w17JmUqc4kTtKS+mBcjIwUn4+MIM7KG
+	D+L9tzR9nfMfmCug==
+X-Received: by 2002:a05:600c:350d:b0:48a:57e1:d8cc with SMTP id 5b1f17b1804b1-48a83e7055bmr3924695e9.9.1777496627067;
+        Wed, 29 Apr 2026 14:03:47 -0700 (PDT)
+Received: from debian ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a822c832fsm29134635e9.10.2026.04.29.14.03.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Apr 2026 14:03:45 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+X-Google-Original-From: Tristan Madani <tristan@talencesecurity.com>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] netfilter: fix NULL ops race in iptable lazy init
+Date: Wed, 29 Apr 2026 21:03:44 -0000
+Message-ID: <177749662469.1430165.8044688741351868980@talencesecurity.com>
+In-Reply-To: <20260429175613.1459342-1-tristmd@gmail.com>
+References: <20260429175613.1459342-1-tristmd@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a4a:edce:0:b0:694:a30f:a6d6 with SMTP id
- 006d021491bc7-6967a521914mr103838eaf.25.1777494757384; Wed, 29 Apr 2026
- 13:32:37 -0700 (PDT)
-Date: Wed, 29 Apr 2026 13:32:37 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <69f26ae5.170a0220.3c4978.000a.GAE@google.com>
-Subject: [syzbot] Monthly netfilter report (Apr 2026)
-From: syzbot <syzbot+liste5400145e66cca787805@syzkaller.appspotmail.com>
-To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
 
-Hello netfilter maintainers/developers,
+On Wed, 30 Apr 2026 Phil Sutter wrote:
+> Is this true? Your patch moves the ops allocation, but new_table->ops is
+> still assigned after xt_register_table() has returned. AIUI, the race
+> window is just reduced, not eliminated.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+You are right -- I missed that new_table->ops is assigned after
+xt_register_table() returns. The table becomes visible via list_add()
+inside xt_register_table(), but the ops pointer is still NULL at that
+point. Moving the allocation alone does not close the window.
 
-During the period, 0 new issues were detected and 0 were fixed.
-In total, 14 issues are still open and 196 have already been fixed.
+We cannot assign ops before xt_register_table() because we need the
+returned new_table pointer to set ops[i].priv.
 
-Some of the still happening issues:
+Would a V2 that guards the pre_exit path instead be acceptable?
+Something like:
 
-Ref Crashes Repro Title
-<1> 5008    Yes   INFO: rcu detected stall in worker_thread (9)
-                  https://syzkaller.appspot.com/bug?extid=225bfad78b079744fd5e
-<2> 333     Yes   INFO: rcu detected stall in gc_worker (3)
-                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-<3> 127     Yes   INFO: rcu detected stall in NF_HOOK (2)
-                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
-<4> 73      No    INFO: task hung in nfnetlink_rcv_msg (5)
-                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
-<5> 11      Yes   KMSAN: uninit-value in ip6table_mangle_hook (3)
-                  https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
+  void ipt_unregister_table_pre_exit(struct net *net, const char *name)
+  {
+  	struct xt_table *table = xt_find_table(net, NFPROTO_IPV4, name);
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+  	if (table && table->ops)
+  		nf_unregister_net_hooks(net, table->ops,
+  				        hweight32(table->valid_hooks));
+  }
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+This way cleanup_net simply skips the table if ops has not been assigned
+yet. The register path will either complete and call
+nf_register_net_hooks() normally, or fail and clean up via
+__ipt_unregister_table().
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
+Thanks,
+Tristan
