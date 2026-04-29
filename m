@@ -1,112 +1,609 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B892D36EAB9
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 21:03:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2A0B274650
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 21:56:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777496630; cv=none; b=atucqW9PjaM+eq8QL7KpIjS5rise2k8xGDC+jXFGKC8Ll//2ks+8gXa63JO9GsLx2+Xy+kUXgsreCAmfFrNSxHgl4v75IjFiQ4Y5vboYJmE4Fm96idpLEV6Wav7pLjvZIUuQbcm7yxGWSzlcsOcFovhBXmsfh7Kk1CYUGVWzxco=
+	t=1777499765; cv=none; b=t7/TvLgLPAJGbuumn+f4cSJkZuewf/wNQrPfJhWSAaELcbvr5AXb4n9mQGs8vIW4rkg8VjTji6NpIcvirCV/pLmhdAA9BM1M6SHDZdk+X8quUu8zk8cgcWMLpAOqmm6pp8ZV6UGEFpBflaQwkVXpXJkbZ0na5x16GSL6ec+iXgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777496630; c=relaxed/simple;
-	bh=2aA3uWTswagHEVLFA8v5skfAX/JT54EYEV9OQ+OofHQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Pnt6MLVfD2vMz3LpusH8QxHABv1j+5084Q0PuIpZrkD4H/XVzo2T0dKPMgP+5JockAebQ25hpf9xY1aLAGKo0oxN0yUOWPLOStDQALLpoUlwzBHf61sFwZRzjaq3xRAQY0vi0nj/DIsEpauGCb2JSgVIuLNnELfPM+jnxYTctnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MVLDABHH; arc=none smtp.client-ip=209.85.128.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777499765; c=relaxed/simple;
+	bh=Xjgs4TyyL5coIPFHvb4HIoulJY9YcckyChRCec7RhSU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UG45Z+bgaBg7kkXfB2Q7cwSLSBa9uLoccSTUaRgKhyFK1RyyRAN1gjtqHtHAuD58ChLWuPAiM4TDkFTeV5Z5YmpiRgl8Z/Pci1zPAsFV1egiUiHsugBIHKRDx00UARu0qB6nf5d6dDBEnJx2thE1Y4cnvNlwHhQ71xFsYgve+ik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ah9Scgq0; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MVLDABHH"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-48334ee0aeaso1577385e9.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 14:03:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777496627; x=1778101427; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=9eaYTnlxpHCY09/j5CrSkFztBrg3e6wlR9rFliILkCQ=;
-        b=MVLDABHH2s+wca68H4L+y5daBBNCnTUMhWl6HRklW6MSdEAY4a6yOrY5kF9H2KYkxy
-         nMNeIbT2Bp9W649poDIzsnnBlgtFphG1BsOmUM7RBiqNYf9eo7Z6bYShIjfKQgNufM2J
-         1Tg61FURYlgeIfbFgNo8oKo1nzyRdmOqwVd2Ipzp4KKbZUVS+vR9elLc79ExJ/79Ijp2
-         YDyL72gafLeamh7GrT0yuUYsnCdFACHI2ENscvafXVJsfrbQitd3Xgq5bME2LnQ1yAoh
-         ob1NstAwBzNdtWtfzA09d5ECVRx+U5gXGcbSukpebnoPW1y8rFHisrwQ2v+LDiJ6g25D
-         sqbw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777496627; x=1778101427;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=9eaYTnlxpHCY09/j5CrSkFztBrg3e6wlR9rFliILkCQ=;
-        b=MHkXyJqwpeXbNE7wx4LQRC7br2h3lTDhkt4LvGlg1RSuDCYoMk7tBxQKnE1LaEsaU5
-         I15kYrqaENVDEXTRSIlJ+yV0och2eIl4vx/CocMBk7M5SbIc/X7IxjNjwqYFBldmbat2
-         M5kChh/B61cuKnEyLi93ZUqJSjlYVApupqKt7XEqjMHteIz6nc8JsbK71jrYU5eJeayk
-         ia378CDfUrrrZRZCjA55x/7jy/3zhg82iInJ/Aaz43aRNe8Wh4tU+7PMgSA0TBInrSKp
-         p9Lg3UtjYBTo6yy0ba7dp8dVhiSEtbnJ0+MbJuEuXQqhHmrvYbePthS9p843LbCGbjhN
-         iWnQ==
-X-Forwarded-Encrypted: i=1; AFNElJ++AAPbfR8XKCqmvzrM+X4ESbLtHZuIwK5WoO3J6TVAaFhFbQepEKj6rwIH8s2X/2QNaKEnfY21ZizGk45OMAo=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz9wOaSw4Fo7iBi13BKYltQC9RYfFsCkk4JPOnuKIcqnLJudJDh
-	1x9bXl3qzTYwzFy85jtnc/l1FVrwe26KrF2JzF35HTMZEbqbdB1C+6s=
-X-Gm-Gg: AeBDievN/es0k8/ML478pUbKPTw/nWdcuRN9X62k1dhk6kEP3YTS3lyWvE2aikRkuaQ
-	vpedtg8JEzFMeKPdE8Dnw/X5mURBnCsOUv+EgD825JwtvPG3Qggi8O//02sucYmpPSA+h0KBn8y
-	zr0nz9hiNPi9yp0cXrOXz0rrgGDDas9FQmSbAKpw1egBuud4uowArqnacJzVqOtOAhQrJ1n9vBh
-	8aOY2TGas3SEYV5mjqZoOCtsHmz3YCCl90WAckzNwXowahaBPVdZOpoFOBqk2EIU8uxT9l2/Hdm
-	LQFApP4Jw0VAhpEqr++VBhQqpSuATxXeMDaTfENmn75tlBo9npnjWoXOWNgaqEtfDshpTllhdkx
-	9Az/ZRtUHOeiGp7LPfFk5X0cfG3Vh3tqJhFF7WOEM8h6w17JmUqc4kTtKS+mBcjIwUn4+MIM7KG
-	D+L9tzR9nfMfmCug==
-X-Received: by 2002:a05:600c:350d:b0:48a:57e1:d8cc with SMTP id 5b1f17b1804b1-48a83e7055bmr3924695e9.9.1777496627067;
-        Wed, 29 Apr 2026 14:03:47 -0700 (PDT)
-Received: from debian ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a822c832fsm29134635e9.10.2026.04.29.14.03.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Apr 2026 14:03:45 -0700 (PDT)
-From: Tristan Madani <tristmd@gmail.com>
-X-Google-Original-From: Tristan Madani <tristan@talencesecurity.com>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
- stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/2] netfilter: fix NULL ops race in iptable lazy init
-Date: Wed, 29 Apr 2026 21:03:44 -0000
-Message-ID: <177749662469.1430165.8044688741351868980@talencesecurity.com>
-In-Reply-To: <20260429175613.1459342-1-tristmd@gmail.com>
-References: <20260429175613.1459342-1-tristmd@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ah9Scgq0"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 222BA600B5;
+	Wed, 29 Apr 2026 23:56:00 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1777499760;
+	bh=oSXi0ijvpdtumInzVn92nu+u44V3KmTBURQVIkgOy5c=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Ah9Scgq0IKZkPXlK27gcvQuw9RvxWVlDDD4TNRcGBTcC0LDi/U5TUMsjh211xvc3z
+	 qFw8cG/0daj3MFgVHg5oWsHFdruUWO59wdrc7F/5y5nBjiSrK/bZPJwHOSWD1JdEQd
+	 T9reRvrgxcmdEqLDZbKfTNQI2Sd/8FfOIqTk0CV7DGLaPuvhJMhmI6TOTH+qcsaVu3
+	 do90zL/Z9M33IfPZDyqANkZV2BMJiZb0vA84KVTcfCIQoCnUlQyKRJ5D/sy9lJ0PSm
+	 ce0XkgQdQCMbYr4EplT96jL2URn0RVJTLMBeDeAzEM75roI9q2P9lrxinVlwrPBG0R
+	 cCzUEy2/CJBhw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v3 1/2] netfilter: x_tables: add .check_hooks to matches and targets
+Date: Wed, 29 Apr 2026 23:55:56 +0200
+Message-ID: <20260429215557.167114-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Wed, 30 Apr 2026 Phil Sutter wrote:
-> Is this true? Your patch moves the ops allocation, but new_table->ops is
-> still assigned after xt_register_table() has returned. AIUI, the race
-> window is just reduced, not eliminated.
+Add a new .check_hooks interface for checking if the match/target is
+used from the validate hook according to its configuration.
 
-You are right -- I missed that new_table->ops is assigned after
-xt_register_table() returns. The table becomes visible via list_add()
-inside xt_register_table(), but the ops pointer is still NULL at that
-point. Moving the allocation alone does not close the window.
+Move existing conditional hook check based on the match/target
+configuration from .checkentry to .check_hooks for the following
+matches/targets:
 
-We cannot assign ops before xt_register_table() because we need the
-returned new_table pointer to set ops[i].priv.
+- addrtype
+- devgroup
+- physdev
+- policy
+- set
+- TCPMSS
+- SET
 
-Would a V2 that guards the pre_exit path instead be acceptable?
-Something like:
+This is a preparation patch to fix nft_compat, not functional changes
+are intended.
 
-  void ipt_unregister_table_pre_exit(struct net *net, const char *name)
-  {
-  	struct xt_table *table = xt_find_table(net, NFPROTO_IPV4, name);
+Based on patch from Florian Westphal.
 
-  	if (table && table->ops)
-  		nf_unregister_net_hooks(net, table->ops,
-  				        hweight32(table->valid_hooks));
-  }
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: no changes
 
-This way cleanup_net simply skips the table if ops has not been assigned
-yet. The register path will either complete and call
-nf_register_net_hooks() normally, or fail and clean up via
-__ipt_unregister_table().
+ include/linux/netfilter/x_tables.h |  8 +++
+ net/netfilter/x_tables.c           | 79 +++++++++++++++++++++++++++---
+ net/netfilter/xt_TCPMSS.c          | 33 +++++++------
+ net/netfilter/xt_addrtype.c        | 25 +++++++---
+ net/netfilter/xt_devgroup.c        | 18 +++++--
+ net/netfilter/xt_physdev.c         | 20 ++++++--
+ net/netfilter/xt_policy.c          | 24 +++++++--
+ net/netfilter/xt_set.c             | 39 +++++++++------
+ 8 files changed, 187 insertions(+), 59 deletions(-)
 
-Thanks,
-Tristan
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 77c778d84d4c..a81b46af5118 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -146,6 +146,9 @@ struct xt_match {
+ 	/* Called when user tries to insert an entry of this type. */
+ 	int (*checkentry)(const struct xt_mtchk_param *);
+ 
++	/* Called to validate hooks based on the match configuration. */
++	int (*check_hooks)(const struct xt_mtchk_param *);
++
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_mtdtor_param *);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+@@ -187,6 +190,9 @@ struct xt_target {
+ 	/* Should return 0 on success or an error code otherwise (-Exxxx). */
+ 	int (*checkentry)(const struct xt_tgchk_param *);
+ 
++	/* Called to validate hooks based on the target configuration. */
++	int (*check_hooks)(const struct xt_tgchk_param *);
++
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_tgdtor_param *);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+@@ -279,8 +285,10 @@ bool xt_find_jump_offset(const unsigned int *offsets,
+ 
+ int xt_check_proc_name(const char *name, unsigned int size);
+ 
++int xt_check_hooks_match(struct xt_mtchk_param *par);
+ int xt_check_match(struct xt_mtchk_param *, unsigned int size, u16 proto,
+ 		   bool inv_proto);
++int xt_check_hooks_target(struct xt_tgchk_param *par);
+ int xt_check_target(struct xt_tgchk_param *, unsigned int size, u16 proto,
+ 		    bool inv_proto);
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 9f837fb5ceb4..2c67c2e6b132 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -477,11 +477,9 @@ int xt_check_proc_name(const char *name, unsigned int size)
+ }
+ EXPORT_SYMBOL(xt_check_proc_name);
+ 
+-int xt_check_match(struct xt_mtchk_param *par,
+-		   unsigned int size, u16 proto, bool inv_proto)
++static int xt_check_match_common(struct xt_mtchk_param *par,
++				 unsigned int size, u16 proto, bool inv_proto)
+ {
+-	int ret;
+-
+ 	if (XT_ALIGN(par->match->matchsize) != size &&
+ 	    par->match->matchsize != -1) {
+ 		/*
+@@ -530,6 +528,14 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 				    par->match->proto);
+ 		return -EINVAL;
+ 	}
++
++	return 0;
++}
++
++static int xt_checkentry_match(struct xt_mtchk_param *par)
++{
++	int ret;
++
+ 	if (par->match->checkentry != NULL) {
+ 		ret = par->match->checkentry(par);
+ 		if (ret < 0)
+@@ -538,8 +544,34 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 			/* Flag up potential errors. */
+ 			return -EIO;
+ 	}
++
++	return 0;
++}
++
++int xt_check_hooks_match(struct xt_mtchk_param *par)
++{
++	if (par->match->check_hooks != NULL)
++		return par->match->check_hooks(par);
++
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(xt_check_hooks_match);
++
++int xt_check_match(struct xt_mtchk_param *par,
++		   unsigned int size, u16 proto, bool inv_proto)
++{
++	int ret;
++
++	ret = xt_check_match_common(par, size, proto, inv_proto);
++	if (ret < 0)
++		return ret;
++
++	ret = xt_check_hooks_match(par);
++	if (ret < 0)
++		return ret;
++
++	return xt_checkentry_match(par);
++}
+ EXPORT_SYMBOL_GPL(xt_check_match);
+ 
+ /** xt_check_entry_match - check that matches end before start of target
+@@ -1012,11 +1044,9 @@ bool xt_find_jump_offset(const unsigned int *offsets,
+ }
+ EXPORT_SYMBOL(xt_find_jump_offset);
+ 
+-int xt_check_target(struct xt_tgchk_param *par,
+-		    unsigned int size, u16 proto, bool inv_proto)
++static int xt_check_target_common(struct xt_tgchk_param *par,
++				  unsigned int size, u16 proto, bool inv_proto)
+ {
+-	int ret;
+-
+ 	if (XT_ALIGN(par->target->targetsize) != size) {
+ 		pr_err_ratelimited("%s_tables: %s.%u target: invalid size %u (kernel) != (user) %u\n",
+ 				   xt_prefix[par->family], par->target->name,
+@@ -1061,6 +1091,23 @@ int xt_check_target(struct xt_tgchk_param *par,
+ 				    par->target->proto);
+ 		return -EINVAL;
+ 	}
++
++	return 0;
++}
++
++int xt_check_hooks_target(struct xt_tgchk_param *par)
++{
++	if (par->target->check_hooks != NULL)
++		return par->target->check_hooks(par);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(xt_check_hooks_target);
++
++static int xt_checkentry_target(struct xt_tgchk_param *par)
++{
++	int ret;
++
+ 	if (par->target->checkentry != NULL) {
+ 		ret = par->target->checkentry(par);
+ 		if (ret < 0)
+@@ -1071,6 +1118,22 @@ int xt_check_target(struct xt_tgchk_param *par,
+ 	}
+ 	return 0;
+ }
++
++int xt_check_target(struct xt_tgchk_param *par,
++		    unsigned int size, u16 proto, bool inv_proto)
++{
++	int ret;
++
++	ret = xt_check_target_common(par, size, proto, inv_proto);
++	if (ret < 0)
++		return ret;
++
++	ret = xt_check_hooks_target(par);
++	if (ret < 0)
++		return ret;
++
++	return xt_checkentry_target(par);
++}
+ EXPORT_SYMBOL_GPL(xt_check_target);
+ 
+ /**
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 116a885adb3c..80e1634bc51f 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -247,6 +247,21 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ }
+ #endif
+ 
++static int tcpmss_tg4_check_hooks(const struct xt_tgchk_param *par)
++{
++	const struct xt_tcpmss_info *info = par->targinfo;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
++			   (1 << NF_INET_LOCAL_OUT) |
++			   (1 << NF_INET_POST_ROUTING))) != 0) {
++		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* Must specify -p tcp --syn */
+ static inline bool find_syn_match(const struct xt_entry_match *m)
+ {
+@@ -262,17 +277,9 @@ static inline bool find_syn_match(const struct xt_entry_match *m)
+ 
+ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
+ {
+-	const struct xt_tcpmss_info *info = par->targinfo;
+ 	const struct ipt_entry *e = par->entryinfo;
+ 	const struct xt_entry_match *ematch;
+ 
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+ 	if (par->nft_compat)
+ 		return 0;
+ 
+@@ -286,17 +293,9 @@ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
+ {
+-	const struct xt_tcpmss_info *info = par->targinfo;
+ 	const struct ip6t_entry *e = par->entryinfo;
+ 	const struct xt_entry_match *ematch;
+ 
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+ 	if (par->nft_compat)
+ 		return 0;
+ 
+@@ -312,6 +311,7 @@ static struct xt_target tcpmss_tg_reg[] __read_mostly = {
+ 	{
+ 		.family		= NFPROTO_IPV4,
+ 		.name		= "TCPMSS",
++		.check_hooks	= tcpmss_tg4_check_hooks,
+ 		.checkentry	= tcpmss_tg4_check,
+ 		.target		= tcpmss_tg4,
+ 		.targetsize	= sizeof(struct xt_tcpmss_info),
+@@ -322,6 +322,7 @@ static struct xt_target tcpmss_tg_reg[] __read_mostly = {
+ 	{
+ 		.family		= NFPROTO_IPV6,
+ 		.name		= "TCPMSS",
++		.check_hooks	= tcpmss_tg4_check_hooks,
+ 		.checkentry	= tcpmss_tg6_check,
+ 		.target		= tcpmss_tg6,
+ 		.targetsize	= sizeof(struct xt_tcpmss_info),
+diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
+index a77088943107..913dbe3aa5e2 100644
+--- a/net/netfilter/xt_addrtype.c
++++ b/net/netfilter/xt_addrtype.c
+@@ -153,14 +153,10 @@ addrtype_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ret;
+ }
+ 
+-static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
++static int addrtype_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+-	const char *errmsg = "both incoming and outgoing interface limitation cannot be selected";
+ 	struct xt_addrtype_info_v1 *info = par->matchinfo;
+-
+-	if (info->flags & XT_ADDRTYPE_LIMIT_IFACE_IN &&
+-	    info->flags & XT_ADDRTYPE_LIMIT_IFACE_OUT)
+-		goto err;
++	const char *errmsg;
+ 
+ 	if (par->hook_mask & ((1 << NF_INET_PRE_ROUTING) |
+ 	    (1 << NF_INET_LOCAL_IN)) &&
+@@ -176,6 +172,21 @@ static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
+ 		goto err;
+ 	}
+ 
++	return 0;
++err:
++	pr_info_ratelimited("%s\n", errmsg);
++	return -EINVAL;
++}
++
++static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
++{
++	const char *errmsg = "both incoming and outgoing interface limitation cannot be selected";
++	struct xt_addrtype_info_v1 *info = par->matchinfo;
++
++	if (info->flags & XT_ADDRTYPE_LIMIT_IFACE_IN &&
++	    info->flags & XT_ADDRTYPE_LIMIT_IFACE_OUT)
++		goto err;
++
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	if (par->family == NFPROTO_IPV6) {
+ 		if ((info->source | info->dest) & XT_ADDRTYPE_BLACKHOLE) {
+@@ -211,6 +222,7 @@ static struct xt_match addrtype_mt_reg[] __read_mostly = {
+ 		.family		= NFPROTO_IPV4,
+ 		.revision	= 1,
+ 		.match		= addrtype_mt_v1,
++		.check_hooks	= addrtype_mt_check_hooks,
+ 		.checkentry	= addrtype_mt_checkentry_v1,
+ 		.matchsize	= sizeof(struct xt_addrtype_info_v1),
+ 		.me		= THIS_MODULE
+@@ -221,6 +233,7 @@ static struct xt_match addrtype_mt_reg[] __read_mostly = {
+ 		.family		= NFPROTO_IPV6,
+ 		.revision	= 1,
+ 		.match		= addrtype_mt_v1,
++		.check_hooks	= addrtype_mt_check_hooks,
+ 		.checkentry	= addrtype_mt_checkentry_v1,
+ 		.matchsize	= sizeof(struct xt_addrtype_info_v1),
+ 		.me		= THIS_MODULE
+diff --git a/net/netfilter/xt_devgroup.c b/net/netfilter/xt_devgroup.c
+index 9520dd00070b..6d1a44ab5eee 100644
+--- a/net/netfilter/xt_devgroup.c
++++ b/net/netfilter/xt_devgroup.c
+@@ -33,14 +33,10 @@ static bool devgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return true;
+ }
+ 
+-static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
++static int devgroup_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_devgroup_info *info = par->matchinfo;
+ 
+-	if (info->flags & ~(XT_DEVGROUP_MATCH_SRC | XT_DEVGROUP_INVERT_SRC |
+-			    XT_DEVGROUP_MATCH_DST | XT_DEVGROUP_INVERT_DST))
+-		return -EINVAL;
+-
+ 	if (info->flags & XT_DEVGROUP_MATCH_SRC &&
+ 	    par->hook_mask & ~((1 << NF_INET_PRE_ROUTING) |
+ 			       (1 << NF_INET_LOCAL_IN) |
+@@ -56,9 +52,21 @@ static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
++{
++	const struct xt_devgroup_info *info = par->matchinfo;
++
++	if (info->flags & ~(XT_DEVGROUP_MATCH_SRC | XT_DEVGROUP_INVERT_SRC |
++			    XT_DEVGROUP_MATCH_DST | XT_DEVGROUP_INVERT_DST))
++		return -EINVAL;
++
++	return 0;
++}
++
+ static struct xt_match devgroup_mt_reg __read_mostly = {
+ 	.name		= "devgroup",
+ 	.match		= devgroup_mt,
++	.check_hooks	= devgroup_mt_check_hooks,
+ 	.checkentry	= devgroup_mt_checkentry,
+ 	.matchsize	= sizeof(struct xt_devgroup_info),
+ 	.family		= NFPROTO_UNSPEC,
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index d2b0b52434fa..dd98f758176c 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -91,14 +91,10 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return (!!ret ^ !(info->invert & XT_PHYSDEV_OP_OUT));
+ }
+ 
+-static int physdev_mt_check(const struct xt_mtchk_param *par)
++static int physdev_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+-	static bool brnf_probed __read_mostly;
+ 
+-	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+-	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+-		return -EINVAL;
+ 	if (info->bitmask & (XT_PHYSDEV_OP_OUT | XT_PHYSDEV_OP_ISOUT) &&
+ 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
+ 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+@@ -107,6 +103,18 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
+ 
++	return 0;
++}
++
++static int physdev_mt_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_physdev_info *info = par->matchinfo;
++	static bool brnf_probed __read_mostly;
++
++	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
++	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
++		return -EINVAL;
++
+ #define X(memb) strnlen(info->memb, sizeof(info->memb)) >= sizeof(info->memb)
+ 	if (info->bitmask & XT_PHYSDEV_OP_IN) {
+ 		if (info->physindev[0] == '\0')
+@@ -141,6 +149,7 @@ static struct xt_match physdev_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "physdev",
+ 		.family		= NFPROTO_IPV4,
++		.check_hooks	= physdev_mt_check_hooks,
+ 		.checkentry	= physdev_mt_check,
+ 		.match		= physdev_mt,
+ 		.matchsize	= sizeof(struct xt_physdev_info),
+@@ -149,6 +158,7 @@ static struct xt_match physdev_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "physdev",
+ 		.family		= NFPROTO_IPV6,
++		.check_hooks	= physdev_mt_check_hooks,
+ 		.checkentry	= physdev_mt_check,
+ 		.match		= physdev_mt,
+ 		.matchsize	= sizeof(struct xt_physdev_info),
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index b5fa65558318..ff54e3a8581e 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -126,13 +126,10 @@ policy_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ret;
+ }
+ 
+-static int policy_mt_check(const struct xt_mtchk_param *par)
++static int policy_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_policy_info *info = par->matchinfo;
+-	const char *errmsg = "neither incoming nor outgoing policy selected";
+-
+-	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT)))
+-		goto err;
++	const char *errmsg;
+ 
+ 	if (par->hook_mask & ((1 << NF_INET_PRE_ROUTING) |
+ 	    (1 << NF_INET_LOCAL_IN)) && info->flags & XT_POLICY_MATCH_OUT) {
+@@ -144,6 +141,21 @@ static int policy_mt_check(const struct xt_mtchk_param *par)
+ 		errmsg = "input policy not valid in POSTROUTING and OUTPUT";
+ 		goto err;
+ 	}
++
++	return 0;
++err:
++	pr_info_ratelimited("%s\n", errmsg);
++	return -EINVAL;
++}
++
++static int policy_mt_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_policy_info *info = par->matchinfo;
++	const char *errmsg = "neither incoming nor outgoing policy selected";
++
++	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT)))
++		goto err;
++
+ 	if (info->len > XT_POLICY_MAX_ELEM) {
+ 		errmsg = "too many policy elements";
+ 		goto err;
+@@ -158,6 +170,7 @@ static struct xt_match policy_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "policy",
+ 		.family		= NFPROTO_IPV4,
++		.check_hooks	= policy_mt_check_hooks,
+ 		.checkentry 	= policy_mt_check,
+ 		.match		= policy_mt,
+ 		.matchsize	= sizeof(struct xt_policy_info),
+@@ -166,6 +179,7 @@ static struct xt_match policy_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "policy",
+ 		.family		= NFPROTO_IPV6,
++		.check_hooks	= policy_mt_check_hooks,
+ 		.checkentry	= policy_mt_check,
+ 		.match		= policy_mt,
+ 		.matchsize	= sizeof(struct xt_policy_info),
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 731bc2cafae4..4ae04bba9358 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -430,6 +430,29 @@ set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
++static int
++set_target_v3_check_hooks(const struct xt_tgchk_param *par)
++{
++	const struct xt_set_info_target_v3 *info = par->targinfo;
++
++	if (info->map_set.index != IPSET_INVALID_ID) {
++		if (strncmp(par->table, "mangle", 7)) {
++			pr_info_ratelimited("--map-set only usable from mangle table\n");
++			return -EINVAL;
++		}
++		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
++		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
++		     (par->hook_mask & ~(1 << NF_INET_FORWARD |
++					 1 << NF_INET_LOCAL_OUT |
++					 1 << NF_INET_POST_ROUTING))) {
++			pr_info_ratelimited("mapping of prio or/and queue is allowed only from OUTPUT/FORWARD/POSTROUTING chains\n");
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
+ static int
+ set_target_v3_checkentry(const struct xt_tgchk_param *par)
+ {
+@@ -459,20 +482,6 @@ set_target_v3_checkentry(const struct xt_tgchk_param *par)
+ 	}
+ 
+ 	if (info->map_set.index != IPSET_INVALID_ID) {
+-		if (strncmp(par->table, "mangle", 7)) {
+-			pr_info_ratelimited("--map-set only usable from mangle table\n");
+-			ret = -EINVAL;
+-			goto cleanup_del;
+-		}
+-		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
+-		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
+-		     (par->hook_mask & ~(1 << NF_INET_FORWARD |
+-					 1 << NF_INET_LOCAL_OUT |
+-					 1 << NF_INET_POST_ROUTING))) {
+-			pr_info_ratelimited("mapping of prio or/and queue is allowed only from OUTPUT/FORWARD/POSTROUTING chains\n");
+-			ret = -EINVAL;
+-			goto cleanup_del;
+-		}
+ 		index = ip_set_nfnl_get_byindex(par->net,
+ 						info->map_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+@@ -672,6 +681,7 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.family		= NFPROTO_IPV4,
+ 		.target		= set_target_v3,
+ 		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.check_hooks	= set_target_v3_check_hooks,
+ 		.checkentry	= set_target_v3_checkentry,
+ 		.destroy	= set_target_v3_destroy,
+ 		.me		= THIS_MODULE
+@@ -682,6 +692,7 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.family		= NFPROTO_IPV6,
+ 		.target		= set_target_v3,
+ 		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.check_hooks	= set_target_v3_check_hooks,
+ 		.checkentry	= set_target_v3_checkentry,
+ 		.destroy	= set_target_v3_destroy,
+ 		.me		= THIS_MODULE
+-- 
+2.47.3
+
