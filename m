@@ -1,87 +1,87 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com [209.85.210.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 087CD41B379;
-	Wed, 29 Apr 2026 18:22:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 430092C08D4
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 20:32:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777486978; cv=none; b=s+pu1UbQgYwxLU2ZpO6TSat+ckAN5TAKUs5mLnvwyh60u5hvc+Yqmf/NDqiGyoKGllT8LNYJohiTf6fiDlxG0z6945FKsmgnoAFyqYSRuufNokpVJ90iDc5G94t500kULjFfFAtPArGxXqsqP9aDBN1ytwQ17luwKohbj5IRD9s=
+	t=1777494759; cv=none; b=EdmFm48DpSuLvkdDAmrsh9PFIaR4rwqK/6DzxsoRPCAWJcc30qqQBPXqsORRfcPRKdlBvvNwaaiazT3fCLSTPhjrsMFUUfzeaKp+8LAgcZsbjZEMAJyfqtNh4mLKSaHiHcMG8/egk6k54EaBrBTwseJW8tPFFE+qXvmVLVy1TEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777486978; c=relaxed/simple;
-	bh=pxBQFD3yB0Gs60ovsaXwB0grb9kcRUuCWUi5TwOVx3k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VyUVqRr9oMfVZyF3h6I5QW9AhgVxUIw2Lhj0BTuHgSavpcwgZggTmijqVtIp44G6/tGGBIfhQp49o5ca2aJbarZOVpTOj4/A5afRA/Bf6O7VZ4smlcTltBBOVZSapxvsmNTrS1TMdkRuZ/PccofuSzwwmCF6ov5C3NsB5mUUUD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=E/YwELSc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="E/YwELSc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=JIjFb8gPaZ6kuiayMq8XWinpuxhx075Z9YsnxLBDwpI=; b=E/YwELScW7aKXm7Cyz4kst3P9H
-	xqHlru3VzyZHf9l2aU8BCloTR+HE57Kv6SjDO+Lk0UQ8kv1mTjIzI73GWd4c5zk9Pf4pJjDYinkAZ
-	2YNHEIcOuFzDYSFdwzM+2etRKeINi6wbQYQeVdvsQwz0sKipxzGCsx88zy7MdvVcUbFKHY1aIYgjW
-	xgOVRAOf936qnr273MxWYb21O8wRcAh0gPtB6sYrNusuIr55OIHsH0R8IvaFbuWtIhtD0XWAwWsbD
-	1ZlLwNxOroAgdErVmLytu5mQGON+4Y7MdkW87LzfHqZfzRKEKTBM2N2vu+PC6FMqCUPcHYjtGgwJ7
-	QzlDMWkg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wI9TE-000000002Zv-2Qq1;
-	Wed, 29 Apr 2026 20:17:12 +0200
-Date: Wed, 29 Apr 2026 20:17:12 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Tristan Madani <tristmd@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Tristan Madani <tristan@talencesecurity.com>
-Subject: Re: [PATCH 0/2] netfilter: fix NULL ops race in iptable lazy init
-Message-ID: <afJLKOpoHEGZ0zT_@orbyte.nwl.cc>
-References: <20260429175613.1459342-1-tristmd@gmail.com>
+	s=arc-20240116; t=1777494759; c=relaxed/simple;
+	bh=kyDam3w5LTuUUMJlNUNEC+4wSMr9edfUCp37kx3oR/8=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=jfvaD9NE9SzoYuioN33fRrQAvadI6w/qucZaYzYQkBXETlt6YLU20IUQZr4GqQ6sZEAVyn6t2/Uv7S6l4eMdMBNaijup/3YmMR5UfPzdXfskdAmWj7jZyApuO16UpET57UtAvgWX1+9kxH9Ic7mrsjDB9wEowQiRHz2nK3DycKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f72.google.com with SMTP id 46e09a7af769-7dc41904354so581102a34.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2026 13:32:38 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777494757; x=1778099557;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=n1mJTmE2rQEg/vhqk5b7ffjI2+vmg/PVDr1JbkSZPfE=;
+        b=s3g/xSbj5YrpYx1Coq+yPHwT5LGq4Iu+pvaUej8YuRFbd1GMobsYpLLYIH5kGW8kxu
+         6kuUWwbOJ3SNtopL7hPXS9VcBrY9FFm0lnRSPnLX2+CGps8b9lnVbo6XAx5NYt3XOwWZ
+         K/MZxIkkeEZNXbGLL+dcti3+jt0Ve+pQA1+5FaX0lA2H4aqS0+SYDM0OQ7dhXZzgnsH3
+         kGrJRkeyTJ67+VbDNhDcP7GhHidsDdexS9F15Lk86Mu6FEauUGQ7H0QjBW8DZR6k/kAz
+         ZUvmbM2Wg9rQVg2kM9vmrw6oNMq3w3c0Ym+Hl5cxh+C2jnexMTba95JO0JpJasNNuy5v
+         SRWQ==
+X-Forwarded-Encrypted: i=1; AFNElJ9jy3rUcBaII2jeVo9cOHOS23Uy8tllPORrZJiGu6OCgkLGIzto219iMEBf9TuCUZcAhCckAdL34EM/6vV1hBE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyVM+veGWh2P7aStph0QhjAfBg9PvmsSr26r6qYFBUMX19G3zvK
+	JzuCMOyFQ1bG+Nmz0/Q94tcwXwf8h8TwJq9pA0xXACjA46EuVYMYJA/+Gz+jVYYIiGTN5x8qu8r
+	oDl1Hx63JI47gyj/tjLpTBr0qZ8qyrh40+qY/yc0PnziKB7kZWND/U8yRK9g=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260429175613.1459342-1-tristmd@gmail.com>
+X-Received: by 2002:a4a:edce:0:b0:694:a30f:a6d6 with SMTP id
+ 006d021491bc7-6967a521914mr103838eaf.25.1777494757384; Wed, 29 Apr 2026
+ 13:32:37 -0700 (PDT)
+Date: Wed, 29 Apr 2026 13:32:37 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <69f26ae5.170a0220.3c4978.000a.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Apr 2026)
+From: syzbot <syzbot+liste5400145e66cca787805@syzkaller.appspotmail.com>
+To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+Hello netfilter maintainers/developers,
 
-On Wed, Apr 29, 2026 at 05:56:10PM +0000, Tristan Madani wrote:
-> From: Tristan Madani <tristan@talencesecurity.com>
-> 
-> ipt_register_table() and ip6t_register_table() call xt_register_table()
-> which adds the new table to the per-netns list, making it visible to
-> other code paths.  Only afterwards do they allocate the per-net copy of
-> hook ops via kmemdup_array().  This leaves a window where the table is
-> findable via xt_find_table() but has ops=NULL.
-> 
-> If cleanup_net runs during this window (racing namespace teardown against
-> lazy table init), ipt_unregister_table_pre_exit() /
-> ip6t_unregister_table_pre_exit() finds the table and passes the NULL ops
-> pointer to nf_unregister_net_hooks(), causing a general protection fault.
-> 
-> Fix both ip_tables.c and ip6_tables.c by moving the ops allocation
-> before xt_register_table(), so the table is never in the list with a
-> NULL ops pointer.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-Is this true? Your patch moves the ops allocation, but new_table->ops is
-still assigned after xt_register_table() has returned. AIUI, the race
-window is just reduced, not eliminated.
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 14 issues are still open and 196 have already been fixed.
 
-First I thought you could assign to table->ops since xt_register_table()
-calls kmemdup(), but 'table' is const.
+Some of the still happening issues:
 
-I guess checking table->ops value in *_pre_exit() is nonsense as well
-since *_register_table() still runs in parallel. Do we need
-serialization between the two routines?
+Ref Crashes Repro Title
+<1> 5008    Yes   INFO: rcu detected stall in worker_thread (9)
+                  https://syzkaller.appspot.com/bug?extid=225bfad78b079744fd5e
+<2> 333     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<3> 127     Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+<4> 73      No    INFO: task hung in nfnetlink_rcv_msg (5)
+                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
+<5> 11      Yes   KMSAN: uninit-value in ip6table_mangle_hook (3)
+                  https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
 
-Cheers, Phil
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
