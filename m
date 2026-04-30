@@ -1,163 +1,122 @@
-Received: from mail-qv1-f66.google.com (mail-qv1-f66.google.com [209.85.219.66])
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF256336897
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 20:58:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEE8E36605A
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 21:49:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777582727; cv=none; b=d9vLQ5Y4FR0Huv7J92aUAmr6SstLLwJhygNZzhB4De5CyDyW65CML64GxdCIs3ijmUhCZ+LMAziLoKq5xvnrNTWAGiNGNdsw8g7rO2ow4da4lQa3PX6Ej+IQlfIx6Hd0k6J6RTEbkF2gOlnO+y6cYvC1tJxdXBGiINFh8xNI04o=
+	t=1777585800; cv=none; b=hZsJnD3JSI9QXpE76H7BgiWc291Nvi6NJrUJVmkRBVK5FGWkoxf4ha5F7nGtndtVfBeG6YhI/auEjRbMpCbWwgcS2u5weeLIg3cuM6iqL59pajiZyUnIXBw36CKRYcL20y71PRzbVfzvwwpZtbGxFDZqOVMBFJPycUB0Z5IDVYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777582727; c=relaxed/simple;
-	bh=bLcJu71G7WPZXPFwGj3wOrf2aAWHV9CNC4610TMQDno=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Nejlbk8aRD9ZVyOTNDy+OKqYQl+dkgL0pUPb0oTGuSAKNONLW28sNqcYRFJ0C5jchBeNQ6otkSEaYycj35HMNCY6Y8BV/yL/ToEPmj+2V+lrrDuuevsyKgtgWPDZPn3gj96tE62XxbypP6N5HYY4f20XHRj4jG6sRAyTDju7BEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.219.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
+	s=arc-20240116; t=1777585800; c=relaxed/simple;
+	bh=85tk5QsJ9uyjCVoVZBAl1BfLHBLBZIfxn5vihRLucTM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=X58TphrFxwykMjdq81hIy5L28Cf6aNiFqX3nV3EEDCM2oUiS2lISGqOjspZR54EpHA/ceBVUYadSB8u/d1EpfK7NzQrshV2BQFKlpg9GIqG4xghg4UZPtoxK77q37Jw/FNf1x6vMW+E3FM8bigmyAjECc/lO4iRQECLdiBdGSHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CIeUjj3n; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-qv1-f66.google.com with SMTP id 6a1803df08f44-8acb09ddbf6so19596616d6.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 13:58:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777582723; x=1778187523;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CIeUjj3n"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4891f625344so15451895e9.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 14:49:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777585795; x=1778190595; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SvyvGmLX7fIENRT2IT+DRsK2ttBx2k3lafk3GdB3p2E=;
-        b=CK3Y/kwi1AaWN3qWADS2cc+7A5a0NNJhQkih1b37EPLg7wUe8rfql7f3VEASz3apeC
-         9Uk5EQGf3zvkjJVTmHx3uw0jrgH/gOoltJARQSkazatQL6JLqoYAZBfBH05wbNaHGMvx
-         cPjRDamVtrMh/NjFdA3Yb/LeKazZYZ94PdRHSowmFOOerOXMiYjnpR7iAbPy+E7Hdvs1
-         MVhmGPz6rVVTDTS9d5RkUnBHOh7D75IIsH97niQjAan4Q+BBo8CxJZxh6rEnRnvG9m8B
-         3gpcKF8FHvauH3y/CdXHfAU7JamRD2W/pW7lHe0HugF9uKmOh0zL5nn7Min96M5dVB7L
-         wAMg==
-X-Forwarded-Encrypted: i=1; AFNElJ9wIrnMGnEFOcvw+aDy8g2zEz5zr5ud25UyS9UiR45SGTTUuWaLeAtH4t4xhUYFqrWPVHsPzR/eWR9r59Y90K0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwN11MnYhsvolCT2F/3DpHx1qlXRAqh88wDq3KCzsbdvhI+GQuC
-	Iz+VuoTLy7PYeTJmOHnKjBLFfxI9/OKTwERODDVLTqyZVy8te+ic8XnI
-X-Gm-Gg: AeBDiesWdbXBsaGsIl4Gt+Kiux1o3LrozVaCukpFZMe2A2TWmh/huUFbJkaF/01gUag
-	/Lv7UUa34k9T7PdjXMhcg0mtUGsDdAu/KVmxG8zBPtF7AFHf2VS04rfzd1ftfvPK8M2j4XB0JZV
-	ZmWYLuXkFZbg6WJsvAL25tzqBUMMYM1rweWAQVybCMvN5z9o/AuWgABg2OTwLmbRr39VbLNAd2R
-	TAAX/HacAUeawlawdwx9meqHt3MifrEtMkLu6YJXjAC+mRuq2xJGnLJX5hQ43xvLNrDtn/i3ZnF
-	GeEwDx0EjxfRmNONaJNX0DJQ/kr8pitC3A25UDtyFXFppidcuz4btLLyXPcr5zLSiPxULFM/wn9
-	vDdrkZZfFLo27Gh7EmH/IbchdFwxIxhuy+8jo1UWbXNvyqYEbtCtem5B0UP7c2PbUDZIuCx+TrS
-	o2Az8G/tS/hitzv9aA0/b2v+l89BoZR/g7fKfR5LHheqBiSseQlpzThq/++tkMdWhYzQ==
-X-Received: by 2002:a05:6214:5f04:b0:8b3:e7b3:99ec with SMTP id 6a1803df08f44-8b3fe77dc0emr70398276d6.4.1777582723342;
-        Thu, 30 Apr 2026 13:58:43 -0700 (PDT)
-Received: from [192.168.88.241] (89-24-32-159.nat.epc.tmcz.cz. [89.24.32.159])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b53c0e7ebdsm2231936d6.29.2026.04.30.13.58.40
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 30 Apr 2026 13:58:42 -0700 (PDT)
-Message-ID: <8fd5d3a3-d1d7-4542-a0db-1678989940d4@ovn.org>
-Date: Thu, 30 Apr 2026 22:58:38 +0200
+        bh=co7aAOg5SysfklO7pgS2h74n35b039IvIzPWl7cCjfc=;
+        b=CIeUjj3nCpEgA/zFx6LaFJLEDQpAnDz5HROpJ/A6b4WxragTW/tGTfNLNIyRyGgRxt
+         2Qp3CJoLJAFXdqJedBoYx1t5v+EfFe1Y/PdJC4Gv56G9wCMETQp9EsaWw7ki5rKvMlbc
+         xHQimS+0hEkPYJM3rQtWc53rHnb81PgBdKKzGle66RwccEHPx1miyurWzvABKJiOBnsc
+         hqfWz/3W/dkJGaB3jT2jGfUudUrLb/RADufOudsSKi5PvnbXxArwptVZisb32Ys5YiWB
+         219U4MIOjyRpgXyouIIFqZftPLOGDA5Ezkc/22SPFQh0xAo5xU6I/PlGm2cAJVoeoVgB
+         TXtQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777585795; x=1778190595;
+        h=mime-version:content-transfer-encoding:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=co7aAOg5SysfklO7pgS2h74n35b039IvIzPWl7cCjfc=;
+        b=tZ0tuoN7fUmRfa0QCAgjahTwZP077nIY+gEj0Ouej1T0qPFfQ/5KvtQM1W2ZqIyVR0
+         sUGphmLUdSr/H6VsFyr4EOsV7tzvQzK5gFRQQOUH/B2xMnSxi5+QCY8cGBpL2eF5He7K
+         JQKf+t7UL1tV3OcYbrAYRBbcehLcAd9fSijDk9lpc1KqQ/RiJ9PYeBowTUACHBxVaZSO
+         ZnRDQ5aDWIZ8/1Xf1xF6B4YqJlWckYoKkfucIaOY3SJEOeo+dB2w2TXg8ihreKWSqSNE
+         wfHm3bvNBQOzOjFFEZAPkyV15yRJp5S+XfYVpqL31mvjhsPeKLpWhe+t0+DKslEMGGFw
+         4cOA==
+X-Forwarded-Encrypted: i=1; AFNElJ+rZ/cNj9KnUdCPuzwbvcD2ONR81vpBKPMrFY7rLj8yDYVvxXXtMgwtsgNr5SP/zpLLcB7sAATNWbz1rXdK8GM=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxorXzY1xcFDFXE5zEUDuSNRzGc7kjQQM+EACGw3ZtfWirUYbfV
+	sX9uAts4+3+E5zkZV1nvgVmJIE2+DQNA9VJ4vZPNnsnrBL+Zp3qMguA=
+X-Gm-Gg: AeBDietoJJpbQan50oEbBFxP0FDfyny0Dw2/sQh9ruWGDCgfpd8zrDqV37KJ33TsY3O
+	PowgMSnvK/W/q0JzO4RGGdeM5EX/A1Ak6Ly2huAhWFKFz8FgFjFHEYv1E5iPDD/gnQhLz0hBEsm
+	aJQD5Wck4gGCvTjWztB36LeG43QKV1J8Hv+0Bdam98Ez8Aogd0B2j30lMVN51G2OrovbWQIoOfM
+	SulCOqeqik6mj4P2RjF2l47mPCrXo4TMLBnoTtzE3NKgq4hvMZ9Yaj4IY0hSRL7eerqiKoC9ETm
+	aOndVizROT+eTTUShwOu1nb93ctPUhszQK/b/hsnnL7n7gj0t3Yco3kTijDTL22i/FPFf+hDHvQ
+	gadoHnkoW8BrXM/R3wzHeJqZdYjyjsAzQ38aZZJ9mTvDfupc3N51aZk0djIczL42Gm52sPlDDEr
+	bQ9Gyoo59gIPmElzpeJz6Xt1Q1iBu8z3CHWqYLvzdklYE=
+X-Received: by 2002:a05:600c:4f52:b0:489:32b:ac0b with SMTP id 5b1f17b1804b1-48a85e684a8mr63270095e9.6.1777585795291;
+        Thu, 30 Apr 2026 14:49:55 -0700 (PDT)
+Received: from kali (88-173-4-42.subs.proxad.net. [88.173.4.42])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48a8eb55be7sm2654625e9.19.2026.04.30.14.49.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 Apr 2026 14:49:54 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: fw@strlen.de
+Cc: pablo@netfilter.org, phil@nwl.cc, netfilter-devel@vger.kernel.org,
+ netdev@vger.kernel.org, stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] netfilter: ip_tables: guard
+ ipt_unregister_table_pre_exit against NULL ops
+Date: Thu, 30 Apr 2026 21:49:49 -0000
+Message-ID: <177758578919.118018.11758358602621428742@gmail.com>
+In-Reply-To: <afNYqx41pBCyDnjR@strlen.de>
+References: <20260429175613.1459342-1-tristmd@gmail.com>
+ <177750472539.3004201.15967003942391945312@talencesecurity.com>
+ <177750474339.3016150.13196470704394042910@talencesecurity.com>
+ <afNYqx41pBCyDnjR@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 06/12] netfilter: nf_conntrack_expect: honor
- expectation helper field
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
- fw@strlen.de
-Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
- pabeni@redhat.com, edumazet@google.com, horms@kernel.org,
- i.maximets@ovn.org, Eelco Chaudron <echaudro@redhat.com>,
- Aaron Conole <aconole@redhat.com>
-References: <20260326125153.685915-1-pablo@netfilter.org>
- <20260326125153.685915-7-pablo@netfilter.org>
-Content-Language: en-US
-From: Ilya Maximets <i.maximets@ovn.org>
-Autocrypt: addr=i.maximets@ovn.org; keydata=
- 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
-In-Reply-To: <20260326125153.685915-7-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 3/26/26 1:51 PM, Pablo Neira Ayuso wrote:
-> The expectation helper field is mostly unused. As a result, the
-> netfilter codebase relies on accessing the helper through exp->master.
-> 
-> Always set on the expectation helper field so it can be used to reach
-> the helper.
-> 
-> nf_ct_expect_init() is called from packet path where the skb owns
-> the ct object, therefore accessing exp->master for the newly created
-> expectation is safe. This saves a lot of updates in all callsites
-> to pass the ct object as parameter to nf_ct_expect_init().
-> 
-> This is a preparation patches for follow up fixes.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
+Florian Westphal <fw@strlen.de> wrote:
+> Is there a reproducer for this bug?
 
-Hi, Pablo and Florian.
+Syzkaller hit it under failslab. The race is between the lazy
+init path in ipt_register_table() and cleanup_net(). The table
+becomes visible via xt_register_table() before ops is assigned,
+so pre_exit can find it with NULL ops.
 
-I was investigating FTP test failures in OVS with 7.0 kernel and bisected
-the issue down to this commit.  AFAIU, with this change all the related
-connections over time gain their parents' helpers,.  This is causing a change
-visible to the userspace, because FTP data connections are now reported to
-have helpers in the conntrack dump:
+Cleaned crash log:
 
-# conntrack -L
-tcp      6 119 TIME_WAIT src=10.1.1.1 dst=10.1.1.2 sport=59534 dport=21 \
-                         src=10.1.1.2 dst=10.1.1.1 sport=21    dport=59534 \
-           [ASSURED] mark=0 helper=ftp use=2
-tcp      6 119 TIME_WAIT src=10.1.1.2 dst=10.1.1.1 sport=52709 dport=52381 \
-                         src=10.1.1.1 dst=10.1.1.2 sport=52381 dport=52709 \
-           [ASSURED] mark=0 helper=ftp use=1
+  Oops: general protection fault, probably for non-canonical address 0xdffffc=
+0000000003: 0000 [#1] PREEMPT SMP KASAN NOPTI
+  KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
+  CPU: 1 UID: 0 PID: 604 Comm: kworker/u8:19 Tainted: G            E      6.1=
+4.11 #1
+  Workqueue: netns cleanup_net
+  RIP: 0010:nf_unregister_net_hook net/netfilter/core.c:531 [inline]
+  RIP: 0010:nf_unregister_net_hooks+0xbc/0x150 net/netfilter/core.c:613
+  Call Trace:
+   <TASK>
+   ipt_unregister_table_pre_exit+0x8a/0xc0 net/ipv4/netfilter/ip_tables.c:1814
+   iptable_mangle_net_pre_exit+0x21/0x30 net/ipv4/netfilter/iptable_mangle.c:=
+99
+   ops_pre_exit_list net/core/net_namespace.c:162 [inline]
+   cleanup_net+0x4b9/0xbe0 net/core/net_namespace.c:632
+   process_one_work+0x98f/0x1750 kernel/workqueue.c:3238
+   worker_thread+0x679/0xf50 kernel/workqueue.c:3402
+   kthread+0x3f0/0x7e0 kernel/kthread.c:464
+   ret_from_fork+0x60/0x90 arch/x86/kernel/process.c:153
+   </TASK>
 
-Before this commit only the control connection had helper=ftp reported in
-the dump.  The traffic seems to work fine, but our tests fail because we
-do not expect the helper attached.
+> I'm working on a new unreg scheme to avoid rmmod racing with
+> concurrent calls into iptables set/getsockopts.
 
-AFAIU, it's generally not something that should be happening, as helpers
-on data connections do not really make much sense.  But I'm just trying to
-figure out if you would consider this as a regression and fix in the kernel
-or if we should adjust our userspace components for this new dump content,
-which would not be very straightforward to do if we want to be able to run
-tests on both old and the new versions.
+That sounds like a different issue (rmmod vs sockopt). This one
+is init vs cleanup_net -- the NULL ops window exists regardless
+of the unreg scheme. V2 is a minimal guard for that.
 
-What do you think?
-
-Best regards, Ilya Maximets.
+Thanks,
+Tristan
