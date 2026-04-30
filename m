@@ -1,238 +1,130 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A04263B9
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 15:42:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058B2466B5B;
+	Thu, 30 Apr 2026 16:14:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777563765; cv=none; b=RSZWWDr3MkY2Q6OHtJNJVUTdsBvxOf0bGPW5jypyfO8m0XDSxHCTXRG+0QMi7sokcPWI6TLCvVQ00tbsWHCYIORLqH4WC6x7GV4KupRdZ7CAIj1IJu2nKy75Sktp2X7no2fSymloaZp+UmZZxuWylRX7JTjinv4dFTQ9cpHNzUU=
+	t=1777565689; cv=none; b=aoClCkqx5l+ylh6/Ldq3l4DF99VxMhE2BhY8wKazt3chA6LssYfHtbIadDkWhggOncFtDyWlBbY+PNjTm91Xo4+apxw1RNYdWeRBR/bIzIIIIkScH1ZEmCchWaj/735w/FP/MfVAfyS7paU3PIcZ+KopkqNa78qZED97nRiBU1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777563765; c=relaxed/simple;
-	bh=+Jbm4ner5M/08dPujDY70fPGeAV6tg8DRXyC4MiCr5o=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MMckxgjmz0U5DU9t96RjMpoxPNsKunPuO+Q9P1yhE7nJ5iZSXXvxXM5C77Tlb+JNyF3zuw441A/4O3KbR331XxOE50ZQKpG15CZnnrrAT2VDZoJK3XApvjsrelxFs0Yzy5l3y/o6S/1zXj+/ayQQiJQN4YUln+jLlEgpm9Qmtlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hCU3qFkA; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1777565689; c=relaxed/simple;
+	bh=didMmUOq4YVReOy/Tx9HyBYvthTgIjxbXvHNSdqUFqg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=c9WJ4n8EssMm+58eQfB2JdaCCMF9JsUJwJS+HMAQhQPpAV7+tmm7t84/RYY8VdYkQzp+mG1MfTflGGT0YhCuvpIMsFVBD5Kvbj7dgG25MIEA3zUg3OdI6IjFOEyMP00sZnz0YbKdvDV4qkqzvUt9bdQ2+fYHxqfdVcrmx5DJLdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EFdtb16h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hCU3qFkA"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4D1B66027F
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 17:42:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777563759;
-	bh=KTjRyHqSFhy5EE/SBRl+7FtJNy1JaxxWIyjOZobZ6Ss=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=hCU3qFkAJsLanf2tc9Hyh07hKYrEYqibWqMyaHbtt2b59DyvgRX1cuvDLA/S/MGTp
-	 WM22r+6CHkkyfGHF2eaiT75je03vXnPjkGjC4dsKM5NHdy9+KDQh+EdTWbgbonQTbg
-	 2/opkoBmf7KFohh789gBpoph56zoNsQINemGUl50EMyb7PpPBipOMA9uyNkmT5NH7/
-	 6Z8lVY8zBC9BfurR1RLtQy76WzZnOpRwfFFph3647LG3KHBYLgstdisGw+TFRekjn7
-	 yHwZAdSeK2rwbXySuzSZ1m29OkVbbZMtoykH0DlTE9l2lQTmBbHKzgYrzeA9Ay9AwR
-	 zmvKEoY35ZJGw==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v6 3/3] netfilter: flowtable: fix inline pppoe encapsulation in xmit path
-Date: Thu, 30 Apr 2026 17:42:17 +0200
-Message-ID: <20260430154217.260522-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260430154217.260522-1-pablo@netfilter.org>
-References: <20260430154217.260522-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EFdtb16h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D4CAC2BCB3;
+	Thu, 30 Apr 2026 16:14:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777565688;
+	bh=didMmUOq4YVReOy/Tx9HyBYvthTgIjxbXvHNSdqUFqg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=EFdtb16hVjn2t2wads0aBgok8iAQmBwvLHGD2wjb1XS8WCokWhQzDTC6Tb0SY3tl2
+	 0llNI4UE88KytD+S+w/zkXCRVU667SHuog6MSTXuj/062kdujU5h5pCg0dcMcCcUrW
+	 09pDxHT+oxfB8PDc/pOf3ontt5bQ5Mfv2dMgbOaFS3W8Yd1Hex5EFAScWUuZXpNGab
+	 HY3j21NmbrnkgjVZOht0lYLotJj0jvvCgsvy+PUhDHgyZV0cyftm1epXrDdU9C0f0D
+	 VKaDAoReYdmBwYxYrC38QBMlIoW+yGzqUH65eQ2uS1zmJ5/c0NTfs1WZgHUVf66REe
+	 DebPt2YlS6uuA==
+Date: Thu, 30 Apr 2026 17:14:44 +0100
+From: Simon Horman <horms@kernel.org>
+To: Julian Anastasov <ja@ssi.bg>
+Cc: pablo@netfilter.org, fw@strlen.de, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH net] ipvs: fix shift-out-of-bounds in
+ ip_vs_rht_desired_size
+Message-ID: <20260430161444.GB900403@horms.kernel.org>
+References: <20260427234014.86256-1-ja@ssi.bg>
+ <20260430123917.1628871-2-horms@kernel.org>
+ <fec8dc99-9611-7311-5ec0-0d5d3895b1cc@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fec8dc99-9611-7311-5ec0-0d5d3895b1cc@ssi.bg>
 
-Address two issues in the inline pppoe encapsulation:
+On Thu, Apr 30, 2026 at 04:10:16PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Thu, 30 Apr 2026, Simon Horman wrote:
+> 
+> > From: 'Simon Horman' <horms@kernel.org>
+> > 
+> > This is an AI-generated review of your patch. The human sending this
+> > email has considered the AI review valid, or at least plausible.
+> > Full review at: https://sashiko.dev
+> > ---
+> > ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
+> > 
+> > This commit addresses a shift-out-of-bounds issue when roundup_pow_of_two()
+> > is called with 0 in ip_vs_rht_desired_size. It updates the assignment to fall
+> > back to 1 if n is 0.
+> > 
+> > > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > > index f5b7a2047291..ea450944465f 100644
+> > > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > > @@ -237,7 +237,7 @@ int ip_vs_rht_desired_size(struct netns_ipvs *ipvs, struct ip_vs_rht *t, int n,
+> > >  {
+> > >  	if (!t)
+> > >  		return 1 << min_bits;
+> > > -	n = roundup_pow_of_two(n);
+> > > +	n = n ? roundup_pow_of_two(n) : 1;
+> 
+> 	To overflow it on 64-bit we need 600GB+ memory, the
+> conns are ~300 bytes.
+> 
+> 	In v2 I changed it to n > 0. To solve it completely
+> we may need to introduce some kind of "conn_max" sysctl,
+> now per-netns. It can help to limit the conns which are
+> created GFP_ATOMIC while for other structures we will switch
+> to GFP_KERNEL_ACCOUNT.
 
-- Add needs_gso_segment flag to segment PPPoE packets in software
-  given that there is no GSO support for this.
+Thanks, I agree with this approach.
 
-- Use FLOW_OFFLOAD_XMIT_DIRECT since neighbour cache is not available
-  in point-to-point device, use the hardware address that is obtained
-  via flowtable path discovery (ie. fill_forward_path).
+> 
+> > The parameter n is a signed int. If n happens to be negative, it will evaluate
+> > to true and be passed to roundup_pow_of_two().
+> > 
+> > Because roundup_pow_of_two() casts the input to unsigned long, a negative
+> > value like -1 becomes ULONG_MAX. This results in a shift exponent of 64,
+> > triggering a shift-out-of-bounds regression. Would it be safer to check
+> > for n <= 0 instead?
+> > 
+> > Additionally, if n exceeds 1.07 billion (1 << 30) on systems with large
+> > amounts of RAM, roundup_pow_of_two(n) evaluates to 1UL << 31. Since n is
+> > a 32-bit signed int, assigning 1UL << 31 back to n overflows and results
+> > in a negative number.
+> > 
+> > Since subsequent bounds checks use signed comparisons:
+> > 
+> > >  	if (lfactor < 0) {
+> > >  		int factor = min(-lfactor, max_bits);
+> > >  
+> > >  		n = min(n, 1 << (max_bits - factor));
+> > 
+> > These checks will fail to constrain the size correctly.
+> > 
+> > [ ... ]
+> > 
+> > >  	/* Shrink but keep it n * 2 to prevent frequent resizing */
+> > >  	return clamp(n << 1, 1 << min_bits, 1 << max_bits);
+> > >  }
+> > 
+> > Eventually, the function returns clamp(n << 1, 1 << min_bits, 1 << max_bits).
+> > Shifting a negative number causes undefined behavior, and the clamp operation
+> > will force the hash table to its absolute minimum size.
+> > 
+> > Could this cause millions of connections to be placed into a minimally sized
+> > hash table, causing severe collisions during RCU hash lookups?
+> 
+> 	All that is valid without conn/mem limits.
 
-Fixes: 18d27bed0880 ("netfilter: flowtable: inline pppoe encapsulation in xmit path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v6: no changes
-
- include/net/netfilter/nf_flow_table.h |  4 ++-
- net/netfilter/nf_flow_table_core.c    |  1 +
- net/netfilter/nf_flow_table_ip.c      | 42 +++++++++++++++++++++++++--
- net/netfilter/nf_flow_table_path.c    |  7 ++++-
- 4 files changed, 49 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index b09c11c048d5..7b23b245a5a8 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -148,9 +148,10 @@ struct flow_offload_tuple {
- 	/* All members above are keys for lookups, see flow_offload_hash(). */
- 	struct { }			__hash;
- 
--	u8				dir:2,
-+	u16				dir:2,
- 					xmit_type:3,
- 					encap_num:2,
-+					needs_gso_segment:1,
- 					tun_num:2,
- 					in_vlan_ingress:2;
- 	u16				mtu;
-@@ -232,6 +233,7 @@ struct nf_flow_route {
- 			u32			hw_ifindex;
- 			u8			h_source[ETH_ALEN];
- 			u8			h_dest[ETH_ALEN];
-+			u8			needs_gso_segment:1;
- 		} out;
- 		enum flow_offload_xmit_type	xmit_type;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 2c4140e6f53c..785d8c244a77 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -122,6 +122,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 
- 	flow_tuple->tun = route->tuple[dir].in.tun;
- 	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
-+	flow_tuple->needs_gso_segment = route->tuple[dir].out.needs_gso_segment;
- 	flow_tuple->tun_num = route->tuple[dir].in.num_tuns;
- 
- 	switch (route->tuple[dir].xmit_type) {
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 54263878451b..0cf8226d413d 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -552,7 +552,8 @@ static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
- 	return 0;
- }
- 
--static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
-+static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id,
-+			      u32 needed_headroom)
- {
- 	int data_len = skb->len + sizeof(__be16);
- 	struct ppp_hdr {
-@@ -561,7 +562,7 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
- 	} *ph;
- 	__be16 proto;
- 
--	if (skb_cow_head(skb, PPPOE_SES_HLEN))
-+	if (skb_cow_head(skb, needed_headroom + PPPOE_SES_HLEN))
- 		return -1;
- 
- 	switch (skb->protocol) {
-@@ -754,7 +755,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
- 				return -1;
- 			break;
- 		case htons(ETH_P_PPP_SES):
--			if (nf_flow_pppoe_push(skb, tuple->encap[i].id) < 0)
-+			if (nf_flow_pppoe_push(skb, tuple->encap[i].id,
-+					       needed_headroom) < 0)
- 				return -1;
- 			break;
- 		}
-@@ -768,6 +770,7 @@ struct nf_flow_xmit {
- 	const void		*source;
- 	struct net_device	*outdev;
- 	struct flow_offload_tuple *tuple;
-+	bool			needs_gso_segment;
- };
- 
- static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-@@ -788,10 +791,41 @@ static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 	dev_queue_xmit(skb);
- }
- 
-+static unsigned int nf_flow_encap_gso_xmit(struct net *net, struct sk_buff *skb,
-+					   struct nf_flow_xmit *xmit)
-+{
-+	struct sk_buff *segs, *nskb;
-+
-+	segs = skb_gso_segment(skb, 0);
-+	if (IS_ERR(segs))
-+		return NF_DROP;
-+
-+	if (segs)
-+		consume_skb(skb);
-+	else
-+		segs = skb;
-+
-+	skb_list_walk_safe(segs, segs, nskb) {
-+		skb_mark_not_on_list(segs);
-+
-+		if (nf_flow_encap_push(segs, xmit->tuple, xmit->outdev) < 0) {
-+			kfree_skb(segs);
-+			kfree_skb_list(nskb);
-+			return NF_STOLEN;
-+		}
-+		__nf_flow_queue_xmit(net, segs, xmit);
-+	}
-+
-+	return NF_STOLEN;
-+}
-+
- static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 				       struct nf_flow_xmit *xmit)
- {
- 	if (xmit->tuple->encap_num) {
-+		if (skb_is_gso(skb) && xmit->needs_gso_segment)
-+			return nf_flow_encap_gso_xmit(net, skb, xmit);
-+
- 		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
- 			return NF_DROP;
- 	}
-@@ -875,6 +909,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		return NF_DROP;
- 	}
- 	xmit.tuple = other_tuple;
-+	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-@@ -1195,6 +1230,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		return NF_DROP;
- 	}
- 	xmit.tuple = other_tuple;
-+	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 6bb9579dcc2a..9e88ea6a2eef 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -86,6 +86,7 @@ struct nft_forward_info {
- 	u8 ingress_vlans;
- 	u8 h_source[ETH_ALEN];
- 	u8 h_dest[ETH_ALEN];
-+	bool needs_gso_segment;
- 	enum flow_offload_xmit_type xmit_type;
- };
- 
-@@ -138,8 +139,11 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 					path->encap.proto;
- 				info->num_encaps++;
- 			}
--			if (path->type == DEV_PATH_PPPOE)
-+			if (path->type == DEV_PATH_PPPOE) {
- 				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
-+				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
-+				info->needs_gso_segment = 1;
-+			}
- 			break;
- 		case DEV_PATH_BRIDGE:
- 			if (is_zero_ether_addr(info->h_source))
-@@ -279,6 +283,7 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
- 		route->tuple[dir].xmit_type = info.xmit_type;
- 	}
-+	route->tuple[dir].out.needs_gso_segment = info.needs_gso_segment;
- }
- 
- int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
--- 
-2.47.3
-
+Sorry, my previous email was supposed to come with some commentary
+that I think that this is a pre-existing issue that can be treated
+separately from this patch.
