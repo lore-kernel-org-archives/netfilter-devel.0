@@ -1,57 +1,39 @@
-Received: from out-03.smtp.spacemail.com (out-03.smtp.spacemail.com [63.250.43.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EBA04779A4;
-	Thu, 30 Apr 2026 18:35:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=63.250.43.88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D553A3A5E67
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 20:25:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777574102; cv=none; b=l7oZvfOGczqJS+8u5eeBMhfqjMG+96nZlFLGDJ1KIVcmZNX741rS96EwCkolR66KBSbCvZceWLBQoZjrkcJDImzOrOSlTcAOQQc4hxW0w+MDFOJRyDSWyS67XGvsn0q7nStNtx2cB97zRgzFuZeGjwLnmamXyuvoaEZSQ7pgwEQ=
+	t=1777580755; cv=none; b=PgtBGNSGgFsqKEffWb8pWWNF9YcHzH++J6PhQLfjpmLgn2meF4Lktvwpy1xx8xc0DWf3J3+udamHbwJX2CfWwvWZfWm7vDwMx0aeR0h7c90nFedPrMSHiUkKzH9G0pZFjLgImUO6g09WouigA4ztgXWcIAHH0XLZ6JmMmE2Rxcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777574102; c=relaxed/simple;
-	bh=nLWDjCYG2VJb/niqMQC2v2WrYtWZ4BxwIhZ+B8UKc9g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R8AwfQXPbNR6II4AtJfWnBC4FhKIv1Z02FtkWj0BSPxsNPZ50xMB0D9UUBcAQtl22JIXq8gvitnXa5YfPA06235YzT9R2gciHDE4JZMOIr81nvhzrsAYqsApb8lv/pDHBEwZSjtdH+dtnSBDXhscD1JthXQDCkilSB1dEktHLuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=iCc8hK9k reason="key not found in DNS"; arc=none smtp.client-ip=63.250.43.88
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
+	s=arc-20240116; t=1777580755; c=relaxed/simple;
+	bh=XiaLhc82AWSwA/xbvDKYzddYX2MAEQ5dMhRdEWNzMYE=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=pKj5Mc1DVCWkXrarvF3wx6YFMcrswYKPWjnbZDfFJcgoD8yd0yQW2mzQ5o4S1K9a8e6r4f7tUogPHuzaok9tODmDdaNVltfKZ6AQRxEUX6AQOObvs/aePaMpcQcfX37kjzb+58DIZsCbjPk7J/Ytlh4QDhBB8IElpvT3rfv/uqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FR0nSf4K; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="iCc8hK9k"
-Received: from Kyren (unknown [49.207.224.37])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4g62g33chZz8sWt;
-	Thu, 30 Apr 2026 18:26:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1777573571;
-	bh=tq9jLvGxcCHzQiNF7PIsLncsroNls5TdwyWf8VNvfHA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iCc8hK9kBpcsuU+8KWElc+BIxDQopM1oB1hXU70FPdacdlzueVsHQYtTy0Mysm4jU
-	 RkmISs9xNYGt8ceGTZ5q4n8EigCo78PS2aA7xnm6YEVOXdJHEtjn+hxOTj2XbXxudv
-	 HjXoGihG23TpEfSKJt2ekNyA6X6f+kCqdMc9JP15M0nUeBldeO4aE7uu5Vk9q83wj2
-	 dykXPa5V99DOS/SGjxX3sKrspqAIhdRNo7/cqJiToYHRbzqsopVbjpSOW67hB597FV
-	 bNUt1QneiHkA4OWLyv1CFV4Vbko2BfxbwnHLpD4H+3rbayPwOX2evvK8tDhLH8bG4u
-	 5qlRvI0IhNV6g==
-From: HACKE-RC <rc@rexion.ai>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	HACKE-RC <rc@rexion.ai>
-Subject: [PATCH net-next v2 2/3] netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
-Date: Thu, 30 Apr 2026 23:55:42 +0530
-Message-ID: <20260430182543.3931718-3-rc@rexion.ai>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260430182543.3931718-1-rc@rexion.ai>
-References: <20260430182543.3931718-1-rc@rexion.ai>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FR0nSf4K"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 70C42600B9
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2026 22:25:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1777580750;
+	bh=R5eYrL/OJys5c/cCDLts4eZUN1k2IbSq4iDqkDEFXac=;
+	h=From:To:Subject:Date:From;
+	b=FR0nSf4KWBOF6XbWyedke6OlNPhomS6mlNWHGNcfjN6mEPW/AbSKI2P9t6z6Weauk
+	 IEGkthM/mTpX2e8/M1q/HG1iiFkgk5U55Bq2ACJjdQUorXZGWNFCbzWYYVEDXEr7hb
+	 Nd29dDHKgnBmL7ST9rvXqk4V/FJdS7DOdwm2ieYLDH9j02NUkn1UIYsVh8oWQRd6Bt
+	 B9kDaga7nRfg0dFgn1tt6uQ7bwikTP7k5Xu0tny2uBb3peo7Nj9f/QdGBJAV1T1SHZ
+	 gMbWyCAAdGbqj7hWQDkwyT1D+I9BBvzqKdiWZAnprgioIeDy1o+ANAvpUSSrhURY3f
+	 kHG9/CamVtTmA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v6 1/4] netfilter: flowtable: ensure sufficient headroom in xmit path
+Date: Thu, 30 Apr 2026 22:25:44 +0200
+Message-ID: <20260430202547.274256-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,38 +41,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Envelope-From: rc@rexion.ai
 
-Replace the bare simple_strtoul() call for port parsing with the
-shared nf_ct_helper_parse_port(). This avoids reliance on the
-nul-terminated string guarantee (currently provided by the newline
-scan earlier in parse_dcc) and validates the port fits in u16.
+Check for headroom and call skb_expand_head() like in the IP output
+path to ensure there is sufficient headroom for the mac header when
+forwarding this packet as suggested by sashiko.
 
-The simple_strtoul() for the IP address field is left as-is since
-it returns unsigned long for a __be32 conversion, which is a
-separate concern.
-
-Fixes: 869f37d8e48f ("[NETFILTER]: nf_conntrack/nf_nat: add IRC helper port")
-Signed-off-by: HACKE-RC <rc@rexion.ai>
+Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_irc.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+v6: no changes
 
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 522183b9a..1b51f5a6a 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -93,7 +93,9 @@ static int parse_dcc(char *data, const char *data_end, __be32 *ip,
- 		data++;
- 	}
- 
--	*port = simple_strtoul(data, &data, 10);
-+	if (nf_ct_helper_parse_port(data, data_end - data, port, &data))
-+		return -1;
+ net/netfilter/nf_flow_table_ip.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index dbd7644fdbeb..8d5fb7e940a1 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -471,8 +471,17 @@ struct nf_flow_xmit {
+ static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+ 				       struct nf_flow_xmit *xmit)
+ {
+-	skb->dev = xmit->outdev;
+-	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
++	struct net_device *dev = xmit->outdev;
++	unsigned int hh_len = LL_RESERVED_SPACE(dev);
 +
- 	*ad_end_p = data;
++	if (unlikely(skb_headroom(skb) < hh_len && dev->header_ops)) {
++		skb = skb_expand_head(skb, hh_len);
++		if (!skb)
++			return NF_STOLEN;
++	}
++
++	skb->dev = dev;
++	dev_hard_header(skb, dev, ntohs(skb->protocol),
+ 			xmit->dest, xmit->source, skb->len);
+ 	dev_queue_xmit(skb);
  
- 	return 0;
 -- 
-2.54.0
+2.47.3
 
