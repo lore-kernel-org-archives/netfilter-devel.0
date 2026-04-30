@@ -1,37 +1,36 @@
-Received: from out-13.smtp.spacemail.com (out-13.smtp.spacemail.com [63.250.43.96])
+Received: from out-12.smtp.spacemail.com (out-12.smtp.spacemail.com [198.54.127.83])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C67A39D6DE;
-	Thu, 30 Apr 2026 18:26:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=63.250.43.96
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E7C47CC70;
+	Thu, 30 Apr 2026 18:35:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.83
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777573592; cv=none; b=JdG1STQ0ayTxbbACqBf4QAB51W5RXhMtJpcs9cLNXPAX+H5Mj2XgxktOnRlz5cg/PL3IHoO2CTj9Bdp7nQO4mvDThPBZArm0B5f36MgFn8/mgwYioSUw0fNTMtBX9Oo4Xp04Q9rJaC4BxjRnZEBPGgVonHuaQAphxJT8qFhpMQM=
+	t=1777574102; cv=none; b=T8z7XtMRoCrUDX3qzVBBw/p5Qwo1vHdehuZLo/x+R+UEo7qGkYZVcrhZRtCaYU7dwyksYnDVjhqNilBYlKCW8SblcWgp17SWK1OMJXLg51qLlUnMZ73yo2Z86+cLSGqcAsjjeWBrgQGbhxPeH6+X8839fFCZQOnfYquvsGUx0rI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777573592; c=relaxed/simple;
-	bh=9yyUUs2BXIToAhIyi6W6MlHL2Q0Rkg+H4tfy95uVAzs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EKyGWPpV8weTkrLA+s91U+UA3cPNhJ9Ou2D+h5nhVUePNpI4ufAhPW5prLHh6UH92mLvQHbHNY+C92Ooyo9mlZJXDsf3lQXWnzHddBu4gmrXDpc0O8bTci+EY7+ZD/9RsgCDdD15ysCuk+cgR54rywfIHFczERH92Nus1VERMM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=btA5f6cx reason="key not found in DNS"; arc=none smtp.client-ip=63.250.43.96
+	s=arc-20240116; t=1777574102; c=relaxed/simple;
+	bh=swLMH6pLURjgirL9xBadXFGC5E5pIa70YvFJGr2fQdE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fJNr5icc4Hxd/899Zk2yOL9+kdWeLlcKwhKVaIglIZdkmn43ttNgxyogTxJ4E2Ve+df7I95DInrk/jf81zWEBUI5gXLungfc35c0tx8RMg+FwzkDBctN6t9qvGBTk4paKLeRT3zOfWAYkHfwSilMsKnOrEmiaSYuRCYqHi4spQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=BH4EeMzB reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.83
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="btA5f6cx"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="BH4EeMzB"
 Received: from Kyren (unknown [49.207.224.37])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4g62gP5PlPz8sXN;
-	Thu, 30 Apr 2026 18:26:25 +0000 (UTC)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4g62fl0M0Yz8sd3;
+	Thu, 30 Apr 2026 18:25:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1777573590;
-	bh=aCT15It8ZbWGI5T3TU+l8UKx6cl6pDrHxcHnymDFNhk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=btA5f6cxO7/UPYYBJdlAzt3hu6DUQPvM9rOl5iAYVEx8HxzCuhlg7Qk9UJpEiqPCG
-	 NFpr8Vk7c0XWoyCNjKyr1E3CiNdxrI3Rz0L/jCQ/gUnAX11EnK0FZC/9X39hDwB3QW
-	 m4v76vaB5R6QM5CvNtgbPWgXnivKNadp03fGqZmjbWnkDJHfP4mB5aNKbo/9UBVNSt
-	 vg3i0BmfkKKkkc0YwSD66d56j/fmMCXLQD+XYDLcpbJmLkGLUPEdsS9oSWJpGHbu1F
-	 QKEB2dXqS77/UE4EsdRkmtMcy5evWNAC+1hOlTyF9F+MaL43OGNP+7BxOtJc72xTLE
-	 ggd6NV0uulXnA==
+	s=spacemail; t=1777573555;
+	bh=Ug20lDJ3azlJTOlx8qs0QKzdbTa2xWSAosLLSGBJEeE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=BH4EeMzB/5ZNqzC1qSp7bN29dC9UjlzTzUktuGZ5YX+SPqZb+05KYx7B9+7ZXG8t/
+	 fwIDjrrBr7gbOoK86eQoWMPgulpuTMEWNP5DPtupauGaVspIfZew6GyICcu6GjEZDA
+	 33PPBQDDf5haylTQ5lufQLraXvIEuY/Z/097LE0qj1dpRyodPNrJWZEuxmKjceLJVB
+	 Y30g3BBoAXGIRVQetzv3KHrIGcN65GfZfPdi8FAft7ecMKsMEu0DRqyaQrOHnGxqGd
+	 M7apYFFxJWS2oNHIGZM9+7TLB12Gw0TEJBhsjUBfxL5IRRktNud4pA+sWEXukeBlH9
+	 o73byxgxaNo7Q==
 From: HACKE-RC <rc@rexion.ai>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -46,12 +45,10 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	HACKE-RC <rc@rexion.ai>
-Subject: [PATCH net-next v2 3/3] netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
-Date: Thu, 30 Apr 2026 23:55:43 +0530
-Message-ID: <20260430182543.3931718-4-rc@rexion.ai>
+Subject: [PATCH net-next v2 0/3] netfilter: conntrack: add shared port parser and use it in IRC and Amanda helpers
+Date: Thu, 30 Apr 2026 23:55:40 +0530
+Message-ID: <20260430182543.3931718-1-rc@rexion.ai>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260430182543.3931718-1-rc@rexion.ai>
-References: <20260430182543.3931718-1-rc@rexion.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,55 +58,34 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Envelope-From: rc@rexion.ai
 
-Replace the bare simple_strtoul() call with the shared
-nf_ct_helper_parse_port(). This removes reliance on the
-nul-terminated pbuf string for parsing and validates the port
-range in a single call.
+Both nf_conntrack_irc and nf_conntrack_amanda parse port numbers
+from application-layer protocol data using simple_strtoul(), which
+relies on nul-terminated strings and returns unsigned long without
+range checking. Port values above 65535 silently truncate when
+stored in u16.
 
-The len > 5 guard and port == 0 check are now handled by the
-shared parser, which rejects zero and values above 65535.
+This v2 adds a shared nf_ct_helper_parse_port() function to the
+conntrack helper core, modeled after the approach in 8cf6809cddcb
+("netfilter: nf_conntrack_sip: don't use simple_strtoul"), then
+converts both helpers to use it.
 
-Reorder local variable declarations to reverse christmas tree.
+Changes since v1:
+  - Added shared nf_ct_helper_parse_port() in the helper core
+    instead of open-coding range checks in each helper (Pablo)
+  - Parser does not rely on nul-terminated strings
+  - Dropped simple_strtoul usage entirely for port parsing
 
-Fixes: 16958900578b ("[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port")
-Signed-off-by: HACKE-RC <rc@rexion.ai>
----
- net/netfilter/nf_conntrack_amanda.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+HACKE-RC (3):
+  netfilter: conntrack: add shared port parser for helpers
+  netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
 
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index d2c09e8dd..30b5c4b84 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -88,11 +88,12 @@ static int amanda_help(struct sk_buff *skb,
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int dataoff, start, stop, off, i;
-+	nf_nat_amanda_hook_fn *nf_nat_amanda;
- 	char pbuf[sizeof("65535")], *tmp;
-+	int ret = NF_ACCEPT;
- 	u_int16_t len;
-+	u16 parsed_port;
- 	__be16 port;
--	int ret = NF_ACCEPT;
--	nf_nat_amanda_hook_fn *nf_nat_amanda;
- 
- 	/* Only look at packets from the Amanda server */
- 	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
-@@ -132,10 +133,10 @@ static int amanda_help(struct sk_buff *skb,
- 			break;
- 		pbuf[len] = '\0';
- 
--		port = htons(simple_strtoul(pbuf, &tmp, 10));
--		len = tmp - pbuf;
--		if (port == 0 || len > 5)
-+		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
- 			break;
-+		port = htons(parsed_port);
-+		len = tmp - pbuf;
- 
- 		exp = nf_ct_expect_alloc(ct);
- 		if (exp == NULL) {
+ include/net/netfilter/nf_conntrack_helper.h |  3 +++
+ net/netfilter/nf_conntrack_amanda.c         | 11 ++++----
+ net/netfilter/nf_conntrack_helper.c         | 28 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_irc.c            |  4 ++-
+ 4 files changed, 40 insertions(+), 6 deletions(-)
+
 -- 
 2.54.0
 
