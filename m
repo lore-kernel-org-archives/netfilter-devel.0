@@ -1,37 +1,37 @@
 Received: from out-13.smtp.spacemail.com (out-13.smtp.spacemail.com [63.250.43.96])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFCFD39D6DE;
-	Thu, 30 Apr 2026 18:26:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C67A39D6DE;
+	Thu, 30 Apr 2026 18:26:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=63.250.43.96
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777573566; cv=none; b=XY8JW1/FnqWtgBPM+IvbaILcNANVBnF5hpRwFVuLG5Si4vjLAw8CifrTaIyotsReMgFNE8IL2/8d/ibv8EFFDdy95Yr68LYoh51DGBRocib2hMr4RzPp7brnANMDdMkvoc9SW/S3vDhqz38MTtwdTVlDZaPARZYKkf1BEuEr3EI=
+	t=1777573592; cv=none; b=JdG1STQ0ayTxbbACqBf4QAB51W5RXhMtJpcs9cLNXPAX+H5Mj2XgxktOnRlz5cg/PL3IHoO2CTj9Bdp7nQO4mvDThPBZArm0B5f36MgFn8/mgwYioSUw0fNTMtBX9Oo4Xp04Q9rJaC4BxjRnZEBPGgVonHuaQAphxJT8qFhpMQM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777573566; c=relaxed/simple;
-	bh=AQd2sw1EZKQtxF/RoAKXgzvPNwc2JS7cbKhPcFoLW+I=;
+	s=arc-20240116; t=1777573592; c=relaxed/simple;
+	bh=9yyUUs2BXIToAhIyi6W6MlHL2Q0Rkg+H4tfy95uVAzs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ldEyxirZ9fwZMxpItRE+fvTGiBox1+1YWAqRB1bzm8ri7WwleJ0BybTt0y0LD+yx6ieUVPk9cYD+tbznbw33RPOfbrdKv85Hsh6omPOtGmYdB/Rll3OUq5meIsBMGz30HykejeurwHjBSd7sai2dlv+3L/UUmjNU9VNAvSPcrXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=kpOLI+0V reason="key not found in DNS"; arc=none smtp.client-ip=63.250.43.96
+	 MIME-Version; b=EKyGWPpV8weTkrLA+s91U+UA3cPNhJ9Ou2D+h5nhVUePNpI4ufAhPW5prLHh6UH92mLvQHbHNY+C92Ooyo9mlZJXDsf3lQXWnzHddBu4gmrXDpc0O8bTci+EY7+ZD/9RsgCDdD15ysCuk+cgR54rywfIHFczERH92Nus1VERMM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=btA5f6cx reason="key not found in DNS"; arc=none smtp.client-ip=63.250.43.96
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="kpOLI+0V"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="btA5f6cx"
 Received: from Kyren (unknown [49.207.224.37])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4g62ft5vZwz8sd8;
-	Thu, 30 Apr 2026 18:25:58 +0000 (UTC)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4g62gP5PlPz8sXN;
+	Thu, 30 Apr 2026 18:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1777573563;
-	bh=ykvFs84X9ifnNLgl1nKjZZCGpsIMTr1LlOqri6Q6e/A=;
+	s=spacemail; t=1777573590;
+	bh=aCT15It8ZbWGI5T3TU+l8UKx6cl6pDrHxcHnymDFNhk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kpOLI+0VVSya8bQzyfaImZyg6+4oDmG63xnMd9DyNi6uzjE9lUkkaRt1mAoHZhfwz
-	 VAuZ/xE7i7h+Lge5xmZsmFVmnnihngd1dDH+INaTO7iZHB7vBjxkvBEqIU7VKjbLJ6
-	 kh8P0Z3hpjErc8C+rPN/kpL3Tucdiu+0rQWCigRt9K3nO1jToNEePFDnFinWPHi3vs
-	 XCfR9pdeV2unojl/m5YJCgP5EzhgmZkfpE/PgyUQZ/04ZuueTNiBLLGTuY6g4/sXJC
-	 Tqh/JfiUq4qeZXypVx9OftYZ6N2J/ctmedG/xHp23qPrUNFD2GQxA228PiYcFoGWRY
-	 bStee+cUngbZA==
+	b=btA5f6cxO7/UPYYBJdlAzt3hu6DUQPvM9rOl5iAYVEx8HxzCuhlg7Qk9UJpEiqPCG
+	 NFpr8Vk7c0XWoyCNjKyr1E3CiNdxrI3Rz0L/jCQ/gUnAX11EnK0FZC/9X39hDwB3QW
+	 m4v76vaB5R6QM5CvNtgbPWgXnivKNadp03fGqZmjbWnkDJHfP4mB5aNKbo/9UBVNSt
+	 vg3i0BmfkKKkkc0YwSD66d56j/fmMCXLQD+XYDLcpbJmLkGLUPEdsS9oSWJpGHbu1F
+	 QKEB2dXqS77/UE4EsdRkmtMcy5evWNAC+1hOlTyF9F+MaL43OGNP+7BxOtJc72xTLE
+	 ggd6NV0uulXnA==
 From: HACKE-RC <rc@rexion.ai>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -46,9 +46,9 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	HACKE-RC <rc@rexion.ai>
-Subject: [PATCH net-next v2 1/3] netfilter: conntrack: add shared port parser for helpers
-Date: Thu, 30 Apr 2026 23:55:41 +0530
-Message-ID: <20260430182543.3931718-2-rc@rexion.ai>
+Subject: [PATCH net-next v2 3/3] netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+Date: Thu, 30 Apr 2026 23:55:43 +0530
+Message-ID: <20260430182543.3931718-4-rc@rexion.ai>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260430182543.3931718-1-rc@rexion.ai>
 References: <20260430182543.3931718-1-rc@rexion.ai>
@@ -61,75 +61,55 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Envelope-From: rc@rexion.ai
 
-Add nf_ct_helper_parse_port() to the conntrack helper core. This
-provides a port parser that does not rely on nul-terminated strings,
-taking an explicit length parameter and validating the result fits
-in the 1-65535 range.
+Replace the bare simple_strtoul() call with the shared
+nf_ct_helper_parse_port(). This removes reliance on the
+nul-terminated pbuf string for parsing and validates the port
+range in a single call.
 
-Modeled after the approach in 8cf6809cddcb ("netfilter:
-nf_conntrack_sip: don't use simple_strtoul") but as a shared
-function so IRC, Amanda, and other helpers can use it instead of
-open-coding simple_strtoul calls with ad-hoc range checks.
+The len > 5 guard and port == 0 check are now handled by the
+shared parser, which rejects zero and values above 65535.
 
+Reorder local variable declarations to reverse christmas tree.
+
+Fixes: 16958900578b ("[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port")
 Signed-off-by: HACKE-RC <rc@rexion.ai>
 ---
- include/net/netfilter/nf_conntrack_helper.h |  3 +++
- net/netfilter/nf_conntrack_helper.c         | 28 +++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ net/netfilter/nf_conntrack_amanda.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index de2f956ab..db19fe25f 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -160,6 +160,9 @@ nf_ct_helper_expectfn_find_by_name(const char *name);
- struct nf_ct_helper_expectfn *
- nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index d2c09e8dd..30b5c4b84 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -88,11 +88,12 @@ static int amanda_help(struct sk_buff *skb,
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple *tuple;
+ 	unsigned int dataoff, start, stop, off, i;
++	nf_nat_amanda_hook_fn *nf_nat_amanda;
+ 	char pbuf[sizeof("65535")], *tmp;
++	int ret = NF_ACCEPT;
+ 	u_int16_t len;
++	u16 parsed_port;
+ 	__be16 port;
+-	int ret = NF_ACCEPT;
+-	nf_nat_amanda_hook_fn *nf_nat_amanda;
  
-+int nf_ct_helper_parse_port(const char *cp, unsigned int len,
-+			    u16 *port, char **endp);
-+
- extern struct hlist_head *nf_ct_helper_hash;
- extern unsigned int nf_ct_helper_hsize;
+ 	/* Only look at packets from the Amanda server */
+ 	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
+@@ -132,10 +133,10 @@ static int amanda_help(struct sk_buff *skb,
+ 			break;
+ 		pbuf[len] = '\0';
  
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index a715304a5..12f51670d 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -499,6 +499,34 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
- }
- EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
+-		port = htons(simple_strtoul(pbuf, &tmp, 10));
+-		len = tmp - pbuf;
+-		if (port == 0 || len > 5)
++		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
+ 			break;
++		port = htons(parsed_port);
++		len = tmp - pbuf;
  
-+int nf_ct_helper_parse_port(const char *cp, unsigned int len,
-+			    u16 *port, char **endp)
-+{
-+	unsigned long result = 0;
-+	const char *start = cp;
-+
-+	while (len > 0 && *cp >= '0' && *cp <= '9') {
-+		result = result * 10 + (*cp - '0');
-+		if (result > 65535)
-+			return -1;
-+		cp++;
-+		len--;
-+	}
-+
-+	if (cp == start)
-+		return -1;
-+
-+	if (result == 0)
-+		return -1;
-+
-+	*port = result;
-+	if (endp)
-+		*endp = (char *)cp;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_helper_parse_port);
-+
- int nf_conntrack_helper_init(void)
- {
- 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
+ 		exp = nf_ct_expect_alloc(ct);
+ 		if (exp == NULL) {
 -- 
 2.54.0
 
