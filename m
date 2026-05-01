@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD72D3A254E;
-	Fri,  1 May 2026 12:22:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE6518DB01;
+	Fri,  1 May 2026 12:22:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777638169; cv=none; b=sGQAwKc3UaABAcs0LQbuf5lk5zwSi16xMX95BPP5vEkyka5rXaQJnjz7hMkcEJstwPo/E2RceO4hDoqlRX+bxsvUW7oIbh3KlUoS3fvGOrEwDW5z+LFA5JyoTU5fY2/oXF95XuFDConcLknTUoCIMXLsC020s6SaMu29KX99P1s=
+	t=1777638172; cv=none; b=ZIZhFjiP7kgsEmN7gkiCtX4JysIkGLoVr+E9pm5XR0WwquRBDjaifsw5LXyrSIhQjxxKczH7G0FaM8+Pzmu880on94cYTzCS4RaKSa+kRLlkLDOSlbleof/KrzF+C4jL4JKE6IkS/GnvzrjMwssUNn81uITeswfGLuaMDAgXIEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777638169; c=relaxed/simple;
-	bh=W3Z6TwdAWKas5XwRot/2SVr2jtYybvyg28Nd1dycDKg=;
+	s=arc-20240116; t=1777638172; c=relaxed/simple;
+	bh=6dEL9sDOAJOUR54tpkalkGaIXilvLaIEGt67G3UFRiw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q6/Kw1I+HWgIPwCG6B3R5fsbz1kmG5HM3ltw28Ry5s/Jj2zvR3xcVaglDzmzwJA5ldXr0jTyYYIzViLVPILklzqPFy3Qf38W6NNdqD/HpJz9q/+g8avG6GUHbqVL3O9GePEk5QH0+EI7hbTK0nwhDNwOamqioP36d7JqCs/D5QA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T/dVXIxT; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=kL0G8noZnXUWsekVxddb6kEvUKYh+5kZFirTizVZTw6zwUJUHD1MXKInMHpg9QDzlfL4h1ZA4I4+iAC9ypISHcZcGLZcuy9CR7owZcrVD23cOtHhQYRiSyOI5WtxcAM2qe3+2JeO1wpkK2FZXqrtNozfO2z7y9fx6ZDtitMVHTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gzsd6rRy; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T/dVXIxT"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gzsd6rRy"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A28FF60251;
-	Fri,  1 May 2026 14:22:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D61B460253;
+	Fri,  1 May 2026 14:22:46 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777638166;
-	bh=6HMnP21C7kZj0sAgDTlU2QMdScyDYmlzOR8+QK8a7Q8=;
+	s=2025; t=1777638167;
+	bh=HJ0gyI6q78dQqxVhrj+i20Ul62wION/SbOydKnouNU0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=T/dVXIxTB4wSvi3D5+RUTsshCVwaIsRhygL1kRp/0LvQx7XaUkyo44NaGu7r8rOmi
-	 CfU87qWpA1/mGpwHP/BkYFYpicwWXQQzuYJp+X6KJznQdCY+E73O3WGo1gh8/JsFBx
-	 Xmf3YllWNzBW+YYG2ZmWft/+PqqQtU+byRCLUxPfaPuieW52jbno6OWXzpuoyEE7i+
-	 NhA1pxcPqaCQ0BUJSSyIYXrdFlqBV1yZQol7NcJ5TOwypAIAaV3ef14xJ+LBBhbcqp
-	 TcKl6WSA1x30HEnt3/59XvmYrJNe3SmeZYnAfQUqsKDAV3nnPAHjsZMQ4doSxMHKqd
-	 iSjbcAM6xdgwA==
+	b=Gzsd6rRyVtD9+hCcuUh+nZ74dJQp3cfIIHqeBm4HbEbNk1PiBjihqHf5FSHKLsbq2
+	 MieCCP9h4PTKwiueeRmW7nDYZejs1I/M5T1Y+x5AqvEaPHyCteE2UbE4CfLznq/bWd
+	 TGZEoZ0pw/J+VTX2eJQ5qocZ3zQSGCM/+pDN0Na6LqzX+yRM9GWkPIpemzpJPeyXzo
+	 17Ecdb0psZCqKIm6rypHG98pBWLK+TqHS9NLC+HJ3eNn5sMkE/arvkUjbpfJRzBucU
+	 wGrTMX/poD491TlON3kHl9sy0c+8u29zAZ1D7H1QluA7kOa09lyHCiIasvLXzQYJQ1
+	 YJscDkY+3ffwQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 03/14] netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
-Date: Fri,  1 May 2026 14:22:26 +0200
-Message-ID: <20260501122237.296262-4-pablo@netfilter.org>
+Subject: [PATCH net 04/14] netfilter: x_tables: add .check_hooks to matches and targets
+Date: Fri,  1 May 2026 14:22:27 +0200
+Message-ID: <20260501122237.296262-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260501122237.296262-1-pablo@netfilter.org>
 References: <20260501122237.296262-1-pablo@netfilter.org>
@@ -52,120 +52,565 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Weiming Shi <bestswngs@gmail.com>
+Add a new .check_hooks interface for checking if the match/target is
+used from the validate hook according to its configuration.
 
-nft_fwd_neigh can be used in egress chains (NF_NETDEV_EGRESS). When the
-forwarding rule targets the same device or two devices forward to each
-other, neigh_xmit() triggers dev_queue_xmit() which re-enters
-nf_hook_egress(), causing infinite recursion and stack overflow.
+Move existing conditional hook check based on the match/target
+configuration from .checkentry to .check_hooks for the following
+matches/targets:
 
-Move the nf_get_nf_dup_skb_recursion() accessor and NF_RECURSION_LIMIT
-to the shared header nf_dup_netdev.h as a static inline, so that
-nft_fwd_netdev can use the recursion counter directly without exported
-function call overhead. Guard neigh_xmit() with the same recursion
-limit already used in nf_do_netdev_egress().
+- addrtype
+- devgroup
+- physdev
+- policy
+- set
+- TCPMSS
+- SET
 
-[ Updated to cache the nf_get_nf_dup_skb_recursion pointer. --pablo ]
+This is a preparation patch to fix nft_compat, not functional changes
+are intended.
 
-Fixes: f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+Based on patch from Florian Westphal.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_dup_netdev.h | 13 +++++++++++++
- net/netfilter/nf_dup_netdev.c         | 16 ----------------
- net/netfilter/nft_fwd_netdev.c        |  8 ++++++++
- 3 files changed, 21 insertions(+), 16 deletions(-)
+ include/linux/netfilter/x_tables.h |  8 +++
+ net/netfilter/x_tables.c           | 79 +++++++++++++++++++++++++++---
+ net/netfilter/xt_TCPMSS.c          | 33 +++++++------
+ net/netfilter/xt_addrtype.c        | 25 +++++++---
+ net/netfilter/xt_devgroup.c        | 18 +++++--
+ net/netfilter/xt_physdev.c         | 20 ++++++--
+ net/netfilter/xt_policy.c          | 24 +++++++--
+ net/netfilter/xt_set.c             | 39 +++++++++------
+ 8 files changed, 187 insertions(+), 59 deletions(-)
 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index b175d271aec9..609bcf422a9b 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -3,10 +3,23 @@
- #define _NF_DUP_NETDEV_H_
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 77c778d84d4c..a81b46af5118 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -146,6 +146,9 @@ struct xt_match {
+ 	/* Called when user tries to insert an entry of this type. */
+ 	int (*checkentry)(const struct xt_mtchk_param *);
  
- #include <net/netfilter/nf_tables.h>
-+#include <linux/netdevice.h>
-+#include <linux/sched.h>
- 
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
-+#define NF_RECURSION_LIMIT	2
++	/* Called to validate hooks based on the match configuration. */
++	int (*check_hooks)(const struct xt_mtchk_param *);
 +
-+static inline u8 *nf_get_nf_dup_skb_recursion(void)
-+{
-+#ifndef CONFIG_PREEMPT_RT
-+	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
-+#else
-+	return &current->net_xmit.nf_dup_skb_recursion;
-+#endif
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_mtdtor_param *);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+@@ -187,6 +190,9 @@ struct xt_target {
+ 	/* Should return 0 on success or an error code otherwise (-Exxxx). */
+ 	int (*checkentry)(const struct xt_tgchk_param *);
+ 
++	/* Called to validate hooks based on the target configuration. */
++	int (*check_hooks)(const struct xt_tgchk_param *);
++
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_tgdtor_param *);
+ #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+@@ -279,8 +285,10 @@ bool xt_find_jump_offset(const unsigned int *offsets,
+ 
+ int xt_check_proc_name(const char *name, unsigned int size);
+ 
++int xt_check_hooks_match(struct xt_mtchk_param *par);
+ int xt_check_match(struct xt_mtchk_param *, unsigned int size, u16 proto,
+ 		   bool inv_proto);
++int xt_check_hooks_target(struct xt_tgchk_param *par);
+ int xt_check_target(struct xt_tgchk_param *, unsigned int size, u16 proto,
+ 		    bool inv_proto);
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 9f837fb5ceb4..2c67c2e6b132 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -477,11 +477,9 @@ int xt_check_proc_name(const char *name, unsigned int size)
+ }
+ EXPORT_SYMBOL(xt_check_proc_name);
+ 
+-int xt_check_match(struct xt_mtchk_param *par,
+-		   unsigned int size, u16 proto, bool inv_proto)
++static int xt_check_match_common(struct xt_mtchk_param *par,
++				 unsigned int size, u16 proto, bool inv_proto)
+ {
+-	int ret;
+-
+ 	if (XT_ALIGN(par->match->matchsize) != size &&
+ 	    par->match->matchsize != -1) {
+ 		/*
+@@ -530,6 +528,14 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 				    par->match->proto);
+ 		return -EINVAL;
+ 	}
++
++	return 0;
 +}
 +
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index e348fb90b8dc..3b0a70e154cd 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -13,22 +13,6 @@
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
- 
--#define NF_RECURSION_LIMIT	2
--
--#ifndef CONFIG_PREEMPT_RT
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
--}
--#else
--
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return &current->net_xmit.nf_dup_skb_recursion;
--}
--
--#endif
--
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
- {
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 605b1d42abce..b9e88d7cf308 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -95,6 +95,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 			      struct nft_regs *regs,
- 			      const struct nft_pktinfo *pkt)
- {
-+	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
- 	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
- 	void *addr = &regs->data[priv->sreg_addr];
- 	int oif = regs->data[priv->sreg_dev];
-@@ -153,6 +154,11 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		goto out;
++static int xt_checkentry_match(struct xt_mtchk_param *par)
++{
++	int ret;
++
+ 	if (par->match->checkentry != NULL) {
+ 		ret = par->match->checkentry(par);
+ 		if (ret < 0)
+@@ -538,8 +544,34 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 			/* Flag up potential errors. */
+ 			return -EIO;
  	}
++
++	return 0;
++}
++
++int xt_check_hooks_match(struct xt_mtchk_param *par)
++{
++	if (par->match->check_hooks != NULL)
++		return par->match->check_hooks(par);
++
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(xt_check_hooks_match);
++
++int xt_check_match(struct xt_mtchk_param *par,
++		   unsigned int size, u16 proto, bool inv_proto)
++{
++	int ret;
++
++	ret = xt_check_match_common(par, size, proto, inv_proto);
++	if (ret < 0)
++		return ret;
++
++	ret = xt_check_hooks_match(par);
++	if (ret < 0)
++		return ret;
++
++	return xt_checkentry_match(par);
++}
+ EXPORT_SYMBOL_GPL(xt_check_match);
  
-+	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT) {
-+		verdict = NF_DROP;
-+		goto out;
+ /** xt_check_entry_match - check that matches end before start of target
+@@ -1012,11 +1044,9 @@ bool xt_find_jump_offset(const unsigned int *offsets,
+ }
+ EXPORT_SYMBOL(xt_find_jump_offset);
+ 
+-int xt_check_target(struct xt_tgchk_param *par,
+-		    unsigned int size, u16 proto, bool inv_proto)
++static int xt_check_target_common(struct xt_tgchk_param *par,
++				  unsigned int size, u16 proto, bool inv_proto)
+ {
+-	int ret;
+-
+ 	if (XT_ALIGN(par->target->targetsize) != size) {
+ 		pr_err_ratelimited("%s_tables: %s.%u target: invalid size %u (kernel) != (user) %u\n",
+ 				   xt_prefix[par->family], par->target->name,
+@@ -1061,6 +1091,23 @@ int xt_check_target(struct xt_tgchk_param *par,
+ 				    par->target->proto);
+ 		return -EINVAL;
+ 	}
++
++	return 0;
++}
++
++int xt_check_hooks_target(struct xt_tgchk_param *par)
++{
++	if (par->target->check_hooks != NULL)
++		return par->target->check_hooks(par);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(xt_check_hooks_target);
++
++static int xt_checkentry_target(struct xt_tgchk_param *par)
++{
++	int ret;
++
+ 	if (par->target->checkentry != NULL) {
+ 		ret = par->target->checkentry(par);
+ 		if (ret < 0)
+@@ -1071,6 +1118,22 @@ int xt_check_target(struct xt_tgchk_param *par,
+ 	}
+ 	return 0;
+ }
++
++int xt_check_target(struct xt_tgchk_param *par,
++		    unsigned int size, u16 proto, bool inv_proto)
++{
++	int ret;
++
++	ret = xt_check_target_common(par, size, proto, inv_proto);
++	if (ret < 0)
++		return ret;
++
++	ret = xt_check_hooks_target(par);
++	if (ret < 0)
++		return ret;
++
++	return xt_checkentry_target(par);
++}
+ EXPORT_SYMBOL_GPL(xt_check_target);
+ 
+ /**
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 116a885adb3c..80e1634bc51f 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -247,6 +247,21 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ }
+ #endif
+ 
++static int tcpmss_tg4_check_hooks(const struct xt_tgchk_param *par)
++{
++	const struct xt_tcpmss_info *info = par->targinfo;
++
++	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
++	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
++			   (1 << NF_INET_LOCAL_OUT) |
++			   (1 << NF_INET_POST_ROUTING))) != 0) {
++		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
++		return -EINVAL;
 +	}
 +
- 	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
- 	if (dev == NULL) {
- 		verdict = NF_DROP;
-@@ -170,7 +176,9 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
++	return 0;
++}
++
+ /* Must specify -p tcp --syn */
+ static inline bool find_syn_match(const struct xt_entry_match *m)
+ {
+@@ -262,17 +277,9 @@ static inline bool find_syn_match(const struct xt_entry_match *m)
  
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
-+	(*nf_dup_skb_recursion)++;
- 	neigh_xmit(neigh_table, dev, addr, skb);
-+	(*nf_dup_skb_recursion)--;
- out:
- 	regs->verdict.code = verdict;
+ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
+ {
+-	const struct xt_tcpmss_info *info = par->targinfo;
+ 	const struct ipt_entry *e = par->entryinfo;
+ 	const struct xt_entry_match *ematch;
+ 
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+ 	if (par->nft_compat)
+ 		return 0;
+ 
+@@ -286,17 +293,9 @@ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
+ {
+-	const struct xt_tcpmss_info *info = par->targinfo;
+ 	const struct ip6t_entry *e = par->entryinfo;
+ 	const struct xt_entry_match *ematch;
+ 
+-	if (info->mss == XT_TCPMSS_CLAMP_PMTU &&
+-	    (par->hook_mask & ~((1 << NF_INET_FORWARD) |
+-			   (1 << NF_INET_LOCAL_OUT) |
+-			   (1 << NF_INET_POST_ROUTING))) != 0) {
+-		pr_info_ratelimited("path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks\n");
+-		return -EINVAL;
+-	}
+ 	if (par->nft_compat)
+ 		return 0;
+ 
+@@ -312,6 +311,7 @@ static struct xt_target tcpmss_tg_reg[] __read_mostly = {
+ 	{
+ 		.family		= NFPROTO_IPV4,
+ 		.name		= "TCPMSS",
++		.check_hooks	= tcpmss_tg4_check_hooks,
+ 		.checkentry	= tcpmss_tg4_check,
+ 		.target		= tcpmss_tg4,
+ 		.targetsize	= sizeof(struct xt_tcpmss_info),
+@@ -322,6 +322,7 @@ static struct xt_target tcpmss_tg_reg[] __read_mostly = {
+ 	{
+ 		.family		= NFPROTO_IPV6,
+ 		.name		= "TCPMSS",
++		.check_hooks	= tcpmss_tg4_check_hooks,
+ 		.checkentry	= tcpmss_tg6_check,
+ 		.target		= tcpmss_tg6,
+ 		.targetsize	= sizeof(struct xt_tcpmss_info),
+diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
+index a77088943107..913dbe3aa5e2 100644
+--- a/net/netfilter/xt_addrtype.c
++++ b/net/netfilter/xt_addrtype.c
+@@ -153,14 +153,10 @@ addrtype_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ret;
  }
+ 
+-static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
++static int addrtype_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+-	const char *errmsg = "both incoming and outgoing interface limitation cannot be selected";
+ 	struct xt_addrtype_info_v1 *info = par->matchinfo;
+-
+-	if (info->flags & XT_ADDRTYPE_LIMIT_IFACE_IN &&
+-	    info->flags & XT_ADDRTYPE_LIMIT_IFACE_OUT)
+-		goto err;
++	const char *errmsg;
+ 
+ 	if (par->hook_mask & ((1 << NF_INET_PRE_ROUTING) |
+ 	    (1 << NF_INET_LOCAL_IN)) &&
+@@ -176,6 +172,21 @@ static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
+ 		goto err;
+ 	}
+ 
++	return 0;
++err:
++	pr_info_ratelimited("%s\n", errmsg);
++	return -EINVAL;
++}
++
++static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
++{
++	const char *errmsg = "both incoming and outgoing interface limitation cannot be selected";
++	struct xt_addrtype_info_v1 *info = par->matchinfo;
++
++	if (info->flags & XT_ADDRTYPE_LIMIT_IFACE_IN &&
++	    info->flags & XT_ADDRTYPE_LIMIT_IFACE_OUT)
++		goto err;
++
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	if (par->family == NFPROTO_IPV6) {
+ 		if ((info->source | info->dest) & XT_ADDRTYPE_BLACKHOLE) {
+@@ -211,6 +222,7 @@ static struct xt_match addrtype_mt_reg[] __read_mostly = {
+ 		.family		= NFPROTO_IPV4,
+ 		.revision	= 1,
+ 		.match		= addrtype_mt_v1,
++		.check_hooks	= addrtype_mt_check_hooks,
+ 		.checkentry	= addrtype_mt_checkentry_v1,
+ 		.matchsize	= sizeof(struct xt_addrtype_info_v1),
+ 		.me		= THIS_MODULE
+@@ -221,6 +233,7 @@ static struct xt_match addrtype_mt_reg[] __read_mostly = {
+ 		.family		= NFPROTO_IPV6,
+ 		.revision	= 1,
+ 		.match		= addrtype_mt_v1,
++		.check_hooks	= addrtype_mt_check_hooks,
+ 		.checkentry	= addrtype_mt_checkentry_v1,
+ 		.matchsize	= sizeof(struct xt_addrtype_info_v1),
+ 		.me		= THIS_MODULE
+diff --git a/net/netfilter/xt_devgroup.c b/net/netfilter/xt_devgroup.c
+index 9520dd00070b..6d1a44ab5eee 100644
+--- a/net/netfilter/xt_devgroup.c
++++ b/net/netfilter/xt_devgroup.c
+@@ -33,14 +33,10 @@ static bool devgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return true;
+ }
+ 
+-static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
++static int devgroup_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_devgroup_info *info = par->matchinfo;
+ 
+-	if (info->flags & ~(XT_DEVGROUP_MATCH_SRC | XT_DEVGROUP_INVERT_SRC |
+-			    XT_DEVGROUP_MATCH_DST | XT_DEVGROUP_INVERT_DST))
+-		return -EINVAL;
+-
+ 	if (info->flags & XT_DEVGROUP_MATCH_SRC &&
+ 	    par->hook_mask & ~((1 << NF_INET_PRE_ROUTING) |
+ 			       (1 << NF_INET_LOCAL_IN) |
+@@ -56,9 +52,21 @@ static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int devgroup_mt_checkentry(const struct xt_mtchk_param *par)
++{
++	const struct xt_devgroup_info *info = par->matchinfo;
++
++	if (info->flags & ~(XT_DEVGROUP_MATCH_SRC | XT_DEVGROUP_INVERT_SRC |
++			    XT_DEVGROUP_MATCH_DST | XT_DEVGROUP_INVERT_DST))
++		return -EINVAL;
++
++	return 0;
++}
++
+ static struct xt_match devgroup_mt_reg __read_mostly = {
+ 	.name		= "devgroup",
+ 	.match		= devgroup_mt,
++	.check_hooks	= devgroup_mt_check_hooks,
+ 	.checkentry	= devgroup_mt_checkentry,
+ 	.matchsize	= sizeof(struct xt_devgroup_info),
+ 	.family		= NFPROTO_UNSPEC,
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index d2b0b52434fa..dd98f758176c 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -91,14 +91,10 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return (!!ret ^ !(info->invert & XT_PHYSDEV_OP_OUT));
+ }
+ 
+-static int physdev_mt_check(const struct xt_mtchk_param *par)
++static int physdev_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+-	static bool brnf_probed __read_mostly;
+ 
+-	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+-	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+-		return -EINVAL;
+ 	if (info->bitmask & (XT_PHYSDEV_OP_OUT | XT_PHYSDEV_OP_ISOUT) &&
+ 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
+ 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+@@ -107,6 +103,18 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
+ 
++	return 0;
++}
++
++static int physdev_mt_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_physdev_info *info = par->matchinfo;
++	static bool brnf_probed __read_mostly;
++
++	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
++	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
++		return -EINVAL;
++
+ #define X(memb) strnlen(info->memb, sizeof(info->memb)) >= sizeof(info->memb)
+ 	if (info->bitmask & XT_PHYSDEV_OP_IN) {
+ 		if (info->physindev[0] == '\0')
+@@ -141,6 +149,7 @@ static struct xt_match physdev_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "physdev",
+ 		.family		= NFPROTO_IPV4,
++		.check_hooks	= physdev_mt_check_hooks,
+ 		.checkentry	= physdev_mt_check,
+ 		.match		= physdev_mt,
+ 		.matchsize	= sizeof(struct xt_physdev_info),
+@@ -149,6 +158,7 @@ static struct xt_match physdev_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "physdev",
+ 		.family		= NFPROTO_IPV6,
++		.check_hooks	= physdev_mt_check_hooks,
+ 		.checkentry	= physdev_mt_check,
+ 		.match		= physdev_mt,
+ 		.matchsize	= sizeof(struct xt_physdev_info),
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index b5fa65558318..ff54e3a8581e 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -126,13 +126,10 @@ policy_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ret;
+ }
+ 
+-static int policy_mt_check(const struct xt_mtchk_param *par)
++static int policy_mt_check_hooks(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_policy_info *info = par->matchinfo;
+-	const char *errmsg = "neither incoming nor outgoing policy selected";
+-
+-	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT)))
+-		goto err;
++	const char *errmsg;
+ 
+ 	if (par->hook_mask & ((1 << NF_INET_PRE_ROUTING) |
+ 	    (1 << NF_INET_LOCAL_IN)) && info->flags & XT_POLICY_MATCH_OUT) {
+@@ -144,6 +141,21 @@ static int policy_mt_check(const struct xt_mtchk_param *par)
+ 		errmsg = "input policy not valid in POSTROUTING and OUTPUT";
+ 		goto err;
+ 	}
++
++	return 0;
++err:
++	pr_info_ratelimited("%s\n", errmsg);
++	return -EINVAL;
++}
++
++static int policy_mt_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_policy_info *info = par->matchinfo;
++	const char *errmsg = "neither incoming nor outgoing policy selected";
++
++	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT)))
++		goto err;
++
+ 	if (info->len > XT_POLICY_MAX_ELEM) {
+ 		errmsg = "too many policy elements";
+ 		goto err;
+@@ -158,6 +170,7 @@ static struct xt_match policy_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "policy",
+ 		.family		= NFPROTO_IPV4,
++		.check_hooks	= policy_mt_check_hooks,
+ 		.checkentry 	= policy_mt_check,
+ 		.match		= policy_mt,
+ 		.matchsize	= sizeof(struct xt_policy_info),
+@@ -166,6 +179,7 @@ static struct xt_match policy_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "policy",
+ 		.family		= NFPROTO_IPV6,
++		.check_hooks	= policy_mt_check_hooks,
+ 		.checkentry	= policy_mt_check,
+ 		.match		= policy_mt,
+ 		.matchsize	= sizeof(struct xt_policy_info),
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 731bc2cafae4..4ae04bba9358 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -430,6 +430,29 @@ set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
++static int
++set_target_v3_check_hooks(const struct xt_tgchk_param *par)
++{
++	const struct xt_set_info_target_v3 *info = par->targinfo;
++
++	if (info->map_set.index != IPSET_INVALID_ID) {
++		if (strncmp(par->table, "mangle", 7)) {
++			pr_info_ratelimited("--map-set only usable from mangle table\n");
++			return -EINVAL;
++		}
++		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
++		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
++		     (par->hook_mask & ~(1 << NF_INET_FORWARD |
++					 1 << NF_INET_LOCAL_OUT |
++					 1 << NF_INET_POST_ROUTING))) {
++			pr_info_ratelimited("mapping of prio or/and queue is allowed only from OUTPUT/FORWARD/POSTROUTING chains\n");
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
+ static int
+ set_target_v3_checkentry(const struct xt_tgchk_param *par)
+ {
+@@ -459,20 +482,6 @@ set_target_v3_checkentry(const struct xt_tgchk_param *par)
+ 	}
+ 
+ 	if (info->map_set.index != IPSET_INVALID_ID) {
+-		if (strncmp(par->table, "mangle", 7)) {
+-			pr_info_ratelimited("--map-set only usable from mangle table\n");
+-			ret = -EINVAL;
+-			goto cleanup_del;
+-		}
+-		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
+-		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
+-		     (par->hook_mask & ~(1 << NF_INET_FORWARD |
+-					 1 << NF_INET_LOCAL_OUT |
+-					 1 << NF_INET_POST_ROUTING))) {
+-			pr_info_ratelimited("mapping of prio or/and queue is allowed only from OUTPUT/FORWARD/POSTROUTING chains\n");
+-			ret = -EINVAL;
+-			goto cleanup_del;
+-		}
+ 		index = ip_set_nfnl_get_byindex(par->net,
+ 						info->map_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+@@ -672,6 +681,7 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.family		= NFPROTO_IPV4,
+ 		.target		= set_target_v3,
+ 		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.check_hooks	= set_target_v3_check_hooks,
+ 		.checkentry	= set_target_v3_checkentry,
+ 		.destroy	= set_target_v3_destroy,
+ 		.me		= THIS_MODULE
+@@ -682,6 +692,7 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.family		= NFPROTO_IPV6,
+ 		.target		= set_target_v3,
+ 		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.check_hooks	= set_target_v3_check_hooks,
+ 		.checkentry	= set_target_v3_checkentry,
+ 		.destroy	= set_target_v3_destroy,
+ 		.me		= THIS_MODULE
 -- 
 2.47.3
 
