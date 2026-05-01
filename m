@@ -1,113 +1,91 @@
-Received: from mta1.formilux.org (mta1.formilux.org [51.159.59.229])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from out-06.smtp.spacemail.com (out-06.smtp.spacemail.com [66.29.159.77])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663CF2D97BB
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2026 05:00:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.59.229
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4341C231835;
+	Fri,  1 May 2026 06:32:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.29.159.77
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777611627; cv=none; b=CF5oRijvyeMn/7oSrXMP38P9iHnBrXsyYuBgmHLV1Pw38e321rwDGf922PYI8XR9PAnRAAIOnQEPs2qzyx3z/FBiEk9TZyue8TuyYsU3X8YT7SHoeGLKdX53Gv1//HVP5sjxz9+d7rMLb+/ZZNMswwxr5DQ33USaLO5wAoie51I=
+	t=1777617131; cv=none; b=siORq22G5DX/Ms6lfhTBvgejiKm+e4whz99Mnd+1ZcBwbSywKnvCQ3okWH/RiEKc5ucAW3YCq3ck9TBL3FnubHCtlF/jA2yQMtt6aPBH6H2snjPMzfO1e0iw8l5l8vI9kP3iBA75t0xaf4VHD4HUDRTV1OQwFlkpPM2iVPmIipU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777611627; c=relaxed/simple;
-	bh=p6ZzItV3eWl+7ewRVq/T++3Dn2IlCZDqhpXw6IncNds=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RFxRghvl9sHQsesA1yjC2ayX3kvgdC3v8efHdGCmt3/h4aq/yMly9QD+hG7L9K8X+DwkioruLOTSm6D5JZm7DzyuVDf6R2J3ps97jJoXCajy3Ohshp/UAj5KbxxPqfHTeeQvzPp4pcFtnrTYuWrJL/mWIJdZvN/GJfDW/yw/yHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b=e/Ui3cxg; arc=none smtp.client-ip=51.159.59.229
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
+	s=arc-20240116; t=1777617131; c=relaxed/simple;
+	bh=swLMH6pLURjgirL9xBadXFGC5E5pIa70YvFJGr2fQdE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=X65XMWRvEGK2TmW3VT28tN8DCiSoi4z+u8Y1XyYoy0N/ImILic4m8Zom3fXAKZYkQGo2BbNT1MWIig15vb0Ufi5oV1TJxuV98b/XcTK5JlSmYdBGH2xaSF6qjP+272YNZB8nPYaiV8pmKC2W+XFd0yzxxs78fwVI25SYBQUvbqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=c/zswwmj reason="key not found in DNS"; arc=none smtp.client-ip=66.29.159.77
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b="e/Ui3cxg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=1wt.eu; s=mail;
-	t=1777611612; bh=mHtoYe0sM8wYfX3OU6AI39u8RqiVPAxWsH2dxo3ZaKI=;
-	h=From:Message-ID:From;
-	b=e/Ui3cxgSI81/LyeZe0YIsP3J5bMMDwhcN8dItMMjB7yOmKdJ2X5gLyWcyM9NjCuS
-	 y1i/ZTAmo01VNuJWFQiAERnp2Ujn0ZK46C7NNpvRmUB5GxAlwI/CoWH4uF5jc7gE5+
-	 vESfK0ledUF7+A0V7g+3Mvpz7boa6H38rE4mc3Uc=
-Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
-	by mta1.formilux.org (Postfix) with ESMTP id C46F9C0A7D;
-	Fri, 01 May 2026 07:00:12 +0200 (CEST)
-Date: Fri, 1 May 2026 07:00:02 +0200
-From: Willy Tarreau <w@1wt.eu>
-To: rc <rc@rexion.ai>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, fw@strlen.de, security@kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: netfilter: nf_conntrack_irc: port truncation via simple_strtoul
- to u16 enables NAT pinhole
-Message-ID: <afQzUtDLyz2AVMcM@1wt.eu>
-References: <PXMDJKI85TU4.1D0TDUURTP402@mailcore-6d9c45d7fd-m8dqv>
- <afNz3OrUVkshakQU@chamomile>
- <afN0dilSmWd7FqqT@chamomile>
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="c/zswwmj"
+Received: from Kyren (unknown [49.207.224.37])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4g6Lmh6s8nz8sX2;
+	Fri, 01 May 2026 06:32:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1777617129;
+	bh=Ug20lDJ3azlJTOlx8qs0QKzdbTa2xWSAosLLSGBJEeE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=c/zswwmjIVlWn3FqubHmqqLDSTG6nntUulrx5tVCtAQmztwShYrJwB1nG5yzOFq1l
+	 5zyZGdfFB9yKUb/OgWq0r70u6dnMem22uX5DWpBA3WZsvnHsoPwZ89NLWp3ZqC7Kjl
+	 obcROkbree1s4BSZcsZaW9E8M0zqollaZj2yqKQtC/u0C9ttDNrntnTDn+2EsII4tI
+	 /7/F0rOwfkRrCgsJ/80kfGvpejZkRwEqF/8rV3CJtWWONJtEWSeQ+Dc9OMpyUi9l5s
+	 pHM8a0hb46ZsapslaCLMEk1vHPHqttB5dI8GpJjkDE7rA3lrRU/TPkL6mHx0X+0c+P
+	 z4vDFa53gPtww==
+From: HACKE-RC <rc@rexion.ai>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	HACKE-RC <rc@rexion.ai>
+Subject: [PATCH net-next v2 0/3] netfilter: conntrack: add shared port parser and use it in IRC and Amanda helpers
+Date: Fri,  1 May 2026 12:01:53 +0530
+Message-ID: <20260501063156.2520780-1-rc@rexion.ai>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <afN0dilSmWd7FqqT@chamomile>
+Content-Transfer-Encoding: 8bit
+X-Envelope-From: rc@rexion.ai
 
-On Thu, Apr 30, 2026 at 05:25:42PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Apr 30, 2026 at 05:23:11PM +0200, Pablo Neira Ayuso wrote:
-> > Cc'ing netfilter-devel@
-> > 
-> > On Thu, Apr 30, 2026 at 03:00:20PM +0000, rc wrote:
-> > > hey,
-> > >  
-> > > I would like to report the above security issue:
-> > >  
-> > >  
-> > >  Affected versions: all kernels with net/netfilter/nf_conntrack_irc.c 
-> > > (verified present in 7.1.0-rc1 mainline, code unchanged since initial
-> > > implementation)
-> > >  
-> > >  
-> > > Description
-> > > -----------
-> > >  
-> > >  
-> > > parse_dcc() in nf_conntrack_irc.c stores the return value of
-> > > simple_strtoul() directly into a u_int16_t pointer (line 96):
-> > >  
-> > >  
-> > >  *port = simple_strtoul(data, &data, 10);
-> > >  
-> > >  
-> > > simple_strtoul() returns unsigned long. When the attacker-controlled
-> > > port string in a DCC command exceeds 65535, the value silently
-> > > truncates to u16. For example:
-> > >  
-> > >  
-> > >  65558 -> u16 = 22 (SSH)
-> > >  131094 -> u16 = 22 (SSH)
-> > >  65536 -> u16 = 0
-> > >
-> > > An attacker on an IRC channel can send a crafted DCC SEND message
-> > > through a Linux NAT gateway running the nf_conntrack_irc helper. The
-> > > helper parses the port, truncates it, and opens a NAT pinhole
-> > > (via nf_nat_irc) for the truncated port on the internal host. This
-> > > bypasses the firewall/NAT to expose arbitrary services (SSH, HTTP,
-> > > database ports) on internal hosts.
-> > 
-> > You don't need truncation to open a port via conntrack helper with an
-> > expectation.
-> > 
-> > Tighening the conntrack helper parser is fine, this is net-next
-> > material:
-> > 
-> > 0) There is a document by Eric Leblond already explaining the
-> >    situation with conntrack helpers, which is old.
-> > 1) Helper are disabled by default, you have to enable them explicitly
-> >    via ruleset, for some time already.
-> > 
-> > Thanks for your report.
-> 
-> Having said this, patches are welcome for consideration, this is a
-> project run by volunteers, that is the best way you can contribute.
+Both nf_conntrack_irc and nf_conntrack_amanda parse port numbers
+from application-layer protocol data using simple_strtoul(), which
+relies on nul-terminated strings and returns unsigned long without
+range checking. Port values above 65535 silently truncate when
+stored in u16.
 
-Rahul, could you please turn your proposed fix into a regular patch ready
-to be applied as per Documentation/process/submitting-patches.rst ? This
-will save some maintainers' time and is the best way for you to be credited
-for finding and fixing this bug, if accepted.
+This v2 adds a shared nf_ct_helper_parse_port() function to the
+conntrack helper core, modeled after the approach in 8cf6809cddcb
+("netfilter: nf_conntrack_sip: don't use simple_strtoul"), then
+converts both helpers to use it.
 
-Thanks,
-Willy
+Changes since v1:
+  - Added shared nf_ct_helper_parse_port() in the helper core
+    instead of open-coding range checks in each helper (Pablo)
+  - Parser does not rely on nul-terminated strings
+  - Dropped simple_strtoul usage entirely for port parsing
+
+HACKE-RC (3):
+  netfilter: conntrack: add shared port parser for helpers
+  netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+
+ include/net/netfilter/nf_conntrack_helper.h |  3 +++
+ net/netfilter/nf_conntrack_amanda.c         | 11 ++++----
+ net/netfilter/nf_conntrack_helper.c         | 28 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_irc.c            |  4 ++-
+ 4 files changed, 40 insertions(+), 6 deletions(-)
+
+-- 
+2.54.0
+
