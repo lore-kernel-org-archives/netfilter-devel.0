@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE443A16BE;
-	Fri,  1 May 2026 12:22:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3F053A1CEA;
+	Fri,  1 May 2026 12:22:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777638175; cv=none; b=NOqMrV2YTDtHh1m+h+Q5dTN0oEH9Jk2cwcyQqRvaShTnjxw+NlZVPls1kNADHfNOUSerBhbX7HkkABpPEowMcqJJtpWRocJTWmXE2HZbFdxoM17XBBC64AhjnJPfJCi0HpHRpGuxcUfez0A2QM05V9LIJb+9rgQLkncIBsfiJMQ=
+	t=1777638176; cv=none; b=IDSbFo1FjunjCsSuLvNdiULjdGD3ec/34fEPpetQtZmG2PyyUjHvutLwj6wSUm62PBQjeR+USYw2QduWK+8C4fTt5FmiVLgPZo3KtiP5dKjNlmZcK8uXnlZowejhFkpWIat56uJplqE/FXFodfJJ5JEMGYFk0SHTQSttrkGlo4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777638175; c=relaxed/simple;
-	bh=VyKpaAA2RBDckXTxULVi0QivEocpX0HE9L2VwvwaSqY=;
+	s=arc-20240116; t=1777638176; c=relaxed/simple;
+	bh=iGCgKKAZjuVFe8NtGypebr2FL+6Q+sjCRSubmoZeE3Q=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KCQgzb9F7j/VpM3woPsSaKLEfOYLSjetVLQ9PMX8i/x43Xc5qYTSMxcjOqZRzWfg/90HjHoG5+vyzk9QTskCVdUzDdkZXJWdx5sZIGby8bgK9rrvC2I0imNT+goLH6etp42gpJ91NgllBiFCBmfBcy7Es0CDk/DURibbFrVlCxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cMALdZFB; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=FhftahwUmP3yrBQjfISxvDewPcSLfJFqAEyHlWwSxoRjt5DNadJJCd0WPJW8jyRn+wx8j2VggoaznIddIlOCYx9Gxs9Kx5ltUcwe9YHSR9g9ejND28YBfDsu+XZKzS/azQbbCySDmC9a+ml01aVHOOvcRUSKHcXtAX/1joaVag0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wKqt8mZ+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cMALdZFB"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wKqt8mZ+"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B71F2600B9;
-	Fri,  1 May 2026 14:22:48 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B54E060253;
+	Fri,  1 May 2026 14:22:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777638169;
-	bh=8VOGzSuOdaTqtVdfry2eeLh+IQQSH9RU5psBadMOzPo=;
+	s=2025; t=1777638173;
+	bh=6S4r3Pu5p6LNj+T8frNczIDvTk2FQ6ZslXgCCio8jsM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=cMALdZFBvrYUvCwSQMjGDqgvCnhgL8P64yH4GZlEmXlrCkGF5gL0gG2U+TCyt9Z4A
-	 n0GCc9UZKeU2oHlUrjjO7QW305M1SEvbTxgUVP0+Q+DCsPoWUeZnUFMKLz0Z4RZSz5
-	 IysjAe54GW2j4PqXzb6M4LwRKVWvhLB83tHCnlDTiS0Vh9srFv6CTE1N+jYINaf0+T
-	 cEMWMM50e22gC7TUuZ/Swf4KfhipmzMOa+9gJQ8aHddukECm0KGigk9wvAErNLtV0T
-	 WIcBBsENf9ANkQ0IAvB3Dw8bfbmGpwRhxoJ87KxDfl4PlT78m/PPPl8bHaN+Kz9b7B
-	 05BJwaELi9GNw==
+	b=wKqt8mZ++gkA62ec7xICkI7komtSl5D3tbV3w6ggzEDDeVYSqfqc4j3giEBhTOlio
+	 Z68583Lrs221Rr1bNRzEje5gh7ipCVdZ7IkxIPP9b1XBVNtEtk853GJGJC36b020EU
+	 Mqfmqt0d8+24PL24oNYnV5GiIT6piZECZ/1b+WBq/6Po7HcN4FcsI+t3/hIdV27+SB
+	 rlqlCWw706DRCVVfQIXdVMH8v+2+KMgbxRpP3SB+EVnAqs+FsMF55ZotD2K71H4uHj
+	 u/+lrWWfYb1hi/LqUFcWZ7bCaSE+0316BdntwwmNgjE1x/e3faw0useQ/GBWUMhj3N
+	 7JxWyssZvUA2Q==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 05/14] netfilter: nft_compat: run xt_check_hooks_{match,target}() from .validate
-Date: Fri,  1 May 2026 14:22:28 +0200
-Message-ID: <20260501122237.296262-6-pablo@netfilter.org>
+Subject: [PATCH net 08/14] netfilter: nf_socket: skip socket lookup for non-first fragments
+Date: Fri,  1 May 2026 14:22:31 +0200
+Message-ID: <20260501122237.296262-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260501122237.296262-1-pablo@netfilter.org>
 References: <20260501122237.296262-1-pablo@netfilter.org>
@@ -52,141 +52,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Several matches and one target check that the hook is correct from
-checkentry(), however, the basechain is only available from
-nft_table_validate().
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-This patch uses xt_check_hooks_{match,target}() from the nft_compat
-expression .validate path.
+Both nft_socket and xt_socket relies on L4 headers to perform socket
+lookup in the slow path. For fragmented packets, while the IP protocol
+remains constant across all fragments, only the first fragment contains
+the actual L4 header.
 
-This patch sets the table in the nft_ctx struct in nft_table_validate()
-which is required by this patch.
+As the expression/match could be attached to a chain with a priority
+lower than -400, it could bypass defragmentation.
 
-Based on patch from Florian Westphal.
+Add a check for fragmentation in the lookup functions directly so the
+problem is handled for both nft_socket and xt_socket at the same time.
+In addition, future users of the functions would not need to care about
+this.
 
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Reported-by: Xiang Mei <xmei5@asu.edu>
+Fixes: 902d6a4c2a4f ("netfilter: nf_defrag: Skip defrag if NOTRACK is set")
+Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |  1 +
- net/netfilter/nft_compat.c    | 45 +++++++++++++++++++++++++++--------
- 2 files changed, 36 insertions(+), 10 deletions(-)
+ net/ipv4/netfilter/nf_socket_ipv4.c | 3 +++
+ net/ipv6/netfilter/nf_socket_ipv6.c | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d20ce5c36d31..38e33c66c618 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4205,6 +4205,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 	struct nft_chain *chain;
- 	struct nft_ctx ctx = {
- 		.net	= net,
-+		.table	= (struct nft_table *)table,
- 		.family	= table->family,
- 	};
- 	int err = 0;
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index decc725a33c2..0caa9304d2d0 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -261,10 +261,10 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			return ret;
+diff --git a/net/ipv4/netfilter/nf_socket_ipv4.c b/net/ipv4/netfilter/nf_socket_ipv4.c
+index 5080fa5fbf6a..f9c6755f5ec5 100644
+--- a/net/ipv4/netfilter/nf_socket_ipv4.c
++++ b/net/ipv4/netfilter/nf_socket_ipv4.c
+@@ -94,6 +94,9 @@ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
+ #endif
+ 	int doff = 0;
+ 
++	if (ntohs(iph->frag_off) & IP_OFFSET)
++		return NULL;
++
+ 	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
+ 		struct tcphdr _hdr;
+ 		struct udphdr *hp;
+diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
+index ced8bd44828e..893f2aeb4711 100644
+--- a/net/ipv6/netfilter/nf_socket_ipv6.c
++++ b/net/ipv6/netfilter/nf_socket_ipv6.c
+@@ -100,6 +100,7 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 	const struct in6_addr *daddr = NULL, *saddr = NULL;
+ 	struct ipv6hdr *iph = ipv6_hdr(skb), ipv6_var;
+ 	struct sk_buff *data_skb = NULL;
++	unsigned short fragoff = 0;
+ 	int doff = 0;
+ 	int thoff = 0, tproto;
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+@@ -107,8 +108,8 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 	struct nf_conn const *ct;
+ #endif
+ 
+-	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
+-	if (tproto < 0) {
++	tproto = ipv6_find_hdr(skb, &thoff, -1, &fragoff, NULL);
++	if (tproto < 0 || fragoff) {
+ 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
+ 		return NULL;
  	}
- 
--	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
--
- 	nft_compat_wait_for_destructors(ctx->net);
- 
-+	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
-+
- 	ret = xt_check_target(&par, size, proto, inv);
- 	if (ret < 0) {
- 		if (ret == -ENOENT) {
-@@ -353,8 +353,6 @@ static int nft_target_dump(struct sk_buff *skb,
- static int nft_target_validate(const struct nft_ctx *ctx,
- 			       const struct nft_expr *expr)
- {
--	struct xt_target *target = expr->ops->data;
--	unsigned int hook_mask = 0;
- 	int ret;
- 
- 	if (ctx->family != NFPROTO_IPV4 &&
-@@ -377,11 +375,21 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		const struct nft_base_chain *basechain =
- 						nft_base_chain(ctx->chain);
- 		const struct nf_hook_ops *ops = &basechain->ops;
-+		unsigned int hook_mask = 1 << ops->hooknum;
-+		struct xt_target *target = expr->ops->data;
-+		void *info = nft_expr_priv(expr);
-+		struct xt_tgchk_param par;
-+		union nft_entry e = {};
- 
--		hook_mask = 1 << ops->hooknum;
- 		if (target->hooks && !(hook_mask & target->hooks))
- 			return -EINVAL;
- 
-+		nft_target_set_tgchk_param(&par, ctx, target, info, &e, 0, false);
-+
-+		ret = xt_check_hooks_target(&par);
-+		if (ret < 0)
-+			return ret;
-+
- 		ret = nft_compat_chain_validate_dependency(ctx, target->table);
- 		if (ret < 0)
- 			return ret;
-@@ -515,10 +523,10 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			return ret;
- 	}
- 
--	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
--
- 	nft_compat_wait_for_destructors(ctx->net);
- 
-+	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
-+
- 	return xt_check_match(&par, size, proto, inv);
- }
- 
-@@ -614,8 +622,6 @@ static int nft_match_large_dump(struct sk_buff *skb,
- static int nft_match_validate(const struct nft_ctx *ctx,
- 			      const struct nft_expr *expr)
- {
--	struct xt_match *match = expr->ops->data;
--	unsigned int hook_mask = 0;
- 	int ret;
- 
- 	if (ctx->family != NFPROTO_IPV4 &&
-@@ -638,11 +644,30 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		const struct nft_base_chain *basechain =
- 						nft_base_chain(ctx->chain);
- 		const struct nf_hook_ops *ops = &basechain->ops;
-+		unsigned int hook_mask = 1 << ops->hooknum;
-+		struct xt_match *match = expr->ops->data;
-+		size_t size = XT_ALIGN(match->matchsize);
-+		struct xt_mtchk_param par;
-+		union nft_entry e = {};
-+		void *info;
- 
--		hook_mask = 1 << ops->hooknum;
- 		if (match->hooks && !(hook_mask & match->hooks))
- 			return -EINVAL;
- 
-+		if (NFT_EXPR_SIZE(size) > NFT_MATCH_LARGE_THRESH) {
-+			struct nft_xt_match_priv *priv = nft_expr_priv(expr);
-+
-+			info = priv->info;
-+		} else {
-+			info = nft_expr_priv(expr);
-+		}
-+
-+		nft_match_set_mtchk_param(&par, ctx, match, info, &e, 0, false);
-+
-+		ret = xt_check_hooks_match(&par);
-+		if (ret < 0)
-+			return ret;
-+
- 		ret = nft_compat_chain_validate_dependency(ctx, match->table);
- 		if (ret < 0)
- 			return ret;
 -- 
 2.47.3
 
