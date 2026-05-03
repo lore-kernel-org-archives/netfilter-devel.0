@@ -1,37 +1,37 @@
-Received: from out-06.smtp.spacemail.com (out-06.smtp.spacemail.com [66.29.159.77])
+Received: from out-12.smtp.spacemail.com (out-12.smtp.spacemail.com [198.54.127.83])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C7C273D8D;
-	Sun,  3 May 2026 08:32:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.29.159.77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680403AE6EB;
+	Sun,  3 May 2026 08:32:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.83
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777797159; cv=none; b=AB15X73zvLxaVcR4Gd6nT4FB1z9lBzgs2Gtd/Xp1uSeL0UWsu7oaAOau/363qcNde/J+YGzT3w+3wWELw+fFrfiS2tbQNWDggtji86W+a9aEzh3Ql7KCm51TcGfYdNu5gAPjC4DwdvsR8nw5qEzsPmEXbe+mJCdgFeTmbnU974k=
+	t=1777797164; cv=none; b=hBeMJjOwjpIyaUvAAyLmKzvV3FhTjUb4ADdz623Oo3E8ulRPm966RBEighd2WOcO+3YhuOmnFAPTTu52qmmgQLxYi+A64FMf+6WjuuT7NMS8ze6fnhoi11QRtRjXJ9pZ1pmCWH9YwhmqGVUxI3eBN1EZs+QkqOzgqDjWNr4DSfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777797159; c=relaxed/simple;
-	bh=S3bdgBPGI79X4uU8E8SKCYpMjmNwlQs0xu68QWji2lc=;
+	s=arc-20240116; t=1777797164; c=relaxed/simple;
+	bh=eyPhzYcrMzmxsVNdoq0bw3cqjHHIYUCAuGDdTQ8vbOE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=vFqnLkDDOc5DrXSzeHLP9CmVJVCGSpjG5tWzsPr4BJTw0vgHzKq5p9CvaXU+sliSFUTdT69iR3k0VyEwZ14fbbgqhcltgsot991tys53a/V8/Zv+Vf1Y7S9BMf9OHiFODqsk4g7aF2ZdKSNDAvwr30ABU9R13Me4iMmbXCrDna0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=j94Khmym reason="key not found in DNS"; arc=none smtp.client-ip=66.29.159.77
+	 MIME-Version; b=cftgL/ZLiJL+qbOmJhaRhPsVy+meort8MnYZG+AwVgXr5Kyn12sp9GJuMazhlmUFHeet3eW17zGpVRtiJ4Ql21bnLImvk2p++VtSpmveOOh0JEdKLaNmgrJ8vVt2A78DipRLRizuDt2nCwIIG6gJNr7kR+fPj8ymx/pAqS90iyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=RxLF9KJQ reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.83
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="j94Khmym"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="RxLF9KJQ"
 Received: from Kyren (unknown [49.207.224.37])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4g7dLh4k4Kz8sc7;
-	Sun, 03 May 2026 08:32:28 +0000 (UTC)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4g7dLm6Kg9z8sc7;
+	Sun, 03 May 2026 08:32:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1777797152;
-	bh=+2SH8ZXr4rVy0HR2sYavhqA8v3/knTQ2qsNiVVXoX/c=;
+	s=spacemail; t=1777797156;
+	bh=H1UwZxXtA1OhepmdQC3uiluz+P1XCqaIsWNP6kKMuIk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=j94KhmymVkpe292xwwUtIaInwZteiKw6ZoinBYUhY18MQqhYdsiv0jly0FRGWchg6
-	 10+fxaGfR9XTi7HnDyD6LHFf3lvnPI3rCV4kNuwNTi+h/GIrxC6BlON8Koe8GMlg2c
-	 deMe5CF+apxclK86kS8jJErPYbD/pBuogwyHKQ11Et68b68/U60mPB1UU3ImF2Lyx/
-	 AEoTsLd4G+bMyw5oBlDDMyWNw6aCQyqHmlXEGqZrDOsN/9xjudpeY8RdvwQEW7Lm+B
-	 J/bQO8zQwP6dsE3/h6xOnluSOyd7XOtUBAZyaUWUm8l7wcP7b1poFucNKGk9gSWuUv
-	 RkxddHBgwKCkA==
+	b=RxLF9KJQ+pyB/GqRnJ00lXqXcgrwyTYLrpRZhWoYaogVNesHhkyu6KgsAzUbnoo18
+	 lIxClUZsp0ojroLhrUixyYQrcbHNSB/wfAxO3s3SqcFtSlYUM/OaCXoWibT6AKaLci
+	 xa+nhAj91NvpuMHvduDN0p2HU1Y3d3EtKwtYEqyKanKMW+iHnJOjaPfAcnL6/rx1dr
+	 oJIynVzvO1d98shL1RC7irHdDLkQvmaIQAlpEwanZukVM6Kof8Nm9EiU+7dSjJSSzy
+	 OrK1LWXy1NBRm/GHSdu0+wFqmtILF8m+WfNiZH8Gl2PQJaTTq+QJ0gRRBy32tOlrEw
+	 ixWfuxQrs8Dxg==
 From: HACKE-RC <rc@rexion.ai>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -46,12 +46,13 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	HACKE-RC <rc@rexion.ai>
-Subject: [PATCH net-next v3 0/4] netfilter: conntrack: shared port parser for helpers
-Date: Sun,  3 May 2026 14:02:16 +0530
-Message-ID: <20260503083220.630655-1-rc@rexion.ai>
+Subject: [PATCH net-next v3 1/4] netfilter: conntrack: add shared port and uint parsers for helpers
+Date: Sun,  3 May 2026 14:02:17 +0530
+Message-ID: <20260503083220.630655-2-rc@rexion.ai>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
+In-Reply-To: <20260503083220.630655-1-rc@rexion.ai>
 References: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
+ <20260503083220.630655-1-rc@rexion.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,44 +62,83 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Envelope-From: rc@rexion.ai
 
-Both nf_conntrack_irc and nf_conntrack_amanda parse port numbers from
-application-layer data using simple_strtoul(), which requires
-NUL-terminated input and returns unsigned long without range validation.
+Add nf_ct_helper_parse_uint() for bounded unsigned integer parsing
+from an unterminated buffer, and nf_ct_helper_parse_port() which calls
+it with max=65535 and rejects port zero.  Both helpers are exported so
+conntrack protocol helpers can replace ad-hoc simple_strtoul() usage.
 
-This series introduces two shared helpers in the conntrack core:
-
-  nf_ct_helper_parse_uint() -- generic bounded integer parser that
-    operates on a length-delimited buffer without requiring NUL
-    termination.
-
-  nf_ct_helper_parse_port() -- calls nf_ct_helper_parse_uint() with
-    max=65535 and rejects port zero.
-
-Patches 2 and 3 convert IRC and Amanda to use nf_ct_helper_parse_port().
-Patch 4 converts the two port-parsing sites in nf_conntrack_sip to use
-nf_ct_helper_parse_port() as well, retaining the SIP-specific minimum
-port check (>= 1024).
-
-v3: add nf_ct_helper_parse_uint() as the generic base; nf_ct_helper_parse_port()
-    is now a thin wrapper; extend the series with a fourth patch converting
-    nf_conntrack_sip (Phil Sutter)
-v2: replace simple_strtoul() with a shared nf_ct_helper_parse_port()
-    in the conntrack helper core, modelled on 8cf6809cddcb (Florian Westphal)
-v1: inline range checks in IRC and Amanda
-
-HACKE-RC (4):
-  netfilter: conntrack: add shared port and uint parsers for helpers
-  netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
-  netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
-  netfilter: nf_conntrack_sip: use nf_ct_helper_parse_port()
-
+Signed-off-by: HACKE-RC <rc@rexion.ai>
+---
  include/net/netfilter/nf_conntrack_helper.h |  5 +++
- net/netfilter/nf_conntrack_amanda.c         | 11 +++---
  net/netfilter/nf_conntrack_helper.c         | 39 +++++++++++++++++++++
- net/netfilter/nf_conntrack_irc.c            |  4 ++-
- net/netfilter/nf_conntrack_sip.c            | 14 ++++----
- 5 files changed, 61 insertions(+), 12 deletions(-)
+ 2 files changed, 44 insertions(+)
 
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index de2f956ab..ab145fcd9 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -160,6 +160,11 @@ nf_ct_helper_expectfn_find_by_name(const char *name);
+ struct nf_ct_helper_expectfn *
+ nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
+ 
++int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
++			    unsigned long max, unsigned long *val, char **endp);
++int nf_ct_helper_parse_port(const char *cp, unsigned int len,
++			    u16 *port, char **endp);
++
+ extern struct hlist_head *nf_ct_helper_hash;
+ extern unsigned int nf_ct_helper_hsize;
+ 
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index a715304a5..f6229957c 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -499,6 +499,45 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
+ 
++int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
++			    unsigned long max, unsigned long *val, char **endp)
++{
++	unsigned long result = 0;
++
++	if (!len || *cp < '0' || *cp > '9')
++		return -1;
++
++	while (len > 0 && *cp >= '0' && *cp <= '9') {
++		result = result * 10 + (*cp - '0');
++		if (result > max)
++			return -1;
++		cp++;
++		len--;
++	}
++
++	*val = result;
++	if (endp)
++		*endp = (char *)cp;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_parse_uint);
++
++int nf_ct_helper_parse_port(const char *cp, unsigned int len,
++			    u16 *port, char **endp)
++{
++	unsigned long val;
++
++	if (nf_ct_helper_parse_uint(cp, len, 65535, &val, endp))
++		return -1;
++	if (val == 0)
++		return -1;
++
++	*port = val;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_parse_port);
++
+ int nf_conntrack_helper_init(void)
+ {
+ 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
 -- 
 2.54.0
 
