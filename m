@@ -1,31 +1,57 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from out-06.smtp.spacemail.com (out-06.smtp.spacemail.com [66.29.159.77])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BBFA2FF170
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 May 2026 07:57:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C7C273D8D;
+	Sun,  3 May 2026 08:32:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.29.159.77
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777708629; cv=none; b=jeBKbwJhZU0TnU7AyaYiwimI+9AJT5qEDdWXsJdxvRVMQwE8qf1SMC5Cy3+td7HQbnmxEgDv9LjlkYuve+lMFgELXgQa/yt/ztH0OZb851nHsbV0DlikiNQ1aQ/NFb3LaQlE+UyONYLJ6WdwH+cLEdCRcEEfursnoNY3QfUYFPU=
+	t=1777797159; cv=none; b=AB15X73zvLxaVcR4Gd6nT4FB1z9lBzgs2Gtd/Xp1uSeL0UWsu7oaAOau/363qcNde/J+YGzT3w+3wWELw+fFrfiS2tbQNWDggtji86W+a9aEzh3Ql7KCm51TcGfYdNu5gAPjC4DwdvsR8nw5qEzsPmEXbe+mJCdgFeTmbnU974k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777708629; c=relaxed/simple;
-	bh=NOR1/DCgSrjE4nlSw6BupEp/jGZ0xooUz/okRPeY3l4=;
+	s=arc-20240116; t=1777797159; c=relaxed/simple;
+	bh=S3bdgBPGI79X4uU8E8SKCYpMjmNwlQs0xu68QWji2lc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EDPZJ4ffTzpEph3BiO02quhvXiN1AWGPxXMyfnWY6QTLMA1urHOESqkFXlndTpLX+TAx149BXA4TKxILY9/qiuAsmHLRDQW/kA9XkGS8gBCgWAAMzM/FVpSjfNBAdheOBZmT1nHRrQR24fxFYiIpvKkeWyzPlzP7b60B58LIra8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 68BF1606C8; Sat, 02 May 2026 09:57:07 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: tristan@talencesecurity.com,
+	 MIME-Version; b=vFqnLkDDOc5DrXSzeHLP9CmVJVCGSpjG5tWzsPr4BJTw0vgHzKq5p9CvaXU+sliSFUTdT69iR3k0VyEwZ14fbbgqhcltgsot991tys53a/V8/Zv+Vf1Y7S9BMf9OHiFODqsk4g7aF2ZdKSNDAvwr30ABU9R13Me4iMmbXCrDna0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=j94Khmym reason="key not found in DNS"; arc=none smtp.client-ip=66.29.159.77
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="j94Khmym"
+Received: from Kyren (unknown [49.207.224.37])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4g7dLh4k4Kz8sc7;
+	Sun, 03 May 2026 08:32:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1777797152;
+	bh=+2SH8ZXr4rVy0HR2sYavhqA8v3/knTQ2qsNiVVXoX/c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=j94KhmymVkpe292xwwUtIaInwZteiKw6ZoinBYUhY18MQqhYdsiv0jly0FRGWchg6
+	 10+fxaGfR9XTi7HnDyD6LHFf3lvnPI3rCV4kNuwNTi+h/GIrxC6BlON8Koe8GMlg2c
+	 deMe5CF+apxclK86kS8jJErPYbD/pBuogwyHKQ11Et68b68/U60mPB1UU3ImF2Lyx/
+	 AEoTsLd4G+bMyw5oBlDDMyWNw6aCQyqHmlXEGqZrDOsN/9xjudpeY8RdvwQEW7Lm+B
+	 J/bQO8zQwP6dsE3/h6xOnluSOyd7XOtUBAZyaUWUm8l7wcP7b1poFucNKGk9gSWuUv
+	 RkxddHBgwKCkA==
+From: HACKE-RC <rc@rexion.ai>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] netfilter: ebtables: move to two-stage removal scheme
-Date: Sat,  2 May 2026 09:56:39 +0200
-Message-ID: <20260502075639.7440-6-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260502075639.7440-1-fw@strlen.de>
-References: <20260502075639.7440-1-fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	HACKE-RC <rc@rexion.ai>
+Subject: [PATCH net-next v3 0/4] netfilter: conntrack: shared port parser for helpers
+Date: Sun,  3 May 2026 14:02:16 +0530
+Message-ID: <20260503083220.630655-1-rc@rexion.ai>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
+References: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,167 +59,46 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Envelope-From: rc@rexion.ai
 
-Like previous patches for x_tables, follow same pattern in ebtables.
-We can't reuse xt helpers: ebt_table struct layout is incompatible.
+Both nf_conntrack_irc and nf_conntrack_amanda parse port numbers from
+application-layer data using simple_strtoul(), which requires
+NUL-terminated input and returns unsigned long without range validation.
 
-table->ops assignment is now done while still holding the ebt mutex
-to make sure we never expose partially-filled table struct.
+This series introduces two shared helpers in the conntrack core:
 
-Fixes: 87663c39f898 ("netfilter: ebtables: do not hook tables by default")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/netfilter/ebtable_broute.c |  2 +-
- net/bridge/netfilter/ebtable_nat.c    |  2 +-
- net/bridge/netfilter/ebtables.c       | 52 ++++++++++++++++-----------
- 3 files changed, 34 insertions(+), 22 deletions(-)
+  nf_ct_helper_parse_uint() -- generic bounded integer parser that
+    operates on a length-delimited buffer without requiring NUL
+    termination.
 
-diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
-index 741360219552..e6f9e343b41f 100644
---- a/net/bridge/netfilter/ebtable_broute.c
-+++ b/net/bridge/netfilter/ebtable_broute.c
-@@ -128,8 +128,8 @@ static int __init ebtable_broute_init(void)
- 
- static void __exit ebtable_broute_fini(void)
- {
--	unregister_pernet_subsys(&broute_net_ops);
- 	ebt_unregister_template(&broute_table);
-+	unregister_pernet_subsys(&broute_net_ops);
- }
- 
- module_init(ebtable_broute_init);
-diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
-index 0f2a8c6118d4..9985a82555c4 100644
---- a/net/bridge/netfilter/ebtable_nat.c
-+++ b/net/bridge/netfilter/ebtable_nat.c
-@@ -109,8 +109,8 @@ static int __init ebtable_nat_init(void)
- 
- static void __exit ebtable_nat_fini(void)
- {
--	unregister_pernet_subsys(&frame_nat_net_ops);
- 	ebt_unregister_template(&frame_nat);
-+	unregister_pernet_subsys(&frame_nat_net_ops);
- }
- 
- module_init(ebtable_nat_init);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index aea3e19875c6..546dbae1c659 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -42,6 +42,7 @@
- 
- struct ebt_pernet {
- 	struct list_head tables;
-+	struct list_head dead_tables;
- };
- 
- struct ebt_template {
-@@ -1162,9 +1163,6 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
- 
- static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
- {
--	mutex_lock(&ebt_mutex);
--	list_del(&table->list);
--	mutex_unlock(&ebt_mutex);
- 	audit_log_nfcfg(table->name, AF_BRIDGE, table->private->nentries,
- 			AUDIT_XT_OP_UNREGISTER, GFP_KERNEL);
- 	EBT_ENTRY_ITERATE(table->private->entries, table->private->entries_size,
-@@ -1267,13 +1265,13 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 	for (i = 0; i < num_ops; i++)
- 		ops[i].priv = table;
- 
--	list_add(&table->list, &ebt_net->tables);
--	mutex_unlock(&ebt_mutex);
--
- 	table->ops = ops;
- 	ret = nf_register_net_hooks(net, ops, num_ops);
- 	if (ret)
- 		__ebt_unregister_table(net, table);
-+	else
-+		list_add(&table->list, &ebt_net->tables);
-+	mutex_unlock(&ebt_mutex);
- 
- 	audit_log_nfcfg(repl->name, AF_BRIDGE, repl->nentries,
- 			AUDIT_XT_OP_REGISTER, GFP_KERNEL);
-@@ -1339,7 +1337,7 @@ void ebt_unregister_template(const struct ebt_table *t)
- }
- EXPORT_SYMBOL(ebt_unregister_template);
- 
--static struct ebt_table *__ebt_find_table(struct net *net, const char *name)
-+void ebt_unregister_table_pre_exit(struct net *net, const char *name)
- {
- 	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
- 	struct ebt_table *t;
-@@ -1348,30 +1346,34 @@ static struct ebt_table *__ebt_find_table(struct net *net, const char *name)
- 
- 	list_for_each_entry(t, &ebt_net->tables, list) {
- 		if (strcmp(t->name, name) == 0) {
-+			list_move(&t->list, &ebt_net->dead_tables);
- 			mutex_unlock(&ebt_mutex);
--			return t;
-+			nf_unregister_net_hooks(net, t->ops, hweight32(t->valid_hooks));
-+			return;
- 		}
- 	}
- 
- 	mutex_unlock(&ebt_mutex);
--	return NULL;
--}
--
--void ebt_unregister_table_pre_exit(struct net *net, const char *name)
--{
--	struct ebt_table *table = __ebt_find_table(net, name);
--
--	if (table)
--		nf_unregister_net_hooks(net, table->ops, hweight32(table->valid_hooks));
- }
- EXPORT_SYMBOL(ebt_unregister_table_pre_exit);
- 
- void ebt_unregister_table(struct net *net, const char *name)
- {
--	struct ebt_table *table = __ebt_find_table(net, name);
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
-+	struct ebt_table *t;
- 
--	if (table)
--		__ebt_unregister_table(net, table);
-+	mutex_lock(&ebt_mutex);
-+
-+	list_for_each_entry(t, &ebt_net->dead_tables, list) {
-+		if (strcmp(t->name, name) == 0) {
-+			list_del(&t->list);
-+			__ebt_unregister_table(net, t);
-+			mutex_unlock(&ebt_mutex);
-+			return;
-+		}
-+	}
-+
-+	mutex_unlock(&ebt_mutex);
- }
- 
- /* userspace just supplied us with counters */
-@@ -2556,11 +2558,21 @@ static int __net_init ebt_pernet_init(struct net *net)
- 	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
- 
- 	INIT_LIST_HEAD(&ebt_net->tables);
-+	INIT_LIST_HEAD(&ebt_net->dead_tables);
- 	return 0;
- }
- 
-+static void __net_exit ebt_pernet_exit(struct net *net)
-+{
-+	struct ebt_pernet *ebt_net = net_generic(net, ebt_pernet_id);
-+
-+	WARN_ON_ONCE(!list_empty(&ebt_net->tables));
-+	WARN_ON_ONCE(!list_empty(&ebt_net->dead_tables));
-+}
-+
- static struct pernet_operations ebt_net_ops = {
- 	.init = ebt_pernet_init,
-+	.exit = ebt_pernet_exit,
- 	.id   = &ebt_pernet_id,
- 	.size = sizeof(struct ebt_pernet),
- };
+  nf_ct_helper_parse_port() -- calls nf_ct_helper_parse_uint() with
+    max=65535 and rejects port zero.
+
+Patches 2 and 3 convert IRC and Amanda to use nf_ct_helper_parse_port().
+Patch 4 converts the two port-parsing sites in nf_conntrack_sip to use
+nf_ct_helper_parse_port() as well, retaining the SIP-specific minimum
+port check (>= 1024).
+
+v3: add nf_ct_helper_parse_uint() as the generic base; nf_ct_helper_parse_port()
+    is now a thin wrapper; extend the series with a fourth patch converting
+    nf_conntrack_sip (Phil Sutter)
+v2: replace simple_strtoul() with a shared nf_ct_helper_parse_port()
+    in the conntrack helper core, modelled on 8cf6809cddcb (Florian Westphal)
+v1: inline range checks in IRC and Amanda
+
+HACKE-RC (4):
+  netfilter: conntrack: add shared port and uint parsers for helpers
+  netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_sip: use nf_ct_helper_parse_port()
+
+ include/net/netfilter/nf_conntrack_helper.h |  5 +++
+ net/netfilter/nf_conntrack_amanda.c         | 11 +++---
+ net/netfilter/nf_conntrack_helper.c         | 39 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_irc.c            |  4 ++-
+ net/netfilter/nf_conntrack_sip.c            | 14 ++++----
+ 5 files changed, 61 insertions(+), 12 deletions(-)
+
 -- 
-2.53.0
+2.54.0
 
