@@ -1,27 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DB9B37E2EB
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 May 2026 18:23:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9159937D10D
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 May 2026 18:23:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777919004; cv=none; b=Gt6RcL8wKF81HiPA7xmgsxw4Qm8sQ+0VnJvgJZVglrslpM0gYwe84gMj7zPzhWkUtbZHpeQ3q1Q9UzHq9hAlcx5X3w6q+IksFn5SCCEFGImy2pnU3Fbdyi7ci2l83ijEZRfwjZu616BeThJcJ5f1XQ0xN10evq7D2b2jKDlmRUo=
+	t=1777919009; cv=none; b=ACjHP9h4npfbpqHlnjZUjdLxWjg7o6W+FqZ1RSNCo5KDGaPg7HyyVnm7dSrohR16BOBepikNVLUTmRyofSQqG+J0HdXEXW2eZLlLokvvHDuJVtZw82Cwpk4Sc2ZGR7n9rYJqyd9VuiL4vvunL0bYudgTK5MK07DqPGNstpkcvEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777919004; c=relaxed/simple;
-	bh=fIxRM7tCKVKnp0szx1HRi1T7pEyqXkPX1UOCNf2vw4M=;
+	s=arc-20240116; t=1777919009; c=relaxed/simple;
+	bh=OPAgrfhA6gwuSycwL7qYozKHhwKisXMB8cCBFYdZAqE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZTvXbkjQVsIRQ7oxAc+2dzwnxjYsp30UJjbaShX+4sJ6M+OVmzaasdXNx7XRzrcFZ+ZodQlUmfFU0vqX+OJnRhXwKyF19P2+w/jCKkZV6U0mafTkzApiqeL6u4DijkmeOi8GFRm9VUwinaIY++fEpq8RgE157lFSQxuST6JeTb8=
+	 MIME-Version; b=fvIzXIxRbHi+64P7KNFtPL0z5r7JyzOt4g6QcLrhBodFj8+ETGC4leOGgIGIgoCmA48P7aqh803sncON1v/KU9toII5KTRqdayCAVeI9GeolMpMxM4M8oPp/8AHCJsB7/ehfeufBfrjsS9JPX9AjcEfbnslliuiHDBo0iuYCyNQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B1E9E6079C; Mon, 04 May 2026 20:23:21 +0200 (CEST)
+	id 0BD4E6079C; Mon, 04 May 2026 20:23:26 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf 1/8] netfilter: x_tables: allow initial table replace without emitting audit log message
-Date: Mon,  4 May 2026 20:22:13 +0200
-Message-ID: <20260504182310.1916-2-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Tristan Madani <tristan@talencesecurity.com>
+Subject: [PATCH v2 nf 2/8] netfilter: xtables: allocate hook ops while under mutex
+Date: Mon,  4 May 2026 20:22:14 +0200
+Message-ID: <20260504182310.1916-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260504182310.1916-1-fw@strlen.de>
 References: <20260504182310.1916-1-fw@strlen.de>
@@ -33,70 +34,358 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-At the moment we emit the audit log a bit too early, which makes it
-necessary to also emit an unregister log in case we have to unwind
-errors after possible hook register failure.
+arp/ip(6)t_register_table() add the table to the per-netns list via
+xt_register_table() before allocating the per-netns hook ops copy
+via kmemdup_array().  This leaves a window where the table is
+visible in the list with ops=NULL.
 
-Followup patch will be slightly simpler if we can delay the
-register message until after the hooks have been wired up.
+If the pernet exit happens runs concurrently the pre_exit callback finds
+the table via xt_find_table() and passes the NULL ops pointer to
+nf_unregister_net_hooks(), causing a NULL dereference:
 
+  general protection fault in nf_unregister_net_hooks+0xbc/0x150
+  RIP: nf_unregister_net_hooks (net/netfilter/core.c:613)
+  Call Trace:
+    ipt_unregister_table_pre_exit
+    iptable_mangle_net_pre_exit
+    ops_pre_exit_list
+    cleanup_net
+
+Fix by moving the ops allocation into the xtables core so the table is
+never in the list without valid ops.  Also ensure the table is no longer
+processing packets before its torn down on error unwind.
+nf_register_net_hooks might have published at least one hook; call
+synchronize_rcu() if there was an error.
+
+audit log register message gets deferred until all operations have
+passed, this avoids need to emit another ureg message in case of
+error unwinding.
+
+Based on earlier patch by Tristan Madani.
+
+Fixes: f9006acc8dfe5 ("netfilter: arp_tables: pass table pointer via nf_hook_ops")
+Fixes: ee177a54413a ("netfilter: ip6_tables: pass table pointer via nf_hook_ops")
+Fixes: ae689334225f ("netfilter: ip_tables: pass table pointer via nf_hook_ops")
+Link: https://lore.kernel.org/netfilter-devel/20260429175613.1459342-1-tristmd@gmail.com/
+Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v2: new in this series.  As-is, we emit both a register
- and unregister notification in case something goes wrong
- at table init time.  Instead this minor refactor will permit
- next patch to only emit the success notification.
+ v2:  Defer the 'table load' audit message until after we're done.
+ v1 had an issue where we'd fail to emit the delete message in case
+ of error after table registration.
 
- net/netfilter/x_tables.c | 29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+ include/linux/netfilter/x_tables.h |  1 +
+ net/ipv4/netfilter/arp_tables.c    | 35 +++------------------
+ net/ipv4/netfilter/ip_tables.c     | 41 +++---------------------
+ net/ipv6/netfilter/ip6_tables.c    | 38 +++--------------------
+ net/netfilter/x_tables.c           | 50 +++++++++++++++++++++++++-----
+ 5 files changed, 55 insertions(+), 110 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 2c67c2e6b132..bb0cb3959551 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1472,11 +1472,9 @@ struct xt_counters *xt_counters_alloc(unsigned int counters)
- }
- EXPORT_SYMBOL(xt_counters_alloc);
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index a81b46af5118..cb4b694dd9e4 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -305,6 +305,7 @@ struct xt_counters *xt_counters_alloc(unsigned int counters);
  
--struct xt_table_info *
--xt_replace_table(struct xt_table *table,
--	      unsigned int num_counters,
--	      struct xt_table_info *newinfo,
--	      int *error)
-+static struct xt_table_info *
-+do_replace_table(struct xt_table *table, unsigned int num_counters,
-+		 struct xt_table_info *newinfo, int *error)
+ struct xt_table *xt_register_table(struct net *net,
+ 				   const struct xt_table *table,
++				   const struct nf_hook_ops *template_ops,
+ 				   struct xt_table_info *bootstrap,
+ 				   struct xt_table_info *newinfo);
+ void *xt_unregister_table(struct xt_table *table);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 97ead883e4a1..c02e46a0271a 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1522,13 +1522,11 @@ int arpt_register_table(struct net *net,
+ 			const struct arpt_replace *repl,
+ 			const struct nf_hook_ops *template_ops)
  {
- 	struct xt_table_info *private;
- 	unsigned int cpu;
-@@ -1531,10 +1529,23 @@ xt_replace_table(struct xt_table *table,
- 		}
+-	struct nf_hook_ops *ops;
+-	unsigned int num_ops;
+-	int ret, i;
+-	struct xt_table_info *newinfo;
+ 	struct xt_table_info bootstrap = {0};
+-	void *loc_cpu_entry;
++	struct xt_table_info *newinfo;
+ 	struct xt_table *new_table;
++	void *loc_cpu_entry;
++	int ret;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo)
+@@ -1543,7 +1541,7 @@ int arpt_register_table(struct net *net,
+ 		return ret;
  	}
  
--	audit_log_nfcfg(table->name, table->af, private->number,
--			!private->number ? AUDIT_XT_OP_REGISTER :
--					   AUDIT_XT_OP_REPLACE,
--			GFP_KERNEL);
-+	return private;
-+}
-+
-+struct xt_table_info *
-+xt_replace_table(struct xt_table *table, unsigned int num_counters,
-+		 struct xt_table_info *newinfo,
-+		 int *error)
-+{
-+	struct xt_table_info *private;
-+
-+	private = do_replace_table(table, num_counters, newinfo, error);
-+	if (private)
-+		audit_log_nfcfg(table->name, table->af, private->number,
-+				!private->number ? AUDIT_XT_OP_REGISTER :
-+				AUDIT_XT_OP_REPLACE,
-+				GFP_KERNEL);
-+
- 	return private;
+-	new_table = xt_register_table(net, table, &bootstrap, newinfo);
++	new_table = xt_register_table(net, table, template_ops, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
+ 		struct arpt_entry *iter;
+ 
+@@ -1553,31 +1551,6 @@ int arpt_register_table(struct net *net,
+ 		return PTR_ERR(new_table);
+ 	}
+ 
+-	num_ops = hweight32(table->valid_hooks);
+-	if (num_ops == 0) {
+-		ret = -EINVAL;
+-		goto out_free;
+-	}
+-
+-	ops = kmemdup_array(template_ops, num_ops, sizeof(*ops), GFP_KERNEL);
+-	if (!ops) {
+-		ret = -ENOMEM;
+-		goto out_free;
+-	}
+-
+-	for (i = 0; i < num_ops; i++)
+-		ops[i].priv = new_table;
+-
+-	new_table->ops = ops;
+-
+-	ret = nf_register_net_hooks(net, ops, num_ops);
+-	if (ret != 0)
+-		goto out_free;
+-
+-	return ret;
+-
+-out_free:
+-	__arpt_unregister_table(net, new_table);
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(xt_replace_table);
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 23c8deff8095..488c5945ebb2 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1724,13 +1724,11 @@ int ipt_register_table(struct net *net, const struct xt_table *table,
+ 		       const struct ipt_replace *repl,
+ 		       const struct nf_hook_ops *template_ops)
+ {
+-	struct nf_hook_ops *ops;
+-	unsigned int num_ops;
+-	int ret, i;
+-	struct xt_table_info *newinfo;
+ 	struct xt_table_info bootstrap = {0};
+-	void *loc_cpu_entry;
++	struct xt_table_info *newinfo;
+ 	struct xt_table *new_table;
++	void *loc_cpu_entry;
++	int ret;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo)
+@@ -1745,7 +1743,7 @@ int ipt_register_table(struct net *net, const struct xt_table *table,
+ 		return ret;
+ 	}
+ 
+-	new_table = xt_register_table(net, table, &bootstrap, newinfo);
++	new_table = xt_register_table(net, table, template_ops, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
+ 		struct ipt_entry *iter;
+ 
+@@ -1755,37 +1753,6 @@ int ipt_register_table(struct net *net, const struct xt_table *table,
+ 		return PTR_ERR(new_table);
+ 	}
+ 
+-	/* No template? No need to do anything. This is used by 'nat' table, it registers
+-	 * with the nat core instead of the netfilter core.
+-	 */
+-	if (!template_ops)
+-		return 0;
+-
+-	num_ops = hweight32(table->valid_hooks);
+-	if (num_ops == 0) {
+-		ret = -EINVAL;
+-		goto out_free;
+-	}
+-
+-	ops = kmemdup_array(template_ops, num_ops, sizeof(*ops), GFP_KERNEL);
+-	if (!ops) {
+-		ret = -ENOMEM;
+-		goto out_free;
+-	}
+-
+-	for (i = 0; i < num_ops; i++)
+-		ops[i].priv = new_table;
+-
+-	new_table->ops = ops;
+-
+-	ret = nf_register_net_hooks(net, ops, num_ops);
+-	if (ret != 0)
+-		goto out_free;
+-
+-	return ret;
+-
+-out_free:
+-	__ipt_unregister_table(net, new_table);
+ 	return ret;
+ }
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index d585ac3c1113..dbe7c7acd702 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1733,13 +1733,11 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 			const struct ip6t_replace *repl,
+ 			const struct nf_hook_ops *template_ops)
+ {
+-	struct nf_hook_ops *ops;
+-	unsigned int num_ops;
+-	int ret, i;
+-	struct xt_table_info *newinfo;
+ 	struct xt_table_info bootstrap = {0};
+-	void *loc_cpu_entry;
++	struct xt_table_info *newinfo;
+ 	struct xt_table *new_table;
++	void *loc_cpu_entry;
++	int ret;
+ 
+ 	newinfo = xt_alloc_table_info(repl->size);
+ 	if (!newinfo)
+@@ -1754,7 +1752,7 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 		return ret;
+ 	}
+ 
+-	new_table = xt_register_table(net, table, &bootstrap, newinfo);
++	new_table = xt_register_table(net, table, template_ops, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
+ 		struct ip6t_entry *iter;
+ 
+@@ -1764,34 +1762,6 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 		return PTR_ERR(new_table);
+ 	}
+ 
+-	if (!template_ops)
+-		return 0;
+-
+-	num_ops = hweight32(table->valid_hooks);
+-	if (num_ops == 0) {
+-		ret = -EINVAL;
+-		goto out_free;
+-	}
+-
+-	ops = kmemdup_array(template_ops, num_ops, sizeof(*ops), GFP_KERNEL);
+-	if (!ops) {
+-		ret = -ENOMEM;
+-		goto out_free;
+-	}
+-
+-	for (i = 0; i < num_ops; i++)
+-		ops[i].priv = new_table;
+-
+-	new_table->ops = ops;
+-
+-	ret = nf_register_net_hooks(net, ops, num_ops);
+-	if (ret != 0)
+-		goto out_free;
+-
+-	return ret;
+-
+-out_free:
+-	__ip6t_unregister_table(net, new_table);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index bb0cb3959551..06f27bea9eed 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1542,7 +1542,6 @@ xt_replace_table(struct xt_table *table, unsigned int num_counters,
+ 	private = do_replace_table(table, num_counters, newinfo, error);
+ 	if (private)
+ 		audit_log_nfcfg(table->name, table->af, private->number,
+-				!private->number ? AUDIT_XT_OP_REGISTER :
+ 				AUDIT_XT_OP_REPLACE,
+ 				GFP_KERNEL);
+ 
+@@ -1552,20 +1551,32 @@ EXPORT_SYMBOL_GPL(xt_replace_table);
+ 
+ struct xt_table *xt_register_table(struct net *net,
+ 				   const struct xt_table *input_table,
++				   const struct nf_hook_ops *template_ops,
+ 				   struct xt_table_info *bootstrap,
+ 				   struct xt_table_info *newinfo)
+ {
+ 	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
++	struct xt_table *t, *table = NULL;
++	struct nf_hook_ops *ops = NULL;
+ 	struct xt_table_info *private;
+-	struct xt_table *t, *table;
+-	int ret;
++	unsigned int num_ops;
++	int ret = -EINVAL;
++
++	num_ops = hweight32(input_table->valid_hooks);
++	if (num_ops == 0)
++		goto out;
++
++	ret = -ENOMEM;
++	if (template_ops) {
++		ops = kmemdup_array(template_ops, num_ops, sizeof(*ops), GFP_KERNEL);
++		if (!ops)
++			goto out;
++	}
+ 
+ 	/* Don't add one object to multiple lists. */
+ 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
+-	if (!table) {
+-		ret = -ENOMEM;
++	if (!table)
+ 		goto out;
+-	}
+ 
+ 	mutex_lock(&xt[table->af].mutex);
+ 	/* Don't autoload: we'd eat our tail... */
+@@ -1579,7 +1590,7 @@ struct xt_table *xt_register_table(struct net *net,
+ 	/* Simplifies replace_table code. */
+ 	table->private = bootstrap;
+ 
+-	if (!xt_replace_table(table, 0, newinfo, &ret))
++	if (!do_replace_table(table, 0, newinfo, &ret))
+ 		goto unlock;
+ 
+ 	private = table->private;
+@@ -1588,14 +1599,37 @@ struct xt_table *xt_register_table(struct net *net,
+ 	/* save number of initial entries */
+ 	private->initial_entries = private->number;
+ 
++	if (ops) {
++		int i;
++
++		for (i = 0; i < num_ops; i++)
++			ops[i].priv = table;
++
++		ret = nf_register_net_hooks(net, ops, num_ops);
++		if (ret != 0) {
++			mutex_unlock(&xt[table->af].mutex);
++			/* nf_register_net_hooks() might have published a
++			 * base chain before internal error unwind.
++			 */
++			synchronize_rcu();
++			goto out;
++		}
++
++		table->ops = ops;
++	}
++
++	audit_log_nfcfg(table->name, table->af, private->number,
++			AUDIT_XT_OP_REGISTER, GFP_KERNEL);
++
+ 	list_add(&table->list, &xt_net->tables[table->af]);
+ 	mutex_unlock(&xt[table->af].mutex);
+ 	return table;
+ 
+ unlock:
+ 	mutex_unlock(&xt[table->af].mutex);
+-	kfree(table);
+ out:
++	kfree(table);
++	kfree(ops);
+ 	return ERR_PTR(ret);
+ }
+ EXPORT_SYMBOL_GPL(xt_register_table);
 -- 
 2.53.0
 
