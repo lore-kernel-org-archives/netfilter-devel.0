@@ -1,197 +1,136 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94EFE2D3EC7;
-	Mon,  4 May 2026 23:40:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9313218AE2;
+	Tue,  5 May 2026 00:16:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777938060; cv=none; b=IS2dRYEggQvStSwrKRLd2cOjIzTzdsZIJyFvFyL02lt0oPdhQrF8Z6aa5Li0HS0qB/ABgX0poF2P+CkgDHooHaVZVaV3QJRdXR7ZGa/0BIdLsy8/MgN7LPZ7X+avYEm+6n3JwFPpfbfeRXF/rjG3OJWJyYLUAD7MbOYyNhuoIfg=
+	t=1777940218; cv=none; b=S4l4+PMbRu+qkgFGvHSFoOZSTEVuGnA90eJ16OC5AHKDYtFKKBBHGn2mujbSMNPo/2pyc70fjBxowxp+dZivOEdi+vPTGahugCMM5zcxNaF1W6ql8fHOCroF+6Mmqdv9V3NedK7XRFeGPMkr7PaM7Cdn8DyWKtP4nBIRLIwpsS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777938060; c=relaxed/simple;
-	bh=RcBZXcX8EAEUZjJFdtgZgh/kwGfy8h5kj1j49AsVUlw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=csvdeOhesTbpKHS5X+VlzJLXzTsYZDguYP6dHkGzD5/h8+V28tVa1CnVcYAirnJVWG7hI/XF2w49hDVJfvvSL/zxW6rHw/O5Z28tCDs/zRjoVQoR5i3xVimGiQmGKtrehIpuw/OJx5bIcCrxm0PVGh/ttqhxukdJLAPzGlVOkRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ujwQ2YVO; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777940218; c=relaxed/simple;
+	bh=UNxALb+Dt7zF8llTxqRMtAkCTjbwyKA1lrwTZvcUPyA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sOHxxNARl4WFiC1k0eG/selVex0ZFuJBP3VJi+j8wsGkzEchAjH6Tcsv9v9yCcmoaV9KT9M6x82dz83abJfMtkOuT511N4vgsJJ40VTfxrgkAP+Aj2h6gDNrbv6IoXX6sJp0c+1+I5zpTCJpoDsYSER7npTF9Nskbs8DeCV7BNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t8OVjDZa; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ujwQ2YVO"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 47F276017D;
-	Tue,  5 May 2026 01:40:56 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t8OVjDZa"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 18936600B5;
+	Tue,  5 May 2026 02:16:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777938056;
-	bh=BFRvixt3q/dnHxHSuvmWagBm0APhHcLiblX83aOinQ0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ujwQ2YVO6skJFToigVW0mJ3xEM2sLO1cz6TMCLn1t9bIizgh78Pn422CjAFskDYCE
-	 O/MUnMeMZYqATeUGnWysIicPfeZrKdI3o3nlQJEo35m2kmo3471CTojTz8ZRAcP1B5
-	 bxA058HVqzLiOGnobf3oPmedfsWpGtRMKBhMvBtTYSZvzvoJCzGKbWfy6E5ehYAEyO
-	 S4h1QNCygnte042+pWZe62mrCZEscQ0/VgoB6PxITtMNz2M/Y3dVbekZ/x4k7O4IdO
-	 ytgEZ9O4KNyCeycHb3e4Y/YQxzh3fsZE4Ptx1up8Mr6V/yeCgnhCDxCfosuQWBsizR
-	 T02ApLCwFn2IA==
-Date: Tue, 5 May 2026 01:40:53 +0200
+	s=2025; t=1777940214;
+	bh=bgGHn5+0+sbpL8I1AC+vXMVXTSi39aCvCP+GFCAztRU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=t8OVjDZamp/k48WIplWLdLdYOzTCM0xFCxcpG1GypBbiQrkt53COMSmyKjnsN/eDs
+	 bkkWbiLlPDalKLQl5M3qIRwbmAOB9KXAsBiP5nvQGW531Adstvy6Zch0z4MKm2wzV9
+	 zMTCOSFhV6rmuy58vUaYAf0KKGu/dZdfk6nTQmE71Rk2nYj0TezfD1CuhOnU56o4uu
+	 jmeYda7TGSh/XMR7J4hVLvd1IKIJuBomAikcMniQy58Lhp38EEP+xQpwNv+HcAXC1I
+	 HS5NkH4rnLJVmtJsRLzFMZlnbbgsm+LGmaxt+bOEXz+MlaXky10nPXNFCDarl/GNTb
+	 /SFBqZfI2n7dA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ilya Maximets <i.maximets@ovn.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, horms@kernel.org,
-	Eelco Chaudron <echaudro@redhat.com>,
-	Aaron Conole <aconole@redhat.com>
-Subject: Re: [PATCH net 06/12] netfilter: nf_conntrack_expect: honor
- expectation helper field
-Message-ID: <afkuhbWieFXRTirN@chamomile>
-References: <20260326125153.685915-1-pablo@netfilter.org>
- <20260326125153.685915-7-pablo@netfilter.org>
- <8fd5d3a3-d1d7-4542-a0db-1678989940d4@ovn.org>
- <afSCXEg-X-ieL9cY@chamomile>
- <ef01005e-d867-4936-b138-b98f37e5f394@ovn.org>
- <afkosr2fDEPA_jX9@chamomile>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org,
+	ja@ssi.bg,
+	longman@redhat.com,
+	lvs-devel@vger.kernel.org
+Subject: [PATCH net 0/8] IPVS fixes for net
+Date: Tue,  5 May 2026 02:16:40 +0200
+Message-ID: <20260505001648.360569-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="iyhop23c+WPECR0i"
-Content-Disposition: inline
-In-Reply-To: <afkosr2fDEPA_jX9@chamomile>
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
---iyhop23c+WPECR0i
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+The following batch contains IPVS fixes for net to address issues
+from the latest net-next pull request.
 
-On Tue, May 05, 2026 at 01:16:05AM +0200, Pablo Neira Ayuso wrote:
-> Thanks for the detailed report. It seems I changed the semantics of
-> exp->helper, this used to be use to set a new helper for an expected
-> connection, which is the case for sip and h323.
-> 
-> Would this patch help address the issue you are observing?
+Julian Anastasov made the following summary:
 
-Actually, this needs to set to NULL the new exp->assign_helper field,
-see new patch, untested.
+1-3) Fixes for the recently added resizable hash tables
+ 
+4) dest from trash can be leaked if ip_vs_start_estimator() fails
+ 
+5) fixed races and locking for the estimation kthreads
+ 
+6) fix for wrong roundup_pow_of_two() usage in the resizable hash
+   tables
+ 
+7-8) v2 of the changes from Waiman Long to properly guard against
+  the housekeeping_cpumask() updates:
+ 
+  https://lore.kernel.org/netfilter-devel/20260331165015.2777765-1-longman@redhat.com/
+ 
+  I added missing Fixes tag. The original description:
+ 
+  Since commit 041ee6f3727a ("kthread: Rely on HK_TYPE_DOMAIN for preferred
+  affinity management"), the HK_TYPE_KTHREAD housekeeping cpumask may no
+  longer be correct in showing the actual CPU affinity of kthreads that
+  have no predefined CPU affinity. As the ipvs networking code is still
+  using HK_TYPE_KTHREAD, we need to make HK_TYPE_KTHREAD reflect the
+  reality.
+ 
+  This patch series makes HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
+  and uses RCU to protect access to the HK_TYPE_KTHREAD housekeeping
+  cpumask.
 
---iyhop23c+WPECR0i
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="fix-exp-helper.patch"
+Julian plans to post a nf-next patch to limit the connections by using
+"conn_max" sysctl. With Simon Horman, they agreed that this is an old
+problem that we do not have a limit of connections and it is not a
+stopper for this patchset.
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index e9a8350e7ccf..80f50fd0f7ad 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -45,9 +45,12 @@ struct nf_conntrack_expect {
- 	void (*expectfn)(struct nf_conn *new,
- 			 struct nf_conntrack_expect *this);
- 
--	/* Helper to assign to new connection */
-+	/* Helper that created this expectation */
- 	struct nf_conntrack_helper __rcu *helper;
- 
-+	/* Helper to assign to new connection */
-+	struct nf_conntrack_helper __rcu *assign_helper;
-+
- 	/* The conntrack of the master connection */
- 	struct nf_conn *master;
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index b08189226320..656287d16d86 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1815,10 +1815,10 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 			__set_bit(IPS_EXPECTED_BIT, &ct->status);
- 			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
- 			ct->master = exp->master;
--			if (exp->helper) {
-+			if (exp->assign_helper) {
- 				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
- 				if (help)
--					rcu_assign_pointer(help->helper, exp->helper);
-+					rcu_assign_pointer(help->helper, exp->assign_helper);
- 			}
- 
- #ifdef CONFIG_NF_CONNTRACK_MARK
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 24d0576d84b7..b01d48ab351e 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -308,6 +308,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- 	if (!new)
- 		return NULL;
- 
-+	new->assign_helper = NULL;
- 	new->master = me;
- 	refcount_set(&new->use, 1);
- 	return new;
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 3f5c50455b71..b2fe6554b9cf 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -643,7 +643,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, &nf_conntrack_helper_h245);
-+	rcu_assign_pointer(exp->assign_helper, &nf_conntrack_helper_h245);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -767,7 +767,7 @@ static int expect_callforwarding(struct sk_buff *skb,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -1234,7 +1234,7 @@ static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
- 				&ct->tuplehash[!dir].tuple.src.u3 : NULL,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;	/* Accept multiple calls */
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
-@@ -1306,7 +1306,7 @@ static int process_gcf(struct sk_buff *skb, struct nf_conn *ct,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_UDP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_ras);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_ras);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect RAS ");
-@@ -1523,7 +1523,7 @@ static int process_acf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
-@@ -1577,7 +1577,7 @@ static int process_lcf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 1eb55907d470..d24bfa9e8234 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1383,7 +1383,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	nf_ct_expect_init(exp, SIP_EXPECT_SIGNALLING, nf_ct_l3num(ct),
- 			  saddr, &daddr, proto, NULL, &port);
- 	exp->timeout.expires = sip_timeout * HZ;
--	rcu_assign_pointer(exp->helper, helper);
-+	rcu_assign_pointer(exp->assign_helper, helper);
- 	exp->flags = NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE;
- 
- 	hooks = rcu_dereference(nf_nat_sip_hooks);
+Please, pull these changes from:
 
---iyhop23c+WPECR0i--
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-05-05
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit bd3a4795d5744f59a1f485379f1303e5e606f377:
+
+  selftests: tls: add test for data loss on small pipe (2026-05-02 18:27:14 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-05-05
+
+for you to fetch changes up to 8f78b749f3da0f43990490b4c1193b5ede3eec0a:
+
+  sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN (2026-05-05 01:52:55 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-05-05
+
+----------------------------------------------------------------
+Julian Anastasov (6):
+      ipvs: fixes for the new ip_vs_status info
+      ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
+      ipvs: fix the spin_lock usage for RT build
+      ipvs: do not leak dest after get from dest trash
+      ipvs: fix races around est_mutex and est_cpulist
+      ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
+
+Waiman Long (2):
+      ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
+      sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
+
+ include/linux/sched/isolation.h |   6 +-
+ include/net/ip_vs.h             |  31 ++++++--
+ net/netfilter/ipvs/ip_vs_conn.c |  76 ++++++++++---------
+ net/netfilter/ipvs/ip_vs_core.c |   2 +-
+ net/netfilter/ipvs/ip_vs_ctl.c  | 164 +++++++++++++++++++++++++++++-----------
+ net/netfilter/ipvs/ip_vs_est.c  |  83 +++++++++++---------
+ 6 files changed, 241 insertions(+), 121 deletions(-)
