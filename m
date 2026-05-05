@@ -1,260 +1,122 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A3D635F195
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2026 01:56:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0842E3624A6
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2026 05:12:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777946166; cv=none; b=Msm8LiG3F5zb1Ei+XG9qmcuZuiRv7JiCHnAcjqith5IupQJWDEU+jjACuVaX9+smwTl14h9ZGS8at0m+xyUH0NI94qFt8XzjgKxMPXyaUH3kQH2i+/8H4Qty86qB2qKW12tL5kUMGR1/zmq4Ck1noiGk7CXhVousDIn09PqgoGI=
+	t=1777957963; cv=none; b=G7eAi9wCBbm78uN0AtVZnJt8lITzedZ3tvYcy1Vby0m1NgvgqYQuH41gNWvrNW3h4ALqDDTJOyZvbZsm6enmKoSillaPMN1vU4XEj8WSzr5D0ATacG3pbHwz4vUGlfj1gBy27xZ31IBcyOKBjDTx8dT9PaL9k0qYYMajfYlkE5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777946166; c=relaxed/simple;
-	bh=q0F2mpqwHxaZMFwNbS2gb8O51HQZyEq7sZDL9uGk2lU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XDiN8l5jSfCUglGQXhKxGiUwi4RxhTXENwN9EEr48yFqc9xHhdNQzimSFHDfkiXLmnfmZykClaYRVVUYRNqSvTi3lSCNtiaZCpTjCG00KwhnnoyezmGaAcVjFtmOGkzEEC73q9ENSI+ZE94I/waKt5Hmp5jDMhlT50sL0k1+GCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CcoJ39/y; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1777957963; c=relaxed/simple;
+	bh=iUgeGSsqv7MOSHVQK8yrYNQjBQhy4lMDkURuG/cYfgk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=i9NDGXuh8BpgndI/J/dzxdksY1WDLlau4FvpJICbdFZTEiPO3WOsgF3hPgVl1hcWMfvgnsHc0RoLm4y4DGYPZDnIi6VXo0uKaYLsKZDm7ArvDUpeYa08iSLna5+U2zUHFMrJzMIzkNIY/1CCtvuwo6W+O+W8a/sya/mXQWErvA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ATGH2O+s; arc=none smtp.client-ip=209.85.216.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CcoJ39/y"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777946165; x=1809482165;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=q0F2mpqwHxaZMFwNbS2gb8O51HQZyEq7sZDL9uGk2lU=;
-  b=CcoJ39/yUcxaAntUjlZguLza1Q5i9xx7op5xPS6vsibiCt5htg9qj5v1
-   QWTeu3G8hQQKbBqP0jfCF9scDRAtdlpkDrgzYBtG1CTv034YcST7fLg8Q
-   +vL94gH/TT4v8QJZZzlMODD7y0CLZxgKwNEcJ4TYI8UM2O5jGXwT6Y994
-   4rGQCOXtBZIPn232DMPIYzdLRx64fr4QRCNB6BmHi8DQp02Aa9WKR/Kbz
-   ZaKRnEg2fpCr069azoLqOGHDlpG+onmMw57KE43nE0WSx5fkUqCMZHnvC
-   o6nKsybtj3P9ZuR5DUI6GZ9vEoQHc64UOFJFxN/0ow8HRqzXXrwarFKYb
-   Q==;
-X-CSE-ConnectionGUID: RPTK90XeQJ++Js5Q0W7Jxg==
-X-CSE-MsgGUID: 4oeeff0hTYWF9JP6SIIYVg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11776"; a="101476802"
-X-IronPort-AV: E=Sophos;i="6.23,216,1770624000"; 
-   d="scan'208";a="101476802"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 May 2026 18:56:04 -0700
-X-CSE-ConnectionGUID: 9wYmG9eBRwy9iAKqAvjAwQ==
-X-CSE-MsgGUID: p9nTE8P2S8CEy0s+Q2H16w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,216,1770624000"; 
-   d="scan'208";a="266026483"
-Received: from lkp-server01.sh.intel.com (HELO 781826d00641) ([10.239.97.150])
-  by orviesa002.jf.intel.com with ESMTP; 04 May 2026 18:56:02 -0700
-Received: from kbuild by 781826d00641 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wK50q-0000000048f-1F4S;
-	Tue, 05 May 2026 01:55:54 +0000
-Date: Tue, 5 May 2026 09:55:25 +0800
-From: kernel test robot <lkp@intel.com>
-To: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, coreteam@netfilter.org, phil@nwl.cc,
-	fw@strlen.de, pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: Re: [PATCH nf-next v5] netfilter: nf_tables: add math expression
- support
-Message-ID: <202605050928.BM8aFWgX-lkp@intel.com>
-References: <20260421155859.7049-2-fmancera@suse.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ATGH2O+s"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-3650a628473so2915641a91.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 May 2026 22:12:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1777957961; x=1778562761; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=NrhTMqHn+rMdQZeR0f4MqPn+xrSow9rW/RMkyGQyv4Q=;
+        b=ATGH2O+swMAsO4QhgOqgtXsjMBSGxUHlO6WqLXQvHOu+dMrJB6f5zYw/2oSa1TMQ4k
+         Y65WnbOUjJRzFXz7zNn9y6MQ+f3kTUd0zOviw4JeY5aCaF41HSui9ClbWkgfqTnPuhjG
+         UGsZfibRcsh/qCoMj2sC7z4dvTRHbV1BbCJ6oXmNivv78JK+nWBD2jxEPa5daL2aROg3
+         tkhF0qCSJOwpZmhS/mqHJEo+aFswaKF1D6f5eSfANPgK6iqy4ZDEYh9WUAYd/INwzQds
+         5qxLSg+PUYHgzmKbrmU0qGYyqrZFB+/VvyLnbnxhhLEAUkK4XYz0+RTQup+qWhYN2rCU
+         z61Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1777957961; x=1778562761;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=NrhTMqHn+rMdQZeR0f4MqPn+xrSow9rW/RMkyGQyv4Q=;
+        b=Db2WibUyoM5Y424X4MGRgGXto6QNNmZ2u9hR8Wzphvf+W+wqq8+hfE1FelGttDoOMR
+         HyIvvI6x7XOHfBEfS+VRzGzhcy/yY/FL1K2p2ZsgvcoHDGiR7DaBQ2Ui/sZbYtT3HoXu
+         4gW7zUQACRj4kbZjUcvxX8xyuY9EoVCyXr0NxQoaQtbhY4a2WNL3y0Odw//AzVlGuWXT
+         mI4SK4Wf1H7DMotC1gVCCDK6FKBw1QgJTlxGvOv1eLJgvOysV1+xPkpH4fNB9CKYRHuC
+         v7j/H6Psr4rELd8i113z6Y3Zo1flqqTD3EzBxbPGMtCOJIpa9uZHT5GJRm6cTm1DIbaG
+         cW9A==
+X-Gm-Message-State: AOJu0YxOHsBdGEFwC9AwWkEdOvrHBKmDdwzanqqTT1nqYdRq/NRTtCW3
+	Hx+ErVGYbOcwf/vcpZxnZI9IFl0xZCys6+C1npTeMPo/Nes8cA35SAZ1mhQM+Ouv4BQVfw==
+X-Gm-Gg: AeBDieu4aimYvBMevPDUg18q/nJCKdn4pIXPcll97NR88P4ZfuArz33cDgntF+xyRrP
+	C6oVNNagovtL+bDp097CqzPb3UxwRuBz5gIegHNfN0Rj1Cj00Ebuy2eh8RYapoZRFueq/KyvlwG
+	5UEuUyj7kQ/zsqsURiiLpXGOdNY0YgRyMHrpoVs/so0QCUmp/Lczd1QwlIF7kAH1kBBykNmUNyq
+	hiOqDRRurP3vfS6gXTQ/imsvfExxnma9c6+IgMpeaZyLnps9qTd7LK1hpCrhu81bChhLIsxGQO0
+	PFE07RWZmxf1UciV5mRYAg6za4W533/lgYSk6jA2U6so/vSeOzHdhFdvagViwQfyqn63gvYayST
+	SE4JP9WA4Svjah+sEhbbal+2Utap6wYezhr9blFAp0zpH0nRHvGsJnEDppkp5Vn37GUD6nc3Z7p
+	GXfWaO+SYPqvGYcre5CzrbvVRkMloMadcyeWycbVxaU/XJQR1TKqByyMOHU6AOxN2RVesaciAJ6
+	OVN5jNllLVO0txGDzjtyoalLT4vKorfhGewQXyYzeVhX1eC1eSpmj8XyiihtENsCRl7wM1IbIU=
+X-Received: by 2002:a17:902:f651:b0:2b0:6e12:bb21 with SMTP id d9443c01a7336-2b9f2846196mr116836475ad.41.1777957960980;
+        Mon, 04 May 2026 22:12:40 -0700 (PDT)
+Received: from alchemy-Precision-3630-Tower.tail7db246.ts.net ([156.146.97.67])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b9cae0e5fasm120896855ad.54.2026.05.04.22.12.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 May 2026 22:12:40 -0700 (PDT)
+From: Pratham Gupta <pratham36gupta@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Pratham Gupta <pratham36gupta@gmail.com>
+Subject: [PATCH net] netfilter: ctnetlink: use nf_ct_exp_net() in expectation dump
+Date: Mon,  4 May 2026 22:11:57 -0700
+Message-ID: <20260505051157.3895177-1-pratham36gupta@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260421155859.7049-2-fmancera@suse.de>
+Content-Transfer-Encoding: 8bit
 
-Hi Fernando,
+Commit 02a3231b6d82 ("netfilter: nf_conntrack_expect: store netns and zone in expectation")
+introduced exp->net so RCU-only expectation paths no longer need to
+dereference exp->master for netns lookups.
 
-kernel test robot noticed the following build errors:
+Commit 3db5647984de ("netfilter: nf_conntrack_expect: skip expectations in other netns via proc")
+updated the proc path accordingly, but ctnetlink_exp_dump_table() still
+compares against nf_ct_net(exp->master).
 
-[auto build test ERROR on nf-next/master]
+Use nf_ct_exp_net(exp) here as well so the netlink dump path matches
+the rest of the March 2026 expectation netns/RCU cleanup.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Fernando-Fernandez-Mancera/netfilter-nf_tables-add-math-expression-support/20260424-055358
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git master
-patch link:    https://lore.kernel.org/r/20260421155859.7049-2-fmancera%40suse.de
-patch subject: [PATCH nf-next v5] netfilter: nf_tables: add math expression support
-config: m68k-allmodconfig (https://download.01.org/0day-ci/archive/20260505/202605050928.BM8aFWgX-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 15.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260505/202605050928.BM8aFWgX-lkp@intel.com/reproduce)
+Fixes: 02a3231b6d82 ("netfilter: nf_conntrack_expect: store netns and zone in expectation")
+Cc: stable@vger.kernel.org
+Signed-off-by: Pratham Gupta <pratham36gupta@gmail.com>
+---
+Tested expectation create/dump/delete on the host and in fresh Ubuntu 24.04
+Docker userspace. Concurrent namespace churn/dump testing did not reproduce
+a cross-netns leak.
+ net/netfilter/nf_conntrack_netlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202605050928.BM8aFWgX-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   net/netfilter/nft_math.c: In function 'nft_math_eval_bitmask':
->> net/netfilter/nft_math.c:49:17: error: implicit declaration of function 'DEBUG_NET_WARN_ONCE'; did you mean 'DEBUG_NET_WARN_ON_ONCE'? [-Wimplicit-function-declaration]
-      49 |                 DEBUG_NET_WARN_ONCE(true, "unknown operation path in nft_math");
-         |                 ^~~~~~~~~~~~~~~~~~~
-         |                 DEBUG_NET_WARN_ON_ONCE
-   net/netfilter/nft_math.c: In function 'nft_math_init':
->> net/netfilter/nft_math.c:95:39: error: passing argument 1 of 'nft_parse_register_load' from incompatible pointer type [-Wincompatible-pointer-types]
-      95 |         err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-         |                                       ^~~
-         |                                       |
-         |                                       const struct nft_ctx *
-   In file included from net/netfilter/nft_math.c:4:
-   include/net/netfilter/nf_tables.h:235:50: note: expected 'const struct nlattr *' but argument is of type 'const struct nft_ctx *'
-     235 | int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
-         |                             ~~~~~~~~~~~~~~~~~~~~~^~~~
-   net/netfilter/nft_math.c:95:46: error: passing argument 2 of 'nft_parse_register_load' from incompatible pointer type [-Wincompatible-pointer-types]
-      95 |         err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-         |                                            ~~^~~~~~~~~~~~~~~~
-         |                                              |
-         |                                              const struct nlattr *
-   include/net/netfilter/nf_tables.h:235:60: note: expected 'u8 *' {aka 'unsigned char *'} but argument is of type 'const struct nlattr *'
-     235 | int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
-         |                                                        ~~~~^~~~
->> net/netfilter/nft_math.c:95:64: error: passing argument 3 of 'nft_parse_register_load' makes integer from pointer without a cast [-Wint-conversion]
-      95 |         err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-         |                                                                ^~~~~~~~~~~
-         |                                                                |
-         |                                                                u8 * {aka unsigned char *}
-   include/net/netfilter/nf_tables.h:235:70: note: expected 'u32' {aka 'unsigned int'} but argument is of type 'u8 *' {aka 'unsigned char *'}
-     235 | int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
-         |                                                                  ~~~~^~~
->> net/netfilter/nft_math.c:95:15: error: too many arguments to function 'nft_parse_register_load'; expected 3, have 4
-      95 |         err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-         |               ^~~~~~~~~~~~~~~~~~~~~~~
-      96 |                                       sizeof(u32));
-         |                                       ~~~~~~~~~~~
-   include/net/netfilter/nf_tables.h:235:5: note: declared here
-     235 | int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
-         |     ^~~~~~~~~~~~~~~~~~~~~~~
-   net/netfilter/nft_math.c: At top level:
->> net/netfilter/nft_math.c:129:27: error: initialization of 'int (*)(struct sk_buff *, const struct nft_expr *)' from incompatible pointer type 'int (*)(struct sk_buff *, const struct nft_expr *, bool)' {aka 'int (*)(struct sk_buff *, const struct nft_expr *, _Bool)'} [-Wincompatible-pointer-types]
-     129 |         .dump           = nft_math_dump,
-         |                           ^~~~~~~~~~~~~
-   net/netfilter/nft_math.c:129:27: note: (near initialization for 'nft_math_op.dump')
-   net/netfilter/nft_math.c:105:12: note: 'nft_math_dump' declared here
-     105 | static int nft_math_dump(struct sk_buff *skb,
-         |            ^~~~~~~~~~~~~
-
-
-vim +49 net/netfilter/nft_math.c
-
-    19	
-    20	static void nft_math_eval_bitmask(u32 *src, u32 *dst,
-    21					  const struct nft_math *priv)
-    22	{
-    23		u32 target, keep, bit_unit;
-    24	
-    25		target = *src & priv->bitmask;
-    26		keep = *src & ~priv->bitmask;
-    27		bit_unit = priv->bitmask & -priv->bitmask;
-    28	
-    29		switch (priv->op) {
-    30		case NFT_MATH_OP_INC:
-    31			if (target == priv->bitmask) {
-    32				*dst = *src;
-    33				break;
-    34			}
-    35	
-    36			target = target + bit_unit;
-    37			*dst = target | keep;
-    38			break;
-    39		case NFT_MATH_OP_DEC:
-    40			if (!target) {
-    41				*dst = *src;
-    42				break;
-    43			}
-    44	
-    45			target = target - bit_unit;
-    46			*dst = target | keep;
-    47			break;
-    48		default:
-  > 49			DEBUG_NET_WARN_ONCE(true, "unknown operation path in nft_math");
-    50			*dst = *src;
-    51			break;
-    52		}
-    53	}
-    54	
-    55	static void nft_math_eval(const struct nft_expr *expr,
-    56				  struct nft_regs *regs,
-    57				  const struct nft_pktinfo *pkt)
-    58	{
-    59		const struct nft_math *priv = nft_expr_priv(expr);
-    60		u32 *src = &regs->data[priv->sreg];
-    61		u32 *dst = &regs->data[priv->dreg];
-    62	
-    63		nft_math_eval_bitmask(src, dst, priv);
-    64	}
-    65	
-    66	static int nft_math_init(const struct nft_ctx *ctx,
-    67				 const struct nft_expr *expr,
-    68				 const struct nlattr * const tb[])
-    69	{
-    70		struct nft_math *priv = nft_expr_priv(expr);
-    71		u32 bitmask_check;
-    72		int err;
-    73		u32 op;
-    74	
-    75		if (!tb[NFTA_MATH_SREG] ||
-    76		    !tb[NFTA_MATH_DREG] ||
-    77		    !tb[NFTA_MATH_BITMASK] ||
-    78		    !tb[NFTA_MATH_OP])
-    79			return -EINVAL;
-    80	
-    81		op = nla_get_u32(tb[NFTA_MATH_OP]);
-    82		if (op > NFT_MATH_OP_MAX)
-    83			return -EOPNOTSUPP;
-    84		priv->op = op;
-    85	
-    86		priv->bitmask = nla_get_u32(tb[NFTA_MATH_BITMASK]);
-    87		if (!priv->bitmask)
-    88			return -EINVAL;
-    89	
-    90		/* check if the bitmask is contiguous, otherwise reject it */
-    91		bitmask_check = priv->bitmask + (priv->bitmask & -priv->bitmask);
-    92		if (bitmask_check & (bitmask_check - 1))
-    93			return -EINVAL;
-    94	
-  > 95		err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-    96					      sizeof(u32));
-    97		if (err < 0)
-    98			return err;
-    99	
-   100		return nft_parse_register_store(ctx, tb[NFTA_MATH_DREG],
-   101						&priv->dreg, NULL, NFT_DATA_VALUE,
-   102						sizeof(u32));
-   103	}
-   104	
-   105	static int nft_math_dump(struct sk_buff *skb,
-   106				 const struct nft_expr *expr, bool reset)
-   107	{
-   108		const struct nft_math *priv = nft_expr_priv(expr);
-   109	
-   110		if (nft_dump_register(skb, NFTA_MATH_SREG, priv->sreg))
-   111			goto nla_put_failure;
-   112		if (nft_dump_register(skb, NFTA_MATH_DREG, priv->dreg))
-   113			goto nla_put_failure;
-   114		if (nla_put_u32(skb, NFTA_MATH_BITMASK, priv->bitmask))
-   115			goto nla_put_failure;
-   116		if (nla_put_u32(skb, NFTA_MATH_OP, priv->op))
-   117			goto nla_put_failure;
-   118		return 0;
-   119	
-   120	nla_put_failure:
-   121		return -1;
-   122	}
-   123	
-   124	static struct nft_expr_type nft_math_type;
-   125	static const struct nft_expr_ops nft_math_op = {
-   126		.eval		= nft_math_eval,
-   127		.size		= NFT_EXPR_SIZE(sizeof(struct nft_math)),
-   128		.init		= nft_math_init,
- > 129		.dump		= nft_math_dump,
-   130		.type		= &nft_math_type,
-   131	};
-   132	
-
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index eda5fe4a75c8..8ae3f6acc2d2 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3158,7 +3158,7 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 			if (l3proto && exp->tuple.src.l3num != l3proto)
+ 				continue;
+ 
+-			if (!net_eq(nf_ct_net(exp->master), net))
++			if (!net_eq(nf_ct_exp_net(exp), net))
+ 				continue;
+ 
+ 			if (cb->args[1]) {
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.43.0
+
