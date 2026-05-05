@@ -1,52 +1,53 @@
-Received: from mail-ej1-f68.google.com (mail-ej1-f68.google.com [209.85.218.68])
+Received: from mail-ed1-f67.google.com (mail-ed1-f67.google.com [209.85.208.67])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 477D342189A
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2026 11:01:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1D24218BD
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2026 11:01:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.67
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777978875; cv=none; b=S9SmH/8eCWpiFfmvnWsSrE5Dn5lTD+ISxFZG5S41+F/zqPIEGXX2XDcipl/dfyeEXVHqp6gM1vr1c/Err3k4qy8cLDJNuqNF0pKQe5JvYv8DqMBa9oDKdBZyGiGhu0s87+0VHjtCSOmBQfs4xgkcbB7nwyhlG+s/st1Wt8okytg=
+	t=1777978888; cv=none; b=f3hS2f2ZHIufyO/lEgkXHs85aKtZqZsZaboUlEZmZOnRQDIYExMs3I/TLgxk/3wl3gb6ULpYa3S+ybXrA+y7B54lpzKRaV8QNtzu+P4dJJ89Gm78bS2I4vc4t2Dl39kxVpsvDeCKQVV5mLB4CAK5LTbhmjHuLKkPUGh67dr1D6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777978875; c=relaxed/simple;
-	bh=yZHX2zu6pRXp/aiFpcnEVJYoWFJl2mSPRNnA8tmDQVs=;
+	s=arc-20240116; t=1777978888; c=relaxed/simple;
+	bh=4N1YT3iSFCxvJQ1DuuuZveWCkqLKVXrBB4j6/ijkuFw=;
 	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=boLOCdXrv91S8BWTwRG/kLXABcNjl0WLE2VvBaKAN0ZQLezUKTMPyV/Iag/51rlqkPBcc1IuLBg730fYMbCcUwDfyCyjNQMM1/Z9IVFRJNHbSZq83QsaRbvUBUI8Ydkyl9dzCTDIs7+5gvRIjH22u7g61lXPvPVoPH8oO1Lw0H4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.218.68
+	 In-Reply-To:Content-Type; b=Hm0R6QrWbX42aKxLtWcfXGKyzltAc2VVn1YRXcKBSij7Qnjvhn3iVlMe8EFulVL/4QWWEGuHW58T8Gqjmykd0wykNThq2FnE0C+zR5q6OAxXbL7SArCpp+wTEmuShX9v+U6UQHIM1oDkGwwzYn7N2oDQozskbHbJwxtdrUeNlw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.67
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ej1-f68.google.com with SMTP id a640c23a62f3a-b9d9971d059so696070566b.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2026 04:01:13 -0700 (PDT)
+Received: by mail-ed1-f67.google.com with SMTP id 4fb4d7f45d1cf-67b8d9c26bbso6898501a12.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2026 04:01:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777978871; x=1778583671;
+        d=1e100.net; s=20251104; t=1777978885; x=1778583685;
         h=content-transfer-encoding:in-reply-to:autocrypt:from
          :content-language:references:to:subject:cc:user-agent:mime-version
          :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=DArCLHy5i8lXdAo5MW+nZY6yAncYzCTVpd/mPRM7974=;
-        b=AfqeSNUSBZ/fzow1skY8pFmc9x8eDtV2Qv8Qh5lu52AfeoljyFddm40O9Ha9b+K7VD
-         ZTqAAMCdTl/699+FYnNbbSBNNFRtTAKBHfrr5DZwnyHeZaFHd9sEoTt2OzXzpVi8MfKM
-         qxokTt8TMX9cvcSVImNyb6RXXII+a9Aocb5GKkofQt/GJrGlQ05yza0q+hmrW++ZfEup
-         SPXBUcEUOeeM5LOlasCU96eOzWz1Z/bW8cocUWkmZnJYWW9HUDBxfuHHwyjw3ED/Uq9n
-         o9ZoIChG+x5AUqO0bvYjLjuqjEITP2U1vF1oxGsmXf5vQCMQ0WoWzJfOvPc2z0lXDaj+
-         T5vw==
-X-Forwarded-Encrypted: i=1; AFNElJ8obQLCINqYfUvDGBch8KRaUM85s9Yqs+ONWqhD140aVQ3kb+imymfToVHT5H+qzbi4ozu8POLRwgQK2uBzotc=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyNhSKiR/SD2Qme1AuferqaXH+Y9aE1dwHLr0coixEOa9E9YfRC
-	HTj2kyRf2U1t5jhmJcGG4n8dk0bkmtbrAxxSUfS2Ouo2KZpm0XmkhDnV
-X-Gm-Gg: AeBDieuP5KiLAJpQgSJA8wALsbqdiiDm9R/j0fDB++p5vKPntQQmphNDSR01JTkh+JW
-	z9GtaPzmFz0A9UhDdmGqmEz2xrgwYrMot78iOLPKYZ8kYz6RgfkMaRokB74hPGrYJynWSQxQ+GE
-	7QTQo0+Eh1/WTbMG0wKhGVhbNfSyfHPDnZgzln9yVPlgSAt6c0KZrF+26nNq5c1XO6wgUerLSqP
-	pckAXpARAjEz6SMGQn8/BCYDfxT8shiccfktKM0xe5p7HltH26Ncd4YXtZ3jiY9FJXBJNpUrHn3
-	fvRBE4fhQssALqE6aSm0FwfTru5yJrP8ZJuA32TcP4XO9Lw/2Pv7M5WrhdJyTzexzEF2scIFiMN
-	JKJTp3zzUM4JJJBGyI/zm5ty346FRi0zHkkodI6rKgT8yc1hItUcCtlWcD2vIO8KtX5hLKg16Kk
-	qoN82sxxQiE6Fe6N8iQcjOsVstyKu8Xd4UuudxCsxhvgxQof2YUejYyj21wPEKRHChNw==
-X-Received: by 2002:a17:906:9f87:b0:b9b:ddb2:b1c1 with SMTP id a640c23a62f3a-bbffcf7eb2amr739165066b.21.1777978870741;
-        Tue, 05 May 2026 04:01:10 -0700 (PDT)
+        bh=W/+4JVLEopn+EOqTkHHwu2qSAR1YvdVY7AK9mw+2P7k=;
+        b=l1gnSl3GiprOpklkcU+v1J9IUCuMwrq8DrWZEhYN5Q17402bhAhhY0pVB+RF1Gc/RU
+         BzVWX200RIRO4JZ+ljJc8wsBn0w1XAWWVNO2JZjRYTEchrNBhLpWkNpAmspc3s/BwHg4
+         MCMHVVPp8cFONvyBdez/TeVHU+L7loOrvK3YROpc/2xI+IMURuIBjipeMc/bFK9cyeIT
+         oI7TXA4FWvyJxH9QOTAmHm44JUluVzWz0UYcc+CRRjLMObfBtuAKXjSP+BFzekxcQ2oE
+         Q64nWLkMGjuqKT7x1kNV08yocZ2c/ho8JNviNcSxxGlWx5Cn/eY/ufbmDk2M68jHxi2z
+         KAmw==
+X-Forwarded-Encrypted: i=1; AFNElJ+gcxsXCkdDYO22+huWYbIzyf7zXtzChyP8tX/jbQYb9hZm0LWfEuC8niAI/CjaMVh2v+Wae55dCAHtX0mZXbs=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz7BWHmKyr3ZNku6M79KFxxpU0O/nbhdkKV0vrFKg+I+hNZMyFb
+	ffhJ1JGsCDe/7T1UKZLe+CSr5//ip9TabRRmEKslMU84ewRa0v1atD18
+X-Gm-Gg: AeBDiesMi/aDCThCt1eW0DmI30fO34FQmHPFs6XcXiutsAzD7ZQXcHX8fqRcGzNK005
+	stnZVw4kpoBkbnEU2fPArFjYlHL+btTS3+X47FC2jegW07DCZDdfjOLRSAEIcz6XHzAxmnfBCt9
+	sks2XoY9X6zZo4brsezS/RIR7P4NqCntPBJDeHHgt15Z1s3zosr40nG5rk4qwcGaPgwrBJvEi67
+	6rJvU08oRdHdg0CDicC7huWP0/NdWMDMHT+uQD9xnDzHtomQASn/yzBsWNtglQ7dQFI1P3UfPUF
+	ugCa06njQ+Q4PNjqcGQXEGAJgL0CRexeDPo1Ra9y/bTLcSf5+shx1/PratCPhDgUB0EbX6rUzzM
+	AXJkBpfoTzTcmPZyVggxeWr2AVSfQVBr4v29tSpDKYdDSwcYBCPfonVPM6BH930N0If5GTvbYsU
+	35WsQ/LUy9ZoKtsVhYTaXTMlY6MDYXAr6GWc4+6iwvTrG5/8XDGIr46+k51MQvCTehdAkZNijKM
+	CZj
+X-Received: by 2002:a17:907:a01:b0:ba7:670b:f074 with SMTP id a640c23a62f3a-bbffa02ca02mr768977366b.2.1777978885143;
+        Tue, 05 May 2026 04:01:25 -0700 (PDT)
 Received: from [192.168.88.241] (37-48-40-237.nat.epc.tmcz.cz. [37.48.40.237])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-bc4b921a277sm14495866b.3.2026.05.05.04.01.09
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-bbe6d66c90dsm483751466b.43.2026.05.05.04.01.23
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 05 May 2026 04:01:10 -0700 (PDT)
-Message-ID: <fdd012a9-9ab7-4da2-b9f2-0a8e6c254186@ovn.org>
-Date: Tue, 5 May 2026 13:01:08 +0200
+        Tue, 05 May 2026 04:01:23 -0700 (PDT)
+Message-ID: <f0557cdd-738b-4d19-969d-94310b553d0b@ovn.org>
+Date: Tue, 5 May 2026 13:01:22 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -65,6 +66,7 @@ References: <20260326125153.685915-1-pablo@netfilter.org>
  <20260326125153.685915-7-pablo@netfilter.org>
  <8fd5d3a3-d1d7-4542-a0db-1678989940d4@ovn.org> <afSCXEg-X-ieL9cY@chamomile>
  <ef01005e-d867-4936-b138-b98f37e5f394@ovn.org> <afkosr2fDEPA_jX9@chamomile>
+ <afkuhbWieFXRTirN@chamomile>
 Content-Language: en-US
 From: Ilya Maximets <i.maximets@ovn.org>
 Autocrypt: addr=i.maximets@ovn.org; keydata=
@@ -110,119 +112,23 @@ Autocrypt: addr=i.maximets@ovn.org; keydata=
  yWOKeCw9bCZX4a/uFw77TZMEq3upjeq21oi6NMTwvvWWMYuEKNi0340yZRrBdcDhbXkl9x/o
  skB2IbnvSB8iikbPng1ihCTXpA2yxioUQ96Akb+WEGopPWzlxTTK+T03G2ljOtspjZXKuywV
  Wu/eHyqHMyTu8UVcMRR44ki8wam0LMs+fH4dRxw5ck69AkV+JsYQVfI7tdOu7+r465LUfg==
-In-Reply-To: <afkosr2fDEPA_jX9@chamomile>
+In-Reply-To: <afkuhbWieFXRTirN@chamomile>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 5/5/26 1:16 AM, Pablo Neira Ayuso wrote:
-> Hi Ilya,
+On 5/5/26 1:40 AM, Pablo Neira Ayuso wrote:
+> On Tue, May 05, 2026 at 01:16:05AM +0200, Pablo Neira Ayuso wrote:
+>> Thanks for the detailed report. It seems I changed the semantics of
+>> exp->helper, this used to be use to set a new helper for an expected
+>> connection, which is the case for sip and h323.
+>>
+>> Would this patch help address the issue you are observing?
 > 
-> On Mon, May 04, 2026 at 02:19:20PM +0200, Ilya Maximets wrote:
->> On 5/1/26 12:37 PM, Pablo Neira Ayuso wrote:
->>> Hi Ilya,
->>>
->>> On Thu, Apr 30, 2026 at 10:58:38PM +0200, Ilya Maximets wrote:
->>>> On 3/26/26 1:51 PM, Pablo Neira Ayuso wrote:
->>>>> The expectation helper field is mostly unused. As a result, the
->>>>> netfilter codebase relies on accessing the helper through exp->master.
->>>>>
->>>>> Always set on the expectation helper field so it can be used to reach
->>>>> the helper.
->>>>>
->>>>> nf_ct_expect_init() is called from packet path where the skb owns
->>>>> the ct object, therefore accessing exp->master for the newly created
->>>>> expectation is safe. This saves a lot of updates in all callsites
->>>>> to pass the ct object as parameter to nf_ct_expect_init().
->>>>>
->>>>> This is a preparation patches for follow up fixes.
->>>>>
->>>>> Signed-off-by: Florian Westphal <fw@strlen.de>
->>>>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>>>> ---
->>>>
->>>> Hi, Pablo and Florian.
->>>>
->>>> I was investigating FTP test failures in OVS with 7.0 kernel and bisected
->>>> the issue down to this commit.  AFAIU, with this change all the related
->>>> connections over time gain their parents' helpers,.  This is causing a change
->>>> visible to the userspace, because FTP data connections are now reported to
->>>> have helpers in the conntrack dump:
->>>>
->>>> # conntrack -L
->>>> tcp      6 119 TIME_WAIT src=10.1.1.1 dst=10.1.1.2 sport=59534 dport=21 \
->>>>                          src=10.1.1.2 dst=10.1.1.1 sport=21    dport=59534 \
->>>>            [ASSURED] mark=0 helper=ftp use=2
->>>> tcp      6 119 TIME_WAIT src=10.1.1.2 dst=10.1.1.1 sport=52709 dport=52381 \
->>>>                          src=10.1.1.1 dst=10.1.1.2 sport=52381 dport=52709 \
->>>>            [ASSURED] mark=0 helper=ftp use=1
->>>>
->>>> Before this commit only the control connection had helper=ftp reported in
->>>> the dump.  The traffic seems to work fine, but our tests fail because we
->>>> do not expect the helper attached.
->>>>
->>>> AFAIU, it's generally not something that should be happening, as helpers
->>>> on data connections do not really make much sense.  But I'm just trying to
->>>> figure out if you would consider this as a regression and fix in the kernel
->>>> or if we should adjust our userspace components for this new dump content,
->>>> which would not be very straightforward to do if we want to be able to run
->>>> tests on both old and the new versions.
->>>>
->>>> What do you think?
->>>
->>> It seems previous behaviour to 9c42bc9db90a was inconsistent, ie. only
->>> the h323 helper sets on exp->helper, then it shows helper= in expected
->>> connections via ctnetlink. I guess this is for debugging given that
->>> h323 is actually a family of helpers.
->>>
->>> To consistently skip dumping this for expected connections, probably
->>> this is the way to do:
->>>
->>> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conn
->>> index eda5fe4a75c8..9491ae9e080e 100644
->>> --- a/net/netfilter/nf_conntrack_netlink.c
->>> +++ b/net/netfilter/nf_conntrack_netlink.c
->>> @@ -226,7 +226,7 @@ static int ctnetlink_dump_helpinfo(struct sk_buff *sk
->>>         const struct nf_conn_help *help = nfct_help(ct);
->>>         struct nf_conntrack_helper *helper;
->>>  
->>> -       if (!help)
->>> +       if (!help || ct->status & IPS_EXPECTED)
->>>                 return 0;
->>>  
->>>         rcu_read_lock();
->>
->> I'm not sure.  I tried this change and it fixed one case but broke another.
->> Looking at what we're testing, the old behavior (at least for FTP) was:
->> "if helper was committed - report it, if not - don't".  i.e. it's not really
->> about the connection being expected it's about if the user committed the
->> helper for the connection or not.
->>
->> Let me explain a few scenarios that we have in the OVS system tests and what
->> I see with the old kernel (6.19), the new (7.0) and the patch above.
->>
->> A) The first scenario has the following OpenFlow rules (simplified):
->>
->>   table=0,in_port=1,tcp,action=ct(alg=ftp,commit),2
->>   table=0,in_port=2,tcp,action=ct(table=1)
->>   table=1,in_port=2,tcp,ct_state=+trk+est,action=1
->>   table=1,in_port=2,tcp,ct_state=+trk+rel,action=1
->>
->> This set of rule blindly commits every packet coming from port 1 with the
->> helper and sends to port 2.  Packets from port 2 are passed through ct and
->> only related or established traffic is passed to port 1.  This is a very
->> rudimentary setup that users can make to allow ftp from port 1 towards port 2,
->> but not in the opposite direction.
->>
->> For this scenario regardless of the kernel version or the patch above I see
->> that both the data and the control connections have a helper reported in the
->> ctnetlink dump.
-> 
-> This ruleset then is attached the conntrack helper to data connection,
-> that is, ALG is inspecting the FTP data connection but it will just
-> find no patterns because it is only the FTP control connection that
-> creates expectations?
+> Actually, this needs to set to NULL the new exp->assign_helper field,
+> see new patch, untested.
 
-Yes.  It's just a "lazy" way to make the traffic work, we do not expect
-the helper on the data connection to do anything useful in this scenario.
+I ran this through OVS system tests and all passed.  So, this restores
+the old behavior, at least for FTP (we do not support sip/h323).  For
+that part:
 
-Best regards, Ilya Maximets.
+Tested-by: Ilya Maximets <i.maximets@ovn.org>
