@@ -1,311 +1,103 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42AC3AA1A6
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 May 2026 20:01:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D4BF19AD5C;
+	Tue,  5 May 2026 22:33:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778011269; cv=none; b=ILaJHDX+0NtIokpxpD+rwMBHLmKcrU3WuG4PiqBL/8XWpCUemEufYtlrPumpBLxDYNKExcS5jiirf8vqhrVBtA14sYqvUyL7/w9t/aQQLViEuoH0AXCc4WbQd2HwFJTWa6FxbwRvuI9GVGfQlGeYU9sty07ncBg3PsHir9V+qIs=
+	t=1778020404; cv=none; b=dsrNlol3HKpe7xbbU6mJ/K2lCY/0SBeZi2xxeE+Nptx72x6yag8UXgInafWhPNC7Rw1DULZ2CY6qedEUEjQOVOCZ32E1SIulbAuD/uQ5VdVrxbiNw+47up2f2XYVfWf2Z7nAlI5plGFCQygS4Jtb70uXtwW0voWotPbPJlRL/eA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778011269; c=relaxed/simple;
-	bh=FmpHF3qGZyeeuS0MznxykcejV42pgBFEyRCwZdStIqw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WBhB4vHPUILA9phCgmjwXL/EreCMi6jIRtj89eUF/yucq0TKsNZYN6jWmbnxYw9u94r2fE8lPIippTBDcRRxSiwFo9RXXL9M1AKHKV7TaM7L+eKTEVDcfmgxKBSrDi7C3rr1OmZQcmQ2Sbv605UdI9KZQvV+yNY+OtWaoShLAbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BfLaRWDy; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1778020404; c=relaxed/simple;
+	bh=j4sDSN+KNZuaBrisARehsrIZ3WKlTfOs4pLJchcU2Jk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RbQB03oLOpgIy+nTcS1TyBRsFGA//ApUxnJBWjVj4cognIWUHGv2vvPD9luB4eifrJTcNEmgMVXVaqrW/yt/+OFg8ZpFEM8cxqJ6tmKT7hZdRIIlG0oTEUdDr6b3z8hHQ2IIpib80hhjHvUCiYBr55pdnoxjcxy0vnotpVcx3M0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lK09AYOu; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BfLaRWDy"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4123360177;
-	Tue,  5 May 2026 22:01:04 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lK09AYOu"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C8B6860177;
+	Wed,  6 May 2026 00:33:19 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778011264;
-	bh=pczXPN4j1avIKpzxk4R1wwEx7hXj+zq01h6tErxcZIQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=BfLaRWDypDovACX/oNCC/OA1TF9+y6cc0S8B2xySl6ze1zVbCg4OssQgKbaSExW7A
-	 cQLgmrx7ds8X8xPq3SsikwnWT27PE4GpbY/J70bulK7D9BLWks8zUliPtU3uFr1/rS
-	 ThUdsOiAzAmbD26Ag/KE82zSZ7JemBd54/qi+NwPu6Fuy1hALloFR8Qe8LgzLlWgZn
-	 P6q7SeUpxZbYravXtuJuvhMHywDi4SrXEGbAPG6gu/4os0O5fSqg517jXGpdlxMgrR
-	 W5d3S9bBSAmqSXJ75rBaMF6KnOTUYCyceSBRPIzYiL+/zo7NP0XkuKw+ltgqZLEPe+
-	 /tBFxHoJUUxiw==
+	s=2025; t=1778020399;
+	bh=9UhTEXeeMTMGh20cbiK9clTDZ68s2NM9Y9cYAypGj0Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=lK09AYOuQMgEf7WssbiCi8+I6K7eQVKsjOhqnFO4nz479V/y/MBrpoVlNEZciE9aE
+	 jjItsUs9rQ9AHRPfzQAu2cZ7vpiinBFOUelyFSJz2iV7y7ENzv3KwwkX1Hv3mvnuOH
+	 ZQyjl3RlbDDhWcxwfNl42JbWCZTZ4+aXwkSU08g+tPAqrBrESTGDGuwv8PJzZh/dGs
+	 I+kfGMcqiKKqRI+wDwJubHNysupT7BHswKMBmNS/flWELVYMDFjoLqRl1GYfaYfWUa
+	 /NalzpQfU27SC8gpH3HW+l2NynqkrVQ7n12AmQQzf1l9hlsLpfeTO03Q8N8Qi+JHIv
+	 dGfJdQPB/ccNw==
+Date: Wed, 6 May 2026 00:33:17 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: i.maximets@ovn.org
-Subject: [PATCH nf,v2] netfilter: nf_conntrack_expect: restore helper propagation via expectation
-Date: Tue,  5 May 2026 22:01:01 +0200
-Message-ID: <20260505200101.417265-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: HACKE-RC <rc@rexion.ai>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next v3 1/4] netfilter: conntrack: add shared port
+ and uint parsers for helpers
+Message-ID: <afpwLbN-W2Sur5Qu@chamomile>
+References: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
+ <20260503083220.630655-1-rc@rexion.ai>
+ <20260503083220.630655-2-rc@rexion.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260503083220.630655-2-rc@rexion.ai>
 
-A recent series to fix expectations broke helper propagation via
-expectation, this mechanism is used by the sip and h323 helper. This
-also propagates the conntrack helper to expected connections. I changed
-semantics of exp->helper which now tells us the actual helper that
-created the expectation.
+On Sun, May 03, 2026 at 02:02:17PM +0530, HACKE-RC wrote:
+> Add nf_ct_helper_parse_uint() for bounded unsigned integer parsing
+> from an unterminated buffer, and nf_ct_helper_parse_port() which calls
+> it with max=65535 and rejects port zero.  Both helpers are exported so
+> conntrack protocol helpers can replace ad-hoc simple_strtoul() usage.
+> 
+> Signed-off-by: HACKE-RC <rc@rexion.ai>
 
-Add an explicit assign_helper field to expectations for this purpose
-and update helpers to use it.
+You will need a "real name" here.
 
-Restore this feature for userspace conntrack helper via ctnetlink
-nfqueue integration so it is again possible to attach a helper to an
-expectation, where it makes sense. This is not restored via ctnetlink
-expectation creation as there is no client for such feature.
+> ---
+>  include/net/netfilter/nf_conntrack_helper.h |  5 +++
+>  net/netfilter/nf_conntrack_helper.c         | 39 +++++++++++++++++++++
+>  2 files changed, 44 insertions(+)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+> index de2f956ab..ab145fcd9 100644
+> --- a/include/net/netfilter/nf_conntrack_helper.h
+> +++ b/include/net/netfilter/nf_conntrack_helper.h
+> @@ -160,6 +160,11 @@ nf_ct_helper_expectfn_find_by_name(const char *name);
+>  struct nf_ct_helper_expectfn *
+>  nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
+>  
+> +int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
+> +			    unsigned long max, unsigned long *val, char **endp);
+> +int nf_ct_helper_parse_port(const char *cp, unsigned int len,
+> +			    u16 *port, char **endp);
+> +
+>  extern struct hlist_head *nf_ct_helper_hash;
+>  extern unsigned int nf_ct_helper_hsize;
+>  
+> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+> index a715304a5..f6229957c 100644
+> --- a/net/netfilter/nf_conntrack_helper.c
+> +++ b/net/netfilter/nf_conntrack_helper.c
+> @@ -499,6 +499,45 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
+>  }
+>  EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
+>  
+> +int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
+> +			    unsigned long max, unsigned long *val, char **endp)
 
-Make sure the expectation using this helper propagation mechanism also
-go away when the helper is unregistered.
+In nf.git, there is a new function sip_strtouint() that can possibly
+be moved to nf_conntrack_helper.c.
 
-Fixes: 9c42bc9db90a ("netfilter: nf_conntrack_expect: honor expectation helper field")
-Fixes: 917b61fa2042 ("netfilter: ctnetlink: ignore explicit helper on new expectations")
-Reported-by: Ilya Maximets <i.maximets@ovn.org>
-Tested-by: Ilya Maximets <i.maximets@ovn.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Minor changes
-v2: - use rcu_dereference() to fetch exp->assign_helper
-    - add Tested-by: tag
-
- include/net/netfilter/nf_conntrack_expect.h |  5 ++++-
- net/netfilter/nf_conntrack_broadcast.c      |  1 +
- net/netfilter/nf_conntrack_core.c           |  7 +++++--
- net/netfilter/nf_conntrack_expect.c         |  2 ++
- net/netfilter/nf_conntrack_h323_main.c      | 12 ++++++------
- net/netfilter/nf_conntrack_helper.c         |  5 +++++
- net/netfilter/nf_conntrack_netlink.c        | 18 ++++++++++++++++--
- net/netfilter/nf_conntrack_sip.c            |  2 +-
- 8 files changed, 40 insertions(+), 12 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index e9a8350e7ccf..80f50fd0f7ad 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -45,9 +45,12 @@ struct nf_conntrack_expect {
- 	void (*expectfn)(struct nf_conn *new,
- 			 struct nf_conntrack_expect *this);
- 
--	/* Helper to assign to new connection */
-+	/* Helper that created this expectation */
- 	struct nf_conntrack_helper __rcu *helper;
- 
-+	/* Helper to assign to new connection */
-+	struct nf_conntrack_helper __rcu *assign_helper;
-+
- 	/* The conntrack of the master connection */
- 	struct nf_conn *master;
- 
-diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-index 4f39bf7c843f..75e53fde6b29 100644
---- a/net/netfilter/nf_conntrack_broadcast.c
-+++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -72,6 +72,7 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 	exp->flags                = NF_CT_EXPECT_PERMANENT;
- 	exp->class		  = NF_CT_EXPECT_CLASS_DEFAULT;
- 	rcu_assign_pointer(exp->helper, helper);
-+	rcu_assign_pointer(exp->assign_helper, NULL);
- 	write_pnet(&exp->net, net);
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	exp->zone = ct->zone;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index b08189226320..8ba5b22a1eef 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1811,14 +1811,17 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 		spin_lock_bh(&nf_conntrack_expect_lock);
- 		exp = nf_ct_find_expectation(net, zone, tuple, !tmpl || nf_ct_is_confirmed(tmpl));
- 		if (exp) {
-+			struct nf_conntrack_helper *assign_helper;
-+
- 			/* Welcome, Mr. Bond.  We've been expecting you... */
- 			__set_bit(IPS_EXPECTED_BIT, &ct->status);
- 			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
- 			ct->master = exp->master;
--			if (exp->helper) {
-+			assign_helper = rcu_dereference(exp->assign_helper);
-+			if (assign_helper) {
- 				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
- 				if (help)
--					rcu_assign_pointer(help->helper, exp->helper);
-+					rcu_assign_pointer(help->helper, assign_helper);
- 			}
- 
- #ifdef CONFIG_NF_CONNTRACK_MARK
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 24d0576d84b7..f82d7ec8e8c0 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -308,6 +308,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- 	if (!new)
- 		return NULL;
- 
-+	new->assign_helper = NULL;
- 	new->master = me;
- 	refcount_set(&new->use, 1);
- 	return new;
-@@ -344,6 +345,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 		helper = rcu_dereference(help->helper);
- 
- 	rcu_assign_pointer(exp->helper, helper);
-+	rcu_assign_pointer(exp->assign_helper, NULL);
- 	write_pnet(&exp->net, net);
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	exp->zone = ct->zone;
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 3f5c50455b71..b2fe6554b9cf 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -643,7 +643,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, &nf_conntrack_helper_h245);
-+	rcu_assign_pointer(exp->assign_helper, &nf_conntrack_helper_h245);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -767,7 +767,7 @@ static int expect_callforwarding(struct sk_buff *skb,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -1234,7 +1234,7 @@ static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
- 				&ct->tuplehash[!dir].tuple.src.u3 : NULL,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;	/* Accept multiple calls */
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
-@@ -1306,7 +1306,7 @@ static int process_gcf(struct sk_buff *skb, struct nf_conn *ct,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_UDP, NULL, &port);
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_ras);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_ras);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect RAS ");
-@@ -1523,7 +1523,7 @@ static int process_acf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
-@@ -1577,7 +1577,7 @@ static int process_lcf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
-+	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index a715304a53d8..b594cd244fe1 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -400,6 +400,11 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
- 
- 	this = rcu_dereference_protected(exp->helper,
- 					 lockdep_is_held(&nf_conntrack_expect_lock));
-+	if (this == me)
-+		return true;
-+
-+	this = rcu_dereference_protected(exp->assign_helper,
-+					 lockdep_is_held(&nf_conntrack_expect_lock));
- 	return this == me;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index eda5fe4a75c8..3606c7402094 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2634,6 +2634,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
- 
- static struct nf_conntrack_expect *
- ctnetlink_alloc_expect(const struct nlattr *const cda[], struct nf_conn *ct,
-+		       const struct nf_conntrack_helper *assign_helper,
- 		       struct nf_conntrack_tuple *tuple,
- 		       struct nf_conntrack_tuple *mask);
- 
-@@ -2860,6 +2861,7 @@ static int
- ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
- 			     u32 portid, u32 report)
- {
-+	struct nf_conntrack_helper *assign_helper = NULL;
- 	struct nlattr *cda[CTA_EXPECT_MAX+1];
- 	struct nf_conntrack_tuple tuple, mask;
- 	struct nf_conntrack_expect *exp;
-@@ -2875,8 +2877,18 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
- 	if (err < 0)
- 		return err;
- 
-+	if (cda[CTA_EXPECT_HELP_NAME]) {
-+		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
-+
-+		assign_helper = __nf_conntrack_helper_find(helpname,
-+							   nf_ct_l3num(ct),
-+							   nf_ct_protonum(ct));
-+		if (!assign_helper)
-+			return -EOPNOTSUPP;
-+	}
-+
- 	exp = ctnetlink_alloc_expect((const struct nlattr * const *)cda, ct,
--				     &tuple, &mask);
-+				     assign_helper, &tuple, &mask);
- 	if (IS_ERR(exp))
- 		return PTR_ERR(exp);
- 
-@@ -3515,6 +3527,7 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
- 
- static struct nf_conntrack_expect *
- ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
-+		       const struct nf_conntrack_helper *assign_helper,
- 		       struct nf_conntrack_tuple *tuple,
- 		       struct nf_conntrack_tuple *mask)
- {
-@@ -3568,6 +3581,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 	exp->zone = ct->zone;
- #endif
- 	rcu_assign_pointer(exp->helper, helper);
-+	rcu_assign_pointer(exp->assign_helper, assign_helper);
- 	exp->tuple = *tuple;
- 	exp->mask.src.u3 = mask->src.u3;
- 	exp->mask.src.u.all = mask->src.u.all;
-@@ -3623,7 +3637,7 @@ ctnetlink_create_expect(struct net *net,
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
- 	rcu_read_lock();
--	exp = ctnetlink_alloc_expect(cda, ct, &tuple, &mask);
-+	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
- 	if (IS_ERR(exp)) {
- 		err = PTR_ERR(exp);
- 		goto err_rcu;
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 1eb55907d470..d24bfa9e8234 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1383,7 +1383,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	nf_ct_expect_init(exp, SIP_EXPECT_SIGNALLING, nf_ct_l3num(ct),
- 			  saddr, &daddr, proto, NULL, &port);
- 	exp->timeout.expires = sip_timeout * HZ;
--	rcu_assign_pointer(exp->helper, helper);
-+	rcu_assign_pointer(exp->assign_helper, helper);
- 	exp->flags = NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE;
- 
- 	hooks = rcu_dereference(nf_nat_sip_hooks);
--- 
-2.47.3
-
+Thanks.
