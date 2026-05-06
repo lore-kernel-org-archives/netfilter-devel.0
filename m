@@ -1,103 +1,97 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D4BF19AD5C;
-	Tue,  5 May 2026 22:33:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07179149C6F;
+	Wed,  6 May 2026 01:11:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778020404; cv=none; b=dsrNlol3HKpe7xbbU6mJ/K2lCY/0SBeZi2xxeE+Nptx72x6yag8UXgInafWhPNC7Rw1DULZ2CY6qedEUEjQOVOCZ32E1SIulbAuD/uQ5VdVrxbiNw+47up2f2XYVfWf2Z7nAlI5plGFCQygS4Jtb70uXtwW0voWotPbPJlRL/eA=
+	t=1778029866; cv=none; b=IgXHtoZM1i8paLrBRrGnKZp6Do2pV/NuT1xohbm0qW0DqW0Vt65jyTqUz2UbUtuFViP0UqBI87ggpNdoZKGud1cilVfC9SbX+8zo+IKr99YaucVEjHOOfbh9PguHgCXZmAci2todFKUL8GSwYfFl08cmCxx7l4nBOc6qCtpNZ0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778020404; c=relaxed/simple;
-	bh=j4sDSN+KNZuaBrisARehsrIZ3WKlTfOs4pLJchcU2Jk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RbQB03oLOpgIy+nTcS1TyBRsFGA//ApUxnJBWjVj4cognIWUHGv2vvPD9luB4eifrJTcNEmgMVXVaqrW/yt/+OFg8ZpFEM8cxqJ6tmKT7hZdRIIlG0oTEUdDr6b3z8hHQ2IIpib80hhjHvUCiYBr55pdnoxjcxy0vnotpVcx3M0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lK09AYOu; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1778029866; c=relaxed/simple;
+	bh=goToXI9H6Xp4VYMlJrLNpWDyb6Q1NyOxaY3l0jvHZ9s=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=D2ap8Mg8cAqtcYgd2C6ishrlW6PVZK7wE2ShqjUbSsbg2jV8My7JNZ0rhQCG8wRhPtMuzJCi0RjS5n1g3sHzOgMf8uct+U8YTTq2XHxjUosDVsAaVqvX2YwiIDy6Cp9s5ZVOjEZarojDUBdCHcJvqMkZcp91THH9nsqs6SraXrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ll7K5q0A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lK09AYOu"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C8B6860177;
-	Wed,  6 May 2026 00:33:19 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778020399;
-	bh=9UhTEXeeMTMGh20cbiK9clTDZ68s2NM9Y9cYAypGj0Q=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lK09AYOuQMgEf7WssbiCi8+I6K7eQVKsjOhqnFO4nz479V/y/MBrpoVlNEZciE9aE
-	 jjItsUs9rQ9AHRPfzQAu2cZ7vpiinBFOUelyFSJz2iV7y7ENzv3KwwkX1Hv3mvnuOH
-	 ZQyjl3RlbDDhWcxwfNl42JbWCZTZ4+aXwkSU08g+tPAqrBrESTGDGuwv8PJzZh/dGs
-	 I+kfGMcqiKKqRI+wDwJubHNysupT7BHswKMBmNS/flWELVYMDFjoLqRl1GYfaYfWUa
-	 /NalzpQfU27SC8gpH3HW+l2NynqkrVQ7n12AmQQzf1l9hlsLpfeTO03Q8N8Qi+JHIv
-	 dGfJdQPB/ccNw==
-Date: Wed, 6 May 2026 00:33:17 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: HACKE-RC <rc@rexion.ai>
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next v3 1/4] netfilter: conntrack: add shared port
- and uint parsers for helpers
-Message-ID: <afpwLbN-W2Sur5Qu@chamomile>
-References: <afSBzDE-caw3Dsr1@orbyte.nwl.cc>
- <20260503083220.630655-1-rc@rexion.ai>
- <20260503083220.630655-2-rc@rexion.ai>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ll7K5q0A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C2CC2BCB4;
+	Wed,  6 May 2026 01:11:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778029865;
+	bh=goToXI9H6Xp4VYMlJrLNpWDyb6Q1NyOxaY3l0jvHZ9s=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=ll7K5q0AzEM8gZ03P8Zu9Iy83m25lcvK13DpZYmtJjKs9HncXSk07va3ENwxysglP
+	 7HAf/HcvIx+wrPhVX8gXO27HB4KXvG6qMcZMvRSdbKNr23cK8PmjM/EDcKXbisd0NR
+	 JfI3GAzO1Ur3Lmg6axtsVCX9ALISuv6BIu34orHQ4L75yZtiM/7VPNMvgTkiMBLx6k
+	 ce0jQcbBpWc6HyHZ6MFNKd0cAzZT2dIClq3CkutKgsBHH0FA8QJXaD+p2HJvZ+6rPj
+	 Z/b1p/ERHLFxN/SOje03s7axT+sJdABYAKdnT5aWjYzj3oG/kE/IhcAsq4KbeD72La
+	 1LKXGTnGjDFow==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02D343930780;
+	Wed,  6 May 2026 01:10:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260503083220.630655-2-rc@rexion.ai>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/8] ipvs: fixes for the new ip_vs_status info
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177802981580.2332967.9254644733543379445.git-patchwork-notify@kernel.org>
+Date: Wed, 06 May 2026 01:10:15 +0000
+References: <20260505001648.360569-2-pablo@netfilter.org>
+In-Reply-To: <20260505001648.360569-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org, ja@ssi.bg,
+ longman@redhat.com, lvs-devel@vger.kernel.org
 
-On Sun, May 03, 2026 at 02:02:17PM +0530, HACKE-RC wrote:
-> Add nf_ct_helper_parse_uint() for bounded unsigned integer parsing
-> from an unterminated buffer, and nf_ct_helper_parse_port() which calls
-> it with max=65535 and rejects port zero.  Both helpers are exported so
-> conntrack protocol helpers can replace ad-hoc simple_strtoul() usage.
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Tue,  5 May 2026 02:16:41 +0200 you wrote:
+> From: Julian Anastasov <ja@ssi.bg>
 > 
-> Signed-off-by: HACKE-RC <rc@rexion.ai>
-
-You will need a "real name" here.
-
-> ---
->  include/net/netfilter/nf_conntrack_helper.h |  5 +++
->  net/netfilter/nf_conntrack_helper.c         | 39 +++++++++++++++++++++
->  2 files changed, 44 insertions(+)
+> Sashiko reports some problems for the recently added
+> /proc/net/ip_vs_status:
 > 
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> index de2f956ab..ab145fcd9 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -160,6 +160,11 @@ nf_ct_helper_expectfn_find_by_name(const char *name);
->  struct nf_ct_helper_expectfn *
->  nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
->  
-> +int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
-> +			    unsigned long max, unsigned long *val, char **endp);
-> +int nf_ct_helper_parse_port(const char *cp, unsigned int len,
-> +			    u16 *port, char **endp);
-> +
->  extern struct hlist_head *nf_ct_helper_hash;
->  extern unsigned int nf_ct_helper_hsize;
->  
-> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> index a715304a5..f6229957c 100644
-> --- a/net/netfilter/nf_conntrack_helper.c
-> +++ b/net/netfilter/nf_conntrack_helper.c
-> @@ -499,6 +499,45 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
->  }
->  EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
->  
-> +int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
-> +			    unsigned long max, unsigned long *val, char **endp)
+> * ip_vs_status_show() as a table reader may run long after the
+> conn_tab and svc_table table are released. While ip_vs_conn_flush()
+> properly changes the conn_tab_changes counter when conn_tab is removed,
+> ip_vs_del_service() and ip_vs_flush() were missing such change for
+> the svc_table_changes counter. As result, readers like
+> ip_vs_dst_event() and ip_vs_status_show() may continue to use
+> a freed table after a cond_resched_rcu() call.
+> 
+> [...]
 
-In nf.git, there is a new function sip_strtouint() that can possibly
-be moved to nf_conntrack_helper.c.
+Here is the summary with links:
+  - [net,1/8] ipvs: fixes for the new ip_vs_status info
+    https://git.kernel.org/netdev/net/c/afbd961305eb
+  - [net,2/8] ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
+    https://git.kernel.org/netdev/net/c/f2da9a96abb4
+  - [net,3/8] ipvs: fix the spin_lock usage for RT build
+    https://git.kernel.org/netdev/net/c/d493d9de1c21
+  - [net,4/8] ipvs: do not leak dest after get from dest trash
+    https://git.kernel.org/netdev/net/c/fbe1e01e818e
+  - [net,5/8] ipvs: fix races around est_mutex and est_cpulist
+    https://git.kernel.org/netdev/net/c/2fd109238925
+  - [net,6/8] ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
+    https://git.kernel.org/netdev/net/c/4ee52b7021a7
+  - [net,7/8] ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
+    https://git.kernel.org/netdev/net/c/aa6065206987
+  - [net,8/8] sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
+    https://git.kernel.org/netdev/net/c/8f78b749f3da
 
-Thanks.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
