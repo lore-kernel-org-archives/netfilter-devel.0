@@ -1,86 +1,69 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4B534A76F;
-	Wed,  6 May 2026 11:50:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6AE2477E27;
+	Wed,  6 May 2026 13:33:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778068261; cv=none; b=FONbbN1ODHLm4uCrP7U3cF3xWGf0lbqM2aNc1JTVIIPMPl4sVHCvDL9jMwn0rkdLd8o/+idNzRWCnVCbh5iI7BTTwfbNt4UtUM3cngRt7+cT+s7/WKCnx881LlDFoY2MJXGG+w9Sn6e6sFCvFS7W2ygSJJxqyUFIm6HljSykvPE=
+	t=1778074398; cv=none; b=kvXVaTmxGjKswDMbTnkwsWKUlEeJhlKQC4kfkvkTOXCtAV7FWnuC/mCJuK7fb/uXMb7FOYtaa465UM/G6//LTOVSY4LSp1KEjRCn8mkt79ENv7pIOSy1yzrWQK1CMTC21aH3ihcHi1x3apWiIG4+NqGn6wjVuEayB4LlnI4BFrA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778068261; c=relaxed/simple;
-	bh=1jjyzn/wfmqboTm8tQQkfuG/UP+xXoIksMAk0d4wq5k=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aqM5NJogfTfi+XorrEZv8HAmHikyYWYrh0q0+tsQdCtf5BTvAGhNtqN/dDKBBoAEphX9e2WZnkwhqAf07wjyfe6YhG9Rxz8poUhcFMGf3miG8mKK/aLGOE8dJ4OGN0RZhySKuRF3ochMyvA3jcK/su5JgzHlmVuEXxLT/8t1ddM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=ixOHXYOe; arc=none smtp.client-ip=113.46.200.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="ixOHXYOe"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=606UbMcorULUuW0bd3DLo8nq4xbJ/M8vcj6aLLrlzFE=;
-	b=ixOHXYOeybb23DYy1jvKoyD1Lj7nFaTY1O5yDh45TdjM2pPNJedy3Qj6qys+XKlQ1qOJzuXkG
-	0QBEBeBSE5xa2gPoqNrHO1tPYeFlw6Q0WO/wcgbVKvWaksTwuXg9rdFl9gJChmNFs7zaRKKNFuD
-	4zYrWqbdOKFh2JyQ/1IE7bM=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4g9YRZ5q7LzLlTq;
-	Wed,  6 May 2026 19:43:22 +0800 (CST)
-Received: from kwepemj500018.china.huawei.com (unknown [7.202.194.48])
-	by mail.maildlp.com (Postfix) with ESMTPS id 3A0434056C;
-	Wed,  6 May 2026 19:50:55 +0800 (CST)
-Received: from huawei.com (10.50.85.128) by kwepemj500018.china.huawei.com
- (7.202.194.48) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 6 May
- 2026 19:50:54 +0800
-From: Li Xiasong <lixiasong1@huawei.com>
-To: <netfilter-devel@vger.kernel.org>
-CC: <stable@vger.kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian
- Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, <coreteam@netfilter.org>,
-	<yuehaibing@huawei.com>, <zhangchangzhong@huawei.com>,
-	<weiyongjun1@huawei.com>
-Subject: [PATCH nft 2/2] netfilter: nft_ct: fix missing expect put in obj eval
-Date: Wed, 6 May 2026 20:16:18 +0800
-Message-ID: <20260506121618.578443-3-lixiasong1@huawei.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260506121618.578443-1-lixiasong1@huawei.com>
+	s=arc-20240116; t=1778074398; c=relaxed/simple;
+	bh=W1DFYoi6sjGC3+Gfijj1/NkkzbGt4m6uC5ESu7JaEDo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mGbVVz3odDmYQx8SRR/OLAk5K6miOsqHs1O16B0oDDcMVR+7LwKAdOk/bzRnka6bIXBPhKKfUtJqHB+Hkq/Gjl6TdcLKC4xFLODgt5YDAHsT3Uneh03J/TnoO9dh8q03twEhFgu05VrXlt7GuK44MplYtkJF+wFIQpbnfpyS8/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 41F6D605F3; Wed, 06 May 2026 15:33:13 +0200 (CEST)
+Date: Wed, 6 May 2026 15:33:12 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Li Xiasong <lixiasong1@huawei.com>
+Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	coreteam@netfilter.org, yuehaibing@huawei.com,
+	zhangchangzhong@huawei.com, weiyongjun1@huawei.com
+Subject: Re: [PATCH nft 1/2] netfilter: nf_conntrack_sip: fix missing expect
+ put in REGISTER path
+Message-ID: <aftDGCXcI45PdHQc@strlen.de>
 References: <20260506121618.578443-1-lixiasong1@huawei.com>
+ <20260506121618.578443-2-lixiasong1@huawei.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemj500018.china.huawei.com (7.202.194.48)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260506121618.578443-2-lixiasong1@huawei.com>
 
-nft_ct_expect_obj_eval() allocates an expectation and may call
-nf_ct_expect_related(), but never drops its local reference.
+Li Xiasong <lixiasong1@huawei.com> wrote:
+> process_register_request() allocates an expectation, but the !helper
+> error path returns NF_DROP without nf_ct_expect_put(exp).
+> 
+> Add the missing put to balance nf_ct_expect_alloc() on this path.
+> 
+> Fixes: e14575fa7529 ("netfilter: nf_conntrack: use rcu accessors where needed")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
+> ---
+>  net/netfilter/nf_conntrack_sip.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+> index 1eb55907d470..a895bc836e1b 100644
+> --- a/net/netfilter/nf_conntrack_sip.c
+> +++ b/net/netfilter/nf_conntrack_sip.c
+> @@ -1377,8 +1377,10 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
+>  		saddr = &ct->tuplehash[!dir].tuple.src.u3;
+>  
+>  	helper = rcu_dereference(nfct_help(ct)->helper);
+> -	if (!helper)
+> +	if (!helper) {
+> +		nf_ct_expect_put(exp);
+>  		return NF_DROP;
+> +	}
 
-Add nf_ct_expect_put(exp) before return to balance allocation.
-
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
----
- net/netfilter/nft_ct.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 60ee8d932fcb..fa2cc556331c 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1334,6 +1334,8 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 
- 	if (nf_ct_expect_related(exp, 0) != 0)
- 		regs->verdict.code = NF_DROP;
-+
-+	nf_ct_expect_put(exp);
- }
- 
- static const struct nla_policy nft_ct_expect_policy[NFTA_CT_EXPECT_MAX + 1] = {
--- 
-2.34.1
-
+I think it would be simpler to move the rcu defer to before
+exp allocation instead.
