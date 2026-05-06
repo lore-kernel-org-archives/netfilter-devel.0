@@ -1,97 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07179149C6F;
-	Wed,  6 May 2026 01:11:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3171B285C8B
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2026 07:24:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778029866; cv=none; b=IgXHtoZM1i8paLrBRrGnKZp6Do2pV/NuT1xohbm0qW0DqW0Vt65jyTqUz2UbUtuFViP0UqBI87ggpNdoZKGud1cilVfC9SbX+8zo+IKr99YaucVEjHOOfbh9PguHgCXZmAci2todFKUL8GSwYfFl08cmCxx7l4nBOc6qCtpNZ0s=
+	t=1778052257; cv=none; b=fBPgjLSXddeg9PWSLedQe6h8p93ttkURDRIiTGdG6WAoesFoTjzg2CbBO0VVmIPpq3kZBNxnX+ZORXkQiffl8eGpOnFDsFIUIn9L7SbGUN10BX04KCCut8/ZIXLd+13cIv5twAooSGR0KoW0r+enD3lSvcysxPLSxs/LjJBXJp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778029866; c=relaxed/simple;
-	bh=goToXI9H6Xp4VYMlJrLNpWDyb6Q1NyOxaY3l0jvHZ9s=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=D2ap8Mg8cAqtcYgd2C6ishrlW6PVZK7wE2ShqjUbSsbg2jV8My7JNZ0rhQCG8wRhPtMuzJCi0RjS5n1g3sHzOgMf8uct+U8YTTq2XHxjUosDVsAaVqvX2YwiIDy6Cp9s5ZVOjEZarojDUBdCHcJvqMkZcp91THH9nsqs6SraXrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ll7K5q0A; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ll7K5q0A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C2CC2BCB4;
-	Wed,  6 May 2026 01:11:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778029865;
-	bh=goToXI9H6Xp4VYMlJrLNpWDyb6Q1NyOxaY3l0jvHZ9s=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=ll7K5q0AzEM8gZ03P8Zu9Iy83m25lcvK13DpZYmtJjKs9HncXSk07va3ENwxysglP
-	 7HAf/HcvIx+wrPhVX8gXO27HB4KXvG6qMcZMvRSdbKNr23cK8PmjM/EDcKXbisd0NR
-	 JfI3GAzO1Ur3Lmg6axtsVCX9ALISuv6BIu34orHQ4L75yZtiM/7VPNMvgTkiMBLx6k
-	 ce0jQcbBpWc6HyHZ6MFNKd0cAzZT2dIClq3CkutKgsBHH0FA8QJXaD+p2HJvZ+6rPj
-	 Z/b1p/ERHLFxN/SOje03s7axT+sJdABYAKdnT5aWjYzj3oG/kE/IhcAsq4KbeD72La
-	 1LKXGTnGjDFow==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02D343930780;
-	Wed,  6 May 2026 01:10:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1778052257; c=relaxed/simple;
+	bh=Iud3jS8pVNX73szR1PWxLLIbcpL+lsS2CBaiOpY+iO0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RZpfk7Ity+T3TgSRygKrjBPdXiSrfNpxYyBUZ243FMxbZbqL2Gb+K7t6y7ou5SqeT+tekg/gkPhPChIJA7MFjVAWkLxV5J82fVL/abFSzubbq9uszDWSisHbE+/mbT+Pe0hanG+4VDwlXfmiBDBPPWgmpD12sEWf1XH+ZHb41qI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 38A9C605F3; Wed, 06 May 2026 09:24:07 +0200 (CEST)
+Date: Wed, 6 May 2026 09:24:06 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] scanner: enable verdicts in rate scope too
+Message-ID: <afrsln49qZ8NEw_G@strlen.de>
+References: <20260505103739.25949-1-fw@strlen.de>
+ <afn7YBi361kCLOcY@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/8] ipvs: fixes for the new ip_vs_status info
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177802981580.2332967.9254644733543379445.git-patchwork-notify@kernel.org>
-Date: Wed, 06 May 2026 01:10:15 +0000
-References: <20260505001648.360569-2-pablo@netfilter.org>
-In-Reply-To: <20260505001648.360569-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org, ja@ssi.bg,
- longman@redhat.com, lvs-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <afn7YBi361kCLOcY@orbyte.nwl.cc>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Tue,  5 May 2026 02:16:41 +0200 you wrote:
-> From: Julian Anastasov <ja@ssi.bg>
+Phil Sutter <phil@nwl.cc> wrote:
+> On Tue, May 05, 2026 at 12:37:30PM +0200, Florian Westphal wrote:
+> > Blamed commit added first use of exclusive start conditions in the
+> > nftables parser.
+> > 
+> > Inclusive start conditions extend the grammar:
+> >  - token NEW_COND will start to match in scanner.l
+> >  - all other known tokens remain valid
+> >  - bison calls back into scanner.l (via scanner_pop_start_cond())
+> >    when it has parsed a complete rule.
+> > 
+> > Exclusive start conditions work in the same way, but with a slight
+> > difference: Once we enter SCANSTATE_RATE, ALL OTHER tokens that are
+> > not SCANSTATE_RATE or tagged as <*>, will stop matching.
+> > 
+> > This was done to allow something like 1 mbytes/second get handled
+> > via NUM MBYTES SLASH SECOND rather than STRING (which is no longer
+> > in scope).
+> > 
+> > This is a problem: in nftables, there is no end-token for
+> > the 'rate' keyword.  The scanstate is popped the same way as for
+> > the inclusive start conditions.  But flex is greedy.  By the time
+> > we call scanner_pop_start_cond(), next token has already been parsed
+> > according to RATE rules.
 > 
-> Sashiko reports some problems for the recently added
-> /proc/net/ip_vs_status:
+> Oh crap, sorry for the mess. Looks like I relied too much on 'make
+> check' instead of verifying Bison's lookahead doesn't break it.
 > 
-> * ip_vs_status_show() as a table reader may run long after the
-> conn_tab and svc_table table are released. While ip_vs_conn_flush()
-> properly changes the conn_tab_changes counter when conn_tab is removed,
-> ip_vs_del_service() and ip_vs_flush() were missing such change for
-> the svc_table_changes counter. As result, readers like
-> ip_vs_dst_event() and ip_vs_status_show() may continue to use
-> a freed table after a cond_resched_rcu() call.
+> > This breaks following rule:
+> >   nft add rule .. limit rate over 1 mbytes/second drop
+> >   Error: syntax error, unexpected junk
+> >   expected any of: end of file, newline, semicolon, [..] drop, continue ...
+> > 
+> > Problem is that flex parsed 'd'(rop) while in SCANSTATE_RATE.
 > 
-> [...]
+> Yes, this is the '<*>. { return JUNK; }' rule which catches invalid
+> input.
+> 
+> > There is no good solution for this problem (aside from altering the
+> > grammar to be explicitly scoped, e.g. limit rate { over ... }
+> 
+> Not an option, right?
+> 
+> > Another alternative might be to add some string-alike catchall rule to
+> > <SCANSTATE_RATE> in scanner.l and use that to pop state + rescan via
+> > yyless(0).  But it feels even more gross than this.
+> 
+> I tested this using the following in scanner.l:
+> 
+> -<*>.                   { return JUNK; }
+> +<SCANSTATE_RATE>.      { scanner_pop_start_cond(yyscanner, SCANSTATE_RATE); yyless(0); }
+> +.                      { return JUNK; }
+> 
+> It causes "start-condition stack underflow" with below sample rule, so I
+> also had to turn 'close_scope_rate' into a NOP in parser_bison.y.
 
-Here is the summary with links:
-  - [net,1/8] ipvs: fixes for the new ip_vs_status info
-    https://git.kernel.org/netdev/net/c/afbd961305eb
-  - [net,2/8] ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
-    https://git.kernel.org/netdev/net/c/f2da9a96abb4
-  - [net,3/8] ipvs: fix the spin_lock usage for RT build
-    https://git.kernel.org/netdev/net/c/d493d9de1c21
-  - [net,4/8] ipvs: do not leak dest after get from dest trash
-    https://git.kernel.org/netdev/net/c/fbe1e01e818e
-  - [net,5/8] ipvs: fix races around est_mutex and est_cpulist
-    https://git.kernel.org/netdev/net/c/2fd109238925
-  - [net,6/8] ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
-    https://git.kernel.org/netdev/net/c/4ee52b7021a7
-  - [net,7/8] ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
-    https://git.kernel.org/netdev/net/c/aa6065206987
-  - [net,8/8] sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
-    https://git.kernel.org/netdev/net/c/8f78b749f3da
+Yes, I forgot to mention this.  Yes, with above rule RATE state exits
+from scanner.l only.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> Is
+> this implicit scan state dropping upon reading junk OK? Should we follow
+> that path with exclusive start conditions?
 
+No idea.  I *think* enabling the relevant keywords via <*> is the safer
+approach, yyless undo seems worse to me.
 
+> Explicitly marking "global" tokens as such could be regarded syntactic
+> sugar for further attempts at reducing tokens accepted in global scope.
+> If you think that's fine, I'll prepare a patch (and an excessive test
+> case, I guess).
+
+I think its fine.  Thanks for extending test cases.
