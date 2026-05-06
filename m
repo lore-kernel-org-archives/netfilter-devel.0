@@ -1,187 +1,109 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5954B325726;
-	Wed,  6 May 2026 08:56:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5073ECBEA
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 May 2026 10:07:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778057798; cv=none; b=IZXeuN4EWSJYWvkz0c3zPla0uM9EWKOpuCu6Bvnpyz2yxBR6bFvocY90mWa0uNDFSHnnliJevWDlYFDR5Or+rU+mDGTyhj++2YCnIqlK8c8dbzRHgFRNh6puhMgIIrXNs75jl6AZ4QKZCNkSQeAi34w1vx2qnZvla+hM8d1cAME=
+	t=1778062061; cv=none; b=VvuPE+WaQaLORKVkl4tvJk/jsyKb2mHUIN3Yln10iOU//OulL++ITNvxPiYIMl66H0wgwxAZ5hHXvPeGkgKTtBpLrTV+G8Ob6tuF4nu3Q6kC0kJN0v3sEYiQgJ/Dsa+1eIixJcIctfDQVAJf9T9NXgw7EI7f8jDnOK1W85BYifQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778057798; c=relaxed/simple;
-	bh=zp2C0hJkR85k7cWv/TIUOucqerZUGNvfBRqp4Qt805A=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=UqHbqOJJTqBRd/djaaNuf6RCuVSmjbdwOIHRaM0M42o/jdfrmwMxaxpo5ajR2EAuVEWBK00KPqvsQpWDr0HVyrTWT2iTiJ9J9USZTXdLZZcEEOp+11swYmaFsZzY19LQJ5uWszvp5U53CrhkexuDhilQQ0WjkM5u2X83XP55pNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=VLkG+T4p; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="VLkG+T4p"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 129A322948;
-	Wed, 06 May 2026 11:56:15 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=cmbRi41+gNhLJ/BoTacOk4rEd+O0aklpZLKmpm6lcJc=; b=VLkG+T4pGVIx
-	F7JdOyPlUBLYiHb3/qzg5Sx5FQPmOdEdSlHoo9f3FTCO6NMk4Uqlj4WP2kBRZIpb
-	MYslQxVpth/3s95+zQ17fBurmNumY2AdaxKHtnuZtTAVXN0x8u0ZndM1A+0KR+q0
-	JXrkVoyg+jOATn39d3WDODFieX1fN/y02Ltzwr/Z20S1Oc6BvValJuM4aViNav9g
-	ZDavOI4yPHAvUKFOnXSvnGbHEQS2oFKVM/tp1jITyKiFuep2ZglDIWg9Ak2mEC5l
-	/syTOIQDhCWNqTWKhsk93Wno7bjlAStmVD0tT6f33EYYcFXQ/z6vl6SsYSehPq6h
-	fVSFDvGjg/UESlE7uWgxeYC7Q96puvMhWRDvTehLbIS0pNwZ8VsQ1zYQLbDsWAAV
-	D5zTVoX9b45uY/gz3rrJXvPMwaU37uGh9H7F7Jq60srHVh39pKnhifaRYtVfSstA
-	4SZbOxQePnlyg/OHGBEmzn0QMk0+H+iuNuIiTDMYljkj/elxmN77pjRUrg8+iVRH
-	nUOkE7GhIDkZPA6nd/qxrSZl9c3qMgGiBvYi3qdLjcylyTyJVAj0c1HY0BpNLKH+
-	Pwxij9Tv2jnW2vu/oAkaVyYgzCJ2HoUinFT89NKeMSJdAMg+ToF9BdDAOdYWBd+g
-	997Di2MF9p/Eg2ZKKPtI72GeQtjVuVc=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 06 May 2026 11:56:14 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 1D988608AE;
-	Wed,  6 May 2026 11:56:13 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 6468u5i6022127;
-	Wed, 6 May 2026 11:56:06 +0300
-Date: Wed, 6 May 2026 11:56:05 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com, fw@strlen.de, horms@kernel.org,
-        longman@redhat.com, lvs-devel@vger.kernel.org
-Subject: Re: [PATCH net 0/8] IPVS fixes for net
-In-Reply-To: <20260505001648.360569-1-pablo@netfilter.org>
-Message-ID: <bce80830-1e2d-43ad-ba7f-055cb352b348@ssi.bg>
-References: <20260505001648.360569-1-pablo@netfilter.org>
+	s=arc-20240116; t=1778062061; c=relaxed/simple;
+	bh=cUVsyQ+CPii9GgDPNBfUJk8Yd+wAcu6Xo9FUYbCsgSM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JZ2ztMjwMnU9efw82GsNuPbjO2QkdFo/ZB8XguK3/JaHGuDwE/6c6G4D6QRdrfdkrs1SWE2911Dn1owjJ5B7KXmZESOjNEhh/fI61nmz0G5dphB4GtGAKVyP627YhmClLgsIv3o2mqwoEkAhNEn3hCbQu0C/gki320eaeOkgsXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 278AF605F3; Wed, 06 May 2026 12:07:34 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: tristan@talencesecurity.com,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH v3 nf 0/8] netfilter: xtables: fix module load and teardown races
+Date: Wed,  6 May 2026 12:07:12 +0200
+Message-ID: <20260506100728.2664-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+v3:
+- sashiko spotted a wrong error unwind in iptable_nat.c in last patch.
+- alter Reported-by tag for Tristan Madani as requested
+- no other changes.
 
-	Hello,
+1) Allow initial x_tables table replacement without emitting an audit log
+message. Delay the register message until after hooks are wired up to
+avoid unnecessary unregister logs during error unwinding.
 
-On Tue, 5 May 2026, Pablo Neira Ayuso wrote:
+2) Fix a NULL dereference by allocating hook ops before adding the table to
+the per-netns list. Use `synchronize_rcu()` during error unwinding to
+ensure the table stops processing packets before teardown. Defer audit log
+register message until all operations succeed.
 
-> Hi,
-> 
-> The following batch contains IPVS fixes for net to address issues
-> from the latest net-next pull request.
-> 
-> Julian Anastasov made the following summary:
-> 
-> 1-3) Fixes for the recently added resizable hash tables
->  
-> 4) dest from trash can be leaked if ip_vs_start_estimator() fails
->  
-> 5) fixed races and locking for the estimation kthreads
->  
-> 6) fix for wrong roundup_pow_of_two() usage in the resizable hash
->    tables
->  
-> 7-8) v2 of the changes from Waiman Long to properly guard against
->   the housekeeping_cpumask() updates:
->  
->   https://lore.kernel.org/netfilter-devel/20260331165015.2777765-1-longman@redhat.com/
->  
->   I added missing Fixes tag. The original description:
->  
->   Since commit 041ee6f3727a ("kthread: Rely on HK_TYPE_DOMAIN for preferred
->   affinity management"), the HK_TYPE_KTHREAD housekeeping cpumask may no
->   longer be correct in showing the actual CPU affinity of kthreads that
->   have no predefined CPU affinity. As the ipvs networking code is still
->   using HK_TYPE_KTHREAD, we need to make HK_TYPE_KTHREAD reflect the
->   reality.
->  
->   This patch series makes HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
->   and uses RCU to protect access to the HK_TYPE_KTHREAD housekeeping
->   cpumask.
-> 
-> Julian plans to post a nf-next patch to limit the connections by using
-> "conn_max" sysctl. With Simon Horman, they agreed that this is an old
-> problem that we do not have a limit of connections and it is not a
-> stopper for this patchset.
-> 
-> Please, pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-05-05
-> 
-> Thanks.
-> 
-> ----------------------------------------------------------------
-> 
-> The following changes since commit bd3a4795d5744f59a1f485379f1303e5e606f377:
-> 
->   selftests: tls: add test for data loss on small pipe (2026-05-02 18:27:14 -0700)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-05-05
-> 
-> for you to fetch changes up to 8f78b749f3da0f43990490b4c1193b5ede3eec0a:
-> 
->   sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN (2026-05-05 01:52:55 +0200)
-> 
-> ----------------------------------------------------------------
-> netfilter pull request 26-05-05
-> 
-> ----------------------------------------------------------------
-> Julian Anastasov (6):
->       ipvs: fixes for the new ip_vs_status info
->       ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
->       ipvs: fix the spin_lock usage for RT build
->       ipvs: do not leak dest after get from dest trash
->       ipvs: fix races around est_mutex and est_cpulist
->       ipvs: fix shift-out-of-bounds in ip_vs_rht_desired_size
-> 
-> Waiman Long (2):
->       ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
->       sched/isolation: Make HK_TYPE_KTHREAD an alias of HK_TYPE_DOMAIN
-> 
->  include/linux/sched/isolation.h |   6 +-
->  include/net/ip_vs.h             |  31 ++++++--
->  net/netfilter/ipvs/ip_vs_conn.c |  76 ++++++++++---------
->  net/netfilter/ipvs/ip_vs_core.c |   2 +-
->  net/netfilter/ipvs/ip_vs_ctl.c  | 164 +++++++++++++++++++++++++++++-----------
->  net/netfilter/ipvs/ip_vs_est.c  |  83 +++++++++++---------
->  6 files changed, 241 insertions(+), 121 deletions(-)
+3) Refactor xtables to use a single `xt_unregister_table_pre_exit` function.
+Eliminate code duplication by centralizing table unregistration logic
+within the xtables core. ebtables cannot be changed due to incompatibility.
 
-	Here are some comments after the last review from
-Sashiko:
+4) Unregister xtables templates before module removal. This prevents
+a race condition where userspace instantiates a new table after the pernet
+unreg removed the current table.
 
-https://sashiko.dev/#/patchset/20260505001648.360569-1-pablo%40netfilter.org
+5) Add `xtables_unregister_table_exit` to fully unregister netfilter tables
+during module removal. Unlink the table from dying lists, then free hook
+operations.
 
-Patch 1:
-- while ip_vs_dst_event() should loop and ensure all dev
-references are released, single change of svc_table_changes
-does not indicate the old references are dropped by ip_vs_flush() or
-ip_vs_del_service(). I'll post new change to abort the loop
-when we are sure the services are at least once released.
+6) Implement a two-stage removal scheme for ebtables following the x_tables
+pattern. Assign table->ops while holding the ebt mutex to prevent exposing
+partially-filled structures.
 
-Patch 5:
-- after executing ip_vs_est_calc_phase(), data can
-remain only for kt0 because all estimators are stopped,
-unlinked and the kt data structures for kt > 0 are empty
-and as result freed and the kthread tasks stopped (which
-happens early). After this, kt 0 calls
-ip_vs_est_drain_temp_list() as part of its loop,
-so it will eventually call ip_vs_est_add_kthread()
-and ip_vs_est_reload_start() to request kthread tasks
-to be started if data for new kthreads are created.
-So, I don't see problem here.
+7) Fix ebtables module initialization race. Register the template last in
+table initialization functions. Prevent table instantiation before pernet
+operations are available.
 
-Patch 6:
-- we will add conn_max sysctl soon
+8) Fix a race condition in x_tables module initialization. Ensure pernet ops
+are fully set up before exposing the table to userspace.
 
-Patch 7 and 8:
-- I can not decide how valid are the concerns in the review.
+Florian Westphal (8):
+  netfilter: x_tables: allow initial table replace without emitting
+    audit log message
+  netfilter: xtables: allocate hook ops while under mutex
+  netfilter: x_tables: add and use xt_unregister_table_pre_exit
+  netfilter: x_tables: unregister the templates first
+  netfilter: x_tables: add and use xtables_unregister_table_exit
+  netfilter: ebtables: move to two-stage removal scheme
+  netfilter: ebtables: close dangling table module init race
+  netfilter: x_tables: close dangling table module init race
 
-Regards
+ include/linux/netfilter/x_tables.h        |   4 +-
+ include/linux/netfilter_arp/arp_tables.h  |   1 -
+ include/linux/netfilter_ipv4/ip_tables.h  |   1 -
+ include/linux/netfilter_ipv6/ip6_tables.h |   1 -
+ net/bridge/netfilter/ebtable_broute.c     |  14 +-
+ net/bridge/netfilter/ebtable_filter.c     |  14 +-
+ net/bridge/netfilter/ebtable_nat.c        |  12 +-
+ net/bridge/netfilter/ebtables.c           |  60 +++++---
+ net/ipv4/netfilter/arp_tables.c           |  53 +------
+ net/ipv4/netfilter/arptable_filter.c      |  27 ++--
+ net/ipv4/netfilter/ip_tables.c            |  59 +-------
+ net/ipv4/netfilter/iptable_filter.c       |  27 ++--
+ net/ipv4/netfilter/iptable_mangle.c       |  29 ++--
+ net/ipv4/netfilter/iptable_nat.c          |   6 +-
+ net/ipv4/netfilter/iptable_raw.c          |  26 ++--
+ net/ipv4/netfilter/iptable_security.c     |  27 ++--
+ net/ipv6/netfilter/ip6_tables.c           |  56 +------
+ net/ipv6/netfilter/ip6table_filter.c      |  26 ++--
+ net/ipv6/netfilter/ip6table_mangle.c      |  27 ++--
+ net/ipv6/netfilter/ip6table_nat.c         |   6 +-
+ net/ipv6/netfilter/ip6table_raw.c         |  24 +--
+ net/ipv6/netfilter/ip6table_security.c    |  27 ++--
+ net/netfilter/x_tables.c                  | 177 ++++++++++++++++++----
+ 23 files changed, 361 insertions(+), 343 deletions(-)
 
---
-Julian Anastasov <ja@ssi.bg>
+-- 
+2.53.0
 
