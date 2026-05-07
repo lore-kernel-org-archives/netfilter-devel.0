@@ -1,30 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 579A6370D6D
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2026 09:20:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C053C65F4
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 May 2026 09:34:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778145633; cv=none; b=gviH40aWKaQ+JTZdt5nMW2QYqW3D9dV1zPKdB6q2pNWbRlspqinC8DlKduRKYwvERrZ1oTnDxiKvk8YTa/OgSMKIpHI6nxCyVHjsu2GKmy0X4t0NOqGIdziFzugACMkzuRnhcPIhIZRGilRDScPk/AquPXhp1HPMvVN1UG6+VpA=
+	t=1778146467; cv=none; b=tLneVwshyMJkI7P2kNuyNj3Swr6L8WOKlX4odbScmN45I9Y16v4WRZ83hQI8CRPQTKcqO1n5i6mz1RoDp3qnZFpNMYQAPPGKjIUIuDEf1q3jkIWwTDBWb40/ramIzsNA7MotJVx+VkYOFtg6DY7bkMXBZndc7XkAg74iwI+Jucg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778145633; c=relaxed/simple;
-	bh=9DSXW2TUYZRK98JxZIrLyW9X1ajP6NS+2E1LfDjeb50=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gOwu+TD2z1Qh7nAooS8eri7qMrlWcDTPEUNOzm+a60doHNnpmsOZoH4Txm1GlKkFAQ3g8ybO69Zl9YTDHZRHCR3DyxB/MRagm969fRoCkDv2fr7WPL5qvpf32Bpnew7VdVnFVNKltHOpeNEINr90++jE5+RKPKUJmqFcN+vPdy4=
+	s=arc-20240116; t=1778146467; c=relaxed/simple;
+	bh=ZPCpreWxkTckdWroQC4EmllguCRWJYt+Y+X99cw/zbk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RT/98iUClGehBKvBqmW+KsQOQBdf3Qgs0JshO9n9EEzncSozgcSODjSmVwnCFhUm/3ZqyyCyW4cJf5yEWMHpmBx82C7NUe+rPWWLX0QSle3FUmWxk5tAQ3PjfiAvNQyg6DnQG+HUd1/GBqneW6PBrmIYnzrZQ3pZW5iSkzfliRw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D805C60D41; Thu, 07 May 2026 11:20:19 +0200 (CEST)
+	id 6E1EC60D41; Thu, 07 May 2026 11:34:23 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf 9/8] netfilter: bridge: eb_tables: close module init race
-Date: Thu,  7 May 2026 11:19:22 +0200
-Message-ID: <20260507092014.17981-1-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: add option for GCOV profiling
+Date: Thu,  7 May 2026 11:34:15 +0200
+Message-ID: <20260507093418.29858-1-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260506100728.2664-1-fw@strlen.de>
-References: <20260506100728.2664-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,48 +30,90 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-sashiko reports for unrelated patch:
- Does the core ebtables initialization in ebtables.c suffer from a similar race?
- Once nf_register_sockopt() completes, the sockopts are exposed globally.
+Similar to a few other subsystems: add a new config toggle to
+enable netfilter gcov profiling in netfilter, including ebtables,
+arptables and so on.
 
-sockopt has to be registered last, just like in ip/ip6/arptables.
-
-Fixes: 5b53951cfc85 ("netfilter: ebtables: use net_generic infra")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebtables.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ NB: This doesn't enable profiling for br_netfilter kludge,
+ because it resides in net/bridge/ dir.  As I'm not interested
+ in extending coverage for that thing I did not extend this.
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 3578ffbc14ae..b9f4daac09af 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2583,19 +2583,20 @@ static int __init ebtables_init(void)
- {
- 	int ret;
- 
--	ret = xt_register_target(&ebt_standard_target);
-+	ret = register_pernet_subsys(&ebt_net_ops);
- 	if (ret < 0)
- 		return ret;
--	ret = nf_register_sockopt(&ebt_sockopts);
+ net/bridge/netfilter/Makefile | 4 ++++
+ net/ipv4/netfilter/Makefile   | 4 ++++
+ net/ipv6/netfilter/Makefile   | 4 ++++
+ net/netfilter/Kconfig         | 8 ++++++++
+ net/netfilter/Makefile        | 4 ++++
+ 5 files changed, 24 insertions(+)
+
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index b9a1303da977..af0c903aa4ac 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+ obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
 +
-+	ret = xt_register_target(&ebt_standard_target);
- 	if (ret < 0) {
--		xt_unregister_target(&ebt_standard_target);
-+		unregister_pernet_subsys(&ebt_net_ops);
- 		return ret;
- 	}
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 85502d4dfbb4..dbfb1c4739a8 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
  
--	ret = register_pernet_subsys(&ebt_net_ops);
-+	ret = nf_register_sockopt(&ebt_sockopts);
- 	if (ret < 0) {
--		nf_unregister_sockopt(&ebt_sockopts);
- 		xt_unregister_target(&ebt_standard_target);
-+		unregister_pernet_subsys(&ebt_net_ops);
- 		return ret;
- 	}
+ obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 66ce6fa5b2f5..72902d8005ad 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
+ obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
+ obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+ obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 682c675125fc..a3b844421515 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
  
+ endif # NETFILTER_XTABLES
+ 
++config GCOV_PROFILE_NETFILTER
++	bool "Enable GCOV profiling for netilter"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for netfilter for checking which functions/lines
++	  are executed.
++
++	  If unsure, say N.
+ endmenu
+ 
+ source "net/netfilter/ipset/Kconfig"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6bfc250e474f..f0751ca302c6 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
+ 
+ # lwtunnel
+ obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
 -- 
 2.53.0
 
