@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E38733164B5;
-	Thu,  7 May 2026 23:45:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503C3330305;
+	Thu,  7 May 2026 23:45:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778197535; cv=none; b=d6zn82EyXUjJtjSgLEr4NVdsYuPvWMDD4H9HJHneV3N8hADznnHhUHS4kXHTOCZaBJiwv5SHK6z2aVHbLx3XouLThkmiGOyEfN1+8H6jzjOJBIrwFeILEQOSKYwF8K9BnrRwn0IxJj6opv7Vv/X3KIHq1S0aJRJZ8p8YO2gWL8Y=
+	t=1778197536; cv=none; b=YTWi1sRh5pMuz6+1uX+Co1nl6rFSm+zJ0pAg9TZqJjWLCamlfbD7k0u5IyU66Yk+BwYhWXmrSANlUl139O/yUmpKC5rv/g6wLxoXEEzsXCgJpDOhiANqdLbZ6+VIXOjWuUEA+SjbkvrEoXu6rQJ5vhB/AztTYxAzfRHrlIEEMuw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778197535; c=relaxed/simple;
-	bh=v/6PiuPXvHN36blI6F1DZFC30KaE4+38xj/zbe2ONNE=;
+	s=arc-20240116; t=1778197536; c=relaxed/simple;
+	bh=CM8PF4glXhSIUUFov2JRwRrYLQD4FIGt4Ki8AIzCf1w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=K1xGI6NoutrEBTd/HWj2KF3VVmbh64NhF8w1HwX/QYLzGSM/gnL3W6DorEG9Tz60GRaOUHVhgE7JhZ4uU0nqoLjZUaymq02PlPKgDLx0E+eaHibH/CIn06IugVeGovMYLLbSHlO8kg92Cb+d82V9q206DQ97U3igRdYh80FIvFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MbjJ6WiF; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=FdLHbXZ9IgzvWIgJbqq0lbo6p+nGLBNqn5YHRwEzcjKbaGSYGFaYW7b7f4pjxLRIFls5qSDMmCs/RkQV0EieQ9KK5vy30Skl0ppt/zdsfBbV054tsbtSav4xs9fhgBVLX3nWbDecMd5GDuscq/iY6PzZVIKhfKKIHldKnUvTV10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pE3sxC+G; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MbjJ6WiF"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pE3sxC+G"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0A125600BA;
-	Fri,  8 May 2026 01:45:30 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5B13860263;
+	Fri,  8 May 2026 01:45:32 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778197531;
-	bh=ZgJ+LLSeDZ91i6tC7ZYl1KyGcH1Jr9xCtlvx+ZLPwuk=;
+	s=2025; t=1778197532;
+	bh=a5lOgFJcNBDO0z7vBkeJmy4xfYqzSaHzCX4uD4W3SVQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MbjJ6WiFN9R4deAgi7i7oyyqZJhxYKJfqzAtgMVzNKiLQP2cpjRI+1gChg2FVnKIq
-	 IRueX06JAofArQo5EGRyE5dLKWx0YTXOviY+s0UFXX6I+tZV0kuPGpqOvB2jCxi1Ia
-	 +xBnSbOSbvO1+/bbE/lA276bgtYFRJU42GZ2lLLgS2oYj+EBExwg5+oJLVkrH1M5LJ
-	 hL0+MoyKNvPIGAWK+pJwbTYLBhZglP3h4hXTKiHxccCGS2BIuAWE9OqXbpPKcHmPd3
-	 vXXk9Y8yn8+3yIkkkVU8K7QXJbvSe2Elsal+0WIv/WoC70DY3638tssPSBXRBRMxfl
-	 WDDQysrTtXYTw==
+	b=pE3sxC+GV87sIVe77UalmJrPFiFdqck8pfjtdU5sv+9uMKoY2r81xUbT/9dhU3T2h
+	 9vmEMOQNLQvW+ravM/RBgxzw8dqtL4VZspAuIt/Hmb5ud9jEv+JlLfzLXsfWMDqFya
+	 1KvYYK9EpM7BVMO6gjeWAVDjzQ8NeM8s3Bwsw7HRH9LC5AL3xbU50M2t90FM01HM9x
+	 P4UXSjzJVdoh2PJ/8SCfmRGgDcnGHw5QBlkrFuNevrLrjSUOceKeiAQxIDN5TAjuWx
+	 aWTEVAaFAUG95+oH/zZ7RYD7EV/A9jVwwzRlQEnR1sM2a7D1yDz2aYZ+qD/7/bleOu
+	 ymMw/qcXmcTbg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 12/13] netfilter: nf_conntrack_sip: get helper before allocating expectation
-Date: Fri,  8 May 2026 01:45:08 +0200
-Message-ID: <20260507234509.603182-13-pablo@netfilter.org>
+Subject: [PATCH net 13/13] netfilter: nft_ct: fix missing expect put in obj eval
+Date: Fri,  8 May 2026 01:45:09 +0200
+Message-ID: <20260507234509.603182-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260507234509.603182-1-pablo@netfilter.org>
 References: <20260507234509.603182-1-pablo@netfilter.org>
@@ -54,48 +54,32 @@ Content-Transfer-Encoding: 8bit
 
 From: Li Xiasong <lixiasong1@huawei.com>
 
-process_register_request() allocates an expectation and then checks
-whether a conntrack helper is available. If helper lookup fails, the
-function returns early and the allocated expectation is left behind.
+nft_ct_expect_obj_eval() allocates an expectation and may call
+nf_ct_expect_related(), but never drops its local reference.
 
-Reorder the code to fetch and validate helper before calling
-nf_ct_expect_alloc(). This keeps the logic simpler and removes the leak
-path while preserving existing behavior.
+Add nf_ct_expect_put(exp) before return to balance allocation.
 
-Fixes: e14575fa7529 ("netfilter: nf_conntrack: use rcu accessors where needed")
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
 Cc: stable@vger.kernel.org
 Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_sip.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nft_ct.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index d24bfa9e8234..e69941f1a101 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1366,6 +1366,10 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 		goto store_cseq;
- 	}
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 60ee8d932fcb..fa2cc556331c 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1334,6 +1334,8 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
  
-+	helper = rcu_dereference(nfct_help(ct)->helper);
-+	if (!helper)
-+		return NF_DROP;
+ 	if (nf_ct_expect_related(exp, 0) != 0)
+ 		regs->verdict.code = NF_DROP;
 +
- 	exp = nf_ct_expect_alloc(ct);
- 	if (!exp) {
- 		nf_ct_helper_log(skb, ct, "cannot alloc expectation");
-@@ -1376,10 +1380,6 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	if (sip_direct_signalling)
- 		saddr = &ct->tuplehash[!dir].tuple.src.u3;
++	nf_ct_expect_put(exp);
+ }
  
--	helper = rcu_dereference(nfct_help(ct)->helper);
--	if (!helper)
--		return NF_DROP;
--
- 	nf_ct_expect_init(exp, SIP_EXPECT_SIGNALLING, nf_ct_l3num(ct),
- 			  saddr, &daddr, proto, NULL, &port);
- 	exp->timeout.expires = sip_timeout * HZ;
+ static const struct nla_policy nft_ct_expect_policy[NFTA_CT_EXPECT_MAX + 1] = {
 -- 
 2.47.3
 
