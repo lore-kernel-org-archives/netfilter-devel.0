@@ -1,80 +1,104 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A0F36403B
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 May 2026 21:04:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 515F2278156;
+	Sat,  9 May 2026 01:41:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778274262; cv=none; b=RGwqSMIPi4zfq5OPaupmcCGjzBB4W+3STBnCR6W9b5OU3bzjRpcK89H6L2MGaKguFXtqxrJZs8ZCWLuPxm4xHuWJbgaOXQfvZiSNpBMQb3iKEAsm1XOXFlRpyqN++1NqTPXiajrmHTNoBWvQOHJHILlylci3CyZnjMTqiNMbxPs=
+	t=1778290873; cv=none; b=DwEcyjT8dzjSej1tFKhXr2pLU+oLk1RICh35cPIug1VH9/u9LF5FcM3yc9VZ6kR7i3xtmStxio79N9wEtvwFLQ/Fl9NoVDnBm3MGL9aeWOEInNtDhAvZSV/esIub2NOpzU3qjs+XpwcjRMwchSd2JIudJ3yVHllktNxbarrgJgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778274262; c=relaxed/simple;
-	bh=VBmWw4K90l56etN30cLzQrR5qMRXpdUUw0kfS9vRVKI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=FcsQtMnQRDlvZovPeEKeXBcNesGwd10KGdJiWuH9QJ6k02RHPEC8f2tzU0vinqM09Z1+VgwqTngw4ry7Ns/JsppfDsJMBBRNSOqDWtulaA+R49Hjm4zeKo5VA2IP5HSksdF/7ot73l2AUwCLqSOHAKkKRldV/vLnm7dhxAnPDv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Tti836hJ; arc=none smtp.client-ip=148.6.0.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1778290873; c=relaxed/simple;
+	bh=LPHO7mWMRRT8fu6h/79gWlYEjg9jE+RXDoObQaxTUSk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=nsraXsBj3iET8Z66g6zwZBdaLs3vTZC0D7vHKTONUtVKAipgzo/rBJad1A1Uotpj/rMMaWeh4TmXhGn0TA5QfcL1YIHtb6S0sVJi1h8wsVRGqNlzXkA69BqZynlWiHaHnKNyucab4sWhlmYGye51vZbCbjkqhyssVE2V8A5sKkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lNSqAgvs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Tti836hJ"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4gC1gw3Rvwz3sb8r;
-	Fri,  8 May 2026 22:59:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:x-mailer:message-id:date:date
-	:from:from:received:received:received; s=20151130; t=1778273946;
-	 x=1780088347; bh=oGb96l/S8WijJSk1sUQGzB7IrwGLZO5aEkXTV3YzVDE=; b=
-	Tti836hJ3EuHs3+lA5M67HiM5ylQTJzUuxrKq/X/D/h+WOOwQfmrFToeWzU+jsLI
-	AMWLXC9gki6vYt93C8OtBPEE0h9CM81oy4TEVLqGor7j+uh14MRyxzba7TDTN2CQ
-	0zSECxzTpvpmCoM7rJ6cCf0Cn6UXjKa+BtzdcdTJJEM=
-X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
- by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id FxK_9KEdxti3; Fri,  8 May 2026 22:59:06 +0200 (CEST)
-Received: from mentat.rmki.kfki.hu (254C131D.nat.pool.telekom.hu [37.76.19.29])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4gC1gr5MkSz3sb9B;
-	Fri,  8 May 2026 22:59:04 +0200 (CEST)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id E6D55141C70; Fri,  8 May 2026 22:59:03 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v6 0/8] netfilter: ipset fixes
-Date: Fri,  8 May 2026 22:58:55 +0200
-Message-Id: <20260508205903.10238-1-kadlec@netfilter.org>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lNSqAgvs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED232C2BCB0;
+	Sat,  9 May 2026 01:41:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778290873;
+	bh=LPHO7mWMRRT8fu6h/79gWlYEjg9jE+RXDoObQaxTUSk=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=lNSqAgvsqnAMn0JbjXmj1zhPby6CXnj9hhdr6cGkCv0HSYT3IWeGyApFL2FokkEtV
+	 dzFaRDt75KtH4QJCL12PGxvZqDQuprlGo5F2KiMk/YioYX4LfH3w6dTVEDXEQzEPsY
+	 8LYTK+Iortxhlq3Yt4eq41oiBV5XltdHDcfFncRApHD7t4BEhe0k6cp+dw+j58BlJg
+	 9zA5c4cD/LbaY2J22PwxnygdB+rwPy8jaPUreBzVSGHf0HFtwxpydPZ1Saez0sYwWL
+	 YlDpZJt5U01T7ONSSgnwPwQjzdEoxrrQea3yMtsfRPnvgHlw49adrwkbNWHTHsw497
+	 /3svYnNM45tLA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7CEF738119E4;
+	Sat,  9 May 2026 01:40:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-deepspam: ham 1%
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/13] netfilter: x_tables: allow initial table
+ replace
+ without emitting audit log message
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177829082130.929250.13481267199654221976.git-patchwork-notify@kernel.org>
+Date: Sat, 09 May 2026 01:40:21 +0000
+References: <20260507234509.603182-2-pablo@netfilter.org>
+In-Reply-To: <20260507234509.603182-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-Hi Pablo,
+Hello:
 
-Here follows the new revision of the fixes for the current list
-of ipset related issues. If sashiko won't find any issues in=20
-the patches themselves, then please consider applying them.
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Best regards,
-Jozsef
+On Fri,  8 May 2026 01:44:57 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> At the moment we emit the audit log a bit too early, which makes it
+> necessary to also emit an unregister log in case we have to unwind
+> errors after possible hook register failure.
+> 
+> Followup patch will be slightly simpler if we can delay the
+> register message until after the hooks have been wired up.
+> 
+> [...]
 
-Jozsef Kadlecsik (8):
-  netfilter: ipset: fix a potential dump-destroy race
-  netfilter: ipset: Fix data race between add and list header in all
-    hash types
-  netfilter: ipset: Fix data race between add and dump in all hash types
-  netfilter: ipset: annotate "pos" for concurrent readers/writers
-  netfilter: ipset: Don't use test_bit() in lockless RCU readers
-  netfilter: ipset: fix potential torn read in reuse/forceadd cases
-  netfilter: ipset: skip gc when resize is in progress
-  netfilter: ipset: fix order of usage counters
+Here is the summary with links:
+  - [net,01/13] netfilter: x_tables: allow initial table replace without emitting audit log message
+    https://git.kernel.org/netdev/net/c/8e72510db9fa
+  - [net,02/13] netfilter: x_tables: allocate hook ops while under mutex
+    https://git.kernel.org/netdev/net/c/b62eb8dcf2c4
+  - [net,03/13] netfilter: x_tables: add and use xt_unregister_table_pre_exit
+    https://git.kernel.org/netdev/net/c/527d6931473b
+  - [net,04/13] netfilter: x_tables: unregister the templates first
+    https://git.kernel.org/netdev/net/c/d338693d7785
+  - [net,05/13] netfilter: x_tables: add and use xtables_unregister_table_exit
+    https://git.kernel.org/netdev/net/c/b4597d5fd7d2
+  - [net,06/13] netfilter: ebtables: move to two-stage removal scheme
+    https://git.kernel.org/netdev/net/c/b7f0544d86d4
+  - [net,07/13] netfilter: ebtables: close dangling table module init race
+    https://git.kernel.org/netdev/net/c/92c603fa07bc
+  - [net,08/13] netfilter: x_tables: close dangling table module init race
+    https://git.kernel.org/netdev/net/c/16bc4b6686b2
+  - [net,09/13] netfilter: bridge: eb_tables: close module init race
+    https://git.kernel.org/netdev/net/c/27414ff1b287
+  - [net,10/13] netfilter: nf_conntrack_expect: restore helper propagation via expectation
+    https://git.kernel.org/netdev/net/c/dcb0f9aefdd6
+  - [net,11/13] netfilter: ctnetlink: check tuple and mask in expectations created via nfqueue
+    https://git.kernel.org/netdev/net/c/d8ef54c83ad7
+  - [net,12/13] netfilter: nf_conntrack_sip: get helper before allocating expectation
+    https://git.kernel.org/netdev/net/c/eb6317739b1e
+  - [net,13/13] netfilter: nft_ct: fix missing expect put in obj eval
+    https://git.kernel.org/netdev/net/c/19f94b6fee75
 
- net/netfilter/ipset/ip_set_core.c     |  5 +-
- net/netfilter/ipset/ip_set_hash_gen.h | 82 ++++++++++++++++++---------
- 2 files changed, 58 insertions(+), 29 deletions(-)
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
---=20
-2.39.5
 
