@@ -1,603 +1,302 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011041.outbound.protection.outlook.com [52.101.52.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40DB828642B;
-	Sun, 10 May 2026 10:46:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778410011; cv=none; b=X4A6k2HRYvRr31pOriVEC/x81Xk1WVAruvZwlLDyhJ8YBoRPKODhNezny6dbSi5yEvw2V3zKMoyiTx5f/8inkyu6+pmeLJaj0mWayxdj1Z0KW/MPFChwdMB4JdU1YhPqxYTqewfiODAgjAiTtD1nD4AUJXBpbdm3ZG19vxZ/560=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778410011; c=relaxed/simple;
-	bh=N9QDTvQOs1HdRdTNIe7M2vTFdK5eDb4lcSbx0gmnDzQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Lxt1WRkk6S30Qc7opd6UDLn0mScAySKmWM55T0o7L1W786X0DsN28HIszOSgIfK7PMUGldwJgRzMzUNdxJlIutkVB60UDVzI65iIXtx79/2yoD7zx+QbbIzhsLYseXp2gZh6ETtg7GVJnW6oMF7JddBf+FC+ChVOuToccSSVe1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=AnpKJpRw; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D51299923;
+	Sun, 10 May 2026 11:14:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778411665; cv=fail; b=eaGkgx5KqZd2F7ZdP3QUMTIbVeytoofNy9tTTQygVhqTR3OUEWL+QBUmj07OZ5qmdYP0G76mfLq5kYD8Jui+Y8QHhlzqLuLl1VhVuqJGjxzNZPoKF9U90VxeUMpeRhwmzqeFZRo4msfORUZFA8cRFNBgY3sJr1mKq/JlVy1AfHM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778411665; c=relaxed/simple;
+	bh=+VpASGzpQQSOlQc4I5iReRDBfrENYhz0TWR5nI3ahoI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=T0CUZjbu05fDooeMtWTTP/TexV7sGywZB33d1wKbwnYUB1d+6zYaa5U3LK0V2le2Np6XMxqbl0xcoMYcTd2BVJ83B+enSbOfCfasMw0LikkYWs0vQdisysyWwaLt6SCa8y10Dqj/X7xRvogppw4qAWSQkU6mKIcTPW4ymKWJwPs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=SOkb4kee; arc=fail smtp.client-ip=52.101.52.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="AnpKJpRw"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 7989225276;
-	Sun, 10 May 2026 13:46:37 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=gtncp/iJ
-	B//ghx9ohcWg67sJtbi8PJmoakWoY2oNsDA=; b=AnpKJpRw6RymBG4peAkv/E5D
-	xn0hdcbZpO2gD0elKiT2ZO/znJrNWJGwefBuKCzeXa93zw6C64ljk4Sa3P1Crjvm
-	Ex3r79BevXxIoEMKsDS0yekN4KY95O0zJuVgS1l82iLqbpNiy3OZOaw8B+osVzC0
-	xaHDRB4ZddEmOHzNieE7AznENf3CGouW0uHc8S3flPMRgV2rvFmQRUb1wokcmIlY
-	mIGi2Yh3vDnT7pZeEIelKjHU5xhja8ieOgl95BeKqUET80yL6nIg6/FqAdbc4fZG
-	jY2O5SqGuFRuJNoCa62EVryXECxZvJVNlzn9ONdNufnEdXPJdItGRFLwiosNalHv
-	OU79NF/S+3km6tqcX7LQ5nJVeEvAzDe9v3E5jb0A1sHjEAejQY/gLEadp1lLi8fA
-	uLVaq5gfJZVzRf32xqhXEeBAEMUgFbiDXdcWsEZFXU06shfYrVdL8jPsa2XNwJ+4
-	bHwRlU64KAtTB4ZT/reQLqbZ7gkZZllelMqAOJ4YKSeVAluOcMdlizBBUSHUrxSm
-	vMqYFnK9MQUpV/UFBmmzyVM1zQ1Ci64qAGmexAZfqPoKyfnz5DShTZ3/t3jk6oPE
-	bEkJ7O6UNUsyIXCuOpTvheYI4JdgG4xnEBWJYbSOHh/1WfylQs/tJKy7AGag3Qye
-	ay1hgWty8J5L8l31UpI=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sun, 10 May 2026 13:46:37 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 18D096044F;
-	Sun, 10 May 2026 13:46:35 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 64AAkSwJ024243;
-	Sun, 10 May 2026 13:46:28 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 64AAkNFF024239;
-	Sun, 10 May 2026 13:46:23 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH v3 nf] ipvs: avoid possible loop in ip_vs_dst_event on resizing
-Date: Sun, 10 May 2026 13:46:05 +0300
-Message-ID: <20260510104605.24218-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="SOkb4kee"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=eEepxPbFtAWPsLDGfE8Ad1ER2soLT3eUpzmJK+/GJoNCh0uvRllv1gBLThVv0z4h6VH1vqsvkvKf8Blfj17bnEAehBiIo4Hox2gEHzs4vQw9uYpiBatwen9GvebilfxaTmGrbvmrzJhJIyGC+ssiyFcUY7NNV46cuNSwzXBQXq8rXv5qUY/t7IAr8DZv7Aj1U//5cNZ9O+QJ5faQZcCyhTDGavJB0aT2SCQt7mhrcopn+vi9EQfpJg90rWzQlEmFp6uM8ww58MNkDWgZwqBadvaeOO4gTIo9wgJhxI5Txoz0VodhC2ierfCf6coZL41fARKj7U5EpX8XloGGW0uqiw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=SRBOQ2oBI54MSrm61Xe2n/l3Yu8ZH/s3to0OboeoaYk=;
+ b=OomFxmflqMOdVVSXYlZ1OvPsQ32KGHNR9RsNIBDTG7zo1+TCeOgiwcevjnyQIszclyIPfVasTP1bUhiuWTuJV6XWhF7tCCLfMsDQeP5ckTN4M0hHzfiNocqEq6umL+iAvqELV967GXE/mamvzyYgvX3Vg2k2l0UUMqRF+6WCHlAWvEEFDRJ8magnlJNzuFl7jDKBLQggvef5xIh/OHnd7/iNGTMtLi4LOByU0gcKrJgEpq0S75UZXyTOAHcxHkVOEABvlaJ1eg8HYvVyGcmckJO/JoRnTNCZWPgCOoYcSQVpfIIGKAYYKOehG7oLVhQVNW0LRAso31DHUNNdM1xSwg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=SRBOQ2oBI54MSrm61Xe2n/l3Yu8ZH/s3to0OboeoaYk=;
+ b=SOkb4keew3rpvE/I+aZqWQB8wFHiMxJ61ySWMCpCJh5jHTCJ7yT/YR8snY7H14/1OpOyeF7a3D+nN9V/6Jmg3s53VDrgY4X5TV7AkMmioZnNWzrGumpoZZcUAEvDYCIU+2Ly5nbPEKy4IBIuwEhxE1iBILnEHm6O09BQARxycivEYaBtAwH1lxXMK+SvFpeOWbvegagfr/k0X9ilgferQJ93preur+PH+kO+KpK98iIX+OrbSTD+lyp/z7PKsVTpTNi7AiiuAmeygCqa/YVk9+rdecH4BXoYEo+uNOVenwiNDszVMJCPZwhCFn+wxl3WHz6lcORiehAOpuZ8fN3/QQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SA3PR12MB7901.namprd12.prod.outlook.com (2603:10b6:806:306::12)
+ by DS7PR12MB8230.namprd12.prod.outlook.com (2603:10b6:8:ed::5) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9891.22; Sun, 10 May 2026 11:14:15 +0000
+Received: from SA3PR12MB7901.namprd12.prod.outlook.com
+ ([fe80::6f7f:5844:f0f7:acc2]) by SA3PR12MB7901.namprd12.prod.outlook.com
+ ([fe80::6f7f:5844:f0f7:acc2%6]) with mapi id 15.20.9891.021; Sun, 10 May 2026
+ 11:14:15 +0000
+Date: Sun, 10 May 2026 14:14:05 +0300
+From: Ido Schimmel <idosch@nvidia.com>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux.dev
+Subject: Re: [PATCH net] net: neigh: Reallocate headroom if necessary in
+ neigh_hh_bridge()
+Message-ID: <20260510111405.GA78831@shredder>
+References: <20260508-nf-neigh_hh_bridge-fix-v1-1-a1464468d92e@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260508-nf-neigh_hh_bridge-fix-v1-1-a1464468d92e@kernel.org>
+X-ClientProxiedBy: FR2P281CA0183.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:9f::19) To SA3PR12MB7901.namprd12.prod.outlook.com
+ (2603:10b6:806:306::12)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA3PR12MB7901:EE_|DS7PR12MB8230:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7e2a39ac-ab86-42f6-5d4e-08deae85454c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|18002099003|56012099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	s/vGqH9u880eRs/u8G6vuqxKkLZ6fcLq7ID3A1IqJHf24a+uSobrlOdZN96Efb6X4EV9r5aqwDU0su3Q81rC1ql5l4wELkt7DmfGKtxRPCw/XirgGPKTJaSbbWIaruhjtcwIn/No7kb90OqmVwWHL7m/ruGZ2iG9nAeeeVmvevIsiPzfhHChtjyuXUex/IqMb/0x9jOz/F1mgIlsUMwBYgLvWGr5zjuvWVp6THh+r5DOR4h8IhJvGtltV2YAQA+fzrET9cci6ktvWULbVzUmj6Cnd0yzGUTmj+6W3ILOxtyR22qlXFC2dz3PPq+pd1CzYrYd2Y5iexkAWHwLNt1Wjx77Mic0TqUSNZdD48YANaXC8dqiSRgoScL2O19240rNf1b2b94gQL3pEPvsp5oXBcW6LG5G/goRXtUcUuCsvE0oHya/EFK1yjM60ZzgxdlZAmjGY6QkbQQatMK0PrTxDy/xuzYzBhJZKIO/AVGuTAshwQbiKu/nD6ufEe8FXLQKxQgBZkrGHMK1+zmdMgKbSvfCXAoKGjNoXd72TBAcCFNEdc7pPcJmMSanXpXJ1oHIdVnZu0fsUSYXi9TpnVSmI7LzViqSzQzNkcVNX7yCiOg/E9nYAT9q333pFeYJfUNlYaT7TwHwqETzqJcaJ2AiaXXw4GUlcfrXRZR/IRd44NfVq4DNk8z/nxqNSUApDB1N
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA3PR12MB7901.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?n+v+lrSWuYb6teXNNSomihxngnH/gad0nlcT22o13nwXLKcFqTGrJa4f7OGU?=
+ =?us-ascii?Q?+VF37gO1E6+tfmWPuJv2PVhd4K063OBdb8BSsMLcY8wqv6cIV8oTDGfgq2pF?=
+ =?us-ascii?Q?xWgILYSSVVJS3maoQay87tNcI2PqS1nW9uNPLuvmFNfHHIwdChSwHUQ+H+7x?=
+ =?us-ascii?Q?e9S1WdWMCyn0F2P3MLH76JBFEmAk+yTtbT9A6hmjX5SMH+JWGmPCAnPGdrLx?=
+ =?us-ascii?Q?ZEf8L+Iz3u0QN6Bd7TlAkvVSMGMp7pC/Yo3sTHWHuwCeJgmfcTZ9r6SPvxU5?=
+ =?us-ascii?Q?aqdLx17J2TERoc/bnHScBhbO0xnhJI/9jZq8hhlt+E5DYpJwpAoQf1tzRTSu?=
+ =?us-ascii?Q?oeAZ/dJDMZh2X5SXm4YpxFfTr2qcW+ydmSxfU65Mlr0GVeIGrnW5D+hn1+C8?=
+ =?us-ascii?Q?tDCC7RL5Ej3kKClv9KotEruq5S57ThviJpxJ7/t6LZcVkkGXWhy5R65l+P6p?=
+ =?us-ascii?Q?O4+tSm/RImqoU7zWajr8yPt84ZiULneflglrEOrDQwH0zeSyJrFerHd0K1ce?=
+ =?us-ascii?Q?S4+z5RmNTxFL47J4b8b7DftzOKjPUvjATLPNHgfVG96txtfREk91ceu6KmL2?=
+ =?us-ascii?Q?AmuTk05JkJEBx30pAKZSNe+cYvM6TfvVeaQfODro/FH3nYih+kHqE/hhpQd5?=
+ =?us-ascii?Q?8OzyEqOe+nQvi6AEFOXMaJcxNy3mXcjV5udHgSQ9adl2zf60SBuINRzHY3kI?=
+ =?us-ascii?Q?0IxJ6Oh4OAJPtgKRpdsj3LT6UhSVAa4Ix9fvCUqhQwDv2flaISXFuNF0ZBII?=
+ =?us-ascii?Q?Mk1SeLNPZDh9/65OpJRdOtNyjXaVSgRvxqBjhWt3Arbt2Wx01mU+AqhrS8H9?=
+ =?us-ascii?Q?oHZYSq1zeXlgo8110TAvxVTOM4L3Pv3BvJGW/5hGoVyWDAP8gcup5hWhtlfs?=
+ =?us-ascii?Q?karzhaNiZb91RkP6xihL+Fz7tCCv3N5pt4nx8/dr3Q/fkJ5R2y5//rmFoZM9?=
+ =?us-ascii?Q?95fnHc9W2YR7aG51Lu+vmisNAAI4qW+F9chJVlKpOHMV/e1lIZc7cZNwibev?=
+ =?us-ascii?Q?KZz6sLvS6ngcV2p4yXiDZeqx+qi+BO3Rop5qDSJUmfG/aYlNVIUK9pxoU247?=
+ =?us-ascii?Q?GWuWzyFDgZ2Ygk/iGuWCATsmGEvYDUd05kMatgwAt2T1SZayI/wIRhkT3obO?=
+ =?us-ascii?Q?oSMQXdaVykO+WGv0RN5//OoD5TLJC8yOVx6ePAqdcJeO2A7l54VndLD0GiSY?=
+ =?us-ascii?Q?zlD4VzfHnOSTGL6gXCGXrbS3Q1zkUt9KPmlgkUFWSA2YjnAi76KNsVsP1neJ?=
+ =?us-ascii?Q?X6dyyUmsfYMhBQI6ZWtjn6yyCdOQNOkBop9C/+MhCypay3+KrN/a+eBbSBwF?=
+ =?us-ascii?Q?VjFWSOwGiGbDAJ27k3QMb5DbpPRrb/sfhciW81Hy14+MSeo6LUSbCMbpXBgt?=
+ =?us-ascii?Q?ooMK6R9eH+iSxXqqBRkCFPHta9H6mAQtSI+XzzHVuH9lozO3u2/NrwFnCTaV?=
+ =?us-ascii?Q?G4QopIz99xmnBOxLB+CAfLwgwYtbF3IKY5Cyiflu7pSBPXJQ6SHlf8iCKosA?=
+ =?us-ascii?Q?UAHasjTv5iZUojCGu6dnFR8vOeKlYcpEPz53ca+exlKJ3+dAS87/PJE0+UOk?=
+ =?us-ascii?Q?O5sm641aRspAJLU8ElAHh+Dd0ufbP64ur+apNRxwhAI55OIcG1UhOtPcyGud?=
+ =?us-ascii?Q?dG1HqtG2KYDDWjRMkFFYBPlkwahl9SHv5CtXQKtNuxH93238ciiq3KPSRrZy?=
+ =?us-ascii?Q?rh3uBCoKooInfh/EHwyhjEu5LIy2rHZwQpXt4a3bFjPo6joP?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7e2a39ac-ab86-42f6-5d4e-08deae85454c
+X-MS-Exchange-CrossTenant-AuthSource: SA3PR12MB7901.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 May 2026 11:14:15.1492
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: PMNaaYDguUDI+RS/xk86xF34zS1a+Q+CpgAR00KJGE1RdGkzBpZlvTyY8QLe8yAooxF7aT+k6ZvCTTjWa6vFrg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8230
 
-Sashiko points out that unprivileged user can frequently
-call ip_vs_flush() or ip_vs_del_service() to trigger
-svc_table_changes updates that can lead to infinite loop
-in ip_vs_dst_event(). This can also happen if the user
-triggers frequent table resizing without deleting all
-services. We should also consider the possible effects
-if the user triggers many NETDEV_DOWN events.
+On Fri, May 08, 2026 at 01:25:14PM +0200, Lorenzo Bianconi wrote:
+> neigh_hh_bridge() assumes the skb always has sufficient headroom to copy
+> the aligned  L2 header. This assumption can trigger the crash reported
+> below using the following netfilter setup:
+> 
+> $modprobe br_netfilter
+> $sysctl -w net.bridge.bridge-nf-call-iptables=1
+> 
+> $root@OpenWrt:~# nft list ruleset
+> table ip nat {
+>         chain prerouting {
+>                 type nat hook prerouting priority dstnat; policy accept;
+>                 ip daddr 192.168.83.123 dnat to 192.168.83.120
+>         }
+> }
+> 
+> - iperf3 client (192.168.83.119) --> bridge (192.168.83.118) --> iperf3 server (192.168.83.120)
+> 
+> the iperf3 client is sending packet for 192.168.83.123 to the bridge device.
+> 
+> [ 1579.036575] Unable to handle kernel write to read-only memory at virtual address ffffff8004d76ffe
+> [ 1579.045482] Mem abort info:
+> [ 1579.048273]   ESR = 0x000000009600004f
+> [ 1579.052024]   EC = 0x25: DABT (current EL), IL = 32 bits
+> [ 1579.057363]   SET = 0, FnV = 0
+> [ 1579.060417]   EA = 0, S1PTW = 0
+> [ 1579.063550]   FSC = 0x0f: level 3 permission fault
+> [ 1579.068345] Data abort info:
+> [ 1579.071224]   ISV = 0, ISS = 0x0000004f, ISS2 = 0x00000000
+> [ 1579.076720]   CM = 0, WnR = 1, TnD = 0, TagAccess = 0
+> [ 1579.081770]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+> [ 1579.087092] swapper pgtable: 4k pages, 39-bit VAs, pgdp=0000000080dc4000
+> [ 1579.093794] [ffffff8004d76ffe] pgd=180000009ffff003, p4d=180000009ffff003, pud=180000009ffff003, pmd=180000009ffe3003, pte=0060000084d76787
+> [ 1579.106343] Internal error: Oops: 000000009600004f [#1] SMP
+> [ 1579.193824] CPU: 0 UID: 0 PID: 235 Comm: napi/qdma_eth-3 Tainted: G           O       6.12.57 #0
 
-One way to solve it is to hold svc_resize_sem in
-ip_vs_dst_event() but this can block the dev notifier
-during the whole resizing process.
+AFAICT this driver does not reserve any headroom in skbs that it's
+injecting to the Rx path. Is there a reason for that?
 
-Instead, use new rw_semaphore svc_replace_sem to protect just
-the svc_table replacement which is a short code section.
-Then hold svc_replace_sem in ip_vs_dst_event() to serialize
-with replacing the svc_table. As result, loop is avoided
-as there is no need to repeat the table walking from the
-start. By this way changes in svc_table_changes can happen
-only when all services are removed and all dev references
-dropped which allows us to abort the table walking.
+> [ 1579.202614] Tainted: [O]=OOT_MODULE
+> [ 1579.206102] Hardware name: Airoha AN7581 Evaluation Board (DT)
+> [ 1579.211929] pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+> [ 1579.218889] pc : br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
+> [ 1579.225859] lr : br_nf_pre_routing_finish_bridge+0x18c/0xcc8 [br_netfilter]
+> [ 1579.232822] sp : ffffffc0817cba20
+> [ 1579.236128] x29: ffffffc0817cba20 x28: 0000000000000000 x27: ffffff8002b89000
+> [ 1579.243273] x26: ffffff8004d7700e x25: 0000000000000008 x24: 0000000000000000
+> [ 1579.250416] x23: ffffffc08179d4c0 x22: 0000000000000000 x21: ffffffc08179d4c0
+> [ 1579.257561] x20: ffffff8004d9b800 x19: ffffff8015010000 x18: 0000000000000014
+> [ 1579.264704] x17: ffffffbf9e930000 x16: ffffffc0817c8000 x15: 0000000000000070
+> [ 1579.271848] x14: 0000000000000080 x13: 0000000000000001 x12: 0000000000000000
+> [ 1579.278993] x11: ffffffc0798caae0 x10: ffffff8014db6fd8 x9 : 0000000000000000
+> [ 1579.286136] x8 : 0000000000000003 x7 : ffffffc08171f628 x6 : 000000001a3b83d3
+> [ 1579.293281] x5 : 0000000000000000 x4 : 1beb76f22fee0000 x3 : ffffff8004d7700e
+> [ 1579.300425] x2 : 0000000000000000 x1 : ffffff8004d9b8bc x0 : ffffff80026ed000
+> [ 1579.307570] Call trace:
+> [ 1579.310018]  br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
+> [ 1579.316632]  br_nf_hook_thresh+0xd4/0x14bc [br_netfilter]
+> [ 1579.322032]  br_nf_hook_thresh+0x250/0x14bc [br_netfilter]
+> [ 1579.327517]  br_nf_hook_thresh+0x76c/0x14bc [br_netfilter]
+> [ 1579.333003]  br_handle_frame+0x180/0x480
+> [ 1579.336935]  __netif_receive_skb_core.constprop.0+0x540/0xf40
+> [ 1579.342682]  __netif_receive_skb_one_core+0x28/0x50
+> [ 1579.347561]  process_backlog+0x98/0x1e0
+> [ 1579.351398]  __napi_poll+0x34/0x1c4
+> [ 1579.354887]  net_rx_action+0x178/0x330
+> [ 1579.358638]  handle_softirqs+0x108/0x2d4
+> [ 1579.362560]  __do_softirq+0x10/0x18
+> [ 1579.366051]  ____do_softirq+0xc/0x20
+> [ 1579.369627]  call_on_irq_stack+0x30/0x4c
+> [ 1579.373550]  do_softirq_own_stack+0x18/0x20
+> [ 1579.377734]  do_softirq+0x4c/0x60
+> [ 1579.381050]  __local_bh_enable_ip+0x88/0x98
+> [ 1579.385234]  napi_threaded_poll_loop+0x188/0x21c
+> [ 1579.389853]  napi_threaded_poll+0x70/0x80
+> [ 1579.393863]  kthread+0xd8/0xdc
+> [ 1579.396918]  ret_from_fork+0x10/0x20
+> [ 1579.400499] Code: 88dffc22 3707ffc2 f9406663 f9406684 (f81f0064)
+> [ 1579.406589] ---[ end trace 0000000000000000 ]---
+> [ 1579.411209] Kernel panic - not syncing: Oops: Fatal exception in interrupt
+> [ 1579.418083] SMP: stopping secondary CPUs
+> [ 1579.422012] Kernel Offset: disabled
+> 
+> Fix the issue reallocating the skb headroom if necessary in neigh_hh_bridge routine.
+> 
+> Fixes: e179e6322ac33 ("netfilter: bridge-netfilter: Fix MAC header handling with IP DNAT")
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>  include/net/neighbour.h         | 15 +++++++++++----
+>  net/bridge/br_netfilter_hooks.c |  5 ++++-
+>  2 files changed, 15 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/net/neighbour.h b/include/net/neighbour.h
+> index 2dfee6d4258a..4e1222968753 100644
+> --- a/include/net/neighbour.h
+> +++ b/include/net/neighbour.h
+> @@ -487,16 +487,23 @@ static inline int neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
+>  }
+>  
+>  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+> -static inline int neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
+> +static inline struct sk_buff *
+> +neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
+>  {
+> -	unsigned int seq, hh_alen;
+> +	unsigned int seq, hh_alen = HH_DATA_ALIGN(ETH_HLEN);
+> +
+> +	if (unlikely(skb_headroom(skb) < hh_alen)) {
+> +		skb = skb_expand_head(skb, hh_alen);
+> +		if (!skb)
+> +			return NULL;
+> +	}
 
-As IP_VS_WORK_SVC_NORESIZE is the flag used to stop the
-svc_resize_work under service_mutex, we should check only
-this flag often but not while under service_mutex.
+The comment from Sashiko looks relevant:
 
-To remove the mutex_trylock() for service_mutex in the
-second phase where the resizer installs the new table
-after rehashing, we will avoid holding the service_mutex
-there. As result, the code in configuration context which
-is under service_mutex should access ipvs->svc_table under
-RCU because it can be replaced at anytime and released
-after a RCU grace period. As for ip_vs_zero_all(), it needs
-different solution as a table walker which can escape
-single RCU read-side critical section: to hold the
-svc_replace_sem to prevent table to be replaced.
+Does this adequately protect against writing to shared or cloned SKBs?
 
-In ip_vs_status_show() prefer to hold svc_replace_sem
-to avoid many loops, just detect if the svc_table is
-removed.
+If a cloned SKB already has sufficient headroom, this check evaluates to
+false, and the code proceeds to overwrite the MAC header via memcpy().
+Modifying a cloned SKB without unsharing it could corrupt the data for
+other users of the buffer, or still trigger the read-only memory panic
+this patch aims to fix.
 
-Prefer the newly attached table for the u_thresh/l_thresh
-checks to know when to grow/shrink while adding or deleting
-services because the new table size is based on the latest
-parameters.
+Should this use skb_cow_head() or explicitly check skb_shared() and
+skb_cloned() before modifying the buffer data?
 
-Link: https://sashiko.dev/#/patchset/20260505001648.360569-1-pablo%40netfilter.org
-Fixes: 840aac3d900d ("ipvs: use resizable hash table for services")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- include/net/ip_vs.h            |   3 +-
- net/netfilter/ipvs/ip_vs_ctl.c | 187 +++++++++++++++++++++------------
- 2 files changed, 124 insertions(+), 66 deletions(-)
+>  
+>  	do {
+>  		seq = read_seqbegin(&hh->hh_lock);
+> -		hh_alen = HH_DATA_ALIGN(ETH_HLEN);
+>  		memcpy(skb->data - hh_alen, hh->hh_data, ETH_ALEN + hh_alen - ETH_HLEN);
+>  	} while (read_seqretry(&hh->hh_lock, seq));
+> -	return 0;
+> +
+> +	return skb;
+>  }
+>  #endif
+>  
+> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> index 0ab1c94db4b9..6b59d7eb7906 100644
+> --- a/net/bridge/br_netfilter_hooks.c
+> +++ b/net/bridge/br_netfilter_hooks.c
+> @@ -297,7 +297,10 @@ int br_nf_pre_routing_finish_bridge(struct net *net, struct sock *sk, struct sk_
+>  				goto free_skb;
+>  			}
+>  
+> -			neigh_hh_bridge(&neigh->hh, skb);
+> +			skb = neigh_hh_bridge(&neigh->hh, skb);
+> +			if (!skb)
+> +				return -ENOMEM;
+> +
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 02762ce73a0c..a02e569813d2 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1186,8 +1186,9 @@ struct netns_ipvs {
- 	struct timer_list	dest_trash_timer; /* expiration timer */
- 	struct mutex		service_mutex;    /* service reconfig */
- 	struct rw_semaphore	svc_resize_sem;   /* svc_table resizing */
-+	struct rw_semaphore	svc_replace_sem;  /* svc_table replace */
- 	struct delayed_work	svc_resize_work;  /* resize svc_table */
--	atomic_t		svc_table_changes;/* ++ on new table */
-+	atomic_t		svc_table_changes;/* ++ on table changes */
- 	/* Service counters */
- 	atomic_t		num_services[IP_VS_AF_MAX];   /* Services */
- 	atomic_t		fwm_services[IP_VS_AF_MAX];   /* Services */
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c7c7f6a7a9f6..bd9cae44d214 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -327,18 +327,22 @@ ip_vs_use_count_dec(void)
- /* Service hashing:
-  * Operation			Locking order
-  * ---------------------------------------------------------------------------
-- * add table			service_mutex, svc_resize_sem(W)
-- * del table			service_mutex
-- * move between tables		svc_resize_sem(W), seqcount_t(W), bit lock
-- * add/del service		service_mutex, bit lock
-+ * add first table		service_mutex
-+ * attach new table		service_mutex
-+ * add/del service		service_mutex, RCU, bit lock
-+ * move between tables (rehash)	svc_resize_sem(W), seqcount_t(W), bit lock
-+ * replace old with attached	svc_resize_sem(W), svc_replace_sem(W)
-  * find service			RCU, seqcount_t(R)
-  * walk services(blocking)	service_mutex, svc_resize_sem(R)
-  * walk services(non-blocking)	RCU, seqcount_t(R)
-+ * walk services(non-blocking)	svc_resize_sem(R), RCU, seqcount_t(R)
-+ * walk services(non-blocking)	svc_replace_sem(R), RCU, seqcount_t(R)
-+ * del table			service_mutex after stopped work
-  *
-- * - new tables are linked/unlinked under service_mutex and svc_resize_sem
-- * - new table is linked on resizing and all operations can run in parallel
-- * in 2 tables until the new table is registered as current one
-- * - two contexts can modify buckets: config and table resize, both in
-+ * - new table is attached on resizing under service_mutex and all operations
-+ * can run in parallel in 2 tables until the new table is registered as current
-+ * one
-+ * - two contexts can modify buckets: config and table resize (work), both in
-  * process context
-  * - only table resizer can move entries, so we do not protect t->seqc[]
-  * items with t->lock[]
-@@ -346,9 +350,13 @@ ip_vs_use_count_dec(void)
-  * services are moved to new table
-  * - move operations may disturb readers: find operation will not miss entries
-  * but walkers may see same entry twice if they are forced to retry chains
-- * - walkers using cond_resched_rcu() on !PREEMPT_RCU may need to hold
-- * service_mutex to disallow new tables to be installed or to check
-+ * or to walk the newly attached second table
-+ * - walkers using cond_resched_rcu() on !PREEMPT_RCU may need to check
-  * svc_table_changes and repeat the RCU read section if new table is installed
-+ * - walkers may serialize with the whole resizing process (svc_resize_sem)
-+ * to prevent seeing same service twice or just with the svc_table
-+ * replace (svc_replace_sem) when we can see entries twice but we
-+ * prefer to run concurrently with the rehashing.
-  */
- 
- /*
-@@ -387,9 +395,16 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 	/* increase its refcnt because it is referenced by the svc table */
- 	atomic_inc(&svc->refcnt);
- 
-+	/* We know if new table is attached under service_mutex but rely on
-+	 * RCU to hold the old table to be freed in resizer
-+	 */
-+	rcu_read_lock();
-+
-+	/* This can be the old or the new table */
-+	t = rcu_dereference(ipvs->svc_table);
-+
- 	/* New entries go into recent table */
--	t = rcu_dereference_protected(ipvs->svc_table, 1);
--	t = rcu_dereference_protected(t->new_tbl, 1);
-+	t = rcu_dereference(t->new_tbl);
- 
- 	if (svc->fwmark == 0) {
- 		/*
-@@ -410,6 +425,8 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 	hlist_bl_add_head_rcu(&svc->s_list, head);
- 	hlist_bl_unlock(head);
- 
-+	rcu_read_unlock();
-+
- 	return 1;
- }
- 
-@@ -432,7 +449,13 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- 		return 0;
- 	}
- 
--	t = rcu_dereference_protected(ipvs->svc_table, 1);
-+	/* We know if new table is attached under service_mutex but rely on
-+	 * RCU to hold the old table to be freed in resizer
-+	 */
-+	rcu_read_lock();
-+
-+	/* This can be the old or the new table */
-+	t = rcu_dereference(ipvs->svc_table);
- 	hash_key = READ_ONCE(svc->hash_key);
- 	/* We need to lock the bucket in the right table */
- 	if (ip_vs_rht_same_table(t, hash_key)) {
-@@ -443,13 +466,13 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- 		/* Moved to new table ? */
- 		if (hash_key != hash_key2) {
- 			hlist_bl_unlock(head);
--			t = rcu_dereference_protected(t->new_tbl, 1);
-+			t = rcu_dereference(t->new_tbl);
- 			head = t->buckets + (hash_key2 & t->mask);
- 			hlist_bl_lock(head);
- 		}
- 	} else {
- 		/* It is already moved to new table */
--		t = rcu_dereference_protected(t->new_tbl, 1);
-+		t = rcu_dereference(t->new_tbl);
- 		head = t->buckets + (hash_key & t->mask);
- 		hlist_bl_lock(head);
- 	}
-@@ -459,6 +482,8 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- 	svc->flags &= ~IP_VS_SVC_F_HASHED;
- 	atomic_dec(&svc->refcnt);
- 	hlist_bl_unlock(head);
-+
-+	rcu_read_unlock();
- 	return 1;
- }
- 
-@@ -666,15 +691,14 @@ static void svc_resize_work_handler(struct work_struct *work)
- 		goto unlock_sem;
- 	more_work = false;
- 	clear_bit(IP_VS_WORK_SVC_RESIZE, &ipvs->work_flags);
--	if (!READ_ONCE(ipvs->enable) ||
--	    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
-+	if (!READ_ONCE(ipvs->enable))
- 		goto unlock_m;
- 	t = rcu_dereference_protected(ipvs->svc_table, 1);
- 	/* Do nothing if table is removed */
- 	if (!t)
- 		goto unlock_m;
--	/* New table needs to be registered? BUG! */
--	if (t != rcu_dereference_protected(t->new_tbl, 1))
-+	/* New table already attached? BUG! */
-+	if (t != rcu_access_pointer(t->new_tbl))
- 		goto unlock_m;
- 
- 	lfactor = sysctl_svc_lfactor(ipvs);
-@@ -691,6 +715,7 @@ static void svc_resize_work_handler(struct work_struct *work)
- 	/* Flip the table_id */
- 	t_new->table_id = t->table_id ^ IP_VS_RHT_TABLE_ID_MASK;
- 
-+	/* Attach new table */
- 	rcu_assign_pointer(t->new_tbl, t_new);
- 	/* Allow add/del to new_tbl while moving from old table */
- 	mutex_unlock(&ipvs->service_mutex);
-@@ -698,8 +723,8 @@ static void svc_resize_work_handler(struct work_struct *work)
- 	ip_vs_rht_for_each_bucket(t, bucket, head) {
- same_bucket:
- 		if (++limit >= 16) {
--			if (!READ_ONCE(ipvs->enable) ||
--			    test_bit(IP_VS_WORK_SVC_NORESIZE,
-+			/* Check if work is stopped */
-+			if (test_bit(IP_VS_WORK_SVC_NORESIZE,
- 				     &ipvs->work_flags))
- 				goto unlock_sem;
- 			if (resched_score >= 100) {
-@@ -764,16 +789,12 @@ static void svc_resize_work_handler(struct work_struct *work)
- 			goto same_bucket;
- 	}
- 
--	/* Tables can be switched only under service_mutex */
--	while (!mutex_trylock(&ipvs->service_mutex)) {
--		cond_resched();
--		if (!READ_ONCE(ipvs->enable) ||
--		    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
--			goto unlock_sem;
--	}
--	if (!READ_ONCE(ipvs->enable) ||
--	    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
--		goto unlock_m;
-+	/* Serialize with readers that don't like svc_table changes */
-+	down_write(&ipvs->svc_replace_sem);
-+
-+	/* Check if work is stopped to avoid synchronize_rcu() */
-+	if (test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
-+		goto unlock_repl;
- 
- 	rcu_assign_pointer(ipvs->svc_table, t_new);
- 	/* Inform readers that new table is installed */
-@@ -781,8 +802,8 @@ static void svc_resize_work_handler(struct work_struct *work)
- 	atomic_inc(&ipvs->svc_table_changes);
- 	t_free = t;
- 
--unlock_m:
--	mutex_unlock(&ipvs->service_mutex);
-+unlock_repl:
-+	up_write(&ipvs->svc_replace_sem);
- 
- unlock_sem:
- 	up_write(&ipvs->svc_resize_sem);
-@@ -801,6 +822,11 @@ static void svc_resize_work_handler(struct work_struct *work)
- 	    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
- 		return;
- 	queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work, 1);
-+	return;
-+
-+unlock_m:
-+	mutex_unlock(&ipvs->service_mutex);
-+	goto unlock_sem;
- }
- 
- static inline void
-@@ -1691,6 +1717,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	struct ip_vs_pe *pe = NULL;
- 	int ret_hooks = -1;
- 	int ret = 0;
-+	bool grow;
- 
- 	/* increase the module use count */
- 	if (!ip_vs_use_count_inc())
-@@ -1732,16 +1759,25 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	}
- #endif
- 
--	t = rcu_dereference_protected(ipvs->svc_table, 1);
-+	/* The old table can be freed, protect it with RCU */
-+	rcu_read_lock();
-+	t = rcu_dereference(ipvs->svc_table);
- 	if (!t) {
- 		int lfactor = sysctl_svc_lfactor(ipvs);
- 		int new_size = ip_vs_svc_desired_size(ipvs, NULL, lfactor);
- 
-+		rcu_read_unlock();
- 		t_new = ip_vs_svc_table_alloc(ipvs, new_size, lfactor);
- 		if (!t_new) {
- 			ret = -ENOMEM;
- 			goto out_err;
- 		}
-+		grow = false;
-+	} else {
-+		/* Even the currently attached new table may need to grow */
-+		t = rcu_dereference(t->new_tbl);
-+		grow = ip_vs_get_num_services(ipvs) + 1 > t->u_thresh;
-+		rcu_read_unlock();
- 	}
- 
- 	if (!rcu_dereference_protected(ipvs->conn_tab, 1)) {
-@@ -1800,6 +1836,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 		goto out_err;
- 
- 	if (t_new) {
-+		/* Add table for first time */
- 		clear_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags);
- 		rcu_assign_pointer(ipvs->svc_table, t_new);
- 		t_new = NULL;
-@@ -1831,8 +1868,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	ip_vs_svc_hash(svc);
- 
- 	/* Schedule resize work */
--	if (t && ip_vs_get_num_services(ipvs) > t->u_thresh &&
--	    !test_and_set_bit(IP_VS_WORK_SVC_RESIZE, &ipvs->work_flags))
-+	if (grow && !test_and_set_bit(IP_VS_WORK_SVC_RESIZE, &ipvs->work_flags))
- 		queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work,
- 				   1);
- 
-@@ -2054,7 +2090,6 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
- 		return -EEXIST;
- 	ipvs = svc->ipvs;
- 	ip_vs_unlink_service(svc, false);
--	t = rcu_dereference_protected(ipvs->svc_table, 1);
- 
- 	/* Drop the table if no more services */
- 	ns = ip_vs_get_num_services(ipvs);
-@@ -2062,6 +2097,7 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
- 		/* Stop the resizer and drop the tables */
- 		set_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags);
- 		cancel_delayed_work_sync(&ipvs->svc_resize_work);
-+		t = rcu_dereference_protected(ipvs->svc_table, 1);
- 		if (t) {
- 			rcu_assign_pointer(ipvs->svc_table, NULL);
- 			/* Inform readers that table is removed */
-@@ -2075,11 +2111,19 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
- 				t = p;
- 			}
- 		}
--	} else if (ns <= t->l_thresh &&
--		   !test_and_set_bit(IP_VS_WORK_SVC_RESIZE,
--				     &ipvs->work_flags)) {
--		queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work,
--				   1);
-+	} else {
-+		bool shrink;
-+
-+		rcu_read_lock();
-+		t = rcu_dereference(ipvs->svc_table);
-+		/* Even the currently attached new table may need to shrink */
-+		t = rcu_dereference(t->new_tbl);
-+		shrink = ns <= t->l_thresh;
-+		rcu_read_unlock();
-+		if (shrink && !test_and_set_bit(IP_VS_WORK_SVC_RESIZE,
-+						&ipvs->work_flags))
-+			queue_delayed_work(system_unbound_wq,
-+					   &ipvs->svc_resize_work, 1);
- 	}
- 	return 0;
- }
-@@ -2184,17 +2228,21 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
- 	struct ip_vs_service *svc;
- 	struct hlist_bl_node *e;
- 	struct ip_vs_dest *dest;
--	int old_gen, new_gen;
-+	int old_gen;
- 
- 	if (event != NETDEV_DOWN || !ipvs)
- 		return NOTIFY_DONE;
- 	IP_VS_DBG(3, "%s() dev=%s\n", __func__, dev->name);
- 
-+	/* Allow concurrent rehashing on resize but to avoid loop
-+	 * serialize with installing the new table.
-+	 */
-+	down_read(&ipvs->svc_replace_sem);
-+
- 	old_gen = atomic_read(&ipvs->svc_table_changes);
- 
- 	rcu_read_lock();
- 
--repeat:
- 	smp_rmb(); /* ipvs->svc_table and svc_table_changes */
- 	ip_vs_rht_walk_buckets_rcu(ipvs->svc_table, head) {
- 		hlist_bl_for_each_entry_rcu(svc, e, head, s_list) {
-@@ -2207,17 +2255,17 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
- 		}
- 		resched_score++;
- 		if (resched_score >= 100) {
--			resched_score = 0;
- 			cond_resched_rcu();
--			new_gen = atomic_read(&ipvs->svc_table_changes);
--			/* New table installed ? */
--			if (old_gen != new_gen) {
--				old_gen = new_gen;
--				goto repeat;
--			}
-+			/* Flushed? So no more dev refs */
-+			if (atomic_read(&ipvs->svc_table_changes) != old_gen)
-+				goto done;
-+			resched_score = 0;
- 		}
- 	}
-+
-+done:
- 	rcu_read_unlock();
-+	up_read(&ipvs->svc_replace_sem);
- 
- 	return NOTIFY_DONE;
- }
-@@ -2244,6 +2292,10 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	struct ip_vs_service *svc;
- 	struct hlist_bl_node *e;
- 
-+	/* svc_table can not be replaced (svc_replace_sem) or
-+	 * removed (service_mutex)
-+	 */
-+	down_read(&ipvs->svc_replace_sem);
- 	rcu_read_lock();
- 
- 	ip_vs_rht_walk_buckets_rcu(ipvs->svc_table, head) {
-@@ -2259,6 +2311,7 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	}
- 
- 	rcu_read_unlock();
-+	up_read(&ipvs->svc_replace_sem);
- 
- 	ip_vs_zero_stats(&ipvs->tot_stats->s);
- 	return 0;
-@@ -3062,6 +3115,7 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 	u32 sum;
- 	int i;
- 
-+	/* Info for conns */
- 	rcu_read_lock();
- 
- 	t = rcu_dereference(ipvs->conn_tab);
-@@ -3123,6 +3177,12 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 	}
- 
- after_conns:
-+	rcu_read_unlock();
-+
-+	/* Info for services */
-+	down_read(&ipvs->svc_replace_sem);
-+	rcu_read_lock();
-+
- 	t = rcu_dereference(ipvs->svc_table);
- 
- 	count = ip_vs_get_num_services(ipvs);
-@@ -3133,9 +3193,7 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 	if (!count)
- 		goto after_svc;
- 	old_gen = atomic_read(&ipvs->svc_table_changes);
--	loops = 0;
- 
--repeat_svc:
- 	smp_rmb(); /* ipvs->svc_table and svc_table_changes */
- 	memset(counts, 0, sizeof(counts));
- 	ip_vs_rht_for_each_table_rcu(ipvs->svc_table, t, pt) {
-@@ -3157,15 +3215,10 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 			if (resched_score >= 100) {
- 				resched_score = 0;
- 				cond_resched_rcu();
--				new_gen = atomic_read(&ipvs->svc_table_changes);
--				/* New table installed ? */
--				if (old_gen != new_gen) {
--					/* Too many changes? */
--					if (++loops >= 5)
--						goto after_svc;
--					old_gen = new_gen;
--					goto repeat_svc;
--				}
-+				/* Flushed? */
-+				if (atomic_read(&ipvs->svc_table_changes) !=
-+				    old_gen)
-+					goto after_svc;
- 			}
- 			counts[count]++;
- 		}
-@@ -3184,6 +3237,9 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 	}
- 
- after_svc:
-+	rcu_read_unlock();
-+	up_read(&ipvs->svc_replace_sem);
-+
- 	seq_printf(seq, "Stats thread slots:\t%d (max %lu)\n",
- 		   ipvs->est_kt_count, ipvs->est_max_threads);
- 	seq_printf(seq, "Stats chain max len:\t%d\n", ipvs->est_chain_max);
-@@ -3191,7 +3247,6 @@ static int ip_vs_status_show(struct seq_file *seq, void *v)
- 		   ipvs->est_chain_max * IPVS_EST_CHAIN_FACTOR *
- 		   IPVS_EST_NTICKS);
- 
--	rcu_read_unlock();
- 	return 0;
- }
- 
-@@ -3503,7 +3558,7 @@ __ip_vs_get_service_entries(struct netns_ipvs *ipvs,
- 	int ret = 0;
- 
- 	lockdep_assert_held(&ipvs->svc_resize_sem);
--	/* All service modifications are disabled, go ahead */
-+	/* All svc_table modifications are disabled, go ahead */
- 	ip_vs_rht_walk_buckets(ipvs->svc_table, head) {
- 		hlist_bl_for_each_entry(svc, e, head, s_list) {
- 			/* Only expose IPv4 entries to old interface */
-@@ -3687,7 +3742,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 			pr_err("length: %u != %zu\n", *len, size);
- 			return -EINVAL;
- 		}
--		/* Protect against table resizer moving the entries.
-+		/* Prevent modifications to the list with services.
- 		 * Try reverse locking, so that we do not hold the mutex
- 		 * while waiting for semaphore.
- 		 */
-@@ -4029,6 +4084,7 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
- 	int start = cb->args[0];
- 	int idx = 0;
- 
-+	/* Make sure we do not see same service twice during resize */
- 	down_read(&ipvs->svc_resize_sem);
- 	rcu_read_lock();
- 	ip_vs_rht_walk_buckets_safe_rcu(ipvs->svc_table, head) {
-@@ -5072,6 +5128,7 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
- 	/* Initialize service_mutex, svc_table per netns */
- 	__mutex_init(&ipvs->service_mutex, "ipvs->service_mutex", &__ipvs_service_key);
- 	init_rwsem(&ipvs->svc_resize_sem);
-+	init_rwsem(&ipvs->svc_replace_sem);
- 	INIT_DELAYED_WORK(&ipvs->svc_resize_work, svc_resize_work_handler);
- 	atomic_set(&ipvs->svc_table_changes, 0);
- 	RCU_INIT_POINTER(ipvs->svc_table, NULL);
--- 
-2.54.0
+Also from Sashiko:
 
+Does returning early here leak the neighbour reference?
 
+Earlier in br_nf_pre_routing_finish_bridge(), a reference to neigh is
+obtained via dst_neigh_lookup_skb(dst, skb). By returning -ENOMEM here,
+we bypass the neigh_release(neigh) call at the end of the if (neigh) block.
+
+Could this cause the neighbour reference count to leak, eventually preventing
+the network device from being unregistered?
+
+>  			skb->dev = br_indev;
+>  
+>  			ret = br_handle_frame_finish(net, sk, skb);
+> 
+> ---
+> base-commit: fcee7d82f27d6a8b1ddc5bbefda59b4e441e9bc0
+> change-id: 20260508-nf-neigh_hh_bridge-fix-9ab775ee23c6
+> 
+> Best regards,
+> -- 
+> Lorenzo Bianconi <lorenzo@kernel.org>
+> 
