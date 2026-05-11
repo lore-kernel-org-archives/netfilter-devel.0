@@ -1,209 +1,172 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DEE2ECD32;
-	Mon, 11 May 2026 15:57:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2BA2421F12
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 May 2026 16:27:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778515079; cv=none; b=Omb+vmUe2owmvmSLaXXKo/fD4+5Q+vf75F5UqIGBRckHVGq904rtjnh87Mq6xgQrGgTX1QeZGYrbRZOZLPzN7H8a11jwtx1H7cBkDTGR7moNgkL/5LVp7l4nBgr/7JDVLRSlJMxNRuaAfNWmB+dmLi9caGWXvZwKsbzLqtyPTFw=
+	t=1778516849; cv=none; b=C8ng5SAmHZdvLM7BNEaEVl9MT5o05iNratp5rqUSjXX9kmGBMZvVfx7W8AUTbI4d2nFwO9iOuTmeo1A9zGOMbkIorfyhinFGUz2QxZLdTMMiwEaFRp00dhdMcM6lV8ExW9I8I63pGnT6q9QPEkYOkuWhArTysEyjLwsK2MhzkRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778515079; c=relaxed/simple;
-	bh=enAzurMJZ8qy0xdMix1LMOOaZZqMT8Pc+n+Xfmg5430=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=p2oBZpjuB5uyFYJ6H89RebfQW2tTWObGEyUFSkVfb517BTKvb9oPQRTr6mC7em6nwZchNGJQUoueRBc3DqXpdebq3PGpT/csbJs8PmHzcRa35VYlrp4yXT+Oik3xzt9tfwal6FYbvuneW4vOuAxLr1O9G/J83ZzsTjUMli06Cg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GR+JTF3m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778516849; c=relaxed/simple;
+	bh=sPJT0ISPJ8GDk0DyrwTaHFdTjL6MDKoE1ujApsKtAcs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Pojrf1ObSdC5uetOnZxmvobnjTycOEYFQWFJo5kH331VB1TZg+bz7TleTPUoGF4zRsvfOf4A3bEkNwYGehLiH8/PxXG2UIEmgxLvc3DbviZn/wme1a3jvh5hcNLEnmB+iTaMRDM5SvVKc29AdYIAartPnCPigiXzP9Li1u4IxfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Io036mJP; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ylANIaAa; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Io036mJP; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ylANIaAa; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GR+JTF3m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BE0EC2BCB0;
-	Mon, 11 May 2026 15:57:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778515078;
-	bh=enAzurMJZ8qy0xdMix1LMOOaZZqMT8Pc+n+Xfmg5430=;
-	h=From:Date:Subject:To:Cc:From;
-	b=GR+JTF3mYxAKStO/OwYUALcmzWDjivtEONwles75uW3rXDEHkghoMprhkHQY+Nz+7
-	 jUc2LLoPYhvTXVDuk3iXI9L32DnZzX24Kin+9Uk+dr5KijnxnFtnBdhH20z7g9KwIY
-	 VHMuS5739p0w12CE90kR1cqmt95eyOs2/DrawsgRCKtLUSxZSri39R1BdLGrTQulVq
-	 4b2NjbThIvpTtfZB7oInKMCBQeMkQtLk5bHQFZA6DY0qVb1bnAnhCcpWebOGHRYGhY
-	 NxAcn6SBW5eWfVVgfG7KUS8jC0PMpEPb/1VecJUnAUFBIjizr7gopfz8b6veXi80nt
-	 z+iyv3HrXCaCA==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Mon, 11 May 2026 17:57:39 +0200
-Subject: [PATCH net v2] net: neigh: Reallocate headroom if necessary in
- neigh_hh_bridge()
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Io036mJP";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ylANIaAa";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Io036mJP";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ylANIaAa"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 3055B5F721;
+	Mon, 11 May 2026 16:27:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1778516846; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wgRvNIzBsLTIQ78z77l/EJAf9qzgLk9PRCPH5qByPSI=;
+	b=Io036mJPFlVomAUfa7mGoyDzwr4ChrH6G+I4kw+yh0exwn+rLkeN9/bARBuvrGUBuDmP8Y
+	39SCCvIJB/JUCW85ds/zuDg54ttr0OMLWwvaU6Pb3p4GOx3Vo6sqN4bofAVk/HRyH9+UAw
+	/AIELvQnh8bAzao9UtIWEycalc3Vm6M=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1778516846;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wgRvNIzBsLTIQ78z77l/EJAf9qzgLk9PRCPH5qByPSI=;
+	b=ylANIaAa9q+atmqp+xNHibBD/Shy163omcWN/bKY+N7itjSfw6NbMsy3iTmY/N0jpO+eLu
+	cqLxWHZVpD3BUEAw==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1778516846; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wgRvNIzBsLTIQ78z77l/EJAf9qzgLk9PRCPH5qByPSI=;
+	b=Io036mJPFlVomAUfa7mGoyDzwr4ChrH6G+I4kw+yh0exwn+rLkeN9/bARBuvrGUBuDmP8Y
+	39SCCvIJB/JUCW85ds/zuDg54ttr0OMLWwvaU6Pb3p4GOx3Vo6sqN4bofAVk/HRyH9+UAw
+	/AIELvQnh8bAzao9UtIWEycalc3Vm6M=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1778516846;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wgRvNIzBsLTIQ78z77l/EJAf9qzgLk9PRCPH5qByPSI=;
+	b=ylANIaAa9q+atmqp+xNHibBD/Shy163omcWN/bKY+N7itjSfw6NbMsy3iTmY/N0jpO+eLu
+	cqLxWHZVpD3BUEAw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 56EF3593A3;
+	Mon, 11 May 2026 16:27:25 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id jHM4Em0DAmrhWwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 11 May 2026 16:27:25 +0000
+Message-ID: <5a17cb3e-72c6-404f-8bbf-cde2c9047b0f@suse.de>
+Date: Mon, 11 May 2026 18:27:19 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260511-nf-neigh_hh_bridge-fix-v2-1-c4964c7a7b8f@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/4WNWwqDMBBFtyLz3ZQk1fj46j6KiI8xGVqSMhFpk
- ey9wQ30877OPSAiE0boigMYd4oUfBb6UsDsRm9R0JI1aKmNrGQj/Co8knWDc8PEtOTGSh/RjlN
- dV4j6NhvI4zdjtk/wAzxu0GfTUdwCf8+zXZ3RP+6uhBKjKk1ZmmZpNd6fyB5f18AW+pTSD4ngL
- e3CAAAA
-X-Change-ID: 20260508-nf-neigh_hh_bridge-fix-9ab775ee23c6
-To: "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
- Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>, 
- Ido Schimmel <idosch@nvidia.com>, Bart De Schuymer <bdschuym@pandora.be>, 
- Patrick McHardy <kaber@trash.net>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, bridge@lists.linux.dev, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.3
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 nft] netfilter: nft_inner: Fix IPv6 inner_thoff desync
+To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+Cc: davem@davemloft.net, edumazet@google.com, fengxw06@126.com, fw@strlen.de,
+ horms@kernel.org, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pabeni@redhat.com, pablo@netfilter.org, phil@nwl.cc, qli01@tsinghua.edu.cn,
+ stable@vger.kernel.org, xuke@tsinghua.edu.cn, yangyx22@mails.tsinghua.edu.cn
+References: <0bbeadd4-a4b4-44e9-9312-85e563f2bd1c@suse.de>
+ <20260511133744.6716-1-zhaoyz24@mails.tsinghua.edu.cn>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260511133744.6716-1-zhaoyz24@mails.tsinghua.edu.cn>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	ARC_NA(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	RCPT_COUNT_TWELVE(0.00)[15];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[126.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[davemloft.net,google.com,126.com,strlen.de,kernel.org,vger.kernel.org,redhat.com,netfilter.org,nwl.cc,tsinghua.edu.cn,mails.tsinghua.edu.cn];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
+X-Spam-Level: 
 
-neigh_hh_bridge() assumes the skb always has sufficient headroom to copy
-the aligned  L2 header. This assumption can trigger the crash reported
-below using the following netfilter setup:
+On 5/11/26 3:37 PM, Yizhou Zhao wrote:
+> Thank you for your suggestions. Here's the v2 version of our patch.
+> 
+> In nft_inner_parse_l2l3(), when processing inner IPv6 packets,
+> ipv6_find_hdr() correctly computes the transport header offset
+> traversing all extension headers, but the result is immediately
+> overwritten with nhoff + sizeof(_ip6h) (40 bytes), which only
+> accounts for the IPv6 base header. This creates a desync between
+> inner_thoff (wrong — points to extension header start) and l4proto
+> (correct — e.g., IPPROTO_TCP), enabling transport header forgery
+> and potential firewall bypass. This issue affects stable versions
+> from Linux 6.2.
+> 
+> For comparison, the normal (non-inner) IPv6 path correctly
+> preserves ipv6_find_hdr()'s result. Removing the incorrect overwrite
+> ensures that ipv6_find_hdr()'s calculated transport header offset is
+> preserved, thereby fixing the desynchronization.
+> 
+> Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+> Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+> Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
+> Reported-by: Xuewei Feng <fengxw06@126.com>
+> Reported-by: Qi Li <qli01@tsinghua.edu.cn>
+> Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
+> Assisted-by: GLM:5.1 Z.ai
+> Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+> ---
 
-$modprobe br_netfilter
-$sysctl -w net.bridge.bridge-nf-call-iptables=1
+Please could you submit the patch as a new submission rather than a 
+reply to the old one?
 
-$root@OpenWrt:~# nft list ruleset
-table ip nat {
-        chain prerouting {
-                type nat hook prerouting priority dstnat; policy accept;
-                ip daddr 192.168.83.123 dnat to 192.168.83.120
-        }
-}
+In addition, the correct target tree is nf.git so use [PATCH nf] 
+instead, thanks!
 
-- iperf3 client (192.168.83.119) --> bridge (192.168.83.118) --> iperf3 server (192.168.83.120)
-
-the iperf3 client is sending packet for 192.168.83.123 to the bridge device.
-
-[ 1579.036575] Unable to handle kernel write to read-only memory at virtual address ffffff8004d76ffe
-[ 1579.045482] Mem abort info:
-[ 1579.048273]   ESR = 0x000000009600004f
-[ 1579.052024]   EC = 0x25: DABT (current EL), IL = 32 bits
-[ 1579.057363]   SET = 0, FnV = 0
-[ 1579.060417]   EA = 0, S1PTW = 0
-[ 1579.063550]   FSC = 0x0f: level 3 permission fault
-[ 1579.068345] Data abort info:
-[ 1579.071224]   ISV = 0, ISS = 0x0000004f, ISS2 = 0x00000000
-[ 1579.076720]   CM = 0, WnR = 1, TnD = 0, TagAccess = 0
-[ 1579.081770]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[ 1579.087092] swapper pgtable: 4k pages, 39-bit VAs, pgdp=0000000080dc4000
-[ 1579.093794] [ffffff8004d76ffe] pgd=180000009ffff003, p4d=180000009ffff003, pud=180000009ffff003, pmd=180000009ffe3003, pte=0060000084d76787
-[ 1579.106343] Internal error: Oops: 000000009600004f [#1] SMP
-[ 1579.193824] CPU: 0 UID: 0 PID: 235 Comm: napi/qdma_eth-3 Tainted: G           O       6.12.57 #0
-[ 1579.202614] Tainted: [O]=OOT_MODULE
-[ 1579.206102] Hardware name: Airoha AN7581 Evaluation Board (DT)
-[ 1579.211929] pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[ 1579.218889] pc : br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
-[ 1579.225859] lr : br_nf_pre_routing_finish_bridge+0x18c/0xcc8 [br_netfilter]
-[ 1579.232822] sp : ffffffc0817cba20
-[ 1579.236128] x29: ffffffc0817cba20 x28: 0000000000000000 x27: ffffff8002b89000
-[ 1579.243273] x26: ffffff8004d7700e x25: 0000000000000008 x24: 0000000000000000
-[ 1579.250416] x23: ffffffc08179d4c0 x22: 0000000000000000 x21: ffffffc08179d4c0
-[ 1579.257561] x20: ffffff8004d9b800 x19: ffffff8015010000 x18: 0000000000000014
-[ 1579.264704] x17: ffffffbf9e930000 x16: ffffffc0817c8000 x15: 0000000000000070
-[ 1579.271848] x14: 0000000000000080 x13: 0000000000000001 x12: 0000000000000000
-[ 1579.278993] x11: ffffffc0798caae0 x10: ffffff8014db6fd8 x9 : 0000000000000000
-[ 1579.286136] x8 : 0000000000000003 x7 : ffffffc08171f628 x6 : 000000001a3b83d3
-[ 1579.293281] x5 : 0000000000000000 x4 : 1beb76f22fee0000 x3 : ffffff8004d7700e
-[ 1579.300425] x2 : 0000000000000000 x1 : ffffff8004d9b8bc x0 : ffffff80026ed000
-[ 1579.307570] Call trace:
-[ 1579.310018]  br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
-[ 1579.316632]  br_nf_hook_thresh+0xd4/0x14bc [br_netfilter]
-[ 1579.322032]  br_nf_hook_thresh+0x250/0x14bc [br_netfilter]
-[ 1579.327517]  br_nf_hook_thresh+0x76c/0x14bc [br_netfilter]
-[ 1579.333003]  br_handle_frame+0x180/0x480
-[ 1579.336935]  __netif_receive_skb_core.constprop.0+0x540/0xf40
-[ 1579.342682]  __netif_receive_skb_one_core+0x28/0x50
-[ 1579.347561]  process_backlog+0x98/0x1e0
-[ 1579.351398]  __napi_poll+0x34/0x1c4
-[ 1579.354887]  net_rx_action+0x178/0x330
-[ 1579.358638]  handle_softirqs+0x108/0x2d4
-[ 1579.362560]  __do_softirq+0x10/0x18
-[ 1579.366051]  ____do_softirq+0xc/0x20
-[ 1579.369627]  call_on_irq_stack+0x30/0x4c
-[ 1579.373550]  do_softirq_own_stack+0x18/0x20
-[ 1579.377734]  do_softirq+0x4c/0x60
-[ 1579.381050]  __local_bh_enable_ip+0x88/0x98
-[ 1579.385234]  napi_threaded_poll_loop+0x188/0x21c
-[ 1579.389853]  napi_threaded_poll+0x70/0x80
-[ 1579.393863]  kthread+0xd8/0xdc
-[ 1579.396918]  ret_from_fork+0x10/0x20
-[ 1579.400499] Code: 88dffc22 3707ffc2 f9406663 f9406684 (f81f0064)
-[ 1579.406589] ---[ end trace 0000000000000000 ]---
-[ 1579.411209] Kernel panic - not syncing: Oops: Fatal exception in interrupt
-[ 1579.418083] SMP: stopping secondary CPUs
-[ 1579.422012] Kernel Offset: disabled
-
-Fix the issue reallocating the skb headroom if necessary in neigh_hh_bridge routine.
-
-Fixes: e179e6322ac33 ("netfilter: bridge-netfilter: Fix MAC header handling with IP DNAT")
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
-Changes in v2:
-- Fix neighbour reference count leak
-- Run skb_expand_head() even for cloned/shared skbs.
-- Link to v1: https://lore.kernel.org/r/20260508-nf-neigh_hh_bridge-fix-v1-1-a1464468d92e@kernel.org
----
- include/net/neighbour.h         | 16 ++++++++++++----
- net/bridge/br_netfilter_hooks.c |  7 ++++++-
- 2 files changed, 18 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/neighbour.h b/include/net/neighbour.h
-index 2dfee6d4258a..c2b6196705ef 100644
---- a/include/net/neighbour.h
-+++ b/include/net/neighbour.h
-@@ -487,16 +487,24 @@ static inline int neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
- }
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--static inline int neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
-+static inline struct sk_buff *
-+neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
- {
--	unsigned int seq, hh_alen;
-+	unsigned int seq, hh_alen = HH_DATA_ALIGN(ETH_HLEN);
-+
-+	if (unlikely(skb_headroom(skb) < hh_alen ||
-+		     skb_header_cloned(skb) || skb_shared(skb))) {
-+		skb = skb_expand_head(skb, hh_alen);
-+		if (!skb)
-+			return NULL;
-+	}
- 
- 	do {
- 		seq = read_seqbegin(&hh->hh_lock);
--		hh_alen = HH_DATA_ALIGN(ETH_HLEN);
- 		memcpy(skb->data - hh_alen, hh->hh_data, ETH_ALEN + hh_alen - ETH_HLEN);
- 	} while (read_seqretry(&hh->hh_lock, seq));
--	return 0;
-+
-+	return skb;
- }
- #endif
- 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0ab1c94db4b9..8d21c88c2116 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -297,7 +297,12 @@ int br_nf_pre_routing_finish_bridge(struct net *net, struct sock *sk, struct sk_
- 				goto free_skb;
- 			}
- 
--			neigh_hh_bridge(&neigh->hh, skb);
-+			skb = neigh_hh_bridge(&neigh->hh, skb);
-+			if (!skb) {
-+				neigh_release(neigh);
-+				return -ENOMEM;
-+			}
-+
- 			skb->dev = br_indev;
- 
- 			ret = br_handle_frame_finish(net, sk, skb);
-
----
-base-commit: a450063ef86b9967234ca1f896c0d77400c74f11
-change-id: 20260508-nf-neigh_hh_bridge-fix-9ab775ee23c6
-
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo@kernel.org>
+>   net/netfilter/nft_inner.c | 1 -
+>   1 file changed, 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+> index c4569d4b9..1b3e7a976 100644
+> --- a/net/netfilter/nft_inner.c
+> +++ b/net/netfilter/nft_inner.c
+> @@ -163,7 +163,6 @@ static int nft_inner_parse_l2l3(const struct nft_inner *priv,
+>   			return -1;
+>   
+>   		if (fragoff == 0) {
+> -			thoff = nhoff + sizeof(_ip6h);
+>   			ctx->flags |= NFT_PAYLOAD_CTX_INNER_TH;
+>   			ctx->inner_thoff = thoff;
+>   			ctx->l4proto = l4proto;
 
