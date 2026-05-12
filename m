@@ -1,187 +1,187 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2C83911C8
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 13:51:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A1738AC7E;
+	Tue, 12 May 2026 18:30:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778593891; cv=none; b=ij+i7tWnefr92ZF/731yCUSi2GjAUc/AGDU6ZqXWilF0OL8Omz4phdjRZn1XcPfG91O8ePDboF+rTjYZMa7vXq/dYMw6zKOybVNUHNxvSrdM7UPJOe82eq54VgFylptU4rhtl+9k9zYvERLhRURHxby2uswwUcypO1TnOjK+2yI=
+	t=1778610607; cv=none; b=pSRwfWJd3qP94hudDT2uAeh+Y9awp/6u7IM727XiW0l4UVfJxFAEPc5rQWsi9I9D65lcNVDPETbDEFYAaG7vMufeCorGjxgRhMwPk4zyGuvYOnv9OcoH+9Ce9iuZOTCypL0mwtTVngeOSwBwqKvgzm/lB+b7eRRvr+pqDNzke6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778593891; c=relaxed/simple;
-	bh=HDzA6rnRwYSzBBYMSmkrjSJSmFmgXGRLZ+4QFSbV4EM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=MCvnh3UdWjmVh2Gt71g2lyyY1Ydcr6rnLlpjPX4FgbfEYOb5YGE5j7pERjJ8Z3nMKQVy8j4HJlAHm2p77WD35j12kMPaVaJpnONDRXhkssDmTK6+jzjcimgPN4JhX++aPA6+JYLLK+SEnWL4R5ghM6LEI092YzBqQwqsMLKVTnc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sI4BjihD; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=u0bJUCf1; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sI4BjihD; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=u0bJUCf1; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sI4BjihD";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="u0bJUCf1";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sI4BjihD";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="u0bJUCf1"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 0C1226A901;
-	Tue, 12 May 2026 13:51:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778593888; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/ON0cwqVBv262i8NOpfCMQotKKWtbSE9dJssgY/3ybU=;
-	b=sI4BjihDmdOCo02qB8JFHNxrzHY+JfV+Ooyjl+VVNOYumr833QhSPVYpm0CizaZ/AQ7Tlx
-	No7QTvfFk4JIE7VHY8H05hKo/TttqHj5MT+khBaHHXnwzwqJLlOOFnZu9E/zLf/GYBVjDI
-	7Wt+uAJzD9YdZZDrofq1KA8qfXMYFYI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778593888;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/ON0cwqVBv262i8NOpfCMQotKKWtbSE9dJssgY/3ybU=;
-	b=u0bJUCf1xkIDy2+OpNaQXvYFErhVI05l3fhB7D3tPRo/pexbTwZjNWWvZJPHQXlgPo0pGx
-	CnE+cW/x5NZZBMDw==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778593888; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/ON0cwqVBv262i8NOpfCMQotKKWtbSE9dJssgY/3ybU=;
-	b=sI4BjihDmdOCo02qB8JFHNxrzHY+JfV+Ooyjl+VVNOYumr833QhSPVYpm0CizaZ/AQ7Tlx
-	No7QTvfFk4JIE7VHY8H05hKo/TttqHj5MT+khBaHHXnwzwqJLlOOFnZu9E/zLf/GYBVjDI
-	7Wt+uAJzD9YdZZDrofq1KA8qfXMYFYI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778593888;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/ON0cwqVBv262i8NOpfCMQotKKWtbSE9dJssgY/3ybU=;
-	b=u0bJUCf1xkIDy2+OpNaQXvYFErhVI05l3fhB7D3tPRo/pexbTwZjNWWvZJPHQXlgPo0pGx
-	CnE+cW/x5NZZBMDw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 85662593A9;
-	Tue, 12 May 2026 13:51:27 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id h7C7HV8wA2qZawAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 12 May 2026 13:51:27 +0000
-Message-ID: <7d6c2b21-276c-4b30-8eed-8e75e519c533@suse.de>
-Date: Tue, 12 May 2026 15:51:18 +0200
+	s=arc-20240116; t=1778610607; c=relaxed/simple;
+	bh=zajSxBKigkT3xJDwQAxK7boZO1bj6b19cCo9nh/rY0E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hzNTDIMzk6cBPsnebInBIwOPfGCMc6mvjH3yKuM3RDNjItSZM5jOTQzA7IYTNJhEgKE6XHDqyQTO1+KcLcpuaXvBE2ityxB9WiYtbSYLfgYNHwaMNdkNtpvk3u4NiIm+OAC2t53pxUSWvUg51GTVslStJ/jifLULdJF05DLGYjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id D6C1660D66; Tue, 12 May 2026 20:29:58 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: lvs-devel@vger.kernel.org,
+	ja@ssi.bg,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2] netfilter: add option for GCOV profiling
+Date: Tue, 12 May 2026 20:29:46 +0200
+Message-ID: <20260512182946.32687-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 nf-next] netfilter: nft_byteorder: remove
- multi-register support
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20260512133617.8191-1-fw@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260512133617.8191-1-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,suse.cz:email,strlen.de:email,suse.de:mid];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,strlen.de:email,suse.de:mid,suse.cz:email]
-X-Spam-Level: 
+Content-Transfer-Encoding: 8bit
 
-On 5/12/26 3:36 PM, Florian Westphal wrote:
-> 64bit byteorder conversion is broken when several registers need to be
-> converted because the source register array advances in steps for 4 bytes
-> instead of 8:
-> 
->    for (i = ...
->        src64 = nft_reg_load64(&src[i]);
->                               ~~~~~ u32 *src
->        nft_reg_store64(&dst64[i],
-> 
-> Remove the multi-register support, it has other issues as well:
-> 
-> Pablo points out that commit
-> caf3ef7468f7 ("netfilter: nf_tables: prevent OOB access in nft_byteorder_eval")
-> alters semantics: before the loop operated on registers, i.e.
->   for ( ... )
->     dst32[i] = htons((u16)src32[i])
-> 
->   .. but after the patch it will operate on bytes, which makes this
->   useless to convert e.g. concatenations, which store each compound
->   in its own register.
-> 
-> Multi-convert of u32 has one theoretical application:
-> 
-> ct mark . meta mark . tcp dport @intervalset
-> 
-> Because ct mark and meta mark are host byte order, use with
-> intervals has to convert the byteorder for ct/meta mark value
-> to network byte order (bigendian).
-> 
-> nftables emits this:
->   [ meta load mark => reg 1 ]
->   [ byteorder reg 1 = hton(reg 1, 4, 4) ]
->   [ ct load mark => reg 9 ]
->   [ byteorder reg 9 = hton(reg 9, 4, 4) ]
->   ...
-> 
-> I.e. two separate calls.  Theoretically it could be changed to do:
->   [ meta load mark => reg 1 ]
->   [ ct load mark => reg 9 ]
->   [ byteorder reg 1 = htonl(reg 1, 4, 8) ]
->   ...
-> 
-> But then all it would take to change the set to
-> meta mark . tcp dport . ct mark
-> 
-> ... and we'd be back to two "byteorder" calls. IOW, support to
-> convert a range of registers is both dysfunctional and dubious.
-> 
-> Simplify this: remove the feature.
-> 
-> Pablo Neira Ayuso points out that nftables before 1.1.0 can generate
-> incorrect byteorder conversions, see 9fe58952c45a,
-> "evaluate: skip byteorder conversion for selector smaller than 2 bytes"
-> in nftables.git).  Affected rulesets fail to load with this change and
-> old userspace due to 'len != size' check.
-> 
-> Fixes: c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in nft_byteorder_eval()")
-> Cc: <stable+noautosel@kernel.org> # may break rule load with old nftables versions
-> Reported-by: Michal Kubecek <mkubecek@suse.cz>
-> Link: https://lore.kernel.org/netfilter-devel/20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz/
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->   v3: proposing this for inclusion again; sashiko also points out the
->   breakage in nft_byteorder as drive-by result.
-> 
+Similar to a few other subsystems: add a new config toggle to
+enable netfilter gcov profiling in netfilter, including ebtables,
+arptables and so on.
 
-Yep, I read the report too. I was going to bring this up again.
+ipset and ipvs gain their own, dedicated toggles.
 
-+1 from my side, thanks Florian!
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ v2: add dedicated toggles for ipvs and ipset;
+ I am currently not collecting profile data for these two.
+
+ If you prefer to keep them under single switch thats fine,
+ just lmk.
+
+ net/bridge/netfilter/Makefile | 4 ++++
+ net/ipv4/netfilter/Makefile   | 4 ++++
+ net/ipv6/netfilter/Makefile   | 4 ++++
+ net/netfilter/Kconfig         | 8 ++++++++
+ net/netfilter/Makefile        | 4 ++++
+ net/netfilter/ipset/Kconfig   | 9 +++++++++
+ net/netfilter/ipset/Makefile  | 3 +++
+ net/netfilter/ipvs/Kconfig    | 9 +++++++++
+ net/netfilter/ipvs/Makefile   | 3 +++
+ 9 files changed, 48 insertions(+)
+
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index b9a1303da977..af0c903aa4ac 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+ obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 85502d4dfbb4..dbfb1c4739a8 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+ 
+ obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 66ce6fa5b2f5..72902d8005ad 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
+ obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
+ obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+ obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 682c675125fc..f71ff98eb5d0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
+ 
+ endif # NETFILTER_XTABLES
+ 
++config GCOV_PROFILE_NETFILTER
++	bool "Enable GCOV profiling for netfilter"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for netfilter to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
+ endmenu
+ 
+ source "net/netfilter/ipset/Kconfig"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6bfc250e474f..f0751ca302c6 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
+ 
+ # lwtunnel
+ obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
+index b1ea054bb82c..6c4d54758106 100644
+--- a/net/netfilter/ipset/Kconfig
++++ b/net/netfilter/ipset/Kconfig
+@@ -175,4 +175,13 @@ config IP_SET_LIST_SET
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config GCOV_PROFILE_IPSET
++	bool "Enable GCOV profiling for ipset"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for ipset to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
++
+ endif # IP_SET
+diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
+index a445a6bf4f11..4f48df5406cd 100644
+--- a/net/netfilter/ipset/Makefile
++++ b/net/netfilter/ipset/Makefile
+@@ -29,3 +29,6 @@ obj-$(CONFIG_IP_SET_HASH_NETPORTNET) += ip_set_hash_netportnet.o
+ 
+ # list types
+ obj-$(CONFIG_IP_SET_LIST_SET) += ip_set_list_set.o
++ifdef CONFIG_GCOV_PROFILE_IPSET
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index c203252e856d..7724cb44e6de 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -349,4 +349,13 @@ config	IP_VS_PE_SIP
+ 	help
+ 	  Allow persistence based on the SIP Call-ID
+ 
++config GCOV_PROFILE_IPVS
++	bool "Enable GCOV profiling for IPVS"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for IPVS to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
++
+ endif # IP_VS
+diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
+index bb5d8125c82a..8e4cc67ad39d 100644
+--- a/net/netfilter/ipvs/Makefile
++++ b/net/netfilter/ipvs/Makefile
+@@ -43,3 +43,6 @@ obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
+ 
+ # IPVS connection template retrievers
+ obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
++ifdef CONFIG_GCOV_PROFILE_IPVS
++GCOV_PROFILE := y
++endif
+-- 
+2.53.0
+
