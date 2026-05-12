@@ -1,131 +1,150 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CABF3672BA
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 07:37:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778571431; cv=pass; b=U1tf7pqVCmdAbywEZlUj7SfRXG0IgjHEAUUk8Nn/63mBWUqC1yI3HquduqXEvcBGsd7NR0Hut5R32hjqcyssEAS4trcnSAWgqVJgYMbphf7KeaOYqgTKDVCz7wV3wxK/q1V1Fib/how/mKsFNZy5IiQIjBxi0iU7itq5yJu6Vng=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778571431; c=relaxed/simple;
-	bh=bSuyYGGeEmgGvulV57SOqbxrkuecVl057GaOQUAOAak=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=M+4TQoeDSWQ6AUEPt95s5pMGoHyPmVkzGacspQVw2CiXyHBXrQhdi8jIf9B1FRYdj+i/1FboJOzAr2HuO7nu6uofveCiyoh/kejvq4q8Inrg6PMbnbyqrTzaMsNrBzyOsKvCyCJb4hmjjf+v1sO6nEUPZSrBQa/jdOZS7HZVLYk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=AOLMsxdl; arc=pass smtp.client-ip=209.85.167.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="AOLMsxdl"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5a86e4b950cso3776944e87.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 00:37:09 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778571428; cv=none;
-        d=google.com; s=arc-20240605;
-        b=GHJIeLgb5TPhzTtolzju8PDnVxPw4FxSaLaa19Qnh/nygZCBwEckP8U8KDvmD5y+0j
-         XV0Cw2GzlJl6ApZW2nD9I0N6EOUEv/hQA4KVZ/FYEdT0c7wBKPfNHGi8QeRrQN7vIOx5
-         aHwpQEIOxF1aNC7FTcWeuRoSW1ZFJlkPQyaeomTS/dYHV8/xXtk9ZEinyyIXvFzCazDj
-         dIdUoYanujxuoaJHdiR3drTfyzzkN6WAaRkoYCpXYLHaDmbdSVxAAJIqWs9llfEA1QDx
-         xIgouSIpDisErJ2Gq9RAA3KmKQzfkRcPak06KKO6gK/8NEsRBj9KQmstqI6tnUbn6V/H
-         qQVA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=YiGO1DzHy3oKJw39dEBo3ubhTMAjwaktPDTRNxo6tIs=;
-        fh=gA/T2XMN94BRteIAXP9Su0gJhu35UrX/6stGi74qLKI=;
-        b=Y5houtwYl8gjLDLZg6o8It0YKqSGOmIUM7FyJCENArdu7IK120s/lUDH9oKkcIlKMa
-         C3Qbb1LUwv25+wWl70P0zelJ+TgZRINhzBwL+gD+xuCwkRq0jpK1qsuk9X8HYbE098cQ
-         /s4cU1242uuBqrxzqZQ2Ai9JnANATIMV6IPDy33zNFVBMA6GmOdqBRVXgxPd1twu3TCT
-         /ePFYPcjqX7/H0oF9M3iLwqV1FLYP/MZyfL0U2XMj8Y+gF6YMPaapzuVoH7PncwvibAT
-         FhJyvgb4475ruk9C57IU/6psbnaDf7FlDbzM5a+QY3hQ4qQltKPcpLxorbvxS4DnU9MB
-         cMOA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1778571427; x=1779176227; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=YiGO1DzHy3oKJw39dEBo3ubhTMAjwaktPDTRNxo6tIs=;
-        b=AOLMsxdl95RNOS40d/rtmgSLXWgPQOt8ahxDC98SXp7tJzs3Z0q33cublMzo5/5b0g
-         yXX76g9PkD7gsk0pmOY7/nhW1JRZuZujU/Ov5Gg/YUQ3LpWGhv1JSjh7I8cHmfsrBaqN
-         MKl30+aVCEVIfykxhfEYhqPRXrdWeMXx6gptCRU6c8Y0pjD3CcQFlwuNyBIbdi30udYR
-         c/dKu8U2SLVAG2+TbuV70DpACrlVpAVoj4LU3id0oNhKWQLWIh9E3xjRCeSh+4k0ob+C
-         zQalwA9xV3N6u9uRNP1T+SA9b6Sn7pergW3wonQ9up/alUvVjnm/4Tyx2jOFcNgPKyZw
-         6w+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778571427; x=1779176227;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=YiGO1DzHy3oKJw39dEBo3ubhTMAjwaktPDTRNxo6tIs=;
-        b=PW/+mB5fzChQ/bP9Vnf+CWhxxQYRtUS99eo7QCOT068/4ZobQBv4BMYY5oIj9u5NTf
-         dbfdfctbILu/+8ZH8tjB1hVpuMxYcKYjbeNak9xugqEgxXkITUWDvt8LABLtSIx99EhO
-         7G/PzH5jFB08+dECtibEE+t++54RvJgWT4BXsW3mum2BrUldrDmMjoVjp5BSGYccnPJk
-         /h4amHvLmEMBibNw37y2O6j1xwfHDWzcVOkffWp5ezKB3PgWHOaGGXN0a0EeCT1VQmtj
-         uiluaau2XmQhk6sJP8KRozkWKuqWrpuZqX/OqFfxWD1Y0cvs+HZKCDTTO4UXDgeYVt+1
-         QsKQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8faTns44N7XfbrFQ9TgbAChQBq8L8fUcTQ3MVkPwxSg81nzJQzJ3HHNvn44TZv3AvU4Ep6ABMHih4a9sbvgYU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YytFeRGxNe0YXU5FUHJxsbvX6xiP2eMSseDEAtul+EHVuKPeY90
-	Ss7djO31GliLJWNlowyP1Svbbh8MorrRbtbz0cSKWJqDuO1D3haD7yJ3UN1nTYU+JujWiNw72Vw
-	Un0ZLYQ35HfCHYOwuafROnqC35IqS1t5e1IqSYQMA2g==
-X-Gm-Gg: Acq92OFi+78ghOjko8JC33oFuUyRLI89k/+JUrIg2yURjLwyNMquIsxPpsSIFFWGas4
-	sseEhr9Le99FTQf+jv/WunQ6eAW35WfksjStDfFRtM0emRq1xgldjQrUhV3UUJIHb2JbND9W3FB
-	skt+sAOpWuvYzc4VvnSb0r7ckKGpsBKSEokoBevCl9/BRRurbonfbk+fAS7HIdEvx1sYFXg2gtC
-	qDuDNLcdwHXDpPif3fQI/ZiA4vCB6faRcUQVvEfRzKIcDx9HFyQHFmwnfoO2iLS0VkUvw68WQ9U
-	onIsxxmsLfSqKwdaM2aCgR482NALa+LHgpOk3QDu
-X-Received: by 2002:ac2:4f03:0:b0:5a3:cc81:eff3 with SMTP id
- 2adb3069b0e04-5a8e31e792cmr603618e87.26.1778571427561; Tue, 12 May 2026
- 00:37:07 -0700 (PDT)
+Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6BF92480DF1
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 07:57:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778572678; cv=none; b=fg4mhmoZhPxFbAKnnt5sLZw7Jbk59vDFwjrXZXr/RcVOoKzhoKWfzgvr5FpiMAYbhmsmo92u4y4Ulf2dLDrSNn+PXOKIEm8d5fpOZmfZrpEFLEJtvVAOoAmq/QKv2I2UYZc3NPdxHor6/XI2OFcRL5XSTesnQFmrqz2zJMscauw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778572678; c=relaxed/simple;
+	bh=HvmN02b802VJXaimLgaUUoZAvNwc0rlykza/mErcCqY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=MQLJlFsP5v4qQ2I6NqudSS9IKxNx0IS82DZhXyU/VCcQ68Fpj4tL/vi1C0U6ZIXevLqUuBtZhe9TDwHphWE/gWsq9y7QbHJSJd+4XjconNJTxNlpbWyIeY74lQpDMG7omoEef70bNJmKHQiUBYZsiEtR51KsKgccnogxWl31HSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.161.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowACXusRq3QJqzDwAAA--.447S3;
+	Tue, 12 May 2026 15:57:35 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	stephane.ml.bryant@gmail.com,
+	yuantan098@gmail.com,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	bird@lzu.edu.cn,
+	royenheart@gmail.com,
+	n05ec@lzu.edu.cn
+Subject: [PATCH nf 1/1] netfilter: nf_queue: hold bridge skb->dev while queued
+Date: Tue, 12 May 2026 15:57:25 +0800
+Message-ID: <ca7ee343bbcb44905e1f5b853df2f3a5b7d40548.1778493188.git.royenheart@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1778493188.git.royenheart@gmail.com>
+References: <cover.1778493188.git.royenheart@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260511134744.277032-1-marco.crivellari@suse.com>
- <20260511134744.277032-3-marco.crivellari@suse.com> <734b9aa0-3af4-819a-49fe-8bba7035856f@ssi.bg>
-In-Reply-To: <734b9aa0-3af4-819a-49fe-8bba7035856f@ssi.bg>
-From: Marco Crivellari <marco.crivellari@suse.com>
-Date: Tue, 12 May 2026 09:36:56 +0200
-X-Gm-Features: AVHnY4Lehk_93YiMVYGd670SPnAUadqGsUhTvlPZSmybCIwdKkGr50QbaYqby5c
-Message-ID: <CAAofZF43Yee8ZutA0mR=PnsinkbHwFEafQqtVPvcACpVNhtu=Q@mail.gmail.com>
-Subject: Re: [PATCH net-next 2/2] ipvs: Replace use of system_unbound_wq with system_dfl_wq
-To: Julian Anastasov <ja@ssi.bg>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	Tejun Heo <tj@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, 
-	Frederic Weisbecker <frederic@kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
-	Michal Hocko <mhocko@suse.com>, Simon Horman <horms@verge.net.au>, Eric Dumazet <edumazet@google.com>, 
-	"David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ygmowACXusRq3QJqzDwAAA--.447S3
+X-Coremail-Antispam: 1UD129KBjvJXoWxCF1ftw17ZrWkWFyUXr4xJFb_yoW5trWxpF
+	W5ta4xJ34xtF4UK3ykAr4xZr13urs5Wr9xua4akr95Ar9xXF1UZa1kKFZ0vay8Ars0kF43
+	JFs09r4FqFn8ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUB21xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
+	87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVWxJr0_GcWle2I262IYc4
+	CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_
+	Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x
+	0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7Cj
+	xVAaw2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1s
+	IEY20_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s02
+	6x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0x
+	vE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE
+	42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6x
+	kF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUonmRUUUUU
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQEFCWoCxO4DHQAAsQ
 
-On Tue, May 12, 2026 at 6:22=E2=80=AFAM Julian Anastasov <ja@ssi.bg> wrote:
-> [...]
->         Sorry that such change was delayed but there were
-> many changes in IPVS for the last month. The last that may
-> delay this patch is:
->
-> v3 of "ipvs: avoid possible loop in ip_vs_dst_event on resizing"
-> https://lore.kernel.org/lvs-devel/20260510104605.24218-1-ja@ssi.bg/T/#u
->
->         May be we have to wait this change to reach net and
-> net-next. Also, we can reconsider which queue to use, these works
-> resize hash tables and call synchronize_rcu(), should we switch to
-> system_dfl_long_wq if such job is considered "long" ?
+From: Haoze Xie <royenheart@gmail.com>
 
-Hello Julian,
+br_pass_frame_up() rewrites skb->dev from the ingress port to the bridge
+master before queueing bridge LOCAL_IN packets. NFQUEUE only holds
+references on state.in/out and bridge physdevs, so a queued bridge
+packet can retain a freed bridge master in skb->dev until reinjection.
 
-Thanks for letting me know.
+When the verdict is reinjected later, br_netif_receive_skb() re-enters
+the receive path with skb->dev still pointing at the freed bridge master,
+triggering a use-after-free.
 
-Yes, if it is considered long we can switch to the long unbound version.
-I will prepare the v2 with this change.
+Store skb->dev in the queue entry for bridge builds, hold a reference on
+it for the queue lifetime, and use the saved device when dropping queued
+packets during NETDEV_DOWN handling.
 
-Thanks!
+Fixes: ac2863445686 ("netfilter: bridge: add nf_afinfo to enable queuing to userspace")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Tested-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+---
+ include/net/netfilter/nf_queue.h | 1 +
+ net/netfilter/nf_queue.c         | 5 +++++
+ net/netfilter/nfnetlink_queue.c  | 3 +++
+ 3 files changed, 9 insertions(+)
 
---
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index d17035d14d96..1e7eb8e85932 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -17,6 +17,7 @@ struct nf_queue_entry {
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	struct net_device	*skb_dev;
+ 	struct net_device	*physin;
+ 	struct net_device	*physout;
+ #endif
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index a6c81c04b3a5..08da3f4700da 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -67,6 +67,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 		nf_queue_sock_put(state->sk);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_put(entry->skb_dev);
+ 	dev_put(entry->physin);
+ 	dev_put(entry->physout);
+ #endif
+@@ -106,6 +107,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 	dev_hold(state->out);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_hold(entry->skb_dev);
+ 	dev_hold(entry->physin);
+ 	dev_hold(entry->physout);
+ #endif
+@@ -207,6 +209,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		.size	= sizeof(*entry) + route_key_size,
+ 	};
+ 
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	entry->skb_dev = skb->dev;
++#endif
+ 	__nf_queue_entry_init_physdevs(entry);
+ 
+ 	if (!nf_queue_entry_get_refs(entry)) {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 58304fd1f70f..b64a59bb4ba7 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1206,6 +1206,9 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	int physinif, physoutif;
+ 
++	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
++		return 1;
++
+ 	physinif = nf_bridge_get_physinif(entry->skb);
+ 	physoutif = nf_bridge_get_physoutif(entry->skb);
+ 
+-- 
+2.53.0
 
-Marco Crivellari
-
-SUSE Labs
