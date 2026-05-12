@@ -1,188 +1,231 @@
-Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0EC53C661C
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 20:51:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C70053C9457;
+	Tue, 12 May 2026 20:51:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778619088; cv=none; b=gE9kBI4juo2x2CXf/n28pcz2ootrlSDaztkjVYuTtnxlBdWc9ckedPaMI9ZGzzLAbjfrViXHVLhhZLSJvh3VI46JNMer//wgwSrTEXvqFe9lxZHTMv0Jg1xozHJEWCjMtfQ7Ee/VukUo2tE1QNkubpbHLoXcEzKUQPbSUStdlH8=
+	t=1778619098; cv=none; b=lrGXalQQp9iQCj9+AELPkd0YS638b6/PMY0U+t6cpj6n3gkS2S2NNNAyHemqR+r3zKYtPkCjBPI5Em2wDhVoXuIgTc83d4q2p6vkhnsymZh/HCDZ5Q83HQQQ2hdJCInUF+HPBOtMFKs8WNJi7gsa1a58RjwTRJEgxq4sQRizY6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778619088; c=relaxed/simple;
-	bh=J5gmNSPNQxxcqs8XDR9P+NOgy6ibnVJAuMTAtqZpUZ4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RDY/Zx2y6HuNw4tJuYcBdYhizufS57vocP5xKhaBcoViM6i37SUrVuhCulLmRFayqPfr4jOOIdBEVnFbKD3Qa8HkMyW0sT3A27qz2DQGYkpLWYoZ0g0sXcstjjVMC3910Rx6hd0AVNPzqvlhUfhxxcZFbM83LmkFsXDK2rIGMFM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YKDuELNx; arc=none smtp.client-ip=209.85.222.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1778619098; c=relaxed/simple;
+	bh=/EjZjm4abdmBihzVZ9pe8y4+Cm42FFHB9YXjeWIVazY=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=QuT0G2avc6MDum3+Scb09py1ebyRUXFBpwPiqjmNFZFw4Q+kplFgMH6WacxYu4yTjV15+f3yN4mNg3UWEXbhiO3O5SlYvGaieqNXch4tsnDCXVJ8JGnGU7/Ms6+UxEdFPmsFnVxI9dH+Z70tFIAdAWZjAc/opWpGiMFOEFwS5rQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=DVI3RW6k; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YKDuELNx"
-Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-90d2acb9936so119630685a.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 13:51:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778619082; x=1779223882; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RpARctubxx8lA4XtZtvDCBF0ktNsLEKbeHjau0kupPc=;
-        b=YKDuELNxPRrDXZRddMTCvxBXg7tuOMXxHNohdJP86e9wVCAjhJQf0FWbA8tMPE3TEk
-         lRKj2tBaUEN1lrjuK/HrsJpEHPlT1YZqUJWK0puHJjVn+g5/GnI/oa3YI6/Al2df2f1E
-         r0bJ17t477l3849Whf3YPA8IrqxYJspTaGMQb7MQdIKZzrpoKOArn25n5m3k8PYXX2cH
-         TzKA58WKiCi9QSfjOBAjypwkiKq8tZK/+NXaggA94FUI+2Q1XYAfRksslU0WhItrrQqr
-         +hYrX93WSpcUo1MOOaLU1iyk43fL2Nn8GZSBJEyWbFPNoqiveHZJH/KlL6lWwkllAUgq
-         rFjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778619082; x=1779223882;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=RpARctubxx8lA4XtZtvDCBF0ktNsLEKbeHjau0kupPc=;
-        b=Ay9HNBG24Ns+jrmN7eorBdBZesr4/LOqubuXwyI+ipVS+tiwEclCGIS4p0BzXl4piP
-         7RUnbz5dpALlYiitgVNEs1a/yGsZLpQiyTdggM8AwnxEPiydNhR0vE3mQqQqU4TQ++Yn
-         wug10w4GoPzCDlLnVg8bEmShlwROlexgKb6Z8o3v6rYyjWwTcnZeHUyMHR981yOkqrul
-         MMIbN6+a6cMGG83nlF5wN9x6fsNEXcrRnadMx1AUInljatSwuKM/e0Lpya/9+w/BYvFK
-         C6SZC8w50205fbvIqDzGJYIFZ3waYEEUO6OHMdpZ293UTzngeZ4pLUYCMx31REdDvPrR
-         Mdbw==
-X-Forwarded-Encrypted: i=1; AFNElJ+xfKJoNWrtKHXu5Es6PP+QofQaR4T+5h0PTlUpVV6PjeF8G0iXi48/Bk0JFCOrxxIfwFxY+geyRC+LZa+WRfc=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxYAsfd7/ugEH/H5UudwQUWKZnVBx/CIjkox7dzvHdWdibOyhha
-	+R+AakdURbnOX9ZieNZw+B135QDcKMvAyrx3GDgFTOmPa/pmFrcvoCRL
-X-Gm-Gg: Acq92OHUdU2T31BpFuu7urlFu7bTipqxFfFWYPMf7VLvGjFLkxKDGgKRFG+OtTVy71f
-	vsdSPmA42Slulfe4cphB696/anuCa634+oDbJJTfI9+xgDbe9DssM2mRfkBNnW614qv3tVPyuM+
-	zNN7f2x0Y/9hDXGCP4sYWvAdAQHa+7q8f3o73BYi0eTq3CZO+g4Ua0C51XcIomBPdPIzE24tioL
-	JmMSRgcgDfDPZs8XFodMIK3CqU6IKxT5DJ0+xyWJaZwPftw6R7D6P8u5x1YYhTuhPapwQC71uIM
-	XeiSRXhGoBU95++EQKiZX6Y3nD2FgGCtZ0QLFHtkA1bSREkSWLuKeqgEL8SWJb+FNJsgB8uZwqP
-	qlMEBUEpRunlqwanAJQRidz592FcoNRfGz57EfkUxmFFFLesXIuG1pXU8o5oZHmt1khtWBRb9Du
-	VF7/UchO52OCQWScwAkvI2M9eltS/3AKra50ymbjfQncU3xCB2pg0pYkETmQbnKoD5JydXpVoFK
-	bqGWkC331eve8Tz/RtjyflyQn4NXsenP2w2oLK0qZM=
-X-Received: by 2002:a05:620a:7003:b0:8eb:10d4:a46c with SMTP id af79cd13be357-90facf9e383mr9443985a.35.1778619082195;
-        Tue, 12 May 2026 13:51:22 -0700 (PDT)
-Received: from server0.tail6e7dd.ts.net (c-68-48-65-54.hsd1.mi.comcast.net. [68.48.65.54])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-907b8d9eed0sm1490734285a.19.2026.05.12.13.51.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 May 2026 13:51:21 -0700 (PDT)
-From: Michael Bommarito <michael.bommarito@gmail.com>
-To: Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Eric Dumazet <edumazet@google.com>,
-	netdev@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Kuniyuki Iwashima <kuniyu@google.com>,
-	Maciej Zenczykowski <maze@google.com>,
-	Kees Cook <kees@kernel.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	"Gustavo A . R . Silva" <gustavoars@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH net 2/2] ipv4: ah: harden ah_output options-copy guard against ihl < 5
-Date: Tue, 12 May 2026 16:51:15 -0400
-Message-ID: <423b9ce3b45782c09a2fd9c65ad6674a9abb7c72.1778614451.git.michael.bommarito@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <cover.1778614451.git.michael.bommarito@gmail.com>
-References: <cover.1778614451.git.michael.bommarito@gmail.com>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="DVI3RW6k"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 2F35F2105C;
+	Tue, 12 May 2026 23:51:30 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=G8WMFhOVZAw6ew4FNICjSvBmHsGDOLIOjnkrhMlvXWw=; b=DVI3RW6kEYq8
+	WQ5QaKXFnsJMdhfGlvdOOu9J0SXitpKa+D51ABSuNUbNpob4sUs5sRc1xhktHrsW
+	oodmevMt/M+WIq91OSEfG1qMeP6HSEPKj64MoPjNxpH+CBCQOEuBxDkaQ8lR69fE
+	2dDtNC9k0jTDdeB47P7XL5KWo0dDTXSdfq/ikfP0Oh/Tu9g8YnsAbFFtd8mFl4bm
+	KfCefWxyWAV0UvspHnYo4s051J2ZUSapV7PYqppyNT88isXIXllYKyTsMGJBEVr6
+	JtG2KkdGNyMdS1USlAWm0dIghHALrk87PGuaq/wWMMKfcduTM3HhBzUbsq/XS0aV
+	fjidNdnsoDxaYh4wGfd8S2XtbDJxscWd5e9Jd8onrZ/7ugSd9S9PDyP9Ofsfn7lw
+	NiDTuCNC1/meWNkULXem7H3SYuRjGrlptooEFr2Ab8v7ZBSlI0abbJ6FZWWNfjYd
+	tVisMZgmz1hIz+aASiipR8d8KCu+L4fptml/jTngobF92Nlzy9AcrWLSB6zlerpj
+	ZDEU2cf2oRNbZjAel4DLbG3RjTgUuEVQBWaol+N4b5yXgjY/dW6J9v8/PwQLBGte
+	CyuzrQgEa19/ivOs+lrxtqEZyLEfJ2WhkrOTOwsaIfAz5z+m9zYkGhpoeOuK/Ofk
+	aG1o3OvEgDxbER87Dc5+astclCOEdXU=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Tue, 12 May 2026 23:51:30 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 9A6DC60A24;
+	Tue, 12 May 2026 23:51:30 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.1) with ESMTP id 64CKpNw0084581;
+	Tue, 12 May 2026 23:51:23 +0300
+Date: Tue, 12 May 2026 23:51:23 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2] netfilter: add option for GCOV profiling
+In-Reply-To: <20260512182946.32687-1-fw@strlen.de>
+Message-ID: <383b4900-e709-5f3d-ce8e-c608aad85f8a@ssi.bg>
+References: <20260512182946.32687-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-ah_output() and ah_output_done() copy the IPv4 options area with
 
-    if (top_iph->ihl != 5) {
-        memcpy(dst, src, top_iph->ihl * 4 - sizeof(struct iphdr));
-    }
+	Hello,
 
-The "!= 5" guard correctly excludes the no-options case (ihl == 5)
-and allows ihl > 5 where options are present.  It does NOT exclude
-ihl < 5.  For ihl in [0, 4], top_iph->ihl * 4 is less than
-sizeof(struct iphdr) (20); the subtraction is computed as int,
-becomes negative, and is then implicitly converted to size_t at
-the memcpy() call.  The resulting length is close to SIZE_MAX and
-memcpy walks off the slab allocation backing the skb's network
-header.
+On Tue, 12 May 2026, Florian Westphal wrote:
 
-With the preceding patch ("ipv4: raw: reject IP_HDRINCL packets
-with ihl < 5") in place, an ihl < 5 packet from a raw IP_HDRINCL
-socket is rejected before it reaches the local-output path.
-However, post-LOCAL_OUT hook mangling (nftables payload-set,
-NFQUEUE reinject) can still rewrite the IPv4 header after the
-raw_send_hdrinc validation has run and deliver an ihl < 5 packet
-to ah_output().  Reachability of this path requires CAP_NET_ADMIN
-in the relevant netns; it is a smaller class than the original
-CAP_NET_RAW path but it is not zero.
+> Similar to a few other subsystems: add a new config toggle to
+> enable netfilter gcov profiling in netfilter, including ebtables,
+> arptables and so on.
+> 
+> ipset and ipvs gain their own, dedicated toggles.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Independently of the post-LOCAL_OUT mangling question, the AH
-consumer should not contain a memcpy whose size is derived from
-an attacker-influenced field without a floor.  Change the guard
-to "top_iph->ihl > 5" at all three sites:
+	Looks good to me, thanks!
 
-  - ah_output_done() (the .complete callback path)
-  - ah_output()      (the synchronous options-copy site)
-  - ah_output()      (the post-hash restore site)
+For IPVS:
 
-Behavior for valid packets (ihl in {5, 6, ..., 15}) is unchanged.
-For malformed packets with ihl < 5, the options copy is cleanly
-skipped; the malformed field no longer becomes a huge memcpy
-length.  This is the defense-in-depth half of the series; the
-upstream sanity check in the preceding patch is the primary fix.
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
-A mirror-pattern audit found no analogous bug in ah_input(),
-ip_clear_mutable_options(), or net/ipv6/ah6.c (IPv6 has a
-fixed-length header and no IP_HDRINCL equivalent for crafting an
-ihl < 5 ipv6hdr).
+> ---
+>  v2: add dedicated toggles for ipvs and ipset;
+>  I am currently not collecting profile data for these two.
+> 
+>  If you prefer to keep them under single switch thats fine,
+>  just lmk.
+> 
+>  net/bridge/netfilter/Makefile | 4 ++++
+>  net/ipv4/netfilter/Makefile   | 4 ++++
+>  net/ipv6/netfilter/Makefile   | 4 ++++
+>  net/netfilter/Kconfig         | 8 ++++++++
+>  net/netfilter/Makefile        | 4 ++++
+>  net/netfilter/ipset/Kconfig   | 9 +++++++++
+>  net/netfilter/ipset/Makefile  | 3 +++
+>  net/netfilter/ipvs/Kconfig    | 9 +++++++++
+>  net/netfilter/ipvs/Makefile   | 3 +++
+>  9 files changed, 48 insertions(+)
+> 
+> diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+> index b9a1303da977..af0c903aa4ac 100644
+> --- a/net/bridge/netfilter/Makefile
+> +++ b/net/bridge/netfilter/Makefile
+> @@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+>  # watchers
+>  obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+>  obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
+> +
+> +ifdef CONFIG_GCOV_PROFILE_NETFILTER
+> +GCOV_PROFILE := y
+> +endif
+> diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+> index 85502d4dfbb4..dbfb1c4739a8 100644
+> --- a/net/ipv4/netfilter/Makefile
+> +++ b/net/ipv4/netfilter/Makefile
+> @@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+>  obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+>  
+>  obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
+> +
+> +ifdef CONFIG_GCOV_PROFILE_NETFILTER
+> +GCOV_PROFILE := y
+> +endif
+> diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+> index 66ce6fa5b2f5..72902d8005ad 100644
+> --- a/net/ipv6/netfilter/Makefile
+> +++ b/net/ipv6/netfilter/Makefile
+> @@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
+>  obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
+>  obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+>  obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
+> +
+> +ifdef CONFIG_GCOV_PROFILE_NETFILTER
+> +GCOV_PROFILE := y
+> +endif
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 682c675125fc..f71ff98eb5d0 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
+>  
+>  endif # NETFILTER_XTABLES
+>  
+> +config GCOV_PROFILE_NETFILTER
+> +	bool "Enable GCOV profiling for netfilter"
+> +	depends on GCOV_KERNEL
+> +	help
+> +	  Enable GCOV profiling for netfilter to check which functions/lines
+> +	  are executed.
+> +
+> +	  If unsure, say N.
+>  endmenu
+>  
+>  source "net/netfilter/ipset/Kconfig"
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 6bfc250e474f..f0751ca302c6 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
+>  
+>  # lwtunnel
+>  obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
+> +
+> +ifdef CONFIG_GCOV_PROFILE_NETFILTER
+> +GCOV_PROFILE := y
+> +endif
+> diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
+> index b1ea054bb82c..6c4d54758106 100644
+> --- a/net/netfilter/ipset/Kconfig
+> +++ b/net/netfilter/ipset/Kconfig
+> @@ -175,4 +175,13 @@ config IP_SET_LIST_SET
+>  
+>  	  To compile it as a module, choose M here.  If unsure, say N.
+>  
+> +config GCOV_PROFILE_IPSET
+> +	bool "Enable GCOV profiling for ipset"
+> +	depends on GCOV_KERNEL
+> +	help
+> +	  Enable GCOV profiling for ipset to check which functions/lines
+> +	  are executed.
+> +
+> +	  If unsure, say N.
+> +
+>  endif # IP_SET
+> diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
+> index a445a6bf4f11..4f48df5406cd 100644
+> --- a/net/netfilter/ipset/Makefile
+> +++ b/net/netfilter/ipset/Makefile
+> @@ -29,3 +29,6 @@ obj-$(CONFIG_IP_SET_HASH_NETPORTNET) += ip_set_hash_netportnet.o
+>  
+>  # list types
+>  obj-$(CONFIG_IP_SET_LIST_SET) += ip_set_list_set.o
+> +ifdef CONFIG_GCOV_PROFILE_IPSET
+> +GCOV_PROFILE := y
+> +endif
+> diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+> index c203252e856d..7724cb44e6de 100644
+> --- a/net/netfilter/ipvs/Kconfig
+> +++ b/net/netfilter/ipvs/Kconfig
+> @@ -349,4 +349,13 @@ config	IP_VS_PE_SIP
+>  	help
+>  	  Allow persistence based on the SIP Call-ID
+>  
+> +config GCOV_PROFILE_IPVS
+> +	bool "Enable GCOV profiling for IPVS"
+> +	depends on GCOV_KERNEL
+> +	help
+> +	  Enable GCOV profiling for IPVS to check which functions/lines
+> +	  are executed.
+> +
+> +	  If unsure, say N.
+> +
+>  endif # IP_VS
+> diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
+> index bb5d8125c82a..8e4cc67ad39d 100644
+> --- a/net/netfilter/ipvs/Makefile
+> +++ b/net/netfilter/ipvs/Makefile
+> @@ -43,3 +43,6 @@ obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
+>  
+>  # IPVS connection template retrievers
+>  obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
+> +ifdef CONFIG_GCOV_PROFILE_IPVS
+> +GCOV_PROFILE := y
+> +endif
+> -- 
+> 2.53.0
 
-Reproduced on UML + KASAN: kernel-mode fault at addr 0x0 with
-memcpy_orig at the crash site on a pre-fix kernel.  The AH guard
-was verified by forcing the same packets through xfrm: the xfrm
-state counter incremented and no KASAN splat or panic occurred.
-With the preceding patch in this series, the original raw
-IP_HDRINCL path is rejected before AH.
+Regards
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
-Assisted-by: Claude:claude-opus-4-7
-Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
----
- net/ipv4/ah4.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/ah4.c b/net/ipv4/ah4.c
-index 4366cbac3f06..8fa31bdf9792 100644
---- a/net/ipv4/ah4.c
-+++ b/net/ipv4/ah4.c
-@@ -137,7 +137,7 @@ static void ah_output_done(void *data, int err)
- 	top_iph->tos = iph->tos;
- 	top_iph->ttl = iph->ttl;
- 	top_iph->frag_off = iph->frag_off;
--	if (top_iph->ihl != 5) {
-+	if (top_iph->ihl > 5) {
- 		top_iph->daddr = iph->daddr;
- 		memcpy(top_iph+1, iph+1, top_iph->ihl*4 - sizeof(struct iphdr));
- 	}
-@@ -197,7 +197,7 @@ static int ah_output(struct xfrm_state *x, struct sk_buff *skb)
- 	iph->ttl = top_iph->ttl;
- 	iph->frag_off = top_iph->frag_off;
- 
--	if (top_iph->ihl != 5) {
-+	if (top_iph->ihl > 5) {
- 		iph->daddr = top_iph->daddr;
- 		memcpy(iph+1, top_iph+1, top_iph->ihl*4 - sizeof(struct iphdr));
- 		err = ip_clear_mutable_options(top_iph, &top_iph->daddr);
-@@ -253,7 +253,7 @@ static int ah_output(struct xfrm_state *x, struct sk_buff *skb)
- 	top_iph->tos = iph->tos;
- 	top_iph->ttl = iph->ttl;
- 	top_iph->frag_off = iph->frag_off;
--	if (top_iph->ihl != 5) {
-+	if (top_iph->ihl > 5) {
- 		top_iph->daddr = iph->daddr;
- 		memcpy(top_iph+1, iph+1, top_iph->ihl*4 - sizeof(struct iphdr));
- 	}
--- 
-2.53.0
+--
+Julian Anastasov <ja@ssi.bg>
 
