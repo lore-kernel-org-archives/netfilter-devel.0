@@ -1,150 +1,121 @@
-Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6BF92480DF1
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 07:57:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4680A379C20
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 08:06:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778572678; cv=none; b=fg4mhmoZhPxFbAKnnt5sLZw7Jbk59vDFwjrXZXr/RcVOoKzhoKWfzgvr5FpiMAYbhmsmo92u4y4Ulf2dLDrSNn+PXOKIEm8d5fpOZmfZrpEFLEJtvVAOoAmq/QKv2I2UYZc3NPdxHor6/XI2OFcRL5XSTesnQFmrqz2zJMscauw=
+	t=1778573173; cv=none; b=VuGGbptBOmKgKONpFfQ2FXHsVF3zSgxJahIf+c6mYUWHAUydy9DwU779iX90nkriy4yhznuUFWtCyY9FP85e+R/URHP+tuNa3KPBGYhWKFQbgbGX7N8FG6seJBHIXQ2Czi2+/hjiFPr6jmk3Dgq64wPiIFPuoOK32NLOTYspOwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778572678; c=relaxed/simple;
-	bh=HvmN02b802VJXaimLgaUUoZAvNwc0rlykza/mErcCqY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MQLJlFsP5v4qQ2I6NqudSS9IKxNx0IS82DZhXyU/VCcQ68Fpj4tL/vi1C0U6ZIXevLqUuBtZhe9TDwHphWE/gWsq9y7QbHJSJd+4XjconNJTxNlpbWyIeY74lQpDMG7omoEef70bNJmKHQiUBYZsiEtR51KsKgccnogxWl31HSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.161.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
-Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
-	by app1 (Coremail) with SMTP id ygmowACXusRq3QJqzDwAAA--.447S3;
-	Tue, 12 May 2026 15:57:35 +0800 (CST)
-From: Ren Wei <n05ec@lzu.edu.cn>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	stephane.ml.bryant@gmail.com,
-	yuantan098@gmail.com,
-	yifanwucs@gmail.com,
-	tomapufckgml@gmail.com,
-	bird@lzu.edu.cn,
-	royenheart@gmail.com,
-	n05ec@lzu.edu.cn
-Subject: [PATCH nf 1/1] netfilter: nf_queue: hold bridge skb->dev while queued
-Date: Tue, 12 May 2026 15:57:25 +0800
-Message-ID: <ca7ee343bbcb44905e1f5b853df2f3a5b7d40548.1778493188.git.royenheart@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <cover.1778493188.git.royenheart@gmail.com>
-References: <cover.1778493188.git.royenheart@gmail.com>
+	s=arc-20240116; t=1778573173; c=relaxed/simple;
+	bh=Cw5y9vpzQ+HGAAqvHwdnbCKDka1FgZ8X0LZB56QGS94=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YuTPLQ2pC+QR9voBr4nKMuwi3R9MX654U64fuWIW3GqtFXROTB108WH1UWTot7PvFe267c+eyZW+mWUMxA89Hmz5knMya4KIrvMFYj5up32sQ+dECteyG/jPjUFXuDS11olSYdb/rb9g+f0hzTS5hqwjcQUnxVkJAKaW2uePZ5o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Gu/a4o4s; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Gu/a4o4s"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4891e5b9c1fso48278285e9.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 01:06:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778573171; x=1779177971; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ub9rCJB+xiyh5qMMvDQ8N4fa009xZ6N4W+3GYqzTDBs=;
+        b=Gu/a4o4s2OwYS3JU03JpPaNeZZRabZtomXxQ1eM7TOCuqMsFsv36gr4xJdezROV5IA
+         Ef6GhZPDMAWGYv1DhbOVvo0x0GMAQz3vek9ayZpChQARGZKWpvlfLNgPDmqwV0P2kY/g
+         m4PB8tXEOP8ozDRbk9QCFpuUP6EbksDulwlwQ2/ZVZw2rP3tybPV3mUlSA2UKyZicVou
+         69iJGyfFFkmSS8RagYoRY+kMPy9D+jlIA6JcfgX1SXaQFScsMcLx1OwPLqMe9cBsseBX
+         gILd5IAXOCHKqiHPSLQGJ0qYXYAtdqEiy3kIx4IPKa8q70tJ0GSEm6q/WiJnGk6MKWDa
+         FpCw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778573171; x=1779177971;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ub9rCJB+xiyh5qMMvDQ8N4fa009xZ6N4W+3GYqzTDBs=;
+        b=oHJ6Da3e8fc09HsHvzM8/2ySXfGrB4cTL6R71nn3bxG9tY0/EZrmqookmjZKtZr2yb
+         2iA5bmiLGH2u2VR96vYdTGUZF94DXqcr317zyfn8naEhnNFGWuwWr9S+VN9mFrO17P+F
+         5MHvbJ0s8D/Me5K9o90C1ttmNFxXw/YNcLNdan6euR6saw/qdMjknKXQJ5sPVWiTHxmp
+         E4aO/HnjIvRc/hVxX/7NtfFwRzS+/AB16hJ8a12hhgyOK4Vw96ckMS7uTPIUX/hZYYyP
+         lK8s99owzXa3BrGmWJLbLhe5XpieMGBMUgWswX3yK/XrdOYDqqTByWeIFiOwnreSNspS
+         h+9A==
+X-Forwarded-Encrypted: i=1; AFNElJ8d3JnOfR93pgFjgxuHXHwktNg0SFu63+rUwAwgbG5jmcgzSo4C6Z88BQ0A7ec8BBwb0WDu6Tor5jMXEUBPI0M=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzyMIhouT215sdYlV+JZhqwetrc5hoLmi+Z1VBSj1r5+DtB3ULz
+	gIAf0Lkft/mfEJXfECa4iuuauEaM9G+PDlvz9yRz+2jV8FL+eSUp1XZh
+X-Gm-Gg: Acq92OGDvYC4QrkQjIrin2KxwIRAtO4obv1mThzQzwpgH6P+zg5d+n6/EMH8IPiuscP
+	hvG31yJWgNd0sB6x6RJ587NA6tUzNuCAaTZScQEg8ObT3qbiCYaPcNF7U3AuD4VggRDUJBEMgS9
+	yzbnaqaeDZOd/wOjWdUBDaMRHMBx9pQqFOQAplJrTEBuOgoD+3uM8Di5iSWPqqDZWt1w5MH+jt1
+	b1tLczB7ba13sI2pTP1vZ0sTDYxH0T+vhiEoOntmYYSd7e26tKYigQYx0RuauE1QCBHHeBgoPjY
+	CUBsXs2X3Xjx7+C9bZer6+qUd4pHcmcpmfBX+VKShbkPbEvEWCKrJljCf+NuP5i34VvUf0TSIhk
+	El+AzIDqvPMDwg9HWdcNNNOGhkvEe6R/jHPRLEoTNeUkgLUp+E/C7GrPMssayzDwgEoD/89hjmZ
+	qWga0ZPdYtnLFR6O4jX6A=
+X-Received: by 2002:a05:600c:528e:b0:48e:7f1c:8778 with SMTP id 5b1f17b1804b1-48e8fe721bcmr30944315e9.17.1778573170670;
+        Tue, 12 May 2026 01:06:10 -0700 (PDT)
+Received: from localhost ([196.207.164.177])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45491e94c0fsm31909250f8f.32.2026.05.12.01.06.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 12 May 2026 01:06:09 -0700 (PDT)
+Date: Tue, 12 May 2026 11:06:06 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Calvin Owens <calvin@wbinvd.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
+	John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch V2 01/11] hrtimer: Provide hrtimer_start_range_ns_user()
+Message-ID: <agLfbp9yEiQlTYYl@stanley.mountain>
+References: <20260408102356.783133335@kernel.org>
+ <20260408114951.995031895@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ygmowACXusRq3QJqzDwAAA--.447S3
-X-Coremail-Antispam: 1UD129KBjvJXoWxCF1ftw17ZrWkWFyUXr4xJFb_yoW5trWxpF
-	W5ta4xJ34xtF4UK3ykAr4xZr13urs5Wr9xua4akr95Ar9xXF1UZa1kKFZ0vay8Ars0kF43
-	JFs09r4FqFn8ZF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUB21xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
-	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
-	87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVWxJr0_GcWle2I262IYc4
-	CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_
-	Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x
-	0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7Cj
-	xVAaw2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1s
-	IEY20_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s02
-	6x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0x
-	vE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE
-	42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6x
-	kF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUonmRUUUUU
-X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQEFCWoCxO4DHQAAsQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260408114951.995031895@kernel.org>
 
-From: Haoze Xie <royenheart@gmail.com>
+On Wed, Apr 08, 2026 at 01:53:46PM +0200, Thomas Gleixner wrote:
+> +enum {
+> +	HRTIMER_REPROGRAM_NONE,
+> +	HRTIMER_REPROGRAM,
+> +	HRTIMER_REPROGRAM_FORCE,
+> +};
+> +
+>  static bool __hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim, u64 delta_ns,
+>  				     const enum hrtimer_mode mode, struct hrtimer_clock_base *base)
 
-br_pass_frame_up() rewrites skb->dev from the ingress port to the bridge
-master before queueing bridge LOCAL_IN packets. NFQUEUE only holds
-references on state.in/out and bridge physdevs, so a queued bridge
-packet can retain a freed bridge master in skb->dev until reinjection.
+The return type for this function needs to changed from bool to
+enum whatever...  Otherwise HRTIMER_REPROGRAM and HRTIMER_REPROGRAM_FORCE
+are both just true.
 
-When the verdict is reinjected later, br_netif_receive_skb() re-enters
-the receive path with skb->dev still pointing at the freed bridge master,
-triggering a use-after-free.
+>  {
+> @@ -1410,7 +1416,7 @@ static bool __hrtimer_start_range_ns(str
+>  	/* If a deferred rearm is pending skip reprogramming the device */
+>  	if (cpu_base->deferred_rearm) {
+>  		cpu_base->deferred_needs_update = true;
+> -		return false;
+> +		return HRTIMER_REPROGRAM_NONE;
+>  	}
+>  
+>  	if (!was_first || cpu_base != this_cpu_base) {
+> @@ -1423,7 +1429,7 @@ static bool __hrtimer_start_range_ns(str
+>  		 * callbacks.
+>  		 */
+>  		if (likely(hrtimer_base_is_online(this_cpu_base)))
+> -			return first;
+> +			return first ? HRTIMER_REPROGRAM : HRTIMER_REPROGRAM_NONE;
 
-Store skb->dev in the queue entry for bridge builds, hold a reference on
-it for the queue lifetime, and use the saved device when dropping queued
-packets during NETDEV_DOWN handling.
-
-Fixes: ac2863445686 ("netfilter: bridge: add nf_afinfo to enable queuing to userspace")
-Cc: stable@kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Tested-by: Haoze Xie <royenheart@gmail.com>
-Signed-off-by: Haoze Xie <royenheart@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
----
- include/net/netfilter/nf_queue.h | 1 +
- net/netfilter/nf_queue.c         | 5 +++++
- net/netfilter/nfnetlink_queue.c  | 3 +++
- 3 files changed, 9 insertions(+)
-
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index d17035d14d96..1e7eb8e85932 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -17,6 +17,7 @@ struct nf_queue_entry {
- 	unsigned int		id;
- 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	struct net_device	*skb_dev;
- 	struct net_device	*physin;
- 	struct net_device	*physout;
- #endif
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index a6c81c04b3a5..08da3f4700da 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -67,6 +67,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 		nf_queue_sock_put(state->sk);
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	dev_put(entry->skb_dev);
- 	dev_put(entry->physin);
- 	dev_put(entry->physout);
- #endif
-@@ -106,6 +107,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- 	dev_hold(state->out);
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	dev_hold(entry->skb_dev);
- 	dev_hold(entry->physin);
- 	dev_hold(entry->physout);
- #endif
-@@ -207,6 +209,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		.size	= sizeof(*entry) + route_key_size,
- 	};
- 
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	entry->skb_dev = skb->dev;
-+#endif
- 	__nf_queue_entry_init_physdevs(entry);
- 
- 	if (!nf_queue_entry_get_refs(entry)) {
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 58304fd1f70f..b64a59bb4ba7 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1206,6 +1206,9 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	int physinif, physoutif;
- 
-+	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
-+		return 1;
-+
- 	physinif = nf_bridge_get_physinif(entry->skb);
- 	physoutif = nf_bridge_get_physoutif(entry->skb);
- 
--- 
-2.53.0
+regards,
+dan carpenter
 
