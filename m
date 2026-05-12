@@ -1,152 +1,112 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C2B4418F0
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 08:13:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [207.46.229.174])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA7353947B7
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 08:52:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.46.229.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778573597; cv=none; b=Z81tQigxiJKdezOCdmu8y95YPWcBVBeOFnKoUu9fnHnIKAZIs1QX1rl4IQsWa8/5ZmNl2I1y+imW1q9s+v0SzR+cPIovP4rFXbw4WzY4+RboB9RzWdL1iXGQFEZTzvsrrfn1uwYJzWGQ48zayfR9aGE/uC3kwSdylSx130UZgOE=
+	t=1778575946; cv=none; b=aZBWDb7LLggFrSFwHWv/AmGrTokPpPyPZn3i3SCTArzuRZgUrMe7tJ27kNERQD3+KR1PxjOzHIJNMvs3lNT4xLpW9gtB3Y6qEeueaMx1oFeO0jLEiTPVN4lPLqRxq5Dbi5jm4OcwMQmmidcBGD2hIoDH71UrL6wx6jat8BEdrSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778573597; c=relaxed/simple;
-	bh=PK6aSXAilBcWWbHOL04QvQetI3k2arLzsbq9g/CJ8jU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=i3t9eYokgk/TicKwobxhwmZU7v3jWdVvEKEWJu7Ljwe/INDOGYi90arSRVN+w/k9wOBNrHKF98WkNgG1bQm6+ZCnxr8mIF/aq0eWhDrZV4UL65YANrHhF9JRPaRqJKrOjTHlnxSwJj1nKoeh6Sya4nziyciE4PH6yUxacFKGKUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wE2Mu2vK; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JvEirj65; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=JIwDYP5u; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=iM+tMM3i; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wE2Mu2vK";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JvEirj65";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="JIwDYP5u";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="iM+tMM3i"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id D10C36BDA0;
-	Tue, 12 May 2026 08:13:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778573593; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=VzXXNGw/AVHXhERA1dM5vnDVbfWSUQkRLOL87CEnXYs=;
-	b=wE2Mu2vK/2slsk95WAKaC/sbLqm5A4+uOCCooGP2MNwjBm5CDENBUprQyGk4BFYzXF3AFD
-	mRDXXS7/JaXcT0VRAa5EIx7/z4GiZE+uI6znL/5UQM6pTJhfXFDPuxejiM1Po6Yp8bOYOL
-	hSw3WCo2+qB0Dc+u8Y8IqKCsKnEbh9g=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778573593;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=VzXXNGw/AVHXhERA1dM5vnDVbfWSUQkRLOL87CEnXYs=;
-	b=JvEirj659ZW6N8eO916ikywIDPN5lwaNWRRIiuTBE06I0WZB28s+7wO5Y9UIgvutURh4UN
-	kbEq+/g+HMYHYUCg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778573591; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=VzXXNGw/AVHXhERA1dM5vnDVbfWSUQkRLOL87CEnXYs=;
-	b=JIwDYP5u85aYyhViveF85W/3YncoOSFi43zJm2q6sBzRac8jVxJmXnyTMv7dQiqwWgJt2w
-	hu9HT1uWBg4tsXfLm+0Pu/2xYRfqzHoHh7FeD87tMswFaoipZeK0X7L+sSK4OkQ/hytUu0
-	ZtMmB94fMmlK8jOorDLglByPgtde2LA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778573591;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=VzXXNGw/AVHXhERA1dM5vnDVbfWSUQkRLOL87CEnXYs=;
-	b=iM+tMM3iqe7ss6Eq3Sv+vt3nLibka9ukNa2bMvF7lz9XqRKBxcP6nSS0RanLzySY4Mk9Dk
-	TMmHptY2ihXCAfDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0DCB1593A9;
-	Tue, 12 May 2026 08:13:11 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id VsB+ABfhAmr5awAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 12 May 2026 08:13:11 +0000
-Message-ID: <dc486fd5-daac-4a9f-b477-52a8f02206c4@suse.de>
-Date: Tue, 12 May 2026 10:13:05 +0200
+	s=arc-20240116; t=1778575946; c=relaxed/simple;
+	bh=YYlZ7KifCYin9iGuku8Nw5K8Cs99rmruqxy3g6LjW+o=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=O5rl0sfhtBBDSS1ED9nSIl0dcxD4cZ9tZhNcdNqoCup5CxNLf0W4OaPPcplBhaLZq1CrFZlfBY9lNUyO/eDXRxmEjTVipXFy3XNlP32IIKIqm8GbqIi+KPsgg5IkUuV81ZapYHquVNRfLKGab8SXtoLAIyMxaKQ3nTm+0qFjdjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=207.46.229.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowACnyMIf6gJqc1YAAA--.547S3;
+	Tue, 12 May 2026 16:52:03 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: kadlec@blackhole.kfki.hu,
+	pablo@netfilter.org,
+	yuantan098@gmail.com,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	bird@lzu.edu.cn,
+	tonanli66@gmail.com,
+	n05ec@lzu.edu.cn
+Subject: [PATCH nf 1/4] netfilter: ipset: stop hash:ip,mark range iteration at end
+Date: Tue, 12 May 2026 16:50:01 +0800
+Message-ID: <69c030a489941b352b18fdd1ca754696c45b558c.1778482529.git.tonanli66@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1778482529.git.tonanli66@gmail.com>
+References: <cover.1778482529.git.tonanli66@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 nf] netfilter: nft_inner: Fix IPv6 inner_thoff desync
-To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>,
- netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>, Xuewei Feng
- <fengxw06@126.com>, Qi Li <qli01@tsinghua.edu.cn>,
- Ke Xu <xuke@tsinghua.edu.cn>, stable@vger.kernel.org
-References: <20260511173048.7256-1-zhaoyz24@mails.tsinghua.edu.cn>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260511173048.7256-1-zhaoyz24@mails.tsinghua.edu.cn>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_TWELVE(0.00)[15];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[126.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[netfilter.org,strlen.de,nwl.cc,davemloft.net,google.com,kernel.org,redhat.com,mails.tsinghua.edu.cn,126.com,tsinghua.edu.cn,vger.kernel.org];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,tsinghua.edu.cn:email,z.ai:url,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Level: 
+X-CM-TRANSID:ygmowACnyMIf6gJqc1YAAA--.547S3
+X-Coremail-Antispam: 1UD129KBjvJXoWxJF18CF48ZFy5uw4rWw4xXrb_yoW8Aw45pa
+	y5GrZ0y3s7WF4DCwn7JF4IyFy3Aws8ur13WwnxCrn5A3ZrXF48ta4ftrWavF1DJF90ka1Y
+	qa12kw4j93WDXrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUvK1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
+	z280aVAFwI0_Cr1j6rxdM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzx
+	vE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWU
+	JVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7V
+	AKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY1x0262kKe7AKxVWUtVW8ZwCY02Avz4vE
+	-syl42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxFaVAv8VW8GwCFx2IqxVCFs4IE7xkEbV
+	WUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF
+	67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42
+	IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF
+	0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxh
+	VjvjDU0xZFpf9x0JUd-B_UUUUU=
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQAFCWoCxO4E3wAAsU
 
-On 5/11/26 7:30 PM, Yizhou Zhao wrote:
-> In nft_inner_parse_l2l3(), when processing inner IPv6 packets,
-> ipv6_find_hdr() correctly computes the transport header offset
-> traversing all extension headers, but the result is immediately
-> overwritten with nhoff + sizeof(_ip6h) (40 bytes), which only
-> accounts for the IPv6 base header. This creates a desync between
-> inner_thoff (wrong — points to extension header start) and l4proto
-> (correct — e.g., IPPROTO_TCP), enabling transport header forgery
-> and potential firewall bypass. This issue affects stable versions
-> from Linux 6.2.
-> 
-> For comparison, the normal (non-inner) IPv6 path correctly
-> preserves ipv6_find_hdr()'s result. Removing the incorrect overwrite
-> ensures that ipv6_find_hdr()'s calculated transport header offset is
-> preserved, thereby fixing the desynchronization.
-> 
-> Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-> Cc: stable@vger.kernel.org
-> Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-> Reported-by: Xuewei Feng <fengxw06@126.com>
-> Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-> Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-> Assisted-by: GLM:5.1 Z.ai
-> Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+From: Nan Li <tonanli66@gmail.com>
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+hash:ip,mark iterates IPv4 ranges with a 32-bit iterator.
+
+The iterator must stop once the last address in the requested range has
+been processed. Advancing it once more can move the traversal state past
+the end of the request, so a later retry may continue from an unintended
+position.
+
+Handle the iterator increment explicitly at the end of the loop and stop
+once the upper bound has been processed. This keeps the existing retry
+behaviour intact for valid ranges while preventing traversal from
+continuing past the original boundary.
+
+Fixes: 48596a8ddc46 ("netfilter: ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Nan Li <tonanli66@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+---
+ net/netfilter/ipset/ip_set_hash_ipmark.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
+index a22ec1a6f6ec..e26ca2a370e3 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
+@@ -150,7 +150,7 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (retried)
+ 		ip = ntohl(h->next.ip);
+-	for (; ip <= ip_to; ip++, i++) {
++	for (; ip <= ip_to; i++) {
+ 		e.ip = htonl(ip);
+ 		if (i > IPSET_MAX_RANGE) {
+ 			hash_ipmark4_data_next(&h->next, &e);
+@@ -162,6 +162,10 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 			return ret;
+ 
+ 		ret = 0;
++
++		if (ip == ip_to)
++			break;
++		ip++;
+ 	}
+ 	return ret;
+ }
+-- 
+2.43.0
+
