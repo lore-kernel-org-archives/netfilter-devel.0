@@ -1,158 +1,188 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 699642253FC
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2026 14:53:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 094A34A1392
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2026 15:29:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778683981; cv=none; b=FaSSxEmnV8qrE1EXZP9qxMUOUKPPYFaliKNENooTYQi5dqF8s2gXhPnfxot17AXyg0DI/eNN3oPlbpS1lgKvCmjc38rn8SxpMU7bBD5fA115favEecCZI2zOiVremkVqKEHJmCBTX3qUKB97bKgXXL/cIlQaTcMKJGY8PJzCs/M=
+	t=1778686178; cv=none; b=Jmq13accuJchX/FPQzilWVUhHZtcEUrkV9+bJgw+4QD8Av2UnzLnNJ75jEWnp/NK4h7NebXx4+JBvI/vWwGT39TH6wPGHuSHQyNk0iI5FIYFFf74Gpi92H+ORrgPEJ7jFSlY/XwRNKI4fCD4Qs51ORvuuYAaUFZjzhgcmIz8UTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778683981; c=relaxed/simple;
-	bh=yh7W8TPukbs7vQi2iQ7hChVx93uR2ur64qyuy+rAA20=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=C2OyO9nl3FwWRBbcYwupjgiV+OWfnsSN/mAxZ7/Y29b055cmGBIf1etpnHYiF4Ky7KqBUyuLMSnCtkCtpwGE0EAiuXyRi727FnFdh/eBhblsBFZepAO6HZLyxRHIE/cgtiwd/OkIFfdoDzeizocBQ+r5lCniKvGrQAWAZ1Li6WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=hRK4wTQq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=oB2ay75Q; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=hRK4wTQq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=oB2ay75Q; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1778686178; c=relaxed/simple;
+	bh=54ufDLXha5fOW7jnhxQbeRrspPd1u4jkPXmBI8r4tnw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=vDW1vo/6ej2QBLKJHh4phPc5A7PTR+wdIqS5G063FaJBRn8Vc/VpVTmKbk6ah6jjtIV/YSK7IXVpOOS8SkPI34rWbCsIT7KyBjc3FDRBBE1qu2U7Ej6wj1UoIff+oa67u9ldjd6hJj57cZTovpXaMI3UInboGckqKwu66qxZi6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZVtXXGlW; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="hRK4wTQq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="oB2ay75Q";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="hRK4wTQq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="oB2ay75Q"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9CC036270B;
-	Wed, 13 May 2026 14:52:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778683978; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V5zMZR7SuI7oFBK4PHgX4+47NnJp7FOdesE/JOzeUHg=;
-	b=hRK4wTQqlfMgqzafZQKlMcGndEKu5XCIGbXi0fOAix77IqbB6R3uk5ZbMoLAb3o48yx9e5
-	bDWqNkPFQPvCx1IJUqXMM8OHvuZxYvxZmsXP21Esxu7QjXTV57+oPk9itVoVkNfJexORaF
-	idAgx9LQaRwPT0FBek9jZoUO7Bd1Nko=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778683978;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V5zMZR7SuI7oFBK4PHgX4+47NnJp7FOdesE/JOzeUHg=;
-	b=oB2ay75QHJY3yCLokvEPfs+TTP8Srk9ujahfLo0zl7IHlwnfPf25ct5/GA26LFIwkSv2zS
-	xs32V7EtN5PZcLDg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1778683978; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V5zMZR7SuI7oFBK4PHgX4+47NnJp7FOdesE/JOzeUHg=;
-	b=hRK4wTQqlfMgqzafZQKlMcGndEKu5XCIGbXi0fOAix77IqbB6R3uk5ZbMoLAb3o48yx9e5
-	bDWqNkPFQPvCx1IJUqXMM8OHvuZxYvxZmsXP21Esxu7QjXTV57+oPk9itVoVkNfJexORaF
-	idAgx9LQaRwPT0FBek9jZoUO7Bd1Nko=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1778683978;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V5zMZR7SuI7oFBK4PHgX4+47NnJp7FOdesE/JOzeUHg=;
-	b=oB2ay75QHJY3yCLokvEPfs+TTP8Srk9ujahfLo0zl7IHlwnfPf25ct5/GA26LFIwkSv2zS
-	xs32V7EtN5PZcLDg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 46009593A9;
-	Wed, 13 May 2026 14:52:58 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 7klJDkqQBGrQNAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 13 May 2026 14:52:58 +0000
-Message-ID: <7ed7e852-79e2-44ac-9705-32a1258ca7ae@suse.de>
-Date: Wed, 13 May 2026 16:52:47 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZVtXXGlW"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D0F376019F;
+	Wed, 13 May 2026 17:29:26 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1778686167;
+	bh=jL2OLJWgobkSTmgyZoChII4U+mn6CoZtywzVC/CwzFs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZVtXXGlWOzY6epyvOCgZK6tAgffB4rwWIkizSldSk2jCil1DGxQffkXOvE3xsbmCK
+	 Tq51MXV5lS28+cVseW4jD5O+GqhFRG/SEQqfJijDKnIRj62gj9jMs0LJbxHUuGNVkv
+	 uRZgpAYcMW/k3IKw8UAk4TZ1jbv9OYw5/Y8eq0ZFP+EGExUDAx8yE04+Dggvs0nJmL
+	 DHc8VbFNaghTq4wtCEDb2W1PHBSP2aY7bi29KqgAwp1jeNpnbovpbc7nwSyCxOvMCQ
+	 FLTEI//DC7g/OSUMT9uYHWtnlq7GfoKbIlq1VhX/kwWXixv8cswKYWNKsQxvjkSqBt
+	 mu2pIHWr3hdjw==
+Date: Wed, 13 May 2026 17:29:24 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: conntrack: add dead flag to helpers
+Message-ID: <agSY1PyVKRhf4zDc@chamomile>
+References: <20260512205823.803476-1-pablo@netfilter.org>
+ <agRMzvHgYCblnbrO@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf] netfilter: nf_conncount: prevent connlimit drops for
- early confirmed ct
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
- pablo@netfilter.org,
- Alejandro Olivan Alvarez <alejandro.olivan.alvarez@gmail.com>
-References: <20260513121547.6434-1-fmancera@suse.de>
- <agRygM7hHtKs8jQB@strlen.de> <7fbd428e-93b7-4e17-8360-5434f0d1f6bc@suse.de>
- <agSHD2ZVclEeKSJC@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <agSHD2ZVclEeKSJC@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	TAGGED_RCPT(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCPT_COUNT_FIVE(0.00)[6];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,netfilter.org,nwl.cc,gmail.com];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <agRMzvHgYCblnbrO@strlen.de>
 
-On 5/13/26 4:13 PM, Florian Westphal wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
->> About IP_CT_ESTABLISHED, I added it because it was not clear to me that
->> IPS_ASSURED_BIT is always set. I guess yes for TCP/UDP but what about
->> other protocols? (Are we supporting other protocols???) Anyway, I have
->> tested it and confirmed that for TCP/UDP it is safe to drop it.
+On Wed, May 13, 2026 at 12:05:02PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Add a new NF_CT_HELPER_F_DEAD helper flag to notify the packet path that
+> > this helper is going away. Thus, helpers are effectively disabled and no
+> > new expectations are created while removing the expectations created by
+> > this helper as well as unhelping the existing conntrack entries.
+> > 
+> > Add the check for NF_CT_HELPER_F_DEAD in the packet path to:
+> > - Conntrack confirmation path which invokes the helper callback.
+> > - Propagation of helper to conntrack via expectation.
+> > - OVS ct helper invocation.
+> > 
+> > Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+> > Reported-by: Florian Westphal <fw@strlen.de>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> >  include/net/netfilter/nf_conntrack_helper.h | 6 ++++++
+> >  net/netfilter/nf_conntrack_core.c           | 2 +-
+> >  net/netfilter/nf_conntrack_helper.c         | 5 ++++-
+> >  net/netfilter/nf_conntrack_ovs.c            | 3 +++
+> >  net/netfilter/nf_conntrack_proto.c          | 2 +-
+> >  5 files changed, 15 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+> > index de2f956abf34..1faa42efe42e 100644
+> > --- a/include/net/netfilter/nf_conntrack_helper.h
+> > +++ b/include/net/netfilter/nf_conntrack_helper.h
+> > @@ -25,6 +25,7 @@ struct module;
+> >  enum nf_ct_helper_flags {
+> >  	NF_CT_HELPER_F_USERSPACE	= (1 << 0),
+> >  	NF_CT_HELPER_F_CONFIGURED	= (1 << 1),
+> > +	NF_CT_HELPER_F_DEAD		= (1 << 2),
+> >  };
+> >  
+> >  #define NF_CT_HELPER_NAME_LEN	16
+> > @@ -63,6 +64,11 @@ struct nf_conntrack_helper {
+> >  	char nat_mod_name[NF_CT_HELPER_NAME_LEN];
+> >  };
+> >  
+> > +static inline bool nf_ct_helper_alive(const struct nf_conntrack_helper *helper)
+> > +{
+> > +	return likely(!(helper->flags & NF_CT_HELPER_F_DEAD));
+> > +}
+> > +
+> >  /* Must be kept in sync with the classes defined by helpers */
+> >  #define NF_CT_MAX_EXPECT_CLASSES	4
+> >  
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > index 8ba5b22a1eef..d54da6babcfe 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -1818,7 +1818,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+> >  			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+> >  			ct->master = exp->master;
+> >  			assign_helper = rcu_dereference(exp->assign_helper);
+> > -			if (assign_helper) {
+> > +			if (assign_helper && nf_ct_helper_alive(assign_helper)) {
 > 
-> SCTP is the only other relevant one for this use-case, I think.
+> At this time, the new ct isn't in any hash.  As-is, I don't think this
+> will guarantee such nfct canot escape.  See below.
 > 
+> >  				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+> >  				if (help)
+> >  					rcu_assign_pointer(help->helper, assign_helper);
+> > diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+> > index b594cd244fe1..b3752ccca75e 100644
+> > --- a/net/netfilter/nf_conntrack_helper.c
+> > +++ b/net/netfilter/nf_conntrack_helper.c
+> > @@ -415,8 +415,11 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+> >  	nf_ct_helper_count--;
+> >  	mutex_unlock(&nf_ct_helper_mutex);
+> >  
+> > +	me->flags |= NF_CT_HELPER_F_DEAD;
+> > +
+> 
+> Does this need to be toggled while under lock?
+> I don't think synchronize_rcu() is a barrier.
+> 
+> Also, it looks like this can be racing with nfnl_cthelper_update().
+> We probably need to add some new lock, or reuse existing one like
+> nf_ct_helper_mutex, or expectation spinlock.
+> 
+> >  	/* Make sure every nothing is still using the helper unless its a
+> > -	 * connection in the hash.
+> > +	 * connection in the hash, no more expectations are created after
+> > +	 * this rcu grace period.
+> >  	 */
+> >  	synchronize_rcu();
+> 
+> ... that makes things wait until we leave rcu protection.
+> I think we should also drop nfqueued packets here to make sure
+> they can't be reinjected.
 
-Then we can drop it, thanks Florian.
+See below, at the end of this email.
 
->> And please note that the idea is to be cautious when returning --EXIST.
->> If IPS_ASSURED_BIT is set we can for sure skip the tracking BUT if not,
->> we run a GC skipping the skip optimization..
+> Also, should __nf_ct_expect_check() also call nf_ct_helper_alive()
+> and refuse insertion of such exp into the table?
 > 
-> 6 months from now I will no longer know wtf this assured check is
-> doing.  Please consider rewriting the existing comments so that this
-> makes some sense.
-> 
+> That would give following unreg sequence:
+> 1. Unlink from hash
+> 2. set flag -> prevent concurrent nf_ct_expect_related() from
+>    adding more expectations to the exp table
 
-Fair point, let me add some comments around it.
+My understanding is that during the rcu grace period, packets
+might keep walking over the helper function and create an
+expectations. These expectations will be destroyed by
+nf_ct_expect_iterate_destroy(). 
 
->> Is it that bad? I mean, it has some back and forth and I apologize for
->> that but overall this is fixing some real use cases.
-> 
-> I know, this isn't your fault. Conncount is used in all kinds of cases
-> that it wasn't designed for and thus we have this esoteric breakage in
-> first place.
-> 
-> No way we can avoid it.  I think your patch is the best we can do here.
-> 
+But after the rcu grace period, new packets will start seeing the
+helper dead flag, hence skipping the helper logic / no new expectation
+is created. And the existing expectation cannot be reached, because
+_find_expect() is disabled.
 
+> 3. synchronize_rcu() -> all skbs that had this helper have
+>    left RCU protection
+> 4. nf_ct_expect_iterate_destroy() removes all not-yet-found
+>    exp entries from table
+> 5. nf_ct_iterate_destroy() -> clear exp from nf_conn's that are
+>    *in conntrack table*
+> 
+> That still means we could have a NEW conntrack queued via nfqueue.
+> I think we also need to toss nfqueued packets after step 3) and
+> need to refuse queueing to userspace if the flag is set (-> drop).
+
+Those conntrack entries would now have help->helper == NULL because of
+the unhelp call.
+
+> We could have several nfqueue back to back:
+> -t mangle -A PREROUTING -j NFQUEUE
+> -t mangle -A FORWARD -j NFQUEUE
+> 
+> ... and each synchronize_rcu() might advance skb to next
+> 'queue' instead of nf_confirm().
+> 
+> But I think that this a good direction, I think its better than my
+> rather destructive temporarily-block-all-exps idea.
+
+Thanks for your feedback, let me know if I still don't see anything
+obvious.
