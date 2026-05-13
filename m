@@ -1,95 +1,130 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9FBA3815D9
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 May 2026 23:43:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B661A680B
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2026 01:41:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778629417; cv=none; b=lddwEdPn/FA3RddxsnhW7oxUMb8l/2u9uqDrCGvSHgKjK/vRG5WDTdG6f9GMRjOs3Nx8m/LwLZWHIuY+ZnECRnJyjhpZdeQwIpSXAh8hYEhu8ZlOuj5Nr35sDRJ3NU0wzsSvFmZwRsYz41OmMlWN9vrEzxclhYrUJYVaSfh5wxA=
+	t=1778636516; cv=none; b=aUgRQE8ZLHY0H0i25j7Z9Gcwd8juRI5II43hSNVk7XRGiNhkKTV6mwBPInMIc1ZsVdWwCcx0ka0/T/2rmaDiWnEPdfCTo8XGSuazvSfYlVmLc7UsNg2yVMB3pcilw0EihqDWX7KWXYdEDFclp/3l9wBQFxLd/qB+n/20dthTcCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778629417; c=relaxed/simple;
-	bh=Ru2wAsQsQfI0cwcVTpiXUaYel/AKpcOcqJIoDYTZE+E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VdZX0AmdABkEPD++w9vh5P9DeP1oiTyuU3lG016mtvu2YX+HLd59XBHAZlf2VMp0ztq/wXytfIfg8QcraXZ1sCuk5JIr4xjGgPmpAggU8nugWkVPA3pJc0Xe+kLhyvV206+ndt1uMSFrk8x0IFEAzF6cIZXJ7qtXcQrmJMjr1ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Bqfi4nV2; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1778636516; c=relaxed/simple;
+	bh=QpP+nVlhexDDbFF/v/fM34uLgmfJGufnyksSM6QIH74=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=RHE6t/11wEZGQpeYnGR6GcfOD/c4yyQWTbI2778nJAQirSNgYp9JWrB6pzvTeM6lCIssa98ID6CFzvYK3hA77aZXD0f39FnOAmi2fXwa8AyNW9c+y1I2Jm0YPKGw5/o0YqD5rY265cU956+wY+7Zxiauese+0KIprsjRc3lcZvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=en1Mmekp; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Bqfi4nV2"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7BDBA60180;
-	Wed, 13 May 2026 01:43:33 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778629413;
-	bh=MlRTGSaUXsEozshlql4HRv+af5rmczwwXbeQ3/5uKU8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Bqfi4nV2WLteXhw3mcdCHHroyW0oImhkeBSxAPtcfQ4f6kyVrN/DoOtVUW0mRl9Ni
-	 NDPe4C56utU/TyHZNvGmVUHnvNOLryUIp9q4KYlkaFPoGyhGDWqfkOcuatZEAmZdHW
-	 UhxPrQsmL5b6TilUxegrmLYEmcxJgENNrhXfA593o9D5uwO/eJQafHdQcwZBsUntN4
-	 9QHx6BAqRlu1CIRAL4eIS+nCKnTTaGEJvtl0rlhnB+fPEd/RPPsvpcjKMdf8eiDktT
-	 U8TJ9YRfUJupbzAuKWb+6hTxJFchwLeksE7jPioD8kfSzoyRf4oObmMfq0XD14P532
-	 5+xjWHnLZrZzw==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf,v2] netfilter: nf_queue: hold reference on skb->dev
-Date: Wed, 13 May 2026 01:43:30 +0200
-Message-ID: <20260512234330.817709-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="en1Mmekp"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1778636511;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UT5oGYZY32+rUjFuqBiLxCgevBNWLQoqsz5+vYhdrcg=;
+	b=en1MmekpBATQD9DDTmg2+yytog0Cbzzc7lBVgQaUypONPh1SILbEFGOdT9/M2q8mOBf+Dh
+	g4fitbFlWC4UpvU0cuhTTXrc+pSBqtXsHiIp7q90CsaWbNqqJUyJeGvaiBavJXaTSoa/5O
+	yrjFt4z2bgxEPLRB5giUQBrQcdgmsws=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-571-oLkdP7p7MimPfm9qP2zTYg-1; Tue,
+ 12 May 2026 21:41:47 -0400
+X-MC-Unique: oLkdP7p7MimPfm9qP2zTYg-1
+X-Mimecast-MFC-AGG-ID: oLkdP7p7MimPfm9qP2zTYg_1778636505
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 09B1319560A1;
+	Wed, 13 May 2026 01:41:44 +0000 (UTC)
+Received: from [10.2.16.241] (unknown [10.2.16.241])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 1B89930001BE;
+	Wed, 13 May 2026 01:41:39 +0000 (UTC)
+Message-ID: <5734ac41-af0f-4696-8af0-073d3f15537f@redhat.com>
+Date: Tue, 12 May 2026 21:41:38 -0400
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 0/8] IPVS fixes for net
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Julian Anastasov <ja@ssi.bg>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org,
+ lvs-devel@vger.kernel.org, Anna-Maria Behnsen <anna-maria@linutronix.de>,
+ Frederic Weisbecker <frederic@kernel.org>, Ingo Molnar <mingo@kernel.org>,
+ Thomas Gleixner <tglx@kernel.org>
+References: <20260505001648.360569-1-pablo@netfilter.org>
+ <bce80830-1e2d-43ad-ba7f-055cb352b348@ssi.bg> <aftbVlmSOAFegQgf@chamomile>
+Content-Language: en-US
+From: Waiman Long <longman@redhat.com>
+In-Reply-To: <aftbVlmSOAFegQgf@chamomile>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
 
-Before NF_BR_LOCAL_IN, skb->dev is mangled in a way that results in
-state->in != skb->dev, which can result in UaF when accessing the bridge
-device if removed while in the queue.
+On 5/6/26 11:16 AM, Pablo Neira Ayuso wrote:
+> Hi Julian,
+>
+> Cc'ing Waiman Long and NOHZ maintainers (apologies if this is dragging
+> more people that I should into this issue).
+>
+> On Wed, May 06, 2026 at 11:56:05AM +0300, Julian Anastasov wrote:
+> [...]
+>> 	Here are some comments after the last review from
+>> Sashiko:
+>>
+>> https://sashiko.dev/#/patchset/20260505001648.360569-1-pablo%40netfilter.org
+>>
+>> Patch 1:
+>> - while ip_vs_dst_event() should loop and ensure all dev
+>> references are released, single change of svc_table_changes
+>> does not indicate the old references are dropped by ip_vs_flush() or
+>> ip_vs_del_service(). I'll post new change to abort the loop
+>> when we are sure the services are at least once released.
+>>
+>> Patch 5:
+>> - after executing ip_vs_est_calc_phase(), data can
+>> remain only for kt0 because all estimators are stopped,
+>> unlinked and the kt data structures for kt > 0 are empty
+>> and as result freed and the kthread tasks stopped (which
+>> happens early). After this, kt 0 calls
+>> ip_vs_est_drain_temp_list() as part of its loop,
+>> so it will eventually call ip_vs_est_add_kthread()
+>> and ip_vs_est_reload_start() to request kthread tasks
+>> to be started if data for new kthreads are created.
+>> So, I don't see problem here.
+>>
+>> Patch 6:
+>> - we will add conn_max sysctl soon
+> OK, just follow up on these for 1 and 6, thanks.
+>
+>> Patch 7 and 8:
+>> - I can not decide how valid are the concerns in the review.
+> Placing here links for convenience:
+>
+> https://sashiko.dev/#/message/20260505001648.360569-8-pablo%40netfilter.org
+> https://sashiko.dev/#/message/20260505001648.360569-9-pablo%40netfilter.org
+>
+> This is away from my limited scope of knowledged.
+>
+Sorry for the late reply. The latest upstream kernel has already been 
+updated to make kthreads follow HK_TYPE_DOMAIN in determining which 
+non-housekeeping CPUs should be avoided. For full CPU isolation, users 
+should set nohz_full, isolcpus=domain and isolcpus=managed_irq to 
+specify CPUs to isolate. Just one of them isn't enough for CPU 
+isolation. In fact, the current plan is to enable runtime modification 
+to these CPU isolation features so that users can acquire additional 
+isolated CPUs or release some of them on demand. This is still a work in 
+progress. So the AI comment on patch 8 isn't a real concern.
 
-Reported-by: Ren Wei <n05ec@lzu.edu.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: remove check on NULL skb->dev, per Florian.
+Please let me know if you have additional question.
 
- net/netfilter/nf_queue.c        | 2 ++
- net/netfilter/nfnetlink_queue.c | 3 +++
- 2 files changed, 5 insertions(+)
-
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index a6c81c04b3a5..a0ff8717746d 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -61,6 +61,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 	struct nf_hook_state *state = &entry->state;
- 
- 	/* Release those devices we held, or Alexey will kill me. */
-+	dev_put(entry->skb->dev);
- 	dev_put(state->in);
- 	dev_put(state->out);
- 	if (state->sk)
-@@ -102,6 +103,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- 	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
- 		return false;
- 
-+	dev_hold(entry->skb->dev);
- 	dev_hold(state->in);
- 	dev_hold(state->out);
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 58304fd1f70f..7408b348da13 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1212,6 +1212,9 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
- 	if (physinif == ifindex || physoutif == ifindex)
- 		return 1;
- #endif
-+	if (entry->skb->dev)
-+		if (entry->skb->dev->ifindex == ifindex)
-+			return 1;
- 	if (entry->state.in)
- 		if (entry->state.in->ifindex == ifindex)
- 			return 1;
--- 
-2.47.3
+Cheers,
+Longman
 
