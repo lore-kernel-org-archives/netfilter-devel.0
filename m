@@ -1,43 +1,39 @@
-Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E97443F4121
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 03:49:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [52.229.168.213])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EBE823A785A
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 04:06:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.229.168.213
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778730562; cv=none; b=RLeRcqJF9srrP7iZEdqS30g/hz3AsHFX7k1FXTV+jf/GIxErGYkE/Z29EP9i34p+PJ0Ez9sYDcMN2h8XzunJ/PPdI5ITTntg/4xPddFbO0r31EVeloV7n3N0qcb8ymiFR+wc56yo6oP3CF3VonxxF92bJVlpeseeWKKsplAu0Go=
+	t=1778731575; cv=none; b=bpHEl5zmboy7cJ2HPRcFkFxYgsdy2uQxSC5m7V+XpvTPxLCPS/alvEvyPfhcEhi57+ev8y/3n4esyrq5kD8JJy0LX9U6kIhRCJHxJRbU5b89094eLRPFSDN/zBleCRWuy5G69Mhvx+E//y/F566uHaJ7ZZ6gbl+agnbmFyKNcCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778730562; c=relaxed/simple;
-	bh=RoXvO2+AaKu5f87UK5Y/fYNoLxMpwI4W1umB+e2JLeI=;
+	s=arc-20240116; t=1778731575; c=relaxed/simple;
+	bh=IaVW4isoh1cBa2Zla8PC+HhdItWXyxViwWNrweT7hnM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fY/Y24plnLMnt4vNcKeYtE7kp7++0VmJBVGHngOAoPPGtfd9jTThiFeNRghMeTUbucmAfH7HR0wBgHLcmKaXuoy5qmPl+4HKkNG1DUIAGsidBFgX/Bry4+HmBlk0ciP253fnkPU9sP96+QKJuqhw8QeELH4nxIiztW8Ly3LUWhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.161.220
+	 MIME-Version; b=P9ICU+q8vAuFE71SF2/2b+68eFH+IvjwLgUfHWhx8WrpFim+U0th1S9DoRFIxmDLL7BmVVGjpCtNmQK+LZFpKXuwwKUsnIbMehl8WnAirfTMuMnADfaWajBcdzyOTxnJQgkZUOlysUDvYfxInUFwsYbSJQblAwy9GyYte460WD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=52.229.168.213
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
 Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
-	by app1 (Coremail) with SMTP id ygmowAAXOsQiRgVqoBwGAA--.6967S3;
-	Thu, 14 May 2026 11:48:55 +0800 (CST)
+	by app3 (Coremail) with SMTP id ywmowAA3Q_4ZSgVqCukAAA--.1036S3;
+	Thu, 14 May 2026 12:05:56 +0800 (CST)
 From: Ren Wei <n05ec@lzu.edu.cn>
-To: netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev
+To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
-	razor@blackwall.org,
-	idosch@nvidia.com,
-	stephen@networkplumber.org,
-	sw@simonwunderlich.de,
-	davem@davemloft.net,
+	luciano.coelho@nokia.com,
+	kaber@trash.net,
 	yuantan098@gmail.com,
 	yifanwucs@gmail.com,
 	tomapufckgml@gmail.com,
 	bird@lzu.edu.cn,
 	royenheart@gmail.com,
 	n05ec@lzu.edu.cn
-Subject: [PATCH nf 1/1] bridge: br_netfilter: give fake rtable its own lifetime
-Date: Thu, 14 May 2026 11:48:42 +0800
-Message-ID: <783d76ac83917b7302c1ec647794bd773bb1875a.1778687139.git.royenheart@gmail.com>
+Subject: [PATCH nf 1/1] netfilter: xt_IDLETIMER: scope timer reuse to the owning netns
+Date: Thu, 14 May 2026 12:05:41 +0800
+Message-ID: <9c5661fad291777d8e998e23f3cb27cac37aa607.1775353240.git.royenheart@gmail.com>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <cover.1778687139.git.royenheart@gmail.com>
-References: <cover.1778687139.git.royenheart@gmail.com>
+In-Reply-To: <cover.1775353240.git.royenheart@gmail.com>
+References: <cover.1775353240.git.royenheart@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,282 +41,280 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ygmowAAXOsQiRgVqoBwGAA--.6967S3
-X-Coremail-Antispam: 1UD129KBjvJXoWxtFyfKr43uF4DGw15CF1DAwb_yoW3Kr4rpF
-	4rKa93tr4UXFy3Kw48AF1Iyry3Krs5CFW3urya9r9avw10gF1kAa9akry2v3WrZFWkCFW5
-	JF47Kr45K3yDZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUBY1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+X-CM-TRANSID:ywmowAA3Q_4ZSgVqCukAAA--.1036S3
+X-Coremail-Antispam: 1UD129KBjvJXoW3Wr17CrWxtw45Jr1UJF1UKFg_yoWfArW7pF
+	WUJw13Kr4rXF48WF4kuF4Duayakr48XrnxGr97C3y8C3Z7Jr4IqF10yFWF9FWfCrZYgrZ3
+	JF40vwn0kr1UJw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUB01xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
 	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
-	z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcV
-	Aq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j
-	6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64
-	vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxan2IY04v7MxkF7I0E
-	n4kS14v26r1q6r43MxkIecxEwVCm-wCF04k20xvY0x0EwIxGrwCF04k20xvE74AGY7Cv6c
-	x26r48MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCj
-	r7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc40Y0x0EwIxGrwCI42IY6x
-	IIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAI
-	w20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x
-	0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VUbGQ6JUUUUU==
-X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQ0HCWoEFm8UngAAsf
+	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
+	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
+	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
+	Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
+	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
+	w2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY2
+	0_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8G
+	jcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2I
+	x0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK
+	8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I
+	0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUonmRUUUUU
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQEHCWoEFm8VKAAAsk
 
 From: Haoze Xie <royenheart@gmail.com>
 
-The bridge netfilter fake rtable is currently embedded in struct
-net_bridge even though packets can keep using it after bridge teardown.
+IDLETIMER keeps timers in a module-global list and reuses them
+solely by label text.
 
-Give the fake rtable its own allocated lifetime and make
-bridge_parent_rtable() return a referenced dst. This way the bridge and
-any packets that still carry the fake dst each hold their own reference,
-so bridge teardown no longer leaves a dangling fake dst behind.
+The existing rev0 ALARM guard avoids the panic when rev0 reuses
+a rev1 ALARM timer from another netns, but it still lets same
+labels in different netns share the same timer object and the
+same sysfs entry.
 
-We are sending this to the nf tree because the patch touches
-br_netfilter paths; if the net tree is preferred, please let us know.
+Track the owning netns in struct idletimer_tg and only reuse
+timers when both the label and netns match. For non-init_net
+timers, derive a namespace-scoped sysfs name from the netns
+inode so non-init namespaces no longer collide in the global
+xt_idletimer sysfs directory.
 
-Fixes: 4adf0af6818f ("bridge: send correct MTU value in PMTU (revised)")
+This keeps init_net sysfs paths unchanged for ABI compatibility
+and preserves same-netns label reuse, while preventing the
+cross-netns timer-object aliasing that caused refcount, expiry,
+and teardown interference.
+
+Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
 Cc: stable@kernel.org
 Reported-by: Yuan Tan <yuantan098@gmail.com>
 Reported-by: Yifan Wu <yifanwucs@gmail.com>
 Reported-by: Juefei Pu <tomapufckgml@gmail.com>
 Reported-by: Xin Liu <bird@lzu.edu.cn>
+Tested-by: Haoze Xie <royenheart@gmail.com>
 Signed-off-by: Haoze Xie <royenheart@gmail.com>
 Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 ---
- include/net/netfilter/br_netfilter.h | 14 +++++++-
- net/bridge/br_device.c               | 18 ++++++++--
- net/bridge/br_netfilter_hooks.c      |  2 +-
- net/bridge/br_netfilter_ipv6.c       |  2 +-
- net/bridge/br_nf_core.c              | 49 +++++++++++++++++++++++-----
- net/bridge/br_private.h              | 12 +++----
- 6 files changed, 76 insertions(+), 21 deletions(-)
+ net/netfilter/xt_IDLETIMER.c | 74 ++++++++++++++++++++++++------------
+ 1 file changed, 49 insertions(+), 25 deletions(-)
 
-diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
-index 371696ec11b2..ad09dad09da8 100644
---- a/include/net/netfilter/br_netfilter.h
-+++ b/include/net/netfilter/br_netfilter.h
-@@ -3,6 +3,7 @@
- #define _BR_NETFILTER_H_
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 517106165ad2..c45af0cecb52 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -28,6 +28,7 @@
+ #include <linux/kobject.h>
+ #include <linux/workqueue.h>
+ #include <linux/sysfs.h>
++#include <net/net_namespace.h>
  
- #include <linux/netfilter.h>
-+#include <net/dst.h>
+ struct idletimer_tg {
+ 	struct list_head entry;
+@@ -37,6 +38,8 @@ struct idletimer_tg {
  
- #include "../../../net/bridge/br_private.h"
+ 	struct kobject *kobj;
+ 	struct device_attribute attr;
++	struct net *net;
++	char label[MAX_IDLETIMER_LABEL_SIZE];
  
-@@ -44,9 +45,20 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ 	unsigned int refcnt;
+ 	u8 timer_type;
+@@ -48,38 +51,46 @@ static DEFINE_MUTEX(list_mutex);
+ static struct kobject *idletimer_tg_kobj;
+ 
+ static
+-struct idletimer_tg *__idletimer_tg_find_by_label(const char *label)
++struct idletimer_tg *__idletimer_tg_find_by_label(const struct net *net,
++						  const char *label)
  {
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	struct net_bridge_port *port;
-+	struct rtable *rt;
+ 	struct idletimer_tg *entry;
  
-+	rt = NULL;
-+	rcu_read_lock();
- 	port = br_port_get_rcu(dev);
--	return port ? &port->br->fake_rtable : NULL;
-+	if (!port)
-+		goto out;
-+
-+	rt = rcu_dereference(port->br->fake_rtable);
-+	if (rt && !dst_hold_safe(&rt->dst))
-+		rt = NULL;
-+out:
-+	rcu_read_unlock();
-+	return rt;
- #else
+ 	list_for_each_entry(entry, &idletimer_tg_list, entry) {
+-		if (!strcmp(label, entry->attr.attr.name))
++		if (net_eq(entry->net, net) && !strcmp(label, entry->label))
+ 			return entry;
+ 	}
+ 
  	return NULL;
- #endif
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index a35ceae0a6f2..ca2e76929377 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -146,6 +146,15 @@ static int br_dev_init(struct net_device *dev)
- 		return err;
- 	}
- 
-+	err = br_netfilter_rtable_init(br);
-+	if (err) {
-+		br_multicast_uninit_stats(br);
-+		br_vlan_flush(br);
-+		br_mdb_hash_fini(br);
-+		br_fdb_hash_fini(br);
-+		return err;
-+	}
-+
- 	netdev_lockdep_set_classes(dev);
- 	return 0;
- }
-@@ -154,6 +163,7 @@ static void br_dev_uninit(struct net_device *dev)
- {
- 	struct net_bridge *br = netdev_priv(dev);
- 
-+	br_netfilter_rtable_fini(br);
- 	br_multicast_dev_del(br);
- 	br_multicast_uninit_stats(br);
- 	br_vlan_flush(br);
-@@ -210,8 +220,11 @@ static int br_change_mtu(struct net_device *dev, int new_mtu)
- 	/* this flag will be cleared if the MTU was automatically adjusted */
- 	br_opt_toggle(br, BROPT_MTU_SET_BY_USER, true);
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	/* remember the MTU in the rtable for PMTU */
--	dst_metric_set(&br->fake_rtable.dst, RTAX_MTU, new_mtu);
-+	struct rtable *rt;
-+
-+	rt = rcu_dereference_protected(br->fake_rtable, lockdep_rtnl_is_held());
-+	if (rt)
-+		dst_metric_set(&rt->dst, RTAX_MTU, new_mtu);
- #endif
- 
- 	return 0;
-@@ -529,7 +542,6 @@ void br_dev_setup(struct net_device *dev)
- 	br->bridge_ageing_time = br->ageing_time = BR_DEFAULT_AGEING_TIME;
- 	dev->max_mtu = ETH_MAX_MTU;
- 
--	br_netfilter_rtable_init(br);
- 	br_stp_timer_init(br);
- 	br_multicast_init(br);
- 	INIT_DELAYED_WORK(&br->gc_work, br_fdb_cleanup);
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0ab1c94db4b9..8b3b2fb48334 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -417,7 +417,7 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
- 			return 0;
- 		}
- 		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
-+		skb_dst_set(skb, &rt->dst);
- 	}
- 
- 	skb->dev = br_indev;
-diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
-index d8548428929e..4e245645f7e6 100644
---- a/net/bridge/br_netfilter_ipv6.c
-+++ b/net/bridge/br_netfilter_ipv6.c
-@@ -144,7 +144,7 @@ static int br_nf_pre_routing_finish_ipv6(struct net *net, struct sock *sk, struc
- 			return 0;
- 		}
- 		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
-+		skb_dst_set(skb, &rt->dst);
- 	}
- 
- 	skb->dev = br_indev;
-diff --git a/net/bridge/br_nf_core.c b/net/bridge/br_nf_core.c
-index a8c67035e23c..89a0a3d107de 100644
---- a/net/bridge/br_nf_core.c
-+++ b/net/bridge/br_nf_core.c
-@@ -14,6 +14,8 @@
- #include <linux/kernel.h>
- #include <linux/in_route.h>
- #include <linux/inetdevice.h>
-+#include <linux/slab.h>
-+#include <linux/rcupdate.h>
- #include <net/route.h>
- 
- #include "br_private.h"
-@@ -49,6 +51,11 @@ static unsigned int fake_mtu(const struct dst_entry *dst)
- 	return dst->dev->mtu;
  }
  
-+struct br_fake_rtable {
-+	struct rtable	rt;
-+	u32		metrics[RTAX_MAX];
-+};
++static char *idletimer_tg_sysfs_name(struct net *net, const char *label)
++{
++	if (net_eq(net, &init_net))
++		return kstrdup(label, GFP_KERNEL);
 +
- static struct dst_ops fake_dst_ops = {
- 	.family		= AF_INET,
- 	.update_pmtu	= fake_update_pmtu,
-@@ -65,24 +72,50 @@ static struct dst_ops fake_dst_ops = {
-  * ipt_REJECT needs it.  Future netfilter modules might
-  * require us to fill additional fields.
-  */
--void br_netfilter_rtable_init(struct net_bridge *br)
-+int br_netfilter_rtable_init(struct net_bridge *br)
- {
--	struct rtable *rt = &br->fake_rtable;
-+	struct br_fake_rtable *fake_rt;
-+	struct rtable *rt;
-+
-+	fake_rt = kmem_cache_zalloc(fake_dst_ops.kmem_cachep, GFP_KERNEL);
-+	if (!fake_rt)
-+		return -ENOMEM;
- 
--	rcuref_init(&rt->dst.__rcuref, 1);
--	rt->dst.dev = br->dev;
--	dst_init_metrics(&rt->dst, br->metrics, false);
-+	rt = &fake_rt->rt;
-+	dst_init(&rt->dst, &fake_dst_ops, br->dev, DST_OBSOLETE_NONE,
-+		 DST_NOXFRM | DST_FAKE_RTABLE);
-+	dst_init_metrics(&rt->dst, fake_rt->metrics, false);
- 	dst_metric_set(&rt->dst, RTAX_MTU, br->dev->mtu);
--	rt->dst.flags	= DST_NOXFRM | DST_FAKE_RTABLE;
--	rt->dst.ops = &fake_dst_ops;
-+	rcu_assign_pointer(br->fake_rtable, rt);
-+
-+	return 0;
++	return kasprintf(GFP_KERNEL, "%u_%s", net->ns.inum, label);
 +}
 +
-+void br_netfilter_rtable_fini(struct net_bridge *br)
-+{
-+	struct rtable *rt;
-+
-+	rt = rcu_replace_pointer(br->fake_rtable, NULL, lockdep_rtnl_is_held());
-+	if (rt)
-+		dst_release(&rt->dst);
- }
- 
- int __init br_nf_core_init(void)
+ static ssize_t idletimer_tg_show(struct device *dev,
+ 				 struct device_attribute *attr, char *buf)
  {
--	return dst_entries_init(&fake_dst_ops);
-+	int err;
-+
-+	fake_dst_ops.kmem_cachep =
-+		KMEM_CACHE(br_fake_rtable, SLAB_HWCACHE_ALIGN | SLAB_PANIC);
-+	err = dst_entries_init(&fake_dst_ops);
-+	if (err)
-+		fake_dst_ops.kmem_cachep = NULL;
-+
-+	return err;
- }
+-	struct idletimer_tg *timer;
++	struct idletimer_tg *timer = container_of(attr, struct idletimer_tg,
++						  attr);
+ 	unsigned long expires = 0;
+ 	struct timespec64 ktimespec = {};
+ 	long time_diff = 0;
  
- void br_nf_core_fini(void)
+ 	mutex_lock(&list_mutex);
+ 
+-	timer =	__idletimer_tg_find_by_label(attr->attr.name);
+-	if (timer) {
+-		if (timer->timer_type & XT_IDLETIMER_ALARM) {
+-			ktime_t expires_alarm = alarm_expires_remaining(&timer->alarm);
+-			ktimespec = ktime_to_timespec64(expires_alarm);
+-			time_diff = ktimespec.tv_sec;
+-		} else {
+-			expires = timer->timer.expires;
+-			time_diff = jiffies_to_msecs(expires - jiffies) / 1000;
+-		}
++	if (timer->timer_type & XT_IDLETIMER_ALARM) {
++		ktime_t expires_alarm = alarm_expires_remaining(&timer->alarm);
++
++		ktimespec = ktime_to_timespec64(expires_alarm);
++		time_diff = ktimespec.tv_sec;
++	} else {
++		expires = timer->timer.expires;
++		time_diff = jiffies_to_msecs(expires - jiffies) / 1000;
+ 	}
+ 
+ 	mutex_unlock(&list_mutex);
+@@ -102,7 +113,7 @@ static void idletimer_tg_expired(struct timer_list *t)
  {
- 	dst_entries_destroy(&fake_dst_ops);
-+	kmem_cache_destroy(fake_dst_ops.kmem_cachep);
-+	fake_dst_ops.kmem_cachep = NULL;
- }
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index bed1b1d9b282..bb4aa408f232 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -508,11 +508,7 @@ struct net_bridge {
- 	struct rhashtable		fdb_hash_tbl;
- 	struct list_head		port_list;
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	union {
--		struct rtable		fake_rtable;
--		struct rt6_info		fake_rt6_info;
--	};
--	u32				metrics[RTAX_MAX];
-+	struct rtable __rcu		*fake_rtable;
- #endif
- 	u16				group_fwd_mask;
- 	u16				group_fwd_mask_required;
-@@ -2018,11 +2014,13 @@ extern const struct nf_br_ops __rcu *nf_br_ops;
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- int br_nf_core_init(void);
- void br_nf_core_fini(void);
--void br_netfilter_rtable_init(struct net_bridge *);
-+int br_netfilter_rtable_init(struct net_bridge *br);
-+void br_netfilter_rtable_fini(struct net_bridge *br);
- #else
- static inline int br_nf_core_init(void) { return 0; }
- static inline void br_nf_core_fini(void) {}
--#define br_netfilter_rtable_init(x)
-+static inline int br_netfilter_rtable_init(struct net_bridge *br) { return 0; }
-+static inline void br_netfilter_rtable_fini(struct net_bridge *br) {}
- #endif
+ 	struct idletimer_tg *timer = timer_container_of(timer, t, timer);
  
- /* br_stp.c */
+-	pr_debug("timer %s expired\n", timer->attr.attr.name);
++	pr_debug("timer %s expired\n", timer->label);
+ 
+ 	schedule_work(&timer->work);
+ }
+@@ -111,7 +122,7 @@ static void idletimer_tg_alarmproc(struct alarm *alarm, ktime_t now)
+ {
+ 	struct idletimer_tg *timer = alarm->data;
+ 
+-	pr_debug("alarm %s expired\n", timer->attr.attr.name);
++	pr_debug("alarm %s expired\n", timer->label);
+ 	schedule_work(&timer->work);
+ }
+ 
+@@ -131,7 +142,7 @@ static int idletimer_check_sysfs_name(const char *name, unsigned int size)
+ 	return 0;
+ }
+ 
+-static int idletimer_tg_create(struct idletimer_tg_info *info)
++static int idletimer_tg_create(struct idletimer_tg_info *info, struct net *net)
+ {
+ 	int ret;
+ 
+@@ -145,11 +156,14 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 	if (ret < 0)
+ 		goto out_free_timer;
+ 
++	info->timer->net = get_net(net);
++	strscpy(info->timer->label, info->label, sizeof(info->timer->label));
++
+ 	sysfs_attr_init(&info->timer->attr.attr);
+-	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
++	info->timer->attr.attr.name = idletimer_tg_sysfs_name(net, info->label);
+ 	if (!info->timer->attr.attr.name) {
+ 		ret = -ENOMEM;
+-		goto out_free_timer;
++		goto out_put_net;
+ 	}
+ 	info->timer->attr.attr.mode = 0444;
+ 	info->timer->attr.show = idletimer_tg_show;
+@@ -174,13 +188,16 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 
+ out_free_attr:
+ 	kfree(info->timer->attr.attr.name);
++out_put_net:
++	put_net(info->timer->net);
+ out_free_timer:
+ 	kfree(info->timer);
+ out:
+ 	return ret;
+ }
+ 
+-static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
++static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info,
++				  struct net *net)
+ {
+ 	int ret;
+ 
+@@ -194,11 +211,14 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 	if (ret < 0)
+ 		goto out_free_timer;
+ 
++	info->timer->net = get_net(net);
++	strscpy(info->timer->label, info->label, sizeof(info->timer->label));
++
+ 	sysfs_attr_init(&info->timer->attr.attr);
+-	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
++	info->timer->attr.attr.name = idletimer_tg_sysfs_name(net, info->label);
+ 	if (!info->timer->attr.attr.name) {
+ 		ret = -ENOMEM;
+-		goto out_free_timer;
++		goto out_put_net;
+ 	}
+ 	info->timer->attr.attr.mode = 0444;
+ 	info->timer->attr.show = idletimer_tg_show;
+@@ -236,6 +256,8 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 
+ out_free_attr:
+ 	kfree(info->timer->attr.attr.name);
++out_put_net:
++	put_net(info->timer->net);
+ out_free_timer:
+ 	kfree(info->timer);
+ out:
+@@ -316,7 +338,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
+ 	}
+ 	mutex_lock(&list_mutex);
+ 
+-	info->timer = __idletimer_tg_find_by_label(info->label);
++	info->timer = __idletimer_tg_find_by_label(par->net, info->label);
+ 	if (info->timer) {
+ 		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
+ 			pr_debug("Adding/Replacing rule with same label and different timer type is not allowed\n");
+@@ -331,7 +353,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
+ 		pr_debug("increased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
+ 	} else {
+-		ret = idletimer_tg_create(info);
++		ret = idletimer_tg_create(info, par->net);
+ 		if (ret < 0) {
+ 			pr_debug("failed to create timer\n");
+ 			mutex_unlock(&list_mutex);
+@@ -367,7 +389,7 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+ 
+ 	mutex_lock(&list_mutex);
+ 
+-	info->timer = __idletimer_tg_find_by_label(info->label);
++	info->timer = __idletimer_tg_find_by_label(par->net, info->label);
+ 	if (info->timer) {
+ 		if (info->timer->timer_type != info->timer_type) {
+ 			pr_debug("Adding/Replacing rule with same label and different timer type is not allowed\n");
+@@ -393,7 +415,7 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+ 		pr_debug("increased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
+ 	} else {
+-		ret = idletimer_tg_create_v1(info);
++		ret = idletimer_tg_create_v1(info, par->net);
+ 		if (ret < 0) {
+ 			pr_debug("failed to create timer\n");
+ 			mutex_unlock(&list_mutex);
+@@ -429,6 +451,7 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
+ 	cancel_work_sync(&info->timer->work);
+ 	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+ 	kfree(info->timer->attr.attr.name);
++	put_net(info->timer->net);
+ 	kfree(info->timer);
+ }
+ 
+@@ -460,6 +483,7 @@ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+ 	cancel_work_sync(&info->timer->work);
+ 	sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+ 	kfree(info->timer->attr.attr.name);
++	put_net(info->timer->net);
+ 	kfree(info->timer);
+ }
+ 
 -- 
-2.47.3
+2.52.0
 
