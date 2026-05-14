@@ -1,98 +1,154 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F7E3F9F55;
-	Thu, 14 May 2026 14:24:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07C8F325727
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 14:30:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778768661; cv=none; b=efM+EHr1vRMP/JlsEsA0NIqgEHas9hn15cWG++aYlaLcFpkQJ1sm32yeVU2IAghwkupczGeAQPO7naK4LX3kdHWf/4RCWQioDo51bczK8aw+v/9Mnbo/32Y+gzb+lbE8ecRjMUDJXkUCMLxKQedBYDxejGbgOgHcXES3pqMeXI0=
+	t=1778769024; cv=none; b=YoeuS6Y8tI02lN/3lz8nccYIQwskmPtx1L2XBOgWwJCi4mXJvoneNrdQxpTFafahlCJ0+QVN22R6VzUAB6X9SxjGNSo2/WY3NaxJP8yOgN6RlFDApcOHKQI7mJ/GtKln+huM+MjvuAy0O/zDEQDmHPkRMiU4GJpCbptclo9078c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778768661; c=relaxed/simple;
-	bh=KfS8rctgTCv+zW5ml+hsbbU5dduwnEtsWWD5sMI5RrU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nU8oap6odOETqwakVrpVdCnrZqphQ4ZjiMYu0viXJGm1oiInPBmMwJ6kR2Eezt4u8G7qiVpnk43DYLgqkmKBDMpjf/cYJOc1QTHeA/GMXG9ZIZqtn7dT+5Oq/qqUfKWFWZ4JBqKA5gZXBEp5wKfJSVa2vwS0Kkko4SYN1pQSpRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LMz5yEuu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778769024; c=relaxed/simple;
+	bh=RNPJglXxCvuJ4rUN/rSuWaRs4C1Qd4qYj+WcTIXSh0g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JwZffGKdz5PqeHR4nkWqpj28JBkmBxzuavsea9kKnGO9bDMZxio1NYRhncjmfenc75fBSo6LlTrIXt0mOO1cUXAygHzN845zYwF+PzWcY6hzTUCrnSVXSB4hhyna2u0TGMebIyvvzEs3nlaj/GIb2E55URelsQHOk5apYKWeC/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XpmgtO2e; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LMz5yEuu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4A96C2BCB3;
-	Thu, 14 May 2026 14:24:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778768661;
-	bh=KfS8rctgTCv+zW5ml+hsbbU5dduwnEtsWWD5sMI5RrU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LMz5yEuuXCa61X1B1vFfMwVEoFqJEs7Sce+zpMpp7WOr0dMSSyzyj8IlicKCuyAb0
-	 pgJM3j819S2ow+4TD/qljo2p2p5t+qJMQi4qkfpD7UDP0kcQXMkuWRwgkrW5oVmznJ
-	 vWGxfiyP25PyrCKgxBcp7md2l9qIJJ+OodQqQZ47GyzCqNJKglzaJRLQPluQlIiqzr
-	 refIrN0qK0xdECwp6XcJMeh3WhHM5+bAL4icsHuy1BPGPLgIBiiLhodHd/HtCREc7Q
-	 xpju84PbS5guJJXtUNM+m5OMxvR5JONo+wxbhpWuQ0tXcP5GmIeU4jGK5OCMWZGbAe
-	 mgKItwSQx7nXQ==
-Date: Thu, 14 May 2026 16:24:18 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev
-Subject: Re: [PATCH net v3] net: neigh: Reallocate headroom if necessary in
- neigh_hh_bridge()
-Message-ID: <agXbEs03zO48f10r@lore-desk>
-References: <20260513-nf-neigh_hh_bridge-fix-v3-1-8ec9353c0909@kernel.org>
- <20260514081403.GA482081@shredder>
- <agW6zjwDHB3dTiZC@lore-desk>
- <agXRLM6esULBG4al@strlen.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XpmgtO2e"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 805D9601EE;
+	Thu, 14 May 2026 16:30:19 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1778769019;
+	bh=0cwxDEvUuml81Nbf7CoZ9LoTgu9a5qobc3xKDs5AO1E=;
+	h=From:To:Cc:Subject:Date:From;
+	b=XpmgtO2eMTcWs7O6dLZOeebsHFbYxXvolm4fBc1WUUhp98DBvt75OknkfoPTnfGqv
+	 o9F26PCuQMICMlkvpMX/7Il7I65g9NvwnRHMDYrCb7GVwxr2NsUAO+jOZ8tXQzjHcN
+	 tkp1KPli62aEe3Q1gXpJ/Ruq4Ypu4EqIM2WMe9VMC8SJ5DK/ePDWXdu/DVqHENGQnZ
+	 YpDBnzNtIryIqNtRUuIIECUH5KU/pIPuJOAeIeaboAmHBglt2GNKaBtms2xSF1I+Ta
+	 SB3hznlAuLO1Rh4lLWgJQbeDdjQtRYuJ9JxR5gCVaSuaz3MdLqeAzqsmAjdRq3/+h6
+	 Qf4KN9j0kckiw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v2] netfilter: conntrack: add dead flag to helpers
+Date: Thu, 14 May 2026 16:30:16 +0200
+Message-ID: <20260514143016.874811-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="dbl4ZuXZ6kJq2OX1"
-Content-Disposition: inline
-In-Reply-To: <agXRLM6esULBG4al@strlen.de>
+Content-Transfer-Encoding: 8bit
 
+Add a new NF_CT_HELPER_F_DEAD helper flag to notify the packet path that
+this helper is going away. Thus, helpers are effectively disabled and no
+new expectations are created while removing the expectations created by
+this helper as well as unhelping the existing conntrack entries.
 
---dbl4ZuXZ6kJq2OX1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add the check for NF_CT_HELPER_F_DEAD in the packet path to:
+- Conntrack confirmation path which invokes the helper callback.
+- Propagation of helper to conntrack via expectation.
+- OVS ct helper invocation.
 
-On May 14, Florian Westphal wrote:
-> Lorenzo Bianconi <lorenzo@kernel.org> wrote:
-> > > Personally I would use 'goto free_skb' after releasing the neighbour,=
- to
-> > > be consistent with the other paths that free the packet.
-> >=20
-> > ack, I do not have a strong opinion about it, but in this case we would=
- need to
-> > even move "ret" since the current codebase always returns 0. What do yo=
-u prefer?
->=20
-> I think It can return 0 unconditionally, there are no code paths in
-> that function where skb doesn't disappear (ownership change or freed),
-> and its prerouting so there is no use for an error code either.
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: use READ_ONCE() and WRITE_ONCE() to modify helper flags are AI reporter suggests.
 
-ack, I will fix it in v4.
+ include/net/netfilter/nf_conntrack_helper.h | 8 ++++++++
+ net/netfilter/nf_conntrack_core.c           | 2 +-
+ net/netfilter/nf_conntrack_helper.c         | 5 ++++-
+ net/netfilter/nf_conntrack_ovs.c            | 3 +++
+ net/netfilter/nf_conntrack_proto.c          | 2 +-
+ 5 files changed, 17 insertions(+), 3 deletions(-)
 
-Regards,
-Lorenzo
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index de2f956abf34..b6ff7dc65c97 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -25,6 +25,7 @@ struct module;
+ enum nf_ct_helper_flags {
+ 	NF_CT_HELPER_F_USERSPACE	= (1 << 0),
+ 	NF_CT_HELPER_F_CONFIGURED	= (1 << 1),
++	NF_CT_HELPER_F_DEAD		= (1 << 2),
+ };
+ 
+ #define NF_CT_HELPER_NAME_LEN	16
+@@ -63,6 +64,13 @@ struct nf_conntrack_helper {
+ 	char nat_mod_name[NF_CT_HELPER_NAME_LEN];
+ };
+ 
++static inline bool nf_ct_helper_alive(const struct nf_conntrack_helper *helper)
++{
++	unsigned int helper_flags = READ_ONCE(helper->flags);
++
++	return likely(!(helper_flags & NF_CT_HELPER_F_DEAD));
++}
++
+ /* Must be kept in sync with the classes defined by helpers */
+ #define NF_CT_MAX_EXPECT_CLASSES	4
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8ba5b22a1eef..d54da6babcfe 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1818,7 +1818,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+ 			ct->master = exp->master;
+ 			assign_helper = rcu_dereference(exp->assign_helper);
+-			if (assign_helper) {
++			if (assign_helper && nf_ct_helper_alive(assign_helper)) {
+ 				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 				if (help)
+ 					rcu_assign_pointer(help->helper, assign_helper);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index b594cd244fe1..9f4ba1b0b5ab 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -415,8 +415,11 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	nf_ct_helper_count--;
+ 	mutex_unlock(&nf_ct_helper_mutex);
+ 
++	WRITE_ONCE(me->flags, me->flags | NF_CT_HELPER_F_DEAD);
++
+ 	/* Make sure every nothing is still using the helper unless its a
+-	 * connection in the hash.
++	 * connection in the hash, no more expectations are created after
++	 * this rcu grace period.
+ 	 */
+ 	synchronize_rcu();
+ 
+diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
+index a6988eeb1579..eeeb85c18a84 100644
+--- a/net/netfilter/nf_conntrack_ovs.c
++++ b/net/netfilter/nf_conntrack_ovs.c
+@@ -28,6 +28,9 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
+ 	if (!helper)
+ 		return NF_ACCEPT;
+ 
++	if (!nf_ct_helper_alive(helper))
++		return NF_ACCEPT;
++
+ 	if (helper->tuple.src.l3num != NFPROTO_UNSPEC &&
+ 	    helper->tuple.src.l3num != proto)
+ 		return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 50ddd3d613e1..b2ac5bd491cb 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -174,7 +174,7 @@ unsigned int nf_confirm(void *priv,
+ 
+ 		/* rcu_read_lock()ed by nf_hook */
+ 		helper = rcu_dereference(help->helper);
+-		if (helper) {
++		if (helper && nf_ct_helper_alive(helper)) {
+ 			ret = helper->help(skb,
+ 					   protoff,
+ 					   ct, ctinfo);
+-- 
+2.47.3
 
---dbl4ZuXZ6kJq2OX1
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCagXbEgAKCRA6cBh0uS2t
-rCvoAP4zY5aXQeDlGpsfI+Jk5Tee251LeQId+erBQyv0s5HO/gD/RHqL2yt3wp8H
-RIu9zxE2N+TSUGRLSVNvxKyFLftSdgw=
-=4Q+b
------END PGP SIGNATURE-----
-
---dbl4ZuXZ6kJq2OX1--
