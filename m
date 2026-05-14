@@ -1,48 +1,48 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 907753DEAD8
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 08:55:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 469803DF01F
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 08:55:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778748935; cv=none; b=E7fH9KhQIlpTV/+7PV03bO4O8itdf3AWO0yUOmf9BYx9EF48rSHTWFqI4nNc7rD780b6k4kXB5MDYUXKkPl8ntIBwq/wpE5HF6OGSlBPSgpXh1uR94s6bKQ7n30p4RU2suxW1zYOrDIk4un8wNPGuCDPrRZ+4N80LZHmdwibJbs=
+	t=1778748936; cv=none; b=hjnLW+dXp5q7/SY8OKg6sTrnG0LWz7YNowoOAzZlNOUhvRgrsmxLNuT+PFlckv2ZneDJSQ4b1JnE0GjqAxQJGa8oINeKA6NcPatv60jdm4kZrlkznTbw07TaWm83rJM6I7ZbThwpdnygVqkDnlKrNFrjBQHzTUqAo1ldvRoW3T0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778748935; c=relaxed/simple;
-	bh=XICrzaBAIxlR9y5HBepOoF2WZD+0n3LpVE484qnsp3s=;
+	s=arc-20240116; t=1778748936; c=relaxed/simple;
+	bh=+6BRIaNtvk5rAKXpix7QthaF+1jRDMPHqYJCsvUAxL4=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eLYG4DaghhtfRphrYGTxxq2JqLtsXhbboyyTsfFOkVfILQGXO5UFPWg5/qoPJtdirEZaQS4Is0yxPWgKahyw+B7nlDkMirWGsdwyGXZBza7+IviCh2ngI5xBnQxXU7P7DySxzzFrK42iLems0AYSEqx0TTXKlFOq26pejYx1On8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=id2uJEcR; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=Fdi29gcjbP51tqBK8ce396TiZ4jhvv0hHjQWaSAyR+qXM6NLCOCRkb3lPL3gbU9e7aEVlsTzz5mw3XWqGmz2jiq8sUzQA96LBxW2hiLzJsnSsoJz003eytsjs/CbYyFmp7UyQJwcFUy/77Rk8UlQfdR/TURNlm4GJ7rLKUtSut0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=an+Hk3jU; arc=none smtp.client-ip=148.6.0.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="id2uJEcR"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="an+Hk3jU"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4gGPL11HzZz7s85y;
-	Thu, 14 May 2026 10:55:21 +0200 (CEST)
+	by smtp1.kfki.hu (Postfix) with ESMTP id 4gGPL509wTzGFDNJ;
+	Thu, 14 May 2026 10:55:25 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1778748919; x=1780563320; bh=RW2lQhxLAt
-	V/0hfjWi32b0FOQWEQYFGEgsJmW1yFSnM=; b=id2uJEcRWKphhdfZKTS1r/cFpH
-	es3UqCiz/BstrxLV7bg/MlgbtXVd14itnvV5d1DKDVAWNAuo63lIAYfbj88xVNJA
-	4/lr+oxW2oAuoE4LwOzyDx984FlVhoW2DrnMtntwDv9+zs1H4MHjA9mWPgtCbrid
-	pfI2MxkqdHsrSJR/4=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id a27IMhqFkm4v; Thu, 14 May 2026 10:55:19 +0200 (CEST)
+	:received; s=20151130; t=1778748923; x=1780563324; bh=djO71CRZBk
+	+p+L+kr8DM1adBQijJI2N1oXOlYF6D9tA=; b=an+Hk3jUVHAIjEYN1ExEWfSMYT
+	mQA10WTwc9t1HJuoMJmP/GCv9ELHofvZl/JhSAT8zwLlKPoqZW0TJarvSNXEpe9K
+	qIQQUzGByv1kFSbRrVXmobpVVWmt1YqCQhFEHwc7R9vCGy1I8LEpKwSgqoP8YF6R
+	u7cHACc1SaUpLkL2o=
+X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+ by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id RRHQwcZ-UdsO; Thu, 14 May 2026 10:55:23 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (guest-144-149.eduroam.kfki.hu [148.6.144.149])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4gGPKz1jpsz7s85Y;
+	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4gGPKz3lkSzGFDNS;
 	Thu, 14 May 2026 10:55:19 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 04496140ADB; Thu, 14 May 2026 10:55:20 +0200 (CEST)
+	id 0EF55140E21; Thu, 14 May 2026 10:55:20 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v7 02/10] netfilter: ipset: Fix data race between add and list header in all hash types
-Date: Thu, 14 May 2026 10:55:11 +0200
-Message-Id: <20260514085519.12729-3-kadlec@netfilter.org>
+Subject: [PATCH v7 07/10] netfilter: ipset: fix order of kfree_rcu() and rcu_assign_pointer()
+Date: Thu, 14 May 2026 10:55:16 +0200
+Message-Id: <20260514085519.12729-8-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260514085519.12729-1-kadlec@netfilter.org>
 References: <20260514085519.12729-1-kadlec@netfilter.org>
@@ -54,12 +54,9 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-The "ipset list -terse" command is actually a dump operation which
-may run parallel with "ipset add" commands, which can trigger an
-internal resizing of the hash type of sets just being dumped. However,
-dumping just the header part of the set was not protected against
-underlying resizing. Fix it by protecting the header dumping part
-as well.
+Sashiko pointed out that kfree_rcu() was called before
+rcu_assign_pointer() in handling the comment extension.
+Fix the order so that rcu_assign_pointer() called first.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
@@ -68,26 +65,30 @@ Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
 et_core.c
-index 0874029cb0f2..3706b4a85a0f 100644
+index 3706b4a85a0f..a531b654b8d9 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1649,13 +1649,13 @@ ip_set_dump_do(struct sk_buff *skb, struct netlin=
-k_callback *cb)
- 			if (cb->args[IPSET_CB_PROTO] > IPSET_PROTOCOL_MIN &&
- 			    nla_put_net16(skb, IPSET_ATTR_INDEX, htons(index)))
- 				goto nla_put_failure;
-+			if (set->variant->uref)
-+				set->variant->uref(set, cb, true);
- 			ret =3D set->variant->head(set, skb);
- 			if (ret < 0)
- 				goto release_refcount;
- 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
- 				goto next_set;
--			if (set->variant->uref)
--				set->variant->uref(set, cb, true);
- 			fallthrough;
- 		default:
- 			ret =3D set->variant->list(set, skb, cb);
+@@ -351,8 +351,8 @@ ip_set_init_comment(struct ip_set *set, struct ip_set=
+_comment *comment,
+=20
+ 	if (unlikely(c)) {
+ 		set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
+-		kfree_rcu(c, rcu);
+ 		rcu_assign_pointer(comment->c, NULL);
++		kfree_rcu(c, rcu);
+ 	}
+ 	if (!len)
+ 		return;
+@@ -393,8 +393,8 @@ ip_set_comment_free(struct ip_set *set, void *ptr)
+ 	if (unlikely(!c))
+ 		return;
+ 	set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
+-	kfree_rcu(c, rcu);
+ 	rcu_assign_pointer(comment->c, NULL);
++	kfree_rcu(c, rcu);
+ }
+=20
+ typedef void (*destroyer)(struct ip_set *, void *);
 --=20
 2.39.5
 
