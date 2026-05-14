@@ -1,40 +1,43 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06D4333066E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06DD13E51C2
 	for <netfilter-devel@vger.kernel.org>; Thu, 14 May 2026 15:38:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778773107; cv=none; b=lxKKVTL4kgKBgVwpyLLIl3gYWFMfLwqA53yqUgoGqZuQWgssUKQ5HNSJTW1x2bnfOld4uAnkj2UXJZhmnfoHSXt8XHsGtvgVwqbFm/GmcmqE2Fu/NorclRtVfksJURqO3Yhc2C9Eh/4fahAaqgftN/ZsenK9LhXkYSz1WJAO3GU=
+	t=1778773108; cv=none; b=GH8E1RfiGFWarwJjuCwNMH64FlO5f1hwihJfBbTYIxvv7F48n2IGqfzhHSB/5QLbOWSf7T9uokRaA3wMxf68F/QfVWzrRr/s5h+NMOLzBb8PNR4T4eaP2o0F1MFSXEjHALeAuAcvoKtJfCraNxK1X65DqLSqhyewsJi4nQ/3WFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778773107; c=relaxed/simple;
-	bh=x0DiPm8lohhDofTS59pe+MvZT40VVDnc4B7Xe3YFsEg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cyAWJYROvCXZ3p2hr0aTCCry8b0SbiWeIYEmWdDBOHHKFEv7Mj/71G6eOKFOfLGK1QtWf/LpuMT8iNvcxDCE+mUuwoDevrsBCwFR6juW0+GFklgofu5XEuxxxUseWFn/ksPUuLW0f4O8FVd53gKoUismEx3bb0os0R95w4txHXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W798tx3m; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1778773108; c=relaxed/simple;
+	bh=xitOMfeaV5EmQoez0haxo3LIon4+wiNgVCTlhaztbmU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=LCa2rhZWr0pJaSe1A6tllXqC0+hVudMKw1VUVAEt94dYEdTZAxPf6vubbq52pZ3gmqcztUr/YAIY6+AOt9M2LKZExO9shbIt0phEAIrfT0XAAv74bNkmySyAH3vf7ST2aanwfzIwE5XEXoyCSybtB3l8Y4hXB5rCiql4yiuGhzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OFmU7Qp6; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W798tx3m"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OFmU7Qp6"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 774A160177;
-	Thu, 14 May 2026 17:38:17 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C11D060180;
+	Thu, 14 May 2026 17:38:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778773097;
-	bh=fMMeMIHP61dVMfM+NJGv7868ehQhslHwJqI0HVlkebY=;
-	h=From:To:Cc:Subject:Date:From;
-	b=W798tx3mnhJYAId8GvsBgLLG7FzeuNFnlxPmR7Y6jhmTX+oqwiTly351EF92PTEcg
-	 w3tqjI+7unBwTA+TOaQNJqCJDySNdzSxhTUmTCQvr2bR4wEb6aNqkXc1lAqe1CMKiP
-	 bZNGlre0ljDp76sK7tfMV7Amaq5ZdIksQACCyup5M4ND87SGxbFkOk/hC4s/mFkYCi
-	 LRd/bjCrwmCJU3Tz0ITfE2RwFzWtt60WPs/GHYxbHLu43UUTE7uteM/8WZiZt/EzmD
-	 CfA+Gjsj9kcuRLoiPG3reNg3zHGrGHUY5HT99aWHHZisg9SAbsUvQhb0Y5fKgs/g9Z
-	 XtvjWXYLGW+iA==
+	s=2025; t=1778773098;
+	bh=griQVp6YLzTibMPfTg9OHxDSyuu0zZNSpN8S1brXl1g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=OFmU7Qp6+MpH7MGf4aP5h12BQVHTRYrtgTdEvWOWvDh5DpmPkvyHQzOlTMf8niomv
+	 SQbcHvpFjeivBk8k/nPO8GKQaqnksfGf8jLo9MeyKvEyBdS+MGSfGnYvmIjutivcAR
+	 V9EVkzMrUySFZwLI1PFYWY/6mLTubhlNy4ak3zK8+H1Bjv3HHzEjRpK9+ANVbanNyQ
+	 q2iiRAgzzJ/UEAZ3p489cUkA7L+GSYtsxltYaFMc4QDhiwXxInjdgri5xmq8EMg15D
+	 6GUEeDa9AWeME/LjIdNcMRSXGs6HtbTPZeOBVaYKe7aYWYyklCJ6Q5FJp81u0wLC9P
+	 JBnhde3nOpHTw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nf,v3 1/2] netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
-Date: Thu, 14 May 2026 17:38:13 +0200
-Message-ID: <20260514153814.877747-1-pablo@netfilter.org>
+Subject: [PATCH nf,v3 2/2] netfilter: conntrack: add dead flag to helpers
+Date: Thu, 14 May 2026 17:38:14 +0200
+Message-ID: <20260514153814.877747-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260514153814.877747-1-pablo@netfilter.org>
+References: <20260514153814.877747-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,97 +46,118 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Conntrack helper flags are accessed from packet and netlink dump path.
-While updates are protected by the nfnl_mutex, use {READ,WRITE}_ONCE()
-to access this flags.
+Add a new NF_CT_HELPER_F_DEAD helper flag to notify the packet path that
+this helper is going away. Thus, helpers are effectively disabled and no
+new expectations are created while removing the expectations created by
+this helper as well as unhelping the existing conntrack entries.
 
+Add the check for NF_CT_HELPER_F_DEAD in the packet path to:
+- Conntrack confirmation path which invokes the helper callback.
+- Propagation of helper to conntrack via expectation.
+- OVS ct helper invocation.
+
+nf_conntrack_helper_unregister() is only called under nfnl_mutex when
+unregistering the helper, else by helper module which already owns this
+helper from the module removal path, therefore, concurrent update of
+helper flags via nfnetlink_cthelper is not possible, but packet path and
+netlink dump path can read these flags locklessly.
+
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: new in this series, per Florian comment.
+v3: update commit description, but real no changes to this patch.
 
- net/netfilter/nfnetlink_cthelper.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_conntrack_helper.h | 8 ++++++++
+ net/netfilter/nf_conntrack_core.c           | 2 +-
+ net/netfilter/nf_conntrack_helper.c         | 5 ++++-
+ net/netfilter/nf_conntrack_ovs.c            | 3 +++
+ net/netfilter/nf_conntrack_proto.c          | 2 +-
+ 5 files changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 0d16ad82d70c..34ac6af1e0dd 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -41,8 +41,9 @@ static int
- nfnl_userspace_cthelper(struct sk_buff *skb, unsigned int protoff,
- 			struct nf_conn *ct, enum ip_conntrack_info ctinfo)
- {
--	const struct nf_conn_help *help;
- 	struct nf_conntrack_helper *helper;
-+	const struct nf_conn_help *help;
-+	unsigned int helper_flags;
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index de2f956abf34..b6ff7dc65c97 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -25,6 +25,7 @@ struct module;
+ enum nf_ct_helper_flags {
+ 	NF_CT_HELPER_F_USERSPACE	= (1 << 0),
+ 	NF_CT_HELPER_F_CONFIGURED	= (1 << 1),
++	NF_CT_HELPER_F_DEAD		= (1 << 2),
+ };
  
- 	help = nfct_help(ct);
- 	if (help == NULL)
-@@ -53,8 +54,10 @@ nfnl_userspace_cthelper(struct sk_buff *skb, unsigned int protoff,
- 	if (helper == NULL)
- 		return NF_DROP;
+ #define NF_CT_HELPER_NAME_LEN	16
+@@ -63,6 +64,13 @@ struct nf_conntrack_helper {
+ 	char nat_mod_name[NF_CT_HELPER_NAME_LEN];
+ };
  
-+	helper_flags = READ_ONCE(helper->flags);
++static inline bool nf_ct_helper_alive(const struct nf_conntrack_helper *helper)
++{
++	unsigned int helper_flags = READ_ONCE(helper->flags);
 +
- 	/* This is a user-space helper not yet configured, skip. */
--	if ((helper->flags &
-+	if ((helper_flags &
- 	    (NF_CT_HELPER_F_USERSPACE | NF_CT_HELPER_F_CONFIGURED)) ==
- 	     NF_CT_HELPER_F_USERSPACE)
++	return likely(!(helper_flags & NF_CT_HELPER_F_DEAD));
++}
++
+ /* Must be kept in sync with the classes defined by helpers */
+ #define NF_CT_MAX_EXPECT_CLASSES	4
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8ba5b22a1eef..d54da6babcfe 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1818,7 +1818,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+ 			ct->master = exp->master;
+ 			assign_helper = rcu_dereference(exp->assign_helper);
+-			if (assign_helper) {
++			if (assign_helper && nf_ct_helper_alive(assign_helper)) {
+ 				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 				if (help)
+ 					rcu_assign_pointer(help->helper, assign_helper);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index b594cd244fe1..9f4ba1b0b5ab 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -415,8 +415,11 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	nf_ct_helper_count--;
+ 	mutex_unlock(&nf_ct_helper_mutex);
+ 
++	WRITE_ONCE(me->flags, me->flags | NF_CT_HELPER_F_DEAD);
++
+ 	/* Make sure every nothing is still using the helper unless its a
+-	 * connection in the hash.
++	 * connection in the hash, no more expectations are created after
++	 * this rcu grace period.
+ 	 */
+ 	synchronize_rcu();
+ 
+diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
+index a6988eeb1579..eeeb85c18a84 100644
+--- a/net/netfilter/nf_conntrack_ovs.c
++++ b/net/netfilter/nf_conntrack_ovs.c
+@@ -28,6 +28,9 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
+ 	if (!helper)
  		return NF_ACCEPT;
-@@ -404,10 +407,10 @@ nfnl_cthelper_update(const struct nlattr * const tb[],
  
- 		switch(status) {
- 		case NFCT_HELPER_STATUS_ENABLED:
--			helper->flags |= NF_CT_HELPER_F_CONFIGURED;
-+			WRITE_ONCE(helper->flags, helper->flags | NF_CT_HELPER_F_CONFIGURED);
- 			break;
- 		case NFCT_HELPER_STATUS_DISABLED:
--			helper->flags &= ~NF_CT_HELPER_F_CONFIGURED;
-+			WRITE_ONCE(helper->flags, helper->flags & ~NF_CT_HELPER_F_CONFIGURED);
- 			break;
- 		}
- 	}
-@@ -529,8 +532,8 @@ static int
- nfnl_cthelper_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 			int event, struct nf_conntrack_helper *helper)
- {
-+	unsigned int flags = portid ? NLM_F_MULTI : 0, helper_flags;
- 	struct nlmsghdr *nlh;
--	unsigned int flags = portid ? NLM_F_MULTI : 0;
- 	int status;
- 
- 	event = nfnl_msg_type(NFNL_SUBSYS_CTHELPER, event);
-@@ -554,7 +557,8 @@ nfnl_cthelper_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	if (nla_put_be32(skb, NFCTH_PRIV_DATA_LEN, htonl(helper->data_len)))
- 		goto nla_put_failure;
- 
--	if (helper->flags & NF_CT_HELPER_F_CONFIGURED)
-+	helper_flags = READ_ONCE(helper->flags);
-+	if (helper_flags & NF_CT_HELPER_F_CONFIGURED)
- 		status = NFCT_HELPER_STATUS_ENABLED;
- 	else
- 		status = NFCT_HELPER_STATUS_DISABLED;
-@@ -575,6 +579,7 @@ static int
- nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
- 	struct nf_conntrack_helper *cur, *last;
-+	unsigned int helper_flags;
- 
- 	rcu_read_lock();
- 	last = (struct nf_conntrack_helper *)cb->args[1];
-@@ -583,8 +588,10 @@ nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 		hlist_for_each_entry_rcu(cur,
- 				&nf_ct_helper_hash[cb->args[0]], hnode) {
- 
-+			helper_flags = READ_ONCE(cur->flags);
++	if (!nf_ct_helper_alive(helper))
++		return NF_ACCEPT;
 +
- 			/* skip non-userspace conntrack helpers. */
--			if (!(cur->flags & NF_CT_HELPER_F_USERSPACE))
-+			if (!(helper_flags & NF_CT_HELPER_F_USERSPACE))
- 				continue;
+ 	if (helper->tuple.src.l3num != NFPROTO_UNSPEC &&
+ 	    helper->tuple.src.l3num != proto)
+ 		return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 50ddd3d613e1..b2ac5bd491cb 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -174,7 +174,7 @@ unsigned int nf_confirm(void *priv,
  
- 			if (cb->args[1]) {
+ 		/* rcu_read_lock()ed by nf_hook */
+ 		helper = rcu_dereference(help->helper);
+-		if (helper) {
++		if (helper && nf_ct_helper_alive(helper)) {
+ 			ret = helper->help(skb,
+ 					   protoff,
+ 					   ct, ctinfo);
 -- 
 2.47.3
 
