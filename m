@@ -1,206 +1,63 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEEE7481FC5
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 May 2026 13:51:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3394B305691;
+	Fri, 15 May 2026 22:59:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778853119; cv=none; b=QlM7MThxB3ebNm3bMTVaWO0k11Aa0HZhVUbBiJzGZqn3j6bVn+4ckLt9ORpjyRcsgZ/PzmOOIYg8oH3Yvf5N18wiytsnjSJtGNQAU7ThiCZ27xXYHKqcG/Hv/njiJRq5VXKa2/AzlegtuqT1ItNj3HnSw9JmEkNDJDyg/pTvs6M=
+	t=1778885980; cv=none; b=ohXaHbtG1hN130BbMypcxoWyjz7b5TF4sFyrFDELFli9nmS/FoxKw5I9xAzU6ZDhlkk8sskDRtwTsCTPBYxvwtEMNUY02rsTo/mB2tBMPxVxYLvHx0YmXWBtEnAYVOL7wNVOQfnwSVwxtfjTqOzM7xraVEgt1OWjrztg9j2190A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778853119; c=relaxed/simple;
-	bh=1BUYyH6FJjq+uusotHC0RGXtPrhUwifyqTlT3V5ZIPE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SxpGJPpkEOzqGvd/pbOuif8KhF+MjKBzxsZdmePrCIS9dZhr/Nbezafxay4jCUKVyYAntA3NiIvL1wJqFdDEmt5cvmSbAgHgRASkpy/4MwOPcmnuKunCI/klUWhQHNMiQHVfwNtM0Ou/qD40F4io4stmDFw1J5QPdxw/YaUjbdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=crNLsmaw; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1778885980; c=relaxed/simple;
+	bh=CK+MYEd6L2jtK64KRNE3Edqr+A2OZWlZGwCIMXaczGQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Bqc53rja2kHPd8RZkxipZx7VAkXG2/2Q9u3qMal40XWyZPQ+2+Z2WlK1e3NUSEj4x6GYvPnw1VkWwFG9+uDvl6ug2BRngXXGPQFLIsnX7fnIUZEZH7hA7lBF/LS/bgIKaQScygvvp7kD6BeZyK1s1UmkA3mUD54rRX26ucu8L5o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z6dxbJyE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="crNLsmaw"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-488b0e1b870so152264305e9.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 May 2026 06:51:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1778853115; x=1779457915; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VA+bG9JdAKJ8uzHR2B1IeGdcCKEHHSGhLn7eeSbzPvg=;
-        b=crNLsmawSy5I0G7CrPgHYnHFdvt+hulqPo5UoyW92rWd76+QKownrE2B3DUYWlO1JL
-         2/22skQB/KbImVFeu6hVTX9ex3e52K3JsaRa5wmBsb0k/u6nr7M3G9T6OHFtwilq65sW
-         xwON24M9D5Ue3nFkwPQ0EaenIl9CDIOWvOme1bsTWeWi3cJMa2KErOp72g6lj3ASjczz
-         tN2C7Cb3VGlaAz5yc2hQRGrjvEszxAa2qzS4983uqL5JYl0iZLxPKpvHDI4qGnnpF013
-         1Y2qbng4JPUbuq2TYwUpPeD2xLWni6ZfPsnmTz11aZ/gIdO9NUhV7G7Qop9kYNUMCcpy
-         nhYA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778853115; x=1779457915;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=VA+bG9JdAKJ8uzHR2B1IeGdcCKEHHSGhLn7eeSbzPvg=;
-        b=bJpIjh0Tb+/cvEDjA50Yb6xtowMG9CNlCjbri3MFJXOjbl0/jY9S8MKsTFHhVI/YKS
-         1PDPoUjA3jmbXchF7EYlDgoCk9p8D1llyd+Us4/CW0O+1gCuOOoXpTjOIjzI9d3J8H11
-         L4d/bRXlksvBcPR0crcPj8xBN4H32khyP00exWM2Pxyl1oK9KvNGfwsDG4dDUgk9VcTR
-         HFoXnJPLXotp661ppJSbM3mbrfvCkmlaT1hZ2LID7Eml/ryih3B4xDNwN1rWafUq4VSZ
-         L6rSJ5xBLvYB0r5iHe5IOORQjcAx0icd6gL1b4TZuN+dSi/Q2XZWZCvUgHlGuj3Y7xN+
-         iQGw==
-X-Forwarded-Encrypted: i=1; AFNElJ8+/ydDuofRi7N8sji1o+n9xPwOJwV7dum3BNYk9+zztGNt4ifqUg6syD+JsJ1vNyLtSQM3RnCL0EpuWtxFdko=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEiIsXrBYQJ0hKsfw6sus97KA8Kbp1/XA9tEE+lmT6BtPp396b
-	0P0haHNr3pdgKpHBR86PQjCCEwsS7/E1nJyCeV9bY09LfK15r+uf3qlyVu28zm7kK4Y=
-X-Gm-Gg: Acq92OGSJpZEhx6PFrO/SCPZGgGckE2gY3ppvMmaFd0OvAt+3PlbKp7joJPs0KCWUrr
-	bgrJXRFDm7ze4CHOvt8StlOD13SQAfxA+WLPDhLcda5BbEOdNxd2UYs2HaDbPeBWVRUdiDdhFIt
-	BL3DKLY+M9w2tJSZLHGerfezShk7UiDOlirGX6tpywMwjp8nAqRqmeTXLt0gPof0ykHW1wkP/0i
-	yRKhGJRhjmJ/xSfQ3EHFM0qT4H71rqlL8KrA9pEAPJkIrYoI8sjjVY89sL4ZGDt0WWlvfxfYqxw
-	khjy+zWPajEZeQXaKgYxkMSoWN/6ytT464oSOR7gZEHqBSVjzc6iRYxnAKrbdAA6AxevX+WKIlX
-	FOJLlZ3nMId9JW8FjicyGVXZOB4PZza4ijQCWdLX1Zx4OKeoBWW4tikvunIXVyMniTDDg59KDW/
-	jBPU8gBIY2QmC/Xjmm8gzJv+7Ve2TlGU4vEnbH8JJBLq7mzHE=
-X-Received: by 2002:a05:600c:4fc9:b0:489:1c1f:35df with SMTP id 5b1f17b1804b1-48fe60e58ecmr54916975e9.10.1778853115149;
-        Fri, 15 May 2026 06:51:55 -0700 (PDT)
-Received: from localhost.localdomain ([2a00:6d43:105:c401:e307:1a37:2e76:ce91])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48fdafc6741sm79592675e9.2.2026.05.15.06.51.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 15 May 2026 06:51:54 -0700 (PDT)
-From: Marco Crivellari <marco.crivellari@suse.com>
-To: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Cc: Tejun Heo <tj@kernel.org>,
-	Lai Jiangshan <jiangshanlai@gmail.com>,
-	Frederic Weisbecker <frederic@kernel.org>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Marco Crivellari <marco.crivellari@suse.com>,
-	Michal Hocko <mhocko@suse.com>,
-	Simon Horman <horms@verge.net.au>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
-Date: Fri, 15 May 2026 15:51:37 +0200
-Message-ID: <20260515135143.259669-3-marco.crivellari@suse.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260515135143.259669-1-marco.crivellari@suse.com>
-References: <20260515135143.259669-1-marco.crivellari@suse.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z6dxbJyE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 348E5C2BCB0;
+	Fri, 15 May 2026 22:59:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778885979;
+	bh=CK+MYEd6L2jtK64KRNE3Edqr+A2OZWlZGwCIMXaczGQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Z6dxbJyEHc0o25hAfjOnQARltxIHlrktL4n+X8JCzkHWh7ZIBVajL4BwCUxH/aXfB
+	 305LliFteIOb+jXynx1+4fY72c7LKxhJ//TRCljfLezQcczAv068hV3n1MC5ViX8d+
+	 KhjpluiSUfaqL9AACYG5dTzWzEnKmPMUugoV34P1XBaECEEb/n5dtY6SS7+FCv0oXi
+	 oX13FS4ei2kHDn9q85EiTvbJNhlmkZpfCb0R2W/hnUjrCv0nVdRpdY2ISAxmf6lr+D
+	 zV6k+4U/3+SYp0xHsi395GSAA13SdNLGahQW+1+7aJ3f5HUPKT3dRibOOtVeQ8llbI
+	 LhGlPyqufQ19Q==
+Date: Fri, 15 May 2026 15:59:38 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Michael Bommarito <michael.bommarito@gmail.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>, Herbert Xu
+ <herbert@gondor.apana.org.au>, Eric Dumazet <edumazet@google.com>,
+ netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Paolo
+ Abeni <pabeni@redhat.com>, Kuniyuki Iwashima <kuniyu@google.com>, Maciej
+ Zenczykowski <maze@google.com>, Kees Cook <kees@kernel.org>, Jeff Layton
+ <jlayton@kernel.org>, "Gustavo A . R . Silva" <gustavoars@kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net 0/2] ipv4: harden against ihl < 5 IP_HDRINCL packets
+Message-ID: <20260515155938.73f515bc@kernel.org>
+In-Reply-To: <cover.1778614451.git.michael.bommarito@gmail.com>
+References: <cover.1778614451.git.michael.bommarito@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-This patch continues the effort to refactor workqueue APIs, which has begun
-with the changes introducing new workqueues and a new alloc_workqueue flag:
+On Tue, 12 May 2026 16:51:13 -0400 Michael Bommarito wrote:
+> 1/2 ipv4: raw: reject IP_HDRINCL packets with ihl < 5
+> 
+>     Upstream-of-AH fix.  An IPv4 header with ihl < 5 is malformed
+>     by definition (RFC 791) and must not be allowed to continue
+>     along the in-stack output path.  This is the primary fix.
 
-   commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
-   commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
-
-The point of the refactoring is to eventually alter the default behavior of
-workqueues to become unbound by default so that their workload placement is
-optimized by the scheduler.
-
-Before that to happen, workqueue users must be converted to the better named
-new workqueues with no intended behaviour changes:
-
-   system_wq -> system_percpu_wq
-   system_unbound_wq -> system_dfl_wq
-
-This way the old obsolete workqueues (system_wq, system_unbound_wq) can be
-removed in the future.
-
-This specific work is considered long, so enqueue it using
-system_dfl_long_wq instead of system_dfl_wq.
-
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>
-Cc: lvs-devel@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Link: https://lore.kernel.org/all/20250221112003.1dSuoGyc@linutronix.de/
-Suggested-by: Tejun Heo <tj@kernel.org>
-Signed-off-by: Marco Crivellari <marco.crivellari@suse.com>
----
- net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
- net/netfilter/ipvs/ip_vs_ctl.c  | 10 +++++-----
- 2 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 9ea6b4fa78bf..4a5c6762489c 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -285,7 +285,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 	/* Schedule resizing if load increases */
- 	if (atomic_read(&ipvs->conn_count) > t->u_thresh &&
- 	    !test_and_set_bit(IP_VS_WORK_CONN_RESIZE, &ipvs->work_flags))
--		mod_delayed_work(system_unbound_wq, &ipvs->conn_resize_work, 0);
-+		mod_delayed_work(system_dfl_long_wq, &ipvs->conn_resize_work, 0);
- 
- 	return ret;
- }
-@@ -916,7 +916,7 @@ static void conn_resize_work_handler(struct work_struct *work)
- 
- out:
- 	/* Monitor if we need to shrink table */
--	queue_delayed_work(system_unbound_wq, &ipvs->conn_resize_work,
-+	queue_delayed_work(system_dfl_long_wq, &ipvs->conn_resize_work,
- 			   more_work ? 1 : 2 * HZ);
- }
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c7c7f6a7a9f6..49cbc7cfe770 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -800,7 +800,7 @@ static void svc_resize_work_handler(struct work_struct *work)
- 	if (!READ_ONCE(ipvs->enable) || !more_work ||
- 	    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
- 		return;
--	queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work, 1);
-+	queue_delayed_work(system_dfl_long_wq, &ipvs->svc_resize_work, 1);
- }
- 
- static inline void
-@@ -1833,7 +1833,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	/* Schedule resize work */
- 	if (t && ip_vs_get_num_services(ipvs) > t->u_thresh &&
- 	    !test_and_set_bit(IP_VS_WORK_SVC_RESIZE, &ipvs->work_flags))
--		queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work,
-+		queue_delayed_work(system_dfl_long_wq, &ipvs->svc_resize_work,
- 				   1);
- 
- 	*svc_p = svc;
-@@ -2078,7 +2078,7 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
- 	} else if (ns <= t->l_thresh &&
- 		   !test_and_set_bit(IP_VS_WORK_SVC_RESIZE,
- 				     &ipvs->work_flags)) {
--		queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work,
-+		queue_delayed_work(system_dfl_long_wq, &ipvs->svc_resize_work,
- 				   1);
- 	}
- 	return 0;
-@@ -2511,7 +2511,7 @@ static int ipvs_proc_conn_lfactor(const struct ctl_table *table, int write,
- 		} else {
- 			WRITE_ONCE(*valp, val);
- 			if (rcu_access_pointer(ipvs->conn_tab))
--				mod_delayed_work(system_unbound_wq,
-+				mod_delayed_work(system_dfl_long_wq,
- 						 &ipvs->conn_resize_work, 0);
- 		}
- 	}
-@@ -2543,7 +2543,7 @@ static int ipvs_proc_svc_lfactor(const struct ctl_table *table, int write,
- 			    READ_ONCE(ipvs->enable) &&
- 			    !test_bit(IP_VS_WORK_SVC_NORESIZE,
- 				      &ipvs->work_flags))
--				mod_delayed_work(system_unbound_wq,
-+				mod_delayed_work(system_dfl_long_wq,
- 						 &ipvs->svc_resize_work, 0);
- 			mutex_unlock(&ipvs->service_mutex);
- 		}
--- 
-2.54.0
-
+I believe this part is uncontroversial and doesn't have to wait
+for the rest of the discussion to shake out. So applying it now.
+Please shout if i shouldn't have
