@@ -1,154 +1,96 @@
-Received: from zg8tmtyylji0my4xnjqumte4.icoremail.net (zg8tmtyylji0my4xnjqumte4.icoremail.net [162.243.164.118])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3C6D5315D33
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 May 2026 03:19:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.164.118
+Received: from abb.hmeau.com (abb.hmeau.com [180.181.231.80])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EDA3D3CFA;
+	Fri, 15 May 2026 04:20:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=180.181.231.80
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778815163; cv=none; b=ONNdf8J4XPm4BZkHwn0C//FJ6W3WYA8IZlvOZhCiVm+C3LkUFVaZDIyd3TVbsW5IQb64+K7mbLtQmpKAXdgG2aHLEPMDzysX1vraHdQcImA3V0M/aDAzZrn4Ck6N57fwXcasGVmrbvO1d3WTiTFi9tGu7j2egMpD/iBbczzhxfc=
+	t=1778818853; cv=none; b=A9yg2rAYl2EfT6k9778CjM8hrUZynbi/xQuRkLFtjBssvqcU8ZeHTmDiEgFpxRNy947IJZpJQZsi2Y7Eprps/cbW0OnFM5qK3OL1WAclczVVhk/VjDSxIi+bjvTt1sKo8dWPoTLBUqKQoQuGyBenq6YbvfL0mEjRx+QzfQHp3EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778815163; c=relaxed/simple;
-	bh=d4XfTUjX/r670lDs4l/LZ2T3YoQ6i9w1Z89skCjEU8I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nTAaYxp4ZWDNM5AugSUlxzOQRGwbf/FYYrukjCFXgPE1Cd5Os66fMw83rb9LJyxayu778IfmZ2XObwwrihvQVN3mZcN6RcGz+WYAJ/LvJEzrHeUL2O4qCgCg3gmdM8P6dIk81/FpI2hMTwUVVOWRsyNRMUMLgOwudH3qHuC0VCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.164.118
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
-Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
-	by app3 (Coremail) with SMTP id ywmowADHpvymkAZqXbYBAA--.2140S2;
-	Fri, 15 May 2026 11:19:03 +0800 (CST)
-From: Ren Wei <n05ec@lzu.edu.cn>
-To: netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
-Cc: fw@strlen.de,
-	phil@nwl.cc,
-	stephane.ml.bryant@gmail.com,
-	yuantan098@gmail.com,
-	yifanwucs@gmail.com,
-	tomapufckgml@gmail.com,
-	bird@lzu.edu.cn,
-	royenheart@gmail.com,
-	n05ec@lzu.edu.cn
-Subject: [PATCH nf v2 1/1] netfilter: nf_queue: hold bridge skb->dev while queued
-Date: Fri, 15 May 2026 11:19:02 +0800
-Message-ID: <2c773ffa2b7c6b6ba12c31188fb75a72d4854265.v2.1778493188.git.royenheart@gmail.com>
-X-Mailer: git-send-email 2.51.0
+	s=arc-20240116; t=1778818853; c=relaxed/simple;
+	bh=9Ca+GE5zHL3u+0IEX2+Z0VOeZdy7Fkv0nnGmh9y3hh4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H2SWQ5FP4fvAgObAWoUipPfW/51iqV9lP+eufNed56TH79T/NeYzpKAqh+gqGK3szzf6O1nHMIQm3O4q5LyhbktXnuV/qNLGThNpGZhvuOQaV4fhvsPj5jl2RZ5n1XeGldIEjI9BI+vsTzQQ592bEh3l0TbUIrSNTRywwS5LyaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.b=h5m3za1z; arc=none smtp.client-ip=180.181.231.80
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.b="h5m3za1z"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=gondor.apana.org.au; s=h01; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:cc:to:subject:message-id:date:
+	from:content-type:reply-to; bh=ZDReuVCfVZrcHmYVCMEAb8W+xlZArwf954j9YhHTfKY=; 
+	b=h5m3za1ztUh188CtdD/j9MIh+F29FStkNcn71OEplUF/eVnbFTAAVJgXo3FoAXlrFe/nbnqiYAL
+	o0t4OSHRrByMAzFgem4OSHqVl2xqV0ZUbrjqi7WI0MBe4dgo+m94/ttJ+2tbjvkkgYFX93kNsVung
+	75dbLbFnSq2a8C36hlJWfWDGy+3ZX8hTMRfp0sfOzj0XfmQjA+9hTkykMgOjTY2FgghD060tvAwhw
+	wQiDAqisdcHXb4mtsBVRGhxfxP+toc0JzyTqWbfRxhv9W3frkOvufAqhLXhXxZvFVlD8ToplHTiuB
+	0L46OW/nHaSjzJHMhry+k/Mh1rUYVQHX7mhQ==;
+Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
+	by formenos.hmeau.com with smtp (Exim 4.96 #2 (Debian))
+	id 1wNk1u-00EIoB-28;
+	Fri, 15 May 2026 12:20:07 +0800
+Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Fri, 15 May 2026 12:20:06 +0800
+Date: Fri, 15 May 2026 12:20:06 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: Michael Bommarito <michael.bommarito@gmail.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>,
+	Eric Dumazet <edumazet@google.com>, netdev@vger.kernel.org,
+	"David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Maciej Zenczykowski <maze@google.com>, Kees Cook <kees@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	"Gustavo A . R . Silva" <gustavoars@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net 2/2] ipv4: ah: harden ah_output options-copy guard
+ against ihl < 5
+Message-ID: <agae9ph6pzaQJv3E@gondor.apana.org.au>
+References: <cover.1778614451.git.michael.bommarito@gmail.com>
+ <423b9ce3b45782c09a2fd9c65ad6674a9abb7c72.1778614451.git.michael.bommarito@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ywmowADHpvymkAZqXbYBAA--.2140S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxCF1ftw17ZrWkWFyxAw13Jwb_yoWrJry3pF
-	W5Ga4xJ34xtF1jk3ykZrWxZr13uws5GrsxCrySk3s5AFnxXF1UZF4rKFW5Zay8ArZ0kF47
-	JF1qgrsYqan8ZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUB01xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
-	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
-	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
-	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
-	Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
-	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
-	w2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY2
-	0_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8G
-	jcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2I
-	x0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK
-	8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I
-	0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUonmRUUUUU
-X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQwHCWoFZ+8GFAAHsx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <423b9ce3b45782c09a2fd9c65ad6674a9abb7c72.1778614451.git.michael.bommarito@gmail.com>
 
-From: Haoze Xie <royenheart@gmail.com>
+On Tue, May 12, 2026 at 04:51:15PM -0400, Michael Bommarito wrote:
+> 
+> diff --git a/net/ipv4/ah4.c b/net/ipv4/ah4.c
+> index 4366cbac3f06..8fa31bdf9792 100644
+> --- a/net/ipv4/ah4.c
+> +++ b/net/ipv4/ah4.c
+> @@ -137,7 +137,7 @@ static void ah_output_done(void *data, int err)
+>  	top_iph->tos = iph->tos;
+>  	top_iph->ttl = iph->ttl;
+>  	top_iph->frag_off = iph->frag_off;
+> -	if (top_iph->ihl != 5) {
+> +	if (top_iph->ihl > 5) {
 
-br_pass_frame_up() rewrites skb->dev from the ingress port to the bridge
-master before queueing bridge LOCAL_IN packets. NFQUEUE only holds
-references on state.in/out and bridge physdevs, so a queued bridge
-packet can retain a freed bridge master in skb->dev until reinjection.
+As I have said before, if ihl is less than 5, then it's invalid to
+access any fields from the IP header (in fact you can't even access
+ihl itself if it's that short).
 
-When the verdict is reinjected later, br_netif_receive_skb() re-enters
-the receive path with skb->dev still pointing at the freed bridge master,
-triggering a use-after-free.
+So if these packets are getting this far into our stack, then things
+are very wrong indeed.
 
-Store skb->dev in the queue entry, hold a reference on it for the queue
-lifetime, and use the saved device when dropping queued packets during
-NETDEV_DOWN handling.
+Now I understand that this is already happening so we have to accept
+it.  But we should try to fix each and one of these issues as other
+places in our IP stack can very much break if you bombard them with
+these bogus packets.
 
-Fixes: ac2863445686 ("netfilter: bridge: add nf_afinfo to enable queuing to userspace")
-Cc: stable@kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Signed-off-by: Haoze Xie <royenheart@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
----
-v2:
-- move skb->dev refcounting into the generic nf_queue lifetime handling
-- keep the saved-device check in dev_cmp()
-- v1 Link: https://lore.kernel.org/all/ca7ee343bbcb44905e1f5b853df2f3a5b7d40548.1778493188.git.royenheart@gmail.com
----
- include/net/netfilter/nf_queue.h | 1 +
- net/netfilter/nf_queue.c         | 4 +++-
- net/netfilter/nfnetlink_queue.c  | 2 ++
- 3 files changed, 6 insertions(+), 1 deletion(-)
+To further that end, I suggest that you add a WARN_ON_ONCE for the
+case (top_iph->ihl < 5) and put that at the very start of the AH
+input function so that i can bail out straight away.
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index d17035d14d96..3978c3174cdb 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -14,6 +14,7 @@ struct nf_queue_entry {
- 	struct list_head	list;
- 	struct rhash_head	hash_node;
- 	struct sk_buff		*skb;
-+	struct net_device	*skb_dev;
- 	unsigned int		id;
- 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index a6c81c04b3a5..57b450024a99 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -61,6 +61,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 	struct nf_hook_state *state = &entry->state;
- 
- 	/* Release those devices we held, or Alexey will kill me. */
-+	dev_put(entry->skb_dev);
- 	dev_put(state->in);
- 	dev_put(state->out);
- 	if (state->sk)
-@@ -102,6 +103,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- 	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
- 		return false;
- 
-+	dev_hold(entry->skb_dev);
- 	dev_hold(state->in);
- 	dev_hold(state->out);
- 
-@@ -202,11 +204,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- 	*entry = (struct nf_queue_entry) {
- 		.skb	= skb,
-+		.skb_dev = skb->dev,
- 		.state	= *state,
- 		.hook_index = index,
- 		.size	= sizeof(*entry) + route_key_size,
- 	};
--
- 	__nf_queue_entry_init_physdevs(entry);
- 
- 	if (!nf_queue_entry_get_refs(entry)) {
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 58304fd1f70f..984a0eb9e149 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1212,6 +1212,8 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
- 	if (physinif == ifindex || physoutif == ifindex)
- 		return 1;
- #endif
-+	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
-+		return 1;
- 	if (entry->state.in)
- 		if (entry->state.in->ifindex == ifindex)
- 			return 1;
- 
+Thanks,
 -- 
-2.53.0
-
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
