@@ -1,49 +1,80 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A345F3E0228;
-	Sat, 16 May 2026 11:56:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFDFE3E3C44
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2026 15:23:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778932610; cv=none; b=DrglpSf9p/eat2HskdczTAmMTRDk1h2LF6q21e6aGfMBFlXMrSBFjsfA9qtmWBIEZPiDtLj06M+He6nws19pVMJr1zIisOwLmle7/WqnWNk1noJLsXsdnGAzVn6B/ZN0ZdJ2QcPfwC4r60yJrhM2ZhGiN/M9uBz5ztnXamh1MB4=
+	t=1778945011; cv=none; b=lR2EJUclhv/1Q/ERpjtDQ7662UwvbPw/t/jiEOVOZD68EqZY50c+61Du32ef+ve2tCpMdedKyOVkWPSEjgnCNSdtL/ocgifyKD2yyEC545w/ZEz9ALb0NcDqc9stlHj4WKC+EXjEDZ83fZF6aIrlxO2IxMuFyyLzZYxMHRqZBe0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778932610; c=relaxed/simple;
-	bh=/mCwhYllecjs8nxYKsXlYlbNilMQRl4qLivhwgvteEs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sT1gN/Qcy/NZ+IdTMLT7aRCkbaFCO+R4bm3uNoI/B02S2AX2DjqcWRs/QOA/5LHTMMLwa+WNpoSkWdknv3lrG8MRfC2yMDO6dCB+pY1E9akAckt0eguhSYVllRSSJHVJ13NEsy7VNiqLsB/rKLuR0mDO4D5lXBxF0L9WmvLcYHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=evR4PXHq; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1778945011; c=relaxed/simple;
+	bh=tl+wcq6ObIaSLoheOE6JBGo3uGujGoAPvnIeqn/mRm8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z4hnAVeQVAjDJ51Ee2SeovPR6pbcAiqexFbNgsFK+E3eyPDXLXjIdw3BEEykxWZkiSyGBZ8bb3kT6zCi0WhXvlWPZnaC9zagXJWWphkQ0vfPiPktd5H9Je0fhXaVirwyTGoBs8IPAVYXmlfVYEOVlESsPggmTg+qTfwpq1ofc0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l1B9jf9z; arc=none smtp.client-ip=74.125.82.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="evR4PXHq"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9960D601A2;
-	Sat, 16 May 2026 13:56:46 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778932607;
-	bh=gVHsNnzVjJ5CQ6vEFP7KwWXCZ1KRueCIiThEVTDS+9U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=evR4PXHqiCx3fYjbVH0YKmiOxDO98AfpwzkEj1LTfR2nP3vplIEohq3hyfFVdn/7/
-	 HfwoFklSjX4mj9bLVuk/9Pf+LCIdTm29EPHZwvn3Yh9ajG6AOJWJj3+kV4VvQF951b
-	 rrQSxZzjNvZSbXO+3ZBmWyIqoZp+JBiPxX99hwFnGxGH3i4iDRqGg8snisMxF/J09J
-	 UeXgVPAZHPw6kaRzfWpHQ4nH2nw6DclaFxs3nH9eCqiot4EndJSZjaKVpRY/w8kky5
-	 bZjWjiAnrtGOmVDOp4iv8cP1hUJ0OBwtz4MsjLGUvc1xK0nO7GOlmuYhDjzyZpqqNx
-	 Cl6xkOx/SFT2g==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l1B9jf9z"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-2f7ca62a3c4so721443eec.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2026 08:23:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778945009; x=1779549809; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=gPSGOLDEj02HfkVCX3UX3Jxtg2REZTH7Fxg7/PpQ1zY=;
+        b=l1B9jf9z+htu3jbtWvt2rXGtayeN/v8/awjBeMGZCsnZncWq0DivjjzwsaDycVRUUJ
+         ILabYhkbC4Wb8bB04ZIIuA/5yjGEHMwp2dJlHvF5++DELL+k+Tl4CJK7ArVZvP3TSp4U
+         M02tcJ5oNEQusKeVfQjpZ2WH57X/SdfYTe+cyAm03I7R+HCknEeBR7PJ3/OUjbPk+gdV
+         1mQR2eBYBF+9NM84rq02M2w0BogTBUEM80Szp0h/rE75CNs09r+HMgRMs5BPiMni0XLv
+         PGEEcabLMECDw7LZLOLNbvCTEIpbTs9rPl9GHW9WE0swqoQFJ4n1LbhiCG4DK12LAggq
+         xdbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778945009; x=1779549809;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gPSGOLDEj02HfkVCX3UX3Jxtg2REZTH7Fxg7/PpQ1zY=;
+        b=ZglP5uFhAxHRm3pdmAnKzWlpdjNihk37Kg9MxK4O0YM7EzE/kUCvzb3s+eemUAWFqe
+         vBj/OFsjMLNU43pwx9gftZ+GVNAfOygpv07WNmr20rmXSsydyTFq/EoJt2mWOsSMgI4j
+         hI0AHgj1xZvuh/x0JouOh4rPDUSH2Rnys+T+Wk5QjFcBEqDqw39L79RRwU/3S20rsvwD
+         vXflzuJPw8QoUAiGAwuFK44VelrrjIsZj/70isKcyN9+3d0Lklj49QyI7671oZLpXiQS
+         T6FB3fYS6A9jwUt8GftwDZDaV85ITqO2y5M8wdX9/s2HDqDB2iUHxTN/rE1XtH+lNrZg
+         CeyQ==
+X-Gm-Message-State: AOJu0YwC0aXzHrLOg077qL7Evj/MZlFMj3VlNmdGMRO9z+0gjqMkJ3a9
+	pLHB3g92dWTDH6gEEczK9aheW+2RSfppyg0UlFF+4e73iK73lQ5VWODMoWpAFD4h
+X-Gm-Gg: Acq92OFOq2R6zt365M920TaVAgRVs/ih8+UdLD9MqFh4NgnPQwZsHz/KduTU9dWwA/i
+	ewM+bqF+1/eJW8tXx7+640iZbOtsxnFWuoSBGp38PMcXVCfVDlJedE+L8SyL15J/xUbU8CsDCvQ
+	5uFEg7KxCS14sijMTCMzN4cGiqA0UT0Ag4RQXIWJjZaDNvZYUIToMTNgiKC03JFWDHELyB91F4Y
+	HJBeI9KZDWUdlMUz2ZwhA0KMJ7pCKzRbp+V+3bzehUbgFmbSiRbMX0SVIxLYb9KZ/FkuF+Zvqc3
+	98mDLOxARWzivV/6gEpH0nQ2S8opULQ6ndCFRfQwKv/mkMYhLfqz4d19XGjNQfRuikxQCn0Awvi
+	XoxWU2isUl3JDFZp3riy0MFcpYefaBn95M1E+U0HTJYfxrC9ck+7kfVVeIpy3k65tRCFZov9za3
+	eRgkEdEtbnBzSMUrlbdyh7HpEiCdk2hG6blYkJXySN6wtG
+X-Received: by 2002:a05:7300:7241:b0:2d9:a799:3c4f with SMTP id 5a478bee46e88-303986a68d3mr4281033eec.24.1778945008798;
+        Sat, 16 May 2026 08:23:28 -0700 (PDT)
+Received: from localhost.localdomain ([148.135.103.3])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-134cc33a618sm14473250c88.12.2026.05.16.08.23.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 16 May 2026 08:23:28 -0700 (PDT)
+From: Qi Tang <tpluszz77@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc
+Cc: netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
+	coreteam@netfilter.org,
+	davem@davemloft.net,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 12/12] netfilter: nf_queue: hold bridge skb->dev while queued
-Date: Sat, 16 May 2026 13:56:27 +0200
-Message-ID: <20260516115627.967773-13-pablo@netfilter.org>
+	horms@kernel.org,
+	herbert@gondor.apana.org.au,
+	michael.bommarito@gmail.com,
+	lyutoon@gmail.com,
+	Qi Tang <tpluszz77@gmail.com>
+Subject: [PATCH nf] netfilter: disable payload mangling in userns
+Date: Sat, 16 May 2026 23:23:21 +0800
+Message-ID: <20260516152321.2676564-1-tpluszz77@gmail.com>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260516115627.967773-1-pablo@netfilter.org>
-References: <20260516115627.967773-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,94 +83,95 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Haoze Xie <royenheart@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-br_pass_frame_up() rewrites skb->dev from the ingress port to the bridge
-master before queueing bridge LOCAL_IN packets. NFQUEUE only holds
-references on state.in/out and bridge physdevs, so a queued bridge
-packet can retain a freed bridge master in skb->dev until reinjection.
+Several parts of network stack rely on iph->ihl validation
+done by network stack before PRE_ROUTING.
 
-When the verdict is reinjected later, br_netif_receive_skb() re-enters
-the receive path with skb->dev still pointing at the freed bridge master,
-triggering a use-after-free.
+Disable this feature for user namespaces for now.
 
-Store skb->dev in the queue entry, hold a reference on it for the queue
-lifetime, and use the saved device when dropping queued packets during
-NETDEV_DOWN handling.
+This could be relaxed later.  Example:
+ - allow userns only for ingress hook.
+ - allow userns write if base is transport header
+ - allow userns write if base is linklayer and offset
+   below network header offset
+ - allow userns write for ipv4 if offset+len match saddr/daddr
+ - allow userns write for ipv6 if offset+len match saddr/daddr
+ ... etc.
 
-Fixes: ac2863445686 ("netfilter: bridge: add nf_afinfo to enable queuing to userspace")
-Cc: stable@kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Signed-off-by: Haoze Xie <royenheart@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+tcp option handling might be safe even for LOCAL_IN, as LOCAL_IN gets
+invoked before tcp stack, but this turns it off too.
+optstrip remains enabled, see no problem with that one.
+
+I don't think these are the only means to alter packets, but these
+appear to be relatively prominent.
+
+Another option would be to restrict this generally, however, this
+is harder to do for nfqueue.  For nftables we know where the
+modification happens and can even reject a subset from netlink path
+directly.  But for nfqueue, we'd need to 'revalidate' at least
+ip/ipv6 header for ipv4/ipv6 families.  Bridge path might be okay with
+arbitray header modifications.
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Michael Bommarito <michael.bommarito@gmail.com>
+Reported-by: Qi Tang <tpluszz77@gmail.com>
+Reported-by: Tong Liu <lyutoon@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Tested-by: Qi Tang <tpluszz77@gmail.com>
+Link: https://lore.kernel.org/netfilter-devel/20260515100411.3141-1-fw@strlen.de/
+Signed-off-by: Qi Tang <tpluszz77@gmail.com>
 ---
- include/net/netfilter/nf_queue.h | 1 +
- net/netfilter/nf_queue.c         | 4 +++-
- net/netfilter/nfnetlink_queue.c  | 2 ++
- 3 files changed, 6 insertions(+), 1 deletion(-)
+Tested on net.git tip: unprivileged userns nft @nh,*,* set
+rules hit -EPERM at rule install.
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index d17035d14d96..3978c3174cdb 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -14,6 +14,7 @@ struct nf_queue_entry {
- 	struct list_head	list;
- 	struct rhash_head	hash_node;
- 	struct sk_buff		*skb;
-+	struct net_device	*skb_dev;
- 	unsigned int		id;
- 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index a6c81c04b3a5..57b450024a99 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -61,6 +61,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
- 	struct nf_hook_state *state = &entry->state;
- 
- 	/* Release those devices we held, or Alexey will kill me. */
-+	dev_put(entry->skb_dev);
- 	dev_put(state->in);
- 	dev_put(state->out);
- 	if (state->sk)
-@@ -102,6 +103,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- 	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
- 		return false;
- 
-+	dev_hold(entry->skb_dev);
- 	dev_hold(state->in);
- 	dev_hold(state->out);
- 
-@@ -202,11 +204,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- 	*entry = (struct nf_queue_entry) {
- 		.skb	= skb,
-+		.skb_dev = skb->dev,
- 		.state	= *state,
- 		.hook_index = index,
- 		.size	= sizeof(*entry) + route_key_size,
- 	};
--
- 	__nf_queue_entry_init_physdevs(entry);
- 
- 	if (!nf_queue_entry_get_refs(entry)) {
+ net/netfilter/nfnetlink_queue.c | 3 +++
+ net/netfilter/nft_exthdr.c      | 3 +++
+ net/netfilter/nft_payload.c     | 3 +++
+ 3 files changed, 9 insertions(+)
+
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 58304fd1f70f..984a0eb9e149 100644
+index 58304fd1f70ff..e1e1d11fdf04f 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -1212,6 +1212,8 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
- 	if (physinif == ifindex || physoutif == ifindex)
- 		return 1;
- #endif
-+	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
-+		return 1;
- 	if (entry->state.in)
- 		if (entry->state.in->ifindex == ifindex)
- 			return 1;
+@@ -1141,6 +1141,9 @@ nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int di
+ {
+ 	struct sk_buff *nskb;
+ 
++	if (e->state.net->user_ns != &init_user_ns)
++		return -EPERM;
++
+ 	if (diff < 0) {
+ 		unsigned int min_len = skb_transport_offset(e->skb);
+ 
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index e6a07c0df2079..577a15383e986 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -551,6 +551,9 @@ static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
+ 	u32 offset, len, flags = 0, op = NFT_EXTHDR_OP_IPV6;
+ 	int err;
+ 
++	if (ctx->net->user_ns != &init_user_ns)
++		return -EPERM;
++
+ 	if (!tb[NFTA_EXTHDR_SREG] ||
+ 	    !tb[NFTA_EXTHDR_TYPE] ||
+ 	    !tb[NFTA_EXTHDR_OFFSET] ||
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 01e13e5255a94..484a5490832e4 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -917,6 +917,9 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+ 	struct nft_payload_set *priv = nft_expr_priv(expr);
+ 	int err;
+ 
++	if (ctx->net->user_ns != &init_user_ns)
++		return -EPERM;
++
+ 	priv->base        = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
+ 	priv->len         = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
+ 
 -- 
 2.47.3
 
