@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06AA03E00AB;
-	Sat, 16 May 2026 11:56:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557083E00BD;
+	Sat, 16 May 2026 11:56:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778932607; cv=none; b=cDP6Ud5fzztWdJEWfmPjhNRsb5HNe9J5UrLZJioH4m7I67tIp8Wfnv9trIkFEPuMc1zqG6UD1tKtEXaks+Eyuzx7+kFK9tM5pE9qf/7cDlklVpLkgBi6HkssvaYf1vYnBYNnnZgYt98z9QGS7ebSf7GWsJnXULrxOhO1rM/P46U=
+	t=1778932608; cv=none; b=X4ZYwYcn5mmPE6kLsQmvEv6fJtvqo2fXEHcRZP+7WJ3ggDszS0fPgxBEEQHUXDvZLUNSLsiE3z6E9WkT+KNqUXIV8Xw8vzVRNSpsYyHXIDSqud6AiEyl+U7Kq05S49+eZb8R6FrF32h5Dpen63mRIYKmsma0P0JazvTPazzwC9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778932607; c=relaxed/simple;
-	bh=xo5dtxEiMruUNHx0OJv7GlBb+Qyuf+qGyS9ab2nu5Rg=;
+	s=arc-20240116; t=1778932608; c=relaxed/simple;
+	bh=cwpDp3tnAPwL/ZWcxQgqTJbwTCTk2sN9zvGk6DOvEmM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=vEYG4wzlMiruNTwON+MzZJABPLwCoE9iVAyXR4xJALRtCf3q2PIYrM/1Ue5W7aZ68qrxV2lAgpy5zmjrUkkv36IcPcwzqEo3I83HrI0iITSYnKMVTTHVonzERDPa5deN4sM9rxtg5KsS3QN545ONPJmt4qnlFkf0YkNTrSsbf1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HbMqo9Ok; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=kLbXDPgLZs8EMEKDc7M6CBo9CrN8Z201Y3qPD8AbFj9N2CQ8Xy1TeA3zsZ3Nz+Gitm/WoAhez9at7Ev4vBflR3HABhbcOJee0tGcbAbqT984AQSdzeb+sY8ZB6xFTcc/tx28kclecpUsKBzP/vZFdVxbP5A2Qo6gJKr/uLIOEyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e3njB/3p; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HbMqo9Ok"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e3njB/3p"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A9C31601B0;
-	Sat, 16 May 2026 13:56:43 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 29B42601B1;
+	Sat, 16 May 2026 13:56:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778932604;
-	bh=3/AbUOC5PGOEa7Oa0rvwZR9BE163ms0c/VClPrG65UM=;
+	s=2025; t=1778932605;
+	bh=UI9vGgiATkaDLHbB4sVTiA9JZjS0knbHTKVa2Gp0W5s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HbMqo9Ok/Htr0pY37xWRIXUaVkpylijdOsTZ7kYlznXNk2CaazT0iN9jYiGQBhuUW
-	 lmR7jRzggDRwV0WIR644hyKXhbJQlq7pTLSZcG/rjon8cHA1QuWVAMtEfM8pMzulPl
-	 pIW1dXmKtobb4gFV545b7onubP86RgOiAi8N8gJYJs6KMkqvLpjH969xRWmrBMkInP
-	 ZZ5w0nq40h6zI+uzhJJdPzmkbGmmH8lG9j14uKS+Q6m3vCJfSA1gXuPVFmlDmtzwoT
-	 CXXYDeoJ/6ZJwm9KTP1HpNul6kpSX06Wy3EQ8g03QEFEaIkNiQTj39YXzldkEC/PFG
-	 CiFiC4oH8tF7Q==
+	b=e3njB/3prv3ra9zIVc7RdcNxv/zoNmbJ9Pc2R4ygCYML1JwX/iNU6Sh4eOtv0gCJ1
+	 c07Wl6+fkLNQh0Kpf2WoR4YVNCLvX3Dpb0X06NO+xTE3l5gkOfJcGQA24Tbgr0+QCC
+	 SLgeJ4L/kuafyzw3NCrXJ5jKQw4uERmHReTfa/TGx0VPt/CVCJInJmuUvp0xolTUtv
+	 wBIob/uUwO7KXok8byV0s+QR76LXGe5JZKfrOpaLlMV94UhvWwK3PF/VoHGHlI2BQc
+	 u+1+zB/W4lJS5tWGxVhrYX8sNjEtSn3RNdEq9t0QDTwOmm+9A5flrjmRl/pDy7x942
+	 ZE1Xu3SB+23KA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 10/12] netfilter: ipset: annotate "pos" for concurrent readers/writers
-Date: Sat, 16 May 2026 13:56:25 +0200
-Message-ID: <20260516115627.967773-11-pablo@netfilter.org>
+Subject: [PATCH net 11/12] netfilter: br_netfilter: Reallocate headroom if necessary in neigh_hh_bridge()
+Date: Sat, 16 May 2026 13:56:26 +0200
+Message-ID: <20260516115627.967773-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260516115627.967773-1-pablo@netfilter.org>
 References: <20260516115627.967773-1-pablo@netfilter.org>
@@ -52,262 +52,136 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
+From: Lorenzo Bianconi <lorenzo@kernel.org>
 
-The "pos" structure member of struct hbucket stores the first
-free slot in the hash bucket of a hash type of set and there
-are concurrent readers/writers. Annotate accesses properly.
+neigh_hh_bridge() assumes the skb always has sufficient headroom to copy
+the aligned  L2 header. This assumption can trigger the crash reported
+below using the following netfilter setup:
 
-Fixes: 18f84d41d34f ("netfilter: ipset: Introduce RCU locking in hash:* types")
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+$modprobe br_netfilter
+$sysctl -w net.bridge.bridge-nf-call-iptables=1
+
+$root@OpenWrt:~# nft list ruleset
+table ip nat {
+        chain prerouting {
+                type nat hook prerouting priority dstnat; policy accept;
+                ip daddr 192.168.83.123 dnat to 192.168.83.120
+        }
+}
+
+- iperf3 client (192.168.83.119) --> bridge (192.168.83.118) --> iperf3 server (192.168.83.120)
+
+the iperf3 client is sending packet for 192.168.83.123 to the bridge device.
+
+[ 1579.036575] Unable to handle kernel write to read-only memory at virtual address ffffff8004d76ffe
+[ 1579.045482] Mem abort info:
+[ 1579.048273]   ESR = 0x000000009600004f
+[ 1579.052024]   EC = 0x25: DABT (current EL), IL = 32 bits
+[ 1579.057363]   SET = 0, FnV = 0
+[ 1579.060417]   EA = 0, S1PTW = 0
+[ 1579.063550]   FSC = 0x0f: level 3 permission fault
+[ 1579.068345] Data abort info:
+[ 1579.071224]   ISV = 0, ISS = 0x0000004f, ISS2 = 0x00000000
+[ 1579.076720]   CM = 0, WnR = 1, TnD = 0, TagAccess = 0
+[ 1579.081770]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[ 1579.087092] swapper pgtable: 4k pages, 39-bit VAs, pgdp=0000000080dc4000
+[ 1579.093794] [ffffff8004d76ffe] pgd=180000009ffff003, p4d=180000009ffff003, pud=180000009ffff003, pmd=180000009ffe3003, pte=0060000084d76787
+[ 1579.106343] Internal error: Oops: 000000009600004f [#1] SMP
+[ 1579.193824] CPU: 0 UID: 0 PID: 235 Comm: napi/qdma_eth-3 Tainted: G           O       6.12.57 #0
+[ 1579.202614] Tainted: [O]=OOT_MODULE
+[ 1579.206102] Hardware name: Airoha AN7581 Evaluation Board (DT)
+[ 1579.211929] pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[ 1579.218889] pc : br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
+[ 1579.225859] lr : br_nf_pre_routing_finish_bridge+0x18c/0xcc8 [br_netfilter]
+[ 1579.232822] sp : ffffffc0817cba20
+[ 1579.236128] x29: ffffffc0817cba20 x28: 0000000000000000 x27: ffffff8002b89000
+[ 1579.243273] x26: ffffff8004d7700e x25: 0000000000000008 x24: 0000000000000000
+[ 1579.250416] x23: ffffffc08179d4c0 x22: 0000000000000000 x21: ffffffc08179d4c0
+[ 1579.257561] x20: ffffff8004d9b800 x19: ffffff8015010000 x18: 0000000000000014
+[ 1579.264704] x17: ffffffbf9e930000 x16: ffffffc0817c8000 x15: 0000000000000070
+[ 1579.271848] x14: 0000000000000080 x13: 0000000000000001 x12: 0000000000000000
+[ 1579.278993] x11: ffffffc0798caae0 x10: ffffff8014db6fd8 x9 : 0000000000000000
+[ 1579.286136] x8 : 0000000000000003 x7 : ffffffc08171f628 x6 : 000000001a3b83d3
+[ 1579.293281] x5 : 0000000000000000 x4 : 1beb76f22fee0000 x3 : ffffff8004d7700e
+[ 1579.300425] x2 : 0000000000000000 x1 : ffffff8004d9b8bc x0 : ffffff80026ed000
+[ 1579.307570] Call trace:
+[ 1579.310018]  br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
+[ 1579.316632]  br_nf_hook_thresh+0xd4/0x14bc [br_netfilter]
+[ 1579.322032]  br_nf_hook_thresh+0x250/0x14bc [br_netfilter]
+[ 1579.327517]  br_nf_hook_thresh+0x76c/0x14bc [br_netfilter]
+[ 1579.333003]  br_handle_frame+0x180/0x480
+[ 1579.336935]  __netif_receive_skb_core.constprop.0+0x540/0xf40
+[ 1579.342682]  __netif_receive_skb_one_core+0x28/0x50
+[ 1579.347561]  process_backlog+0x98/0x1e0
+[ 1579.351398]  __napi_poll+0x34/0x1c4
+[ 1579.354887]  net_rx_action+0x178/0x330
+[ 1579.358638]  handle_softirqs+0x108/0x2d4
+[ 1579.362560]  __do_softirq+0x10/0x18
+[ 1579.366051]  ____do_softirq+0xc/0x20
+[ 1579.369627]  call_on_irq_stack+0x30/0x4c
+[ 1579.373550]  do_softirq_own_stack+0x18/0x20
+[ 1579.377734]  do_softirq+0x4c/0x60
+[ 1579.381050]  __local_bh_enable_ip+0x88/0x98
+[ 1579.385234]  napi_threaded_poll_loop+0x188/0x21c
+[ 1579.389853]  napi_threaded_poll+0x70/0x80
+[ 1579.393863]  kthread+0xd8/0xdc
+[ 1579.396918]  ret_from_fork+0x10/0x20
+[ 1579.400499] Code: 88dffc22 3707ffc2 f9406663 f9406684 (f81f0064)
+[ 1579.406589] ---[ end trace 0000000000000000 ]---
+[ 1579.411209] Kernel panic - not syncing: Oops: Fatal exception in interrupt
+[ 1579.418083] SMP: stopping secondary CPUs
+[ 1579.422012] Kernel Offset: disabled
+
+Fix the issue reallocating the skb headroom if necessary in neigh_hh_bridge routine.
+
+Fixes: e179e6322ac33 ("netfilter: bridge-netfilter: Fix MAC header handling with IP DNAT")
+Reviewed-by: Ido Schimmel <idosch@nvidia.com>
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 62 ++++++++++++++++-----------
- 1 file changed, 38 insertions(+), 24 deletions(-)
+ include/net/neighbour.h         | 8 ++++++--
+ net/bridge/br_netfilter_hooks.c | 6 +++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 133ce4611eed..04e4627ddfc1 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -386,8 +386,9 @@ static void
- mtype_ext_cleanup(struct ip_set *set, struct hbucket *n)
+diff --git a/include/net/neighbour.h b/include/net/neighbour.h
+index 2dfee6d4258a..8860cc2175fc 100644
+--- a/include/net/neighbour.h
++++ b/include/net/neighbour.h
+@@ -489,11 +489,15 @@ static inline int neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ static inline int neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
  {
- 	int i;
-+	u8 pos = smp_load_acquire(&n->pos);
+-	unsigned int seq, hh_alen;
++	unsigned int seq, hh_alen = HH_DATA_ALIGN(ETH_HLEN);
++	int err;
++
++	err = skb_cow_head(skb, hh_alen);
++	if (err)
++		return err;
  
--	for (i = 0; i < n->pos; i++)
-+	for (i = 0; i < pos; i++)
- 		if (test_bit(i, n->used))
- 			ip_set_ext_destroy(set, ahash_data(n, i, set->dsize));
- }
-@@ -490,7 +491,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 k;
- #endif
--	u8 htable_bits = t->htable_bits;
-+	u8 pos, htable_bits = t->htable_bits;
- 
- 	spin_lock_bh(&t->hregion[r].lock);
- 	for (i = ahash_bucket_start(r, htable_bits);
-@@ -498,7 +499,8 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
- 		n = __ipset_dereference(hbucket(t, i));
- 		if (!n)
- 			continue;
--		for (j = 0, d = 0; j < n->pos; j++) {
-+		pos = smp_load_acquire(&n->pos);
-+		for (j = 0, d = 0; j < pos; j++) {
- 			if (!test_bit(j, n->used)) {
- 				d++;
- 				continue;
-@@ -534,7 +536,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
- 				/* Still try to delete expired elements. */
- 				continue;
- 			tmp->size = n->size - AHASH_INIT_SIZE;
--			for (j = 0, d = 0; j < n->pos; j++) {
-+			for (j = 0, d = 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data = ahash_data(n, j, dsize);
-@@ -623,7 +625,7 @@ mtype_resize(struct ip_set *set, bool retried)
- {
- 	struct htype *h = set->data;
- 	struct htable *t, *orig;
--	u8 htable_bits;
-+	u8 pos, htable_bits;
- 	size_t hsize, dsize = set->dsize;
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 flags;
-@@ -685,7 +687,8 @@ mtype_resize(struct ip_set *set, bool retried)
- 			n = __ipset_dereference(hbucket(orig, i));
- 			if (!n)
- 				continue;
--			for (j = 0; j < n->pos; j++) {
-+			pos = smp_load_acquire(&n->pos);
-+			for (j = 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data = ahash_data(n, j, dsize);
-@@ -809,9 +812,10 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
- {
- 	struct htype *h = set->data;
- 	const struct htable *t;
--	u32 i, j, r;
- 	struct hbucket *n;
- 	struct mtype_elem *data;
-+	u32 i, j, r;
-+	u8 pos;
- 
- 	t = rcu_dereference_bh(h->table);
- 	for (r = 0; r < ahash_numof_locks(t->htable_bits); r++) {
-@@ -820,7 +824,8 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
- 			n = rcu_dereference_bh(hbucket(t, i));
- 			if (!n)
- 				continue;
--			for (j = 0; j < n->pos; j++) {
-+			pos = smp_load_acquire(&n->pos);
-+			for (j = 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data = ahash_data(n, j, set->dsize);
-@@ -844,10 +849,11 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	const struct mtype_elem *d = value;
- 	struct mtype_elem *data;
- 	struct hbucket *n, *old = ERR_PTR(-ENOENT);
--	int i, j = -1, npos = 0, ret;
-+	int i, j = -1, ret;
- 	bool flag_exist = flags & IPSET_FLAG_EXIST;
- 	bool deleted = false, forceadd = false, reuse = false;
- 	u32 r, key, multi = 0, elements, maxelem;
-+	u8 npos = 0;
- 
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh(h->table);
-@@ -889,8 +895,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 			ext_size(AHASH_INIT_SIZE, set->dsize);
- 		goto copy_elem;
- 	}
--	npos = n->pos;
--	for (i = 0; i < n->pos; i++) {
-+	npos = smp_load_acquire(&n->pos);
-+	for (i = 0; i < npos; i++) {
- 		if (!test_bit(i, n->used)) {
- 			/* Reuse first deleted entry */
- 			if (j == -1) {
-@@ -934,7 +940,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	if (elements >= maxelem)
- 		goto set_full;
- 	/* Create a new slot */
--	if (n->pos >= n->size) {
-+	if (npos >= n->size) {
- #ifdef IP_SET_HASH_WITH_MULTI
- 		if (h->bucketsize >= AHASH_MAX_TUNED)
- 			goto set_full;
-@@ -963,8 +969,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	}
- 
- copy_elem:
--	j = npos;
--	npos = n->pos + 1;
-+	j = npos++;
- 	data = ahash_data(n, j, set->dsize);
- copy_data:
- 	t->hregion[r].elements++;
-@@ -987,7 +992,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	if (SET_WITH_TIMEOUT(set))
- 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
- 	smp_mb__before_atomic();
--	n->pos = npos;
-+	/* Ensure all data writes are visible before updating position */
-+	smp_store_release(&n->pos, npos);
- 	set_bit(j, n->used);
- 	if (old != ERR_PTR(-ENOENT)) {
- 		rcu_assign_pointer(hbucket(t, key), n);
-@@ -1046,6 +1052,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	int i, j, k, r, ret = -IPSET_ERR_EXIST;
- 	u32 key, multi = 0;
- 	size_t dsize = set->dsize;
-+	u8 pos;
- 
- 	/* Userspace add and resize is excluded by the mutex.
- 	 * Kernespace add does not trigger resize.
-@@ -1061,7 +1068,8 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	n = rcu_dereference_bh(hbucket(t, key));
- 	if (!n)
- 		goto out;
--	for (i = 0, k = 0; i < n->pos; i++) {
-+	pos = smp_load_acquire(&n->pos);
-+	for (i = 0, k = 0; i < pos; i++) {
- 		if (!test_bit(i, n->used)) {
- 			k++;
- 			continue;
-@@ -1075,8 +1083,8 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		ret = 0;
- 		clear_bit(i, n->used);
- 		smp_mb__after_atomic();
--		if (i + 1 == n->pos)
--			n->pos--;
-+		if (i + 1 == pos)
-+			smp_store_release(&n->pos, --pos);
- 		t->hregion[r].elements--;
- #ifdef IP_SET_HASH_WITH_NETS
- 		for (j = 0; j < IPSET_NET_COUNT; j++)
-@@ -1097,11 +1105,11 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 				x->flags = flags;
+ 	do {
+ 		seq = read_seqbegin(&hh->hh_lock);
+-		hh_alen = HH_DATA_ALIGN(ETH_HLEN);
+ 		memcpy(skb->data - hh_alen, hh->hh_data, ETH_ALEN + hh_alen - ETH_HLEN);
+ 	} while (read_seqretry(&hh->hh_lock, seq));
+ 	return 0;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 0ab1c94db4b9..0a394e5f4391 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -297,7 +297,11 @@ int br_nf_pre_routing_finish_bridge(struct net *net, struct sock *sk, struct sk_
+ 				goto free_skb;
  			}
- 		}
--		for (; i < n->pos; i++) {
-+		for (; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				k++;
- 		}
--		if (k == n->pos) {
-+		if (k == pos) {
- 			t->hregion[r].ext_size -= ext_size(n->size, dsize);
- 			rcu_assign_pointer(hbucket(t, key), NULL);
- 			kfree_rcu(n, rcu);
-@@ -1112,7 +1120,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 			if (!tmp)
- 				goto out;
- 			tmp->size = n->size - AHASH_INIT_SIZE;
--			for (j = 0, k = 0; j < n->pos; j++) {
-+			for (j = 0, k = 0; j < pos; j++) {
- 				if (!test_bit(j, n->used))
- 					continue;
- 				data = ahash_data(n, j, dsize);
-@@ -1173,6 +1181,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 	int ret, i, j = 0;
- #endif
- 	u32 key, multi = 0;
-+	u8 pos;
  
- 	pr_debug("test by nets\n");
- 	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
-@@ -1190,7 +1199,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 		n = rcu_dereference_bh(hbucket(t, key));
- 		if (!n)
- 			continue;
--		for (i = 0; i < n->pos; i++) {
-+		pos = smp_load_acquire(&n->pos);
-+		for (i = 0; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				continue;
- 			data = ahash_data(n, i, set->dsize);
-@@ -1224,6 +1234,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	struct mtype_elem *data;
- 	int i, ret = 0;
- 	u32 key, multi = 0;
-+	u8 pos;
+-			neigh_hh_bridge(&neigh->hh, skb);
++			if (neigh_hh_bridge(&neigh->hh, skb)) {
++				neigh_release(neigh);
++				goto free_skb;
++			}
++
+ 			skb->dev = br_indev;
  
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh(h->table);
-@@ -1246,7 +1257,8 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		ret = 0;
- 		goto out;
- 	}
--	for (i = 0; i < n->pos; i++) {
-+	pos = smp_load_acquire(&n->pos);
-+	for (i = 0; i < pos; i++) {
- 		if (!test_bit(i, n->used))
- 			continue;
- 		data = ahash_data(n, i, set->dsize);
-@@ -1363,6 +1375,7 @@ mtype_list(const struct ip_set *set,
- 	/* We assume that one hash bucket fills into one page */
- 	void *incomplete;
- 	int i, ret = 0;
-+	u8 pos;
- 
- 	atd = nla_nest_start(skb, IPSET_ATTR_ADT);
- 	if (!atd)
-@@ -1381,7 +1394,8 @@ mtype_list(const struct ip_set *set,
- 			 cb->args[IPSET_CB_ARG0], t, n);
- 		if (!n)
- 			continue;
--		for (i = 0; i < n->pos; i++) {
-+		pos = smp_load_acquire(&n->pos);
-+		for (i = 0; i < pos; i++) {
- 			if (!test_bit(i, n->used))
- 				continue;
- 			e = ahash_data(n, i, set->dsize);
+ 			ret = br_handle_frame_finish(net, sk, skb);
 -- 
 2.47.3
 
