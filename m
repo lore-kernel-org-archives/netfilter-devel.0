@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557083E00BD;
-	Sat, 16 May 2026 11:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A345F3E0228;
+	Sat, 16 May 2026 11:56:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778932608; cv=none; b=X4ZYwYcn5mmPE6kLsQmvEv6fJtvqo2fXEHcRZP+7WJ3ggDszS0fPgxBEEQHUXDvZLUNSLsiE3z6E9WkT+KNqUXIV8Xw8vzVRNSpsYyHXIDSqud6AiEyl+U7Kq05S49+eZb8R6FrF32h5Dpen63mRIYKmsma0P0JazvTPazzwC9I=
+	t=1778932610; cv=none; b=DrglpSf9p/eat2HskdczTAmMTRDk1h2LF6q21e6aGfMBFlXMrSBFjsfA9qtmWBIEZPiDtLj06M+He6nws19pVMJr1zIisOwLmle7/WqnWNk1noJLsXsdnGAzVn6B/ZN0ZdJ2QcPfwC4r60yJrhM2ZhGiN/M9uBz5ztnXamh1MB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778932608; c=relaxed/simple;
-	bh=cwpDp3tnAPwL/ZWcxQgqTJbwTCTk2sN9zvGk6DOvEmM=;
+	s=arc-20240116; t=1778932610; c=relaxed/simple;
+	bh=/mCwhYllecjs8nxYKsXlYlbNilMQRl4qLivhwgvteEs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kLbXDPgLZs8EMEKDc7M6CBo9CrN8Z201Y3qPD8AbFj9N2CQ8Xy1TeA3zsZ3Nz+Gitm/WoAhez9at7Ev4vBflR3HABhbcOJee0tGcbAbqT984AQSdzeb+sY8ZB6xFTcc/tx28kclecpUsKBzP/vZFdVxbP5A2Qo6gJKr/uLIOEyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e3njB/3p; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=sT1gN/Qcy/NZ+IdTMLT7aRCkbaFCO+R4bm3uNoI/B02S2AX2DjqcWRs/QOA/5LHTMMLwa+WNpoSkWdknv3lrG8MRfC2yMDO6dCB+pY1E9akAckt0eguhSYVllRSSJHVJ13NEsy7VNiqLsB/rKLuR0mDO4D5lXBxF0L9WmvLcYHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=evR4PXHq; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e3njB/3p"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="evR4PXHq"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 29B42601B1;
-	Sat, 16 May 2026 13:56:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9960D601A2;
+	Sat, 16 May 2026 13:56:46 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1778932605;
-	bh=UI9vGgiATkaDLHbB4sVTiA9JZjS0knbHTKVa2Gp0W5s=;
+	s=2025; t=1778932607;
+	bh=gVHsNnzVjJ5CQ6vEFP7KwWXCZ1KRueCIiThEVTDS+9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=e3njB/3prv3ra9zIVc7RdcNxv/zoNmbJ9Pc2R4ygCYML1JwX/iNU6Sh4eOtv0gCJ1
-	 c07Wl6+fkLNQh0Kpf2WoR4YVNCLvX3Dpb0X06NO+xTE3l5gkOfJcGQA24Tbgr0+QCC
-	 SLgeJ4L/kuafyzw3NCrXJ5jKQw4uERmHReTfa/TGx0VPt/CVCJInJmuUvp0xolTUtv
-	 wBIob/uUwO7KXok8byV0s+QR76LXGe5JZKfrOpaLlMV94UhvWwK3PF/VoHGHlI2BQc
-	 u+1+zB/W4lJS5tWGxVhrYX8sNjEtSn3RNdEq9t0QDTwOmm+9A5flrjmRl/pDy7x942
-	 ZE1Xu3SB+23KA==
+	b=evR4PXHqiCx3fYjbVH0YKmiOxDO98AfpwzkEj1LTfR2nP3vplIEohq3hyfFVdn/7/
+	 HfwoFklSjX4mj9bLVuk/9Pf+LCIdTm29EPHZwvn3Yh9ajG6AOJWJj3+kV4VvQF951b
+	 rrQSxZzjNvZSbXO+3ZBmWyIqoZp+JBiPxX99hwFnGxGH3i4iDRqGg8snisMxF/J09J
+	 UeXgVPAZHPw6kaRzfWpHQ4nH2nw6DclaFxs3nH9eCqiot4EndJSZjaKVpRY/w8kky5
+	 bZjWjiAnrtGOmVDOp4iv8cP1hUJ0OBwtz4MsjLGUvc1xK0nO7GOlmuYhDjzyZpqqNx
+	 Cl6xkOx/SFT2g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 11/12] netfilter: br_netfilter: Reallocate headroom if necessary in neigh_hh_bridge()
-Date: Sat, 16 May 2026 13:56:26 +0200
-Message-ID: <20260516115627.967773-12-pablo@netfilter.org>
+Subject: [PATCH net 12/12] netfilter: nf_queue: hold bridge skb->dev while queued
+Date: Sat, 16 May 2026 13:56:27 +0200
+Message-ID: <20260516115627.967773-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260516115627.967773-1-pablo@netfilter.org>
 References: <20260516115627.967773-1-pablo@netfilter.org>
@@ -52,136 +52,94 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Lorenzo Bianconi <lorenzo@kernel.org>
+From: Haoze Xie <royenheart@gmail.com>
 
-neigh_hh_bridge() assumes the skb always has sufficient headroom to copy
-the aligned  L2 header. This assumption can trigger the crash reported
-below using the following netfilter setup:
+br_pass_frame_up() rewrites skb->dev from the ingress port to the bridge
+master before queueing bridge LOCAL_IN packets. NFQUEUE only holds
+references on state.in/out and bridge physdevs, so a queued bridge
+packet can retain a freed bridge master in skb->dev until reinjection.
 
-$modprobe br_netfilter
-$sysctl -w net.bridge.bridge-nf-call-iptables=1
+When the verdict is reinjected later, br_netif_receive_skb() re-enters
+the receive path with skb->dev still pointing at the freed bridge master,
+triggering a use-after-free.
 
-$root@OpenWrt:~# nft list ruleset
-table ip nat {
-        chain prerouting {
-                type nat hook prerouting priority dstnat; policy accept;
-                ip daddr 192.168.83.123 dnat to 192.168.83.120
-        }
-}
+Store skb->dev in the queue entry, hold a reference on it for the queue
+lifetime, and use the saved device when dropping queued packets during
+NETDEV_DOWN handling.
 
-- iperf3 client (192.168.83.119) --> bridge (192.168.83.118) --> iperf3 server (192.168.83.120)
-
-the iperf3 client is sending packet for 192.168.83.123 to the bridge device.
-
-[ 1579.036575] Unable to handle kernel write to read-only memory at virtual address ffffff8004d76ffe
-[ 1579.045482] Mem abort info:
-[ 1579.048273]   ESR = 0x000000009600004f
-[ 1579.052024]   EC = 0x25: DABT (current EL), IL = 32 bits
-[ 1579.057363]   SET = 0, FnV = 0
-[ 1579.060417]   EA = 0, S1PTW = 0
-[ 1579.063550]   FSC = 0x0f: level 3 permission fault
-[ 1579.068345] Data abort info:
-[ 1579.071224]   ISV = 0, ISS = 0x0000004f, ISS2 = 0x00000000
-[ 1579.076720]   CM = 0, WnR = 1, TnD = 0, TagAccess = 0
-[ 1579.081770]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[ 1579.087092] swapper pgtable: 4k pages, 39-bit VAs, pgdp=0000000080dc4000
-[ 1579.093794] [ffffff8004d76ffe] pgd=180000009ffff003, p4d=180000009ffff003, pud=180000009ffff003, pmd=180000009ffe3003, pte=0060000084d76787
-[ 1579.106343] Internal error: Oops: 000000009600004f [#1] SMP
-[ 1579.193824] CPU: 0 UID: 0 PID: 235 Comm: napi/qdma_eth-3 Tainted: G           O       6.12.57 #0
-[ 1579.202614] Tainted: [O]=OOT_MODULE
-[ 1579.206102] Hardware name: Airoha AN7581 Evaluation Board (DT)
-[ 1579.211929] pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[ 1579.218889] pc : br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
-[ 1579.225859] lr : br_nf_pre_routing_finish_bridge+0x18c/0xcc8 [br_netfilter]
-[ 1579.232822] sp : ffffffc0817cba20
-[ 1579.236128] x29: ffffffc0817cba20 x28: 0000000000000000 x27: ffffff8002b89000
-[ 1579.243273] x26: ffffff8004d7700e x25: 0000000000000008 x24: 0000000000000000
-[ 1579.250416] x23: ffffffc08179d4c0 x22: 0000000000000000 x21: ffffffc08179d4c0
-[ 1579.257561] x20: ffffff8004d9b800 x19: ffffff8015010000 x18: 0000000000000014
-[ 1579.264704] x17: ffffffbf9e930000 x16: ffffffc0817c8000 x15: 0000000000000070
-[ 1579.271848] x14: 0000000000000080 x13: 0000000000000001 x12: 0000000000000000
-[ 1579.278993] x11: ffffffc0798caae0 x10: ffffff8014db6fd8 x9 : 0000000000000000
-[ 1579.286136] x8 : 0000000000000003 x7 : ffffffc08171f628 x6 : 000000001a3b83d3
-[ 1579.293281] x5 : 0000000000000000 x4 : 1beb76f22fee0000 x3 : ffffff8004d7700e
-[ 1579.300425] x2 : 0000000000000000 x1 : ffffff8004d9b8bc x0 : ffffff80026ed000
-[ 1579.307570] Call trace:
-[ 1579.310018]  br_nf_pre_routing_finish_bridge+0x1ac/0xcc8 [br_netfilter]
-[ 1579.316632]  br_nf_hook_thresh+0xd4/0x14bc [br_netfilter]
-[ 1579.322032]  br_nf_hook_thresh+0x250/0x14bc [br_netfilter]
-[ 1579.327517]  br_nf_hook_thresh+0x76c/0x14bc [br_netfilter]
-[ 1579.333003]  br_handle_frame+0x180/0x480
-[ 1579.336935]  __netif_receive_skb_core.constprop.0+0x540/0xf40
-[ 1579.342682]  __netif_receive_skb_one_core+0x28/0x50
-[ 1579.347561]  process_backlog+0x98/0x1e0
-[ 1579.351398]  __napi_poll+0x34/0x1c4
-[ 1579.354887]  net_rx_action+0x178/0x330
-[ 1579.358638]  handle_softirqs+0x108/0x2d4
-[ 1579.362560]  __do_softirq+0x10/0x18
-[ 1579.366051]  ____do_softirq+0xc/0x20
-[ 1579.369627]  call_on_irq_stack+0x30/0x4c
-[ 1579.373550]  do_softirq_own_stack+0x18/0x20
-[ 1579.377734]  do_softirq+0x4c/0x60
-[ 1579.381050]  __local_bh_enable_ip+0x88/0x98
-[ 1579.385234]  napi_threaded_poll_loop+0x188/0x21c
-[ 1579.389853]  napi_threaded_poll+0x70/0x80
-[ 1579.393863]  kthread+0xd8/0xdc
-[ 1579.396918]  ret_from_fork+0x10/0x20
-[ 1579.400499] Code: 88dffc22 3707ffc2 f9406663 f9406684 (f81f0064)
-[ 1579.406589] ---[ end trace 0000000000000000 ]---
-[ 1579.411209] Kernel panic - not syncing: Oops: Fatal exception in interrupt
-[ 1579.418083] SMP: stopping secondary CPUs
-[ 1579.422012] Kernel Offset: disabled
-
-Fix the issue reallocating the skb headroom if necessary in neigh_hh_bridge routine.
-
-Fixes: e179e6322ac33 ("netfilter: bridge-netfilter: Fix MAC header handling with IP DNAT")
-Reviewed-by: Ido Schimmel <idosch@nvidia.com>
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Fixes: ac2863445686 ("netfilter: bridge: add nf_afinfo to enable queuing to userspace")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/neighbour.h         | 8 ++++++--
- net/bridge/br_netfilter_hooks.c | 6 +++++-
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_queue.h | 1 +
+ net/netfilter/nf_queue.c         | 4 +++-
+ net/netfilter/nfnetlink_queue.c  | 2 ++
+ 3 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/neighbour.h b/include/net/neighbour.h
-index 2dfee6d4258a..8860cc2175fc 100644
---- a/include/net/neighbour.h
-+++ b/include/net/neighbour.h
-@@ -489,11 +489,15 @@ static inline int neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index d17035d14d96..3978c3174cdb 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -14,6 +14,7 @@ struct nf_queue_entry {
+ 	struct list_head	list;
+ 	struct rhash_head	hash_node;
+ 	struct sk_buff		*skb;
++	struct net_device	*skb_dev;
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- static inline int neigh_hh_bridge(struct hh_cache *hh, struct sk_buff *skb)
- {
--	unsigned int seq, hh_alen;
-+	unsigned int seq, hh_alen = HH_DATA_ALIGN(ETH_HLEN);
-+	int err;
-+
-+	err = skb_cow_head(skb, hh_alen);
-+	if (err)
-+		return err;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index a6c81c04b3a5..57b450024a99 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -61,6 +61,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 	struct nf_hook_state *state = &entry->state;
  
- 	do {
- 		seq = read_seqbegin(&hh->hh_lock);
--		hh_alen = HH_DATA_ALIGN(ETH_HLEN);
- 		memcpy(skb->data - hh_alen, hh->hh_data, ETH_ALEN + hh_alen - ETH_HLEN);
- 	} while (read_seqretry(&hh->hh_lock, seq));
- 	return 0;
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0ab1c94db4b9..0a394e5f4391 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -297,7 +297,11 @@ int br_nf_pre_routing_finish_bridge(struct net *net, struct sock *sk, struct sk_
- 				goto free_skb;
- 			}
+ 	/* Release those devices we held, or Alexey will kill me. */
++	dev_put(entry->skb_dev);
+ 	dev_put(state->in);
+ 	dev_put(state->out);
+ 	if (state->sk)
+@@ -102,6 +103,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
+ 		return false;
  
--			neigh_hh_bridge(&neigh->hh, skb);
-+			if (neigh_hh_bridge(&neigh->hh, skb)) {
-+				neigh_release(neigh);
-+				goto free_skb;
-+			}
-+
- 			skb->dev = br_indev;
++	dev_hold(entry->skb_dev);
+ 	dev_hold(state->in);
+ 	dev_hold(state->out);
  
- 			ret = br_handle_frame_finish(net, sk, skb);
+@@ -202,11 +204,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 
+ 	*entry = (struct nf_queue_entry) {
+ 		.skb	= skb,
++		.skb_dev = skb->dev,
+ 		.state	= *state,
+ 		.hook_index = index,
+ 		.size	= sizeof(*entry) + route_key_size,
+ 	};
+-
+ 	__nf_queue_entry_init_physdevs(entry);
+ 
+ 	if (!nf_queue_entry_get_refs(entry)) {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 58304fd1f70f..984a0eb9e149 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1212,6 +1212,8 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+ 	if (physinif == ifindex || physoutif == ifindex)
+ 		return 1;
+ #endif
++	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
++		return 1;
+ 	if (entry->state.in)
+ 		if (entry->state.in->ifindex == ifindex)
+ 			return 1;
 -- 
 2.47.3
 
