@@ -1,80 +1,39 @@
-Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFDFE3E3C44
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2026 15:23:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
+Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 58B00351C17
+	for <netfilter-devel@vger.kernel.org>; Sun, 17 May 2026 11:38:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778945011; cv=none; b=lR2EJUclhv/1Q/ERpjtDQ7662UwvbPw/t/jiEOVOZD68EqZY50c+61Du32ef+ve2tCpMdedKyOVkWPSEjgnCNSdtL/ocgifyKD2yyEC545w/ZEz9ALb0NcDqc9stlHj4WKC+EXjEDZ83fZF6aIrlxO2IxMuFyyLzZYxMHRqZBe0=
+	t=1779017918; cv=none; b=ZFjjm+Q3llW+iUfQ2kAeYFb1llhf27zKYxXqyvBmIA9BFIDCrQjSXGQn7RbzHxWsVODn0T8yz75qRrVP+nZ9zj9Nq1XVIJttinxnNoJure+O8Nz/M9t++O1sENV40y1b0R67x7bsbIfAhlccCkaiQnER2gSSkNEzE5sLzSpjxRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778945011; c=relaxed/simple;
-	bh=tl+wcq6ObIaSLoheOE6JBGo3uGujGoAPvnIeqn/mRm8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z4hnAVeQVAjDJ51Ee2SeovPR6pbcAiqexFbNgsFK+E3eyPDXLXjIdw3BEEykxWZkiSyGBZ8bb3kT6zCi0WhXvlWPZnaC9zagXJWWphkQ0vfPiPktd5H9Je0fhXaVirwyTGoBs8IPAVYXmlfVYEOVlESsPggmTg+qTfwpq1ofc0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l1B9jf9z; arc=none smtp.client-ip=74.125.82.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l1B9jf9z"
-Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-2f7ca62a3c4so721443eec.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2026 08:23:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778945009; x=1779549809; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=gPSGOLDEj02HfkVCX3UX3Jxtg2REZTH7Fxg7/PpQ1zY=;
-        b=l1B9jf9z+htu3jbtWvt2rXGtayeN/v8/awjBeMGZCsnZncWq0DivjjzwsaDycVRUUJ
-         ILabYhkbC4Wb8bB04ZIIuA/5yjGEHMwp2dJlHvF5++DELL+k+Tl4CJK7ArVZvP3TSp4U
-         M02tcJ5oNEQusKeVfQjpZ2WH57X/SdfYTe+cyAm03I7R+HCknEeBR7PJ3/OUjbPk+gdV
-         1mQR2eBYBF+9NM84rq02M2w0BogTBUEM80Szp0h/rE75CNs09r+HMgRMs5BPiMni0XLv
-         PGEEcabLMECDw7LZLOLNbvCTEIpbTs9rPl9GHW9WE0swqoQFJ4n1LbhiCG4DK12LAggq
-         xdbA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778945009; x=1779549809;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=gPSGOLDEj02HfkVCX3UX3Jxtg2REZTH7Fxg7/PpQ1zY=;
-        b=ZglP5uFhAxHRm3pdmAnKzWlpdjNihk37Kg9MxK4O0YM7EzE/kUCvzb3s+eemUAWFqe
-         vBj/OFsjMLNU43pwx9gftZ+GVNAfOygpv07WNmr20rmXSsydyTFq/EoJt2mWOsSMgI4j
-         hI0AHgj1xZvuh/x0JouOh4rPDUSH2Rnys+T+Wk5QjFcBEqDqw39L79RRwU/3S20rsvwD
-         vXflzuJPw8QoUAiGAwuFK44VelrrjIsZj/70isKcyN9+3d0Lklj49QyI7671oZLpXiQS
-         T6FB3fYS6A9jwUt8GftwDZDaV85ITqO2y5M8wdX9/s2HDqDB2iUHxTN/rE1XtH+lNrZg
-         CeyQ==
-X-Gm-Message-State: AOJu0YwC0aXzHrLOg077qL7Evj/MZlFMj3VlNmdGMRO9z+0gjqMkJ3a9
-	pLHB3g92dWTDH6gEEczK9aheW+2RSfppyg0UlFF+4e73iK73lQ5VWODMoWpAFD4h
-X-Gm-Gg: Acq92OFOq2R6zt365M920TaVAgRVs/ih8+UdLD9MqFh4NgnPQwZsHz/KduTU9dWwA/i
-	ewM+bqF+1/eJW8tXx7+640iZbOtsxnFWuoSBGp38PMcXVCfVDlJedE+L8SyL15J/xUbU8CsDCvQ
-	5uFEg7KxCS14sijMTCMzN4cGiqA0UT0Ag4RQXIWJjZaDNvZYUIToMTNgiKC03JFWDHELyB91F4Y
-	HJBeI9KZDWUdlMUz2ZwhA0KMJ7pCKzRbp+V+3bzehUbgFmbSiRbMX0SVIxLYb9KZ/FkuF+Zvqc3
-	98mDLOxARWzivV/6gEpH0nQ2S8opULQ6ndCFRfQwKv/mkMYhLfqz4d19XGjNQfRuikxQCn0Awvi
-	XoxWU2isUl3JDFZp3riy0MFcpYefaBn95M1E+U0HTJYfxrC9ck+7kfVVeIpy3k65tRCFZov9za3
-	eRgkEdEtbnBzSMUrlbdyh7HpEiCdk2hG6blYkJXySN6wtG
-X-Received: by 2002:a05:7300:7241:b0:2d9:a799:3c4f with SMTP id 5a478bee46e88-303986a68d3mr4281033eec.24.1778945008798;
-        Sat, 16 May 2026 08:23:28 -0700 (PDT)
-Received: from localhost.localdomain ([148.135.103.3])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-134cc33a618sm14473250c88.12.2026.05.16.08.23.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 16 May 2026 08:23:28 -0700 (PDT)
-From: Qi Tang <tpluszz77@gmail.com>
-To: pablo@netfilter.org,
+	s=arc-20240116; t=1779017918; c=relaxed/simple;
+	bh=9V4/dPA7hBlZxbxm2+EWIYEVzvLMzhi+p9bQIF99Sgo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=M5j5E0B8vqTbur1v1poGLqrzs6k1AgT+4SIPGylgpIOAlyQySgnDwiJBk79/R1ehIDC9dcHdN2Ow6j/MY6lgFvDim1+PJcynpqkCVEEl6wh4iwyZG3A4ukAcSVa6KLbebGC5pqlms1GVWvZDVmMCFhPDa8yHOpdMOC/Y+h2i8bk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.161.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019 (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowABXesSNqAlq3iwLAA--.12437S3;
+	Sun, 17 May 2026 19:38:02 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
 	fw@strlen.de,
-	phil@nwl.cc
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	davem@davemloft.net,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	horms@kernel.org,
-	herbert@gondor.apana.org.au,
-	michael.bommarito@gmail.com,
-	lyutoon@gmail.com,
-	Qi Tang <tpluszz77@gmail.com>
-Subject: [PATCH nf] netfilter: disable payload mangling in userns
-Date: Sat, 16 May 2026 23:23:21 +0800
-Message-ID: <20260516152321.2676564-1-tpluszz77@gmail.com>
-X-Mailer: git-send-email 2.47.3
+	phil@nwl.cc,
+	kaber@trash.net,
+	jengelh@medozas.de,
+	yuantan098@gmail.com,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	bird@lzu.edu.cn,
+	tonanli66@gmail.com,
+	n05ec@lzu.edu.cn
+Subject: [PATCH nf 1/1] netfilter: nf_dup: preserve socket ownership on egress duplicates
+Date: Sun, 17 May 2026 19:37:45 +0800
+Message-ID: <7b2643cdbf92aab1eb0ce00f2c6e7151839cbe40.1778945319.git.tonanli66@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1778922878.git.tonanli66@gmail.com>
+References: <cover.1778922878.git.tonanli66@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,96 +41,173 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ygmowABXesSNqAlq3iwLAA--.12437S3
+X-Coremail-Antispam: 1UD129KBjvJXoWxKr15tryxtr47AF43JF43Wrg_yoW7XFyxpF
+	4jk3y5JrsrAF129r4xAw42yr4ava18Wry7W3y3AayfKrnIqrs8Ca4SgryUWF45trs5Wr45
+	tFZ2gr45Kr90y3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUBj1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2
+	jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52
+	x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWU
+	GwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI4
+	8JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628vn2kIc2xKxwCY1x0262kK
+	e7AKxVWUtVW8ZwCY02Avz4vE-syl42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxFaVAv8V
+	W8GwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480
+	Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7
+	IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k2
+	6cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxV
+	AFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUd-B_UUUUU=
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQEKCWoJXG8B7QAAs-
 
-From: Florian Westphal <fw@strlen.de>
+From: Nan Li <tonanli66@gmail.com>
 
-Several parts of network stack rely on iph->ihl validation
-done by network stack before PRE_ROUTING.
+pskb_copy() does not preserve skb socket ownership on the duplicate.
+As a result, nf_dup_ipv4() and nf_dup_ipv6() can reinject locally
+generated egress packets without the original socket association.
 
-Disable this feature for user namespaces for now.
+Some later transmit-side paths still rely on skb->sk and on the
+associated skb destructor for socket write-memory accounting.
+Preserve the socket on egress duplicates, and restore the original
+destructor/accounting only when the source skb was already owner
+charged.
 
-This could be relaxed later.  Example:
- - allow userns only for ingress hook.
- - allow userns write if base is transport header
- - allow userns write if base is linklayer and offset
-   below network header offset
- - allow userns write for ipv4 if offset+len match saddr/daddr
- - allow userns write for ipv6 if offset+len match saddr/daddr
- ... etc.
+Keep the ingress-side behavior unchanged, since there is no local
+transmit socket to carry over for PRE_ROUTING or LOCAL_IN traffic.
 
-tcp option handling might be safe even for LOCAL_IN, as LOCAL_IN gets
-invoked before tcp stack, but this turns it off too.
-optstrip remains enabled, see no problem with that one.
+The issue predates the nf_dup split and was already present in the
+original xt_TEE implementation.
 
-I don't think these are the only means to alter packets, but these
-appear to be relatively prominent.
-
-Another option would be to restrict this generally, however, this
-is harder to do for nfqueue.  For nftables we know where the
-modification happens and can even reject a subset from netlink path
-directly.  But for nfqueue, we'd need to 'revalidate' at least
-ip/ipv6 header for ipv4/ipv6 families.  Bridge path might be okay with
-arbitray header modifications.
-
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Michael Bommarito <michael.bommarito@gmail.com>
-Reported-by: Qi Tang <tpluszz77@gmail.com>
-Reported-by: Tong Liu <lyutoon@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Tested-by: Qi Tang <tpluszz77@gmail.com>
-Link: https://lore.kernel.org/netfilter-devel/20260515100411.3141-1-fw@strlen.de/
-Signed-off-by: Qi Tang <tpluszz77@gmail.com>
+Fixes: e281b19897dc ("netfilter: xtables: inclusion of xt_TEE")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Nan Li <tonanli66@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 ---
-Tested on net.git tip: unprivileged userns nft @nh,*,* set
-rules hit -EPERM at rule install.
+ net/ipv4/netfilter/nf_dup_ipv4.c | 30 ++++++++++++++++++++++++++++++
+ net/ipv6/netfilter/nf_dup_ipv6.c | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
- net/netfilter/nfnetlink_queue.c | 3 +++
- net/netfilter/nft_exthdr.c      | 3 +++
- net/netfilter/nft_payload.c     | 3 +++
- 3 files changed, 9 insertions(+)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 58304fd1f70ff..e1e1d11fdf04f 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1141,6 +1141,9 @@ nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int di
+diff --git a/net/ipv4/netfilter/nf_dup_ipv4.c b/net/ipv4/netfilter/nf_dup_ipv4.c
+index 9a773502f10a..fd469f47bbf7 100644
+--- a/net/ipv4/netfilter/nf_dup_ipv4.c
++++ b/net/ipv4/netfilter/nf_dup_ipv4.c
+@@ -16,6 +16,8 @@
+ #include <net/icmp.h>
+ #include <net/ip.h>
+ #include <net/route.h>
++#include <net/sock.h>
++#include <net/tcp.h>
+ #include <net/netfilter/ipv4/nf_dup_ipv4.h>
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack.h>
+@@ -48,9 +50,25 @@ static bool nf_dup_ipv4_route(struct net *net, struct sk_buff *skb,
+ 	return true;
+ }
+ 
++static bool nf_dup_ipv4_tx_owner(struct sock *sk,
++				 void (*destructor)(struct sk_buff *))
++{
++	return sk && (destructor == sock_wfree ||
++		      destructor == __sock_wfree ||
++		      destructor == tcp_wfree);
++}
++
++static bool nf_dup_ipv4_egress(unsigned int hooknum)
++{
++	return hooknum == NF_INET_LOCAL_OUT ||
++	       hooknum == NF_INET_POST_ROUTING;
++}
++
+ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
+ 		 const struct in_addr *gw, int oif)
  {
- 	struct sk_buff *nskb;
++	void (*destructor)(struct sk_buff *) = skb->destructor;
++	struct sock *sk = skb->sk;
+ 	struct iphdr *iph;
  
-+	if (e->state.net->user_ns != &init_user_ns)
-+		return -EPERM;
+ 	local_bh_disable();
+@@ -86,6 +104,18 @@ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
+ 		--iph->ttl;
+ 
+ 	if (nf_dup_ipv4_route(net, skb, gw, oif)) {
++		/* pskb_copy() drops skb ownership. Preserve the originating
++		 * socket for egress duplicates, and restore write-memory
++		 * accounting when the original skb was owner charged.
++		 */
++		if (nf_dup_ipv4_egress(hooknum) && sk && sk_fullsock(sk)) {
++			skb->sk = sk;
++			if (nf_dup_ipv4_tx_owner(sk, destructor)) {
++				skb->destructor = destructor;
++				refcount_add(skb->truesize,
++					     &sk->sk_wmem_alloc);
++			}
++		}
+ 		current->in_nf_duplicate = true;
+ 		ip_local_out(net, skb->sk, skb);
+ 		current->in_nf_duplicate = false;
+diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
+index 6da3102b7c1b..973c860cf387 100644
+--- a/net/ipv6/netfilter/nf_dup_ipv6.c
++++ b/net/ipv6/netfilter/nf_dup_ipv6.c
+@@ -9,6 +9,8 @@
+ #include <linux/percpu.h>
+ #include <linux/skbuff.h>
+ #include <linux/netfilter.h>
++#include <net/sock.h>
++#include <net/tcp.h>
+ #include <net/ipv6.h>
+ #include <net/ip6_route.h>
+ #include <net/netfilter/ipv6/nf_dup_ipv6.h>
+@@ -44,9 +46,26 @@ static bool nf_dup_ipv6_route(struct net *net, struct sk_buff *skb,
+ 	return true;
+ }
+ 
++static bool nf_dup_ipv6_tx_owner(struct sock *sk,
++				 void (*destructor)(struct sk_buff *))
++{
++	return sk && (destructor == sock_wfree ||
++		      destructor == __sock_wfree ||
++		      destructor == tcp_wfree);
++}
 +
- 	if (diff < 0) {
- 		unsigned int min_len = skb_transport_offset(e->skb);
- 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index e6a07c0df2079..577a15383e986 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -551,6 +551,9 @@ static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
- 	u32 offset, len, flags = 0, op = NFT_EXTHDR_OP_IPV6;
- 	int err;
- 
-+	if (ctx->net->user_ns != &init_user_ns)
-+		return -EPERM;
++static bool nf_dup_ipv6_egress(unsigned int hooknum)
++{
++	return hooknum == NF_INET_LOCAL_OUT ||
++	       hooknum == NF_INET_POST_ROUTING;
++}
 +
- 	if (!tb[NFTA_EXTHDR_SREG] ||
- 	    !tb[NFTA_EXTHDR_TYPE] ||
- 	    !tb[NFTA_EXTHDR_OFFSET] ||
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 01e13e5255a94..484a5490832e4 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -917,6 +917,9 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
- 	struct nft_payload_set *priv = nft_expr_priv(expr);
- 	int err;
- 
-+	if (ctx->net->user_ns != &init_user_ns)
-+		return -EPERM;
+ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
+ 		 const struct in6_addr *gw, int oif)
+ {
++	void (*destructor)(struct sk_buff *) = skb->destructor;
++	struct sock *sk = skb->sk;
 +
- 	priv->base        = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
- 	priv->len         = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
- 
+ 	local_bh_disable();
+ 	if (current->in_nf_duplicate)
+ 		goto out;
+@@ -64,6 +83,18 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
+ 		--iph->hop_limit;
+ 	}
+ 	if (nf_dup_ipv6_route(net, skb, gw, oif)) {
++		/* pskb_copy() drops skb ownership. Preserve the originating
++		 * socket for egress duplicates, and restore write-memory
++		 * accounting when the original skb was owner charged.
++		 */
++		if (nf_dup_ipv6_egress(hooknum) && sk && sk_fullsock(sk)) {
++			skb->sk = sk;
++			if (nf_dup_ipv6_tx_owner(sk, destructor)) {
++				skb->destructor = destructor;
++				refcount_add(skb->truesize,
++					     &sk->sk_wmem_alloc);
++			}
++		}
+ 		current->in_nf_duplicate = true;
+ 		ip6_local_out(net, skb->sk, skb);
+ 		current->in_nf_duplicate = false;
 -- 
-2.47.3
+2.43.0
 
