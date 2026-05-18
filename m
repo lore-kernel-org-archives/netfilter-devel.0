@@ -1,104 +1,187 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84B973FBB73;
-	Mon, 18 May 2026 12:00:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF7C40DFCD
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 12:28:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779105659; cv=none; b=Umkd8zNaCXwtaC0H5ekh7Vypfc9mFN+MjCzooE7G3UDj24STBJs8Km2X8x4uYgLm8127rkbaQKz16oVbnBPaqXHeOF6hFEFmzyBSMl8hRBO1HHf+1PgPXcCHCE33FIGv73F7iO/QhfXqr6+L6OPWL6HmDwej5ZaPXhumeMOu9PU=
+	t=1779107341; cv=none; b=LupyDL33Htu8XO3DWgd11Io1/iP23cMwj2sqQrpbEXGPB81pUozoS/jYFj10JuQrPzTclnZbNMyCg9ww1YTXQh0hfrwiAl7dY6bRenn24HApdpIY2sjhKryvU+opyDsaoB1ZBAngDGAfOSMbn+djiWoqsqF2aijXGmOyLKH9QJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779105659; c=relaxed/simple;
-	bh=Dq9L8NgKLAHErwvoe6hqZn8vjQVRLs7Havu3hguUk0I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qXPm8ljmWluhN5fTBbL+7nPRRuFw36TjkDxwKRLiOVkhLkfwt1DEBz2yFwPEt+B2QhBU+Hhv+RY92FAiBiyeSaIWQ3Y3uxd2UFsUNb9nwxrUAmxjN4EG5SDNjf85wFm4Ie7B/3a5xFSzuLTMuvWo+TUbIuy7lXymAdI+CGIz+S0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EaV/T4oO; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1779107341; c=relaxed/simple;
+	bh=x1/KdkH948uDsLZN+TPq8Fn0u85r+3KGQ7Dz/dF0Pf0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZSkvBbksbua9A55VTTEkp0df3Pnu5iOa/dlhNKzf1gsUs+otvGM1otTeifLWc21+7LCwltccBlzzVREImkOVme8TQHQ8Up2QWhdRZJq8NdWhhP91nyNbMOR02xT/kbdjNqWhPhms7nWqbY1iyUFIEjtJZMw+g4s0e3fL2oA9KYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OXKie+Xz; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EaV/T4oO"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6DE2F6019F;
-	Mon, 18 May 2026 13:53:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779105202;
-	bh=x5JGP+k+YEoRidDdG4n9aMggxVuZd6ch/QnZI57RP9U=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EaV/T4oOIcgBpxPEG2zqU/lpalYB+eYcpwz7wOZeVhUEezP9A4UAXr6gM4OwhyTRt
-	 lUQiirhyxa7re5dGF0WBqcCZwjFEyU1gR4jnF0YwJFXN826Sgc7KG87rkVVPB1JHtO
-	 9T+tskKu0f0tWnWF89QSBiIT5Y0MBbyegI/1vRyAPrFSs61kTn8zVjLOnC+VYIyqFA
-	 JDtIv46mgUgGbkUDf7nkj5DhlLvaGC0BjiTxtTIZNj5jlU/T/kcvIJZ/TKaCAPMHbG
-	 KHgMGX6n0tW8Fz8//SbeWuqLTHVjjCY3Ag4PA2kU1AQ4CpnFoemZocejLtNRNG8Ldt
-	 7u5lmxz7gUsqA==
-Date: Mon, 18 May 2026 13:53:19 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Qi Tang <tpluszz77@gmail.com>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, herbert@gondor.apana.org.au,
-	michael.bommarito@gmail.com, lyutoon@gmail.com
-Subject: Re: [RFC] netfilter: disable payload mangling in userns
-Message-ID: <agr9ry_EKdTfgoaj@chamomile>
-References: <20260515100411.3141-1-fw@strlen.de>
- <20260515114848.1105927-1-tpluszz77@gmail.com>
- <agcWBZNugohelNp6@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OXKie+Xz"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-48fe26a177cso15185485e9.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 05:28:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779107338; x=1779712138; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=N5HZfTGxzuF7Lu+NtHZ07U4frd9hqPt9a5u2U3vDU68=;
+        b=OXKie+XzykG2MIXPbyRxBwicE8xV7MoLoYj8NShGo3wuwdKfP3uFUw8qLv7O81N4gF
+         UDwfDq5zbyCIo0jzXnwGJx8gG1ZKFww5mgVPEDrmjmeAj2wyluifTc4p9IcUhYE0d/hQ
+         lQEWoHJyytdxY5+tF1UNjv6A7Vei7C8TkXcXzCKqRsnTGsPjIIuD/mxsHCLY4BstwKcY
+         oS/TXgxQqfWZM5HDDfeNkmx4cF6/hQO10dHA85RD5UbnCSvAbACfrHfSgJ8SSdT9vZoW
+         guFeakJCpUqd8Ah0vpUwpesxIWxJlQipU+rOsyaq1f2Sa/kFQEY1veQHBt76CQDB8PAs
+         KjfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779107338; x=1779712138;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=N5HZfTGxzuF7Lu+NtHZ07U4frd9hqPt9a5u2U3vDU68=;
+        b=TO/Mz5bFedcBTUNd0OHqRDHFC1lFu8JOYJhHCRFQRK12nfIM531lYuouwEDoKtbAy7
+         qBDBynN51/LlDJAqlADZSGEOv6G797v6JztfJ6VG35x3g/W2eJWXszMUZDLvGubHj23W
+         NgGZeKSoMq2mIRj1gp3hyzRssf8CjP25nQg25kUCAJvangmKZ4UqnlgPlOATTs/NnQtX
+         Jhu6rCmks9ZnBSWvwU6M0ebljBpU/VhhwBor+gKVos+RoN0ejJ3Z66x3bqnbKb+8CiWX
+         g1aduETAMvQvkdkZ0uMjHdBDQ7UQgVmLS22wiEbATEyc8odDY07LrbU/mJIqswhYAgUV
+         p4Iw==
+X-Forwarded-Encrypted: i=1; AFNElJ91+VS3W4fy4xyWKZqFURvg8G/Y15X9TGxvNCcYr+tjvh31MfXJ3IVO7drSodQ59ysXUJFuaoJoTe1cbDKQVfQ=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyAbCm4RJsMiLApXaOaw7C0AiUwjtjAKuHjm2nnw6u2+be/nY6w
+	Ac7G8BHT6VVe5HjdCdQqMfOnqSWJrATOFXt/cIP34ZY1wAENr2Zk2KfE
+X-Gm-Gg: Acq92OF6QRCBr31eiwg7TyQuoGEq4wq6eNNJbQninNXf3e7ySfUP8ry6Rj8vZtF5qt5
+	yS8GzDw5qHOfDKEIQYdihftclGPCan+LeVb67s85/2T+9qhDDZLLhoUuH9ROWszH5QX0NZ671yQ
+	jbBOxX2mfLId1hgyl/CewlqWjsxeIxwOzNBRQ6qlol7YGi9gTmk+lmLYFlVddlWuYXb8ce/xaoe
+	MYenaoDxs9g+QfvdB/P1LjjIKWHs1X6z5KmqimamMeH7sXqJY7r0a7jXVEVBsEdA2JcLoz+5fnh
+	MHI0LeX6jM4LdEf8+hNq5PFl/NU3M51N3hROhSCJPgAiM6HFcGuqB3kh3ZK4BUbyg/gedE/k7xb
+	93Q16HjJ6sHVPOHt7/Wvt3nf5nCw/55cQQ53q+4LsHJ++i+JUS2K8AFzt+EZ4SM1Z2Fg40Rg1iU
+	wk7EnLSMSuE/2G+ys6DFcUfgIzh8KNh0Bhw26ZIxwiUYNORURZ
+X-Received: by 2002:a05:600c:6211:b0:48f:e230:72fc with SMTP id 5b1f17b1804b1-48fe663152cmr229712275e9.33.1779107337576;
+        Mon, 18 May 2026 05:28:57 -0700 (PDT)
+Received: from mtardy-friendly-lvh-runner.local ([2600:1900:4010:1a8::])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-48ff2cb4ae0sm104304315e9.0.2026.05.18.05.28.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 May 2026 05:28:57 -0700 (PDT)
+From: Mahe Tardy <mahe.tardy@gmail.com>
+To: bpf@vger.kernel.org
+Cc: martin.lau@linux.dev,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	ast@kernel.org,
+	andrii@kernel.org,
+	yonghong.song@linux.dev,
+	jordan@jrife.io,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	Mahe Tardy <mahe.tardy@gmail.com>
+Subject: [PATCH bpf-next v6 0/4] bpf: add icmp_send kfunc
+Date: Mon, 18 May 2026 12:28:36 +0000
+Message-Id: <20260518122842.218522-1-mahe.tardy@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <agcWBZNugohelNp6@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 15, 2026 at 02:48:05PM +0200, Florian Westphal wrote:
-> Qi Tang <tpluszz77@gmail.com> wrote:
-> > I agree with the userns block.  I'll keep pushing the five
-> > consumer-side bounds-check patches: root in init userns can
-> > still install the same payload-set rule and trigger the same
-> > OOB at the re-read sites, so the underlying bug fix is still
-> > worth landing.
-> > 
-> > None of the five sites overlap with the relax wishlist (saddr/
-> > daddr, transport, linklayer).  Same class showed up in an
-> > earlier patch:
-> >   https://lore.kernel.org/netdev/20260514035802.1540395-1-tpluszz77@gmail.com/
-> > 
-> > These five are unlikely to be all of them; we think the
-> > consumer side warrants a broader audit.  Thoughts?
-> 
-> I think we have to do both.
-> 
-> For nft_payload/nft_exthdr:
-> 1. Writes from !initial_userns are rejected (rule insert fails).
-> 2. Writes for initial userns get validated at rule add time:
->   - netdev ingress is allowed to alter everything, I think
->   this is early enough to not introduce oddities that can't come
->   from wire / untrusted peer.
->  - bridge is allowed to alter everything: AFAICS there shouldn't
->  be a problem with this, same as with ingress.
->  - inet (ipv4/ip6): Check base (offset is unsigned and relative
->    to ll/network header/transport header/payload
->    - Allow modifications past transport header.
->    - Allow modifications of transport header
->    - Allow network header modifications for a subset of valid
->      offsets/lengths: saddr, daddr, checksum, tos, id, ttl / hl.
->      Reject everything else.
->    - Allow link-layer; but check at from packetpath that
->      offset + len don't write past start of the network header.
->      Else: no-op.
-> 
-> nfqueue is the bigger problem: userspace gives us a whole new
-> packet data blob, not a delta that we should apply at offset x).
->
-> I think we have to update nfqueue to do rudimentary header revalidation
-> and drop the packet on failure, e.g. at least making sure tot_len is not
-> past skb->len.
+Hello,
 
-Agreed, nfqueue has been there for long time and such parser would
-validate the packet is correct from stack POV.
+This is v6 of adding the icmp_send kfunc, as suggested during LSF/MM/BPF
+2025[^1]. The goal is to allow cgroup_skb programs to actively reject
+east-west traffic, similarly to what is possible to do with netfilter
+reject target.
 
-But if a new function to validate that the IP header mangling is not
-valid is feasible, then why not simply apply the same sanitization
-from inet hooks to nft_payload/nft_exthdr?
+The first step to implement this is using ICMP control messages, with
+the ICMP_DEST_UNREACH type with various code ICMP_NET_UNREACH,
+ICMP_HOST_UNREACH, ICMP_PROT_UNREACH, etc. This is easier to implement
+than a TCP RST reply and will already hint the client TCP stack to abort
+the connection and not retry extensively.
 
-That can be a function in net/netfilter/utils.c.
+Note that this is different than the sock_destroy kfunc, that along
+calls tcp_abort and thus sends a reset, destroying the underlying
+socket.
+
+Caveats of this kfunc design are that a program can call this function N
+times, thus send N ICMP unreach control messages and that the program
+can return from the BPF filter with pass leading to a potential
+confusing situation where the TCP connection was established while the
+client received ICMP_DEST_UNREACH messages.
+
+Initially this kfunc was named icmp_send_unreach but now the interface
+accepts a type parameter to facilitate future extension to other ICMP
+control message types. Only ICMP_DEST_UNREACH and ICMPV6_DEST_UNREACH
+are currently supported.
+
+v2 updates:
+- fix a build error from a missing function call rename;
+- avoid changing return line in bpf_kfunc_init;
+- return SK_DROP from the kfunc (similarly to bpf_redirect);
+- check the return value in the selftest.
+
+v3 update:
+- fix an undefined reference build error.
+
+v4 updates:
+- prevent the kfunc to be called recursively and add a test (thanks to
+  Martin).
+- do not fetch dst route when unnecessary (thanks to Martin).
+- extend the test for IPv6 (thanks to Martin).
+- use SK_DROP in examples and use non blocking sockets for testing
+  (thanks to Martin).
+- test when the kfunc returns -EINVAL (thanks to Jordan).
+- add the kfunc to bpf_kfunc_set_skb as suggested by Alexei.
+- guard the IPv4 parts with IS_ENABLED(CONFIG_INET).
+- fix a wrong initial value for client_fd (thanks to Yonghong).
+- add documentation to the kfunc.
+- to Jordan: I couldn't include <linux/icmp.h> because of redefines from
+  <network_helpers.h>.
+
+v5 updates:
+- kfunc name is now icmp_send and takes the control message type as
+  parameter for future potential extension (daniel)
+- drop the net patches to route packet since now the kfunc is limited to
+  cgroup_skb and tc progs (daniel & martin)
+- linearize skb headers (sashiko)
+- zero SKB control block (sashiko)
+- bind to port 0 instead of fixed port (sashiko)
+- poll to wait for POLLERR event (sashiko)
+- do not use ASSERT_EQ in CMSG_NXTHDR loop (sashiko)
+- fix comment about byte order (sashiko)
+- fix endianness IP address issue (sashiko)
+- add forgotten cleanup_cgroup_environment (sashiko)
+- let packets pass in recursion test (sashiko)
+- clarify evaluation order for recursion test (sashiko)
+
+v6 updates (all from sashiko):
+- bring back the net patches to route packet since tc ingress needs it.
+- rename the ip_route_reply helpers from fetch to fill.
+- call pskb_network_may_pull on the cloned pkt.
+- check explicitly that we received one and only one ICMP err ctrl msg.
+
+[^1]: https://lwn.net/Articles/1022034/
+
+Link to v5: https://lore.kernel.org/bpf/20260515194746.50920-1-mahe.tardy@gmail.com/
+
+Mahe Tardy (6):
+  net: move netfilter nf_reject_fill_skb_dst to core ipv4
+  net: move netfilter nf_reject6_fill_skb_dst to core ipv6
+  bpf: add bpf_icmp_send kfunc
+  selftests/bpf: add bpf_icmp_send kfunc tests
+  selftests/bpf: add bpf_icmp_send kfunc IPv6 tests
+  selftests/bpf: add bpf_icmp_send recursion test
+
+ include/net/ip6_route.h                       |   2 +
+ include/net/route.h                           |   1 +
+ net/core/filter.c                             | 118 ++++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c           |  19 +-
+ net/ipv4/route.c                              |  15 ++
+ net/ipv6/netfilter/nf_reject_ipv6.c           |  17 +-
+ net/ipv6/route.c                              |  18 ++
+ .../bpf/prog_tests/icmp_send_kfunc.c          | 218 ++++++++++++++++++
+ tools/testing/selftests/bpf/progs/icmp_send.c |  99 ++++++++
+ 9 files changed, 474 insertions(+), 33 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/icmp_send_kfunc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/icmp_send.c
+
+--
+2.34.1
+
