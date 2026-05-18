@@ -1,63 +1,63 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC19C48B37B
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 14:21:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C588B311C35
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 14:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779114088; cv=none; b=uT+MiHp+oBFTcYReNnZzoAsmZSprl+ZxXefXXgA8Cl/FrG2Zfgd+A/7uKK+Rn4smtX+Y3bp57s+qbcZT8B2u3QY0/3iap1e8Jr3TzpB3z4UBYJruOGkFaB5VoQac1ntWXpL1ZfmiB9zaSWde7/QONJNFLJG2IxI2/DAgbNB6jrU=
+	t=1779114132; cv=none; b=lixu5A7jCBEtB2WoTjvV6i0X+fswpPycydRYmffFMvM4db6yEOqYyn3MwHEWvS7DOTco7GvwhCisH6wH6pDLEDtG1dTBPWndLvr0L27rUgppEYxLBTqsiMzmz/C7000s0DtP34imyNFwxp87meIa/9XOJKhsYwB+3qEHExHz/CE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779114088; c=relaxed/simple;
-	bh=ViOooZ5q6HLjbn4PmRfwA6YbFDqGs3bxZJ7jJDAirp4=;
+	s=arc-20240116; t=1779114132; c=relaxed/simple;
+	bh=gSixFFclTUS7ckGyJ6STwjNMBKoWCtWW79rUv1GMZXk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RPkFkkzf5+iH2QeL5cZNx8s+ziPJyxe72Ba63K0KQSk1XrhvKtFLbUaUvq380NTT0VTCGrChHs7yWWy6G65fiBOvEuTMbrlfu3jP6tXMQW6ZEQOkrENwtrB6d9+aLr9/NsP7qV58M1iLdyMdvqFkO0L3D7oclKfvgb1ZqEp3OJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hpNf0cNi; arc=none smtp.client-ip=209.85.221.46
+	 Content-Type:Content-Disposition:In-Reply-To; b=YZPPoAd4CZpPooK5Y+dGzTJZw3udv2MiN7fXO2hu419ZyNbAenTo7B6d9BpvnUztwIb/Q0Ng0tu4gcwOK6pUV48FWzd2yOwURno9Ofr0OtvXs2hzJeViDC3D3EyWMGeWvy0Ltx6S3ie10zbTJJrorkTmAkza++lKEOQQ772FAj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j8jIZ2II; arc=none smtp.client-ip=209.85.128.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hpNf0cNi"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-44e5624c053so1357983f8f.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 07:21:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j8jIZ2II"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-48e82c23840so17931515e9.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 07:22:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779114083; x=1779718883; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779114127; x=1779718927; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=EYFr7XXcKEsZj+Bv1UNXpfsZHaxqcET1cNdw3E5KQ6o=;
-        b=hpNf0cNigPpXw9DykFa6IzN5idA/nkAFGlX77z4gmiktlupdS+NvYA293YJl/UyhX9
-         QVJh0DLrqKNAxMZ1YqiW92drtZZcx8zCwaS4BIysSLKp0R2IshQAbpcLiVhNm6SSRB80
-         tHjgNex6fZKg2y2caMDnNx5xlQqEOJLltG+/VHBUf8tHF5WVom4Qp5ORpdguND6ywqCS
-         +DiPpp5DVDNRgP6iz+SFa4fwAduZDZKRSKMiOI7TYMYCRFd0xM3k8THTJBSem9u0Hau8
-         1ZddxKq98msBx9Gf2+jXNHcxihO+uSH7vyUuKpauUBPl9Z9RosFCkWFuYbqbUfwco+dR
-         BCRQ==
+        bh=+Oumtl4pXAJKEcGCQwup2CrdSSym8HzjHOOsWboStNg=;
+        b=j8jIZ2IIsuxpWQ870MzemgZoBPQSu+i0AsYHIMBek6XI8VfiwGpMeweG1s/U8Jeu/w
+         bswnS4SxwRZ3/lbWH9xBJjHltNY9EkfI5DralRIibUZnRVZ/4WwV1QIZvzkwXD/kHxMt
+         ioVikITIBBqL258ANDW7aVQoeDB66sftmIZafvjqz24jKTK/JYEQ6zZde8o2bRiyDCxT
+         rtHsfOuGmP1XEgBVa+Sz5DJRUsgnGltCUSaPvIAludNRAsDpwRPtejaUSTIn15MgacFs
+         cxss4wlpunyxk0AeZfM4jJqmc54spg3y3y/hw70xkQA1ZJwHrz5GnqNTVsl1ogcwx5yd
+         g2Ig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779114083; x=1779718883;
+        d=1e100.net; s=20251104; t=1779114127; x=1779718927;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=EYFr7XXcKEsZj+Bv1UNXpfsZHaxqcET1cNdw3E5KQ6o=;
-        b=YGuaEZ5DvSsLRt8o9O24tICI/vlrdGi0kI4Hbb77w8bedM2LL2rmv5LPPJGuJCAmLP
-         2TRGtm7Y1yM3dX5Nga8YiGc7wzRVmp43o081hmHdSxwwRzShxAPyEEx0dMpTIZAnR8s0
-         mya+9VY6Nu76uXmsJqR2gTmYAz559g0CjKXq6PUY1FmI0kQ9Fq9G91HEXrd/6V/2kms/
-         CH/CtAa3gTzn+uMcxWlOqnOKyB4CI/EDKNvIHwG2qa4V/oq3akwGeDHYjjH3gHCpSnoL
-         joM+zOU5h6iqSpvT5YATZl/65EfumSS5NXodsoJauxJOglPSmKyZ2ToJ3LW9fDOwHFdq
-         nSaA==
-X-Forwarded-Encrypted: i=1; AFNElJ9ZOW88wUU97vA2GsA/IQ8HxokfhMoqTtpR4avRafYFDLBM/Vd4lCOerbwHfjNxYOEle6QKu0Gefm0rnidvxDQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzTsy3KQjUiSyg9zeZUCppPWCZ4QRTiKUfG2MEb1RMJqsnHDuA7
-	81m+W51MymhVHYOPEsx02PLstsVOmv0YaSf5VyDF7xRNylHzrm0ihAit
-X-Gm-Gg: Acq92OFlGkmuJ8d/FODpfojz1JAJL1v3PV+NvK1Lvj5ztUTs+T91MLURoew3ojs+1qo
-	JqQv/e+uktslmo80pdJcYhP1T3sWqUAccGy/I/BR4SPVo3JkNAixQ9zBF+/8eQrIFpMPd8sVkjD
-	wpWrcrCBJG/31gU23TLuIl52xZ4yS4M+KkO3aacoHNWSvnL0fvg/O61OU2wuoOB1CBz0zSy93sF
-	kS1sMN+xXbCRZTlZ2Q4U0vBrSBwndicbVUrtgdfP9GQeHxv0OcmwaxDveTuXRokcI+jJ6gN6TZC
-	w0tdc1uH4VMBc5kia4DJEkkyoUVXkapbHtOCD16ezmG/E9TGd+kh+aN4OsYNCEPqcCYyKgPUgKu
-	HqlNqyAlcsprsV3juuspcEH77syUJL338qM4EhV56WxlxRxDFtJbqa/m9265MlIJZCuzi9czp4D
-	ShXfFrvDg0ObVsY6iNz9978PiepxThgF82VajC4EO9FC7FdAi/ihvVgby4QrR4EqO6Qw==
-X-Received: by 2002:a05:6000:2083:b0:43e:a9ba:b194 with SMTP id ffacd0b85a97d-45e5c5dd921mr25324601f8f.34.1779114082921;
-        Mon, 18 May 2026 07:21:22 -0700 (PDT)
+        bh=+Oumtl4pXAJKEcGCQwup2CrdSSym8HzjHOOsWboStNg=;
+        b=eZ1UA/6lTfFc6tZ+WNKL3wsNkIwCkLGp6Mqs7LYpCjQSR/SIEQF3WGjj5K3y9mcBF/
+         V4xOx4lo0gF/0xpYhoXzO14xgpEJ4Qr+oaei61GE1Ybb1/ph8p28Bz4FF3JSj8oZYDon
+         r8PTXuyUoq6WIWaEmIdtHNgNEqnN7ED+x+nbVSROLkbcQZvQ1/9VH9mrAblVlMJIJalx
+         6XAwZAppaeynGm1XXAwPD4RTVWkhlb8c+YJsqbhJqHu2vjffuuVgM8LPZarqKmHI4ycm
+         szOQwHXTD7p8aGn0sc4GkvCI2NUzUoyBmo5MbAi5ZnZf0AvGfZnz3Cl3ZQzynruC6vca
+         AZpA==
+X-Forwarded-Encrypted: i=1; AFNElJ9MdAjoaDXG4gU8QWsX6Gn7Z1v1ZS8j4Qf/vlPlyufvo2tCPfTcP1NWHZ4tzxjMm/I9MATrVbpcBcPIUZJ9Grc=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzmwHZ0PxG4DYQoY+mvcwDjixZ8gd5h02UrGpzFShTKnsj3ZtP6
+	m9rq4Ht+aiIt9LNJauTa6RYXq0FeNx1ewtyeBP6siQvQRS4Ii7wuvdEq
+X-Gm-Gg: Acq92OH7zDSUYtGoJtyW5Qfj+lqMBabKuEPhnZ7yHR0GnixEFg13T/SRcDmwPjo5X4U
+	CT5Mw45yTTQc6uuQZlG6OK3i+Qu1mqaQOk6uYGcjsaOpmWa1vB7o2mJYhpVYUDV2YTWeMgKprgx
+	F2wjGO+Bo1XZwZl8BzkJzxTjCngIf1Acu/C5xrwdmzL0fwW3paUuSb7KPdaNEyYu4sqtsWsnrdL
+	8qNvuUTw+91ZQd4HCF6PEmrwy3wz8IMKPZlCz3L29IXUqHhu0uXsIDmHGXPrfhdRhcvzWIo535b
+	5KOWwPTAHUju86wHKZNZWZhO9y8vL87yPpi6MFFSbssPjg8fEBq0B8dzP8uDngitz3rWirt+Vzb
+	IQ+VtKIXWLPLS5SYuiNBhwpbZcjkyECalE5acud7CBgVSPpTXjUvzECbIbaAe0nkjeMKN6R4ccg
+	wBMxJs5/+3AGY5KdgjmkEUjnX1aKAoFq7/RPqY2s+WYff+pIZyqiTNtGj5yWh+urXIew==
+X-Received: by 2002:a05:600c:6383:b0:489:1c1f:35f9 with SMTP id 5b1f17b1804b1-48fe60ea4ebmr233939685e9.9.1779114126375;
+        Mon, 18 May 2026 07:22:06 -0700 (PDT)
 Received: from gmail.com (deskosmtp.auranext.com. [195.134.167.217])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45da0a1a22csm36715510f8f.19.2026.05.18.07.21.22
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45d9e768072sm37137502f8f.5.2026.05.18.07.22.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 07:21:22 -0700 (PDT)
-Date: Mon, 18 May 2026 16:21:20 +0200
+        Mon, 18 May 2026 07:22:05 -0700 (PDT)
+Date: Mon, 18 May 2026 16:22:04 +0200
 From: Mahe Tardy <mahe.tardy@gmail.com>
 To: bot+bpf-ci@kernel.org
 Cc: bpf@vger.kernel.org, martin.lau@linux.dev, daniel@iogearbox.net,
@@ -66,11 +66,11 @@ Cc: bpf@vger.kernel.org, martin.lau@linux.dev, daniel@iogearbox.net,
 	netfilter-devel@vger.kernel.org, edumazet@google.com,
 	kuba@kernel.org, pabeni@redhat.com, martin.lau@kernel.org,
 	eddyz87@gmail.com, clm@meta.com, ihor.solodrai@linux.dev
-Subject: Re: [PATCH bpf-next v6 1/6] net: move netfilter
- nf_reject_fill_skb_dst to core ipv4
-Message-ID: <agsgYJsHZzA_0L97@gmail.com>
-References: <20260518122842.218522-2-mahe.tardy@gmail.com>
- <af01ada15e1b76da2dfb6cfa749727e0337787f117ddf5724a3cb702513e81dc@mail.kernel.org>
+Subject: Re: [PATCH bpf-next v6 2/6] net: move netfilter
+ nf_reject6_fill_skb_dst to core ipv6
+Message-ID: <agsgjAvP3atsziMx@gmail.com>
+References: <20260518122842.218522-3-mahe.tardy@gmail.com>
+ <1637d7e04ac3c65239ef77709175697bff287250913d1da68e8d4072e0ff34e1@mail.kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -79,65 +79,84 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <af01ada15e1b76da2dfb6cfa749727e0337787f117ddf5724a3cb702513e81dc@mail.kernel.org>
+In-Reply-To: <1637d7e04ac3c65239ef77709175697bff287250913d1da68e8d4072e0ff34e1@mail.kernel.org>
 
-On Mon, May 18, 2026 at 01:07:54PM +0000, bot+bpf-ci@kernel.org wrote:
-> > diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-> > index bc1296f0ea69..1f031c5ef554 100644
-> > --- a/net/ipv4/route.c
-> > +++ b/net/ipv4/route.c
-> > @@ -2945,6 +2945,21 @@ struct rtable *ip_route_output_flow(struct net *net, struct flowi4 *flp4,
+On Mon, May 18, 2026 at 01:07:57PM +0000, bot+bpf-ci@kernel.org wrote:
+> > diff --git a/include/net/ip6_route.h b/include/net/ip6_route.h
+> > index 09ffe0f13ce7..eb5a60d3babe 100644
+> > --- a/include/net/ip6_route.h
+> > +++ b/include/net/ip6_route.h
+> > @@ -100,6 +100,8 @@ static inline struct dst_entry *ip6_route_output(struct net *net,
+> >  	return ip6_route_output_flags(net, sk, fl6, 0);
 > >  }
-> >  EXPORT_SYMBOL_GPL(ip_route_output_flow);
 > >
-> > +int ip_route_reply_fill_dst(struct sk_buff *skb)
-> > +{
-> > +	struct rtable *rt;
-> > +	struct flowi4 fl4 = {
-> > +		.daddr = ip_hdr(skb)->saddr
-> > +	};
-> 
-> Can this lead to an out-of-bounds read?
-> 
-> Now that this is exported for BPF kfuncs, it can be reached from early
-> hooks like TC ingress where the IPv4 header might not be linearized yet.
-> 
-> If a malformed packet contains less than sizeof(struct iphdr) bytes of
-> linear data, does accessing ->saddr require validation via pskb_may_pull()
-> or similar?
-> 
-> This concern was raised by sashiko-bot@kernel.org in v4 review:
-> https://lore.kernel.org/bpf/20260421111320.D97D9C2BCB0@smtp.kernel.org/
-
-Yes but it should be fine since it's the caller responsability to make
-sure the header has been linearized, and we are calling
-pskb_network_may_pull.
-
+> > +int ip6_route_reply_fill_dst(struct sk_buff *skb);
 > > +
-> > +	rt = ip_route_output_key(dev_net(skb->dev), &fl4);
 > 
-> Can skb->dev be NULL here?
+> [ ... ]
 > 
-> While safe in its original netfilter context, a BPF_PROG_TYPE_NETFILTER
-> program attached to the NF_INET_LOCAL_OUT hook will receive locally
-> generated SKBs before skb->dev is assigned (e.g., in __ip_local_out before
-> ip_output).
+> > diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+> > index e3d355d1fbd6..37a7627a94de 100644
+> > --- a/net/ipv6/route.c
+> > +++ b/net/ipv6/route.c
+> > @@ -2725,6 +2725,24 @@ struct dst_entry *ip6_route_output_flags(struct net *net,
+> >  }
+> >  EXPORT_SYMBOL_GPL(ip6_route_output_flags);
+> >
+> > +int ip6_route_reply_fill_dst(struct sk_buff *skb)
+> > +{
+> > +	struct dst_entry *result;
+> > +	struct flowi6 fl = {
+> > +		.daddr = ipv6_hdr(skb)->saddr
+>                          ^^^^^^^^^^^^^^^^^^^^
 > 
-> Does dev_net(skb->dev) need a check to prevent a kernel panic when called
-> from such contexts?
+> Is it possible for the IPv6 header to span paged fragments here?
 > 
-> This concern was raised by sashiko-bot@kernel.org in v4 review:
-> https://lore.kernel.org/bpf/20260421111320.D97D9C2BCB0@smtp.kernel.org/
+> If the packet header isn't guaranteed to be in the linear data area, and
+> there are no linearization checks like pskb_may_pull() before accessing
+> ipv6_hdr(), could this read out-of-bounds memory or cause a page fault
+> when processing undersized or fragmented packets supplied by BPF programs?
+> 
+> While v6 cover letter mentions "call pskb_network_may_pull on the cloned
+> pkt", this linearization check is not present in this function.
 
-We can't attach such program as now it's only cgroup_skb and tc,
-outdated.
+Same answer, caller is calling pskb_may_pull, outdated.
 
-> > +	if (IS_ERR(rt))
-> > +		return PTR_ERR(rt);
-> > +	skb_dst_set(skb, &rt->dst);
-> > +	return 0;
+> 
+> > +	};
+> > +	int err;
+> > +
+> > +	result = ip6_route_output(dev_net(skb->dev), NULL, &fl);
+>                                   ^^^^^^^^^^^^
+> 
+> Could skb->dev be NULL in contexts where this function will be used?
+> 
+> Since this is being exported for use by BPF kfuncs, it might be called
+> from program types where the device reference is not retained, such as
+> socket filters.
+> 
+> If skb->dev is NULL in these contexts, won't dev_net(skb->dev) cause a
+> NULL pointer dereference?
+> 
+> While the netfilter caller (nf_send_unreach6) checks and sets skb->dev to
+> loopback_dev if NULL, the exported function itself does not have this
+> protection. When called from BPF kfuncs, especially in contexts like socket
+> filters or tc ingress before device assignment, skb->dev could be NULL.
+
+Ditto, outdated.
+
+> 
+> > +	err = result->error;
+> > +	if (err)
+> > +		dst_release(result);
+> > +	else
+> > +		skb_dst_set(skb, result);
+> > +	return err;
 > > +}
-> > +EXPORT_SYMBOL_GPL(ip_route_reply_fill_dst);
+> > +EXPORT_SYMBOL_GPL(ip6_route_reply_fill_dst);
+> > +
+> 
+> [ ... ]
 > 
 > 
 > ---
