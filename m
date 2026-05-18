@@ -1,145 +1,139 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBEC73845C4
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 19:07:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF6D038F938
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 19:12:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779131264; cv=none; b=kMk+6F4re3xv3x7H/deuhmxgVk2xrhBkYvbWApjYZbjdRV/hAC6dqovgYI+QVX2lyXUnq8qLGm+d+mzrmjeVa51xpKC7JLZm2Tz/8oV7WKOcA7QxWdcdQsE/4QzG+Og/UU1u85dgn2Dl44hVakDEYXiArb54nYhwXLVs5+p1M/I=
+	t=1779131559; cv=none; b=TiRFuIklBvjDwjPqYn9MtM+ZLPdwOKmLjoKDQL634mcdIxOG+iIQqxTECwMvFWdL3q1EsXpB4/td8VRk3czaEoa121Eaeh4yOF8ywrSLj8+rPTBUKMBDhCJ7WHh3HsYaqgZIyeKUzXReniB8YgtkA2xho+LoQ4gqdmdnZQ30KbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779131264; c=relaxed/simple;
-	bh=YniRGpX8lTfHzdNGmFOoHW1RIjnX59dghZsUH6m3g60=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YVBDo269lgiToMxfFHeAafBQ8sX4fSrDqaiwxS03s6jloO3cb4XLPx+SWQKEUTj8jSMfNtfRSsSHteKHkoA14uEH+UMHPnjj8w47HXOcj2LGpNvEJZXJywvKfYuJePi1TXkxyeIg+7UmSYG9Wgpr/ZuMpQTRrLsCxTXAXKlSUHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vY6/D/Jx; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1779131559; c=relaxed/simple;
+	bh=Fl9JbjgTJVj48WEUkK6dpKVONuhSbWeoAf3olT2H1ok=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uPMzJB21Mq6tpk3rV/ivZZxxMM7ALneRWaWg6rp/fIm15c6J9Q6gSQhlZ0JA0/YOhxNGfffGJG9ptMjGo9o3pmMNolGVDyzxor44BooehHmsenIiB27j+Nz2WBPwW8gq53ZJ7KAZq26EWej0vRRIu1cSR46x/YJCPDBRCH2COQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=h72vQ3Bj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vY6/D/Jx"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 925CB604FC;
-	Mon, 18 May 2026 21:07:39 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="h72vQ3Bj"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id AF3C960502;
+	Mon, 18 May 2026 21:12:35 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779131259;
-	bh=xBr5LEHXZ1dxyvNYNmYfPK3Pn4h6idz29JxXeVERsfE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=vY6/D/Jxq1Niw8oOMy4VBoKKrS5rkFZEHsEV2x2PlFcZl6w/WL5MZIxbI9f73i7wL
-	 SkKbHB/+Tec1fVPmGy4l/t1PEImRLeeLAdO3MEuqQV+OPrswMZoSVkxOX7SCRle9/E
-	 Y3vr79KOFegHfgGXAn4QNuJt7P/it/lhvn1pNnadE0v2U2X6VUp/9dHSAQM7tOH+An
-	 FyDudss0Os0EdUdXIrhoePYmIal3D8N/gFFn2hG1PaLWRodgXZpvjhY5auS7kIfJPf
-	 42Q/lG67ggw2kBQdx6U75he0osb7WrgwJ3BSqYoyIyhqd8gvnkfm8oaQlOMDaQazbz
-	 0bDYZwVbnaVMQ==
-Date: Mon, 18 May 2026 21:07:37 +0200
+	s=2025; t=1779131555;
+	bh=C7/9aH5n3qjg4SUkmSmv4WTCKPxXkXvX9KTMvjoPpAs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=h72vQ3BjbyQ2Lxu2YGnD+FZIvT9glOHyUHTsZyBIKoDBbVGAR6s7sUcnTTtqcBt6D
+	 J7B2jF7tBC06fADKxzU5zRmETTKtphR9sYX9Yk3AJQk1cIQOJOYRw5I4Gee/SLtKzL
+	 D6cxC9W5L6RYG8A2mvVSmXCXz0qJ+Q7mn+O/sH6IHZKIFg326ReGXfnZMMbVKc5mR5
+	 MdN2BMudfS/OPHG6QdbWh6eF+Tylx0CdPk+j3DlZv7WkwxHJhYYIYpfvvwsRkkZgge
+	 UeVyLcwVAq3Iqg3K01pduPipvjr68vK25jcA2Rv3KSpoBBMwfBAWLcTHglFFrgfWja
+	 4M6+07u5h3EMQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf,v2] netfilter: conntrack: add dead flag to helpers
-Message-ID: <agtjebGnfVh6VZ32@chamomile>
-References: <20260514143016.874811-1-pablo@netfilter.org>
- <agXfhQb8Dcl9p5ce@strlen.de>
- <agXl-3NDpK3YUZiF@chamomile>
- <agXt-m9yN-oayY1G@strlen.de>
- <agZbFvp_KgGUr2Kw@chamomile>
- <agZg3JjBx6xXyEnW@strlen.de>
- <agZkiu4q1Ln9ImR4@chamomile>
- <agZm_JyKhSFOrV94@chamomile>
- <agcQ90JCmlkojf6s@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v4 1/3] netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
+Date: Mon, 18 May 2026 21:12:30 +0200
+Message-ID: <20260518191232.1053294-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <agcQ90JCmlkojf6s@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 15, 2026 at 02:26:31PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > If the module reference grab does not work, maybe add:
-> >  
-> >         if (unlikely(nf_conntrack_ext_genid() != ext->id)
-> >                 return NULL;
-> >  
-> > to nfct_help() and nfct_timeout()? So access to these ct extension
-> > area is always validated before hand?
+Conntrack helper flags are accessed from packet and netlink dump path.
+While updates are protected by the nfnl_mutex, use {READ,WRITE}_ONCE()
+to access this flags.
 
-Just to close this previous thread now that we're mixing things here:
-No issue with unconfirmed conntrack that gets enqueued in nfqueue
-since 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v4: no changes.
 
-  c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
+ net/netfilter/nfnetlink_cthelper.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-handles the unconfirmed ct sitting in nfqueue or elsewhere.
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index 0d16ad82d70c..34ac6af1e0dd 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -41,8 +41,9 @@ static int
+ nfnl_userspace_cthelper(struct sk_buff *skb, unsigned int protoff,
+ 			struct nf_conn *ct, enum ip_conntrack_info ctinfo)
+ {
+-	const struct nf_conn_help *help;
+ 	struct nf_conntrack_helper *helper;
++	const struct nf_conn_help *help;
++	unsigned int helper_flags;
+ 
+ 	help = nfct_help(ct);
+ 	if (help == NULL)
+@@ -53,8 +54,10 @@ nfnl_userspace_cthelper(struct sk_buff *skb, unsigned int protoff,
+ 	if (helper == NULL)
+ 		return NF_DROP;
+ 
++	helper_flags = READ_ONCE(helper->flags);
++
+ 	/* This is a user-space helper not yet configured, skip. */
+-	if ((helper->flags &
++	if ((helper_flags &
+ 	    (NF_CT_HELPER_F_USERSPACE | NF_CT_HELPER_F_CONFIGURED)) ==
+ 	     NF_CT_HELPER_F_USERSPACE)
+ 		return NF_ACCEPT;
+@@ -404,10 +407,10 @@ nfnl_cthelper_update(const struct nlattr * const tb[],
+ 
+ 		switch(status) {
+ 		case NFCT_HELPER_STATUS_ENABLED:
+-			helper->flags |= NF_CT_HELPER_F_CONFIGURED;
++			WRITE_ONCE(helper->flags, helper->flags | NF_CT_HELPER_F_CONFIGURED);
+ 			break;
+ 		case NFCT_HELPER_STATUS_DISABLED:
+-			helper->flags &= ~NF_CT_HELPER_F_CONFIGURED;
++			WRITE_ONCE(helper->flags, helper->flags & ~NF_CT_HELPER_F_CONFIGURED);
+ 			break;
+ 		}
+ 	}
+@@ -529,8 +532,8 @@ static int
+ nfnl_cthelper_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 			int event, struct nf_conntrack_helper *helper)
+ {
++	unsigned int flags = portid ? NLM_F_MULTI : 0, helper_flags;
+ 	struct nlmsghdr *nlh;
+-	unsigned int flags = portid ? NLM_F_MULTI : 0;
+ 	int status;
+ 
+ 	event = nfnl_msg_type(NFNL_SUBSYS_CTHELPER, event);
+@@ -554,7 +557,8 @@ nfnl_cthelper_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	if (nla_put_be32(skb, NFCTH_PRIV_DATA_LEN, htonl(helper->data_len)))
+ 		goto nla_put_failure;
+ 
+-	if (helper->flags & NF_CT_HELPER_F_CONFIGURED)
++	helper_flags = READ_ONCE(helper->flags);
++	if (helper_flags & NF_CT_HELPER_F_CONFIGURED)
+ 		status = NFCT_HELPER_STATUS_ENABLED;
+ 	else
+ 		status = NFCT_HELPER_STATUS_DISABLED;
+@@ -575,6 +579,7 @@ static int
+ nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ {
+ 	struct nf_conntrack_helper *cur, *last;
++	unsigned int helper_flags;
+ 
+ 	rcu_read_lock();
+ 	last = (struct nf_conntrack_helper *)cb->args[1];
+@@ -583,8 +588,10 @@ nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 		hlist_for_each_entry_rcu(cur,
+ 				&nf_ct_helper_hash[cb->args[0]], hnode) {
+ 
++			helper_flags = READ_ONCE(cur->flags);
++
+ 			/* skip non-userspace conntrack helpers. */
+-			if (!(cur->flags & NF_CT_HELPER_F_USERSPACE))
++			if (!(helper_flags & NF_CT_HELPER_F_USERSPACE))
+ 				continue;
+ 
+ 			if (cb->args[1]) {
+-- 
+2.47.3
 
-> > > > Another alternative would be to give up on this design completely
-> > > > and just grab module references :-)
-> > > 
-> > > But that would not be enough for userspace ct helpers, right?
-> 
-> This is a mess:
-> 
-> https://sashiko.dev/#/patchset/20260515103501.18669-1-fw%40strlen.de
-> 
-> No idea how to fix this yet.  Is it ok to disable cross-helper-attach
-> via ctnetlink?
-
-Are you referring to this specifically?
-
-"This isn't an issue introduced by this patch, but does destroy_gre_conntrack()
-safely cast the master connection's helper data?
-If an unprivileged attacker with CAP_NET_ADMIN uses ctnetlink to create a GRE
-expectation linked to a master connection that uses a different helper
-(like FTP) or no helper at all, the function blindly casts the helper data
-to struct nf_ct_pptp_master.
-Since FTP helper data contains attacker-controllable sequence numbers, could
-this cause list_del_rcu() and kfree_rcu() to operate on attacker-controlled
-addresses, leading to an arbitrary free or list corruption?"
-
-I don't think that is really possible via ctnetlink:
-
-- ctnetlink_alloc_expect() currently checks if nfct_help() exists,
-  otherwise it reports EOPNOTSUPP.
-
-- ctnetlink_alloc_expect() uses the existing helper in the master
-  conntrack to create the expectation.
-
-- exp->assign_helper attaches a helper to the expected conntrack.
-  But that is a basically a new different conntrack.
-
-> I don't see a way to validate nfct_help_data().
->
-> Proposal: Get rid of data[] and nfct_help_data().  Explicit structure,
-> explicit helpers (e.g. nfct_help_data_sip(), type enum in nf_conn_help.
-
-I don't see how yet this access to mismatching helper data type area
-can happen.
-
-> Callers must handle NULL return value everywhere (wrong helper type,
-> helper invalidated, etc).
-
-Yes, callers must handle NULL in nfct_help_data() because the helper
-extension might become stale as per c56716c69ce1.
-
-> unhelp will have to be changed to invoke the helper
-> destructor as well:
-> 
-> static int unhelp(struct nf_conn *ct, void *me)
-> {
->         struct nf_conn_help *help = nfct_help(ct);
-> 
->         if (help && rcu_dereference_raw(help->helper) == me) {
->                 nf_conntrack_event(IPCT_HELPER, ct);
->                 RCU_INIT_POINTER(help->helper, NULL);
->         }
-> 
-> This can't be right, we lose the ->destroy() CB?
-
-Yes, I think .destroy should be called from unhelp() path otherwise
-pptp info will remain in the GRE keymap.
-
-> Ideally we could get rid of ->destroy, but that would require
-> permanent removal of pptp.
-
-This is the only user of ->destroy, I think the pptp helper is a
-candidate to be deprecated.
