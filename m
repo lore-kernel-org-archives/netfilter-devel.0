@@ -1,30 +1,32 @@
-Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
+Received: from out-173.mta0.migadu.com (out-173.mta0.migadu.com [91.218.175.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59FE52F83A0
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 04:15:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE25C2FF65B
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 04:15:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779164112; cv=none; b=atUcgvvAU/A1G89KAmgbWbsSRaKDaI1qQlrSmckrYP1qXgbDrqJZRvqpQzimXSx7rnTSIig/mfybSY8WK8Dy3qLQuIHoEGm7K5obFW0f+sGlJNeTwhkERFj/32bnY5/k1qeqphYKRlz89rl7x3PEdmlSWZMAWkqiIlwBjeJWumU=
+	t=1779164116; cv=none; b=DZ3qizTv02E3WG44O95VlvbeIThRptMOOPorIziR8tl1w1AgTIfLub4Mhig1ryY8WPRes5PI6ZO3e7dGsGuGl1pKsY/1944gH9p1k2HwxRjKnSb9OlaKzbuVhLhtHhIaoBH2ZvOfF9ZElwBvcQSC2hSO+FL/MazmRvlQfBMMFmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779164112; c=relaxed/simple;
-	bh=FNgrQ+hsYE9VF85Psxd210pdh7mXdIU1lokqzwlj5Oo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kppVezqfWsY79JZ4PanOyxyqBH91cOlPPNv1sQkNV6bmXqYYNXr2HjOqbfMhw4HVW4TnFF6Nfwl6ues6Qpv3nPyl5xXRgHxlEkC9s3Ln3UKZY7GDypMpomeGNnxcLWS2em4etI3ZccZkxmCEeBo+dKqjxcg50hRkMydW9PCPFS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=q56bcToe; arc=none smtp.client-ip=91.218.175.182
+	s=arc-20240116; t=1779164116; c=relaxed/simple;
+	bh=Sf9bbVTZpG+pdkKlTqThofWNQkna9lnAEdsTj91H43c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IcCERVAGfQVNZ3LFKDabX+E3HdsiPKbUnZIDWBgnsUXQEwdY/Q3qAl9P19JFPnKO32EMZSoPJTJCHa2K6Ggue2DSjApkEafAjvvX9aqgKIqLeFQCnTI8nBqnHOKYMy20NQPHI2U0RNucuJBGTeCYVdqGgGT8bh6wU7bQTQPO4m8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Y8tFqlsR; arc=none smtp.client-ip=91.218.175.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="q56bcToe"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Y8tFqlsR"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779164108;
+	t=1779164110;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=EVc14BxSgRb/zaHj4ETqBr3ujIUUbNBwZdCyUo8e5I0=;
-	b=q56bcToe02uKr6gdSXbvVZF1grnuADQl0ZKfgf6X0/jfJw3EIUPM/3uMIY8p7Hv0KgcHpZ
-	r+VNbAg1C5RnlAvloVOmqKYpZUfGsmoiCwT9MtM+4Wj6ZoMU8OnLbnRMlgyxRYVXAcCut7
-	RH5QzANjhKhBYfWntPovILb1mr1LzEU=
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Do6zrR+QCRCa03DBuIngJ+DACoNKvi76GciQato3NDI=;
+	b=Y8tFqlsR2PAVGEl3bZVPZQdc19XDI2TACA5o+d1kr6ZCUbI27AYz4X6VrTQXvtOztA0OF+
+	WCrw2r9RMd4e10ZWAM7+OuQFa0j8Uhb/aQiYjIgC24DxlwonbIQ58NA2mfuI8sNH4deaUK
+	slPgxPGqHxeIHmi5Y5sxFY3dQLoFo7I=
 From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
@@ -32,9 +34,11 @@ Cc: pablo@netfilter.org,
 	phil@nwl.cc,
 	coreteam@netfilter.org,
 	Jiayuan Chen <jiayuan.chen@linux.dev>
-Subject: [PATCH nf 1/2] netfilter: nft_fib_ipv6: handle routes via external nexthop
-Date: Tue, 19 May 2026 12:14:30 +0800
-Message-ID: <20260519041431.396218-1-jiayuan.chen@linux.dev>
+Subject: [PATCH nf 2/2] selftests: netfilter: add nft_fib_nexthop test
+Date: Tue, 19 May 2026 12:14:31 +0800
+Message-ID: <20260519041431.396218-2-jiayuan.chen@linux.dev>
+In-Reply-To: <20260519041431.396218-1-jiayuan.chen@linux.dev>
+References: <20260519041431.396218-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,86 +48,152 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-fib6_info has a union:
+Cover nft_fib6_eval() over three route shapes and reproduce the OOB
+caused by the blind &rt->fib6_siblings walk:
 
-    union {
-        struct list_head fib6_siblings;
-        struct list_head nh_list;
-    };
+  1) single external nexthop (nhid)
+  2) external nexthop group (nhid -> group)
+  3) old-style multipath (nexthop ... nexthop ...)
 
-Old-style multipath (ip -6 route add ... nexthop ... nexthop ...) uses
-fib6_siblings.  External nexthop (ip -6 route add ... nhid N) uses
-nh_list, linked into &nh->f6i_list.
+After the fix:
 
-nft_fib6_info_nh_uses_dev() blindly walks &rt->fib6_siblings, causing
-an OOB read past the struct nexthop slab when rt->nh is set:
+  ./nft_fib_nexthop.sh
+  Nothing to flush
+  PASS: single external nexthop (nhid)
+  Flushed 1 nexthops
+  PASS: nexthop group (nhid group 1/2)
+  Flushed 2 nexthops
+  PASS: old-style multipath (fib6_siblings)
 
-  ==================================================================
-  BUG: KASAN: slab-out-of-bounds in nft_fib6_eval+0x1362/0x16c0
-  Read of size 8 at addr ffff888103a099d0 by task ping/386
-
-  CPU: 2 UID: 0 PID: 386 Comm: ping Not tainted 7.1.0-rc3+ #251 PREEMPT
-  Call Trace:
-   <IRQ>
-   dump_stack_lvl+0x76/0xa0
-   print_report+0xd1/0x5f0
-   kasan_report+0xe7/0x130
-   __asan_report_load8_noabort+0x14/0x30
-   nft_fib6_eval+0x1362/0x16c0
-   nft_do_chain+0x279/0x18c0
-   nft_do_chain_ipv6+0x1a8/0x230
-   nf_hook_slow+0xad/0x200
-   ipv6_rcv+0x152/0x380
-   __netif_receive_skb_one_core+0x118/0x1c0
-  ==================================================================
-
-Branch by route shape: when rt->nh is set, walk via
-nexthop_for_each_fib6_nh() (also covers nh groups, which the original
-code missed); otherwise walk fib6_siblings, guarded by fib6_nsiblings.
-
-Fixes: 1c32b24c234b ("netfilter: nft_fib_ipv6: switch to fib6_lookup")
 Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 ---
- net/ipv6/netfilter/nft_fib_ipv6.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ .../testing/selftests/net/netfilter/Makefile  |   1 +
+ .../net/netfilter/nft_fib_nexthop.sh          | 104 ++++++++++++++++++
+ 2 files changed, 105 insertions(+)
+ create mode 100755 tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
 
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 8b2dba88ee96..a44919f46de9 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -160,16 +160,32 @@ static bool nft_fib6_info_nh_dev_match(const struct net_device *nh_dev,
- 	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
- }
- 
-+static int nft_fib6_nh_match_dev_cb(struct fib6_nh *nh, void *arg)
-+{
-+	const struct net_device *dev = arg;
+diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
+index ee2d1a5254f8..d953ee218c0f 100644
+--- a/tools/testing/selftests/net/netfilter/Makefile
++++ b/tools/testing/selftests/net/netfilter/Makefile
+@@ -26,6 +26,7 @@ TEST_PROGS := \
+ 	nft_concat_range.sh \
+ 	nft_conntrack_helper.sh \
+ 	nft_fib.sh \
++	nft_fib_nexthop.sh \
+ 	nft_flowtable.sh \
+ 	nft_interface_stress.sh \
+ 	nft_meta.sh \
+diff --git a/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh b/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
+new file mode 100755
+index 000000000000..76f934156c8c
+--- /dev/null
++++ b/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
+@@ -0,0 +1,104 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# shellcheck disable=SC2154
++#
++# Exercise nft_fib6_eval()'s sibling/nh enumeration on three route shapes:
++#   1) route via a single external nexthop (nhid)
++#   2) route via an external nexthop group (nhid -> group)
++#   3) route via old-style multipath (nexthop ... nexthop ...)
++#
++# Topology similar to nft_fib.sh, without ns2; two dummy interfaces on
++# nsrouter host the nh devices:
++#
++#   dead:1::99           dead:1::1     dummy0 dead:2::1
++#   ns1 <-----veth----->         nsrouter
++#                                       dummy1 dead:9::1
 +
-+	return nft_fib6_info_nh_dev_match(nh->fib_nh_dev, dev) ? 1 : 0;
++source lib.sh
++
++ret=0
++
++checktool "nft --version" "run test without nft"
++checktool "ip -V"         "run test without iproute2"
++
++setup_ns nsrouter ns1
++trap cleanup_all_ns EXIT
++
++if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" \
++	> /dev/null 2>&1; then
++	echo "SKIP: No virtual ethernet pair device support in kernel"
++	exit $ksft_skip
++fi
++
++ip -net "$ns1" link set lo up
++ip -net "$ns1" link set eth0 up
++ip -net "$ns1" -6 addr add dead:1::99/64 dev eth0 nodad
++ip -net "$ns1" -6 route add default via dead:1::1
++
++ip -net "$nsrouter" link set lo up
++ip -net "$nsrouter" link set veth0 up
++ip -net "$nsrouter" -6 addr add dead:1::1/64 dev veth0 nodad
++
++if ! ip -net "$nsrouter" link add dummy0 type dummy 2>/dev/null; then
++	echo "SKIP: dummy netdev not available"
++	exit $ksft_skip
++fi
++ip -net "$nsrouter" link set dummy0 up
++ip -net "$nsrouter" -6 addr add dead:2::1/64 dev dummy0 nodad
++
++ip -net "$nsrouter" link add dummy1 type dummy
++ip -net "$nsrouter" link set dummy1 up
++ip -net "$nsrouter" -6 addr add dead:9::1/64 dev dummy1 nodad
++
++ip netns exec "$nsrouter" sysctl -q net.ipv6.conf.all.forwarding=1
++
++load_fib_rule() {
++	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++flush ruleset
++table ip6 t {
++	chain c {
++		type filter hook prerouting priority 0; policy accept;
++		fib daddr . iif oif missing counter
++	}
++}
++EOF
 +}
 +
- static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
- 				      const struct net_device *dev)
- {
- 	const struct net_device *nh_dev;
- 	struct fib6_info *iter;
- 
-+	/* External nexthop: fib6_siblings slot aliases nh_list, walk via nh. */
-+	if (rt->nh)
-+		return nexthop_for_each_fib6_nh(rt->nh,
-+						nft_fib6_nh_match_dev_cb,
-+						(void *)dev) != 0;
++run_scenario() {
++	local what="$1"; shift
 +
- 	nh_dev = fib6_info_nh_dev(rt);
- 	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
- 		return true;
- 
-+	if (!rt->fib6_nsiblings)
-+		return false;
++	ip -net "$nsrouter" -6 route del dead:dead::/64 2>/dev/null || true
++	ip -net "$nsrouter" -6 nexthop flush 2>/dev/null || true
 +
- 	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
- 		nh_dev = fib6_info_nh_dev(iter);
- 
++	"$@" || { echo "SKIP ($what): could not configure route"; return; }
++
++	load_fib_rule || { echo "FAIL ($what): nft load"; ret=1; return; }
++
++	ip netns exec "$ns1" ping -6 -c 1 -W 1 dead:dead::1 \
++		> /dev/null 2>&1 || true
++
++	echo "PASS: $what"
++}
++
++scenario_single_nh() {
++	ip -net "$nsrouter" nexthop add id 1 via dead:2::2 dev dummy0
++	ip -net "$nsrouter" -6 route add dead:dead::/64 nhid 1
++}
++run_scenario "single external nexthop (nhid)" scenario_single_nh
++
++scenario_nh_group() {
++	ip -net "$nsrouter" nexthop add id 1   via dead:2::2 dev dummy0
++	ip -net "$nsrouter" nexthop add id 2   via dead:9::2 dev dummy1
++	ip -net "$nsrouter" nexthop add id 100 group 1/2
++	ip -net "$nsrouter" -6 route   add dead:dead::/64 nhid 100
++}
++run_scenario "nexthop group (nhid group 1/2)" scenario_nh_group
++
++scenario_old_multipath() {
++	ip -net "$nsrouter" -6 route add dead:dead::/64 \
++		nexthop via dead:2::2 dev dummy0 \
++		nexthop via dead:9::2 dev dummy1
++}
++run_scenario "old-style multipath (fib6_siblings)" scenario_old_multipath
++
++exit $ret
 -- 
 2.43.0
 
