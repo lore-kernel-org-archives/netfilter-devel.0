@@ -1,147 +1,180 @@
-Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
+Received: from mail-oi1-f178.google.com (mail-oi1-f178.google.com [209.85.167.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4B083F1AC9
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 11:56:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779191794; cv=none; b=P57Y4jjbYDVOSquewzvGF91jzzdXdzFP/JlPJluXNQVPP8qYH5BlQU3WSkkbi0D206dYvslU/48BBj0keQC7clxkuNZeYpYuN8kuvpV4Ci4k0qS9y+Hkpv66J1FeWiTalCZr+k6Yk3tK6b3Oz35FlWLimQLb0zs/37jN/AygSAY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779191794; c=relaxed/simple;
-	bh=6EHyX+t59JQk8qaGatmxGZ3pdkNuXcSnsYDgZnyNEp4=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=eYkP0mvf9xYFhAdU3moSRzh4u/okJDnlxvoQUHOZEdPGinLmmJ9qgI1Jicj6hVQQDuFw738FosG8hWDiNpc9aoDIiulu1EZYidX+Q7j0Bp87stA6zskBrD59XISVRyC0zM6hIBlQY5zNvGLmmg/yLIp01nds3O4+IiX8f7zeaS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-68e924f632bso6754412eaf.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 04:56:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A78C2690EC
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 13:13:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.178
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779196414; cv=pass; b=UoTLcv5bWLDulvOgxJseoh8KOa4fqkHDlyENHaKGcOR/r7i1i9j86Ta+LbtwxBPSoa3onxEf/cFSyEMqV2uGOyoUoEPT7VwBGxEF0QooIqAqwemocXucrUB+k1pSPH4500xg92wSPHmdV4mmc00Yw+jbBP1UG2rLFAzxYrfHPFM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779196414; c=relaxed/simple;
+	bh=Uq8Uv76VoSqgu2Xxy7jY5UaQBqn/xykEQFsH3kw+DnM=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=Pl2ZDi2Vp9u6WAOnArXxDykZrH+3X5XJCz1ev0TpFfiRQJr62dm7ip1XzxN3B4cqBIb6mxkptpRYpIUnmzfJsC3kTeDwpvK9sytBEEIf24yvQ2Nf1IAq8jpDT6gTn6la851on0O+mkcrL0HVghFzNi95mRTx4nYsfWC9/xUN9EA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sImQ2+3L; arc=pass smtp.client-ip=209.85.167.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sImQ2+3L"
+Received: by mail-oi1-f178.google.com with SMTP id 5614622812f47-479d9b155deso1032926b6e.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 06:13:33 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779196412; cv=none;
+        d=google.com; s=arc-20240605;
+        b=O+8kf3UDzf5wn1FfphHk6TfK6rLXVWy3+QjOi4h7wN6PjVAc+VUJln9pjtjq30yHcG
+         TI6ekUrXkFesPkXEgls/o5k3ZPhUSqMyecaqGwthwRepxxhkiBBNqHJM6dkdMfZqwquY
+         NgoLGLdyckX3t9aYoGY4NP7pBkD1gqj5nr2PgGJBjwnAD2sUOdFKLkAAbqqQa1Xggr+W
+         XddWo/Bqx2KfhV8t+B2VMQf62dgl+VJLbm46j3pYagjXdXR7QTYyzHmjtqWQ/56pC9on
+         WalKxCrK1AeRmiBSQfmJ0vW5F9IhI94kObGq+d1ugC5iqwffMHkpYVCoAcaxFd5w3rrs
+         FAQQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=Uq8Uv76VoSqgu2Xxy7jY5UaQBqn/xykEQFsH3kw+DnM=;
+        fh=+xku+NwDVD9G+O5tNrwkR++oEpvVqdeDnU9pkd2HbEs=;
+        b=TXpczRHSPmBDWSLPAd+OtOFc0gJ33RyT0SZg5j05d5aGkOsmVlIJy+avwkk6yK8oKW
+         MmHVn4schnVrQqZsz5Zoqq4Pa0fjI1vHHL5Ab8TLMgz9yFO5ZNsQfNyfoTbm9VBKbrXB
+         7gBO72XSRaQturcVxy/PC5+hbWm0Z901sNr3j6F36Pw/baSgxqQUSXhZpb8ifL45mPkE
+         yGdflYuiCgtcQof5DWn/zYDWiqHMJyTIKIVMFoANr3MtRoDf6sQOKIsUYGUarpHUzjTO
+         vmM2EeBw+nA1mSLxUylgRTmq1WYHLhzjlZ+nxyq2LDshvU5XW+qLaMBFcXHB6X7BWNpg
+         7rNg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779196412; x=1779801212; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=Uq8Uv76VoSqgu2Xxy7jY5UaQBqn/xykEQFsH3kw+DnM=;
+        b=sImQ2+3LBj4tN1tLtKeZtlLXXtH+gIo1drsLy3GRBRyqeKCK4VYKElxx/7fqMdTJ51
+         zxIUzHjWqDb7Ot3X07lNj2Ve3Afz5WzJLn+Cyh8Fw0N7UFJZHEI78xx+rCwydrpDNck2
+         UOFTkeTqyn4z/UPJd5m0Ho+WZlfEHQhpl+qKW4j6XjY3y31heZmg9C4op2Oe73rxeKkS
+         3WsPOOiCY28KVTDOU+tHQ8W/DU3bJlQPIE6D7CuCX9ijIjB8Ra4t1hodY4y8oaRbTybn
+         q9y5yAaW5s3XySmwNDBd1hWzMzrKsVEeSnhenI8QNuDSFS2rLHV74hU86kWN0+roZpth
+         9kBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779191792; x=1779796592;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=P1p6VfNC57KjkmyCN/S20TDWRsKpJFRMJHYp7VVD08s=;
-        b=LrL14E+DmQ3DhnWyOcxSprGd2r60dwzJXBTDgP2Rq5yPPXVLRmC+YVthdrx4OHFwEI
-         Cn+vXrLimHBiz7CiA2siO8fPOcNQpnEsVMHa5A0j64PeucN+tDfaDZjZCZ81ZE39Wc/W
-         FBVUASrWXYEoL1X1bglbG2jKdSexeYbVuLo+B6U6/2R88s38rSe6Zj5fVv7bwkkHoyhk
-         vjFuQeWV9BLEItE36IQ1pjcoXDU6uJo7VSmnk0fBvQOGniSMb2U3D7lC3lVRJW58mLri
-         lgWDtKAOtUNcfAS+ye76YLaRA9oG8eqH56ZGrarQr4JMhrvY68x0eYc+btPHINk7Zm63
-         VLOQ==
-X-Forwarded-Encrypted: i=1; AFNElJ+vXVLAvWUtn316QClNTJAPhXBt/EeC2ckyja2q9vY5oqXBtJXkv+osyrTLAtU892xQCN3fGWRUT49Ga8p+t78=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyyQMPVi4kFbhyFn4KLc400dBJ2/N81ou4M0SpZGMQTy++2cVR7
-	/NuWDXb7KvkZWxnUUyG2FR/PVE/uMUjZaoJCoc7pUqsVtOSTv6xtQjsL2LZIFqVu1mfm5Zs/S3r
-	s5oZ3tJ3IihBc3MFhe2im8XIGQ1ndQFJhtJCvym4oOGnooCBfSECbFRraCQc=
+        d=1e100.net; s=20251104; t=1779196412; x=1779801212;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Uq8Uv76VoSqgu2Xxy7jY5UaQBqn/xykEQFsH3kw+DnM=;
+        b=BOBlrn/DW1d0fM7ogNohxBoReFJ82D6yc0Gx/t6z8oo7/jTCnzAZW/4dkdnePZBJ4w
+         liCpuOeCOQWbvaaz5DSeMK+f8Zg84ay5LLB+sg80Kk+hRXfD5LjyFM+HH4m8OpcxxrgR
+         DrcUG2GUt7nKebJduBSz/GKaXDjFLm1x5D6gsd7nxZ60pzRq2fUVWYBDdvXkdrnNwMTV
+         l8qSBM+ZfTHrCFiLL6SXrqgmDhqjQFmakZ60wqVzmft1VWlSSG2m2FLMmdDjUDVWpPad
+         DkCCGkgUZ++WQlXq4L0zHqO3vXY5J/AgNdMJxxJIyF+0q4d1KyjU0DBg1UOfTdcA3cGf
+         lnJA==
+X-Gm-Message-State: AOJu0YzJw1tcobRO/imfppdc5y/16i14ZjDLtuDlgc5TwZxR7i/hddHq
+	LMEZSjqTtT5MpQ+Js9ULrJLM1CubXxVz8qyoVcFzcOFfeNCkiFYnhsE2oRycJZvFwxhSWCzZRQv
+	0JJy3DQRlgGjGsgnzY6jJGWyloVsbFE0TICoR+C8=
+X-Gm-Gg: Acq92OEtZwcaygiM94hyEpAhkgQe6tBqqKFURIaEno+E1dua3ifpJghSqGB8bRRN2VQ
+	zehAYO8LCMf95T50ekE9tiiwq/HgtAEN1l5KJ9gR09yxSyaocrrhxDdmweamk2VBCFRxurJ1VWJ
+	hhogJJBNgTfr9CJvfcXn6qFYsjzKaFM4iQUhgI7gsDfHB40hFqre91XuvqLn9yXsYwYN4qxeouQ
+	+pSZvtrYdDPmkmCoVBQRlRVbftzvS53W20dIPZPEZhfi0KOHi8goGUVW7XNu9VNBQMrSs75EbVo
+	9hbrLw==
+X-Received: by 2002:a05:6808:124e:b0:479:ac7d:6da8 with SMTP id
+ 5614622812f47-482e56310e9mr11580479b6e.18.1779196412539; Tue, 19 May 2026
+ 06:13:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a4a:e916:0:b0:68a:116a:a5e5 with SMTP id
- 006d021491bc7-69c9bfb0957mr12376940eaf.44.1779191791837; Tue, 19 May 2026
- 04:56:31 -0700 (PDT)
-Date: Tue, 19 May 2026 04:56:31 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a0c4fef.170a0220.25463a.022e.GAE@google.com>
-Subject: [syzbot] [netfilter?] BUG: using smp_processor_id() in preemptible
- code in cpu_mt
-From: syzbot <syzbot+690d3e3ffa7335ac10eb@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
+From: Federico Brasili <federico.brasili@gmail.com>
+Date: Tue, 19 May 2026 15:13:22 +0200
+X-Gm-Features: AVHnY4K2s5mNKsvcTMCldiaF7FozFvwcgzBTCP_F_3U_m1StpUhvC6KUAc_DFjo
+Message-ID: <CAAEr8jbV+e5SM_GZqqbiV0zwoA5EH=eH_L+8Lg0w5RPmBPeekA@mail.gmail.com>
+Subject: [net] AF_PACKET PACKET_VNET_HDR CHECKSUM_PARTIAL packets bypass ct
+ invalid classification
+To: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, 
+	"willemdebruijn.kernel@gmail.com" <willemdebruijn.kernel@gmail.com>, davem@davemloft.net, 
+	"edumazet@google.com" <edumazet@google.com>, kuba@kernel.org, 
+	"pabeni@redhat.com" <pabeni@redhat.com>, "fw@strlen.de" <fw@strlen.de>, 
+	"pablo@netfilter.org" <pablo@netfilter.org>
 Content-Type: text/plain; charset="UTF-8"
 
 Hello,
 
-syzbot found the following issue on:
+I would like to ask for feedback on a possible checksum/conntrack
+inconsistency in the AF_PACKET PACKET_VNET_HDR transmit path.
 
-HEAD commit:    50d00ea66086 Merge branch 'bpf-follow-up-fixes-for-stack-a..
-git tree:       bpf-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=17f258c8580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4caf64b1ee83dac0
-dashboard link: https://syzkaller.appspot.com/bug?extid=690d3e3ffa7335ac10eb
-compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+A locally injected IPv4/UDP packet with an invalid raw UDP checksum is
+classified as ct state invalid when sent as a normal AF_PACKET raw
+frame. However, an otherwise equivalent packet sent through AF_PACKET
+with PACKET_VNET_HDR and VIRTIO_NET_HDR_F_NEEDS_CSUM is not classified
+as invalid and is delivered to a UDP socket, even though packet
+sockets still observe the UDP checksum field unchanged and report
+CSUMNOTREADY.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+Minimal behavior observed:
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/dbc6ccaf15bc/disk-50d00ea6.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/9160c9066e5c/vmlinux-50d00ea6.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/b6f1c3abffde/bzImage-50d00ea6.xz
+RAW_BAD
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+690d3e3ffa7335ac10eb@syzkaller.appspotmail.com
+AF_PACKET raw frame
+UDP checksum field: 0x1111
 
-BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1377/11941
-caller is cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
-CPU: 1 UID: 0 PID: 11941 Comm: syz.3.1377 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/18/2026
-Call Trace:
- <TASK>
- dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
- check_preemption_disabled+0xd3/0xe0 lib/smp_processor_id.c:47
- cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
- __nft_match_eval net/netfilter/nft_compat.c:412 [inline]
- nft_match_eval+0x1ad/0x2b0 net/netfilter/nft_compat.c:442
- expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
- nft_do_chain+0x48d/0x1ae0 net/netfilter/nf_tables_core.c:285
- nft_do_chain_inet+0x360/0x4b0 net/netfilter/nft_chain_filter.c:162
- nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
- nf_hook_slow+0xc5/0x220 net/netfilter/core.c:619
- nf_hook+0x22a/0x3a0 include/linux/netfilter.h:273
- NF_HOOK_COND include/linux/netfilter.h:306 [inline]
- ip_output+0x269/0x450 net/ipv4/ip_output.c:438
- __ip_queue_xmit+0x116a/0x1bb0 net/ipv4/ip_output.c:534
- sctp_packet_transmit+0x246f/0x2ac0 net/sctp/output.c:653
- sctp_packet_singleton+0x234/0x340 net/sctp/outqueue.c:783
- sctp_outq_flush_ctrl net/sctp/outqueue.c:914 [inline]
- sctp_outq_flush+0x50d/0x31b0 net/sctp/outqueue.c:1212
- sctp_cmd_interpreter net/sctp/sm_sideeffect.c:-1 [inline]
- sctp_side_effects net/sctp/sm_sideeffect.c:1204 [inline]
- sctp_do_sm+0x54c7/0x5cf0 net/sctp/sm_sideeffect.c:1175
- sctp_primitive_ASSOCIATE+0x95/0xc0 net/sctp/primitive.c:73
- sctp_sendmsg_to_asoc+0x143d/0x1900 net/sctp/socket.c:1840
- sctp_sendmsg+0x1b3d/0x2c10 net/sctp/socket.c:2030
- sock_sendmsg_nosec net/socket.c:787 [inline]
- __sock_sendmsg net/socket.c:802 [inline]
- ____sys_sendmsg+0x80a/0x9f0 net/socket.c:2698
- ___sys_sendmsg+0x2a5/0x360 net/socket.c:2752
- __sys_sendmsg net/socket.c:2784 [inline]
- __do_sys_sendmsg net/socket.c:2789 [inline]
- __se_sys_sendmsg net/socket.c:2787 [inline]
- __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2787
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x15f/0xf80 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7ff6e519ce59
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ff6e33f6028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007ff6e5415fa0 RCX: 00007ff6e519ce59
-RDX: 00000000000480d1 RSI: 0000200000000140 RDI: 0000000000000003
-RBP: 00007ff6e5232d6f R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007ff6e5416038 R14: 00007ff6e5415fa0 R15: 00007ffdfe9dd548
- </TASK>
+nft:
+ct state invalid counter packets 1 drop
+udp dport 12345 counter packets 0 accept
 
+UDP socket:
+no packet received
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+VNET_BAD
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+AF_PACKET + PACKET_VNET_HDR
+VIRTIO_NET_HDR_F_NEEDS_CSUM
+csum_start = 34
+csum_offset = 6
+UDP checksum field: 0x1111
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+packet socket:
+PACKET_AUXDATA reports CSUMNOTREADY
+UDP header still contains checksum 0x1111
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+nft:
+ct state invalid counter packets 0 drop
+udp dport 12345 counter packets 1 accept
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+UDP socket:
+packet received
 
-If you want to undo deduplication, reply with:
-#syz undup
+A trace of the VNET case shows the packet being converted to
+CHECKSUM_PARTIAL and reaching conntrack/UDP in that state:
+
+skb_partial_csum_set(... arg_start=34 arg_off=6) = 1
+XMIT ip_summed=3 csum_start=36 csum_offset=6
+NF_CT_UDP ip_summed=3 csum_start=36 csum_offset=6
+UDP_RCV ip_summed=3 csum_start=36 csum_offset=6
+UDP_QUEUE ip_summed=3 csum_start=36 csum_offset=6
+
+The relevant path appears to be:
+
+net/packet/af_packet.c
+packet_snd()
+tpacket_snd()
+__packet_snd_vnet_parse()
+virtio_net_hdr_to_skb()
+
+include/linux/virtio_net.h
+__virtio_net_hdr_to_skb()
+skb_partial_csum_set()
+
+The same behavior was also reproduced through PACKET_TX_RING + PACKET_VNET_HDR.
+
+An explicit nftables rule such as udp dport 12345 drop still works
+correctly, so this is not a general firewall bypass. The observed
+difference is specifically around checksum-invalid classification: raw
+invalid packets are treated as ct state invalid, while
+PACKET_VNET_HDR/NEEDS_CSUM packets with the same invalid raw checksum
+are not.
+
+My question is whether this is considered intended behavior for
+locally injected CHECKSUM_PARTIAL skbs, or whether AF_PACKET should
+reject or normalize this case before the packet reaches conntrack/UDP.
+
+I can provide the minimal reproducer and full logs privately if useful.
+
+Tested on:
+
+Linux 6.19.14+kali-amd64 x86_64
+
+Thanks,
+Federico
