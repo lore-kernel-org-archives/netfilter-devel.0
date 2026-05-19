@@ -1,33 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF2FA3B7777
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 20:00:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF152E7F2C
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 20:23:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779220861; cv=none; b=SSkX1gTTLnevG9coQ4tBYVad2gRZaOovxt6Sm9TvWBix7KPxKo/YlVSlflF2myvQEu1VlVCPQYkq+P/asoMwbzQsMHtfYg/MHVZkOXGtWvU3QLEpTVwfYfAUqW7iskcPYK3dyMa/VLvZd0zhqDNjjUE2ihYXYzwe/kgTktqhJCo=
+	t=1779222197; cv=none; b=j/QZbVkdHueTCTvty/8yMq19bHZCkpvb53DM2xLsXc47rV93KKEHCj4xDewS7Cxfbtfg+MnNKyShpaLjv+nMI/r/Py6SEUXDilRhxRGBAhXTKpHWo1yT4ap9IQvfVotjC6oDpGimKrUIG5bkRQnZYgCsT7R8Mpdj0s6sg4J7pcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779220861; c=relaxed/simple;
-	bh=YRzpkJK2vF5bdAnERuvJ1FcmRBx48zxt4jXB+yd6jrE=;
+	s=arc-20240116; t=1779222197; c=relaxed/simple;
+	bh=+aL2DimomLB2cj+NryjDRPjJeD6zzlNX6i39DuBGIJM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OwvsjFKLrmlzvyzOSs8H0TtZXDD6wrce61W8Cv1nUY51TK56CWu1cL7MEvIKyH8+6MQ/NRcv4a1eKoemXW2gQaneyg2il3hG+kt1sFF7X0TScXO9uC7dj1WfISheXPg5gkU+sw+HirSFhs238cxfl18JD/DMl6Jdt45DVSlo8k0=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Bdb18JFF0nbF/kZ3UGW9jtS5jwfCgaqX2or7pxBMllGOjHKicC0q3Sp9Vj3oo9O3o696KgTnt3mzAC65BLzWpNAaYPJLqsh+f4oxvIYeiyjiiTxQF/dQ2FqTmHb7hSRkiClRLDk1yAg1oXd2biTadz2oJI5MxWEPMdo7CxcGUgM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DF4FB607BD; Tue, 19 May 2026 22:00:57 +0200 (CEST)
-Date: Tue, 19 May 2026 22:00:57 +0200
+	id 95D36607BD; Tue, 19 May 2026 22:23:13 +0200 (CEST)
+Date: Tue, 19 May 2026 22:23:13 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: =?iso-8859-1?Q?=C0lex_Fern=E1ndez?= <tomaquet18@protonmail.com>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v4] netfilter: conntrack: fix integer overflow in
- expectation timeout
-Message-ID: <agzBef_OUFnMo8Pv@strlen.de>
-References: <20260504112300.715192-1-tomaquet18@protonmail.com>
- <agy8JBZYvx54GYfL@strlen.de>
- <agzAFhNpiYNcBeZ5@chamomile>
- <agzAlQb36seb2Rhr@chamomile>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
+	pablo@netfilter.org,
+	Alejandro Olivan Alvarez <alejandro.olivan.alvarez@gmail.com>
+Subject: Re: [PATCH nf v2] netfilter: nf_conncount: prevent connlimit drops
+ for early confirmed ct
+Message-ID: <agzGsaehgIuc0vIT@strlen.de>
+References: <20260514141628.4636-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -36,12 +34,32 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <agzAlQb36seb2Rhr@chamomile>
+In-Reply-To: <20260514141628.4636-1-fmancera@suse.de>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I think this is just a cleanup / nf-next material?
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> Commit 69894e5b4c5e ("netfilter: nft_connlimit: update the count if add
+> was skipped") introduced a regression where packets for valid
+> connections are dropped when using connlimit for soft-limiting
+> scenarios.
 > 
-> But this can also go through nf.git for correctness, we can just
-> describe in the PR the effect of this bug.
+> The issue occurs when a new connection reuses a socket currently in
+> the TIME_WAIT state. In this scenario, the connection tracking entry
+> is evaluated as already confirmed. Previously, __nf_conncount_add()
+> assumed that if a connection was confirmed and did not originate from
+> the loopback interface, it should skip the addition and return -EEXIST.
+> 
+> Skipping the addition triggers a garbage collection run that cleans up
+> the TIME_WAIT connection. Consequently, the active connection count
+> drops to 0, which xt_connlimit mishandles, leading to the false rejection
+> of the perfectly valid new connection.
 
-Yes, its low risk change to clamp this, it can go via nf too.
+What do you make of https://sashiko.dev/#/patchset/20260514141628.4636-1-fmancera%40suse.de
+
+Is there a way to handle this with a different solution?
+I don't see a good solution.   What about making
+__nf_conncount_gc_list() return the number of removed elements and allow
+a single re-add attempt if we released some entries?
+
+(Note that I don't think that conncount with unidirectional traffic
+ is a sensible thing to configure, but I can't say "not supported"
+ either...)
