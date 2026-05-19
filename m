@@ -1,65 +1,90 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF152E7F2C
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 20:23:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB40A3DCD94;
+	Tue, 19 May 2026 21:10:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779222197; cv=none; b=j/QZbVkdHueTCTvty/8yMq19bHZCkpvb53DM2xLsXc47rV93KKEHCj4xDewS7Cxfbtfg+MnNKyShpaLjv+nMI/r/Py6SEUXDilRhxRGBAhXTKpHWo1yT4ap9IQvfVotjC6oDpGimKrUIG5bkRQnZYgCsT7R8Mpdj0s6sg4J7pcQ=
+	t=1779225035; cv=none; b=UuZ24K1VVSkMAOesQRlgLsHXZIRMpK7+FTxT/FTJRqxssQDPZUY3d9ftBWhZSYDKoCFRadwRKCtFDlNHzupmKRVTM6SOJw0RvqcEH0B5tvQg1PAVr826ZarSU4VkhYnereAO1qvP0DenfmAIp9b0r9TvCkKPfLlUE4FkFLlsTrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779222197; c=relaxed/simple;
-	bh=+aL2DimomLB2cj+NryjDRPjJeD6zzlNX6i39DuBGIJM=;
+	s=arc-20240116; t=1779225035; c=relaxed/simple;
+	bh=nzEGScfWNf0R2M0QS4gGZ1kxLs/u77Kd3Kz4ZIK5NSg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Bdb18JFF0nbF/kZ3UGW9jtS5jwfCgaqX2or7pxBMllGOjHKicC0q3Sp9Vj3oo9O3o696KgTnt3mzAC65BLzWpNAaYPJLqsh+f4oxvIYeiyjiiTxQF/dQ2FqTmHb7hSRkiClRLDk1yAg1oXd2biTadz2oJI5MxWEPMdo7CxcGUgM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 95D36607BD; Tue, 19 May 2026 22:23:13 +0200 (CEST)
-Date: Tue, 19 May 2026 22:23:13 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
-	pablo@netfilter.org,
-	Alejandro Olivan Alvarez <alejandro.olivan.alvarez@gmail.com>
-Subject: Re: [PATCH nf v2] netfilter: nf_conncount: prevent connlimit drops
- for early confirmed ct
-Message-ID: <agzGsaehgIuc0vIT@strlen.de>
-References: <20260514141628.4636-1-fmancera@suse.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=hhbjCpn+KFdGG1B/ZFntk4VCablmNmXn4FP26DBtIt6/f3YMxk0vDMdAioDYVeEyDa2bfe22Z+T9OfR1KD3SkB/gI6MKY9485ATjOzMZLNuiumDhMI8KBWS/j+aLpan93JX3e1/UCe1G9DyM+atf1WIdqD5cRpNBQaVjW0FjUdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XD7PwdoF; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XD7PwdoF"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5AD9E601B3;
+	Tue, 19 May 2026 23:10:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1779225031;
+	bh=OUTzr1IFS2bDUk5iMxsxfp+LOZ9OTmDj5OSUK0QK+RA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=XD7PwdoFOtKp9ObW+xW/lbVcSG3WptJoejPk1vFSRaH1YKyV4Elvg77LDom6TTlSL
+	 2p6eogVcCoSxuabBwt0cnhN8EZ//Br5PBr/Qv9mBqVZFS4fV17B17ryL9VPK11zv7/
+	 d+4vPlq19jWfQh2VI1VkTrf+BOnxTe/TtskfOM8HmRO0nd2yCyWsbJj0FwJk/cRg4H
+	 Yss3aa6I7yRS56nUFLEJSuboAT/0KB6P/xc3h4E7jxVxgJ3WLCZtjlli7DKIjT5A6P
+	 IUsApR61lQOmKWreLhTz+lHkjmVq9lCF63koHtwoNbHChI3iD+1OLj6xpMsNsuBtYG
+	 KVkRLRR3jGlQA==
+Date: Tue, 19 May 2026 23:10:27 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+	fw@strlen.de, horms@kernel.org
+Subject: Re: [PATCH net 12/12] netfilter: nf_queue: hold bridge skb->dev
+ while queued
+Message-ID: <agzRw16rOjemQX7H@chamomile>
+References: <20260516115627.967773-1-pablo@netfilter.org>
+ <20260516115627.967773-13-pablo@netfilter.org>
+ <20260518170150.06a575c3@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260514141628.4636-1-fmancera@suse.de>
+In-Reply-To: <20260518170150.06a575c3@kernel.org>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> Commit 69894e5b4c5e ("netfilter: nft_connlimit: update the count if add
-> was skipped") introduced a regression where packets for valid
-> connections are dropped when using connlimit for soft-limiting
-> scenarios.
+On Mon, May 18, 2026 at 05:01:50PM -0700, Jakub Kicinski wrote:
+> On Sat, 16 May 2026 13:56:27 +0200 Pablo Neira Ayuso wrote:
+> > diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+> > index d17035d14d96..3978c3174cdb 100644
+> > --- a/include/net/netfilter/nf_queue.h
+> > +++ b/include/net/netfilter/nf_queue.h
+> > @@ -14,6 +14,7 @@ struct nf_queue_entry {
+> >  	struct list_head	list;
+> >  	struct rhash_head	hash_node;
+> >  	struct sk_buff		*skb;
+> > +	struct net_device	*skb_dev;
+> >  	unsigned int		id;
+> >  	unsigned int		hook_index;	/* index in hook_entries->hook[] */
+> >  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+> > diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+> > index a6c81c04b3a5..57b450024a99 100644
+> > --- a/net/netfilter/nf_queue.c
+> > +++ b/net/netfilter/nf_queue.c
+> > @@ -61,6 +61,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+> >  	struct nf_hook_state *state = &entry->state;
+> >  
+> >  	/* Release those devices we held, or Alexey will kill me. */
+> > +	dev_put(entry->skb_dev);
+> >  	dev_put(state->in);
+> >  	dev_put(state->out);
+> >  	if (state->sk)
+> > @@ -102,6 +103,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+> >  	if (state->sk && !refcount_inc_not_zero(&state->sk->sk_refcnt))
+> >  		return false;
+> >  
+> > +	dev_hold(entry->skb_dev);
+> >  	dev_hold(state->in);
+> >  	dev_hold(state->out);
 > 
-> The issue occurs when a new connection reuses a socket currently in
-> the TIME_WAIT state. In this scenario, the connection tracking entry
-> is evaluated as already confirmed. Previously, __nf_conncount_add()
-> assumed that if a connection was confirmed and did not originate from
-> the loopback interface, it should skip the addition and return -EEXIST.
-> 
-> Skipping the addition triggers a garbage collection run that cleans up
-> the TIME_WAIT connection. Consequently, the active connection count
-> drops to 0, which xt_connlimit mishandles, leading to the false rejection
-> of the perfectly valid new connection.
+> Please follow up and add a ref tracker to this?
 
-What do you make of https://sashiko.dev/#/patchset/20260514141628.4636-1-fmancera%40suse.de
-
-Is there a way to handle this with a different solution?
-I don't see a good solution.   What about making
-__nf_conncount_gc_list() return the number of removed elements and allow
-a single re-add attempt if we released some entries?
-
-(Note that I don't think that conncount with unidirectional traffic
- is a sensible thing to configure, but I can't say "not supported"
- either...)
+I'll do net-next.
