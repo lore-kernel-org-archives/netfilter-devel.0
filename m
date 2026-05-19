@@ -1,269 +1,151 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 328263E16A0
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 08:32:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18D2D4A3414
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 10:14:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779179566; cv=none; b=BQRQJl//12EJ+zP3XNQoQHqEHfuUeHYk5ttiN80WsdgoObWGm7PpZCbW+Os25bA63i5bLemUPZHSCkSz5DaC6/fmsNctGfIrufKdSMwkCApF0Pp/BcqxS/dkT1ERbiWWtujKmPYOmHAskS0qLSS4LIroYrxjcPzD0WEQReRBwvw=
+	t=1779185700; cv=none; b=EkA3gmybd46QZFT4eXHlRpDQ4rOsuFZV1nGSDht5a6QJKrEU98SwcrHbcjOuWcYP7HV/W9r4mYGBjxgq2gt6pjn6d2TznzO8GX11VySl+Vj4QdhNJVJPtal2uRT2qETFEudlwrOJpwIKzRNVrMUfa7S+9/qgc6aXsbbwb7EEFC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779179566; c=relaxed/simple;
-	bh=drigChV9NqbmZq9fn16RO0iAR5QRrRPAhHZqYfMTN/g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DGypSG6hawJ7Dr/N8HqU7DJC3bfvJxUhzAQ7CqHlGz4iPbhJ2A4zOuXZToP1tbEh9YvSe/KIlxT10H5NAYIO3fPJIt66MC66tXbXF88dNvwqrBcDI2mPZ9LOKCHUfENYbyrs2uq5Gk3wf6KpqmpM9u53N+7wFXze548wa+8/D28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E90DE607D6; Tue, 19 May 2026 10:32:41 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Leo Lin <leo@depthfirst.com>
-Subject: [PATCH v2 nf] netfilter: nf_conntrack_gre: fix gre keymap list corruption
-Date: Tue, 19 May 2026 10:21:17 +0200
-Message-ID: <20260519082120.28105-1-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
+	s=arc-20240116; t=1779185700; c=relaxed/simple;
+	bh=+Ulq5kotu4YjPQa+cSDp9INvJptf/8PpJUT534dOXMQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nDBasqIH4xIiZdD8/ylTSGs1hYCbgZLSY16KXqTRN9EX2kQrvdKjIuAPtjdqQXUzYeOydhO/ui3BWRP6CUCu952ov5AdXqdYxhYkh5zU+XfX0rNXNC6UB2aln7Fz61e75ku5yabBn8FnxSIWpVyozY6TagVSGmBkM3/3urIySdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aWvumt3X; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aWvumt3X"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=QbeBcQxaGVT+gaUw55LHC+dBRXk8/G3rbnzGHqZONe0=; b=aWvumt3Xgbd03S5DuMAFlQM3fG
+	iwcNS3/5fa0IkOWGLA2yrrih1HkPCNojSKfDwHEnoR9xYDRIIJ5A4GHhcBiKQ9ZjzVuRMhPcTdi2c
+	gOusvNjjUT+6FseKQ5rBbt1PqGE+Jfjf7cQNOAv6JZ5oeXa5iGo6Z2ryiPk8icU8e54DYDlpiVtVI
+	AkE0jlq76GdP8h2RFGliG+xu4+nDtcPEMwnh2lHZdf+MdhSvDMBmDQA+KrfRD+qmP7CuwaUvVMHby
+	9GB1QBHhH3Q0lHCEGZuQelqDmP4iQj7AAXcUQjYhbJGygCm0SxVrZp1ESvJlIvFgeaPLZR0UDe15e
+	3WwnFh0w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wPHN4-000000005WH-00Al;
+	Tue, 19 May 2026 12:08:18 +0200
+Date: Tue, 19 May 2026 12:08:17 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+	coreteam@netfilter.org
+Subject: Re: [PATCH nf 1/2] netfilter: nft_fib_ipv6: handle routes via
+ external nexthop
+Message-ID: <agw2kQHigTsMoJKt@orbyte.nwl.cc>
+References: <20260519041431.396218-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260519041431.396218-1-jiayuan.chen@linux.dev>
 
-Quoting reporter:
-  A race between GRE keymap insertion and destruction can corrupt the
-  kernel list or use a freed object. `nf_ct_gre_keymap_add()` publishes a
-  new keymap pointer before the embedded `list_head` is linked, while
-  `nf_ct_gre_keymap_destroy()` can concurrently delete and free that
-  same object. An unprivileged user can reach this through the PPTP
-  conntrack helper by racing PPTP control messages or helper teardown,
-  leading to KASAN-detectable list corruption/UAF in kernel context.
+Hi,
 
- ## Root Cause Analysis
- `exp_gre()` installs GRE expectations for a PPTP control flow and then
-  adds two GRE keymap entries [..]
+On Tue, May 19, 2026 at 12:14:30PM +0800, Jiayuan Chen wrote:
+> fib6_info has a union:
+> 
+>     union {
+>         struct list_head fib6_siblings;
+>         struct list_head nh_list;
+>     };
+> 
+> Old-style multipath (ip -6 route add ... nexthop ... nexthop ...) uses
+> fib6_siblings.  External nexthop (ip -6 route add ... nhid N) uses
+> nh_list, linked into &nh->f6i_list.
+> 
+> nft_fib6_info_nh_uses_dev() blindly walks &rt->fib6_siblings, causing
+> an OOB read past the struct nexthop slab when rt->nh is set:
+> 
+>   ==================================================================
+>   BUG: KASAN: slab-out-of-bounds in nft_fib6_eval+0x1362/0x16c0
+>   Read of size 8 at addr ffff888103a099d0 by task ping/386
+> 
+>   CPU: 2 UID: 0 PID: 386 Comm: ping Not tainted 7.1.0-rc3+ #251 PREEMPT
+>   Call Trace:
+>    <IRQ>
+>    dump_stack_lvl+0x76/0xa0
+>    print_report+0xd1/0x5f0
+>    kasan_report+0xe7/0x130
+>    __asan_report_load8_noabort+0x14/0x30
+>    nft_fib6_eval+0x1362/0x16c0
+>    nft_do_chain+0x279/0x18c0
+>    nft_do_chain_ipv6+0x1a8/0x230
+>    nf_hook_slow+0xad/0x200
+>    ipv6_rcv+0x152/0x380
+>    __netif_receive_skb_one_core+0x118/0x1c0
+>   ==================================================================
+> 
+> Branch by route shape: when rt->nh is set, walk via
+> nexthop_for_each_fib6_nh() (also covers nh groups, which the original
+> code missed); otherwise walk fib6_siblings, guarded by fib6_nsiblings.
+> 
+> Fixes: 1c32b24c234b ("netfilter: nft_fib_ipv6: switch to fib6_lookup")
+> Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+> ---
+>  net/ipv6/netfilter/nft_fib_ipv6.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+> index 8b2dba88ee96..a44919f46de9 100644
+> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
+> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+> @@ -160,16 +160,32 @@ static bool nft_fib6_info_nh_dev_match(const struct net_device *nh_dev,
+>  	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
+>  }
+>  
+> +static int nft_fib6_nh_match_dev_cb(struct fib6_nh *nh, void *arg)
+> +{
+> +	const struct net_device *dev = arg;
+> +
+> +	return nft_fib6_info_nh_dev_match(nh->fib_nh_dev, dev) ? 1 : 0;
 
- The add path publishes `ct_pptp_info->keymap[dir]` before linking the
- embedded list node [..]
- Concurrent teardown deletes that partially initialized object.
+Why the ternary here? The function returns bool, but the iterator merely
+checks the value for 0 and caller returns the value as bool as well.
 
-Make add/destroy symmetric: install both, destroy both while under lock.
+> +}
+> +
+>  static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
+>  				      const struct net_device *dev)
+>  {
+>  	const struct net_device *nh_dev;
+>  	struct fib6_info *iter;
+>  
+> +	/* External nexthop: fib6_siblings slot aliases nh_list, walk via nh. */
+> +	if (rt->nh)
+> +		return nexthop_for_each_fib6_nh(rt->nh,
+> +						nft_fib6_nh_match_dev_cb,
+> +						(void *)dev) != 0;
 
-Furthermore, we should refuse to publish a new mapping in case ct is going
-away, else we may leak the allocation.
+As above, the '!= 0' is not needed, is it?
 
-The "retrans" detection is strange:  existing mapping is checked for key
-equality with the new mapping, then for "is on the list" via list walk.
+> +
+>  	nh_dev = fib6_info_nh_dev(rt);
+>  	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
+>  		return true;
+>  
+> +	if (!rt->fib6_nsiblings)
 
-But I can't see how an existing keymap entry can be NOT on list.
+Should this access using READ_ONCE() as per commit 31d7d67ba127 ("ipv6:
+annotate data-races around rt->fib6_nsiblings")?
 
-Change this to only check if we're asked to map same tuple again -- if so,
-   skip re-install, else signal failure.
+> +		return false;
+> +
+>  	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
+>  		nh_dev = fib6_info_nh_dev(iter);
 
-Last, add a bug trap for the keymap list; it has to be empty when namespace
-is going away.
+I thought about open-coding this to void the need for the callback
+wrapper, but it's not worth it.
 
-Reported-by: Leo Lin <leo@depthfirst.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../linux/netfilter/nf_conntrack_proto_gre.h  |   7 +-
- net/netfilter/nf_conntrack_core.c             |   8 ++
- net/netfilter/nf_conntrack_pptp.c             |   8 +-
- net/netfilter/nf_conntrack_proto_gre.c        | 106 +++++++++++++-----
- 4 files changed, 95 insertions(+), 34 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
-index 9ee7014400e8..ad5563f0f864 100644
---- a/include/linux/netfilter/nf_conntrack_proto_gre.h
-+++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
-@@ -18,9 +18,10 @@ struct nf_ct_gre_keymap {
- 	struct rcu_head rcu;
- };
- 
--/* add new tuple->key_reply pair to keymap */
--int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
--			 struct nf_conntrack_tuple *t);
-+/* add tuple->key_reply pairs to keymap */
-+bool nf_ct_gre_keymap_add(struct nf_conn *ct,
-+			  const struct nf_conntrack_tuple *orig,
-+			  const struct nf_conntrack_tuple *repl);
- 
- /* delete keymap entries */
- void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8ba5b22a1eef..b521b5ebd664 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -568,6 +568,13 @@ static void destroy_gre_conntrack(struct nf_conn *ct)
- #endif
- }
- 
-+static void warn_on_keymap_list_leak(const struct net *net)
-+{
-+#ifdef CONFIG_NF_CT_PROTO_GRE
-+	WARN_ON_ONCE(!list_empty(&net->ct.nf_ct_proto.gre.keymap_list));
-+#endif
-+}
-+
- void nf_ct_destroy(struct nf_conntrack *nfct)
- {
- 	struct nf_conn *ct = (struct nf_conn *)nfct;
-@@ -2510,6 +2517,7 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
- 	}
- 
- 	list_for_each_entry(net, net_exit_list, exit_list) {
-+		warn_on_keymap_list_leak(net);
- 		nf_conntrack_ecache_pernet_fini(net);
- 		nf_conntrack_expect_pernet_fini(net);
- 		free_percpu(net->ct.stat);
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 4c679638df06..dc23e4181618 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -225,13 +225,9 @@ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
- 	if (nf_ct_expect_related(exp_reply, 0) != 0)
- 		goto out_unexpect_orig;
- 
--	/* Add GRE keymap entries */
--	if (nf_ct_gre_keymap_add(ct, IP_CT_DIR_ORIGINAL, &exp_orig->tuple) != 0)
-+	if (!nf_ct_gre_keymap_add(ct, &exp_orig->tuple,
-+				  &exp_reply->tuple))
- 		goto out_unexpect_both;
--	if (nf_ct_gre_keymap_add(ct, IP_CT_DIR_REPLY, &exp_reply->tuple) != 0) {
--		nf_ct_gre_keymap_destroy(ct);
--		goto out_unexpect_both;
--	}
- 	ret = 0;
- 
- out_put_both:
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 94c19bc4edc5..35e22082d65a 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -87,41 +87,97 @@ static __be16 gre_keymap_lookup(struct net *net, struct nf_conntrack_tuple *t)
- 	return key;
- }
- 
--/* add a single keymap entry, associate with specified master ct */
--int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
--			 struct nf_conntrack_tuple *t)
-+enum nf_ct_gre_km_act {
-+	NF_CT_GRE_KM_NEW,
-+	NF_CT_GRE_KM_BAD,
-+	NF_CT_GRE_KM_DUP
-+};
-+
-+static enum nf_ct_gre_km_act
-+nf_ct_gre_km_acceptable(const struct nf_ct_pptp_master *ct_pptp_info,
-+			const struct nf_conntrack_tuple *orig,
-+			const struct nf_conntrack_tuple *repl)
-+{
-+	struct nf_ct_gre_keymap *km_orig, *km_repl;
-+
-+	lockdep_assert_held(&keymap_lock);
-+
-+	km_orig = ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL];
-+	km_repl = ct_pptp_info->keymap[IP_CT_DIR_REPLY];
-+
-+	if (km_orig && km_repl) {
-+		if (!gre_key_cmpfn(km_orig, orig))
-+			return NF_CT_GRE_KM_BAD;
-+
-+		if (!gre_key_cmpfn(km_repl, repl))
-+			return NF_CT_GRE_KM_BAD;
-+
-+		return NF_CT_GRE_KM_DUP;
-+	}
-+
-+	DEBUG_NET_WARN_ON_ONCE(km_orig);
-+	DEBUG_NET_WARN_ON_ONCE(km_repl);
-+	return NF_CT_GRE_KM_NEW;
-+}
-+
-+/* add keymap entries, associate with specified master ct */
-+bool nf_ct_gre_keymap_add(struct nf_conn *ct,
-+			  const struct nf_conntrack_tuple *orig,
-+			  const struct nf_conntrack_tuple *repl)
- {
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_gre_net *net_gre = gre_pernet(net);
- 	struct nf_ct_pptp_master *ct_pptp_info = nfct_help_data(ct);
--	struct nf_ct_gre_keymap **kmp, *km;
--
--	kmp = &ct_pptp_info->keymap[dir];
--	if (*kmp) {
--		/* check whether it's a retransmission */
--		list_for_each_entry_rcu(km, &net_gre->keymap_list, list) {
--			if (gre_key_cmpfn(km, t) && km == *kmp)
--				return 0;
--		}
--		pr_debug("trying to override keymap_%s for ct %p\n",
--			 dir == IP_CT_DIR_REPLY ? "reply" : "orig", ct);
--		return -EEXIST;
--	}
-+	struct nf_ct_gre_keymap *km_orig, *km_repl;
-+	bool ret = false;
- 
--	km = kmalloc_obj(*km, GFP_ATOMIC);
--	if (!km)
--		return -ENOMEM;
--	memcpy(&km->tuple, t, sizeof(*t));
--	*kmp = km;
-+	km_orig = kmalloc_obj(*km_orig, GFP_ATOMIC);
-+	if (!km_orig)
-+		return false;
-+	km_repl = kmalloc_obj(*km_repl, GFP_ATOMIC);
-+	if (!km_repl)
-+		goto km_free;
- 
--	pr_debug("adding new entry %p: ", km);
--	nf_ct_dump_tuple(&km->tuple);
-+	memcpy(&km_orig->tuple, orig, sizeof(*orig));
-+	memcpy(&km_repl->tuple, repl, sizeof(*repl));
- 
- 	spin_lock_bh(&keymap_lock);
--	list_add_tail(&km->list, &net_gre->keymap_list);
-+	if (nf_ct_is_dying(ct))
-+		goto unlock_free;
-+
-+	switch (nf_ct_gre_km_acceptable(ct_pptp_info, orig, repl)) {
-+	case NF_CT_GRE_KM_NEW:
-+		break;
-+	case NF_CT_GRE_KM_DUP:
-+		ret = true;
-+		goto unlock_free;
-+	case NF_CT_GRE_KM_BAD:
-+		pr_debug("trying to override keymap for ct %p\n", ct);
-+		goto unlock_free;
-+	}
-+
-+	if (ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL] ||
-+	    ct_pptp_info->keymap[IP_CT_DIR_REPLY])
-+		goto unlock_free;
-+
-+	pr_debug("adding new entries %p,%p: ", km_orig, km_repl);
-+	nf_ct_dump_tuple(&km_orig->tuple);
-+	nf_ct_dump_tuple(&km_repl->tuple);
-+
-+	list_add_tail_rcu(&km_orig->list, &net_gre->keymap_list);
-+	list_add_tail_rcu(&km_repl->list, &net_gre->keymap_list);
-+	ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL] = km_orig;
-+	ct_pptp_info->keymap[IP_CT_DIR_REPLY] = km_repl;
- 	spin_unlock_bh(&keymap_lock);
- 
--	return 0;
-+	return true;
-+
-+unlock_free:
-+	spin_unlock_bh(&keymap_lock);
-+km_free:
-+	kfree(km_orig);
-+	kfree(km_repl);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_ct_gre_keymap_add);
- 
--- 
-2.53.0
-
+Cheers, Phil
