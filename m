@@ -1,80 +1,40 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D6902F8E91
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 01:55:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59FE52F83A0
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 04:15:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779155726; cv=none; b=eBGpzGm3/F4thbqEueshKf+XcSSrR2TpLQePVds1obhqp59LDkMsvLld+XC+MFi/dPJY0X8QXYSKK3Dyx/BUoFdT+qGsNy2GQRGHPUNehuk+4W0szaUnX6gG3G2+TJZRxdj2F8TOrnMsyqVyW/Qg79cqTQXyG8vqbpQ6oiFHLqs=
+	t=1779164112; cv=none; b=atUcgvvAU/A1G89KAmgbWbsSRaKDaI1qQlrSmckrYP1qXgbDrqJZRvqpQzimXSx7rnTSIig/mfybSY8WK8Dy3qLQuIHoEGm7K5obFW0f+sGlJNeTwhkERFj/32bnY5/k1qeqphYKRlz89rl7x3PEdmlSWZMAWkqiIlwBjeJWumU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779155726; c=relaxed/simple;
-	bh=VLgfShC+GnqWUvnm2T1qwLmUj4i+nQ5Lf0c0ffK125E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Mu7a7rbf0Dg9rMY6Rm3Y880TGT0zNlBxYzRGLu3PSRUjoFpL4rsrm1G8csQsDVCldM1Uu9WYCIsfKW8uVD83x7LKGmsXUsHSAMezN6T4NBOrpHisBjZx4NA/5RnhDw3arPz9UYrI5VQM6B6JY9NYcb0XdD2xZcPah7J4MVVRhYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cm1O+m+Q; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779164112; c=relaxed/simple;
+	bh=FNgrQ+hsYE9VF85Psxd210pdh7mXdIU1lokqzwlj5Oo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kppVezqfWsY79JZ4PanOyxyqBH91cOlPPNv1sQkNV6bmXqYYNXr2HjOqbfMhw4HVW4TnFF6Nfwl6ues6Qpv3nPyl5xXRgHxlEkC9s3Ln3UKZY7GDypMpomeGNnxcLWS2em4etI3ZccZkxmCEeBo+dKqjxcg50hRkMydW9PCPFS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=q56bcToe; arc=none smtp.client-ip=91.218.175.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cm1O+m+Q"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2bc763e2ba8so12955715ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 May 2026 18:55:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779155724; x=1779760524; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=CrLsXHJrmnZC07Rq0XCc6PS/mOpD2keMwqnjxffoI7k=;
-        b=cm1O+m+QrGjkF/sIHe6KGD2ZTAlf/HGzAhsqpBxhlls91i/eg9CALUeBWwCFtfZJ63
-         s2WLotJq77USlrd+eAORSLOgMITKfXev8WFZsjf5KdnNZENhKzIugHGqJzD1g0yC8pfu
-         ObzMLXUU3yKt+mW+4BWqKLKWlcHyevCNx1e6ngp9WTgCKuW2awR2R4WFC0uVMFvESvF1
-         dJOA1Mz01EqRv2MckBMSdGWpfH9bykCUNNNSP60+NzaPDb8Tfh5wu6N4Lx07sNsBABG7
-         tIbZ5kaDGVHI755exmoIlmzEmE4vz5trNmdqSPbci9kfPxt7BYB836snljDq+KcRWSvb
-         Soeg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779155724; x=1779760524;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=CrLsXHJrmnZC07Rq0XCc6PS/mOpD2keMwqnjxffoI7k=;
-        b=bwSzWC87HWnxLFt3A9G6HdCziDzwW5+nRnK0aPuml5r5L/Mp2KJLXPWY4hZ+O7H9kQ
-         2teDFuiak95sV+RrUHt/vuRMnfsSZH2lltYnyd5KAn+O9/rtSnPRkEFwU/xhD1lP9PNM
-         MXR0RNilqfTeJG7IfDalJMLIc9gBFj3t+OFwDCchAax6ZbwqRNk5vUFzVDayKwUAuYtl
-         Sp0r7mGiY/6/gweeFfIYk9fqHoLC3hgRq9notnBufS868HsEd3RXUBaZH0zxnlL3IT1I
-         43VX2L/l8FjnXnTkgasfWvL3ApcKqUls08Ytx170oz6Vkfb1Pic0Z7XttGGPOthmHDaM
-         kyzg==
-X-Gm-Message-State: AOJu0YyEgCIShXiGNRCe8HZ+ig1RuNKHu3LfjBb/U6QQWR4xbuooWI7u
-	g5sLs7Yica57UC+F4DIWJ71TrsDb8AOVsmuIvWTlBooj4a+gZeFQPDi/BfVxtXxS
-X-Gm-Gg: Acq92OEmcbfWX2HfxSAq1J+kmO7OFFtuZb9jIgoPwip906ZF+vfdOqnm6NwmQDIFHhw
-	7gqtF6t6rQn7LxuijNZlr8NiFzmfwhQmMY+lj2EhI5EUlH79h1dGlqCMqKcEygbyQOAjBMQcoXX
-	k/wnpNQiHdSNBBfG3KfiZIMvL/LMf5B6nb/IfprxSMJatq1kD468MvhKzXMSa/0RUxLdRDt6dQk
-	RxJTqfBk4Hg1QzVYd66fIJVpjwK+Ur8DwXp294ED5BSmYdIiYpNd5VNsLA3KsJ6L3h3pjXmcD81
-	9uHBKzjCHH0xSjteDetNDxTKIEyRXMo60/9f5PS9QFYM3wg1Ird7n2n0vkxUIYdlVqdr0W/Wg/3
-	/POOI7jGJFW887fLkyQdgXdQHACANlp5HZJx3paf7e0Je3TfAV3C/M5LKtwBEX/YQtNJoJ6VtAz
-	G9tOSw5E34S/XIq6VdY3y/O2P1fFsZpczaUtU6bQeHV2XTuTYGeITKycJihHIqOLWkbEdK0Xa9c
-	PFTfz9cjuQ98BKyL5eVIPT6FvyOSulHI1I=
-X-Received: by 2002:a17:903:37ce:b0:2bd:a403:1d82 with SMTP id d9443c01a7336-2bda4031ef2mr126868885ad.21.1779155724515;
-        Mon, 18 May 2026 18:55:24 -0700 (PDT)
-Received: from ryzen ([2601:644:8000:5b5d:7285:c2ff:fe45:8a32])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2bd5d235e04sm169927115ad.80.2026.05.18.18.55.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2026 18:55:23 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="q56bcToe"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1779164108;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=EVc14BxSgRb/zaHj4ETqBr3ujIUUbNBwZdCyUo8e5I0=;
+	b=q56bcToe02uKr6gdSXbvVZF1grnuADQl0ZKfgf6X0/jfJw3EIUPM/3uMIY8p7Hv0KgcHpZ
+	r+VNbAg1C5RnlAvloVOmqKYpZUfGsmoiCwT9MtM+4Wj6ZoMU8OnLbnRMlgyxRYVXAcCut7
+	RH5QzANjhKhBYfWntPovILb1mr1LzEU=
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netfilter-devel@vger.kernel.org
-Cc: Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org (open list:IPVS),
-	lvs-devel@vger.kernel.org (open list:IPVS),
-	coreteam@netfilter.org (open list:NETFILTER),
-	linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] ipvs: Use flexible array for MH lookup table
-Date: Mon, 18 May 2026 18:55:06 -0700
-Message-ID: <20260519015506.634185-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.54.0
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	coreteam@netfilter.org,
+	Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: [PATCH nf 1/2] netfilter: nft_fib_ipv6: handle routes via external nexthop
+Date: Tue, 19 May 2026 12:14:30 +0800
+Message-ID: <20260519041431.396218-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,62 +42,88 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Store the Maglev hash lookup table in the scheduler state
-allocation instead of allocating it separately.
+fib6_info has a union:
 
-This keeps the lookup table tied to the RCU-freed state lifetime and
-simplifies the allocation and cleanup paths.
+    union {
+        struct list_head fib6_siblings;
+        struct list_head nh_list;
+    };
 
-Assisted-by: Codex:GPT-5.5
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
+Old-style multipath (ip -6 route add ... nexthop ... nexthop ...) uses
+fib6_siblings.  External nexthop (ip -6 route add ... nhid N) uses
+nh_list, linked into &nh->f6i_list.
+
+nft_fib6_info_nh_uses_dev() blindly walks &rt->fib6_siblings, causing
+an OOB read past the struct nexthop slab when rt->nh is set:
+
+  ==================================================================
+  BUG: KASAN: slab-out-of-bounds in nft_fib6_eval+0x1362/0x16c0
+  Read of size 8 at addr ffff888103a099d0 by task ping/386
+
+  CPU: 2 UID: 0 PID: 386 Comm: ping Not tainted 7.1.0-rc3+ #251 PREEMPT
+  Call Trace:
+   <IRQ>
+   dump_stack_lvl+0x76/0xa0
+   print_report+0xd1/0x5f0
+   kasan_report+0xe7/0x130
+   __asan_report_load8_noabort+0x14/0x30
+   nft_fib6_eval+0x1362/0x16c0
+   nft_do_chain+0x279/0x18c0
+   nft_do_chain_ipv6+0x1a8/0x230
+   nf_hook_slow+0xad/0x200
+   ipv6_rcv+0x152/0x380
+   __netif_receive_skb_one_core+0x118/0x1c0
+  ==================================================================
+
+Branch by route shape: when rt->nh is set, walk via
+nexthop_for_each_fib6_nh() (also covers nh groups, which the original
+code missed); otherwise walk fib6_siblings, guarded by fib6_nsiblings.
+
+Fixes: 1c32b24c234b ("netfilter: nft_fib_ipv6: switch to fib6_lookup")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 ---
- net/netfilter/ipvs/ip_vs_mh.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ net/ipv6/netfilter/nft_fib_ipv6.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
-index 020863047562..d31d3c6d4216 100644
---- a/net/netfilter/ipvs/ip_vs_mh.c
-+++ b/net/netfilter/ipvs/ip_vs_mh.c
-@@ -59,11 +59,11 @@ static int primes[] = {251, 509, 1021, 2039, 4093,
- 
- struct ip_vs_mh_state {
- 	struct rcu_head			rcu_head;
--	struct ip_vs_mh_lookup		*lookup;
- 	struct ip_vs_mh_dest_setup	*dest_setup;
- 	hsiphash_key_t			hash1, hash2;
- 	int				gcd;
- 	int				rshift;
-+	struct ip_vs_mh_lookup		lookup[];
- };
- 
- static inline void generate_hash_secret(hsiphash_key_t *hash1,
-@@ -372,7 +372,6 @@ static void ip_vs_mh_state_free(struct rcu_head *head)
- 	struct ip_vs_mh_state *s;
- 
- 	s = container_of(head, struct ip_vs_mh_state, rcu_head);
--	kfree(s->lookup);
- 	kfree(s);
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 8b2dba88ee96..a44919f46de9 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -160,16 +160,32 @@ static bool nft_fib6_info_nh_dev_match(const struct net_device *nh_dev,
+ 	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
  }
  
-@@ -382,16 +381,10 @@ static int ip_vs_mh_init_svc(struct ip_vs_service *svc)
- 	struct ip_vs_mh_state *s;
++static int nft_fib6_nh_match_dev_cb(struct fib6_nh *nh, void *arg)
++{
++	const struct net_device *dev = arg;
++
++	return nft_fib6_info_nh_dev_match(nh->fib_nh_dev, dev) ? 1 : 0;
++}
++
+ static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
+ 				      const struct net_device *dev)
+ {
+ 	const struct net_device *nh_dev;
+ 	struct fib6_info *iter;
  
- 	/* Allocate the MH table for this service */
--	s = kzalloc_obj(*s);
-+	s = kzalloc_flex(*s, lookup, IP_VS_MH_TAB_SIZE);
- 	if (!s)
- 		return -ENOMEM;
++	/* External nexthop: fib6_siblings slot aliases nh_list, walk via nh. */
++	if (rt->nh)
++		return nexthop_for_each_fib6_nh(rt->nh,
++						nft_fib6_nh_match_dev_cb,
++						(void *)dev) != 0;
++
+ 	nh_dev = fib6_info_nh_dev(rt);
+ 	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
+ 		return true;
  
--	s->lookup = kzalloc_objs(struct ip_vs_mh_lookup, IP_VS_MH_TAB_SIZE);
--	if (!s->lookup) {
--		kfree(s);
--		return -ENOMEM;
--	}
--
- 	generate_hash_secret(&s->hash1, &s->hash2);
- 	s->gcd = ip_vs_mh_gcd_weight(svc);
- 	s->rshift = ip_vs_mh_shift_weight(svc, s->gcd);
++	if (!rt->fib6_nsiblings)
++		return false;
++
+ 	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
+ 		nh_dev = fib6_info_nh_dev(iter);
+ 
 -- 
-2.54.0
+2.43.0
 
