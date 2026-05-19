@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 586DC3D88EC
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 21:38:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F5013E928C
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 21:38:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779226717; cv=none; b=kH1xF+WnhV64V0SO8PRy+nv7HRlDBEzD4yUhkSkDIlSRZP8KzRC+G+4OMQmeS8jbgM2j0RGeQ0fzkssqAuNwWVdjvwL57WfSBU2bCqXZaJHumHi3p4BigYnTjLmjgOgmDC/4KaW+hqITmsEWaGygDvS/Sy/Kh0RHCh3mKwpuKRU=
+	t=1779226718; cv=none; b=tTc9Ug85vly/QnyBEnWMzJOgY4K/a4HngEQkxQZTJHsBoPnN6cFPl/OYuW4oFJHZ0plSMXW1tRgTVeP5B4iEw4T6+gg1wWR+n85pNcgfSf0IlXw0Rl0SxuMROzFygD/E28jdxRMe0KjYDEYYDvFm7cwDf7jSgxnKNhHgYgJjRCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779226717; c=relaxed/simple;
-	bh=/CXP3tu+heMyjZYByaNx+AuU1bZ0D96MHXbs56IndS4=;
+	s=arc-20240116; t=1779226718; c=relaxed/simple;
+	bh=E7v0V71AnYOeT5t9ftRqlKCSSAmhBXoxTWG6tebx7wY=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JSKG9sVw9AoGRR+eflBW1UcGS03hb1CVRZeTeY0bpQ5LTmRn0VU/7jE/oAQ/7gQf3zHK5inqMF4KXIfjp2A5TJKC/UfKIyIzKg9vekPeTtLrPQl+mhz7qNyLrMU61swip9vsJj3ZfUCVeRvch4IdOzoeByojlOoN7arcSfstkdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YPeaoWID; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=YYCw8gG6DtyjMXff3X6ItjqjitoMT0czHfY7xtS3diXF4uQeI2HzPkmxnmb1+s5Jw1ux0oHg/5VFdUaf+/tkkA6knUg8Liu6NMKrKmpdETbjXidr6wlP8stOdewX/3PiCO1QGIQRh9vbVRN4ARBtKdBbEgy1sAKTJIABseAwp1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j40aSIcC; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YPeaoWID"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j40aSIcC"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CB76060288
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 23:38:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AD49B6028D
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 23:38:35 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779226714;
-	bh=iDGAk3swDfjwCq+BInVI+2xibsEcrK4DEC0EGL+abdo=;
+	s=2025; t=1779226715;
+	bh=218NYYzLKxauq7CZbCEjgpgdslhYI+kY/k/FpaomHo8=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=YPeaoWIDKPEvneEZIQ3ddUIqgj6khdR/oHPLue2BXKilHvQ69HVf0LPc7S15qNjcR
-	 73sas4MkuePry8Jbo/sx2u9dO2guV1vLVa+FibqbHOAI6E8C4H4N0Xg0qWaOsAm/EZ
-	 5a77SYk4+N6az+x47qKq6S9qu2fHYNtjyYZpM9hkrt1bF7lyJlPTqIh/cvaOcb/324
-	 8BOtqal0PR9KvvIAASEJXMlKbq7sNsL2eE6H6ee1vS1nqKQzby96cyoU2TstBL1TmS
-	 OwQ0AZMxO/YeJTwPVbCZyY+Snqoj/OAudE2p0FSX2iSi2g/fPlGYUjQaB1p0E/gbUp
-	 8p9v9RZ/KwiIA==
+	b=j40aSIcCFQBRc5yDB+4CUrtTAd0acCyBeKU2AcCfwCMssxOcXnEvbd+HdOb1I6TsM
+	 ipeTKGDX79tP8hIVTavPAj7LXj9RX2MAzQoUaU8nq2RJs8RO37IfXpkRU38B8ENW8S
+	 77f8xNd6QxvGb+mBABOPLocsejm0+a91SxdG1niQghB4huhiIS1RaaI0G7KwG8nC90
+	 lSUUO+4/n5+g+1PnpFSbCZWzYNjhCToO5tyfW5hOpwFBaG4VA2ruWhXte0LLFYgbXf
+	 zRCrf6bN9t2yGfBSnX9K5Ytui/TBjd83BJOFLjtzenc1OB2ryPr3yIf1fKkLY+Qd4x
+	 U/KE3glvHiddg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 5/7] netfilter: conntrack: add nf_ct_iterate_destroy_net()
-Date: Tue, 19 May 2026 23:38:24 +0200
-Message-ID: <20260519213826.1181661-5-pablo@netfilter.org>
+Subject: [PATCH nf 6/7] netfilter: nf_conntrack_timeout: use nf_ct_iterate_destroy() to cleanup timeout going away
+Date: Tue, 19 May 2026 23:38:25 +0200
+Message-ID: <20260519213826.1181661-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260519213826.1181661-1-pablo@netfilter.org>
 References: <20260519213826.1181661-1-pablo@netfilter.org>
@@ -45,126 +45,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This calls nf_queue_nf_hook_drop(), bump generation id to invalidate
-ct extension and finally nf_ct_iterate_cleanup().
+nf_ct_iterate_cleanup_net() is not sufficient, this is just a subset of
+nf_ct_iterate_destroy_net(), which deals with flushing skb with
+unconfirmed conntrack entries sitting in nfqueue, and it also
+invalidates the timeout extension.
 
+Fixes: 34158151d2aa ("netfilter: cttimeout: use nf_ct_iterate_cleanup_net to unlink timeout objs")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h |  4 ++
- net/netfilter/nf_conntrack_core.c    | 71 ++++++++++++++++++++--------
- 2 files changed, 56 insertions(+), 19 deletions(-)
+ net/netfilter/nf_conntrack_timeout.c | 7 +------
+ net/netfilter/nft_ct.c               | 1 -
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bc42dd0e10e6..4803e43677b9 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -245,6 +245,10 @@ void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
- /* also set unconfirmed conntracks as dying. Only use in module exit path. */
- void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
- 			   void *data);
-+/* same as previous function, but for one specific netns. */
-+void nf_ct_iterate_destroy_net(struct net *net,
-+			       int (*iter)(struct nf_conn *i, void *data),
-+			       void *data);
+diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
+index 0cc584d3dbb1..006e8bcf129b 100644
+--- a/net/netfilter/nf_conntrack_timeout.c
++++ b/net/netfilter/nf_conntrack_timeout.c
+@@ -44,12 +44,7 @@ static int untimeout(struct nf_conn *ct, void *timeout)
  
- struct nf_conntrack_zone;
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 1c04ef9dd17c..59656b7de654 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2388,6 +2388,54 @@ void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
- }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
- 
-+static void
-+nf_ct_iterate_destroy_finish(int (*iter)(struct nf_conn *i, void *data),
-+			     struct nf_ct_iter_data *iter_data)
-+{
-+	/* a skb w. unconfirmed conntrack could have been reinjected just
-+	 * before we called nf_queue_nf_hook_drop().
-+	 *
-+	 * This makes sure its inserted into conntrack table.
-+	 */
-+	synchronize_net();
-+
-+	nf_ct_ext_bump_genid();
-+	nf_ct_iterate_cleanup(iter, iter_data);
-+
-+	/* Another cpu might be in a rcu read section with
-+	 * rcu protected pointer cleared in iter callback
-+	 * or hidden via nf_ct_ext_bump_genid() above.
-+	 *
-+	 * Wait until those are done.
-+	 */
-+	synchronize_rcu();
-+}
-+
-+/**
-+ * nf_ct_iterate_destroy_net - destroy unconfirmed conntracks and iterate table in netns
-+ * @iter: callback to invoke for each conntrack
-+ * @data: data to pass to @iter
-+ *
-+ * Like nf_ct_iterate_cleanup, but first marks conntracks on the
-+ * unconfirmed list as dying (so they will not be inserted into
-+ * main table).
-+ *
-+ * Can only be called for netns.
-+ */
-+void
-+nf_ct_iterate_destroy_net(struct net *net,
-+			  int (*iter)(struct nf_conn *i, void *data), void *data)
-+{
-+	struct nf_ct_iter_data iter_data = {
-+		.net	= net,
-+		.data	= data,
-+	};
-+
-+	nf_queue_nf_hook_drop(net);
-+
-+	nf_ct_iterate_destroy_finish(iter, &iter_data);
-+}
-+
- /**
-  * nf_ct_iterate_destroy - destroy unconfirmed conntracks and iterate table
-  * @iter: callback to invoke for each conntrack
-@@ -2402,7 +2450,9 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
- void
- nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ void nf_ct_untimeout(struct net *net, struct nf_ct_timeout *timeout)
  {
--	struct nf_ct_iter_data iter_data = {};
-+	struct nf_ct_iter_data iter_data = {
-+		.data	= data,
-+	};
- 	struct net *net;
- 
- 	down_read(&net_rwsem);
-@@ -2422,24 +2472,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- 	 */
- 	net_ns_barrier();
- 
--	/* a skb w. unconfirmed conntrack could have been reinjected just
--	 * before we called nf_queue_nf_hook_drop().
--	 *
--	 * This makes sure its inserted into conntrack table.
--	 */
--	synchronize_net();
+-	struct nf_ct_iter_data iter_data = {
+-		.net	= net,
+-		.data	= timeout,
+-	};
 -
--	nf_ct_ext_bump_genid();
--	iter_data.data = data;
--	nf_ct_iterate_cleanup(iter, &iter_data);
--
--	/* Another cpu might be in a rcu read section with
--	 * rcu protected pointer cleared in iter callback
--	 * or hidden via nf_ct_ext_bump_genid() above.
--	 *
--	 * Wait until those are done.
--	 */
--	synchronize_rcu();
-+	nf_ct_iterate_destroy_finish(iter, &iter_data);
+-	nf_ct_iterate_cleanup_net(untimeout, &iter_data);
++	nf_ct_iterate_destroy_net(net, untimeout, timeout);
  }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
+ EXPORT_SYMBOL_GPL(nf_ct_untimeout);
  
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index fa2cc556331c..3fdee729149b 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -971,7 +971,6 @@ static void nft_ct_timeout_obj_destroy(const struct nft_ctx *ctx,
+ 	struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+ 	struct nf_ct_timeout *timeout = priv->timeout;
+ 
+-	nf_queue_nf_hook_drop(ctx->net);
+ 	nf_ct_untimeout(ctx->net, timeout);
+ 	nf_ct_netns_put(ctx->net, ctx->family);
+ 	kfree_rcu(priv->timeout, rcu);
 -- 
 2.47.3
 
