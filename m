@@ -1,159 +1,269 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 018243C8717
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 08:07:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 328263E16A0
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 08:32:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779178078; cv=none; b=UiMklnO5WaTgaRJ1snZl5cXcUkWpTiAvcoTUxltYikBHF7QGJgQ/Je+PrI0JXM9MU8mPvm1uCK67pFhDJ6TV96WFHNQD1S17+1NcMx4rS0lFlLSYUVu0U/ME/7JdCOvh9FRxqIhNH/ShO1Idxc+UIIKmVzlUEkLMBIDK6gkELqg=
+	t=1779179566; cv=none; b=BQRQJl//12EJ+zP3XNQoQHqEHfuUeHYk5ttiN80WsdgoObWGm7PpZCbW+Os25bA63i5bLemUPZHSCkSz5DaC6/fmsNctGfIrufKdSMwkCApF0Pp/BcqxS/dkT1ERbiWWtujKmPYOmHAskS0qLSS4LIroYrxjcPzD0WEQReRBwvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779178078; c=relaxed/simple;
-	bh=vSw/U/ID5cJ9yeZ+PmOjBM7kOipQ7tVkMmt5n4edUAQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RcAH+IRQlEZ8pAkfeS6sURQ11K1mu4poVNg2ueGGvmqHZoHLLy47CPQqdYaa6/zFSMvjX+vazdeBO1eCXnlIyiRrS+qJYaiDtvIxvsNlLTJq0VxEaxG7q6+s8wSuE7zvGnHFGxlxh4tYgYpmMbmUm4QKsEf1ce16YvPBxWemhYI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qb9oIW2X; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qb9oIW2X"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A8E02601AC;
-	Tue, 19 May 2026 10:07:54 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779178074;
-	bh=eoUPEiIdagalIak4XjQ6ddMKlo20ZH/vP6fX9LRnqEw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Qb9oIW2XxIu75fBnLVzVEu9nkYizP7DHJDZTmgiitzsfqsx/t7Ufwx45gsCqAz6rV
-	 5i+B7qRMjYmICLDqQk5Q4mtpMT2leP0N5f/BoceVEza6HvfZJ09eLvV7IhP/nqAsW8
-	 IqLEwVZTVNIFw9f0KvWnmowT9lOljmkrKSzvmKkeahn3wdZatMVHBLxUeV+gB9cn0f
-	 ahxIrs52r7C7X6JIQW2FboYkqDmZUMSFt6GEdIcPYYv1HIzEKkfjplldnIjFkMw7rH
-	 R42B+h0Y3qWHz23a+SVb59b37vuMPCwF1cxJxNb3m0a6PzpgXz9/Uiwc/WnPYIYg5R
-	 cBdCJ4QG4ANDw==
-Date: Tue, 19 May 2026 10:07:51 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf,v2] netfilter: conntrack: add dead flag to helpers
-Message-ID: <agwaV0TKYW9G0zPk@chamomile>
-References: <agXfhQb8Dcl9p5ce@strlen.de>
- <agXl-3NDpK3YUZiF@chamomile>
- <agXt-m9yN-oayY1G@strlen.de>
- <agZbFvp_KgGUr2Kw@chamomile>
- <agZg3JjBx6xXyEnW@strlen.de>
- <agZkiu4q1Ln9ImR4@chamomile>
- <agZm_JyKhSFOrV94@chamomile>
- <agcQ90JCmlkojf6s@strlen.de>
- <agtjebGnfVh6VZ32@chamomile>
- <aguJgxyz9OemEwlZ@strlen.de>
+	s=arc-20240116; t=1779179566; c=relaxed/simple;
+	bh=drigChV9NqbmZq9fn16RO0iAR5QRrRPAhHZqYfMTN/g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DGypSG6hawJ7Dr/N8HqU7DJC3bfvJxUhzAQ7CqHlGz4iPbhJ2A4zOuXZToP1tbEh9YvSe/KIlxT10H5NAYIO3fPJIt66MC66tXbXF88dNvwqrBcDI2mPZ9LOKCHUfENYbyrs2uq5Gk3wf6KpqmpM9u53N+7wFXze548wa+8/D28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id E90DE607D6; Tue, 19 May 2026 10:32:41 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Leo Lin <leo@depthfirst.com>
+Subject: [PATCH v2 nf] netfilter: nf_conntrack_gre: fix gre keymap list corruption
+Date: Tue, 19 May 2026 10:21:17 +0200
+Message-ID: <20260519082120.28105-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aguJgxyz9OemEwlZ@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Mon, May 18, 2026 at 11:49:55PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Just to close this previous thread now that we're mixing things here:
-> > No issue with unconfirmed conntrack that gets enqueued in nfqueue
-> > since 
-> > 
-> >   c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
-> > 
-> > handles the unconfirmed ct sitting in nfqueue or elsewhere.
-> 
-> Sorry :-(   There are so many things going on that I am losing track
-> of some stuff.
+Quoting reporter:
+  A race between GRE keymap insertion and destruction can corrupt the
+  kernel list or use a freed object. `nf_ct_gre_keymap_add()` publishes a
+  new keymap pointer before the embedded `list_head` is linked, while
+  `nf_ct_gre_keymap_destroy()` can concurrently delete and free that
+  same object. An unprivileged user can reach this through the PPTP
+  conntrack helper by racing PPTP control messages or helper teardown,
+  leading to KASAN-detectable list corruption/UAF in kernel context.
 
-I can help collect patches in this round too.
+ ## Root Cause Analysis
+ `exp_gre()` installs GRE expectations for a PPTP control flow and then
+  adds two GRE keymap entries [..]
 
-> Yes, I think its fine but I need/want to go over this in detail.  Not
-> sure I can though, I am tied up with non-software related things
-> tomorrow.  I hope I can look into the conntrack stuff on Wed or
-> Thursday.
-> 
-> > Are you referring to this specifically?
-> > 
-> > "This isn't an issue introduced by this patch, but does destroy_gre_conntrack()
-> > safely cast the master connection's helper data?
-> > If an unprivileged attacker with CAP_NET_ADMIN uses ctnetlink to create a GRE
-> > expectation linked to a master connection that uses a different helper
-> > (like FTP) or no helper at all, the function blindly casts the helper data
-> > to struct nf_ct_pptp_master.
-> > Since FTP helper data contains attacker-controllable sequence numbers, could
-> > this cause list_del_rcu() and kfree_rcu() to operate on attacker-controlled
-> > addresses, leading to an arbitrary free or list corruption?"
-> 
-> Yes, that is waht I was referring to.
-> 
-> > I don't think that is really possible via ctnetlink:
-> > 
-> > - ctnetlink_alloc_expect() currently checks if nfct_help() exists,
-> >   otherwise it reports EOPNOTSUPP.
-> > 
-> > - ctnetlink_alloc_expect() uses the existing helper in the master
-> >   conntrack to create the expectation.
-> > 
-> > - exp->assign_helper attaches a helper to the expected conntrack.
-> >   But that is a basically a new different conntrack.
-> 
-> Thank you for these pointers.  The bug would only manifest if you can
-> make a GRE conntrack entry whose ct->master is tracked by FTP for instance.
-> 
-> > > Proposal: Get rid of data[] and nfct_help_data().  Explicit structure,
-> > > explicit helpers (e.g. nfct_help_data_sip(), type enum in nf_conn_help.
-> > 
-> > I don't see how yet this access to mismatching helper data type area
-> > can happen.
-> 
-> Great :-)
-> 
-> > > Callers must handle NULL return value everywhere (wrong helper type,
-> > > helper invalidated, etc).
-> > 
-> > Yes, callers must handle NULL in nfct_help_data() because the helper
-> > extension might become stale as per c56716c69ce1.
-> 
-> I will work on something for nf-next to handle this. I spent yesterday
-> looking at helper infra and there is some code that can be axed,
-> leftovers from autoassign days.   I'll work on that.
+ The add path publishes `ct_pptp_info->keymap[dir]` before linking the
+ embedded list node [..]
+ Concurrent teardown deletes that partially initialized object.
 
-Posted a patch for this, it needs another spin.
+Make add/destroy symmetric: install both, destroy both while under lock.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260518191232.1053294-3-pablo@netfilter.org/
+Furthermore, we should refuse to publish a new mapping in case ct is going
+away, else we may leak the allocation.
 
-I will take care of this.
+The "retrans" detection is strange:  existing mapping is checked for key
+equality with the new mapping, then for "is on the list" via list walk.
 
-> > > static int unhelp(struct nf_conn *ct, void *me)
-> > > {
-> > >         struct nf_conn_help *help = nfct_help(ct);
-> > > 
-> > >         if (help && rcu_dereference_raw(help->helper) == me) {
-> > >                 nf_conntrack_event(IPCT_HELPER, ct);
-> > >                 RCU_INIT_POINTER(help->helper, NULL);
-> > >         }
-> > > 
-> > > This can't be right, we lose the ->destroy() CB?
-> > 
-> > Yes, I think .destroy should be called from unhelp() path otherwise
-> > pptp info will remain in the GRE keymap.
-> 
-> I'll send/apply a patch to do that this week and will include it in PR.
+But I can't see how an existing keymap entry can be NOT on list.
 
-OK.
+Change this to only check if we're asked to map same tuple again -- if so,
+   skip re-install, else signal failure.
 
-> > > Ideally we could get rid of ->destroy, but that would require
-> > > permanent removal of pptp.
-> > 
-> > This is the only user of ->destroy, I think the pptp helper is a
-> > candidate to be deprecated.
-> 
-> Yes, its the only user of this destructor.  I'll make a patch for
-> nf-next to add deprecation tags (pr_warn_once + Kconfig).
+Last, add a bug trap for the keymap list; it has to be empty when namespace
+is going away.
 
-OK. Would you just respin of the GRE kmap issues that sashiko reported?
+Reported-by: Leo Lin <leo@depthfirst.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../linux/netfilter/nf_conntrack_proto_gre.h  |   7 +-
+ net/netfilter/nf_conntrack_core.c             |   8 ++
+ net/netfilter/nf_conntrack_pptp.c             |   8 +-
+ net/netfilter/nf_conntrack_proto_gre.c        | 106 +++++++++++++-----
+ 4 files changed, 95 insertions(+), 34 deletions(-)
 
-Otherwise I can pick up on it.
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index 9ee7014400e8..ad5563f0f864 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -18,9 +18,10 @@ struct nf_ct_gre_keymap {
+ 	struct rcu_head rcu;
+ };
+ 
+-/* add new tuple->key_reply pair to keymap */
+-int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+-			 struct nf_conntrack_tuple *t);
++/* add tuple->key_reply pairs to keymap */
++bool nf_ct_gre_keymap_add(struct nf_conn *ct,
++			  const struct nf_conntrack_tuple *orig,
++			  const struct nf_conntrack_tuple *repl);
+ 
+ /* delete keymap entries */
+ void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8ba5b22a1eef..b521b5ebd664 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -568,6 +568,13 @@ static void destroy_gre_conntrack(struct nf_conn *ct)
+ #endif
+ }
+ 
++static void warn_on_keymap_list_leak(const struct net *net)
++{
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	WARN_ON_ONCE(!list_empty(&net->ct.nf_ct_proto.gre.keymap_list));
++#endif
++}
++
+ void nf_ct_destroy(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+@@ -2510,6 +2517,7 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ 	}
+ 
+ 	list_for_each_entry(net, net_exit_list, exit_list) {
++		warn_on_keymap_list_leak(net);
+ 		nf_conntrack_ecache_pernet_fini(net);
+ 		nf_conntrack_expect_pernet_fini(net);
+ 		free_percpu(net->ct.stat);
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 4c679638df06..dc23e4181618 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -225,13 +225,9 @@ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
+ 	if (nf_ct_expect_related(exp_reply, 0) != 0)
+ 		goto out_unexpect_orig;
+ 
+-	/* Add GRE keymap entries */
+-	if (nf_ct_gre_keymap_add(ct, IP_CT_DIR_ORIGINAL, &exp_orig->tuple) != 0)
++	if (!nf_ct_gre_keymap_add(ct, &exp_orig->tuple,
++				  &exp_reply->tuple))
+ 		goto out_unexpect_both;
+-	if (nf_ct_gre_keymap_add(ct, IP_CT_DIR_REPLY, &exp_reply->tuple) != 0) {
+-		nf_ct_gre_keymap_destroy(ct);
+-		goto out_unexpect_both;
+-	}
+ 	ret = 0;
+ 
+ out_put_both:
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 94c19bc4edc5..35e22082d65a 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -87,41 +87,97 @@ static __be16 gre_keymap_lookup(struct net *net, struct nf_conntrack_tuple *t)
+ 	return key;
+ }
+ 
+-/* add a single keymap entry, associate with specified master ct */
+-int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+-			 struct nf_conntrack_tuple *t)
++enum nf_ct_gre_km_act {
++	NF_CT_GRE_KM_NEW,
++	NF_CT_GRE_KM_BAD,
++	NF_CT_GRE_KM_DUP
++};
++
++static enum nf_ct_gre_km_act
++nf_ct_gre_km_acceptable(const struct nf_ct_pptp_master *ct_pptp_info,
++			const struct nf_conntrack_tuple *orig,
++			const struct nf_conntrack_tuple *repl)
++{
++	struct nf_ct_gre_keymap *km_orig, *km_repl;
++
++	lockdep_assert_held(&keymap_lock);
++
++	km_orig = ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL];
++	km_repl = ct_pptp_info->keymap[IP_CT_DIR_REPLY];
++
++	if (km_orig && km_repl) {
++		if (!gre_key_cmpfn(km_orig, orig))
++			return NF_CT_GRE_KM_BAD;
++
++		if (!gre_key_cmpfn(km_repl, repl))
++			return NF_CT_GRE_KM_BAD;
++
++		return NF_CT_GRE_KM_DUP;
++	}
++
++	DEBUG_NET_WARN_ON_ONCE(km_orig);
++	DEBUG_NET_WARN_ON_ONCE(km_repl);
++	return NF_CT_GRE_KM_NEW;
++}
++
++/* add keymap entries, associate with specified master ct */
++bool nf_ct_gre_keymap_add(struct nf_conn *ct,
++			  const struct nf_conntrack_tuple *orig,
++			  const struct nf_conntrack_tuple *repl)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_gre_net *net_gre = gre_pernet(net);
+ 	struct nf_ct_pptp_master *ct_pptp_info = nfct_help_data(ct);
+-	struct nf_ct_gre_keymap **kmp, *km;
+-
+-	kmp = &ct_pptp_info->keymap[dir];
+-	if (*kmp) {
+-		/* check whether it's a retransmission */
+-		list_for_each_entry_rcu(km, &net_gre->keymap_list, list) {
+-			if (gre_key_cmpfn(km, t) && km == *kmp)
+-				return 0;
+-		}
+-		pr_debug("trying to override keymap_%s for ct %p\n",
+-			 dir == IP_CT_DIR_REPLY ? "reply" : "orig", ct);
+-		return -EEXIST;
+-	}
++	struct nf_ct_gre_keymap *km_orig, *km_repl;
++	bool ret = false;
+ 
+-	km = kmalloc_obj(*km, GFP_ATOMIC);
+-	if (!km)
+-		return -ENOMEM;
+-	memcpy(&km->tuple, t, sizeof(*t));
+-	*kmp = km;
++	km_orig = kmalloc_obj(*km_orig, GFP_ATOMIC);
++	if (!km_orig)
++		return false;
++	km_repl = kmalloc_obj(*km_repl, GFP_ATOMIC);
++	if (!km_repl)
++		goto km_free;
+ 
+-	pr_debug("adding new entry %p: ", km);
+-	nf_ct_dump_tuple(&km->tuple);
++	memcpy(&km_orig->tuple, orig, sizeof(*orig));
++	memcpy(&km_repl->tuple, repl, sizeof(*repl));
+ 
+ 	spin_lock_bh(&keymap_lock);
+-	list_add_tail(&km->list, &net_gre->keymap_list);
++	if (nf_ct_is_dying(ct))
++		goto unlock_free;
++
++	switch (nf_ct_gre_km_acceptable(ct_pptp_info, orig, repl)) {
++	case NF_CT_GRE_KM_NEW:
++		break;
++	case NF_CT_GRE_KM_DUP:
++		ret = true;
++		goto unlock_free;
++	case NF_CT_GRE_KM_BAD:
++		pr_debug("trying to override keymap for ct %p\n", ct);
++		goto unlock_free;
++	}
++
++	if (ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL] ||
++	    ct_pptp_info->keymap[IP_CT_DIR_REPLY])
++		goto unlock_free;
++
++	pr_debug("adding new entries %p,%p: ", km_orig, km_repl);
++	nf_ct_dump_tuple(&km_orig->tuple);
++	nf_ct_dump_tuple(&km_repl->tuple);
++
++	list_add_tail_rcu(&km_orig->list, &net_gre->keymap_list);
++	list_add_tail_rcu(&km_repl->list, &net_gre->keymap_list);
++	ct_pptp_info->keymap[IP_CT_DIR_ORIGINAL] = km_orig;
++	ct_pptp_info->keymap[IP_CT_DIR_REPLY] = km_repl;
+ 	spin_unlock_bh(&keymap_lock);
+ 
+-	return 0;
++	return true;
++
++unlock_free:
++	spin_unlock_bh(&keymap_lock);
++km_free:
++	kfree(km_orig);
++	kfree(km_repl);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_gre_keymap_add);
+ 
+-- 
+2.53.0
+
