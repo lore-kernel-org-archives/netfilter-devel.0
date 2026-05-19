@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2418627AC31;
-	Tue, 19 May 2026 00:20:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A321C22576E;
+	Tue, 19 May 2026 00:20:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779150008; cv=none; b=Szt6nNRRcMfpEbwkb48JNsIDuxqu7+OmUhmZNRCcxYRwWlh7ci1/47bhs5tGGW5H10rBHjLQemT7HncSW3lZ5bzADYIhPjQqQFi8DbZKBUugGNU4Tt1/qoOYE9NFVyG3e/6bB7vkwWHlhn+YRa2fktcUS93slg4wYQkjCf093/E=
+	t=1779150009; cv=none; b=m/9ytmx7098VcrJ76FwWDToK0DkfKVRl/IMx9hXKypz6rbmxoyIdfgF2l5lEfsQc0gpq3VyCL9L205AW9hw0KeiLgMI19hBgbPR0TryVAljDYG9PgLQApwLWQWRWGs/7z9BFNbVNZ23ozD9ggBilxMzS40GxhA9eGAzHQbtt264=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779150008; c=relaxed/simple;
-	bh=RVx8CFUO+GB5qOO2fMEugdltUJRH0uwQkbgZGVOsebE=;
+	s=arc-20240116; t=1779150009; c=relaxed/simple;
+	bh=wjbf9JjTtMoQj2xj9fFFwz63IXO0VcH1DmMnOaU6chw=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=uaS6Q9jopPeCOUnqklo2YZY+ZUsHQcC6XA/5UcVMsS3D2G84Vv8VHGXUGhyYVmrBd8BZpX1u/ZacJw5QP+IA8tW0gefFk65tAa0egjRmcLy9Ve8ycC5avtPTdMxw59jua46FyH/oNx7b1X+xd5TeJAar148ZYgEPAxtxTg8WVzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KiQ24fZW; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=cmjFa4FyEFnrHFYa9ENqFu0IUJy2AucNvwq0VB3t506VjJg//Lpfemf5mm5dtda5SmJZpouDSwlFL5RYmyr6RvPHa2xIjbeTGlfA58NpVSx4gDd/YdyFLnY/XRg29cXxgl2ma+8KBxcNJ+DFNK0IAI41g5Qov7Jy0+v4+L35YNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UeUVk/db; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KiQ24fZW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57FEC2BCB7;
-	Tue, 19 May 2026 00:20:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UeUVk/db"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46BB9C2BCB7;
+	Tue, 19 May 2026 00:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779150007;
-	bh=RVx8CFUO+GB5qOO2fMEugdltUJRH0uwQkbgZGVOsebE=;
+	s=k20201202; t=1779150009;
+	bh=wjbf9JjTtMoQj2xj9fFFwz63IXO0VcH1DmMnOaU6chw=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=KiQ24fZWNlyBAx1a4b+L7gzg7Y6FZTgyDp38LcSd/rSz+/vVcB+CxT3lofvhXMTlf
-	 a8tVP1xPPSQMa2lc8ihp+LIhfXyi/cMeNDYDqoMEHgrRKnoxnStuwZ/BglPhHERu7T
-	 NTzCZjKT/xl2F3x8/O7b7eSTrl9APiL1PwEzu8dcFPnQk8tPH2876AvgInWUNpvf0f
-	 vib+JocEbLmDVCOfxpwEh3XpDs5F7dzDVRpNjZpn8P6fhJ19DoWxU3fzs6m2AGwjpd
-	 e5hjGvaHLsNaL2SMxpGJbIx98VjVaVHWe+o5y3up1HCelIjU/LjwZEcLVWC2olV14s
-	 7wDPTEkCCRb6Q==
+	b=UeUVk/dboZ2KfrV/kNbMmI+gA5+EqNCL8I2F1M94i/wPnQJ7c7fyK5MIiyczXIgcc
+	 mqsEuPWksffC0DpBs00dAMZkdrMrVUjdELanVF0QTB/6q4mYd8ZgI1tpAkEGziMZBM
+	 Cau4OklApLTW55/2NlSzKYWBv09CgaChTJUcfVcwQYGLCtNMNdvfA2WGhm+c9dXNyD
+	 ND25MkasUWeTe5DuPma5u5gaKy0FHdZc2VVww4C/VHNYwMFjUmY5Sm2vzv3dH0qG7X
+	 Qg1CRnuqLI/X1UvrT3bNJNxbKXUilrc09xOEfeUHBfAbj5hwnwLzN9l7I/gpGqe6Y2
+	 IjTIXOtMJVY/A==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56A113930CBF;
-	Tue, 19 May 2026 00:20:20 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0A5E3930CBF;
+	Tue, 19 May 2026 00:20:21 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,60 +37,39 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 01/12] netfilter: nf_conntrack_helper: fix possible
- null
- deref during error log
+Subject: Re: [PATCH net v4] net: neigh: Reallocate headroom if necessary in
+ neigh_hh_bridge()
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <177915001914.2025486.8839670790372088379.git-patchwork-notify@kernel.org>
-Date: Tue, 19 May 2026 00:20:19 +0000
-References: <20260516115627.967773-2-pablo@netfilter.org>
-In-Reply-To: <20260516115627.967773-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+ <177915002039.2025486.6837208699781727246.git-patchwork-notify@kernel.org>
+Date: Tue, 19 May 2026 00:20:20 +0000
+References: <20260514-nf-neigh_hh_bridge-fix-v4-1-a56f4301923c@kernel.org>
+In-Reply-To: <20260514-nf-neigh_hh_bridge-fix-v4-1-a56f4301923c@kernel.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, pablo@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, razor@blackwall.org, idosch@nvidia.com, bdschuym@pandora.be,
+ kaber@trash.net, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev
 
 Hello:
 
-This series was applied to netdev/net.git (main)
+This patch was applied to netdev/net.git (main)
 by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Sat, 16 May 2026 13:56:16 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Thu, 14 May 2026 16:46:38 +0200 you wrote:
+> neigh_hh_bridge() assumes the skb always has sufficient headroom to copy
+> the aligned  L2 header. This assumption can trigger the crash reported
+> below using the following netfilter setup:
 > 
-> Reported by sashiko: there is a small race window.
-> 
-> If a helper module is unloaded or a userspace-defined helper is
-> removed, nf_conntrack_helper_unregister() sets ->helper to NULL.
+> $modprobe br_netfilter
+> $sysctl -w net.bridge.bridge-nf-call-iptables=1
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,01/12] netfilter: nf_conntrack_helper: fix possible null deref during error log
-    https://git.kernel.org/netdev/net/c/1afc25ae7528
-  - [net,02/12] ipvs: avoid possible loop in ip_vs_dst_event on resizing
-    https://git.kernel.org/netdev/net/c/5522d65d81a7
-  - [net,03/12] netfilter: ipset: fix a potential dump-destroy race
-    https://git.kernel.org/netdev/net/c/53d7fd878c28
-  - [net,04/12] netfilter: nft_inner: Fix IPv6 inner_thoff desync
-    https://git.kernel.org/netdev/net/c/b6a91f68ebfe
-  - [net,05/12] netfilter: ipset: stop hash:* range iteration at end
-    https://git.kernel.org/netdev/net/c/0d3a282ab5f1
-  - [net,06/12] netfilter: nft_inner: release local_lock before re-enabling softirqs
-    https://git.kernel.org/netdev/net/c/a6cb3ff97985
-  - [net,07/12] netfilter: ip6t_hbh: reject oversized option lists
-    https://git.kernel.org/netdev/net/c/4322dcde6b41
-  - [net,08/12] netfilter: ipset: Fix data race between add and list header in all hash types
-    https://git.kernel.org/netdev/net/c/c0c42a0fb271
-  - [net,09/12] netfilter: ipset: Fix data race between add and dump in all hash types
-    https://git.kernel.org/netdev/net/c/2358f7427ccd
-  - [net,10/12] netfilter: ipset: annotate "pos" for concurrent readers/writers
-    https://git.kernel.org/netdev/net/c/7f7445840b77
-  - [net,11/12] netfilter: br_netfilter: Reallocate headroom if necessary in neigh_hh_bridge()
+  - [net,v4] net: neigh: Reallocate headroom if necessary in neigh_hh_bridge()
     https://git.kernel.org/netdev/net/c/b2870fc21601
-  - [net,12/12] netfilter: nf_queue: hold bridge skb->dev while queued
-    https://git.kernel.org/netdev/net/c/e196115ec330
 
 You are awesome, thank you!
 -- 
