@@ -1,169 +1,147 @@
-Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1F1370AFE
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 10:51:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4B083F1AC9
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 11:56:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779187874; cv=none; b=WX7U97/bqhTplobM53osBlMJ8BxYRXWH3suO8xKMXG0jdXGk130lWKs5eIvR5uaf4wdwIQK3BtHbx1uptTRmb39IyfPMeVr4U2lAFPP/xDwH2XDsVlq8slMx8qKs4cQG62mCj5Dz4nUkR1H+88PimUdytOIramzhqGfHjWE2ZNg=
+	t=1779191794; cv=none; b=P57Y4jjbYDVOSquewzvGF91jzzdXdzFP/JlPJluXNQVPP8qYH5BlQU3WSkkbi0D206dYvslU/48BBj0keQC7clxkuNZeYpYuN8kuvpV4Ci4k0qS9y+Hkpv66J1FeWiTalCZr+k6Yk3tK6b3Oz35FlWLimQLb0zs/37jN/AygSAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779187874; c=relaxed/simple;
-	bh=PeEBkY1CNEPFKSe/J0NkWerJVO/X3uLmpZrY5tgvokc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jihBEOmW4rDeGNlTx+SNIXYFrfCppULlKxpwbW6i7HStMjOhAJRkEbHxuctdNUgFQgRSXNCqJ94Gj8EnYpybpt2K2RX6GZA141NMeSV8jmfeisHMzNfJR99uo9zrV3Aav+455cxSIxnFly6k2pTM9AcwT22zsnabrp5qpWp55rM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=AqgsO/gI; arc=none smtp.client-ip=91.218.175.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="AqgsO/gI"
-Message-ID: <7da4fc46-0432-4f3d-b1bb-1691a2464df0@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779187864;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=H8n96lsxRVIrD96zj1R14KLDTBGb0m6IdyBe3EwkwOg=;
-	b=AqgsO/gIZYY4FYs0BfjjDO+MQ/FWrl5Bofi7ORUY9Xq5Y6Rx5MsbreLBRfGsrngqNLWUAE
-	9wF61thTfoHbGjg40zzwDq+kTzQlH2bh9wgrYBZV6dAMDMwkOU8lEWYr6TXEXB9HeOrud/
-	bxK5Wxa2a8CHNF88TKGtiZeel5kiNiE=
-Date: Tue, 19 May 2026 18:50:55 +0800
+	s=arc-20240116; t=1779191794; c=relaxed/simple;
+	bh=6EHyX+t59JQk8qaGatmxGZ3pdkNuXcSnsYDgZnyNEp4=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=eYkP0mvf9xYFhAdU3moSRzh4u/okJDnlxvoQUHOZEdPGinLmmJ9qgI1Jicj6hVQQDuFw738FosG8hWDiNpc9aoDIiulu1EZYidX+Q7j0Bp87stA6zskBrD59XISVRyC0zM6hIBlQY5zNvGLmmg/yLIp01nds3O4+IiX8f7zeaS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-68e924f632bso6754412eaf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 May 2026 04:56:32 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779191792; x=1779796592;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=P1p6VfNC57KjkmyCN/S20TDWRsKpJFRMJHYp7VVD08s=;
+        b=LrL14E+DmQ3DhnWyOcxSprGd2r60dwzJXBTDgP2Rq5yPPXVLRmC+YVthdrx4OHFwEI
+         Cn+vXrLimHBiz7CiA2siO8fPOcNQpnEsVMHa5A0j64PeucN+tDfaDZjZCZ81ZE39Wc/W
+         FBVUASrWXYEoL1X1bglbG2jKdSexeYbVuLo+B6U6/2R88s38rSe6Zj5fVv7bwkkHoyhk
+         vjFuQeWV9BLEItE36IQ1pjcoXDU6uJo7VSmnk0fBvQOGniSMb2U3D7lC3lVRJW58mLri
+         lgWDtKAOtUNcfAS+ye76YLaRA9oG8eqH56ZGrarQr4JMhrvY68x0eYc+btPHINk7Zm63
+         VLOQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+vXVLAvWUtn316QClNTJAPhXBt/EeC2ckyja2q9vY5oqXBtJXkv+osyrTLAtU892xQCN3fGWRUT49Ga8p+t78=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyyQMPVi4kFbhyFn4KLc400dBJ2/N81ou4M0SpZGMQTy++2cVR7
+	/NuWDXb7KvkZWxnUUyG2FR/PVE/uMUjZaoJCoc7pUqsVtOSTv6xtQjsL2LZIFqVu1mfm5Zs/S3r
+	s5oZ3tJ3IihBc3MFhe2im8XIGQ1ndQFJhtJCvym4oOGnooCBfSECbFRraCQc=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH nf 1/2] netfilter: nft_fib_ipv6: handle routes via
- external nexthop
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
- coreteam@netfilter.org
-References: <20260519041431.396218-1-jiayuan.chen@linux.dev>
- <agw2kQHigTsMoJKt@orbyte.nwl.cc>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-In-Reply-To: <agw2kQHigTsMoJKt@orbyte.nwl.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-Received: by 2002:a4a:e916:0:b0:68a:116a:a5e5 with SMTP id
+ 006d021491bc7-69c9bfb0957mr12376940eaf.44.1779191791837; Tue, 19 May 2026
+ 04:56:31 -0700 (PDT)
+Date: Tue, 19 May 2026 04:56:31 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a0c4fef.170a0220.25463a.022e.GAE@google.com>
+Subject: [syzbot] [netfilter?] BUG: using smp_processor_id() in preemptible
+ code in cpu_mt
+From: syzbot <syzbot+690d3e3ffa7335ac10eb@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Phil,
+Hello,
 
-Thanks for your review.
+syzbot found the following issue on:
 
-On 5/19/26 6:08 PM, Phil Sutter wrote:
-> Hi,
->
-> On Tue, May 19, 2026 at 12:14:30PM +0800, Jiayuan Chen wrote:
->> fib6_info has a union:
->>
->>      union {
->>          struct list_head fib6_siblings;
->>          struct list_head nh_list;
->>      };
->>
->> Old-style multipath (ip -6 route add ... nexthop ... nexthop ...) uses
->> fib6_siblings.  External nexthop (ip -6 route add ... nhid N) uses
->> nh_list, linked into &nh->f6i_list.
->>
->> nft_fib6_info_nh_uses_dev() blindly walks &rt->fib6_siblings, causing
->> an OOB read past the struct nexthop slab when rt->nh is set:
->>
->>    ==================================================================
->>    BUG: KASAN: slab-out-of-bounds in nft_fib6_eval+0x1362/0x16c0
->>    Read of size 8 at addr ffff888103a099d0 by task ping/386
->>
->>    CPU: 2 UID: 0 PID: 386 Comm: ping Not tainted 7.1.0-rc3+ #251 PREEMPT
->>    Call Trace:
->>     <IRQ>
->>     dump_stack_lvl+0x76/0xa0
->>     print_report+0xd1/0x5f0
->>     kasan_report+0xe7/0x130
->>     __asan_report_load8_noabort+0x14/0x30
->>     nft_fib6_eval+0x1362/0x16c0
->>     nft_do_chain+0x279/0x18c0
->>     nft_do_chain_ipv6+0x1a8/0x230
->>     nf_hook_slow+0xad/0x200
->>     ipv6_rcv+0x152/0x380
->>     __netif_receive_skb_one_core+0x118/0x1c0
->>    ==================================================================
->>
->> Branch by route shape: when rt->nh is set, walk via
->> nexthop_for_each_fib6_nh() (also covers nh groups, which the original
->> code missed); otherwise walk fib6_siblings, guarded by fib6_nsiblings.
->>
->> Fixes: 1c32b24c234b ("netfilter: nft_fib_ipv6: switch to fib6_lookup")
->> Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
->> ---
->>   net/ipv6/netfilter/nft_fib_ipv6.c | 16 ++++++++++++++++
->>   1 file changed, 16 insertions(+)
->>
->> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
->> index 8b2dba88ee96..a44919f46de9 100644
->> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
->> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
->> @@ -160,16 +160,32 @@ static bool nft_fib6_info_nh_dev_match(const struct net_device *nh_dev,
->>   	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
->>   }
->>   
->> +static int nft_fib6_nh_match_dev_cb(struct fib6_nh *nh, void *arg)
->> +{
->> +	const struct net_device *dev = arg;
->> +
->> +	return nft_fib6_info_nh_dev_match(nh->fib_nh_dev, dev) ? 1 : 0;
-> Why the ternary here? The function returns bool, but the iterator merely
-> checks the value for 0 and caller returns the value as bool as well.
->
->> +}
->> +
->>   static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
->>   				      const struct net_device *dev)
->>   {
->>   	const struct net_device *nh_dev;
->>   	struct fib6_info *iter;
->>   
->> +	/* External nexthop: fib6_siblings slot aliases nh_list, walk via nh. */
->> +	if (rt->nh)
->> +		return nexthop_for_each_fib6_nh(rt->nh,
->> +						nft_fib6_nh_match_dev_cb,
->> +						(void *)dev) != 0;
+HEAD commit:    50d00ea66086 Merge branch 'bpf-follow-up-fixes-for-stack-a..
+git tree:       bpf-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=17f258c8580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4caf64b1ee83dac0
+dashboard link: https://syzkaller.appspot.com/bug?extid=690d3e3ffa7335ac10eb
+compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/dbc6ccaf15bc/disk-50d00ea6.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/9160c9066e5c/vmlinux-50d00ea6.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/b6f1c3abffde/bzImage-50d00ea6.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+690d3e3ffa7335ac10eb@syzkaller.appspotmail.com
+
+BUG: using smp_processor_id() in preemptible [00000000] code: syz.3.1377/11941
+caller is cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
+CPU: 1 UID: 0 PID: 11941 Comm: syz.3.1377 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/18/2026
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ check_preemption_disabled+0xd3/0xe0 lib/smp_processor_id.c:47
+ cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
+ __nft_match_eval net/netfilter/nft_compat.c:412 [inline]
+ nft_match_eval+0x1ad/0x2b0 net/netfilter/nft_compat.c:442
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
+ nft_do_chain+0x48d/0x1ae0 net/netfilter/nf_tables_core.c:285
+ nft_do_chain_inet+0x360/0x4b0 net/netfilter/nft_chain_filter.c:162
+ nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:619
+ nf_hook+0x22a/0x3a0 include/linux/netfilter.h:273
+ NF_HOOK_COND include/linux/netfilter.h:306 [inline]
+ ip_output+0x269/0x450 net/ipv4/ip_output.c:438
+ __ip_queue_xmit+0x116a/0x1bb0 net/ipv4/ip_output.c:534
+ sctp_packet_transmit+0x246f/0x2ac0 net/sctp/output.c:653
+ sctp_packet_singleton+0x234/0x340 net/sctp/outqueue.c:783
+ sctp_outq_flush_ctrl net/sctp/outqueue.c:914 [inline]
+ sctp_outq_flush+0x50d/0x31b0 net/sctp/outqueue.c:1212
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:-1 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1204 [inline]
+ sctp_do_sm+0x54c7/0x5cf0 net/sctp/sm_sideeffect.c:1175
+ sctp_primitive_ASSOCIATE+0x95/0xc0 net/sctp/primitive.c:73
+ sctp_sendmsg_to_asoc+0x143d/0x1900 net/sctp/socket.c:1840
+ sctp_sendmsg+0x1b3d/0x2c10 net/sctp/socket.c:2030
+ sock_sendmsg_nosec net/socket.c:787 [inline]
+ __sock_sendmsg net/socket.c:802 [inline]
+ ____sys_sendmsg+0x80a/0x9f0 net/socket.c:2698
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2752
+ __sys_sendmsg net/socket.c:2784 [inline]
+ __do_sys_sendmsg net/socket.c:2789 [inline]
+ __se_sys_sendmsg net/socket.c:2787 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2787
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x15f/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7ff6e519ce59
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ff6e33f6028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007ff6e5415fa0 RCX: 00007ff6e519ce59
+RDX: 00000000000480d1 RSI: 0000200000000140 RDI: 0000000000000003
+RBP: 00007ff6e5232d6f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ff6e5416038 R14: 00007ff6e5415fa0 R15: 00007ffdfe9dd548
+ </TASK>
 
 
-All make sense !
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
->> +
->>   	nh_dev = fib6_info_nh_dev(rt);
->>   	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
->>   		return true;
->>   
->> +	if (!rt->fib6_nsiblings)
-> Should this access using READ_ONCE() as per commit 31d7d67ba127 ("ipv6:
-> annotate data-races around rt->fib6_nsiblings")?
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
 
-You are right, we need READ_ONCE since fib6_add_rt2node will modify 
-@fib6_nsiblings .
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
 
-
->> +		return false;
->> +
->>   	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
-
-
-Now I think we should also change list_for_each_entry  into 
-list_for_each_entry_rcu for the same reason.
-
-But I'm not sure whether it is appropriate or not since this patch 
-target to commit in Fiexes tag.
-
-May be a followup patch is necessary.
-
-
-
->>   		nh_dev = fib6_info_nh_dev(iter);
-> I thought about open-coding this to void the need for the callback
-> wrapper, but it's not worth it.
->
-> Cheers, Phil
+If you want to undo deduplication, reply with:
+#syz undup
