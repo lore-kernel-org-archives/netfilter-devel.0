@@ -1,39 +1,43 @@
-Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [95.215.58.171])
+Received: from out-174.mta1.migadu.com (out-174.mta1.migadu.com [95.215.58.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A12B1175A6A
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 02:34:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06C32F3C3D
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 02:34:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779244467; cv=none; b=YqFEiT+J8WONebREYbHiMX0fH7M81dD7JABscs+JrCvT8UsRsbqVh1amlBr9O+gBiRb8UCxewh6dck1Din8Swf7zUXLY7AwUdQnketSk080UfywC/IX948fQeehUArHKbsVc6UCADA3YaiYtf9ReZS6zWOJVKLZfbfWBbQJ7KjY=
+	t=1779244468; cv=none; b=POyrqJorPpdUqP4hNrEuvBw9BH70skEgPn9lX9Dg8UnfwUvQvkrrZemytTe/13LVvUUhK4FwK+285s3bWy4TbpwKLAz37RuYxV/xWbvh4MoMAxGP5abfXNiUH2r90GdyCOpr4VgCbclwqKWR4Nxe4F6r1krIWR0Z/CKDusjl1y0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779244467; c=relaxed/simple;
-	bh=FmzVp4r4lEfQyJXQ2JQckZGiTUFm7NiwWpDYsS6Km58=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uf254qe6+wZeu7zW5HileX9mOu50u7FyYKPciVAPA+oZsfqIlUICPB5s3tShRV7bcVKxNCYU19apgEgTXJ2vL0hSoriCa4DRifDrlYgqqXr/hSM2xaaEkLa9kwOCxorqkyCz5vyg0ttZQIvhjWuBtJosdHwaXQfPkmTzJa6AF+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=bW68U/eP; arc=none smtp.client-ip=95.215.58.171
+	s=arc-20240116; t=1779244468; c=relaxed/simple;
+	bh=gDco/RmEGNnyb39Sm29Xio0IhOzYDc713d1m8dRy8pU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=UghVKMRkp8hF2Zcyv1Az6R8AXYhqqWACJjlZTza5uBo3O06K7EaXeNnUhYRZFFl/xxBEuvoFmQwg6J/aljrio3qqnsasAfl1fPcJ6ABxBbzcUWZy6ia6AFen9AbR2OPaMItnfveyaZMv/EXhaXvwsVl10mq2DevHUdCR/iqqcow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=sK4RNryr; arc=none smtp.client-ip=95.215.58.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="bW68U/eP"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="sK4RNryr"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779244462;
+	t=1779244465;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=b1oYtr07/stAVenaMRYvf1EjHOcGs8LpSJix+c+MGIw=;
-	b=bW68U/ePX8+RLCl9zd6LZfamGX/rg9OQICpidP/jIVdXCI7TnGHFKXuI6249untq+XLmJT
-	9iqg1mNeo4d+xI70zpWdvZQC7ZTISSGc3TWE1xY55FaysSrBRgeZhp352KBhQnaO/Hv9ly
-	dgY5jF9euxHMuj4aGKCQ7WzSgisHWfU=
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YAeSJpjLmQYYoUlL+o/0CbpAdNLSU9RphTzKQ0H/8KQ=;
+	b=sK4RNryrx6udco3MRC7ntBfxeOoupSNiyckoU9OcMKuHeCsjr4MpIN6uyF0ODuALWORrr4
+	EtJoBcSkslBK9pz6+nghUxXeAqLLEOly83Gmk+YSdGqIF9zGKUMvqYbrij6zEOVVTi7P2e
+	rIvQ61z9Auu9H+2+7IlH6q/TSir/Ig0=
 From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
 	coreteam@netfilter.org
-Subject: [PATCH nf v2 0/3] netfilter: nft_fib_ipv6: handle routes via external nexthop
-Date: Wed, 20 May 2026 10:34:08 +0800
-Message-ID: <20260520023411.391233-1-jiayuan.chen@linux.dev>
+Subject: [PATCH nf v2 1/3] netfilter: nft_fib_ipv6: walk fib6_siblings under RCU
+Date: Wed, 20 May 2026 10:34:09 +0800
+Message-ID: <20260520023411.391233-2-jiayuan.chen@linux.dev>
+In-Reply-To: <20260520023411.391233-1-jiayuan.chen@linux.dev>
+References: <20260520023411.391233-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,36 +47,33 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Patch 1 switches the fib6_siblings walk in nft_fib6_info_nh_uses_dev()
-to list_for_each_entry_rcu().
+nft_fib6_info_nh_uses_dev() runs from nft_fib6_eval() in softirq under
+rcu_read_lock().  fib6_siblings is modified by writers that hold
+tb6_lock but do not wait for RCU readers, so the sibling walk should
+use list_for_each_entry_rcu(): it adds READ_ONCE() on the ->next
+pointer and lets CONFIG_PROVE_RCU_LIST validate the locking.
 
-Patch 2 fixes the slab-out-of-bounds when the matched route uses an
-external nexthop object.
+No functional change for non-debug builds.
 
-Patch 3 adds a selftest covering single nh, nh group and old-style
-multipath.
+Fixes: 1c32b24c234b ("netfilter: nft_fib_ipv6: switch to fib6_lookup")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+---
+ net/ipv6/netfilter/nft_fib_ipv6.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v1: https://lore.kernel.org/netfilter-devel/20260519041431.396218-1-jiayuan.chen@linux.dev/
-
-Changes since v1:
-  - new patch 1: list_for_each_entry_rcu() conversion split out
-    (Suggested-by: Phil Sutter)
-  - patch 2:
-    * drop redundant ternary in nft_fib6_nh_match_dev_cb (Phil)
-    * drop redundant "!= 0" on nexthop_for_each_fib6_nh return (Phil)
-    * use READ_ONCE() for rt->fib6_nsiblings (Phil)
-
-Jiayuan Chen (3):
-  netfilter: nft_fib_ipv6: walk fib6_siblings under RCU
-  netfilter: nft_fib_ipv6: handle routes via external nexthop
-  selftests: netfilter: add nft_fib_nexthop test
-
- net/ipv6/netfilter/nft_fib_ipv6.c             |  18 ++-
- .../testing/selftests/net/netfilter/Makefile  |   1 +
- .../net/netfilter/nft_fib_nexthop.sh          | 152 ++++++++++++++++++
- 3 files changed, 170 insertions(+), 1 deletion(-)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
-
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 8b2dba88ee96..5e192a446ec8 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -170,7 +170,7 @@ static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
+ 	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
+ 		return true;
+ 
+-	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
++	list_for_each_entry_rcu(iter, &rt->fib6_siblings, fib6_siblings) {
+ 		nh_dev = fib6_info_nh_dev(iter);
+ 
+ 		if (nft_fib6_info_nh_dev_match(nh_dev, dev))
 -- 
 2.43.0
 
