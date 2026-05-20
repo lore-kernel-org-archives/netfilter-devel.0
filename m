@@ -1,248 +1,93 @@
-Received: from out-178.mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990AB302767
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 02:34:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D7C02DA756;
+	Wed, 20 May 2026 04:11:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779244473; cv=none; b=Et+Zo7er/Cv2A9Twt3RJ+QwCcs9wC1JQXBqJ1tPAF3ePx428F+CtLM7EYKTQYbJiKkiCY65/RYXzF4FG7VBO6S0+t+yTpyNTJOqvXUU13fySyEiEfnEh6N1DjSQAExPDcX1t/2+EKj0/L+nQyje2p3+fT/TGYDtnEh1EpNDGhWE=
+	t=1779250306; cv=none; b=abGC4wePjkDTX9yJFroskcewhaXbSmGY0bs0uI9CDchpyWlb9QiooWJ9LCEndCRWFayOhgzLVeYKYJ+6ouUadWdTfKvgVlQAALCqTCyBeIiXE6ZALiUEDeBlsdQ6Ivt2+6hGgiA2imCYawGYcH0073OQwpxPPiX0GoNo9psBDS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779244473; c=relaxed/simple;
-	bh=UpDmt7bogyhkI6W7enLWWV5PzH92qOfwfNVX+44o4LM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=B75NJgYZ3VKJpVxO8iGPBqhA9KQmImL/aqbrlu1BVtlTPsAOJyVv/Z/ov+ZF3xchoO2zWsy18V8KhRPQw3thwG9W+noP5kRxWmL08EgIGQTSInBPHIgNUKtq7GcEeSbJBwsmdBkDT94ZvAthwK+wzEARO9n+eIMKVIhkXAE4vds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ED44Utej; arc=none smtp.client-ip=95.215.58.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1779250306; c=relaxed/simple;
+	bh=+nULNlyf4O/uiWjCAvQrgQHSz8xiGemqV8ciNy0wcQY=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=pq6WoJn2+2eOSJOBrRDJIpEGRaGFApcfZwTkGOxQLHqfL7IRubFl3zQMpuGRQadcNukKRMl6LLVdUYqbtmCObr0qcqCfDxkAluW0PCtN7+d0oFMECiuj0ejmhaHUvtq7VjJA1srvVnDAL0Gmc4u3lVZw4B8oODBTrTw2+6ZoVEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=NPN1XABn; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ED44Utej"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779244469;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7WqNlMJDthtGSkO5Z1UouiogaywFPCBTru59b+PrKb4=;
-	b=ED44Utejwj2k0M3MeGGBPvi+dVoXqmy1fBCQu0ld+B6FmUQdnDLrvDZluivo6StymYNBDv
-	XO/JVVjsV6wVwxv5C0TU6E92g3JM3Er8df/7BHt7qqQQLEetL9r4dogo61wHuR++0beaDk
-	HHBdYocetcRag5oSD7OVYwW/oPPT5Hs=
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	coreteam@netfilter.org
-Subject: [PATCH nf v2 3/3] selftests: netfilter: add nft_fib_nexthop test
-Date: Wed, 20 May 2026 10:34:11 +0800
-Message-ID: <20260520023411.391233-4-jiayuan.chen@linux.dev>
-In-Reply-To: <20260520023411.391233-1-jiayuan.chen@linux.dev>
-References: <20260520023411.391233-1-jiayuan.chen@linux.dev>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="NPN1XABn"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id C41F5217D5;
+	Wed, 20 May 2026 07:11:35 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=4PfbLACuCQpSYnAR5qGzVx9PtsB1XBBP8U4mGrcUZcI=; b=NPN1XABnYshL
+	HYIJogFTb/2iePgLwlYe2Mnzyc49TfZNKCcekXgMjpRfBYnTf/lG7QzGwERaG/Yy
+	RNCJarJh1Q9UvVC/6HcVsLqEgS/+XbNP5kov3CR/aX/OXlnv1sUTa2+ZrAkSOX7e
+	eh+amjuwYZ04F7avpPuX+nguBMZMO6rsccr6o3OU/U0lX8sS5Wnx9URJtuZiKmfH
+	gBprEneIW+s4c7fG1m1RsgeETR0QnKBJsygwPVfz575stsMLwP4OTtLhT8pEZrUE
+	ZcVFLhAUkPCIaP5N0PqJLJlUNj9No4fdX+lGe4I3P4YJkdLcAODm0zBQHAefGglj
+	DLCQqwpuDiVTjC1VyUgawxfSR7UnZY1mdJC/Uk+bUggNZxYKUBWdEloJNtyuAD+Z
+	KtXJbJ2Wrw1zhwJFfc1/29UsuDFTKSGDB9ag71G3N+tYppx+9m9yL205/2Sw4MKl
+	/x6AQ1dOA5uBROxCa1KOGu1lBBeO0ZorIG58r/vJdAizMqgvHmyYkjRUx5RBGFag
+	1a7TofYPR/zRWxNM/0F1Rwsb8ScT0yDh+ukUwT7UnU+mHtKF/EnH+rwzF1AYSVcS
+	j6HUrMUE3M0Ca9mJD4/nSxSiQtJE3J3o3IY03yHzsTQ9TmFp61uuevcfSbVoHlDg
+	jDAcfHfI3Khf3lCZkxPQ0RIbtLXkZ1M=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 20 May 2026 07:11:35 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id BC78560FA8;
+	Wed, 20 May 2026 07:11:33 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.1) with ESMTP id 64K4BSM5008476;
+	Wed, 20 May 2026 07:11:28 +0300
+Date: Wed, 20 May 2026 07:11:28 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Jakub Kicinski <kuba@kernel.org>
+cc: Marco Crivellari <marco.crivellari@suse.com>, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>,
+        Lai Jiangshan <jiangshanlai@gmail.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Michal Hocko <mhocko@suse.com>, Simon Horman <horms@verge.net.au>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq
+ with system_dfl_long_wq
+In-Reply-To: <20260519182219.0d685a27@kernel.org>
+Message-ID: <10173685-596f-1eb0-0903-a3d7ba4dff9b@ssi.bg>
+References: <20260515135143.259669-1-marco.crivellari@suse.com> <20260515135143.259669-3-marco.crivellari@suse.com> <20260519182219.0d685a27@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=US-ASCII
 
-Functional coverage of nft_fib6_eval()'s nexthop enumeration over
-three route shapes:
 
-  1) single external nexthop (nhid)
-  2) external nexthop group (nhid -> group)
-  3) old-style multipath (nexthop ... nexthop ...)
+	Hello,
 
-Each scenario places one nexthop on the input device (veth0). For
-(2) and (3) the matching nexthop is the second member, so the walk
-has to traverse beyond the primary nh. Two nft counters on prerouting
-verify the data path: one increments only when fib reports veth0 as
-the oif, the other counts "missing" results and must stay at zero.
+On Tue, 19 May 2026, Jakub Kicinski wrote:
 
-  ./nft_fib_nexthop.sh
-  PASS: single external nexthop (nhid -> veth0)
-  PASS: nexthop group (dummy0 + veth0)
-  PASS: old-style multipath (sibling on veth0)
+> On Fri, 15 May 2026 15:51:37 +0200 Marco Crivellari wrote:
+> > Subject: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
+> 
+> FTR leaving this one to netfilter folks
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
----
- .../testing/selftests/net/netfilter/Makefile  |   1 +
- .../net/netfilter/nft_fib_nexthop.sh          | 152 ++++++++++++++++++
- 2 files changed, 153 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
+	Yep, we wait net to be merged to net-next because the patch
+depends on commit 5522d65d81a7
+("ipvs: avoid possible loop in ip_vs_dst_event on resizing")
 
-diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index ee2d1a5254f8..d953ee218c0f 100644
---- a/tools/testing/selftests/net/netfilter/Makefile
-+++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -26,6 +26,7 @@ TEST_PROGS := \
- 	nft_concat_range.sh \
- 	nft_conntrack_helper.sh \
- 	nft_fib.sh \
-+	nft_fib_nexthop.sh \
- 	nft_flowtable.sh \
- 	nft_interface_stress.sh \
- 	nft_meta.sh \
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh b/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
-new file mode 100755
-index 000000000000..c4f203057382
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/nft_fib_nexthop.sh
-@@ -0,0 +1,152 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# shellcheck disable=SC2154
-+#
-+# Exercise nft_fib6_eval()'s sibling/nh enumeration on three route shapes:
-+#   1) route via a single external nexthop (nhid)
-+#   2) route via an external nexthop group (nhid -> group, two members)
-+#   3) route via old-style multipath (nexthop ... nexthop ...)
-+#
-+# In each scenario the route's nexthop set contains veth0 (the iif of the
-+# test packet). nft_fib6_info_nh_uses_dev() must walk the set and report
-+# veth0 as a valid oif. For (2) and (3) the matching nexthop is the second
-+# member, so the walk has to traverse beyond the primary nh.
-+#
-+# After sending $PKTS ICMPv6 echo requests from ns1, check two counters on
-+# nsrouter:
-+#   nf_ok  -- `fib daddr . iif oif eq "veth0"`  must equal $PKTS
-+#   nf_bad -- `fib daddr . iif oif missing`     must stay at 0
-+# Both rules also match on iif veth0 and ip6 daddr dead:dead::/64 so that
-+# kernel-generated ND/MLD/RA traffic cannot pollute the counters.
-+#
-+# Topology similar to nft_fib.sh, without ns2; two dummy interfaces on
-+# nsrouter host extra nh devices:
-+#
-+#   dead:1::99             dead:1::1
-+#       ns1 <----veth----> nsrouter --- dummy0 dead:2::1
-+#                                   \-- dummy1 dead:9::1
-+
-+source lib.sh
-+
-+ret=0
-+PKTS=3
-+
-+checktool "nft --version" "run test without nft"
-+checktool "ip -V"         "run test without iproute2"
-+
-+setup_ns nsrouter ns1
-+trap cleanup_all_ns EXIT
-+
-+if ! ip link add veth0 netns "$nsrouter" type veth peer name eth0 netns "$ns1" \
-+	> /dev/null 2>&1; then
-+	echo "SKIP: No virtual ethernet pair device support in kernel"
-+	exit $ksft_skip
-+fi
-+
-+ip -net "$ns1" link set lo up
-+ip -net "$ns1" link set eth0 up
-+ip -net "$ns1" -6 addr add dead:1::99/64 dev eth0 nodad
-+ip -net "$ns1" -6 route add default via dead:1::1
-+
-+ip -net "$nsrouter" link set lo up
-+ip -net "$nsrouter" link set veth0 up
-+ip -net "$nsrouter" -6 addr add dead:1::1/64 dev veth0 nodad
-+
-+if ! ip -net "$nsrouter" link add dummy0 type dummy 2>/dev/null; then
-+	echo "SKIP: dummy netdev not available"
-+	exit $ksft_skip
-+fi
-+ip -net "$nsrouter" link set dummy0 up
-+ip -net "$nsrouter" -6 addr add dead:2::1/64 dev dummy0 nodad
-+
-+ip -net "$nsrouter" link add dummy1 type dummy
-+ip -net "$nsrouter" link set dummy1 up
-+ip -net "$nsrouter" -6 addr add dead:9::1/64 dev dummy1 nodad
-+
-+ip netns exec "$nsrouter" sysctl -q net.ipv6.conf.all.forwarding=1
-+
-+load_fib_rule() {
-+	# filter on iif + daddr so the counters only see our test packets
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+flush ruleset
-+table ip6 t {
-+	counter nf_ok  { }
-+	counter nf_bad { }
-+	chain c {
-+		type filter hook prerouting priority 0; policy accept;
-+		iif "veth0" ip6 daddr dead:dead::/64 fib daddr . iif oif eq "veth0" counter name nf_ok
-+		iif "veth0" ip6 daddr dead:dead::/64 fib daddr . iif oif missing    counter name nf_bad
-+	}
-+}
-+EOF
-+}
-+
-+bad_counter() {
-+	local counter=$1
-+	local expect=$2
-+	local tag=$3
-+
-+	echo "FAIL ($tag): counter $counter has unexpected value (expected \"$expect\")" 1>&2
-+	ip netns exec "$nsrouter" nft list counter ip6 t "$counter" 1>&2
-+}
-+
-+run_scenario() {
-+	local what="$1"; shift
-+	# counter output format is "packets PACKET_NUM bytes BYTES_NUM";
-+	# we only care about the packet count
-+	local expect_ok="packets $PKTS bytes"
-+	local expect_bad="packets 0 bytes"
-+	local lret=0
-+
-+	# reset route + nexthop state between scenarios
-+	ip -net "$nsrouter" -6 route del dead:dead::/64 > /dev/null 2>&1 || true
-+	ip -net "$nsrouter" nexthop flush               > /dev/null 2>&1 || true
-+
-+	# run the scenario function passed by the caller
-+	"$@" || echo "WARN ($what): scenario setup returned non-zero"
-+
-+	load_fib_rule || { echo "FAIL ($what): nft load"; ret=1; return; }
-+
-+	# ping a daddr inside dead:dead::/64 so fib has to walk the nh set
-+	ip netns exec "$ns1" ping -6 -c "$PKTS" -i 0.1 -W 1 dead:dead::1 \
-+		> /dev/null 2>&1 || true
-+
-+	# verify the packets went through the expected fib path
-+	if ! ip netns exec "$nsrouter" nft list counter ip6 t nf_ok | grep -q "$expect_ok"; then
-+		bad_counter nf_ok "$expect_ok" "$what"
-+		lret=1
-+	fi
-+	if ! ip netns exec "$nsrouter" nft list counter ip6 t nf_bad | grep -q "$expect_bad"; then
-+		bad_counter nf_bad "$expect_bad" "$what"
-+		lret=1
-+	fi
-+
-+	if [ $lret -eq 0 ]; then
-+		echo "PASS: $what"
-+	else
-+		ret=1
-+	fi
-+}
-+
-+scenario_single_nh() {
-+	ip -net "$nsrouter" nexthop add id 1 via dead:1::99 dev veth0
-+	ip -net "$nsrouter" -6 route add dead:dead::/64 nhid 1
-+}
-+run_scenario "single external nexthop (nhid -> veth0)" scenario_single_nh
-+
-+scenario_nh_group() {
-+	ip -net "$nsrouter" nexthop add id 1   via dead:2::2  dev dummy0
-+	ip -net "$nsrouter" nexthop add id 2   via dead:1::99 dev veth0
-+	ip -net "$nsrouter" nexthop add id 100 group 1/2
-+	ip -net "$nsrouter" -6 route   add dead:dead::/64 nhid 100
-+}
-+run_scenario "nexthop group (dummy0 + veth0)" scenario_nh_group
-+
-+scenario_old_multipath() {
-+	ip -net "$nsrouter" -6 route add dead:dead::/64 \
-+		nexthop via dead:2::2  dev dummy0 \
-+		nexthop via dead:1::99 dev veth0
-+}
-+run_scenario "old-style multipath (sibling on veth0)" scenario_old_multipath
-+
-+exit $ret
--- 
-2.43.0
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
