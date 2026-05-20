@@ -1,60 +1,61 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out-187.mta1.migadu.com (out-187.mta1.migadu.com [95.215.58.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA82299937;
-	Wed, 20 May 2026 01:22:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4CE258EC1
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 01:26:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779240141; cv=none; b=muBQawC/KWpyC3lk30WAZ/6ebuYf/fzoQx5dLlRiawqg8J0tLOjJQM9FKTIlLkS0UP3GI5eWck7o+D/XNDIA9nr163TcngZvTP1n+gnhgw+jaV8593cJmd2DYQqYl9fxeyOKenWNHKwKYgP7e/s5aJN0T4aQRnZ6Hh2YQ7YO9ZE=
+	t=1779240382; cv=none; b=Q9PIQZg1N+Pr8LoIGAlCmVaQamyxLqzIenwSHJ5aV7xf6ixDf37S21j1ufZPWwVupbbgFarYgAk++9DbwrYq4yDFsK4ZXSbkhi8xMpejOhtA22rsrEJpLJaK1z610LyKnA/2lcImZO3deiw8rTMePFo9GYv9CC5rEKkuesuv6vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779240141; c=relaxed/simple;
-	bh=Jlxxfz2coa8Zxo883jNw4XVwpwOJ5iRS+2VhN9tAP98=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NGkJzSSXIqPvfUAspWWi6Lj6vAHGbFAzMgarhhuF87UdKbotzPnWMsJ/4yaAU6erNeQD/8KEgGUS9jaVw6N7sau9JzRBhmReZijiCEBLKLFZX9HwhtKSEfF4LBzx3bAK3C7rYVxZxE20gduIS1yf8qCQMeN3N3rAq9keBv0hx20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mtXVoJyx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779240382; c=relaxed/simple;
+	bh=cuwr5fGN4GoLEBnaLulAKcHHHWTQA3fUhwXs74XKqs4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Kbq90k/Dm5/61CknGvfu74kKlHL/YhX5i61Kmo6waYO3l3ldxuPg0kS1RrpWNt/UHve5SdHPQoYSbcM/yOKEJIpfPV0NdkwQaRsygnm/bryYiveMk5AK2CoDvAOQfPEeGpXLQrdXByFLH4kDAGls/Yca5wgivA+pdUtprYztGNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=vU6N6YZQ; arc=none smtp.client-ip=95.215.58.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mtXVoJyx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4091F000E9;
-	Wed, 20 May 2026 01:22:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779240140;
-	bh=Jlxxfz2coa8Zxo883jNw4XVwpwOJ5iRS+2VhN9tAP98=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=mtXVoJyxmnjQY/v+iiRX8XrlLB9MdsSx3OD7Nnd91Z7+G90rSpl64A6rf+47DN2oB
-	 iJCHRmr/ZtUwGKAkmlFtpnrC81kCR1gwdz4rX7EfW4tY0BgxmHGB96MfZlQ+PpNE32
-	 9R0PnXz6s7CisfhyvvaU0a5rSZ++vSZcT3jMsajre+yKe9Ax2OK7xXRF+tswIR7ZSx
-	 KX3gEwLXGyvotdb8/fO/2p9I3/FdaeyreHY5DxSxHok6hj/wyxrUprKWRz/cHrYaUq
-	 nP7CZQQabjAKoeMkOm7tOPvTOcEe9vE8GRHs4Ffk0ZDqw6hLtwUE7TZt/DCYTFgpsx
-	 5XeBQR90wDGjA==
-Date: Tue, 19 May 2026 18:22:19 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Marco Crivellari <marco.crivellari@suse.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Tejun Heo
- <tj@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, Frederic
- Weisbecker <frederic@kernel.org>, Sebastian Andrzej Siewior
- <bigeasy@linutronix.de>, Michal Hocko <mhocko@suse.com>, Simon Horman
- <horms@verge.net.au>, Eric Dumazet <edumazet@google.com>, "David S .
- Miller" <davem@davemloft.net>, Paolo Abeni <pabeni@redhat.com>, Julian
- Anastasov <ja@ssi.bg>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian
- Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org
-Subject: Re: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq
- with system_dfl_long_wq
-Message-ID: <20260519182219.0d685a27@kernel.org>
-In-Reply-To: <20260515135143.259669-3-marco.crivellari@suse.com>
-References: <20260515135143.259669-1-marco.crivellari@suse.com>
-	<20260515135143.259669-3-marco.crivellari@suse.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="vU6N6YZQ"
+Message-ID: <2552567e-9e35-47f8-9c3b-cff2dac75ea3@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1779240377;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=cuwr5fGN4GoLEBnaLulAKcHHHWTQA3fUhwXs74XKqs4=;
+	b=vU6N6YZQA7XvrEs4BlOqVePhtS4w0tI1N/aVcb2CYViR6pOTQA8lcmrQxGdIkLHEP/Vdhz
+	7AvNozBTFci/EFT4JIGukAxcCdRU5HquTbWhQlX8wGo7JQnfIpBVNrSkrpP/AyiTtmyHKQ
+	4kJTPfww7AGKygvIYDnKDbCYaOK5OB0=
+Date: Wed, 20 May 2026 09:26:06 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Subject: Re: [PATCH nf 2/2] selftests: netfilter: add nft_fib_nexthop test
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc,
+ coreteam@netfilter.org
+References: <20260519041431.396218-1-jiayuan.chen@linux.dev>
+ <20260519041431.396218-2-jiayuan.chen@linux.dev> <agyxv8capFWhPo5I@strlen.de>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+In-Reply-To: <agyxv8capFWhPo5I@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-On Fri, 15 May 2026 15:51:37 +0200 Marco Crivellari wrote:
-> Subject: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
 
-FTR leaving this one to netfilter folks
+On 5/20/26 2:53 AM, Florian Westphal wrote:
+> Specifially: 'Does the test need to verify the datapath actually
+> evaluated correctly?' and
+> 'It looks like the test also sets up an nftables counter rule but doesn't
+> verify if the rule actually matched any packets.'
+>
+> I prefer functionality test over 'bug trap' tests.
+
+
+Agreed -- functional verification is the right approach here.
+
