@@ -1,63 +1,63 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E288740242E
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 18:48:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2286433B6D1
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 19:15:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779302923; cv=none; b=UNyOMHeNr7xNmnMEQZpWKiet2JEg6EicXA85maPH/FLMk+qW/HsED1TUEr/fR0Hzbb1gRoCB55u4vmT/G57s8G+EL74OlcTg+PVgqsXuwy/04YOldnGw33qdxkXCRfkvse27pIIUn5aLdjO6g3dxisRNqpbwiumq3DFslK7vIm8=
+	t=1779304516; cv=none; b=cgg3BIB+SFZrTFH6PfrUm30JzdVbbGbFmvUUursJ1smP+utNZv/NM+cesQvBDerqAmir7++RPqZl6vd1YHux1brsQ8knKSdp6Y0Jl2V0y5O2IpgI2rRgpSrlJka99MZI9Dl8oe5FRACv7u1eJaAW2VioYto1QA8N45HhdzP+eR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779302923; c=relaxed/simple;
-	bh=+8/Erynk4MZt8ofJCHgv8LLJ6eah4GjJA0JiD2n6b0g=;
+	s=arc-20240116; t=1779304516; c=relaxed/simple;
+	bh=GoMBdLnBrcbm7Gx7KdtXk8bDQaIvoenjh+iyxSR65i8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZoY9wBcNNI3FXnMTLpfrTzwy6690fzcL1dHZQxpMvKfWrBBRMlacTwHC+W9oPoUYu8yvZspB/m6CSJ/F4VxIDqYEAEkyo71d+qwTBV1ICiBLwP4tEgPF10XOIwCJwIzbICfURSHbrPXSyKjdP/N4u/jmf+9jrj+crjy2t/GVtpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TZAESE6/; arc=none smtp.client-ip=209.85.128.42
+	 Content-Type:Content-Disposition:In-Reply-To; b=cOn5Ex9Qq07U8BQBscN90gjuSZ+F5Ca+I+gGsOlXuRlM4wQZAshB3kUMce1TeSIAjkL0GmUowumytklo/JvXT4Fce3VVk57f2PmcQDEl6pUGvK1W/867ZcomvC2wergEj5zOCpV8P+JiOA6tqxj2nWBAEYsuUHs9rEaVhp8PRDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ga4/ibmX; arc=none smtp.client-ip=209.85.128.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TZAESE6/"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-4891d7164ddso29610065e9.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 11:48:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ga4/ibmX"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-488d2079582so50905425e9.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 12:15:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779302916; x=1779907716; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1779304512; x=1779909312; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=aPR9vml157T4AFMb0/LQfAP6U5qDsLmLgjLzNQHI+FU=;
-        b=TZAESE6/Xgxb8TYn8+/gTIsxXyd3d81qZx9mcMhLsdEQyxO6qyqQRBIudwLxD10PeV
-         +/C/SovMbmgAIhe2Fo/34b/JKkyZ49zzzivfHURUa1ECM5EUpWc4C5yDsLki82knLJ62
-         ochwZIGtiIr+4Mta+XNK3LABIMgUqE5rpe7FHaPCMoBRZMNTYDyZtteKMFsrt06swbF5
-         vxHcGTdnju6tjA/iVcjYdsvBT8DJmLjH6DwaHBbdC0rdkD2zboMWStmBxJxdoquDREps
-         9RfBqygRSpiCzyhBLd/dQn2cgYtt0o0YJrbPXo/Y0uoO7GEa/XNKETFlm/BUYVbkTWDi
-         5fvQ==
+        bh=haqlKhEJxhJQ1BOdNV2hG5Ryfl3eIwbTWa+eU+nTFeo=;
+        b=ga4/ibmX/i1rU4wzBRNL2Pwowko9sUNDlFfzlVsfOYYJKAeJvRvlEIfr/loRIdYRA7
+         qGcWy+F9+Tudxb61gHXV4yLM+p6YMKTPKjcd3CNrJhTymBtnBpLJ9P0oYmS1SBIJXhUz
+         s/cLTzFQUyhy87DMOjDisyoNPf5I0ebi1ynes+51XL1PQ9NYfjzNOj4H7L8Jknyaj4Ue
+         +NE2CEAATCHDI1mWk9PhL/p7tOqHPLgnt0Mv1noU5pfDmZpM03y3t05n2xQHwmBsVHfK
+         a/Ec6EJ+0zaOqrkdo7LXxvMRQIyiopA/Smq92s+y9gvf8qBH4FvuagzXQJN69Z4+n87u
+         nwPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779302916; x=1779907716;
+        d=1e100.net; s=20251104; t=1779304512; x=1779909312;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=aPR9vml157T4AFMb0/LQfAP6U5qDsLmLgjLzNQHI+FU=;
-        b=k/uYp1laCna4PN1BuhKd9RQ7+I7SDtiwQCmIHoZXk0SpUrMgH2EbUcOfpnm89mx6he
-         8IKOw+pcC7sKZhMx2loZYVggKhzOHfxPry2yaDXxEZuf3nOUhvkWk11XDfdPYIaR1BX8
-         UW27QaPO2qGRJJ2sqicpOJy128Bf2jbMis9cX/gElFfHnVlJ78Ntb9BpWHWtXoi1Xygk
-         CONjsgtMxpbxZhpAfPs6ZNycvLoQmob/1+R8kJKzl5tHqfsN9UgTl0Joj0q7govOYaSQ
-         T6jd22P0IKmgFptt0afqYww05XnLnNFj1krIyQFOfO/mP1w3EfgL3nCyy1dc0vYvxzqb
-         1xcA==
-X-Forwarded-Encrypted: i=1; AFNElJ+x/dsaha7P+8Syc/EHSXoO0lRHDA4b3w4R0hDw9oejSlut9Xij+9QM3nxvYm9N8nMt+drH+yUA4eAaRLCbLcs=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxsSdRCKB3IHmCOKzx4CwfJWzgnJTbXG3NCKawOlZ9DBdHevRP9
-	ekK1qiz/a2JLU6nAALE0M1uWxJ+AF1SctzhTvapjUncbo70oPSuZXcfC
-X-Gm-Gg: Acq92OGTMxrMcXBSP3UC13heA1QUBZseKUCIVBZpuDN0n5rrYJpw1uP0+2betJ6TnFe
-	vv7ozauwQh1vjR1YkUW9ffOW6U/EE+fV8qNXCmZvlnfPcn2rBSwbuYpcrDI1kexypLuLHQ4+8GJ
-	48m/1/Ec5rLSZu2eebrvPLcCfKSiJdQVboBcYZepCMELDqhBM7/1mpWfZM+7m5h3/OfurBelrUt
-	Ek6a2IEuXlRM8NSzcuTO2MGE5fmv+bE73vmo+ApDd5pFaFhaZdPJBY5Unw+sMjRqAe0jJBeJQNs
-	OE98a7injIk9GA+qdv6JsVUX9avN5sBRm2FUYQtWAh7Vg0DcYi6sCKrf6DWfRBfXVYk7goAIlhP
-	Fy4g65B9NDPM8flrSst9cg9NMiD6p4qhQwL11qp23RdlPHY7DWfVYrE0cWAHnOE5iXeSaHtdayB
-	EBsRDkexke9djz4gGRzNSUiX6z9w6bC3xJZl1XxbrQQONcpwLk8XblyvU=
-X-Received: by 2002:a05:600c:3e11:b0:48f:e230:c3fb with SMTP id 5b1f17b1804b1-48fe6626a8emr375953415e9.33.1779302916153;
-        Wed, 20 May 2026 11:48:36 -0700 (PDT)
+        bh=haqlKhEJxhJQ1BOdNV2hG5Ryfl3eIwbTWa+eU+nTFeo=;
+        b=CwYeKDTNvOKjr8lY70d+3sEzfYpOnMCqh2w03t3VgAbOb5ASc+eGPSVVqHZIYQJYgu
+         UdDn0VhEqVpQCrbE1CCT8cWazrfa22555a9Gw7kPeJgPvzndpCc2RE3YNrOBOBSmHb5F
+         StG57T0eddWX5b3y6YqZXQLQ75k7hR1en9+6nTCD3Rz53WoXauPXP5k7pK/V0pJHJh+n
+         BqJVvwW/NuTezMNgfJ3mPpNuBpdX4qvV7ljRbaZ8Di3aPzqDU5gUQzCL+mCG4ivTlIr0
+         LNqgktfSMMP+9avCOlvV7xw6OJFUuoSSBzxmeIDChIlts7oCcJTf9/fjvyWzbvutEqSV
+         PiUQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/eZD3ZZCfrmWQ4/lNMVYv06cEUSNn9hNmtjOUm3cMv9MfdA7yxJjS9ffhYyRD99CPRoliZSseLZrZn+GU+j3g=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwcICjXZZ9BTwPlllzE6/219rjBGxyH/zbNvIRYRlNN9vuMNv7n
+	P6eb4befhWIFrP2AFhfOxigEgcexgEDSEvsruXeobxlcovh4Y3dPmZIl
+X-Gm-Gg: Acq92OH/i1fxaQ4GvhkPwEk9H2kPbpINi0Rbl/nWjlT5MXE1fjpJno8n0iIo9EK8cOT
+	sYausW8wr7OIL22N8nRS06/D27VkR6lDtMCg0Hwx8YJtuF3mP8csZPCcpVSXAjtMNW5ovwUWWXZ
+	eemvxiBfwQDKLacI1VjhxiM7tGMCQw+GvKbOiGE/TSVR0mSIOLyZnSofcwOza30ajL35c04abgf
+	utI09A4JXLKnxCsj95Uv3agEhoz6Cf7r06CYVIe2G8koVI03Tbs/bQb40WJIfbPVQagQTFXwW/d
+	yMdxTyG3TFNokxijX6fK67nNbgsEgjUjttMZd7dVSdA3pWShSPyt1Nn6aoFLypqpJI8SCwHNuIK
+	LLQKyBqg2OECN2CfFk1eK2CxyrIqgDYmJQG9spBQGUrDZShnlQYaUbJexEk/3GOPvcrJM5idVho
+	Q3WBEgquDToJDB5I0FX1fpT4GqetP/xgFI0sDDVJcl9mrJuoFOEI7hFkg=
+X-Received: by 2002:a05:600c:c10b:b0:48f:d612:3c59 with SMTP id 5b1f17b1804b1-48fe60eb0f6mr277706925e9.9.1779304512361;
+        Wed, 20 May 2026 12:15:12 -0700 (PDT)
 Received: from gmail.com (deskosmtp.auranext.com. [195.134.167.217])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49033d3514esm11300845e9.3.2026.05.20.11.48.35
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49033d52c8bsm13494835e9.8.2026.05.20.12.15.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 May 2026 11:48:35 -0700 (PDT)
-Date: Wed, 20 May 2026 20:48:33 +0200
+        Wed, 20 May 2026 12:15:11 -0700 (PDT)
+Date: Wed, 20 May 2026 21:15:10 +0200
 From: Mahe Tardy <mahe.tardy@gmail.com>
 To: Jordan Rife <jordan@jrife.io>
 Cc: bpf@vger.kernel.org, martin.lau@linux.dev, daniel@iogearbox.net,
@@ -65,11 +65,12 @@ Cc: bpf@vger.kernel.org, martin.lau@linux.dev, daniel@iogearbox.net,
 	yonghong.song@linux.dev, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, edumazet@google.com,
 	kuba@kernel.org, pabeni@redhat.com
-Subject: Re: [PATCH bpf-next v6 3/6] bpf: add bpf_icmp_send kfunc
-Message-ID: <ag4CAVec9jPCAuD0@gmail.com>
+Subject: Re: [PATCH bpf-next v6 4/6] selftests/bpf: add bpf_icmp_send kfunc
+ tests
+Message-ID: <ag4IPnc_KBHid7Af@gmail.com>
 References: <20260518122842.218522-1-mahe.tardy@gmail.com>
- <20260518122842.218522-4-mahe.tardy@gmail.com>
- <onco52d3vpxkcc6hh3s5vuqjxanasucteq7wnqfqgzg4d65alc@q7h22nu3ytjn>
+ <20260518122842.218522-5-mahe.tardy@gmail.com>
+ <q46w47cqezttz2otf76tncxu7sovhywy2dqwcbajigp64uhbtz@eimvxfeeexuz>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -78,235 +79,280 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <onco52d3vpxkcc6hh3s5vuqjxanasucteq7wnqfqgzg4d65alc@q7h22nu3ytjn>
+In-Reply-To: <q46w47cqezttz2otf76tncxu7sovhywy2dqwcbajigp64uhbtz@eimvxfeeexuz>
 
-On Mon, May 18, 2026 at 06:33:45PM -0700, Jordan Rife wrote:
-> On Mon, May 18, 2026 at 12:28:39PM +0000, Mahe Tardy wrote:
-> > This is needed in the context of Tetragon to provide improved feedback
-> > (in contrast to just dropping packets) to east-west traffic when blocked
-> > by policies using cgroup_skb programs. We also extend this kfunc to tc
-> > program as a convenience.
-> > 
-> > This reuses concepts from netfilter reject target codepath with the
-> > differences that:
-> > * Packets are cloned since the BPF user can still let the packet pass
-> >   (SK_PASS from the cgroup_skb progs for example) and the current skb
-> >   need to stay untouched (cgroup_skb hooks only allow read-only skb
-> >   payload).
-> > * We protect against recursion since the kfunc, by generating an ICMP
-> >   error message, could retrigger the BPF prog that invoked it.
-> > 
-> > For now, we support cgroup_skb and tc program types. For cgroup_skb and
-> > tc egress, almost everything should be good. However for tc ingress:
-> > - packet will not be routed yet: need to set the net device for
-> >   icmp_send, thus the call to ip[6]_route_reply_fill_dst.
-> > - fragments could trigger hook: icmp_send will only reply to fragment 0.
-> > - ensure the ip headers is linearized before processing, and zero out
-> >   the SKB control block after cloning to prevent icmp_send()/icmpv6_send()
-> >   from misinterpreting garbage data as IP options.
-> > 
-> > Only ICMP_DEST_UNREACH and ICMPV6_DEST_UNREACH are currently supported.
-> > The interface accepts a type parameter to facilitate future extension to
-> > other ICMP control message types.
-> > 
-> > Signed-off-by: Mahe Tardy <mahe.tardy@gmail.com>
-> > ---
-> >  net/core/filter.c | 118 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 118 insertions(+)
-> > 
-> > diff --git a/net/core/filter.c b/net/core/filter.c
-> > index 9590877b0714..843fa775596b 100644
-> > --- a/net/core/filter.c
-> > +++ b/net/core/filter.c
-> > @@ -84,6 +84,8 @@
-> >  #include <linux/un.h>
-> >  #include <net/xdp_sock_drv.h>
-> >  #include <net/inet_dscp.h>
-> > +#include <linux/icmpv6.h>
-> > +#include <net/icmp.h>
-> > 
-> >  #include "dev.h"
-> > 
-> > @@ -12464,6 +12466,110 @@ __bpf_kfunc int bpf_xdp_pull_data(struct xdp_md *x, u32 len)
-> >  	return 0;
-> >  }
-> > 
-> > +static DEFINE_PER_CPU(bool, bpf_icmp_send_in_progress);
+On Mon, May 18, 2026 at 06:34:02PM -0700, Jordan Rife wrote:
+> On Mon, May 18, 2026 at 12:28:40PM +0000, Mahe Tardy wrote:
+
+[...]
+
 > > +
-> > +/**
-> > + * bpf_icmp_send - Send an ICMP control message
-> > + * @skb_ctx: Packet that triggered the control message
-> > + * @type: ICMP type (only ICMP_DEST_UNREACH/ICMPV6_DEST_UNREACH supported)
-> > + * @code: ICMP code (0-15 for IPv4, 0-6 for IPv6)
-> > + *
-> > + * Sends an ICMP control message in response to the packet. The original packet
-> > + * is cloned before sending the ICMP message, so the BPF program can still let
-> > + * the packet pass if desired.
-> > + *
-> > + * Currently only ICMP_DEST_UNREACH (IPv4) and ICMPV6_DEST_UNREACH (IPv6) are
-> > + * supported.
-> > + *
-> > + * Recursion protection: If called from a context that would trigger recursion
-> > + * (e.g., root cgroup processing its own ICMP packets), returns -EBUSY on
-> > + * re-entry.
-> > + *
-> > + * Return: 0 on success, negative error code on failure:
-> > + *         -EINVAL: Invalid code parameter
-> > + *         -EBADMSG: Packet too short or malformed
-> > + *         -ENOMEM: Memory allocation failed
-> > + *         -EBUSY: Recursion detected
-> > + *         -EHOSTUNREACH: Routing failed
-> > + *         -EPROTONOSUPPORT: Non-IP protocol
-> > + *         -EOPNOTSUPP: Unsupported ICMP type
-> > + */
-> > +__bpf_kfunc int bpf_icmp_send(struct __sk_buff *skb_ctx, int type, int code)
+> > +static int connect_to_fd_nonblock(int server_fd)
 > > +{
-> > +	struct sk_buff *skb = (struct sk_buff *)skb_ctx;
-> > +	struct sk_buff *nskb;
-> > +	bool *in_progress;
+> > +	struct sockaddr_storage addr;
+> > +	socklen_t len = sizeof(addr);
+> > +	int fd, err;
 > > +
-> > +	in_progress = this_cpu_ptr(&bpf_icmp_send_in_progress);
-> > +	if (*in_progress)
-> > +		return -EBUSY;
+> > +	if (getsockname(server_fd, (struct sockaddr *)&addr, &len))
+> > +		return -1;
 > > +
-> > +	switch (skb->protocol) {
-> > +#if IS_ENABLED(CONFIG_INET)
-> > +	case htons(ETH_P_IP):
-> > +		if (type != ICMP_DEST_UNREACH)
-> > +			return -EOPNOTSUPP;
-> > +		if (code < 0 || code > NR_ICMP_UNREACH)
-> > +			return -EINVAL;
-> > +
-> > +		nskb = skb_clone(skb, GFP_ATOMIC);
-> > +		if (!nskb)
-> > +			return -ENOMEM;
-> > +
-> > +		if (!pskb_network_may_pull(nskb, sizeof(struct iphdr))) {
-> > +			kfree_skb(nskb);
-> > +			return -EBADMSG;
+> > +	fd = socket(addr.ss_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
 > 
-> nit: Instead of having several places where you call kfree_skb, maybe
-> consider just cleaning up in once place at the end like:
-> 
-> out:
-> 	if (nskb)
-> 		kfree_skb(nskb);
-> 	return err;
-> 	
-> then in places like this do something like:
-> 
-> 	err = -EBADMSG;
-> 	goto out;
+> Is the only customization here SOCK_NONBLOCK? Would it be possible to
+> simply extend network_helper_opts to make it possible via the existing
+> connect_to_fd_opts? 
 
-Yep yep I see, just if I follow Stanislav recommendation to use consume_skb
-in the success path[^1], I think it would be simpler to keep the other error
-paths with kfree_skb and returning the error.
+So first I tried this with a very complicated callback to set NONBLOCK
+and the RECVERR for IPv6 but unfortunately the code from the helper
+looks like this:
 
-[^1]: https://lore.kernel.org/bpf/ags3HARTFYwKU8nR@devvm7509.cco0.facebook.com/
+if (connect(fd, (const struct sockaddr *)addr, addrlen)) {
+	log_err("Failed to connect to server");
+	save_errno_close(fd);
+	return -1;
+}
 
-> 
-> > +		}
+And thus I can't really check for EINPROGRESS so it doesn't work.
+
+> Alternatively, is it possible to test with SOCK_DGRAM to avoid the
+> handshake timeout issue?
+
+So thanks for suggesting this, I didn't think about it since the whole
+point of this was originally for TCP connections in my use case. I tried
+it, it kinda simplifies the test code however I feel like it kinda
+defeat the whole point of the patch set.
+
+In the case of using connected UDP, you need to send a first pkt to
+trigger the BPF prog and from my quick test and glance (might be wrong)
+send will immediately fail because the cgroup_skb program will make the
+kernel return an error to the syscall from the SK_DROP synchronously.
+
+I think the point of this was that when connecting with TCP, in the case
+of a drop, the kernel will just blindly retry to connect and sending an
+ICMP control message is a way to stop the kernel immediately and give
+the user the immediate feedback they were missing blocking on this.
+
+So you can still modify the bpf prog so that it returns SK_PASS but then
+it's not a good illustration of the use of this kfunc, as Martin pointed
+out originally, also the fact that you use UDP in the first place is not
+a good showcase of the utility of this.
+
+Does it make sense?
+
+> > +	if (fd < 0)
+> > +		return -1;
 > > +
-> > +		if (!skb_dst(nskb) && ip_route_reply_fill_dst(nskb) < 0) {
-> > +			kfree_skb(nskb);
-> > +			return -EHOSTUNREACH;
-> > +		}
-> > +
-> > +		memset(IPCB(nskb), 0, sizeof(struct inet_skb_parm));
-> > +
-> > +		*in_progress = true;
-> > +		icmp_send(nskb, type, code, 0);
-> > +		*in_progress = false;
-> > +		kfree_skb(nskb);
-> > +		break;
-> > +#endif
-> > +#if IS_ENABLED(CONFIG_IPV6)
-> > +	case htons(ETH_P_IPV6):
-> > +		if (type != ICMPV6_DEST_UNREACH)
-> > +			return -EOPNOTSUPP;
-> > +		if (code < 0 || code > ICMPV6_REJECT_ROUTE)
-> > +			return -EINVAL;
-> > +
-> > +		nskb = skb_clone(skb, GFP_ATOMIC);
-> > +		if (!nskb)
-> > +			return -ENOMEM;
-> > +
-> > +		if (!pskb_network_may_pull(nskb, sizeof(struct ipv6hdr))) {
-> > +			kfree_skb(nskb);
-> > +			return -EBADMSG;
-> > +		}
-> > +
-> > +		if (!skb_dst(nskb) && ip6_route_reply_fill_dst(nskb) < 0) {
-> > +			kfree_skb(nskb);
-> > +			return -EHOSTUNREACH;
-> > +		}
-> > +
-> > +		memset(IP6CB(nskb), 0, sizeof(struct inet6_skb_parm));
-> > +
-> > +		*in_progress = true;
-> > +		icmpv6_send(nskb, type, code, 0);
-> > +		*in_progress = false;
-> > +		kfree_skb(nskb);
-> > +		break;
-> > +#endif
-> > +	default:
-> > +		return -EPROTONOSUPPORT;
+> > +	err = connect(fd, (struct sockaddr *)&addr, len);
+> > +	if (err < 0 && errno != EINPROGRESS) {
+> > +		close(fd);
+> > +		return -1;
 > > +	}
 > > +
-> > +	return 0;
+> > +	return fd;
 > > +}
 > > +
-> >  __bpf_kfunc_end_defs();
-> > 
-> >  int bpf_dynptr_from_skb_rdonly(struct __sk_buff *skb, u64 flags,
-> > @@ -12506,6 +12612,10 @@ BTF_KFUNCS_START(bpf_kfunc_check_set_sock_ops)
-> >  BTF_ID_FLAGS(func, bpf_sock_ops_enable_tx_tstamp)
-> >  BTF_KFUNCS_END(bpf_kfunc_check_set_sock_ops)
-> > 
-> > +BTF_KFUNCS_START(bpf_kfunc_check_set_icmp_send)
-> > +BTF_ID_FLAGS(func, bpf_icmp_send)
-> > +BTF_KFUNCS_END(bpf_kfunc_check_set_icmp_send)
+> > +static void read_icmp_errqueue(int sockfd, int expected_code)
+> > +{
+> > +	ssize_t n;
+> 
+> very small nit: Other functions follow reverse xmas tree order but this
+> one doesn't which looks kind of weird.
+
+Ahah ok I can reorganize for reverse xmas tree.
+
+> 
+> > +	struct sock_extended_err *sock_err;
+> > +	struct cmsghdr *cm;
+> > +	char ctrl_buf[512];
+> > +	struct msghdr msg = {
+> > +		.msg_control = ctrl_buf,
+> > +		.msg_controllen = sizeof(ctrl_buf),
+> > +	};
+> > +	struct pollfd pfd = {
+> > +		.fd = sockfd,
+> > +		.events = POLLERR,
+> > +	};
 > > +
-> >  static const struct btf_kfunc_id_set bpf_kfunc_set_skb = {
-> >  	.owner = THIS_MODULE,
-> >  	.set = &bpf_kfunc_check_set_skb,
-> > @@ -12536,6 +12646,11 @@ static const struct btf_kfunc_id_set bpf_kfunc_set_sock_ops = {
-> >  	.set = &bpf_kfunc_check_set_sock_ops,
-> >  };
-> > 
-> > +static const struct btf_kfunc_id_set bpf_kfunc_set_icmp_send = {
-> > +	.owner = THIS_MODULE,
-> > +	.set = &bpf_kfunc_check_set_icmp_send,
-> > +};
+> > +	if (!ASSERT_GE(poll(&pfd, 1, TIMEOUT_MS), 1, "poll_errqueue"))
+> > +		return;
 > > +
-> >  static int __init bpf_kfunc_init(void)
-> >  {
-> >  	int ret;
-> > @@ -12557,6 +12672,9 @@ static int __init bpf_kfunc_init(void)
-> >  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-> >  					       &bpf_kfunc_set_sock_addr);
-> >  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_tcp_reqsk);
-> > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SKB, &bpf_kfunc_set_icmp_send);
-> > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_icmp_send);
+> > +	n = recvmsg(sockfd, &msg, MSG_ERRQUEUE);
+> > +	if (!ASSERT_GE(n, 0, "recvmsg_errqueue"))
+> > +		return;
+> > +
+> > +	cm = CMSG_FIRSTHDR(&msg);
+> > +	if (!ASSERT_NEQ(cm, NULL, "cm_firsthdr_null"))
+> > +		return;
+> > +
+> > +	for (; cm; cm = CMSG_NXTHDR(&msg, cm)) {
+> > +		if (cm->cmsg_level != IPPROTO_IP ||
+> > +		    cm->cmsg_type != IP_RECVERR)
+> > +			continue;
+> > +
+> > +		sock_err = (struct sock_extended_err *)CMSG_DATA(cm);
+> > +
+> > +		if (!ASSERT_EQ(sock_err->ee_origin, SO_EE_ORIGIN_ICMP,
+> > +			       "sock_err_origin_icmp"))
+> > +			return;
+> > +		if (!ASSERT_EQ(sock_err->ee_type, ICMP_DEST_UNREACH,
+> > +			       "sock_err_type_dest_unreach"))
+> > +			return;
+> > +		ASSERT_EQ(sock_err->ee_code, expected_code, "sock_err_code");
+> > +		return;
+> > +	}
+> > +
+> > +	ASSERT_FAIL("no IP_RECVERR/IPV6_RECVERR control message found");
+> > +}
+> > +
+> > +static void trigger_prog_read_icmp_errqueue(struct icmp_send *skel,
+> > +					    int code)
+> > +{
+> > +	int srv_fd = -1, client_fd = -1;
+> > +	struct sockaddr_in addr;
+> > +	socklen_t len = sizeof(addr);
+> > +
+> > +	srv_fd = start_server(AF_INET, SOCK_STREAM, "127.0.0.1", 0,
+> > +			      TIMEOUT_MS);
+> > +	if (!ASSERT_GE(srv_fd, 0, "start_server"))
+> > +		return;
 > 
-> Thanks, this could come in handy for TC.
+> ASSERT_OK_FD
+
+Sure let's modify all of them thanks for the info!
+
 > 
-> I'm not quite sure yet on using it in lieu of the sock_destroy kfunc for
-> the UDP connected socket use case we discussed at LSFMMBPF. For socket
-> LB mode in Cilium to make this work you'd need to add at least one new
-> map lookup in the fast path to check for backend liveness and this
-> partially defeats the performance benefits of socket LB which right
-> now avoids service + backend lookups in the fast path for connected UDP.
-> Ultimately, it might be better to stick with sock_destroy to kill
-> sockets out-of-band for that use case, but still it's good to have this
-> option.
+> > +
+> > +	if (getsockname(srv_fd, (struct sockaddr *)&addr, &len)) {
+> > +		close(srv_fd);
+> > +		return;
+> > +	}
+> > +	skel->bss->server_port = ntohs(addr.sin_port);
+> > +	skel->bss->unreach_code = code;
+> > +
+> > +	client_fd = connect_to_fd_nonblock(srv_fd);
+> > +	if (!ASSERT_GE(client_fd, 0, "client_connect_nonblock")) {
 > 
-> > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_ACT, &bpf_kfunc_set_icmp_send);
-> >  	return ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SOCK_OPS, &bpf_kfunc_set_sock_ops);
-> >  }
-> >  late_initcall(bpf_kfunc_init);
+> ASSERT_OK_FD
+> 
+> > +		close(srv_fd);
+> > +		return;
+> > +	}
+> > +
+> > +	/* Skip reading ICMP error queue if code is invalid */
+> > +	if (code >= 0 && code <= NR_ICMP_UNREACH)
+> > +		read_icmp_errqueue(client_fd, code);
+> > +
+> 
+> Consider doing all cleanup here and just adding a goto label like
+> cleanup in test_icmp_send_unreach?
+
+Yeah I thought it was simple enough so that the flow would be natural
+like this, but let me reconsider and see.
+
+> 
+> > +	close(client_fd);
+> > +	close(srv_fd);
+> > +}
+> > +
+> > +void test_icmp_send_unreach(void)
+> > +{
+> > +	struct icmp_send *skel;
+> > +	int cgroup_fd = -1;
+> > +
+> > +	skel = icmp_send__open_and_load();
+> > +	if (!ASSERT_OK_PTR(skel, "skel_open"))
+> > +		goto cleanup;
+> > +
+> > +	cgroup_fd = test__join_cgroup("/icmp_send_unreach_cgroup");
+> > +	if (!ASSERT_GE(cgroup_fd, 0, "join_cgroup"))
+> > +		goto cleanup;
+> 
+> ASSERT_OK_FD
+> 
+> > +
+> > +	skel->links.egress =
+> > +		bpf_program__attach_cgroup(skel->progs.egress, cgroup_fd);
+> > +	if (!ASSERT_OK_PTR(skel->links.egress, "prog_attach_cgroup"))
+> > +		goto cleanup;
+> > +
+> > +	for (int code = 0; code <= NR_ICMP_UNREACH; code++) {
+> > +		/* The TCP stack reacts differently when asking for
+> > +		 * fragmentation, let's ignore it for now.
+> > +		 */
+> > +		if (code == ICMP_FRAG_NEEDED)
+> > +			continue;
+> > +
+> > +		trigger_prog_read_icmp_errqueue(skel, code);
+> > +		ASSERT_EQ(skel->data->kfunc_ret, 0, "kfunc_ret");
+> > +	}
+> > +
+> > +	/* Test an invalid code */
+> > +	trigger_prog_read_icmp_errqueue(skel, -1);
+> > +	ASSERT_EQ(skel->data->kfunc_ret, -EINVAL, "kfunc_ret");
+> > +
+> > +cleanup:
+> > +	icmp_send__destroy(skel);
+> > +	close(cgroup_fd);
+> 
+> if (cgroup_fd != -1)
+> 	close(cgroup_fd);
+> 
+> > +}
+> > diff --git a/tools/testing/selftests/bpf/progs/icmp_send.c b/tools/testing/selftests/bpf/progs/icmp_send.c
+> > new file mode 100644
+> > index 000000000000..6d0be0a9afe1
+> > --- /dev/null
+> > +++ b/tools/testing/selftests/bpf/progs/icmp_send.c
+> > @@ -0,0 +1,38 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +#include "vmlinux.h"
+> > +#include <bpf/bpf_helpers.h>
+> > +#include <bpf/bpf_endian.h>
+> > +
+> > +/* 127.0.0.1 in host byte order */
+> > +#define SERVER_IP 0x7F000001
+> > +
+> > +#define ICMP_DEST_UNREACH 3
+> > +
+> > +__u16 server_port = 0;
+> > +int unreach_code = 0;
+> > +int kfunc_ret = -1;
+> > +
+> > +SEC("cgroup_skb/egress")
+> 
+> No test for TC?
+
+Indeed, let me add one.
+
+> 
+> > +int egress(struct __sk_buff *skb)
+> > +{
+> > +	void *data = (void *)(long)skb->data;
+> > +	void *data_end = (void *)(long)skb->data_end;
+> > +	struct iphdr *iph;
+> > +	struct tcphdr *tcph;
+> > +
+> > +	iph = data;
+> > +	if ((void *)(iph + 1) > data_end || iph->version != 4 ||
+> > +	    iph->protocol != IPPROTO_TCP || iph->daddr != bpf_htonl(SERVER_IP))
+> > +		return SK_PASS;
+> > +
+> > +	tcph = (void *)iph + iph->ihl * 4;
+> > +	if ((void *)(tcph + 1) > data_end ||
+> > +	    tcph->dest != bpf_htons(server_port))
+> > +		return SK_PASS;
+> > +
+> > +	kfunc_ret = bpf_icmp_send(skb, ICMP_DEST_UNREACH, unreach_code);
+> > +
+> > +	return SK_DROP;
+> > +}
+> > +
+> > +char LICENSE[] SEC("license") = "Dual BSD/GPL";
 > > --
 > > 2.34.1
-> > 
+> >
 > 
 > Jordan
+
+Mahe
+Thanks
