@@ -1,157 +1,81 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58349343886
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 08:25:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4570C3A257F
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 May 2026 09:26:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779265539; cv=none; b=EME1USCeC6yGR1z+QxkdEmDYrGaO1CuF1zgtY8LSTbCbTuZbC/9q1Cu9OarOQdh0J6kPb9n5xTgeF37fdVMk+VPyEghX46zib60aR7qvd9LFVnHPfry+15XL1ubInAFrIvk+yNJLl6cqLf4n8fs6HX2lJjojIeIlSppZarQ2xqg=
+	t=1779269166; cv=none; b=otbP0xg/iX4ra1aLdRTDZgHuMgnG9VVVifBrdJjpOXMQ6OwyCqxmyhXHbJGIpUD2HJVQbKRQ59DM66pLgRXOQQdUP1FaxGdQOUn931FzmJHKf1C8qqVKjYaISQ2r6lch+489d4K+7PjuVeG7At6Oyn4OXF3xT9mG4Vz4TPmcmmg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779265539; c=relaxed/simple;
-	bh=Rvt53+UKJkBdjwVOUWBFlhqil4+IeImmhK8cv7DZh2w=;
+	s=arc-20240116; t=1779269166; c=relaxed/simple;
+	bh=Ri53PParVAiOAl8z65C+soaB4z6RfA5xEWQ6nmXHNNg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jYoWs+s1EN8Krh1gappJ0SGlsbHLZVKGzJ+tV1y9g5eeHA6D4iC48u3fij95JN3ioMdqNvlyk1GwxGnLpPkg1nmwbXxRXgapSorEFLRjYlu4RUzRgUsHTD+ENSdeKx4LqihrPsCGsMgh6hFg5UAmRutd/U8Ngr9/xVxXykaA4LM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QxPWAOT6; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=MfUv6TlIKDvbEgIfzKeaezMxr7ynLaquEEKIqLo0rua/vF1LzBFj5t+tPduiOCIz94BkwyGkqh/sMR34JEPT7mSxhsmeHTd01/2YjPjn45sL/XOfu4k9IbI3C+SRlHDVTHLGt+vQQcgEne2NQJ+35EyXa3k2ePZAoAKHDvbj2DY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=GnFCO4gt; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QxPWAOT6"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id F2F8C601A1;
-	Wed, 20 May 2026 10:25:34 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779265535;
-	bh=s/lLCWso3XZxYO/m+bIfA9ZRu4mMRMj6h7DHfWYmbe4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QxPWAOT6FZ5RJD2mxj5lATrp0QquXo7eSn1C8a10teZpmaKOGSwXozFmob0KN93Gw
-	 afWImuVYzMLeVrS5LikmuebeZCDA6JnD0DsEKqQfQDnn7AH66RYLS+yeqj0hU+kSD3
-	 GHclkteGZJ9p/X4rUix2Kytn0QgD6yFFEo4KtRO75LngWlH2YiCazg1iQscb9zwgS3
-	 jHOna+AALisUA2iqdSTQEj+q5tiYVQHloekqehKaXr9UtyxKWkmdRb0+Sfr+qX0XmU
-	 vX2So0kOADPyzKbSHK9+G0D5OYI4KG57Pe6U7m3aDlcXn7GDjT+vhCgaIE9G/Ad3kO
-	 Vz5SQFqultQ1A==
-Date: Wed, 20 May 2026 10:25:32 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: syzbot ci <syzbot+cic0fb7b2de24b33ab@syzkaller.appspotmail.com>
-Cc: netfilter-devel@vger.kernel.org, syzbot@lists.linux.dev,
-	syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot ci] Re: netfilter: nfnetlink_cthelper: use
- {READ,WRITE}_ONCE for accessing helper flags
-Message-ID: <ag1v_GQcJ8P2LlyH@chamomile>
-References: <20260519213826.1181661-1-pablo@netfilter.org>
- <6a0d537d.a70a0220.1a69d3.001e.GAE@google.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="GnFCO4gt"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Zmt9ZlT+hbCRcEo+KbLMEqSt3USJpIUbi+PeTjXKX/Q=; b=GnFCO4gtja6YMro2ZV34OsOOgV
+	gNCPyVg2pPwPxEtQeUy53GOx+Q5/nYIZSKn1Df5PPyy1OOfDhLtjPUnkOAQMj22jLjCWRwPqOTUnH
+	tY40yKZ+5o1l/yOhzw1byuVUblhfz6lzTF3sge57Lik1DAivGHwYcpB8bwaCkVyEmOHaNtN/upmE0
+	w/gox9nq0upOns0pJDO1JRjUnQEtFdUwwXMm4/UWP1TLva8uyFmBQ0Vmzav2p24HYVrnRQTHmP5Op
+	uQNDXdQPeQnGaf+cBWGk1Vze57SUTRrXgJvnfCjRVXsFDoQstTqJEk+9BSfeoLPFR/x7gRPHdx/hk
+	9C4mpUyw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wPdBh-000000006F4-0gxe;
+	Wed, 20 May 2026 11:26:01 +0200
+Date: Wed, 20 May 2026 11:26:01 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+	coreteam@netfilter.org
+Subject: Re: [PATCH nf v2 0/3] netfilter: nft_fib_ipv6: handle routes via
+ external nexthop
+Message-ID: <ag1-KRkLjQXHa6aJ@orbyte.nwl.cc>
+References: <20260520023411.391233-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6a0d537d.a70a0220.1a69d3.001e.GAE@google.com>
+In-Reply-To: <20260520023411.391233-1-jiayuan.chen@linux.dev>
 
 Hi,
 
-On Tue, May 19, 2026 at 11:23:57PM -0700, syzbot ci wrote:
-> syzbot ci has tested the following series
+On Wed, May 20, 2026 at 10:34:08AM +0800, Jiayuan Chen wrote:
+> Patch 1 switches the fib6_siblings walk in nft_fib6_info_nh_uses_dev()
+> to list_for_each_entry_rcu().
 > 
-> [v1] netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
-> https://lore.kernel.org/all/20260519213826.1181661-1-pablo@netfilter.org
-> * [PATCH nf 1/7] netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
-> * [PATCH nf 2/7] netfilter: conntrack: add dead flag to helpers
-> * [PATCH nf 3/7] netfilter: nf_conntrack_helper: add null check in nfct_help_data() calls
-> * [PATCH nf 4/7] netfilter: conntrack: add null check in nfct_help() calls
-> * [PATCH nf 5/7] netfilter: conntrack: add nf_ct_iterate_destroy_net()
-> * [PATCH nf 6/7] netfilter: nf_conntrack_timeout: use nf_ct_iterate_destroy() to cleanup timeout going away
-> * [PATCH nf 7/7] netfilter: xt_CT: fix race with rule removal and nfnetlink_queue
+> Patch 2 fixes the slab-out-of-bounds when the matched route uses an
+> external nexthop object.
 > 
-> and found the following issue:
-> WARNING in xt_ct_tg_check
+> Patch 3 adds a selftest covering single nh, nh group and old-style
+> multipath.
+> 
+> v1: https://lore.kernel.org/netfilter-devel/20260519041431.396218-1-jiayuan.chen@linux.dev/
+> 
+> Changes since v1:
+>   - new patch 1: list_for_each_entry_rcu() conversion split out
+>     (Suggested-by: Phil Sutter)
+>   - patch 2:
+>     * drop redundant ternary in nft_fib6_nh_match_dev_cb (Phil)
+>     * drop redundant "!= 0" on nexthop_for_each_fib6_nh return (Phil)
+>     * use READ_ONCE() for rt->fib6_nsiblings (Phil)
 
-I added:
+Will you send a v3 addressing Florian's concerns regarding the test case
+in patch 3?
 
-WARN_ON_ONCE(help)
+Patches 1 and 2 look good to me, thanks for the respin!
 
-instead of:
-
-WARN_ON_ONCE(!help)
-
-I will fix in the next spin.
-
-> 
-> Full report is available here:
-> https://ci.syzbot.org/series/c356956d-b1f6-4d7e-be26-6cf68d49814e
-> 
-> ***
-> 
-> WARNING in xt_ct_tg_check
-> 
-> tree:      nf
-> URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf.git
-> base:      2beba18b0160446463bf1dbd749324846db98493
-> arch:      amd64
-> compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
-> config:    https://ci.syzbot.org/builds/45c49e4e-439a-4d11-bc9a-3c3a5077f679/config
-> syz repro: https://ci.syzbot.org/findings/9cfb9381-576b-4a17-a156-68641410fec2/syz_repro
-> 
-> No such timeout policy "syz1"
-> ------------[ cut here ]------------
-> help
-> WARNING: net/netfilter/xt_CT.c:226 at xt_ct_tg_check+0x814/0xa90 net/netfilter/xt_CT.c:226, CPU#1: syz.0.17/5870
-> Modules linked in:
-> CPU: 1 UID: 0 PID: 5870 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
-> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-> RIP: 0010:xt_ct_tg_check+0x814/0xa90 net/netfilter/xt_CT.c:226
-> Code: c7 c7 c0 a7 e6 8c e8 eb 33 3e f7 e9 12 ff ff ff e8 01 4b dc f7 48 c7 c7 40 a8 e6 8c 4c 89 ee e8 d2 33 3e f7 e9 f9 fe ff ff 90 <0f> 0b 90 4c 89 e0 48 c1 e8 03 42 80 3c 38 00 74 08 4c 89 e7 e8 73
-> RSP: 0018:ffffc900036ef6e0 EFLAGS: 00010282
-> RAX: ffff88812063bd10 RBX: 1ffff920006ddee4 RCX: 0000000000000010
-> RDX: ffff88812063bd00 RSI: 0000000000000002 RDI: 0000000000000002
-> RBP: ffffc900036ef7b0 R08: ffffffff90316c23 R09: 1ffffffff2062d84
-> R10: dffffc0000000000 R11: fffffbfff2062d85 R12: ffff88812063bd10
-> R13: 00000000fffffffe R14: ffff888113ee1800 R15: dffffc0000000000
-> FS:  00007fd41ea436c0(0000) GS:ffff8882a928a000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007fd41da72780 CR3: 0000000175cc8000 CR4: 00000000000006f0
-> Call Trace:
->  <TASK>
->  xt_checkentry_target net/netfilter/x_tables.c:1115 [inline]
->  xt_check_target+0x61a/0xca0 net/netfilter/x_tables.c:1138
->  check_target net/ipv4/netfilter/ip_tables.c:510 [inline]
->  find_check_entry net/ipv4/netfilter/ip_tables.c:552 [inline]
->  translate_table+0x1881/0x2110 net/ipv4/netfilter/ip_tables.c:716
->  do_replace net/ipv4/netfilter/ip_tables.c:1137 [inline]
->  do_ipt_set_ctl+0x9f5/0xe00 net/ipv4/netfilter/ip_tables.c:1635
->  nf_setsockopt+0x26f/0x290 net/netfilter/nf_sockopt.c:101
->  do_sock_setsockopt+0x17c/0x1b0 net/socket.c:2381
->  __sys_setsockopt net/socket.c:2406 [inline]
->  __do_sys_setsockopt net/socket.c:2412 [inline]
->  __se_sys_setsockopt net/socket.c:2409 [inline]
->  __x64_sys_setsockopt+0x13d/0x1b0 net/socket.c:2409
->  do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
->  do_syscall_64+0x15f/0xf80 arch/x86/entry/syscall_64.c:94
->  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-> RIP: 0033:0x7fd41db9ce59
-> Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-> RSP: 002b:00007fd41ea43028 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-> RAX: ffffffffffffffda RBX: 00007fd41de15fa0 RCX: 00007fd41db9ce59
-> RDX: 0000000000000040 RSI: 8001000000000000 RDI: 0000000000000003
-> RBP: 00007fd41dc32d6f R08: 00000000000002a8 R09: 0000000000000000
-> R10: 0000200000001500 R11: 0000000000000246 R12: 0000000000000000
-> R13: 00007fd41de16038 R14: 00007fd41de15fa0 R15: 00007ffdb7f510f8
->  </TASK>
-> 
-> 
-> ***
-> 
-> If these findings have caused you to resend the series or submit a
-> separate fix, please add the following tag to your commit message:
->   Tested-by: syzbot@syzkaller.appspotmail.com
-> 
-> ---
-> This report is generated by a bot. It may contain errors.
-> syzbot ci engineers can be reached at syzkaller@googlegroups.com.
-> 
-> To test a patch for this bug, please reply with `#syz test`
-> (should be on a separate line).
-> 
-> The patch should be attached to the email.
-> Note: arguments like custom git repos and branches are not supported.
+Cheers, Phil
