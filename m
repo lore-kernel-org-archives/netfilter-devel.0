@@ -1,27 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D8C332EA2
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 May 2026 08:19:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FFB817A303
+	for <netfilter-devel@vger.kernel.org>; Thu, 21 May 2026 20:11:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779351549; cv=none; b=KrEkSnQEDjQ3mSHHl7p4MyCSHgY14Kh8erSEZv3r1GaRlfaFTwZybCCrp6lr7XTSXfLEbjTYeUy0KrKegCzLxniYVqYS/6x0WeS+qL2gVN1d1dCEvTmJozSncAgOqBVG0d2uzhlkBcn03qwwY4RrMAjONcckbMPfITphIu8hJ+A=
+	t=1779394288; cv=none; b=CO98sihUj3SYSbttKzPiuYuBVCZdUya1/PFSJRw+3mjGqr40hOWa2uCeQBgk63u5fj0/hvWrErfsKQR9gtwBn3tE1ot4n62JNhXqsc93ptmLU1xR9EcHj9UcH/458GWR8lx9eG0KWRYJ33N2zr9ipDLNFpsqOeFLBsauVJuX1UU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779351549; c=relaxed/simple;
-	bh=llkvuhlfLJ6+Q3x0kl2CS3LaiV+TlnTW9fXls7Uq4Vk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hJYKTSx21zRi+cDGAmis2s0VuAkpcGSS/3RagTlBAvTkSWptKrkS7H6EnR9re6f4WE9vOCqgpYWp7JfyrfupkzNUCK4g+uWW5ddzJBuXO9Jibdi975uNDN6WihIBzd0grHTQBdiFUjYOXASRqU3OjW+lUzD9SjTBC7dtiCxW4ao=
+	s=arc-20240116; t=1779394288; c=relaxed/simple;
+	bh=mLh+d4qlElpXIcJ1ZUEOnij8xVm/BsTClJk1LRcyK84=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=pe/yulVu6ZFt7/1jZ9EFk4VgmxIp19IvhyxGs060lv/Mszij0lu6IpuF68h+wbMFE/zvPtQF5/IV3EQJO2Cizi9NBh/sUT7M9pBbtMcGZLlu+C9R6ytDrZombhrD40xymJdMVQLVJss3RAqPKJZV7hqpDl2CDO945GklI7cD5Ww=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 1C5C160293; Thu, 21 May 2026 10:19:00 +0200 (CEST)
+	id D0E1560344; Thu, 21 May 2026 22:11:23 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: shell: add stateless nat test case
-Date: Thu, 21 May 2026 10:18:43 +0200
-Message-ID: <20260521081847.123717-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+Subject: [PATCH nf-next v3] netfilter: add option for GCOV profiling
+Date: Thu, 21 May 2026 22:11:15 +0200
+Message-ID: <20260521201119.22209-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,230 +29,196 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Assisted-by: Claude:claude-sonnet-4-6
+Similar to a few other subsystems: add a new config toggle to
+enable netfilter gcov profiling in netfilter, including ebtables,
+arptables and so on.
+
+ipset and ipvs gain their own, dedicated toggles.
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../packetpath/dumps/stateless_nat.nodump     |   0
- .../shell/testcases/packetpath/stateless_nat  | 206 ++++++++++++++++++
- 2 files changed, 206 insertions(+)
- create mode 100644 tests/shell/testcases/packetpath/dumps/stateless_nat.nodump
- create mode 100755 tests/shell/testcases/packetpath/stateless_nat
+ v3: also cover netfilter.c and br_netfilter.
+ I have no interest in their coverage, but AI complains
+ about them not being covered.
 
-diff --git a/tests/shell/testcases/packetpath/dumps/stateless_nat.nodump b/tests/shell/testcases/packetpath/dumps/stateless_nat.nodump
-new file mode 100644
-index 000000000000..e69de29bb2d1
-diff --git a/tests/shell/testcases/packetpath/stateless_nat b/tests/shell/testcases/packetpath/stateless_nat
-new file mode 100755
-index 000000000000..949c564c7a3d
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/stateless_nat
-@@ -0,0 +1,206 @@
-+#!/bin/bash
+ net/bridge/Makefile           | 6 ++++++
+ net/bridge/netfilter/Makefile | 4 ++++
+ net/ipv4/Makefile             | 4 ++++
+ net/ipv4/netfilter/Makefile   | 4 ++++
+ net/ipv6/Makefile             | 4 ++++
+ net/ipv6/netfilter/Makefile   | 4 ++++
+ net/netfilter/Kconfig         | 8 ++++++++
+ net/netfilter/Makefile        | 4 ++++
+ net/netfilter/ipset/Kconfig   | 9 +++++++++
+ net/netfilter/ipset/Makefile  | 3 +++
+ net/netfilter/ipvs/Kconfig    | 9 +++++++++
+ net/netfilter/ipvs/Makefile   | 3 +++
+ 12 files changed, 62 insertions(+)
+
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index 24bd1c0a9a5a..1203dc19e15c 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -29,3 +29,9 @@ obj-$(CONFIG_NETFILTER) += netfilter/
+ bridge-$(CONFIG_BRIDGE_MRP)	+= br_mrp_switchdev.o br_mrp.o br_mrp_netlink.o
+ 
+ bridge-$(CONFIG_BRIDGE_CFM)	+= br_cfm.o br_cfm_netlink.o
 +
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_socat)
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_chain_binding)
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_br_nf_core.o := y
++GCOV_PROFILE_br_netfilter_hooks.o := y
++GCOV_PROFILE_br_netfilter_ipv6.o := y
++endif
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index b9a1303da977..af0c903aa4ac 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+ obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
 +
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv4/Makefile b/net/ipv4/Makefile
+index 7964234f0d08..06e21c26b76f 100644
+--- a/net/ipv4/Makefile
++++ b/net/ipv4/Makefile
+@@ -71,3 +71,7 @@ obj-$(CONFIG_TCP_AO) += tcp_ao.o
+ ifeq ($(CONFIG_BPF_JIT),y)
+ obj-$(CONFIG_BPF_SYSCALL) += bpf_tcp_ca.o
+ endif
 +
-+# Stateless NAT test: router rewrites client->server2 traffic to server1
-+# and server1->client replies to appear as coming from server2.
-+# Uses type filter chains (no conntrack). Tests ipv4/ipv6 x tcp/udp.
-+#
-+# Topology:
-+#   ns_client <--(veth_cr/veth_rc)--> ns_router <--(veth_rs1/veth_s1r)--> ns_server1
-+#                                                <--(veth_rs2/veth_s2r)--> ns_server2
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_netfilter.o := y
++endif
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 85502d4dfbb4..dbfb1c4739a8 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+ 
+ obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
 +
-+. $NFT_TEST_LIBRARY_FILE
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv6/Makefile b/net/ipv6/Makefile
+index 2c9ce2ccbde1..5b0cd6488021 100644
+--- a/net/ipv6/Makefile
++++ b/net/ipv6/Makefile
+@@ -54,3 +54,7 @@ obj-$(CONFIG_NET_UDP_TUNNEL) += ip6_udp_tunnel.o
+ obj-y += mcast_snoop.o
+ obj-$(CONFIG_TCP_AO) += tcp_ao.o
+ endif
 +
-+PORT=20123
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_netfilter.o := y
++endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 66ce6fa5b2f5..72902d8005ad 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
+ obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
+ obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+ obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
 +
-+rnd=$(mktemp -u XXXXXXXX)
-+ns_client="slnat-c-$rnd"
-+ns_router="slnat-r-$rnd"
-+ns_server1="slnat-s1-$rnd"
-+ns_server2="slnat-s2-$rnd"
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 682c675125fc..f71ff98eb5d0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
+ 
+ endif # NETFILTER_XTABLES
+ 
++config GCOV_PROFILE_NETFILTER
++	bool "Enable GCOV profiling for netfilter"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for netfilter to check which functions/lines
++	  are executed.
 +
-+server_pids=""
++	  If unsure, say N.
+ endmenu
+ 
+ source "net/netfilter/ipset/Kconfig"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6bfc250e474f..f0751ca302c6 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
+ 
+ # lwtunnel
+ obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
 +
-+cleanup()
-+{
-+	[ -n "$server_pids" ] && kill $server_pids 2>/dev/null
-+	ip netns del "$ns_client" 2>/dev/null
-+	ip netns del "$ns_router" 2>/dev/null
-+	ip netns del "$ns_server1" 2>/dev/null
-+	ip netns del "$ns_server2" 2>/dev/null
-+}
-+trap cleanup EXIT
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
+index b1ea054bb82c..6c4d54758106 100644
+--- a/net/netfilter/ipset/Kconfig
++++ b/net/netfilter/ipset/Kconfig
+@@ -175,4 +175,13 @@ config IP_SET_LIST_SET
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config GCOV_PROFILE_IPSET
++	bool "Enable GCOV profiling for ipset"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for ipset to check which functions/lines
++	  are executed.
 +
-+assert_failout()
-+{
-+	ip netns exec "$ns_router" $NFT list ruleset
-+}
++	  If unsure, say N.
 +
-+# IPv4 addresses
-+c_ip4=10.0.1.2
-+r_c_ip4=10.0.1.1
-+r_s1_ip4=10.0.2.1
-+r_s2_ip4=10.0.3.1
-+s1_ip4=10.0.2.2
-+s2_ip4=10.0.3.2
+ endif # IP_SET
+diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
+index a445a6bf4f11..4f48df5406cd 100644
+--- a/net/netfilter/ipset/Makefile
++++ b/net/netfilter/ipset/Makefile
+@@ -29,3 +29,6 @@ obj-$(CONFIG_IP_SET_HASH_NETPORTNET) += ip_set_hash_netportnet.o
+ 
+ # list types
+ obj-$(CONFIG_IP_SET_LIST_SET) += ip_set_list_set.o
++ifdef CONFIG_GCOV_PROFILE_IPSET
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index c203252e856d..7724cb44e6de 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -349,4 +349,13 @@ config	IP_VS_PE_SIP
+ 	help
+ 	  Allow persistence based on the SIP Call-ID
+ 
++config GCOV_PROFILE_IPVS
++	bool "Enable GCOV profiling for IPVS"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for IPVS to check which functions/lines
++	  are executed.
 +
-+# IPv6 addresses
-+c_ip6=fd00:1::2
-+r_c_ip6=fd00:1::1
-+r_s1_ip6=fd00:2::1
-+r_s2_ip6=fd00:3::1
-+s1_ip6=fd00:2::2
-+s2_ip6=fd00:3::2
++	  If unsure, say N.
 +
-+for ns in "$ns_client" "$ns_router" "$ns_server1" "$ns_server2"; do
-+	ip netns add "$ns"
-+	ip -net "$ns" link set lo up
-+done
-+
-+ip netns exec "$ns_router" sysctl -wq net.ipv4.conf.all.forwarding=1
-+ip netns exec "$ns_router" sysctl -wq net.ipv6.conf.all.forwarding=1
-+
-+ip link add veth_cr  netns "$ns_client"  type veth peer name veth_rc  netns "$ns_router"
-+ip link add veth_s1r netns "$ns_server1" type veth peer name veth_rs1 netns "$ns_router"
-+ip link add veth_s2r netns "$ns_server2" type veth peer name veth_rs2 netns "$ns_router"
-+
-+# Client
-+ip -net "$ns_client" link set veth_cr up
-+ip -net "$ns_client" addr add $c_ip4/24 dev veth_cr
-+ip -net "$ns_client" addr add $c_ip6/64 dev veth_cr nodad
-+ip -net "$ns_client" route add default via $r_c_ip4 dev veth_cr
-+ip -net "$ns_client" -6 route add default via $r_c_ip6 dev veth_cr
-+
-+# Router client-facing
-+ip -net "$ns_router" link set veth_rc up
-+ip -net "$ns_router" addr add $r_c_ip4/24 dev veth_rc
-+ip -net "$ns_router" addr add $r_c_ip6/64 dev veth_rc nodad
-+
-+# Router server1-facing
-+ip -net "$ns_router" link set veth_rs1 up
-+ip -net "$ns_router" addr add $r_s1_ip4/24 dev veth_rs1
-+ip -net "$ns_router" addr add $r_s1_ip6/64 dev veth_rs1 nodad
-+
-+# Router server2-facing
-+ip -net "$ns_router" link set veth_rs2 up
-+ip -net "$ns_router" addr add $r_s2_ip4/24 dev veth_rs2
-+ip -net "$ns_router" addr add $r_s2_ip6/64 dev veth_rs2 nodad
-+
-+# Server1
-+ip -net "$ns_server1" link set veth_s1r up
-+ip -net "$ns_server1" addr add $s1_ip4/24 dev veth_s1r
-+ip -net "$ns_server1" addr add $s1_ip6/64 dev veth_s1r nodad
-+ip -net "$ns_server1" route add default via $r_s1_ip4 dev veth_s1r
-+ip -net "$ns_server1" -6 route add default via $r_s1_ip6 dev veth_s1r
-+
-+# Server2
-+ip -net "$ns_server2" link set veth_s2r up
-+ip -net "$ns_server2" addr add $s2_ip4/24 dev veth_s2r
-+ip -net "$ns_server2" addr add $s2_ip6/64 dev veth_s2r nodad
-+ip -net "$ns_server2" route add default via $r_s2_ip4 dev veth_s2r
-+ip -net "$ns_server2" -6 route add default via $r_s2_ip6 dev veth_s2r
-+
-+ip netns exec "$ns_client" ping -q -c 1 -W 2 $s1_ip4 > /dev/null
-+assert_pass "ipv4 topology: client can reach server1"
-+ip netns exec "$ns_client" ping -q -c 1 -W 2 $s2_ip4 > /dev/null
-+assert_pass "ipv4 topology: client can reach server2"
-+ip netns exec "$ns_client" ping -q -c 2 -W 2 -6 $s1_ip6 > /dev/null
-+assert_pass "ipv6 topology: client can reach server1"
-+ip netns exec "$ns_client" ping -q -c 2 -W 2 -6 $s2_ip6 > /dev/null
-+assert_pass "ipv6 topology: client can reach server2"
-+
-+# Start socat servers (IPv4 and IPv6, TCP and UDP)
-+ip netns exec "$ns_server1" socat -6 TCP6-LISTEN:$PORT,fork,reuseaddr,ipv6only=1 SYSTEM:"echo server 1" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server1" socat -4 TCP4-LISTEN:$PORT,fork,reuseaddr SYSTEM:"echo server 1" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server1" socat UDP4-LISTEN:$PORT,fork SYSTEM:"echo server 1" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server1" socat UDP6-LISTEN:$PORT,fork,ipv6only=1 SYSTEM:"echo server 1" &
-+server_pids="$server_pids $!"
-+
-+ip netns exec "$ns_server2" socat TCP6-LISTEN:$PORT,fork,reuseaddr,ipv6only=1 SYSTEM:"echo server 2" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server2" socat TCP4-LISTEN:$PORT,fork,reuseaddr SYSTEM:"echo server 2" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server2" socat UDP4-LISTEN:$PORT,fork SYSTEM:"echo server 2" &
-+server_pids="$server_pids $!"
-+ip netns exec "$ns_server2" socat UDP6-LISTEN:$PORT,fork,ipv6only=1 SYSTEM:"echo server 2" &
-+server_pids="$server_pids $!"
-+
-+wait_local_port_listen "$ns_server1" $PORT tcp
-+wait_local_port_listen "$ns_server2" $PORT tcp
-+wait_local_port_listen "$ns_server1" $PORT udp
-+wait_local_port_listen "$ns_server2" $PORT udp
-+
-+# check_server_response <socat-proto> <addr> <expected> <description>
-+# socat-proto: TCP4, TCP6, UDP4, UDP6
-+check_server_response()
-+{
-+	local proto="$1"
-+	local addr="$2"
-+	local expected="$3"
-+	local desc="$4"
-+	local socat_addr result
-+
-+	if echo "$addr" | grep -q ":"; then
-+		socat_addr="${proto}:[${addr}]:${PORT}"
-+	else
-+		socat_addr="${proto}:${addr}:${PORT}"
-+	fi
-+
-+	if echo "$proto" | grep -qi "UDP"; then
-+		result=$(echo "client 1" | ip netns exec "$ns_client" \
-+			timeout 5 socat -t 2 - "${socat_addr}")
-+	else
-+		result=$(echo "client 1" | ip netns exec "$ns_client" \
-+			timeout 10 socat - "${socat_addr}")
-+	fi
-+
-+	if echo "$result" | grep -q "$expected"; then
-+		echo "PASS: $desc"
-+	else
-+		echo "FAIL: $desc (got '$(echo "$result" | tr -d '\n')', expected '$expected')"
-+		exit 1
-+	fi
-+}
-+
-+echo "=== Phase 1: no NAT, client contacts server2 and gets server2 response ==="
-+check_server_response TCP4 $s2_ip4 "server 2" "ipv4 tcp no-nat: client gets server 2"
-+check_server_response UDP4 $s2_ip4 "server 2" "ipv4 udp no-nat: client gets server 2"
-+check_server_response TCP6 $s2_ip6 "server 2" "ipv6 tcp no-nat: client gets server 2"
-+check_server_response UDP6 $s2_ip6 "server 2" "ipv6 udp no-nat: client gets server 2"
-+
-+echo "=== Phase 2: load stateless NAT ruleset on router ==="
-+ip netns exec "$ns_router" $NFT -f - <<EOF
-+table ip stateless_nat_test {
-+	chain prerouting {
-+		type filter hook prerouting priority 0; policy accept;
-+		meta l4proto { tcp, udp } jump {
-+			meta iifname "veth_rc"  ip daddr set $s1_ip4
-+			meta iifname "veth_rs1" ip saddr set $s2_ip4
-+		}
-+	}
-+}
-+table ip6 stateless_nat_test {
-+	chain prerouting {
-+		type filter hook prerouting priority 0; policy accept;
-+		meta l4proto { tcp, udp } jump {
-+			meta iifname "veth_rc"  ip6 daddr set $s1_ip6
-+			meta iifname "veth_rs1" ip6 saddr set $s2_ip6
-+		}
-+	}
-+}
-+EOF
-+assert_pass "load stateless NAT ruleset"
-+
-+echo "=== Phase 3: with NAT, client contacts server2 but server1 responds ==="
-+check_server_response TCP4 $s2_ip4 "server 1" "ipv4 tcp nat: client gets server 1 via server2 addr"
-+check_server_response UDP4 $s2_ip4 "server 1" "ipv4 udp nat: client gets server 1 via server2 addr"
-+check_server_response TCP6 $s2_ip6 "server 1" "ipv6 tcp nat: client gets server 1 via server2 addr"
-+check_server_response UDP6 $s2_ip6 "server 1" "ipv6 udp nat: client gets server 1 via server2 addr"
-+
-+exit 0
+ endif # IP_VS
+diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
+index bb5d8125c82a..8e4cc67ad39d 100644
+--- a/net/netfilter/ipvs/Makefile
++++ b/net/netfilter/ipvs/Makefile
+@@ -43,3 +43,6 @@ obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
+ 
+ # IPVS connection template retrievers
+ obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
++ifdef CONFIG_GCOV_PROFILE_IPVS
++GCOV_PROFILE := y
++endif
 -- 
-2.54.0
+2.53.0
 
