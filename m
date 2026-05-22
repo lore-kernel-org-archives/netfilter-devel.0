@@ -1,290 +1,125 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854583CC9FF;
-	Fri, 22 May 2026 10:56:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779447385; cv=none; b=tDvHeXKFNq/YK5kz6dO4CcyOyrOvoOUt2zG5NtAl6VzwU3mzTYyHKxyO+Z3PaYzf5gUR3Ix+mvOeLMbAmfbqkVK402uxQmPcauj9I6AQzsPJGbQvbn66PgsDMN1+ok9hIQ9gWewQku6HzJHHpT20Uq9W95cT0/HyPxyTGUs5T8w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779447385; c=relaxed/simple;
-	bh=H1NHdBiovjydmqp0KZ+5/23qjRnoAHkFGd7cdupcXX8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eQFiavGoADPPAco/NjSO0Faaq37Z/SB3WuWbHnJaAmBFZHNxG3lo6Dl5SHpWEWCbvuje6/ZqmepIBmWdQF74G+ewiOQSebzSBGCtOFAiPIz/iQv4rBXgTf4Ldn4Zvc3zH2h+ONetuuiRljujC634zUc2j7GaBxUQjrFW84KM7D8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=ncnRaY+Y; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F0F3D45F7
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 May 2026 11:06:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.171
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779447990; cv=pass; b=Fh5sPr5bpkXVDNgipu0J/WYLxog1h/lk0J73lLHzzHUIs0LpuZkaU7Dti7iKUWizPzd+TCW7zAiRbZRMHaXXe1M4ewtfSLnYeSsndfUoqxwYzb89ipn2xk7qQGz0588nyk6wrSZ6EDAV/qVOcmBsIGGKsGMSLgwuR2T1YEaaQas=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779447990; c=relaxed/simple;
+	bh=Cb8jzTVP/g4hZIUKlfTnMnNDv+bNwVUN4cKy5ljB38g=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=mVCJU1BmgzkpdTpD1nHWAWjFzJfnEoJHdPpcxMZrT8GZ7L0dXWmpEVpT73hwbl0re7QjWF8YEzaNcBRAV6uGFCikW3hkm5UkHVBMKs05+9WsaZWQTLgNtYZWDbkhDTX43QgmIpuamcyPPBRlQQT61be05DA0guwIx8q/5Pvz6y0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=g+qgeWZd; arc=pass smtp.client-ip=209.85.160.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="ncnRaY+Y"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 680D220FC2;
-	Fri, 22 May 2026 13:56:11 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=oWFMGIAK
-	5HEeHQf4FQt5J7q1SiArG/MAItcCUdvXXQw=; b=ncnRaY+YyMIJOh+6gRfVnSgj
-	/0n/38jti9A/mgdXmw8vYOxQe4hZ3uKtCn7ba1uv6JafmZNtDIDRCDWCWxbnkJ1+
-	McKkjwvydW+IfRVwKQz2yvykzz3IuddwzvfNuuZiDXTwjs2D3gUylREflCvMMyf6
-	QG775esDmWdAbLrWTbVqc3bciBAd7F4HbyAdwTiX45dSHPL1n5Pp3ixtOdR8kR2W
-	yAPCO6QSbT9uHPsKXncYs4V/VsoFi1Sd0CFSBnk0ZCg19mj/hkXL95DOIt0idLX8
-	PZUMoP7/llMQmYcDw/ibpX+VzIUcT55izla0/72qGfXJhr2PwCn3Xs/73PG7LonM
-	6So+D+YSATiUL1d2b5tb3BICrklBq5dezNJBtENwEFzCkt84rpJxEAQDCS5LyEjn
-	oDVUVNCIFQnuGOS3NVByWEUc6l5pk0xkZctG7B17y18/cmHQ53jnHxd+e2mw9xYq
-	kZREhQAQFyn1rIha7gTa6xAe7/gejbU8W6KuwCTWPEN9vdvkvnJ9nJgYUuME0500
-	Zy5A/H1zMdbOmlOltd2Pgf04ghh4+oQa7AuXcXBrJVrw0phl3FhqiJCDehAN4LEA
-	UZwgfcWi1oybrouGsbm/EQD/CIIQ81pfF/BaEcQGlmEOI+yo2v1dMoTje8pswWdd
-	fz4EjxIEv3i3xJFzJVs=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Fri, 22 May 2026 13:56:11 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7CCC0609B3;
-	Fri, 22 May 2026 13:56:10 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.1) with ESMTP id 64MAu2Sg013746;
-	Fri, 22 May 2026 13:56:02 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 64MAu2hX013745;
-	Fri, 22 May 2026 13:56:02 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] ipvs: add conn_max sysctl to limit connections
-Date: Fri, 22 May 2026 13:55:45 +0300
-Message-ID: <20260522105546.13732-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="g+qgeWZd"
+Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-516d0db9372so10285661cf.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 May 2026 04:06:27 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779447987; cv=none;
+        d=google.com; s=arc-20240605;
+        b=U03Rgkl+C/89eNiwNapl3MXKZbY8Doq8RFVSi/Pe7RkG0IJ7GzAiuhjUQC491XAdOd
+         tf0L5ux7Q3vRCAHzN+IKV5TuuPqBCC5FehxglIbM56j4trxekUIsgXhk7npacR3WJU4v
+         T4ljPBnGtqzFLkPfPfj2jrTD6tHXGKJXwPjOSPZ/eMqA1sYdoMSeEqQjFcvZB/jqR1g/
+         DN10waMSLXEBRBUL8VDTa7Zbr8sSyOhf9XBrB539nkXcdewrqVehcizcBG8GOYEnrfgd
+         TUOE14Upb91nSscU/2K+xvrKUmAk30Mkg7rmgX60yKkDOSmuU0JpxycZ5qdqrmJxb4oL
+         jkZw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=4ej6QpaknZjbuF3/decAt6oWWqXsmIj8KOp/5Rx73bU=;
+        fh=RsKlzacGP0NEFGfOqkbyZSBRVdRLahmaIodrbnIuEGg=;
+        b=QTHDGLp7kZFhAsMVjoShedayrdBB9FLzUirkY6Uo/8uN9okOkB8IHpriWbnzrJPbpG
+         QEaeqRDrorMNLLQNmmBwP3sUatYux366Y3iv55zT8Gh+3Q6wcjKu33Q5L6DhMiooHiI+
+         cT9Oewzgj1WTEOwwPqp3+slNKAFUtQGts5/bPOU3MSBHx1+P2CX1gM+DP/K3behqgAXy
+         O3Um0ZitUK9AljwneKs1TC6J9hdwBZbwQElVTB9NMc+cCcD3cObZxar35ZeuLSdK7m9N
+         f9IpJEhD/1bBOyAb1LL6ViYymCzQLpgC5gmX8tVPmHvNsg62AKsIUJ8xIseNgGCYcYZZ
+         DdRw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1779447987; x=1780052787; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4ej6QpaknZjbuF3/decAt6oWWqXsmIj8KOp/5Rx73bU=;
+        b=g+qgeWZdwGThOpc3lcrH7zpUN6OJjfeiIQ6Sjp9jZ1LXmwXKn9CeH3BqUrW3rXfRmM
+         9pFQFPcdA2AsybKCOYpKRveDJQLxeRadWY+oTenXAmwdAVxTccdVXb4dl67CNIYr/4qe
+         Vcd6o3mIGv55CtqC6AKcdrFdJUvfGmehvskTtTfsolWvdkb6QXnUjYxphn9Ly0rQYFmU
+         K+sQWz+ykHgcXU+MH8laUMnkEcJUmIUYPTCCe85QGg6dHiJTfS+M00ODZBS760tRrhpH
+         yLtwJQxQ0pY48RGhRpFHstWiZlSvT6lesc++MHVtUKzbuq5LQkn/Hl89dNAungw/C8tp
+         2wdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779447987; x=1780052787;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=4ej6QpaknZjbuF3/decAt6oWWqXsmIj8KOp/5Rx73bU=;
+        b=O0xhaATkJlAObKvgTJ0w+pD3wDmGhsm1JZgedXziXPqaQ8KQCIf0lmtpZ4XaEE30y6
+         ZzlKvOlEiFiOTLkxhnODyEobrdC65P5yAtkq7keOekcDMc0DJvqCZJn0e0wrWrWPVUbB
+         ygEMswgCAlcM/3/QGJPYTmbfpA7oSsv0RH1XAVvbrWQ5SzJozBb8KFsvEu+tlxibvDZg
+         bSNTjQeNdMbXif2WI59V/U66w427x7IxDroVR7GCdo26Z31H1hPLTmyEP7N+B/QCNjVj
+         bAGN5oVSB/6cJBGx+jZhtK4XvUtxTiK9Dm4HeX5lPYSxxns+YizDfDO+QjWgBZo9VMbt
+         ISPw==
+X-Forwarded-Encrypted: i=1; AFNElJ9QaQlubQFs+2nGpmoLXQBSlmraqH6JmCGnMjKExkDaeUgE09zlNMeee5MKE9xg/dpAHR1xKdiKSjSdGbZN3pY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxEitDM0ylfimhZ2swGGq5SJferTUeBEe9x83OLcAnpdpNNwFFs
+	+OuM6TcJlzVDlbdp0F6dIzfJov5wQHtFFP1PZ3clrmooz2ngdEDodlcROois0savIUBJlXMVNgN
+	LLQcRJfb5Tg5GfiumPccvqTqlOGkecugApaxOdBCQ
+X-Gm-Gg: Acq92OF5chhkdOuX4b11cfNJe6f7BLC2RxF0LVqdswwjc2mPz3q1EIEMU2jzvz0nmW+
+	31HvsgK8VNDkVIBy3qR+Z/41atqfJrXaJ5svz9R/TzgQAgMnKnPjhMxXIKprN/GJZuuJI5w80+v
+	JCXoDTwVb+YNRV8MfoyVT9hQpjbXLOAx0Ef1obPdciidksAIKw/NwN3cUDQtBNIkPWQBXPnp42C
+	ATZE7q/V76xjDEA3xRvkd+rVJk9hUvqDjs7pxQcJv8FOtNffu3kTF8p0terV57Z3UzzKD9vu6CN
+	Lvlj2CnNJw0PrQSNIbzyH2EfLMQLNLravg0RoxjxFS0uF4VFSUSViB2PS2B87GdkLFfN37hY8/h
+	l+nfI+on4rnKlaEgVMCrHqtvZhWoHmO51YPlbOONa+2IHSZ2PuhsO0TAlB88SkG66
+X-Received: by 2002:a05:622a:a942:b0:516:d5aa:42d5 with SMTP id
+ d75a77b69052e-516d5aa4534mr34969431cf.10.1779447986114; Fri, 22 May 2026
+ 04:06:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260522104257.2008-1-fw@strlen.de> <20260522104257.2008-5-fw@strlen.de>
+In-Reply-To: <20260522104257.2008-5-fw@strlen.de>
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 22 May 2026 04:06:14 -0700
+X-Gm-Features: AVHnY4JAvpfq33Omq5xczX5BUpmPFogQtSNG7NfdvnnXCyQleptcPiwbspf5ErM
+Message-ID: <CANn89i+_Mt220itgSf0P476U_=ayRpKomiQgqy1QYnF3g9UrdA@mail.gmail.com>
+Subject: Re: [PATCH net 04/10] netfilter: xt_cpu: prefer raw_smp_processor_id
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>, 
+	"David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org, 
+	pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Currently, we are using atomic_t to track the number of
-connections. On 64-bit setups with large memory there is
-a risk this counter to overflow. Also, setups with many
-containers may need to tune the limit for connections.
+On Fri, May 22, 2026 at 3:43=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
+te:
+>
+> With PREEMPT_RCU we get splat:
+>
+> BUG: using smp_processor_id() in preemptible [..]
+> caller is cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
+> CPU: 1 .. Comm: syz.3.1377 #0 PREEMPT(full)
+> Call Trace:
+>  <TASK>
+>  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+>  check_preemption_disabled+0xd3/0xe0 lib/smp_processor_id.c:47
+>  cpu_mt+0x53/0xd0 net/netfilter/xt_cpu.c:37
+>  [..]
+>
+> Just use raw version instead.
+> This is similar to 14d14a5d2957 ("netfilter: nft_meta: use raw_smp_proces=
+sor_id()").
+>
+> Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x=
+_tables")
+> Reported-by: syzbot+690d3e3ffa7335ac10eb@syzkaller.appspotmail.com
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Add sysctl control to limit the number of connections to
-1,073,741,824 (64-bit) and 16,777,216 (32-bit).
-Depending on the admin's privilege, the value is
-used to change a soft or hard limit allowing
-unprivileged admins to change the soft limit in
-range determined by privileged admins.
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- Documentation/networking/ipvs-sysctl.rst | 35 ++++++++++++++++++
- include/net/ip_vs.h                      | 22 +++++++++++
- net/netfilter/ipvs/ip_vs_conn.c          | 10 ++++-
- net/netfilter/ipvs/ip_vs_ctl.c           | 47 ++++++++++++++++++++++++
- 4 files changed, 113 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-index a556439f8be7..b6bac2612420 100644
---- a/Documentation/networking/ipvs-sysctl.rst
-+++ b/Documentation/networking/ipvs-sysctl.rst
-@@ -56,6 +56,41 @@ conn_lfactor - INTEGER
- 	-4: grow if load goes above 6% (buckets = nodes * 16)
- 	2: grow if load goes above 400% (buckets = nodes / 4)
- 
-+conn_max - INTEGER
-+	Limit for number of connections, per netns.
-+
-+	Controls the soft and hard limit for number of connections.
-+	Initially, the platform specific limit is assigned for init_net.
-+	The value can be changed and later the soft limit propagated
-+	to other networking namespaces.
-+
-+	Privileged admin can change both limits up to the value of the
-+	platform limit while the unprivileged admin can change only the
-+	soft limit up to the value of the hard limit.
-+
-+	For setups using conntrack=1 (CONFIG_IP_VS_NFCT for
-+	Netfilter connection tracking) the connections can be
-+	limited also by nf_conntrack_max.
-+
-+				soft limit	hard limit
-+	=====================================================
-+	init_net:
-+	create netns		platform	platform
-+	priv admin		0 .. platform	0 .. platform
-+	=====================================================
-+	new netns:
-+	create netns		init_net:soft	init_net:soft
-+	priv admin		0 .. platform	0 .. platform
-+	unpriv admin		0 .. hard	N/A
-+
-+	Limits per platform:
-+	1,073,741,824 (2^30 for 64-bit)
-+	   16,777,216 (2^24 for 32-bit)
-+
-+	Possible values: 0 .. platform limit
-+
-+	Default: platform limit
-+
- conn_reuse_mode - INTEGER
- 	1 - default
- 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index a02e569813d2..5b3d1c681231 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -44,6 +44,14 @@
- #define IP_VS_CONN_TAB_MAX_BITS	20
- #endif
- 
-+/* conn_max limits */
-+#if BITS_PER_LONG > 32
-+/* Limit of atomic_t but restricted by roundup_pow_of_two() in ip_vs_core.c */
-+#define IP_VS_CONN_MAX	(1 << 30)
-+#else
-+#define IP_VS_CONN_MAX	(1 << 24)
-+#endif
-+
- /* svc_table limits */
- #define IP_VS_SVC_TAB_MIN_BITS	4
- #define IP_VS_SVC_TAB_MAX_BITS	20
-@@ -1220,6 +1228,10 @@ struct netns_ipvs {
- 	/* sysctl variables */
- 	int			sysctl_amemthresh;
- 	int			sysctl_am_droprate;
-+#ifdef CONFIG_SYSCTL
-+	int			sysctl_conn_max;/* soft limit for conns */
-+	int			conn_max_limit;	/* hard limit for conn_max */
-+#endif
- 	int			sysctl_drop_entry;
- 	int			sysctl_drop_packet;
- 	int			sysctl_secure_tcp;
-@@ -1317,6 +1329,11 @@ struct netns_ipvs {
- 
- #ifdef CONFIG_SYSCTL
- 
-+static inline int sysctl_conn_max(struct netns_ipvs *ipvs)
-+{
-+	return READ_ONCE(ipvs->sysctl_conn_max);
-+}
-+
- static inline int sysctl_sync_threshold(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_sync_threshold[0];
-@@ -1436,6 +1453,11 @@ static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
- 
- #else
- 
-+static inline int sysctl_conn_max(struct netns_ipvs *ipvs)
-+{
-+	return IP_VS_CONN_MAX;
-+}
-+
- static inline int sysctl_sync_threshold(struct netns_ipvs *ipvs)
- {
- 	return DEFAULT_SYNC_THRESHOLD;
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 9ea6b4fa78bf..e76a73d183d5 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1358,9 +1358,18 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- 	struct netns_ipvs *ipvs = p->ipvs;
- 	struct ip_vs_proto_data *pd = ip_vs_proto_data_get(p->ipvs,
- 							   p->protocol);
-+	/* Increment conn_count up to conn_max */
-+	int count = atomic_read(&ipvs->conn_count);
-+	int max = sysctl_conn_max(ipvs);
-+
-+	do {
-+		if (count >= max)
-+			return NULL;
-+	} while (!atomic_try_cmpxchg(&ipvs->conn_count, &count, count + 1));
- 
- 	cp = kmem_cache_alloc(ip_vs_conn_cachep, GFP_ATOMIC);
- 	if (cp == NULL) {
-+		atomic_dec(&ipvs->conn_count);
- 		IP_VS_ERR_RL("%s(): no memory\n", __func__);
- 		return NULL;
- 	}
-@@ -1414,7 +1423,6 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- 	cp->in_seq.delta = 0;
- 	cp->out_seq.delta = 0;
- 
--	atomic_inc(&ipvs->conn_count);
- 	if (unlikely(flags & IP_VS_CONN_F_NO_CPORT)) {
- 		int af_id = ip_vs_af_index(cp->af);
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index bd9cae44d214..bd9d494b208a 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2319,6 +2319,39 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 
- #ifdef CONFIG_SYSCTL
- 
-+static int
-+proc_do_conn_max(const struct ctl_table *table, int write,
-+		 void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int *valp = table->data;
-+	int val = *valp;
-+	int rc;
-+
-+	const struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-+	if (write && (*valp != val)) {
-+		struct netns_ipvs *ipvs = table->extra2;
-+		bool priv = capable(CAP_NET_ADMIN);
-+		/* Unprivileged admins can not go above the hard limit */
-+		int max = priv ? IP_VS_CONN_MAX : ipvs->conn_max_limit;
-+
-+		if (val < 0 || val > max) {
-+			rc = -EINVAL;
-+		} else {
-+			/* Privileged admin changes both limits */
-+			if (priv)
-+				ipvs->conn_max_limit = val;
-+			WRITE_ONCE(*valp, val);
-+		}
-+	}
-+	return rc;
-+}
-+
- static int
- proc_do_defense_mode(const struct ctl_table *table, int write,
- 		     void *buffer, size_t *lenp, loff_t *ppos)
-@@ -2623,6 +2656,12 @@ static struct ctl_table vs_vars[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	},
-+	{
-+		.procname	= "conn_max",
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_do_conn_max,
-+	},
- 	{
- 		.procname	= "drop_entry",
- 		.maxlen		= sizeof(int),
-@@ -4977,6 +5016,14 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	tbl[idx++].data = &ipvs->sysctl_amemthresh;
- 	ipvs->sysctl_am_droprate = 10;
- 	tbl[idx++].data = &ipvs->sysctl_am_droprate;
-+
-+	/* Inherit both limits from init_net:conn_max */
-+	ipvs->conn_max_limit = net_eq(net, &init_net) ? IP_VS_CONN_MAX :
-+			       READ_ONCE(*(int *)vs_vars[idx].data);
-+	ipvs->sysctl_conn_max = ipvs->conn_max_limit;
-+	tbl[idx].extra2 = ipvs;
-+	tbl[idx++].data = &ipvs->sysctl_conn_max;
-+
- 	tbl[idx++].data = &ipvs->sysctl_drop_entry;
- 	tbl[idx++].data = &ipvs->sysctl_drop_packet;
- #ifdef CONFIG_IP_VS_NFCT
--- 
-2.54.0
-
-
+Thanks!
