@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF4D3A7F62;
-	Fri, 22 May 2026 10:43:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414893CE4B5;
+	Fri, 22 May 2026 10:43:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779446591; cv=none; b=ftrcaKvP8tV+BbYBzhM2FoDdEGvF/j5KDNbMlQJSLfp1VLqMvEVQXRSB9yZNMhR+RHAK7J+7HycVsjAHnp7qvoHNbtRnV/S+TtGttsoqTDlHBArctg8Fq4gJi1BBIySHZWyjiZVZPzUZQ5UiBMf7T19C/AlSh8t+bpqnMjD2shI=
+	t=1779446596; cv=none; b=GQfbtldD4Ti55zg6lwc3Vs6udSKewmQcG1nqGG8eW1fKdA9KEMg7v7Bsg9y51cN/Dxx6ww7kCK5j7Mni8S8IguYJxGJvp5rxm80DIdWtzataKhb4HpdtnLK/+zKx2lzHWNc0yoKzLSN0bNg9N9AjHP9sI3uhDxerWhgPGX+02WA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779446591; c=relaxed/simple;
-	bh=2ctwobxvag//PvWbdAathl3K6sEmG2pk43JNRYHRv6A=;
+	s=arc-20240116; t=1779446596; c=relaxed/simple;
+	bh=9PlPzzugpDrPN1J3Lv+jl2Tu0GDkddgedYMyY+JYUUk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O8iHpeQNMCcb2+90kt0p/GVfuyRBU/Wq484JP9BIbVklO1mJEd1LBwk3c8x9CnRRBM72+tClQ/zU1DcdCwDlDVKGflV4GxrsGZH8fXr2OkZidtxApVh+p/VAIqVtgboCCwaYBqMGLONM3IHcGkpFwXL2AsRaXntiO4gaUZCrzzM=
+	 MIME-Version; b=LnXDIspMM1J/baKn2xI8p7/Zp521VZnezS553fUEA3VxTWYEkSQ19LQlLkUgOhAQSyM9pMyOXIgzyq976EoYcjsN5sbdomxpAlChMDXngKATGuenIMphq4Lzs+QSYbWVI4OSCJ/Uky8qKqM7WcvXhkxxPkDX5egeoaKrgiB6MrE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 246B560634; Fri, 22 May 2026 12:43:07 +0200 (CEST)
+	id 7916B605BD; Fri, 22 May 2026 12:43:12 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 01/10] netfilter: conntrack: tcp: do not force CLOSE on invalid-seq RST without direction check
-Date: Fri, 22 May 2026 12:42:48 +0200
-Message-ID: <20260522104257.2008-2-fw@strlen.de>
+Subject: [PATCH net 02/10] netfilter: synproxy: refresh tcphdr after skb_ensure_writable
+Date: Fri, 22 May 2026 12:42:49 +0200
+Message-ID: <20260522104257.2008-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260522104257.2008-1-fw@strlen.de>
 References: <20260522104257.2008-1-fw@strlen.de>
@@ -38,49 +38,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+From: Chris Mason <clm@meta.com>
 
-An unintended behavior in the TCP conntrack state machine allows a
-connection to be forced into the CLOSE state using an RST packet with an
-invalid sequence number.
+synproxy_tstamp_adjust() rewrites the TCP timestamp option in place
+and then patches the TCP checksum via inet_proto_csum_replace4() on
+the caller-supplied tcphdr pointer.  Both ipv4_synproxy_hook() and
+ipv6_synproxy_hook() obtain that pointer with skb_header_pointer()
+before calling in, so it may either alias skb->head directly or
+point at the caller's on-stack _tcph buffer.
 
-Specifically, after a SYN packet is observed, an RST with an invalid SEQ
-can transition the conntrack entry to TCP_CONNTRACK_CLOSE, regardless of
-whether the RST corresponds to the expected reply direction. The relevant
-code path assumes the RST is a response to an outgoing SYN, but does not
-validate packet direction or ensure that a matching SYN was actually sent
-in the opposite direction.
+Between obtaining the pointer and using it, the function calls
+skb_ensure_writable(skb, optend), which on a cloned or non-linear
+skb invokes pskb_expand_head() and frees the old skb->head.  After
+that point the cached th is stale:
 
-As a result, a crafted packet sequence consisting of a SYN followed by an
-invalid-sequence RST can prematurely terminate an active NAT entry. This
-makes connection teardown easier than intended.
+    caller (ipv[46]_synproxy_hook)
+      th = skb_header_pointer(skb, ..., &_tcph)
+      synproxy_tstamp_adjust(skb, protoff, th, ...)
+        skb_ensure_writable(skb, optend)
+          pskb_expand_head()        /* kfree(old skb->head) */
+        ...
+        inet_proto_csum_replace4(&th->check, ...)
+                                    /* writes into freed head, or
+                                       into the caller's stack copy
+                                       leaving the on-wire checksum
+                                       stale */
 
-So, tighten the state transition logic to ensure that RST-triggered
-CLOSE transitions only occur when the RST is a valid response to a
-previously observed SYN in the correct direction.
+The option bytes are written through skb->data and are fine; only
+the checksum update goes through th and so lands in the wrong
+place.  The result is either a write into freed slab memory or a
+packet leaving with a checksum that does not match its payload.
 
-Cc: stable@vger.kernel.org
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Fix by re-deriving th from skb->data + protoff immediately after
+skb_ensure_writable() succeeds, so the subsequent checksum update
+targets the linear, writable header.
+
+Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
+Assisted-by: kres (claude-opus-4-7)
+Signed-off-by: Chris Mason <clm@meta.com>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_synproxy_core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b67426c2189b..e99ab1e88e9f 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1221,7 +1221,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			new_state = old_state;
- 		}
- 		if (((test_bit(IPS_SEEN_REPLY_BIT, &ct->status)
--			 && ct->proto.tcp.last_index == TCP_SYN_SET)
-+			 && ct->proto.tcp.last_index == TCP_SYN_SET
-+			 && ct->proto.tcp.last_dir != dir)
- 			|| (!test_bit(IPS_ASSURED_BIT, &ct->status)
- 			    && ct->proto.tcp.last_index == TCP_ACK_SET))
- 		    && ntohl(th->ack_seq) == ct->proto.tcp.last_end) {
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 57f57e2fc80a..036c8586f49b 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -200,6 +200,8 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
+ 	if (skb_ensure_writable(skb, optend))
+ 		return 0;
+ 
++	th = (struct tcphdr *)(skb->data + protoff);
++
+ 	while (optoff < optend) {
+ 		unsigned char *op = skb->data + optoff;
+ 
 -- 
 2.53.0
 
