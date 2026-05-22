@@ -1,143 +1,81 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C02F32C957
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 May 2026 05:02:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967D6391851;
+	Fri, 22 May 2026 05:20:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779426131; cv=none; b=rh7weqUeHL7/biee6zlqfOUUqHjmJBHNm9IBu7lEsYzGiPXmjX26xIdB7fp5/PrG9A9vrmhgM3z7tj3Ew0d1ypIm162n96xMbMXPelrbxVRNyJS9kbDaK6aTTYRQAqpPWNXk4ES05iiAayvB21VkQ+/AXlF4QfMSy58n61zM23E=
+	t=1779427204; cv=none; b=HCuqd2AvYCEGMESesjq4qrkomC7NruOZfKzPII8rKZ2dr6lLASx0VSB3dhKHkFvEEbegT88iF3kVIJPJwBJ7IEQnPX6rxrMr4EPX6i8Z+aE0DxYTerSlw82ZBgQ5AaAl96ambLqHwO/SqygvIvGtzYJjTYZhIC14B8dN4YuxWAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779426131; c=relaxed/simple;
-	bh=XsmfSucsxcfuHhjB9XAPwjAnKViTzlpeLaYXkfkJqAk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CA3t6Lxqq8WSbxZx+mrJJkLR3h6/FvBqNrwxeQTjVwfieuq+0tt9kYJk4HhVxTPKF5MnEmHgwJKPcs6dei05X1VvUkHnNpPOth34UncrcuB+6LR/V+OzNRyPNVcGjcLbBSIogTmead0K9tUA/xBLi+mAW+wTUOuuUAiePvPgcAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1779427204; c=relaxed/simple;
+	bh=d94ENTgaahbOkQMH8t51whIljGLTrs4yR5S2GWvbB8M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RjTzYlRe8SD31RSNtVLlybYYTgoQ5EdpU7kbKanCB1cnDB5MJYViyfRiuQUWskI/whyAUlEODmd+BICGn18PHPKazQqRLfEh9wMxNa70primHA47CZtQAtMynylylydy9e2BsTY63G3RJEck+UMv+f8xjnzEPjts6N8F4Q5dmU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 96F8460232; Fri, 22 May 2026 07:02:08 +0200 (CEST)
+	id 10C4760345; Fri, 22 May 2026 07:19:58 +0200 (CEST)
+Date: Fri, 22 May 2026 07:19:56 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/5] netfilter: conntrack: add deprecation warnings for irc and pptp trackers
-Date: Fri, 22 May 2026 07:01:34 +0200
-Message-ID: <20260522050140.4838-6-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260522050140.4838-1-fw@strlen.de>
-References: <20260522050140.4838-1-fw@strlen.de>
+To: Marco Crivellari <marco.crivellari@suse.com>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	Tejun Heo <tj@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Michal Hocko <mhocko@suse.com>, Simon Horman <horms@verge.net.au>,
+	Eric Dumazet <edumazet@google.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: Re: [PATCH v2 net-next 2/2] ipvs: Replace use of system_unbound_wq
+ with system_dfl_long_wq
+Message-ID: <ag_nfJAqqBkZi2dy@strlen.de>
+References: <20260515135143.259669-1-marco.crivellari@suse.com>
+ <20260515135143.259669-3-marco.crivellari@suse.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260515135143.259669-3-marco.crivellari@suse.com>
 
-IRC Direct client-to-client requires plaintext.  IRC over TLS should be
-preferred, making this helper ineffective.  Add a deprecation warning and
-update the help text to better reflect that this is needed for the DCC
-extenion, not IRC itself.
+Marco Crivellari <marco.crivellari@suse.com> wrote:
+> This patch continues the effort to refactor workqueue APIs, which has begun
+> with the changes introducing new workqueues and a new alloc_workqueue flag:
+> 
+>    commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
+>    commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
+> 
+> The point of the refactoring is to eventually alter the default behavior of
+> workqueues to become unbound by default so that their workload placement is
+> optimized by the scheduler.
+> 
+> Before that to happen, workqueue users must be converted to the better named
+> new workqueues with no intended behaviour changes:
+> 
+>    system_wq -> system_percpu_wq
+>    system_unbound_wq -> system_dfl_wq
+> 
+> This way the old obsolete workqueues (system_wq, system_unbound_wq) can be
+> removed in the future.
+> 
+> This specific work is considered long, so enqueue it using
+> system_dfl_long_wq instead of system_dfl_wq.
 
-PPTP is esoteric these days and it is the only helper that requires the
-destroy callback in the conntrack helper API.
+While 5522d65d81a7 ("ipvs: avoid possible loop in ip_vs_dst_event on resizing")
+is now in nf-next, this patch doesn't apply (anymore):
 
-Removal would simplify the conntrack core.
+git am -s v2-net-next-2-2-ipvs-Replace-use-of-system_unbound_wq-with-system_dfl_long_wq.patch
+Applying: ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
+error: patch failed: net/netfilter/ipvs/ip_vs_ctl.c:800
+error: net/netfilter/ipvs/ip_vs_ctl.c: patch does not apply
+Patch failed at 0001 ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
 
-Both helpers are IPv4 only as well.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack_helper.h |  4 ++++
- net/netfilter/Kconfig                       | 11 ++++++-----
- net/netfilter/nf_conntrack_irc.c            |  2 ++
- net/netfilter/nf_conntrack_pptp.c           |  2 ++
- 4 files changed, 14 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 2e1fea8b0a8d..9e7bea89de92 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -98,6 +98,10 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int);
- void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *,
- 				     unsigned int);
- 
-+#define nf_conntrack_helper_deprecated(name) \
-+	pr_warn("The %s conntrack helper is scheduled for removal.\n"	\
-+		"Please contact the netfilter-devel mailing list if you still need this.\n", name)
-+
- struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
- 
- int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 682c675125fc..133f03d90c0f 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -256,8 +256,7 @@ config NF_CONNTRACK_H323
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_IRC
--	tristate "IRC protocol support"
--	default m if NETFILTER_ADVANCED=n
-+	tristate "IRC DCC protocol support (obsolete)"
- 	help
- 	  There is a commonly-used extension to IRC called
- 	  Direct Client-to-Client Protocol (DCC).  This enables users to send
-@@ -267,6 +266,8 @@ config NF_CONNTRACK_IRC
- 	  using NAT, this extension will enable you to send files and initiate
- 	  chats.  Note that you do NOT need this extension to get files or
- 	  have others initiate chats, or everything else in IRC.
-+	  DCC tracking behind NAT requires plaintext (unencrypted) IRC, so
-+	  this helper is of limited use these days.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-@@ -308,17 +309,17 @@ config NF_CONNTRACK_SNMP
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_PPTP
--	tristate "PPtP protocol support"
-+	tristate "PPtP protocol support (deprecated)"
- 	depends on NETFILTER_ADVANCED
- 	select NF_CT_PROTO_GRE
- 	help
- 	  This module adds support for PPTP (Point to Point Tunnelling
- 	  Protocol, RFC2637) connection tracking and NAT.
- 
--	  If you are running PPTP sessions over a stateful firewall or NAT
-+	  If you are still running PPTP sessions over a stateful firewall or NAT
- 	  box, you may want to enable this feature.
- 
--	  Please note that not all PPTP modes of operation are supported yet.
-+	  Please note that not all PPTP modes of operation are supported.
- 	  Specifically these limitations exist:
- 	    - Blindly assumes that control connections are always established
- 	      in PNS->PAC direction. This is a violation of RFC2637.
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 4e07963a5c73..cebf73f34c77 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -264,6 +264,8 @@ static int __init nf_conntrack_irc_init(void)
- {
- 	int ret;
- 
-+	nf_conntrack_helper_deprecated(HELPER_NAME);
-+
- 	if (max_dcc_channels < 1) {
- 		pr_err("max_dcc_channels must not be zero\n");
- 		return -EINVAL;
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index c079d4db52b8..afb67a31ab26 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -600,6 +600,8 @@ static int __init nf_conntrack_pptp_init(void)
- {
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_pptp_master));
- 
-+	nf_conntrack_helper_deprecated(pptp.name);
-+
- 	return nf_conntrack_helper_register(&pptp);
- }
- 
--- 
-2.53.0
-
+Would you mind sending a new version? Thanks.
