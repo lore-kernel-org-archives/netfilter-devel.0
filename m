@@ -1,48 +1,48 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB040343899
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 May 2026 13:15:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 572E619004A
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 May 2026 13:21:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779542126; cv=none; b=rEPg9maRGeTczYffBP87Y91fQ6/PiXEsBzCqH8+C2m8QbOmdTNVKKAS7sWHEwsifI/VxEiX9dm9ggArlqgG/uRdb1YxCenoHSN7Xq3wsiq2vPnzXMgP3+9QlrfYdGjn2TPS2X+7XjYjENcmRHfYWNJ8fKkcTaYpMytgVwB4rfF4=
+	t=1779542464; cv=none; b=fi8LNqkZHCOOkN95YGyJ745KfwYPyOBXRxWshPqZxE7g+B4ZHpbYBE5C1TEbevBk5ufG+jD8lJ2ndQtuQAR/5+1Xdqs5MenxT71UaC1kujBgXMoO1KcrL2eFOdhJe7yvbb/jzXUBX1KEoigoYwrzQOmLiHc0Hj1pQxxClUUOqxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779542126; c=relaxed/simple;
-	bh=+6BRIaNtvk5rAKXpix7QthaF+1jRDMPHqYJCsvUAxL4=;
+	s=arc-20240116; t=1779542464; c=relaxed/simple;
+	bh=OFc8DjmEbYuGQq4/+z3qKunvvIzgBdptjKqNTSCg5gY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=moOv6jTV6ZOtU5YF5UUAySkD0ZL45COQZS1X7llmjQa3HhI7w+CZ2wu1OC0LH0PAOPUZFsdE9dnyMXzYZ+5I3yJvckXYrd1e6sa/YfwTbxKJaW4g4OSoTQVrmFGz8dQCZysVFX13xHGRqYD8qxfMlsHk5W1loNuHjzDS9Mx9Ly0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=WO8cIuSn; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=bb5WFHLGUzK7YGB1ZqkkMp3X/iEKD39NO3THj6sfqNnlGRNg+qPJLZsVDZLHnqHzjdRzj+wi4sE5N3yW0BjMYCVEHVuAivc4zxzq7+MOxHP6T0LQ55kj92ntm1R/r0/lBF/bgGKb0ga9UKoBIlVK+1+NwdzSFno1lO6Mwz3bHYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Z6mZawPG; arc=none smtp.client-ip=148.6.0.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="WO8cIuSn"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Z6mZawPG"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4gN2gv1H6qz7s86D;
-	Sat, 23 May 2026 15:15:23 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4gN2gs3kCmz3sb0f;
+	Sat, 23 May 2026 15:15:21 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1779542121; x=1781356522; bh=djO71CRZBk
-	+p+L+kr8DM1adBQijJI2N1oXOlYF6D9tA=; b=WO8cIuSnlW58j36Lm6nvmql4Zp
-	KiXYsF+9mMQWdXmqvzDzBGu4/bNtLVPle4aye4iSj81H7Q86vkWhhxy88/Vad0oz
-	t3kF/rQNZCa+dpnVZ6v52t+nX7YZPT4S6jyHZeNVhmXP1dnJ3k97sxEV3lVbD8kW
-	wiQsJR/Tlq9lTCooI=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id Gu_XOd45nGsQ; Sat, 23 May 2026 15:15:21 +0200 (CEST)
+	:received; s=20151130; t=1779542119; x=1781356520; bh=UMCgCl3Qja
+	ouI+4/X+yWQma/WUGVqMAaEfE1Ozl1Ftk=; b=Z6mZawPGK0d/YKquWcD5VUS889
+	3zqqMvzjnPu54AqJu0YVX1QVjxEtfbv2qwVtV8JDwC3LMdVlC/CzXT32TY/vzzfI
+	BYIaCgrgsKN1IvpA5UFaWLW6kfdd0Avf1Ainr4BeJCP6dkCMH3w6JvMedpIEf5yO
+	F88jbL6YWfNeO6nT4=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id plJxi3-CwrqC; Sat, 23 May 2026 15:15:19 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (85-66-106-71.pool.digikabel.hu [85.66.106.71])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4gN2gq33N9z7s86P;
+	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4gN2gq487Mz3sb0c;
 	Sat, 23 May 2026 15:15:19 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 453A5141163; Sat, 23 May 2026 15:15:19 +0200 (CEST)
+	id 4C71B1412C5; Sat, 23 May 2026 15:15:19 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/6] netfilter: ipset: fix order of kfree_rcu() and rcu_assign_pointer()
-Date: Sat, 23 May 2026 15:15:16 +0200
-Message-Id: <20260523131519.99953-4-kadlec@netfilter.org>
+Subject: [PATCH 6/6] netfilter: ipset: add comment how cidr bookkeeping is working
+Date: Sat, 23 May 2026 15:15:19 +0200
+Message-Id: <20260523131519.99953-7-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260523131519.99953-1-kadlec@netfilter.org>
 References: <20260523131519.99953-1-kadlec@netfilter.org>
@@ -52,44 +52,54 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-deepspam: ham 0%
+X-deepspam: ham 1%
 Content-Transfer-Encoding: quoted-printable
 
-Sashiko pointed out that kfree_rcu() was called before
-rcu_assign_pointer() in handling the comment extension.
-Fix the order so that rcu_assign_pointer() called first.
+Sashiko thinks that cidr bookkeeping might be unsafe because the
+concurrent RCU reader in mtype_test_cidrs() uses the data without
+sequence locks or read-side barriers. However every right shift
+(add new entry) and left shift (delete entry) is performed by
+duplicating the entry just shifted. Therefore concurrent reader
+will just duplicate a test with the same value twice thus existing
+entries cannot be skipped.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-index 3706b4a85a0f..a531b654b8d9 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -351,8 +351,8 @@ ip_set_init_comment(struct ip_set *set, struct ip_set=
-_comment *comment,
-=20
- 	if (unlikely(c)) {
- 		set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
--		kfree_rcu(c, rcu);
- 		rcu_assign_pointer(comment->c, NULL);
-+		kfree_rcu(c, rcu);
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
+ip_set_hash_gen.h
+index d97b783174d6..658b012a154c 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -342,6 +342,12 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, =
+u8 cidr, u8 n)
+ 		}
  	}
- 	if (!len)
- 		return;
-@@ -393,8 +393,8 @@ ip_set_comment_free(struct ip_set *set, void *ptr)
- 	if (unlikely(!c))
- 		return;
- 	set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
--	kfree_rcu(c, rcu);
- 	rcu_assign_pointer(comment->c, NULL);
-+	kfree_rcu(c, rcu);
- }
-=20
- typedef void (*destroyer)(struct ip_set *, void *);
+ 	if (j !=3D -1) {
++		/* We shift the cidr values to the right
++		 * by duplicating the entries one by one,
++		 * starting from the end.
++		 * It means the same test can be repeated twice
++		 * by a concurrent mtype_test_cidrs() reader.
++		 */
+ 		for (; i > j; i--)
+ 			h->nets[i].cidr[n] =3D h->nets[i - 1].cidr[n];
+ 	}
+@@ -363,6 +369,11 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, =
+u8 cidr, u8 n)
+ 		h->nets[CIDR_POS(cidr)].nets[n]--;
+ 		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
+ 			goto unlock;
++		/* We shift the cidr values to the left
++		 * by duplicating the remaining entries one by one.
++		 * It means the same test can be repeated twice
++		 * by a concurrent mtype_test_cidrs() reader.
++		 */
+ 		for (j =3D i; j < net_end && h->nets[j].cidr[n]; j++)
+ 			h->nets[j].cidr[n] =3D h->nets[j + 1].cidr[n];
+ 		h->nets[j].cidr[n] =3D 0;
 --=20
 2.39.5
 
