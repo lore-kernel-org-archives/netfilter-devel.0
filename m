@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1545C33B6F6;
-	Mon, 25 May 2026 18:29:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4642C33ADA2;
+	Mon, 25 May 2026 18:29:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779733780; cv=none; b=R+7jiDDcJbQm1IJwCznjdUY3NJootk/03vss8rp1uKj08S1T6Ek5mLL6ejcUyGyobcyc6wi/chShvwmO/XjxsMW6zu/AKZTr7k4NhxyjYSu8MWuih9WWhP9rwsNqjl8WYUEL3lAD0zJc1RS7vJfBQm+cGKxzp5bScqFoFLDlXFc=
+	t=1779733784; cv=none; b=gZ45MPkUL6kP7cIBPnin+oAOmpD1AEzfJDo+xu1sIyhjeswRtGnY0MluEZs+Av5EcA1FuW8dG0F4bgFEDhPCGfItMo7+3Mt2bGsMHUd8ncQAe0bV2mcz6jb9g0IoygEPmFAvobr/zrR9Z5Z5J53Ma63uyH4/bPk22U5k9RVGu3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779733780; c=relaxed/simple;
-	bh=HDor1mS4Hc0DhHVys6O1Bvsy4FF0FjM2jS9TreMI74E=;
+	s=arc-20240116; t=1779733784; c=relaxed/simple;
+	bh=4XgYNrkURoZt44VhoFVYksPUjr+6j3qEDwc9+v/PBtg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s/4TNQVv3gAlsGxoPKVkARHOrD+GuVIl+oWr36X9aXmvJ5HuJquGQ3LPI3DBPfDcVRh0roZz6r8KLHK4qGk8BGtwq9O3fC9eTA12c9DB07G0O8uQ6yNSH6/lGIwt4sNQvFAnXEFUTU+fbakcR+GeoHjL9stUmlCQUaXtqp8lb64=
+	 MIME-Version; b=iNko5b+RwzaxcZsaJjcD5B32azVF+30EAeYA5Z8lMg9Mb2BkS/Czv3ztP8EyKr9KrBA3QcPXWlmU6YYhnpum2caI/VjDxyky6/MHyH9dQeegO8nAiUe+wdtEOT8cwjtDMb8AVkyWWkpgGdwezydJLYFKo0rGAvGeIlaug6O62oE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F26F16070B; Mon, 25 May 2026 20:29:36 +0200 (CEST)
+	id 3FC3260595; Mon, 25 May 2026 20:29:41 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 02/11] netfilter: add option for GCOV profiling
-Date: Mon, 25 May 2026 20:29:15 +0200
-Message-ID: <20260525182924.28456-3-fw@strlen.de>
+Subject: [PATCH net-next 03/11] netfilter: allow nfnetlink built-in only
+Date: Mon, 25 May 2026 20:29:16 +0200
+Message-ID: <20260525182924.28456-4-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260525182924.28456-1-fw@strlen.de>
 References: <20260525182924.28456-1-fw@strlen.de>
@@ -38,192 +38,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Similar to a few other subsystems: add a new config toggle to
-enable netfilter gcov profiling in netfilter, including ebtables,
-arptables and so on.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-ipset and ipvs gain their own, dedicated toggles.
+Netfilter has its own netlink multiplexer, initially only a few
+subsystem were using it, most notably conntrack, queue and log,
+later in time nf_tables. These days it is the control plane of
+preference.
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Just remove modular support for this, allow it built-in only.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/Makefile           | 6 ++++++
- net/bridge/netfilter/Makefile | 4 ++++
- net/ipv4/Makefile             | 4 ++++
- net/ipv4/netfilter/Makefile   | 4 ++++
- net/ipv6/Makefile             | 4 ++++
- net/ipv6/netfilter/Makefile   | 4 ++++
- net/netfilter/Kconfig         | 8 ++++++++
- net/netfilter/Makefile        | 4 ++++
- net/netfilter/ipset/Kconfig   | 9 +++++++++
- net/netfilter/ipset/Makefile  | 3 +++
- net/netfilter/ipvs/Kconfig    | 9 +++++++++
- net/netfilter/ipvs/Makefile   | 3 +++
- 12 files changed, 62 insertions(+)
+ net/netfilter/Kconfig  | 2 +-
+ net/netfilter/Makefile | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/Makefile b/net/bridge/Makefile
-index 24bd1c0a9a5a..1203dc19e15c 100644
---- a/net/bridge/Makefile
-+++ b/net/bridge/Makefile
-@@ -29,3 +29,9 @@ obj-$(CONFIG_NETFILTER) += netfilter/
- bridge-$(CONFIG_BRIDGE_MRP)	+= br_mrp_switchdev.o br_mrp.o br_mrp_netlink.o
- 
- bridge-$(CONFIG_BRIDGE_CFM)	+= br_cfm.o br_cfm_netlink.o
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE_br_nf_core.o := y
-+GCOV_PROFILE_br_netfilter_hooks.o := y
-+GCOV_PROFILE_br_netfilter_ipv6.o := y
-+endif
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index b9a1303da977..af0c903aa4ac 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
- # watchers
- obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
- obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE := y
-+endif
-diff --git a/net/ipv4/Makefile b/net/ipv4/Makefile
-index 7964234f0d08..06e21c26b76f 100644
---- a/net/ipv4/Makefile
-+++ b/net/ipv4/Makefile
-@@ -71,3 +71,7 @@ obj-$(CONFIG_TCP_AO) += tcp_ao.o
- ifeq ($(CONFIG_BPF_JIT),y)
- obj-$(CONFIG_BPF_SYSCALL) += bpf_tcp_ca.o
- endif
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE_netfilter.o := y
-+endif
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 85502d4dfbb4..dbfb1c4739a8 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
- obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
- 
- obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE := y
-+endif
-diff --git a/net/ipv6/Makefile b/net/ipv6/Makefile
-index 2c9ce2ccbde1..5b0cd6488021 100644
---- a/net/ipv6/Makefile
-+++ b/net/ipv6/Makefile
-@@ -54,3 +54,7 @@ obj-$(CONFIG_NET_UDP_TUNNEL) += ip6_udp_tunnel.o
- obj-y += mcast_snoop.o
- obj-$(CONFIG_TCP_AO) += tcp_ao.o
- endif
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE_netfilter.o := y
-+endif
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 66ce6fa5b2f5..72902d8005ad 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
- obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
- obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
- obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE := y
-+endif
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 682c675125fc..f71ff98eb5d0 100644
+index f71ff98eb5d0..665f8008cc4b 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
+@@ -22,7 +22,7 @@ config NETFILTER_SKIP_EGRESS
+ 	def_bool NETFILTER_EGRESS && (NET_CLS_ACT || IFB)
  
- endif # NETFILTER_XTABLES
+ config NETFILTER_NETLINK
+-	tristate
++	bool
  
-+config GCOV_PROFILE_NETFILTER
-+	bool "Enable GCOV profiling for netfilter"
-+	depends on GCOV_KERNEL
-+	help
-+	  Enable GCOV profiling for netfilter to check which functions/lines
-+	  are executed.
-+
-+	  If unsure, say N.
- endmenu
- 
- source "net/netfilter/ipset/Kconfig"
+ config NETFILTER_FAMILY_BRIDGE
+ 	bool
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6bfc250e474f..f0751ca302c6 100644
+index f0751ca302c6..6bf74d488a29 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o utils.o
++netfilter-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
  
- # lwtunnel
- obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
-+
-+ifdef CONFIG_GCOV_PROFILE_NETFILTER
-+GCOV_PROFILE := y
-+endif
-diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
-index b1ea054bb82c..6c4d54758106 100644
---- a/net/netfilter/ipset/Kconfig
-+++ b/net/netfilter/ipset/Kconfig
-@@ -175,4 +175,13 @@ config IP_SET_LIST_SET
+ nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o \
+ 		   nf_conntrack_proto.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o \
+@@ -23,7 +24,6 @@ endif
+ obj-$(CONFIG_NETFILTER) = netfilter.o
+ obj-$(CONFIG_NETFILTER_BPF_LINK) += nf_bpf_link.o
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config GCOV_PROFILE_IPSET
-+	bool "Enable GCOV profiling for ipset"
-+	depends on GCOV_KERNEL
-+	help
-+	  Enable GCOV profiling for ipset to check which functions/lines
-+	  are executed.
-+
-+	  If unsure, say N.
-+
- endif # IP_SET
-diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
-index a445a6bf4f11..4f48df5406cd 100644
---- a/net/netfilter/ipset/Makefile
-+++ b/net/netfilter/ipset/Makefile
-@@ -29,3 +29,6 @@ obj-$(CONFIG_IP_SET_HASH_NETPORTNET) += ip_set_hash_netportnet.o
- 
- # list types
- obj-$(CONFIG_IP_SET_LIST_SET) += ip_set_list_set.o
-+ifdef CONFIG_GCOV_PROFILE_IPSET
-+GCOV_PROFILE := y
-+endif
-diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index c203252e856d..7724cb44e6de 100644
---- a/net/netfilter/ipvs/Kconfig
-+++ b/net/netfilter/ipvs/Kconfig
-@@ -349,4 +349,13 @@ config	IP_VS_PE_SIP
- 	help
- 	  Allow persistence based on the SIP Call-ID
- 
-+config GCOV_PROFILE_IPVS
-+	bool "Enable GCOV profiling for IPVS"
-+	depends on GCOV_KERNEL
-+	help
-+	  Enable GCOV profiling for IPVS to check which functions/lines
-+	  are executed.
-+
-+	  If unsure, say N.
-+
- endif # IP_VS
-diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
-index bb5d8125c82a..8e4cc67ad39d 100644
---- a/net/netfilter/ipvs/Makefile
-+++ b/net/netfilter/ipvs/Makefile
-@@ -43,3 +43,6 @@ obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
- 
- # IPVS connection template retrievers
- obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
-+ifdef CONFIG_GCOV_PROFILE_IPVS
-+GCOV_PROFILE := y
-+endif
+-obj-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
+ obj-$(CONFIG_NETFILTER_NETLINK_ACCT) += nfnetlink_acct.o
+ obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += nfnetlink_queue.o
+ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
 -- 
 2.53.0
 
