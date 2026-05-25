@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4642C33ADA2;
-	Mon, 25 May 2026 18:29:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23E4F33B6F6;
+	Mon, 25 May 2026 18:29:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779733784; cv=none; b=gZ45MPkUL6kP7cIBPnin+oAOmpD1AEzfJDo+xu1sIyhjeswRtGnY0MluEZs+Av5EcA1FuW8dG0F4bgFEDhPCGfItMo7+3Mt2bGsMHUd8ncQAe0bV2mcz6jb9g0IoygEPmFAvobr/zrR9Z5Z5J53Ma63uyH4/bPk22U5k9RVGu3c=
+	t=1779733788; cv=none; b=FtTioBpOwitYQcb9Xvm9fooa0zBG1TU80oSPQTvu9g8BgRVJRRy9mvvYHOhrCcDFnQDxbwIbi8IAlswwlFJm393lnRwCXU+mfZ3TuN/s+hiAKIAWx24Nv4xrKbnAMSzT7dkkpWndUKZ+FZYz8SEx0kxsqp0efM+FLZ88azdVeV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779733784; c=relaxed/simple;
-	bh=4XgYNrkURoZt44VhoFVYksPUjr+6j3qEDwc9+v/PBtg=;
+	s=arc-20240116; t=1779733788; c=relaxed/simple;
+	bh=QMx7nujn7ygzUwXtOaXF6SlBi11RPP94euNF2Qhlm7k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iNko5b+RwzaxcZsaJjcD5B32azVF+30EAeYA5Z8lMg9Mb2BkS/Czv3ztP8EyKr9KrBA3QcPXWlmU6YYhnpum2caI/VjDxyky6/MHyH9dQeegO8nAiUe+wdtEOT8cwjtDMb8AVkyWWkpgGdwezydJLYFKo0rGAvGeIlaug6O62oE=
+	 MIME-Version; b=fFHFTdybcw93IWlCjIFHwnda4DlPRoscZ5QglehBiHPXoV4ZG72p3C+NvZpJKMKkmcdHLqMFet3kAGMBM4QFKOtmCA7nBFUna0TOvJutttybzURPgt0BSHBFL5/RLIrfBEuwQWLZctMyYLH/mIr5wprm30sxp9B8tDsrql8aOOc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3FC3260595; Mon, 25 May 2026 20:29:41 +0200 (CEST)
+	id 841406068A; Mon, 25 May 2026 20:29:45 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 03/11] netfilter: allow nfnetlink built-in only
-Date: Mon, 25 May 2026 20:29:16 +0200
-Message-ID: <20260525182924.28456-4-fw@strlen.de>
+Subject: [PATCH net-next 04/11] netfilter: nf_conncount: use per-rule hash initval
+Date: Mon, 25 May 2026 20:29:17 +0200
+Message-ID: <20260525182924.28456-5-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260525182924.28456-1-fw@strlen.de>
 References: <20260525182924.28456-1-fw@strlen.de>
@@ -38,55 +38,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+As-is, different netns will use same slots if the key is the same.
+OVS uses this infrastructure to limit conntrack counts per zones.
+Those can easily overlap. Make them hash to different slots internally.
 
-Netfilter has its own netlink multiplexer, initially only a few
-subsystem were using it, most notably conntrack, queue and log,
-later in time nf_tables. These days it is the control plane of
-preference.
-
-Just remove modular support for this, allow it built-in only.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/Kconfig  | 2 +-
- net/netfilter/Makefile | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conncount.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f71ff98eb5d0..665f8008cc4b 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -22,7 +22,7 @@ config NETFILTER_SKIP_EGRESS
- 	def_bool NETFILTER_EGRESS && (NET_CLS_ACT || IFB)
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 00eed5b4d1b1..ab28b47395bd 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -58,6 +58,7 @@ static spinlock_t nf_conncount_locks[CONNCOUNT_SLOTS] __cacheline_aligned_in_smp
  
- config NETFILTER_NETLINK
--	tristate
-+	bool
+ struct nf_conncount_data {
+ 	unsigned int keylen;
++	u32 initval;
+ 	struct rb_root root[CONNCOUNT_SLOTS];
+ 	struct net *net;
+ 	struct work_struct gc_work;
+@@ -65,7 +66,6 @@ struct nf_conncount_data {
+ 	unsigned int gc_tree;
+ };
  
- config NETFILTER_FAMILY_BRIDGE
- 	bool
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index f0751ca302c6..6bf74d488a29 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o utils.o
-+netfilter-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
+-static u_int32_t conncount_rnd __read_mostly;
+ static struct kmem_cache *conncount_rb_cachep __read_mostly;
+ static struct kmem_cache *conncount_conn_cachep __read_mostly;
  
- nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o \
- 		   nf_conntrack_proto.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o \
-@@ -23,7 +24,6 @@ endif
- obj-$(CONFIG_NETFILTER) = netfilter.o
- obj-$(CONFIG_NETFILTER_BPF_LINK) += nf_bpf_link.o
+@@ -496,7 +496,7 @@ count_tree(struct net *net,
+ 	struct nf_conncount_rb *rbconn;
+ 	unsigned int hash;
  
--obj-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
- obj-$(CONFIG_NETFILTER_NETLINK_ACCT) += nfnetlink_acct.o
- obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += nfnetlink_queue.o
- obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
+-	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
++	hash = jhash2(key, data->keylen, data->initval) % CONNCOUNT_SLOTS;
+ 	root = &data->root[hash];
+ 
+ 	parent = rcu_dereference_raw(root->rb_node);
+@@ -630,8 +630,6 @@ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen
+ 	    keylen == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	net_get_random_once(&conncount_rnd, sizeof(conncount_rnd));
+-
+ 	data = kmalloc_obj(*data);
+ 	if (!data)
+ 		return ERR_PTR(-ENOMEM);
+@@ -641,6 +639,7 @@ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen
+ 
+ 	data->keylen = keylen / sizeof(u32);
+ 	data->net = net;
++	data->initval = get_random_u32();
+ 	INIT_WORK(&data->gc_work, tree_gc_worker);
+ 
+ 	return data;
 -- 
 2.53.0
 
