@@ -1,111 +1,69 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29CAD334C39;
-	Mon, 25 May 2026 18:30:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3F5030C62D
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2026 18:59:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779733818; cv=none; b=l8rE0NQk75Y9AE4K8lgainkZeitob4eVIGaENkOtP57cwaKVovZmbeit1KvB5gumPRHY21Op5AurmiJkhr2XhZ0vNIr0Zf+tzFBseJFmCEgtCgzJtOxjzBxFBVfvAKlFNWjekQjQH7ePuZsH0cAmb7OYd+0ZaIJpCA0S2lBlemg=
+	t=1779735549; cv=none; b=WltWVThBtEBgwd095kX01JW84eqXUgq1PRkEIDMqntd/4bcKA2GY+gtIpnv0fkh3GFXmFiHCCJq9nMgb0m3uUA7ZwCX39bGcEqY89tNyUvmvSnyoW77RjCuerWBNjG7w7UG1AIEq38SxYumgdy1anpkXpS6D2Fb9DhoRKBtVvUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779733818; c=relaxed/simple;
-	bh=yJhWf3vHtSLuTznAIzQUaM100G6X4XJa7tHy+0FxUwY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tgRetFnI1Vtu0Wuz9TMFhGbVgEGC61bl3jbUbsnzj1sqbl7CPzr0iKnr751Ry3dDI72/kKXfhMF7nuQr8VdVswDFkpRIaM9ghMW/k5R/Qkk/uM6PG9ZRqpPpeQfz6ID0Fuxs/qNhQh03lKooLADXS9KHAYT41f8HpLZTVPz59MY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1779735549; c=relaxed/simple;
+	bh=KlCweyRzsHZfvYV85nhTDd3KTKV9JsTCXZtxpxJK4AU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cr4RG4YUiiVg5h9ukhAXuQ5FvhyXY0k6N1t7BpauF3Il1KrpKvKyzXgNGm2H/v69nnxRUpq1PrZab2KFeNnEXCDTn5qJXcG1v6pmvh2zxTZ8Wzr79L80EqJkfje7mxdFMvYZceTiL56FrTiaDMb4NRRsYDlOXI7Ne9+0ciiayKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7D23F602AB; Mon, 25 May 2026 20:30:15 +0200 (CEST)
+	id E253D609E3; Mon, 25 May 2026 20:59:05 +0200 (CEST)
+Date: Mon, 25 May 2026 20:59:05 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net-next 11/11] netfilter: nf_conntrack_ftp: avoid u16 overflows
-Date: Mon, 25 May 2026 20:29:24 +0200
-Message-ID: <20260525182924.28456-12-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260525182924.28456-1-fw@strlen.de>
-References: <20260525182924.28456-1-fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	pablo@netfilter.org, phil@nwl.cc
+Subject: Re: [PATCH 4/4 nf v2] netfilter: synproxy: fix possible write to
+ stale pointer
+Message-ID: <ahSb-UU8n9o1aHoI@strlen.de>
+References: <20260525124450.6043-1-fmancera@suse.de>
+ <20260525124450.6043-5-fmancera@suse.de>
+ <df64cebb-1279-4e66-afa7-3d8ffca4928f@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <df64cebb-1279-4e66-afa7-3d8ffca4928f@suse.de>
 
-From: Giuseppe Caruso <giuseppecaruso0990@gmail.com>
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> On 5/25/26 2:44 PM, Fernando Fernandez Mancera wrote:
+> > skb_ensure_writable() is called to guarantee that the TCP options area
+> > can be safely modified when adjusting the timestamp. As it expands or
+> > linearize the skb head it might reallocate the data buffer.
+> > 
+> > This makes the th pointer passed by the caller stale. The following
+> > writes to the TCP header might be done to a stale pointer.
+> > 
+> > Recalculating the th pointer after skb_ensure_writable() prevents this
+> > issue from happening.
+> > 
+> > Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
+> > Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> 
+> LOL. I just realized I already reviewed this at:
+> 
+> https://lore.kernel.org/netfilter-devel/20260522104257.2008-3-fw@strlen.de/T/#u
+> 
+> *facepalm* sorry for the noise, Florian could you ignore this patch but 
+> consider the other 3 fixes?
 
-get_port and try_number() parse comma-separated decimal values from FTP PORT
-and EPRT commands into a u_int32_t array, but does not validate that each
-value fits in a single octet. RFC 959 specifies that PORT parameters
-are decimal integers in the range 0-255, representing the four octets
-of an IP address followed by two octets encoding the port number.
+I know its tiresome, but would you mind sending a new version that also
+fixes up the other things pointed out by sashiko?
 
-Values exceeding 255 are silently accepted. In try_rfc959(), the raw
-u32 values are combined via shift-and-OR to form the IP and port:
+https://sashiko.dev/#/patchset/20260525124450.6043-1-fmancera%40suse.de
 
-  cmd->u3.ip = htonl((array[0] << 24) | (array[1] << 16) |
-                     (array[2] << 8) | array[3]);
-  cmd->u.tcp.port = htons((array[4] << 8) | array[5]);
-
-When array elements exceed 255, bits from one field bleed into adjacent
-fields after shifting, producing IP addresses and port numbers that
-differ from what the text representation suggests. For example,
-"PORT 10,0,1,2,256,22" yields port (256<<8)|22 = 65558, truncated to
-u16 = 22. This mismatch between the textual and computed values can
-confuse network monitoring tools that parse FTP commands independently.
-
-Ignore the command by returning 0 (no match) when any accumulated
-value exceeds 255 so that no expectation is created.
-
-Signed-off-by: Giuseppe Caruso <giuseppecaruso0990@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_ftp.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index de83bf9e6c61..dc6f0017ca6b 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -120,6 +120,8 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
- 	for (i = 0, len = 0; len < dlen && i < array_size; len++, data++) {
- 		if (*data >= '0' && *data <= '9') {
- 			array[i] = array[i]*10 + *data - '0';
-+			if (array[i] > 255)
-+				return 0;
- 		}
- 		else if (*data == sep)
- 			i++;
-@@ -189,7 +191,7 @@ static int try_rfc1123(const char *data, size_t dlen,
- static int get_port(const char *data, int start, size_t dlen, char delim,
- 		    __be16 *port)
- {
--	u_int16_t tmp_port = 0;
-+	u32 tmp_port = 0;
- 	int i;
- 
- 	for (i = start; i < dlen; i++) {
-@@ -200,10 +202,11 @@ static int get_port(const char *data, int start, size_t dlen, char delim,
- 			*port = htons(tmp_port);
- 			pr_debug("get_port: return %d\n", tmp_port);
- 			return i + 1;
--		}
--		else if (data[i] >= '0' && data[i] <= '9')
-+		} else if (data[i] >= '0' && data[i] <= '9') {
- 			tmp_port = tmp_port*10 + data[i] - '0';
--		else { /* Some other crap */
-+			if (tmp_port > 65535)
-+				break;
-+		} else { /* Some other crap */
- 			pr_debug("get_port: invalid char.\n");
- 			break;
- 		}
--- 
-2.53.0
+In particular, seqadj and concurrent registration.  As these bugs aren't
+as severe as patch 4, I think nf-next would be fine as well.
 
