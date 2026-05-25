@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B5B636074D;
-	Mon, 25 May 2026 18:29:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1545C33B6F6;
+	Mon, 25 May 2026 18:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779733775; cv=none; b=XOssDQZIdatmpNFM+TY+mYNA2wW51X9eBselaQy0DlMmdnWUR9FbK2stBipTuDswao2+EnoRYLlDQ3Q99STlvlsOWt9Y4Fnje9P4WgRnU/a+2ZB67yMHRmUeyOXrxivBBTOetjc876iozR7XRVqMbnjYWzb/DthUEkamB3y9JQQ=
+	t=1779733780; cv=none; b=R+7jiDDcJbQm1IJwCznjdUY3NJootk/03vss8rp1uKj08S1T6Ek5mLL6ejcUyGyobcyc6wi/chShvwmO/XjxsMW6zu/AKZTr7k4NhxyjYSu8MWuih9WWhP9rwsNqjl8WYUEL3lAD0zJc1RS7vJfBQm+cGKxzp5bScqFoFLDlXFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779733775; c=relaxed/simple;
-	bh=7uMURCew3Jk+SiEzw4qGvlTxeNHwvso4BA/1ZGF9wx4=;
+	s=arc-20240116; t=1779733780; c=relaxed/simple;
+	bh=HDor1mS4Hc0DhHVys6O1Bvsy4FF0FjM2jS9TreMI74E=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KsVqTQRa3wLMVo/iMpvz0fQ7Vf59pumFzUYZfAPXWVsPq7uIi2nnc6ReLevmqbzDwUiaDHmaQg6Hy9Ez+0kJplTRRszZA+5MTsuIO8MFsJP7Q2a8w6p1cbB6hciuKLY+CO+DnVaO+SDz0eQsXC+kM6MdV2gibiL3le4u1feBzYY=
+	 MIME-Version; b=s/4TNQVv3gAlsGxoPKVkARHOrD+GuVIl+oWr36X9aXmvJ5HuJquGQ3LPI3DBPfDcVRh0roZz6r8KLHK4qGk8BGtwq9O3fC9eTA12c9DB07G0O8uQ6yNSH6/lGIwt4sNQvFAnXEFUTU+fbakcR+GeoHjL9stUmlCQUaXtqp8lb64=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B09896068A; Mon, 25 May 2026 20:29:32 +0200 (CEST)
+	id F26F16070B; Mon, 25 May 2026 20:29:36 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 01/11] netfilter: x_tables: disable 32bit compat interface in user namespaces
-Date: Mon, 25 May 2026 20:29:14 +0200
-Message-ID: <20260525182924.28456-2-fw@strlen.de>
+Subject: [PATCH net-next 02/11] netfilter: add option for GCOV profiling
+Date: Mon, 25 May 2026 20:29:15 +0200
+Message-ID: <20260525182924.28456-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260525182924.28456-1-fw@strlen.de>
 References: <20260525182924.28456-1-fw@strlen.de>
@@ -38,142 +38,192 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This feature is required to use 32bit arp/ip/ip6/ebtables binaries on
-64bit kernels.  I don't think there are many users left.
+Similar to a few other subsystems: add a new config toggle to
+enable netfilter gcov profiling in netfilter, including ebtables,
+arptables and so on.
 
-Support has been a compile-time option since 2021 and defaults to off
-since 2023.
+ipset and ipvs gain their own, dedicated toggles.
 
-The XTABLES_COMPAT config option is already off in many distributions
-including Debian and Fedora.
-
-Give a few more months before complete removal but disable support in
-user namespaces already.
-
-Assisted-by: Claude:claude-sonnet-4-6
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/x_tables.h | 17 +++++++++++++++++
- net/bridge/netfilter/ebtables.c    |  4 ++++
- net/ipv4/netfilter/arp_tables.c    |  4 ++++
- net/ipv4/netfilter/ip_tables.c     |  4 ++++
- net/ipv6/netfilter/ip6_tables.c    |  4 ++++
- 5 files changed, 33 insertions(+)
+ net/bridge/Makefile           | 6 ++++++
+ net/bridge/netfilter/Makefile | 4 ++++
+ net/ipv4/Makefile             | 4 ++++
+ net/ipv4/netfilter/Makefile   | 4 ++++
+ net/ipv6/Makefile             | 4 ++++
+ net/ipv6/netfilter/Makefile   | 4 ++++
+ net/netfilter/Kconfig         | 8 ++++++++
+ net/netfilter/Makefile        | 4 ++++
+ net/netfilter/ipset/Kconfig   | 9 +++++++++
+ net/netfilter/ipset/Makefile  | 3 +++
+ net/netfilter/ipvs/Kconfig    | 9 +++++++++
+ net/netfilter/ipvs/Makefile   | 3 +++
+ 12 files changed, 62 insertions(+)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 5a1c5c336fa4..20d70dddbe50 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -534,4 +534,21 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
- 				  unsigned int next_offset);
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index 24bd1c0a9a5a..1203dc19e15c 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -29,3 +29,9 @@ obj-$(CONFIG_NETFILTER) += netfilter/
+ bridge-$(CONFIG_BRIDGE_MRP)	+= br_mrp_switchdev.o br_mrp.o br_mrp_netlink.o
  
- #endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+ bridge-$(CONFIG_BRIDGE_CFM)	+= br_cfm.o br_cfm_netlink.o
 +
-+static inline bool xt_compat_check(void)
-+{
-+#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-+	if (!in_compat_syscall())
-+		return true;
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_br_nf_core.o := y
++GCOV_PROFILE_br_netfilter_hooks.o := y
++GCOV_PROFILE_br_netfilter_ipv6.o := y
++endif
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index b9a1303da977..af0c903aa4ac 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -38,3 +38,7 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+ obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
 +
-+	pr_warn_once("%s %s\n",
-+		     "xtables 32bit compat interface no longer supported",
-+		     "in namespaces and will be removed soon.");
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv4/Makefile b/net/ipv4/Makefile
+index 7964234f0d08..06e21c26b76f 100644
+--- a/net/ipv4/Makefile
++++ b/net/ipv4/Makefile
+@@ -71,3 +71,7 @@ obj-$(CONFIG_TCP_AO) += tcp_ao.o
+ ifeq ($(CONFIG_BPF_JIT),y)
+ obj-$(CONFIG_BPF_SYSCALL) += bpf_tcp_ca.o
+ endif
 +
-+	if (!capable(CAP_NET_ADMIN))
-+		return false;
-+#endif
-+	return true;
-+}
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_netfilter.o := y
++endif
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 85502d4dfbb4..dbfb1c4739a8 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -51,3 +51,7 @@ obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
+ obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
+ 
+ obj-$(CONFIG_NF_DUP_IPV4) += nf_dup_ipv4.o
 +
- #endif /* _X_TABLES_H */
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index b9f4daac09af..8d8f1a7c9ad5 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2455,6 +2455,8 @@ static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/ipv6/Makefile b/net/ipv6/Makefile
+index 2c9ce2ccbde1..5b0cd6488021 100644
+--- a/net/ipv6/Makefile
++++ b/net/ipv6/Makefile
+@@ -54,3 +54,7 @@ obj-$(CONFIG_NET_UDP_TUNNEL) += ip6_udp_tunnel.o
+ obj-y += mcast_snoop.o
+ obj-$(CONFIG_TCP_AO) += tcp_ao.o
+ endif
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE_netfilter.o := y
++endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 66ce6fa5b2f5..72902d8005ad 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -43,3 +43,7 @@ obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
+ obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
+ obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+ obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 682c675125fc..f71ff98eb5d0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1648,6 +1648,14 @@ config NETFILTER_XT_MATCH_U32
  
- 	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
+ endif # NETFILTER_XTABLES
  
- #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
- 	/* try real handler in case userland supplied needed padding */
-@@ -2520,6 +2522,8 @@ static int do_ebt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
++config GCOV_PROFILE_NETFILTER
++	bool "Enable GCOV profiling for netfilter"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for netfilter to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
+ endmenu
  
- 	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
+ source "net/netfilter/ipset/Kconfig"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6bfc250e474f..f0751ca302c6 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -240,3 +240,7 @@ obj-$(CONFIG_IP_VS) += ipvs/
  
- 	switch (cmd) {
- 	case EBT_SO_SET_ENTRIES:
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index ad2259678c78..341ae049e5a2 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1430,6 +1430,8 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ # lwtunnel
+ obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
++
++ifdef CONFIG_GCOV_PROFILE_NETFILTER
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
+index b1ea054bb82c..6c4d54758106 100644
+--- a/net/netfilter/ipset/Kconfig
++++ b/net/netfilter/ipset/Kconfig
+@@ -175,4 +175,13 @@ config IP_SET_LIST_SET
  
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	switch (cmd) {
- 	case ARPT_SO_SET_REPLACE:
-@@ -1458,6 +1460,8 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
++config GCOV_PROFILE_IPSET
++	bool "Enable GCOV profiling for ipset"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for ipset to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
++
+ endif # IP_SET
+diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
+index a445a6bf4f11..4f48df5406cd 100644
+--- a/net/netfilter/ipset/Makefile
++++ b/net/netfilter/ipset/Makefile
+@@ -29,3 +29,6 @@ obj-$(CONFIG_IP_SET_HASH_NETPORTNET) += ip_set_hash_netportnet.o
  
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
+ # list types
+ obj-$(CONFIG_IP_SET_LIST_SET) += ip_set_list_set.o
++ifdef CONFIG_GCOV_PROFILE_IPSET
++GCOV_PROFILE := y
++endif
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index c203252e856d..7724cb44e6de 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -349,4 +349,13 @@ config	IP_VS_PE_SIP
+ 	help
+ 	  Allow persistence based on the SIP Call-ID
  
- 	switch (cmd) {
- 	case ARPT_SO_GET_INFO:
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 5cbdb0815857..f917a9004a01 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1624,6 +1624,8 @@ do_ipt_set_ctl(struct sock *sk, int cmd, sockptr_t arg, unsigned int len)
++config GCOV_PROFILE_IPVS
++	bool "Enable GCOV profiling for IPVS"
++	depends on GCOV_KERNEL
++	help
++	  Enable GCOV profiling for IPVS to check which functions/lines
++	  are executed.
++
++	  If unsure, say N.
++
+ endif # IP_VS
+diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
+index bb5d8125c82a..8e4cc67ad39d 100644
+--- a/net/netfilter/ipvs/Makefile
++++ b/net/netfilter/ipvs/Makefile
+@@ -43,3 +43,6 @@ obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
  
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
- 
- 	switch (cmd) {
- 	case IPT_SO_SET_REPLACE:
-@@ -1653,6 +1655,8 @@ do_ipt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
- 
- 	switch (cmd) {
- 	case IPT_SO_GET_INFO:
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 9d9c3763f2f5..ecf79d05a51b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1633,6 +1633,8 @@ do_ip6t_set_ctl(struct sock *sk, int cmd, sockptr_t arg, unsigned int len)
- 
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
- 
- 	switch (cmd) {
- 	case IP6T_SO_SET_REPLACE:
-@@ -1662,6 +1664,8 @@ do_ip6t_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
-+	if (!xt_compat_check())
-+		return -EPERM;
- 
- 	switch (cmd) {
- 	case IP6T_SO_GET_INFO:
+ # IPVS connection template retrievers
+ obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
++ifdef CONFIG_GCOV_PROFILE_IPVS
++GCOV_PROFILE := y
++endif
 -- 
 2.53.0
 
