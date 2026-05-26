@@ -1,145 +1,85 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F923384244
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 06:02:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0EE92C0282;
+	Tue, 26 May 2026 07:51:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779775326; cv=none; b=as/phhhLK3o4uWbugdbbkkBdzRXY+77KT9i/oPpCcfKWbF5LYRQqrssbPtYiOBbErys71fTdbrfbSj6uFK2mhpc7yLxjmZJXNUzeqhId+86nXFY1xhosScUc1SWpzHAk2tLj69OtAbWasRcq03SlSNTfhpKDn58/4P2+JVGgWBQ=
+	t=1779781910; cv=none; b=Q681eSo9ciHUXlER3hT5GEkH4lObiHR0gzQntDgtCc7e7/VVqvnr6p55vJ5vSg4jxVYf2YHJlJMLQ6BtGmlZiemDHE60Lc/eQ+LKI5eUKKzqRLXf0jK4NnU6Im1ZU/6qYfsmpmG4V7Y05hR66ExvdsVs/+pCsynBbWmvt0ZrDb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779775326; c=relaxed/simple;
-	bh=ChxFUaH9zjpYx8BRjD9dZ1vHU8YYLfBsQ0g0/WFsa04=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aB7qmzRQAFMmnbczk017o9bJ4qVfdbSlpzspEwF20/olXvvKScO11/TPfT17htAZCW9rX9giaF9ut4k+gBiKsmPBgauNYjmXT1fPtOI8pB/lNzMAdzA+RERnFUnEvO6RfQT/7Sp+5neM5dM76FWpXi56EU/M0uhqd+NxMJUxLMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q6IuZOdC; arc=none smtp.client-ip=209.85.128.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779781910; c=relaxed/simple;
+	bh=N8+AfC6fmd8Up6lIsp7vxRJqz7S9+IYEWKO/r65Wpw0=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=uiidwDQ9adZNap/zlesNn1YwtuaAx12r2ZyEV8GqRfAdgEKeu81Q4R2k471zE7narTT79wa1rPokmO6OWScWdiT/jtg6GTOMen8DQHR+nOCK2tz0Upzn8m44VUy79LxSrmMGsGL3pp6hKQoRPVR7GZWmKEkm01Fojl/asXAwAbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Hg6osnWx; arc=none smtp.client-ip=148.6.0.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q6IuZOdC"
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-48e8132c6d0so63743535e9.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2026 23:02:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779775323; x=1780380123; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=I15Qye72rXnWF52br0qRQsOfcY4+owD8kwcdhmYsCXA=;
-        b=Q6IuZOdCTtzoZaDj/nzDRpZatytcBKlnePx4JQLKE82LcAmYjUMNJYGJYxw3RmWQkz
-         /awJktpuJ+ZhScg8WdbZ981evwEsmTR3oQTzg4E9yjjou6iAt7thD1u1Alh5mxDlKUQH
-         BwwSMFXDDHpYkTVf+iNe+y/WM1C1V6pweNWYzDf+Ix3fE+IA8SQ8WHkRPNCAwwQGrZVi
-         8fpKs8xI5GoGrgGMBk1A5u89cbK95zR7XykcT0qJbTFHAUPXkexux6zAlyvGZuLMBiDk
-         ySln2gzsFWHdIBDUXFfBRcy3ocBQaQSyoHdIDjzt3PDcPnuibYX2ebWvNPGJzSYWYkNh
-         z9BQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779775323; x=1780380123;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=I15Qye72rXnWF52br0qRQsOfcY4+owD8kwcdhmYsCXA=;
-        b=bClIbtUqwPl/VLKGNOmKa73OQa09OeLSyOS6MU5tK2cSNjE07s7RQjIMJzbZG/IE+z
-         R33ZBiGv/jDkCv260vHlfSjtknaiyGp/8BUDP7lxmXTyDxdIjVrA9TWZTGf6lwg7WD9Z
-         DQt+QemAAL3QpEDgfGgz9ETQBgs14NO1ERrrAHRC/03uARiMY90TV40w6zkM7BXUAR32
-         kWmrr8BPPHmeujnvOoMIljLnOdfjrNXpIEe0f5wt3eCalXmY5vVPazDvlXIMga0MXc6M
-         TjswkKJdQ2zwDupkBj3wC9GzrRvCRp4jxjUAVr0+yxdmD9mCid8/VYC/7RdMB/IxvZ2O
-         Eu+g==
-X-Forwarded-Encrypted: i=1; AFNElJ8BnSC+PaittXw1V1J62ZZamPMd2SNU55qIM6j6Zw2DSi7HpRu724iS9yxzhPDYp1hZ5kY62+zcSrtncZBG2ZM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzBEEVFSzrP1BlMcadQH3IfwCnLARYkrVC9z2gcmc7SdlTGylrt
-	mvTS9ESJ/0Iox7lHX5sT33mG/PdZAQ1WnQCI/u332MvuwobnU/OPOw0Y
-X-Gm-Gg: Acq92OGrVv62eFp0aA832yN4ccLA0o7uwnHzBIjndQQAjYESsg361EXI7ytq0eLi2iJ
-	YI35uWU/2ZQk5A8uR2IdYuqUXJA/J6Z3DhB3YWlkRqpS6WfQB4Kzf+j19+0UoU14j1e9mwwra6q
-	j4V/CiH2ezNFq6OzaKjmT+1m/SGDJv2izPsSW2pLea9E+ejTjCf1Ve/j5sLB9m0oCDqrvetjcJh
-	Z77UGvQHq4DpTrf69iqh/gJJi/Na9Ru58Vnls4grv60IetA+2E5zxe8svxf8SeqaczvGjLYBy5u
-	XOjrlUMten0Igm4xaiR8k+i/WCXoSG/bhAg1CSy+NK9prw6QpVQEHa4B0MY5FP2i3CggBaLRv0S
-	aNET8TB5y2cdWNXsAM4n1l84n4fSubotw2ZIrRQt5mBIEHDTaTf9a+BghwxMWJ7oZ87p+xa3ieS
-	4wjMDGADn4GMBbrL7XU4aMDsxa1hxEYs+7mno8a/c/5tqMv5fGmUkEGHzYR8lrQZyEqlut+ldDZ
-	uS82Fc=
-X-Received: by 2002:a05:600d:6447:10b0:48f:d5b8:5b07 with SMTP id 5b1f17b1804b1-490426c5b1emr200251675e9.20.1779775322583;
-        Mon, 25 May 2026 23:02:02 -0700 (PDT)
-Received: from localhost.localdomain ([188.27.64.216])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-490454b7d57sm295929035e9.15.2026.05.25.23.01.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 May 2026 23:02:01 -0700 (PDT)
-From: Adrian Bente <adibente@gmail.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	netfilter-devel@vger.kernel.org
-Cc: phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	nbd@nbd.name,
-	sean.wang@mediatek.com,
-	lorenzo@kernel.org,
-	andrew+netdev@lunn.ch,
-	matthias.bgg@gmail.com,
-	angelogioacchino.delregno@collabora.com,
-	daniel@makrotopia.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	Adrian Bente <adibente@gmail.com>
-Subject: [RFC PATCH net] netfilter: flowtable: fix offloaded ct timeout never being extended
-Date: Tue, 26 May 2026 09:01:38 +0300
-Message-ID: <20260526060138.3924-1-adibente@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Hg6osnWx"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4gPlLz2zB3z7s85G;
+	Tue, 26 May 2026 09:51:39 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1779781897; x=1781596298; bh=cG8F7H3o7F
+	Xzzc8m8fPOPB5omyJ+Ncr5BOer8ss8ZEg=; b=Hg6osnWx6h4D0OcSg+8iG3yeeH
+	9EjOfB2D5sQsC4wk0ZjTJMEK6uioclMAUXva5bK/Jyj6DFxCyHqKxtRQ2AcTVoim
+	abqj+Qlr5L0S9gWkuPCbq27jm2m0KatJ2a/lhit+VQpTywTqTtLiTN9jE0FUtFxW
+	iRVjRV3c+W6acJHrM=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id 15ycL2Z75VFJ; Tue, 26 May 2026 09:51:37 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4gPlLx05nMz7s85F;
+	Tue, 26 May 2026 09:51:36 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id E92EE34316A; Tue, 26 May 2026 09:51:36 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id E8659340D75;
+	Tue, 26 May 2026 09:51:36 +0200 (CEST)
+Date: Tue, 26 May 2026 09:51:36 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: imnozi@gmail.com
+cc: Kerin Millar <kfm@plushkava.net>, netfilter-devel@vger.kernel.org, 
+    netfilter@vger.kernel.org
+Subject: Re: ipset not completely working in mangle:PREROUTING
+In-Reply-To: <20260525235754.4943a2b6@playground>
+Message-ID: <1c466022-e165-fda9-f356-8fdd4d474e15@blackhole.kfki.hu>
+References: <20260525205736.1c76666f@playground> <a276ecef-e609-4d55-bc71-ddb9c9ff2f3c@app.fastmail.com> <20260525235754.4943a2b6@playground>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-OpenWrt has recently migrated many platforms to kernel 6.18. On the
-MediaTek platform, which supports hardware network offloading, WiFi
-connections accelerated via the WED path were observed to drop after
-roughly 300 seconds.
+Hi,
 
-After several debugging sessions, assisted by the Claude LLM, the
-problem was narrowed down as follows:
+On Mon, 25 May 2026, imnozi@gmail.com wrote:
 
-nf_flow_table_extend_ct_timeout() extends ct->timeout for offloaded
-flows using:
+> On Tue, 26 May 2026 02:57:38 +0100
+> "Kerin Millar" <kfm@plushkava.net> wrote:
+>
+>> On Tue, 26 May 2026, at 1:57 AM, imnozi@gmail.com wrote:
+>>> iptables v1.8.7 (legacy)
+>>> ipset v6.34, protocol version: 6
 
-	cmpxchg(&ct->timeout, expires, new_timeout);
+That's pretty old. Still it has no effect on the subject.
 
-'expires' comes from nf_ct_expires(ct) and is a relative value, while
-ct->timeout holds an absolute timestamp. The two are never equal, so
-the cmpxchg always fails and the timeout is never extended.
+> OK. So ipset *should* work in mangle:PREROUTING.
 
-This goes unnoticed for most flows, but a long-lived hardware (WED)
-offloaded flow on MediaTek MT7986 eventually has ct->timeout decay to
-zero, the conntrack entry is reaped and the connection breaks.
+Yes, but please note: if some data it should match on is missing at that 
+stage/chain (like incoming-outgoing interface), then it "won't work".
 
-Compare against the current ct->timeout value instead.
+> Can the same chain name be used simultaneously in multiple tables 
+> (though if not, the pre-defined chains shouldn't work)?
 
-This patch is sent as RFC: the diagnosis is verified on hardware and
-the fix resolves the drop, but review of the chosen approach is
-welcome.
+No, all tables are independent of each other, including the predefined 
+chains.
 
-Fixes: 03428ca5cee9 ("netfilter: conntrack: rework offload nf_conn timeout extension logic")
-Signed-off-by: Adrian Bente <adibente@gmail.com>
----
- net/netfilter/nf_flow_table_core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Best regards,
+Jozsef
 
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -541,8 +541,10 @@
- 		 * after this -- is fine, datapath is authoritative.
- 		 */
- 		if (new_timeout) {
-+			u32 old = READ_ONCE(ct->timeout);
-+
- 			new_timeout += nfct_time_stamp;
--			cmpxchg(&ct->timeout, expires, new_timeout);
-+			cmpxchg(&ct->timeout, old, new_timeout);
- 		}
- 	}
- 
-
--- 
-2.46.0
