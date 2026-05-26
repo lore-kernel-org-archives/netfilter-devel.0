@@ -1,40 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9419A3D4123
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 16:41:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA313C9EE5
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 16:41:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779813662; cv=none; b=Zwu/4mtlxiotTUUZyfvalPd8UfdEW+eWSUWIHcvbI4WWfrR0jQVVvKz96wTOHS2NaUUEjL3yTLARzYomRBV0B9GL8Rh9Tl5NDp01yDcU+W6Jo1XCKttgApO0FD2vuO6t5TqnCdJYJ6eG5lLi0oA6dB/61256JRj3ENjOHVd4GGc=
+	t=1779813665; cv=none; b=O+B15cmAMvbgXWMOKu47rhJ7FBPSalVNYwBu0yCLD+EKc4oDWNFJ+tR05BzQbeY3uwNKM8ABPvVoKRqnpCvOpcB/Fls/WEL1bQt8c9lexuNUpB9U59PIXbv9GeAAxTitFOZGN/8UJ/nE49w3O8MIJSa7BFW7vyLzIV/5znZtxAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779813662; c=relaxed/simple;
-	bh=zPlrSJILIEJb/IZw2oJRXz7pipV9Zuomhde5JE8kAVE=;
+	s=arc-20240116; t=1779813665; c=relaxed/simple;
+	bh=p/or4IM87gSkeClUdLsHNz2C68NhTw3I6eBt+F5nvY4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KvxgRol9p223qjJk65hwpu0whv55AkW5UQLooKKpgl1I273RkBvJaCULz9juetweOlhf+2PiQ8C4bLqh2/TSEVKn9+H1NlPBxoxYAtNemjmIgyml3ItjUy3TSB/N725njhKFDiOBwkzGUSaQoz9gQxY8YQOsSZWa3lfbpv7qfWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SPM+tLf0; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=A/sS8aj6A4x0B4qfiVEt8m2nlIixIJv/AZFlBegBMJjyyUbahF5yyG3r3ncsfMPPBV+iOQD9hwNVGiuFwMtwstYLdBaIeR+Pjn4jLHnRc6HcaaDpApt5iTUxkXW3p5STqMc2t2akW37qE6eO5tgThVa4SxhmhomMuFEiJ8P1psY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WGgn6OGQ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SPM+tLf0"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WGgn6OGQ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7F2E6604F0;
-	Tue, 26 May 2026 18:40:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A9D246055B;
+	Tue, 26 May 2026 18:40:59 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1779813658;
-	bh=H+oyL/MBP03HtRYgAbhJTv/RQJXh8MoSdvgY637F7ng=;
+	s=2025; t=1779813659;
+	bh=IjH887sON3svwNsTTcnGTeXHkINY/z8yvM/IAQzUeu8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=SPM+tLf0k3VsPYf4S3osbZDOEN/SJ4IliMSk9e/pABr7g/K+szTKZ75MnhNnJLMtE
-	 M126V/WjiYebGFZe6iIjV6KUGpxGeML6SAjWq5Vi5LNv4pFTPdMgaj1CSag/nnKZFZ
-	 FTVdDh02+WrE4Kq+2l4vvIKfI6ivGsLMpLews3e8Qp5//G/TyXevDZiq+pdEaqnaF1
-	 W6wlagn3ffqQVHoY7YV8ZTfCFCazX3oCw8lOGH45htdka4HuEXZYDp5VzhJHcbveTF
-	 61KJBw+ZAaYZnftFjOEvGwjcEc+BZVT2fEzcI4e1QKNm8cFo276l3nAfN09zDPRRC9
-	 nqyi6LPUxYLpQ==
+	b=WGgn6OGQaTG91gGT078TbFR1ekxzCPU6wM7TT2PrkellPxdYHHg7mPKwsQk4Ix5hi
+	 nxy/th43sBQ/nBtTt0pOsGSJ3tPeleUuLgsffu8mora+kVzCyeIlK+xCI9z0F0S3jK
+	 PzFkBB6T4EF8ImckRbDE18qhlHlXQ1EkWPz3xzqWA+nU7PsbuzEQcgVbAgO/AFFYx3
+	 9qtWqrli+oLJWifeWgSsuJNIBNf3S6XwtKSGgq0UVhncRnH2w0tpJLDrsjd53FgwlT
+	 95VSFD86c+iU9zpQ1QrYy6Hvc2hhKliGwCnTtSUt1jaoFjF/Rpjrg6qiIveeHjRIr1
+	 R78xkkuVBK++A==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nf-next 5/6] netfilter: nf_conntrack_helper: add refcounting from datapath
-Date: Tue, 26 May 2026 18:40:48 +0200
-Message-ID: <20260526164049.148218-6-pablo@netfilter.org>
+Subject: [PATCH nf-next 6/6] netfilter: conntrack: revert ct extension genid infrastructure
+Date: Tue, 26 May 2026 18:40:49 +0200
+Message-ID: <20260526164049.148218-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260526164049.148218-1-pablo@netfilter.org>
 References: <20260526164049.148218-1-pablo@netfilter.org>
@@ -46,329 +46,348 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There is already a refcount for control plane, to ensure the helper
-does not go away if it is used by rulesets.
+This infrastructure is not used anymore after moving ct timeout and
+helper to use datapath refcount to track object use.
 
-This patch adds a new ->ct_refcnt field to struct nf_conntrack_helper
-which is bumped when the helper is used by the ct helper extension. Drop
-this reference count when the conntrack entry is released. This is a
-packet path refcount which ensures that struct nf_conntrack_helper
-remains in place for tricky scenarios where a packet sits in nfqueue, or
-elsewhere, with a conntrack that refers to this helper.
+Revert commit c56716c69ce1 ("netfilter: extensions: introduce extension
+genid count") this patch disables all ct extensions (leading to NULL)
+for unconfirmed conntracks, when this is only targeted at ct helper and
+ct timeout. There is also codebase that dereferences the ct extension
+without checking for NULL which could lead to crash.
 
-On helper removal, the help callback is set to NULL to disable it from
-packet path and, after rcu grace period, existing expectations are
-removed. Update ctnetlink to disable access to .to_nlattr and
-.from_nlattr if the helper is going away.
-
-Remove nf_queue_nf_hook_drop() since it has proven not to be effective
-because packets with unconfirmed conntracks which are still flying to
-sit in nfqueue.
+This also reverts commit 2843fb69980b ("netfilter: conntrack: add
+nf_ct_iterate_destroy") since the sledgehammer approach does not work
+with unconfirmed conntrack that are flying to sit in nfqueue, or
+elsewhere, then allowing potential UaF on reinjection.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_helper.h | 25 +++++++++++++++---
- net/netfilter/nf_conntrack_core.c           |  3 ++-
- net/netfilter/nf_conntrack_helper.c         | 28 ++++++---------------
- net/netfilter/nf_conntrack_netlink.c        | 12 ++++++---
- net/netfilter/nf_conntrack_ovs.c            | 14 ++++++++++-
- net/netfilter/nf_conntrack_proto.c          | 15 +++++++----
- net/netfilter/nft_ct.c                      |  2 +-
- net/netfilter/xt_CT.c                       |  7 +++---
- 8 files changed, 66 insertions(+), 40 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |   4 -
+ include/net/netfilter/nf_conntrack_extend.h |  12 ---
+ net/netfilter/nf_conntrack_core.c           | 112 --------------------
+ net/netfilter/nf_conntrack_extend.c         |  32 +-----
+ net/netfilter/nf_nat_core.c                 |  15 +--
+ net/netfilter/nfnetlink_cttimeout.c         |   1 +
+ 6 files changed, 4 insertions(+), 172 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 1956bc12bf56..a03cb4e59ea9 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -35,20 +35,23 @@ enum nf_ct_helper_flags {
- struct nf_conntrack_helper {
- 	struct hlist_node hnode;	/* Internal use. */
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index f75af8eb1cae..91c23bf42911 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -244,10 +244,6 @@ void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
+ void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
+ 			       const struct nf_ct_iter_data *iter_data);
  
-+	struct rcu_head rcu;
-+
- 	char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
- 	refcount_t refcnt;
- 	struct module *me;		/* pointer to self */
- 	struct nf_conntrack_expect_policy expect_policy[NF_CT_MAX_EXPECT_CLASSES];
+-/* also set unconfirmed conntracks as dying. Only use in module exit path. */
+-void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
+-			   void *data);
+-
+ struct nf_conntrack_zone;
  
-+	refcount_t ct_refcnt;
-+
- 	/* Tuple of things we will help (compared against server response) */
- 	struct nf_conntrack_tuple tuple;
+ void nf_conntrack_free(struct nf_conn *ct);
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 0b247248b032..fd5c4dbf72ca 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -38,7 +38,6 @@ enum nf_ct_ext_id {
+ struct nf_ct_ext {
+ 	u8 offset[NF_CT_EXT_NUM];
+ 	u8 len;
+-	unsigned int gen_id;
+ 	char data[] __aligned(8);
+ };
  
- 	/* Function to call when data passes; return verdict, or -1 to
-            invalidate. */
--	int (*help)(struct sk_buff *skb,
--		    unsigned int protoff,
--		    struct nf_conn *ct,
--		    enum ip_conntrack_info conntrackinfo);
-+	int __rcu (*help)(struct sk_buff *skb, unsigned int protoff,
-+			  struct nf_conn *ct,
-+			  enum ip_conntrack_info conntrackinfo);
- 
- 	void (*destroy)(struct nf_conn *ct);
- 
-@@ -138,6 +141,20 @@ static inline void *nfct_help_data(const struct nf_conn *ct)
- 	return (void *)help->data;
+@@ -52,8 +51,6 @@ static inline bool nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
+ 	return (ct->ext && __nf_ct_ext_exist(ct->ext, id));
  }
  
-+static inline void nf_ct_help_put(const struct nf_conn *ct)
-+{
-+	struct nf_conntrack_helper *helper;
-+	struct nf_conn_help *help;
-+
-+	help = nfct_help(ct);
-+	if (!help)
-+		return;
-+
-+	helper = rcu_dereference(help->helper);
-+	if (helper && refcount_dec_and_test(&helper->ct_refcnt))
-+		kfree_rcu(helper, rcu);
-+}
-+
- int nf_conntrack_helper_init(void);
- void nf_conntrack_helper_fini(void);
+-void *__nf_ct_ext_find(const struct nf_ct_ext *ext, u8 id);
+-
+ static inline void *nf_ct_ext_find(const struct nf_conn *ct, u8 id)
+ {
+ 	struct nf_ct_ext *ext = ct->ext;
+@@ -61,19 +58,10 @@ static inline void *nf_ct_ext_find(const struct nf_conn *ct, u8 id)
+ 	if (!ext || !__nf_ct_ext_exist(ext, id))
+ 		return NULL;
  
+-	if (unlikely(ext->gen_id))
+-		return __nf_ct_ext_find(ext, id);
+-
+ 	return (void *)ct->ext + ct->ext->offset[id];
+ }
+ 
+ /* Add this type, returns pointer to data or NULL. */
+ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
+ 
+-/* ext genid.  if ext->id != ext_genid, extensions cannot be used
+- * anymore unless conntrack has CONFIRMED bit set.
+- */
+-extern atomic_t nf_conntrack_ext_genid;
+-void nf_ct_ext_bump_genid(void);
+-
+ #endif /* _NF_CONNTRACK_EXTEND_H */
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 63159c070c3a..493748f792de 100644
+index 493748f792de..b7ad399b79d9 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -1739,6 +1739,7 @@ void nf_conntrack_free(struct nf_conn *ct)
- 			nat_hook->remove_nat_bysrc(ct);
- 	}
- 
-+	nf_ct_help_put(ct);
- 	nf_ct_timeout_put(ct);
- 	rcu_read_unlock();
- 
-@@ -1822,7 +1823,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 			assign_helper = rcu_dereference(exp->assign_helper);
- 			if (assign_helper) {
- 				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--				if (help)
-+				if (help && refcount_inc_not_zero(&assign_helper->ct_refcnt))
- 					rcu_assign_pointer(help->helper, assign_helper);
- 			}
- 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index b5b76e3a6ba0..0fe15d749d91 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -237,20 +237,6 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+@@ -833,33 +833,6 @@ static void __nf_conntrack_hash_insert(struct nf_conn *ct,
+ 			   &nf_conntrack_hash[reply_hash]);
  }
- EXPORT_SYMBOL_GPL(__nf_ct_try_assign_helper);
  
--/* appropriate ct lock protecting must be taken by caller */
--static int unhelp(struct nf_conn *ct, void *me)
+-static bool nf_ct_ext_valid_pre(const struct nf_ct_ext *ext)
 -{
--	struct nf_conn_help *help = nfct_help(ct);
--
--	if (help && rcu_dereference_raw(help->helper) == me) {
--		nf_conntrack_event(IPCT_HELPER, ct);
--		RCU_INIT_POINTER(help->helper, NULL);
--	}
--
--	/* We are not intended to delete this conntrack. */
--	return 0;
+-	/* if ext->gen_id is not equal to nf_conntrack_ext_genid, some extensions
+-	 * may contain stale pointers to e.g. helper that has been removed.
+-	 *
+-	 * The helper can't clear this because the nf_conn object isn't in
+-	 * any hash and synchronize_rcu() isn't enough because associated skb
+-	 * might sit in a queue.
+-	 */
+-	return !ext || ext->gen_id == atomic_read(&nf_conntrack_ext_genid);
 -}
 -
- void nf_ct_helper_destroy(struct nf_conn *ct)
- {
- 	struct nf_conn_help *help = nfct_help(ct);
-@@ -388,6 +374,7 @@ int __nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 		}
- 	}
- 	refcount_set(&me->refcnt, 1);
-+	refcount_set(&me->ct_refcnt, 1);
- 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
- 	nf_ct_helper_count++;
- out:
-@@ -445,19 +432,18 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	nf_ct_helper_count--;
- 	mutex_unlock(&nf_ct_helper_mutex);
- 
-+	/* This helper is going away, disable it. */
-+	rcu_assign_pointer(me->help, NULL);
-+
- 	/* Make sure every nothing is still using the helper unless its a
- 	 * connection in the hash.
- 	 */
- 	synchronize_rcu();
- 
- 	nf_ct_expect_iterate_destroy(expect_iter_me, me);
--	nf_ct_iterate_destroy(unhelp, me);
- 
--	/* nf_ct_iterate_destroy() does an unconditional synchronize_rcu() as
--	 * last step, this ensures rcu readers of exp->helper are done.
--	 * No need for another synchronize_rcu() here.
--	 */
--	kfree(me);
-+	if (refcount_dec_and_test(&me->ct_refcnt))
-+		kfree_rcu(me, rcu);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
-@@ -479,7 +465,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 	helper->tuple.dst.protonum = protonum;
- 	helper->tuple.src.u.all = htons(spec_port);
- 
--	helper->help = help;
-+	rcu_assign_pointer(helper->help, help);
- 	helper->from_nlattr = from_nlattr;
- 	helper->me = module;
- 	snprintf(helper->nat_mod_name, sizeof(helper->nat_mod_name),
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index befa7e83ee49..4ba6ded8a29f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -240,7 +240,8 @@ static int ctnetlink_dump_helpinfo(struct sk_buff *skb,
- 	if (nla_put_string(skb, CTA_HELP_NAME, helper->name))
- 		goto nla_put_failure;
- 
--	if (helper->to_nlattr)
-+	if (rcu_access_pointer(helper->help) &&
-+	    helper->to_nlattr)
- 		helper->to_nlattr(skb, ct);
- 
- 	nla_nest_end(skb, nest_helper);
-@@ -1974,7 +1975,8 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- 	if (help) {
- 		if (rcu_access_pointer(help->helper) == helper) {
- 			/* update private helper data if allowed. */
--			if (helper->from_nlattr)
-+			if (rcu_access_pointer(helper->help) &&
-+			    helper->from_nlattr)
- 				helper->from_nlattr(helpinfo, ct);
- 			err = 0;
- 		} else
-@@ -2289,12 +2291,14 @@ ctnetlink_create_conntrack(struct net *net,
- 				goto err2;
- 			}
- 			/* set private helper data if allowed. */
--			if (helper->from_nlattr)
-+			if (rcu_access_pointer(helper->help) &&
-+			    helper->from_nlattr)
- 				helper->from_nlattr(helpinfo, ct);
- 
- 			/* disable helper auto-assignment for this entry */
- 			ct->status |= IPS_HELPER;
--			RCU_INIT_POINTER(help->helper, helper);
-+			if (refcount_inc_not_zero(&helper->ct_refcnt))
-+				RCU_INIT_POINTER(help->helper, helper);
- 		}
- 	}
- 
-diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-index a6988eeb1579..ddb2ac6fd982 100644
---- a/net/netfilter/nf_conntrack_ovs.c
-+++ b/net/netfilter/nf_conntrack_ovs.c
-@@ -12,6 +12,9 @@
- int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 		 enum ip_conntrack_info ctinfo, u16 proto)
- {
-+	int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
-+			 struct nf_conn *ct,
-+			 enum ip_conntrack_info conntrackinfo);
- 	const struct nf_conntrack_helper *helper;
- 	const struct nf_conn_help *help;
- 	unsigned int protoff;
-@@ -60,7 +63,11 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 	if (helper->tuple.dst.protonum != proto)
- 		return NF_ACCEPT;
- 
--	err = helper->help(skb, protoff, ct, ctinfo);
-+	helper_cb = rcu_dereference(helper->help);
-+	if (!helper_cb)
-+		return NF_ACCEPT;
-+
-+	err = helper_cb(skb, protoff, ct, ctinfo);
- 	if (err != NF_ACCEPT)
- 		return err;
- 
-@@ -100,6 +107,11 @@ int nf_ct_add_helper(struct nf_conn *ct, const char *name, u8 family,
- 		}
- 	}
- #endif
-+	if (!refcount_inc_not_zero(&helper->ct_refcnt)) {
-+		nf_conntrack_helper_put(helper);
-+		return -ENOENT;
-+	}
-+
- 	rcu_assign_pointer(help->helper, helper);
- 	*hp = helper;
- 	return ret;
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 50ddd3d613e1..ad96896516b6 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -129,6 +129,9 @@ unsigned int nf_confirm(void *priv,
- 			struct sk_buff *skb,
- 			const struct nf_hook_state *state)
- {
-+	int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
-+			 struct nf_conn *ct,
-+			 enum ip_conntrack_info conntrackinfo);
- 	const struct nf_conn_help *help;
- 	enum ip_conntrack_info ctinfo;
- 	unsigned int protoff;
-@@ -175,11 +178,13 @@ unsigned int nf_confirm(void *priv,
- 		/* rcu_read_lock()ed by nf_hook */
- 		helper = rcu_dereference(help->helper);
- 		if (helper) {
--			ret = helper->help(skb,
--					   protoff,
--					   ct, ctinfo);
--			if (ret != NF_ACCEPT)
--				return ret;
-+			helper_cb = rcu_dereference(helper->help);
-+			if (helper_cb) {
-+				ret = helper_cb(skb, protoff,
-+						ct, ctinfo);
-+				if (ret != NF_ACCEPT)
-+					return ret;
-+			}
- 		}
- 	}
- 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 85e3d68dfb59..61f63d3a445b 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1148,7 +1148,7 @@ static void nft_ct_helper_obj_eval(struct nft_object *obj,
- 		return;
- 
- 	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--	if (help) {
-+	if (help && refcount_inc_not_zero(&to_assign->ct_refcnt)) {
- 		rcu_assign_pointer(help->helper, to_assign);
- 		set_bit(IPS_HELPER_BIT, &ct->status);
- 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index b94f004d5f5c..3b9f4e182468 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -97,6 +97,10 @@ xt_ct_set_helper(struct nf_conn *ct, const char *helper_name,
- 		return -ENOMEM;
- 	}
- 
-+	if (!refcount_inc_not_zero(&helper->ct_refcnt)) {
-+		nf_conntrack_helper_put(helper);
-+		return -ENOENT;
-+	}
- 	rcu_assign_pointer(help->helper, helper);
- 	return 0;
- }
-@@ -284,9 +288,6 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 	struct nf_conn_help *help;
- 
- 	if (ct) {
--		if (info->helper[0])
--			nf_queue_nf_hook_drop(par->net);
+-static bool nf_ct_ext_valid_post(struct nf_ct_ext *ext)
+-{
+-	if (!ext)
+-		return true;
 -
- 		help = nfct_help(ct);
- 		xt_ct_put_helper(help);
+-	if (ext->gen_id != atomic_read(&nf_conntrack_ext_genid))
+-		return false;
+-
+-	/* inserted into conntrack table, nf_ct_iterate_cleanup()
+-	 * will find it.  Disable nf_ct_ext_find() id check.
+-	 */
+-	WRITE_ONCE(ext->gen_id, 0);
+-	return true;
+-}
+-
+ int
+ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ {
+@@ -875,9 +848,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
  
+ 	zone = nf_ct_zone(ct);
+ 
+-	if (!nf_ct_ext_valid_pre(ct->ext))
+-		return -EAGAIN;
+-
+ 	local_bh_disable();
+ 	do {
+ 		sequence = read_seqcount_begin(&nf_conntrack_generation);
+@@ -911,18 +881,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 			goto chaintoolong;
+ 	}
+ 
+-	/* If genid has changed, we can't insert anymore because ct
+-	 * extensions could have stale pointers and nf_ct_iterate_destroy
+-	 * might have completed its table scan already.
+-	 *
+-	 * Increment of the ext genid right after this check is fine:
+-	 * nf_ct_iterate_destroy blocks until locks are released.
+-	 */
+-	if (!nf_ct_ext_valid_post(ct->ext)) {
+-		err = -EAGAIN;
+-		goto out;
+-	}
+-
+ 	smp_wmb();
+ 	/* The caller holds a reference to this object */
+ 	refcount_set(&ct->ct_general.use, 2);
+@@ -1250,11 +1208,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 		return NF_DROP;
+ 	}
+ 
+-	if (!nf_ct_ext_valid_pre(ct->ext)) {
+-		NF_CT_STAT_INC(net, insert_failed);
+-		goto dying;
+-	}
+-
+ 	/* We have to check the DYING flag after unlink to prevent
+ 	 * a race against nf_ct_get_next_corpse() possibly called from
+ 	 * user context, else we insert an already 'dead' hash, blocking
+@@ -1317,16 +1270,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	nf_conntrack_double_unlock(hash, reply_hash);
+ 	local_bh_enable();
+ 
+-	/* ext area is still valid (rcu read lock is held,
+-	 * but will go out of scope soon, we need to remove
+-	 * this conntrack again.
+-	 */
+-	if (!nf_ct_ext_valid_post(ct->ext)) {
+-		nf_ct_kill(ct);
+-		NF_CT_STAT_INC_ATOMIC(net, drop);
+-		return NF_DROP;
+-	}
+-
+ 	help = nfct_help(ct);
+ 	if (help && help->helper)
+ 		nf_conntrack_event_cache(IPCT_HELPER, ct);
+@@ -2394,61 +2337,6 @@ void nf_ct_iterate_cleanup_net(int (*iter)(struct nf_conn *i, void *data),
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
+ 
+-/**
+- * nf_ct_iterate_destroy - destroy unconfirmed conntracks and iterate table
+- * @iter: callback to invoke for each conntrack
+- * @data: data to pass to @iter
+- *
+- * Like nf_ct_iterate_cleanup, but first marks conntracks on the
+- * unconfirmed list as dying (so they will not be inserted into
+- * main table).
+- *
+- * Can only be called in module exit path.
+- */
+-void
+-nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+-{
+-	struct nf_ct_iter_data iter_data = {};
+-	struct net *net;
+-
+-	down_read(&net_rwsem);
+-	for_each_net(net) {
+-		struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+-
+-		if (atomic_read(&cnet->count) == 0)
+-			continue;
+-		nf_queue_nf_hook_drop(net);
+-	}
+-	up_read(&net_rwsem);
+-
+-	/* Need to wait for netns cleanup worker to finish, if its
+-	 * running -- it might have deleted a net namespace from
+-	 * the global list, so hook drop above might not have
+-	 * affected all namespaces.
+-	 */
+-	net_ns_barrier();
+-
+-	/* a skb w. unconfirmed conntrack could have been reinjected just
+-	 * before we called nf_queue_nf_hook_drop().
+-	 *
+-	 * This makes sure its inserted into conntrack table.
+-	 */
+-	synchronize_net();
+-
+-	nf_ct_ext_bump_genid();
+-	iter_data.data = data;
+-	nf_ct_iterate_cleanup(iter, &iter_data);
+-
+-	/* Another cpu might be in a rcu read section with
+-	 * rcu protected pointer cleared in iter callback
+-	 * or hidden via nf_ct_ext_bump_genid() above.
+-	 *
+-	 * Wait until those are done.
+-	 */
+-	synchronize_rcu();
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
+-
+ static int kill_all(struct nf_conn *i, void *data)
+ {
+ 	return 1;
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index dd62cc12e775..0da105e1ded9 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -27,8 +27,6 @@
+ 
+ #define NF_CT_EXT_PREALLOC	128u /* conntrack events are on by default */
+ 
+-atomic_t nf_conntrack_ext_genid __read_mostly = ATOMIC_INIT(1);
+-
+ static const u8 nf_ct_ext_type_len[NF_CT_EXT_NUM] = {
+ 	[NF_CT_EXT_HELPER] = sizeof(struct nf_conn_help),
+ #if IS_ENABLED(CONFIG_NF_NAT)
+@@ -118,10 +116,8 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	if (!new)
+ 		return NULL;
+ 
+-	if (!ct->ext) {
++	if (!ct->ext)
+ 		memset(new->offset, 0, sizeof(new->offset));
+-		new->gen_id = atomic_read(&nf_conntrack_ext_genid);
+-	}
+ 
+ 	new->offset[id] = newoff;
+ 	new->len = newlen;
+@@ -131,29 +127,3 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	return (void *)new + newoff;
+ }
+ EXPORT_SYMBOL(nf_ct_ext_add);
+-
+-/* Use nf_ct_ext_find wrapper. This is only useful for unconfirmed entries. */
+-void *__nf_ct_ext_find(const struct nf_ct_ext *ext, u8 id)
+-{
+-	unsigned int gen_id = atomic_read(&nf_conntrack_ext_genid);
+-	unsigned int this_id = READ_ONCE(ext->gen_id);
+-
+-	if (!__nf_ct_ext_exist(ext, id))
+-		return NULL;
+-
+-	if (this_id == 0 || ext->gen_id == gen_id)
+-		return (void *)ext + ext->offset[id];
+-
+-	return NULL;
+-}
+-EXPORT_SYMBOL(__nf_ct_ext_find);
+-
+-void nf_ct_ext_bump_genid(void)
+-{
+-	unsigned int value = atomic_inc_return(&nf_conntrack_ext_genid);
+-
+-	if (value == UINT_MAX)
+-		atomic_set(&nf_conntrack_ext_genid, 1);
+-
+-	msleep(HZ);
+-}
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 74ec224ce0d6..e06ac58b8f79 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -969,20 +969,9 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_inet_fn);
+ 
+-struct nf_nat_proto_clean {
+-	u8	l3proto;
+-	u8	l4proto;
+-};
+-
+ /* kill conntracks with affected NAT section */
+ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
+ {
+-	const struct nf_nat_proto_clean *clean = data;
+-
+-	if ((clean->l3proto && nf_ct_l3num(i) != clean->l3proto) ||
+-	    (clean->l4proto && nf_ct_protonum(i) != clean->l4proto))
+-		return 0;
+-
+ 	return i->status & IPS_NAT_MASK ? 1 : 0;
+ }
+ 
+@@ -1350,9 +1339,9 @@ static int __init nf_nat_init(void)
+ 
+ static void __exit nf_nat_cleanup(void)
+ {
+-	struct nf_nat_proto_clean clean = {};
++	struct nf_ct_iter_data iter_data = {};
+ 
+-	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
++	nf_ct_iterate_cleanup(nf_nat_proto_clean, &iter_data);
+ 
+ 	nf_ct_helper_expectfn_unregister(&follow_master_nat);
+ 	RCU_INIT_POINTER(nf_nat_hook, NULL);
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 8efda53f94eb..739a8461ff9f 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -677,6 +677,7 @@ static void __exit cttimeout_exit(void)
+ 
+ 	unregister_pernet_subsys(&cttimeout_ops);
+ 	RCU_INIT_POINTER(nf_ct_timeout_hook, NULL);
++	synchronize_net();
+ 
+ 	nf_ct_untimeout(NULL, NULL);
+ }
 -- 
 2.47.3
 
