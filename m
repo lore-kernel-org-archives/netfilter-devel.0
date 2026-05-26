@@ -1,177 +1,83 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7A593BB122
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 14:19:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 399DB406267
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 14:59:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779805159; cv=none; b=NjJbBiMmwvy7u2k2jAyxCqQPokzBCwR+7uL8FT5Dmdke2Z9cb/OOGuz6si2Htgof+KkZrPsqjuQYnKnXgCJm/i8V/jchadq9TZ0mvUElrZLgEXozEu1zVFqKZywctHsAtOkKnu+J02hFPJVkv5TDC0O14XLHjq2jz/jq90NmYeI=
+	t=1779807580; cv=none; b=VTvZziSAe2hpjMbuANr53G9Bnk0cdwkGAhsRIUVYcVbxNP5vUzax9YsqV2zTpKJtRHQdxup54Wt7DwqXXh50vzkb9fZbi9vJvM5ILDbjUB1TWmIjUDp4v0DHZMHgdOs2ZJBqnSxo8MBy6ZDj9qVdrtPYStPitWV4egeNSm2D9II=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779805159; c=relaxed/simple;
-	bh=Bryy3ZyrgC1K7ij573ki4EcK/jMYifjouU3w8lBvtMU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f9asfZ1xM3+iZABgjEzH02nGAXAtPdFjq9VpuQ9L2DnbI5vbvEB49V7QG2VBCxSeA8hDsQdLo3pFwiNCrQBxQMZIDHkgxYsDSJyPOYS+thtWG5dlpcADgcAgz2di5u9lHnOO3Y6Pto8+sqie4yCMbeadN9+SZhzDfHjMn/H1CdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=gTlVr6/r; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=bHe8ymCn; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=gTlVr6/r; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=bHe8ymCn; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1779807580; c=relaxed/simple;
+	bh=I7C3lp05io5pycwhL8Zp/PXI0hfM6PP1JAa+4ekR14o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K5HFmN5hwT/+hGQ4k25g303fBRXnWhEsejWJ9guhrWmVaEz6stBHJ1f5n5UfUXjgpprkSa5czxfjWTHdeVQ8oRaTNjdpL/K60uowD26GTB4nAynvKZA7XPp2ZgSBDCigrFM6HfBifxpJOnlIIeFBiEckhd5xICtyZBFgGNZxFJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gU4s8MBA; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="gTlVr6/r";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="bHe8ymCn";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="gTlVr6/r";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="bHe8ymCn"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 3F79B65742;
-	Tue, 26 May 2026 14:19:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1779805140; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YQhNbZHlargoGxyJuDv/Vw5A8SE1kGSIDzHBFJKHtxM=;
-	b=gTlVr6/rBRyAvUw4XzY5M1PLGmJuida6o7MkWqUN5gLBB9uyB8R3qiI7p3WBi5cCTwRzho
-	aYbk8oN9KpaVk9asY5W94CO5jcUgnH89SIKYfIl2wV7FjngYrL+NDsa+5+xXuOQ9JMDD/R
-	vPL+PPrdG5p3e5DVWyRiBNFMOlvERsU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1779805140;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YQhNbZHlargoGxyJuDv/Vw5A8SE1kGSIDzHBFJKHtxM=;
-	b=bHe8ymCnTjcqq/bs8Vv/7W7jR6GtcAog0u6syYXFjkSna4elF6Eq4JpGrKzd0rpdWHZ3om
-	9jDkEWuBcawa5LDQ==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1779805140; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YQhNbZHlargoGxyJuDv/Vw5A8SE1kGSIDzHBFJKHtxM=;
-	b=gTlVr6/rBRyAvUw4XzY5M1PLGmJuida6o7MkWqUN5gLBB9uyB8R3qiI7p3WBi5cCTwRzho
-	aYbk8oN9KpaVk9asY5W94CO5jcUgnH89SIKYfIl2wV7FjngYrL+NDsa+5+xXuOQ9JMDD/R
-	vPL+PPrdG5p3e5DVWyRiBNFMOlvERsU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1779805140;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YQhNbZHlargoGxyJuDv/Vw5A8SE1kGSIDzHBFJKHtxM=;
-	b=bHe8ymCnTjcqq/bs8Vv/7W7jR6GtcAog0u6syYXFjkSna4elF6Eq4JpGrKzd0rpdWHZ3om
-	9jDkEWuBcawa5LDQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CE8325A24D;
-	Tue, 26 May 2026 14:18:59 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cCJwL9OrFWqbJQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 26 May 2026 14:18:59 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 3/5 nf-next v3] netfilter: synproxy: fix unaligned memory access in timestamp adjustment
-Date: Tue, 26 May 2026 16:18:36 +0200
-Message-ID: <20260526141838.4191-4-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260526141838.4191-1-fmancera@suse.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gU4s8MBA"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 66BD26017E;
+	Tue, 26 May 2026 16:59:34 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1779807574;
+	bh=K/MrEbeFujl10iXMmzaxkOXtDMI74itlFgnnuu0gFc0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gU4s8MBARpha70nHWtlL8JRWLY8hGY3OMo6Eji9Va9/8nf0wcDUcW3eoVt/EbNiRR
+	 RXa5KQlEvhlbL8l5jWnKLXv/vobzHCnV4UXKfNIW/LPAetpPQrf/UHnmorzq5E3yI+
+	 081djKTIwdgGcUZMHoCb6PmXmBidf3SzfT3jIGnmNYtOGF9JmmiIvIHgZgEs6DMTYB
+	 +G2uM8izZoxZc3C9DUuQMZ/AHos4fmhu8UsfIFrZOq3gHsIrWYszz5KgPiCyXsKcV8
+	 OsPw4iR9sOtKrViYizhxhWl/gg9Eq1Sr2ySUE/XIGAl+Y+kCoWFkIvT6dSzb2bFi2G
+	 q7tCFrSgbHUtg==
+Date: Tue, 26 May 2026 16:59:31 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+	phil@nwl.cc
+Subject: Re: [PATCH 4/5 nf-next v3] netfilter: synproxy: protect
+ nf_ct_seqadj_init() with conntrack lock
+Message-ID: <ahW1U9_ESybsuAlv@chamomile>
 References: <20260526141838.4191-1-fmancera@suse.de>
+ <20260526141838.4191-5-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Spam-Score: -6.80
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-6.80 / 50.00];
-	REPLY(-4.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.988];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_HAS_DN(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCPT_COUNT_FIVE(0.00)[6];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
-	RCVD_TLS_ALL(0.00)[]
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260526141838.4191-5-fmancera@suse.de>
 
-Use get_unaligned_be32() and put_unaligned_be32() to safely read and
-write the timestamp fields. This prevents performance degradation due to
-unaligned memory access or even a crash on strict alignment
-architectures.
+Hi Fernando,
 
-This follows the implementation of timestamp parsing in the networking
-stack at tcp_parse_options() and synproxy_parse_options().
+linux$ git grep nf_ct_seqadj_init
+net/netfilter/nf_conntrack_seqadj.c:int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+net/netfilter/nf_conntrack_seqadj.c:EXPORT_SYMBOL_GPL(nf_ct_seqadj_init);
+net/netfilter/nf_synproxy_core.c:                       nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, 0);
+net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, synproxy->isn - ntohl(th->seq));
+net/netfilter/nf_synproxy_core.c:                       nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, 0);
+net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, synproxy->isn - ntohl(th->seq));
 
-Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nf_synproxy_core.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+On Tue, May 26, 2026 at 04:18:37PM +0200, Fernando Fernandez Mancera wrote:
+> diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+> index 5413133a42fa..3e02e252eecc 100644
+> --- a/net/netfilter/nf_synproxy_core.c
+> +++ b/net/netfilter/nf_synproxy_core.c
+> @@ -669,8 +669,10 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
+>  	switch (state->state) {
+>  	case TCP_CONNTRACK_CLOSE:
+>  		if (th->rst && CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL) {
+> +			spin_lock_bh(&ct->lock);
+>  			nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+>  						      ntohl(th->seq) + 1);
+> +			spin_unlock_bh(&ct->lock);
+>  			break;
 
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 6bd63f5ab75d..5413133a42fa 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -189,7 +189,7 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 		       const struct nf_conn_synproxy *synproxy)
- {
- 	unsigned int optoff, optend;
--	__be32 *ptr, old;
-+	u32 new, old;
- 
- 	if (synproxy->tsoff == 0)
- 		return true;
-@@ -217,18 +217,17 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 			if (op[0] == TCPOPT_TIMESTAMP &&
- 			    op[1] == TCPOLEN_TIMESTAMP) {
- 				if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
--					ptr = (__be32 *)&op[2];
--					old = *ptr;
--					*ptr = htonl(ntohl(*ptr) -
--						     synproxy->tsoff);
-+					old = get_unaligned_be32(&op[2]);
-+					new = old - synproxy->tsoff;
-+					put_unaligned_be32(new, &op[2]);
- 				} else {
--					ptr = (__be32 *)&op[6];
--					old = *ptr;
--					*ptr = htonl(ntohl(*ptr) +
--						     synproxy->tsoff);
-+					old = get_unaligned_be32(&op[6]);
-+					new = old + synproxy->tsoff;
-+					put_unaligned_be32(new, &op[6]);
- 				}
- 				inet_proto_csum_replace4(&th->check, skb,
--							 old, *ptr, false);
-+							 cpu_to_be32(old),
-+							 cpu_to_be32(new), false);
- 			}
- 			optoff += op[1];
- 		}
--- 
-2.53.0
+Maybe add the spin_lock to nf_ct_seqadj_init() given synproxy is the
+only user of this function?
 
+>  		}
+>  
