@@ -1,145 +1,157 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58C54413D74
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 17:55:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867013B774A
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 21:18:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779818103; cv=none; b=sGtTQUDMwur00BFj4S37Dg6P4orj+NeMAea7EGNGlGIDfA3/WCuZYs1s5rpOsLfqHnJeslYllc3MeZz+p1AtETdZb2+0NYNGB8zwSaftRY0lkuaNJXlCnnGgbtDwBagLcgd5PiH1F2D2wRh2TazrcV/eGPzhD/TinGjfRuMgWxQ=
+	t=1779830330; cv=none; b=Bld0Kt8sHMQjjSVAxQBt9GvZ1YNPAFQcGpBQjzRDX+iPpAalvRdt1ATMkGucRLjlDN9l1Q+NxCIV1tAVoW54q16Qh0NwrfUvyGmyU7gyf0+c7ho9L3h4zTudZzLj+XU/8I209V4l10VHQLJR2ahI6LqZmv0LkPsqtlLEhHAk3bQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779818103; c=relaxed/simple;
-	bh=lz5woo9V/uZEECSO2wScXD+HVyUsvxT2zyQwyM49+Ps=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ah9LRuUH36LTs9/6R1zeGO4hlFjNjRnVjWDrEUEVDkTeD0woSaANAP32JFcUS5KxuuL7tJfoA6y7MDJtcBDplSQZmsa/TqGpJaZR2BNNn9YgyuPAQ7G2hmDx+4SRazYVnKx2mtrASzdDWrhn/RTOr+X1oA7x44Adm8ZRUmcU//k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id AA59860551; Tue, 26 May 2026 19:54:52 +0200 (CEST)
-Date: Tue, 26 May 2026 19:54:51 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 5/6] netfilter: nf_conntrack_helper: add
- refcounting from datapath
-Message-ID: <ahXea1N1w40Siqin@strlen.de>
-References: <20260526164049.148218-1-pablo@netfilter.org>
- <20260526164049.148218-6-pablo@netfilter.org>
+	s=arc-20240116; t=1779830330; c=relaxed/simple;
+	bh=6jxMpll5mU6ZiOeypKHPCP3y6tMVW7/wiqAWE1qs/Tg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XCpTxSrUs9aW2T6/9ctx+oZvbc2NqsGUu9KZoho+QrvJ673uk2ySiDBybLG5AmVMfR5CgtCYg1Kow+OXzunBAw3nbKYq8EIOWJzuW5MLQlJHyttHuljNPCLIoqxTDKRNBHLcHYdwo+HH8c8GaovilL0kr8dWwZK6YI9ed/Yr07k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=VsuO+OtL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=PkbZ4cH5; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=VsuO+OtL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=PkbZ4cH5; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="VsuO+OtL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="PkbZ4cH5";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="VsuO+OtL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="PkbZ4cH5"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id C47C965AD7;
+	Tue, 26 May 2026 21:18:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1779830320; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=09Z963DURIKJC9/kpcza/Rnt2b9EtezyE6kNRU23vUM=;
+	b=VsuO+OtL6xG+AHdNyHqcqRPRxGea79vaQjRUo8kQIOAmTPbC3FKQr3wgcDgXf8ptGp1A83
+	8pDT4Wpmu6xM4VXZNjMnhY7qD7ApMnyd47YzRWq+XLvznsewG2o2mplxMPRH49znuKhxYn
+	LQ65ZBzzHQ7zyRL3TMdc1Gm92PAc6/Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1779830320;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=09Z963DURIKJC9/kpcza/Rnt2b9EtezyE6kNRU23vUM=;
+	b=PkbZ4cH5VkWib3+UTX+hC7btA6ago+yeVRBZel1dKNB+Np6VCoD3P/Q2devwWzf7c+ehFT
+	WpQcIKE+3EKRvmAQ==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1779830320; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=09Z963DURIKJC9/kpcza/Rnt2b9EtezyE6kNRU23vUM=;
+	b=VsuO+OtL6xG+AHdNyHqcqRPRxGea79vaQjRUo8kQIOAmTPbC3FKQr3wgcDgXf8ptGp1A83
+	8pDT4Wpmu6xM4VXZNjMnhY7qD7ApMnyd47YzRWq+XLvznsewG2o2mplxMPRH49znuKhxYn
+	LQ65ZBzzHQ7zyRL3TMdc1Gm92PAc6/Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1779830320;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=09Z963DURIKJC9/kpcza/Rnt2b9EtezyE6kNRU23vUM=;
+	b=PkbZ4cH5VkWib3+UTX+hC7btA6ago+yeVRBZel1dKNB+Np6VCoD3P/Q2devwWzf7c+ehFT
+	WpQcIKE+3EKRvmAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7A0505A3F0;
+	Tue, 26 May 2026 21:18:40 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id lugaGzAOFmo0PwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 26 May 2026 21:18:40 +0000
+Message-ID: <e2bcb8bb-a3fa-47be-8251-d1b7a3cc7b71@suse.de>
+Date: Tue, 26 May 2026 23:18:35 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260526164049.148218-6-pablo@netfilter.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 4/5 nf-next v3] netfilter: synproxy: protect
+ nf_ct_seqadj_init() with conntrack lock
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+ phil@nwl.cc
+References: <20260526141838.4191-1-fmancera@suse.de>
+ <20260526141838.4191-5-fmancera@suse.de> <ahW1U9_ESybsuAlv@chamomile>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <ahW1U9_ESybsuAlv@chamomile>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spam-Level: 
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[5];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid]
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> There is already a refcount for control plane, to ensure the helper
-> does not go away if it is used by rulesets.
+On 5/26/26 4:59 PM, Pablo Neira Ayuso wrote:
+> Hi Fernando,
 > 
-> This patch adds a new ->ct_refcnt field to struct nf_conntrack_helper
-> which is bumped when the helper is used by the ct helper extension. Drop
-> this reference count when the conntrack entry is released. This is a
-> packet path refcount which ensures that struct nf_conntrack_helper
-> remains in place for tricky scenarios where a packet sits in nfqueue, or
-> elsewhere, with a conntrack that refers to this helper.
+> linux$ git grep nf_ct_seqadj_init
+> net/netfilter/nf_conntrack_seqadj.c:int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+> net/netfilter/nf_conntrack_seqadj.c:EXPORT_SYMBOL_GPL(nf_ct_seqadj_init);
+> net/netfilter/nf_synproxy_core.c:                       nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+> net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, 0);
+> net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, synproxy->isn - ntohl(th->seq));
+> net/netfilter/nf_synproxy_core.c:                       nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+> net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, 0);
+> net/netfilter/nf_synproxy_core.c:               nf_ct_seqadj_init(ct, ctinfo, synproxy->isn - ntohl(th->seq));
 > 
-> On helper removal, the help callback is set to NULL to disable it from
-> packet path and, after rcu grace period, existing expectations are
-> removed. Update ctnetlink to disable access to .to_nlattr and
-> .from_nlattr if the helper is going away.
+> On Tue, May 26, 2026 at 04:18:37PM +0200, Fernando Fernandez Mancera wrote:
+>> diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+>> index 5413133a42fa..3e02e252eecc 100644
+>> --- a/net/netfilter/nf_synproxy_core.c
+>> +++ b/net/netfilter/nf_synproxy_core.c
+>> @@ -669,8 +669,10 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
+>>   	switch (state->state) {
+>>   	case TCP_CONNTRACK_CLOSE:
+>>   		if (th->rst && CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL) {
+>> +			spin_lock_bh(&ct->lock);
+>>   			nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+>>   						      ntohl(th->seq) + 1);
+>> +			spin_unlock_bh(&ct->lock);
+>>   			break;
 > 
-> Remove nf_queue_nf_hook_drop() since it has proven not to be effective
-> because packets with unconfirmed conntracks which are still flying to
-> sit in nfqueue.
+> Maybe add the spin_lock to nf_ct_seqadj_init() given synproxy is the
+> only user of this function?
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nf_conntrack_helper.h | 25 +++++++++++++++---
->  net/netfilter/nf_conntrack_core.c           |  3 ++-
->  net/netfilter/nf_conntrack_helper.c         | 28 ++++++---------------
->  net/netfilter/nf_conntrack_netlink.c        | 12 ++++++---
->  net/netfilter/nf_conntrack_ovs.c            | 14 ++++++++++-
->  net/netfilter/nf_conntrack_proto.c          | 15 +++++++----
->  net/netfilter/nft_ct.c                      |  2 +-
->  net/netfilter/xt_CT.c                       |  7 +++---
->  8 files changed, 66 insertions(+), 40 deletions(-)
+
+Thanks Pablo, makes a lot of sense.
+
+>>   		}
+>>   
 > 
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> index 1956bc12bf56..a03cb4e59ea9 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -35,20 +35,23 @@ enum nf_ct_helper_flags {
->  struct nf_conntrack_helper {
->  	struct hlist_node hnode;	/* Internal use. */
->  
-> +	struct rcu_head rcu;
-> +
->  	char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
->  	refcount_t refcnt;
->  	struct module *me;		/* pointer to self */
->  	struct nf_conntrack_expect_policy expect_policy[NF_CT_MAX_EXPECT_CLASSES];
->  
-> +	refcount_t ct_refcnt;
 
-Why do we need two reference counts?  I find this very confusing.
-Which refcount frees the structure?  And can one refcount hit 0 while
-other one is still in use?
-
->  	/* Function to call when data passes; return verdict, or -1 to
->             invalidate. */
-> -	int (*help)(struct sk_buff *skb,
-> -		    unsigned int protoff,
-> -		    struct nf_conn *ct,
-> -		    enum ip_conntrack_info conntrackinfo);
-> +	int __rcu (*help)(struct sk_buff *skb, unsigned int protoff,
-> +			  struct nf_conn *ct,
-> +			  enum ip_conntrack_info conntrackinfo);
->  
->  	void (*destroy)(struct nf_conn *ct);
-
-Why is help RCU protected while other callbacks are not?
-
-'destroy' not being rcu protected implies that the helper module must
-remain in memory until after kfree_rcu has released the underlying
-storage anyway.
-
-If thats true, why do we need rcu head and kfree_rcu in the first place?
-module has to remain in memory until after last possible caller has
-called me->destroy(), no?  If that is correct, then there is no need for
-dynamically allocated storage.
-
-> @@ -445,19 +432,18 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->  	nf_ct_helper_count--;
->  	mutex_unlock(&nf_ct_helper_mutex);
->  
-> +	/* This helper is going away, disable it. */
-> +	rcu_assign_pointer(me->help, NULL);
-> +
-
-OK, so this signals pending removal (refcnt can still be elevated) to
-prevent new packets/expectations from grabbing another reference.
-Correct?  Is this a 'dying' flag or is there more to it?
-
-I looked at patched 'nf_conntrack_ftp_fini', but I don't see anything
-that spins/waits for completion of referencing entries.
-
-How does ->destroy/to_nlattr/from_nlattr etc. work?
-
-I expected to find something that does a busywait until refcount has
-hit 0 to avoid any calls to the removed module.
-
-The existing conntracks still hold a pointer to struct
-nf_conntrack_helper, and its refcount can be elevated too, while
-function pointers (not help, but others) are stale.
-
-I suspect you need to move the function pointers to an 'op' sub-struct,
-so that it can be cleared via single rcu_assign_pointer(me->help_ops, NULL) ?
-
-But that still has one problem: if helper module is gone, how can you
-call the destructor?
-
-Maybe we need to accelerate pptp removal so the only user of destroy
-is removed?
