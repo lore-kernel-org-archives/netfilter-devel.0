@@ -1,116 +1,172 @@
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D403B27FB
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 09:31:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CF223D88F1
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 10:12:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779787867; cv=none; b=obXQ1RygPbezZWaNA4Y/NLSI8FIuCHCbCmw7X/zrXWOcQBD9sTuQiJ/XsaLAZmmYIdy+2K1aCDFv7UnMkr8oXvT+MvCi2hKU8b3OeTLGgVqK/j2Xxqc1tJfkLTty3rzyzBptw+Z6BTPBru2RvWjQdQuwv7s8ZsovsmG/C1AsD68=
+	t=1779790375; cv=none; b=TzGg2OzUmbcbha/2TIICigjQH5+4U3wcBTaO0qI2bsH0Nma8lr8EhIFIMhNU8+PsMlPfX5oGZXgrNQUc0tb7dTG745qFPQlYuARvmkQ9U5C0G4pFbyXP09znj5Mqd/XEp0qAdIY9TF0AYeBJGvGWt0XXjVyFytGNZwc5S3xe/Ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779787867; c=relaxed/simple;
-	bh=uvz/kgTUH5nCjt/wXXr7H3t+qy4vkWiuM6wRqHR4LwU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cuCr4UmhG1FrdKLuju0Ks+EqQ5FrEyalZyIL7whUhSuMzXKsju7aSzGvHpIiBbWlJpvCDNEkgNFpKXHSSQefiEHgOnFErnZIrVJxqkAi+T2DUNgb5XPQ8dxdJpIVaP85r99Zvh2qnjXQwwK8LYQREX+8WlmHnR7g1uMN2+uB1RI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fk5w4p22; arc=none smtp.client-ip=209.85.128.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779790375; c=relaxed/simple;
+	bh=uGmN/A4Bu+4H6Stp+M2DzkH3zP5Qc7E5hQ48Dka/MMY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FgcBACOyifi4dDSsSESrveIvJ3thYcqRegeuMr8bkasASoQQ1oEWKCT36Ifme36SDmr0xr0JRtpy71M0OaR8Y8krATB7fcERH2wF95oW0/pi0V5sNNYkJ8bvJuopk70hImwTpZ1c/1CQ9bipY20FFn59FLG+W5OTc+xMMy+Tg7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QrwK3hBN; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cFRyoyfq; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QrwK3hBN; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cFRyoyfq; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fk5w4p22"
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-48e6db3ff7eso53252925e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 02:31:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779787865; x=1780392665; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lhyGEGziB4p1he7Kr6BJJdkSVJk+rI4Mohkv26Jk0G8=;
-        b=fk5w4p22H469kjTbAqXGPjbdafQqqIhAKUOmSuq0hdyM6mOLidAfdQduJ5hmt1nn8s
-         Zn36+AYkcwj2+Zy616X6CLrIN72cQlp0J8bcyETDBA3rkXfu0KfxtepJ+X+fo1RjhbRh
-         jqJYkxRqt5xdjkwusO4vMUEE2npOz6tKB9+QHF18MXRUk/qZdBbRQBTgEa6BHiypq7/5
-         zub+pc2EW5Gk9ct2FUNAKcT+Ft5gmJ8pzrA8975rWPxalQVGhBUP3t15njsbHDqR8c3K
-         mZiCys7KO4zb/Hao7KCHaCh3J4PPMqtgEWH99+oWJTHihC3xSZp2lZMLdVL/1PMwpkgH
-         nyjw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779787865; x=1780392665;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=lhyGEGziB4p1he7Kr6BJJdkSVJk+rI4Mohkv26Jk0G8=;
-        b=i1xS4OfYWXSCT4Qk4wxQljE0LTlOZJWT721wslfUQOm324DkT2MA2HZJpv/T834yiB
-         mlYLNG49nSeB3HRVrNQxNkCELLKHjicZSWayBKonp0QqYWAR/f+3iIoTYxnbXwXVrGVZ
-         1oSMciyWDkX30nouYmOnt/wd5+xARLZWWnc2t2+QTnhUlpSjMOYl4DkcFyV6kKEckgLt
-         5U9VtdQLlFF1PWNBmC8tl1QI1s4GF5+BoOE3vgAkdsS3oO/1xxWLmSTYl5MXSj1VBj2g
-         auZXdhlqvXyR+fXTSZ48ULTb1zZjEmppNK0Jyt0WxovTypA062tovYVIkwv24Ya+hGsB
-         casA==
-X-Forwarded-Encrypted: i=1; AFNElJ/J1wmC7GUq7AM0YNpR6+sYBoQ25jKdlhLSQU4X8gvmtASs6mk2n9U27glSzkgiCb7i1bCwwLu8qVE7smjqvA4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxFgBHgoimuyKK51CJ2TB9DeH/SIphrCQqWdwInBHKyVQwm0V8d
-	XoelZVXHdFRF4ITAJIcML0eF3FgXOii9FcKRKO6dvYl+livLpXeowmCj
-X-Gm-Gg: Acq92OF5WfA9ROMZiJ3a0wP+np2oE26GtmQGG3JPUaf/MSAZZdlsKm0kBY/hR1pt6S3
-	BDKttzGt6XSlyck5Yuk5+CjOiaakIlwY3TrczYyUP67nkA5xwGbyJUfbiMQVg/luJQ1Patn73xC
-	ZjK6qXnCzOajq4JlKneLWpRgXdkLSxf0PjO2wnh2B3iqULvVLnP5VaKrZIxbNeTKQM0ncjgWiZx
-	UywmW22xiWMIeZU46sJQLctizpAJc3hOQKYGyHvdGw3R3diQ3wmExEDClD/yumU0lxTTFy2iRKn
-	wREZiQT+2JIHJ9iGtbh6rG40fGjndq9OiZBZ8FlwF2H3ZLdQxgx88R8MK9pjXXc3DjjIW1EieN+
-	t67mjhoaBQZxqu2rPvI11XsKR3Drzw3PzMm+mdl9ADDGGKOL52AxTZ+f3JMBpyZjCUbylIMhtnX
-	XFuI4OS295wV6bgEr+PQiFbvGt2PWPK0mPFV0Z4Mu0qQnjK/odhS3ecaqE3ZkMzxm9
-X-Received: by 2002:a05:600c:4ecc:b0:490:3c90:2cda with SMTP id 5b1f17b1804b1-490426cef73mr281947435e9.20.1779787863622;
-        Tue, 26 May 2026 02:31:03 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45eb6d4741bsm35437657f8f.22.2026.05.26.02.31.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 May 2026 02:31:03 -0700 (PDT)
-Date: Tue, 26 May 2026 10:31:02 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: Florian Westphal <fw@strlen.de>, Kacper Kokot
- <kacper.kokot.44@gmail.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Phil
- Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
- <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-Subject: Re: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option
- is unaligned
-Message-ID: <20260526103102.003aedd9@pumpkin>
-In-Reply-To: <b82e4092-1f4e-40ca-b117-31c062ea54c2@suse.de>
-References: <20260525201116.407338-2-kacper.kokot.44@gmail.com>
-	<ahS--cPlhv6NHAcO@strlen.de>
-	<b82e4092-1f4e-40ca-b117-31c062ea54c2@suse.de>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QrwK3hBN";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cFRyoyfq";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QrwK3hBN";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cFRyoyfq"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 455E86711E;
+	Tue, 26 May 2026 10:12:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1779790372; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NvIrdghQhyWTjFdcBvR0Ew8r7Xg8DywphMcoFe4/+FY=;
+	b=QrwK3hBNnVQ0D668Y2RqIqxFQnx8YP0aOJivEc2uDbZjs5hyWukQwdmN4rF5k1EcEI+ran
+	Y32ITK7R8Zkso+5ZP+jdFW81XA0CwnmsaaYmAFk7kKqLvbKcR2V2i0QQO3MIajAXx79FNu
+	lJqhIHXM/K/UENJzQly4sdVf7nUDGy4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1779790372;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NvIrdghQhyWTjFdcBvR0Ew8r7Xg8DywphMcoFe4/+FY=;
+	b=cFRyoyfqD5Pl2RjYTTcKrsDBPEuEeBc2vzfn0SemdasiIOb6JM/q7eu2Y7D3PEmJmQyBPP
+	taYCc7Wy/l2gdODw==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=QrwK3hBN;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=cFRyoyfq
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1779790372; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NvIrdghQhyWTjFdcBvR0Ew8r7Xg8DywphMcoFe4/+FY=;
+	b=QrwK3hBNnVQ0D668Y2RqIqxFQnx8YP0aOJivEc2uDbZjs5hyWukQwdmN4rF5k1EcEI+ran
+	Y32ITK7R8Zkso+5ZP+jdFW81XA0CwnmsaaYmAFk7kKqLvbKcR2V2i0QQO3MIajAXx79FNu
+	lJqhIHXM/K/UENJzQly4sdVf7nUDGy4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1779790372;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NvIrdghQhyWTjFdcBvR0Ew8r7Xg8DywphMcoFe4/+FY=;
+	b=cFRyoyfqD5Pl2RjYTTcKrsDBPEuEeBc2vzfn0SemdasiIOb6JM/q7eu2Y7D3PEmJmQyBPP
+	taYCc7Wy/l2gdODw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EA1695A157;
+	Tue, 26 May 2026 10:12:51 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id iEEgNiNyFWrwLgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 26 May 2026 10:12:51 +0000
+Message-ID: <4887bf00-d044-4366-8588-a83e4bce0274@suse.de>
+Date: Tue, 26 May 2026 12:12:43 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 4/4 nf v2] netfilter: synproxy: fix possible write to
+ stale pointer
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ pablo@netfilter.org, phil@nwl.cc
+References: <20260525124450.6043-1-fmancera@suse.de>
+ <20260525124450.6043-5-fmancera@suse.de>
+ <df64cebb-1279-4e66-afa7-3d8ffca4928f@suse.de> <ahSb-UU8n9o1aHoI@strlen.de>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <ahSb-UU8n9o1aHoI@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Spam-Score: -4.51
+X-Rspamd-Queue-Id: 455E86711E
+X-Spam-Level: 
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[5];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email,suse.de:mid,sashiko.dev:url];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
 
-On Tue, 26 May 2026 00:08:15 +0200
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-
-> On 5/25/26 11:28 PM, Florian Westphal wrote:
-> > Kacper Kokot <kacper.kokot.44@gmail.com> wrote:  
-> >> Padding TCP options with NOPs is optional, so it is legal to send an
-> >> MSS option that is not aligned to a word boundary and therefore not
-> >> aligned for checksum calculation. The current TCPMSS target is not
-> >> robust to this: when the MSS option is unaligned it produces an
-> >> invalid checksum, and the packet is dropped.  
-> > 
-> > Is this an actual, real world bug?  This code is 20+ years old, all that
-> > this hints at is that they are always aligned in reality?
-> >   
+On 5/25/26 8:59 PM, Florian Westphal wrote:
+> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+>> On 5/25/26 2:44 PM, Fernando Fernandez Mancera wrote:
+>>> skb_ensure_writable() is called to guarantee that the TCP options area
+>>> can be safely modified when adjusting the timestamp. As it expands or
+>>> linearize the skb head it might reallocate the data buffer.
+>>>
+>>> This makes the th pointer passed by the caller stale. The following
+>>> writes to the TCP header might be done to a stale pointer.
+>>>
+>>> Recalculating the th pointer after skb_ensure_writable() prevents this
+>>> issue from happening.
+>>>
+>>> Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
+>>> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+>>
+>> LOL. I just realized I already reviewed this at:
+>>
+>> https://lore.kernel.org/netfilter-devel/20260522104257.2008-3-fw@strlen.de/T/#u
+>>
+>> *facepalm* sorry for the noise, Florian could you ignore this patch but
+>> consider the other 3 fixes?
 > 
-> AFAICS, these issues are not present in real environments as MSS option 
-> is placed at the beginning of the options block making it aligned by 
-> default usually.
+> I know its tiresome, but would you mind sending a new version that also
+> fixes up the other things pointed out by sashiko?
 > 
-> I would say this is more for correctness. I wonder, if we are touching 
-> this code, we could use the opportunity to make it use 
-> get_unaligned_be16() instead.
+> https://sashiko.dev/#/patchset/20260525124450.6043-1-fmancera%40suse.de
+> 
+> In particular, seqadj and concurrent registration.  As these bugs aren't
+> as severe as patch 4, I think nf-next would be fine as well.
+> 
+> 
 
-gcc and clang convert x[0] << 8 | x[1] (etc) to the appropriate single
-instruction (and maybe byteswap) on cpu that support misaligned accesses.
-So there is little to gain from doing it any other way.
+I have been taking a look to this. The seqadj issue isn't real IMHO.
 
--- David
+The logic here is protected by the TCP state machine. AFAIU, ALGs only 
+look at fully established connections, I don't see how this can happen 
+even for retransmitted packets, the TCP state would remain the same so 
+nf_ct_seqadj_init() should never race with nf_ct_seqadj_set().
+
+FWIW; the concurrent registration issue is real. I am writing a fix.
+
+Thanks Florian!
