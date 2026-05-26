@@ -1,277 +1,193 @@
-Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0472C1AA797
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 15:18:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 490F836921E
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 15:37:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779808705; cv=none; b=ty7fKLjTIARVz9Dl0YFKoTfq3ZqIHVDQdGrzbPdrzZis2X4P7nLjP7B528zwVh3rTtPqupLM1Rpcgah5ZxPbX36nCFD46h2kbV9yvZyMWDNl1mc01LnU6iHKMieMAl1Ja3fKeaW9rBBy6WuEAUrjMH+Fjbws5h1x0S3at5x2UNY=
+	t=1779809848; cv=none; b=s+5bdnVKI4NrmQEqjEr25/XRjikfKW+U/nStTE+ne1736PKWzIX7kOvebfkh7CHgopvZVl2+8PpChwfXrLso2pIoTKaetXQhkfjP51S47cwFe2ut2mtufbHbIrQinW2QBBbhbtrUSNTTwVxqg3806sp4qnezaweYZpwzIq82ybQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779808705; c=relaxed/simple;
-	bh=YdMB1LtyLqIriHtc7C7EYyISywkT2D2MpqY0VJfRR9s=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MgJxqggIeP5FRTVnGXM/dtJd4zgBadZ/Xo2/RcWViO3NrQOSjlR+yx1vVGYvH92Uq+P42c/ddkqwZ5IlvFIksm4nYPXX2ek59UwISbnbPlI5reOFGGm4EmUhLQIOW6SbNIsUmW1NaIfZNF8QjOpD4BDszYQ+fLmh4u3c0D3CngI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ag/vMndQ; arc=none smtp.client-ip=209.85.221.50
+	s=arc-20240116; t=1779809848; c=relaxed/simple;
+	bh=SuNCKboR9/qMnKV199RmrKzsF4XnE5gzMhvdzv4lxUk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=nvpLAC7P816dNqwfN4AXAhRzGRnYxT5729ORIvykp9FUMr6kXW/4oVVdOigpWhSP9IwRxoOBt2MKAy1j8Or7Egd2N5G+hZumvdNI9/1cO8iHk6PXYLLciteskkAXXZbHMeD+d7KH4fZRD6SqUlYxqTFNubWTmH9GgdWy9jqTcn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=THwnRz23; arc=none smtp.client-ip=209.85.128.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ag/vMndQ"
-Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-43d734223e4so6795193f8f.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 08:18:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="THwnRz23"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-48d146705b4so113745245e9.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 08:37:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779808702; x=1780413502; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=yQeWuKcJdaKGP0co6PsxQWNihwyuFZGEvhAS+cv/Pqc=;
-        b=Ag/vMndQ3m9ylA9teCUFtA4BXrRYoTUVYyxvrSW/XFYHWXIcftooR5fBPpaZG/wSuR
-         ztbvP4nvyO99aaBRq6fQ0UjsH2cy9GopL8QakD5+gnUyK6B511QwUXrDsy2E/ilQgjf4
-         z185bWiRtKLq+BUA8N5ncGYXqLoBUG/+8d2ePXIimUR7ojk/eiPe6crtCuIi8rU1lN+U
-         Y1LwRG4OrWLbxTXBUuX6UgByFz6YEpamLm+ajPVyMAyPL23O+UYtE5PEWCb/0nu6ZoLE
-         IDIk0N8p2lKFOkq8rn56KKFIEaqPLBPQOuqV8CX5C029Abd2QGRUdakuWFhSuyf4Iw5L
-         G85Q==
+        d=gmail.com; s=20251104; t=1779809845; x=1780414645; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=mEu5haSOg9MswhbLQuLwhfuoJ04JYV0iIkWmF1VBvMA=;
+        b=THwnRz23QIb8MlYwi5JtG5bkdDs9Bb1cegJXxDqRk0E6fzuwcgwhOlrRwFvYh8vP4x
+         m97WkxMQRiMvArFFI2hH14L6OaPYPHYacb+EydXMq784G9v0pfvZH877tUizrEz9esGV
+         qtPTHnIGVoIGgpIXnLWG7FXCb4kZCMnXvC4uy1FCx6sB/bg8tUVlxIOWmeBY9/+T/KHi
+         ilKrqekNGIAS/U2m7vIzCIJkkIgl0X8bSlwwkPzd2eh1FFOR8XKHRl1+YV5OexCw/ae1
+         b8H1Nk+oRS/hbNAikxPFY0vKOlzlfx7p24qaUcycR1oxzHn75s0PmYRLcBw+/Dtg6rYp
+         rGkw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779808702; x=1780413502;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=yQeWuKcJdaKGP0co6PsxQWNihwyuFZGEvhAS+cv/Pqc=;
-        b=aGBJfO2iw8pZ4tsGF7wllvLI+jOfLCdd7Ag4pWIx8YyepiVvexOM4CpLHoUKtYiO45
-         FhYf1x+c14RcdAoeDhS7fTKvYhYrEiiZordvbBFuDSlVPJz3eJD8gtUPk5MA/S10PzN6
-         tAqG28+WMi2Fj6zWup4Hlf2F00rP6/nXWDdxCcq1S42E4tj0u7K87t2dC+tkb4e8O3z8
-         y3WS2A10Es9HUa3a+gOuuS9lwMnAih9dC57JzThT10mn1tVcyzQdNol9OyExN2pGiOgl
-         PMjCGO9aarvMhK/ucg/8159DeX5dBI6Cusbt98WAGP2hBA4+xsju/z39M4VLD+1c9yTC
-         K4pw==
-X-Forwarded-Encrypted: i=1; AFNElJ/e3dFxpdV3VXOFO2AO8Z36Cg3cauSrrHto2ZMFhTE7FDJ7dZhS29A2GS5QuwSL2CsEUPSjlgiSNrylcIBWAko=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwtUfosvslFjIPxlUYAiV6QNn3k5nT1kr9r9p3OGhAI/MXgniA7
-	ES2sYDtkcYbrTayEvyjG3WnTACc4gxPESoYvkoseZPi46w5mX75N5YOT
-X-Gm-Gg: Acq92OG2tOcW4yKx0jYZR6t5X38UgDfZu14OnhuRjUa8LvdctHJZM1o+NeWwS8+w2T0
-	JuUOOOBOsNUGBEKUFO4xN/02umeMEQkq4kuOgwMCswn/J+r7+g9xz+ur1qfEaUioDEuBMxd9Ep5
-	44D9InNFRGnjwKJ+1nqHOBbTOAohxuetAZck8rHMccxmjhSJ+SabJLVmwkqp9Gv9ht9oMBCxM1e
-	mHObfSMBmfVH2whAZ1BpWsfMjuvnogPtOUzq5lpY7BYMSa5OaQtF/GEESAJ7Sd11gHBlODw2uNM
-	rB6+IcgDXwN54r9oa5j1zMRX3Jk57x8yAuR10QIMpFQbXneXfsUh1GFfdhdFeKGh1OgzhlmFe8J
-	1VEmZyw9DIMIlGkR0/yDaBRwWcmOk3RqHhNf14VsJiyo3tYrigJktFEp7k7uxSyx0mzpjTkMwwH
-	PmMLDR7cE1VcqptElNdJVMdOTQpTp/j1Npfw8QCp26JiJuPNEntAhPj5zzqS6rFEZ4Bf+CGWqdv
-	6o=
-X-Received: by 2002:a05:6000:18af:b0:45e:9304:a4c3 with SMTP id ffacd0b85a97d-45eb333aa31mr28185448f8f.19.1779808701891;
-        Tue, 26 May 2026 08:18:21 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45eb6cd1780sm38974606f8f.16.2026.05.26.08.18.21
+        d=1e100.net; s=20251104; t=1779809845; x=1780414645;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=mEu5haSOg9MswhbLQuLwhfuoJ04JYV0iIkWmF1VBvMA=;
+        b=svxkLbf22nCOtVfz+o/HjUGtz6TMiNN9VxoyqkDmP6nSX5v6MyzP6i+l+HTcVflsaJ
+         bgTfK5ZWmfb2YJ5G2Ep6dHcpgEqJQaOeGMjztgUgEPgYdzigpx6ecyW9XS1gmFY/qDZe
+         zwdzR+bofg2Y5NOgDSipfvKzUN+IoG1BBAn4Xd5p9WtaIgJOQ31leIWPomORJgU7MLg9
+         cglSPguFR9u5V6T3r/w66p5CQ0aF4TptEvFVpxvWXdgY/skXu7l6i1X8wZ9+b3NzDwZf
+         zAdGmqiSNt/ZoV/3cB7IJVogTyiGS/oi9kIKDHbpOojDvZLN2it4vj7jP1X+SB9eSWSq
+         Qqrw==
+X-Forwarded-Encrypted: i=1; AFNElJ+qVHedcsiplNMMnyZQ5dA1+fF21JTQ6hfopvljC5GimlOMpklHCNPiKqRlZ0ovTiyOL/xRlAabEtWRn7SIiY0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzKqDTRJn5tHiGQt3gGfAPu4dQSZ3AnmbY70x3zThsGxzkdPCjZ
+	vt7CcP90exf6nKxZ5lHONPEkw8nSEIOMDf/KmM3Vaf+tUJZgGe5XmQtK
+X-Gm-Gg: Acq92OFSqT/vCGZCOZo6TkNI8CzcxlMFIVy+yuLp7L3xwPcW1dmshJNqocaPnursNId
+	zTBlvANybX0ykIRdOCdH/huj1voUFK2YVq7XsRqIu0166u3XGW2sd5fmC2jwnGuJb2qpF4zfTEt
+	AyXkloMOpSg8Nvoh81dF8hfKzXcIaUM0oB5aMZPMpGA85nfaYsf23Iew2XcrNQeDOiGLmQojTFx
+	WFXVvWDcJFOmEtXHiSAbp/dX6CasyqjlTk2fNgrd82Ja8ktvhH4I+lAXHnhTeyjwiNCbztHji0z
+	zkEy3t5k4znYWmSrPMOTXVTEwbs++kwta47Q5xyAI9k+1nB29JsrEJ7CAydm3gAZf7CNk6bBv3v
+	EyOPh6hvTWaYXXKAqwLYhNuvRQx9CERQeTyRd0fuigqQl0gAh54GKvMD5DQhm5SZBHWqmghlzGp
+	bdysAlV6YFbhd9WZ4w7ZwFL7kpIP4=
+X-Received: by 2002:a05:600c:8484:b0:48a:906b:14ca with SMTP id 5b1f17b1804b1-490426cd8c4mr338065445e9.20.1779809844415;
+        Tue, 26 May 2026 08:37:24 -0700 (PDT)
+Received: from mtardy-friendly-lvh-runner.local ([2600:1900:4010:1a8::])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-4907df9edeasm1083655e9.9.2026.05.26.08.37.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 May 2026 08:18:21 -0700 (PDT)
-Date: Tue, 26 May 2026 16:18:20 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: kernel test robot <lkp@intel.com>
-Cc: Kacper Kokot <kacper.kokot.44@gmail.com>, Pablo Neira Ayuso
- <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter
- <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
- <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-kernel@vger.kernel.org, oe-kbuild-all@lists.linux.dev,
- netdev@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option
- is unaligned
-Message-ID: <20260526161820.63c56e56@pumpkin>
-In-Reply-To: <202605261527.v5NoRvES-lkp@intel.com>
-References: <20260525201116.407338-2-kacper.kokot.44@gmail.com>
-	<202605261527.v5NoRvES-lkp@intel.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+        Tue, 26 May 2026 08:37:23 -0700 (PDT)
+From: Mahe Tardy <mahe.tardy@gmail.com>
+To: bpf@vger.kernel.org
+Cc: martin.lau@linux.dev,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	ast@kernel.org,
+	andrii@kernel.org,
+	yonghong.song@linux.dev,
+	jordan@jrife.io,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	Mahe Tardy <mahe.tardy@gmail.com>
+Subject: [PATCH bpf-next v7 0/7] bpf: add icmp_send kfunc
+Date: Tue, 26 May 2026 15:37:01 +0000
+Message-Id: <20260526153708.279717-1-mahe.tardy@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Tue, 26 May 2026 15:50:00 +0200
-kernel test robot <lkp@intel.com> wrote:
+Hello,
 
-> Hi Kacper,
-> 
-> kernel test robot noticed the following build warnings:
-> 
-> [auto build test WARNING on nf-next/main]
-> [also build test WARNING on netfilter-nf/main linus/master v6.16-rc1 next-20260525]
-> [If your patch is applied to the wrong git tree, kindly drop us a note.
-> And when submitting patch, we suggest to use '--base' as documented in
-> https://git-scm.com/docs/git-format-patch#_base_tree_information]
-> 
-> url:    https://github.com/intel-lab-lkp/linux/commits/Kacper-Kokot/netfilter-TCPMSS-fix-dropped-packets-when-MSS-option-is-unaligned/20260526-041308
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git main
-> patch link:    https://lore.kernel.org/r/20260525201116.407338-2-kacper.kokot.44%40gmail.com
-> patch subject: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option is unaligned
-> config: x86_64-rhel-9.4-ltp (https://download.01.org/0day-ci/archive/20260526/202605261527.v5NoRvES-lkp@intel.com/config)
-> compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260526/202605261527.v5NoRvES-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202605261527.v5NoRvES-lkp@intel.com/
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    net/netfilter/xt_TCPMSS.c: In function 'tcpmss_mangle_packet':
-> >> net/netfilter/xt_TCPMSS.c:140:66: warning: suggest parentheses around comparison in operand of '&' [-Wparentheses]  
->      140 |                         if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {
->          |                                                                  ^
+This is v7 of adding the icmp_send kfunc, as suggested during LSF/MM/BPF
+2025[^1]. The goal is to allow cgroup_skb programs to actively reject
+east-west traffic, similarly to what is possible to do with netfilter
+reject target. Applications can receive early feedback that something
+went wrong during the TCP handshake.
 
-and, of course, the code works fine because 0x1 != 0 is 1.
+The first step to implement this is using ICMP control messages, with
+the ICMP_DEST_UNREACH type with various code ICMP_NET_UNREACH,
+ICMP_HOST_UNREACH, ICMP_PROT_UNREACH, etc. This is easier to implement
+than a TCP RST reply and will already hint the client TCP stack to abort
+the connection and not retry extensively.
 
-K (or maybe R) said that with hindsight they should have corrected the
-priority of & and | when they added && and || and just fixed all the
-existing code so it still worked.
+Note that this is different than the sock_destroy kfunc, that along
+calls tcp_abort and thus sends a reset, destroying the underlying
+socket.
 
--- David
+Caveats of this kfunc design are that a program can call this function N
+times, thus send N ICMP unreach control messages and that the program
+can return from the BPF filter with pass leading to a potential
+confusing situation where the TCP connection was established while the
+client received ICMP_DEST_UNREACH messages.
 
-> 
-> 
-> vim +140 net/netfilter/xt_TCPMSS.c
-> 
->     69	
->     70	static int
->     71	tcpmss_mangle_packet(struct sk_buff *skb,
->     72			     const struct xt_action_param *par,
->     73			     unsigned int family,
->     74			     unsigned int tcphoff,
->     75			     unsigned int minlen)
->     76	{
->     77		const struct xt_tcpmss_info *info = par->targinfo;
->     78		struct tcphdr *tcph;
->     79		int len, tcp_hdrlen;
->     80		unsigned int i;
->     81		__be16 oldval;
->     82		u16 newmss;
->     83		u8 *opt;
->     84	
->     85		/* This is a fragment, no TCP header is available */
->     86		if (par->fragoff != 0)
->     87			return 0;
->     88	
->     89		if (skb_ensure_writable(skb, skb->len))
->     90			return -1;
->     91	
->     92		len = skb->len - tcphoff;
->     93		if (len < (int)sizeof(struct tcphdr))
->     94			return -1;
->     95	
->     96		tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
->     97		tcp_hdrlen = tcph->doff * 4;
->     98	
->     99		if (len < tcp_hdrlen || tcp_hdrlen < sizeof(struct tcphdr))
->    100			return -1;
->    101	
->    102		if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
->    103			struct net *net = xt_net(par);
->    104			unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
->    105			unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
->    106	
->    107			if (min_mtu <= minlen) {
->    108				net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
->    109						    min_mtu);
->    110				return -1;
->    111			}
->    112			newmss = min_mtu - minlen;
->    113		} else
->    114			newmss = info->mss;
->    115	
->    116		opt = (u_int8_t *)tcph;
->    117		for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
->    118			if (opt[i] == TCPOPT_MSS && opt[i+1] == TCPOLEN_MSS) {
->    119				u_int16_t oldmss;
->    120				u16 csum_oldmss, csum_newmss;
->    121	
->    122				oldmss = (opt[i+2] << 8) | opt[i+3];
->    123	
->    124				/* Never increase MSS, even when setting it, as
->    125				 * doing so results in problems for hosts that rely
->    126				 * on MSS being set correctly.
->    127				 */
->    128				if (oldmss <= newmss)
->    129					return 0;
->    130	
->    131				opt[i+2] = (newmss & 0xff00) >> 8;
->    132				opt[i+3] = newmss & 0x00ff;
->    133	
->    134				csum_oldmss = htons(oldmss);
->    135				csum_newmss = htons(newmss);
->    136	
->    137				/* MSS may be unaligned; fix up the incremental checksum
->    138				 * to avoid an invalid checksum and a dropped packet.
->    139				 */
->  > 140				if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {  
->    141					csum_oldmss = swab16(csum_oldmss);
->    142					csum_newmss = swab16(csum_newmss);
->    143				}
->    144	
->    145				inet_proto_csum_replace2(&tcph->check, skb,
->    146							 csum_oldmss, csum_newmss,
->    147							 false);
->    148				return 0;
->    149			}
->    150		}
->    151	
->    152		/* There is data after the header so the option can't be added
->    153		 * without moving it, and doing so may make the SYN packet
->    154		 * itself too large. Accept the packet unmodified instead.
->    155		 */
->    156		if (len > tcp_hdrlen)
->    157			return 0;
->    158	
->    159		/* tcph->doff has 4 bits, do not wrap it to 0 */
->    160		if (tcp_hdrlen >= 15 * 4)
->    161			return 0;
->    162	
->    163		/*
->    164		 * MSS Option not found ?! add it..
->    165		 */
->    166		if (skb_tailroom(skb) < TCPOLEN_MSS) {
->    167			if (pskb_expand_head(skb, 0,
->    168					     TCPOLEN_MSS - skb_tailroom(skb),
->    169					     GFP_ATOMIC))
->    170				return -1;
->    171			tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
->    172		}
->    173	
->    174		skb_put(skb, TCPOLEN_MSS);
->    175	
->    176		/*
->    177		 * IPv4: RFC 1122 states "If an MSS option is not received at
->    178		 * connection setup, TCP MUST assume a default send MSS of 536".
->    179		 * IPv6: RFC 2460 states IPv6 has a minimum MTU of 1280 and a minimum
->    180		 * length IPv6 header of 60, ergo the default MSS value is 1220
->    181		 * Since no MSS was provided, we must use the default values
->    182		 */
->    183		if (xt_family(par) == NFPROTO_IPV4)
->    184			newmss = min(newmss, (u16)536);
->    185		else
->    186			newmss = min(newmss, (u16)1220);
->    187	
->    188		opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
->    189		memmove(opt + TCPOLEN_MSS, opt, len - sizeof(struct tcphdr));
->    190	
->    191		inet_proto_csum_replace2(&tcph->check, skb,
->    192					 htons(len), htons(len + TCPOLEN_MSS), true);
->    193		opt[0] = TCPOPT_MSS;
->    194		opt[1] = TCPOLEN_MSS;
->    195		opt[2] = (newmss & 0xff00) >> 8;
->    196		opt[3] = newmss & 0x00ff;
->    197	
->    198		inet_proto_csum_replace4(&tcph->check, skb, 0, *((__be32 *)opt), false);
->    199	
->    200		oldval = ((__be16 *)tcph)[6];
->    201		tcph->doff += TCPOLEN_MSS/4;
->    202		inet_proto_csum_replace2(&tcph->check, skb,
->    203					 oldval, ((__be16 *)tcph)[6], false);
->    204		return TCPOLEN_MSS;
->    205	}
->    206	
-> 
-> --
-> 0-DAY CI Kernel Test Service
-> https://github.com/intel/lkp-tests/wiki
-> 
+v2 updates:
+- fix a build error from a missing function call rename;
+- avoid changing return line in bpf_kfunc_init;
+- return SK_DROP from the kfunc (similarly to bpf_redirect);
+- check the return value in the selftest.
+
+v3 update:
+- fix an undefined reference build error.
+
+v4 updates:
+- prevent the kfunc to be called recursively and add a test (thanks to
+  Martin).
+- do not fetch dst route when unnecessary (thanks to Martin).
+- extend the test for IPv6 (thanks to Martin).
+- use SK_DROP in examples and use non blocking sockets for testing
+  (thanks to Martin).
+- test when the kfunc returns -EINVAL (thanks to Jordan).
+- add the kfunc to bpf_kfunc_set_skb as suggested by Alexei.
+- guard the IPv4 parts with IS_ENABLED(CONFIG_INET).
+- fix a wrong initial value for client_fd (thanks to Yonghong).
+- add documentation to the kfunc.
+- to Jordan: I couldn't include <linux/icmp.h> because of redefines from
+  <network_helpers.h>.
+
+v5 updates:
+- kfunc name is now icmp_send and takes the control message type as
+  parameter for future potential extension (daniel)
+- drop the net patches to route packet since now the kfunc is limited to
+  cgroup_skb and tc progs (daniel & martin)
+- linearize skb headers (sashiko)
+- zero SKB control block (sashiko)
+- bind to port 0 instead of fixed port (sashiko)
+- poll to wait for POLLERR event (sashiko)
+- do not use ASSERT_EQ in CMSG_NXTHDR loop (sashiko)
+- fix comment about byte order (sashiko)
+- fix endianness IP address issue (sashiko)
+- add forgotten cleanup_cgroup_environment (sashiko)
+- let packets pass in recursion test (sashiko)
+- clarify evaluation order for recursion test (sashiko)
+
+v6 updates (all from sashiko):
+- bring back the net patches to route packet since tc ingress needs it.
+- rename the ip_route_reply helpers from fetch to fill.
+- call pskb_network_may_pull on the cloned pkt.
+- check explicitly that we received one and only one ICMP err ctrl msg.
+
+v7 updates:
+- use consume_skb on success path (stanislav)
+- replace recursion protection with CPU_ARRAY by checking the nature of
+  the sk (daniel, offline)
+- use reverse xmas tree in read_icmp_errqueue (jordan)
+- use ASSERT_OK_FD instead of ASSERT_GE whenever possible (jordan)
+- add a test for tc (jordan)
+- better filtering from host cgroup test progs (sashiko)
+
+[^1]: https://lwn.net/Articles/1022034/
+
+Link to v6: https://lore.kernel.org/bpf/20260518122842.218522-1-mahe.tardy@gmail.com/
+
+Mahe Tardy (7):
+  net: move netfilter nf_reject_fill_skb_dst to core ipv4
+  net: move netfilter nf_reject6_fill_skb_dst to core ipv6
+  bpf: add bpf_icmp_send kfunc
+  selftests/bpf: add bpf_icmp_send kfunc cgroup_skb tests
+  selftests/bpf: add bpf_icmp_send kfunc cgroup_skb IPv6 tests
+  selftests/bpf: add bpf_icmp_send kfunc tc tests
+  selftests/bpf: add bpf_icmp_send recursion test
+
+ include/net/ip6_route.h                       |   2 +
+ include/net/route.h                           |   1 +
+ net/core/filter.c                             | 109 ++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c           |  19 +-
+ net/ipv4/route.c                              |  15 ++
+ net/ipv6/netfilter/nf_reject_ipv6.c           |  17 +-
+ net/ipv6/route.c                              |  18 ++
+ .../bpf/prog_tests/icmp_send_kfunc.c          | 243 ++++++++++++++++++
+ tools/testing/selftests/bpf/progs/icmp_send.c | 172 +++++++++++++
+ 9 files changed, 563 insertions(+), 33 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/icmp_send_kfunc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/icmp_send.c
+
+--
+2.34.1
 
