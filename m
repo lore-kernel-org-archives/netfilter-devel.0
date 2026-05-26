@@ -1,141 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B7443B47FD;
-	Tue, 26 May 2026 16:20:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A373B38AB
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 16:40:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779812418; cv=none; b=OAyNR8TXrRGtczEKtN3qsRvFHZ5N77JVngLkJLFVECks5AhkUNWK29Q5okDcEFfU+iEJLwsAh6wUpYic/KMYU8b2ZRtTmY5UTzwPKlAe9ThV4jCeh9pJAvYmJWRrT6h3WWQ/vdKNlD97dE5jbNwI2EU1bp66Y9puOw4lvO7P0os=
+	t=1779813657; cv=none; b=g+2y+V4+Rg+GJduInAT0a71ippAyf5Gw0Kjx2BGDEB9yTDgk3HSY+lGVkZ2W0g016Duw8n3HhGqlETUfjhAWIQQSL5gVAKIybXCEOufvl3PytaMb/j39H8IWuhjKB2GF9/1ZgMipcjkOnJ+igBybvOpWcasHHkokXODYVYfKBrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779812418; c=relaxed/simple;
-	bh=LNzcUEFKM3rHewgRlY/HtPpw16korDka0RAidYMf+KY=;
-	h=Content-Type:MIME-Version:Message-Id:In-Reply-To:References:
-	 Subject:From:To:Cc:Date; b=c+/Hk+m4dK+3G8+R3l6ztWzrTvzfXQL6xj8pB3tZ5nhYdpIni3+t2LVRFWkqGXYfP3CwHRrIXg9+Jk2beskmj9xWwLnfSeeb3cHdo13jLZAo9EaVEwMCk/Bzy0JdEl8V135NEG2L730rC3taunMp/Mpp4NLJdW7JYGan+qKKWjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WmJPN2Vw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779813657; c=relaxed/simple;
+	bh=siU26rmEBLgDqcJGBl99JDiuh1ptxfNNJvToFFG4uXo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dwrEXmxShgjEdD6+1dsUSBjlC9ivBaui7R8klZYJhnhNHMZOpDjpKageA/Hm10v/TH7Cs/e7+4pwIisl3aeErzVaoPZxfRpuHHb8DhkclVn7pMwWSFlt3vR9OHYTkdq0pLSRHhiJxzguyM2uQM7vRQah4LWabHkUTkD6yq24Cmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FwQj01AD; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WmJPN2Vw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EB851F000E9;
-	Tue, 26 May 2026 16:20:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779812416;
-	bh=uzRt0vOXQxsGI9u7t/+Q2pQZCKwVypSMRt8xxBQ14B0=;
-	h=In-Reply-To:References:Subject:From:To:Cc:Date;
-	b=WmJPN2VwKYI+6G+7eNsmqi8FZIcd850lFrIfva6YVIsIlTU0WRta2mqHfEazY8Xh1
-	 btSV45rTDvJ1zQUMAUVX1SeOnA+pt47+eEyy59+j5MP3YLNfnhcXVDLAXVYuz2A3WB
-	 kZZaclVYtnwmXJWDIrYU9nPlHLjJgzReA/yykqRFxMwmSXJtY6jqSamHNky5qjMZBt
-	 XYFpcldu1CzfpM/rEGEHnftNQXDSTSjCQk+bWGWg14I3nR+IXUdMHp575aEcRK3C0+
-	 o9WSE1greKw2UPZy9zr3gpe7PIxVqEU9x5BS9wVEOFQkXXxy5NilnlMKFdnO3IW8sq
-	 gxZQ40m3tV6Eg==
-Content-Type: multipart/mixed; boundary="===============6950901046391295818=="
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FwQj01AD"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4AF3E604FC;
+	Tue, 26 May 2026 18:40:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1779813652;
+	bh=yufVplPZQREc8lfOr+hxyRDxeccTemOKdnhhZ9Nhn3E=;
+	h=From:To:Cc:Subject:Date:From;
+	b=FwQj01ADSzoCi7fixqxOy7kCyWS5CEgiProOg7SHA9MLBJvKAI0w84q/pcYNXKvRF
+	 XCoOgQiwaXm8NrwG2FgUBhNi7aPfn7uKoQFY0AwlssiJ/DIh7zxwQptAeQ5CEQyoOC
+	 fY47NbFhdGSeXO6bSCOU2tzckFArELLZ/DcLTQEob6VKtY2GFrl3Fvqu9iETXxqPzp
+	 q4K/3hoTyVWF5mGKquLL2UGG+drOTkB2eA9UqcUrOHroEcsC+gwux+PiPa5lPVF0N7
+	 4u1xUpdqHemIC0kHS7bkQvMnYc1FNUU+ftiWCGxO7xx00f57sAXK8yyolLNPbFNGsf
+	 gMxWsrYVpNJaQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next 0/6] add refcount to ct timeout/helper
+Date: Tue, 26 May 2026 18:40:43 +0200
+Message-ID: <20260526164049.148218-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <e05eecf46884c32961a01faff14a72c8382f2a3083999cb88158a1958ffd83d1@mail.kernel.org>
-In-Reply-To: <20260526153708.279717-2-mahe.tardy@gmail.com>
-References: <20260526153708.279717-2-mahe.tardy@gmail.com>
-Subject: Re: [PATCH bpf-next v7 1/7] net: move netfilter nf_reject_fill_skb_dst to core ipv4
-From: bot+bpf-ci@kernel.org
-To: mahe.tardy@gmail.com,bpf@vger.kernel.org
-Cc: martin.lau@linux.dev,daniel@iogearbox.net,john.fastabend@gmail.com,ast@kernel.org,andrii@kernel.org,yonghong.song@linux.dev,jordan@jrife.io,netdev@vger.kernel.org,netfilter-devel@vger.kernel.org,edumazet@google.com,kuba@kernel.org,pabeni@redhat.com,mahe.tardy@gmail.com,ast@kernel.org,andrii@kernel.org,daniel@iogearbox.net,martin.lau@kernel.org,eddyz87@gmail.com,yonghong.song@linux.dev,clm@meta.com,ihor.solodrai@linux.dev
-Date: Tue, 26 May 2026 16:20:16 +0000 (UTC)
+Content-Transfer-Encoding: 8bit
 
---===============6950901046391295818==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Hi,
 
-> diff --git a/include/net/route.h b/include/net/route.h
-> index f90106f383c5..300d292cd9a1 100644
-> --- a/include/net/route.h
-> +++ b/include/net/route.h
-> @@ -173,6 +173,7 @@ struct rtable *ip_route_output_flow(struct net *, struct flowi4 *flp,
->  				    const struct sock *sk);
->  struct dst_entry *ipv4_blackhole_route(struct net *net,
->  				       struct dst_entry *dst_orig);
-> +int ip_route_reply_fill_dst(struct sk_buff *skb);
->
->  static inline struct rtable *ip_route_output_key(struct net *net, struct flowi4 *flp)
->  {
+This is change in the direction of the original series..
 
-[ ... ]
+This series reworks the ct timeout/helper infrastructure to add a
+refcount for tracking the use of these objects from the ct extension
+area.
 
-> diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-> index 3d62d45d84bd..ff79992ce098 100644
-> --- a/net/ipv4/route.c
-> +++ b/net/ipv4/route.c
-> @@ -2945,6 +2945,21 @@ struct rtable *ip_route_output_flow(struct net *net, struct flowi4 *flp4,
->  }
->  EXPORT_SYMBOL_GPL(ip_route_output_flow);
->
-> +int ip_route_reply_fill_dst(struct sk_buff *skb)
-> +{
-> +	struct rtable *rt;
-> +	struct flowi4 fl4 = {
-> +		.daddr = ip_hdr(skb)->saddr
-> +	};
-                   ^^^^
+This is to address the existing races with unconfirmed conntracks that
+could sit in the nfqueue (or elsewhere) leading to access to stale
+pointer on reinject if ct timeout/helper goes away. Also module removal
+could lead to issues.
 
-Can ip_hdr(skb)->saddr be accessed safely here?
+The idea in this series is to dynamically allocation the ct helper and
+timeout so the memory areas are released when the last use on them is
+dropped via refcounting.
 
-Now that this is exported for BPF kfuncs, it can be reached from early
-hooks like TC ingress where the IPv4 header might not be linearized yet.
+Patch #1 adds the {READ,WRITE}_ONCE notation to nfnetlink_cthelper.
+Patch #2 adds refcounting to the ct timeout policy.
+Patch #3 is a preparation patch which moves the ct helper from BSS
+         to slab.
+Patch #4 move GRE PPTP destroy so removal of .destroy so this stays
+         around on removal.
+Patch #5 add the refcounting to the ct helper datapath.
+Patch #6 revert the ct extension genid and the nf_ct_iterate_destroy()
+         now that refcounting tracks use of these ct extensions.
 
-If a malformed packet contains less than sizeof(struct iphdr) bytes of
-linear data, accessing the saddr field could read beyond the available
-linear buffer.
+Comments welcome.
 
-Does this function need validation via pskb_may_pull() or similar to
-ensure the header is accessible?
+Thanks.
 
-Note: This concern was raised by sashiko-bot@kernel.org in v4 review
-(https://lore.kernel.org/bpf/20260421111320.D97D9C2BCB0@smtp.kernel.org/)
-and repeated in v6. The author responded that 'it should be fine since
-it's the caller responsability to make sure the header has been
-linearized, and we are calling pskb_network_may_pull' but the function
-itself does not validate this, leaving it vulnerable if called
-incorrectly.
+Pablo Neira Ayuso (6):
+  netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
+  netfilter: cttimeout: detach dataplane timeout policy and add refcount
+  netfilter: nf_conntrack_helper: dynamically allocate struct nf_conntrack_helper
+  netfilter: nf_conntrack_pptp: move GRE specific cleanup to GRE tracker
+  netfilter: nf_conntrack_helper: add refcounting from datapath
+  netfilter: conntrack: revert ct extension genid infrastructure
 
-> +
-> +	rt = ip_route_output_key(dev_net(skb->dev), &fl4);
-                                               ^^^^^^^^
+ .../net/netfilter/ipv4/nf_conntrack_ipv4.h    |   4 +
+ include/net/netfilter/nf_conntrack.h          |   6 +-
+ include/net/netfilter/nf_conntrack_extend.h   |  12 --
+ include/net/netfilter/nf_conntrack_helper.h   |  41 ++++--
+ include/net/netfilter/nf_conntrack_timeout.h  |  21 +++
+ net/ipv4/netfilter/nf_nat_snmp_basic_main.c   |  19 ++-
+ net/netfilter/nf_conntrack_amanda.c           |  39 ++----
+ net/netfilter/nf_conntrack_core.c             | 130 ++----------------
+ net/netfilter/nf_conntrack_extend.c           |  32 +----
+ net/netfilter/nf_conntrack_ftp.c              |   5 +-
+ net/netfilter/nf_conntrack_h323_main.c        |  91 +++++-------
+ net/netfilter/nf_conntrack_helper.c           |  97 ++++++++-----
+ net/netfilter/nf_conntrack_irc.c              |   5 +-
+ net/netfilter/nf_conntrack_netbios_ns.c       |  18 ++-
+ net/netfilter/nf_conntrack_netlink.c          |  12 +-
+ net/netfilter/nf_conntrack_ovs.c              |  14 +-
+ net/netfilter/nf_conntrack_pptp.c             |  87 ++----------
+ net/netfilter/nf_conntrack_proto.c            |  15 +-
+ net/netfilter/nf_conntrack_proto_gre.c        |  61 ++++++++
+ net/netfilter/nf_conntrack_sane.c             |   5 +-
+ net/netfilter/nf_conntrack_sip.c              |   5 +-
+ net/netfilter/nf_conntrack_snmp.c             |  21 ++-
+ net/netfilter/nf_conntrack_tftp.c             |   5 +-
+ net/netfilter/nf_conntrack_timeout.c          |  20 ++-
+ net/netfilter/nf_nat_core.c                   |  15 +-
+ net/netfilter/nfnetlink_cthelper.c            |  40 +++---
+ net/netfilter/nfnetlink_cttimeout.c           |  75 +++++-----
+ net/netfilter/nft_ct.c                        |   7 +-
+ net/netfilter/xt_CT.c                         |   7 +-
+ 29 files changed, 418 insertions(+), 491 deletions(-)
 
-Can skb->dev be NULL here?
+-- 
+2.47.3
 
-While safe in its original netfilter context, a BPF_PROG_TYPE_NETFILTER
-program attached to the NF_INET_LOCAL_OUT hook will receive locally
-generated SKBs before skb->dev is assigned (in __ip_local_out before
-ip_output).
-
-If called from such contexts, dev_net(skb->dev) would trigger a kernel
-panic.
-
-Does this function need a NULL check on skb->dev?
-
-Note: This concern was raised by sashiko-bot@kernel.org in v4 review
-(https://lore.kernel.org/bpf/20260421111320.D97D9C2BCB0@smtp.kernel.org/)
-and repeated in v6. The author responded that 'We can't attach such
-program as now it's only cgroup_skb and tc, outdated' but the function
-is exported via EXPORT_SYMBOL_GPL without any enforcement, making it
-callable from contexts where skb->dev might be NULL.
-
-> +	if (IS_ERR(rt))
-> +		return PTR_ERR(rt);
-> +	skb_dst_set(skb, &rt->dst);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(ip_route_reply_fill_dst);
-> +
->  /* called with rcu_read_lock held */
->  static int rt_fill_info(struct net *net, __be32 dst, __be32 src,
->  			struct rtable *rt, u32 table_id, dscp_t dscp,
-
-
----
-AI reviewed your patch. Please fix the bug or email reply why it's not a bug.
-See: https://github.com/kernel-patches/vmtest/blob/master/ci/claude/README.md
-
-CI run summary: https://github.com/kernel-patches/bpf/actions/runs/26459248718
---===============6950901046391295818==--
