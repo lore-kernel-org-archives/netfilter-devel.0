@@ -1,165 +1,122 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 715B0413256
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 13:39:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6FD03B7767
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 13:57:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779889172; cv=none; b=evawV8B27pNTHcw8EWZ8eSVzhRq2bWhRNjo3BAdabh24CokPMb3BPNNiUGPSYVNVySUIFR3G0r1gWmufsnWcQ39zoNAmEK2KorvYp9xhNRaBTGzP4wJxoyPYF5K/oJ2gWhLz7BkczrmSsw0pRrrgov9OC808Nh1KnNDSKur/NC0=
+	t=1779890277; cv=none; b=ap+KU2zo6efLyNdH0gLXq+SqcKTQvra3+1PFByJK7KZD0E68K4C7iDKn8Wn/i7N5f2sgo5a6yIOwpSShpRoXJkPfVoAuxwoxsH9MhYyvPrp+MISBzYPiTTNkppito2pZgQKFdWEEc5jRQqZOTS6OESmdF/ORcu46Z50NPAjadFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779889172; c=relaxed/simple;
-	bh=8vB6PNH5EYIKrHGMeHsKqkKHzd8mJoo3xRPmQ7v/sTM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DQuPnjOaQldEqmrEcsjMWv8h9u8oFG326xMS+qVp8FDppb3BZio4d4KkQChmp1c/4bsLzAdXRAyGIlVz3kBpKPl+9AlvKtfuuPy8hOcW94AejO+Xv7aYb8SPl/YRVI5Cxv908IVfuFBiQLB3HdkFEu4PJeJEewee74emPfTkf0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id AE0F56070B; Wed, 27 May 2026 15:39:24 +0200 (CEST)
-Date: Wed, 27 May 2026 15:39:18 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 5/6] netfilter: nf_conntrack_helper: add
- refcounting from datapath
-Message-ID: <ahb0Bgll-VmTLwlr@strlen.de>
-References: <20260526164049.148218-1-pablo@netfilter.org>
- <20260526164049.148218-6-pablo@netfilter.org>
- <ahXea1N1w40Siqin@strlen.de>
- <ahYcZ_dFZpAV3B1Z@chamomile>
+	s=arc-20240116; t=1779890277; c=relaxed/simple;
+	bh=eZu08mVs02TntUL7GMXdknTj6wwcyvaBBkvZpAxupeQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JgInCsaHhoMd0AFrBGIcxFQrgW+B2xyIEs2Jq+QZkApmztF3B3BoJWTLuZ85qISWtwaa4tXgZrt2JdacjG1z6fWOyKnvPosAupo15gh7FDAHrTTCzmVZdgWIrUbfyKKu6p++LTx4C/n+lJjLRX63vyxObsheKLOp9vFVJPnzgb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kRbl+Os/; arc=none smtp.client-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kRbl+Os/"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-43d76dd4ee8so7125930f8f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 06:57:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779890273; x=1780495073; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ylxspOikl//hUYOHTbCgkMeRhn08cWcQtF58xpwNlyg=;
+        b=kRbl+Os/RBeRxw8GuAPgMwvooTT2cYkvimcE2CiNAhVYRID4+FsN/KmJ/n0BPPyYZG
+         7mFp3XSaQkjZL2kW9zzRIunJPgPIbeoKUyUKrq98QbgjAuux4AF1aEuSRLA9zbH/VZNc
+         e53CpKo6CicERJpmoF9vojJCZBabseM3uaL7ZbpSnbn/R4vnXjrs/wHDpCq1SdtH7VaL
+         /xjps3af4vjbFagMPDdVf8RUj6wsg5ug8l1D0qrXAXarP/93tgybnN7Q9IPOlxNdvRAl
+         DZg4KdVTPCi31K5FVOswFa6y3mNPp5S5t9XuH2p2AdmlaOV3GArh0y3M2S+ur2YLHl4/
+         yErA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779890273; x=1780495073;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ylxspOikl//hUYOHTbCgkMeRhn08cWcQtF58xpwNlyg=;
+        b=a5KVRVrOVPFuSCOcfGgM0tKJ3vaksv9M2cYWDVSI0NX2oRBNdERDzEs1Qewoze3U+c
+         myYFB0aKqcWe30FSj3eaiFz//ypTQgU+JAFGz3dC8yWw5wpgJKAoJfbxr8y3ba2Jd58D
+         5Osh/SJzKeHMkHhngLn6N7Bek/3H9sn7kjFJvzfcSrbTYokWZBfBteUH64fKp2W4IsLv
+         DO/0tylt+DuPyjpqdJgTQpD9+d48b9YNjS1gmDkJhgPQ+PffonkcZzv4/s/LRssVxrzt
+         ntM7s510F/9BHRcIgjgvP4+BTIgV5IEB1pU1tBYfL2DZ1idSG8tqDQ4oAG7+8LuNuEVM
+         X/wg==
+X-Forwarded-Encrypted: i=1; AFNElJ/f5AL344Gl6FcSit03DzH12JhupfE/+rqm33dTBoTX+8BMXO5yyqFiGol3apmNIi7ad8ZXUqIfYLOk3PZpnE8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyaGVMCiYE1xnr0w0LN7JbqOrAyZZRHBZjCLJQVOnb8GU7i54sj
+	nAURYK7+mn2xMav/ui+I28+Zjixw5Nbwiddzg0djCWR3nawXxOYrZmQ=
+X-Gm-Gg: Acq92OHFIjRbSeaCP9IyF/IwMpkUPOMKGg3+V/wBjejk1REF/R9QIWPcqO0LCVpeqOW
+	Rl8sbjGoGgkJABH71vFCLpKybIOZg4P+RESFw8ZR7QDrVpfQNtT/mUBupWYL/S8jFEPlN/pYJZ5
+	WUXdMW1ODNE9PCijJeH5sdgxo/yVRz7muHs7VHESc8MH2B9EF+PIGQ6D921V9TZKoHSKcF2l4uF
+	ddD1ak3q4fzumCI9ulGhDg3uX4OhAh5SvAGpg/RCgXTfQAU07tzHSxtHVPkjQa/FW5Cp7fuwJtG
+	NOElYHBRWtCBMC8QRQCHjzJAshceVpUs6ztBhyss6G1hihQEG7CXnl6w9bGFX2hYYUjsg6Kjjuf
+	P5b2OHY4qvl+p1jVf8RRyyJqmdh8MdpWbnKIr0cD2HZhJ0SXCoTsigw41kiU+87L7Ob/C697p3I
+	MARjA=
+X-Received: by 2002:a05:6000:144c:b0:43d:77e1:6a69 with SMTP id ffacd0b85a97d-45eb38c2026mr39606398f8f.38.1779890272700;
+        Wed, 27 May 2026 06:57:52 -0700 (PDT)
+Received: from debian.. ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-45edb5c2323sm6388642f8f.34.2026.05.27.06.57.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 May 2026 06:57:51 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Tristan Madani <tristan@talencesecurity.com>
+Subject: [PATCH] netfilter: nft_tunnel: fix use-after-free on object destroy
+Date: Wed, 27 May 2026 13:57:50 +0000
+Message-ID: <20260527135751.1031891-1-tristmd@gmail.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ahYcZ_dFZpAV3B1Z@chamomile>
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> The existing refcnt tracks references from the control plane, ie.
-> rules that point to helper. The new ct_refcnt tracks references from
-> ct extension.
+From: Tristan Madani <tristan@talencesecurity.com>
 
-Hmm... AFAICS its only used by userspace helpers.
+nft_tunnel_obj_destroy() calls metadata_dst_free() which directly
+kfree()s the metadata_dst, ignoring the dst_entry refcount. Packets
+that took a reference via dst_hold() in nft_tunnel_obj_eval() and
+are still queued (e.g. in a netem qdisc) are left with a dangling
+pointer. When these packets are eventually dequeued, dst_release()
+operates on freed memory.
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index de2f956abf34..31949f0c2755 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -33,7 +33,6 @@ struct nf_conntrack_helper {
-        struct hlist_node hnode;        /* Internal use. */
+Replace metadata_dst_free() with dst_release() so the metadata_dst
+is freed only after all references are dropped. The dst subsystem
+already handles metadata_dst cleanup in dst_destroy() when
+DST_METADATA is set.
 
-        char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
--       refcount_t refcnt;
-        struct module *me;              /* pointer to self */
-        const struct nf_conntrack_expect_policy *expect_policy;
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+Cc: stable@vger.kernel.org
+Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
+---
+ net/netfilter/nft_tunnel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 17e971bd4c74..c3698885e4ba 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -92,10 +92,6 @@ nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum)
- #endif
-        if (h != NULL && !try_module_get(h->me))
-                h = NULL;
--       if (h != NULL && !refcount_inc_not_zero(&h->refcnt)) {
--               module_put(h->me);
--               h = NULL;
--       }
-
-        rcu_read_unlock();
-
-@@ -105,7 +101,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_try_module_get);
-
- void nf_conntrack_helper_put(struct nf_conntrack_helper *helper)
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 0b987bc2132ae..68f7cfbbee063 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -676,7 +676,7 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
  {
--       refcount_dec(&helper->refcnt);
-        module_put(helper->me);
+ 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
+ 
+-	metadata_dst_free(priv->md);
++	dst_release(&priv->md->dst);
  }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_put);
-@@ -387,7 +382,7 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
-                        }
-                }
-        }
--       refcount_set(&me->refcnt, 1);
-+
-        hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
-        nf_ct_helper_count++;
- out:
+ 
+ static struct nft_object_type nft_tunnel_obj_type;
+-- 
+2.47.3
 
-... seems fine to me.  Unload is blocked by module refcount.
-This breaks with CONFIG_NF_CT_NETLINK_HELPER=m|y, of course.
-
-But I don't see the need for a separate helper either.
-AFAICS one could simply ignore the refcount on delete request:
-Instead of -EBUSY, -> refcount_dec + unlink from data structure.
-
-All other refcount holders need their own reference anyway.
-memory release on 1 -> 0 transition.
-
-If thats correct then we could use same refcount for both userspace
-helpers and datapath.
-
-But it looks like this refcnt is wrong in any case and should instead
-live in struct nfnl_cthelper -- its not related to the (c-implemented)
-helper backends.
-
-> ct helper. The idea is to allow track the helper in memory so it does
-> not go away even in module is removed/userspace helper is destroyed.
-
-Yes, just so we are on the same page: that part makes sense to me.
-
-> > > +	/* This helper is going away, disable it. */
-> > > +	rcu_assign_pointer(me->help, NULL);
-> > > +
-> > 
-> > OK, so this signals pending removal (refcnt can still be elevated) to
-> > prevent new packets/expectations from grabbing another reference.
-> > Correct?  Is this a 'dying' flag or is there more to it?
-> 
-> Yes, this is a "dying flag".
-
-Ok.
-
-> > I looked at patched 'nf_conntrack_ftp_fini', but I don't see anything
-> > that spins/waits for completion of referencing entries.
-> 
-> Given the helper object is allocated dynamically, it will remain
-> around until last reference is dropped.
-
-Yes, I see that now.  I was confused by other callbacks, esp.
-->destroy, remaining initialised.
-
-> .help is set to NULL.
-> .to_nlattr and .from_nlattr are disabled.
-> .destroy, I moved it to nf_conntrack with the intention that this
-> pointer is not stale.
-
-OK, so its in same module and followup patch could replace callback by a
-direct call.
-
-> > I suspect you need to move the function pointers to an 'op' sub-struct,
-> > so that it can be cleared via single rcu_assign_pointer(me->help_ops, NULL) ?
-> 
-> I think I cannot disable .destroy that way, it clears the GRE entries
-> which release the pptp mappings.
-
-Yes, I missed the fact that this is moved to the core.
-
-> > Maybe we need to accelerate pptp removal so the only user of destroy
-> > is removed?
-> 
-> Flagging it as deprecated is convenient for distributors to stop
-> compiling this, noone should be using this pptp in 2026 I think.
-
-Agreed.
-
-> I'd rather see a more simple fix, but I am not sure this can be fixed
-> for all scenarios (sashiko mentioned also a skb could be sitting in
-> nf_defrag with a template conntrack with helper/timeout reference, so
-> nfqueue is no the only queue around).
-
-Yes, agreed.  I don't think there is a simple fix for this problem and
-I think the direction taken here is sound.
