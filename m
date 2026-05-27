@@ -1,99 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A6123535E;
-	Wed, 27 May 2026 01:30:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4E7296BCC
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 01:42:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779845438; cv=none; b=XWrJm9XA5LPYVk73Iwx/+wKyfUEdQohSwY2FMMI4wEcwwjsM2eDGwGTySOppi5TEv+TKHd8p30fIQnXJDh43SoQL/kJs0LMQVitbzWaeQyFkJZ1cI5JSL5LVcwx/Px1oThUirAN0Y/fsPNgSZDGseSDiPuCCjMF2ZP9FHkgwSC4=
+	t=1779846127; cv=none; b=HSpWOV/enPXL/Ug/XHPCumH4ng7JW4xT+jugEwG7rhq5GW2QvkMpnbXA/dS52LsrW3Tt1RHZB+Ku30deXSM6PELNVK7nzunz+WGEJgOIa8ZSyVSEMQLd6A88FWw+wMPJsOOWVikUQMvTnDEtrPVfyMMetph3hPrgR9xNTrd/E4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779845438; c=relaxed/simple;
-	bh=SBnRUBSRrwS9XB7Rl+DlyoVpd72TrYz1kS2B5xl3LFU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=gKwyyfABXFsXHvjIM/mqrOSCxUZfObXOzBE8+mcHKCwxz3vPUZTMHD47q1ioObJQOC1KL2T1UJJkD4S61e9llvSYIYz1ihRlIll99j4/xfNjXPtZke4mh54tZRhm8FFseJtua61Gv/sUbXKtN80vjsM93uzvwHhRj27BNuIyBRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SVLDZx1F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779846127; c=relaxed/simple;
+	bh=32dsN97BG1ZtaFA3Ti+ukBCBqCSSr6/wnuQlbV8qZMo=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qwaOxl/oW3diQSoLWYkmifa7CflLIVpcCW3QLoa1fh8vZZ6CyUiKrAY6A6fXaB5sEtNHcfi43Kv40hBVlyUzfSAxMAJ546laJz7sErjeRRcuEy94P43iLxhNXo4piF5ZdYY/yalTiAiBlNq49gxIgaaJ6QKMO81V3MGfAABuzLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U1zUVIcn; arc=none smtp.client-ip=209.85.222.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SVLDZx1F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEF791F000E9;
-	Wed, 27 May 2026 01:30:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779845436;
-	bh=8hwNbtXCRP5dWA4YMWQS1pttUdgZjZymII6OL6ansQY=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=SVLDZx1FeuG0Pelbh9thx3Hk1omBGLo6kAbZPCfW5nE/z5KplhyJjx30VnV7bd3hw
-	 HRsgmi593F3+bDTdCExx9a/os7UH7fmm5BOecCyYlP/8Cl9WUfAFsae7OqlwaZ60LA
-	 Fx8Y5E/NQd3LjzVfg38Ma8ih6G8WBPN4LK7aohPR/koXYiQNX3aBjshLIeI2HaADhW
-	 Gj3T130cqmdRbEZE9jscWIOqKeK+jsZq5yJVQg+314DHI2bf8iGIIGUJHhMwgsV17j
-	 kiSK/mT6J/pCFQL9pAWfXqVy+b0621v6E3JkI3GLiyWcJIY2cCRR30M5lQW8rrcbpK
-	 5q8vF5HnySFsw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0C0A380CEED;
-	Wed, 27 May 2026 01:30:43 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U1zUVIcn"
+Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-90fbf21d9d3so1701827985a.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2026 18:42:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779846125; x=1780450925; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tfHhtsUGD4nsHiG1/1+cWW06MDN0GRT266FNCCiFv9w=;
+        b=U1zUVIcn5wqKsesqNfWQeCvMalIJASt5utNWytw25hLGHOyvU8ofcQWLzpOCxaeyib
+         /ZhbQWGq6SLwrEatgPKCMpAuFjX1F5YaIzfnIqfPYymk66x4am24UeW31tl3z+AeIXD7
+         M1i63npsp5e4oDIBvNy4CGAyhQp1kz33WUzk4Ij3BascBVEF5doFQvXC6a13LhWUJUJR
+         IibPq+PMULJA7blmuuC/Aq0Wpvw2uaF8RvNEsPoWHfMQ5zRce1RUOq+ptrBJsVyO55ap
+         mV6q/aPgGEI5nqTAAa9ktZAXajH/XA4owJgYvPVIgDOwlp5l+9uQitGH2hDklePho0AD
+         ASMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779846125; x=1780450925;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=tfHhtsUGD4nsHiG1/1+cWW06MDN0GRT266FNCCiFv9w=;
+        b=q/vc0Qa6v74n16Wo4JcfT1LdZ1/A19/WUn4FEq73S9rtGvG5ciazL+xevNh3fei2of
+         gItqvevgLlQJOTGd7W3wC4o43B4F/C+Cc4eAIWJ2lJ0+IpPqT7mkVh55QkAkhyxhSVSn
+         pNmKwyG8TvC7r9N32nQR2CIjrH8gIXln0o2ZzRJXFcWd12woSOoRRdN3wONG4UpqNc3d
+         VhAREccejOv6sSwEV2bhSjk9IeWzXi27/N9/jU5nPbSAib7JHtdXxuYJG6ljYUBmrX0E
+         5kW+j9fzfVWJMF7WQieSDNnBhmnNzpChzNniqo8bvnFas1Fa0HD5pKIynZDSFeQqGFvs
+         QmSA==
+X-Gm-Message-State: AOJu0YzQ13yKmDNIa7IARcHeEkgQYXNd3OVnFCfIaPBc7KZaPYQenPMc
+	gR+M8hBYYIt3/R2lCqasnpC+ZPuS28d+IxXE+9JiY7yYXWoYoGf0D0my
+X-Gm-Gg: Acq92OFGGDxvgdQRphNqOZRpFxkZ7PsKxebEh1gpcR3mIlaHlAdbYHuktZZ35A+Xn65
+	s8+MwGylHLnO8LLg7MXJK62q2w4zQpqv++1Ju1xSUtpFppZ73IjtK4UdJeezfYRMCHTuTqxETW0
+	HvU6k2p70iINTl33IVx53cztlOiq9TANy4BlKUoQGrY6gt78VvcsmxpCQPTkuKaVsL6nTvB9XOV
+	boF6pNwaakFWncl9Zg0Z1cEnbuj31jlGWDVs4BSu3vthS9caySlhwU7Ua9goezzSmSUlXvn5NFU
+	iOTjsCw5UbClqFU4eUnmBhzWiZg+pS6r0Gyms06DDBctyYJL+q1d4O7VNZHchFlHlaFOqmZjVSf
+	lb5w2XrshbJIrVUEFf9fTNL4NAkBTu3v4E3APBUbLuV61AVNcR1D5GjRUM97jMkGFDxYhlFCXqW
+	KeUF8IwcLlbVheJnYf
+X-Received: by 2002:a05:620a:1996:b0:914:cd24:cb0f with SMTP id af79cd13be357-914cd24d09emr2062826685a.40.1779846124760;
+        Tue, 26 May 2026 18:42:04 -0700 (PDT)
+Received: from playground ([204.111.226.76])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-914f870eae0sm354427885a.18.2026.05.26.18.42.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 26 May 2026 18:42:04 -0700 (PDT)
+Date: Tue, 26 May 2026 21:42:01 -0400
+From: <imnozi@gmail.com>
+To: netfilter@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: ipset not completely working in mangle:PREROUTING
+Message-ID: <20260526214201.0e3d6f3a@playground>
+In-Reply-To: <20260525205736.1c76666f@playground>
+References: <20260525205736.1c76666f@playground>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/11] netfilter: x_tables: disable 32bit compat
- interface in user namespaces
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177984544239.4041297.5328673538852686069.git-patchwork-notify@kernel.org>
-Date: Wed, 27 May 2026 01:30:42 +0000
-References: <20260525182924.28456-2-fw@strlen.de>
-In-Reply-To: <20260525182924.28456-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+OUT! OUT, demons of stupidity! Or to use a slightly more modern saw, artificial intelligence is no match for natural stupidity.
 
-This series was applied to netdev/net-next.git (main)
-by Florian Westphal <fw@strlen.de>:
+It works much better when I also add the VPS IP to the *whitelist*!
 
-On Mon, 25 May 2026 20:29:14 +0200 you wrote:
-> This feature is required to use 32bit arp/ip/ip6/ebtables binaries on
-> 64bit kernels.  I don't think there are many users left.
+Sorry about the noise. Sigh.
+
+Thanks,
+Neal
+
+
+On Mon, 25 May 2026 20:57:36 -0400
+<imnozi@gmail.com> wrote:
+
+> iptables v1.8.7 (legacy)
+> ipset v6.34, protocol version: 6
 > 
-> Support has been a compile-time option since 2021 and defaults to off
-> since 2023.
+> I have four sets:
+>   - blockSetHost (hash:ip)
+>   - blockSetNet (hash:net)
+>   - whiteSetHost (hash:ip)
+>   - whiteSetNet (hash:net)
 > 
-> The XTABLES_COMPAT config option is already off in many distributions
-> including Debian and Fedora.
+> I added rules to match the block sets in filter to INPUT, FORWARD and OUTPUT. The rules match and jump to chain blDrop. In blDrop, if either white set matches, control returns. If no match, the packet is dropped.
 > 
-> [...]
-
-Here is the summary with links:
-  - [net-next,01/11] netfilter: x_tables: disable 32bit compat interface in user namespaces
-    https://git.kernel.org/netdev/net-next/c/ec1806a730a1
-  - [net-next,02/11] netfilter: add option for GCOV profiling
-    https://git.kernel.org/netdev/net-next/c/403cec8ab6d0
-  - [net-next,03/11] netfilter: allow nfnetlink built-in only
-    https://git.kernel.org/netdev/net-next/c/d4349ba9872d
-  - [net-next,04/11] netfilter: nf_conncount: use per-rule hash initval
-    https://git.kernel.org/netdev/net-next/c/e9fd2fb09cfe
-  - [net-next,05/11] netfilter: ctnetlink: use nf_ct_exp_net() in expectation dump
-    https://git.kernel.org/netdev/net-next/c/a7f57320bbbc
-  - [net-next,06/11] netfilter: nft_set_rbtree: remove dead conditional
-    https://git.kernel.org/netdev/net-next/c/73ce4a2949d9
-  - [net-next,07/11] netfilter: nfnl_cthelper: apply per-class values when updating policies
-    https://git.kernel.org/netdev/net-next/c/d738feccb98c
-  - [net-next,08/11] netfilter: nf_conntrack_irc: fix parse_dcc() off-by-one OOB read
-    https://git.kernel.org/netdev/net-next/c/ef6400ca25a1
-  - [net-next,09/11] netfilter: nf_conntrack_proto_tcp: fix typos in comments
-    https://git.kernel.org/netdev/net-next/c/22fad3d5b135
-  - [net-next,10/11] netfilter: nft_set_pipapo_avx2: restore performance optimization
-    https://git.kernel.org/netdev/net-next/c/e928ab085d8a
-  - [net-next,11/11] netfilter: nf_conntrack_ftp: avoid u16 overflows
-    https://git.kernel.org/netdev/net-next/c/2b413fc689ba
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+> This works well in filter. But there's one artifact. The blocked packets are 'accounted' to the internal server where they would have gone.
+> 
+> To fix this, I added the rules below to mangle. Here in mangle, the white sets never match and all of the packets (that matched the block sets) are dropped.
+> 
+> Is this another instance of 'it doesn't work in mangle or in PREROUTING'?
+> 
+> Thanks,
+> Neal
+> 
+> ----
+> The rules used in mangle; eth3 is internet:
+> -A blDrop -m set --match-set whiteSetNet src -j RETURN
+> -A blDrop -m set --match-set whiteSetHost src -j RETURN
+> -A blDrop -j DROP
+> 
+> -A PREROUTING -i eth3 -p udp -m set --match-set blockSetHost src -m state --state NEW -j blDrop
+> -A PREROUTING -i eth3 -p tcp -m set --match-set blockSetHost src -m state --state NEW -j blDrop
+> -A PREROUTING -i eth3 -p udp -m set --match-set blockSetNet src -m state --state NEW -j blDrop
+> -A PREROUTING -i eth3 -p tcp -m set --match-set blockSetNet src -m state --state NEW -j blDrop
 
