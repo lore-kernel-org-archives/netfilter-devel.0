@@ -1,86 +1,109 @@
-Received: from out-174.mta0.migadu.com (out-174.mta0.migadu.com [91.218.175.174])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5582ECE93
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 05:18:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1F2C3C9897
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 07:34:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779859122; cv=none; b=X6neSLb1qMg0A3tQCzzzzqWG9EhhmkmxSunwKuNpDVeiHBKFLzaK3/nTo8/tsnvke4/GL8yv1F4p4HQb1uO8KwL+0EwYMJJLaJ6EUVNLzkGlk9gPLbPyHvjnZWoPlYcJVb0zjMPftUiRYPupC8k6IjZUms4d0mwIHiioyB0WJhI=
+	t=1779867301; cv=none; b=qLzg87Ukyb7furHSiR50PcCs3WorkHTGG1OUn3Vefi6cW47EGMcxGHXQhcIZpgiQrNPfitOReU1ygGXve0FW+30yK5Y7rn+xMtA8dj9NE7TEmrOAaqIrD9cnH88GApn8GCMt5hbG9TkbSkWhByOQb61Bj0ahEs1pKebzPaessIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779859122; c=relaxed/simple;
-	bh=EE128L4x+GiWNRqjZDLWSo0Sxj6tA+dNNUTfm6Riv9w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AemXhT7Jx32LAVZDahLkZHeNU07vqQaac72xvKcKyPIBGdCAkL7T83BJNY4Vetipk9fbLB7uy8pn3iXuvJ2fTs4QR9MsDbTxJYreRScfjvLAds82o7TZy0rII7tTuTmkRl/eVQN6c6/Q86VMTzXIw9GR8JJASlrAKJvHAaq+MDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=KIgLqbI8; arc=none smtp.client-ip=91.218.175.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="KIgLqbI8"
-Message-ID: <796e346d-1975-47cd-b4f9-d7b67c3f010c@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779859119;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=CbPWbT5yFCiTVdfSfkj6ZEGRAfHI88VYZKVbC/07yQ8=;
-	b=KIgLqbI8aAU2dxP3ppPu00tnL1bk/4YpXZuChIj2lXBhESG0LlM3Vvd0if3j9fmsq1EMGG
-	x0K2sKTCu6rAogY9T8zPStOTyzDYeG9ls6Svwa6Szp66UJQILgOnxPULDiFz4ZKS2zISqm
-	SKWFdylfF5a8dLRfxXRBuijSTtpYVjE=
-Date: Wed, 27 May 2026 13:18:32 +0800
+	s=arc-20240116; t=1779867301; c=relaxed/simple;
+	bh=hW6j4hN8cGxvVKEEAj6S04YXPzv8OkPA7XEXDYD3g/w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AF5XUqCNx+DB5gnjhcwaG6OBeTw1aBWKbib/roY4q+JgmRqxHf7s2E7Ox3DXxWWy8V7Hp8C6slB8b6EMSNoZNqSuxjuhL6OwMHwvWGAvHV0EaF37GPggpgWjL0rJ0VEUBlMlUBpgBfJkFDgnC3Y4e3ZtwglzstSBccEmsvXh3K0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 3DA5C60551; Wed, 27 May 2026 09:34:50 +0200 (CEST)
+Date: Wed, 27 May 2026 09:34:49 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Adrian Bente <adibente@gmail.com>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, phil@nwl.cc,
+	nbd@nbd.name, sean.wang@mediatek.com, lorenzo@kernel.org,
+	andrew+netdev@lunn.ch, matthias.bgg@gmail.com,
+	angelogioacchino.delregno@collabora.com, daniel@makrotopia.org,
+	coreteam@netfilter.org, linux-mediatek@lists.infradead.org
+Subject: Re: [RFC PATCH net] netfilter: flowtable: fix offloaded ct timeout
+ never being extended
+Message-ID: <ahaek23tB7D8tQUe@strlen.de>
+References: <20260526060138.3924-1-adibente@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH nf] netfilter: nft_fib_ipv6: bail out of sibling walk if
- rt got unlinked
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-References: <20260526020227.4857-1-jiayuan.chen@linux.dev>
- <ahWrbTAdNIjo02D-@strlen.de>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-In-Reply-To: <ahWrbTAdNIjo02D-@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260526060138.3924-1-adibente@gmail.com>
 
+Adrian Bente <adibente@gmail.com> wrote:
 
-On 5/26/26 10:17 PM, Florian Westphal wrote:
->> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
->> index c0a0075e2590..2dbe44715df3 100644
->> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
->> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
->> @@ -191,6 +191,9 @@ static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
->>   
->>   		if (nft_fib6_info_nh_dev_match(nh_dev, dev))
->>   			return true;
->> +
->> +		if (!READ_ONCE(rt->fib6_nsiblings))
->> +			return false;
->>   	}
-> This time sashiko points to same bug pattern in rt6_fill_node:
->
-> This is a pre-existing issue, but does rt6_fill_node() also need this
-> detach check to prevent the same infinite loop?
->
-> https://sashiko.dev/#/patchset/20260526020227.4857-1-jiayuan.chen%40linux.dev
->
-> (No need to resend this patch, but maybe you have cycles to fix the
->   other spot too)
+[ trimming CCs .. ]
 
+> OpenWrt has recently migrated many platforms to kernel 6.18. On the
+> MediaTek platform, which supports hardware network offloading, WiFi
+> connections accelerated via the WED path were observed to drop after
+> roughly 300 seconds.
+> 
+> After several debugging sessions, assisted by the Claude LLM, the
+> problem was narrowed down as follows:
+> 
+> nf_flow_table_extend_ct_timeout() extends ct->timeout for offloaded
+> flows using:
+> 
+> 	cmpxchg(&ct->timeout, expires, new_timeout);
+> 
+> 'expires' comes from nf_ct_expires(ct) and is a relative value, while
+> ct->timeout holds an absolute timestamp. The two are never equal, so
+> the cmpxchg always fails and the timeout is never extended.
+> 
+> This goes unnoticed for most flows, but a long-lived hardware (WED)
+> offloaded flow on MediaTek MT7986 eventually has ct->timeout decay to
+> zero, the conntrack entry is reaped and the connection breaks.
+> 
+> Compare against the current ct->timeout value instead.
+> 
+> This patch is sent as RFC: the diagnosis is verified on hardware and
+> the fix resolves the drop, but review of the chosen approach is
+> welcome.
 
+I guess we need to open-code expires, something like this (not even
+compile tested). Also see https://sashiko.dev/#/patchset/20260526060138.3924-1-adibente%40gmail.com
 
-Hi Florian,
-
-Thanks for the heads-up. After auditing the rest of net/ipv6/route.c
-I noticed fib6_select_path() seems to have the same pattern as well
-(walks &first->fib6_siblings under RCU with no inside-loop bail-out).
-
-I'll send fixes for both spots directly against net.
-
-Thanks,
-Jiayuan
-
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -506,7 +506,12 @@ static u32 nf_flow_table_tcp_timeout(const struct nf_conn *ct)
+ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ {
+ 	static const u32 min_timeout = 5 * 60 * HZ;
+-	u32 expires = nf_ct_expires(ct);
++	u32 ct_timeout = READ_ONCE(ct->timeout);
++	s32 expires;
++
++	expires = ct_timeout - nfct_time_stamp;
++	if (expires <= 0) /* already expired */
++		return;
+ 
+ 	/* normal case: large enough timeout, nothing to do. */
+ 	if (likely(expires >= min_timeout))
+@@ -524,7 +529,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 	if (nf_ct_is_confirmed(ct) &&
+ 	    test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
+ 		u8 l4proto = nf_ct_protonum(ct);
+-		u32 new_timeout = true;
++		u32 new_timeout = 1;
+ 
+ 		switch (l4proto) {
+ 		case IPPROTO_UDP:
+@@ -549,7 +554,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 		 */
+ 		if (new_timeout) {
+ 			new_timeout += nfct_time_stamp;
+-			cmpxchg(&ct->timeout, expires, new_timeout);
++			cmpxchg(&ct->timeout, ct_timeout, new_timeout);
+ 		}
+ 	}
+ 
