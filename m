@@ -1,158 +1,149 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-yx1-f42.google.com (mail-yx1-f42.google.com [74.125.224.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1D272459E5
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 14:10:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779891053; cv=none; b=AepLNOuvVnAXs/dxvRGMRrfm7fr0E9ZTnJxsolTtde3hAaxRB0f5OscagaAIPES/dq0pMHYYtWjgoyZ8xStMNMtaUoUusxXDQsDU11P/bYwnIzeu9kP1suYihvN+0Eh//DkhJa2AbY75OFSKC126W4I4kS9NNm1XvrRd19KYx7Y=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779891053; c=relaxed/simple;
-	bh=/Mco4wEcnSFTlpd/KFmSLnbaUo6z+P2yK8x04y9CjWE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dGPY3gvsoWPUfedr9CasSTabG6bMrbJyhuQu4TnVrkxic47k0Z+D5/UPW++6FHTcoBO2mYyqsy0baHMYkAmjbObvBVH3DhdSlNAogEtOZ6Rl1w5DU+skvnEn66DumEWXFwg4Py9vFlw02pRuVvG4Ye/dXx/jwEaLZkP7jMptJkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=HnSx7uMn; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=l/cULtnv; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FFBvD1HE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=F5hIlbus; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB10937D107
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 16:14:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779898500; cv=pass; b=fL85edc2+tniiOo53pW+K97InzNVG8isR+/M7fABBN2qlQXV2BqUuSgLp27FNyn6Ym3PLDDAXivw2RUrow/IbfgzyK3UrVKLjWDp6x3A2PZFk8aLfKHmDd+yeygbzD0pMSu9UHm44S1gj/74bphUDEhpuFZm4v03YDJh9QDIDTo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779898500; c=relaxed/simple;
+	bh=LX68ri66pOS8OR8NoqZ2gIgBmy7YT5WotxongWFI7Ns=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GrPSc2wAeKHV5WsiWpI5Li4MIyOdAotjrM5/c4E6lN37qgEacyocznbA6+H/V//vYyL63H5S/D6aEND7rxu36M7tGPq3GVQS7AyXWLjSIQ+6+Iv9Odd4Tqjf5ZRbApgoy65a0qV1Z7bbHdETL1m2iNJr1UloZjPKcwRVTSBeLQM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YmC4G2yq; arc=pass smtp.client-ip=74.125.224.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="HnSx7uMn";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="l/cULtnv";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FFBvD1HE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="F5hIlbus"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A2DCD67A86;
-	Wed, 27 May 2026 14:10:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1779891050; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GCiJ4EnhQb2oo14A02uBEhMzoFONjTkywpZ2ddvP/LE=;
-	b=HnSx7uMnr/35W/5nRTmmr6ru7Qo747kdm4U2GbjWS9AIjntsCTJEI7BqnEJ+eUxBNu/qH0
-	LC5cuIDN4wAYIYSy0CVf3vK9wQ88qIbJBWmHuhtDtmCrGphtN/Trlh+eWBmWTb89yx4Rlv
-	T+ne/FVtgD69nl/nYKytepj/5KBvNVA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1779891050;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GCiJ4EnhQb2oo14A02uBEhMzoFONjTkywpZ2ddvP/LE=;
-	b=l/cULtnvx+QBK38Ob9HuudqW5Im/SPggAyZ9KcZGQ/sVMtPUdWi/6XwPy33w3eGrZ5j2a5
-	Xj7jczu2QO7JjMCw==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=FFBvD1HE;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=F5hIlbus
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1779891049; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GCiJ4EnhQb2oo14A02uBEhMzoFONjTkywpZ2ddvP/LE=;
-	b=FFBvD1HEG56fw7f7aRZZPPtHidiMxlNsxlYmwlpu0v88ue/hJr9Ti+/HAZzcJG/G00lcZl
-	299JOhMqu2k0hC5xHtPz29DYS7QxFe9ymSx6fN1HplEeq3Tn2xGpDfZEXXM7gle0+NPXL1
-	9K4f9ORus4JAbGS7aaxH9R8n3A4K7JY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1779891049;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GCiJ4EnhQb2oo14A02uBEhMzoFONjTkywpZ2ddvP/LE=;
-	b=F5hIlbusJyvXHymA5ZwSE3r7vbvEBM22G+5bxFhvE2vwCTJ8xrZccQ2tlWB0CViL3WmCiV
-	f1xVWUUjKf2Vn/Ag==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 54D445A881;
-	Wed, 27 May 2026 14:10:49 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id dGK+EWn7FmoXUgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 27 May 2026 14:10:49 +0000
-Message-ID: <e610bace-a04a-4f6c-bea6-3e9d6646352a@suse.de>
-Date: Wed, 27 May 2026 16:10:36 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YmC4G2yq"
+Received: by mail-yx1-f42.google.com with SMTP id 956f58d0204a3-65c5361142fso11274468d50.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2026 09:14:58 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779898498; cv=none;
+        d=google.com; s=arc-20240605;
+        b=lfCB4vU0/Vtbgy38fJBcAS/H6R7S8fHoYfWFYKeaHzzG4h5zcU+m4ZZc6+WilF/jQn
+         gPaMRa6latIYjNec3bdrFRWl1J/CXBPBQbOODjcD+zt8opmPY9w9ewJwu/wk9qu1nAj9
+         d7ugRlghz3uO13TX+bY3SIGMOcLndd3XdsAI7yCeVYCokowndBTOElvO/qX6LwCAFYn+
+         qqrrp5NnRptniKXEDGmBKvypJ2Nwj9/QZNYgveSbGdOnQD011wb5ZhMde5Xovlkp6HRo
+         ni32128JYBNlN8lKGeQzd4UJsIz9aVo+ytFgU9PXrLVCK+7HWsn9QRXTSqXgImaLzCwm
+         cVKA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=mzeRY6sPehjEn+BPgx6Xi1es20BdfMexE0A8mncyA7U=;
+        fh=QIjv56jc5TWcc4GPxunxHoEXFIRv2Djkz9Bx7Om0YPA=;
+        b=YgIGconDzqohK8ESUT5gmQG4oSSSR29lplJjzvVT6R9garXN0C9SbTpSFrFpaSy8k2
+         ZYQxz/ZZk9b6KVE3tcmuT0UxXHoa/fk7ooProX+Wt3jBD4Bp3bsiiQ6Dn8hktCMgdhln
+         AFF3Yz/y4B8d956oHVcEa1f+eX3ui0cv1hZpqqwsRbsLxs2iZd5P06lmAm2+FW4U+lYw
+         d3TSWry6U4IvMLIxczXzDfGz64E+N71TE8+u9JHJ0vEEqWUwVYxKN4KDQK6WBX8NbRNu
+         mZzpyfSZ66i/eZtegwm05fjAKMaKdsEyyzzOJJFPBRp2MdwtgWrzYxtQyLtR3rBGCugw
+         Es2g==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779898498; x=1780503298; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=mzeRY6sPehjEn+BPgx6Xi1es20BdfMexE0A8mncyA7U=;
+        b=YmC4G2yqKLyYlZ1PMDjUjeSnkdDeoCDbcsnwGvKF4j5XTIDKRMVg+cQCwmHYsBiatZ
+         mYQmNYlY5oIdQtphsP60348OwVHrfsr4z6d5jobXJwBM14X15nngZtOeNKTXNg8wILtL
+         EA/pUBR498/h+VXwEljYAxvUXZ9vFh/g1fkZWLJzO/WSLcE9lOCakH4RBPSLP4PKlx+f
+         0nxPaLExhRT93hFZcZlAYO6USTyqA9cOrbQ8/2oMJupCmVdSqcJCEC2GnMmCFlXSHNcw
+         vObmb0SN6vJq0OhYGbDxpTWffL6+MVxwrcdq3haEov3hKRj8EHW8bahz903gGYpZ7gz5
+         owYg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779898498; x=1780503298;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=mzeRY6sPehjEn+BPgx6Xi1es20BdfMexE0A8mncyA7U=;
+        b=f3KxWk6iWjnx4BzBlZfszF4fBYu1cSZAhQbYlvKzVdMMLMYiINQUHZ1kWTJS0i6pqn
+         m05bcSvn8IKddSnehxvAKYoxKNukFtG+HvWwISfedd7GCX8s6Sk/fvJv61b8wsb9nqZQ
+         hQdIOlYgjc61WfN17R4y3xMojN3hME1ZTHzZaXx59vceEMtiS6n/cYwX9ZIQy6HxCTDi
+         Z9blQ0TeShD4s0ixTaYO2kSFXDSxieObLlklWJEbP8Ad34mSGiJtFyg/ZiYnAllSNkLJ
+         /WFUPsXW+aHJCqX3qF5Q9pPoBel8aAJfXFeIf5Nnt/8wQzFbxQPIFjI7TMqC0EeG9Cds
+         Edfg==
+X-Forwarded-Encrypted: i=1; AFNElJ8dpaeh1Cqo/my3vJooFMRH1vcG/WBVyj2g0fNeZeYc9I2sCM2EXvXKjPIbtaW39/F8Gydbx7ydpvTd81bv0VU=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yybx4lfe5yQgSgvLxzJf2oXvukAb8+RbMMabXpFlSAan0jkS6/9
+	XspKkOCasCGTXd99hSUdS/EfxyHYeRyLkwb9Q+tCBMumvSS9APo43VICS/Lew0sT8FutgzBt1f+
+	yhxTeE210hUiQmjX5vVqpD7IgUOf+XaU=
+X-Gm-Gg: Acq92OFypUXL2OweWytK3NRQSUtRyyem9xe800SEXrtq6gAQOf+lnvEKydwH8eOvnqZ
+	apiag6LF6VxxyahHlai2C9JZ/a6tl39ycF6OxpM0w3l96noNw2dtJbI1MD69i2Z/KfKTSlpbrCV
+	/utcoO1qQtV+h/0CpHfkacUoTAuLVLgZSBl2MDWlw7xPH5x2m6+/xjJPf/SKquQEbYEr9i1j6qI
+	sXF5KS0Q0OkOgsQ+6Uaff/bDI8Hc4xkPPBF6FOWBOy8qgNO4/ciwSpDzEv0vg7y8Gaojxvs3W5+
+	af/1BmVnBzxpBG9QEOucY/64Z7ewypmG5YDADDAPJ1axh3suKWOIikmA10Ifl3V5X/MEmZXuztE
+	y2v7EPvY=
+X-Received: by 2002:a05:690e:d02:b0:64e:f106:60ea with SMTP id
+ 956f58d0204a3-65ec9938bb6mr23186309d50.44.1779898497803; Wed, 27 May 2026
+ 09:14:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/5 nf-next v4] netfilter: synproxy: misc fixes about
- synproxy core
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc
-References: <20260526215831.6726-1-fmancera@suse.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260526215831.6726-1-fmancera@suse.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: A2DCD67A86
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
-X-Spam-Level: 
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:dkim];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[5];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	TO_DN_NONE(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
+References: <20260526060138.3924-1-adibente@gmail.com> <ahaek23tB7D8tQUe@strlen.de>
+In-Reply-To: <ahaek23tB7D8tQUe@strlen.de>
+From: =?UTF-8?Q?Adrian_Ben=C8=9Be?= <adibente@gmail.com>
+Date: Wed, 27 May 2026 19:14:45 +0300
+X-Gm-Features: AVHnY4KoQXI1OIdlCwJpu_wAoEyKtvQ1_8Zwx8HehnmyUWKWVvT2QHSF5yMJ68c
+Message-ID: <CAC2HPwt_3D7k7tYr8OqNiguc-jMF3PEKtayFKmvOp37M2=QCZA@mail.gmail.com>
+Subject: Re: [RFC PATCH net] netfilter: flowtable: fix offloaded ct timeout
+ never being extended
+To: Florian Westphal <fw@strlen.de>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, phil@nwl.cc, 
+	nbd@nbd.name, sean.wang@mediatek.com, lorenzo@kernel.org, 
+	andrew+netdev@lunn.ch, matthias.bgg@gmail.com, 
+	angelogioacchino.delregno@collabora.com, daniel@makrotopia.org, 
+	coreteam@netfilter.org, linux-mediatek@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 
-On 5/26/26 11:58 PM, Fernando Fernandez Mancera wrote:
-> This series fixes several long standing issues during synproxy timestamp
-> adjustment and concurrent hook registration. From ignored error handling
-> to unaligned memory access. Most of this are not issues impacting real
-> setups as they would have been reported before.
-> 
-> FWIW; I am sending these fixes as separated patches because they are
-> addressing independent issues.
-> 
-> Fernando Fernandez Mancera (5):
->    netfilter: synproxy: drop packets if timestamp adjustment fails
->    netfilter: synproxy: adjust duplicate timestamp options
->    netfilter: synproxy: fix unaligned memory access in timestamp
->      adjustment
->    netfilter: synproxy: protect nf_ct_seqadj_init() with conntrack lock
+> I guess we need to open-code expires, something like this (not even
+> compile tested). Also see https://sashiko.dev/#/patchset/20260526060138.3924-1-adibente%40gmail.com
+>
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -506,7 +506,12 @@ static u32 nf_flow_table_tcp_timeout(const struct nf_conn *ct)
+>  static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+>  {
+>         static const u32 min_timeout = 5 * 60 * HZ;
+> -       u32 expires = nf_ct_expires(ct);
+> +       u32 ct_timeout = READ_ONCE(ct->timeout);
+> +       s32 expires;
+> +
+> +       expires = ct_timeout - nfct_time_stamp;
+> +       if (expires <= 0) /* already expired */
+> +               return;
+>
+>         /* normal case: large enough timeout, nothing to do. */
+>         if (likely(expires >= min_timeout))
+> @@ -524,7 +529,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+>         if (nf_ct_is_confirmed(ct) &&
+>             test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
+>                 u8 l4proto = nf_ct_protonum(ct);
+> -               u32 new_timeout = true;
+> +               u32 new_timeout = 1;
+>
+>                 switch (l4proto) {
+>                 case IPPROTO_UDP:
+> @@ -549,7 +554,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+>                  */
+>                 if (new_timeout) {
+>                         new_timeout += nfct_time_stamp;
+> -                       cmpxchg(&ct->timeout, expires, new_timeout);
+> +                       cmpxchg(&ct->timeout, ct_timeout, new_timeout);
+>                 }
+>         }
+>
 
-Sashiko pointed out another issue around nf_ct_seqadj_init() not related 
-to these patches. Could we get this merged (if it looks good) and the 
-move forward with a follow-up? I am afraid of pilling up a series that 
-it is too big.
+Thanks. Applied your diff to my OpenWrt 6.18 tree with one small
+adjustment: changed min_timeout from u32 to s32 so the
+"expires >= min_timeout" comparison has both operands signed.
+Compiles clean.
 
-Any thoughts?
+Tested on MT7986 with the WED-offloaded flows that originally
+reproduced the 300s drop. The flows now stay up well past 300s with
+normal offloaded traffic, solution works fine.
 
-P.S: I am owning the follow-up I just want to reduce the complexity of 
-getting everything merged together.
-
->    netfilter: synproxy: add mutex to guard hook reference counting
-> 
->   net/netfilter/nf_conntrack_seqadj.c |  2 +
->   net/netfilter/nf_synproxy_core.c    | 64 ++++++++++++++++++-----------
->   2 files changed, 41 insertions(+), 25 deletions(-)
-> 
-
+I'll send v2 with this diff and Suggested-by: you, unless you'd
+rather submit it yourself.
