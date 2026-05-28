@@ -1,133 +1,80 @@
-Received: from out-177.mta0.migadu.com (out-177.mta0.migadu.com [91.218.175.177])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFF243DEAE4
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2026 11:10:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27933329C7C
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2026 11:36:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779966639; cv=none; b=JPpE5AvSMSz/KbkX90Cnwxk5oGkm7NFb9NstPU6E6ZP1eUcd2VRhHHX2Asf8lvYxfD/9BzGBJK1gvh8uFcjASE82zNgZqSyL+KyhU0Zp1yWt15npp034+H7Yx0QH8BJ1IqNa9GYyFSoNmuAwcEaoumjKXgaOmu+anj4ees4j1bA=
+	t=1779968164; cv=none; b=ivPCdqQEEu63x3qhR5VaN8OWMJTqlKdZC23PUeUNpjsBh8LPEUgHM6LcBrcsQ3+7ooTSzsMA8x0IZMRtkHBT7JyQ84A3mPFXWwRioOA/kOfbsfyOSeHL+PDyNShY40rr2fXB1UOTK5Ev+l5A0AJO4azLSq0Sya/4efvxjA6+nP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779966639; c=relaxed/simple;
-	bh=XPSTbIkDBUGzKWNlU8J2VTz2QiFw8sDMnEq+q8lxl+4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Vh1dKJRTOyCdiGZMIURKdxH/8q6XrmmGWjzv9478f+HTMFgY9pTWSfgCgTfGtCgcGOVDq3w95GBWk8gTriSwAKmg/MT5SENkFmoYo3XZEnnj7ubGQMfLIFqmjDYzPJiaK++oRKGZMxZdxf2nAKSZIBMLXR9T+NI7AmvZE/ThQ2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=E5HBueXP; arc=none smtp.client-ip=91.218.175.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1779968164; c=relaxed/simple;
+	bh=4CT3FDtGEZvw4ofdBhCsUV8puBjygw+dhtj5Pgh7mtg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kgTLKS/u90SFU6phD0UWLzK01gLNND81zKmC7ZomZBdwSFrfLHtAcaz563vnsw+474gkQ+DQpOYkHmKX7pXLeD5dOulhh1nHnKgieAd3JxVGhIumb5DoU8bd/gxfhNT8YzVWckw+/WWAWOwJBvJj/tlgBbVI2OUFxu/x1KkYn4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bG+BZ9VL; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="E5HBueXP"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1779966634;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=lIyMxMe34ti5OGqYHU2XYLd1o4czF6IJRVjnBmLGfX8=;
-	b=E5HBueXP3Y2hugKe9rbkc61PZ+5ywT2pHbQRXXy6rLxukDe5Z/R09YRBK8lPheONkXW83o
-	ZrEkHeTEYNsONV7TfJDlHuVB3JSeOKEq1tDnZ8NiZRtloRf7B5MFnKekjx/YP+dESs9mev
-	7Rl8Co7qE0yw5rWnMncahJL5Ef+LEXE=
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-To: fw@strlen.de,
-	pablo@netfilter.org,
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bG+BZ9VL"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=E/jgCjMZalj7ommXhn0ljHJje+EccMgf3UDpZNJPwm0=; b=bG+BZ9VL+ory+hURTc3m+rlAeI
+	B0cezx3+jE3o0eO3A0bDTBU5As8D9eOBizopn050PQPaNYmhai6M58JfQR8upnDc6zK8z53328lJ7
+	3DHTZxWToZnuHfGIrkTDvxw+Eipw9xdyW3lFHZ6cWH5qKIuqVfl0bcWmamybMqAc/M4Wh0qs/vn8/
+	nTtUu4qMNa9CKmk3oRFC+h8H5hWMBtVYkuA3+YHiqhsMqQUujHMVdsHGdtMTbRAZTd32DKEKqTA+M
+	nDTRTMc5yQM28my/SVsfmvoMg1cDndel1sLSDq/ZQN/pt2VvRHEsyG6tvZX0L6ZcNkh1rrOLxb32U
+	wBDOwxrA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wSZ1r-000000005xt-1mA3;
+	Thu, 28 May 2026 13:35:59 +0200
+Date: Thu, 28 May 2026 13:35:59 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
-Subject: [PATCH nf v2] netfilter: nft_ct: bail out on template ct in get eval
-Date: Thu, 28 May 2026 19:09:19 +0800
-Message-ID: <20260528110919.28952-1-jiayuan.chen@linux.dev>
+Subject: Re: [nft PATCH v2] scanner: Accept all statements' first words in
+ all scopes
+Message-ID: <ahgon4vGF4t0p-1r@orbyte.nwl.cc>
+References: <20260508111538.3783172-1-phil@nwl.cc>
+ <ahfy6vvK8dhvBig-@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ahfy6vvK8dhvBig-@strlen.de>
 
-I noticed this issue while looking at a historic syzbot report [1].
+On Thu, May 28, 2026 at 09:46:50AM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > To fix for token lookahead with exclusive start conditions, we must
+> > accept all keywords which may immediately follow the exclusive scope in
+> > that scope as well. This affects basically the first word of every
+> > statement which may follow a limit statement.
+> > 
+> > Add a test case to make sure things stay that way. A few quirks exist
+> > though:
+> > - xt statement would need special testing since having it in a rule is
+> >   supposed to fail the command
+> > - The parser formally accepts nonsensical things like strings, numbers
+> >   and variable references on LHS, but these seem to be needed for the
+> >   data part in map elements only
+> > 
+> > Suggested-by: Florian Westphal <fw@strlen.de>
+> > Fixes: 9d105581b5f1b ("scanner: Introduce SCANSTATE_RATE")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> 
+> Is there anything missing here or were you waiting for a formal ack?
+> 
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-A rule like the one below is enough to trigger the bug:
+Oops, yes. Just pushed after making sure it doesn't break 'make check'.
 
-    table ip t {
-        chain pre {
-            type filter hook prerouting priority raw;
-            ct zone set 1
-            ct original saddr 1.2.3.4 accept
-        }
-    }
-
-The first expression attaches a per-cpu template ct via
-nft_ct_set_zone_eval() (nf_ct_tmpl_alloc -> kzalloc, tuple is all
-zero, nf_ct_l3num(ct) == 0). The next expression then calls
-nft_ct_get_eval() on the same skb, treats the template as a real ct
-and hits the 16-byte memcpy path. With dreg at NFT_REG32_15 this
-overflows past struct nft_regs on the kernel stack; with smaller
-dreg values it silently clobbers adjacent registers.
-
-Reject template ct at the eval entry and in nft_ct_get_fast_eval(),
-mirroring the check nft_ct_set_eval() already has. Additionally,
-bound the address copy in NFT_CT_SRC / NFT_CT_DST by priv->len
-instead of by nf_ct_l3num(ct): nf_ct_get_tuple() zeroes the tuple
-before pkt_to_tuple() fills in only the protocol-relevant leading
-bytes, so the trailing bytes of tuple->{src,dst}.u3.all are
-well-defined zero. priv->len is validated at rule load, so the
-copy size is now bounded by the destination register rather than
-by an untrusted field on the conntrack.
-
-[1]: https://syzkaller.appspot.com/bug?id=389cf09cb72926114fce90dc85a2c3231dcb647c
-
-Fixes: 45d9bcda21f4 ("netfilter: nf_tables: validate len in nft_validate_data_load()")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
----
-v2: - reject template ct before reading ct fields/tuple.
-    - bound NFT_CT_SRC / NFT_CT_DST address copy by priv->len instead of
-      by nf_ct_l3num(ct).
-v1: https://lore.kernel.org/netfilter-devel/20260528042620.263828-1-jiayuan.chen@linux.dev/
----
- net/netfilter/nft_ct.c      | 8 +++-----
- net/netfilter/nft_ct_fast.c | 2 +-
- 2 files changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index fa2cc556331c..357513c6dcea 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -78,7 +78,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 		break;
- 	}
- 
--	if (ct == NULL)
-+	if (!ct || nf_ct_is_template(ct))
- 		goto err;
- 
- 	switch (priv->key) {
-@@ -180,12 +180,10 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 	tuple = &ct->tuplehash[priv->dir].tuple;
- 	switch (priv->key) {
- 	case NFT_CT_SRC:
--		memcpy(dest, tuple->src.u3.all,
--		       nf_ct_l3num(ct) == NFPROTO_IPV4 ? 4 : 16);
-+		memcpy(dest, tuple->src.u3.all, priv->len);
- 		return;
- 	case NFT_CT_DST:
--		memcpy(dest, tuple->dst.u3.all,
--		       nf_ct_l3num(ct) == NFPROTO_IPV4 ? 4 : 16);
-+		memcpy(dest, tuple->dst.u3.all, priv->len);
- 		return;
- 	case NFT_CT_PROTO_SRC:
- 		nft_reg_store16(dest, (__force u16)tuple->src.u.all);
-diff --git a/net/netfilter/nft_ct_fast.c b/net/netfilter/nft_ct_fast.c
-index e684c8a91848..ecf7b3a404be 100644
---- a/net/netfilter/nft_ct_fast.c
-+++ b/net/netfilter/nft_ct_fast.c
-@@ -30,7 +30,7 @@ void nft_ct_get_fast_eval(const struct nft_expr *expr,
- 		break;
- 	}
- 
--	if (!ct) {
-+	if (!ct || nf_ct_is_template(ct)) {
- 		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
--- 
-2.43.0
-
+Thanks, Phil
