@@ -1,74 +1,187 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f71.google.com (mail-oo1-f71.google.com [209.85.161.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27BB92E2852;
-	Thu, 28 May 2026 14:12:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71F8B3B6C0A
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2026 14:27:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779977551; cv=none; b=KniP41cYWc3tlEHMQu69qEzYRhhTmqQ3oR8D8X1n8qPu43B3oD1o4gGH4I0QX5jENC8TgnaCILQVPdb97DAL/ZgL31jpjYKL51W8RrplIQ1hZDMIeqvZtJVcRq+qYw7uom2oFv91gu2MlmHiKvRALuEkfh5qnu6gLfIl6rARPbY=
+	t=1779978424; cv=none; b=R8vhYwtTm00IjcFEO9lKUUJ5YypoV20wZpAOs/+pNSGWbv/ZDPQizN1dvi7ND92m7y6qnsOvt0tAqSwU3bKAw4WV3nmLvn5209I9LI+obHCldVCrgaZz4Sbdtn+vcQmlPmYwdFAS0LXkHzozOnwR0/Hms9VO+xdhqYY7EUSkJmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779977551; c=relaxed/simple;
-	bh=cP2kA8+YYchg2ex0Elvu/5FOstG60ZZc/wj3YLEwDNQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m+uHYCxtC3XDjpTWtqP5aVZ0c5z157j/+xIDyWIWStg1W7hS0oO3zm9ipP8NpenTF7hG7ssfNkKvknPmQh7Jgq37WqGhe2DQr5B6/blX6cbAtp2jW4v9og4coiixI3/zZJdqKH4D/Lj4uIJJX6cbz7PxO6xuzeL6ln9dN3spaM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 611D460551; Thu, 28 May 2026 16:12:26 +0200 (CEST)
-Date: Thu, 28 May 2026 16:12:26 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Siho Lee <25esihoya@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nft_payload: move offset bounds check
- outside csum condition
-Message-ID: <ahhNSscKHjx7bebv@strlen.de>
-References: <CAOYEF6nf5-B-P7DHf_cpLaqUSoZC2FJphBqE2s4zE8MygMCb_g@mail.gmail.com>
+	s=arc-20240116; t=1779978424; c=relaxed/simple;
+	bh=8dBQN3u9zxD5Dpe5kimj5AuyF1N0hn16euQa6Q6gauM=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=Ak1YNNHy6zWV+787dsUgfRc91uC6B3WExZM1XiVCo6NHteibXIoCcLvzI9VQQxQpVxqw7HS3j00BR9nFgAyLsahG+F6MZx2xkijlplF00ztGeRsoOuzYU9Ftadvk/LOsCzMUFd53NT0wcLuosaCDpzmZ6mZPG/lXm5iHg+i8dlQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f71.google.com with SMTP id 006d021491bc7-69df9b0b773so643709eaf.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2026 07:27:02 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779978421; x=1780583221;
+        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=DKd8lNtRk4Q8hVCyCTCRPaKBtTJU7lwZa3WnlORRuvU=;
+        b=OhwM39zSlWgHfFIy45lOiKTAH5jf4lGjI0uGqSh8NpHkQjicRakw041oivvseVEpiM
+         pXXMKZPvzs9Uf6LMkmZbdVWFV0BrrqsSl4hzUQEwzwt7BnGd0TrfppqksoW3bNO7C3nE
+         KLoqCeC12qDrBQXm8s4UH2QhqYFED0E4h6ZjKdRvSqcflvHKO3A2SJAwVOeB8mzafr3G
+         zT+9dOZYIkVryq7MkI1c4Ok7i80QE/EyXU09Zzlo7CRrp9V3JcPd5glq2h8vEbQsWEhX
+         SFiE9p/WxRv00U5Y+warA2EY6PZDCrTPvkOZ6TR8uUvQCFe1mmUB7pZaijYRdwCqIgf/
+         KNgg==
+X-Forwarded-Encrypted: i=1; AFNElJ/t1k7tiCBMqXSIgoaYuJ5pNObOQXSaPkA6QsK1BFnepcwCBLEpbJ3ZnQ7zqZ9ChHjhnRu57CtI8hyWf9olNy8=@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywyx9L4ids6s336MzqUD1ANooEshdCfrciP0/aX03Qr1Ihep6PC
+	sZfoXDrWzoyYgvVlHqw444cQSwRtw2A/5nt2iXvilbfnVLROEjHtzXTO5wUtW3fsIbxFHay8zlK
+	fiTgAS6EVVC/kz4ShCFd5+JrL8II94bdB/whu07PBMrond1+sluXH2fER0gQ=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOYEF6nf5-B-P7DHf_cpLaqUSoZC2FJphBqE2s4zE8MygMCb_g@mail.gmail.com>
+X-Received: by 2002:a05:6820:1c9d:b0:69d:9f6a:9d2f with SMTP id
+ 006d021491bc7-69dfa918199mr695672eaf.38.1779978421526; Thu, 28 May 2026
+ 07:27:01 -0700 (PDT)
+Date: Thu, 28 May 2026 07:27:01 -0700
+In-Reply-To: <20260528072100.1163109-1-vulab@iscas.ac.cn>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a1850b5.586c836d.2e3ab2.0001.GAE@google.com>
+Subject: [syzbot ci] Re: netfilter: ipvs: fix ct refcount leak when template
+ is invalid
+From: syzbot ci <syzbot+ci738d8a1aa6d8f478@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, horms@verge.net.au, ja@ssi.bg, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, phil@nwl.cc, stable@vger.kernel.org, vulab@iscas.ac.cn
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Siho Lee <25esihoya@gmail.com> wrote:
-> From 574604a1b4a98ee130d7f727ad3c8a7df3f3b6f1 Mon Sep 17 00:00:00 2001
-> From: Siho Lee <25esihoya@gmail.com>
-> Date: Thu, 28 May 2026 22:39:03 +0900
-> Subject: [PATCH v1] netfilter: nft_payload: move offset bounds check outside
->  csum condition
-> 
-> The bounds check for offset + priv->len was placed inside the csum
-> condition block. When csum_type is NFT_PAYLOAD_CSUM_NONE and
-> csum_flags is 0, the entire block including the bounds check is
-> skipped.
-> 
-> For NFT_PAYLOAD_LL_HEADER, offset is computed as:
->     offset = skb_mac_header(skb) - skb->data - vlan_hlen
-> which evaluates to -14 (or -18 with VLAN) after eth_type_trans()
-> pulls the Ethernet header.
-> 
-> Without the bounds check, a negative offset reaches:
->     skb_ensure_writable(skb, max(offset + priv->len, 0))
->     skb_store_bits(skb, offset, src, priv->len)
-> 
-> max(-14 + 4, 0) == 0 makes skb_ensure_writable a no-op, and
-> skb_store_bits(skb, -14, ...) writes to skb headroom (OOB write).
-> 
-> The signed-unsigned comparison in the bounds check correctly catches
-> negative offsets: (unsigned int)(-10) is a large positive value that
-> exceeds any valid skb->len.
-> 
-> Move the bounds check outside the csum condition so it applies
-> regardless of csum_type/csum_flags.
+syzbot ci has tested the following series
 
-This breaks link layer update support.
+[v1] netfilter: ipvs: fix ct refcount leak when template is invalid
+https://lore.kernel.org/all/20260528072100.1163109-1-vulab@iscas.ac.cn
+* [PATCH] netfilter: ipvs: fix ct refcount leak when template is invalid
 
-# cd git/nftables/tests/shell
-# NFT=nft ./run-tests.sh testcases/packetpath/bridge_pass_up C
-W: [FAILED]     1/1 testcases/packetpath/bridge_pass_up
+and found the following issue:
+general protection fault in ip_vs_conn_put
+
+Full report is available here:
+https://ci.syzbot.org/series/fb773743-f223-4965-9f38-e5ea600ee724
+
+***
+
+general protection fault in ip_vs_conn_put
+
+tree:      nf-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
+base:      aa064a614efcfa4c300609d1f01134e99a12ad10
+arch:      amd64
+compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+config:    https://ci.syzbot.org/builds/3e6a154f-d578-4d43-94af-86e851702925/config
+syz repro: https://ci.syzbot.org/findings/518450a1-bd56-47bd-b214-be945f6ba221/syz_repro
+
+IPVS: sed: FWM 3 0x00000003 - no destination available
+Oops: general protection fault, probably for non-canonical address 0xdffffc0000000007: 0000 [#1] SMP KASAN PTI
+KASAN: null-ptr-deref in range [0x0000000000000038-0x000000000000003f]
+CPU: 1 UID: 0 PID: 5812 Comm: syz.1.18 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+RIP: 0010:ip_vs_conn_put+0x2b/0x240 net/netfilter/ipvs/ip_vs_conn.c:608
+Code: 0f 1e fa 55 41 57 41 56 41 55 41 54 53 48 89 fb 49 bc 00 00 00 00 00 fc ff df e8 40 cb c1 f7 4c 8d 73 3c 4d 89 f5 49 c1 ed 03 <43> 0f b6 44 25 00 84 c0 0f 85 9f 01 00 00 41 8b 2e 89 ee 81 e6 00
+RSP: 0018:ffffc90003d4eba8 EFLAGS: 00010203
+RAX: ffffffff8a03f980 RBX: 0000000000000000 RCX: ffff888169370000
+RDX: 0000000000000000 RSI: ffffffff8c28b740 RDI: 0000000000000000
+RBP: ffffc90003d4ee30 R08: ffff88823c6247d3 R09: 1ffff110478c48fa
+R10: dffffc0000000000 R11: ffffed10478c48fb R12: dffffc0000000000
+R13: 0000000000000007 R14: 000000000000003c R15: 0000000000000000
+FS:  00007faa344d36c0(0000) GS:ffff8882a9276000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faa33472780 CR3: 0000000169de6000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ ip_vs_sched_persist net/netfilter/ipvs/ip_vs_core.c:-1 [inline]
+ ip_vs_schedule+0x100f/0x1d90 net/netfilter/ipvs/ip_vs_core.c:688
+ udp_conn_schedule+0x391/0x7a0 net/netfilter/ipvs/ip_vs_proto_udp.c:78
+ ip_vs_try_to_schedule net/netfilter/ipvs/ip_vs_core.c:1659 [inline]
+ ip_vs_in_hook+0xc50/0x1bf0 net/netfilter/ipvs/ip_vs_core.c:2231
+ nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:619
+ nf_hook+0x22a/0x3a0 include/linux/netfilter.h:273
+ __ip_local_out+0x558/0x6a0 net/ipv4/ip_output.c:120
+ ip_local_out+0x2a/0x190 net/ipv4/ip_output.c:129
+ ip_send_skb+0x45/0xc0 net/ipv4/ip_output.c:1510
+ udp_send_skb+0x7e4/0xf70 net/ipv4/udp.c:1161
+ udp_sendmsg+0x1937/0x21a0 net/ipv4/udp.c:1443
+ udpv6_sendmsg+0x996/0x25c0 net/ipv6/udp.c:1523
+ sock_sendmsg_nosec net/socket.c:787 [inline]
+ __sock_sendmsg net/socket.c:802 [inline]
+ ____sys_sendmsg+0x5c7/0x9f0 net/socket.c:2698
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2752
+ __sys_sendmsg net/socket.c:2784 [inline]
+ __do_sys_sendmsg net/socket.c:2789 [inline]
+ __se_sys_sendmsg net/socket.c:2787 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2787
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x15f/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7faa3359ce59
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007faa344d3028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007faa33815fa0 RCX: 00007faa3359ce59
+RDX: 0000000000000000 RSI: 0000200000000400 RDI: 0000000000000004
+RBP: 00007faa33632d6f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007faa33816038 R14: 00007faa33815fa0 R15: 00007ffe8bd2ebb8
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:ip_vs_conn_put+0x2b/0x240 net/netfilter/ipvs/ip_vs_conn.c:608
+Code: 0f 1e fa 55 41 57 41 56 41 55 41 54 53 48 89 fb 49 bc 00 00 00 00 00 fc ff df e8 40 cb c1 f7 4c 8d 73 3c 4d 89 f5 49 c1 ed 03 <43> 0f b6 44 25 00 84 c0 0f 85 9f 01 00 00 41 8b 2e 89 ee 81 e6 00
+RSP: 0018:ffffc90003d4eba8 EFLAGS: 00010203
+RAX: ffffffff8a03f980 RBX: 0000000000000000 RCX: ffff888169370000
+RDX: 0000000000000000 RSI: ffffffff8c28b740 RDI: 0000000000000000
+RBP: ffffc90003d4ee30 R08: ffff88823c6247d3 R09: 1ffff110478c48fa
+R10: dffffc0000000000 R11: ffffed10478c48fb R12: dffffc0000000000
+R13: 0000000000000007 R14: 000000000000003c R15: 0000000000000000
+FS:  00007faa344d36c0(0000) GS:ffff8882a9276000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faa335ea540 CR3: 0000000169de6000 CR4: 00000000000006f0
+----------------
+Code disassembly (best guess):
+   0:	0f 1e fa             	nop    %edx
+   3:	55                   	push   %rbp
+   4:	41 57                	push   %r15
+   6:	41 56                	push   %r14
+   8:	41 55                	push   %r13
+   a:	41 54                	push   %r12
+   c:	53                   	push   %rbx
+   d:	48 89 fb             	mov    %rdi,%rbx
+  10:	49 bc 00 00 00 00 00 	movabs $0xdffffc0000000000,%r12
+  17:	fc ff df
+  1a:	e8 40 cb c1 f7       	call   0xf7c1cb5f
+  1f:	4c 8d 73 3c          	lea    0x3c(%rbx),%r14
+  23:	4d 89 f5             	mov    %r14,%r13
+  26:	49 c1 ed 03          	shr    $0x3,%r13
+* 2a:	43 0f b6 44 25 00    	movzbl 0x0(%r13,%r12,1),%eax <-- trapping instruction
+  30:	84 c0                	test   %al,%al
+  32:	0f 85 9f 01 00 00    	jne    0x1d7
+  38:	41 8b 2e             	mov    (%r14),%ebp
+  3b:	89 ee                	mov    %ebp,%esi
+  3d:	81                   	.byte 0x81
+  3e:	e6 00                	out    %al,$0x0
+
+
+***
+
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
+
+---
+This report is generated by a bot. It may contain errors.
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
+
+To test a patch for this bug, please reply with `#syz test`
+(should be on a separate line).
+
+The patch should be attached to the email.
+Note: arguments like custom git repos and branches are not supported.
