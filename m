@@ -1,53 +1,53 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 462FE2765FF;
-	Thu, 28 May 2026 16:31:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4140F2765F5;
+	Thu, 28 May 2026 18:12:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779985907; cv=none; b=UsXmJfY3RVHchM5/Z0Wz86JydvW2nV+hC7Ehy4flyb3DJ5W0/XoTcxIToNljSOFub6lbfSDTS/EdDWBvvDXMPyQur8iLPblBIGxjxxJEtaYWWfDTNzVABTik0yNfykO9nk0zG1yFFEbXGnGeVVWMQL478yFtMzmSyKsNKX7zc0o=
+	t=1779991977; cv=none; b=E2v1WXqaR+F+G9rBC6ru3qdqZiUM458+yj+eybpKB40ANGo0TURHl+L09L71J2Ts9BtcKT6iMm76miTpnIn9BTi4lihKGWUnlpWph9ZL/MFxsGadKE4BCBPCCMSdzcwyxyMymABhikgES7zhdh/FabJp9WbZAoRz20kqGaSV5us=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779985907; c=relaxed/simple;
-	bh=6/VxO29NKPftZVpE3X5f0Il43jF0FzmLQFOeYxxrxGc=;
+	s=arc-20240116; t=1779991977; c=relaxed/simple;
+	bh=Ctdv0OYabhQxjDPpRvM20MVC5CcJdOQYGsbFnJQvI5U=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=brKKiWzLRBoz38PHEGqdjINfQoKl4izP3ylMGhbLE4+GUZipqam5vRuIQjKYXzICrImFv0MzGPjGly4j9fvyztQZnMXuSnkuVjYeL7ePLi3rAnl3wjQVs3qsD8+t12MtEND8/gWeNQqxLLmhQ9yLCe7KF4RdSBLM3g923y+sR6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ODYSg3XT; arc=none smtp.client-ip=198.175.65.14
+	 Content-Type:Content-Disposition:In-Reply-To; b=fyvSwVa5AbiOfoNykguOEOm8jxsWergx4FXOmGxJLKEkmYkslIaFOphAExOxOIiX9eBv+LxrQxUS8tG2DHzTWcx+5oVuDkr+AdN3MxArWrE6qnSQ1we3trUQTDHSRH0M8+pO39Pg9LjG7dA9weUqEC26KxaJo2rsc/AJGR5YIpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=J7vXQVR8; arc=none smtp.client-ip=198.175.65.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ODYSg3XT"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J7vXQVR8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779985905; x=1811521905;
+  t=1779991975; x=1811527975;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=6/VxO29NKPftZVpE3X5f0Il43jF0FzmLQFOeYxxrxGc=;
-  b=ODYSg3XTgmlAC4Je29wHnlCwODHXB4z06f0z3ifJb5cV6SFaFOGDZVl5
-   iRN6eGqXcvYX5VRc9VKsnBmfyIE++llyy9Oin4PZ0EaTS4uJCJmvYf8Oi
-   cYedkmz79ZGugUuVio+HWV/4UzqKO8kpmCVqxr3RhlnaX3vk2HCwCqRuO
-   y0fW5uyFK5KZs+5iAztbr+SEaVBlxMNHswLvLvHj23zd9c2jbsNMlJbma
-   lx1ecC1f5Rcx/st7WE0zEkjtbajDLfIFNtoe7iNbWgKg4cW40EU69AZJi
-   eniy9LvOcI+gi+JJ1xlwYSydb8Qc6S7c9wqClMDGGzYKumzCjFI4WP3qA
-   Q==;
-X-CSE-ConnectionGUID: HP0FTtesT52TlnD6jySiHQ==
-X-CSE-MsgGUID: +JKe5pyvQrWPgnlP8ma3Yg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11800"; a="84721104"
+  bh=Ctdv0OYabhQxjDPpRvM20MVC5CcJdOQYGsbFnJQvI5U=;
+  b=J7vXQVR8A7jQOFwqXBRWZWsdoSxSZGMyoFtr1of1bM1UxKcJ85VdDRG6
+   acvFjTUnuQYHGtr0vtFeE/oOA7Cqtgq0c7WAIuPWuY2HlHuupZEp1hMRR
+   4AUCiDxbgxo8KkX/IShhhYvzMWvC+eI2kiPlhRVOB4T0grFRWb/SY6TNh
+   yQmhHjDNhbD72fAn/9DcMDdhpAaFOe9f0II8DpzOLvRB0JVvd1y1XzSYt
+   kWjj+0SfCmfD7pMVhqq4WoRue7t4wE0cqxqWeWQSR+ytrRhViUYA/I202
+   VfN4dnalwSpam/RejujzumhfYs7EQKFGaECFzWL8VYgdykEjNORIzforU
+   g==;
+X-CSE-ConnectionGUID: xNHxbhBXS6+B/w+NXrIUlA==
+X-CSE-MsgGUID: IER+tMb9S+Om0Yx3czvk1w==
+X-IronPort-AV: E=McAfee;i="6800,10657,11800"; a="80567140"
 X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
-   d="scan'208";a="84721104"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 May 2026 09:31:44 -0700
-X-CSE-ConnectionGUID: QjgaMkq9S/O3FjpqVnDpAA==
-X-CSE-MsgGUID: NNctJPBmTKyZX98hr1nCrQ==
+   d="scan'208";a="80567140"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 May 2026 11:12:54 -0700
+X-CSE-ConnectionGUID: b6TCqGmhSmmsToisHUMiNA==
+X-CSE-MsgGUID: jNKatLEgS0yer2qHq6c8sg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
-   d="scan'208";a="236244866"
+   d="scan'208";a="244442960"
 Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by fmviesa009.fm.intel.com with ESMTP; 28 May 2026 09:31:41 -0700
+  by fmviesa004.fm.intel.com with ESMTP; 28 May 2026 11:12:51 -0700
 Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1wSddx-0000000069q-2wYk;
-	Thu, 28 May 2026 16:31:37 +0000
-Date: Fri, 29 May 2026 00:31:04 +0800
+	id 1wSfDs-000000006HS-0bwD;
+	Thu, 28 May 2026 18:12:48 +0000
+Date: Fri, 29 May 2026 02:11:48 +0800
 From: kernel test robot <lkp@intel.com>
 To: Kacper Kokot <kacper.kokot.44@gmail.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -57,11 +57,12 @@ To: Kacper Kokot <kacper.kokot.44@gmail.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
 	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
-	stable@vger.kernel.org, Kacper Kokot <kacper.kokot.44@gmail.com>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	netdev@vger.kernel.org, stable@vger.kernel.org,
+	Kacper Kokot <kacper.kokot.44@gmail.com>
 Subject: Re: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option
  is unaligned
-Message-ID: <202605290016.Qu0UrK4O-lkp@intel.com>
+Message-ID: <202605290221.PE1wkPWQ-lkp@intel.com>
 References: <20260525201116.407338-2-kacper.kokot.44@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -78,7 +79,7 @@ Hi Kacper,
 kernel test robot noticed the following build warnings:
 
 [auto build test WARNING on nf-next/main]
-[also build test WARNING on netfilter-nf/main horms-ipvs/master linus/master v7.1-rc5 next-20260527]
+[also build test WARNING on netfilter-nf/main linus/master v7.1-rc5 next-20260527]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
 https://git-scm.com/docs/git-format-patch#_base_tree_information]
@@ -87,21 +88,29 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Kacper-Kokot/netfilter-TC
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git main
 patch link:    https://lore.kernel.org/r/20260525201116.407338-2-kacper.kokot.44%40gmail.com
 patch subject: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option is unaligned
-config: m68k-allmodconfig (https://download.01.org/0day-ci/archive/20260529/202605290016.Qu0UrK4O-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 15.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260529/202605290016.Qu0UrK4O-lkp@intel.com/reproduce)
+config: s390-allmodconfig (https://download.01.org/0day-ci/archive/20260529/202605290221.PE1wkPWQ-lkp@intel.com/config)
+compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260529/202605290221.PE1wkPWQ-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202605290016.Qu0UrK4O-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202605290221.PE1wkPWQ-lkp@intel.com/
 
 All warnings (new ones prefixed by >>):
 
-   net/netfilter/xt_TCPMSS.c: In function 'tcpmss_mangle_packet':
->> net/netfilter/xt_TCPMSS.c:140:66: warning: suggest parentheses around comparison in operand of '&' [-Wparentheses]
+>> net/netfilter/xt_TCPMSS.c:140:45: warning: & has lower precedence than !=; != will be evaluated first [-Wparentheses]
+     140 |                         if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {
+         |                                                                  ^~~~~~~~~~
+   net/netfilter/xt_TCPMSS.c:140:45: note: place parentheses around the '!=' expression to silence this warning
+     140 |                         if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {
+         |                                                                  ^         
+         |                                                                    (       )
+   net/netfilter/xt_TCPMSS.c:140:45: note: place parentheses around the & expression to evaluate it first
      140 |                         if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {
          |                                                                  ^
+         |                             (                                         )
+   1 warning generated.
 
 
 vim +140 net/netfilter/xt_TCPMSS.c
