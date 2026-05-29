@@ -1,148 +1,257 @@
-Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD111421F0E
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2026 20:02:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E8103F788A;
+	Fri, 29 May 2026 20:54:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780084946; cv=none; b=DJGgT3ISxPZ45FVQXwgvGZwl0BX38we8eGrS+nVHb5ry4xErsAGu9zfikBU5iHLBrfoLEJtqq8502nb/oBYjOVZfclMWhARCuSHOWgW47jt8nx1AeqgKcuq46GiECC0WAqYnyx3Z3R/J0x4Ljrt0J4tOTvPHifk7sjpUWg75bNs=
+	t=1780088097; cv=none; b=hSWbjzB36V/G+lQdIDba7dubmQd8pwmqVXbr6AOhXyIYzia4RGA10aAy5TmGA+ppJnOE8oTEQGFDr9Rkh5h4qO1wXTSAS37NfFwgYLRWOphtXkrdVZrCAb6d8I/l7Lh/NVHvonZHUfAG9m+W65alZ7CwKxi8PSMaT2JIICjI8eU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780084946; c=relaxed/simple;
-	bh=pcTnwe/KVI85n95UPLkXuabPEJyxyegVKL/hCCAxPaM=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=mjDqQD2yjbOZu60kxk7SdJE5K8/2wFIr3CDM0JLadGhhJojEfah+BXGrPpX1ckXDR4EKEQObm3xxcrkiF8+aOg2OR1nnk+uC3ypv/aEVch1wRBD1sXIdBvzPsQ84YohDbkMsxPXauaXFvG4bPz5cdN9RXuI5qzSgUfbzGpEWPf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-69d932fb253so7815429eaf.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2026 13:02:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780084942; x=1780689742;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=HfkZqZPb1eH2CVhAL5pZp6RKk2Z5O4JrS5f/56nRwpw=;
-        b=JtcQG7Wfe1R7FdqRdBULF4NHejRhGMlCKUhoJQ3136500UCcALJ+qrOI74J1UUlREl
-         abRG6cquboRId5naAIaxCcrlzPBOsjS6k+3zA29XhVwH9g5BPfkuSJwZcJXhOyqnyFAp
-         jCORtiGpFp3lJ8Ia/4mKfWzq8bkwfFM++QNyjmi+wme2mNyikqv64Em3ulwmZJhUHI+h
-         gdNKJ8FdfcVSAdOtuqbN0Afhj4DHoGWHIZfikZb6PV0rq7ST5GxmD2mccrdOvbQlkgkP
-         v2Hrp5pg34+jOpfhOkkyQoVnOBikhBTXzG4cUNlDkixG+h07Q/RxiuuESK5TijQqqObM
-         62gg==
-X-Forwarded-Encrypted: i=1; AFNElJ/7KDsjiRMMc7g8/+OWodrEQ7Ip1bQsprgU7MSny9y2y+kSMDAvB4Z7leb0jMxagKac9a/QTpI6GyNwASFGaHM=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw3vvpfd4nAT3SHiC/54i9OVMXfWTE8VcyV9au7YnCH+W9K62pB
-	qQopAzFtgVEYyBHL7b/6toD05tMTgHjzOFX2f8nc2kyl28vMwu+/MJmtFYt3SsiDmxk/+RhqOdJ
-	+9a0VnUs2NmNzOQa1ri5NEsgp4fn4FWoNjWpBXb8naujk5ZlrYsSPhTkCtVg=
+	s=arc-20240116; t=1780088097; c=relaxed/simple;
+	bh=/S5opQBS0Ej1USU/abspGG6ppFq446gxLFslHhfOoBA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HxNvcTvHkXS3hf53lEvbeABUIoGSnYZF7tHbZY1AswAAFQon74MLtIeLjXrt2z1+WZQmIixl/S2+qaDNXnlOXyDJ9JljfsArTI+OZBcfH8S0WB8F/WUkY60dUVsv3jRO50RBNRhSRa0E/EqxUr6FY+7IbetP+qOGAeBeeWeRbcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DE3edK9K; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DE3edK9K"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780088096; x=1811624096;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=/S5opQBS0Ej1USU/abspGG6ppFq446gxLFslHhfOoBA=;
+  b=DE3edK9KRM11gOQFjs+pl+IXtOhwVRok3xNrXcsdYm0+8Zal2hyGIHnM
+   CfUtZvys39s42I9ILlPKvnqGa4uNcOL2PcEKndlozjVkXBs5r8ykG15Rw
+   Mr+UG/z+E1JSmJe8rEYexkNh0SxqLEF3/kTDQ78lcO+3vviG+lTJOhOWC
+   DTqwxuJ5WAVnIfH4zMTBgAWjnvXC030tWi25HmoNoL8zA5miCIX1lW+VZ
+   Z9TgQezvUmSyisZMZXmAN0CepgO6F9ISabNyvrlDcXNTKVefBpt8tj7Kq
+   F7cVIbVegnJ/3hFKAb7w+aiQEJSx0CCAf8l8lX2QxYgrlT57403iiEqiK
+   w==;
+X-CSE-ConnectionGUID: z3SiQPyrRhWY4peyS8MFwg==
+X-CSE-MsgGUID: SpkJiwUyRUC43usc1CIurw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11801"; a="84806035"
+X-IronPort-AV: E=Sophos;i="6.24,176,1774335600"; 
+   d="scan'208";a="84806035"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 May 2026 13:54:55 -0700
+X-CSE-ConnectionGUID: LXmduyQWTgC5f/i4ueVE5Q==
+X-CSE-MsgGUID: JzBUgapxRuy8vKMrDUZ7PA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,176,1774335600"; 
+   d="scan'208";a="243045869"
+Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
+  by orviesa009.jf.intel.com with ESMTP; 29 May 2026 13:54:51 -0700
+Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wT4EB-000000007h8-3tDW;
+	Fri, 29 May 2026 20:54:47 +0000
+Date: Sat, 30 May 2026 04:54:19 +0800
+From: kernel test robot <lkp@intel.com>
+To: Kacper Kokot <kacper.kokot.44@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
+	stable@vger.kernel.org, Kacper Kokot <kacper.kokot.44@gmail.com>
+Subject: Re: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option
+ is unaligned
+Message-ID: <202605300415.wk7l0cyV-lkp@intel.com>
+References: <20260525201116.407338-2-kacper.kokot.44@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:1908:b0:69e:14a:f307 with SMTP id
- 006d021491bc7-69e10403fa4mr410206eaf.45.1780084941817; Fri, 29 May 2026
- 13:02:21 -0700 (PDT)
-Date: Fri, 29 May 2026 13:02:21 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a19f0cd.5099cdd9.8e407.0003.GAE@google.com>
-Subject: [syzbot] [netfilter?] WARNING in nf_conntrack_cleanup_net_list (2)
-From: syzbot <syzbot+122256c3e2bf6ec9f928@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260525201116.407338-2-kacper.kokot.44@gmail.com>
 
-Hello,
+Hi Kacper,
 
-syzbot found the following issue on:
+kernel test robot noticed the following build warnings:
 
-HEAD commit:    d60ec36cab33 Merge tag 'mm-hotfixes-stable-2026-05-25-16-2..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=17f1712e580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e327ee9a867dd6b9
-dashboard link: https://syzkaller.appspot.com/bug?extid=122256c3e2bf6ec9f928
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+[auto build test WARNING on nf-next/main]
+[also build test WARNING on netfilter-nf/main horms-ipvs/master linus/master v7.1-rc5 next-20260528]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Unfortunately, I don't have any reproducer for this issue yet.
+url:    https://github.com/intel-lab-lkp/linux/commits/Kacper-Kokot/netfilter-TCPMSS-fix-dropped-packets-when-MSS-option-is-unaligned/20260526-041308
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git main
+patch link:    https://lore.kernel.org/r/20260525201116.407338-2-kacper.kokot.44%40gmail.com
+patch subject: [PATCH] netfilter: TCPMSS: fix dropped packets when MSS option is unaligned
+config: arc-randconfig-r133-20260529 (https://download.01.org/0day-ci/archive/20260530/202605300415.wk7l0cyV-lkp@intel.com/config)
+compiler: arc-linux-gcc (GCC) 10.5.0
+sparse: v0.6.5-rc1
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260530/202605300415.wk7l0cyV-lkp@intel.com/reproduce)
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-d60ec36c.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/f8c1a87b3686/vmlinux-d60ec36c.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/731575988634/bzImage-d60ec36c.xz
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202605300415.wk7l0cyV-lkp@intel.com/
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+122256c3e2bf6ec9f928@syzkaller.appspotmail.com
+sparse warnings: (new ones prefixed by >>)
+>> net/netfilter/xt_TCPMSS.c:134:37: sparse: sparse: incorrect type in assignment (different base types) @@     expected unsigned short [usertype] csum_oldmss @@     got restricted __be16 [usertype] @@
+   net/netfilter/xt_TCPMSS.c:134:37: sparse:     expected unsigned short [usertype] csum_oldmss
+   net/netfilter/xt_TCPMSS.c:134:37: sparse:     got restricted __be16 [usertype]
+>> net/netfilter/xt_TCPMSS.c:135:37: sparse: sparse: incorrect type in assignment (different base types) @@     expected unsigned short [usertype] csum_newmss @@     got restricted __be16 [usertype] @@
+   net/netfilter/xt_TCPMSS.c:135:37: sparse:     expected unsigned short [usertype] csum_newmss
+   net/netfilter/xt_TCPMSS.c:135:37: sparse:     got restricted __be16 [usertype]
+>> net/netfilter/xt_TCPMSS.c:146:50: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be16 [usertype] from @@     got unsigned short [assigned] [usertype] csum_oldmss @@
+   net/netfilter/xt_TCPMSS.c:146:50: sparse:     expected restricted __be16 [usertype] from
+   net/netfilter/xt_TCPMSS.c:146:50: sparse:     got unsigned short [assigned] [usertype] csum_oldmss
+>> net/netfilter/xt_TCPMSS.c:146:63: sparse: sparse: incorrect type in argument 4 (different base types) @@     expected restricted __be16 [usertype] to @@     got unsigned short [assigned] [usertype] csum_newmss @@
+   net/netfilter/xt_TCPMSS.c:146:63: sparse:     expected restricted __be16 [usertype] to
+   net/netfilter/xt_TCPMSS.c:146:63: sparse:     got unsigned short [assigned] [usertype] csum_newmss
 
-------------[ cut here ]------------
-conntrack cleanup blocked for 60s
-WARNING: net/netfilter/nf_conntrack_core.c:2506 at nf_conntrack_cleanup_net_list+0x4f7/0x690 net/netfilter/nf_conntrack_core.c:2506, CPU#2: kworker/u32:12/10858
-Modules linked in:
-CPU: 2 UID: 0 PID: 10858 Comm: kworker/u32:12 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Workqueue: netns cleanup_net
-RIP: 0010:nf_conntrack_cleanup_net_list+0x4f7/0x690 net/netfilter/nf_conntrack_core.c:2506
-Code: 29 c3 48 89 de e8 a9 84 58 f8 48 85 db 78 0f e8 bf 89 58 f8 e8 ea 64 dc 01 e9 0e fc ff ff e8 b0 89 58 f8 48 8d 3d 39 7f 36 07 <67> 48 0f b9 3a eb de 4c 8b 6c 24 40 e8 98 89 58 f8 48 b8 00 00 00
-RSP: 0018:ffffc90004057968 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: ffffffffffffffff RCX: ffffffff89b02597
-RDX: ffff888042c5ca00 RSI: ffffffff89b025b0 RDI: ffffffff90e6a4f0
-RBP: 0000000000000001 R08: 0000000000000007 R09: 0000000000000000
-R10: ffffffffffffffff R11: 0000000000000000 R12: 0000000000000001
-R13: 0000000000000001 R14: ffffc90004057b20 R15: dffffc0000000000
-FS:  0000000000000000(0000) GS:ffff8880d656a000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 000000110c360d0b CR3: 000000004064f000 CR4: 0000000000352ef0
-DR0: 0000000000000009 DR1: 00000000000000c9 DR2: 00000000000000f3
-DR3: 00000000000000c0 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- ops_exit_list net/core/net_namespace.c:205 [inline]
- ops_undo_list+0x363/0xab0 net/core/net_namespace.c:252
- cleanup_net+0x499/0x920 net/core/net_namespace.c:702
- process_one_work+0xa0e/0x1980 kernel/workqueue.c:3314
- process_scheduled_works kernel/workqueue.c:3397 [inline]
- worker_thread+0x5ef/0xe50 kernel/workqueue.c:3478
- kthread+0x370/0x450 kernel/kthread.c:436
- ret_from_fork+0x72b/0xd50 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
-----------------
-Code disassembly (best guess):
-   0:	29 c3                	sub    %eax,%ebx
-   2:	48 89 de             	mov    %rbx,%rsi
-   5:	e8 a9 84 58 f8       	call   0xf85884b3
-   a:	48 85 db             	test   %rbx,%rbx
-   d:	78 0f                	js     0x1e
-   f:	e8 bf 89 58 f8       	call   0xf85889d3
-  14:	e8 ea 64 dc 01       	call   0x1dc6503
-  19:	e9 0e fc ff ff       	jmp    0xfffffc2c
-  1e:	e8 b0 89 58 f8       	call   0xf85889d3
-  23:	48 8d 3d 39 7f 36 07 	lea    0x7367f39(%rip),%rdi        # 0x7367f63
-* 2a:	67 48 0f b9 3a       	ud1    (%edx),%rdi <-- trapping instruction
-  2f:	eb de                	jmp    0xf
-  31:	4c 8b 6c 24 40       	mov    0x40(%rsp),%r13
-  36:	e8 98 89 58 f8       	call   0xf85889d3
-  3b:	48                   	rex.W
-  3c:	b8                   	.byte 0xb8
-  3d:	00 00                	add    %al,(%rax)
+vim +134 net/netfilter/xt_TCPMSS.c
 
+    69	
+    70	static int
+    71	tcpmss_mangle_packet(struct sk_buff *skb,
+    72			     const struct xt_action_param *par,
+    73			     unsigned int family,
+    74			     unsigned int tcphoff,
+    75			     unsigned int minlen)
+    76	{
+    77		const struct xt_tcpmss_info *info = par->targinfo;
+    78		struct tcphdr *tcph;
+    79		int len, tcp_hdrlen;
+    80		unsigned int i;
+    81		__be16 oldval;
+    82		u16 newmss;
+    83		u8 *opt;
+    84	
+    85		/* This is a fragment, no TCP header is available */
+    86		if (par->fragoff != 0)
+    87			return 0;
+    88	
+    89		if (skb_ensure_writable(skb, skb->len))
+    90			return -1;
+    91	
+    92		len = skb->len - tcphoff;
+    93		if (len < (int)sizeof(struct tcphdr))
+    94			return -1;
+    95	
+    96		tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+    97		tcp_hdrlen = tcph->doff * 4;
+    98	
+    99		if (len < tcp_hdrlen || tcp_hdrlen < sizeof(struct tcphdr))
+   100			return -1;
+   101	
+   102		if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
+   103			struct net *net = xt_net(par);
+   104			unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
+   105			unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
+   106	
+   107			if (min_mtu <= minlen) {
+   108				net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+   109						    min_mtu);
+   110				return -1;
+   111			}
+   112			newmss = min_mtu - minlen;
+   113		} else
+   114			newmss = info->mss;
+   115	
+   116		opt = (u_int8_t *)tcph;
+   117		for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
+   118			if (opt[i] == TCPOPT_MSS && opt[i+1] == TCPOLEN_MSS) {
+   119				u_int16_t oldmss;
+   120				u16 csum_oldmss, csum_newmss;
+   121	
+   122				oldmss = (opt[i+2] << 8) | opt[i+3];
+   123	
+   124				/* Never increase MSS, even when setting it, as
+   125				 * doing so results in problems for hosts that rely
+   126				 * on MSS being set correctly.
+   127				 */
+   128				if (oldmss <= newmss)
+   129					return 0;
+   130	
+   131				opt[i+2] = (newmss & 0xff00) >> 8;
+   132				opt[i+3] = newmss & 0x00ff;
+   133	
+ > 134				csum_oldmss = htons(oldmss);
+ > 135				csum_newmss = htons(newmss);
+   136	
+   137				/* MSS may be unaligned; fix up the incremental checksum
+   138				 * to avoid an invalid checksum and a dropped packet.
+   139				 */
+   140				if (((char *)&opt[i + 2] - (char *)tcph) & 0x1 != 0) {
+   141					csum_oldmss = swab16(csum_oldmss);
+   142					csum_newmss = swab16(csum_newmss);
+   143				}
+   144	
+   145				inet_proto_csum_replace2(&tcph->check, skb,
+ > 146							 csum_oldmss, csum_newmss,
+   147							 false);
+   148				return 0;
+   149			}
+   150		}
+   151	
+   152		/* There is data after the header so the option can't be added
+   153		 * without moving it, and doing so may make the SYN packet
+   154		 * itself too large. Accept the packet unmodified instead.
+   155		 */
+   156		if (len > tcp_hdrlen)
+   157			return 0;
+   158	
+   159		/* tcph->doff has 4 bits, do not wrap it to 0 */
+   160		if (tcp_hdrlen >= 15 * 4)
+   161			return 0;
+   162	
+   163		/*
+   164		 * MSS Option not found ?! add it..
+   165		 */
+   166		if (skb_tailroom(skb) < TCPOLEN_MSS) {
+   167			if (pskb_expand_head(skb, 0,
+   168					     TCPOLEN_MSS - skb_tailroom(skb),
+   169					     GFP_ATOMIC))
+   170				return -1;
+   171			tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+   172		}
+   173	
+   174		skb_put(skb, TCPOLEN_MSS);
+   175	
+   176		/*
+   177		 * IPv4: RFC 1122 states "If an MSS option is not received at
+   178		 * connection setup, TCP MUST assume a default send MSS of 536".
+   179		 * IPv6: RFC 2460 states IPv6 has a minimum MTU of 1280 and a minimum
+   180		 * length IPv6 header of 60, ergo the default MSS value is 1220
+   181		 * Since no MSS was provided, we must use the default values
+   182		 */
+   183		if (xt_family(par) == NFPROTO_IPV4)
+   184			newmss = min(newmss, (u16)536);
+   185		else
+   186			newmss = min(newmss, (u16)1220);
+   187	
+   188		opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
+   189		memmove(opt + TCPOLEN_MSS, opt, len - sizeof(struct tcphdr));
+   190	
+   191		inet_proto_csum_replace2(&tcph->check, skb,
+   192					 htons(len), htons(len + TCPOLEN_MSS), true);
+   193		opt[0] = TCPOPT_MSS;
+   194		opt[1] = TCPOLEN_MSS;
+   195		opt[2] = (newmss & 0xff00) >> 8;
+   196		opt[3] = newmss & 0x00ff;
+   197	
+   198		inet_proto_csum_replace4(&tcph->check, skb, 0, *((__be32 *)opt), false);
+   199	
+   200		oldval = ((__be16 *)tcph)[6];
+   201		tcph->doff += TCPOLEN_MSS/4;
+   202		inet_proto_csum_replace2(&tcph->check, skb,
+   203					 oldval, ((__be16 *)tcph)[6], false);
+   204		return TCPOLEN_MSS;
+   205	}
+   206	
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
