@@ -1,212 +1,118 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574C42E736F
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2026 07:14:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C98A348C7F
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2026 09:02:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780038857; cv=none; b=btG9iigGHMUlPIL1QATnS07xI2impaaFJ6TS/zRQVsvMzWzR3sbggbsa4udLWZjTjHYm+NiEtVzXxB0z4MMkbtLveqAmf2zq50tf6NNwMY5yhSlw3fd+kpPwvGmtHUoJa//HbxqGUPBIC5HZ/DclDyxAIiycWQBdNqJm6VJDL7A=
+	t=1780045377; cv=none; b=Aa8KlCDRCaEVjI/WI790Et36YY0jVCrWYAav9CgeH/39oXGoyF5JqlPB55UdhHNXOyfVh80RIUOO20SqwC3rnte1IJZsU5zqUdmlytMpMNeHtpMRCv8S+/1SljuurIDMizehtejfKGJHT5a+Xn7dpzBpC4dGqBkIvTCA3hv6/F0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780038857; c=relaxed/simple;
-	bh=q7saC2uXuq0fRzDHXXZamkwYDVEVpp2BsF+gE6L30qE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gODgKdmGXZdFuc6LGE9fQzn75otIcQE/buFqdvu7Aynjrv+5zCzajRH8JSXiUnK7jW4qmyM2RoJSGHOV7w9A99JtaEHzOgwtr2/s5o/q5Wn/Brz+w98J9s020OWBrGs4hJg4D/1Lfvrimknp37CKCxEhrGtq48XNZUKLqhF4eMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=AtFHpIao; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=yW4glwfL; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=r35SGfEA; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=U8fxgeuH; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1780045377; c=relaxed/simple;
+	bh=yYAsUywyR27qE6vul78x3gmb+ziWG12hAXlyRaI1uXg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JYMpx16By/1b9Z8C79nlThilQugOi/HpKKAk+DBlcqnlw73wnsvLwStWE75CdTpA8R01gEsY9onvis+qW7eGDxKaL3xBe3imybyBVpBxxhKRRj+wVihsNBcTFFjBv+1rfuO8ya7sgG3HR/hXnWQk3EPgIIp6Zmm1lh64MiYpq2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Kq5vIbAO; arc=none smtp.client-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="AtFHpIao";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="yW4glwfL";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="r35SGfEA";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="U8fxgeuH"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 883E06AD6F;
-	Fri, 29 May 2026 07:14:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780038853; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=sqKJS7VItIryjZpr2+rwnWoyw8ld5FtNpbGI2o/zcxo=;
-	b=AtFHpIaozA7e2lRMSLQxCtXmqUy5hy/GdTzUmzNhB41SKdolstEzuPBAR5H8Gypb8qG/b6
-	Puf9WCZSPhmwrBL0XMjchKozewzJ5hAnLHPNBRFCM2ziLlLQqo1shJDXegZkq0tR+WDwrH
-	2+b82mLjUmJ2+Kk8Hgnp/EjmBNewD4c=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780038853;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=sqKJS7VItIryjZpr2+rwnWoyw8ld5FtNpbGI2o/zcxo=;
-	b=yW4glwfLOJxCYb+phOUYwdYKWud0QDyLenItGZgiCfXWZpevJYsHRffJgTOJm/SKH/TtUi
-	wGDI4SA1fwKXYlCQ==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=r35SGfEA;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=U8fxgeuH
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780038852; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=sqKJS7VItIryjZpr2+rwnWoyw8ld5FtNpbGI2o/zcxo=;
-	b=r35SGfEAJ2bmNGSgQDpBIW+38k4MQU9+YMFOXR6klctMg+t1/uI5uLQjsAbeMoyqG04E4M
-	BnBSbf+5zacPumI3g005EtS4MpKcHoVVrTcYd0Hjg8SK4U0v1UdiccneUSUcVJskwFQCk0
-	+7PDKTHJzkW4TXLcANLcwzO8y9nRT6Y=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780038852;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=sqKJS7VItIryjZpr2+rwnWoyw8ld5FtNpbGI2o/zcxo=;
-	b=U8fxgeuHnHL3SftnCoVnEX2mZRJsrI7hva0s+8BwDO4MyL2yKRNhIlvCAoSWV0fG+Bk6Bn
-	L0bb9naH0hAX7pBg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id AB7095B1FE;
-	Fri, 29 May 2026 07:14:11 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id zuo1JsM8GWquSwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 29 May 2026 07:14:11 +0000
-Message-ID: <381e22d3-fa30-4dde-bd53-705b4a868a90@suse.de>
-Date: Fri, 29 May 2026 09:14:00 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kq5vIbAO"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-49048e043e5so58928865e9.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2026 02:02:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780045375; x=1780650175; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=hgXlCsm5faN5BZz1S/HGhbOsFnx36ZERe35q1tpIjtU=;
+        b=Kq5vIbAOUpLhDomSF/Ua9MOsvqV+3RV7U8CQjBkiWgQohi5iSbXbbO90hQTqEZ4UyV
+         /knsowfZKl6qmh7zQurhjPTzvNTpU9XtB6rA9ESPsocG3mV+dYXHcLHeAD9ftEdTkQCL
+         /0y8vIckS/8z5q5EJOI2fRrltUFU4M0djEl1T36R5iHV+NYYw36GEcE38np4w2pzMo7K
+         ZTrBEBwcWgebIqcFTS+TCkpUnVrWKcUap9v4l6/Uebl6lNU1wyIdPNJtpLZAlnQwmcy3
+         VrQV2fzxV9nwbqbbh8sPtrZeaqVmDwG8PbDYsZmQDkuD7MHpL03b2g40mHxozm22MO5K
+         edPA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780045375; x=1780650175;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=hgXlCsm5faN5BZz1S/HGhbOsFnx36ZERe35q1tpIjtU=;
+        b=Ah5c6mhIrwLzeUIe6QlJBdkTMrxHsUDxvJ1jrxeWVuaVt0qPMVWPGUAw9o5WNFTHJS
+         53W3UR61kVswI9q8rKQUeM3CuUteJljrb8XuJxazetIxc4ay8wFWzPvVZ5N0NFlH6sN3
+         qixx5UuWmNZhWlG+oMt/6ggSzilbVF7FCQ/k3wG9nvMbFHjwK7Xk1bTZUMYk10w6kKtI
+         WrV4RwDQV3k7UAdoybvjFlvAbnk/qVJu9x4O3nJuxFnvP15KkDXEXeFYaxhb/GgGTck3
+         dh3z1cyIEgPlH+okFLK4wIUSA8EJzft55yCgthKqVNJfP70Q5RAycvvR32Cg4YB9dOkv
+         +ksQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+DCcsnS5NVjOVx9VbjkIG+qFPEcgPD5grwheVD8mSKexI0u6+f+A8txQjZa3yMotiFhdEzGebRwEji/0iAL+w=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwYRarAyBo60UGC5oe4sinZf80baj2OQaeNkYEB0/8rrk3u17O0
+	dmY2YpwuoDQqPIictM9o9vp2glla1tnJOJYZc7HQ7YKhxuXA+GgWrl0+
+X-Gm-Gg: Acq92OEa8qIcyZy0pRa3Ps7pRAZpXl8fY1fXMQqDZ5thIAzF3wq3O5/WOWSbgwBH34e
+	5OgbGHUV4N47B0VjdHdNRNnnlFtlWLSYduarJNX+jUY1LQtqW9WPypZ0ojzAqkeORmkDBuWQI/5
+	PMjb94a3rn4JfsGgl52KfPagf5k9uhQKfGKDycLvgnm8nRUK2lyahTHKlJOI51vQyfbMJiY+N42
+	f/j4bwpwrVLHCqEvtAQLbpJsjuRWt+0OGrC4A1od7/AwzP3BB1StseCd00YdMPes7Ui+R0wm9FO
+	xV9CWP780FRKK5UEQxVhPgkRdG5dKStTWx1hOeElSp2I8b1obt4Lvn8Pbs4S+BQOYeLP2gmLM7U
+	N9PwT5woBxnOkA2u2T/C4UjQJ3wMosoWYmks3Ck7eR9M/vMvcap9RCuaigNXU3lM1MhpESE6977
+	zR14qhsVNS7zNejLjSwf/GY+v2VA9qg5ykXaUZSxopNGvipMHtF6dhS5w8p/8FTNw+LA2eC+nTL
+	V2O
+X-Received: by 2002:a05:600c:4f53:b0:48f:e26a:1744 with SMTP id 5b1f17b1804b1-4909c07e7d7mr35184845e9.9.1780045374624;
+        Fri, 29 May 2026 02:02:54 -0700 (PDT)
+Received: from gmail.com (deskosmtp.auranext.com. [195.134.167.217])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4909d6f35f8sm21915255e9.13.2026.05.29.02.02.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 29 May 2026 02:02:54 -0700 (PDT)
+Date: Fri, 29 May 2026 11:02:52 +0200
+From: Mahe Tardy <mahe.tardy@gmail.com>
+To: Jordan Rife <jordan@jrife.io>
+Cc: bpf@vger.kernel.org, martin.lau@linux.dev, daniel@iogearbox.net,
+	john.fastabend@gmail.com, ast@kernel.org, andrii@kernel.org,
+	yonghong.song@linux.dev, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com
+Subject: Re: [PATCH bpf-next v7 3/7] bpf: add bpf_icmp_send kfunc
+Message-ID: <ahlWPCJCXa6DMSwQ@gmail.com>
+References: <20260526153708.279717-1-mahe.tardy@gmail.com>
+ <20260526153708.279717-4-mahe.tardy@gmail.com>
+ <d65aepu3gg5mzqy6umxvhwyvwq7gvpezle3f4u6dla7sorndt3@nirsf36ozbii>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] netfilter: TCPMSS: fix dropped packets when MSS option
- is unaligned
-To: Kacper Kokot <kacper.kokot.44@gmail.com>, netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- david.laight.linux@gmail.com, Phil Sutter <phil@nwl.cc>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260528204020.7ae744ab@pumpkin>
- <20260528223412.27311-1-kacper.kokot.44@gmail.com>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260528223412.27311-1-kacper.kokot.44@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: 883E06AD6F
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FREEMAIL_TO(0.00)[gmail.com,vger.kernel.org];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCPT_COUNT_TWELVE(0.00)[15];
-	MIME_TRACE(0.00)[0:+];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FREEMAIL_CC(0.00)[netfilter.org,strlen.de,gmail.com,nwl.cc,davemloft.net,google.com,kernel.org,redhat.com,vger.kernel.org];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TAGGED_RCPT(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim]
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d65aepu3gg5mzqy6umxvhwyvwq7gvpezle3f4u6dla7sorndt3@nirsf36ozbii>
 
-On 5/29/26 12:34 AM, Kacper Kokot wrote:
-> Padding TCP options with NOPs is optional, so it is legal to send an
-> MSS option that is not aligned to a word boundary and therefore not
-> aligned for checksum calculation. The current TCPMSS target is not
-> robust to this: when the MSS option is unaligned it produces an
-> invalid checksum, and the packet is dropped.
+On Thu, May 28, 2026 at 03:55:21PM -0700, Jordan Rife wrote:
+> On Tue, May 26, 2026 at 03:37:04PM +0000, Mahe Tardy wrote:
+> > [...]
+> > +__bpf_kfunc int bpf_icmp_send(struct __sk_buff *skb_ctx, int type, int code)
+> > +{
+> > +	struct sk_buff *skb = (struct sk_buff *)skb_ctx;
+> > +	struct sk_buff *nskb;
+> > +	struct sock *sk;
+> > +
+> > +	sk = skb_to_full_sk(skb);
+> > +	if (sk && sk->sk_kern_sock &&
 > 
-> This has not been observed in any real environment. Senders place the
-> MSS at the beginning of the options block, where it is naturally
-> aligned, but the spec allows unaligned options and the kernel shouldn't
-> silently drop legal packets.
-> 
-> When the changed word is not aligned, the modified bytes straddle two
-> checksum words, and using the standard incremental update helper
-> (which assumes alignment) produces an invalid checksum:
-> 
->      | w1     | w2     |
-> OLD |  a  b  |  c  d  |
-> NEW |  a  b' |  c' d  |
-> 
-> Since b' and c' sit across w1 and w2, we could compute the incremental
-> checksum in two operations by recalculating w1 and then w2:
-> 
->      C' = C - w1 + w1' - w2 + w2'
-> 
-> But working it out:
-> 
->      C' = C - w1 - w2 + w1' + w2'
->         = C - (a * 2^8 + b)  - (c * 2^8 + d)
->             + (a * 2^8 + b') + (c' * 2^8 + d)
->         = C + 2^8 * (a - a + c' - c) + (b' - b + d - d)
->         = C + 2^8 * (c' - c) + (b' - b)
->         = C - (2^8 * c + b) + (2^8 * c' + b')
-> 
-> So an unaligned incremental checksum can be done in a single operation
-> by byteswapping the changed bytes before passing them to the helper.
-> This patch implements that trick for unaligned MSS option updates.
-> 
-> Signed-off-by: Kacper Kokot <kacper.kokot.44@gmail.com>
-> ---
+> Won't this prevent the kfunc from working for traffic emitted from
+> kernel sockets like those used by NFS/SMB mounts? I can imagine there
+> being a legitimate use case where you'd want those kind of connections
+> to fail fast as well by emitting ICMP*_DEST_UNREACH.
 
-Just a couple of nits..
+I don't know much about NFS/SMB but I'd expect them to use UDP or TCP
+for their transport protocol, so the second half of the condition check:
 
-Please use nf-next target, like "[PATCH nf-next v3] netfilter: 
-xt_TCPMSS: ...". Let's handle this as an enhancement.
+> > +	    (sk->sk_protocol == IPPROTO_ICMP || sk->sk_protocol == IPPROTO_ICMPV6))
+> > +		return -EBUSY;
 
-> I decided to go with the get_unaligned_be16 suggestion because
-> it's idiomatic and it produces shorter assembly on x86-64
-> (6 instructions vs 9). SYN processing is a cold path so
-> I didn't look into it further.
-> 
-> v2:
->   - Use get_unaligned_be16 (Fernando's suggestion)
->   - Fix alignment check expression (David)
->   - Mention it's a theoretical bug in the commit message
->   - Drop cc stable, the bug is only theoretical
-> 
->   net/netfilter/xt_TCPMSS.c | 16 ++++++++++++++--
->   1 file changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-> index 80e1634bc51f..32c87a520361 100644
-> --- a/net/netfilter/xt_TCPMSS.c
-> +++ b/net/netfilter/xt_TCPMSS.c
-> @ -117,8 +117,9 @@ tcpmss_mangle_packet(struct sk_buff *skb,
->   	for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
->   		if (opt[i] == TCPOPT_MSS && opt[i+1] == TCPOLEN_MSS) {
->   			u_int16_t oldmss;
-> +			u16 csum_oldmss, csum_newmss;
+should fail. Meaning that this should be suitable for it.
 
-Please use reversed xmas tree:
+The goal here was to identify the ICMP kernel sockets, I think this way
+should be precise enough and does not require new code. The other more
+precise ways we thought about initially were more invasive:
+- exposing ipv4_icmp_sk out of net/ipv4/icmp.c to compare the pointer:
+  not clean as other part of the code could reuse those sockets.
+- expose a helper like is_kernel_icmp_socket from net/ipv4/icmp.c to be
+  used in net/core/filter.c: new exported functions.
 
-+			u16 csum_oldmss, csum_newmss;
-   			u_int16_t oldmss;
-
-Thanks,
-Fernando.
+> > +
+> > [...]
