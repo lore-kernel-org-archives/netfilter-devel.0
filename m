@@ -1,108 +1,141 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1C7434A796
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 11:33:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.171
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780313602; cv=pass; b=WA5LVKnV9ZbYysXbS2XxqhIwxTaC2SYgilivLuu0t1nGNoY3+bV3Sa1gXK/LpDepIZPm/IyHu0yoNhPBdSGZgKOX2iTfM2ionDL030UPsE31/VW26504KtOBWqz/ycfZlwBlinF9ww/Ei+A0HVNNFi5auPVTFdN5/7cxQep1uBE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780313602; c=relaxed/simple;
-	bh=uVMhWSI3M7PqFpwkfEATZt8vBsIE3hJ1C0QZF5LG9t0=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=dCmogWgQ3LvQ/pmR82lWTWHwWdc2FbikibjFVedUVYOMya6Uu28ZW4wxKjbgBAeXlucEjCHsqNbdFz5/wY3zaWxr3rrAkYxYCrSt0Nxx82hMvZEdo6n7aCmak2DnyDsHhx6U8a+x1/UuElNIMyzjKqmMGUcE+XGAyLCT87qPR0A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.b=NxZq/K5P; arc=pass smtp.client-ip=209.85.214.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7D6233936;
+	Mon,  1 Jun 2026 11:59:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780315172; cv=none; b=cIwGLIXGxcdZRnBeDWNPwhTbmqF49xobR4xTboHKR5O109kI6kJk2ezd8I81qrMhxS7yUrhSZkeZYj8kb0vOhwzN9vYVsd8D8Ap7UjSw+ZYeAVfF0dwmn9k+wQeUu9cRzi6tzbrIAp5G3cG6i/nrSECa9J3XY+x3aw1/8AfqDbM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780315172; c=relaxed/simple;
+	bh=rzcvFHdIg2YLu+67W3itUs1GRbkJnvyvgP3X45yvV7U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=StCB2Kq34pts+v+nk4QfAT1MPfC4bSjTvxg7yuK3+B9voC2zuQTgh2fm2LshipvzvcM7I8VIyhX9D0EiXTb5Se5O5i8HbUdLIGgPgKv4SBdU794dAmgn8W4FD+0C/Zjt+M97rR77iEvCIcX7h4SfIT+lyG3ZnNP0bSW0GqMaa9A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vbKtqexf; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.b="NxZq/K5P"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2bf36a6905cso13348995ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 01 Jun 2026 04:33:20 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780313600; cv=none;
-        d=google.com; s=arc-20240605;
-        b=IH9b3i3Gt6NyyWaLsP3TaVXLx+T/GImzlhCFrvypX4iLRah52kX9te2u5j3J/zSFM9
-         pGf8bqBGl6G9mko4xrzm4F9t6w5K5LVuyYSk8S4h/rD/5n34egOSubFqPto3FJKlu5Vc
-         MTyhie+W2EQzmyn/bj4PP4+X947fy1yvtA9sRhbW6eHL42lTi3qu5BpEHZWwjK/Wb0FW
-         2bBSM81dYSdFKQR400edDvVTNOGbA60jyi0E+kVnXQpoSKubfFyUhHvotvQw8jWA8M97
-         XNnaD4klsaM+S6u/yzGxILp/SVfz5sdekYcx6Ba2FhWzuKcijVc/tBk7sBDH9nZsfRYV
-         93IQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=uVMhWSI3M7PqFpwkfEATZt8vBsIE3hJ1C0QZF5LG9t0=;
-        fh=uRj863t9x/xaEvA46vPf9XZ+d1kJdY0oDilRPeh6bE0=;
-        b=VtKjtLVCUBQ193l0O9jw4mjk8GLxiG7Um+s09ban+kHMLsMxTPdjJYabfTwgImvQ3o
-         pgCXyG1tZFWgFDvaPMcxUygeJXT7FzuFVgE4lS15JNEvN53bX07qhfiEdFiE6OZDkHlE
-         v/kZkGmMSCM9KZlsoxi1ybpHzGL/PCAkxwSGKA5mCiR9E/dK4NqGr3gCcSUOd4I+vFA5
-         2Us10essk4g/YJgrVJDwaGY/+ZBYR2KzpYM3sAnBt9eRG2OgcW7a+q5JzGnyEAKPHwdS
-         9vWDDAVbEr5MwnULU6e0YkG0PALTCUQ6BQEqmuyX2rAFhQOGFfovS2XrQ5HQryRGPxvg
-         idQQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu.com; s=google; t=1780313600; x=1780918400; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=uVMhWSI3M7PqFpwkfEATZt8vBsIE3hJ1C0QZF5LG9t0=;
-        b=NxZq/K5PUE0h0E5mGzSrCcr06uEotsZJnn5qP20NrM5IJBFexugyZDJon0nmo7VDjK
-         LAsOk5Kav4Jj2LBD7XkQV9KBDwQ0DJjBWBd2u5tdFg443tQC8c/v4YGU0fSgAeinMXtP
-         UILenMZXPIcO414OeOhdT3GDiKYB3rE/cdROQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780313600; x=1780918400;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=uVMhWSI3M7PqFpwkfEATZt8vBsIE3hJ1C0QZF5LG9t0=;
-        b=f0E4rKvAdFDSiuiuoMmNz7aT1baphn9yO92Gz55GjfTcwP26N+S9JhMKrM53VsDmve
-         rJrGEK/I+ojzX+8nnQ5rKpLgZaPF/ATTTQhkGEMlENmyjTgyiDDNVDzomGX9wsD4N2qV
-         vnOBpZW8ZLNsuZn1Kd4Z9Vh1+q5rJI5b8dhzc6sXRN3OnVL8i5/2u51Bpx4Ohldu1XvO
-         rvP7YyM7UzWKCK3IrUU04w49QW3mJNGqZdy9ggxRje8IvNcj0YogAmUki3iMLRPXnvX4
-         yzStFdypzq43v8ak1qSA96Dl2CFjyuJqKrXwLvk+zIBZSeFCFnEcdoxff/neAcCoeEFX
-         NkNQ==
-X-Gm-Message-State: AOJu0Ywi2Cnj4/9qcS6UnN6m0l7uGkAjRhKIdKkMKTHzPzIhqYsS98tx
-	+vM5r5k16j9MLiojt9fAd/01o2Nfs6k88jdB2IVOi3xOpbLBkzxQFC8sWHSXN+KlebeMWHjMQNv
-	xGwn7VmaSta1/eu26uH+N/rtLSGBPxJNgvvhxXJuc
-X-Gm-Gg: Acq92OHbmspca7VWz0LInUMPaHN+ibKxnYmJYHohhKs6oicJNFzNkodW4B0bzUc4HMO
-	uOELKK/wXHJxoUVsnrrIZY5wko79mQ8NwY0dBSvFaIXfhVNG2gY2ZhOpWfGtCmXCyntG1sJXm15
-	2QOXNz4WNzHEpj7Ic544bZa9ydkD6KK365ZJp3zf1hx+ZFS5SBVhBojpHaqrUh+CU7WeoPnEch7
-	rS0vZ9RxmEVkO87Q6XPbgQeQieFue68i0ZU4PSEfF0GA2XYGVAKDGtnRfEVl05EsjQMLMYfdM/3
-	/zupCz2z+R56lRtpSIzDZLMsTg==
-X-Received: by 2002:a05:6a21:7a96:b0:398:b433:87ed with SMTP id
- adf61e73a8af0-3b427f5dee5mr11677802637.44.1780313600132; Mon, 01 Jun 2026
- 04:33:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vbKtqexf"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8A990601A6;
+	Mon,  1 Jun 2026 13:59:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1780315168;
+	bh=a+XPh7763qpTeOpjYIBP2EfSEUaot2xMO9vBrP3UCX8=;
+	h=From:To:Cc:Subject:Date:From;
+	b=vbKtqexfYbPUtitgArdenQcZqc3mBGj8CTfXYKm+nLfcmtcxrcVshWvpsNMdb41Bn
+	 hw6On3L/92p+X3aoPlIHj68XalSEGvbWm9mWigvuwsP1P2cYpcsPlqPy7GzHXSCOHS
+	 +VOTXBNxAFtbjNZCJfB4zQad/khB0EKduBjTXwMzOnHHjjqsBe7TatkwMl/bMnv5ld
+	 mXbqPFPc41HdPygCxAcubbX6cdfUXP+gsjF7PQmwmwK8z3nofJdLOvlxtZ6Jy2BzXv
+	 wNEEsLBcJ7erZ2kbet1RBfpps4cvHzazZ270OKZafMf8xLBPb0GA/iWZLODDwhFV/Z
+	 CDszqOMZTcl7A==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net 0/9] Netfilter/IPVS fixes for net
+Date: Mon,  1 Jun 2026 13:59:14 +0200
+Message-ID: <20260601115923.433946-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Date: Mon, 1 Jun 2026 07:33:09 -0400
-X-Gm-Features: AVHnY4I4Oq7kfzkvATZfqv_I4dIxsQYBxFxWE5rf6WImcq-_O15EbAx7JO-P5HE
-Message-ID: <CAM0EoMkbu0Y-qhtdQ03Zn93JKOUHd6yZy-DJ2mtYDC6aehsR6g@mail.gmail.com>
-Subject: Call for participation: New Age Tooling BoF
-To: Linux Kernel Network Developers <netdev@vger.kernel.org>
-Cc: netfilter-devel@vger.kernel.org, 
-	linux-wireless <linux-wireless@vger.kernel.org>, netfilter@vger.kernel.org, 
-	lartc@vger.kernel.org, ovs-dev@openvswitch.org, bpf <bpf@vger.kernel.org>, 
-	people <people@netdevconf.info>, PJ Waskiewicz <pjwaskiewicz@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Apologies for the shotgun - I wasnt sure how to best reach out given
-the short notice.
+Hi,
 
-The recent AI tool bug onslaught (on the victim side for me) has
-highlighted the changing landscape on development tooling.
-As an initial skeptic I have to say the quality and accuracy of the AI
-analysis makes me feel like i have been in some deep slumber. I am
-still very clueless.
-And for these selfish reasons, I am helping organize a BoF at
-netdevconf 0x1A (week of July 13 in Rome.it) to discuss this new age
-of tooling.
-This BoF is a catch all for folks engaging AI in security (you will be
-in a friendly environment!), building tools, doing code reviews,
-generating patches and general automation. The intended focus is
-networking, but adjacent areas are also welcome.
+The following patchset contains Netfilter/IPVS fixes for net:
 
-Come and discuss your tricks of the trade. The contribution can be in
-the form of a talk, tutorial or demo.
+1) Fix splat with PREEMPT_RCU because smp_processor_id() in nfqueue,
+   from Fernando Fernandez Mancera.
 
-cheers,
-jamal
+2) Fix possible use of pointer to old IPVS scheduler after RCU grace
+   period when editing service, from Julian Anastasov.
+
+3) Fix possible forever RCU walk over rt->fib6_siblings in nft_fib6,
+   if rt is unlinked mid-iteration, apparently same issue happens in
+   the fib6 core. From Jiayuan Chen.
+
+4) Add mutex to guard refcount in synproxy infrastructure, since
+   concurrent hook {un}registration can happen.
+   From Fernando Fernandez Mancera.
+
+5) Bail out if IRC conntrack helper fails to parse a command, do not
+   try parsing using other command handlers, from Florian Westphal.
+   This fixes a possible out-of-bound read.
+
+6) Possible use-after-free in nft_tunnel by releasing template dst
+   after all references has been dropped, from Tristan Madani.
+
+7) Ignore conntrack template in nft_ct, from Jiayuan Chen.
+
+8) Missing skb_ensure_writable() in ebt_snat, Yiming Qian.
+
+9) Remove multi-register byteorder support, this allows for kernel
+   stack info leak, from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-06-01
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 78ef59e7a6459b16f8102e0ee1c718443323d1af:
+
+  Merge branch 'wireguard-fixes-for-7-1-rc6' (2026-05-29 13:01:31 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-06-01
+
+for you to fetch changes up to bb061d3de41707415269be75ebf700efb03ec212:
+
+  netfilter: nft_byteorder: remove multi-register support (2026-06-01 13:43:53 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-06-01
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (2):
+      netfilter: xt_NFQUEUE: prefer raw_smp_processor_id
+      netfilter: synproxy: add mutex to guard hook reference counting
+
+Florian Westphal (2):
+      netfilter: conntrack_irc: fix possible out-of-bounds read
+      netfilter: nft_byteorder: remove multi-register support
+
+Jiayuan Chen (2):
+      netfilter: nft_fib_ipv6: bail out of sibling walk if rt got unlinked
+      netfilter: nft_ct: bail out on template ct in get eval
+
+Julian Anastasov (1):
+      ipvs: clear the svc scheduler ptr early on edit
+
+Tristan Madani (1):
+      netfilter: nft_tunnel: fix use-after-free on object destroy
+
+Yiming Qian (1):
+      netfilter: bridge: make ebt_snat ARP rewrite writable
+
+ include/net/ip_vs.h               |  3 +--
+ net/bridge/netfilter/ebt_snat.c   |  3 +++
+ net/ipv6/netfilter/nft_fib_ipv6.c |  3 +++
+ net/netfilter/ipvs/ip_vs_ctl.c    | 13 ++++++----
+ net/netfilter/ipvs/ip_vs_sched.c  | 14 +++++------
+ net/netfilter/nf_conntrack_irc.c  |  4 +--
+ net/netfilter/nf_synproxy_core.c  | 24 +++++++++++++-----
+ net/netfilter/nft_byteorder.c     | 51 +++++++++++++++------------------------
+ net/netfilter/nft_ct.c            |  8 +++---
+ net/netfilter/nft_ct_fast.c       |  2 +-
+ net/netfilter/nft_tunnel.c        |  2 +-
+ net/netfilter/xt_NFQUEUE.c        |  2 +-
+ 12 files changed, 68 insertions(+), 61 deletions(-)
