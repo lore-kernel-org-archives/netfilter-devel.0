@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33111DA60D;
-	Mon,  1 Jun 2026 11:59:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570092D7814;
+	Mon,  1 Jun 2026 11:59:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315176; cv=none; b=BARmjGL7Aw6OMFzf/gE4Pec8yWx6D4bgeLR/l8gGGwJ7/M49kroJeqcFQp5pCV9D9vpSLsmgqJ7CAsaI/nEWDXI3leJ4e7R8fkSel5tK8XtqiYTpHnF7turfKNmHq43aqGzVk2spMdaG5xqCNEFDyEDHjnXzI7dbJE4v0CIStIs=
+	t=1780315177; cv=none; b=e1XlyJsErZt4Ee2H6sncmRKo6UT2KBlkWGFMhw9fcih2idL/4/5LZ6RjI3KzhtV6dfzKknB/A4zI6SNrPXpjql8P6GYUA3E98ekQ13W7QEPYA2A9s186qXQLLSbWMQ29/EVHQQCtVngosd/vPX2m+kEZa8/+EhLt6nU6Rn98Q/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780315176; c=relaxed/simple;
-	bh=gMryO+GUDj0Mrzn0TOtghewI2/kmcTwaBonfuN/0hCQ=;
+	s=arc-20240116; t=1780315177; c=relaxed/simple;
+	bh=Fq5++RWWCZAa3RoSlZGyNx4uJkiTpRpg7jKDU6WngzQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=X5V6rB3eZ9cC/rPzU+HD9Vw3yPCtmLZslTDP9Nech7sjvG67QdOUKNvyBoyQPiCrikZHcIPB6M9XTcm9oRdtUO5Nf69VC400SjKMG0VuPORWSuUOzU+NEAVu0Qf4OCQtBa4Skbpvtt7+s2cTRIQEaBVFGwltrIgIthnoQf37s0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GmvasXSf; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=nQCBBk41C1WvZtoK2Bp9/1o7ohko4/HmhH01Oo93cGexbvlyXoNai9oNUohpyPV0pJ+H9OgyTKQalPFyvVEoGRUddGqcTabCoogyom+wQEknGDs5Otr85QD96UZbO1HeVvCrRkfOtmgugu7NT6esm/1+Ixi+u4I/HPGT2PzQlfU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JWpGHOKZ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GmvasXSf"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JWpGHOKZ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0981D601A6;
-	Mon,  1 Jun 2026 13:59:32 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3E164601BD;
+	Mon,  1 Jun 2026 13:59:34 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315173;
-	bh=GBV7Izyq5SsFMiqD2t72nhYgYdmpWh2Cbiwtu6AddH0=;
+	s=2025; t=1780315174;
+	bh=w16/1tR6yRKjdGihUS3I3+CVA+hryjYDn7TeuS4OeLM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GmvasXSfxS19ILtbGF+M1YUqsKc0/t0xiuaYAR7lWp4J3YhqAGamhIxzwXtiW7Jkl
-	 eDKbnIzRvD/mVJZcIwmz6YJxQNjQiItyzbkQ/6XATNSUw1JO/hCKiZgj70awv/UgKv
-	 PaSRxLR6L45R6YEHwz6pU8CXFqBtluopJAsX8rHnYmsRquCRmjpJl1TyZl8oo5c8ff
-	 Z12HRNBXgLgArAK6BWrG/TvoA8DYAPOFmMK4AOailmBVehkccHb75NmzvMcb4Z4pWv
-	 3+I7zxtV2zo9TzyHFVLkSTR335K0ouSYrFRuXheuao79cxQSzaHza1PkiAEMiY95mF
-	 X7XzhLBc1TN4A==
+	b=JWpGHOKZvypkPnT4SsU1Leguqx+leNdhQiqzNKdDvu9pW4DQflAKqpYm7KYqkEuJX
+	 umOsBAzUA94rJf1XZ0kxYLF1zn3btgsuOhfnE7wWW8moaNGdbk2DuiMDPTavGGXznb
+	 u6kAy6BdvyQ5B1PcELJe08Jsylv6szNXEI2/czildICyH5vMs8dTleXHXQyvDU59yM
+	 1SLHWj7Xa818jeILGNp2uNml8ycw2L4j4FLomPUYWYU25KlpquTUohdpXf7OcZlM9u
+	 VFYPzR4mcdDShAuOpPu6HNhXUsiaQlhuhSZgRC+yFkaQ6mYf0P9xdmSkdYWu6dItzW
+	 JePtAoYQgoiOQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 4/9] netfilter: synproxy: add mutex to guard hook reference counting
-Date: Mon,  1 Jun 2026 13:59:18 +0200
-Message-ID: <20260601115923.433946-5-pablo@netfilter.org>
+Subject: [PATCH net 5/9] netfilter: conntrack_irc: fix possible out-of-bounds read
+Date: Mon,  1 Jun 2026 13:59:19 +0200
+Message-ID: <20260601115923.433946-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
 References: <20260601115923.433946-1-pablo@netfilter.org>
@@ -52,108 +52,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+From: Florian Westphal <fw@strlen.de>
 
-As the synproxy infrastructure register netfilter hooks on-demand when a
-user adds the first iptables target or nftables expression, if done
-concurrently they can race each other.
+When parsing fails after we've matched the command string we
+should bail out instead of trying to match a different command.
 
-Introduce a mutex to serialize the refcount control blocks access from
-both frontends. While a per namespace mutex might be more efficient, it
-is not needed for target/expression like SYNPROXY.
+This helper should be deprecated, given prevalence of TLS I doubt it has
+any relevance in 2026.
 
-Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: 869f37d8e48f ("[NETFILTER]: nf_conntrack/nf_nat: add IRC helper port")
+Closes: https://sashiko.dev/#/patchset/20260525182924.28456-1-fw%40strlen.de
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_synproxy_core.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_irc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 036c8586f49b..ed00114f65f3 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -22,6 +22,8 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/nf_synproxy.h>
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 522183b9a604..2ebe4cb47cf6 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -203,7 +203,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 			if (parse_dcc(data, data_limit, &dcc_ip,
+ 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
+ 				pr_debug("unable to parse dcc command\n");
+-				continue;
++				goto out;
+ 			}
  
-+static DEFINE_MUTEX(synproxy_mutex);
-+
- unsigned int synproxy_net_id;
- EXPORT_SYMBOL_GPL(synproxy_net_id);
+ 			pr_debug("DCC bound ip/port: %pI4:%u\n",
+@@ -217,7 +217,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 				net_warn_ratelimited("Forged DCC command from %pI4: %pI4:%u\n",
+ 						     &tuple->src.u3.ip,
+ 						     &dcc_ip, dcc_port);
+-				continue;
++				goto out;
+ 			}
  
-@@ -769,26 +771,31 @@ static const struct nf_hook_ops ipv4_synproxy_ops[] = {
- 
- int nf_synproxy_ipv4_init(struct synproxy_net *snet, struct net *net)
- {
--	int err;
-+	int err = 0;
- 
-+	mutex_lock(&synproxy_mutex);
- 	if (snet->hook_ref4 == 0) {
- 		err = nf_register_net_hooks(net, ipv4_synproxy_ops,
- 					    ARRAY_SIZE(ipv4_synproxy_ops));
- 		if (err)
--			return err;
-+			goto out;
- 	}
- 
- 	snet->hook_ref4++;
--	return 0;
-+out:
-+	mutex_unlock(&synproxy_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_synproxy_ipv4_init);
- 
- void nf_synproxy_ipv4_fini(struct synproxy_net *snet, struct net *net)
- {
-+	mutex_lock(&synproxy_mutex);
- 	snet->hook_ref4--;
- 	if (snet->hook_ref4 == 0)
- 		nf_unregister_net_hooks(net, ipv4_synproxy_ops,
- 					ARRAY_SIZE(ipv4_synproxy_ops));
-+	mutex_unlock(&synproxy_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_synproxy_ipv4_fini);
- 
-@@ -1193,27 +1200,32 @@ static const struct nf_hook_ops ipv6_synproxy_ops[] = {
- int
- nf_synproxy_ipv6_init(struct synproxy_net *snet, struct net *net)
- {
--	int err;
-+	int err = 0;
- 
-+	mutex_lock(&synproxy_mutex);
- 	if (snet->hook_ref6 == 0) {
- 		err = nf_register_net_hooks(net, ipv6_synproxy_ops,
- 					    ARRAY_SIZE(ipv6_synproxy_ops));
- 		if (err)
--			return err;
-+			goto out;
- 	}
- 
- 	snet->hook_ref6++;
--	return 0;
-+out:
-+	mutex_unlock(&synproxy_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_synproxy_ipv6_init);
- 
- void
- nf_synproxy_ipv6_fini(struct synproxy_net *snet, struct net *net)
- {
-+	mutex_lock(&synproxy_mutex);
- 	snet->hook_ref6--;
- 	if (snet->hook_ref6 == 0)
- 		nf_unregister_net_hooks(net, ipv6_synproxy_ops,
- 					ARRAY_SIZE(ipv6_synproxy_ops));
-+	mutex_unlock(&synproxy_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_synproxy_ipv6_fini);
- #endif /* CONFIG_IPV6 */
+ 			exp = nf_ct_expect_alloc(ct);
 -- 
 2.47.3
 
