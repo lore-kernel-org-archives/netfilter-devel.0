@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570092D7814;
-	Mon,  1 Jun 2026 11:59:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5370374E79;
+	Mon,  1 Jun 2026 11:59:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315177; cv=none; b=e1XlyJsErZt4Ee2H6sncmRKo6UT2KBlkWGFMhw9fcih2idL/4/5LZ6RjI3KzhtV6dfzKknB/A4zI6SNrPXpjql8P6GYUA3E98ekQ13W7QEPYA2A9s186qXQLLSbWMQ29/EVHQQCtVngosd/vPX2m+kEZa8/+EhLt6nU6Rn98Q/E=
+	t=1780315178; cv=none; b=UZNfR67WKopN7o06YDSieG/g9JWQFP8f7H6RGs/filfU6vC+EVFwM4luDpWcw5raCLpAhEuD4brXvyVnwVYWJDsA9USHRNaV/C5ijNYaM4NDzYWqBFzK61fCMk8WmbkOKos9MT2gk5dyi6sVYZLJgSLMMHNPkbgxreQa0WeR/f8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780315177; c=relaxed/simple;
-	bh=Fq5++RWWCZAa3RoSlZGyNx4uJkiTpRpg7jKDU6WngzQ=;
+	s=arc-20240116; t=1780315178; c=relaxed/simple;
+	bh=qxGyo5lcwTcYiy1bxQWskAn+0eIYtlgI1OpHWPeTQ1U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nQCBBk41C1WvZtoK2Bp9/1o7ohko4/HmhH01Oo93cGexbvlyXoNai9oNUohpyPV0pJ+H9OgyTKQalPFyvVEoGRUddGqcTabCoogyom+wQEknGDs5Otr85QD96UZbO1HeVvCrRkfOtmgugu7NT6esm/1+Ixi+u4I/HPGT2PzQlfU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JWpGHOKZ; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=TEEMafTenLM8dW8V2knk1qJzRbsFcVHMMJOjJC/IEG0W+PlCNEeQIJVLRIHmzhrFSAd/gvHXJ1Ej/lBOfTAculQ5uR4JjU7OOfQqtb+M9BlfJ9LJWHccGIqBW/ILL3XU1HIiKKNAVt1LUUd91xgY8xoeapeJZxtBhNDwvxRoo04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N2lPlPPj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JWpGHOKZ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N2lPlPPj"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3E164601BD;
-	Mon,  1 Jun 2026 13:59:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9A26B601BE;
+	Mon,  1 Jun 2026 13:59:30 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315174;
-	bh=w16/1tR6yRKjdGihUS3I3+CVA+hryjYDn7TeuS4OeLM=;
+	s=2025; t=1780315171;
+	bh=34Ln5KKptG607EnwW2FAzEVL7IgJxxv+IO0awX+Ee3M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JWpGHOKZvypkPnT4SsU1Leguqx+leNdhQiqzNKdDvu9pW4DQflAKqpYm7KYqkEuJX
-	 umOsBAzUA94rJf1XZ0kxYLF1zn3btgsuOhfnE7wWW8moaNGdbk2DuiMDPTavGGXznb
-	 u6kAy6BdvyQ5B1PcELJe08Jsylv6szNXEI2/czildICyH5vMs8dTleXHXQyvDU59yM
-	 1SLHWj7Xa818jeILGNp2uNml8ycw2L4j4FLomPUYWYU25KlpquTUohdpXf7OcZlM9u
-	 VFYPzR4mcdDShAuOpPu6HNhXUsiaQlhuhSZgRC+yFkaQ6mYf0P9xdmSkdYWu6dItzW
-	 JePtAoYQgoiOQ==
+	b=N2lPlPPjWdoOC120UUO0mMer/Z6ZNGHVw8zcDy/H9CpJa1W+V6lvyVwMCNyP6MD+g
+	 o5fpVj6uxjiZHWn6Owhbn91MZ/OlRKDsMz6dw1YbBF2yPDWTzMTorBuOrFZgV7KPBj
+	 Q2GJhepB2096e9QPx0BIyqlFJ1qoP92eRdHMGv5iYrMDrjOdly7XNkVsYoip9k3dS1
+	 hNWuWKxg+y5sDCteAKjIUBhnUJ74GKR2XNjR8Y65KlRKRNtvfiQBcqxUmvuJBr9NPF
+	 Coflb0T9KUmwcNg5yDaBm7y4bluAcVjQWq2jEhISlkOAUNVRWopsj6sxunyjIna3WI
+	 CzzfZphiKCMjQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 5/9] netfilter: conntrack_irc: fix possible out-of-bounds read
-Date: Mon,  1 Jun 2026 13:59:19 +0200
-Message-ID: <20260601115923.433946-6-pablo@netfilter.org>
+Subject: [PATCH net 2/9] ipvs: clear the svc scheduler ptr early on edit
+Date: Mon,  1 Jun 2026 13:59:16 +0200
+Message-ID: <20260601115923.433946-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
 References: <20260601115923.433946-1-pablo@netfilter.org>
@@ -52,45 +52,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-When parsing fails after we've matched the command string we
-should bail out instead of trying to match a different command.
+ip_vs_edit_service() while unbinding the old scheduler clears
+the svc->scheduler ptr after the scheduler module initiates
+RCU callbacks. This can cause packets to use the old
+scheduler at the time when svc->sched_data is already freed
+after RCU grace period.
 
-This helper should be deprecated, given prevalence of TLS I doubt it has
-any relevance in 2026.
+Fix it by clearing the ptr early in ip_vs_unbind_scheduler(),
+before the done_service method schedules any RCU callbacks.
 
-Fixes: 869f37d8e48f ("[NETFILTER]: nf_conntrack/nf_nat: add IRC helper port")
-Closes: https://sashiko.dev/#/patchset/20260525182924.28456-1-fw%40strlen.de
+Also, if the new scheduler fails to initialize when replacing
+the old scheduler, try to restore the old scheduler while still
+returning the error code.
+
+Link: https://sashiko.dev/#/patchset/20260519015506.634185-1-rosenp%40gmail.com
+Fixes: 05f00505a89a ("ipvs: fix crash if scheduler is changed")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_irc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/net/ip_vs.h              |  3 +--
+ net/netfilter/ipvs/ip_vs_ctl.c   | 13 ++++++++-----
+ net/netfilter/ipvs/ip_vs_sched.c | 14 +++++++-------
+ 3 files changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 522183b9a604..2ebe4cb47cf6 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -203,7 +203,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 			if (parse_dcc(data, data_limit, &dcc_ip,
- 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
- 				pr_debug("unable to parse dcc command\n");
--				continue;
-+				goto out;
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index a02e569813d2..e517eaaa177b 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1824,8 +1824,7 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
+ int unregister_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
+ int ip_vs_bind_scheduler(struct ip_vs_service *svc,
+ 			 struct ip_vs_scheduler *scheduler);
+-void ip_vs_unbind_scheduler(struct ip_vs_service *svc,
+-			    struct ip_vs_scheduler *sched);
++void ip_vs_unbind_scheduler(struct ip_vs_service *svc);
+ struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name);
+ void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler);
+ struct ip_vs_conn *
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index bd9cae44d214..16daba8cac83 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1898,7 +1898,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 	if (ret_hooks >= 0)
+ 		ip_vs_unregister_hooks(ipvs, u->af);
+ 	if (svc != NULL) {
+-		ip_vs_unbind_scheduler(svc, sched);
++		ip_vs_unbind_scheduler(svc);
+ 		ip_vs_service_free(svc);
+ 	}
+ 	ip_vs_scheduler_put(sched);
+@@ -1962,9 +1962,8 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
+ 	old_sched = rcu_dereference_protected(svc->scheduler, 1);
+ 	if (sched != old_sched) {
+ 		if (old_sched) {
+-			ip_vs_unbind_scheduler(svc, old_sched);
+-			RCU_INIT_POINTER(svc->scheduler, NULL);
+-			/* Wait all svc->sched_data users */
++			ip_vs_unbind_scheduler(svc);
++			/* Wait all svc->scheduler/sched_data users */
+ 			synchronize_rcu();
+ 		}
+ 		/* Bind the new scheduler */
+@@ -1972,6 +1971,10 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
+ 			ret = ip_vs_bind_scheduler(svc, sched);
+ 			if (ret) {
+ 				ip_vs_scheduler_put(sched);
++				/* Try to restore the old_sched */
++				if (old_sched &&
++				    !ip_vs_bind_scheduler(svc, old_sched))
++					old_sched = NULL;
+ 				goto out;
  			}
+ 		}
+@@ -2027,7 +2030,7 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
  
- 			pr_debug("DCC bound ip/port: %pI4:%u\n",
-@@ -217,7 +217,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 				net_warn_ratelimited("Forged DCC command from %pI4: %pI4:%u\n",
- 						     &tuple->src.u3.ip,
- 						     &dcc_ip, dcc_port);
--				continue;
-+				goto out;
- 			}
+ 	/* Unbind scheduler */
+ 	old_sched = rcu_dereference_protected(svc->scheduler, 1);
+-	ip_vs_unbind_scheduler(svc, old_sched);
++	ip_vs_unbind_scheduler(svc);
+ 	ip_vs_scheduler_put(old_sched);
  
- 			exp = nf_ct_expect_alloc(ct);
+ 	/* Unbind persistence engine, keep svc->pe */
+diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
+index c6e421c4e299..24adc38942a0 100644
+--- a/net/netfilter/ipvs/ip_vs_sched.c
++++ b/net/netfilter/ipvs/ip_vs_sched.c
+@@ -56,19 +56,19 @@ int ip_vs_bind_scheduler(struct ip_vs_service *svc,
+ /*
+  *  Unbind a service with its scheduler
+  */
+-void ip_vs_unbind_scheduler(struct ip_vs_service *svc,
+-			    struct ip_vs_scheduler *sched)
++void ip_vs_unbind_scheduler(struct ip_vs_service *svc)
+ {
+-	struct ip_vs_scheduler *cur_sched;
++	struct ip_vs_scheduler *sched;
+ 
+-	cur_sched = rcu_dereference_protected(svc->scheduler, 1);
+-	/* This check proves that old 'sched' was installed */
+-	if (!cur_sched)
++	sched = rcu_dereference_protected(svc->scheduler, 1);
++	if (!sched)
+ 		return;
+ 
++	/* Reset the scheduler before initiating any RCU callbacks */
++	rcu_assign_pointer(svc->scheduler, NULL);
++	smp_wmb();	/* paired with smp_rmb() in ip_vs_schedule() */
+ 	if (sched->done_service)
+ 		sched->done_service(svc);
+-	/* svc->scheduler can be set to NULL only by caller */
+ }
+ 
+ 
 -- 
 2.47.3
 
