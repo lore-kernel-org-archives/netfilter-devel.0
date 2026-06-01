@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CD97374E79;
-	Mon,  1 Jun 2026 11:59:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 425093769F8;
+	Mon,  1 Jun 2026 11:59:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315180; cv=none; b=in3BDdmUAD3Jv+RbgkvLoPblQBxD2MzU7SXV5uvUDvcsPbqz36XA+wTqlbSy16+id71cboAGpK8eOuOzLPLiwNWc13qW6w0W433bF9vvOPX5h7hlgaZvvGbBzPx2fEOXjK5uTK6cym9jabvXqEaWQrLMLNm+nn4e3/9D1PLCj90=
+	t=1780315182; cv=none; b=kVCeEMg25QFvG0w8e8FUsbh/7ORkAXE6+QtmsNowfe+kYJsj/XM0cmy+57167KTmL+mH6jm7p4J53uH+7AEzr76odrtmRT7xDPpHKtM84cEGhb7Vvu6mt+KOtIMyz2rjPgqUngCuJ6G352ksbh8O9lpbDW9ge1m7lsmPrnHB/5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780315180; c=relaxed/simple;
-	bh=xcUS7vhnjTgZe6GkdCWJVyp9nEJQz4NUMV6fr6E4FZE=;
+	s=arc-20240116; t=1780315182; c=relaxed/simple;
+	bh=3tdKmuULcclcOJoxprNhJA0PtRjopICn1RCeNruzdv4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NXskpEA82xGYKA4Z1xCotg5H57RKSdsv6isw0lW3OKRvu8TQevGe0kH1i2MGaJ7OqOiC+F19c5+6qm1lwXAtku0aahsiX+ScT9aIJH5fJv9UG6dfF1qbt49n2sRJFDmehKGRoR89Vi/YWO7BcKzyirgvj2i+VNmRhAsz58GwAhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EKDox3PD; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=u525JuFPrA6izXczV/1a9+mfq/cbyMLlXnyj1/XmliegG8twt8FxZKZUANJ61zIAKUohXwAP4ngoL2Bo8AZIdhQXijT1GdMawBXdnr6Zm5yuPixvl9LD2cMifqsBZossKBlz98vktidcVb9UOgbMaxZOSyNzj4C2ZI9LYulSPN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NM+6StCp; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EKDox3PD"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NM+6StCp"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CEAA9601A6;
-	Mon,  1 Jun 2026 13:59:37 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 10C94601BE;
+	Mon,  1 Jun 2026 13:59:38 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315178;
-	bh=QmdUE6O0idYZnk/9pOY1/UoYlB2Npce7cHK6eh5zgjM=;
+	s=2025; t=1780315179;
+	bh=HlG2ZcdHCMn982VRnbR1gzOObC5qTdEjng9WTNpotc4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EKDox3PDVwO19W/2L5skWDndIJhCIOiK0T93tw758Kyze+XzI5eppLWZUFCe3aQIe
-	 1SwIOk8lzXgo0t9jCvbDq672biS3leoOjbtHXAbgsFpco+bUBEpdWijmN9q0BBFjH4
-	 8t8lQfK7+F9jf96cs+EJJ631Y2tQIl6bgf21Tgzvmueo23YvF6hLlNCSUhnU2GNNqQ
-	 NHa/+JefcRnl+IJj6u3vgBuYxKNrDYFgEcqdpBgxDbLTF5OEH/GpXLnVzqnt+3viit
-	 uByPZUl4g1ZeREeLgRpQ/y5z6s29xiuwlqH5BQHoUmoDYUDamOQEBbNDTEtC64LZam
-	 OZdNYqlDh3hoA==
+	b=NM+6StCpcFuDxpBEOjFBouWwkLOgeANbxAT7FB4mjmxVYuy0qbDRls9SfrIbVipKU
+	 2p2n9L4y9TcVYyIsmKTxmNtYcrfpCxblhckI96Ayg5Y3hhxTnbJqaR24qFvKam6ToO
+	 e9Xu28PFuJqulvPe2ccoEe8jHPYZmqtu0tIKHruAxrAI1inknyzkt/gFvNVNsDbWBw
+	 i0E8RAyaEfWx9VKIN8XmMnInv+BYA2Vp557/miPCT4h30mQvHbG09JfoweZl+m+8x8
+	 hH5ivK7cOrcGHhWjeTev1DvF2t/zvcQ3fZbmdvXS9fL1cNnTRhQOJgXxtAzMQtz6b2
+	 zF7M5AaHBwzhA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 8/9] netfilter: bridge: make ebt_snat ARP rewrite writable
-Date: Mon,  1 Jun 2026 13:59:22 +0200
-Message-ID: <20260601115923.433946-9-pablo@netfilter.org>
+Subject: [PATCH net 9/9] netfilter: nft_byteorder: remove multi-register support
+Date: Mon,  1 Jun 2026 13:59:23 +0200
+Message-ID: <20260601115923.433946-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
 References: <20260601115923.433946-1-pablo@netfilter.org>
@@ -52,53 +52,196 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yiming Qian <yimingqian591@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-The ebtables SNAT target keeps the Ethernet source address rewrite
-behind skb_ensure_writable(skb, 0).  This is intentional: at the bridge
-ebtables hooks the Ethernet header is addressed through
-skb_mac_header()/eth_hdr(), while skb->data points at the Ethernet
-payload.  Asking skb_ensure_writable() for ETH_HLEN bytes would check
-the payload, not the Ethernet header, and would reintroduce the small
-packet regression fixed by commit 63137bc5882a.
+64bit byteorder conversion is broken when several registers need to be
+converted because the source register array advances in steps for 4 bytes
+instead of 8:
 
-However, the optional ARP sender hardware address rewrite is different.
-It writes through skb_store_bits() at an offset relative to skb->data:
+  for (i = ...
+      src64 = nft_reg_load64(&src[i]);
+                             ~~~~~ u32 *src
+      nft_reg_store64(&dst64[i],
 
-        skb_store_bits(skb, sizeof(struct arphdr), info->mac, ETH_ALEN)
+Remove the multi-register support, it has other issues as well:
 
-skb_header_pointer() only safely reads the ARP header; it does not make
-the later sender hardware address range writable.  If that range is
-still held in a nonlinear skb fragment backed by a splice-imported file
-page, skb_store_bits() maps the frag page and copies the new MAC address
-directly into it.
+Pablo points out that commit
+caf3ef7468f7 ("netfilter: nf_tables: prevent OOB access in nft_byteorder_eval")
+alters semantics: before the loop operated on registers, i.e.
+ for ( ... )
+   dst32[i] = htons((u16)src32[i])
 
-Ensure the ARP SHA range is writable before reading the ARP header and
-before calling skb_store_bits().
+ .. but after the patch it will operate on bytes, which makes this
+ useless to convert e.g. concatenations, which store each compound
+ in its own register.
 
-Fixes: 63137bc5882a ("netfilter: ebtables: Fixes dropping of small packets in bridge nat")
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
-Signed-off-by: Yiming Qian <yimingqian591@gmail.com>
+Multi-convert of u32 has one theoretical application:
+
+ct mark . meta mark . tcp dport @intervalset
+
+Because ct mark and meta mark are host byte order, use with
+intervals has to convert the byteorder for ct/meta mark value
+to network byte order (bigendian).
+
+nftables emits this:
+ [ meta load mark => reg 1 ]
+ [ byteorder reg 1 = hton(reg 1, 4, 4) ]
+ [ ct load mark => reg 9 ]
+ [ byteorder reg 9 = hton(reg 9, 4, 4) ]
+ ...
+
+I.e. two separate calls.  Theoretically it could be changed to do:
+ [ meta load mark => reg 1 ]
+ [ ct load mark => reg 9 ]
+ [ byteorder reg 1 = htonl(reg 1, 4, 8) ]
+ ...
+
+But then all it would take to change the set to
+meta mark . tcp dport . ct mark
+
+... and we'd be back to two "byteorder" calls. IOW, support to
+convert a range of registers is both dysfunctional and dubious.
+
+Simplify this: remove the feature.
+
+Pablo Neira Ayuso points out that nftables before 1.1.0 can generate
+incorrect byteorder conversions, see 9fe58952c45a,
+"evaluate: skip byteorder conversion for selector smaller than 2 bytes"
+in nftables.git).  Affected rulesets fail to load with this change and
+old userspace due to 'len != size' check.
+
+Fixes: c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in nft_byteorder_eval()")
+Cc: <stable+noautosel@kernel.org> # may break rule load with old nftables versions
+Reported-by: Michal Kubecek <mkubecek@suse.cz>
+Link: https://lore.kernel.org/netfilter-devel/20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz/
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebt_snat.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nft_byteorder.c | 51 ++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 31 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
-index 7dfbcdfc30e5..c9e229af0366 100644
---- a/net/bridge/netfilter/ebt_snat.c
-+++ b/net/bridge/netfilter/ebt_snat.c
-@@ -31,6 +31,9 @@ ebt_snat_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		const struct arphdr *ap;
- 		struct arphdr _ah;
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index 2316c77f4228..dfd41fc8d9b8 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -19,7 +19,6 @@ struct nft_byteorder {
+ 	u8			sreg;
+ 	u8			dreg;
+ 	enum nft_byteorder_ops	op:8;
+-	u8			len;
+ 	u8			size;
+ };
  
-+		if (skb_ensure_writable(skb, sizeof(_ah) + ETH_ALEN))
-+			return EBT_DROP;
+@@ -28,13 +27,8 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 			const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_byteorder *priv = nft_expr_priv(expr);
+-	u32 *src = &regs->data[priv->sreg];
++	const u32 *src = &regs->data[priv->sreg];
+ 	u32 *dst = &regs->data[priv->dreg];
+-	u16 *s16, *d16;
+-	unsigned int i;
+-
+-	s16 = (void *)src;
+-	d16 = (void *)dst;
+ 
+ 	switch (priv->size) {
+ 	case 8: {
+@@ -43,18 +37,14 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 8; i++) {
+-				src64 = nft_reg_load64(&src[i]);
+-				nft_reg_store64(&dst64[i],
+-						be64_to_cpu((__force __be64)src64));
+-			}
++			src64 = nft_reg_load64(src);
 +
- 		ap = skb_header_pointer(skb, 0, sizeof(_ah), &_ah);
- 		if (ap == NULL)
- 			return EBT_DROP;
++			nft_reg_store64(dst64, be64_to_cpu((__force __be64)src64));
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 8; i++) {
+-				src64 = (__force __u64)
+-					cpu_to_be64(nft_reg_load64(&src[i]));
+-				nft_reg_store64(&dst64[i], src64);
+-			}
++			src64 = (__force __u64)cpu_to_be64(nft_reg_load64(src));
++
++			nft_reg_store64(dst64, src64);
+ 			break;
+ 		}
+ 		break;
+@@ -62,24 +52,20 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 	case 4:
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 4; i++)
+-				dst[i] = ntohl((__force __be32)src[i]);
++			*dst = ntohl((__force __be32)*src);
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 4; i++)
+-				dst[i] = (__force __u32)htonl(src[i]);
++			*dst = (__force __u32)htonl(*src);
+ 			break;
+ 		}
+ 		break;
+ 	case 2:
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+-			for (i = 0; i < priv->len / 2; i++)
+-				d16[i] = ntohs((__force __be16)s16[i]);
++			nft_reg_store16(dst, ntohs(nft_reg_load_be16(src)));
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+-			for (i = 0; i < priv->len / 2; i++)
+-				d16[i] = (__force __u16)htons(s16[i]);
++			nft_reg_store_be16(dst, htons(nft_reg_load16(src)));
+ 			break;
+ 		}
+ 		break;
+@@ -137,20 +123,22 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->len = len;
++	/* no longer support multi-reg conversions */
++	if (len != size)
++		return -EOPNOTSUPP;
+ 
+ 	err = nft_parse_register_load(ctx, tb[NFTA_BYTEORDER_SREG], &priv->sreg,
+-				      priv->len);
++				      len);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = nft_parse_register_store(ctx, tb[NFTA_BYTEORDER_DREG],
+ 				       &priv->dreg, NULL, NFT_DATA_VALUE,
+-				       priv->len);
++				       len);
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (nft_reg_overlap(priv->sreg, priv->dreg, priv->len))
++	if (nft_reg_overlap(priv->sreg, priv->dreg, len))
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -167,10 +155,11 @@ static int nft_byteorder_dump(struct sk_buff *skb,
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_BYTEORDER_OP, htonl(priv->op)))
+ 		goto nla_put_failure;
+-	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->len)))
+-		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_BYTEORDER_SIZE, htonl(priv->size)))
+ 		goto nla_put_failure;
++	/* compatibility for old userspace which permitted size != len */
++	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->size)))
++		goto nla_put_failure;
+ 	return 0;
+ 
+ nla_put_failure:
 -- 
 2.47.3
 
