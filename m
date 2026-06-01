@@ -1,49 +1,81 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 425093769F8;
-	Mon,  1 Jun 2026 11:59:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F6AA2DF144
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 19:31:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315182; cv=none; b=kVCeEMg25QFvG0w8e8FUsbh/7ORkAXE6+QtmsNowfe+kYJsj/XM0cmy+57167KTmL+mH6jm7p4J53uH+7AEzr76odrtmRT7xDPpHKtM84cEGhb7Vvu6mt+KOtIMyz2rjPgqUngCuJ6G352ksbh8O9lpbDW9ge1m7lsmPrnHB/5Q=
+	t=1780342264; cv=none; b=YnU6y4MRv/hafKraBC/5aSUV7Va2BYOMzp95AaTIcRzQ45X079zas6zKeaK6ZGO2nhj8tHNWuJA3vFhFzjv8O2MieEFO4qwCIBuByvGoSv++5KFY0rRSWW/9Cb48p2QULJrhgVikQqeO9zkf96mlUbhYI/7WWT0webe7QzSZ4ps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780315182; c=relaxed/simple;
-	bh=3tdKmuULcclcOJoxprNhJA0PtRjopICn1RCeNruzdv4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=u525JuFPrA6izXczV/1a9+mfq/cbyMLlXnyj1/XmliegG8twt8FxZKZUANJ61zIAKUohXwAP4ngoL2Bo8AZIdhQXijT1GdMawBXdnr6Zm5yuPixvl9LD2cMifqsBZossKBlz98vktidcVb9UOgbMaxZOSyNzj4C2ZI9LYulSPN4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NM+6StCp; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1780342264; c=relaxed/simple;
+	bh=+P3quqD9i42meK/ecwPtcncN45t50siKMK4X1aJDZAs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n2WBmGA7chaNTsmcF7aVyrgvrlI0HYmIC0YIW+5xaKmHyJ+U7m99BuEeU24TvMSf+xkKwhI+C7sVakctbzgO0V4WY7biKJud/hq4HEY3Y+Dxn/8+nALgoqkpdPg6+zA5KxGbZQoDTe+dlrYZq/JFeCOCDtJsPjPkjvKl7h8AzAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ttdzrnFO; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JV5XNet5; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ttdzrnFO; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JV5XNet5; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NM+6StCp"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 10C94601BE;
-	Mon,  1 Jun 2026 13:59:38 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315179;
-	bh=HlG2ZcdHCMn982VRnbR1gzOObC5qTdEjng9WTNpotc4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NM+6StCpcFuDxpBEOjFBouWwkLOgeANbxAT7FB4mjmxVYuy0qbDRls9SfrIbVipKU
-	 2p2n9L4y9TcVYyIsmKTxmNtYcrfpCxblhckI96Ayg5Y3hhxTnbJqaR24qFvKam6ToO
-	 e9Xu28PFuJqulvPe2ccoEe8jHPYZmqtu0tIKHruAxrAI1inknyzkt/gFvNVNsDbWBw
-	 i0E8RAyaEfWx9VKIN8XmMnInv+BYA2Vp557/miPCT4h30mQvHbG09JfoweZl+m+8x8
-	 hH5ivK7cOrcGHhWjeTev1DvF2t/zvcQ3fZbmdvXS9fL1cNnTRhQOJgXxtAzMQtz6b2
-	 zF7M5AaHBwzhA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ttdzrnFO";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JV5XNet5";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ttdzrnFO";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JV5XNet5"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7EA2D67229;
+	Mon,  1 Jun 2026 19:31:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1780342261; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=OFTa7o/jGmuTqULVsMVkAqM75gizoeySVByTgwRXuso=;
+	b=ttdzrnFOc+ewnZJWG+4NhQyd1TKIZXIR2wIsfSREA1Xy5MtZ3XQBtlh2kZ5GoWpt+ByHlB
+	rvszzxvh++EPc3pN5gV2JrRsQcXH8BjNce/l9CiRWA1wariNmAjc040EUltgpu6xgPFPcp
+	qh2oUq5FgNJ5nIs1T+0yKmVBTQ+fnEk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1780342261;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=OFTa7o/jGmuTqULVsMVkAqM75gizoeySVByTgwRXuso=;
+	b=JV5XNet55g0lQ/RRCLKmMboeGX679YstIbQfb/X0WFjDZs9hWUkrWTWWk5Kjm8KAd2bZgP
+	h/DnDwtaLeAU2LAQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=ttdzrnFO;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=JV5XNet5
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1780342261; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=OFTa7o/jGmuTqULVsMVkAqM75gizoeySVByTgwRXuso=;
+	b=ttdzrnFOc+ewnZJWG+4NhQyd1TKIZXIR2wIsfSREA1Xy5MtZ3XQBtlh2kZ5GoWpt+ByHlB
+	rvszzxvh++EPc3pN5gV2JrRsQcXH8BjNce/l9CiRWA1wariNmAjc040EUltgpu6xgPFPcp
+	qh2oUq5FgNJ5nIs1T+0yKmVBTQ+fnEk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1780342261;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=OFTa7o/jGmuTqULVsMVkAqM75gizoeySVByTgwRXuso=;
+	b=JV5XNet55g0lQ/RRCLKmMboeGX679YstIbQfb/X0WFjDZs9hWUkrWTWWk5Kjm8KAd2bZgP
+	h/DnDwtaLeAU2LAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1F30D779A7;
+	Mon,  1 Jun 2026 19:31:01 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id x3HjBPXdHWobLwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 01 Jun 2026 19:31:01 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
+Cc: coreteam@netfilter.org,
+	phil@nwl.cc,
 	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 9/9] netfilter: nft_byteorder: remove multi-register support
-Date: Mon,  1 Jun 2026 13:59:23 +0200
-Message-ID: <20260601115923.433946-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
-References: <20260601115923.433946-1-pablo@netfilter.org>
+	pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH 0/9 nf-next] netfilter: replace raw warnings with
+Date: Mon,  1 Jun 2026 21:30:40 +0200
+Message-ID: <20260601193049.8131-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,197 +83,121 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 7EA2D67229
+X-Spam-Flag: NO
+X-Spam-Score: -3.01
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	ARC_NA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	URIBL_BLOCKED(0.00)[suse.de:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCPT_COUNT_FIVE(0.00)[6];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
 
-From: Florian Westphal <fw@strlen.de>
+This patch series replaces raw WARN_ON and WARN_ON_ONCE macros with
+DEBUG_NET_WARN_ON_ONCE across various netfilter subsystems.
 
-64bit byteorder conversion is broken when several registers need to be
-converted because the source register array advances in steps for 4 bytes
-instead of 8:
+Currently, several internal invariant checks use standard warnings on
+packet processing paths or control-plane loops. If triggered, these can
+trigger full system panics when panic_on_warn=1 is enabled. In most of
+these cases, the condition is already handled gracefully by dropping the
+packet, applying a defensive fallback, or returning a proper error code
+to userspace via netlink.
 
-  for (i = ...
-      src64 = nft_reg_load64(&src[i]);
-                             ~~~~~ u32 *src
-      nft_reg_store64(&dst64[i],
+By migrating to DEBUG_NET_WARN_ON_ONCE, we preserve full stack trace
+diagnostic capability for developers running kernels compiled with
+CONFIG_DEBUG_NET=y, while protecting production environments from system
+panics.
 
-Remove the multi-register support, it has other issues as well:
+Fernando Fernandez Mancera (9):
+  netfilter: xtables: use DEBUG_NET_WARN_ON_ONCE in packet and control
+    paths
+  netfilter: nf_tables: use DEBUG_NET_WARN_ON_ONCE in packet and control
+    paths
+  netfilter: nfnetlink: use DEBUG_NET_WARN_ON_ONCE for attribute
+    validation
+  netfilter: conntrack: use DEBUG_NET_WARN_ON_ONCE on packet paths
+  netfilter: nat: use DEBUG_NET_WARN_ON_ONCE in core and helper paths
+  netfilter: tproxy: use DEBUG_NET_WARN_ON_ONCE for protocol fallbacks
+  netfilter: bpf: use DEBUG_NET_WARN_ON_ONCE for missing BTF structures
+  netfilter: flowtable: use DEBUG_NET_WARN_ON_ONCE in offload path
+  netfilter: conncount: use DEBUG_NET_WARN_ON_ONCE on reaching count
+    limit
 
-Pablo points out that commit
-caf3ef7468f7 ("netfilter: nf_tables: prevent OOB access in nft_byteorder_eval")
-alters semantics: before the loop operated on registers, i.e.
- for ( ... )
-   dst32[i] = htons((u16)src32[i])
+ net/ipv4/netfilter/ip_tables.c          |  6 ++--
+ net/ipv4/netfilter/iptable_nat.c        |  4 ++-
+ net/ipv4/netfilter/nf_nat_pptp.c        | 16 +++++++---
+ net/ipv4/netfilter/nf_tproxy_ipv4.c     |  2 +-
+ net/ipv6/netfilter/ip6_tables.c         |  6 ++--
+ net/ipv6/netfilter/ip6table_nat.c       |  4 ++-
+ net/ipv6/netfilter/nf_tproxy_ipv6.c     |  2 +-
+ net/netfilter/nf_bpf_link.c             |  4 ++-
+ net/netfilter/nf_conncount.c            |  3 +-
+ net/netfilter/nf_conntrack_core.c       |  2 +-
+ net/netfilter/nf_conntrack_extend.c     |  3 +-
+ net/netfilter/nf_conntrack_helper.c     |  4 ++-
+ net/netfilter/nf_conntrack_ovs.c        |  2 +-
+ net/netfilter/nf_conntrack_proto_icmp.c |  3 +-
+ net/netfilter/nf_conntrack_seqadj.c     |  2 +-
+ net/netfilter/nf_conntrack_sip.c        |  5 +++-
+ net/netfilter/nf_flow_table_core.c      |  4 +--
+ net/netfilter/nf_flow_table_ip.c        |  4 +--
+ net/netfilter/nf_flow_table_offload.c   |  4 +--
+ net/netfilter/nf_nat_core.c             | 39 +++++++++++++++++--------
+ net/netfilter/nf_nat_masquerade.c       |  6 ++--
+ net/netfilter/nf_nat_proto.c            | 14 +++++----
+ net/netfilter/nf_nat_redirect.c         |  5 ++--
+ net/netfilter/nf_tables_api.c           | 38 +++++++++++++++++-------
+ net/netfilter/nf_tables_core.c          |  8 +++--
+ net/netfilter/nf_tables_offload.c       |  2 +-
+ net/netfilter/nf_tables_trace.c         |  6 ++--
+ net/netfilter/nfnetlink.c               |  4 ++-
+ net/netfilter/nfnetlink_cttimeout.c     |  3 +-
+ net/netfilter/nft_ct.c                  |  2 +-
+ net/netfilter/nft_ct_fast.c             |  2 +-
+ net/netfilter/nft_exthdr.c              |  2 +-
+ net/netfilter/nft_fib.c                 |  2 +-
+ net/netfilter/nft_inner.c               |  2 +-
+ net/netfilter/nft_lookup.c              |  2 +-
+ net/netfilter/nft_masq.c                |  2 +-
+ net/netfilter/nft_meta.c                | 10 +++----
+ net/netfilter/nft_payload.c             |  6 ++--
+ net/netfilter/nft_redir.c               |  2 +-
+ net/netfilter/nft_reject.c              |  8 +++--
+ net/netfilter/nft_rt.c                  |  2 +-
+ net/netfilter/nft_set_hash.c            |  2 +-
+ net/netfilter/nft_set_pipapo.c          |  2 +-
+ net/netfilter/nft_set_rbtree.c          |  6 ++--
+ net/netfilter/nft_socket.c              |  8 +++--
+ net/netfilter/nft_tunnel.c              |  2 +-
+ net/netfilter/nft_xfrm.c                |  6 ++--
+ net/netfilter/x_tables.c                | 12 ++++++--
+ net/netfilter/xt_NETMAP.c               |  4 ---
+ net/netfilter/xt_cluster.c              |  4 +--
+ net/netfilter/xt_nat.c                  | 30 +++++++++----------
+ net/netfilter/xt_socket.c               |  3 +-
+ 52 files changed, 203 insertions(+), 123 deletions(-)
 
- .. but after the patch it will operate on bytes, which makes this
- useless to convert e.g. concatenations, which store each compound
- in its own register.
-
-Multi-convert of u32 has one theoretical application:
-
-ct mark . meta mark . tcp dport @intervalset
-
-Because ct mark and meta mark are host byte order, use with
-intervals has to convert the byteorder for ct/meta mark value
-to network byte order (bigendian).
-
-nftables emits this:
- [ meta load mark => reg 1 ]
- [ byteorder reg 1 = hton(reg 1, 4, 4) ]
- [ ct load mark => reg 9 ]
- [ byteorder reg 9 = hton(reg 9, 4, 4) ]
- ...
-
-I.e. two separate calls.  Theoretically it could be changed to do:
- [ meta load mark => reg 1 ]
- [ ct load mark => reg 9 ]
- [ byteorder reg 1 = htonl(reg 1, 4, 8) ]
- ...
-
-But then all it would take to change the set to
-meta mark . tcp dport . ct mark
-
-... and we'd be back to two "byteorder" calls. IOW, support to
-convert a range of registers is both dysfunctional and dubious.
-
-Simplify this: remove the feature.
-
-Pablo Neira Ayuso points out that nftables before 1.1.0 can generate
-incorrect byteorder conversions, see 9fe58952c45a,
-"evaluate: skip byteorder conversion for selector smaller than 2 bytes"
-in nftables.git).  Affected rulesets fail to load with this change and
-old userspace due to 'len != size' check.
-
-Fixes: c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in nft_byteorder_eval()")
-Cc: <stable+noautosel@kernel.org> # may break rule load with old nftables versions
-Reported-by: Michal Kubecek <mkubecek@suse.cz>
-Link: https://lore.kernel.org/netfilter-devel/20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz/
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_byteorder.c | 51 ++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 31 deletions(-)
-
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index 2316c77f4228..dfd41fc8d9b8 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -19,7 +19,6 @@ struct nft_byteorder {
- 	u8			sreg;
- 	u8			dreg;
- 	enum nft_byteorder_ops	op:8;
--	u8			len;
- 	u8			size;
- };
- 
-@@ -28,13 +27,8 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 			const struct nft_pktinfo *pkt)
- {
- 	const struct nft_byteorder *priv = nft_expr_priv(expr);
--	u32 *src = &regs->data[priv->sreg];
-+	const u32 *src = &regs->data[priv->sreg];
- 	u32 *dst = &regs->data[priv->dreg];
--	u16 *s16, *d16;
--	unsigned int i;
--
--	s16 = (void *)src;
--	d16 = (void *)dst;
- 
- 	switch (priv->size) {
- 	case 8: {
-@@ -43,18 +37,14 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 8; i++) {
--				src64 = nft_reg_load64(&src[i]);
--				nft_reg_store64(&dst64[i],
--						be64_to_cpu((__force __be64)src64));
--			}
-+			src64 = nft_reg_load64(src);
-+
-+			nft_reg_store64(dst64, be64_to_cpu((__force __be64)src64));
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 8; i++) {
--				src64 = (__force __u64)
--					cpu_to_be64(nft_reg_load64(&src[i]));
--				nft_reg_store64(&dst64[i], src64);
--			}
-+			src64 = (__force __u64)cpu_to_be64(nft_reg_load64(src));
-+
-+			nft_reg_store64(dst64, src64);
- 			break;
- 		}
- 		break;
-@@ -62,24 +52,20 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 	case 4:
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 4; i++)
--				dst[i] = ntohl((__force __be32)src[i]);
-+			*dst = ntohl((__force __be32)*src);
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 4; i++)
--				dst[i] = (__force __u32)htonl(src[i]);
-+			*dst = (__force __u32)htonl(*src);
- 			break;
- 		}
- 		break;
- 	case 2:
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 2; i++)
--				d16[i] = ntohs((__force __be16)s16[i]);
-+			nft_reg_store16(dst, ntohs(nft_reg_load_be16(src)));
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 2; i++)
--				d16[i] = (__force __u16)htons(s16[i]);
-+			nft_reg_store_be16(dst, htons(nft_reg_load16(src)));
- 			break;
- 		}
- 		break;
-@@ -137,20 +123,22 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	priv->len = len;
-+	/* no longer support multi-reg conversions */
-+	if (len != size)
-+		return -EOPNOTSUPP;
- 
- 	err = nft_parse_register_load(ctx, tb[NFTA_BYTEORDER_SREG], &priv->sreg,
--				      priv->len);
-+				      len);
- 	if (err < 0)
- 		return err;
- 
- 	err = nft_parse_register_store(ctx, tb[NFTA_BYTEORDER_DREG],
- 				       &priv->dreg, NULL, NFT_DATA_VALUE,
--				       priv->len);
-+				       len);
- 	if (err < 0)
- 		return err;
- 
--	if (nft_reg_overlap(priv->sreg, priv->dreg, priv->len))
-+	if (nft_reg_overlap(priv->sreg, priv->dreg, len))
- 		return -EINVAL;
- 
- 	return 0;
-@@ -167,10 +155,11 @@ static int nft_byteorder_dump(struct sk_buff *skb,
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_BYTEORDER_OP, htonl(priv->op)))
- 		goto nla_put_failure;
--	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->len)))
--		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_BYTEORDER_SIZE, htonl(priv->size)))
- 		goto nla_put_failure;
-+	/* compatibility for old userspace which permitted size != len */
-+	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->size)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
 -- 
-2.47.3
+2.54.0
 
