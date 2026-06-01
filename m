@@ -1,144 +1,494 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879C736494B
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 19:35:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A431A6839
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 22:11:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780342531; cv=none; b=fhiaXsC/tVW1KURiMwy476w4dAFS3WFeq80vB6fA9UqtrjX94qQ8hyd0zGa01mqeyd0c21jZBVu7t8E82bsjKm5XC66Qf5GboBK2YZdeNFZrTucF5AXF7En45VXd8AuQaeWAx8Hw6o6yM6N2P97lNgUpK9HoI39Dnl6JGnwODbA=
+	t=1780351890; cv=none; b=A7r+mSoJ51OnajPHMvOSkzQwmtLB7L0jOlOTDGhsHtRmIovstgorQxRfimmGvVtSrWPBP4R/GqTUisId9/wmK6kEW/Ru/DqnhiuQhMy9phuRDsHs6WJQOesICw6PtOIgXRh6PXC3A6iRFowLKlPWAhSZ5Lk0+gpIULdVxSDKsso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780342531; c=relaxed/simple;
-	bh=YHIXvXY4K+o/hyXFWCPzOYEp1p+hKbUKvuf5PXOtBXQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NDsQSYO4u940K6goVAd1oGdeF9fXZBglA9luNsKv01NJc7oPAcoV9ZhS0d5JLAiiVzwQNTea7zFDWsVNBvJdjwjzJnD7XWJTA2CixuO0FRZ3JcxltN0JUcUI/w9xiPfcO2Zr4cQowcvVhZ1Y/YM6WHXD37XWiDePorreMciRcuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FiQEzZVH; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vBzQxQ2T; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=FiQEzZVH; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vBzQxQ2T; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1780351890; c=relaxed/simple;
+	bh=qLV+9NRMudiuLfIgjNC/EQTamlaHBNpuWb6/DmcsXmc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nTK6zWW0Zu7FxsE6dB5he2OBCyPiRTnpGodBPAGpCyYObE/lEi6mpTDI2lOUmkgWJsaOuqTDiEABQkfLwbUdcxZRtLaex0Quky53CfFGDAD1Qt1csAPPlPg4mk0ukcqbXY23QD9osDr5ZHlQJNVNxfjiI5T1pg612xj0bkditjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UX7EEba2; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FiQEzZVH";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vBzQxQ2T";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="FiQEzZVH";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vBzQxQ2T"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id E06876AB46;
-	Mon,  1 Jun 2026 19:35:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780342528; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2vJuovr8c0mk3c3O9R4RpYGryN9PNFRIJ3NZEh+RnZ4=;
-	b=FiQEzZVHNHYFVQxHesfswqp4Lg2xO9cZmwjVLCXNQozvBrZR8NcQTUzYQAvV4ryF21H7bJ
-	uRtzmP+PI5wtGno11RY6fhCTxdJdsr4FG11flcV4yXJf6MBsTVDKWvYyGMv0iBDsovI28e
-	m6wNq5YUVdUSiUxsow88pK1/LKxKP2g=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780342528;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2vJuovr8c0mk3c3O9R4RpYGryN9PNFRIJ3NZEh+RnZ4=;
-	b=vBzQxQ2T5UjBPhZxG1u5S0LgJZ5a6/aRldu6o8ydaHj1fGad4D9mJR/svEHdjgyMwXdTuy
-	iB2Q8Nw7RWvDTdAA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780342528; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2vJuovr8c0mk3c3O9R4RpYGryN9PNFRIJ3NZEh+RnZ4=;
-	b=FiQEzZVHNHYFVQxHesfswqp4Lg2xO9cZmwjVLCXNQozvBrZR8NcQTUzYQAvV4ryF21H7bJ
-	uRtzmP+PI5wtGno11RY6fhCTxdJdsr4FG11flcV4yXJf6MBsTVDKWvYyGMv0iBDsovI28e
-	m6wNq5YUVdUSiUxsow88pK1/LKxKP2g=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780342528;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2vJuovr8c0mk3c3O9R4RpYGryN9PNFRIJ3NZEh+RnZ4=;
-	b=vBzQxQ2T5UjBPhZxG1u5S0LgJZ5a6/aRldu6o8ydaHj1fGad4D9mJR/svEHdjgyMwXdTuy
-	iB2Q8Nw7RWvDTdAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 957E0779A7;
-	Mon,  1 Jun 2026 19:35:28 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id yxCrIQDfHWrkMgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 01 Jun 2026 19:35:28 +0000
-Message-ID: <2a5609f2-a9f2-4d8e-b423-14e49c807ab0@suse.de>
-Date: Mon, 1 Jun 2026 21:35:24 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UX7EEba2"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id C58306019C;
+	Tue,  2 Jun 2026 00:11:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1780351884;
+	bh=mW3UZcnyV/T7pnMFzNo+Trh/xD1gXsdPzqPMcH4mMZA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=UX7EEba2OG1ZULtPBKQwYN+8wt6hgC905sdRDyVJAL94y1PSo1fdwOfkhPytx6X4Z
+	 DpVD1S8uy3NXwdHJUSGuoiVYKN1GG8xWn9Tq2f407x0XGZo6ujy1JDq9BfAxSsvE8F
+	 hNV/iFz9ZdMyznoWT+Y8wsyQv1eDHxnBaWLjRJ6LLMrvllICb8S4pYWT11GuX79OZD
+	 +jVYqbk7GpIkVnSdmBGHTJPktMa3G7bzB/Ll95mU2l8B1RNRMx91lNSvyAc0JUFb8A
+	 R15nk8bM8AjQ8IM4tScPwpj5O8DKpsylUhP9+fgbbvu6GJmpuAS+xAPvXIMMGdHGq0
+	 h9qU0aG8+sgXA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next,v2 1/5] netfilter: cttimeout: detach dataplane timeout policy and repurpose refcount
+Date: Tue,  2 Jun 2026 00:11:13 +0200
+Message-ID: <20260601221117.570707-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/9 nf-next] netfilter: replace raw warnings with
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org, phil@nwl.cc, fw@strlen.de, pablo@netfilter.org
-References: <20260601193049.8131-1-fmancera@suse.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260601193049.8131-1-fmancera@suse.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.996];
-	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	URIBL_BLOCKED(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[5];
-	RCVD_COUNT_TWO(0.00)[2];
-	MID_RHS_MATCH_FROM(0.00)[];
-	TO_DN_NONE(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid]
-X-Spam-Level: 
+Content-Transfer-Encoding: 8bit
 
-On 6/1/26 9:30 PM, Fernando Fernandez Mancera wrote:
-> This patch series replaces raw WARN_ON and WARN_ON_ONCE macros with
-> DEBUG_NET_WARN_ON_ONCE across various netfilter subsystems.
-> 
-> Currently, several internal invariant checks use standard warnings on
-> packet processing paths or control-plane loops. If triggered, these can
-> trigger full system panics when panic_on_warn=1 is enabled. In most of
-> these cases, the condition is already handled gracefully by dropping the
-> packet, applying a defensive fallback, or returning a proper error code
-> to userspace via netlink.
-> 
-> By migrating to DEBUG_NET_WARN_ON_ONCE, we preserve full stack trace
-> diagnostic capability for developers running kernels compiled with
-> CONFIG_DEBUG_NET=y, while protecting production environments from system
-> panics.
-> 
+Add a refcount for struct nf_ct_timeout which is used by ct extension to
+set the custom ct timeout policy, this tells us that the ct timeout is
+being used by a conntrack entry. When the last conntrack entry drops the
+refcount on the ct timeout, the ct timeout is released.
 
-And of course, the tile is not formatted properly for the cover letter. 
-It should be:
+Remove the refcount for control plane which controls if the ruleset
+refers to the timeout policy. After this update, it is possible to
+remove the ct timeout policy from nfnetlink_cttimeout immediately.
+This is for simplicity not to handle two refcounts on a single object.
 
-"netfilter: replace raw warnings with network debug macros"
+Remove nf_queue_nf_hook_drop(): a packet sitting in nfqueue will just
+hold a reference to the nf_ct_timeout object until packet is reinjected,
+since this is part of the ct extension, this will be released by the
+time the conntrack is freed.
 
-*sigh*
+nf_ct_untimeout() is still called to clean up in a best effort basis:
+the ct timeout on existing entries gets removed when the ct timeout goes
+away, but as long as the iptables ruleset still refers to the ct timeout
+through a template, new conntracks may keep attaching it and extend its
+lifetime until the rule is removed.
 
-Thanks,
-Fernando.
+nf_ct_untimeout() is not called anymore from module removal path, this
+is unlikely to find timeouts give module refcount is bumped, and the new
+refcount already tracks the ct timeout policy use so it is released when
+unused.
+
+Fixes: 50978462300f ("netfilter: add cttimeout infrastructure for fine timeout tuning")
+Fixes: 7e0b2b57f01d ("netfilter: nft_ct: add ct timeout support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - remove control plane refcnt to simplify, per Florian.
+    - address AI reviewer hints.
+
+ include/net/netfilter/nf_conntrack_timeout.h |  20 ++++
+ net/netfilter/nf_conntrack_core.c            |   6 +-
+ net/netfilter/nf_conntrack_timeout.c         |  25 ++++-
+ net/netfilter/nfnetlink_cttimeout.c          | 108 +++++++++----------
+ net/netfilter/nft_ct.c                       |   7 +-
+ net/netfilter/xt_CT.c                        |   2 +-
+ 6 files changed, 98 insertions(+), 70 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
+index 3a66d4abb6d6..7abbf630a88e 100644
+--- a/include/net/netfilter/nf_conntrack_timeout.h
++++ b/include/net/netfilter/nf_conntrack_timeout.h
+@@ -12,6 +12,7 @@
+ #define CTNL_TIMEOUT_NAME_MAX	32
+ 
+ struct nf_ct_timeout {
++	refcount_t		refcnt;
+ 	__u16			l3num;
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	struct rcu_head		rcu;
+@@ -22,6 +23,22 @@ struct nf_conn_timeout {
+ 	struct nf_ct_timeout __rcu *timeout;
+ };
+ 
++static inline void nf_ct_timeout_put(const struct nf_conn *ct)
++{
++#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
++	struct nf_conn_timeout *timeout_ext;
++	struct nf_ct_timeout *timeout;
++
++	timeout_ext = nf_ct_ext_find(ct, NF_CT_EXT_TIMEOUT);
++	if (!timeout_ext)
++		return;
++
++	timeout = rcu_dereference(timeout_ext->timeout);
++	if (timeout && refcount_dec_and_test(&timeout->refcnt))
++		kfree_rcu(timeout, rcu);
++#endif
++}
++
+ static inline unsigned int *
+ nf_ct_timeout_data(const struct nf_conn_timeout *t)
+ {
+@@ -60,6 +77,9 @@ struct nf_conn_timeout *nf_ct_timeout_ext_add(struct nf_conn *ct,
+ 	if (timeout_ext == NULL)
+ 		return NULL;
+ 
++	if (!refcount_inc_not_zero(&timeout->refcnt))
++		return NULL;
++
+ 	rcu_assign_pointer(timeout_ext->timeout, timeout);
+ 
+ 	return timeout_ext;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b521b5ebd664..2e8f47ad1a8f 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1737,16 +1737,18 @@ void nf_conntrack_free(struct nf_conn *ct)
+ 	 */
+ 	WARN_ON(refcount_read(&ct->ct_general.use) != 0);
+ 
++	rcu_read_lock();
+ 	if (ct->status & IPS_SRC_NAT_DONE) {
+ 		const struct nf_nat_hook *nat_hook;
+ 
+-		rcu_read_lock();
+ 		nat_hook = rcu_dereference(nf_nat_hook);
+ 		if (nat_hook)
+ 			nat_hook->remove_nat_bysrc(ct);
+-		rcu_read_unlock();
+ 	}
+ 
++	nf_ct_timeout_put(ct);
++	rcu_read_unlock();
++
+ 	kfree(ct->ext);
+ 	kmem_cache_free(nf_conntrack_cachep, ct);
+ 	cnet = nf_ct_pernet(net);
+diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
+index 0cc584d3dbb1..686cd92b7340 100644
+--- a/net/netfilter/nf_conntrack_timeout.c
++++ b/net/netfilter/nf_conntrack_timeout.c
+@@ -25,17 +25,32 @@
+ const struct nf_ct_timeout_hooks __rcu *nf_ct_timeout_hook __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_timeout_hook);
+ 
++/* nf_ct_iterate_cleanup() holds the conntrack lock. */
+ static int untimeout(struct nf_conn *ct, void *timeout)
+ {
+ 	struct nf_conn_timeout *timeout_ext = nf_ct_timeout_find(ct);
+ 
+ 	if (timeout_ext) {
+-		const struct nf_ct_timeout *t;
++		struct nf_ct_timeout *t;
+ 
+-		t = rcu_access_pointer(timeout_ext->timeout);
++		rcu_read_lock();
++		t = rcu_dereference(timeout_ext->timeout);
++		if (!t) {
++			rcu_read_unlock();
++			return 0;
++		}
+ 
+-		if (!timeout || t == timeout)
++		if (!timeout || t == timeout) {
+ 			RCU_INIT_POINTER(timeout_ext->timeout, NULL);
++
++			/* No race with nf_conntrack_free() which is called
++			 * only after the conntrack has been removed from
++			 * the hashes.
++			 */
++			if (refcount_dec_and_test(&t->refcnt))
++				kfree_rcu(t, rcu);
++		}
++		rcu_read_unlock();
+ 	}
+ 
+ 	/* We are not intended to delete this conntrack. */
+@@ -70,6 +85,8 @@ int nf_ct_set_timeout(struct net *net, struct nf_conn *ct,
+ 	const char *errmsg = NULL;
+ 	int ret = 0;
+ 
++	WARN_ON_ONCE(!nf_ct_is_template(ct));
++
+ 	rcu_read_lock();
+ 	h = rcu_dereference(nf_ct_timeout_hook);
+ 	if (!h) {
+@@ -127,6 +144,8 @@ void nf_ct_destroy_timeout(struct nf_conn *ct)
+ 	struct nf_conn_timeout *timeout_ext;
+ 	const struct nf_ct_timeout_hooks *h;
+ 
++	WARN_ON_ONCE(!nf_ct_is_template(ct));
++
+ 	rcu_read_lock();
+ 	h = rcu_dereference(nf_ct_timeout_hook);
+ 
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index dca6826af7de..deb7c541d776 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -37,11 +37,8 @@ struct ctnl_timeout {
+ 	struct list_head	head;
+ 	struct list_head	free_head;
+ 	struct rcu_head		rcu_head;
+-	refcount_t		refcnt;
+ 	char			name[CTNL_TIMEOUT_NAME_MAX];
+-
+-	/* must be at the end */
+-	struct nf_ct_timeout	timeout;
++	struct nf_ct_timeout	*timeout;
+ };
+ 
+ struct nfct_timeout_pernet {
+@@ -132,12 +129,12 @@ static int cttimeout_new_timeout(struct sk_buff *skb,
+ 			/* You cannot replace one timeout policy by another of
+ 			 * different kind, sorry.
+ 			 */
+-			if (matching->timeout.l3num != l3num ||
+-			    matching->timeout.l4proto->l4proto != l4num)
++			if (matching->timeout->l3num != l3num ||
++			    matching->timeout->l4proto->l4proto != l4num)
+ 				return -EINVAL;
+ 
+-			return ctnl_timeout_parse_policy(&matching->timeout.data,
+-							 matching->timeout.l4proto,
++			return ctnl_timeout_parse_policy(&matching->timeout->data,
++							 matching->timeout->l4proto,
+ 							 info->net,
+ 							 cda[CTA_TIMEOUT_DATA]);
+ 		}
+@@ -153,26 +150,35 @@ static int cttimeout_new_timeout(struct sk_buff *skb,
+ 		goto err_proto_put;
+ 	}
+ 
+-	timeout = kzalloc(sizeof(struct ctnl_timeout) +
+-			  l4proto->ctnl_timeout.obj_size, GFP_KERNEL);
++	timeout = kzalloc(sizeof(*timeout), GFP_KERNEL);
+ 	if (timeout == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_proto_put;
+ 	}
+ 
+-	ret = ctnl_timeout_parse_policy(&timeout->timeout.data, l4proto,
++	timeout->timeout = kzalloc(sizeof(*timeout->timeout) +
++				   l4proto->ctnl_timeout.obj_size, GFP_KERNEL);
++	if (!timeout->timeout) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	ret = ctnl_timeout_parse_policy(&timeout->timeout->data, l4proto,
+ 					info->net, cda[CTA_TIMEOUT_DATA]);
+ 	if (ret < 0)
+-		goto err;
++		goto err_free_timeout_policy;
+ 
+ 	strcpy(timeout->name, nla_data(cda[CTA_TIMEOUT_NAME]));
+-	timeout->timeout.l3num = l3num;
+-	timeout->timeout.l4proto = l4proto;
+-	refcount_set(&timeout->refcnt, 1);
++	timeout->timeout->l3num = l3num;
++	timeout->timeout->l4proto = l4proto;
++	refcount_set(&timeout->timeout->refcnt, 1);
+ 	__module_get(THIS_MODULE);
+ 	list_add_tail_rcu(&timeout->head, &pernet->nfct_timeout_list);
+ 
+ 	return 0;
++
++err_free_timeout_policy:
++	kfree(timeout->timeout);
+ err:
+ 	kfree(timeout);
+ err_proto_put:
+@@ -185,7 +191,7 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ {
+ 	struct nlmsghdr *nlh;
+ 	unsigned int flags = portid ? NLM_F_MULTI : 0;
+-	const struct nf_conntrack_l4proto *l4proto = timeout->timeout.l4proto;
++	const struct nf_conntrack_l4proto *l4proto = timeout->timeout->l4proto;
+ 	struct nlattr *nest_parms;
+ 	int ret;
+ 
+@@ -197,17 +203,17 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 
+ 	if (nla_put_string(skb, CTA_TIMEOUT_NAME, timeout->name) ||
+ 	    nla_put_be16(skb, CTA_TIMEOUT_L3PROTO,
+-			 htons(timeout->timeout.l3num)) ||
++			 htons(timeout->timeout->l3num)) ||
+ 	    nla_put_u8(skb, CTA_TIMEOUT_L4PROTO, l4proto->l4proto) ||
+ 	    nla_put_be32(skb, CTA_TIMEOUT_USE,
+-			 htonl(refcount_read(&timeout->refcnt))))
++			 htonl(refcount_read(&timeout->timeout->refcnt))))
+ 		goto nla_put_failure;
+ 
+ 	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA);
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+ 
+-	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, &timeout->timeout.data);
++	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, &timeout->timeout->data);
+ 	if (ret < 0)
+ 		goto nla_put_failure;
+ 
+@@ -307,23 +313,17 @@ static int cttimeout_get_timeout(struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-/* try to delete object, fail if it is still in use. */
+-static int ctnl_timeout_try_del(struct net *net, struct ctnl_timeout *timeout)
++static void ctnl_timeout_del(struct net *net, struct ctnl_timeout *timeout)
+ {
+-	int ret = 0;
++	/* We are protected by nfnl mutex. */
++	list_del_rcu(&timeout->head);
++	nf_ct_untimeout(net, timeout->timeout);
+ 
+-	/* We want to avoid races with ctnl_timeout_put. So only when the
+-	 * current refcnt is 1, we decrease it to 0.
+-	 */
+-	if (refcount_dec_if_one(&timeout->refcnt)) {
+-		/* We are protected by nfnl mutex. */
+-		list_del_rcu(&timeout->head);
+-		nf_ct_untimeout(net, &timeout->timeout);
+-		kfree_rcu(timeout, rcu_head);
+-	} else {
+-		ret = -EBUSY;
+-	}
+-	return ret;
++	if (refcount_dec_and_test(&timeout->timeout->refcnt))
++		kfree_rcu(timeout->timeout, rcu);
++
++	kfree_rcu(timeout, rcu_head);
++	module_put(THIS_MODULE);
+ }
+ 
+ static int cttimeout_del_timeout(struct sk_buff *skb,
+@@ -338,7 +338,7 @@ static int cttimeout_del_timeout(struct sk_buff *skb,
+ 	if (!cda[CTA_TIMEOUT_NAME]) {
+ 		list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_list,
+ 					 head)
+-			ctnl_timeout_try_del(info->net, cur);
++			ctnl_timeout_del(info->net, cur);
+ 
+ 		return 0;
+ 	}
+@@ -348,10 +348,8 @@ static int cttimeout_del_timeout(struct sk_buff *skb,
+ 		if (strncmp(cur->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
+ 			continue;
+ 
+-		ret = ctnl_timeout_try_del(info->net, cur);
+-		if (ret < 0)
+-			return ret;
+-
++		ctnl_timeout_del(info->net, cur);
++		ret = 0;
+ 		break;
+ 	}
+ 	return ret;
+@@ -511,22 +509,20 @@ static struct nf_ct_timeout *ctnl_timeout_find_get(struct net *net,
+ 		if (strncmp(timeout->name, name, CTNL_TIMEOUT_NAME_MAX) != 0)
+ 			continue;
+ 
+-		if (!refcount_inc_not_zero(&timeout->refcnt))
++		if (!refcount_inc_not_zero(&timeout->timeout->refcnt))
+ 			goto err;
+ 		matching = timeout;
++		__module_get(THIS_MODULE);
+ 		break;
+ 	}
+ err:
+-	return matching ? &matching->timeout : NULL;
++	return matching ? matching->timeout : NULL;
+ }
+ 
+-static void ctnl_timeout_put(struct nf_ct_timeout *t)
++static void ctnl_timeout_put(struct nf_ct_timeout *timeout)
+ {
+-	struct ctnl_timeout *timeout =
+-		container_of(t, struct ctnl_timeout, timeout);
+-
+ 	if (refcount_dec_and_test(&timeout->refcnt)) {
+-		kfree_rcu(timeout, rcu_head);
++		kfree_rcu(timeout, rcu);
+ 		module_put(THIS_MODULE);
+ 	}
+ }
+@@ -609,8 +605,11 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ 	list_for_each_entry_safe(cur, tmp, &pernet->nfct_timeout_freelist, free_head) {
+ 		list_del(&cur->free_head);
+ 
+-		if (refcount_dec_and_test(&cur->refcnt))
+-			kfree_rcu(cur, rcu_head);
++		if (refcount_dec_and_test(&cur->timeout->refcnt))
++			kfree_rcu(cur->timeout, rcu);
++
++		kfree_rcu(cur, rcu_head);
++		module_put(THIS_MODULE);
+ 	}
+ }
+ 
+@@ -649,24 +648,13 @@ static int __init cttimeout_init(void)
+ 	return ret;
+ }
+ 
+-static int untimeout(struct nf_conn *ct, void *timeout)
+-{
+-	struct nf_conn_timeout *timeout_ext = nf_ct_timeout_find(ct);
+-
+-	if (timeout_ext)
+-		RCU_INIT_POINTER(timeout_ext->timeout, NULL);
+-
+-	return 0;
+-}
+-
+ static void __exit cttimeout_exit(void)
+ {
+ 	nfnetlink_subsys_unregister(&cttimeout_subsys);
+ 
+ 	unregister_pernet_subsys(&cttimeout_ops);
+ 	RCU_INIT_POINTER(nf_ct_timeout_hook, NULL);
+-
+-	nf_ct_iterate_destroy(untimeout, NULL);
++	synchronize_net();
+ }
+ 
+ module_init(cttimeout_init);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 357513c6dcea..801c01c6af95 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -897,8 +897,6 @@ static void nft_ct_timeout_obj_eval(struct nft_object *obj,
+ 		}
+ 	}
+ 
+-	rcu_assign_pointer(timeout->timeout, priv->timeout);
+-
+ 	/* adjust the timeout as per 'new' state. ct is unconfirmed,
+ 	 * so the current timestamp must not be added.
+ 	 */
+@@ -949,6 +947,7 @@ static int nft_ct_timeout_obj_init(const struct nft_ctx *ctx,
+ 
+ 	timeout->l3num = l3num;
+ 	timeout->l4proto = l4proto;
++	refcount_set(&timeout->refcnt, 1);
+ 
+ 	ret = nf_ct_netns_get(ctx->net, ctx->family);
+ 	if (ret < 0)
+@@ -969,10 +968,10 @@ static void nft_ct_timeout_obj_destroy(const struct nft_ctx *ctx,
+ 	struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+ 	struct nf_ct_timeout *timeout = priv->timeout;
+ 
+-	nf_queue_nf_hook_drop(ctx->net);
+ 	nf_ct_untimeout(ctx->net, timeout);
+ 	nf_ct_netns_put(ctx->net, ctx->family);
+-	kfree_rcu(priv->timeout, rcu);
++	if (refcount_dec_and_test(&timeout->refcnt))
++		kfree_rcu(priv->timeout, rcu);
+ }
+ 
+ static int nft_ct_timeout_obj_dump(struct sk_buff *skb,
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index d2aeacf94230..b94f004d5f5c 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -284,7 +284,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
+ 	struct nf_conn_help *help;
+ 
+ 	if (ct) {
+-		if (info->helper[0] || info->timeout[0])
++		if (info->helper[0])
+ 			nf_queue_nf_hook_drop(par->net);
+ 
+ 		help = nfct_help(ct);
+-- 
+2.47.3
 
