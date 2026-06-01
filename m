@@ -1,79 +1,78 @@
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422AB3822A6
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 19:31:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F94A21ABAA
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Jun 2026 19:31:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780342294; cv=none; b=pO9uQeWddMp7u0SPdcs7DOjB0hdPLR6VwBAH3mhVapPDgPmO8Zum3fNL7mTwHuXLCicfRBlTagas6Dup24+Wlfhrhb8HAxcl7wvPk/ULB91mKVyMUBETXcNcmj3T8dAkRTECleNdvzhH17xQ+8WvM1Gq3l9PjsQheTbRUwxeakg=
+	t=1780342301; cv=none; b=JOgBuckvvrsHCT0zKtiJ6/sK9Whlg6rF6pBG1aI7gNFETm1I5fotaH3WT++5aMKGPHlTzhk7KqNXErYaJjcU+pM2ahb54Xsv9lvmXaYoxsSiS2au4aPTf5YU7e1V8c95Hg/tNlmtsGkoJH/rBa/GCgkO2hliMIY+Os3RTJRMKWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780342294; c=relaxed/simple;
-	bh=jS95fSe5REQhKOSIZEDXGpmkJm0FJoo0OpZGx9+OuQg=;
+	s=arc-20240116; t=1780342301; c=relaxed/simple;
+	bh=Kyx/KXjicl3pimk7jj0FeX2F/E7Mpw+UlJvFzCsbnNM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bVxohYh8bgbhoFBUhZl3xp0QePkNQ3w4GnPB303iBRS791sCuqsFpb01pAOsS9v6Y9n6Zyl8ZsMoY+ZgY8W3bz/uil76T8E14MkH8nJfOer2Whokh44TwQqVXe6ox7LUyY6zsmdVcvBP6V8TKhQBzrtnjXjjjKsOUDtUxeIWFO0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=pw9yC+CE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=nKtJL7MS; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=pw9yC+CE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=nKtJL7MS; arc=none smtp.client-ip=195.135.223.131
+	 MIME-Version; b=lCYwgCu4pUw2eyogTXIK+HdbFwnxpw4zLg2lLMyeU/WS0DQlzE5HiUg3QtHXNhriyhhSTdJ8LE7w17rww3aDj1+Xm/SM5KrrjQtaXVx8SwvXkP7f5Iskyg1paQTZW1eZ64en31JbnzJnBnFbVwakt7XKwG/doVD9troHChiEflU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=p6l2EHRe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=InSbxSvW; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=p6l2EHRe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=InSbxSvW; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="pw9yC+CE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="nKtJL7MS";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="pw9yC+CE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="nKtJL7MS"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="p6l2EHRe";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="InSbxSvW";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="p6l2EHRe";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="InSbxSvW"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 5BC6867229;
-	Mon,  1 Jun 2026 19:31:05 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 274EA68739;
+	Mon,  1 Jun 2026 19:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780342265; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1780342266; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RlAQpha4rrKruGS4R09AV4ReLg99uXBk4/5ZHKw97J0=;
-	b=pw9yC+CE+tMX7ZGZDw0l17fhL9lpJArvdPiY2GIc9e9+ibYKedTXMKIRbk1qEX/N+CbV28
-	zveuEUgaiT8Z0fYrap+nyGY/WGeMFwhJW0laAmeAB0Y1HrYq8/PNi//lypFwfndD1GqWnE
-	3pEP3JNYQ1FVB9KC7MyzUQ4rURb8hRA=
+	bh=6446h5T4sMlhXnmVoeae6ZMOn6b00Db54NrtLemAKRg=;
+	b=p6l2EHReEhBNp4+TAZ4EwTwIKL/yN0KdvyFjKHqPsabLVjybqRDdtPOeuyclMyG90zh6ri
+	3AZM/ZoZ5/QRgT5LURe42O/w+ZTFpHQPmVVtMw2hlg5QvU8ftms6oOhrBFAf5rC+iZ0qWR
+	vF4zrRZ9ppEPznVEObaISOcmv97VaFA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780342265;
+	s=susede2_ed25519; t=1780342266;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RlAQpha4rrKruGS4R09AV4ReLg99uXBk4/5ZHKw97J0=;
-	b=nKtJL7MSAQDiGjbqBZpLwGZ/JzX3K2GEn+3zOsJchNXqc88mObxMIHC0HYbqL9TBVS8QlC
-	qBD7tbItl7TEWXBQ==
+	bh=6446h5T4sMlhXnmVoeae6ZMOn6b00Db54NrtLemAKRg=;
+	b=InSbxSvW1Jy04Rni7yDXZz9B0DOP3alck5BSZaC9S+xtGyHpGRAZtPvHJyv824pkTKC/xm
+	Ni3Na1Rm5b7Yq/Dw==
 Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=pw9yC+CE;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=nKtJL7MS
+	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1780342265; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1780342266; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RlAQpha4rrKruGS4R09AV4ReLg99uXBk4/5ZHKw97J0=;
-	b=pw9yC+CE+tMX7ZGZDw0l17fhL9lpJArvdPiY2GIc9e9+ibYKedTXMKIRbk1qEX/N+CbV28
-	zveuEUgaiT8Z0fYrap+nyGY/WGeMFwhJW0laAmeAB0Y1HrYq8/PNi//lypFwfndD1GqWnE
-	3pEP3JNYQ1FVB9KC7MyzUQ4rURb8hRA=
+	bh=6446h5T4sMlhXnmVoeae6ZMOn6b00Db54NrtLemAKRg=;
+	b=p6l2EHReEhBNp4+TAZ4EwTwIKL/yN0KdvyFjKHqPsabLVjybqRDdtPOeuyclMyG90zh6ri
+	3AZM/ZoZ5/QRgT5LURe42O/w+ZTFpHQPmVVtMw2hlg5QvU8ftms6oOhrBFAf5rC+iZ0qWR
+	vF4zrRZ9ppEPznVEObaISOcmv97VaFA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1780342265;
+	s=susede2_ed25519; t=1780342266;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=RlAQpha4rrKruGS4R09AV4ReLg99uXBk4/5ZHKw97J0=;
-	b=nKtJL7MSAQDiGjbqBZpLwGZ/JzX3K2GEn+3zOsJchNXqc88mObxMIHC0HYbqL9TBVS8QlC
-	qBD7tbItl7TEWXBQ==
+	bh=6446h5T4sMlhXnmVoeae6ZMOn6b00Db54NrtLemAKRg=;
+	b=InSbxSvW1Jy04Rni7yDXZz9B0DOP3alck5BSZaC9S+xtGyHpGRAZtPvHJyv824pkTKC/xm
+	Ni3Na1Rm5b7Yq/Dw==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id F1C54779A7;
-	Mon,  1 Jun 2026 19:31:04 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BC97A779A7;
+	Mon,  1 Jun 2026 19:31:05 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id +BFAOPjdHWobLwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 01 Jun 2026 19:31:04 +0000
+	id WCNKK/ndHWobLwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 01 Jun 2026 19:31:05 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -81,9 +80,9 @@ Cc: coreteam@netfilter.org,
 	fw@strlen.de,
 	pablo@netfilter.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 4/9 nf-next] netfilter: conntrack: use DEBUG_NET_WARN_ON_ONCE on packet paths
-Date: Mon,  1 Jun 2026 21:30:44 +0200
-Message-ID: <20260601193049.8131-5-fmancera@suse.de>
+Subject: [PATCH 5/9 nf-next] netfilter: nat: use DEBUG_NET_WARN_ON_ONCE in core and helper paths
+Date: Mon,  1 Jun 2026 21:30:45 +0200
+Message-ID: <20260601193049.8131-6-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260601193049.8131-1-fmancera@suse.de>
 References: <20260601193049.8131-1-fmancera@suse.de>
@@ -95,151 +94,303 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Spam-Flag: NO
-X-Rspamd-Action: no action
-X-Spam-Level: 
-X-Spamd-Result: default: False [-3.01 / 50.00];
+X-Spamd-Result: default: False [-2.80 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	MID_CONTAINS_FROM(1.00)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
 	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:dkim,suse.de:mid];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
 	FROM_HAS_DN(0.00)[];
 	ARC_NA(0.00)[];
 	MIME_TRACE(0.00)[0:+];
-	R_RATELIMIT(0.00)[to_ip_from(RLdq3axj463rejm7ya15ar34kh)];
 	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
 	FROM_EQ_ENVFROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
 	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	RCPT_COUNT_FIVE(0.00)[6];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 5BC6867229
-X-Spam-Score: -3.01
+	RCVD_TLS_ALL(0.00)[]
+X-Spam-Level: 
+X-Spam-Score: -2.80
 
-Replace WARN_ON and WARN_ON_ONCE with DEBUG_NET_WARN_ON_ONCE inside
-conntrack confirmation, extension management, helper assignment, and
-protocol parsing loops. This prevents unnecessary system panics when
-panic_on_warn=1 is enabled in production systems.
+Replace WARN_ON and WARN_ON_ONCE with DEBUG_NET_WARN_ON_ONCE across core
+NAT setup functions, masquerade, redirect, and helpers. This prevents
+unnecessary system panics when panic_on_warn=1 is enabled in production
+systems.
 
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- net/netfilter/nf_conntrack_core.c       | 2 +-
- net/netfilter/nf_conntrack_extend.c     | 3 ++-
- net/netfilter/nf_conntrack_helper.c     | 4 +++-
- net/netfilter/nf_conntrack_ovs.c        | 2 +-
- net/netfilter/nf_conntrack_proto_icmp.c | 3 ++-
- net/netfilter/nf_conntrack_seqadj.c     | 2 +-
- net/netfilter/nf_conntrack_sip.c        | 5 ++++-
- 7 files changed, 14 insertions(+), 7 deletions(-)
+ net/ipv4/netfilter/nf_nat_pptp.c  | 16 +++++++++----
+ net/netfilter/nf_nat_core.c       | 39 +++++++++++++++++++++----------
+ net/netfilter/nf_nat_masquerade.c |  6 +++--
+ net/netfilter/nf_nat_proto.c      | 14 +++++++----
+ net/netfilter/nf_nat_redirect.c   |  5 ++--
+ 5 files changed, 55 insertions(+), 25 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8ba5b22a1eef..51e2d8ebe756 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1244,7 +1244,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * unconfirmed conntrack.
+diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+index fab357cc8559..f4f7cf0a5aba 100644
+--- a/net/ipv4/netfilter/nf_nat_pptp.c
++++ b/net/ipv4/netfilter/nf_nat_pptp.c
+@@ -53,8 +53,10 @@ static void pptp_nat_expected(struct nf_conn *ct,
+ 	struct nf_conn_nat *nat;
+ 
+ 	nat = nf_ct_nat_ext_add(ct);
+-	if (WARN_ON_ONCE(!nat))
++	if (unlikely(!nat)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return;
++	}
+ 
+ 	nat_pptp_info = &nat->help.nat_pptp_info;
+ 	ct_pptp_info = nfct_help_data(master);
+@@ -132,8 +134,10 @@ pptp_outbound_pkt(struct sk_buff *skb,
+ 	__be16 new_callid;
+ 	unsigned int cid_off;
+ 
+-	if (WARN_ON_ONCE(!nat))
++	if (unlikely(!nat)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
++	}
+ 
+ 	nat_pptp_info = &nat->help.nat_pptp_info;
+ 	ct_pptp_info = nfct_help_data(ct);
+@@ -204,8 +208,10 @@ pptp_exp_gre(struct nf_conntrack_expect *expect_orig,
+ 	struct nf_ct_pptp_master *ct_pptp_info;
+ 	struct nf_nat_pptp *nat_pptp_info;
+ 
+-	if (WARN_ON_ONCE(!nat))
++	if (unlikely(!nat)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return;
++	}
+ 
+ 	nat_pptp_info = &nat->help.nat_pptp_info;
+ 	ct_pptp_info = nfct_help_data(ct);
+@@ -241,8 +247,10 @@ pptp_inbound_pkt(struct sk_buff *skb,
+ 	__be16 new_pcid;
+ 	unsigned int pcid_off;
+ 
+-	if (WARN_ON_ONCE(!nat))
++	if (unlikely(!nat)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
++	}
+ 
+ 	nat_pptp_info = &nat->help.nat_pptp_info;
+ 	new_pcid = nat_pptp_info->pns_call_id;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 74ec224ce0d6..99ff65e89952 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -366,8 +366,10 @@ nf_nat_used_tuple_harder(const struct nf_conntrack_tuple *tuple,
+ 	if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
+ 		goto out;
+ 
+-	if (WARN_ON_ONCE(ct == ignored_conntrack))
++	if (unlikely(ct == ignored_conntrack)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		goto out;
++	}
+ 
+ 	flags = READ_ONCE(ct->status);
+ 	if (!nf_nat_may_kill(ct, flags))
+@@ -773,11 +775,13 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 	if (nf_ct_is_confirmed(ct))
+ 		return NF_ACCEPT;
+ 
+-	WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
+-		maniptype != NF_NAT_MANIP_DST);
++	if (unlikely(maniptype != NF_NAT_MANIP_SRC && maniptype != NF_NAT_MANIP_DST))
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 
+-	if (WARN_ON(nf_nat_initialized(ct, maniptype)))
++	if (unlikely(nf_nat_initialized(ct, maniptype))) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
++	}
+ 
+ 	/* What we've got will look like inverse of reply. Normally
+ 	 * this is what is in the conntrack, except for prior
+@@ -955,8 +959,8 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+ 		break;
+ 	default:
+ 		/* ESTABLISHED */
+-		WARN_ON(ctinfo != IP_CT_ESTABLISHED &&
+-			ctinfo != IP_CT_ESTABLISHED_REPLY);
++		if (unlikely(ctinfo != IP_CT_ESTABLISHED && ctinfo != IP_CT_ESTABLISHED_REPLY))
++			DEBUG_NET_WARN_ON_ONCE(1);
+ 		if (nf_nat_oif_changed(state->hook, ctinfo, nat, state->out))
+ 			goto oif_changed;
+ 	}
+@@ -1143,8 +1147,10 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
+ 	/* Should not happen, restricted to creating new conntracks
+ 	 * via ctnetlink.
  	 */
- 	if (unlikely(nf_ct_is_confirmed(ct))) {
+-	if (WARN_ON_ONCE(nf_nat_initialized(ct, manip)))
++	if (unlikely(nf_nat_initialized(ct, manip))) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return -EEXIST;
++	}
+ 
+ 	/* No NAT information has been passed, allocate the null-binding */
+ 	if (attr == NULL)
+@@ -1181,8 +1187,10 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 	struct nf_hook_ops *nat_ops;
+ 	int i, ret;
+ 
+-	if (WARN_ON_ONCE(pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
++	if (unlikely(pf >= ARRAY_SIZE(nat_net->nat_proto_net))) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return -EINVAL;
++	}
+ 
+ 	nat_proto_net = &nat_net->nat_proto_net[pf];
+ 
+@@ -1193,8 +1201,10 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		}
+ 	}
+ 
+-	if (WARN_ON_ONCE(i == ops_count))
++	if (unlikely(i == ops_count)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return -EINVAL;
++	}
+ 
+ 	mutex_lock(&nf_nat_proto_mutex);
+ 	if (!nat_proto_net->nat_hook_ops) {
+@@ -1235,7 +1245,8 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 
+ 	nat_ops = nat_proto_net->nat_hook_ops;
+ 	priv = nat_ops[hooknum].priv;
+-	if (WARN_ON_ONCE(!priv)) {
++	if (unlikely(!priv)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		mutex_unlock(&nf_nat_proto_mutex);
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -1264,8 +1275,10 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 	nat_proto_net = &nat_net->nat_proto_net[pf];
+ 
+ 	mutex_lock(&nf_nat_proto_mutex);
+-	if (WARN_ON(nat_proto_net->users == 0))
++	if (unlikely(nat_proto_net->users == 0)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		goto unlock;
++	}
+ 
+ 	nat_proto_net->users--;
+ 
+@@ -1276,8 +1289,10 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 			break;
+ 		}
+ 	}
+-	if (WARN_ON_ONCE(i == ops_count))
++	if (unlikely(i == ops_count)) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		goto unlock;
++	}
+ 	priv = nat_ops[hooknum].priv;
+ 	nf_hook_entries_delete_raw(&priv->entries, ops);
+ 
+diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
+index 4de6e0a51701..660961ca4e31 100644
+--- a/net/netfilter/nf_nat_masquerade.c
++++ b/net/netfilter/nf_nat_masquerade.c
+@@ -36,7 +36,8 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
+ 	const struct rtable *rt;
+ 	__be32 newsrc, nh;
+ 
+-	WARN_ON(hooknum != NF_INET_POST_ROUTING);
++	if (unlikely(hooknum != NF_INET_POST_ROUTING))
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 
+@@ -297,7 +298,8 @@ int nf_nat_masquerade_inet_register_notifiers(void)
+ 	int ret = 0;
+ 
+ 	mutex_lock(&masq_mutex);
+-	if (WARN_ON_ONCE(masq_refcnt == UINT_MAX)) {
++	if (masq_refcnt == UINT_MAX) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		ret = -EOVERFLOW;
+ 		goto out_unlock;
+ 	}
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 07f51fe75fbe..21a525b2490f 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -373,7 +373,7 @@ unsigned int nf_nat_manip_pkt(struct sk_buff *skb, struct nf_conn *ct,
+ 			return NF_ACCEPT;
+ 		break;
+ 	default:
 -		WARN_ON_ONCE(1);
 +		DEBUG_NET_WARN_ON_ONCE(1);
- 		nf_conntrack_double_unlock(hash, reply_hash);
- 		local_bh_enable();
- 		return NF_DROP;
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index dd62cc12e775..68169007aea2 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -95,7 +95,8 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 	struct nf_ct_ext *new;
- 
- 	/* Conntrack must not be confirmed to avoid races on reallocation. */
--	WARN_ON(nf_ct_is_confirmed(ct));
-+	if (unlikely(nf_ct_is_confirmed(ct)))
-+		DEBUG_NET_WARN_ON_ONCE(1);
- 
- 	/* struct nf_ct_ext uses u8 to store offsets/size */
- 	BUILD_BUG_ON(total_extension_size() > 255u);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 17e971bd4c74..0a0e41dd4c95 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -198,8 +198,10 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 	if (test_bit(IPS_HELPER_BIT, &ct->status))
- 		return 0;
- 
--	if (WARN_ON_ONCE(!tmpl))
-+	if (unlikely(!tmpl)) {
-+		DEBUG_NET_WARN_ON_ONCE(1);
- 		return 0;
-+	}
- 
- 	help = nfct_help(tmpl);
- 	if (help != NULL) {
-diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-index a6988eeb1579..26f12dd0c1a4 100644
---- a/net/netfilter/nf_conntrack_ovs.c
-+++ b/net/netfilter/nf_conntrack_ovs.c
-@@ -53,7 +53,7 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
  		break;
  	}
- 	default:
--		WARN_ONCE(1, "helper invoked on non-IP family!");
-+		DEBUG_NET_WARN_ONCE(1, "helper invoked on non-IP family!");
- 		return NF_DROP;
+ 
+@@ -491,7 +491,7 @@ void nf_nat_csum_recalc(struct sk_buff *skb,
+ #endif
  	}
  
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 32148a3a8509..0f39cb147c4f 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -117,7 +117,8 @@ int nf_conntrack_inet_error(struct nf_conn *tmpl, struct sk_buff *skb,
- 	enum ip_conntrack_dir dir;
- 	struct nf_conn *ct;
+-	WARN_ON_ONCE(1);
++	DEBUG_NET_WARN_ON_ONCE(1);
+ }
  
--	WARN_ON(skb_nfct(skb));
-+	if (unlikely(skb_nfct(skb)))
+ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
+@@ -509,7 +509,8 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
+ 	struct nf_conntrack_tuple target;
+ 	unsigned long statusbit;
+ 
+-	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
++	if (unlikely(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY))
 +		DEBUG_NET_WARN_ON_ONCE(1);
- 	zone = nf_ct_zone_tmpl(tmpl, skb, &tmp);
  
- 	/* Are they talking about one of our connections? */
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index 7ab2b25b57bc..2bf49f0b9406 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -38,7 +38,7 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
  		return 0;
+@@ -823,7 +824,8 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
+ 	struct nf_conntrack_tuple target;
+ 	unsigned long statusbit;
  
- 	if (unlikely(!seqadj)) {
--		WARN_ONCE(1, "Missing nfct_seqadj_ext_add() setup call\n");
-+		DEBUG_NET_WARN_ONCE(1, "Missing nfct_seqadj_ext_add() setup call\n");
- 		return 0;
- 	}
- 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index e69941f1a101..7e9237c810a0 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -599,7 +599,10 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 
- 	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
- 				  type, in_header, matchoff, matchlen);
--	WARN_ON(ret < 0);
-+	if (unlikely(ret < 0)) {
+-	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
++	if (unlikely(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY))
 +		DEBUG_NET_WARN_ON_ONCE(1);
-+		return -1;
+ 
+ 	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
+ 		return 0;
+@@ -1074,8 +1076,10 @@ int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops)
+ {
+ 	int ret;
+ 
+-	if (WARN_ON_ONCE(ops->pf != NFPROTO_INET))
++	if (ops->pf != NFPROTO_INET) {
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return -EINVAL;
 +	}
- 	if (ret == 0)
- 		return ret;
  
+ 	ret = nf_nat_register_fn(net, NFPROTO_IPV6, ops, nf_nat_ipv6_ops,
+ 				 ARRAY_SIZE(nf_nat_ipv6_ops));
+diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
+index 5b37487d9d11..138a805a36af 100644
+--- a/net/netfilter/nf_nat_redirect.c
++++ b/net/netfilter/nf_nat_redirect.c
+@@ -52,8 +52,9 @@ nf_nat_redirect_ipv4(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ {
+ 	union nf_inet_addr newdst = {};
+ 
+-	WARN_ON(hooknum != NF_INET_PRE_ROUTING &&
+-		hooknum != NF_INET_LOCAL_OUT);
++	if (unlikely(hooknum != NF_INET_PRE_ROUTING &&
++		     hooknum != NF_INET_LOCAL_OUT))
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 
+ 	/* Local packets: make them go to loopback */
+ 	if (hooknum == NF_INET_LOCAL_OUT) {
 -- 
 2.54.0
 
