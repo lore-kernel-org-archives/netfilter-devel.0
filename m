@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5370374E79;
-	Mon,  1 Jun 2026 11:59:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59B693750AC;
+	Mon,  1 Jun 2026 11:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315178; cv=none; b=UZNfR67WKopN7o06YDSieG/g9JWQFP8f7H6RGs/filfU6vC+EVFwM4luDpWcw5raCLpAhEuD4brXvyVnwVYWJDsA9USHRNaV/C5ijNYaM4NDzYWqBFzK61fCMk8WmbkOKos9MT2gk5dyi6sVYZLJgSLMMHNPkbgxreQa0WeR/f8=
+	t=1780315178; cv=none; b=fETJSMmhZNbPqDVwwFYlDgZ4IrXiw2X+q+cxjfz5fGOZm/1zTNvm7xDoRkUbnbKzTiutRG2sUGnvNGPFGkP766/rwq13VRiEYGkYevH1Y8KQfEw9+fjd9JWbfjwIDZ/2MjuqzyPJ9xCoUwQcExJwkzDGNsYjHQIXiGv3XtNpWRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780315178; c=relaxed/simple;
-	bh=qxGyo5lcwTcYiy1bxQWskAn+0eIYtlgI1OpHWPeTQ1U=;
+	bh=QZ0apMCbznkAV09Rae3k0byTKykQFRZjLsyp+2UFI14=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TEEMafTenLM8dW8V2knk1qJzRbsFcVHMMJOjJC/IEG0W+PlCNEeQIJVLRIHmzhrFSAd/gvHXJ1Ej/lBOfTAculQ5uR4JjU7OOfQqtb+M9BlfJ9LJWHccGIqBW/ILL3XU1HIiKKNAVt1LUUd91xgY8xoeapeJZxtBhNDwvxRoo04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N2lPlPPj; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=UBndxgf9N7Z+mgFCYZumvEEPJfOMl28s4wacDemgz5dSFJiSgZm6kUvO7nKTOdFhiqOYfs3d4TFhIuStn7Z/LxWNLnsuOJY+ankKhT17XJz+yHsooakpLcQHx0LnLZShnkV6R8hpzReexvEbgpRRRGFAj3YUrZ+uy0ZlsHUdg4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=thYHiBs0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N2lPlPPj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="thYHiBs0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9A26B601BE;
-	Mon,  1 Jun 2026 13:59:30 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 798B2601C0;
+	Mon,  1 Jun 2026 13:59:35 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315171;
-	bh=34Ln5KKptG607EnwW2FAzEVL7IgJxxv+IO0awX+Ee3M=;
+	s=2025; t=1780315175;
+	bh=eKRDaHlGUG6ho3Yv9yKjx24a6ppl0LwRpybO7OmgciY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=N2lPlPPjWdoOC120UUO0mMer/Z6ZNGHVw8zcDy/H9CpJa1W+V6lvyVwMCNyP6MD+g
-	 o5fpVj6uxjiZHWn6Owhbn91MZ/OlRKDsMz6dw1YbBF2yPDWTzMTorBuOrFZgV7KPBj
-	 Q2GJhepB2096e9QPx0BIyqlFJ1qoP92eRdHMGv5iYrMDrjOdly7XNkVsYoip9k3dS1
-	 hNWuWKxg+y5sDCteAKjIUBhnUJ74GKR2XNjR8Y65KlRKRNtvfiQBcqxUmvuJBr9NPF
-	 Coflb0T9KUmwcNg5yDaBm7y4bluAcVjQWq2jEhISlkOAUNVRWopsj6sxunyjIna3WI
-	 CzzfZphiKCMjQ==
+	b=thYHiBs04h/xt0nBv81Od6Huq5NMOJmSNZI38RC5AfzZMECrIhP8G5CRANEn6k9A9
+	 vkCPlGnJmkpdGV9HJPeVKk6scGVJFzLNid8J8uB8Y3PPaKWQw8zYrzYMGpoAWP7Bms
+	 jYaVo026NOGhN107Y+xh9/FrlVSkPZ8Eykd/Dp6FIHyNiOLqrHeLuYx6vl+CpM7lhN
+	 xKtGminA5ZmQHyfycIeeUZhMnQMmXgSQLX4OOgOiuKzricpVHzzGtpnDx7UDTiUQAX
+	 LTvfzvrYu7MTXYXK4ITIISiu+HLf9gSPUKnnDjJIFKMQM7EVaSAzNIxcdDesGcM20f
+	 VzKJwdr/aoRHQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 2/9] ipvs: clear the svc scheduler ptr early on edit
-Date: Mon,  1 Jun 2026 13:59:16 +0200
-Message-ID: <20260601115923.433946-3-pablo@netfilter.org>
+Subject: [PATCH net 6/9] netfilter: nft_tunnel: fix use-after-free on object destroy
+Date: Mon,  1 Jun 2026 13:59:20 +0200
+Message-ID: <20260601115923.433946-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
 References: <20260601115923.433946-1-pablo@netfilter.org>
@@ -52,122 +52,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Tristan Madani <tristan@talencesecurity.com>
 
-ip_vs_edit_service() while unbinding the old scheduler clears
-the svc->scheduler ptr after the scheduler module initiates
-RCU callbacks. This can cause packets to use the old
-scheduler at the time when svc->sched_data is already freed
-after RCU grace period.
+nft_tunnel_obj_destroy() calls metadata_dst_free() which directly
+kfree()s the metadata_dst, ignoring the dst_entry refcount. Packets
+that took a reference via dst_hold() in nft_tunnel_obj_eval() and
+are still queued (e.g. in a netem qdisc) are left with a dangling
+pointer. When these packets are eventually dequeued, dst_release()
+operates on freed memory.
 
-Fix it by clearing the ptr early in ip_vs_unbind_scheduler(),
-before the done_service method schedules any RCU callbacks.
+Replace metadata_dst_free() with dst_release() so the metadata_dst
+is freed only after all references are dropped. The dst subsystem
+already handles metadata_dst cleanup in dst_destroy() when
+DST_METADATA is set.
 
-Also, if the new scheduler fails to initialize when replacing
-the old scheduler, try to restore the old scheduler while still
-returning the error code.
-
-Link: https://sashiko.dev/#/patchset/20260519015506.634185-1-rosenp%40gmail.com
-Fixes: 05f00505a89a ("ipvs: fix crash if scheduler is changed")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Fixes: af308b94a2a4 ("netfilter: nf_tables: add tunnel support")
+Cc: stable@vger.kernel.org
+Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h              |  3 +--
- net/netfilter/ipvs/ip_vs_ctl.c   | 13 ++++++++-----
- net/netfilter/ipvs/ip_vs_sched.c | 14 +++++++-------
- 3 files changed, 16 insertions(+), 14 deletions(-)
+ net/netfilter/nft_tunnel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index a02e569813d2..e517eaaa177b 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1824,8 +1824,7 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
- int unregister_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
- int ip_vs_bind_scheduler(struct ip_vs_service *svc,
- 			 struct ip_vs_scheduler *scheduler);
--void ip_vs_unbind_scheduler(struct ip_vs_service *svc,
--			    struct ip_vs_scheduler *sched);
-+void ip_vs_unbind_scheduler(struct ip_vs_service *svc);
- struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name);
- void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler);
- struct ip_vs_conn *
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index bd9cae44d214..16daba8cac83 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1898,7 +1898,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	if (ret_hooks >= 0)
- 		ip_vs_unregister_hooks(ipvs, u->af);
- 	if (svc != NULL) {
--		ip_vs_unbind_scheduler(svc, sched);
-+		ip_vs_unbind_scheduler(svc);
- 		ip_vs_service_free(svc);
- 	}
- 	ip_vs_scheduler_put(sched);
-@@ -1962,9 +1962,8 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 	old_sched = rcu_dereference_protected(svc->scheduler, 1);
- 	if (sched != old_sched) {
- 		if (old_sched) {
--			ip_vs_unbind_scheduler(svc, old_sched);
--			RCU_INIT_POINTER(svc->scheduler, NULL);
--			/* Wait all svc->sched_data users */
-+			ip_vs_unbind_scheduler(svc);
-+			/* Wait all svc->scheduler/sched_data users */
- 			synchronize_rcu();
- 		}
- 		/* Bind the new scheduler */
-@@ -1972,6 +1971,10 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 			ret = ip_vs_bind_scheduler(svc, sched);
- 			if (ret) {
- 				ip_vs_scheduler_put(sched);
-+				/* Try to restore the old_sched */
-+				if (old_sched &&
-+				    !ip_vs_bind_scheduler(svc, old_sched))
-+					old_sched = NULL;
- 				goto out;
- 			}
- 		}
-@@ -2027,7 +2030,7 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
- 
- 	/* Unbind scheduler */
- 	old_sched = rcu_dereference_protected(svc->scheduler, 1);
--	ip_vs_unbind_scheduler(svc, old_sched);
-+	ip_vs_unbind_scheduler(svc);
- 	ip_vs_scheduler_put(old_sched);
- 
- 	/* Unbind persistence engine, keep svc->pe */
-diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-index c6e421c4e299..24adc38942a0 100644
---- a/net/netfilter/ipvs/ip_vs_sched.c
-+++ b/net/netfilter/ipvs/ip_vs_sched.c
-@@ -56,19 +56,19 @@ int ip_vs_bind_scheduler(struct ip_vs_service *svc,
- /*
-  *  Unbind a service with its scheduler
-  */
--void ip_vs_unbind_scheduler(struct ip_vs_service *svc,
--			    struct ip_vs_scheduler *sched)
-+void ip_vs_unbind_scheduler(struct ip_vs_service *svc)
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 0b987bc2132a..68f7cfbbee06 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -676,7 +676,7 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
  {
--	struct ip_vs_scheduler *cur_sched;
-+	struct ip_vs_scheduler *sched;
+ 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
  
--	cur_sched = rcu_dereference_protected(svc->scheduler, 1);
--	/* This check proves that old 'sched' was installed */
--	if (!cur_sched)
-+	sched = rcu_dereference_protected(svc->scheduler, 1);
-+	if (!sched)
- 		return;
- 
-+	/* Reset the scheduler before initiating any RCU callbacks */
-+	rcu_assign_pointer(svc->scheduler, NULL);
-+	smp_wmb();	/* paired with smp_rmb() in ip_vs_schedule() */
- 	if (sched->done_service)
- 		sched->done_service(svc);
--	/* svc->scheduler can be set to NULL only by caller */
+-	metadata_dst_free(priv->md);
++	dst_release(&priv->md->dst);
  }
  
- 
+ static struct nft_object_type nft_tunnel_obj_type;
 -- 
 2.47.3
 
