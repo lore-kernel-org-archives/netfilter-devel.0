@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7D6233936;
-	Mon,  1 Jun 2026 11:59:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E6E371D1F;
+	Mon,  1 Jun 2026 11:59:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780315172; cv=none; b=cIwGLIXGxcdZRnBeDWNPwhTbmqF49xobR4xTboHKR5O109kI6kJk2ezd8I81qrMhxS7yUrhSZkeZYj8kb0vOhwzN9vYVsd8D8Ap7UjSw+ZYeAVfF0dwmn9k+wQeUu9cRzi6tzbrIAp5G3cG6i/nrSECa9J3XY+x3aw1/8AfqDbM=
+	t=1780315173; cv=none; b=Lmg5qQFTFrEZuglfiD1hK0Yz2g2mNN+X6RqHL6LrMHlsppx+ZymI9rMPDmef4SsJ3dZ2gMRSPjw2GRQ1Y9pVAIVJZEq4zHCp0HdJGVeiXW5af1SGeEp24t8aZ38EOqe8dXPG/0KxDAESKSfwpd1xS4jnRx0NieX5IIcPNCNr/o8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780315172; c=relaxed/simple;
-	bh=rzcvFHdIg2YLu+67W3itUs1GRbkJnvyvgP3X45yvV7U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=StCB2Kq34pts+v+nk4QfAT1MPfC4bSjTvxg7yuK3+B9voC2zuQTgh2fm2LshipvzvcM7I8VIyhX9D0EiXTb5Se5O5i8HbUdLIGgPgKv4SBdU794dAmgn8W4FD+0C/Zjt+M97rR77iEvCIcX7h4SfIT+lyG3ZnNP0bSW0GqMaa9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vbKtqexf; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1780315173; c=relaxed/simple;
+	bh=dGRDo5qy+AY8E5TCSrtDQhBNBdbPPtuvL2sixRM+eXQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=QssFEdERlJjGJ3KZxdjCpmaaTwA7eHrZIscnAV8CICpkWTi+EVOndTdqwO/fG0jAzXZ5oIde1gfcCNnqb1Jh0YS1VbMNVs208Hh7ZTO8L9UVvg8DQw/dqH+8mcFKL/C9BEfqKnyGUPUuSeI/6iojeW3+ec8/algykjtUbIzbNcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hZPloisn; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vbKtqexf"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hZPloisn"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8A990601A6;
-	Mon,  1 Jun 2026 13:59:27 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7BC8C601BD;
+	Mon,  1 Jun 2026 13:59:29 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780315168;
-	bh=a+XPh7763qpTeOpjYIBP2EfSEUaot2xMO9vBrP3UCX8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=vbKtqexfYbPUtitgArdenQcZqc3mBGj8CTfXYKm+nLfcmtcxrcVshWvpsNMdb41Bn
-	 hw6On3L/92p+X3aoPlIHj68XalSEGvbWm9mWigvuwsP1P2cYpcsPlqPy7GzHXSCOHS
-	 +VOTXBNxAFtbjNZCJfB4zQad/khB0EKduBjTXwMzOnHHjjqsBe7TatkwMl/bMnv5ld
-	 mXbqPFPc41HdPygCxAcubbX6cdfUXP+gsjF7PQmwmwK8z3nofJdLOvlxtZ6Jy2BzXv
-	 wNEEsLBcJ7erZ2kbet1RBfpps4cvHzazZ270OKZafMf8xLBPb0GA/iWZLODDwhFV/Z
-	 CDszqOMZTcl7A==
+	s=2025; t=1780315169;
+	bh=+hvLSFXcLLnHE5Px2v78qKJo5uK7ipTjAqAd9sdDd+E=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=hZPloisnU+YGLnBA63ueEvli64tyXwdBf5MJh6ZWJ69Ase4EIFJohx0ZBRpJACF7D
+	 AcdP+wgq99M+kRLX0rKsZTiDMyumx0pHPnTdYVnNgbnJacTuXbDV2nM8VMlXbyMPJu
+	 jaDgt9HwkdzEJQto/SQkTLhapXXopTxmGP3u74HMPvw5bP3oZS62GRgfjji0D9RH1p
+	 WT+VEqVrvcA59B7DIc+Obp+Xtnco5+lebz0u9WVfbCe2jlf0/v8XSgBH3kRzLspcwu
+	 ZzmnWaqD4hhwdI4Qu9JmRNIPm9lpUDPgD7MnjGmZv5sxF43KEqaQQG+lujyrXzhIdy
+	 EQzikJK5Lg5JA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 0/9] Netfilter/IPVS fixes for net
-Date: Mon,  1 Jun 2026 13:59:14 +0200
-Message-ID: <20260601115923.433946-1-pablo@netfilter.org>
+Subject: [PATCH net 1/9] netfilter: xt_NFQUEUE: prefer raw_smp_processor_id
+Date: Mon,  1 Jun 2026 13:59:15 +0200
+Message-ID: <20260601115923.433946-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260601115923.433946-1-pablo@netfilter.org>
+References: <20260601115923.433946-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,93 +52,36 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-The following patchset contains Netfilter/IPVS fixes for net:
+With PREEMPT_RCU this triggers a splat because smp_processor_id() can be
+preempted while inside a RCU critical section. If xt_NFQUEUE target is
+invoked via nft_compat_eval() path, we are inside a RCU critical
+section.
 
-1) Fix splat with PREEMPT_RCU because smp_processor_id() in nfqueue,
-   from Fernando Fernandez Mancera.
+Just use the raw version instead.
 
-2) Fix possible use of pointer to old IPVS scheduler after RCU grace
-   period when editing service, from Julian Anastasov.
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_NFQUEUE.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-3) Fix possible forever RCU walk over rt->fib6_siblings in nft_fib6,
-   if rt is unlinked mid-iteration, apparently same issue happens in
-   the fib6 core. From Jiayuan Chen.
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 466da23e36ff..b32d153e3a18 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -91,7 +91,7 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ 	if (info->queues_total > 1) {
+ 		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
+-			int cpu = smp_processor_id();
++			int cpu = raw_smp_processor_id();
+ 
+ 			queue = info->queuenum + cpu % info->queues_total;
+ 		} else {
+-- 
+2.47.3
 
-4) Add mutex to guard refcount in synproxy infrastructure, since
-   concurrent hook {un}registration can happen.
-   From Fernando Fernandez Mancera.
-
-5) Bail out if IRC conntrack helper fails to parse a command, do not
-   try parsing using other command handlers, from Florian Westphal.
-   This fixes a possible out-of-bound read.
-
-6) Possible use-after-free in nft_tunnel by releasing template dst
-   after all references has been dropped, from Tristan Madani.
-
-7) Ignore conntrack template in nft_ct, from Jiayuan Chen.
-
-8) Missing skb_ensure_writable() in ebt_snat, Yiming Qian.
-
-9) Remove multi-register byteorder support, this allows for kernel
-   stack info leak, from Florian Westphal.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-06-01
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 78ef59e7a6459b16f8102e0ee1c718443323d1af:
-
-  Merge branch 'wireguard-fixes-for-7-1-rc6' (2026-05-29 13:01:31 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-06-01
-
-for you to fetch changes up to bb061d3de41707415269be75ebf700efb03ec212:
-
-  netfilter: nft_byteorder: remove multi-register support (2026-06-01 13:43:53 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-06-01
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (2):
-      netfilter: xt_NFQUEUE: prefer raw_smp_processor_id
-      netfilter: synproxy: add mutex to guard hook reference counting
-
-Florian Westphal (2):
-      netfilter: conntrack_irc: fix possible out-of-bounds read
-      netfilter: nft_byteorder: remove multi-register support
-
-Jiayuan Chen (2):
-      netfilter: nft_fib_ipv6: bail out of sibling walk if rt got unlinked
-      netfilter: nft_ct: bail out on template ct in get eval
-
-Julian Anastasov (1):
-      ipvs: clear the svc scheduler ptr early on edit
-
-Tristan Madani (1):
-      netfilter: nft_tunnel: fix use-after-free on object destroy
-
-Yiming Qian (1):
-      netfilter: bridge: make ebt_snat ARP rewrite writable
-
- include/net/ip_vs.h               |  3 +--
- net/bridge/netfilter/ebt_snat.c   |  3 +++
- net/ipv6/netfilter/nft_fib_ipv6.c |  3 +++
- net/netfilter/ipvs/ip_vs_ctl.c    | 13 ++++++----
- net/netfilter/ipvs/ip_vs_sched.c  | 14 +++++------
- net/netfilter/nf_conntrack_irc.c  |  4 +--
- net/netfilter/nf_synproxy_core.c  | 24 +++++++++++++-----
- net/netfilter/nft_byteorder.c     | 51 +++++++++++++++------------------------
- net/netfilter/nft_ct.c            |  8 +++---
- net/netfilter/nft_ct_fast.c       |  2 +-
- net/netfilter/nft_tunnel.c        |  2 +-
- net/netfilter/xt_NFQUEUE.c        |  2 +-
- 12 files changed, 68 insertions(+), 61 deletions(-)
