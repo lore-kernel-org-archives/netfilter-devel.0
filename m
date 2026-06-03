@@ -1,47 +1,84 @@
-Received: from out-185.mta0.migadu.com (out-185.mta0.migadu.com [91.218.175.185])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1853DC87A
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 02:50:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.185
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADBB3F58C3
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 06:01:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780455058; cv=none; b=WeIcy8xLwSG78ERSqyBfJBHVpvmSMcPbMzRnbhXarBKPVsIMac4aB4JnjXwCTZJJ+acVBwcQ8uU9xk+9WToes8PLLRo4ZmtoQ05zPNZ3rpKNCFH4+ZaycyCperxrMznhDze7B3DD9MKdUbPrbgEMS8ddsEx8Io+cwgiPIl/AFlE=
+	t=1780466490; cv=none; b=C2J4kfvNIBpLbHVKSkVmBV2hNCbhZHB2gK54UFMfs94wrgwDTJgdCf8/FPC+N/pfdvW9kPpqLS11+oVsQFasCJTEg8TRjZXsJQmH7v+BVVr2SQHHqWU0dwtW1lhmXx4NRSLpRZRbqei6fZNTJNavMswzovuyaTPeUg4CwnD+xDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780455058; c=relaxed/simple;
-	bh=eEq8iNXQCACbV78K62R7s3Cn5kOKlLHTcV5KQZJYgcA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LEN0UrHkJFASczMFhPH7zs8QmhGww/fc4dJ3vlbalMNURtmUqhEoMkwk56dWEyI8HrpDHMhks4+lbvaNFmaqM1+hPFncjRRIdobqD0fyD4x1tH0lU5cNuayFGlpgHS7bJygOyqMn51/yarwnIK4y9sZQM9APnYmtPo9MijNPYbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=AiUW4t0H; arc=none smtp.client-ip=91.218.175.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1780466490; c=relaxed/simple;
+	bh=qUVoLwTe4Qv1zxG3l26DEvnd4jLo43w1wQQ2la3Dh/8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=PzerVM77Tk9HUjd4RsjvWuWLuQE1tdKx+F+ltrdFz0mkngPZuyeWeLBeGaYcYIHRx0f0STBIDRD31AB/4V+oDeAhAhcEF9Rny4HOYNLP0suiu/bDN+WeR9sVDXUJiLD6J/W0qyHUvCyM5BFtCNmJnsxA2YbKzFEqFlZZAHxPUZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=aerlync.com; spf=pass smtp.mailfrom=aerlync.com; dkim=fail (0-bit key) header.d=aerlync.com header.i=@aerlync.com header.b=hkfApIKl reason="key not found in DNS"; arc=none smtp.client-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=aerlync.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=aerlync.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="AiUW4t0H"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1780455054;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=MQLPpaSkYjgDNM6V9ukCVjB+PUc9tCwTjIjPYJtPcK4=;
-	b=AiUW4t0HEnL+VMo6ZR1/oy6Nfs0ndz2lo8yfecgsCm7O/jakEFvHqO6Dk68YV5q3g1U9Qa
-	8QIwnqtf5VKxa3GH7Fqj/4E99iillce4dd3aUnJU2OPmATaApv0iU4eWTWKyZMxnVu4j+8
-	FqcIGvJfHAntZKPRBUVLckMcpKkrx1Y=
-From: Qingfang Deng <qingfang.deng@linux.dev>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=aerlync.com header.i=@aerlync.com header.b="hkfApIKl"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2bf77d4a4e2so1458865ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jun 2026 23:01:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=aerlync.com; s=google; t=1780466488; x=1781071288; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=A5nZhGGV5ovxkIytxrfvh/xga75F2Y72Ucu1MFnwu/E=;
+        b=hkfApIKlEpfSIv8ljXZXK2XULRU67Q91cxOEZJqxZ8C16Q5Z6d0q+eNtZIt8uOQEu8
+         qDhlo13rpBT4f8i+iE2EEkbkKNAsukllHGgxfGDEer6FieoSIdxlln2I/4LVqjdu6LeM
+         FYPl3JFl8YnWq7FRf3QjHV7hAvmh5rJuG+MLp9wHXnSCkqJdB0qoMZ9J1SPpI2HTJTPp
+         TMWOb+96+ymeJlLaLluvsLwD6t2t+pz06GNjfY1nnrE/3CgQBYL2o4c2ON7wePF8NFQM
+         KkRCCRvvGrch0H4v0fuiRboHYRjGd4lw1D0/1tndSJgDOg8lF0yp7ws+Z/0pLFNoB0jb
+         fopw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780466488; x=1781071288;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=A5nZhGGV5ovxkIytxrfvh/xga75F2Y72Ucu1MFnwu/E=;
+        b=NhKey9na1TK2E6Lww6HP4yjjiyUn2pKccD2QvlSlnhwhfOH/lha+yEl3Tfwr/V40N/
+         a3bN4CIfD0Du/+RMxM0eFCGVdoBR1c2S/oStr5EpmGxX1Ww/cEHHp7LLfi/XD/qMxZod
+         GzQZ9/XxDxZAcRif0Shczum++jv1iw3SniecF+GCvOaYkVpnEjU94DEppJrF4W5bH2LV
+         YusBzdsxj5Q/atz+c6yGajNXe6/Zbs0UbV8pDoxnbCrb6TZz4IImYYuIRn8cJ48ovtZa
+         uiMV1xLD8YQMpsTDbhZkSXKU6fAwC/U3kp5EDAj8IuwTAGomkWQxDK8iJt3tpKcqdOX2
+         cd3g==
+X-Forwarded-Encrypted: i=1; AFNElJ+DIPmdJKPwmh/UhavwIIA6IKLp09QDle7Wto2djULJShaV5Fr45fzZ9F0zS6GWYSv+UMzRfF7PPyinXZpcgGA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzY0/EKpZUChl0d1EkxeKnrZ5fhUV4xXjmSrzN9DN+gHNOSR82I
+	V1EkDM5aZcowfU4LWygdFp4NZbl0hyj7eZkwvSPYPpk8wtAf3VJVJpnYxuQ/m/smiYk=
+X-Gm-Gg: Acq92OHAYc0LvJG+IICBk2eNKJxOiwOeItQe1GY8+J3RGUugX7JkPbY9ktAZvSKqp8P
+	SPbYoIOncI8aFuR9d1gNKM3bN0y3qMrJCqlpWjzYrXU51JuSC323z6Zb8lfa4zqnU9XJN7iYfQI
+	cNXwD75mH33mEuFpWC4gOv8dW2jDxf7jkYezbC2NWu9cxRnMESzPaVKdxI8hs1hbhc4LKO9pBxd
+	KOSS/kDqAsqcOWuCWpBJDk/9xa/OUgrw074F5wuFSCkvttHxVaxItYJ/8rRh8ewlq2nVZ5VDEF/
+	7DOnAhsfnOl9PAr0TLz57rtX0YzpoKC99nJ0Wt4b5P4yQLe5yix+QOoXIJ7Mi3w15LOrQPSx9Yj
+	wk9ssdLbAgxj3/neTmmrtJcxgJhaOVfBJRuXVULrjr7GT5aOsGOVsLzK4SXh2nXIbh+meOYN8w9
+	PkDlelmtKagAe0tzcyUbqDoVT1oh3zld9ttwSQpK4laXYRQ8fB1AuyVBqZtaPRUxV+uXuZAMw=
+X-Received: by 2002:a17:903:37ce:b0:2c0:d29b:34ff with SMTP id d9443c01a7336-2c1646eaeacmr16015745ad.10.1780466488253;
+        Tue, 02 Jun 2026 23:01:28 -0700 (PDT)
+Received: from manjaro ([2406:7400:ff03:ca30:c17:db43:8a08:9d82])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c16649bde7sm12097795ad.72.2026.06.02.23.01.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 02 Jun 2026 23:01:27 -0700 (PDT)
+From: Sayooj K Karun <sayooj@aerlync.com>
+To: pablo@netfilter.org
+Cc: aleksander.lobakin@intel.com,
+	davem@davemloft.net,
+	dsahern@kernel.org,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org,
+	idosch@nvidia.com,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Qingfang Deng <qingfang.deng@linux.dev>
-Subject: [PATCH nf-next] netfilter: flowtable: remove inline segmentation
-Date: Wed,  3 Jun 2026 10:50:46 +0800
-Message-ID: <20260603025047.32839-1-qingfang.deng@linux.dev>
+	pabeni@redhat.com,
+	sayooj@aerlync.com,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] net/ipv6: icmp: fix is_ineligible() to block errors for Redirect packets
+Date: Wed,  3 Jun 2026 11:31:12 +0530
+Message-ID: <20260603060112.10524-1-sayooj@aerlync.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <ah1VoxXLbRAZIEC3@chamomile>
+References: <ah1VoxXLbRAZIEC3@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,140 +86,60 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-Now that PPPoE driver has proper GSO support, this is no longer needed.
+You are right that netfilter can be configured to make devices behave in
+non-RFC-compliant ways, so I will drop the "netfilter policy must obey
+the RFC" framing from my earlier reply.
 
-Signed-off-by: Qingfang Deng <qingfang.deng@linux.dev>
----
- include/net/netfilter/nf_flow_table.h |  1 -
- net/netfilter/nf_flow_table_core.c    |  1 -
- net/netfilter/nf_flow_table_ip.c      | 34 ---------------------------
- net/netfilter/nf_flow_table_path.c    |  3 ---
- 4 files changed, 39 deletions(-)
+The point I should have made is that is_ineligible() is not a netfilter
+function. It is the generic gate that icmpv6_send() uses to decide
+whether the kernel, as an ICMPv6 originator, may emit an error for a
+given trigger packet, and it is shared by all icmpv6_send() callers. It
+already enforces RFC 4443 section 2.4(e.1) at exactly this spot, via
+!(*tp & ICMPV6_INFOMSG_MASK), that is "do not originate an error in
+response to an ICMPv6 error". My patch adds (e.2) (Redirect) right next
+to it, the second rule from the same MUST NOT list. So this is not
+about overriding netfilter policy; it is completing the e.1/e.2 pair at
+the single point where the kernel decides ICMPv6 error eligibility.
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 7b23b245a5a8..61ee74e95d2b 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -151,7 +151,6 @@ struct flow_offload_tuple {
- 	u16				dir:2,
- 					xmit_type:3,
- 					encap_num:2,
--					needs_gso_segment:1,
- 					tun_num:2,
- 					in_vlan_ingress:2;
- 	u16				mtu;
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 785d8c244a77..2c4140e6f53c 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -122,7 +122,6 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- 
- 	flow_tuple->tun = route->tuple[dir].in.tun;
- 	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
--	flow_tuple->needs_gso_segment = route->tuple[dir].out.needs_gso_segment;
- 	flow_tuple->tun_num = route->tuple[dir].in.num_tuns;
- 
- 	switch (route->tuple[dir].xmit_type) {
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 9c05a50d6013..9ec44ea2bcd2 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -771,7 +771,6 @@ struct nf_flow_xmit {
- 	const void		*source;
- 	struct net_device	*outdev;
- 	struct flow_offload_tuple *tuple;
--	bool			needs_gso_segment;
- };
- 
- static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-@@ -792,41 +791,10 @@ static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 	dev_queue_xmit(skb);
- }
- 
--static unsigned int nf_flow_encap_gso_xmit(struct net *net, struct sk_buff *skb,
--					   struct nf_flow_xmit *xmit)
--{
--	struct sk_buff *segs, *nskb;
--
--	segs = skb_gso_segment(skb, 0);
--	if (IS_ERR(segs))
--		return NF_DROP;
--
--	if (segs)
--		consume_skb(skb);
--	else
--		segs = skb;
--
--	skb_list_walk_safe(segs, segs, nskb) {
--		skb_mark_not_on_list(segs);
--
--		if (nf_flow_encap_push(segs, xmit->tuple, xmit->outdev) < 0) {
--			kfree_skb(segs);
--			kfree_skb_list(nskb);
--			return NF_STOLEN;
--		}
--		__nf_flow_queue_xmit(net, segs, xmit);
--	}
--
--	return NF_STOLEN;
--}
--
- static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 				       struct nf_flow_xmit *xmit)
- {
- 	if (xmit->tuple->encap_num) {
--		if (skb_is_gso(skb) && xmit->needs_gso_segment)
--			return nf_flow_encap_gso_xmit(net, skb, xmit);
--
- 		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
- 			return NF_DROP;
- 	}
-@@ -910,7 +878,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		return NF_DROP;
- 	}
- 	xmit.tuple = other_tuple;
--	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-@@ -1231,7 +1198,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		return NF_DROP;
- 	}
- 	xmit.tuple = other_tuple;
--	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 9e88ea6a2eef..700a6ae34aa3 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -86,7 +86,6 @@ struct nft_forward_info {
- 	u8 ingress_vlans;
- 	u8 h_source[ETH_ALEN];
- 	u8 h_dest[ETH_ALEN];
--	bool needs_gso_segment;
- 	enum flow_offload_xmit_type xmit_type;
- };
- 
-@@ -142,7 +141,6 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 			if (path->type == DEV_PATH_PPPOE) {
- 				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
- 				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
--				info->needs_gso_segment = 1;
- 			}
- 			break;
- 		case DEV_PATH_BRIDGE:
-@@ -283,7 +281,6 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
- 		route->tuple[dir].xmit_type = info.xmit_type;
- 	}
--	route->tuple[dir].out.needs_gso_segment = info.needs_gso_segment;
- }
- 
- int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
--- 
-2.43.0
+On how it fixes the REJECT case: the two IPv6 reject paths differ in who
+actually frames the ICMPv6 error. The bridge/netdev path,
+nf_reject_skb_v6_unreach(), builds the packet by hand: it allocates the
+skb, writes the IPv6 and ICMPv6 headers, copies in the original packet
+and computes the checksum. Because it does all that itself, it has to
+carry its own guard, nf_skb_is_icmp6_unreach(), the IPv6 analogue of the
+nf_skb_is_icmp_unreach() you mention.
 
+The L3 path, ip6t_REJECT / nft_reject -> nf_send_unreach6(), never frames
+a packet of its own. It just calls icmpv6_send() and lets the core
+ICMPv6 stack build and send the error. is_ineligible() is the gate that
+core builder consults first, before it allocates or assembles anything,
+so that is exactly where the e.1 suppression already lives for this path.
+There is no netfilter-local guard here, and there does not need to be.
+
+So the scenario in my commit message is the L3 path:
+
+	ip6t_REJECT / nft_reject
+	  > nf_send_unreach6()
+	    > icmpv6_send() / icmp6_send()
+	      > is_ineligible()  // now returns true for NDISC_REDIRECT
+	        > goto out, no packet is ever built or transmitted
+
+The patch fixes the REJECT case because the L3 reject hands packet
+construction to icmp6_send(), and is_ineligible() runs at the top of
+that builder, before any error skb exists. It is the same spot that
+already drops e.1 today, so adding e.2 there completes the pair rather
+than introducing a new override.
+
+I also agree there is a gap to close on the netfilter side. The
+bridge/netdev path never reaches is_ineligible(), and its
+nf_skb_is_icmp6_unreach() guard currently checks only
+ICMPV6_DEST_UNREACH, not Redirect, so it is not covered by this patch. I
+will send a follow-up to netfilter-devel for nf-next extending that
+guard to also skip Redirect, so both paths behave consistently.
+
+Does that split sound right? this fix to is_ineligible() for the L3
+path, plus a separate nf-next patch for the bridge/netdev reject guard?
+
+Thanks,
+Sayooj
