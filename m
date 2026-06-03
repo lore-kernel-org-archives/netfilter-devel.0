@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944B2325495
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 23:06:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EFF7325495
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 23:06:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780527995; cv=none; b=U8tncdHg8GFsQBBDxUr2t6jzMEeRMJxsmi6hGUpmfzEPJ3ilk0YrLrP+MAxVbRCY6BzBeVSZGhSPEdx5KeFiUxlobZ3JxNPKZQl7eyPa119FWzyEoBi6W5CPGxO7ujS/Cizvyk3vDVpT9OiewoR6GG3dpDpbxY7a+uWKodsCRLY=
+	t=1780528000; cv=none; b=ZPOPMhttJsmLvJ5km2p7QI8IkodH+JBgX1FLzAtfDXO/QPcCsy7eAyFau3wzR/OFVCVvDbfcaPOdSFxgVBCyEQJUjCKwmPFxSkAX7nBj7JrwdlCN93IFlQm5uynd79HNsC2jykL9jOHl+9UaELTh45E/7eRRMoEGgWHGmvU6/b0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780527995; c=relaxed/simple;
-	bh=pkYmTc6XzJ5gds0dq89PIqS38F2VS/TpSa1gklSlKBs=;
+	s=arc-20240116; t=1780528000; c=relaxed/simple;
+	bh=Fol6XjQm1rAu++T2klm1USssW9eQA9gbHbsMqIvtsjI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RazO2fsmWDm6wqXKW9oqd2LLOD7C3go40DEzgDS73SJvFyPhFlWZhYc/eqKIjcGXTnbp1rb6M6h3idk0lltusntrMZ/H1gV5L2fEmvzMs7hVDtjHF7yPs3Z/hYwgpioc/ZP8isgM46PAo7It9/gDc6BoO1HkskUBKKVUwTvwRUo=
+	 MIME-Version; b=umXzeJyj6Ss6LpH0KsLLa2YnBPF6AUXeV6D2q242UiDpqzaF8BZY8RRxeDdER7bI/3ha/PH+pOgrpfjNlnBhEeHWP77r7OhR8AsbXM4hzJAZPlMYY1KCDZB7dtacvVhUDeLIE1aWaBAYEnoFmV0T/BYSAZ4GdnraexXEMEmv19A=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C10E06078A; Thu, 04 Jun 2026 01:06:32 +0200 (CEST)
+	id 3147F6078A; Thu, 04 Jun 2026 01:06:37 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 3/4] netfilter: nf_conncount: add sequence counter to detect tree modifications
-Date: Thu,  4 Jun 2026 01:06:02 +0200
-Message-ID: <20260603230610.7900-4-fw@strlen.de>
+Subject: [PATCH v2 nf-next 4/4] netfilter: nf_conncount: gc and rcu fixes
+Date: Thu,  4 Jun 2026 01:06:03 +0200
+Message-ID: <20260603230610.7900-5-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260603230610.7900-1-fw@strlen.de>
 References: <20260603230610.7900-1-fw@strlen.de>
@@ -33,96 +33,139 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There a two issues with traversal:
-1. Key lookup (tree search) cannot detect concurrent modifications and may
-   not find a result in case of parallel modification.
+Another drive-by AI review:
 
-2. Worker does a lockless iteration.  This is never safe.
+1) tree_gc_worker fails to wrap around after it can't find more pending
+   work.  Update data->gc_tree unconditionally.  If its 0, start from
+   the first pending tree (which can be 0).
 
-Add a sequence counter and re-do the lookup under lock in case the
-tree was modified / seqcount changed.
+2) tree_gc_worker() iterates the rbtree without lock. This is never
+   safe.  Move iteration under the spinlock.  If this takes too long
+   (resched needed), save key of next node, drop lock, resched, re-lock,
+   then search for the key (node).  In very rare cases this node might
+   no longer exist, in that case we can just wait for next gc.
 
-gc_worker bugs are addressed in the next patch.
+3) module exit function needs rcu_barrier before we zap the kmem cache.
 
+4) use disable_work_sync(), we don't want any restarts.
+
+Fixes: 5c789e131cbb ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
+Closes: https://sashiko.dev/#/patchset/20260525182924.28456-1-fw%40strlen.de
+Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v2: new in this iteration (split from last patch)
- net/netfilter/nf_conncount.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ v2: remove unsafe lockless walk
+     bump seqcnt on rb_erase
+
+ net/netfilter/nf_conncount.c | 54 +++++++++++++++++++++---------------
+ 1 file changed, 32 insertions(+), 22 deletions(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 8d9c24b69dc9..3c88fb206fb4 100644
+index 3c88fb206fb4..d5fd84d41fa5 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -58,6 +58,7 @@ static spinlock_t nf_conncount_locks[CONNCOUNT_SLOTS] __cacheline_aligned_in_smp
- 
- struct nf_conncount_root {
- 	struct rb_root root;
-+	seqcount_t count;
- };
- 
- struct nf_conncount_data {
-@@ -382,8 +383,10 @@ static void tree_nodes_free(struct nf_conncount_root *root,
- 		rbconn = gc_nodes[--gc_count];
- 		spin_lock(&rbconn->list.list_lock);
- 		if (!rbconn->list.count) {
-+			write_seqcount_begin(&root->count);
- 			rb_erase(&rbconn->node, &root->root);
- 			call_rcu(&rbconn->rcu_head, __tree_nodes_free);
-+			write_seqcount_end(&root->count);
- 		}
- 		spin_unlock(&rbconn->list.list_lock);
- 	}
-@@ -478,8 +481,10 @@ insert_tree(struct net *net,
- 		count = 1;
- 		rbconn->list.count = count;
- 
-+		write_seqcount_begin(&root->count);
- 		rb_link_node_rcu(&rbconn->node, parent, rbnode);
- 		rb_insert_color(&rbconn->node, &root->root);
-+		write_seqcount_end(&root->count);
- 	}
- out_unlock:
- 	if (refcounted)
-@@ -492,6 +497,7 @@ static struct nf_conncount_rb *
- find_tree_node(struct nf_conncount_root *root, struct nf_conncount_data *data,
- 	       const u32 *key)
+@@ -590,47 +590,54 @@ static void tree_gc_worker(struct work_struct *work)
  {
-+	unsigned int seq = read_seqcount_begin(&root->count);
- 	struct rb_node *parent;
+ 	struct nf_conncount_data *data = container_of(work, struct nf_conncount_data, gc_work);
+ 	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES], *rbconn;
++	unsigned int tree, next_tree, gc_count = 0;
+ 	struct nf_conncount_root *root;
+ 	struct rb_node *node;
+-	unsigned int tree, next_tree, gc_count = 0;
++
++	if (data->gc_tree == 0)
++		data->gc_tree = find_first_bit(data->pending_trees, CONNCOUNT_SLOTS);
  
- 	parent = rcu_dereference_raw(root->root.rb_node);
-@@ -509,6 +515,9 @@ find_tree_node(struct nf_conncount_root *root, struct nf_conncount_data *data,
- 		} else {
- 			return rbconn;
+ 	tree = data->gc_tree % CONNCOUNT_SLOTS;
+ 	root = &data->root[tree];
+ 
+-	local_bh_disable();
+-	rcu_read_lock();
+-	for (node = rb_first(&root->root); node ; node = rb_next(node)) {
+-		rbconn = rb_entry(node, struct nf_conncount_rb, node);
+-		if (nf_conncount_gc_list(data->net, &rbconn->list))
+-			gc_count++;
+-	}
+-	rcu_read_unlock();
+-	local_bh_enable();
+-
+-	cond_resched();
+-
+ 	spin_lock_bh(&nf_conncount_locks[tree]);
+-	if (gc_count < ARRAY_SIZE(gc_nodes))
+-		goto next; /* do not bother */
+-
+ 	gc_count = 0;
+ 	node = rb_first(&root->root);
+ 	while (node != NULL) {
++		u32 key[MAX_KEYLEN];
++		bool drop_lock;
++
+ 		rbconn = rb_entry(node, struct nf_conncount_rb, node);
+ 		node = rb_next(node);
+ 
+-		if (rbconn->list.count > 0)
+-			continue;
++		if (nf_conncount_gc_list(data->net, &rbconn->list))
++			gc_nodes[gc_count++] = rbconn;
++
++		drop_lock = need_resched();
+ 
+-		gc_nodes[gc_count++] = rbconn;
+-		if (gc_count >= ARRAY_SIZE(gc_nodes)) {
++		if (drop_lock || gc_count >= ARRAY_SIZE(gc_nodes)) {
+ 			tree_nodes_free(root, gc_nodes, gc_count);
+ 			gc_count = 0;
  		}
 +
-+		if (read_seqcount_retry(&root->count, seq))
-+			return ERR_PTR(-EAGAIN);
++		if (!drop_lock || !node)
++			continue;
++
++		rbconn = rb_entry(node, struct nf_conncount_rb, node);
++		memcpy(key, rbconn->key, sizeof(key));
++		spin_unlock_bh(&nf_conncount_locks[tree]);
++
++		cond_resched();
++
++		spin_lock_bh(&nf_conncount_locks[tree]);
++		rbconn = find_tree_node(root, data, key);
++		if (IS_ERR_OR_NULL(rbconn)) /* rbconn was reaped */
++			break;
++
++		node = &rbconn->node;
  	}
  
- 	return ERR_PTR(-ENOENT);
-@@ -531,6 +540,12 @@ count_tree(struct net *net,
+ 	tree_nodes_free(root, gc_nodes, gc_count);
+-next:
+ 	clear_bit(tree, data->pending_trees);
  
- 	rbconn = find_tree_node(root, data, key);
- 	if (IS_ERR(rbconn)) {
-+		if (PTR_ERR(rbconn) == -EAGAIN) {
-+			spin_lock_bh(&nf_conncount_locks[hash]);
-+			rbconn = find_tree_node(root, data, key);
-+			spin_unlock_bh(&nf_conncount_locks[hash]);
-+		}
-+
- 		if (PTR_ERR(rbconn) == -ENOENT) {
- 			if (!skb)
- 				return 0;
-@@ -647,6 +662,7 @@ EXPORT_SYMBOL_GPL(nf_conncount_count_skb);
- static void nf_conncount_root_init(struct nf_conncount_root *r)
+ 	next_tree = (tree + 1) % CONNCOUNT_SLOTS;
+@@ -639,6 +646,8 @@ static void tree_gc_worker(struct work_struct *work)
+ 	if (next_tree < CONNCOUNT_SLOTS) {
+ 		data->gc_tree = next_tree;
+ 		schedule_work(work);
++	} else {
++		data->gc_tree = 0;
+ 	}
+ 
+ 	spin_unlock_bh(&nf_conncount_locks[tree]);
+@@ -722,7 +731,7 @@ void nf_conncount_destroy(struct net *net, struct nf_conncount_data *data)
  {
- 	r->root = RB_ROOT;
-+	seqcount_init(&r->count);
+ 	unsigned int i;
+ 
+-	cancel_work_sync(&data->gc_work);
++	disable_work_sync(&data->gc_work);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
+ 		destroy_tree(&data->root[i]);
+@@ -753,6 +762,7 @@ static int __init nf_conncount_modinit(void)
+ 
+ static void __exit nf_conncount_modexit(void)
+ {
++	rcu_barrier();
+ 	kmem_cache_destroy(conncount_conn_cachep);
+ 	kmem_cache_destroy(conncount_rb_cachep);
  }
- 
- struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen)
 -- 
 2.54.0
 
