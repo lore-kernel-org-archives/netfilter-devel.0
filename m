@@ -1,92 +1,58 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E82B63AB285
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 22:42:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B7A325495
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Jun 2026 23:06:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780526548; cv=none; b=kN1BKE3on90P5i31gjU8f7r3FGK5zdi6wHLr1/7uEyKikh+SRH5jod5hClKam8CTLOCrUCnI8XjFZzatb9SRvoQNkCjmqGG/xgHc3NKzF+RXwCBUuNYDo8m2cl94e6JA9t25XQeuRkzNTS6pQ7XdsJq4SVHletYdOAtM0hAG69A=
+	t=1780527989; cv=none; b=aXRT0hrdv0mdwYMGfSFw398Ifz5f4EaGZF9QfXhR6U86UqQtG0sADTnEgsuMpo7RWRzCx/2WTvl0iDPTCU0m+TSY8GPT8FIndI2FqpG5LM92fxhUnAq278ir5zAkq0eJBDstumBm5/PGctLijZTQX57/ZQ3Dl8f27nyYFCTicIY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780526548; c=relaxed/simple;
-	bh=r2qko1F5CB4MzOVwnUDXthYXOLxZxqwZlqSWOfo9ODk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RxSon0XL5XMMwHCdIiVFbObrjmajJFLUW1bbEjwkHKHgotA8iTZP7aRXPkQqUQRVMzybs5UhOoe7P+gS3dzlCZRANbLbUQeJwYsszRf941BI0OKgW3AzvKV0m/24QDGuJ38fk17UgdzFFkmgx2UQaENT+SmjKraeqyefTmioaI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jRQNGYpY; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jRQNGYpY"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 3831460196;
-	Thu,  4 Jun 2026 00:42:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780526545;
-	bh=EVyiLxhmvZ+09lcI5j7UQn72plaYWRUFZf+ZOxE5MUQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jRQNGYpYQVSP8vSVyiuf1O6mruJuE6jHr9U6+gtgG0pNrlM3zNcHNMDJk0qUYut59
-	 98dJLmwMVsxHiFZZa3XCUefSkjalIpycMnWItEFkdUPG+jOrCbmqRrgGW3+G69XvgV
-	 4OqvbfkucQLFLynIIJDIiZoFH4PRmB2XKhnEr5XYwjoM+rar/F9k8OC2KaYHfq4ksi
-	 hm+F+zOLkExegPrSKyo8o6e5VqlgceAb8TJGQKViHS+MINbBIm7F+Qo/5uE7m//D8c
-	 gsPUSH9NUQh+A0Z5V7ys44jkAfF3DFfwYbFUO+hFk/1aQ/hJRU9jyepknckgQ9zfT/
-	 wzQwZLzi0AswQ==
-Date: Thu, 4 Jun 2026 00:42:23 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [RFC nf 0/2] netfilter: add restrictions/validations for packet
- rewrites
-Message-ID: <aiCtz2nBZL1Q-gmL@chamomile>
-References: <20260527121147.22076-1-fw@strlen.de>
- <aiCrpdgRNCC7LkaA@chamomile>
+	s=arc-20240116; t=1780527989; c=relaxed/simple;
+	bh=/5+80TdBiGSRzNme2YUQ5Z11eDHeT0HQJ59wYyopiWY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AbuRNkybEonW44f3BzbyJ+fxDR9nzfTdKKWRjDPQdA6xi7BFFF2E+eyhXUzTDzkWkEUu6OZv5FmmaNTDBzJaSk0iyyPN9/fO3bbklcuLrMRHVJl0gJTVFE46l8ktxDIMuPAtcGKdhtHHndsIWyIs6sbstL8X+gLJz6R+8N/IjWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 85AA0605BD; Thu, 04 Jun 2026 01:06:19 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 0/4] netfilter: nf_conncount: fix gc and
+Date: Thu,  4 Jun 2026 01:05:59 +0200
+Message-ID: <20260603230610.7900-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aiCrpdgRNCC7LkaA@chamomile>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 04, 2026 at 12:33:13AM +0200, Pablo Neira Ayuso wrote:
-> Hi Florian,
-> 
-> On Wed, May 27, 2026 at 02:11:42PM +0200, Florian Westphal wrote:
-> > This is a followup to the recent patch that disabled packet manipulation
-> > via nfqueue or nft_payload in user namespaces.
-> > 
-> > This adds additional *restrictions*.
-> > For nfqueue, do minimal header checks in case userspace provides payload
-> > replacement data.
-> > 
-> > For nft_payload, restrict the offset/length combinations.
-> > 
-> > Several of these checks could be done at rule insertion time (i.e.
-> > control plane).
-> > Risk is that this may cause ruleset load failures for existing rulesets.
-> > With this change such writes are silently skipped and packet passes
-> > unchanged.
-> > 
-> > Restriction is added for link and network bases only.
-> > 
-> > Open questions:
-> > - target tree: nf or nf-next?
-> >
-> > - should there be an immediate followup ('patch 3') that reverts
-> >   the userns restrictions again?
-> >
-> > - should nft_payload reject those requests it can validate there from
-> >   the control plane?
-> 
-> Ideally, better from control plane.
-> 
-> If anyone is breaking with ilegals field, they should come here to
-> explain? Data plane validation might look safer ... but it will just
-> drop packets and it will take a bit more time to the user to debug.
-> 
-> But your approach is more conservative, it just leave the packet
-> untouch, so it is basically ignoring the invalid mangling.
+This addresses a drive-by AI review of nf_conncount.  See patch 4 for
+details.
 
-Hm. Actually, it is harder than it seems to do this from control plane
-because dscp needs to deal with bitwise to ensure that ihl and version
-are not modified.
+1) Replace rb_root with a new container structure in nf_conncount to prepare
+   for a per-tree sequence counter to detect concurrent modifications.
+
+2) Split nf_conncount rbtree walk into a helper. Add find_tree_node() to
+   fetch matching node so folluwp patch can reuse the function.
+
+3) Add a sequence count to detect concurrent rbtree modifications.
+
+4) Fix tree_gc_worker wrap-around by updating gc_tree unconditionally.
+   Add rcu_barrier before zapping the kmem cache during module exit.
+
+Florian Westphal (4):
+  netfilter: nf_conncount: prepare for per-tree seqcount
+  netfilter: nf_conncount: split count_tree_node rbtree walk into helper
+  netfilter: nf_conncount: add sequence counter to detect tree
+    modifications
+  netfilter: nf_conncount: gc and rcu fixes
+
+ net/netfilter/nf_conncount.c | 203 ++++++++++++++++++++++-------------
+ 1 file changed, 130 insertions(+), 73 deletions(-)
+
+-- 
+2.53.0
