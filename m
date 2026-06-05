@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B05B51A3160
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2026 13:11:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6ACA288C2D
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2026 13:11:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780665098; cv=none; b=a+wFs6mD1p4DKpWQIhSz+UluUnSzAOzGSxWQrmpIE4ERxsWntU0rc42VEYYBJyTLApJKrDxGVqQYkCu30dLgWZfYKOeukHzJAN/EKou+NI6N8wvLq2o3YSrdYxIG8OVg1cyxLc9ZxvmDMkXgAbr6cmisBX+7hEGjLVL+3u1qZso=
+	t=1780665102; cv=none; b=Ii9rvvibwedb57zW/y3clWC4pXj05+RvO9ejAdE0StTfdKh/zTdPOpQuqTuWJELYihha79P6KE3R6sTocxe0D0ggDKYvQsOJGfPUwSkqijOiL+l1pEBbJhX9f9qJ0OkA04rqj+KOEPRYNnap9qvv5SOCdIqFjT4ObxjQXYa2V5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780665098; c=relaxed/simple;
-	bh=s/77MdnLB7eMiofCPN2VNt0beCx3tnIIOkznVTShK2o=;
+	s=arc-20240116; t=1780665102; c=relaxed/simple;
+	bh=yUDeqoPpFBFw12cKwetkUaFZK5A16MXdpmEWAe1BnGo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R2NyZZuzdWRb8AQ6OC4E0K036UzFjgL8XZsEHvnoqVUib1032lCzAa2qQuhGEvlTXHRruJF0o/yxaVded99TOIvDdlt2qdeRocgpze1B+ThCQeHc+ZztopNWkFvqxyRnLdX9jNuDXDXSp88fMzdcDgXwOOl4ZJQIIapCQS+KCBg=
+	 MIME-Version; b=ilRGZ/e9V7nt6GhwZSbFvSnfvSJq9BztqzNPvwd9jH3DXGi41gmiDYGpGqi7TPZD+S6mNqWQbvjU4Feb2CEAASrJEQ7TBrhtbAQOsmG/TsGcpdiHWWp0PDxxFDTBrCaG6XtZ1ZL86BOriPvMxqs2skHCS2tQrLkmXuk7BcbbhTE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 00A4460425; Fri, 05 Jun 2026 15:11:34 +0200 (CEST)
+	id 436E260425; Fri, 05 Jun 2026 15:11:39 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v4 1/5] netfilter: nf_conncount: callers must hold rcu read lock
-Date: Fri,  5 Jun 2026 15:11:19 +0200
-Message-ID: <20260605131123.19435-2-fw@strlen.de>
+Subject: [PATCH nf-next v4 2/5] netfilter: nf_conncount: use per nf_conncount_data spinlocks
+Date: Fri,  5 Jun 2026 15:11:20 +0200
+Message-ID: <20260605131123.19435-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260605131123.19435-1-fw@strlen.de>
 References: <20260605131123.19435-1-fw@strlen.de>
@@ -33,67 +33,260 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rcu_derefence_raw() should not have been used here, it concealed this bug.
-Its used because struct rb_node lacks __rcu annotated pointers, so plain
-rcu_derefence causes sparse warnings.
+This change replaces the rb_root with a new container structure.
+Instead of an array of locks shared by all nf_conncount_data objects,
+each tree gains its own dedicated lock.
 
-The major tradeoff is that rcu_derefence_raw() doesn't warn when the caller
-isn't in a rcu read section.
+Downside: nf_conncount_data increases in size.  Before this change:
+ struct nf_conncount_data {
+        [..]
+        /* --- cacheline 33 boundary (2112 bytes) was 16 bytes ago --- */
+        unsigned int               gc_tree;              /*  2128     4 */
+        /* size: 2136, cachelines: 34, members: 7 */
+        /* padding: 4 */
 
-Extend the rcu read lock scope accordingly and cause sparse warnings,
-those warnings are the lesser evil.
+After:
+        /* size: 4184, cachelines: 66, members: 7 */
+        /* padding: 4 */
 
-Fixes: 11efd5cb04a1 ("openvswitch: Support conntrack zone limit")
-Closes: https://sashiko.dev/#/patchset/20260603230610.7900-1-fw%40strlen.de
+On LOCKDEP enabled kernels, this is even worse:
+	/* size: 18560, cachelines: 290, members: 7 */
+
+(due to lockdep map in each spinlock).
+
+For this reason also switch to kvzalloc.  The zeroing variant is needed
+to not start with random (heap memory content) in the ->pending_trees
+bitmap.
+
+Followup patch will add and use a sequence counter.
+
+Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v4: no changes.
+ v4: remove global lock array and use per-tree lock.
 
- net/netfilter/nf_conncount.c | 6 +++---
- net/openvswitch/conntrack.c  | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conncount.c | 63 +++++++++++++++++++-----------------
+ 1 file changed, 34 insertions(+), 29 deletions(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index ab28b47395bd..81e4a4e20df5 100644
+index 81e4a4e20df5..faecc05d34d4 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -499,7 +499,7 @@ count_tree(struct net *net,
+@@ -54,12 +54,15 @@ struct nf_conncount_rb {
+ 	struct rcu_head rcu_head;
+ };
+ 
+-static spinlock_t nf_conncount_locks[CONNCOUNT_SLOTS] __cacheline_aligned_in_smp;
++struct nf_conncount_root {
++	struct rb_root root;
++	spinlock_t lock;
++};
+ 
+ struct nf_conncount_data {
+ 	unsigned int keylen;
+ 	u32 initval;
+-	struct rb_root root[CONNCOUNT_SLOTS];
++	struct nf_conncount_root root[CONNCOUNT_SLOTS];
+ 	struct net *net;
+ 	struct work_struct gc_work;
+ 	unsigned long pending_trees[BITS_TO_LONGS(CONNCOUNT_SLOTS)];
+@@ -367,18 +370,19 @@ static void __tree_nodes_free(struct rcu_head *h)
+ 	kmem_cache_free(conncount_rb_cachep, rbconn);
+ }
+ 
+-/* caller must hold tree nf_conncount_locks[] lock */
+-static void tree_nodes_free(struct rb_root *root,
++static void tree_nodes_free(struct nf_conncount_root *root,
+ 			    struct nf_conncount_rb *gc_nodes[],
+ 			    unsigned int gc_count)
+ {
+ 	struct nf_conncount_rb *rbconn;
+ 
++	lockdep_assert_held(&root->lock);
++
+ 	while (gc_count) {
+ 		rbconn = gc_nodes[--gc_count];
+ 		spin_lock(&rbconn->list.list_lock);
+ 		if (!rbconn->list.count) {
+-			rb_erase(&rbconn->node, root);
++			rb_erase(&rbconn->node, &root->root);
+ 			call_rcu(&rbconn->rcu_head, __tree_nodes_free);
+ 		}
+ 		spin_unlock(&rbconn->list.list_lock);
+@@ -396,10 +400,10 @@ insert_tree(struct net *net,
+ 	    const struct sk_buff *skb,
+ 	    u16 l3num,
+ 	    struct nf_conncount_data *data,
+-	    struct rb_root *root,
+ 	    unsigned int hash,
+ 	    const u32 *key)
+ {
++	struct nf_conncount_root *root = &data->root[hash];
+ 	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES];
+ 	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
+ 	bool do_gc = true, refcounted = false;
+@@ -410,10 +414,10 @@ insert_tree(struct net *net,
+ 	struct nf_conncount_rb *rbconn;
+ 	struct nf_conn *ct = NULL;
+ 
+-	spin_lock_bh(&nf_conncount_locks[hash]);
++	spin_lock_bh(&root->lock);
+ restart:
+ 	parent = NULL;
+-	rbnode = &(root->rb_node);
++	rbnode = &root->root.rb_node;
+ 	while (*rbnode) {
+ 		int diff;
+ 		rbconn = rb_entry(*rbnode, struct nf_conncount_rb, node);
+@@ -475,12 +479,12 @@ insert_tree(struct net *net,
+ 		rbconn->list.count = count;
+ 
+ 		rb_link_node_rcu(&rbconn->node, parent, rbnode);
+-		rb_insert_color(&rbconn->node, root);
++		rb_insert_color(&rbconn->node, &root->root);
+ 	}
+ out_unlock:
+ 	if (refcounted)
+ 		nf_ct_put(ct);
+-	spin_unlock_bh(&nf_conncount_locks[hash]);
++	spin_unlock_bh(&root->lock);
+ 	return count;
+ }
+ 
+@@ -491,7 +495,7 @@ count_tree(struct net *net,
+ 	   struct nf_conncount_data *data,
+ 	   const u32 *key)
+ {
+-	struct rb_root *root;
++	struct nf_conncount_root *root;
+ 	struct rb_node *parent;
+ 	struct nf_conncount_rb *rbconn;
+ 	unsigned int hash;
+@@ -499,7 +503,7 @@ count_tree(struct net *net,
  	hash = jhash2(key, data->keylen, data->initval) % CONNCOUNT_SLOTS;
  	root = &data->root[hash];
  
--	parent = rcu_dereference_raw(root->rb_node);
-+	parent = rcu_dereference(root->rb_node);
+-	parent = rcu_dereference(root->rb_node);
++	parent = rcu_dereference(root->root.rb_node);
  	while (parent) {
  		int diff;
  
-@@ -507,9 +507,9 @@ count_tree(struct net *net,
+@@ -544,14 +548,14 @@ count_tree(struct net *net,
+ 	if (!skb)
+ 		return 0;
  
- 		diff = key_diff(key, rbconn->key, data->keylen);
- 		if (diff < 0) {
--			parent = rcu_dereference_raw(parent->rb_left);
-+			parent = rcu_dereference(parent->rb_left);
- 		} else if (diff > 0) {
--			parent = rcu_dereference_raw(parent->rb_right);
-+			parent = rcu_dereference(parent->rb_right);
- 		} else {
- 			int ret;
+-	return insert_tree(net, skb, l3num, data, root, hash, key);
++	return insert_tree(net, skb, l3num, data, hash, key);
+ }
  
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 7c9256572284..c6fd9c424e8f 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -1797,10 +1797,10 @@ static int ovs_ct_limit_get_zone_limit(struct net *net,
- 		} else {
- 			rcu_read_lock();
- 			limit = ct_limit_get(info, zone);
--			rcu_read_unlock();
+ static void tree_gc_worker(struct work_struct *work)
+ {
+ 	struct nf_conncount_data *data = container_of(work, struct nf_conncount_data, gc_work);
+ 	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES], *rbconn;
+-	struct rb_root *root;
++	struct nf_conncount_root *root;
+ 	struct rb_node *node;
+ 	unsigned int tree, next_tree, gc_count = 0;
  
- 			err = __ovs_ct_limit_get_zone_limit(
- 				net, info->data, zone, limit, reply);
-+			rcu_read_unlock();
- 			if (err)
- 				return err;
- 		}
+@@ -560,7 +564,7 @@ static void tree_gc_worker(struct work_struct *work)
+ 
+ 	local_bh_disable();
+ 	rcu_read_lock();
+-	for (node = rb_first(root); node != NULL; node = rb_next(node)) {
++	for (node = rb_first(&root->root); node ; node = rb_next(node)) {
+ 		rbconn = rb_entry(node, struct nf_conncount_rb, node);
+ 		if (nf_conncount_gc_list(data->net, &rbconn->list))
+ 			gc_count++;
+@@ -570,12 +574,12 @@ static void tree_gc_worker(struct work_struct *work)
+ 
+ 	cond_resched();
+ 
+-	spin_lock_bh(&nf_conncount_locks[tree]);
++	spin_lock_bh(&root->lock);
+ 	if (gc_count < ARRAY_SIZE(gc_nodes))
+ 		goto next; /* do not bother */
+ 
+ 	gc_count = 0;
+-	node = rb_first(root);
++	node = rb_first(&root->root);
+ 	while (node != NULL) {
+ 		rbconn = rb_entry(node, struct nf_conncount_rb, node);
+ 		node = rb_next(node);
+@@ -602,7 +606,7 @@ static void tree_gc_worker(struct work_struct *work)
+ 		schedule_work(work);
+ 	}
+ 
+-	spin_unlock_bh(&nf_conncount_locks[tree]);
++	spin_unlock_bh(&root->lock);
+ }
+ 
+ /* Count and return number of conntrack entries in 'net' with particular 'key'.
+@@ -620,6 +624,12 @@ unsigned int nf_conncount_count_skb(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_count_skb);
+ 
++static void nf_conncount_root_init(struct nf_conncount_root *r)
++{
++	r->root = RB_ROOT;
++	spin_lock_init(&r->lock);
++}
++
+ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen)
+ {
+ 	struct nf_conncount_data *data;
+@@ -630,12 +640,12 @@ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen
+ 	    keylen == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	data = kmalloc_obj(*data);
++	data = kvzalloc_obj(*data);
+ 	if (!data)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
+-		data->root[i] = RB_ROOT;
++		nf_conncount_root_init(&data->root[i]);
+ 
+ 	data->keylen = keylen / sizeof(u32);
+ 	data->net = net;
+@@ -655,15 +665,15 @@ void nf_conncount_cache_free(struct nf_conncount_list *list)
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_cache_free);
+ 
+-static void destroy_tree(struct rb_root *r)
++static void destroy_tree(struct nf_conncount_root *r)
+ {
+ 	struct nf_conncount_rb *rbconn;
+ 	struct rb_node *node;
+ 
+-	while ((node = rb_first(r)) != NULL) {
++	while ((node = rb_first(&r->root)) != NULL) {
+ 		rbconn = rb_entry(node, struct nf_conncount_rb, node);
+ 
+-		rb_erase(node, r);
++		rb_erase(node, &r->root);
+ 
+ 		nf_conncount_cache_free(&rbconn->list);
+ 
+@@ -680,17 +690,12 @@ void nf_conncount_destroy(struct net *net, struct nf_conncount_data *data)
+ 	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
+ 		destroy_tree(&data->root[i]);
+ 
+-	kfree(data);
++	kvfree(data);
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_destroy);
+ 
+ static int __init nf_conncount_modinit(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < CONNCOUNT_SLOTS; ++i)
+-		spin_lock_init(&nf_conncount_locks[i]);
+-
+ 	conncount_conn_cachep = KMEM_CACHE(nf_conncount_tuple, 0);
+ 	if (!conncount_conn_cachep)
+ 		return -ENOMEM;
 -- 
 2.53.0
 
