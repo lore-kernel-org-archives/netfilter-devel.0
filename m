@@ -1,149 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9B434B8DCB
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2026 15:26:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E01FB2F7EE4
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jun 2026 15:31:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780673182; cv=none; b=tV/t0jk27DgGAqSzdHUP912MRf16Zem3iKmKIIIxWOskl9FROnsfKRCNSZN/21IwzoDwDA7Ok/U3YjFtsfgh83rTVA48gh5OuHo3IsXYJi8BqQBwwLiUeFvUpklu9Lg8IqMTF0upUkebhoI4gMRUDNiOpR9j2jukaAMKUFcebfo=
+	t=1780673503; cv=none; b=ShnB8RGB8eMPAI39DPTCirOax2/Rvhgqf6AiUGLaV/5WpUU2Fiu9B/3GYkZybR9k3MLUsAj7Dgc5cMbrulqtj5JKZdcdKpz2zU+VhxDE0FtinNqkGWh6H0SqReMwditzd9/hIOuApJT8XwqjByzxg7lcpQyaRdLLBa0T4qCcQv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780673182; c=relaxed/simple;
-	bh=3fI7waF0fxsIdqMzvcIHcdxZ4xO94+pAPd6QEDaMwDE=;
+	s=arc-20240116; t=1780673503; c=relaxed/simple;
+	bh=FPExOuNMDcjlV3emJdqdXRDFGzuNVQrsHDGFjKNVvl0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K/quGDt/V7svvUuVJmmvArDWZ6HXsEEGGlNvXe4H/ovJawd9+BL4z/q5gsUMc8CR0/YstjK43X407GfLRoNDGyx5RfgYyXITRD32AKxzAdEzTB5gCohnMW9SezZpC3b57aVIhKytz/8OIQOxTZEXSXXxeyI6bf99MGvakgKxTgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jSY5dlz1; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=UcWSyhewETzkk6/hFbGqwb2TBHHbkSXpA94BedU1/tV+1f+biBVnlhZCh942u73VwIyW36bKqhz2vyW6p4PaSBRey0kBkPJYQ8lW0mjrQ/9Ki+JK0R1i1ybS5o5SvKA0cHgcCh3p8WvtGOcFTnbiqroVT2e8qFu1XL2tl1eov8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=mhDDOa//; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jSY5dlz1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9D0F1F00893;
-	Fri,  5 Jun 2026 15:26:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780673181;
-	bh=UY+EGrBtwnIaEU8mRKjO2msseRLHIP00XWV1KkbytPM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=jSY5dlz19+Z+nTE8N+F+mMsR74BtWDNbHMQhOLaqNaDcq/9cDXOvd4V3O5D1e8FiY
-	 NyEifijMxZmNSSLpactZUr706PrZJfdFdM4oAWItmQmudolcUYsPf8xeX9K/AH3NWD
-	 zdbEd/voY4IJ5m2cV37FXrrE9qgD95UxVRfR8cfFJkJaOGa26gWdySkE9/AO8h/M7G
-	 BWFmJdvv7iu297s6sw1M40tc1YfMWAfLf46Z2K8VyiT5D+8YgjeEsO8jq7AO1e/4zO
-	 LXROPvCF58JZ23FbjUcryDpcdgvDWMuZpX/nMfaqobZ/1tTpnOoHZq/cYOfDJnhnUR
-	 ht0BvzB95raxQ==
-Date: Fri, 5 Jun 2026 17:26:19 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: David Carlier <devnexen@gmail.com>, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>, coreteam@netfilter.org
-Subject: Re: [PATCH nf] netfilter: flowtable: fix IP6IP6 tunnel offset
- double-count with vlan/pppoe encap
-Message-ID: <aiLqm4MYoR0CZqfW@lore-desk>
-References: <20260604211700.253946-1-devnexen@gmail.com>
- <aiLU7j2jzBob9u-1@lore-desk>
- <aiLohUmGT7Dto0TU@chamomile>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mhDDOa//"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=+22VABFUBwc0oZKcrAw75LBp5amO7nAWZogF/yNn4HY=; b=mhDDOa//H0eojglxTLEXwO51vA
+	VpWkavef+Pnp4E61EdbAo50JP3AILZHJyFJ8R0QSiOUYdJ6dBZO5u3VSgqNcpvrPUuckOPc7sC/1o
+	+3dV3oV8ENddtNfaChfbCyvYuNJ4zGYv7zCptFHjU7q4+4QXqREjiNpmMUe5OYNh70AzcEHDDwNNl
+	YIwNcGp4qLLcGzpYSmrXj3iISXzPGJwtxIV1o7jhFe+9Zw/iRfuSB2fdz2E9supZHyxGiyQB8faoV
+	QPGoOMH2kOi/TfsZI8ayjxgQ/u2gYRJjaUactp5EcYNcBEGrR7GdB3OYG7hX4pM9d+l4r4x0zemAJ
+	MIa6+ilQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wVWWC-000000004rZ-2AIx;
+	Fri, 05 Jun 2026 17:31:32 +0200
+Date: Fri, 5 Jun 2026 17:31:32 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Jan =?utf-8?Q?Ko=C5=84czak?= <jan.konczak@cs.put.poznan.pl>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2] parser_bison: on syntax errors, output expected
+ tokens
+Message-ID: <aiLr1JDG6oWbg7hS@orbyte.nwl.cc>
+References: <20260120122954.18909-1-fw@strlen.de>
+ <22975780.EfDdHjke4D@imladris>
+ <aiCNWPqfVbTNIKI6@orbyte.nwl.cc>
+ <3901884.MHq7AAxBmi@imladris>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2nkKv1UNiCu+ux+V"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aiLohUmGT7Dto0TU@chamomile>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3901884.MHq7AAxBmi@imladris>
 
+Hi Jan,
 
---2nkKv1UNiCu+ux+V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jun 04, 2026 at 02:34:55PM +0200, Jan Kończak wrote:
+> > conditional setting of AM_YFLAGS variable in Makefile.am is problematic
+> > (...)
+> > what I tried was:
+> > |   AM_YFLAGS = -d -Wno-yacc
+> > |  
+> > |  +if BISON_CUSTOM_ERROR
+> > |  +AM_YFLAGS += …
+> 
+> Any conditional change in Makefile.am I came up with is put aside by
+> autotools. The lines "AM_YFLAGS += ..." end up in a ".PRECIOUS" target
+> in the resulting Makefile and are never applied before bison is called.
+> 
+> I guess moving the %define's from parser_bison.y to bison command line
+> arguments, and a '#if YYBISON >= 30704' that disables the error
+> reporting code is a way to go, one only must subdue the autotools.
+> The YYBISON macro generated by bison has the version encoded starting
+> from 3.7.4, hence that particular version.
+> 
+> My (working) take on that would be as follows, though I can tell that
+> mangling the options in configure.ac is a shitty workaround. I never
+> really wrote autotools configs myself, and I don't have a clue how to
+> do it better. Feel free to include any part of it in case it helps.
+> 
+> Regards, Jan
+> 
+> ====================================================================
+> diff --git a/configure.ac b/configure.ac
+> index 0d3ee2ac..9b61cd38 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -45,6 +45,13 @@ then
+>          exit 1
+>  fi
+>  
+> +AC_PATH_PROG([BISON],[bison])
+> +AX_PROG_BISON_VERSION([3.7.4],[
+> +	AC_SUBST([YACC], [$(echo "$ac_cv_prog_YACC -D parse.error=custom -D parse.lac=full")])
+> +],[
+> +	AC_SUBST([YACC], [$(echo "$ac_cv_prog_YACC -D parse.error=verbose")])
+> +])
+> +
 
-> On Fri, Jun 05, 2026 at 03:53:50PM +0200, Lorenzo Bianconi wrote:
-> > > nf_flow_ip6_tunnel_proto() stores the return value of ipv6_skip_exthd=
-r()
-> > > directly into ctx->tun.hdr_size and then does ctx->offset +=3D
-> > > ctx->tun.hdr_size.
-> > >=20
-> > > ipv6_skip_exthdr() returns an offset measured from skb->data, i.e. its
-> > > result already includes the "sizeof(*ip6h) + ctx->offset" start argum=
-ent.
-> > > So hdr_size ends up containing ctx->offset, and the subsequent
-> > > "ctx->offset +=3D ctx->tun.hdr_size" counts the encap offset twice.
-> > >=20
-> > > This is harmless for a bare IP6IP6 packet, where ctx->offset is 0 on
-> > > entry, which is why it has gone unnoticed. But nf_flow_skb_encap_prot=
-ocol()
-> > > advances ctx->offset by VLAN_HLEN / PPPOE_SES_HLEN before the tunnel
-> > > parser runs, so for an IP6IP6 flow carried over vlan or pppoe both
-> > > ctx->offset and ctx->tun.hdr_size are off by the encap length:
-> > >=20
-> > >   - nf_flow_tuple_ipv6() then reads the inner header at the wrong off=
-set,
-> > >     the computed tuple no longer matches the flowtable entry, and the
-> > >     packet silently falls back to the slow path (IP6IP6 rx accelerati=
-on
-> > >     stops working);
-> > >   - on the forward path nf_flow_ip_tunnel_pop() would skb_pull() past=
- the
-> > >     inner header.
-> > >=20
-> > > The IPv4 sibling nf_flow_ip4_tunnel_proto() does this correctly: it s=
-tores
-> > > a relative header length (iph->ihl << 2) and adds that to ctx->offset.
-> > > Make the IPv6 path symmetric by storing the relative size.
-> > >=20
-> > > Fixes: d98103575dcd ("netfilter: flowtable: Add IP6IP6 rx sw accelera=
-tion")
-> > > Signed-off-by: David Carlier <devnexen@gmail.com>
-> >=20
-> > Hi David,
-> >=20
-> > thx for fixing it. I developed the IP6IP6 vlan support using the veth as
-> > underlying device. veth enables vlan rx/tx offload by default so I was
-> > not able to spot the issue.
->=20
-> One question when looking at this code:
->=20
-> In nf_flow_ip6_tunnel_proto():
->=20
->         if (nexthdr =3D=3D IPPROTO_IPV6) {
->                 ctx->tun.hdr_size =3D hdrlen - ctx->offset;
->                 ctx->tun.proto =3D IPPROTO_IPV6;
->         }
->         ctx->offset +=3D ctx->tun.hdr_size;
->=20
-> ctx->offset is bumped out of the branch.
->=20
-> and nf_flow_ip4_tunnel_proto():
->=20
->         if (iph->protocol =3D=3D IPPROTO_IPIP) {
->                 ctx->tun.proto =3D IPPROTO_IPIP;
->                 ctx->tun.hdr_size =3D size;
->                 ctx->offset +=3D size;
->         }
->=20
-> I think these checks are superfluous at this stage:
->=20
-> if (nexthdr =3D=3D IPPROTO_IPV6) {
->=20
-> if (iph->protocol =3D=3D IPPROTO_IPIP) {
->=20
-> because only ipip and ip6ip6 is supported.
+Ah, modifying the "command" didn't come to mind. Doing that is
+usually error-prone Since scripts may start searching for 'mycmd
+--option' in $PATH and what not. I'd go with it for lack of
+alternatives, though.
 
-In this series [0] I modified a bit this code to support the mixed cases
-(SIT and IPv4 over IPv6).
+My (uglier) variant is:
 
-Regards,
-Lorenzo
+| have_bison_3_6=no
+| AC_PATH_PROG([BISON], [bison])
+| AX_PROG_BISON_VERSION([3.6], [
+|                      have_bison_3_6=yes
+|                      AC_DEFINE([BISON_CUSTOM_ERROR], [1],
+|                                [Define to use parse.error=custom in Bison])
+| ])
+| AM_CONDITIONAL([BISON_CUSTOM_ERROR], [test "x$have_bison_3_6" != xno])
 
-[0] https://lore.kernel.org/netfilter-devel/20260531-b4-flowtable-sw-accel-=
-ip6ip-v3-0-56a2826f3279@kernel.org/
+This is me failing to find a macro which creates both a variable to test
+against for Makefile.am and a preprocessor macro. I guess one may join
+the two into:
 
---2nkKv1UNiCu+ux+V
-Content-Type: application/pgp-signature; name=signature.asc
+| AC_PATH_PROG([BISON],[bison])
+| AX_PROG_BISON_VERSION([3.6], [
+| 	AC_SUBST([YACC], [$(echo "$ac_cv_prog_YACC -D parse.error=custom -D parse.lac=full")])
+| 	AC_DEFINE([HAVE_BISON_CUSTOM_ERROR], [1], [Define to use parse.error=custom in Bison])
+| ], [
+| 	AC_SUBST([YACC], [$(echo "$ac_cv_prog_YACC -D parse.error=verbose")])
+| ])
 
------BEGIN PGP SIGNATURE-----
+Then, one would wrap yyreport_syntax_error into '#ifdef
+HAVE_BISON_CUSTOM_ERROR'. Or am I missing some detail about YYBISON?
 
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaiLqmwAKCRA6cBh0uS2t
-rE9rAP42molsrHGNg51PlEzGg2wUBJP07zStF6qAM4z/VoZIJQD+OFi/nFO2gMWt
-RrnxB5tFgMmVFtMBpqhir10ewP8eWAg=
-=82qT
------END PGP SIGNATURE-----
-
---2nkKv1UNiCu+ux+V--
+Thanks, Phil
