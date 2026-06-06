@@ -1,201 +1,179 @@
-Received: from mail-pf1-f195.google.com (mail-pf1-f195.google.com [209.85.210.195])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50939257855
-	for <netfilter-devel@vger.kernel.org>; Sat,  6 Jun 2026 03:38:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.195
+Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D04A2284B37
+	for <netfilter-devel@vger.kernel.org>; Sat,  6 Jun 2026 06:51:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780717104; cv=none; b=WEc+nb6q5ETwz6oOou9wUeMtGDNqo1LrFwglRwQbXxnkKL7PeDFiRkzn6sFSYV51K8myI0Ijf24gAoz/b6YWPR6001I2pLd7fwWWNGwgVjSQb0apC5HSAYXVtH11HPAtAsjQ5SzJSt9sBZnSKZ6ZPu5WHouO4tDd286TiIKX3+w=
+	t=1780728663; cv=none; b=OjzoaamnIejb5WxVAYAprxGVsuJeQZ3faf8SUEQFQE7LjuI7CrWdO5KZMC5OSBx+99GbRbVOHhk4H8CJxn5mPTkAJg93RrUqtn5YlK0/oGnNBcJpeEmK9IXCCf2STKhla1J4o9/q2b/D1CFp4TbVafKktjXsbLrvtCZs9iLTXNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780717104; c=relaxed/simple;
-	bh=JhWdXKRIUiSyaWiBJRfxh3E9gm3q5NK4Di6Xwr+Sr2s=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WrL70fc7vxap//KaH5GupPBBoMoJPIrqdFLKNq59hPjux9rMVu2J5auh2Aq17Fvelbl4U1+cEGMbbP+0r2EF0sQ2JUxAH6r7KKUwwTXk+bAxKcqhDa+QwVW3qxUfSTyaOdF3llyGjBeLpgxXMI1bSnP5GynjccmtYZsOk5XrSo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FR50HCFq; arc=none smtp.client-ip=209.85.210.195
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FR50HCFq"
-Received: by mail-pf1-f195.google.com with SMTP id d2e1a72fcca58-842848fd613so2082786b3a.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jun 2026 20:38:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780717102; x=1781321902; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=gzoS3NR1vM3+Z+hNvLGJgXbXjhEqEQwWixYPZtOejiw=;
-        b=FR50HCFq6aJkf05agWpyk6/VWETa6gXGYQDww3VHIU7XdvaTafZJbPWoY4RaExtCji
-         y8hJDtd2t2WZGswVmd/Z4OU2G6v6CE+BbycyYS/ZxVwuwCUhAnbgYimo+ESEBLst+RpY
-         8DH14TqppZn9fXQ0yFB0POD0VrYuuyhqPjFt04cKYv8+fcQzoif6A4l+XrkNjEIfo41z
-         zo5avbHxZRfi4mLQXh0WJHinj7XVXxYihmqUPuH8tOi7Xlrt4vkgGBpALMII06Xkcq4c
-         oylQMS88z9eShwEipRNb3IAQrdq8eGLp5XPmuBBRmS/y4aJGpJrvG8T0B9uWmfFZjLCr
-         0o4w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780717102; x=1781321902;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=gzoS3NR1vM3+Z+hNvLGJgXbXjhEqEQwWixYPZtOejiw=;
-        b=MToueqRZIUUyCMPRhctWTeGriC5dNuzLolCsdkNL+SHxeE0aI1imNFgFZzECTCvMjI
-         G2dVueIzd/qq4QPVKTmSX/LcRRWBKSb/NkEUfxdbbsm4v6HXjRrlChTAiQBFyRmIbvVB
-         1SSNQ5++mnBxaIiCkFRjx7HCaBz61hLQgO+ThoLV2j0EBZBjT8sWfd2CEk/PQ2RP775I
-         iVELJ3zy5OrZbcWZQf7L4Jv5FiYzbSYznxhR0ZCE23hdcqOeedltMh6sEEkZYc/6SeCU
-         9/RtkScN2BAcFWAhv8B5aEWEnbV/BBJiSr2juVXqgLPicSsplVD7I22gCuLauJ0SzDTS
-         8jCA==
-X-Gm-Message-State: AOJu0Yw6T2TKJ0fynND8N5daGvemgZiHIkmVZUKhmgMfHs1SLheGlpu3
-	HbKRJcFvDVWHWH9PEHrv1dEe/HkV4r0rC7JN8FNL0CUL/xEiD23RwZvA
-X-Gm-Gg: Acq92OHJuibD4XEUgGQ+p7ZJayCzrZh26VpfwBfNlGx5JeNIkKV8j85RycnsOWhqYKi
-	gRp2BdOVRp6B0lxYzXD9deK6ZVHczemUYiRb4ovTxEezGb43uYf8zXV03E8ZDsZqIWqsRonal4X
-	WsFYX45g2WGSdiRZyah7J6HdhA7tFcb/PzZ31LX2UqNfKZ5j+wmEXGJSwVGtBGZTEVKPfIenH3c
-	gl4RC0GcfmDL+Hyttinae8WXPUo/JPleBl0Y4z5ef32uuGFaB9jr/gvL+eJvZF6nQTuxnPlD1Bm
-	2ATNS4HfPjmhpmpfGlnINWV1pai7yJm6bUztogV7ydVHBixczlGskRHXCuEYGPvrH1kIDQ84R0/
-	yQrU/qrEzc18dbbGm1p0Au/Q5WseEVy7b6PVKYFMcVMVIrz8wwU8LGs2uWBZ5e3kgVGl0V7/nZO
-	K7Y+cX93JOOAbfJEDpaw==
-X-Received: by 2002:a05:6a00:298d:b0:842:2f09:fde9 with SMTP id d2e1a72fcca58-842b0eacffamr6947929b3a.8.1780717102501;
-        Fri, 05 Jun 2026 20:38:22 -0700 (PDT)
-Received: from [0.0.0.0] ([64.118.136.15])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8428222263dsm12025728b3a.2.2026.06.05.20.38.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 05 Jun 2026 20:38:22 -0700 (PDT)
-Message-ID: <1a9efdce-ad63-40a4-8ca0-217d37aecd7e@gmail.com>
-Date: Sat, 6 Jun 2026 11:38:15 +0800
+	s=arc-20240116; t=1780728663; c=relaxed/simple;
+	bh=/xVZtrFDTcASgFVnbKdhHDuuAraWZEjLTFeXDm6Drzg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LLzM5abQ6dE9+/ZlWAbsIa9RIh6+D/wWju0mDSbSR7Xql9gZBAPmLkPLFtIGPbJjCyRfTOE5ayqfdQDa6EG4Ew16+mZNQdmMwPpZRg/dd1K15g1Af9kPZDbWRdoofZBzVs/89u++FW6Kq8zqr4YWX9Zs/PApldH9ipr8qCUUCAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=162.243.161.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019 (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowACHqMI_wyNqZ09iAA--.50172S2;
+	Sat, 06 Jun 2026 14:50:39 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	yuantan098@gmail.com,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	bird@lzu.edu.cn,
+	royenheart@gmail.com,
+	n05ec@lzu.edu.cn
+Subject: [PATCH nf v4 1/1] bridge: br_netfilter: pin bridge device while NFQUEUE holds fake dst
+Date: Sat,  6 Jun 2026 14:50:34 +0800
+Message-ID: <cbc3a29c0654e8fcee30cb021d57883fed77fafc.1780630094.git.royenheart@gmail.com>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf v3 1/1] bridge: br_netfilter: pin bridge device while
- NFQUEUE holds fake dst
-To: Florian Westphal <fw@strlen.de>, Ren Wei <n05ec@lzu.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc,
- yuantan098@gmail.com, yifanwucs@gmail.com, tomapufckgml@gmail.com,
- bird@lzu.edu.cn
-References: <fe4fc3d462679ba10bf85e574921ecf861000d66.1780590147.git.royenheart@gmail.com>
- <aiIMC2RP7pB2mFDk@strlen.de>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ygmowACHqMI_wyNqZ09iAA--.50172S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxKFyDtr1kurWrAw1rXr4fKrg_yoW7Wr13pF
+	W5Kay8J3yvqryUK3ykAr4Ivr1avrs5Cr4fWa4Ikryru3s8XFy5Zr4kKFWUuFWxCF4vkw43
+	JFs0gF4ktFW5ZFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUBj1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2
+	jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52
+	x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUJVWU
+	GwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI4
+	8JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628vn2kIc2xKxwCY1x0262kK
+	e7AKxVWUtVW8ZwCY02Avz4vE-syl42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxFaVAv8V
+	W8GwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480
+	Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7
+	IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k2
+	6cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxV
+	AFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUd-B_UUUUU=
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQ0KCWoihtAJKQAAsx
+
 From: Haoze Xie <royenheart@gmail.com>
-In-Reply-To: <aiIMC2RP7pB2mFDk@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 6/5/2026 7:36 AM, Florian Westphal wrote:
-> Ren Wei <n05ec@lzu.edu.cn> wrote:
->> The bridge netfilter fake rtable is embedded in struct net_bridge and is
->> attached to bridged packets with skb_dst_set_noref(). If such a packet is
->> queued to NFQUEUE, __nf_queue() upgrades that fake dst with
->> skb_dst_force().
-> 
-> Ok, I think I understand why this mess exists. Ideally we could rip out
-> the fake rtable and alloc it as separate object with distinct lifetime,
-> this FAKE_RTABLE crap needs to die...  But I understand its more
-> intrusive / harder to fix it that way (performance considerations don't
-> matter however, br_netfilter can be pessimized).
-> 
->> +#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
->> +static struct net_device *nf_queue_bridge_dev(const struct sk_buff *skb,
->> +					      const struct nf_hook_state *state)
->> +{
->> +	struct dst_entry *dst = skb_dst(skb);
->> +	struct net_device *dev;
->> +
->> +	if (state->pf != NFPROTO_BRIDGE || !nf_bridge_info_exists(skb))
->> +		return NULL;
->> +
-> 
-> I guess what you are saying is that if br_netfilter hack is on,
-> skb->dst can be fake rtable while packet is sent to nfnetlink_queue
-> from a *bridge* family hook where in/outdev are the physical ports
-> yet skb->dev isn't the bridge device either.  The forced ref on the
-> dst is useless in that case, because netdevice_removal frees the
-> net_device regardless of the fake rtable dst entries refcounts.
-> 
-> If thats correct, could you please streamline this patch slightly?
-> 
-> Something like this (totally untested and misses dev_put part); and
-> that comment might be a bit more verbose.
-> 
-> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-> --- a/net/netfilter/nf_queue.c
-> +++ b/net/netfilter/nf_queue.c
-> @@ -84,6 +84,8 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
->  {
->  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
->         const struct sk_buff *skb = entry->skb;
-> +       struct dst_entry *dst = skb_dst(skb);
-> +       struct net_device *dev = NULL;
->  
->         if (nf_bridge_info_exists(skb)) {
->                 entry->physin = nf_bridge_get_physindev(skb, entry->state.net);
-> @@ -92,6 +94,17 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
->                 entry->physin = NULL;
->                 entry->physout = NULL;
->         }
-> +
-> +       if (dst && (dst->flags & DST_FAKE_RTABLE)) {
-> +               dev = dst_dev_rcu(dst);
-> +               if (dev == blackhole_netdev) [ Q: Is that really needed? I don't think so ]
-> +                       dev = NULL;
-> +       }
-> +
-> +       /* Must hold reference on the bridge device: the fake rtable
-> +        * is embedded within, dst_hold() is not sufficient.
-> +        */
-> +       entry->br_dev = dev;
->  #endif
->  }
->  
-> @@ -108,6 +121,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
->         dev_hold(state->out);
->  
->  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-> +       dev_hold(entry->br_dev);
->         dev_hold(entry->physin);
->         dev_hold(entry->physout);
->  #endif
-> 
-> Thanks!
+The bridge netfilter fake rtable is embedded in struct net_bridge and is
+attached to bridged packets with skb_dst_set_noref(). If such a packet is
+queued to NFQUEUE, __nf_queue() upgrades that fake dst with
+skb_dst_force().
 
-Hi Florian,
+At that point the queued skb can hold a real dst reference after bridge
+teardown has started. The problem is not that every bridged packet needs
+its own dst reference. The problem is that NFQUEUE can keep the bridge
+private fake dst alive after unregister begins.
 
-Thanks for the suggestion. I reworked the patch accordingly for v4 and it
-passed tests.
+Fix this by keeping the bridge fake dst model unchanged and pinning the
+bridge master device only while the packet sits in NFQUEUE. Record the
+bridge device in nf_queue_entry when the queued skb carries a bridge fake
+dst, take a device reference for the queue lifetime, and drop it when the
+queue entry is freed.
 
-This version keeps the same fix direction as v3, but streamlines the
-implementation in the way you suggested. Compared with your sketch, I kept
-two small differences in this version:
+This keeps netdev_priv(br->dev) alive until verdict completion, so the
+embedded fake rtable and its metrics backing storage cannot be freed out
+from under dst_release(). It also avoids the constant refcount bump and
+avoids using ipv4-specific dst helpers for IPv6 bridge traffic.
 
-- I kept the bridge-only gating around the fake-dst lookup, so the extra
-  device pin stays limited to the bridge-netfilter fake-dst case.
-- I also kept the queue-entry field name as bridge_dev rather than renaming
-  it to br_dev.
+Fixes: 34666d467cbf ("netfilter: bridge: move br_netfilter out of the core")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+---
+Changes in v4:
+  - inline the bridge fake-dst device lookup into
+    __nf_queue_entry_init_physdevs()
+  - drop the extra helper introduced in v3 and keep the queue-entry setup
+    local
+  - use dst_dev_rcu() as suggested during review
+  - drop the unnecessary blackhole_netdev special case
+  - expand the comment to state explicitly that dst_hold() cannot protect
+    the embedded fake rtable backing storage
+  - v3 Link: https://lore.kernel.org/all/fe4fc3d462679ba10bf85e574921ecf861000d66.1780590147.git.royenheart@gmail.com/
+Changes in v3:
+  - drop the per-packet fake dst refcounting from v2
+  - stop using ipv4-specific dst helpers for the fake dst
+  - keep the existing bridge fake rtable model unchanged on the fast path
+  - pin the bridge master device only when NFQUEUE upgrades a fake dst
+  into an asynchronous queued reference
+  - v2 Link: https://lore.kernel.org/all/831936f111e6e1f435f4f6247d07fe6a6624d271.1779680014.git.royenheart@gmail.com/
+changes in v2:
+  - spell out how NFQUEUE upgrades the fake dst into a real reference
+  - switch to rt_dst_alloc() instead of br_netfilter-private dst_ops state
+  - detach the bridge device with dst_dev_put() during teardown
+  - keep the ref-holding contract local to bridge_parent_rtable()
+  - v1 Link: https://lore.kernel.org/all/783d76ac83917b7302c1ec647794bd773bb1875a.1778687139.git.royenheart@gmail.com/
 
-Something like this in the current diff:
+ include/net/netfilter/nf_queue.h |  1 +
+ net/netfilter/nf_queue.c         | 15 +++++++++++++++
+ 2 files changed, 16 insertions(+)
 
 diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 3978c3174cdb..fc3e81c07364 100644
 --- a/include/net/netfilter/nf_queue.h
 +++ b/include/net/netfilter/nf_queue.h
 @@ -18,6 +18,7 @@ struct nf_queue_entry {
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+       struct net_device       *bridge_dev;
-        struct net_device       *physin;
-        struct net_device       *physout;
++	struct net_device	*bridge_dev;
+ 	struct net_device	*physin;
+ 	struct net_device	*physout;
  #endif
-
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 57b450024a99..ffe3e98fc2ca 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -92,6 +95,11 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
-                entry->physin = NULL;
-                entry->physout = NULL;
-        }
+@@ -68,6 +68,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 		nf_queue_sock_put(state->sk);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_put(entry->bridge_dev);
+ 	dev_put(entry->physin);
+ 	dev_put(entry->physout);
+ #endif
+@@ -84,6 +85,8 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ {
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	const struct sk_buff *skb = entry->skb;
++	struct dst_entry *dst = skb_dst(skb);
++	struct net_device *dev = NULL;
+ 
+ 	if (nf_bridge_info_exists(skb)) {
+ 		entry->physin = nf_bridge_get_physindev(skb, entry->state.net);
+@@ -92,6 +95,17 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ 		entry->physin = NULL;
+ 		entry->physout = NULL;
+ 	}
 +
-+       if (entry->state.pf == NFPROTO_BRIDGE &&
-+           nf_bridge_info_exists(skb) &&
-+           dst && (dst->flags & DST_FAKE_RTABLE))
-+               dev = dst_dev_rcu(dst);
++	if (entry->state.pf == NFPROTO_BRIDGE &&
++	    nf_bridge_info_exists(skb) &&
++	    dst && (dst->flags & DST_FAKE_RTABLE))
++		dev = dst_dev_rcu(dst);
 +
-+       entry->bridge_dev = dev;
-
-I will send v4 later.
++	/* Must hold a reference on the bridge device: dst_hold() protects
++	 * the dst itself, but the fake rtable is embedded in bridge-private
++	 * storage that netdevice teardown can free independently.
++	 */
++	entry->bridge_dev = dev;
+ #endif
+ }
+ 
+@@ -108,6 +122,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 	dev_hold(state->out);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_hold(entry->bridge_dev);
+ 	dev_hold(entry->physin);
+ 	dev_hold(entry->physout);
+ #endif
+-- 
+2.47.3
 
