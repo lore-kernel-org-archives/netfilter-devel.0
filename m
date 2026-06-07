@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 627973890F1;
-	Sun,  7 Jun 2026 09:50:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63AD4071FE;
+	Sun,  7 Jun 2026 09:50:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780825830; cv=none; b=VwpKKKI/GPjBDjuX+eBBUUoaQ92HDe+TQnF2qQHrhIsAksQdwIsmi5M3TGNIKsuA6Nmuy9/owE7vNc2VwWyiuZos18Wqpg65F63xQGuTLl/AsgpripZxvsq+SzOASnTJJtB3tMg9ZXkokzA07E2nScGZ2Mr68JH0VLrst3YEtlw=
+	t=1780825830; cv=none; b=RClT6nqjHPqGi68CNAmL3mM9y33w45GD4lxja3e/9nltnXXesy6HSNqIhZqeE2/lFYiDTu3pcL6nnORUxC957V0EOd5jnCj5QU+q4l6YX+Cu+M1vJ0Ch7JqjphYp5fHGZJHZ7/o5sspZiObvtwnvQ/sxzAiuVjkiwPLYHdBUWOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780825830; c=relaxed/simple;
-	bh=Sx2XMX5br1FTrHl94dIg5otgCnWQVCgSbniwgQKWUdQ=;
+	bh=x4FciXz4Pgj1xXWuG/FRvoFuHeIa3bXOlDEc1mx5PDA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GH5Lwq9XW9IzI1AVpn3fN+U58fNvOTgRD3TMCbBUMWycsa3ACDPfgTG95Hm7jWmQN8+Ps5Tdomh+J/chWudJf0vPpfBj9W5gjEmZtx1+g8reaPYsd0MthI3ltxnp6SS+bU/hqUtHOrTrJXs1BtDVLU0dOU27txNNC4v+7W+hukA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=veE6YVVv; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=NXgPtgEL1lIvjml8yhFG9T8We/Cd2H97kbztjDaJ4yBr+LxYD/0RDxWZL9NlgF24kMOf7z5AyIL/wJDG/3fQMIGYSTEwT/jkS/B5LAQanYZi29i9gSZUMV+V9WOx6xrL0biHG7YgEUYBASP8GZtW+yqfd40XmBDzLF0wTuKj/6U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XeUj7r60; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="veE6YVVv"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XeUj7r60"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6063C601A6;
-	Sun,  7 Jun 2026 11:50:25 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B651D601AF;
+	Sun,  7 Jun 2026 11:50:26 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780825825;
-	bh=gqj8dZNHAiSRTKStO58THMHlzhrsU6JkHahtwWbJUbw=;
+	s=2025; t=1780825827;
+	bh=8bsgA67qW2EyeKMVDKI4MI1DUw6mc8ko9lrHR+cbK/8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=veE6YVVvGvi8BpLfSnuKj9DS7+KMuHrutj8tI4uKifT/o4qZGxC4ZevxbkOPioIOX
-	 cB1DEoScGQ3WwiTzY8s4O/CyuS4/Zwd3SGgvmZJdGjy6lcP66XFUpWOEkh9rBeUyko
-	 ufD+d3a98MsE6qOysjdnNsVwhC+lJ6dqJaNQwCe394bVghPyG1JDKBy4R+8Y4CGJtm
-	 vHErR6ThuGjHHfJeTT3YfywZzP+MOhp2Wx0FuhbwEojuojmzj2w3ZGd6Ljf1uy89oI
-	 HXZe1bOcUyVRC+mDJcOIhnIt5+lxrLXHyAEuhmRYLU99lOnDjfM9cWyEdFeq2cSalE
-	 STzxwVIVUtdfA==
+	b=XeUj7r60TOPet7yNplbPf14XFzbg1Hk/9F+tY0fwECjKUVBYGJqLbNkUekuO2YFHe
+	 RNj5ovovCIcnS2a1dos9pu+FPlrzwjCsBM4o3C8vqWEfiX3h/fMZ7xVJU2vxl4h2Fw
+	 wBytkLNT3UJZjG8Xw56tVABd6yw3QgC4AH96PzGp/GnPecM09epZXvzzrPB4j03uz3
+	 iz8wabYenFGnBJav0ZQtxkUzAzGT3bQSPYY3sWv0r+4+CP6hLDbJ7Vy1rgR3k9/LeH
+	 XhL2juUatExKFLIf8CHwGF869CTchnJIebOmd2HkGL1ZROfq+BhLYoQM+tPh0kT4NK
+	 3oATEPiQfI9QQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 14/15] netfilter: flowtable: avoid num_encaps underflow on bridge VLAN untag
-Date: Sun,  7 Jun 2026 11:49:53 +0200
-Message-ID: <20260607094954.48892-15-pablo@netfilter.org>
+Subject: [PATCH net-next 15/15] netfilter: nf_conntrack: use get_unaligned_be32() in tcp_sack()
+Date: Sun,  7 Jun 2026 11:49:54 +0200
+Message-ID: <20260607094954.48892-16-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260607094954.48892-1-pablo@netfilter.org>
 References: <20260607094954.48892-1-pablo@netfilter.org>
@@ -52,49 +52,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: David Carlier <devnexen@gmail.com>
+From: Rosen Penev <rosenp@gmail.com>
 
-The DEV_PATH_BR_VLAN_UNTAG case post-decrements info->num_encaps
-inside WARN_ON_ONCE(). num_encaps is u8, so if it's already 0 the
-decrement still happens and wraps it to 255. The break only leaves
-the inner switch -- a later path entry can set info->indev back to
-a real device, and we end up returning with num_encaps == 255.
+The timestamp-only fast path dereferences the option stream as
+*(__be32 *)ptr, which assumes 4-byte alignment that the TCP option
+stream does not guarantee. Use get_unaligned_be32() instead, which
+reads the value safely and already returns host byte order, so the
+htonl() on the comparison constant can be dropped.
 
-nft_dev_forward_path() then walks info.encap[] (size 2) up to
-num_encaps, which means an OOB stack read and a bogus count copied
-into the route descriptor.
+This matches the existing get_unaligned_be32() use later in the same
+function.
 
-Should only happen on a malformed bridge path stack, hence the WARN,
-but worth handling sanely. Move the decrement out of the WARN.
-
-[ While at this, remove the WARN_ON_ONCE since this can only happen
-  with a buggy bridge path stack --pablo ].
-
-Fixes: e990cef6516d ("netfilter: flowtable: add bridge vlan filtering support")
-Signed-off-by: David Carlier <devnexen@gmail.com>
+Assisted-by: Claude:Opus-4.7
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
 Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_path.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 9e88ea6a2eef..a3e6b82f2f8e 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -163,10 +163,11 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
- 				info->num_encaps++;
- 				break;
- 			case DEV_PATH_BR_VLAN_UNTAG:
--				if (WARN_ON_ONCE(info->num_encaps-- == 0)) {
-+				if (info->num_encaps == 0) {
- 					info->indev = NULL;
- 					break;
- 				}
-+				info->num_encaps--;
- 				break;
- 			case DEV_PATH_BR_VLAN_KEEP:
- 				break;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 027d69edba44..ceeed3d7fe52 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -405,11 +405,11 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
+ 		return;
+ 
+ 	/* Fast path for timestamp-only option */
+-	if (length == TCPOLEN_TSTAMP_ALIGNED
+-	    && *(__be32 *)ptr == htonl((TCPOPT_NOP << 24)
+-				       | (TCPOPT_NOP << 16)
+-				       | (TCPOPT_TIMESTAMP << 8)
+-				       | TCPOLEN_TIMESTAMP))
++	if (length == TCPOLEN_TSTAMP_ALIGNED &&
++	    get_unaligned_be32(ptr) == ((TCPOPT_NOP << 24) |
++					(TCPOPT_NOP << 16) |
++					(TCPOPT_TIMESTAMP << 8) |
++					TCPOLEN_TIMESTAMP))
+ 		return;
+ 
+ 	while (length > 0) {
 -- 
 2.47.3
 
