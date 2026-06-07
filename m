@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EEC386573;
-	Sun,  7 Jun 2026 09:50:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB2F1388377;
+	Sun,  7 Jun 2026 09:50:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780825810; cv=none; b=tzBFJwDjdbQa5lYgPRqxINs2GDnROBJPIfVQLGVwXhr4OxPkjSyALuFthajIOhblkqxVn2gj0f1nJ6y7mCX2wQtZwQcfB0ZaghLh3dbx2fT5clcyslGYu8X9VMa/zjHPODLkw5DjDg49KFrjo9IbDEgntp2epQEEODfY9U8zbH0=
+	t=1780825811; cv=none; b=GAx9lNU522hxB5H2hoBykQtdgpxUkn3O0/TS+6ketYHXF1R9qsnsr8bo77+rQhIINpMr7wzrKF0BI/c+6GvLo3VEqjTU7kHZKMQcXkfOydJQPgwxKFOVaFj4BMVEkdgB1Ehqv5w6Tla1m0w6rzkAtN4Eb5LM3hLur9c8eeYEQYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780825810; c=relaxed/simple;
-	bh=umzV0W4njSNtuU49Vf/CM8PPqw/fBrYpFbxdvYxkq7U=;
+	s=arc-20240116; t=1780825811; c=relaxed/simple;
+	bh=oTD6nAG9RV1jtJYtpP65xMkApypxQLYVjuY3wE3Zlyw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TjCySgZ4Mfxkb3GQeQ1hcusGJoFm/+ziXxIy5iNT2wgPK88mJgP7F0iKLlymU+bGL6GQbe4/dg8gL1nWUalMkOalblnCyOHu4ol0AOJU1PaeurEnm0zu2RsBAUbmYS/28nnY9JsvtZk8l9brFiN/5x2lhRdodm9QZHM/TPbbPSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bzxtbn9P; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=KWRuLCPmS8KTTXYM2kyM2x1jNiK0v+rYmF8PFJularqSS45uFd2cLlhrf9AD6sDyz+iHPB2NpthlX1gSGZjN5nwDkHXD3lKPxXd2jrbehNFdx/RNbLltCyGjCn85PjFe20W9boVZ+TfO9II4hTKkfKLyT3GinhW+T8BZCCGPC+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iXUOi+f/; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bzxtbn9P"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iXUOi+f/"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 38CD76019F;
-	Sun,  7 Jun 2026 11:50:06 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7FE896017D;
+	Sun,  7 Jun 2026 11:50:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780825806;
-	bh=0ENKkrFLlUB3IhcSu+diaF6GSvxtSANCQrvHGbtCycs=;
+	s=2025; t=1780825809;
+	bh=alNfBkjo+TWivPDZty4XaiUW768UPCeiyUW10r6btvU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bzxtbn9PHVCq65M/HJXyLSbyA6Sz0fgEBk8EZAWYT5GdYNdK3BUVADD2IDXJeYMxp
-	 EXkU29iXCcS2Je4zJVg2v/Fcx8n7wFVXB5JlMSLyFolHKG4vakPl9wLZq9fe8TjxEr
-	 Y/8N7tVRoLvf4mn4cKA5kW5HeHPdb54UVl2Bb54h/jHklS3f/0TwLbEflLkK5X9Cig
-	 eGjPOGXN6qH7hBviD2kzRIomnjXWodFyg845DJ6eyI+8hzBsqCsbP4aNvpylLWhhY4
-	 Es7h6AyOgQH0C6O77Ne+hYfEYCtYxEGNY9uYs1m2f+TEkjHnVeCKooBAGPS/SlQ1BG
-	 jIGevhBgsYsKA==
+	b=iXUOi+f///bjrdjghytHY8EHiHvnihyEBzAQx+blWKMuPBOGMv6z5laV9A2nAQdvB
+	 +Vq6kpiI8VEpORnSSx9+tS6HFONcd0+JBr2+ji/hF7fjzcHyhg8S9ARVIbpAxRyi6/
+	 yEp2j71xyeOwkfohosIbd8GK+tcQBgaBg6rgnHnRBacefrdH+SxtrS8kL3yvxltRRd
+	 +WQalPMeYUaLWEx8n7xpH52SV7tH6Ol+/Psyxf2DWNFIu7dImjb6AfGdTvftlZEgIL
+	 1Rst6VnChp8d7VnjtdVuxLvveaZvy77kFqMuO/Ea5hkQYBccQNt3naMQeJNuO+xCV6
+	 HvNLmpDNzPBXw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 04/15] netfilter: synproxy: drop packets if timestamp adjustment fails
-Date: Sun,  7 Jun 2026 11:49:43 +0200
-Message-ID: <20260607094954.48892-5-pablo@netfilter.org>
+Subject: [PATCH net-next 05/15] netfilter: synproxy: adjust duplicate timestamp options
+Date: Sun,  7 Jun 2026 11:49:44 +0200
+Message-ID: <20260607094954.48892-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260607094954.48892-1-pablo@netfilter.org>
 References: <20260607094954.48892-1-pablo@netfilter.org>
@@ -54,107 +54,35 @@ Content-Transfer-Encoding: 8bit
 
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-If a packet was malformed or if skb_ensure_writable() failed, the
-synproxy_tstamp_adjust() function returned 0 indicating an error but it
-was ignored on the callers.
+RFC 9293 does not mention anything about duplicated options and each
+networking stack handles it in their own way. Currently, Linux kernel is
+processing options sequentially and in case of duplicated timestamp
+options, the value from the latest one overrides the others.
 
-Make the function return a boolean instead to clarify the result and
-drop the packet if synproxy_tstamp_adjust() failed due to ENOMEM from
-skb_ensure_writable(). In addition, if there are malformed options, skip
-the tstamp update but do not drop the packet as that should be done by
-the policy directly.
+As SYNPROXY is modifying only the first timestamp option found, a packet
+can reach the backend server and it might parse the wrong timestamp
+value. Let's just continue parsing the following options and in case a
+duplicated timestamp is found, adjust it too.
 
 Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_synproxy_core.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ net/netfilter/nf_synproxy_core.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index ed00114f65f3..f99c22f57b7e 100644
+index f99c22f57b7e..a0bcf188810d 100644
 --- a/net/netfilter/nf_synproxy_core.c
 +++ b/net/netfilter/nf_synproxy_core.c
-@@ -184,7 +184,7 @@ synproxy_check_timestamp_cookie(struct synproxy_options *opts)
- 	opts->options |= opts->tsecr & (1 << 5) ? NF_SYNPROXY_OPT_ECN : 0;
- }
- 
--static unsigned int
-+static bool
- synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 		       struct tcphdr *th, struct nf_conn *ct,
- 		       enum ip_conntrack_info ctinfo,
-@@ -194,13 +194,13 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 	__be32 *ptr, old;
- 
- 	if (synproxy->tsoff == 0)
--		return 1;
-+		return true;
- 
- 	optoff = protoff + sizeof(struct tcphdr);
- 	optend = protoff + th->doff * 4;
- 
- 	if (skb_ensure_writable(skb, optend))
--		return 0;
-+		return false;
- 
- 	th = (struct tcphdr *)(skb->data + protoff);
- 
-@@ -209,7 +209,7 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 
- 		switch (op[0]) {
- 		case TCPOPT_EOL:
--			return 1;
-+			return true;
- 		case TCPOPT_NOP:
- 			optoff++;
- 			continue;
-@@ -217,7 +217,7 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 			if (optoff + 1 == optend ||
- 			    optoff + op[1] > optend ||
- 			    op[1] < 2)
--				return 0;
-+				return true;
- 			if (op[0] == TCPOPT_TIMESTAMP &&
- 			    op[1] == TCPOLEN_TIMESTAMP) {
- 				if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
-@@ -233,12 +233,12 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
+@@ -233,7 +233,6 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
  				}
  				inet_proto_csum_replace4(&th->check, skb,
  							 old, *ptr, false);
--				return 1;
-+				return true;
+-				return true;
  			}
  			optoff += op[1];
  		}
- 	}
--	return 1;
-+	return true;
- }
- 
- #ifdef CONFIG_PROC_FS
-@@ -749,7 +749,9 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
- 		break;
- 	}
- 
--	synproxy_tstamp_adjust(skb, thoff, th, ct, ctinfo, synproxy);
-+	if (!synproxy_tstamp_adjust(skb, thoff, th, ct, ctinfo, synproxy))
-+		return NF_DROP_REASON(skb, SKB_DROP_REASON_NETFILTER_DROP, ENOMEM);
-+
- 	return NF_ACCEPT;
- }
- EXPORT_SYMBOL_GPL(ipv4_synproxy_hook);
-@@ -1177,7 +1179,9 @@ ipv6_synproxy_hook(void *priv, struct sk_buff *skb,
- 		break;
- 	}
- 
--	synproxy_tstamp_adjust(skb, thoff, th, ct, ctinfo, synproxy);
-+	if (!synproxy_tstamp_adjust(skb, thoff, th, ct, ctinfo, synproxy))
-+		return NF_DROP_REASON(skb, SKB_DROP_REASON_NETFILTER_DROP, ENOMEM);
-+
- 	return NF_ACCEPT;
- }
- EXPORT_SYMBOL_GPL(ipv6_synproxy_hook);
 -- 
 2.47.3
 
