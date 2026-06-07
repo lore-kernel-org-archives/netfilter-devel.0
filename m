@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDA8037C10C;
-	Sun,  7 Jun 2026 09:50:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C19F388377;
+	Sun,  7 Jun 2026 09:50:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780825813; cv=none; b=N16a+huYl59yDwdXa4dDVIBiIF+brgwGa6LNQW03sMECyJ8Ce6ZnOE5YZ1T6YPfOYaYTqQRAJLS2vyfEckzYu0KJEJK4yfoA3XSzIRC0W5eA7Ypo2gAybpkNBZrafJ1Kl6BYP4qSABb7PA1NTl2QgRUhMsCR8rDY3/IeLavxwvo=
+	t=1780825814; cv=none; b=ubdsQQLv0kRy1ac462zxIEaICVtzS/spl935uHQQ/Ez64Ockeu7/rxsdT9CQF+wO7hJa6ebX6GKQuf6jAlQJh0Z9jJQo5Ijv40gM3wIO9mlvZrsegeoyqM8hTL6DXjCp/9yq1baKjv0aZz5UR/UArQ7d477SLe/tYNUI3w6I9Ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780825813; c=relaxed/simple;
-	bh=qx8GuH5/5b97VXnNA/yVIitSLGoBEGcFkpxnZaASxJ8=;
+	s=arc-20240116; t=1780825814; c=relaxed/simple;
+	bh=r6XVNNevodr/Qf5nghpUnC4KVUsgrIhmsQ5r+Ops7cc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m6pSMJcNxqK7obALwPmqRMiJspSUejqXMrCtC+9IS+3svtSVGCrRyzvX+AZGPztkedUI5m3JDRqZ/wr4aRqYWpte4+YZvc/0N/i+Ll+WlXPY0P/MUQA7l5+P1ytDeiy02bCm99R98UrzYom0tvt8gaPau0dI0asigcpjsuMe1tY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=phwPKHTc; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=hLj/GVXSZ5Ebv524UaiLylS24wwrpQoD308pMuqpWLmHqTTB3+loibHFl8y5Ns9uhOnvg4b0vIh/7j79KoPywrktARXt/cjx4h0p7+CNyAVq/alEtUX2BHQXbwSLiGjG0soTetRGlYCMQJrSeBpGJ7p+79CfkjG1844QRecK7uY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YuGQE/KX; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="phwPKHTc"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YuGQE/KX"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CE638601A1;
-	Sun,  7 Jun 2026 11:50:09 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 458C76019F;
+	Sun,  7 Jun 2026 11:50:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780825810;
-	bh=5Arp9+w6bx65QFziv+folATQVHfzGxPyp+qXz+eAlnk=;
+	s=2025; t=1780825811;
+	bh=LpROazS+3Hqc0LGSuu1bo1YWIbwm9n7EyzJhfF6K+u8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=phwPKHTcSb+FnfH1yTnSzeRX6WK6qIf8E7WZltevx1d6fWmFBItdFGLHd7f1etfBw
-	 bMZrYC8Hz0sK6lI1Nt5KZIwxmvW11nUPM9kdyIYilaYpg8WTNC4hP6iY1MEgKf2mra
-	 lzPrWjoevE/J9wTyvMyRDZYBGRBqTl/M9DH6S2+XGbMGfNwUhO3HFWkfYUfsMeMklT
-	 q+qOuEwjRmp+r7EItWfRlEnf2Nl5I/B9vVS62qjkCkbbpRs+g2C9KV7DDG6f77Be62
-	 +do0LKV04lRBL6xZHvLjszD6oFKlJuD/KjtG+xmRrVxiZ9i1LEfJoKAMnIFelf6t0F
-	 o/3kVCY1Bp3/w==
+	b=YuGQE/KX38XgyPyuzhtHqTu9y5NLsYXPnkFHETgxOY7FMy/kvq95yAgQufCvr3yoP
+	 xU0eezBREC4DKV/zYV4Mbcp/oz/MPjZeoArWohJUhKrcdKTtjfYnYr+FK+brou1eRN
+	 bD/w95chriUR41NM06nJRSaGA8c3r4HiGpS0waA7PPkuffifO9vIwy5P3KZo2Q0Ux3
+	 2E2tT15KAc1FIkYCCqDVeSD7AYeiTWBoC33NcLSXIXZEuh5GI1En0uYqdTPHGx1mgj
+	 wx6XuICijsuvHxX3zCPBiA1a7WZcPlgIcUpqM9WVovYNPNDbIqql9X2FSlCMZxJG4L
+	 URDxkCglQqyxA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 06/15] netfilter: synproxy: fix unaligned memory access in timestamp adjustment
-Date: Sun,  7 Jun 2026 11:49:45 +0200
-Message-ID: <20260607094954.48892-7-pablo@netfilter.org>
+Subject: [PATCH net-next 07/15] netfilter: synproxy: protect nf_ct_seqadj_init() with conntrack lock
+Date: Sun,  7 Jun 2026 11:49:46 +0200
+Message-ID: <20260607094954.48892-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260607094954.48892-1-pablo@netfilter.org>
 References: <20260607094954.48892-1-pablo@netfilter.org>
@@ -54,61 +54,41 @@ Content-Transfer-Encoding: 8bit
 
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Use get_unaligned_be32() and put_unaligned_be32() to safely read and
-write the timestamp fields. This prevents performance degradation due to
-unaligned memory access or even a crash on strict alignment
-architectures.
+nf_ct_seqadj_init() is called without holding the ct lock. This can race
+with nf_ct_seq_adjust() when a connection is in CLOSE state due to an
+RST or connection reopening. In addition for SYN_RECV state, concurrent
+processing of packets can trigger nf_ct_seq_adjust() too. These
+situations create a read/write data race.
 
-This follows the implementation of timestamp parsing in the networking
-stack at tcp_parse_options() and synproxy_parse_options().
+As synproxy is the only user of nf_ct_seqadj_init() at the moment, fix
+this by holding ct->lock inside nf_ct_seqadj_init() until all is done.
 
 Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_synproxy_core.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ net/netfilter/nf_conntrack_seqadj.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index a0bcf188810d..acd360515972 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -191,7 +191,7 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 		       const struct nf_conn_synproxy *synproxy)
- {
- 	unsigned int optoff, optend;
--	__be32 *ptr, old;
-+	u32 new, old;
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index 7ab2b25b57bc..b7e99f34dfce 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -17,12 +17,14 @@ int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 	if (off == 0)
+ 		return 0;
  
- 	if (synproxy->tsoff == 0)
- 		return true;
-@@ -221,18 +221,17 @@ synproxy_tstamp_adjust(struct sk_buff *skb, unsigned int protoff,
- 			if (op[0] == TCPOPT_TIMESTAMP &&
- 			    op[1] == TCPOLEN_TIMESTAMP) {
- 				if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
--					ptr = (__be32 *)&op[2];
--					old = *ptr;
--					*ptr = htonl(ntohl(*ptr) -
--						     synproxy->tsoff);
-+					old = get_unaligned_be32(&op[2]);
-+					new = old - synproxy->tsoff;
-+					put_unaligned_be32(new, &op[2]);
- 				} else {
--					ptr = (__be32 *)&op[6];
--					old = *ptr;
--					*ptr = htonl(ntohl(*ptr) +
--						     synproxy->tsoff);
-+					old = get_unaligned_be32(&op[6]);
-+					new = old + synproxy->tsoff;
-+					put_unaligned_be32(new, &op[6]);
- 				}
- 				inet_proto_csum_replace4(&th->check, skb,
--							 old, *ptr, false);
-+							 cpu_to_be32(old),
-+							 cpu_to_be32(new), false);
- 			}
- 			optoff += op[1];
- 		}
++	spin_lock_bh(&ct->lock);
+ 	set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+ 
+ 	seqadj = nfct_seqadj(ct);
+ 	this_way = &seqadj->seq[dir];
+ 	this_way->offset_before	 = off;
+ 	this_way->offset_after	 = off;
++	spin_unlock_bh(&ct->lock);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_seqadj_init);
 -- 
 2.47.3
 
