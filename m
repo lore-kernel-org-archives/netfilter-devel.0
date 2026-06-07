@@ -1,110 +1,88 @@
-Received: from mailtransmit04.runbox.com (mailtransmit04.runbox.com [185.226.149.37])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCBA3C278A;
-	Sat,  6 Jun 2026 20:27:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5599A374E60;
+	Sun,  7 Jun 2026 09:06:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780777646; cv=none; b=FcFiGx/j7xRUkj/DBJkOv7PFNk1MFnaU7En6F4s7HR5lzzP5A4vaQY8ayeQwVk59vNfksZwmG67TUR+HF+DTUXlmg7J1P8UPCF6Otgkh4rKr3Vf/Mgj+rvfKFVTyDGndamcmEMRMm3mEjwvLH9jkfIER6cDbqzMWe9rz4bNduD4=
+	t=1780823176; cv=none; b=k5OUBvJQzr6WS3HRqF/wxn2ulnbNA5qKbUwTgHOXHZRKmu+10DIIXmG2vpRhiO53DofeAf/fhooqhYAOP29ABGxwqhxs1i3+VtGp4nocnqWDhw09XKBz5Uw6K2ZOxZe8zlVBzaQGosaLBfGwZS4d/UgtnzXpfRzGc7jOwDC+Glk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780777646; c=relaxed/simple;
-	bh=qyBfosr0+qpatC192/Bu3vOwJwINpiuk9z+PGatui7M=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=nk0dbcg8y2Ni7gbgU7aL1v9CITSlkCeQSz6k3/TzPjptc9uKe5lRGR1gBCuhsvOOTTvfe9y1Jyso+70dt0hCn1HHtIpEUrya/gBarJ9QJ3SOxdsDIiCDbLqlhqGBRLMRlgu42CT+rV9+hA8lZ2Ul8uvX1HpxSp9D9XBy5eY8fZo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=runbox.com; dkim=pass (2048-bit key) header.d=runbox.com header.i=@runbox.com header.b=UeXdlcDU; arc=none smtp.client-ip=185.226.149.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=runbox.com
+	s=arc-20240116; t=1780823176; c=relaxed/simple;
+	bh=jH5IacHCfa1exoQoEiifl2qV9mZY7B8MX7QP2VF6Gus=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mYlCax8EYPz6Q+J+nysMXYKR97R8scV3VxLh4nZrZqYnA7WpBOhPvZRHHe1n6ytvAqPFOAswV0RGLn6sQOnt4EW+ejohk31XppPn0ADQ6lqhj5dXZOJ9Xx267qg8QqxHJZH72hlZ3SebSgdkTV47CQFFGuMQ9t5siaDmck683Hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M9TBxBqW; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=runbox.com header.i=@runbox.com header.b="UeXdlcDU"
-Received: from mailtransmit02.runbox ([10.9.9.162] helo=aibo.runbox.com)
-	by mailtransmit04.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.93)
-	(envelope-from <david.laight.linux_spam@runbox.com>)
-	id 1wVxbu-007NR5-D2; Sat, 06 Jun 2026 22:27:14 +0200
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=runbox.com;
-	 s=selector1; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:
-	Subject:Cc:To:From; bh=Hw6A0AUF6f2IKiQ/0woPvVgVmVP/JwV+jLZ3gu4O9Zg=; b=UeXdlc
-	DU9b8Q1zX6IJl4SD4NNLI/yIFY4vLTpx/GdDwySPQkuEFfIvCea5SnKeIL4LGcupTbLFwZzGpc3ZF
-	2S6dafhR+xljnu0eilkpUoQE9KjXWOuPBHoVEobSwesYW8l2cIVhCeBIQ7GzDAd+90KLr8CeNJtX4
-	VHvasnB6H1XL1S5fmSaKOKZp3EsoYSPq7mzQc1F+uNjKasXvWre+gwBhlVTbySryaKUQ7cROYB6iK
-	U4ITGkgue8zCukSqQHo+j8G+EN/oiTf4qx82RRyZWdq2RaK/uSZBBqHdVwRgoZW9SXxIcHIJW856Q
-	eBUvrdNbNYLySNHUgkuFWXj+hIMg==;
-Received: from [10.9.9.72] (helo=submission01.runbox)
-	by mailtransmit02.runbox with esmtp (Exim 4.86_2)
-	(envelope-from <david.laight.linux_spam@runbox.com>)
-	id 1wVxbt-0000tq-Mf; Sat, 06 Jun 2026 22:27:13 +0200
-Received: by submission01.runbox with esmtpsa  [Authenticated ID (1493616)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.95)
-	id 1wVxbl-006V18-Md;
-	Sat, 06 Jun 2026 22:27:05 +0200
-From: david.laight.linux@gmail.com
-To: Kees Cook <kees@kernel.org>,
-	linux-hardening@vger.kernel.org,
-	Arnd Bergmann <arnd@kernel.org>,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M9TBxBqW"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 17F036017D;
+	Sun,  7 Jun 2026 11:06:04 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1780823164;
+	bh=2HBpyxOGYXTX59z3igPQadtZGsHjN3rD8ejQRTQyb/w=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=M9TBxBqWx8RaIzJmbSEZBKfkEFHq62XKHBqsUwrRKnkcIaf+QLlyQPBRE+gYLKeEN
+	 OAf0xlmKAcI2szVI1h4I2T8cAXrJDRlvF5c7CK0WvJ1ZlECfr5Hoi+kxgnsGIPGk2t
+	 98cDDIWGILmiHgFPhQo1tHo49mLLMZIXVWRXRL08I/47/Z4IUIQhP1GgwAsOMhJvLU
+	 ofhRvgNj2LQIxSq1t5JpJ6/kwjX1OE1G3ncTJ2N1jB3z/8xZ8zcDALhFehQif2rLz8
+	 PJX2y2OlX9APX3KBSLIk4uUA6Y1IszaKFPlbQnUBqPweHTit9Rys9HfkaCgKUQFrGJ
+	 psVrEe4iOQ8Rw==
+Date: Sun, 7 Jun 2026 11:06:00 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: Rosen Penev <rosenp@gmail.com>, netfilter-devel@vger.kernel.org,
+	linusw@kernel.org, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Florian Westphal <fw@strlen.de>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	David Laight <david.laight.linux@gmail.com>
-Subject: [PATCH net-next] net/netfilter/xt_recent: Use strscpy() to copy device name
-Date: Sat,  6 Jun 2026 21:26:24 +0100
-Message-Id: <20260606202633.5018-30-david.laight.linux@gmail.com>
-X-Mailer: git-send-email 2.39.5
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] netfilter: nf_conntrack: use get_unaligned_be32() in
+ tcp_sack()
+Message-ID: <aiU0eKvHtfL1eD1j@chamomile>
+References: <20260525215840.93217-1-rosenp@gmail.com>
+ <a8cfeb06-6ffb-49f2-a14d-c5a50bc4e5be@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <a8cfeb06-6ffb-49f2-a14d-c5a50bc4e5be@suse.de>
 
-From: David Laight <david.laight.linux@gmail.com>
+Hi Fernando,
 
-Signed-off-by: David Laight <david.laight.linux@gmail.com>
----
-This is one of a group of patches that remove potentially unbounded
-strcpy() calls.
+On Tue, May 26, 2026 at 12:35:22AM +0200, Fernando Fernandez Mancera wrote:
+> On 5/25/26 11:58 PM, Rosen Penev wrote:
+> > The timestamp-only fast path dereferences the option stream as
+> > *(__be32 *)ptr, which assumes 4-byte alignment that the TCP option
+> > stream does not guarantee. Use get_unaligned_be32() instead, which
+> > reads the value safely and already returns host byte order, so the
+> > htonl() on the comparison constant can be dropped.
+> > 
+> > This matches the existing get_unaligned_be32() use later in the same
+> > function.
+> > 
+> > Assisted-by: Claude:Opus-4.7
+> > Signed-off-by: Rosen Penev <rosenp@gmail.com>
+> I already spotted this corner case when working on a SYNPROXY patch [1] but
+> didn't send a patch yet. I think this is for correctness too.
+> 
+> Anyway, it is likely that there are more places where this tweak is needed..
 
-They are mostly replaced by strscpy() or, when strlen() has just been
-called, with memcpy() (usually including the '\0').
+I agree a more general audit to spot unaligned access, targetting
+nf-next would be good.
 
-Calls with copy string literals into arrays are left unchanged.
-They are safe and easily detected as such.
+Thanks.
 
-The changes were made by getting the compiler to detect the calls and
-then fixing the code by hand.
-
-Note that all the changes are only compile tested.
-
-Some Makefiles were changed to allow files to contain strcpy().
-As well as 'difficult to fix' files, this included 'show' functions
-as they really need to use sysfs_emit() or seq_printf().
-
-All the patches are being sent individually to avoid very long cc lists.
-Apologies for the terse commit messages and likely unexpected tags.
-(There are about 100 patches in total.)
-
- net/netfilter/xt_recent.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index f72752fa4374..d34831ce3adf 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -400,7 +400,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 	t->nstamps_max_mask = nstamp_mask;
- 
- 	memcpy(&t->mask, &info->mask, sizeof(t->mask));
--	strcpy(t->name, info->name);
-+	strscpy(t->name, info->name);
- 	INIT_LIST_HEAD(&t->lru_list);
- 	for (i = 0; i < ip_list_hash_size; i++)
- 		INIT_LIST_HEAD(&t->iphash[i]);
--- 
-2.39.5
-
+> I will look around.. meanwhile:
+> 
+> Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> 
+> [1] lore.kernel.org/netfilter-devel/20260525124450.6043-4-fmancera@suse.de/
