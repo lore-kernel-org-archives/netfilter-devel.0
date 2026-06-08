@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34B1B3F9F3C
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2026 15:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEFB3F9F45
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2026 15:23:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780932217; cv=none; b=lrJFPpkRR1iXdWqWdi6BZ+bs8YoBwK2xYLEVhQpV9+yQsBkPYYkvSDURzg2YWoAYf7YpfKP1lg8s55VtWmNTbzJZYIA8rvxRpkQF609OCX7nV35lCz1osRWC4ztodce0Vg4xEBWigehQAN2SLZAsqKEWhMJosFEq8QsWEKdjcWE=
+	t=1780932221; cv=none; b=i5yBucyU9sQqUQeDDtBiFgezTx2BVeD78SUkpGGqRwAkFsgDHbLOMviOnWrRlP/aHmE5UlD2KmR/B5j3oUciWRFzrHwA9T7SumEwGxKiwWsADj0WL5zCG9dR5k5nUqH9seglPWZPXOnEwKQo9owKw7+G4dRfHy2Ji42YHhMul/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780932217; c=relaxed/simple;
-	bh=sg0SG2bPie6YvfdNUG10UAcVOAhDCNU6VZkPqGxUD48=;
+	s=arc-20240116; t=1780932221; c=relaxed/simple;
+	bh=nXoL0RKKxegxkHGW6EazVetNUx8SoCpzwe3StgKon34=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gA4v7B/YgSKNZC3IesyM1PC2pFZb4njRhIVJZ2IHA1Fn4WzNpID1c4xUDBMeAPoAAwMydo9Ism2m7KTvPnEY7CZVHPDTAFjEKbo5mAlyPWqSCtAEPV9DRNOopDHjAr5bPNtEoD/IKkrZWgTo10RiemrCu6PDfEZ+J8jXLt0/0ZQ=
+	 MIME-Version; b=AsxCTnRz34nG7D1wD2yQYOspWOneBTokBsgrJ59gcuzYVjb8DQpNCcLdAspLfV07rv1ShzJaaPXFLduqKW6la3ZWx1E5C5h1ZPpuU49hiYkC+E01yfy2F7vrFC+qSQrVHFG+54OXzztxTP+DY4lUXXt8CoEyLfmiVVRXiBOmHwE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2E971602F8; Mon, 08 Jun 2026 17:23:34 +0200 (CEST)
+	id 706F9602F8; Mon, 08 Jun 2026 17:23:38 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 1/3] netfilter: nfnetlink_queue: restrict writes to network header
-Date: Mon,  8 Jun 2026 17:23:16 +0200
-Message-ID: <20260608152324.20700-2-fw@strlen.de>
+Cc: Kyle Zeng <kylebot@openai.com>
+Subject: [PATCH] netfilter: x_tables: avoid leaking percpu counter pointers
+Date: Mon,  8 Jun 2026 17:23:17 +0200
+Message-ID: <20260608152324.20700-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260608152324.20700-1-fw@strlen.de>
 References: <20260608152324.20700-1-fw@strlen.de>
@@ -33,237 +33,136 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nfnetlink_queue doesn't allow selective replacements of some part of the
-payload, only complete replacement.
-If the new data is shorter, skb is trimmed, otherwise expanded.
+From: Kyle Zeng <kylebot@openai.com>
 
-Add minimal validation of the new ip/ipv6 header.
-Check total len matches skb length.  Disallow
-ip option modifications after prerouting.
+The native and compat get-entries paths copy the fixed rule entry header
+from the kernelized rule blob to userspace before overwriting the entry's
+counter fields with a sanitized counter snapshot.
 
-IPv6 extension headers are also disabled.
-IP options and exthdrs could be allowed later after validation pass or
-ip option recompile.
+On SMP kernels, entry->counters.pcnt contains the percpu allocation
+address used by x_tables rule counters. A caller can provide a userspace
+buffer that faults during the initial fixed-header copy after pcnt has
+been copied but before the later sanitized counter copy runs. The syscall
+then returns -EFAULT while leaving the raw percpu pointer in userspace.
 
-Transport header is not checked.
-Bridge gets no validation other than size isn't below ethernet header
-size.
+Copy only the fixed entry prefix before counters from the kernelized rule
+blob, then copy the sanitized counter snapshot into the counter field.
+Apply this ordering to the IPv4, IPv6, and ARP native and compat
+get-entries implementations so a fault cannot expose the internal percpu
+counter pointer.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 71ae0dff02d7 ("netfilter: xtables: use percpu rule counters")
+Signed-off-by: Kyle Zeng <kylebot@openai.com>
 ---
- net/netfilter/nfnetlink_queue.c | 192 ++++++++++++++++++++++++++++++++
- 1 file changed, 192 insertions(+)
+ net/ipv4/netfilter/arp_tables.c | 15 ++++++---------
+ net/ipv4/netfilter/ip_tables.c  | 15 ++++++---------
+ net/ipv6/netfilter/ip6_tables.c | 15 ++++++---------
+ 3 files changed, 18 insertions(+), 27 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 60ab88d45096..83c7b24e76be 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1136,6 +1136,195 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	return err;
- }
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 85a01cbe448a..5773366de242 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -702,14 +702,12 @@ static int copy_entries_to_user(unsigned int total_size,
+ 		const struct xt_entry_target *t;
  
-+static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
-+				  const struct nf_queue_entry *e)
-+{
-+	const struct iphdr *iph_orig = ip_hdr(e->skb);
-+	unsigned int ihl = iph_new->ihl * 4;
-+
-+	if (iph_new->ihl != iph_orig->ihl)
-+		return false;
-+	if (ihl == sizeof(*iph_orig))
-+		return true;
-+
-+	return memcmp(iph_new + 1, ip_hdr(e->skb) + 1, ihl - sizeof(*iph_orig)) == 0;
-+}
-+
-+static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
-+			       const struct nf_queue_entry *e)
-+{
-+	unsigned int ihl;
-+
-+	if (data_len < sizeof(*iph))
-+		return false;
-+
-+	ihl = iph->ihl * 4u;
-+	if (ihl < sizeof(*iph) || data_len < ihl)
-+		return false;
-+
-+	if (iph->version != 4 ||
-+	    ((iph->frag_off ^ ip_hdr(e->skb)->frag_off) & ~htons(IP_DF)) != 0)
-+		return false;
-+
-+	/* BIG TCP won't work; netlink attr len is u16 */
-+	if (ntohs(iph->tot_len) != data_len)
-+		return false;
-+
-+	/* support for ipopts mangling would require
-+	 * recompile + skb transport header update.
-+	 */
-+	return nfqnl_validate_ipopts(iph, e);
-+}
-+
-+static bool nfqnl_validate_one_exthdr(const u8 *data,
-+				      unsigned int data_len,
-+				      const struct nf_queue_entry *e,
-+				      int start, int hdrlen)
-+{
-+	u16 octets;
-+
-+	if (data_len < hdrlen || hdrlen < 2)
-+		return false;
-+
-+	while (hdrlen > 0) {
-+		if (data_len < sizeof(octets))
-+			return false;
-+		data_len -= sizeof(octets);
-+
-+		if (skb_copy_bits(e->skb, start, &octets, sizeof(octets)))
-+			return false;
-+
-+		if (hdrlen < sizeof(octets))
-+			return false;
-+
-+		hdrlen -= sizeof(octets);
-+		if (memcmp(data, &octets, sizeof(octets)))
-+			return false;
-+
-+		start += sizeof(octets);
-+		data += sizeof(octets);
-+	}
-+
-+	return true;
-+}
-+
-+static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
-+				  unsigned int data_len,
-+				  const struct nf_queue_entry *e)
-+{
-+	const struct ipv6hdr *ip6_orig = ipv6_hdr(e->skb);
-+	int exthdr_cnt = 0, start = sizeof(*ip6_orig);
-+	const u8 *data = (const u8 *)ip6_new;
-+	u8 orig_nexthdr = ip6_orig->nexthdr;
-+	u8 new_nexthdr = ip6_new->nexthdr;
-+
-+	if (new_nexthdr != orig_nexthdr)
-+		return false;
-+
-+	data += sizeof(*ip6_new);
-+	data_len -= sizeof(*ip6_new);
-+
-+	while (ipv6_ext_hdr(orig_nexthdr)) {
-+		const struct ipv6_opt_hdr *hp;
-+		struct ipv6_opt_hdr _hdr;
-+		int hdrlen;
-+
-+		if (orig_nexthdr == NEXTHDR_NONE)
-+			return true;
-+
-+		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
-+			return false;
-+
-+		hp = skb_header_pointer(e->skb, start, sizeof(_hdr), &_hdr);
-+		if (!hp)
-+			return false;
-+
-+		switch (orig_nexthdr) {
-+		case NEXTHDR_FRAGMENT:
-+			hdrlen = sizeof(struct frag_hdr);
-+			break;
-+		case NEXTHDR_AUTH:
-+			hdrlen = ipv6_authlen(hp);
-+			break;
-+		default:
-+			hdrlen = ipv6_optlen(hp);
-+			break;
-+		}
-+
-+		if (!nfqnl_validate_one_exthdr(data, data_len, e,
-+					       start, hdrlen))
-+			return false;
-+
-+		orig_nexthdr = hp->nexthdr;
-+		hp = (const void *)data;
-+		new_nexthdr = hp->nexthdr;
-+
-+		if (new_nexthdr != orig_nexthdr)
-+			return false;
-+
-+		data_len -= hdrlen;
-+		start += hdrlen;
-+		data += hdrlen;
-+	}
-+
-+	return true;
-+}
-+
-+static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
-+			       const struct nf_queue_entry *e)
-+{
-+	if (data_len < sizeof(*ip6))
-+		return false;
-+
-+	/* BIG TCP/jumbograms won't work; netlink attr len is u16 */
-+	if (ntohs(ip6->payload_len) != data_len - sizeof(*ip6))
-+		return false;
-+
-+	if (ip6->version != 6)
-+		return false;
-+
-+	return nfqnl_validate_exthdr(ip6, data_len, e);
-+}
-+
-+static bool nfqnl_validate_arp(unsigned int data_len)
-+{
-+	const unsigned int minsz = 8 + 2 * ETH_ALEN + 2 * sizeof(__be32);
-+
-+	/* don't allow truncation below min size */
-+	return data_len >= minsz;
-+}
-+
-+static bool nfqnl_validate_br(const struct ethhdr *eth, unsigned int data_len)
-+{
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+	/* disallow truncation below ethernet header size */
-+	if (data_len < sizeof(*eth))
-+		return false;
-+
-+	return true;
-+#else
-+	return false;
-+#endif
-+}
-+
-+static bool nfqnl_validate_write(const void *data, unsigned int data_len,
-+				 const struct nf_queue_entry *e)
-+{
-+	switch (e->state.pf) {
-+	case NFPROTO_ARP:
-+		return nfqnl_validate_arp(data_len);
-+	case NFPROTO_IPV4:
-+		return nfqnl_validate_ip4(data, data_len, e);
-+	case NFPROTO_IPV6:
-+		return nfqnl_validate_ip6(data, data_len, e) &&
-+		       !(IP6CB(e->skb)->flags & IP6SKB_JUMBOGRAM);
-+	case NFPROTO_BRIDGE:
-+		return nfqnl_validate_br(data, data_len);
-+	}
-+
-+	return false;
-+}
-+
- static int
- nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int diff)
- {
-@@ -1144,6 +1333,9 @@ nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int di
- 	if (e->state.net->user_ns != &init_user_ns)
- 		return -EPERM;
+ 		e = loc_cpu_entry + off;
+-		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+-			ret = -EFAULT;
+-			goto free_counters;
+-		}
+-		if (copy_to_user(userptr + off
++		if (copy_to_user(userptr + off, e,
++				 offsetof(struct arpt_entry, counters)) ||
++		    copy_to_user(userptr + off
+ 				 + offsetof(struct arpt_entry, counters),
+ 				 &counters[num],
+-				 sizeof(counters[num])) != 0) {
++				 sizeof(counters[num]))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+ 		}
+@@ -1327,9 +1325,8 @@ static int compat_copy_entry_to_user(struct arpt_entry *e, void __user **dstptr,
  
-+	if (!nfqnl_validate_write(data, data_len, e))
-+		return -EINVAL;
-+
- 	if (diff < 0) {
- 		unsigned int min_len = skb_transport_offset(e->skb);
+ 	origsize = *size;
+ 	ce = *dstptr;
+-	if (copy_to_user(ce, e, sizeof(struct arpt_entry)) != 0 ||
+-	    copy_to_user(&ce->counters, &counters[i],
+-	    sizeof(counters[i])) != 0)
++	if (copy_to_user(ce, e, offsetof(struct compat_arpt_entry, counters)) ||
++	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
+ 		return -EFAULT;
  
+ 	*dstptr += sizeof(struct compat_arpt_entry);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index a0ceb618966f..e6e2a71d33b5 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -832,14 +832,12 @@ copy_entries_to_user(unsigned int total_size,
+ 		const struct xt_entry_target *t;
+ 
+ 		e = loc_cpu_entry + off;
+-		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+-			ret = -EFAULT;
+-			goto free_counters;
+-		}
+-		if (copy_to_user(userptr + off
++		if (copy_to_user(userptr + off, e,
++				 offsetof(struct ipt_entry, counters)) ||
++		    copy_to_user(userptr + off
+ 				 + offsetof(struct ipt_entry, counters),
+ 				 &counters[num],
+-				 sizeof(counters[num])) != 0) {
++				 sizeof(counters[num]))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+ 		}
+@@ -1228,9 +1226,8 @@ compat_copy_entry_to_user(struct ipt_entry *e, void __user **dstptr,
+ 
+ 	origsize = *size;
+ 	ce = *dstptr;
+-	if (copy_to_user(ce, e, sizeof(struct ipt_entry)) != 0 ||
+-	    copy_to_user(&ce->counters, &counters[i],
+-	    sizeof(counters[i])) != 0)
++	if (copy_to_user(ce, e, offsetof(struct compat_ipt_entry, counters)) ||
++	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
+ 		return -EFAULT;
+ 
+ 	*dstptr += sizeof(struct compat_ipt_entry);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 24a590c87eac..77f7cf526df8 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -848,14 +848,12 @@ copy_entries_to_user(unsigned int total_size,
+ 		const struct xt_entry_target *t;
+ 
+ 		e = loc_cpu_entry + off;
+-		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+-			ret = -EFAULT;
+-			goto free_counters;
+-		}
+-		if (copy_to_user(userptr + off
++		if (copy_to_user(userptr + off, e,
++				 offsetof(struct ip6t_entry, counters)) ||
++		    copy_to_user(userptr + off
+ 				 + offsetof(struct ip6t_entry, counters),
+ 				 &counters[num],
+-				 sizeof(counters[num])) != 0) {
++				 sizeof(counters[num]))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+ 		}
+@@ -1244,9 +1242,8 @@ compat_copy_entry_to_user(struct ip6t_entry *e, void __user **dstptr,
+ 
+ 	origsize = *size;
+ 	ce = *dstptr;
+-	if (copy_to_user(ce, e, sizeof(struct ip6t_entry)) != 0 ||
+-	    copy_to_user(&ce->counters, &counters[i],
+-	    sizeof(counters[i])) != 0)
++	if (copy_to_user(ce, e, offsetof(struct compat_ip6t_entry, counters)) ||
++	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
+ 		return -EFAULT;
+ 
+ 	*dstptr += sizeof(struct compat_ip6t_entry);
 -- 
-2.53.0
-
+2.43.0
