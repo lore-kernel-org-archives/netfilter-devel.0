@@ -1,101 +1,113 @@
-Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailtransmit04.runbox.com (mailtransmit04.runbox.com [185.226.149.37])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BDEC3B2FDF
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2026 08:56:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.179
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780909018; cv=pass; b=qmFSwVd9CKYh0YDWnr3x0VMoMXqBSavKyrxQnnsA9b14LWV4MtVljYj+qvrDrhLHfNXoD02orW8X4G4o3JJQPbHV0KCvHSIpgq69zS0IiIkORnF3kF9pN6of9V88Kgg2IfcUbfL25Ko5fwUAX4bmuA6R/Q1icL33D8MbzDOCiqA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780909018; c=relaxed/simple;
-	bh=LwxIwW/8sD+a8dH7BmKDVm760AW1Qz08Sjhbp52fqyU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BEQF6dDA5DEBTS8JXddP0/eQgean0Ar7Jlf14h/co9fxewYIF2AEaEb0LOP2ETpoUJTHqBk4maVflkDwzz6h3chYFkrOCv8s0k+h6+RRZ167AZn9bdZ71ew9zSxzorx3xuKFz3wfFSvarXJN3rlb2X/RQ+W33HxtxF8YrXJGeNs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pc1lVOFh; arc=pass smtp.client-ip=209.85.167.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9A23B8930;
+	Mon,  8 Jun 2026 09:55:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.226.149.37
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780912550; cv=none; b=iJ9hrhz814iQ9s6fIwK2Hg4L1wBL6PDwChlVAVhf+SMRff2/s0SowlCNQpSzUXRAV9FekQ3ksNJHczTcM+eku0BDIE2UBXxT8APmT/oMRurxYgT6GD7fTHl4+rkgIiOkghbFA3SHYawfcjwTAzqkYI0gNy35NXhhxUTYx6mCoGM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780912550; c=relaxed/simple;
+	bh=g2a+0peurYc++lj+MTJ+qK/QF5LhOp9QgWJzFwBQQ60=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=QZy/PBmZ8IgIUEryjtzVSNM5YORLg+DlCm59Bvb7/56o3EOO5TKF0YNV+fm51nx/z+d+FRrbLeQ6a0thhEq6wKBnLhcnXLpI9HEh1PrKLKp8eCR6mw849GsyHddulBpZBC9ItyEPvxbTZBWBiVAJ0ylRPdlthWeWYZS4iJ2jnrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=runbox.com; dkim=pass (2048-bit key) header.d=runbox.com header.i=@runbox.com header.b=icsD6XZk; arc=none smtp.client-ip=185.226.149.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=runbox.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pc1lVOFh"
-Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-48611862583so1861289b6e.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jun 2026 01:56:56 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780909016; cv=none;
-        d=google.com; s=arc-20240605;
-        b=is5jvDLICXjctEXyccyZy7pe2Sh071SC9gqYuzWT/pYBmOGOE/xsmd/dZcYBh+wujj
-         ILe/da9eUWyFBWCq4d3QhaGKLQJOH6KEjTaCTUqNDCM6dh7T2n/1S4GpEYEL1TxkKkA3
-         6I3Z5gGLJ3vxrWABcILXew1mdGSiqYURi8lsb19FM39aAFNDppxMvk3fXOhay/sVHkVy
-         ljlfTySGNhPsvwbBYkB/AAKZ6F05Ja5CHluoIpG/veKVrSG45zZSRPkYQCLg+YPzerUT
-         0QLVf0ss26g0mh7ExQ21rROM9s6tW7S0oix52M9Jj6XdeM+F0OSEcxV6D9kYHeJt4LCk
-         0poA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=LwxIwW/8sD+a8dH7BmKDVm760AW1Qz08Sjhbp52fqyU=;
-        fh=6udy3HooIcGx1luKc3AiNxlIaK8rXVSMl/Dtrqckgjg=;
-        b=NR6KPbYEKk+0CDz+m9T3I2InlB507WbZCm1CCftSBphHBjojsXn6i2oe/+AOE2Ex8B
-         E9PlzUVJoG1VWd2VSgtB2lJldeGFUMMuoKZzBxcBdAw+P6ErAJW+/pQAdPOSsuw09edI
-         mnDa4C4ZvBLXclftpfpeRs/PkOcW/Dxu9lEeD8jQWouVD9uJOLnL1UNs0Xuu5BgKGMko
-         G/34NONNakVXKfEVRkQ9E7Q1m6Ct141YiSij0PRRzuU/sm8mYcseOe5q+V88iF5SnAuW
-         wNlZebvRD1rAhj6m9MXzGk+sIxa6FhA3fYXEba0Y3rxl4Pb4nLsZdipvpU0lDphWqxyD
-         l+3A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780909016; x=1781513816; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=LwxIwW/8sD+a8dH7BmKDVm760AW1Qz08Sjhbp52fqyU=;
-        b=pc1lVOFhIA2nPuoSZWIczW+AJ5h4gwx6pvVWOjpY9jTYJ2x0YEOtTLe8FPKLkw7hW3
-         B396OyIr3pS+LLP6t0aFtZtr6OuOgGyLeYoFVkoIU86ZmO7y8+qq3UKRydtyUqCP5Zur
-         386tGBCVlMtLIFCtxZmV2N76+eQzB6bxvszzQEg7TOR3CD+nlOcW6pKKZ+IU7j2qRJpf
-         WeRpbuLngiHA2Uq+bBODc/QHJCOielz/MmaIjrLKHlGFwB/OWy4Gnl0iojwPsm7r96BP
-         iJsHnfvYZdaVbzeCH86qhhyTiCKjzN8fUySsLx9c2L7MlkqmRvJfKm4bvff9B1qxEXV3
-         nayg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780909016; x=1781513816;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LwxIwW/8sD+a8dH7BmKDVm760AW1Qz08Sjhbp52fqyU=;
-        b=Qda1V4Usj5wYnE0YgqtM2Z+e+9O0+JcUPkh/iXAMPM3YRos8DYMT9QXl1j98kB3ggS
-         6IMb1jJqXFr/JrXSGvHqXxOP0UWG4QZorm0y/w/LN6xlyEKtsHiy+6QvAtECQENIU+Nx
-         26hmqEpu9Qg+ziXTnpSAPoRby7nP1KAqoiElJm7IuQ7qqHE3/ZK2twvlQIxvXo2KOsB9
-         a2MyD7AM+VJKklh2tldeVQT4CST0zgFPnUwH/lBmVQDAehkKRcPxTXVVax3S5tc8VzPD
-         RncI/0znNDqX+iyNskA0S4PKm3UMMujr+4dEqbSxeL+3Cy+zTC4lNPl1928DnkRqJcMO
-         3Sbw==
-X-Gm-Message-State: AOJu0Yyvqmy6Y2wXvdlrcaSLNgvXoNqWqliqs3xlqWfzqVJXD9uZo13p
-	s8QZ7fT5MH3cQrq2gIeuubRwuBMJE0Vnq2PrUFV108sYL6L8q5Y6/uKNCXmz7OtrJQxzfp++uC2
-	egMS1xVOmx6XNTF3Yw/0SptipyelRT8M=
-X-Gm-Gg: Acq92OFgxvASErT5mQ2p2llxW/BCg6h+Ig0VKKVWaJRu0jAXWj9xXbJ+MWg0yoW5Drv
-	M/h1yyE0UMc6DpCKG6M7bV02vvN/1GizP/R+kAL/KI1txUsvSnVuv7Dk5YLkXWOLoTYx9w5+qjt
-	bo4egzN4XoSK616gFcNffqmjHmU43tnB/j8Dolfyw9RelBYL9F//ON7oq5nurzSGKdWLYolQjEm
-	SM5dlfUTrK35YDWU0gGJjkwOeZwhzzvEzF28W2/2pKY/eSF/JNT22ZhnfAjRb42M5RAUZtV1gjk
-	TQ0o8Uk78aZpvymsOw==
-X-Received: by 2002:a05:6808:c227:b0:479:d25e:9065 with SMTP id
- 5614622812f47-4868dbf286dmr8670340b6e.2.1780909016021; Mon, 08 Jun 2026
- 01:56:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=runbox.com header.i=@runbox.com header.b="icsD6XZk"
+Received: from mailtransmit03.runbox ([10.9.9.163] helo=aibo.runbox.com)
+	by mailtransmit04.runbox.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.93)
+	(envelope-from <david.laight.linux_spam@runbox.com>)
+	id 1wWWhq-00BRyo-Iq; Mon, 08 Jun 2026 11:55:42 +0200
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=runbox.com;
+	 s=selector1; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:
+	Subject:Cc:To:From; bh=hOyVQeN0Zn21ZxnkGr2+7/wIdoUqTpMPv9PBDwl37z8=; b=icsD6X
+	ZkBw0g9gkjA2bR0nerz7qipgEDZlx622c1sGNma5VNqMwp8twyiTzSNQN40T/brnpdSc/dZy3sHAl
+	ypKCCU0BNqgnJ6Ka7eBqltikYiGzd6LkrGkSpes2MK0ARnItbFL98wY+Mq9nYQQhd57Ay0LxqzgGb
+	PROGritLv9BwBXjgQRex+JVm7fGTBpIPB6jpAtJmrvWmj0vS1OOnkWYI1U5W/DUrhEmk3CdeBIBEi
+	BltFpMCCL8ATz+zGqNJYjLUDs7j5CCZH0LsptJK4qSacOz3th9Bv0xZ8IAfKR5/kfAOUvZ8h4Rq8p
+	Ae39CjVBliW0lGuOw6AtovHnaVHA==;
+Received: from [10.9.9.73] (helo=submission02.runbox)
+	by mailtransmit03.runbox with esmtp (Exim 4.86_2)
+	(envelope-from <david.laight.linux_spam@runbox.com>)
+	id 1wWWhp-0003ed-HD; Mon, 08 Jun 2026 11:55:41 +0200
+Received: by submission02.runbox with esmtpsa  [Authenticated ID (1493616)]  (TLS1.2:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.95)
+	id 1wWWhf-00Ag6G-K8;
+	Mon, 08 Jun 2026 11:55:31 +0200
+From: david.laight.linux@gmail.com
+To: Kees Cook <kees@kernel.org>,
+	linux-hardening@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Florian Westphal <fw@strlen.de>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	David Laight <david.laight.linux@gmail.com>
+Subject: [PATCH net-next] net/netfilter/nfnetlink_cttimeout: Use strscpy() to copy strings into arrays
+Date: Mon,  8 Jun 2026 10:54:59 +0100
+Message-Id: <20260608095523.2606-15-david.laight.linux@gmail.com>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260528204020.7ae744ab@pumpkin> <20260528223412.27311-1-kacper.kokot.44@gmail.com>
- <381e22d3-fa30-4dde-bd53-705b4a868a90@suse.de>
-In-Reply-To: <381e22d3-fa30-4dde-bd53-705b4a868a90@suse.de>
-From: Kacper Kokot <kacper.kokot.44@gmail.com>
-Date: Mon, 8 Jun 2026 09:56:45 +0100
-X-Gm-Features: AVVi8Ce6zhPUP8TY7cm-36Laz2FamQqIli7a22X0jjY8iIAtnrJlrSLepV15u-o
-Message-ID: <CAG-Fur7jEQQByhZQsEBVGi+TUdoh-Lrx_LZaSvaTs_Y7VGRBsw@mail.gmail.com>
-Subject: Re: [PATCH v2] netfilter: TCPMSS: fix dropped packets when MSS option
- is unaligned
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org, 
-	fw@strlen.de, david.laight.linux@gmail.com, Phil Sutter <phil@nwl.cc>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Will target nf-next and switch the variable declaration order in v3.
+From: David Laight <david.laight.linux@gmail.com>
 
-Thanks for the review.
+Replacing strcpy() with strscpy() ensures that overflow of the target
+buffer cannot happen.
+
+Signed-off-by: David Laight <david.laight.linux@gmail.com>
+---
+This is one of a group of patches that remove potentially unbounded
+strcpy() calls.
+
+They are mostly replaced by strscpy() or, when strlen() has just been
+called, with memcpy() (usually including the '\0').
+
+Calls with copy string literals into arrays are left unchanged.
+They are safe and easily detected as such.
+
+The changes were made by getting the compiler to detect the calls and
+then fixing the code by hand.
+
+Note that all the changes are only compile tested.
+
+Some Makefiles were changed to allow files to contain strcpy().
+As well as 'difficult to fix' files, this included 'show' functions
+as they really need to use sysfs_emit() or seq_printf().
+
+All the patches are being sent individually to avoid very long cc lists.
+Apologies for the terse commit messages and likely unexpected tags.
+(There are about 100 patches in total.)
+
+ net/netfilter/nfnetlink_cttimeout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index dca6826af7de..7ed14accff22 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -165,7 +165,7 @@ static int cttimeout_new_timeout(struct sk_buff *skb,
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	strcpy(timeout->name, nla_data(cda[CTA_TIMEOUT_NAME]));
++	strscpy(timeout->name, nla_data(cda[CTA_TIMEOUT_NAME]));
+ 	timeout->timeout.l3num = l3num;
+ 	timeout->timeout.l4proto = l4proto;
+ 	refcount_set(&timeout->refcnt, 1);
+-- 
+2.39.5
+
