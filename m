@@ -1,124 +1,136 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA42E33D4F0;
-	Mon,  8 Jun 2026 23:04:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA769352C4E;
+	Mon,  8 Jun 2026 23:12:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780959884; cv=none; b=GHg7bsonbqpxcm6Igu5Xylizm2PKoO3Z6DLwDOb3lvHDV85laPbXSed6b0Zon0Y9789QweDF12Gl7eafhCyTcCaWEioPiUJTucbj3VP5+JUw7bYlGvxkCgbRbYrWa2qOyJw/EBpAygMVF7uUQOvedyxchUI4dEdO7168tRPl3DE=
+	t=1780960322; cv=none; b=UdaRlmkBWoee7XB4RdvwEIdRV3hQnPoqIWsDJB5JcdZ7vkDz3WrYv7pVi77VEDejSDD9CpCwRVIgUkAhJb/b/U90eULnytJoyC1YGL1xDuP+bztS+z9pjpxkUdo+B6VxRnrv5JisFotntW8yKa5upZXkiJTO8SBEaAP38OH9vaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780959884; c=relaxed/simple;
-	bh=Wql0R8j7Ytvy+xkLb0z5qm4WKT4KNPD/tzHhhRJPpRI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fZbRkQ85pl9ZqlWOUJTz03V7utHdK/ti9TGMdQ08powLtreFTAsoEtHzhWwNywu4FYj7ZhgCf13On1fkSKnIt4UseuR5UYkCRcvY7w0lcuDj2X6lxV2ZRBNxWu05+5GjvZJvmv4HYnI4uptBHB5cL55wubKE1DLy3+hqNTUqHS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=QzQXrX+S; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1780960322; c=relaxed/simple;
+	bh=CoYaC2kz1gOIUPLCzxgbigyZqMpM6GR136SQyU/5ZAY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LE7WaoCbkclBh1Jx+IlVQIgewIRhVwuomvgYgYDDPc6rcx6nXYTL6VI4/PV+HtigLephS229LCcnCfxnm9hF0a+9OI/UFFynf2rdh0MjdgdpzwKtU1Z7JADIbggGg0OncoZvfxjgTUulcEHTDyHJGXULJtWInJHtVQPb7Rn/YaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I6SihNt5; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="QzQXrX+S"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 91E282106D;
-	Tue, 09 Jun 2026 01:57:27 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=HqKunZkP
-	Rqt8OpyevyZINtHURYnIqzuQFE0TIuchdxg=; b=QzQXrX+S1po8qOa9+K/cLWW1
-	aRD23FIaX9aOjmUM/5PfWh0bukdKAWzQCNXUzg8Ilsa5a/spFeAiOkYHAJC7f3ae
-	v+9yao6DWr4xe/ufE+CfeuLplMyvUqhUK4ws8v/MfjwrxgqdU3+8gpPvxjn0ydnZ
-	U8wIWZ5c8tpMnxJg8mVYGgE/4tPYwhip8msnhipeaxRwZ3QtNIAt83bQmIB64TVQ
-	fjTqbnGDaN9ZQVVUDSm04wuxQhOr0frLU6AyBUyIT4kM1VM78TX5RBXecC90ymSi
-	OPaixc9ctgVFltrvEPGCg+286JDCP3EMTVnV/JAUuMs16n2tf37VUESQx8QCcYoj
-	Z7mjfjrDNriqXogGRHcOpwmAoLANDRq+cJMjfNOcWpKhthPcHVf2BHidVy8b8SQw
-	24lHUEn66Jg4qNGDqc2snnrdoHVpwnIu7ArX/5F3C8j6kdDJXfBGqf9XVqJlxKpB
-	Hc+nDd1pnCR9UYFHfvzQyBbCOIHmh5vdCSj4zRpURm5KeJ+SBPiECe3xQ4jwj5Mg
-	WYxAuL5VsDR/cOHcqZiVUD91frgCeHLEWcODF1Edzkv4IMtV1fCfVVzYA5qlQ13c
-	ubDbOv81O4+hR6TS7qmvJgpbmnFyOW3t6Y8v465VOh6BwcooON2ga04JBta8Qt2C
-	PgM826BoSZaTpmUuaUQ=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 09 Jun 2026 01:57:27 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 8429660B64;
-	Tue,  9 Jun 2026 01:57:26 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.1) with ESMTP id 658MvIfm090963;
-	Tue, 9 Jun 2026 01:57:18 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 658MvFx1090962;
-	Tue, 9 Jun 2026 01:57:15 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next] ipvs: fix doc syntax for conn_max sysctl
-Date: Tue,  9 Jun 2026 01:56:55 +0300
-Message-ID: <20260608225655.90943-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I6SihNt5"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 04A4C601A0;
+	Tue,  9 Jun 2026 01:11:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1780960319;
+	bh=JV/A69zWPQuTQ2nGVP22LDX+MvZU7+jQ+x0+XtVi+NM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=I6SihNt5Z6s83NNImMYqWKP+AlN68mHgSpT0kW1U80YuEMQJL7juyFRR839R+GkQa
+	 cLRAd8B/eXwZBOXh++d1EkqevbytUcTG4pz3TO0RJe1+62yfMFrXN5pOfyhhGEYPlD
+	 U0rpDW9dupS8Jk96IdiSHRaIMUv7lGkzSod7PxJ4j7B9RUeujaXgaz/MiLOg3mXa/o
+	 1uENn7XVqMh7e8ABQfNhyrUojBldGvC1kQ6t941UblmPuV2LW7jNBJvJJFpXdgYxz2
+	 8Kvw4+bTIiFqLBUm94NX9T0z3FlNaIwAM2xgUoNQOPMSDRJivczRkBojql3Hq+D9+v
+	 XZfs0YEWDddsw==
+Date: Tue, 9 Jun 2026 01:11:56 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: flowtable: use pskb_may_pull() in
+ nf_flow_ip6_tunnel_proto()
+Message-ID: <aidMPKrm9gOcPLW-@chamomile>
+References: <20260608-b4-nf_flow_ip6_tunnel_proto-update-v1-1-782c7052c8fd@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260608-b4-nf_flow_ip6_tunnel_proto-update-v1-1-782c7052c8fd@kernel.org>
 
-Fix the docutils error reported by kernel test robot
-for the new conn_max sysctl:
+Hi Lorenzo,
 
-Documentation/networking/ipvs-sysctl.rst:76: WARNING: Block quote ends
-without a blank line; unexpected unindent. [docutils]
-Documentation/networking/ipvs-sysctl.rst:76: ERROR: Unexpected section
-title or transition.
+On Mon, Jun 08, 2026 at 07:06:52PM +0200, Lorenzo Bianconi wrote:
+> Switch nf_flow_ip6_tunnel_proto() from skb_header_pointer() to
+> pskb_may_pull() for header validation, aligning it with the approach
+> used in nf_flow_ip4_tunnel_proto().
+> Move ctx->offset update inside the IPPROTO_IPV6 conditional block since
+> it should only be adjusted when a tunnel is actually detected.
+> While at it, use nexthdr instead of the hardcoded IPPROTO_IPV6 constant
+> when setting ctx->tun.proto.
+> 
+> Fixes: d98103575dcdd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>  net/netfilter/nf_flow_table_ip.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index 9c05a50d6013..2946399ab715 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -347,15 +347,15 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
+>  				     struct sk_buff *skb)
+>  {
+>  #if IS_ENABLED(CONFIG_IPV6)
+> -	struct ipv6hdr *ip6h, _ip6h;
+> +	struct ipv6hdr *ip6h;
+>  	__be16 frag_off;
+>  	u8 nexthdr;
+>  	int hdrlen;
+>  
+> -	ip6h = skb_header_pointer(skb, ctx->offset, sizeof(*ip6h), &_ip6h);
+> -	if (!ip6h)
+> +	if (!pskb_may_pull(skb, sizeof(*ip6h) + ctx->offset))
+>  		return false;
+>  
+> +	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + ctx->offset);
+>  	if (ip6h->hop_limit <= 1)
+>  		return false;
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202606071851.Dc1H7hOO-lkp@intel.com/
-Fixes: 4a15044a2b06 ("ipvs: add conn_max sysctl to limit connections")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- Documentation/networking/ipvs-sysctl.rst | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+Not shown in the patch, but is there still a corner case here that
+needs to be covered?
 
-diff --git a/Documentation/networking/ipvs-sysctl.rst b/Documentation/networking/ipvs-sysctl.rst
-index b6bac2612420..fe36f4fcd3a0 100644
---- a/Documentation/networking/ipvs-sysctl.rst
-+++ b/Documentation/networking/ipvs-sysctl.rst
-@@ -72,20 +72,29 @@ conn_max - INTEGER
- 	Netfilter connection tracking) the connections can be
- 	limited also by nf_conntrack_max.
- 
--				soft limit	hard limit
--	=====================================================
--	init_net:
-+	Limits for init_net:
-+
-+	======================= =============== =============
-+	\			soft limit	hard limit
-+	======================= =============== =============
- 	create netns		platform	platform
- 	priv admin		0 .. platform	0 .. platform
--	=====================================================
--	new netns:
-+	======================= =============== =============
-+
-+	Limits for new netns:
-+
-+	======================= =============== =============
-+	\			soft limit	hard limit
-+	======================= =============== =============
- 	create netns		init_net:soft	init_net:soft
- 	priv admin		0 .. platform	0 .. platform
- 	unpriv admin		0 .. hard	N/A
-+	======================= =============== =============
- 
- 	Limits per platform:
--	1,073,741,824 (2^30 for 64-bit)
--	   16,777,216 (2^24 for 32-bit)
-+
-+	- 1,073,741,824 (2^30 for 64-bit)
-+	- 16,777,216 (2^24 for 32-bit)
- 
- 	Possible values: 0 .. platform limit
- 
--- 
-2.54.0
+ipv6_skip_exthdr() uses skb_header_pointer() internal, then another
+pskb_may_pull() is needed to make sure no other IPv6 extension header
+sits between the outer and the inner IPPROTO_IPV6 header, allowing to
+be in a non-linear area of the skb?        
 
+> @@ -367,9 +367,9 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
+>  
 
+I mean:
+
+        if (!pskb_may_pull(skb, hdrlen))
+                return false;
+
+where hdrlen is what ipv6_skip_exthdr() returns.
+
+Then, I think it should be safe to call skb_pull() on
+ctx->tun.hdr_size.
+
+Let me know, thanks.
+
+>  	if (nexthdr == IPPROTO_IPV6) {
+>  		ctx->tun.hdr_size = hdrlen;
+> -		ctx->tun.proto = IPPROTO_IPV6;
+> +		ctx->tun.proto = nexthdr;
+> +		ctx->offset += ctx->tun.hdr_size;
+>  	}
+> -	ctx->offset += ctx->tun.hdr_size;
+>  
+>  	return true;
+>  #else
+> 
+> ---
+> base-commit: 9772589b57e44aedc240211c5c3f7a684a034d3a
+> change-id: 20260608-b4-nf_flow_ip6_tunnel_proto-update-8b64903825b4
+> 
+> Best regards,
+> -- 
+> Lorenzo Bianconi <lorenzo@kernel.org>
+> 
