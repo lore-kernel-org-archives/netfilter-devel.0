@@ -1,69 +1,105 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8984B3B14DA;
-	Mon,  8 Jun 2026 22:39:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E8353B38AD;
+	Mon,  8 Jun 2026 22:40:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780958375; cv=none; b=QIRy3/P4Be06rFLDKoepsXUMas4u4LZwGJhiCrVQ+cvF89YLYSBar3xqKDID09nmjOGhACI7YjIlp+sW4qRbRFutrNVLOo63vBznRtlbBL6RDJEPyxGmMro8Y7Oj2rs03snMrn2vGHYFZW/gIcvgsSDEUw289GYZWgHP0TKh828=
+	t=1780958429; cv=none; b=owJJIxgQjp1EXc2SrueDGugnzXifGMnKFKZA0oHl7xZjfnbj78DCJ3k/PcbLhC1d+rsVbEy19aAq10F+KDfIO9Amtnq8KZteGIs9N+RgG+skl3DuUs3xUEUcHj95sT2e1g/xHDkDPd/pXn9dsvxkOSjM9jfaCmhX830pGYFskQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780958375; c=relaxed/simple;
-	bh=+Fi3sVsuwExNL+7pNEZPC52ELM3zS+sCwv6XvTeLfIg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HsIVzior6vwc68LFX9/gXBctoJCNg8BKEIbH/u5cBP9VhXcWWlQ94QAaPvxJBd2UNij6J2qA5frygiQVmD3M6YSiOBFK9Eo5AItu2sj0O95flzyaWcuhvxJz5SvTKdYBG3ob5O6oBLKB3Bwm216/7KZcM0eCYhVKNKPHOzz0604=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e/zlx72T; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1780958429; c=relaxed/simple;
+	bh=aMq1M0qj69R787Xj/nNYV7UAw9xL2+KDIudtfsITjac=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=s6Odf0R6BAj8/cPnPbprSzSpynWEd3sXyzBPIsEbNAZhHPRiGOW3M8hXZFF3I9wlEWVrfEqt7geTklHIT1jC19K93Ljorz44GhhMDYbbDQd8iH14OkfZotPzlE9EJhxIbxvdnRNrxgFmUr3y/nazDwJKk+d8zd1jQnHH15zElSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iYjANFud; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e/zlx72T"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 95CA66017D;
-	Tue,  9 Jun 2026 00:39:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1780958371;
-	bh=JK1bd7LvraTNFT4vJa+JYC9LaSx8/4N0x/mO2QrqYkI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=e/zlx72Tvq4BYNFBexcJ2DstWTQjL11q61Ft8ozJIrbs02Ws76UpVmIhArFAJcfeE
-	 DJo/Iw8qqTNEqwIT5vxnC2swIncTF1foDP1T/++fQNcB5ZslYhj+Xrjqcw0udo4N/M
-	 bob6cGRmjCH+zYiYUSj5JKxzSlt/gs6j4VdFOc19p1Fx7vy+AVlb+ZAjQcyLC0hRRE
-	 RO5K3Te5GcP4CkDjDn0xfTk2qncmhjYtrzOxx/jUw6dkeFG+rh14qTy+O2qEQp8NOa
-	 kzu8FZrgMmBws9wK0waI6S9inPv7MzrJIv39nRwm+pQd+4Hd4wx4bitXVKtchla2DM
-	 hT+Xjw7KwZ3ww==
-Date: Tue, 9 Jun 2026 00:39:29 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-	pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
-	horms@kernel.org
-Subject: Re: [PATCH net-next 00/15] Netfilter/IPVS updates for net-next
-Message-ID: <aidEoZt4bt085hss@chamomile>
-References: <20260607094954.48892-1-pablo@netfilter.org>
- <aiaubSEfDp_JQk_p@chamomile>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iYjANFud"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EA661F00893;
+	Mon,  8 Jun 2026 22:40:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780958427;
+	bh=GO0S1HJOm9SytwG0IXA8LplGvaWiiJfn5vaj56IKxxw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=iYjANFud7AqA/21sjkYOKNiu8nNwwgBYYEzXqwGBFDEBQsEATrxWJTCp4BeL5Htb0
+	 6zVZZxVHE71wqLUJY0dHieLLIVZ752hC5ug3l7cfrB89fDFumxkIZchEL74SoJ+aL4
+	 rNFByKGx4mr1yBEgIRMqM8+dxeRQg0BZawOaGLxSNQmKZXLbzswOqYHLEzKSleiP+o
+	 SVN//UxpjC3JJ6Tsc0mT44/NiLUXtSjoOPRDM17EAhbH19t5CzagvCJOV1l/7+Qwb/
+	 8jTz+gjMYyA64DYVWZCL6IJT0d2CU3gWI+lVo0gil7Bcn6FiFzaOwltPgrULe4S1n4
+	 WFDrn5pdqvWFQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93A893812FD9;
+	Mon,  8 Jun 2026 22:40:27 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aiaubSEfDp_JQk_p@chamomile>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/15] ipvs: add conn_max sysctl to limit
+ connections
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178095842640.1698449.18158593378133036098.git-patchwork-notify@kernel.org>
+Date: Mon, 08 Jun 2026 22:40:26 +0000
+References: <20260607094954.48892-2-pablo@netfilter.org>
+In-Reply-To: <20260607094954.48892-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-Hi,
+Hello:
 
-On Mon, Jun 08, 2026 at 01:58:40PM +0200, Pablo Neira Ayuso wrote:
-> Hi,
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Sun,  7 Jun 2026 11:49:40 +0200 you wrote:
+> From: Julian Anastasov <ja@ssi.bg>
 > 
-> I'm replying to Sashiko.dev comments here:
+> Currently, we are using atomic_t to track the number of
+> connections. On 64-bit setups with large memory there is
+> a risk this counter to overflow. Also, setups with many
+> containers may need to tune the limit for connections.
 > 
-> * [PATCH net-next 06/15] netfilter: synproxy: fix unaligned memory access in timestamp adjustment
-> 
-> Refers to pre-existing issue. I think this comment is not correct?
+> [...]
 
-Yes, it is, inet_proto_csum_replace4() needs an even offset to the
-16-bit word. Checksum will be corrupted, but at least the alignment
-issue is addressed, which leaves things better than before. Maybe
-it is worth to add a note to this patch.
+Here is the summary with links:
+  - [net-next,01/15] ipvs: add conn_max sysctl to limit connections
+    https://git.kernel.org/netdev/net-next/c/4a15044a2b06
+  - [net-next,02/15] netfilter: nfnetlink_osf: fix mss parsing on big-endian architectures
+    https://git.kernel.org/netdev/net-next/c/a625c94144c9
+  - [net-next,03/15] netfilter: nfnetlink_cthelper: use {READ,WRITE}_ONCE for accessing helper flags
+    https://git.kernel.org/netdev/net-next/c/f8bf5edf7157
+  - [net-next,04/15] netfilter: synproxy: drop packets if timestamp adjustment fails
+    https://git.kernel.org/netdev/net-next/c/63d29ee95c4a
+  - [net-next,05/15] netfilter: synproxy: adjust duplicate timestamp options
+    https://git.kernel.org/netdev/net-next/c/22bb132cfb9b
+  - [net-next,06/15] netfilter: synproxy: fix unaligned memory access in timestamp adjustment
+    https://git.kernel.org/netdev/net-next/c/992c20bc8a4a
+  - [net-next,07/15] netfilter: synproxy: protect nf_ct_seqadj_init() with conntrack lock
+    https://git.kernel.org/netdev/net-next/c/9e37388b8070
+  - [net-next,08/15] netfilter: cttimeout: detach dataplane timeout policy and repurpose refcount
+    https://git.kernel.org/netdev/net-next/c/7d6a9cdb8d3a
+  - [net-next,09/15] netfilter: nf_conntrack_helper: dynamically allocate struct nf_conntrack_helper
+    https://git.kernel.org/netdev/net-next/c/6031487d4e27
+  - [net-next,10/15] netfilter: nf_conntrack_pptp: move GRE specific cleanup to GRE tracker
+    https://git.kernel.org/netdev/net-next/c/fe97fd540a03
+  - [net-next,11/15] netfilter: nf_conntrack_helper: add refcounting from datapath
+    https://git.kernel.org/netdev/net-next/c/ac46f3f35b6e
+  - [net-next,12/15] netfilter: conntrack: revert ct extension genid infrastructure
+    https://git.kernel.org/netdev/net-next/c/35e21a4dccc5
+  - [net-next,13/15] netfilter: conntrack: call nf_ct_gre_keymap_destroy() if master helper is pptp
+    https://git.kernel.org/netdev/net-next/c/b0f02608fbcd
+  - [net-next,14/15] netfilter: flowtable: avoid num_encaps underflow on bridge VLAN untag
+    https://git.kernel.org/netdev/net-next/c/e052f920773b
+  - [net-next,15/15] netfilter: nf_conntrack: use get_unaligned_be32() in tcp_sack()
+    https://git.kernel.org/netdev/net-next/c/d3bf9eae4864
 
-I can post a v2 of this PR to refine the few things that make sense at
-this stage.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
