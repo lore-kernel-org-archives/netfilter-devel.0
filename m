@@ -1,186 +1,111 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9519F3F9A09
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2026 15:23:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D273B48CFC;
+	Mon,  8 Jun 2026 17:07:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780932229; cv=none; b=ni29qJ05mW42tmqihr8CX9KhfoTa3dHus7+asbYLezWy71i3rsiB6LYAcfoCRHzWddC3erKkEoOohBZg97v84c8R0bf8ZBXtb6F1J6QZefSRaKR6A4MhH5VzEuoJ87v+dcamZe0I3QoaMLdCRTBIOFXAVZv0lySSCeIJp4QJe+Y=
+	t=1780938453; cv=none; b=gWqlNRRW8c8IQFDoWxvQqYs7upbESqZqSYXHtMuH/9zui0M/ZEghsk5M2A+MOKntMJHU0COLXf4JDFWzFVg7/kRc2lbKTm0YnILfqtfgmHCmsVyd1OaRPbpIG25gwudRp7yqTndmPoDVDm3Zf8GtjOrd9yw+twwpBO2/B/qBO+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780932229; c=relaxed/simple;
-	bh=t/x8KOreOiBA9X1BaDpQ4QqLSbLKoDnwEcRp/eTMTtg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cczcUujHMRFdIZX2kqsIFq8+h3FaGZ3Mg3BM8A9iQlZNeWh0nJvyWs90qAbwZpwrfK9ZXCjlLCVaR9XFgSj88BbyyX5Gue035tkw/fd1VdDh91OhopMPBj/a040VFcCr1Gc+wO2Mpf03cn/5rTprxTXypANMlKC48NIEE2QF9i8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 01BF2602F8; Mon, 08 Jun 2026 17:23:46 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 3/3] netfilter: nftables: restrict checkum update offset
-Date: Mon,  8 Jun 2026 17:23:19 +0200
-Message-ID: <20260608152324.20700-5-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260608152324.20700-1-fw@strlen.de>
-References: <20260608152324.20700-1-fw@strlen.de>
+	s=arc-20240116; t=1780938453; c=relaxed/simple;
+	bh=Qv2L2nWbYIwR+EgyVjmSHgTCjSgLtzxD2PHwVESrJ7w=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=onAtW825M3UEE4kJhMEPxa+jZRggyjGB+M5/Vb0EpZswXC4I0KOJTqSOrcir5+5tqWKVGNSPUKd+rlKD6mJJuBTzD9lBuVAAHWLlQ55q0MBGnrgXoSm4g4bDYBR8X+Ha9Fc5INdtx8xpIKmlVnGhClW4G4doUHE2ryAAvtq1t6k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B/1jPyft; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B/1jPyft"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAEE01F00893;
+	Mon,  8 Jun 2026 17:07:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780938452;
+	bh=8TJOARFLPWWDDuoaBMQD1pAOToEPT0+pMS39POI6GXw=;
+	h=From:Date:Subject:To:Cc;
+	b=B/1jPyftAZKyO2vqjOF/CtK3xnpae2/axZtrPKwMpof+sCdzjwMm+2YtdEU0+JIrK
+	 IUAXJv99sMCbpMe8DEgF9Y2ZL7cU8A/qLB9Ko4dWHWpVMpUb1vIhMBCKT7W/hBz5Yr
+	 Sw2xUCw35pKbc6l37NX6ZtEGSRgNwnsUx2Xw4TaaO9VROtaIZfcgOEtumHg6labnVt
+	 2zc/wAyYdEbxx1n7SXnjEAms7t4xC1/snNvwedbkAsEg+G7GM/NgFEzYDN0ndK781e
+	 J9eN7y+FU2Pcz0TpauSSGQbXdq/3EAaA8JJzqh4hjEq21wlqOAxSt55z4K47R3CC1J
+	 FuFM2elUOWqqA==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Date: Mon, 08 Jun 2026 19:06:52 +0200
+Subject: [PATCH nf] netfilter: flowtable: use pskb_may_pull() in
+ nf_flow_ip6_tunnel_proto()
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260608-b4-nf_flow_ip6_tunnel_proto-update-v1-1-782c7052c8fd@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3NQQrCMBBA0auUWTsQYwzRq4iExk50oExCkmqh9
+ O4NLt/m/w0qFaYK92GDQl+unKTjfBrg9RnlTchTN2ilrbLKYTAo0cc5/Txn69siQrPPJbWES57
+ GRuiCNTd1cfoaDPRQLhR5/U8eIBGe+34AI/6de3gAAAA=
+X-Change-ID: 20260608-b4-nf_flow_ip6_tunnel_proto-update-8b64903825b4
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.3
 
-After previous patch, writes to network header are restricted.
-However, there is another way to manipulate the l3 header: The
-checksum update function.
+Switch nf_flow_ip6_tunnel_proto() from skb_header_pointer() to
+pskb_may_pull() for header validation, aligning it with the approach
+used in nf_flow_ip4_tunnel_proto().
+Move ctx->offset update inside the IPPROTO_IPV6 conditional block since
+it should only be adjusted when a tunnel is actually detected.
+While at it, use nexthdr instead of the hardcoded IPPROTO_IPV6 constant
+when setting ctx->tun.proto.
 
-Restrict this for network header writes, only the ipv4 header is
-allowed.  This needs run-time checks because BRIDGE, INET, NETDEV
-families can carry l3 headers other than IP.
-
-checksum updates to the udp/tcp (l4) headers are not restricted.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: d98103575dcdd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- net/netfilter/nft_payload.c | 100 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 100 insertions(+)
+ net/netfilter/nf_flow_table_ip.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 8e4388bee459..a8ba9dacde62 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -990,6 +990,83 @@ static bool nft_ll_write_ok(const struct nft_pktinfo *pkt, int offset)
- 	return offset <= skb_network_offset(pkt->skb);
- }
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 9c05a50d6013..2946399ab715 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -347,15 +347,15 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
+ 				     struct sk_buff *skb)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
+-	struct ipv6hdr *ip6h, _ip6h;
++	struct ipv6hdr *ip6h;
+ 	__be16 frag_off;
+ 	u8 nexthdr;
+ 	int hdrlen;
  
-+static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
-+						  const struct nft_payload_set *priv)
-+{
-+	switch (priv->base) {
-+	case NFT_PAYLOAD_LL_HEADER:
-+		break;
-+	case NFT_PAYLOAD_NETWORK_HEADER:
-+		if (ctx->family == NFPROTO_IPV4) {
-+			if (offsetof(struct iphdr, check) == priv->csum_offset)
-+				return true;
-+
-+			return false;
-+		}
-+		return true; /* run time validation required */
-+	case NFT_PAYLOAD_TRANSPORT_HEADER:
-+		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
-+			return false;
-+
-+		/* no further check here; offset can't be negative so bogus
-+		 * offsets can corrupt L4 or payload but not l3 headers.
-+		 * We already allow arbitrary l4/inner payload writes.
-+		 */
-+		return true;
-+	case NFT_PAYLOAD_INNER_HEADER:
-+		return true;
-+	case NFT_PAYLOAD_TUN_HEADER:
-+		break;
-+	}
-+
-+	return false;
-+}
-+
-+/* do not allow arbitrary network header mangling via bogus csum_off.
-+ * We only support ipv4.  Only NFPROTO_IPV4 can be checked from control
-+ * plane.
-+ */
-+static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
-+					 const struct nft_pktinfo *pkt)
-+{
-+	switch (pkt->state->pf) {
-+	case NFPROTO_IPV4:
-+		/* Warning: NFPROTO_INET was not checked; we can't return true here. */
-+		return priv->csum_offset == offsetof(struct iphdr, check);
-+	case NFPROTO_IPV6:
-+		return false;
-+	case NFPROTO_BRIDGE:
-+		return pkt->ethertype == htons(ETH_P_IP) &&
-+		       priv->csum_offset == offsetof(struct iphdr, check);
-+	case NFPROTO_NETDEV:
-+		return pkt->skb->protocol == htons(ETH_P_IP) &&
-+		       priv->csum_offset == offsetof(struct iphdr, check);
-+	}
-+
-+	return false;
-+}
-+
-+static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
-+				      const struct nft_payload_set *priv)
-+{
-+	switch (priv->base) {
-+	case NFT_PAYLOAD_LL_HEADER:
-+		break;
-+	case NFT_PAYLOAD_NETWORK_HEADER:
-+		return nft_payload_csum_nh_write_ok(priv, pkt);
-+	case NFT_PAYLOAD_TRANSPORT_HEADER:
-+	case NFT_PAYLOAD_INNER_HEADER:
-+		/* neither offsets are validated, offsets cannot be
-+		 * negative so real l3 headers cannot be mangled.
-+		 */
-+		return true;
-+	case NFT_PAYLOAD_TUN_HEADER:
-+		break;
-+	}
-+
-+	return false;
-+}
-+
- static void nft_payload_set_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -1054,6 +1131,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 		tsum = csum_partial(src, priv->len, 0);
+-	ip6h = skb_header_pointer(skb, ctx->offset, sizeof(*ip6h), &_ip6h);
+-	if (!ip6h)
++	if (!pskb_may_pull(skb, sizeof(*ip6h) + ctx->offset))
+ 		return false;
  
- 		if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
-+		    nft_payload_csum_write_ok(pkt, priv) &&
- 		    nft_payload_csum_inet(skb, src, fsum, tsum, csum_offset))
- 			goto err;
++	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + ctx->offset);
+ 	if (ip6h->hop_limit <= 1)
+ 		return false;
  
-@@ -1120,7 +1198,26 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+@@ -367,9 +367,9 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
  
- 	switch (csum_type) {
- 	case NFT_PAYLOAD_CSUM_NONE:
-+		if (priv->csum_offset) /* nonsensical */
-+			return -EINVAL;
-+
-+		if (priv->csum_flags == 0)
-+			break;
-+
-+		/* Userspace requests L4 checksum update, e.g.:
-+		 * - IPv6 stateless NAT (no l3 csum)
-+		 * - transport header mangling
-+		 * - inner data mangling
-+		 */
-+		if (priv->base == NFT_PAYLOAD_NETWORK_HEADER ||
-+		    priv->base == NFT_PAYLOAD_TRANSPORT_HEADER ||
-+		    priv->base == NFT_PAYLOAD_INNER_HEADER)
-+			break;
-+
-+		return -EINVAL;
- 	case NFT_PAYLOAD_CSUM_INET:
-+		if (!nft_payload_validate_inet_csum_offset(ctx, priv))
-+			return -EINVAL;
- 		break;
- 	case NFT_PAYLOAD_CSUM_SCTP:
- 		if (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER)
-@@ -1128,6 +1225,9 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+ 	if (nexthdr == IPPROTO_IPV6) {
+ 		ctx->tun.hdr_size = hdrlen;
+-		ctx->tun.proto = IPPROTO_IPV6;
++		ctx->tun.proto = nexthdr;
++		ctx->offset += ctx->tun.hdr_size;
+ 	}
+-	ctx->offset += ctx->tun.hdr_size;
  
- 		if (priv->csum_offset != offsetof(struct sctphdr, checksum))
- 			return -EINVAL;
-+
-+		if (priv->csum_flags)
-+			return -EINVAL;
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
+ 	return true;
+ #else
+
+---
+base-commit: 9772589b57e44aedc240211c5c3f7a684a034d3a
+change-id: 20260608-b4-nf_flow_ip6_tunnel_proto-update-8b64903825b4
+
+Best regards,
 -- 
-2.53.0
+Lorenzo Bianconi <lorenzo@kernel.org>
 
