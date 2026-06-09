@@ -1,48 +1,48 @@
 Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2ED73DD518
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2F783DD530
 	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 07:34:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780990497; cv=none; b=o9UBRzFktU0sh3JY2e64PpgA5yrzK/eN6cNPoYOKgdXEkVarD3r7/4Tt49I9b9iVmTpeSXOa/zYKc0adqYyo5HHpiMZNlYlrOCmTjsCXx/ziuYBISugK4UXgPR5QIdVx2NbE214v0+VYIf2vZuv5JKMAFdIfC+3Q4dCnPzT+a94=
+	t=1780990497; cv=none; b=HItUNWAMWNRJS2C+R3KdFylzzmy2mfWOvPSDyqOc8aHs2FkhIG9lBp0ScZ/2rPbCrlp15x3vYm9FKGsRu3LoRBKlH1vdXyGSkC7GAi/xHqEnIbVNE9rjhJ+FY1to4SA1/Kb2aJBDImruPyitTDQ91ncM3zXB3lIRJfSWfT8oDxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780990497; c=relaxed/simple;
-	bh=MayscQ7fj3XdqBoN85CuwGzd1lx4Z0mojTjuK6HiBI8=;
+	bh=+6BRIaNtvk5rAKXpix7QthaF+1jRDMPHqYJCsvUAxL4=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LE5y2otGwMosRhfocck/78gian2U8K7GOy3W7H1IvKWa1Rkj85pD1OVSIAe1RHSjulb68EWfvdt6jr31rJLUsO8adLT2wjSrQtTacBWeCUVPbbbrmSBJTH/2Rx32/c9VCsxy+DX1ME3UTnDwOdIkGhavUDGc+KRtdGbF1bGm7U0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=DJzq8iMq; arc=none smtp.client-ip=148.6.0.49
+	 MIME-Version; b=dEG4Iv7Zwe2JQmV0+WuU1OXX5qdPYNJQcyyIVIhOAooUFi2PzxqwpECiXgjwmP6wNYR+3doTPJG9vMQkVbLtXFkI5FQBf4CBh1zuf+cNSGRYGrs4UaSzeOqs5FUSxKL9ds0y6bpGR7u3lu6rYcTSu416/S06TY49wx6DMdF+l+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=dJt2/yFr; arc=none smtp.client-ip=148.6.0.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="DJzq8iMq"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="dJt2/yFr"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4gZL954zqYz3sb0c;
-	Tue, 09 Jun 2026 09:27:53 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4gZL964whkz3sb0f;
+	Tue, 09 Jun 2026 09:27:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1780990071; x=1782804472; bh=AhWiJDZx9e
-	2kkd7hd1RD33ZYvJjhyEiRh7gRaIBiTdw=; b=DJzq8iMq9UHqFsLBraIRy+RsLS
-	q8qODKsDz+OlVlhxgzuiwGoRJx0GI9/fMh4bG3tkUWGpFcxT/BRvVCZuPPYh/v1w
-	CiwYVelWVPoxxsoYl6PpCaYgNoOune6p+qiIZi2Naiw/W4JwbYmwr+bXiz/UonaE
-	KjtH+jXqXgJMZ1rc4=
+	:received; s=20151130; t=1780990072; x=1782804473; bh=djO71CRZBk
+	+p+L+kr8DM1adBQijJI2N1oXOlYF6D9tA=; b=dJt2/yFrfpB82hZjpHSVXy1DI5
+	OWBR8TW0eALwb2s9LP3/wWjJ2BZk49tfkWA7pxdMNE2r0XYh4NwhGS7EWcM/ANL1
+	y9GkbQrzCxqV2cbERiyzHjdhRNie7WRzqL0V6AiB/TTw/r1vrMciX7/JWm1XRAxo
+	edU6f5jOfHHo3DLyc=
 X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
 Received: from smtp0.kfki.hu ([127.0.0.1])
  by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id Bp-xXlVTxBpD; Tue,  9 Jun 2026 09:27:51 +0200 (CEST)
+ id 4QHvALM2HgVS; Tue,  9 Jun 2026 09:27:52 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (254C0692.nat.pool.telekom.hu [37.76.6.146])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4gZL925p5bz3sb0f;
+	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4gZL926LCtz3sb0p;
 	Tue, 09 Jun 2026 09:27:50 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 4B922140B3C; Tue,  9 Jun 2026 09:27:50 +0200 (CEST)
+	id 492C6140B39; Tue,  9 Jun 2026 09:27:50 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2 4/9] netfilter: ipset: Extend the rcu locked area properly
-Date: Tue,  9 Jun 2026 09:27:45 +0200
-Message-Id: <20260609072750.318774-5-kadlec@netfilter.org>
+Subject: [PATCH v2 3/9] netfilter: ipset: fix order of kfree_rcu() and rcu_assign_pointer()
+Date: Tue,  9 Jun 2026 09:27:44 +0200
+Message-Id: <20260609072750.318774-4-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260609072750.318774-1-kadlec@netfilter.org>
 References: <20260609072750.318774-1-kadlec@netfilter.org>
@@ -52,97 +52,44 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-deepspam: 20ham 11%
+X-deepspam: ham 0%
 Content-Transfer-Encoding: quoted-printable
 
-The rcu locked areas not covered fully the parts which
-worked on the rcu protected pointers. Also, in hash gc
-we need to be rcu and not lock protected.
+Sashiko pointed out that kfree_rcu() was called before
+rcu_assign_pointer() in handling the comment extension.
+Fix the order so that rcu_assign_pointer() called first.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
-ip_set_hash_gen.h
-index 6ab32d3a827e..20678116ae32 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -569,8 +569,8 @@ mtype_gc(struct work_struct *work)
- 	set =3D gc->set;
- 	h =3D set->data;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
+et_core.c
+index 3706b4a85a0f..a531b654b8d9 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -351,8 +351,8 @@ ip_set_init_comment(struct ip_set *set, struct ip_set=
+_comment *comment,
 =20
--	spin_lock_bh(&set->lock);
--	t =3D ipset_dereference_set(h->table, set);
-+	rcu_read_lock_bh();
-+	t =3D rcu_dereference_bh(h->table);
- 	atomic_inc(&t->uref);
- 	numof_locks =3D ahash_numof_locks(t->htable_bits);
- 	r =3D gc->region++;
-@@ -580,7 +580,6 @@ mtype_gc(struct work_struct *work)
- 	next_run =3D (IPSET_GC_PERIOD(set->timeout) * HZ) / numof_locks;
- 	if (next_run < HZ/10)
- 		next_run =3D HZ/10;
--	spin_unlock_bh(&set->lock);
-=20
- 	mtype_gc_do(set, h, t, r);
-=20
-@@ -588,6 +587,7 @@ mtype_gc(struct work_struct *work)
- 		pr_debug("Table destroy after resize by expire: %p\n", t);
- 		mtype_ahash_destroy(set, t, false);
+ 	if (unlikely(c)) {
+ 		set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
+-		kfree_rcu(c, rcu);
+ 		rcu_assign_pointer(comment->c, NULL);
++		kfree_rcu(c, rcu);
  	}
-+	rcu_read_unlock_bh();
-=20
- 	queue_delayed_work(system_power_efficient_wq, &gc->dwork, next_run);
-=20
-@@ -865,9 +865,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	if (elements >=3D maxelem) {
- 		u32 e;
- 		if (SET_WITH_TIMEOUT(set)) {
--			rcu_read_unlock_bh();
- 			mtype_gc_do(set, h, t, r);
--			rcu_read_lock_bh();
- 		}
- 		maxelem =3D h->maxelem;
- 		elements =3D 0;
-@@ -876,7 +874,6 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 		if (elements >=3D maxelem && SET_WITH_FORCEADD(set))
- 			forceadd =3D true;
- 	}
--	rcu_read_unlock_bh();
-=20
- 	spin_lock_bh(&t->hregion[r].lock);
- 	n =3D rcu_dereference_bh(hbucket(t, key));
-@@ -1034,6 +1031,7 @@ mtype_add(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 		pr_debug("Table destroy after resize by add: %p\n", t);
- 		mtype_ahash_destroy(set, t, false);
- 	}
-+	rcu_read_unlock_bh();
- 	return ret;
+ 	if (!len)
+ 		return;
+@@ -393,8 +393,8 @@ ip_set_comment_free(struct ip_set *set, void *ptr)
+ 	if (unlikely(!c))
+ 		return;
+ 	set->ext_size -=3D sizeof(*c) + strlen(c->str) + 1;
+-	kfree_rcu(c, rcu);
+ 	rcu_assign_pointer(comment->c, NULL);
++	kfree_rcu(c, rcu);
  }
 =20
-@@ -1062,7 +1060,6 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	key =3D HKEY(value, h->initval, t->htable_bits);
- 	r =3D ahash_region(key);
- 	atomic_inc(&t->uref);
--	rcu_read_unlock_bh();
-=20
- 	spin_lock_bh(&t->hregion[r].lock);
- 	n =3D rcu_dereference_bh(hbucket(t, key));
-@@ -1148,6 +1145,7 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 		pr_debug("Table destroy after resize by del: %p\n", t);
- 		mtype_ahash_destroy(set, t, false);
- 	}
-+	rcu_read_unlock_bh();
- 	return ret;
- }
-=20
+ typedef void (*destroyer)(struct ip_set *, void *);
 --=20
 2.39.5
 
