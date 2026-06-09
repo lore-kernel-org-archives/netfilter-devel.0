@@ -1,48 +1,48 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE201A2545
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 07:34:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E473D1CB4
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 07:34:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780990498; cv=none; b=ZwFWJ8iYcYgAPBTDN2FPuxpgLDv1cZvf0hTRcVxS7YYlA4mEKhwMHJUa2Pf+n5gpdRKjvr6cZiy1lUPPGXd2EnJwQGFG5hqw0EtG8WC2nR4IKmF9/PlPnqBxuWOSVa5oV12RJYWmV4Oq3uQLuGxu3YsbfgkSKlWkKlurKsKn2p4=
+	t=1780990498; cv=none; b=RJ4SqwA5XbXtpfpdTykFkZg6WwBlJQxlwgFitZh0+VEHJwBJz/YEhM13bHOe3ZLfwiIvXJOgjpBObCrCIY64MFZjnSzEQzxgMs13CZglhiBBU/cmPQ6RzFE4LKJ2G0MpeANu6cg3yRYe08K3HqRosnwQ2u5feIyQZBXa8q814lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780990498; c=relaxed/simple;
-	bh=XZSqf3JSL8bO+O7STsQIImUXBOu/REfRXkMlpGsns9g=;
+	bh=nPbHBqbbnw7/91+4rewRnaySIwB2f+npSBe8faXMPNE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QcJ1oUXLp2J6NZeoMmdOvBPxaGbEhumqWfkPo7tBv4CmwjjTtUw8ubRKLkxdpvMUGJNbWmYHHc4+wbGQGF2crsUaFmuAGqDH/tfFIaD/BK4lPvoh8WvERwvs5RlHhKREWAsyUkrttI61MnGjZXYzBJBqf8pDWXC4tEr5NvXgShM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=izYCs48y; arc=none smtp.client-ip=148.6.0.50
+	 MIME-Version; b=HGNBkrxT1BV3tgiiQrR1aEJLoKwd8h4gzP/QD47q+jmpDyeEv4LHyPHX9ROeo4LOpCCy/0hJD5z2EOwfoznCSgA15kg4h3LAU6an05Ny96rJB26nKVyrfTCtLr6/AVjnZ2c67hTttXnUc4EL0GLmAL3oaeIHDIxYrodD92E1x1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Y2gqLOl/; arc=none smtp.client-ip=148.6.0.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="izYCs48y"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Y2gqLOl/"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4gZL94666VzGFDCV;
-	Tue, 09 Jun 2026 09:27:52 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4gZL9743Shz3sb0p;
+	Tue, 09 Jun 2026 09:27:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1780990070; x=1782804471; bh=LOl9W7E1f5
-	vzC/mTlt+TAK+M04Z8DAwQGO09WmPE0WI=; b=izYCs48y02mOVYxDesb6zhfO8O
-	5sku5k2QAGLHl270hkvJhWyP3Lac0KFKhGKWuTL03oLdDtjBgFYCd0/+bws45cXY
-	GKAIVpYeSuMwitcQBYphN+JEf/EHHm1q3IUVPQbgRNJqBdQ8rqWbc6f7IyIm1pT8
-	ESTdhY59r9+mxF2MU=
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id ZvlZZoH3-Pf2; Tue,  9 Jun 2026 09:27:50 +0200 (CEST)
+	:received; s=20151130; t=1780990073; x=1782804474; bh=09m3WROAo9
+	1NRAlwZNDRaOOPb/lUTsW3tuRwTjmZ0hs=; b=Y2gqLOl/wLOQJqThEKjWrvu4H+
+	b7ryWyX5oxpluQ5uJDauTrkS7bSPDoljSG45vajDhUuSQzkQOcEFWb/nnV+tuy01
+	8uFVMjjs5fSPs/Rm40fWCFJSRTRDHKtvM8chpk5VGjhbj43eTrkj/Rv8V5ECuCti
+	a+diktnU3k8Gc1oQk=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id 3Vi2MxFRxvTj; Tue,  9 Jun 2026 09:27:53 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (254C0692.nat.pool.telekom.hu [37.76.6.146])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4gZL925PPTzGFDCW;
-	Tue, 09 Jun 2026 09:27:50 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4gZL9328KYz3sb0r;
+	Tue, 09 Jun 2026 09:27:51 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 46C9B140535; Tue,  9 Jun 2026 09:27:50 +0200 (CEST)
+	id 504C4141166; Tue,  9 Jun 2026 09:27:50 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2 2/9] netfilter: ipset: Don't use test_bit() in lockless RCU readers in bitmap types
-Date: Tue,  9 Jun 2026 09:27:43 +0200
-Message-Id: <20260609072750.318774-3-kadlec@netfilter.org>
+Subject: [PATCH v2 6/9] netfilter: ipset: fix potential double free at resize/del
+Date: Tue,  9 Jun 2026 09:27:47 +0200
+Message-Id: <20260609072750.318774-7-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260609072750.318774-1-kadlec@netfilter.org>
 References: <20260609072750.318774-1-kadlec@netfilter.org>
@@ -52,153 +52,107 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-deepspam: dunno 36%
 Content-Transfer-Encoding: quoted-printable
 
-The pair of the patch "netfilter: ipset: Don't use test_bit() in lockless
-RCU readers in hash types" for the bitmap types.
+When resizing is in progress, kernel side del element operations
+performed on the original set are saved in a list and replayed on
+the new set after resize finished. Make sure extensions are not
+freed when replaying the deletion of the given elements.
+
+Issue was discovered by sashiko.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_gen.h   | 6 ++++--
- net/netfilter/ipset/ip_set_bitmap_ip.c    | 6 +++---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 6 +++---
- net/netfilter/ipset/ip_set_bitmap_port.c  | 6 +++---
- 4 files changed, 13 insertions(+), 11 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 11 +++++++++--
+ net/netfilter/ipset/ip_set_hash_gen.h  | 10 ++++++----
+ 2 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipse=
-t/ip_set_bitmap_gen.h
-index 798c7993635e..3b333c85565f 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -51,7 +51,7 @@ mtype_ext_cleanup(struct ip_set *set)
- 	u32 id;
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfi=
+lter/ipset/ip_set.h
+index b98331572ad2..6d0d33680faa 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -113,6 +113,12 @@ struct ip_set_skbinfo {
+ 	u16 __pad;
+ };
 =20
- 	for (id =3D 0; id < map->elements; id++)
--		if (test_bit(id, map->members))
-+		if (test_bit_acquire(id, map->members))
- 			ip_set_ext_destroy(set, get_ext(set, map, id));
++enum ip_set_ext_context {
++	IPSET_EXT_CONTEXT_NONE =3D 0,
++	IPSET_EXT_CONTEXT_TARGET =3D 1,
++	IPSET_EXT_CONTEXT_REPLAY =3D 2,
++};
++
+ struct ip_set_ext {
+ 	struct ip_set_skbinfo skbinfo;
+ 	u64 packets;
+@@ -121,7 +127,7 @@ struct ip_set_ext {
+ 	u32 timeout;
+ 	u8 packets_op;
+ 	u8 bytes_op;
+-	bool target;
++	u8 context;
+ };
+=20
+ #define ext_timeout(e, s)	\
+@@ -530,7 +536,8 @@ nf_inet_addr_mask_inplace(union nf_inet_addr *a1,
  }
 =20
-@@ -165,6 +165,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
+ #define IP_SET_INIT_KEXT(skb, opt, set)			\
+-	{ .bytes =3D (skb)->len, .packets =3D 1, .target =3D true,\
++	{ .bytes =3D (skb)->len, .packets =3D 1,		\
++	  .context =3D IPSET_EXT_CONTEXT_TARGET,		\
+ 	  .timeout =3D ip_set_adt_opt_timeout(opt, set) }
 =20
- 	/* Activate element */
-+	smp_mb__before_atomic();
- 	set_bit(e->id, map->members);
- 	set->elements++;
+ #define IP_SET_INIT_UEXT(set)				\
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
+ip_set_hash_gen.h
+index a41f6cdeed80..a95feb013ac5 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -630,6 +630,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 	struct htable *t, *orig;
+ 	u8 pos, htable_bits;
+ 	size_t hsize, dsize =3D set->dsize;
++	struct ip_set_ext replay =3D { .context =3D IPSET_EXT_CONTEXT_REPLAY };
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	u8 flags;
+ 	struct mtype_elem *tmp;
+@@ -779,7 +780,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 		if (x->ad =3D=3D IPSET_ADD) {
+ 			mtype_add(set, &x->d, &x->ext, &x->mext, x->flags);
+ 		} else {
+-			mtype_del(set, &x->d, NULL, NULL, 0);
++			mtype_del(set, &x->d, &replay, &replay, 0);
+ 		}
+ 		list_del(l);
+ 		kfree(l);
+@@ -1007,7 +1008,7 @@ mtype_add(struct ip_set *set, void *value, const st=
+ruct ip_set_ext *ext,
+ 	ret =3D 0;
+ resize:
+ 	spin_unlock_bh(&t->hregion[r].lock);
+-	if (atomic_read(&t->ref) && ext->target) {
++	if (atomic_read(&t->ref) && ext->context =3D=3D IPSET_EXT_CONTEXT_TARGE=
+T) {
+ 		/* Resize is in process and kernel side add, save values */
+ 		struct mtype_resize_ad *x;
 =20
-@@ -219,7 +220,7 @@ mtype_list(const struct ip_set *set,
- 		cond_resched_rcu();
- 		id =3D cb->args[IPSET_CB_ARG0];
- 		x =3D get_ext(set, map, id);
--		if (!test_bit(id, map->members) ||
-+		if (!test_bit_acquire(id, map->members) ||
- 		    (SET_WITH_TIMEOUT(set) &&
- #ifdef IP_SET_BITMAP_STORED_TIMEOUT
- 		     mtype_is_filled(x) &&
-@@ -278,6 +279,7 @@ mtype_gc(struct timer_list *t)
- 			x =3D get_ext(set, map, id);
- 			if (ip_set_timeout_expired(ext_timeout(x, set))) {
- 				clear_bit(id, map->members);
-+				smp_mb__after_atomic();
- 				ip_set_ext_destroy(set, x);
- 				set->elements--;
- 			}
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset=
-/ip_set_bitmap_ip.c
-index 5988b9bb9029..73135e4ebe72 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -67,20 +67,20 @@ static int
- bitmap_ip_do_test(const struct bitmap_ip_adt_elem *e,
- 		  struct bitmap_ip *map, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
+@@ -1095,9 +1096,10 @@ mtype_del(struct ip_set *set, void *value, const s=
+truct ip_set_ext *ext,
+ 			mtype_del_cidr(set, h,
+ 				       NCIDR_PUT(DCIDR_GET(d->cidr, j)), j);
+ #endif
+-		ip_set_ext_destroy(set, data);
++		if (ext->context !=3D IPSET_EXT_CONTEXT_REPLAY)
++			ip_set_ext_destroy(set, data);
 =20
- static int
- bitmap_ip_gc_test(u16 id, const struct bitmap_ip *map, size_t dsize)
- {
--	return !!test_bit(id, map->members);
-+	return !!test_bit_acquire(id, map->members);
- }
-=20
- static int
- bitmap_ip_do_add(const struct bitmap_ip_adt_elem *e, struct bitmap_ip *m=
-ap,
- 		 u32 flags, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
-=20
- static int
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ip=
-set/ip_set_bitmap_ipmac.c
-index 752f59ef8744..6813e2e0dd71 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -86,7 +86,7 @@ bitmap_ipmac_do_test(const struct bitmap_ipmac_adt_elem=
- *e,
- {
- 	const struct bitmap_ipmac_elem *elem;
-=20
--	if (!test_bit(e->id, map->members))
-+	if (!test_bit_acquire(e->id, map->members))
- 		return 0;
- 	elem =3D get_const_elem(map->extensions, e->id, dsize);
- 	if (e->add_mac && elem->filled =3D=3D MAC_FILLED)
-@@ -100,7 +100,7 @@ bitmap_ipmac_gc_test(u16 id, const struct bitmap_ipma=
-c *map, size_t dsize)
- {
- 	const struct bitmap_ipmac_elem *elem;
-=20
--	if (!test_bit(id, map->members))
-+	if (!test_bit_acquire(id, map->members))
- 		return 0;
- 	elem =3D get_const_elem(map->extensions, id, dsize);
- 	/* Timer not started for the incomplete elements */
-@@ -147,7 +147,7 @@ bitmap_ipmac_do_add(const struct bitmap_ipmac_adt_ele=
-m *e,
- 	struct bitmap_ipmac_elem *elem;
-=20
- 	elem =3D get_elem(map->extensions, e->id, dsize);
--	if (test_bit(e->id, map->members)) {
-+	if (test_bit_acquire(e->id, map->members)) {
- 		if (elem->filled =3D=3D MAC_FILLED) {
- 			if (e->add_mac &&
- 			    (flags & IPSET_FLAG_EXIST) &&
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ips=
-et/ip_set_bitmap_port.c
-index 7138e080def4..a7131d8dd03e 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -58,20 +58,20 @@ static int
- bitmap_port_do_test(const struct bitmap_port_adt_elem *e,
- 		    const struct bitmap_port *map, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
-=20
- static int
- bitmap_port_gc_test(u16 id, const struct bitmap_port *map, size_t dsize)
- {
--	return !!test_bit(id, map->members);
-+	return !!test_bit_acquire(id, map->members);
- }
-=20
- static int
- bitmap_port_do_add(const struct bitmap_port_adt_elem *e,
- 		   struct bitmap_port *map, u32 flags, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
-=20
- static int
+-		if (atomic_read(&t->ref) && ext->target) {
++		if (atomic_read(&t->ref) && ext->context =3D=3D IPSET_EXT_CONTEXT_TARG=
+ET) {
+ 			/* Resize is in process and kernel side del,
+ 			 * save values
+ 			 */
 --=20
 2.39.5
 
