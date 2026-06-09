@@ -1,178 +1,77 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3440350D7D
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 22:18:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 332DE3655C4;
+	Tue,  9 Jun 2026 22:25:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781043532; cv=none; b=gXWOmW17yYS5Tt5OtEiTD1ApbNT2jjxihOeMyXBbHjUeqoEU/VdIDdA+8tJmch/G3b3iTCQsQ//SSTc/wYLam6ZawQaILav0OjFqP0SQhtPCfKbE56z4NsB54j3Ilc66ZKU65H3TxSLmVb0jFvDAr3rR9AQDufL+f7G66y2NIZc=
+	t=1781043936; cv=none; b=CffND7Ufgr/4kBvrv3zp10bAjEWJGg12UpnEa3sR9d/ThErU3Tspyfu2Qs+AsgiO/7uuFh9NlhnG6FCiIF0ThK1kw/KATzLNJ61CjTUhzx7WLFA6qslr6/8KFlMhmfesFQIVbTzmoAR198F7Kjus8C+WOBSHvKKkDcSgpK+chTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781043532; c=relaxed/simple;
-	bh=X3K7QCVeBASTQmRdV54niQxCXBktX5joj+vgOzuhQFA=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=rATTobParmg2hJUn9dDvjoqljf5ZWnZMRqVn/fn4+YEi+ubgDt4L6ItDqcWRJtUkoZ+e3HUDbl1mfcsVyRc30GWzKYaIjlwN2dVcvBJNGTYH4Egj/Ajxj89fL7OcJlC7EmI64UJP9qSpNNUXCL7A9VDc5RdtbpOsRvnCV2tM1Cc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wPalHWUC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wPalHWUC"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E288F60272
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 00:18:48 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781043529;
-	bh=zTHHkt4fOnYf3MNAwio73S8WWFBdMODcT9rYeRWOtOg=;
-	h=From:To:Subject:Date:From;
-	b=wPalHWUC6Qn10feDy8RkRFvbtwUJkZf0ZSV6BYIeNWeqjwv5U43uS4zk0JDQCUlte
-	 UapoFDrAiOZq6RMQDQCIwQSpabjSSO2/ljYoj0sd5NwwTH7bSzGPVoB9KMoVBnwTeX
-	 /Qpia4rPn26euV1OeywP+vFzBhO/WCEEHwaug+ezCa4I/qB25A6ZUcoc8mKp8ZNsH5
-	 b93Vok+l0YEbXcbSmbBnP6tk+bk5GcemaHor4Refp3MGCMINDhI1nU1w6gdV7S8iqh
-	 kWgRiq1ibhaMuO/6ow1lk3PSn+a3HLRteLzQJdpW1zLhxmKZgGOsjdhHQarqV3oUDB
-	 h5drw/UmCEBeA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_dup_netdev: add nf_dev_xmit_recursion*() helpers and use them
-Date: Wed, 10 Jun 2026 00:18:44 +0200
-Message-ID: <20260609221844.117324-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	s=arc-20240116; t=1781043936; c=relaxed/simple;
+	bh=wxdEyR0Jsul6J54VQA36KmH/WMKdRF/uqmzrtbVrmq4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ADgzC9iUe/Y7Tzk4/ixa67l47W9vurQN2vnUdFUTB3qfN/GY5MhSI4bOwZjfXyt77YYrX0qZkR+FRyyiY2qt58kc3e+eowRZJG8g826EoNzw53F8o4zW5MITshhe66CrHKRccrqN9jhu8/UjtP3omRg2uJ+4lJsDNEFBja5NlDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id EF70F60C94; Wed, 10 Jun 2026 00:25:31 +0200 (CEST)
+Date: Wed, 10 Jun 2026 00:25:30 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next] net: dummy: add phony ndo_setup_tc stub
+Message-ID: <aiiS2igkkIvGLtpM@strlen.de>
+References: <20260609142813.9197-1-fw@strlen.de>
+ <20260609151517.186b1cac@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260609151517.186b1cac@kernel.org>
 
-Update nft_dup and nft_fwd to use the nf_dev_xmit_recursion() helpers.
-This patch also disables BH when transmitting the skb to address a
-possible migration to different CPU leading to imbalanced decrementation
-of the recursion counters.
+Jakub Kicinski <kuba@kernel.org> wrote:
+> On Tue,  9 Jun 2026 16:28:09 +0200 Florian Westphal wrote:
+> > Unlike netdevsim, dummy is a data sink so no capabilities (e.g.
+> > u32-style matcher, vport device redirects, PPPoE header push/pop etc).
+> > have to be implemented.
+> 
+> If no "peer" is configured netdevsim is also a data sink.
 
-This is modeled after Florian Westphal's dev_xmit_recursion*() API
-available since 97cdcf37b57e ("net: place xmit recursion in softnet
-data") according to its current state in the tree.
+Yes, but you can configure peers.  And then this fake offload stub
+is a liar.
 
-Fixes: 1d47b55b36d2 ("netfilter: nft_fwd_netdev: use recursion counter in neigh egress path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_dup_netdev.h | 34 +++++++++++++++++++++++----
- net/netfilter/nf_dup_netdev.c         | 10 ++++----
- net/netfilter/nft_fwd_netdev.c        | 10 ++++----
- 3 files changed, 40 insertions(+), 14 deletions(-)
+I would expect that offloads for netdevsim actually work, i.e.
+that a shaper shapes, that ets offload does delay packets and
+in case of flowtable that it will move skbs from one vport to
+another (if that was requested).
 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index 609bcf422a9b..05c0b9b4228f 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -11,15 +11,39 @@ void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
- #define NF_RECURSION_LIMIT	2
- 
--static inline u8 *nf_get_nf_dup_skb_recursion(void)
--{
- #ifndef CONFIG_PREEMPT_RT
--	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
-+			NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	__this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
-+}
-+
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	__this_cpu_dec(softnet_data.xmit.nf_dup_skb_recursion);
-+}
- #else
--	return &current->net_xmit.nf_dup_skb_recursion;
--#endif
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(current->net_xmit.nf_dup_recursion > NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	current->net_xmit.nf_dup_skb_recursion++;
- }
- 
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	current->net_xmit.nf_dup_skb_recursion--;
-+}
-+#endif
-+
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index 3d88ef927f31..914b528de90d 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -16,9 +16,7 @@
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
- {
--	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
--
--	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT)
-+	if (nf_dev_xmit_recursion())
- 		goto err;
- 
- 	if (hook == NF_NETDEV_INGRESS && skb_mac_header_was_set(skb)) {
-@@ -30,9 +28,11 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
--	(*nf_dup_skb_recursion)++;
-+	local_bh_disable();
-+	nf_dev_xmit_recursion_inc();
- 	dev_queue_xmit(skb);
--	(*nf_dup_skb_recursion)--;
-+	nf_dev_xmit_recursion_dec();
-+	local_bh_enable();
- 	return;
- err:
- 	kfree_skb(skb);
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index b9e88d7cf308..b4f1dc1dfaf3 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -95,7 +95,6 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 			      struct nft_regs *regs,
- 			      const struct nft_pktinfo *pkt)
- {
--	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
- 	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
- 	void *addr = &regs->data[priv->sreg_addr];
- 	int oif = regs->data[priv->sreg_dev];
-@@ -154,7 +153,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		goto out;
- 	}
- 
--	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT) {
-+	if (nf_dev_xmit_recursion()) {
- 		verdict = NF_DROP;
- 		goto out;
- 	}
-@@ -176,9 +175,12 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
--	(*nf_dup_skb_recursion)++;
-+
-+	local_bh_disable();
-+	nf_dev_xmit_recursion_inc();
- 	neigh_xmit(neigh_table, dev, addr, skb);
--	(*nf_dup_skb_recursion)--;
-+	nf_dev_xmit_recursion_dec();
-+	local_bh_enable();
- out:
- 	regs->verdict.code = verdict;
- }
--- 
-2.47.3
+> We added netdevsim because dummy and veth started accumulating
+> "features" which were clearly just for test harnesses. Would be
+> great if we could stay the course and put whatever changes you
+> need in netdevsim, even if it requires some hacks.
 
+Is a lot more work.  I don't have time ATM to implement a u32-style
+packet matcher or a fake software flowtable.
+
+> Is there anything fundamentally blocking the use of netdevsim?
+> Or is it just convenience (since netdevsim is a bit of a PITA
+> to create and establish the name of)?
+
+I played with netdevsim, aside from the above (i.e., I don't expect
+netdevsim to say 'offloaded' and then ignore all the offloaded
+commands...) the worst part is the naming and the behaviour when
+creating new devices while in a network namespace.  Test is spawned via
+'unshare -n' -- I did not find a way to really extract the new device name
+reliably except via 'ip link'.
+
+I think thats solveable, so yes, I could make netdevsim lie instead.
+
+But I don't think its the right thing to do.
+
+If you disagree and think that this is fine I can retarget this to
+netdevsim, no problem.
