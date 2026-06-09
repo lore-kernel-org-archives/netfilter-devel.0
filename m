@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58294028DE
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 11:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D5A403138
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2026 11:52:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781005934; cv=none; b=CFmdXd9W4clCGivZyeyfP9EeuiU2wJptzEHD3/h5kqeaS5IjSZ7dyEAfT1QxGKbeXIQ4OpKZbd3xCEvA1OH1sKePWVWY8ZpdR53dtbuUxP9AacjOzDWcoczddUfNcu0+OB1TGYW4L5FwSap2Fro+LK0aDU0/AtO2M+VPzEM2jIo=
+	t=1781005938; cv=none; b=duwDGYaqBIlPDntc6C5qozRC18Hr4SnMwEVuAW2BBHq6/82FpCRTR++HDY4Mcp/R3DRS2F91UC4W8FX/eCdotbYPWQ08F4kfzwOweIBiiHCGtNkz/yB3Rl9VKholNTQbiKhRgc2kHUKbeOCklatMOBblon1EX+ZXGOTHd+ZPFbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781005934; c=relaxed/simple;
-	bh=lbEQGr8bbRAyvn3x7yS6nfELdgdWpgcI+oWSQMNeU7c=;
+	s=arc-20240116; t=1781005938; c=relaxed/simple;
+	bh=f39SBeOnVk/k3EUvpSOYahWqZkbG4fZDPX++h5T2UK0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Gh5pod3HKIAskHKqI7ykY9n4mrnVFEhrleT/D4XV6537CmB92zyR8cjNaLzl3oHFIXqYHe4w6N49j3tssHAhOdYwl8fLP/Yt4JM9da+f/fMB49nWfNYSXjsfcNlVGCo2+I9QW1jbOQhHSwWXAuHimiFfZLybvFNUPSPUe2TClJ0=
+	 MIME-Version; b=iNE40JwGEXGV7SqZW2JnObL6IarplUPu7F+iwfVOabkb6cltTFQeiYkZcNcQLuRWtoD8pTqBj07La1W3zdNfBl226jGqZVy1zbyF8YuSjOw4rVeJ9Aou56H6C3uNHmimQh5Wuzy8j4NLnrgQjcx7bdwSFiq5dmQHa2XDLnnv/qs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 26343605BD; Tue, 09 Jun 2026 13:52:11 +0200 (CEST)
+	id 68D7B605BD; Tue, 09 Jun 2026 13:52:15 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 1/3] netfilter: nfnetlink_queue: restrict writes to network header
-Date: Tue,  9 Jun 2026 13:51:53 +0200
-Message-ID: <20260609115201.2563-2-fw@strlen.de>
+Subject: [PATCH v3 nf-next 2/3] netfilter: nftables: restrict linklayer and network header writes
+Date: Tue,  9 Jun 2026 13:51:54 +0200
+Message-ID: <20260609115201.2563-3-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260609115201.2563-1-fw@strlen.de>
 References: <20260609115201.2563-1-fw@strlen.de>
@@ -33,220 +33,222 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nfnetlink_queue doesn't allow selective replacements of some part of the
-payload, only complete replacement.
-If the new data is shorter, skb is trimmed, otherwise expanded.
+Don't permit arbitrary writes to linklayer and network header data.
+Several spots in network stack trust header validation performed in
+ipv4/ipv6 before PRE_ROUTING hook.
 
-Add minimal validation of the new ip/ipv6 header.  Check total len
-matches skb length.  Disallow ip option modifications after prerouting.
+For linklayer, allow writes for netdev ingress. For other hooks, only
+allow link layer writes that do not spill into network header.
 
-IPv6 extension headers are also disabled.
-IP options and exthdrs could be allowed later after validation pass or
-ip option recompile.
+For network header, check the offset/length combinations:
+ - changing dscp requires store at offset 0 for checsum fixups, so
+ make sure ip version + length field isn't altered.
+ - ip6 dscp starts directly after the version field, so make sure it
+   remains 6.
 
-Transport header is not checked.
+Several of these checks could already be done at rule insertion time.
+Risk is that this might cause ruleset load failures for existing
+rulesets. With this change such writes are silently skipped and packet
+passes unchanged.
 
-Bridge modifications are rejected.  Given userspace doesn't even receive
-L2 headers, use is limited and I don't think there are any users of
-bridge nfnetlink_queue, let alone users that modifiy payload.
-
-Arp isn't supported at all.
+Transport and inner header bases are not checked / restricted.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v3: don't support bridge writes for now; I don't think there are users.
-
- net/netfilter/nfnetlink_queue.c | 170 ++++++++++++++++++++++++++++++++
+ v3: no changes.
+ net/netfilter/nft_payload.c | 170 ++++++++++++++++++++++++++++++++++++
  1 file changed, 170 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 60ab88d45096..48fdef7ef145 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1136,6 +1136,173 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	return err;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 484a5490832e..8e4388bee459 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -824,6 +824,172 @@ nft_payload_set_vlan(const u32 *src, struct sk_buff *skb, u16 offset, u8 len,
+ 	return true;
  }
  
-+static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
-+				  const struct nf_queue_entry *e)
++/* Ingress is very early, before l3 protocol handlers.
++ * There should be no in-tree code that trusts l3/l4 headers
++ * between ingress and NF_INET_PRE_ROUTING hooks.
++ */
++static bool nft_in_ingress(const struct nf_hook_state *s)
 +{
-+	const struct iphdr *iph_orig = ip_hdr(e->skb);
-+	unsigned int ihl = iph_new->ihl * 4;
-+
-+	if (iph_new->ihl != iph_orig->ihl)
-+		return false;
-+	if (ihl == sizeof(*iph_orig))
-+		return true;
-+
-+	return memcmp(iph_new + 1, ip_hdr(e->skb) + 1, ihl - sizeof(*iph_orig)) == 0;
++	return s->pf == NFPROTO_NETDEV && s->hook == NF_NETDEV_INGRESS;
 +}
 +
-+static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
-+			       const struct nf_queue_entry *e)
++static bool nft_nh_write_ok_ip4(const struct nft_pktinfo *pkt,
++				const struct nft_payload_set *priv,
++				const u32 *src)
 +{
-+	unsigned int ihl;
++	unsigned int offset = priv->offset + skb_network_offset(pkt->skb);
++	const u8 *new_octets = (const u8 *)src;
++	u8 old_octet;
 +
-+	if (data_len < sizeof(*iph))
-+		return false;
-+
-+	ihl = iph->ihl * 4u;
-+	if (ihl < sizeof(*iph) || data_len < ihl)
-+		return false;
-+
-+	if (iph->version != 4 ||
-+	    ((iph->frag_off ^ ip_hdr(e->skb)->frag_off) & ~htons(IP_DF)) != 0)
-+		return false;
-+
-+	/* BIG TCP won't work; netlink attr len is u16 */
-+	if (ntohs(iph->tot_len) != data_len)
-+		return false;
-+
-+	/* support for ipopts mangling would require
-+	 * recompile + skb transport header update.
-+	 */
-+	return nfqnl_validate_ipopts(iph, e);
-+}
-+
-+static bool nfqnl_validate_one_exthdr(const u8 *data,
-+				      unsigned int data_len,
-+				      const struct nf_queue_entry *e,
-+				      int start, int hdrlen)
-+{
-+	u16 octets;
-+
-+	if (data_len < hdrlen || hdrlen < 2)
-+		return false;
-+
-+	while (hdrlen > 0) {
-+		if (data_len < sizeof(octets))
-+			return false;
-+		data_len -= sizeof(octets);
-+
-+		if (skb_copy_bits(e->skb, start, &octets, sizeof(octets)))
++	switch (priv->offset) {
++	case 0: /* csum fixups does expand dscp/tos store to 2 bytes.
++		 * make sure ihl/version remain unchanged.
++		 */
++		if (skb_copy_bits(pkt->skb, offset, &old_octet, sizeof(old_octet)))
 +			return false;
 +
-+		if (hdrlen < sizeof(octets))
-+			return false;
-+
-+		hdrlen -= sizeof(octets);
-+		if (memcmp(data, &octets, sizeof(octets)))
-+			return false;
-+
-+		start += sizeof(octets);
-+		data += sizeof(octets);
-+	}
-+
-+	return true;
-+}
-+
-+static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
-+				  unsigned int data_len,
-+				  const struct nf_queue_entry *e)
-+{
-+	const struct ipv6hdr *ip6_orig = ipv6_hdr(e->skb);
-+	int exthdr_cnt = 0, start = sizeof(*ip6_orig);
-+	const u8 *data = (const u8 *)ip6_new;
-+	u8 orig_nexthdr = ip6_orig->nexthdr;
-+	u8 new_nexthdr = ip6_new->nexthdr;
-+
-+	if (new_nexthdr != orig_nexthdr)
-+		return false;
-+
-+	data += sizeof(*ip6_new);
-+	data_len -= sizeof(*ip6_new);
-+
-+	while (ipv6_ext_hdr(orig_nexthdr)) {
-+		const struct ipv6_opt_hdr *hp;
-+		struct ipv6_opt_hdr _hdr;
-+		int hdrlen;
-+
-+		if (orig_nexthdr == NEXTHDR_NONE)
++		return priv->len == 2 &&
++		       *new_octets == old_octet;
++	case offsetof(struct iphdr, tos):
++		return priv->len == 1;
++	case offsetof(struct iphdr, id):
++		return priv->len == 2;
++	case offsetof(struct iphdr, ttl):
++		if (priv->len == 1)
 +			return true;
 +
-+		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
++		if (priv->len != 2)
 +			return false;
 +
-+		hp = skb_header_pointer(e->skb, start, sizeof(_hdr), &_hdr);
-+		if (!hp)
++		/* same, csum fixup does expand ttl store to two bytes.
++		 * check protocol is not altered.
++		 */
++		if (skb_copy_bits(pkt->skb, offset + 1, &old_octet, sizeof(old_octet)))
 +			return false;
 +
-+		switch (orig_nexthdr) {
-+		case NEXTHDR_FRAGMENT:
-+			hdrlen = sizeof(struct frag_hdr);
-+			break;
-+		case NEXTHDR_AUTH:
-+			hdrlen = ipv6_authlen(hp);
-+			break;
-+		default:
-+			hdrlen = ipv6_optlen(hp);
-+			break;
-+		}
-+
-+		if (!nfqnl_validate_one_exthdr(data, data_len, e,
-+					       start, hdrlen))
-+			return false;
-+
-+		orig_nexthdr = hp->nexthdr;
-+		hp = (const void *)data;
-+		new_nexthdr = hp->nexthdr;
-+
-+		if (new_nexthdr != orig_nexthdr)
-+			return false;
-+
-+		data_len -= hdrlen;
-+		start += hdrlen;
-+		data += hdrlen;
-+	}
-+
-+	return true;
-+}
-+
-+static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
-+			       const struct nf_queue_entry *e)
-+{
-+	if (data_len < sizeof(*ip6))
-+		return false;
-+
-+	/* BIG TCP/jumbograms won't work; netlink attr len is u16 */
-+	if (ntohs(ip6->payload_len) != data_len - sizeof(*ip6))
-+		return false;
-+
-+	if (ip6->version != 6)
-+		return false;
-+
-+	return nfqnl_validate_exthdr(ip6, data_len, e);
-+}
-+
-+static bool nfqnl_validate_write(const void *data, unsigned int data_len,
-+				 const struct nf_queue_entry *e)
-+{
-+	switch (e->state.pf) {
-+	case NFPROTO_IPV4:
-+		return nfqnl_validate_ip4(data, data_len, e);
-+	case NFPROTO_IPV6:
-+		return nfqnl_validate_ip6(data, data_len, e) &&
-+		       !(IP6CB(e->skb)->flags & IP6SKB_JUMBOGRAM);
-+	case NFPROTO_BRIDGE:
-+		/* No write support. Bridge is dubious: userspace doesn't even see L2 header */
-+		return false;
++		return new_octets[1] == old_octet;
++	case offsetof(struct iphdr, check):
++		return priv->len <= 2 + 4 + 4;
++	case offsetof(struct iphdr, saddr):
++		return priv->len <= 4 + 4;
++	case offsetof(struct iphdr, daddr):
++		return priv->len <= 4;
 +	}
 +
 +	return false;
 +}
 +
- static int
- nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int diff)
- {
-@@ -1144,6 +1311,9 @@ nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int di
- 	if (e->state.net->user_ns != &init_user_ns)
- 		return -EPERM;
- 
-+	if (!nfqnl_validate_write(data, data_len, e))
-+		return -EINVAL;
++static bool nft_nh_write_ok_ip6(const struct nft_pktinfo *pkt,
++				const struct nft_payload_set *priv,
++				const u32 *src)
++{
++	const struct ipv6hdr *ih = (const void *)src;
 +
- 	if (diff < 0) {
- 		unsigned int min_len = skb_transport_offset(e->skb);
++	switch (priv->offset) {
++	case 0: /* store to dscp must not alter ip6 version */
++		return priv->len <= 4 && ih->version == 6;
++	case 2:
++		return priv->len <= 2;
++	case offsetof(struct ipv6hdr, hop_limit):
++		return priv->len == 1;
++	case offsetof(struct ipv6hdr, saddr):
++		return priv->len <= 16 + 16;
++	case offsetof(struct ipv6hdr, daddr):
++		return priv->len <= 16;
++	}
++
++	return false;
++}
++
++static bool nft_nh_write_ok_arp(const struct nft_payload_set *priv)
++{
++	/* Variable size for standard ethernet arp */
++	const unsigned int eth_ip = 2 * (ETH_ALEN + 4);
++	unsigned int offset = priv->offset;
++
++	switch (offset) {
++	case offsetof(struct arphdr, ar_op):
++		return priv->len == 2;
++	default:
++		break;
++	}
++
++	/* permit writes post fixed arp header size. offset + len are
++	 * checked vs skb size via skb_ensure_writable.
++	 */
++	return offset >= sizeof(struct arphdr) && priv->len <= eth_ip;
++}
++
++static bool nft_nh_write_ok_netdev(const struct nft_pktinfo *pkt,
++				   const struct nft_payload_set *priv,
++				   const u32 *src)
++{
++#ifdef CONFIG_NF_TABLES_NETDEV
++	switch (pkt->skb->protocol) {
++	case htons(ETH_P_ARP):
++		return nft_nh_write_ok_arp(priv);
++	case htons(ETH_P_IP):
++		return nft_nh_write_ok_ip4(pkt, priv, src);
++	case htons(ETH_P_IPV6):
++		return nft_nh_write_ok_ip6(pkt, priv, src);
++	}
++#endif
++	/* default to false for now, relax later in case we have
++	 * use-cases that need inner header manipulation for
++	 * encapsulated traffic like vlan or PPPoE.
++	 */
++	return false;
++}
++
++static bool nft_nh_write_ok_bridge(const struct nft_pktinfo *pkt,
++				   const struct nft_payload_set *priv,
++				   const u32 *src)
++{
++#if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
++	switch (pkt->ethertype) {
++	case htons(ETH_P_ARP):
++		return nft_nh_write_ok_arp(priv);
++	case htons(ETH_P_IP):
++		return nft_nh_write_ok_ip4(pkt, priv, src);
++	case htons(ETH_P_IPV6):
++		return nft_nh_write_ok_ip6(pkt, priv, src);
++	}
++#endif
++	/* see nft_nh_write_ok_netdev: default to false */
++	return false;
++}
++
++static bool nft_nh_write_ok(const struct nft_pktinfo *pkt,
++			    const struct nft_payload_set *priv,
++			    const u32 *src)
++{
++	switch (pkt->state->pf) {
++	case NFPROTO_ARP:
++		return nft_nh_write_ok_arp(priv);
++	case NFPROTO_BRIDGE:
++		return nft_nh_write_ok_bridge(pkt, priv, src);
++	case NFPROTO_IPV4:
++		return nft_nh_write_ok_ip4(pkt, priv, src);
++	case NFPROTO_IPV6:
++		return nft_nh_write_ok_ip6(pkt, priv, src);
++	case NFPROTO_NETDEV:
++		if (pkt->state->hook == NF_NETDEV_INGRESS)
++			return true;
++		return nft_nh_write_ok_netdev(pkt, priv, src);
++	}
++
++	return false;
++}
++
++/* check linklayer modifications don't spill into network header. */
++static bool nft_ll_write_ok(const struct nft_pktinfo *pkt, int offset)
++{
++	if (nft_in_ingress(pkt->state))
++		return true;
++
++	return offset <= skb_network_offset(pkt->skb);
++}
++
+ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -851,8 +1017,12 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 		}
  
+ 		offset = skb_mac_header(skb) - skb->data - vlan_hlen;
++		if (!nft_ll_write_ok(pkt, priv->len + priv->offset + offset))
++			goto err;
+ 		break;
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
++		if (!nft_nh_write_ok(pkt, priv, src))
++			goto err;
+ 		offset = skb_network_offset(skb);
+ 		break;
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
 -- 
 2.53.0
 
