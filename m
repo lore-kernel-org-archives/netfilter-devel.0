@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1DB02E62C4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38CE2EC086;
 	Wed, 10 Jun 2026 16:16:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781108202; cv=none; b=IKObU1MqI1DmTL0JntpRUE2HhJZjdFoWSB78EgONaywG8vJxgqdROCdyD9feUBljDfUkAkikdRE6hnF2x26ZLdIfEiNBxrC93We7vGGbzfa1cOw+Ni4e1jXhCCHvAXNcJMDuZYVxGpwo95U8bkCKYsCaEYxLm+vuJ/CB4FXbRXg=
+	t=1781108202; cv=none; b=i0DzIT4ezvQp7QHqdaj8qET2mIO8ix2j4eWr33zPIUsBx2824nm4zi87gg+kJSanCutNy0Yb7HA3r74sWC+WsnqR6oSUPrTHP50r7sOFw6o7v/3e8oHEg3+EdTW0IsxM513wDxqsUxrYijkQzYwD+oLH7gKea65kfu6MTnZiwDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1781108202; c=relaxed/simple;
-	bh=Izr2S43WP6bgm2MDZSgmn0/FR6i670Xrae2OgO+r7II=;
+	bh=jCMwWxwZzghcErLFh01XEOuSNUxfLv8d/M/MacWh/B4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=S+HDkJ9Pm3qA7WhNBzBNdfdONkNxxwYUdR4EBvFutVIInNINESgrPi3l/NpKWmZjzUICRi7zfZdUE9f5gI1Y7Q4/MEFSiKCPdXQ7bbjlZ6+qg4jF3MMVWV2J/xFaNguCN1KlnA//IIB1vr9Y23hitQ6zhdBdQAF9ArAozZeJWB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bZ+PNXLM; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=iYEYvmz8SL18kZV8N+jmh97kOhVsznkJLjN0CWz3ooK26BIKbkPQYtWpEfY0hU72stHJ/sAMG4JAfrf1l4L7SU4ANIJt6OeWaDAN1PROo7woA58B5/zxQ1GbSiN7ulaZjGbYHjgyIDZwHmHiK0CjrZ49voFAXVq+Z1sq+EqdVLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tlSgqe+z; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bZ+PNXLM"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tlSgqe+z"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 00F2B601C0;
-	Wed, 10 Jun 2026 18:16:37 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 31127601BF;
+	Wed, 10 Jun 2026 18:16:39 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781108198;
-	bh=fOuZdyuVG6fxofNjKSDTuyaoWu0ezNfZakG8y7NqG+I=;
+	s=2025; t=1781108199;
+	bh=WZ1RWSb3R8vG0hIZiejwx1SegDXgikA48Oao5eS8LSc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bZ+PNXLM2kvcLaweT/tolYetq+McxaNA6KqCY/BRmNv1IWwDRFxxxEHm/5fMphqDZ
-	 /SQ53oOnYkJWMkpMZ2fen898KTljv8I0xrQQabTmdtwmy3upKcozrSc3w7uXk7RY86
-	 B57QeE+9K6KKoaHN1JCJf0ngZekBeNFzO+7P3307ND14MdqMbMRMFZKGvHikaDvbz0
-	 WZZ0+pYNEdKGOQq7+AOuYdhnShPIQUC1lWPFCr3fnY1gmdqwrDsWfupsv0nmp7laQB
-	 vkGaZoFQwKflW+HS5o89JMjpVzff54qr3xkPEZnZ/1DVJo1RHdYiEcKRdFBqg7IBBi
-	 /SA27nExRoCcA==
+	b=tlSgqe+zGLPV4wv4tb6NU/H1xgdwzmdh4Ge4jHW4r0wJ2YAEXhPCzWupMlQvdx//c
+	 bsarVCk6svUpRGkiE39DFdA2E0KtyURAFRGnmxZl/W0F2lUPKxiVzhHxjoI1aj+O8R
+	 cR6ARPhqsTJz8Zf+qMpkuNXd64HawFSiDhSo11K7CSf52ZzL0cXq+U25G8S7yoCRUk
+	 UvINPqy2LPQOQf3BAw8F2J0MZ1/2gihMH520+WM2v+bylpfMVyfzmlLHq/yWSoex24
+	 mn/C99SBoXqN4jCbZAnTYjy/CPwVTVC5syTwFG9O48U7iS0aeRLqj2ZFIouiWGTled
+	 1pPDcF0zS8vZA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 4/8] netfilter: x_tables: avoid leaking percpu counter pointers
-Date: Wed, 10 Jun 2026 18:16:24 +0200
-Message-ID: <20260610161629.214092-5-pablo@netfilter.org>
+Subject: [PATCH net 5/8] netfilter: nf_log: validate MAC header was set before dumping it
+Date: Wed, 10 Jun 2026 18:16:25 +0200
+Message-ID: <20260610161629.214092-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260610161629.214092-1-pablo@netfilter.org>
 References: <20260610161629.214092-1-pablo@netfilter.org>
@@ -52,138 +52,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Kyle Zeng <kylebot@openai.com>
+From: Xiang Mei <xmei5@asu.edu>
 
-The native and compat get-entries paths copy the fixed rule entry header
-from the kernelized rule blob to userspace before overwriting the entry's
-counter fields with a sanitized counter snapshot.
+The fallback path of dump_mac_header() guards the MAC header access
+only with "skb->mac_header != skb->network_header", without checking
+skb_mac_header_was_set(). When the MAC header is unset, mac_header is
+0xffff, so the test passes and skb_mac_header(skb) returns
+skb->head + 0xffff, ~64 KiB past the buffer; the loop then reads
+dev->hard_header_len bytes out of bounds into the kernel log.
 
-On SMP kernels, entry->counters.pcnt contains the percpu allocation
-address used by x_tables rule counters. A caller can provide a userspace
-buffer that faults during the initial fixed-header copy after pcnt has
-been copied but before the later sanitized counter copy runs. The syscall
-then returns -EFAULT while leaving the raw percpu pointer in userspace.
+This is reachable via the netdev logger: nf_log_unknown_packet() calls
+dump_mac_header() unconditionally, and an skb sent through AF_PACKET
+with PACKET_QDISC_BYPASS reaches the egress hook with mac_header still
+unset (__dev_queue_xmit(), which would reset it, is bypassed).
 
-Copy only the fixed entry prefix before counters from the kernelized rule
-blob, then copy the sanitized counter snapshot into the counter field.
-Apply this ordering to the IPv4, IPv6, and ARP native and compat
-get-entries implementations so a fault cannot expose the internal percpu
-counter pointer.
+Add the skb_mac_header_was_set() check the ARPHRD_ETHER path already
+uses, and replace the open-coded MAC header length test with
+skb_mac_header_len(). Only skbs with an unset MAC header are affected;
+valid ones are dumped as before.
 
-Fixes: 71ae0dff02d7 ("netfilter: xtables: use percpu rule counters")
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
+ BUG: KASAN: slab-out-of-bounds in dump_mac_header (net/netfilter/nf_log_syslog.c:831)
+ Read of size 1 at addr ffff88800ea49d3f by task exploit/148
+ Call Trace:
+  kasan_report (mm/kasan/report.c:595)
+  dump_mac_header (net/netfilter/nf_log_syslog.c:831)
+  nf_log_netdev_packet (net/netfilter/nf_log_syslog.c:938 net/netfilter/nf_log_syslog.c:963)
+  nf_log_packet (net/netfilter/nf_log.c:260)
+  nft_log_eval (net/netfilter/nft_log.c:60)
+  nft_do_chain (net/netfilter/nf_tables_core.c:285)
+  nft_do_chain_netdev (net/netfilter/nft_chain_filter.c:307)
+  nf_hook_slow (net/netfilter/core.c:619)
+  nf_hook_direct_egress (net/packet/af_packet.c:257)
+  packet_xmit (net/packet/af_packet.c:280)
+  packet_sendmsg (net/packet/af_packet.c:3114)
+  __sys_sendto (net/socket.c:2265)
+
+Fixes: 7eb9282cd0ef ("netfilter: ipt_LOG/ip6t_LOG: add option to print decoded MAC header")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Assisted-by: Claude:claude-opus-4-8
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 15 ++++++---------
- net/ipv4/netfilter/ip_tables.c  | 15 ++++++---------
- net/ipv6/netfilter/ip6_tables.c | 15 ++++++---------
- 3 files changed, 18 insertions(+), 27 deletions(-)
+ net/netfilter/nf_log_syslog.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index ad2259678c78..0ea513bf77fb 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -702,14 +702,12 @@ static int copy_entries_to_user(unsigned int total_size,
- 		const struct xt_entry_target *t;
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index 7a8952b049d1..e37b09b3203b 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -815,8 +815,8 @@ static void dump_mac_header(struct nf_log_buf *m,
  
- 		e = loc_cpu_entry + off;
--		if (copy_to_user(userptr + off, e, sizeof(*e))) {
--			ret = -EFAULT;
--			goto free_counters;
--		}
--		if (copy_to_user(userptr + off
-+		if (copy_to_user(userptr + off, e,
-+				 offsetof(struct arpt_entry, counters)) ||
-+		    copy_to_user(userptr + off
- 				 + offsetof(struct arpt_entry, counters),
- 				 &counters[num],
--				 sizeof(counters[num])) != 0) {
-+				 sizeof(counters[num]))) {
- 			ret = -EFAULT;
- 			goto free_counters;
- 		}
-@@ -1327,9 +1325,8 @@ static int compat_copy_entry_to_user(struct arpt_entry *e, void __user **dstptr,
+ fallback:
+ 	nf_log_buf_add(m, "MAC=");
+-	if (dev->hard_header_len &&
+-	    skb->mac_header != skb->network_header) {
++	if (dev->hard_header_len && skb_mac_header_was_set(skb) &&
++	    skb_mac_header_len(skb) != 0) {
+ 		const unsigned char *p = skb_mac_header(skb);
+ 		unsigned int i;
  
- 	origsize = *size;
- 	ce = *dstptr;
--	if (copy_to_user(ce, e, sizeof(struct arpt_entry)) != 0 ||
--	    copy_to_user(&ce->counters, &counters[i],
--	    sizeof(counters[i])) != 0)
-+	if (copy_to_user(ce, e, offsetof(struct compat_arpt_entry, counters)) ||
-+	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
- 		return -EFAULT;
- 
- 	*dstptr += sizeof(struct compat_arpt_entry);
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 5cbdb0815857..ca8ff0ae6cdb 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -832,14 +832,12 @@ copy_entries_to_user(unsigned int total_size,
- 		const struct xt_entry_target *t;
- 
- 		e = loc_cpu_entry + off;
--		if (copy_to_user(userptr + off, e, sizeof(*e))) {
--			ret = -EFAULT;
--			goto free_counters;
--		}
--		if (copy_to_user(userptr + off
-+		if (copy_to_user(userptr + off, e,
-+				 offsetof(struct ipt_entry, counters)) ||
-+		    copy_to_user(userptr + off
- 				 + offsetof(struct ipt_entry, counters),
- 				 &counters[num],
--				 sizeof(counters[num])) != 0) {
-+				 sizeof(counters[num]))) {
- 			ret = -EFAULT;
- 			goto free_counters;
- 		}
-@@ -1228,9 +1226,8 @@ compat_copy_entry_to_user(struct ipt_entry *e, void __user **dstptr,
- 
- 	origsize = *size;
- 	ce = *dstptr;
--	if (copy_to_user(ce, e, sizeof(struct ipt_entry)) != 0 ||
--	    copy_to_user(&ce->counters, &counters[i],
--	    sizeof(counters[i])) != 0)
-+	if (copy_to_user(ce, e, offsetof(struct compat_ipt_entry, counters)) ||
-+	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
- 		return -EFAULT;
- 
- 	*dstptr += sizeof(struct compat_ipt_entry);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 9d9c3763f2f5..e34d5ba1460c 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -848,14 +848,12 @@ copy_entries_to_user(unsigned int total_size,
- 		const struct xt_entry_target *t;
- 
- 		e = loc_cpu_entry + off;
--		if (copy_to_user(userptr + off, e, sizeof(*e))) {
--			ret = -EFAULT;
--			goto free_counters;
--		}
--		if (copy_to_user(userptr + off
-+		if (copy_to_user(userptr + off, e,
-+				 offsetof(struct ip6t_entry, counters)) ||
-+		    copy_to_user(userptr + off
- 				 + offsetof(struct ip6t_entry, counters),
- 				 &counters[num],
--				 sizeof(counters[num])) != 0) {
-+				 sizeof(counters[num]))) {
- 			ret = -EFAULT;
- 			goto free_counters;
- 		}
-@@ -1244,9 +1242,8 @@ compat_copy_entry_to_user(struct ip6t_entry *e, void __user **dstptr,
- 
- 	origsize = *size;
- 	ce = *dstptr;
--	if (copy_to_user(ce, e, sizeof(struct ip6t_entry)) != 0 ||
--	    copy_to_user(&ce->counters, &counters[i],
--	    sizeof(counters[i])) != 0)
-+	if (copy_to_user(ce, e, offsetof(struct compat_ip6t_entry, counters)) ||
-+	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
- 		return -EFAULT;
- 
- 	*dstptr += sizeof(struct compat_ip6t_entry);
 -- 
 2.47.3
 
