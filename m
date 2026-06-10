@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 847F42C158A;
-	Wed, 10 Jun 2026 16:16:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96A8F2D877A;
+	Wed, 10 Jun 2026 16:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781108198; cv=none; b=Kme4LwqCaYIj7nJW3V4KTpvp/mdaQqOocFhFqu6uTaFxO1FNdku/BkMM5InY4Si0RpmTvvQfqYDkpNC+Uw+kE+aNB5JBjeIBOhr/TO8SNEg1sFivpor6HT5PPy7dergl/wJOgSL/9xVza5Y+8ZlJ043CTP/IUntkqNfkiWbPm6I=
+	t=1781108199; cv=none; b=uGBBC1vMzxpAXD8dN6e+6jLQXr1mxkEUrwB0mQ9Spmz6sRGeqbik1DnkLipNHwIC1ZBe40qSfE9uciORSiMrw/72GL5Ptqf49rJPRlgI9BJxCfc1IxwJK3G47z72Q65o0hrYSDKYbs9bmk4slKrr7MK+jJeOxjz6nwQHldfkx2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781108198; c=relaxed/simple;
-	bh=eUs6aE/X6PjMmZ8GhdCffdgajOxGWiaw9AWn9FdekXY=;
+	s=arc-20240116; t=1781108199; c=relaxed/simple;
+	bh=zQ/gtcRUgNTLMbxojjmxcZlJvAss/i6Tv65StmTyrBw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kcOrTyYX0TNG/BvA15ZyyJmQ+8cjG0t19o7FO1ugHyH85+YYS3K0j678VdE2HEa5L15HMW/G+UH7/WKe8LEdB3SmWWOOuSjLkIu56wKeEWi22dW9/Zliqlf96M1Szi7oHKJkYYdZQffEYyi3j7SdO0X4Gn7MumlTX8Cer1yliuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=L9eW19wK; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=LyTvfMjzsUZZfC3Yz0wieK0+N3hYzG+6WXgg1hWbuyI7HaV0MejJUhgYnaniBdHcWBinA+qI/til6kyB/9PM0TWnHkWhhrPDYZTtUWtIokPvTuM1pAMg2SFOvvfYgOHaim+4zdcKYOjWLQ/ZzPDTStuk85PWWVgQsJ936oCDO7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gBYa9uHj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="L9eW19wK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gBYa9uHj"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 59956601BC;
-	Wed, 10 Jun 2026 18:16:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B7B4E601BD;
+	Wed, 10 Jun 2026 18:16:35 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781108194;
-	bh=1M/9winQCUlkug/E+s/WMieHPIsWBkxRusyhtgRtDPk=;
+	s=2025; t=1781108196;
+	bh=Y56sZ6oRlT62ETdu0hwz7Ce/xM3Ief31yEXajHM2cP4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=L9eW19wKjbqXPm9+ULMaoBG/h7qlhce0HY+d5r0ZmZkEGpvvcmywjobc+2nrTDlBp
-	 kPupxlbDkandWtE8ousyzctJJPrUZalH4iNcKfbhFjkWthk1CvF4c4QJ/l8yQzS8Y/
-	 r0OSVKV9+FtR7dt+aetZOC9yn32S6fgb5QEbRLJZ+3YuAyAVIX8MV8Z2U4caSC6bZw
-	 4DtSU+FFBchYE4Qbi4cEb71MGiHzSlSiwV8TOtvZuHVk1RuxDbyEelRM9jJgThlcur
-	 SqegobByk1LgAFxAVQxkrZssItWPNtdKRRmYTpZi6UQ4E8ZxAXIAv76VrtcgLZoXYU
-	 R3NxawqFhXpRA==
+	b=gBYa9uHjCLIAL90coUtU/1W+U4y/lLbA/bF3JP/pLIUiNAjlhl2VUhFiNyl5y5VsU
+	 vCniWiaOBcuZo6JNJ00nBDkD/q3bfYEyqkbgsX2QXoTeRw9yDPxiUBHihloptnDG65
+	 j4/WSFQ+Yp8AGWFfJKUVMHH3K/uijysL8FXCotzJ77o6Y2g+eArDCd9hP7JyPSq69K
+	 uZprNmikBIcoBFnZQDLVzwEXvFLby5XZwIlSBSdANZj6+tvdm1XuWJrnfyMXk0TEKY
+	 I6XppgxOAo/sL2D9NW4K32cPN+JJAL8O0kbDpAQGYhhYV6V6xYmBFgsnFc1A+lnKam
+	 OY20Gg9gccQBQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 1/8] netfilter: revalidate bridge ports
-Date: Wed, 10 Jun 2026 18:16:21 +0200
-Message-ID: <20260610161629.214092-2-pablo@netfilter.org>
+Subject: [PATCH net 2/8] netfilter: nf_tables_offload: drop device refcount on error
+Date: Wed, 10 Jun 2026 18:16:22 +0200
+Message-ID: <20260610161629.214092-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260610161629.214092-1-pablo@netfilter.org>
 References: <20260610161629.214092-1-pablo@netfilter.org>
@@ -54,232 +54,42 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-ebt_redirect_tg() dereferences br_port_get_rcu() return without a
-NULL check, causing a kernel panic when the bridge port has been
-removed between the original hook invocation and an NFQUEUE
-reinject.
+Reported by sashiko:
+If nft_flow_action_entry_next() returns NULL, dev reference leaks.
 
-A mere NULL check isn't sufficient, however.  As sashiko review
-points out userspace can not only remove the port from the bridge,
-it could also place the device in a different virtual device, e.g.
-macvlan.
-
-If this happens, we must drop the packet, there is no way for us to
-reinject it into the bridge path.
-
-Switch to _upper API, we don't need the bridge port structure.
-Also, this fix keeps another bug intact:
-
-Both nfnetlink_log and nfnetlink_queue use CONFIG_BRIDGE_NETFILTER
-too aggressive, which prevents certain logging features when queueing
-in bridge family: NETFILTER_FAMILY_BRIDGE can be enabled while the old
-CONFIG_BRIDGE_NETFILTER cruft is off.
-
-Fixes tag is a common ancestor, this was always broken.
-
-Fixes: f350a0a87374 ("bridge: use rx_handler_data pointer to store net_bridge_port pointer")
-Reported-by: Ji'an Zhou <eilaimemedsnaimel@gmail.com>
-Assisted-by: Claude:claude-sonnet-4-6
+Fixes: c6f85577584b ("netfilter: nf_tables_offload: add nft_flow_action_entry_next() and use it")
+Reported-by: Juri Lelli <juri.lelli@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebt_dnat.c     |  4 +-
- net/bridge/netfilter/ebt_redirect.c | 16 +++++---
- net/netfilter/nfnetlink_log.c       | 23 +++++++++--
- net/netfilter/nfnetlink_queue.c     | 64 +++++++++++++++++++++++++----
- 4 files changed, 89 insertions(+), 18 deletions(-)
+ net/netfilter/nf_dup_netdev.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
-index 3fda71a8579d..73f185cccd63 100644
---- a/net/bridge/netfilter/ebt_dnat.c
-+++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -39,7 +39,9 @@ ebt_dnat_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 			dev = xt_in(par);
- 			break;
- 		case NF_BR_PRE_ROUTING:
--			dev = br_port_get_rcu(xt_in(par))->br->dev;
-+			dev = netdev_master_upper_dev_get_rcu(xt_in(par));
-+			if (!dev) /* bridge port removed? */
-+				return EBT_DROP;
- 			break;
- 		default:
- 			dev = NULL;
-diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
-index 307790562b49..83486cd4d564 100644
---- a/net/bridge/netfilter/ebt_redirect.c
-+++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -24,12 +24,18 @@ ebt_redirect_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	if (skb_ensure_writable(skb, 0))
- 		return EBT_DROP;
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index 3b0a70e154cd..3d88ef927f31 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -74,16 +74,18 @@ int nft_fwd_dup_netdev_offload(struct nft_offload_ctx *ctx,
+ 	struct flow_action_entry *entry;
+ 	struct net_device *dev;
  
--	if (xt_hooknum(par) != NF_BR_BROUTING)
--		/* rcu_read_lock()ed by nf_hook_thresh */
--		ether_addr_copy(eth_hdr(skb)->h_dest,
--				br_port_get_rcu(xt_in(par))->br->dev->dev_addr);
--	else
-+	if (xt_hooknum(par) != NF_BR_BROUTING) {
-+		const struct net_device *dev;
-+
-+		dev = netdev_master_upper_dev_get_rcu(xt_in(par));
-+		if (!dev)
-+			return EBT_DROP;
-+
-+		ether_addr_copy(eth_hdr(skb)->h_dest, dev->dev_addr);
-+	} else {
- 		ether_addr_copy(eth_hdr(skb)->h_dest, xt_in(par)->dev_addr);
+-	/* nft_flow_rule_destroy() releases the reference on this device. */
+ 	dev = dev_get_by_index(ctx->net, oif);
+ 	if (!dev)
+ 		return -EOPNOTSUPP;
+ 
+ 	entry = nft_flow_action_entry_next(ctx, flow);
+-	if (!entry)
++	if (!entry) {
++		dev_put(dev);
+ 		return -E2BIG;
 +	}
-+
- 	skb->pkt_type = PACKET_HOST;
- 	return info->target;
- }
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 2439cbbd5b26..fa3657599861 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -451,6 +451,23 @@ static int nfulnl_put_bridge(struct nfulnl_instance *inst, const struct sk_buff
- 	return -1;
- }
  
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+static int nflog_put_master_ifindex(struct sk_buff *nlskb, int attr,
-+				    const struct net_device *dev)
-+{
-+	const struct net_device *upper;
-+
-+	if (dev && !netif_is_bridge_port(dev))
-+		return 0;
-+
-+	upper = netdev_master_upper_dev_get_rcu((struct net_device *)dev);
-+	if (upper && nla_put_be32(nlskb, attr, htonl(upper->ifindex)))
-+		return -EMSGSIZE;
-+
-+	return 0;
-+}
-+#endif
-+
- /* This is an inline function, we don't really care about a long
-  * list of arguments */
- static inline int
-@@ -505,8 +522,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 			/* rcu_read_lock()ed by nf_hook_thresh or
- 			 * nf_log_packet.
- 			 */
--			    nla_put_be32(inst->skb, NFULA_IFINDEX_INDEV,
--					 htonl(br_port_get_rcu(indev)->br->dev->ifindex)))
-+			    nflog_put_master_ifindex(inst->skb, NFULA_IFINDEX_INDEV, indev))
- 				goto nla_put_failure;
- 		} else {
- 			int physinif;
-@@ -542,8 +558,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 			/* rcu_read_lock()ed by nf_hook_thresh or
- 			 * nf_log_packet.
- 			 */
--			    nla_put_be32(inst->skb, NFULA_IFINDEX_OUTDEV,
--					 htonl(br_port_get_rcu(outdev)->br->dev->ifindex)))
-+			    nflog_put_master_ifindex(inst->skb, NFULA_IFINDEX_OUTDEV, outdev))
- 				goto nla_put_failure;
- 		} else {
- 			struct net_device *physoutdev;
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 60ab88d45096..c5e29fec419b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -440,10 +440,47 @@ static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry, bool *is_
- 	return false;
- }
+ 	entry->id = id;
++	/* nft_flow_rule_destroy() releases the reference on this device. */
+ 	entry->dev = dev;
  
-+static bool nf_bridge_port_valid(const struct net_device *dev)
-+{
-+	if (!dev)
-+		return true;
-+
-+	return netif_is_bridge_port(dev);
-+}
-+
-+/* queued skbs leave rcu protection.  We bump device refcount so that
-+ * the device cannot go away.  However, while packet was out the port
-+ * could have been removed from the bridge.
-+ *
-+ * Ensure in+outdev are still part of a bridge at reinject time.
-+ *
-+ * The device rx_handler_data could even be pointing at data that is
-+ * not a net_bridge_port structure.
-+ */
-+static bool nf_bridge_ports_valid(const struct nf_queue_entry *entry)
-+{
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	if (!nf_bridge_port_valid(entry->physin) ||
-+	    !nf_bridge_port_valid(entry->physout))
-+		return false;
-+#endif
-+	if (entry->state.pf != PF_BRIDGE)
-+		return true;
-+
-+	if (!nf_bridge_port_valid(entry->state.in) ||
-+	    !nf_bridge_port_valid(entry->state.out))
-+		return false;
-+
-+	return true;
-+}
-+
- static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
- 	const struct nf_ct_hook *ct_hook;
- 
-+	if (!nf_bridge_ports_valid(entry))
-+		verdict = NF_DROP;
-+
- 	if (verdict == NF_ACCEPT ||
- 	    verdict == NF_REPEAT ||
- 	    verdict == NF_STOP) {
-@@ -636,6 +673,23 @@ static int nf_queue_checksum_help(struct sk_buff *entskb)
- 	return skb_checksum_help(entskb);
- }
- 
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+static int nfqnl_put_master_ifindex(struct sk_buff *nlskb, int attr,
-+				    const struct net_device *dev)
-+{
-+	const struct net_device *upper;
-+
-+	if (dev && !netif_is_bridge_port(dev))
-+		return 0;
-+
-+	upper = netdev_master_upper_dev_get_rcu((struct net_device *)dev);
-+	if (upper && nla_put_be32(nlskb, attr, htonl(upper->ifindex)))
-+		return -EMSGSIZE;
-+
-+	return 0;
-+}
-+#endif
-+
- static struct sk_buff *
- nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			   struct nf_queue_entry *entry,
-@@ -771,10 +825,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			 * netfilter_bridge) */
- 			if (nla_put_be32(skb, NFQA_IFINDEX_PHYSINDEV,
- 					 htonl(indev->ifindex)) ||
--			/* this is the bridge group "brX" */
--			/* rcu_read_lock()ed by __nf_queue */
--			    nla_put_be32(skb, NFQA_IFINDEX_INDEV,
--					 htonl(br_port_get_rcu(indev)->br->dev->ifindex)))
-+			    nfqnl_put_master_ifindex(skb, NFQA_IFINDEX_INDEV, indev))
- 				goto nla_put_failure;
- 		} else {
- 			int physinif;
-@@ -805,10 +856,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			 * netfilter_bridge) */
- 			if (nla_put_be32(skb, NFQA_IFINDEX_PHYSOUTDEV,
- 					 htonl(outdev->ifindex)) ||
--			/* this is the bridge group "brX" */
--			/* rcu_read_lock()ed by __nf_queue */
--			    nla_put_be32(skb, NFQA_IFINDEX_OUTDEV,
--					 htonl(br_port_get_rcu(outdev)->br->dev->ifindex)))
-+			    nfqnl_put_master_ifindex(skb, NFQA_IFINDEX_OUTDEV, outdev))
- 				goto nla_put_failure;
- 		} else {
- 			int physoutif;
+ 	return 0;
 -- 
 2.47.3
 
