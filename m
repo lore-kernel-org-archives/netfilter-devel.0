@@ -1,78 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out-178.mta0.migadu.com (out-178.mta0.migadu.com [91.218.175.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4336539EF30;
-	Tue,  9 Jun 2026 23:03:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 294BB33E355
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 03:03:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781046189; cv=none; b=Cj2qREAlFnJ4rl0qCGLcoAnyPkKwbO2MLVyIjfq7KEL6CD+XoILQ3rxaZUYRQL+tA+9jVjFyPralKmom0eI4j4Tlt7IjZjrVvEBcNTPxo2Ca7yHQazK+B/DWRKlwsh/O+SOw09dLSLl8HpIVVMXFNHzYUhrT4ece0qXvdFuJTfw=
+	t=1781060632; cv=none; b=HsYk8menzUvdsmYilTubW+7HoF1WJPOrsN6/WsDjDNfsya/bSz7xDrKylopkzoAMJaaCFiZ6V3s67ZeZm4bVW4V/oDpxiyR/1YrkwrntM+0FofOpuadxoHI+Wf6jBfgoUB09NjPW26CKZRxjhbtgN6RBOflhs1GINb8b7EkMt1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781046189; c=relaxed/simple;
-	bh=S0FwGmOfWBF0ZuzvBV2cmCs6f1kahPE2hTDM8i1M9w4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NB6pY/fSuZKJqqge6dno+pxR9GXic9k/X9RMNIitKgiFkL/qyCRU26dHqDXhkbu16dIon/MTCNKQ41yAFQxFCIK56zhsd+LIRSJOUV5ha14IpMKeiqC4q8geRyUcprHTswubUDLd5rvaO5AFsMraHyqXAb+IIf91bLOXJmZgt30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lXuNbtxE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781060632; c=relaxed/simple;
+	bh=qun9oyIAT5mnYgmIsjaXMtP7fFOG7+gKuLxPA8dFE7k=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=qd0/0aYbjt13qqNuqdDv+nL93MXJwz1/XGuGy/upCvw8WZYQnvrvNCB2YHK48RDxT8RHngUEVyRXnPDGjxiHC9vLuYsYBuCrE+/ZmrNsSqeHey1QLNc3OwGaiSEs2QEMQ0B5JRs3dgIuJDgz/v6sTO515NVt3pqC1ZsqNeIlum8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=PA5jWgFQ; arc=none smtp.client-ip=91.218.175.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lXuNbtxE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A58AE1F00893;
-	Tue,  9 Jun 2026 23:03:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781046187;
-	bh=3/W3fHN//C2H+FsUJvZKtOCL62SWLw8hoJcSToyb1jA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=lXuNbtxE0EnawPRESQVgXRpJ+Yb0mNXuoeLDOCvz+XOzej0igTIP33uh5+ai3f36P
-	 t6xYhWVWjR49I9OKYuBtZUvchF32nZn8LaBmjFvHuCBWnVbPOo2dqP4+jvoCR1/8yI
-	 LbfaYWQ0+wgGlyrrqmpR+HYRzKHnD2MTbNUSd+RLxhZrOjI+3Q8ptuxVf/NXPDyBpA
-	 WRXDLheHVy5htKXqcTFhoNvhB94swJUVpIwI7e/ssY9n/Os2qGuufo23AItsAYiNVR
-	 D3/2iAGyZsiUZmBOGZks7YGHFCnq4mxChfUjLFwvg++oXwk3zShRft/og7ietUhAhD
-	 SdOCDjtjhH5Zg==
-Date: Tue, 9 Jun 2026 16:03:06 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next] net: dummy: add phony ndo_setup_tc stub
-Message-ID: <20260609160306.79be97b5@kernel.org>
-In-Reply-To: <aiiaGPj0XQ0mx-cp@chamomile>
-References: <20260609142813.9197-1-fw@strlen.de>
-	<aiiaGPj0XQ0mx-cp@chamomile>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="PA5jWgFQ"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1781060627;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=6fAxcYZ1eHDCo73nCq7jZg+k/I4R3YvBZLgENzx+rhg=;
+	b=PA5jWgFQmWuX7k4dUR1eTJg959bP7Ft7Nq+xJ7ddabcLL7LYZAMKbPDGNLeRdb9Z2w0WIA
+	CaBUq6bbVAZUcgpJuLv3LctabutV0mWh/xpMSN3zm95zq5nV3cpWeAnCpDzyIy3CAyzFnH
+	psZLIso6b+nBJhFSchb1wiTYsm0fHdo=
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: ebtables: bound num_counters like nentries in do_replace()
+Date: Wed, 10 Jun 2026 11:02:59 +0800
+Message-ID: <20260610030259.194456-1-jiayuan.chen@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Wed, 10 Jun 2026 00:56:24 +0200 Pablo Neira Ayuso wrote:
-> On Tue, Jun 09, 2026 at 04:28:09PM +0200, Florian Westphal wrote:
-> > diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> > index 9101b1703b52..26e7ed5a8575 100644
-> > --- a/net/netfilter/nf_tables_offload.c
-> > +++ b/net/netfilter/nf_tables_offload.c
-> > @@ -234,6 +234,9 @@ bool nft_chain_offload_support(const struct nft_base_chain *basechain)
-> >  				return false;
-> >  
-> >  			dev = ops->dev;
-> > +			if (dev_net(dev)->user_ns != &init_user_ns)
-> > +				return false;  
-> 
-> I have no idea how hardware offload can be used away from init_net_ns
-> (not even init_user_ns). For most drivers, this exposes the same
-> hardware offload capabilities for all netns, so they can interfer
-> each?
-> 
-> @Jakub: Did you mention any driver that already support netns?
-> Otherwise, maybe it is worth to restrict driver which do not explicit
-> opt-in to netns support?
+do_replace_finish() allocates the counter buffer before it is validated:
 
-IDK if any SW driver can do it, I guess that's the risk here.
+   counterstmp = vmalloc_array(repl->num_counters, sizeof(*counterstmp));
 
-For HW drivers it doesn't matter which netns they are in, offload
-should just work. But of course malicious users can't conjure up HW
-devices, admin has to explicitly move the device into a netns.
-Which is an explicit "permission grant".
+do_replace() only checks num_counters against INT_MAX / sizeof(struct
+ebt_counter), so vmalloc_array() can be asked for up to 134217726 * 16 =
+2147483616 bytes (~2 GiB).
 
-The offload itself should be inherently netns aware since it should 
-not cross netns boundaries?
+num_counters must in fact equal nentries: do_replace_finish() later
+rejects the request when repl->num_counters != t->private->nentries.
+get_counters() folds the per-CPU counters back into one entry per rule,
+so what userspace gets is bounded by nentries, never by nentries *
+nr_cpus. Apply the same upper bound used for nentries (MAX_EBT_ENTRIES)
+to the incoming num_counters so the over-sized allocation can no longer
+be requested.
+
+The allocation is still kept outside the ebt_mutex, since vmalloc() may
+sleep and trigger reclaim; only the bound is tightened.
+
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+---
+ net/bridge/netfilter/ebtables.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index f20c039e44c8..042d31278713 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -39,6 +39,8 @@
+ #define COUNTER_OFFSET(n) (SMP_ALIGN(n * sizeof(struct ebt_counter)))
+ #define COUNTER_BASE(c, n, cpu) ((struct ebt_counter *)(((char *)c) + \
+ 				 COUNTER_OFFSET(n) * cpu))
++#define MAX_EBT_ENTRIES (((INT_MAX - sizeof(struct ebt_table_info)) / \
++			 NR_CPUS - SMP_CACHE_BYTES) / sizeof(struct ebt_counter))
+ 
+ struct ebt_pernet {
+ 	struct list_head tables;
+@@ -1124,10 +1126,9 @@ static int do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -EINVAL;
+ 
+ 	/* overflow check */
+-	if (tmp.nentries >= ((INT_MAX - sizeof(struct ebt_table_info)) /
+-			NR_CPUS - SMP_CACHE_BYTES) / sizeof(struct ebt_counter))
++	if (tmp.nentries >= MAX_EBT_ENTRIES)
+ 		return -ENOMEM;
+-	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
++	if (tmp.num_counters >= MAX_EBT_ENTRIES)
+ 		return -ENOMEM;
+ 
+ 	tmp.name[sizeof(tmp.name) - 1] = 0;
+@@ -2265,10 +2266,9 @@ static int compat_copy_ebt_replace_from_user(struct ebt_replace *repl,
+ 	if (tmp.entries_size == 0)
+ 		return -EINVAL;
+ 
+-	if (tmp.nentries >= ((INT_MAX - sizeof(struct ebt_table_info)) /
+-			NR_CPUS - SMP_CACHE_BYTES) / sizeof(struct ebt_counter))
++	if (tmp.nentries >= MAX_EBT_ENTRIES)
+ 		return -ENOMEM;
+-	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
++	if (tmp.num_counters >= MAX_EBT_ENTRIES)
+ 		return -ENOMEM;
+ 
+ 	memcpy(repl, &tmp, offsetof(struct ebt_replace, hook_entry));
+-- 
+2.43.0
+
