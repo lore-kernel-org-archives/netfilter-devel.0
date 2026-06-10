@@ -1,86 +1,103 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D42743E3147
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 11:57:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35517426EA9
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 15:12:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781092651; cv=none; b=WY6NMmltdchNlvRyN+kRlpLDUTy7CONLBUDjBi8xCEsp0B8gRQ2k9CKRaI6eLTl2UMC3ck7K4qZW8Ix5Go2Lsg6ddtxw5xtedkL7j8fMWbHsa2/2I3a2h7eTjmjvCH74Dgkd1TiTSOZQfyda65djY324CgQ/q4Dmq/9gEugka4E=
+	t=1781104340; cv=none; b=dF8DWFUfe/soXLuETVT1HO6mBvMCZo5uRNQvsoYeBdQXcrEp8tSowqq9aENU9pvKz7t9Vk/AibDnf2eDr6BEkki6sC89dTkUWLqw0jf1U2GjUtlQmNhpODyV8kLjiBYZUj5X5xw0Al3RAaOfDAqUCJ55YCwCzFYatrr4Ysi0Ilw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781092651; c=relaxed/simple;
-	bh=zu9ClWIYJnIL378rjjKCE/c5IU0plxNZdtm1CLusmHw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=CvRhSJSk9B+nVynhanL/W/H/Qq93Fr4JztgyDTNHmaccOXhgDqWdjn0iTSiP90MM0y8a8OPiOv0C48e7UINMu5fa4dPbGAprTTz4mOphAG3K5AnXMSeVXDpjwYphU6E9s5d8ZNDl5qtE4a1ddBSkJUAL40MLEP0i9csAa1EmaVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=K7srVozc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1781104340; c=relaxed/simple;
+	bh=iqIIj05dDEp0xVebnZDEHeRLAjYV8Dg+cnEkopPQoyo=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=mCuqQEGHFDOrI600y+aHxDhhpFP7LQG2jI3LuWuYh8GiNYb7XnFtjzSOCFNzZOvRNxksWWBYOk/JQSHD+qvnmUXnzmjTdJrmyDINnnZdiOxRQc9oeMH6ZH3z0oHOLjn0rmWogss4fPOc4ZrEUcAYfvVNc0XKcRX0nzLYxsL40nU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KoG1N8th; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="K7srVozc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Message-ID:
-	Date:Subject:Cc:To:From:Sender:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=1EHidgftUymVodrdW7O2c/HAgNGt9naELxh8erVY4cc=; b=K7srVozcgn5hAUrPF4Fg6JFEdJ
-	mZHl27JparrC+LvCAJAa/kPoHPqNE6uUDdVG0ix2DI+TKmq5xbSVW56BZmvLqKjI4ur3uZEiNMnjn
-	WXviWfVAlRysUkkPcvbmnFYsEC9m5/QVRYun3Z3JWeEROZ7m9n9vLqt2M2QNR43aZFgTobCUB4ezn
-	rYsu3Ok4FEyOkPu0xVivDmiwm2LuWtziSEqUmc/3mgA29mg52CiPzcp8zkKEE06auIH0q74o5pObr
-	9tPbg+yATwIlDlPnk29fXGVv9Zc3jV98iLS7UTXsNErBREvEkfw4umZp5ZOlCZbOlL9VMEAGNRbjA
-	tSP2tQCw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wXHYm-000000005sf-1oHU;
-	Wed, 10 Jun 2026 13:57:28 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] profiling: Include unistd.h to avoid compiler warnings
-Date: Wed, 10 Jun 2026 13:57:23 +0200
-Message-ID: <20260610115723.3982210-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KoG1N8th"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D3E476017E
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 17:12:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1781104329;
+	bh=7BHHI22OF/vvglKZW30fZV9iEdw957DDXnYHv5LyyUI=;
+	h=From:To:Subject:Date:From;
+	b=KoG1N8thbvm2FrEsIkctZcjWlHlQ3JED0lUpPlyDaL2/SUitZzwHJ9YYh0WyhsR8P
+	 EDRRDA/J3uRPpNB385sh8otO75O8+4sco1XoyJd5N8tqXEytgpmvfUz2M1PgtgzPix
+	 NIxXNxab8ldvAXv8HS+PwjwLEtI6FAgyx06/rHe7Y3gmAllf3DQONHIlejCkBwf61s
+	 AE2OFdURmQewti4MpATkFMkejyedv4iBn9wff6OB8nCU4dCJscvIOrzS1Eqa+fbm+R
+	 d5KxACTr4P0hIy5TLMlbLNqsjrqRzd1AYtjJupL70MhTbiJd5GldgDgQrHBDdOMFto
+	 b6bYLevhuDNHA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_conntrack,v2] objopt: restrict NFCT_GOPT_IS_{S,D}PAT to supported layer 4 protocols
+Date: Wed, 10 Jun 2026 17:12:06 +0200
+Message-ID: <20260610151206.191842-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-RHEL8's gcc-8.5.0 emits these warnings:
+If layer 4 protocol has no ports, then return false. Otherwise, users
+like the conntrack utility filtering does not properly work with layer 4
+protocol such as ICMP and ICMPv6.
 
-src/profiling.c: In function ‘get_signalfd’:
-src/profiling.c:32:3: warning: implicit declaration of function ‘close’; did you mean ‘pclose’? [-Wimplicit-function-declaration]
-   close(fd);
-   ^~~~~
-   pclose
-src/profiling.c: In function ‘check_signalfd’:
-src/profiling.c:42:6: warning: implicit declaration of function ‘read’; did you mean ‘fread’? [-Wimplicit-function-declaration]
-  if (read(fd, &info, sizeof(info)) < (signed)sizeof(info))
-      ^~~~
-      fread
-
-Fixes: 868040f892238 ("configure: Implement --enable-profiling option")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: b4c3a23c884c ("Introduce the new libnetfilter_conntrack API, features:")
+Reported-by: Jan Kasprzak <kas@fi.muni.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/profiling.c | 1 +
- 1 file changed, 1 insertion(+)
+v2: - incorrect field, use .protonum, not .l3protonum
+    - update Fixes: tag
 
-diff --git a/src/profiling.c b/src/profiling.c
-index 34d91cc1746ec..f9ac36bd1c183 100644
---- a/src/profiling.c
-+++ b/src/profiling.c
-@@ -12,6 +12,7 @@
- #include <sys/signalfd.h>
- #include <signal.h>
- #include <stdio.h>
-+#include <unistd.h>
+ src/conntrack/objopt.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/src/conntrack/objopt.c b/src/conntrack/objopt.c
+index 1581480667e5..7e8d71d15fbe 100644
+--- a/src/conntrack/objopt.c
++++ b/src/conntrack/objopt.c
+@@ -182,8 +182,27 @@ static int getobjopt_is_dnat(const struct nf_conntrack *ct)
+ 	}
+ }
  
- int get_signalfd(void)
++static bool l4proto_has_ports(const struct nf_conntrack *ct)
++{
++	switch (ct->head.orig.protonum) {
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++	case IPPROTO_SCTP:
++	case IPPROTO_TCP:
++	case IPPROTO_DCCP:
++		break;
++	default:
++		return false;
++	}
++
++	return true;
++}
++
+ static int getobjopt_is_spat(const struct nf_conntrack *ct)
  {
++	if (!l4proto_has_ports(ct))
++		return 0;
++
+ 	return ((test_bit(ATTR_STATUS, ct->head.set) ?
+ 		ct->status & IPS_SRC_NAT_DONE : 1) &&
+ 		ct->repl.l4dst.tcp.port !=
+@@ -192,6 +211,9 @@ static int getobjopt_is_spat(const struct nf_conntrack *ct)
+ 
+ static int getobjopt_is_dpat(const struct nf_conntrack *ct)
+ {
++	if (!l4proto_has_ports(ct))
++		return 0;
++
+ 	return ((test_bit(ATTR_STATUS, ct->head.set) ?
+ 		ct->status & IPS_DST_NAT_DONE : 1) &&
+ 		ct->repl.l4src.tcp.port !=
 -- 
-2.54.0
+2.47.3
 
