@@ -1,39 +1,70 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B27FE3F20ED
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 10:30:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F4E372B5E
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 10:40:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781087448; cv=none; b=V40/9rhzYao+af+/3fwgjCKKv4/rIkZ/iFV4tU03hK4i6E8DAaZsBdVLeOAMbMRz7ZFQwWm7mnQ335cFupCh+hMsyNTmsUAA7xo0wy961jskY0Q/Y8rqEP0x0zmAGlcoCeu5iZsO/94szlE9R6bo+UOH03rIuT+jP19mbRcfn+A=
+	t=1781088029; cv=none; b=B4/VoQ2HAjECK+deEnK2kh07RMK0PhaqCTDpX3ucJA4uCM8cNxYvqGkjVdZ9eMQA4ozOB61cK3FLM1opyttTH0mEImzBhFn7lCnJgqYyzTgicj2JinnyulFgbAByCNmfhEkT048txtK5/ljapRGD9f8f5/FDD3ME+uMzRx4h+HU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781087448; c=relaxed/simple;
-	bh=H0jBkem1FacugaiY6wKtmQau54HUFe++eGaBe0IKaac=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=WedIt2mF5AQVsEo/aSKByJcmIV4pMlNllC75CvIp6+o4M8+zT+O+q0zgNoAA82zPuiBvzbPwNR7jLwkPXyB+OZJ0XfWN3fEBq8QW1JC5iP52uShUyzhNpGgfaDCa587sKpy8qKQmdEtN+x3V6o3ZBQqa6rLvBu/dt/yRztDanvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S8m6Rjrn; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1781088029; c=relaxed/simple;
+	bh=6lWsX1dY4Bc3CHw2VJlFjmqICb7q6oltLwdNe7HFv7s=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qIRpM3HwvA0G28UZhV36FuMe2KzELMml5h+M4TmO2EUc44x07sd6+d0Hko66NQKaDV7yk8f3vSxeYkY3N6YjWpMTKSPaFk9Rwm2X4MlaaVmsWbaDM1+XbJr2/cSQPzFWWx7huSFRCfun0PpF/vVgYgSu34LBxlAEqjcf4/O71oY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pmq7aeQc; arc=none smtp.client-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S8m6Rjrn"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 75A1E6019E
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 12:30:43 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781087443;
-	bh=RPJSlrJkXy2ybbGT/pf0yEl8gczbH5MRjButURvWF/k=;
-	h=From:To:Subject:Date:From;
-	b=S8m6Rjrnds4P0r/p/Hu35QSm8PsO3Bnq2Lk2CW/tYb5ktxVs2QOQE5XUM2Zl24iCg
-	 VxRdFHxwvjT/kJzhvNcaSglxopI4IPfBQwMWiq99w2V0Au/sGjhvtpw7GG/rkcuaMt
-	 96PlPOsxDUfmuRVHnfE9Y+15aTHuIkJ7B4C/RJYJN/t3u/MIDFzv5EoWazgeDP/vzK
-	 z4hCMQhKSik9FeuiEcm4Vjm/5/Yybf5eN/lLlS1ddOEm1YMBuePHWgB+/1KyUtxwr6
-	 oa3N+zp1ATGc8opoV2CFJA0njXbHQVMr9PKa27X9/JC3uwGtPupgTf9xga7o2DxtUp
-	 YM952Ir4zyW4g==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pmq7aeQc"
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-45ef29c5561so3563282f8f.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2026 03:40:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781088026; x=1781692826; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=O5QZoiM1vL8P2LHIc91g/yOHWKTjUEVnmNOhiYszlOA=;
+        b=pmq7aeQcYqx1qzl3LJdWEEjjGzujIm8IbTO7XzxkzA5M2Ta0HtAo0j5zxG+s4box7J
+         YCUyCvPmAsYOygSar9BrqxxOo8/qUPr2dLKcv5cbu6soHqzKvnSGywDcsny050doDZMp
+         gfA2t6ili3depLJNr0UjjyroyE4r/FPvWM/vZI9EJ+hA4NCYGnUu0E6MZfGjjA0lpwb2
+         d4k45Eg1+XfiVimrjOep+uxeuGXG6Wn2WocswBT1kpu59K0rqIBe9Aas3vgOfSqP9Wsk
+         0kRSGfmJM//n7O9iN4aUAbRAwng8RfLsYvY48h3a10BjuGvG/4aierSgdwNV/6mXvjQQ
+         z6WQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781088026; x=1781692826;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=O5QZoiM1vL8P2LHIc91g/yOHWKTjUEVnmNOhiYszlOA=;
+        b=h3KrSXi339on9ikIsmrsYfi8A+38hHg1iH4dewJM5oTm6UFbYfl4k8SFh8iR6oCZa4
+         00wjL1rTG41H95ezMdN8wyOeekaOujb2zE+Dlu5sG8GDnul+AumQxggn3aPTdYfGgOb7
+         nOTfWEIy8CUJkNoYzqNkTP6IcmK54qjWh/HlM9KxhjA6+ksMv/vzNBw1/n98HWWQ4kyL
+         TqtfMvxe4+zfeftPBgYffIifoHJ/ZDNUSCdBHnpwDcVIugzj5UxPLQQXViFuRrVJ7P6z
+         EMU2bu988r7Gnf9dmIL+I2WgjFcCksBQ23eRZDf8F58KUJejVhPZa2QpvBGK1AGHFLoc
+         u2qQ==
+X-Gm-Message-State: AOJu0YxMg/d6Da59VhGsDRf/PBHNnCs7k7TGwqqxrxKk2f3UKL5X1bNO
+	EJJ4KBj+Rx5XaBoexIkFrWstoAe3u9K9aGgGk1PgOb+B6zCNsoRofzZXdMiRsBVf/Kg=
+X-Gm-Gg: Acq92OHm5XzHYofvrkgCrJu2l8XSwpXRpHBeciKCSGGlpMAv08+l18vqAYexJpZp3L5
+	Z7RlBkRnPU8kIMGcKJdqXhAu+yri0/jYsqBSJe2qC+UQn9F0rGl7+xfkenAv5bKdnbNmAyEHaT7
+	dYxInoEwyWcfuijdox/Lvux/MnkEG30qF9jmgBYMcGMp+V2Tq38X1swLR6MhGbJ0HjmyMKB18OQ
+	+bLAQnmpKA/+CCpxZ7HUxa0RhKQ+efCKl7jGEej2W3BXDGUi8D3PeFN9uDMVZRUsGAHIzKF7qcv
+	G88ouUgQcmgLNPT8Kk3lSQszAjpJIwFO42Wp8et3aZJo0e53H/BDk7wJnjTTwuWYHlUrpEfc3Lv
+	pisCD1O0DqX+cEDbohslT3OSOGZpXqSTpyMaN9BecC4acviQciiE4s5G6RP5HxWNAzqKgCpsTqh
+	6LigwpVm7bEAZqrU7M7K9GRIeHk52dgNjIXvqi98T6qQn1u7a68uQ02FYWE4DMkK128m9SL2vpD
+	tnT+t2B+Q==
+X-Received: by 2002:adf:e848:0:b0:460:cfc:eb24 with SMTP id ffacd0b85a97d-460304fec2bmr30694864f8f.22.1781088026328;
+        Wed, 10 Jun 2026 03:40:26 -0700 (PDT)
+Received: from manta01.. (host-85-36-215-182.business.telecomitalia.it. [85.36.215.182])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4601f345209sm75828687f8f.17.2026.06.10.03.40.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 10 Jun 2026 03:40:25 -0700 (PDT)
+From: Davide Ornaghi <d.ornaghi97@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_conntrack] objopt: restrict NFCT_GOPT_IS_{S,D}PAT to supported layer 4 protocols
-Date: Wed, 10 Jun 2026 12:30:39 +0200
-Message-ID: <20260610103039.167819-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	coreteam@netfilter.org,
+	Davide Ornaghi <d.ornaghi97@gmail.com>
+Subject: [PATCH v2 0/2] netfilter: fix two remaining stale-stack register leaks
+Date: Wed, 10 Jun 2026 12:39:11 +0200
+Message-Id: <20260610103913.1949008-1-d.ornaghi97@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,59 +73,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If layer 4 protocol has no ports, then return false. Otherwise, users
-like the conntrack utility filtering does not properly work with layer 4
-protocol such as ICMP and ICMPv6.
+These are the two register stale-stack leaks that remained after the
+nft_byteorder (CVE-2022-1016-class) fix, the nft_exthdr PRESENT fix and
+nft_ct (3027ecbdb5fd): a producer marks DIV_ROUND_UP(len, 4) registers
+initialised at config time while the eval writes fewer bytes on a
+reachable path, so a downstream consumer reads uninitialised
+nft_do_chain() stack and can leak it to userspace.
 
-Fixes: 93c459d603cc ("objopt: use indirect calls instead of switch")
-Reported-by: Jan Kasprzak <kas@fi.muni.cz>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/conntrack/objopt.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+Both are minimal, -stable-friendly fixes that make the eval write the
+full declared span. The broader store-helper rework discussed on-list
+can supersede the open-coded stores in -next.
 
-diff --git a/src/conntrack/objopt.c b/src/conntrack/objopt.c
-index 1581480667e5..6024d15e2602 100644
---- a/src/conntrack/objopt.c
-+++ b/src/conntrack/objopt.c
-@@ -182,8 +182,27 @@ static int getobjopt_is_dnat(const struct nf_conntrack *ct)
- 	}
- }
- 
-+static bool l4proto_has_ports(const struct nf_conntrack *ct)
-+{
-+	switch (ct->head.orig.l3protonum) {
-+	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
-+	case IPPROTO_SCTP:
-+	case IPPROTO_TCP:
-+	case IPPROTO_DCCP:
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
- static int getobjopt_is_spat(const struct nf_conntrack *ct)
- {
-+	if (!l4proto_has_ports(ct))
-+		return 0;
-+
- 	return ((test_bit(ATTR_STATUS, ct->head.set) ?
- 		ct->status & IPS_SRC_NAT_DONE : 1) &&
- 		ct->repl.l4dst.tcp.port !=
-@@ -192,6 +211,9 @@ static int getobjopt_is_spat(const struct nf_conntrack *ct)
- 
- static int getobjopt_is_dpat(const struct nf_conntrack *ct)
- {
-+	if (!l4proto_has_ports(ct))
-+		return 0;
-+
- 	return ((test_bit(ATTR_STATUS, ct->head.set) ?
- 		ct->status & IPS_DST_NAT_DONE : 1) &&
- 		ct->repl.l4src.tcp.port !=
+  nft_fib:         OIFNAME early-returns and the PRESENT flag
+  nft_meta_bridge: IIFHWADDR (6 bytes into an 8-byte register span)
+
+v2:
+- nft_fib: also reject NFTA_FIB_F_PRESENT for result types other than
+  NFT_FIB_RESULT_OIF (Florian Westphal)
+
+Davide Ornaghi (2):
+  netfilter: nft_fib: fix stale stack leak via the OIFNAME register
+  netfilter: nft_meta_bridge: fix stale stack leak via IIFHWADDR
+    register
+
+ net/bridge/netfilter/nft_meta_bridge.c | 2 ++
+ net/ipv4/netfilter/nft_fib_ipv4.c      | 2 +-
+ net/ipv6/netfilter/nft_fib_ipv6.c      | 2 +-
+ net/netfilter/nft_fib.c                | 6 ++++++
+ 4 files changed, 10 insertions(+), 2 deletions(-)
+
 -- 
-2.47.3
+2.34.1
 
