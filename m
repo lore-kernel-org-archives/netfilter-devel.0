@@ -1,107 +1,143 @@
-Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.76.78.106])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 679EE9443
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2026 07:22:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.76.78.106
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6955036E494
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Jun 2026 08:16:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781162540; cv=none; b=HYIeSJzh5YxLSCXvjczpDt3g5VyPqedYb0FdvKa6JAkin6T2APT3wMQgLApXQ7HMhUUzTICPk14WpEo3ixWTG4pb7RllUgWENA3nq0K7cSy2RQ5et+FpEJcgY4+nr3j8V5PwVYZj5M/ZM0qGi+pZwC4aRFLZadXko1dYm1PqbVQ=
+	t=1781165770; cv=none; b=Tf63mPxOaEbuWOqGj1V5zWHNDKe19Y4yDum33biiPD7nk+0uDp1KeqJLL3J+yVgFOlKltaXR/IPu5RWpPLvQYKZifPx/54Oyd57eM1hW5xGfDxI+IRGinrESSip+2r51gPvwMx/ao5K5O7niWGREJhVQKJ0CREFLokgbH36qE0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781162540; c=relaxed/simple;
-	bh=1LhFwP9LoyKSAz6ethO9kxk0y1yzDLcLpqLaoAR4QRo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m5fnRiQq5HQwS+0k556tmADlsBylfUpRmCRO0DlgJ/V7B2baEsVcUAdN02P71en8i1pnaz5coT0k4I+VfEZ0mOpp4JOXST1J0szxpjga3XE7GkeoVW+t6rW49aPbzQnlQfWJgg5VIICa2g2IK9gZOi4W85SHoxIisjaCLEWeiF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=13.76.78.106
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
-Received: from enjou-Legion-Y7000P-2019 (unknown [172.23.56.36])
-	by app1 (Coremail) with SMTP id ygmowAD3E74KYipqbrJ6AA--.55049S3;
-	Thu, 11 Jun 2026 15:21:58 +0800 (CST)
-From: Ren Wei <n05ec@lzu.edu.cn>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	kaber@trash.net,
-	yuantan098@gmail.com,
-	yifanwucs@gmail.com,
-	tomapufckgml@gmail.com,
-	zcliangcn@gmail.com,
-	bird@lzu.edu.cn,
-	bronzed_45_vested@icloud.com,
-	n05ec@lzu.edu.cn
-Subject: [PATCH nf 1/1] netfilter: xt_cluster: reject template conntracks in hash match
-Date: Thu, 11 Jun 2026 15:21:42 +0800
-Message-ID: <38ddd33608bec18ee19d6a0d91163b52f26d368b.1781060431.git.bronzed_45_vested@icloud.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <cover.1781060431.git.bronzed_45_vested@icloud.com>
-References: <cover.1781060431.git.bronzed_45_vested@icloud.com>
+	s=arc-20240116; t=1781165770; c=relaxed/simple;
+	bh=GsAsWH7Obyh0geglZxdMwxsQoAaOAICrWVm/HuGFqXA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=m8PludFdYZQi5z+q4dA0O4Wlq3dG0wwd94gLAsFMDRlotJetMaP5524o0QN6FehheoPuxqBdpqiRORhnivMOaE9Fcvju73m3PJCp8YdjJ6LmIXE8JmTDB5q/nCIvZ6UXNNzQ5QpG/Ga9hFif4ikx18ceM5UeHHCjb88jU4/Th1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=b3PCSOT+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=I009MTCc; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=b3PCSOT+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=I009MTCc; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="b3PCSOT+";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="I009MTCc";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="b3PCSOT+";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="I009MTCc"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 890A5759C6;
+	Thu, 11 Jun 2026 08:16:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1781165767; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/YB2hfZCVNELaWXKYsnHKv8h0J4pz/MGzEWfST5VSEc=;
+	b=b3PCSOT+XQZcd+AS7CfXm/xYlEpTNp5kTWlC14T/PQans/tIknDT3+MqVpJuiCkKS+w8+t
+	ICwE+w7RuKdlXe+irT9qpx1va0RV6x1gLoVph6pQ/T8cN2l3fp3MqGOlFy/fdNEyQTFAam
+	Eyz5iA2Rz7q0zzoea/UFghc7tUYwZCo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1781165767;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/YB2hfZCVNELaWXKYsnHKv8h0J4pz/MGzEWfST5VSEc=;
+	b=I009MTCcDvYP/TVlr3fP+WG8Jj0k/HLlozFie54XadXQkCVZ4gyPP3Jn8NFrbdVle65oRv
+	5YzL2urUTER7EpCA==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1781165767; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/YB2hfZCVNELaWXKYsnHKv8h0J4pz/MGzEWfST5VSEc=;
+	b=b3PCSOT+XQZcd+AS7CfXm/xYlEpTNp5kTWlC14T/PQans/tIknDT3+MqVpJuiCkKS+w8+t
+	ICwE+w7RuKdlXe+irT9qpx1va0RV6x1gLoVph6pQ/T8cN2l3fp3MqGOlFy/fdNEyQTFAam
+	Eyz5iA2Rz7q0zzoea/UFghc7tUYwZCo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1781165767;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/YB2hfZCVNELaWXKYsnHKv8h0J4pz/MGzEWfST5VSEc=;
+	b=I009MTCcDvYP/TVlr3fP+WG8Jj0k/HLlozFie54XadXQkCVZ4gyPP3Jn8NFrbdVle65oRv
+	5YzL2urUTER7EpCA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 53636779A7;
+	Thu, 11 Jun 2026 08:16:07 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 02LYE8duKmrEXAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 11 Jun 2026 08:16:07 +0000
+Message-ID: <7e1453b1-09bb-4590-8dda-ed0647e4da77@suse.de>
+Date: Thu, 11 Jun 2026 10:15:53 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ygmowAD3E74KYipqbrJ6AA--.55049S3
-X-Coremail-Antispam: 1UD129KBjvJXoW7tF13CryrKF45WryfArykGrg_yoW8WFW8pa
-	4fGw13GrW2qFn8Kw1ktr929FWrWrZ5CryxW3Z0yF97GFnIqr4kJan3K393ZF1DJ3yY9FWY
-	qFnF9w4Duwn8Z37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUBY1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
-	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVW7JVWDJwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
-	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
-	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
-	Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
-	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
-	w2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY2
-	0_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8G
-	jcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2I
-	x0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK
-	8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVW8JVWxJwCI42IY6I8E87Iv6xkF7I
-	0E14v26r4UJVWxJrUvcSsGvfC2KfnxnUUI43ZEXa7VUbGQ6JUUUUU==
-X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQwPCWopHlER5QAAsz
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] netfilter: nft_synproxy: stop bypassing the
+ priv->info snapshot
+To: Runyu Xiao <runyu.xiao@seu.edu.cn>, pablo@netfilter.org, fw@strlen.de,
+ netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org, phil@nwl.cc, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ ffmancera@riseup.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org, jianhao.xu@seu.edu.cn
+References: <20260611042120.1462249-1-runyu.xiao@seu.edu.cn>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260611042120.1462249-1-runyu.xiao@seu.edu.cn>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[16];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid]
+X-Spam-Level: 
 
-From: Wyatt Feng <bronzed_45_vested@icloud.com>
+On 6/11/26 6:21 AM, Runyu Xiao wrote:
+> nft_synproxy_eval_v4() and nft_synproxy_eval_v6() already take a
+> whole-object READ_ONCE() snapshot of the shared priv->info state before
+> building the SYNACK reply, but nft_synproxy_tcp_options() still masks
+> opts->options with priv->info.options from the live shared object.
+> 
+> When a named synproxy object is updated concurrently with SYN traffic,
+> the eval path can then mix mss and timestamp handling from the local
+> snapshot with an options mask taken from a newer configuration, so one
+> SYNACK no longer reflects a coherent synproxy configuration.
+> 
+> Use info->options so nft_synproxy_tcp_options() stays on the same local
+> snapshot that the eval path already copied from priv->info.
+> 
+> Fixes: ee394f96ad75 ("netfilter: nft_synproxy: add synproxy stateful object support")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Runyu Xiao <runyu.xiao@seu.edu.cn>
 
-xt_cluster_mt() treats any non-NULL nf_ct_get() result as a fully
-initialized conntrack and passes it to xt_cluster_hash().
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-This causes a state confusion bug when the raw table CT target attaches
-a template conntrack to skb->_nfct before normal conntrack processing.
-Templates carry IPS_TEMPLATE status but do not have a valid tuple for
-hashing yet, so xt_cluster_hash() can hit its WARN_ON() path on the
-zeroed l3num field.
-
-Reject template conntracks before hashing them. This matches existing
-netfilter handling for template objects and avoids hashing incomplete
-conntrack state.
-
-Fixes: 0269ea493734 ("netfilter: xtables: add cluster match")
-Cc: stable@vger.kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Zhengchuan Liang <zcliangcn@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Assisted-by: Codex:GPT-5.4
-Signed-off-by: Wyatt Feng <bronzed_45_vested@icloud.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
----
- net/netfilter/xt_cluster.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_cluster.c b/net/netfilter/xt_cluster.c
-index 908fd5f2c3c8..76295053ef9a 100644
---- a/net/netfilter/xt_cluster.c
-+++ b/net/netfilter/xt_cluster.c
-@@ -107,7 +107,7 @@ xt_cluster_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	}
- 
- 	ct = nf_ct_get(skb, &ctinfo);
--	if (ct == NULL)
-+	if (ct == NULL || nf_ct_is_template(ct))
- 		return false;
- 
- 	if (ct->master)
--- 
-2.47.3
-
+Thanks!
