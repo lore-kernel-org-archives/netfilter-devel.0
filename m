@@ -1,35 +1,58 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from sender-op-o17.zoho.eu (sender-op-o17.zoho.eu [136.143.169.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC21E3988E1;
-	Fri, 12 Jun 2026 09:22:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781256156; cv=none; b=kVs+4PnJcD7Q7pWb8+eIgAXlAmWdwFRg9S4TP3YoqWWEpF34m2lJKIVNGWSLtvH2VzTsXdZuDKrJfgo7IudlI/MSxupJpbaevkeY+3GG7Hzcb+nQsp6pxk0CkcRcgLcLZUrCdfidZMRkITCPgBd6tKKReLZaTE7y3JtzH3rayWU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781256156; c=relaxed/simple;
-	bh=K+tYxST+ulBMxf4nKUSLyts7S0iIj1/+RRPCekN1hfg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PmNjs8Hqy16kizrPHpnj0orB8P/wiNDgeLgrGiPVAHU6fH+bc8KpzlRc/q4z4EuiEPJr2zh2QcUyOE645vfR49bm+t3HehgGELQLCyugytyCyMtlMSEeH5TzuZV5TTJ1iJhHoW6SpiAPW1cVe8TzbAqXE8nIrxKSzG2QLGUF8l8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A0D6C607E1; Fri, 12 Jun 2026 11:22:29 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB3E3DE434
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2026 12:42:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781268150; cv=pass; b=E4dA5FdAolNrxqCHfwM2O4G6A7JKMs7h0aJCxIh83g0Wro4m/wwA/mP81sBPXf3THGTRm1pSVESlIMDUf92UZhRI7RKSzvkvdMD8cp4GXgK1eU8Ej8Zvyd0J6UUp7lLv6tnm4Dxy+uw/wFnjT2/UWze7GkiChWXi897alQ3CbX4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781268150; c=relaxed/simple;
+	bh=REH0d3wYoIYM1ZfwUz5WWrrGIOX6hD42sKYZ0MI/c68=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=D2+FA72pqSkDqeU1xVCP0xnp2WAPof61+k7o2TrWiaIrdCfJ37Zva/FRIvDfN5lPBwUd7reF9Cj3OFaQ/JEDEvZ6I8GX+L5ASvYlg0eH3e8186upvXkFVs3/EB8Q6GB++fQrQgS40gXBIvJXFMZ2iCNms8+cRqzlX2mnCrjqVyI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me; spf=pass smtp.mailfrom=carlosgrillet.me; dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b=Hv+PUnqi; arc=pass smtp.client-ip=136.143.169.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=carlosgrillet.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b="Hv+PUnqi"
+ARC-Seal: i=1; a=rsa-sha256; t=1781268118; cv=none; 
+	d=zohomail.eu; s=zohoarc; 
+	b=LHIjTJguHlxgCeXYW1H+zHHaCSwyawwWNMTCuqI9lYfmC7tsCFUmdGJ5cRScmtDHfdZI/bsac9oVksfO6Fp5D3KLwmMausEaLxN3FoEoTjC6IC2mTNBo/NkOMhecZDIIfcSdAtdMNS04kuGkC87wF0k7ajrmlHPC0Mboj5gyuKk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+	t=1781268118; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=0KL/XF/Vvi8vAhmaVj+NFnFKfoqpckK1aQ0xkfQQy4E=; 
+	b=Ya2xtOZnJpoUGTuf9vTzHh3jUSN5WWCByXd3VFcmjLoeoswuCMDQ4RSN14oH1l+FgwUGaQ+MEz255Qsl8A0D8KbZR/Iic0yRf3LBMDAVDIrEZEFAvyp+vrcJTjs3mZRc0SuDUhaJbSj75pqgjtqKx6sTgrzb1Z9b45EkbcraZkk=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+	dkim=pass  header.i=carlosgrillet.me;
+	spf=pass  smtp.mailfrom=carlos@carlosgrillet.me;
+	dmarc=pass header.from=<carlos@carlosgrillet.me>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781268118;
+	s=zmail; d=carlosgrillet.me; i=carlos@carlosgrillet.me;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=0KL/XF/Vvi8vAhmaVj+NFnFKfoqpckK1aQ0xkfQQy4E=;
+	b=Hv+PUnqi6GfQsT1hKzt1mEX8kR5j4JQB7oFhyqZw9t3N9o16bZ8EwtOCSLwEMeI8
+	Jh6RAF1CwswNCiX5VQ8Y1x7oamk+OUdPZt/k5fJ7ZZPZjactLVzQGlJ1VhqOUcSy7Tu
+	mW9YoN4mlOj3gb6a3oQvgZ2plqxC+T8dtcPXG6uI=
+Received: by mx.zoho.eu with SMTPS id 1781268117581167.83152173815665;
+	Fri, 12 Jun 2026 14:41:57 +0200 (CEST)
+From: Carlos Grillet <carlos@carlosgrillet.me>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH v2 net-next 2/2] selftests: netfilter: add phony nft_offload test
-Date: Fri, 12 Jun 2026 11:22:09 +0200
-Message-ID: <20260612092209.11966-3-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260612092209.11966-1-fw@strlen.de>
-References: <20260612092209.11966-1-fw@strlen.de>
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org (open list:NETFILTER),
+	coreteam@netfilter.org (open list:NETFILTER),
+	netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
+	linux-kernel@vger.kernel.org (open list)
+Cc: Carlos Grillet <carlos@carlosgrillet.me>
+Subject: [PATCH nf-next 2/6] netfilter: nf_nat_irc: replace u_int16_t with u16
+Date: Fri, 12 Jun 2026 14:40:22 +0200
+Message-ID: <20260612124027.71673-3-carlos@carlosgrillet.me>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,200 +60,30 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
-... "phony", because its not testing offloads, it tests the control
-plane code.  Also test error unwind via fault injection framework.
+Replace POSIX u_int16_t with preferred kernel type u16
 
-For a proper test, real hardware would be required given we'd have
-check if 'previously handed off to hardware' offload commands are
-properly removed again on failure or rule flush.
+No functional changes.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
 ---
- v2: sort config
-     shellcheck fixups
+ net/netfilter/nf_nat_irc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- .../testing/selftests/net/netfilter/Makefile  |   1 +
- tools/testing/selftests/net/netfilter/config  |   6 +
- .../selftests/net/netfilter/nft_offload.sh    | 132 ++++++++++++++++++
- 3 files changed, 139 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_offload.sh
-
-diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index d953ee218c0f..f88dd4ef8d26 100644
---- a/tools/testing/selftests/net/netfilter/Makefile
-+++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -32,6 +32,7 @@ TEST_PROGS := \
- 	nft_meta.sh \
- 	nft_nat.sh \
- 	nft_nat_zones.sh \
-+	nft_offload.sh \
- 	nft_queue.sh \
- 	nft_synproxy.sh \
- 	nft_tproxy_tcp.sh \
-diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index 979cff56e1f5..c3c121b6f300 100644
---- a/tools/testing/selftests/net/netfilter/config
-+++ b/tools/testing/selftests/net/netfilter/config
-@@ -11,7 +11,12 @@ CONFIG_BRIDGE_NF_EBTABLES_LEGACY=m
- CONFIG_BRIDGE_VLAN_FILTERING=y
- CONFIG_CGROUP_BPF=y
- CONFIG_CRYPTO_SHA1=m
-+CONFIG_DEBUG_FS=y
- CONFIG_DUMMY=m
-+CONFIG_FAIL_FUNCTION=y
-+CONFIG_FAULT_INJECTION=y
-+CONFIG_FAULT_INJECTION_DEBUG_FS=y
-+CONFIG_FUNCTION_ERROR_INJECTION=y
- CONFIG_INET_DIAG=m
- CONFIG_INET_ESP=m
- CONFIG_INET_SCTP_DIAG=m
-@@ -36,6 +41,7 @@ CONFIG_IP_VS_RR=m
- CONFIG_MACVLAN=m
- CONFIG_NAMESPACES=y
- CONFIG_NET_CLS_U32=m
-+CONFIG_NETDEVSIM=m
- CONFIG_NETFILTER=y
- CONFIG_NETFILTER_ADVANCED=y
- CONFIG_NETFILTER_NETLINK=m
-diff --git a/tools/testing/selftests/net/netfilter/nft_offload.sh b/tools/testing/selftests/net/netfilter/nft_offload.sh
-new file mode 100755
-index 000000000000..859bdedf1a51
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/nft_offload.sh
-@@ -0,0 +1,132 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+source lib.sh
-+
-+checktool "nft --version" "run test without nft tool"
-+modprobe -q netdevsim
-+
-+sysfs="/sys/kernel/debug/fail_function"
-+failname="/proc/self/make-it-fail"
-+duration=30
-+fault=0
-+ret=0
-+file_ft=""
-+file_rs=""
-+id=$((RANDOM%65536))
-+
-+read -r t < /proc/sys/kernel/tainted
-+if [ "$t" -ne 0 ];then
-+	echo SKIP: kernel is tainted
-+	exit $ksft_skip
-+fi
-+
-+cleanup() {
-+    cleanup_netdevsim "$id" "$NS"
-+    cleanup_ns "$NS"
-+    [ "$fault" -eq 1 ] && echo '!nsim_setup_tc' > "$sysfs/inject"
-+    rm -f "$file_ft" "$file_rs"
-+}
-+trap cleanup EXIT
-+
-+skip() {
-+	echo "SKIP: $*"
-+	[ $ret -eq 0 ] && exit 4
-+
-+	exit $ret
-+}
-+
-+set -e
-+setup_ns NS
-+
-+create_netdevsim "$id" "$NS" >/dev/null
-+nsim_port=$(create_netdevsim_port "$id" "$NS" 2)
-+
-+file_ft=$(mktemp)
-+cat > "$file_ft" <<EOF
-+flush ruleset
-+table inet t {
-+	flowtable f {
-+		flags offload
-+		hook ingress priority filter + 10
-+		devices = { "$nsim_port", "dummyf1" }
-+	}
-+
-+	chain cf {
-+		type filter hook forward priority 0; policy accept;
-+		ct state new meta l4proto tcp flow add @f
-+	}
-+}
-+EOF
-+
-+if ip netns exec "$NS" nft -f "$file_ft"; then
-+	echo "PASS: flowtable offload"
-+else
-+	echo "FAIL: flowtable offload"
-+	ret=1
-+fi
-+
-+file_rs=$(mktemp)
-+cat > "$file_rs" <<EOF
-+table netdev t {
-+	chain c {
-+		type filter hook ingress device $nsim_port priority 1
-+		flags offload
-+		ip saddr 10.2.1.1 ip daddr 10.2.1.2 ip protocol icmp accept
-+		ip saddr 10.2.1.1 ip daddr 10.2.1.3 ip protocol icmp drop
-+		ip saddr 10.2.1.0/24 ip daddr 10.2.1.0/24 ip protocol icmp accept
-+		ip6 saddr dead:beef::1 ip6 daddr dead:beef::2 meta l4proto ipv6-icmp accept
-+		ip6 saddr dead:beef::1 ip6 daddr dead:beef::3 meta l4proto ipv6-icmp drop
-+		ip6 saddr dead:beef::/64 ip6 daddr dead:beef::/64 meta l4proto ipv6-icmp accept
-+	}
-+}
-+EOF
-+if ip netns exec "$NS" nft -f "$file_rs"; then
-+	echo "PASS: ruleset offload"
-+else
-+	echo "FAIL: ruleset offload"
-+	ret=1
-+fi
-+
-+test -d "$sysfs" || skip "$sysfs not present"
-+grep -q nsim_setup_tc "$sysfs/injectable" || skip "nsim_setup_tc fault injection not available"
-+
-+echo Y > "$sysfs/task-filter"
-+echo 0 > "$sysfs/verbose"
-+echo "nsim_setup_tc" > "$sysfs/inject"
-+fault=1
-+
-+p=$(((RANDOM%90) + 10))
-+echo $p > "$sysfs/probability"
-+echo -1 > "$sysfs/times"
-+
-+count=0
-+ok=0
-+
-+now=$(date +%s)
-+stop=$((now+duration))
-+
-+# fault-injection enabled rule loads are expected to fail.
-+set +e
-+while [ "$now" -le "$stop" ]; do
-+	for f in "$file_ft" "$file_rs"; do
-+		if ip netns exec "$NS" bash -c "echo 1 > $failname ; ip netns exec \"$NS\" nft -f $f" 2> /dev/null;then
-+			ok=$((ok+1))
-+		fi
-+		count=$((count+1))
-+	done
-+	now=$(date +%s)
-+done
-+
-+sleep 5
-+
-+read -r t < /proc/sys/kernel/tainted
-+if [ "$t" -eq 0 ];then
-+	echo "PASS: Not tainted. $count rounds, $ok successful ruleset loads with P $p."
-+else
-+	echo "ERROR: Tainted. $count rounds, $ok successful ruleset loads with P $p."
-+	dmesg
-+	ret=1
-+fi
-+
-+exit $ret
+diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
+index 19c4fcc60c50..14b79cb0171b 100644
+--- a/net/netfilter/nf_nat_irc.c
++++ b/net/netfilter/nf_nat_irc.c
+@@ -39,7 +39,7 @@ static unsigned int help(struct sk_buff *skb,
+ 	char buffer[sizeof("4294967296 65635")];
+ 	struct nf_conn *ct = exp->master;
+ 	union nf_inet_addr newaddr;
+-	u_int16_t port;
++	u16 port;
+ 
+ 	/* Reply comes from server. */
+ 	newaddr = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3;
 -- 
-2.53.0
+2.54.0
 
