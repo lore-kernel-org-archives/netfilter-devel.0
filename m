@@ -1,58 +1,58 @@
-Received: from pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.245.243.92])
+Received: from pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.162.73.231])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95E5397682;
-	Fri, 12 Jun 2026 20:24:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.245.243.92
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A462BE051;
+	Fri, 12 Jun 2026 20:39:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.162.73.231
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781295862; cv=none; b=dRfKqDdtAlG03QlCApzi5NeAAUI3n6+17GTxIj7/CJKUPvNeCE9JAz/G1ehGz4clSvVdgPPO2rr0CkQbt9xFRe/GgVXqHOyPctKEy3vis3i9fMRAP697PYmaV0qq8gNoCVHebNQoftrKKr3GTPzPKQ2SdYpGCZDbS6tsuBtm32M=
+	t=1781296767; cv=none; b=papJeDYSYMIz8E5gkE1m+L6zpyHlFmXs3le3pCwmtYE6VDN1L5nYCK0wi6FRDD5b/ugWgI5v2PNsh5w/MMLXqmJ3dLK41mZJOyAylw/wclLoh4PLO656KIpHGLBdygTQjIcoebdB40JubPKHxCaimrRy+b41v+0p/6eWX2nMfKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781295862; c=relaxed/simple;
-	bh=6msnmokA+pqL2rpEMBTiqzQNx8CpRNH27ir2l0RvrKM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=PTad05C+tqsCREBQGi1p2PGcG7Ov/ii122JYOn8Yjdg9q6pfqmIzEGUR5cq6kxz4Vk4y1g+MDZrjoUVVho508hGbH5Sq+609Ap4KvAhO/LihOPuKI1jVtDikywlN6xBsFl9IvOFpyQYRVLzW/QYY9+76Sqe6BLYVHqVF96bro34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=IseZxwFs; arc=none smtp.client-ip=44.245.243.92
+	s=arc-20240116; t=1781296767; c=relaxed/simple;
+	bh=O6uXEHCEENslGyHqpXetmNJvmRta+pvq57ub6gleW/w=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=KqLrib968DL+8vl7aI+kAyk0eNA4k+gdIdzR9LSifxNV3C/Yw3LxxJqVy1MAQ7DoAvVGWpaTe8gbifkawsapLmwDukPQdlxTIIhNWheSPROEoGos+vUdL4UaUTw/BeXsyxjBy80YLvNWyQoHOlUpB1aOIFLb1aVIaQlNC62V3Qw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=pnrKfPd/; arc=none smtp.client-ip=35.162.73.231
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="IseZxwFs"
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="pnrKfPd/"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1781295860; x=1812831860;
+  t=1781296765; x=1812832765;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=iChme/E34uCboryDWummptj4VOkA8kgpO0MVzkueBFg=;
-  b=IseZxwFsmXRrW6w3vX8Lyb+/3KwOZ15B676XSw309Cdky+kWuKeeFa4v
-   /AEcNRuGZi0cfpcvBcgZpoIeJu01YlruywN9Jj2Lo3+/MErxf45aeHxzT
-   ZnT7SNz38y0SOzUOxapb6mDnl+GXK4WY2FmZmoHGHmmTcS2U9mLpaX6gf
-   ySvAMDAR4Be7I5JF6/ezOznHpdh+cj0kzWd2IH/XgNEwqDIesfI/AurQ/
-   C11dxtUxKqNrq2WZw9FgySPL2M0kFLM1gT5IdirFGA9yXhDNmGZkjigEv
-   0CDFZQJ8U4Z3g72DurEBrxcWqA7iP2euVgXJ/tdgTEkA7dK/96ngI/zmJ
-   w==;
-X-CSE-ConnectionGUID: aGP2EaitT6CYX2qPV1wPeQ==
-X-CSE-MsgGUID: dTdWs130QAmNvgKDlmWb0w==
+  bh=Yxk3xIKub+LA83N8JcwbIaqhC4cAlRXngQJ1uLCPwXM=;
+  b=pnrKfPd//KV36rNF9i47O/HBb/CFv2H4iewaJ7DWjFNH2CtIwg1zOxeB
+   mtwOmmF9ZmVvvMbUW9wvqpaviJbTWez30+FBocVNo/yxFZ4+G3aT9vU7E
+   gEry99eTtFthzL/8ogQebpm4oYy/8V2W5rZHAlZZSkH7IcqkV4Plbg2az
+   EIv3h7co8zrLZoTPWILmbC1aTytcrCgRky7F2IUD79SEalIPSlPUcssBV
+   0+siAJaOY/mRqySNAPxWn43WyltmIj07FXTqmxjLbDai0bjpnGt2Q88eO
+   Cz5L8zN5N0jrj4hf+abv3WGgsrwmQaqvgocxDLtM9cdwYTiT0CU+fR+Kz
+   Q==;
+X-CSE-ConnectionGUID: M1F3v13xQAGQM8DDuC2WtA==
+X-CSE-MsgGUID: 3M+C78j0RkST3fT/EBBVMg==
 X-IronPort-AV: E=Sophos;i="6.24,201,1774310400"; 
-   d="scan'208";a="21169016"
-Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
-  by internal-pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2026 20:24:20 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [205.251.233.51:26259]
+   d="scan'208";a="21456951"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jun 2026 20:39:24 +0000
+Received: from EX19MTAUWC002.ant.amazon.com [205.251.233.51:13680]
  by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.31.226:2525] with esmtp (Farcaster)
- id aa634630-adcd-4332-a889-a0a49a8f284e; Fri, 12 Jun 2026 20:24:20 +0000 (UTC)
-X-Farcaster-Flow-ID: aa634630-adcd-4332-a889-a0a49a8f284e
+ id 1f061510-d6b5-4aa2-bad8-0c5eb748715c; Fri, 12 Jun 2026 20:39:21 +0000 (UTC)
+X-Farcaster-Flow-ID: 1f061510-d6b5-4aa2-bad8-0c5eb748715c
 Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
  EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Fri, 12 Jun 2026 20:24:20 +0000
+ Fri, 12 Jun 2026 20:39:20 +0000
 Received: from dev-dsk-mkbund-2b-ce767ba1.us-west-2.amazon.com (10.169.40.81)
  by EX19D001UWA001.ant.amazon.com (10.13.138.214) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.37;
- Fri, 12 Jun 2026 20:24:19 +0000
+ Fri, 12 Jun 2026 20:39:20 +0000
 From: Mark Bundschuh <mkbund@amazon.com>
 To: <stable@vger.kernel.org>
 CC: <netfilter-devel@vger.kernel.org>, Pablo Neira Ayuso
 	<pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH 6.6.y] netfilter: ctnetlink: ensure safe access to master conntrack
-Date: Fri, 12 Jun 2026 20:24:08 +0000
-Message-ID: <20260612202408.1045757-1-mkbund@amazon.com>
+Subject: [PATCH 6.1.y] netfilter: ctnetlink: ensure safe access to master conntrack
+Date: Fri, 12 Jun 2026 20:39:06 +0000
+Message-ID: <20260612203906.1139574-1-mkbund@amazon.com>
 X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -62,7 +62,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: EX19D039UWB001.ant.amazon.com (10.13.138.119) To
+X-ClientProxiedBy: EX19D044UWB002.ant.amazon.com (10.13.139.188) To
  EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -121,10 +121,10 @@ Signed-off-by: Mark Bundschuh <mkbund@amazon.com>
  4 files changed, 35 insertions(+), 10 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 3384859a8921..8883575adcc1 100644
+index a36f87af415c..8ea16b0ba1c9 100644
 --- a/include/net/netfilter/nf_conntrack_core.h
 +++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -83,6 +83,11 @@ void nf_conntrack_lock(spinlock_t *lock);
+@@ -84,6 +84,11 @@ void nf_conntrack_lock(spinlock_t *lock);
  
  extern spinlock_t nf_conntrack_expect_lock;
  
@@ -200,10 +200,10 @@ index 70bcddfc17cc..379711ea5ab6 100644
  out:
  	spin_unlock_bh(&nf_conntrack_expect_lock);
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 255996f43d85..eff5008f5e9d 100644
+index bcbd77608365..f6e9d9bc1886 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3326,31 +3326,37 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
+@@ -3330,31 +3330,37 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
  	if (err < 0)
  		return err;
  
@@ -248,7 +248,7 @@ index 255996f43d85..eff5008f5e9d 100644
  	if (err <= 0) {
  		kfree_skb(skb2);
  		return -ENOMEM;
-@@ -3397,22 +3403,26 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
+@@ -3401,22 +3407,26 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
  		if (err < 0)
  			return err;
  
