@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDBE2D7DEA;
-	Sun, 14 Jun 2026 11:46:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E6E134F27B;
+	Sun, 14 Jun 2026 11:46:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781437572; cv=none; b=Wfy6HsVQdzzgVAgEX9TMspIY4gEgQXRVwmRCkewpS6Tqb++PJk6zObUPd9YG6cBBr16TiWYvLjWyIvOkTZyz8G+niLKypL6g7I+GZv2cOcCAG7vz/To79LBAxhdmGwfsI6Bg75di7s2VKAaOI5Rrjs6zHk0tAY5Nsky5+l4Wt/o=
+	t=1781437574; cv=none; b=AIpsvH37jEIqyS7skTVMw0utDN9ojW/B5K2wjp63wi9NgGrliJ2eSEQwukfl3CVtwRfZUc5QAUKDxKhA41YRf9QZgx5dXrK88DpLlPZJKD5fVEQvelrcS9TOVkmmQQKyMAjvIA4wpNYzBDvFdCrEFL/wvP6A8+IVCLlsNiFXG1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781437572; c=relaxed/simple;
-	bh=OeCQHgTLmeKfFMUJ3oDG4FrfsFUBJ0omY3kTV8JPXmQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GohWQiM3wFDZU02ndMbyeG6BrjhLrmESa6ZTXfiaxT/b3mFPlyMCYKTEs2YFAnH8q/TYPWfS5akI+KS6bmWD2XuwN7uV1qqzYoeD4XdQi4iuYhEZhcLL3uubqm6MrkVX8tzuoPKn0Riy2JItzZbq6O0jFLtaTfemZHx65cGzOGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hMH1ZJtU; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1781437574; c=relaxed/simple;
+	bh=ye6NSIfdNM26vxcGHD6JPUpQp8zLRzr3cZPC/C1KpFw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=AovzqfBVEk8e+WxDfabssUNZuBjj93ZbVv/JPjT8O2R6Q8vy5zQ6DTanidUHRrUDuHAqRQfUJXbPiFVI6+wNU/Dpzp35OHEfqt6qx9CRCOtay03EBTcs2jm69MHkeMcWXBRIw7egAx9PrClZ7cQP50/F+9it2/hfQd6MebAq7yo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vTrcQBpO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hMH1ZJtU"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vTrcQBpO"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 763B8600B5;
-	Sun, 14 Jun 2026 13:46:08 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 31382600B9;
+	Sun, 14 Jun 2026 13:46:10 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781437568;
-	bh=WpoAJnA4utPblqfZ2mrlKZxDRn+znqnvT8EN6fuLuEE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=hMH1ZJtUivuYp1LCmJCZQ/Tca36RV6Du+DvGHy8oNVxVhhLgYsSlcEvNF/q/NIewt
-	 5sF1Uyk6ZXVILMzbpzt3ywOmUulKcvJSjw062wYmMOZJP4aHBC3PsWHSs0pPMvCgSH
-	 UjgK4YiVsAzB63qHDOmFgo5yafPSdFhaNOqF/KwibV9wj6CldZnTT/2S2MZ92Vbwt7
-	 +YtUxFywpJ1jHCsJjKblUnw6LsXkrPta5zHdFM3Kvc6zZ3f4a2lnEBSLUg/RtPkng3
-	 jxKswtpIMXPb67WgU0D/3fh34frkpKgQIa/gK4nWex6oYXmed4Kbbo58Mq4waocR4P
-	 hU5MvdoomSJIQ==
+	s=2025; t=1781437570;
+	bh=e4pQ0atVWip758KhLvu1k+y1ZRIRG75G9mQeVDiq/Jc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=vTrcQBpO5r0enYDJW6CoCxQEc5b7wO2PAQ88o69u96wSJz5T4lXhDlHWUDweCme00
+	 7Pmj9qg+mthdY/JFsZi6u8nuhFo2A/X5NsgK8NCLRYeNELDTCNYluj0KOWGh19D9Eg
+	 odjWAX+y7yN+zkNTqd83gXaxpU19FbVnQyW9tuaumy/sWHNWBcVqJ30o6ZwzJ/PEy+
+	 YqByPXkgxXPk5z+gG2owM2N1sjDPjx+QrxSAEHPqI+gwgB2FvL+1S+HvXAVtRp0EyQ
+	 VvvoPTlKB7C9VHrhFjxWjh8dngmpNUgJ/Xa8Zze4cTZSiJngnhU1dEghsN3cBUSB5j
+	 k45q1SH4j2VmQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 00/11] Netfilter/IPVS updates for net-next
-Date: Sun, 14 Jun 2026 13:45:54 +0200
-Message-ID: <20260614114605.474783-1-pablo@netfilter.org>
+Subject: [PATCH net-next 01/11] ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
+Date: Sun, 14 Jun 2026 13:45:55 +0200
+Message-ID: <20260614114605.474783-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260614114605.474783-1-pablo@netfilter.org>
+References: <20260614114605.474783-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,139 +52,112 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Marco Crivellari <marco.crivellari@suse.com>
 
-The following patchset contains Netfilter/IPVS updates for net-next.
-More specifically, this contains conncount rework to address AI related
-reports, assorted Netfiter updates and two small incremental updates on
-IPVS:
+This patch continues the effort to refactor workqueue APIs, which has
+begun with the changes introducing new workqueues and a new
+alloc_workqueue flag:
 
-1) Replace old obsolete workqueues (system_wq, system_unbound_wq)
-   in IPVS, from Marco Crivellari.
+   commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
+   commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
 
-2) Replace WARN_ON{_ONCE} by DEBUG_NET_WARN_ON_ONCE in nf_tables.
-   In the recent years, reporters say that the use of WARN_ON{_ONCE}
-   in conjunction with panic_on_warn=1 results in DoS. Let's replace
-   it by DEBUG_NET_WARN_ON_ONCE so this is only exercised by test
-   infrastructure and fuzzers, while also providing context to AI
-   agents. From Fernando F. Mancera.
+The point of the refactoring is to eventually alter the default behavior
+of workqueues to become unbound by default so that their workload
+placement is optimized by the scheduler.
 
-Five patches from Florian Westphal to address AI reports in the conncount
-infrastructures:
+Before that to happen, workqueue users must be converted to the better
+named new workqueues with no intended behaviour changes:
 
-3) Fix missing rcu read lock section when calling
-   __ovs_ct_limit_get_zone_limit().
+   system_wq -> system_percpu_wq
+   system_unbound_wq -> system_dfl_wq
 
-4) Add a dedicate lock per rbtree tree, this increases memory
-   usage but it should improve scalability.
+This way the old obsolete workqueues (system_wq, system_unbound_wq) can
+be removed in the future.
 
-5) Add a helper function to find the rbtree node, no functional
-   changes are intented.
+This specific work is considered long, so enqueue it using
+system_dfl_long_wq instead of system_dfl_wq.
 
-6) Add sequence counter to detect concurrent tree modifications
-   and retry lookups.
+Link: https://lore.kernel.org/all/20250221112003.1dSuoGyc@linutronix.de/
+Suggested-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Marco Crivellari <marco.crivellari@suse.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+ net/netfilter/ipvs/ip_vs_ctl.c  | 10 +++++-----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-7) Add locks to GC conncount walk and address other nitpicks.
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index e76a73d183d5..cb36641f8d1c 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -285,7 +285,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
+ 	/* Schedule resizing if load increases */
+ 	if (atomic_read(&ipvs->conn_count) > t->u_thresh &&
+ 	    !test_and_set_bit(IP_VS_WORK_CONN_RESIZE, &ipvs->work_flags))
+-		mod_delayed_work(system_unbound_wq, &ipvs->conn_resize_work, 0);
++		mod_delayed_work(system_dfl_long_wq, &ipvs->conn_resize_work, 0);
+ 
+ 	return ret;
+ }
+@@ -916,7 +916,7 @@ static void conn_resize_work_handler(struct work_struct *work)
+ 
+ out:
+ 	/* Monitor if we need to shrink table */
+-	queue_delayed_work(system_unbound_wq, &ipvs->conn_resize_work,
++	queue_delayed_work(system_dfl_long_wq, &ipvs->conn_resize_work,
+ 			   more_work ? 1 : 2 * HZ);
+ }
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index f765d1506839..bcf40b8c41cf 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -821,7 +821,7 @@ static void svc_resize_work_handler(struct work_struct *work)
+ 	if (!READ_ONCE(ipvs->enable) || !more_work ||
+ 	    test_bit(IP_VS_WORK_SVC_NORESIZE, &ipvs->work_flags))
+ 		return;
+-	queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work, 1);
++	queue_delayed_work(system_dfl_long_wq, &ipvs->svc_resize_work, 1);
+ 	return;
+ 
+ unlock_m:
+@@ -1869,7 +1869,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 
+ 	/* Schedule resize work */
+ 	if (grow && !test_and_set_bit(IP_VS_WORK_SVC_RESIZE, &ipvs->work_flags))
+-		queue_delayed_work(system_unbound_wq, &ipvs->svc_resize_work,
++		queue_delayed_work(system_dfl_long_wq, &ipvs->svc_resize_work,
+ 				   1);
+ 
+ 	*svc_p = svc;
+@@ -2125,7 +2125,7 @@ static int ip_vs_del_service(struct ip_vs_service *svc)
+ 		rcu_read_unlock();
+ 		if (shrink && !test_and_set_bit(IP_VS_WORK_SVC_RESIZE,
+ 						&ipvs->work_flags))
+-			queue_delayed_work(system_unbound_wq,
++			queue_delayed_work(system_dfl_long_wq,
+ 					   &ipvs->svc_resize_work, 1);
+ 	}
+ 	return 0;
+@@ -2606,7 +2606,7 @@ static int ipvs_proc_conn_lfactor(const struct ctl_table *table, int write,
+ 		} else {
+ 			WRITE_ONCE(*valp, val);
+ 			if (rcu_access_pointer(ipvs->conn_tab))
+-				mod_delayed_work(system_unbound_wq,
++				mod_delayed_work(system_dfl_long_wq,
+ 						 &ipvs->conn_resize_work, 0);
+ 		}
+ 	}
+@@ -2638,7 +2638,7 @@ static int ipvs_proc_svc_lfactor(const struct ctl_table *table, int write,
+ 			    READ_ONCE(ipvs->enable) &&
+ 			    !test_bit(IP_VS_WORK_SVC_NORESIZE,
+ 				      &ipvs->work_flags))
+-				mod_delayed_work(system_unbound_wq,
++				mod_delayed_work(system_dfl_long_wq,
+ 						 &ipvs->svc_resize_work, 0);
+ 			mutex_unlock(&ipvs->service_mutex);
+ 		}
+-- 
+2.47.3
 
-Then, several assorted updates:
-
-8) Defensive Tree-wide addition of NULL checks for ct extensions.
-
-9) Bail out if flowtable bypass cannot be fully set up from the
-   flow offload expression, instead of lazy building a likely
-   incomplete one.
-
-10) Fix documentation for the new conn_max sysctl toggle in IPVS.
-
-11) Add nf_dev_xmit_recursion*() helpers and use them, to address
-    recent AI reports.
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-06-14
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 4ed4f607e1cb6041db46ca5cd3200987d7d1eff2:
-
-  Merge tag 'batadv-next-pullrequest-20260605' of https://git.open-mesh.org/batadv (2026-06-08 15:40:55 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-06-14
-
-for you to fetch changes up to 2354e975932dabb06fad239f07a3b68fd1809737:
-
-  netfilter: nf_dup_netdev: add nf_dev_xmit_recursion*() helpers and use them (2026-06-14 13:07:03 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-06-14
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: nf_tables: use DEBUG_NET_WARN_ON_ONCE in packet and control paths
-
-Florian Westphal (5):
-      netfilter: nf_conncount: callers must hold rcu read lock
-      netfilter: nf_conncount: use per nf_conncount_data spinlocks
-      netfilter: nf_conncount: split count_tree_node rbtree walk into helper
-      netfilter: nf_conncount: add sequence counter to detect tree modifications
-      netfilter: nf_conncount: gc and rcu fixes
-
-Julian Anastasov (1):
-      ipvs: fix doc syntax for conn_max sysctl
-
-Marco Crivellari (1):
-      ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
-
-Pablo Neira Ayuso (3):
-      netfilter: conntrack: check NULL when retrieving ct extension
-      netfilter: flowtable: bail out if forward path cannot be discovered
-      netfilter: nf_dup_netdev: add nf_dev_xmit_recursion*() helpers and use them
-
- Documentation/networking/ipvs-sysctl.rst    |  23 ++-
- include/net/netfilter/nf_conntrack_helper.h |   2 +
- include/net/netfilter/nf_dup_netdev.h       |  34 +++-
- net/ipv4/netfilter/nf_nat_h323.c            |  12 ++
- net/ipv4/netfilter/nf_nat_pptp.c            |  14 +-
- net/netfilter/ipvs/ip_vs_conn.c             |   4 +-
- net/netfilter/ipvs/ip_vs_ctl.c              |  10 +-
- net/netfilter/nf_conncount.c                | 230 +++++++++++++++++-----------
- net/netfilter/nf_conntrack_broadcast.c      |   3 +
- net/netfilter/nf_conntrack_expect.c         |  33 ++--
- net/netfilter/nf_conntrack_ftp.c            |   6 +
- net/netfilter/nf_conntrack_h323_main.c      |  18 +++
- net/netfilter/nf_conntrack_pptp.c           |   9 ++
- net/netfilter/nf_conntrack_proto_gre.c      |   9 ++
- net/netfilter/nf_conntrack_sane.c           |   3 +
- net/netfilter/nf_conntrack_seqadj.c         |  17 +-
- net/netfilter/nf_conntrack_sip.c            |  41 ++++-
- net/netfilter/nf_dup_netdev.c               |  15 +-
- net/netfilter/nf_flow_table_path.c          |  81 +++++-----
- net/netfilter/nf_nat_sip.c                  |  12 ++
- net/netfilter/nf_tables_api.c               |  38 +++--
- net/netfilter/nf_tables_core.c              |   8 +-
- net/netfilter/nf_tables_offload.c           |   2 +-
- net/netfilter/nf_tables_trace.c             |   6 +-
- net/netfilter/nfnetlink_cthelper.c          |   6 +
- net/netfilter/nft_ct.c                      |   2 +-
- net/netfilter/nft_ct_fast.c                 |   2 +-
- net/netfilter/nft_exthdr.c                  |   2 +-
- net/netfilter/nft_fib.c                     |   2 +-
- net/netfilter/nft_fwd_netdev.c              |  17 +-
- net/netfilter/nft_inner.c                   |   2 +-
- net/netfilter/nft_lookup.c                  |   2 +-
- net/netfilter/nft_masq.c                    |   2 +-
- net/netfilter/nft_meta.c                    |  10 +-
- net/netfilter/nft_payload.c                 |   6 +-
- net/netfilter/nft_redir.c                   |   2 +-
- net/netfilter/nft_reject.c                  |   8 +-
- net/netfilter/nft_rt.c                      |   2 +-
- net/netfilter/nft_set_hash.c                |   2 +-
- net/netfilter/nft_set_pipapo.c              |   2 +-
- net/netfilter/nft_set_rbtree.c              |   6 +-
- net/netfilter/nft_socket.c                  |   8 +-
- net/netfilter/nft_tunnel.c                  |   2 +-
- net/netfilter/nft_xfrm.c                    |   6 +-
- net/openvswitch/conntrack.c                 |   2 +-
- 45 files changed, 494 insertions(+), 229 deletions(-)
