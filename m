@@ -1,150 +1,109 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E18171BB;
-	Sun, 14 Jun 2026 05:25:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6491B76026
+	for <netfilter-devel@vger.kernel.org>; Sun, 14 Jun 2026 09:44:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781414732; cv=none; b=q7v3FLQPBLnC43uE4MNUsS8EF/t4rTdsq3G8z7XAVbNBk2xqU0w1vThPvgQMa8u7z/2OA+pOhIBv19cRch/IERQmTvwbr8YNP5vlzR4xovgotuLVAi2tbuj4n3VT7tCS/AMCC0cU2oS85cRYeQSe3VS8oPUag11ABX3z0ilY2qE=
+	t=1781430246; cv=none; b=Z8JfLyg5XcFoS8dZCn98IXeeKC3+evxG06j5f39mjmbvI0cUfC/6q5nhIwNPfPQuHXiDVC48g2VR/rhPq1ldsKpfBiFXtImseRM45Ha2kOsgmhGQ8pcX+tMOgu71kod0wJHWqF6nN8jb+0QNmp0nwexJGpnELn3Vmv9FropkrVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781414732; c=relaxed/simple;
-	bh=Wsq6G7fZ7O8DVr+ZbnYMsBrFbnCcXsEYcTaM0JO/9vc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UjZQdczv3B+FX/zySRBwqqwc1JuoUr8tRdtWJf5Mjwk9Duwe3iVofCe/3lHCOKttRXrcPQPKdl/ICPn5hZQO6KXtFObLgB+cJSDFYZzDcWtndG3aeMg454ya/bpfVE8VnFPM07cBhZKPK7DH2HfEIlX1+QJ00W7/+yQU/Vr5jJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=3W8h2lHU; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1781430246; c=relaxed/simple;
+	bh=hLhmsHbH3c0hdFBXDggS0MozkqHjGU46n8T9maycEzU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=n7JILEcEgWJT11J6/HF7gVi8WjLsscuv0AYmhfMtYYGTVDdbs09CU0d6IongxJc0TyvDEFYHhIwWMkMiuFrcpdqKtHth5EjTNha3r75oTFlL83GcQfNnD+UA02lI9A4MrzxUzOsr011F7MMVACgm9h4jX06jlz6Qqi29bx91GIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aHpxIlfq; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="3W8h2lHU"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=4D/iiY0jnzk08BanLlMnRV0PRyLRiwG/H5ijrGY/r/g=; b=3W8h2lHU/a6ayN8kUYZn8n1EaI
-	wug78Tg3UE41ZDH7eDo8pIKrzhnlB4TpB3GbSo6U0v8XCHjKTyOIqSiDHZI3SZeDUTZd/T5QUZqnI
-	fSH+mofROwGAbXFdqPJjQ9pm6eVwl00+QPCxpXTRPiMx4XjXJ6SPxYlLNg+gQIidT8NPu5ggIjbcu
-	giIkddT+ZBb+Nm4O42SiqCRG2qKbMqLq/tF+XjU5IKm3ECfZA7JGqi8IgnHoAtgfCoJ1RZBigQmTv
-	2IR7jFDNFAA+bgaSj1zw8lrtVGIFJ0aC/s1oCbD/bZxPOSeW4be6Ho0o6zMabPmecN1TtD8psbhOc
-	PipUyvUw==;
-Received: from [50.53.43.113] (helo=bombadil.infradead.org)
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wYdLb-0000000ClDr-0Qun;
-	Sun, 14 Jun 2026 05:25:27 +0000
-From: Randy Dunlap <rdunlap@infradead.org>
-To: netdev@vger.kernel.org
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH net-next] netfilter: x_tables.h: fix all kernel-doc warnings
-Date: Sat, 13 Jun 2026 22:25:24 -0700
-Message-ID: <20260614052524.1559494-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aHpxIlfq"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A9C33600B9;
+	Sun, 14 Jun 2026 11:44:00 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1781430240;
+	bh=XDAMQOr73GKZJrNeKgsFABpU25aYlne3kQY49CFKGaA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=aHpxIlfqL4z2w6f7Guo8tWe4sY2sHRLv22cuRrnT3SxqmLvl8+sheoNkYWy7fKV+q
+	 2DY8Egd5F5cxapQbSkUjFTZfchdC2ZmrbKuKkOKpXowmDgnbv94S6fzD7fMYXMSHME
+	 ozbNO3iM4KXvyj1WzMM+3XgYKRWRswu+LuHpWEbJAfAHoQskV2HDKy9XLoknbUhR79
+	 7kIKuJ7sNGyFbPUnrUyAmgCIFwt01jZQBGOv3dsmKfznkmTXaDw+l9MzTShg70YfdO
+	 jz/Mgs5Hd8nLaxjytowozdDTa90ExN5not2RCF9GPUSTjUi7/xWOK4q30Iz9yCjIDP
+	 iCQ9xyAMb7pnQ==
+Date: Sun, 14 Jun 2026 11:43:58 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Ren Wei <n05ec@lzu.edu.cn>, netfilter-devel@vger.kernel.org,
+	phil@nwl.cc, yuantan098@gmail.com, yifanwucs@gmail.com,
+	tomapufckgml@gmail.com, zcliangcn@gmail.com, bird@lzu.edu.cn,
+	bronzed_45_vested@icloud.com
+Subject: Re: [PATCH nf 1/1] netfilter: xt_nat: reject unsupported target
+ families
+Message-ID: <ai533miYJF9-J3yB@chamomile>
+References: <cover.1781144570.git.bronzed_45_vested@icloud.com>
+ <5722ce33544cc22da3f811de77ab57847eb58366.1781144570.git.bronzed_45_vested@icloud.com>
+ <ai3MJ2P2MnXLxcmb@strlen.de>
+ <ai3TGFyMlkS1m8O3@strlen.de>
+ <ai3WcsS00Rbjy61u@chamomile>
+ <ai3Y68Fqd-V3cpOS@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ai3Y68Fqd-V3cpOS@strlen.de>
 
-- use correct names in kernel-doc comments
-- add missing struct members to kernel-doc comments
+On Sun, Jun 14, 2026 at 12:25:47AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > We can only use NFPROTO_BRIDGE targets, never UNSPEC, for NF_BRIDGE
+> > > caller.
+> > 
+> > Maybe it is simply this patch:
+> > 
+> > commit b6fe26f86a1649f84e057f3f15605b08eda15497
+> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Date:   Wed Apr 15 12:21:00 2026 +0200
+> >  
+> >     netfilter: xtables: restrict several matches to inet family
+> > 
+> > which was missing xt_nat.c?
+> 
+> No, ebtables targets are incompatible, they return different
+> values compared to ip/ip6tables.
+> 
+> We need a nft_target_bridge_validate (or alternative method) that
+> rejects all targets that are not NFPROTO_BRIDGE.
 
-Warning: include/linux/netfilter/x_tables.h:41 struct member 'targinfo' not described in 'xt_action_param'
-Warning: include/linux/netfilter/x_tables.h:41 Excess struct member 'targetinfo' description in 'xt_action_param'
-Warning: include/linux/netfilter/x_tables.h:90 struct member 'family' not described in 'xt_mtchk_param'
-Warning: include/linux/netfilter/x_tables.h:90 struct member 'nft_compat' not described in 'xt_mtchk_param'
-Warning: include/linux/netfilter/x_tables.h:101 expecting prototype for struct xt_mdtor_param. Prototype was for struct xt_mtdtor_param instead
+Yes, but there are still around 33 match/targets extensions in the
+tree that use NFPROTO_UNSPEC as a .family.
 
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'net' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'table' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'target' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'targinfo' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'hook_mask' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'family' not described in 'xt_tgchk_param'
-Warning: include/linux/netfilter/x_tables.h:121 struct member 'nft_compat' not described in 'xt_tgchk_param'
+And some of these NFPROTO_UNSPEC are supported by ebtables, eg.
+xt_string (match), see ebt_string.c in ebtables userspace.
 
-Warning: include/linux/netfilter/x_tables.h:345 expecting prototype for xt_recseq(). Prototype was for DECLARE_PER_CPU() instead
+I think NFPROTO_UNSPEC should be replaced by explicit families that
+are supported.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
----
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
+> This is wnat ebtables.c already does which is why this poc would
+> not work for classic xtables.
 
- include/linux/netfilter/x_tables.h |   29 +++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+Do you refer to targets specifically, correct?
 
---- linext-2026-0610.orig/include/linux/netfilter/x_tables.h
-+++ linext-2026-0610/include/linux/netfilter/x_tables.h
-@@ -18,7 +18,7 @@
-  * @match:	the match extension
-  * @target:	the target extension
-  * @matchinfo:	per-match data
-- * @targetinfo:	per-target data
-+ * @targinfo:	per-target data
-  * @state:	pointer to hook state this packet came from
-  * @fragoff:	packet is a fragment, this is the data offset
-  * @thoff:	position of transport header relative to skb->data
-@@ -77,7 +77,9 @@ static inline u_int8_t xt_family(const s
-  * @match:	struct xt_match through which this function was invoked
-  * @matchinfo:	per-match data
-  * @hook_mask:	via which hooks the new rule is reachable
-- * Other fields as above.
-+ * @family:	actual NFPROTO_* through which the function is invoked
-+ *		(helpful when match->family == NFPROTO_UNSPEC)
-+ * @nft_compat:	running from the nft compat layer if true
-  */
- struct xt_mtchk_param {
- 	struct net *net;
-@@ -91,8 +93,13 @@ struct xt_mtchk_param {
- };
- 
- /**
-- * struct xt_mdtor_param - match destructor parameters
-- * Fields as above.
-+ * struct xt_mtdtor_param - match destructor parameters
-+ *
-+ * @net:	network namespace through which the check was invoked
-+ * @match:	struct xt_match through which this function was invoked
-+ * @matchinfo:	per-match data
-+ * @family:	actual NFPROTO_* through which the function is invoked
-+ *		(helpful when match->family == NFPROTO_UNSPEC)
-  */
- struct xt_mtdtor_param {
- 	struct net *net;
-@@ -105,10 +112,16 @@ struct xt_mtdtor_param {
-  * struct xt_tgchk_param - parameters for target extensions'
-  * checkentry functions
-  *
-+ * @net:	network namespace through which the check was invoked
-+ * @table:	table the rule is tried to be inserted into
-  * @entryinfo:	the family-specific rule data
-  * 		(struct ipt_entry, ip6t_entry, arpt_entry, ebt_entry)
-- *
-- * Other fields see above.
-+ * @target:	the target extension
-+ * @targinfo:	per-target data
-+ * @hook_mask:	via which hooks the new rule is reachable
-+ * @family:	actual NFPROTO_* through which the function is invoked
-+ *		(helpful when match->family == NFPROTO_UNSPEC)
-+ * @nft_compat:	running from the nft compat layer if true
-  */
- struct xt_tgchk_param {
- 	struct net *net;
-@@ -336,9 +349,9 @@ struct xt_table_info *xt_alloc_table_inf
- void xt_free_table_info(struct xt_table_info *info);
- 
- /**
-- * xt_recseq - recursive seqcount for netfilter use
-+ * var xt_recseq - recursive seqcount for netfilter use
-  *
-- * Packet processing changes the seqcount only if no recursion happened
-+ * Packet processing changes the seqcount only if no recursion happened.
-  * get_counters() can use read_seqcount_begin()/read_seqcount_retry(),
-  * because we use the normal seqcount convention :
-  * Low order bit set to 1 if a writer is active.
+        /* Reject UNSPEC, xtables verdicts/return values are incompatible */
+        if (target->family != NFPROTO_BRIDGE) {
+                module_put(target->me);
+                ret = -ENOENT;
+                goto cleanup_watchers;
+        }
+
+> That said, this patch (the xt_nat.c patch) might be a good idea
+> anyway, but I don't think its enough.
+
+I would probably replace all of the remaining NFPROTO_UNSPEC by
+explicit families.
+
+As for xt_nat_target_reg, it does not set NFPROTO_UNSPEC explicitly,
+but given that target is allocated in the BSS, it results in an
+implicit NFPROTO_UNSPEC, which is the reason why it when uncaught by
+b6fe26f86a1649f84e057f3f15605b08eda15497.
