@@ -1,337 +1,267 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CD213932E4;
-	Mon, 15 Jun 2026 09:18:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 264893DA7D4;
+	Mon, 15 Jun 2026 09:27:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781515122; cv=none; b=YeouX9QYXPM7ZY9LhKXp8Gi9neo7xuqr2abmsj63INnaIbLBoJWqOJtFHwIC4uc0BVHLO6fGxp0NT/7JJix71rhDkxfX7DsTsohgqSSs6LATKJ1ggme0IIzFuOp0BCVkm1FYoCz/8xRLAyymb8KxUXh2SXAbbXSK6yNhHuvAyCI=
+	t=1781515654; cv=none; b=J+py+xzLmaHpj5aYYdaQdveJYlo38B9j+ghkWa4WFkBxe+Kub0paqilXO2VDoG1rDgvDmhRwVEpik+zRUxmHLYPV89+9V3OyHgHdedho20NDPQch7anZ5KTImBzuvrftvig50XA7J/i2mzljjoeXruHilIx06NyNrJoXeX2rBCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781515122; c=relaxed/simple;
-	bh=OnSYF1pHkEV2T04VBjQE5Q50mKp4Lg0Mqilm00UB8O0=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=S4dP3C43kcMmfNOSbeSB9ijkbJzTSoG5Z/HMEZ0m5pRgRaVeUC+YyDlO2hI5t9n8ccqt8Hw9rqJTuoDBvQ37y0pjLpGT5heLbkYR5ef9UFMZuHEUUB65a81nSSlzinrs/WwKhX54OQuKe8w6klaLiH4fqe2W67ceG8dqKlpAKu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FBG7se9R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781515654; c=relaxed/simple;
+	bh=UZ9BYVNtjtgZwukx1GOZPb93PDVTmK9M1EXoruYiulE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=T/K1arVju7ij6zFfVM0QNojlxGlyXv0KZb3Vsu65APW7L5NEBeKvMev4Y4gHYSSVu34V7wMYadYZofdGBtIm/uCn8u4RDPwcYZrGwDiOVHOmdUwNvwLCPz+TX4UlZRltzWeaUIp4lemxfaWa24qaKRFbUpQerFY+pTszpM9cowY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aCz9mX0d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FBG7se9R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A69AC1F000E9;
-	Mon, 15 Jun 2026 09:18:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aCz9mX0d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 717B81F000E9;
+	Mon, 15 Jun 2026 09:27:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781515121;
-	bh=IYSYT0akrNtBSTc3XQEfDwkWdMSJk+gAzuVeOTJyTvU=;
-	h=From:Date:Subject:To:Cc;
-	b=FBG7se9RHHJorsKGW8KgGDxNvEqiHGaSxZ30z/LBPvJofUPMA7JIu7WLn5i3jWTRo
-	 aJyg/3e0scvEPd2PT6M571OJh+KrNhvPFAd+33EFHA+u6EXE1/+4IG/8BLeJJjnqNN
-	 53G7/NIennSO9PgLRkymwjFfVk5rm4WKbJHn8M9mvYyyJ349+JMNwxxjAMU9Y/ZjAr
-	 +ckkSNz89Mz9XPbo6yUz93D4TjQDnDaX/J3ebGRpr5d+OJW8XpOzB7q/KBdL3gabXQ
-	 eVNUcX3IDZXAWHnquJv9k/TvtKW7+np8m4+F18sQIq8fNWnL+OznZI2zxEgz5YyW/D
-	 oZuWNuC25JDjw==
+	s=k20260515; t=1781515653;
+	bh=ZEcxff0/VTWOysmE51CxgyAAzzKf0arB5db1sO6Z2bw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=aCz9mX0dzlIDDBkQzgfTGqFGSMPouFXY9uqsi0Rgxoy+rrQ4qEBvvX9akYD29flte
+	 346v2oLg6grvcvKDBLGMaNFQuaW1uSGrYvmzBR94MOMgYyWK5QMxkJhcHVlSbFYZ1o
+	 9Hkzmmcj417tPBMY/Z4eaB6t+AuTVybAM/ROMv376dSD0u5jU8yke0WBwbkPeuq2R3
+	 q4OzfNwtMElvUH4QbLnWir6hwmm+sDXPMFdDo+haZa179m2SFoqZHpBSKgYlb+HpNi
+	 EvAePbMIYq+/5zPbylGHVSLWUEqYq+N0Dxdmp2gYZ1R0K+19O9rF8ESoiW2IS0/mTs
+	 NnJIj+7TIeFNQ==
+Date: Mon, 15 Jun 2026 11:27:30 +0200
 From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Mon, 15 Jun 2026 11:18:25 +0200
-Subject: [PATCH nf v2] netfilter: flowtable: fix and simplify IP6IP6 tunnel
- handling
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@google.com, fw@strlen.de, horms@kernel.org
+Subject: Re: [PATCH net-next 09/11] netfilter: flowtable: bail out if forward
+ path cannot be discovered
+Message-ID: <ai_Fgq_iBWNLKLro@lore-desk>
+References: <20260614114605.474783-1-pablo@netfilter.org>
+ <20260614114605.474783-10-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260615-b4-nf_flow_ip6_tunnel_proto-update-v2-1-a92e1a40ffc6@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/5WNWw6CMBREt2LutzWlQql+uQ9DGh630Eja5ragh
- rB3G3bg55mZzNkgIlmMcD9tQLjaaL3LIM4n6KfWjcjskBkEF5JLrlhXMme0mf1b2yB1WpzDWQf
- yybMlDG1CpjpZ3vhViaorIR8FQmM/h+QJzkCTs8nG5Ol7eNfiaP5RrAUrWK1EX/NK9MoMjxdSX
- l08jdDs+/4Do55aStkAAAA=
-X-Change-ID: 20260608-b4-nf_flow_ip6_tunnel_proto-update-8b64903825b4
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, David Ahern <dsahern@kernel.org>, 
- Ido Schimmel <idosch@nvidia.com>, Shuah Khan <shuah@kernel.org>, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- netdev@vger.kernel.org, linux-kselftest@vger.kernel.org
-X-Mailer: b4 0.14.3
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="2voAxdxRxTDZPDqb"
+Content-Disposition: inline
+In-Reply-To: <20260614114605.474783-10-pablo@netfilter.org>
 
-Fix nf_flow_ip6_tunnel_proto() to use pskb_may_pull() instead of
-skb_header_pointer() to ensure the outer IPv6 header is in the skb
-headroom, which is required for subsequent packet processing. Move
-ctx->offset update inside the IPPROTO_IPV6 conditional block since it
-should only be adjusted when an IP6IP6 tunnel is actually detected.
-Simplify the rx path by removing ipv6_skip_exthdr() and checking
-ip6h->nexthdr directly, as the flowtable fast path only handles simple
-IP6IP6 encapsulation without extension headers.
-Drop the tunnel encapsulation limit destination option support from the
-tx path to match, since the rx path no longer handles extension headers.
-Remove the encap_limit parameter from nf_flow_offload_ipv6_forward(),
-nf_flow_tunnel_ip6ip6_push() and nf_flow_tunnel_v6_push(), along with
-the ipv6_tel_txoption struct and related headroom/MTU adjustments.
 
-Fixes: d98103575dcdd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
-Changes in v2:
-- Drop tunnel encapsulation limit destination option support.
-- Do not allow IPv6 extension headers in nf_flow_ip6_tunnel_proto().
-- Link to v1: https://lore.kernel.org/r/20260608-b4-nf_flow_ip6_tunnel_proto-update-v1-1-782c7052c8fd@kernel.org
----
- net/ipv6/ip6_tunnel.c                              |  7 ++
- net/netfilter/nf_flow_table_ip.c                   | 80 +++++-----------------
- .../selftests/net/netfilter/nft_flowtable.sh       |  8 +--
- 3 files changed, 30 insertions(+), 65 deletions(-)
+--2voAxdxRxTDZPDqb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index 9d1037ac082f..bf1e77f95f18 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1850,6 +1850,13 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 	struct dst_entry *dst;
- 	int err;
- 
-+	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT)) {
-+		/* encaplimit option is currently not supported is
-+		 * sw-acceleration path.
-+		 */
-+		return -EOPNOTSUPP;
-+	}
-+
- 	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
- 	if (!dst->error) {
- 		path->type = DEV_PATH_TUN;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 9c05a50d6013..e7a3fb2b2d94 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -347,29 +347,23 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
- 				     struct sk_buff *skb)
- {
- #if IS_ENABLED(CONFIG_IPV6)
--	struct ipv6hdr *ip6h, _ip6h;
--	__be16 frag_off;
--	u8 nexthdr;
--	int hdrlen;
-+	struct ipv6hdr *ip6h;
- 
--	ip6h = skb_header_pointer(skb, ctx->offset, sizeof(*ip6h), &_ip6h);
--	if (!ip6h)
-+	if (!pskb_may_pull(skb, sizeof(*ip6h) + ctx->offset))
- 		return false;
- 
-+	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + ctx->offset);
- 	if (ip6h->hop_limit <= 1)
- 		return false;
- 
--	nexthdr = ip6h->nexthdr;
--	hdrlen = ipv6_skip_exthdr(skb, sizeof(*ip6h) + ctx->offset, &nexthdr,
--				  &frag_off);
--	if (hdrlen < 0)
-+	if (ipv6_ext_hdr(ip6h->nexthdr))
- 		return false;
- 
--	if (nexthdr == IPPROTO_IPV6) {
--		ctx->tun.hdr_size = hdrlen;
--		ctx->tun.proto = IPPROTO_IPV6;
-+	if (ip6h->nexthdr == IPPROTO_IPV6) {
-+		ctx->tun.proto = ip6h->nexthdr;
-+		ctx->tun.hdr_size = sizeof(*ip6h);
-+		ctx->offset += ctx->tun.hdr_size;
- 	}
--	ctx->offset += ctx->tun.hdr_size;
- 
- 	return true;
- #else
-@@ -648,25 +642,19 @@ static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
- 	return 0;
- }
- 
--struct ipv6_tel_txoption {
--	struct ipv6_txoptions ops;
--	__u8 dst_opt[8];
--};
--
- static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
- 				      struct flow_offload_tuple *tuple,
--				      struct in6_addr **ip6_daddr,
--				      int encap_limit)
-+				      struct in6_addr **ip6_daddr)
- {
- 	struct ipv6hdr *ip6h = (struct ipv6hdr *)skb_network_header(skb);
--	u8 hop_limit = ip6h->hop_limit, proto = IPPROTO_IPV6;
- 	struct rtable *rt = dst_rtable(tuple->dst_cache);
- 	__u8 dsfield = ipv6_get_dsfield(ip6h);
- 	struct flowi6 fl6 = {
- 		.daddr = tuple->tun.src_v6,
- 		.saddr = tuple->tun.dst_v6,
--		.flowi6_proto = proto,
-+		.flowi6_proto = IPPROTO_IPV6,
- 	};
-+	u8 hop_limit = ip6h->hop_limit;
- 	int err, mtu;
- 	u32 headroom;
- 
-@@ -674,41 +662,18 @@ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
- 	if (err)
- 		return err;
- 
--	skb_set_inner_ipproto(skb, proto);
-+	skb_set_inner_ipproto(skb, IPPROTO_IPV6);
- 	headroom = sizeof(*ip6h) + LL_RESERVED_SPACE(rt->dst.dev) +
- 		   rt->dst.header_len;
--	if (encap_limit)
--		headroom += 8;
- 	err = skb_cow_head(skb, headroom);
- 	if (err)
- 		return err;
- 
- 	skb_scrub_packet(skb, true);
- 	mtu = dst_mtu(&rt->dst) - sizeof(*ip6h);
--	if (encap_limit)
--		mtu -= 8;
- 	mtu = max(mtu, IPV6_MIN_MTU);
- 	skb_dst_update_pmtu_no_confirm(skb, mtu);
- 
--	if (encap_limit > 0) {
--		struct ipv6_tel_txoption opt = {
--			.dst_opt[2] = IPV6_TLV_TNL_ENCAP_LIMIT,
--			.dst_opt[3] = 1,
--			.dst_opt[4] = encap_limit,
--			.dst_opt[5] = IPV6_TLV_PADN,
--			.dst_opt[6] = 1,
--		};
--		struct ipv6_opt_hdr *hopt;
--
--		opt.ops.dst1opt = (struct ipv6_opt_hdr *)opt.dst_opt;
--		opt.ops.opt_nflen = 8;
--
--		hopt = skb_push(skb, ipv6_optlen(opt.ops.dst1opt));
--		memcpy(hopt, opt.ops.dst1opt, ipv6_optlen(opt.ops.dst1opt));
--		hopt->nexthdr = IPPROTO_IPV6;
--		proto = NEXTHDR_DEST;
--	}
--
- 	skb_push(skb, sizeof(*ip6h));
- 	skb_reset_network_header(skb);
- 
-@@ -716,7 +681,7 @@ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
- 	ip6_flow_hdr(ip6h, dsfield,
- 		     ip6_make_flowlabel(net, skb, fl6.flowlabel, true, &fl6));
- 	ip6h->hop_limit = hop_limit;
--	ip6h->nexthdr = proto;
-+	ip6h->nexthdr = IPPROTO_IPV6;
- 	ip6h->daddr = tuple->tun.src_v6;
- 	ip6h->saddr = tuple->tun.dst_v6;
- 	ipv6_hdr(skb)->payload_len = htons(skb->len - sizeof(*ip6h));
-@@ -729,12 +694,10 @@ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
- 
- static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
- 				  struct flow_offload_tuple *tuple,
--				  struct in6_addr **ip6_daddr,
--				  int encap_limit)
-+				  struct in6_addr **ip6_daddr)
- {
- 	if (tuple->tun_num)
--		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, ip6_daddr,
--						  encap_limit);
-+		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, ip6_daddr);
- 
- 	return 0;
- }
-@@ -1089,7 +1052,7 @@ static int nf_flow_tuple_ipv6(struct nf_flowtable_ctx *ctx, struct sk_buff *skb,
- static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
- 					struct nf_flowtable *flow_table,
- 					struct flow_offload_tuple_rhash *tuplehash,
--					struct sk_buff *skb, int encap_limit)
-+					struct sk_buff *skb)
- {
- 	enum flow_offload_tuple_dir dir;
- 	struct flow_offload *flow;
-@@ -1100,11 +1063,8 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 
- 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
--	if (flow->tuplehash[!dir].tuple.tun_num) {
-+	if (flow->tuplehash[!dir].tuple.tun_num)
- 		mtu -= sizeof(*ip6h);
--		if (encap_limit > 0)
--			mtu -= 8; /* encap limit option */
--	}
- 
- 	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
- 		return 0;
-@@ -1158,7 +1118,6 @@ unsigned int
- nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 			  const struct nf_hook_state *state)
- {
--	int encap_limit = IPV6_DEFAULT_TNL_ENCAP_LIMIT;
- 	struct flow_offload_tuple_rhash *tuplehash;
- 	struct nf_flowtable *flow_table = priv;
- 	struct flow_offload_tuple *other_tuple;
-@@ -1177,8 +1136,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (tuplehash == NULL)
- 		return NF_ACCEPT;
- 
--	ret = nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash, skb,
--					   encap_limit);
-+	ret = nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash, skb);
- 	if (ret < 0)
- 		return NF_DROP;
- 	else if (ret == 0)
-@@ -1198,7 +1156,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	ip6_daddr = &other_tuple->src_v6;
- 
- 	if (nf_flow_tunnel_v6_push(state->net, skb, other_tuple,
--				   &ip6_daddr, encap_limit) < 0)
-+				   &ip6_daddr) < 0)
- 		return NF_DROP;
- 
- 	switch (tuplehash->tuple.xmit_type) {
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 7a34ef468975..08ad07500e8a 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -592,7 +592,7 @@ ip -net "$nsr1" link set tun0 up
- ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
- ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
- 
--ip -net "$nsr1" link add name tun6 type ip6tnl local fee1:2::1 remote fee1:2::2
-+ip -net "$nsr1" link add name tun6 type ip6tnl local fee1:2::1 remote fee1:2::2 encaplimit none
- ip -net "$nsr1" link set tun6 up
- ip -net "$nsr1" addr add fee1:3::1/64 dev tun6 nodad
- 
-@@ -601,7 +601,7 @@ ip -net "$nsr2" link set tun0 up
- ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
- ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
- 
--ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1 || ret=1
-+ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1 encaplimit none || ret=1
- ip -net "$nsr2" link set tun6 up
- ip -net "$nsr2" addr add fee1:3::2/64 dev tun6 nodad
- 
-@@ -651,7 +651,7 @@ ip -net "$nsr1" route change default via 192.168.200.2
- ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 accept'
- 
--ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2
-+ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2 encaplimit none
- ip -net "$nsr1" link set tun6.10 up
- ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
- ip -6 -net "$nsr1" route delete default
-@@ -670,7 +670,7 @@ ip -net "$nsr2" addr add 192.168.200.2/24 dev tun0.10
- ip -net "$nsr2" route change default via 192.168.200.1
- ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
- 
--ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1 || ret=1
-+ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1 encaplimit none || ret=1
- ip -net "$nsr2" link set tun6.10 up
- ip -net "$nsr2" addr add fee1:5::2/64 dev tun6.10 nodad
- ip -6 -net "$nsr2" route delete default
+> If forward path discovery fails for any reason or netdevice is not
+> registered for this flowtable, then bail out to classic forwarding path
+> rather than providing incomplete forwarding path.
+>=20
+> Update the existing forward path parser functions to report an error
+> so the flow_offload expressions gives up on setting up the flowtable
+> entry.
+>=20
+> Link: https://sashiko.dev/#/patchset/20260607094954.48892-15-pablo%40netf=
+ilter.org?part=3D14
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
----
-base-commit: 1fad1796b9411217fa77b6a497ed76b999205487
-change-id: 20260608-b4-nf_flow_ip6_tunnel_proto-update-8b64903825b4
+Tested-by: Lorenzo Bianconi <lorenzo@kernel.org>
 
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>  net/netfilter/nf_flow_table_path.c | 81 +++++++++++++++++-------------
+>  1 file changed, 46 insertions(+), 35 deletions(-)
+>=20
+> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_t=
+able_path.c
+> index a3e6b82f2f8e..1e7e216b9f89 100644
+> --- a/net/netfilter/nf_flow_table_path.c
+> +++ b/net/netfilter/nf_flow_table_path.c
+> @@ -90,9 +90,9 @@ struct nft_forward_info {
+>  	enum flow_offload_xmit_type xmit_type;
+>  };
+> =20
+> -static void nft_dev_path_info(const struct net_device_path_stack *stack,
+> -			      struct nft_forward_info *info,
+> -			      unsigned char *ha, struct nf_flowtable *flowtable)
+> +static int nft_dev_path_info(const struct net_device_path_stack *stack,
+> +			     struct nft_forward_info *info,
+> +			     unsigned char *ha, struct nf_flowtable *flowtable)
+>  {
+>  	const struct net_device_path *path;
+>  	int i;
+> @@ -120,19 +120,17 @@ static void nft_dev_path_info(const struct net_devi=
+ce_path_stack *stack,
+> =20
+>  			/* DEV_PATH_VLAN, DEV_PATH_PPPOE and DEV_PATH_TUN */
+>  			if (path->type =3D=3D DEV_PATH_TUN) {
+> -				if (info->num_tuns) {
+> -					info->indev =3D NULL;
+> -					break;
+> -				}
+> +				if (info->num_tuns)
+> +					return -1;
+> +
+>  				info->tun.src_v6 =3D path->tun.src_v6;
+>  				info->tun.dst_v6 =3D path->tun.dst_v6;
+>  				info->tun.l3_proto =3D path->tun.l3_proto;
+>  				info->num_tuns++;
+>  			} else {
+> -				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX) {
+> -					info->indev =3D NULL;
+> -					break;
+> -				}
+> +				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX)
+> +					return -1;
+> +
+>  				info->encap[info->num_encaps].id =3D
+>  					path->encap.id;
+>  				info->encap[info->num_encaps].proto =3D
+> @@ -151,22 +149,23 @@ static void nft_dev_path_info(const struct net_devi=
+ce_path_stack *stack,
+> =20
+>  			switch (path->bridge.vlan_mode) {
+>  			case DEV_PATH_BR_VLAN_UNTAG_HW:
+> +				if (info->num_encaps =3D=3D 0)
+> +					return -1;
+> +
+>  				info->ingress_vlans |=3D BIT(info->num_encaps - 1);
+>  				break;
+>  			case DEV_PATH_BR_VLAN_TAG:
+> -				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX) {
+> -					info->indev =3D NULL;
+> -					break;
+> -				}
+> +				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX)
+> +					return -1;
+> +
+>  				info->encap[info->num_encaps].id =3D path->bridge.vlan_id;
+>  				info->encap[info->num_encaps].proto =3D path->bridge.vlan_proto;
+>  				info->num_encaps++;
+>  				break;
+>  			case DEV_PATH_BR_VLAN_UNTAG:
+> -				if (info->num_encaps =3D=3D 0) {
+> -					info->indev =3D NULL;
+> -					break;
+> -				}
+> +				if (info->num_encaps =3D=3D 0)
+> +					return -1;
+> +
+>  				info->num_encaps--;
+>  				break;
+>  			case DEV_PATH_BR_VLAN_KEEP:
+> @@ -175,8 +174,7 @@ static void nft_dev_path_info(const struct net_device=
+_path_stack *stack,
+>  			info->xmit_type =3D FLOW_OFFLOAD_XMIT_DIRECT;
+>  			break;
+>  		default:
+> -			info->indev =3D NULL;
+> -			break;
+> +			return -1;
+>  		}
+>  	}
+>  	info->outdev =3D info->indev;
+> @@ -184,6 +182,8 @@ static void nft_dev_path_info(const struct net_device=
+_path_stack *stack,
+>  	if (nf_flowtable_hw_offload(flowtable) &&
+>  	    nft_is_valid_ether_device(info->indev))
+>  		info->xmit_type =3D FLOW_OFFLOAD_XMIT_DIRECT;
+> +
+> +	return 0;
+>  }
+> =20
+>  static bool nft_flowtable_find_dev(const struct net_device *dev,
+> @@ -241,11 +241,11 @@ static int nft_flow_tunnel_update_route(const struc=
+t nft_pktinfo *pkt,
+>  	return 0;
+>  }
+> =20
+> -static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+> -				 struct nf_flow_route *route,
+> -				 const struct nf_conn *ct,
+> -				 enum ip_conntrack_dir dir,
+> -				 struct nft_flowtable *ft)
+> +static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+> +				struct nf_flow_route *route,
+> +				const struct nf_conn *ct,
+> +				enum ip_conntrack_dir dir,
+> +				struct nft_flowtable *ft)
+>  {
+>  	const struct dst_entry *dst =3D route->tuple[dir].dst;
+>  	struct net_device_path_stack stack;
+> @@ -253,15 +253,16 @@ static void nft_dev_forward_path(const struct nft_p=
+ktinfo *pkt,
+>  	unsigned char ha[ETH_ALEN];
+>  	int i;
+> =20
+> -	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) >=3D 0)
+> -		nft_dev_path_info(&stack, &info, ha, &ft->data);
+> +	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) < 0 ||
+> +	    nft_dev_path_info(&stack, &info, ha, &ft->data) < 0)
+> +		return -ENOENT;
+> +
+> +	if (!nft_flowtable_find_dev(info.indev, ft))
+> +		return -ENOENT;
+> =20
+>  	if (info.outdev)
+>  		route->tuple[dir].out.ifindex =3D info.outdev->ifindex;
+> =20
+> -	if (!info.indev || !nft_flowtable_find_dev(info.indev, ft))
+> -		return;
+> -
+>  	route->tuple[!dir].in.ifindex =3D info.indev->ifindex;
+>  	for (i =3D 0; i < info.num_encaps; i++) {
+>  		route->tuple[!dir].in.encap[i].id =3D info.encap[i].id;
+> @@ -285,6 +286,8 @@ static void nft_dev_forward_path(const struct nft_pkt=
+info *pkt,
+>  		route->tuple[dir].xmit_type =3D info.xmit_type;
+>  	}
+>  	route->tuple[dir].out.needs_gso_segment =3D info.needs_gso_segment;
+> +
+> +	return 0;
+>  }
+> =20
+>  int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *=
+ct,
+> @@ -329,11 +332,19 @@ int nft_flow_route(const struct nft_pktinfo *pkt, c=
+onst struct nf_conn *ct,
+>  	nft_default_forward_path(route, this_dst, dir);
+>  	nft_default_forward_path(route, other_dst, !dir);
+> =20
+> -	if (route->tuple[dir].xmit_type	=3D=3D FLOW_OFFLOAD_XMIT_NEIGH)
+> -		nft_dev_forward_path(pkt, route, ct, dir, ft);
+> -	if (route->tuple[!dir].xmit_type =3D=3D FLOW_OFFLOAD_XMIT_NEIGH)
+> -		nft_dev_forward_path(pkt, route, ct, !dir, ft);
+> +	if (route->tuple[dir].xmit_type	=3D=3D FLOW_OFFLOAD_XMIT_NEIGH &&
+> +	    nft_dev_forward_path(pkt, route, ct, dir, ft) < 0)
+> +		goto err_dst_release;
+> +
+> +	if (route->tuple[!dir].xmit_type =3D=3D FLOW_OFFLOAD_XMIT_NEIGH &&
+> +	    nft_dev_forward_path(pkt, route, ct, !dir, ft) < 0)
+> +		goto err_dst_release;
+> =20
+>  	return 0;
+> +
+> +err_dst_release:
+> +	dst_release(route->tuple[dir].dst);
+> +	dst_release(route->tuple[!dir].dst);
+> +	return -ENOENT;
+>  }
+>  EXPORT_SYMBOL_GPL(nft_flow_route);
+> --=20
+> 2.47.3
+>=20
+>=20
 
+--2voAxdxRxTDZPDqb
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCai/FggAKCRA6cBh0uS2t
+rDTHAQCArWt33TG4YPKD4wQMsPJrZ2iuR/QsuNtnJpKuTNejyQEAyYaX9EG5r1xw
+xkD3SKGHOSEdTeWYssd2l2biomnPNg8=
+=5HXU
+-----END PGP SIGNATURE-----
+
+--2voAxdxRxTDZPDqb--
