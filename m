@@ -1,52 +1,52 @@
 Received: from sender-op-o17.zoho.eu (sender-op-o17.zoho.eu [136.143.169.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8129B3C4143;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8111135AC3E;
 	Tue, 16 Jun 2026 18:30:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.17
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781634656; cv=pass; b=HPIUjUeLUPheIMFv2wx2PNlyoud/o5eD7WvvTeckzdsOHLweJJBwmHwbogrGlUV4Za1F0h6Zd86WqQitdhSWxoE7kxX66LrtPztgpyxUD2d8NJv8bNdXUDvmBVI3slmtjuwZaLD6CtedzAxuXhOtE8RDkKFsPHfSIBVDKWZ1d2c=
+	t=1781634656; cv=pass; b=iN5N7/toQZwjg3nmJvpo7cCKtTd8lsenjFoUkUfHgydq54srrkXqCz+bjtLCmAb/50n6Wor6wDzmsXKsJ/WzRpqJ9dnO2RdyuhzjUPHpPGh9jJtTO3KMK1BPn4j+bPGc01VXb6z4w4ONAVrAwaISMicHQoN9XsYTYnwdRs1tEW8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1781634656; c=relaxed/simple;
-	bh=2A6STF/MS+4ul6GuxfPH6JzRgXXUBeXshuUyEuGTass=;
+	bh=ngt+z5NZNP2bLxE1iGJFOZGpI8x5OafjofmlhPbgNfQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pqV/MScV+GG3faPGq/VWP4AId2s/uyRzyQ5/yY+gF0BiKmcOlIdP0U/r0v0VjTgjoYEU04/fleSwMt08Xozd6FJpPooT5F303GodweXq04qK9Lk0nHwfbMbEHYYR16Jdwq/PIEuBcYhtt78m8ytxQXc2P/zz99kLll4jECcihvc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me; spf=pass smtp.mailfrom=carlosgrillet.me; dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b=hh5XxhAN; arc=pass smtp.client-ip=136.143.169.17
+	 MIME-Version; b=mltUTL6ueGdjMYkcXnnWdly2BNkNeVpua1pXcOumABaQ7OLPzEfK4Orh1z/ps2eij0gSh0IuX1aLjt3hGqfk+VoAFl+78mwwFh3nyEkPfxIl/ldJMJ46qDufGBxoI7B91sFI6xDohXBO2ZFmh2H02hohSI3sUA3fRq1D+IMSESM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me; spf=pass smtp.mailfrom=carlosgrillet.me; dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b=XCp6tkzQ; arc=pass smtp.client-ip=136.143.169.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=carlosgrillet.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b="hh5XxhAN"
-ARC-Seal: i=1; a=rsa-sha256; t=1781634628; cv=none; 
+	dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b="XCp6tkzQ"
+ARC-Seal: i=1; a=rsa-sha256; t=1781634629; cv=none; 
 	d=zohomail.eu; s=zohoarc; 
-	b=INsQMuaH03qg6w0nsSgRvM7IKjqYmB2OgBLtb55xuu0vGvgRLiw1XpiqYDp7ECtCfi3U7X3udjF4tM7fLQRHAN8umSsaQO1upAmCdKQD/9JLWo6mFDQfSor7FHP4a45givDZPExDO9/H2Y/BY93/9xp7StJ6Zgl2RssKEOAj84A=
+	b=Nv00CGoCHuj10kw1mfB3kd08pWt4Ge0cexRfPI2nzVZFwfyV4LX+V32wAm9lKzvTe5+sJyP7eXORQaDoFmi5Pf06+uX253wBaxos+qnz9vY1DKxObsdi/ieJtAEibkKB3MK7hW5+mepaQVC/pyxNfuF0MDNQgCIEJZcsOJ2Dj4U=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-	t=1781634628; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=e3M0BYPSTdgDLkWHJBCNI7FKNBWlduHVIRnKBaVQo0Y=; 
-	b=WCm5xbhWt7OPS6niQcZIrbfxPK86mcf0kLCuAzYpdElkqrqdkzu0UcNAvskznEDEVCXpSmOwadbyfN4kPWhnR2GT0UUGqAvSCewUaTaGfplLXFSvX17FANOx35YDDG56uoCxw0LyGiMp8AaLTNWNP1sCRvdqTljJpP+HnTHbQQs=
+	t=1781634629; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=JPDMg/1vcqRmkkaVbSyViyubTh4oMaFo0jk8Xx+5uoQ=; 
+	b=MPqaK3/vus4dmGK+NVediASbRa7MD6+kmr+v52IUEYv08ScE49VewgM9NvdKUipVsWT1AfxlgvI8v/VIuQ32w/97EeBwsTi2QQBCkJT4d8ZlRbPEUHTd2X2gixAuXs6sVENZMfJiHORNZrqeYjZZAMvC/h3FKpRO52ZLppP8w9k=
 ARC-Authentication-Results: i=1; mx.zohomail.eu;
 	dkim=pass  header.i=carlosgrillet.me;
 	spf=pass  smtp.mailfrom=carlos@carlosgrillet.me;
 	dmarc=pass header.from=<carlos@carlosgrillet.me>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781634628;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1781634629;
 	s=zmail; d=carlosgrillet.me; i=carlos@carlosgrillet.me;
 	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=e3M0BYPSTdgDLkWHJBCNI7FKNBWlduHVIRnKBaVQo0Y=;
-	b=hh5XxhANC9/rkGZVoSEkvnwU/OijVKMS9ZMAn9ccUmP3AXLVfkAy5CqbY2OfBrGU
-	UvhQWD4zMnywSHLCP3Q/bo1dmHXHhO/K+I1Nso6QNa26Q6JOj2WnvXuxt5DAP2gebEK
-	G2oFaBVwpB4dlInhVAvw6MGgAn3wo4awlYcZIYS8=
-Received: by mx.zoho.eu with SMTPS id 1781634626473581.2920691887233;
-	Tue, 16 Jun 2026 20:30:26 +0200 (CEST)
+	bh=JPDMg/1vcqRmkkaVbSyViyubTh4oMaFo0jk8Xx+5uoQ=;
+	b=XCp6tkzQtd0apuYISsB0MV2uOo1YDbaOFoTfAHE7yDI8qICW3Jj1fQmzRFpGygwd
+	KjNjGVlIFtobecwNs72RHbnjstdLs8yzRKR/hBinp8kF4HLwigKm2Cn9a8catDEwscG
+	SrZ3XrLUKbxvvgnwNEz4iLtyDZ/4J798Tr7nGnLg=
+Received: by mx.zoho.eu with SMTPS id 1781634627909242.72722566967752;
+	Tue, 16 Jun 2026 20:30:27 +0200 (CEST)
 From: Carlos Grillet <carlos@carlosgrillet.me>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: [PATCH nf-next v3 3/4] netfilter: nf_sockopt: replace u_int8_t with u8
-Date: Tue, 16 Jun 2026 20:29:45 +0200
-Message-ID: <20260616182948.96865-4-carlos@carlosgrillet.me>
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH nf-next v3 4/4] netfilter: xt_TCPOPTSTRIP: replace u_int8_t and u_int16_t with u8 and u16
+Date: Tue, 16 Jun 2026 20:29:46 +0200
+Message-ID: <20260616182948.96865-5-carlos@carlosgrillet.me>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260616182948.96865-1-carlos@carlosgrillet.me>
 References: <20260616182948.96865-1-carlos@carlosgrillet.me>
@@ -59,75 +59,48 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-ZohoMailClient: External
 
-Replace POSIX u_int8_t with preferred kernel type u8, update prototype
-and struct definition.
+Replace POSIX u_int8_t/u_int16_t with preferred kernel types u8/u16
 
 No functional changes.
 
 Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
 ---
- include/linux/netfilter.h  | 6 +++---
- net/netfilter/nf_sockopt.c | 8 ++++----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/xt_TCPOPTSTRIP.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index efbbfa770d66..91b68bdba3f5 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -181,7 +181,7 @@ static inline void nf_hook_state_init(struct nf_hook_state *p,
- struct nf_sockopt_ops {
- 	struct list_head list;
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 93f064306901..265d21697847 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -16,7 +16,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_TCPOPTSTRIP.h>
  
--	u_int8_t pf;
-+	u8 pf;
- 
- 	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
- 	int set_optmin;
-@@ -357,9 +357,9 @@ NF_HOOK_LIST(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
- }
- 
- /* Call setsockopt() */
--int nf_setsockopt(struct sock *sk, u_int8_t pf, int optval, sockptr_t opt,
-+int nf_setsockopt(struct sock *sk, u8 pf, int optval, sockptr_t opt,
- 		  unsigned int len);
--int nf_getsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
-+int nf_getsockopt(struct sock *sk, u8 pf, int optval, char __user *opt,
- 		  int *len);
- 
- struct flowi;
-diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
-index 34afcd03b6f6..19a1d028158c 100644
---- a/net/netfilter/nf_sockopt.c
-+++ b/net/netfilter/nf_sockopt.c
-@@ -59,8 +59,8 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg)
- }
- EXPORT_SYMBOL(nf_unregister_sockopt);
- 
--static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int8_t pf,
--		int val, int get)
-+static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u8 pf,
-+					      int val, int get)
+-static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
++static inline unsigned int optlen(const u8 *opt, unsigned int offset)
  {
- 	struct nf_sockopt_ops *ops;
+ 	/* Beware zero-length options: make finite progress */
+ 	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
+@@ -33,8 +33,8 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+ 	struct tcphdr *tcph, _th;
+ 	unsigned int optl, i, j;
+-	u_int16_t n, o;
+-	u_int8_t *opt;
++	u16 n, o;
++	u8 *opt;
+ 	int tcp_hdrlen;
  
-@@ -89,7 +89,7 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int8_t pf,
- 	return ops;
- }
- 
--int nf_setsockopt(struct sock *sk, u_int8_t pf, int val, sockptr_t opt,
-+int nf_setsockopt(struct sock *sk, u8 pf, int val, sockptr_t opt,
- 		  unsigned int len)
+ 	/* This is a fragment, no TCP header is available */
+@@ -97,7 +97,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
  {
- 	struct nf_sockopt_ops *ops;
-@@ -104,7 +104,7 @@ int nf_setsockopt(struct sock *sk, u_int8_t pf, int val, sockptr_t opt,
- }
- EXPORT_SYMBOL(nf_setsockopt);
+ 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+ 	int tcphoff;
+-	u_int8_t nexthdr;
++	u8 nexthdr;
+ 	__be16 frag_off;
  
--int nf_getsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
-+int nf_getsockopt(struct sock *sk, u8 pf, int val, char __user *opt,
- 		  int *len)
- {
- 	struct nf_sockopt_ops *ops;
+ 	nexthdr = ipv6h->nexthdr;
 -- 
 2.54.0
 
