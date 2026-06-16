@@ -1,35 +1,60 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C5439524E;
-	Mon, 15 Jun 2026 21:20:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from zg8tmja2lje4os4yms4ymjma.icoremail.net (zg8tmja2lje4os4yms4ymjma.icoremail.net [206.189.21.223])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 413273D5C3E;
+	Tue, 16 Jun 2026 05:43:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=206.189.21.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781558442; cv=none; b=IdlyIEZm6ETSeSxOBZdPYMq02tFHFOqtWYLpcB4A7Nd1dPkEooZm2s7//MQyiIKTmgG8hwnZkCeEphqcLqvQx6s8u+WiNBF2GJQoktA/ywbTm6jidWcE4lQbUp2rqZb0fMUW44e0it7vpzeaZ5mqGKBw0t6jQiuF5pIiJdRPh+g=
+	t=1781588605; cv=none; b=I04JucIIc2kKiKKh1edeHtcWfWToAQIQjLTp2MLydPhwQ15m1uQ9ofBGNk9kFaYe9uLs4PlvMZdiBJ0tfKS+Zz9gx99LpXCuUcPWKt0kc+7zCMay4piS3E7glKjuKpfr1E7r0AxXCVCApLamTZHP4UIbNvdPpBgmD+RkNDJ841I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781558442; c=relaxed/simple;
-	bh=/UPlBpgi7VhPmT8JbMLOPei/oFmnqBzhSMcuxIhH+ok=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=dBLbVotGycDCf77y7SOtqYA4vut/S04TxpZxvDQEXusFpPBjXEE3FoJoW97sdXKFesn7y8o6vbUbO8NkRSKql3n/3286Z8P6hL8DZ1jFTz1PVI0IMcR5ZJ2m1tFya7IYbq2l8DNNlWQOknQ6C7iRxqCEY3pLT/+qmBNmwxtX4Qo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DT0zOsE0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781588605; c=relaxed/simple;
+	bh=aox1OEzILyupUKRfAf5WXYTLGdCgpSAUw1nXj1c9c3U=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pGYIm7QF4Q80TiUbJgma+9WgCFn1Mr0+JbFES3DztWDwWtL56zqXsHlKYYk29h113s+WBkFIVx/f9zkpAIfpmKObSOVcUSDA3VCov9kbxBV1yBUvH4l43NYXMBDgVFmyBK9OvJmtSNqPppesWHkaQgsi0yx8ouYjcxgPK7RtaQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=CDljHQDG; arc=none smtp.client-ip=206.189.21.223
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DT0zOsE0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 120CE1F000E9;
-	Mon, 15 Jun 2026 21:20:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781558441;
-	bh=TShMPVpuwyA7WLtOxzwnDuVG1ofCLhti/tuFrKiBGoU=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=DT0zOsE0ZqYmd1FJM04sMNS7/D/0Stw65ZNSb2VfH9Wl2HYEMakYMEbdkK2GOBuBd
-	 bg0vRSEI7ADU4ANDnLxqXARYXnzST+lPEOeVfJn1Six90lH8G+IrAvaYvJbvRgWJpY
-	 h/vr+3FdYGUIuZOwoobjr/1HCt3HRT3kQ9Iz+La8ygrhWnx8OJGb0xoYTtJHXYbTXn
-	 MuW7yaMBUQg4TW8OQZQX8J9WPw5Yf3NgcAAg3OlGP7hDilX+S48Q7S8JSP81q9SySG
-	 S5h+wjnsEQKWYnFAXpqRR3KXhnnexmig/mmVWHM8mVLPVIqWLmqt9GdLCaWvCevnqw
-	 QgjA358e4x2rA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 5685E3839A06;
-	Mon, 15 Jun 2026 21:20:37 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="CDljHQDG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
+	Date:Message-Id:MIME-Version:Content-Transfer-Encoding; bh=2rtcz
+	yrLWjdHUmehNAsDWNO7AjrwAppVwrlY8MnURsc=; b=CDljHQDGyicQPFl/SEJIF
+	P5Bblv4tyJwIoSH7kTotIb1nhjT/k/DUk/qVM0TWZgd/OAb/Dg6TEbzJ99Iho9bV
+	RoZGrolznZqWW4Dm83FMsUgrZxI/ApHNNWtWApzbwdr7SYr8SR5Ogl8qxUX5XTj3
+	pTRh/WvXRpioiwOdwmDaBA=
+Received: from c9a6c405b3f2.. (unknown [202.112.238.121])
+	by web2 (Coremail) with SMTP id yQQGZQBXMZlM4jBqXCpTAg--.51787S2;
+	Tue, 16 Jun 2026 13:42:45 +0800 (CST)
+From: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
+To: bpf@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Cc: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	andrii@kernel.org,
+	eddyz87@gmail.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	memxor@gmail.com,
+	martin.lau@linux.dev,
+	song@kernel.org,
+	yonghong.song@linux.dev,
+	jolsa@kernel.org,
+	emil@etsalapatis.com,
+	shuah@kernel.org,
+	kartikey406@gmail.com,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-kselftest@vger.kernel.org
+Subject: [PATCH bpf-next 0/2] bpf: Guard conntrack opts error writes
+Date: Tue, 16 Jun 2026 05:42:33 +0000
+Message-Id: <cover.1781586477.git.chenyy23@mails.tsinghua.edu.cn>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,64 +62,66 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/11] ipvs: Replace use of system_unbound_wq
- with
- system_dfl_long_wq
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178155843618.301119.5062848421589308847.git-patchwork-notify@kernel.org>
-Date: Mon, 15 Jun 2026 21:20:36 +0000
-References: <20260614114605.474783-2-pablo@netfilter.org>
-In-Reply-To: <20260614114605.474783-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+X-CM-TRANSID:yQQGZQBXMZlM4jBqXCpTAg--.51787S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7AF45WF4DtF4fZFyUAr1DWrg_yoW8Zr17pa
+	yrGwn0yr97Jay7J3Z2vFW8tF15Can7A3yrCFn8JryrAwnaqry8JFWSgryUWF9xGF1fZw1Y
+	vr4Fgr98Cr18AFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUPY14x267AKxVWrJVCq3wAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
+	CE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xv
+	F2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r
+	4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I
+	648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI0_GFv_Wrylc2xSY4AK67
+	AK6r4rMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAF
+	wI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc4
+	0Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AK
+	xVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr
+	1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0pRqFAQU
+	UUUU=
+X-CM-SenderInfo: xfkh05r1stqzpdlo2hxwvl0wxkxdhvlgxou0/
 
-Hello:
+The conntrack lookup/allocation kfuncs expose an opts/opts__sz pair.
+The verifier checks the caller-provided opts__sz range, but the wrappers
+currently write opts->error after internal errors even when opts__sz is too
+small to include that field.
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Patch 1 writes opts->error only when opts__sz includes it.
+Patch 2 adds a bpf_nf regression check that keeps a guard in opts->error
+while passing opts__sz covering only netns_id.
 
-On Sun, 14 Jun 2026 13:45:55 +0200 you wrote:
-> From: Marco Crivellari <marco.crivellari@suse.com>
-> 
-> This patch continues the effort to refactor workqueue APIs, which has
-> begun with the changes introducing new workqueues and a new
-> alloc_workqueue flag:
-> 
->    commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
->    commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
-> 
-> [...]
+The regression check follows the existing bpf_nf test shape.  Before the
+fix, the guard is overwritten with -EINVAL even though opts__sz covers only
+the first four bytes of the options object.  After the fix, the kfunc still
+returns NULL for the invalid size, but the guard remains intact.
 
-Here is the summary with links:
-  - [net-next,01/11] ipvs: Replace use of system_unbound_wq with system_dfl_long_wq
-    https://git.kernel.org/netdev/net-next/c/30877f3da910
-  - [net-next,02/11] netfilter: nf_tables: use DEBUG_NET_WARN_ON_ONCE in packet and control paths
-    https://git.kernel.org/netdev/net-next/c/42eb1ca711b6
-  - [net-next,03/11] netfilter: nf_conncount: callers must hold rcu read lock
-    https://git.kernel.org/netdev/net-next/c/64d7d5abe216
-  - [net-next,04/11] netfilter: nf_conncount: use per nf_conncount_data spinlocks
-    https://git.kernel.org/netdev/net-next/c/eae341ecfc24
-  - [net-next,05/11] netfilter: nf_conncount: split count_tree_node rbtree walk into helper
-    https://git.kernel.org/netdev/net-next/c/2e064ae85942
-  - [net-next,06/11] netfilter: nf_conncount: add sequence counter to detect tree modifications
-    https://git.kernel.org/netdev/net-next/c/635a10f6d076
-  - [net-next,07/11] netfilter: nf_conncount: gc and rcu fixes
-    https://git.kernel.org/netdev/net-next/c/4eb7c3db5b85
-  - [net-next,08/11] netfilter: conntrack: check NULL when retrieving ct extension
-    https://git.kernel.org/netdev/net-next/c/e3cd138e5607
-  - [net-next,09/11] netfilter: flowtable: bail out if forward path cannot be discovered
-    https://git.kernel.org/netdev/net-next/c/871df5007eda
-  - [net-next,10/11] ipvs: fix doc syntax for conn_max sysctl
-    https://git.kernel.org/netdev/net-next/c/0e2a5d02f1d1
-  - [net-next,11/11] netfilter: nf_dup_netdev: add nf_dev_xmit_recursion*() helpers and use them
-    https://git.kernel.org/netdev/net-next/c/2354e975932d
+Validation, rebased and tested on bpf-next master e4287bf34f97
+("selftests/bpf: Work around llvm stack overflow in crypto progs"):
 
-You are awesome, thank you!
+  git diff --check origin/master..HEAD: OK
+  scripts/checkpatch.pl --strict on 1/2 and 2/2: OK
+  make O=/root/ebpf-verifier-bug-detection/kernel-build/bpf-next \
+    net/netfilter/nf_conntrack_bpf.o: OK
+  git am of exported 1/2 and 2/2 on a fresh worktree at base: OK
+  range-diff between branch commits and git-am result: equivalent
+
+The local direct clang build of test_bpf_nf.c is blocked by the local
+kernel BTF/config: this environment's generated vmlinux.h lacks
+struct nf_conn.mark, which is used by pre-existing test_bpf_nf.c code.
+The changed kernel object and generated patch application were validated.
+
+Yiyang Chen (2):
+  bpf: Guard conntrack opts error writes
+  selftests/bpf: Cover small conntrack opts error writes
+
+ net/netfilter/nf_conntrack_bpf.c              | 17 +++++++++---
+ .../testing/selftests/bpf/prog_tests/bpf_nf.c |  6 +++++
+ .../testing/selftests/bpf/progs/test_bpf_nf.c | 26 +++++++++++++++++++
+ 3 files changed, 45 insertions(+), 4 deletions(-)
+
+
+base-commit: e4287bf34f97a88c7d9322f5bde828724c073a6b
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
