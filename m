@@ -1,196 +1,293 @@
-Received: from mail-dl1-f47.google.com (mail-dl1-f47.google.com [74.125.82.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C68638D3E8
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2026 22:34:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6AC33148D3
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 05:51:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781649266; cv=none; b=u04VnQ+SpbnHM8XfF5yqXNcZBtRxmn+vEbsf647JySSo8CtEoSFqW5oLjkzYQYrODain5D82pR7jZJjQTjXzYQNtnV2lNRHGyAr+dS+3v7r5HE076QXVH4z29ekCyRrkgjhg2Z92/Cp2/9aRn4ErYsdwH0zXZZ+xDomR9v/DLJ0=
+	t=1781675491; cv=none; b=fHJwLz5H8nIehu3R3I6c+d50Nw7X+51KOaM+3gn8U3ms/xbK8p7sILzMLm3zXJFlWiAWUHvPxdNf3uu6olQT/Fprla1wYwVRTun+zLDZ+5NigGCktR8H+io5WlFSv0R0M6M4aCITLf39qMQt1MZl2AcvcoKV+HlnyBdQExT7SUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781649266; c=relaxed/simple;
-	bh=+k+Z5QT8jwp2bFgq5LnQarAVCm6xtVohhvDgImufK9I=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=lt6bTlKx55GPpo4zp/ytAUaqXywT0Mk+0p6fujd4EhEXXNH1xgeWs89PpFn6VysQY394f+UQSAg0ibDEMLP1pVBWo/IL1zeIaLbOV5TaEOKQidMcvbwLwl5CfGfIsSCHBDK2Ewe9h3bWOsBNdeOFc+OlhsQmxFyqWh1+lNuNStc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com; spf=pass smtp.mailfrom=etsalapatis.com; dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b=R/2h6asC; arc=none smtp.client-ip=74.125.82.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=etsalapatis.com
+	s=arc-20240116; t=1781675491; c=relaxed/simple;
+	bh=HuTcJiP4p/fK4S5EKthK6/znzF3DxzAcMSjQla4OkMo=;
+	h=From:To:Cc:Subject:Message-ID:In-Reply-To:References:MIME-Version:
+	 Content-Type:Date; b=nK2sw1l88OTsX/kVJ9AhBStVY8eA9THGzDAW8EqcrIfo289maBkvIXKSsCoz/cMwAKV4Mlh2oaUOlj999FMmXXzoCJk6xo1mKdnD8g9xefzfItELp9BEFZuy+ZjM5NiD4DZC1xzeHm8A2uAei94Nrj4whL8zig2Cxqjy7plAg2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AVsRaStv; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=QC3Ebhir; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b="R/2h6asC"
-Received: by mail-dl1-f47.google.com with SMTP id a92af1059eb24-13810b63a1aso11370830c88.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2026 15:34:24 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AVsRaStv";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="QC3Ebhir"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1781675488;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=4XP/tq8Y+jnLw3ONX2uWJzKqv2hODFa2ws9sWMtFMeo=;
+	b=AVsRaStvOTdbnbEVVcly+KQ2+x1lqaDCiq6rCw/G5TFpyFuU0GRyjgroTJ+iwrI7mcC22n
+	9uLQSoBPf+7hJJyJwBuSadlmUhGQ+GwNPKIirC2StBfblQmNbfYjulfwz6Q8IYcALBmbIL
+	Wh2ftFnUhF48i4jghJikGeS+vKcStv4=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-681-c6IyONDtO4SnL6Y5Jmo6eg-1; Wed, 17 Jun 2026 01:51:27 -0400
+X-MC-Unique: c6IyONDtO4SnL6Y5Jmo6eg-1
+X-Mimecast-MFC-AGG-ID: c6IyONDtO4SnL6Y5Jmo6eg_1781675486
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-490b37e1f48so36981245e9.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2026 22:51:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=etsalapatis-com.20251104.gappssmtp.com; s=20251104; t=1781649263; x=1782254063; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-transfer-encoding:mime-version:from:to:cc:subject:date
+        d=redhat.com; s=google; t=1781675486; x=1782280286; darn=vger.kernel.org;
+        h=date:content-transfer-encoding:mime-version:organization:references
+         :in-reply-to:message-id:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MD5iZFuM9ZopY66WGxBJxUk9sqbEsapLkycXT2EpEGQ=;
-        b=R/2h6asC6iYJaz6+jj9LMjgxjwPi7mM3ZZNfOAyFvCMwbWcpodwzbzijY/iuEYIkNO
-         DtRMmQABUM7IfbI8wXTbMR/T/2k3LrLICoaDzIAhuDL+H2pcW3zULb3WemuHb6CVMyOy
-         NBh+k6WLXtC62G1Z3tJFnozyasl3X/9AInT+PM7wLqUkKlOsm1BFVWMazQHyD93E9FQ9
-         h417s2SK4yERe10W2FDqPiPwyuXnAdSz4RKgqytBhuNkR2n/Rf92fFVxKyiSMbadc1gu
-         GGbf18sZYrJGsTcdiGK96jZnPonSYEGUjFWUBW0uY2iYmhX9RwRlfQ/jLHaVPm/CKszG
-         HWXw==
+        bh=4XP/tq8Y+jnLw3ONX2uWJzKqv2hODFa2ws9sWMtFMeo=;
+        b=QC3Ebhiri0WrvzYjgZnmXQmmkujZ93ELKzOv8XMI88cdWDl7zI0n3fFmZLs+0/FPZY
+         DvzXxd/PWqG3z0cxRkeb96ORLBIbGtm1gx37oOCF05WSUItjQa+2oTrnREgRyQ99n0v0
+         LC3Qblz3OZ4gROVtLRsRKc0VVNHzXqFM3pnpKImT6QearN8RCJAYS5t4axS4av6BBC7Q
+         61HFUuI0y/SZZkYAXCLwfBjimOb73YvcWB/sJxtt+MiQjvlcNxdjR2SyuRqKuMQqRJt+
+         12OeMH/9jrQjs4Tf/XdTF2e6m4gs0LcjyAo3BaIspbL2Ny0spuSpsFd7Y3AqvXpUijG/
+         kJ/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781649263; x=1782254063;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=MD5iZFuM9ZopY66WGxBJxUk9sqbEsapLkycXT2EpEGQ=;
-        b=rlsVrgfaPLhTqJT7BrC3R46/Td+r0qrsLyxBJI9lqV07sV3PnQw8+MK3CKtSJQl40l
-         7SPBod+g5FpXOo82I3FLgl55Nk4yUwXoFX2ZZ56QmsIUU0yPTrCyVzxkOAphCUE+obvY
-         6anYV0Z3GINSHzg9Altwckfo3fYRobkj5MAr2tbWDnf5XbjEf5HXiyBnFA/rkNKT40MN
-         Ppqp/KXSSoOdqLMdBFru8g1J1i9Jp1MyrFa3VvOJ9Sz5vp0hnN0HiZKuXSH1n36hlvJf
-         MXAYI5EiFaiCw2+IY5zqeDjtVHQvTug+aL9vuOOiWpQEZKjAHgLFdlsM3WnYiRfXPtLD
-         J87g==
-X-Forwarded-Encrypted: i=1; AFNElJ+VbhjJNYIbEUCamJkdTxCPh3KEdPnnE9oviobBsG+74ZG6/HBA/eTHJF3x/eZnt7ZGzqff4O/3Qwoynf4cr6g=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzbpn99SSZuisyl8GZsIHeqUW3oPwc8IBIrhGEVZDyj1MF4xUKu
-	SV684U3DWmWdaA0pZT8ApBgZHX83DXgwzIfrCWP5m7AQzeFEm+/cLZORcqEqy+i0Dv4=
-X-Gm-Gg: Acq92OFFW2jgHZx/MU2JO92cZ+YKqBsS1BmAhpqh+F3viIFrqIhzmi62KKQBTZxgNNq
-	HHiVT9kQvBvEnjZc/l7ByQEeieJB/VK4hmJF3Pvded87yHGTuDCTSWmyuyacEEI9vQJP8Ppnd+v
-	iOpasRaFQzX8q1O+LmB4jWfAYOGndzrXAci87A7LJcp3utYAEP54/Tx1766N9SmGdV9ev5o91sv
-	2TrizH1e+HKEawJfKKLkmSo2ZwxUsbTsCPnwbFnwYIS7FF4JzBOlvDFlkmzbp8IcpxZnPzvW2fS
-	VSOJoxt7V890TiBEQdszNAXwdwPN15XbuFbSWs/KoTIDFNhjmQusT9gQHBgdgWuHd4weCtuVCAJ
-	qFy1Vgg0p6PoPQJ9zGWjiHvOwuYK625M7j+/e4t0pLDgfF7sjehVVkulSt5/XYir0+YWREoec3p
-	MopxTK
-X-Received: by 2002:a05:7022:6b82:b0:12f:c7c3:f5ab with SMTP id a92af1059eb24-1398f66bbd2mr534919c88.2.1781649263283;
-        Tue, 16 Jun 2026 15:34:23 -0700 (PDT)
-Received: from localhost ([2620:10d:c090:600::1a8e])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1384b97570asm14146633c88.12.2026.06.16.15.34.20
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 16 Jun 2026 15:34:22 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1781675486; x=1782280286;
+        h=date:content-transfer-encoding:mime-version:organization:references
+         :in-reply-to:message-id:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=4XP/tq8Y+jnLw3ONX2uWJzKqv2hODFa2ws9sWMtFMeo=;
+        b=DQUIvd5R5fA0uGE8/ip/0QUbFSXoO7hfU+62sQt9gp62BKLg2DNqmlecRMTUL6TMkd
+         0DrvSzi4danzF0TZuKxqJ87XC0rd6E3wbgaZNXNeOOaPgxFgarR8vjq7SD7+XCjBUQsJ
+         gJTSQEsUkQY0FeRB+uk1LUQZuEVssrtLZcfLhSsPNDKktIVh4YmyFG4w2fwts6/qr8VS
+         Pa2+3dKEyyYu6gtIsi9KaL4pXwtIXMi6NyoR/LL8/Aow/y2HkEEEAhN5FpqY1SnTmqBd
+         509JynuOyepOD3emoVgP+5y96XE9AmeWJ5lJf0Wg86wEI95rW6fp16MO+Zf5IevLEi68
+         8VQQ==
+X-Gm-Message-State: AOJu0YzYJJEYNnT/7rRjcCKELnjFU33m4kiUaLsXgKAz4K6hKSWZtX4t
+	w4223Cu1YDM0Dgj4NVClWHnBe5Al5YmyRD4cOx67ZBYczqv/FKVW8VMfOkGsCrU9NTEeMNWD1pP
+	vIEaXr7lzJHgmhRqixLmiARqY0JthTRMf5AQc+yaFjFO1ZpSQJFgCSrZQoerk5MxcD1zIMA==
+X-Gm-Gg: Acq92OGNUFFIZzbkRQmrbvWbwmuqdjhwkBlJoIgVTVw8qrWoyLJSdnwu/GzHAJ3W9GE
+	b8vK5ued0c3Nb8n80pR2DeGC1lEjh8eG6EwVaMHPzigpWrysOyskETwWzCl74riKSxUlcyBwjP1
+	zb/hMgkM3+X8Fy6QHsHw+0lvcLi2152ctQbu21tEt9mYNhinl+OJN2ytWzil5jvRCx9fbnXhpp5
+	g8RcicPuzThDidhjaqmM5GZhdVXxK3RtGuPxCMw0yorzwR66c7kJxugsQzyulhOYvzYiQlHAUPA
+	DsX48csoe2nKFVGewhymLMaoQERuM+hK0L8/pUm0URsffbGNVUN7iwhMAdRi9TnoVTs9+kZs3nl
+	Vt3uY87rtE6qgkfq1vnKWfg==
+X-Received: by 2002:a05:600c:8287:b0:490:e1e6:cb69 with SMTP id 5b1f17b1804b1-492333ba388mr41679395e9.7.1781675486027;
+        Tue, 16 Jun 2026 22:51:26 -0700 (PDT)
+X-Received: by 2002:a05:600c:8287:b0:490:e1e6:cb69 with SMTP id 5b1f17b1804b1-492333ba388mr41678965e9.7.1781675485456;
+        Tue, 16 Jun 2026 22:51:25 -0700 (PDT)
+Received: from maya.myfinge.rs (ifcgrfdd.trafficplex.cloud. [2a10:fc81:a806:d6a9::1])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49230a458f2sm123605575e9.3.2026.06.16.22.51.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 16 Jun 2026 22:51:24 -0700 (PDT)
+From: Stefano Brivio <sbrivio@redhat.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netfilter-devel@vger.kernel.org>, Seesee <cjc000013@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nft_set_pipapo: don't leak bad clone into
+ future transaction
+Message-ID: <20260617075123.7a62e22c@elisabeth>
+In-Reply-To: <20260616191938.2875-1-fw@strlen.de>
+References: <20260616191938.2875-1-fw@strlen.de>
+Organization: Red Hat
+X-Mailer: Claws Mail 4.2.0 (GTK 3.24.49; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Tue, 16 Jun 2026 18:34:19 -0400
-Message-Id: <DJATYAJ7LUNT.NHNYXVW1RTGV@etsalapatis.com>
-Cc: <pablo@netfilter.org>, <fw@strlen.de>, <phil@nwl.cc>,
- <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
- <pabeni@redhat.com>, <horms@kernel.org>, <andrii@kernel.org>,
- <eddyz87@gmail.com>, <ast@kernel.org>, <daniel@iogearbox.net>,
- <memxor@gmail.com>, <martin.lau@linux.dev>, <song@kernel.org>,
- <yonghong.song@linux.dev>, <jolsa@kernel.org>, <emil@etsalapatis.com>,
- <shuah@kernel.org>, <kartikey406@gmail.com>, <coreteam@netfilter.org>,
- <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH bpf-next 2/2] selftests/bpf: Cover small conntrack opts
- error writes
-From: "Emil Tsalapatis" <emil@etsalapatis.com>
-To: "Yiyang Chen" <chenyy23@mails.tsinghua.edu.cn>, <bpf@vger.kernel.org>,
- <netfilter-devel@vger.kernel.org>
-X-Mailer: aerc 0.21.0-0-g5549850facc2
-References: <cover.1781586477.git.chenyy23@mails.tsinghua.edu.cn>
- <c4c898dd23181b676ebf6b6b4d9c54f51bb69c75.1781586477.git.chenyy23@mails.tsinghua.edu.cn>
-In-Reply-To: <c4c898dd23181b676ebf6b6b4d9c54f51bb69c75.1781586477.git.chenyy23@mails.tsinghua.edu.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Date: Wed, 17 Jun 2026 07:51:24 +0200 (CEST)
 
-On Tue Jun 16, 2026 at 1:42 AM EDT, Yiyang Chen wrote:
-> Add a conntrack kfunc regression check for opts__sz values that do not
-> cover opts->error. The BPF program initializes opts->error with a guard
-> value, calls the lookup and allocation kfuncs with opts__sz set to
-> sizeof(opts->netns_id), and verifies that the guard is still intact
-> after the kfunc returns NULL.
->
-> Without the conntrack wrapper guard, the kfunc error path overwrites
-> that guard with -EINVAL even though the verifier checked only the first
-> four bytes of the options object.
->
-> Signed-off-by: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
+On Tue, 16 Jun 2026 21:19:34 +0200
+Florian Westphal <fw@strlen.de> wrote:
 
-Reviewed-by: Emil Tsalapatis <emil@etsalapatis.com>
+> On memory allocation failure the cloned nft_pipapo_match can enter a bad
+> state:
+>  - some fields can have their lookup tables resized while others did
+>    not
+>  - bits might have been toggled
+>  - scratch map can be undersized which also means m->bsize_max can be
+>    lower than what is required
+
+If I understand it correctly, this is about pipapo_realloc_scratch()
+failing to allocate memory for per-CPU scratch maps but
+pipapo_maybe_clone() succeeding, right?
+
+> This means that the next insertion in the same batch can trigger
+> out-of-bounds writes.
+> 
+> Futhermore, a failure in the first can result in the bad clone to
+> leak into the next transaction because the abort callback is never
+> executed in this case (the upper layer saw an error and no attempt to
+> allocate a transactional request was made).
+> 
+> Record a state for the nft_pipapo_match structure:
+> - NEW (pristine clone)
+> - MOD (modified clone with good state)
+> - ERR (potentially bogus content)
+> 
+> Then make it so that deletes and insertions fail when the clone
+> entered ERR state.
+> 
+> In case the very first insert attempt results in an error, free the
+> clone right away.
+
+I don't see anything wrong with this approach, but I guess there might
+be a more obvious alternative, even though I didn't really think this
+through: undo what we did in nft_pipapo_insert() up to that point
+(perhaps calling nft_pipapo_delete() with a particular argument).
+
+I can try to get to this in the next few days (I would have some ideas
+about testing, see below), but I suppose we want a fix quickly if that's
+really the case so I'm actually fine with this, with one nit, also
+reported below.
+
+> Reported-by: Seesee <cjc000013@gmail.com>
+> Cc: Stefano Brivio <sbrivio@redhat.com>
+> Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
 > ---
->  .../testing/selftests/bpf/prog_tests/bpf_nf.c |  6 +++++
->  .../testing/selftests/bpf/progs/test_bpf_nf.c | 26 +++++++++++++++++++
->  2 files changed, 32 insertions(+)
->
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/test=
-ing/selftests/bpf/prog_tests/bpf_nf.c
-> index b33dba4b126e2..14d4c1793aed5 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -5,6 +5,8 @@
->  #include "test_bpf_nf.skel.h"
->  #include "test_bpf_nf_fail.skel.h"
-> =20
-> +#define CT_OPTS_ERROR_GUARD 0x12345678
+>  For some reason reporter did not share a PoC despite claiming
+>  there is one, so I have no fucking clue if this patch
+>  is correct or not, its based on guesswork without
+>  any validation.
+
+Maybe we could run test scripts against a modified version of
+pipapo_realloc_scratch() returning -ENOMEM every 20th time or so?
+
+>  net/netfilter/nft_set_pipapo.c | 34 +++++++++++++++++++++++++++++-----
+>  net/netfilter/nft_set_pipapo.h |  8 ++++++++
+>  2 files changed, 37 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+> index 50d4a4f04309..61b8601ee377 100644
+> --- a/net/netfilter/nft_set_pipapo.c
+> +++ b/net/netfilter/nft_set_pipapo.c
+> @@ -342,6 +342,8 @@
+>  #include "nft_set_pipapo_avx2.h"
+>  #include "nft_set_pipapo.h"
+>  
+> +static void nft_pipapo_abort(const struct nft_set *set);
 > +
->  static char log_buf[1024 * 1024];
-> =20
->  struct {
-> @@ -119,6 +121,10 @@ static void test_bpf_nf_ct(int mode)
->  	ASSERT_EQ(skel->bss->test_einval_reserved_new, -EINVAL, "Test EINVAL fo=
-r reserved in new struct not set to 0");
->  	ASSERT_EQ(skel->bss->test_einval_netns_id, -EINVAL, "Test EINVAL for ne=
-tns_id < -1");
->  	ASSERT_EQ(skel->bss->test_einval_len_opts, -EINVAL, "Test EINVAL for le=
-n__opts !=3D NF_BPF_CT_OPTS_SZ");
-> +	ASSERT_EQ(skel->bss->test_einval_len_opts_small_lookup, CT_OPTS_ERROR_G=
-UARD,
-> +		  "Test no error write for lookup opts__sz before error field");
-> +	ASSERT_EQ(skel->bss->test_einval_len_opts_small_alloc, CT_OPTS_ERROR_GU=
-ARD,
-> +		  "Test no error write for alloc opts__sz before error field");
->  	ASSERT_EQ(skel->bss->test_eproto_l4proto, -EPROTO, "Test EPROTO for l4p=
-roto !=3D TCP or UDP");
->  	ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONET for ba=
-d but valid netns_id");
->  	ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT for fail=
-ed lookup");
-> diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/test=
-ing/selftests/bpf/progs/test_bpf_nf.c
-> index 076fbf03a1268..df43649ecb785 100644
-> --- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> @@ -10,6 +10,8 @@
->  #define EINVAL 22
->  #define ENOENT 2
-> =20
-> +#define CT_OPTS_ERROR_GUARD 0x12345678
+>  /**
+>   * pipapo_refill() - For each set bit, set bits from selected mapping table item
+>   * @map:	Bitmap to be scanned for set bits
+> @@ -1296,7 +1298,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+>  	const u8 *start_p, *end_p;
+>  	int i, bsize_max, err = 0;
+>  
+> -	if (!m)
+> +	if (!m || m->state == NFT_PIPAPO_CLONE_ERR)
+>  		return -ENOMEM;
+>  
+>  	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END))
+> @@ -1367,8 +1369,10 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+>  		else
+>  			ret = pipapo_expand(f, start, end, f->groups * f->bb);
+>  
+> -		if (ret < 0)
+> -			return ret;
+> +		if (ret < 0) {
+> +			err = ret;
+> +			goto abort;
+> +		}
+>  
+>  		if (f->bsize > bsize_max)
+>  			bsize_max = f->bsize;
+> @@ -1384,7 +1388,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+>  
+>  		err = pipapo_realloc_scratch(m, bsize_max);
+>  		if (err)
+> -			return err;
+> +			goto abort;
+>  
+>  		m->bsize_max = bsize_max;
+>  	} else {
+> @@ -1396,7 +1400,26 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+>  
+>  	pipapo_map(m, rulemap, e);
+>  
+> +	m->state = NFT_PIPAPO_CLONE_MOD;
+>  	return 0;
+> +abort:
+> +	DEBUG_NET_WARN_ON_ONCE(m->state == NFT_PIPAPO_CLONE_ERR);
 > +
->  #define NF_CT_ZONE_DIR_ORIG (1 << IP_CT_DIR_ORIGINAL)
->  #define NF_CT_ZONE_DIR_REPL (1 << IP_CT_DIR_REPLY)
-> =20
-> @@ -19,6 +21,8 @@ int test_einval_reserved =3D 0;
->  int test_einval_reserved_new =3D 0;
->  int test_einval_netns_id =3D 0;
->  int test_einval_len_opts =3D 0;
-> +int test_einval_len_opts_small_lookup =3D 0;
-> +int test_einval_len_opts_small_alloc =3D 0;
->  int test_eproto_l4proto =3D 0;
->  int test_enonet_netns_id =3D 0;
->  int test_enoent_lookup =3D 0;
-> @@ -124,6 +128,28 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, stru=
-ct bpf_sock_tuple *, u32,
->  	else
->  		test_einval_len_opts =3D opts_def.error;
-> =20
-> +	opts_def.error =3D CT_OPTS_ERROR_GUARD;
-> +	ct =3D lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-> +		       sizeof(opts_def.netns_id));
-> +	if (ct) {
-> +		bpf_ct_release(ct);
-> +		test_einval_len_opts_small_lookup =3D -EINVAL;
-> +	} else {
-> +		test_einval_len_opts_small_lookup =3D opts_def.error;
-> +	}
+> +	/* Two rollback cases:
+> +	 * 1) no previous changes.  nft_pipapo_abort is not
+> +	 * guaranteed to be invoked (there might be no further
+> +	 * add/delete requests coming after this).
+> +	 *
+> +	 * 2) we had previous changes: there are transaction
+> +	 * records pointing to this set.  Leave the rollback to
+> +	 * the transaction handling.
+> +	 */
+> +	if (m->state == NFT_PIPAPO_CLONE_NEW)
+> +		nft_pipapo_abort(set); /* releases m */
+> +	else
+> +		m->state = NFT_PIPAPO_CLONE_ERR;
 > +
-> +	opts_def.error =3D CT_OPTS_ERROR_GUARD;
-> +	ct =3D alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-> +		      sizeof(opts_def.netns_id));
-> +	if (ct) {
-> +		ct =3D bpf_ct_insert_entry(ct);
-> +		if (ct)
-> +			bpf_ct_release(ct);
-> +		test_einval_len_opts_small_alloc =3D -EINVAL;
-> +	} else {
-> +		test_einval_len_opts_small_alloc =3D opts_def.error;
-> +	}
+> +	return err;
+>  }
+>  
+>  /**
+> @@ -1473,6 +1496,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+>  		dst++;
+>  	}
+>  
+> +	new->state = NFT_PIPAPO_CLONE_NEW;
+>  	return new;
+>  
+>  out_mt:
+> @@ -1896,7 +1920,7 @@ nft_pipapo_deactivate(const struct net *net, const struct nft_set *set,
+>  	/* removal must occur on priv->clone, if we are low on memory
+>  	 * we have no choice and must fail the removal request.
+>  	 */
+> -	if (!m)
+> +	if (!m || m->state == NFT_PIPAPO_CLONE_ERR)
+>  		return NULL;
+>  
+>  	e = pipapo_get(m, (const u8 *)elem->key.val.data,
+> diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+> index b82abb03576e..a19e980d06ef 100644
+> --- a/net/netfilter/nft_set_pipapo.h
+> +++ b/net/netfilter/nft_set_pipapo.h
+> @@ -131,9 +131,16 @@ struct nft_pipapo_scratch {
+>  	unsigned long __map[];
+>  };
+>  
+> +enum nft_pipapo_clone_state {
+
+Nit: if would be nice to have the canonical:
+
+/**
+ * enum nft_pipapo_clone_state - Validity states for clones of matching data
+ * @NFT_PIPAPO_CLONE_NEW	Pristine clone of currently active data
+ * @NFT_PIPAPO_CLONE_MOD	Modified clone (insertion or deletions), valid
+ * @NFT_PIPAPO_CLONE_ERR	Some operations failed, invalid state, don't use
+ */
+
+> +	NFT_PIPAPO_CLONE_NEW,
+> +	NFT_PIPAPO_CLONE_MOD,
+> +	NFT_PIPAPO_CLONE_ERR,
+> +};
 > +
->  	opts_def.l4proto =3D IPPROTO_ICMP;
->  	ct =3D lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
->  		       sizeof(opts_def));
+>  /**
+>   * struct nft_pipapo_match - Data used for lookup and matching
+>   * @field_count:	Amount of fields in set
+> + * @state:		add/delete state; used from control plane
+>   * @bsize_max:		Maximum lookup table bucket size of all fields, in longs
+>   * @scratch:		Preallocated per-CPU maps for partial matching results
+>   * @rcu:		Matching data is swapped on commits
+> @@ -141,6 +148,7 @@ struct nft_pipapo_scratch {
+>   */
+>  struct nft_pipapo_match {
+>  	u8 field_count;
+> +	enum nft_pipapo_clone_state state:8;
+>  	unsigned int bsize_max;
+>  	struct nft_pipapo_scratch * __percpu *scratch;
+>  	struct rcu_head rcu;
+
+-- 
+Stefano
 
