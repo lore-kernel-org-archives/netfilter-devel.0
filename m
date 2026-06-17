@@ -1,578 +1,265 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f69.google.com (mail-ot1-f69.google.com [209.85.210.69])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 624023EFFDB
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 11:51:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14894071E9
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 13:28:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.69
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781697076; cv=none; b=qDA0e+N2/+lE/AjPZkV0gf77jlf6U5dxLF5qruCUWBq7HebQ3rquHI01zwEDwY2Fl6ow1DDdZHFSDfWjlrGLSUlE4IKzqv5KUg4WeqcmvouP4Ezp6hw/5rq0IdbSTqjsAlUVWlWX3LAILY0dWqKEPqCelS3TMUR+BqZlmUMQGBs=
+	t=1781702911; cv=none; b=XGzT7PvnePjIpQdAVNdIj04gIiM7z8W40SD1n1/9YBvHWq/ampWGmHa7/UtEAqTIr1YpQQVYu3ySB0Zaa+gXqxQ0uzdLH49mvZVVtODtWqceDTo/YI1TK9uL3+FPeslnUAzFmdmmepxQS4rH9/Cd1oswscqPn15Ht6roVuPnLJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781697076; c=relaxed/simple;
-	bh=0+EhaCdaHYc6bzde5NrZR420fv3yalnSsmsNskSOwN0=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=UyTh7RyZYOLO3ozCTdxOHK/jNHmBY9/S1dPCI1D53i63DxrNO1colFqT6QgmvnvPnH2mHymS1A3tW0xFMtR52VwkkhxLfncGVC5hiV67QsVyAaQBQDnNXDacOWchLNi6Bsz668xYw4eq9koun75MIzvaJ+9CAlzCHe9+rxHyhcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nMNWnJ7Y; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nMNWnJ7Y"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CBA6060181
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 13:51:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781697070;
-	bh=q5nb7/9aAPMaedwuNS9jdcbCtiRELl6XNQ7jDTaPqa8=;
-	h=From:To:Subject:Date:From;
-	b=nMNWnJ7YhL80cEg3Zu1sP+tbxuN9OitiZDeuhvb8SO5at8s5i0+HRgwoBee1I10H0
-	 3xr5z580Tg5Lq9bG1l8d9TUbol+7YiF6mE8SMAFbQhljEinNJcgwAiW2nEVsMPsiXu
-	 xofwippnkSj9cQQgEmtccXo2wvxBzncExrazPZd4ck7DOPO8PIy0cM/iyVkjTP/SsV
-	 O5+vFtZToJLyr2oYh9CsRU3bHQl7dmTyq6tP7cnLxZWMkjhstGCAzfgnZ2dmOdtFGW
-	 e8YLThSr2X1PQPCHlnSDDBSbjdnIbt6ZJGIiRb4LWn8Wl61uHxg6udvYolIWGZDUm2
-	 rme4kG9jf05kQ==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
-Date: Wed, 17 Jun 2026 13:51:05 +0200
-Message-ID: <20260617115105.713112-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	s=arc-20240116; t=1781702911; c=relaxed/simple;
+	bh=BRPvT+20hi42cCY7xrGTZTwc5fN4oWIaF9SSQYOtZ74=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=Hol7apLQm61+sXoaShGFtUm0f500enV9lDM7FMR2fRgp4v4u8dz4bjeO5bTBTGMLoTR5V3mV4pqwYYgRkxvlZpPmVry6EuZWn0I2ZQiiAq8liP310yTz8SO1o+HwRQrgd5Zvho5Xg/5zGYjnJMqbdg+19d2uL0j/rLhh3Pb/fgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.69
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-7e6d439842bso8401604a34.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 06:28:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781702905; x=1782307705;
+        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=fjiIFd/qu8PSbuNSvBMYF1UVbLAtUxT6tMmfwe+XIyc=;
+        b=l1NmQe+QWf417L8x0DHjPTXnsPBTUop293N1jYX98/9nS4tuIUan1K3rs/Ys689MBY
+         jEY8IZmulXTQ3QNo+pDd6eltpO1+4QnwJlZ2MQMfJK9qRcj7Bx4qPDVH4Gbx8ZVXt/C1
+         ReD5Uo7rIMycA1abOneHpOJOYuCtnNp1lcBENFNPklBfK2z8AOuCPE8FqG2MtH46yD4c
+         xaa4iNzpnRE23vH6XCA2Zy4zSoAdinuPI4yayN7XzYL7fLA2LL8Lu9xJijJ8oYKqIMK6
+         Bn4g6IKvlhIUpl1fIST9uPjEenNQQmAWpdndmY4XOHXDwr3Wz2+dv1CR7U3BipBM0MsR
+         R4kw==
+X-Forwarded-Encrypted: i=1; AFNElJ/J5EEX+xnuQfEwdjOgqiPiHS8BgTeyVM2fbMYMaK8UyYhxZp4zEap9lcOTwNn81bZ3aLWVxY4NeV7ZkJZAA28=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNpN935b7dcVAAdAEH2+xyGsoSegb5EEncyPpSHmZY6eGmHhyj
+	31Qla7qm4xICflegvsleEP3IlK4QYs163CnPPK0A70WvC3kJoa6ic0Mkbsbrl5hnPmOMBKPJTVf
+	svTqtNjIRkRKoo38CH3vkY0zF/PJbgaPn1+UNgfyGUKatEmdqL7Cc3q5U87k=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6808:159d:b0:487:72fd:83d0 with SMTP id
+ 5614622812f47-4894289b876mr3183440b6e.13.1781702905448; Wed, 17 Jun 2026
+ 06:28:25 -0700 (PDT)
+Date: Wed, 17 Jun 2026 06:28:25 -0700
+In-Reply-To: <20260617084128.6603-1-kadlec@netfilter.org>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a32a0f9.dc986f81.2c135.000b.GAE@google.com>
+Subject: [syzbot ci] Re: netfilter: ipset fixes, second batch
+From: syzbot ci <syzbot+ci4813d4c1f3fcd584@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-This patch replaces the timer API by GC worker approach for
-expectations, as it already happened in many other subsystems.
+syzbot ci has tested the following series
 
-Use the existing conntrack GC worker to iterate over the local list of
-expectations in the master conntrack to reap expired expectations. Hold
-the expectation spinlock while iterating over the master conntrack
-expectation list to synchronize with nf_ct_remove_expectations().
-This also performs runtime packet path garbage collection through the
-expectation insertion and lookup functions while walking over one of the
-chains of the global expectation hashtables.
+[v3] netfilter: ipset fixes, second batch
+https://lore.kernel.org/all/20260617084128.6603-1-kadlec@netfilter.org
+* [PATCH v3 1/7] netfilter: ipset: Don't use test_bit() in lockless RCU readers in hash types
+* [PATCH v3 2/7] netfilter: ipset: Don't use test_bit() in lockless RCU readers in bitmap types
+* [PATCH v3 3/7] netfilter: ipset: fix order of kfree_rcu() and rcu_assign_pointer()
+* [PATCH v3 4/7] netfilter: ipset: exlude gc when resize is in progress
+* [PATCH v3 5/7] netfilter: ipset: make sure gc is properly stopped
+* [PATCH v3 6/7] netfilter: ipset: cleanup the add/del backlog when resize failed
+* [PATCH v3 7/7] netfilter: ipset: rework cidr bookkeeping
 
-This removes the extra bump on the refcount for expectation timers, this
-allows to remove several nf_ct_expect_put() calls after the unlink,
-after this update only refcount remains at 1 while on the expectation
-hashes.
+and found the following issues:
+* INFO: trying to register non-static key in hash_ipportip6_resize
+* INFO: trying to register non-static key in hash_netport6_resize
+* INFO: trying to register non-static key in hash_netportnet6_resize
 
-This patch implicitly addresses a race with the existing timer API
-allowing an expectation to access a stale exp->master pointer which has
-been already released when expectation removal loses races with an
-expiring timer, ie. timer_del() reporting false.
+Full report is available here:
+https://ci.syzbot.org/series/7264660b-3f58-4809-9af0-c77ead1aac16
 
-Add a new NF_CT_EXPECT_DEAD flag to reap this expectation via GC. This
-is needed by nf_conntrack_unexpect_related() which is called in error
-paths to invalidate newly created expectations that has been added into
-the hashes. These expectactions cannot be inmediately released as GC
-or nf_ct_remove_expectations() could race to make it.
+***
 
-Set current timestamp in nf_ct_expect_alloc(), then add the expectation
-policy timeout (or custom timeout specified added on top of this) to
-specify the expectation lifetime.
+INFO: trying to register non-static key in hash_ipportip6_resize
 
-Fixes: bffcaad9afdf ("netfilter: ctnetlink: ensure safe access to master conntrack")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+tree:      nf-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
+base:      3b165c2a29cfb6453f26e1ac833ca6afd28d28cf
+arch:      amd64
+compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+config:    https://ci.syzbot.org/builds/44611eeb-52b4-4b97-8744-2265cbb063fa/config
+syz repro: https://ci.syzbot.org/findings/c1aaddfd-5ff4-410d-85fa-3c212552d465/syz_repro
+
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 UID: 0 PID: 5810 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ assign_lock_key+0x133/0x150 kernel/locking/lockdep.c:984
+ register_lock_class+0xcc/0x2e0 kernel/locking/lockdep.c:1299
+ __lock_acquire+0xad/0x2cf0 kernel/locking/lockdep.c:5112
+ lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:150 [inline]
+ _raw_spin_lock_bh+0x36/0x50 kernel/locking/spinlock.c:182
+ spin_lock_bh include/linux/spinlock.h:348 [inline]
+ hash_ipportip6_resize+0x4d4/0x1dd0 net/netfilter/ipset/ip_set_hash_gen.h:699
+ call_ad+0x463/0xb60 net/netfilter/ipset/ip_set_core.c:1758
+ ip_set_ad+0x824/0x9d0 net/netfilter/ipset/ip_set_core.c:1842
+ nfnetlink_rcv_msg+0xc03/0x12c0 net/netfilter/nfnetlink.c:300
+ netlink_rcv_skb+0x232/0x4b0 net/netlink/af_netlink.c:2556
+ nfnetlink_rcv+0x2c0/0x27b0 net/netfilter/nfnetlink.c:667
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x75c/0x8e0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x813/0xb40 net/netlink/af_netlink.c:1900
+ sock_sendmsg_nosec net/socket.c:787 [inline]
+ __sock_sendmsg net/socket.c:802 [inline]
+ ____sys_sendmsg+0x972/0x9f0 net/socket.c:2699
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2753
+ __sys_sendmsg net/socket.c:2785 [inline]
+ __do_sys_sendmsg net/socket.c:2790 [inline]
+ __se_sys_sendmsg net/socket.c:2788 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2788
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f4ef2b9ce59
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f4ef3b42028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f4ef2e15fa0 RCX: 00007f4ef2b9ce59
+RDX: 0000000000000000 RSI: 00002000000002c0 RDI: 0000000000000004
+RBP: 00007f4ef2c32d6f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f4ef2e16038 R14: 00007f4ef2e15fa0 R15: 00007ffd926dea58
+ </TASK>
+
+
+***
+
+INFO: trying to register non-static key in hash_netport6_resize
+
+tree:      nf-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
+base:      3b165c2a29cfb6453f26e1ac833ca6afd28d28cf
+arch:      amd64
+compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+config:    https://ci.syzbot.org/builds/44611eeb-52b4-4b97-8744-2265cbb063fa/config
+syz repro: https://ci.syzbot.org/findings/60d79dbd-6e73-4ee8-be39-8bea69cb5f52/syz_repro
+
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 UID: 0 PID: 5834 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ assign_lock_key+0x133/0x150 kernel/locking/lockdep.c:984
+ register_lock_class+0xcc/0x2e0 kernel/locking/lockdep.c:1299
+ __lock_acquire+0xad/0x2cf0 kernel/locking/lockdep.c:5112
+ lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:150 [inline]
+ _raw_spin_lock_bh+0x36/0x50 kernel/locking/spinlock.c:182
+ spin_lock_bh include/linux/spinlock.h:348 [inline]
+ hash_netport6_resize+0x548/0x1d30 net/netfilter/ipset/ip_set_hash_gen.h:699
+ call_ad+0x463/0xb60 net/netfilter/ipset/ip_set_core.c:1758
+ ip_set_ad+0x824/0x9d0 net/netfilter/ipset/ip_set_core.c:1842
+ nfnetlink_rcv_msg+0xc03/0x12c0 net/netfilter/nfnetlink.c:300
+ netlink_rcv_skb+0x232/0x4b0 net/netlink/af_netlink.c:2556
+ nfnetlink_rcv+0x2c0/0x27b0 net/netfilter/nfnetlink.c:667
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x75c/0x8e0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x813/0xb40 net/netlink/af_netlink.c:1900
+ sock_sendmsg_nosec net/socket.c:787 [inline]
+ __sock_sendmsg net/socket.c:802 [inline]
+ ____sys_sendmsg+0x972/0x9f0 net/socket.c:2699
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2753
+ __sys_sendmsg net/socket.c:2785 [inline]
+ __do_sys_sendmsg net/socket.c:2790 [inline]
+ __se_sys_sendmsg net/socket.c:2788 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2788
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f5c11d9ce59
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f5c113dd028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f5c12016090 RCX: 00007f5c11d9ce59
+RDX: 0000000000000090 RSI: 00002000000002c0 RDI: 0000000000000004
+RBP: 00007f5c11e32d6f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f5c12016128 R14: 00007f5c12016090 R15: 00007ffd4124a0a8
+ </TASK>
+
+
+***
+
+INFO: trying to register non-static key in hash_netportnet6_resize
+
+tree:      nf-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
+base:      3b165c2a29cfb6453f26e1ac833ca6afd28d28cf
+arch:      amd64
+compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+config:    https://ci.syzbot.org/builds/44611eeb-52b4-4b97-8744-2265cbb063fa/config
+syz repro: https://ci.syzbot.org/findings/a0e027e2-8833-4fe6-8f75-2f388682c035/syz_repro
+
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 UID: 0 PID: 5880 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ assign_lock_key+0x133/0x150 kernel/locking/lockdep.c:984
+ register_lock_class+0xcc/0x2e0 kernel/locking/lockdep.c:1299
+ __lock_acquire+0xad/0x2cf0 kernel/locking/lockdep.c:5112
+ lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:150 [inline]
+ _raw_spin_lock_bh+0x36/0x50 kernel/locking/spinlock.c:182
+ spin_lock_bh include/linux/spinlock.h:348 [inline]
+ hash_netportnet6_resize+0x5aa/0x2040 net/netfilter/ipset/ip_set_hash_gen.h:699
+ call_ad+0x463/0xb60 net/netfilter/ipset/ip_set_core.c:1758
+ ip_set_ad+0x824/0x9d0 net/netfilter/ipset/ip_set_core.c:1842
+ nfnetlink_rcv_msg+0xc03/0x12c0 net/netfilter/nfnetlink.c:300
+ netlink_rcv_skb+0x232/0x4b0 net/netlink/af_netlink.c:2556
+ nfnetlink_rcv+0x2c0/0x27b0 net/netfilter/nfnetlink.c:667
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x75c/0x8e0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x813/0xb40 net/netlink/af_netlink.c:1900
+ sock_sendmsg_nosec net/socket.c:787 [inline]
+ __sock_sendmsg net/socket.c:802 [inline]
+ ____sys_sendmsg+0x972/0x9f0 net/socket.c:2699
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2753
+ __sys_sendmsg net/socket.c:2785 [inline]
+ __do_sys_sendmsg net/socket.c:2790 [inline]
+ __se_sys_sendmsg net/socket.c:2788 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2788
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x174/0x580 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f9c00b9ce59
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f9c01a82028 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f9c00e15fa0 RCX: 00007f9c00b9ce59
+RDX: 0000000000000000 RSI: 00002000000002c0 RDI: 0000000000000004
+RBP: 00007f9c00c32d6f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f9c00e16038 R14: 00007f9c00e15fa0 R15: 00007ffe8ca45b58
+ </TASK>
+
+
+***
+
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
+
 ---
-v2: address AI reviewer hints:
-    - unexpect_related() could race with GC, add _DEAD flag.
-    - fix incorrect NF_CT_EXPECT_PERMANENT semantics with is_expired().
+This report is generated by a bot. It may contain errors.
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
 
- include/net/netfilter/nf_conntrack_expect.h   |  16 ++-
- .../linux/netfilter/nf_conntrack_common.h     |   3 +-
- net/netfilter/nf_conntrack_core.c             |   5 +
- net/netfilter/nf_conntrack_expect.c           | 120 +++++++++---------
- net/netfilter/nf_conntrack_h323_main.c        |   4 +-
- net/netfilter/nf_conntrack_netlink.c          |  22 ++--
- net/netfilter/nf_conntrack_sip.c              |  13 +-
- net/netfilter/nft_ct.c                        |   2 +-
- 8 files changed, 96 insertions(+), 89 deletions(-)
+To test a patch for this bug, please reply with `#syz test`
+(should be on a separate line).
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 80f50fd0f7ad..7e1e88c2116e 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -54,8 +54,8 @@ struct nf_conntrack_expect {
- 	/* The conntrack of the master connection */
- 	struct nf_conn *master;
- 
--	/* Timer function; deletes the expectation. */
--	struct timer_list timeout;
-+	/* jiffies32 when this expectation expires */
-+	u32 timeout;
- 
- #if IS_ENABLED(CONFIG_NF_NAT)
- 	union nf_inet_addr saved_addr;
-@@ -69,6 +69,14 @@ struct nf_conntrack_expect {
- 	struct rcu_head rcu;
- };
- 
-+static inline bool nf_ct_exp_is_expired(const struct nf_conntrack_expect *exp)
-+{
-+	if (exp->flags & NF_CT_EXPECT_DEAD)
-+		return true;
-+
-+	return (__s32)(READ_ONCE(exp->timeout) - nfct_time_stamp) <= 0;
-+}
-+
- static inline struct net *nf_ct_exp_net(struct nf_conntrack_expect *exp)
- {
- 	return read_pnet(&exp->net);
-@@ -130,7 +138,6 @@ static inline void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
- 
- void nf_ct_remove_expectations(struct nf_conn *ct);
- void nf_ct_unexpect_related(struct nf_conntrack_expect *exp);
--bool nf_ct_remove_expect(struct nf_conntrack_expect *exp);
- 
- void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, void *data), void *data);
- void nf_ct_expect_iterate_net(struct net *net,
-@@ -153,5 +160,8 @@ static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect,
- 	return nf_ct_expect_related_report(expect, 0, 0, flags);
- }
- 
-+struct nf_conn_help;
-+void nf_ct_expectation_gc(struct nf_conn_help *master_help);
-+
- #endif /*_NF_CONNTRACK_EXPECT_H*/
- 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 56b6b60a814f..651f3676a7bc 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -160,8 +160,9 @@ enum ip_conntrack_expect_events {
- #define NF_CT_EXPECT_USERSPACE		0x4
- 
- #ifdef __KERNEL__
-+#define NF_CT_EXPECT_DEAD		0x8
- #define NF_CT_EXPECT_MASK	(NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE | \
--				 NF_CT_EXPECT_USERSPACE)
-+				 NF_CT_EXPECT_USERSPACE | NF_CT_EXPECT_DEAD)
- #endif
- 
- #endif /* _UAPI_NF_CONNTRACK_COMMON_H */
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 4fb3a2d18631..9be40e33b003 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1502,6 +1502,7 @@ static void gc_worker(struct work_struct *work)
- 		struct nf_conntrack_tuple_hash *h;
- 		struct hlist_nulls_head *ct_hash;
- 		struct hlist_nulls_node *n;
-+		struct nf_conn_help *help;
- 		struct nf_conn *tmp;
- 
- 		rcu_read_lock();
-@@ -1533,6 +1534,10 @@ static void gc_worker(struct work_struct *work)
- 				goto early_exit;
- 			}
- 
-+			help = nfct_help(tmp);
-+			if (help)
-+				nf_ct_expectation_gc(help);
-+
- 			if (nf_ct_is_expired(tmp)) {
- 				nf_ct_gc_expired(tmp);
- 				expired_count++;
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 5c9b17835c28..f2c0c0ac7fda 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -43,6 +43,24 @@ unsigned int nf_ct_expect_max __read_mostly;
- static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
- static siphash_aligned_key_t nf_ct_expect_hashrnd;
- 
-+void nf_ct_expectation_gc(struct nf_conn_help *master_help)
-+{
-+	struct nf_conntrack_expect *exp;
-+	struct hlist_node *next;
-+
-+	if (hlist_empty(&master_help->expectations))
-+		return;
-+
-+	spin_lock_bh(&nf_conntrack_expect_lock);
-+	hlist_for_each_entry_safe(exp, next, &master_help->expectations, lnode) {
-+		if (!nf_ct_exp_is_expired(exp))
-+			continue;
-+
-+		nf_ct_unlink_expect(exp);
-+	}
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+}
-+
- /* nf_conntrack_expect helper functions */
- void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
- 				u32 portid, int report)
-@@ -52,7 +70,6 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
- 	struct nf_conntrack_net *cnet;
- 
- 	lockdep_nfct_expect_lock_held();
--	WARN_ON_ONCE(timer_pending(&exp->timeout));
- 
- 	hlist_del_rcu(&exp->hnode);
- 
-@@ -70,16 +87,6 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
- }
- EXPORT_SYMBOL_GPL(nf_ct_unlink_expect_report);
- 
--static void nf_ct_expectation_timed_out(struct timer_list *t)
--{
--	struct nf_conntrack_expect *exp = timer_container_of(exp, t, timeout);
--
--	spin_lock_bh(&nf_conntrack_expect_lock);
--	nf_ct_unlink_expect(exp);
--	spin_unlock_bh(&nf_conntrack_expect_lock);
--	nf_ct_expect_put(exp);
--}
--
- static unsigned int nf_ct_expect_dst_hash(const struct net *n, const struct nf_conntrack_tuple *tuple)
- {
- 	struct {
-@@ -117,19 +124,6 @@ nf_ct_exp_equal(const struct nf_conntrack_tuple *tuple,
- 	       nf_ct_exp_zone_equal_any(i, zone);
- }
- 
--bool nf_ct_remove_expect(struct nf_conntrack_expect *exp)
--{
--	lockdep_nfct_expect_lock_held();
--
--	if (timer_delete(&exp->timeout)) {
--		nf_ct_unlink_expect(exp);
--		nf_ct_expect_put(exp);
--		return true;
--	}
--	return false;
--}
--EXPORT_SYMBOL_GPL(nf_ct_remove_expect);
--
- struct nf_conntrack_expect *
- __nf_ct_expect_find(struct net *net,
- 		    const struct nf_conntrack_zone *zone,
-@@ -144,6 +138,8 @@ __nf_ct_expect_find(struct net *net,
- 
- 	h = nf_ct_expect_dst_hash(net, tuple);
- 	hlist_for_each_entry_rcu(i, &nf_ct_expect_hash[h], hnode) {
-+		if (nf_ct_exp_is_expired(i))
-+			continue;
- 		if (nf_ct_exp_equal(tuple, i, zone, net))
- 			return i;
- 	}
-@@ -178,6 +174,7 @@ nf_ct_find_expectation(struct net *net,
- {
- 	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
- 	struct nf_conntrack_expect *i, *exp = NULL;
-+	struct hlist_node *next;
- 	unsigned int h;
- 
- 	lockdep_nfct_expect_lock_held();
-@@ -186,7 +183,11 @@ nf_ct_find_expectation(struct net *net,
- 		return NULL;
- 
- 	h = nf_ct_expect_dst_hash(net, tuple);
--	hlist_for_each_entry(i, &nf_ct_expect_hash[h], hnode) {
-+	hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
-+		if (nf_ct_exp_is_expired(i)) {
-+			nf_ct_unlink_expect(i);
-+			continue;
-+		}
- 		if (!(i->flags & NF_CT_EXPECT_INACTIVE) &&
- 		    nf_ct_exp_equal(tuple, i, zone, net)) {
- 			exp = i;
-@@ -196,13 +197,16 @@ nf_ct_find_expectation(struct net *net,
- 	if (!exp)
- 		return NULL;
- 
-+	if (!refcount_inc_not_zero(&exp->use))
-+		return NULL;
-+
- 	/* If master is not in hash table yet (ie. packet hasn't left
- 	   this machine yet), how can other end know about expected?
- 	   Hence these are not the droids you are looking for (if
- 	   master ct never got confirmed, we'd hold a reference to it
- 	   and weird things would happen to future packets). */
- 	if (!nf_ct_is_confirmed(exp->master))
--		return NULL;
-+		goto err_release_exp;
- 
- 	/* Avoid race with other CPUs, that for exp->master ct, is
- 	 * about to invoke ->destroy(), or nf_ct_delete() via timeout
-@@ -214,18 +218,17 @@ nf_ct_find_expectation(struct net *net,
- 	 */
- 	if (unlikely(nf_ct_is_dying(exp->master) ||
- 		     !refcount_inc_not_zero(&exp->master->ct_general.use)))
--		return NULL;
-+		goto err_release_exp;
- 
--	if (exp->flags & NF_CT_EXPECT_PERMANENT || !unlink) {
--		refcount_inc(&exp->use);
--		return exp;
--	} else if (timer_delete(&exp->timeout)) {
--		nf_ct_unlink_expect(exp);
-+	if (exp->flags & NF_CT_EXPECT_PERMANENT || !unlink)
- 		return exp;
--	}
--	/* Undo exp->master refcnt increase, if timer_delete() failed */
--	nf_ct_put(exp->master);
- 
-+	nf_ct_unlink_expect(exp);
-+
-+	return exp;
-+
-+err_release_exp:
-+	nf_ct_expect_put(exp);
- 	return NULL;
- }
- 
-@@ -241,9 +244,8 @@ void nf_ct_remove_expectations(struct nf_conn *ct)
- 		return;
- 
- 	spin_lock_bh(&nf_conntrack_expect_lock);
--	hlist_for_each_entry_safe(exp, next, &help->expectations, lnode) {
--		nf_ct_remove_expect(exp);
--	}
-+	hlist_for_each_entry_safe(exp, next, &help->expectations, lnode)
-+		nf_ct_unlink_expect(exp);
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
- }
- EXPORT_SYMBOL_GPL(nf_ct_remove_expectations);
-@@ -292,7 +294,7 @@ static bool master_matches(const struct nf_conntrack_expect *a,
- void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
- {
- 	spin_lock_bh(&nf_conntrack_expect_lock);
--	nf_ct_remove_expect(exp);
-+	exp->flags |= NF_CT_EXPECT_DEAD;
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
- }
- EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
-@@ -308,6 +310,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- 	if (!new)
- 		return NULL;
- 
-+	new->timeout = nfct_time_stamp;
- 	new->master = me;
- 	refcount_set(&new->use, 1);
- 	return new;
-@@ -413,17 +416,12 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp,
- 	struct net *net = nf_ct_exp_net(exp);
- 	unsigned int h = nf_ct_expect_dst_hash(net, &exp->tuple);
- 
--	/* two references : one for hash insert, one for the timer */
--	refcount_add(2, &exp->use);
-+	refcount_inc(&exp->use);
- 
--	timer_setup(&exp->timeout, nf_ct_expectation_timed_out, 0);
- 	helper = rcu_dereference_protected(master_help->helper,
- 					   lockdep_is_held(&nf_conntrack_expect_lock));
--	if (helper) {
--		exp->timeout.expires = jiffies +
--			helper->expect_policy[exp->class].timeout * HZ;
--	}
--	add_timer(&exp->timeout);
-+	if (helper)
-+		exp->timeout += helper->expect_policy[exp->class].timeout * HZ;
- 
- 	hlist_add_head_rcu(&exp->lnode, &master_help->expectations);
- 	master_help->expecting[exp->class]++;
-@@ -447,7 +445,7 @@ static void evict_oldest_expect(struct nf_conn_help *master_help,
- 	}
- 
- 	if (last)
--		nf_ct_remove_expect(last);
-+		nf_ct_unlink_expect(last);
- }
- 
- static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
-@@ -467,14 +465,18 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
- 
- 	h = nf_ct_expect_dst_hash(net, &expect->tuple);
- 	hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
-+		if (nf_ct_exp_is_expired(i)) {
-+			nf_ct_unlink_expect(i);
-+			continue;
-+		}
- 		if (master_matches(i, expect, flags) &&
- 		    expect_matches(i, expect)) {
- 			if (i->class != expect->class ||
- 			    i->master != expect->master)
- 				return -EALREADY;
- 
--			if (nf_ct_remove_expect(i))
--				break;
-+			nf_ct_unlink_expect(i);
-+			break;
- 		} else if (expect_clash(i, expect)) {
- 			ret = -EBUSY;
- 			goto out;
-@@ -547,10 +549,8 @@ void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, vo
- 		hlist_for_each_entry_safe(exp, next,
- 					  &nf_ct_expect_hash[i],
- 					  hnode) {
--			if (iter(exp, data) && timer_delete(&exp->timeout)) {
-+			if (iter(exp, data))
- 				nf_ct_unlink_expect(exp);
--				nf_ct_expect_put(exp);
--			}
- 		}
- 	}
- 
-@@ -577,10 +577,8 @@ void nf_ct_expect_iterate_net(struct net *net,
- 			if (!net_eq(nf_ct_exp_net(exp), net))
- 				continue;
- 
--			if (iter(exp, data) && timer_delete(&exp->timeout)) {
-+			if (iter(exp, data))
- 				nf_ct_unlink_expect_report(exp, portid, report);
--				nf_ct_expect_put(exp);
--			}
- 		}
- 	}
- 
-@@ -657,17 +655,17 @@ static int exp_seq_show(struct seq_file *s, void *v)
- 	struct net *net = seq_file_net(s);
- 	struct hlist_node *n = v;
- 	char *delim = "";
-+	__s32 timeout;
- 
- 	expect = hlist_entry(n, struct nf_conntrack_expect, hnode);
- 
- 	if (!net_eq(nf_ct_exp_net(expect), net))
- 		return 0;
-+	if (nf_ct_exp_is_expired(expect))
-+		return 0;
- 
--	if (expect->timeout.function)
--		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
--			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
--	else
--		seq_puts(s, "- ");
-+	timeout = (__s32)(READ_ONCE(expect->timeout) - nfct_time_stamp) / HZ;
-+	seq_printf(s, "%d ", timeout > 0 ? timeout : 0);
- 	seq_printf(s, "l3proto = %u proto=%u ",
- 		   expect->tuple.src.l3num,
- 		   expect->tuple.dst.protonum);
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 7f189dceb3c4..24931e379985 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1388,8 +1388,8 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 				 "timeout to %u seconds for",
- 				 info->timeout);
- 			nf_ct_dump_tuple(&exp->tuple);
--			mod_timer_pending(&exp->timeout,
--					  jiffies + info->timeout * HZ);
-+			WRITE_ONCE(exp->timeout,
-+				   nfct_time_stamp + (info->timeout * HZ));
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index b429e648f06c..4e78d2482989 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3014,8 +3014,8 @@ static int
- ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 			  const struct nf_conntrack_expect *exp)
- {
-+	__s32 timeout = (__s32)(READ_ONCE(exp->timeout) - nfct_time_stamp) / HZ;
- 	struct nf_conn *master = exp->master;
--	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
- 	struct nf_conntrack_helper *helper;
- #if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nlattr *nest_parms;
-@@ -3178,6 +3178,9 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- restart:
- 		hlist_for_each_entry_rcu(exp, &nf_ct_expect_hash[cb->args[0]],
- 					 hnode) {
-+			if (nf_ct_exp_is_expired(exp))
-+				continue;
-+
- 			if (l3proto && exp->tuple.src.l3num != l3proto)
- 				continue;
- 
-@@ -3456,11 +3459,8 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
- 		}
- 
- 		/* after list removal, usage count == 1 */
--		if (timer_delete(&exp->timeout)) {
--			nf_ct_unlink_expect_report(exp, NETLINK_CB(skb).portid,
--						   nlmsg_report(info->nlh));
--			nf_ct_expect_put(exp);
--		}
-+		nf_ct_unlink_expect_report(exp, NETLINK_CB(skb).portid,
-+					   nlmsg_report(info->nlh));
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 		/* have to put what we 'get' above.
- 		 * after this line usage count == 0 */
-@@ -3484,14 +3484,10 @@ static int
- ctnetlink_change_expect(struct nf_conntrack_expect *x,
- 			const struct nlattr * const cda[])
- {
--	if (cda[CTA_EXPECT_TIMEOUT]) {
--		if (!timer_delete(&x->timeout))
--			return -ETIME;
-+	if (cda[CTA_EXPECT_TIMEOUT])
-+		WRITE_ONCE(x->timeout, nfct_time_stamp +
-+			   ntohl(nla_get_be32(cda[CTA_EXPECT_TIMEOUT])) * HZ);
- 
--		x->timeout.expires = jiffies +
--			ntohl(nla_get_be32(cda[CTA_EXPECT_TIMEOUT])) * HZ;
--		add_timer(&x->timeout);
--	}
- 	return 0;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index c606d1f60b58..3563ad3de8a6 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -897,11 +897,10 @@ static int refresh_signalling_expectation(struct nf_conn *ct,
- 		    exp->tuple.dst.protonum != proto ||
- 		    exp->tuple.dst.u.udp.port != port)
- 			continue;
--		if (mod_timer_pending(&exp->timeout, jiffies + expires * HZ)) {
--			exp->flags &= ~NF_CT_EXPECT_INACTIVE;
--			found = 1;
--			break;
--		}
-+		WRITE_ONCE(exp->timeout, nfct_time_stamp + (expires * HZ));
-+		exp->flags &= ~NF_CT_EXPECT_INACTIVE;
-+		found = 1;
-+		break;
- 	}
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
- 	return found;
-@@ -920,8 +919,7 @@ static void flush_expectations(struct nf_conn *ct, bool media)
- 	hlist_for_each_entry_safe(exp, next, &help->expectations, lnode) {
- 		if ((exp->class != SIP_EXPECT_SIGNALLING) ^ media)
- 			continue;
--		if (!nf_ct_remove_expect(exp))
--			continue;
-+		nf_ct_unlink_expect(exp);
- 		if (!media)
- 			break;
- 	}
-@@ -1413,7 +1411,6 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 
- 	nf_ct_expect_init(exp, SIP_EXPECT_SIGNALLING, nf_ct_l3num(ct),
- 			  saddr, &daddr, proto, NULL, &port);
--	exp->timeout.expires = sip_timeout * HZ;
- 	rcu_assign_pointer(exp->assign_helper, helper);
- 	exp->flags = NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE;
- 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 25934c6f01fb..fb4fa89988b2 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1326,7 +1326,7 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 		          &ct->tuplehash[!dir].tuple.src.u3,
- 		          &ct->tuplehash[!dir].tuple.dst.u3,
- 		          priv->l4proto, NULL, &priv->dport);
--	exp->timeout.expires = jiffies + priv->timeout * HZ;
-+	exp->timeout += priv->timeout * HZ;
- 
- 	if (nf_ct_expect_related(exp, 0) != 0)
- 		regs->verdict.code = NF_DROP;
--- 
-2.47.3
-
+The patch should be attached to the email.
+Note: arguments like custom git repos and branches are not supported.
