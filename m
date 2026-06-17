@@ -1,38 +1,38 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D755388396
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 23:08:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36D536C0D6
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2026 23:43:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781737687; cv=none; b=a9sPJBHkk6JXrlqEK81yJMZ5KmbxYWmuMiN6aOritkhtpNwKOFpvRxA5c0XPLhE2Cbwq5sK2qt13S7OUSuhxZ8E4EapweRqkdVsvVroF5HT/Mhqr89H4f5HpAeVilb9KslH4X/EPqwNYlPX/r2x7SNtH3W+ONFfy7UjWqA2mSrw=
+	t=1781739812; cv=none; b=p6eCvnWv8cmCcUphQWvzwXOmw0+43BzXSzASHJ3maw4WJzNgMf8+DMNTMMl0tvUvVZDp1Ks+/9yAI049P+fDx8cylbMRHEPlvUha4HOfb5DlUQPfl8vzBlbKzOS8JYTrlvGD5ynv0qG8AlUdAMn+fbLXTxOE3f1AUXD8hOCfbHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781737687; c=relaxed/simple;
-	bh=GjUuVM2hlBHBiKx9Th0nBS13ZRJ4PBz8NM8MNXdUWEY=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=XS68NZ2GbtOieRfapqxruaDrVOgX3ExBvQ9R4NPgeYHWpOFnC0NQUrVpZuicTk+OaD2Fmv7Erbcaw0PPqatS10MB5wjj1sNHmKu2QoiEzHkzto0YYHbuql3lyd6ajCuY7YWLpsLvXHMnWzrR74nrosyUia938+PrggpvZ1vl0Is=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Wd237CrC; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1781739812; c=relaxed/simple;
+	bh=gsdasDHjANXPyyCYJNK/Cs2SzKcqxGu5RdoBwElyBk0=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=HYqATSSyH9EKbgEZ6dPgsrpx0zYUpv1Nkcps5z6SiRS0eJd3MsH+eeA5xKKD/tlFCUjhwZ8w87TXY0EezpQq6o+YVGukfNBkr/I3C79QiI3gEA6Cb35aWmQnSNVimaDGwd8ZYCOpA27jYvSWcxlimHs6N7IEdw0Suwlu3x+Gppc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gwFBTfoT; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Wd237CrC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gwFBTfoT"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6B46060181
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 01:07:55 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 257A760181
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 01:43:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781737675;
-	bh=eXn5oL0qVycHuxjQVl3ulmBkQk7viaDxSTv/6GpKdcU=;
+	s=2025; t=1781739807;
+	bh=AAFFzJnyE7MYNKA/zevX/BmeZnJN6uxqbJg7o8HcVyw=;
 	h=From:To:Subject:Date:From;
-	b=Wd237CrCl57C7TAAzZQw55S9O5IhDsHEf+HCD9/vCZ3sX6T+uVqYW2EKCDjF8i0sS
-	 Nl4xNqy3jqVj0u47vb8/QKxhN1eeDap8UHjUKEabpgFOL4LeJpA0uQFZSa5DjEodZT
-	 2tPtJ9n2tg/Gdxo9bmCmhwweIqSJWoh9wf8ApWSRDQVquqiT1pYCZxWWYYRaUkL/X0
-	 EArQSR/k/EKC3OzyNovxMhIJt57mh5ogGImTLk473Iysfx4mRqP9MVUtoMlSUYVcsX
-	 N7L35LbDzO0eSQhvYQSkoGh3dcvlYHRiboRjFpI4MUVYTAzh35JmQ/kdLtT9gLKCHA
-	 7M+vHXV1ixVww==
+	b=gwFBTfoT5nmkS2BcOPu+TYvNsSNUyZEnpPoQ+enHlzS690Abmhe0wr9/y/X/ssl+k
+	 eI9xtEy9dvb/pR65+nsupXB9QAId9csd3225xiEtGpUQop0d1erJ8u1nDAgT0WfTAu
+	 Qba8FABpkwgehA2YgI1aF9MnQu001X6o5+6p7k0kL0ml6Ffd7nCw13AFnd+dpvDvqP
+	 tTeueLRn4tz3Dx8EjI14WktD3cHoiMNM4FBzlkAZ99ymgsFYz8CAUyDWeh802LVLee
+	 cQ87q3Rv3vDE+uD4i6iajzf8+YTSbNPsTPexAvHMrtQuHzWsbtLwJgDxEALJdChBHC
+	 N1PvyiP6HxsLQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v4] netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
-Date: Thu, 18 Jun 2026 01:07:51 +0200
-Message-ID: <20260617230751.855294-1-pablo@netfilter.org>
+Subject: [PATCH nf,v5] netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
+Date: Thu, 18 Jun 2026 01:43:22 +0200
+Message-ID: <20260617234322.863700-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -84,20 +84,18 @@ specify the expectation lifetime.
 Fixes: bffcaad9afdf ("netfilter: ctnetlink: ensure safe access to master conntrack")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: - use WRITE,READ_ONCE for _is_expired() to access exp->flags as suggested by LLM
-    - move IPS_HELPER_BIT to nf_ct_helper_ext_add() to set it on for OVS, act_ct
-      and nft_ct expectation, needed by GC.
+v5: revalidate that conntrack has a helper before calling nf_ct_help_gc().
 
  include/net/netfilter/nf_conntrack_expect.h   |  16 +-
  .../linux/netfilter/nf_conntrack_common.h     |   1 +
- net/netfilter/nf_conntrack_core.c             |  21 ++-
+ net/netfilter/nf_conntrack_core.c             |  28 +++-
  net/netfilter/nf_conntrack_expect.c           | 145 +++++++++---------
  net/netfilter/nf_conntrack_h323_main.c        |   4 +-
  net/netfilter/nf_conntrack_helper.c           |  10 +-
  net/netfilter/nf_conntrack_netlink.c          |  22 ++-
  net/netfilter/nf_conntrack_sip.c              |  13 +-
  net/netfilter/nft_ct.c                        |   6 +-
- 9 files changed, 129 insertions(+), 109 deletions(-)
+ 9 files changed, 136 insertions(+), 109 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
 index 80f50fd0f7ad..be4a120d549e 100644
@@ -159,22 +157,29 @@ index 56b6b60a814f..ee51045ae1d6 100644
  				 NF_CT_EXPECT_USERSPACE)
  #endif
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 4fb3a2d18631..c2602133a289 100644
+index 4fb3a2d18631..a240b6d002e8 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -1471,6 +1471,19 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+@@ -1471,6 +1471,26 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
  	return false;
  }
  
 +static void nf_ct_help_gc(struct nf_conn *ct)
 +{
++	struct nf_conn_help *help;
++
 +	if (!refcount_inc_not_zero(&ct->ct_general.use))
 +		return;
 +
 +	/* load ->ext after refcount increase */
 +	smp_acquire__after_ctrl_dep();
 +
-+	nf_ct_expectation_gc(nfct_help(ct));
++	/* re-check helper due to SLAB_TYPESAFE_BY_RCU */
++	if (test_bit(IPS_HELPER_BIT, &ct->status)) {
++		help = nfct_help(ct);
++		if (help)
++			nf_ct_expectation_gc(help);
++	}
 +
 +	nf_ct_put(ct);
 +}
@@ -182,7 +187,7 @@ index 4fb3a2d18631..c2602133a289 100644
  static void gc_worker(struct work_struct *work)
  {
  	unsigned int i, hashsz, nf_conntrack_max95 = 0;
-@@ -1543,7 +1556,13 @@ static void gc_worker(struct work_struct *work)
+@@ -1543,7 +1563,13 @@ static void gc_worker(struct work_struct *work)
  			expires = (expires - (long)next_run) / ++count;
  			next_run += expires;
  
