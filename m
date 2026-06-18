@@ -1,26 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74712D5436
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 06:17:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D411532C316
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 06:26:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781763440; cv=none; b=Cz+5UhsW1LEkgmdO+nY7+b2JyssnbnGFfl5yPNx9kCoKNd4YWf/MIRtSJMlW69FVCArFUhIaSoY1vQBRZxCbCLRpWFDc432CCOdY20zc9LErUqpsEf5oGJ/2p9T/K6n8kcByUPrwZbKapaZsPB7z7dhhAOg/X+SjSshhA0UmpN8=
+	t=1781763975; cv=none; b=QNYXieNqI1WUuRhcmpEJhOnBb4NKYjO6Q5K5JxuQ77iJkXw6E+H2ejLN90Wr7CxpV7EOwRjQeHQNUWrPEC/wq+dYIVi1zMLd9blcrOsLDFsAuSTSwSYKjOl3eol1ZdYGsk2c4ZHlmHkPdFivKyWvutJYbQpuUaKwM36Fd9QSAi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781763440; c=relaxed/simple;
-	bh=0fgVizMUVFIY/6QyWuvd6K09GzFWVvTg99m9ZOsIMkA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DHV1GPo1VeKgJdToj8rZDsAw9+uXd/QzGZ1F98LcaAq1ATrBAgR+nCwP7OAURLP1DwG2uUSrPMjZHcs/kRv7tPc9FiVKU7SmwoEx8o6WrTWH38j4PjWjmY+tVhvgGz1RUU2p9+7wF5LrZnWYYThp4TgkU0omgc0Epcc5dKQg1Ws=
+	s=arc-20240116; t=1781763975; c=relaxed/simple;
+	bh=oqoZQgSnpNni9jDGwGS3YkdEPt2ppDRNGfhiPV/pCrM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JRVv9+TCFo5OrB1E42uulCeZMEA0M1ZZBIro1I1I6+9tCkygFaQFEze0+SbHpyMbJETY1IrhRwt+BSUziqsq3sEVlekRXAen7xQcUTpNFEB6hDG2b21RlE71a2zvBCcv7j2cy+4+txNkjORpaDYlfS2Lv/WAswVBg82O85wUeNU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3861160541; Thu, 18 Jun 2026 08:17:16 +0200 (CEST)
+	id D4D1E602B9; Thu, 18 Jun 2026 08:26:11 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nft_meta_bridge: add validate callback for get operations
-Date: Thu, 18 Jun 2026 08:16:18 +0200
-Message-ID: <20260618061631.21919-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Felix Fietkau <nbd@nbd.name>
+Subject: [PATCH nf] netfilter: nft_flow_offload: zero device address for non-ether case
+Date: Thu, 18 Jun 2026 08:25:47 +0200
+Message-ID: <20260618062552.30006-1-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,103 +31,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Blamed commit added NFT_META_BRI_IIFHWADDR to the set validate callback,
-yet this is a get operation.
+LLM points out that the skip causes unitialised stack array to
+propagate down into dev_fill_forward_path().  Its not clear to me that
+there is a guarantee that a later ctx.dev->netdev_ops->ndo_fill_forward_path()
+would always fix this up.
 
-Add a get validate callback and move the NFT_META_BRI_IIFHWADDR key
-there.
-
-AFAICS this is harmless, NFT_META_BRI_IIFHWADDR can deal with a NULL
-input device and the set handler ignores a NFT_META_BRI_IIFHWADDR
-operation, but it allows to read 4 bytes off bridge skb->cb[].
-
-Fixes: cbd2257dc96e ("netfilter: nft_meta_bridge: introduce NFT_META_BRI_IIFHWADDR support")
+Cc: Felix Fietkau <nbd@nbd.name>
+Fixes: 45ca3e61999e ("netfilter: nft_flow_offload: skip dst neigh lookup for ppp devices")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nft_meta.h       |  2 ++
- net/bridge/netfilter/nft_meta_bridge.c | 19 ++++++++++++++++++-
- net/netfilter/nft_meta.c               |  5 +++--
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ Please consider this a bug report, its possible this patch is junk.
+ net/netfilter/nf_flow_table_path.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index f74e63290603..6cf1d910bbf8 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -40,6 +40,8 @@ void nft_meta_set_eval(const struct nft_expr *expr,
- void nft_meta_set_destroy(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr);
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 9e88ea6a2eef..c0b07dde0434 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -53,8 +53,10 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ 	struct neighbour *n;
+ 	u8 nud_state;
  
-+int nft_meta_get_validate(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr);
- int nft_meta_set_validate(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr);
- 
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index 219c40680260..3d95f68e0906 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -107,12 +107,30 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
- 					NULL, NFT_DATA_VALUE, len);
- }
- 
-+static int nft_meta_bridge_get_validate(const struct nft_ctx *ctx,
-+					const struct nft_expr *expr)
-+{
-+	struct nft_meta *priv = nft_expr_priv(expr);
-+	unsigned int hooks;
-+
-+	switch (priv->key) {
-+	case NFT_META_BRI_IIFHWADDR:
-+		hooks = 1 << NF_BR_PRE_ROUTING;
-+		break;
-+	default:
-+		return nft_meta_get_validate(ctx, expr);
+-	if (!nft_is_valid_ether_device(dev))
++	if (!nft_is_valid_ether_device(dev)) {
++		eth_zero_addr(ha);
+ 		goto out;
 +	}
-+
-+	return nft_chain_validate_hooks(ctx->chain, hooks);
-+}
-+
- static struct nft_expr_type nft_meta_bridge_type;
- static const struct nft_expr_ops nft_meta_bridge_get_ops = {
- 	.type		= &nft_meta_bridge_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
- 	.eval		= nft_meta_bridge_get_eval,
- 	.init		= nft_meta_bridge_get_init,
-+	.validate	= nft_meta_bridge_get_validate,
- 	.dump		= nft_meta_get_dump,
- };
  
-@@ -168,7 +186,6 @@ static int nft_meta_bridge_set_validate(const struct nft_ctx *ctx,
- 
- 	switch (priv->key) {
- 	case NFT_META_BRI_BROUTE:
--	case NFT_META_BRI_IIFHWADDR:
- 		hooks = 1 << NF_BR_PRE_ROUTING;
- 		break;
- 	default:
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 5b25851381e5..db937d66210d 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -635,8 +635,8 @@ static int nft_meta_get_validate_xfrm(const struct nft_ctx *ctx)
- #endif
- }
- 
--static int nft_meta_get_validate(const struct nft_ctx *ctx,
--				 const struct nft_expr *expr)
-+int nft_meta_get_validate(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr)
- {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 
-@@ -652,6 +652,7 @@ static int nft_meta_get_validate(const struct nft_ctx *ctx,
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(nft_meta_get_validate);
- 
- int nft_meta_set_validate(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr)
+ 	n = dst_neigh_lookup(dst_cache, daddr);
+ 	if (!n)
 -- 
 2.53.0
 
