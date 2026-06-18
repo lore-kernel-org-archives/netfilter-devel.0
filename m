@@ -1,79 +1,34 @@
-Received: from mail-vs1-f98.google.com (mail-vs1-f98.google.com [209.85.217.98])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCEC43822A9
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 09:03:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.98
+Received: from zg8tmja2lje4os4yms4ymjma.icoremail.net (zg8tmja2lje4os4yms4ymjma.icoremail.net [206.189.21.223])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 907783EBF16;
+	Thu, 18 Jun 2026 10:19:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=206.189.21.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781773431; cv=none; b=YANkbWZnl9m3rPXGGqeH39t67xhvIocYp36tamdZ9fPXF7Wvb0TnDZ0QgZPMRPnDTtceUSLUM6BIJH9f4x9khsK2aYAAgZjcKqw0Wph8qbY7xcDGKfIcvW5DLkIUce/l7Q/cVZHSt2qMyUtoF33zdbybQOVu4A//CdmFpoZ9Is4=
+	t=1781777985; cv=none; b=lH6qkX3RtLRFEliFEhfqBqUWVg1BVadf92MNNzbCCv2Q1fwb6PtfVh6WCzk9aUkoUJSBs4GtwVVA9TeObwPKbJZOWMea2pU7WUgIURgYmsBGQzCzN7G9p4/itKwR/peUAVmvgbicXBLRNlANWa+XaelDuEsHiSFm+kNLup0Kuxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781773431; c=relaxed/simple;
-	bh=pDfYODN8eSb3Osdiy8pGUbcCjj+Vd5hRyuhJN7tkHGY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=l+ehOR+LTCFJd3yO1LwHmBlap8wTN/YyhrJ9goCp2LfegQKaXsWrNdASt61NlBn0gX22CkDWveNSqPMT5KZZuvELvtRVuAjTkYlzgIjr9MwU6eB0QPEj1NvAxWXkiYQHaN4WePBFOybLb4vLw3M82wOs4ntQftNp1CbPHeqMqNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=Dr/Ydqrn; arc=none smtp.client-ip=209.85.217.98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1781777985; c=relaxed/simple;
+	bh=Hr4YQ5pAGnuxxVJ7lS+ujE2PxBUnmkoqFmAfEoJCUeM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=ubUFEOWcHBYHMuQDBU/jhEbqnA+34uI8vhqCAqXbIK2udZ0/+bUBRNV1EvzppNGfguUf8eJTIO8AYvbDLPnF7v2qgeu2WJT9/ys1CAYke8fvyubTiElVbTWaVpg82uS8/fWof9G3BgwBrUkhRN2Nueofamm7mQEmCLgAqgxGYb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=S7EvzAzh; arc=none smtp.client-ip=206.189.21.223
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="Dr/Ydqrn"
-Received: by mail-vs1-f98.google.com with SMTP id ada2fe7eead31-6c6507549c3so1553423137.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 02:03:49 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781773429; x=1782378229;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=QpNixvCXNM3odqaYWueSGP2Z43EAIlNiUuWGIkEd9i8=;
-        b=Hb1rTDznU91bOPRoXFq4dR4SK5ECK3rhtvOdmiv4oJUEaXkDmX+yuf3qrAT6F14V88
-         B6bsTSHxaiW5ugDcVY1b30ImEThgWIxyr/7bRQ4Uebaarvacpl11T/cNlym+8Z6S0/rY
-         xB9gdyvzWuL1Cg4iRH5QRm8XtA1/4F+63LYoqg6LjJTAWjAWlmWj4IM3/4rYOUbl+xw7
-         4hd3FJMyQ3TJXzLBt8Af742yeJ4klRrwauQMD6MaHfTK1wBxQ1VecGOmaM73H2af+7lK
-         6eUqw2smH/TsbUEwKP2Kc6riH46iOtjx6UX7/mJOvo7WSCP5RM9qrkEaAzZnVdAbmJk1
-         0kyw==
-X-Forwarded-Encrypted: i=1; AFNElJ/StZe9mD7AKPcEziD67r0hYYnlqDXY5tnow28lNGRFNL3ndc23dC/iCZ+y/hgPkXUaSHYOM9rhhQ+poth3Xv4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxB1Fvl7RtzGRbkWai+x+uPLVCeDvW9UE1PeJZSOkSeTEDkR6U8
-	K9JSzKPrs79bG5KjEK5OmJnoS41ruDMtwDwctvjPMbQAKnnibcfyiNCH6ff9fdZI/posz64ytwE
-	V1D/YsjWydImYs9RO2UohDugkPnCp0Fs7FLtcS6UTnZOuThYe0Y6Ur6RGY+0xGbB4JzOjEjv+71
-	8bhBn42HzEtoWJYA9gSEe6lXIt0ERkXkokPmarlqX841Pejtvwc9yW2P4newmAdeGwfrRh413q8
-	QD4Us5RkuL8Ej7+7HQ90tI+fasPDQ==
-X-Gm-Gg: AfdE7clj+C8aYqv4bq+kyg7Js6S/7FJFksKPU0W69O1B/80kM2B4xpCL5L1g8M/Ifi4
-	oFYP++tI6a7UmQHEdYWt7MynyP4Dc70nEhz/4isw/oXZwGvVm6g9ug8UEEQ8U5DWYx0HpA2xzOV
-	IvE/3SuP/UT9JYrZVpzlN3jve/qYFkTHIEEigPC2bMD0Le4v0zZRCXc2r2ihIYS4B5Vazb52MEs
-	1KzBa+sExIZFRYLfmcDbiBkO4V+2dR645dXnv/po1USLH8H9LJDqr0L2sV2anYehmkt5NOJk10L
-	HfbuwyGZZlqWln1AqRbN0W7SPFzznqULcw0fndCaUp4Ygp8TMhYxYepFFnxeyLbgVZlGcH0i7dE
-	6B3VKJvyYF3kkHcC7o9HHfatStg5rkjntBEd46NFiwsyLS5A+X9PlJUC6MRyO+5EH3+DnJmI/rK
-	l0ZqgdUlMlBQubpOWdJ9Lu8KwXdPmR8QYK0ijaS2UafnvDD/x1N/CA
-X-Received: by 2002:a05:6102:358d:b0:634:92c:bdca with SMTP id ada2fe7eead31-727b3a02018mr1261590137.3.1781773428573;
-        Thu, 18 Jun 2026 02:03:48 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-117.dlp.protect.broadcom.com. [144.49.247.117])
-        by smtp-relay.gmail.com with ESMTPS id ada2fe7eead31-720877819b8sm915441137.25.2026.06.18.02.03.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 18 Jun 2026 02:03:48 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-519851d4973so16774601cf.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 02:03:48 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="S7EvzAzh"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1781773428; x=1782378228; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=QpNixvCXNM3odqaYWueSGP2Z43EAIlNiUuWGIkEd9i8=;
-        b=Dr/Ydqrnwbh4TDAFnHL3FK7c9/Rv/ES8ODcuQahihVpAlAZWYGJb3gyzyybRI8NjpO
-         YBBOLM/1Gt6yBlv/pDpl6C8fnEnql4CCMW5USxOQU4nFITglkckgSy3hqJkJscqf7MYj
-         rlnjuWlh4EKQsZ6SmByMvOUMijYrOV5j4x3YQ=
-X-Forwarded-Encrypted: i=1; AFNElJ+g3cmnZ7FVy3uF5dZr1kpU6kUSXLQ1v6OZlm4fjumf39iyDfJW8XwQ6Qe+oeQsabjo0KsgTgYcngfW+Pe2/3A=@vger.kernel.org
-X-Received: by 2002:a05:622a:22a4:b0:517:5ed7:d28f with SMTP id d75a77b69052e-519c4de0e85mr37505751cf.25.1781773427824;
-        Thu, 18 Jun 2026 02:03:47 -0700 (PDT)
-X-Received: by 2002:a05:622a:22a4:b0:517:5ed7:d28f with SMTP id d75a77b69052e-519c4de0e85mr37505371cf.25.1781773427211;
-        Thu, 18 Jun 2026 02:03:47 -0700 (PDT)
-Received: from shivania.lvn.broadcom.net ([192.19.161.250])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-517fb61eaf4sm191285561cf.4.2026.06.18.02.03.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Jun 2026 02:03:46 -0700 (PDT)
-From: Shivani Agarwal <shivani.agarwal@broadcom.com>
-To: stable@vger.kernel.org,
-	gregkh@linuxfoundation.org
-Cc: pablo@netfilter.org,
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
+	Date:Message-Id:In-Reply-To:References:MIME-Version:
+	Content-Transfer-Encoding; bh=FQQ+9Ogk6rx/0IEJYojHK6G4ICcLBRBqgr
+	yX2IKHSR4=; b=S7EvzAzhWzIp40TSIYK9q80cu4cn52zi3rsTbpIhDUodphQ7Em
+	egwT75MdaAtTs8ehLSF3JhlKAiThlofzQIoZZmD4vLijJ7Qw5MfpE8wqyg7xI9E/
+	vluHMyFgApWGm5lxQnHIWV9vPvGEg6+7uHoPmHc9uY2VAQ3jMM+u7LcDM=
+Received: from c9a6c405b3f2.. (unknown [202.112.238.121])
+	by web5 (Coremail) with SMTP id zAQGZQB3L78IxjNq23+CAg--.46531S3;
+	Thu, 18 Jun 2026 18:19:01 +0800 (CST)
+From: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
+To: bpf@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Cc: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>,
+	pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
 	davem@davemloft.net,
@@ -81,22 +36,28 @@ Cc: pablo@netfilter.org,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	horms@kernel.org,
-	netfilter-devel@vger.kernel.org,
+	andrii@kernel.org,
+	eddyz87@gmail.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	memxor@gmail.com,
+	martin.lau@linux.dev,
+	song@kernel.org,
+	yonghong.song@linux.dev,
+	jolsa@kernel.org,
+	emil@etsalapatis.com,
+	shuah@kernel.org,
+	kartikey406@gmail.com,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	ajay.kaher@broadcom.com,
-	alexey.makhalov@broadcom.com,
-	vamsi-krishna.brahmajosyula@broadcom.com,
-	yin.ding@broadcom.com,
-	tapas.kundu@broadcom.com,
-	Yiming Qian <yimingqian591@gmail.com>,
-	Sasha Levin <sashal@kernel.org>,
-	Shivani Agarwal <shivani.agarwal@broadcom.com>
-Subject: [PATCH v6.6-v6.1] netfilter: nf_tables: always walk all pending catchall elements
-Date: Thu, 18 Jun 2026 01:34:38 -0700
-Message-Id: <20260618083438.1269242-1-shivani.agarwal@broadcom.com>
-X-Mailer: git-send-email 2.25.1
+	linux-kselftest@vger.kernel.org
+Subject: [PATCH bpf-next v2 1/2] bpf: Guard conntrack opts error writes
+Date: Thu, 18 Jun 2026 10:18:43 +0000
+Message-Id: <9535e781fe14449b1d4e9bbc3baa7566a93bf512.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <cover.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
+References: <cover.1781586477.git.chenyy23@mails.tsinghua.edu.cn> <cover.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -104,59 +65,121 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+X-CM-TRANSID:zAQGZQB3L78IxjNq23+CAg--.46531S3
+X-Coremail-Antispam: 1UD129KBjvJXoWxXry5uFy7ZFWxXryUtFW7XFb_yoWrJr4UpF
+	4ak3s7Ar9xAr4qyF4Fvan7A3WY9an3W3W7C34rG393CrsI93WYgFWxWr40vrZ3CFWrGrnx
+	tr45K3Z8CF1kAFUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUH014x267AKxVWrJVCq3wAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2048vs2IY020E87I2jVAFwI0_Jr4l82xGYIkIc2
+	x26xkF7I0E14v26ryj6s0DM28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8wA2z4x0
+	Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j6F4UJw
+	A2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAa
+	c4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzV
+	Aqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S
+	6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxw
+	ACI402YVCY1x02628vn2kIc2xKxwCY1x0262kKe7AKxVW8ZVWrXwCY02Avz4vE14v_Gw1l
+	42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJV
+	WUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MIIYrxkI7VAK
+	I48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26F4j6r
+	4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAI
+	cVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7sRRAwI7UUUUU==
+X-CM-SenderInfo: xfkh05r1stqzpdlo2hxwvl0wxkxdhvlgxou0/
 
-From: Florian Westphal <fw@strlen.de>
+The conntrack lookup and allocation kfuncs take an opts pointer
+together with an opts__sz argument. The verifier checks only the memory
+range described by opts__sz, but the wrappers unconditionally write
+opts->error whenever the internal lookup or allocation helper returns an
+error.
 
-[ Upstream commit 7cb9a23d7ae40a702577d3d8bacb7026f04ac2a9 ]
+For an invalid size smaller than the end of opts->error, that write can
+land outside the verifier-checked range. Keep returning NULL for invalid
+arguments, but only report the error through opts->error when the
+supplied size includes the field.
 
-During transaction processing we might have more than one catchall element:
-1 live catchall element and 1 pending element that is coming as part of the
-new batch.
+This preserves error reporting for the supported 12-byte and 16-byte
+layouts, and for other invalid sizes that still include opts->error.
 
-If the map holding the catchall elements is also going away, its
-required to toggle all catchall elements and not just the first viable
-candidate.
-
-Otherwise, we get:
- WARNING: ./include/net/netfilter/nf_tables.h:1281 at nft_data_release+0xb7/0xe0 [nf_tables], CPU#2: nft/1404
- RIP: 0010:nft_data_release+0xb7/0xe0 [nf_tables]
- [..]
- __nft_set_elem_destroy+0x106/0x380 [nf_tables]
- nf_tables_abort_release+0x348/0x8d0 [nf_tables]
- nf_tables_abort+0xcf2/0x3ac0 [nf_tables]
- nfnetlink_rcv_batch+0x9c9/0x20e0 [..]
-
-Fixes: 628bd3e49cba ("netfilter: nf_tables: drop map element references from preparation phase")
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
-[ Shivani: Modified to apply on v6.6.y-v6.1.y ]
-Signed-off-by: Shivani Agarwal <shivani.agarwal@broadcom.com>
+Fixes: b4c2b9593a1c ("net/netfilter: Add unstable CT lookup helpers for XDP and TC-BPF")
+Fixes: d7e79c97c00c ("net: netfilter: Add kfuncs to allocate and insert CT")
+Signed-off-by: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
 ---
- net/netfilter/nf_tables_api.c | 2 --
- 1 file changed, 2 deletions(-)
+ net/netfilter/nf_conntrack_bpf.c | 35 ++++++++++++--------------------
+ 1 file changed, 13 insertions(+), 22 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 196ac4e76..0581f6479 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -620,7 +620,6 @@ static void nft_map_catchall_deactivate(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 40c261cd0af38..f98d1d4b42c3d 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
+@@ -65,6 +65,15 @@ enum {
+ 	NF_BPF_CT_OPTS_SZ = 16,
+ };
  
- 		elem.priv = catchall->elem;
- 		nft_setelem_data_deactivate(ctx->net, set, &elem);
--		break;
- 	}
++static void *bpf_ct_opts_result(struct bpf_ct_opts *opts, u32 opts__sz, void *ret)
++{
++	if (!IS_ERR(ret))
++		return ret;
++	if (opts__sz >= offsetofend(struct bpf_ct_opts, error))
++		opts->error = PTR_ERR(ret);
++	return NULL;
++}
++
+ static int bpf_nf_ct_tuple_parse(struct bpf_sock_tuple *bpf_tuple,
+ 				 u32 tuple_len, u8 protonum, u8 dir,
+ 				 struct nf_conntrack_tuple *tuple)
+@@ -297,12 +306,7 @@ bpf_xdp_ct_alloc(struct xdp_md *xdp_ctx, struct bpf_sock_tuple *bpf_tuple,
+ 
+ 	nfct = __bpf_nf_ct_alloc_entry(dev_net(ctx->rxq->dev), bpf_tuple, tuple__sz,
+ 				       opts, opts__sz, 10);
+-	if (IS_ERR(nfct)) {
+-		opts->error = PTR_ERR(nfct);
+-		return NULL;
+-	}
+-
+-	return (struct nf_conn___init *)nfct;
++	return (struct nf_conn___init *)bpf_ct_opts_result(opts, opts__sz, nfct);
  }
  
-@@ -5241,7 +5240,6 @@ static void nft_map_catchall_activate(const struct nft_ctx *ctx,
+ /* bpf_xdp_ct_lookup - Lookup CT entry for the given tuple, and acquire a
+@@ -331,11 +335,7 @@ bpf_xdp_ct_lookup(struct xdp_md *xdp_ctx, struct bpf_sock_tuple *bpf_tuple,
  
- 		elem.priv = catchall->elem;
- 		nft_setelem_data_activate(ctx->net, set, &elem);
--		break;
- 	}
+ 	caller_net = dev_net(ctx->rxq->dev);
+ 	nfct = __bpf_nf_ct_lookup(caller_net, bpf_tuple, tuple__sz, opts, opts__sz);
+-	if (IS_ERR(nfct)) {
+-		opts->error = PTR_ERR(nfct);
+-		return NULL;
+-	}
+-	return nfct;
++	return bpf_ct_opts_result(opts, opts__sz, nfct);
  }
  
+ /* bpf_skb_ct_alloc - Allocate a new CT entry
+@@ -363,12 +363,7 @@ bpf_skb_ct_alloc(struct __sk_buff *skb_ctx, struct bpf_sock_tuple *bpf_tuple,
+ 
+ 	net = skb->dev ? dev_net(skb->dev) : sock_net(skb->sk);
+ 	nfct = __bpf_nf_ct_alloc_entry(net, bpf_tuple, tuple__sz, opts, opts__sz, 10);
+-	if (IS_ERR(nfct)) {
+-		opts->error = PTR_ERR(nfct);
+-		return NULL;
+-	}
+-
+-	return (struct nf_conn___init *)nfct;
++	return (struct nf_conn___init *)bpf_ct_opts_result(opts, opts__sz, nfct);
+ }
+ 
+ /* bpf_skb_ct_lookup - Lookup CT entry for the given tuple, and acquire a
+@@ -397,11 +392,7 @@ bpf_skb_ct_lookup(struct __sk_buff *skb_ctx, struct bpf_sock_tuple *bpf_tuple,
+ 
+ 	caller_net = skb->dev ? dev_net(skb->dev) : sock_net(skb->sk);
+ 	nfct = __bpf_nf_ct_lookup(caller_net, bpf_tuple, tuple__sz, opts, opts__sz);
+-	if (IS_ERR(nfct)) {
+-		opts->error = PTR_ERR(nfct);
+-		return NULL;
+-	}
+-	return nfct;
++	return bpf_ct_opts_result(opts, opts__sz, nfct);
+ }
+ 
+ /* bpf_ct_insert_entry - Add the provided entry into a CT map
 -- 
-2.53.0
+2.34.1
 
