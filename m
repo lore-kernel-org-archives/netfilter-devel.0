@@ -1,183 +1,277 @@
-Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DF7383ED105;
-	Thu, 18 Jun 2026 10:19:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32C263E44FE
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Jun 2026 10:31:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781777992; cv=none; b=i0acmVo8obXhMcPyZX/KBwt7EDbJy2bjk9DzUUi1SY4OdMGPRsdwzNTfJyYoD8JmpJqcFBUaLwOFIasFXaQvlMlA/+XJbggZZMmC54boUJWVu4Z5mdcJr5Uel6alJeu8ZQ20DW+jPdRhEC9A/O7ZUZMZ5ewY2bi9JrCoIUyFiYw=
+	t=1781778662; cv=none; b=B78x5WIOuG8QNadrKjyKhLZ+1uT3kgDaQFkYMmIcSyiJTvoYLz+reNFG6aR2VWbiJYlW5dOHsS8b3Q9+jTiSIbJ1tQjcCUA/8ScV7EcoLYUD5vVxYTocgY+dgmJa0+p9TLAyvo8qOkYbWdDg/8nynHU0G3Wwp3i9Gn3NptdBxDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781777992; c=relaxed/simple;
-	bh=b/X6ZNLGum2oS6sEsNNn+wpKuROst8BH4teA3a1TnvY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=nNy7MVDm47y9WBGnDPhRo/D8n3TaE6nUYbXLl7y+oqVcJ2TU1a1f0UkDypBZC/Tcd0kCOIkqjYD/RCBIFIr6yTu8+8/twKuSWffbQFGOHUZPAA4gVbHTratDwv2lW0VRnQHmYnTVkpeeXlkrRmkbixADTAcBvz5pqC0ifi0Z1U4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=a0gbs1qh; arc=none smtp.client-ip=13.75.44.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
+	s=arc-20240116; t=1781778662; c=relaxed/simple;
+	bh=gjWRJCHTsdnS7AJV6Pog2tuR87MSjeFrxPSpPEVUets=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UaGhPHngWVXkm90vF9SLkKuyUJT/vpeEA2PRxPfQcGaOgLZXi0FU5MLL10mI80AvZ019EJCpunGZBKXX5u4QG5xTx6JprfHM8iOOO3sBgvQsFXVwqdX42H1v75Wj/pAR/2U36Ha9EzSAMo7CmoOrkVeJi0mtR1592ww7D6Sm6B0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EVCqBfga; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="a0gbs1qh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
-	Date:Message-Id:In-Reply-To:References:MIME-Version:
-	Content-Transfer-Encoding; bh=heiPlvi0bHJFp7LAke2GAwtGSzaSOGptO9
-	dMWBxYmEg=; b=a0gbs1qhU2ZZaRGjVMGuBDv3YiFfFLoiwEX/zmY+DwHLPcHgFh
-	nSsul/O0p4mglgisan65DGBhWr2ntzrNSJbd084W/AfdautmW9AZ68ifhsfgsPXU
-	8xa3cH5ZU6kNAMtRvsZwpg8hLA+j2gMx27O3Z3B6k1BpFkDMita9RvDHI=
-Received: from c9a6c405b3f2.. (unknown [202.112.238.121])
-	by web5 (Coremail) with SMTP id zAQGZQB3L78IxjNq23+CAg--.46531S4;
-	Thu, 18 Jun 2026 18:19:03 +0800 (CST)
-From: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
-To: bpf@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Cc: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	andrii@kernel.org,
-	eddyz87@gmail.com,
-	ast@kernel.org,
-	daniel@iogearbox.net,
-	memxor@gmail.com,
-	martin.lau@linux.dev,
-	song@kernel.org,
-	yonghong.song@linux.dev,
-	jolsa@kernel.org,
-	emil@etsalapatis.com,
-	shuah@kernel.org,
-	kartikey406@gmail.com,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-kselftest@vger.kernel.org
-Subject: [PATCH bpf-next v2 2/2] selftests/bpf: Cover small conntrack opts error writes
-Date: Thu, 18 Jun 2026 10:18:44 +0000
-Message-Id: <007dfd0341cd84560e4795a2a951cc56d4adff1d.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <cover.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
-References: <cover.1781586477.git.chenyy23@mails.tsinghua.edu.cn> <cover.1781765747.git.chenyy23@mails.tsinghua.edu.cn>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EVCqBfga"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46ED31F000E9;
+	Thu, 18 Jun 2026 10:31:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781778660;
+	bh=HT+kx3oPR35tk3Vj7uGO8uj+nUmYlWuyEfEtKm2pJhc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=EVCqBfgajbL5iTkYtp5dbw55FoEAET/q8ZUkR1caqFBwOYHEBDgSFLP1Fx6UWmG63
+	 t5EO8CQaWEglV60Gj1J6/K2/WNzctILR0qyuZZVxBM0O9GIPUBQshrgPOwK3iP9jhH
+	 Fh+jJ6VNbfXJ2L1ziihnqfjDZq7cf5s6lFQ4LF9zZvs6oIDvH4qwC9zqMYISTzRneF
+	 jM/dClfaFrWsl/PhJ22GHnq9LoqGVJwqZHChPUDBi30pWILEnQ0VFgV3x+pSzPqrAC
+	 mzG/34baSxGsnx9CS8kll4oOWp3t1Kmy8arHw/JnhhOsJstXsM6ogUYXi15/q2Cb4x
+	 BTU25ga0EJhfA==
+Date: Thu, 18 Jun 2026 12:30:58 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Ren Wei <n05ec@lzu.edu.cn>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+	phil@nwl.cc, yuantan098@gmail.com, yifanwucs@gmail.com,
+	tomapufckgml@gmail.com, bird@lzu.edu.cn, chzhengyang2023@lzu.edu.cn
+Subject: Re: [PATCH nf v2 1/1] netfilter: nf_flow_table: separate tunnel
+ route state from direct xmit
+Message-ID: <ajPI4gA8VORUknoA@lore-desk>
+References: <7016923271a6bb3e26f9a21757922d3c5b1a7487.1781683535.git.chzhengyang2023@lzu.edu.cn>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zAQGZQB3L78IxjNq23+CAg--.46531S4
-X-Coremail-Antispam: 1UD129KBjvJXoWxCw17GFy5uF4xAw18Gw45KFg_yoWrAFWrpF
-	yfZanFkryrJ3WUtw1xJFs2gF45tFs7XFyUGrs3Jw13Cr4kZa40vF42gF4jqF9xuFs5Zr1S
-	kws5tFnxGrZ7uaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUH014x267AKxVWrJVCq3wAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2048vs2IY020E87I2jVAFwI0_Jryl82xGYIkIc2
-	x26xkF7I0E14v26ryj6s0DM28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8wA2z4x0
-	Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j6F4UJw
-	A2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAa
-	c4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzV
-	Aqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S
-	6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxw
-	ACI402YVCY1x02628vn2kIc2xKxwCY1x0262kKe7AKxVW8ZVWrXwCY02Avz4vE14v_Gw1l
-	42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJV
-	WUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MIIYrxkI7VAK
-	I48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26F4j6r
-	4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAI
-	cVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7sRRdWrJUUUUU==
-X-CM-SenderInfo: xfkh05r1stqzpdlo2hxwvl0wxkxdhvlgxou0/
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="FhyDSjEE23MQLLmj"
+Content-Disposition: inline
+In-Reply-To: <7016923271a6bb3e26f9a21757922d3c5b1a7487.1781683535.git.chzhengyang2023@lzu.edu.cn>
 
-Add a conntrack kfunc regression check for opts__sz values that do not
-cover opts->error. The BPF program initializes opts->error with a guard
-value, calls the lookup and allocation kfuncs with opts__sz set to
-sizeof(opts->netns_id), and verifies that the guard is still intact
-after the kfunc returns NULL.
 
-Without the conntrack wrapper guard, the kfunc error path overwrites
-that guard with -EINVAL even though the verifier checked only the first
-four bytes of the options object.
+--FhyDSjEE23MQLLmj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: b4c2b9593a1c ("net/netfilter: Add unstable CT lookup helpers for XDP and TC-BPF")
-Fixes: d7e79c97c00c ("net: netfilter: Add kfuncs to allocate and insert CT")
-Signed-off-by: Yiyang Chen <chenyy23@mails.tsinghua.edu.cn>
----
- .../testing/selftests/bpf/prog_tests/bpf_nf.c |  6 +++++
- .../testing/selftests/bpf/progs/test_bpf_nf.c | 26 +++++++++++++++++++
- 2 files changed, 32 insertions(+)
+On Jun 18, Ren Wei wrote:
+> From: Zhengyang Chen<chzhengyang2023@lzu.edu.cn>
+>=20
+> When a flow tuple carries tunnel metadata and uses
+> FLOW_OFFLOAD_XMIT_DIRECT, the transmit path may still need route state
+> for tunnel push. However, the current tuple layout stores direct xmit
+> L2 state and route state in overlapping runtime storage.
+>=20
+> As a result, a tuple may keep tun_num set while the tunnel push path
+> later reads tuple->dst_cache, even though a direct xmit tuple only has
+> out.ifidx/out.h_source/out.h_dest stored in that area. This leads to
+> invalid dst usage and can trigger a crash in the tunnel transmit path.
+>=20
+> Fix this by moving dst_cache and dst_cookie out of the runtime union so
+> that they can be shared by neighbour, xfrm, and direct tunnel flows.
+> For FLOW_OFFLOAD_XMIT_DIRECT tuples carrying tunnel metadata, preserve
+> route state in these shared fields and release it through the common
+> dst release path.
+>=20
+> Keep dst validation on the forwarding tuple before the packet is
+> modified, and validate the tunnel consumer tuple from the same early
+> control point. This preserves protection for current NEIGH/XFRM users
+> of tuplehash->tuple.dst_cache while avoiding the late-check fallback
+> after decap, NAT, and TTL updates.
+>=20
+> Hardware offload rule construction still assumes that direct xmit flows
+> do not carry tunnel route state, so reject that combination there for
+> now to avoid undefined offload behaviour.
+>=20
+> Fixes: d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw acceleration")
+> Cc: stable@vger.kernel.org
+> Reported-by: Yuan Tan <yuantan098@gmail.com>
+> Reported-by: Yifan Wu <yifanwucs@gmail.com>
+> Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+> Reported-by: Xin Liu <bird@lzu.edu.cn>
+> Signed-off-by: Zhengyang Chen <chzhengyang2023@lzu.edu.cn>
+> Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+> ---
+> changes in v2:
+>   - Move dst_cache and dst_cookie out of the runtime union instead of
+>     introducing dedicated tunnel dst fields
+>   - Reuse the shared dst_cache/dst_cookie storage for DIRECT tunnel
+>     flows
+>   - Simplify dst release through the common dst_cache path
+>   - Update Fixes: to d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw
+>     acceleration")
+>   - v1 Link: https://lore.kernel.org/all/3947a39286d335b6136bbee26f8bf44b=
+23471c69.1780580352.git.chzhengyang2023@lzu.edu.cn/
+>=20
+>  include/net/netfilter/nf_flow_table.h |  4 ++--
+>  net/netfilter/nf_flow_table_core.c    | 12 ++++++++----
+>  net/netfilter/nf_flow_table_ip.c      | 19 +++++++++++++++++++
+>  net/netfilter/nf_flow_table_offload.c |  3 +++
+>  4 files changed, 32 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilte=
+r/nf_flow_table.h
+> index 7b23b245a5a8..369f6a717811 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -155,11 +155,11 @@ struct flow_offload_tuple {
+>  					tun_num:2,
+>  					in_vlan_ingress:2;
+>  	u16				mtu;
+> +	struct dst_entry		*dst_cache;
+> +	u32				dst_cookie;
+>  	union {
+>  		struct {
+> -			struct dst_entry *dst_cache;
+>  			u32		ifidx;
+> -			u32		dst_cookie;
+>  		};
+>  		struct {
+>  			u32		ifidx;
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_t=
+able_core.c
+> index 785d8c244a77..252b081319a7 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -127,12 +127,18 @@ static int flow_offload_fill_route(struct flow_offl=
+oad *flow,
+> =20
+>  	switch (route->tuple[dir].xmit_type) {
+>  	case FLOW_OFFLOAD_XMIT_DIRECT:
+> +		if (flow_tuple->tun_num) {
+> +			flow_tuple->dst_cache =3D dst;
+> +			flow_tuple->dst_cookie =3D
+> +				flow_offload_dst_cookie(flow_tuple);
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-index b33dba4b126e2..14d4c1793aed5 100644
---- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-+++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-@@ -5,6 +5,8 @@
- #include "test_bpf_nf.skel.h"
- #include "test_bpf_nf_fail.skel.h"
- 
-+#define CT_OPTS_ERROR_GUARD 0x12345678
-+
- static char log_buf[1024 * 1024];
- 
- struct {
-@@ -119,6 +121,10 @@ static void test_bpf_nf_ct(int mode)
- 	ASSERT_EQ(skel->bss->test_einval_reserved_new, -EINVAL, "Test EINVAL for reserved in new struct not set to 0");
- 	ASSERT_EQ(skel->bss->test_einval_netns_id, -EINVAL, "Test EINVAL for netns_id < -1");
- 	ASSERT_EQ(skel->bss->test_einval_len_opts, -EINVAL, "Test EINVAL for len__opts != NF_BPF_CT_OPTS_SZ");
-+	ASSERT_EQ(skel->bss->test_einval_len_opts_small_lookup, CT_OPTS_ERROR_GUARD,
-+		  "Test no error write for lookup opts__sz before error field");
-+	ASSERT_EQ(skel->bss->test_einval_len_opts_small_alloc, CT_OPTS_ERROR_GUARD,
-+		  "Test no error write for alloc opts__sz before error field");
- 	ASSERT_EQ(skel->bss->test_eproto_l4proto, -EPROTO, "Test EPROTO for l4proto != TCP or UDP");
- 	ASSERT_EQ(skel->bss->test_enonet_netns_id, -ENONET, "Test ENONET for bad but valid netns_id");
- 	ASSERT_EQ(skel->bss->test_enoent_lookup, -ENOENT, "Test ENOENT for failed lookup");
-diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-index 076fbf03a1268..df43649ecb785 100644
---- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-+++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-@@ -10,6 +10,8 @@
- #define EINVAL 22
- #define ENOENT 2
- 
-+#define CT_OPTS_ERROR_GUARD 0x12345678
-+
- #define NF_CT_ZONE_DIR_ORIG (1 << IP_CT_DIR_ORIGINAL)
- #define NF_CT_ZONE_DIR_REPL (1 << IP_CT_DIR_REPLY)
- 
-@@ -19,6 +21,8 @@ int test_einval_reserved = 0;
- int test_einval_reserved_new = 0;
- int test_einval_netns_id = 0;
- int test_einval_len_opts = 0;
-+int test_einval_len_opts_small_lookup = 0;
-+int test_einval_len_opts_small_alloc = 0;
- int test_eproto_l4proto = 0;
- int test_enonet_netns_id = 0;
- int test_enoent_lookup = 0;
-@@ -124,6 +128,28 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
- 	else
- 		test_einval_len_opts = opts_def.error;
- 
-+	opts_def.error = CT_OPTS_ERROR_GUARD;
-+	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-+		       sizeof(opts_def.netns_id));
-+	if (ct) {
-+		bpf_ct_release(ct);
-+		test_einval_len_opts_small_lookup = -EINVAL;
-+	} else {
-+		test_einval_len_opts_small_lookup = opts_def.error;
-+	}
-+
-+	opts_def.error = CT_OPTS_ERROR_GUARD;
-+	ct = alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
-+		      sizeof(opts_def.netns_id));
-+	if (ct) {
-+		ct = bpf_ct_insert_entry(ct);
-+		if (ct)
-+			bpf_ct_release(ct);
-+		test_einval_len_opts_small_alloc = -EINVAL;
-+	} else {
-+		test_einval_len_opts_small_alloc = opts_def.error;
-+	}
-+
- 	opts_def.l4proto = IPPROTO_ICMP;
- 	ct = lookup_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
- 		       sizeof(opts_def));
--- 
-2.34.1
+Hi Ren Wei,
 
+If I read the code correctly flow_tuple->tun and flow_tuple->tun_num are set
+according to route->tuple[].in.tun and route->tuple[].in.num_tuns. Moreover,
+route->tuple[].in.tun/route->tuple[].in.num_tuns are set just in
+nft_dev_forward_path() that is executed only for FLOW_OFFLOAD_XMIT_NEIGH
+entries. Am I missing something here?
+Moreover, can you please add a selftest for this case in
+tools/testing/selftests/net/netfilter/nft_flowtable.sh? Thanks.
+
+Regards,
+Lorenzo
+
+> +		}
+>  		memcpy(flow_tuple->out.h_dest, route->tuple[dir].out.h_dest,
+>  		       ETH_ALEN);
+>  		memcpy(flow_tuple->out.h_source, route->tuple[dir].out.h_source,
+>  		       ETH_ALEN);
+>  		flow_tuple->out.ifidx =3D route->tuple[dir].out.ifindex;
+> -		dst_release(dst);
+> +		if (!flow_tuple->tun_num)
+> +			dst_release(dst);
+>  		break;
+>  	case FLOW_OFFLOAD_XMIT_XFRM:
+>  	case FLOW_OFFLOAD_XMIT_NEIGH:
+> @@ -152,9 +158,7 @@ static int flow_offload_fill_route(struct flow_offloa=
+d *flow,
+>  static void nft_flow_dst_release(struct flow_offload *flow,
+>  				 enum flow_offload_tuple_dir dir)
+>  {
+> -	if (flow->tuplehash[dir].tuple.xmit_type =3D=3D FLOW_OFFLOAD_XMIT_NEIGH=
+ ||
+> -	    flow->tuplehash[dir].tuple.xmit_type =3D=3D FLOW_OFFLOAD_XMIT_XFRM)
+> -		dst_release(flow->tuplehash[dir].tuple.dst_cache);
+> +	dst_release(flow->tuplehash[dir].tuple.dst_cache);
+>  }
+> =20
+>  void flow_offload_route_init(struct flow_offload *flow,
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_tab=
+le_ip.c
+> index 9c05a50d6013..b125868ab1fb 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -299,6 +299,11 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff=
+ *skb, unsigned int mtu)
+> =20
+>  static inline bool nf_flow_dst_check(struct flow_offload_tuple *tuple)
+>  {
+> +	if (tuple->tun_num &&
+> +	    tuple->xmit_type =3D=3D FLOW_OFFLOAD_XMIT_DIRECT &&
+> +	    !dst_check(tuple->dst_cache, tuple->dst_cookie))
+> +		return false;
+> +
+>  	if (tuple->xmit_type !=3D FLOW_OFFLOAD_XMIT_NEIGH &&
+>  	    tuple->xmit_type !=3D FLOW_OFFLOAD_XMIT_XFRM)
+>  		return true;
+> @@ -482,6 +487,7 @@ static int nf_flow_offload_forward(struct nf_flowtabl=
+e_ctx *ctx,
+>  				   struct flow_offload_tuple_rhash *tuplehash,
+>  				   struct sk_buff *skb)
+>  {
+> +	struct flow_offload_tuple *other_tuple;
+>  	enum flow_offload_tuple_dir dir;
+>  	struct flow_offload *flow;
+>  	unsigned int thoff, mtu;
+> @@ -507,6 +513,12 @@ static int nf_flow_offload_forward(struct nf_flowtab=
+le_ctx *ctx,
+>  		return 0;
+>  	}
+> =20
+> +	other_tuple =3D &flow->tuplehash[!dir].tuple;
+> +	if (other_tuple->tun_num && !nf_flow_dst_check(other_tuple)) {
+> +		flow_offload_teardown(flow);
+> +		return 0;
+> +	}
+> +
+>  	if (skb_ensure_writable(skb, thoff + ctx->hdrsize))
+>  		return -1;
+> =20
+> @@ -1091,6 +1103,7 @@ static int nf_flow_offload_ipv6_forward(struct nf_f=
+lowtable_ctx *ctx,
+>  					struct flow_offload_tuple_rhash *tuplehash,
+>  					struct sk_buff *skb, int encap_limit)
+>  {
+> +	struct flow_offload_tuple *other_tuple;
+>  	enum flow_offload_tuple_dir dir;
+>  	struct flow_offload *flow;
+>  	unsigned int thoff, mtu;
+> @@ -1119,6 +1132,12 @@ static int nf_flow_offload_ipv6_forward(struct nf_=
+flowtable_ctx *ctx,
+>  		return 0;
+>  	}
+> =20
+> +	other_tuple =3D &flow->tuplehash[!dir].tuple;
+> +	if (other_tuple->tun_num && !nf_flow_dst_check(other_tuple)) {
+> +		flow_offload_teardown(flow);
+> +		return 0;
+> +	}
+> +
+>  	if (skb_ensure_writable(skb, thoff + ctx->hdrsize))
+>  		return -1;
+> =20
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
+w_table_offload.c
+> index 002ec15d988b..e3ace6435074 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -820,6 +820,9 @@ nf_flow_offload_rule_alloc(struct net *net,
+> =20
+>  	tuple =3D &flow->tuplehash[dir].tuple;
+>  	other_tuple =3D &flow->tuplehash[!dir].tuple;
+> +	if (other_tuple->tun_num &&
+> +	    other_tuple->xmit_type =3D=3D FLOW_OFFLOAD_XMIT_DIRECT)
+> +		goto err_flow_match;
+>  	if (other_tuple->xmit_type =3D=3D FLOW_OFFLOAD_XMIT_NEIGH)
+>  		other_dst =3D other_tuple->dst_cache;
+> =20
+> --=20
+> 2.43.0
+>=20
+
+--FhyDSjEE23MQLLmj
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCajPI4gAKCRA6cBh0uS2t
+rHwAAQCMSHUj973A83/DQ6whRH8xG8zPdyuT2hagTunYp9U9iwEAx9fYiiGRqFaI
+8UzAfbhNkfWI1Ulw/L/LYAlChD+Gswg=
+=H5xr
+-----END PGP SIGNATURE-----
+
+--FhyDSjEE23MQLLmj--
