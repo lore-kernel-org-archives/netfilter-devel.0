@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BC6538332A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 403EF38332E;
 	Fri, 19 Jun 2026 11:55:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781870113; cv=none; b=s/eptV3/NOECb0V1fMC5dI6end+mqyvJRQFUdxK3IF7mFCSKlKqUB7hl6/yX3tKv0VBkZ4xy1osjTcQvQq9b7Y6cmuwd3GsdfZ2JGU46MyqX4fOB1wT9RQlDTNJhc8ow7fWJXXJu72I/+Y/Ltz73fYT+Dj7ReTshMFZRTEqkRpE=
+	t=1781870113; cv=none; b=r+xUIRQNR93qMWeFowi0kZBSsISw4KnHiXGUk9MsQh7T88mBh4Xn6dQNGyzb6WB7Gg9opR/r0L3QIbPgAeFvjKJEu9MAn5s1zP3UX+SvTqh22tGkT+G9rcFLrOSIskGSeog1rnvR5dXypj9caorL7ftFikaKUU3NXGKs3b7FyJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1781870113; c=relaxed/simple;
-	bh=Iujzt5heb9H8WLppDhY1E1rPktZleQ5dnFQhD90BUFc=;
+	bh=HB/32bdmHR7Ejjg1kT0jsPFkOkTO9wTCEE06ELCRD4w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Hyn6lxZ82Cy/tOSOZZs8Le2UslDqqfxJJ62/yIdpOCwF0YK5BYLyouTTXDDBi5szWrndtbKaSYj4jP77/85BlqJ0dC2LH3cHHs6YYZXRpSD6XQhY9g4fZ7s7oBcUMDPrNlGVQmOydfjF6zB3or0vMmtseRBtaal1+/ziVbeiS3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vl1osgok; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=I9H6Dz8RGzDLMrJxkrXyYn3gDBV1z8fdlLou1tAtNNyLo0zLkU7pEn2K9tEHmRav2OMXFzph4UEU2kyRfagbTy83eOSdAxHbN9G4Rf5tpK0mKN1FlCv9zO4055SXl7eBKBYtpo7Il5cXeygNPp4tB8jmTV5G5FhEIad0yWh/O08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MAq6P61z; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vl1osgok"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MAq6P61z"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 783F4601C1;
-	Fri, 19 Jun 2026 13:55:09 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 825A860196;
+	Fri, 19 Jun 2026 13:55:10 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781870109;
-	bh=fUUW68ZRi9UR+MamkxJBulOTEpebj5NGu71sMmoSmRI=;
+	s=2025; t=1781870110;
+	bh=O4aVlfIoU2Pc1AqTgkRYRepCW47AfnJQSsWwmjFGj20=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vl1osgokoqJnKmY05p2BEyQsltnnccySTHU/geK+Qhlt2YPm7Iw/W1Cfh/BAipt4v
-	 1QpYJoUa7ClsKsJ7vqXZQi8pIzK4cO+OvCvjEqRewTzhpvwXJgj7Yb/I/np9+ZJBq0
-	 So1gCcJ5mGxA5XhMCIz2x8C4VCP/5XLqxaFKG0S9oYvsmXgz/68APDFfzAFzqLBCpB
-	 /mCoBYCkANSG0jPaqD45pZqgGMO4jB6EIVrl3YND9D1d5ZrErfqWTtw/hDK7l87u1M
-	 Z16yrs9wQqNQ9aVpklM8yGn7ZSwYj0dITOYAhd+zHl8KWNtEEV4UXJ36A2asLcUzL2
-	 Oz5PuZaKXxtcQ==
+	b=MAq6P61z/TobdXpGYQmqjhMnlvHkJg2tAAzkHqWqzqbNavCbdEoKnn17lF6I2kKKd
+	 ssacaNLQ/Nb2AOZG5lQ0eTp9lnvxCJv4H9pFtCnudmU6zJmfpt7Hf5RfBLbh/GBojy
+	 FcUei5itTxtZoKW+bvkckgLvO3tu2gQ7rXq/KSLwIqzqsHibLJYqQyqn3LP8PykjDa
+	 ly10WozkGl+gZWrW3YugJsYmviP429hk9biWN8LQrJjhX5wZ7qNS2Obgj+HfjO4IKu
+	 7MHYbNPIkwGJiSgF2N4h6xwLSFkpr0yUTr9N8GTbtVFQ1mmmI182MPRl/jlfkwq4qW
+	 FhwDu86dcT+5g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 09/16] netfilter: ipset: make sure gc is properly stopped
-Date: Fri, 19 Jun 2026 13:54:44 +0200
-Message-ID: <20260619115452.93949-10-pablo@netfilter.org>
+Subject: [PATCH net 10/16] netfilter: nft_payload: reject offsets exceeding 65535 bytes
+Date: Fri, 19 Jun 2026 13:54:45 +0200
+Message-ID: <20260619115452.93949-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260619115452.93949-1-pablo@netfilter.org>
 References: <20260619115452.93949-1-pablo@netfilter.org>
@@ -52,33 +52,69 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 
-Sashiko noticed that when destroying a set,
-cancel_delayed_work_sync() was called while gc
-calls queue_delayed_work() unconditionally which
-can lead not to properly shutting down the gc.
+Large offsets were rejected based on netlink policy, but blamed commit
+removed the policy without updating nft_payload_inner_init() to use the
+truncation-check helper.
 
-Fixes: f66ee0410b1c ("netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports")
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Silent truncation is not a problem, but not wanted either, so add a
+check.
+
+Fixes: 077dc4a27579 ("netfilter: nft_payload: extend offset to 65535 bytes")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_payload.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 00c27b95207f..dedf59b661dd 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -606,7 +606,7 @@ mtype_cancel_gc(struct ip_set *set)
- 	struct htype *h = set->data;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index ef2a80dfc68f..345eff140d56 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -224,11 +224,17 @@ static int nft_payload_init(const struct nft_ctx *ctx,
+ 			    const struct nlattr * const tb[])
+ {
+ 	struct nft_payload *priv = nft_expr_priv(expr);
++	u32 offset;
++	int err;
  
- 	if (SET_WITH_TIMEOUT(set))
--		cancel_delayed_work_sync(&h->gc.dwork);
-+		disable_delayed_work_sync(&h->gc.dwork);
- }
+ 	priv->base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
+-	priv->offset = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_OFFSET]));
+ 	priv->len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
  
- static int
++	err = nft_parse_u32_check(tb[NFTA_PAYLOAD_OFFSET], U16_MAX, &offset);
++	if (err < 0)
++		return err;
++	priv->offset = offset;
++
+ 	return nft_parse_register_store(ctx, tb[NFTA_PAYLOAD_DREG],
+ 					&priv->dreg, NULL, NFT_DATA_VALUE,
+ 					priv->len);
+@@ -621,7 +627,8 @@ static int nft_payload_inner_init(const struct nft_ctx *ctx,
+ 				  const struct nlattr * const tb[])
+ {
+ 	struct nft_payload *priv = nft_expr_priv(expr);
+-	u32 base;
++	u32 base, offset;
++	int err;
+ 
+ 	if (!tb[NFTA_PAYLOAD_BASE] || !tb[NFTA_PAYLOAD_OFFSET] ||
+ 	    !tb[NFTA_PAYLOAD_LEN] || !tb[NFTA_PAYLOAD_DREG])
+@@ -639,8 +646,11 @@ static int nft_payload_inner_init(const struct nft_ctx *ctx,
+ 	}
+ 
+ 	priv->base   = base;
+-	priv->offset = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_OFFSET]));
+ 	priv->len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
++	err = nft_parse_u32_check(tb[NFTA_PAYLOAD_OFFSET], U16_MAX, &offset);
++	if (err < 0)
++		return err;
++	priv->offset = offset;
+ 
+ 	return nft_parse_register_store(ctx, tb[NFTA_PAYLOAD_DREG],
+ 					&priv->dreg, NULL, NFT_DATA_VALUE,
 -- 
 2.47.3
 
