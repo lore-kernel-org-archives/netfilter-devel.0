@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47500358373;
-	Fri, 19 Jun 2026 11:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E40835EDA4;
+	Fri, 19 Jun 2026 11:55:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781870109; cv=none; b=T9tCs/poKnPTW8PD0AZb26PfVYLavcPtUOk6oRg0/EJR4xPkvYAx2rAGWnWYCjL68rR3ZH/2BYM2thIhq4PJQ4XJ+0zEwpXxDmpfXj8Ex7DqsoyzYYVUBLLdH5wUiW5dnAlWdLcpDXro4hUXqjvAOOxdne1aEePHfN1yqMcupsQ=
+	t=1781870110; cv=none; b=aOpE8TIAtH91tS7NfDtTKhGJoDgdVWwMM6ZkrXdomKOmj3TWNhW07MEhYaSsVjAmpy1F3tQeut3SK3uo1t9Pz80GlYh1jO15Otwx8xa6Edr91KSixI6Rd9cBlMjtejRw8tV++6kx7SqR8sQ80p9qTLKBR1yJk8fs5xt7j/bKA9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781870109; c=relaxed/simple;
-	bh=Cctvo3ka08rA2RgqUCoipHjqp+aCGXZHtlh/rMOzF88=;
+	s=arc-20240116; t=1781870110; c=relaxed/simple;
+	bh=Ldmg1woQGa8OdCQYeTw9YYkfQowzo41/zqfQx1jZOHc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=h3A2vO2Lfp7uQkXNq05VhZ1JISz7JeJobOTDEVrXZfvTAGEjIh1lKtUQs4t9WH0geJBiESV/K1JemCu7RW8PULhBj6TaoqMEhSQEigRg+LqmLqTEY94JYGlvDryoS4JpJ8Wx1Mz3MmNo3gsCkU4gSlMZw7Qed/HMgHNSymqNklg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qRvWqpHq; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=GF3X/MoiOkCmccEhRbbxuryIbO0LzyEcoZU+UdtLsR7hhQX9ULabyzT4YdLKHygezfOP+nyGcggrQTHdkuKr0I07TPBC/TfJIQ/3mailJ6X+aj4MnYIGXzbG3W00apiAppElNyoRndDySOIh7ICSvikZVHeuoUj+rUrVGIWunfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PfY4CoVb; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qRvWqpHq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PfY4CoVb"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E471D601A6;
-	Fri, 19 Jun 2026 13:54:59 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1F12A601A7;
+	Fri, 19 Jun 2026 13:55:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781870100;
-	bh=rRCknTVPe8kEOXE8SHhKPUK4i1g1mN85/ghVx+xSnpQ=;
+	s=2025; t=1781870101;
+	bh=0fw67I62SJcykhJK+TpPDZl59idzVlWzbFNHUyzyvlY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qRvWqpHqkQcHTSvBwXl82VPfyi3pL0y3sfXOToxf6lr/vIj9xpfG1EPiYoYJNCpj8
-	 Kp+DVlqT5yA9z4plywu/hrLnWQ46ncHxwpCxlQyS29U6oEMNR8lFgvwxMIMTOsGtdw
-	 WmdIX0Psv2kFHR+6Usg+JXHckd/NiuESykCuFIq7K5+ZOV/chxNI3AZjuaCjUavpud
-	 eUXRugJfpOlWqqCPC3mJxpzY1eATP7AtuhY69d6X9KcsvNhth8gIsc9a+T0h/apH8D
-	 NNzs+Gog0ZOmspDX07H2Pt4QldHhCcfbcqV/Tm9tgh/RzMm1RxT9xpZldjAH7ElLGd
-	 IViImcLSX4fmA==
+	b=PfY4CoVb2hacIzp+sxep+CMMInSAsP2L8DXvH+7vVz48JEIaVLZffTpdUh8Jr+Ycs
+	 o+7QFn46o12FknTx/qLLey2aulXZ0syItZ0g7qCfea9WMClSlIC+Ja2FtsklR+19UU
+	 iUqxCs4d8bt21h/NhsqcUvTi3IUmSGIuha0bCIN/MJb4Aar64Z/vBeLrn4ald9igA5
+	 8rz5/WJ1bLvUvCbsn1sq3ICKv17oumxR/YjnRHwcU0Fgxuyc1AOb8u7kk6ms8jIuGl
+	 hUPehWiJyUp+l8RTRDpT7klBPM1n6xu72FyjF2NN3HRiaw1KTGPwbb5vwaD9Kx4YuL
+	 Ytr999OIk64zQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 01/16] netfilter: flowtable: fix offloaded ct timeout never being extended
-Date: Fri, 19 Jun 2026 13:54:36 +0200
-Message-ID: <20260619115452.93949-2-pablo@netfilter.org>
+Subject: [PATCH net 02/16] netfilter: nf_queue: pin bridge device while NFQUEUE holds fake dst
+Date: Fri, 19 Jun 2026 13:54:37 +0200
+Message-ID: <20260619115452.93949-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260619115452.93949-1-pablo@netfilter.org>
 References: <20260619115452.93949-1-pablo@netfilter.org>
@@ -52,81 +52,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Adrian Bente <adibente@gmail.com>
+From: Haoze Xie <royenheart@gmail.com>
 
-OpenWrt has recently migrated many platforms to kernel 6.18. On the
-MediaTek platform, which supports hardware network offloading, WiFi
-connections accelerated via the WED path were observed to drop after
-roughly 300 seconds.
+The br_netfilter fake rtable is embedded in struct net_bridge and is
+attached to bridged packets with skb_dst_set_noref(). If such a packet is
+queued to NFQUEUE, __nf_queue() upgrades that fake dst with
+skb_dst_force().
 
-After several debugging sessions, assisted by the Claude LLM, the
-problem was narrowed down as follows:
+At that point the queued skb can hold a real dst reference after bridge
+teardown has started. The problem is not that every bridged packet needs
+its own dst reference. The problem is that NFQUEUE can keep the bridge
+private fake dst alive after unregister begins.
 
-nf_flow_table_extend_ct_timeout() extends ct->timeout for offloaded
-flows using:
+Fix this by keeping the bridge fake dst model unchanged and pinning the
+bridge master device only while the packet sits in NFQUEUE. Record the
+bridge device in nf_queue_entry when the queued skb carries a bridge fake
+dst, take a device reference for the queue lifetime, and drop it when the
+queue entry is freed.
 
-	cmpxchg(&ct->timeout, expires, new_timeout);
+Also make sure queued entries are reaped when that bridge device goes
+down, and drop the redundant nf_bridge_info_exists() test from the fake
+dst detection.
 
-'expires' comes from nf_ct_expires(ct) and is a relative value, while
-ct->timeout holds an absolute timestamp. The two are never equal, so
-the cmpxchg always fails and the timeout is never extended.
+This keeps netdev_priv(br->dev) alive until verdict completion, so the
+embedded fake rtable and its metrics backing storage cannot be freed out
+from under dst_release(). It also avoids the constant refcount bump and
+avoids using ipv4-specific dst helpers for IPv6 bridge traffic.
 
-This goes unnoticed for most flows, but a long-lived hardware (WED)
-offloaded flow on MediaTek MT7986 eventually has ct->timeout decay to
-zero, the conntrack entry is reaped and the connection breaks.
-
-Open-code the relative value from a single READ_ONCE(ct->timeout)
-snapshot and compare against that same absolute snapshot in the
-cmpxchg, so the timeout extension actually takes effect while the
-datapath remains authoritative if it updates ct->timeout concurrently.
-
-Fixes: 03428ca5cee9 ("netfilter: conntrack: rework offload nf_conn timeout extension logic")
-Cc: stable@vger.kernel.org
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Adrian Bente <adibente@gmail.com>
+Fixes: 34666d467cbf ("netfilter: bridge: move br_netfilter out of the core")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_queue.h |  1 +
+ net/netfilter/nf_queue.c         | 14 ++++++++++++++
+ net/netfilter/nfnetlink_queue.c  |  3 +++
+ 3 files changed, 18 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 785d8c244a77..99c5b9d671a0 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -505,8 +505,13 @@ static u32 nf_flow_table_tcp_timeout(const struct nf_conn *ct)
-  */
- static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 3978c3174cdb..fc3e81c07364 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -18,6 +18,7 @@ struct nf_queue_entry {
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	struct net_device	*bridge_dev;
+ 	struct net_device	*physin;
+ 	struct net_device	*physout;
+ #endif
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 57b450024a99..73363ceedebe 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -68,6 +68,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 		nf_queue_sock_put(state->sk);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_put(entry->bridge_dev);
+ 	dev_put(entry->physin);
+ 	dev_put(entry->physout);
+ #endif
+@@ -84,6 +85,8 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
  {
--	static const u32 min_timeout = 5 * 60 * HZ;
--	u32 expires = nf_ct_expires(ct);
-+	static const s32 min_timeout = 5 * 60 * HZ;
-+	u32 ct_timeout = READ_ONCE(ct->timeout);
-+	s32 expires;
-+
-+	expires = ct_timeout - nfct_time_stamp;
-+	if (expires <= 0) /* already expired */
-+		return;
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	const struct sk_buff *skb = entry->skb;
++	struct dst_entry *dst = skb_dst(skb);
++	struct net_device *dev = NULL;
  
- 	/* normal case: large enough timeout, nothing to do. */
- 	if (likely(expires >= min_timeout))
-@@ -524,7 +529,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
- 	if (nf_ct_is_confirmed(ct) &&
- 	    test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
- 		u8 l4proto = nf_ct_protonum(ct);
--		u32 new_timeout = true;
-+		u32 new_timeout = 1;
- 
- 		switch (l4proto) {
- 		case IPPROTO_UDP:
-@@ -549,7 +554,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
- 		 */
- 		if (new_timeout) {
- 			new_timeout += nfct_time_stamp;
--			cmpxchg(&ct->timeout, expires, new_timeout);
-+			cmpxchg(&ct->timeout, ct_timeout, new_timeout);
- 		}
+ 	if (nf_bridge_info_exists(skb)) {
+ 		entry->physin = nf_bridge_get_physindev(skb, entry->state.net);
+@@ -92,6 +95,16 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ 		entry->physin = NULL;
+ 		entry->physout = NULL;
  	}
++
++	if (entry->state.pf == NFPROTO_BRIDGE &&
++	    dst && (dst->flags & DST_FAKE_RTABLE))
++		dev = dst_dev_rcu(dst);
++
++	/* Must hold a reference on the bridge device: dst_hold() protects
++	 * the dst itself, but the fake rtable is embedded in bridge-private
++	 * storage that netdevice teardown can free independently.
++	 */
++	entry->bridge_dev = dev;
+ #endif
+ }
  
+@@ -108,6 +121,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 	dev_hold(state->out);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_hold(entry->bridge_dev);
+ 	dev_hold(entry->physin);
+ 	dev_hold(entry->physout);
+ #endif
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index c5e29fec419b..80ca077b81bd 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1262,6 +1262,9 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+ 
+ 	if (physinif == ifindex || physoutif == ifindex)
+ 		return 1;
++
++	if (entry->bridge_dev && entry->bridge_dev->ifindex == ifindex)
++		return 1;
+ #endif
+ 	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
+ 		return 1;
 -- 
 2.47.3
 
