@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B34E63822B5;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1802382365;
 	Fri, 19 Jun 2026 11:55:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781870111; cv=none; b=tMXuUkqKwpjVKgxqhdT2P4NWFksh3Hjv8BzJLlxv9+nUOdxhHNG7pEPE/qGBkQNsLLD4+obH1QVRau03perU6cinwtj0VUgRZwwFkLsWcD0YnAM4Dckk/bYs5Xrza0GRcsImQKlSgyxFRAOk6x0Ljx4JFKY5OCbEfjbFtEt4RYQ=
+	t=1781870112; cv=none; b=Kg82pA77EMmBZH6w2rQg6AXkymFxGyuoxCR1/dn8kESTGnyKmML3SJ4OKh3/tfW2sGe0oL+kp1mpTZezS0/M1KaJxMs/nMYm7EydKe8zZv+abSA7eaVh83VT2aL6S7GenuUlEgDZTBL+X6uwBgGm0r5d4z9b7i60BkovYUXIQCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781870111; c=relaxed/simple;
-	bh=R3EscX/WS4xMnCCELneLpQA3bqcziFr+S5pCLhTL7xg=;
+	s=arc-20240116; t=1781870112; c=relaxed/simple;
+	bh=giba2CZxSGw8PL2UdlEgPcfmimZNbLr61Jxy14hELpQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=K5ip9/dQPdU/qNnXF81+qq/ik9e7Nigz9bF1lmao8Edu/ZiB3l3Skcv2428Cba7Kg9GwNfgvAvRkdeLuHGkqIOP5JPQzjZgZrDsLOUtZZL79KLxGVy8TE26vEEZBEzIDeae9cMDukTX/N7cnCUhRQO2Ciw13FhVdz4nDSoHqHz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YOLTLv2r; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=aH1S2vY6ipYibTddK51erTTD8SDLDV1+DD5cx1/S5jgL9H82UnJCwLO0c6teLeVKJNthkUrMMWjvnNFqfe4m5A4nmBUooc7fGyG5VX7BeXBgw3KkMpBbJFfGXEJPORX7Ou0fusLM/T3syxNeXdattku9t2g/GobMYfk/RSB8yYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pBSeOmwZ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YOLTLv2r"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pBSeOmwZ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 09130601BD;
-	Fri, 19 Jun 2026 13:55:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 42ADE601BF;
+	Fri, 19 Jun 2026 13:55:07 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781870105;
-	bh=gcWI4cSoQ5i3BVGY8gh4jVfugum1uSkv7HSv5M4JRPM=;
+	s=2025; t=1781870107;
+	bh=2B5uKM0TpE40ne8Qo1WgZYNW+QSbMxvtFmNxYzBPYRw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YOLTLv2rxndevlu4RRgSlaiBzEP6p3fgjDg35PZ4Daw+cpolu26o3yMbklEyKgWED
-	 IlMTKWjO5vYVwcIzYf7TTA9PzKEP2ZYABKv+JeM3KB2YYn9KiSwff6Ez1cyawLfjgA
-	 +sRNmXI6pQD8ZnBFxmGpLHsMQuzue42MpofMDWdIhxYJs6PkjK6zN3RTGvW+3AMAMN
-	 iy068zb2iA7/ny0kQ2dTsWMPb1NszDk5tYIV/F0GXoU7WoNaw9TM9kGy7ZyVm35mMv
-	 otLgwnrOF+iqDfEAVqpWcFB5MQWi6Ekp3tLqukaDCQtVO3FJbYtKS2+K9tGXYczEkf
-	 xn2dg/5AOUaFw==
+	b=pBSeOmwZwrviUdZO30XzDHG8ZOl34GzGo1L6MPa0rOQ/6jddFKf+DNy5rS/KEWlBD
+	 14jMArabwrj69jpjF3c+qYjupVGQU0oEduMT8iOO6CK8cLWwpH7PjLP63veef7iv6v
+	 GMlMCUxXEpSlsX5udoMvzBR7G0iMB+Tq5bFrCHm6gm21C+IersXal81miZ+3uPPQeV
+	 St5d5nTciLlq6oQF3oMfMkVJwacAHQGiDe+w1eH7WWCTC0HkLXVjetaGlfw6eG3/K6
+	 Vu45rp/i/3/0b1FbW3bkijJgLstSNExtGZCLMoeWTZjftpdpr6T6E4MUKSjS8qN13U
+	 GJwOGB/t0DnJA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 05/16] netfilter: nfnetlink: make OOM conditions fatal
-Date: Fri, 19 Jun 2026 13:54:40 +0200
-Message-ID: <20260619115452.93949-6-pablo@netfilter.org>
+Subject: [PATCH net 07/16] netfilter: ipset: Don't use test_bit() in lockless RCU readers in bitmap types
+Date: Fri, 19 Jun 2026 13:54:42 +0200
+Message-ID: <20260619115452.93949-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260619115452.93949-1-pablo@netfilter.org>
 References: <20260619115452.93949-1-pablo@netfilter.org>
@@ -52,46 +52,90 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-Batch support design attempts to process the entire batch, even
-after a call has returned an error.  The advantage is that userspace
-gets all errors in one go.
+The pair of the patch "netfilter: ipset: Don't use test_bit() in lockless
+RCU readers in hash types" for the bitmap types.
 
-The disadvantages are:
- 1. ->call() needs to cope with bad-state-due-to-previous-error
- 2. One error can trigger a cascade of followup errors which
-    can obfuscate the real problem.
-
-Make -ENOMEM fatal, if we cannot allocate some object there is
-a high chance we're going to report followup errors that are
-nonsensical from userspace point of view.
-
-Fixes: 0628b123c96d ("netfilter: nfnetlink: add batch support and use it from nf_tables")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 02a3231b6d82 ("netfilter: nf_conntrack_expect: store netns and zone in expectation")
+Fixes: b0da3905bb1e ("netfilter: ipset: Bitmap types using the unified code base")
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 4 +++-
+ net/netfilter/ipset/ip_set_bitmap_ip.c    | 2 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c  | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 47f3ed441f64..a1d480e4789c 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -531,6 +531,13 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 				status |= NFNL_BATCH_REPLAY;
- 				goto done;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 798c7993635e..bb9b5bed10e1 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -165,6 +165,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
+ 
+ 	/* Activate element */
++	smp_mb__before_atomic();
+ 	set_bit(e->id, map->members);
+ 	set->elements++;
+ 
+@@ -219,7 +220,7 @@ mtype_list(const struct ip_set *set,
+ 		cond_resched_rcu();
+ 		id = cb->args[IPSET_CB_ARG0];
+ 		x = get_ext(set, map, id);
+-		if (!test_bit(id, map->members) ||
++		if (!test_bit_acquire(id, map->members) ||
+ 		    (SET_WITH_TIMEOUT(set) &&
+ #ifdef IP_SET_BITMAP_STORED_TIMEOUT
+ 		     mtype_is_filled(x) &&
+@@ -278,6 +279,7 @@ mtype_gc(struct timer_list *t)
+ 			x = get_ext(set, map, id);
+ 			if (ip_set_timeout_expired(ext_timeout(x, set))) {
+ 				clear_bit(id, map->members);
++				smp_mb__after_atomic();
+ 				ip_set_ext_destroy(set, x);
+ 				set->elements--;
  			}
-+
-+			/* No point in further processing; followup errors can
-+			 * be bogus (e.g. -ENOENT because object that next
-+			 * rule/element wants could not be inserted).
-+			 */
-+			if (err == -ENOMEM)
-+				goto ack;
- 		}
- ack:
- 		if (nlh->nlmsg_flags & NLM_F_ACK || err) {
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 5988b9bb9029..ac7febce074f 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -67,7 +67,7 @@ static int
+ bitmap_ip_do_test(const struct bitmap_ip_adt_elem *e,
+ 		  struct bitmap_ip *map, size_t dsize)
+ {
+-	return !!test_bit(e->id, map->members);
++	return !!test_bit_acquire(e->id, map->members);
+ }
+ 
+ static int
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 752f59ef8744..5921fd9d2dca 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -86,7 +86,7 @@ bitmap_ipmac_do_test(const struct bitmap_ipmac_adt_elem *e,
+ {
+ 	const struct bitmap_ipmac_elem *elem;
+ 
+-	if (!test_bit(e->id, map->members))
++	if (!test_bit_acquire(e->id, map->members))
+ 		return 0;
+ 	elem = get_const_elem(map->extensions, e->id, dsize);
+ 	if (e->add_mac && elem->filled == MAC_FILLED)
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 7138e080def4..ca875c982424 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -58,7 +58,7 @@ static int
+ bitmap_port_do_test(const struct bitmap_port_adt_elem *e,
+ 		    const struct bitmap_port *map, size_t dsize)
+ {
+-	return !!test_bit(e->id, map->members);
++	return !!test_bit_acquire(e->id, map->members);
+ }
+ 
+ static int
 -- 
 2.47.3
 
