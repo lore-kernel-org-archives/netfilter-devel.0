@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6C2350A18;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32CB351C0D;
 	Sat, 20 Jun 2026 22:27:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781994475; cv=none; b=IVKtdFV3z3Bn+LvxRMUGf3XG9evN6lGMfl0hjjwKxTvY22/MNPmHq4FUCZyShKOxduZOfMIy0/KilbZYWYgR8AXL9nD4Ot0i21LGyfWZn+E40Jbh2tEI0zkNmH00Abv9qUmczslCmbybdQL4R083rfIb24bE4GjUdVhP3/YJFuI=
+	t=1781994475; cv=none; b=LhiTnW1VNZ0U0509THUpR/enIKZqse0fEeeCDFe28dE+6dEzYjXMnkjCtdOBmtAdsuiLimxwsFiMjybPkK/ZiaHglT3TnvE9VKxh8GsO3xoKQkihd17JMw1Yvt+QEMYQHaiglPeBp1Uv+MtwEGpJzDmExtkSaUf9L2UgKHRGnUA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1781994475; c=relaxed/simple;
-	bh=giba2CZxSGw8PL2UdlEgPcfmimZNbLr61Jxy14hELpQ=;
+	bh=GKxei/gwWs+LG9cWfqD5CW5tyC2e2c2Sg+S8bNrdPgk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BJDwvb7bl4d4P7Jho3w5eKSrJzjR7FyVPgKdV2c2qoXMn5pi3+CgusXSQadwwj8KFycbB3XImF9w0Djn8O4XVJPoWwNMVLN351VN+DwpwTeEGt+kCW3DPAlnSNHVEhJ0MjKwMi647fJXBeOda43kAIJ3J9HDX87v4juPEcYpcdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T2aaCPGY; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=BnpoHlmkViRj7vLQXmBhfnXwLv6/VoJYFc8veRRHr0DSiKpmd0x5KwJxB8oYShCLhMiTEuSACyq/G3nHEJMRweeljkJAgaql6wJM8tNQPT1jzpPkRDA3Y3MBWeiY8g7jWEW9gyIVBsKd07choX2Ou0U+TkoAZoaI+puFmqIhyBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=okAMdW4f; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T2aaCPGY"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="okAMdW4f"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 73AB96019D;
-	Sun, 21 Jun 2026 00:27:49 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5D6876019C;
+	Sun, 21 Jun 2026 00:27:48 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1781994469;
-	bh=2B5uKM0TpE40ne8Qo1WgZYNW+QSbMxvtFmNxYzBPYRw=;
+	s=2025; t=1781994468;
+	bh=jnQja1ZRxTiOgdompmbzJ3/VXLbFkJU5R6dIelIcZfE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=T2aaCPGYaUxVQprLlh9Xbq5mOXQjIOQdqmCKZQiEqTJ+oud247c/Gwj/T8wm0dtr2
-	 U54mROCWp//ySQGiJFEIaWGvxO0g9j5XtL9TvP524f2lfue5XIn/cOHeh6QF8CpuCo
-	 AMMSnhWrMj4IAl5FSvM4ODhh1khv1IIJhxWYIx4dZWV9VErXvCKVh06b718j8dLhkI
-	 JwAXRLJielroUwsFw2T5Rr0f6a/FV3XN9m9EaEc8Tdtzm7bAIB+UQO/PtS/xOpXBXN
-	 ryfmbHbaG+vxsJeUHiqPcseM5hyHKZvCaBgiU2TCObz5EEHyRSnbM63OLcTBWB4n53
-	 nNs+1CAUFZMHw==
+	b=okAMdW4fG+lJ0t7KK5j2aJHpx82/QZWmyHEpWTIbHEviOQq024GE6E7vYGDByA9vk
+	 QqJzcR8BZs6xCQIV9jk+iv4mPE0IV4qDHNJjoYCFT9G3eFQdsA7c5wmpXiVITovKcH
+	 ywc/lDug9c445G6WMgbX/GFCGwK4GSyMkZKiUgmkL//esR8YVRZV5S1Lj0FfvQWGuU
+	 IPLreb9AeJOwg4K6n84xAvqcU95wBbsh3OlV0cV7MzNiTM8Dq9/MpxgL3D1p7bD3ux
+	 pK6YfGUgHWXFHsM6Ke9koiYY3Ua4bWzp4fk9wqASjHglKSFnC5G2drho3vbPuEYFjq
+	 q499OwgejaD9w==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/14] netfilter: ipset: Don't use test_bit() in lockless RCU readers in bitmap types
-Date: Sun, 21 Jun 2026 00:27:30 +0200
-Message-ID: <20260620222738.112506-7-pablo@netfilter.org>
+Subject: [PATCH net 05/14] netfilter: ipset: Don't use test_bit() in lockless RCU readers in hash types
+Date: Sun, 21 Jun 2026 00:27:29 +0200
+Message-ID: <20260620222738.112506-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260620222738.112506-1-pablo@netfilter.org>
 References: <20260620222738.112506-1-pablo@netfilter.org>
@@ -54,88 +54,72 @@ Content-Transfer-Encoding: 8bit
 
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-The pair of the patch "netfilter: ipset: Don't use test_bit() in lockless
-RCU readers in hash types" for the bitmap types.
+Sashiko pointed out that there are a few lockless RCU readers
+using test_bit() which is a relaxed atomic operation and
+provides no memory barrier guarantees. Use test_bit_acquire()
+instead where the operation may run parallel with add/del/gc,
+i.e. is not one from the next cases
 
-Fixes: 02a3231b6d82 ("netfilter: nf_conntrack_expect: store netns and zone in expectation")
-Fixes: b0da3905bb1e ("netfilter: ipset: Bitmap types using the unified code base")
+- protected by region lock
+- in a set destroy phase
+- in a new/temporary set creation phase
+
+Fixes: 18f84d41d34f ("netfilter: ipset: Introduce RCU locking in hash:* types")
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_gen.h   | 4 +++-
- net/netfilter/ipset/ip_set_bitmap_ip.c    | 2 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
- net/netfilter/ipset/ip_set_bitmap_port.c  | 2 +-
- 4 files changed, 6 insertions(+), 4 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 798c7993635e..bb9b5bed10e1 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -165,6 +165,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
- 
- 	/* Activate element */
-+	smp_mb__before_atomic();
- 	set_bit(e->id, map->members);
- 	set->elements++;
- 
-@@ -219,7 +220,7 @@ mtype_list(const struct ip_set *set,
- 		cond_resched_rcu();
- 		id = cb->args[IPSET_CB_ARG0];
- 		x = get_ext(set, map, id);
--		if (!test_bit(id, map->members) ||
-+		if (!test_bit_acquire(id, map->members) ||
- 		    (SET_WITH_TIMEOUT(set) &&
- #ifdef IP_SET_BITMAP_STORED_TIMEOUT
- 		     mtype_is_filled(x) &&
-@@ -278,6 +279,7 @@ mtype_gc(struct timer_list *t)
- 			x = get_ext(set, map, id);
- 			if (ip_set_timeout_expired(ext_timeout(x, set))) {
- 				clear_bit(id, map->members);
-+				smp_mb__after_atomic();
- 				ip_set_ext_destroy(set, x);
- 				set->elements--;
- 			}
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index 5988b9bb9029..ac7febce074f 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -67,7 +67,7 @@ static int
- bitmap_ip_do_test(const struct bitmap_ip_adt_elem *e,
- 		  struct bitmap_ip *map, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
- 
- static int
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 752f59ef8744..5921fd9d2dca 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -86,7 +86,7 @@ bitmap_ipmac_do_test(const struct bitmap_ipmac_adt_elem *e,
- {
- 	const struct bitmap_ipmac_elem *elem;
- 
--	if (!test_bit(e->id, map->members))
-+	if (!test_bit_acquire(e->id, map->members))
- 		return 0;
- 	elem = get_const_elem(map->extensions, e->id, dsize);
- 	if (e->add_mac && elem->filled == MAC_FILLED)
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index 7138e080def4..ca875c982424 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -58,7 +58,7 @@ static int
- bitmap_port_do_test(const struct bitmap_port_adt_elem *e,
- 		    const struct bitmap_port *map, size_t dsize)
- {
--	return !!test_bit(e->id, map->members);
-+	return !!test_bit_acquire(e->id, map->members);
- }
- 
- static int
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 04e4627ddfc1..00c27b95207f 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -689,7 +689,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 				continue;
+ 			pos = smp_load_acquire(&n->pos);
+ 			for (j = 0; j < pos; j++) {
+-				if (!test_bit(j, n->used))
++				if (!test_bit_acquire(j, n->used))
+ 					continue;
+ 				data = ahash_data(n, j, dsize);
+ 				if (SET_ELEM_EXPIRED(set, data))
+@@ -826,7 +826,7 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
+ 				continue;
+ 			pos = smp_load_acquire(&n->pos);
+ 			for (j = 0; j < pos; j++) {
+-				if (!test_bit(j, n->used))
++				if (!test_bit_acquire(j, n->used))
+ 					continue;
+ 				data = ahash_data(n, j, set->dsize);
+ 				if (!SET_ELEM_EXPIRED(set, data))
+@@ -1201,7 +1201,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 			continue;
+ 		pos = smp_load_acquire(&n->pos);
+ 		for (i = 0; i < pos; i++) {
+-			if (!test_bit(i, n->used))
++			if (!test_bit_acquire(i, n->used))
+ 				continue;
+ 			data = ahash_data(n, i, set->dsize);
+ 			if (!mtype_data_equal(data, d, &multi))
+@@ -1259,7 +1259,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	}
+ 	pos = smp_load_acquire(&n->pos);
+ 	for (i = 0; i < pos; i++) {
+-		if (!test_bit(i, n->used))
++		if (!test_bit_acquire(i, n->used))
+ 			continue;
+ 		data = ahash_data(n, i, set->dsize);
+ 		if (!mtype_data_equal(data, d, &multi))
+@@ -1396,7 +1396,7 @@ mtype_list(const struct ip_set *set,
+ 			continue;
+ 		pos = smp_load_acquire(&n->pos);
+ 		for (i = 0; i < pos; i++) {
+-			if (!test_bit(i, n->used))
++			if (!test_bit_acquire(i, n->used))
+ 				continue;
+ 			e = ahash_data(n, i, set->dsize);
+ 			if (SET_ELEM_EXPIRED(set, e))
 -- 
 2.47.3
 
