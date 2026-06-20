@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00D0F392C28;
-	Sat, 20 Jun 2026 11:55:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E509E392811;
+	Sat, 20 Jun 2026 11:55:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781956508; cv=none; b=tMokOOHmPdnHV7sZeRM8aVofwBeXLnO3h05bs1cs3jS/pIiTZu5C1iuV87Oe+C9Y3yMCzwdeNhMpgWX5ZYU6waJGkN3faePUazO7QM0zPBumGEfppv710rlKsOBljX9OGoep5w/tW7caRyUkQG2TlKIbOB6+9rPIPLUiJTmFSh8=
+	t=1781956512; cv=none; b=Euj0j1zllXel7X7CNotVB9ifJMjqPSvPVspDGxR7w07vnP70puuZBaveHeOW8s6UE7AOGzeq9OZXg64JopumVm38lIEv40XJ4l5eNP6lxus3Duo7eXJJ2c6QhKEMu/qvJabaDNz0Cb8J3cLsxh3kMwNonfSFn6NyKMFIPd40LUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781956508; c=relaxed/simple;
-	bh=GrkI7+TBzY8SA8Ry5eLxaHWyBkc0ocX8WALmjWR1HBc=;
+	s=arc-20240116; t=1781956512; c=relaxed/simple;
+	bh=iWm/Wc8FtOsVNd7psrl8lFVgWfPKBqQljnMtnBTipEM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=k/oLyQU//CF/mEFvcCtjU2YHW0fsyAv9OYPUI4ctU0aDnAgGdpMw3CdTNHIiGWfIIbgHak0Pcu5MJ/50FnzApgFkrVW6H8ZmZWY+NnXCw43YwumdxMshIbDclG4DQEIkf3phQVfsI5xfYqGKucisu5O5OeBPzUhNjoYMn6V30BY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CMZnVmXR; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=Js8Q/CYp9Kgv/X8DZ+GWhRQSwDr7Nodv9zMtt+3pB/NdYIZFLYTg1YkPPrxDwID2zHrxTtYA6H0WZ9yk0jOmNNhdPqvsn90LqPf20qtoXnXFFIKzxv6w66mmdSBDqiUmeOjNVjzM7cKV9NFHjup/BrzqNisxhAoe1+K8lJQYXxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BQiL/Gt7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CMZnVmXR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFFBE1F00A3D;
-	Sat, 20 Jun 2026 11:55:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BQiL/Gt7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B033C1F00A3E;
+	Sat, 20 Jun 2026 11:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781956507;
-	bh=hPnk0R8V3mCAmK/6KNk62qrYp7PI24nMqvfDkXFCGEo=;
+	s=k20260515; t=1781956511;
+	bh=lCxqgdtEKQ1aqjvBRGrrR9PiUkEsMnWdhzSSoNxvuas=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=CMZnVmXRDx8b5/A0sghFqKlV3GySuuJJDHPdTSLUr1xmDdAXO5lf/PwWXJGdbPqVn
-	 V6Qj6nY8RMogTVXz7LyKDE7T85D1EyASzFhCVaZKFyQwkz9xXC/FP6FomU/oZJeF14
-	 U/V1Aqleky+wJeQH+4yh5RhGj0I9PpfnT2eKL0H7iPO3dz/kupPxwYRP7AxQ8IW0Cx
-	 NW/geufOwud5oF0ND1opX1Raae1cJG+mrLM10GuIvQlktXp1HZ1MFb9gUQy57mGAOu
-	 TKR/wMdEgSDlIYTEgStuJubvj1d81yutP8PA9CdJEVb3jzqttHiVbKAQruQ3FtZ6bi
-	 tqAOmdl9bHfXg==
+	b=BQiL/Gt74Xy+5NpZSnggTrx+bFYKtQMeSTkzifr6KNZceojswTPo1o8icTzEkTT2C
+	 XVG/M9BxDyCvR2I2uL77R70icUvrlNKG1McsIeLcNuwWWrHn5FOdKW4OcyyKdES6el
+	 m7siGwwwIrogvra6U6n4vhY4KtigEiljhy9Pd6uqJWibWY1FgqtGJDItGgXP19RBEQ
+	 TXtThIQg4w381CROHkEfp+PZLCMyzNzCzFW9/8aXtfJ9B5wtgJzAfXHgkzl4/oxIon
+	 WNb2w8a3zUWTyVCrBTK+fTrDCP2YoG3lA3+qhAl9bRmXrZr3+iVGEDQJHhAeJocedw
+	 YFfWxYLfBkkRQ==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
 	gregkh@linuxfoundation.org
@@ -47,14 +47,13 @@ Cc: Sasha Levin <sashal@kernel.org>,
 	vamsi-krishna.brahmajosyula@broadcom.com,
 	yin.ding@broadcom.com,
 	tapas.kundu@broadcom.com,
-	Yiming Qian <yimingqian591@gmail.com>,
 	Shivani Agarwal <shivani.agarwal@broadcom.com>
-Subject: Re: [PATCH v6.6-v6.1] netfilter: nf_tables: always walk all pending catchall elements
-Date: Sat, 20 Jun 2026 07:54:54 -0400
-Message-ID: <20260619.0004.reply@kernel.org>
+Subject: Re: [PATCH v6.1 0/3] Fix CVE-2026-23272
+Date: Sat, 20 Jun 2026 07:54:57 -0400
+Message-ID: <20260619.0009.reply@kernel.org>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260618083438.1269242-1-shivani.agarwal@broadcom.com>
-References: <20260618083438.1269242-1-shivani.agarwal@broadcom.com>
+In-Reply-To: <20260619092850.1274076-1-shivani.agarwal@broadcom.com>
+References: <20260619092850.1274076-1-shivani.agarwal@broadcom.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,10 +62,9 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> [PATCH v6.6-v6.1] netfilter: nf_tables: always walk all pending catchall
-> elements
+> [PATCH v6.1 0/3] Fix CVE-2026-23272
 
-This one didn't apply to either 6.6.y or 6.1.y.
+Queued the series for 6.1, thanks.
 
 -- 
 Thanks,
