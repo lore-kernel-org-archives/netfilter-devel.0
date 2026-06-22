@@ -1,49 +1,43 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D8E72222CC;
-	Sun, 21 Jun 2026 19:46:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB95D2F361B;
+	Mon, 22 Jun 2026 08:17:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782071187; cv=none; b=D50+sgC9uIEyZwNn2DumZhN/KdlFaPm9BOgVUVqQVYls4nH4Du0mbV1sS5P5K8n2nDc7oDosjS/t4EXO2D2gbzxBbp8Yl0i1oPzmAUionZSr5jfaHk9wCAIKNRBO9o582HJ85YJd8roIfNlhrB1nAFtjPQTSZ9gaLTibol7TAl8=
+	t=1782116227; cv=none; b=aY4aJOgrenKqGtdJFJAgbyO7O4U9XrRc/yJXJzJunCG0IDnsLe2iPWLbYCXfPa5Unx2g+ODyWodV3zbQfIOTUIsFv15Bbh4uyBfTE+UKBSbymdtOMmXUrPO9tDh5Z0FrC7Oj0Nu3m/5lqKe1h7WznfXAm/fWkfqBa1lKxqnbSns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782071187; c=relaxed/simple;
-	bh=xxQgs3U1LGxap9Zk6Rf/li0+QovKR6ZkFWJsXhF9kJY=;
+	s=arc-20240116; t=1782116227; c=relaxed/simple;
+	bh=c2dZi0Bc2nOEEZ6s1+fQRG2Pw1jPvKmPSDJwmFp60Fo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X53+BAYO0hUGOzKtXbOybqhx43qwpHKzgrx5U42d6eazPxGu8dgXbPTTCZW5jefPxIkkQ+JRMUFm+NPoJq9NQRMc2g7doTblzHaWITOWl5nsVfBLN4tIj5eD0YdedNNhmXi1ZQzcQunh2yRKLdDHJ25VWcfWArL2XdwMDZYBQ+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BXY+C2Tq; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=m78Z9dHuJyOYlefS7qKR42wBlFkCExlMsSCKMvhdmZnhr2w4RiD0V22qNruviX2GLCCw+PP9OZM63HW9OpsPB49DE6j7NOUPNVq7bdT9Py8wKV73dhQQDOQSchv/M1dYGhF4A7BG9tYWVSgYSWV6qXfatCLoed3GQtcISL0J8cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vMIheu57; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BXY+C2Tq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vMIheu57"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6A44B600B5;
-	Sun, 21 Jun 2026 21:46:21 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5A54560177;
+	Mon, 22 Jun 2026 10:16:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782071181;
-	bh=2RJCCs9Rni/4s1XKMzBHGfWg0+ybU5625IJdmGgJLfo=;
+	s=2025; t=1782116215;
+	bh=7gNwO8luEsfQj4kEiM/bb9V7zP/WYST8WewJgNqitcE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BXY+C2TqBy0FxIGDv3RvZO0Ygnb7q64EFWJKIAZdgzzcfVveMXq1UvdpwiK22DVIA
-	 VgGP7xKP465Db8n3AnHbq4Tf4AikmI6dNoOqPAjsLzUCnioEetQyPelqEqko3yLYhY
-	 fncPb/fO7NNCkGlWyuCVcAITHlIyjSJjrFbHCnZ5riEQHY/vs3ZzaKRzIoZlmfPDC0
-	 MUnzDRZKqzaq7SMUMeZfgFiVnnO5ip1YcF8bZVc6fcxzPvaPs0Xvxp60zhadvVG5Ty
-	 o8iBpQnkwAGGzbqtriZxyjpIxxalhULmoWDauYZkQ6PYfbN85gmesHdRbW424/3XUN
-	 oea3QMvltKvsQ==
-Date: Sun, 21 Jun 2026 21:46:19 +0200
+	b=vMIheu57AESyOkWUHc10YjKfoXBbbtNOT1YQM3guXlQ3sdi++VCPGyMkYd86ldfoZ
+	 fQdqv/Yu7APn7asxjb7BmhZ/83XZ2CNGbzv6ToQPD1dVSXSQAw74XMMk8B6oAviCli
+	 UM7k+agU93EYJ6o9gP3j/xLr48QcF9Q4phapZBspMCewaE0OhOm+lHH5jCJKmTIIP4
+	 1++Mr222jdHlaBAimfZ7IHis1M9tbKkBW+JSyazBRjlFwREo/YKplyXUrffv9OQby5
+	 /r85PFDi37ba1azQvyGu8GK1RKa17DEp6UZF2DZP1hgOnO8D3iQABIooaRXoJdyn+J
+	 cDgnJYnh2H0Pw==
+Date: Mon, 22 Jun 2026 10:16:52 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Kacper Kokot <kacper.kokot.44@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org, fmancera@suse.de,
-	fw@strlen.de, david.laight.linux@gmail.com,
-	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3] netfilter: TCPMSS: handle packets with
- unaligned MSS option
-Message-ID: <ajg_ix9JO3YCgujy@chamomile>
-References: <20260528223412.27311-1-kacper.kokot.44@gmail.com>
- <20260621184934.75832-1-kacper.kokot.44@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
+	horms@kernel.org
+Subject: Re: [PATCH net,v2 00/14] Netfilter fixes for net
+Message-ID: <ajjvdPUXkVNiBh6k@chamomile>
+References: <20260620222738.112506-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,130 +46,178 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260621184934.75832-1-kacper.kokot.44@gmail.com>
+In-Reply-To: <20260620222738.112506-1-pablo@netfilter.org>
 
-On Sun, Jun 21, 2026 at 07:49:33PM +0100, Kacper Kokot wrote:
-> RFC 9293 permits TCP options to begin on any octet boundary. Padding
-> to a word boundary with NOPs is a sender convention, not a requirement,
-> and robust receivers must handle unaligned options (MUST-64).
+Hi,
+
+Sashiko reports two issues, one in:
+
+- netfilter: flowtable: fix offloaded ct timeout never being extended
+  which is real for net/sched/act_ct.c, this was a preexisting issue,
+  we can follow up on it.
+
+- netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
+  I already planned to follow up on this and a few more subtle issues
+  (includeing one related patch I have withdrew because it is
+   incomplete).
+
+Please apply, thanks.
+
+On Sun, Jun 21, 2026 at 12:27:24AM +0200, Pablo Neira Ayuso wrote:
+> This is v2, dropping two patches that need a bit more work,
+> uncovered by sashiko. I have revisit the working of this cover
+> letter to refine it.
 > 
-> The xt_TCPMSS target's incremental checksum update assumes the MSS
-> option is word-aligned. When it's not, the modified bytes straddle
-> two checksum words and the resulting checksum is incorrect. The mangled
-> packet may then fail checksum validation and be dropped downstream.
-> That said, all mainstream stacks emit a word-aligned MSS, this change is
-> motivated by spec conformance rather than a bug observed in the wild.
+> -o-
 > 
-> Extend the checksum update to handle unaligned MSS options. When the
-> changed word is unaligned, the modified bytes b' and c' straddle two
-> checksum words w1 and w2:
-> 
->     | w1     | w2     |
-> OLD |  a  b  |  c  d  |
-> NEW |  a  b' |  c' d  |
-> 
-> The two-step update C' = C - w1 + w1' - w2 + w2' reduces algebraically
-> to a single word incremental checksum update with byteswapped operands:
-> 
->     C' = C - w1 - w2 + w1' + w2'
->        = C - (a * 2^8 + b)  - (c * 2^8 + d)
->            + (a * 2^8 + b') + (c' * 2^8 + d)
->        = C + 2^8 * (a - a + c' - c) + (b' - b + d - d)
->        = C + 2^8 * (c' - c) + (b' - b)
->        = C - (2^8 * c + b) + (2^8 * c' + b')
-> 
-> So the unaligned case adds no extra checksum operations.
-> 
-> Signed-off-by: Kacper Kokot <kacper.kokot.44@gmail.com>
-> ---
-> v3:
->  - Reframe as enhancement, not a fix (Pablo/Fernando)
->  - Rename subject to xt_TCPMSS, drop "fix" wording
->  - Reword commit message: packet may fail checksum validation and be
->    dropped downstream (Pablo)
->  - Target nf-next (Fernando)
->  - Use __be16 for csum_oldmss/csum_newmss (sparse warning from
->    kernel test robot)
->  - Reorder local variable declarations to reverse xmas tree (Fernando)
-> 
-> v2:
->  - Use get_unaligned_be16 (Fernando's suggestion)
->  - Fix alignment check expression (David)
->  - Mention it's a theoretical bug in the commit message
->  - Drop cc stable, the bug is only theoretical
-> 
-> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-> index 80e1634bc51f..037add799d41 100644
-> --- a/net/netfilter/xt_TCPMSS.c
-> +++ b/net/netfilter/xt_TCPMSS.c
-> @@ -116,9 +116,10 @@ tcpmss_mangle_packet(struct sk_buff *skb,
->  	opt = (u_int8_t *)tcph;
->  	for (i = sizeof(struct tcphdr); i <= tcp_hdrlen - TCPOLEN_MSS; i += optlen(opt, i)) {
->  		if (opt[i] == TCPOPT_MSS && opt[i+1] == TCPOLEN_MSS) {
-> +			__be16 csum_oldmss, csum_newmss;
->  			u_int16_t oldmss;
+> Hi,
 >  
-> -			oldmss = (opt[i+2] << 8) | opt[i+3];
-> +			oldmss = get_unaligned_be16(&opt[i + 2]);
+> The following patchset contains Netfilter fixes for net. This batches
+> fixes for real crashes with trivial/correctness fixes. There is too
+> a rework of the conntrack expectation timeout strategy to deal with
+> a possible race when removing an expectation.
 >  
->  			/* Never increase MSS, even when setting it, as
->  			 * doing so results in problems for hosts that rely
-> @@ -130,8 +131,25 @@ tcpmss_mangle_packet(struct sk_buff *skb,
->  			opt[i+2] = (newmss & 0xff00) >> 8;
->  			opt[i+3] = newmss & 0x00ff;
+> 1) Fix the incorrect flowtable timeout extension for entries in
+>    hw offload, from Adrian Bente. This is correcting a defect in
+>    the functionality, no crash.
 >  
-> +			csum_oldmss = htons(oldmss);
-> +			csum_newmss = htons(newmss);
-> +
-> +			if (((char *)&opt[i + 2] - (char *)tcph) & 0x1) {
-> +				/* MSS option is unaligned: the modified bytes
-> +				 * straddle two checksum words. Byteswapping
-> +				 * the operands lets a single incremental
-> +				 * update produce the correct checksum delta
-> +				 * (see commit message for the derivation).
-> +				 */
-> +				csum_oldmss = htons(swab16(oldmss));
-> +				csum_newmss = htons(swab16(newmss));
-> +			} else {
-> +				csum_oldmss = htons(oldmss);
-> +				csum_newmss = htons(newmss);
-> +			}
-
-After seeing this unaligned in other areas in the Netfilter tree, I am
-not sure it is worth to add workarounds everywhere in this codebase to
-deal with updates that span two 16-bits words for such a hypothetical
-case like this.
-
-By now, patches that call get_unaligned_be16() for correctness are OK
-IMO. This is to deal with arches which cannot cope with unaligned
-access. This will corrupt such rare packet but that it addresses the
-unaligned splats.
-
-If we start seeing real stacks which provide real unaligned access
-like this, maybe by then we can revisit.
-
-So I am leaning towards a small patches to introduce
-get_unaligned_be16() and document that this corrupts packets with such
-a rare unaligned TCP option.
-
-IIRC, x86_64 has a inet checksum function that can deal with 1-byte
-words, although other arches cannot do that and still need to
-operation with 16-bit words. Given Linux is multi-arch, this all need
-to stick to the 16-bit word arithmetics when mangling packets
-
-Maybe in the future all checksum functions in every arch are updated
-too to deal with 1-byte word updates, and maybe real stacks pop up
-with such a rare packets. But by then these ugly workaround won't be
-needed at all.
-
-> +
->  			inet_proto_csum_replace2(&tcph->check, skb,
-> -						 htons(oldmss), htons(newmss),
-> +						 csum_oldmss, csum_newmss,
->  						 false);
->  			return 0;
->  		}
-> -- 
-> 2.43.0
+> 2) Hold reference to device under the fake dst in br_netfilter,
+>    from Haoze Xie. This is fixing a possible UaF if the device
+>    is removed while packet is sitting in nfqueue.
+>  
+> 3) Reject template conntrack in xt_cluster, otherwise access to
+>    uninitialize conntrack fields are possible leading to WARN_ON
+>    due to unset layer 3 protocol. From Wyatt Feng.
+>  
+> 4) Make sure the IPv6 tunnel header is in the linear skb data
+>    area before pulling. While at it remove incomplete NEXTHDR_DEST
+>    support. From Lorenzo Bianconi. This possibly leading to crash
+>    if IPv4 header is not in the linear area.
+>  
+> 5) Use test_bit_acquire in ipset hash set to avoid reordering
+>    of subsequent memory access. This is addressing a LLM related
+>    report, no crash has been observed. From Jozsef Kadlecsik.
+>  
+> 6) Use test_bit_acquire in ipset bitmap set too, for the same
+>    reason as in the previous patch, from Jozsef Kadlecsik.
+>  
+> 7) Call kfree_rcu() after rcu_assign_pointer() to address a
+>    possible UaF if kfree_rcu() runs inmediately, which to my
+>    understanding never happens. Never observed in practise,
+>    reported by LLM. Also from Jozsef Kadlecsik.
 > 
+> 8) Use disable_delayed_work_sync() instead cancel_delayed_work_sync()
+>    to avoid that ipset GC handler re-queues work as reported by LLM.
+>    From Jozsef Kadlecsik. This is for correctness.
+>  
+> 9) Restore the check in nft_payload for exceeding payloda offset
+>     over 2^16. From Florian Westphal. This fixes a silent truncation,
+>     not a big deal, but better be assertive and reject it.
+>  
+> 10) Validate NFT_META_BRI_IIFHWADDR can only run from bridge
+>     prerouting. From Florian Westphal. Harmless but it could allow
+>     to read bytes from skb->cb.
+>  
+> 11) Zero out destination hardware address during the flowtable
+>     path setup, also from Florian. This is a correctness fix, LLM
+>     points that possible infoleak can happen but topology to achieve
+>     it is not clear.
+> 
+> 12) Skip IPv4 options if present when building the IPV4 reject reply.
+>     Otherwise bytes in the IPv4 options header can be sent back to
+>     origin where the ICMP header is being expected. Again from
+>     Florian Westphal.
+>  
+> 13) Replace timer API for expectation by GC worker approach. This
+>     is implicitly fixing a race between nf_ct_remove_expectations()
+>     which might fail to remove the expectation due to timer_del()
+>     returning false because timer has expired and callback is
+>     being run concurrently. This fix is addressing a crash that has
+>     been already reported with a reproducer.
+> 
+> 14) Check if br_vlan_get_pvid_rcu() fails, otherwise possible stack
+>     infoleak of 4-bytes. From Florian Westphal.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-06-21
+> 
+> Thanks.
+> 
+> ----------------------------------------------------------------
+> 
+> The following changes since commit 96e7f9122aae0ed000ee321f324b812a447906d9:
+> 
+>   eth: fbnic: take netif_addr_lock_bh() around rx mode address programming (2026-06-18 18:36:26 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-06-21
+> 
+> for you to fetch changes up to 27dd2997746d54ebc079bb13161cc1bdd401d4a6:
+> 
+>   netfilter: nft_meta_bridge: fix NFT_META_BRI_IIFPVID stack leak (2026-06-21 00:18:37 +0200)
+> 
+> ----------------------------------------------------------------
+> netfilter pull request 26-06-21
+> 
+> ----------------------------------------------------------------
+> Adrian Bente (1):
+>       netfilter: flowtable: fix offloaded ct timeout never being extended
+> 
+> Florian Westphal (5):
+>       netfilter: nft_payload: reject offsets exceeding 65535 bytes
+>       netfilter: nft_meta_bridge: add validate callback for get operations
+>       netfilter: nft_flow_offload: zero device address for non-ether case
+>       netfilter: nf_reject: skip iphdr options when looking for icmp header
+>       netfilter: nft_meta_bridge: fix NFT_META_BRI_IIFPVID stack leak
+> 
+> Haoze Xie (1):
+>       netfilter: nf_queue: pin bridge device while NFQUEUE holds fake dst
+> 
+> Jozsef Kadlecsik (4):
+>       netfilter: ipset: Don't use test_bit() in lockless RCU readers in hash types
+>       netfilter: ipset: Don't use test_bit() in lockless RCU readers in bitmap types
+>       netfilter: ipset: fix order of kfree_rcu() and rcu_assign_pointer()
+>       netfilter: ipset: make sure gc is properly stopped
+> 
+> Lorenzo Bianconi (1):
+>       netfilter: flowtable: fix and simplify IP6IP6 tunnel handling
+> 
+> Pablo Neira Ayuso (1):
+>       netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
+> 
+> Wyatt Feng (1):
+>       netfilter: xt_cluster: reject template conntracks in hash match
+> 
+>  include/net/netfilter/nf_conntrack_expect.h        |  16 ++-
+>  include/net/netfilter/nf_queue.h                   |   1 +
+>  include/net/netfilter/nft_meta.h                   |   2 +
+>  include/uapi/linux/netfilter/nf_conntrack_common.h |   1 +
+>  net/bridge/netfilter/nft_meta_bridge.c             |  23 +++-
+>  net/ipv4/netfilter/nf_reject_ipv4.c                |   2 +-
+>  net/ipv6/ip6_tunnel.c                              |   7 +
+>  net/netfilter/ipset/ip_set_bitmap_gen.h            |   4 +-
+>  net/netfilter/ipset/ip_set_bitmap_ip.c             |   2 +-
+>  net/netfilter/ipset/ip_set_bitmap_ipmac.c          |   2 +-
+>  net/netfilter/ipset/ip_set_bitmap_port.c           |   2 +-
+>  net/netfilter/ipset/ip_set_core.c                  |   4 +-
+>  net/netfilter/ipset/ip_set_hash_gen.h              |  12 +-
+>  net/netfilter/nf_conntrack_core.c                  |  33 ++++-
+>  net/netfilter/nf_conntrack_expect.c                | 145 ++++++++++-----------
+>  net/netfilter/nf_conntrack_h323_main.c             |   4 +-
+>  net/netfilter/nf_conntrack_helper.c                |  10 +-
+>  net/netfilter/nf_conntrack_netlink.c               |  22 ++--
+>  net/netfilter/nf_conntrack_sip.c                   |  13 +-
+>  net/netfilter/nf_flow_table_core.c                 |  13 +-
+>  net/netfilter/nf_flow_table_ip.c                   |  80 +++---------
+>  net/netfilter/nf_flow_table_path.c                 |   4 +-
+>  net/netfilter/nf_queue.c                           |  14 ++
+>  net/netfilter/nfnetlink_queue.c                    |   3 +
+>  net/netfilter/nft_ct.c                             |   3 +-
+>  net/netfilter/nft_meta.c                           |   5 +-
+>  net/netfilter/nft_payload.c                        |  16 ++-
+>  net/netfilter/xt_cluster.c                         |   2 +-
+>  .../selftests/net/netfilter/nft_flowtable.sh       |   8 +-
+>  29 files changed, 254 insertions(+), 199 deletions(-)
 > 
