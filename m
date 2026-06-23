@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E033C4563;
-	Tue, 23 Jun 2026 22:16:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7640F3C5DA1;
+	Tue, 23 Jun 2026 22:16:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782252971; cv=none; b=oAp3OPBZVzTW2yBZSUdNDWxZtIt7arcBYUrrU+fXQoy5TuTM+Fi25o48kxkKFjmoti2S6ugTSJw9qiAzUsM+Ft2Rd2TzC/PjTPTw3kcBIbaa2BMDLNWtIGEa6w+wknMVZCMzhCxyIcxujj95wXF39Vp0HXV/Zww4vG5tTenrFuU=
+	t=1782252972; cv=none; b=QXxJO52hbMgW2KpQ7rWTKhuEamPcEVUcArP3jcgRJAKAkXLyU9IbxZau1QejWIQ7DDKrevdNapCbr4hNA0A3Dv/a6fZlxqhpVM8eUPCS4p/1VGuM7MpVCRLquKtA2Thrd4AeCNfJDLdfLkUqpO3TRWn/UI+wKNEb8CpHvSYuFTA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782252971; c=relaxed/simple;
-	bh=qeJMbr71q5ZFr4xQofD3kRXveloFPuyf5oByNw4dsfo=;
+	s=arc-20240116; t=1782252972; c=relaxed/simple;
+	bh=J6P+u+7MgfcSrbwUnmeSyucjL8/8qGFurSZ/PRIoyZs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sTai2sWlA+quo3qohYIrrk4m3FfASBCFFAJsOg9UHIXum6gYiFKVqKLxVNhZxlUfoSuJ5L/YfOTAUDL2Iy2uxNXZGwmKYHcrvMmzOm76iMcf4SfxIMOmNAwEpNFklq187k9JuArtwd0CW1v4b6tJv6W9gA1qE/xLctchVC3921Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nwTn3Z4f; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=eL8Eo7YvO47BkdrK6HeG3M6aXRJdGHLyGM2QpXUtivJnGZcj6XxBQ9eORAuY6iSsFBi3X8M3v7v01F7pHVbOG+4KlWEdzFpVB1qPwnd2iAG9CsjVNfjblnQpw+7Qgh+ZhBSY7jPvpfwFqypHi9wcn5MomSTYJykOPNKpUOhMuIE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XiMG3BeE; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nwTn3Z4f"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XiMG3BeE"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A8D2D60584;
-	Wed, 24 Jun 2026 00:16:05 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6121060588;
+	Wed, 24 Jun 2026 00:16:09 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782252966;
-	bh=4gndbP0FGjKnXMGzg8NuaUFB/1Ulk6/PKEQ6YmEbJu4=;
+	s=2025; t=1782252969;
+	bh=mXGikmyIXAlYw6RpAUAMKdOgOY4BOMCTM004dM2AmXo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nwTn3Z4fPmOh4eTO6K+mAiPTzQhW1Wf1lA6lWTfL3r6G2Il4pYFIaKfiRudxrKfvr
-	 UWz7rqSXiyMySZ8vRpi2EBtZoZY3eLWqj0CPTEFEw/o4YJw11saCvkjhr0mAPUYcUG
-	 rCIDSzI71JCfZe4xOmHbzcFpK4FXJpjUT09aubAujuFeTl5m6Y1SnmXBbf3gpKNJGE
-	 aVYQV8/8S93m/RNaCZ5UmZmLq6hQsBomHDyYr3R35kSd0LkYXAh4BJ2l10pI4ctBgf
-	 UJFpeN/Hs/MAtXUBnixK7u/uSJwvs8+h6lHf8pIw1lcG8XQnHLZmLKq43e5gPmUMon
-	 CMnvrzwkfHJ6Q==
+	b=XiMG3BeE6/sQnkB93yLeOvbOgxTdOx9pngxI1WPPuwMKzSr+8dV43RSa+SKGdycN8
+	 M7C1P0cfX1MwqbiekeuU3prf/wwckG3GjiBMUvMEvx4k20+RJvDHpAYczl9jmahJ4k
+	 7SL8sMVRWJzmz+IpkKIpEfWvXfWdXLi66aENhP1vnWaW7d8nUvxY/lEjFkShXusj6+
+	 Eh/5v3jZRK1YVSqDGA+VDFUyECRhFlX0+QWYQPS+42UCux1lxRMCqMBbobl/4BbbKQ
+	 4MI5fFy8UWTUaLVM7b/6f18FLJ1T+jCxdiaqU3pcc9H4I9yasxXqc9W/Tqg2So+0zo
+	 rVKZsDUtmluSw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 10/14] netfilter: conntrack: add deprecation warnings for irc and pptp trackers
-Date: Wed, 24 Jun 2026 00:15:43 +0200
-Message-ID: <20260623221548.701545-11-pablo@netfilter.org>
+Subject: [PATCH net 13/14] netfilter: nft_ct: expectation timeouts are passed in milliseconds
+Date: Wed, 24 Jun 2026 00:15:46 +0200
+Message-ID: <20260623221548.701545-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260623221548.701545-1-pablo@netfilter.org>
 References: <20260623221548.701545-1-pablo@netfilter.org>
@@ -54,112 +54,81 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-IRC Direct client-to-client requires plaintext.  IRC over TLS should be
-preferred, making this helper ineffective.  Add a deprecation warning and
-update the help text to better reflect that this is needed for the DCC
-extension, not IRC itself.
+Userspace passes '5000' in case user asks for 5 seconds.
 
-PPTP is esoteric these days and it is the only helper that requires the
-destroy callback in the conntrack helper API.
+Allowing for sub-second expectation lifetimes makes sense to me. so
+fix up the kernel side instead of munging nft to send a value rounded
+up to next second.
 
-Removal would simplify the conntrack core.
+Also note that this violates nft convention of passing integers in
+network byte order, but we can't change this anymore.
 
-Both helpers are IPv4 only.
-
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_helper.h |  4 ++++
- net/netfilter/Kconfig                       | 11 ++++++-----
- net/netfilter/nf_conntrack_irc.c            |  2 ++
- net/netfilter/nf_conntrack_pptp.c           |  2 ++
- 4 files changed, 14 insertions(+), 5 deletions(-)
+ net/netfilter/nft_ct.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 81025101f86d..c761cd8158b2 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -114,6 +114,10 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int,
- void nf_conntrack_helpers_unregister(struct nf_conntrack_helper **,
- 				     unsigned int);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 958054dd2e2e..03a88c77e0f0 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1215,11 +1215,23 @@ struct nft_ct_expect_obj {
+ 	u32		timeout;
+ };
  
-+#define nf_conntrack_helper_deprecated(name) \
-+	pr_warn("The %s conntrack helper is scheduled for removal.\n"	\
-+		"Please contact the netfilter-devel mailing list if you still need this.\n", name)
++static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
++{
++	unsigned long jiffies_val = msecs_to_jiffies(nla_get_u32(attr));
 +
- struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
- 
- int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 665f8008cc4b..4c04cd8d40a2 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -256,8 +256,7 @@ config NF_CONNTRACK_H323
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_IRC
--	tristate "IRC protocol support"
--	default m if NETFILTER_ADVANCED=n
-+	tristate "IRC DCC protocol support (obsolete)"
- 	help
- 	  There is a commonly-used extension to IRC called
- 	  Direct Client-to-Client Protocol (DCC).  This enables users to send
-@@ -267,6 +266,8 @@ config NF_CONNTRACK_IRC
- 	  using NAT, this extension will enable you to send files and initiate
- 	  chats.  Note that you do NOT need this extension to get files or
- 	  have others initiate chats, or everything else in IRC.
-+	  DCC tracking behind NAT requires plaintext (unencrypted) IRC, so
-+	  this helper is of limited use these days.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-@@ -308,17 +309,17 @@ config NF_CONNTRACK_SNMP
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config NF_CONNTRACK_PPTP
--	tristate "PPtP protocol support"
-+	tristate "PPtP protocol support (deprecated)"
- 	depends on NETFILTER_ADVANCED
- 	select NF_CT_PROTO_GRE
- 	help
- 	  This module adds support for PPTP (Point to Point Tunnelling
- 	  Protocol, RFC2637) connection tracking and NAT.
- 
--	  If you are running PPTP sessions over a stateful firewall or NAT
-+	  If you are still running PPTP sessions over a stateful firewall or NAT
- 	  box, you may want to enable this feature.
- 
--	  Please note that not all PPTP modes of operation are supported yet.
-+	  Please note that not all PPTP modes of operation are supported.
- 	  Specifically these limitations exist:
- 	    - Blindly assumes that control connections are always established
- 	      in PNS->PAC direction. This is a violation of RFC2637.
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 0c117b8492e9..193ab34db795 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -262,6 +262,8 @@ static int __init nf_conntrack_irc_init(void)
++	if (jiffies_val > UINT_MAX)
++		return -ERANGE;
++
++	*val = jiffies_val;
++	return 0;
++}
++
+ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 				  const struct nlattr * const tb[],
+ 				  struct nft_object *obj)
  {
- 	int i, ret;
+ 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
++	int err;
  
-+	nf_conntrack_helper_deprecated(HELPER_NAME);
+ 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
+ 	    !tb[NFTA_CT_EXPECT_DPORT] ||
+@@ -1254,8 +1266,11 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	err = nft_ct_expect_timeout_get(tb[NFTA_CT_EXPECT_TIMEOUT], &priv->timeout);
++	if (err)
++		return err;
 +
- 	if (max_dcc_channels < 1) {
- 		pr_err("max_dcc_channels must not be zero\n");
- 		return -EINVAL;
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 776505a78e64..80fc14c87ddc 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -545,6 +545,8 @@ static int __init nf_conntrack_pptp_init(void)
+ 	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
+-	priv->timeout = nla_get_u32(tb[NFTA_CT_EXPECT_TIMEOUT]);
+ 	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
  
- 	pptp.destroy = gre_pptp_destroy_siblings;
+ 	return nf_ct_netns_get(ctx->net, ctx->family);
+@@ -1275,7 +1290,7 @@ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
+ 	if (nla_put_be16(skb, NFTA_CT_EXPECT_L3PROTO, htons(priv->l3num)) ||
+ 	    nla_put_u8(skb, NFTA_CT_EXPECT_L4PROTO, priv->l4proto) ||
+ 	    nla_put_be16(skb, NFTA_CT_EXPECT_DPORT, priv->dport) ||
+-	    nla_put_u32(skb, NFTA_CT_EXPECT_TIMEOUT, priv->timeout) ||
++	    nla_put_u32(skb, NFTA_CT_EXPECT_TIMEOUT, jiffies_to_msecs(priv->timeout)) ||
+ 	    nla_put_u8(skb, NFTA_CT_EXPECT_SIZE, priv->size))
+ 		return -1;
  
-+	nf_conntrack_helper_deprecated(pptp.name);
-+
- 	return nf_conntrack_helper_register(&pptp, &pptp_ptr);
- }
+@@ -1325,7 +1340,7 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
+ 		          &ct->tuplehash[!dir].tuple.src.u3,
+ 		          &ct->tuplehash[!dir].tuple.dst.u3,
+ 		          priv->l4proto, NULL, &priv->dport);
+-	exp->timeout += priv->timeout * HZ;
++	exp->timeout += priv->timeout;
  
+ 	if (nf_ct_expect_related(exp, 0) != 0)
+ 		regs->verdict.code = NF_DROP;
 -- 
 2.47.3
 
