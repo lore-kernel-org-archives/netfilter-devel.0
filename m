@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEE46369D65
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2026 05:46:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 747E23446A7
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2026 05:46:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782193604; cv=none; b=sWop4ruehmPtYFK6iXX4MAIiVZRsK4S+Hi4xkb6wJZeR5i/fXN5CS42itTG/bg0TglwVabYvaNONZSa6qp6ErBGDarafkWvxFk+0tZzoiGUu37LJ08SNUrtPDErjDppi3WQmjDVBWjmItZd02CzATN/4Wl8Lji+vjl9hIEQF654=
+	t=1782193604; cv=none; b=sF0g2OIVCBzkah4MDTKLOrczIOyUqb4SpQV6xH/FsXOJcRaB3vl06wZoCDz9lm2Zgkdv+Plwr52T3AhFayLcn1pH+aC8gHbTnEwz3yOjt5VxfLf/RJAbOr61RhcV5qrZwbOEUPmhRbGSdZ4VaJYlJEOoP0b2c0CSLaZndym/ysA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1782193604; c=relaxed/simple;
-	bh=thxankseAyvoCnZfzBzW+4sqmtHFw2hSASAWtisq7RE=;
+	bh=zHBuTbzZW550waKC4ZsA98k1TkJdP/ptGqw4k54JOH4=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SXbY86lWE+O8qpX6bfDxnHU/TsLsZhzUA67/JE5zeD07ucKmvLLUU/mGM80uNRS33IYW74uuAY5GSqA5tGVjpsJl/Hx9o09nLXtFjp+l7N2NhoW0mvwh126y3hPhF6MNjshoeCK51ejiDjxMsVkMzt1WoUsRDuNdV8tMXPmOj34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Vt0KiXo9; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=e37NYjcwBPI/D1AJ4kCrie6k5uHhT6h7+tOkZTuRW50pFX+MHuXzTMepIZay4uF6w4Q5zgr1SGLSEpX88APNKcpGx77In6wGKxS9a5/JsDcxTH8+qJ+857nACsTfzE4EBznXc8ZWAXACT0H/c45prJ9AMH33x4rz6LwM+7UTOBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=c+z86n0v; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Vt0KiXo9"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="c+z86n0v"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 18584605A3
+	by mail.netfilter.org (Postfix) with ESMTPSA id E1C1C605A4
 	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2026 07:46:41 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782193601;
-	bh=HzRuzPeA6yK+qaJ23cYFaU6R3YWkc8pLHMEQWYD6Bmo=;
+	s=2025; t=1782193602;
+	bh=uKp5wqKqB/EWJ0RmjGU8fyXBLZc0C9RUly+BAL4EX+w=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=Vt0KiXo9mOoJ0CO+FUIKxG6z1sbqWQfQ6Bx2Th6zxq7PREEv913na3XnMRZwQ8OVm
-	 VEMOdhOawPTj9u5eQ2aWsEGyWXcW4hPfqLXlqhJMolwzzpzHjZH8y2H47ZlWZF5/0D
-	 h7zmail57ZyNrZqZcIS8r3qurv2D1Amb6bJ1uBAlU0Zq2P7bPdkbnvIM2if1Cc9sO+
-	 NhDjDzSRr6F6E0BzQ0hGYY3eRrWLCtEmW5tRsHmJJMTfbU0oYvQBrlV49rnYAFoCYh
-	 78xO6fcjdAo2SsluqzmqPNsjkh9Mtp+Swqy3GcyFi/78kZPOja81MLRsU90kQi0fK+
-	 SCJB5BHpjJ/3Q==
+	b=c+z86n0vAAweno63NLm9oHiNpDOgfiEhbSMDnHNJ8fHMGS9UQEGyi76Sq/aCpuxss
+	 GtmyfmUF+RGimYJLw8PaHNXTC/zeSmr4krrzVwdm9Gy9ORfDNHUMU8bTR/25mv+oJW
+	 S8U8IiXnhlfKwjLzGK82lgzo5BL+Hc1SdLjZc6FZF/rqr5cZYqtSOFpfJed1wJJ1c9
+	 WedLQrkZHfM/EEozB8P4chjoZxyYa8E36xy74DS6iu4BTe6c8VEMW11anv3EsuHJlD
+	 8YU8xchzoX1EvVAxV0FwIDdOrMKM2KnHluziAy1439bxhThKz4ZzqrF/QRtK2hzttA
+	 NTFJ4QXug2rtQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v1 3/4] netfilter: nf_conntrack_expect: run expectation eviction with no helper
-Date: Tue, 23 Jun 2026 07:46:34 +0200
-Message-ID: <20260623054635.335065-3-pablo@netfilter.org>
+Subject: [PATCH nf,v1 4/4] netfilter: nf_conntrack_helper: cap maximum number of expectation at helper registration
+Date: Tue, 23 Jun 2026 07:46:35 +0200
+Message-ID: <20260623054635.335065-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260623054635.335065-1-pablo@netfilter.org>
 References: <20260623054635.335065-1-pablo@netfilter.org>
@@ -45,38 +45,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Run expectation eviction if no helper is specified to deal with the
-nft_ct expectation support.
+On helper registration, the maximum number of expectations cannot go over
+NF_CT_EXPECT_MAX_CNT (255), but zero can be specified then
+nf_conntrack_expect_max applies. Turn zero into NF_CT_EXPECT_MAX_CNT
+otherwise, expectation LRU eviction on insertion is disabled.
 
-Cap the maximum expectation limit per master conntrack to
-NF_CT_EXPECT_MAX_CNT (255).
+Moreover, expand this sanity check all expectation classes.
 
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
+This max_expecy policy is only tunable since userspace helpers are
+available, set Fixes: tag to the commit that adds such infrastructure.
+
+Remove the check for p->max_expected given this field must always
+be non-zero after this patch.
+
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v1: resend to let sashiko pick in with this batch.
 
- net/netfilter/nf_conntrack_expect.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nf_conntrack_expect.c | 3 +--
+ net/netfilter/nf_conntrack_helper.c | 9 +++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 9454913e1b33..113bb1cb1683 100644
+index 113bb1cb1683..38630c5e006f 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
-@@ -499,6 +499,13 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
- 		if (p->max_expected &&
- 		    master_help->expecting[expect->class] >= p->max_expected)
+@@ -496,8 +496,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 					   lockdep_is_held(&nf_conntrack_expect_lock));
+ 	if (helper) {
+ 		p = &helper->expect_policy[expect->class];
+-		if (p->max_expected &&
+-		    master_help->expecting[expect->class] >= p->max_expected)
++		if (master_help->expecting[expect->class] >= p->max_expected)
  			evict_oldest_expect(master_help, expect, p);
-+	} else {
-+		const struct nf_conntrack_expect_policy default_exp_policy = {
-+			.max_expected = NF_CT_EXPECT_MAX_CNT,
-+		};
-+
-+		if (master_help->expecting[expect->class] >= default_exp_policy.max_expected)
-+			evict_oldest_expect(master_help, expect, &default_exp_policy);
- 	}
+ 	} else {
+ 		const struct nf_conntrack_expect_policy default_exp_policy = {
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 8b94001c2430..a7fffe26b830 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -374,8 +374,13 @@ int __nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ 	if (!nf_ct_helper_hash)
+ 		return -ENOENT;
  
- 	cnet = nf_ct_pernet(net);
+-	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
+-		return -EINVAL;
++	for (i = 0; i < me->expect_class_max; i++) {
++		if (!me->expect_policy[i].max_expected)
++			me->expect_policy[i].max_expected = NF_CT_EXPECT_MAX_CNT;
++
++		if (me->expect_policy[i].max_expected > NF_CT_EXPECT_MAX_CNT)
++			return -EINVAL;
++	}
+ 
+ 	mutex_lock(&nf_ct_helper_mutex);
+ 	for (i = 0; i < nf_ct_helper_hsize; i++) {
 -- 
 2.47.3
 
