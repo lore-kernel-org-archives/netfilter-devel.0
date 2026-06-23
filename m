@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6CC3C3420;
-	Tue, 23 Jun 2026 22:16:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429302EEE7A;
+	Tue, 23 Jun 2026 22:16:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782252964; cv=none; b=IczGiYeb4TUQbdFj4rfJifRXkf5mJQES0A6hnXAtZGHlYnEYtjCsefqO+wHnjoVSw0rCqmthAVKNfRVk0u/rqSRIeweb6uCkqG/Xu0sQd5Of9RfVyQflSQUZFvDCGy/16m0zObZCUNpuZD5ISwmyfA8Wck17+H3vQcG8X36ju2I=
+	t=1782252966; cv=none; b=d9WQw3ws1+eIAWlKs4ERVo5qEbXceG7Wl2YWe+aBewhMJA0oDuPi4T2q2ScVlUQzyU2TboArE8WTBb2zFCS4Z2rWtNEPXTxWUvLYOb3gXjZsKVxhleMAAiTWAzuL7Tvn1A+WOjkuhSQbuxt5oPBpYSRD0ta73+eyA1V1JhS5Gm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782252964; c=relaxed/simple;
-	bh=HYUOQFonUuWFMG/BI/EzRBzJgSvF8n4BbnifmapHPD0=;
+	s=arc-20240116; t=1782252966; c=relaxed/simple;
+	bh=ynRKfDMhgcoZRx3+yqyFiu9qzTBJcXNBKVKzDp0hlHA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qM9G4IR9Ko5KyMdGX12jpOYzwRBrsmRBq3Zx2weD1zOgLripz4yORnqz57FjrOP0ZoiGChEAL3lgSwm9x6JmsIXqZsKtWD4ErbM/B0SxxMZ5oKDdFbwogDn+XN7O9ZDRBuTHtra/eNIJNT4zXoUU5EcdeH2u8DdXTGgAbofqllY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gRXGvn+Z; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=c/TLNm0980rrerk3x9DuXCpk23GxOuVzakVJOHWWsVKutiiQCeSTTAcbwPyJkjO3cEfKNO5OIuHUxBRdSw4EzMyUuNRRHrbx3xUFtUGQCgBUN+hQRg9UuhzT0275jrNZcBbWSmq5QuP4YzuZirpbCbDoOaSl4KxFc5MFsaxCjyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SoQ7u4HW; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gRXGvn+Z"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SoQ7u4HW"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5BEC96057D;
-	Wed, 24 Jun 2026 00:16:00 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D93F960580;
+	Wed, 24 Jun 2026 00:16:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782252960;
-	bh=jZVNa5FZZI+MyLjGZHFdxNW9nVmU+T4Xpuu7S8Q6noA=;
+	s=2025; t=1782252962;
+	bh=1rPtxmocEhvqPiU0H3vJyzJF55/SrpvG7Ce1UvyAuTg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gRXGvn+ZGsDg/h+vphowcXA213+HuLSCwAQla3Fqb4ivfkSIRSc3GfwyzVG18o3X5
-	 Fcg/hBPHAcp+mIj/2mjv5xgOTt2v7inKINUnMrN/SeL0NGsNb528Ky+0peM1Xy5WIo
-	 xCMO1SO0hw8MMfqyB/rJNv9P2rgnk24rjypKk8tZnV35QfiKg2e8BnQGxtCJT0Q+cD
-	 qX1LtzrXfKwWCnedlkleHkJfUYbwWo/Cb6jEDTo2lP2uc9dfMd18SGT7IWID3XzrWo
-	 UlS+rQBAcK9VLWvZI+FcHzxIu+Hn3unakuS93lYCQgmRbzcG8HWFmFle1/YMERJul1
-	 p0J0uTLSFCocA==
+	b=SoQ7u4HWTCRIoKNkng/FEiB3UC/Bifddjv8B65bxRv3MM9lQI7msU28bcGi0KkFS7
+	 3Ktvt4zdO1yD7EXN75KdXHTcv09M2W1pWA6grA5GQW+LS4mbBNdyJCljNRpNIDCXu3
+	 1hnprb7vEWkC5ZC5JAv9iYbwlWFYIdLVmc+8hNEZ8YO3+2VMXX7JTPzHm1h7tfrF6W
+	 NYO7vcCRnYNw4gnzaM5mB3VwmDL5fLoWKff7N2QeF/fo48wtWsD1wKUhmpcu4ajmgi
+	 m82RIh2EBCC7LGPVQHgi1nHNs4lXM8WC7zaVFbm+6OL4GVy1KgdkW+NwmgydEFSI6C
+	 LBOzDfWeh+99Q==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/14] selftests: netfilter: conntrack_sctp_collision.sh: Introduce SCTP INIT collision test
-Date: Wed, 24 Jun 2026 00:15:39 +0200
-Message-ID: <20260623221548.701545-7-pablo@netfilter.org>
+Subject: [PATCH net 07/14] netfilter: nft_compat: ebtables emulation must reject non-bridge targets
+Date: Wed, 24 Jun 2026 00:15:40 +0200
+Message-ID: <20260623221548.701545-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260623221548.701545-1-pablo@netfilter.org>
 References: <20260623221548.701545-1-pablo@netfilter.org>
@@ -52,176 +52,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yi Chen <yiche.cy@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-The existing test covered a scenario where a delayed INIT_ACK chunk
-updates the vtag in conntrack after the association has already been
-established.
+xtables targets return netfilter verdicts: NF_ACCEPT, NF_DROP, and so
+on.  ebtables targets return incompatible verdicts: EBT_ACCEPT,
+EBT_DROP, ...   We cannot allow fallback to NFPROTO_UNSPEC.
 
-A similar issue can occur with a delayed SCTP INIT chunk.
+ebtables doesn't permit this since
+11ff7288beb2 ("netfilter: ebtables: reject non-bridge targets")
+but that commit missed the nft_compat layer.
 
-Add a new simultaneous-open test case where the client's INIT is
-delayed, allowing conntrack to establish the association based on
-the server-initiated handshake.
-
-When the stale INIT arrives later, it may get recorded and cause a
-following INIT_ACK from the peer to be accepted instead of dropped.
-This INIT_ACK overwrites the vtag in conntrack, causing subsequent
-SCTP DATA chunks to be considered as invalid and then dropped by
-nft rules matching on ct state invalid.
-
-This test verifies such stale INIT chunks do not cause problems.
-
-Signed-off-by: Yi Chen <yiche.cy@gmail.com>
-Acked-by: Xin Long <lucien.xin@gmail.com>
+Reported-by: Ren Wei <n05ec@lzu.edu.cn>
+Reported-by: Wyatt Feng <bronzed_45_vested@icloud.com>
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Zhengchuan Liang <zcliangcn@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../net/netfilter/conntrack_sctp_collision.sh | 89 ++++++++++++++-----
- 1 file changed, 67 insertions(+), 22 deletions(-)
+ net/netfilter/nft_compat.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_sctp_collision.sh b/tools/testing/selftests/net/netfilter/conntrack_sctp_collision.sh
-index d860f7d9744b..7261975957ef 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_sctp_collision.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_sctp_collision.sh
-@@ -2,18 +2,32 @@
- # SPDX-License-Identifier: GPL-2.0
- #
- # Testing For SCTP COLLISION SCENARIO as Below:
--#
-+# 1. Stale INIT_ACK capture:
- #   14:35:47.655279 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT] [init tag: 2017837359]
- #   14:35:48.353250 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT] [init tag: 1187206187]
- #   14:35:48.353275 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT ACK] [init tag: 2017837359]
- #   14:35:48.353283 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [COOKIE ECHO]
- #   14:35:48.353977 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [COOKIE ACK]
- #   14:35:48.855335 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT ACK] [init tag: 164579970]
-+#   (Delayed)
-+#
-+# 2. Stale INIT capture:
-+#   14:35:48.353250 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT] [init tag: 1187206187]
-+#   14:35:48.353275 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT ACK] [init tag: 2017837359]
-+#   14:35:48.353283 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [COOKIE ECHO]
-+#   14:35:48.353977 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [COOKIE ACK]
-+#   14:35:47.655279 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT] [init tag: 2017837359]
-+#   (Delayed)
-+#   14:35:48.855335 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT ACK] [init tag: 164579970]
- #
- # TOPO: SERVER_NS (link0)<--->(link1) ROUTER_NS (link2)<--->(link3) CLIENT_NS
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 0caa9304d2d0..63864b928259 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -397,6 +397,22 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 	return 0;
+ }
  
- source lib.sh
- 
-+checktool "nft --version" "run test without nft"
-+checktool "tc -h" "run test without tc"
-+checktool "modprobe -q sctp" "load sctp module"
++static int nft_target_bridge_validate(const struct nft_ctx *ctx,
++				      const struct nft_expr *expr)
++{
++	struct xt_target *target = expr->ops->data;
 +
- CLIENT_IP="198.51.200.1"
- CLIENT_PORT=1234
- 
-@@ -24,7 +38,8 @@ CLIENT_GW="198.51.200.2"
- SERVER_GW="198.51.100.2"
- 
- # setup the topo
--setup() {
-+topo_setup() {
-+	# setup_ns cleans up existing net namespaces first.
- 	setup_ns CLIENT_NS SERVER_NS ROUTER_NS
- 	ip -n "$SERVER_NS" link add link0 type veth peer name link1 netns "$ROUTER_NS"
- 	ip -n "$CLIENT_NS" link add link3 type veth peer name link2 netns "$ROUTER_NS"
-@@ -38,35 +53,53 @@ setup() {
- 	ip -n "$ROUTER_NS" addr add $SERVER_GW/24 dev link1
- 	ip -n "$ROUTER_NS" addr add $CLIENT_GW/24 dev link2
- 	ip net exec "$ROUTER_NS" sysctl -wq net.ipv4.ip_forward=1
-+	sysctl -wq net.netfilter.nf_log_all_netns=1
- 
- 	ip -n "$CLIENT_NS" link set link3 up
- 	ip -n "$CLIENT_NS" addr add $CLIENT_IP/24 dev link3
- 	ip -n "$CLIENT_NS" route add $SERVER_IP dev link3 via $CLIENT_GW
++	/* Do not allow UNSPEC to stand-in for NFPROTO_BRIDGE
++	 * targets: they are incompatible.  ebtables targets return
++	 * EBT_ACCEPT, DROP and so on which are not compatible with
++	 * NF_ACCEPT, NF_DROP and so on.
++	 */
++	if (target->family != NFPROTO_BRIDGE)
++		return -ENOENT;
++
++	return nft_target_validate(ctx, expr);
 +}
 +
-+conf_delay()
-+{
-+	# simulate the delay on OVS upcall by setting up a delay for INIT_ACK/INIT with
-+	local ns=$1
-+	local link=$2
-+	local chunk_type=$3
+ static void __nft_match_eval(const struct nft_expr *expr,
+ 			     struct nft_regs *regs,
+ 			     const struct nft_pktinfo *pkt,
+@@ -932,13 +948,15 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	ops->init = nft_target_init;
+ 	ops->destroy = nft_target_destroy;
+ 	ops->dump = nft_target_dump;
+-	ops->validate = nft_target_validate;
+ 	ops->data = target;
  
--	# simulate the delay on OVS upcall by setting up a delay for INIT_ACK with
--	# tc on $SERVER_NS side
--	tc -n "$SERVER_NS" qdisc add dev link0 root handle 1: htb r2q 64
--	tc -n "$SERVER_NS" class add dev link0 parent 1: classid 1:1 htb rate 100mbit
--	tc -n "$SERVER_NS" filter add dev link0 parent 1: protocol ip u32 match ip protocol 132 \
--		0xff match u8 2 0xff at 32 flowid 1:1
--	if ! tc -n "$SERVER_NS" qdisc add dev link0 parent 1:1 handle 10: netem delay 1200ms; then
-+	# use a smaller number for assoc's max_retrans to reproduce the issue
-+	ip net exec "$CLIENT_NS" sysctl -wq net.sctp.association_max_retrans=3
-+
-+	tc -n "$ns" qdisc add dev "$link" root handle 1: htb r2q 64
-+	tc -n "$ns" class add dev "$link" parent 1: classid 1:1 htb rate 100mbit
-+	tc -n "$ns" filter add dev "$link" parent 1: protocol ip \
-+		u32 match ip protocol 132 0xff match u8 "$chunk_type" 0xff at 32 flowid 1:1
-+	if ! tc -n "$ns" qdisc add dev "$link" parent 1:1 handle 10: netem delay 1200ms; then
- 		echo "SKIP: Cannot add netem qdisc"
--		exit $ksft_skip
-+		return $ksft_skip
- 	fi
- 
- 	# simulate the ctstate check on OVS nf_conntrack
--	ip net exec "$ROUTER_NS" iptables -A FORWARD -m state --state INVALID,UNTRACKED -j DROP
--	ip net exec "$ROUTER_NS" iptables -A INPUT -p sctp -j DROP
--
--	# use a smaller number for assoc's max_retrans to reproduce the issue
--	modprobe -q sctp
--	ip net exec "$CLIENT_NS" sysctl -wq net.sctp.association_max_retrans=3
-+	ip net exec "$ROUTER_NS" nft -f - <<-EOF
-+	table ip t {
-+		chain forward {
-+			type filter hook forward priority filter; policy accept;
-+			meta l4proto icmp counter accept
-+			ct state new counter accept
-+			ct state established,related counter accept
-+			ct state invalid log flags all counter drop comment \
-+			"Expect to drop stale INIT/INIT_ACK chunks"
-+			counter
-+		}
+-	if (family == NFPROTO_BRIDGE)
++	if (family == NFPROTO_BRIDGE) {
+ 		ops->eval = nft_target_eval_bridge;
+-	else
++		ops->validate = nft_target_bridge_validate;
++	} else {
+ 		ops->eval = nft_target_eval_xt;
++		ops->validate = nft_target_validate;
 +	}
-+	EOF
-+	return 0
- }
  
- cleanup() {
--	ip net exec "$CLIENT_NS" pkill sctp_collision >/dev/null 2>&1
--	ip net exec "$SERVER_NS" pkill sctp_collision >/dev/null 2>&1
-+	# cleanup_all_ns terminates running processes in the namespaces.
- 	cleanup_all_ns
-+	sysctl -wq net.netfilter.nf_log_all_netns=0
- }
- 
- do_test() {
-@@ -81,7 +114,19 @@ do_test() {
- 
- # run the test case
- trap cleanup EXIT
--setup && \
--echo "Test for SCTP Collision in nf_conntrack:" && \
--do_test && echo "PASS!"
--exit $?
-+
-+echo "Test for SCTP INIT_ACK Collision in nf_conntrack:"
-+topo_setup || exit $?
-+conf_delay $SERVER_NS link0 2 || exit $?
-+
-+if ! do_test; then
-+	exit $ksft_fail
-+fi
-+
-+echo "Test for SCTP INIT Collision in nf_conntrack:"
-+topo_setup || exit $?
-+conf_delay $CLIENT_NS link3 1 || exit $?
-+
-+if ! do_test; then
-+	exit $ksft_fail
-+fi
+ 	return ops;
+ err:
 -- 
 2.47.3
 
