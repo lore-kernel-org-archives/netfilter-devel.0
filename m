@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7640F3C5DA1;
-	Tue, 23 Jun 2026 22:16:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C95B3C9893;
+	Tue, 23 Jun 2026 22:16:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782252972; cv=none; b=QXxJO52hbMgW2KpQ7rWTKhuEamPcEVUcArP3jcgRJAKAkXLyU9IbxZau1QejWIQ7DDKrevdNapCbr4hNA0A3Dv/a6fZlxqhpVM8eUPCS4p/1VGuM7MpVCRLquKtA2Thrd4AeCNfJDLdfLkUqpO3TRWn/UI+wKNEb8CpHvSYuFTA=
+	t=1782252977; cv=none; b=LJdaMVgoqOww43+K+3yKAWl4nzhWiy7NbdKg7BOZ20j/mBRVXiY8SIRNg0Dx6XOFtWkgRrxqBjcpfKa9oNa6ntUETXNW6PKeSpX/i/S2i1CDoRCRT4iwBeeKGfVpRsQmystFab3GFIRrk1eVVeA4QYAYisOYQuMn4O+d6bbdPn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782252972; c=relaxed/simple;
-	bh=J6P+u+7MgfcSrbwUnmeSyucjL8/8qGFurSZ/PRIoyZs=;
+	s=arc-20240116; t=1782252977; c=relaxed/simple;
+	bh=aA431i9XHRwdlz8EXIoj3qjcwhsOtUVntti4s7Sj03g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eL8Eo7YvO47BkdrK6HeG3M6aXRJdGHLyGM2QpXUtivJnGZcj6XxBQ9eORAuY6iSsFBi3X8M3v7v01F7pHVbOG+4KlWEdzFpVB1qPwnd2iAG9CsjVNfjblnQpw+7Qgh+ZhBSY7jPvpfwFqypHi9wcn5MomSTYJykOPNKpUOhMuIE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XiMG3BeE; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=uN93MToZ5yyoDXPqNFNmbhpWa9f+G6dZRNAf1cpnQ7OMnUZQjIaot/RMszeHrx77BqEVRlUutXobas0w61ZEPPtQf29deBJiI3rObiGsytpT7K+FP6/I1z2yx95hZG8T0I+hrfGKYyGU5IVSzPFejCxluCjrDuvGCgtFDiXZbcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W6HL6ici; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XiMG3BeE"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W6HL6ici"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6121060588;
-	Wed, 24 Jun 2026 00:16:09 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9632D60578;
+	Wed, 24 Jun 2026 00:16:10 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782252969;
-	bh=mXGikmyIXAlYw6RpAUAMKdOgOY4BOMCTM004dM2AmXo=;
+	s=2025; t=1782252971;
+	bh=8VfnkJwQXW/HFVNgcjfeUuskYH2HnWdXcjQVzz2LOa8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XiMG3BeE6/sQnkB93yLeOvbOgxTdOx9pngxI1WPPuwMKzSr+8dV43RSa+SKGdycN8
-	 M7C1P0cfX1MwqbiekeuU3prf/wwckG3GjiBMUvMEvx4k20+RJvDHpAYczl9jmahJ4k
-	 7SL8sMVRWJzmz+IpkKIpEfWvXfWdXLi66aENhP1vnWaW7d8nUvxY/lEjFkShXusj6+
-	 Eh/5v3jZRK1YVSqDGA+VDFUyECRhFlX0+QWYQPS+42UCux1lxRMCqMBbobl/4BbbKQ
-	 4MI5fFy8UWTUaLVM7b/6f18FLJ1T+jCxdiaqU3pcc9H4I9yasxXqc9W/Tqg2So+0zo
-	 rVKZsDUtmluSw==
+	b=W6HL6iciUkQedLDsERjpIYM8Bri4Xexj1/vg4VYpvNZ95XXYLAiQRhhnkAPKHHVYZ
+	 a7qm/m+pCsWTjvYp69E8AWxXDN50N+mtC69PN7JDaz0LGAsL1vDI3jTwKTyIabzHAH
+	 RaX3pLbnOVB1X90yaFgJmiaDSezIOssl2LFR7Cvw2zwzoutdB/wM5/Kj7rATQeZTmx
+	 AU2U7SlHYy3UWYm2Eu+IxbPtSLM2ByUJFELmXJutU+cMjy5kQ/1IKG3l+/z6FlK5dJ
+	 hIfVb2gfkdYxQ0GBT4VXfV0fE8jJmRBUo/4S+QGSfZf0YNLSW2RrFZpLnuLt9Zn1FE
+	 FQe/bAnob+SMg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 13/14] netfilter: nft_ct: expectation timeouts are passed in milliseconds
-Date: Wed, 24 Jun 2026 00:15:46 +0200
-Message-ID: <20260623221548.701545-14-pablo@netfilter.org>
+Subject: [PATCH net 14/14] netfilter: nf_conntrack_helper: cap maximum number of expectation at helper registration
+Date: Wed, 24 Jun 2026 00:15:47 +0200
+Message-ID: <20260623221548.701545-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260623221548.701545-1-pablo@netfilter.org>
 References: <20260623221548.701545-1-pablo@netfilter.org>
@@ -52,83 +52,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+On helper registration, the maximum number of expectations cannot go over
+NF_CT_EXPECT_MAX_CNT (255), but zero can be specified then
+nf_conntrack_expect_max applies. Turn zero into NF_CT_EXPECT_MAX_CNT
+otherwise, expectation LRU eviction on insertion is disabled.
 
-Userspace passes '5000' in case user asks for 5 seconds.
+Moreover, expand this sanity check all expectation classes.
 
-Allowing for sub-second expectation lifetimes makes sense to me. so
-fix up the kernel side instead of munging nft to send a value rounded
-up to next second.
+This max_expecy policy is only tunable since userspace helpers are
+available, set Fixes: tag to the commit that adds such infrastructure.
 
-Also note that this violates nft convention of passing integers in
-network byte order, but we can't change this anymore.
+Remove the check for p->max_expected given this field must always
+be non-zero after this patch.
 
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_ct.c | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_expect.c | 3 +--
+ net/netfilter/nf_conntrack_helper.c | 9 +++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 958054dd2e2e..03a88c77e0f0 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1215,11 +1215,23 @@ struct nft_ct_expect_obj {
- 	u32		timeout;
- };
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 113bb1cb1683..38630c5e006f 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -496,8 +496,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 					   lockdep_is_held(&nf_conntrack_expect_lock));
+ 	if (helper) {
+ 		p = &helper->expect_policy[expect->class];
+-		if (p->max_expected &&
+-		    master_help->expecting[expect->class] >= p->max_expected)
++		if (master_help->expecting[expect->class] >= p->max_expected)
+ 			evict_oldest_expect(master_help, expect, p);
+ 	} else {
+ 		const struct nf_conntrack_expect_policy default_exp_policy = {
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 8b94001c2430..500509b17663 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -374,8 +374,13 @@ int __nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ 	if (!nf_ct_helper_hash)
+ 		return -ENOENT;
  
-+static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
-+{
-+	unsigned long jiffies_val = msecs_to_jiffies(nla_get_u32(attr));
+-	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
+-		return -EINVAL;
++	for (i = 0; i <= me->expect_class_max; i++) {
++		if (!me->expect_policy[i].max_expected)
++			me->expect_policy[i].max_expected = NF_CT_EXPECT_MAX_CNT;
 +
-+	if (jiffies_val > UINT_MAX)
-+		return -ERANGE;
-+
-+	*val = jiffies_val;
-+	return 0;
-+}
-+
- static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 				  const struct nlattr * const tb[],
- 				  struct nft_object *obj)
- {
- 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-+	int err;
++		if (me->expect_policy[i].max_expected > NF_CT_EXPECT_MAX_CNT)
++			return -EINVAL;
++	}
  
- 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
- 	    !tb[NFTA_CT_EXPECT_DPORT] ||
-@@ -1254,8 +1266,11 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 		return -EOPNOTSUPP;
- 	}
- 
-+	err = nft_ct_expect_timeout_get(tb[NFTA_CT_EXPECT_TIMEOUT], &priv->timeout);
-+	if (err)
-+		return err;
-+
- 	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
--	priv->timeout = nla_get_u32(tb[NFTA_CT_EXPECT_TIMEOUT]);
- 	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
- 
- 	return nf_ct_netns_get(ctx->net, ctx->family);
-@@ -1275,7 +1290,7 @@ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
- 	if (nla_put_be16(skb, NFTA_CT_EXPECT_L3PROTO, htons(priv->l3num)) ||
- 	    nla_put_u8(skb, NFTA_CT_EXPECT_L4PROTO, priv->l4proto) ||
- 	    nla_put_be16(skb, NFTA_CT_EXPECT_DPORT, priv->dport) ||
--	    nla_put_u32(skb, NFTA_CT_EXPECT_TIMEOUT, priv->timeout) ||
-+	    nla_put_u32(skb, NFTA_CT_EXPECT_TIMEOUT, jiffies_to_msecs(priv->timeout)) ||
- 	    nla_put_u8(skb, NFTA_CT_EXPECT_SIZE, priv->size))
- 		return -1;
- 
-@@ -1325,7 +1340,7 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 		          &ct->tuplehash[!dir].tuple.src.u3,
- 		          &ct->tuplehash[!dir].tuple.dst.u3,
- 		          priv->l4proto, NULL, &priv->dport);
--	exp->timeout += priv->timeout * HZ;
-+	exp->timeout += priv->timeout;
- 
- 	if (nf_ct_expect_related(exp, 0) != 0)
- 		regs->verdict.code = NF_DROP;
+ 	mutex_lock(&nf_ct_helper_mutex);
+ 	for (i = 0; i < nf_ct_helper_hsize; i++) {
 -- 
 2.47.3
 
