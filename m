@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820D8275870;
-	Tue, 23 Jun 2026 22:15:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF762EEE7A;
+	Tue, 23 Jun 2026 22:15:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782252958; cv=none; b=tEtLHwcaKJ0cUX17+Ot3mg2zvWJ1vqwtu9/dFJ4rEftGIaBsKBEyNyEhivvjImF0wa526JxvzgmMiT243p75MycwgpTS/648XKdloEqdsioJ7RCdheuPN4iF0T+VNYiJ4OKsejY9jw2RVumgOC2brunbaO+mbKN82ZCFIY7lL1I=
+	t=1782252959; cv=none; b=BMqL3g9qmT/aW9omepX+yipPW7jv/8ycwTXgCl6u3J7mhRgd8W9w5lXiPxcIMMmONfYpTYMVU+MfOqCq0auvDlXYDOuFc5OmR/U9CbBr5C3kAN/aLkdkYPK46lewkD6c+qwWB/J2EKP68yDSoWcOUd58x17+Xrd5Jm2rBx0Xhd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782252958; c=relaxed/simple;
-	bh=+ATzdf7uR+phcjf2s+eU1Hq6fjliMdtj9la3hInvE+c=;
+	s=arc-20240116; t=1782252959; c=relaxed/simple;
+	bh=nkHxwDl8N+UxbHgNPbgDn5hO6GkwhcO2r6cZEijuhDE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sTXbHfmyA7QYjoCzLigO24wjSt5b6ExtGE2vj9fwd7rxPASh/xZW8tzAl97eXOtvz2YaevspiQiwG0+khJjPozgWzMsAAj1ugZNfxA94qoh+4/wHvKMlWU/HZVigBSPykDyU+lo7Sg2jI3XjCIk6JtIwH0NCmzEMA3HpF/W0lUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tM6YtlHc; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Nin4Vx1tjvuhR763pplRKRaklSg7B33hNuTMqCsfddBOHPYgZdyQPpa3dsU7Mz4FxIgr0ljHrvUsO/DydnNp/XGFS0TZqf+FyuLQaooJoA5uCa/vjMToDYtJjeSQv4zwuF57Sbfy9AgkR15WN14lEkKD/W32991IxeSuFigLsTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aC/sdJS0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tM6YtlHc"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aC/sdJS0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4C3E960577;
-	Wed, 24 Jun 2026 00:15:54 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 88AF860578;
+	Wed, 24 Jun 2026 00:15:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782252954;
-	bh=YWBl/eOkPTJdkf1uAtLvIyB+rEnnxB6m9grS04c0kj4=;
+	s=2025; t=1782252955;
+	bh=g3O7UlSRluXheseBwM3JMmdU729WJJxHm16X5R/wfHs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tM6YtlHcd8Ix0BXAN+cD47/TU0glGjJWeBH8BXEGZV36Eu4AIfn7MZgbLFBqvlbjd
-	 ZKzXZJc+6Amqj8bdT11XvFWdOz42hLNGO8ccD/sE0yfNtIkEc4MMB9oCUFhueG270X
-	 9dXqLRxTt0yYIq3VmkhryhVvul2aL/oJW0T8TJ2CJZC16LtVzfQURN1lnbt8DaIVsj
-	 PINv6I448RZG3B8lOdrNk2kT8iaFhe5Q5O35fTICYIkViuhBIvPZ2CcrRxcD3nPhkK
-	 MG6uK0DwVxvnK0l0/FrDJc1OqK+m5lC7oU1Rq734EjogN9ufJ/2SRNQZ77DMG0Y99P
-	 EWHLtG56PY/Nw==
+	b=aC/sdJS0lX0I0b9J5RxMhqwYnCoyfBoaTsjiBO79FejEikPSF56g6P1pgp8VW4pjL
+	 Zjz9mPJ7cE+XyF9EukPFXEopE/8d7bMfmusSTT7/EPWJqt8ymUocEd+2afE5ALqfH0
+	 jwl0XraT2zdd8n8htL5ok0QF/XNYljXzQqbkEhO2fKFfeT4T4rEO/OYfJ8EoambZ7x
+	 EdRKaJMCqsskLb7PhNxQDOlDXvUNPmlYfO+Ot0dCpOvOI/FpGad3dNJtgmA4JVtMb3
+	 N2i6BxhJVzQnRmwCYROqmw734f7gWmac0pOayS7iB205j0OlddkBYDFJUXYTix5EPH
+	 sZRT008m+48jg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 01/14] netfilter: nf_nat: avoid invalid nat_net pointer use on failed nf_nat_init()
-Date: Wed, 24 Jun 2026 00:15:34 +0200
-Message-ID: <20260623221548.701545-2-pablo@netfilter.org>
+Subject: [PATCH net 02/14] netfilter: nf_conncount: prevent connlimit drops for early confirmed ct
+Date: Wed, 24 Jun 2026 00:15:35 +0200
+Message-ID: <20260623221548.701545-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260623221548.701545-1-pablo@netfilter.org>
 References: <20260623221548.701545-1-pablo@netfilter.org>
@@ -50,143 +50,74 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Mathias Krause <minipli@grsecurity.net>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-We ran into below KASAN splat, which is mostly uninteresting, beside
-for having nf_nat_register_fn() in the call chain as a cause for the
-offending access:
+Commit 69894e5b4c5e ("netfilter: nft_connlimit: update the count if add
+was skipped") introduced a regression where packets for valid
+connections are dropped when using connlimit for soft-limiting
+scenarios.
 
-==================================================================
-BUG: KASAN: slab-out-of-bounds in nf_nat_register_fn+0x5f9/0x640
-Read of size 8 at addr ffff890031e54c20 by task iptables/9510
+The issue occurs when a new connection reuses a socket currently in
+the TIME_WAIT state. In this scenario, the connection tracking entry
+is evaluated as already confirmed. Previously, __nf_conncount_add()
+assumed that if a connection was confirmed and did not originate from
+the loopback interface, it should skip the addition and return -EEXIST.
 
-CPU: 0 UID: 0 PID: 9510 Comm: iptables Not tainted 6.18.18-grsec-full-20260320181326 #1 PREEMPT(voluntary)
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- […] dump_stack_lvl+0xee/0x160 ffff88004117eeb8
- […] print_report+0x6e/0x640 ffff88004117eee0
- […] ? __phys_addr+0x8e/0x140 ffff88004117eef0
- […] ? kasan_addr_to_slab+0x51/0xe0 ffff88004117ef08
- […] ? complete_report_info+0xec/0x1c0 ffff88004117ef20
- […] ? nf_nat_register_fn+0x5f9/0x640 ffff88004117ef48
- […] kasan_report+0xbc/0x140 ffff88004117ef50
- […] ? nf_nat_register_fn+0x5f9/0x640 ffff88004117ef90
- […] nf_nat_register_fn+0x5f9/0x640 ffff88004117eff8
- […] ? nf_nat_icmp_reply_translation+0x6e0/0x6e0 ffff88004117f070
- […] nf_tables_register_hook.part.0+0xa0/0x220 ffff88004117f080
- […] nf_tables_addchain.constprop.0+0x1054/0x1fc0 ffff88004117f0b8
- […] ? nft_chain_lookup.part.0+0x4ce/0xac0 ffff88004117f130
- […] ? nf_tables_abort+0x3d80/0x3d80 ffff88004117f190
- […] ? nf_tables_dumpreset_obj+0x100/0x100 ffff88004117f1c8
- […] ? nft_table_lookup.part.0+0x255/0x300 ffff88004117f310
- […] ? nf_tables_newchain+0x21a4/0x2fa0 ffff88004117f358
- […] nf_tables_newchain+0x21a4/0x2fa0 ffff88004117f360
- […] ? nf_tables_addchain.constprop.0+0x1fc0/0x1fc0 ffff88004117f458
- […] ? nla_get_range_signed+0x4a0/0x4a0 ffff88004117f488
- […] ? lock_acquire+0x16f/0x320 ffff88004117f490
- […] ? find_held_lock+0x3b/0xe0 ffff88004117f4b0
- […] ? __nla_parse+0x45/0x80 ffff88004117f500
- […] nfnetlink_rcv_batch+0xbca/0x19a0 ffff88004117f550
- […] ? nfnetlink_net_exit_batch+0x120/0x120 ffff88004117f618
- […] ? __sanitizer_cov_trace_switch+0x63/0xe0 ffff88004117f720
- […] ? gr_acl_handle_mmap+0x1c4/0x320 ffff88004117f7c0
- […] ? nla_get_range_signed+0x4a0/0x4a0 ffff88004117f7e8
- […] ? gr_is_capable+0x6f/0xe0 ffff88004117f830
- […] ? __nla_parse+0x45/0x80 ffff88004117f860
- […] ? skb_pull+0x103/0x1a0 ffff88004117f880
- […] nfnetlink_rcv+0x3db/0x4a0 ffff88004117f8b0
- […] ? nfnetlink_rcv_batch+0x19a0/0x19a0 ffff88004117f8d8
- […] ? netlink_lookup+0xe2/0x240 ffff88004117f900
- […] netlink_unicast+0x74b/0xb00 ffff88004117f930
- […] ? netlink_attachskb+0xb20/0xb20 ffff88004117f980
- […] ? __check_object_size+0x3e/0xaa0 ffff88004117f998
- […] ? security_netlink_send+0x51/0x160 ffff88004117f9c8
- […] netlink_sendmsg+0xa03/0x1200 ffff88004117f9f8
- […] ? netlink_unicast+0xb00/0xb00 ffff88004117fa70
- […] ? netlink_unicast+0xb00/0xb00 ffff88004117fac8
- […] ? ____sys_sendmsg+0xe2a/0x1040 ffff88004117faf8
- […] ____sys_sendmsg+0xe2a/0x1040 ffff88004117fb00
- […] ? kernel_recvmsg+0x300/0x300 ffff88004117fb60
- […] ? reacquire_held_locks+0xe9/0x260 ffff88004117fbc8
- […] ___sys_sendmsg+0x138/0x200 ffff88004117fbf8
- […] ? do_recvmmsg+0x7e0/0x7e0 ffff88004117fc30
- […] ? lockdep_hardirqs_on_prepare+0x101/0x1e0 ffff88004117fc50
- […] ? lock_acquire+0x16f/0x320 ffff88004117fd20
- […] ? lock_acquire+0x16f/0x320 ffff88004117fd58
- […] ? find_held_lock+0x3b/0xe0 ffff88004117fd70
- […] __sys_sendmsg+0x17a/0x260 ffff88004117fdc8
- […] ? __sys_sendmsg_sock+0x80/0x80 ffff88004117fdf0
- […] ? syscall_trace_enter+0x15e/0x2c0 ffff88004117fe98
- […] do_syscall_64+0x7d/0x400 ffff88004117fec8
- […] entry_SYSCALL_64_safe_stack+0x4a/0x60 ffff88004117fef8
- </TASK>
-==================================================================
+Skipping the addition triggers a garbage collection run that cleans up
+the TIME_WAIT connection. Consequently, the active connection count
+drops to 0, which xt_connlimit mishandles, leading to the false rejection
+of the perfectly valid new connection.
 
-The out-of-bounds report, though, is a red herring as it is for an
-access that shouldn't have happened in the first place.
+Fix this by replacing the interface check with protocol-agnostic state
+checks. We now skip the tree insertion and preserve the lockless garbage
+collection optimization only if the connection is IPS_ASSURED. This
+allows early-confirmed setup packets (such as reused TIME_WAIT sockets
+or locally generated SYN-ACKs) to be properly evaluated and counted
+without falsely dropping. The goto check_connections path is maintained
+to ensure these setup packets are deduplicated correctly.
 
-When nf_nat_init() fails to register its BPF kfuncs, it'll unwind and,
-among others, call unregister_pernet_subsys() to deregister its per-net
-ops. This makes the previously allocated net id available for reuse by
-the next caller of register_pernet_subsys(), in our case, synproxy.
-However, 'nat_net_id' will still hold the previously allocated value.
+This has been tested with slowhttptest and HTTP server configured
+locally to ensure we are not breaking soft-limiting scenarios for local
+or external connections. In addition, it was tested with a OVS zone
+limit too.
 
-If nf_nat.o gets build as a module, all this doesn't matter. A failed
-initialization routine makes the module fail to load and any dependent
-module won't be able to load either. However, if nf_nat.o is built-in,
-a failing init won't /completely/ make its functionality unavailable to
-dependent modules, namely the code and static data is still there, free
-to be called by modules like nft_chain_nat.ko.
-
-Case in point, nft_chain_nat registers hooks that'll call into nf_nat
-which, in our case, failed to initialize and therefore won't have a
-valid net id nor related net_nat object any more.
-
-Code in nf_nat, namely nf_nat_register_fn() and nf_nat_unregister_fn(),
-still making use of the reallocated net id, lead to a type confusion as
-the call to net_generic() will no longer return memory belonging to an
-object suited to fit 'struct nat_net' but 'struct synproxy_net' instead.
-The latter is only 24 bytes on 64-bit systems, much smaller than struct
-nat_net which is 176 bytes, perfectly explaining the OOB KASAN report.
-
-Detect and handle a failed nf_nat_init() by testing the 'nf_nat_hook'
-pointer which will be reset to NULL on initialization errors to prevent
-the usage of an invalid nat_net pointer.
-
-As this check is only needed when nf_nat.o is built-in, guard it by
-'#ifndef MODULE...'.
-
-Fixes: cbc1dd5b659f ("netfilter: nf_nat: Fix possible memory leak in nf_nat_init()")
-Signed-off-by: Mathias Krause <minipli@grsecurity.net>
+Fixes: 69894e5b4c5e ("netfilter: nft_connlimit: update the count if add was skipped")
+Reported-by: Alejandro Olivan Alvarez <alejandro.olivan.alvarez@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/177349610461.3071718.4083978280323144323@eldamar.lan/
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_core.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/netfilter/nf_conncount.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 2bbf5163c0e2..63ff6b4d5d21 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1181,6 +1181,16 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 	struct nf_hook_ops *nat_ops;
- 	int i, ret;
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index dd67004a5cc0..91582069f6d2 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -183,17 +183,16 @@ static int __nf_conncount_add(struct net *net,
+ 		return -ENOENT;
  
-+#ifndef MODULE
-+	/* If nf_nat_core is built-in and nf_nat_init() fails, dependent
-+	 * modules like nft_chain_nat.ko may still call this function.
-+	 * However, nat_net would be invalid, likely pointing to some other
-+	 * per-net structure.
-+	 */
-+	if (WARN_ON_ONCE(!nf_nat_hook))
-+		return -EOPNOTSUPP;
-+#endif
-+
- 	if (WARN_ON_ONCE(pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
- 		return -EINVAL;
+ 	if (ct && nf_ct_is_confirmed(ct)) {
+-		/* local connections are confirmed in postrouting so confirmation
+-		 * might have happened before hitting connlimit
++		/* Connection is confirmed but might still be in the setup phase.
++		 * Only skip the tracking if it is fully assured. This guarantees
++		 * that setup packets or retransmissions are properly counted and
++		 * deduplicated.
+ 		 */
+-		if (skb->skb_iif != LOOPBACK_IFINDEX) {
++		if (test_bit(IPS_ASSURED_BIT, &ct->status)) {
+ 			err = -EEXIST;
+ 			goto out_put;
+ 		}
+ 
+-		/* this is likely a local connection, skip optimization to avoid
+-		 * adding duplicates from a 'packet train'
+-		 */
+ 		goto check_connections;
+ 	}
  
 -- 
 2.47.3
