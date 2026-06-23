@@ -1,111 +1,126 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C95B3C9893;
-	Tue, 23 Jun 2026 22:16:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F517269D18
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Jun 2026 22:37:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782252977; cv=none; b=LJdaMVgoqOww43+K+3yKAWl4nzhWiy7NbdKg7BOZ20j/mBRVXiY8SIRNg0Dx6XOFtWkgRrxqBjcpfKa9oNa6ntUETXNW6PKeSpX/i/S2i1CDoRCRT4iwBeeKGfVpRsQmystFab3GFIRrk1eVVeA4QYAYisOYQuMn4O+d6bbdPn0=
+	t=1782254249; cv=none; b=KoZAXJNZkoXK3i8hOIh3pPu19s76yotgJkocaIJEkdZin1QrvouEhG+wdCRNef48TSEGC2rZuOi5X9vHQhVW0XvbO2mvb5/hTjy7sMIhhslQkRg0oL0G3PcmA2KAk214a1/0C6uwymu3qhLXQRFO7oNjvnqiizIsZNmVKy6p9gs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782252977; c=relaxed/simple;
-	bh=aA431i9XHRwdlz8EXIoj3qjcwhsOtUVntti4s7Sj03g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uN93MToZ5yyoDXPqNFNmbhpWa9f+G6dZRNAf1cpnQ7OMnUZQjIaot/RMszeHrx77BqEVRlUutXobas0w61ZEPPtQf29deBJiI3rObiGsytpT7K+FP6/I1z2yx95hZG8T0I+hrfGKYyGU5IVSzPFejCxluCjrDuvGCgtFDiXZbcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W6HL6ici; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W6HL6ici"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9632D60578;
-	Wed, 24 Jun 2026 00:16:10 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782252971;
-	bh=8VfnkJwQXW/HFVNgcjfeUuskYH2HnWdXcjQVzz2LOa8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=W6HL6iciUkQedLDsERjpIYM8Bri4Xexj1/vg4VYpvNZ95XXYLAiQRhhnkAPKHHVYZ
-	 a7qm/m+pCsWTjvYp69E8AWxXDN50N+mtC69PN7JDaz0LGAsL1vDI3jTwKTyIabzHAH
-	 RaX3pLbnOVB1X90yaFgJmiaDSezIOssl2LFR7Cvw2zwzoutdB/wM5/Kj7rATQeZTmx
-	 AU2U7SlHYy3UWYm2Eu+IxbPtSLM2ByUJFELmXJutU+cMjy5kQ/1IKG3l+/z6FlK5dJ
-	 hIfVb2gfkdYxQ0GBT4VXfV0fE8jJmRBUo/4S+QGSfZf0YNLSW2RrFZpLnuLt9Zn1FE
-	 FQe/bAnob+SMg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 14/14] netfilter: nf_conntrack_helper: cap maximum number of expectation at helper registration
-Date: Wed, 24 Jun 2026 00:15:47 +0200
-Message-ID: <20260623221548.701545-15-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260623221548.701545-1-pablo@netfilter.org>
-References: <20260623221548.701545-1-pablo@netfilter.org>
+	s=arc-20240116; t=1782254249; c=relaxed/simple;
+	bh=S1TgUh+KCM7nF4gsI1azZm6MU6p/PGP+FMk7UibH4C8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DUbAOVQjrb7DMlbbJVwSs71e+Ql0AOEWiD3lnX+weRzBFFGuWlwFl89mHHAmICl9w07Krf7LfbFZS7qCi7wVGxDAk+XGoAnHRL2Kq0UhFSIFYvJq251LsfwE2jNTSfh0R4/PbD3tYr/PbH/lmBI/+75ntlc+eQFuUFfQB6jOP8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 526F16051B; Wed, 24 Jun 2026 00:37:24 +0200 (CEST)
+Date: Wed, 24 Jun 2026 00:37:23 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	Phil Sutter <phil@nwl.cc>, Eric Garver <egarver@redhat.com>
+Subject: Re: [PATCH 3/7 nft v3] src: add tunnel statement and expression
+ support
+Message-ID: <ajsKozU_JZ3PQLhF@strlen.de>
+References: <20250821091302.9032-1-fmancera@suse.de>
+ <20250821091302.9032-3-fmancera@suse.de>
+ <CAJsUoE2uoZJH2VA6E+J+SK=G1W06JE2+0v-NmgGyGWBNRKFgng@mail.gmail.com>
+ <0f9b3772-0b38-40ae-ad3f-e2e790695054@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0f9b3772-0b38-40ae-ad3f-e2e790695054@suse.de>
 
-On helper registration, the maximum number of expectations cannot go over
-NF_CT_EXPECT_MAX_CNT (255), but zero can be specified then
-nf_conntrack_expect_max applies. Turn zero into NF_CT_EXPECT_MAX_CNT
-otherwise, expectation LRU eviction on insertion is disabled.
+Hi Fernando
 
-Moreover, expand this sanity check all expectation classes.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> On 12/29/25 2:51 PM, Yi Chen wrote:
+> > Hello Pablo and Fernando,
+> > I have started working on a test script (attached) to exercise this
+> > feature, using a geneve tunnel with an egress hook.
+> > Please let me know if egress is the correct hook to use in this context.
+> > 
+> > However, the behavior is not what I expected: the tunnel template does
+> > not appear to be attached, and even ARP packets are not being
+> > encapsulated.
+> > I would appreciate any guidance on what I might be missing, or
+> > suggestions on how this test could be improved.
+> > Thank you for your time and help.
+> > 
+> 
+> As my patch is taking longer than expected because I am polishing all the
+> details related to the tunnel object let me explain it here briefly to
+> unblock you.
+> 
+> The tunnel expression/object is used to attach tunnel metadata into a packet
+> so in essence support Lightweight Tunneling (LWT) using Nftables. The LWT
+> support is useful on virtualization environments where the users need to
+> created a lot of tunnels to interconnect containers that are inside
+> different VMs. Instead of creating one interface per container, the idea is
+> that the user can create a single one and then attach the metadata as
+> needed. Imagine the topology described below.
 
-This max_expecy policy is only tunable since userspace helpers are
-available, set Fixes: tag to the commit that adds such infrastructure.
+I'm trying to get Yi's test script to work but I am failing as well.
+AFAICS the entire feature doesn't work *by design*.
 
-Remove the check for p->max_expected given this field must always
-be non-zero after this patch.
+> +------------------------+                   +------------------------+
+> |--------+          VM A |                   | VM B          +--------|
+> |Box     | +------+ +---+|(192.168.124.49)   +----+ +------+ |Box     |
+> |10.0.0.1|-|vxlan0|-|eth0|-------------------|eth0|-|vxlan0|-|10.0.0.2|
+> |--------+ +------+ +---+|  (192.168.124.134)+----+ +------+ +--------|
+> |                        |                   |                        |
+> |                        |                   |                        |
+> +------------------------+                   +------------------------+
 
-Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_expect.c | 3 +--
- net/netfilter/nf_conntrack_helper.c | 9 +++++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+How do I read this diagram?
+Are these 4 computers or 2?
+What is "Box" ? Is that a container inside of VM A / B ?
+And if so, how does it connect to VM A?  veth?  The diagram reads like
+its a container connected to VM A via a vxlan tunnel...
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 113bb1cb1683..38630c5e006f 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -496,8 +496,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
- 					   lockdep_is_held(&nf_conntrack_expect_lock));
- 	if (helper) {
- 		p = &helper->expect_policy[expect->class];
--		if (p->max_expected &&
--		    master_help->expecting[expect->class] >= p->max_expected)
-+		if (master_help->expecting[expect->class] >= p->max_expected)
- 			evict_oldest_expect(master_help, expect, p);
- 	} else {
- 		const struct nf_conntrack_expect_policy default_exp_policy = {
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 8b94001c2430..500509b17663 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -374,8 +374,13 @@ int __nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 	if (!nf_ct_helper_hash)
- 		return -ENOENT;
- 
--	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
--		return -EINVAL;
-+	for (i = 0; i <= me->expect_class_max; i++) {
-+		if (!me->expect_policy[i].max_expected)
-+			me->expect_policy[i].max_expected = NF_CT_EXPECT_MAX_CNT;
-+
-+		if (me->expect_policy[i].max_expected > NF_CT_EXPECT_MAX_CNT)
-+			return -EINVAL;
-+	}
- 
- 	mutex_lock(&nf_ct_helper_mutex);
- 	for (i = 0; i < nf_ct_helper_hsize; i++) {
--- 
-2.47.3
+Which makes no sense to me.
 
+> We want to reach 10.0.0.2 from 10.0.0.1, the nftables ruleset on VM A will
+> look like this:
+> 
+> ```
+> table netdev filter_tunnel {
+> 	tunnel vxlan_tmpl {
+> 		id 100
+> 		ip saddr 192.168.124.49
+> 		ip daddr 192.168.124.134
+> 		dport 8472
+> 		ttl 255
+> 		vxlan {
+> 			gbp 100
+> 		}
+> 	}
+> 
+> 	chain redirect_to_tunnel {
+> 		type filter hook ingress device "veth_host" priority filter; policy
+> accept;
+> 		ip daddr 10.0.0.2 tunnel name "vxlan_tmpl" fwd to "vxlan0"
+> 	}
+> 
+> 	chain redirect_from_tunnel {
+> 		type filter hook ingress device "vxlan0" priority filter; policy accept;
+> 		ip daddr 10.0.0.1 fwd to "veth_host"
+
+How can this work?  I tried to get this to run but *ingress* sees no
+packets.  Which is not surprising to me, as packets are *egressing* from
+VM A, not coming in.
+
+The only way that I can get it to work is via normal tunnel device +
+routes, no nftables rules needed.
+
+Can you make a test script for packetpath?
+Or add documentation that explains how to use this feature?
+
+Thanks.
