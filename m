@@ -1,263 +1,133 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C79625F994
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2026 11:45:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E80E346E43;
+	Wed, 24 Jun 2026 11:51:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782301513; cv=none; b=on/vTNn7pL9EqX4Ss/tvGeyC1+AjsqrlgMp5h9/YatronpsgHwYWF2o6QFUbPDrllbNE+4STTbXDnx3B3rtP/VmiQ7DBB1JbPBO0bzEzlsCX1S9qmlo0ksgc36J+oIgb3VpmLf9AkafgdYCiymDcPkuxlaxAFgEZbCrhHRHCOFA=
+	t=1782301870; cv=none; b=oTXO1sBrqH1nQH5EjlFyWl/POREOxDRAlff1Y8bVR7adc92kmanb48xhuO8tWHVYA6dLg+BzgCF/CkWpt/8Ckfb4xo/Omam7puFb2hkhvd1bQ7rjl8oZ8R4MBIzesvoZHh3tOVFL6YiVy3T33C1q0ncE+xNLTnFySsZkN7TJYuw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782301513; c=relaxed/simple;
-	bh=H0MRJG2B1K/Bvnq9zsM3jp2THI6jTdOIvZbAQF4IfXc=;
+	s=arc-20240116; t=1782301870; c=relaxed/simple;
+	bh=qVFqyXbVB8/TNHhid0c5U9lTdB/szimlZwCiCEHIXLM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Kdi/NJN6JS+SOa6rkCNtmQubYERZsu+zNnE2aH4GLr5ZICRVEn+bPhRgWw5Hmm40DvVbDn1mWuxs1U2hDLU45COD1DCkX6kefzGhtlHDHeFFVJzjTCIVPVThsJFinZEIWRxrWKL6hNHdgtgeIPr3LWCgDQZMRt+c9vgG+mUUSR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TLNIv8rC; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=fnGj20h04uv//HfcIatmzTUfRxZvAuUvjROjxIBonSl8PFlR+tQWTVYFDM3hc11adlbCtXV34V3U2/nNIXERnZWSKhGsFHeuzwphe++bVczVcZAfpCrnPGkVNtlmMZYBbga2jvEBhsslzTneimyOxxDi7C3Px/do3Wsu4CNn63A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LU8cG7G4; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TLNIv8rC"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4923fb1f095so9440995e9.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2026 04:45:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782301511; x=1782906311; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=eDHdE2/Ft54Y11URM0gtdL1NQZS1frqRaxNwltOdGA0=;
-        b=TLNIv8rCVLkYh+LyX0Ix7lUnkuVLsy1hJMyWWMgnbfdaig4Zc4iTEdlvN9fMDYc74y
-         rC93pcEeh+ZwKCYTqrUR9tq8WDoNAHb47TJhHbeVi3nb8FHfJIvIjBGA4UGcAttZnhIL
-         so9A0HPk16ttKoLS+t/i9BHdscAVBqT6/lB6kJhDXtnb4q+h9ISL+ma5yJOKbNSfA/VZ
-         9dSZrieI8GcoZkEM89x7xIZWAdW0iiOgnAIxKcosB+tciKSGFZU1ufZA4q33LxbUlbio
-         0nPj5eK6fFkfoRYDMP3WxJw9a1BlfRWtXwYuIvEpSuw0DxjNCFtYBnW5+o50bi8gocTz
-         q33g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782301511; x=1782906311;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=eDHdE2/Ft54Y11URM0gtdL1NQZS1frqRaxNwltOdGA0=;
-        b=hxCwg9bRFCw6q3aQDaT/Uds5eUcea3f4mWQ8Vpxk7+3G8f46NDnJ+WHm+RwKPEkEUN
-         7PsNxS2FMLTa8Fu4+9Z48X5Jd0N/gcQJ5RthFz1w7Vr23A5daDuc/eqHCE0ipP+PKT7O
-         q0UAjG+7JhsGro2JaDQClH4zx4mj0HcCOH7YffHWVCf1IAJx/N9IEAIFEC/RnQ2qQ0r+
-         61uERJY/y7t40iEuRINca1hVQZKNwwHi+QQo0EBcHoOQbA6yLFZ8TJ8lI1MIVBlm4ijI
-         rcxsrR8Zx3zLRft0/6ovXyU2NjwhQ+JCxBJlkNy6g8uxyQpXavmu0LCJDRqBkZMMv18/
-         AoVQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/rxYic8Ny8TFhD1F+omqUHaDLt/Km8Cn3NXaMLJRmb0I6etVjklLpjc288cBJqS3Ttdaz74D2MZgmrT9X94sQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw30EQzWokf44ndYXujfWxjKoLAMt4kUnFgICSL4HPHAnQSwIBc
-	zoFtMALe83O+bje2oQR+qZaxnHW0fZKcxwh84NpFm5vcfnIc6N1Q2h8O
-X-Gm-Gg: AfdE7clQ0I9VYNePnUFw9wGhLP+51DfzuQUM4cE/V3omjRxEBljOraT9xqzDY9CZkRz
-	DAin1BG6PizfTUHqx+mSLSWvWki27QyCkEt+GKchg3A6p8jlmX8CscJz64W1KmeI7P0CqBTBtWD
-	Q0aGoE0Y3jAbhtAEnNQll9jAbBEywyTCOwqFpbRb3hrFjf9XiB7ZBvH4/CTI2PqQ0fF8wIotUM3
-	xu5E9SLvyEgIQHBqb+e/lSw+Jia7NuDYmt+DkuYk1/QUt+AmrohkbkiATTfQXqAwgxz6/T1R6ii
-	NB5xCBb4FlLuuUtkvWVM1kYY4JENvussf+RjPnire761o/al9mEq2ERo25OThUVYbKLyjqb1xKR
-	ji/lkUd5IEoZXRGR0LaBtAoTRQrZRZlG+eUDdCZywi+HQDhNbdDlFId1cbCuRCkUpMiccBpXreI
-	JZzof8zlf2yKkVAdTYYvM1BH+zB5vyXnDIHc0mTgcHnDf1
-X-Received: by 2002:a05:600c:1d0a:b0:492:409d:b7c3 with SMTP id 5b1f17b1804b1-4925b359fc2mr103143745e9.13.1782301510374;
-        Wed, 24 Jun 2026 04:45:10 -0700 (PDT)
-Received: from gmail.com (deskosmtp.auranext.com. [195.134.167.217])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-46c225b2988sm5854285f8f.25.2026.06.24.04.45.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 24 Jun 2026 04:45:09 -0700 (PDT)
-Date: Wed, 24 Jun 2026 13:45:08 +0200
-From: Mahe Tardy <mahe.tardy@gmail.com>
-To: Emil Tsalapatis <emil@etsalapatis.com>
-Cc: bpf@vger.kernel.org, andrii@kernel.org, ast@kernel.org,
-	daniel@iogearbox.net, edumazet@google.com, john.fastabend@gmail.com,
-	jordan@jrife.io, kuba@kernel.org, martin.lau@linux.dev,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com, yonghong.song@linux.dev
-Subject: Re: [PATCH bpf-next v8 3/7] bpf: add bpf_icmp_send kfunc
-Message-ID: <ajvDRCw8cPqXAqQq@gmail.com>
-References: <20260622120515.137082-1-mahe.tardy@gmail.com>
- <20260622120515.137082-4-mahe.tardy@gmail.com>
- <DJGWWQQD3B0P.2O1D9MO17YRK4@etsalapatis.com>
- <ajuqZMzqACLOijoC@gmail.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LU8cG7G4"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 42D3C60579;
+	Wed, 24 Jun 2026 13:51:06 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1782301866;
+	bh=Zdp1BVQY6kQIESjQyI/7EOzpHAd/8KSgFQBu2+r1qQo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LU8cG7G4OQQXndQcyoDlhbFE5O7wIigyybdFaimJ+1LCmnUoOfu7RcnxxWdjRDRsH
+	 2y5Jz/xiul2ccLsTTH9aZxFCapnI3OWdL1akPrFSNowXH0iLcbSsVtZsyJDwOEmV+U
+	 W7iL0CfHyAG3wlt1+IVBdmPdLjECuw9ZEz64n6+1QiJRhhXg5vHjwIYL91lvcC8c99
+	 m/LUv9qtd0v7vkDIg4rFWEecqS+sQVAhgM/7Va8u/1Y7RVaT4musEYOOf7yyNXwDBP
+	 ZUNCnfgpRqC+RdSRDuu6ALcrsqmO1Afr4xnxnRzGeSwbxFPW4HSN48uDdNWvdR+VSR
+	 ON4t0Kh4+ewHA==
+Date: Wed, 24 Jun 2026 13:51:03 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Alexander Martyniuk <alexevgmart@gmail.com>
+Cc: stable@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Jakub Kicinski <kuba@kernel.org>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Weiming Shi <bestswngs@gmail.com>, Xiang Mei <xmei5@asu.edu>
+Subject: Re: [PATCH 5.10] netfilter: nf_log: validate MAC header was set
+ before dumping it
+Message-ID: <ajvEp2mxZQ1gQVRG@chamomile>
+References: <20260624140117.19799-1-alexevgmart@gmail.com>
+ <ajvEDFOlP7Bqb-3j@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ajuqZMzqACLOijoC@gmail.com>
+In-Reply-To: <ajvEDFOlP7Bqb-3j@chamomile>
 
-On Wed, Jun 24, 2026 at 11:59:00AM +0200, Mahe Tardy wrote:
-> On Tue, Jun 23, 2026 at 10:09:20PM -0400, Emil Tsalapatis wrote:
-> > On Mon Jun 22, 2026 at 8:05 AM EDT, Mahe Tardy wrote:
+BTW, fixing Cc: to netfilter-devel@vger.kernel.org
+
+On Wed, Jun 24, 2026 at 01:48:31PM +0200, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> [...]
+> Thanks but why only 5.10?
 > 
-> > > +#if IS_ENABLED(CONFIG_IPV6)
-> > > +	case htons(ETH_P_IPV6):
-> > > +		if (type != ICMPV6_DEST_UNREACH)
-> > > +			return -EOPNOTSUPP;
-> > > +		if (code < 0 || code > ICMPV6_REJECT_ROUTE)
-> > > +			return -EINVAL;
-> > > +
-> > > +		nskb = skb_clone(skb, GFP_ATOMIC);
-> > > +		if (!nskb)
-> > > +			return -ENOMEM;
-> > > +
-> > > +		if (!pskb_network_may_pull(nskb, sizeof(struct ipv6hdr))) {
+> On Wed, Jun 24, 2026 at 02:01:15PM +0000, Alexander Martyniuk wrote:
+> > From: Xiang Mei <xmei5@asu.edu>
 > > 
-> > Minor nit, but this may also fail with SKB_DROP_REASON_NOMEM. Now this is only
-> > possible if the IP header is not in the linear space which may well be
-> > impossible (?), but do we want to differentiate with
-> > pskb_network_may_pull_reason()?
-> 
-> Indeed, I think for the IP header is should be fine, but I replaced it
-> with the reason variant. Thanks!
->  
-> > > +			kfree_skb(nskb);
-> > > +			return -EBADMSG;
-> > > +		}
-> > > +
-> 
-> [...]
-> 
-> > >  static int __init bpf_kfunc_init(void)
-> > >  {
-> > >  	int ret;
-> > > @@ -12639,6 +12745,9 @@ static int __init bpf_kfunc_init(void)
-> > >  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-> > >  					       &bpf_kfunc_set_sock_addr);
-> > >  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_tcp_reqsk);
-> > > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SKB, &bpf_kfunc_set_icmp_send);
-> > > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_icmp_send);
-> > > +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_ACT, &bpf_kfunc_set_icmp_send);
+> > commit a84b6fedbc97078788be78dbdd7517d143ad1a77 upstream
 > > 
-> > Based on Sashiko's feedback, since we mostly care about cgroup_skb
-> > should we just make it exclusive to them and drop CLS_ACT?
-> 
-> This would indeed simplify this patchset, I could drop most of the
-> complication induced by tc ingress routing. But I think having both
-> cgroup_skb and tc support would be nice as a first implem. I'll try
-> again in a new version as I added a test for ingress tc and could
-> actually fix the routing based on sashiko's feedback (this also drop the
-> first two patches that were partially wrong).
-
-tl;dr: I'll remove the tc support as it feels difficult (impossible
-without major plumbing changes?) to get right.
-
-Here are the details:
-
-Initially I ended up removing the first two patch set as they were
-technically wrong (see explanations after), I added this small helper:
-
-	#if IS_ENABLED(CONFIG_INET) || IS_ENABLED(CONFIG_IPV6)
-	static bool skb_dst_validate_and_hold(struct sk_buff *skb)
-	{
-	       bool ret;
-
-	       rcu_read_lock();
-	       ret = skb_valid_dst(skb) && skb_dst_force(skb);
-	       rcu_read_unlock();
-
-	       return ret;
-	}
-	#endif
-
-And then the body of the kfunc would do something like this (instead of
-calling the removed helpers):
-
-	reason = pskb_network_may_pull_reason(nskb, sizeof(struct iphdr));
-	if (reason) {
-		kfree_skb_reason(nskb, reason);
-		return -EBADMSG;
-	}
-
-	memset(IPCB(nskb), 0, sizeof(struct inet_skb_parm));
-	IPCB(nskb)->iif = nskb->skb_iif;
-
-	if (!skb_dst_validate_and_hold(nskb)) {
-		if (!nskb->dev) {
-			kfree_skb(nskb);
-			return -ENODEV;
-		}
-
-		iph = ip_hdr(nskb);
-		reason = ip_route_input(nskb, iph->daddr, iph->saddr,
-					ip4h_dscp(iph), nskb->dev);
-		if (reason) {
-			kfree_skb_reason(nskb, reason);
-			return -EHOSTUNREACH;
-		}
-	}
-
-	icmp_send(nskb, type, code, 0);
-
-Then I added a tc ingress test to showcase the issue with the previous
-helpers and trigger the routing in the kfunc, with this steup:
-
-	  client ns:                    test ns:
-	  icmp_peer                     ns_icmp_send_unreach_route_ingress
-	+------------+                +-------------------------+
-	| icmp_cli   |                | icmp_srv                |
-	| 198.18.0.1 |--------------->| primary:   198.18.0.254 |
-	+------------+ TCP SYN        | local dst: 198.18.0.2   |
-		       dst=198.18.0.2 +-------------------------+
-					  | tc ingress BPF
-					  | calls bpf_icmp_send()
-					  | -> icmp src=198.18.0.2
-					  v
-
-With the previous helpers, the icmp would route by reverting the daddr
-immediately, and then asking for the route. Thus we would "forget" about
-the actual source address, and in this case we would end up with the
-icmp control message src IP being the primary address and not the one we
-wanted: 198.18.9.2. Turns out route input was sufficient to give the
-needed _correct_ information to icmp_send that would invert the address
-for us and route the packet again.
-
-Then I submitted that for more review by sashiko and it found this new
-thing (which is orthogonal to the previous issue):
-
-	> @@ -12639,6 +12788,9 @@ static int __init bpf_kfunc_init(void)
-	>  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
-	>  					       &bpf_kfunc_set_sock_addr);
-	>  	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_tcp_reqsk);
-	> +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_CGROUP_SKB, &bpf_kfunc_set_icmp_send);
-	> +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_CLS, &bpf_kfunc_set_icmp_send);
-	> +	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SCHED_ACT, &bpf_kfunc_set_icmp_send);
-
-	Can exposing net/core/filter.c:bpf_icmp_send() to sched_cls and sched_act
-	deadlock a non-lockless qdisc?
-
-	A cls_bpf program can run from a qdisc enqueue classifier while the qdisc
-	root lock is held.  If it calls bpf_icmp_send(), the kfunc synchronously
-	goes through icmp_send()/icmpv6_send() and then normal transmit.  If the
-	reply routes back through the same qdisc, the inner transmit can try to take
-	the same root lock again.
-
-	One possible path is:
-
-	__dev_xmit_skb()
-	  q->enqueue()
-	  prio_enqueue()
-	  tcf_classify()
-	  cls_bpf_classify()
-	  bpf_icmp_send()
-	  icmp_send()/icmpv6_send()
-	  dev_queue_xmit()
-	  __dev_xmit_skb()
-
-	Is this kfunc safe in enqueue classifier/action contexts, or should this
-	registration be limited to contexts that cannot run under the qdisc root
-	lock?
-
-I managed to indeed reproduce this deadlock. So I think there's no way
-to implement this safely, we would either need:
-- make the kfunc only available to tcx only (and then prevent program
-  verified as TCX from being reused as legacy qdisc classifiers...)
-- do some crazy runtime guard, exposing the lock.
-
-So I will give up on tc support for now as it's more difficult than
-expected.
-
-> 
-> > >  	return ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_SOCK_OPS, &bpf_kfunc_set_sock_ops);
-> > >  }
-> > >  late_initcall(bpf_kfunc_init);
-> > > --
-> > > 2.34.1
+> > The fallback path of dump_mac_header() guards the MAC header access
+> > only with "skb->mac_header != skb->network_header", without checking
+> > skb_mac_header_was_set(). When the MAC header is unset, mac_header is
+> > 0xffff, so the test passes and skb_mac_header(skb) returns
+> > skb->head + 0xffff, ~64 KiB past the buffer; the loop then reads
+> > dev->hard_header_len bytes out of bounds into the kernel log.
+> > 
+> > This is reachable via the netdev logger: nf_log_unknown_packet() calls
+> > dump_mac_header() unconditionally, and an skb sent through AF_PACKET
+> > with PACKET_QDISC_BYPASS reaches the egress hook with mac_header still
+> > unset (__dev_queue_xmit(), which would reset it, is bypassed).
+> > 
+> > Add the skb_mac_header_was_set() check the ARPHRD_ETHER path already
+> > uses, and replace the open-coded MAC header length test with
+> > skb_mac_header_len(). Only skbs with an unset MAC header are affected;
+> > valid ones are dumped as before.
+> > 
+> >  BUG: KASAN: slab-out-of-bounds in dump_mac_header (net/netfilter/nf_log_syslog.c:831)
+> >  Read of size 1 at addr ffff88800ea49d3f by task exploit/148
+> >  Call Trace:
+> >   kasan_report (mm/kasan/report.c:595)
+> >   dump_mac_header (net/netfilter/nf_log_syslog.c:831)
+> >   nf_log_netdev_packet (net/netfilter/nf_log_syslog.c:938 net/netfilter/nf_log_syslog.c:963)
+> >   nf_log_packet (net/netfilter/nf_log.c:260)
+> >   nft_log_eval (net/netfilter/nft_log.c:60)
+> >   nft_do_chain (net/netfilter/nf_tables_core.c:285)
+> >   nft_do_chain_netdev (net/netfilter/nft_chain_filter.c:307)
+> >   nf_hook_slow (net/netfilter/core.c:619)
+> >   nf_hook_direct_egress (net/packet/af_packet.c:257)
+> >   packet_xmit (net/packet/af_packet.c:280)
+> >   packet_sendmsg (net/packet/af_packet.c:3114)
+> >   __sys_sendto (net/socket.c:2265)
+> > 
+> > Fixes: 7eb9282cd0ef ("netfilter: ipt_LOG/ip6t_LOG: add option to print decoded MAC header")
+> > Reported-by: Weiming Shi <bestswngs@gmail.com>
+> > Assisted-by: Claude:claude-opus-4-8
+> > Signed-off-by: Xiang Mei <xmei5@asu.edu>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Signed-off-by: Alexander Martyniuk <alexevgmart@gmail.com>
+> > ---
+> > Backport fix for CVE-2026-52942
+> >  net/ipv4/netfilter/nf_log_ipv4.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+> > index d07583fac8f8..d6164e8e2c73 100644
+> > --- a/net/ipv4/netfilter/nf_log_ipv4.c
+> > +++ b/net/ipv4/netfilter/nf_log_ipv4.c
+> > @@ -296,8 +296,8 @@ static void dump_ipv4_mac_header(struct nf_log_buf *m,
+> >  
+> >  fallback:
+> >  	nf_log_buf_add(m, "MAC=");
+> > -	if (dev->hard_header_len &&
+> > -	    skb->mac_header != skb->network_header) {
+> > +	if (dev->hard_header_len && skb_mac_header_was_set(skb) &&
+> > +	    skb_mac_header_len(skb) != 0) {
+> >  		const unsigned char *p = skb_mac_header(skb);
+> >  		unsigned int i;
+> >  
+> > -- 
+> > 2.43.0
 > > 
