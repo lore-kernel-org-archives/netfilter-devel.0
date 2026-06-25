@@ -1,144 +1,117 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f67.google.com (mail-yx1-f67.google.com [74.125.224.67])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4090D7260D;
-	Thu, 25 Jun 2026 07:30:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782372659; cv=none; b=S1utWJLCrbvkKm951O7FRmRJhwWObttraQsa9GVu0hx4XBo3pY7M5ojIPk3lUN45jc7LTOiROWtbs1kC0sjvnuSIWOUbixhraULrbgaPky1CHaC/4LegSXBX1AqBHRY3MvKrs/olvDjByKwQZuiiVzmnb+AnXdNJLKqyyHfImU0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782372659; c=relaxed/simple;
-	bh=L0353zEMEtdSh7bVVdcWIzM0c9UguQfgQW33erWXeSE=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=L8+3GHN7aitSvspQJY5SvhATIGgl5c64IxTx9yqIPRNrdQChxCrFatHxkIpRpxjfy+atyuChaM92Wc0n5qnmOCfBLlSixmh6i1SZpdfFWxYLkVqub4t7PLS8SNwPY0XkmTP5cGp48qAGHsF1no4itDPNqIVueCmAhWnoACCukVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=mlMi4KQj; arc=none smtp.client-ip=148.6.0.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B5B13815F1
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2026 08:43:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.67
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782377013; cv=pass; b=TrDSQ3hsIbz6Hzg9CNsOzP39XXG+UeAxQQYaQ2tQIVL1dbCaDb1HPge1GejXFyl5EERhLlWwcXxSB0zu8eSH6RXzvnucW9VH+lyv3T3KlEV8TBoDBIfV/uzHJSCVts5y2bedvk2oUAvI4B5LMT3MEDiClmbKrdp5R8UmJf4Ndcs=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782377013; c=relaxed/simple;
+	bh=mGpT0mWPqC2KWgtwKNzuMrjVF2VL6ygAEhIG5vWOrM8=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=FWeYk7woiEJNJOCbuoV2Zyh1ZuaTfwe+BGRbVzE0ucd4fblzcHztSbdTJbicCIeWgyWAjhdlgSFK9znJ46BPU9PRxO095dQNZ6gb2s/GlXCwZVZq6St68Zs1khFp5Ao9VJilSEG8DuYGFlII+T+A1Hqtz1P3kA/EEf8wGa3w+jc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BeRcCdCW; arc=pass smtp.client-ip=74.125.224.67
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="mlMi4KQj"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4gm9GM3khDz7s7wk;
-	Thu, 25 Jun 2026 09:21:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1782372089; x=1784186490; bh=bRSr6OoZ9J
-	JPnp3T3cmji4ZfZNrVf7E0txBMBISE3Zg=; b=mlMi4KQjQavRrlko1sMJG1eojF
-	B6JiNHsN2TdnkDMTgAWJz8f/cDu7t+qoN33eiXQrD5Q6HSalEuq8kerBs1nRxKRm
-	o5SOT9jspEPVlEc4/i8FJVT3J7kw2BslH+UTVF7AkfOdOZmVDnT2feRz5sw7GkPR
-	1K3Pf0H91vKaL6iG0=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id fABJDYI3Poh3; Thu, 25 Jun 2026 09:21:29 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4gm9GJ6tlSz7s7wR;
-	Thu, 25 Jun 2026 09:21:28 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id D161F34317F; Thu, 25 Jun 2026 09:21:28 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id CF0EA34317E;
-	Thu, 25 Jun 2026 09:21:28 +0200 (CEST)
-Date: Thu, 25 Jun 2026 09:21:28 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Xiang Mei <xmei5@asu.edu>
-cc: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-    Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>, 
-    netfilter-devel@vger.kernel.org, kees@kernel.org, horms@kernel.org, 
-    Weiming Shi <bestswngs@gmail.com>, coreteam@netfilter.org, 
-    netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: ipset: fix race between dump and ip_set_list
- resize
-In-Reply-To: <20260625010006.1448558-1-xmei5@asu.edu>
-Message-ID: <0cc0f340-3b68-13ab-cbb7-a6904fdae396@blackhole.kfki.hu>
-References: <20260625010006.1448558-1-xmei5@asu.edu>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BeRcCdCW"
+Received: by mail-yx1-f67.google.com with SMTP id 956f58d0204a3-662bcc30fafso2074098d50.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2026 01:43:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1782377011; cv=none;
+        d=google.com; s=arc-20260327;
+        b=joxVsnVon7ZgyffV3NlSQdevMn8mdXlqnj+iDUxBYb9muBZKAOSDrBrQChx9OwFXqb
+         DzrOsFDricSPDhnKPMUAOsCgwtUwNMH5AFOn25/vfDBOr+NzqOAVB/wgNCFYLCgnQjBW
+         cu/t99d0BeLWMi+ME94XTUzSzcfiwTK0YphXEINJIuvV0o6dEu3M54kCYOJIZrZTYmfT
+         gpnc1B1kvfHEklRR2+fk0h5MGCRTFRsXeBCJw49jxXXdFE24mEpVninOHIlDxQVJ0jUM
+         XCnsujICj5+N7+rdjrmVLeiY6mzz3w2hBetgokozYNjsFA0CvjVPoCpeW3ftF7mJBuu/
+         COQg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=X17+C6koDcrEHBhrTALNZmXozmPiBoMdmIQHg1KU3BQ=;
+        fh=i8nWucUDDcuJZrAc5F/lTqZ3W31vqALi8eeFadgPUj8=;
+        b=JNeoFa4rDMpHFdfF7XbhRmZIi5uQ1TopdCW14GgBd1/yP+NJR/vERYpXx4SPFMY4he
+         7HIERtyREW74TjWJ8fExA/UfXld5SpIzG3ELVE8mXYN8dowYjoKcQHak1T6qfroOwIPj
+         d86EL254d/jN4ogO6CQO1xHQJaQi26ORiVkSoEkBclKGbFX3ZbrN80vRrD5sMsiPVndY
+         2rvyd8/u3Qf/U7I6KL5CV5JAd2uNrkJCj6ZfEH4bA6MgN5uMrJ4Lh15G+qTxDUbUMFYc
+         YCf0Y79HJ/zmZC4ySlha5PprSAoPzyYc/VBsIU+GCOPs1aJ3aKp/4Q4GFesAvCw+s6Mz
+         x1ww==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782377011; x=1782981811; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=X17+C6koDcrEHBhrTALNZmXozmPiBoMdmIQHg1KU3BQ=;
+        b=BeRcCdCWbDifYM12stKKZ1VWkpFrSUkPkeesuKQ4hkfOz77SYSu1LRXQSlFGC3iDqh
+         /vQoLulqNxSHgnMngUd5ZYDLry90BaO2Dea4/87L9OCDQY2FHvcf0MEyfz5IQPNRJyzU
+         IKWDbxpYSeOZ2nb824WTOsb5r69TO+6I6zUk/Os+UUpt0Xb7dxRkEbkvc3C4mK09wU5V
+         CL0Eu+EhyiyCLKV/z1vIIS1Fsc5d9DDciKBsTiSlWW6kqVv6KpICB0t6nYbzWmgWIHNd
+         +r60JCIwyrTDRtd/Y2v5JLTyRG7iWQzGgDqGp1p8bnWQkZv7qVlCJ/wL44JM7/oqbj35
+         kqkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782377011; x=1782981811;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=X17+C6koDcrEHBhrTALNZmXozmPiBoMdmIQHg1KU3BQ=;
+        b=m0szjwR12tYzxM9zPib4fJJZRtOjwTn5DRs9AdE0R9BfOvCECiPp/Frxak50Ci0ZpE
+         lXNZ4W0Km7dxSZjT9ru/VJmITxdVWAkUE2LhD++MUOQqC60oGYKuIBnVl5l+a0thwHrT
+         gdq2OMPOsOqypQt6Agw8lCJIcNygkczTxVaVVOUwoLRwcfWgbgcG7S2IGy6+990qZnMV
+         ViNxhXul4oBsD28X8RV9SeSM+F+KqhU8yY5tmEGL+PfkxFz8zjc77ELpQaKXtwfxQd51
+         xZqp86C3ntlsJI1nClt1BaXRmHNHvlpy6qw4mwIvQ7138a+k1K2fJBMadoNHjmnHd0pv
+         JU9w==
+X-Gm-Message-State: AOJu0YzPg1DrWtft3oJaY6shyalzPPhiaUoH/JnABfGs0qOOzAl1ytbY
+	8dWPuKVQgfYSPxhoio4eqcUPD/G85fROEXN0OXHo8GleSfJDJITlUuevZR0BPIuW7aYOO24qpk8
+	acX++oz8Xo4f9Oy0yk4kByv7gu0hJOPDBa5+O4WE=
+X-Gm-Gg: AfdE7cktC2SRwS0/iYQxNVsqIMR86Y/BwOwd2Udo6DvStFWcGAfsZ6ttPND0ZWP5I4c
+	3hg3qdztR/HOAVpE3A1L/d0YDZddGRG+c6oxW9HQJYHtG4ilWqZ/4kC6vq4xg18oocgHRoj/Wth
+	kGZkw0cgvtYjqkTbW3bYrzdyGWJADgl7z7aERkCupWP5GwGoo0/e23w1so12spOT2kSO2RHPLvV
+	uJLr+yy2ovINCiZ/HCfS+BuOHdZ3Zg8JGjRBO67S/8fej0fDcnuQ7d+LG7xRUKadChC8WnWyc4=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+X-Received: by 2002:a05:690e:134f:b0:660:689b:1539 with SMTP id
+ 956f58d0204a3-66487e682femr1073729d50.58.1782377011426; Thu, 25 Jun 2026
+ 01:43:31 -0700 (PDT)
+Received: from 487349027555 named unknown by gmailapi.google.com with
+ HTTPREST; Thu, 25 Jun 2026 01:43:30 -0700
+Received: from 487349027555 named unknown by gmailapi.google.com with
+ HTTPREST; Thu, 25 Jun 2026 01:43:30 -0700
+From: Feng Wu <wufengwufengwufeng@gmail.com>
+Date: Thu, 25 Jun 2026 01:43:30 -0700
+X-Gm-Features: AVVi8CfXLzdxSFa0FRKNcMquZjDzC_Yca9ov8ej143IYc6uF_1P6-6ARF9jtWhc
+Message-ID: <CACK3muoty3EohBmdjcxygMSMtWW0EHKNsA+TYBB4uavyaZ0=sQ@mail.gmail.com>
+Subject: [PATCH nf 0/3] netfilter: xtables match fixes
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+Three small fixes for netfilter xtables match modules:
 
-On Wed, 24 Jun 2026, Xiang Mei wrote:
 
-> The release path of ip_set_dump_do() and ip_set_dump_done() read
-> inst->ip_set_list via ip_set_ref_netlink(), a plain rcu_dereference_raw()
-> of the array pointer. These run from netlink_recvmsg() without the nfnl
-> mutex and without an RCU read-side critical section.
->
-> A concurrent ip_set_create() can grow the array: it publishes the new
-> array, calls synchronize_net() and then kvfree()s the old one. Since the
-> dump paths read the array outside any RCU reader, synchronize_net() does
-> not wait for them and the old array can be freed while they still index
-> into it, causing a use-after-free.
->
-> The dumped set itself stays pinned via set->ref_netlink, so only the
-> array load needs protecting. Take rcu_read_lock() around it, matching
-> ip_set_get_byname() and __ip_set_put_byindex().
->
->  BUG: KASAN: slab-use-after-free in ip_set_dump_do (net/netfilter/ipset/ip_set_core.c:1697)
->  Read of size 8 at addr ffff88800b5c4018 by task exploit/150
->  Call Trace:
->   ...
->   kasan_report (mm/kasan/report.c:595)
->   ip_set_dump_do (net/netfilter/ipset/ip_set_core.c:1697)
->   netlink_dump (net/netlink/af_netlink.c:2325)
->   netlink_recvmsg (net/netlink/af_netlink.c:1976)
->   sock_recvmsg (net/socket.c:1159)
->   __sys_recvfrom (net/socket.c:2315)
->   ...
->  Oops: general protection fault, probably for non-canonical address ... KASAN NOPTI
->  KASAN: maybe wild-memory-access in range [0x02d6...d0-0x02d6...d7]
->  RIP: 0010:ip_set_dump_do (net/netfilter/ipset/ip_set_core.c:1698)
->  Kernel panic - not syncing: Fatal exception
->
-> Fixes: 8a02bdd50b2e ("netfilter: ipset: Fix calling ip_set() macro at dumping")
-> Reported-by: Weiming Shi <bestswngs@gmail.com>
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Xiang Mei <xmei5@asu.edu>
+1. xt_rateest: fix u64 truncation that causes incorrect rate
+   comparisons on links faster than ~34 Gbps.  The match function
+   assigns 64-bit estimator values to 32-bit local variables.
 
-Thank you for the nice report and fix, good catch.
+2. xt_dscp: add missing checkentry for the 'tos' match, which
+   currently accepts arbitrary invert values without validation.
 
-Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+3. xt_tcpmss: add missing checkentry to validate mss_min <= mss_max
+   and the invert field is boolean.
 
-Best regards,
-Jozsef
-> ---
-> net/netfilter/ipset/ip_set_core.c | 8 +++++++-
-> 1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index a531b654b8d9..6cfad152d7d1 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -1480,7 +1480,11 @@ ip_set_dump_done(struct netlink_callback *cb)
-> 		struct ip_set_net *inst =
-> 			(struct ip_set_net *)cb->args[IPSET_CB_NET];
-> 		ip_set_id_t index = (ip_set_id_t)cb->args[IPSET_CB_INDEX];
-> -		struct ip_set *set = ip_set_ref_netlink(inst, index);
-> +		struct ip_set *set;
-> +
-> +		rcu_read_lock();
-> +		set = ip_set_ref_netlink(inst, index);
-> +		rcu_read_unlock();
->
-> 		if (set->variant->uref)
-> 			set->variant->uref(set, cb, false);
-> @@ -1686,7 +1690,9 @@ ip_set_dump_do(struct sk_buff *skb, struct netlink_callback *cb)
-> release_refcount:
-> 	/* If there was an error or set is done, release set */
-> 	if (ret || !cb->args[IPSET_CB_ARG0]) {
-> +		rcu_read_lock();
-> 		set = ip_set_ref_netlink(inst, index);
-> +		rcu_read_unlock();
-> 		if (set->variant->uref)
-> 			set->variant->uref(set, cb, false);
-> 		pr_debug("release set %s\n", set->name);
-> -- 
-> 2.43.0
->
->
->
+Patches are independent and can be applied in any order.
+
+Feng Wu (3):
+  netfilter: xt_rateest: fix u64 truncation in xt_rateest_mt()
+  netfilter: xt_dscp: add checkentry for tos match
+  netfilter: xt_tcpmss: add checkentry for parameter validation
+
+ net/netfilter/xt_dscp.c    | 12 ++++++++++++
+ net/netfilter/xt_rateest.c |  2 +-
+ net/netfilter/xt_tcpmss.c  | 14 ++++++++++++++
+ 3 files changed, 27 insertions(+), 1 deletion(-)
+
+-- 
+2.50.1
