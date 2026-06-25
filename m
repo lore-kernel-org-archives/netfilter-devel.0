@@ -1,65 +1,46 @@
-Received: from mail-dl1-f51.google.com (mail-dl1-f51.google.com [74.125.82.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from sender-op-o17.zoho.eu (sender-op-o17.zoho.eu [136.143.169.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0699317166
-	for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2026 13:31:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.51
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782394305; cv=none; b=VDqQC4FW+G4dCzAx7TKzGswSD61wyoPDLVEv2QXeAnlqxdK6ohvf59WvHrtl002jlsFsBCaDdqG8XSXO82mbpQrNG5vruRNY038Szi2Q9MpHrQNMopJWLDMlNiEE1nQqTX6SwCQGTsUYqbP6ioosmfdT2uOB9qbLBx82ag4yTPQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782394305; c=relaxed/simple;
-	bh=GkObJTGOwvo/yZsse89jgOyAK3tQLcC4VOm5XflDZOQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=chrCA6yL8hcXREQR49KRcJtaP2WvLVq3MJm7bvr+lRNpbpT3IYSv7meUMrXST4FkCD8gJOCmeknCRkudOuUfWlP558EmJBhhHTlAMf8Z0KkcoznFH5fZdUDsQkQZBFGpn0GRkan+tsgOsq0+k2uTBqmlkZwrw/OsEuIz009uQxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eS3r46eC; arc=none smtp.client-ip=74.125.82.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B4B3E2ABA;
+	Thu, 25 Jun 2026 17:26:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782408398; cv=pass; b=eRqiv/uaqL4LMNpQIPqv83xW+vk3ECqD8sfUovT9Z8L7FJR7FEpSQ7rCbSJSWOloiS7M7WxoOd3gq+XWXuacnWKBVmqVhVKvMv96D33staHju/QJrkUBzpMkNIfaiBv+VSiHBpHH6EtkQdwIvhaESHQi4mkcWM90EuVtM6Ru9qQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782408398; c=relaxed/simple;
+	bh=Q8zxDNi/EjehTzh/2KoenWXg+wvxtwcqfPf024Tarcs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=FlEpwHDQyl0QosY5xbd5sGvK9fZs+sr1FjgrRLYlRYBZNFm6Ap8HkKm1/DltmvyqVIzQOEVNZc44fFCPdXTm9PifF+eA8sN6EtJdyQbZyyk3JV0dxWLvFsHqQiLj72Np/ehM+XbwMdpqoecQA40+S+lvU5pF0MPW9OwfWQYsKDY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me; spf=pass smtp.mailfrom=carlosgrillet.me; dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b=FXZpcSSC; arc=pass smtp.client-ip=136.143.169.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=carlosgrillet.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eS3r46eC"
-Received: by mail-dl1-f51.google.com with SMTP id a92af1059eb24-139b5e604b9so2607590c88.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jun 2026 06:31:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782394304; x=1782999104; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=NK6SpJYh+oLbM19wL4RZRwc0NJUjhwQHIffBTILtoP8=;
-        b=eS3r46eC4opLOzjO0f2kQBTShxHcOHDa3ckBl3twkGEkKAtbVuHFvB6AJ6aTMweHG0
-         LC/JXTA5kiU00rW3GXXNIRjcTlQWoV7oVtkFiQ/UvsSDtR3ZrAfUROeirefsM/X/qXxW
-         Wx8IYJHsZv3q5/utYbvHnBkaUjb6zb7G6/aAjf1+TKNpbswG0jhxqYhnK9XmP8+2z1HX
-         uwWbp8mJkEkZQlFWZa0zaEQ3wXWeE0Ud3867ViRubxCgee0kljfwEJ45L6UGN3pkJcSo
-         ObOOavSn3bPSKCzVmdo+Aq+SVblcj7nNZHxF17GESq7DrFdnUYYBRLVkAdzxt11IL3AU
-         RrfQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782394304; x=1782999104;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NK6SpJYh+oLbM19wL4RZRwc0NJUjhwQHIffBTILtoP8=;
-        b=Vfwhm5eIAc9SVZ00XdWKij9adFshHIrtlDl3IAW2cJH/XozOQFirnxhRTA1rXspM3B
-         0IZ3HwidoO5nbxSBj9AqF48TVyiqtE8TFBNatiZP95Js6PIPovbrs0MfibcVhO4osoOc
-         mOJ5PowiN/M4670tOETENK/+vNXFKBQhXi6s2htkpHWSUzpbL4AaaTf22otL+0Ccn6v2
-         E4mrxZVatilBKXIWDb1NYca/A1OHtBfX0OtJZ+Aom8skOj/jzUA92VTowP5RGCEcEMe2
-         N+6pCCMYktCKMBUxBBiPdi3i/XDPOK2nSpP4G16Q7TSCAH49fl2WGgB30EcEm3yxUCsk
-         wUbg==
-X-Gm-Message-State: AOJu0Yy6CR/LeDln+t52gKI7GnJgb704cz02GHxmVUfodPo9pDLGf/PL
-	n14dnygsUwu1XACKy1mUDhkGavajmEd9gk1DUgDzyAIAwfc8HNqDWYBH
-X-Gm-Gg: AfdE7cn8ZxhtB64K+Y/QL5lEuR2zax7LPI+uWoc9BFy7oBowU1Zs25hlBZKRlGTg5oG
-	Ug2J0EX4mcKvhvQz7dtCO/UCmDer4l08fMbhDCkVJkgPRAmv5X2e8B0LPD59o1hM9uHbY0auDpp
-	hVqnGFeWmksRUBYze6PAPROu4RJX66aX/Et3hxue5anAphw2yik51zjU2UQTNhijFknOzoTJeTy
-	M8Jqb3izY8JF9RLN7tKEDR6ajmOUBDLJRhJnRdcfiPSvM//eY5Uqbi5PhNJw4eHyVEKZ/Wkb3y6
-	2FUGJTAcTJORMhfW7CprJmQeO+Zhoo4G53CK1cdsDupgR5lt9GoH6ldBhcKZhBLZGOHpDG700zz
-	iDoypnFGwUaomw4JuV4YDbFUiW6GCcAD1MXGWscoKRuaeT4xYedSyVwGDqfrOd0qmF5CtjYGfgg
-	BcxTTK51JteK3KiLLiT2RsVZxiZTKNHf8=
-X-Received: by 2002:a05:7022:6192:b0:138:e4:c44d with SMTP id a92af1059eb24-139dbae0ad1mr2171642c88.25.1782394303648;
-        Thu, 25 Jun 2026 06:31:43 -0700 (PDT)
-Received: from idcredbox1391.. ([2404:f801:8028:3:40af:bf67:9423:25ae])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-139d8f55b04sm8806333c88.4.2026.06.25.06.31.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Jun 2026 06:31:43 -0700 (PDT)
-From: Subasri S <subasris1210@gmail.com>
+	dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b="FXZpcSSC"
+ARC-Seal: i=1; a=rsa-sha256; t=1782408373; cv=none; 
+	d=zohomail.eu; s=zohoarc; 
+	b=KcEj2E01cUrpC7mxePrJewu2PavQIfY8Yr5zUblUZFnd2JLthr8WKIo1pi0uh+W/GtAIjeQ1SieW2ceMNEaBgt/VhzhAhH1cvgJVt0j8oDFeMA8/0GTzCFAB2v0BjZXiMFaEfz/CemUVGTGxTPiQp59ygU5Ahtcg6kQ0H20Ev7M=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+	t=1782408373; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=tjsqCk8XummZfBV9VHYmhW07fJViEagjkxcJggc8Kn8=; 
+	b=gmgban/VIqx5JDIeYTz6y9RUuXPYlGQ/tB4hGOnr84DrfkdyT2iTHrhfaZkSbeMyOmSDgIsMKfiDK5OvMRBY7GwXxRSb4OZLIZY81tNh2ygoPVGybxLG2x6+2mzU3sHdYG1dzzZSdHJNWjuPOZeCM0aG5136nj9xyv//KZe/mG0=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+	dkim=pass  header.i=carlosgrillet.me;
+	spf=pass  smtp.mailfrom=carlos@carlosgrillet.me;
+	dmarc=pass header.from=<carlos@carlosgrillet.me>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1782408373;
+	s=zmail; d=carlosgrillet.me; i=carlos@carlosgrillet.me;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=tjsqCk8XummZfBV9VHYmhW07fJViEagjkxcJggc8Kn8=;
+	b=FXZpcSSCVwut6coppWZYOXJE5iAi/c6Q0GWwZyFuIfLdwcrh4IKaMSSnIMv0xOsn
+	FjpSUzAB2yIjWy6rjiZElJkm8K5w9tvE10Psepc91DQQiZxG4FNdosiQBu+WbT2N2hp
+	6G4TY5oO5WEK0DXZXMEmPKx9FDqRgVhdNoreWWXY=
+Received: by mx.zoho.eu with SMTPS id 1782408371297649.5848837070624;
+	Thu, 25 Jun 2026 19:26:11 +0200 (CEST)
+From: Carlos Grillet <carlos@carlosgrillet.me>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>,
@@ -67,12 +48,13 @@ To: Pablo Neira Ayuso <pablo@netfilter.org>,
 Cc: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Subasri S <subasris1210@gmail.com>
-Subject: [PATCH nf-next] netfilter: remove redundant null check before kvfree()
-Date: Thu, 25 Jun 2026 19:01:24 +0530
-Message-ID: <20260625133124.970238-1-subasris1210@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	linux-kernel@vger.kernel.org
+Subject: [PATCH nf-next v2 1/3] netfilter: nf_conntrack_h323_main: replace u_int8_t with u8
+Date: Thu, 25 Jun 2026 19:25:46 +0200
+Message-ID: <20260625172550.35781-2-carlos@carlosgrillet.me>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260625172550.35781-1-carlos@carlosgrillet.me>
+References: <20260625172550.35781-1-carlos@carlosgrillet.me>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -80,34 +62,31 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
-kvfree() internally performs NULL check on the pointer
-handed to it and takes no action if it indeed is NULL.
-Hence there is no need for a pre-check of the memory
-pointer before handing it to kvfree().
+Use preferred kernel integer type u8 instead of the POSIX u_int8_t
+variant.
 
-Issue reported by ifnullfree.cocci Coccinelle semantic
-patch script.
+No functional change.
 
-Signed-off-by: Subasri S <subasris1210@gmail.com>
+Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
 ---
- net/netfilter/nft_set_rbtree.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_h323_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 018bbb6df4ce..efc25e788a1c 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -544,8 +544,7 @@ static int nft_array_intervals_alloc(struct nft_array *array, u32 max_intervals)
- 	if (!intervals)
- 		return -ENOMEM;
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 7f189dceb3c4..68ecaf0daf95 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -671,7 +671,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
+ static int callforward_do_filter(struct net *net,
+ 				 const union nf_inet_addr *src,
+ 				 const union nf_inet_addr *dst,
+-				 u_int8_t family)
++				 u8 family)
+ {
+ 	int ret = 0;
  
--	if (array->intervals)
--		kvfree(array->intervals);
-+	kvfree(array->intervals);
- 
- 	array->intervals = intervals;
- 	array->max_intervals = max_intervals;
 -- 
-2.43.0
+2.54.0
 
