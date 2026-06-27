@@ -1,124 +1,77 @@
-Received: from zg8tmja2lje4os4yms4ymjma.icoremail.net (zg8tmja2lje4os4yms4ymjma.icoremail.net [206.189.21.223])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AEE111E32CF
-	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2026 03:37:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=206.189.21.223
+Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E14AE22097
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2026 11:11:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782531480; cv=none; b=Qsaej3Rqw4CmQuOVcD3CWnyOV203XER+cEDGkvSxwx6F0uqKcDS64W5ffzGALvQ7wLj52hFAqidC5INo3pYQe0ULLGHCYqHoNiGeDRRkDSkWilQs7LMSbSgsZoYe/vCPmLtfAn40tKpopqEPQsCglhCcQ0dLb+l8IbsN66yLqgI=
+	t=1782558674; cv=none; b=N4RHDCdExvuNMXNZ6pxk08SvkhkxjDYW2CbEydAQ06YeUHfrQr7KtqMYkoBDIi+hcBiWRnXeGcD3VvWN84dCDE9zH0XtLybbpafLj9BtZZZZlQMo1qNNmbYQNSYqcpKqpiTTxH/TG+5BS8i0gkqE1CmrU8zMrPd5gOo0/OnnQZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782531480; c=relaxed/simple;
-	bh=bxlzSIlRYV7ooDt1juvg2EFNVeEgnigkpQ+oKb0pQKo=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
-	 MIME-Version:Message-ID; b=Xwxq4f29kg6P4jfsgJQ7C1TvpL2JN5RNRmY0kbe+khmbHdJzs5g4PCmdehM5udKr+w4p3zFV7L7Pw44ffYKV7Hzu8qZkogb9GaTSaW8JLE0zIntMGIrTdQQIr0r+ZwQgSuCo1vRvffDQLUM8VDqn1J0G5A1cy7YmWnPqRTDwJMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=206.189.21.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
-Received: from chzhengyang2023$lzu.edu.cn ( [172.20.238.44] ) by
- ajax-webmail-app1 (Coremail) ; Sat, 27 Jun 2026 11:37:38 +0800 (GMT+08:00)
-Date: Sat, 27 Jun 2026 11:37:38 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From: =?UTF-8?B?6ZmI5q2j6Ziz?= <chzhengyang2023@lzu.edu.cn>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
-Cc: "Ren Wei" <n05ec@lzu.edu.cn>, netfilter-devel@vger.kernel.org,
-	fw@strlen.de, phil@nwl.cc, alin.nastac@gmail.com,
-	yuantan098@gmail.com, yifanwucs@gmail.com, tomapufckgml@gmail.com,
-	bird@lzu.edu.cn
-Subject: Re: Re: [PATCH nf 1/1] netfilter: nf_conntrack_sip: guard against
- missing skb dst
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2024.3-cmXT5 build
- 20250609(354f7833) Copyright (c) 2002-2026 www.mailtech.cn lzu
-In-Reply-To: <aj5j6YZG7f6fbtfn@chamomile>
-References: <cover.1782349677.git.chzhengyang2023@lzu.edu.cn>
- <47e6e0bdba06326388cd7778403326ff78faf8f0.1782349677.git.chzhengyang2023@lzu.edu.cn>
- <aj5YwOF4Kc71OTdf@chamomile> <aj5j6YZG7f6fbtfn@chamomile>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+	s=arc-20240116; t=1782558674; c=relaxed/simple;
+	bh=oxnTbTBDy4goRCR56tDJs7RGMyVWnbav+aiETb4LZdc=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mx2uZDjuN0BhifoXQt0eDbjsgDsn20oSTm+spSiOnS55nRDKYHVt24YbdLZz9fFGIszv530FBNklvgJOUQzUUBWStT1OqJze3Cife6OegZNT/WRhhq3+ithDK1c8NXHvtRSsDQ+2SoCBbuoWMm1p/xDeWkj3Def9FGpB7Sc8E6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gxIJHJYg; arc=none smtp.client-ip=74.125.82.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gxIJHJYg"
+Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-30c965eab27so2132014eec.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 27 Jun 2026 04:11:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782558672; x=1783163472; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oxnTbTBDy4goRCR56tDJs7RGMyVWnbav+aiETb4LZdc=;
+        b=gxIJHJYg92mPGyeVRKaHb0f/7D0MWNTBDclNMY4f6CiakX4d8quLR3YRVPmOG+ObBz
+         q78gKXh3LtPcjOTJJa2gzBb4YQMMPBauIZ1WgCDzB+XHWWFT0N/eHAKOSa0yWfqt2RSy
+         HpGJTNS45XoMn1Ci5qbIpaW9kubpa/RMbb28dLzgOxWug45Gge5C+NKnzbuqR8fD3U23
+         NobiCN0TBoCqXXboVfinW6dXoVRPhPpUrxSwOWrwcwcc30iIwR9ZW71bGGF7vu29bJ1f
+         nXVj59EQJRLk2dkbVCLxF5uNy9LqsZia1uRw51NBLfFncn7j72/+Jk5YUBo81V3fUbku
+         VA4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782558672; x=1783163472;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:to:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=oxnTbTBDy4goRCR56tDJs7RGMyVWnbav+aiETb4LZdc=;
+        b=V/kYES4m2JoeWInyfXc2slG/reHXIXafA0uS6T4lr0jkpDmGTtlL2yPx8achbGySiy
+         MI2FdOstLOi1fUbTIqfxnik2/EKGMb11F+tU9ghncWR4cwHBj5/B0nka4+MwnnOzA6vI
+         R9EcCuTzQ9omHQgGDjhRuOK+Z6NQtq10l2QGOpVUsgitd6zbMku5vajx61c1DNRXCSSS
+         szE2toS8pQa7Lta9M665R3vpETBQNtpHHAIn4uRu9iAIpRrWJVlkrzhq/wUn3sMuoA6R
+         qxeLPfEDw7wQyo+BM3gr05V5/7WwdVTr44qIfMVhVZLNNi9J/JV0nmZIN2TiJsMuLAcK
+         QxQw==
+X-Gm-Message-State: AOJu0YyhJzOaqjmHmr8gzGdmyaBcRSng9NGovo7aEGVu2Y9AYMB6XwOK
+	Kr9fKekDoN2K5bqxmFywd+fi0wn5oXONRWvqja2TNVUVunYJatCW8ixGCdL3EOXY
+X-Gm-Gg: AfdE7cn/gdwGkp54w53e8QqrMImgv8gT5c2+tjlRhtttLvHKteS5ysCYdRJ9b6cnnk6
+	F5+Pa871NzMXemB/ctkcsAiGAEbKY54cEUmFneYY+hpep43SXBG54auKGX9myDqE5GDoBlxAw6s
+	ZaISD7D/OXb86fYxWLLUTWD+NsIFW9JrBAUoPRCfPLwZqml3wGadQEL6kMdFUStxVUuAjAqPXt0
+	R9S6Mtqw/3Qx1hkIA7iczITYkJP5slp9driZv0wbncpr535xxalthkki+CCCsSHVrYgMk2Bzq1I
+	zChRC5BCN4qe5Hft4MtVrS+S+zOe/o5fk73AhhjR1qZRSCeo4DJNB4EjWhx7Odx1SpgMDcJg48l
+	16Xdfd9xvYdlCTW3omzXCFc81+WVPf1Af7zCs/9aKeU5AFXk3dlqFHWQ/HL92CbDN5D1GX0IPgS
+	OSmrcqWo92GkG9T4revHTeAiPsKitcb6f+ukpM2g==
+X-Received: by 2002:a05:693c:88c8:20b0:30c:9bfa:a636 with SMTP id 5a478bee46e88-30c9bfaa8afmr4164281eec.22.1782558671803;
+        Sat, 27 Jun 2026 04:11:11 -0700 (PDT)
+Received: from fedora ([116.73.171.186])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30c7ca8b918sm29790015eec.28.2026.06.27.04.11.10
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 27 Jun 2026 04:11:11 -0700 (PDT)
+From: PrittSpadeLord <pritt1999@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] minor spelling and grammar fixes in doc
+Date: Sat, 27 Jun 2026 16:40:12 +0530
+Message-ID: <20260627111012.1819186-1-pritt1999@gmail.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <aj5mYeKqJkJBmpin@chamomile>
+References: <aj5mYeKqJkJBmpin@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <14f45d60.17b77.19f072786fe.Coremail.chzhengyang2023@lzu.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:ygmowAA3WsSCRT9qngK5AA--.12935W
-X-CM-SenderInfo: xfk2xvpqj1t0rjsqjjo6o23hxhgxhubq/1tbiAQsLEGo+NlQLRAAB
-	sp
-X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
-	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
-	daVFxhVjvjDU=
+Content-Transfer-Encoding: 8bit
 
-PiAtLS0tLeWOn+Wni+mCruS7ti0tLS0tCj4g5Y+R5Lu25Lq6OiAiUGFibG8gTmVpcmEgQXl1c28i
-IDxwYWJsb0BuZXRmaWx0ZXIub3JnPgo+IOWPkemAgeaXtumXtDoyMDI2LTA2LTI2IDE5OjM1OjA1
-ICjmmJ/mnJ/kupQpCj4g5pS25Lu25Lq6OiAiUmVuIFdlaSIgPG4wNWVjQGx6dS5lZHUuY24+Cj4g
-5oqE6YCBOiBuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnLCBmd0BzdHJsZW4uZGUsIHBo
-aWxAbndsLmNjLCBhbGluLm5hc3RhY0BnbWFpbC5jb20sIHl1YW50YW4wOThAZ21haWwuY29tLCB5
-aWZhbnd1Y3NAZ21haWwuY29tLCB0b21hcHVmY2tnbWxAZ21haWwuY29tLCBiaXJkQGx6dS5lZHUu
-Y24sIGNoemhlbmd5YW5nMjAyM0BsenUuZWR1LmNuCj4g5Li76aKYOiBSZTogW1BBVENIIG5mIDEv
-MV0gbmV0ZmlsdGVyOiBuZl9jb25udHJhY2tfc2lwOiBndWFyZCBhZ2FpbnN0IG1pc3Npbmcgc2ti
-IGRzdAo+IAo+IE9uIEZyaSwgSnVuIDI2LCAyMDI2IGF0IDEyOjQ3OjMxUE0gKzAyMDAsIFBhYmxv
-IE5laXJhIEF5dXNvIHdyb3RlOgo+ID4gT24gRnJpLCBKdW4gMjYsIDIwMjYgYXQgMDI6NDk6MzdQ
-TSArMDgwMCwgUmVuIFdlaSB3cm90ZToKPiA+ID4gRnJvbTogWmhlbmd5YW5nIENoZW4gPGNoemhl
-bmd5YW5nMjAyM0BsenUuZWR1LmNuPgo+ID4gPiAKPiA+ID4gc2V0X2V4cGVjdGVkX3J0cF9ydGNw
-KCkgZGVyZWZlcmVuY2VzIHNrYl9kc3Qoc2tiKS0+ZGV2IHdoZW4KPiA+ID4gc2lwX2V4dGVybmFs
-X21lZGlhIGlzIGVuYWJsZWQuIFRoZSBTSVAgaGVscGVyIGNhbiBydW4gZnJvbSB0YyBpbmdyZXNz
-Cj4gPiA+IGJlZm9yZSByb3V0aW5nIGhhcyBhdHRhY2hlZCBhIGRzdCB0byB0aGUgc2tiLCBzbyBz
-a2JfZHN0KHNrYikgY2FuIGJlCj4gPiA+IE5VTEwgYW5kIHRoZSBoZWxwZXIgY3Jhc2hlcyB3aGls
-ZSBwYXJzaW5nIFNEUCBtZWRpYSBleHBlY3RhdGlvbnMuCj4gPiAKPiA+IElmIFNJUCBoZWxwZXIg
-Y2FuIHJ1biBmcm9tIHRjIGluZ3Jlc3MsIHRoZW4gdGhpcyBoYXMgbm90IGV2ZXIgd29ya2VkPwo+
-ID4gRWxzZSB0YyBuZWVkcyB0byBiZSBmaXhlZCB0byBzZXQgYSByb3V0ZXIgdG8gc2tiIGJlZm9y
-ZSBjYWxsaW5nIHRoZQo+ID4gaGVscGVyLgo+ID4gCj4gPiBJIGRvbid0IHRoaW5rIHRoaXMgZml4
-IGJlbG9uZyBoZXJlLgo+Cj4gQWN0dWFsbHksIGl0IGlzIHRoZSBtb3N0IHNpbXBsZSB3YXkgdG8g
-Zml4IGl0IGhlcmUsIGJ1dCBJIHBvc3RlZCBhCj4gZGlmZmVyZW50IGFwcHJvYWNoOgo+Cj4gaHR0
-cHM6Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9wcm9qZWN0L25ldGZpbHRlci1kZXZlbC9wYXRjaC8y
-MDI2MDYyNjExMjQ0OS44NDgyODMtMS1wYWJsb0BuZXRmaWx0ZXIub3JnLwoKSSBjaGVja2VkIHlv
-dXIgcGF0Y2ggYW5kIGl0IGFkZHJlc3NlcyB0aGUgaXNzdWUuCgpJZiB0aGF0IHBhdGNoIG1vdmVz
-IGZvcndhcmQsIGNvdWxkIHRoZSBmb2xsb3dpbmcgdGFncyBwbGVhc2UgYmUKY29uc2lkZXJlZCBm
-b3Igb3VyIHRlYW0/CgpSZXBvcnRlZC1ieTogWXVhbiBUYW4gPHl1YW50YW4wOThAZ21haWwuY29t
-PgpSZXBvcnRlZC1ieTogWGluIExpdSA8YmlyZEBsenUuZWR1LmNuPgpSZXBvcnRlZC1ieTogWmhl
-bmd5YW5nIENoZW4gPGNoemhlbmd5YW5nMjAyM0BsenUuZWR1LmNuPgoKPiA+ID4gSGFuZGxlIGEg
-bWlzc2luZyBza2IgZHN0IGJ5IHNraXBwaW5nIHRoZSBzYW1lLWludGVyZmFjZSBleHRlcm5hbC1t
-ZWRpYQo+ID4gPiBvcHRpbWl6YXRpb24uIFN0aWxsIHJlbGVhc2UgdGhlIHJvdXRlZCBtZWRpYSBk
-c3Qgd2hlbiBvbmUgd2FzIG9idGFpbmVkLAo+ID4gPiBhbmQga2VlcCB0aGUgZXhpc3RpbmcgZXhw
-ZWN0YXRpb24gc2V0dXAgcGF0aCB1bmNoYW5nZWQuCj4gPiA+IAo+ID4gPiBGaXhlczogYTM0MTlj
-ZTMzNTZjICgibmV0ZmlsdGVyOiBuZl9jb25udHJhY2tfc2lwOiBhZGQgc2lwX2V4dGVybmFsX21l
-ZGlhIGxvZ2ljIikKPgo+IEkgYW0gcG9pbnRpbmcgdG8gZGlmZmVyZW50IEZpeGVzOiB0YWcgZm9y
-IHByYWN0aWNhbCByZWFzb25zLCB0bwo+IGhpZ2hsaWdodCB0aGlzIGlzIGEgZGVwZW5kZW5jaWVz
-IGZvciB0aGUgdGMgYW5kIG92cyBzdWJzeXN0ZW1zLgo+IEl0IHNlZW1zIHNpcF9leHRlcm5hbF9t
-ZWRpYSBjYW1lIF9hZnRlcl8gb3ZzIGJ1dCBhIGJpdCBiZWZvcmUgdGMKPiBhY3RfY3QsIHNvIGEz
-NDE5Y2UzMzU2YyBpcyBub3QgcHJlY2lzZSBlaXRoZXIuCgpJIHVzZWQgYTM0MTljZTMzNTZjIGJl
-Y2F1c2UgaXQgaW50cm9kdWNlZCB0aGUgc2lwX2V4dGVybmFsX21lZGlhCmJyYW5jaCBhbmQgdGhl
-IHNrYl9kc3QoKSBkZXBlbmRlbmN5LiBBZnRlciBjaGVja2luZyB0aGUgYWZmZWN0ZWQKZW50cnkg
-cG9pbnRzLCB0aGUgdGMvb3ZzIEZpeGVzIHRhZ3MgbG9vayBtb3JlIHN1aXRhYmxlIGZvciB0aGlz
-CnN1Ym1pc3Npb24gYmVjYXVzZSB0aGUgY3Jhc2ggZGVwZW5kcyBvbiB0aG9zZSBoZWxwZXIgdXNl
-cnMuCgo+Cj4gPiA+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnCj4gPiA+IFJlcG9ydGVkLWJ5
-OiBZdWFuIFRhbiA8eXVhbnRhbjA5OEBnbWFpbC5jb20+Cj4gPiA+IFJlcG9ydGVkLWJ5OiBZaWZh
-biBXdSA8eWlmYW53dWNzQGdtYWlsLmNvbT4KPiA+ID4gUmVwb3J0ZWQtYnk6IEp1ZWZlaSBQdSA8
-dG9tYXB1ZmNrZ21sQGdtYWlsLmNvbT4KPiA+ID4gUmVwb3J0ZWQtYnk6IFhpbiBMaXUgPGJpcmRA
-bHp1LmVkdS5jbj4KPiA+ID4gQXNzaXN0ZWQtYnk6IENvZGV4OmdwdC01LjQKPiA+ID4gU2lnbmVk
-LW9mZi1ieTogWmhlbmd5YW5nIENoZW4gPGNoemhlbmd5YW5nMjAyM0BsenUuZWR1LmNuPgo+ID4g
-PiBTaWduZWQtb2ZmLWJ5OiBSZW4gV2VpIDxuMDVlY0BsenUuZWR1LmNuPgo+ID4gPiAKPiA+ID4g
-LS0tCj4gPiA+ICBuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19zaXAuYyB8IDcgKysrKystLQo+
-ID4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPiA+
-ID4gCj4gPiA+IGRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19zaXAuYyBi
-L25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX3NpcC5jCj4gPiA+IGluZGV4IDVlYzNhNGE0YmJk
-Ny4uMzAyZGM2MGM1MzgxIDEwMDY0NAo+ID4gPiAtLS0gYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
-cmFja19zaXAuYwo+ID4gPiArKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19zaXAuYwo+
-ID4gPiBAQCAtOTU2LDcgKzk1Niw4IEBAIHN0YXRpYyBpbnQgc2V0X2V4cGVjdGVkX3J0cF9ydGNw
-KHN0cnVjdCBza19idWZmICpza2IsIHVuc2lnbmVkIGludCBwcm90b2ZmLAo+ID4gPiAgCQkJcmV0
-dXJuIE5GX0FDQ0VQVDsKPiA+ID4gIAkJc2FkZHIgPSAmY3QtPnR1cGxlaGFzaFshZGlyXS50dXBs
-ZS5zcmMudTM7Cj4gPiA+ICAJfSBlbHNlIGlmIChzaXBfZXh0ZXJuYWxfbWVkaWEpIHsKPiA+ID4g
-LQkJc3RydWN0IG5ldF9kZXZpY2UgKmRldiA9IHNrYl9kc3Qoc2tiKS0+ZGV2Owo+ID4gPiArCQlz
-dHJ1Y3QgZHN0X2VudHJ5ICpza2Jkc3QgPSBza2JfZHN0KHNrYik7Cj4gPiA+ICsJCXN0cnVjdCBu
-ZXRfZGV2aWNlICpkZXYgPSBza2Jkc3QgPyBza2Jkc3QtPmRldiA6IE5VTEw7Cj4gPiA+ICAJCXN0
-cnVjdCBkc3RfZW50cnkgKmRzdCA9IE5VTEw7Cj4gPiA+ICAJCXN0cnVjdCBmbG93aSBmbDsKPiA+
-ID4gIAo+ID4gPiBAQCAtOTc3LDEyICs5NzgsMTQgQEAgc3RhdGljIGludCBzZXRfZXhwZWN0ZWRf
-cnRwX3J0Y3Aoc3RydWN0IHNrX2J1ZmYgKnNrYiwgdW5zaWduZWQgaW50IHByb3RvZmYsCj4gPiA+
-ICAJCS8qIERvbid0IHByZWRpY3QgYW55IGNvbm50cmFja3Mgd2hlbiBtZWRpYSBlbmRwb2ludCBp
-cyByZWFjaGFibGUKPiA+ID4gIAkJICogdGhyb3VnaCB0aGUgc2FtZSBpbnRlcmZhY2UgYXMgdGhl
-IHNpZ25hbGxpbmcgcGVlci4KPiA+ID4gIAkJICovCj4gPiA+IC0JCWlmIChkc3QpIHsKPiA+ID4g
-KwkJaWYgKGRzdCAmJiBkZXYpIHsKPiA+ID4gIAkJCWJvb2wgZXh0ZXJuYWxfbWVkaWEgPSAoZHN0
-LT5kZXYgPT0gZGV2KTsKPiA+ID4gIAo+ID4gPiAgCQkJZHN0X3JlbGVhc2UoZHN0KTsKPiA+ID4g
-IAkJCWlmIChleHRlcm5hbF9tZWRpYSkKPiA+ID4gIAkJCQlyZXR1cm4gTkZfQUNDRVBUOwo+ID4g
-PiArCQl9IGVsc2UgaWYgKGRzdCkgewo+ID4gPiArCQkJZHN0X3JlbGVhc2UoZHN0KTsKPiA+ID4g
-IAkJfQo+ID4gPiAgCX0KPiA+ID4gIAo+ID4gPiAtLSAKPiA+ID4gMi40My4wCj4gPiA+IAoK
+Sure, I go by "Pritt Balagopal". PrittSpadeLord is my GitHub and GitLab handle.
