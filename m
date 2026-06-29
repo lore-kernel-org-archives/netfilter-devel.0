@@ -1,616 +1,142 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com [209.85.210.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60F23FF889
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 12:58:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10DF7380FDD
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 13:09:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782737927; cv=none; b=TEgi9lF//muPspulDVv8k0Q+FLVnMKzRJpgxd24n0JG6+LExv3DBwwlk5qmSIljko713I5K4n1Yi6lSy/GHDC0qu9eQwyVO1r0DT8BrO7CtQOxhELr5jUZgmYQF5Jwos0gEjch7GsqOwFhTz58JH+WeeOgXsDsm6xr2Kmp15PPo=
+	t=1782738594; cv=none; b=U2lT+Y+/Kk1zz2SQdWQB20m5psBEIzfSnJNNKQT0QmhkLxI7bZhmWuPRiiPsGz6s2CUnZSnwIE2kykah23WCYqUmV156EZYGnVyfNuUicSz9E30t68vmboRl+iiJt1NV4teU/lGEM5bM41gE1y7T/DZx3p+I+G1FNzuYY2r7Oqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782737927; c=relaxed/simple;
-	bh=4VoXdSC9W/PkhIlojCmWBGL1fuOKOuV9k77tsyaTRlY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UgIof49BbYQJmCLyKdV7JxVw6M5I1sIpX1Cnwl2a5hK+5Z949kCRl9CNuQi8qXOj1yM/FLzCuMF6mPecgzxvc0bpD8wTp62iqYSB6h498/rOliAQ6YVewX+xMAK19gF1t3wy7lWQnPMm6qb0+Y449orfkLbuOrCka1wk4dA6P6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 165A460370; Mon, 29 Jun 2026 14:58:44 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 3/3] netfilter: conntrack: remove obsolete module parameters
-Date: Mon, 29 Jun 2026 14:58:23 +0200
-Message-ID: <20260629125823.1749-4-fw@strlen.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260629125823.1749-1-fw@strlen.de>
-References: <20260629125823.1749-1-fw@strlen.de>
+	s=arc-20240116; t=1782738594; c=relaxed/simple;
+	bh=MRnm09PMVz3zZlTQCCbSkxqgokpKHu3OelLb7bM8jtQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=q9DQ9ovKRm1ZeupwUVTRP01duA+gJ+Gm/mq9WORpXjX7kYCZSu5MGGQonWit0LBTHOPYt43o9ReG3RdkXhfisbJxfSYyOYBzyMUg7DAEgI5OmOZ/+29H0aiqEpe6nGwGvhO0QVOSHCX2Js5kqG2LSaBFi+EE91HHvk13SaVUVE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.b=gMJDg1NA; arc=none smtp.client-ip=209.85.210.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.b="gMJDg1NA"
+Received: by mail-ot1-f41.google.com with SMTP id 46e09a7af769-7e6b5737bb2so3779567a34.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 06:09:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu.com; s=google; t=1782738592; x=1783343392; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=C857Q2VDyItus3syZ+DUaEL05/aUtCKQC2sIRlYJkic=;
+        b=gMJDg1NAajeSLhbu0RTZcMA51c0+/uo33amb51UJLNd1o2YVOaFkRWKjg/iPIKLDSw
+         46XUc8VZocCD5dV08LbuyFxuwpGOeMsJSbSNr+1ITT4Dw+HINjDwWkW8wPm6BZSuY7IM
+         CSQqPeDgY0QntvYjabDVFqnOPb21tnh3onwIo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782738592; x=1783343392;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=C857Q2VDyItus3syZ+DUaEL05/aUtCKQC2sIRlYJkic=;
+        b=RYGxvvZlTtC0et/3PrtOIbipX9Q0oSHbduGNXjew3h1OrGbBJvb2JNQ1lLR/wpd+nE
+         2bZlsia9ktJE3cRFUskHZqN4xe2Vt+0D3SPhikq6cucCulfHmDLg4x4rGJRQTU9TwWqo
+         rL5MNho8KrSvOiSOFKDWWTHiQ/s+0wv8zhq0ndhL6SbH1hQsYYUmd364SgtTh77BGtu4
+         9hcZpRzTdGClIoFUyvUFJ85bwl1g5Kup1DZgAzwcjnOH/PA7pRCuPtvCMcFkREB5YNxG
+         ESjqiUYLTA7vqdIr5yNNCbMNBbeQAQeG9Hwvcuhss51TdCOL+wnCWB2iYt2xcn5H41Mq
+         wiWg==
+X-Forwarded-Encrypted: i=1; AFNElJ+y7JgDAl77BEbCdmJLwNC5SdoDuNoh+I1oJhiEFVYTTkzR3xp0Ez2DXShsFF1DLt2TAgOjLN/ltJmm3oBRChk=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzSxfbYNcctwGOV3cjRA4wWMqSqRVItdkTq4VA1xCL5Y0J5qSW6
+	bk+wXzZ6jijaQ1/SMGgOWI0XoctP8pvWle7A7PCTy1ghAPWm1Kdx1giCzn6zUsQcZw==
+X-Gm-Gg: AfdE7cktMk/OdpPkkuJMR2CrhPKMTqzDeXIDPLN1+7e65bOXcTLKouZE1pKIJyu4XAj
+	tZCl9v6amBF0EGJkM7xv4hYwluwkYEKSLDbEiDorwT+l7hmtqaP0hWTefW1tHUtGk2xtgHSIIMR
+	om+ChmYRtJzH4jPTDmLtwfa1rw15GDWDkBEDi1gWC9SUyONo7g2CjKH5GdVI42Prn2lusEFJcGk
+	X5ChpiXtIqAF9zmNNeNmhDfe5xqm7ZR55zLR0sbqB43AXPH+Ds66jCBbAbpyYxokhcBVfuu6Ac7
+	y/rPDCIltMQ9oT9L9YsdCyaYyNDvsnfIrzoXP2yR+hAwWQ02c7G0Viz62e0i0cO02qoDFyE/YXs
+	icP4B2qwtLUDYdPaePlh1jTaMv7X6hItUUvJUTsSg5TKnZssPjo1z7l4R/OCzy6kMKlqD9hopWK
+	LrwFoEx1jPvkFd895myNa65/cuzDtlz1BcRw==
+X-Received: by 2002:a05:6830:314c:b0:7e9:d3aa:e391 with SMTP id 46e09a7af769-7e9e91a5b19mr361337a34.6.1782738592071;
+        Mon, 29 Jun 2026 06:09:52 -0700 (PDT)
+Received: from ?IPV6:2804:14d:5c54:4d67::1c9d? ([2804:14d:5c54:4d67::1c9d])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7e9aa800350sm8796677a34.25.2026.06.29.06.09.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 29 Jun 2026 06:09:51 -0700 (PDT)
+Message-ID: <f315dd0d-211e-4d85-a06e-da422f015f1e@mojatatu.com>
+Date: Mon, 29 Jun 2026 10:09:45 -0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] netfilter: nf_nat_masquerade: recalculate TCP TS
+ offset when port is randomized
+To: xietangxin <xietangxin@h-partners.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
+Cc: gaoxingwang <gaoxingwang1@huawei.com>, huyizhen <huyizhen2@huawei.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20260629093408.3927103-1-xietangxin@h-partners.com>
+Content-Language: en-US
+From: Victor Nogueira <victor@mojatatu.com>
+In-Reply-To: <20260629093408.3927103-1-xietangxin@h-partners.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-helper autoassign was removed years ago, all the port numbers are
-no longer functional.
+Hi!
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: no changes. I don't think its worth it to keep
- dummy modparams around.
+On 29/06/2026 06:34, xietangxin wrote:
+> Problem observed in Kubernetes environments where MASQUERADE target with
+> --random-fully is configured by default. after commit
+> 165573e41f2f ("tcp: secure_seq: add back ports to TS offset") TCP short
+> connection QPS dropped from ~20000 to ~10000. This added source and
+> destination ports into TS offset calculation.
+> 
+> However, with MASQUERADE --random-fully, when multiple internal connections
+> (e.g sport 10000,20000) are mapped to the same external port (e.g 30000),
+> their TS offsets are calculated as ts_offset(10000) and ts_offset(20000).
+> If the server reuses the TIME_WAIT slot from the first connection, there is
+> a chance that ts_offset(20000) < ts_offset(10000), breaking TSval
+> monotonicity for the same 4-tuple and causing RST packets:
+>    Client -> Server 24870 -> 80 [SYN] TSval=2294041168
+>    Server -> Client 80 -> 24870 [ACK] TSecr=2846236456
+>    Client -> Server 24870 -> 80 [RST] Seq=855605690
+> 
+> After nf_nat_setup_info() successfully assigns a new randomized
+> source port, recalculate the TS offset using the new port and
+> update the SYN packet's TSval accordingly.
+> 
+> Test results on 4U4G VM with
+> `./wrk -t8 -c200 -H "Connection: close" -d10s --latency http://5.5.5.5:80`
+> Before:
+>    random:10712 req/s, random-fully:10986 req/s
+> After:
+>    random:21463 req/s, random-fully:19181 req/s
+> 
+> Fixes: 165573e41f2f ("tcp: secure_seq: add back ports to TS offset")
+> Cc: stable@vger.kernel.org
+> Closes:https://lore.kernel.org/all/92935c00-e0be-4591-ac44-5978c7804d57@yeah.net/
+> Signed-off-by: xietangxin <xietangxin@h-partners.com>
+> [...]
+> +
+> +static void masquerade_update_tcp_ts_offset(struct nf_conn *ct, struct sk_buff *skb)
+> +{
+> [...]
+> +
+> +		if (nf_ct_l3num(ct) == NFPROTO_IPV4)
+> +			st = secure_tcp_seq_and_ts_off(net, tuple->src.u3.ip, tuple->dst.u3.ip,
+> +				tuple->src.u.tcp.port, tuple->dst.u.tcp.port);
+> +		else
+> +			st = secure_tcpv6_seq_and_ts_off(net, tuple->src.u3.ip6,
+> +				tuple->dst.u3.ip6, tuple->src.u.tcp.port, tuple->dst.u.tcp.port);
 
- include/linux/netfilter/nf_conntrack_h323.h |  2 -
- include/linux/netfilter/nf_conntrack_pptp.h |  2 -
- include/linux/netfilter/nf_conntrack_sane.h |  2 -
- include/linux/netfilter/nf_conntrack_tftp.h |  2 -
- include/net/netfilter/nf_conntrack_helper.h |  1 -
- net/ipv4/netfilter/nf_nat_snmp_basic_main.c |  2 +-
- net/netfilter/nf_conntrack_amanda.c         |  4 +-
- net/netfilter/nf_conntrack_ftp.c            | 32 +++++----------
- net/netfilter/nf_conntrack_h323_main.c      | 10 ++---
- net/netfilter/nf_conntrack_helper.c         |  6 +--
- net/netfilter/nf_conntrack_irc.c            | 27 ++++---------
- net/netfilter/nf_conntrack_netbios_ns.c     |  2 -
- net/netfilter/nf_conntrack_pptp.c           |  2 +-
- net/netfilter/nf_conntrack_sane.c           | 34 +++++-----------
- net/netfilter/nf_conntrack_sip.c            | 45 ++++++---------------
- net/netfilter/nf_conntrack_snmp.c           |  4 +-
- net/netfilter/nf_conntrack_tftp.c           | 33 +++++----------
- 17 files changed, 59 insertions(+), 151 deletions(-)
+This breaks the build when CONFIG_IPV6 is not set.
 
-diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
-index 81286c499325..b15f37604cde 100644
---- a/include/linux/netfilter/nf_conntrack_h323.h
-+++ b/include/linux/netfilter/nf_conntrack_h323.h
-@@ -9,8 +9,6 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <uapi/linux/netfilter/nf_conntrack_tuple_common.h>
- 
--#define RAS_PORT 1719
--#define Q931_PORT 1720
- #define H323_RTP_CHANNEL_MAX 4	/* Audio, video, FAX and other */
- 
- /* This structure exists only once per master */
-diff --git a/include/linux/netfilter/nf_conntrack_pptp.h b/include/linux/netfilter/nf_conntrack_pptp.h
-index c3bdb4370938..c0b305ce7c3c 100644
---- a/include/linux/netfilter/nf_conntrack_pptp.h
-+++ b/include/linux/netfilter/nf_conntrack_pptp.h
-@@ -50,8 +50,6 @@ struct nf_nat_pptp {
- 	__be16 pac_call_id;			/* NAT'ed PAC call id */
- };
- 
--#define PPTP_CONTROL_PORT	1723
--
- #define PPTP_PACKET_CONTROL	1
- #define PPTP_PACKET_MGMT	2
- 
-diff --git a/include/linux/netfilter/nf_conntrack_sane.h b/include/linux/netfilter/nf_conntrack_sane.h
-index 46c7acd1b4a7..8501035d7335 100644
---- a/include/linux/netfilter/nf_conntrack_sane.h
-+++ b/include/linux/netfilter/nf_conntrack_sane.h
-@@ -3,8 +3,6 @@
- #define _NF_CONNTRACK_SANE_H
- /* SANE tracking. */
- 
--#define SANE_PORT	6566
--
- enum sane_state {
- 	SANE_STATE_NORMAL,
- 	SANE_STATE_START_REQUESTED,
-diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
-index 90b334bbce3c..e3d1739c557d 100644
---- a/include/linux/netfilter/nf_conntrack_tftp.h
-+++ b/include/linux/netfilter/nf_conntrack_tftp.h
-@@ -2,8 +2,6 @@
- #ifndef _NF_CONNTRACK_TFTP_H
- #define _NF_CONNTRACK_TFTP_H
- 
--#define TFTP_PORT 69
--
- #include <linux/netfilter.h>
- #include <linux/skbuff.h>
- #include <linux/types.h>
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index f3f0c1392e88..bc5427d239f4 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -94,7 +94,6 @@ void nf_conntrack_helper_put(struct nf_conntrack_helper *helper);
- 
- void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 		       u8 l3num, u16 protonum, const char *name,
--		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
- 		       u32 expect_class_max,
- 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-index 0ede138dfd29..e540b86bd15b 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-@@ -213,7 +213,7 @@ static int __init nf_nat_snmp_basic_init(void)
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
- 
- 	nf_ct_helper_init(&snmp_trap_helper, AF_INET, IPPROTO_UDP,
--			  "snmp_trap", SNMP_TRAP_PORT, SNMP_TRAP_PORT, SNMP_TRAP_PORT,
-+			  "snmp_trap",
- 			  &snmp_exp_policy, 0, help, NULL, THIS_MODULE);
- 
- 	err = nf_conntrack_helper_register(&snmp_trap_helper, &snmp_trap_helper_ptr);
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index ddafbdfc96dc..edced039970d 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -199,10 +199,10 @@ static int __init nf_conntrack_amanda_init(void)
- 	}
- 
- 	nf_ct_helper_init(&amanda_helper[0], AF_INET, IPPROTO_UDP,
--			  HELPER_NAME, 10080, 10080, 10080,
-+			  HELPER_NAME,
- 			  &amanda_exp_policy, 0, amanda_help, NULL, THIS_MODULE);
- 	nf_ct_helper_init(&amanda_helper[1], AF_INET6, IPPROTO_UDP,
--			  HELPER_NAME, 10080, 10080, 10080,
-+			  HELPER_NAME,
- 			  &amanda_exp_policy, 0, amanda_help, NULL, THIS_MODULE);
- 
- 	ret = nf_conntrack_helpers_register(amanda_helper,
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 0847f845613d..f3944598c172 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -35,11 +35,6 @@ MODULE_ALIAS("ip_conntrack_ftp");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
- static DEFINE_SPINLOCK(nf_ftp_lock);
- 
--#define MAX_PORTS 8
--static u_int16_t ports[MAX_PORTS];
--static unsigned int ports_c;
--module_param_array(ports, ushort, &ports_c, 0400);
--
- static bool loose;
- module_param(loose, bool, 0600);
- 
-@@ -560,8 +555,8 @@ static int nf_ct_ftp_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
- 	return 0;
- }
- 
--static struct nf_conntrack_helper ftp[MAX_PORTS * 2] __read_mostly;
--static struct nf_conntrack_helper *ftp_ptr[MAX_PORTS * 2] __read_mostly;
-+static struct nf_conntrack_helper ftp __read_mostly;
-+static struct nf_conntrack_helper *ftp_ptr __read_mostly;
- 
- static const struct nf_conntrack_expect_policy ftp_exp_policy = {
- 	.max_expected	= 1,
-@@ -570,32 +565,23 @@ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
- 
- static void __exit nf_conntrack_ftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(ftp_ptr, ports_c * 2);
-+	nf_conntrack_helper_unregister(ftp_ptr);
- }
- 
- static int __init nf_conntrack_ftp_init(void)
- {
--	int i, ret = 0;
-+	int ret = 0;
- 
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_ftp_master));
- 
--	if (ports_c == 0)
--		ports[ports_c++] = FTP_PORT;
--
- 	/* FIXME should be configurable whether IPv4 and IPv6 FTP connections
- 		 are tracked or not - YK */
--	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&ftp[2 * i], AF_INET, IPPROTO_TCP,
--				  HELPER_NAME, FTP_PORT, ports[i], ports[i],
--				  &ftp_exp_policy, 0, help,
--				  nf_ct_ftp_from_nlattr, THIS_MODULE);
--		nf_ct_helper_init(&ftp[2 * i + 1], AF_INET6, IPPROTO_TCP,
--				  HELPER_NAME, FTP_PORT, ports[i], ports[i],
--				  &ftp_exp_policy, 0, help,
--				  nf_ct_ftp_from_nlattr, THIS_MODULE);
--	}
-+	nf_ct_helper_init(&ftp, NFPROTO_UNSPEC, IPPROTO_TCP,
-+			  HELPER_NAME,
-+			  &ftp_exp_policy, 0, help,
-+			  nf_ct_ftp_from_nlattr, THIS_MODULE);
- 
--	ret = nf_conntrack_helpers_register(ftp, ports_c * 2, ftp_ptr);
-+	ret = nf_conntrack_helper_register(&ftp, &ftp_ptr);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 24931e379985..98b9753d5e65 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1713,19 +1713,19 @@ static int __init h323_helper_init(void)
- 	int ret;
- 
- 	nf_ct_helper_init(&nf_conntrack_helper_ras[0], AF_INET, IPPROTO_UDP,
--			  "RAS", RAS_PORT, RAS_PORT, RAS_PORT,
-+			  "RAS",
- 			  &ras_exp_policy, 0, ras_help, NULL, THIS_MODULE);
- 	nf_ct_helper_init(&nf_conntrack_helper_ras[1], AF_INET6, IPPROTO_UDP,
--			  "RAS", RAS_PORT, RAS_PORT, RAS_PORT,
-+			  "RAS",
- 			  &ras_exp_policy, 0, ras_help, NULL, THIS_MODULE);
- 	nf_ct_helper_init(&nf_conntrack_helper_h245, AF_UNSPEC, IPPROTO_UDP,
--			  "H.245", 0, 0, 0,
-+			  "H.245",
- 			  &h245_exp_policy, 0, h245_help, NULL, THIS_MODULE);
- 	nf_ct_helper_init(&nf_conntrack_helper_q931[0], AF_INET, IPPROTO_TCP,
--			  "Q.931", Q931_PORT, Q931_PORT, Q931_PORT,
-+			  "Q.931",
- 			  &q931_exp_policy, 0, q931_help, NULL, THIS_MODULE);
- 	nf_ct_helper_init(&nf_conntrack_helper_q931[1], AF_INET6, IPPROTO_TCP,
--			  "Q.931", Q931_PORT, Q931_PORT, Q931_PORT,
-+			  "Q.931",
- 			  &q931_exp_policy, 0, q931_help, NULL, THIS_MODULE);
- 
- 	ret = nf_conntrack_helper_register(&nf_conntrack_helper_h245,
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index b28986100db0..506c58034761 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -472,7 +472,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
- void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 		       u8 l3num, u16 protonum, const char *name,
--		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
- 		       u32 expect_class_max,
- 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
-@@ -493,10 +492,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 	snprintf(helper->nat_mod_name, sizeof(helper->nat_mod_name),
- 		 NF_NAT_HELPER_PREFIX "%s", name);
- 
--	if (spec_port == default_port)
--		snprintf(helper->name, sizeof(helper->name), "%s", name);
--	else
--		snprintf(helper->name, sizeof(helper->name), "%s-%u", name, id);
-+	snprintf(helper->name, sizeof(helper->name), "%s", name);
- 
- 	if (WARN_ON_ONCE(expect_class_max >= NF_CT_MAX_EXPECT_CLASSES))
- 		return;
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 193ab34db795..4e6bafe41437 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -21,9 +21,6 @@
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <linux/netfilter/nf_conntrack_irc.h>
- 
--#define MAX_PORTS 8
--static unsigned short ports[MAX_PORTS];
--static unsigned int ports_c;
- static unsigned int max_dcc_channels = 8;
- static unsigned int dcc_timeout __read_mostly = 300;
- /* This is slow, but it's simple. --RR */
-@@ -42,8 +39,6 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS("ip_conntrack_irc");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
- 
--module_param_array(ports, ushort, &ports_c, 0400);
--MODULE_PARM_DESC(ports, "port numbers of IRC servers");
- module_param(max_dcc_channels, uint, 0400);
- MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per "
- 				   "IRC session");
-@@ -254,13 +249,13 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 	return ret;
- }
- 
--static struct nf_conntrack_helper irc[MAX_PORTS] __read_mostly;
--static struct nf_conntrack_helper *irc_ptr[MAX_PORTS] __read_mostly;
-+static struct nf_conntrack_helper irc __read_mostly;
-+static struct nf_conntrack_helper *irc_ptr __read_mostly;
- static struct nf_conntrack_expect_policy irc_exp_policy;
- 
- static int __init nf_conntrack_irc_init(void)
- {
--	int i, ret;
-+	int ret;
- 
- 	nf_conntrack_helper_deprecated(HELPER_NAME);
- 
-@@ -282,17 +277,11 @@ static int __init nf_conntrack_irc_init(void)
- 	if (!irc_buffer)
- 		return -ENOMEM;
- 
--	/* If no port given, default to standard irc port */
--	if (ports_c == 0)
--		ports[ports_c++] = IRC_PORT;
-+	nf_ct_helper_init(&irc, AF_INET, IPPROTO_TCP, HELPER_NAME,
-+			  &irc_exp_policy,
-+			  0, help, NULL, THIS_MODULE);
- 
--	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, HELPER_NAME,
--				  IRC_PORT, ports[i], i, &irc_exp_policy,
--				  0, help, NULL, THIS_MODULE);
--	}
--
--	ret = nf_conntrack_helpers_register(&irc[0], ports_c, irc_ptr);
-+	ret = nf_conntrack_helper_register(&irc, &irc_ptr);
- 	if (ret) {
- 		pr_err("failed to register helpers\n");
- 		kfree(irc_buffer);
-@@ -304,7 +293,7 @@ static int __init nf_conntrack_irc_init(void)
- 
- static void __exit nf_conntrack_irc_fini(void)
- {
--	nf_conntrack_helpers_unregister(irc_ptr, ports_c);
-+	nf_conntrack_helper_unregister(irc_ptr);
- 	kfree(irc_buffer);
- }
- 
-diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index 89d1cf7d6512..caa2b101fa9e 100644
---- a/net/netfilter/nf_conntrack_netbios_ns.c
-+++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -21,7 +21,6 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- 
- #define HELPER_NAME	"netbios-ns"
--#define NMBD_PORT	137
- 
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("NetBIOS name service broadcast connection tracking helper");
-@@ -54,7 +53,6 @@ static int __init nf_conntrack_netbios_ns_init(void)
- 	exp_policy.timeout = timeout;
- 
- 	nf_ct_helper_init(&helper, AF_INET, IPPROTO_UDP, HELPER_NAME,
--			  NMBD_PORT, NMBD_PORT, NMBD_PORT,
- 			  &exp_policy, 0, netbios_ns_help, NULL, THIS_MODULE);
- 
- 	return nf_conntrack_helper_register(&helper, &helper_ptr);
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 80fc14c87ddc..cbf32a3cb1f6 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -540,7 +540,7 @@ static int __init nf_conntrack_pptp_init(void)
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_pptp_master));
- 
- 	nf_ct_helper_init(&pptp, AF_INET, IPPROTO_TCP,
--			  "pptp", PPTP_CONTROL_PORT, PPTP_CONTROL_PORT, PPTP_CONTROL_PORT,
-+			  "pptp",
- 			  &pptp_exp_policy, 0, conntrack_pptp_help, NULL, THIS_MODULE);
- 
- 	pptp.destroy = gre_pptp_destroy_siblings;
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index 39085acf7a71..a0658f69d78f 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -34,11 +34,6 @@ MODULE_AUTHOR("Michal Schmidt <mschmidt@redhat.com>");
- MODULE_DESCRIPTION("SANE connection tracking helper");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
- 
--#define MAX_PORTS 8
--static u_int16_t ports[MAX_PORTS];
--static unsigned int ports_c;
--module_param_array(ports, ushort, &ports_c, 0400);
--
- struct sane_request {
- 	__be32 RPC_code;
- #define SANE_NET_START      7   /* RPC code */
-@@ -169,8 +164,8 @@ static int help(struct sk_buff *skb,
- 	return ret;
- }
- 
--static struct nf_conntrack_helper sane[MAX_PORTS * 2] __read_mostly;
--static struct nf_conntrack_helper *sane_ptr[MAX_PORTS * 2] __read_mostly;
-+static struct nf_conntrack_helper sane __read_mostly;
-+static struct nf_conntrack_helper *sane_ptr __read_mostly;
- 
- static const struct nf_conntrack_expect_policy sane_exp_policy = {
- 	.max_expected	= 1,
-@@ -179,32 +174,21 @@ static const struct nf_conntrack_expect_policy sane_exp_policy = {
- 
- static void __exit nf_conntrack_sane_fini(void)
- {
--	nf_conntrack_helpers_unregister(sane_ptr, ports_c * 2);
-+	nf_conntrack_helper_unregister(sane_ptr);
- }
- 
- static int __init nf_conntrack_sane_init(void)
- {
--	int i, ret = 0;
-+	int ret = 0;
- 
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_sane_master));
- 
--	if (ports_c == 0)
--		ports[ports_c++] = SANE_PORT;
--
--	/* FIXME should be configurable whether IPv4 and IPv6 connections
--		 are tracked or not - YK */
--	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP,
--				  HELPER_NAME, SANE_PORT, ports[i], ports[i],
--				  &sane_exp_policy, 0, help, NULL,
--				  THIS_MODULE);
--		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP,
--				  HELPER_NAME, SANE_PORT, ports[i], ports[i],
--				  &sane_exp_policy, 0, help, NULL,
--				  THIS_MODULE);
--	}
-+	nf_ct_helper_init(&sane, NFPROTO_UNSPEC, IPPROTO_TCP,
-+			  HELPER_NAME,
-+			  &sane_exp_policy, 0, help, NULL,
-+			  THIS_MODULE);
- 
--	ret = nf_conntrack_helpers_register(sane, ports_c * 2, sane_ptr);
-+	ret = nf_conntrack_helper_register(&sane, &sane_ptr);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 5ec3a4a4bbd7..d0b85b8ad1e6 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -35,12 +35,6 @@ MODULE_DESCRIPTION("SIP connection tracking helper");
- MODULE_ALIAS("ip_conntrack_sip");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
- 
--#define MAX_PORTS	8
--static unsigned short ports[MAX_PORTS];
--static unsigned int ports_c;
--module_param_array(ports, ushort, &ports_c, 0400);
--MODULE_PARM_DESC(ports, "port numbers of SIP servers");
--
- static unsigned int sip_timeout __read_mostly = SIP_TIMEOUT;
- module_param(sip_timeout, uint, 0600);
- MODULE_PARM_DESC(sip_timeout, "timeout for the master SIP session");
-@@ -1764,8 +1758,8 @@ static int sip_help_udp(struct sk_buff *skb, unsigned int protoff,
- 	return process_sip_msg(skb, ct, protoff, dataoff, &dptr, &datalen);
- }
- 
--static struct nf_conntrack_helper sip[MAX_PORTS * 4] __read_mostly;
--static struct nf_conntrack_helper *sip_ptr[MAX_PORTS * 4] __read_mostly;
-+static struct nf_conntrack_helper sip[2] __read_mostly;
-+static struct nf_conntrack_helper *sip_ptr[2] __read_mostly;
- 
- static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1] = {
- 	[SIP_EXPECT_SIGNALLING] = {
-@@ -1792,38 +1786,25 @@ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1
- 
- static void __exit nf_conntrack_sip_fini(void)
- {
--	nf_conntrack_helpers_unregister(sip_ptr, ports_c * 4);
-+	nf_conntrack_helpers_unregister(sip_ptr, 2);
- }
- 
- static int __init nf_conntrack_sip_init(void)
- {
--	int i, ret;
-+	int ret;
- 
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_sip_master));
- 
--	if (ports_c == 0)
--		ports[ports_c++] = SIP_PORT;
--
--	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP,
--				  HELPER_NAME, SIP_PORT, ports[i], i,
--				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
--				  NULL, THIS_MODULE);
--		nf_ct_helper_init(&sip[4 * i + 1], AF_INET, IPPROTO_TCP,
--				  HELPER_NAME, SIP_PORT, ports[i], i,
--				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
--				  NULL, THIS_MODULE);
--		nf_ct_helper_init(&sip[4 * i + 2], AF_INET6, IPPROTO_UDP,
--				  HELPER_NAME, SIP_PORT, ports[i], i,
--				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
--				  NULL, THIS_MODULE);
--		nf_ct_helper_init(&sip[4 * i + 3], AF_INET6, IPPROTO_TCP,
--				  HELPER_NAME, SIP_PORT, ports[i], i,
--				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
--				  NULL, THIS_MODULE);
--	}
-+	nf_ct_helper_init(&sip[0], NFPROTO_UNSPEC, IPPROTO_UDP,
-+			  HELPER_NAME,
-+			  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
-+			  NULL, THIS_MODULE);
-+	nf_ct_helper_init(&sip[1], NFPROTO_UNSPEC, IPPROTO_TCP,
-+			  HELPER_NAME,
-+			  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
-+			  NULL, THIS_MODULE);
- 
--	ret = nf_conntrack_helpers_register(sip, ports_c * 4, sip_ptr);
-+	ret = nf_conntrack_helpers_register(sip, 2, sip_ptr);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
-diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
-index b6fce5703fce..109986d5d55e 100644
---- a/net/netfilter/nf_conntrack_snmp.c
-+++ b/net/netfilter/nf_conntrack_snmp.c
-@@ -14,8 +14,6 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <linux/netfilter/nf_conntrack_snmp.h>
- 
--#define SNMP_PORT	161
--
- MODULE_AUTHOR("Jiri Olsa <jolsa@redhat.com>");
- MODULE_DESCRIPTION("SNMP service broadcast connection tracking helper");
- MODULE_LICENSE("GPL");
-@@ -55,7 +53,7 @@ static int __init nf_conntrack_snmp_init(void)
- 	exp_policy.timeout = timeout;
- 
- 	nf_ct_helper_init(&helper, AF_INET, IPPROTO_UDP,
--			  "snmp", SNMP_PORT, SNMP_PORT, SNMP_PORT,
-+			  "snmp",
- 			  &exp_policy, 0, snmp_conntrack_help, NULL,
- 			  THIS_MODULE);
- 
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index 4393c435aa35..a69559edf9b3 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -26,12 +26,6 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS("ip_conntrack_tftp");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
- 
--#define MAX_PORTS 8
--static unsigned short ports[MAX_PORTS];
--static unsigned int ports_c;
--module_param_array(ports, ushort, &ports_c, 0400);
--MODULE_PARM_DESC(ports, "Port numbers of TFTP servers");
--
- nf_nat_tftp_hook_fn __rcu *nf_nat_tftp_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_nat_tftp_hook);
- 
-@@ -95,8 +89,8 @@ static int tftp_help(struct sk_buff *skb,
- 	return ret;
- }
- 
--static struct nf_conntrack_helper tftp[MAX_PORTS * 2] __read_mostly;
--static struct nf_conntrack_helper *tftp_ptr[MAX_PORTS * 2] __read_mostly;
-+static struct nf_conntrack_helper tftp __read_mostly;
-+static struct nf_conntrack_helper *tftp_ptr __read_mostly;
- 
- static const struct nf_conntrack_expect_policy tftp_exp_policy = {
- 	.max_expected	= 1,
-@@ -105,30 +99,21 @@ static const struct nf_conntrack_expect_policy tftp_exp_policy = {
- 
- static void __exit nf_conntrack_tftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(tftp_ptr, ports_c * 2);
-+	nf_conntrack_helper_unregister(tftp_ptr);
- }
- 
- static int __init nf_conntrack_tftp_init(void)
- {
--	int i, ret;
-+	int ret;
- 
- 	NF_CT_HELPER_BUILD_BUG_ON(0);
- 
--	if (ports_c == 0)
--		ports[ports_c++] = TFTP_PORT;
--
--	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&tftp[2 * i], AF_INET, IPPROTO_UDP,
--				  HELPER_NAME, TFTP_PORT, ports[i], i,
--				  &tftp_exp_policy, 0, tftp_help, NULL,
--				  THIS_MODULE);
--		nf_ct_helper_init(&tftp[2 * i + 1], AF_INET6, IPPROTO_UDP,
--				  HELPER_NAME, TFTP_PORT, ports[i], i,
--				  &tftp_exp_policy, 0, tftp_help, NULL,
--				  THIS_MODULE);
--	}
-+	nf_ct_helper_init(&tftp, NFPROTO_UNSPEC, IPPROTO_UDP,
-+			  HELPER_NAME,
-+			  &tftp_exp_policy, 0, tftp_help, NULL,
-+			  THIS_MODULE);
- 
--	ret = nf_conntrack_helpers_register(tftp, ports_c * 2, tftp_ptr);
-+	ret = nf_conntrack_helper_register(&tftp, &tftp_ptr);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
--- 
-2.53.0
+.config:4948:warning: override: reassigning to symbol NET
+.config:4949:warning: override: reassigning to symbol NET_CORE
+.config:4950:warning: override: reassigning to symbol NETDEVICES
+.config:4951:warning: override: reassigning to symbol NETWORK_FILESYSTEMS
+ERROR: modpost: "secure_tcpv6_seq_and_ts_off" [net/netfilter/nf_nat.ko] 
+undefined!
 
+cheers,
+Victor
