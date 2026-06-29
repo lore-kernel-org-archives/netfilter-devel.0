@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD2E403AED
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 12:58:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60F23FF889
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 12:58:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782737922; cv=none; b=QewC3V0PsymszINJHZZU07uZTn6cSXB2+CbW0NrWGpyyf23w9QrAx8lRH1wcVm3HBq/eMt+XYb2XFVTcJ8Uj2GWSZY/RTJ5RWAdLWj1GWYWESWlkaNa+u5hrdbw91LZpETlyoEV27sd/aM/YBm+0VuLr6Iufvio/mU2DzFMiJ5A=
+	t=1782737927; cv=none; b=TEgi9lF//muPspulDVv8k0Q+FLVnMKzRJpgxd24n0JG6+LExv3DBwwlk5qmSIljko713I5K4n1Yi6lSy/GHDC0qu9eQwyVO1r0DT8BrO7CtQOxhELr5jUZgmYQF5Jwos0gEjch7GsqOwFhTz58JH+WeeOgXsDsm6xr2Kmp15PPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782737922; c=relaxed/simple;
-	bh=3blXB03822uOcGr/OaibUfrCHTDuepaWnw+6hQpLDPs=;
+	s=arc-20240116; t=1782737927; c=relaxed/simple;
+	bh=4VoXdSC9W/PkhIlojCmWBGL1fuOKOuV9k77tsyaTRlY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SOXDwCqEM5Rk1y8tXa0qddbR5NeGFPKD8FJa+R5mcqdzBCFtBa07UcwS33aQwVtMJLDAJTcipMBiXuutxq4dNf5+kBbduFjw91hFHbibo1CvKohpzKbn6FJpdPMPEj1LEw7ak85whhZKs3AGyAtSPxQ80iVq0ueloDwE2vukIpo=
+	 MIME-Version; b=UgIof49BbYQJmCLyKdV7JxVw6M5I1sIpX1Cnwl2a5hK+5Z949kCRl9CNuQi8qXOj1yM/FLzCuMF6mPecgzxvc0bpD8wTp62iqYSB6h498/rOliAQ6YVewX+xMAK19gF1t3wy7lWQnPMm6qb0+Y449orfkLbuOrCka1wk4dA6P6o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C91166032C; Mon, 29 Jun 2026 14:58:39 +0200 (CEST)
+	id 165A460370; Mon, 29 Jun 2026 14:58:44 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/3] netfilter: conntrack: get rid of tuple in helper definitions
-Date: Mon, 29 Jun 2026 14:58:22 +0200
-Message-ID: <20260629125823.1749-3-fw@strlen.de>
+Subject: [PATCH nf-next v2 3/3] netfilter: conntrack: remove obsolete module parameters
+Date: Mon, 29 Jun 2026 14:58:23 +0200
+Message-ID: <20260629125823.1749-4-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260629125823.1749-1-fw@strlen.de>
 References: <20260629125823.1749-1-fw@strlen.de>
@@ -33,243 +33,584 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Leftover from the days when the kernel did automatic assignment of helpers
-based on a pre-registered / well-known-port.
+helper autoassign was removed years ago, all the port numbers are
+no longer functional.
 
-This helper autoassign was removed from the kernel, so all we really
-need are the l3 and l4 protocol numbers.
-
-Because helpers can register for UNSPEC (== l3 agnostic), we can also
-remove redundant ipv4+ipv6 register requests.
-
-In the broadcast helper, the only remaining consumer of the port number is
-removed.  AFAICS its not needed either: The expectation is populated from
-the control connection reply tuple, so the src port is the original
-directions destination (snmp for example).
-
-LLM complains about silent l3num (u16) -> nfproto (u8) truncation,
-add a netlink policy validation to reject large NFPROTO values upfront.
-
-Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v2: fix act_ct build failure
+ v2: no changes. I don't think its worth it to keep
+ dummy modparams around.
 
- include/net/netfilter/nf_conntrack_helper.h |  9 ++++-----
- net/netfilter/nf_conntrack_broadcast.c      |  2 --
- net/netfilter/nf_conntrack_helper.c         | 22 +++++++++------------
- net/netfilter/nf_conntrack_ovs.c            |  6 +++---
- net/netfilter/nfnetlink_cthelper.c          | 21 ++++++++++----------
- net/sched/act_ct.c                          |  4 ++--
- 6 files changed, 29 insertions(+), 35 deletions(-)
+ include/linux/netfilter/nf_conntrack_h323.h |  2 -
+ include/linux/netfilter/nf_conntrack_pptp.h |  2 -
+ include/linux/netfilter/nf_conntrack_sane.h |  2 -
+ include/linux/netfilter/nf_conntrack_tftp.h |  2 -
+ include/net/netfilter/nf_conntrack_helper.h |  1 -
+ net/ipv4/netfilter/nf_nat_snmp_basic_main.c |  2 +-
+ net/netfilter/nf_conntrack_amanda.c         |  4 +-
+ net/netfilter/nf_conntrack_ftp.c            | 32 +++++----------
+ net/netfilter/nf_conntrack_h323_main.c      | 10 ++---
+ net/netfilter/nf_conntrack_helper.c         |  6 +--
+ net/netfilter/nf_conntrack_irc.c            | 27 ++++---------
+ net/netfilter/nf_conntrack_netbios_ns.c     |  2 -
+ net/netfilter/nf_conntrack_pptp.c           |  2 +-
+ net/netfilter/nf_conntrack_sane.c           | 34 +++++-----------
+ net/netfilter/nf_conntrack_sip.c            | 45 ++++++---------------
+ net/netfilter/nf_conntrack_snmp.c           |  4 +-
+ net/netfilter/nf_conntrack_tftp.c           | 33 +++++----------
+ 17 files changed, 59 insertions(+), 151 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index c761cd8158b2..f3f0c1392e88 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -43,11 +43,10 @@ struct nf_conntrack_helper {
+diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
+index 81286c499325..b15f37604cde 100644
+--- a/include/linux/netfilter/nf_conntrack_h323.h
++++ b/include/linux/netfilter/nf_conntrack_h323.h
+@@ -9,8 +9,6 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <uapi/linux/netfilter/nf_conntrack_tuple_common.h>
  
- 	refcount_t ct_refcnt;
+-#define RAS_PORT 1719
+-#define Q931_PORT 1720
+ #define H323_RTP_CHANNEL_MAX 4	/* Audio, video, FAX and other */
  
--	/* Tuple of things we will help (compared against server response) */
--	struct nf_conntrack_tuple tuple;
-+	u8 nfproto;	/* NFPROTO_*, can be NFPROTO_UNSPEC */
-+	u8 l4proto;	/* IPPROTO_UDP/TCP */
- 
--	/* Function to call when data passes; return verdict, or -1 to
--           invalidate. */
-+	/* Function to call when data passes; return verdict */
- 	int __rcu (*help)(struct sk_buff *skb, unsigned int protoff,
- 			  struct nf_conn *ct,
- 			  enum ip_conntrack_info conntrackinfo);
-@@ -94,7 +93,7 @@ struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(const char *name,
- void nf_conntrack_helper_put(struct nf_conntrack_helper *helper);
- 
- void nf_ct_helper_init(struct nf_conntrack_helper *helper,
--		       u16 l3num, u16 protonum, const char *name,
-+		       u8 l3num, u16 protonum, const char *name,
- 		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
- 		       u32 expect_class_max,
-diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-index bf78828c7549..6ff954f1bfb8 100644
---- a/net/netfilter/nf_conntrack_broadcast.c
-+++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -66,8 +66,6 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 	exp->tuple                = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
- 
- 	helper = rcu_dereference(help->helper);
--	if (helper)
--		exp->tuple.src.u.udp.port = helper->tuple.src.u.udp.port;
- 
- 	exp->mask.src.u3.ip       = mask;
- 	exp->mask.src.u.udp.port  = htons(0xFFFF);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 5ad5429352a7..b28986100db0 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -66,12 +66,9 @@ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
- 	hlist_for_each_entry_rcu(h, &nf_ct_helper_hash[i], hnode) {
- 		if (strcmp(h->name, name))
- 			continue;
--
--		if (h->tuple.src.l3num != NFPROTO_UNSPEC &&
--		    h->tuple.src.l3num != l3num)
-+		if (h->nfproto != NFPROTO_UNSPEC && h->nfproto != l3num)
- 			continue;
--
--		if (h->tuple.dst.protonum == protonum)
-+		if (h->l4proto == protonum)
- 			return h;
- 	}
- 	return NULL;
-@@ -388,13 +385,13 @@ int __nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 			return -EINVAL;
- 	}
- 
--	h = helper_hash(me->name, me->tuple.dst.protonum);
-+	h = helper_hash(me->name, me->l4proto);
- 	mutex_lock(&nf_ct_helper_mutex);
- 	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
- 		if (!strcmp(cur->name, me->name) &&
--		    (cur->tuple.src.l3num == NFPROTO_UNSPEC ||
--		     cur->tuple.src.l3num == me->tuple.src.l3num) &&
--		    cur->tuple.dst.protonum == me->tuple.dst.protonum) {
-+		    (cur->nfproto == NFPROTO_UNSPEC ||
-+		     cur->nfproto == me->nfproto) &&
-+		    cur->l4proto == me->l4proto) {
- 			ret = -EBUSY;
- 			goto out;
- 		}
-@@ -474,7 +471,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
- void nf_ct_helper_init(struct nf_conntrack_helper *helper,
--		       u16 l3num, u16 protonum, const char *name,
-+		       u8 l3num, u16 protonum, const char *name,
- 		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
- 		       u32 expect_class_max,
-@@ -487,9 +484,8 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- {
- 	memset(helper, 0, sizeof(*helper));
- 
--	helper->tuple.src.l3num = l3num;
--	helper->tuple.dst.protonum = protonum;
--	helper->tuple.src.u.all = htons(spec_port);
-+	helper->nfproto = l3num;
-+	helper->l4proto = protonum;
- 
- 	rcu_assign_pointer(helper->help, help);
- 	helper->from_nlattr = from_nlattr;
-diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-index 49d1511e9921..b4085af3ad1c 100644
---- a/net/netfilter/nf_conntrack_ovs.c
-+++ b/net/netfilter/nf_conntrack_ovs.c
-@@ -31,8 +31,8 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 	if (!helper)
- 		return NF_ACCEPT;
- 
--	if (helper->tuple.src.l3num != NFPROTO_UNSPEC &&
--	    helper->tuple.src.l3num != proto)
-+	if (helper->nfproto != NFPROTO_UNSPEC &&
-+	    helper->nfproto != proto)
- 		return NF_ACCEPT;
- 
- 	switch (proto) {
-@@ -60,7 +60,7 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 		return NF_DROP;
- 	}
- 
--	if (helper->tuple.dst.protonum != proto)
-+	if (helper->l4proto != proto)
- 		return NF_ACCEPT;
- 
- 	helper_cb = rcu_dereference(helper->help);
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index f1460b683d7a..56655cb7fe2a 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -67,7 +67,7 @@ nfnl_userspace_cthelper(struct sk_buff *skb, unsigned int protoff,
- }
- 
- static const struct nla_policy nfnl_cthelper_tuple_pol[NFCTH_TUPLE_MAX+1] = {
--	[NFCTH_TUPLE_L3PROTONUM] = { .type = NLA_U16, },
-+	[NFCTH_TUPLE_L3PROTONUM] = NLA_POLICY_MAX(NLA_BE16, NFPROTO_IPV6),
- 	[NFCTH_TUPLE_L4PROTONUM] = { .type = NLA_U8, },
+ /* This structure exists only once per master */
+diff --git a/include/linux/netfilter/nf_conntrack_pptp.h b/include/linux/netfilter/nf_conntrack_pptp.h
+index c3bdb4370938..c0b305ce7c3c 100644
+--- a/include/linux/netfilter/nf_conntrack_pptp.h
++++ b/include/linux/netfilter/nf_conntrack_pptp.h
+@@ -50,8 +50,6 @@ struct nf_nat_pptp {
+ 	__be16 pac_call_id;			/* NAT'ed PAC call id */
  };
  
-@@ -254,7 +254,8 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
- 	helper->data_len = size;
+-#define PPTP_CONTROL_PORT	1723
+-
+ #define PPTP_PACKET_CONTROL	1
+ #define PPTP_PACKET_MGMT	2
  
- 	helper->flags |= NF_CT_HELPER_F_USERSPACE;
--	memcpy(&helper->tuple, tuple, sizeof(struct nf_conntrack_tuple));
-+	helper->nfproto = tuple->src.l3num;
-+	helper->l4proto = tuple->dst.protonum;
+diff --git a/include/linux/netfilter/nf_conntrack_sane.h b/include/linux/netfilter/nf_conntrack_sane.h
+index 46c7acd1b4a7..8501035d7335 100644
+--- a/include/linux/netfilter/nf_conntrack_sane.h
++++ b/include/linux/netfilter/nf_conntrack_sane.h
+@@ -3,8 +3,6 @@
+ #define _NF_CONNTRACK_SANE_H
+ /* SANE tracking. */
  
- 	helper->me = THIS_MODULE;
- 	helper->help = nfnl_userspace_cthelper;
-@@ -449,8 +450,8 @@ static int nfnl_cthelper_new(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (strncmp(cur->name, helper_name, NF_CT_HELPER_NAME_LEN))
- 			continue;
+-#define SANE_PORT	6566
+-
+ enum sane_state {
+ 	SANE_STATE_NORMAL,
+ 	SANE_STATE_START_REQUESTED,
+diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
+index 90b334bbce3c..e3d1739c557d 100644
+--- a/include/linux/netfilter/nf_conntrack_tftp.h
++++ b/include/linux/netfilter/nf_conntrack_tftp.h
+@@ -2,8 +2,6 @@
+ #ifndef _NF_CONNTRACK_TFTP_H
+ #define _NF_CONNTRACK_TFTP_H
  
--		if ((tuple.src.l3num != cur->tuple.src.l3num ||
--		     tuple.dst.protonum != cur->tuple.dst.protonum))
-+		if ((tuple.src.l3num != cur->nfproto ||
-+		     tuple.dst.protonum != cur->l4proto))
- 			continue;
+-#define TFTP_PORT 69
+-
+ #include <linux/netfilter.h>
+ #include <linux/skbuff.h>
+ #include <linux/types.h>
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index f3f0c1392e88..bc5427d239f4 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -94,7 +94,6 @@ void nf_conntrack_helper_put(struct nf_conntrack_helper *helper);
  
- 		if (info->nlh->nlmsg_flags & NLM_F_EXCL)
-@@ -479,10 +480,10 @@ nfnl_cthelper_dump_tuple(struct sk_buff *skb,
- 		goto nla_put_failure;
+ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 		       u8 l3num, u16 protonum, const char *name,
+-		       u16 default_port, u16 spec_port, u32 id,
+ 		       const struct nf_conntrack_expect_policy *exp_pol,
+ 		       u32 expect_class_max,
+ 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+index 0ede138dfd29..e540b86bd15b 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+@@ -213,7 +213,7 @@ static int __init nf_nat_snmp_basic_init(void)
+ 	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
  
- 	if (nla_put_be16(skb, NFCTH_TUPLE_L3PROTONUM,
--			 htons(helper->tuple.src.l3num)))
-+			 htons(helper->nfproto)))
- 		goto nla_put_failure;
+ 	nf_ct_helper_init(&snmp_trap_helper, AF_INET, IPPROTO_UDP,
+-			  "snmp_trap", SNMP_TRAP_PORT, SNMP_TRAP_PORT, SNMP_TRAP_PORT,
++			  "snmp_trap",
+ 			  &snmp_exp_policy, 0, help, NULL, THIS_MODULE);
  
--	if (nla_put_u8(skb, NFCTH_TUPLE_L4PROTONUM, helper->tuple.dst.protonum))
-+	if (nla_put_u8(skb, NFCTH_TUPLE_L4PROTONUM, helper->l4proto))
- 		goto nla_put_failure;
+ 	err = nf_conntrack_helper_register(&snmp_trap_helper, &snmp_trap_helper_ptr);
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index ddafbdfc96dc..edced039970d 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -199,10 +199,10 @@ static int __init nf_conntrack_amanda_init(void)
+ 	}
  
- 	nla_nest_end(skb, nest_parms);
-@@ -661,8 +662,8 @@ static int nfnl_cthelper_get(struct sk_buff *skb, const struct nfnl_info *info,
- 			continue;
+ 	nf_ct_helper_init(&amanda_helper[0], AF_INET, IPPROTO_UDP,
+-			  HELPER_NAME, 10080, 10080, 10080,
++			  HELPER_NAME,
+ 			  &amanda_exp_policy, 0, amanda_help, NULL, THIS_MODULE);
+ 	nf_ct_helper_init(&amanda_helper[1], AF_INET6, IPPROTO_UDP,
+-			  HELPER_NAME, 10080, 10080, 10080,
++			  HELPER_NAME,
+ 			  &amanda_exp_policy, 0, amanda_help, NULL, THIS_MODULE);
  
- 		if (tuple_set &&
--		    (tuple.src.l3num != cur->tuple.src.l3num ||
--		     tuple.dst.protonum != cur->tuple.dst.protonum))
-+		    (tuple.src.l3num != cur->nfproto ||
-+		     tuple.dst.protonum != cur->l4proto))
- 			continue;
+ 	ret = nf_conntrack_helpers_register(amanda_helper,
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 0847f845613d..f3944598c172 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -35,11 +35,6 @@ MODULE_ALIAS("ip_conntrack_ftp");
+ MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
+ static DEFINE_SPINLOCK(nf_ftp_lock);
  
- 		skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-@@ -721,8 +722,8 @@ static int nfnl_cthelper_del(struct sk_buff *skb, const struct nfnl_info *info,
- 			continue;
+-#define MAX_PORTS 8
+-static u_int16_t ports[MAX_PORTS];
+-static unsigned int ports_c;
+-module_param_array(ports, ushort, &ports_c, 0400);
+-
+ static bool loose;
+ module_param(loose, bool, 0600);
  
- 		if (tuple_set &&
--		    (tuple.src.l3num != cur->tuple.src.l3num ||
--		     tuple.dst.protonum != cur->tuple.dst.protonum))
-+		    (tuple.src.l3num != cur->nfproto ||
-+		     tuple.dst.protonum != cur->l4proto))
- 			continue;
- 
- 		found = true;
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index be535a261fa0..4ca7964e83c8 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -1527,8 +1527,8 @@ static int tcf_ct_dump_helper(struct sk_buff *skb,
- 		return 0;
- 
- 	if (nla_put_string(skb, TCA_CT_HELPER_NAME, helper->name) ||
--	    nla_put_u8(skb, TCA_CT_HELPER_FAMILY, helper->tuple.src.l3num) ||
--	    nla_put_u8(skb, TCA_CT_HELPER_PROTO, helper->tuple.dst.protonum))
-+	    nla_put_u8(skb, TCA_CT_HELPER_FAMILY, helper->nfproto) ||
-+	    nla_put_u8(skb, TCA_CT_HELPER_PROTO, helper->l4proto))
- 		return -1;
- 
+@@ -560,8 +555,8 @@ static int nf_ct_ftp_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
  	return 0;
+ }
+ 
+-static struct nf_conntrack_helper ftp[MAX_PORTS * 2] __read_mostly;
+-static struct nf_conntrack_helper *ftp_ptr[MAX_PORTS * 2] __read_mostly;
++static struct nf_conntrack_helper ftp __read_mostly;
++static struct nf_conntrack_helper *ftp_ptr __read_mostly;
+ 
+ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
+ 	.max_expected	= 1,
+@@ -570,32 +565,23 @@ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
+ 
+ static void __exit nf_conntrack_ftp_fini(void)
+ {
+-	nf_conntrack_helpers_unregister(ftp_ptr, ports_c * 2);
++	nf_conntrack_helper_unregister(ftp_ptr);
+ }
+ 
+ static int __init nf_conntrack_ftp_init(void)
+ {
+-	int i, ret = 0;
++	int ret = 0;
+ 
+ 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_ftp_master));
+ 
+-	if (ports_c == 0)
+-		ports[ports_c++] = FTP_PORT;
+-
+ 	/* FIXME should be configurable whether IPv4 and IPv6 FTP connections
+ 		 are tracked or not - YK */
+-	for (i = 0; i < ports_c; i++) {
+-		nf_ct_helper_init(&ftp[2 * i], AF_INET, IPPROTO_TCP,
+-				  HELPER_NAME, FTP_PORT, ports[i], ports[i],
+-				  &ftp_exp_policy, 0, help,
+-				  nf_ct_ftp_from_nlattr, THIS_MODULE);
+-		nf_ct_helper_init(&ftp[2 * i + 1], AF_INET6, IPPROTO_TCP,
+-				  HELPER_NAME, FTP_PORT, ports[i], ports[i],
+-				  &ftp_exp_policy, 0, help,
+-				  nf_ct_ftp_from_nlattr, THIS_MODULE);
+-	}
++	nf_ct_helper_init(&ftp, NFPROTO_UNSPEC, IPPROTO_TCP,
++			  HELPER_NAME,
++			  &ftp_exp_policy, 0, help,
++			  nf_ct_ftp_from_nlattr, THIS_MODULE);
+ 
+-	ret = nf_conntrack_helpers_register(ftp, ports_c * 2, ftp_ptr);
++	ret = nf_conntrack_helper_register(&ftp, &ftp_ptr);
+ 	if (ret < 0) {
+ 		pr_err("failed to register helpers\n");
+ 		return ret;
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 24931e379985..98b9753d5e65 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1713,19 +1713,19 @@ static int __init h323_helper_init(void)
+ 	int ret;
+ 
+ 	nf_ct_helper_init(&nf_conntrack_helper_ras[0], AF_INET, IPPROTO_UDP,
+-			  "RAS", RAS_PORT, RAS_PORT, RAS_PORT,
++			  "RAS",
+ 			  &ras_exp_policy, 0, ras_help, NULL, THIS_MODULE);
+ 	nf_ct_helper_init(&nf_conntrack_helper_ras[1], AF_INET6, IPPROTO_UDP,
+-			  "RAS", RAS_PORT, RAS_PORT, RAS_PORT,
++			  "RAS",
+ 			  &ras_exp_policy, 0, ras_help, NULL, THIS_MODULE);
+ 	nf_ct_helper_init(&nf_conntrack_helper_h245, AF_UNSPEC, IPPROTO_UDP,
+-			  "H.245", 0, 0, 0,
++			  "H.245",
+ 			  &h245_exp_policy, 0, h245_help, NULL, THIS_MODULE);
+ 	nf_ct_helper_init(&nf_conntrack_helper_q931[0], AF_INET, IPPROTO_TCP,
+-			  "Q.931", Q931_PORT, Q931_PORT, Q931_PORT,
++			  "Q.931",
+ 			  &q931_exp_policy, 0, q931_help, NULL, THIS_MODULE);
+ 	nf_ct_helper_init(&nf_conntrack_helper_q931[1], AF_INET6, IPPROTO_TCP,
+-			  "Q.931", Q931_PORT, Q931_PORT, Q931_PORT,
++			  "Q.931",
+ 			  &q931_exp_policy, 0, q931_help, NULL, THIS_MODULE);
+ 
+ 	ret = nf_conntrack_helper_register(&nf_conntrack_helper_h245,
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index b28986100db0..506c58034761 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -472,7 +472,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ 
+ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 		       u8 l3num, u16 protonum, const char *name,
+-		       u16 default_port, u16 spec_port, u32 id,
+ 		       const struct nf_conntrack_expect_policy *exp_pol,
+ 		       u32 expect_class_max,
+ 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
+@@ -493,10 +492,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 	snprintf(helper->nat_mod_name, sizeof(helper->nat_mod_name),
+ 		 NF_NAT_HELPER_PREFIX "%s", name);
+ 
+-	if (spec_port == default_port)
+-		snprintf(helper->name, sizeof(helper->name), "%s", name);
+-	else
+-		snprintf(helper->name, sizeof(helper->name), "%s-%u", name, id);
++	snprintf(helper->name, sizeof(helper->name), "%s", name);
+ 
+ 	if (WARN_ON_ONCE(expect_class_max >= NF_CT_MAX_EXPECT_CLASSES))
+ 		return;
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 193ab34db795..4e6bafe41437 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -21,9 +21,6 @@
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <linux/netfilter/nf_conntrack_irc.h>
+ 
+-#define MAX_PORTS 8
+-static unsigned short ports[MAX_PORTS];
+-static unsigned int ports_c;
+ static unsigned int max_dcc_channels = 8;
+ static unsigned int dcc_timeout __read_mostly = 300;
+ /* This is slow, but it's simple. --RR */
+@@ -42,8 +39,6 @@ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_irc");
+ MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
+ 
+-module_param_array(ports, ushort, &ports_c, 0400);
+-MODULE_PARM_DESC(ports, "port numbers of IRC servers");
+ module_param(max_dcc_channels, uint, 0400);
+ MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per "
+ 				   "IRC session");
+@@ -254,13 +249,13 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 	return ret;
+ }
+ 
+-static struct nf_conntrack_helper irc[MAX_PORTS] __read_mostly;
+-static struct nf_conntrack_helper *irc_ptr[MAX_PORTS] __read_mostly;
++static struct nf_conntrack_helper irc __read_mostly;
++static struct nf_conntrack_helper *irc_ptr __read_mostly;
+ static struct nf_conntrack_expect_policy irc_exp_policy;
+ 
+ static int __init nf_conntrack_irc_init(void)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	nf_conntrack_helper_deprecated(HELPER_NAME);
+ 
+@@ -282,17 +277,11 @@ static int __init nf_conntrack_irc_init(void)
+ 	if (!irc_buffer)
+ 		return -ENOMEM;
+ 
+-	/* If no port given, default to standard irc port */
+-	if (ports_c == 0)
+-		ports[ports_c++] = IRC_PORT;
++	nf_ct_helper_init(&irc, AF_INET, IPPROTO_TCP, HELPER_NAME,
++			  &irc_exp_policy,
++			  0, help, NULL, THIS_MODULE);
+ 
+-	for (i = 0; i < ports_c; i++) {
+-		nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, HELPER_NAME,
+-				  IRC_PORT, ports[i], i, &irc_exp_policy,
+-				  0, help, NULL, THIS_MODULE);
+-	}
+-
+-	ret = nf_conntrack_helpers_register(&irc[0], ports_c, irc_ptr);
++	ret = nf_conntrack_helper_register(&irc, &irc_ptr);
+ 	if (ret) {
+ 		pr_err("failed to register helpers\n");
+ 		kfree(irc_buffer);
+@@ -304,7 +293,7 @@ static int __init nf_conntrack_irc_init(void)
+ 
+ static void __exit nf_conntrack_irc_fini(void)
+ {
+-	nf_conntrack_helpers_unregister(irc_ptr, ports_c);
++	nf_conntrack_helper_unregister(irc_ptr);
+ 	kfree(irc_buffer);
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
+index 89d1cf7d6512..caa2b101fa9e 100644
+--- a/net/netfilter/nf_conntrack_netbios_ns.c
++++ b/net/netfilter/nf_conntrack_netbios_ns.c
+@@ -21,7 +21,6 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ 
+ #define HELPER_NAME	"netbios-ns"
+-#define NMBD_PORT	137
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("NetBIOS name service broadcast connection tracking helper");
+@@ -54,7 +53,6 @@ static int __init nf_conntrack_netbios_ns_init(void)
+ 	exp_policy.timeout = timeout;
+ 
+ 	nf_ct_helper_init(&helper, AF_INET, IPPROTO_UDP, HELPER_NAME,
+-			  NMBD_PORT, NMBD_PORT, NMBD_PORT,
+ 			  &exp_policy, 0, netbios_ns_help, NULL, THIS_MODULE);
+ 
+ 	return nf_conntrack_helper_register(&helper, &helper_ptr);
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 80fc14c87ddc..cbf32a3cb1f6 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -540,7 +540,7 @@ static int __init nf_conntrack_pptp_init(void)
+ 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_pptp_master));
+ 
+ 	nf_ct_helper_init(&pptp, AF_INET, IPPROTO_TCP,
+-			  "pptp", PPTP_CONTROL_PORT, PPTP_CONTROL_PORT, PPTP_CONTROL_PORT,
++			  "pptp",
+ 			  &pptp_exp_policy, 0, conntrack_pptp_help, NULL, THIS_MODULE);
+ 
+ 	pptp.destroy = gre_pptp_destroy_siblings;
+diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
+index 39085acf7a71..a0658f69d78f 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -34,11 +34,6 @@ MODULE_AUTHOR("Michal Schmidt <mschmidt@redhat.com>");
+ MODULE_DESCRIPTION("SANE connection tracking helper");
+ MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
+ 
+-#define MAX_PORTS 8
+-static u_int16_t ports[MAX_PORTS];
+-static unsigned int ports_c;
+-module_param_array(ports, ushort, &ports_c, 0400);
+-
+ struct sane_request {
+ 	__be32 RPC_code;
+ #define SANE_NET_START      7   /* RPC code */
+@@ -169,8 +164,8 @@ static int help(struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static struct nf_conntrack_helper sane[MAX_PORTS * 2] __read_mostly;
+-static struct nf_conntrack_helper *sane_ptr[MAX_PORTS * 2] __read_mostly;
++static struct nf_conntrack_helper sane __read_mostly;
++static struct nf_conntrack_helper *sane_ptr __read_mostly;
+ 
+ static const struct nf_conntrack_expect_policy sane_exp_policy = {
+ 	.max_expected	= 1,
+@@ -179,32 +174,21 @@ static const struct nf_conntrack_expect_policy sane_exp_policy = {
+ 
+ static void __exit nf_conntrack_sane_fini(void)
+ {
+-	nf_conntrack_helpers_unregister(sane_ptr, ports_c * 2);
++	nf_conntrack_helper_unregister(sane_ptr);
+ }
+ 
+ static int __init nf_conntrack_sane_init(void)
+ {
+-	int i, ret = 0;
++	int ret = 0;
+ 
+ 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_sane_master));
+ 
+-	if (ports_c == 0)
+-		ports[ports_c++] = SANE_PORT;
+-
+-	/* FIXME should be configurable whether IPv4 and IPv6 connections
+-		 are tracked or not - YK */
+-	for (i = 0; i < ports_c; i++) {
+-		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP,
+-				  HELPER_NAME, SANE_PORT, ports[i], ports[i],
+-				  &sane_exp_policy, 0, help, NULL,
+-				  THIS_MODULE);
+-		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP,
+-				  HELPER_NAME, SANE_PORT, ports[i], ports[i],
+-				  &sane_exp_policy, 0, help, NULL,
+-				  THIS_MODULE);
+-	}
++	nf_ct_helper_init(&sane, NFPROTO_UNSPEC, IPPROTO_TCP,
++			  HELPER_NAME,
++			  &sane_exp_policy, 0, help, NULL,
++			  THIS_MODULE);
+ 
+-	ret = nf_conntrack_helpers_register(sane, ports_c * 2, sane_ptr);
++	ret = nf_conntrack_helper_register(&sane, &sane_ptr);
+ 	if (ret < 0) {
+ 		pr_err("failed to register helpers\n");
+ 		return ret;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 5ec3a4a4bbd7..d0b85b8ad1e6 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -35,12 +35,6 @@ MODULE_DESCRIPTION("SIP connection tracking helper");
+ MODULE_ALIAS("ip_conntrack_sip");
+ MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
+ 
+-#define MAX_PORTS	8
+-static unsigned short ports[MAX_PORTS];
+-static unsigned int ports_c;
+-module_param_array(ports, ushort, &ports_c, 0400);
+-MODULE_PARM_DESC(ports, "port numbers of SIP servers");
+-
+ static unsigned int sip_timeout __read_mostly = SIP_TIMEOUT;
+ module_param(sip_timeout, uint, 0600);
+ MODULE_PARM_DESC(sip_timeout, "timeout for the master SIP session");
+@@ -1764,8 +1758,8 @@ static int sip_help_udp(struct sk_buff *skb, unsigned int protoff,
+ 	return process_sip_msg(skb, ct, protoff, dataoff, &dptr, &datalen);
+ }
+ 
+-static struct nf_conntrack_helper sip[MAX_PORTS * 4] __read_mostly;
+-static struct nf_conntrack_helper *sip_ptr[MAX_PORTS * 4] __read_mostly;
++static struct nf_conntrack_helper sip[2] __read_mostly;
++static struct nf_conntrack_helper *sip_ptr[2] __read_mostly;
+ 
+ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1] = {
+ 	[SIP_EXPECT_SIGNALLING] = {
+@@ -1792,38 +1786,25 @@ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1
+ 
+ static void __exit nf_conntrack_sip_fini(void)
+ {
+-	nf_conntrack_helpers_unregister(sip_ptr, ports_c * 4);
++	nf_conntrack_helpers_unregister(sip_ptr, 2);
+ }
+ 
+ static int __init nf_conntrack_sip_init(void)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_sip_master));
+ 
+-	if (ports_c == 0)
+-		ports[ports_c++] = SIP_PORT;
+-
+-	for (i = 0; i < ports_c; i++) {
+-		nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP,
+-				  HELPER_NAME, SIP_PORT, ports[i], i,
+-				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
+-				  NULL, THIS_MODULE);
+-		nf_ct_helper_init(&sip[4 * i + 1], AF_INET, IPPROTO_TCP,
+-				  HELPER_NAME, SIP_PORT, ports[i], i,
+-				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
+-				  NULL, THIS_MODULE);
+-		nf_ct_helper_init(&sip[4 * i + 2], AF_INET6, IPPROTO_UDP,
+-				  HELPER_NAME, SIP_PORT, ports[i], i,
+-				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
+-				  NULL, THIS_MODULE);
+-		nf_ct_helper_init(&sip[4 * i + 3], AF_INET6, IPPROTO_TCP,
+-				  HELPER_NAME, SIP_PORT, ports[i], i,
+-				  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
+-				  NULL, THIS_MODULE);
+-	}
++	nf_ct_helper_init(&sip[0], NFPROTO_UNSPEC, IPPROTO_UDP,
++			  HELPER_NAME,
++			  sip_exp_policy, SIP_EXPECT_MAX, sip_help_udp,
++			  NULL, THIS_MODULE);
++	nf_ct_helper_init(&sip[1], NFPROTO_UNSPEC, IPPROTO_TCP,
++			  HELPER_NAME,
++			  sip_exp_policy, SIP_EXPECT_MAX, sip_help_tcp,
++			  NULL, THIS_MODULE);
+ 
+-	ret = nf_conntrack_helpers_register(sip, ports_c * 4, sip_ptr);
++	ret = nf_conntrack_helpers_register(sip, 2, sip_ptr);
+ 	if (ret < 0) {
+ 		pr_err("failed to register helpers\n");
+ 		return ret;
+diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
+index b6fce5703fce..109986d5d55e 100644
+--- a/net/netfilter/nf_conntrack_snmp.c
++++ b/net/netfilter/nf_conntrack_snmp.c
+@@ -14,8 +14,6 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <linux/netfilter/nf_conntrack_snmp.h>
+ 
+-#define SNMP_PORT	161
+-
+ MODULE_AUTHOR("Jiri Olsa <jolsa@redhat.com>");
+ MODULE_DESCRIPTION("SNMP service broadcast connection tracking helper");
+ MODULE_LICENSE("GPL");
+@@ -55,7 +53,7 @@ static int __init nf_conntrack_snmp_init(void)
+ 	exp_policy.timeout = timeout;
+ 
+ 	nf_ct_helper_init(&helper, AF_INET, IPPROTO_UDP,
+-			  "snmp", SNMP_PORT, SNMP_PORT, SNMP_PORT,
++			  "snmp",
+ 			  &exp_policy, 0, snmp_conntrack_help, NULL,
+ 			  THIS_MODULE);
+ 
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index 4393c435aa35..a69559edf9b3 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -26,12 +26,6 @@ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_tftp");
+ MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
+ 
+-#define MAX_PORTS 8
+-static unsigned short ports[MAX_PORTS];
+-static unsigned int ports_c;
+-module_param_array(ports, ushort, &ports_c, 0400);
+-MODULE_PARM_DESC(ports, "Port numbers of TFTP servers");
+-
+ nf_nat_tftp_hook_fn __rcu *nf_nat_tftp_hook __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_tftp_hook);
+ 
+@@ -95,8 +89,8 @@ static int tftp_help(struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static struct nf_conntrack_helper tftp[MAX_PORTS * 2] __read_mostly;
+-static struct nf_conntrack_helper *tftp_ptr[MAX_PORTS * 2] __read_mostly;
++static struct nf_conntrack_helper tftp __read_mostly;
++static struct nf_conntrack_helper *tftp_ptr __read_mostly;
+ 
+ static const struct nf_conntrack_expect_policy tftp_exp_policy = {
+ 	.max_expected	= 1,
+@@ -105,30 +99,21 @@ static const struct nf_conntrack_expect_policy tftp_exp_policy = {
+ 
+ static void __exit nf_conntrack_tftp_fini(void)
+ {
+-	nf_conntrack_helpers_unregister(tftp_ptr, ports_c * 2);
++	nf_conntrack_helper_unregister(tftp_ptr);
+ }
+ 
+ static int __init nf_conntrack_tftp_init(void)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	NF_CT_HELPER_BUILD_BUG_ON(0);
+ 
+-	if (ports_c == 0)
+-		ports[ports_c++] = TFTP_PORT;
+-
+-	for (i = 0; i < ports_c; i++) {
+-		nf_ct_helper_init(&tftp[2 * i], AF_INET, IPPROTO_UDP,
+-				  HELPER_NAME, TFTP_PORT, ports[i], i,
+-				  &tftp_exp_policy, 0, tftp_help, NULL,
+-				  THIS_MODULE);
+-		nf_ct_helper_init(&tftp[2 * i + 1], AF_INET6, IPPROTO_UDP,
+-				  HELPER_NAME, TFTP_PORT, ports[i], i,
+-				  &tftp_exp_policy, 0, tftp_help, NULL,
+-				  THIS_MODULE);
+-	}
++	nf_ct_helper_init(&tftp, NFPROTO_UNSPEC, IPPROTO_UDP,
++			  HELPER_NAME,
++			  &tftp_exp_policy, 0, tftp_help, NULL,
++			  THIS_MODULE);
+ 
+-	ret = nf_conntrack_helpers_register(tftp, ports_c * 2, tftp_ptr);
++	ret = nf_conntrack_helper_register(&tftp, &tftp_ptr);
+ 	if (ret < 0) {
+ 		pr_err("failed to register helpers\n");
+ 		return ret;
 -- 
 2.53.0
 
