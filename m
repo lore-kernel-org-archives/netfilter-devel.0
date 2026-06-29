@@ -1,41 +1,41 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CA204218B1
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 14:39:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF55141C2FC
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Jun 2026 14:39:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782743993; cv=none; b=dMPHrfXtEG2BkVGG1k8AwHSfB4Epqtq2ZljbfzppBbCqZRdT1sGgEGa/DuTvfJ+VdpCvGKfV+eHcoTo2c3ey2hLQkJBQNuTC6irsfGOC42jBEyuCgaisX3mXtVrViMR1X8mwe7qVebFcDHLJZTC9V1cxLV1TSA5vewx0P1pqwiQ=
+	t=1782743993; cv=none; b=XKTNq20P0LqjHqbIHZLRRP7Y5HZc6lJWAcv+KbdNOqKFnD0032sbIEqceM1GZe5bxX2UzFSnv4cL6loyXzEwgpisma/Xk09pfSb43hZob3nDXeYnoCabuhV+cztxl9ADQO8b4+JjaCyGEqHjXM5mw2+4UPq5zDk9V3iqClswpi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1782743993; c=relaxed/simple;
-	bh=lhxe+a9lkJEpxBQYJZDGuLrOGadBP3GaM/RM8E7+YK4=;
+	bh=NUmDaZ00QhuGvMTLZwdjiHbqSMznGifQBlGLzehnICw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s0YANY+FaCYdnhfP64JcP8JA2V5C88DMeZaibeWddAd5unxn3cqEYdPx1GxRmVPhsFt4ysowvf/jbq9fToJDEHhInEZaFNOCiHvXfnzLLVXTueVQbFyXW9cLZlku+pIJxUg3BRuMje/KhouCKwaYIfxkY7EpsGBwPscFdy2kG3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kbjrb3md; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=OtahiVJdoVEOFleDPPA4E93LtHFfFg/Apr7sbFuCbpzv4w/1+vIpHjHn6HA645aaNYbLfvT4V6Uk1/iA0H2MO6qiex7l+/oegAenHXtHJfeVNBJzcCLuZ45KKj1toOiquhVsIixw+D6qhfqTFfWNJivPXGrCAo0f6TZwguiHKFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pNMj+rKg; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kbjrb3md"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pNMj+rKg"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0C02960589;
-	Mon, 29 Jun 2026 16:39:41 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3A7F96058A;
+	Mon, 29 Jun 2026 16:39:43 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782743982;
-	bh=X/hUXl0oZP3+IUOh7Ltflb3LYEP/ZhGd1eovIy6pFs0=;
+	s=2025; t=1782743983;
+	bh=vr4DsXt+MtD+ZT7+lNwvJ+vaUP3exopy5I417A06AGE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kbjrb3md9Kg7s+eIozIUt27eR82vANBmkf0XVGBBzYLd4BP48WFELiBKGHlpDKJFm
-	 5u5taYjVARsooakXpOpQTFTA+Ia3oLixmnkQYYVqKQPx15MprefcRGWMuA6aFrK+g8
-	 a/i32UUURWpn+YYaUgQQuOwQxg5vD8rs+iwg5UL3QVDjotqSY7cvIsS2jOElBKCbPt
-	 0EM5PvHBvlJ4fJAeh/9NpTk6ztQ6AvvsCE4ZDw83KqR/DgJYxOwaQDmgpilTxWZS4M
-	 xQhjVd30bX5kInANIk6M+ihi3JpAEB6T7ssyL1td0sjx2Zt2TaHofRZvTVZYhm00Sy
-	 0tto5Lgn7CvxQ==
+	b=pNMj+rKg6NRJLrb97ok/qSYBerJAqoXwus96Yvyq+VDGg3nLanDgaZvtkTyIdQF/D
+	 koGbp/Wf7ydTZG+Kv5+2oWp3WB13w5P4T7ctLRCo9p4UVoWUhQLCnb66OyJRseY/Pm
+	 uqbv4t2Y/PLLobZLti25ODrkCyeFjptnaXJEzWVMu5gySA7MEiQuCdaVkWhe0CC01o
+	 euPa+Sjo4Tx34HbWdlPkbVkdoQML+kzu6NC2/8VeoVUvOM2m64O2UthUYdjXpEPjYF
+	 1smdnUiU8Y64Gq00GPpW3Z9NdGzHrKxOZAaiVvCloN97fDGCj0E6ljG4oMMmHO9LRb
+	 4LpAwTN4QrpOw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: chzhengyang2023@lzu.edu.cn,
 	lorenzo@kernel.org
-Subject: [PATCH nf 1/3] netfilter: flowtable: use dst in this direction when pushing IPIP header
-Date: Mon, 29 Jun 2026 16:39:34 +0200
-Message-ID: <20260629143936.61239-2-pablo@netfilter.org>
+Subject: [PATCH nf 2/3] netfilter: flowtable: IPIP tunnel hardware offload is not yet support
+Date: Mon, 29 Jun 2026 16:39:35 +0200
+Message-ID: <20260629143936.61239-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260629143936.61239-1-pablo@netfilter.org>
 References: <20260629143936.61239-1-pablo@netfilter.org>
@@ -47,95 +47,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When pushing the IPIP header, the route of the other direction is used
-to calculate the headroom, use the route in this direction. Accessing
-the other tuple to set the IP source and destination is fine because
-this tuple does not provide such information to avoid storing redundant
-information. However, this tuple already provides the dst for this
-direction, this went unnoticed because this bug affects headroom and
-iph->frag_off only at this stage.
+No driver supports for IPIP tunnels yet, give up early on setting up the
+hardware offload for this scenario.
 
-Fixes: d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw acceleration")
-Fixes: 93cf357fa797 ("netfilter: flowtable: Add IP6IP6 tx sw acceleration")
+This patch adds a stub that can be enhanced to add more configuration
+that are currently not supported. As of now, the offload work is
+enqueued to the worker, then ignored if the hardware offload
+configuration is not supported.
+
+This can be updated later on to skip hardware offload work to be queued
+in case hardware offload does not support it.
+
+Fixes: d98103575dcd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
+Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Reported-by: Zhengyang Chen <chzhengyang2023@lzu.edu.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 29e93ac1e2e4..089f2bc19972 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -590,10 +590,10 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id,
- 
- static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
- 				    struct flow_offload_tuple *tuple,
--				    __be32 *ip_daddr)
-+				    struct dst_entry *dst, __be32 *ip_daddr)
- {
- 	struct iphdr *iph = (struct iphdr *)skb_network_header(skb);
--	struct rtable *rt = dst_rtable(tuple->dst_cache);
-+	struct rtable *rt = dst_rtable(dst);
- 	u8 tos = iph->tos, ttl = iph->ttl;
- 	__be16 frag_off = iph->frag_off;
- 	u32 headroom = sizeof(*iph);
-@@ -636,21 +636,22 @@ static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
- 
- static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
- 				  struct flow_offload_tuple *tuple,
--				  __be32 *ip_daddr)
-+				  struct dst_entry *dst,  __be32 *ip_daddr)
- {
- 	if (tuple->tun_num)
--		return nf_flow_tunnel_ipip_push(net, skb, tuple, ip_daddr);
-+		return nf_flow_tunnel_ipip_push(net, skb, tuple, dst, ip_daddr);
- 
- 	return 0;
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 002ec15d988b..3e87117e724b 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1101,12 +1101,23 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 	return offload;
  }
  
- static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
- 				      struct flow_offload_tuple *tuple,
-+				      struct dst_entry *dst,
- 				      struct in6_addr **ip6_daddr)
++static bool nf_flow_offload_unsupported(struct flow_offload *flow)
++{
++	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
++	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
++		return true;
++
++	return false;
++}
+ 
+ void nf_flow_offload_add(struct nf_flowtable *flowtable,
+ 			 struct flow_offload *flow)
  {
- 	struct ipv6hdr *ip6h = (struct ipv6hdr *)skb_network_header(skb);
--	struct rtable *rt = dst_rtable(tuple->dst_cache);
- 	__u8 dsfield = ipv6_get_dsfield(ip6h);
-+	struct rtable *rt = dst_rtable(dst);
- 	struct flowi6 fl6 = {
- 		.daddr = tuple->tun.src_v6,
- 		.saddr = tuple->tun.dst_v6,
-@@ -696,10 +697,11 @@ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
+ 	struct flow_offload_work *offload;
  
- static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
- 				  struct flow_offload_tuple *tuple,
-+				  struct dst_entry *dst,
- 				  struct in6_addr **ip6_daddr)
++	if (nf_flow_offload_unsupported(flow))
++		return;
++
+ 	offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_REPLACE);
+ 	if (!offload)
+ 		return;
+@@ -1119,6 +1130,9 @@ void nf_flow_offload_del(struct nf_flowtable *flowtable,
  {
- 	if (tuple->tun_num)
--		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, ip6_daddr);
-+		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, dst, ip6_daddr);
+ 	struct flow_offload_work *offload;
  
- 	return 0;
- }
-@@ -842,7 +844,8 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	other_tuple = &flow->tuplehash[!dir].tuple;
- 	ip_daddr = other_tuple->src_v4.s_addr;
++	if (nf_flow_offload_unsupported(flow))
++		return;
++
+ 	offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_DESTROY);
+ 	if (!offload)
+ 		return;
+@@ -1133,6 +1147,9 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 	struct flow_offload_work *offload;
+ 	__s32 delta;
  
--	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
-+	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple,
-+				   tuplehash->tuple.dst_cache, &ip_daddr) < 0)
- 		return NF_DROP;
- 
- 	switch (tuplehash->tuple.xmit_type) {
-@@ -1158,6 +1161,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	ip6_daddr = &other_tuple->src_v6;
- 
- 	if (nf_flow_tunnel_v6_push(state->net, skb, other_tuple,
-+				   tuplehash->tuple.dst_cache,
- 				   &ip6_daddr) < 0)
- 		return NF_DROP;
- 
++	if (nf_flow_offload_unsupported(flow))
++		return;
++
+ 	delta = nf_flow_timeout_delta(flow->timeout);
+ 	if ((delta >= (9 * flow_offload_get_timeout(flow)) / 10))
+ 		return;
 -- 
 2.47.3
 
