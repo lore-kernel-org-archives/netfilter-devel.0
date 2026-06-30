@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B04D53E1723;
-	Tue, 30 Jun 2026 04:53:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FD623E173B;
+	Tue, 30 Jun 2026 04:53:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782795230; cv=none; b=YzmgPYmOLWzNT3i+MbQm6ZruyxJKFBuFOdmyVLZe0kFAuS+SINMbYGv3xvh4PeiEZ0EYsGRuJncgZPyAnozZNCUjqCuVC0FVoZ+mngfbQXZ9SPRmYm8y1sHiOd1LwNQJ6iGoRgfRZcCVkzNcf5UKgg/x9x0eyvGy52O3XE8TgT0=
+	t=1782795234; cv=none; b=das7V1qaUICnfQ9q/hBRQasNEOLfzKUE5jBit/KwS61XqP8PLlrcW4nOYEneRNtcotXJPRuctgS42S8mDH80aocJD461gvMyizFtUAqObqNxlH4XrSYsSsAJuCuGuxZP4aCO8vNjGPVZ4BkVh2Q28mgRrnkU5bjmLlGQuib6rHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782795230; c=relaxed/simple;
-	bh=DpuCjn+o3xgg4pdLdqfgFn6WDg+mjA6VvoR1h/uDBfQ=;
+	s=arc-20240116; t=1782795234; c=relaxed/simple;
+	bh=Q+dOQurQUa6RKChHU766zLqx9r4wyB+EOTj9Bs35uNw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cuLkRkdEDJfmZj8AzaP3mhJU8x6DX+7pqbz02iRMz31HuLSQ1nNzOyvUcFIxlLce1kDgxdMdU7DZJdK5wEF5gIJAbGbWwLpA0G5iY/6dPpcaL9Zolget6sMZbIzOxYkxw/2b8m1xga6XgZSGcApmwB/NgVUrIxWVpUC8GB0Iv5Y=
+	 MIME-Version; b=cqoil4/Vv0nXUd9IQ1nYvVCZFlJ0IL65oquOxRT0uJpd3gl0/Dz31zeBSKiQ2JAcLICWtDm3YT6id3949hqR5WBjJeQ4h+xfW2+r8fUoOVu8okysyiKQOYFYDdWjesfS/U6ivS8jyYlpubtIYe00X9LSjyH5awV2Da7mZjenc54=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2263260543; Tue, 30 Jun 2026 06:53:47 +0200 (CEST)
+	id 5EEF06064B; Tue, 30 Jun 2026 06:53:51 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 8/9] netfilter: nftables: restrict linklayer and network header writes
-Date: Tue, 30 Jun 2026 06:52:42 +0200
-Message-ID: <20260630045243.2657-9-fw@strlen.de>
+Subject: [PATCH net 9/9] netfilter: nftables: restrict checkum update offset
+Date: Tue, 30 Jun 2026 06:52:43 +0200
+Message-ID: <20260630045243.2657-10-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260630045243.2657-1-fw@strlen.de>
 References: <20260630045243.2657-1-fw@strlen.de>
@@ -38,221 +38,154 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Don't permit arbitrary writes to linklayer and network header data.
-Several spots in network stack trust header validation performed in
-ipv4/ipv6 before PRE_ROUTING hook.
+After previous patch, writes to network header are restricted.
+However, there is another way to manipulate the l3 header: The
+checksum update function.
 
-For linklayer, allow writes for netdev ingress. For other hooks, only
-allow link layer writes that do not spill into network header.
+Restrict this for network header writes, only the ipv4 header is
+allowed.  This needs run-time checks because BRIDGE, INET, NETDEV
+families can carry l3 headers other than IP.
 
-For network header, check the offset/length combinations:
- - changing dscp requires store at offset 0 for checsum fixups, so
- make sure ip version + length field isn't altered.
- - ip6 dscp starts directly after the version field, so make sure it
-   remains 6.
-
-Several of these checks could already be done at rule insertion time.
-Risk is that this might cause ruleset load failures for existing
-rulesets. With this change such writes are silently skipped and packet
-passes unchanged.
-
-Transport and inner header bases are not checked / restricted.
+checksum updates to the udp/tcp (l4) headers are not restricted.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_payload.c | 170 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+ net/netfilter/nft_payload.c | 100 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 100 insertions(+)
 
 diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 345eff140d56..9c974df59b42 100644
+index 9c974df59b42..391539a1ceaa 100644
 --- a/net/netfilter/nft_payload.c
 +++ b/net/netfilter/nft_payload.c
-@@ -834,6 +834,172 @@ nft_payload_set_vlan(const u32 *src, struct sk_buff *skb, u16 offset, u8 len,
- 	return true;
+@@ -1000,6 +1000,83 @@ static bool nft_ll_write_ok(const struct nft_pktinfo *pkt, int offset)
+ 	return offset <= skb_network_offset(pkt->skb);
  }
  
-+/* Ingress is very early, before l3 protocol handlers.
-+ * There should be no in-tree code that trusts l3/l4 headers
-+ * between ingress and NF_INET_PRE_ROUTING hooks.
-+ */
-+static bool nft_in_ingress(const struct nf_hook_state *s)
++static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
++						  const struct nft_payload_set *priv)
 +{
-+	return s->pf == NFPROTO_NETDEV && s->hook == NF_NETDEV_INGRESS;
-+}
++	switch (priv->base) {
++	case NFT_PAYLOAD_LL_HEADER:
++		break;
++	case NFT_PAYLOAD_NETWORK_HEADER:
++		if (ctx->family == NFPROTO_IPV4) {
++			if (offsetof(struct iphdr, check) == priv->csum_offset)
++				return true;
 +
-+static bool nft_nh_write_ok_ip4(const struct nft_pktinfo *pkt,
-+				const struct nft_payload_set *priv,
-+				const u32 *src)
-+{
-+	unsigned int offset = priv->offset + skb_network_offset(pkt->skb);
-+	const u8 *new_octets = (const u8 *)src;
-+	u8 old_octet;
++			return false;
++		}
++		return true; /* run time validation required */
++	case NFT_PAYLOAD_TRANSPORT_HEADER:
++		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
++			return false;
 +
-+	switch (priv->offset) {
-+	case 0: /* csum fixups does expand dscp/tos store to 2 bytes.
-+		 * make sure ihl/version remain unchanged.
++		/* no further check here; offset can't be negative so bogus
++		 * offsets can corrupt L4 or payload but not l3 headers.
++		 * We already allow arbitrary l4/inner payload writes.
 +		 */
-+		if (skb_copy_bits(pkt->skb, offset, &old_octet, sizeof(old_octet)))
-+			return false;
-+
-+		return priv->len == 2 &&
-+		       *new_octets == old_octet;
-+	case offsetof(struct iphdr, tos):
-+		return priv->len == 1;
-+	case offsetof(struct iphdr, id):
-+		return priv->len == 2;
-+	case offsetof(struct iphdr, ttl):
-+		if (priv->len == 1)
-+			return true;
-+
-+		if (priv->len != 2)
-+			return false;
-+
-+		/* same, csum fixup does expand ttl store to two bytes.
-+		 * check protocol is not altered.
-+		 */
-+		if (skb_copy_bits(pkt->skb, offset + 1, &old_octet, sizeof(old_octet)))
-+			return false;
-+
-+		return new_octets[1] == old_octet;
-+	case offsetof(struct iphdr, check):
-+		return priv->len <= 2 + 4 + 4;
-+	case offsetof(struct iphdr, saddr):
-+		return priv->len <= 4 + 4;
-+	case offsetof(struct iphdr, daddr):
-+		return priv->len <= 4;
-+	}
-+
-+	return false;
-+}
-+
-+static bool nft_nh_write_ok_ip6(const struct nft_pktinfo *pkt,
-+				const struct nft_payload_set *priv,
-+				const u32 *src)
-+{
-+	const struct ipv6hdr *ih = (const void *)src;
-+
-+	switch (priv->offset) {
-+	case 0: /* store to dscp must not alter ip6 version */
-+		return priv->len <= 4 && ih->version == 6;
-+	case 2:
-+		return priv->len <= 2;
-+	case offsetof(struct ipv6hdr, hop_limit):
-+		return priv->len == 1;
-+	case offsetof(struct ipv6hdr, saddr):
-+		return priv->len <= 16 + 16;
-+	case offsetof(struct ipv6hdr, daddr):
-+		return priv->len <= 16;
-+	}
-+
-+	return false;
-+}
-+
-+static bool nft_nh_write_ok_arp(const struct nft_payload_set *priv)
-+{
-+	/* Variable size for standard ethernet arp */
-+	const unsigned int eth_ip = 2 * (ETH_ALEN + 4);
-+	unsigned int offset = priv->offset;
-+
-+	switch (offset) {
-+	case offsetof(struct arphdr, ar_op):
-+		return priv->len == 2;
-+	default:
++		return true;
++	case NFT_PAYLOAD_INNER_HEADER:
++		return true;
++	case NFT_PAYLOAD_TUN_HEADER:
 +		break;
 +	}
 +
-+	/* permit writes post fixed arp header size. offset + len are
-+	 * checked vs skb size via skb_ensure_writable.
-+	 */
-+	return offset >= sizeof(struct arphdr) && priv->len <= eth_ip;
-+}
-+
-+static bool nft_nh_write_ok_netdev(const struct nft_pktinfo *pkt,
-+				   const struct nft_payload_set *priv,
-+				   const u32 *src)
-+{
-+#ifdef CONFIG_NF_TABLES_NETDEV
-+	switch (pkt->skb->protocol) {
-+	case htons(ETH_P_ARP):
-+		return nft_nh_write_ok_arp(priv);
-+	case htons(ETH_P_IP):
-+		return nft_nh_write_ok_ip4(pkt, priv, src);
-+	case htons(ETH_P_IPV6):
-+		return nft_nh_write_ok_ip6(pkt, priv, src);
-+	}
-+#endif
-+	/* default to false for now, relax later in case we have
-+	 * use-cases that need inner header manipulation for
-+	 * encapsulated traffic like vlan or PPPoE.
-+	 */
 +	return false;
 +}
 +
-+static bool nft_nh_write_ok_bridge(const struct nft_pktinfo *pkt,
-+				   const struct nft_payload_set *priv,
-+				   const u32 *src)
-+{
-+#if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
-+	switch (pkt->ethertype) {
-+	case htons(ETH_P_ARP):
-+		return nft_nh_write_ok_arp(priv);
-+	case htons(ETH_P_IP):
-+		return nft_nh_write_ok_ip4(pkt, priv, src);
-+	case htons(ETH_P_IPV6):
-+		return nft_nh_write_ok_ip6(pkt, priv, src);
-+	}
-+#endif
-+	/* see nft_nh_write_ok_netdev: default to false */
-+	return false;
-+}
-+
-+static bool nft_nh_write_ok(const struct nft_pktinfo *pkt,
-+			    const struct nft_payload_set *priv,
-+			    const u32 *src)
++/* do not allow arbitrary network header mangling via bogus csum_off.
++ * We only support ipv4.  Only NFPROTO_IPV4 can be checked from control
++ * plane.
++ */
++static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
++					 const struct nft_pktinfo *pkt)
 +{
 +	switch (pkt->state->pf) {
-+	case NFPROTO_ARP:
-+		return nft_nh_write_ok_arp(priv);
-+	case NFPROTO_BRIDGE:
-+		return nft_nh_write_ok_bridge(pkt, priv, src);
 +	case NFPROTO_IPV4:
-+		return nft_nh_write_ok_ip4(pkt, priv, src);
++		/* Warning: NFPROTO_INET was not checked; we can't return true here. */
++		return priv->csum_offset == offsetof(struct iphdr, check);
 +	case NFPROTO_IPV6:
-+		return nft_nh_write_ok_ip6(pkt, priv, src);
++		return false;
++	case NFPROTO_BRIDGE:
++		return pkt->ethertype == htons(ETH_P_IP) &&
++		       priv->csum_offset == offsetof(struct iphdr, check);
 +	case NFPROTO_NETDEV:
-+		if (pkt->state->hook == NF_NETDEV_INGRESS)
-+			return true;
-+		return nft_nh_write_ok_netdev(pkt, priv, src);
++		return pkt->skb->protocol == htons(ETH_P_IP) &&
++		       priv->csum_offset == offsetof(struct iphdr, check);
 +	}
 +
 +	return false;
 +}
 +
-+/* check linklayer modifications don't spill into network header. */
-+static bool nft_ll_write_ok(const struct nft_pktinfo *pkt, int offset)
++static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
++				      const struct nft_payload_set *priv)
 +{
-+	if (nft_in_ingress(pkt->state))
++	switch (priv->base) {
++	case NFT_PAYLOAD_LL_HEADER:
++		break;
++	case NFT_PAYLOAD_NETWORK_HEADER:
++		return nft_payload_csum_nh_write_ok(priv, pkt);
++	case NFT_PAYLOAD_TRANSPORT_HEADER:
++	case NFT_PAYLOAD_INNER_HEADER:
++		/* neither offsets are validated, offsets cannot be
++		 * negative so real l3 headers cannot be mangled.
++		 */
 +		return true;
++	case NFT_PAYLOAD_TUN_HEADER:
++		break;
++	}
 +
-+	return offset <= skb_network_offset(pkt->skb);
++	return false;
 +}
 +
  static void nft_payload_set_eval(const struct nft_expr *expr,
  				 struct nft_regs *regs,
  				 const struct nft_pktinfo *pkt)
-@@ -861,8 +1027,12 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 		}
+@@ -1064,6 +1141,7 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 		tsum = csum_partial(src, priv->len, 0);
  
- 		offset = skb_mac_header(skb) - skb->data - vlan_hlen;
-+		if (!nft_ll_write_ok(pkt, priv->len + priv->offset + offset))
-+			goto err;
+ 		if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
++		    nft_payload_csum_write_ok(pkt, priv) &&
+ 		    nft_payload_csum_inet(skb, src, fsum, tsum, csum_offset))
+ 			goto err;
+ 
+@@ -1130,7 +1208,26 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+ 
+ 	switch (csum_type) {
+ 	case NFT_PAYLOAD_CSUM_NONE:
++		if (priv->csum_offset) /* nonsensical */
++			return -EINVAL;
++
++		if (priv->csum_flags == 0)
++			break;
++
++		/* Userspace requests L4 checksum update, e.g.:
++		 * - IPv6 stateless NAT (no l3 csum)
++		 * - transport header mangling
++		 * - inner data mangling
++		 */
++		if (priv->base == NFT_PAYLOAD_NETWORK_HEADER ||
++		    priv->base == NFT_PAYLOAD_TRANSPORT_HEADER ||
++		    priv->base == NFT_PAYLOAD_INNER_HEADER)
++			break;
++
++		return -EINVAL;
+ 	case NFT_PAYLOAD_CSUM_INET:
++		if (!nft_payload_validate_inet_csum_offset(ctx, priv))
++			return -EINVAL;
  		break;
- 	case NFT_PAYLOAD_NETWORK_HEADER:
-+		if (!nft_nh_write_ok(pkt, priv, src))
-+			goto err;
- 		offset = skb_network_offset(skb);
+ 	case NFT_PAYLOAD_CSUM_SCTP:
+ 		if (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER)
+@@ -1138,6 +1235,9 @@ static int nft_payload_set_init(const struct nft_ctx *ctx,
+ 
+ 		if (priv->csum_offset != offsetof(struct sctphdr, checksum))
+ 			return -EINVAL;
++
++		if (priv->csum_flags)
++			return -EINVAL;
  		break;
- 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+ 	default:
+ 		return -EOPNOTSUPP;
 -- 
 2.53.0
 
