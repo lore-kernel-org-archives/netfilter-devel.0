@@ -1,104 +1,133 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF3D3425CD9
-	for <netfilter-devel@vger.kernel.org>; Tue, 30 Jun 2026 14:20:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0C145BD5C
+	for <netfilter-devel@vger.kernel.org>; Tue, 30 Jun 2026 15:55:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782829261; cv=none; b=VmvP8wQ8vucLq8z8GOeBppDXSw2wv6dhQCsJ40HZ2oK96Zv4Yw4b/OP9QaVTyCRDHSYrYOPd+LFsKODecZNiKmNW60Y7FG8d5UkbECPNUNXRK5+23o/cgCMlGMVrvvnhxMzsWLrXbso/hARfpPzkV/amlkuJmFyxVPbIGKg0kFw=
+	t=1782834912; cv=none; b=KGOSQhumi5tTJ0wiRaUP5v/LEOI1OlMiscIyagbZMWqzkhYU9PuKVpo1whg2dSdHgXSx4UudlMOvvXbtG9Ln5Z5YSx+cvdxWlF+a4W2K4wpqjt7loCd6ZO1NmwtBWNcs+sr57OrugjQi66yNY/1iXlJygndW+eBNAew6YIgF+yM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782829261; c=relaxed/simple;
-	bh=I1DU033bxIGKzOjn7IMoeuviasisvZ2UOun0UxXAZ7w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IN8EkPWRpP76+ukqsknVgIe6+hbvB6rV7El2Ao0c+JnUUkkUO6mWWS3CzmMh+gXTyWomRlCp66FD4cSwksAz6AIbG7MDcsrIaZiJHyTvQpWpVm1DjSNSZkiASU0qbj4k7ZW8lAggERkH6GSvQrQYu2DdVaV1ErZCNiwvhXe6LWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f5HKDHn9; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1782834912; c=relaxed/simple;
+	bh=Yw8oCznc2OJZsMWD8OS/+WNJjaNMiuOlVPoeyrSnd5o=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=IJKsOUcYBACLNBidmHijn07fW+/5pYMDrJYH6cB6Edt92UsDRjgtCZYK+7BiPqzzX2OSawG38k4gJyK5hkwS1S36Vl++fviwuRw/bgDSdbf74a3mqr1xE7T/rKc1f1BUFGW8aY4eAnoOY1KG0fJMNDfJXCUgPoBPyE32DKJs9C4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mdDp5xzd; arc=none smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f5HKDHn9"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6A9F76058B;
-	Tue, 30 Jun 2026 16:20:56 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782829256;
-	bh=Kek63HMsceeGd2JQEljcZ/Y3kbZewHt/SDPvyBJDwfo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=f5HKDHn9lVLbCJOqSK0amZCFbr4z9P/3uuNGn/a9GUQ9vcDWQLqAo8zleKk1TDlvV
-	 psY5wLbnIfPBaTu6UNbpTn5HCJswlq1p5yyi5R4gITWBuT0o3SSeazTdW1lI1C4WzM
-	 UuWZQu0CzaH7vtPRY8xyNeXUg/G9NHngQbNgh9UjP16EtZdoIcQ/CBInPob+VQud/B
-	 nWqDXGTr4lBshFVzL3sW08FjDSuR9QLlzcby9Ui56DMbDtKG9WwQdhnkRWaGshGcom
-	 8CWNtl3daH/2OVhZqHwoAWaheEGmvgt6iSErC7kEvhENfxGHxzwcAKeWzTQJi4XILq
-	 CllvodCqVtCag==
-Date: Tue, 30 Jun 2026 16:20:53 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v2] netfilter: nft_ct: support expectation
- creation for natted flows
-Message-ID: <akPQxd6Hqu96EUw9@chamomile>
-References: <20260630060311.2504-1-fw@strlen.de>
- <akOVqk9WOTpIKCss@chamomile>
- <akOitclorHvJsREK@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mdDp5xzd"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aebf162770so688065e87.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jun 2026 08:55:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782834909; x=1783439709; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZpeuDr4E5yKEgMHqJGuQTCwVMvwRIRIBCO7YWOuYUzo=;
+        b=mdDp5xzdWzoN8DZICRJYL/PeLGM7+thRjhEDFlqm7HeJsBdO+haOQ/Up1Gog+L/krF
+         2fy6s9CN8S9LQDPaNDwHxiJB1TCqT24z5lZgWtBmcWw+ZXkpIA+Pjh9FMdZRYujtXv3T
+         ezf6tI+zo5LVhLIxZ3WAT0YhjpsiNIhS2wAJmnXznyXZb7zjtHshGZ7BOL+P7KYU2LtM
+         b7Q+x2z30xPIe6B5XuKlLxzDTrA0M+kdxSW6pabIDSteTEzZI2ByziBI5OBGI2A2R+4j
+         43oRbTnKOHsuLh5dAThL+el7gvOxpkiL7tyxUujIVF1DHpWZPW50oU0ixOYLQrkVMZpf
+         i6SA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782834909; x=1783439709;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZpeuDr4E5yKEgMHqJGuQTCwVMvwRIRIBCO7YWOuYUzo=;
+        b=eBAyR4G0dFrJHFYrdiSshegdO7HvOtWVL4T8A+yq7C9+xX09GxNsH/ESHB6NER24iM
+         +zVddHVyu2r22uawk5vkXquR92MIJJv5PBE/e6DUGEpFLFIfgryQSXpiYRKTNHsOt3+f
+         LxTcbDrBcRIdZLX7S7kkIRyxzkXfR/btAPC4UQNwCBUwoYdHTrfGCGOdl6KPzSfNQprF
+         ovYlL+944qvIA/5P9/Io6RRmL3piQUW/aOoY7A+kpOn5FRMAAVmg54uZ3uSQgr4GWr06
+         9kFpWC7oiOoQFpzbU+HiuXCr2oKyWSy5uu7yuI80jqN/j7zrllWhhzreaZFrMF8/PHTF
+         duwg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp1v/TBrxKw/fv1faOhWRkUinC/qbFqVMwBxlUDpgg2jwbmtHlsSN9YvmzRZxoIHk02lEayAnAki4qCYWXzlXE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzG5+KZ+SHcH670dMiNwi+N6Q/UYF5NJOAooyPSS3qDk9btK/Jq
+	Wsy6hPQzYBZZHOat/gCBqvSp+GSJAefxYDxa8RzoIsoK1U3iGo2qbiWu
+X-Gm-Gg: AfdE7cn/ZI6UxBUeEzJ0VU59W896MyjJ93eZF8D3Aa4fFRlMjg8p06oXsu7DUTHFkad
+	VC37AhZEnFdqNhxX6bmws4TqSYxfvjl/tLtQnTC/K2zEAJQSrQYtNvnqmvxAKXX1ByD6r8cE/Z1
+	S/Fw8+7lcQTkFLxPXNm952qdoJM71rGVzFKGeala5xhUnfTUk6aWAeMUV0/nZUdV58m28DBSWKJ
+	96G1heu5rvgiBjorHIFigDO/dgm/GzwxuyGm+FGE9ysc65R6ZowkEZcWxisZ0lqL0EgLhUpWMgY
+	ehuProX8z2BHWtL6urKoym6tT+IEjc8crkYgJKVImvCM+s2xQCjza26DesOn38YLO2GpTlbJ8VH
+	Ybc7kPGXKREnC9IxO/BCHF5By9Tn6IBUpYdteNT/dtmkyt3mEN0EgzejIatfHtp9bZnBsoxQU4D
+	oWTs8XEpgToue3+n10ZN+Wm4vDsvCHoTU=
+X-Received: by 2002:a05:6512:405b:b0:5ae:b6cf:c745 with SMTP id 2adb3069b0e04-5aebf977c96mr795622e87.17.1782834908933;
+        Tue, 30 Jun 2026 08:55:08 -0700 (PDT)
+Received: from localhost.localdomain ([2a01:4f9:2a:1c13::2])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5aec21794casm46702e87.10.2026.06.30.08.55.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Jun 2026 08:55:08 -0700 (PDT)
+From: Melbin K Mathew <mlbnkm1@gmail.com>
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Melbin K Mathew <mlbnkm1@gmail.com>
+Subject: [PATCH nf] netfilter: nft_set_rbtree: reject interval-end get for open intervals
+Date: Tue, 30 Jun 2026 17:55:07 +0200
+Message-Id: <20260630155507.92815-1-mlbnkm1@gmail.com>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <akOitclorHvJsREK@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jun 30, 2026 at 01:04:42PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > +#if IS_ENABLED(CONFIG_NF_NAT)
-> > > +	nf_ct_expect_iterate_destroy(expect_iter_nat, NULL);
-> > > +	synchronize_rcu();
-> > > +#endif
-> > 
-> > Not sure sashiko is signalling a real issue here.
-> 
-> I could use the nf_nat_helper_register/unregister interface which would
-> support dump/restore via ctnetlink / conntrackd. 
-> Not sure its worth it.
-> 
-> This isn't using nat-follow-master directly to avoid a module dependency
-> on the nat core.
-> 
-> > static void __exit nf_nat_cleanup(void) 
-> > {
-> >         struct nf_nat_proto_clean clean = {}; 
-> >             
-> >         nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
-> > 
-> > all NATted master conntracks are destroyed here, including their
-> > expectations, which might have the expectations using
-> > nat_follow_master.
-> 
-> Yes, but users can remove nft_ct and leave nf nat core loaded,
-> so above function won't run.  The expect_iter_nat cb will zap
-> expectations that are still in the table that point to the
-> internal expectfn (i.e. into the module thats going away).
+nft_rbtree_get() uses the interval endpoint selected by
+nft_array_get_cmp(). For NFT_SET_ELEM_INTERVAL_END requests, the function
+uses interval->to to recover struct nft_rbtree_elem.
 
-Right.
+Open-ended intervals can have a NULL end endpoint. In that case,
+nft_array_get_cmp() treats the missing endpoint as b = -1, which can
+still match an interval-end query. Avoid deriving an element pointer
+from a NULL endpoint and report the element as not found instead.
 
-> The alternative to the manual nf_ct_iterate_destroy() is to use
-> nf_ct_helper_expectfn_destroy() and a real struct nf_ct_helper_expectfn.
+Return -ENOENT for interval-end requests against open-ended intervals.
 
-For the scenario you describe, I think it should be possible to
-register a dummy helper for this expectation type, with a NULL
-callback. Helper unregistration should deal with removing the pending
-expectations that are left behind on module removal.
+Fixes: 2aa34191f06f ("netfilter: nft_set_rbtree: use binary search array in get command")
+Signed-off-by: Melbin K Mathew <mlbnkm1@gmail.com>
+---
+Notes:
+  A reduced userspace model confirms the comparator returns match for a
+  NULL-ended interval when NFT_SET_ELEM_INTERVAL_END is set, and that
+  container_of(NULL, ext) produces a garbage pointer (UBSAN fires).
 
-By adding this dummy helper, this special type of expectations gets
-aligned with the existing helpers.
+  I have not reproduced an end-to-end crash through normal nft CLI usage.
+  An instrumented WARN in this branch did not fire during interval-set
+  tests with nft add/get/list. The patch is a defensive fix for the NULL
+  endpoint case.
 
-I can take a look if you busy with something else, let me know.
+  Tested on 7.2-rc1 with KASAN and UBSAN enabled. Function tracing
+  confirms nft_rbtree_get() is reached via nft get element. The added
+  guard returns -ENOENT for a NULL interval endpoint in the instrumented
+  test case.
+---
+ net/netfilter/nft_set_rbtree.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Thanks Florian.
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 018bbb6df4..024a2cd3a6 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -184,10 +184,13 @@ nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 	if (!interval || nft_set_elem_expired(interval->from))
+ 		return ERR_PTR(-ENOENT);
+ 
+-	if (flags & NFT_SET_ELEM_INTERVAL_END)
++	if (flags & NFT_SET_ELEM_INTERVAL_END) {
++		if (!interval->to)
++			return ERR_PTR(-ENOENT);
+ 		rbe = container_of(interval->to, struct nft_rbtree_elem, ext);
+-	else
++	} else {
+ 		rbe = container_of(interval->from, struct nft_rbtree_elem, ext);
++	}
+ 
+ 	return &rbe->priv;
+ }
+-- 
+2.39.5
 
-> > And nf_nat_cleanup() can only be called if all there is no more nat
-> > chains in place, correct?
-> 
-> Yes, but I don't think thats related to the sashiko comment at
-> https://sashiko.dev/#/patchset/20260630060311.2504-1-fw%40strlen.de
