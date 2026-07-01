@@ -1,94 +1,110 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A691F26F288;
-	Tue, 30 Jun 2026 21:40:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8121C5D5E
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 00:41:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782855636; cv=none; b=WgRvlap0kRz8i0iPuBjvkIDNubHtdnA2o2mWmm0xmVhtiwhmuTmZVsJIchlMCUdcP8QZhSgTgnYZx1rAJBHwzx3ZR7t8mMF3YPWMJ4bihT0l0Vj2Bjz4W+T2+GlAFNH2ODdsfTNjNV8o36fXM3yzI/7GTwN0t7hOioBu05jQA7o=
+	t=1782866469; cv=none; b=swSws541QTIEVqv3E+tswphihwIXViF5s0XwT2eGqwmkxkk1oCXfKeNz6tBArqUyqKSnO6GFA7XRVE4pO0/I4VekG9LySsfOInWQD/80KLfVq5/JPx2uqOQYkUqAkPI81z9f/ImDdhsgTrtNjuDcwti6rVBtjsrt3ubIY6OyHR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782855636; c=relaxed/simple;
-	bh=cidPpSmRw86dmcsShktHuuN/gqdJP0/6w73Q/wKl0Eg=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=ooYBgzx9hfSAmpKZRW3zGT4maGcwzfP/VNba/albOGIUvDI6mj2XVVrMWhAXaQo5ZzwAu35pWxrPn0hA8RQh37WOOLiOc+BQF9vd3Bjnt/ao9Qt8CSfDsxPlzGsD0tbmuId7LUt9FsLRdQCS5yHd5UaGoXS0nyFtE7l4FA0DoRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=VT59Lh7U; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1782866469; c=relaxed/simple;
+	bh=bSB5H2Lgxx0eXXrsvKAY67y+/J13/SxtCRAyey3sh3Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Z+/W6L5F1T8s/r55kO16vmgy0l6bXaKvIxl49dmermPFa4bJZU442/bF+HJyXuz4I3h23rXLMloz4hhceSxn+QhNraj7q8neB8QxO1iPMGt6kEykEGYv4OB37C6RATLF31I38Teh6m8bumF7LfHvvrnfNiUVFvO4aPFoPiHNcWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BfzoomBw; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="VT59Lh7U"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 118C9229BC;
-	Wed, 01 Jul 2026 00:40:28 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=LfVzUtj7t2pFA4EZlPfYp3eYCTmQyOUUd24ILbKanLs=; b=VT59Lh7UkP7q
-	BUKxNQj7KQ6nNnuuR/4suPGY3hunVoUQNzFg/a31k9vVEAnxHpmkG8jpJWxcicTf
-	atPVGhX7Y5FLFx17TBZ09zj91PQafW2KER0DTE5FlouXiejCaUTz/c5ae0wRdorK
-	lObZPN+vZ5+X9LJC7fscQkmeCJp/rQIpY2ZGZyRpeUJ7yI1uE9BNYD+tpT3UYwv2
-	VPk+6NOxOKABiWi8ELP1AdZett/iN2gFI52Pa+WRwQ/nBIsty0AnY2kIjm1CUxU1
-	JD082MfefoqtJ+Ec/rQx+55CqVd91RWuSWE6HUwS0RxpVRDO1tpL61mOOuu8MZQu
-	Y/DDkTE+XiEtKs5uD1TMkWJKP4rqUJsDgda7yrZ2opnzLCezMZ50m0iYH8LS9NvV
-	3sS5X87bZmOz+o/MUug8+6MgN4LQ/cwROK8LnVRr4GiNQ+vdc8LRtKR/cNVAxiDQ
-	Lu2w0ZFL49PqbknQszCJwH6X2VUER7dPh0fuyZ2fmx7vWIX3tNMOx9x/NxW/EzXK
-	RkdkmppgTm+aAWT/swId2R8YJhZ5wbv+Rb+RSUdXNzNIwfWmZ8irVxtC59lYI7/c
-	BKNf9Ib8rKAfNhNE5rZtW3hCZ95m879RQtHOqktZVboBnAOQ8X2VMJ3qDjvGdz+u
-	/sSFQP9kyoQU0Hfxy1Te44nRCBX1Yho=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 01 Jul 2026 00:40:27 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 22551607C6;
-	Wed,  1 Jul 2026 00:40:28 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 65ULeO8m137212;
-	Wed, 1 Jul 2026 00:40:24 +0300
-Date: Wed, 1 Jul 2026 00:40:24 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: tt roxy <roxy520tt@gmail.com>
-cc: Ren Wei <n05ec@lzu.edu.cn>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yuantan098@gmail.com,
-        yifanwucs@gmail.com, tomapufckgml@gmail.com, bird@lzu.edu.cn
-Subject: Re: [PATCH RFC nf 2/2] ipvs: adjust double hashing when fwd method
- changes
-In-Reply-To: <20260630193647.125280-2-ja@ssi.bg>
-Message-ID: <1a1ae0df-15bf-2827-cb23-a144a8591783@ssi.bg>
-References: <CALMqdkR704S2BG_QD_bgHTFp2+1QCi7n0T4zoZyTo8mDZevYSA@mail.gmail.com> <20260630193647.125280-1-ja@ssi.bg> <20260630193647.125280-2-ja@ssi.bg>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BfzoomBw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782866466; x=1814402466;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=bSB5H2Lgxx0eXXrsvKAY67y+/J13/SxtCRAyey3sh3Q=;
+  b=BfzoomBwnsqODRDdZxXQZWi1qmp1FebEq2NZOu0wmWrjT/+WL2jBCw2L
+   VrMaGmF5g0NbKxZ77SFU9EVaD436cEqxMUM4APGJz8oLw4VsJ+sKtgBCC
+   +Q+rXlg6dlDDBu1nmRhfP1xUVY1zW1An40FHmXdb6zPJS5n69AmdKdmib
+   6djHBPwMsPnJIcL4R06ymsARRcNBNArsLMO2XlsWzOoX1xzxWfst0Gh4/
+   gzaTrGOUBWQdzys6iPGBQyqQ4pqc33Ydi06G+ld5hdloL82mdALJ4KUSi
+   3sUWaclIWIRdCOC7Jc4Hn+EEY4H865qZX0ySugXBSsMqNwZHhGM+HiyWK
+   g==;
+X-CSE-ConnectionGUID: H17+YXuXR7CvEVg37E9qJA==
+X-CSE-MsgGUID: jU/t01q5TIG1xWCD701fPg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="83463035"
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="83463035"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 17:41:06 -0700
+X-CSE-ConnectionGUID: jVtlqcHmQrKq5JCC74K1Uw==
+X-CSE-MsgGUID: cahsLL1mRf2kCs98l530TQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="257317521"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by fmviesa005.fm.intel.com with ESMTP; 30 Jun 2026 17:41:04 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wej0e-000000008oF-1Kde;
+	Wed, 01 Jul 2026 00:41:00 +0000
+Date: Wed, 1 Jul 2026 08:40:21 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 nf] netfilter: nft_ct: support expectation creation
+ for natted flows
+Message-ID: <202607010848.Tf9MTgFt-lkp@intel.com>
+References: <20260630190929.14735-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260630190929.14735-1-fw@strlen.de>
+
+Hi Florian,
+
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on netfilter-nf/main]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_ct-support-expectation-creation-for-natted-flows/20260701-031657
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20260630190929.14735-1-fw%40strlen.de
+patch subject: [PATCH v3 nf] netfilter: nft_ct: support expectation creation for natted flows
+config: arc-randconfig-002-20260701 (https://download.01.org/0day-ci/archive/20260701/202607010848.Tf9MTgFt-lkp@intel.com/config)
+compiler: arc-linux-gcc (GCC) 8.5.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260701/202607010848.Tf9MTgFt-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202607010848.Tf9MTgFt-lkp@intel.com/
+
+All error/warnings (new ones prefixed by >>):
+
+>> net/netfilter/nft_ct.c:1398:14: error: 'nft_ct_nat_follow_master' undeclared here (not in a function); did you mean 'nft_ct_get_eval_counter'?
+     .expectfn = nft_ct_nat_follow_master,
+                 ^~~~~~~~~~~~~~~~~~~~~~~~
+                 nft_ct_get_eval_counter
+>> net/netfilter/nft_ct.c:1396:37: warning: 'nft_ct_nat' defined but not used [-Wunused-variable]
+    static struct nf_ct_helper_expectfn nft_ct_nat __read_mostly = {
+                                        ^~~~~~~~~~
 
 
-	Hello,
+vim +1398 net/netfilter/nft_ct.c
 
-On Tue, 30 Jun 2026, Julian Anastasov wrote:
-
-> Synced conns can be created with one forwarding method
-> and later updated with different one after the dest
-> server is configured. This needs adjusting the hashing
-> for node hn1 because only MASQ supports double hashing.
-> 
-> Modify conn_tab_lock() to support seeking for hash node
-> hn0 together with adding for hn1. By this way we can
-> safely modify the forwarding method and hn1.hash_key
-> under bucket lock for the first node hn0. The forwarding
-> method is also protected by cp->lock as it is part of
-> cp->flags.
-> 
-> Reported-by: Zhiling Zou <roxy520tt@gmail.com>
-> Link: https://lore.kernel.org/lvs-devel/1b914f41d725bc064c9ba9830dc8169329737270.1782540466.git.roxy520tt@gmail.com/
-> Fixes: f20c73b0460d ("ipvs: use more keys for connection hashing")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-
-	Ignore this patch, it has many issues to fix,
-I'll send v2 after 24 hours.
-
-Regards
+  1395	
+> 1396	static struct nf_ct_helper_expectfn nft_ct_nat __read_mostly = {
+  1397		.name = "nft_ct-follow-master",
+> 1398		.expectfn = nft_ct_nat_follow_master,
+  1399	};
+  1400	
 
 --
-Julian Anastasov <ja@ssi.bg>
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
