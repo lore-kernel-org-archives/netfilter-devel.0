@@ -1,105 +1,58 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7FF523E342
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 06:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D943A3830;
+	Wed,  1 Jul 2026 06:31:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782887372; cv=none; b=S7ce5204fRGM/4V4PD1Y4uc4mQxOpOwCufGOJ+dy9upcdqzAHDSEOxrNp7f6g71ftf/7NXNUvcPMSO7dM9HLDaAr11Wbd5Eu8VBqF4ene8xqNAqrhX9UmJTIkd8x36BXzFV0OkQa2dTsbMuBNZIvvAC6TvTEcpxzZDun7nP/pns=
+	t=1782887478; cv=none; b=X02owfaIpNtBo1Vt6sx1CFk8+e64P1gHRDEkqQ0Nr7b5X4gd3q0sGjPhpahEFZ/3r9wUz2bVldvozvVeTjgn/LIEXkztCCAH+ZYwNzJfDNnM0EMCeBvDe2NJ9qW4tmXeq9HqLbzeiTOAzQ/lsDrVpTgGgAMee2MOxZnW3GjKYsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782887372; c=relaxed/simple;
-	bh=3/MRws6i3Oc7nSbjZm0ZhsGGvez3dS4X99N6foXkRcs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rFrSuBanHsngUARcTF+6+UwjH6oc03Jl3XkHMoqx6GKc3HrnxgnK9PphutRbZTFv0gaRezk8YbHQolLHorB3+jCo3MqfDcecSroWZ+xa0/A3wwozkSFY5wvfHKXO3jnASMPkFJ1Ei2FtQXt/4tBCtKNbbuLexjmDzSfyxtSyOzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1782887478; c=relaxed/simple;
+	bh=6DXe25HNgUIkVcacAqjomd34UoaNnsPR6LZ9KLJs25w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Niv0s/K/NVfvs9Pt1RevvSRMdlMrg+nr0b4S0AFQ9K/E5IT8R2IqiKTgSijKHUj67XGadtA4C2l3sKyyTM3ccXNl5igg+0ISA3nydDykINUEeGJcThUEDJemmRUtiU1iBOPWPwCGfoWXYCwGfrNXML2zqq2dklB64OaRSxqmc8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9269A602F8; Wed, 01 Jul 2026 08:29:28 +0200 (CEST)
+	id D868F602F8; Wed, 01 Jul 2026 08:31:14 +0200 (CEST)
+Date: Wed, 1 Jul 2026 08:31:14 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_nat_sip: reload possible stale data pointer
-Date: Wed,  1 Jul 2026 08:29:22 +0200
-Message-ID: <20260701062922.9660-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+To: Ian Bridges <icb@fastmail.org>
+Cc: David Laight <david.laight.linux@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] netfilter: x_tables: replace strlcat() with snprintf()
+Message-ID: <akS0MrGUcI_3oAan@strlen.de>
+References: <aj78X4Cjqcpbb8Co@dev>
+ <20260627221643.1e837496@pumpkin>
+ <akSy4AzKgPffteU7@dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <akSy4AzKgPffteU7@dev>
 
-quoting sashiko:
--------------------------------------------------------------------------
-[..] noticed a potential memory bug and header corruption involving the
-SIP NAT helper.
+Ian Bridges <icb@fastmail.org> wrote:
+> I learned something new today, thanks. I'll use the first form in v2.
+> 
+> > FORMAT_TABLES should also be FORMAT_NAMES.
 
-In net/netfilter/nf_nat_sip.c:nf_nat_sip():
-	if (skb_ensure_writable(skb, skb->len)) {
-		nf_ct_helper_log(skb, ct, "cannot mangle packet");
-		return NF_DROP;
-	}
-	uh = (void *)skb->data + protoff;
-	uh->dest = ct_sip_info->forced_dport;
-	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo, protoff,
-				      0, 0, NULL, 0)) {
+No. The name is fine.
 
-If a cloned or fragmented SKB is reallocated by skb_ensure_writable(), the
-old data buffer is freed. However, nf_nat_sip() fails to update *dptr to
-point to the new buffer.
+> The macro is already named FORMAT_TABLES today, so that rename would
+> be a cleanup of pre-existing code rather than part of the strlcat
+> conversion. I'm happy to fold it into v2 if a maintainer is fine
+> including the tidy-up in this patch.
 
-It also appears to use nf_nat_mangle_udp_packet() on what could be a TCP
-packet, which would overwrite the sequence number with a checksum update.
--------------------------------------------------------------------------
-
-nf_conntrack_sip linerizes skbs, hence no fragmented skb can be seen.
-But clones are possible, so rebuild dptr.
-
-Disable nf_nat_mangle_udp_packet() branch for TCP streams.
-It doesn't look like this can ever happen, else we should have received
-bug reports about this, so just check the conntrack is UDP and drop
-otherwise.
-
-The calling conntrack_sip set ->forced_dport for SIP_HDR_VIA_UDP messages,
-so I don't think this is ever expected to be true for a TCP stream.
-
-Assisted-by: Claude:claude-sonnet-4-6
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_nat_sip.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index 67c04d8143ab..f4dd5719c797 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -289,13 +289,25 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 
- 	/* Mangle destination port for Cisco phones, then fix up checksums */
- 	if (dir == IP_CT_DIR_REPLY && ct_sip_info->forced_dport) {
-+		int doff = *dptr - (const char *)skb->data;
- 		struct udphdr *uh;
- 
-+		if (doff <= 0) {
-+			DEBUG_NET_WARN_ON_ONCE(1);
-+			return NF_DROP;
-+
-+		}
-+
-+		/* ct_sip_info->forced_dport only expected with UDP */
-+		if (nf_ct_protonum(ct) != IPPROTO_UDP)
-+			return NF_DROP;
-+
- 		if (skb_ensure_writable(skb, skb->len)) {
- 			nf_ct_helper_log(skb, ct, "cannot mangle packet");
- 			return NF_DROP;
- 		}
- 
-+		*dptr = skb->data + doff;
- 		uh = (void *)skb->data + protoff;
- 		uh->dest = ct_sip_info->forced_dport;
- 
--- 
-2.54.0
-
+No need for a v2, I mangled this patch locally already to use
+"%s_FOO" in FORMAT_FOO.
