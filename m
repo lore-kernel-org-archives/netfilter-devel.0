@@ -1,54 +1,101 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 013172E62A9;
-	Wed,  1 Jul 2026 06:36:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5C23E3AF677
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 06:44:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782887775; cv=none; b=cr2ICAkk56vvecDIHrzXEilQPIZxcsSyZQCVvFyLflR6N3hFgxVUQujuPa/d74ogrfphcB5lDHIpNTy5U5IM6uxitumnYZ83PkLxXN8ZWxtWiYA795puBb7oYL8R2zWHd8WpGmCfrJsXIRBKCvQfAaEZEh92E79sukcx6jGLfFw=
+	t=1782888299; cv=none; b=mKSiE9ANo7jZlqqA21sCPtjYvL+k8fJt/tUMPMcStGkV02NxAG19HeznG5u7WauRXy6/2wQDGAIWbskLY2w3vehqBoOIvn7sdhKV2Bg14ofRQ9gHkAP8k17ZbpcDVzWs16g1cwGnPoxIo5bohEqDF4W4ACJNWiv4COHM7xO1sMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782887775; c=relaxed/simple;
-	bh=W0+x3mTxKmE28XoEmmcTzUPx1gA8EEVcbQXsTKdrFM4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c3BrBUniBlKOSqdARX8Vc66U8YVYKFvRkBfHUcptB4bIbjOnjIRFRNOYtDexHfF/bLPbo5G+Nf2FgPvX606IXLCzhfer61PJlUMScplItLTF55BIaBmFWmZDD0ff5h8fXJoGVatDaqmfgTCvwdDSCqpw2KEhhwJMyPEvy7D7Hls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A5C4B602F8; Wed, 01 Jul 2026 08:36:11 +0200 (CEST)
-Date: Wed, 1 Jul 2026 08:36:11 +0200
-From: Florian Westphal <fw@strlen.de>
-To: netdev@vger.kernel.org
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH net 4/9] netfilter: nf_conntrack_sip: validate skb_dst()
- before accessing it
-Message-ID: <akS1W7XGQ3LiP0LC@strlen.de>
-References: <20260630045243.2657-1-fw@strlen.de>
- <20260630045243.2657-5-fw@strlen.de>
+	s=arc-20240116; t=1782888299; c=relaxed/simple;
+	bh=5ip1HYKy2BU6XiHfCT3wBCdiXkmFlT5VEsxh8CQe5eA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 MIME-Version:Message-ID; b=mqZYf1Xu34FzwTRW7Htm+UfxhMcDtPXSI1oncktj3jllkwnXFUkr7FiAYowAe349z9xIOmdQr0lm4KIe2QRlQVxw9xG53uKlLDRSDhv+mGXjNsi2ubzv4i0+wte5sSeXRuxqMhCtwMF2vhPsu6jQdibkf38hQLyx1XtLuegCkB0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=13.75.44.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from chzhengyang2023$lzu.edu.cn ( [172.23.204.62] ) by
+ ajax-webmail-app3 (Coremail) ; Wed, 1 Jul 2026 14:44:41 +0800 (GMT+08:00)
+Date: Wed, 1 Jul 2026 14:44:41 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: =?UTF-8?B?6ZmI5q2j6Ziz?= <chzhengyang2023@lzu.edu.cn>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, lorenzo@kernel.org
+Subject: Re: [PATCH nf 0/3] flowtable fixes for ipip tunnels
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2024.3-cmXT5 build
+ 20250609(354f7833) Copyright (c) 2002-2026 www.mailtech.cn lzu
+In-Reply-To: <20260629143936.61239-1-pablo@netfilter.org>
+References: <20260629143936.61239-1-pablo@netfilter.org>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260630045243.2657-5-fw@strlen.de>
+Message-ID: <150d5ed1.7833.19f1c6c3562.Coremail.chzhengyang2023@lzu.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:ywmowADHBf5Zt0RqMbk4AA--.16761W
+X-CM-SenderInfo: xfk2xvpqj1t0rjsqjjo6o23hxhgxhubq/1tbiAQAPEGpDfFUVvQAB
+	s3
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-Florian Westphal <fw@strlen.de> wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> tc ingress and openvswitch do not guarantee routing information to be
-> available. These subsystems use the conntrack helper infrastructure, and
-> the SIP helper relies on the skb_dst() to be present if
-> sip_external_media is set to 1 (which is disabled by default as a module
-> parameter).
-
-The sashiko drive-by appears real, I submitted a patch for it.
-Its not a regression added by this patch but a unrelated issue.
-
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260701062922.9660-1-fw@strlen.de/
+ICBIaSBQYWJsbywKCiAgPiBIaSwKICA+CiAgPiBUaGUgZm9sbG93aW5nIHBhdGNoc2V0IGNvbnRh
+aW5zIGZpeGVzIGZvciB0aGUgZmxvd3RhYmxlIGlwaXAgc3VwcG9ydDoKICA+CiAgPiBQYXRjaCAj
+MSB1cGRhdGVzIG5mX2Zsb3dfdHVubmVsX2lwezZ9aXB7Nn1fcHVzaCgpIHRvIHVzZSB0aGUgZHN0
+X2VudHJ5CiAgPiAgICAgICAgICBpbiB0aGlzIGRpcmVjdGlvbiB0byBjYWxjdWxhdGUgaGVhZHJv
+b20gYW5kIHNldCBpcGgtPmZyYWdfb2ZmLgogID4gICAgICBBcHBhcmVudGx5LCBuZnRfZmxvd190
+dW5uZWxfdXBkYXRlX3JvdXRlKCkgc2V0cyB0aGUgcmlnaHQKICA+ICAgICAgZHN0X2VudHJ5IGlu
+IHRoaXMgZGlyZWN0aW9uLCBidXQgZGF0YXBhdGggdXNlcyB0aGUgb3RoZXIgZGlyZWN0aW9uLgog
+ID4KICA+IFBhdGNoICMyIGFkZHMgYSBmdW5jdGlvbiB0byBiYWlsIG91dCBlYXJseSBvbiBhbnkg
+YXR0ZW1wdCB0byBoYXJkd2FyZQogID4gICAgICBvZmZsb2FkIGEgZmxvdyBlbnRyeSB3aGljaCBp
+cyBub3Qgc3VwcG9ydGVkLiBDdXJyZW50bHksIC0+bnVtX3R1bgogID4gICAgICBoYXMgbm8gZHJp
+dmVycyBzdXBwb3J0aW5nIHRoaXMuCgogIE9uZSBzbWFsbCBhdHRyaWJ1dGlvbiBub3RlIGZvciBw
+YXRjaCAjMjogSSBub3RpY2VkIHRoYXQgbXkgbmFtZSBpcyBsaXN0ZWQKICBhcyBSZXBvcnRlZC1i
+eSBpbiAwMDAyLiBUaGUgZmluYWwgcGF0Y2ggaXMgcmV3b3JrZWQgYnkgeW91LCBidXQgaXQgYXBw
+ZWFycwogIHRvIGJlIGJhc2VkIG9uIHRoZSB1bnN1cHBvcnRlZCB0dW5uZWwgaGFyZHdhcmUgb2Zm
+bG9hZCBoYW5kbGluZyBmcm9tIG15IHYzCiAgc3VibWlzc2lvbi4gU2luY2UgSSB3YXMgdGhlIHBh
+dGNoIGF1dGhvci9jb250cmlidXRvciByYXRoZXIgdGhhbiB0aGUgYnVnCiAgcmVwb3J0ZXIgZm9y
+IHRoaXMgcGFydCwgY291bGQgeW91IHBsZWFzZSByZXBsYWNlIG15IFJlcG9ydGVkLWJ5IHRhZyB3
+aXRoOgoKICBDby1kZXZlbG9wZWQtYnk6IFpoZW5neWFuZyBDaGVuIDxjaHpoZW5neWFuZzIwMjNA
+bHp1LmVkdS5jbj4KICBTaWduZWQtb2ZmLWJ5OiBaaGVuZ3lhbmcgQ2hlbiA8Y2h6aGVuZ3lhbmcy
+MDIzQGx6dS5lZHUuY24+CgogIFRoZSBTaWduZWQtb2ZmLWJ5IHdhcyBhbHJlYWR5IHByZXNlbnQg
+aW4gbXkgdjIvdjMgc3VibWlzc2lvbnMuCgogID4gUGF0Y2ggIzMgbWFrZXMgZHN0X2VudHJ5IGF2
+YWlsYWJsZSBmb3IgYWxsIHhtaXQgbW9kZXMgd2hpY2ggaXMgcmVxdWlyZWQKICA+ICAgICAgdG8g
+cmVhY2ggdGhlIGRzdF9lbnRyeSB3aGVuIHB1c2hpbmcgdGhlIGlwaXAgaGVhZGVyIChzZWUgcmVs
+YXRlZAogID4gICAgICBwYXRjaCAjMSkuIEJhc2VkIG9uIHBhdGNoIGZyb20gUmVpbiBXZWluLgoK
+ICBTbWFsbCBjb3JyZWN0aW9uIGhlcmU6IFJlbiBXZWkgaGVscGVkIHJldmlldy9zZW5kIHRoZSBw
+YXRjaCBvbiBvdXIgc2lkZSwKICBidXQgdGhlIG9yaWdpbmFsIHBhdGNoIHdhcyBhdXRob3JlZCBi
+eSBtZSwgWmhlbmd5YW5nIENoZW4KICA8Y2h6aGVuZ3lhbmcyMDIzQGx6dS5lZHUuY24+LgoKICBQ
+YXRjaCAjMyBrZWVwcyB0aGUgbWFpbiBsb2dpYyBmcm9tIG15IHYyL3YzIHN1Ym1pc3Npb24sIGlu
+Y2x1ZGluZyBtb3ZpbmcKICBkc3RfY2FjaGUvZHN0X2Nvb2tpZSBvdXQgb2YgdGhlIHJ1bnRpbWUg
+dW5pb24sIHByZXNlcnZpbmcgZHN0IHN0YXRlIGZvcgogIERJUkVDVCB0dW5uZWwgZmxvd3MsIGFu
+ZCByZWxlYXNpbmcgZHN0IHRocm91Z2ggdGhlIGNvbW1vbiBwYXRoLiBTbyBjb3VsZAogIHRoaXMg
+YXR0cmlidXRpb24gcGxlYXNlIGJlIGNoYW5nZWQgdG86CgogIEJhc2VkIG9uIHBhdGNoIGZyb20g
+Wmhlbmd5YW5nIENoZW4gPGNoemhlbmd5YW5nMjAyM0BsenUuZWR1LmNuPi4KCiAgQWxzbywgZm9y
+IDAwMDMsIGNvdWxkIG15IFJlcG9ydGVkLWJ5IHRhZyBiZSByZXBsYWNlZCB3aXRoIHRoZSBzYW1l
+CiAgQ28tZGV2ZWxvcGVkLWJ5IGFuZCBTaWduZWQtb2ZmLWJ5IHRhZ3MgYWJvdmU/IEkgZG8gbm90
+IG1lYW4gdG8gY2hhbmdlIHRoZQogIFJlcG9ydGVkLWJ5IHRhZ3MgZm9yIHRoZSBvcmlnaW5hbCBy
+ZXBvcnRlcnM7IHRoaXMgaXMgb25seSBhYm91dCBteSBvd24KICBhdHRyaWJ1dGlvbi4KCiAgPiBU
+aGlzIHNlcmllcyBpcyBwYXNzaW5nIG5mdF9mbG93dGFibGUuc2ggc2VsZnRlc3QgaGVyZSwgaW5j
+bHVkaW5nIFJlbiBXZWkncwogID4gcGF0Y2g6CiAgPgogID4gICBbbmYsdjMsMi8yXSBzZWxmdGVz
+dHM6IG5ldGZpbHRlcjogYWRkIGJyaWRnZSB0dW5uZWwgZmxvd3RhYmxlIHJlZ3Jlc3Npb24KICA+
+ICAgaHR0cHM6Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9wcm9qZWN0L25ldGZpbHRlci1kZXZlbC9w
+YXRjaC81YjhhOWU4N2ZmN2I0NzQwMTYxMmJiMGUwZmM4NDFkOGJmZGQzMzNkLjE3ODIwOTIyMjEu
+Z2l0LmNoemhlbmd5YW5nMjAyM0BsenUuZWR1LmNuLwogID4KICA+IHdoaWNoIHNob3VsZCBiZSBh
+bHNvIGJlIHRha2VuIHVwc3RyZWFtLgogID4KICA+IFBhYmxvIE5laXJhIEF5dXNvICgzKToKICA+
+ICAgbmV0ZmlsdGVyOiBmbG93dGFibGU6IHVzZSBkc3QgaW4gdGhpcyBkaXJlY3Rpb24gd2hlbiBw
+dXNoaW5nIElQSVAgaGVhZGVyCiAgPiAgIG5ldGZpbHRlcjogZmxvd3RhYmxlOiBJUElQIHR1bm5l
+bCBoYXJkd2FyZSBvZmZsb2FkIGlzIG5vdCB5ZXQgc3VwcG9ydAogID4gICBuZXRmaWx0ZXI6IGZs
+b3d0YWJsZTogc3VwcG9ydCBJUElQIHR1bm5lbCB3aXRoIGRpcmVjdCB4bWl0CiAgPgogID4gIGlu
+Y2x1ZGUvbmV0L25ldGZpbHRlci9uZl9mbG93X3RhYmxlLmggfCAgNCArKy0tCiAgPiAgbmV0L25l
+dGZpbHRlci9uZl9mbG93X3RhYmxlX2NvcmUuYyAgICB8IDE1ICsrKysrKysrKysrLS0tLQogID4g
+IG5ldC9uZXRmaWx0ZXIvbmZfZmxvd190YWJsZV9pcC5jICAgICAgfCAyMSArKysrKysrKysrKyst
+LS0tLS0tLS0KICA+ICBuZXQvbmV0ZmlsdGVyL25mX2Zsb3dfdGFibGVfb2ZmbG9hZC5jIHwgMTcg
+KysrKysrKysrKysrKysrKysKICA+ICA0IGZpbGVzIGNoYW5nZWQsIDQyIGluc2VydGlvbnMoKyks
+IDE1IGRlbGV0aW9ucygtKQogID4KICA+IC0tCiAgPiAyLjQ3LjMKCiAgVGhhbmtzIGZvciBwaWNr
+aW5nIHRoaXMgdXAgYW5kIGZvciB0aGUgcmV3b3JrL3Rlc3RpbmcuIEkgb25seSB3YW50ZWQgdG8K
+ICBjbGFyaWZ5IG15IHNwZWNpZmljIGNvbnRyaWJ1dGlvbnMgYmVmb3JlIHRoZSBzZXJpZXMgbW92
+ZXMgZnVydGhlciB1cHN0cmVhbS4KCiAgQmVzdCByZWdhcmRzLAogIFpoZW5neWFuZw==
