@@ -1,94 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A43F237881D;
-	Wed,  1 Jul 2026 17:10:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897F7224AF2;
+	Wed,  1 Jul 2026 19:31:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782925840; cv=none; b=XuHetZSdPOux9jXYyqqNASGH4lQ17IqUvFv/uKLWRbvTw3EyqF3OI5FgDzcDqGVHP+pULEUHjZz5nHor76+FMeYO8L2jqwyb2IgHE1OJunyqh+ppD0hFThlsTURoeBXVZ2tAN3kfabhow0p5fBs/dbPYWOGhuCfaLKdqjFrTWaw=
+	t=1782934314; cv=none; b=d2yfVGLekPq7kmrBJz5hs4RnCwTSUuBu7wDbxz16AjPx7waorZwKchqgozoht1TMkYQE6Wk32pQkaEJYeRpLL4/QaUS/mPL3iKZGbQpwiaSCzmaVAkG6ZADqJnLyDtJ//PsknM9dYfpTGzCagNwe+38fpucN4wd41rGBARI3s8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782925840; c=relaxed/simple;
-	bh=h866r80oAAouOTBSCidev3WeFJbSABkts1Ea7byzu1g=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=cgmbRokn1UHWzKhpVkvgI8AEedNiPvXAbQhyv7mhjmKDphYxV7dmS2tPPqj3VurEtAaHbY2KE7YtQ5Zt73tLaBnqKq7mjKFerELD830ur17VuknWPfFSdx4vVFgcbho9rAQ0ZXtcWH/YyNPYUHYa5Tgdxfbc3ssun98gfo6Tcmc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DUWWnY3N; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DUWWnY3N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B751F000E9;
-	Wed,  1 Jul 2026 17:10:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782925839;
-	bh=HUDgVJ499vbywMasekvTE9hogfK8wQhIIYPBtIVOn+I=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=DUWWnY3Nj0qWiNQJZzrXb888bRCuXLKz5ACIovPoDfI6js6pYn97q1KTYF9+q9Dg4
-	 2uQXAkffGErP4Rffkjr0cREQ4MJW8c09qjROn3qGmYDm0NSkilBubbwnXOuC4CpXej
-	 0htQLUdzmXb7/+d9OeX/ooph5yflEdR+8nuedYPeVlBDfOs3C4SvJTEQBGlN/pR3wF
-	 D2i48c3cy/MTWAI1whGlSzV4S8oYStjLclCJm3dsSJFVFeXpdVoMsWNzhWeu7h96Jf
-	 5NGfz6MhSubsTWAPsMohcWC5JsBRLzZV2iCyJZJK3oFzk6XtT73CBohkIw7yclITsh
-	 OqSmUHZkbMK2Q==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 199353926272;
-	Wed,  1 Jul 2026 17:10:24 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1782934314; c=relaxed/simple;
+	bh=mLzcRSnztu80B3fI2V8y3dsoxit704VRlvjta6+On38=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NIiaGtgH21D9+rMlObLAX90F6V3CYoyCEvkHA4CZaG7Ahvqi6mznRL0nntjsqkwj9IzLFwEdWykDl7G3TLs3Jx7BmzNKi6WzkMj0p7i7DQuwD4wBiS4jBdJaPqT+UyaszSHD64ONtpTb4K6OO7imtoOzbm3pm2ZVl/E7RNVEm9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 1EB2060543; Wed, 01 Jul 2026 21:31:45 +0200 (CEST)
+Date: Wed, 1 Jul 2026 21:31:39 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Melbin K Mathew <mlbnkm1@gmail.com>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: reject interval-end get
+ for open intervals
+Message-ID: <akVrG9sRqSDPbkXb@strlen.de>
+References: <20260630155507.92815-1-mlbnkm1@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/9] netfilter: nf_conntrack_expect: zero at
- allocation
- time
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178292582264.1213092.416770887913754964.git-patchwork-notify@kernel.org>
-Date: Wed, 01 Jul 2026 17:10:22 +0000
-References: <20260630045243.2657-2-fw@strlen.de>
-In-Reply-To: <20260630045243.2657-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260630155507.92815-1-mlbnkm1@gmail.com>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
-
-On Tue, 30 Jun 2026 06:52:35 +0200 you wrote:
-> There are occasional LLM hints wrt. leaking uninitialized data to
-> userspace via ctnetlink.  Just zero at allocation time,
-> expectations are not frequently used these days.
+Melbin K Mathew <mlbnkm1@gmail.com> wrote:
+> nft_rbtree_get() uses the interval endpoint selected by
+> nft_array_get_cmp(). For NFT_SET_ELEM_INTERVAL_END requests, the function
+> uses interval->to to recover struct nft_rbtree_elem.
 > 
-> Intentionally keeps _init as-is because we could theoretically
-> support re-init, so add the missing exp->dir there.
+> Open-ended intervals can have a NULL end endpoint. In that case,
+> nft_array_get_cmp() treats the missing endpoint as b = -1, which can
+> still match an interval-end query. Avoid deriving an element pointer
+> from a NULL endpoint and report the element as not found instead.
 > 
-> [...]
+> Return -ENOENT for interval-end requests against open-ended intervals.
+> 
+> Fixes: 2aa34191f06f ("netfilter: nft_set_rbtree: use binary search array in get command")
+> Signed-off-by: Melbin K Mathew <mlbnkm1@gmail.com>
+> ---
+> Notes:
+>   A reduced userspace model confirms the comparator returns match for a
+>   NULL-ended interval when NFT_SET_ELEM_INTERVAL_END is set, and that
+>   container_of(NULL, ext) produces a garbage pointer (UBSAN fires).
+> 
+>   I have not reproduced an end-to-end crash through normal nft CLI usage.
+>   An instrumented WARN in this branch did not fire during interval-set
+>   tests with nft add/get/list. The patch is a defensive fix for the NULL
+>   endpoint case.
+> 
+>   Tested on 7.2-rc1 with KASAN and UBSAN enabled. Function tracing
+>   confirms nft_rbtree_get() is reached via nft get element. The added
+>   guard returns -ENOENT for a NULL interval endpoint in the instrumented
+>   test case.
+> ---
+>  net/netfilter/nft_set_rbtree.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+> index 018bbb6df4..024a2cd3a6 100644
+> --- a/net/netfilter/nft_set_rbtree.c
+> +++ b/net/netfilter/nft_set_rbtree.c
+> @@ -184,10 +184,13 @@ nft_rbtree_get(const struct net *net, const struct nft_set *set,
+>  	if (!interval || nft_set_elem_expired(interval->from))
+>  		return ERR_PTR(-ENOENT);
+>  
+> -	if (flags & NFT_SET_ELEM_INTERVAL_END)
+> +	if (flags & NFT_SET_ELEM_INTERVAL_END) {
+> +		if (!interval->to)
+> +			return ERR_PTR(-ENOENT);
+>  		rbe = container_of(interval->to, struct nft_rbtree_elem, ext);
+> -	else
+> +	} else {
+>  		rbe = container_of(interval->from, struct nft_rbtree_elem, ext);
+> +	}
 
-Here is the summary with links:
-  - [net,1/9] netfilter: nf_conntrack_expect: zero at allocation time
-    https://git.kernel.org/netdev/net/c/241ccd2fed90
-  - [net,2/9] netfilter: nft_set_pipapo: don't leak bad clone into future transaction
-    https://git.kernel.org/netdev/net/c/47e65eff5069
-  - [net,3/9] netfilter: ipset: fix race between dump and ip_set_list resize
-    https://git.kernel.org/netdev/net/c/7cd9103283b2
-  - [net,4/9] netfilter: nf_conntrack_sip: validate skb_dst() before accessing it
-    https://git.kernel.org/netdev/net/c/e5e24a365a5e
-  - [net,5/9] netfilter: nfnetlink_cthelper: cap to maximum number of expectation per master
-    https://git.kernel.org/netdev/net/c/bf5355cfdede
-  - [net,6/9] netfilter: nft_fib: reject fib expression on the netdev egress hook
-    https://git.kernel.org/netdev/net/c/d07955dd34ec
-  - [net,7/9] netfilter: nfnetlink_queue: restrict writes to network header
-    https://git.kernel.org/netdev/net/c/54f34607d184
-  - [net,8/9] netfilter: nftables: restrict linklayer and network header writes
-    https://git.kernel.org/netdev/net/c/df07998dfd40
-  - [net,9/9] netfilter: nftables: restrict checkum update offset
-    https://git.kernel.org/netdev/net/c/c3716a3c4346
+Hmm, I don't think the query should have returned a match in the first
+place, i.e. we should have left via (!interval || ... condition.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Pablo, could you please have a look?
 
+I suspect we want something like this:
 
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -150,10 +150,12 @@ static int nft_array_get_cmp(const void *pkey, const void *entry)
+ 		b = memcmp(ctx->key, nft_set_ext_key(interval->to), ctx->klen);
+ 
+ 	if (a >= 0) {
+-		if (ctx->flags & NFT_SET_ELEM_INTERVAL_END && b <= 0)
+-			return 0;
+-		else if (b < 0)
++		if (ctx->flags & NFT_SET_ELEM_INTERVAL_END && b <= 0) {
++			if (interval->to)
++				return 0;
++		} else if (b < 0) {
+ 			return 0;
++		}
+ 	}
+ 
+ 	if (a < 0)
+
+When userspace asks for end interval, but we have an open interval,
+then cmp callback shouldn't indicate a match.
