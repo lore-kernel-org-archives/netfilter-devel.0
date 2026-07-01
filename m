@@ -1,207 +1,105 @@
-Received: from flow-b2-smtp.messagingengine.com (flow-b2-smtp.messagingengine.com [202.12.124.137])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88F73B27EA;
-	Wed,  1 Jul 2026 06:25:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7FF523E342
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 06:29:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782887144; cv=none; b=PIRWNSswiKE1JHiZ0VpW1qnblZ9prCsnmDjYUrvbUjObubGPb7KI5VDp5y/rQAx7Oo/tGhsYQxhgqsGkfmtOqElq2XwLgWj1vJv3Cd0/3ylIEtMtPah2xGjiOjUck7pVDPDPAjxnfigq6zZlr9O5eq98MFfv4nMFxgZhZJST+eA=
+	t=1782887372; cv=none; b=S7ce5204fRGM/4V4PD1Y4uc4mQxOpOwCufGOJ+dy9upcdqzAHDSEOxrNp7f6g71ftf/7NXNUvcPMSO7dM9HLDaAr11Wbd5Eu8VBqF4ene8xqNAqrhX9UmJTIkd8x36BXzFV0OkQa2dTsbMuBNZIvvAC6TvTEcpxzZDun7nP/pns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782887144; c=relaxed/simple;
-	bh=fIM8VNIc5pbfQTbkdZJbDhnsuKFyNWmh/ulSk4Y4MbY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SgcQZ8QnxUCrupAZR3YoFE3Yx4d5UqfeP4a5EAmEPXkDLcdweTNpzsm5Si+gS4qr+EniID8vsaEFXfZsukpWsdCwXCvZLNok8U546uhY1uHTPMPLJntR+SgOyQ/weskHr5imEckVpzbalm67T8dnCzczzHAne6sDpsHkCokcRm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.org; spf=pass smtp.mailfrom=fastmail.org; dkim=pass (2048-bit key) header.d=fastmail.org header.i=@fastmail.org header.b=RD3m2VWD; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=DtoHmSNX; arc=none smtp.client-ip=202.12.124.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fastmail.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastmail.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fastmail.org header.i=@fastmail.org header.b="RD3m2VWD";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="DtoHmSNX"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailflow.stl.internal (Postfix) with ESMTP id 4C3C013000BB;
-	Wed,  1 Jul 2026 02:25:39 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-05.internal (MEProxy); Wed, 01 Jul 2026 02:25:39 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.org; h=
-	cc:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1782887139; x=1782890739; bh=DgC5jJz7pQ
-	Y2GqVx3z0JfLHlwr1nxJNvIHQlZet0Vng=; b=RD3m2VWDZpjXsQwtyhhz1dUeCL
-	NI+o3BuiZUfnmNbxm2+Z01P6KpILN0ehUeg11LzQQAji4wYVkBnendY+VBisuA4s
-	+wH2zY2JtDel1k9zpi3F2IUYTYxiE0n8DQ9c2wkI4sfdGm6qE8GlGSnb5H7/YlNe
-	alAi8CMXtmTiJStVr9i5Kp7htAdlrfC2hdqxjI5zxz/yV8qNq8aJOkjdXScOm6Lw
-	l17Xihz6AEVqTkIltxNOOzeCYqdeGaUNWKFmzfNVrH994AuPO8+29SJdkbdthXDi
-	K3eDCsVxv5iYZC+IDcN1VkPMDTP1239ECxkxWtHHzOlf4xbsTQQkkLbOOpog==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
-	1782887139; x=1782890739; bh=DgC5jJz7pQY2GqVx3z0JfLHlwr1nxJNvIHQ
-	lZet0Vng=; b=DtoHmSNX4yCOvi1wUhx3zAuuZOPA5TqPrMOgRhc1fcsjKVnBF2O
-	lqXHzxj5tkUx78ui75iSToCnjInqF/t/7jKYV1npT2HJeUemEESjAGc5MfedfKZC
-	xx1nYAPAlU2T5RiUiHk7pKvf/JIFRX1FSCzd+JCw65aHAcQIuc9xxL4OnS5z+6XT
-	wJ52ZBkkl8B81vQsJhNvvlxzDaVLVUkp+zojZSwM0aKy2DSHts5fehTD2TjBa28D
-	1R7F5slFvo+DvkukeXQ+EubqxmM0P+8GrdsZoNNPqZvBXN/R4bxeKbEXQFP3WMTJ
-	3FUkma1PQipF1H1DPlkzyWKH4ThF5+dRiLg==
-X-ME-Sender: <xms:4rJEau8dS4lfIzUrsKrRqg4TRMGtqny79e2C11h2AhkGkwQyGyCpQQ>
-    <xme:4rJEarH4FA2teqN680bhyQjmyk1c3Q6kvdjfOycFEHP_ePcfXf-2UyPk2qvQq_DRw
-    q7bf6rULAc1vpoiVT-2MpPzEUK12R81PwENG-JTYxSJg2A_g3lz7Oo>
-X-ME-Received: <xmr:4rJEaod6RG0QVUkvJps2bLlqLKngm63QcmOcfWhDUP4q3gL3sd0xczX2eUQ>
-X-ME-Proxy-Cause: dmFkZTGyY6rHX/7AOhO9bWoyCyOEFK7DO0LPh2aMmnD2oP6TTN5atiZjlC4jZgF+24ocy+
-    Qa4VJSRKALcCoZS16nGa1fA4udqt73Ge8WEUjBp2VJOgV1HXjgLonjbRoupgs7Tu1khnWY
-    yc1v2PRZ0clY3Wqcz1XlXMa4gGsgA3dBprtDVKpg9PxfpxcTKKkPQ3IEkDb7KaOw1IGJQZ
-    DhWsYdPWMQWOcGTfEk5vvol3ZMzLV25P4fa3VikVymX4fY12Jsq7ECEF634FKIAA1ZDx0I
-    p7fI9JLuYQBr+Q3t7QDOy8ERF6TtiDSAI6s8vNuPYDIjTrWzXA3wCCsZFC70qYjeLS08Rd
-    Ch+4r5Pz7XjmlT/l4OIAwd/gWnuykAxP54uxMMq2vU49+LylTJoE7QiQkuySZDD9NAvNzz
-    1y0iK5WD9Pd1bKb8OT7xejLx5JE2RE2jxM9ATCl9NcIJyhIfvOdTOYx8BZJ8mB8IAmDVM0
-    p3X0MYcu3553llOVoHL2WOiutNEb/Ff4AzWpCQhOHr2ELcGxAoekbM2OZ/e/YTgFr6ilEe
-    TtIvcElPGLp0mLKlBq6aMRkwaYClNYVS+Yti8vZsq+k9DWfVCSdrLcE1O+D91UwQjrdmva
-    cMA1csLYxJ2IoZub2kTxjJXV7Sb2ypCFl84jCFdnKZs13AFZI54P7oToJHaQ
-X-ME-Proxy: <xmx:4rJEakmK5pmzMPXUBNt2xAMM-6OxtiSWb1jOKOLisRWVHTIppZsB7A>
-    <xmx:4rJEavoWeR3DBqzFMo8Wvv68U0qPz_uCGzYR8JZT-Bwcu4WQ0VHI9Q>
-    <xmx:4rJEapGIEm2XgLRplyqH_MUFS6phakYuxhDd-_NUMdhNnN7i304jTQ>
-    <xmx:4rJEatRwbU_7PkQLmnbf1IL7nlflfs-V11uEHfMVUHUz5mz-x_DtRQ>
-    <xmx:47JEat7e8IZA_ifgVw6Zdir4kCV_Vcb0PvnIWbePFcoONXx_JPIvg8Xe>
-Feedback-ID: ib53e4b78:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 1 Jul 2026 02:25:38 -0400 (EDT)
-Date: Wed, 1 Jul 2026 01:25:36 -0500
-From: Ian Bridges <icb@fastmail.org>
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] netfilter: x_tables: replace strlcat() with snprintf()
-Message-ID: <akSy4AzKgPffteU7@dev>
-References: <aj78X4Cjqcpbb8Co@dev>
- <20260627221643.1e837496@pumpkin>
+	s=arc-20240116; t=1782887372; c=relaxed/simple;
+	bh=3/MRws6i3Oc7nSbjZm0ZhsGGvez3dS4X99N6foXkRcs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rFrSuBanHsngUARcTF+6+UwjH6oc03Jl3XkHMoqx6GKc3HrnxgnK9PphutRbZTFv0gaRezk8YbHQolLHorB3+jCo3MqfDcecSroWZ+xa0/A3wwozkSFY5wvfHKXO3jnASMPkFJ1Ei2FtQXt/4tBCtKNbbuLexjmDzSfyxtSyOzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9269A602F8; Wed, 01 Jul 2026 08:29:28 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_nat_sip: reload possible stale data pointer
+Date: Wed,  1 Jul 2026 08:29:22 +0200
+Message-ID: <20260701062922.9660-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260627221643.1e837496@pumpkin>
+Content-Transfer-Encoding: 8bit
 
-On Sat, Jun 27, 2026 at 10:16:43PM +0100, David Laight wrote:
-> On Fri, 26 Jun 2026 17:25:35 -0500
-> Ian Bridges <icb@fastmail.org> wrote:
-> 
-> > In preparation for removing the deprecated strlcat() API[1], replace the
-> > strscpy()/strlcat() pairs in xt_proto_init() and xt_proto_fini() with
-> > snprintf(), which builds each /proc file name in a single call.
-> > 
-> > Each name is "<prefix><suffix>", where <prefix> is the address-family
-> > string xt_prefix[af] and <suffix> is one of the FORMAT_TABLES,
-> > FORMAT_MATCHES or FORMAT_TARGETS literals. snprintf() with a "%s%s"
-> > format produces the same NUL-terminated, length-bounded string as the
-> > strscpy()/strlcat() chain it replaces, so the proc entry names are
-> > unchanged.
-> > 
-> > Link: https://github.com/KSPP/linux/issues/370 [1]
-> > Signed-off-by: Ian Bridges <icb@fastmail.org>
-> > ---
-> >  net/netfilter/x_tables.c | 24 ++++++++----------------
-> >  1 file changed, 8 insertions(+), 16 deletions(-)
-> > 
-> > diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> > index 4e6708c23922..56f4546be336 100644
-> > --- a/net/netfilter/x_tables.c
-> > +++ b/net/netfilter/x_tables.c
-> > @@ -2033,8 +2033,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
-> >  	root_uid = make_kuid(net->user_ns, 0);
-> >  	root_gid = make_kgid(net->user_ns, 0);
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_TABLES);
-> 
-> If you are going to use snprintf either paste the strings together:
-> 	snprintf(buf, sizeof(buf), "%s" FORMAT_TABLES, xt_prefix[af]);
-> or prepend the "%s" onto the #define of FORMAT_TABLES itself:
-> 	snprintf(buf, sizeof(buf), FORMAT_TABLES, xt_prefix[af]);
->
+quoting sashiko:
+-------------------------------------------------------------------------
+[..] noticed a potential memory bug and header corruption involving the
+SIP NAT helper.
 
-I learned something new today, thanks. I'll use the first form in v2.
+In net/netfilter/nf_nat_sip.c:nf_nat_sip():
+	if (skb_ensure_writable(skb, skb->len)) {
+		nf_ct_helper_log(skb, ct, "cannot mangle packet");
+		return NF_DROP;
+	}
+	uh = (void *)skb->data + protoff;
+	uh->dest = ct_sip_info->forced_dport;
+	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo, protoff,
+				      0, 0, NULL, 0)) {
 
-> FORMAT_TABLES should also be FORMAT_NAMES.
+If a cloned or fragmented SKB is reallocated by skb_ensure_writable(), the
+old data buffer is freed. However, nf_nat_sip() fails to update *dptr to
+point to the new buffer.
 
-The macro is already named FORMAT_TABLES today, so that rename would
-be a cleanup of pre-existing code rather than part of the strlcat
-conversion. I'm happy to fold it into v2 if a maintainer is fine
-including the tidy-up in this patch.
+It also appears to use nf_nat_mangle_udp_packet() on what could be a TCP
+packet, which would overwrite the sequence number with a checksum update.
+-------------------------------------------------------------------------
 
-Thanks for the review,
-Ian
+nf_conntrack_sip linerizes skbs, hence no fragmented skb can be seen.
+But clones are possible, so rebuild dptr.
 
-> 
-> -- David
-> 
-> >  	proc = proc_create_net_data(buf, 0440, net->proc_net, &xt_table_seq_ops,
-> >  			sizeof(struct seq_net_private),
-> >  			(void *)(unsigned long)af);
-> > @@ -2043,8 +2042,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
-> >  	if (uid_valid(root_uid) && gid_valid(root_gid))
-> >  		proc_set_user(proc, root_uid, root_gid);
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_MATCHES);
-> >  	proc = proc_create_seq_private(buf, 0440, net->proc_net,
-> >  			&xt_match_seq_ops, sizeof(struct nf_mttg_trav),
-> >  			(void *)(unsigned long)af);
-> > @@ -2053,8 +2051,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
-> >  	if (uid_valid(root_uid) && gid_valid(root_gid))
-> >  		proc_set_user(proc, root_uid, root_gid);
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_TARGETS);
-> >  	proc = proc_create_seq_private(buf, 0440, net->proc_net,
-> >  			 &xt_target_seq_ops, sizeof(struct nf_mttg_trav),
-> >  			 (void *)(unsigned long)af);
-> > @@ -2068,13 +2065,11 @@ int xt_proto_init(struct net *net, u_int8_t af)
-> >  
-> >  #ifdef CONFIG_PROC_FS
-> >  out_remove_matches:
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_MATCHES);
-> >  	remove_proc_entry(buf, net->proc_net);
-> >  
-> >  out_remove_tables:
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_TABLES);
-> >  	remove_proc_entry(buf, net->proc_net);
-> >  out:
-> >  	return -1;
-> > @@ -2087,16 +2082,13 @@ void xt_proto_fini(struct net *net, u_int8_t af)
-> >  #ifdef CONFIG_PROC_FS
-> >  	char buf[XT_FUNCTION_MAXNAMELEN];
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_TABLES);
-> >  	remove_proc_entry(buf, net->proc_net);
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_TARGETS);
-> >  	remove_proc_entry(buf, net->proc_net);
-> >  
-> > -	strscpy(buf, xt_prefix[af], sizeof(buf));
-> > -	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-> > +	snprintf(buf, sizeof(buf), "%s%s", xt_prefix[af], FORMAT_MATCHES);
-> >  	remove_proc_entry(buf, net->proc_net);
-> >  #endif /*CONFIG_PROC_FS*/
-> >  }
-> 
+Disable nf_nat_mangle_udp_packet() branch for TCP streams.
+It doesn't look like this can ever happen, else we should have received
+bug reports about this, so just check the conntrack is UDP and drop
+otherwise.
+
+The calling conntrack_sip set ->forced_dport for SIP_HDR_VIA_UDP messages,
+so I don't think this is ever expected to be true for a TCP stream.
+
+Assisted-by: Claude:claude-sonnet-4-6
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_nat_sip.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index 67c04d8143ab..f4dd5719c797 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -289,13 +289,25 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	/* Mangle destination port for Cisco phones, then fix up checksums */
+ 	if (dir == IP_CT_DIR_REPLY && ct_sip_info->forced_dport) {
++		int doff = *dptr - (const char *)skb->data;
+ 		struct udphdr *uh;
+ 
++		if (doff <= 0) {
++			DEBUG_NET_WARN_ON_ONCE(1);
++			return NF_DROP;
++
++		}
++
++		/* ct_sip_info->forced_dport only expected with UDP */
++		if (nf_ct_protonum(ct) != IPPROTO_UDP)
++			return NF_DROP;
++
+ 		if (skb_ensure_writable(skb, skb->len)) {
+ 			nf_ct_helper_log(skb, ct, "cannot mangle packet");
+ 			return NF_DROP;
+ 		}
+ 
++		*dptr = skb->data + doff;
+ 		uh = (void *)skb->data + protoff;
+ 		uh->dest = ct_sip_info->forced_dport;
+ 
+-- 
+2.54.0
+
