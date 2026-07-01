@@ -1,110 +1,171 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from out-179.mta1.migadu.com (out-179.mta1.migadu.com [95.215.58.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8121C5D5E
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 00:41:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 718B23546D0
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 01:44:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782866469; cv=none; b=swSws541QTIEVqv3E+tswphihwIXViF5s0XwT2eGqwmkxkk1oCXfKeNz6tBArqUyqKSnO6GFA7XRVE4pO0/I4VekG9LySsfOInWQD/80KLfVq5/JPx2uqOQYkUqAkPI81z9f/ImDdhsgTrtNjuDcwti6rVBtjsrt3ubIY6OyHR4=
+	t=1782870278; cv=none; b=R2ib57U0Oi7SR4cPAzxETC+y/bCj1X3qcXjEqcn769wWoRZRqxlwzExmIW0cxOZ3Of6Hjl89TVPoUnEGr6VaNmSS9y9Y3IqmhLXDpT3peh6Ron1Qb2N1mxLDLDylDZC4aszEVDOihTtQsl5qAlaP+/+jBQmN5Owx+GJVkG5BsT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782866469; c=relaxed/simple;
-	bh=bSB5H2Lgxx0eXXrsvKAY67y+/J13/SxtCRAyey3sh3Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z+/W6L5F1T8s/r55kO16vmgy0l6bXaKvIxl49dmermPFa4bJZU442/bF+HJyXuz4I3h23rXLMloz4hhceSxn+QhNraj7q8neB8QxO1iPMGt6kEykEGYv4OB37C6RATLF31I38Teh6m8bumF7LfHvvrnfNiUVFvO4aPFoPiHNcWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BfzoomBw; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1782870278; c=relaxed/simple;
+	bh=jRsgJjmI+AqxcRvBxNnD5mY0TBLj9txQubLJDJ4h0F4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FHuRmSzBRjUC27TsykuwLadSJnuZpy2FF1QW6gjSxWYYCl7uyse+zfLPlb9+TD99KcibfFaoIkGW4U9Jyf8kSC7cdRUME5jIUZAZzA89he/iwJkGXvpaoaeYdxJuxdqH1vfzBwJkN0ouFWe0zq9FIu/mluz4ikN8Jhk102SLYWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Zy4NJ57T; arc=none smtp.client-ip=95.215.58.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BfzoomBw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782866466; x=1814402466;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=bSB5H2Lgxx0eXXrsvKAY67y+/J13/SxtCRAyey3sh3Q=;
-  b=BfzoomBwnsqODRDdZxXQZWi1qmp1FebEq2NZOu0wmWrjT/+WL2jBCw2L
-   VrMaGmF5g0NbKxZ77SFU9EVaD436cEqxMUM4APGJz8oLw4VsJ+sKtgBCC
-   +Q+rXlg6dlDDBu1nmRhfP1xUVY1zW1An40FHmXdb6zPJS5n69AmdKdmib
-   6djHBPwMsPnJIcL4R06ymsARRcNBNArsLMO2XlsWzOoX1xzxWfst0Gh4/
-   gzaTrGOUBWQdzys6iPGBQyqQ4pqc33Ydi06G+ld5hdloL82mdALJ4KUSi
-   3sUWaclIWIRdCOC7Jc4Hn+EEY4H865qZX0ySugXBSsMqNwZHhGM+HiyWK
-   g==;
-X-CSE-ConnectionGUID: H17+YXuXR7CvEVg37E9qJA==
-X-CSE-MsgGUID: jU/t01q5TIG1xWCD701fPg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="83463035"
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="83463035"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 17:41:06 -0700
-X-CSE-ConnectionGUID: jVtlqcHmQrKq5JCC74K1Uw==
-X-CSE-MsgGUID: cahsLL1mRf2kCs98l530TQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="257317521"
-Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by fmviesa005.fm.intel.com with ESMTP; 30 Jun 2026 17:41:04 -0700
-Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wej0e-000000008oF-1Kde;
-	Wed, 01 Jul 2026 00:41:00 +0000
-Date: Wed, 1 Jul 2026 08:40:21 +0800
-From: kernel test robot <lkp@intel.com>
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3 nf] netfilter: nft_ct: support expectation creation
- for natted flows
-Message-ID: <202607010848.Tf9MTgFt-lkp@intel.com>
-References: <20260630190929.14735-1-fw@strlen.de>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Zy4NJ57T"
+Message-ID: <1813a806-9250-492a-981d-07eb7f597f68@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1782870264;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=oftETWuBQk5FPaBT3WxYgeIOyr6diVTFSnP+/t/MngM=;
+	b=Zy4NJ57T+/d+LI2HhA6NDGp9d3fCg8zWniOnp6Bu1Qp+3I7/sngzyWIMkKNNt56DO9kfDq
+	A18Oj46/8g7yASB5VxD8iWgxohwE8D3tgoNBeqemT3PXNPrjZsdQbpW9XTmpcc2jW9bzdv
+	YDaYd9bAqLXU+0W1eIkUlFmQjh2RbPY=
+Date: Wed, 1 Jul 2026 09:44:12 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260630190929.14735-1-fw@strlen.de>
-
-Hi Florian,
-
-kernel test robot noticed the following build errors:
-
-[auto build test ERROR on netfilter-nf/main]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_ct-support-expectation-creation-for-natted-flows/20260701-031657
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20260630190929.14735-1-fw%40strlen.de
-patch subject: [PATCH v3 nf] netfilter: nft_ct: support expectation creation for natted flows
-config: arc-randconfig-002-20260701 (https://download.01.org/0day-ci/archive/20260701/202607010848.Tf9MTgFt-lkp@intel.com/config)
-compiler: arc-linux-gcc (GCC) 8.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260701/202607010848.Tf9MTgFt-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202607010848.Tf9MTgFt-lkp@intel.com/
-
-All error/warnings (new ones prefixed by >>):
-
->> net/netfilter/nft_ct.c:1398:14: error: 'nft_ct_nat_follow_master' undeclared here (not in a function); did you mean 'nft_ct_get_eval_counter'?
-     .expectfn = nft_ct_nat_follow_master,
-                 ^~~~~~~~~~~~~~~~~~~~~~~~
-                 nft_ct_get_eval_counter
->> net/netfilter/nft_ct.c:1396:37: warning: 'nft_ct_nat' defined but not used [-Wunused-variable]
-    static struct nf_ct_helper_expectfn nft_ct_nat __read_mostly = {
-                                        ^~~~~~~~~~
+Subject: Re: [PATCH net] netfilter: nf_nat_masquerade: recalculate TCP TS
+ offset when port is randomized
+To: xietangxin <xietangxin@h-partners.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
+Cc: gaoxingwang <gaoxingwang1@huawei.com>, huyizhen <huyizhen2@huawei.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20260629093408.3927103-1-xietangxin@h-partners.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+In-Reply-To: <20260629093408.3927103-1-xietangxin@h-partners.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
 
-vim +1398 net/netfilter/nft_ct.c
+On 6/29/26 5:34 PM, xietangxin wrote:
+> Problem observed in Kubernetes environments where MASQUERADE target with
+> --random-fully is configured by default. after commit
+> 165573e41f2f ("tcp: secure_seq: add back ports to TS offset") TCP short
+> connection QPS dropped from ~20000 to ~10000. This added source and
+> destination ports into TS offset calculation.
+>
+> However, with MASQUERADE --random-fully, when multiple internal connections
+> (e.g sport 10000,20000) are mapped to the same external port (e.g 30000),
+> their TS offsets are calculated as ts_offset(10000) and ts_offset(20000).
+> If the server reuses the TIME_WAIT slot from the first connection, there is
+> a chance that ts_offset(20000) < ts_offset(10000), breaking TSval
+> monotonicity for the same 4-tuple and causing RST packets:
+>    Client -> Server 24870 -> 80 [SYN] TSval=2294041168
+>    Server -> Client 80 -> 24870 [ACK] TSecr=2846236456
+>    Client -> Server 24870 -> 80 [RST] Seq=855605690
+>
+> After nf_nat_setup_info() successfully assigns a new randomized
+> source port, recalculate the TS offset using the new port and
+> update the SYN packet's TSval accordingly.
+>
+> Test results on 4U4G VM with
+> `./wrk -t8 -c200 -H "Connection: close" -d10s --latency http://5.5.5.5:80`
+> Before:
+>    random:10712 req/s, random-fully:10986 req/s
+> After:
+>    random:21463 req/s, random-fully:19181 req/s
+>
+> Fixes: 165573e41f2f ("tcp: secure_seq: add back ports to TS offset")
+> Cc: stable@vger.kernel.org
 
-  1395	
-> 1396	static struct nf_ct_helper_expectfn nft_ct_nat __read_mostly = {
-  1397		.name = "nft_ct-follow-master",
-> 1398		.expectfn = nft_ct_nat_follow_master,
-  1399	};
-  1400	
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+I'd treat it as a feature not a fix.
+
+
+> Closes:https://lore.kernel.org/all/92935c00-e0be-4591-ac44-5978c7804d57@yeah.net/
+> Signed-off-by: xietangxin <xietangxin@h-partners.com>
+> ---
+>   net/netfilter/nf_nat_masquerade.c | 91 ++++++++++++++++++++++++++++++-
+>   1 file changed, 89 insertions(+), 2 deletions(-)
+>
+> diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
+> index 4de6e0a51701..8c9ca5a051cc 100644
+> --- a/net/netfilter/nf_nat_masquerade.c
+> +++ b/net/netfilter/nf_nat_masquerade.c
+> @@ -6,8 +6,11 @@
+>   #include <linux/netfilter.h>
+>   #include <linux/netfilter_ipv4.h>
+>   #include <linux/netfilter_ipv6.h>
+> +#include <linux/tcp.h>
+>   
+> +#include <net/tcp.h>
+>   #include <net/netfilter/nf_nat_masquerade.h>
+> +#include <net/secure_seq.h>
+>   
+>   struct masq_dev_work {
+>   	struct work_struct work;
+> @@ -24,6 +27,76 @@ static DEFINE_MUTEX(masq_mutex);
+>   static unsigned int masq_refcnt __read_mostly;
+>   static atomic_t masq_worker_count __read_mostly;
+>   
+> +static __be32 *tcp_ts_option_ptr(const struct sk_buff *skb)
+> +{
+> +	const struct tcphdr *th;
+> +	unsigned char *ptr;
+> +	unsigned char opsize;
+> +	unsigned int optlen, offset;
+> +
+> +	th = tcp_hdr(skb);
+> +	optlen = (th->doff - 5) * 4;
+> +	ptr = (unsigned char *)(th + 1);
+> +	offset = 0;
+> +
+> +	while (offset < optlen) {
+> +		unsigned char opcode = ptr[offset];
+> +
+> +		if (opcode == TCPOPT_EOL)
+> +			break;
+> +		if (opcode == TCPOPT_NOP) {
+> +			offset++;
+> +			continue;
+> +		}
+> +
+> +		if (offset + 1 >= optlen)
+> +			break;
+> +
+> +		opsize = ptr[offset + 1];
+> +		if (opsize < 2 || offset + opsize > optlen)
+> +			break;
+> +
+> +		if (opcode == TCPOPT_TIMESTAMP && opsize == TCPOLEN_TIMESTAMP)
+> +			return (__be32 *)(ptr + offset + 2);
+> +
+> +		offset += opsize;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static void masquerade_update_tcp_ts_offset(struct nf_conn *ct, struct sk_buff *skb)
+> +{
+> +	__be32 *tsptr;
+> +	struct net *net;
+> +	struct tcphdr *th;
+> +	struct tcp_sock *tp;
+> +	union tcp_seq_and_ts_off st;
+> +	struct nf_conntrack_tuple *tuple;
+> +
+> +	th = tcp_hdr(skb);
+> +	net = nf_ct_net(ct);
+> +	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+> +
+
+why use reply not original, or do I miss something ?
+
+
