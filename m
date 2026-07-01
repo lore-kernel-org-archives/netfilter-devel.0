@@ -1,54 +1,78 @@
-Received: from zg8tmja5ljk3lje4mi4ymjia.icoremail.net (zg8tmja5ljk3lje4mi4ymjia.icoremail.net [209.97.182.222])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2D91432AAC5;
-	Wed,  1 Jul 2026 07:00:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.97.182.222
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E69A83CFF44
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jul 2026 10:10:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782889264; cv=none; b=qbAqbp1OSx9vxb50tOtY8QwvaDMHm4dLoOMam9z6MXhjsI/IHnHdABfDg1UkX9af3Ghgd0mtEOmeFOlWlLIpUj4sAGcKwRoq+UQmzkcI3/3IOqKt2L/ptqoXU4etqWRUVzoIAK1dXyXPxevmHI/3OBZnxZJZTCPXfkSCYqg4X6E=
+	t=1782900625; cv=none; b=UlDee762R6R7wQ+rcSSLvT8YqH/xOWOkcnTA6K6ZREE7+duao4YywOXPStnwfLEDnJuIXOkeEB6Cl9y4FJi/JmdIy/XiNNV7HfOIGy7lJ4XLHDorN37YFrW9vBgje1rt3Wlzko1PbtAZgbTS9w+t2pRgwO8msuPcS41XwN1f81Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782889264; c=relaxed/simple;
-	bh=cw7i0cd2QohmmQ/IPMBa+DNnv4Eq9NyNfIk394gQg1E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=C3QXvQaQoE0ylcuVPf3Yq4DoE3bNyhikEviYOjGCvk/LSvGQUBgtZFOBBbPNlxpvLBuqtrTpjDssw9OOtzuJioQDhMPkgcAPzQnkzlhsJKOWDqqY91vt6UAjI17uUiFY70R6h5zvFTGoIbyWclN5KaHMrsujTGb8+p2xDlR59Qo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=ebkahP8+; arc=none smtp.client-ip=209.97.182.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
+	s=arc-20240116; t=1782900625; c=relaxed/simple;
+	bh=jmfvhgrtNdU3m6gyAhjUPNDiaPo9cS3sSJZSuYijSs0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Oo3xW7gItGZGI/LFzds5AbnVBfxrPZrrVwIqSxdY5bOfMZpFcEXu3fKWfKjSFHM0vbqvoJ5NzwdcmbXP0OU3nn8LKwU90TpYGGRKuvo8tWl/bTVLreRQhxzGlBC0sKfRqysv7sukCb7pYxUgaBMNUNEwQ/yHno8B/fGh+BrRLW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VLnGmvdY; arc=none smtp.client-ip=209.85.216.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="ebkahP8+"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VLnGmvdY"
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3804fd3cf71so222246a91.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jul 2026 03:10:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
-	Date:Message-ID:MIME-Version:Content-Transfer-Encoding; bh=0csrI
-	h9NbqUGd1HTtZbXAxrP8rkXEwSRDAuiXdVwyvw=; b=ebkahP8+tQxFfhLOuiIba
-	ujxW+79XS6VUnpqsqImZ1/Y/QFI9ffvUY+ioNusqGF+kk2jFafELmhiqJ8ePG7nB
-	szaOcbi4CYI7ryqxNw10kw7nTLwTLJIr+ZKgSSTp6hCTU/3OeWufvcMjqX+dC6N6
-	9ZNWVnLz/8lzMVumGprjdk=
-Received: from localhost.localdomain (unknown [211.102.241.101])
-	by web5 (Coremail) with SMTP id zAQGZQBHAMDtukRqnMrVAg--.25970S2;
-	Wed, 01 Jul 2026 14:59:58 +0800 (CST)
-From: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-To: netdev@vger.kernel.org
-Cc: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
+        d=gmail.com; s=20251104; t=1782900622; x=1783505422; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=EGOpzjLwG2qHNqnpr9AH3FOmYtQjFdDLV2ovZbwXKfA=;
+        b=VLnGmvdY198P6jHJUGoQJ6UdHfJYYYnLBt1fjR6fM7rHc+t0flxxszs0kJ8I4/q8lP
+         P6nRGq/HcbdHD0l04gDtyU7sLifMcnUWY585ONlowNmyshqjRa0Sb+yEHhPeCQKTkEnY
+         hDIBC1N0zihbE3zNHJrh0m2Vc91Z4Pg8llO1IPJrXu85ryRRuLQsBkJhmWn0+IeN0Rcx
+         Cp9kU4OTQBPWT2JgxoHFdHb/9qMSSl/gokBJVR4KzKXh+jbumZl2O8wIf7AX8560mg71
+         1cxvpqj/YExQtFGYvK+oAvz2c7N7LM5323aF5+/dFioylcX9O5dZzsmdXZyzCVaeZCIA
+         iLmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782900622; x=1783505422;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EGOpzjLwG2qHNqnpr9AH3FOmYtQjFdDLV2ovZbwXKfA=;
+        b=PD5HcqVC0x92CbBDr/iI1BU6/NuFJt47Nvpe8shZFQa21VLOYwW/e7cbVeNC3cjnu+
+         jQdF52VekAJ0TqrGiXXPzlVO7fi4OdZ3Wh2YSiHBANj5wrwRSyaa0xpjQL3SbdBeKlu8
+         PMwzJjM6LIiVFTlvSfjacz/QKO28tpuKJk03SDSJl6sj9YDuHHDvFEciAZU58pH8ADgA
+         mn5w5MHITD/gJBW8yepJGVfknQ/cYVgTEaPZMaeTHB/DySwLZnckkPXuQRbSjh5j1Aq1
+         EcbW8vAygelH+pcidEdAe6xR+3TdeZy2OA8hO21y/N+SnnPnPn8rOukJBHk81SuftgRS
+         b4Ew==
+X-Forwarded-Encrypted: i=1; AHgh+RrQQuz2pO7EdrWm4ncd1DZHu5U34f0tphWQtFwC0ZnuI///IY8AaYpnV0TJWIeuvBdG8rY4RoSle1bm4R8aVok=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx0vEl6p4Cj/onwnpLsY2RwzsAg6C88JZqXmubkgXuRd3ZdI3YP
+	LdGyt+510B+T/TpRPU5AdapU4cqGqPqK7AxwdOv9RT5gnCO/hMQydYUp
+X-Gm-Gg: AfdE7cm+dvxHcdiuJisSCcVbs4PKvkBD0uzkzA8KnxI808WRobKJdeE9GSy37eBSp5O
+	KaaF8/wlY2gUoWntnyvTkupVfjLgcNJyU1TbDNNThsybaWydm5HHa7vtcLrjJGHJc7tGdWn6HYu
+	/jx7HmKHvM83p77eO7xPNsBM37zI2mRgSgXmhEBOshSNBlvzorDwy3t5fafnJ83pi4a/M734ck0
+	+DsWc11cJky5LvVWr3QCemKRheiAk8z9IM2rFb3gF8njeVXVS93YFiESJ97Q45LXKRS5zP5gn5n
+	8gyhXqeZVD9zM3usDqrrYhl23wVj5DHV6rYBiKD5oS5O1duOfJFpmEMedytGlKt1rd7mEk3UFAu
+	sUVeYGkAdbt0Vv0+ksGVr0M2NtXBJfHkiL8G3/GHX3+5DAtrHCJprDvJDT6OzJmPvXnc56wx1SC
+	dSBsJoVAa/VAtaisYuDEbT
+X-Received: by 2002:a17:90a:d44b:b0:37c:7090:821b with SMTP id 98e67ed59e1d1-380aa0f436amr880037a91.10.1782900622075;
+        Wed, 01 Jul 2026 03:10:22 -0700 (PDT)
+Received: from c79ofce.localdomain ([204.3.140.65])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38095d6666esm1559442a91.6.2026.07.01.03.10.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Jul 2026 03:10:21 -0700 (PDT)
+From: Zhixing Chen <running910@gmail.com>
+To: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>,
-	lvs-devel@vger.kernel.org,
+	Simon Horman <horms@kernel.org>,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
-	Ao Wang <wangao@seu.edu.cn>,
-	Xuewei Feng <fengxw06@126.com>,
-	Qi Li <qli01@tsinghua.edu.cn>,
-	Ke Xu <xuke@tsinghua.edu.cn>
-Subject: [PATCH net] ipvs: fix PMTU for GUE/GRE tunnel ICMP errors
-Date: Wed,  1 Jul 2026 14:59:40 +0800
-Message-ID: <20260701065941.46249-1-zhaoyz24@mails.tsinghua.edu.cn>
-X-Mailer: git-send-email 2.46.2
+	netdev@vger.kernel.org,
+	Zhixing Chen <running910@gmail.com>
+Subject: [PATCH nf v2] netfilter: ip6tables: mark malformed IPv6 extension headers for hotdrop
+Date: Wed,  1 Jul 2026 18:09:30 +0800
+Message-Id: <20260701100930.2855-1-running910@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,95 +80,75 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zAQGZQBHAMDtukRqnMrVAg--.25970S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxuF1kZryfXF17Ar4Dur1Utrb_yoW5AF4fpF
-	WIk397ArZ7JF42qw1kXrWxZ3y3KrZ7JF4xWrZ5K345Z3Z0g3WrtFZYy34YgFn0y3yUK345
-	Jr1qy3yUAan8A3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUP014x267AKxVW5JVWrJwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
-	CE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xv
-	F2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r
-	4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I
-	648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI0_GFv_Wrylc2xSY4AK67
-	AK6r47MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAF
-	wI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc4
-	0Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AK
-	xVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr
-	1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7sR_w0eJUU
-	UUU==
-X-CM-SenderInfo: 52kd05r2suqzpdlo2hxwvl0wxkxdhvlgxou0/1tbiAgUPAWpEQp7gLwAAs0
 
-When an ICMP Fragmentation Needed error is received for a tunneled IPVS
-connection, ip_vs_in_icmp() recomputes the MTU that the original packet
-can use by subtracting the tunnel overhead from the reported next-hop
-MTU.
+The ah, hbh and rt matches check that the fixed extension header is
+present, then use the header length field to derive the advertised
+extension header length for matching.
 
-The current code always subtracts sizeof(struct iphdr), which is only
-the IPIP overhead. For GUE and GRE tunnels, ipvs_udp_decap() and
-ipvs_gre_decap() already compute the additional tunnel header length,
-but that value is scoped to the decapsulation block and is lost before
-the ICMP_FRAG_NEEDED handling. As a result, the ICMP error sent back to
-the client advertises an MTU that is too large, so PMTUD can fail to
-converge for GUE/GRE-tunneled real servers.
+For the ah match, add the missing advertised-length check. For hbh
+and rt, update the existing advertised-length checks. In all three
+cases, set hotdrop to true before returning false when the advertised
+extension header length exceeds the available skb data.
 
-With a reported next-hop MTU of 1400, a GUE tunnel currently returns
-1380 to the client. The correct value is 1368:
+Returning false treats the packet as a rule mismatch. Set hotdrop to
+true and drop malformed packets so they cannot bypass rules intended
+to drop packets with these IPv6 extension headers.
 
-  1400 - sizeof(struct iphdr) - sizeof(struct udphdr) -
-  sizeof(struct guehdr)
-
-Hoist the tunnel header length into the main ip_vs_in_icmp() scope and
-subtract sizeof(struct iphdr) + ulen in the Fragmentation Needed path.
-The IPIP path keeps ulen as 0, so its existing 1400 - 20 = 1380 result
-is unchanged.
-
-Fixes: 508f744c0de3 ("ipvs: strip udp tunnel headers from icmp errors")
-Cc: stable@vger.kernel.org
-Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-Reported-by: Ao Wang <wangao@seu.edu.cn>
-Reported-by: Xuewei Feng <fengxw06@126.com>
-Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-Assisted-by: Claude Code:GLM-5.2
-Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+Signed-off-by: Zhixing Chen <running910@gmail.com>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index d40b404c1bf62..74c5bd8b5f48 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1765,8 +1765,9 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	struct ip_vs_proto_data *pd;
- 	unsigned int offset, offset2, ihl, verdict;
- 	bool tunnel, new_cp = false;
- 	union nf_inet_addr *raddr;
- 	char *outer_proto = "IPIP";
-+	int ulen = 0;
+Changes in v2:
+- Set hotdrop to true before returning false for malformed packets.
+- Apply the same handling to hbh and rt matches.
+
+v1: https://lore.kernel.org/netfilter-devel/20260618125848.93550-1-running910@gmail.com/T/
+
+---
+ net/ipv6/netfilter/ip6t_ah.c  | 5 +++++
+ net/ipv6/netfilter/ip6t_hbh.c | 1 +
+ net/ipv6/netfilter/ip6t_rt.c  | 1 +
+ 3 files changed, 7 insertions(+)
+
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 70da2f2ce064..1258783ed876 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -56,6 +56,11 @@ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
  
- 	*related = 1;
+ 	hdrlen = ipv6_authlen(ah);
++	if (skb->len - ptr < hdrlen) {
++		/* Packet smaller than its length field */
++		par->hotdrop = true;
++		return false;
++	}
  
-@@ -1831,7 +1832,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		   /* Error for our tunnel must arrive at LOCAL_IN */
- 		   (skb_rtable(skb)->rt_flags & RTCF_LOCAL)) {
- 		__u8 iproto;
--		int ulen;
+ 	pr_debug("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
+ 	pr_debug("RES %04X ", ah->reserved);
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 450dd53846a2..6d1a5d2026a6 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -75,6 +75,7 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	hdrlen = ipv6_optlen(oh);
+ 	if (skb->len - ptr < hdrlen) {
+ 		/* Packet smaller than it's length field */
++		par->hotdrop = true;
+ 		return false;
+ 	}
  
- 		/* Non-first fragment has no UDP/GRE header */
- 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
-@@ -1936,8 +1936,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 				if (dest_dst)
- 					mtu = dst_mtu(dest_dst->dst_cache);
- 			}
--			if (mtu > 68 + sizeof(struct iphdr))
--				mtu -= sizeof(struct iphdr);
-+			if (mtu > 68 + sizeof(struct iphdr) + ulen)
-+				mtu -= sizeof(struct iphdr) + ulen;
- 			info = htonl(mtu);
- 		}
- 		/* Strip outer IP, ICMP and IPIP/UDP/GRE, go to IP header of
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 5561bd9cea81..e28caca759f3 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -57,6 +57,7 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	hdrlen = ipv6_optlen(rh);
+ 	if (skb->len - ptr < hdrlen) {
+ 		/* Pcket smaller than its length field */
++		par->hotdrop = true;
+ 		return false;
+ 	}
+ 
+-- 
+2.34.1
 
