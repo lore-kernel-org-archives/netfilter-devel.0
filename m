@@ -1,48 +1,48 @@
 Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CD83F5BC3
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 13:47:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4669264A9D
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 13:47:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783000035; cv=none; b=OZWmX5izu8FFQm0riuubhZciNxOlUxd1zittEyFjYDqtfXDPpnKDZc6NdHYSTwjwLV9V2ZQvurtRHawiGdhO9QI7Ljtcs8lxOd5ud/lrTbXl7PuImsyjjEcGhKBJRnQP0xJxZjKN2sGCvYNam/8+Vf+bRwyQ3rjY7LpF457b2LU=
+	t=1783000035; cv=none; b=oS7l83jOVjKwasLnX8rkcRQd2CoaTWUwanJvG+75PjNbVWvgpeodX1jzyi8dKV0Qr7GYK3ZRTrlNyoRT2RO3ZmVKTdIFKvsnTiL9gz+bkiqXpFNQbCIYqBNvuNv5fi2Y76G94hBPwp4kiYXxaoW1W6vCvR6DdN0GlgmPRhyCar4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1783000035; c=relaxed/simple;
-	bh=7q+SxHGDLyh5kuGXS6Tl1TtdmPC+xnGTEXpiFRS0ayU=;
+	bh=Xn8rKzs70RQfk4GK24bxBxt1okYY486rsNF7siHE1GA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Qv7nve3Ra5+YT07wVjiZQ8n+kS2m9Ld/pFfuWVILJMOvJnK6M9mAbAmHaIIY0rPiqZX2vTWu2v4GkwFhoQzE1F36ztD+hb6cdMmx9BwShvC37YwBI8QVRR7YPgm+Z4b5x1CbbvhnC6zjUkK1EOvQP4/j1sK1y60dvQ5bvwkDbiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=ipvvAGkm; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=VpJaGmMPMmfdEhi+jUjEAPXPG3WBXGSIEBG37EC8e/3QD8G4s5UXwOQjOoGlHLflMAKB4NLfIOqcLGZh2QnIOd3MhixhLU9+2GREUeYJfVZE13OAFdJCE6oOXPWM7EFQtrXUBdM8gEWrJHQUFEy3ZCil153FKWwRaL2Q66KtVCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Adv+gWw4; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ipvvAGkm"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Adv+gWw4"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4grdV14XRhz7s7wP;
-	Thu, 02 Jul 2026 15:47:05 +0200 (CEST)
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4grdTz5DhSz7s7wW;
+	Thu, 02 Jul 2026 15:47:03 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1783000023; x=1784814424; bh=VMg4gpT7FN
-	w8pKr3PHE03ddNclGxFSBMWOncH34dqhc=; b=ipvvAGkmrlIBUqy0bfGuSaDJWE
-	T7mA+eYFUBKCXqoy4Ibic7sSrGCqk38WtMZna16C742p582lLyrLEjvXRaNsj8iB
-	6kHshxHlVaXPvYbPjuRaEMfps/4/AnANWoZpCf+WCsHfwmGW21yR9ESrDqD5wsFd
-	0C2k6uHoaXDenkGOk=
+	:received; s=20151130; t=1783000021; x=1784814422; bh=5BCE53ky7M
+	SLOy1wkkble7kg6GuXK78JkH0kEFZFT0I=; b=Adv+gWw4IXUaqtMKPRosjLRObI
+	z3d5WK/tV/gf5wPGSQZWDRGRtX/tQYrjy+uxc8jlI6S8O2KimQ4ZkSTncjcmrcTL
+	hl5cpTX96zksiOrEM5n0IHbhKeMnrtvOTKuygP1tsCAOVBh97lv/qax0Fhcf3zYG
+	SLaq/B1XnkLWwNfcs=
 X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
 Received: from smtp2.kfki.hu ([127.0.0.1])
  by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id GuFWL5uSC8w6; Thu,  2 Jul 2026 15:47:03 +0200 (CEST)
+ id adDUbAzm58oh; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (unknown [148.6.40.64])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4grdTx5Twcz7s7wQ;
+	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4grdTx5hvnz7s7wS;
 	Thu, 02 Jul 2026 15:47:01 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 8263A140165; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
+	id 89ADD1408F6; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/5] netfilter: ipset: mark the rcu locked areas properly
-Date: Thu,  2 Jul 2026 15:46:57 +0200
-Message-Id: <20260702134701.207721-2-kadlec@netfilter.org>
+Subject: [PATCH 4/5] netfilter: ipset: allocate the proper memory for the generic hash structure
+Date: Thu,  2 Jul 2026 15:47:00 +0200
+Message-Id: <20260702134701.207721-5-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260702134701.207721-1-kadlec@netfilter.org>
 References: <20260702134701.207721-1-kadlec@netfilter.org>
@@ -54,70 +54,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-When we bump the uref counter, there's no need to keep
-the rcu lock because the referred hash table can't
-disappear. Also, from the same reason in mtype_gc we
-need the rcu lock and not a spinlock.
+Because a single create function is emitted for every hash type,
+from the IPv4 and IPv6 generic hash structure definitions the last
+one, i.e. the IPv6 was in effect for IPv4 too. Use the proper size
+when allocating the structure. Comment properly that because create()
+refers to elements of the generic hash structure, all referred ones
+must come before the IPv4/IPv6 dependent 'next' member.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
 ip_set_hash_gen.h
-index dedf59b661dd..c9a071766243 100644
+index c0132d0f4cc0..8231317b0f1f 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -569,9 +569,10 @@ mtype_gc(struct work_struct *work)
- 	set =3D gc->set;
- 	h =3D set->data;
+@@ -303,10 +303,13 @@ struct htype {
+ 	u8 netmask;		/* netmask value for subnets to store */
+ 	union nf_inet_addr bitmask;	/* stores bitmask */
+ #endif
+-	struct mtype_elem next; /* temporary storage for uadd */
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	struct net_prefixes nets[NLEN]; /* book-keeping of prefixes */
+ #endif
++	/* Because 'next' is IPv4/IPv6 dependent, no elements of this
++	 * structure and referred in create() may come after 'next'.
++	 */
++	struct mtype_elem next; /* temporary storage for uadd */
+ };
 =20
--	spin_lock_bh(&set->lock);
--	t =3D ipset_dereference_set(h->table, set);
-+	rcu_read_lock_bh();
-+	t =3D rcu_dereference_bh(h->table);
- 	atomic_inc(&t->uref);
-+	rcu_read_unlock_bh();
- 	numof_locks =3D ahash_numof_locks(t->htable_bits);
- 	r =3D gc->region++;
- 	if (r >=3D numof_locks) {
-@@ -580,7 +581,6 @@ mtype_gc(struct work_struct *work)
- 	next_run =3D (IPSET_GC_PERIOD(set->timeout) * HZ) / numof_locks;
- 	if (next_run < HZ/10)
- 		next_run =3D HZ/10;
--	spin_unlock_bh(&set->lock);
+ /* ADD|DEL entries saved during resize */
+@@ -1584,7 +1587,13 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struc=
+t ip_set *set,
+ 	if (tb[IPSET_ATTR_MAXELEM])
+ 		maxelem =3D ip_set_get_h32(tb[IPSET_ATTR_MAXELEM]);
 =20
- 	mtype_gc_do(set, h, t, r);
-=20
-@@ -860,15 +860,13 @@ mtype_add(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	key =3D HKEY(value, h->initval, t->htable_bits);
- 	r =3D ahash_region(key);
- 	atomic_inc(&t->uref);
-+	rcu_read_unlock_bh();
- 	elements =3D t->hregion[r].elements;
- 	maxelem =3D t->maxelem;
- 	if (elements >=3D maxelem) {
- 		u32 e;
--		if (SET_WITH_TIMEOUT(set)) {
--			rcu_read_unlock_bh();
-+		if (SET_WITH_TIMEOUT(set))
- 			mtype_gc_do(set, h, t, r);
--			rcu_read_lock_bh();
--		}
- 		maxelem =3D h->maxelem;
- 		elements =3D 0;
- 		for (e =3D 0; e < ahash_numof_locks(t->htable_bits); e++)
-@@ -876,7 +874,6 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 		if (elements >=3D maxelem && SET_WITH_FORCEADD(set))
- 			forceadd =3D true;
- 	}
--	rcu_read_unlock_bh();
-=20
- 	spin_lock_bh(&t->hregion[r].lock);
- 	n =3D rcu_dereference_bh(hbucket(t, key));
+-	hsize =3D sizeof(*h);
++#ifdef IP_SET_PROTO_UNDEF
++	hsize =3D sizeof(struct htype);
++#else
++	hsize =3D set->family =3D=3D NFPROTO_IPV6 ?
++		sizeof(struct IPSET_TOKEN(HTYPE, 6)) :
++		sizeof(struct IPSET_TOKEN(HTYPE, 4));
++#endif
+ 	h =3D kzalloc(hsize, GFP_KERNEL);
+ 	if (!h)
+ 		return -ENOMEM;
 --=20
 2.39.5
 
