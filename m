@@ -1,48 +1,48 @@
 Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D8B4963CC
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26CD83F5BC3
 	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 13:47:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783000034; cv=none; b=HN5MmK5gpN2CjG4WEbm8XW1IcAXAixrtUkm/0YcQRYVGGQRZ8HGpTaiTHL6jmiUmlE9LdBXukm/sZsGW3GT7IIMgOOaPchQ5MRO+3wcE21+IYIwgyOigQ1GHvnjX7bFBKxrIUMrMTc3askez/UHDghPqSF/7CxTRRiEkWEYxabw=
+	t=1783000035; cv=none; b=OZWmX5izu8FFQm0riuubhZciNxOlUxd1zittEyFjYDqtfXDPpnKDZc6NdHYSTwjwLV9V2ZQvurtRHawiGdhO9QI7Ljtcs8lxOd5ud/lrTbXl7PuImsyjjEcGhKBJRnQP0xJxZjKN2sGCvYNam/8+Vf+bRwyQ3rjY7LpF457b2LU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783000034; c=relaxed/simple;
-	bh=5nuw1guYBTlbk4KQYOKnjvJaVmUeJskMmvjRD3WGS64=;
+	s=arc-20240116; t=1783000035; c=relaxed/simple;
+	bh=7q+SxHGDLyh5kuGXS6Tl1TtdmPC+xnGTEXpiFRS0ayU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kzdhjfAIlva2DIk7Jd5gUJoJOxc/PYxP2gdgycED1T0nM4idTH/YO2RVDCzYLrfhNYVtasFeY3V3Fa8fNizEm4vJD5vAvC67v0DRS+GnGKsZhpKv4PjIL27l09Uc1eBmCzd46r1xcja9YbhZdm3SZGZCAmApJFOE+xzUBIUppsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=hdDwWy2S; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=Qv7nve3Ra5+YT07wVjiZQ8n+kS2m9Ld/pFfuWVILJMOvJnK6M9mAbAmHaIIY0rPiqZX2vTWu2v4GkwFhoQzE1F36ztD+hb6cdMmx9BwShvC37YwBI8QVRR7YPgm+Z4b5x1CbbvhnC6zjUkK1EOvQP4/j1sK1y60dvQ5bvwkDbiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=ipvvAGkm; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="hdDwWy2S"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ipvvAGkm"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4grdV14dSzz7s7wS;
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4grdV14XRhz7s7wP;
 	Thu, 02 Jul 2026 15:47:05 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1783000023; x=1784814424; bh=1+w1GoVOf2
-	G7hJSIq2TcKMBKBA8fY+WFmVxHmqLoO5k=; b=hdDwWy2Sv2q42iiw2DVR3eMWIX
-	OoMzun9ONiuSs2Y+RaqBOr1Ov1Wn36WBj/9jVJEiBJugDrc1rC+nElWNLl2hJ2qi
-	Tsir6qylYLlVsmz/dDAWDvQ3YzGSXwCZJapHz/mGd3W6P/do0h50zqzlmexErGzN
-	h57Hukhl/p6Wyd4ko=
+	:received; s=20151130; t=1783000023; x=1784814424; bh=VMg4gpT7FN
+	w8pKr3PHE03ddNclGxFSBMWOncH34dqhc=; b=ipvvAGkmrlIBUqy0bfGuSaDJWE
+	T7mA+eYFUBKCXqoy4Ibic7sSrGCqk38WtMZna16C742p582lLyrLEjvXRaNsj8iB
+	6kHshxHlVaXPvYbPjuRaEMfps/4/AnANWoZpCf+WCsHfwmGW21yR9ESrDqD5wsFd
+	0C2k6uHoaXDenkGOk=
 X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
 Received: from smtp2.kfki.hu ([127.0.0.1])
  by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id pdAOEmzyILPS; Thu,  2 Jul 2026 15:47:03 +0200 (CEST)
+ id GuFWL5uSC8w6; Thu,  2 Jul 2026 15:47:03 +0200 (CEST)
 Received: from mentat.rmki.kfki.hu (unknown [148.6.40.64])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4grdTx5f57z7s7wR;
+	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4grdTx5Twcz7s7wQ;
 	Thu, 02 Jul 2026 15:47:01 +0200 (CEST)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 878051408F2; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
+	id 8263A140165; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/5] netfilter: ipset: cleanup the add/del backlog when resize failed
-Date: Thu,  2 Jul 2026 15:46:59 +0200
-Message-Id: <20260702134701.207721-4-kadlec@netfilter.org>
+Subject: [PATCH 1/5] netfilter: ipset: mark the rcu locked areas properly
+Date: Thu,  2 Jul 2026 15:46:57 +0200
+Message-Id: <20260702134701.207721-2-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260702134701.207721-1-kadlec@netfilter.org>
 References: <20260702134701.207721-1-kadlec@netfilter.org>
@@ -54,125 +54,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-Sashiko pointed out that the add/del backlog was not cleaned up
-when resize failed. Fix it in the corresponding error path. Also,
-make sure that the add/del backlog is htable-specific so when
-resize creates a new htable, old/new backlog can't be mixed up.
+When we bump the uref counter, there's no need to keep
+the rcu lock because the referred hash table can't
+disappear. Also, from the same reason in mtype_gc we
+need the rcu lock and not a spinlock.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 28 +++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
 ip_set_hash_gen.h
-index 8104dbac02fa..c0132d0f4cc0 100644
+index dedf59b661dd..c9a071766243 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -85,6 +85,7 @@ struct htable {
- 	atomic_t uref;		/* References for dumping and gc */
- 	u8 htable_bits;		/* size of hash table =3D=3D 2^htable_bits */
- 	u32 maxelem;		/* Maxelem per region */
-+	struct list_head ad;	/* Resize add|del backlist */
- 	struct ip_set_region *hregion;	/* Region locks and ext sizes */
- 	struct hbucket __rcu *bucket[]; /* hashtable buckets */
- };
-@@ -302,7 +303,6 @@ struct htype {
- 	u8 netmask;		/* netmask value for subnets to store */
- 	union nf_inet_addr bitmask;	/* stores bitmask */
- #endif
--	struct list_head ad;	/* Resize add|del backlist */
- 	struct mtype_elem next; /* temporary storage for uadd */
- #ifdef IP_SET_HASH_WITH_NETS
- 	struct net_prefixes nets[NLEN]; /* book-keeping of prefixes */
-@@ -452,13 +452,14 @@ static void
- mtype_destroy(struct ip_set *set)
- {
- 	struct htype *h =3D set->data;
-+	struct htable *t =3D (__force struct htable *)h->table;
- 	struct list_head *l, *lt;
+@@ -569,9 +569,10 @@ mtype_gc(struct work_struct *work)
+ 	set =3D gc->set;
+ 	h =3D set->data;
 =20
--	mtype_ahash_destroy(set, (__force struct htable *)h->table, true);
--	list_for_each_safe(l, lt, &h->ad) {
-+	list_for_each_safe(l, lt, &t->ad) {
- 		list_del(l);
- 		kfree(l);
- 	}
-+	mtype_ahash_destroy(set, t, true);
- 	kfree(h);
+-	spin_lock_bh(&set->lock);
+-	t =3D ipset_dereference_set(h->table, set);
++	rcu_read_lock_bh();
++	t =3D rcu_dereference_bh(h->table);
+ 	atomic_inc(&t->uref);
++	rcu_read_unlock_bh();
+ 	numof_locks =3D ahash_numof_locks(t->htable_bits);
+ 	r =3D gc->region++;
+ 	if (r >=3D numof_locks) {
+@@ -580,7 +581,6 @@ mtype_gc(struct work_struct *work)
+ 	next_run =3D (IPSET_GC_PERIOD(set->timeout) * HZ) / numof_locks;
+ 	if (next_run < HZ/10)
+ 		next_run =3D HZ/10;
+-	spin_unlock_bh(&set->lock);
 =20
- 	set->data =3D NULL;
-@@ -672,6 +673,7 @@ mtype_resize(struct ip_set *set, bool retried)
- 	}
- 	t->htable_bits =3D htable_bits;
- 	t->maxelem =3D h->maxelem / ahash_numof_locks(htable_bits);
-+	INIT_LIST_HEAD(&t->ad);
- 	for (i =3D 0; i < ahash_numof_locks(htable_bits); i++)
- 		spin_lock_init(&t->hregion[i].lock);
+ 	mtype_gc_do(set, h, t, r);
 =20
-@@ -774,7 +776,7 @@ mtype_resize(struct ip_set *set, bool retried)
- 	 * Kernel-side add cannot trigger a resize and userspace actions
- 	 * are serialized by the mutex.
- 	 */
--	list_for_each_safe(l, lt, &h->ad) {
-+	list_for_each_safe(l, lt, &orig->ad) {
- 		x =3D list_entry(l, struct mtype_resize_ad, list);
- 		if (x->ad =3D=3D IPSET_ADD) {
- 			mtype_add(set, &x->d, &x->ext, &x->mext, x->flags);
-@@ -801,10 +803,21 @@ mtype_resize(struct ip_set *set, bool retried)
- 	spin_lock_bh(&h->gc.lock);
- 	orig->resizing =3D false;
- 	spin_unlock_bh(&h->gc.lock);
-+	/* Make sure parallel readers see that orig->resizing is false
-+	 * before we decrement uref */
-+	synchronize_rcu();
- 	atomic_dec(&orig->uref);
- 	mtype_ahash_destroy(set, t, false);
- 	if (ret =3D=3D -EAGAIN)
- 		goto retry;
-+
-+	/* Cleanup the backlog of ADD/DEL elements */
-+	spin_lock_bh(&set->lock);
-+	list_for_each_safe(l, lt, &orig->ad) {
-+		list_del(l);
-+		kfree(l);
-+	}
-+	spin_unlock_bh(&set->lock);
- 	goto out;
-=20
- hbwarn:
-@@ -1022,7 +1035,7 @@ mtype_add(struct ip_set *set, void *value, const st=
+@@ -860,15 +860,13 @@ mtype_add(struct ip_set *set, void *value, const st=
 ruct ip_set_ext *ext,
- 		memcpy(&x->mext, mext, sizeof(struct ip_set_ext));
- 		x->flags =3D flags;
- 		spin_lock_bh(&set->lock);
--		list_add_tail(&x->list, &h->ad);
-+		list_add_tail(&x->list, &t->ad);
- 		spin_unlock_bh(&set->lock);
+ 	key =3D HKEY(value, h->initval, t->htable_bits);
+ 	r =3D ahash_region(key);
+ 	atomic_inc(&t->uref);
++	rcu_read_unlock_bh();
+ 	elements =3D t->hregion[r].elements;
+ 	maxelem =3D t->maxelem;
+ 	if (elements >=3D maxelem) {
+ 		u32 e;
+-		if (SET_WITH_TIMEOUT(set)) {
+-			rcu_read_unlock_bh();
++		if (SET_WITH_TIMEOUT(set))
+ 			mtype_gc_do(set, h, t, r);
+-			rcu_read_lock_bh();
+-		}
+ 		maxelem =3D h->maxelem;
+ 		elements =3D 0;
+ 		for (e =3D 0; e < ahash_numof_locks(t->htable_bits); e++)
+@@ -876,7 +874,6 @@ mtype_add(struct ip_set *set, void *value, const stru=
+ct ip_set_ext *ext,
+ 		if (elements >=3D maxelem && SET_WITH_FORCEADD(set))
+ 			forceadd =3D true;
  	}
- 	goto out;
-@@ -1146,7 +1159,7 @@ mtype_del(struct ip_set *set, void *value, const st=
-ruct ip_set_ext *ext,
- 	spin_unlock_bh(&t->hregion[r].lock);
- 	if (x) {
- 		spin_lock_bh(&set->lock);
--		list_add(&x->list, &h->ad);
-+		list_add(&x->list, &t->ad);
- 		spin_unlock_bh(&set->lock);
- 	}
- 	if (atomic_dec_and_test(&t->uref) && t->resizing) {
-@@ -1625,9 +1638,8 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct=
- ip_set *set,
- 	}
- 	t->htable_bits =3D hbits;
- 	t->maxelem =3D h->maxelem / ahash_numof_locks(hbits);
-+	INIT_LIST_HEAD(&t->ad);
- 	RCU_INIT_POINTER(h->table, t);
--
--	INIT_LIST_HEAD(&h->ad);
- 	set->data =3D h;
- #ifndef IP_SET_PROTO_UNDEF
- 	if (set->family =3D=3D NFPROTO_IPV4) {
+-	rcu_read_unlock_bh();
+=20
+ 	spin_lock_bh(&t->hregion[r].lock);
+ 	n =3D rcu_dereference_bh(hbucket(t, key));
 --=20
 2.39.5
 
