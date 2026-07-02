@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C40723ACA64;
-	Thu,  2 Jul 2026 10:50:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B5A3C5522;
+	Thu,  2 Jul 2026 10:50:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782989424; cv=none; b=dzN3ZWpi4/IKNcvPK6zctVYNmBy3zgl3FPT09d3oecOj6VMgSfhBcv2NFmW3m2ugXv6m/4MICILajuphICSqgY9uYF+LOoQXEiuPLJ5UxT51yG9dJZZghk8xNTIsCmGsHbxc/uBLsd/LS+caqm7X0yuuGNnhfnQXCuLTYzq/0nw=
+	t=1782989428; cv=none; b=py6qiw/kdOufrSM/mfUJ0UiMLFpF+7q/V2krHMoq+jdbG7hNdecamtkNHUTEDcbl61VRQ00yRApFBPBVWlt6cEkFKhZYaK7cIw5m1unFKLBSMSStwnaLoXCrJyOBJqOIY45QGWjJ7gj96eFM1xRJRtx3m9i5/LlQHzn3GB7nNyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782989424; c=relaxed/simple;
-	bh=6j4dqiXeB6O8iPce9uppX9Fhkr9FogfrOhqB/0Uo5gg=;
+	s=arc-20240116; t=1782989428; c=relaxed/simple;
+	bh=lLyn6IiqBvOTuNKa0gszlqTnyGlQPSkD9PNfUzGoLcA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Jh3jvNU7NLgKKfmzAQTfkla7vKAmI9InU+348jCpbhhpN528D0VDQJjrby0BUutgQTqRXBSFrdjJ7S8VivA7gedcy8uo3b4qcsiCz+on7AFqzbV+xrRKGxwYaugnVZ6OvkjCQJ8IEhl6iYg/WeSSmLIhziOTnpZTOdBtMxPrMlc=
+	 MIME-Version; b=EtGSzcDEPpJGpVcydN/f0d5CyPKvrIpFxVHD4M3YuY0JzaXEXAg+RrCLz7AIg1J+0NO8/cgFk6ZAP1N67TCnOCoKFYrJASO60H9EAAT1pv59jZOmblCXjVjuOANiLS4pi1njFr45wyNy/yJpFnRt1o7mc75qJbV6dBtu+u5BGck=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 344766032C; Thu, 02 Jul 2026 12:50:21 +0200 (CEST)
+	id 6BE84601F0; Thu, 02 Jul 2026 12:50:25 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 02/12] netfilter: x_tables: replace strlcat() with snprintf()
-Date: Thu,  2 Jul 2026 12:49:53 +0200
-Message-ID: <20260702105003.13550-3-fw@strlen.de>
+Subject: [PATCH net-next 03/12] netfilter: replace u_int8_t and u_int16t with u8 and u16
+Date: Thu,  2 Jul 2026 12:49:54 +0200
+Message-ID: <20260702105003.13550-4-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260702105003.13550-1-fw@strlen.de>
 References: <20260702105003.13550-1-fw@strlen.de>
@@ -38,107 +38,108 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ian Bridges <icb@fastmail.org>
+From: Carlos Grillet <carlos@carlosgrillet.me>
 
-In preparation for removing the deprecated strlcat() API[1], replace the
-strscpy()/strlcat() pairs in xt_proto_init() and xt_proto_fini() with
-snprintf(), which builds each /proc file name in a single call.
+Use preferred kernel integer type u8 instead of the POSIX u_int8_t
+variant.
 
-Each name is "<prefix><suffix>", where <prefix> is the address-family
-string xt_prefix[af] and <suffix> is one of the FORMAT_TABLES,
-FORMAT_MATCHES or FORMAT_TARGETS literals. Prepend %s to the FORMAT
-macros and switch to snprintf().
+No functional change.
 
-Link: https://github.com/KSPP/linux/issues/370 [1]
-Signed-off-by: Ian Bridges <icb@fastmail.org>
+Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/x_tables.c | 30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ include/net/ip_vs.h                    | 2 +-
+ net/netfilter/ipvs/ip_vs_nfct.c        | 2 +-
+ net/netfilter/nf_conntrack_amanda.c    | 2 +-
+ net/netfilter/nf_conntrack_h323_main.c | 2 +-
+ net/netfilter/xt_TCPOPTSTRIP.c         | 8 ++++----
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 4e6708c23922..e64116bf2637 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1920,9 +1920,9 @@ static const struct seq_operations xt_target_seq_ops = {
- 	.show	= xt_target_seq_show,
- };
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 49297fec448a..ed2e9bc1bb4e 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -2123,7 +2123,7 @@ void ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 			    int outin);
+ int ip_vs_confirm_conntrack(struct sk_buff *skb);
+ void ip_vs_nfct_expect_related(struct sk_buff *skb, struct nf_conn *ct,
+-			       struct ip_vs_conn *cp, u_int8_t proto,
++			       struct ip_vs_conn *cp, u8 proto,
+ 			       const __be16 port, int from_rs);
+ void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp);
  
--#define FORMAT_TABLES	"_tables_names"
--#define	FORMAT_MATCHES	"_tables_matches"
--#define FORMAT_TARGETS 	"_tables_targets"
-+#define FORMAT_TABLES	"%s_tables_names"
-+#define	FORMAT_MATCHES	"%s_tables_matches"
-+#define FORMAT_TARGETS	"%s_tables_targets"
+diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
+index 81974f69e5bb..347185fd0c8c 100644
+--- a/net/netfilter/ipvs/ip_vs_nfct.c
++++ b/net/netfilter/ipvs/ip_vs_nfct.c
+@@ -208,7 +208,7 @@ static void ip_vs_nfct_expect_callback(struct nf_conn *ct,
+  * Use port 0 to expect connection from any port.
+  */
+ void ip_vs_nfct_expect_related(struct sk_buff *skb, struct nf_conn *ct,
+-			       struct ip_vs_conn *cp, u_int8_t proto,
++			       struct ip_vs_conn *cp, u8 proto,
+ 			       const __be16 port, int from_rs)
+ {
+ 	struct nf_conntrack_expect *exp;
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index ddafbdfc96dc..f10ac2c49f4b 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -89,7 +89,7 @@ static int amanda_help(struct sk_buff *skb,
+ 	struct nf_conntrack_tuple *tuple;
+ 	unsigned int dataoff, start, stop, off, i;
+ 	char pbuf[sizeof("65535")], *tmp;
+-	u_int16_t len;
++	u16 len;
+ 	__be16 port;
+ 	int ret = NF_ACCEPT;
+ 	nf_nat_amanda_hook_fn *nf_nat_amanda;
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 24931e379985..37b6314ca772 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -671,7 +671,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
+ static int callforward_do_filter(struct net *net,
+ 				 const union nf_inet_addr *src,
+ 				 const union nf_inet_addr *dst,
+-				 u_int8_t family)
++				 u8 family)
+ {
+ 	int ret = 0;
  
- #endif /* CONFIG_PROC_FS */
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 93f064306901..265d21697847 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -16,7 +16,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_TCPOPTSTRIP.h>
  
-@@ -2033,8 +2033,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	root_uid = make_kuid(net->user_ns, 0);
- 	root_gid = make_kgid(net->user_ns, 0);
+-static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
++static inline unsigned int optlen(const u8 *opt, unsigned int offset)
+ {
+ 	/* Beware zero-length options: make finite progress */
+ 	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
+@@ -33,8 +33,8 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+ 	struct tcphdr *tcph, _th;
+ 	unsigned int optl, i, j;
+-	u_int16_t n, o;
+-	u_int8_t *opt;
++	u16 n, o;
++	u8 *opt;
+ 	int tcp_hdrlen;
  
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_TABLES, xt_prefix[af]);
- 	proc = proc_create_net_data(buf, 0440, net->proc_net, &xt_table_seq_ops,
- 			sizeof(struct seq_net_private),
- 			(void *)(unsigned long)af);
-@@ -2043,8 +2042,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	if (uid_valid(root_uid) && gid_valid(root_gid))
- 		proc_set_user(proc, root_uid, root_gid);
+ 	/* This is a fragment, no TCP header is available */
+@@ -97,7 +97,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+ 	int tcphoff;
+-	u_int8_t nexthdr;
++	u8 nexthdr;
+ 	__be16 frag_off;
  
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_MATCHES, xt_prefix[af]);
- 	proc = proc_create_seq_private(buf, 0440, net->proc_net,
- 			&xt_match_seq_ops, sizeof(struct nf_mttg_trav),
- 			(void *)(unsigned long)af);
-@@ -2053,8 +2051,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	if (uid_valid(root_uid) && gid_valid(root_gid))
- 		proc_set_user(proc, root_uid, root_gid);
- 
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_TARGETS, xt_prefix[af]);
- 	proc = proc_create_seq_private(buf, 0440, net->proc_net,
- 			 &xt_target_seq_ops, sizeof(struct nf_mttg_trav),
- 			 (void *)(unsigned long)af);
-@@ -2068,13 +2065,11 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 
- #ifdef CONFIG_PROC_FS
- out_remove_matches:
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_MATCHES, xt_prefix[af]);
- 	remove_proc_entry(buf, net->proc_net);
- 
- out_remove_tables:
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_TABLES, xt_prefix[af]);
- 	remove_proc_entry(buf, net->proc_net);
- out:
- 	return -1;
-@@ -2087,16 +2082,13 @@ void xt_proto_fini(struct net *net, u_int8_t af)
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
- 
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_TABLES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_TABLES, xt_prefix[af]);
- 	remove_proc_entry(buf, net->proc_net);
- 
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_TARGETS, xt_prefix[af]);
- 	remove_proc_entry(buf, net->proc_net);
- 
--	strscpy(buf, xt_prefix[af], sizeof(buf));
--	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
-+	snprintf(buf, sizeof(buf), FORMAT_MATCHES, xt_prefix[af]);
- 	remove_proc_entry(buf, net->proc_net);
- #endif /*CONFIG_PROC_FS*/
- }
+ 	nexthdr = ipv6h->nexthdr;
 -- 
 2.54.0
 
