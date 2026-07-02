@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B5A3C5522;
-	Thu,  2 Jul 2026 10:50:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 277C23C5826;
+	Thu,  2 Jul 2026 10:50:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782989428; cv=none; b=py6qiw/kdOufrSM/mfUJ0UiMLFpF+7q/V2krHMoq+jdbG7hNdecamtkNHUTEDcbl61VRQ00yRApFBPBVWlt6cEkFKhZYaK7cIw5m1unFKLBSMSStwnaLoXCrJyOBJqOIY45QGWjJ7gj96eFM1xRJRtx3m9i5/LlQHzn3GB7nNyA=
+	t=1782989432; cv=none; b=S47qHu1sj/dsxQEaiq3CscT9Sq2Oxj6xbi35Ir+CbkRmP2NF194vc36Xw00+7G3Atfu9KG8Jv5p/fnJ0a806WWgqGS4Po7atEiNiU+j2EEBzxbYbvjY8JnnXHzOnRJqfjPPzFAs8jKJdNz9eYO0UtUbc7KFl0j8n31KAdxXXUoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782989428; c=relaxed/simple;
-	bh=lLyn6IiqBvOTuNKa0gszlqTnyGlQPSkD9PNfUzGoLcA=;
+	s=arc-20240116; t=1782989432; c=relaxed/simple;
+	bh=PtPp87kPvvPlmL5UceFuXYr/VHMRtKEOWmn76xCRSQo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EtGSzcDEPpJGpVcydN/f0d5CyPKvrIpFxVHD4M3YuY0JzaXEXAg+RrCLz7AIg1J+0NO8/cgFk6ZAP1N67TCnOCoKFYrJASO60H9EAAT1pv59jZOmblCXjVjuOANiLS4pi1njFr45wyNy/yJpFnRt1o7mc75qJbV6dBtu+u5BGck=
+	 MIME-Version; b=Rlt9w35XZwmTA8GSYM/O89eWbYAJF3d9JJxk8Eu8uTaP50EJYtYHFlW929R44VJyH3jeqDpTKdonGGdfqR+iRhFuZwSe2YJ1G6Q8QyADePl+yLlYEczdwbWQ2supBB/8l13Y6i4whpEjptI/0jgnRqgYEDUuxuzBEmr3Nybjcmo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6BE84601F0; Thu, 02 Jul 2026 12:50:25 +0200 (CEST)
+	id AE0D6601F0; Thu, 02 Jul 2026 12:50:29 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 03/12] netfilter: replace u_int8_t and u_int16t with u8 and u16
-Date: Thu,  2 Jul 2026 12:49:54 +0200
-Message-ID: <20260702105003.13550-4-fw@strlen.de>
+Subject: [PATCH net-next 04/12] netfilter: avoid strcpy usage
+Date: Thu,  2 Jul 2026 12:49:55 +0200
+Message-ID: <20260702105003.13550-5-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260702105003.13550-1-fw@strlen.de>
 References: <20260702105003.13550-1-fw@strlen.de>
@@ -38,108 +38,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Carlos Grillet <carlos@carlosgrillet.me>
+From: David Laight <david.laight.linux@gmail.com>
 
-Use preferred kernel integer type u8 instead of the POSIX u_int8_t
-variant.
+Replacing strcpy() with strscpy() ensures that overflow of the target
+buffer cannot happen.
 
-No functional change.
+[ fw@strlen.de: cleanup. netlink policy rejects too large inputs,
+  xt_recent validates content and length before the copy ]
 
-Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
+Signed-off-by: David Laight <david.laight.linux@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/ip_vs.h                    | 2 +-
- net/netfilter/ipvs/ip_vs_nfct.c        | 2 +-
- net/netfilter/nf_conntrack_amanda.c    | 2 +-
- net/netfilter/nf_conntrack_h323_main.c | 2 +-
- net/netfilter/xt_TCPOPTSTRIP.c         | 8 ++++----
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ net/netfilter/nfnetlink_cttimeout.c | 2 +-
+ net/netfilter/xt_recent.c           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 49297fec448a..ed2e9bc1bb4e 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -2123,7 +2123,7 @@ void ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp,
- 			    int outin);
- int ip_vs_confirm_conntrack(struct sk_buff *skb);
- void ip_vs_nfct_expect_related(struct sk_buff *skb, struct nf_conn *ct,
--			       struct ip_vs_conn *cp, u_int8_t proto,
-+			       struct ip_vs_conn *cp, u8 proto,
- 			       const __be16 port, int from_rs);
- void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp);
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 170d3db860c5..66c2016f6049 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -168,7 +168,7 @@ static int cttimeout_new_timeout(struct sk_buff *skb,
+ 	if (ret < 0)
+ 		goto err_free_timeout_policy;
  
-diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-index 81974f69e5bb..347185fd0c8c 100644
---- a/net/netfilter/ipvs/ip_vs_nfct.c
-+++ b/net/netfilter/ipvs/ip_vs_nfct.c
-@@ -208,7 +208,7 @@ static void ip_vs_nfct_expect_callback(struct nf_conn *ct,
-  * Use port 0 to expect connection from any port.
-  */
- void ip_vs_nfct_expect_related(struct sk_buff *skb, struct nf_conn *ct,
--			       struct ip_vs_conn *cp, u_int8_t proto,
-+			       struct ip_vs_conn *cp, u8 proto,
- 			       const __be16 port, int from_rs)
- {
- 	struct nf_conntrack_expect *exp;
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index ddafbdfc96dc..f10ac2c49f4b 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -89,7 +89,7 @@ static int amanda_help(struct sk_buff *skb,
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int dataoff, start, stop, off, i;
- 	char pbuf[sizeof("65535")], *tmp;
--	u_int16_t len;
-+	u16 len;
- 	__be16 port;
- 	int ret = NF_ACCEPT;
- 	nf_nat_amanda_hook_fn *nf_nat_amanda;
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 24931e379985..37b6314ca772 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -671,7 +671,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
- static int callforward_do_filter(struct net *net,
- 				 const union nf_inet_addr *src,
- 				 const union nf_inet_addr *dst,
--				 u_int8_t family)
-+				 u8 family)
- {
- 	int ret = 0;
+-	strcpy(timeout->name, nla_data(cda[CTA_TIMEOUT_NAME]));
++	nla_strscpy(timeout->name, cda[CTA_TIMEOUT_NAME], sizeof(timeout->name));
+ 	timeout->timeout->l3num = l3num;
+ 	timeout->timeout->l4proto = l4proto;
+ 	refcount_set(&timeout->timeout->refcnt, 1);
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index f72752fa4374..d34831ce3adf 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -400,7 +400,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+ 	t->nstamps_max_mask = nstamp_mask;
  
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 93f064306901..265d21697847 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -16,7 +16,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_TCPOPTSTRIP.h>
- 
--static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
-+static inline unsigned int optlen(const u8 *opt, unsigned int offset)
- {
- 	/* Beware zero-length options: make finite progress */
- 	if (opt[offset] <= TCPOPT_NOP || opt[offset+1] == 0)
-@@ -33,8 +33,8 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
- 	struct tcphdr *tcph, _th;
- 	unsigned int optl, i, j;
--	u_int16_t n, o;
--	u_int8_t *opt;
-+	u16 n, o;
-+	u8 *opt;
- 	int tcp_hdrlen;
- 
- 	/* This is a fragment, no TCP header is available */
-@@ -97,7 +97,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
- 	int tcphoff;
--	u_int8_t nexthdr;
-+	u8 nexthdr;
- 	__be16 frag_off;
- 
- 	nexthdr = ipv6h->nexthdr;
+ 	memcpy(&t->mask, &info->mask, sizeof(t->mask));
+-	strcpy(t->name, info->name);
++	strscpy(t->name, info->name);
+ 	INIT_LIST_HEAD(&t->lru_list);
+ 	for (i = 0; i < ip_list_hash_size; i++)
+ 		INIT_LIST_HEAD(&t->iphash[i]);
 -- 
 2.54.0
 
