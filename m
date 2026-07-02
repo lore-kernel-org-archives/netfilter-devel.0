@@ -1,119 +1,88 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3FE0431E5F
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 12:36:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E45FB23909C
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 13:47:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782995805; cv=none; b=lrhNag0U/YnnSoW6m9U3/lAi7pLsVvbgssSxx/bt5vPhSNZkERb1qmfzx1WBqtSpV/E54MvoVZirJqStjbwUuG70Caf3ZzmSpmt/OauXVcYIXbVJzQh/Y8rGODpHXVcrjNeQPnvqaSD9+vzmClRID9UDWe6jcc5+Od6zX3iLOUM=
+	t=1783000034; cv=none; b=AA0SGpkUKdE/xMtE7uRF/JDvF3JDW99N07r0B2ISzQAuteurxj6fpIR3575E+baLIyg5OHyInBzKhKb5qBS6W7T2yjdKdFesXtofC4mzC2hVL2ZZmWfRdzoBo9cOnpQPxYnmCSGnuZH6WVazH+ZUKpF2g//j5lCZ9e390actfPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782995805; c=relaxed/simple;
-	bh=9jSFSI/an4J7nGnYCW+x4lB4VFbm73aMA/cPmYXvzb4=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TsU0TC9GQUquLc9TANSyIi3kurTqiPRxNBo58qTI4G49DsFuDXBqpEVd9P+ka34KaFIl6HwDkdSIF3sutqoHQFOWyPW80nBf8pUZWRb6HVh9WquU+ama8PjCMhL9uBbWjaIaaCV/VqCQ64Jv3zwuaVwTCzsmGzkRZLGty3UggqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vvusGG7D; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1783000034; c=relaxed/simple;
+	bh=V+0UQ/vdeEej7x0jfyrPwD/SZ8iXEBlUvtPkLdMIQmY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=gYFqrI7AkVikuwPGGmS7orlsCA90JfxkDRD/UnvMF3dz4yzkCMQaM5vsUoF0UitnLybdv2m8NPf/32ikiiRPkUf297cbSkJalkOfD1JZHh2ddqi+WZIeOOdE0Wb4/1BX5z8EU14vbQBn6VNpfP6UCsdkitdVL81rRguPfxg7N8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Qo1lYC0+; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vvusGG7D"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 97851605AC
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jul 2026 14:36:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1782995802;
-	bh=sbFR7YMHUByXryoPT+a/EGKBLhhbEEkGmg/8w/6g13U=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=vvusGG7DxxDeBPCzsYyw3hvLzaDtJyMtchJUVRQet5yPMrPKQcx8vRgY7jMEy8EkX
-	 au2W5KDUVbDq3CnRyLse2atktzVQX3KWpj4Tu74PCdBzciwpW7ieB9s7aNgbwL8Z1W
-	 kSKBzjLEmoquC0CLhl34+Bxt5rvTyy1fru6C46sbY4VLqU8o8gl5fOC8z2arxnVKku
-	 aiz3x0KQLV3LCBBSHm+24AWX2FsZxyKK4W+pwPK8Ez6IQAujgndjGMQhVwED5OaSoZ
-	 2Nd4yCo9V1N5ASqQNguI3htMKepr8p/+FNSJ2lDyohmA7Y0BAfvVp8+AQD5i/vVZjD
-	 tHsEPV5gaRuGg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Qo1lYC0+"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4grdTz55tlz7s7wV;
+	Thu, 02 Jul 2026 15:47:03 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:x-mailer:message-id:date:date
+	:from:from:received:received:received; s=20151130; t=1783000021;
+	 x=1784814422; bh=wLO86Z5EC+n2+gbqecV3Eeg3ojkIOPNPICkj49ExSCg=; b=
+	Qo1lYC0+l15bWTAHxmXIB8OrWPN2ZNXhA7QPpvd/qvwU14MZUspeYuUUCe4uxHk1
+	eCBI9UwY1b+VUBQnDlZhpGn0w4KKGCI0qmHGCTz0+emVeSyTm8d13igWHt2sYaN1
+	nDoDd+JJ0osf2kHy3KFyrzPt8aElNZMmgEsKHS54UFI=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id nQCMkUhZcobz; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
+Received: from mentat.rmki.kfki.hu (unknown [148.6.40.64])
+	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
+	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4grdTx55ysz7s7wP;
+	Thu, 02 Jul 2026 15:47:01 +0200 (CEST)
+Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
+	id 81418140786; Thu,  2 Jul 2026 15:47:01 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] tests: shell: expand get command test with open intervals
-Date: Thu,  2 Jul 2026 14:36:34 +0200
-Message-ID: <20260702123634.349861-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260702123634.349861-1-pablo@netfilter.org>
-References: <20260702123634.349861-1-pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/5] netfilter: ipset: gc, backlog and cidr patches
+Date: Thu,  2 Jul 2026 15:46:56 +0200
+Message-Id: <20260702134701.207721-1-kadlec@netfilter.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 
-Extend the existing test to cover get commands with open internals.
+Hi Pablo,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/shell/testcases/sets/0034get_element_0         | 12 +++++++++++-
- .../testcases/sets/dumps/0034get_element_0.json-nft  |  6 ++++++
- .../shell/testcases/sets/dumps/0034get_element_0.nft |  2 +-
- 3 files changed, 18 insertions(+), 2 deletions(-)
+Here follows three patches which addresses the gc-resize clashing
+in the comment extension, the add/del backlog cleanup in the
+error path and a fairly large rewriting of the cidr bookkeeping.
+The two other patches could be squeezed into the next ones on
+the list but I think they are a bit independent cleanups and
+clarifications.
 
-diff --git a/tests/shell/testcases/sets/0034get_element_0 b/tests/shell/testcases/sets/0034get_element_0
-index 32375b9f50c2..a25769604685 100755
---- a/tests/shell/testcases/sets/0034get_element_0
-+++ b/tests/shell/testcases/sets/0034get_element_0
-@@ -16,7 +16,7 @@ check() { # (set, elems, expected)
- 
- RULESET="add table ip t
- add set ip t s { type inet_service; flags interval; }
--add element ip t s { 10, 20-30, 40, 50-60 }
-+add element ip t s { 10, 20-30, 40, 50-60, 60000-65535 }
- add set ip t ips { type ipv4_addr; flags interval; }
- add element ip t ips { 10.0.0.1, 10.0.0.5-10.0.0.8 }
- add element ip t ips { 10.0.0.128/25, 10.0.1.0/24, 10.0.2.3-10.0.2.12 }
-@@ -36,6 +36,16 @@ check s 15-18 ""
- # multiple single elements, ranges smaller than present
- check s "10, 40" "10, 40"
- check s "22-24, 26-28" "20-30, 20-30"
-+check s "60000-65535" "60000-65535"
-+check s "60000-65534" "60000-65535"
-+check s "60001-65535" "60000-65535"
-+check s "60001-65534" "60000-65535"
-+check s "22-24, 60000-65535" "20-30, 60000-65535"
-+check s "22-24, 60000-65534" "20-30, 60000-65535"
-+check s "22-24, 60001-65535" "20-30, 60000-65535"
-+check s "22-24, 60001-65534" "20-30, 60000-65535"
-+check s "60001-65534, 10" "60000-65535, 10"
-+check s "20, 60001-65535, 10" "20-30, 60000-65535, 10"
- check s 21-29 20-30
- 
- # mixed single elements and ranges
-diff --git a/tests/shell/testcases/sets/dumps/0034get_element_0.json-nft b/tests/shell/testcases/sets/dumps/0034get_element_0.json-nft
-index bfc0e4a0f588..64c7dc0c6555 100644
---- a/tests/shell/testcases/sets/dumps/0034get_element_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0034get_element_0.json-nft
-@@ -38,6 +38,12 @@
-               50,
-               60
-             ]
-+          },
-+          {
-+            "range": [
-+              60000,
-+              65535
-+            ]
-           }
-         ]
-       }
-diff --git a/tests/shell/testcases/sets/dumps/0034get_element_0.nft b/tests/shell/testcases/sets/dumps/0034get_element_0.nft
-index 1c1dd9779a8a..889640389cd9 100644
---- a/tests/shell/testcases/sets/dumps/0034get_element_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0034get_element_0.nft
-@@ -2,7 +2,7 @@ table ip t {
- 	set s {
- 		type inet_service
- 		flags interval
--		elements = { 10, 20-30, 40, 50-60 }
-+		elements = { 10, 20-30, 40, 50-60, 60000-65535 }
- 	}
- 
- 	set ips {
--- 
-2.47.3
+The batch does not address the issue Florian pointed out about
+sashiko's complains about possible missing rcu locking and the
+possible torn reads, also from sashiko reports.
+
+Best regards,
+Jozsef
+
+Jozsef Kadlecsik (5):
+  netfilter: ipset: mark the rcu locked areas properly
+  netfilter: ipset: exlude gc when resize is in progress
+  netfilter: ipset: cleanup the add/del backlog when resize failed
+  netfilter: ipset: allocate the proper memory for the generic hash
+    structure
+  netfilter: ipset: rework cidr bookkeeping
+
+ net/netfilter/ipset/ip_set_hash_gen.h        | 311 ++++++++++++-------
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |   4 +-
+ net/netfilter/ipset/ip_set_hash_net.c        |   4 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   4 +-
+ net/netfilter/ipset/ip_set_hash_netnet.c     |  12 +-
+ net/netfilter/ipset/ip_set_hash_netport.c    |   4 +-
+ net/netfilter/ipset/ip_set_hash_netportnet.c |  12 +-
+ 7 files changed, 230 insertions(+), 121 deletions(-)
+
+--=20
+2.39.5
 
