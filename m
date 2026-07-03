@@ -1,82 +1,128 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F496370AD7
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2026 11:07:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2703D1AA4;
+	Fri,  3 Jul 2026 12:57:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783076875; cv=none; b=CDmOwxju7L4u3jErx+duq8RuL8K5ZpyFYySunm4IP+v0iN3rZG0a1QwPNWc33rNxucNDX9u+LNQAKbuk/CppYrNlpkfiyBLh0xEFCzJT9N549C7Uf0e5cmGF5FO2XorExov8arfTRpQ6jo1dVtnxrxHguPX8b3XyBPqXzEADd1E=
+	t=1783083438; cv=none; b=YBCWlITqiroiUieKKv9YtFT3+xWQv3cMlno5kk0aig40uAjP52ZeTdlOc+D59SdkSAzgAjazfiRWEmLDwIFirnP46ppik5y2JmIW9WI9WC5sS82qQDr6+N/de16ecMn8Nf9dF9z18qcVCJwH7SOyo0MV7Zepyug+wUW3GLac4dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783076875; c=relaxed/simple;
-	bh=3+dmOCwAwSq/L1HG5HjviSd25oGKbeJ9PGzY0up6CoM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=njrH6zIrWtVDURR2kGi60Opb4s5uNQFwAMzlNZWPb5Tu3UY+w3JIkHRBFyQysi2jTzIkiLC8FtAFseJKHdd5L9L4h58BkwZLGL3Ga2tmJRDkv4GFnIJtc08ZS22IwdCf/ch+d4xs4+xUCZc02JS2N8OSoZQuU/keuoGfHA63FvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tk2iVxUb; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tk2iVxUb"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C1D0260177;
-	Fri,  3 Jul 2026 13:07:50 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783076870;
-	bh=f0UpdHi2pNOrgdlmMgaMs2n7uzNbvlXerNbh92zldpg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tk2iVxUbw/5B4up1KjNDK5kJ9PEMHhswBsZXbjeCACa0jsM7v/ESGKmj/W/Gp3gz1
-	 K6WjYPN0+knOcB8iCDmwBPHy9Dyhzw29ibACexiAWVPJoAIeGawcOnEyDE5uHyAFIr
-	 lYOF4e28ps6UEXERddn1ASNzsLqbA5+hZynZ1sIx3TNB4qwKVzR1jBrSrz8dvstzMX
-	 g6mOcLopQI2UfQJ5mXM3nF9oNVfV+E+2kGzCzKxl0ihqKLzqjK9BumxQayNtWCWzi3
-	 YupS080y7KL4G8mR2cbT2oBW80HQy0UTX8yDbz015AnWqVqniq18kj1J8la0elFigj
-	 mAS4wGH2DTNvA==
-Date: Fri, 3 Jul 2026 13:07:47 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Florian Westphal <fw@strlen.de>, Ren Wei <enjou1224z@gmail.com>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	edumazet@google.com, pabeni@redhat.com, horms@kernel.org,
-	yuantan098@gmail.com, dstsmallbird@foxmail.com,
-	chzhengyang2023@lzu.edu.cn
-Subject: Re: [PATCH nf 1/1] netfilter: xt_time: reject pre-epoch calendar
- matching
-Message-ID: <akeYAxWNWVhQz1wB@chamomile>
-References: <cover.1782879547.git.chzhengyang2023@lzu.edu.cn>
- <779d223ad31c493cbfc3c483293e435dca89cf90.1782879547.git.chzhengyang2023@lzu.edu.cn>
- <akd6KZo1lwQ719d0@orbyte.nwl.cc>
- <akeKGXmzONKkGqOl@strlen.de>
- <akeLxWXP7Y-5I8BQ@orbyte.nwl.cc>
- <akeO-v0H9QP1psep@strlen.de>
- <akeXD_GwEFarWAuK@orbyte.nwl.cc>
+	s=arc-20240116; t=1783083438; c=relaxed/simple;
+	bh=Qh2AebDPP6V334mO4EbGUQK1Q97xupx09IiP6HcnOU8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=l26r8nVxcnaeX3OyJcCFnX10l2ZjyRoFkOpwX6wplDmY1ZrSOoBAIYvzcDwzagTZYNvLKHPQE5q5cIIR2TZGtkiC4I0oDup/W4lVgel2BcA/ih9pO8AU5SZkujgwCToL3HcszIoq0DH8DPWr78fnM3JV1XB0R+3NBiNltThu3kY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 4511360687; Fri, 03 Jul 2026 14:57:14 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 0/9] netfilter: updates for net
+Date: Fri,  3 Jul 2026 14:57:00 +0200
+Message-ID: <20260703125709.16493-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <akeXD_GwEFarWAuK@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jul 03, 2026 at 01:03:43PM +0200, Phil Sutter wrote:
-> On Fri, Jul 03, 2026 at 12:29:14PM +0200, Florian Westphal wrote:
-> > Phil Sutter <phil@nwl.cc> wrote:
-> > > > This is silly.  I'm not sure this is even a bug.
-> > > > We're in 2026 not 1970.  I really don't see why this patch is required.
-> > > 
-> > > I imagined a system with broken BIOS clock which boots at epoch until
-> > > NTP has fixed it. Then stamp will be close to zero, no?
-> > 
-> > So what?  Rule won't match either way.  I wish we could get somehow
-> > get rid of xt_time and nft_meta time matching, this was a very bad
-> > idea from the start.
-> 
-> Sure, time-based packet matching won't work on a system with wrong time,
-> but AIUI the patch is merely trying to prevent the unexpectedly large
-> lshift. It seems harmless, though:
-> - current_time.weekday can't exceed 7, it is assigned the result of a
->   modulo operation
-> - current_time.monthday is type u8, so worst case the kernel will
->   compute '1U << 255'
+Hi,
 
-Maybe it can be added as hardening for nf-next, just for correctness.
-Remove Fixes: tag. I don't see this as a bug either.
+The following patchset contains Netfilter fixes for *net*, all
+for ancient problems.  Patch 7 raised drive-by sashiko findings,
+but those are not related to the change itself.
+
+1) Rebuild the nf_nat_sip data pointer to prevent stale access after SKB
+reallocation. Restrict UDP mangling to UDP streams to avoid TCP packet
+corruption.
+
+2) Prevent undefined behavior in xt_u32 caused by invalid shift counts.
+From Wyatt Feng.
+
+3) Use u64 variables to prevent incorrect comparisons on links exceeding
+34 Gbps in xt_rateest.  From Feng Wu.
+
+4) Cap the number of expectations per master during nfnetlink_cthelper
+updates. From Pablo Neira Ayuso.
+
+5) Mark malformed IPv6 extension headers for hotdrop in ip6tables.
+From Zhixing Chen.
+
+6) Skip the end element of an open interval during the get command when its
+closest match is the interval's start element. Also from Pablo Neira Ayuso.
+
+7) Fix PMTU calculation for GUE/GRE tunnels in IPVS during ICMP fragmentation
+error handling. Include additional tunnel header length when computing the
+new MTU. From Yizhou Zhao.
+
+8) Reset full ip_vs_seq structures in ip_vs_conn_new. Also from Yizhou Zhao.
+
+9) Reject invalid shift parameters in xt_connmark. Also from Wyatt Feng.
+
+Please, pull these changes from:
+The following changes since commit d335dcc6f521571d57117b8deeebc940836e5450:
+
+  gue: validate REMCSUM private option length (2026-07-03 09:34:53 +0100)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-07-03
+
+for you to fetch changes up to 1b47026fb4b35bac850ad6e8a4ad7fc018e09ebc:
+
+  netfilter: xt_connmark: reject invalid shift parameters (2026-07-03 14:45:21 +0200)
+
+----------------------------------------------------------------
+netfilter pull request nf-26-07-03
+
+----------------------------------------------------------------
+
+Feng Wu (1):
+  netfilter: xt_rateest: fix u64 truncation in xt_rateest_mt()
+
+Florian Westphal (1):
+  netfilter: nf_nat_sip: reload possible stale data pointer
+
+Pablo Neira Ayuso (2):
+  netfilter: nfnetlink_cthelper: cap to maximum number of expectation
+    per master on updates
+  netfilter: nft_set_rbtree: get command skips end element with open
+    interval
+
+Wyatt Feng (2):
+  netfilter: xt_u32: reject invalid shift counts
+  netfilter: xt_connmark: reject invalid shift parameters
+
+Yizhou Zhao (2):
+  ipvs: fix PMTU for GUE/GRE tunnel ICMP errors
+  ipvs: reset full ip_vs_seq structs in ip_vs_conn_new
+
+Zhixing Chen (1):
+  netfilter: ip6tables: mark malformed IPv6 extension headers for hotdrop
+
+ net/ipv6/netfilter/ip6t_ah.c       |  5 +++++
+ net/ipv6/netfilter/ip6t_hbh.c      |  1 +
+ net/ipv6/netfilter/ip6t_rt.c       |  3 ++-
+ net/netfilter/ipvs/ip_vs_conn.c    |  4 ++--
+ net/netfilter/ipvs/ip_vs_core.c    |  6 +++---
+ net/netfilter/nf_nat_sip.c         | 11 +++++++++++
+ net/netfilter/nf_tables_api.c      |  3 +++
+ net/netfilter/nfnetlink_cthelper.c |  2 ++
+ net/netfilter/nft_set_rbtree.c     |  8 ++++++--
+ net/netfilter/xt_connmark.c        | 14 ++++++++++++--
+ net/netfilter/xt_rateest.c         |  2 +-
+ net/netfilter/xt_u32.c             | 12 +++++++++++-
+ 12 files changed, 59 insertions(+), 12 deletions(-)
+
+-- 
+2.54.0
+
