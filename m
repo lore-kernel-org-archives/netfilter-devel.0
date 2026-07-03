@@ -1,90 +1,154 @@
-Received: from mail-4320.protonmail.ch (mail-4320.protonmail.ch [185.70.43.20])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8D6E2BF3F4
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Jul 2026 16:23:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62D02E65D;
+	Fri,  3 Jul 2026 17:50:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783095796; cv=none; b=AyVbNkMy2YmZ0/zGM5sHFxzfvlYu+T/4+NmePFcq302Yo6+ugZYjpzgfdBnuOa3CGQXqF+yd34YLOeAq+dnhyHkeFRRCPcXUMaaDlBneB+TD+bRdt+gd1EUwzzRbWoa7IpwNq5/HISXRSTVL4gh112PRM0uFI1G2czsbkPptZYc=
+	t=1783101027; cv=none; b=XEvD7hj/iTGeNY4nogT85RQPIW9praHVqext8V1N0GYcilzr0KbSrOLyuAQNIZZUUL+oKYWOT8JqLkAs5L+Z86CrszZFo+fYPLPB+YEpKOFuBB8JV2I9ZPF6k0WfuXUEAjfD/ZbEAQGhKOrkNnVuAJx5NssAKXxARlEUjI5lMyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783095796; c=relaxed/simple;
-	bh=3fNP+/zhDoQQN+AleySyX48n4L6zg+eKgmfA9mM2ozk=;
-	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=dzpuG0Jka8ztKtLdOz+uHNsd8UAT6ThKa0Y8M3PBcqCkK+BT1C9ucGev28Euj2X8SN20oEpFxP2tUGZfW3LyS8k++SKhhHOb7ZHV87dOeZlYuhCKI6up/cEVCqvH8lg2sH+MjQcclWCNokZc6OeI48p7VJeVvv1Nx8wrM0zkwPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=000ty.net; spf=pass smtp.mailfrom=000ty.net; dkim=pass (2048-bit key) header.d=000ty.net header.i=@000ty.net header.b=dskk8800; arc=none smtp.client-ip=185.70.43.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=000ty.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=000ty.net
+	s=arc-20240116; t=1783101027; c=relaxed/simple;
+	bh=XNY10VlSAsNcW1UZpUqX2cHR5kCif4Qb1vkXpzOQomw=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=tqQmtQ4BThYexS2KFNkjJwmdPyfGIS6pST25EclVq/pDE7iqlBubEtSA6ZpmNi75/FXsrt1Eu+GXTN+j9kDZsMMWU7icVTuQpz9tk0QnSTY8Ob9kfXXDrngzPRKlyD3sOwxEpYe3lHrk6y3CMY6CIZ/et2miPurLsMfZ+Zc/7KY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=jxTfnnh7; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=000ty.net header.i=@000ty.net header.b="dskk8800"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=000ty.net;
-	s=protonmail2; t=1783095784; x=1783354984;
-	bh=3fNP+/zhDoQQN+AleySyX48n4L6zg+eKgmfA9mM2ozk=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=dskk8800l+FGMVrhcxSgclDRX9C0LG04hVGuirxyhKHQzeSPTLxBq4wGOkOiA1kco
-	 MHdItaV30VkTx96ioiMrRC55TN1cFkQ5JUuoiHDzXeZec+fZcy0A6wagJ5p6PgQfyD
-	 hxcFl0vhY0CFX6CwyKj6M8olVWUEwR4noHmesqWxNUraDpfuaF8pYoqkUZqBpTrj2O
-	 wBSzGJW9COqnfxEy3U6jgmdoJTMCRihwIRQcrpWPH7VNhCWej+VAw5LEQLBmb+eA39
-	 /dDH/Ti2848k/hvmqrjTIS1/1PTnYokEdBZmXdKaiLqze/gYVPzyv/9SW+EWehDZQS
-	 ultt7riBGHH1A==
-Date: Fri, 03 Jul 2026 16:22:57 +0000
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-From: Tamaki Yanagawa <ty@000ty.net>
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, linux-kernel@vger.kernel.org, Tamaki Yanagawa <ty@000ty.net>
-Subject: [PATCH] netfilter: nft_lookup: fix catchall element handling with inverted lookups
-Message-ID: <20260703162207.1496-1-ty@000ty.net>
-Feedback-ID: 168296199:user:proton
-X-Pm-Message-ID: e9869464d393b60f04f1bdb31252075f4c1752a1
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="jxTfnnh7"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id C0CD021062;
+	Fri, 03 Jul 2026 20:50:11 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=WzUixPFbnBAwfBwijwe0GaTTubztee6+Drj+wooRJdA=; b=jxTfnnh76xjr
+	aTxkpERuVP4FjWj1xGm00BrtDKlzMep6sHu6bqyQhN68SiZIbjXB9FRCsbXZMV5u
+	KfMsydBNhmVfvJd3YGCX059Em7krOwEf6Y6azhDxYkDPXvrKDjDlC/saeEUp0e+n
+	UIbNpEb0bD1iRHSntCJqQE1PFd1WR/ENULNfRSRwazYZ9BjTU6IvwLVadX/qHEB8
+	Ojy/Ero2/KI+T+pHLoseW41HN5LWUHkqWR1RTeKhgp/9zjLUMo0vQON0aUtH8I/b
+	3WbW+K2SbMv1zZYf6bR7fbPBmwf8H8pic/MrYPOJn+hdAEadA4/iVDQyj0wepoPn
+	KkL0ma7gsWTJGmlubUxgAukSO/fLI9Zg1cDn+n9Fu71mzTwPSVcveCExSZnGuJPE
+	NOfkFsbEQ7IotvNb+jSK1cgWFSuAT221DgGJYxtuKLpGjpeJ8DSl0B8ZI3QOgu8O
+	nHOILMsMK2QmGpwjiMG3SDLiaywLJXP4FNFoUlBi7XWdT0LcsUj6RoLGwoZHWMfY
+	rhPfr/s4F5+r3vuraBBlG9oz91XDJZO8rjrl8jIRnRYNlpGeG2sbQHmFbYIz5gQV
+	of1zKd5o1CCW156HBn+I5MwTA3xGUDtI4TykSRpL0awUlt1boSHbiB7Q9qvdrskh
+	xh7BG7Zy9hVupybyGLxriD7ayxiHSrY=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri, 03 Jul 2026 20:50:11 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 680506008D;
+	Fri,  3 Jul 2026 20:50:11 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 663HntcL065717;
+	Fri, 3 Jul 2026 20:49:56 +0300
+Date: Fri, 3 Jul 2026 20:49:55 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Ismael Luceno <iluceno@suse.de>
+cc: linux-kernel@vger.kernel.org, Marco Crivellari <marco.crivellari@suse.com>,
+        Tejun Heo <tj@kernel.org>, Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "open list:IPVS" <netdev@vger.kernel.org>,
+        "open list:IPVS" <lvs-devel@vger.kernel.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>
+Subject: Re: [PATCH v2 nf-next] ipvs: Move defense_work and est_reload_work
+ to system_dfl_long_wq
+In-Reply-To: <20260702101100.24256-2-iluceno@suse.de>
+Message-ID: <c55ca48c-1f38-7f59-1ea8-632177079dcf@ssi.bg>
+References: <20260702101100.24256-2-iluceno@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 
-nft_lookup_eval() decides whether a lookup matched (`found`) from the
-direct set lookup and priv->invert before falling back to the
-catchall element used by interval sets (e.g. nft_set_rbtree) for the
-open-ended default range. Since `found` is never recomputed after
-`ext` is replaced by the catchall lookup, inverted lookups
-(NFT_LOOKUP_F_INV, "!=3D @set") can wrongly match or wrongly skip the
-catchall element, producing the wrong verdict. Fold the catchall
-lookup into `ext` before computing `found`, matching the order
-already used by nft_objref_map_eval().
 
-Signed-off-by: Tamaki Yanagawa <ty@000ty.net>
-Assisted-by: Claude:claude-sonnet-5
----
- net/netfilter/nft_lookup.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+	Hello,
 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index ba512e94b..198874398 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -103,13 +103,13 @@ void nft_lookup_eval(const struct nft_expr *expr,
- =09bool found;
-=20
- =09ext =3D nft_set_do_lookup(net, set, &regs->data[priv->sreg]);
-+=09if (!ext)
-+=09=09ext =3D nft_set_catchall_lookup(net, set);
-+
- =09found =3D !!ext ^ priv->invert;
- =09if (!found) {
--=09=09ext =3D nft_set_catchall_lookup(net, set);
--=09=09if (!ext) {
--=09=09=09regs->verdict.code =3D NFT_BREAK;
--=09=09=09return;
--=09=09}
-+=09=09regs->verdict.code =3D NFT_BREAK;
-+=09=09return;
- =09}
-=20
- =09if (ext) {
+On Thu, 2 Jul 2026, Ismael Luceno wrote:
 
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
---=20
-2.52.0.windows.1
+> Under synflood conditions binding these handlers to system_long_wq may
+> pin them to a saturated CPU.
+> 
+> We've observed improved throughtput on a DPDK/VPP application with this
+> change, which we attribute to the reduced context switching.
+> 
+> Neither handler has per-CPU data dependencies nor cache locality
+> requirements that would prevent this change.
+> 
+> Signed-off-by: Ismael Luceno <iluceno@suse.de>
 
+	Looks good to me, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+> CC: Marco Crivellari <marco.crivellari@suse.com>
+> CC: Tejun Heo <tj@kernel.org>
+> 
+> Changes since v1:
+> * Rebased on nf-next
+> * Reworded commit message
+> 
+>  net/netfilter/ipvs/ip_vs_ctl.c | 6 +++---
+>  net/netfilter/ipvs/ip_vs_est.c | 2 +-
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index bcf40b8c41cf..d7e669efab4d 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -235,7 +235,7 @@ #define DEFENSE_TIMER_PERIOD	1*HZ
+>  	update_defense_level(ipvs);
+>  	if (atomic_read(&ipvs->dropentry))
+>  		ip_vs_random_dropentry(ipvs);
+> -	queue_delayed_work(system_long_wq, &ipvs->defense_work,
+> +	queue_delayed_work(system_dfl_long_wq, &ipvs->defense_work,
+>  			   DEFENSE_TIMER_PERIOD);
+>  }
+>  #endif
+> @@ -290,7 +290,7 @@ #define DEFENSE_TIMER_PERIOD	1*HZ
+>  	atomic_set(&ipvs->est_genid_done, genid);
+>  
+>  	if (repeat)
+> -		queue_delayed_work(system_long_wq, &ipvs->est_reload_work,
+> +		queue_delayed_work(system_dfl_long_wq, &ipvs->est_reload_work,
+>  				   delay);
+>  
+>  unlock:
+> @@ -5126,7 +5126,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+>  		goto err;
+>  
+>  	/* Schedule defense work */
+> -	queue_delayed_work(system_long_wq, &ipvs->defense_work,
+> +	queue_delayed_work(system_dfl_long_wq, &ipvs->defense_work,
+>  			   DEFENSE_TIMER_PERIOD);
+>  
+>  	return 0;
+> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+> index ab09f5182951..78964aa861e9 100644
+> --- a/net/netfilter/ipvs/ip_vs_est.c
+> +++ b/net/netfilter/ipvs/ip_vs_est.c
+> @@ -243,7 +243,7 @@ #define pr_fmt(fmt) "IPVS: " fmt
+>  	/* Bump the kthread configuration genid if stopping is requested */
+>  	if (restart)
+>  		atomic_inc(&ipvs->est_genid);
+> -	queue_delayed_work(system_long_wq, &ipvs->est_reload_work, 0);
+> +	queue_delayed_work(system_dfl_long_wq, &ipvs->est_reload_work, 0);
+>  }
+>  
+>  /* Start kthread task with current configuration */
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
