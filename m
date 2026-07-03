@@ -1,109 +1,110 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 784C83D6CA5;
-	Fri,  3 Jul 2026 12:57:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E77A3D3338;
+	Fri,  3 Jul 2026 14:11:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783083475; cv=none; b=DYWDUMNjARu2DVvkBcnC6UwybK4kAeLrb8i1RTIOh0KbMyFDKxvOC6NudHNMBd85T7w41s6ztDHmkeisoUfuQeumrVX7LfXKS9VgMG+a8ZEnLs2YfU3H9T+W2A8xO/L7HwT6R8pA40W8RY79XIRyajIOOLd2DYOCF7p2/NeMqS4=
+	t=1783087872; cv=none; b=dT8V/Rx9oKhUolsSadQntlSILeEknB4VdgDZIeMUF4Ki5niT4elff9buO8g6+j7t0GeVcvGmO2VPnYko0eUwmXooUCfWRAv4XkpYnvjmIlo+HCSeAr1NO2nxFdKfwLbFM2WaTVaBhmHXWnxwpT03uKTRTnDFptBUQp6zMZAIQMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783083475; c=relaxed/simple;
-	bh=HQvUY784Fi7+cOqDDHZ63LrriuJGpKwP1bwApvIEglI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=faBD58fck1E/B1SWLjajNwHFgKYImPXasL0ps0wR4qpQ/fpT2s98VwpTzXqpUs8vT6EimwoSSt1GxXoyzD27VPjbgFTsUcPU9pGrpGCREvTDwlcMYAYGDV8hgB7qqIOdsIEtOX9YpOqgbCPxOHEI2X6g5QiVt8nYB5g3IKWgVKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id BCCB8607B9; Fri, 03 Jul 2026 14:57:52 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net 9/9] netfilter: xt_connmark: reject invalid shift parameters
-Date: Fri,  3 Jul 2026 14:57:09 +0200
-Message-ID: <20260703125709.16493-10-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260703125709.16493-1-fw@strlen.de>
-References: <20260703125709.16493-1-fw@strlen.de>
+	s=arc-20240116; t=1783087872; c=relaxed/simple;
+	bh=fUYIhcgTsd08cQCxhii/tR9hzAIPf9Za63MDebhQsWE=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=enIlub8Sl37rhZGWkttVv/teOTKGrFdf6EEUU32FZafhb+s1B7j/JjfaPlBq0vTecNITmaOi95V4QWlBmfpSHscFlfXG94oTO9XB6ckny10Z+r+oqfuU2E3yAVOTmCULTNLIC4NiGRKViWnXroyYSK6RQSFiTAUqsMkUxjAbO/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nP3sDrQW; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nP3sDrQW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5A1F1F000E9;
+	Fri,  3 Jul 2026 14:11:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783087871;
+	bh=9WmCg5KQV9+WEylsXDnXXYCT0wE60z9FdM4u/lEjPoI=;
+	h=From:Subject:Date:To:Cc;
+	b=nP3sDrQWQDE9IxZvNZP/QSicRHCHwVfF/BHyUOXaVCRxjIB5jCBDwzYibyoRXToph
+	 ldcEvnrCdsK8xa+goiRypyrUmgLvnDG96E44OskJ70GILGZeM89jODKVsGl7H0wYvM
+	 Db9xx55VsF1LViL4+9QD1AEwd2T8zM16+ID4ABI0XQ+yr9/1i6RpusfrtO8sEhQk7q
+	 xYfHlms8n9O6RAcjQKSuGGILsXQ+WIP2LmkeSVGO0cvrcdxC9cHCD0NxUz5PiH1QvK
+	 b3kr+lC+5BvBq3Fb90R46T4oxXoVjIDgBwjsC1DkmhlIZy3lJdHf0ntwsFehZps12w
+	 dXEkAtB0rr2DA==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: [PATCH nf-next v4 0/6] Add IPv4 over IPv6 and SIT flowtable SW
+ acceleration
+Date: Fri, 03 Jul 2026 16:10:35 +0200
+Message-Id: <20260703-b4-flowtable-sw-accel-ip6ip-v4-0-00398cd12382@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/43OQQrCMBQE0KtI1n5JftLEuPIe4iKmPxosaUlKV
+ aR3N3SlCOJyGHgzT1YoRypst3qyTFMssU81qPWK+YtLZ4LY1syQo+YNb+CkIHT9bXSnjqDcwHl
+ PHcRBxwGM4IJL5VuhDKvCkCnE+6IfWAqQ6D6yYy0usYx9fiyrk1jqvwYmARys89J67y05u79ST
+ tRt+nxe4AnfMf0bw4opaUOr0BjU9IXJN0yK35isWKMdblEHiebz2TzPLz7XmRVqAQAA
+X-Change-ID: 20260505-b4-flowtable-sw-accel-ip6ip-7101034cd147
+To: Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Felix Fietkau <nbd@nbd.name>, Matthias Brugger <matthias.bgg@gmail.com>, 
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+ Simon Horman <horms@kernel.org>, David Ahern <dsahern@kernel.org>, 
+ Ido Schimmel <idosch@nvidia.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+ Shuah Khan <shuah@kernel.org>, Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, 
+ linux-mediatek@lists.infradead.org, netdev@vger.kernel.org, 
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ linux-kselftest@vger.kernel.org
+X-Mailer: b4 0.14.3
 
-From: Wyatt Feng <bronzed_45_vested@icloud.com>
+Similar to IPIP and IP6I6 tunnels, introduce sw acceleration for IPv4 over
+IPv6 and SIT tunnels in the netfilter flowtable infrastructure.
 
-Revision 2 of the CONNMARK target accepts user-controlled shift
-parameters and applies them to 32-bit mark values in
-connmark_tg_shift().
-
-A shift_bits value of 32 or more triggers an undefined-shift bug when
-the rule is evaluated. Invalid shift_dir values are also accepted and
-silently fall back to the left-shift path.
-
-Reject invalid revision-2 shift parameters in connmark_tg_check() so
-malformed rules fail at installation time, before they can reach the
-packet path.
-
-Fixes: 472a73e00757 ("netfilter: xt_conntrack: Support bit-shifting for CONNMARK & MARK targets.")
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Zhengchuan Liang <zcliangcn@gmail.com>
-Reported-by: Xin Liu <dstsmallbird@foxmail.com>
-Assisted-by: Codex:GPT-5.4
-Signed-off-by: Wyatt Feng <bronzed_45_vested@icloud.com>
-Reviewed-by: Ren Wei <enjou1224z@gmail.com>
-Reviewed-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_connmark.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Changes in v4:
+- Rebase on top of nf-next and fixed conflicts.
+- Link to v3: https://lore.kernel.org/r/20260531-b4-flowtable-sw-accel-ip6ip-v3-0-56a2826f3279@kernel.org
 
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 4277084de2e7..2cf27f7d59b9 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -112,6 +112,16 @@ static int connmark_tg_check(const struct xt_tgchk_param *par)
- 	return ret;
- }
- 
-+static int connmark_tg_check_v2(const struct xt_tgchk_param *par)
-+{
-+	const struct xt_connmark_tginfo2 *info = par->targinfo;
-+
-+	if (info->shift_dir > D_SHIFT_RIGHT || info->shift_bits >= 32)
-+		return -EINVAL;
-+
-+	return connmark_tg_check(par);
-+}
-+
- static void connmark_tg_destroy(const struct xt_tgdtor_param *par)
- {
- 	nf_ct_netns_put(par->net, par->family);
-@@ -162,7 +172,7 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
- 		.name           = "CONNMARK",
- 		.revision       = 2,
- 		.family         = NFPROTO_IPV4,
--		.checkentry     = connmark_tg_check,
-+		.checkentry     = connmark_tg_check_v2,
- 		.target         = connmark_tg_v2,
- 		.targetsize     = sizeof(struct xt_connmark_tginfo2),
- 		.destroy        = connmark_tg_destroy,
-@@ -183,7 +193,7 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
- 		.name           = "CONNMARK",
- 		.revision       = 2,
- 		.family         = NFPROTO_IPV6,
--		.checkentry     = connmark_tg_check,
-+		.checkentry     = connmark_tg_check_v2,
- 		.target         = connmark_tg_v2,
- 		.targetsize     = sizeof(struct xt_connmark_tginfo2),
- 		.destroy        = connmark_tg_destroy,
+Changes in v3:
+- Drop nf_flow_tunnel_v4_push and nf_flow_tunnel_v6_push routines
+- Rebase on top of net-next tree.
+- Link to v2: https://lore.kernel.org/r/20260506-b4-flowtable-sw-accel-ip6ip-v2-0-439fd427726e@kernel.org
+
+Changes in v2:
+- Fix MTU check in nf_flow_offload_forward() and in
+  nf_flow_offload_ipv6_forward()
+- Add SIT sw acceleration support
+- Link to v1: https://lore.kernel.org/r/20260505-b4-flowtable-sw-accel-ip6ip-v1-0-9ac39ccc9ea9@kernel.org
+
+---
+Lorenzo Bianconi (6):
+      net: netfilter: Add ether_type to net_device_path_ctx
+      net: netfilter: Add encap_proto to flow_offload_tunnel
+      net: netfilter: Add IPv4 over IPv6 tunnel flowtable acceleration
+      selftests: netfilter: nft_flowtable.sh: Add IPv4 over IPv6 flowtable selftest
+      net: netfilter: Add SIT tunnel flowtable acceleration
+      selftests: netfilter: nft_flowtable.sh: Add SIT flowtable selftest
+
+ drivers/net/ethernet/airoha/airoha_ppe.c           |  13 +-
+ drivers/net/ethernet/mediatek/mtk_ppe_offload.c    |  13 +-
+ include/linux/netdevice.h                          |   5 +-
+ include/net/netfilter/nf_flow_table.h              |   1 +
+ net/core/dev.c                                     |   6 +-
+ net/ipv4/ipip.c                                    |   1 +
+ net/ipv6/ip6_tunnel.c                              |   6 +-
+ net/ipv6/sit.c                                     |  26 ++
+ net/netfilter/nf_flow_table_core.c                 |  16 +-
+ net/netfilter/nf_flow_table_ip.c                   | 397 +++++++++++++--------
+ net/netfilter/nf_flow_table_path.c                 |  20 +-
+ tools/testing/selftests/net/netfilter/config       |   1 +
+ .../selftests/net/netfilter/nft_flowtable.sh       |  78 +++-
+ 13 files changed, 402 insertions(+), 181 deletions(-)
+---
+base-commit: 6fb33632323a396c9dc2bb9bea483e013e547d57
+change-id: 20260505-b4-flowtable-sw-accel-ip6ip-7101034cd147
+
+Best regards,
 -- 
-2.54.0
+Lorenzo Bianconi <lorenzo@kernel.org>
 
