@@ -1,162 +1,157 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5522E040D;
-	Sun,  5 Jul 2026 17:35:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C53802F8E99
+	for <netfilter-devel@vger.kernel.org>; Sun,  5 Jul 2026 21:58:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783272940; cv=none; b=Qm2B/nEmYpyD5Dk1q09Et03dXMP+9TQ8hEfHBPa7m/r41n8Jblb0ka+dNfl4eF8BcDDCyE2rNfApHS+N+GqelwVyFGjjgHfMSnHYqiRAsPy26tV04pnR2YNlSJIReegd4hZAHZDv+ti7KvzwwNtnRTn0yveXiAP1OKASdI+cjc8=
+	t=1783288699; cv=none; b=KHScyR8hJvf+9iijHYLPT7+LZKHPSeGINyS9T/1QbJxM/6q59o0+xIVM0pg/BztHBW8g5nooQRZWC+bp3SIw5MVF5BrkKkMgRY2IyY9c4LEvRU68qMSEsL21KnPOyhxOsDIzbTXeV4Uj6Sg6maQlkINSykSbwQj2S0N0Os59tk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783272940; c=relaxed/simple;
-	bh=WyGwWJN+OH50Z91REEm9w4KWOCCGAKHjGjZe1XG/yl4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=DVRCy+NTbI2kN3qk+gnIpuSshDe5GbkxSMk1ie6MG9E+otfnURlGbToS7dxEwcUIKRvzMonTjrd4wJ154aoG25oZfY4XZ5OwVnKo41LlwvfOTiy/5asN8RE+1/6FqzB+LrgpmwdqplP1Hzn85IDDZpZVhfIlats3xe4bqVI/MME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=0tafbLot; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1783288699; c=relaxed/simple;
+	bh=fsLQWYx9S7rh9aWQvUIiOdoCnDPWNE+xTofZODHUeqM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Br0BUX59zn3TGV7krQ4R8c4bNGyndIKcjdzkGWTp1+HcyX2EJPJ2OPSB2eIcBvjJhWmGqndFMMjpf0hFubk59GWZR9mYszH02otIlXBx90a9kXxxYFlApRBCvvEEgZ5/Bgpnk31twClfVepVvTLTJa0vgPgiVyDrTC5GQWpZffE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=kdxxNFdj; arc=none smtp.client-ip=209.85.216.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="0tafbLot"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id A2804210B7;
-	Sun, 05 Jul 2026 20:35:24 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=QRg4sK/4xZE7XJSekjtTVWzTFsM2DwDYito+csqtwXQ=; b=0tafbLotiqDD
-	n8fK+HYmIT4/IwKXwBrWJmgBN8v5rmyyganWzc26KxxwaE1PGkwDH1eW2vKkjHzj
-	SJ7l75me59d7kPSimYdamWkJCfjwDkhzkLyWT0FaAzh2bgO4v0dgEq2g5FzKW6EX
-	MFIu5ZBGgJMnup2bRvYg4nK7vg1u1BGbZ+zDc9XzT06cRM5Zzk3c0SgpYUKYuG8r
-	omxL1mDFM3L9vKLVnpP+NnDXYiGxM3QPpQnqx/1+ycGhCunD3K1oYyOLjlk9DmTY
-	gJrmvlxPsUWVxPGRdLqwyB24Lw3R3K/aJ29mt8pZJ4MGYNf7jSEn/IfrRK+RZ+aT
-	VOt+1NCGKzAomZrgWGM4heeTr92KyjNear1HEC9uR5iEdlSMTMcYtqVDxMskwY/f
-	KYyCcpa+3OIjLCYMdGd0eOinGhnjqRZGCp9FE6tR5sSrZqjYAXjRkfZT4i9ReMj/
-	rARJFQYkL8vhAJgYhhcmbc8K8zpcbGtIlL/Kq7FAcrl5iBcl+6T5tKKnX9MYIF0b
-	34XJH1JyXbLEqLimbmMr8uxM98Wt6mTPC6qCZfuHyL1+i5k7tpXe4xJa3RuIHIZ9
-	qMcPTJv9Mg8ZShcCydAZlN/ekW+5aZwsNyg3t4juZBzt0jlez7sY3qAnuEhT0BZp
-	mDNvctKjPsT2bj3x1WE6i1al5pS2A2k=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sun, 05 Jul 2026 20:35:24 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7E18960546;
-	Sun,  5 Jul 2026 20:35:20 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 665HZ06j033003;
-	Sun, 5 Jul 2026 20:35:02 +0300
-Date: Sun, 5 Jul 2026 20:35:00 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-cc: netdev@vger.kernel.org, Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org,
-        Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
-        Ao Wang <wangao@seu.edu.cn>, Xuewei Feng <fengxw06@126.com>,
-        Qi Li <qli01@tsinghua.edu.cn>, Ke Xu <xuke@tsinghua.edu.cn>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH nf] ipvs: skip IPv6 extension headers in SCTP state
- lookup
-In-Reply-To: <20260705123040.35755-1-zhaoyz24@mails.tsinghua.edu.cn>
-Message-ID: <92783c87-7e6a-e90a-b2fc-e5d1332139e0@ssi.bg>
-References: <20260705123040.35755-1-zhaoyz24@mails.tsinghua.edu.cn>
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="kdxxNFdj"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-384c94c9414so612313a91.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Jul 2026 14:58:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=asu.edu; s=google; t=1783288696; x=1783893496; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=utKDtKTqMmc6gZ7doveiePDIjTFwLL4HY/v+gdcdSqY=;
+        b=kdxxNFdjGl4a7Vvb8AuYYNCB/TPlsjNNg6+eklBHP7Ztv8g95kLJKYe+PgggYx8lVY
+         7yohz/cm7Ojb3CoxSdpi5S0gvkNSE7IRKkMaPaFBSxuY72wWwyDcN1AmdSXlByhzCQqi
+         yJ2mIA9AhkN6z3ODvWcI6Wc2YoWUBvqeJ2W87SFO9cBpN1IzRFYeSgtd6tLe/HHI6jlw
+         t8CbpJBQL5iMSr3G+3YS7/e/ACWOeeeno3l7sPspgs66X6b+ygnGiu6NqIOig9NHoMQd
+         TTrFIPTPZUWpQEa9ZCLlPYbaG5laus6LzBYUCGvFoF7k7xp0+GtcKU2lL2Fe08/N3CEk
+         KG2Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783288696; x=1783893496;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=utKDtKTqMmc6gZ7doveiePDIjTFwLL4HY/v+gdcdSqY=;
+        b=p1EuEvkdACTYl2Cy/xBdvw5LqIFW8TFqYkMM4Fk094MxOVQGVXcIOadlCrwLAKM+qZ
+         pRvEygzrbd45ygOZIc0xVY027svqJX9Tl9YKtgE8rFrFs7toUPB8c06vccTKEd0HQsOI
+         eFC6cDCr9CLXNTJwCVJ08eIaUF6rmwMT5kQLzQjyENuOokVtwG9Q10FDCnFOxLykx3wz
+         SiyE/IZ+wpS/v0aZz4Zc6Y6Ff0ALlfAzOrn3vnLsBCKEOl3+2Hq0fGCeuJ4ALYg2WsDa
+         E8FN5DQjK2l7Rs6F18ogYtzFuhRixm5QS9+OPukGLQF2WZc59oosfOJmCaaaGdGB0rmN
+         QwRA==
+X-Gm-Message-State: AOJu0YzDKiQBaoy2amczwU3ziQSx4Sy7cX8o7lRxDJJr1HD8WvAGc8vq
+	pTaCo1++VfcjjNLz57Gh+NOnoNCh936mvEx1XEa/Eq/qFwsra/KXhgikLTuu9ljO8Q==
+X-Gm-Gg: AfdE7cnAyMrhHu7wzpWc+BFhuGqz9dL8bXA4dUHj+aq9WdYrV5vjYmIBZodmARvG//+
+	r6MLhs6nuzRsBm3MrPDLQrXxmg0qB4w+841IzxvBJVQeP36NfEd6+iCNh5Db7/LBle1Ps0tdhsh
+	BvFsmNht3GHbCh2hiQ2Vi6qLEkdIIeV8RGgOsWQSHJ/fHPGmVcEX1NDvWSmRo113z3ReKUXtZvt
+	TfImRvi8V5IO8Slz9Ck7EAxARQ1L/PmqJjCh1mSQF39p84rp4VEJJGusQLGjdXdHcwkeYPjL7/N
+	7SBI7MyS1dPn6ud2kZxJsqm1oaB263xPmjcYaExsECq3gY+nBYc3Vr7ZlTugaDgrlDQFUnX+npW
+	0eS2e/1wJdEnK2ehbXyWn9EeDt0q79K5OIStZ8IW+i6q8ct5hFPyu3aJR90JiZajCEzBSYpJWzg
+	ip+L6fEEEE
+X-Received: by 2002:a17:90b:510e:b0:37f:133a:3e09 with SMTP id 98e67ed59e1d1-382803b483amr7241574a91.3.1783288696081;
+        Sun, 05 Jul 2026 14:58:16 -0700 (PDT)
+Received: from p1.. ([2607:fb91:152b:9c50:23c1:1e1c:319e:7007])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38097da1a0fsm3210495a91.2.2026.07.05.14.58.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 05 Jul 2026 14:58:15 -0700 (PDT)
+From: Xiang Mei <xmei5@asu.edu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Xiang Mei <xmei5@asu.edu>,
+	Weiming Shi <bestswngs@gmail.com>
+Subject: [PATCH nf] netfilter: ebtables: terminate table name before find_table_lock()
+Date: Sun,  5 Jul 2026 14:58:00 -0700
+Message-ID: <20260705215800.2223145-1-xmei5@asu.edu>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+update_counters() and compat_update_counters() forward a user-supplied
+32-byte table name to find_table_lock() without NUL-terminating it. On a
+lookup miss, find_inlist_lock() calls try_then_request_module(..., "%s%s",
+"ebtable_", name), and vsnprintf() reads past the name field and the
+stack object until it hits a zero byte.
 
-	Hello,
+  BUG: KASAN: stack-out-of-bounds in string (lib/vsprintf.c:648 lib/vsprintf.c:730)
+  Read of size 1 at addr ffff8880119dfb20 by task exploit/147
+  Call Trace:
+  ...
+   string (lib/vsprintf.c:648 lib/vsprintf.c:730)
+   vsnprintf (lib/vsprintf.c:2945)
+   __request_module (kernel/module/kmod.c:150)
+   do_update_counters.isra.0 (net/bridge/netfilter/ebtables.c:371 net/bridge/netfilter/ebtables.c:380)
+   update_counters (net/bridge/netfilter/ebtables.c:1440)
+   do_ebt_set_ctl (net/bridge/netfilter/ebtables.c:2573)
+   nf_setsockopt (net/netfilter/nf_sockopt.c:101)
+   ip_setsockopt (net/ipv4/ip_sockglue.c:1424)
+   raw_setsockopt (net/ipv4/raw.c:847)
+   __sys_setsockopt (net/socket.c:2393)
+  ...
 
-On Sun, 5 Jul 2026, Yizhou Zhao wrote:
+compat_do_replace() shares the same unterminated name via
+compat_copy_ebt_replace_from_user(); terminate it there too so all
+find_table_lock() callers behave alike. The other callers already
+terminate the name after the copy.
 
-> set_sctp_state() reads the SCTP chunk header again in order to drive the
-> IPVS SCTP state table.  For IPv6 it computes the offset with
-> sizeof(struct ipv6hdr), while the surrounding IPVS code uses iph->len from
-> ip_vs_fill_iph_skb(), where ipv6_find_hdr() has already skipped extension
-> headers and found the real transport header.
-> 
-> This makes the state machine read from the wrong offset for IPv6 SCTP
-> packets that carry extension headers.  For example, an INIT packet with an
-> 8-byte destination options header can be scheduled correctly by
-> sctp_conn_schedule(), but set_sctp_state() reads the first byte of the SCTP
-> verification tag as a DATA chunk type.  The connection then moves from NONE
-> to ESTABLISHED instead of INIT1, gets the longer established timeout, and
-> updates the active/inactive destination counters incorrectly.  This happens
-> even though the SCTP handshake has not completed.
-> 
-> Use ip_vs_fill_iph_skb() in set_sctp_state() and base the chunk-header
-> offset on iph.len, matching sctp_conn_schedule() and the SCTP NAT handlers.
-> For IPv4 and IPv6 packets without extension headers this preserves the
-> existing offset.
-> 
-> Fixes: 2906f66a5682 ("ipvs: SCTP Trasport Loadbalancing Support")
-> Cc: stable@vger.kernel.org
-> Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-> Reported-by: Ao Wang <wangao@seu.edu.cn>
-> Reported-by: Xuewei Feng <fengxw06@126.com>
-> Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-> Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-> Assisted-by: Claude-Code:GLM-5.2
-> Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> ---
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 12 +++++-------
->  1 file changed, 5 insertions(+), 7 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index 63c78a1f3918..6e0fc23be305 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -375,17 +375,15 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
->  		int direction, const struct sk_buff *skb)
->  {
->  	struct sctp_chunkhdr _sctpch, *sch;
->  	unsigned char chunk_type;
-> +	struct ip_vs_iphdr iph;
->  	int event, next_state;
-> -	int ihl, cofs;
-> +	int cofs;
->  
-> -#ifdef CONFIG_IP_VS_IPV6
-> -	ihl = cp->af == AF_INET ? ip_hdrlen(skb) : sizeof(struct ipv6hdr);
-> -#else
-> -	ihl = ip_hdrlen(skb);
-> -#endif
-> +	if (!ip_vs_fill_iph_skb(cp->af, skb, false, &iph))
-> +		return;
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Assisted-by: Claude:claude-opus-4-8
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
+---
+ net/bridge/netfilter/ebtables.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-	May be it is better starting from ip_vs_set_state()
-to provide new arg 'int iph_len/offset' (set to iph.len), down to
-state_transition(), sctp_state_transition() and set_sctp_state().
-Same for all protos. It should cost less stack and ipv6_find_hdr()
-calls and what matters most, correct iph context in case we
-have IP+ICMP+TCP (with just two ports or even with TCP flags)
-and are scheduling ICMP, i.e. not IP+TCP as usually.
-
-	But what I see is that ip_vs_in_icmp*() are missing
-the ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd) call just
-after ip_vs_in_stats() and before ip_vs_icmp_xmit() where
-we should provide ciph.len. That is why we don't reach the
-set_tcp_state() calls to set correct cp->state and timeout
-when scheduling related ICMP. So, this should be fixed too.
-
-> -	cofs = ihl + sizeof(struct sctphdr);
-> +	cofs = iph.len + sizeof(struct sctphdr);
->  	sch = skb_header_pointer(skb, cofs, sizeof(_sctpch), &_sctpch);
->  	if (sch == NULL)
->  		return;
-> -- 
-> 2.47.3
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index f20c039e44c8..5b74ff827493 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1434,6 +1434,8 @@ static int update_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
+ 		return -EFAULT;
+ 
++	hlp.name[sizeof(hlp.name) - 1] = '\0';
++
+ 	if (len != sizeof(hlp) + hlp.num_counters * sizeof(struct ebt_counter))
+ 		return -EINVAL;
+ 
+@@ -2273,6 +2275,8 @@ static int compat_copy_ebt_replace_from_user(struct ebt_replace *repl,
+ 
+ 	memcpy(repl, &tmp, offsetof(struct ebt_replace, hook_entry));
+ 
++	repl->name[sizeof(repl->name) - 1] = '\0';
++
+ 	/* starting with hook_entry, 32 vs. 64 bit structures are different */
+ 	for (i = 0; i < NF_BR_NUMHOOKS; i++)
+ 		repl->hook_entry[i] = compat_ptr(tmp.hook_entry[i]);
+@@ -2395,6 +2399,8 @@ static int compat_update_counters(struct net *net, sockptr_t arg,
+ 	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
+ 		return -EFAULT;
+ 
++	hlp.name[sizeof(hlp.name) - 1] = '\0';
++
+ 	/* try real handler in case userland supplied needed padding */
+ 	if (len != sizeof(hlp) + hlp.num_counters * sizeof(struct ebt_counter))
+ 		return update_counters(net, arg, len);
+-- 
+2.43.0
 
