@@ -1,128 +1,120 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0C145039
-	for <netfilter-devel@vger.kernel.org>; Sun,  5 Jul 2026 23:36:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E2AAD3E8C74;
+	Mon,  6 Jul 2026 08:23:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783294597; cv=none; b=jJ7n3LYNsoHi1htImqoLzIf9QdevqK68TqI4hx45L2ndVRENYwvuyYOHOJ4ncL1a4maDC53kTFtjtrPeVftW1/qs4mRbHr53bqr+QaqwVxnN66B9K5B48f42qDfkQRPdMbgAEDfw/wESbt4TsAmMS65gmZRaVU89sLZE4T6odlQ=
+	t=1783326203; cv=none; b=ojF0sB+c8rCqAzZO+awRBH7jQ8qDmHEY8z/x6GD5jerN2o8dAUja7McRttTywBxvikzIXKbBdrh9kIurwP0MfztUKsw3L6woZlDz2sN7/Oy76emjy8tCDIf8YHqz5hsfoVT8i8wVLsIIyk3KFIYXpXPzsNvw2j5kTjaEuJ8jzf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783294597; c=relaxed/simple;
-	bh=oowJ0/pwMLpK+2FBTaTr7SQOcKOb4MiuA70vmsgUgiw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Lg3NTJcGKZaACr0dGEgAcNhRAv7unrtAYLELuLUM7nMlRNXGT4ZvWBFv3DJXiMiBGfukmAbAEtyJX5273XKnD4e7EGJiiXQ1P8lhnAOciSPd5CSyLVzcY4KDNld/y5vd0F9wjB+x+mcZTKbe+WgDollc/y2n7pFDKX21gGby3Xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=IbOtp/yG; arc=none smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+	s=arc-20240116; t=1783326203; c=relaxed/simple;
+	bh=D0zOeMBJpy829pf+i8TR/NJ+5p/Cs+0szyGzXSl1LqU=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=Th3gLgb85LqzPrrOFEPt6KNFcoOR+aP2ue+zJhfVeKFpn1I6FBThSQgy/HGE1qPpVpxkjDsPwLT+kfSqADYjek+cHnXRGOFpAKhQ3ScPIEseE5DGVDm/J/xdxGP2o7ei+vztNGM9TJACKMRXB1qMy86CZjENHeEQaJcJspenmaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=WtBZDRBb; arc=none smtp.client-ip=13.75.44.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="IbOtp/yG"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-2caea3f742bso30250025ad.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 05 Jul 2026 16:36:34 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="WtBZDRBb"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1783294594; x=1783899394; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=wagndnGVb7E87oGYXUV2CXr6Jt9C4YXqmzSMkRBdYcU=;
-        b=IbOtp/yGL43TB71pl2LIxr7TJYxD6/IH7fr3+xoM2BcumWs2EunymlOXLZnhID5EXh
-         LLoNpf1jaEnsawRfXTJJ+zNX8qqi6X2x32yhIjXJEpzSViPGdoG6SjRCkPT+qvKpGk+m
-         7wcnT06sU67vKv5kptQW0woFGw9WrtQeu7YoupEJQBoViPPcJ9SRG/IrO4rs/TSYFV1A
-         mwBCtYgyN00MJU5uQh1ysEoaQhqBj/t8BHlR1GQ1PjuU+bLKRgl2hfJMquDoKkxBVCen
-         lrPT6AA4RJ59rmrO+tj2epvaPgN+xfLvUEhL5vBShLTUqA6qBTmC5Np7aDkZx5g7nODg
-         nzDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783294594; x=1783899394;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wagndnGVb7E87oGYXUV2CXr6Jt9C4YXqmzSMkRBdYcU=;
-        b=GlY6lW9u0X7yIpANxPgU5dqY+kw76U7w0FK3gYdWShOWBisWa71Fq9HLyRASAwMwxY
-         XafTZCA6uhQ/Iq17lQ/Qmf/6GW8L6pSoaEWVUUCXPvPRUmr2SYIpHq7c9Fdmi8oOM47x
-         KW2q2Xjf1JVyvIRk0ABpvwPUnp+581KzWbVTVeoay17o0TxPCzXiAQTi03tuu6MvkiK8
-         UV4R20C6iY+HFHVbt/NiXZ8bLzIPR9iR8KIZ2hkfX7wBwWzAgtD4Bs09NjnXG1+rBYEg
-         ndnZlvLcn0NAwYaKi3yrvQ+TlCMHURvcs8i865MmQ61ZWj4LM2dSkrBF2rp+NZ2P7NRF
-         reEA==
-X-Forwarded-Encrypted: i=1; AHgh+RrXmGV7Bw80MlHoI+Mtmhl+D9dmYzyatAcCDY/is4322JUXSkKiNxYsY+be9p7vmOXnjalS6AWrkecuoypqv5E=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz7YJLibJuLpi3GXRcRS3KHT7LoYEkfGEimRyzTc6/4/U7EORol
-	Z1N60LMRuX6c28JSGRSD/w2q9+EaJ1t23z4fE6uHuLxWh6z3GxA5nqfsIX5r18oWiA==
-X-Gm-Gg: AfdE7clCsyvJJNpIfvW6ZKpMvfvdMOUcthVjkjuBpvYO4CCsWYfFBQg5otBY5n8O7oa
-	DUekMQeNUYcc9upL3gbm3kL7dK7ZMo5UnqgktN8BIDYTk9GepHyn89aCqW9K2LtOmg86TFw1Wkq
-	uMELB5ZiAgT1Q2SnvQCzdHyOFsD7rl8zQGic2ujWUojH5mGEKPCAjpPu9jenA22/Q2udRkiAXXn
-	utWLiIMGD/N61XE30/Bj3Q+gZyeumqXeJzby7pqD+rpxThbs/7Mthmqbi9X3dh1xyFXDcRZ+zuR
-	COLSefidyGVpXXbdmXGSfu2iMt+yO2n99l1O3kTGojC3D79JODWAkHWWgsMO1wj7eIHuCck0XYn
-	HrFm1IY5WhDIHH6uHYgExUg7Bb3FskfdFCZpo7JrwZ4y1ic5vaq7JhH9og3bqlAHtP562zMussg
-	==
-X-Received: by 2002:a17:902:db05:b0:2c9:a247:171 with SMTP id d9443c01a7336-2cb97e47b64mr75072215ad.1.1783294593851;
-        Sun, 05 Jul 2026 16:36:33 -0700 (PDT)
-Received: from p1.. ([2607:fb91:1529:e46a:7f70:6a22:47e0:673d])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cad7870f58sm38938695ad.59.2026.07.05.16.36.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Jul 2026 16:36:33 -0700 (PDT)
-From: Xiang Mei <xmei5@asu.edu>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
-Cc: "David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH nf] netfilter: nf_conntrack_reasm: guard mac_header adjustment after IPv6 defrag
-Date: Sun,  5 Jul 2026 16:36:29 -0700
-Message-ID: <20260705233629.2287813-1-xmei5@asu.edu>
-X-Mailer: git-send-email 2.43.0
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:Content-Type:
+	Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	Content-Transfer-Encoding:Message-Id:References:To; bh=d1EB3iLgS
+	IEeytnOCuf1aEH2abzvN28uxXKkwxuXS+0=; b=WtBZDRBb9vAMNEY8o39qjEwY3
+	O3vI6BxZJzyEKRb4IywjAfqKIYYzk0Ok9ymLkHCsYAzhUuBif9JkavnOGyK/F8gV
+	TLW4gWOAmYfc4k2nA+jgbxf+V7RsXTTtS7xn4o6Lv6YM4cXJCqQay66D8bvc1IAn
+	q+CXV1opCESaLjmjT0=
+Received: from smtpclient.apple (unknown [101.5.13.242])
+	by web3 (Coremail) with SMTP id ygQGZQAHVpO8ZUtqIAn9Ag--.29636S2;
+	Mon, 06 Jul 2026 16:22:20 +0800 (CST)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.8\))
+Subject: Re: [PATCH nf] ipvs: skip IPv6 extension headers in SCTP state lookup
+From: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+In-Reply-To: <92783c87-7e6a-e90a-b2fc-e5d1332139e0@ssi.bg>
+Date: Mon, 6 Jul 2026 16:22:10 +0800
+Cc: netdev@vger.kernel.org,
+ Simon Horman <horms@verge.net.au>,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>,
+ "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>,
+ lvs-devel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org,
+ Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
+ Ao Wang <wangao@seu.edu.cn>,
+ Xuewei Feng <fengxw06@126.com>,
+ Qi Li <qli01@tsinghua.edu.cn>,
+ Ke Xu <xuke@tsinghua.edu.cn>,
+ stable@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Message-Id: <87E04893-B2B2-485F-B242-9CACF2F176D6@mails.tsinghua.edu.cn>
+References: <20260705123040.35755-1-zhaoyz24@mails.tsinghua.edu.cn>
+ <92783c87-7e6a-e90a-b2fc-e5d1332139e0@ssi.bg>
+To: Julian Anastasov <ja@ssi.bg>
+X-Mailer: Apple Mail (2.3826.700.81.1.8)
+X-CM-TRANSID:ygQGZQAHVpO8ZUtqIAn9Ag--.29636S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7uryDuF1UZF47Zr1xuF47twb_yoW8Xw48pF
+	WkKryxWrZ7JrySqwnrAr4fXa48GF4DK347JF9YgFy2yFy5Kr1ftFWDK3yDKrW7ury5W34U
+	ta4jv34kZayqyrDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9m1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l8cAvFVAK
+	0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW7JVWDJwA2z4
+	x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l
+	84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcx
+	kEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6x8ErcxFaVAv8VW8
+	Ww4UJr1UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6I
+	AqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI0_GFv_Wrylc2xS
+	Y4AK67AK6r43MxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY20_GrWkJr1UJwCFx2
+	IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v2
+	6r106r1rMI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67
+	AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IY
+	s7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr
+	0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUpCJQUUUUU=
+X-CM-SenderInfo: 52kd05r2suqzpdlo2hxwvl0wxkxdhvlgxou0/1tbiAgEAAWpLXY0RxQAAsn
 
-nf_ct_frag6_reasm() slides the packet head forward to drop the IPv6
-fragment header and then unconditionally advances skb->mac_header:
+Hi Julian,
 
-	skb->mac_header += sizeof(struct frag_hdr);
+Thanks for your review.
 
-On the NF_INET_LOCAL_OUT defrag path the skb has no link-layer header
-yet, so skb->mac_header is still the "not set" sentinel (u16)~0U. Adding
-sizeof(struct frag_hdr) wraps it to a small value (0xffff + 8 == 7),
-after which skb_mac_header_was_set() wrongly reports a MAC header is
-present and skb_mac_header() points into the headroom.
+> On Jul 6, 2026, at 01:35, Julian Anastasov <ja@ssi.bg> wrote:
+> 
+> May be it is better starting from ip_vs_set_state()
+> to provide new arg 'int iph_len/offset' (set to iph.len), down to
+> state_transition(), sctp_state_transition() and set_sctp_state().
+> Same for all protos. It should cost less stack and ipv6_find_hdr()
+> calls and what matters most, correct iph context in case we
+> have IP+ICMP+TCP (with just two ports or even with TCP flags)
+> and are scheduling ICMP, i.e. not IP+TCP as usually.
 
-The reassembler has done this unconditional add since it was introduced;
-it was harmless while mac_header was a bare pointer, but wrong once
-mac_header became a u16 offset whose unset state is the ~0U sentinel
-tested by skb_mac_header_was_set(). The sibling net/ipv6/reassembly.c
-does the same relocation and does guard the adjustment; mirror the
-guard here.
+I agree that the already parsed transport-header offset should be 
+passed from ip_vs_set_state() down to the protocol state_transition() 
+callbacks, instead of reparsing the skb in set_sctp_state(). We will 
+send a v2 that does this for SCTP, TCP and the other IPVS protocols 
+in one combined fix.
 
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
----
- net/ipv6/netfilter/nf_conntrack_reasm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> But what I see is that ip_vs_in_icmp*() are missing
+> the ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd) call just
+> after ip_vs_in_stats() and before ip_vs_icmp_xmit() where
+> we should provide ciph.len. That is why we don't reach the
+> set_tcp_state() calls to set correct cp->state and timeout
+> when scheduling related ICMP. So, this should be fixed too.
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 64ab23ff559b..3637b20d3fa4 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -348,7 +348,8 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
- 	skb_network_header(skb)[fq->nhoffset] = skb_transport_header(skb)[0];
- 	memmove(skb->head + sizeof(struct frag_hdr), skb->head,
- 		(skb->data - skb->head) - sizeof(struct frag_hdr));
--	skb->mac_header += sizeof(struct frag_hdr);
-+	if (skb_mac_header_was_set(skb))
-+		skb->mac_header += sizeof(struct frag_hdr);
- 	skb->network_header += sizeof(struct frag_hdr);
- 
- 	skb_reset_transport_header(skb);
--- 
-2.43.0
+For the ICMP path, I agree that the missing ip_vs_set_state() call is
+worth looking at, but using ICMP errors to drive the upper L4 state 
+needs some care, because spoofed ICMP packets can match an 
+existing embedded tuple before the endpoint TCP/SCTP stack 
+performs its own validation. Maybe this change needs further
+discussion?
+
+Thanks,
+Yizhou
 
