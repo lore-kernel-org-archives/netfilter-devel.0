@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB89D374E62;
-	Mon,  6 Jul 2026 10:50:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E51613F39E8;
+	Mon,  6 Jul 2026 10:50:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783335039; cv=none; b=noETmncyq700BhHM+yPL69lDAOGuQacv2u38rDZPyFXWWuT/39xQbxSwBFVdK75+rMASQo7nxBZJ/3hgqDrgpB2r3npw1RB3grb3La7gOqWrc/DbhLOYU4zCxhMvtHbrAOrco1YWTN/F4RRXSWs++k9vF09DjY2KaDJCwRFTJG4=
+	t=1783335043; cv=none; b=ijkJC5Wsvzq93AK2G8SWX9thg8ZwRpVewOQ8/ynDIynQCAhjxZ+PKT30mxtka7Qvv2auSQrij4QC49AeonvviYwmsQq9n3zZOcYvNaTrTcvYssVZTmnQ9gv1mVICPXtcB4fVJX/oTtglUt2doBbqmoXWMrXVs4TxgCE9CRDEAVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783335039; c=relaxed/simple;
-	bh=0SfjWWi2FdxRDkLwAikkvJxxafvQ2v2iRdqA/o5xgd4=;
+	s=arc-20240116; t=1783335043; c=relaxed/simple;
+	bh=yctoVFD91OFx4fFlRA1MPazNYejGlaXFotK29gkw3PE=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=g5yN5fhY239j6FBU2UYyOtEYwyVvDe3WNHlO4Ou5InnNIXDMAT6Ag/C1lrdBHKpr9U4xoVcqxvrvOer9yKwvuK49uvTF62+XbI2dXMaW9yEo1c0TqxGp5zX+u6hy9MI/Eovkf6x6sMiBys0yFEvDtpd0ftWPcDFe2hUxCbde43c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W2ZI/8Q0; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=JJLZ4WLeEpfQOBUIQjx+PhyZYn/heMQj1l5DPvu5DmDn/CGoP7j3olM74l9DcIfu0+6JCjs3xGpg45prqoNGp1BrYAAoBqOTmmxhurKUV/D3oQmCLfiMHhCrPsmd11VZP8cLWoA5z/cHeP4RdXn5jhR0Xj7EXPMnFajx0O7D5GM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W8tOvrpS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W2ZI/8Q0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FED91F00A3D;
-	Mon,  6 Jul 2026 10:50:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W8tOvrpS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 817EE1F000E9;
+	Mon,  6 Jul 2026 10:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783335038;
-	bh=BAwMDfIxB5vte5HzFAg81ak7nUvwa8s8kWgiqNRyoTo=;
+	s=k20260515; t=1783335041;
+	bh=yHJBd2n2Sa1J667oouse/pt4NTBKScB7z7klNN5CAW4=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=W2ZI/8Q0/IKEcAcYLlM2jT6oG0m0r764Ynw8MeAsSzkiBF9njVM0zD+hzTjjNtKX8
-	 N+0rPwv9eGvJCKcK/PmmpC5Yg13zQ46sGVD0nJqJCGYlTRs63QZKNsbaQKP35urgf9
-	 OCiOF+LcBiQvC95ZgDu4oqP7ehQedQZ5r4f876gQYgOYBjEaLec3gcdNpsMXHqPYeP
-	 RUKyxjDVogom8v6brg8Y9jQuKIkDlz5NLE8URubvnCdZZbBvuV7irWZygTkwe7W0tq
-	 jyRu5NTXpS5hmH8jU2KWMZ3Oz6oCSv51RwvAvyh75PESrj37Sc2kjypVS6yCBGJWiQ
-	 SvQpUUGUqJ6ug==
+	b=W8tOvrpS0wE/XmOlbNX/4iDM9O9oBpzhAYZB9E4myqREVCZvlpm2ENicf4Umj1wgm
+	 J+z78r96kEnsPoRAsugoIt0xPxGMxkje/OzsxYuTFeloZVOPjl6d4sGzE80X7ahbmC
+	 9pQSe9gKu7dVDsuw7NolP6hD7mybDC+C6e8NImZHR30zndQ3Jv7RHJnbvThLjYsyLe
+	 iFa/30wzdk4eqdYVWdX+vZbFnsjtNYNedX5FS4WnyioozbL4Jhs7SF6di65iWEG08/
+	 dS7zZQVtGTbGDyqsx9bEOqnimCZiX8eKSM/SDGY0UXsRet013wt3w0TXdzg0gvGb3H
+	 EiPO7dmRYfBaQ==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 568133ABD2A5;
-	Mon,  6 Jul 2026 10:50:20 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56B3C3ABD2A5;
+	Mon,  6 Jul 2026 10:50:23 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,61 +37,46 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/9] netfilter: nf_nat_sip: reload possible stale data
- pointer
+Subject: Re: [PATCH net v2] ipvs: fix PMTU for GUE/GRE tunnel ICMP errors
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <178333501888.500093.1798331659151868625.git-patchwork-notify@kernel.org>
-Date: Mon, 06 Jul 2026 10:50:18 +0000
-References: <20260703125709.16493-2-fw@strlen.de>
-In-Reply-To: <20260703125709.16493-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+ <178333502188.500093.18161993584904393152.git-patchwork-notify@kernel.org>
+Date: Mon, 06 Jul 2026 10:50:21 +0000
+References: <20260702073430.67680-1-zhaoyz24@mails.tsinghua.edu.cn>
+In-Reply-To: <20260702073430.67680-1-zhaoyz24@mails.tsinghua.edu.cn>
+To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+Cc: netdev@vger.kernel.org, horms@verge.net.au, ja@ssi.bg,
+ pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+ yangyx22@mails.tsinghua.edu.cn, wangao@seu.edu.cn, fengxw06@126.com,
+ qli01@tsinghua.edu.cn, xuke@tsinghua.edu.cn
 
 Hello:
 
-This series was applied to netdev/net.git (main)
+This patch was applied to netdev/net.git (main)
 by Florian Westphal <fw@strlen.de>:
 
-On Fri,  3 Jul 2026 14:57:01 +0200 you wrote:
-> quoting sashiko:
->  ------------------------------------------------------------------------
->  [..] noticed a potential memory bug and header corruption involving the
->  SIP NAT helper.
+On Thu,  2 Jul 2026 15:34:28 +0800 you wrote:
+> When an ICMP Fragmentation Needed error is received for a tunneled IPVS
+> connection, ip_vs_in_icmp() recomputes the MTU that the original packet
+> can use by subtracting the tunnel overhead from the reported next-hop
+> MTU.
 > 
->  In net/netfilter/nf_nat_sip.c:nf_nat_sip():
-> 	if (skb_ensure_writable(skb, skb->len)) {
-> 		nf_ct_helper_log(skb, ct, "cannot mangle packet");
-> 		return NF_DROP;
-> 	}
-> 	uh = (void *)skb->data + protoff;
-> 	uh->dest = ct_sip_info->forced_dport;
-> 	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo, protoff,
-> 				      0, 0, NULL, 0)) {
+> The current code always subtracts sizeof(struct iphdr), which is only
+> the IPIP overhead. For GUE and GRE tunnels, ipvs_udp_decap() and
+> ipvs_gre_decap() already compute the additional tunnel header length,
+> but that value is scoped to the decapsulation block and is lost before
+> the ICMP_FRAG_NEEDED handling. As a result, the ICMP error sent back to
+> the client advertises an MTU that is too large, so PMTUD can fail to
+> converge for GUE/GRE-tunneled real servers.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,1/9] netfilter: nf_nat_sip: reload possible stale data pointer
-    https://git.kernel.org/netdev/net/c/77e43bcb7ec1
-  - [net,2/9] netfilter: xt_u32: reject invalid shift counts
-    https://git.kernel.org/netdev/net/c/64cdf7d30ac1
-  - [net,3/9] netfilter: xt_rateest: fix u64 truncation in xt_rateest_mt()
-    https://git.kernel.org/netdev/net/c/444853cd4382
-  - [net,4/9] netfilter: nfnetlink_cthelper: cap to maximum number of expectation per master on updates
-    https://git.kernel.org/netdev/net/c/278296b69fae
-  - [net,5/9] netfilter: ip6tables: mark malformed IPv6 extension headers for hotdrop
-    https://git.kernel.org/netdev/net/c/43ccc20b5a73
-  - [net,6/9] netfilter: nft_set_rbtree: get command skips end element with open interval
-    https://git.kernel.org/netdev/net/c/d63611cbe8af
-  - [net,7/9] ipvs: fix PMTU for GUE/GRE tunnel ICMP errors
+  - [net,v2] ipvs: fix PMTU for GUE/GRE tunnel ICMP errors
     https://git.kernel.org/netdev/net/c/6b335af0d0d1
-  - [net,8/9] ipvs: reset full ip_vs_seq structs in ip_vs_conn_new
-    https://git.kernel.org/netdev/net/c/2975324d164c
-  - [net,9/9] netfilter: xt_connmark: reject invalid shift parameters
-    https://git.kernel.org/netdev/net/c/1b47026fb4b3
 
 You are awesome, thank you!
 -- 
