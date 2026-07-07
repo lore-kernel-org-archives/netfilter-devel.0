@@ -1,88 +1,92 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7322F12CDBE
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2026 14:49:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF4B233121C
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2026 14:52:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783435799; cv=none; b=o1pX+Z9JLzFwVGey7s4ueyE9EwhRz8OhsBHaYv15/uoaKClvyqHxhZ7/a99V6fQaXVXQPkDeF+674IM3FkUQ5FTVc16QAL/+M0i87GZKpjTPUbRi5WWtmbaUlEzrBQetM7jsCgmHLqLu9NdwvayvWtmStqUToD0mkrnHKOPJ6S8=
+	t=1783435975; cv=none; b=WmXkOtisEClSF7la/ufL3R0A+yMp9C/hHDqL19+3XyvtgqbX8SB125Uz6I7ZiVP+VIBujYXz82wE4pksZv2a7DEEoOe5BQjMYfy0RnDdMEdmG9f29VWEZvlfa6wfwg5BWxNZJ6eNN2WNSNAxdXL8zfnWHDRO6JVZdb0QzU3lwvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783435799; c=relaxed/simple;
-	bh=MH3XDG3yMn509sxtRVGzWhUohZUIqI66PGbH6qvu6nM=;
+	s=arc-20240116; t=1783435975; c=relaxed/simple;
+	bh=Wmix684u7o5wtvmVIJwlqlwSccmAfjifzFFsGffuKXY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DcEAHgUlZznIqY+u/AwZdCmyCDZEbTSWQkgRSzl8wcPie8v4/gxtDZXRJRH3o3z174qq4+TgRQAAL4YSEyfiRnFS8shKGieyR+7UllE8BU2M3JBK5twmooKV79S7h1k7Dl62Gbo1PiXX8zg/EnzC0FutSivNwiK6Hf6b9pY48oU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jlOHxXCx; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=FTn+ekq466hxaSu/t3JDMjgJLefhBzcHQeSIPeUqmCr0ll5lr4twZAikJmc9RkZ5ApkhtKlZMnpOXAOkrk6wJkwHpZ/gjFK6Tk27GLopIyu6vKBkKJEG4HRZbwa6RuuYy0O+LcMXQjhvy/05tHwyoBvsED8nDekhpcb6juwob5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C3HPI1W1; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jlOHxXCx"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=V8RONei49XuW+pG3nPA3nEQSp6UOlpl341CHGBHq87o=; b=jlOHxXCx8AZ0vbZ+8BOkBujfYx
-	CSXEFE7ObyYXLilbHpf/e2ek5gXmhp76vKehSyDxRbJw52JmRQ9wRHGhSotz1YTzFhkJtS/NBVkJL
-	8R2xUbv/GeQorPcvBAC725axKhXWUzmqGq+8MoVvZcYlcUBJ4gh/uWHwchF4acWqrFVtNxTaVQ257
-	a8s99tZOpEkx2wau33spTHUgvjmo13SmxEQRVMEdIGcCb+45VmzP4ZGw2ebZHdDaK0TIzogrNjMbQ
-	iqYPDP0gWx/3iykvadx33k39jKqXIkLC45RHQUV6sQF878hXW6XmC48rPZa+C34dyY0aF+2bDHxCe
-	5BjqLGqA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wh77T-00000000488-2C0I;
-	Tue, 07 Jul 2026 16:49:55 +0200
-Date: Tue, 7 Jul 2026 16:49:55 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C3HPI1W1"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 383A26057B;
+	Tue,  7 Jul 2026 16:52:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1783435972;
+	bh=ZY9kvGsvrphgNwlLIZowUeQWH6LQ+BLdhDa8NVtjtWQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=C3HPI1W1FUwoYCj3RrwjHffIBW2Lhgy59jQHmuh1OhfDjDDTkA5W3fpXmxc5hF5OX
+	 QhAW1dNQLnAl0b9CAZmoMiRGzfzu7o5qtOW9rk0G7/IrEQtdihSyi/vkljlr/abXpD
+	 eyN4W06uP7hz/brlGcDsqFfBQtiDK0zt8AR2SMBWLsijJP1jfCfy4IWFQmRXS3AtW6
+	 g+tXTrLW0Jz6t0GykP5tXRgnwWpYTxs6lGU+S2KPEEpy+QXFNk3BWI+BZKK6HHPHMT
+	 Bmveuzf16KlhNS9VXRZFW34KGAmkDPqb5DG8pEwcUc9isbu3nOci3slhKLyFwy7PAb
+	 MhZVQcRgd7NBQ==
+Date: Tue, 7 Jul 2026 16:52:50 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nft 2/2] tests: shell: expand get command test with open
  intervals
-Message-ID: <ak0SE7hrYpUdxjVK@orbyte.nwl.cc>
+Message-ID: <ak0SwqzFAqA06788@chamomile>
 References: <20260702123634.349861-1-pablo@netfilter.org>
  <20260702123634.349861-2-pablo@netfilter.org>
  <akz-fH24aKQbjaHm@orbyte.nwl.cc>
  <ak0KITUOuYAXYm5v@chamomile>
+ <ak0SE7hrYpUdxjVK@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ak0KITUOuYAXYm5v@chamomile>
+In-Reply-To: <ak0SE7hrYpUdxjVK@orbyte.nwl.cc>
 
-On Tue, Jul 07, 2026 at 04:16:01PM +0200, Pablo Neira Ayuso wrote:
-> Hi Phil,
-> 
-> On Tue, Jul 07, 2026 at 03:26:20PM +0200, Phil Sutter wrote:
-> > Hi Pablo,
-> > On Thu, Jul 02, 2026 at 02:36:34PM +0200, Pablo Neira Ayuso wrote:
-> > > Extend the existing test to cover get commands with open internals.
+On Tue, Jul 07, 2026 at 04:49:55PM +0200, Phil Sutter wrote:
+> On Tue, Jul 07, 2026 at 04:16:01PM +0200, Pablo Neira Ayuso wrote:
+> > Hi Phil,
 > > 
-> > This test fails on a Big Endian testing machine running Fedora Rawhide
-> > running 7.2.0-0.rc2.21.fc45. Does this perhaps test a recent kernel fix
-> > or something?
+> > On Tue, Jul 07, 2026 at 03:26:20PM +0200, Phil Sutter wrote:
+> > > Hi Pablo,
+> > > On Thu, Jul 02, 2026 at 02:36:34PM +0200, Pablo Neira Ayuso wrote:
+> > > > Extend the existing test to cover get commands with open internals.
+> > > 
+> > > This test fails on a Big Endian testing machine running Fedora Rawhide
+> > > running 7.2.0-0.rc2.21.fc45. Does this perhaps test a recent kernel fix
+> > > or something?
+> > 
+> > Does this kernel contain this kernel fix?
+> > 
+> > https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=d63611cbe8af99dd61b118ee6e5b5e3e518250b2
 > 
-> Does this kernel contain this kernel fix?
+> Ah, thanks for the pointer. Rawhide kernels are "best effort" by early
+> rebase vs. excessive backporting, so a fix in nf.git must be rather
+> critical to hit it before linus.git.
 > 
-> https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?id=d63611cbe8af99dd61b118ee6e5b5e3e518250b2
-
-Ah, thanks for the pointer. Rawhide kernels are "best effort" by early
-rebase vs. excessive backporting, so a fix in nf.git must be rather
-critical to hit it before linus.git.
-
-> as well as this userspace fix:
+> > as well as this userspace fix:
+> > 
+> > https://git.netfilter.org/nftables/commit/?id=4eafc1a2a9ef5a827b1b4e58cb3b2832d2eb1650
 > 
-> https://git.netfilter.org/nftables/commit/?id=4eafc1a2a9ef5a827b1b4e58cb3b2832d2eb1650
+> Yes, this is present. To give you a bit of context: I have a script
+> which builds current upstream HEAD of iptables, nftables and
+> dependencies on a fresh Rawhide for running the test suites. I reserve a
+> RH-internal Big Endian machine (s390x VM) for it. The goal is to detect
+> Big Endian breakers early.
 
-Yes, this is present. To give you a bit of context: I have a script
-which builds current upstream HEAD of iptables, nftables and
-dependencies on a fresh Rawhide for running the test suites. I reserve a
-RH-internal Big Endian machine (s390x VM) for it. The goal is to detect
-Big Endian breakers early.
+Thanks for explaining.
 
-Thanks for clarifying!
+> Thanks for clarifying!
 
-Cheers, Phil
+OK, then, all good, it is a matter of waiting for the kernel fix to
+propagate to the rawhide kernel tree.
+
+Ping back if problem persists by then, thanks.
