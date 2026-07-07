@@ -1,220 +1,119 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71AF13DF011
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2026 11:18:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1025441A798
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2026 13:26:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783423104; cv=none; b=bU6JVbMLkll/ZpRPjykQU5v9dgVpWNUiO+SHNOGmUqdjnLDsIqD1z5PW45cWV6VZGf5yR7EeHGwzCht8owK0SkNxnirMIp3unvy/2wgv/jZjhqdPtC0lUih/8UCa/0xjmkyPmRZHJDJzunhMo5Tjm8UvQ9uUcGpwHaB5Bx+97vw=
+	t=1783430791; cv=none; b=Aq8F9jMuY0mUkAJV39yxKqxRfP5M9aKhkC/xkT5bmT/8kwTjjyjnCVGKi+UEomeyF33pTFbD4ysCnTxslHcGEhR3Izyfb7ybvnmsxmQ8P8rWhIK+qYOnuESyVe8pycpGgYR0kJiqllsGmUZ8POJEQmi2xLEp13ebMaNA9Q7RLts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783423104; c=relaxed/simple;
-	bh=a1wlmx9a3eyKnO28RETCiDXd0YlBm1f55iTucryzmzA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KB4tKdBRy3ASMqLkB4F1TVli8Klo0rWKxZtExJEASIWds9W1ugEv3sRxTz8b+Dzyt+4euvGPG78082AJaUhmmJKEtI60P+bMi/5YsBCCH/fZIviAeNB3a0XHzRP0QJ24KMLVzoZcLPmXgE8bwAZACaAnm9XaD9bHGCAj2ZghtNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 357C16047A; Tue, 07 Jul 2026 13:18:20 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Mina Almasry <almasrymina@google.com>
-Subject: [PATCH nf v2] netfilter: handle unreadable frags
-Date: Tue,  7 Jul 2026 13:18:08 +0200
-Message-ID: <20260707111808.15057-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+	s=arc-20240116; t=1783430791; c=relaxed/simple;
+	bh=ikK4j326EaO8DJc+zVUg7ZACK7WWLYMQwpf5+7xPfeE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=vAVGfkceaVfUo+2mZtw5zCq1kunCBMOPjPZSJ4ZqDWYUaG5fdDStV+b9Qa1iXqAU4WHDUR/smm6Y5Ihz30w/bBe5682ZYaGnuQt1OC+LX8TriQpOK5XHiq2dtXt5IZfRo+kMQB/JWh6LSuygtLeTt9GBbC3LZQYhaXqN0RP4SJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=LjLGn/0X; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="LjLGn/0X"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Ku+cc8uwCqqUn06d2CTt4ocauHCiJHulGys+NbUcWHY=; b=LjLGn/0X4Lxwk0bQH/gKva6W61
+	B9MJGdWzDWzMxntD8KmjchqLrJ9plugBYHKYNBr4jOP1VyPC+yDhvbeWMKTFuGm+InOcMXmrzJtjt
+	OdHBBuHAhIP6Q8A69W2fskCTvvFZX3Lscy2A3c0ea2R/GBuYrhetyRGLhv2BuAMEX0s6shkqhqdW1
+	N7Uf8HKhDIlCbIc0nHqDgRimEC/GWRZDLT3aGqLXHrsbCNv4Sv+o6Z7pCobRubRc+/0zLo+2q+SrP
+	RzSG51ClPtpMi61OPLJiRNnZWSCUlOcm7261090awlvjTPP9fe+cf5ylxBPbff+3cFCGnfL5H4TOb
+	VbyorWDA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wh5oa-000000002x3-3kzI;
+	Tue, 07 Jul 2026 15:26:21 +0200
+Date: Tue, 7 Jul 2026 15:26:20 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] tests: shell: expand get command test with open
+ intervals
+Message-ID: <akz-fH24aKQbjaHm@orbyte.nwl.cc>
+References: <20260702123634.349861-1-pablo@netfilter.org>
+ <20260702123634.349861-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260702123634.349861-2-pablo@netfilter.org>
 
-sashiko reports:
- When an skb with unreadable fragments (such as from devmem TCP, where
- skb_frags_readable(skb) returns false) is processed by the u32 module,
- skb_copy_bits() will safely return a negative error code [..]
+Hi Pablo,
+On Thu, Jul 02, 2026 at 02:36:34PM +0200, Pablo Neira Ayuso wrote:
+> Extend the existing test to cover get commands with open internals.
 
-xt_u32: bail out with hotdrop in this case.
-gather_frags: return -1, just as if we had no fragment header.
-nfnetlink_queue: restrict to the non-linear part.
-nfnetlink_log: restrict to the non-linear part.
+This test fails on a Big Endian testing machine running Fedora Rawhide
+running 7.2.0-0.rc2.21.fc45. Does this perhaps test a recent kernel fix
+or something?
 
-v2:
- - skb_zerocopy helpers don't copy readable flag, i.e. nfnetlink_queue
- is broken too
- xt_u32 shouldn't return true if hotdrop was set.
+Here's the test output for reference:
 
-Cc: Mina Almasry <almasrymina@google.com>
-Fixes: 65249feb6b3d ("net: add support for skbs with unreadable frags")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Mina, there are other places that BUG on skb_copy_bits().
- Could you please have a look at:
+| W: [FAILED]     1/1 testcases/sets/0034get_element_0
+| Command: testcases/sets/0034get_element_0 
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 11 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 15-18 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: Too many open files
+| get element ip t s { 60000-65534 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| ERROR: asked for '60000-65534' in set s, expecting '60000-65535' but got
+| ''
+| Error: Could not process rule: Too many open files
+| get element ip t s { 60001-65534 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| ERROR: asked for '60001-65534' in set s, expecting '60000-65535' but got
+| ''
+| Error: Could not process rule: Too many open files
+| get element ip t s { 22-24, 60000-65534 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| ERROR: asked for '22-24, 60000-65534' in set s, expecting '20-30,
+| 60000-65535' but got ''
+| Error: Could not process rule: Too many open files
+| get element ip t s { 22-24, 60001-65534 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| ERROR: asked for '22-24, 60001-65534' in set s, expecting '20-30,
+| 60000-65535' but got ''
+| Error: Could not process rule: Too many open files
+| get element ip t s { 60001-65534, 10 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| ERROR: asked for '60001-65534, 10' in set s, expecting '60000-65535, 10'
+| but got ''
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 10-40 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 10-20 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 10-25 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t s { 25-55 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t ips { 10.0.0.2 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t cs { 10.0.0.1 . 23 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| Error: Could not process rule: No such file or directory
+| get element ip t cs { 10.0.0.2 . 22 }
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- https://sashiko.dev/#/patchset/20260706155219.23757-1-fw%40strlen.de
-
- and see if those need fixing or not?
- [ and the v2 review of this ... ]
-
- Also, should skb_zerocopy() copy over the skb->readable
- flag (or refuse to handle unreadable skbs)?
-
- net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
- net/netfilter/nfnetlink_log.c           | 26 ++++++++++++++++---------
- net/netfilter/nfnetlink_queue.c         | 16 +++++++++++----
- net/netfilter/xt_u32.c                  | 16 ++++++++++-----
- 4 files changed, 41 insertions(+), 19 deletions(-)
-
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 3637b20d3fa4..599c49bf0a0a 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -419,7 +419,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
- 			return -1;
- 		}
- 		if (skb_copy_bits(skb, start, &hdr, sizeof(hdr)))
--			BUG();
-+			return -1;
- 		if (nexthdr == NEXTHDR_AUTH)
- 			hdrlen = ipv6_authlen(&hdr);
- 		else
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index fa3657599861..6d1ed48c5e8f 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -676,7 +676,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 			goto nla_put_failure;
- 
- 		if (skb_copy_bits(skb, 0, nla_data(nla), data_len))
--			BUG();
-+			goto nla_put_failure;
- 	}
- 
- 	nlh->nlmsg_len = inst->skb->tail - old_tail;
-@@ -698,6 +698,21 @@ static const struct nf_loginfo default_loginfo = {
- 	},
- };
- 
-+static unsigned int nfulnl_get_copy_len(const struct nf_loginfo *li,
-+					const struct sk_buff *skb,
-+					unsigned int copy_len)
-+{
-+	unsigned int len = skb->len;
-+
-+	if ((li->u.ulog.flags & NF_LOG_F_COPY_LEN) &&
-+	    li->u.ulog.copy_len < copy_len)
-+		copy_len = li->u.ulog.copy_len;
-+	if (!skb_frags_readable(skb))
-+		len = skb_headlen(skb);
-+
-+	return min(len, copy_len);
-+}
-+
- /* log handler for internal netfilter logging api */
- static void
- nfulnl_log_packet(struct net *net,
-@@ -790,14 +805,7 @@ nfulnl_log_packet(struct net *net,
- 		break;
- 
- 	case NFULNL_COPY_PACKET:
--		data_len = inst->copy_range;
--		if ((li->u.ulog.flags & NF_LOG_F_COPY_LEN) &&
--		    (li->u.ulog.copy_len < data_len))
--			data_len = li->u.ulog.copy_len;
--
--		if (data_len > skb->len)
--			data_len = skb->len;
--
-+		data_len = nfulnl_get_copy_len(li, skb, inst->copy_range);
- 		size += nla_total_size(data_len);
- 		break;
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 35d4c6c628ff..b8aaf39cb4d8 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -690,6 +690,17 @@ static int nfqnl_put_master_ifindex(struct sk_buff *nlskb, int attr,
- }
- #endif
- 
-+static unsigned int nfqnl_get_data_len(const struct sk_buff *entskb,
-+				       unsigned int copy_range)
-+{
-+	unsigned int data_len = entskb->len;
-+
-+	if (!skb_frags_readable(entskb))
-+		data_len = skb_headlen(entskb);
-+
-+	return min(data_len, copy_range);
-+}
-+
- static struct sk_buff *
- nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 			   struct nf_queue_entry *entry,
-@@ -755,10 +766,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 		    nf_queue_checksum_help(entskb))
- 			return NULL;
- 
--		data_len = READ_ONCE(queue->copy_range);
--		if (data_len > entskb->len)
--			data_len = entskb->len;
--
-+		data_len = nfqnl_get_data_len(entskb, READ_ONCE(queue->copy_range));
- 		hlen = skb_zerocopy_headlen(entskb);
- 		hlen = min_t(unsigned int, hlen, data_len);
- 		size += sizeof(struct nlattr) + hlen;
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index ec1a21e3b6e2..dabbaa742874 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -14,8 +14,8 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_u32.h>
- 
--static bool u32_match_it(const struct xt_u32 *data,
--			 const struct sk_buff *skb)
-+static int u32_match_it(const struct xt_u32 *data,
-+			const struct sk_buff *skb)
- {
- 	const struct xt_u32_test *ct;
- 	unsigned int testind;
-@@ -40,7 +40,8 @@ static bool u32_match_it(const struct xt_u32 *data,
- 			return false;
- 
- 		if (skb_copy_bits(skb, pos, &n, sizeof(n)) < 0)
--			BUG();
-+			return -1;
-+
- 		val   = ntohl(n);
- 		nnums = ct->nnums;
- 
-@@ -68,7 +69,7 @@ static bool u32_match_it(const struct xt_u32 *data,
- 
- 				if (skb_copy_bits(skb, at + pos, &n,
- 						    sizeof(n)) < 0)
--					BUG();
-+					return -1;
- 				val = ntohl(n);
- 				break;
- 			}
-@@ -90,9 +91,14 @@ static bool u32_match_it(const struct xt_u32 *data,
- static bool u32_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_u32 *data = par->matchinfo;
--	bool ret;
-+	int ret;
- 
- 	ret = u32_match_it(data, skb);
-+	if (ret < 0) {
-+		par->hotdrop = true;
-+		return false;
-+	}
-+
- 	return ret ^ data->invert;
- }
- 
--- 
-2.54.0
-
+Cheers, Phil
