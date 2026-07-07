@@ -1,309 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F41C30DD2F;
-	Tue,  7 Jul 2026 16:26:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783441563; cv=none; b=iwHNYrUyB/MM3XT+hgeo5JVt/p4aF/wwK/fq0r0JnPjby7wZpcCVkOeo0ewEdstzD/GM/AmJCNMv2jrdIIoMSEkP4BDxvHtaMI24aHypZsnpBSdWl4o2N6C0dJ26V6m1Adgz7zlAmSIAT95s8blFB2yZHnhcuh/Bh0WB4mRFwGU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783441563; c=relaxed/simple;
-	bh=UgR4pX0fSVmJ0GeiLM53tyFkFkQLvkwfVqKtUzeFg68=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h8RjxoVhl+J7BoVgH6FwuUS7XVbj10NcQSVxUqPcKOhogMGXVC0CDT0se45EYp3+Cxeliovrf0q3GfD2KsSt8X506suUSajmW2Ev51kJpODm6vkV3TLtg0Q41FDncx5Q1y8QwpR+/AZp+08u1/iJBvHkryR8Spd0C4GWuE+PZXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CYyP7Mf4; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F253859FD
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jul 2026 18:08:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.174
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783447706; cv=pass; b=HYAJYyjt8NJF7fkTb8lLvQf0CJNZCKX3QQGT+Q+pFcvUkrqqtPN74gKjNycKy+Ny5CnsTekH3piVFZcptGvddUJvyQD7+RFRxNXq4YAApNq2tFBpCxqV2LGQz3GZaTMFMlpdrORuB2MEjYWivlRgN+D+quaNsg2xTnsdDGfMNZ4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783447706; c=relaxed/simple;
+	bh=1K73blC9Kx3yaOPYnxm/Zkp/YEqW54XsRRVie4JKAHg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eORjwhCcItCPafwf/AxpF8reUY/hv0hr53SzjZajQqi8zep92scQs/TPBE4pIQTHhwz5HRGT2i+ayrIczD/PvWbe6673yAb8Mq4s9oiiwQp0TUGqKP0RCLCecusPrGYItbx1U44TxsGzR3SOkocOOxsH72lPGFAS2nOagC7N3sA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=U4E1TP9J; arc=pass smtp.client-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CYyP7Mf4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8B171F000E9;
-	Tue,  7 Jul 2026 16:26:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783441561;
-	bh=xaDuq1ZB1HflLrDzdt+OV6vrfoAZsFjA2zyfOAaYkgE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=CYyP7Mf4+GN9JppbBY9CLselE708FkBS7NaTpa1ICCH0kPty9sSTKl2ceN25EiSJB
-	 f+vwZpciH0whckwTcU4M8zGYtWzdOdGvzCBArGAagQ/3KeJmfZGopKUXTKUBF8e3OC
-	 srz0EXlTtlhOzcfztwb3jJ3XietlHsdhwt2UunmcVg+h7jdYqAzHu0JDcgj6Rk4aIL
-	 z7gMtD3mENFrZC7bTrMgsXJrbwZjJdTP3X+362B4RqKqXRhji9DdgZW2vmkKO0xp7J
-	 iAyQgBr9rX3CuDaVcNR5RqsYZZq6UVzRJtY5NXGrJKQg9YzfDPKaMuLIudP9umfRry
-	 KaRS7V12x2hrA==
-Date: Tue, 7 Jul 2026 18:25:58 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Felix Fietkau <nbd@nbd.name>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Simon Horman <horms@kernel.org>, David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v4 3/6] net: netfilter: Add IPv4 over IPv6 tunnel
- flowtable acceleration
-Message-ID: <ak0olot-8WTVrtGB@lore-desk>
-References: <20260703-b4-flowtable-sw-accel-ip6ip-v4-0-00398cd12382@kernel.org>
- <20260703-b4-flowtable-sw-accel-ip6ip-v4-3-00398cd12382@kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="U4E1TP9J"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2ccdf36f63dso10875ad.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jul 2026 11:08:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783447703; cv=none;
+        d=google.com; s=arc-20260327;
+        b=GV+ogJM2UWGu9mq2WHCa4jCEj7DsXZfNNePM7b9zwe5I56ZbR2xTh72r9Jo7ofyIzD
+         LouhmLC1DrDjufn2u5tXHsCu3zVEZBoCK4SiiWlG/nJJ3qaKLFv9vxwhJHtFoPTW5bRF
+         8E5eAR/rtGpvMSVSUdwa9oZqutueIZxY06HuKeCTNrDh04o5JZfxsawppR0BcZyxH6Q6
+         FMsI2daKVl9Mp8CpZ0coVD+xXJANwKfjRq6AUmA1gKPrXZVrWlmbygCdYs/1YS1lx2ml
+         EgFXQzURkfIYPyM2tpl4oagsP7RQt2MustS/0TjrH6x9cELOElA8tz1FbssUeGqbxHQZ
+         jFNQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=7AyY3In+/2qmMESFL0/aH5QS9fOZYo5idMgvT2hn8Fc=;
+        fh=n5dbouMqIJ5MdRme7pWNhtW7d6Cas+P+7EHDjxWUlbg=;
+        b=DZ/3d6TGCyOm/34+FbXJw12IEXNI9kR0LWVPepraH/A1wS/l4IXJZUr5T+Qw15OyAe
+         rm6Vmli8tqRTocrcQg4Vg7fFCutb8rrqrRT9i4/LA+cjdLQsgdoB9bvPe9uZSq0vECZ+
+         Ll+OAySUfFjquHjW8hs6jV5bUohuqo5ta7vqnOQRqYO03E8w9PpeeGUHlzFoMws5LtET
+         ylkvPY+oAGRIYRS4YbOmKjuIJugrlrRZ6+slvNWIppad2YD3Blr+yZv1+RyMF7omM0Ml
+         Qiy4HMpfMy/r2l+eTGm21peNS2dvGk8HzxZFPgpWQRG/FSQc3J09E3G3MEjsy0ngZjB1
+         Mpew==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1783447703; x=1784052503; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=7AyY3In+/2qmMESFL0/aH5QS9fOZYo5idMgvT2hn8Fc=;
+        b=U4E1TP9J56LQtx+hII1VURftSaTiurYbSkismgGXw2QLtQzD0fcXGzp70dmcc5FJto
+         pH2YU/tZhiRwS2QinCEwvclItZraI6w3VdKGd6yrVmhb0fk5yXs2H4BtH0tb/jgk8YNd
+         li4ct/ss9/8Jhw/q+jE6tlLG4wk4AmqH07e4v1FzD5YUoIWxBlmR+1y3Vw0mTLKhp8Sx
+         I/tU0onj4bL++Yw5VWayPe8tb0ahI6ELtORxhicJUEk7tZCClMlbAF8ItCAKzukRXHG1
+         IcaXEIR733fOIKqRx1dd5KDiuXZawhPnor1MoIhxrfA7vDsTBY6mB17idNdf2eibRzEa
+         PkXg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783447703; x=1784052503;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=7AyY3In+/2qmMESFL0/aH5QS9fOZYo5idMgvT2hn8Fc=;
+        b=YEHsumPc3dgPsPDQwmZVZhTB8zGY3zBisFYMS2akId8kEXmtut8I3EEWUbOxU7iQQr
+         5Y/MXX6lctSGz1+/57QPnkS9xFKEIL6XGFOa844FVUb1mDoO9NCWDKKPM+KgaZqqh257
+         i2cTgH8ug31iSOVOVG//WMG4CfDXQsv7TQSUwodofnQuO1trrCvjeCkf//U7jQuV6jkk
+         oA+NbE71f9Sm2LZki5s2l22y986qyVu6agawApJHGRcFH6bmzxI0iYjfg+fTdrWQjgAI
+         yKyx3XrOTvNFnmGB1OHWRutsxu6nv62zjzCLQ3kNdh0pQiMnbvDT+zQIhh6AYH9W4qOw
+         vjvA==
+X-Gm-Message-State: AOJu0YwB3Gh/u5pgDp5oRu6PO6gn9R3pzobCnU4bqyeyanekZvXCUCOz
+	EnwzTZuT1MmDjo/12BtAi7qitclDFRohxuPRYDjfbBjufX+oRCfadpbl2tJuFyqLEQrNsrS3Seq
+	Qo+1ceNNImxPWrMUskaVnlSG4SpktPnaTf0wcfGeTR+FNc/fbzO5LFdFS
+X-Gm-Gg: AfdE7cnuqNLXnjZBjzz48ClxEpMIQbA1Big1U4HbFJlWlNFQISJ7DDaLkZSAat5d8kM
+	YjaGkVTZ4VdgnGKZT98eMPrZpWKvkLp3ECKRtSzLRejZyxg2HJD606HYEmEtgsgE8RwohLwAa+A
+	BpycI6BqlFO7tZ6cEXZCp8Q4f5qCv26aaI31xxru1IPlUHOKvtS2HRlPdeXDfhWXn0Kr8X41tHK
+	59mFwQd1kAHhWHu6cam5pGjfba+AOnilpj8pLmOqtn5FZSEJjG9dwJR1gZXIz2AKFHGBS3YVVGb
+	uMYfLpq7qsqVeZ6BZYIj4pgKOLE=
+X-Received: by 2002:a17:903:11cf:b0:2bf:1000:d3ac with SMTP id
+ d9443c01a7336-2cce607e197mr62705ad.11.1783447702719; Tue, 07 Jul 2026
+ 11:08:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="KpcLrKuIJxPbhAqD"
-Content-Disposition: inline
-In-Reply-To: <20260703-b4-flowtable-sw-accel-ip6ip-v4-3-00398cd12382@kernel.org>
-
-
---KpcLrKuIJxPbhAqD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20260707111808.15057-1-fw@strlen.de>
+In-Reply-To: <20260707111808.15057-1-fw@strlen.de>
+From: Mina Almasry <almasrymina@google.com>
+Date: Tue, 7 Jul 2026 11:08:09 -0700
+X-Gm-Features: AVVi8CcZg6H7ZCwpRa3JUtgS5K2ltjGsH05X3uwsHfDHz7YhQht0vUfu_hvaCDg
+Message-ID: <CAHS8izP7YQ4er6Fuq-yzC1-=eUPYeOk1fn_Du=bd4tDgezjGzg@mail.gmail.com>
+Subject: Re: [PATCH nf v2] netfilter: handle unreadable frags
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-commenting on shashiko's report:
-https://sashiko.dev/#/patchset/20260703-b4-flowtable-sw-accel-ip6ip-v4-0-00=
-398cd12382%40kernel.org
+On Tue, Jul 7, 2026 at 4:18=E2=80=AFAM Florian Westphal <fw@strlen.de> wrot=
+e:
+>
+> sashiko reports:
+>  When an skb with unreadable fragments (such as from devmem TCP, where
+>  skb_frags_readable(skb) returns false) is processed by the u32 module,
+>  skb_copy_bits() will safely return a negative error code [..]
+>
+> xt_u32: bail out with hotdrop in this case.
+> gather_frags: return -1, just as if we had no fragment header.
+> nfnetlink_queue: restrict to the non-linear part.
+> nfnetlink_log: restrict to the non-linear part.
+>
+> v2:
+>  - skb_zerocopy helpers don't copy readable flag, i.e. nfnetlink_queue
+>  is broken too
+>  xt_u32 shouldn't return true if hotdrop was set.
+>
+> Cc: Mina Almasry <almasrymina@google.com>
+> Fixes: 65249feb6b3d ("net: add support for skbs with unreadable frags")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-> Introduce sw flowtable acceleration for the TX/RX paths of
-> IPv4 over IPv6 tunnels, relying on the netfilter flowtable
-> infrastructure.
-> The feature can be tested with a forwarding scenario between two
-> NICs (eth0 and eth1), where an IPv4 over IPv6 tunnel is used to
-> reach a remote site via eth1 as the underlay device:
->=20
->     ETH0 -- TUN0 <=3D=3D> ETH1 -- [IP network] -- TUN1 (2001:db8:2::2)
->=20
-> [IP configuration]
->=20
-> 6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state U=
-P group default qlen 1000
->     link/ether 00:00:22:33:11:55 brd ff:ff:ff:ff:ff:ff
->     inet 192.168.0.2/24 scope global eth0
->        valid_lft forever preferred_lft forever
-> 7: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state U=
-P group default qlen 1000
->     link/ether 00:11:22:33:11:55 brd ff:ff:ff:ff:ff:ff
->     inet6 2001:db8:2::1/64 scope global nodad
->        valid_lft forever preferred_lft forever
-> 8: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue stat=
-e UNKNOWN group default qlen 1000
->     link/tunnel6 2001:db8:2::1 peer 2001:db8:2::2 permaddr ce9c:2940:7dcc=
-::
->     inet 192.168.100.1/24 scope global tun0
->        valid_lft forever preferred_lft forever
->=20
-> $ ip route show
-> default via 192.168.100.2 dev tun0
-> 192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2
-> 192.168.100.0/24 dev tun0 proto kernel scope link src 192.168.100.1
->=20
+I don't understand netfliter implementations enough to confirm the
+error handling is correct, but in general handling skb_copy_bits()
+failures due to unreadable frags sounds good to me. I definitely did
+not address all the call sites in the first iteration, so:
 
-[...]
+Acked-by: Mina Almasry <almasrymina@google.com>
 
->  	struct nf_flow_xmit xmit =3D {};
-> +	struct in6_addr *ip6_daddr;
->  	struct flow_offload *flow;
->  	struct neighbour *neigh;
->  	struct rtable *rt;
-> @@ -844,25 +872,41 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff =
-*skb,
->  	other_tuple =3D &flow->tuplehash[!dir].tuple;
->  	ip_daddr =3D other_tuple->src_v4.s_addr;
-> =20
-> -	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
-> +	if (nf_flow_tunnel_push(state->net, skb, other_tuple, &ip_daddr,
-> +				&ip6_daddr) < 0)
->  		return NF_DROP;
-> =20
->  	switch (tuplehash->tuple.xmit_type) {
-> -	case FLOW_OFFLOAD_XMIT_NEIGH:
-> -		rt =3D dst_rtable(tuplehash->tuple.dst_cache);
-> +	case FLOW_OFFLOAD_XMIT_NEIGH: {
-> +		struct dst_entry *dst;
-> +
->  		xmit.outdev =3D dev_get_by_index_rcu(state->net, tuplehash->tuple.ifid=
-x);
->  		if (!xmit.outdev) {
->  			flow_offload_teardown(flow);
->  			return NF_DROP;
->  		}
-> -		neigh =3D ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, ip_daddr));
-> +		if (other_tuple->tun.encap_proto =3D=3D AF_INET6 ||
-> +		    ctx.tun.proto =3D=3D IPPROTO_IPV6) {
-> +			struct rt6_info *rt6;
-> +
-> +			rt6 =3D dst_rt6_info(tuplehash->tuple.dst_cache);
-> +			neigh =3D ip_neigh_gw6(rt6->dst.dev,
-> +					     rt6_nexthop(rt6, ip6_daddr));
-> +			dst =3D &rt6->dst;
-> +		} else {
-> +			rt =3D dst_rtable(tuplehash->tuple.dst_cache);
-> +			neigh =3D ip_neigh_gw4(rt->dst.dev,
-> +					     rt_nexthop(rt, ip_daddr));
-> +			dst =3D &rt->dst;
-> +		}
+> ---
+>  Mina, there are other places that BUG on skb_copy_bits().
+>  Could you please have a look at:
+>
+>  https://sashiko.dev/#/patchset/20260706155219.23757-1-fw%40strlen.de
+>
+>  and see if those need fixing or not?
+>  [ and the v2 review of this ... ]
+>
+>  Also, should skb_zerocopy() copy over the skb->readable
+>  flag (or refuse to handle unreadable skbs)?
+>
 
-- Does this logic correctly handle cross-family tunneling like an IPv6-in-I=
-Pv4
-  packet (SIT) being forwarded out via another IPv4 tunnel?
-  - SIT support is added by a following patch in the series.
+Yep it's buggy :(. From my reading, skb_zerocopy() needs to set the
+skb->readable frag on the to skb (and clear it on the from skb?). Let
+me find the cycles to fix that.
 
->  		if (IS_ERR(neigh)) {
->  			flow_offload_teardown(flow);
->  			return NF_DROP;
->  		}
->  		xmit.dest =3D neigh->ha;
-> -		skb_dst_set_noref(skb, &rt->dst);
-> +		skb_dst_set_noref(skb, dst);
->  		break;
-> +	}
->  	case FLOW_OFFLOAD_XMIT_DIRECT:
->  		xmit.outdev =3D dev_get_by_index_rcu(state->net, tuplehash->tuple.out.=
-ifidx);
->  		if (!xmit.outdev) {
-> @@ -1112,8 +1156,12 @@ nf_flow_offload_ipv6_lookup(struct nf_flowtable_ct=
-x *ctx,
->  	if (!nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IPV6)))
->  		return NULL;
-> =20
-> -	if (nf_flow_tuple_ipv6(ctx, skb, &tuple) < 0)
-> +	if (ctx->tun.proto =3D=3D IPPROTO_IPIP) {
-> +		if (nf_flow_tuple_ip(ctx, skb, &tuple) < 0)
-> +			return NULL;
-> +	} else if (nf_flow_tuple_ipv6(ctx, skb, &tuple) < 0) {
->  		return NULL;
-> +	}
-> =20
->  	return flow_offload_lookup(flow_table, &tuple);
->  }
-> @@ -1140,7 +1188,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_bu=
-ff *skb,
->  	if (tuplehash =3D=3D NULL)
->  		return NF_ACCEPT;
-> =20
-> -	ret =3D nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash, skb);
-> +	if (ctx.tun.proto =3D=3D IPPROTO_IPIP)
-> +		ret =3D nf_flow_offload_forward(&ctx, flow_table, tuplehash, skb);
-> +	else
-> +		ret =3D nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash,
-> +						   skb);
->  	if (ret < 0)
->  		return NF_DROP;
->  	else if (ret =3D=3D 0)
-> @@ -1164,21 +1216,38 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_b=
-uff *skb,
->  		return NF_DROP;
-> =20
->  	switch (tuplehash->tuple.xmit_type) {
-> -	case FLOW_OFFLOAD_XMIT_NEIGH:
-> -		rt =3D dst_rt6_info(tuplehash->tuple.dst_cache);
-> +	case FLOW_OFFLOAD_XMIT_NEIGH: {
-> +		struct dst_entry *dst;
-> +
->  		xmit.outdev =3D dev_get_by_index_rcu(state->net, tuplehash->tuple.ifid=
-x);
->  		if (!xmit.outdev) {
->  			flow_offload_teardown(flow);
->  			return NF_DROP;
->  		}
-> -		neigh =3D ip_neigh_gw6(rt->dst.dev, rt6_nexthop(rt, ip6_daddr));
-> +		if (other_tuple->tun.encap_proto =3D=3D AF_INET ||
-> +		    ctx.tun.proto =3D=3D IPPROTO_IPIP) {
-> +			__be32 ip_daddr =3D other_tuple->src_v4.s_addr;
-> +			struct rtable *rt4;
-> +
-> +			skb->protocol =3D htons(ETH_P_IP);
-> +			rt4 =3D dst_rtable(tuplehash->tuple.dst_cache);
-> +			neigh =3D ip_neigh_gw4(rt4->dst.dev,
-> +					     rt_nexthop(rt4, ip_daddr));
-> +			dst =3D &rt4->dst;
-
-- Can this branch incorrectly cast a struct rt6_info to a struct rtable
-  if an IPv4-in-IPv6 packet is forwarded to another IPv6 tunnel?
-  - Double tunnel encapsulation is not currently supported.
-
-Regards,
-Lorenzo
-
-> +		} else {
-> +			rt =3D dst_rt6_info(tuplehash->tuple.dst_cache);
-> +			neigh =3D ip_neigh_gw6(rt->dst.dev,
-> +					     rt6_nexthop(rt, ip6_daddr));
-> +			dst =3D &rt->dst;
-> +		}
->  		if (IS_ERR(neigh)) {
->  			flow_offload_teardown(flow);
->  			return NF_DROP;
->  		}
->  		xmit.dest =3D neigh->ha;
-> -		skb_dst_set_noref(skb, &rt->dst);
-> +		skb_dst_set_noref(skb, dst);
->  		break;
-> +	}
->  	case FLOW_OFFLOAD_XMIT_DIRECT:
->  		xmit.outdev =3D dev_get_by_index_rcu(state->net, tuplehash->tuple.out.=
-ifidx);
->  		if (!xmit.outdev) {
-> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_t=
-able_path.c
-> index caaf48c5fd2a..5e84b7f18a26 100644
-> --- a/net/netfilter/nf_flow_table_path.c
-> +++ b/net/netfilter/nf_flow_table_path.c
-> @@ -216,12 +216,13 @@ static int nft_flow_tunnel_update_route(const struc=
-t nft_pktinfo *pkt,
->  	struct dst_entry *tun_dst =3D NULL;
->  	struct flowi fl =3D {};
-> =20
-> -	switch (nft_pf(pkt)) {
-> +	switch (tun->encap_proto) {
->  	case NFPROTO_IPV4:
->  		fl.u.ip4.daddr =3D tun->dst_v4.s_addr;
->  		fl.u.ip4.saddr =3D tun->src_v4.s_addr;
->  		fl.u.ip4.flowi4_iif =3D nft_in(pkt)->ifindex;
-> -		fl.u.ip4.flowi4_dscp =3D ip4h_dscp(ip_hdr(pkt->skb));
-> +		if (nft_pf(pkt) =3D=3D NFPROTO_IPV4)
-> +			fl.u.ip4.flowi4_dscp =3D ip4h_dscp(ip_hdr(pkt->skb));
->  		fl.u.ip4.flowi4_mark =3D pkt->skb->mark;
->  		fl.u.ip4.flowi4_flags =3D FLOWI_FLAG_ANYSRC;
->  		break;
-> @@ -229,13 +230,14 @@ static int nft_flow_tunnel_update_route(const struc=
-t nft_pktinfo *pkt,
->  		fl.u.ip6.daddr =3D tun->dst_v6;
->  		fl.u.ip6.saddr =3D tun->src_v6;
->  		fl.u.ip6.flowi6_iif =3D nft_in(pkt)->ifindex;
-> -		fl.u.ip6.flowlabel =3D ip6_flowinfo(ipv6_hdr(pkt->skb));
-> +		if (nft_pf(pkt) =3D=3D NFPROTO_IPV6)
-> +			fl.u.ip6.flowlabel =3D ip6_flowinfo(ipv6_hdr(pkt->skb));
->  		fl.u.ip6.flowi6_mark =3D pkt->skb->mark;
->  		fl.u.ip6.flowi6_flags =3D FLOWI_FLAG_ANYSRC;
->  		break;
->  	}
-> =20
-> -	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
-> +	nf_route(nft_net(pkt), &tun_dst, &fl, false, tun->encap_proto);
->  	if (!tun_dst)
->  		return -ENOENT;
-> =20
->=20
-> --=20
-> 2.55.0
->=20
-
---KpcLrKuIJxPbhAqD
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCak0olgAKCRA6cBh0uS2t
-rI3NAQClQS3W+Ft7PA84x3n6YiTHeu7fpbuZ5bFy/w/e7uXuhgD/RyZixGGKm2Qr
-cNBbhlAS61B4HSxfpr27WoCCykRS+Ac=
-=gbZe
------END PGP SIGNATURE-----
-
---KpcLrKuIJxPbhAqD--
+--=20
+Thanks,
+Mina
