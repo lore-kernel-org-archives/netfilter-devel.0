@@ -1,39 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823D03FCB1E
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:33:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 202A540B6D9
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:33:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783503188; cv=none; b=lFZJH0dOl4OLBDfPTTkMdO+KS6f5q5ByzeVYmOIzzOHZEYmZznii+4BovUU7YgE3dN5eCc0hUF7MW7ZIWQHQ2huBW26c/1cwCDg4WSbO6C1TZjVxy3vaZbPzDOvan4FRKQ2LMCnCjCFZfFTVX0Jcfw08NtMzNKtAlW8BXggUvjA=
+	t=1783503192; cv=none; b=lltCkuQeojUbfP9eI8VB39Rr6vE8HGZV+k0g6qNxX34fBUwbbJkRAuDfArHLTae50nc1+0H/Md79uWDhj9MU4bzy17bNFGf7tYREQwQEWnEe3CAS/gZAsGjmqlVd7NMxbjA9sFSx/6mj5xO1BU1cAbDXQQjvB89sEdYAE0eROuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783503188; c=relaxed/simple;
-	bh=LimfHNhKbzGj41cNpuGnOzVAlvSDxXYFowW8stUMmGo=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=EJ+Mfe2KA6/QJMmmH+AHnJ+I4e8wh00sfoXzd5bnJFOqgOF67ygG84cF/qGwcSJb0IBSpGgKssdh5WIB0h9Seo2/wN6Iw9ol4rbWq8DalmqspvxmLMJZ+WAR5DjQ7ThhbmcHXO6E1yAktBn3m9PDIdHToCrnaU+XwTo08yA4OFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iyfdjtY0; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1783503192; c=relaxed/simple;
+	bh=/9n6elf9/QQyUIYk6CFJr+wuZ0dhotKnak9tKLwKfGw=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=LQN2wF+cC1f3nY5xQXCW2vrGbmDwTM5S1/iWWXh3pmVysQ3UyK/uOQRJ5Pj1/isbF3W1fSaeBpn4eP2QoGMxr+OpEzWG2NJMXOvndkJPlCLM8TdvUR0Xt45KUNs5fdhVPQQsP2Q/3QNypNLPWRVA8WZjZoqEbGH5oXSD0JCF2ik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=berYGJRj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iyfdjtY0"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="berYGJRj"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 40AAE6057C
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 11:32:56 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8E82B6057E
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 11:32:57 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783503176;
-	bh=0mdV7mm6RiiR4cIHSloM9vWmiJg/yyyRgEBQ1G1DsRY=;
-	h=From:To:Subject:Date:From;
-	b=iyfdjtY0DPmr0uxo7dj/ypPhmNGPtrENT9uLjyrdlphuUbAtfwBaD67cH3A3gAah7
-	 xoXWj5PXpYR/gyqcoQkQPTvBhOVKI2WfVKxo74Q5A3fKevoA+ySRF04DpLVFSgTFmm
-	 1d1jkesbhAbtYGGeewUyWvONYTMJN+Eyiky5cUCawGnxaRWwYu3ja3WtPXEufsS3tC
-	 3TO2K7pVIl24gNa+hChB//wEjF6XMfDvGeFMpa7iRjCTyeL6bD/fhCqhN7qqHCQkle
-	 oBnID2qIlLPNZEHVITxCWED7VIYHFEdmj5dYonBKfsazmKsDKbUKNdmnAhPwAfbBtY
-	 N+TjI7d7tmkQg==
+	s=2025; t=1783503177;
+	bh=4m0Pf/sAFsxmsWuLaEObSKxzqCHTbZXeK3abW83sgd4=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=berYGJRjNw65HYjlbLlY+NozsLVbV1JNUx4qSa3xR0AiV308+gJPEw8r1IYCV8Uj5
+	 JLKV/lH7eLHUTFjLsJunP98qR9Yfto1yzZ5vJclIAmBWvanflGv9apX85E28ziNnMf
+	 2vUFj++eXDt4KYFhXASCjbVdoHXTZY6ehLxU1abFaTko6lvKzr9MyKqsqofT4XOnSi
+	 qv7QuKZSqme7dAdlbGIzAqCVs/72JLYY+gxoDQhldQ0t4bw5kPfFJgKO3tDBTq+PTp
+	 8MR1IU4hcjL0guvTbyCy9E177gtAnTLE8L2eAeoI/g89/dzYxlki5zLbXtsxVhcgT7
+	 JeOEXeA3uo0gg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v1 1/4] bridge: Add filling forward path from port to port
-Date: Wed,  8 Jul 2026 11:32:47 +0200
-Message-ID: <20260708093250.1187068-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v1 2/4] net: pass net_device_path_ctx struct to dev_fill_forward_path()
+Date: Wed,  8 Jul 2026 11:32:48 +0200
+Message-ID: <20260708093250.1187068-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260708093250.1187068-1-pablo@netfilter.org>
+References: <20260708093250.1187068-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,109 +45,127 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Eric Woudstra <ericwouds@gmail.com>
+Generalize dev_fill_forward_path() so it can be used by the bridge
+family to retrieve the bridge vlan filtering information from the
+bridge port when discovering the bridge flowtable path.
 
-If a port is passed as argument instead of the master, then:
-
-At br_fill_forward_path(): find the master and use it to fill the
-forward path.
-
-At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
-instead.
-
-Changed call to br_vlan_group() into br_vlan_group_rcu() while at it.
-
-Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v1: I took this existing patch for the bridge vlan filtering, but
-    bridge vlan filtering is untested at this stage at least for me.
+v1: A different approach compared to Eric Woudstra's proposal to
+    add another function to the net core for the bridge case.
+    I am leaning towards making a simple generalization and keep
+    the bridge vlan filtering path discovery special case under
+    the flowtable at this stage.
 
- net/bridge/br_device.c  | 19 ++++++++++++++-----
- net/bridge/br_private.h |  2 ++
- net/bridge/br_vlan.c    |  6 +++++-
- 3 files changed, 21 insertions(+), 6 deletions(-)
+ include/linux/netdevice.h          |  2 +-
+ net/core/dev.c                     | 18 +++++++-----------
+ net/netfilter/nf_flow_table_path.c | 12 +++++++++++-
+ 3 files changed, 19 insertions(+), 13 deletions(-)
 
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index e7f343ab22d3..89f4525a7279 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -385,16 +385,25 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
- static int br_fill_forward_path(struct net_device_path_ctx *ctx,
- 				struct net_device_path *path)
- {
-+	struct net_bridge_port *src, *dst;
- 	struct net_bridge_fdb_entry *f;
--	struct net_bridge_port *dst;
- 	struct net_bridge *br;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 07bf265d0295..41cd092b032c 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -3420,7 +3420,7 @@ void dev_remove_offload(struct packet_offload *po);
  
--	if (netif_is_bridge_port(ctx->dev))
--		return -1;
-+	if (netif_is_bridge_port(ctx->dev)) {
-+		struct net_device *br_dev;
-+
-+		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-+		if (!br_dev)
-+			return -1;
- 
--	br = netdev_priv(ctx->dev);
-+		src = br_port_get_rcu(ctx->dev);
-+		br = netdev_priv(br_dev);
-+	} else {
-+		src = NULL;
-+		br = netdev_priv(ctx->dev);
-+	}
- 
--	br_vlan_fill_forward_path_pvid(br, ctx, path);
-+	br_vlan_fill_forward_path_pvid(br, src, ctx, path);
- 
- 	f = br_fdb_find_rcu(br, ctx->daddr, path->bridge.vlan_id);
- 	if (!f)
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index d55ea9516e3e..00f5b72ff42d 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -1630,6 +1630,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
- 			     const struct net_bridge_vlan *range_end);
- 
- void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+				    struct net_bridge_port *p,
- 				    struct net_device_path_ctx *ctx,
- 				    struct net_device_path *path);
- int br_vlan_fill_forward_path_mode(struct net_bridge *br,
-@@ -1799,6 +1800,7 @@ static inline int nbp_get_num_vlan_infos(struct net_bridge_port *p,
+ int dev_get_iflink(const struct net_device *dev);
+ int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
+-int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
++int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 			  struct net_device_path_stack *stack);
+ struct net_device *dev_get_by_name(struct net *net, const char *name);
+ struct net_device *dev_get_by_name_rcu(struct net *net, const char *name);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 4b3d5cfdf6e0..9a065c286d92 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -750,41 +750,37 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
+ 	return &stack->path[k];
  }
  
- static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+						  struct net_bridge_port *p,
- 						  struct net_device_path_ctx *ctx,
- 						  struct net_device_path *path)
+-int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
++int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 			  struct net_device_path_stack *stack)
  {
-diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index 5560afcaaca3..71531499bc73 100644
---- a/net/bridge/br_vlan.c
-+++ b/net/bridge/br_vlan.c
-@@ -1450,6 +1450,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
- EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
+ 	const struct net_device *last_dev;
+-	struct net_device_path_ctx ctx = {
+-		.dev	= dev,
+-	};
+ 	struct net_device_path *path;
+ 	int ret = 0;
  
- void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-+				    struct net_bridge_port *p,
- 				    struct net_device_path_ctx *ctx,
- 				    struct net_device_path *path)
+-	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
+ 	stack->num_paths = 0;
+-	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
+-		last_dev = ctx.dev;
++	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
++		last_dev = ctx->dev;
+ 		path = dev_fwd_path(stack);
+ 		if (!path)
+ 			return -1;
+ 
+ 		memset(path, 0, sizeof(struct net_device_path));
+-		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
++		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
+ 		if (ret < 0)
+ 			return -1;
+ 
+-		if (WARN_ON_ONCE(last_dev == ctx.dev))
++		if (WARN_ON_ONCE(last_dev == ctx->dev))
+ 			return -1;
+ 	}
+ 
+-	if (!ctx.dev)
++	if (!ctx->dev)
+ 		return ret;
+ 
+ 	path = dev_fwd_path(stack);
+ 	if (!path)
+ 		return -1;
+ 	path->type = DEV_PATH_ETHERNET;
+-	path->dev = ctx.dev;
++	path->dev = ctx->dev;
+ 
+ 	return ret;
+ }
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 98c03b487f52..007e9781902a 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -42,6 +42,14 @@ static bool nft_is_valid_ether_device(const struct net_device *dev)
+ 	return true;
+ }
+ 
++static void nft_dev_fill_forward_path_init(struct net_device_path_ctx *ctx,
++					   const struct net_device *dev, const u8 *daddr)
++{
++	memset(ctx, 0, sizeof(*ctx));
++	ctx->dev	= dev;
++	memcpy(ctx->daddr, daddr, sizeof(ctx->daddr));
++}
++
+ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ 				     const struct dst_entry *dst_cache,
+ 				     const struct nf_conn *ct,
+@@ -50,6 +58,7 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
  {
-@@ -1462,7 +1463,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
- 	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
- 		return;
+ 	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
+ 	struct net_device *dev = dst_cache->dev;
++	struct net_device_path_ctx ctx;
+ 	struct neighbour *n;
+ 	u8 nud_state;
  
--	vg = br_vlan_group_rcu(br);
-+	if (p)
-+		vg = nbp_vlan_group_rcu(p);
-+	else
-+		vg = br_vlan_group_rcu(br);
+@@ -71,8 +80,9 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ 	if (!(nud_state & NUD_VALID))
+ 		return -1;
  
- 	if (idx >= 0 &&
- 	    ctx->vlan[idx].proto == br->vlan_proto) {
++	nft_dev_fill_forward_path_init(&ctx, dev, ha);
+ out:
+-	return dev_fill_forward_path(dev, ha, stack);
++	return dev_fill_forward_path(&ctx, stack);
+ }
+ 
+ struct nft_forward_info {
 -- 
 2.47.3
 
