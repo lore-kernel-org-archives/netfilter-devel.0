@@ -1,137 +1,185 @@
-Received: from out-180.mta0.migadu.com (out-180.mta0.migadu.com [91.218.175.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801A0405C27
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 08:53:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10D17407CC7
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:22:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783500830; cv=none; b=S0z4d/Ww0TkX2dNsP/mupxNQG/qO+Xa0851QSCzOD3OAziXnxI8Pi2oBx+xmEW50VaNCwiQQHcMnqqza1cx0nptGagOy2CqyUqv8cmajfgc/Ri4P8HzB7elSAcWhBvopwjmh+5XAYWMC/YDm3gXRLhiyWP3OamyhIpZhhMGTgVw=
+	t=1783502578; cv=none; b=EJw7ZIYpVyWSQMypQJ5uXB0ASFWdfHzP2f5yGLD22y7sNwYf0U2jpP5z4ajNKeHY4s3e1vvK5PZ75nXX+ROBdzL9+UtHhZ4Yd2yGzmUXoEr0IiXYZmAhpKShNS7l1G0gqWqRxu+Yr+nEb9JB7OluWPCvtmnHB0K8l/M99z62k4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783500830; c=relaxed/simple;
-	bh=zOlEVYeGEnHUWgGiq13W7clte+Kjpp6lbmP5AtRSte4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cjY1Q4DI6/Tq76x03vEJfDFvAXNVaXVcTA1vMZL9otgtRnvOk9mg9EnKXaeVc6VSy8aiyWZHhYQteeOFWIyyIrBzt2EQWL5WDkIn5C+0G7mh1QiitRt9K+sotM/6o1xTgw1TdBGwCKzO/nUNoYiysmHFfs2gA0KW0SpIIBX0/xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=IPMFtSyw; arc=none smtp.client-ip=91.218.175.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1783502578; c=relaxed/simple;
+	bh=71IPpVxSL6rELSFV3RscCJl7aym1gXBpQyo2V285sW4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QAjzgU/gu8jWESuGBhI3ma3WMvKtLX/V9aulYgus4QYKVPcVA7vQM8461GVBTuTnQWrX/kiNtnYnL8ZN5YNheBiiSE1ATuRiRzmLFpqiMNjTZ6soshPUHs+9dw8BqzPvmxR+zKMrDIjhEpWfw5XXqMdKw3m+IkH1ooc+ZwXnMLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=oiAX3HRW; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="IPMFtSyw"
-Message-ID: <7298c8b1-be12-444d-b7ff-fd88bac48022@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1783500814;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hdkSyk5AuGaQo2OKjcPZNgt6Jx7S1vSumu70nXXh9iU=;
-	b=IPMFtSyw5HezFJEHu/c2l5XBBfPimAsvCz5NU9Rs/W4y5iZxgvqAUdVX04q1HdFoqt+k+7
-	9OEa2rwougvpcH7ICxzOhHoENlyyUlVJTUOGq/f9P7Wc5pVy52dLYRbu8LZILu4Z34d3NA
-	8bA+vCxGYPfBxJtlW7lbT17x80Y6fSY=
-Date: Wed, 8 Jul 2026 09:53:28 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oiAX3HRW"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3811f512167so575660a91.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783502576; x=1784107376; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=bESlo7lvNwhdiVElYDSnZy0QW9Bj+WsccRVrVGGNJng=;
+        b=oiAX3HRWBGooIDPulrZn1l987zJdstH6BPbfN05ASw4hB35iJdMBZ0YS8nsNTs7ePL
+         j3IRes2PnwojXzYU9NApKi2RPH1kFghEsvJNjad8A6lt6NAlQaacFDggaaA2t0aOzkeP
+         f7v0sXq0y/aGroJ8n16OTv5EUFZztalq3WLGn5J9wrYco9f2DIqB03K/KNJ7u25p35WY
+         Q5ClouECdVbbyz0uZqQM0Se4l21yINh6j2LzNPH+4Zf12OWh6bK0ZFma4b2+btlDju8u
+         b43opC16xq8o0VFCk0hr9hp3uu29bs14ZReLVRqPFZ3K2hFvatl1D2nBqAZyadRfMo3k
+         zxZg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783502576; x=1784107376;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bESlo7lvNwhdiVElYDSnZy0QW9Bj+WsccRVrVGGNJng=;
+        b=fNvANsjRC6RwSlHGmYm8IazUG4w0EFoCYbEP3n7jq7Vkq0UJcLQp8nCiUbhSVUfVAD
+         f6RYNzmtygRbsIEY2IHPxVHe5Ga/rbCIhqudTfKiFcz/lEIpu//EtAs5maaKnnJ6k3Ic
+         5PMjrmyo3hkROK3K3CfCfOsupXxkCsZb6CK4UkA5YN6GqYGd57uYHGD+KtyPUidyr5x6
+         oWOiCvl1SH4mk7evumJnYkRtypoCbRsBtw5CaY4fX2yLAJ96P/nAFDJS1u1l/vsPl/mh
+         wX2/T6ubB70D/gM2SkhkvKuiPwJTrZoZtHtzc8WuZYazeFY4WYOd6qXAb/tDNkf0fj/H
+         BdjQ==
+X-Forwarded-Encrypted: i=1; AHgh+RpcxkLXvkjRK22ZlthtMbcrXNam+XfEQnPaaEcAZ4DFr9Sgn0CCmi1vUIBfGLv6mZi/P4m91Fboh67o2AwkQxI=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw1f7vyUlWIT+Sc/n9bfYySkX/XVXRUEOQEaKtDz14m3s9uSkaw
+	XEtvanblB72gsypKmMhCejcqugMuG1SyCCxTzkS63N/GPxCTVOWT9ruu
+X-Gm-Gg: AfdE7cnrzzVkXEcNIag0b4do5pCXYboFGldds7tfsgaN3+IM9+eRImH9o8paBut9OMn
+	Wy/y/8QI7/6e+sdQq6kIMRQ/z5U2V6veNezHzkOFwIYerGxFIUxzDX7TsmgDwqF8ST/kexpWDdO
+	Exiznh0Kk1lJemUTtC++jFlRRK3ejT22sCzfNUbxbr0dNwzvV+8bxfuLt5uhLWJrqNrF+DriA9J
+	L9bnvhvQ8i+1VWS5sooiKC/9AkX14+aAaqfkcSwBuWFj58ljV7doME2hreegPIQKBvFxuG6BxFe
+	oCDmd4YxRfHFWweOjpjMOnL8uSZUaGk89Onu07JoJlGMRcQlevd+iwc44CWejj6NkSOK0Rn/Q4R
+	ILyvyNM9KluxYg1t8fxUcz1cN8EXEYVZeD5MT/Kg6lHolP4LnUGIffHupiKgeFBP2VO9C2kTLW7
+	zh3/Ni
+X-Received: by 2002:a17:90b:17c1:b0:37f:ed7e:7e42 with SMTP id 98e67ed59e1d1-3893ff630c1mr1831193a91.14.1783502576376;
+        Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
+Received: from homebox ([66.75.253.8])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3118389d9bcsm9985334eec.20.2026.07.08.02.22.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
+From: Yuan Tan <yuantan098@gmail.com>
+To: linux-kernel@vger.kernel.org,
+	workflows@vger.kernel.org
+Cc: yuantan098@gmail.com,
+	jhs@mojatatu.com,
+	gregkh@linuxfoundation.org,
+	sven@narfation.org,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	linux-crypto@vger.kernel.org
+Subject: [RFC] VEGA: a syzbot-like workflow for LLM-found kernel bugs
+Date: Wed,  8 Jul 2026 02:22:47 -0700
+Message-ID: <20260708092247.4188498-1-yuantan098@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH nf v2] ipvs: make destination flags atomic
-To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>,
- Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
- David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, Alexander Frolkin <avf@eldamar.org.uk>
-Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, stable@vger.kernel.org,
- Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>, Ao Wang <wangao@seu.edu.cn>,
- Xuewei Feng <fengxw06@126.com>, Qi Li <qli01@tsinghua.edu.cn>,
- Ke Xu <xuke@tsinghua.edu.cn>
-References: <20260708060454.20534-1-zhaoyz24@mails.tsinghua.edu.cn>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Vadim Fedorenko <vadim.fedorenko@linux.dev>
-In-Reply-To: <20260708060454.20534-1-zhaoyz24@mails.tsinghua.edu.cn>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 8bit
 
-On 08/07/2026 07:04, Yizhou Zhao wrote:
-> IPVS destination schedulers read dest->flags from packet processing paths
-> while holding only the RCU read lock.  The same word is updated by plain
-> read-modify-write operations from connection accounting and destination
-> update paths, for example ip_vs_bind_dest(), ip_vs_unbind_dest(), and
-> __ip_vs_update_dest().
-> 
-> The RCU read lock protects the destination lifetime, but it does not
-> serialize accesses to dest->flags.  A plain load can therefore race with a
-> plain write, and concurrent plain read-modify-write updates can lose an
-> AVAILABLE or OVERLOAD bit update.
-> 
-> KCSAN reports the race with a standard IPVS configuration using the SH
-> scheduler and a destination with u_threshold set:
-> 
->    BUG: KCSAN: data-race in __ip_vs_update_dest / ip_vs_sh_schedule
->    write to ... of 4 bytes by task ipvs_cfg:
->      __ip_vs_update_dest
->      ip_vs_edit_dest
->      do_ip_vs_set_ctl
->      __x64_sys_setsockopt
->    read to ... of 4 bytes by task ipvs_churn:
->      ip_vs_sh_schedule
->      ip_vs_schedule
->      tcp_conn_schedule
->      ip_vs_in_hook
->      tcp_connect
->      __x64_sys_connect
->    value changed: 0x00000003 -> 0x00000001
-> 
-> Convert dest->flags to atomic_t and use atomic_read(), atomic_or(), and
-> atomic_and() for all destination flag tests and updates.  This preserves
-> the existing 32-bit field size while making the flag updates atomic RMW
-> operations and making readers use atomic accesses.  Valid minimum-sized
-> IPVS configuration and scheduling paths are unchanged; only the
-> synchronization of the destination status flags changes.
-> 
-> This is limited to synchronizing the flags word itself.  It does not add
-> ordering for readers, and it does not make scheduler decisions operate on a
-> fresh snapshot of all destination state; readers may still observe stale
-> state in the usual IPVS fast path. This keeps the packet fast path free
-> of additional barriers or locks.
-> 
-> Fixes: eba3b5a78799d ("ipvs: SH fallback and L4 hashing")
-> Cc: stable@vger.kernel.org
-> Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-> Reported-by: Ao Wang <wangao@seu.edu.cn>
-> Reported-by: Xuewei Feng <fengxw06@126.com>
-> Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-> Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-> Assisted-by: Claude-Code:GLM-5.2
-> Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> ---
-> Changes in v2:
-> - Clarify that the patch fixes the flags data race and RMW lost updates,
->    but does not prevent readers from observing stale scheduling state.
-> - Fix checkpatch logical-continuation warnings.
-> - Suggested by Julian Anastasov.
-> - Link to v1: https://lore.kernel.org/netfilter-devel/20260707085706.96322-1-zhaoyz24@mails.tsinghua.edu.cn/
-> ---
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 49297fec448a..bb969738ed73 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -972,7 +972,7 @@ struct ip_vs_dest {
->   	u16			af;		/* address family */
->   	__be16			port;		/* port number of the server */
->   	union nf_inet_addr	addr;		/* IP address of the server */
-> -	volatile unsigned int	flags;		/* dest status flags */
-> +	atomic_t		flags;		/* dest status flags */
->   	atomic_t		conn_flags;	/* flags to copy to conn */
->   	atomic_t		weight;		/* server weight */
->   	atomic_t		last_weight;	/* server latest weight */
+Hi all,
 
-It would be quite interesting to look at pahole output of ip_vs_dest
-structure after the modification, it may have some "areas to improve"
-for the performance
+We would like to ask for feedback on a proposed workflow for reporting Linux
+kernel bugs found by an LLM-assisted code auditing tool that we have
+been developing since earlier this year.
+
+Since February, we have been developing an LLM-driven kernel code auditing
+tool called VEGA. It started as a side project, but the results became much
+substantial than we expected: VEGA has found hundreds of valid bugs in Linux
+kernel.
+
+That immediately created a practical problem: we do not want to dump a large
+pile of bug reports onto mail lists and annoy the maintainers.
+
+The first thing we tried was to fix as many as we could ourselves. We
+started working with a group of student volunteers. Most of them are
+college students, so we have been training them, reviewing their patches,
+and trying to build an internal review process before anything is sent to
+the mailing list. The goal is to turn these findings into useful fixes, and
+also to help new contributors grow into people who can reduce maintainer
+workload instead of adding to it.
+
+The process was not perfect. Some patches were not good enough, and we also
+made some mistakes early on when deciding what should be called a security
+issue.  Our internal review process has been improving with the help of the
+community.
+
+Since March, we picked up non-root triggerable bug first and have worked on
+fixes for more than 100 validated kernel bugs. we especially want to thank
+the students and professor who have helped a lot with this effort.
+
+But the remaining queue is still too large for us to handle.
+
+Recently Jamal pointed out problems around our tags. That made me realize
+that we should probably stop treating this as an ad-hoc patch effort and
+build something closer to syzbot: public, reproducible, trackable,
+deduplicated, and useful to maintainers.
+
+So this mail is an RFC for a VEGA reporting workflow.
+
+The rough idea
+==============
+
+VEGA would have a public dashboard, similar to syzbot, and would
+send selected bug reports to the relevant kernel mailing lists.
+
+The goal is to send reports that contain enough information for maintainers
+or other developers to pick up, understand, reproduce and fix the issue.
+
+For each public report, we expect to include:
+
+  - a description of the bug
+  - the tested kernel tree and commit
+  - the kernel config and environment
+  - the crash log
+  - a minimized user-space reproducer
+  - the suspected introducing commit
+  - a suggested fix patch
+
+The suggested fix patch is meant to reduce maintainer burden. It still need
+human review, but hopefully it can save a lot time from building a patch
+from scratch.
+
+What will be public
+===================
+
+All VEGA findings that we have evaluated as not having major security
+impact can be published on the VEGA dashboard. The dashboard would make it
+possible to see what VEGA found, whether the issue was reproduced, whether
+a fix exists, whether it was reported to a mailing list, and whether it has
+been fixed upstream.
+
+For issues that we have validated as having possible serious security
+impact, we will not publish it on the public dashboard before going through
+the appropriate kernel security process.
+
+Dumping everything onto the mailing list may be annoying. During the initial
+stage, reports will be rate-limited and sent manually. We will check for
+duplicates against lore/upstream, and make sure the issue is not already
+fixed or reported.
+
+Report identity and tags
+========================
+
+Each public VEGA report will have a stable identity, similar to
+syzbot reports.
+
+One possible format is:
+
+  Reported-by: VEGA <vega+HASH@DOMAIN>
+  Closes: <public dashboard URL>
+
+=========
+
+We would like to hear what maintainers think about this before we start
+sending these reports.
+
+We do not want VEGA to become another source of mailing list noise. The goal
+is to make LLM-based bug finding transparent and useful, and to make sure
+the reports come with enough context, reproducers, suggested fixes, and
+tracking so that they reduce work rather than create more.
+
+Thanks,
+Yuan
+
