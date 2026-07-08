@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159C241B358;
-	Wed,  8 Jul 2026 14:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 556EA4218B6;
+	Wed,  8 Jul 2026 14:04:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783519440; cv=none; b=UVcP0mSA6NtHcJGUcyU1k76ZOGe/xNRE+/ly3gUunultYCJEgumAv4RmA82cYaxe97t3QS/E42xtOJyGe5EQr134LYydqtLVoONToz8J8YYT9BsRW5GUYR9XYRmUthAi8nUgefVHVggRfQ8m/g8Ra2qG8D3RVzUT1+zDr71qR5E=
+	t=1783519444; cv=none; b=p5XM7B1OKkRHw+88e9OuOs4+gOdPR4i8qws5uge7MlXOfQH+Hh8FBirIL59e94u8m8OC+N4CEOwccn+oysgAmj429CLS4cWkgnyMseyHNy8NneuDCFz/NlY+OW9gaeP+qn3GRP/2vgx6tTZjXJz5K6THkghPZh9gKyza7dPiZaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783519440; c=relaxed/simple;
-	bh=GNkKpxB5B0ubW7+Mu5YOk8E45lf3Hv/rSf+8fitcvXk=;
+	s=arc-20240116; t=1783519444; c=relaxed/simple;
+	bh=9KYFpw/ED8UYnIoYqC4JydgklQ2i+NLm/DzGieNc5NY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sXDjRQ/sJAi3CPctC8NSL4ETzylUjXn1BDkAASfqYf+CdQVpmNFW/8KyzPx0yMSgkLmYoZyL9c/oEbl9iutj8B9JwYUabBSfR6OuOazTJUaNmEoO2Rxd8Wz5wFO6VNeYups3EANM1Az2B6uJa4w6bEYWZ74ejm/cAFtf69sqfw0=
+	 MIME-Version; b=cycDosJ70LZNSehNr90xzZBX2KTDSYmcpCXV+1nPKtnpj5pT7W/Chd3IvvZ/o6LnOcmeKd4GjBdjHiQSKbJjlcFBI5Z7/74CHu5dohbkrDhppd12cpFG7C0HG1MBPdWnMVKoCrGK0mheXkJtqyvCw/92rEOSREWkHtFAq54i+pY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9F2036076F; Wed, 08 Jul 2026 16:03:57 +0200 (CEST)
+	id E142E607B9; Wed, 08 Jul 2026 16:04:01 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 09/17] netfilter: ipset: allocate the proper memory for the generic hash structure
-Date: Wed,  8 Jul 2026 16:03:01 +0200
-Message-ID: <20260708140309.19633-10-fw@strlen.de>
+Subject: [PATCH net 10/17] netfilter: flowtable: use dst in this direction when pushing IPIP header
+Date: Wed,  8 Jul 2026 16:03:02 +0200
+Message-ID: <20260708140309.19633-11-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260708140309.19633-1-fw@strlen.de>
 References: <20260708140309.19633-1-fw@strlen.de>
@@ -38,55 +38,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Because a single create function is emitted for every hash type,
-from the IPv4 and IPv6 generic hash structure definitions the last
-one, i.e. the IPv6 was in effect for IPv4 too. Use the proper size
-when allocating the structure. Comment properly that because create()
-refers to elements of the generic hash structure, all referred ones
-must come before the IPv4/IPv6 dependent 'next' member.
+When pushing the IPIP header, the route of the other direction is used
+to calculate the headroom, use the route in this direction. Accessing
+the other tuple to set the IP source and destination is fine because
+this tuple does not provide such information to avoid storing redundant
+information. However, this tuple already provides the dst for this
+direction, this went unnoticed because this bug affects headroom and
+iph->frag_off only at this stage.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Fixes: d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw acceleration")
+Fixes: 93cf357fa797 ("netfilter: flowtable: Add IP6IP6 tx sw acceleration")
+Cc: stable@vger.kernel.org
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index c0132d0f4cc0..8231317b0f1f 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -303,10 +303,13 @@ struct htype {
- 	u8 netmask;		/* netmask value for subnets to store */
- 	union nf_inet_addr bitmask;	/* stores bitmask */
- #endif
--	struct mtype_elem next; /* temporary storage for uadd */
- #ifdef IP_SET_HASH_WITH_NETS
- 	struct net_prefixes nets[NLEN]; /* book-keeping of prefixes */
- #endif
-+	/* Because 'next' is IPv4/IPv6 dependent, no elements of this
-+	 * structure and referred in create() may come after 'next'.
-+	 */
-+	struct mtype_elem next; /* temporary storage for uadd */
- };
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 29e93ac1e2e4..089f2bc19972 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -590,10 +590,10 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id,
  
- /* ADD|DEL entries saved during resize */
-@@ -1584,7 +1587,13 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	if (tb[IPSET_ATTR_MAXELEM])
- 		maxelem = ip_set_get_h32(tb[IPSET_ATTR_MAXELEM]);
+ static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
+ 				    struct flow_offload_tuple *tuple,
+-				    __be32 *ip_daddr)
++				    struct dst_entry *dst, __be32 *ip_daddr)
+ {
+ 	struct iphdr *iph = (struct iphdr *)skb_network_header(skb);
+-	struct rtable *rt = dst_rtable(tuple->dst_cache);
++	struct rtable *rt = dst_rtable(dst);
+ 	u8 tos = iph->tos, ttl = iph->ttl;
+ 	__be16 frag_off = iph->frag_off;
+ 	u32 headroom = sizeof(*iph);
+@@ -636,21 +636,22 @@ static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
  
--	hsize = sizeof(*h);
-+#ifdef IP_SET_PROTO_UNDEF
-+	hsize = sizeof(struct htype);
-+#else
-+	hsize = set->family == NFPROTO_IPV6 ?
-+		sizeof(struct IPSET_TOKEN(HTYPE, 6)) :
-+		sizeof(struct IPSET_TOKEN(HTYPE, 4));
-+#endif
- 	h = kzalloc(hsize, GFP_KERNEL);
- 	if (!h)
- 		return -ENOMEM;
+ static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
+ 				  struct flow_offload_tuple *tuple,
+-				  __be32 *ip_daddr)
++				  struct dst_entry *dst,  __be32 *ip_daddr)
+ {
+ 	if (tuple->tun_num)
+-		return nf_flow_tunnel_ipip_push(net, skb, tuple, ip_daddr);
++		return nf_flow_tunnel_ipip_push(net, skb, tuple, dst, ip_daddr);
+ 
+ 	return 0;
+ }
+ 
+ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
+ 				      struct flow_offload_tuple *tuple,
++				      struct dst_entry *dst,
+ 				      struct in6_addr **ip6_daddr)
+ {
+ 	struct ipv6hdr *ip6h = (struct ipv6hdr *)skb_network_header(skb);
+-	struct rtable *rt = dst_rtable(tuple->dst_cache);
+ 	__u8 dsfield = ipv6_get_dsfield(ip6h);
++	struct rtable *rt = dst_rtable(dst);
+ 	struct flowi6 fl6 = {
+ 		.daddr = tuple->tun.src_v6,
+ 		.saddr = tuple->tun.dst_v6,
+@@ -696,10 +697,11 @@ static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
+ 
+ static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
+ 				  struct flow_offload_tuple *tuple,
++				  struct dst_entry *dst,
+ 				  struct in6_addr **ip6_daddr)
+ {
+ 	if (tuple->tun_num)
+-		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, ip6_daddr);
++		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, dst, ip6_daddr);
+ 
+ 	return 0;
+ }
+@@ -842,7 +844,8 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	other_tuple = &flow->tuplehash[!dir].tuple;
+ 	ip_daddr = other_tuple->src_v4.s_addr;
+ 
+-	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
++	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple,
++				   tuplehash->tuple.dst_cache, &ip_daddr) < 0)
+ 		return NF_DROP;
+ 
+ 	switch (tuplehash->tuple.xmit_type) {
+@@ -1158,6 +1161,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	ip6_daddr = &other_tuple->src_v6;
+ 
+ 	if (nf_flow_tunnel_v6_push(state->net, skb, other_tuple,
++				   tuplehash->tuple.dst_cache,
+ 				   &ip6_daddr) < 0)
+ 		return NF_DROP;
+ 
 -- 
 2.54.0
 
