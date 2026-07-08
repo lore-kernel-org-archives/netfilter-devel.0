@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA70643849A;
-	Wed,  8 Jul 2026 14:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1248E40802E;
+	Wed,  8 Jul 2026 14:04:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783519453; cv=none; b=du3SXFDI1ha6BuV1B846HIWTPbpKdHeJLmXon6582bXp/ZoOMocIgQDxKLSRHgMyYa4lFMPEkM/tOjwNYPSKzTUEBMhVZD3Rhc/FHQOaCYQ3ALCLbg6H3E6H4N+/uY1oSYST1qMS0iQGCdSlHGX67Xk3lc5iDFCzuie9+Fyed8U=
+	t=1783519457; cv=none; b=Aw0U/Heb5oTVAdLTwNV1z7vRZiMI4CBghvo3xKTycEL7YhJXlCLjyYKMCvrL3hao2ZZGaaFJkqCiPh0daRzat5gyliNTffOpymkSH5vGNeY9kNwLUfDjDVuaNWJvevg9dRJYUU6ddHVw1etJLLz4pFO/JWk30CM7vrzyNoYlTdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783519453; c=relaxed/simple;
-	bh=2we8uSJuxZf5OYq3eLJCLjbehjSN6X9bMEAUTZY7Ou0=;
+	s=arc-20240116; t=1783519457; c=relaxed/simple;
+	bh=zKM+8MR0lWNg6NlcLBl6k6iL0aLmsuEJL529SssXuu0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f5BTbhBiKeVerUJktACbJfDW+6fG7Txzye7/TsTjx/SuKQfI6Q1IUkFuf+riTFFqBFMWSOpeyIqH57VRKPF+dGCC6j8CHANZsbKRbc+tscnRTcdAvo8w0gnIWsC5c0g3U/FzDZLop5Vh6m0ZrOMVewyVBNx5UlntKRIdcSTOc1Y=
+	 MIME-Version; b=Dn0zWQXdwp/OnEVhkyG+PvbM+BFiEM0fg5FQkjmWjITPdZqMTfJrUynD0T3VX16drQmm+J9Arr5n50N/u07RfLe7U65epSIKZ9bQCO1tQCO0b/xtYdHcrcBQJ3eoA3oX1myxAOYojwvvVoY5HMyVIil++AY/iRZu5Cil0xWpOrQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6221160CFA; Wed, 08 Jul 2026 16:04:10 +0200 (CEST)
+	id 9FB5660D50; Wed, 08 Jul 2026 16:04:14 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 12/17] netfilter: flowtable: support IPIP tunnel with direct xmit
-Date: Wed,  8 Jul 2026 16:03:04 +0200
-Message-ID: <20260708140309.19633-13-fw@strlen.de>
+Subject: [PATCH net 13/17] netfilter: handle unreadable frags
+Date: Wed,  8 Jul 2026 16:03:05 +0200
+Message-ID: <20260708140309.19633-14-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260708140309.19633-1-fw@strlen.de>
 References: <20260708140309.19633-1-fw@strlen.de>
@@ -38,110 +38,180 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+sashiko reports:
+ When an skb with unreadable fragments (such as from devmem TCP, where
+ skb_frags_readable(skb) returns false) is processed by the u32 module,
+ skb_copy_bits() will safely return a negative error code [..]
 
-The combination of IPIP tunnel with direct xmit, eg. bridge device,
-breaks because no dst_entry is provided to check the skb headroom and to
-set the iph->frag_off field. This leads to invalid dst usage and can
-trigger a crash in the tunnel transmit path.
+xt_u32: bail out with hotdrop in this case.
+gather_frags: return -1, just as if we had no fragment header.
+nfnetlink_queue: restrict to the linear part.
+nfnetlink_log: restrict to the linear part.
 
-Fix this by moving dst_cache and dst_cookie out of the runtime union so
-that they can be shared by neighbour, xfrm, and direct tunnel flows.
-For FLOW_OFFLOAD_XMIT_DIRECT tuples carrying tunnel metadata, preserve
-route state in these shared fields and release it through the common
-dst release path.
+v2:
+ - skb_zerocopy helpers don't copy readable flag, i.e. nfnetlink_queue
+ is broken too
+ xt_u32 shouldn't return true if hotdrop was set.
 
-Since dst_entry is now available to the three supported xmit modes and
-dst_release() already deals with NULL dst, remove the xmit type check
-in nft_flow_dst_release(). Moreover, skip the check if the dst entry
-is NULL in nf_flow_dst_check() which is now the case for the direct
-xmit case.
-
-Based on patch from Rein Wei <n05ec@lzu.edu.cn>.
-
-Fixes: d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw acceleration")
+Fixes: 65249feb6b3d ("net: add support for skbs with unreadable frags")
 Cc: stable@vger.kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Reported-by: Zhengyang Chen <chzhengyang2023@lzu.edu.cn>
-Reported-by: Ren Wei <n05ec@lzu.edu.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Acked-by: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_flow_table.h |  5 +++--
- net/netfilter/nf_flow_table_core.c    | 12 ++++++++----
- net/netfilter/nf_flow_table_ip.c      |  3 +--
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+ net/netfilter/nfnetlink_log.c           | 26 ++++++++++++++++---------
+ net/netfilter/nfnetlink_queue.c         | 16 +++++++++++----
+ net/netfilter/xt_u32.c                  | 16 ++++++++++-----
+ 4 files changed, 41 insertions(+), 19 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index dc5c9b48e65a..ce414118962f 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -155,11 +155,12 @@ struct flow_offload_tuple {
- 					tun_num:2,
- 					in_vlan_ingress:2;
- 	u16				mtu;
-+	u32				dst_cookie;
-+	struct dst_entry		*dst_cache;
-+
- 	union {
- 		struct {
--			struct dst_entry *dst_cache;
- 			u32		ifidx;
--			u32		dst_cookie;
- 		};
- 		struct {
- 			u32		ifidx;
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index d06ce0848b68..2a829b5e8240 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -127,12 +127,18 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 3637b20d3fa4..599c49bf0a0a 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -419,7 +419,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ 			return -1;
+ 		}
+ 		if (skb_copy_bits(skb, start, &hdr, sizeof(hdr)))
+-			BUG();
++			return -1;
+ 		if (nexthdr == NEXTHDR_AUTH)
+ 			hdrlen = ipv6_authlen(&hdr);
+ 		else
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index fa3657599861..5fee61b3813c 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -676,7 +676,7 @@ __build_packet_message(struct nfnl_log_net *log,
+ 			goto nla_put_failure;
  
- 	switch (route->tuple[dir].xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_DIRECT:
-+		if (flow_tuple->tun_num) {
-+			flow_tuple->dst_cache = dst;
-+			flow_tuple->dst_cookie =
-+				flow_offload_dst_cookie(flow_tuple);
-+		}
- 		memcpy(flow_tuple->out.h_dest, route->tuple[dir].out.h_dest,
- 		       ETH_ALEN);
- 		memcpy(flow_tuple->out.h_source, route->tuple[dir].out.h_source,
- 		       ETH_ALEN);
- 		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
--		dst_release(dst);
-+		if (!flow_tuple->tun_num)
-+			dst_release(dst);
+ 		if (skb_copy_bits(skb, 0, nla_data(nla), data_len))
+-			BUG();
++			goto nla_put_failure;
+ 	}
+ 
+ 	nlh->nlmsg_len = inst->skb->tail - old_tail;
+@@ -698,6 +698,21 @@ static const struct nf_loginfo default_loginfo = {
+ 	},
+ };
+ 
++static unsigned int nfulnl_get_copy_len(const struct nf_loginfo *li,
++					const struct sk_buff *skb,
++					unsigned int copy_len)
++{
++	unsigned int len = skb->len;
++
++	if ((li->u.ulog.flags & NF_LOG_F_COPY_LEN) &&
++	    li->u.ulog.copy_len < copy_len)
++		copy_len = li->u.ulog.copy_len;
++	if (!skb_frags_readable(skb))
++		len = skb_headlen(skb);
++
++	return min(len, copy_len);
++}
++
+ /* log handler for internal netfilter logging api */
+ static void
+ nfulnl_log_packet(struct net *net,
+@@ -790,14 +805,7 @@ nfulnl_log_packet(struct net *net,
  		break;
- 	case FLOW_OFFLOAD_XMIT_XFRM:
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
-@@ -152,9 +158,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
- static void nft_flow_dst_release(struct flow_offload *flow,
- 				 enum flow_offload_tuple_dir dir)
+ 
+ 	case NFULNL_COPY_PACKET:
+-		data_len = inst->copy_range;
+-		if ((li->u.ulog.flags & NF_LOG_F_COPY_LEN) &&
+-		    (li->u.ulog.copy_len < data_len))
+-			data_len = li->u.ulog.copy_len;
+-
+-		if (data_len > skb->len)
+-			data_len = skb->len;
+-
++		data_len = nfulnl_get_copy_len(li, skb, inst->copy_range);
+ 		size += nla_total_size(data_len);
+ 		break;
+ 
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 35d4c6c628ff..b8aaf39cb4d8 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -690,6 +690,17 @@ static int nfqnl_put_master_ifindex(struct sk_buff *nlskb, int attr,
+ }
+ #endif
+ 
++static unsigned int nfqnl_get_data_len(const struct sk_buff *entskb,
++				       unsigned int copy_range)
++{
++	unsigned int data_len = entskb->len;
++
++	if (!skb_frags_readable(entskb))
++		data_len = skb_headlen(entskb);
++
++	return min(data_len, copy_range);
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -755,10 +766,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 		    nf_queue_checksum_help(entskb))
+ 			return NULL;
+ 
+-		data_len = READ_ONCE(queue->copy_range);
+-		if (data_len > entskb->len)
+-			data_len = entskb->len;
+-
++		data_len = nfqnl_get_data_len(entskb, READ_ONCE(queue->copy_range));
+ 		hlen = skb_zerocopy_headlen(entskb);
+ 		hlen = min_t(unsigned int, hlen, data_len);
+ 		size += sizeof(struct nlattr) + hlen;
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index ec1a21e3b6e2..dabbaa742874 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -14,8 +14,8 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_u32.h>
+ 
+-static bool u32_match_it(const struct xt_u32 *data,
+-			 const struct sk_buff *skb)
++static int u32_match_it(const struct xt_u32 *data,
++			const struct sk_buff *skb)
  {
--	if (flow->tuplehash[dir].tuple.xmit_type == FLOW_OFFLOAD_XMIT_NEIGH ||
--	    flow->tuplehash[dir].tuple.xmit_type == FLOW_OFFLOAD_XMIT_XFRM)
--		dst_release(flow->tuplehash[dir].tuple.dst_cache);
-+	dst_release(flow->tuplehash[dir].tuple.dst_cache);
+ 	const struct xt_u32_test *ct;
+ 	unsigned int testind;
+@@ -40,7 +40,8 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 			return false;
+ 
+ 		if (skb_copy_bits(skb, pos, &n, sizeof(n)) < 0)
+-			BUG();
++			return -1;
++
+ 		val   = ntohl(n);
+ 		nnums = ct->nnums;
+ 
+@@ -68,7 +69,7 @@ static bool u32_match_it(const struct xt_u32 *data,
+ 
+ 				if (skb_copy_bits(skb, at + pos, &n,
+ 						    sizeof(n)) < 0)
+-					BUG();
++					return -1;
+ 				val = ntohl(n);
+ 				break;
+ 			}
+@@ -90,9 +91,14 @@ static bool u32_match_it(const struct xt_u32 *data,
+ static bool u32_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_u32 *data = par->matchinfo;
+-	bool ret;
++	int ret;
+ 
+ 	ret = u32_match_it(data, skb);
++	if (ret < 0) {
++		par->hotdrop = true;
++		return false;
++	}
++
+ 	return ret ^ data->invert;
  }
  
- void flow_offload_route_init(struct flow_offload *flow,
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 089f2bc19972..0b78decce8a9 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -299,8 +299,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 
- static inline bool nf_flow_dst_check(struct flow_offload_tuple *tuple)
- {
--	if (tuple->xmit_type != FLOW_OFFLOAD_XMIT_NEIGH &&
--	    tuple->xmit_type != FLOW_OFFLOAD_XMIT_XFRM)
-+	if (!tuple->dst_cache)
- 		return true;
- 
- 	return dst_check(tuple->dst_cache, tuple->dst_cookie);
 -- 
 2.54.0
 
