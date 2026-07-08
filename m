@@ -1,38 +1,38 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 032F94014AB
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:31:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823D03FCB1E
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:33:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783503110; cv=none; b=B4TPPl6cI72xOgBUlppp0dNbaxaCvKLGu1rhyGklQm36ZVX7OW2zKPgy5zsKljpvx5ahnbXBLmPEX2HlTc0FnqCu02N45NiFd8h0Jc2MwJ4sEzWqNSnPi+vJ39a0ju3nz5KebL1qNzr4FkiGEqb3uVVxYCUvZu2aHMv6aTr7XdY=
+	t=1783503188; cv=none; b=lFZJH0dOl4OLBDfPTTkMdO+KS6f5q5ByzeVYmOIzzOHZEYmZznii+4BovUU7YgE3dN5eCc0hUF7MW7ZIWQHQ2huBW26c/1cwCDg4WSbO6C1TZjVxy3vaZbPzDOvan4FRKQ2LMCnCjCFZfFTVX0Jcfw08NtMzNKtAlW8BXggUvjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783503110; c=relaxed/simple;
+	s=arc-20240116; t=1783503188; c=relaxed/simple;
 	bh=LimfHNhKbzGj41cNpuGnOzVAlvSDxXYFowW8stUMmGo=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Mm27IhVSdFqHI1SmqSgpp4plf1LSa4cnJCjmnZ/t1oj+QLYzpb+S6EHAyupPAnY3MbKPi2KmNbrzR1K7ibOAQLEmgXoPPrv+61oDr91Ghaw6fGY/kyCEIglrd8P78clzcaDc0cHYN6df+wZM5kIkvoXiPUSJJm8V5iZ8R8XFT1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rk+tjEBg; arc=none smtp.client-ip=217.70.190.124
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=EJ+Mfe2KA6/QJMmmH+AHnJ+I4e8wh00sfoXzd5bnJFOqgOF67ygG84cF/qGwcSJb0IBSpGgKssdh5WIB0h9Seo2/wN6Iw9ol4rbWq8DalmqspvxmLMJZ+WAR5DjQ7ThhbmcHXO6E1yAktBn3m9PDIdHToCrnaU+XwTo08yA4OFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iyfdjtY0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rk+tjEBg"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iyfdjtY0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3A7B3601BC
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 11:31:40 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 40AAE6057C
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 11:32:56 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783503100;
+	s=2025; t=1783503176;
 	bh=0mdV7mm6RiiR4cIHSloM9vWmiJg/yyyRgEBQ1G1DsRY=;
 	h=From:To:Subject:Date:From;
-	b=rk+tjEBgxwbavA+ZD4zLS8KEBiwJMQ+t1HEipB53G25Rk/YPKIsRVnc/Pws8fc79j
-	 M6WZHybk607jP/jX0TbcSnTMlq+C+R4EnlsPch6h7Qv6gjeqk1DEcKZonvL9+dpkYi
-	 jNIp+55w5akSrMYLEgMAeHoB0TkMM204/ftu5TBydI3yxbPPfVALfSq79ywk4q8l4M
-	 GiV7q8vVahoTGBTALrsgcpriI+Lr550WI9q4mlQ/Whl9vYwrQeCXnoBSdgY5CWe2zO
-	 4K9Qs60SrXfE6CdyPG9GVaPyLwvVjgv4Zxd+GEHDYvshgCFGrmIhE6JtOTU5eW1N0o
-	 /W16gJFtLQ6Vw==
+	b=iyfdjtY0DPmr0uxo7dj/ypPhmNGPtrENT9uLjyrdlphuUbAtfwBaD67cH3A3gAah7
+	 xoXWj5PXpYR/gyqcoQkQPTvBhOVKI2WfVKxo74Q5A3fKevoA+ySRF04DpLVFSgTFmm
+	 1d1jkesbhAbtYGGeewUyWvONYTMJN+Eyiky5cUCawGnxaRWwYu3ja3WtPXEufsS3tC
+	 3TO2K7pVIl24gNa+hChB//wEjF6XMfDvGeFMpa7iRjCTyeL6bD/fhCqhN7qqHCQkle
+	 oBnID2qIlLPNZEHVITxCWED7VIYHFEdmj5dYonBKfsazmKsDKbUKNdmnAhPwAfbBtY
+	 N+TjI7d7tmkQg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v1 1/4] bridge: Add filling forward path from port to port
-Date: Wed,  8 Jul 2026 11:31:32 +0200
-Message-ID: <20260708093135.1186934-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v1 1/4] bridge: Add filling forward path from port to port
+Date: Wed,  8 Jul 2026 11:32:47 +0200
+Message-ID: <20260708093250.1187068-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
