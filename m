@@ -1,75 +1,39 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10D17407CC7
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:22:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 032F94014AB
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 09:31:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783502578; cv=none; b=EJw7ZIYpVyWSQMypQJ5uXB0ASFWdfHzP2f5yGLD22y7sNwYf0U2jpP5z4ajNKeHY4s3e1vvK5PZ75nXX+ROBdzL9+UtHhZ4Yd2yGzmUXoEr0IiXYZmAhpKShNS7l1G0gqWqRxu+Yr+nEb9JB7OluWPCvtmnHB0K8l/M99z62k4o=
+	t=1783503110; cv=none; b=B4TPPl6cI72xOgBUlppp0dNbaxaCvKLGu1rhyGklQm36ZVX7OW2zKPgy5zsKljpvx5ahnbXBLmPEX2HlTc0FnqCu02N45NiFd8h0Jc2MwJ4sEzWqNSnPi+vJ39a0ju3nz5KebL1qNzr4FkiGEqb3uVVxYCUvZu2aHMv6aTr7XdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783502578; c=relaxed/simple;
-	bh=71IPpVxSL6rELSFV3RscCJl7aym1gXBpQyo2V285sW4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QAjzgU/gu8jWESuGBhI3ma3WMvKtLX/V9aulYgus4QYKVPcVA7vQM8461GVBTuTnQWrX/kiNtnYnL8ZN5YNheBiiSE1ATuRiRzmLFpqiMNjTZ6soshPUHs+9dw8BqzPvmxR+zKMrDIjhEpWfw5XXqMdKw3m+IkH1ooc+ZwXnMLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=oiAX3HRW; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783503110; c=relaxed/simple;
+	bh=LimfHNhKbzGj41cNpuGnOzVAlvSDxXYFowW8stUMmGo=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Mm27IhVSdFqHI1SmqSgpp4plf1LSa4cnJCjmnZ/t1oj+QLYzpb+S6EHAyupPAnY3MbKPi2KmNbrzR1K7ibOAQLEmgXoPPrv+61oDr91Ghaw6fGY/kyCEIglrd8P78clzcaDc0cHYN6df+wZM5kIkvoXiPUSJJm8V5iZ8R8XFT1Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rk+tjEBg; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oiAX3HRW"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3811f512167so575660a91.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783502576; x=1784107376; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=bESlo7lvNwhdiVElYDSnZy0QW9Bj+WsccRVrVGGNJng=;
-        b=oiAX3HRWBGooIDPulrZn1l987zJdstH6BPbfN05ASw4hB35iJdMBZ0YS8nsNTs7ePL
-         j3IRes2PnwojXzYU9NApKi2RPH1kFghEsvJNjad8A6lt6NAlQaacFDggaaA2t0aOzkeP
-         f7v0sXq0y/aGroJ8n16OTv5EUFZztalq3WLGn5J9wrYco9f2DIqB03K/KNJ7u25p35WY
-         Q5ClouECdVbbyz0uZqQM0Se4l21yINh6j2LzNPH+4Zf12OWh6bK0ZFma4b2+btlDju8u
-         b43opC16xq8o0VFCk0hr9hp3uu29bs14ZReLVRqPFZ3K2hFvatl1D2nBqAZyadRfMo3k
-         zxZg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783502576; x=1784107376;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=bESlo7lvNwhdiVElYDSnZy0QW9Bj+WsccRVrVGGNJng=;
-        b=fNvANsjRC6RwSlHGmYm8IazUG4w0EFoCYbEP3n7jq7Vkq0UJcLQp8nCiUbhSVUfVAD
-         f6RYNzmtygRbsIEY2IHPxVHe5Ga/rbCIhqudTfKiFcz/lEIpu//EtAs5maaKnnJ6k3Ic
-         5PMjrmyo3hkROK3K3CfCfOsupXxkCsZb6CK4UkA5YN6GqYGd57uYHGD+KtyPUidyr5x6
-         oWOiCvl1SH4mk7evumJnYkRtypoCbRsBtw5CaY4fX2yLAJ96P/nAFDJS1u1l/vsPl/mh
-         wX2/T6ubB70D/gM2SkhkvKuiPwJTrZoZtHtzc8WuZYazeFY4WYOd6qXAb/tDNkf0fj/H
-         BdjQ==
-X-Forwarded-Encrypted: i=1; AHgh+RpcxkLXvkjRK22ZlthtMbcrXNam+XfEQnPaaEcAZ4DFr9Sgn0CCmi1vUIBfGLv6mZi/P4m91Fboh67o2AwkQxI=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw1f7vyUlWIT+Sc/n9bfYySkX/XVXRUEOQEaKtDz14m3s9uSkaw
-	XEtvanblB72gsypKmMhCejcqugMuG1SyCCxTzkS63N/GPxCTVOWT9ruu
-X-Gm-Gg: AfdE7cnrzzVkXEcNIag0b4do5pCXYboFGldds7tfsgaN3+IM9+eRImH9o8paBut9OMn
-	Wy/y/8QI7/6e+sdQq6kIMRQ/z5U2V6veNezHzkOFwIYerGxFIUxzDX7TsmgDwqF8ST/kexpWDdO
-	Exiznh0Kk1lJemUTtC++jFlRRK3ejT22sCzfNUbxbr0dNwzvV+8bxfuLt5uhLWJrqNrF+DriA9J
-	L9bnvhvQ8i+1VWS5sooiKC/9AkX14+aAaqfkcSwBuWFj58ljV7doME2hreegPIQKBvFxuG6BxFe
-	oCDmd4YxRfHFWweOjpjMOnL8uSZUaGk89Onu07JoJlGMRcQlevd+iwc44CWejj6NkSOK0Rn/Q4R
-	ILyvyNM9KluxYg1t8fxUcz1cN8EXEYVZeD5MT/Kg6lHolP4LnUGIffHupiKgeFBP2VO9C2kTLW7
-	zh3/Ni
-X-Received: by 2002:a17:90b:17c1:b0:37f:ed7e:7e42 with SMTP id 98e67ed59e1d1-3893ff630c1mr1831193a91.14.1783502576376;
-        Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
-Received: from homebox ([66.75.253.8])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3118389d9bcsm9985334eec.20.2026.07.08.02.22.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Jul 2026 02:22:56 -0700 (PDT)
-From: Yuan Tan <yuantan098@gmail.com>
-To: linux-kernel@vger.kernel.org,
-	workflows@vger.kernel.org
-Cc: yuantan098@gmail.com,
-	jhs@mojatatu.com,
-	gregkh@linuxfoundation.org,
-	sven@narfation.org,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	linux-crypto@vger.kernel.org
-Subject: [RFC] VEGA: a syzbot-like workflow for LLM-found kernel bugs
-Date: Wed,  8 Jul 2026 02:22:47 -0700
-Message-ID: <20260708092247.4188498-1-yuantan098@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rk+tjEBg"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3A7B3601BC
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 11:31:40 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1783503100;
+	bh=0mdV7mm6RiiR4cIHSloM9vWmiJg/yyyRgEBQ1G1DsRY=;
+	h=From:To:Subject:Date:From;
+	b=rk+tjEBgxwbavA+ZD4zLS8KEBiwJMQ+t1HEipB53G25Rk/YPKIsRVnc/Pws8fc79j
+	 M6WZHybk607jP/jX0TbcSnTMlq+C+R4EnlsPch6h7Qv6gjeqk1DEcKZonvL9+dpkYi
+	 jNIp+55w5akSrMYLEgMAeHoB0TkMM204/ftu5TBydI3yxbPPfVALfSq79ywk4q8l4M
+	 GiV7q8vVahoTGBTALrsgcpriI+Lr550WI9q4mlQ/Whl9vYwrQeCXnoBSdgY5CWe2zO
+	 4K9Qs60SrXfE6CdyPG9GVaPyLwvVjgv4Zxd+GEHDYvshgCFGrmIhE6JtOTU5eW1N0o
+	 /W16gJFtLQ6Vw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v1 1/4] bridge: Add filling forward path from port to port
+Date: Wed,  8 Jul 2026 11:31:32 +0200
+Message-ID: <20260708093135.1186934-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -78,108 +42,109 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi all,
+From: Eric Woudstra <ericwouds@gmail.com>
 
-We would like to ask for feedback on a proposed workflow for reporting Linux
-kernel bugs found by an LLM-assisted code auditing tool that we have
-been developing since earlier this year.
+If a port is passed as argument instead of the master, then:
 
-Since February, we have been developing an LLM-driven kernel code auditing
-tool called VEGA. It started as a side project, but the results became much
-substantial than we expected: VEGA has found hundreds of valid bugs in Linux
-kernel.
+At br_fill_forward_path(): find the master and use it to fill the
+forward path.
 
-That immediately created a practical problem: we do not want to dump a large
-pile of bug reports onto mail lists and annoy the maintainers.
+At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
+instead.
 
-The first thing we tried was to fix as many as we could ourselves. We
-started working with a group of student volunteers. Most of them are
-college students, so we have been training them, reviewing their patches,
-and trying to build an internal review process before anything is sent to
-the mailing list. The goal is to turn these findings into useful fixes, and
-also to help new contributors grow into people who can reduce maintainer
-workload instead of adding to it.
+Changed call to br_vlan_group() into br_vlan_group_rcu() while at it.
 
-The process was not perfect. Some patches were not good enough, and we also
-made some mistakes early on when deciding what should be called a security
-issue.  Our internal review process has been improving with the help of the
-community.
+Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v1: I took this existing patch for the bridge vlan filtering, but
+    bridge vlan filtering is untested at this stage at least for me.
 
-Since March, we picked up non-root triggerable bug first and have worked on
-fixes for more than 100 validated kernel bugs. we especially want to thank
-the students and professor who have helped a lot with this effort.
+ net/bridge/br_device.c  | 19 ++++++++++++++-----
+ net/bridge/br_private.h |  2 ++
+ net/bridge/br_vlan.c    |  6 +++++-
+ 3 files changed, 21 insertions(+), 6 deletions(-)
 
-But the remaining queue is still too large for us to handle.
-
-Recently Jamal pointed out problems around our tags. That made me realize
-that we should probably stop treating this as an ad-hoc patch effort and
-build something closer to syzbot: public, reproducible, trackable,
-deduplicated, and useful to maintainers.
-
-So this mail is an RFC for a VEGA reporting workflow.
-
-The rough idea
-==============
-
-VEGA would have a public dashboard, similar to syzbot, and would
-send selected bug reports to the relevant kernel mailing lists.
-
-The goal is to send reports that contain enough information for maintainers
-or other developers to pick up, understand, reproduce and fix the issue.
-
-For each public report, we expect to include:
-
-  - a description of the bug
-  - the tested kernel tree and commit
-  - the kernel config and environment
-  - the crash log
-  - a minimized user-space reproducer
-  - the suspected introducing commit
-  - a suggested fix patch
-
-The suggested fix patch is meant to reduce maintainer burden. It still need
-human review, but hopefully it can save a lot time from building a patch
-from scratch.
-
-What will be public
-===================
-
-All VEGA findings that we have evaluated as not having major security
-impact can be published on the VEGA dashboard. The dashboard would make it
-possible to see what VEGA found, whether the issue was reproduced, whether
-a fix exists, whether it was reported to a mailing list, and whether it has
-been fixed upstream.
-
-For issues that we have validated as having possible serious security
-impact, we will not publish it on the public dashboard before going through
-the appropriate kernel security process.
-
-Dumping everything onto the mailing list may be annoying. During the initial
-stage, reports will be rate-limited and sent manually. We will check for
-duplicates against lore/upstream, and make sure the issue is not already
-fixed or reported.
-
-Report identity and tags
-========================
-
-Each public VEGA report will have a stable identity, similar to
-syzbot reports.
-
-One possible format is:
-
-  Reported-by: VEGA <vega+HASH@DOMAIN>
-  Closes: <public dashboard URL>
-
-=========
-
-We would like to hear what maintainers think about this before we start
-sending these reports.
-
-We do not want VEGA to become another source of mailing list noise. The goal
-is to make LLM-based bug finding transparent and useful, and to make sure
-the reports come with enough context, reproducers, suggested fixes, and
-tracking so that they reduce work rather than create more.
-
-Thanks,
-Yuan
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index e7f343ab22d3..89f4525a7279 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -385,16 +385,25 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
+ static int br_fill_forward_path(struct net_device_path_ctx *ctx,
+ 				struct net_device_path *path)
+ {
++	struct net_bridge_port *src, *dst;
+ 	struct net_bridge_fdb_entry *f;
+-	struct net_bridge_port *dst;
+ 	struct net_bridge *br;
+ 
+-	if (netif_is_bridge_port(ctx->dev))
+-		return -1;
++	if (netif_is_bridge_port(ctx->dev)) {
++		struct net_device *br_dev;
++
++		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
++		if (!br_dev)
++			return -1;
+ 
+-	br = netdev_priv(ctx->dev);
++		src = br_port_get_rcu(ctx->dev);
++		br = netdev_priv(br_dev);
++	} else {
++		src = NULL;
++		br = netdev_priv(ctx->dev);
++	}
+ 
+-	br_vlan_fill_forward_path_pvid(br, ctx, path);
++	br_vlan_fill_forward_path_pvid(br, src, ctx, path);
+ 
+ 	f = br_fdb_find_rcu(br, ctx->daddr, path->bridge.vlan_id);
+ 	if (!f)
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index d55ea9516e3e..00f5b72ff42d 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -1630,6 +1630,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
+ 			     const struct net_bridge_vlan *range_end);
+ 
+ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++				    struct net_bridge_port *p,
+ 				    struct net_device_path_ctx *ctx,
+ 				    struct net_device_path *path);
+ int br_vlan_fill_forward_path_mode(struct net_bridge *br,
+@@ -1799,6 +1800,7 @@ static inline int nbp_get_num_vlan_infos(struct net_bridge_port *p,
+ }
+ 
+ static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++						  struct net_bridge_port *p,
+ 						  struct net_device_path_ctx *ctx,
+ 						  struct net_device_path *path)
+ {
+diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+index 5560afcaaca3..71531499bc73 100644
+--- a/net/bridge/br_vlan.c
++++ b/net/bridge/br_vlan.c
+@@ -1450,6 +1450,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
+ EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
+ 
+ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
++				    struct net_bridge_port *p,
+ 				    struct net_device_path_ctx *ctx,
+ 				    struct net_device_path *path)
+ {
+@@ -1462,7 +1463,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+ 	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
+ 		return;
+ 
+-	vg = br_vlan_group_rcu(br);
++	if (p)
++		vg = nbp_vlan_group_rcu(p);
++	else
++		vg = br_vlan_group_rcu(br);
+ 
+ 	if (idx >= 0 &&
+ 	    ctx->vlan[idx].proto == br->vlan_proto) {
+-- 
+2.47.3
 
