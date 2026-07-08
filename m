@@ -1,87 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C4FB3A8741;
-	Wed,  8 Jul 2026 11:25:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D93742B30F;
+	Wed,  8 Jul 2026 11:45:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783509938; cv=none; b=kEuSdZT9GCUe8IaySkK81ee0koyzWJBUE+2A/tPteQbmDXT8ndD9N8EK7fUDT2OaSI44fdngK4kMaR0Ffdl6EN/Zo7UQGKS4OzTkvxakMH3JZaoP+Bb1vVcH9VgLG3nFchfAH2nNyl7wWt3zoGBa9qkeU2AVq8/XsIUWo0jyqo4=
+	t=1783511161; cv=none; b=HnBCsmb8wWQLS6quWJQq0WXVfcB2anDb6ljctDM4VWfdqAiajZ9c7G8xaLJ/dEeDL2Z3SoIWtVCo0//ziaPgvCZEjmf8GDb0niSlpgcRla5IKRXgkOi+G+CPxdVdURxyh1upPaDnSBfY0/OAXd0E1xzhVrObUcj0zYWhEp0d/0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783509938; c=relaxed/simple;
-	bh=84PMDdJTdc/8LkogfzioAu97kqRYNS20rB39544MOHQ=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=T+MWKZUFzZhp/W5hVDnctJzO8J0RFP3qkzBSeqrPeu/Vt6GrkGfvvJofRatPysrQDSXnQBPQN9C5Cj+qxKSMPVHRqnTF6OXc5ZZxLqyTwDVygMm2lSvdU2D6CBGZw82xNIogkNDaJW8cld1aRGs95vkSXaIUbPI5M/wTyCEa78c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JhBTlTRA; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JhBTlTRA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68E151F000E9;
-	Wed,  8 Jul 2026 11:25:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783509936;
-	bh=pUsFCtblw0cweRpabo6PXQ27P9GWRIBHnxgFsdpDEDI=;
-	h=From:Date:Subject:To:Cc;
-	b=JhBTlTRAhjMj6IVDdcT5EXTHk++LNouH6kSZVOh9nR0IWGaEOc27fU4CMV/HenJH3
-	 ztMJlQQLmhsCcSZvdduRYWePMQ3Ue1skeaDNkuGs2BdAn1Fr0kcKkDDvII8n/CLiEM
-	 qChYpekqniRd9z5COrVyV2Zsgy8KD0Zs0l/DKQtFtO5KuR/AyzXT122sbIh64hJjRy
-	 LvmCew4rAAK+1HKqnm+jYuwm8bJLjBfuNBuF/BiOHENg8hA8jndyncpb82BADESFMt
-	 VZOlQJfjeAzCQ3ogIsfpN4lQLvCyzrxce/OYMUUe2RvGpivWtFJEnRBeQM5LPinQ/M
-	 6LNtpxUzYDuzA==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Wed, 08 Jul 2026 13:25:18 +0200
-Subject: [PATCH net-next] net: ipip: use tunnel parameters for
- fill_forward_path route lookup
+	s=arc-20240116; t=1783511161; c=relaxed/simple;
+	bh=mea4e5gKCQknIDxQ3PIurGaHdYWY5ez4ydVOLNKJiv4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CMWkbc4JpUet7lUsQVWq55cHZk/1c1osOVsBAdrpcKlppVcAl4WwtLMIkrC+4ni5+RMSnApxAruX4PRUvXzPudZ9xWEl+RmcUohgPDhlKc7xRPgQBPRykHH4cjTb83PJYwShWPJVoGk9aJCPJ52Ja4n/DJQxB3ex/Mr+WkCjaKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 8CD7C6059E; Wed, 08 Jul 2026 13:45:50 +0200 (CEST)
+Date: Wed, 8 Jul 2026 13:45:44 +0200
+From: Florian Westphal <fw@strlen.de>
+To: "Xiang Mei (Microsoft)" <xmei5@asu.edu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, AutonomousCodeSecurity@microsoft.com,
+	tgopinath@linux.microsoft.com, kys@microsoft.com
+Subject: Re: [PATCH net] netfilter: bridge: fix stale prevhdr pointer in
+ br_ip6_fragment()
+Message-ID: <ak44aLdDrMZXb6fC@strlen.de>
+References: <20260706232850.3333016-1-xmei5@asu.edu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260708-ipip-route-lookup-fill_forward_path-v1-1-b77df74822ed@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3NQQqDMBBA0avIrDsQRW3oVUqRQSd1aEjCJLaCe
- HdDl2/z/wGZVTjDozlA+StZYqhobw3MK4U3oyzV0JluNHdjUZIk1LgVRh/jZ0voxPvJRf2RLlO
- isuJIllrXD8b2M9RSUnay/y9PCFww8F7gdZ4Xu69mrX8AAAA=
-X-Change-ID: 20260708-ipip-route-lookup-fill_forward_path-6a8a1f45084c
-To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260706232850.3333016-1-xmei5@asu.edu>
 
-Pass source address, DSCP and output interface from the tunnel
-configuration to ip_route_output() in ipip_fill_forward_path(), aligning
-the route lookup with the slow path in ipip_tunnel_xmit().
+Xiang Mei (Microsoft) <xmei5@asu.edu> wrote:
+> br_ip6_fragment() gets prevhdr, a pointer into the skb head, from
+> ip6_find_1stfragopt(), then calls skb_checksum_help().  For a cloned skb
+> skb_checksum_help() reallocates the head via pskb_expand_head(), leaving
+> prevhdr dangling.  It is later dereferenced in ip6_frag_next(), causing a
+> use-after-free write.
+> 
+> Re-find prevhdr after skb_checksum_help() so it points into the current
+> head.
+> 
+>   BUG: KASAN: slab-use-after-free in ip6_frag_next (net/ipv6/ip6_output.c:857)
+>   Write of size 1 at addr ffff888013ff5016 by task exploit/141
+>   Call Trace:
+>    ...
+>    kasan_report (mm/kasan/report.c:595)
+>    ip6_frag_next (net/ipv6/ip6_output.c:857)
+>    br_ip6_fragment (net/ipv6/netfilter.c:212)
+>    nf_ct_bridge_post (net/bridge/netfilter/nf_conntrack_bridge.c:407)
+>    nf_hook_slow (net/netfilter/core.c:619)
+>    br_forward_finish (net/bridge/br_forward.c:66)
+>    __br_forward (net/bridge/br_forward.c:115)
+>    maybe_deliver (net/bridge/br_forward.c:191)
+>    br_flood (net/bridge/br_forward.c:245)
+>    br_handle_frame_finish (net/bridge/br_input.c:229)
+>    br_handle_frame (net/bridge/br_input.c:442)
+>    ...
+>    packet_sendmsg (net/packet/af_packet.c:3114)
+>    ...
+>    do_syscall_64 (arch/x86/entry/syscall_64.c:94)
+>    entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+>   Kernel panic - not syncing: Fatal exception in interrupt
+> 
+> Fixes: 764dd163ac92 ("netfilter: nf_conntrack_bridge: add support for IPv6")
+> Reported-by: AutonomousCodeSecurity@microsoft.com
+> Signed-off-by: Xiang Mei (Microsoft) <xmei5@asu.edu>
+> ---
+>  net/ipv6/netfilter.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+> index 6d80f85e55fa..547879da9532 100644
+> --- a/net/ipv6/netfilter.c
+> +++ b/net/ipv6/netfilter.c
+> @@ -147,6 +147,10 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+>  	    (err = skb_checksum_help(skb)))
+>  		goto blackhole;
+>  
+> +	err = ip6_find_1stfragopt(skb, &prevhdr);
+> +	if (err < 0)
+> +		goto blackhole;
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
- net/ipv4/ipip.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Would you mind sending a v2 that solves this the same way that it was
+fixed in ipv6 output engine?
 
-diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-index b643194f57d2..d1aa048a6099 100644
---- a/net/ipv4/ipip.c
-+++ b/net/ipv4/ipip.c
-@@ -360,8 +360,9 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
- 	const struct iphdr *tiph = &tunnel->parms.iph;
- 	struct rtable *rt;
- 
--	rt = ip_route_output(dev_net(ctx->dev), tiph->daddr, 0, 0, 0,
--			     RT_SCOPE_UNIVERSE);
-+	rt = ip_route_output(dev_net(ctx->dev), tiph->daddr, tiph->saddr,
-+			     inet_dsfield_to_dscp(tiph->tos),
-+			     tunnel->parms.link, RT_SCOPE_UNIVERSE);
- 	if (IS_ERR(rt))
- 		return PTR_ERR(rt);
- 
+See
+ef0efcd3bd3f ("ipv6: Fix dangling pointer when ipv6 fragment")
 
----
-base-commit: 155c68aef2397f8c5d72ef10acf48ae159bf1869
-change-id: 20260708-ipip-route-lookup-fill_forward_path-6a8a1f45084c
-
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo@kernel.org>
-
+Thanks!
