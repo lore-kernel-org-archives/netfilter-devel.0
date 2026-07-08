@@ -1,62 +1,52 @@
-Received: from sender-op-o17.zoho.eu (sender-op-o17.zoho.eu [136.143.169.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD443BE16A;
-	Tue,  7 Jul 2026 19:52:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.17
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783453949; cv=pass; b=WRrWL2wv2UNuzvYD6w/x9WWXIPgda8MG9bbfkjIClcSLUxZlI9J6KFXZ/TxpwFJAhJZWNKpILpMQcJVIAo+qutzgr48AyrudOwbggIEsbhVzhIlH5w801GgZk1nzKcBfuf/SSBrE/VVPVGfGnCZZOz07CoIeCr4sPxQojfXQung=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783453949; c=relaxed/simple;
-	bh=kCudANBtGiV5T7jptIuz8pqxyLSpQUKq387uHza/Bak=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VdP8Hgk00S2NniRFTA74nAV+xB0RIA0R9mXZoyVhZl4/1F+JpyxTD2AVfoN/bdVTgyBKCY3kBg21ZmBZgDk/JF1pNf27/gcGGkGuiXI478DXjM+/noRKhjHVh2/ARO8ppPRZN+a5X67rwNZnJ+h7TKvYBmHhO47LD4AzS9nzVC4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me; spf=pass smtp.mailfrom=carlosgrillet.me; dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b=YcgUL602; arc=pass smtp.client-ip=136.143.169.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=carlosgrillet.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=carlosgrillet.me
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.76.78.106])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 50A133B9D9B;
+	Wed,  8 Jul 2026 05:28:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.76.78.106
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783488488; cv=none; b=HUNaQHXCtaIpusJ8727RfKy2Bp36nCOLC04lrxN2osaz9GX0VS2HVSYLBcrpltjGNGS03sOCTasP3oRqw4rr+ZNbtb9PRGBhJn24JAM38hPpvMwYXaQ3ocCQv1CnA3iYSfCgDWBHXyP/Tp37zIa5f1GmoeJUYpZ5fycjhVH/wx8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783488488; c=relaxed/simple;
+	bh=Tk/SIKN81NVDuX2stQgrEZFJK2nWKRLk8SvQKPTSZ3E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OsRnCH24sC2VSyYdNt79a7+C1QlOeFyeGI/PtaCz7wmKT6i6Uc+KgRhC8wGLVoXWp7oZtflHoNji7m5rhsdQbB4znSIfJzaZZyuC/ZAcj5C4OlUtQ23A4EgyuUJ9sNs5CJgSCvMFsy8wNNeKPdVoa0So0zYRn+KNN8FHeDTvwj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=l6ln1pnu; arc=none smtp.client-ip=13.76.78.106
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=carlosgrillet.me header.i=carlos@carlosgrillet.me header.b="YcgUL602"
-ARC-Seal: i=1; a=rsa-sha256; t=1783453888; cv=none; 
-	d=zohomail.eu; s=zohoarc; 
-	b=h9H5irWI9/bgjSoY97OljlwHd/OmdSU/x0LHOruiu7vVlyqHjdk7XkI3xGbCO9WuPUwBzRm+eqMrLNSC85tAOx5qzL4uQdpPxHvTBEUI4cTpjd6AcbRg7CLvNdMOMbu6euq6JfhGoBV98wyStvxjoIZGwKM7qE5wARJ62OWtSKA=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-	t=1783453888; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=O7LzIaGXaXW2mRfZr0pOO8FkqoYCUO+P19vOSnpZkSE=; 
-	b=hvW3K1+N5+v0vUStM0BvTPGap/nukly4fHFvkNy8GASB7WcqLfolweay923naxTmRGeXRBm13vdETuo1IWEpdE6eOmgo+eLQuGFgiR30CNljhpWUxXvNPipE8APotKD8W+W6W6DRicQcbO3uNnPHZjl3LeZEurKJPikJyOY2VZQ=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-	dkim=pass  header.i=carlosgrillet.me;
-	spf=pass  smtp.mailfrom=carlos@carlosgrillet.me;
-	dmarc=pass header.from=<carlos@carlosgrillet.me>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1783453888;
-	s=zmail; d=carlosgrillet.me; i=carlos@carlosgrillet.me;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=O7LzIaGXaXW2mRfZr0pOO8FkqoYCUO+P19vOSnpZkSE=;
-	b=YcgUL602JsgFw99gwSKLNuq01WCf40qU9kTzRpUcT6w2XH44xEbS6vRfMvPZDcGM
-	jXjlb6meTN3ucM+gRv+c8kD2v2vzM5HfzNIzPqsXdp+h6AuMK+qY0jb0FUWRpnzGbYg
-	UZZzHfKf8Zg9g2i61M9RSiZVFCDy4+R4HjTZsw0o=
-Received: by mx.zoho.eu with SMTPS id 1783453886785522.5045739897042;
-	Tue, 7 Jul 2026 21:51:26 +0200 (CEST)
-From: Carlos Grillet <carlos@carlosgrillet.me>
-To: Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="l6ln1pnu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
+	Date:Message-ID:MIME-Version:Content-Transfer-Encoding; bh=U0Et5
+	gxWdJSPtba9Rc9sxcUYbgY5trVM/vydxYE7rrU=; b=l6ln1pnu/vRxkC5K83wYe
+	du07UKyn0SenuEp3eHTCumEep/rSCnCsdOf7p2kvHEV8peZVlm+ZTFkIq3jTjQy2
+	zXHTHuEgA6q5Ah+UJeU4USC6zUoaTHf+i3O+PjuOwZOSmtfYfL0kMNvDz0XbvQGT
+	6NtgJRkJ3STAyuJ2u+UdZU=
+Received: from localhost.localdomain (unknown [211.102.241.101])
+	by web2 (Coremail) with SMTP id yQQGZQAnAprF301qtzPPAg--.34710S2;
+	Wed, 08 Jul 2026 13:27:34 +0800 (CST)
+From: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
 	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH nf-next 1/4] netfilter: ip_vs_core: replace u_int32_t with u32
-Date: Tue,  7 Jul 2026 21:51:06 +0200
-Message-ID: <20260707195111.34899-2-carlos@carlosgrillet.me>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260707195111.34899-1-carlos@carlosgrillet.me>
-References: <20260707195111.34899-1-carlos@carlosgrillet.me>
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
+	Ao Wang <wangao@seu.edu.cn>,
+	Xuewei Feng <fengxw06@126.com>,
+	Qi Li <qli01@tsinghua.edu.cn>,
+	Ke Xu <xuke@tsinghua.edu.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH nf v2] netfilter: nf_conncount: fix zone comparison in tuple dedup
+Date: Wed,  8 Jul 2026 13:27:28 +0800
+Message-ID: <20260708052730.18354-1-zhaoyz24@mails.tsinghua.edu.cn>
+X-Mailer: git-send-email 2.46.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -64,31 +54,102 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
+X-CM-TRANSID:yQQGZQAnAprF301qtzPPAg--.34710S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxCw1rXr4UWF4fZryktF17Awb_yoWrXFWfpr
+	WYkrZayFZ7XrZFk3s7Zw17AF13Jws8AFy3JFn5A3yqvws0gas0yayxt343A3WDuF4DXF17
+	ZF45Wr1jyan8ArDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUP014x267AKxVW5JVWrJwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
+	CE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xv
+	F2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r
+	4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I
+	648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI0_GFv_Wrylc2xSY4AK67
+	AK6r4rMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAF
+	wI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc4
+	0Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AK
+	xVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr
+	1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7sREK0PPUU
+	UUU==
+X-CM-SenderInfo: 52kd05r2suqzpdlo2hxwvl0wxkxdhvlgxou0/1tbiAQECAWpNfDKVPAAAsD
 
-Use preferred kernel integer type u32 instead of the POSIX u_int32_t
-variant.
+The "already exists" dedup logic in __nf_conncount_add() decides
+whether a connection has already been counted and can be skipped instead
+of incrementing the connlimit count.  It compares the conntrack zone of a
+list entry with the zone of the connection being added using
+nf_ct_zone_id() and nf_ct_zone_equal(), passing conn->zone.dir or
+zone->dir as the direction argument.
 
-No functional change.
+Those helpers take enum ip_conntrack_dir values: IP_CT_DIR_ORIGINAL is 0
+and IP_CT_DIR_REPLY is 1.  However, zone->dir is a u8 bitmask:
+NF_CT_ZONE_DIR_ORIG is 1, NF_CT_ZONE_DIR_REPL is 2 and
+NF_CT_DEFAULT_ZONE_DIR is 3.  Passing that bitmask as the enum direction
+shifts the meaning of every non-zero value.  An ORIG-only zone passes 1
+and is tested as REPLY, while REPL-only and default zones pass 2 or 3 and
+test bits beyond the valid direction range.  In those cases
+nf_ct_zone_id() can fall back to NF_CT_DEFAULT_ZONE_ID instead of using
+the real zone id, so different zones can be treated as equal and dedup
+collapses to tuple equality alone.
 
-Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
+nf_conncount stores and compares the original-direction tuple for a
+connection.  If an skb already has an attached conntrack entry,
+get_ct_or_tuple_from_skb() explicitly copies
+ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple, regardless of the packet's
+ctinfo.  Therefore the zone comparison in the tuple dedup path must use
+IP_CT_DIR_ORIGINAL as well; the zone direction bitmask describes where a
+zone id applies, not which direction this conncount tuple represents.
+
+Fix the two dedup comparisons by passing IP_CT_DIR_ORIGINAL directly.
+Do not special-case NF_CT_DEFAULT_ZONE_DIR and do not compare raw zone
+ids: using the existing helpers with IP_CT_DIR_ORIGINAL preserves the
+direction-aware NF_CT_DEFAULT_ZONE_ID fallback.  A default bidirectional
+zone contains the ORIG bit, so it naturally returns the real zone id;
+reply-only zones continue to fall back for original-direction tuple
+comparisons.
+
+Fixes: 21ba8847f857 ("netfilter: nf_conncount: Fix garbage collection with zones")
+Fixes: b36e4523d4d5 ("netfilter: nf_conncount: fix garbage collection confirm race")
+Cc: stable@vger.kernel.org
+Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
+Reported-by: Ao Wang <wangao@seu.edu.cn>
+Reported-by: Xuewei Feng <fengxw06@126.com>
+Reported-by: Qi Li <qli01@tsinghua.edu.cn>
+Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
+Assisted-by: Claude-Code:GLM-5.2
+Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v2:
+- Use IP_CT_DIR_ORIGINAL directly instead of adding a helper to map
+  zone->dir to an enum direction, suggested by Florian Westphal.
+- Link to v1: https://lore.kernel.org/netfilter-devel/20260706114820.74006-1-zhaoyz24@mails.tsinghua.edu.cn/
+---
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 91582069f6d2..e9ea6d9466e7 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -211,8 +211,8 @@ static int __nf_conncount_add(struct net *net,
+ 			/* Not found, but might be about to be confirmed */
+ 			if (PTR_ERR(found) == -EAGAIN) {
+ 				if (nf_ct_tuple_equal(&conn->tuple, &tuple) &&
+-				    nf_ct_zone_id(&conn->zone, conn->zone.dir) ==
+-				    nf_ct_zone_id(zone, zone->dir))
++				    nf_ct_zone_id(&conn->zone, IP_CT_DIR_ORIGINAL) ==
++				    nf_ct_zone_id(zone, IP_CT_DIR_ORIGINAL))
+ 					goto out_put; /* already exists */
+ 			} else {
+ 				collect++;
+@@ -223,7 +223,7 @@ static int __nf_conncount_add(struct net *net,
+ 		found_ct = nf_ct_tuplehash_to_ctrack(found);
+ 
+ 		if (nf_ct_tuple_equal(&conn->tuple, &tuple) &&
+-		    nf_ct_zone_equal(found_ct, zone, zone->dir)) {
++		    nf_ct_zone_equal(found_ct, zone, IP_CT_DIR_ORIGINAL)) {
+ 			/*
+ 			 * We should not see tuples twice unless someone hooks
+ 			 * this into a table without "-p tcp --syn".
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index d40b404c1bf6..1ae997660148 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -882,7 +882,7 @@ static inline enum ip_defrag_users ip_vs_defrag_user(unsigned int hooknum)
- }
- 
- static inline int ip_vs_gather_frags(struct netns_ipvs *ipvs,
--				     struct sk_buff *skb, u_int32_t user)
-+				     struct sk_buff *skb, u32 user)
- {
- 	int err;
- 
--- 
-2.55.0
+--
+2.47.3
 
