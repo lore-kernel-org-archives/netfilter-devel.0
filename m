@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E07E4189C5;
-	Wed,  8 Jul 2026 14:03:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F35740802E;
+	Wed,  8 Jul 2026 14:03:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783519410; cv=none; b=R/OXTfNxJhpsib94486rPNagOBWFXpXXpZOZp2Bs+DkMMQvK5HP52bOBkWefxBDxjz8BjBCUyu5kaH9cBW65SrNAU4kpIZgi4hTSqM9jT0Ya08Npr+56Y3qKZeD5uJNGZRSfTeLgW5RuEHwQFv2z+byMljvinC1exnYxBRHRvas=
+	t=1783519414; cv=none; b=SOcBd7IkTmfOZXC+Q/X8QnmPi1KvbBC8eXX0yY/7c/ZIIJB+R3AvI0Sl02RFsfYqpwVX7X2cEhyfBOapiARsKNqVMGdQiqNAYPbnsMGpjnXzEYVibUNZUatiqyOkAb6uFE+IdBKz84jlXYort5wk2Cf3+9Z5lTflt6asrsHEcX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783519410; c=relaxed/simple;
-	bh=MztAl7Gua0MZM+Zd/+9jxM6mCLjLDz/BXESwfXFhGQc=;
+	s=arc-20240116; t=1783519414; c=relaxed/simple;
+	bh=0rjF39i1DYQrnDk1vT7ALDJ9mMPEKI179DEh4L4DFgo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VSOstRugifPOFIA4yfu2NQNZ7K8UjnvLWkmjGQoHOC5/2rzQbJ6M165nXdy80VIVcjXrHj3+e3FgfgxxqQoHRxYqlq8ZihZjHcgpbkyQxyd4s5/6lP5THZyfbp1frhV+C8jO/O4462DvemrTAsAIu0Dig6xFtcyOA4ASwGELwEw=
+	 MIME-Version; b=pMH7cFdMNYZh7O3k3YHYkasFEc0z7HY4ZPr9DZfWTyKa+E0rXi+QAtbLH9qlwty2dGRCVKe0dIuRCeNWFlzLWcaON8fKGSF8iTDm4z36vcT7zyHQUMk2JwxonZJiFhb/LOLVfMBn7kz9Nvm9q70in6Djq0r6KMvIds+xCSxLV5o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C6DA36059E; Wed, 08 Jul 2026 16:03:27 +0200 (CEST)
+	id 14BE16059E; Wed, 08 Jul 2026 16:03:32 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 02/17] netfilter: ebtables: terminate table name before find_table_lock()
-Date: Wed,  8 Jul 2026 16:02:54 +0200
-Message-ID: <20260708140309.19633-3-fw@strlen.de>
+Subject: [PATCH net 03/17] netfilter: ebtables: zero chainstack array
+Date: Wed,  8 Jul 2026 16:02:55 +0200
+Message-ID: <20260708140309.19633-4-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260708140309.19633-1-fw@strlen.de>
 References: <20260708140309.19633-1-fw@strlen.de>
@@ -38,77 +38,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Xiang Mei <xmei5@asu.edu>
+sashiko reports:
+ looking at ebtables table
+ translation, could a sparse cpu_possible_mask lead to an uninitialized pointer
+ free?
 
-update_counters() and compat_update_counters() forward a user-supplied
-32-byte table name to find_table_lock() without NUL-terminating it. On a
-lookup miss, find_inlist_lock() calls try_then_request_module(..., "%s%s",
-"ebtable_", name), and vsnprintf() reads past the name field and the
-stack object until it hits a zero byte.
+ If cpu_possible_mask is sparse (for example, CPU 0 and CPU 2 are possible,
+ but CPU 1 is not), the allocation loop skips CPU 1. If vmalloc_node() fails at
+ CPU 2, the cleanup loop will blindly decrement and call vfree() on
+ newinfo->chainstack[1].
 
-  BUG: KASAN: stack-out-of-bounds in string (lib/vsprintf.c:648 lib/vsprintf.c:730)
-  Read of size 1 at addr ffff8880119dfb20 by task exploit/147
-  Call Trace:
-  ...
-   string (lib/vsprintf.c:648 lib/vsprintf.c:730)
-   vsnprintf (lib/vsprintf.c:2945)
-   __request_module (kernel/module/kmod.c:150)
-   do_update_counters.isra.0 (net/bridge/netfilter/ebtables.c:371 net/bridge/netfilter/ebtables.c:380)
-   update_counters (net/bridge/netfilter/ebtables.c:1440)
-   do_ebt_set_ctl (net/bridge/netfilter/ebtables.c:2573)
-   nf_setsockopt (net/netfilter/nf_sockopt.c:101)
-   ip_setsockopt (net/ipv4/ip_sockglue.c:1424)
-   raw_setsockopt (net/ipv4/raw.c:847)
-   __sys_setsockopt (net/socket.c:2393)
-  ...
+Not a real-world bug, such allocation isn't expected to fail
+in the first place.
 
-compat_do_replace() shares the same unterminated name via
-compat_copy_ebt_replace_from_user(); terminate it there too so all
-find_table_lock() callers behave alike. The other callers already
-terminate the name after the copy.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
 Cc: stable@vger.kernel.org
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebtables.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/bridge/netfilter/ebtables.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index f20c039e44c8..5b74ff827493 100644
+index 5b74ff827493..48187598cdd0 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -1434,6 +1434,8 @@ static int update_counters(struct net *net, sockptr_t arg, unsigned int len)
- 	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
- 		return -EFAULT;
- 
-+	hlp.name[sizeof(hlp.name) - 1] = '\0';
-+
- 	if (len != sizeof(hlp) + hlp.num_counters * sizeof(struct ebt_counter))
- 		return -EINVAL;
- 
-@@ -2273,6 +2275,8 @@ static int compat_copy_ebt_replace_from_user(struct ebt_replace *repl,
- 
- 	memcpy(repl, &tmp, offsetof(struct ebt_replace, hook_entry));
- 
-+	repl->name[sizeof(repl->name) - 1] = '\0';
-+
- 	/* starting with hook_entry, 32 vs. 64 bit structures are different */
- 	for (i = 0; i < NF_BR_NUMHOOKS; i++)
- 		repl->hook_entry[i] = compat_ptr(tmp.hook_entry[i]);
-@@ -2395,6 +2399,8 @@ static int compat_update_counters(struct net *net, sockptr_t arg,
- 	if (copy_from_sockptr(&hlp, arg, sizeof(hlp)))
- 		return -EFAULT;
- 
-+	hlp.name[sizeof(hlp.name) - 1] = '\0';
-+
- 	/* try real handler in case userland supplied needed padding */
- 	if (len != sizeof(hlp) + hlp.num_counters * sizeof(struct ebt_counter))
- 		return update_counters(net, arg, len);
+@@ -921,8 +921,7 @@ static int translate_table(struct net *net, const char *name,
+ 		 * if an error occurs
+ 		 */
+ 		newinfo->chainstack =
+-			vmalloc_array(nr_cpu_ids,
+-				      sizeof(*(newinfo->chainstack)));
++			vcalloc(nr_cpu_ids, sizeof(*(newinfo->chainstack)));
+ 		if (!newinfo->chainstack)
+ 			return -ENOMEM;
+ 		for_each_possible_cpu(i) {
 -- 
 2.54.0
 
