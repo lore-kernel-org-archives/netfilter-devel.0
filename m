@@ -1,75 +1,91 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5501E3B71C7
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2026 14:56:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A4CD3451AF;
+	Wed,  8 Jul 2026 15:23:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783522596; cv=none; b=Pb1/SpF5PvFshRd9XZIFdldCqoELWtELmem2St/JOPnfiNhEj7Y/urPRZI0fGJrqtDljtuZPFNkG5dHGfkhKVzcESU21FLUQVSCrKTHRZyQoYyzh/HQRjtc6o7jiysVcmTtmTC4HFOfhjPNMuObUfn3MsaX35ayYsP4eE9U6J4g=
+	t=1783524237; cv=none; b=YVhdwiFHcWMW6aZ5wXasd/rPG3j6buzETimV3SzjkzYfGN096rEZgZYSLn/fBNWajRRvEljWOxq/7CKWVZqQ8QgSW4yfzAlStLMN8i6/G8zP90rGPOFVLbEUHPV9gEMWdjJcOYlNEW/yrVYYjXkEZKpDBGCo4yCAZbV9Q2nwRCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783522596; c=relaxed/simple;
-	bh=d53hDIMiIofWRYrOwXy+zbiy518ScHwjHUbpcZj6ewg=;
+	s=arc-20240116; t=1783524237; c=relaxed/simple;
+	bh=9NlGv7j3wYR2B3bsrFkE0C5K5mAsL2M2Y8LZOX+yPfs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gx12Uz8ub6atAPOcoyXo+G0O0fIhCNStm6/JxpqOluDoAbjCoKykH8DJtiM1xC1LLP8WDyNwYLlfmvJnMBEYMnnwFTIy6xHfkAgPJ/09NT3+DaRs071NkC8/lIKhBye4ZSAXr0N7eUAHSOopxaJ/n9uXgIQLDWeW/Rb+dG/8ddw=
+	 Content-Type:Content-Disposition:In-Reply-To; b=pbcqDpKAOsuxzkTBgI16AdrUqN/CWpMb4G/minfOzxuxX5DRq0AlSWJO6g93CzGriwMTnFEUyue3xRiy6lJMkDicMI7cQ3UhxKMbHQInthbucYNuzRajezgxRZyqo/qvjc5D8mzvEtkDCEVPMtE54mLxDvuM/GhRiJyOyBgGK/k=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9130B60F16; Wed, 08 Jul 2026 16:56:32 +0200 (CEST)
-Date: Wed, 8 Jul 2026 16:56:31 +0200
+	id 1884B60E29; Wed, 08 Jul 2026 17:23:53 +0200 (CEST)
+Date: Wed, 8 Jul 2026 17:23:52 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Carlos Grillet <carlos@carlosgrillet.me>
+To: xietangxin <xietangxin@h-partners.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/4] netfilter: replace u_int*_t with kernel int
- types (batch 3)
-Message-ID: <ak5lH1UnFth6oreP@strlen.de>
-References: <20260707195111.34899-1-carlos@carlosgrillet.me>
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	gaoxingwang <gaoxingwang1@huawei.com>,
+	huyizhen <huyizhen2@huawei.com>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: nf_nat_masquerade: recalculate TCP TS
+ offset when port is randomized
+Message-ID: <ak5riPx5d3rSG6MG@strlen.de>
+References: <20260629093408.3927103-1-xietangxin@h-partners.com>
+ <akKN4cywAsFRdefX@strlen.de>
+ <0ad60f06-387e-49bc-9e26-3dcebf182cb4@h-partners.com>
+ <akUhid7_3iHovivd@strlen.de>
+ <3620a5a9-9ced-4825-9bc4-6950be205749@h-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260707195111.34899-1-carlos@carlosgrillet.me>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3620a5a9-9ced-4825-9bc4-6950be205749@h-partners.com>
 
-Carlos Grillet <carlos@carlosgrillet.me> wrote:
-> This patch series replaces POSIX u_int8_t/u_int16_t/u_int32_t with the
-> preferred kernel types u8/u16/u32 across several netfilter files and
-> updates the corresponding header definition.
+xietangxin <xietangxin@h-partners.com> wrote:
+> Thanks for your guidance. I’ve successfully fix the helper location
+> as you suggested, and it works fine for local traffic.
 > 
-> This continues the work started in:
-> https://lore.kernel.org/all/20260616182948.96865-1-carlos@carlosgrillet.me
+> However, I realized that I had completely overlooked the forwarding scenario
+> (where SNAT acts as a middlebox gateway, e.g. Host A -> Gateway B -> Server C).
+> In this gateway scenario, when random-fully is enabled, the test results show
+> a massive performance degradation: the QPS drops from ~19000 down to ~10000.
+
+I don't think the forwarding case is fixable.
+
+Host S could be another NAT gateway, so it could be possible that
+the connections originate from different physical machines and
+timestamps differ due to different clocks, not per-connection
+randomisation.
+
+> Since skb->sk is NULL on the forwarding gateway, my current approach of
+> updating tp->tsoffset in struct tcp_sock cannot be applied here.
+
+Yes. I think the tp->tsoffset recalc is fine to handle local case.
+
+For local case we do know that we're the end host and ts recalc is fine.
+
+> To be honest, I am currently stuck on how to handle this forwarding scenario
+> within the netfilter architecture without adding redundant overhead to the fast path.
 > 
-> No functional changes.
-> 
-> Carlos Grillet (4):
->   netfilter: ip_vs_core: replace u_int32_t with u32
+> Could you please give some advice on how the community would prefer to resolve this?
+> For instance, should we look into extending the Conntrack NAT extension to
+> track and adjust the TCP timestamps?
 
-This one is fine, its the only occurence.
+If we have some guarantee that internal network isn't doing any
+snat at all, then yes, one could implement some TS adjustment
+scheme similar to seqadj extension we already have to deal with
+tcp sequence number adjustments.
 
->   netfilter: nf_conntrack_sip: replace u_int16_t with u16
+We'd have to keep state and subtract the offset to get back the
+right tsecr again on reverse direction.
 
-No need to send a v2, I "fixed" this locally, but this
-could have been
-'netfilter: nf_conntrack: replace u_int16_t with u16'
+I'm not keen to have something like this, it would breaks PAWS
+as soon as the originating host is itself a nat gateway.
 
- nf_conntrack_core.c    |    4 ++--
- nf_conntrack_irc.c     |    4 ++--
- nf_conntrack_netlink.c |    6 +++---
- nf_conntrack_pptp.c    |    8 ++++----
- nf_conntrack_sip.c     |    2 +-
- 5 files changed, 12 insertions(+), 12 deletions(-)
-
->   netfilter: nf_nat_amanda: replace u_int16_t with u16
->   netfilter: nfnetlink_osf: replace u_int8_t with u8
-
-I'm not applying these two.  Please find a way to make
-larger logical changesets.
-
-These one-lines are just extra churn.
-E.g. make one patch for nf_nat.
-
-Or address all of u8/18/u32 in same change.
+Is this really a problem to begin with?
