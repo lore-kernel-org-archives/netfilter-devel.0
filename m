@@ -1,67 +1,66 @@
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30EF13ED5C3
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 09:34:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474663E3142
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 09:41:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783589683; cv=none; b=rHjClsNog5tuczEnO7JW+yI+5ZRgDM6Kdq/zdf7/C+CtGZoP9Sp7nGoBQUUSdWyBTBJpQDZBTiVI2FE36xYdsWGiD72FeVn2lLJF3b1uKLDshX9QJoQqdzBGiUjOnYt1aTLa4l2W9ZjbSSHPSe2Akgj2irfBiAc5zhtPHWQRT1Q=
+	t=1783590073; cv=none; b=Izt03QN4oqV22xniOJBpICWI2lslYX55KHkVuCKgXJSrl28NJJiCxgFIIkBaVDDb4DUC1NJ9st6H4jfKfI+BIrETUSzf/VmSqx55vYHXxFUDtNzHlXhCSdXK20w81TGsTEMSCh1y9RE/YS6sNCDd8LoCM/HHK8PVR+3MDTibREo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783589683; c=relaxed/simple;
-	bh=BGotsO+Xy3yZ58ijoTkhB5nFmmjexia5sAeBl48H7c4=;
+	s=arc-20240116; t=1783590073; c=relaxed/simple;
+	bh=/8dM9Z/CoF2L+7WNN7ITyoWlNjxyJTQlQwpQFvzkRD4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=q5vv+3pGoFVm6ryoNpWj68EEtKuZqvtjpJwIK6htE1kksZ3VX5FOuroF5fzL4W1BIZgtqpRdA6g87DgmVkXCUZsxlXTeO6wJsLkjkTycjKuCyLgzzsaWEeJzBEJt1ggcKMT2S74g/7DC0/43aBmc5uwgU9wWUwHlWpBrhcH1uTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b=BE0dkKZn; arc=none smtp.client-ip=209.85.128.43
+	 In-Reply-To:Content-Type; b=W8rGYMBzPJrEKlxkZgzAZqCMQFWAM0a850CyKvH8eq0H6xmmHlL7AA1uEvkjJXR529o2MewTS6LLFvvOGxSPVsPtBkM1XrLq2aNvgVgFnUHWg+iJS6SJdftN6xrAyCJTsf//Rc5pQsFUw1SuqnbWAZ+rW3TSMtGO38LjVkKCIV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b=bHlLYMlA; arc=none smtp.client-ip=209.85.221.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b="BE0dkKZn"
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-493bab44440so4388535e9.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jul 2026 02:34:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b="bHlLYMlA"
+Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-47df440fcd5so693969f8f.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jul 2026 02:41:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall.org; s=google; t=1783589680; x=1784194480; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=uY49nb5pN+xm+mpr8Plpnx3+y2A04Mn/N8LUEgZX3IY=;
-        b=BE0dkKZn2N1r8BGYFxT2uGucnDcCVJaRXTsyv20XMbkZQHgDlCrKb9NIN9Kyl+3goI
-         hgZ1ZPuN55NH53P2OuAWHwINwTbdazWiMHerIo1cw3jAaHK7GS6Z6STyL2o1v85ri6/V
-         LSHhRM2QlPCPtlLn7nNQhHMszXSuF4X5TcEHLlWvaPPtAZAwLiwz7vRDBmjShjV3CYBG
-         jYE9dUtcm9gg2M/dkyhga8xCi6u58Rr6uUneu3iQoXskptfnMK4f7qbnEMm4696NBdfu
-         9f7HrdyMfbYw6nssOa1vwGH10aeSi2onc7QWSngQde/ZYW+EQZB3zsyEVr3l168lCD9i
-         dywg==
+        d=blackwall.org; s=google; t=1783590071; x=1784194871; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dpTA2UFoD8jIxn6LzSQQQ69wwcU0vV5c/nqe3IqCP2Q=;
+        b=bHlLYMlA01yrqUn3lbkHsAWJZqpwk1UZDwK8Bw5YvT6lxRpIp0fpuLQrnCwIPH6lfh
+         ovPDY6HKKTQwYLOyk2BKxioyQi/cplgljqxi5Ruoai5QrO2GfBX2V3w3SpvuHtgRsnCG
+         G2evJzQRqm4J7HeC0/AuDNfGuPhgdxYj8kogvU09jnds9i6gTmnAR13TS9zm7v3q1l3o
+         4fhFmnaDnxeyENix52Yi7W2RmJDLhwLv4ztwhuGJ3SA6OkVmqViUi8oCC1KeBlfxMZOf
+         PiwPF3F2YRa2WVzoBX61C+/ydkBUEUb+wth9WphBgpkdBG9kup0JiY30TUpHKN+jIKIZ
+         A5Ew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783589680; x=1784194480;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1783590071; x=1784194871;
+        h=content-transfer-encoding:content-type:in-reply-to:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=uY49nb5pN+xm+mpr8Plpnx3+y2A04Mn/N8LUEgZX3IY=;
-        b=kM/+NYeaOUui6tP94N8amI08tbxVUyzbTFJr/O71l7hkmS8DSYBFgBcrm3NNtncVos
-         rpGoojxJ0thI7I0d2EdzDzhLwwWv+/VVz09wO4CkGnkXRo2f8HPLRZrTVB9bbPJ1ti5t
-         adooJVref0yyJO02sT16QTw+VuakA6GAYwDOyXjSpewStwnh3p2qBYab70jMODiAjIyo
-         7ZLgyI9R7hxeBxzKKGCy23MQ1wq1qAaZRHCi2kHOKLVNPz5fUYbS9SN1xwnboD7Jj7pZ
-         Rdq19gJwBCRbrdr1vSAirq0KSIBd5U0cQwfKBrPdrvl3/bKoHCM745gVSPMIZn5e9i0F
-         kxVQ==
-X-Forwarded-Encrypted: i=1; AHgh+Ro9XAuD0IR7Q4oPWr88Ke04Hq3vpmLJ3C80MS5v7ruy/wNFRCChJQtIxvgMQyiFUklV2J+zYp+245MkEc78CJ0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwGvfs9JDPcVAK76yZwPx8VdxI1TNxjrW92BsSqGOgK5o3iqYbM
-	DvOvVUCpSZmWLvQzxLxb//v74T9ytLXud0bVWkCGAqWgU1+QrRsywQxHUm2/LXkQMxc=
-X-Gm-Gg: AfdE7clpbXo13mw2BaWba42rwTN/OKW7oQTFlXKDfBk+jyqRvgwgTwECnXmVRiThllL
-	EByVVsT8SXVPm50d/OEZmBXyAZHhTPNBDoEOs0sMuQQ3rmiBrk4URgvVxan9p5pQ/fG80fP0Pj5
-	GIIjtxO65zyW8W+ToIR2MEF/9dorRxMzjYpl9Lcjr20DHHJ5tdKCct3uoD6nOb1+1fDLjTBJTCH
-	/TSCxYc/MFVeTQJrUQbRfJUpsPmf2GCcAtusRMLYJLSI46Mu7+EeTAjk2vCvT+S3lY/OgzsedB3
-	hKKpdTWi09A68ztUDBE1EzOgvuIdLLqZg8lfSTZ7cdTA4ZKwuIrBwdbgzeJaduasD2P1kyCr81E
-	/hj3BYN0eSBd2ceSVSjGAw7OHivu2UWTDqhr8iHqpd5+djOmADgiltagRkF2KOHrl7i4o9eP0jb
-	L6RR6zx94J8sOGX1d+RQgZ3RnqGW6xcRX+VtZklftYb+DrX+M31mlThg==
-X-Received: by 2002:a05:600c:22d2:b0:48a:5f32:62c6 with SMTP id 5b1f17b1804b1-493ec7754cemr14846825e9.11.1783589679980;
-        Thu, 09 Jul 2026 02:34:39 -0700 (PDT)
+        bh=dpTA2UFoD8jIxn6LzSQQQ69wwcU0vV5c/nqe3IqCP2Q=;
+        b=L1BPtu3O725b48kukrVq5igw9h3uUHUygTabj0BvET1zc2OXhkk5t+MDTAFpx1D2ec
+         1f0ZCvxcFSYt114jIh1OXFSyMhGbMiyqL9BO1mc+w2DVXk0fUuZSp2My0c2SmOFsT8uB
+         ziLXg41SPI6GAZXZlbdr0G2gsWV6ag/IoKIfPT4NbjQQ75V8hbyFAOcEt6FKKfFwdVHr
+         glibdbt5nr0yqn4AdYKCTYt0OwN42M+xE9AllXlyuU+i9Jx2x1hxKQgvG1K0uwDGnlae
+         0i0E0SmTrkPtmsgP4LJRG1SylIcdmvSVB54ya8K1H+YzBryqHeyjIzUd99Qap70zGND2
+         UX6w==
+X-Forwarded-Encrypted: i=1; AHgh+RqBLpnp6cSOHH0nVafxLa3V3bkYrLLtS8CNmqT8hbQucmjG3CODVB1Y8R1v8vjWjyIENcPQtHjNk+gR0ocmvqg=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzzuI6yqoJH2YtZnc2zV7Cc7BwQeIqV103XnpJa1jP4tbGswYOK
+	Tln+GJ1sQix3Nrx8mJ8axyTLdVvTz0uP1fBmtA8mnE11oBDCYpyeZVyz3cEyEt65hdA=
+X-Gm-Gg: AfdE7clgy0hafFcqQreYdY8wDwQIpoSJwmBmkb8xd8UHdN4mvaK1KNPwx7ceJXWlNL0
+	cSXiYOVIWnKl40riiN7ynyq9w760KcmramVohKCnr3tewqplKKv2yq9dItgKq2qOTdf+4eRasn+
+	WNvaOfyMjZwPBhRGjZ2ojcE0rN7Y0IRc2sBdJF0snpM2rCGWP/Qe02N6mgCQSY4GCrcMrKZAuyS
+	bq93YpRMoZHdE54IAuL4a1eFAX9t4HPlsWlOoQYwKzCRqwt8CAW3FBi/hYhBYRQtEMzbbKtrDLA
+	QjymnQJe2txW2G6vCAh5ZtXKtwd9BOQlfNEWhmskQUUZ5LyjkQZF0ZB4xAorTrghwahP1dv5MkU
+	2A9EG61omaoEvnPZnTi0FGRByyBoZDx1jaLAkOTdRLFYhb75uQOTE0IULQf/lCs7u6eqY9ySz0N
+	piGNfLtA3hHceg2sIxiGwjeZ+z1bMLPh9oHvvsbzGMlwtPey4cn5LvNw==
+X-Received: by 2002:a05:6000:2407:b0:475:f100:3604 with SMTP id ffacd0b85a97d-47df081ba52mr7354428f8f.51.1783590070132;
+        Thu, 09 Jul 2026 02:41:10 -0700 (PDT)
 Received: from [192.168.0.161] (78-154-15-182.ip.btc-net.bg. [78.154.15.182])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47aa039ae44sm47893706f8f.23.2026.07.09.02.34.38
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47a9de1d8f1sm50701835f8f.3.2026.07.09.02.41.08
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 09 Jul 2026 02:34:39 -0700 (PDT)
-Message-ID: <b0774436-bc41-462f-820b-6a037b6082bb@blackwall.org>
-Date: Thu, 9 Jul 2026 12:34:37 +0300
+        Thu, 09 Jul 2026 02:41:09 -0700 (PDT)
+Message-ID: <b0f45a47-ef6f-43df-9738-67b28df1891d@blackwall.org>
+Date: Thu, 9 Jul 2026 12:41:08 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,76 +68,51 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v12 nf-next 0/7] netfilter: Add bridge-fastpath
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
- Eric Woudstra <ericwouds@gmail.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+Subject: Re: [PATCH v12 nf-next 1/7] bridge: Add filling forward path from
+ port to port
+Content-Language: en-US, bg
+To: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, Ido Schimmel <idosch@nvidia.com>,
- Kuniyuki Iwashima <kuniyu@google.com>,
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+ Ido Schimmel <idosch@nvidia.com>, Kuniyuki Iwashima <kuniyu@google.com>,
  Stanislav Fomichev <sdf.kernel@gmail.com>,
  Samiullah Khawaja <skhawaja@google.com>, Hangbin Liu <liuhangbin@gmail.com>,
- Krishna Kumar <krikku@gmail.com>, Martin Karsten <mkarsten@uwaterloo.ca>,
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ Krishna Kumar <krikku@gmail.com>, Martin Karsten <mkarsten@uwaterloo.ca>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
  bridge@lists.linux.dev
 References: <20260707091045.967678-1-ericwouds@gmail.com>
- <ak4culZgTe8CNSva@chamomile>
-Content-Language: en-US, bg
+ <20260707091045.967678-2-ericwouds@gmail.com>
 From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <ak4culZgTe8CNSva@chamomile>
+In-Reply-To: <20260707091045.967678-2-ericwouds@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 08/07/2026 12:47, Pablo Neira Ayuso wrote:
-> Hi Eric,
+On 07/07/2026 12:10, Eric Woudstra wrote:
+> If a port is passed as argument instead of the master, then:
 > 
-> On Tue, Jul 07, 2026 at 11:10:38AM +0200, Eric Woudstra wrote:
->> This patchset makes it possible to set up a software fastpath between
->> bridged interfaces. One patch adds the flow rule for the hardware
->> fastpath. This creates the possibility to have a hardware offloaded
->> fastpath between bridged interfaces. More patches are added to solve
->> issues found with the existing code.
+> At br_fill_forward_path(): find the master and use it to fill the
+> forward path.
 > 
-> Thanks for your series.
+> At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
+> instead.
 > 
-> I posted an alternative series, including one of your patches for the
-> bridge vlan filtering support (which is still untested on my side):
+> Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> ---
+>   net/bridge/br_device.c  | 19 ++++++++++++++-----
+>   net/bridge/br_private.h |  2 ++
+>   net/bridge/br_vlan.c    |  6 +++++-
+>   3 files changed, 21 insertions(+), 6 deletions(-)
 > 
-> https://lore.kernel.org/netfilter-devel/20260708093250.1187068-1-pablo@netfilter.org/T/#m270aedab59bf39f1bc4452d1d8d739a2b1b0bc45
 
-Hi Pablo,
-I think I haven't been CCed on that posting, can't find it in my inbox.
-Anyway, I know I've acked the patch but taking a second look I think there might
-be a problem, specifically at patch 01:
-
-+	if (netif_is_bridge_port(ctx->dev)) {
-+		struct net_device *br_dev;
-+
-+		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-+		if (!br_dev)
-+			return -1;
-
--	br = netdev_priv(ctx->dev);
-+		src = br_port_get_rcu(ctx->dev);
-+		br = netdev_priv(br_dev);
-+	} else {
-+		src = NULL;
-+		br = netdev_priv(ctx->dev);
-+	}
-
-If ndo_fill_forward_path can be called while a port is being removed from the
-bridge, then we might reach this call and netif_is_bridge_port() can be false
-since the flag is removed before the synchronize_net() done by rx handler
-unregistering. Specifically if CONFIG_BRIDGE_VLAN_FILTERING is not defined
-then the previous synchronize_net/rcu are not done and I think we can observe
-a port which is being dismantled in ndo_fill_forward_path without the flag and
-erroneously categorized as a bridge device. I think a safer and correct approach
-would be to check if the device is a bridge master:
-  } else if (netif_is_bridge_master(ctx->dev)) {
-...
+Just FYI please see my reply [1] to Pablo's email about this patch. I think
+there might be a problem that needs to be fixed.
 
 Cheers,
   Nik
+
+[1] https://lore.kernel.org/netdev/b0774436-bc41-462f-820b-6a037b6082bb@blackwall.org/T/#mfbfb071107713d420bf26c060b1b980b270ab172
+
 
