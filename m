@@ -1,76 +1,108 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7296439E185;
-	Thu,  9 Jul 2026 17:08:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6621E4499B6
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 19:46:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783616936; cv=none; b=gDcnv2LAsv781ozb0VcZSf7iIGFNTvR1yNThfT0PXHMwsw0Q4Idc5msKt058vuq/zvWWBdiluwW4ApEok8BJgTlY7ZzF1dQ+88o9TM+1T4yYK2mnSCx2pHGxk9sVoTaNFezR6LG0xB6WjDy2sC/8NnpwRWAaQHePNEP/f9XSK5Q=
+	t=1783626387; cv=none; b=eCc+8tnZQqNj5J18vjTVgAjZ/jy1m5M65tFHQTu0X58Dj2Hqau1zqoUBl4w7YzYO9bJITsvsRs9yhkp8424kvjl5s6uM+2GIHXfhIJzkGJe2wMwik1w9Lcveueirkh01EGR/PhG+omlduh16XGeto3fklFbnCOc7w8cx47xcWwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783616936; c=relaxed/simple;
-	bh=a6cAfNnLoz+INnfNq5wkKXmUK2YYQJd6sfimX18DjLk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IMV/9ziUBmtLCbkKhhno5tUvCuh2sBa2A9o5kV0lpVUpGikpwT+ZtUcL8duhbKKJURtSGQbeyrcXwHH0fc2Sap46Xx3ZEebFO94ST+h3OTuBRFQx9jXyi5dI/8YCzmkXA6dd1U4SLFrD4hM7AxCVPrap2pN0nSJtT2+EAQJMDXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JoqJguek; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1783626387; c=relaxed/simple;
+	bh=IiI4gr94OIfpZv9Gc0w/4m31RgjCRNbYrsUnixwcF6E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Fxdk+DUYx0C7EfN2r3CSSEbmv61D5YCoeHwEyWIMEP9oKeWBoCrI+sGSI1vZksowOSg+sKCQ17f0G+yDZGuUMEUarm+Yzk6OgdjajAAce/M4Mb0m4xKhCsvDpkbIf9H+Kveg9PCBF5JvYcepul3roW4sSESCdikWYqR53uK9QpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=UQgh7FO0; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JoqJguek"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 1491A60579;
-	Thu,  9 Jul 2026 19:08:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783616932;
-	bh=A/0LHDMwrtHFuyH8bH7ZYxgtW2azlnGhsurymDeBqLk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=JoqJguek1wENaz8q5PM9HrCtgYaUKthMaPa5CtkQZ09xXE81op0uaHVPekrGM9TRl
-	 uDUVuR3z1xIPrxhtcxPikF0nP47pBjqL8jfRNjn9ILlhwBx2sk8AgcIagyCS0zXdGM
-	 DY1QidhJEb0aQtH5dK+3RlDiQ1JmxbWkSRgg311/D214VlLXINYDT6vaCDY4HLAYk1
-	 brkB1dfznLuZqL/PWYpJz988YIrc6ZqtngJH0K2wtDm1RSoHHBkhsx7f+zJLnWWDn3
-	 gVUCejSt7lcnftTWkFvicVKbmtR6Zq8teRw5/iTx3+POTyZCcGFpuV8Gc3n0+xrjTz
-	 lWmqVkkr6UETA==
-Date: Thu, 9 Jul 2026 19:08:49 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ahmed Zaki <anzaki@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, kuba@kernel.org,
-	edumazet@google.com, davem@davemloft.net, pabeni@redhat.com,
-	horms@kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: flowtable: tear down HW offloaded flows on
- FIB route changes
-Message-ID: <ak_VoSJ7fozDdOzM@chamomile>
-References: <20260708205404.911832-1-anzaki@gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="UQgh7FO0"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=EQMWG8W8jHnz8Z7dMqkRI3HOSHk6UBXEMpEtdPllqgI=; b=UQgh7FO0NTTyKdIr1iI93mcVBd
+	+fRLE9fIKBX+UoG28Pnb6qpWZ8HwN8dl9oU/dx4yOX//1eo/coGXVhMViKfvm/ONFbqP+IU6tjmZV
+	xG0m0SQLG4kkj5LHjgBvCPGXAAASImlbFTMVEexbudTtEhgaCdEpIRKEVStfRYSGKMFV4sERMSvG0
+	Hq2jx2ihwRAJ1XSQe/+aXVkEz/DNj7h4RwhEMrePhvZ3bfv/gZQRefhQ7903sPk/uySiqF7NxAIo/
+	V0LYKLxnO8IaCVLHrRidF6BBXgqvDmi72Lsy3XMr5RyDwmsFPvY9PwKRmVUKjkt2jLc95HHs6o0qj
+	5ml2cjjg==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1whuhN-000000002ip-3Jyl;
+	Thu, 09 Jul 2026 21:46:17 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>
+Subject: [nf-next PATCH v2 2/5] netfilter: nfnetlink_hook: Pass cb object to nfnl_hook_dump_nat()
+Date: Thu,  9 Jul 2026 21:46:09 +0200
+Message-ID: <20260709194612.1995795-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260709194612.1995795-1-phil@nwl.cc>
+References: <20260709194612.1995795-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260708205404.911832-1-anzaki@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 08, 2026 at 02:54:04PM -0600, Ahmed Zaki wrote:
-> Hardware-offloaded flows bypass the CPU and, unlike the software
-> datapath, dst_check() does not invalidate them when a route changes.
-> For ephemeral flows, this is usually not a problem as the flow expire on
-> its own and the driver clears the entry in the HW. However, for persistent
-> flows forwarded through the device, the HW is never informed that the
-> route has expired.
-> 
-> For tables marked with NF_FLOWTABLE_HW_OFFLOAD, listen to the per-net FIB
-> notifier chain and tear down the affected flows so they are re-evaluated by
-> the SW forwarding path.
-> 
-> A lockless list is used to reduce the work items overhead in case of a
-> route change storm allowing many FIB events to be processed by one work
-> item.
+Preparing for proper multipart dump handling, pass the object reference
+directly instead of individual fields. Keep passing the 'family' field
+though so caller does not have to extract that value from netlink header
+again.
 
-This walks the hashtable anyway in case of fib event, maybe simply
-walk over the hashtable and call dst_check() to check if the cached
-dst is still current.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nfnetlink_hook.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 755d8f148db3..b0cf0ec41bc5 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -345,12 +345,12 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
+ }
+ 
+ static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+-			      const struct nfnl_dump_hook_data *ctx,
+-			      const struct nf_hook_ops *ops,
+-			      int family, unsigned int seq)
++			      struct netlink_callback *cb,
++			      const struct nf_hook_ops *ops, int family)
+ {
+ 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
+ 	struct nf_hook_entries *e = rcu_dereference(priv->entries);
++	struct nfnl_dump_hook_data *ctx = cb->data;
+ 	struct nf_hook_ops **nat_ops;
+ 	int i, err;
+ 
+@@ -361,7 +361,8 @@ static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+ 
+ 	for (i = 0; i < e->num_hook_entries; i++) {
+ 		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
+-					 ops->priority, family, seq);
++					 ops->priority, family,
++					 cb->nlh->nlmsg_seq);
+ 		if (err)
+ 			return err;
+ 	}
+@@ -397,8 +398,7 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
+ 
+ 	for (; i < e->num_hook_entries; i++) {
+ 		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
+-			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
+-						 cb->nlh->nlmsg_seq);
++			err = nfnl_hook_dump_nat(nlskb, cb, ops[i], family);
+ 		else
+ 			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
+ 						 ops[i]->priority, family,
+-- 
+2.54.0
 
-No, this is an enhancement, not a fix. This must be targeted to nf-next.
-
-Thanks.
