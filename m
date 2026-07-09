@@ -1,31 +1,58 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA3593126B0
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 20:04:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F21F2701D9;
+	Thu,  9 Jul 2026 20:24:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783627478; cv=none; b=OWuu6nJ7Z9HD6mEO4pDYHRtH4cglAKwrxMxeJgNq91s1UxtzpWYketaz8aIoaS5KSS87fIFgjqjNco5QZN0E5jE5fzSkyb+l0sGHFBAUAJ8KjzHnlGRBzt9fJ6a6U54QTaWbPV6/lUvll5VCY128vWjIQ3B1ZNIMU6yGgj9bkVY=
+	t=1783628657; cv=none; b=Mep37NwLvRG4hsOGdG4lFpU/3VbYLvU/pKOSCqfRcRGw6jSGG+i8BRp7GC+4V7ir6FrtVf8E3NijhOdirOCBMlRVoylkH74s9q6rK3EA2DtkJOjZAdYgNFMd+CCLiKs0I1eomAgVjnUuR2V41pP7qZMNWDlzo1NU/tB7S6jNKBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783627478; c=relaxed/simple;
-	bh=fJ49/EkZcXS8hndYWJqswXkMAqI7vwDEIu2py4DjCZQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=J0khXwOZ0N+1vbvD1MwsmOA96qlKjZ255wMp1oYAm/PLiVz3cqTIdNScizqftMrJR+CJ9cep2imlt37+4NylM5owwbthplqnvNKxLzx/jQ7R2nKUy8/eBTczrxJZ85JwERxAW6wOGN6XgDqeNSXmvbMHyq70U77SwYgblFhttDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 858DD602A9; Thu, 09 Jul 2026 22:04:35 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: kadlec@netfilter.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH ipset 7/7] tests: runtest.sh: add sendip emulation via scapy
-Date: Thu,  9 Jul 2026 22:03:58 +0200
-Message-ID: <20260709200358.15504-8-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260709200358.15504-1-fw@strlen.de>
-References: <20260709200358.15504-1-fw@strlen.de>
+	s=arc-20240116; t=1783628657; c=relaxed/simple;
+	bh=b1qzm8eaBLrUIPuW3Cuh7UzAEzjjOpZ2iD9+7B8XNlI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AT8zD88dQUh6p+ENKuKfhHFzgZ8hyT+M33TASmPIdgBozuAzv1CzNj4Xrcp0kiypWD6eOoN8QaUoyKA1hq19TB2LxvCcQ5I6fl6ekNPIHAGT8k3QM+hONMarYWUkTJOfjJVKLI/foU5Yq5GK0IgXTmw5Uu9n5SITwaKbyMeX/E8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=Z07N/jAE; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="Z07N/jAE"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 6D96720253;
+	Thu, 09 Jul 2026 23:24:09 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=AfU/HgOK
+	uuB+ML74gX0GDaVCJLHkQE49uVl3La1bkTg=; b=Z07N/jAEobWo6hnM11vCSiwx
+	je0SAHzlH2PX6ehUhVxMnz9huemaKefF6X2MMW3G80aIUD5aVpVzMcPSb6A4aWB8
+	SWmSWJUCdakRXAEfPXObnOmqWJhkh7kwzWurKHsRl1cePVyBryS9G1bWmPm+nhXT
+	7b3RTZFPj18yoX+LGkhmyqEfsoPUk/CaryBo2FYDW9OEuAunVB14hZ+bMcvebvPr
+	49jc01s+NAIBuX1QDhsTzCFMT4gPjpU3zQxgRXpv+9+9Et+NH29V3NEj5WFSwsnX
+	0xQtT1lvJ+TOjRCWmJu7Q+kd3hG+XKZCZQpnxDmgIAROq/PWosZSY6KOeQDRRk62
+	PiaHYle/dY4GdLw0/vc4iPYa5H7j7TjkpS4GZqxnNNUf41yM13aKc0JWTMSAvVR5
+	hGs2eirwOkiQyynDEpj7P7fV1x4+OKC2rEtwku9n239svVDDB4lnQtM/ibLg9VsQ
+	/cfXldP1aWC77K80IDgXo7PoqkzrJUpxc5mUAFNSvHwPWlzg4f4ORv38kg4XyTd3
+	zvY2PLfgcIEJWeTH/r2t5GgfBoWgsqonDMSSJv/R7K9D+C8MufCIfOQXjq0Ynvr1
+	ysni8+rUPXT/T2CCBionlza+baB+QduD72UR57omIz5NS7fEj+9EBm1HjA1gvCrJ
+	wa3jBOR/OnLL0U5vjXw=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 09 Jul 2026 23:24:09 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 537AA60D0C;
+	Thu,  9 Jul 2026 23:24:07 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 669KO64m104320;
+	Thu, 9 Jul 2026 23:24:06 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 669KO3ol104319;
+	Thu, 9 Jul 2026 23:24:03 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] ipvs: fix the checksum validations
+Date: Thu,  9 Jul 2026 23:23:56 +0300
+Message-ID: <20260709202356.104307-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,317 +61,262 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-sendip tool is ancient and not packaged on fedora (or i'm
-blind).  Add a scapy-based replacement.
+TCP/UDP checksum validation for CHECKSUM_COMPLETE is broken
+before the git history.
 
-Assisted-by: Claude:claude-sonnet-4-6
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Expecting skb->csum to cover data starting from the protocol
+header is wrong. As IPVS works at the IP layer, the csum for
+the IP header is not subtracted yet.
+
+ip_vs_in_icmp_v6() is missing checksum validation for ICMPv6
+packets from clients.
+
+Also, Sashiko points out that handle_response_icmp() being
+common for IPv4 and IPv6 is missing the pseudo-header
+calculation while validating ICMPv6 messages from real
+servers which is a problem if checksum is not validated
+by the hardware.
+
+Fix the problems by creating ip_vs_checksum_common_check()
+helper and use it for TCP/UDP/ICMP both for IPv4 and IPv6.
+
+Also, ip_vs_checksum_complete() can be marked static.
+
+Fixes: 2a3b791e6e11 ("IPVS: Add/adjust Netfilter hook functions and helpers for v6")
+Link: https://sashiko.dev/#/patchset/20260708180315.77413-1-ja%40ssi.bg
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- README                     |  13 ++--
- tests/bitmap:ip.t          |   2 +-
- tests/check_sendip_packets |   2 +-
- tests/hash:ip.t            |   2 +-
- tests/runtest.sh           |  18 ++++-
- tests/sendip.py            | 154 +++++++++++++++++++++++++++++++++++++
- tests/sendip.sh            |   7 +-
- tests/setlist.t            |   2 +-
- 8 files changed, 188 insertions(+), 12 deletions(-)
- create mode 100755 tests/sendip.py
+ include/net/ip_vs.h                  |  5 ++-
+ net/netfilter/ipvs/ip_vs_core.c      | 63 ++++++++++++++++++++++++++--
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 35 ++--------------
+ net/netfilter/ipvs/ip_vs_proto_udp.c | 39 +++--------------
+ 4 files changed, 71 insertions(+), 71 deletions(-)
 
-diff --git a/README b/README
-index 08b3598b6c0e..075ffd4ba991 100644
---- a/README
-+++ b/README
-@@ -41,12 +41,13 @@ instructions too.
-    After installing the modules, you can run the testsuite as well.
-    Please note, several assumptions must be met for the testsuite:
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 49297fec448a..fd18b1cd6471 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -2065,8 +2065,6 @@ void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		       struct ip_vs_conn *cp, int dir);
+ #endif
  
--	- no sets defined
--	- iptables/ip6tables rules are not set up
--	- the destination for kernel logs is /var/log/kern.log
--	- the networks 10.255.255.0/24 and 1002:1002:1002:1002::/64
--	  are not in use
--	- sendip utility is installed
-+	- the destination for kernel logs is /var/log/kern.log, OR,
-+	  if running from a network namespace, iptables -j LOG can
-+	  write to the kernel ring buffer (dmesg).
-+	- by default tests run in a extra namespace to avoid
-+	  conflicts with the networks used by the tests:
-+	  10.255.255.0/24 and 1002:1002:1002:1002::/64.
-+	- sendip utility OR scapy is installed
+-__sum16 ip_vs_checksum_complete(struct sk_buff *skb, int offset);
+-
+ static inline __wsum ip_vs_check_diff4(__be32 old, __be32 new, __wsum oldsum)
+ {
+ 	__be32 diff[2] = { ~old, new };
+@@ -2092,6 +2090,9 @@ static inline __wsum ip_vs_check_diff2(__be16 old, __be16 new, __wsum oldsum)
+ 	return csum_partial(diff, sizeof(diff), oldsum);
+ }
  
-    # make tests
++bool ip_vs_checksum_common_check(int af, struct sk_buff *skb, int proto,
++				 int offset);
++
+ /* Forget current conntrack (unconfirmed) and attach notrack entry */
+ static inline void ip_vs_notrack(struct sk_buff *skb)
+ {
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index c9c88c99d07b..ceb1cbf33dd7 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -867,11 +867,56 @@ static int sysctl_nat_icmp_send(struct netns_ipvs *ipvs) { return 0; }
  
-diff --git a/tests/bitmap:ip.t b/tests/bitmap:ip.t
-index 53034bbbae89..f97266450423 100644
---- a/tests/bitmap:ip.t
-+++ b/tests/bitmap:ip.t
-@@ -209,7 +209,7 @@
- # Counters and timeout: destroy set
- 0 ipset x test
- # Counters: require sendip
--skip which sendip
-+require_sendip
- # Counters: create set
- 0 ipset n test bitmap:ip range 10.255.0.0/16 counters
- # Counters: add elemet with zero counters
-diff --git a/tests/check_sendip_packets b/tests/check_sendip_packets
-index 0dad3d0944d2..758f31d59dad 100755
---- a/tests/check_sendip_packets
-+++ b/tests/check_sendip_packets
-@@ -18,7 +18,7 @@ fi
+ #endif
  
- $cmd -A INPUT -m set --match-set test $2 -j DROP
- for x in `seq 1 $3`; do
--    sendip -p $proto -id $dst -is $src -p tcp -td 80 -ts 1025 $dst
-+    ./sendip.sh -p $proto -id $dst -is $src -p tcp -td 80 -ts 1025 $dst
- done
- $cmd -D INPUT -m set --match-set test $2 -j DROP
+-__sum16 ip_vs_checksum_complete(struct sk_buff *skb, int offset)
++static __sum16 ip_vs_checksum_complete(struct sk_buff *skb, int offset)
+ {
+ 	return csum_fold(skb_checksum(skb, offset, skb->len - offset, 0));
+ }
  
-diff --git a/tests/hash:ip.t b/tests/hash:ip.t
-index 529e6b815069..88b36873b41d 100644
---- a/tests/hash:ip.t
-+++ b/tests/hash:ip.t
-@@ -195,7 +195,7 @@
- # Counters and timeout: destroy set
- 0 ipset x test
- # Counters: require sendip
--skip which sendip
-+require_sendip
- # Counters: create set
- 0 ipset n test hash:ip counters
- # Counters: add elemet with zero counters
-diff --git a/tests/runtest.sh b/tests/runtest.sh
-index ba4683f59e5d..238175440cc4 100755
---- a/tests/runtest.sh
-+++ b/tests/runtest.sh
-@@ -51,6 +51,14 @@ LC_ALL=C
- export LC_ALL
- export IPSET_TMP="$tmpdir"
- 
-+HAVE_SENDIP=n
-+[ -z "`which sendip`" ] && HAVE_SENDIP=y
-+if [ $HAVE_SENDIP = "n" ]; then
-+	if python -c 'from scapy.all import ( IPv6 )'; then
-+		HAVE_SENDIP=y
-+	fi
-+fi
++/**
++ * ip_vs_checksum_common_check - validate checksum for TCP/UDP/ICMP
++ * @af: AF_INET/AF_INET6
++ * @skb: socket buffer
++ * @proto: IPPROTO_xxx
++ * @offset: offset of protocol header
++ */
++bool ip_vs_checksum_common_check(int af, struct sk_buff *skb, int proto,
++				 int offset)
++{
++	__wsum csum;
 +
- add_tests() {
- 	# inet|inet6 network
- 	if [ $1 = "inet" ]; then
-@@ -72,7 +80,7 @@ add_tests() {
- 	fi
- 	if [ `$cmd -t filter | wc -l` -eq 7 -a \
- 	     `$cmd -t filter | grep ACCEPT | wc -l` -eq 3 ]; then
--	     	if [ -z "`which sendip`" ]; then
-+		if [ "$HAVE_SENDIP" = "n" ]; then
- 	     		echo "sendip utility is missig: skipping $1 match and target tests"
- 	     		return
- 	     	elif [ -n "`which ss`" ]; then
-@@ -130,6 +138,14 @@ for types in $tests; do
- 	    	fi
- 	    	continue
- 	    	;;
-+	    require_sendip)
-+		if [ "$HAVE_SENDIP" = "y" ]; then
-+			continue
-+		else
-+			echo "Skipping, sendip (scapy) not available"
-+			break
-+		fi
-+		;;
- 	    *)
- 		;;
- 	esac
-diff --git a/tests/sendip.py b/tests/sendip.py
-new file mode 100755
-index 000000000000..61191f485b26
---- /dev/null
-+++ b/tests/sendip.py
-@@ -0,0 +1,154 @@
-+#!/usr/bin/env python3
-+"""Minimal replacement for sendip via scapy. sends one packet."""
++	if (skb_csum_unnecessary(skb))
++		return true;
++	if (skb->ip_summed == CHECKSUM_NONE) {
++		csum = skb_checksum(skb, offset, skb->len - offset, 0);
++	} else if (skb->ip_summed == CHECKSUM_COMPLETE) {
++		/* IPVS works at IP layer, so skb->csum covers data from
++		 * IP header, strip it up to the protocol header
++		 */
++		csum = csum_sub(skb->csum, skb_checksum(skb, 0, offset, 0));
++	} else {
++		/* No need to checksum. */
++		return true;
++	}
++#ifdef CONFIG_IP_VS_IPV6
++	if (af == AF_INET6) {
++		if (csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
++				    &ipv6_hdr(skb)->daddr,
++				    skb->len - offset, proto,
++				    csum))
++			return false;
++	} else
++#endif
++		if (proto == IPPROTO_ICMP)
++			return !csum_fold(csum);
++		else if (csum_tcpudp_magic(ip_hdr(skb)->saddr,
++					   ip_hdr(skb)->daddr,
++					   skb->len - offset, proto,
++					   csum))
++			return false;
 +
-+import errno
-+import os
-+import socket
-+import sys
-+from scapy.all import (
-+    send,
-+    IP, IPv6,
-+    TCP, UDP, ICMP,
-+    ICMPv6DestUnreach, ICMPv6TimeExceeded, ICMPv6ParamProblem,
-+    Raw,
-+)
-+from scapy.layers.inet6 import ICMPv6Unknown
-+
-+_LOOPBACK = {'127.0.0.1', '::1'}
-+
-+def parse_args(argv):
-+    p = {
-+        'ip_version': None,
-+        'transport': None,
-+        'src': None,
-+        'dst': None,
-+        'sport': None,
-+        'dport': None,
-+        'icmp_type': None,
-+        'icmp_code': None,
-+        'payload_size': 0,
-+    }
-+
-+    i = 0
-+    while i < len(argv):
-+        a = argv[i]
-+        if a == '-p':
-+            proto = argv[i + 1]; i += 2
-+            if proto in ('ipv4', 'ipv6'):
-+                p['ip_version'] = proto
-+            elif proto in ('tcp', 'udp', 'icmp'):
-+                p['transport'] = proto
-+            else:
-+                sys.exit(f'unknown protocol: {proto}')
-+        elif a == '-is':
-+            p['src'] = argv[i + 1]; i += 2
-+        elif a == '-id':
-+            p['dst'] = argv[i + 1]; i += 2
-+        elif a == '-6s':
-+            p['src'] = argv[i + 1]; i += 2
-+        elif a == '-6d':
-+            p['dst'] = argv[i + 1]; i += 2
-+        elif a == '-ts':
-+            p['sport'] = int(argv[i + 1]); i += 2
-+        elif a == '-td':
-+            p['dport'] = int(argv[i + 1]); i += 2
-+        elif a == '-us':
-+            p['sport'] = int(argv[i + 1]); i += 2
-+        elif a == '-ud':
-+            p['dport'] = int(argv[i + 1]); i += 2
-+        elif a == '-ct':
-+            p['icmp_type'] = int(argv[i + 1]); i += 2
-+        elif a == '-cd':
-+            p['icmp_code'] = int(argv[i + 1]); i += 2
-+        elif a == '-d':
-+            # e.g. "r10" = 10 random bytes of payload
-+            spec = argv[i + 1]; i += 2
-+            if spec.startswith('r'):
-+                p['payload_size'] = int(spec[1:])
-+        elif not a.startswith('-'):
-+            i += 1  # positional: routing dest, scapy routes by dst in header
-+        else:
-+            i += 1
-+
-+    return p
-+
-+
-+_ICMPV6_CLASS = {
-+    1: ICMPv6DestUnreach,
-+    3: ICMPv6TimeExceeded,
-+    4: ICMPv6ParamProblem,
++	return true;
 +}
 +
-+
-+def make_icmpv6(typ, code):
-+    cls = _ICMPV6_CLASS.get(typ, ICMPv6Unknown)
-+    pkt = cls(code=code)
-+    if cls is ICMPv6Unknown:
-+        pkt.type = typ
-+    return pkt
-+
-+
-+def build_packet(p):
-+    if p['ip_version'] == 'ipv4':
-+        ip = IP(src=p['src'], dst=p['dst'])
-+    elif p['ip_version'] == 'ipv6':
-+        ip = IPv6(src=p['src'], dst=p['dst'])
-+    else:
-+        sys.exit('no IP version specified')
-+
-+    t = p['transport']
-+    if t == 'tcp':
-+        l4 = TCP(sport=p['sport'], dport=p['dport'])
-+    elif t == 'udp':
-+        l4 = UDP(sport=p['sport'], dport=p['dport'])
-+    elif t == 'icmp':
-+        typ, code = p['icmp_type'], p['icmp_code']
-+        if p['ip_version'] == 'ipv4':
-+            l4 = ICMP(type=typ, code=code)
-+        else:
-+            l4 = make_icmpv6(typ, code)
-+    else:
-+        sys.exit('no transport protocol specified')
-+
-+    pkt = ip / l4
-+    if p['payload_size'] > 0:
-+        pkt = pkt / Raw(os.urandom(p['payload_size']))
-+    return pkt
-+
-+
-+def send_on_iface(pkt, dst, iface):
-+    """Send via AF_INET(6) SOCK_RAW with SO_BINDTODEVICE.
-+
-+    The packet originates locally and traverses the OUTPUT netfilter chain,
-+    matching the iptables rules under test.  No ARP on dummy interfaces.
-+    """
-+    is_ipv6 = IPv6 in pkt
-+    if is_ipv6:
-+        sock = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
-+                             socket.IPPROTO_RAW)
-+        dst_addr = (dst, 0, 0, 0)
-+    else:
-+        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-+                             socket.IPPROTO_RAW)
-+        dst_addr = (dst, 0)
-+    try:
-+        sock.sendto(bytes(pkt), dst_addr)
-+    except OSError as e:
-+        if e.errno != errno.EPERM:
-+            raise
-+    finally:
-+        sock.close()
-+
-+
-+def main():
-+    p = parse_args(sys.argv[1:])
-+    iface = None if p['dst'] in _LOOPBACK else 'eth0'
-+    pkt = build_packet(p)
-+    if p['dst'] in _LOOPBACK:
-+        send(pkt, verbose=False)
-+    else:
-+        send_on_iface(pkt, p['dst'], 'eth0')
-+
-+
-+if __name__ == '__main__':
-+    main()
-diff --git a/tests/sendip.sh b/tests/sendip.sh
-index d1f8ebe4d75b..cd65227f2ae6 100755
---- a/tests/sendip.sh
-+++ b/tests/sendip.sh
-@@ -2,4 +2,9 @@
+ static inline enum ip_defrag_users ip_vs_defrag_user(unsigned int hooknum)
+ {
+ 	if (NF_INET_LOCAL_IN == hooknum)
+@@ -1039,12 +1084,13 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 				unsigned int hooknum)
+ {
+ 	unsigned int verdict = NF_DROP;
++	int iproto = af == AF_INET6 ? IPPROTO_ICMPV6 : IPPROTO_ICMP;
  
- # Save lineno for checking
- wc -l /var/log/kern.log 2>/dev/null | cut -d ' ' -f 1 > "$IPSET_TMP/.loglines"
--sendip "$@"
+ 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
+ 		goto after_nat;
+ 
+ 	/* Ensure the checksum is correct */
+-	if (!skb_csum_unnecessary(skb) && ip_vs_checksum_complete(skb, ihl)) {
++	if (!ip_vs_checksum_common_check(af, skb, iproto, ihl)) {
+ 		/* Failed checksum! */
+ 		IP_VS_DBG_BUF(1, "Forward ICMP: failed checksum from %s!\n",
+ 			      IP_VS_DBG_ADDR(af, snet));
+@@ -1898,7 +1944,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	verdict = NF_DROP;
+ 
+ 	/* Ensure the checksum is correct */
+-	if (!skb_csum_unnecessary(skb) && ip_vs_checksum_complete(skb, ihl)) {
++	if (!ip_vs_checksum_common_check(AF_INET, skb, IPPROTO_ICMP, ihl)) {
+ 		/* Failed checksum! */
+ 		IP_VS_DBG(1, "Incoming ICMP: failed checksum from %pI4!\n",
+ 			  &iph->saddr);
+@@ -2064,6 +2110,17 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		goto out;
+ 	}
+ 
++	verdict = NF_DROP;
 +
-+if [ -n "`which sendip 2>/dev/null`" ]; then
-+	exec sendip "$@"
-+fi
++	/* Ensure the checksum is correct */
++	if (!ip_vs_checksum_common_check(AF_INET6, skb, IPPROTO_ICMPV6,
++					 iph->len)) {
++		/* Failed checksum! */
++		IP_VS_DBG(1, "Incoming ICMPv6: failed checksum from %pI6c!\n",
++			  &iph->saddr);
++		goto out;
++	}
 +
-+exec ./sendip.py "$@"
-diff --git a/tests/setlist.t b/tests/setlist.t
-index c1f1d3b44816..0edebfced72d 100644
---- a/tests/setlist.t
-+++ b/tests/setlist.t
-@@ -174,7 +174,7 @@
- # Counters and timeout: destroy sets
- 0 ipset x
- # Counters: require sendip
--skip which sendip >/dev/null
-+require_sendip
- # Counters: create set
- 0 ipset n a hash:ip counters
- # Counters: create list set
+ 	/* do the statistics and put it back */
+ 	ip_vs_in_stats(cp, skb);
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 8cc0a8ce6241..147cf01708ff 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -304,39 +304,10 @@ static int
+ tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	       unsigned int tcphoff)
+ {
+-	switch (skb->ip_summed) {
+-	case CHECKSUM_NONE:
+-		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0);
+-		fallthrough;
+-	case CHECKSUM_COMPLETE:
+-#ifdef CONFIG_IP_VS_IPV6
+-		if (af == AF_INET6) {
+-			if (csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
+-					    &ipv6_hdr(skb)->daddr,
+-					    skb->len - tcphoff,
+-					    IPPROTO_TCP,
+-					    skb->csum)) {
+-				IP_VS_DBG_RL_PKT(0, af, pp, skb, 0,
+-						 "Failed checksum for");
+-				return 0;
+-			}
+-		} else
+-#endif
+-			if (csum_tcpudp_magic(ip_hdr(skb)->saddr,
+-					      ip_hdr(skb)->daddr,
+-					      skb->len - tcphoff,
+-					      ip_hdr(skb)->protocol,
+-					      skb->csum)) {
+-				IP_VS_DBG_RL_PKT(0, af, pp, skb, 0,
+-						 "Failed checksum for");
+-				return 0;
+-			}
+-		break;
+-	default:
+-		/* No need to checksum. */
+-		break;
++	if (!ip_vs_checksum_common_check(af, skb, IPPROTO_TCP, tcphoff)) {
++		IP_VS_DBG_RL_PKT(0, af, pp, skb, 0, "Failed checksum for");
++		return 0;
+ 	}
+-
+ 	return 1;
+ }
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index f9de632e38cd..d10713ca74f7 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -306,40 +306,11 @@ udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	if (uh == NULL)
+ 		return 0;
+ 
+-	if (uh->check != 0) {
+-		switch (skb->ip_summed) {
+-		case CHECKSUM_NONE:
+-			skb->csum = skb_checksum(skb, udphoff,
+-						 skb->len - udphoff, 0);
+-			fallthrough;
+-		case CHECKSUM_COMPLETE:
+-#ifdef CONFIG_IP_VS_IPV6
+-			if (af == AF_INET6) {
+-				if (csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
+-						    &ipv6_hdr(skb)->daddr,
+-						    skb->len - udphoff,
+-						    IPPROTO_UDP,
+-						    skb->csum)) {
+-					IP_VS_DBG_RL_PKT(0, af, pp, skb, 0,
+-							 "Failed checksum for");
+-					return 0;
+-				}
+-			} else
+-#endif
+-				if (csum_tcpudp_magic(ip_hdr(skb)->saddr,
+-						      ip_hdr(skb)->daddr,
+-						      skb->len - udphoff,
+-						      ip_hdr(skb)->protocol,
+-						      skb->csum)) {
+-					IP_VS_DBG_RL_PKT(0, af, pp, skb, 0,
+-							 "Failed checksum for");
+-					return 0;
+-				}
+-			break;
+-		default:
+-			/* No need to checksum. */
+-			break;
+-		}
++	if (!uh->check)
++		return 1;
++	if (!ip_vs_checksum_common_check(af, skb, IPPROTO_UDP, udphoff)) {
++		IP_VS_DBG_RL_PKT(0, af, pp, skb, 0, "Failed checksum for");
++		return 0;
+ 	}
+ 	return 1;
+ }
 -- 
-2.54.0
+2.55.0
+
 
