@@ -1,139 +1,295 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A3F8393DC8;
-	Thu,  9 Jul 2026 03:37:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5EF3CDBB7
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 06:30:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783568280; cv=none; b=WdsyiNpc31QaBbrGi+PZp2d1o8SJg5B/HxF7f6b80U/h+kogcjiNjLOk9GfSTvNhosWXkI/C1dgc4JuJ0XFHO/ziIEYo0hKUrQkuPZ61Ks3+8jGT09Tmi4SQ3EzPMrh7/aYIb/e6s46wswwRwR1hjT43SpqnXAlUw2Z6llhs4Z4=
+	t=1783578644; cv=none; b=MIKslxs44EiwEGwQyiCVah79lAGa/sFKkJLIk3l8mRKSs3cwTLxNunjc6oDFSssuwyW5NoMePsPb0vpeWr3D49C8At5/5wyfuHSiQrV+FVwADnlGaFy75CR/Qix4DgzrBrAQLpC0GW+laGnPti6P5teNr0QqBjrR5HwIodGwldM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783568280; c=relaxed/simple;
-	bh=eunZhR6efw09yHGWlxpUw7s7IHYXvw3HFUp4g/Sqfs4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=uj2EqetNrmJ8eIvR6v3JNA8fWOet2s5PoHZtvrUprDSYZslw+dL5cE5Z5JJw4ooIr1IkP6oVCxYafEy6xj6mwTs0TTi+SadEU5jkidLQlWq+j9/+UJnOS1PzmrNNfzzKBdUrwsEW1VgELhEIJf7xjCPkBzW7hIe8//2JN7jJqCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=P0QpaQ35; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1783578644; c=relaxed/simple;
+	bh=7iyGFkX/KVZ2dRRCt8MLBEDmWyxHFZZgQiTUzgZCRpg=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UMFYRy4PUhAJQ0kZgxwKhyXYoVSuDuRHowswRiG3gwgOYUdM5zg41f+LPg+XwR1KGr6B50Tt+ID07wXWUZl80zTlKYe3mkC+cXKIh5oM/d711LmJLADJJ+e0wpFeEkgbQtISfFrYxrsF7yrWNp/XMsUfPQXiXRDdl2doJmJGRuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lZZsMNO/; arc=none smtp.client-ip=209.85.210.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="P0QpaQ35"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=3usAFxvBnQSrtlEyPuj8Dfm5zlE7XgPSwefjV7zsIHk=;
-	b=P0QpaQ35sARZ3tjtHh2+/C0+cZwFEP9O++LrQqS1Nvbi9nMy1XmkemJnC0ckQq4rPbU9BHqOV
-	XNi3BJ05OTYdVS7mw3Q+yBCzBWLSSfMFoPuV4ltvpcBKw91KHT9uJC9ZJljV5IutgJjmHpfr/Lp
-	Mc/xEYsBUMKLHB0fDzMRXuI=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4gwgRD3n0Vz1K9Ck;
-	Thu,  9 Jul 2026 11:28:40 +0800 (CST)
-Received: from kwepemr100001.china.huawei.com (unknown [7.202.195.168])
-	by mail.maildlp.com (Postfix) with ESMTPS id C2ED840578;
-	Thu,  9 Jul 2026 11:37:53 +0800 (CST)
-Received: from [10.136.112.147] (10.136.112.147) by
- kwepemr100001.china.huawei.com (7.202.195.168) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Thu, 9 Jul 2026 11:37:52 +0800
-Message-ID: <e55d6327-78a9-41dc-9627-4414f408774b@h-partners.com>
-Date: Thu, 9 Jul 2026 11:37:51 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lZZsMNO/"
+Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-8484a0b998fso1448577b3a.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jul 2026 23:30:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783578642; x=1784183442; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=3gd7QqaANUrhoi2BRtAEvQ24FdV1dl/9cG/AY/sVUI8=;
+        b=lZZsMNO/C6c8nDY3sq5qNnSjYrxMChPpyH5HkVNaFwa1HUrh26K6qlPzNf5Dvp8PTw
+         jx3jQw+ARDbqsGxxOQmq60yzdatadXHyy2sUVgpxXT0zQ70H5R++0CxHvgix+MncdjFW
+         Kg1ktLhamaTqrv3XZezZUb5R9TiHm3rumqrhKnSj8vj1QkalX4TeNVyQzrBOYwoyBlMv
+         iS00G9BlexdMad2wbzW47AAShbCFsl2n2Vg2rYSZN4FxB30y9JTY92q+4AE5bFy/bV5e
+         2Ixke3ngtnBGR8sedmL6zIHx64NhsCHkFAq159XCJ44IUq8eqrwhIxOAPG0rB9n/K0Eu
+         NWoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783578642; x=1784183442;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=3gd7QqaANUrhoi2BRtAEvQ24FdV1dl/9cG/AY/sVUI8=;
+        b=NeL+47mdd5KuKdrZr7jHBPaVNCJ5LBGiSNov5BvdJ8ZvbnIGxdRiWcKzJYJCHd4Xlz
+         IQajkdmjt//uGHcZBPjBp+TKv9bRk2vGIfyRpJ2R9vSQhSFRKHrX5cG3nXihBHYu6lGv
+         IJmREqRixsdjcbXavWo42kTw07X8CIhiheaDHorcvRxxnnRBMESc0B6vp0B5ujMvFdYD
+         BXwNQpjFOS7ZA4/s1nMG8SRmQ748PoPm6KvHrFDgIs6Fq/ePfj/DI4R1Z0zFF1xTjQwa
+         oRkEKXEpqfB6xT4tGoXj9pSi9s5MpI/jWN8h19cMoDSjzAx3NawzYEqSTF3/JjsvUSme
+         i3hA==
+X-Forwarded-Encrypted: i=1; AHgh+RpdPgpUWHm+mSOlUe35U5RgBhecY9s+cWJMTYu64IiggrP5lwxpHCmzl80rD+Fu0bsc0MPY7jANDz8Y2g/XDrk=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwpJuzaPmzMOwZYd6eXdU2k3O6O4ay5pNnh1EPJ1yjRftCcAM0k
+	56TEG6h43p5ENWYtKS/VImk/PKCWw+2Utj+BMFqcJYbXXEfT6BOsnNYkSbt3An2LldwxTw==
+X-Gm-Gg: AfdE7ck8LLvZmBYckHrc1Iml6lUeCzsOv/s2iByNVsxL9HE2jwzt5jZFjYLbPvEz3ma
+	J6s2u0CwAisL9gv3zyPKNDqyTg+mpjEhicQ5kOAxAKVRU5CiYj4VKghoC5RT9oLOsVMOBD5hNCt
+	L6EsOifxUJ3TonfF5zTEbiMB6neacgCwEUFqWJ9T0OtPwqMAQ2oT4kY+Ojj2yoOGtiCf6/cmYLZ
+	o3HX+UjHzbmrdZgbHGI3na3X4Yc24eSTh/l3uctpPWukoVCxEJZ4B53UN38qOJOiMQejg994Zhk
+	yNuOBi2C0G4aQktKjcBfiOaeGBRSe5DfKjkJlE+Hfmw9So7OXoOxYItA7Lyc/ZYLPTNPz2u1DcV
+	roghZ1j/eKWzqVqe5MC610gdTn7PL/GeLH9aYuLXTVTXayEfmzoUICOrSi4NQ3siI2wjM4fChw1
+	kCSu/5pvhupJEOd0Rfo+yPSQ==
+X-Received: by 2002:a05:6a00:3486:b0:848:2f77:e2dd with SMTP id d2e1a72fcca58-8484392ec4emr5740542b3a.70.1783578641852;
+        Wed, 08 Jul 2026 23:30:41 -0700 (PDT)
+Received: from c79home.localdomain ([14.127.26.222])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-847f6b9e12csm8087708b3a.21.2026.07.08.23.30.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 08 Jul 2026 23:30:40 -0700 (PDT)
+From: Zhixing Chen <running910@gmail.com>
+To: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	Zhixing Chen <running910@gmail.com>
+Subject: [PATCH nf] netfilter: ip6tables: set hotdrop for malformed extension header matches
+Date: Thu,  9 Jul 2026 14:30:12 +0800
+Message-Id: <20260709063012.33160-1-running910@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] netfilter: nf_nat_masquerade: recalculate TCP TS
- offset when port is randomized
-To: Florian Westphal <fw@strlen.de>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>, "David
- S . Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub
- Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
-	<horms@kernel.org>, gaoxingwang <gaoxingwang1@huawei.com>, huyizhen
-	<huyizhen2@huawei.com>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <stable@vger.kernel.org>
-References: <20260629093408.3927103-1-xietangxin@h-partners.com>
- <akKN4cywAsFRdefX@strlen.de>
- <0ad60f06-387e-49bc-9e26-3dcebf182cb4@h-partners.com>
- <akUhid7_3iHovivd@strlen.de>
- <3620a5a9-9ced-4825-9bc4-6950be205749@h-partners.com>
- <ak5riPx5d3rSG6MG@strlen.de>
-Content-Language: en-US
-From: xietangxin <xietangxin@h-partners.com>
-In-Reply-To: <ak5riPx5d3rSG6MG@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- kwepemr100001.china.huawei.com (7.202.195.168)
 
+The hbh, srh and ipv6header matches have paths that return false for
+malformed IPv6 extension header packets without setting hotdrop.
 
+For hbh, strict option parsing stops when the option type or length field
+cannot be read, or when advancing to the next requested option would
+exceed the available header data. Mark these packets for hotdrop instead
+of treating them as a rule mismatch.
 
-On 7/8/2026 11:23 PM, Florian Westphal wrote:
-> xietangxin <xietangxin@h-partners.com> wrote:
->> Thanks for your guidance. I’ve successfully fix the helper location
->> as you suggested, and it works fine for local traffic.
->>
->> However, I realized that I had completely overlooked the forwarding scenario
->> (where SNAT acts as a middlebox gateway, e.g. Host A -> Gateway B -> Server C).
->> In this gateway scenario, when random-fully is enabled, the test results show
->> a massive performance degradation: the QPS drops from ~19000 down to ~10000.
-> 
-> I don't think the forwarding case is fixable.
-> 
-> Host S could be another NAT gateway, so it could be possible that
-> the connections originate from different physical machines and
-> timestamps differ due to different clocks, not per-connection
-> randomisation.
-> 
->> Since skb->sk is NULL on the forwarding gateway, my current approach of
->> updating tp->tsoffset in struct tcp_sock cannot be applied here.
-> 
-> Yes. I think the tp->tsoffset recalc is fine to handle local case.
-> 
-> For local case we do know that we're the end host and ts recalc is fine.
-> 
->> To be honest, I am currently stuck on how to handle this forwarding scenario
->> within the netfilter architecture without adding redundant overhead to the fast path.
->>
->> Could you please give some advice on how the community would prefer to resolve this?
->> For instance, should we look into extending the Conntrack NAT extension to
->> track and adjust the TCP timestamps?
-> 
-> If we have some guarantee that internal network isn't doing any
-> snat at all, then yes, one could implement some TS adjustment
-> scheme similar to seqadj extension we already have to deal with
-> tcp sequence number adjustments.
-> 
-> We'd have to keep state and subtract the offset to get back the
-> right tsecr again on reverse direction.
-> 
-> I'm not keen to have something like this, it would breaks PAWS
-> as soon as the originating host is itself a nat gateway.
-> 
-> Is this really a problem to begin with?
-Hi Florian,
+For srh, keep a missing SRH as a normal mismatch, but set hotdrop when
+header lookup fails for other reasons, when the SRH fixed header is not
+present, when the advertised SRH length exceeds the available skb data, or
+when SID selector reads fail.
 
-Thanks for your precise analysis. I completely agree with you that
-the forwarding case is theoretically unfixable due to the multi-tier NAT risks.
+For ipv6header, set hotdrop when the next extension header is not fully
+present or when the advertised extension header length exceeds the
+available skb data.
 
-This is a real and severe problem for us, but the actual issue we encountered
-is in the local case, not the forwarding case:
+Returning false treats the packet as a rule mismatch. Set hotdrop for
+these malformed packets so they cannot bypass rules intended to drop
+packets with these IPv6 extension headers.
 
-1.Laboratory Test Case Failure:
-We noticed a severe HTTP performance regression in our automated Kubernetes testing,
-where wrk was used to benchmark Pod client http performance. Through git bisect,
-we successfully pinned the commit 165573e41f2f ("tcp: secure_seq: add back ports to TS offset").
-The trigger was the default MASQUERADE --random-fully rule configured by kube-proxy on the k8s node.
+Signed-off-by: Zhixing Chen <running910@gmail.com>
+---
 
-2.Downstream Production Impact (AI Inference Cluster on Kubernetes):
-Shortly after, one of our major downstream product teams reported a massive performance degradation.
-After they upgraded their kernel to a version containing commit 165573e41f2f,
-they suffered a 40% AI inference performance drop. They confirmed that simply
-removing the random-fully flag instantly restored the performance back to normal.
+This is a follow-up to the previous IPv6 extension header hotdrop fix:
+https://lore.kernel.org/netfilter-devel/20260703125709.16493-6-fw@strlen.de/
 
-Would it be acceptable to a V2 patch that targets the local case?
+---
+ net/ipv6/netfilter/ip6t_hbh.c        | 21 +++++++++-----
+ net/ipv6/netfilter/ip6t_ipv6header.c | 10 +++++--
+ net/ipv6/netfilter/ip6t_srh.c        | 42 ++++++++++++++++++++++------
+ 3 files changed, 54 insertions(+), 19 deletions(-)
 
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 6d1a5d2026a6..a67f7d0fe93f 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -104,8 +104,10 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 				break;
+ 			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
+ 						&_opttype);
+-			if (tp == NULL)
+-				break;
++			if (!tp) {
++				par->hotdrop = true;
++				return false;
++			}
+ 
+ 			/* Type check */
+ 			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8) {
+@@ -120,13 +122,17 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 				u16 spec_len;
+ 
+ 				/* length field exists ? */
+-				if (hdrlen < 2)
+-					break;
++				if (hdrlen < 2) {
++					par->hotdrop = true;
++					return false;
++				}
+ 				lp = skb_header_pointer(skb, ptr + 1,
+ 							sizeof(_optlen),
+ 							&_optlen);
+-				if (lp == NULL)
+-					break;
++				if (!lp) {
++					par->hotdrop = true;
++					return false;
++				}
+ 				spec_len = optinfo->opts[temp] & 0x00FF;
+ 
+ 				if (spec_len != 0x00FF && spec_len != *lp) {
+@@ -147,7 +153,8 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
+ 			    temp < optinfo->optsnr - 1) {
+ 				pr_debug("new pointer is too large!\n");
+-				break;
++				par->hotdrop = true;
++				return false;
+ 			}
+ 			ptr += optlen;
+ 			hdrlen -= optlen;
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index c52ff929c93b..0568eb99eb1c 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -53,8 +53,10 @@ ipv6header_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 			break;
+ 		}
+ 		/* Is there enough space for the next ext header? */
+-		if (len < (int)sizeof(struct ipv6_opt_hdr))
++		if (len < (int)sizeof(struct ipv6_opt_hdr)) {
++			par->hotdrop = true;
+ 			return false;
++		}
+ 		/* ESP -> evaluate */
+ 		if (nexthdr == NEXTHDR_ESP) {
+ 			temp |= MASK_ESP;
+@@ -99,8 +101,10 @@ ipv6header_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		nexthdr = hp->nexthdr;
+ 		len -= hdrlen;
+ 		ptr += hdrlen;
+-		if (ptr > skb->len)
+-			break;
++		if (ptr > skb->len) {
++			par->hotdrop = true;
++			return false;
++		}
+ 	}
+ 
+ 	if (nexthdr != NEXTHDR_NONE && nexthdr != NEXTHDR_ESP)
+diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
+index db0fd64d8986..33a659b9b0e3 100644
+--- a/net/ipv6/netfilter/ip6t_srh.c
++++ b/net/ipv6/netfilter/ip6t_srh.c
+@@ -27,16 +27,25 @@ static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	struct ipv6_sr_hdr *srh;
+ 	struct ipv6_sr_hdr _srh;
+ 	int hdrlen, srhoff = 0;
++	int err;
+ 
+-	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
++	err = ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL);
++	if (err < 0) {
++		if (err != -ENOENT)
++			par->hotdrop = true;
+ 		return false;
++	}
+ 	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
+-	if (!srh)
++	if (!srh) {
++		par->hotdrop = true;
+ 		return false;
++	}
+ 
+ 	hdrlen = ipv6_optlen(srh);
+-	if (skb->len - srhoff < hdrlen)
++	if (skb->len - srhoff < hdrlen) {
++		par->hotdrop = true;
+ 		return false;
++	}
+ 
+ 	if (srh->type != IPV6_SRCRT_TYPE_4)
+ 		return false;
+@@ -121,16 +130,25 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	struct in6_addr _psid, _nsid, _lsid;
+ 	struct ipv6_sr_hdr *srh;
+ 	struct ipv6_sr_hdr _srh;
++	int err;
+ 
+-	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
++	err = ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL);
++	if (err < 0) {
++		if (err != -ENOENT)
++			par->hotdrop = true;
+ 		return false;
++	}
+ 	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
+-	if (!srh)
++	if (!srh) {
++		par->hotdrop = true;
+ 		return false;
++	}
+ 
+ 	hdrlen = ipv6_optlen(srh);
+-	if (skb->len - srhoff < hdrlen)
++	if (skb->len - srhoff < hdrlen) {
++		par->hotdrop = true;
+ 		return false;
++	}
+ 
+ 	if (srh->type != IPV6_SRCRT_TYPE_4)
+ 		return false;
+@@ -206,8 +224,10 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		psidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
+ 			  ((srh->segments_left + 1) * sizeof(struct in6_addr));
+ 		psid = skb_header_pointer(skb, psidoff, sizeof(_psid), &_psid);
+-		if (!psid)
++		if (!psid) {
++			par->hotdrop = true;
+ 			return false;
++		}
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_PSID,
+ 				ipv6_masked_addr_cmp(psid, &srhinfo->psid_msk,
+ 						     &srhinfo->psid_addr)))
+@@ -221,8 +241,10 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		nsidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
+ 			  ((srh->segments_left - 1) * sizeof(struct in6_addr));
+ 		nsid = skb_header_pointer(skb, nsidoff, sizeof(_nsid), &_nsid);
+-		if (!nsid)
++		if (!nsid) {
++			par->hotdrop = true;
+ 			return false;
++		}
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NSID,
+ 				ipv6_masked_addr_cmp(nsid, &srhinfo->nsid_msk,
+ 						     &srhinfo->nsid_addr)))
+@@ -233,8 +255,10 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (srhinfo->mt_flags & IP6T_SRH_LSID) {
+ 		lsidoff = srhoff + sizeof(struct ipv6_sr_hdr);
+ 		lsid = skb_header_pointer(skb, lsidoff, sizeof(_lsid), &_lsid);
+-		if (!lsid)
++		if (!lsid) {
++			par->hotdrop = true;
+ 			return false;
++		}
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LSID,
+ 				ipv6_masked_addr_cmp(lsid, &srhinfo->lsid_msk,
+ 						     &srhinfo->lsid_addr)))
 -- 
-Best regards,
-Tangxin Xie
+2.34.1
 
