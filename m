@@ -1,231 +1,130 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B871022097;
-	Thu,  9 Jul 2026 13:01:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7714265606;
+	Thu,  9 Jul 2026 13:07:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783602103; cv=none; b=C1Pizf5sxsWa8cQ9pzTY5WMDYGZpU6WuUyV45Nue2xqTKaSCmbviloUn7XM1TB0t4ACQWsJh7jg6+pBT16bBNEHo/emyl/fhd5lr9B1Nh2oDiWKe4QMH9GWym2J1xvbLsu2rn3+n/isxj3zigPVcfkNgGn9e0tgI8r+OrCyicf4=
+	t=1783602440; cv=none; b=CCMPPtkXAFAzRSQpC6ljKwr2Cfx9mPbKGfo0i9T3NhQzyE0cu3p70B2uecGNAKb9aY7dNnSmPV12yrPqT9lv+u8sbi5VDMhJgMvgafrZLXSCnKp08GDVpFra+1wy+uDf3nniEgG9yk3eSz7xr8ihY1ylycrUDf1xDCZ9wTESaYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783602103; c=relaxed/simple;
-	bh=JKZDS8WZ+t/gQ1mOl8AQFVGRJyZE3RE44N79+4rT7L4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=cCkhQbFrTMAZRJdR6hXQbgyA1RR7fDwdIfEIYmKfu+m8g3hhzSQl88unFFpwYIxnvWDYSIwq9+EnncPUbqoRoGTEprHUWrvVog2Nc0H9cmf146KlT4/n0xo/J5WXJpRpSVmMwNpcbhQvaKz53zcg+hT4Yu2vFXpMQhuRCQxlk6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=AT+cCbE9; arc=none smtp.client-ip=113.46.200.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	s=arc-20240116; t=1783602440; c=relaxed/simple;
+	bh=DcdpUurs4X8fkh8egxmf/0LLXh7nERi0BsvIcoCPM3I=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=pABc4zpKPWwI4bWZFxUDMb84woZ+oe6tcQF3k81fpmE77yxu68YUh3sFvvlFSEaW6dPkju1gaXn2VW2uKiTZhVLj1bEKr5hwaYuFbvUn7csdD4o0oc3nOhXA9/twq6J9tRte/qfRlz49XqoPI2sEjtRxM8vJOz+VXwe9oPa+gMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=uFb5HTcL; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="AT+cCbE9"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=WopBaQaQuiL/DU1vAnYKzMrkSjej1oGbeLKGRLVVDVE=;
-	b=AT+cCbE9PfJtQFumjJbUDTMuS/6pugaV7RgVoHFEO33Eu4o+ZG8aure4z3z0G8kMMJ88NVS2m
-	VjejYENaYpsTtwhXnJ1aUWFLxGLJxJTi0hoQb3iWl4au8Pdk4K+EMlFo3CKTUdP5YZbbpZxPVK0
-	usf14K7UHmb7PfkECWXr54o=
-Received: from mail.maildlp.com (unknown [172.19.163.200])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4gwvxf0bdNzLlXD;
-	Thu,  9 Jul 2026 20:52:22 +0800 (CST)
-Received: from kwepemr100001.china.huawei.com (unknown [7.202.195.168])
-	by mail.maildlp.com (Postfix) with ESMTPS id C740D4055B;
-	Thu,  9 Jul 2026 21:01:36 +0800 (CST)
-Received: from huawei.com (10.50.159.234) by kwepemr100001.china.huawei.com
- (7.202.195.168) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Thu, 9 Jul
- 2026 21:01:35 +0800
-From: xietangxin <xietangxin@h-partners.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-	"David S . Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Victor Nogueira
-	<victor@mojatatu.com>, gaoxingwang <gaoxingwang1@huawei.com>, huyizhen
-	<huyizhen2@huawei.com>, xietangxin <xietangxin@h-partners.com>
-Subject: [PATCH net v2] netfilter: nf_nat: recalculate TCP TS offset when snat change sport
-Date: Thu, 9 Jul 2026 21:12:16 +0800
-Message-ID: <20260709131216.2189210-1-xietangxin@h-partners.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="uFb5HTcL"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 2D3CE20256;
+	Thu, 09 Jul 2026 16:07:04 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=AEgbb6Kf815spH1aL9lrNyIHslNsEIK4qHsUXkhzeJU=; b=uFb5HTcLHVoJ
+	oImjwRXaq0xujvzQZP74dRX2QNjyvYrRdfKaga8E2K8nvbaHCeKjK9hphE7stcre
+	y3sJNu7+KId6DD06WEEHCVv9EUcWy+PpP7bSE543BaFS09NuJGSZIRvOQm78wo34
+	5WKSWleqX1FP5DCK5G4OsgHdHj+/UCDfLfYcv05W/9U9SeD8xLJ2KOoIPByBI2X0
+	EbBUmALzcd8Z2mGoPzsdv4DxeWRJ94QU4IJY4f/YJrBBzJ9lmLB/Lrf7OUEEzB7c
+	ZTWbTas95RQo6ACvyDVM7TvXFDub4eK4kbP0m2Xd1O+Hq7q3ZAt/051xysWKxFRE
+	nn6Bfcgq2T++WTrH1t8Atk+uUzMZKnll6sgacOmPHSkJ4TSl7cFdqZ2d76JHV9id
+	K7O9xjKipyKQmvFg9dJm3qUOKhrx+oFfT8kWipPkhCU72SSL3dNCosCYGN2i4XbD
+	VZBLMSuGRIRocTF8ooz3BIQFuTJ7o/UHASsXmxLQybtDfU5nlamiM+IIP5+d0XAy
+	4Ipe+4qIJoGzWNRO6OzpyVktgLHEDVsOCcYocM4Jv0C4he4S/I9F2IIMZW13n+tK
+	pjuUKVEmLCRy1Wh2XXVgvFWllrIjb0rbmMDLcXVbW6xtqIiTmsdzUaB24EZzouC6
+	GiMrTmbFJw7RSg42yWBcPfteoUDv7VI=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 09 Jul 2026 16:07:04 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 3AA376090B;
+	Thu,  9 Jul 2026 16:06:53 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 669D6jCw052928;
+	Thu, 9 Jul 2026 16:06:45 +0300
+Date: Thu, 9 Jul 2026 16:06:45 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Florian Westphal <fw@strlen.de>
+cc: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>,
+        Simon Horman <horms@verge.net.au>, David Ahern <dsahern@kernel.org>,
+        Ido Schimmel <idosch@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+        Alexander Frolkin <avf@eldamar.org.uk>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        stable@vger.kernel.org, Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
+        Ao Wang <wangao@seu.edu.cn>, Xuewei Feng <fengxw06@126.com>,
+        Qi Li <qli01@tsinghua.edu.cn>, Ke Xu <xuke@tsinghua.edu.cn>
+Subject: Re: [PATCH nf] ipvs: make destination flags atomic
+In-Reply-To: <ak-KErd1a0NHGN-D@strlen.de>
+Message-ID: <8913381c-1e02-35c7-0ec4-61de5a12fd35@ssi.bg>
+References: <20260707085706.96322-1-zhaoyz24@mails.tsinghua.edu.cn> <41c3d792-af7d-5582-5057-ac3df5f7bfd6@ssi.bg> <91509A0C-9E4A-4F0E-A45C-ABD29396067E@mails.tsinghua.edu.cn> <afcdb34c-ec10-de8e-083c-624bcedca90e@ssi.bg> <ak-KErd1a0NHGN-D@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemr100001.china.huawei.com (7.202.195.168)
+Content-Type: text/plain; charset=US-ASCII
 
-Problem observed in Kubernetes environments where MASQUERADE target with
---random-fully is configured by default. after commit
-165573e41f2f ("tcp: secure_seq: add back ports to TS offset") TCP short
-connection QPS dropped from ~20000 to ~10000. This added source and
-destination ports into TS offset calculation.
 
-However, with MASQUERADE --random-fully, when multiple internal connections
-(e.g sport 10000,20000) are mapped to the same external port (e.g 30000),
-their TS offsets are calculated as ts_offset(10000) and ts_offset(20000).
-If the server reuses the TIME_WAIT slot from the first connection, there is
-a chance that ts_offset(20000) < ts_offset(10000), breaking TSval
-monotonicity for the same 4-tuple and causing RST packets:
-  Client -> Server 24870 -> 80 [SYN] TSval=2294041168
-  Server -> Client 80 -> 24870 [ACK] TSecr=2846236456
-  Client -> Server 24870 -> 80 [RST] Seq=855605690
+	Hello,
 
-After nf_nat_inet_fn() successfully assigns a new randomized
-source port, recalculate the TS offset using the new port and
-update the SYN packet's TSval accordingly.
+On Thu, 9 Jul 2026, Florian Westphal wrote:
 
-Test results on 4U4G VM with
-`./wrk -t8 -c200 -H "Connection: close" -d10s --latency http://5.5.5.5:80`
-Before:
-  random:10712 req/s, random-fully:10986 req/s
-After:
-  random:20530 req/s, random-fully:19511 req/s
+> Julian Anastasov <ja@ssi.bg> wrote:
+> > 	After looking again at the code, I think we can
+> > do it in different way:
+> > 
+> > - IP_VS_DEST_F_AVAILABLE and IP_VS_DEST_F_OVERLOAD are defined
+> > in include/uapi/linux/ip_vs.h but we never export them to user
+> > space. So, we are free to change them. We can move them to 
+> > include/net/ip_vs.h, see below...
+> > 
+> > - IP_VS_DEST_F_AVAILABLE is changed only under service_mutex,
+> > so we can keep its usage
+> > 
+> > - IP_VS_DEST_F_OVERLOAD needs different access methods.
+> > We can add 'unsigned long flags2;', may be after l_threshold.
+> > And to switch to such usage (F_OVERLOAD -> FL_OVERLOAD):
+> > 
+> > 	- test_bit(IP_VS_DEST_FL_OVERLOAD, &dest->flags2)
+> > 	- set_bit(IP_VS_DEST_FL_OVERLOAD, &dest->flags2)
+> > 
+> > 		Sometimes if (test_bit()) clear_bit() can avoid
+> > 		full memory barrier in ip_vs_dest_update_overload()
+> > 
+> > 	- clear_bit(IP_VS_DEST_FL_OVERLOAD, &dest->flags2)
+> > 		test_bit() guard can help here too
+> > 
+> > 	As there are other races involved, something like
+> > this can be a starting point for such change. It tries harder
+> > to update the overload flag on dest edit/add but it does not
+> > include the proposed bitops:
+> >
+> > diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> > index 49297fec448a..b34631270e24 100644
+> 
+> Who is supposed to do what?
+> 
+> I.e., are you going to submit this officially as replacement
+> for the v2 of this patch or do you expect the sumbitters of
+> this patch to rework their v2 along these lines?
 
-Fixes: 165573e41f2f ("tcp: secure_seq: add back ports to TS offset")
-Cc: stable@vger.kernel.org
-Closes:https://lore.kernel.org/all/92935c00-e0be-4591-ac44-5978c7804d57@yeah.net/
-Signed-off-by: xietangxin <xietangxin@h-partners.com>
----
-v2:
-  - Move the new helper in the IP_CT_NEW case of nf_nat_inet_fn().
-  - Fix a compilation failure when CONFIG_IPV6 is disabled.
+	I can sumbit the ip_vs_dest_update_overload()
+part as separate patch which can be followed by patch(es)
+that convert the overload flag to bitops.
 
-v1: https://lore.kernel.org/all/20260629093408.3927103-1-xietangxin@h-partners.com/
----
- net/netfilter/nf_nat_core.c | 103 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 102 insertions(+), 1 deletion(-)
+	I'll wait for comments from Yizhou Zhao, he should
+tell me if he is willing to convert the overload flag as
+additional patch.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 63ff6b4d5d21..9d0b316fa3c7 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -16,6 +16,8 @@
- #include <linux/siphash.h>
- #include <linux/rtnetlink.h>
- 
-+#include <net/tcp.h>
-+#include <net/secure_seq.h>
- #include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_helper.h>
-@@ -894,6 +896,99 @@ static bool in_vrf_postrouting(const struct nf_hook_state *state)
- 	return false;
- }
- 
-+static __be32 *nf_nat_tcp_ts_option_ptr(const struct sk_buff *skb)
-+{
-+	struct tcphdr *th;
-+	unsigned char *ptr;
-+	unsigned char opcode;
-+	unsigned char opsize;
-+	unsigned int optlen, offset;
-+
-+	offset = 0;
-+	th = tcp_hdr(skb);
-+	optlen = (th->doff - 5) * 4;
-+	ptr = (unsigned char *)(th + 1);
-+
-+	while (offset < optlen) {
-+		opcode = ptr[offset];
-+		if (opcode == TCPOPT_EOL)
-+			break;
-+
-+		if (opcode == TCPOPT_NOP) {
-+			offset++;
-+			continue;
-+		}
-+
-+		if (offset + 1 >= optlen)
-+			break;
-+
-+		opsize = ptr[offset + 1];
-+		if (opsize < 2 || offset + opsize > optlen)
-+			break;
-+
-+		if (opcode == TCPOPT_TIMESTAMP && opsize == TCPOLEN_TIMESTAMP)
-+			return (__be32 *)(ptr + offset + 2);
-+
-+		offset += opsize;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void nf_nat_update_tcp_ts_offset(struct nf_conn *ct, struct sk_buff *skb)
-+{
-+	__be32 *tsptr;
-+	struct net *net;
-+	struct tcphdr *th;
-+	struct tcp_sock *tp;
-+	union tcp_seq_and_ts_off st;
-+	struct nf_conntrack_tuple *orig_tuple;
-+	struct nf_conntrack_tuple *reply_tuple;
-+
-+	orig_tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	reply_tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+	if (orig_tuple->src.u.tcp.port == reply_tuple->dst.u.tcp.port)
-+		return;
-+
-+	th = tcp_hdr(skb);
-+	if (!th || !th->syn || th->ack)
-+		return;
-+
-+	net = nf_ct_net(ct);
-+	if (READ_ONCE(net->ipv4.sysctl_tcp_timestamps) != 1)
-+		return;
-+
-+	if (!skb->sk)
-+		return;
-+
-+	tsptr = nf_nat_tcp_ts_option_ptr(skb);
-+	if (!tsptr)
-+		return;
-+
-+	switch (nf_ct_l3num(ct)) {
-+	case NFPROTO_IPV4:
-+		st = secure_tcp_seq_and_ts_off(net, reply_tuple->dst.u3.ip,
-+					       reply_tuple->src.u3.ip,
-+					       reply_tuple->dst.u.tcp.port,
-+					       reply_tuple->src.u.tcp.port);
-+		break;
-+#if IS_ENABLED(CONFIG_IPV6)
-+	case NFPROTO_IPV6:
-+		st = secure_tcpv6_seq_and_ts_off(net, reply_tuple->dst.u3.ip6,
-+						 reply_tuple->src.u3.ip6,
-+						 reply_tuple->dst.u.tcp.port,
-+						 reply_tuple->src.u.tcp.port);
-+		break;
-+#endif
-+	default:
-+		return;
-+	}
-+
-+	tp = tcp_sk(skb->sk);
-+	*tsptr = htonl(tcp_skb_timestamp_ts(tp->tcp_usec_ts, skb) + st.ts_off);
-+	WRITE_ONCE(tp->tsoffset, st.ts_off);
-+}
-+
- unsigned int
- nf_nat_inet_fn(void *priv, struct sk_buff *skb,
- 	       const struct nf_hook_state *state)
-@@ -937,8 +1032,14 @@ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
- 						       state);
- 				if (ret != NF_ACCEPT)
- 					return ret;
--				if (nf_nat_initialized(ct, maniptype))
-+				if (nf_nat_initialized(ct, maniptype)) {
-+					if (state->hook == NF_INET_POST_ROUTING &&
-+					    nf_ct_protonum(ct) == IPPROTO_TCP &&
-+					    (ct->status & IPS_SRC_NAT)) {
-+						nf_nat_update_tcp_ts_offset(ct, skb);
-+					}
- 					goto do_nat;
-+				}
- 			}
- null_bind:
- 			ret = nf_nat_alloc_null_binding(ct, state->hook);
--- 
-2.43.0
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
