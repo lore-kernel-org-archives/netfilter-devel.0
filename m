@@ -1,118 +1,109 @@
-Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474663E3142
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2026 09:41:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB1883FBB69;
+	Thu,  9 Jul 2026 09:50:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783590073; cv=none; b=Izt03QN4oqV22xniOJBpICWI2lslYX55KHkVuCKgXJSrl28NJJiCxgFIIkBaVDDb4DUC1NJ9st6H4jfKfI+BIrETUSzf/VmSqx55vYHXxFUDtNzHlXhCSdXK20w81TGsTEMSCh1y9RE/YS6sNCDd8LoCM/HHK8PVR+3MDTibREo=
+	t=1783590654; cv=none; b=UvcEwgjsA5Mc18CumPnKPP39KSgVujylrfyNbhAfsIbTHPxY+Kw4wJ90+SUdAuFwVrJRrh1f6aY5CyL4lyg6pwf4j3StK/ljcEuPIhv/OyZykERLYhoALK435Ad8OgS6VnLZhyo26X9TVb5uekYlHeeTM/yAvpBqEYDcKl637sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783590073; c=relaxed/simple;
-	bh=/8dM9Z/CoF2L+7WNN7ITyoWlNjxyJTQlQwpQFvzkRD4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=W8rGYMBzPJrEKlxkZgzAZqCMQFWAM0a850CyKvH8eq0H6xmmHlL7AA1uEvkjJXR529o2MewTS6LLFvvOGxSPVsPtBkM1XrLq2aNvgVgFnUHWg+iJS6SJdftN6xrAyCJTsf//Rc5pQsFUw1SuqnbWAZ+rW3TSMtGO38LjVkKCIV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b=bHlLYMlA; arc=none smtp.client-ip=209.85.221.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
+	s=arc-20240116; t=1783590654; c=relaxed/simple;
+	bh=muvquHUNF18hxMTX8gmYRYIf1eQSvehLDezpGhHBvBA=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=pSFrBnzFVXncTHxXlp7bPPkcKHN+GlBJTcVo2kgn/4vVIKX9ebqe34WHSs6ri8wBcgK/BUHYIhzPXxgiYBxwLdu4Ricao23dSw5afL4IUazTI/c9MNalOLKqqbXH4+x99reHYoOGIevAtiN2TqsgZhn0orFBJzCQ1fqaAv8RevQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Czt/6Vo+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b="bHlLYMlA"
-Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-47df440fcd5so693969f8f.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jul 2026 02:41:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall.org; s=google; t=1783590071; x=1784194871; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=dpTA2UFoD8jIxn6LzSQQQ69wwcU0vV5c/nqe3IqCP2Q=;
-        b=bHlLYMlA01yrqUn3lbkHsAWJZqpwk1UZDwK8Bw5YvT6lxRpIp0fpuLQrnCwIPH6lfh
-         ovPDY6HKKTQwYLOyk2BKxioyQi/cplgljqxi5Ruoai5QrO2GfBX2V3w3SpvuHtgRsnCG
-         G2evJzQRqm4J7HeC0/AuDNfGuPhgdxYj8kogvU09jnds9i6gTmnAR13TS9zm7v3q1l3o
-         4fhFmnaDnxeyENix52Yi7W2RmJDLhwLv4ztwhuGJ3SA6OkVmqViUi8oCC1KeBlfxMZOf
-         PiwPF3F2YRa2WVzoBX61C+/ydkBUEUb+wth9WphBgpkdBG9kup0JiY30TUpHKN+jIKIZ
-         A5Ew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783590071; x=1784194871;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=dpTA2UFoD8jIxn6LzSQQQ69wwcU0vV5c/nqe3IqCP2Q=;
-        b=L1BPtu3O725b48kukrVq5igw9h3uUHUygTabj0BvET1zc2OXhkk5t+MDTAFpx1D2ec
-         1f0ZCvxcFSYt114jIh1OXFSyMhGbMiyqL9BO1mc+w2DVXk0fUuZSp2My0c2SmOFsT8uB
-         ziLXg41SPI6GAZXZlbdr0G2gsWV6ag/IoKIfPT4NbjQQ75V8hbyFAOcEt6FKKfFwdVHr
-         glibdbt5nr0yqn4AdYKCTYt0OwN42M+xE9AllXlyuU+i9Jx2x1hxKQgvG1K0uwDGnlae
-         0i0E0SmTrkPtmsgP4LJRG1SylIcdmvSVB54ya8K1H+YzBryqHeyjIzUd99Qap70zGND2
-         UX6w==
-X-Forwarded-Encrypted: i=1; AHgh+RqBLpnp6cSOHH0nVafxLa3V3bkYrLLtS8CNmqT8hbQucmjG3CODVB1Y8R1v8vjWjyIENcPQtHjNk+gR0ocmvqg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzzuI6yqoJH2YtZnc2zV7Cc7BwQeIqV103XnpJa1jP4tbGswYOK
-	Tln+GJ1sQix3Nrx8mJ8axyTLdVvTz0uP1fBmtA8mnE11oBDCYpyeZVyz3cEyEt65hdA=
-X-Gm-Gg: AfdE7clgy0hafFcqQreYdY8wDwQIpoSJwmBmkb8xd8UHdN4mvaK1KNPwx7ceJXWlNL0
-	cSXiYOVIWnKl40riiN7ynyq9w760KcmramVohKCnr3tewqplKKv2yq9dItgKq2qOTdf+4eRasn+
-	WNvaOfyMjZwPBhRGjZ2ojcE0rN7Y0IRc2sBdJF0snpM2rCGWP/Qe02N6mgCQSY4GCrcMrKZAuyS
-	bq93YpRMoZHdE54IAuL4a1eFAX9t4HPlsWlOoQYwKzCRqwt8CAW3FBi/hYhBYRQtEMzbbKtrDLA
-	QjymnQJe2txW2G6vCAh5ZtXKtwd9BOQlfNEWhmskQUUZ5LyjkQZF0ZB4xAorTrghwahP1dv5MkU
-	2A9EG61omaoEvnPZnTi0FGRByyBoZDx1jaLAkOTdRLFYhb75uQOTE0IULQf/lCs7u6eqY9ySz0N
-	piGNfLtA3hHceg2sIxiGwjeZ+z1bMLPh9oHvvsbzGMlwtPey4cn5LvNw==
-X-Received: by 2002:a05:6000:2407:b0:475:f100:3604 with SMTP id ffacd0b85a97d-47df081ba52mr7354428f8f.51.1783590070132;
-        Thu, 09 Jul 2026 02:41:10 -0700 (PDT)
-Received: from [192.168.0.161] (78-154-15-182.ip.btc-net.bg. [78.154.15.182])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47a9de1d8f1sm50701835f8f.3.2026.07.09.02.41.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 09 Jul 2026 02:41:09 -0700 (PDT)
-Message-ID: <b0f45a47-ef6f-43df-9738-67b28df1891d@blackwall.org>
-Date: Thu, 9 Jul 2026 12:41:08 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Czt/6Vo+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B043F1F000E9;
+	Thu,  9 Jul 2026 09:50:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783590652;
+	bh=OYI04CWeUX0RrY0bbXHHMJDfAnVT6RP1adWSYVMh5jY=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=Czt/6Vo+iT30JUB+Jk8UDTkjC0CaqXgublJJCoepgFiUzUgHSmJsRusYEnOjiQwaC
+	 8tan+H8djVoHbG1kW1MqFD+M/9VnVNEhwFwH4O/Smwd5kFwzJZfXy/1QjrvVVPsi7a
+	 Lo+noxDZIUT+9YoXaqll+c8/Xw2gD4FW9pfJIeQXynhzf3JF9iCYneqQAAjWAk/mNn
+	 xGOEbEuRWdOk4obaCZpGFtam86Q4iao3lTCJchVhPLvsYOiAM2sWlKgUMEoPsiJZ/V
+	 zynVUbhrpmx/xGEXKeWZSJPjtmxUuSOSIl025Rel7oOfzj8vaj1GtHvYpoUw5LCSdp
+	 57MiB5NbiZq1Q==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 9394C393A57D;
+	Thu,  9 Jul 2026 09:50:32 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v12 nf-next 1/7] bridge: Add filling forward path from
- port to port
-Content-Language: en-US, bg
-To: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- Ido Schimmel <idosch@nvidia.com>, Kuniyuki Iwashima <kuniyu@google.com>,
- Stanislav Fomichev <sdf.kernel@gmail.com>,
- Samiullah Khawaja <skhawaja@google.com>, Hangbin Liu <liuhangbin@gmail.com>,
- Krishna Kumar <krikku@gmail.com>, Martin Karsten <mkarsten@uwaterloo.ca>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
- bridge@lists.linux.dev
-References: <20260707091045.967678-1-ericwouds@gmail.com>
- <20260707091045.967678-2-ericwouds@gmail.com>
-From: Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <20260707091045.967678-2-ericwouds@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/17] netfilter: nf_conntrack_reasm: guard mac_header
+ adjustment after IPv6 defrag
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178359063113.3372474.9367073912354621322.git-patchwork-notify@kernel.org>
+Date: Thu, 09 Jul 2026 09:50:31 +0000
+References: <20260708140309.19633-2-fw@strlen.de>
+In-Reply-To: <20260708140309.19633-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-On 07/07/2026 12:10, Eric Woudstra wrote:
-> If a port is passed as argument instead of the master, then:
-> 
-> At br_fill_forward_path(): find the master and use it to fill the
-> forward path.
-> 
-> At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
-> instead.
-> 
-> Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
-> ---
->   net/bridge/br_device.c  | 19 ++++++++++++++-----
->   net/bridge/br_private.h |  2 ++
->   net/bridge/br_vlan.c    |  6 +++++-
->   3 files changed, 21 insertions(+), 6 deletions(-)
-> 
+Hello:
 
-Just FYI please see my reply [1] to Pablo's email about this patch. I think
-there might be a problem that needs to be fixed.
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-Cheers,
-  Nik
+On Wed,  8 Jul 2026 16:02:53 +0200 you wrote:
+> From: Xiang Mei <xmei5@asu.edu>
+> 
+> nf_ct_frag6_reasm() slides the packet head forward to drop the IPv6
+> fragment header and then unconditionally advances skb->mac_header:
+> 
+> 	skb->mac_header += sizeof(struct frag_hdr);
+> 
+> [...]
 
-[1] https://lore.kernel.org/netdev/b0774436-bc41-462f-820b-6a037b6082bb@blackwall.org/T/#mfbfb071107713d420bf26c060b1b980b270ab172
+Here is the summary with links:
+  - [net,01/17] netfilter: nf_conntrack_reasm: guard mac_header adjustment after IPv6 defrag
+    https://git.kernel.org/netdev/net/c/3b08fed5b7e0
+  - [net,02/17] netfilter: ebtables: terminate table name before find_table_lock()
+    https://git.kernel.org/netdev/net/c/a622d2e9608c
+  - [net,03/17] netfilter: ebtables: zero chainstack array
+    https://git.kernel.org/netdev/net/c/cbfe53599eeb
+  - [net,04/17] netfilter: ebtables: module names must be null-terminated
+    https://git.kernel.org/netdev/net/c/084d23f81832
+  - [net,05/17] netfilter: nft_lookup: fix catchall element handling with inverted lookups
+    https://git.kernel.org/netdev/net/c/e6107a4c74b5
+  - [net,06/17] netfilter: ipset: mark the rcu locked areas properly
+    https://git.kernel.org/netdev/net/c/5d0c22e73656
+  - [net,07/17] netfilter: ipset: exclude gc when resize is in progress
+    https://git.kernel.org/netdev/net/c/cffcf57bf03c
+  - [net,08/17] netfilter: ipset: cleanup the add/del backlog when resize failed
+    https://git.kernel.org/netdev/net/c/672321302ed6
+  - [net,09/17] netfilter: ipset: allocate the proper memory for the generic hash structure
+    https://git.kernel.org/netdev/net/c/724f32699aea
+  - [net,10/17] netfilter: flowtable: use dst in this direction when pushing IPIP header
+    https://git.kernel.org/netdev/net/c/c328b90c17fc
+  - [net,11/17] netfilter: flowtable: IPIP tunnel hardware offload is not yet support
+    https://git.kernel.org/netdev/net/c/6c5dcab95f4c
+  - [net,12/17] netfilter: flowtable: support IPIP tunnel with direct xmit
+    https://git.kernel.org/netdev/net/c/fa7395c02d95
+  - [net,13/17] netfilter: handle unreadable frags
+    https://git.kernel.org/netdev/net/c/da5b58478a9c
+  - [net,14/17] ipvs: pass parsed transport offset to state handlers
+    https://git.kernel.org/netdev/net/c/bae7ce7bafb5
+  - [net,15/17] ipvs: use parsed transport offset in TCP state lookup
+    https://git.kernel.org/netdev/net/c/2500fa3958b1
+  - [net,16/17] ipvs: use parsed transport offset in SCTP state lookup
+    https://git.kernel.org/netdev/net/c/2f75c0faa336
+  - [net,17/17] ipvs: ensure inner headers in ICMP errors are in headroom
+    https://git.kernel.org/netdev/net/c/3f7a535ff0fa
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
