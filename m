@@ -1,100 +1,88 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633492744F;
-	Thu,  9 Jul 2026 21:57:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09783C8C49
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jul 2026 07:36:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783634245; cv=none; b=iZh3EJPDbBoqaWwJWI/bD2F42U0FQiuIjzDh40sMLq9/8NWU5HJgWeNItd5TKGRj78R6QL9AiIdHbKpc9guMgydr5AkM/FhXDWARJMEWl6pitrPNxxpGwSVJtrqlGKeSr4Kw8FF9kr2CJmjUNeByNpokpLTFuoRmBKHmhJNjSpc=
+	t=1783668984; cv=none; b=RuFsxTrXLKPE9dRGuxbs2luAb/k9tIyCbaastn5UZHcMqTFE8fqvtlVlK4x2K4mmx3yXbfQ4gTElEkuYZCOJZJsJJVvx6hRfNDS1M5sE4J+AuZkfqy1JET0i9M5TyftAxbrEPT4byl7FkwZd/AX/XZCaVUmfEeiYBOlwNorK+7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783634245; c=relaxed/simple;
-	bh=ACBkeS9XNknVuEPZSDfZO5k9ps6XIvEkYqibaggYl9s=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=VmGa8wKfMoguK1ZJ1KIQl7MEPLSlxfJcurO2njhm7A1PwvKFXB5CB1G4DpFodz58WNQlP5B6xu7ACYEbwXM1SurSIkwkhjQv8+JUJ7dBPM1ppA/f5N++r0nuAktcCiWkK9TRiK56QdCtKOsTFBOV4NCSvc0j6CDi1WaC000IrAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=CnkyCJx4; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1783668984; c=relaxed/simple;
+	bh=yXPsKhsYSioNjINT93BtxyK9j6TxYtzPzDUJHjH0Grc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NUaTMA0a1ADFGfquSK1NnxF+4GaP26PVSNcrgxKowdM+NK0LFBamvXWm6ezW2nb0yj8gwEYTQN/hrPKFTUL5L1aAcRX0lhL2UH3Q5tiYQlj346CVWrRHuvCatqsAsB4P4nCmqNEnFzZSC/7XUCI24MoDj12/PIfg6MpGwJ2m2u8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hlgi5uF/; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="CnkyCJx4"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id DC56420254;
-	Fri, 10 Jul 2026 00:57:16 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=q5qjQdB+QZF+GW3VJ661cbrEEmx2MfrLZLcjkUpQTck=; b=CnkyCJx4mZWk
-	9bUZFSejBlrf5xH2aMIYdgsjqOh4D8aifACgWGS4VYaglxTnvZpy237xalqqL3tR
-	q0wa48HOTaZtF/8tS5qHQiBz62xtQdgIQ8VpxBczTE1+gJnhgzPtjssdIp8DNJOn
-	3y9w0FALVvqSpDj8KEKCoC2CIiyHWZznI3Scl6Cim2xx79JnMHQB42SBjpJO4AH1
-	FEzeBk8uSaF/SR8LApY7US+8Jw0ZrwCo/IJuVe7Sh+kYY/GkdegSHxo7RX6pEJGj
-	RVu70hjI0ZgVvNCSlih8sLUutr9abJSUJNlRNOMhmxbFhZ60owVREkwkoVQ8QPRp
-	ENLNomtRMCFycbqY/PrtWLOJW+ANDvlqENVVzI5j58nVx0ZErBuZ9UJdmJOaxoWV
-	Qdo1kHtBzM6Mi5+/Rtyrq4xmwXnEaCK04vF73R2ALQWr5EjNg1/iQtAmmPmvBi4D
-	J8LIUgT20MoDAmffwpFkLzarThG4GBU00PqbQW0dr2y6ARUTAFjlb6WIqX6ZwhSX
-	fa6d5uBTRMLU8DPPQ7nAU7LXxorN0b5KzuhMEO9xuBf4AIWr3kGmOd12W07nj29X
-	+OWyAwzCxEopIcjPY+dS2JRZYffUO+pr6pf/z7lqarCZ44Ng1Ol7+XAdNbgO9K2i
-	ct792feHMLSuj4+1VoYdsKycflstPBg=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Fri, 10 Jul 2026 00:57:16 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 171A960B2D;
-	Fri, 10 Jul 2026 00:57:16 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 669LvFIN111749;
-	Fri, 10 Jul 2026 00:57:15 +0300
-Date: Fri, 10 Jul 2026 00:57:15 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Florian Westphal <fw@strlen.de>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] ipvs: fix the checksum validations
-In-Reply-To: <alARhv8ezLbt2MBK@strlen.de>
-Message-ID: <23d93011-2353-6c69-cb36-3daea07258be@ssi.bg>
-References: <20260709202356.104307-1-ja@ssi.bg> <alARhv8ezLbt2MBK@strlen.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hlgi5uF/"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 36CC160581;
+	Fri, 10 Jul 2026 09:36:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1783668977;
+	bh=wvMjTWtsCStdG3MZTL2/OWZTfNE/USm0QwX1vkeyvDg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=hlgi5uF/bO42tkstnBrMLpDY7vSD8BCtw4BeCYm+qc8ryaewTNK339cN9Z6rrMuMV
+	 QAMbP5oXX/PzhXDrlIj89+BYNW/TUgIKaICZUfBj0X6kR7bW0VP/pNgGgMjuiZZhLy
+	 AggrtItiXv3wtExhGBMgDt0YXsZ7gsVbnxbzsW/Qs95iwjqYI8uO2BhYxudTGZgMkP
+	 /AYqZnPNkbF2CwFPKmXbbEKnR6p2u1BlIR+IlrV3IcJKW1bZcLxu/W8yS4u3haHpRL
+	 2ZCbSU8KqRw5BxCufD3qKer94F6gYfoeafxkNWv8wNxWGesSsJBOfuMdM3TL4Qztpy
+	 OQsquVWEFJ9OQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: anzaki@gmail.com
+Subject: [PATCH nf-next] netfilter: flowtable: tear down flow entries with stale dst from GC
+Date: Fri, 10 Jul 2026 09:36:10 +0200
+Message-ID: <20260710073610.1352167-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+In case of route updates, tear down flow entries with stale dst to give
+them a chance to obtain a fresh route.
 
-	Hello,
+This is specifically useful for hardware offloaded entries, where the
+flowtable software dataplane sees no packet, where the existing check
+for stale dst entries does not help.
 
-On Thu, 9 Jul 2026, Florian Westphal wrote:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_core.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-> Julian Anastasov <ja@ssi.bg> wrote:
-> > TCP/UDP checksum validation for CHECKSUM_COMPLETE is broken
-> > before the git history.
-> > 
-> > Expecting skb->csum to cover data starting from the protocol
-> > header is wrong. As IPVS works at the IP layer, the csum for
-> > the IP header is not subtracted yet.
-> > 
-> > ip_vs_in_icmp_v6() is missing checksum validation for ICMPv6
-> > packets from clients.
-> > 
-> > Also, Sashiko points out that handle_response_icmp() being
-> > common for IPv4 and IPv6 is missing the pseudo-header
-> > calculation while validating ICMPv6 messages from real
-> > servers which is a problem if checksum is not validated
-> > by the hardware.
-> > 
-> > Fix the problems by creating ip_vs_checksum_common_check()
-> > helper and use it for TCP/UDP/ICMP both for IPv4 and IPv6.
-> > 
-> > Also, ip_vs_checksum_complete() can be marked static.
-> 
-> Just FYI, I'll ignore the sashiko comment wrt.
-> 'hardcoded sizeof(struct ipv6hdr)' as thats resolved by your
-> earlier patch, so I plan to include this in tomorrows batch.
-
-	Yep, both patches solve the reported problems there...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 99c5b9d671a0..61ab27de79fa 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -561,6 +561,14 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 	nf_ct_put(ct);
+ }
+ 
++static bool nf_flow_check_dst(struct flow_offload *flow,
++			      enum flow_offload_tuple_dir dir)
++{
++	struct flow_offload_tuple *tuple = &flow->tuplehash[dir].tuple;
++
++	return tuple->dst_cache && dst_check(tuple->dst_cache, tuple->dst_cookie);
++}
++
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
+@@ -568,6 +576,8 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct) ||
++	    nf_flow_check_dst(flow, FLOW_OFFLOAD_DIR_ORIGINAL) ||
++	    nf_flow_check_dst(flow, FLOW_OFFLOAD_DIR_REPLY) ||
+ 	    nf_flow_custom_gc(flow_table, flow)) {
+ 		flow_offload_teardown(flow);
+ 		teardown = true;
+-- 
+2.47.3
 
