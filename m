@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56A28282F3A;
-	Fri, 10 Jul 2026 14:38:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BFDD34BA24;
+	Fri, 10 Jul 2026 14:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783694295; cv=none; b=DdGS7xc9+HcKxaVIat3I4Ms5JndyJq/I315TxacUPX2thaxt8MRkqBSMnp0YhwmJ40rEA0tSZdK/paaEuA3+EIu64fEMbAMSUhM8qVZ/GSlXQuhwIP13XZElL4wc1sTCOqyPv9l8xP/ritP/yCTPetJW9j9rQaDe2VsHDB9GmEY=
+	t=1783694300; cv=none; b=KkyFzYAFY6ZpOjWI/YDBsCZxkri7VJ8FSR0Xbv88c12c4rsxxuleZR0d6ZVEI8itOf2KOxWY22vBnGzCQxy0LpHTrNCIO58DeYGGl6PQ9lCEy97wurnAokac4wbB+Ejt84nmal2gFfu34zlacRpr9rRDlBESGlON2fP1jMsYDEE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783694295; c=relaxed/simple;
-	bh=FVjJ2/1IzScJtzqSslW98q616QWGHhVpDxG++NtETaQ=;
+	s=arc-20240116; t=1783694300; c=relaxed/simple;
+	bh=dsCdYj9Sy8m+zjtY/XMIEDkI8mPsMxyggLu9uoq5vQI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Tg9isIitZAtMeusERvC09WNEclspMElQUBUXivQfKgbyKNzH+l2uKJ2UJl5dKr+ue9+VD6XpgGLHlsHj9CB7qPmoIY2pD9c6afR4sJiRcZfSqsVVeQXGVnRw2gPl+OCL/A7dVfLLKXDD0wLRrJc5F1z3lqNd1aeqxClOO353Jgc=
+	 MIME-Version; b=PrSnYp5iysEUE3k+H410kIJhAnVjpfaP+VVU2y+Yk3XnSocB+rsH94VfqN8++xTVBqH0gVmAsML3ozC/G8Jf0Rc7uv9TFoVcIfgLUs2RtBLH/HfzGiToZ2HyARzN9dN68ryPravBOqbQJ/LkcWi2IZFByo2bh9BvkE5g4CEjozI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B2D17605E7; Fri, 10 Jul 2026 16:38:12 +0200 (CEST)
+	id 036C260491; Fri, 10 Jul 2026 16:38:16 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 7/9] ipvs: reload ip header after head reallocation
-Date: Fri, 10 Jul 2026 16:37:31 +0200
-Message-ID: <20260710143733.29741-8-fw@strlen.de>
+Subject: [PATCH net 8/9] ipvs: fix more places with wrong ipv6 transport offsets
+Date: Fri, 10 Jul 2026 16:37:32 +0200
+Message-ID: <20260710143733.29741-9-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260710143733.29741-1-fw@strlen.de>
 References: <20260710143733.29741-1-fw@strlen.de>
@@ -38,38 +38,84 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-__ip_vs_get_out_rt() calls skb_ensure_writable() which may
-reallocate skb->head.
+From: Julian Anastasov <ja@ssi.bg>
 
-Fixes: 8d8e20e2d7bb ("ipvs: Decrement ttl")
+Sashiko reports for more incorrect IPv6 transport offsets.
+
+The app code for TCP was assuming IPv4 network header
+even after the ipvsh argument was provided. This can
+cause problems with apps over IPv6. As for the only
+official app in the kernel tree (FTP) this problem is
+harmless because we use Netfilter to mangle the FTP
+ports and we do not adjust the TCP seq numbers.
+
+Also, provide correct offset of the ICMPV6 header in
+ip_vs_out_icmp_v6() for correct checksum checks when
+the IPv6 packet has extension headers.
+
+Fixes: d12e12299a69 ("ipvs: add ipv6 support to ftp")
+Fixes: 2a3b791e6e11 ("IPVS: Add/adjust Netfilter hook functions and helpers for v6")
 Cc: stable@vger.kernel.org
-Assisted-by: Claude:claude-sonnet-4-6
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Link: https://sashiko.dev/#/patchset/20260706101624.69471-1-zhaoyz24%40mails.tsinghua.edu.cn
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipvs/ip_vs_xmit.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/ipvs/ip_vs_app.c  | 10 ++++------
+ net/netfilter/ipvs/ip_vs_core.c |  3 +--
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index ce542ed4b013..9fef4335da13 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -736,13 +736,11 @@ int
- ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
+diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
+index d54d7da58334..b0e00be85cb1 100644
+--- a/net/netfilter/ipvs/ip_vs_app.c
++++ b/net/netfilter/ipvs/ip_vs_app.c
+@@ -361,14 +361,13 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
+ 				  struct ip_vs_iphdr *ipvsh)
  {
--	struct iphdr  *iph = ip_hdr(skb);
--
--	if (__ip_vs_get_out_rt(cp->ipvs, cp->af, skb, NULL, iph->daddr,
-+	if (__ip_vs_get_out_rt(cp->ipvs, cp->af, skb, NULL, ip_hdr(skb)->daddr,
- 			       IP_VS_RT_MODE_NON_LOCAL, NULL, ipvsh) < 0)
- 		goto tx_error;
+ 	int diff;
+-	const unsigned int tcp_offset = ip_hdrlen(skb);
+ 	struct tcphdr *th;
+ 	__u32 seq;
  
--	ip_send_check(iph);
-+	ip_send_check(ip_hdr(skb));
+-	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
++	if (skb_ensure_writable(skb, ipvsh->len + sizeof(*th)))
+ 		return 0;
  
- 	/* Another hack: avoid icmp_send in ip_fragment */
- 	skb->ignore_df = 1;
+-	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
++	th = (struct tcphdr *)(skb_network_header(skb) + ipvsh->len);
+ 
+ 	/*
+ 	 *	Remember seq number in case this pkt gets resized
+@@ -438,14 +437,13 @@ static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
+ 				 struct ip_vs_iphdr *ipvsh)
+ {
+ 	int diff;
+-	const unsigned int tcp_offset = ip_hdrlen(skb);
+ 	struct tcphdr *th;
+ 	__u32 seq;
+ 
+-	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
++	if (skb_ensure_writable(skb, ipvsh->len + sizeof(*th)))
+ 		return 0;
+ 
+-	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
++	th = (struct tcphdr *)(skb_network_header(skb) + ipvsh->len);
+ 
+ 	/*
+ 	 *	Remember seq number in case this pkt gets resized
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 35cbe821c259..bafab93451d0 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1219,8 +1219,7 @@ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	snet.in6 = ciph.saddr.in6;
+ 	offset = ciph.len;
+ 	return handle_response_icmp(AF_INET6, skb, &snet, ciph.protocol, cp,
+-				    pp, offset, sizeof(struct ipv6hdr),
+-				    hooknum);
++				    pp, offset, ipvsh->len, hooknum);
+ }
+ #endif
+ 
 -- 
 2.54.0
 
