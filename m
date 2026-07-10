@@ -1,35 +1,50 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91B434BA24;
-	Fri, 10 Jul 2026 14:38:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05982F1FC7
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jul 2026 15:14:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783694304; cv=none; b=UaZiXhg3olUNZSxPHw2JdC3WtbF+wm2iIjMWC6onKnbQxWfikIrQ9pry1sqFYK9W+5jhJffSaD6zhQG/0VRlY0DGpaC6XWUlfJpQJWUBdUkaAr0ZqWwm5/Lred2DMW4sMl1VxuHu0mQ7WH/fOlf774TEee9rep3sso/TUZ9U31c=
+	t=1783696460; cv=none; b=ZnqVE2bzN+6lzV2E4RUXwVRVlsotaMrs0E1QLx+fn01Ps2ikZsqtHCM9oDqckXbFLwQyQav7EEG1mfENpT1MnASl1C/xF9ZYSAMb9sb/1hmHecHyDlpWgECW3NoSoklMNGHPSS3Vhmm6p0IqmiHeXThrmCP7TzQo3arL2kAOkMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783694304; c=relaxed/simple;
-	bh=KKGIM6zOLU/HugjefWhG4K+DlRpyzK05p2KB/HClii0=;
+	s=arc-20240116; t=1783696460; c=relaxed/simple;
+	bh=HG9uJzo94Q3UmDonZPxhrSq7Mv9ubnWP0XGVB4/RR2k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PGueueutBegyRdyFj8hn7LZBQKlIb5RFofAJ+73wXVnSsCdd1CyVWw85roguGOgEyb7B4SK4Y9KRFptjMis30li71AKRmm6yuW7fgEiKUxRqeIk0vc1d+cCnXHYVZKRHAZF/rsou0EQ88ooaQOJMAwetmZtKiwWYK1SGEiL/n4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 450B4606BC; Fri, 10 Jul 2026 16:38:21 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net 9/9] netfilter: xt_physdev: masks are not c-strings
-Date: Fri, 10 Jul 2026 16:37:33 +0200
-Message-ID: <20260710143733.29741-10-fw@strlen.de>
+	 MIME-Version; b=t+H8VfDxt3nWE6FMtBXWAfL3KV2Ev1tRcJtFassXtseABVATS15AsfhvaLLwsEpnb2lUHQ5YDOIberujHdFXnqvDZD9ZjJD7fWllNGtnt+F38/fCs+cJh5mecD4u5ws6lJJVIirKZWiDfIdjW2rwtmZLTxhzbYZEWfiglZCUHgA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=g17viaK2; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="g17viaK2"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=6ZRCR2bjFy4Y/JVz4XSdy/573FntfI0iVCJwV2etSY4=; b=g17viaK20Y7HCYhRL0R48tL0on
+	Z8z9/RjJM5AU4AV6oy3lZL4g0X/sIy5y9Gk0m6IihjWlJvP7s1iH7Axz8berX00WkPCJjt5BtYYh0
+	m7+UBLDK7J4TncffmB1q4GEGqzRNhjvwS2m9iCLYeW4j71NEvEUxF90wmpmEkXfiowkmBiTDg3rIm
+	8/32p1LJ2DEBO7SVYINorB2ZF8LhUezgt+NWscyA5SwiqGOR56WWyfq7/aS240jShTQmpCyqzCFEy
+	kIDG3/7kLC0OOMc1WUIf3D9Qs0NTRq6SviRoyy9byvAByC1b2nl4YVt7dAjf1L/DZ3DXIcDy1qOom
+	vuRLFATw==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wiCvg-000000001tZ-1DnN;
+	Fri, 10 Jul 2026 17:14:16 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>
+Subject: [nf-next PATCH v3 3/4] netfilter: nfnetlink_hook: Handle multipart NAT hook dumps
+Date: Fri, 10 Jul 2026 17:14:10 +0200
+Message-ID: <20260710151411.2358773-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260710143733.29741-1-fw@strlen.de>
-References: <20260710143733.29741-1-fw@strlen.de>
+In-Reply-To: <20260710151411.2358773-1-phil@nwl.cc>
+References: <20260710151411.2358773-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -38,34 +53,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-... and must not be subjected to the 'nul terminated' constraint.
-If the interface name is 15 characters long, the mask is 16-bytes
-'0xff' (to cover for \0) and the valid device name is rejected.
+If the number of hooks exceeds available sk_buff space, the function is
+called again for the remaining data. Make use of the second
+netlink_callback::args field to store the current index between
+invocations. Since this is an inner dump loop, it may run multiple times
+(for different hook types) with the same context buffer, so manually
+zero the stored value if complete array dump was possible.
 
-Fixes: 8df772afc9d0 ("netfilter: x_physdev: reject empty or not-nul terminated device names")
-Closes: https://bugs.launchpad.net/neutron/+bug/2159935
-Cc: stable@vger.kernel.org
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/xt_physdev.c | 5 -----
- 1 file changed, 5 deletions(-)
+ net/netfilter/nfnetlink_hook.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index dd98f758176c..a388881c68d4 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -130,11 +130,6 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
- 		if (X(physoutdev))
- 			return -ENAMETOOLONG;
- 	}
--
--	if (X(in_mask))
--		return -ENAMETOOLONG;
--	if (X(out_mask))
--		return -ENAMETOOLONG;
- #undef X
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 644070c8b456..be2f99b678be 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -345,22 +345,27 @@ static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+ 	struct nf_hook_entries *e = rcu_dereference(priv->entries);
+ 	struct nfnl_dump_hook_data *ctx = cb->data;
+ 	struct nf_hook_ops **nat_ops;
+-	int i, err;
++	unsigned int i = cb->args[1];
++	int err = 0;
  
- 	if (!brnf_probed) {
+ 	if (!e)
+ 		return 0;
+ 
+ 	nat_ops = nf_hook_entries_get_hook_ops(e);
+ 
+-	for (i = 0; i < e->num_hook_entries; i++) {
++	for (; i < e->num_hook_entries; i++) {
+ 		err = nfnl_hook_dump_one(nlskb, ctx,
+ 					 READ_ONCE(nat_ops[i]),
+ 					 ops->priority, family,
+ 					 cb->nlh->nlmsg_seq);
+ 		if (err)
+-			return err;
++			break;
+ 	}
+-	return 0;
++
++	if (!err)
++		i = 0;
++	cb->args[1] = i;
++	return err;
+ }
+ 
+ static int nfnl_hook_dump(struct sk_buff *nlskb,
 -- 
 2.54.0
 
