@@ -1,44 +1,44 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77283563DD
-	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 19:19:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A6A73563DD
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 19:22:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783883978; cv=none; b=FX9F2g8K0drFUuihLHHMTa87kzX9X8U+UMHrtdUZt7zjCFM8ijVkfljoG/LpBVMHskR2oCevkZrhRsZhLeazViHY085EYlau1UqmLlQWcAIVTFzXqgenFsEHJE52PJ4W0/RFpPBafzlFcRxliMMj4AgzHVyPfdrxw6b3KUHLo0Y=
+	t=1783884131; cv=none; b=G0NUJTNmMYAjxeMCohH/P1+gR80xeg71Ol3HLT7UQTDCwv5/hgdNu+RVWEyeKnqhriclwnN1NhEwX7llfUe0EzCuDs8yQ/0UgSW75seo/to2UBxSyRYGK+kLT1AFy4sAc+FqoAgg0SNLvl1TwDNpVPSgDSEKk30xndmGD+8eMjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783883978; c=relaxed/simple;
-	bh=jK+ghLCd5JwFyT0hyMfGsqfYanVuR27WgmyiMDdGj/k=;
+	s=arc-20240116; t=1783884131; c=relaxed/simple;
+	bh=oAqbfqBMyI7YO4j5acZy/FJMWV34s2nXEU1+bparNxI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tuJITwEJ0147iMrJ68yYkjDqqa1zKf5f6GNjm0b5x1e65qa9oRagLz/cz8lUH3HhITiP4Ru4v3URVn1UQcYOmIn06LW1jhjrtoYCqw+tnd4+DyLF4+Q84AgpTL2xKIEtss+N8pcwRiKD29nwkYV9ivYpJgvqvO2tpQHW9s5Eg8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=F5sHJBml; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=tI7d1sP4WonIG8jz9dJPtt1qikka2iSuiMz+vdbt5pVlTBSNaVh3jmJbg2uYBYhw6uDjIBLfPlhJFemYNyH4rWCGmKzL9gjGR8jW9jDVfoz1XpZVQUgGTOmyKFzSs8QVfHvxbpz0+V3VI21X4fJrjJSxdWjQOueQODBRhldC8oI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KCDSiW5G; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="F5sHJBml"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KCDSiW5G"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 945F06019B;
-	Sun, 12 Jul 2026 21:19:33 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id F069D60579;
+	Sun, 12 Jul 2026 21:22:06 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783883973;
-	bh=01HXA6gBLMPavtz9G3pQnINrFl6QpgVyhn5zfx6+++Y=;
+	s=2025; t=1783884127;
+	bh=8kM9TuZFECOEzxoBsHsxivg/54RPmSWV6+cr2HH7A+E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=F5sHJBmlzeN8hb9ncLcbHCnw5tSmZukflDjQcZqvHQlTc2CYkEPNa/DOUnqPaN58U
-	 2P+ZkxeEIF9OIEUJGS23si3LxJFVdFfs1K0PahFwjDp7YDrsURnnzIvO6I8wedbLOo
-	 yANLL4xIpj5O984e+KlVIFNxd4atdd8gK6G1kMl+OaF3pkeP5v9kCIStkB12a35neN
-	 gzv2OhKYdUYcuQ5On9YqlJTkT1Irh8Sp2DoW0CA6uNPAxIHDZGSLpAYckPHcSfcbYx
-	 MmXHfM5D/IUMDjMCS/iiSja4ZgeJZYklcjOQuIGskqAJTDH9c6rcYo4QdgjvSBK3Ll
-	 T/V213TRXUkFg==
-Date: Sun, 12 Jul 2026 21:19:31 +0200
+	b=KCDSiW5GBT8VsCAtLpC/BuBL84jWAWHNMZQ3iG4i+wkfjJtpT3ogPVJIs8iUL0OfY
+	 GoPv5nEp9tbj/EKALvob0ZMtst543tJgML/Dbs5B1EGSPxR8h5NyE0JMGgIID5QkFS
+	 329rCDFqOHiu9uq54zpNhQUXMyIA/ITCmmFkLQK/bINRkTqqxTiIc3gjBmKDScCur9
+	 GdHdzJXHKiVVAhjMMYGO5jXgPkVAPIpHRMEjIJLP0viImeT3meZPA6lXrBPkaOheCc
+	 JTVmwX47nAEkElk2uLk3eyql5X3hwCpS3Dg1BE6UejaUuyXhCrpGxV8xzP+Q9DTkaD
+	 0dF1Kubesx+ow==
+Date: Sun, 12 Jul 2026 21:22:04 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Eric Woudstra <ericwouds@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, razor@blackwall.org, fw@strlen.de
-Subject: Re: [PATCH nf-next,v2 3/3] netfilter: flowtable: initial bridge
- support
-Message-ID: <alPowzheMt-_N-Z6@chamomile>
+Subject: Re: [PATCH nf-next,v2 1/3] net: pass net_device_path_ctx struct to
+ dev_fill_forward_path()
+Message-ID: <alPpXDQq0rOqbDUG@chamomile>
 References: <20260710100729.1383580-1-pablo@netfilter.org>
- <20260710100729.1383580-4-pablo@netfilter.org>
- <9b423fa5-88cb-4197-9849-91e40901dd5b@gmail.com>
+ <20260710100729.1383580-2-pablo@netfilter.org>
+ <5f4d5f1e-edab-4b9c-9c86-b9554492e0dd@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,161 +47,137 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <9b423fa5-88cb-4197-9849-91e40901dd5b@gmail.com>
+In-Reply-To: <5f4d5f1e-edab-4b9c-9c86-b9554492e0dd@gmail.com>
 
-On Sun, Jul 12, 2026 at 11:27:50AM +0200, Eric Woudstra wrote:
-[...]
+On Sun, Jul 12, 2026 at 11:28:11AM +0200, Eric Woudstra wrote:
 > On 7/10/26 12:07 PM, Pablo Neira Ayuso wrote:
-> > diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-> > index 5455149e5d9a..a3aa9a9ce673 100644
-> > --- a/net/netfilter/nf_flow_table_path.c
-> > +++ b/net/netfilter/nf_flow_table_path.c
-> > @@ -8,6 +8,7 @@
-> >  #include <linux/spinlock.h>
-> >  #include <linux/netfilter/nf_conntrack_common.h>
-> >  #include <linux/netfilter/nf_tables.h>
-> > +#include <linux/if_vlan.h>
-> >  #include <net/ip.h>
-> >  #include <net/inet_dscp.h>
-> >  #include <net/netfilter/nf_tables.h>
-> > @@ -360,3 +361,67 @@ int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
-> >  	return -ENOENT;
+> > Generalize dev_fill_forward_path() so it can be used by the bridge
+> > family to retrieve the bridge vlan filtering information from the
+> > bridge port when discovering the bridge flowtable path.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > v2: - move nft_dev_fill_forward_path_init() call after out: goto tag
+> >       to fix a crash otherwise in the existing flowtable ip family.
+> > 
+> >  include/linux/netdevice.h          |  2 +-
+> >  net/core/dev.c                     | 18 +++++++-----------
+> >  net/netfilter/nf_flow_table_path.c | 14 ++++++++++++--
+> >  3 files changed, 20 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+> > index 9981d637f8b5..db04b6d2e8d2 100644
+> > --- a/include/linux/netdevice.h
+> > +++ b/include/linux/netdevice.h
+> > @@ -3420,7 +3420,7 @@ void dev_remove_offload(struct packet_offload *po);
+> >  
+> >  int dev_get_iflink(const struct net_device *dev);
+> >  int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
+> > -int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+> > +int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+> >  			  struct net_device_path_stack *stack);
+> >  struct net_device *dev_get_by_name(struct net *net, const char *name);
+> >  struct net_device *dev_get_by_name_rcu(struct net *net, const char *name);
+> > diff --git a/net/core/dev.c b/net/core/dev.c
+> > index 714d05283500..24c384ef9e78 100644
+> > --- a/net/core/dev.c
+> > +++ b/net/core/dev.c
+> > @@ -750,41 +750,37 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
+> >  	return &stack->path[k];
 > >  }
-> >  EXPORT_SYMBOL_GPL(nft_flow_route);
-> > +
-> > +static int nft_dev_fill_bridge_path(struct flow_offload *flow,
-> > +				    struct nft_flowtable *ft,
-> > +				    enum ip_conntrack_dir dir,
-> > +				    const struct net_device *dev,
-> > +				    unsigned char *src_ha,
-> > +				    unsigned char *dst_ha)
-> > +{
-> > +	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
+> >  
+> > -int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+> > +int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+> >  			  struct net_device_path_stack *stack)
+> >  {
+> >  	const struct net_device *last_dev;
+> > -	struct net_device_path_ctx ctx = {
+> > -		.dev	= dev,
+> > -	};
+> >  	struct net_device_path *path;
+> >  	int ret = 0;
+> >  
+> > -	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
+> >  	stack->num_paths = 0;
+> > -	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
+> > -		last_dev = ctx.dev;
+> > +	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
+> > +		last_dev = ctx->dev;
+> >  		path = dev_fwd_path(stack);
+> >  		if (!path)
+> >  			return -1;
+> >  
+> >  		memset(path, 0, sizeof(struct net_device_path));
+> > -		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
+> > +		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
+> >  		if (ret < 0)
+> >  			return -1;
+> >  
+> > -		if (WARN_ON_ONCE(last_dev == ctx.dev))
+> > +		if (WARN_ON_ONCE(last_dev == ctx->dev))
+> >  			return -1;
+> >  	}
+> >  
+> > -	if (!ctx.dev)
+> > +	if (!ctx->dev)
+> >  		return ret;
+> >  
+> >  	path = dev_fwd_path(stack);
+> >  	if (!path)
+> >  		return -1;
+> >  	path->type = DEV_PATH_ETHERNET;
+> > -	path->dev = ctx.dev;
+> > +	path->dev = ctx->dev;
+> >  
+> >  	return ret;
+> >  }
 > 
-> Add:
-> 
-> struct flow_offload_tuple *other_tuple = &flow->tuplehash[!dir].tuple;
-> 
-> See below.
-> 
-> > +	struct net_device_path_stack stack;
-> > +	struct nft_forward_info info = {};
-> > +	struct net_device_path_ctx ctx;
-> > +	int i, j = 0;
-> > +
-> > +	nft_dev_fill_forward_path_init(&ctx, dev, dst_ha);
-> > +
-> 
-> Here you could add the following to handle the encaps on this_tuple.
+> Calling dev_fill_forward_path() from nft_dev_fill_bridge_path()
+> it does not traverse the bridge. It exits at the source "indev"
+> already. After calling nft_dev_path_info(), the info structure
+> is filled in with the opposite device and the encaps of the
+> opposite device.
 
-Why?
+Traversing the bridge is only needed for bridge vlan filtering and
+that is not included in this initial support.
 
-> for (i = this_tuple->encap_num - 1; i >= 0 ; i--) {
-> 	if (info.num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
+> Would need to add something like this:
+> 
+> int dev_fill_bridge_path(struct net_device_path_ctx *ctx,
+> 			 struct net_device_path_stack *stack)
+> {
+> 	const struct net_device *last_dev, *br_dev;
+> 	struct net_device_path *path;
+> 
+> 	if (!ctx->dev || !netif_is_bridge_port(ctx->dev))
 > 		return -1;
 > 
-> 	if (this_tuple->in_vlan_ingress & BIT(i))
-> 		continue;
-
-I don't do bridge vlan filtering at this stage. I have to teach
-nf_conntrack_bridge to track PPPoE/VLAN tagged packets, this is not
-included in this series.
-
-> 	info.encap[info.num_encaps].id = this_tuple->encap[i].id;
-> 	info.encap[info.num_encaps].proto = this_tuple->encap[i].proto;
-> 	info.num_encaps++;
-> 
-> 	if (this_tuple->encap[i].proto == htons(ETH_P_PPP_SES))
-> 		continue;
-> 
-> 	if (ctx.num_vlans >= NET_DEVICE_PATH_VLAN_MAX)
+> 	br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
+> 	if (!br_dev || !br_dev->netdev_ops->ndo_fill_forward_path)
 > 		return -1;
-> 	ctx.vlan[ctx.num_vlans].id = this_tuple->encap[i].id;
-> 	ctx.vlan[ctx.num_vlans].proto = this_tuple->encap[i].proto;
-> 	ctx.num_vlans++;
+> 
+> 	last_dev = ctx->dev;
+> 	path = dev_fwd_path(stack);
+> 	if (!path)
+> 		return -1;
+> 
+> 	memset(path, 0, sizeof(struct net_device_path));
+> 	if (br_dev->netdev_ops->ndo_fill_forward_path(ctx, path) < 0)
+> 		return -1;
+> 
+> 	if (!ctx->dev || WARN_ON_ONCE(last_dev == ctx->dev))
+> 		return -1;
+> 
+> 	return dev_fill_forward_path(ctx, stack);
 > }
+> EXPORT_SYMBOL_GPL(dev_fill_bridge_path);
 > 
-> > +	if (dev_fill_forward_path(&ctx, &stack) < 0 ||
-> > +	    nft_dev_path_info(&stack, &info, dst_ha, &ft->data) < 0)
-> > +		return -1;
-> > +
-> > +	if (!nft_flowtable_find_dev(info.indev, ft))
-> > +		return -1;
-> > +
+> First need to find the bridge device to call ndo_fill_forward_path()
+> from it.
 > 
-> After replacing dev_fill_forward_path() with dev_fill_bridge_path(),
-> from here...
-> 
-> > +	this_tuple->iifidx = info.indev->ifindex;
-> > +	for (i = info.num_encaps - 1; i >= 0; i--) {
-> > +		this_tuple->encap[j].id = info.encap[i].id;
-> > +		this_tuple->encap[j].proto = info.encap[i].proto;
-> > +		j++;
-> > +	}
-> > +	this_tuple->encap_num = info.num_encaps;
-> 
-> Until here, this_tuple needs to be the other_tuple.
-> dev_fill_forward_path() does not traverse the bridge.
+> This also needs the patch "bridge: Add filling forward path from port to
+> port"
+> That patch still needs a change according to Nikolay.
 
-As I said, this series does not included bridge vlan filtering support.
-
-> See other comment in other patch. Also, need to copy
-> the in_vlan_ingress bit.
-> 
-> So it becomes:
-> 
-> other_tuple->iifidx = info.indev->ifindex;
-> for (i = info.num_encaps - 1; i >= 0; i--) {
-> 	other_tuple->encap[j].id = info.encap[i].id;
-> 	other_tuple->encap[j].proto = info.encap[i].proto;
-> 	if (info.ingress_vlans & BIT(i))
-> 		other_tuple->in_vlan_ingress |= BIT(j);
-> 	j++;
-> }
-> other_tuple->encap_num = info.num_encaps;
-> 
-> > +
-> > +	ether_addr_copy(this_tuple->out.h_source, src_ha);
-> > +	ether_addr_copy(this_tuple->out.h_dest, dst_ha);
-> > +	this_tuple->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +int nft_flow_bridge(struct flow_offload *flow, const struct nft_pktinfo *pkt,
-> > +		    enum ip_conntrack_dir dir, struct nft_flowtable *ft)
-> > +{
-> > +	struct flow_offload_tuple *other_tuple = &flow->tuplehash[!dir].tuple;
-> > +	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
-> > +	const struct net_device *outdev = nft_out(pkt);
-> > +	const struct net_device *indev = nft_in(pkt);
-> > +	struct ethhdr *eth = eth_hdr(pkt->skb);
-> > +	int err;
-> > +
-> 
-> Here I use the skb to fill other_tuple->encaps. I understand you want to
-> do this differently.
-
-Using skb to populate tuples will not work, the skb comes with no tags
-when VLAN/PPPoE devices are used in the bridge ports.
-
-> Then I call nft_dev_fill_bridge_path() with !dir first, then dir.
-> 
-> > +	err = nft_dev_fill_bridge_path(flow, ft, dir, indev,
-> > +				       eth->h_source, eth->h_dest);
-> > +	if (err < 0)
-> > +		return err;
-> > +
-> > +	err = nft_dev_fill_bridge_path(flow, ft, !dir, outdev,
-> > +				       eth->h_dest, eth->h_source);
-> > +	if (err < 0)
-> > +		return err;
-> > +
-> > +	this_tuple->out.ifidx = other_tuple->iifidx;
-> > +	other_tuple->out.ifidx = this_tuple->iifidx;
-> 
-> This could move to nft_dev_fill_bridge_path() (only 1 line) as both
-> tuples are also known there.
-
-No, because other_tuple is unset when the first nft_dev_fill_bridge_path()
-call is done.
+Once bridge vlan filtering is added, but that need nf_conntrack_bridge
+support for VLAN/PPPoE as I said.
