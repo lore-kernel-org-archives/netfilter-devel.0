@@ -1,40 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC4B1F09A5
-	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 23:19:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 306B4372670
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 23:20:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783898386; cv=none; b=Zn/2CI3FG9qetSQk+sxNVI4YlcVdhuFHwvJVu5Dgppjx/PVGU+SoAo9+wDiZEGq/YfQO+lxBHgc6XpzaDyR2Z9oRRly5nmCHDcy+jYnCBawzCBReoxlDIi5dI/QybBB+0fojNkdjbQCHPUbJ5gVDPhkvm0d1BK9x4DWQRrL2ekg=
+	t=1783898450; cv=none; b=Yz8IA5JOjeeWWz1einDncMdAHMjtfn8Fmnk2fVxIV4peXCTqpwvQXgmkcui+KzJGtUdeL3mk8jHs8BwQQlLUjEQ4bzfmTWiaWb5fyr3CagPmeG/Oxa1pph/mKIg+IudTxipZfevmIiXvwyweUBenGz0DTluF2PrDoigXXca16Ss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783898386; c=relaxed/simple;
-	bh=PHYhI7gkwdMGEZ0RYQWZ+GV0Jiksqxz3mH42uUJV9dw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OuWTdUMInJwVdv68l98eM7qf0kUHQVdIgCOXyMTMuNXtiFXVZ/evk4MJEtzPY3yT0vmHt5CcZ5tWg/PJUPqBh8/9OhCXfnOMreUkclJxqT3yF55CKIGdmbBgKShD+QXtObIEsd1ExyiZJo0h1jQQRkOV6bQAZ/WERc5GiOFlMrs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZBlF4QEI; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1783898450; c=relaxed/simple;
+	bh=pbsrG+Xd5XUDCSNclVfC70pzOv8WrHfpvIuyWZPwr/A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NYLyaybqp0aJX0hWTSHH29FsdQSfrY2S2dd5YqXUZcQ9yh6UpJBMJDqpV3FcKIHIySNUzrktGq78rG8QfOVLqO5EbKk7es0+63qZ/EtQ5H0QghRZDOExYTdXZ5M6xDuHY/Um2FEWrRqFb2Zm4sl6Z8wbBve4WzOgDTzkBF6GsaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=G7EXBGg5; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZBlF4QEI"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="G7EXBGg5"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 92A4E6019B;
-	Mon, 13 Jul 2026 01:19:40 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7DC6360576;
+	Mon, 13 Jul 2026 01:20:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783898380;
-	bh=F+L/IE9GC5Jzu3m3hhbCY2bz3161QBrMeaCZqvlLI+A=;
+	s=2025; t=1783898445;
+	bh=dV6ixrGoisO4/PP6XpP4j1oey/Xejt1pYnkfu38emio=;
 	h=From:To:Cc:Subject:Date:From;
-	b=ZBlF4QEI5pW8yOngWmmjsjZ7SJm6w0EEUnwxh8LwLhLKb70KkK7msZjNU8vCsheVA
-	 3uLFg9xTOJpIkVQfoX1gKLgQA/60gB7fGRT7KjG/EW7J1l7QPmf7RGP5lFRzs5xKYL
-	 hXw6wmsfDG3TNe9GahJIkgzOMyjXSXbLabUF9psA+XgBXtVegXT0lYN8/c+SG8atog
-	 21BAv36lgA9FTQlGfAsqE1JYkZImZZNw10pCTwg3kV69PUhmD3VrUNOWn/DIaOxpqA
-	 bbm5mABZ6JPGTErjo4hIjAq7SHLJT/sUTibnrS+b058EtBTgdWKjgRWDnsTPofarMr
-	 TZXxKFsxvzRAA==
+	b=G7EXBGg5/ghbUmlzVoKdPZ6l8lafJKHaS2Asj0o8Wx2ymwyYioyA7LgquLY57F6Po
+	 /oeo2TJ52dLD0Vwh8R3mGOfskHSXLbLiXXtRatyNnkMBzArwiwu1QbkVWppkJIK9z5
+	 o6OjAxhHM6/zXB+1ShKSiXBedtHxIcpGhVJbVVsZHOc8gDOnXQgG94rL2vKZzAUKAo
+	 6LgloLxiSEeTlNYBRPYa14f45w4GHieXogm/7VR3t5sgYzBq2AZ/7TS3CqiLw5UEVe
+	 7pnzWH9ILpx71eaMKUWAE6NuyGDVFu14D3FDY7BgZxJtnjpXqrUhiC2JNs8b6Z5J9m
+	 Un37HO1fT3AAg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: ericwouds@gmail.com,
 	fw@strlen.de
-Subject: [PATCH nf,v3] netfilter: flowtable: initial bridge support
-Date: Mon, 13 Jul 2026 01:19:35 +0200
-Message-ID: <20260712231935.1573912-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3] netfilter: flowtable: initial bridge support
+Date: Mon, 13 Jul 2026 01:20:41 +0200
+Message-ID: <20260712232041.1573968-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -107,6 +107,8 @@ v3: Address feedback by sashiko:
     - Add comment on roam between bridge ports (it is unsupported).
     - Ignore comment on NF_CT_EXT_HELPER, IPS_NAT_MASK, and IPS_SEQ_ADJUST, they
       are not support by nf_conntrack_bridge in the forwarding path.
+
+Using correct tree, which is nf-next.
 
  include/net/netfilter/nf_flow_table.h |   7 ++
  net/netfilter/nf_flow_table_inet.c    |  12 +++
