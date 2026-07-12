@@ -1,222 +1,162 @@
-Received: from fhigh-a6-smtp.messagingengine.com (fhigh-a6-smtp.messagingengine.com [103.168.172.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f52.google.com (mail-yx1-f52.google.com [74.125.224.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955E7149DF1;
-	Sun, 12 Jul 2026 11:02:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.157
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783854159; cv=none; b=qfR97Md3x03z4XsjxwSfQOSlgkA4VB4cyZjZv3RaebcL1h61Vtp820wjBGfsXSqogsmBgLoqBF3br6ni9Mf82WBzmNAANviLGhpU9VO2LVmFe6GwF5U4k5otZFglnf6gheTc1IrJ2UpQVcise745g5FKBwz8BVxWQaXg2k1QFnc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783854159; c=relaxed/simple;
-	bh=QFAERGkwm7FFeWB0LrovUamDAkSprs7aihtdoZvXuKE=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=NKoWjzE/U9Cg81q8x/q+xGMA4Dju/BDKtzUlmXLX0P+/vgeMv2dgD7brrPKZqRPslrVfKKuG/wygnWi2EbpqE7SpjguHA8X987epUkETbAPw3BX/AP4rrrvLI7lz9cujWCucBJ4cd0qgsBWNkvrEucHW0ECWq80VWQu4vKXYC3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=zpHRfiC5; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=l6PtvRhd; arc=none smtp.client-ip=103.168.172.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD2311A6807
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 13:40:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783863604; cv=pass; b=iqBTnPflC1Mi7A/SG3GqXuAemKl5HvRuhgHBBakVEh5CfJN4lzAqwcAFrqxCtdho5FslSpe0G5W+ZHbBfOvYc//4gvwbGhD00xWC3/3x4jzXdircxZBQf5zkLCRc+NNnZtaT0DeyxpY4s0K1jwVpgSE6L6PtwWy0t6zUnOAv7Gw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783863604; c=relaxed/simple;
+	bh=KiSHQqCAvU+FFma9KJlu+zZ4leYdIrQxQSFqeUYmfo0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OFM9MYgsDqMbMeZzyWCr4+07wUmBCGbHMI6CufWFd7gxKDAsn4UoWkbPDoITW5s6qtwVHOJkoKGSNLrnr35MvcYZEVN5xDCJH/+8BpYCVIWi1iERKRA/qktYcp/dxdyN84RfabdgH8Ld5M1cf2CzBkJF+94ACrV32jNzOf66ziE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M2a4cxVl; arc=pass smtp.client-ip=74.125.224.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="zpHRfiC5";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="l6PtvRhd"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id B209314000F9;
-	Sun, 12 Jul 2026 07:02:36 -0400 (EDT)
-Received: from phl-imap-05 ([10.202.2.95])
-  by phl-compute-04.internal (MEProxy); Sun, 12 Jul 2026 07:02:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1783854156;
-	 x=1783940556; bh=VmtnK3tqoDU1aIaol+aWaActTb6DTRuQA5S8IlUXC6U=; b=
-	zpHRfiC5EPwl520ahCHYKKw5slNvnULR9f0KFrRT9y/2496pQCwk5KRBRbFgaYwK
-	qG5F+qyc+u6zQHl69ceJPRiSScFtXeE7ZyRSVgJSuprmdrpegDBkSA7FMJ5iWHIW
-	SWlwkvdzIryhehvQjfxl6CaW2ssS7P7s2gf6gPSaRBitFcji6E7w6O+D9MGOTq8e
-	KhN1cpA/Tqcli21P3rrlWr0Xxua3FpQ5R7OFYe9FPdjPs6R+VvBCiyDkT0HtPl2f
-	qii8ZEdh5SWDrMrxQFPHLV29au4QVk00LL5Ct/0KCqib5HX/6aJG4Up8UlRvgkJY
-	nRorXxeir3laErJG81MisA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1783854156; x=
-	1783940556; bh=VmtnK3tqoDU1aIaol+aWaActTb6DTRuQA5S8IlUXC6U=; b=l
-	6PtvRhdAV0qi2d8e9JUkK2fFLlwxNVY88bcJ+5Aj5gdngpmAYCMSgprFJ8wo710r
-	L3GX7fLDfky6/oZ5HVFMbvr3LfslQE3A4w7QmId8Pn6hgVlensKX8wbHDxXJXMEw
-	ljaGdMaWuSttqpLIh1kRGvTz2JKn9ccjs3FegrO0y+RbRlkAzKbQ2dqj069GeO+7
-	KiNB7ReoNHH0ZUF3RSAIMtQSTjbO3t+zGQmSf4gQWGO8/uy+Wvbs6Xl2gDkoDMV7
-	CmCc8Ljjg46b8emiC9vxMTJkV1Aw2OeUhRq5fNYVA+WvlRG7ZcpAMzEUPYx0xvod
-	o+8ewgiMwgBexztrVjN5Q==
-X-ME-Sender: <xms:SXRTar8WT3jXuGcKhip6v_oZ_ev_MYJ3TiCDPsHDGOy_4qyk61nOpA>
-    <xme:SXRTaigdv70_fhLJe4evVFXvY38h-PROEIkCw6nfAYtcRrN4q0volhQFULkdIqZ6L
-    z8_glaP7Vjxtth72FHcVVja1cD22b3GdPb5JUl06P7cs54F9UBgiclm>
-X-ME-Proxy-Cause: dmFkZTGLo78njPg/nVe+uHWg3AzWojEtguj4DH8KNv19gE9YnhOLAIWMCTf4qhQuAaKC9P
-    oqyQsM8pSAEKHb797BqDSo1aNsM3rLblcv7PG7RotKu6L/VmYg2dW8zs2GiGwBQBqITK1u
-    X7zWoJgFJCv+6+BhbAHafVgja8Z3pTN2uEr2UPDO/nE22eQsOCXiJJSQPkNMNg99Cf35b5
-    J+tdL50vwyZ/VB0b7S4W+UsY7ZTc+cfBHJYz0U/kX691quZfggwKD0RgbG/U6czrjHfrvF
-    6fq/4yXwXeSj8YJFVVakjVNKSPD+23ViVy8tbJNIxUaNcajIR7AH0T/de5rCVSDzK344tx
-    U0x24Up+ufBa9p+NAvwC4cO2T9HS+kz0KnK//dY/mOxOe/QpD8tgteUxcBF++TLDigfVC1
-    C3EJFOtWxRFUioYMCn8qg0rQx+yCJX0thmaTY7UEVDucc/9mhpzue03w8Dp+CxjgmXdcGu
-    RSCzsnIT3+hEirvAmIyFtq70pAE1IonG2VSteXv8IfwRKlnb463XanbbZobuFZ9GMPY1GC
-    8nsnv82zjPtzkRalpSto4MmL5kHeehrV6iIR1EmzKUc5FkQFY5TKbxBu61Nz8jJ7suNzU3
-    Cyvv5MNgqU18rt3jpb2tgZMGlm2/SgzvbBaj3jXxb82AJ7qi2ot7EKTwTDoQ
-X-ME-Proxy: <xmx:SXRTapHAhWRiFbB-4amYjFgmwydjtOdojLMQlh0VZZlQEErKhomHig>
-    <xmx:SXRTaoKLDK9Ecbgry1ger4QfqGLLQ1xOkTzua4qZzvVI-kaPbzgKWw>
-    <xmx:SXRTap8dLyvqloUGHlP29AnEVqPiM2OIYq0126wYr_cBo0x_TFVHVA>
-    <xmx:SXRTaqegpYaBne9K3glgOErxceihkfr_b7_lWpHaESTvei9pJ8qgGA>
-    <xmx:THRTagApbQu8pd3LegvnC51UZb7KkVStZc2jhlRfHD_OxzYfyYsDaYFF>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 29B00182007E; Sun, 12 Jul 2026 07:02:33 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M2a4cxVl"
+Received: by mail-yx1-f52.google.com with SMTP id 956f58d0204a3-66771ded50aso4155680d50.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 06:40:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783863602; cv=none;
+        d=google.com; s=arc-20260327;
+        b=MU4RsPzgWobhp5vMgZECKe8KQwB8ivzGCcatH1SVuVew2UBXyuqxZFaotQ0ypowHJJ
+         OPRrnvfXbc81BZck3wV/Rs8Kkp24JzBR6lWEjL9p0L9yhmdOpmD2zA+blRvDGrPhqW5y
+         qKuSZBL7uBFFrTv6689nvRKiZFqzxlV01ddnDuDc+JRcvhJJW5nzuIpEYdMi5qGibhPc
+         FFVVyTwvSkoP8mt4NeFyPtVYFp8gsZDJqAOUGs7OE7q8u6gzyFZI0MxAKe7rlu2KSRWP
+         gDOCUFd6x+UA/2+Bg4MbKk7OD6FiimjsQnRuso8odPWin3c2hwBZMDPkCP6fOubHwBcQ
+         Qa1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=WrXp+T3iBm2YtNcYYvSsEHBgGq8Dyo4cUJ/1TZi54ek=;
+        fh=sWunJObW40wC9mQ4a7QrK/qy7kji+583Qr+lrn42S9U=;
+        b=ItZYcMlvoM1UIQKMf3sIcqtY+iJ1BLOFoRBSRH3AgHWmF9TSm5LThabVEUb8HMbFPO
+         UlQnJPkwXCcEgF1ZxUD9/fozcPH9d9lvkuoIlkXEJ/ftobiKuIn02qqrN/gS64lh9e4e
+         304zAU26VETx3vZMO7hJM78zK7BdlsI7mqrpIgAEMNi1x6y2qaAm1bKcS5eWmefCJZzS
+         iu64R4F0QIZvVTqLQg7eOWlt861a/tgiSbbN5RwC21kr0m2h30bU1novSoJWKAUxXwc0
+         hKGXb9fsK+vO88GA8SgbF0StbdK6qgPdniJVINgo3+vTs+i0bPs1ixIlwmZ2iDyK7Vsk
+         CYSg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783863602; x=1784468402; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=WrXp+T3iBm2YtNcYYvSsEHBgGq8Dyo4cUJ/1TZi54ek=;
+        b=M2a4cxVl2u0aEbI3dQwOaitEwcxjJIWr7QdHWYaroqIxjR4bpINWqreqIw8gLpRQJX
+         GhzikZq3NVF52wluAOgAYqm1LltpKl63w8c7OrkmdekiE4AlF5XCtK3vDT3Xg4q95zh2
+         k3b697TS8tpO6D777ndaBb/VgEeundxIX7dtUe1BoZ5P4wl1UxXXDIL21P1kDBNWun0e
+         8tSl2PvONHLoVijXvheKRrLNTqRsk2eqxNsebaN1TPZUuNAJzsgVOJPF1PBPP+5+vMZa
+         peHPr81qN5WerdP73DDnGqRf1876usOwwt9e3gRN0sZHJzs+iyF0F8K3yGNukSLIxvoS
+         uvlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783863602; x=1784468402;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WrXp+T3iBm2YtNcYYvSsEHBgGq8Dyo4cUJ/1TZi54ek=;
+        b=MdwguP1qoVqOCO0S4rnV4Yua0Zak/l7bLWG7xRpagMVqXNHMkdOoxDs9gYi9tza9a9
+         5mw4fzi207AKZ2GHnoNurMMlEB2JJcT8H4ymUvVNsZpAfIYeBkzjAOtvsuREo39Hsgkw
+         Ycd807hczstDq3kVTGBCAQ6mtFW1K2sYpEkrgeCYRdnpBbJFeFL9Pv/Rz7n0exfXhX0D
+         VF/hIC3evXX4Zn3lrSOd9bnum4lG/wYrTBU2sM5uui415lRq8+EDHxHLN35qIgp6q0LT
+         x/RdP1sNyxzGPHMCyCIlzScd2W6tMWC6SsIVXDxW9r4+WHw3kwmXjjlek4VsntF1LlfW
+         SiZg==
+X-Gm-Message-State: AOJu0YxxZ18aW6uuU5tbihW/IeGOZDiUj8C0pEDL0iV4wi6DOMH8Ae4J
+	MF5ZiSkQmSu2+o7sTuC+5qGBJZtYVAG9PjpnyCEunoi1/RlMdBZazEFLVlcS9XhuqZXVnTg1ldI
+	mk18CR9sJpOkvWJ3g0HJQvyUQQJDaMRV9TPmMVi1DgQ==
+X-Gm-Gg: AfdE7cluyMW97hpP6UN1/RjJGBPcUaSYH2S8AHiywv534LpZhWSm5GvelcMTXnUqZiv
+	5b0zSfeBxdyQQebPk+pGAdK06lDfV+ygIilWbKnMYko56NU2yUXfOkQqENNmx16o6D8Fy7vPOUT
+	9z2sibLBpw4smXJlX85HMyhCJMQQ1rE8NPPgolMoUkrPxKh/dWy4h+3m46+Pj7oMHDnhhHlxND2
+	bQjei9XzL08r7z5cF75KF8Ub+Cso7hShjFXimMkInnptbpZQOYyqTx7vVAb0QuqCxFmwwUMHTs=
+X-Received: by 2002:a53:a583:0:b0:667:c395:7d6a with SMTP id
+ 956f58d0204a3-667d7f246a4mr3274411d50.106.1783863601526; Sun, 12 Jul 2026
+ 06:40:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: ARmmoW1aQeCk
-Date: Sun, 12 Jul 2026 13:01:52 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Fernando Fernandez Mancera" <fmancera@suse.de>,
- Netdev <netdev@vger.kernel.org>
-Cc: "David S . Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, "David Ahern" <dsahern@kernel.org>,
- "Simon Horman" <horms@kernel.org>, "Ido Schimmel" <idosch@nvidia.com>,
- "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "Anthony L Nguyen" <anthony.l.nguyen@intel.com>,
- "Przemek Kitszel" <przemyslaw.kitszel@intel.com>,
- "Elad Nachman" <enachman@marvell.com>,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
- "Mark Bloch" <mbloch@nvidia.com>, "Petr Machata" <petrm@nvidia.com>,
- "Edward Cree" <ecree.xilinx@gmail.com>,
- "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
- "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
- "Arend van Spriel" <arend.vanspriel@broadcom.com>,
- "Miri Korenblit" <miriam.rachel.korenblit@intel.com>,
- "Keith Busch" <kbusch@kernel.org>, "Jens Axboe" <axboe@kernel.dk>,
- "Christoph Hellwig" <hch@lst.de>, "Sagi Grimberg" <sagi@grimberg.me>,
- "Chaitanya Kulkarni" <kch@nvidia.com>,
- "Saurav Kashyap" <skashyap@marvell.com>,
- "Javed Hasan" <jhasan@marvell.com>,
- GR-QLogic-Storage-Upstream@marvell.com,
- "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Martin K. Petersen" <martin.petersen@oracle.com>,
- "Nilesh Javali" <njavali@marvell.com>,
- "Manish Rangankar" <mrangankar@marvell.com>,
- "Varun Prakash" <varun@chelsio.com>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "David Howells" <dhowells@redhat.com>,
- "Marc Dionne" <marc.dionne@auristor.com>,
- "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Chuck Lever" <cel@kernel.org>,
- "Jeff Layton" <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- "Olga Kornievskaia" <okorniev@redhat.com>,
- "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
- "Marek Lindner" <marek.lindner@mailbox.org>,
- "Simon Wunderlich" <sw@simonwunderlich.de>,
- "Antonio Quartulli" <antonio@mandelbit.com>,
- "Sven Eckelmann" <sven@narfation.org>,
- "Nikolay Aleksandrov" <razor@blackwall.org>,
- "Pablo Neira Ayuso" <pablo@netfilter.org>,
- "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
- "Johannes Berg" <johannes@sipsolutions.net>,
- "Matthieu Baerts" <matttbe@kernel.org>,
- "Mat Martineau" <martineau@kernel.org>,
- "Geliang Tang" <geliang@kernel.org>, "Julian Anastasov" <ja@ssi.bg>,
- "Aaron Conole" <aconole@redhat.com>,
- "Eelco Chaudron" <echaudro@redhat.com>,
- "Ilya Maximets" <i.maximets@ovn.org>,
- "Allison Henderson" <achender@kernel.org>,
- "Jamal Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>,
- "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
- "Xin Long" <lucien.xin@gmail.com>,
- "D. Wythe" <alibuda@linux.alibaba.com>,
- "Dust Li" <dust.li@linux.alibaba.com>,
- "Sidraya Jayagond" <sidraya@linux.ibm.com>,
- "Wenjia Zhang" <wenjia@linux.ibm.com>,
- "Mahanta Jambigi" <mjambigi@linux.ibm.com>,
- "Tony Lu" <tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>,
- "Jon Maloy" <jmaloy@redhat.com>,
- "Steffen Klassert" <steffen.klassert@secunet.com>,
- "Herbert Xu" <herbert@gondor.apana.org.au>,
- "Vikas Gupta" <vikas.gupta@broadcom.com>,
- "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
- "Justin Chen" <justin.chen@broadcom.com>,
- "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
- "Nicolai Buchwitz" <nb@tipi-net.de>,
- "Florian Fainelli" <florian.fainelli@broadcom.com>,
- "Heiner Kallweit" <hkallweit1@gmail.com>,
- "Krzysztof Kozlowski" <krzk@kernel.org>,
- "Russell King" <rmk+kernel@armlinux.org.uk>, "Yao Zi" <me@ziyao.cc>,
- "Yanteng Si" <siyanteng@cqsoftware.com.cn>,
- "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
- "Julian Braha" <julianbraha@gmail.com>,
- "Joey Lu" <a0987203069@gmail.com>,
- "Shangjuan Wei" <weishangjuan@eswincomputing.com>,
- "Chen-Yu Tsai" <wens@kernel.org>, "Inochi Amaoto" <inochiama@gmail.com>,
- "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
- "Qingfang Deng" <qingfang.deng@linux.dev>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Eric Biggers" <ebiggers@kernel.org>,
- "Ethan Nelson-Moore" <enelsonmoore@gmail.com>,
- "Ard Biesheuvel" <ardb@kernel.org>,
- "Dmitry Safonov" <0x7f454c46@gmail.com>,
- "Kuniyuki Iwashima" <kuniyu@google.com>, "Alyssa Ross" <hi@alyssa.is>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
- "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
- linux-net-drivers@amd.com, linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
- brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
- linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org,
- target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
- b.a.t.m.a.n@lists.open-mesh.org,
- "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
- linux-s390@vger.kernel.org,
- "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
-Message-Id: <12ffac6a-649a-4e4a-8d12-0b48171e1d95@app.fastmail.com>
-In-Reply-To: <20260712013941.4570-2-fmancera@suse.de>
-References: <20260712013941.4570-1-fmancera@suse.de>
- <20260712013941.4570-2-fmancera@suse.de>
-Subject: Re: [PATCH 01/13 RFC net-next] net: ipv4: introduce CONFIG_IPV4 to decouple
- the IPv4 stack
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+References: <20260710075409.1360085-1-pablo@netfilter.org> <CANczwAEqpv+zALby0crkzO5tX63efo-0JrVHVJUWbNgtxsKqSA@mail.gmail.com>
+ <alKvX-Q_v6ez4fV3@chamomile>
+In-Reply-To: <alKvX-Q_v6ez4fV3@chamomile>
+From: Ahmed Zaki <anzaki@gmail.com>
+Date: Sun, 12 Jul 2026 07:39:25 -0600
+X-Gm-Features: AVVi8CfgfK_djWNe_tTJuCtzPA1eqGQtmp_a5YN7HhwVj_GmoDLLe2AOFLpFCmU
+Message-ID: <CANczwAFH_GFK+uTTcpOoogQ8LuY6MRRwe0Q76=rP=F-9bY953g@mail.gmail.com>
+Subject: Re: [PATCH nf,v2] netfilter: flowtable: tear down flow entries with
+ stale dst from GC
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jul 12, 2026, at 03:38, Fernando Fernandez Mancera wrote:
-> Historically, the IPv4 protocol has been linked to the core INET
-> subsystem. Because shared infrastructure like the TCP/UDP engine,
-> routing or INET hashtables live inside net/ipv4/, it has been impossible
-> to compile a kernel with only IPv6 support.
+On Sat, Jul 11, 2026 at 3:02=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
 >
-> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
-> 'def_bool y' for now. This does not allow to completely disable the
-> IPv4 stack yet but it lays the necessary build-system work for that
-> goal.
+.
+.
+.
 
-I expect this will cause additional (trivial) build regression in the
-next step when randconfig builds run into obscure corner cases, either
-with INET=y IPV4=n IPV6=y or with INET=y IPV4=n IPV6=n.
+> > I am testing this patch and keep getting some splats. I am testing
+> > with a MTK7621 hw which
+> > to my understanding, marks the tuple's xmit_type DIRECT (not neigh or X=
+FRM).
+> >
+> > In nft_dev_forward_path(), out.h_source is set and this overrides the
+> > dst_cache (same union)
+> > this seems to be causing the splat when the dst_cache is dereferenced.
+> > (btw, not like his patch,
+> > in the latest HEAD, nf_flow_dst_check() guards tuple->dst_****  by
+> > checks on xmit_type)
+>
+> We have move dst_cache out of the union quite recently so... (see below)
+>
+> > So, to support DIRECT types, we can:
+> > 1 - go back to my v1 patch (no dependency on dst_cache)
+> > 2 - same patch but use dst_check() only for NEIGH/XFRM
+> > 3 - or maybe we can have the dst_cache out of the union and available
+> > for all xmit_types.
+> >
+> > I have some time to work on this, let me know if I can help.
+>
+> ... probably you are missing this series? They got merged quite
+> recently, I am not sure what tree you are using as reference:
 
-I can probably give your patch (with IPV4 visible or disabled) an
-early go on the randconfig tree to find these more quickly.
-If I run into regressions, should I just add more 'depends on IPV4',
-or do you have other plans?
+yeah, I was looking at nf-next. These seem to be in nf only as of now.
 
-Should we have some logic to ensure that at least one of IPV4 or
-IPV6 is enabled? I think this would work
+>
+> fa7395c02d95 netfilter: flowtable: support IPIP tunnel with direct xmit
+> 6c5dcab95f4c netfilter: flowtable: IPIP tunnel hardware offload is not ye=
+t support
+> c328b90c17fc netfilter: flowtable: use dst in this direction when pushing=
+ IPIP header
+>
+> There is also this patch which is needed:
+>
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260709114025=
+.1294044-1-pablo@netfilter.org/
+>
+> which has been included in the last PR this Friday.
 
-config IPV4
-      bool "The IPv4 protocol" if IPV6
-      default INET
+I have some limitations so I can only test with 6.6 or 6.12. I will
+try to trim down these patches to
+"move dst_cache out of union and use the gc to check all entries" and
+will let you know if I see
+any more problems.
 
-which only allows turning IPV4 off if IPV6 has enabled.
+The one thing I believe is still missing is to remove the if condition
+in flow_offload_fill_route()
+when setting  "flow_tuple->dst_cache/dst_cookie":
 
-       Arnd
+- if (route->tuple[!dir].in.num_tuns) {
+
+We now need "flow_tuple->dst_cache/dst_cookie" for all DIRECT xmit
+even with no tunnels
+(quick look on nft_dev_path_info() shows "num_tuns" set for
+"path->type =3D=3D DEV_PATH_TUN" only).
+
+Thank you.
