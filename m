@@ -1,198 +1,222 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fhigh-a6-smtp.messagingengine.com (fhigh-a6-smtp.messagingengine.com [103.168.172.157])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1744136B07E
-	for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 09:56:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955E7149DF1;
+	Sun, 12 Jul 2026 11:02:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783850169; cv=none; b=MngUyxrcVwub24uOi0vtHvjPgm6TUWsq3Y22Nbm2ZUKCTUQ6xKcMlgfZWdTXjOV0ZOliaCmO2pygR09j/hhxklqjJ4NcbnRPQM6tJ9qK33Iaua2JHf1hcEdyII46w0rKd1rYsDnfZYAX5qLDy0qZjPF+WCqVkyqQeB4WWtjU0s0=
+	t=1783854159; cv=none; b=qfR97Md3x03z4XsjxwSfQOSlgkA4VB4cyZjZv3RaebcL1h61Vtp820wjBGfsXSqogsmBgLoqBF3br6ni9Mf82WBzmNAANviLGhpU9VO2LVmFe6GwF5U4k5otZFglnf6gheTc1IrJ2UpQVcise745g5FKBwz8BVxWQaXg2k1QFnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783850169; c=relaxed/simple;
-	bh=ENT5LG9FB4cixTTOJQNnoZiYXZ8KN/m8IdpmKN8KGOg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
-	 In-Reply-To:Content-Type; b=ldVHBQhF4e2Kjn2e0zifWjjtyTHhNI+KEiVGMU+Lwqr6hVFroNZnwrDkhCmsg1aNMQDXAja7JLt+KdBbpXYyRx18t/+nufEXo/cGkU/UeOqVJ565j+SCYniKzU1qaKcKvO5CpkfqJBjV3i5uuY9VJzK3F08UZWDpmo4c8kar5v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AMfwnPv6; arc=none smtp.client-ip=209.85.208.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783854159; c=relaxed/simple;
+	bh=QFAERGkwm7FFeWB0LrovUamDAkSprs7aihtdoZvXuKE=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=NKoWjzE/U9Cg81q8x/q+xGMA4Dju/BDKtzUlmXLX0P+/vgeMv2dgD7brrPKZqRPslrVfKKuG/wygnWi2EbpqE7SpjguHA8X987epUkETbAPw3BX/AP4rrrvLI7lz9cujWCucBJ4cd0qgsBWNkvrEucHW0ECWq80VWQu4vKXYC3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=zpHRfiC5; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=l6PtvRhd; arc=none smtp.client-ip=103.168.172.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AMfwnPv6"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-697564cb69eso4919515a12.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jul 2026 02:56:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783850166; x=1784454966; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:cc:from
-         :content-language:references:to:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=9oePL6KVxBhy41D/iPJEuD2vI8ckk8u2UQmCBU4pLsQ=;
-        b=AMfwnPv6SG8dFrlJXH6W46G05Mc6tMdwoT6HdY/h7RCktLTdPVgYzTm9KXo0kYhayC
-         kkQTnxgzDAi/YYjMIvL4phZigebMRHWIz3QR361fCYoYaU4MhNorwgkPxIO7EHB9hAkB
-         u9t/TDfrf+I7T1Po27ZaNNN2lghndTHDch5jnuycc4FAhwfQkKLlCxFbwh32spqE0jos
-         Kim12V9e4wuCZhpjk08KcPyJ+oPfQif2/kpkWtj5Xes/JrS994awJExnrNf51JEFK90E
-         sYZqMSX31b6Slz/Km3WQO/D6JYJ7ceJiDF+m4hYQPq/tDdfqU2MwYtEV6G0JDG7e7VKX
-         nH/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783850166; x=1784454966;
-        h=content-transfer-encoding:content-type:in-reply-to:cc:from
-         :content-language:references:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=9oePL6KVxBhy41D/iPJEuD2vI8ckk8u2UQmCBU4pLsQ=;
-        b=De2/SkEAUFOKCmaxN2x3hYFf+QWVwH5GLb9ADIvywE72iUU7RTvoEktFcg9jU5nECo
-         mj5QQMz1w7fLJcEHjSxK1z8B+zj+1lL4YWdZqefTDuLEAOI2u5jRIPmPJC1248zgbhwU
-         ttTRs9AUr5TFNNCgZby1TpWhLn/98Qcp14WsjZclMds4LUXNqOYhM25Dq4LC77vB5CfK
-         qRCWzqX1P/rLX4o24IQmJLh337XwD1TI9CzNI9UCgQa4XEn30JnP9hlToUNjRmHpbfCA
-         hJjg7slJoy8eTXYF7++XtFVCvgX2Iz66ART8cRQmVzvVKW6D/fuAGgOkU3MMniqfMCN+
-         fypQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rr6g/iAa8tCXj5jz+TepaPGE3OikCY6T+3ksxTUjTwndyD75cT1bOwWje5R0Da98LY5z81i/8bjIcxDW5BIaUU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxDeoD7+d7d6EAZmPO3D/FPhbfde2v68mz2zyiRj0RZq1XPRByr
-	BEI2Pg6SgLTkWJY+OwMwbROTYimaOfbpKBzmCr2rx3PC1lFnCj0fsmy7js1MxkuD
-X-Gm-Gg: AfdE7cnQ8vLFNHZ9BWEPF+douuQ8fZDi7ZODI0n/dUsNHgz0wvlWPq1e0yL0twyfWSh
-	FtTApYrfWRIC9xdFuixxy5vmxYJF4pvM6DucrJATLl4TpLGMN9dA2Os3i8lIkoimN4Y4vWnSr8T
-	/zD4SxwP4dyOcPYxpZm+lriHl/pFCoXn25ZA4uKe6Pvq9yG5pfvrqfR/496+lIcVTQR3Jt5Sbd4
-	XLi+1uwfF0nKRv6SIN3eGmiSUph/q0/GNJlSxGNv77yKmza1+gMkFzwUUPLbjO7ShlmpJNqq8Bx
-	AOIe6TQy8xA4Boo0W+XPI5XgjgFqQW40xht7URm4KCP9LE21gzeZn/2u+Yx/uToltYeRjm33DRl
-	/15Pw1+pnS5unLVqxy4Ae5U/MasChWkr4zLUUzKf6otqxxegpocx/UBmfqzcJerBliStkW9/Lcb
-	xDfM1Dt666DtCeiiY0GF6M2nEh3Mmn85anq2/V6ZyxRGqGih3jK4eObkmtauaUFbXxG5XLQ0KVT
-	wVF2rMDB/0mK8bviAhsWrato0ZBhX+0uFOcasH3r9a/1EWRwI9IrXlYW212XrJYWnMxSITwqF22
-	RosetHw1+n4BCMxfLdX1V7g=
-X-Received: by 2002:a17:907:c084:b0:c15:c658:dc0d with SMTP id a640c23a62f3a-c161f35366dmr261224566b.39.1783850166084;
-        Sun, 12 Jul 2026 02:56:06 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c15ae0bb618sm851852366b.20.2026.07.12.02.56.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 12 Jul 2026 02:56:05 -0700 (PDT)
-Message-ID: <79beda2e-e7b7-4488-9aef-bfa21da18ac7@gmail.com>
-Date: Sun, 12 Jul 2026 11:56:04 +0200
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="zpHRfiC5";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="l6PtvRhd"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id B209314000F9;
+	Sun, 12 Jul 2026 07:02:36 -0400 (EDT)
+Received: from phl-imap-05 ([10.202.2.95])
+  by phl-compute-04.internal (MEProxy); Sun, 12 Jul 2026 07:02:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1783854156;
+	 x=1783940556; bh=VmtnK3tqoDU1aIaol+aWaActTb6DTRuQA5S8IlUXC6U=; b=
+	zpHRfiC5EPwl520ahCHYKKw5slNvnULR9f0KFrRT9y/2496pQCwk5KRBRbFgaYwK
+	qG5F+qyc+u6zQHl69ceJPRiSScFtXeE7ZyRSVgJSuprmdrpegDBkSA7FMJ5iWHIW
+	SWlwkvdzIryhehvQjfxl6CaW2ssS7P7s2gf6gPSaRBitFcji6E7w6O+D9MGOTq8e
+	KhN1cpA/Tqcli21P3rrlWr0Xxua3FpQ5R7OFYe9FPdjPs6R+VvBCiyDkT0HtPl2f
+	qii8ZEdh5SWDrMrxQFPHLV29au4QVk00LL5Ct/0KCqib5HX/6aJG4Up8UlRvgkJY
+	nRorXxeir3laErJG81MisA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1783854156; x=
+	1783940556; bh=VmtnK3tqoDU1aIaol+aWaActTb6DTRuQA5S8IlUXC6U=; b=l
+	6PtvRhdAV0qi2d8e9JUkK2fFLlwxNVY88bcJ+5Aj5gdngpmAYCMSgprFJ8wo710r
+	L3GX7fLDfky6/oZ5HVFMbvr3LfslQE3A4w7QmId8Pn6hgVlensKX8wbHDxXJXMEw
+	ljaGdMaWuSttqpLIh1kRGvTz2JKn9ccjs3FegrO0y+RbRlkAzKbQ2dqj069GeO+7
+	KiNB7ReoNHH0ZUF3RSAIMtQSTjbO3t+zGQmSf4gQWGO8/uy+Wvbs6Xl2gDkoDMV7
+	CmCc8Ljjg46b8emiC9vxMTJkV1Aw2OeUhRq5fNYVA+WvlRG7ZcpAMzEUPYx0xvod
+	o+8ewgiMwgBexztrVjN5Q==
+X-ME-Sender: <xms:SXRTar8WT3jXuGcKhip6v_oZ_ev_MYJ3TiCDPsHDGOy_4qyk61nOpA>
+    <xme:SXRTaigdv70_fhLJe4evVFXvY38h-PROEIkCw6nfAYtcRrN4q0volhQFULkdIqZ6L
+    z8_glaP7Vjxtth72FHcVVja1cD22b3GdPb5JUl06P7cs54F9UBgiclm>
+X-ME-Proxy-Cause: dmFkZTGLo78njPg/nVe+uHWg3AzWojEtguj4DH8KNv19gE9YnhOLAIWMCTf4qhQuAaKC9P
+    oqyQsM8pSAEKHb797BqDSo1aNsM3rLblcv7PG7RotKu6L/VmYg2dW8zs2GiGwBQBqITK1u
+    X7zWoJgFJCv+6+BhbAHafVgja8Z3pTN2uEr2UPDO/nE22eQsOCXiJJSQPkNMNg99Cf35b5
+    J+tdL50vwyZ/VB0b7S4W+UsY7ZTc+cfBHJYz0U/kX691quZfggwKD0RgbG/U6czrjHfrvF
+    6fq/4yXwXeSj8YJFVVakjVNKSPD+23ViVy8tbJNIxUaNcajIR7AH0T/de5rCVSDzK344tx
+    U0x24Up+ufBa9p+NAvwC4cO2T9HS+kz0KnK//dY/mOxOe/QpD8tgteUxcBF++TLDigfVC1
+    C3EJFOtWxRFUioYMCn8qg0rQx+yCJX0thmaTY7UEVDucc/9mhpzue03w8Dp+CxjgmXdcGu
+    RSCzsnIT3+hEirvAmIyFtq70pAE1IonG2VSteXv8IfwRKlnb463XanbbZobuFZ9GMPY1GC
+    8nsnv82zjPtzkRalpSto4MmL5kHeehrV6iIR1EmzKUc5FkQFY5TKbxBu61Nz8jJ7suNzU3
+    Cyvv5MNgqU18rt3jpb2tgZMGlm2/SgzvbBaj3jXxb82AJ7qi2ot7EKTwTDoQ
+X-ME-Proxy: <xmx:SXRTapHAhWRiFbB-4amYjFgmwydjtOdojLMQlh0VZZlQEErKhomHig>
+    <xmx:SXRTaoKLDK9Ecbgry1ger4QfqGLLQ1xOkTzua4qZzvVI-kaPbzgKWw>
+    <xmx:SXRTap8dLyvqloUGHlP29AnEVqPiM2OIYq0126wYr_cBo0x_TFVHVA>
+    <xmx:SXRTaqegpYaBne9K3glgOErxceihkfr_b7_lWpHaESTvei9pJ8qgGA>
+    <xmx:THRTagApbQu8pd3LegvnC51UZb7KkVStZc2jhlRfHD_OxzYfyYsDaYFF>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 29B00182007E; Sun, 12 Jul 2026 07:02:33 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next,v1 1/4] bridge: Add filling forward path from port
- to port
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-References: <20260708093250.1187068-1-pablo@netfilter.org>
-Content-Language: en-US
-From: Eric Woudstra <ericwouds@gmail.com>
-Cc: Nikolay Aleksandrov <razor@blackwall.org>, Florian Westphal <fw@strlen.de>
-In-Reply-To: <20260708093250.1187068-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8
+X-ThreadId: ARmmoW1aQeCk
+Date: Sun, 12 Jul 2026 13:01:52 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Fernando Fernandez Mancera" <fmancera@suse.de>,
+ Netdev <netdev@vger.kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>,
+ "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
+ "Paolo Abeni" <pabeni@redhat.com>, "David Ahern" <dsahern@kernel.org>,
+ "Simon Horman" <horms@kernel.org>, "Ido Schimmel" <idosch@nvidia.com>,
+ "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
+ "Andrew Lunn" <andrew+netdev@lunn.ch>,
+ "Anthony L Nguyen" <anthony.l.nguyen@intel.com>,
+ "Przemek Kitszel" <przemyslaw.kitszel@intel.com>,
+ "Elad Nachman" <enachman@marvell.com>,
+ "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
+ "Mark Bloch" <mbloch@nvidia.com>, "Petr Machata" <petrm@nvidia.com>,
+ "Edward Cree" <ecree.xilinx@gmail.com>,
+ "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
+ "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
+ "Arend van Spriel" <arend.vanspriel@broadcom.com>,
+ "Miri Korenblit" <miriam.rachel.korenblit@intel.com>,
+ "Keith Busch" <kbusch@kernel.org>, "Jens Axboe" <axboe@kernel.dk>,
+ "Christoph Hellwig" <hch@lst.de>, "Sagi Grimberg" <sagi@grimberg.me>,
+ "Chaitanya Kulkarni" <kch@nvidia.com>,
+ "Saurav Kashyap" <skashyap@marvell.com>,
+ "Javed Hasan" <jhasan@marvell.com>,
+ GR-QLogic-Storage-Upstream@marvell.com,
+ "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ "Nilesh Javali" <njavali@marvell.com>,
+ "Manish Rangankar" <mrangankar@marvell.com>,
+ "Varun Prakash" <varun@chelsio.com>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "David Howells" <dhowells@redhat.com>,
+ "Marc Dionne" <marc.dionne@auristor.com>,
+ "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Chuck Lever" <cel@kernel.org>,
+ "Jeff Layton" <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
+ "Marek Lindner" <marek.lindner@mailbox.org>,
+ "Simon Wunderlich" <sw@simonwunderlich.de>,
+ "Antonio Quartulli" <antonio@mandelbit.com>,
+ "Sven Eckelmann" <sven@narfation.org>,
+ "Nikolay Aleksandrov" <razor@blackwall.org>,
+ "Pablo Neira Ayuso" <pablo@netfilter.org>,
+ "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
+ "Johannes Berg" <johannes@sipsolutions.net>,
+ "Matthieu Baerts" <matttbe@kernel.org>,
+ "Mat Martineau" <martineau@kernel.org>,
+ "Geliang Tang" <geliang@kernel.org>, "Julian Anastasov" <ja@ssi.bg>,
+ "Aaron Conole" <aconole@redhat.com>,
+ "Eelco Chaudron" <echaudro@redhat.com>,
+ "Ilya Maximets" <i.maximets@ovn.org>,
+ "Allison Henderson" <achender@kernel.org>,
+ "Jamal Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>,
+ "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
+ "Xin Long" <lucien.xin@gmail.com>,
+ "D. Wythe" <alibuda@linux.alibaba.com>,
+ "Dust Li" <dust.li@linux.alibaba.com>,
+ "Sidraya Jayagond" <sidraya@linux.ibm.com>,
+ "Wenjia Zhang" <wenjia@linux.ibm.com>,
+ "Mahanta Jambigi" <mjambigi@linux.ibm.com>,
+ "Tony Lu" <tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>,
+ "Jon Maloy" <jmaloy@redhat.com>,
+ "Steffen Klassert" <steffen.klassert@secunet.com>,
+ "Herbert Xu" <herbert@gondor.apana.org.au>,
+ "Vikas Gupta" <vikas.gupta@broadcom.com>,
+ "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
+ "Justin Chen" <justin.chen@broadcom.com>,
+ "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
+ "Nicolai Buchwitz" <nb@tipi-net.de>,
+ "Florian Fainelli" <florian.fainelli@broadcom.com>,
+ "Heiner Kallweit" <hkallweit1@gmail.com>,
+ "Krzysztof Kozlowski" <krzk@kernel.org>,
+ "Russell King" <rmk+kernel@armlinux.org.uk>, "Yao Zi" <me@ziyao.cc>,
+ "Yanteng Si" <siyanteng@cqsoftware.com.cn>,
+ "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
+ "Julian Braha" <julianbraha@gmail.com>,
+ "Joey Lu" <a0987203069@gmail.com>,
+ "Shangjuan Wei" <weishangjuan@eswincomputing.com>,
+ "Chen-Yu Tsai" <wens@kernel.org>, "Inochi Amaoto" <inochiama@gmail.com>,
+ "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+ "Qingfang Deng" <qingfang.deng@linux.dev>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Eric Biggers" <ebiggers@kernel.org>,
+ "Ethan Nelson-Moore" <enelsonmoore@gmail.com>,
+ "Ard Biesheuvel" <ardb@kernel.org>,
+ "Dmitry Safonov" <0x7f454c46@gmail.com>,
+ "Kuniyuki Iwashima" <kuniyu@google.com>, "Alyssa Ross" <hi@alyssa.is>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
+ "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
+ linux-net-drivers@amd.com, linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
+ brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
+ linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org,
+ target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
+ b.a.t.m.a.n@lists.open-mesh.org,
+ "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
+ rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
+ linux-s390@vger.kernel.org,
+ "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
+Message-Id: <12ffac6a-649a-4e4a-8d12-0b48171e1d95@app.fastmail.com>
+In-Reply-To: <20260712013941.4570-2-fmancera@suse.de>
+References: <20260712013941.4570-1-fmancera@suse.de>
+ <20260712013941.4570-2-fmancera@suse.de>
+Subject: Re: [PATCH 01/13 RFC net-next] net: ipv4: introduce CONFIG_IPV4 to decouple
+ the IPv4 stack
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
+On Sun, Jul 12, 2026, at 03:38, Fernando Fernandez Mancera wrote:
+> Historically, the IPv4 protocol has been linked to the core INET
+> subsystem. Because shared infrastructure like the TCP/UDP engine,
+> routing or INET hashtables live inside net/ipv4/, it has been impossible
+> to compile a kernel with only IPv6 support.
+>
+> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
+> 'def_bool y' for now. This does not allow to completely disable the
+> IPv4 stack yet but it lays the necessary build-system work for that
+> goal.
 
+I expect this will cause additional (trivial) build regression in the
+next step when randconfig builds run into obscure corner cases, either
+with INET=y IPV4=n IPV6=y or with INET=y IPV4=n IPV6=n.
 
-On 7/8/26 11:32 AM, Pablo Neira Ayuso wrote:
-> From: Eric Woudstra <ericwouds@gmail.com>
-> 
-> If a port is passed as argument instead of the master, then:
-> 
-> At br_fill_forward_path(): find the master and use it to fill the
-> forward path.
-> 
-> At br_vlan_fill_forward_path_pvid(): lookup vlan group from port
-> instead.
-> 
-> Changed call to br_vlan_group() into br_vlan_group_rcu() while at it.
-> 
-> Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v1: I took this existing patch for the bridge vlan filtering, but
->     bridge vlan filtering is untested at this stage at least for me.
-> 
->  net/bridge/br_device.c  | 19 ++++++++++++++-----
->  net/bridge/br_private.h |  2 ++
->  net/bridge/br_vlan.c    |  6 +++++-
->  3 files changed, 21 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-> index e7f343ab22d3..89f4525a7279 100644
-> --- a/net/bridge/br_device.c
-> +++ b/net/bridge/br_device.c
-> @@ -385,16 +385,25 @@ static int br_del_slave(struct net_device *dev, struct net_device *slave_dev)
->  static int br_fill_forward_path(struct net_device_path_ctx *ctx,
->  				struct net_device_path *path)
->  {
-> +	struct net_bridge_port *src, *dst;
->  	struct net_bridge_fdb_entry *f;
-> -	struct net_bridge_port *dst;
->  	struct net_bridge *br;
->  
-> -	if (netif_is_bridge_port(ctx->dev))
-> -		return -1;
-> +	if (netif_is_bridge_port(ctx->dev)) {
-> +		struct net_device *br_dev;
-> +
-> +		br_dev = netdev_master_upper_dev_get_rcu((struct net_device *)ctx->dev);
-> +		if (!br_dev)
-> +			return -1;
->  
-> -	br = netdev_priv(ctx->dev);
-> +		src = br_port_get_rcu(ctx->dev);
-> +		br = netdev_priv(br_dev);
-> +	} else {
+I can probably give your patch (with IPV4 visible or disabled) an
+early go on the randconfig tree to find these more quickly.
+If I run into regressions, should I just add more 'depends on IPV4',
+or do you have other plans?
 
-So as per Nikolay's comment on another thread, Can add here:
+Should we have some logic to ensure that at least one of IPV4 or
+IPV6 is enabled? I think this would work
 
-		if (!netif_is_bridge_master(ctx->dev))
-			return -1;
+config IPV4
+      bool "The IPv4 protocol" if IPV6
+      default INET
 
-So that it can continue normally if ctx->dev is a bridge master.
+which only allows turning IPV4 off if IPV6 has enabled.
 
-> +		src = NULL;
-> +		br = netdev_priv(ctx->dev);
-> +	}
->  
-> -	br_vlan_fill_forward_path_pvid(br, ctx, path);
-> +	br_vlan_fill_forward_path_pvid(br, src, ctx, path);
->  
->  	f = br_fdb_find_rcu(br, ctx->daddr, path->bridge.vlan_id);
->  	if (!f)
-> diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-> index d55ea9516e3e..00f5b72ff42d 100644
-> --- a/net/bridge/br_private.h
-> +++ b/net/bridge/br_private.h
-> @@ -1630,6 +1630,7 @@ bool br_vlan_can_enter_range(const struct net_bridge_vlan *v_curr,
->  			     const struct net_bridge_vlan *range_end);
->  
->  void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-> +				    struct net_bridge_port *p,
->  				    struct net_device_path_ctx *ctx,
->  				    struct net_device_path *path);
->  int br_vlan_fill_forward_path_mode(struct net_bridge *br,
-> @@ -1799,6 +1800,7 @@ static inline int nbp_get_num_vlan_infos(struct net_bridge_port *p,
->  }
->  
->  static inline void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-> +						  struct net_bridge_port *p,
->  						  struct net_device_path_ctx *ctx,
->  						  struct net_device_path *path)
->  {
-> diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-> index 5560afcaaca3..71531499bc73 100644
-> --- a/net/bridge/br_vlan.c
-> +++ b/net/bridge/br_vlan.c
-> @@ -1450,6 +1450,7 @@ int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
->  EXPORT_SYMBOL_GPL(br_vlan_get_pvid_rcu);
->  
->  void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
-> +				    struct net_bridge_port *p,
->  				    struct net_device_path_ctx *ctx,
->  				    struct net_device_path *path)
->  {
-> @@ -1462,7 +1463,10 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
->  	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
->  		return;
->  
-> -	vg = br_vlan_group_rcu(br);
-> +	if (p)
-> +		vg = nbp_vlan_group_rcu(p);
-> +	else
-> +		vg = br_vlan_group_rcu(br);
->  
->  	if (idx >= 0 &&
->  	    ctx->vlan[idx].proto == br->vlan_proto) {
-
+       Arnd
