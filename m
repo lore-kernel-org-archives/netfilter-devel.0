@@ -1,231 +1,245 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from fhigh-b2-smtp.messagingengine.com (fhigh-b2-smtp.messagingengine.com [202.12.124.153])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 067D51F099C
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 14:20:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C696B3EBF1A;
+	Mon, 13 Jul 2026 14:22:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.153
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783952404; cv=none; b=KG5Cgt7fl2ta9XFkp7luB5kn04GWxa2dPRWiuDZsji6VQoWSupuyk6X4aOtikOi/YFPSpRuB5evFOsLTAn8Y+ji/TVwc7RXI8jcy5bVjl6huxVVCaOIqk9DUGuluWOPUy21lOlMvsg6cayCCy/0TsxCaTtG08k6ectmpnjqdk5c=
+	t=1783952552; cv=none; b=IsNd2ms1t+DFrXvNgx1wA6lQ89/+mSLlj/QBkZ6non4+o22FawQ6HDW1jrjk5RJDNEB9oj21/2ZeuBLLoDHoxOUyGreR55Z5dWgw6IvD+T5SJCPlm7zH1HsZxKj7uSK5EGuQK9CQYKpywjaxJaPV1zSW3qWIHYQCqYGYfP//dAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783952404; c=relaxed/simple;
-	bh=2C/vblAWPw1+0wzIlwmcKkN0ra9pC8sm1oPIDgXwzHw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=B2F2MNGMN6HjcKclapjbtFvnoc0FPKPg6p0V8rfGlIETzl3ti4un0LOiQrQ7BLPtMoAhACs/X6r1BQe6vfQhGWDYHS5j6xHCAWYHuIVSejVyX7u0EiRBfhFu354DL11dmFpEP9P4H5v2a38oZyJ0Ju5cupiFuMIOAO6c/o/2cxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vJgfctHv; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1783952552; c=relaxed/simple;
+	bh=EI7sexiV/X+UxTd/3TyF/EC4GLNBmSdCjLzN+4m+hOw=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=JHdYtbqhsd9BO9CP71WybrPqbUjxv/8xO1vkISx+elU4MWFlNm9OMo0hPLdnnqOp1VX40OPQ2+lcAlAXHBxUojJ1Sxcvx9HjoL6a0w7bRyo2xCIhXIvkbqjsSfe3Q7VIFUNlKdOl5vhBGOrnQE3IsSiVQ66bvvxaovqaF/f2dGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=L51VZSt3; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=nqVoMSyD; arc=none smtp.client-ip=202.12.124.153
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vJgfctHv"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D78F760578;
-	Mon, 13 Jul 2026 16:19:59 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1783952400;
-	bh=dsGhARgoya9cOq9BxhOhpUXIncrI2/YG4RqflLQSIUA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=vJgfctHvMbh2u5vgLIlfLUDXAX9RLFa/bcG3//nhFg6l1tHK5R+7mYKYijxJfuxAA
-	 jnQMMrGVPRCiziOG0XSTcX7aLH1aQJF0JNIA+i/nDXDEA4Mz7+E60Mo2zuZL75KjPe
-	 DyZZ/gzyVMrNtVM0645IyE348nHGsWrHFFazat9vsKplWuIvjwHm/AzprLcKkXXyeF
-	 A8gYodOfuonFYrfZ7z9ru8b+vP5em/xTcNttn5hJqlYgSWf+50K1lBNug1TTdg4VYn
-	 gkZuV7pqhxiG1WB9RV8Ioyu+IoBZrYQyU9o2S4w0wckfWnN2c1W7u/6cPrDjYL9Krd
-	 8kKBw1IHr9dhg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: iostreampy@proton.me
-Subject: [PATCH nf,v3] netfilter: nf_conntrack_expect: add and use nf_ct_expect_related_pair()
-Date: Mon, 13 Jul 2026 16:19:56 +0200
-Message-ID: <20260713141956.1675856-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="L51VZSt3";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="nqVoMSyD"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id 447597A0071;
+	Mon, 13 Jul 2026 10:22:29 -0400 (EDT)
+Received: from phl-imap-05 ([10.202.2.95])
+  by phl-compute-04.internal (MEProxy); Mon, 13 Jul 2026 10:22:30 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1783952549;
+	 x=1784038949; bh=CU2l/l+grvYULNyVB/JOkonr04ETPKXJ4oV6oaYMGmQ=; b=
+	L51VZSt3D0sQZJ86eoW8TsSiS8ndpbFjh1AzuSbpFef1lFXTImKnhKGwnqu4atjm
+	vD3gpcyxTFIxm3Xqc7LZVle6bYKzTiA5qTv1FXVHHXBi8Pt+8hUDWY0kxrfD3cnb
+	zpIypaARxo0b/yD6XT5RYv4nji6H8Dk8yuvb17833RBryUvU+5mrKZo525IxqkcX
+	waBzznApG32gmMdicRWNraHjfpKGEqh+Nxqw3QXktd4GHQ61X88lLRfYmmGi3b/p
+	FFELTNvB5QomRZzkGouMwCq3PpgpBAOrTcPNgZdF+zWVTM3TnDDc2PcBMPELDhSW
+	LjW3YRpc8Uadb6v8kwkqfA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1783952549; x=
+	1784038949; bh=CU2l/l+grvYULNyVB/JOkonr04ETPKXJ4oV6oaYMGmQ=; b=n
+	qVoMSyDbNfi1FdT/UDr2Pmtq0c4QEagBtoHOn31ROZm3wzlAhgwX/9OK/4j+VYse
+	95mSIso//1Ve6Hhsw+vv/qte/MKWAaknKjjU9+4OR5TgA5i8dCf/sY3f+WzZP9W/
+	2sFYMBj0f7booKL21Zi5CjAGJ71BWPU8FbEGZfFccfDTyJQ9GFeMHoUttMv1ojxE
+	BJ0VWes/Cnly+PkwWN9kOmiI9n2FSPVArbSUJ/S+viJbPr2fwLHik6yAtpkL/5/D
+	g8kfHXEYWCL2Iq9p6QByH0Qq3Nkjlrek09CJCElXk6g19faE0oNOtHTqzuZx66Wy
+	ZQHTkhTBayQKPYDAY6rkw==
+X-ME-Sender: <xms:ovRUajBIsXUgDABx0NEfhe7XgaVGldrd2Ka8482OnxT3TUjXZlfhsg>
+    <xme:ovRUakWwJWs7-0TirTG1dAFOwv1XVAKt4OLw7b1d_zepvDu25PgHBdOQNYAeXNfJc
+    6wLyyIPLvQC3_XNkuXvAmuz7BJezLZAZekhexUWrR99ZsDSqQQ0Bw>
+X-ME-Proxy-Cause: dmFkZTFqcwJE5anyfqiojVjksH5tB/3nDJOMgzaL4MffLvJCdssvyH+hKOtcXcDpBqa4sv
+    cTYGFVIOBQ9UuPNtXjB/V0Zqrjq2GMtsrV6GHk75lf46Ay7h6x7q+TmQuo3PrHDoreROk7
+    Rcv07HJ99rDqBInAKHe1BXoCwJ/z97EBkHOElbk9m5jcVnoI2AuqwN+DxJ8VYZMDJTKbuq
+    M5pgR8hSmdmg78onYSbwY9by5uzfaixHwRa+qRiG31tv9lA6cPC3l1yBm+kPz8idmp7iP9
+    zUWHqoKULz7Tzlx7EPCTQfbjmU4/FQCEi+d6ReWBh5D0rKurgS52grVfEKaF3lHstByRaJ
+    tRJjC5lZYI7v6OxRHVK0FjPjCseguZPND9Q8O6Ey+Z2RrbOA8yFYmFfpixuIaAtbA7jjn7
+    dCMDQMpWFsOI+nUF0+NB+EpLBTqmVXFJ17eEH6JoqDVoxGGDNvXsHvIGsEm26de4dNleKM
+    cjJZYp2Ov8juw5ckS/s8lvL8GH050Q93ZvsHaQpOaHb1EIpwdVN0EZ7sOz4HSRbNIOCFSc
+    /GjrJJJUIincyR2Zr2HVRr9MssT1yPnhNiRJZwybvWfRtNur9hFstqQBWjImsPzEA81ynM
+    DeOv+MiLUy/uRo3eXwLuqJHUFYwqKN4xlwrtnXT7OI0rzXM3VqxQIJO9yr8A
+X-ME-Proxy: <xmx:ovRUatfkPdirTgbKSaNUuFYpZUVi-yf6Jy3zt2hjYoVKF7RQTOzd8g>
+    <xmx:ovRUatCE0Bv0VvBTLq0LIFG-5IA8R6k-PFMd6sSE0NfitEs32Zq8vA>
+    <xmx:ovRUaoSWQJ0la1mNQ3pta5ssq090yuqSHS37h8M_CWd7Ln8wk_EOZA>
+    <xmx:ovRUaoJ4jP15A00r9YjOT0Ixaowe-VBEseQM5fypr7gUM_SB677qSg>
+    <xmx:pfRUanEiFrJI2pBYWuIeiVy1rvQeLM-iFP9W4UBxSWImEVlJkqzN0FjA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id DC870182007E; Mon, 13 Jul 2026 10:22:25 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-ThreadId: ARmmoW1aQeCk
+Date: Mon, 13 Jul 2026 16:22:05 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Fernando Fernandez Mancera" <fmancera@suse.de>,
+ Netdev <netdev@vger.kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>,
+ "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
+ "Paolo Abeni" <pabeni@redhat.com>, "David Ahern" <dsahern@kernel.org>,
+ "Simon Horman" <horms@kernel.org>, "Ido Schimmel" <idosch@nvidia.com>,
+ "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
+ "Andrew Lunn" <andrew+netdev@lunn.ch>,
+ "Anthony L Nguyen" <anthony.l.nguyen@intel.com>,
+ "Przemek Kitszel" <przemyslaw.kitszel@intel.com>,
+ "Elad Nachman" <enachman@marvell.com>,
+ "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
+ "Mark Bloch" <mbloch@nvidia.com>, "Petr Machata" <petrm@nvidia.com>,
+ "Edward Cree" <ecree.xilinx@gmail.com>,
+ "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
+ "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
+ "Arend van Spriel" <arend.vanspriel@broadcom.com>,
+ "Miri Korenblit" <miriam.rachel.korenblit@intel.com>,
+ "Keith Busch" <kbusch@kernel.org>, "Jens Axboe" <axboe@kernel.dk>,
+ "Christoph Hellwig" <hch@lst.de>, "Sagi Grimberg" <sagi@grimberg.me>,
+ "Chaitanya Kulkarni" <kch@nvidia.com>,
+ "Saurav Kashyap" <skashyap@marvell.com>,
+ "Javed Hasan" <jhasan@marvell.com>,
+ GR-QLogic-Storage-Upstream@marvell.com,
+ "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ "Nilesh Javali" <njavali@marvell.com>,
+ "Manish Rangankar" <mrangankar@marvell.com>,
+ "Varun Prakash" <varun@chelsio.com>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "David Howells" <dhowells@redhat.com>,
+ "Marc Dionne" <marc.dionne@auristor.com>,
+ "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, "Chuck Lever" <cel@kernel.org>,
+ "Jeff Layton" <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+ "Olga Kornievskaia" <okorniev@redhat.com>,
+ "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
+ "Marek Lindner" <marek.lindner@mailbox.org>,
+ "Simon Wunderlich" <sw@simonwunderlich.de>,
+ "Antonio Quartulli" <antonio@mandelbit.com>,
+ "Sven Eckelmann" <sven@narfation.org>,
+ "Nikolay Aleksandrov" <razor@blackwall.org>,
+ "Pablo Neira Ayuso" <pablo@netfilter.org>,
+ "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
+ "Johannes Berg" <johannes@sipsolutions.net>,
+ "Matthieu Baerts" <matttbe@kernel.org>,
+ "Mat Martineau" <martineau@kernel.org>,
+ "Geliang Tang" <geliang@kernel.org>, "Julian Anastasov" <ja@ssi.bg>,
+ "Aaron Conole" <aconole@redhat.com>,
+ "Eelco Chaudron" <echaudro@redhat.com>,
+ "Ilya Maximets" <i.maximets@ovn.org>,
+ "Allison Henderson" <achender@kernel.org>,
+ "Jamal Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>,
+ "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
+ "Xin Long" <lucien.xin@gmail.com>,
+ "D. Wythe" <alibuda@linux.alibaba.com>,
+ "Dust Li" <dust.li@linux.alibaba.com>,
+ "Sidraya Jayagond" <sidraya@linux.ibm.com>,
+ "Wenjia Zhang" <wenjia@linux.ibm.com>,
+ "Mahanta Jambigi" <mjambigi@linux.ibm.com>,
+ "Tony Lu" <tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>,
+ "Jon Maloy" <jmaloy@redhat.com>,
+ "Steffen Klassert" <steffen.klassert@secunet.com>,
+ "Herbert Xu" <herbert@gondor.apana.org.au>,
+ "Vikas Gupta" <vikas.gupta@broadcom.com>,
+ "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
+ "Justin Chen" <justin.chen@broadcom.com>,
+ "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
+ "Nicolai Buchwitz" <nb@tipi-net.de>,
+ "Florian Fainelli" <florian.fainelli@broadcom.com>,
+ "Heiner Kallweit" <hkallweit1@gmail.com>,
+ "Krzysztof Kozlowski" <krzk@kernel.org>,
+ "Russell King" <rmk+kernel@armlinux.org.uk>, "Yao Zi" <me@ziyao.cc>,
+ "Yanteng Si" <siyanteng@cqsoftware.com.cn>,
+ "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
+ "Julian Braha" <julianbraha@gmail.com>,
+ "Joey Lu" <a0987203069@gmail.com>,
+ "Shangjuan Wei" <weishangjuan@eswincomputing.com>,
+ "Chen-Yu Tsai" <wens@kernel.org>, "Inochi Amaoto" <inochiama@gmail.com>,
+ "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+ "Qingfang Deng" <qingfang.deng@linux.dev>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Eric Biggers" <ebiggers@kernel.org>,
+ "Ethan Nelson-Moore" <enelsonmoore@gmail.com>,
+ "Ard Biesheuvel" <ardb@kernel.org>,
+ "Dmitry Safonov" <0x7f454c46@gmail.com>,
+ "Kuniyuki Iwashima" <kuniyu@google.com>, "Alyssa Ross" <hi@alyssa.is>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
+ "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
+ linux-net-drivers@amd.com, linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
+ brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
+ linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org,
+ target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
+ b.a.t.m.a.n@lists.open-mesh.org,
+ "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
+ rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
+ linux-s390@vger.kernel.org,
+ "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
+Message-Id: <713178ff-0fb2-4f1b-90bc-9841cd42c20e@app.fastmail.com>
+In-Reply-To: <2256daf4-d03c-4a57-9d72-7a388d823f18@suse.de>
+References: <20260712013941.4570-1-fmancera@suse.de>
+ <20260712013941.4570-2-fmancera@suse.de>
+ <12ffac6a-649a-4e4a-8d12-0b48171e1d95@app.fastmail.com>
+ <2256daf4-d03c-4a57-9d72-7a388d823f18@suse.de>
+Subject: Re: [PATCH 01/13 RFC net-next] net: ipv4: introduce CONFIG_IPV4 to decouple
+ the IPv4 stack
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Add a new function to insert a pair of expectations, this is required by
-the SIP and H323 NAT helpers. The spinlock is held to check if there is
-a slot for both expectations, in such case, insert them.
+On Mon, Jul 13, 2026, at 16:00, Fernando Fernandez Mancera wrote:
+> On 7/12/26 1:01 PM, Arnd Bergmann wrote:
+>> On Sun, Jul 12, 2026, at 03:38, Fernando Fernandez Mancera wrote:
+>>> Historically, the IPv4 protocol has been linked to the core INET
+>>> subsystem. Because shared infrastructure like the TCP/UDP engine,
+>>> routing or INET hashtables live inside net/ipv4/, it has been impossible
+>>> to compile a kernel with only IPv6 support.
+>>>
+>>> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
+>>> 'def_bool y' for now. This does not allow to completely disable the
+>>> IPv4 stack yet but it lays the necessary build-system work for that
+>>> goal.
+>> 
+>> I expect this will cause additional (trivial) build regression in the
+>> next step when randconfig builds run into obscure corner cases, either
+>> with INET=y IPV4=n IPV6=y or with INET=y IPV4=n IPV6=n.
+>> 
+>> I can probably give your patch (with IPV4 visible or disabled) an
+>> early go on the randconfig tree to find these more quickly.
+>> If I run into regressions, should I just add more 'depends on IPV4',
+>> or do you have other plans?
+>> 
+>
+> Yes, I have a job running randconfig and verifying nothing breaks. If 
+> something breaks and it isn't core networking stack I would just make 
+> the Kconfig symbol depend on IPv4.
+>
+> Then later we will have more time to write a dedicate patch so it does 
+> not depend on IPv4.
 
-This removes the need for nf_ct_unexpect_related() inside the loop to
-find a pair of consecutive ports, otherwise inserting expectations whose
-dead flag is already set on can happen.
+Ok
 
-Bump master_help->expecting for the expectation class after checking if
-the expectation fits in the master expectation list, which is needed for
-this new _pair() function variant to run the eviction routine including
-the preallocated slot for the first expectation in the pair.
+>> Should we have some logic to ensure that at least one of IPV4 or
+>> IPV6 is enabled? I think this would work
+>> 
+>> config IPV4
+>>        bool "The IPv4 protocol" if IPV6
+>>        default INET
+>> 
+>> which only allows turning IPV4 off if IPV6 has enabled.
+>> 
+>
+> I do wonder, should we? I mean, I didn't try it off but I don't see why 
+> we should not allow a pure L2 system..
 
-Fixes: b8b09dc2bf35 ("netfilter: nf_conntrack_expect: use conntrack GC to reap expectations")
-Reported-by: Jaeyeong Lee <iostreampy@proton.me>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: change direction: preallocate the expectation slot in the _check()
-    loop in the new nf_ct_expect_related_pair().
+I expected a pure L2 system to be CONFIG_ETHERNET=y CONFIG_INET=n.
 
- include/net/netfilter/nf_conntrack_expect.h |  3 ++
- net/ipv4/netfilter/nf_nat_h323.c            | 22 +++++--------
- net/netfilter/nf_conntrack_expect.c         | 35 ++++++++++++++++++++-
- net/netfilter/nf_nat_sip.c                  | 20 ++++--------
- 4 files changed, 50 insertions(+), 30 deletions(-)
+Which user-visible parts of CONFIG_INET would you want keep working
+when both v4 and v6 are disabled?
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index c024345c9bd8..26d6babd92fc 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -161,6 +161,9 @@ static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect,
- 	return nf_ct_expect_related_report(expect, 0, 0, flags);
- }
- 
-+int nf_ct_expect_related_pair(struct nf_conntrack_expect *expect[],
-+			      unsigned int flag);
-+
- struct nf_conn_help;
- void nf_ct_expectation_gc(struct nf_conn_help *master_help);
- 
-diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
-index 183e8a3ff2ba..6bcd6734769b 100644
---- a/net/ipv4/netfilter/nf_nat_h323.c
-+++ b/net/ipv4/netfilter/nf_nat_h323.c
-@@ -182,6 +182,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
- 			struct nf_conntrack_expect *rtp_exp,
- 			struct nf_conntrack_expect *rtcp_exp)
- {
-+	struct nf_conntrack_expect *rtp_pair[2] = { rtp_exp, rtcp_exp };
- 	struct nf_ct_h323_master *info = nfct_help_data(ct);
- 	int dir = CTINFO2DIR(ctinfo);
- 	int i;
-@@ -227,22 +228,13 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
- 		int ret;
- 
- 		rtp_exp->tuple.dst.u.udp.port = htons(nated_port);
--		ret = nf_ct_expect_related(rtp_exp, 0);
-+		rtcp_exp->tuple.dst.u.udp.port = htons(nated_port + 1);
-+		ret = nf_ct_expect_related_pair(rtp_pair, 0);
- 		if (ret == 0) {
--			rtcp_exp->tuple.dst.u.udp.port =
--			    htons(nated_port + 1);
--			ret = nf_ct_expect_related(rtcp_exp, 0);
--			if (ret == 0)
--				break;
--			else if (ret == -EBUSY) {
--				nf_ct_unexpect_related(rtp_exp);
--				continue;
--			} else if (ret < 0) {
--				nf_ct_unexpect_related(rtp_exp);
--				nated_port = 0;
--				break;
--			}
--		} else if (ret != -EBUSY) {
-+			break;
-+		} else if (ret == -EBUSY) {
-+			continue;
-+		} else if (ret < 0) {
- 			nated_port = 0;
- 			break;
- 		}
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 7ae68d60586a..8a3b9e33e94f 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -427,7 +427,6 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp,
- 		exp->timeout += helper->expect_policy[exp->class].timeout * HZ;
- 
- 	hlist_add_head_rcu(&exp->lnode, &master_help->expectations);
--	master_help->expecting[exp->class]++;
- 
- 	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
- 	cnet = nf_ct_pernet(net);
-@@ -534,6 +533,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- 	if (ret < 0)
- 		goto out;
- 
-+	master_help->expecting[expect->class]++;
- 	nf_ct_expect_insert(expect, master_help);
- 
- 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
-@@ -546,6 +546,39 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
- 
-+int nf_ct_expect_related_pair(struct nf_conntrack_expect *expect[],
-+			      unsigned int flags)
-+{
-+	struct nf_conn_help *master_help;
-+	int i, ret;
-+
-+	spin_lock_bh(&nf_conntrack_expect_lock);
-+	master_help = nfct_help(expect[0]->master);
-+	if (!master_help || master_help != nfct_help(expect[1]->master)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	for (i = 0; i < 2; i++) {
-+		ret = __nf_ct_expect_check(expect[i], master_help, flags);
-+		if (ret < 0) {
-+			if (i == 1)
-+				master_help->expecting[expect[0]->class]--;
-+			goto out;
-+		}
-+		master_help->expecting[expect[i]->class]++;
-+	}
-+
-+	for (i = 0; i < 2; i++) {
-+		nf_ct_expect_insert(expect[i], master_help);
-+		nf_ct_expect_event_report(IPEXP_NEW, expect[i], 0, 0);
-+	}
-+out:
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_expect_related_pair);
-+
- void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, void *data),
- 				  void *data)
- {
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index aea02f6aff09..9e9ff986ece5 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -592,6 +592,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
- 				     unsigned int medialen,
- 				     union nf_inet_addr *rtp_addr)
- {
-+	struct nf_conntrack_expect *rtp_pair[2] = { rtp_exp, rtcp_exp };
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-@@ -622,24 +623,15 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
- 		int ret;
- 
- 		rtp_exp->tuple.dst.u.udp.port = htons(port);
--		ret = nf_ct_expect_related(rtp_exp,
--					   NF_CT_EXP_F_SKIP_MASTER);
--		if (ret == -EBUSY)
--			continue;
--		else if (ret < 0) {
--			port = 0;
--			break;
--		}
- 		rtcp_exp->tuple.dst.u.udp.port = htons(port + 1);
--		ret = nf_ct_expect_related(rtcp_exp,
--					   NF_CT_EXP_F_SKIP_MASTER);
-+
-+		ret = nf_ct_expect_related_pair(rtp_pair,
-+						NF_CT_EXP_F_SKIP_MASTER);
- 		if (ret == 0)
- 			break;
--		else if (ret == -EBUSY) {
--			nf_ct_unexpect_related(rtp_exp);
-+		else if (ret == -EBUSY)
- 			continue;
--		} else if (ret < 0) {
--			nf_ct_unexpect_related(rtp_exp);
-+		else if (ret < 0) {
- 			port = 0;
- 			break;
- 		}
--- 
-2.47.3
-
+     Arnd
