@@ -1,151 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378E219F121;
-	Mon, 13 Jul 2026 12:53:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80090413221;
+	Mon, 13 Jul 2026 13:04:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783947229; cv=none; b=agGjv2IZ3JPCPmfdGPwAOT+EGi1j93CCdadFK64TT1KCOJNUL+NCAgkUO7JzKtdfzvN4XfmvL+OCzMKO0whWq9G5dTz0HyRIvqJL6NS2qkIxLTuPATNzvpUoGnzSfnELcitcenFZ9OceK3a953DrYvKLECwN0WTg9YIZxZ6H95U=
+	t=1783947902; cv=none; b=O1qf+QZC4YKVaIj4pORHOSod7bjDoA7NCoxsolOgKfD8eroHhgTae0N+4UVPJu3mh3A/7LrfzbXPvj+6fPVK6nuGwCZLFlze2O2WD/hXE+JXaelRsyiiGdcdFyin2NwHPA89L7cZp1BPofVOG1tjhEZ6cu2kVkTg8C39EdTJk3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783947229; c=relaxed/simple;
-	bh=df0/tk71ArwqJYZi6UifNS1IPX5FyJGZ3vBtfAg/bPw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=cxr3LxUFdTg5koOxXtAxkdBdbhMBKcVcQjiupRNEvEps+lI+YeTkzVisB9ToKq5hKzFV4bJsKc4aJz6TQ5IGHPYMqG40btBxUzbQn0N+lxzJKZTSaVoWROmlId0js8xkmZctQ6fgKm5ajAC+OdzVUD0BaUVeLtQSx8TIyM7901U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MrdN4YQt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783947902; c=relaxed/simple;
+	bh=nSBsOjt/BXcCbYMnxmh+/Hy7Je5B9u9J+iz29ZOl1Dw=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=STEiogDtlyFS1FPIvuCRExZodAp8TKb+v5sQFOM3wQPEFno/64cDHpnPW3UUVgRr5OqWAxXURQurvyPpe2NB+BWVH7Bkt+N8zP84yl2W1Ee0sq366d56WhWJDjZ8hLGDh/1FrugU7efmKlyCVeJvC15aJpyxVZi+8wvvatW8jx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=jVlsp5vD; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MrdN4YQt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAFF1F000E9;
-	Mon, 13 Jul 2026 12:53:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783947228;
-	bh=BYxt9eG8OStjECbJndGaUeWfB8kBjIV89GTDnz69wUw=;
-	h=From:Date:Subject:To:Cc;
-	b=MrdN4YQta14aUHZ32FcZjrjmqLhIX07Z+TFIdqOkhe638RiH/fV6xQI8lyKnHGPpi
-	 lQLVfM67eIZFImx+ylkAyiOg1HqudOEn03PTerrSZylm7tQ/0GfMVoBb9VM+DALbkr
-	 xvVCjfQDyHBOXwfZpyDDlA6uyy35Mw9wqdQymVQmWAjwW2+eO4sS7s6tFxe2/heeUm
-	 q5cf74ERgkcGFdDVj6+ZpANS6eOR52XE2aQnivXGo75rXgsASuKdROZG6/Lh3Zc+nZ
-	 eaR8X/9C0K82JwdL/+pIK6IgUX/fsWrxEn55O0iqwaDAB5Qztln8Qy6RwMdH2Bt/TU
-	 kAOvDWeXZBHrg==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Mon, 13 Jul 2026 14:53:22 +0200
-Subject: [PATCH nf v2] selftests: netfilter: nft_flowtable.sh: fix offload
- counter verification for tunnel tests
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="jVlsp5vD"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4gzMvg4mCmz3sb0Z;
+	Mon, 13 Jul 2026 14:59:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1783947549; x=1785761950; bh=FmHaMmV+zl
+	jiv5MVVRzY+GY2wOxMBTZW0bmwtuTIfhM=; b=jVlsp5vDyBQtoeHlmdjJlworaV
+	b9LcPpJjVzQN66RTlSYGy9JhM/k1WfDiULhnUJbUfylMlxKMGVNUFOiLS+uGuziX
+	PNwGcTFP4GItu9I8ZcOtTddxcBjLOBsvGUfLCdu9zPzFPUELSspMuB1/WQkQ1/+5
+	MmaHXoDEcn++65l/U=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id yEh3wLIrYits; Mon, 13 Jul 2026 14:59:09 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4gzMvd3tSqz3sb0N;
+	Mon, 13 Jul 2026 14:59:09 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 72CC934316E; Mon, 13 Jul 2026 14:59:09 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 7129334316D;
+	Mon, 13 Jul 2026 14:59:09 +0200 (CEST)
+Date: Mon, 13 Jul 2026 14:59:09 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Weiming Shi <bestswngs@gmail.com>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, 
+    Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org, 
+    coreteam@netfilter.org, netdev@vger.kernel.org, 
+    linux-kernel@vger.kernel.org, Xiang Mei <xmei5@asu.edu>
+Subject: Re: [PATCH nf] netfilter: ipset: skip extension destroy on hash
+ resize replay
+In-Reply-To: <20260704062234.2625208-1-bestswngs@gmail.com>
+Message-ID: <e3bb8ad1-cb24-5d74-6ca6-a7a1e41fb133@blackhole.kfki.hu>
+References: <20260704062234.2625208-1-bestswngs@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260713-flowtable-selftest-ip6ip6-fix-v2-1-b49edb4f9620@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/42NQQrCMBBFr1Jm7UiTlqS68h7SRbSTdjAkJQlRK
- b27oScQ/ub9D+9vkCgyJbg2G0QqnDj4CvLUwHMxfibkqTLIVqpWC4HWhXc2D0eYyNlMKSOvqgY
- tf7CfBqNkJ3ttOqiONVKtD/8dvIWxdgunHOL3uCziWP60F4ECVUsX0t3QT1bfXhQ9uXOIM4z7v
- v8A0AYchc8AAAA=
-X-Change-ID: 20260711-flowtable-selftest-ip6ip6-fix-4d8a623247a3
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- netdev@vger.kernel.org, linux-kselftest@vger.kernel.org
-X-Mailer: b4 0.14.3
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-The IPIP and IP6IP6 tunnel tests call check_counters() to verify
-flowtable offloading occurred, but the flow-add rule only matches
-meta oif "veth1". When traffic is routed through a tunnel device,
-oif is the tunnel interface (tun0, tun6, etc.), not veth1, so
-the flow-add rule never fires, no flowtable entry is created,
-and counters stay at zero — producing a silent false pass.
-Fix by adding tunnel-specific flow-add rules for each tunnel
-interface. These match TCP dport 12345 traffic before the bare
-accept rule, set ct mark, add the flow to the flowtable, and
-increment routed_orig. The existing routed_repl rule on veth0
-already handles the reply direction since decapsulated reply
-packets exit through the physical interface.
-Also add check_counters() for the IP6IP6 non-VLAN and
-IP6IP6-over-VLAN tests which previously used a bare PASS message.
+Hi,
 
-Fixes: fe8313316eaf ("selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest")
-Fixes: 5e5180352193 ("selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest")
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
-Changes in v2:
-- Add missing tunnel-specific flow-add rules for each tunnel interface.
-- Link to v1: https://lore.kernel.org/r/20260711-flowtable-selftest-ip6ip6-fix-v1-1-60e9e7384df7@kernel.org
----
- tools/testing/selftests/net/netfilter/nft_flowtable.sh | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+On Fri, 3 Jul 2026, Weiming Shi wrote:
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 08ad07500e8a..d9a21ca8ed2c 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -617,7 +617,11 @@ ip -6 -net "$nsr2" route add default via fee1:3::1
- ip -net "$ns2" route add default via 10.0.2.1
- ip -6 -net "$ns2" route add default via dead:2::1
- 
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif tun0 tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif tun6 tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6 accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward \
- 	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
-@@ -629,7 +633,7 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
- fi
- 
- if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
--	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel"
-+	check_counters "flow offload for ns1/ns2 IP6IP6 tunnel"
- else
- 	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel" 1>&2
- 	ip netns exec "$nsr1" nft list ruleset
-@@ -642,6 +646,8 @@ ip -net "$nsr1" link set veth1.10 up
- ip -net "$nsr1" addr add 192.168.20.1/24 dev veth1.10
- ip -net "$nsr1" addr add fee1:4::1/64 dev veth1.10 nodad
- ip netns exec "$nsr1" sysctl net.ipv4.conf.veth1/10.forwarding=1 > /dev/null
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif veth1.10 tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif veth1.10 accept'
- 
- ip -net "$nsr1" link add name tun0.10 type ipip local 192.168.20.1 remote 192.168.20.2
-@@ -649,6 +655,8 @@ ip -net "$nsr1" link set tun0.10 up
- ip -net "$nsr1" addr add 192.168.200.1/24 dev tun0.10
- ip -net "$nsr1" route change default via 192.168.200.2
- ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif tun0.10 tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 accept'
- 
- ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2 encaplimit none
-@@ -656,6 +664,8 @@ ip -net "$nsr1" link set tun6.10 up
- ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
- ip -6 -net "$nsr1" route delete default
- ip -6 -net "$nsr1" route add default via fee1:5::2
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif tun6.10 tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6.10 accept'
- 
- ip -net "$nsr2" link add link veth0 name veth0.10 type vlan id 10
-@@ -683,7 +693,7 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
- fi
- 
- if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
--	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel over vlan"
-+	check_counters "flow offload for ns1/ns2 IP6IP6 tunnel over vlan"
- else
- 	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel over vlan" 1>&2
- 	ip netns exec "$nsr1" nft list ruleset
+> During a hash set resize, mtype_resize() copies each element into the
+> new table with memcpy(), so the new-table element shares the old-table
+> element's comment extension.  An xt_SET delete on the old table during
+> the resize destroys that shared comment via ip_set_ext_destroy() and
+> queues a replayed delete on h->ad.  After the table swap mtype_resize()
+> replays it with mtype_del() on the new table, whose copy still points at
+> the freed comment, so ip_set_ext_destroy() frees it a second time:
+>
+> ODEBUG: activate active (active state 1) object: ... object type: rcu_head
+> WARNING: CPU: 3 PID: 5311 at lib/debugobjects.c:514 debug_print_object
+> Call Trace:
+>  <IRQ>
+>  kvfree_call_rcu (kernel/rcu/tree.c:3825)
+>  ip_set_comment_free (net/netfilter/ipset/ip_set_core.c:397)
+>  hash_ip4_del (net/netfilter/ipset/ip_set_hash_gen.h:1098)
+>  hash_ip4_kadt (net/netfilter/ipset/ip_set_hash_ip.c:96)
+>  ip_set_del (net/netfilter/ipset/ip_set_core.c:813)
+>  set_target_v3 (net/netfilter/xt_set.c:412)
+>  ipt_do_table (net/ipv4/netfilter/ip_tables.c:346)
+>  __ip_local_out (net/ipv4/ip_output.c:119)
+>  icmp_push_reply (net/ipv4/icmp.c:397)
+>  __icmp_send (net/ipv4/icmp.c:804)
+>  __udp4_lib_rcv (net/ipv4/udp.c:2521)
+>  ip_local_deliver (net/ipv4/ip_input.c:254)
+>  ip_rcv (net/ipv4/ip_input.c:569)
+>  </IRQ>
+>
+> The replay passes a NULL ext (the kernel-side delete that queued it
+> already destroyed the extensions), so skip ip_set_ext_destroy() when ext
+> is NULL.  This also avoids the NULL ext->target dereference that was only
+> kept safe by the new table's ref being zero.
+>
+> Reachable from an unprivileged user namespace.
+>
+> Fixes: f66ee0410b1c ("netfilter: ipset: Fix \"INFO: rcu detected stall in hash_xxx\" reports")
+> Reported-by: Xiang Mei <xmei5@asu.edu>
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+> ---
+> net/netfilter/ipset/ip_set_hash_gen.h | 6 ++++--
+> 1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+> index 5e4453e9e..bc909ae2d 100644
+> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -1080,9 +1080,11 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+> 			mtype_del_cidr(set, h,
+> 				       NCIDR_PUT(DCIDR_GET(d->cidr, j)), j);
+> #endif
+> -		ip_set_ext_destroy(set, data);
+> +		/* On a resize replay the extensions were already destroyed. */
+> +		if (ext)
+> +			ip_set_ext_destroy(set, data);
+>
+> -		if (atomic_read(&t->ref) && ext->target) {
+> +		if (ext && atomic_read(&t->ref) && ext->target) {
+> 			/* Resize is in process and kernel side del,
+> 			 * save values
+> 			 */
 
----
-base-commit: 3f1f755366687d051174739fb99f7d560202f60b
-change-id: 20260711-flowtable-selftest-ip6ip6-fix-4d8a623247a3
+Please rebase your patch against the nf-next tree 
+(git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git): the 
+second chunk of your patch is not needed as it has been fixed.
 
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo@kernel.org>
-
+Thank you and best regards,
+Jozsef
