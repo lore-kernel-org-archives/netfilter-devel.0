@@ -1,142 +1,162 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69C59362133
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 16:34:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93C7140B363;
+	Mon, 13 Jul 2026 16:37:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783960474; cv=none; b=uKrGq0rZJ8l38UpuaWlY6W8Xnz6M529jVFPx8dR58NHO9NKQKk1Ks1l6xMEejBMAWd50JcPyuYrgH3IQ2F4jXAxT3mdXveWvHsiC87g1Q7ePzvebFnuwo7JVVNOf5x3onUaQ1MDA7dbcavWFoc7GbAoVI14vQ5+oIJzAE4qhisg=
+	t=1783960650; cv=none; b=Ma72iCyeHVVZNLRz3KJzdxoBB4HljsJyQkGgXUnbb77fRT3BuF5qhzm+FWtblW3pEVcUMt1GQmzSZGllYuORSEm0iZy1+l76ODX3Qf1P6OdpFWqjQALufeejjQZ6NpCVEZFbN0oIaqHsMy61DYUYWLuydVuEBUccw9LSfsOdeFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783960474; c=relaxed/simple;
-	bh=i2xJ03C51CJD6Lr8+AW4JJYOEHv1to9FFj52n/dJlPc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ckj6JnlmbFMHHiC9Scozf8wH/H8PsTOOzK4MWrwbiwEAT8pVOQfri2Xjk+D0q+/VRnGPoiaKJ0cCAgMwMnSfe2xLcNy6ZJWhgBvPNzVW+KbKPmmZsGG0+Bqray/0EjGbVWx+19aNEe5idWbgElH2Ligak/9IqbEzX8I/BKXo+4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MJqBkbip; arc=none smtp.client-ip=209.85.216.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783960650; c=relaxed/simple;
+	bh=6scaW2J2qf21cIApCJxfkJtUQpHKzhlP+xFnw+curr0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gGbO4WVRGuRSiasOZBiWA8QhkCCMBEjLQfsKPaEiKKlFIFk3Hi/3jMjTXOzG9MGDAmoBxqI5kq41V5MSc7y4xFWYil5B+RN7bcV+7kmUigDuoI2dTX51GOGma2/r15secwynq6Yb0jyUsdjC6eayP271zC331SgJBHyb7qtxRSM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oF5vypA7; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MJqBkbip"
-Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-383cb94f742so2996287a91.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 09:34:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783960473; x=1784565273; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=RM63TYqsinly5sLCnipxpmwH364OMd0EzvumJ2wtwGE=;
-        b=MJqBkbip0Za3MaR0Zx95OsKhK1bU75OK/7+yRSRE6kubuolvfDcqlh6bykbZexxNBv
-         OMqyHRmtwEvHie5Qk8FFIxVeToSwJEW+LE9rUz/apZ2GKlowFvSHW+Tu1l8ydA95NXOZ
-         wfMSN3xKzXUtzpnWDbqr9VzKmW0emuY7j3+WEwhPBzaZV0XAXT6XBviUKiQgZgxQLpO3
-         6B/9ydbyR4cll5OewHxo02istppt009xDt/uT3juZLQa0lPVMY1H8EOIgWWjVQQcP+JW
-         pPnAY+5Dz6qoi0hIbLY/W4GOO5ncnoYuIocyHiA3lt8ZiakwD3upIvHIcXKODALpgj4c
-         RPnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783960473; x=1784565273;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=RM63TYqsinly5sLCnipxpmwH364OMd0EzvumJ2wtwGE=;
-        b=X6TtQapNn7KVNFt8RbRHI6lu6QrIIweng0Aqc7Tc24gES3r72a8kfvXMPk6qgv7qsH
-         Fo2pbw7/l9GUAZJlQ4Rb8a2yyNec7uaIlV9a3xFI/r57TQLTU2GHq6xhWmzGOOlFwRDy
-         WRyDjexfmheIgFkpP2peEW3k8lUBgv487AYBX2WOWO8MGvSkMXhaKpt2DZH2+mnOeUaY
-         JeUkMh9bboTFmJ03mrYDmIrBNp6TFO9CdigEiN73VCTzsxC+tCnyxfmfwCxk/iTPM9R3
-         gW4AuUecauYfIzctfswm28HaxZOeQbeTMfrNOLu9ZhEhjDM2sxOmB8L0tkNrLPeia9B5
-         quRg==
-X-Gm-Message-State: AOJu0YxQCy33EEb90xgXwsOw1JOupTeeQ9K8n//GWIzxvMvjRZB33qRD
-	rebaJ1h9ywyEMmDdD76Ipl91mhkU5qc5B8ynah0IJqJiQ3JpAMNhWSM/lRHsKKyO8pY=
-X-Gm-Gg: AfdE7cnqYQA+63i6lgSLJGRVpu9kE9fQlnNPqttl+ndY8mNJh6YsUfAJ+rM568JT9+4
-	fZ6jkg+vk4MLbs810mWVZ5VGM3PG379n0yYvbCuffxCzdR+a5teK940rYtPVva6GxBfN4igUxLr
-	zBFCz7gTgJYwKSMLgGJVU7lzZHf03IDhIIPSyESzX3ntbe2yIAnlmYwCeVSFdeu1JRU1bX9UFZY
-	FLuvCgC0xYApg+wbmDHXAoKoKCbP2YnBsfXe9oi5ZiDf5vkZC/T43p12PLaqxfTkGAZ/etieE2b
-	WPxVYZX+O+j8d/YFyvyNla8M2mfFWMbrgnyv593iHYT2inW0eVGAQN+G+oI4RTj4K/UkNQi+E+J
-	nul0HgsSe3xjCDe2THgoJjZ/KLnOXxSYWYFVlulVktBpkD+1POwvSQo93PkuGbQIRVQYGarWekU
-	6Putni2zvL0hg9khIlJvaMUqgTYe6ukd3Vn535bPltVa2yN9rGxvViQtJMsH5yOCWRyzE2
-X-Received: by 2002:a17:90b:510a:b0:38c:a59b:5189 with SMTP id 98e67ed59e1d1-38dc7a3e3a9mr9034978a91.15.1783960472613;
-        Mon, 13 Jul 2026 09:34:32 -0700 (PDT)
-Received: from fx.tailc0aff1.ts.net ([206.206.192.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3118ee6091dsm81674219eec.14.2026.07.13.09.34.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jul 2026 09:34:32 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH nf-next v3] netfilter: ipset: skip extension destroy on hash resize replay
-Date: Mon, 13 Jul 2026 09:33:55 -0700
-Message-ID: <20260713163354.3533575-2-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oF5vypA7"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6B68B6019B;
+	Mon, 13 Jul 2026 18:37:26 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1783960646;
+	bh=GJa8nPlZCR7ehCdSDWBoMCL6m7AlOgFGh+udXkLrOEk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oF5vypA7EpKwY1+pDvfGVnK0KhsjSSov7QN5TQRAt2Cu7dpagNChnvMOL45ev6Wv0
+	 ZRIWH4s78wZZxy0OMeww2wSAuSeKSZ3PiVRZReyaqvWabWhV/mr+lMAek2h7DeLnyS
+	 Epu505H9YxAYmKDRCWmHS2AoCg0Hy5NSa94BDJMfwf+u5UD6yNk5vf2JMbYACxSxUh
+	 HtGqXzAiIOudtx4HkwgM2nkWBHjdSQh19mtUvUiO6Y089UcMDrrTSPzLOgjWe9a1hx
+	 IF9M6OIF+hQSmNj3Scwv1rYAn+Lxg9koisb9xzh2vIbCsJy2BgdqxOakMxBZJW/Ph5
+	 84m1NOF1I3Low==
+Date: Mon, 13 Jul 2026 18:37:23 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Stanislav Fomichev <sdf.kernel@gmail.com>,
+	Samiullah Khawaja <skhawaja@google.com>,
+	Hangbin Liu <liuhangbin@gmail.com>,
+	Krishna Kumar <krikku@gmail.com>,
+	Martin Karsten <mkarsten@uwaterloo.ca>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, bridge@lists.linux.dev
+Subject: Re: [PATCH v12 nf-next 3/7] netfilter: nf_flow_table_offload: Add
+ nf_flow_rule_bridge()
+Message-ID: <alUUQ368a0bmCnoi@chamomile>
+References: <20260707091045.967678-1-ericwouds@gmail.com>
+ <20260707091045.967678-4-ericwouds@gmail.com>
+ <ak4dAXHDmTDRr7-b@chamomile>
+ <81c3bf65-b19b-4f80-aa8e-c0c4b3f5d6a7@gmail.com>
+ <alC64Vg_xihR-huW@chamomile>
+ <12451f0d-7e5b-4697-a734-8200944b204f@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <12451f0d-7e5b-4697-a734-8200944b204f@gmail.com>
 
-During a hash set resize, mtype_resize() copies each element into the
-new table with memcpy(), so the new-table element shares the old-table
-element's comment extension.  An xt_SET delete on the old table during
-the resize destroys that shared comment via ip_set_ext_destroy() and
-queues a replayed delete on h->ad.  After the table swap mtype_resize()
-replays it with mtype_del() on the new table, whose copy still points at
-the freed comment, so ip_set_ext_destroy() frees it a second time:
+Hi,
 
- ODEBUG: activate active (active state 1) object: ... object type: rcu_head
- WARNING: CPU: 3 PID: 5311 at lib/debugobjects.c:514 debug_print_object
- Call Trace:
-  <IRQ>
-  kvfree_call_rcu (kernel/rcu/tree.c:3825)
-  ip_set_comment_free (net/netfilter/ipset/ip_set_core.c:397)
-  hash_ip4_del (net/netfilter/ipset/ip_set_hash_gen.h:1098)
-  hash_ip4_kadt (net/netfilter/ipset/ip_set_hash_ip.c:96)
-  ip_set_del (net/netfilter/ipset/ip_set_core.c:813)
-  set_target_v3 (net/netfilter/xt_set.c:412)
-  ipt_do_table (net/ipv4/netfilter/ip_tables.c:346)
-  __ip_local_out (net/ipv4/ip_output.c:119)
-  icmp_push_reply (net/ipv4/icmp.c:397)
-  __icmp_send (net/ipv4/icmp.c:804)
-  __udp4_lib_rcv (net/ipv4/udp.c:2521)
-  ip_local_deliver (net/ipv4/ip_input.c:254)
-  ip_rcv (net/ipv4/ip_input.c:569)
-  </IRQ>
+On Fri, Jul 10, 2026 at 05:16:44PM +0200, Eric Woudstra wrote:
+> 
+> 
+> On 7/10/26 11:26 AM, Pablo Neira Ayuso wrote:
+> > Hi Eric,
+> > 
+> > On Wed, Jul 08, 2026 at 08:36:11PM +0200, Eric Woudstra wrote:
+> >> On 7/8/26 11:48 AM, Pablo Neira Ayuso wrote:
+> >>> On Tue, Jul 07, 2026 at 11:10:41AM +0200, Eric Woudstra wrote:
+> >>>> Add nf_flow_rule_bridge().
+> >>>>
+> >>>> It only calls the common rule and adds the redirect.
+> >>>
+> >>> I decided to use the new _unsupp() function, so we don't pretend
+> >>> bridge hw offload is already supported. We will need a driver before
+> >>> we can add this, this stub does not provide much. I guess your goal
+> >>> was just to avoid a crash here.
+> >>
+> >> No, I am already using hw_offload between bridged interfaces
+> >> on the mt7986 succesfully for almost 2 years.
+> >> It works dsa-port to direct interface (lan1 to eth1 on Bananapi R3) and
+> >> between direct interfaces (eth0 to eth1 on Bananapi-R3-mini)
+> > 
+> > Do you utilize the existing mt7986 driver in-tree without changes to
+> > achive this hardware offload? Or you have still have out-of-tree
+> > patches that need to be merged to achive this?
+> 
+> I do not change anything about the mediatek drivers to achieve hardware
+> offload. No patch needed to fix hardware offload.
 
-The replay passes a NULL ext (the kernel-side delete that queued it
-already destroyed the extensions), so skip ip_set_ext_destroy() when ext
-is NULL.
+Good. I would suggest you follow up to replace my _unsupp() function
+with the .action function once the initial flowtable bridge support
+gets merged upstream, explaining what drivers you have tested, it
+would be nice for the record.
 
-Reachable from an unprivileged user namespace.
+But hold on a bit until initial steps are made to upstream the initial
+infrastructure, please.
 
-Fixes: f66ee0410b1c ("netfilter: ipset: Fix \"INFO: rcu detected stall in hash_xxx\" reports")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
----
-v3: Repost as a new thread; v2 was sent in reply to v1.
-v2: Rebase onto nf-next; drop the second hunk (already fixed there).
+> However I do have a small fix for the offloading towards the mediatek
+> wifi interface. This is a fix for the software fastpath already.
+> Also with hardware offload to wifi interface, once the software fastpath
+> is setup correctly (needs this patch), then the hardware offload functions
+> correctly without any further patch. See patch:
+> 
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260317101525.358016-1-ericwouds@gmail.com/
+> 
+> It is not reviewed yet.
 
- net/netfilter/ipset/ip_set_hash_gen.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I'm reading the commit description, info.indev = NULL is not returned
+anymore, a rebase, review and re-post once initial bridge supports
+gets added would be good.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 8231317b0..d15530241 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1112,7 +1112,9 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 			mtype_del_cidr(set, h,
- 				       NCIDR_PUT(DCIDR_GET(d->cidr, j)), j);
- #endif
--		ip_set_ext_destroy(set, data);
-+		/* On a resize replay the extensions were already destroyed. */
-+		if (ext)
-+			ip_set_ext_destroy(set, data);
- 
- 		if (t->resizing && ext && ext->target) {
- 			/* Resize is in process and kernel side del,
--- 
-2.43.0
+This is to build a fast path between the bridge ports and wifi through
+the SoC.
 
+> >> It can also be tested with my bridge_fastpath.sh selftest script.
+> >> This script uses veth-device pairs to test the software fastpath.
+> >> It can also use 2 real interfaces interconnected in a loop of copper,
+> >> when chosen with commandline arguments. Then it tests software- and
+> >> hardware-fastpath. It also tests many different scenarios.
+> >>
+> >> So this is why I've added it, as it is already functional. If a software
+> >> fastpath is setup correctly, the hardware fastpath is also functional.
+> > 
+> > Thanks for explaining.
+> > 
+> > I am targetting at a minimal subset of the flowtable bridge support at
+> > this stage. There is a need to make progress with the
+> > nf_conntrack_bridge counterpart before the flowtable bridge can get
+> > more features (namely, bridge vlan filtering support).
+> 
+> I did send a newer version of my patch-set for nf_conntrack_bridge,
+> last version also adding support to defrag/refrag. See:
+> 
+> https://patchwork.ozlabs.org/project/netfilter-devel/cover/20260512103347.102746-1-ericwouds@gmail.com/
+
+I'm taking a look to the nf_conntrack_bridge side.
+
+> I've added testcases for defrag/refrag to the bridge_fastpath.sh selftest
+> script (v5), so I know it is functional.
+> 
+> For proper vlan filtering support, I do also believe you will need to
+> introduce DEV_PATH_BR_VLAN_KEEP_HW, or do something similar. See:
+> 
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260317101722.358640-1-ericwouds@gmail.com/
+
+OK, this will be useful once bridge vlan filtering gets supported.
+
+The existing proposal that extends the bridge fill_forward_path relies
+uniquely on one single bridge port to decide whether keep, untag or
+tag? Should this look for the pvid at the ingress bridge port (tag or
+keep vlan), then look at the egress bridge port (for untagging).
