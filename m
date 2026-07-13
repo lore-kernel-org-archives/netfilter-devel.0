@@ -1,128 +1,198 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A147B3E5572
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 09:59:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A3B537A83B;
+	Mon, 13 Jul 2026 11:07:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783936764; cv=none; b=R81C/bBS7oMVV2PVRd/RHXfzrYtCm7DSc3UNirF/DMMJFEIM9RD/oniH50gynKzPMUyueqluXU+fEzdEcIAW9Meq97TO8g54QyOnAtVe/p8THqKjmLIsOlMVeISvdwTKuJer6PyQHFK8dbL0vi9jFeSK7V0nUNLgxM3bX+iB8CU=
+	t=1783940874; cv=none; b=q+fljzfWFhyJI7XJIz9b/W86+7RMqe/5f/9QuYrfE0NG87c4AOj83PvKC8t33DiPDSVR78dupm+uoC+GswTBm6VYJ9aWFzoES7aozhMvDyrEuS3mjIGUxMQHy+07phNX4r3VqnOIYpUc552URu4WFdDm0d6AWfZuOxlD5sgRS5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783936764; c=relaxed/simple;
-	bh=LA7wMZh7wJW7zKJdgEo3kzYUfAFMoTptp6YhxtUQJcs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=POLTYhpILYYBt2/Jpng256IOyeH40qNwAYwxmSrdfBAWUBfxBQvAud3Gy9Ra4KxFmpWbxFOBOC4+7+t+5t2IL199/KDYdKxiupfrZiqZb2ewp4YSIZUY4FwQ8JQVNESllFnNW12sJe3aZgXxpJGiFKjePAG/LLgyoLU1cJTXJbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com; spf=pass smtp.mailfrom=trailofbits.com; dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b=LUa/Gu5Z; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trailofbits.com
+	s=arc-20240116; t=1783940874; c=relaxed/simple;
+	bh=ZzghU9jdt4BJJ4IlRLVmOi7j3K0cQTWaD4Og3j5Q90U=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=YQoQFd2XFc7qWUJKtDLkVLHgXRbiIOr5ziF1HCrfcT/e5eThgQINoJ4uYtnCfjR+yEvVyFFKyaKpnbWwv/juL4oHAWQM+dRVkHaiVUhQGJJywbUYwNPz2TYpeMW0hhgG+O7xRCqBGxBoQrakjj7uhcp5sNNIS+fKD4nS3bL+Dt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EFjsziI/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b="LUa/Gu5Z"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-51c05dcdf49so32213291cf.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 02:59:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=trailofbits.com; s=google; t=1783936762; x=1784541562; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hs8qr6RQnmSpKBHIaxXg7wFtv+zX+5SylTG991lre7o=;
-        b=LUa/Gu5Z0UVW9aZ8Jpz8/b+NV0/eoLRG0rQW7D0/u589VSrlz6O0K41WR9ABdezT8i
-         UqIKlft/nFeNNV0BO01TEC5auY3zXWpCRM6gSmIqpR5wAQO3WtIacTpvjOldoyzH+SlX
-         P9vD0OMeovfEwpW6w5FDH/BIBUSrKq9qhwxTLziZLw6GRe7qLZE0N1IqkF2zqE8uM/yH
-         KVQ3PNUNlI4UeUuqn9QDgRpUtRMFrdIXnnSFzc/Nq/cTB3XhTgmhwhAHDAeV0Pn1aKbb
-         FgBsMFOESSDlLQnX99Rqy+d9A34FpBjZIhFYPr3h6v2FHK/9P/OwLxC/TzE1etFjXQfY
-         vcHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783936762; x=1784541562;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=hs8qr6RQnmSpKBHIaxXg7wFtv+zX+5SylTG991lre7o=;
-        b=qJPEY0s8Sdiiq7M0IYLT7bNjxe6ZpRqa4xJVFa4cgeKufIhCFUoO9S44QD4aOOCp+T
-         DNWERy1yN9guV9FvwCVAk0ysoKxfo6SeabPe/lUV1v/cVHE/Grscwjw6gbCqpKnxXhkR
-         EdjIE2l8jHrhkrfygbAwMhyFd8cgjhruOomXnGk5YDoC3LvgkplR/CvZS5Fhz5uUht3A
-         3KYP6vHQqt8oSkW1OISsfMb4lOnyuJnOFpwvle8P6Uv88YqF/rOHj1/xsjHdj7RyXbQv
-         2P/QdgmAT5FWwRXp8vbtQuNeRTcj7+xoWxixCEpYAyTGbnJotVbTBdxjCw9nE2Pi2/+r
-         42Uw==
-X-Forwarded-Encrypted: i=1; AHgh+RrgUn3BqJfJv55RroN6LvarPwUURb6cig3ov7piUcbYsKH+uhCz3vVXPQVUX4qDrg3nUtc7D16qJe/TARIPNJc=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzZ/ZM9+2bglccMCa+HF4yu96LjXg5ISyfh++oAMII4UUBQ70tz
-	7NauzvKu/TiVdIJaKNia7khH3RMTC0IQeIPFthIqurSnFHpHJdL5liQSeMHBV6e+w6Y=
-X-Gm-Gg: AfdE7clVymd5/ET/YMPZj76Van43ZaoWofaXwbffai6ObX/b4N9u3JfaksX+ZzrqBrv
-	bvBk91Wc1oBqvKS4GsEaKMfeLKYSsGNwX9flx1J+0JcAVORTzoyz7Wu2i1Yg+W5PyCjEPQa79r3
-	qLy/4oAkk5J+psYNMTgfEcZUfu0R658QY40L9mxOv+T0djOvf/a4XJYkq1zwI3Y5gm/XOEIr14N
-	kBbKedJA8U95Fyn+aL9TXqBP2G5quvDPsxB+ij8aeJ3G5L9WiaoI/4JHLY3BgmljeiF48S8P2NR
-	wh86gM95zZxTT70bw0zl1N4sRrMZfEktagGukf8o52VBixjDZTdD9ZjrAQiF+BIbqvXm2BTUjx9
-	XFbjbaqcRYpyjiwrIYX6UOs5BuqxCHnXUx7FXBBiHuSpTnj5u+XTMpOe3jqBx4zT0MJqKYktO78
-	E84IVVsDnfTXwwZcwV/keQ8+C8yYCF
-X-Received: by 2002:ac8:7d0e:0:b0:51c:7b12:5fd5 with SMTP id d75a77b69052e-51cbf349147mr86478831cf.81.1783936761618;
-        Mon, 13 Jul 2026 02:59:21 -0700 (PDT)
-Received: from localhost ([146.190.222.192])
-        by smtp.gmail.com with UTF8SMTPSA id d75a77b69052e-51caae20a40sm80619171cf.15.2026.07.13.02.59.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 13 Jul 2026 02:59:21 -0700 (PDT)
-From: David Lee <david.lee@trailofbits.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: David Lee <david.lee@trailofbits.com>,
-	Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Phil Sutter <phil@nwl.cc>,
-	Dominik 'Disconnect3d' Czarnota <dominik.czarnota@trailofbits.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH nf] netfilter: ipset: do not update comments from kernel-side hash adds
-Date: Mon, 13 Jul 2026 09:59:15 +0000
-Message-ID: <20260713095918.173450-1-david.lee@trailofbits.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EFjsziI/"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id D6546C2BCF6;
+	Mon, 13 Jul 2026 11:07:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1783940873;
+	bh=ZzghU9jdt4BJJ4IlRLVmOi7j3K0cQTWaD4Og3j5Q90U=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=EFjsziI/mGfueRicxx6aewwFNFseJDdhCJPCOfrOIrKfrRax4V78tKlEx8RgJh0jO
+	 rTwNH2ZiTA5CyiTtWzb8WRrTM7U09LUInFdlk10Mt0aZfcLr3yTMPyEHJnWFRjQoVe
+	 Iq6IuBFtdn+OskqKwYAAtIvZKhGfBaRU6pvWhK8lMu8PTxJ8qG2xOrb2g7vmQKAboM
+	 ALk8NY/eQRc6+Ue81pOkrg/J1NavEUJqTAjTFW/Fv1JUdmdEnz6Cad9ooAMBz4ygR0
+	 FHMtb2m5jvRmxArUPi52YG4yHsTI5PCFex9hFqDZ0iUtNKAnrnKT9FWA3qwxwD4ocm
+	 zFkmPEFe8ocKQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6621C44508;
+	Mon, 13 Jul 2026 11:07:53 +0000 (UTC)
+From: Joel Granados <joel.granados@kernel.org>
+Date: Mon, 13 Jul 2026 13:07:43 +0200
+Subject: [PATCH RFC net-next v3 2/3] net: Const qualify ctl_tables that
+ kmemdup unconditionally
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260713-jag-net_const_qualify-v3-2-7289fe9eaea6@kernel.org>
+References: <20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org>
+In-Reply-To: <20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, 
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, 
+ Xin Long <lucien.xin@gmail.com>, 
+ Steffen Klassert <steffen.klassert@secunet.com>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, 
+ Stefano Garzarella <sgarzare@redhat.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-s390@vger.kernel.org, virtualization@lists.linux.dev, 
+ Joel Granados <joel.granados@kernel.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4380;
+ i=joel.granados@kernel.org; h=from:subject:message-id;
+ bh=ZzghU9jdt4BJJ4IlRLVmOi7j3K0cQTWaD4Og3j5Q90U=;
+ b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGpUxwY+Xw/qHCYC+bjLVFiRD6foyFLDCcWQW
+ QN1TonaLsB1sokBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqVMcGAAoJELqXzVK3
+ lkFP9J8L/34pEjhY6Y3+wj4Y4xpsgpzo3tIv3DUXkdX/CgHwMIaSkss33feZj9x4ackkKdflapk
+ iNGPQizMsKTrRQbW4gOhTUiY43oJIcwSXBppQLP/LRn1B9LO6lHpfFNsTJvBSHPTODJjTmJV6kn
+ TVa1z0IosYw6SZchkWtp6raEKsBpYdaZ4HHCspvvX1/gR1bKWPEwd4h5Ui2bzEHVW5BOpabibAZ
+ VMj1/GM8uIxnLWmFaVaFJt/8uXQtkMEM18NzjvbSzzQeKY0xDuqrLfcwD/inEHzG57fTbj20gRL
+ S9Q7K93rM9W7dOViKAXiO+LRGTAgUff++NilzvVTU/BwNPf96umX9iSRvXn2wXiyWXwS/z8cFKD
+ VQyb/KBl3B5b27jaypo9Uf+rLBAlN29UCXMf9NglZhTS7y7XAbhnO55l1Vvq9Lw6IbVCGpcIlT/
+ hlD+EnE7LtezC2CfYqYIXXqmkXIn+Lix6t8Ml7rJiVDC4J1KxrZ/VBXzEhNibF9+JdUwcg29a96
+ /M=
+X-Developer-Key: i=joel.granados@kernel.org; a=openpgp;
+ fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
+X-Endpoint-Received: by B4 Relay for joel.granados@kernel.org/default with
+ auth_id=239
 
-mtype_resize() copies comment pointers with memcpy(), not the comment objects
-themselves. During the window after an entry has been copied but before the
-table swap and backlog replay, the old table is still published for
-packet-side updates while the replacement-table entry already holds the same
-ip_set_comment_rcu pointer.
+Const qualify clt_table arrays in the net directory that always pass a
+memory duplicate to sysctl register. The template would then be in
+.rodata and the kmemdup'ed array would be outside.
 
-If xt_SET --add-set ... --exist hits that old entry in this window,
-mtype_add() calls ip_set_init_comment() even though packet-side adds carry no
-comment payload. That call frees the shared comment through the old entry, so
-the replacement-table entry now holds a stale pointer. When the queued add is
-replayed on the new table, mtype_add() calls ip_set_init_comment() again and
-strlen() dereferences the stale pointer.
-
-Fix this in mtype_add() by skipping ip_set_init_comment() when ext->target
-marks a packet-side add. Userspace adds still update comments, while
-packet-side adds can no longer free comment storage shared with a resize copy.
-
-Fixes: f66ee0410b1c ("netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports")
-Cc: stable@vger.kernel.org
-Signed-off-by: David Lee <david.lee@trailofbits.com>
-Assisted-by: Codex:gpt-5.5
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
 ---
-A reproducer triggers a KASAN slab-use-after-free in strlen() from
-ip_set_init_comment() during hash_ip4_resize().
+ net/ipv4/devinet.c                      | 2 +-
+ net/ipv6/icmp.c                         | 2 +-
+ net/ipv6/route.c                        | 2 +-
+ net/ipv6/sysctl_net_ipv6.c              | 2 +-
+ net/netfilter/nf_conntrack_standalone.c | 2 +-
+ net/sctp/sysctl.c                       | 2 +-
+ net/xfrm/xfrm_sysctl.c                  | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-Trail of Bits has a privilege escalation PoC for this bug on a
-custom kernel, which can be shared further if needed.
+diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
+index a35b72662e431661da1672f428cae6bb3110480b..19edc08ae20c4f16d3bcf479dc25022d55cbb5af 100644
+--- a/net/ipv4/devinet.c
++++ b/net/ipv4/devinet.c
+@@ -2798,7 +2798,7 @@ static void devinet_sysctl_unregister(struct in_device *idev)
+ 	neigh_sysctl_unregister(idev->arp_parms);
+ }
+ 
+-static struct ctl_table ctl_forward_entry[] = {
++static const struct ctl_table ctl_forward_entry[] = {
+ 	{
+ 		.procname	= "ip_forward",
+ 		.data		= &ipv4_devconf.data[
+diff --git a/net/ipv6/icmp.c b/net/ipv6/icmp.c
+index efb23807a0262e8d68aa1afc8d96ee94eab89d50..a95b0351824f3237815e43bf8448110070955884 100644
+--- a/net/ipv6/icmp.c
++++ b/net/ipv6/icmp.c
+@@ -1374,7 +1374,7 @@ EXPORT_SYMBOL(icmpv6_err_convert);
+ static u32 icmpv6_errors_extension_mask_all =
+ 	GENMASK_U8(ICMP_ERR_EXT_COUNT - 1, 0);
+ 
+-static struct ctl_table ipv6_icmp_table_template[] = {
++static const struct ctl_table ipv6_icmp_table_template[] = {
+ 	{
+ 		.procname	= "ratelimit",
+ 		.data		= &init_net.ipv6.sysctl.icmpv6_time,
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index a1301334da48c0f911da06ce448a76ecfb0d25cf..96b37c102a634c6715a5fbd1d39ca415302ff859 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -6555,7 +6555,7 @@ static int ipv6_sysctl_rtcache_flush(const struct ctl_table *ctl, int write,
+ 	return 0;
+ }
+ 
+-static struct ctl_table ipv6_route_table_template[] = {
++static const struct ctl_table ipv6_route_table_template[] = {
+ 	{
+ 		.procname	=	"max_size",
+ 		.data		=	&init_net.ipv6.sysctl.ip6_rt_max_size,
+diff --git a/net/ipv6/sysctl_net_ipv6.c b/net/ipv6/sysctl_net_ipv6.c
+index d2cd33e2698d5c88df4718c9622dba2d574fa309..1a0a36dcdabc1be961d0ab69e5c93b05c53f46a8 100644
+--- a/net/ipv6/sysctl_net_ipv6.c
++++ b/net/ipv6/sysctl_net_ipv6.c
+@@ -61,7 +61,7 @@ proc_rt6_multipath_hash_fields(const struct ctl_table *table, int write, void *b
+ 	return ret;
+ }
+ 
+-static struct ctl_table ipv6_table_template[] = {
++static const struct ctl_table ipv6_table_template[] = {
+ 	{
+ 		.procname	= "bindv6only",
+ 		.data		= &init_net.ipv6.sysctl.bindv6only,
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index be2953c7d702e92031d4bcf7e707741abed0f49c..f4f2d82192d54ed9831b9677743f1139820e5a2e 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -639,7 +639,7 @@ enum nf_ct_sysctl_index {
+ 	NF_SYSCTL_CT_LAST_SYSCTL,
+ };
+ 
+-static struct ctl_table nf_ct_sysctl_table[] = {
++static const struct ctl_table nf_ct_sysctl_table[] = {
+ 	[NF_SYSCTL_CT_MAX] = {
+ 		.procname	= "nf_conntrack_max",
+ 		.data		= &nf_conntrack_max,
+diff --git a/net/sctp/sysctl.c b/net/sctp/sysctl.c
+index 15e7db9a3ab2e325f3951ac20c067a973a049618..331f45af9c4990d78a10a5c2c4efbcbca21813dc 100644
+--- a/net/sctp/sysctl.c
++++ b/net/sctp/sysctl.c
+@@ -92,7 +92,7 @@ static struct ctl_table sctp_table[] = {
+ #define SCTP_PF_RETRANS_IDX    2
+ #define SCTP_PS_RETRANS_IDX    3
+ 
+-static struct ctl_table sctp_net_table[] = {
++static const struct ctl_table sctp_net_table[] = {
+ 	[SCTP_RTO_MIN_IDX] = {
+ 		.procname	= "rto_min",
+ 		.data		= &init_net.sctp.rto_min,
+diff --git a/net/xfrm/xfrm_sysctl.c b/net/xfrm/xfrm_sysctl.c
+index ca003e8a03760cd8dbb9e9f7cd5a9738eeeb7e71..357152a50faf10e5c33468c034dd1777e0bed079 100644
+--- a/net/xfrm/xfrm_sysctl.c
++++ b/net/xfrm/xfrm_sysctl.c
+@@ -13,7 +13,7 @@ static void __net_init __xfrm_sysctl_init(struct net *net)
+ }
+ 
+ #ifdef CONFIG_SYSCTL
+-static struct ctl_table xfrm_table[] = {
++static const struct ctl_table xfrm_table[] = {
+ 	{
+ 		.procname	= "xfrm_aevent_etime",
+ 		.maxlen		= sizeof(u32),
 
- net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 8231317b0f1f..b2d77973272d 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1005,7 +1005,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- #endif
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(data, set), ext);
--	if (SET_WITH_COMMENT(set))
-+	if (SET_WITH_COMMENT(set) && !ext->target)
- 		ip_set_init_comment(set, ext_comment(data, set), ext);
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_init_skbinfo(ext_skbinfo(data, set), ext);
 -- 
-2.43.0
+2.50.1
+
+
