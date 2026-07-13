@@ -1,42 +1,41 @@
-Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8FA903F4DE2;
-	Mon, 13 Jul 2026 11:53:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418F72DA74A
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2026 12:36:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783943613; cv=none; b=HTouJ8k+Yy/r4Bw3SoGDIk9ExkNDfvut3Ldju+Fxa3hFnJ0JMmQUH0Hr87hPwWFjWa2MdgkKpQxrzGa64punBRZsG2PbXcR4eefqal2bIeJ8f0AUU3iZsV8dSUY1VyWIhPqQJ0jgaHkCizLYZliA5bybTnGaxvtrgmdXZhGW9uw=
+	t=1783946220; cv=none; b=MChEU8gngTN/PqAhvfYRGw6V/CywbjaR4MHYet1Uv9qFdEkuunBVTk52k8Km/zuI+gvlhAqDfiebqxZa3EaJhzsbeX7ymOt4vQ9+cyi7T0CiMdYF9JTj1kgEnNbqgKpaD/aqBDFYBXJIcwRIYTGZDRmwW415Se5ZUZa0QWBHXZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783943613; c=relaxed/simple;
-	bh=ehmlUeTn+CCUoBayodx9rewfyaxcM/G9JGvga08rz7w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Wkw78dvQCCezQZZ5xGSANrh6T4yRfILn5ooCZTX/LKfYbMaSgdY3+nJlGHYEjh7FsEnxm/juvGc8XE5P8ecPh/Rn/JJA3tLFtxaXMQVIXBkN7Aj4qbxJvdznH7TV+1AfZeycfvu2jlzQsGgIh2iwvZA415HrQ6rDs6eFyMx4ACo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=13.75.44.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
-Received: from enjou-Legion-Y7000P-2019 (unknown [123.114.53.210])
-	by app1 (Coremail) with SMTP id ygmowAAXOsSU0VRqvicCAQ--.58336S4;
-	Mon, 13 Jul 2026 19:53:07 +0800 (CST)
-From: Ren Wei <n05ec@lzu.edu.cn>
-To: lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Cc: horms@verge.net.au,
-	ja@ssi.bg,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	nick@loadbalancer.org,
-	kaber@trash.net,
-	yuantan098@gmail.com,
-	yifanwucs@gmail.com,
-	tomapufckgml@gmail.com,
-	bird@lzu.edu.cn,
-	roxy520tt@gmail.com,
-	n05ec@lzu.edu.cn
-Subject: [PATCH v2 2/2] ipvs: adjust double hashing when fwd method changes
-Date: Mon, 13 Jul 2026 19:52:33 +0800
-Message-ID: <f5b5a291ad1546ac9b3acd762f628a6c4c3b78ff.1783917666.git.roxy520tt@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <cover.1783917666.git.roxy520tt@gmail.com>
-References: <cover.1783917666.git.roxy520tt@gmail.com>
+	s=arc-20240116; t=1783946220; c=relaxed/simple;
+	bh=aHIuZuEZHSZFr7NQPXgxpxxxArloF2om8bJr4Nk8xIQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CC+FDVcU+bjY+aKPu+koLRLwbTigY6mzmNcWaXvRb1Xtvek5tiAE+cKLaIrmh19W09i1wBfVI4fNv/SbptgyJ7+iNgVqfWggSlx4ePHsS+hQhjejPqDJQnCywxl+shqc9vDTWdVCa+1pWBHBR+wHM0J3YMw/f8mwVSDXT9Hftis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WG0Nrn4u; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WG0Nrn4u"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 434E260177;
+	Mon, 13 Jul 2026 14:36:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1783946214;
+	bh=x3DiWM3zHWhxrRKj/cGhkR8BBfXwF/cfODCrY9NThBs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=WG0Nrn4uWTFx6AWhIrVFe1amMPQoeEsUEXqWkppBrlTLRhWUUUx9/8CQhvvSLpnCV
+	 7WVTx/kcctvzbnbKv8HQajIk7CXTO8AOBgquYYG2DAjKQ1rFbQ2OQuJHykHlCk+Bse
+	 kBu4qVAEghuQfz2M/kRz0ooDlGWZh8tOou7AYIcJIIblvBjjQ/CbdxWr0Af/PQoEWa
+	 rql7rL8k/+uuFTEHLDFX8gJGhXfJGqLJWautlo6pRWZJIE+AtE3CMgK0ANqC0v60ta
+	 VR9kYR52ffMrWS+cueWjn14bW/rFMqYFXS0iZH637eig3tb2fQjZAX3YKx8bJN/bhV
+	 leGj+s332HZLQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	ericwouds@gmail.com
+Subject: [PATCH nf-next,v5] netfilter: flowtable: initial bridge support
+Date: Mon, 13 Jul 2026 14:36:50 +0200
+Message-ID: <20260713123650.1656551-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,357 +43,570 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:ygmowAAXOsSU0VRqvicCAQ--.58336S4
-X-Coremail-Antispam: 1UD129KBjvJXoW3Cw4xAr13ury5WFWfuFy8Xwb_yoWDtw48pa
-	yYgrZxtFZ2qF9YgF4xJwsxZrsYkw1vkasFyw1fG34rt34DWr1YyFZ7GFWSkF18CanrZr1U
-	Jr4Sga4Yka98Z3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9S1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
-	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVW5JVW7JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
-	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
-	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
-	Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
-	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
-	w2AFwI0_Jw0_GFyl42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxFaVAv8VW8WwCFx2IqxV
-	CFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r10
-	6r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxV
-	WUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG
-	6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr
-	1UYxBIdaVFxhVjvjDU0xZFpf9x0JUd-B_UUUUU=
-X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQEHCWpUn9kElgAAsk
 
-From: Julian Anastasov <ja@ssi.bg>
+This patch adds bridge flowtable support, this allows to define a
+shortcut between two bridge ports. This is complementary to the
+existing inet family flowtable support.
 
-Synced conns can be created with one forwarding method
-and later updated with different one after the dest
-server is configured. This needs adjusting the hashing
-for node hn1 because only MASQ supports double hashing.
+Set up does not require userspace updates, an example ruleset to
+enable the flowtable in the bridge family is provided here below:
 
-Modify conn_tab_lock() to support seeking for hash node
-hn0 together with adding for hn1. By this way we can
-safely modify the forwarding method and hn1.hash_key
-under bucket lock for the first node hn0. The forwarding
-method is also protected by cp->lock as it is part of
-cp->flags.
+ table bridge x {
+        flowtable y {
+                hook ingress priority 0
+                devices = { veth0, veth1 }
+        }
+        chain forward {
+                type filter hook forward priority 0
+                ip protocol tcp flow add @y counter
+                counter
+        }
+ }
 
-Fix the usage of stale idx/idx2 values in conn_tab_lock
-after jumping to the retry label. Instead, use idx/idx2
-values just to order the locking for the old/new tables.
+I decided to add an explicit nft_flow_offload_bridge_eval() instead of
+recycling the existing inet function by adding branches to skip the
+routing part which is obviously not needed in the bridge path. I
+consider this mostly boiler plate for feature extensibility and better
+maintability is better to keep it separated. Similarly, the bridge hook
+that represents the flowtable bridge datapath is implemented in a
+separated function.
 
-Reported-by: Zhiling Zou <roxy520tt@gmail.com>
-Link: https://lore.kernel.org/lvs-devel/1b914f41d725bc064c9ba9830dc8169329737270.1782540466.git.roxy520tt@gmail.com/
-Link: https://sashiko.dev/#/patchset/CALMqdkR704S2BG_QD_bgHTFp2%2B1QCi7n0T4zoZyTo8mDZevYSA%40mail.gmail.com
-Fixes: f20c73b0460d ("ipvs: use more keys for connection hashing")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Although connection tracking in the bridge does not support the tracking
+of IP flows encapsulated in PPPoE and VLAN tracking yet, there are
+scenarios that involved PPPoE and VLAN that can be supported already,
+such as those where packets flows through the bridge with no tagging,
+eg. a VLAN device is used as a bridge port which decapsulates the
+packets at the ingress path.
+
+Tested with:
+- Plain forwarding between bridge ports with no VLAN tagging.
+- VLAN device used in bridged ports, as long as packets that are
+  untagged when circulating within the bridge.
+
+This initial bridge flowtable support does support VLAN tagged packets
+circulating within the bridge yet, because nf_conntrack_bridge still
+does not support PPPoE/VLAN natively.
+
+Source and destination mac addresses are statically cached in the flow
+tuple Roaming between devices is not supported either.
+
+No hardware offload at this stage, but patches has been proposed to
+enable it and will follow up.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 189 +++++++++++++++++++++++++-------
- 1 file changed, 147 insertions(+), 42 deletions(-)
+v5: - incorrect logic in nft_br_is_skb_forwardable(), add ETH_HLEN to skb->len
+    - set .type to new bridge flow_offload expression
+    - add check for helper and NAT, that should not ever been there though
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 0682cec5f0a7..36c5cba03f5b 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -70,25 +70,45 @@ static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
-  * bucket or hash table
-  * - hash table resize works like rehash but always rehashes into new table
-  * - bit lock on bucket serializes all operations that modify the chain
-+ * - on resize, bucket from the old table is locked before bucket from the
-+ * new table
-  * - cp->lock protects conn fields like cp->flags, cp->dest
-  */
+ include/net/netfilter/nf_flow_table.h |   7 ++
+ net/netfilter/nf_flow_table_inet.c    |  12 ++
+ net/netfilter/nf_flow_table_ip.c      | 155 ++++++++++++++++++++++++++
+ net/netfilter/nf_flow_table_offload.c |   8 +-
+ net/netfilter/nf_flow_table_path.c    |  63 +++++++++++
+ net/netfilter/nft_flow_offload.       |   0
+ net/netfilter/nft_flow_offload.c      | 104 ++++++++++++++++-
+ 7 files changed, 345 insertions(+), 4 deletions(-)
+ create mode 100644 net/netfilter/nft_flow_offload.
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index ce414118962f..6e76a6879ff3 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -248,6 +248,8 @@ struct nft_pktinfo;
+ int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
+ 		   struct nf_flow_route *route, enum ip_conntrack_dir dir,
+ 		   struct nft_flowtable *ft);
++int nft_flow_bridge(struct flow_offload *flow, const struct nft_pktinfo *pkt,
++		    enum ip_conntrack_dir dir, struct nft_flowtable *ft);
  
--/* Lock conn_tab bucket for conn hash/unhash, not for rehash */
-+/**
-+ * conn_tab_lock - Lock conn_tab buckets for conn hash/unhash, not for rehash
-+ * @t:		hash table for hn0, new_tbl when new_hash=true
-+ * @t2:		hash table for hn1, new_tbl when new_hash2=true
-+ * @cp:		connection
-+ * @hash_key:	hash key for hn0
-+ * @hash_key2:	hash key for hn1
-+ * @use2:	using hn1 (double hashing) based on the forwarding method
-+ * @new_hash:	mode for hn0, hash node (true) or seek node (false)
-+ * @new_hash2:	mode for hn1, hash node (true) or seek node (false)
-+ * @head_ret:	returned head for hn0
-+ * @head2_ret:	returned head for hn1
-+ *
-+ * We support 3 modes:
-+ * - seek mode for both nodes, used for unhashing
-+ * - hash mode for both nodes, used for hashing
-+ * - seek hn0 and hash hn1, used when forwarding method is changed
-+ */
- static __always_inline void
--conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
--	      u32 hash_key2, bool use2, bool new_hash,
--	      struct hlist_bl_head **head_ret, struct hlist_bl_head **head2_ret)
-+conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_rht *t2, struct ip_vs_conn *cp,
-+	      u32 hash_key, u32 hash_key2, bool use2, bool new_hash,
-+	      bool new_hash2, struct hlist_bl_head **head_ret,
-+	      struct hlist_bl_head **head2_ret)
+ static inline int
+ nf_flow_table_offload_add_cb(struct nf_flowtable *flow_table,
+@@ -342,6 +344,8 @@ unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 				     const struct nf_hook_state *state);
+ unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 				       const struct nf_hook_state *state);
++unsigned int nf_flow_offload_bridge_hook(void *priv, struct sk_buff *skb,
++					 const struct nf_hook_state *state);
+ 
+ #if (IS_BUILTIN(CONFIG_NF_FLOW_TABLE) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
+     (IS_MODULE(CONFIG_NF_FLOW_TABLE) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
+@@ -377,6 +381,9 @@ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
+ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+ 			    enum flow_offload_tuple_dir dir,
+ 			    struct nf_flow_rule *flow_rule);
++int nf_flow_rule_bridge(struct net *net, struct flow_offload *flow,
++			enum flow_offload_tuple_dir dir,
++			struct nf_flow_rule *flow_rule);
+ 
+ int nf_flow_table_offload_init(void);
+ void nf_flow_table_offload_exit(void);
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
+index b0f199171932..44790a0d3012 100644
+--- a/net/netfilter/nf_flow_table_inet.c
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -65,6 +65,15 @@ static int nf_flow_rule_route_inet(struct net *net,
+ 	return err;
+ }
+ 
++static struct nf_flowtable_type flowtable_bridge = {
++	.family		= NFPROTO_BRIDGE,
++	.init		= nf_flow_table_init,
++	.setup		= nf_flow_table_offload_setup,
++	.free		= nf_flow_table_free,
++	.hook		= nf_flow_offload_bridge_hook,
++	.owner		= THIS_MODULE,
++};
++
+ static struct nf_flowtable_type flowtable_inet = {
+ 	.family		= NFPROTO_INET,
+ 	.init		= nf_flow_table_init,
+@@ -97,6 +106,7 @@ static struct nf_flowtable_type flowtable_ipv6 = {
+ 
+ static int __init nf_flow_inet_module_init(void)
  {
- 	struct hlist_bl_head *head, *head2;
- 	u32 hash_key_new, hash_key_new2;
--	struct ip_vs_rht *t2 = t;
--	u32 idx, idx2;
-+	int idx = 0, idx2 = 0;
-+
-+	/* Advance idx2 when new_hash is not set but hash_key2
-+	 * is for new table
-+	 */
-+	if (new_hash2 && use2 && t != t2)
-+		idx2++;
- 
--	idx = hash_key & t->mask;
--	if (use2)
--		idx2 = hash_key2 & t->mask;
--	else
--		idx2 = idx;
- 	if (!new_hash) {
- 		/* We need to lock the bucket in the right table */
- 
-@@ -100,46 +120,45 @@ conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
- 			 * both nodes in different tables, use idx/idx2
- 			 * for proper lock ordering for heads.
- 			 */
--			idx = hash_key & t->mask;
--			idx |= IP_VS_RHT_TABLE_ID_MASK;
--		}
--		if (use2) {
--			if (!ip_vs_rht_same_table(t2, hash_key2)) {
--				/* It is already moved to new table */
--				t2 = rcu_dereference(t2->new_tbl);
--				idx2 = hash_key2 & t2->mask;
--				idx2 |= IP_VS_RHT_TABLE_ID_MASK;
--			}
--		} else {
--			idx2 = idx;
-+			idx++;
- 		}
- 	}
-+	if (use2 && !new_hash2 && !ip_vs_rht_same_table(t2, hash_key2)) {
-+		/* It is already moved to new table */
-+		t2 = rcu_dereference(t2->new_tbl);
-+		idx2++;
-+	}
- 
-+	if (!use2)
-+		idx2 = idx;
- 	head = t->buckets + (hash_key & t->mask);
- 	head2 = use2 ? t2->buckets + (hash_key2 & t2->mask) : head;
- 
--	local_bh_disable();
--	/* Do not touch seqcount, this is a safe operation */
--
--	if (idx <= idx2) {
-+	if (idx > idx2 || (head > head2 && idx == idx2)) {
-+		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
--		if (head != head2)
--			hlist_bl_lock(head2);
- 	} else {
--		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
-+		if (head != head2)
-+			hlist_bl_lock(head2);
- 	}
- 	if (!new_hash) {
-+		bool changed;
-+
- 		/* Ensure hash_key is read under lock */
- 		hash_key_new = READ_ONCE(cp->hn0.hash_key);
--		hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+		changed = hash_key != hash_key_new;
-+		if (use2 && !new_hash2) {
-+			hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+			changed |= hash_key2 != hash_key_new2;
-+		} else {
-+			hash_key_new2 = hash_key2;
-+		}
- 		/* Hash changed ? */
--		if (hash_key != hash_key_new ||
--		    (hash_key2 != hash_key_new2 && use2)) {
-+		if (changed) {
- 			if (head != head2)
- 				hlist_bl_unlock(head2);
- 			hlist_bl_unlock(head);
--			local_bh_enable();
- 			hash_key = hash_key_new;
- 			hash_key2 = hash_key_new2;
- 			goto retry;
-@@ -155,7 +174,6 @@ static inline void conn_tab_unlock(struct hlist_bl_head *head,
- 	if (head != head2)
- 		hlist_bl_unlock(head2);
- 	hlist_bl_unlock(head);
--	local_bh_enable();
++	nft_register_flowtable_type(&flowtable_bridge);
+ 	nft_register_flowtable_type(&flowtable_ipv4);
+ 	nft_register_flowtable_type(&flowtable_ipv6);
+ 	nft_register_flowtable_type(&flowtable_inet);
+@@ -109,6 +119,7 @@ static void __exit nf_flow_inet_module_exit(void)
+ 	nft_unregister_flowtable_type(&flowtable_inet);
+ 	nft_unregister_flowtable_type(&flowtable_ipv6);
+ 	nft_unregister_flowtable_type(&flowtable_ipv4);
++	nft_unregister_flowtable_type(&flowtable_bridge);
  }
  
- static void ip_vs_conn_expire(struct timer_list *t);
-@@ -268,8 +286,9 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		use2 = false;
- 	}
- 
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
--		      &head, &head2);
-+	local_bh_disable();
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, true /* new_hash */,
-+		      true /* new_hash2 */, &head, &head2);
- 
- 	cp->flags |= IP_VS_CONN_F_HASHED;
- 	WRITE_ONCE(cp->hn0.hash_key, hash_key);
-@@ -280,6 +299,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
- 
- 	conn_tab_unlock(head, head2);
-+	local_bh_enable();
- 	ret = 1;
- 
- 	/* Schedule resizing if load increases */
-@@ -306,18 +326,20 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 		return refcount_dec_if_one(&cp->refcnt);
- 
- 	rcu_read_lock();
-+	local_bh_disable();
- 
- 	t = rcu_dereference(ipvs->conn_tab);
- 	hash_key = READ_ONCE(cp->hn0.hash_key);
- 	hash_key2 = READ_ONCE(cp->hn1.hash_key);
- 	use2 = ip_vs_conn_use_hash2(cp);
- 
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
--		      &head, &head2);
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, false /* new_hash */,
-+		      false /* new_hash2 */, &head, &head2);
- 
- 	if (cp->flags & IP_VS_CONN_F_HASHED) {
- 		/* Decrease refcnt and unlink conn only if we are last user */
--		if (refcount_dec_if_one(&cp->refcnt)) {
-+		if (use2 == ip_vs_conn_use_hash2(cp) &&
-+		    refcount_dec_if_one(&cp->refcnt)) {
- 			hlist_bl_del_rcu(&cp->hn0.node);
- 			if (use2)
- 				hlist_bl_del_rcu(&cp->hn1.node);
-@@ -328,6 +350,7 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 
- 	conn_tab_unlock(head, head2);
- 
-+	local_bh_enable();
- 	rcu_read_unlock();
- 
- 	return ret;
-@@ -632,6 +655,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	int ntbl;
- 	int dir;
- 
-+restart:
- 	/* No packets from inside, so we can do it in 2 steps. */
- 	dir = use2 ? 1 : 0;
- 
-@@ -686,6 +710,23 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	/* Protect the cp->flags modification */
- 	spin_lock_bh(&cp->lock);
- 
-+	/* Recheck the forwarding method under lock */
-+	if (use2 != ip_vs_conn_use_hash2(cp)) {
-+		use2 = !use2;
-+		if (use2) {
-+			spin_unlock_bh(&cp->lock);
-+			/* Restart with new use2 value */
-+			goto restart;
-+		}
-+		if (dir) {
-+			/* Not started yet, so just skip dir 1 */
-+			spin_unlock_bh(&cp->lock);
-+			dir--;
-+			goto next_dir;
-+		}
-+		/* Just finish dir 0 */
-+	}
-+
- 	/* Lock seqcount only for the old bucket, even if we are on new table
- 	 * because it affects the del operation, not the adding.
- 	 */
-@@ -752,6 +793,61 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 		goto next_dir;
+ module_init(nf_flow_inet_module_init);
+@@ -118,5 +129,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
+ MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
++MODULE_ALIAS_NF_FLOWTABLE(AF_BRIDGE);
+ MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
+ MODULE_DESCRIPTION("Netfilter flow table mixed IPv4/IPv6 module");
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 0b78decce8a9..e64bf7722fa2 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -1199,3 +1199,158 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	return nf_flow_queue_xmit(state->net, skb, &xmit);
  }
- 
-+/* Change forwarding method for hashed conn */
-+static void ip_vs_conn_change_fwd_mask(struct ip_vs_conn *cp, u32 new_flags)
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
++
++/* Based on is_skb_forwardable(), adding ETH_HLEN to skb->len. */
++static bool nft_br_is_skb_forwardable(const struct net_device *dev,
++				      const struct sk_buff *skb)
 +{
-+	struct netns_ipvs *ipvs = cp->ipvs;
-+	struct hlist_bl_head *head, *head2;
-+	u32 hash2, hash_key, hash_key2;
-+	struct ip_vs_rht *t, *t2;
++	const u32 vlan_hdr_len = VLAN_HLEN;
++	unsigned int dev_len, skb_len;
 +
-+	/* See ip_vs_conn_use_hash2() for reference */
-+	if ((cp->flags & IP_VS_CONN_F_TEMPLATE) ||
-+	    /* No change in double hashing ? */
-+	    (IP_VS_FWD_METHOD(cp) == IP_VS_CONN_F_MASQ) ==
-+	    ((new_flags & IP_VS_CONN_F_FWD_MASK) == IP_VS_CONN_F_MASQ)) {
-+		cp->flags = new_flags;
-+		return;
-+	}
-+	t = rcu_dereference(ipvs->conn_tab);
-+	if (ip_vs_conn_use_hash2(cp)) {
-+		/* Stop double hashing */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		hash_key2 = READ_ONCE(cp->hn1.hash_key);
++	if (!(dev->flags & IFF_UP))
++		return false;
 +
-+		conn_tab_lock(t, t, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, false /* new_hash2 */,
-+			      &head, &head2);
++	dev_len = dev->mtu + dev->hard_header_len + vlan_hdr_len;
++	skb_len = skb->len + ETH_HLEN;
++	if (skb_len <= dev_len || skb_is_gso(skb))
++		return true;
 +
-+		/* Keep both hash keys in same table */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key);
-+		hlist_bl_del_rcu(&cp->hn1.node);
-+		cp->flags = new_flags;
-+
-+		conn_tab_unlock(head, head2);
-+	} else {
-+		/* Start double hashing */
-+
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+
-+		t2 = rcu_dereference(t->new_tbl);
-+		hash2 = ip_vs_conn_hashkey_conn(t2, cp, true);
-+		hash_key2 = ip_vs_rht_build_hash_key(t2, hash2);
-+
-+		/* Change the forwarding method under locked hn0 */
-+		conn_tab_lock(t, t2, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, true /* new_hash2 */,
-+			      &head, &head2);
-+
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-+		cp->flags = new_flags;
-+		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-+
-+		conn_tab_unlock(head, head2);
-+	}
++	return false;
 +}
 +
- /* Get default load factor to map conn_count/u_thresh to t->size */
- static int ip_vs_conn_default_load_factor(struct netns_ipvs *ipvs)
- {
-@@ -1024,9 +1120,18 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
- 			conn_flags &= ~IP_VS_CONN_F_INACTIVE;
- 		/* connections inherit forwarding method from dest */
- 		flags &= ~(IP_VS_CONN_F_FWD_MASK | IP_VS_CONN_F_NOOUTPUT);
-+		flags |= conn_flags;
-+		/* Changing forwarding method for hashed conn can
-+		 * happen only under locks
-+		 */
-+		if (cp->flags & IP_VS_CONN_F_HASHED)
-+			ip_vs_conn_change_fwd_mask(cp, flags);
-+		else
-+			cp->flags = flags;
-+	} else {
-+		flags |= conn_flags;
-+		cp->flags = flags;
- 	}
--	flags |= conn_flags;
--	cp->flags = flags;
- 	cp->dest = dest;
++static int nf_flow_bridge_xmit(struct net *net,
++			       struct nf_flowtable *flow_table,
++			       struct flow_offload *flow,
++			       enum flow_offload_tuple_dir dir,
++			       struct sk_buff *skb)
++{
++	struct flow_offload_tuple *other_tuple = &flow->tuplehash[!dir].tuple;
++	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
++	struct nf_flow_xmit xmit = {};
++
++	xmit.outdev = dev_get_by_index_rcu(net, this_tuple->out.ifidx);
++	if (!xmit.outdev) {
++		flow_offload_teardown(flow);
++		return NF_DROP;
++	}
++
++	if (!nft_br_is_skb_forwardable(xmit.outdev, skb))
++		return NF_DROP;
++
++	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
++		nf_ct_acct_update(flow->ct, dir, skb->len);
++
++	xmit.dest = this_tuple->out.h_dest;
++	xmit.source = this_tuple->out.h_source;
++	xmit.tuple = other_tuple;
++	xmit.needs_gso_segment = this_tuple->needs_gso_segment;
++
++	return nf_flow_queue_xmit(net, skb, &xmit);
++}
++
++static unsigned int
++nf_flow_offload_ip_bridge(void *priv, struct sk_buff *skb,
++			  const struct nf_hook_state *state)
++{
++	struct flow_offload_tuple_rhash *tuplehash;
++	struct nf_flowtable *flow_table = priv;
++	enum flow_offload_tuple_dir dir;
++	struct nf_flowtable_ctx ctx = {
++		.in	= state->in,
++	};
++	struct flow_offload *flow;
++	unsigned int thoff;
++	struct iphdr *iph;
++
++	tuplehash = nf_flow_offload_lookup(&ctx, flow_table, skb);
++	if (!tuplehash)
++		return NF_ACCEPT;
++
++	dir = tuplehash->tuple.dir;
++	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
++
++	iph = (struct iphdr *)(skb_network_header(skb) + ctx.offset);
++	thoff = (iph->ihl * 4) + ctx.offset;
++	if (nf_flow_state_check(flow, iph->protocol, skb, thoff))
++		return NF_ACCEPT;
++
++	if (skb_ensure_writable(skb, thoff + ctx.hdrsize))
++		return NF_DROP;
++
++	flow_offload_refresh(flow_table, flow, false);
++	nf_flow_encap_pop(&ctx, skb, tuplehash);
++	skb_clear_tstamp(skb);
++
++	return nf_flow_bridge_xmit(state->net, flow_table, flow, dir, skb);
++}
++
++static unsigned int
++nf_flow_offload_ipv6_bridge(void *priv, struct sk_buff *skb,
++			    const struct nf_hook_state *state)
++{
++	struct flow_offload_tuple_rhash *tuplehash;
++	struct nf_flowtable *flow_table = priv;
++	enum flow_offload_tuple_dir dir;
++	struct nf_flowtable_ctx ctx = {
++		.in	= state->in,
++	};
++	struct flow_offload *flow;
++	struct ipv6hdr *ip6h;
++	unsigned int thoff;
++
++	tuplehash = nf_flow_offload_ipv6_lookup(&ctx, flow_table, skb);
++	if (!tuplehash)
++		return NF_ACCEPT;
++
++	dir = tuplehash->tuple.dir;
++	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
++
++	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + ctx.offset);
++	thoff = sizeof(*ip6h) + ctx.offset;
++	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
++		return NF_ACCEPT;
++
++	if (skb_ensure_writable(skb, thoff + ctx.hdrsize))
++		return NF_DROP;
++
++	flow_offload_refresh(flow_table, flow, false);
++	nf_flow_encap_pop(&ctx, skb, tuplehash);
++	skb_clear_tstamp(skb);
++
++	return nf_flow_bridge_xmit(state->net, flow_table, flow, dir, skb);
++}
++
++unsigned int
++nf_flow_offload_bridge_hook(void *priv, struct sk_buff *skb,
++			    const struct nf_hook_state *state)
++{
++	struct vlan_ethhdr *veth;
++	__be16 proto;
++
++	switch (skb->protocol) {
++	case htons(ETH_P_8021Q):
++		if (!pskb_may_pull(skb, skb_mac_offset(skb) + sizeof(*veth)))
++			return NF_ACCEPT;
++
++		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
++		proto = veth->h_vlan_encapsulated_proto;
++		break;
++	case htons(ETH_P_PPP_SES):
++		if (!nf_flow_pppoe_proto(skb, &proto))
++			return NF_ACCEPT;
++		break;
++	default:
++		proto = skb->protocol;
++		break;
++	}
++
++	switch (proto) {
++	case htons(ETH_P_IP):
++		return nf_flow_offload_ip_bridge(priv, skb, state);
++	case htons(ETH_P_IPV6):
++		return nf_flow_offload_ipv6_bridge(priv, skb, state);
++	}
++
++	return NF_ACCEPT;
++}
++EXPORT_SYMBOL_GPL(nf_flow_offload_bridge_hook);
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 801a3dd9ceea..cd8d468fe0c9 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1101,9 +1101,11 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 	return offload;
+ }
  
- 	IP_VS_DBG_BUF(7, "Bind-dest %s c:%s:%d v:%s:%d "
+-static bool nf_flow_offload_unsupported(struct flow_offload *flow)
++static bool nf_flow_offload_unsupported(struct nf_flowtable *flowtable,
++					struct flow_offload *flow)
+ {
+-	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
++	if (flowtable->type->family == NFPROTO_BRIDGE ||
++	    flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
+ 	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
+ 		return true;
+ 
+@@ -1125,7 +1127,7 @@ void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
+ void nf_flow_offload_add(struct nf_flowtable *flowtable,
+ 			 struct flow_offload *flow)
+ {
+-	if (nf_flow_offload_unsupported(flow))
++	if (nf_flow_offload_unsupported(flowtable, flow))
+ 		return;
+ 
+ 	set_bit(NF_FLOW_HW, &flow->flags);
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 98c03b487f52..288d687b6b92 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -8,6 +8,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/if_vlan.h>
+ #include <net/ip.h>
+ #include <net/inet_dscp.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -350,3 +351,65 @@ int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
+ 	return -ENOENT;
+ }
+ EXPORT_SYMBOL_GPL(nft_flow_route);
++
++static int nft_dev_fill_bridge_path(struct flow_offload *flow,
++				    struct nft_flowtable *ft,
++				    enum ip_conntrack_dir dir,
++				    const struct net_device *dev,
++				    unsigned char *src_ha,
++				    unsigned char *dst_ha)
++{
++	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
++	struct net_device_path_stack stack;
++	struct nft_forward_info info = {};
++	int i, j = 0;
++
++	if (dev_fill_forward_path(dev, dst_ha, &stack) < 0 ||
++	    nft_dev_path_info(&stack, &info, dst_ha, &ft->data) < 0)
++		return -1;
++
++	if (!nft_flowtable_find_dev(info.indev, ft))
++		return -1;
++
++	this_tuple->iifidx = info.indev->ifindex;
++	for (i = info.num_encaps - 1; i >= 0; i--) {
++		this_tuple->encap[j].id = info.encap[i].id;
++		this_tuple->encap[j].proto = info.encap[i].proto;
++		j++;
++	}
++	this_tuple->encap_num = info.num_encaps;
++
++	ether_addr_copy(this_tuple->out.h_source, src_ha);
++	ether_addr_copy(this_tuple->out.h_dest, dst_ha);
++	this_tuple->needs_gso_segment = info.needs_gso_segment;
++	this_tuple->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
++
++	return 0;
++}
++
++int nft_flow_bridge(struct flow_offload *flow, const struct nft_pktinfo *pkt,
++		    enum ip_conntrack_dir dir, struct nft_flowtable *ft)
++{
++	struct flow_offload_tuple *other_tuple = &flow->tuplehash[!dir].tuple;
++	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
++	const struct net_device *outdev = nft_out(pkt);
++	const struct net_device *indev = nft_in(pkt);
++	struct ethhdr *eth = eth_hdr(pkt->skb);
++	int err;
++
++	err = nft_dev_fill_bridge_path(flow, ft, dir, indev,
++				       eth->h_source, eth->h_dest);
++	if (err < 0)
++		return err;
++
++	err = nft_dev_fill_bridge_path(flow, ft, !dir, outdev,
++				       eth->h_dest, eth->h_source);
++	if (err < 0)
++		return err;
++
++	this_tuple->out.ifidx = other_tuple->iifidx;
++	other_tuple->out.ifidx = this_tuple->iifidx;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nft_flow_bridge);
+diff --git a/net/netfilter/nft_flow_offload. b/net/netfilter/nft_flow_offload.
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 32b4281038dd..71daf6a344d4 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -9,6 +9,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter_bridge.h>
+ #include <net/ip.h>
+ #include <net/flow.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -135,6 +136,77 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
+ }
+ 
++static void nft_flow_offload_bridge_eval(const struct nft_expr *expr,
++					 struct nft_regs *regs,
++					 const struct nft_pktinfo *pkt)
++{
++	struct nft_flow_offload *priv = nft_expr_priv(expr);
++	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	struct tcphdr _tcph, *tcph = NULL;
++	enum ip_conntrack_info ctinfo;
++	struct flow_offload *flow;
++	enum ip_conntrack_dir dir;
++	struct nf_conn *ct;
++	int ret;
++
++	/* Is this a non-IP packet or br_netfilter? If so, skip. */
++	if (!pkt->flags || nf_bridge_info_exists(pkt->skb))
++		goto out;
++
++	ct = nf_ct_get(pkt->skb, &ctinfo);
++	if (!ct || !nf_ct_is_confirmed(ct))
++		goto out;
++
++	/* Unlikely, conntrack bridge should not see neither helpers nor NAT in
++	 * the bridge forward path.
++	 */
++	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) ||
++	    ct->status & (IPS_SEQ_ADJUST | IPS_NAT_CLASH))
++		goto out;
++
++	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
++	case IPPROTO_TCP:
++		tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
++					  sizeof(_tcph), &_tcph);
++		if (unlikely(!tcph || tcph->fin || tcph->rst ||
++			     !nf_conntrack_tcp_established(ct)))
++			goto out;
++		break;
++	case IPPROTO_UDP:
++		break;
++	default:
++		goto out;
++	}
++
++	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
++		goto out;
++
++	flow = flow_offload_alloc(ct);
++	if (!flow)
++		goto err_flow_forward;
++
++	dir = CTINFO2DIR(ctinfo);
++	if (nft_flow_bridge(flow, pkt, dir, priv->flowtable) < 0)
++		goto err_flow_add;
++
++	if (tcph)
++		flow_offload_ct_tcp(ct);
++
++	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
++	ret = flow_offload_add(flowtable, flow);
++	if (ret < 0)
++		goto err_flow_add;
++
++	return;
++
++err_flow_add:
++	flow_offload_free(flow);
++err_flow_forward:
++	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
++out:
++	regs->verdict.code = NFT_BREAK;
++}
++
+ static int nft_flow_offload_validate(const struct nft_ctx *ctx,
+ 				     const struct nft_expr *expr)
+ {
+@@ -142,7 +214,8 @@ static int nft_flow_offload_validate(const struct nft_ctx *ctx,
+ 
+ 	if (ctx->family != NFPROTO_IPV4 &&
+ 	    ctx->family != NFPROTO_IPV6 &&
+-	    ctx->family != NFPROTO_INET)
++	    ctx->family != NFPROTO_INET &&
++	    ctx->family != NFPROTO_BRIDGE)
+ 		return -EOPNOTSUPP;
+ 
+ 	return nft_chain_validate_hooks(ctx->chain, hook_mask);
+@@ -235,6 +308,28 @@ static struct nft_expr_type nft_flow_offload_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static struct nft_expr_type nft_flow_offload_bridge_type;
++static const struct nft_expr_ops nft_flow_offload_bridge_ops = {
++	.type		= &nft_flow_offload_bridge_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_flow_offload)),
++	.eval		= nft_flow_offload_bridge_eval,
++	.init		= nft_flow_offload_init,
++	.activate	= nft_flow_offload_activate,
++	.deactivate	= nft_flow_offload_deactivate,
++	.destroy	= nft_flow_offload_destroy,
++	.validate	= nft_flow_offload_validate,
++	.dump		= nft_flow_offload_dump,
++};
++
++static struct nft_expr_type nft_flow_offload_bridge_type __read_mostly = {
++	.name		= "flow_offload",
++	.family		= NFPROTO_BRIDGE,
++	.ops		= &nft_flow_offload_bridge_ops,
++	.policy		= nft_flow_offload_policy,
++	.maxattr	= NFTA_FLOW_MAX,
++	.owner		= THIS_MODULE,
++};
++
+ static int flow_offload_netdev_event(struct notifier_block *this,
+ 				     unsigned long event, void *ptr)
+ {
+@@ -264,8 +359,14 @@ static int __init nft_flow_offload_module_init(void)
+ 	if (err < 0)
+ 		goto register_expr;
+ 
++	err = nft_register_expr(&nft_flow_offload_bridge_type);
++	if (err < 0)
++		goto register_bridge_expr;
++
+ 	return 0;
+ 
++register_bridge_expr:
++	nft_unregister_expr(&nft_flow_offload_type);
+ register_expr:
+ 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
+ err:
+@@ -274,6 +375,7 @@ static int __init nft_flow_offload_module_init(void)
+ 
+ static void __exit nft_flow_offload_module_exit(void)
+ {
++	nft_unregister_expr(&nft_flow_offload_bridge_type);
+ 	nft_unregister_expr(&nft_flow_offload_type);
+ 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
+ }
 -- 
-2.43.0
+2.47.3
 
