@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A2B3376A15;
-	Mon, 13 Jul 2026 11:07:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A20C3769FE;
+	Mon, 13 Jul 2026 11:07:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783940874; cv=none; b=M2Gzal+/Scg3y67QfI9jP4RcCI8+N89uJxyyy8h5J0fzhIg+uu9LpprSkzzb16k/K32vj/ICCXHD3okvoeXJ1h15e7/ZPF5cHsY/vOfMHjiG50TbsvL1RW6cVftqxxwLN0EwbQPJAHE1yKKA2ajGKV2cjKdvrIlsTFVTzxyE7Zo=
+	t=1783940874; cv=none; b=Ooj1zFrROtFYzUYpEF3OXsT4b4pwDTL6xpy2xIlkoRPXPhJ3CoruzmWv1uBHINjdflB8e8w+9k0g7N59WYuIofSqaZbtKhYNhTnSTT2/utd8zUsti+TfOUTA3Q3xvBplrz7P1iyxcAIgxJGsV8Res9uIJyaWsbujrtXyAJQ1JKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1783940874; c=relaxed/simple;
-	bh=MrkgFPG1ntcH+3vyM2VZISxYsAEsUAoFtiNSkdalbm0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=uZF96848OX0H4HDvcbnsZPVG4LK5A4UL0bpCD2kpS8JnsllPKTG/jKHO4Ep7C5mBrS0JKYiLuyxBG5mhiMIcEiaqfPoIajHljdtEVncLuakIQooBJiuQGSGA7r2zb50SEWxYZmIPILbMg/8g28XXo2EVB9t4i6knOT1MqHX2OUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UQ1KLunj; arc=none smtp.client-ip=10.30.226.201
+	bh=v0+MG609dZTjGEN7kUhnpd5ADiTo5bAurAa1W9JmYKs=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=IPPgvYqybT5rjR1JgPW7JNaYfhXS+tFHW4wSVahxgmDpuJmxuuxcQPV21YLk3EPdqI19oniOB57TY0OI5/AaIhuqW7M69jXoaJGtZRwJNZhCZlb0ZAPJ6+q1iZFsLx81Uu/AthQDINlEb+hlGoYtXi0nvm5hyDm4XwnG+thDQUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZQ6yw0ee; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UQ1KLunj"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id B6738C2BCB8;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZQ6yw0ee"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id E3BACC2BCFA;
 	Mon, 13 Jul 2026 11:07:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1783940873;
-	bh=MrkgFPG1ntcH+3vyM2VZISxYsAEsUAoFtiNSkdalbm0=;
-	h=From:Subject:Date:To:Cc:From;
-	b=UQ1KLunjhvllLUjlewYd2gM6M3y0DbhbmaH/D8daTBwHYUzFssTjzqyklB05hFLnU
-	 hmsdcn85TtTDNZXxx4sNLmXWucuSi8tNpg0cd9mG+jgtfk+28hou4uudrEQ+rOL2Ct
-	 2pgXFYhAv+xYTnfDXGnna1ltipaX1UNTdQJuzyEC9UqPVHUJVfLaZ5YW9tHjyKOxjz
-	 l7tcs2iYYAaVc85WNh3cPzxd76sNAS5iMhsXuyu8XOZA56el28Xk4UWNADP606pryW
-	 kZT7Vp4uJ0nzuwdlKcJQJ4xHqFmvhvXKDlvBrmJcdr57ZjUuLhqVq1d9URLYODawS3
-	 ZtVTaoLUuFnxA==
+	bh=v0+MG609dZTjGEN7kUhnpd5ADiTo5bAurAa1W9JmYKs=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=ZQ6yw0eeoHmWjLiNBiFZuU2WDWuyxUstyByICxagzKh+teIDgseiWHJ3F1nrGXpeD
+	 +GYhYDXrrx2NhCqp5p6AIY1xqnNrSFD26tJi4POSJ187ulOWlmSmj673y8YN9X4Hef
+	 yu/vcyA5rv9Rxn0Ri41GO4jTyT46hck58VXvc8QS8oQYjoyzMsYy2QHYKkQcsfKRqt
+	 K8CCld7X1KIgOM/PQqvRW2QWZ4ctiGub+W3DN7uGiQcSeXq3EtNBYcbW2ah03ZLTw8
+	 tg7mrEy4uQg4l03jxMPl6AKytLkf3DQOVtVeBSZGEP0DuWHQemeqD7cZVh8XMEyLuZ
+	 LGnrpIIvYDEbQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E845C43458;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C69C7C44501;
 	Mon, 13 Jul 2026 11:07:53 +0000 (UTC)
 From: Joel Granados <joel.granados@kernel.org>
-Subject: [PATCH RFC net-next v3 0/3] net: sysctl: Const Qualify sysctl
- ctl_table arrays
-Date: Mon, 13 Jul 2026 13:07:41 +0200
-Message-Id: <20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org>
+Date: Mon, 13 Jul 2026 13:07:44 +0200
+Subject: [PATCH RFC net-next v3 3/3] net: Const qualify network templated
+ ctl_tables Arrays
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,11 +41,9 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAP3GVGoC/4XNTQrCMBAF4KuUrI0k6U8aV4LgAdyKlJhO22hJN
- amhpfTuhmzEhbh8vHnfLMiB1eDQLlmQBa+dHkwI6SZBqpOmBazrkBEjrCAFE/gmW2xgrNRg3Fg
- 9X7LXzYybDIjguail4ihsHxYaPUX3jE7HQxImYTaN6BLaTrtxsHN86mm8+eN7iikGEOW1bFRGi
- NrfwRrot4NtI+nZh+GE/2JYYHKZq5yRlIKsv5h1Xd+Zy2E/EAEAAA==
-X-Change-ID: 20260629-jag-net_const_qualify-f4e09759dac7
+Message-Id: <20260713-jag-net_const_qualify-v3-3-7289fe9eaea6@kernel.org>
+References: <20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org>
+In-Reply-To: <20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org>
 To: "David S. Miller" <davem@davemloft.net>, 
  Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
  Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
@@ -69,158 +67,463 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-s390@vger.kernel.org, virtualization@lists.linux.dev, 
  Joel Granados <joel.granados@kernel.org>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5605;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=13709;
  i=joel.granados@kernel.org; h=from:subject:message-id;
- bh=MrkgFPG1ntcH+3vyM2VZISxYsAEsUAoFtiNSkdalbm0=;
- b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGpUxwUBiWb2tjiICva7RN2tpfHxbzpTwM4W4
- UKZB5EucD3XFYkBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqVMcFAAoJELqXzVK3
- lkFP5JkL/A+MxgPlU8yaJs7ia4XTGTtosOYbPEVXCyU2Ww6Yryzb543+2zIx9es3Lj6g+vwlXGt
- 4RW+l+3qgNlP3sKUdTtrMIEP7KPGw7wHYWni1KS950x7yZ51Z6eds3XURdREMBlaCFQ+NBoIPDE
- 1fybWLptzExNy/M6hD0liBh670cgcog69+S1j9g7W8XIzSotouZptJN3LORiSj/AFYfmt5NQUcs
- mQlcPO1fh0m2RuKH5gTQdODb03kF7EFBGX7XPsE3rQw9TuZqKa3g5XXbTh0sjiWD6bZEyOfhbH9
- tTGrblWYx9+yXhJ4UcG/7JY25reBxA6QlDa43knUvWjH+R5vH11DM3WgpZf3JAhe13lrgnSakB0
- BIYZCLsMRcYktQMYq4L8dJ+0jpQyknMjtQ+NGCHcKnljrkixGLjc0310sCb0d6qQ0VPRUCk8bqQ
- zhuv7wNfOgjar4Ati0FS+ts24gK2sW/GUllcj+pm1SMp5RXCdoYGwp0W49W9o6pbqIDitcVIZX4
- w4=
+ bh=v0+MG609dZTjGEN7kUhnpd5ADiTo5bAurAa1W9JmYKs=;
+ b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGpUxwc5IEmEUrK0ky3OGnOlyhZX0IuZs9fuC
+ HlMAC2ruSOzdYkBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqVMcHAAoJELqXzVK3
+ lkFPcOEL/3gh1ZlNROJQUz2bR/chdON08U8HaJt8WsCxMwDE+poTeX1IiTwASupaM837S7At5q/
+ ww9PmHIH91IhAhEDjy0UX+SZVg9i/5rrB120OE1+ca7pAIMYzLCM8fBMCK0Kjk+pL1gyGNnbFmp
+ fcz9NIcMD1g1kSqJWoHobyul+LwhO/1SqFCxTajeI7GnivboWXkRsK+47f8fhqiPBNGI9aNg2tE
+ xCUdKxDZ9lUcfzlX8svdSbZo3UVOtGTiUASgC0t5jQ8BJqbJsTHpoaVYHf+bZ0SirlouhDJxgNC
+ 4uDTllGBaI11paF4zrXNsPkvx59yTsMAxQPUwFjrfOp7QnhLBEaKPL8lXR2GTVIdgjrLB6dn1Ga
+ rUb4ybILLIUkvjX0Bem18RanSK8/hNPGPzC17VUiq12g5TenibITX2nHRTZnPVV+4w4nZwlBR5M
+ YIffm/BmHkZ09wGAdoV24djw5Ixf4gAPA7u+SrCmbg8mCKApvs4He/5dRqFHBKPtDqLMwH4WFJ6
+ bw=
 X-Developer-Key: i=joel.granados@kernel.org; a=openpgp;
  fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
 X-Endpoint-Received: by B4 Relay for joel.granados@kernel.org/default with
  auth_id=239
 
-What?
-=====
-We do two things:
-1. Reject netns-unsafe: Replace warning and file permission change with
-   an error (reject registration) when an "unsafe" net sysctl
-   registration is detected.
-2. Const qualify: Const qualify network templated ctl_table arrays and
-   unconditional kmemdup'ed ctl_table arrays.
+Add duplication helpers in the cases where the ctl_table array elements
+are modified after duplication. Helpers return a ctl_table as const
+pointer allowing the const qualification of the static global ctl_table
+array.
 
-Why?
-====
-The main motivation for this is to continue with the const qualification
-of the ctl_table arrays [1]. The permission change inside
-ensure_safe_net_sysctl disallows cons qualifiaction as it basically
-modifies the entries before running the sysctl registration.
-
-      ent->mode &= ~0222;
-
-On reject netns-unsafe?
-=======================
-* I believe that there is currently now way that the permission change
-  gets executed [2]
-* I found one case where the warning message was posted to lore
-  (vsock_sysctl_register) [3], but it made its to mainline as part of
-  the second case in [2].
-* We should error anyway because writing to the global sysctl value
-  through a child netns is indicative of a bug [4].
-
-On Const qualification?
-=======================
-We can separate the places where network registers sysctl tables into
-three groups:
-1. Static global: The unchanged global static arrays are passed along to
-   sysctl register.
-2. Always kmemdup: The global static arrays are always kmemdup'ed before
-   passing them along to sysctl register.
-3. Dynamic global: The global static array is changed in place before
-   passing it along to sysctl register.
-
-This series handles case 1 and 2. It leaves 3 for a later point as
-const qualifying those global ctl_tables is more involved.
-
-RFC
-===
-Keeping the RFC tag for now in hope of any preliminary feedback. I would
-be very thankful if you point me to anything that I have missed in my
-analysis that shows that this cannot/shouldn't be done.
-
-Changes in v3:
-- Const qualified 2 of the 3 cases within the net directory ctl_table
-  register sites.
-- Link to v2: https://lore.kernel.org/r/20260707-jag-net_const_qualify-v2-1-5a5c52031ead@kernel.org
-
-Changes in v2:
-- Rebased on top of net-next
-- Updated subject to "RFC net-next"
-- Link to v1: https://lore.kernel.org/r/20260629-jag-net_const_qualify-v1-1-ee98b8fc400c@kernel.org
-
-Best
-
-[1]
-  https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/commit/?h=constfy-sysctl-6.14-rc1&id=1751f872cc97f992ed5c4c72c55588db1f0021e1
-
-[2]
-  I have identified 4 contexts relevant to the ensure_safe_net_sysctl call
-  inside the network sysctl registration.
-
-  1. When the (struct net) == &init_net (like in iw_cm_init): In this case
-     ensure_safe_net_sysctl is not executed and permission modification
-     never happens.
-
-  2. When the ctl_table data (->data) gets "manually" assigned to
-     something other init_net (like in vsock_sysctl_register): In this
-     case ensure_safe_net_sysctl *is* executed but the data that is passed
-     is neither a module address (!is_module_address) nor a kernel core
-     address (!is_kernel_core_data); so the permission modification never
-     happens.
-
-  3. When the permissions are explicitly changed on a kmemdup'ed ctl_table
-     array (like in sysctl_core_net_init): in this case
-     ensure_safe_net_sysctl *is* executed but the permission modification
-     never happens as the mode is not writable.
-
-  4. When ctl have custom proc_handlers (like in nf_lwtunnel_net_init): In
-     this case ->data is NULL so it is not a module address
-     (!is_module_address) nor a kernel core address
-     (!is_kernel_core_data), so permission modification never happens.
-
-  It seems like there is no way of executing the permission change in
-  ensure_safe_net_sysctl. Please correct me if this is inaccurate and help
-  me find the case that I missed.
-
-[3]
-  https://lore.kernel.org/all/20260302194926.90378-1-graf@amazon.com/
-
-[4]
-  The ensure_safe_net_sysctl function was introduced in Commit:
-  31c4d2f160eb7b17cbead24dc6efed06505a3fee ("net: Ensure net namespace
-  isolation of sysctls") which states that it is trying to prevent a
-  leak (indicative of a bug).
-
----
 Signed-off-by: Joel Granados <joel.granados@kernel.org>
-
 ---
-Joel Granados (3):
-      net: enforce net sysctl registration
-      net: Const qualify ctl_tables that kmemdup unconditionally
-      net: Const qualify network templated ctl_tables Arrays
+ net/core/sysctl_net_core.c        | 38 +++++++++++++++++----------
+ net/ipv4/sysctl_net_ipv4.c        | 54 +++++++++++++++++++++++----------------
+ net/ipv4/xfrm4_policy.c           | 22 ++++++++++++----
+ net/ipv6/xfrm6_policy.c           | 22 ++++++++++++----
+ net/netfilter/nf_hooks_lwtunnel.c |  4 +--
+ net/smc/smc_sysctl.c              | 26 ++++++++++++++-----
+ net/unix/sysctl_net_unix.c        | 21 +++++++++++----
+ net/vmw_vsock/af_vsock.c          | 25 +++++++++++++-----
+ 8 files changed, 146 insertions(+), 66 deletions(-)
 
- include/net/net_namespace.h             |  4 +--
- net/core/sysctl_net_core.c              | 38 +++++++++++++++--------
- net/ipv4/devinet.c                      |  2 +-
- net/ipv4/sysctl_net_ipv4.c              | 54 +++++++++++++++++++--------------
- net/ipv4/xfrm4_policy.c                 | 22 +++++++++++---
- net/ipv6/icmp.c                         |  2 +-
- net/ipv6/route.c                        |  2 +-
- net/ipv6/sysctl_net_ipv6.c              |  2 +-
- net/ipv6/xfrm6_policy.c                 | 22 +++++++++++---
- net/netfilter/nf_conntrack_standalone.c |  2 +-
- net/netfilter/nf_hooks_lwtunnel.c       |  4 +--
- net/sctp/sysctl.c                       |  2 +-
- net/smc/smc_sysctl.c                    | 26 +++++++++++-----
- net/sysctl_net.c                        | 24 +++++++--------
- net/unix/sysctl_net_unix.c              | 21 ++++++++++---
- net/vmw_vsock/af_vsock.c                | 25 ++++++++++-----
- net/xfrm/xfrm_sysctl.c                  |  2 +-
- 17 files changed, 167 insertions(+), 87 deletions(-)
----
-base-commit: 474cff6868129755cf889edf40d7f491729fc588
-change-id: 20260629-jag-net_const_qualify-f4e09759dac7
+diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
+index b508618bfc12393ba926ebf5a2dd4ea73ef03ee8..eb35da3556f4aa00cecd4582ab94e339d2518506 100644
+--- a/net/core/sysctl_net_core.c
++++ b/net/core/sysctl_net_core.c
+@@ -678,7 +678,7 @@ static struct ctl_table net_core_table[] = {
+ 	},
+ };
+ 
+-static struct ctl_table netns_core_table[] = {
++static const struct ctl_table netns_core_table[] = {
+ #if IS_ENABLED(CONFIG_RPS)
+ 	{
+ 		.procname	= "rps_default_mask",
+@@ -787,26 +787,38 @@ static int __init fb_tunnels_only_for_init_net_sysctl_setup(char *str)
+ }
+ __setup("fb_tunnels=", fb_tunnels_only_for_init_net_sysctl_setup);
+ 
+-static __net_init int sysctl_core_net_init(struct net *net)
++static const struct ctl_table *netns_core_table_dup(struct net *net)
+ {
+ 	size_t table_size = ARRAY_SIZE(netns_core_table);
+ 	struct ctl_table *tbl;
++	int i;
++
++	tbl = kmemdup(netns_core_table, sizeof(netns_core_table), GFP_KERNEL);
++	if (!tbl)
++		return NULL;
++
++	for (i = 0; i < table_size; ++i) {
++		if (tbl[i].data == &sysctl_wmem_max)
++			break;
++
++		tbl[i].data += (char *)net - (char *)&init_net;
++	}
++	for (; i < table_size; ++i)
++		tbl[i].mode &= ~0222;
++
++	return tbl;
++}
++
++static __net_init int sysctl_core_net_init(struct net *net)
++{
++	size_t table_size = ARRAY_SIZE(netns_core_table);
++	const struct ctl_table *tbl;
+ 
+ 	tbl = netns_core_table;
+ 	if (!net_eq(net, &init_net)) {
+-		int i;
+-		tbl = kmemdup(tbl, sizeof(netns_core_table), GFP_KERNEL);
++		tbl = netns_core_table_dup(net);
+ 		if (tbl == NULL)
+ 			goto err_dup;
+-
+-		for (i = 0; i < table_size; ++i) {
+-			if (tbl[i].data == &sysctl_wmem_max)
+-				break;
+-
+-			tbl[i].data += (char *)net - (char *)&init_net;
+-		}
+-		for (; i < table_size; ++i)
+-			tbl[i].mode &= ~0222;
+ 	}
+ 
+ 	net->core.sysctl_hdr = register_net_sysctl_sz(net, "net/core", tbl, table_size);
+diff --git a/net/ipv4/sysctl_net_ipv4.c b/net/ipv4/sysctl_net_ipv4.c
+index ca1180dba1dea9ce72028ba49b7f953da343336b..2f0363bca2a88d68276670cfce6fb04398f82bc5 100644
+--- a/net/ipv4/sysctl_net_ipv4.c
++++ b/net/ipv4/sysctl_net_ipv4.c
+@@ -624,7 +624,7 @@ static struct ctl_table ipv4_table[] = {
+ 	},
+ };
+ 
+-static struct ctl_table ipv4_net_table[] = {
++static const struct ctl_table ipv4_net_table[] = {
+ 	{
+ 		.procname	= "tcp_max_tw_buckets",
+ 		.data		= &init_net.ipv4.tcp_death_row.sysctl_max_tw_buckets,
+@@ -1654,35 +1654,45 @@ static struct ctl_table ipv4_net_table[] = {
+ 	},
+ };
+ 
+-static __net_init int ipv4_sysctl_init_net(struct net *net)
++static const struct ctl_table *ipv4_net_table_dup(struct net *net)
+ {
+ 	size_t table_size = ARRAY_SIZE(ipv4_net_table);
+ 	struct ctl_table *table;
++	int i;
++
++	table = kmemdup(ipv4_net_table, sizeof(ipv4_net_table), GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	for (i = 0; i < table_size; i++) {
++		if (table[i].data) {
++			/* Update the variables to point into
++			 * the current struct net
++			 */
++			table[i].data += (void *)net - (void *)&init_net;
++		} else {
++			/* Entries without data pointer are global;
++			 * Make them read-only in non-init_net ns
++			 */
++			table[i].mode &= ~0222;
++		}
++		if (table[i].extra2 >= (void *)&init_net.ipv4 &&
++		    table[i].extra2 < (void *)(&init_net.ipv4 + 1))
++			table[i].extra2 += (void *)net - (void *)&init_net;
++	}
++	return table;
++}
++
++static __net_init int ipv4_sysctl_init_net(struct net *net)
++{
++	size_t table_size = ARRAY_SIZE(ipv4_net_table);
++	const struct ctl_table *table;
+ 
+ 	table = ipv4_net_table;
+ 	if (!net_eq(net, &init_net)) {
+-		int i;
+-
+-		table = kmemdup(table, sizeof(ipv4_net_table), GFP_KERNEL);
++		table = ipv4_net_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		for (i = 0; i < table_size; i++) {
+-			if (table[i].data) {
+-				/* Update the variables to point into
+-				 * the current struct net
+-				 */
+-				table[i].data += (void *)net - (void *)&init_net;
+-			} else {
+-				/* Entries without data pointer are global;
+-				 * Make them read-only in non-init_net ns
+-				 */
+-				table[i].mode &= ~0222;
+-			}
+-			if (table[i].extra2 >= (void *)&init_net.ipv4 &&
+-			    table[i].extra2 < (void *)(&init_net.ipv4 + 1))
+-				table[i].extra2 += (void *)net - (void *)&init_net;
+-		}
+ 	}
+ 
+ 	net->ipv4.ipv4_hdr = register_net_sysctl_sz(net, "net/ipv4", table,
+diff --git a/net/ipv4/xfrm4_policy.c b/net/ipv4/xfrm4_policy.c
+index 58faf1ddd2b151e4569bb6351029718dac37521b..ab7a01029d490416d36482f7a3189f83d6670f42 100644
+--- a/net/ipv4/xfrm4_policy.c
++++ b/net/ipv4/xfrm4_policy.c
+@@ -141,7 +141,7 @@ static const struct xfrm_policy_afinfo xfrm4_policy_afinfo = {
+ };
+ 
+ #ifdef CONFIG_SYSCTL
+-static struct ctl_table xfrm4_policy_table[] = {
++static const struct ctl_table xfrm4_policy_table[] = {
+ 	{
+ 		.procname       = "xfrm4_gc_thresh",
+ 		.data           = &init_net.xfrm.xfrm4_dst_ops.gc_thresh,
+@@ -151,18 +151,30 @@ static struct ctl_table xfrm4_policy_table[] = {
+ 	},
+ };
+ 
+-static __net_init int xfrm4_net_sysctl_init(struct net *net)
++static const struct ctl_table *xfrm4_policy_table_dup(struct net *net)
+ {
+ 	struct ctl_table *table;
++
++	table = kmemdup(xfrm4_policy_table, sizeof(xfrm4_policy_table),
++			GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	table[0].data = &net->xfrm.xfrm4_dst_ops.gc_thresh;
++
++	return table;
++}
++
++static __net_init int xfrm4_net_sysctl_init(struct net *net)
++{
++	const struct ctl_table *table;
+ 	struct ctl_table_header *hdr;
+ 
+ 	table = xfrm4_policy_table;
+ 	if (!net_eq(net, &init_net)) {
+-		table = kmemdup(table, sizeof(xfrm4_policy_table), GFP_KERNEL);
++		table = xfrm4_policy_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		table[0].data = &net->xfrm.xfrm4_dst_ops.gc_thresh;
+ 	}
+ 
+ 	hdr = register_net_sysctl_sz(net, "net/ipv4", table,
+diff --git a/net/ipv6/xfrm6_policy.c b/net/ipv6/xfrm6_policy.c
+index 125ea9a5b8a082052380b7fd7ed7123f5247d7cc..1e0385b62cde3f6d23382f92bbad5d7fdd09f1ef 100644
+--- a/net/ipv6/xfrm6_policy.c
++++ b/net/ipv6/xfrm6_policy.c
+@@ -186,7 +186,7 @@ static void xfrm6_policy_fini(void)
+ }
+ 
+ #ifdef CONFIG_SYSCTL
+-static struct ctl_table xfrm6_policy_table[] = {
++static const struct ctl_table xfrm6_policy_table[] = {
+ 	{
+ 		.procname       = "xfrm6_gc_thresh",
+ 		.data		= &init_net.xfrm.xfrm6_dst_ops.gc_thresh,
+@@ -196,18 +196,30 @@ static struct ctl_table xfrm6_policy_table[] = {
+ 	},
+ };
+ 
+-static int __net_init xfrm6_net_sysctl_init(struct net *net)
++static const struct ctl_table *xfrm6_policy_table_dup(struct net *net)
+ {
+ 	struct ctl_table *table;
++
++	table = kmemdup(xfrm6_policy_table, sizeof(xfrm6_policy_table),
++			GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	table[0].data = &net->xfrm.xfrm6_dst_ops.gc_thresh;
++
++	return table;
++}
++
++static int __net_init xfrm6_net_sysctl_init(struct net *net)
++{
++	const struct ctl_table *table;
+ 	struct ctl_table_header *hdr;
+ 
+ 	table = xfrm6_policy_table;
+ 	if (!net_eq(net, &init_net)) {
+-		table = kmemdup(table, sizeof(xfrm6_policy_table), GFP_KERNEL);
++		table = xfrm6_policy_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		table[0].data = &net->xfrm.xfrm6_dst_ops.gc_thresh;
+ 	}
+ 
+ 	hdr = register_net_sysctl_sz(net, "net/ipv6", table,
+diff --git a/net/netfilter/nf_hooks_lwtunnel.c b/net/netfilter/nf_hooks_lwtunnel.c
+index 2d890dd04ff89041e6aec3741f24cdd7bc47d1fe..4e1eef1ba0f1559ca35f024723af551c6c9e7d35 100644
+--- a/net/netfilter/nf_hooks_lwtunnel.c
++++ b/net/netfilter/nf_hooks_lwtunnel.c
+@@ -54,7 +54,7 @@ int nf_hooks_lwtunnel_sysctl_handler(const struct ctl_table *table, int write,
+ }
+ EXPORT_SYMBOL_GPL(nf_hooks_lwtunnel_sysctl_handler);
+ 
+-static struct ctl_table nf_lwtunnel_sysctl_table[] = {
++static const struct ctl_table nf_lwtunnel_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_hooks_lwtunnel",
+ 		.data		= NULL,
+@@ -66,8 +66,8 @@ static struct ctl_table nf_lwtunnel_sysctl_table[] = {
+ 
+ static int __net_init nf_lwtunnel_net_init(struct net *net)
+ {
++	const struct ctl_table *table;
+ 	struct ctl_table_header *hdr;
+-	struct ctl_table *table;
+ 
+ 	table = nf_lwtunnel_sysctl_table;
+ 	if (!net_eq(net, &init_net)) {
+diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
+index b1efed5462435b1a6f2f59584a4cf47f5f6e1981..09dad48337f6164f5765fa793412bdebf47e61ca 100644
+--- a/net/smc/smc_sysctl.c
++++ b/net/smc/smc_sysctl.c
+@@ -97,7 +97,7 @@ static int proc_smc_hs_ctrl(const struct ctl_table *ctl, int write,
+ }
+ #endif /* CONFIG_SMC_HS_CTRL_BPF */
+ 
+-static struct ctl_table smc_table[] = {
++static const struct ctl_table smc_table[] = {
+ 	{
+ 		.procname       = "autocorking_size",
+ 		.data           = &init_net.smc.sysctl_autocorking_size,
+@@ -195,14 +195,29 @@ static struct ctl_table smc_table[] = {
+ #endif /* CONFIG_SMC_HS_CTRL_BPF */
+ };
+ 
+-int __net_init smc_sysctl_net_init(struct net *net)
++static const struct ctl_table *smc_table_dup(struct net *net)
+ {
+ 	size_t table_size = ARRAY_SIZE(smc_table);
+ 	struct ctl_table *table;
++	int i;
++
++	table = kmemdup(smc_table, sizeof(smc_table), GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	for (i = 0; i < table_size; i++)
++		table[i].data += (void *)net - (void *)&init_net;
++
++	return table;
++}
++
++int __net_init smc_sysctl_net_init(struct net *net)
++{
++	size_t table_size = ARRAY_SIZE(smc_table);
++	const struct ctl_table *table;
+ 
+ 	table = smc_table;
+ 	if (!net_eq(net, &init_net)) {
+-		int i;
+ #if IS_ENABLED(CONFIG_SMC_HS_CTRL_BPF)
+ 		struct smc_hs_ctrl *ctrl;
+ 
+@@ -214,12 +229,9 @@ int __net_init smc_sysctl_net_init(struct net *net)
+ 		rcu_read_unlock();
+ #endif /* CONFIG_SMC_HS_CTRL_BPF */
+ 
+-		table = kmemdup(table, sizeof(smc_table), GFP_KERNEL);
++		table = smc_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		for (i = 0; i < table_size; i++)
+-			table[i].data += (void *)net - (void *)&init_net;
+ 	}
+ 
+ 	net->smc.smc_hdr = register_net_sysctl_sz(net, "net/smc", table,
+diff --git a/net/unix/sysctl_net_unix.c b/net/unix/sysctl_net_unix.c
+index e02ed6e3955c06b60cf4afb02656df8956f075ba..47660d5726bbd7d812762f4feffa9a0a42499d7d 100644
+--- a/net/unix/sysctl_net_unix.c
++++ b/net/unix/sysctl_net_unix.c
+@@ -13,7 +13,7 @@
+ 
+ #include "af_unix.h"
+ 
+-static struct ctl_table unix_table[] = {
++static const struct ctl_table unix_table[] = {
+ 	{
+ 		.procname	= "max_dgram_qlen",
+ 		.data		= &init_net.unx.sysctl_max_dgram_qlen,
+@@ -23,18 +23,29 @@ static struct ctl_table unix_table[] = {
+ 	},
+ };
+ 
+-int __net_init unix_sysctl_register(struct net *net)
++static const struct ctl_table *unix_table_dup(struct net *net)
+ {
+ 	struct ctl_table *table;
+ 
++	table = kmemdup(unix_table, sizeof(unix_table), GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	table[0].data = &net->unx.sysctl_max_dgram_qlen;
++
++	return table;
++}
++
++int __net_init unix_sysctl_register(struct net *net)
++{
++	const struct ctl_table *table;
++
+ 	if (net_eq(net, &init_net)) {
+ 		table = unix_table;
+ 	} else {
+-		table = kmemdup(unix_table, sizeof(unix_table), GFP_KERNEL);
++		table = unix_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		table[0].data = &net->unx.sysctl_max_dgram_qlen;
+ 	}
+ 
+ 	net->unx.ctl = register_net_sysctl_sz(net, "net/unix", table,
+diff --git a/net/vmw_vsock/af_vsock.c b/net/vmw_vsock/af_vsock.c
+index 622dbd0467994428f1a590f559b78d8c17f6ba60..caebef73ea58d2b6043ca3fe3b6872f92fbe9fa6 100644
+--- a/net/vmw_vsock/af_vsock.c
++++ b/net/vmw_vsock/af_vsock.c
+@@ -2899,7 +2899,7 @@ static int vsock_net_child_mode_string(const struct ctl_table *table, int write,
+ 	return 0;
+ }
+ 
+-static struct ctl_table vsock_table[] = {
++static const struct ctl_table vsock_table[] = {
+ 	{
+ 		.procname	= "ns_mode",
+ 		.data		= &init_net.vsock.mode,
+@@ -2925,20 +2925,31 @@ static struct ctl_table vsock_table[] = {
+ 	},
+ };
+ 
+-static int __net_init vsock_sysctl_register(struct net *net)
++static const struct ctl_table *vsock_table_dup(struct net *net)
+ {
+ 	struct ctl_table *table;
+ 
++	table = kmemdup(vsock_table, sizeof(vsock_table), GFP_KERNEL);
++	if (!table)
++		return NULL;
++
++	table[0].data = &net->vsock.mode;
++	table[1].data = &net->vsock.child_ns_mode;
++	table[2].data = &net->vsock.g2h_fallback;
++
++	return table;
++}
++
++static int __net_init vsock_sysctl_register(struct net *net)
++{
++	const struct ctl_table *table;
++
+ 	if (net_eq(net, &init_net)) {
+ 		table = vsock_table;
+ 	} else {
+-		table = kmemdup(vsock_table, sizeof(vsock_table), GFP_KERNEL);
++		table = vsock_table_dup(net);
+ 		if (!table)
+ 			goto err_alloc;
+-
+-		table[0].data = &net->vsock.mode;
+-		table[1].data = &net->vsock.child_ns_mode;
+-		table[2].data = &net->vsock.g2h_fallback;
+ 	}
+ 
+ 	net->vsock.sysctl_hdr = register_net_sysctl_sz(net, "net/vsock", table,
 
-Best regards,
 -- 
-Joel Granados <joel.granados@kernel.org>
+2.50.1
 
 
