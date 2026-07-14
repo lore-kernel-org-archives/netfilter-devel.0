@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682DB25B093
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:18:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A042274B5F
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:18:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784035138; cv=none; b=ZoI+E07YMTGwjwvHPT/8rRSx/JRtj1G8WIWZ8QnZeYtVaYJ3QITE6pZRvWzIeUFulIdfWAnSWMpx6trVr/OBy1KuASdGNFY+SBWXU4oRQY0f/zZ+fq0MoY8+Jk9afdcBmffv5fyShaxLP4aJPmfkyikTxTdCV2pKjJANPAYuDlg=
+	t=1784035141; cv=none; b=VsNvoe+y9dybDvGH1vc9xZS78D4Lt+/+LD4OkpQWFDA6Pi5wmnno38OqrcLKuPsyHCeZ7iDi7Nn6ptoETWU4MZoibwyhnfUwJ8JiJPHx/sEDqeKReHOEXM496VSC/0yo6DTos2YvoW85x/CdG8lD0RttRRffZQy1u2viVuK4uMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784035138; c=relaxed/simple;
-	bh=ypZr9kQ4UbcG95NaBG72emi5BojtClp0HfZxoVhoryo=;
+	s=arc-20240116; t=1784035141; c=relaxed/simple;
+	bh=jCybzB0qyyMqqlychr2btla2tkoeNP80sY6bRhzjvrs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QpcM8bXoyFWkDP3K2NTKU849M83zEhA6GwNzsaPaYTeVBFXkjKQ0e0PXwmmoQM/zwS7lTCLWws0WyxnGC9VeUT9kJ+ADaBm/EqO5xBN2NX4Q9/XWcnpMePDAlSSxSphK7u/W1rzTymERegGqg5A21Q6n/Ne7i2ecs/w+b03UgWs=
+	 MIME-Version; b=Q46N6jO3SIWPTKw6SfelEpa+B9P9R4Cws8KcNWBnNlziVscNvVQdIMjYENv/5BQSF1JcMbid/BaQso+u7ZDo/FXvNZI/EnlYV4MYEgGhMFV0L8H1mHXvszCyv0dC9JqLUf/EfeiSDqdQT9WWKVMMXFfYmBauJIESApGad4yuzh8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9CE7560503; Tue, 14 Jul 2026 15:18:53 +0200 (CEST)
+	id E0203606E9; Tue, 14 Jul 2026 15:18:57 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: kadlec@netfilter.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH RFC nf-next 03/12] netfilter: ipset: add small wrappers for hash and bucket sizes
-Date: Tue, 14 Jul 2026 15:18:19 +0200
-Message-ID: <20260714131828.10685-4-fw@strlen.de>
+Subject: [PATCH RFC nf-next 04/12] netfilter: ipset: add and use mtype_del_cidr_all helper
+Date: Tue, 14 Jul 2026 15:18:20 +0200
+Message-ID: <20260714131828.10685-5-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260714131828.10685-1-fw@strlen.de>
 References: <20260714131828.10685-1-fw@strlen.de>
@@ -34,118 +34,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Preparation patch.  Once the ipset hash table is replaced with
-rhashtable these functions are needed, adding them in an extra
-commit helps keeping changes in reviewable chunks.
+Makes upcoming rewrite a bit easier on the eyes.
 
 Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 39 +++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 8 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 34 +++++++++++++--------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 49b2d998117e..ac957a1d5f24 100644
+index ac957a1d5f24..129f06ed85f8 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -200,6 +200,8 @@ static const union nf_inet_addr zeromask = {};
- #undef mtype_same_set
- #undef mtype_kadt
- #undef mtype_uadt
-+#undef mtype_bucket_size
-+#undef mtype_hash_size
- 
- #undef mtype_add
- #undef mtype_del
-@@ -245,6 +247,8 @@ static const union nf_inet_addr zeromask = {};
- #define mtype_same_set		IPSET_TOKEN(MTYPE, _same_set)
- #define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
- #define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
-+#define mtype_bucket_size	IPSET_TOKEN(MTYPE, _bucket_size)
-+#define mtype_hash_size		IPSET_TOKEN(MTYPE, _hash_size)
- 
- #define mtype_add		IPSET_TOKEN(MTYPE, _add)
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
-@@ -1359,6 +1363,24 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	return ret;
+@@ -194,6 +194,7 @@ static const union nf_inet_addr zeromask = {};
+ #undef mtype_ext_cleanup
+ #undef mtype_add_cidr
+ #undef mtype_del_cidr
++#undef mtype_del_cidr_all
+ #undef mtype_ahash_memsize
+ #undef mtype_flush
+ #undef mtype_destroy
+@@ -241,6 +242,7 @@ static const union nf_inet_addr zeromask = {};
+ #define mtype_ext_cleanup	IPSET_TOKEN(MTYPE, _ext_cleanup)
+ #define mtype_add_cidr		IPSET_TOKEN(MTYPE, _add_cidr)
+ #define mtype_del_cidr		IPSET_TOKEN(MTYPE, _del_cidr)
++#define mtype_del_cidr_all	IPSET_TOKEN(MTYPE, _del_cidr_all)
+ #define mtype_ahash_memsize	IPSET_TOKEN(MTYPE, _ahash_memsize)
+ #define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
+ #define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
+@@ -411,6 +413,17 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
  }
+ #endif
  
-+static u32 mtype_hash_size(const struct htype *h)
++static void
++mtype_del_cidr_all(struct ip_set *set, struct htype *h, const struct mtype_elem *data)
 +{
-+	const struct htable *t;
-+	u8 htable_bits;
++#ifdef IP_SET_HASH_WITH_NETS
++	int k;
 +
-+	rcu_read_lock();
-+	t = rcu_dereference(h->table);
-+	htable_bits = t->htable_bits;
-+	rcu_read_unlock();
-+
-+	return jhash_size(htable_bits);
++	for (k = 0; k < IPSET_NET_COUNT; k++)
++		mtype_del_cidr(set, h, DCIDR_GET(data->cidr, k), k);
++#endif
 +}
 +
-+static u32 mtype_bucket_size(const struct htype *h)
-+{
-+	return h->bucketsize;
-+}
-+
- /* Reply a HEADER request: fill out the header part of the set */
- static int
- mtype_head(struct ip_set *set, struct sk_buff *skb)
-@@ -1369,21 +1391,20 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
- 	size_t memsize;
- 	u32 elements = 0;
- 	size_t ext_size = 0;
--	u8 htable_bits;
+ /* Calculate the actual memory size of the set data */
+ static size_t
+ mtype_ahash_memsize(const struct htype *h, const struct htable *t)
+@@ -552,9 +565,6 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ 	struct mtype_elem *data;
+ 	u32 i, j, d;
+ 	size_t dsize = set->dsize;
+-#ifdef IP_SET_HASH_WITH_NETS
+-	u8 k;
+-#endif
+ 	u8 pos, htable_bits = t->htable_bits;
  
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh(h->table);
- 	mtype_ext_size(set, &elements, &ext_size);
- 	memsize = mtype_ahash_memsize(h, t) + ext_size + set->ext_size;
--	htable_bits = t->htable_bits;
- 	rcu_read_unlock_bh();
+ 	spin_lock_bh(&t->hregion[r].lock);
+@@ -575,11 +585,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ 			pr_debug("expired %u/%u\n", i, j);
+ 			clear_bit(j, n->used);
+ 			smp_mb__after_atomic();
+-#ifdef IP_SET_HASH_WITH_NETS
+-			for (k = 0; k < IPSET_NET_COUNT; k++)
+-				mtype_del_cidr(set, h,
+-					DCIDR_GET(data->cidr, k), k);
+-#endif
++			mtype_del_cidr_all(set, h, data);
+ 			t->hregion[r].elements--;
+ 			ip_set_ext_destroy(set, data);
+ 			d++;
+@@ -1005,11 +1011,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 			j = 0;
+ 		data = ahash_data(n, j, set->dsize);
+ 		if (!deleted) {
+-#ifdef IP_SET_HASH_WITH_NETS
+-			for (i = 0; i < IPSET_NET_COUNT; i++)
+-				mtype_del_cidr(set, h,
+-					DCIDR_GET(data->cidr, i), i);
+-#endif
++			mtype_del_cidr_all(set, h, data);
+ 			ip_set_ext_destroy(set, data);
+ 			t->hregion[r].elements--;
+ 		}
+@@ -1164,11 +1166,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		if (i + 1 == pos)
+ 			smp_store_release(&n->pos, --pos);
+ 		t->hregion[r].elements--;
+-#ifdef IP_SET_HASH_WITH_NETS
+-		for (j = 0; j < IPSET_NET_COUNT; j++)
+-			mtype_del_cidr(set, h,
+-				DCIDR_GET(d->cidr, j), j);
+-#endif
++		mtype_del_cidr_all(set, h, d);
+ 		ip_set_ext_destroy(set, data);
  
- 	nested = nla_nest_start(skb, IPSET_ATTR_DATA);
- 	if (!nested)
- 		goto nla_put_failure;
--	if (nla_put_net32(skb, IPSET_ATTR_HASHSIZE,
--			  htonl(jhash_size(htable_bits))) ||
--	    nla_put_net32(skb, IPSET_ATTR_MAXELEM, htonl(h->maxelem)))
-+
-+	if (nla_put_net32(skb, IPSET_ATTR_HASHSIZE, htonl(mtype_hash_size(h))))
-+		goto nla_put_failure;
-+	if (nla_put_net32(skb, IPSET_ATTR_MAXELEM, htonl(h->maxelem)))
- 		goto nla_put_failure;
- #ifdef IP_SET_HASH_WITH_BITMASK
- 	/* if netmask is set to anything other than HOST_MASK we know that the user supplied netmask
-@@ -1407,8 +1428,9 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
- 		goto nla_put_failure;
- #endif
- 	if (set->flags & IPSET_CREATE_FLAG_BUCKETSIZE) {
--		if (nla_put_u8(skb, IPSET_ATTR_BUCKETSIZE, h->bucketsize) ||
--		    nla_put_net32(skb, IPSET_ATTR_INITVAL, htonl(h->initval)))
-+		if (nla_put_u8(skb, IPSET_ATTR_BUCKETSIZE, mtype_bucket_size(h)))
-+			goto nla_put_failure;
-+		if (nla_put_net32(skb, IPSET_ATTR_INITVAL, htonl(h->initval)))
- 			goto nla_put_failure;
- 	}
- 	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
-@@ -1722,6 +1744,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	INIT_LIST_HEAD(&t->ad);
- 	RCU_INIT_POINTER(h->table, t);
- 	set->data = h;
-+
- #ifndef IP_SET_PROTO_UNDEF
- 	if (set->family == NFPROTO_IPV4) {
- #endif
-@@ -1750,7 +1773,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- #endif
- 	}
- 	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
--		 set->name, jhash_size(t->htable_bits),
-+		 set->name, mtype_hash_size(h),
- 		 t->htable_bits, h->maxelem, set->data, t);
- 
- 	return 0;
+ 		if (t->resizing && ext && ext->target) {
 -- 
 2.54.0
 
