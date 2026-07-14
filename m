@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAA1525B093
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:19:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63EA925392C
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:19:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784035145; cv=none; b=qcZvGjiWTzqBw+4fS35LVIPoL6iLqTAiO1p0K+KXRgU8xndmbDSzyMHjlu4Biz1Ypelh5ArD4nLLHaVDydElhUPa+hsdQNqdx+a7eAJJ6qJxhJStBJtfyVLvztdzjC0HZsPG+H7E5iPLr0sKaNBgAfz7O2n/pOn0JBB/rsBXyb8=
+	t=1784035149; cv=none; b=CE/nGBiGmcZzVJjiLucW3mgvNbK4EfJF2xrr0tmOCmr8mfhSGBimxqsl4/9S6y4yyx72EJbS9y32TdtWsCFNJwc1RL95sETO/SnoGXX+99ukulFvHkKXAuNvvyNmrNJPxMXJtytfvGASEw5rR8GUY7sFnh1DNGG5O4mUfIlI/XI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784035145; c=relaxed/simple;
-	bh=M/INesFz/63o0bCaeq0ZAYIIK6gAg2cbRb6tMuSZQCQ=;
+	s=arc-20240116; t=1784035149; c=relaxed/simple;
+	bh=l4gxUy4OJOtvpB6WQ49uuF5ZJFAmNqc3xO2oMm2gOeY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eqeFAnhABjWcwa/tS8ytpqlwWMPhYwScO9MOFIiAm/26pFyVgG4lz3IarXALPJnlso1WBR2uowDVUqQnyHPJOfGkKuGogAzYrLoDIemVZpplYpPwbII/OpjNZBRBKadLhxAkjfYsFWRjhqTcu8TR9ejfbt/2/6Eq2oMy/kj6Slw=
+	 MIME-Version; b=byoE5Egodt5cs2TzWLDQlMH2fBKLl8esPt4R+pucZmPuQ1oeCCWEIMhnpKoxprlINNwRZCd1bhvzG4XIAx7QtV3QpT/zaVlqDMDLwug0i1MkUY/mkCSTefZAFbnoF+3C2vWi2Z0ZMS6wK6e/w867KSN+QApPXxiq3xru8+HinzI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2E10360503; Tue, 14 Jul 2026 15:19:02 +0200 (CEST)
+	id 7199960503; Tue, 14 Jul 2026 15:19:06 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: kadlec@netfilter.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH RFC nf-next 05/12] netfilter: ipset: add and use ip_set_init_comment_slow
-Date: Tue, 14 Jul 2026 15:18:21 +0200
-Message-ID: <20260714131828.10685-6-fw@strlen.de>
+Subject: [PATCH RFC nf-next 06/12] netfilter: ipset: add and use ip_set_ext_destroy_slow
+Date: Tue, 14 Jul 2026 15:18:22 +0200
+Message-ID: <20260714131828.10685-7-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260714131828.10685-1-fw@strlen.de>
 References: <20260714131828.10685-1-fw@strlen.de>
@@ -34,112 +34,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ip_set_init_comment alters set->ext_size, this is racy.
-bitmap and list set types serialize on set->lock, but the hash versions
-don't do that.
+same rationale as previous patch, however, this time we cannot
+add lockdep assertion in ip_set_ext_destroy().
 
-Switch hash to new ip_set_init_comment_slow.
-Alternatives would be to avoid set->ext_size altogether or use
-atomic_add/sub for this.
-
-Prefer simpler version.  Also add lockdep annotations to document
-this.
-
-ip_set_ext_destroy() has the same issue, but this is harder to fix
-because there is at least one case where this gets called without
-lock where its safe to do so: set is destroyed.
+At this time the function has too many call sites where set->lock
+is held (e.g. during set destruction).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/ipset/ip_set.h  | 9 +++++++++
- net/netfilter/ipset/ip_set_bitmap_gen.h | 2 ++
- net/netfilter/ipset/ip_set_core.c       | 3 ++-
- net/netfilter/ipset/ip_set_hash_gen.h   | 2 +-
- net/netfilter/ipset/ip_set_list_set.c   | 4 ++++
- 5 files changed, 18 insertions(+), 2 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h  | 24 ++++++++++++++++++++----
+ net/netfilter/ipset/ip_set_bitmap_gen.h |  2 ++
+ net/netfilter/ipset/ip_set_hash_gen.h   |  8 ++++----
+ 3 files changed, 26 insertions(+), 8 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index b98331572ad2..50cd719bc270 100644
+index 50cd719bc270..f9003ec21259 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -502,6 +502,15 @@ ip_set_timeout_set(unsigned long *timeout, u32 value)
- void ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
- 			 const struct ip_set_ext *ext);
+@@ -282,17 +282,33 @@ struct ip_set {
+ 	void *data;
+ };
  
 +static inline void
-+ip_set_init_comment_slow(struct ip_set *set, struct ip_set_comment *comment,
-+			 const struct ip_set_ext *ext)
++__ip_set_destroy_comment(struct ip_set *set, void *data)
 +{
-+	spin_lock_bh(&set->lock);
-+	ip_set_init_comment(set, comment, ext);
-+	spin_unlock_bh(&set->lock);
++	struct ip_set_comment *c = ext_comment(data, set);
++
++	ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(set, c);
 +}
 +
  static inline void
- ip_set_init_counter(struct ip_set_counter *counter,
- 		    const struct ip_set_ext *ext)
+ ip_set_ext_destroy(struct ip_set *set, void *data)
+ {
+ 	/* Check that the extension is enabled for the set and
+ 	 * call it's destroy function for its extension part in data.
+ 	 */
+-	if (SET_WITH_COMMENT(set)) {
+-		struct ip_set_comment *c = ext_comment(data, set);
++	if (SET_WITH_COMMENT(set))
++		__ip_set_destroy_comment(set, data);
++}
+ 
+-		ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(set, c);
+-	}
++static inline void
++ip_set_ext_destroy_slow(struct ip_set *set, void *data)
++{
++	if (!SET_WITH_COMMENT(set))
++		return;
++
++	spin_lock_bh(&set->lock);
++	__ip_set_destroy_comment(set, data);
++	spin_unlock_bh(&set->lock);
+ }
+ 
+ int ip_set_put_flags(struct sk_buff *skb, struct ip_set *set);
 diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index bb9b5bed10e1..b13cde902c17 100644
+index b13cde902c17..ca68b6e51214 100644
 --- a/net/netfilter/ipset/ip_set_bitmap_gen.h
 +++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -135,6 +135,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+@@ -182,6 +182,8 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	const struct mtype_adt_elem *e = value;
  	void *x = get_ext(set, map, e->id);
- 	int ret = mtype_do_add(e, map, flags, set->dsize);
  
 +	lockdep_assert_held(&set->lock);
 +
- 	if (ret == IPSET_ADD_FAILED) {
- 		if (SET_WITH_TIMEOUT(set) &&
- 		    ip_set_timeout_expired(ext_timeout(x, set))) {
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 6cfad152d7d1..3d6a78ad93f5 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -346,7 +346,8 @@ void
- ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
- 		    const struct ip_set_ext *ext)
- {
--	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
-+	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c,
-+								 lockdep_is_held(&set->lock));
- 	size_t len = ext->comment ? strlen(ext->comment) : 0;
+ 	if (mtype_do_del(e, map))
+ 		return -IPSET_ERR_EXIST;
  
- 	if (unlikely(c)) {
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 129f06ed85f8..c3dda56d786c 100644
+index c3dda56d786c..1eff2c065bb3 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1065,7 +1065,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(data, set), ext);
- 	if (SET_WITH_COMMENT(set))
--		ip_set_init_comment(set, ext_comment(data, set), ext);
-+		ip_set_init_comment_slow(set, ext_comment(data, set), ext);
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_init_skbinfo(ext_skbinfo(data, set), ext);
- 	/* Must come last for the case when timed out entry is reused */
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 1cef84f15e8c..d7ddc57a4eca 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -221,6 +221,8 @@ static void
- list_set_init_extensions(struct ip_set *set, const struct ip_set_ext *ext,
- 			 struct set_elem *e)
- {
-+	lockdep_assert_held(&set->lock);
-+
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(e, set), ext);
- 	if (SET_WITH_COMMENT(set))
-@@ -241,6 +243,8 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	struct set_elem *e, *n, *prev, *next;
- 	bool flag_exist = flags & IPSET_FLAG_EXIST;
+@@ -443,7 +443,7 @@ mtype_ext_cleanup(struct ip_set *set, struct hbucket *n)
  
-+	lockdep_assert_held(&set->lock);
-+
- 	/* Find where to add the new entry */
- 	n = prev = next = NULL;
- 	list_for_each_entry_rcu(e, &map->members, list) {
+ 	for (i = 0; i < pos; i++)
+ 		if (test_bit(i, n->used))
+-			ip_set_ext_destroy(set, ahash_data(n, i, set->dsize));
++			ip_set_ext_destroy_slow(set, ahash_data(n, i, set->dsize));
+ }
+ 
+ /* Flush a hash type of set: destroy all elements */
+@@ -587,7 +587,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ 			smp_mb__after_atomic();
+ 			mtype_del_cidr_all(set, h, data);
+ 			t->hregion[r].elements--;
+-			ip_set_ext_destroy(set, data);
++			ip_set_ext_destroy_slow(set, data);
+ 			d++;
+ 		}
+ 		if (d >= AHASH_INIT_SIZE) {
+@@ -1012,7 +1012,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		data = ahash_data(n, j, set->dsize);
+ 		if (!deleted) {
+ 			mtype_del_cidr_all(set, h, data);
+-			ip_set_ext_destroy(set, data);
++			ip_set_ext_destroy_slow(set, data);
+ 			t->hregion[r].elements--;
+ 		}
+ 		goto copy_data;
+@@ -1167,7 +1167,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 			smp_store_release(&n->pos, --pos);
+ 		t->hregion[r].elements--;
+ 		mtype_del_cidr_all(set, h, d);
+-		ip_set_ext_destroy(set, data);
++		ip_set_ext_destroy_slow(set, data);
+ 
+ 		if (t->resizing && ext && ext->target) {
+ 			/* Resize is in process and kernel side del,
 -- 
 2.54.0
 
