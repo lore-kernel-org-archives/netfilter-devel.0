@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57DC1239567
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89EFA239567
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2026 13:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784035162; cv=none; b=LRdhMg1zDmCgN7Wy5XCnc5pyO78R2MWfF7Ju7FqiwOWwC4k8mycXjeHe/he1OlZ4QxSCErD1rZLcKOUmQ3ewlu34urLKkdRGgLhl8W+wIpB5RflNXTq2m7Xn1cYW7lc869Ci6YyPu3aQ+WAVSUL27uduYcdJrP5QQiDDVd4qcis=
+	t=1784035166; cv=none; b=MX1Y7ouyy2Yc/5DcrlbbjbG11Wpkh7j9clPTjrGtlivJUmKN6NPEnr72bEbRkoPevHEekidNUS6QJHCRfX+XDWidYbDkRnHPSvMyC3E1zM3bV/f3TrNFxhASWmbWPP/r/Lpuqm6NE+QnDHPxrZU3ulJav/A4l1Z8NqMXvZ+7HL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784035162; c=relaxed/simple;
-	bh=eB1VsvHe/QnUcNUX25Nys66yaWAw9QEmyq3Y0JZEQmo=;
+	s=arc-20240116; t=1784035166; c=relaxed/simple;
+	bh=x1f2DgliAn1icfm+POqcpAiwy7uyU1PSuIBDQRJIPBg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UomixT0d1tlRGU69FMNsQNfTdiOThgSWun9XsXEmfS9AzFTaRQYAcASsGtcETxBmM+xjyjN4fH6KcDwz0iY+QZVA6tAE/Y0Ekk0Nxwg7VoWyqdfVmQWiCPD+GQk9f3SgLmYdcwNvdpRJeGdw+MPJJ51GNd0EnpsA2m9m1G+KyE8=
+	 MIME-Version; b=ZhD3CMahaOok6wPqIpTxyQxFR35tozgAJ7T1YJzaoHI1HpSQnd59KpfSUilDOEYLLiyh9bm0lbFlbXBjm8vXCVRdveWZeeAofsERiCVx5Z/ZKJBjB5IUiWS9wWyjYiVGW5WjUhtYPlcCDweNqh+7QN4BVWagzAuU067fDsb39KU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 46833606E9; Tue, 14 Jul 2026 15:19:19 +0200 (CEST)
+	id 8A7D9607F4; Tue, 14 Jul 2026 15:19:23 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: kadlec@netfilter.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH RFC nf-next 09/12] netfilter: ipset: use plain rcu_read_lock
-Date: Tue, 14 Jul 2026 15:18:25 +0200
-Message-ID: <20260714131828.10685-10-fw@strlen.de>
+Subject: [PATCH RFC nf-next 10/12] netfilter: ipset: use correct lockdep annotation in ipset_dereference
+Date: Tue, 14 Jul 2026 15:18:26 +0200
+Message-ID: <20260714131828.10685-11-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260714131828.10685-1-fw@strlen.de>
 References: <20260714131828.10685-1-fw@strlen.de>
@@ -34,195 +34,102 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-No need to disable/reenable softirqs.
+Avoid always-true arguments where possible, they defeat lockdep.
 
-Assisted-by: Claude:claude-sonnet-4-6
+ip_set_comment_free() is problematic: called from different contexts,
+some hold set->lock spinlock (safe), some do not hold a lock but have other
+means of mutual exclusion (e.g., entire set torn down).
+
+Other callers need investigation: ip_set_comment_free() alters
+set->ext_size in a non-atomic way.  I don't see how this is safe except
+for "entire set is destroyed" case: parallel usage would be a bug.
+
+Add a few lockdep assertions to ip_set_init_comment() callpaths to have
+more confidence in the correctness of the
+"Called from uadd only, protected by the set spinlock." comment at the
+ start of ip_set_init_comment().
+
+Assisted-by: Claude:claude-opus-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_core.c            |  4 +--
- net/netfilter/ipset/ip_set_hash_gen.h        | 27 +++++++++-----------
- net/netfilter/ipset/ip_set_hash_netnet.c     |  8 +++---
- net/netfilter/ipset/ip_set_hash_netportnet.c |  8 +++---
- 4 files changed, 22 insertions(+), 25 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 3 +++
+ net/netfilter/ipset/ip_set_core.c      | 3 +--
+ net/netfilter/ipset/ip_set_hash_gen.h  | 6 ++----
+ net/netfilter/ipset/ip_set_list_set.c  | 2 ++
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index f9003ec21259..99bc997914f4 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -282,6 +282,9 @@ struct ip_set {
+ 	void *data;
+ };
+ 
++#define ipset_dereference_locked(p, set)		\
++	rcu_dereference_protected(p, lockdep_is_held(&set->lock))
++
+ static inline void
+ __ip_set_destroy_comment(struct ip_set *set, void *data)
+ {
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 3d6a78ad93f5..6ece5cf305fe 100644
+index 6ece5cf305fe..a5f77f639d2a 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1903,9 +1903,9 @@ static int ip_set_utest(struct sk_buff *skb, const struct nfnl_info *info,
- 			     set->type->adt_policy, NULL))
- 		return -IPSET_ERR_PROTOCOL;
+@@ -346,8 +346,7 @@ void
+ ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
+ 		    const struct ip_set_ext *ext)
+ {
+-	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c,
+-								 lockdep_is_held(&set->lock));
++	struct ip_set_comment_rcu *c = ipset_dereference_locked(comment->c, set);
+ 	size_t len = ext->comment ? strlen(ext->comment) : 0;
  
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	ret = set->variant->uadt(set, tb, IPSET_TEST, &lineno, 0, 0);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	/* Userspace can't trigger element to be re-added */
- 	if (ret == -EAGAIN)
- 		ret = 1;
+ 	if (unlikely(c)) {
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index e4d26f064c48..a0f2cd481b82 100644
+index a0f2cd481b82..e615de2e616b 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -16,9 +16,6 @@
+@@ -11,8 +11,6 @@
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/ipset/ip_set.h>
+ 
+-#define __ipset_dereference(p)		\
+-	rcu_dereference_protected(p, 1)
  #define ipset_dereference_nfnl(p)	\
  	rcu_dereference_protected(p,	\
  		lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
--#define ipset_dereference_bh_nfnl(p)	\
--	rcu_dereference_bh_check(p, 	\
--		lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
+@@ -271,7 +269,7 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ 	int i, j, found, len = 0, ret = 0;
  
- struct htable_gc {
- 	struct delayed_work dwork;
-@@ -533,18 +530,18 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- #endif
+ 	spin_lock_bh(&set->lock);
+-	nets = __ipset_dereference(h->rnets[n]);
++	nets = ipset_dereference_locked(h->rnets[n], set);
+ 	/* Add in increasing prefix order, so larger cidr first */
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+ 		if (nets->nets[i].count)
+@@ -323,7 +321,7 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ 	int found;
  
- 	/* Check for an existing entry with the same key */
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	old = rhashtable_lookup(&h->ht, d, mtype_rht_params);
- 	if (old) {
- 		if (!SET_ELEM_EXPIRED(set, &old->elem)) {
- 			if (!flag_exist) {
--				rcu_read_unlock_bh();
-+				rcu_read_unlock();
- 				return -IPSET_ERR_EXIST;
- 			}
- 			/* flag_exist: overwrite extensions in-place.
- 			 * Hold set->lock to serialize ext_size accounting in
- 			 * ip_set_init_comment against concurrent kernel-side adds.
--			 * rcu_read_lock_bh() must remain held to keep old alive.
-+			 * rcu_read_lock() must remain held to keep old alive.
- 			 */
- 			spin_lock_bh(&set->lock);
- #ifdef IP_SET_HASH_WITH_NETS
-@@ -564,7 +561,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 				ip_set_timeout_set(ext_timeout(&old->elem, set),
- 						   ext->timeout);
- 			spin_unlock_bh(&set->lock);
--			rcu_read_unlock_bh();
-+			rcu_read_unlock();
- 			return 0;
- 		}
- 		/* Expired entry: remove it to make room */
-@@ -575,7 +572,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 			kfree_rcu(old, rcu);
- 		}
- 	}
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
+ 	spin_lock_bh(&set->lock);
+-	nets = __ipset_dereference(h->rnets[n]);
++	nets = ipset_dereference_locked(h->rnets[n], set);
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+ 		if (nets->nets[i].count)
+ 			len++;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index d7ddc57a4eca..27bc96458e13 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -326,6 +326,8 @@ list_set_udel(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	struct set_adt_elem *d = value;
+ 	struct set_elem *e, *n, *next, *prev = NULL;
  
- 	if (atomic_read(&h->ht.nelems) >= h->maxelem) {
- 		if (net_ratelimit())
-@@ -629,14 +626,14 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	struct mtype_rht_elem *e;
- 	int ret = -IPSET_ERR_EXIST;
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	e = rhashtable_lookup(&h->ht, d, mtype_rht_params);
- 	if (!e) {
--		rcu_read_unlock_bh();
-+		rcu_read_unlock();
- 		return -IPSET_ERR_EXIST;
- 	}
- 	ret = rhashtable_remove_fast(&h->ht, &e->node, mtype_rht_params);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 
- 	if (ret)
- 		return -IPSET_ERR_EXIST;
-@@ -679,9 +676,9 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 	u32 multi = 0;
- 
- 	pr_debug("test by nets\n");
--	nets0 = ipset_dereference_bh_nfnl(h->rnets[0]);
-+	nets0 = rcu_dereference(h->rnets[0]);
- #if IPSET_NET_COUNT == 2
--	nets1 = ipset_dereference_bh_nfnl(h->rnets[1]);
-+	nets1 = rcu_dereference(h->rnets[1]);
- #endif
- 	for (j = 0; j < nets0->len && !multi; j++) {
- 		if (!nets0->nets[j].count)
-@@ -727,7 +724,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	int i;
- #endif
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- #ifdef IP_SET_HASH_WITH_NETS
- 	/* If we test an IP address and not a network address,
- 	 * try all possible network sizes
-@@ -749,7 +746,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 
- 	ret = mtype_data_match(&e->elem, ext, mext, set, flags);
- out:
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	return ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index f7c8a1cc30fc..2b874be16f6d 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -149,10 +149,10 @@ hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netnet4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
- 	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	if (adt == IPSET_TEST)
- 		e.ccmp = (HOST_MASK << (sizeof(e.cidr[0]) * 8)) | HOST_MASK;
- 
-@@ -390,10 +390,10 @@ hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netnet6_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
- 	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	if (adt == IPSET_TEST)
- 		e.ccmp = (HOST_MASK << (sizeof(u8) * 8)) | HOST_MASK;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index 6291532be7a5..ad171b7cd1f5 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -157,10 +157,10 @@ hash_netportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netportnet4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
- 	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	if (adt == IPSET_TEST)
- 		e.ccmp = (HOST_MASK << (sizeof(e.cidr[0]) * 8)) | HOST_MASK;
- 
-@@ -454,10 +454,10 @@ hash_netportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netportnet6_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	rcu_read_lock_bh();
-+	rcu_read_lock();
- 	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
- 	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
--	rcu_read_unlock_bh();
-+	rcu_read_unlock();
- 	if (adt == IPSET_TEST)
- 		e.ccmp = (HOST_MASK << (sizeof(u8) * 8)) | HOST_MASK;
- 
++	lockdep_assert_held(&set->lock);
++
+ 	list_for_each_entry_safe(e, n, &map->members, list) {
+ 		if (SET_WITH_TIMEOUT(set) &&
+ 		    ip_set_timeout_expired(ext_timeout(e, set)))
 -- 
 2.54.0
 
