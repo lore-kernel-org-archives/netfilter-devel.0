@@ -1,146 +1,110 @@
-Received: from mail-10629.protonmail.ch (mail-10629.protonmail.ch [79.135.106.29])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E059388377
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jul 2026 14:48:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.29
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86893239E60
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jul 2026 23:02:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784126915; cv=none; b=eTTPzT5IrHQdzw68D7ac5oNkXYQ4w7MJV9vKXNOGWQ7i09uU7sN5hP6xZKYD3A4gzbsbmJGta+4E973g0Kdc7cv/Ep0TWL0YLPeCxEeJp65O0oirBBdmLPCeKt0dA7d8oRYfOlfaKAzWjbz4XaJ6OiuspEmE4ED4dq4r9FC4CYo=
+	t=1784156557; cv=none; b=est/1SXQVYYc3WBoN2j7b/gr7yi5BTjb+0uG43gOlHM2ipFteTGlbFRvUd6MeXHwBehW3pI3sM9wXM31SjJxV4Ry4EjDyVwCywoyMQuarRDEsS2pz3LBk7wvqi4d3sPoD0nsC0L4ea2CnJROT/vF0w25MqcwGK8uvTjfpUittQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784126915; c=relaxed/simple;
-	bh=6ouk3uokvdotrDHfaQMI0gS2Pljg30PRdbhVcrFQaB4=;
-	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=KdKsGDDQyH8uudsFUIxb3cAtwa6CWfMhIzVfk3goFwkB49uGzr5PansyxfNh8gHo9+SnvBUeA8HUpKeBpPUoKKwRZ1WP2fKmxs7yH0nO1ZqrQ7jLuzUp5jN079XIse3+ZCZMAbld0wefVkZH5ybrJQ/2W+9ma/gm/TpOpUWbWUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=h5jJXO3y; arc=none smtp.client-ip=79.135.106.29
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	s=arc-20240116; t=1784156557; c=relaxed/simple;
+	bh=RYL93oBP9Rn6S6VOHgRaMfzIAdSXavwQkrHKmm5seik=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=jrKh4LCcKMNbAMGQWG/4eqmIM8ID2jcxRqjnMVk8VeExLFzhwet41paUPxLpL2m6XUBh7+ChllLHIYKy6djb8vwKh+vZYvIdibPo/GOpCIg4F0JwHNcgtyouCoUqnKJI7KWVkasByESnSCLbmrFqg31m5q7vPst/bGLfx3MTPY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=STDUJMqU; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="h5jJXO3y"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail; t=1784126908; x=1784386108;
-	bh=DkneTlIFzL+4NL/atILUBCQHg45PwZkk92XrOGD3QrE=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=h5jJXO3yr7QkQ4rUWA2xexbZML4Ygpib6+nS6qMRaaPYZWz1a9aDXr7WY/8vHSjzJ
-	 yuGrwKYxhouoD6HFInPrdobV7feahyQRHVSNdh6qA76n7g9b2jkQ3zlKMbdbQa1lkf
-	 UV7GId9znsj5Ncb2KG02vahmhrYHqLMiK4cyybSvz5xCVrsjH57A9qlJbzRc8tceHv
-	 X8RW45UArJDiMDi5O094fyi7cR0VoaM5/6nIKhIj8EmftKiLOifjSuSlW7UhqE/Ozj
-	 gT89iHbhI6vM29l8ha+7MaZUEYZvf3ilpvFdWs/+7jqW8KK8JwCZWYlFlCrX9DXGmB
-	 ydMsT8qB8e+Hg==
-Date: Wed, 15 Jul 2026 14:48:23 +0000
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="STDUJMqU"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=yddGrkMl/MxTxTPtlAKVXL8aHKgT0CExnOqQxOkwoKY=; b=STDUJMqU77zR7SyaREX06qXwG8
+	bMiVEgvEE5bdWSqHy1wC3wwlAfgptovRFJNtRAUx3woMXr1D2tULVWHbNY03h+ElbOfQ/Gq9IOKRs
+	L7WwdqWYTPB/7JrOYcGGMBU+yVuQuUKf8QNMiXiDJOz35XN1fEfjEZ1Zykb0d6FPZjE0T41OBwDdC
+	j+uubRLod+EDf0M/nLVqMFJIF+0jX6YKshECy6ZD8nwpC5aUTKW/Mn1RBL8R9KRPykJn5587JIR/A
+	lCnarl5f0BfgqaOp1Eb3B8b5h7QNO+1E9WfvAOhTewkHoyRYHm4qK4kkWeC961Ji0NNYQr4/Cuis4
+	U3v88sEQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wk8cT-000000005vL-44LP
+	for netfilter-devel@vger.kernel.org;
+	Thu, 16 Jul 2026 01:02:26 +0200
+From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-From: Jaeyeong Lee <iostreampy@proton.me>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, sveyret@gmail.com, coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: [PATCH nf] netfilter: conntrack: prevent helper extension relocation
-Message-ID: <20260715144755.00ea7dfcd9f@proton.me>
-Feedback-ID: 96968035:user:proton
-X-Pm-Message-ID: 156e66a3a153ac3049c51837541c2585302d63b9
+Subject: [nft PATCH] tests: py: Fix --keep test runner option
+Date: Thu, 16 Jul 2026 01:02:20 +0200
+Message-ID: <20260715230220.240515-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-nf_ct_ext_add() may relocate an unconfirmed conntrack's extension blob
-when the current allocation is too small. struct nf_conn_help embeds the
-hlist head for the master's expectations. The first expectation's
-lnode.pprev therefore points into that extension blob.
+The boolean flag expected a value, although not used. Set
+'action=store_true' to really make it a flag.
 
-An nftables CT expectation object can link an expectation before a later
-NAT expression adds extensions to the same unconfirmed conntrack. If an
-addition relocates the blob, the copied hlist head still points to the
-expectation, but the expectation's pprev continues to point into the
-freed old blob. Removing the expectation later executes hlist_del_rcu()
-and writes through this stale pointer.
+While at it, simplify the code by eliminating the inverse-value
+auto_delete helper variable.
 
-Reserve enough storage for every extension whenever the helper extension
-is added. Account for the alignment padding that may be required between
-extensions so the reservation is independent of their addition order.
-No expectation can be linked before its master has a helper extension,
-so subsequent additions fit in the existing allocation and cannot
-invalidate expectation list pointers. Conntracks without helpers are
-unaffected.
-
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jaeyeong Lee <iostreampy@proton.me>
+Fixes: f2b5d6fc26b9a ("tests: py: don't use a fixed filename")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_conntrack_extend.c | 31 +++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ tests/py/nft-test.py | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntra=
-ck_extend.c
-index 0da105e1ded..e5e04e0ec40 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -54,35 +54,38 @@ static const u8 nf_ct_ext_type_len[NF_CT_EXT_NUM] =3D {
- #endif
- };
-=20
-+#define NF_CT_EXT_TYPE_SIZE(type) \
-+=09ALIGN(sizeof(type), __alignof__(struct nf_ct_ext))
-+
- static __always_inline unsigned int total_extension_size(void)
- {
- =09/* remember to add new extensions below */
- =09BUILD_BUG_ON(NF_CT_EXT_NUM > 10);
-=20
- =09return sizeof(struct nf_ct_ext) +
--=09       sizeof(struct nf_conn_help)
-+=09       NF_CT_EXT_TYPE_SIZE(struct nf_conn_help)
- #if IS_ENABLED(CONFIG_NF_NAT)
--=09=09+ sizeof(struct nf_conn_nat)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_nat)
- #endif
--=09=09+ sizeof(struct nf_conn_seqadj)
--=09=09+ sizeof(struct nf_conn_acct)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_seqadj)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_acct)
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--=09=09+ sizeof(struct nf_conntrack_ecache)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conntrack_ecache)
- #endif
- #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
--=09=09+ sizeof(struct nf_conn_tstamp)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_tstamp)
- #endif
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
--=09=09+ sizeof(struct nf_conn_timeout)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_timeout)
- #endif
- #ifdef CONFIG_NF_CONNTRACK_LABELS
--=09=09+ sizeof(struct nf_conn_labels)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_labels)
- #endif
- #if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
--=09=09+ sizeof(struct nf_conn_synproxy)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_synproxy)
- #endif
- #if IS_ENABLED(CONFIG_NET_ACT_CT)
--=09=09+ sizeof(struct nf_conn_act_ct_ext)
-+=09=09+ NF_CT_EXT_TYPE_SIZE(struct nf_conn_act_ct_ext)
- #endif
- =09;
- }
-@@ -112,6 +115,14 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext=
-_id id, gfp_t gfp)
- =09newlen =3D newoff + nf_ct_ext_type_len[id];
-=20
- =09alloc =3D max(newlen, NF_CT_EXT_PREALLOC);
-+=09/*
-+=09 * nf_conn_help contains the expectation list head.  Once an
-+=09 * expectation is linked, its lnode.pprev points into this allocation,
-+=09 * so later extension additions must not be allowed to relocate it.
-+=09 */
-+=09if (id =3D=3D NF_CT_EXT_HELPER)
-+=09=09alloc =3D max(alloc, total_extension_size());
-+
- =09new =3D krealloc(ct->ext, alloc, gfp);
- =09if (!new)
- =09=09return NULL;
---=20
-2.43.0
-
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index 56d4e0fc9d4e0..4a00ce0cd725a 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -36,7 +36,6 @@ chain_list = []
+ all_set = dict()
+ obj_list = []
+ signal_received = 0
+-auto_delete = True
+ 
+ 
+ class Colors:
+@@ -1523,7 +1522,7 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+     parser.add_argument('-l', '--library', default=None,
+                         help='path to libntables.so.1, overrides --host')
+ 
+-    parser.add_argument('-k', '--keep', default=False,
++    parser.add_argument('-k', '--keep', action='store_true',
+                         help='keep log file around after tests')
+ 
+     parser.add_argument('-N', '--no-netns', action='store_true',
+@@ -1577,11 +1576,6 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+               "You need to build the project." % args.library)
+         return 99
+ 
+-    global auto_delete
+-
+-    if args.keep:
+-        auto_delete = False
+-
+     if args.enable_schema and not args.enable_json:
+         print_error("Option --schema requires option --json")
+         return 99
+@@ -1593,8 +1587,8 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+     tests = passed = warnings = errors = 0
+     global log_file
+     try:
+-        log_file = tempfile.NamedTemporaryFile(prefix="nftables-test-py-", suffix=".log", mode='w', delete=auto_delete)
+-        if auto_delete:
++        log_file = tempfile.NamedTemporaryFile(prefix="nftables-test-py-", suffix=".log", mode='w', delete = not args.keep)
++        if not args.keep:
+             print_info("Log file %s will not be retained.  Pass -k to keep it." % log_file.name)
+         else:
+             print_info("Log will be available at %s" % log_file.name)
+-- 
+2.54.0
 
