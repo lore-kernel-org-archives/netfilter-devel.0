@@ -1,379 +1,90 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8953D24A076
-	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 09:10:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E94F41DDED
+	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 12:54:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784193060; cv=none; b=JPLMiifQeYQpB6XMETAjrkWs5CykwzSYyhSsUppo2x9eCmX5gq+T+tFX59TsaBGnTbqRuV3tCY8KD+JssQCdCSh9qePWXPoCm3GlvfXX9Y+KTn/ymtBL75g1Cbm9XWjzpbHaWfz3OuPCPUP3DwbJ0NXuIxqsen5Nd3gpqOqvWMM=
+	t=1784206450; cv=none; b=csxGCdhwx2eIiW3PbhdmZmRb1dPtMciX+phFa0iCtO43cWimbazcfeCuD869wkaBOegmirTjteEY9mfLtSXneU/1edp3kUD5vdKK/HARyu+P/sk1Z279+zBeiWGIbqrLrxF9SoUM3EWK5Z428t5SlqmZOmyCd16i4o/YRpknmCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784193060; c=relaxed/simple;
-	bh=gLAonWj1tXP5fCwDS8GRMWDltugzUguEUUz/KSlrr00=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gxNRrpCTZxuef2WeoRi3540V10fEUQVoW9E47ScFwAUdrYoID3SOAn3G5xhQ28hpToflnibeBnR750IGns5mkAAxEOy9cIkdhQ1nnQR13/jl7Cg+8SXcJ8eBsWhSNHTAeRAtZykY1zEU1X5YqL++0/0Jd/hoBX1fZrvb0gt16Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 1487E6058F; Thu, 16 Jul 2026 11:10:46 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: shell: add template match bug test
-Date: Thu, 16 Jul 2026 11:10:32 +0200
-Message-ID: <20260716091037.15018-1-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1784206450; c=relaxed/simple;
+	bh=Z2HjNFJhzWBdrJOo3cDzn9xRYpBX+AEUFoYbm+nYtvY=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=fWNbasNR7KavD9c7+2kv3R9n9lJYa5NJwIu4q3QPi8QxCbPDazgGk/qC5GIfYjC+ikncIaD62QmiTj2YYb0l05tiN6oSsP0+lFPP1zs5TWUE/XVxXKMX0gY7H2grA1N7kd+z7+F1NEaYVD8BZqn3e2/F/gsrvt367Vkn7vuPiOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=Dv4H/WUt; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Dv4H/WUt"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4h1CfF3VTCz3sb0S;
+	Thu, 16 Jul 2026 14:53:57 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1784206435; x=1786020836; bh=VMty472EDc
+	D7Diu9ibAQNI3iggGGMNjz2JX5vYtTmfo=; b=Dv4H/WUtBtYNbv7BiwIzZ1bhJ5
+	rP9GyKSDdRAgfGpEJI2pHm8mV6G/oKdxIYW9qNpbNV9yD61Npsd05BnNi835HX+4
+	+pD4yG7D4pscWe78IpjHhdYKDBCijX9ZdSSPutoWDceXJgvvHtV7Aa0VgIzjmrat
+	+McVbxoedA5qBZ4/I=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id nf96ntgt6WYm; Thu, 16 Jul 2026 14:53:55 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4h1CfC1gP5z3sb0N;
+	Thu, 16 Jul 2026 14:53:55 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 2B4E734316E; Thu, 16 Jul 2026 14:53:55 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 2A1A734316D;
+	Thu, 16 Jul 2026 14:53:55 +0200 (CEST)
+Date: Thu, 16 Jul 2026 14:53:55 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org
+Subject: Re: [PATCH RFC nf-next 07/12] netfilter: ipset: add rhashtable
+ boilerplate stubs
+In-Reply-To: <20260714131828.10685-8-fw@strlen.de>
+Message-ID: <8c03ba3c-f438-3dc4-f01b-f536c4c79217@blackhole.kfki.hu>
+References: <20260714131828.10685-1-fw@strlen.de> <20260714131828.10685-8-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-Template should not be matched via "ct" expression.  Else this
-makes us read an l3num of 0.  This is a test for kernel commit
-3027ecbdb5fd ("netfilter: nft_ct: bail out on template ct in get eval").
+Hi Florian,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../packetpath/dumps/nft_ct_template.json-nft | 252 ++++++++++++++++++
- .../packetpath/dumps/nft_ct_template.nft      |  22 ++
- .../testcases/packetpath/nft_ct_template      |  38 +++
- 3 files changed, 312 insertions(+)
- create mode 100644 tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
- create mode 100644 tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
- create mode 100755 tests/shell/testcases/packetpath/nft_ct_template
+On Tue, 14 Jul 2026, Florian Westphal wrote:
 
-diff --git a/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft b/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
-new file mode 100644
-index 000000000000..9c38046f5b7e
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
-@@ -0,0 +1,252 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "t",
-+        "name": "c",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -300,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "ct": {
-+                  "key": "saddr",
-+                  "dir": "original"
-+                }
-+              },
-+              "right": "0.0.0.0"
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 0,
-+              "bytes": 0
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip6",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "t",
-+        "name": "c",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -300,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "ct": {
-+                  "key": "saddr",
-+                  "dir": "original"
-+                }
-+              },
-+              "right": "::"
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 0,
-+              "bytes": 0
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "inet",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "t",
-+        "name": "c",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -300,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "ct": {
-+                  "key": "ip saddr",
-+                  "dir": "original"
-+                }
-+              },
-+              "right": "0.0.0.0"
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 0,
-+              "bytes": 0
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "t",
-+        "chain": "c",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "ct": {
-+                  "key": "ip6 saddr",
-+                  "dir": "original"
-+                }
-+              },
-+              "right": "::"
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 0,
-+              "bytes": 0
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft b/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
-new file mode 100644
-index 000000000000..efe5dbb265a7
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
-@@ -0,0 +1,22 @@
-+table ip t {
-+	chain c {
-+		type filter hook output priority raw; policy accept;
-+		ct zone set 1
-+		ct original ip saddr 0.0.0.0 counter packets 0 bytes 0 accept
-+	}
-+}
-+table ip6 t {
-+	chain c {
-+		type filter hook output priority raw; policy accept;
-+		ct zone set 1
-+		ct original ip6 saddr :: counter packets 0 bytes 0 accept
-+	}
-+}
-+table inet t {
-+	chain c {
-+		type filter hook output priority raw; policy accept;
-+		ct zone set 1
-+		ct original ip saddr 0.0.0.0 counter packets 0 bytes 0 accept
-+		ct original ip6 saddr :: counter packets 0 bytes 0 accept
-+	}
-+}
-diff --git a/tests/shell/testcases/packetpath/nft_ct_template b/tests/shell/testcases/packetpath/nft_ct_template
-new file mode 100755
-index 000000000000..02051f3345c9
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/nft_ct_template
-@@ -0,0 +1,38 @@
-+#!/bin/bash
-+
-+# test for kernel commit 3027ecbdb5fd ("netfilter: nft_ct: bail out on template ct in get eval")
-+
-+set -e
-+
-+$NFT -f - <<EOF
-+table ip t {
-+	chain c {
-+		type filter hook output priority -300; policy accept;
-+		ct zone set 1
-+		ct original saddr 0.0.0.0 counter accept
-+	}
-+}
-+
-+table ip6 t {
-+	chain c {
-+		type filter hook output priority -300; policy accept;
-+		ct zone set 1
-+		ct original saddr :: counter accept
-+	}
-+}
-+
-+table inet t {
-+	chain c {
-+		type filter hook output priority -300; policy accept;
-+		ct zone set 1
-+		ct original ip saddr 0.0.0.0 counter accept
-+		ct original ip6 saddr :: counter accept
-+	}
-+}
-+EOF
-+
-+ip link set lo up
-+ping -c 1 127.0.0.1
-+ping -c 1 ::1
-+
-+# counter validation via dump file.
--- 
-2.55.0
+> Preparation patch.  Adds an rhashtable to the set and initialised
+> and destroys it.  No elements are ever added to this hashtable.
+>
+> This change is supposed to be devoid of side effects and is
+> separate to reduce size of the conversion patch.
+> +/* 0 = key matches object (equal), non-zero = not equal */
+> +static int mtype_rht_cmpfn(struct rhashtable_compare_arg *arg, const void *obj)
+> +{
+> +	const struct mtype_rht_elem *e = obj;
+> +	u32 multi = 0;
+> +
+> +	return !mtype_data_equal(&e->elem,
+> +				 (const struct mtype_elem *)arg->key, &multi);
+> +}
+
+It does not belong to this patch, but the "multi" arg of 
+mtype_data_equal() is needed only for the netiface type: it supports the 
+same ip/cidr behind multiple interfaces but the element can store a single 
+interface only. The "multi" flag made possible to take into account 
+multiple interfaces properly when growing the array in the hash.
+
+The interfaces should be stored in a linked list at element level and the 
+"multi" arg of mtype_data_equal() can be removed, which is not needed in 
+rhashtable anyway.
+
+Best regards,
+Jozsef
 
