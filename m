@@ -1,164 +1,157 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2797D3161AD
-	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 14:06:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C5E3009E2
+	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 14:07:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784210799; cv=none; b=pPZO8CWTMwaJbdDQA/jwDGxzvcfIcfT81yTzAUQEuqJUEH1ngtvQgYpc6goBmIVPcXOf8Fbzg4cx55ncJOLqtMNrIRW29bdsqjkGJ0KEX3kdCqtCa1xvEHrMSG/63RkSTH2xeOLlUX2wwfKiI2NCWho+6ikIlSakn3ETlQ/ZsOA=
+	t=1784210842; cv=none; b=pvSuh6g6Vh7zqaphSSOj89wUIEh6WMXYUxTel3JgxnS6CKIb2lImw8ZUKFADLBV2mEH6NQ6dCb1VxvTVFb7ezEY1dE7yPmHV9r5cjAPknlpGs94YDuMSFcao4EY/3SDfHRiG2+NuvytmJP+OE5gdEYXfrm/sTiazQupnp4TTaMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784210799; c=relaxed/simple;
-	bh=3jlu7lSTQV+Ua4nM06U8iLtRK3zrAcHFWo4Zp472jzk=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=WmJcL2+PkIagl256N9n3+5uAFOpQjKdzZPztYy/f8WAfDbekdCTiIjWvJ/OhoglOR07+dKSpSF41c2UKBXg0DNJuqg6YCGqtmtGZyIy0CbgMTfhy6TEZxbHv89kVZh++s61ghuraJi533cM1lLeYqsOjZ7OL9Ih/wF8++2cpafE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=XQ4BIudy; arc=none smtp.client-ip=148.6.0.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1784210842; c=relaxed/simple;
+	bh=btDASYGmUHm0kbqZqVMslt1hNdAlhelxO4Zl2zjuXKk=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=idc7wFikSp3VDmi7nWvseTtM3Gh9Ww4U0TR9Fs71wN8Ee+p8rFBIOdaDRJQcYcbTEMUzgrd19i/5j9CX2o36F/rYfSX++/GBSYs8H469K/D/7OjIhZHkvhJGt7BsTo7hLydZR06WsQ0Ibr3p5IJaa+DiA94G6r8euYbKLcOjVO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hfgnwZPX; arc=none smtp.client-ip=209.85.161.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="XQ4BIudy"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4h1FG26vvpz3sb0L;
-	Thu, 16 Jul 2026 16:06:34 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1784210793; x=1786025194; bh=Kt2gCzDPLs
-	Mm2CFziLZHYEJcU3sJfbeYscV863lsyzE=; b=XQ4BIudy0dzM9MrpNjRA6CZ9Bj
-	uFysha6hO40287LMUcup1Kec3tEPxQawbKfBvVQN39TZfvshkLZ44yXv0V/BJy5S
-	yBbCQKyQZD9s2ZFzr130TVJ0MrttiVZE6FKmIN6nMrZ7QUqrIi04fKN1vdV9ZmCd
-	Rx7pp4jwL8nV7+vQY=
-X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
- by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id Js-iXM3qT1wc; Thu, 16 Jul 2026 16:06:33 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4h1FG102sVz3sb0K;
-	Thu, 16 Jul 2026 16:06:32 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id E5B2034316E; Thu, 16 Jul 2026 16:06:32 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id E4F1534316D;
-	Thu, 16 Jul 2026 16:06:32 +0200 (CEST)
-Date: Thu, 16 Jul 2026 16:06:32 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Florian Westphal <fw@strlen.de>
-cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org
-Subject: Re: [PATCH RFC nf-next 12/12] netfilter: ipset: re-add forceadd
- support for rhashtable
-In-Reply-To: <20260714131828.10685-13-fw@strlen.de>
-Message-ID: <2dd4a9a8-1667-7374-d934-15dc6c28035b@blackhole.kfki.hu>
-References: <20260714131828.10685-1-fw@strlen.de> <20260714131828.10685-13-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hfgnwZPX"
+Received: by mail-oo1-f41.google.com with SMTP id 006d021491bc7-6a376ad8fc0so2238533eaf.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 07:07:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1784210840; x=1784815640; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=DvXtVlllukOnRfih22Iy0sMwC4UQkImczALyzy6unIk=;
+        b=hfgnwZPXrRSRZVU1uPiEW/ACEJLJ2FsIfYtmEn1LlbaSCOkArC8t1ROI4enPnkk2oQ
+         wQJKY8tf/kC8IiYCe7/PvHhkL95GCajV3OwPHGoNM/oUyvGJofhpCNGfWIXy+6R8II8I
+         bBFdt05tiuAOP9Dn/izc7sz2MYeEJbQwNnDwiyau5VMQcT1woPgULithed3CWInDt2Bt
+         EW5ORCzxFFjleaX+uge6jF9rP/l8MPZQG9gd5OOSR4dibDUEZXDDvn9ISGO20/TQDAYX
+         oLmXOsrWrfIvhS4bpi9qpqKE3j0CJizYAci3AFwfS9zirKEvixfhykn6WBQ2GajDUGU9
+         kSuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784210840; x=1784815640;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=DvXtVlllukOnRfih22Iy0sMwC4UQkImczALyzy6unIk=;
+        b=Vj/J0RCK1Fr8uno8CjFZhlgOA1+TXQqe0WBzs2SWL0/Aeh7cqxZrXaddTk/ii3zW4J
+         KFio+1xe7/6MTTTq7fDlpjCB8n6N0SBwDig0GtR0sEdgKoLIdoGNUXPptVB/uzzNZ2Ip
+         wmNszseieMyv8RHH0wYRPDxsN0K3cNcXOds8JXN1RqapWV71Bxb1CGhVMzZxqutT3AIk
+         CKAPoAjSsciXD7woSmw22Yvh9NsExPoj0NPAaD5nnwcd23AabvWlTbcKnB797keiJZnc
+         3AJvs/awLg64qrbmExXjWQtcuAbpIoTgDDdOw2RByb8zi9L8l2hkfuLSqRVYtwIJ4uSW
+         W/bw==
+X-Forwarded-Encrypted: i=1; AHgh+RoJr/7O7RnJxV1jG+gC0/HcjBekAzMouSuxvKA39SZwuJYOWgKwXoSg5p45h6O9KS1nZi83KLDul0etfYhWDvg=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy7cfpz67ruSzapUduYaiH3GNRhA48izYN4SeYTWvfGx0YJ/e0+
+	ev1l75dXqfgIbo5oA9dGHDAiUrNeGikQ+jnI0TtFVmgd4PKMtzjCuVzX
+X-Gm-Gg: AfdE7clOllrQ1xFr8k/o7bTePpV73aZwJLm6+GSDMPDRu2zAhSCLvul6ZSMdLMGJzJ5
+	FEj9bSPm+6fHT+g3q+QwlEOifdYw6om2H+vQGJBs31VU0uXGjp/kd+DcmmWFwwqwgqD/mZEjo00
+	yGlpmrxLZ5+3qi92VgKxtV693gbYaZrOmXDz+6F4ms0esdiuLJKo9ed4YDmRzTOYiYFxfFQROBN
+	+o4zYUdy1sLxecCUQ61v0WGD3f+cQzYoZVc/9n9VqPIw9kfM4Cj6a2AP7m8Xad2ucwJld/K9hxz
+	UGId4fA3gREv4Xcg7Ye70Z5mHXjaToTxQAYf3dDCfBpi5gPl7t3idAZYwkzSpDW+u8df9sknsi7
+	AqRRHe+2xxZ4rs4ScJmqaKSBcmT4mqh+G8Vpbt1T7Mdv1WWC0ty7s12egY016/xw99PRJUJZ5La
+	Y5PxN3
+X-Received: by 2002:a05:6820:1849:b0:6a1:5b81:6168 with SMTP id 006d021491bc7-6a3d9ff3481mr4711592eaf.43.1784210839559;
+        Thu, 16 Jul 2026 07:07:19 -0700 (PDT)
+Received: from [127.0.1.1] ([2404:f801:8028:3:3a49:ef75:fe4d:f2de])
+        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-4561f2680d8sm6165821fac.14.2026.07.16.07.07.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Jul 2026 07:07:18 -0700 (PDT)
+From: Subasri S <subasris1210@gmail.com>
+Date: Thu, 16 Jul 2026 19:37:10 +0530
+Subject: [PATCH nf-next] ipvs: use type-safe allocation helpers in
+ ip_vs_rht_alloc
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260716-nf-next-ipvs-deprecated-v1-1-4aad24f87cb8@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAI3lWGoC/x2MQQqAMAwEvyI5G9BYqvgV8VBs1FxqaUWE0r8bP
+ A47OwUyJ+EMc1Mg8SNZrqDQtw1spwsHo3hloI5sN/YGw46B3xslPhk9x8Sbu9kjDWStCuQnA/r
+ WYZf3Ly9rrR8ddPZwaQAAAA==
+To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>, netdev@vger.kernel.org, 
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-kernel@vger.kernel.org, 
+ Subasri S <subasris1210@gmail.com>
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784210833; l=2187;
+ i=subasris1210@gmail.com; s=20260709; h=from:subject:message-id;
+ bh=btDASYGmUHm0kbqZqVMslt1hNdAlhelxO4Zl2zjuXKk=;
+ b=Fb9gx7V7iND+52cndnRympWJA22Qo7oksacuKyuXDHMsdPX/+C7HGQ88QkqJD9Q/eI1afbFxL
+ GkGcJvV3flGDbgun621aJoYoJuwKoscppT+00QUbKBOSMu+PWtfuMKZ
+X-Developer-Key: i=subasris1210@gmail.com; a=ed25519;
+ pk=6C4wavGFy/OsR8yQQKNWuDXoYPHp2L3sfgNfyzTruTk=
 
-Hi Florian,
+As per Documentation/process/deprecated.rst, open-coded kmalloc
+assignments for struct objects are deprecated. Replace
+kzalloc(sizeof(*ptr), GFP_KERNEL) with kzalloc_obj() and
+kvmalloc_array(n, sizeof(*ptr), GFP_KERNEL) with kvmalloc_objs()
+in ip_vs_rht_alloc().
 
-On Tue, 14 Jul 2026, Florian Westphal wrote:
+Compile tested with CONFIG_IP_VS=y and runtime tested using
+tools/testing/selftests/net/netfilter/ipvs.sh on x86_64/QEMU.
 
-> The rhashtable conversion removed the SET_WITH_FORCEADD eviction logic.
-> Sets created with the forceadd flag got IPSET_ERR_HASH_FULL instead of
-> evicting an existing element to make room.
->
-> Add mtype_remove_random() helper that walks the rhashtable to pick an
-> element to evict, and call it from mtype_add() when the set is full and
-> forceadd is enabled.
+Signed-off-by: Subasri S <subasris1210@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-I like it! This is a worst case scenario when we want to add a new entry 
-by all means, so deleting a random entry is quite good. However, shouldn't 
-mtype_remove_random() return success/failure? mtype_add() should add the 
-new entry only if mtype_remove_random() succeeded.
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 35cbe821c259..74047bf1e32d 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -176,7 +176,7 @@ void ip_vs_rht_rcu_free(struct rcu_head *head)
+ 
+ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
+ {
+-	struct ip_vs_rht *t = kzalloc(sizeof(*t), GFP_KERNEL);
++	struct ip_vs_rht *t = kzalloc_obj(*t);
+ 	int i;
+ 
+ 	if (!t)
+@@ -186,7 +186,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
+ 
+ 		scounts = min(scounts, buckets);
+ 		scounts = min(scounts, ml);
+-		t->seqc = kvmalloc_array(scounts, sizeof(*t->seqc), GFP_KERNEL);
++		t->seqc = kvmalloc_objs(*t->seqc, scounts);
+ 		if (!t->seqc)
+ 			goto err;
+ 		for (i = 0; i < scounts; i++)
+@@ -194,8 +194,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
+ 
+ 		if (locks) {
+ 			locks = min(locks, scounts);
+-			t->lock = kvmalloc_array(locks, sizeof(*t->lock),
+-						 GFP_KERNEL);
++			t->lock = kvmalloc_objs(*t->lock, locks);
+ 			if (!t->lock)
+ 				goto err;
+ 			for (i = 0; i < locks; i++)
+@@ -203,7 +202,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
+ 		}
+ 	}
+ 
+-	t->buckets = kvmalloc_array(buckets, sizeof(*t->buckets), GFP_KERNEL);
++	t->buckets = kvmalloc_objs(*t->buckets, buckets);
+ 	if (!t->buckets)
+ 		goto err;
+ 	for (i = 0; i < buckets; i++)
+
+---
+base-commit: f6f3b36c15ed44de1fbb44e645e4fae8c4a4453e
+change-id: 20260714-nf-next-ipvs-deprecated-232667142d84
 
 Best regards,
-Jozsef
+-- 
+Subasri S <subasris1210@gmail.com>
 
-> Assisted-by: Claude:claude-opus-4-6
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-> net/netfilter/ipset/ip_set_hash_gen.h | 43 +++++++++++++++++++++++----
-> 1 file changed, 38 insertions(+), 5 deletions(-)
->
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 12d3bc5acc81..df73c1ebb3f0 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -116,6 +116,7 @@ static const union nf_inet_addr zeromask = {};
-> #undef mtype_bucket_size
-> #undef mtype_hash_size
->
-> +#undef mtype_remove_random
-> #undef mtype_add
-> #undef mtype_del
-> #undef mtype_test_cidrs
-> @@ -165,6 +166,7 @@ static const union nf_inet_addr zeromask = {};
-> #define mtype_bucket_size	IPSET_TOKEN(MTYPE, _bucket_size)
-> #define mtype_hash_size		IPSET_TOKEN(MTYPE, _hash_size)
->
-> +#define mtype_remove_random	IPSET_TOKEN(MTYPE, _remove_random)
-> #define mtype_add		IPSET_TOKEN(MTYPE, _add)
-> #define mtype_del		IPSET_TOKEN(MTYPE, _del)
-> #define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
-> @@ -511,6 +513,33 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
-> 		    (offsetof(struct mtype_rht_elem, elem) + set->dsize);
-> }
->
-> +/* Evict one element from the set to make room for a new one (forceadd) */
-> +static void __maybe_unused
-> +mtype_remove_random(struct ip_set *set, struct htype *h)
-> +{
-> +	struct rhashtable_iter hti;
-> +	struct mtype_rht_elem *e;
-> +	bool removed = false;
-> +
-> +	rhashtable_walk_enter(&h->ht, &hti);
-> +	rhashtable_walk_start(&hti);
-> +	e = rhashtable_walk_next(&hti);
-> +	if (IS_ERR(e))
-> +		e = NULL;
-> +
-> +	if (e && !rhashtable_remove_fast(&h->ht, &e->node, mtype_rht_params))
-> +		removed = true;
-> +
-> +	rhashtable_walk_stop(&hti);
-> +	rhashtable_walk_exit(&hti);
-> +
-> +	if (removed) {
-> +		mtype_del_cidr_all(set, h, &e->elem);
-> +		ip_set_ext_destroy_slow(set, &e->elem);
-> +		kfree_rcu(e, rcu);
-> +	}
-> +}
-> +
-> /* Add an element to a hash and update the internal counters when succeeded,
->  * otherwise report the proper error code.
->  */
-> @@ -573,11 +602,15 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	rcu_read_unlock();
->
-> 	if (atomic_read(&h->ht.nelems) >= h->maxelem) {
-> -		if (net_ratelimit())
-> -			pr_warn("Set %s is full, maxelem %u reached\n",
-> -				set->name, h->maxelem);
-> -		mtype_data_next(&h->next, d);
-> -		return -IPSET_ERR_HASH_FULL;
-> +		if (SET_WITH_FORCEADD(set)) {
-> +			mtype_remove_random(set, h);
-> +		} else {
-> +			if (net_ratelimit())
-> +				pr_warn("Set %s is full, maxelem %u reached\n",
-> +					set->name, h->maxelem);
-> +			mtype_data_next(&h->next, d);
-> +			return -IPSET_ERR_HASH_FULL;
-> +		}
-> 	}
->
-> 	e = kzalloc(offsetof(struct mtype_rht_elem, elem) + set->dsize,
-> -- 
-> 2.54.0
->
->
->
