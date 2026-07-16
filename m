@@ -1,46 +1,27 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86893239E60
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jul 2026 23:02:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8953D24A076
+	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2026 09:10:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784156557; cv=none; b=est/1SXQVYYc3WBoN2j7b/gr7yi5BTjb+0uG43gOlHM2ipFteTGlbFRvUd6MeXHwBehW3pI3sM9wXM31SjJxV4Ry4EjDyVwCywoyMQuarRDEsS2pz3LBk7wvqi4d3sPoD0nsC0L4ea2CnJROT/vF0w25MqcwGK8uvTjfpUittQk=
+	t=1784193060; cv=none; b=JPLMiifQeYQpB6XMETAjrkWs5CykwzSYyhSsUppo2x9eCmX5gq+T+tFX59TsaBGnTbqRuV3tCY8KD+JssQCdCSh9qePWXPoCm3GlvfXX9Y+KTn/ymtBL75g1Cbm9XWjzpbHaWfz3OuPCPUP3DwbJ0NXuIxqsen5Nd3gpqOqvWMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784156557; c=relaxed/simple;
-	bh=RYL93oBP9Rn6S6VOHgRaMfzIAdSXavwQkrHKmm5seik=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=jrKh4LCcKMNbAMGQWG/4eqmIM8ID2jcxRqjnMVk8VeExLFzhwet41paUPxLpL2m6XUBh7+ChllLHIYKy6djb8vwKh+vZYvIdibPo/GOpCIg4F0JwHNcgtyouCoUqnKJI7KWVkasByESnSCLbmrFqg31m5q7vPst/bGLfx3MTPY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=STDUJMqU; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="STDUJMqU"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=yddGrkMl/MxTxTPtlAKVXL8aHKgT0CExnOqQxOkwoKY=; b=STDUJMqU77zR7SyaREX06qXwG8
-	bMiVEgvEE5bdWSqHy1wC3wwlAfgptovRFJNtRAUx3woMXr1D2tULVWHbNY03h+ElbOfQ/Gq9IOKRs
-	L7WwdqWYTPB/7JrOYcGGMBU+yVuQuUKf8QNMiXiDJOz35XN1fEfjEZ1Zykb0d6FPZjE0T41OBwDdC
-	j+uubRLod+EDf0M/nLVqMFJIF+0jX6YKshECy6ZD8nwpC5aUTKW/Mn1RBL8R9KRPykJn5587JIR/A
-	lCnarl5f0BfgqaOp1Eb3B8b5h7QNO+1E9WfvAOhTewkHoyRYHm4qK4kkWeC961Ji0NNYQr4/Cuis4
-	U3v88sEQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wk8cT-000000005vL-44LP
-	for netfilter-devel@vger.kernel.org;
-	Thu, 16 Jul 2026 01:02:26 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests: py: Fix --keep test runner option
-Date: Thu, 16 Jul 2026 01:02:20 +0200
-Message-ID: <20260715230220.240515-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	s=arc-20240116; t=1784193060; c=relaxed/simple;
+	bh=gLAonWj1tXP5fCwDS8GRMWDltugzUguEUUz/KSlrr00=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gxNRrpCTZxuef2WeoRi3540V10fEUQVoW9E47ScFwAUdrYoID3SOAn3G5xhQ28hpToflnibeBnR750IGns5mkAAxEOy9cIkdhQ1nnQR13/jl7Cg+8SXcJ8eBsWhSNHTAeRAtZykY1zEU1X5YqL++0/0Jd/hoBX1fZrvb0gt16Bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 1487E6058F; Thu, 16 Jul 2026 11:10:46 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: add template match bug test
+Date: Thu, 16 Jul 2026 11:10:32 +0200
+Message-ID: <20260716091037.15018-1-fw@strlen.de>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,62 +30,350 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The boolean flag expected a value, although not used. Set
-'action=store_true' to really make it a flag.
+Template should not be matched via "ct" expression.  Else this
+makes us read an l3num of 0.  This is a test for kernel commit
+3027ecbdb5fd ("netfilter: nft_ct: bail out on template ct in get eval").
 
-While at it, simplify the code by eliminating the inverse-value
-auto_delete helper variable.
-
-Fixes: f2b5d6fc26b9a ("tests: py: don't use a fixed filename")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/nft-test.py | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ .../packetpath/dumps/nft_ct_template.json-nft | 252 ++++++++++++++++++
+ .../packetpath/dumps/nft_ct_template.nft      |  22 ++
+ .../testcases/packetpath/nft_ct_template      |  38 +++
+ 3 files changed, 312 insertions(+)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
+ create mode 100644 tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
+ create mode 100755 tests/shell/testcases/packetpath/nft_ct_template
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 56d4e0fc9d4e0..4a00ce0cd725a 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -36,7 +36,6 @@ chain_list = []
- all_set = dict()
- obj_list = []
- signal_received = 0
--auto_delete = True
- 
- 
- class Colors:
-@@ -1523,7 +1522,7 @@ def set_delete_elements(set_element, set_name, table, filename=None,
-     parser.add_argument('-l', '--library', default=None,
-                         help='path to libntables.so.1, overrides --host')
- 
--    parser.add_argument('-k', '--keep', default=False,
-+    parser.add_argument('-k', '--keep', action='store_true',
-                         help='keep log file around after tests')
- 
-     parser.add_argument('-N', '--no-netns', action='store_true',
-@@ -1577,11 +1576,6 @@ def set_delete_elements(set_element, set_name, table, filename=None,
-               "You need to build the project." % args.library)
-         return 99
- 
--    global auto_delete
--
--    if args.keep:
--        auto_delete = False
--
-     if args.enable_schema and not args.enable_json:
-         print_error("Option --schema requires option --json")
-         return 99
-@@ -1593,8 +1587,8 @@ def set_delete_elements(set_element, set_name, table, filename=None,
-     tests = passed = warnings = errors = 0
-     global log_file
-     try:
--        log_file = tempfile.NamedTemporaryFile(prefix="nftables-test-py-", suffix=".log", mode='w', delete=auto_delete)
--        if auto_delete:
-+        log_file = tempfile.NamedTemporaryFile(prefix="nftables-test-py-", suffix=".log", mode='w', delete = not args.keep)
-+        if not args.keep:
-             print_info("Log file %s will not be retained.  Pass -k to keep it." % log_file.name)
-         else:
-             print_info("Log will be available at %s" % log_file.name)
+diff --git a/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft b/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
+new file mode 100644
+index 000000000000..9c38046f5b7e
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/nft_ct_template.json-nft
+@@ -0,0 +1,252 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": -300,
++        "policy": "accept"
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "ct": {
++                  "key": "zone"
++                }
++              },
++              "value": 1
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "ct": {
++                  "key": "saddr",
++                  "dir": "original"
++                }
++              },
++              "right": "0.0.0.0"
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "table": {
++        "family": "ip6",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip6",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": -300,
++        "policy": "accept"
++      }
++    },
++    {
++      "rule": {
++        "family": "ip6",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "ct": {
++                  "key": "zone"
++                }
++              },
++              "value": 1
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip6",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "ct": {
++                  "key": "saddr",
++                  "dir": "original"
++                }
++              },
++              "right": "::"
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "table": {
++        "family": "inet",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": -300,
++        "policy": "accept"
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "ct": {
++                  "key": "zone"
++                }
++              },
++              "value": 1
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "ct": {
++                  "key": "ip saddr",
++                  "dir": "original"
++                }
++              },
++              "right": "0.0.0.0"
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "ct": {
++                  "key": "ip6 saddr",
++                  "dir": "original"
++                }
++              },
++              "right": "::"
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft b/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
+new file mode 100644
+index 000000000000..efe5dbb265a7
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/nft_ct_template.nft
+@@ -0,0 +1,22 @@
++table ip t {
++	chain c {
++		type filter hook output priority raw; policy accept;
++		ct zone set 1
++		ct original ip saddr 0.0.0.0 counter packets 0 bytes 0 accept
++	}
++}
++table ip6 t {
++	chain c {
++		type filter hook output priority raw; policy accept;
++		ct zone set 1
++		ct original ip6 saddr :: counter packets 0 bytes 0 accept
++	}
++}
++table inet t {
++	chain c {
++		type filter hook output priority raw; policy accept;
++		ct zone set 1
++		ct original ip saddr 0.0.0.0 counter packets 0 bytes 0 accept
++		ct original ip6 saddr :: counter packets 0 bytes 0 accept
++	}
++}
+diff --git a/tests/shell/testcases/packetpath/nft_ct_template b/tests/shell/testcases/packetpath/nft_ct_template
+new file mode 100755
+index 000000000000..02051f3345c9
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/nft_ct_template
+@@ -0,0 +1,38 @@
++#!/bin/bash
++
++# test for kernel commit 3027ecbdb5fd ("netfilter: nft_ct: bail out on template ct in get eval")
++
++set -e
++
++$NFT -f - <<EOF
++table ip t {
++	chain c {
++		type filter hook output priority -300; policy accept;
++		ct zone set 1
++		ct original saddr 0.0.0.0 counter accept
++	}
++}
++
++table ip6 t {
++	chain c {
++		type filter hook output priority -300; policy accept;
++		ct zone set 1
++		ct original saddr :: counter accept
++	}
++}
++
++table inet t {
++	chain c {
++		type filter hook output priority -300; policy accept;
++		ct zone set 1
++		ct original ip saddr 0.0.0.0 counter accept
++		ct original ip6 saddr :: counter accept
++	}
++}
++EOF
++
++ip link set lo up
++ping -c 1 127.0.0.1
++ping -c 1 ::1
++
++# counter validation via dump file.
 -- 
-2.54.0
+2.55.0
 
