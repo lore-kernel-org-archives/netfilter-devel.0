@@ -1,242 +1,133 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 425103F39D3
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2026 11:06:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7283ECBE2;
+	Fri, 17 Jul 2026 17:41:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784286400; cv=none; b=sdB7LlLklTbA/6a6oSKMj2eY8uNI36DAqe1QWqdGNeSWsuaJzq1SScTYE+M+llwrvejPdjDoSA/aWbYZfyDg87kFAtDWaE4i4pFKK8VkwD5qCxkkNRdDbsTPEkuXhePa2OOyKYD+50/3DHG/Z5tXb4xSh/dwOPyDFnRS86RFlX4=
+	t=1784310094; cv=none; b=jzEN3fFwOHBZd5xjPO7j9UKzyEOtgd8PKOzlJTrPWBbUgFnrym9DRkEo2wRPkocokPjYyax1nGXEMs9C4vjdNKnyhdjZ36lxtYfu236tBgcyXsbvvV5OHDfTBB/UitbCjCuD4aquOas6q+wW/sj8EaAPxARv1ysc2VxobYp+Vdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784286400; c=relaxed/simple;
-	bh=wHUcByUxVW3rbfhtzi8Qa5Ty81oZVNK6L6YgVvnV/zs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PAcls2XlPPXSAMkjnq9E7J2tg7AMoPeLtlrVNgO3o47FLybuPinYNXQMqoIPmAoRH8XaGQBz2hnCeRL2I1ulaszOiHdeErtr/D+/+MdqAd5PcOyQzVotFfQ0kHQnoVUm2n5nWSVdv4NLi3fp0ZBB/ngLkFRAPhkQ2ebVkOVT14Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZFe/HEaC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1784310094; c=relaxed/simple;
+	bh=2dkWwyPzlKkKFNt2/pQ7QPzYHYY5xILeNtLZ9EGUNzM=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=WmMjwnY8n36tAthkdahtQAyMcFlcwYJn1xWsiAdkCsuPPlAowXZsTSL2a6J8uG87HD60yJt/DUvf1EiIAu5ijETIF7FDgGsKcFegSq/YOPEt9AIcJlaMCp1aZiz4G7YZitdjmAMRE7N5mLOnas5LBnuPCJCNUqFRnblnhpvAq8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=DcENfLX3; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZFe/HEaC"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CE91F6019D;
-	Fri, 17 Jul 2026 13:06:26 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784286387;
-	bh=12moMw+L2T/JH0w5RGutjm4wfuDrPigs5o6AsWy+fsY=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ZFe/HEaCyZYrNZmUixIimc9uO5AKr8HDDqUMtJc/QXxWYnMQzChpvc6o5V8hPjqEF
-	 jSUJ/UxtpT5dVNeYVOS6t0fXE28qub5kvoKjubP1mcgH9fzSJcml/4QiMG2q7Sh4Oi
-	 FahtsDCJ3QyIOAYP4jGSomiJdXc2jz5duTvlkjkn9Y9RTCylkUFGFTqeLNx0ZreSOB
-	 E7qpuqk/S3t88zEriQh+vCXh3CxWBY0+AivL7UPIsw2WWgSUsghi2ngCsBC7ZSCCPW
-	 iLpw0moiNHiYGltPSRpR/hdsGp7M+QQ8ZSo1kWH3J+dhPY3hPwuuT5ChqgPdUvsdtW
-	 yBt1ViVJrlRsw==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf,v3] netfilter: nf_tables: make nft_object rhltable per table
-Date: Fri, 17 Jul 2026 13:06:21 +0200
-Message-ID: <20260717110621.254943-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="DcENfLX3"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 2974221B59;
+	Fri, 17 Jul 2026 20:41:20 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=FT48w2Qqspin9Ty3SWm4VXe9uwMrmWlNsNRsKal69tY=; b=DcENfLX3J0PQ
+	izwgNkR3027zqW9VYUwT4LIkFlUgMu3+rECgBGTP9bCRdU4Q+KpdSL4d2N+UGba2
+	4Myq26SeXnBT4JMZwdnjShur5JisD9/+2D0fNMFsoa0hy6lagdSBqUhp4bXggwjg
+	ji913AG2n94NR/mwOPFb6PP202wsbQ+m2sCiSzHSbqwDLeSJ8hNLf9DbxRVjHqJd
+	eo2W1JQhEBeWWfGk0xzTz6UfLkPel96v7HGsMQ3G6AgJLdDEiDm+NVol4pcY5y0t
+	vdi4FPNNdPNsZhHu47gZFHRKudbocQukbkOxZAf87ZhlKuQ4aoN9tsxe+yOgLQDB
+	TJqEXWxaR+ZclVr+h/iM/kR6HWt5s9i+ed/tEhVGNPC17h5sVd8SrFBqrQanYhCy
+	sMPLjSiDm9MSCv3C1q5HvpO9mMI3Cuk+BPjufGIuOyxgIq5jAT2J/nF9DY/+rKb/
+	QnN++ljfmHmzMbUL1Yd9ZLpqOsV142yCI4dYcYwQYpCsmTWiL7lm7s+ksSElPnLS
+	PgpW9iKyuTZYNY4JARVn+tZRYn5K0yWBA1tdH/x13qQUWq5Qg4Nq6sS8QbR/3Dga
+	IFV62ukWeRSHqOJ48g/9PQ3+vcFzWhQryrIXrHHmHcAk8K7BvJmYp9lro2D3XEem
+	UtpgPelEi9X3A6QP6LX+/NA/+JRaUcA=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri, 17 Jul 2026 20:41:20 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id DEC5C60948;
+	Fri, 17 Jul 2026 20:41:20 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66HHfJUL062786;
+	Fri, 17 Jul 2026 20:41:19 +0300
+Date: Fri, 17 Jul 2026 20:41:19 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Paolo Abeni <pabeni@redhat.com>
+cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Subject: Re: [PATCH net 8/9] ipvs: fix more places with wrong ipv6 transport
+ offsets
+In-Reply-To: <e7ed31d3-a3aa-427a-8e82-aa65b4388368@redhat.com>
+Message-ID: <37bd52c6-1ad6-00a9-fa79-e4139ebed025@ssi.bg>
+References: <20260710143733.29741-1-fw@strlen.de> <20260710143733.29741-9-fw@strlen.de> <e7ed31d3-a3aa-427a-8e82-aa65b4388368@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-The nft_object rhltable is global, this allows for accessing objects
-that are being dismangled from lookup path by other existing netns.
-Given the nft_obj_destroy() releases the object inmediately, this might
-lead to use-after-free of these objects that are being released.
-Make the existing rhltable per table to address this issue to deal with
-with the nft_rcv_nl_event() path too.
 
-Update nft_obj_lookup() to take the table as non-const, otherwise,
-compiler complains when passing the objname_ht to rhltable_lookup().
+	Hello,
 
-Fixes: 4d44175aa5bb ("netfilter: nf_tables: handle nft_object lookups via rhltable")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: remove oneliner leftover definition from the pernetns approach.
+On Fri, 17 Jul 2026, Paolo Abeni wrote:
 
- include/net/netfilter/nf_tables.h |  4 +++-
- net/netfilter/nf_tables_api.c     | 34 +++++++++++++++----------------
- 2 files changed, 19 insertions(+), 19 deletions(-)
+> Hi,
+> 
+> On 7/10/26 4:37 PM, Florian Westphal wrote:
+> > From: Julian Anastasov <ja@ssi.bg>
+> > 
+> > Sashiko reports for more incorrect IPv6 transport offsets.
+> > 
+> > The app code for TCP was assuming IPv4 network header
+> > even after the ipvsh argument was provided. This can
+> > cause problems with apps over IPv6. As for the only
+> > official app in the kernel tree (FTP) this problem is
+> > harmless because we use Netfilter to mangle the FTP
+> > ports and we do not adjust the TCP seq numbers.
+> > 
+> > Also, provide correct offset of the ICMPV6 header in
+> > ip_vs_out_icmp_v6() for correct checksum checks when
+> > the IPv6 packet has extension headers.
+> > 
+> > Fixes: d12e12299a69 ("ipvs: add ipv6 support to ftp")
+> > Fixes: 2a3b791e6e11 ("IPVS: Add/adjust Netfilter hook functions and helpers for v6")
+> > Cc: stable@vger.kernel.org
+> > Link: https://sashiko.dev/#/patchset/20260706101624.69471-1-zhaoyz24%40mails.tsinghua.edu.cn
+> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  net/netfilter/ipvs/ip_vs_app.c  | 10 ++++------
+> >  net/netfilter/ipvs/ip_vs_core.c |  3 +--
+> >  2 files changed, 5 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
+> > index d54d7da58334..b0e00be85cb1 100644
+> > --- a/net/netfilter/ipvs/ip_vs_app.c
+> > +++ b/net/netfilter/ipvs/ip_vs_app.c
+> > @@ -361,14 +361,13 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
+> >  				  struct ip_vs_iphdr *ipvsh)
+> >  {
+> >  	int diff;
+> > -	const unsigned int tcp_offset = ip_hdrlen(skb);
+> >  	struct tcphdr *th;
+> >  	__u32 seq;
+> >  
+> > -	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
+> > +	if (skb_ensure_writable(skb, ipvsh->len + sizeof(*th)))
+> >  		return 0;
+> >  
+> > -	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
+> > +	th = (struct tcphdr *)(skb_network_header(skb) + ipvsh->len);
+> 
+> Beyond the usual set of pre-existing issues, sashiko-gemini noted this
+> patch may need a follow-up:
+> 
+> https://sashiko.dev/#/patchset/20260710143733.29741-2-fw%40strlen.de
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9d844354c4d9..3be612145c13 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1294,6 +1294,7 @@ static inline void nft_use_inc_restore(u32 *use)
-  *	@sets: sets in the table
-  *	@objects: stateful objects in the table
-  *	@flowtables: flow tables in the table
-+ *	@objname_ht: hashtable for objects lookup by name
-  *	@hgenerator: handle generator state
-  *	@handle: table handle
-  *	@use: number of chain references to this table
-@@ -1313,6 +1314,7 @@ struct nft_table {
- 	struct list_head		sets;
- 	struct list_head		objects;
- 	struct list_head		flowtables;
-+	struct rhltable			objname_ht;
- 	u64				hgenerator;
- 	u64				handle;
- 	u32				use;
-@@ -1400,7 +1402,7 @@ static inline void *nft_obj_data(const struct nft_object *obj)
- #define nft_expr_obj(expr)	*((struct nft_object **)nft_expr_priv(expr))
- 
- struct nft_object *nft_obj_lookup(const struct net *net,
--				  const struct nft_table *table,
-+				  struct nft_table *table,
- 				  const struct nlattr *nla, u32 objtype,
- 				  u8 genmask);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a9eaf9455c77..af357f6c5070 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -45,8 +45,6 @@ enum {
- 	NFT_VALIDATE_DO,
- };
- 
--static struct rhltable nft_objname_ht;
--
- static u32 nft_chain_hash(const void *data, u32 len, u32 seed);
- static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed);
- static int nft_chain_hash_cmp(struct rhashtable_compare_arg *, const void *);
-@@ -1635,6 +1633,10 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (err)
- 		goto err_chain_ht;
- 
-+	err = rhltable_init(&table->objname_ht, &nft_objname_ht_params);
-+	if (err < 0)
-+		goto err_obj_ht;
-+
- 	INIT_LIST_HEAD(&table->chains);
- 	INIT_LIST_HEAD(&table->sets);
- 	INIT_LIST_HEAD(&table->objects);
-@@ -1653,6 +1655,8 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	list_add_tail_rcu(&table->list, &nft_net->tables);
- 	return 0;
- err_trans:
-+	rhltable_destroy(&table->objname_ht);
-+err_obj_ht:
- 	rhltable_destroy(&table->chains_ht);
- err_chain_ht:
- 	kfree(table->udata);
-@@ -1819,6 +1823,7 @@ static void nf_tables_table_destroy(struct nft_table *table)
- 		return;
- 
- 	rhltable_destroy(&table->chains_ht);
-+	rhltable_destroy(&table->objname_ht);
- 	kfree(table->name);
- 	kfree(table->udata);
- 	kfree(table);
-@@ -8086,7 +8091,7 @@ void nft_unregister_obj(struct nft_object_type *obj_type)
- EXPORT_SYMBOL_GPL(nft_unregister_obj);
- 
- struct nft_object *nft_obj_lookup(const struct net *net,
--				  const struct nft_table *table,
-+				  struct nft_table *table,
- 				  const struct nlattr *nla, u32 objtype,
- 				  u8 genmask)
- {
-@@ -8102,7 +8107,7 @@ struct nft_object *nft_obj_lookup(const struct net *net,
- 		     !lockdep_commit_lock_is_held(net));
- 
- 	rcu_read_lock();
--	list = rhltable_lookup(&nft_objname_ht, &k, nft_objname_ht_params);
-+	list = rhltable_lookup(&table->objname_ht, &k, nft_objname_ht_params);
- 	if (!list)
- 		goto out;
- 
-@@ -8382,7 +8387,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (err < 0)
- 		goto err_trans;
- 
--	err = rhltable_insert(&nft_objname_ht, &obj->rhlhead,
-+	err = rhltable_insert(&table->objname_ht, &obj->rhlhead,
- 			      nft_objname_ht_params);
- 	if (err < 0)
- 		goto err_obj_ht;
-@@ -8567,8 +8572,8 @@ nf_tables_getobj_single(u32 portid, const struct nfnl_info *info,
- 	struct netlink_ext_ack *extack = info->extack;
- 	u8 genmask = nft_genmask_cur(info->net);
- 	u8 family = info->nfmsg->nfgen_family;
--	const struct nft_table *table;
- 	struct net *net = info->net;
-+	struct nft_table *table;
- 	struct nft_object *obj;
- 	struct sk_buff *skb2;
- 	u32 objtype;
-@@ -10437,9 +10442,9 @@ static void nf_tables_commit_chain(struct net *net, struct nft_chain *chain)
- 		nf_tables_commit_chain_free_rules_old(g0);
- }
- 
--static void nft_obj_del(struct nft_object *obj)
-+static void nft_obj_del(struct nft_table *table, struct nft_object *obj)
- {
--	rhltable_remove(&nft_objname_ht, &obj->rhlhead, nft_objname_ht_params);
-+	rhltable_remove(&table->objname_ht, &obj->rhlhead, nft_objname_ht_params);
- 	list_del_rcu(&obj->list);
- }
- 
-@@ -11124,7 +11129,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_DELOBJ:
- 		case NFT_MSG_DESTROYOBJ:
--			nft_obj_del(nft_trans_obj(trans));
-+			nft_obj_del(table, nft_trans_obj(trans));
- 			nf_tables_obj_notify(&ctx, nft_trans_obj(trans),
- 					     trans->msg_type);
- 			break;
-@@ -11416,7 +11421,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 				nft_trans_destroy(trans);
- 			} else {
- 				nft_use_dec_restore(&table->use);
--				nft_obj_del(nft_trans_obj(trans));
-+				nft_obj_del(table, nft_trans_obj(trans));
- 			}
- 			break;
- 		case NFT_MSG_DELOBJ:
-@@ -12043,7 +12048,7 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 		nft_set_destroy(&ctx, set);
- 	}
- 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
--		nft_obj_del(obj);
-+		nft_obj_del(table, obj);
- 		nft_use_dec(&table->use);
- 		nft_obj_destroy(&ctx, obj);
- 	}
-@@ -12225,10 +12230,6 @@ static int __init nf_tables_module_init(void)
- 	if (err < 0)
- 		goto err_netdev_notifier;
- 
--	err = rhltable_init(&nft_objname_ht, &nft_objname_ht_params);
--	if (err < 0)
--		goto err_rht_objname;
--
- 	err = nft_offload_init();
- 	if (err < 0)
- 		goto err_offload;
-@@ -12251,8 +12252,6 @@ static int __init nf_tables_module_init(void)
- err_netlink_notifier:
- 	nft_offload_exit();
- err_offload:
--	rhltable_destroy(&nft_objname_ht);
--err_rht_objname:
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
- err_netdev_notifier:
- 	nf_tables_core_module_exit();
-@@ -12274,7 +12273,6 @@ static void __exit nf_tables_module_exit(void)
- 	unregister_pernet_subsys(&nf_tables_net_ops);
- 	cancel_work_sync(&trans_gc_work);
- 	rcu_barrier();
--	rhltable_destroy(&nft_objname_ht);
- 	nf_tables_core_module_exit();
- }
- 
--- 
-2.47.3
+	I'll provide fix to continue supporting non-zero
+network offset but I already don't remember what is the use
+case. As for the handle_response_icmp() checksum validation
+problem I'm still working on the patch.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
