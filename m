@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDE143D4FA;
-	Wed, 22 Jul 2026 21:14:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 323734399F7;
+	Wed, 22 Jul 2026 21:14:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784754880; cv=none; b=ToKCK/9TGK/X91D+AHs/TdDGhqnHB08kCn3dbmeaOOA8mJSuGhD2RFcBzmEZaHaKh9zSyqpkGjhJrmb85RebKq0Z6bnvzNl/HSpI+eHQ6BE0WVa5mzj0rXQCaBS2wDB+U0ePDzcSeYnS3Zq0w/uEquUaT7OnpbPe9zWHM6Lt+nA=
+	t=1784754880; cv=none; b=gZUXXBDdOfpQnX+KBbVnHM93nMuRSpC4RpTWgzsrKGEvsH18XmYRBdb/aMd+oRYpzyzq/5QuhX6oXuBqkKVSixDN91dDtj/OKI7u3v2VwNCNoVwQ6xskkQsDDW0eu4Q/xS+PItv6hN941IoHcMUXyJQE98nAecaDpRjzUUT/ktM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1784754880; c=relaxed/simple;
-	bh=+RYzVjz8a7OcoKQyBbN62CweZq/vJnhZLaL0DCyGz6c=;
+	bh=GMeAOvoErUYTW4lcOzPpNw0VCD5jdvgE6inCfTNurZc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=n/iSR+Pv/4eqDnIAgieacaocE9P2ibEsMF0AYanyBEYHUL7Jh2knpnyPBu2rzn+cVq/MoeGXi+nHAhyIfXu+eqSiQrTi3Fn+iVAhOfFtU2pFYxvrqm726/jQOsJCJSz4ofmjE6EbWTQ/eouKgmR44AWSy5jAhcdEePNcGfUjTXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qQHLaRh/; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=FYsdueCq9oVz6GW+q0SSWVg6LOTJY0e8z1ETvnWAfB91o3D54Io5TFtRbuSUn+xNI+VGB8wu6wKJ8Rm41I5JG7JFyu57aXIZx97lCrjvte7XzELdBeSVcVfNRijnwVYT16ymAw38xfVuxo0juV0JN45R0+z6Jk8nT8HOZ2rGZgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vEIurwG4; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qQHLaRh/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vEIurwG4"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B5E5B601A1;
-	Wed, 22 Jul 2026 23:14:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 544E96019E;
+	Wed, 22 Jul 2026 23:14:31 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784754875;
-	bh=RuwXbKbjTDm/EyGoa/7WZM6uITFBpJjRYd8ELjCFtJ8=;
+	s=2025; t=1784754871;
+	bh=Dfej/kXpz0EHt4KV6jp8ELzokq+ndIxpYDiP8JHHEqc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qQHLaRh/PQV03Mw+2Y56mxHEQdEbvAI6xCvHJDqxUp24HM5Q9j4MPYQ7b2mYigVeG
-	 I+5+zqw70VOrMhq0zrNSyU85IFJDtIDse62a/NVK2Cb2aG3ovyieXnAKhT7i3Y4Ndc
-	 sWoMmL0NEwDEjpLvKCO6Jw2Nhe1z5EfRqm7XRa8xRkOMI4WS7kyzIQzTbT5v/CGnWy
-	 xhAJ/VAfQOkU2Hx/h06H9EP8zBU4tCSqPRaXGZvd0fxjUq+YglmrrYpfi/55jGnzza
-	 dtwdfte0Nkq29qB36pjo3y54o1tCaaaAZ+zw4lIoVccu0TXXimmLdrKEuEbMqIXk7d
-	 YTtJhfZ4HrkWA==
+	b=vEIurwG4HvDz+PUpT2e36uv1bZHU3oVrNKj/GEfyAmmesFgXxvQyF8zM1kSw4p3t9
+	 pjlKWuaeL667Q2CJihbXE6W015UtIJoVOhX2bqCi2N9VJzRpZYH8e0FDKhEyOuK/AX
+	 qFwjlx0TwZNf6TgRV6rHT05u6JjPyUDD6IoPKQ/9umfUpxmZDNRVl/+tfpG93i3JfD
+	 XJpqVEyFiMIFrVd4BXquNBgFjRUk6GSTeKAY+HwpynON4aA47IYpbNTPVn98HqufdX
+	 rujpcGe7iq/m1EMZw7Oh5YddcZKX8Iy0I1EIESozuCJuUxT/ZkwTH5MSr+/4OCClcB
+	 nYPnW0ViDFeOg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/13] ipvs: adjust double hashing when fwd method changes
-Date: Wed, 22 Jul 2026 23:14:13 +0200
-Message-ID: <20260722211420.153933-7-pablo@netfilter.org>
+Subject: [PATCH net 03/13] netfilter: nf_conntrack_expect: add and use nf_ct_expect_related_pair()
+Date: Wed, 22 Jul 2026 23:14:10 +0200
+Message-ID: <20260722211420.153933-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260722211420.153933-1-pablo@netfilter.org>
 References: <20260722211420.153933-1-pablo@netfilter.org>
@@ -52,339 +52,187 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+Add a new function to insert a pair of expectations, this is required by
+the SIP and H323 NAT helpers. The spinlock is held to check if there is
+a slot for both expectations, in such case, insert them.
 
-Synced conns can be created with one forwarding method
-and later updated with different one after the dest
-server is configured. This needs adjusting the hashing
-for node hn1 because only MASQ supports double hashing.
+This removes the need for nf_ct_unexpect_related() inside the loop to
+find a pair of consecutive ports, otherwise inserting expectations whose
+dead flag is already set on can happen.
 
-Modify conn_tab_lock() to support seeking for hash node
-hn0 together with adding for hn1. By this way we can
-safely modify the forwarding method and hn1.hash_key
-under bucket lock for the first node hn0. The forwarding
-method is also protected by cp->lock as it is part of
-cp->flags.
+Bump master_help->expecting for the expectation class after checking if
+the expectation fits in the master expectation list, which is needed for
+this new _pair() function variant to run the eviction routine including
+the preallocated slot for the first expectation in the pair.
 
-Fix the usage of stale idx/idx2 values in conn_tab_lock
-after jumping to the retry label. Instead, use idx/idx2
-values just to order the locking for the old/new tables.
-
-Reported-by: Zhiling Zou <roxy520tt@gmail.com>
-Link: https://patch.msgid.link/1b914f41d725bc064c9ba9830dc8169329737270.1782540466.git.roxy520tt@gmail.com/
-Link: https://sashiko.dev/#/patchset/CALMqdkR704S2BG_QD_bgHTFp2%2B1QCi7n0T4zoZyTo8mDZevYSA%40mail.gmail.com
-Fixes: f20c73b0460d ("ipvs: use more keys for connection hashing")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Fixes: b8b09dc2bf35 ("netfilter: nf_conntrack_expect: use conntrack GC to reap expectations")
+Reported-by: Jaeyeong Lee <iostreampy@proton.me>
+Link: https://patch.msgid.link/178377968720.33756.12204817361601593230@proton.me/
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 189 +++++++++++++++++++++++++-------
- 1 file changed, 147 insertions(+), 42 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h |  3 ++
+ net/ipv4/netfilter/nf_nat_h323.c            | 22 +++++--------
+ net/netfilter/nf_conntrack_expect.c         | 35 ++++++++++++++++++++-
+ net/netfilter/nf_nat_sip.c                  | 20 ++++--------
+ 4 files changed, 50 insertions(+), 30 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 0682cec5f0a7..36c5cba03f5b 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -70,25 +70,45 @@ static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
-  * bucket or hash table
-  * - hash table resize works like rehash but always rehashes into new table
-  * - bit lock on bucket serializes all operations that modify the chain
-+ * - on resize, bucket from the old table is locked before bucket from the
-+ * new table
-  * - cp->lock protects conn fields like cp->flags, cp->dest
-  */
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index c024345c9bd8..26d6babd92fc 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -161,6 +161,9 @@ static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect,
+ 	return nf_ct_expect_related_report(expect, 0, 0, flags);
+ }
  
--/* Lock conn_tab bucket for conn hash/unhash, not for rehash */
-+/**
-+ * conn_tab_lock - Lock conn_tab buckets for conn hash/unhash, not for rehash
-+ * @t:		hash table for hn0, new_tbl when new_hash=true
-+ * @t2:		hash table for hn1, new_tbl when new_hash2=true
-+ * @cp:		connection
-+ * @hash_key:	hash key for hn0
-+ * @hash_key2:	hash key for hn1
-+ * @use2:	using hn1 (double hashing) based on the forwarding method
-+ * @new_hash:	mode for hn0, hash node (true) or seek node (false)
-+ * @new_hash2:	mode for hn1, hash node (true) or seek node (false)
-+ * @head_ret:	returned head for hn0
-+ * @head2_ret:	returned head for hn1
-+ *
-+ * We support 3 modes:
-+ * - seek mode for both nodes, used for unhashing
-+ * - hash mode for both nodes, used for hashing
-+ * - seek hn0 and hash hn1, used when forwarding method is changed
-+ */
- static __always_inline void
--conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
--	      u32 hash_key2, bool use2, bool new_hash,
--	      struct hlist_bl_head **head_ret, struct hlist_bl_head **head2_ret)
-+conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_rht *t2, struct ip_vs_conn *cp,
-+	      u32 hash_key, u32 hash_key2, bool use2, bool new_hash,
-+	      bool new_hash2, struct hlist_bl_head **head_ret,
-+	      struct hlist_bl_head **head2_ret)
- {
- 	struct hlist_bl_head *head, *head2;
- 	u32 hash_key_new, hash_key_new2;
--	struct ip_vs_rht *t2 = t;
--	u32 idx, idx2;
-+	int idx = 0, idx2 = 0;
++int nf_ct_expect_related_pair(struct nf_conntrack_expect *expect[],
++			      unsigned int flag);
 +
-+	/* Advance idx2 when new_hash is not set but hash_key2
-+	 * is for new table
-+	 */
-+	if (new_hash2 && use2 && t != t2)
-+		idx2++;
+ struct nf_conn_help;
+ void nf_ct_expectation_gc(struct nf_conn_help *master_help);
  
--	idx = hash_key & t->mask;
--	if (use2)
--		idx2 = hash_key2 & t->mask;
--	else
--		idx2 = idx;
- 	if (!new_hash) {
- 		/* We need to lock the bucket in the right table */
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index 183e8a3ff2ba..6bcd6734769b 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -182,6 +182,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 			struct nf_conntrack_expect *rtp_exp,
+ 			struct nf_conntrack_expect *rtcp_exp)
+ {
++	struct nf_conntrack_expect *rtp_pair[2] = { rtp_exp, rtcp_exp };
+ 	struct nf_ct_h323_master *info = nfct_help_data(ct);
+ 	int dir = CTINFO2DIR(ctinfo);
+ 	int i;
+@@ -227,22 +228,13 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 		int ret;
  
-@@ -100,46 +120,45 @@ conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
- 			 * both nodes in different tables, use idx/idx2
- 			 * for proper lock ordering for heads.
- 			 */
--			idx = hash_key & t->mask;
--			idx |= IP_VS_RHT_TABLE_ID_MASK;
--		}
--		if (use2) {
--			if (!ip_vs_rht_same_table(t2, hash_key2)) {
--				/* It is already moved to new table */
--				t2 = rcu_dereference(t2->new_tbl);
--				idx2 = hash_key2 & t2->mask;
--				idx2 |= IP_VS_RHT_TABLE_ID_MASK;
+ 		rtp_exp->tuple.dst.u.udp.port = htons(nated_port);
+-		ret = nf_ct_expect_related(rtp_exp, 0);
++		rtcp_exp->tuple.dst.u.udp.port = htons(nated_port + 1);
++		ret = nf_ct_expect_related_pair(rtp_pair, 0);
+ 		if (ret == 0) {
+-			rtcp_exp->tuple.dst.u.udp.port =
+-			    htons(nated_port + 1);
+-			ret = nf_ct_expect_related(rtcp_exp, 0);
+-			if (ret == 0)
+-				break;
+-			else if (ret == -EBUSY) {
+-				nf_ct_unexpect_related(rtp_exp);
+-				continue;
+-			} else if (ret < 0) {
+-				nf_ct_unexpect_related(rtp_exp);
+-				nated_port = 0;
+-				break;
 -			}
--		} else {
--			idx2 = idx;
-+			idx++;
+-		} else if (ret != -EBUSY) {
++			break;
++		} else if (ret == -EBUSY) {
++			continue;
++		} else if (ret < 0) {
+ 			nated_port = 0;
+ 			break;
  		}
- 	}
-+	if (use2 && !new_hash2 && !ip_vs_rht_same_table(t2, hash_key2)) {
-+		/* It is already moved to new table */
-+		t2 = rcu_dereference(t2->new_tbl);
-+		idx2++;
-+	}
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 7ae68d60586a..8a3b9e33e94f 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -427,7 +427,6 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp,
+ 		exp->timeout += helper->expect_policy[exp->class].timeout * HZ;
  
-+	if (!use2)
-+		idx2 = idx;
- 	head = t->buckets + (hash_key & t->mask);
- 	head2 = use2 ? t2->buckets + (hash_key2 & t2->mask) : head;
+ 	hlist_add_head_rcu(&exp->lnode, &master_help->expectations);
+-	master_help->expecting[exp->class]++;
  
--	local_bh_disable();
--	/* Do not touch seqcount, this is a safe operation */
--
--	if (idx <= idx2) {
-+	if (idx > idx2 || (head > head2 && idx == idx2)) {
-+		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
--		if (head != head2)
--			hlist_bl_lock(head2);
- 	} else {
--		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
-+		if (head != head2)
-+			hlist_bl_lock(head2);
- 	}
- 	if (!new_hash) {
-+		bool changed;
-+
- 		/* Ensure hash_key is read under lock */
- 		hash_key_new = READ_ONCE(cp->hn0.hash_key);
--		hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+		changed = hash_key != hash_key_new;
-+		if (use2 && !new_hash2) {
-+			hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+			changed |= hash_key2 != hash_key_new2;
-+		} else {
-+			hash_key_new2 = hash_key2;
-+		}
- 		/* Hash changed ? */
--		if (hash_key != hash_key_new ||
--		    (hash_key2 != hash_key_new2 && use2)) {
-+		if (changed) {
- 			if (head != head2)
- 				hlist_bl_unlock(head2);
- 			hlist_bl_unlock(head);
--			local_bh_enable();
- 			hash_key = hash_key_new;
- 			hash_key2 = hash_key_new2;
- 			goto retry;
-@@ -155,7 +174,6 @@ static inline void conn_tab_unlock(struct hlist_bl_head *head,
- 	if (head != head2)
- 		hlist_bl_unlock(head2);
- 	hlist_bl_unlock(head);
--	local_bh_enable();
+ 	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
+ 	cnet = nf_ct_pernet(net);
+@@ -534,6 +533,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+ 	if (ret < 0)
+ 		goto out;
+ 
++	master_help->expecting[expect->class]++;
+ 	nf_ct_expect_insert(expect, master_help);
+ 
+ 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
+@@ -546,6 +546,39 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
  }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
  
- static void ip_vs_conn_expire(struct timer_list *t);
-@@ -268,8 +286,9 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		use2 = false;
- 	}
- 
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
--		      &head, &head2);
-+	local_bh_disable();
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, true /* new_hash */,
-+		      true /* new_hash2 */, &head, &head2);
- 
- 	cp->flags |= IP_VS_CONN_F_HASHED;
- 	WRITE_ONCE(cp->hn0.hash_key, hash_key);
-@@ -280,6 +299,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
- 
- 	conn_tab_unlock(head, head2);
-+	local_bh_enable();
- 	ret = 1;
- 
- 	/* Schedule resizing if load increases */
-@@ -306,18 +326,20 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 		return refcount_dec_if_one(&cp->refcnt);
- 
- 	rcu_read_lock();
-+	local_bh_disable();
- 
- 	t = rcu_dereference(ipvs->conn_tab);
- 	hash_key = READ_ONCE(cp->hn0.hash_key);
- 	hash_key2 = READ_ONCE(cp->hn1.hash_key);
- 	use2 = ip_vs_conn_use_hash2(cp);
- 
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
--		      &head, &head2);
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, false /* new_hash */,
-+		      false /* new_hash2 */, &head, &head2);
- 
- 	if (cp->flags & IP_VS_CONN_F_HASHED) {
- 		/* Decrease refcnt and unlink conn only if we are last user */
--		if (refcount_dec_if_one(&cp->refcnt)) {
-+		if (use2 == ip_vs_conn_use_hash2(cp) &&
-+		    refcount_dec_if_one(&cp->refcnt)) {
- 			hlist_bl_del_rcu(&cp->hn0.node);
- 			if (use2)
- 				hlist_bl_del_rcu(&cp->hn1.node);
-@@ -328,6 +350,7 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 
- 	conn_tab_unlock(head, head2);
- 
-+	local_bh_enable();
- 	rcu_read_unlock();
- 
- 	return ret;
-@@ -632,6 +655,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	int ntbl;
- 	int dir;
- 
-+restart:
- 	/* No packets from inside, so we can do it in 2 steps. */
- 	dir = use2 ? 1 : 0;
- 
-@@ -686,6 +710,23 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	/* Protect the cp->flags modification */
- 	spin_lock_bh(&cp->lock);
- 
-+	/* Recheck the forwarding method under lock */
-+	if (use2 != ip_vs_conn_use_hash2(cp)) {
-+		use2 = !use2;
-+		if (use2) {
-+			spin_unlock_bh(&cp->lock);
-+			/* Restart with new use2 value */
-+			goto restart;
-+		}
-+		if (dir) {
-+			/* Not started yet, so just skip dir 1 */
-+			spin_unlock_bh(&cp->lock);
-+			dir--;
-+			goto next_dir;
-+		}
-+		/* Just finish dir 0 */
-+	}
-+
- 	/* Lock seqcount only for the old bucket, even if we are on new table
- 	 * because it affects the del operation, not the adding.
- 	 */
-@@ -752,6 +793,61 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 		goto next_dir;
- }
- 
-+/* Change forwarding method for hashed conn */
-+static void ip_vs_conn_change_fwd_mask(struct ip_vs_conn *cp, u32 new_flags)
++int nf_ct_expect_related_pair(struct nf_conntrack_expect *expect[],
++			      unsigned int flags)
 +{
-+	struct netns_ipvs *ipvs = cp->ipvs;
-+	struct hlist_bl_head *head, *head2;
-+	u32 hash2, hash_key, hash_key2;
-+	struct ip_vs_rht *t, *t2;
++	struct nf_conn_help *master_help;
++	int i, ret;
 +
-+	/* See ip_vs_conn_use_hash2() for reference */
-+	if ((cp->flags & IP_VS_CONN_F_TEMPLATE) ||
-+	    /* No change in double hashing ? */
-+	    (IP_VS_FWD_METHOD(cp) == IP_VS_CONN_F_MASQ) ==
-+	    ((new_flags & IP_VS_CONN_F_FWD_MASK) == IP_VS_CONN_F_MASQ)) {
-+		cp->flags = new_flags;
-+		return;
++	spin_lock_bh(&nf_conntrack_expect_lock);
++	master_help = nfct_help(expect[0]->master);
++	if (!master_help || master_help != nfct_help(expect[1]->master)) {
++		ret = -EINVAL;
++		goto out;
 +	}
-+	t = rcu_dereference(ipvs->conn_tab);
-+	if (ip_vs_conn_use_hash2(cp)) {
-+		/* Stop double hashing */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		hash_key2 = READ_ONCE(cp->hn1.hash_key);
 +
-+		conn_tab_lock(t, t, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, false /* new_hash2 */,
-+			      &head, &head2);
-+
-+		/* Keep both hash keys in same table */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key);
-+		hlist_bl_del_rcu(&cp->hn1.node);
-+		cp->flags = new_flags;
-+
-+		conn_tab_unlock(head, head2);
-+	} else {
-+		/* Start double hashing */
-+
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+
-+		t2 = rcu_dereference(t->new_tbl);
-+		hash2 = ip_vs_conn_hashkey_conn(t2, cp, true);
-+		hash_key2 = ip_vs_rht_build_hash_key(t2, hash2);
-+
-+		/* Change the forwarding method under locked hn0 */
-+		conn_tab_lock(t, t2, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, true /* new_hash2 */,
-+			      &head, &head2);
-+
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-+		cp->flags = new_flags;
-+		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-+
-+		conn_tab_unlock(head, head2);
++	for (i = 0; i < 2; i++) {
++		ret = __nf_ct_expect_check(expect[i], master_help, flags);
++		if (ret < 0) {
++			if (i == 1)
++				master_help->expecting[expect[0]->class]--;
++			goto out;
++		}
++		master_help->expecting[expect[i]->class]++;
 +	}
++
++	for (i = 0; i < 2; i++) {
++		nf_ct_expect_insert(expect[i], master_help);
++		nf_ct_expect_event_report(IPEXP_NEW, expect[i], 0, 0);
++	}
++out:
++	spin_unlock_bh(&nf_conntrack_expect_lock);
++	return ret;
 +}
++EXPORT_SYMBOL_GPL(nf_ct_expect_related_pair);
 +
- /* Get default load factor to map conn_count/u_thresh to t->size */
- static int ip_vs_conn_default_load_factor(struct netns_ipvs *ipvs)
+ void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, void *data),
+ 				  void *data)
  {
-@@ -1024,9 +1120,18 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
- 			conn_flags &= ~IP_VS_CONN_F_INACTIVE;
- 		/* connections inherit forwarding method from dest */
- 		flags &= ~(IP_VS_CONN_F_FWD_MASK | IP_VS_CONN_F_NOOUTPUT);
-+		flags |= conn_flags;
-+		/* Changing forwarding method for hashed conn can
-+		 * happen only under locks
-+		 */
-+		if (cp->flags & IP_VS_CONN_F_HASHED)
-+			ip_vs_conn_change_fwd_mask(cp, flags);
-+		else
-+			cp->flags = flags;
-+	} else {
-+		flags |= conn_flags;
-+		cp->flags = flags;
- 	}
--	flags |= conn_flags;
--	cp->flags = flags;
- 	cp->dest = dest;
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index a93eaf0f7d30..133bd713fe0c 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -592,6 +592,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 				     unsigned int medialen,
+ 				     union nf_inet_addr *rtp_addr)
+ {
++	struct nf_conntrack_expect *rtp_pair[2] = { rtp_exp, rtcp_exp };
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+@@ -622,24 +623,15 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 		int ret;
  
- 	IP_VS_DBG_BUF(7, "Bind-dest %s c:%s:%d v:%s:%d "
+ 		rtp_exp->tuple.dst.u.udp.port = htons(port);
+-		ret = nf_ct_expect_related(rtp_exp,
+-					   NF_CT_EXP_F_SKIP_MASTER);
+-		if (ret == -EBUSY)
+-			continue;
+-		else if (ret < 0) {
+-			port = 0;
+-			break;
+-		}
+ 		rtcp_exp->tuple.dst.u.udp.port = htons(port + 1);
+-		ret = nf_ct_expect_related(rtcp_exp,
+-					   NF_CT_EXP_F_SKIP_MASTER);
++
++		ret = nf_ct_expect_related_pair(rtp_pair,
++						NF_CT_EXP_F_SKIP_MASTER);
+ 		if (ret == 0)
+ 			break;
+-		else if (ret == -EBUSY) {
+-			nf_ct_unexpect_related(rtp_exp);
++		else if (ret == -EBUSY)
+ 			continue;
+-		} else if (ret < 0) {
+-			nf_ct_unexpect_related(rtp_exp);
++		else if (ret < 0) {
+ 			port = 0;
+ 			break;
+ 		}
 -- 
 2.47.3
 
