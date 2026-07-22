@@ -1,133 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1AAD3BB12C;
-	Wed, 22 Jul 2026 07:13:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4FBA43B483;
+	Wed, 22 Jul 2026 10:16:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784704390; cv=none; b=GBayEAkEgUPuCBZyZGMVJGCJPNiiHytL3q9sBpATrxW8wb78anZf03aqeYBDvrtfKyhk7QmRbXH1V6WlJzjdJk/d6ySck60ROl+OPKeyxqUBAKeUHUaLYGPKMyigcBlBUjYDIfRupIDvK9vaYZLkh++eAqEqRWFQFpiFzbiCmhc=
+	t=1784715366; cv=none; b=OKaBC3eJU5QM2EPuXVeTIEdsdGJFc7Nh5dIHEvc79xIZlxz95Rayfp/hfZQeSkuglAO2C6o6FFBati356KVuIV/xdbIP887DQ5Z9W7Pvx9d4/4zlcCGaYW4JexiaGhp2apood81QTsFx2bx7EHXP8ydwenC73oHM0H5bjK8IWlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784704390; c=relaxed/simple;
-	bh=QcS4Np0N9VqNKZuPeRX0MYJx1nNT2QZbIVEf9kxYwoI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=bqRH1H4ufs2yTTwnM2lnEYtiuYYruEIk9RR7ERTyibkn6jwq36G5yKzjNeM1Yh26N7iHBkq77kFEWRuoZ04uZ2XBC+zWgLadAAlnDZmUcozV97lHbLbzAihhaeieFDZQbowSXUyX9ED2rrgh2J2GN9aT09I41zuhYV7ysqLe1xQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IY6TolyO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784715366; c=relaxed/simple;
+	bh=Q/Oe0o4KmP10JLv8kKVhqE2HHkn4m95mzX25clp+VIQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LTsT89SMvnVAD++1VvqFPtpa5vc8OV3cEYOZdTeI0FBhdBrWEIbl6dTWbQ1ClEPgCuF3jj0AIMNW0virUyWBUeBedByYspbqsMCac64h443FoCv7fdiiGDnpQq95xY3L4AFH7hUtL3CfsCVZLqAkXxdPvl9u2NMevfxmjrnUrHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=koiqB+XM; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IY6TolyO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E73C91F000E9;
-	Wed, 22 Jul 2026 07:13:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784704389;
-	bh=J0VpLcMzzu2U7Y+PkMyO7ZweUe1yAX+ZlJIfYx22x5w=;
-	h=From:Date:Subject:To:Cc;
-	b=IY6TolyOIarPghXxRvwTSRb1aiTpuEc5aj4M2yGFD6uOLomv+2ly/NT3v9mZIKEt8
-	 c4H/UR+Y90toas9bnbDqO5KOODpdk9sp1G5xiNSdUX9rYNI9AdffAbLdzMl3xbjweA
-	 b/F7sdiVShZXKjw6tdS0tKbZ8xLwIKC497AXDDdqNTguJCwRI37wT/0OMjF6I/NEKC
-	 fccfnQGEAsulzS0KywamhnfrrUbYKPE/SO/uc4D/WeiO81R48Zou2Szl3v47oteVGd
-	 8W9AqzmcqSZSxq6qSKzdHRk2E/hGb3ODzx/m8tg0SLV+oSVWA85f9NjUeq7woHfCBp
-	 naQeiaMztCrIw==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Wed, 22 Jul 2026 09:12:47 +0200
-Subject: [PATCH net-next v2] net: ip6_tunnel: use tunnel parameters for
- fill_forward_path route lookup
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="koiqB+XM"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id EF9DB2188A;
+	Wed, 22 Jul 2026 13:15:51 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=akwny7u0
+	c3+Ul2Lak+HvMje9GRIRemBVsn3kFdyTYGQ=; b=koiqB+XMqzGexDO5s8M4I7bY
+	GVfI6g07bQEVylTt3veXttIGr1DwuiZucn0dobMGvggSLTt28jokOp+J22ZgHl3q
+	Lmq6vjMUn5LEAm8jr7E1UeU4pTAGoKVHrCFa5rI9g+9EWdMM3dm21BAgN8ffh63y
+	vMJSznMv8BkAhW/wYoonRPfLxpbhJG46Jp8iC8asRokVw8jVKJMibfftD3at2rGJ
+	pBh/unluw60IvQUryKKfilEERRadZQYd1EPfDOX16EbiRmHIJkbu3iiXt2wTIAOU
+	CCnSrsPB4EwkZUVEh0u02CTXTL+GZcavM2naKaQAT3DfcIsMFjvGrxnSzRHoP+IY
+	cpiu+mEwIS6iTjljUX51qTNCjp+c0YqrI9kJ7FEiyEY+9DQlJMz9rhQEA+sWpdlD
+	xj7JATnyczVeNRP3Dk2Yh6tsd+Vm+ookG+ANMeN8E3g+Hml/OIkirsaPaM2IEuTV
+	MvGSbmUbSY3W1I15Zkk0/NTthQG9Yc4kXWrgOvuvsNjjcwZcSQN9TvgaN/+pvhok
+	HRchvxfOXvwAnPPNXAbqtrx8ME1Gkcrp8c18pbdCXcFXlUgp/obprAWeeD2OzTVy
+	wCDiIup259heoWzYeDTkRvbt6kEs/6CHNy3TMmo1B8vBiHgt5tW1PM5eOEZgwCrr
+	FoR+oN1wuU0tJ0QGVNg=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 22 Jul 2026 13:15:51 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 3419560400;
+	Wed, 22 Jul 2026 13:15:52 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66MAFiUq036335;
+	Wed, 22 Jul 2026 13:15:44 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 66MAFfgt036334;
+	Wed, 22 Jul 2026 13:15:41 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v3 0/3] ipvs: csum validations and data offsets
+Date: Wed, 22 Jul 2026 13:15:14 +0300
+Message-ID: <20260722101517.36313-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260722-ip6ip6-route-lookup-fill_forward_path-v2-1-ff0b7b013699@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/5WOUQqDMBBEryL73S0mtdH0q/coIlZXDUoS1mgt4
- t0bvEFhfh4D82aHmdjQDI9kB6bVzMbZCPKSQDPUtic0bWSQqVRpnhZovIpBdksgnJwbF4+dmaa
- qc/ypua18HQbUXZPday1EQRrilmfqzHZ6XmApoKUtQBmbwczB8fc8sIqz/9O1ChRYqNtbqywXq
- aTnSGxpujruoTyO4wfxW5DC5QAAAA==
-X-Change-ID: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
-To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.3
+Content-Transfer-Encoding: 8bit
 
-Reuse the flowi6 template t->fl.u.ip6 built by ip6_tnl_link_config() in
-ip6_tnl_fill_forward_path(), aligning the fast-path route lookup with
-the slow path in ipxip6_tnl_xmit(). This automatically inherits the
-correct conditional TCLASS and FLOWLABEL masking based on the
-IP6_TNL_F_USE_ORIG_TCLASS and IP6_TNL_F_USE_ORIG_FLOWLABEL flags.
+	Hello,
 
-Return -EOPNOTSUPP when IP6_TNL_F_USE_ORIG_FLOWLABEL or
-IP6_TNL_F_USE_ORIG_FWMARK is set, since fill_forward_path has no
-access to the original skb and cannot recover the per-packet flowlabel
-or mark needed for the route lookup.
+	This patchset contains fixes for the checksum
+validations for ICMPv6 and switches TCP, UDP and ICMP to
+use nf_checksum for LOCAL_IN.
 
-IP6_TNL_F_USE_ORIG_TCLASS no longer triggers -EOPNOTSUPP: it only
-affects the outer DS field, not the route lookup's flowi6.flowlabel
-(the template leaves TCLASS bits zero when this flag is set, matching
-the slow path).
+	It also corrects offsets to be based on skb->data and to
+respect the network offset.
 
-Reviewed-by: David Ahern <dsahern@kernel.org>
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
-Changes in v2:
-- Reuse flowi6 template for the route lookup
-- Return EOPNOTSUPP if the tunnel is configured with
-  IP6_TNL_F_USE_ORIG_FWMARK or IP6_TNL_F_USE_ORIG_FLOWLABEL
-- Use flowi6 fields to setup net_device_path
-- Link to v1: https://lore.kernel.org/r/20260708-ip6ip6-route-lookup-fill_forward_path-v1-1-863b9647102e@kernel.org
----
- net/ipv6/ip6_tunnel.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+        Finally, it prevents to read/write ICMP payload for
+non-first embedded fragments wrongly assuming the TCP/UDP/SCTP
+ports are present there.
 
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index bf8e40af60b0..2708d5567c6a 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1845,24 +1845,26 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 				     struct net_device_path *path)
- {
- 	struct ip6_tnl *t = netdev_priv(ctx->dev);
--	struct flowi6 fl6 = {
--		.daddr = t->parms.raddr,
--	};
- 	struct dst_entry *dst;
-+	struct flowi6 fl6;
- 	int err;
- 
--	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT)) {
--		/* encaplimit option is currently not supported is
--		 * sw-acceleration path.
--		 */
-+	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_FLOWLABEL |
-+			      IP6_TNL_F_USE_ORIG_FWMARK))
- 		return -EOPNOTSUPP;
--	}
-+
-+	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT))
-+		return -EOPNOTSUPP;
-+
-+	memcpy(&fl6, &t->fl.u.ip6, sizeof(fl6));
-+	fl6.flowi6_mark = t->parms.fwmark;
-+	fl6.flowi6_proto = 0;
- 
- 	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
- 	if (!dst->error) {
- 		path->type = DEV_PATH_TUN;
--		path->tun.src_v6 = t->parms.laddr;
--		path->tun.dst_v6 = t->parms.raddr;
-+		path->tun.src_v6 = fl6.saddr;
-+		path->tun.dst_v6 = fl6.daddr;
- 		path->tun.l3_proto = IPPROTO_IPV6;
- 		path->dev = ctx->dev;
- 		ctx->dev = dst->dev;
+Changes:
 
----
-base-commit: df13c1df8147675470213ffff29dd5762fa321f5
-change-id: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
+v2->v3:
+* patch 2: add __maybe_unused to coff and outer_proto to silence
+  the compiler warnings when IPVS debugging is not enabled, reported
+  by the kernel test robot <lkp@intel.com>:
+  https://lore.kernel.org/oe-kbuild-all/202607210623.du5PqolJ-lkp@intel.com/
+* add patch 3
 
-Best regards,
+v1->v2:
+* patch 1: switch to using nf_checksum, validate only at LOCAL_IN and
+  for MASQ
+* add patch 2
+
+Julian Anastasov (3):
+  ipvs: fix the checksum validations
+  ipvs: fix places with wrong packet offsets
+  ipvs: do not mangle ICMP replies for non-first fragments
+
+ include/net/ip_vs.h                   |  48 +++++--
+ net/netfilter/ipvs/ip_vs_app.c        |   4 +-
+ net/netfilter/ipvs/ip_vs_core.c       | 180 +++++++++++++-------------
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  19 +--
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  |  48 ++-----
+ net/netfilter/ipvs/ip_vs_proto_udp.c  |  54 ++------
+ net/netfilter/ipvs/ip_vs_xmit.c       |  42 ++++--
+ 7 files changed, 193 insertions(+), 202 deletions(-)
+
 -- 
-Lorenzo Bianconi <lorenzo@kernel.org>
+2.55.0
+
 
