@@ -1,65 +1,141 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A314133B97B;
-	Thu, 23 Jul 2026 15:39:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFC96376A0C;
+	Thu, 23 Jul 2026 16:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784821150; cv=none; b=fyusZIT0ZH6D7VD3D6bVqMFrdv/jnjVBVvgnldEeP8/z1U36exSdXCUcrGYuTysvOG+7elgHxMs3eSBgbDu5A487FN54G8HD7Sw+Tf5cd+cpsmuKeMHTCS7mWRhFq50R71SDFD1IN2FEKNdhKdvXtpkwigyYf+15WRjXSISm/xE=
+	t=1784824778; cv=none; b=fzijX8u7l/ajVGl9mte3qUXBe+Aj+o0s9trNE422SSKi5qiWANMFzwbBiPwaaEegSkVqA90Fxez2TxCPyO9pqSpMkRqzDDMzer0328HrW8rbrg/xqW5F+whZUIvRYMpj3tHGaU6KWO6d4Bl5eSlEZ0VJP/guMFS6BtXYaKLyZ48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784821150; c=relaxed/simple;
-	bh=Kbvnhhex1XPhMur8ro3UlqwyX9TaYjvR952TUJBnnJU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NQrXOY5E0ZbJts3L6fUP7h7CFnsSDw7/PE8khFlMqIWrGzPYTNQ1PErclcWPyNG6Lc0a7P69bUdiNLBimbkElhIxnLJDulDT104OuT5WRa/H7+wgu133pHRJlqrWZWw4x4VdGae11l/ATGeOG4GsaKdbK6UYmuOp9E/HhHC3AFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DTKnaItv; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1784824778; c=relaxed/simple;
+	bh=NrYnVI9alrCDqvXvjRVV0ufwMXtxnjzAMBsKLeLOlpo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=lrsea9ZOQXKJ7zZi8UgBmUuhJ/jiGVahVVPv5tM0ILAMYI2KEjtUhQFry6NCvoUS8U5FjkhGXMDzZcGLp/HMXTyQdfvPK92ndqQYVtuXAdXgjO3yfz+cs/ztJCTuXo8Rr46etKWFPxIsf/SDfOq+ELbevPtijML0t+o3ZiHTqs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qj1yYpbZ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DTKnaItv"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 8047660194;
-	Thu, 23 Jul 2026 17:39:04 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qj1yYpbZ"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id E50CA601A7;
+	Thu, 23 Jul 2026 18:39:25 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784821144;
-	bh=8BlkqnvCtkhFsBoY+3pDrLLjU7ZZ8T5kbqf3qGsfHwU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DTKnaItvBJe5GTPi4UlG7Bj7geoSY2+JwLzYcOsVBdn6rWt0MSgREPCn8Jr/14tf5
-	 AiQJSvVSC4oe6Bn1HF8Ooac+1d7hp2RATZBp8XfJKiqM4DFBk7lXX4tlwKCBAQAw2g
-	 RrEOmZ1XkAWrynDvaxbdHm6OOLLtZZZNlHLFVi+43HB+33HCzmFx5SvfEu/mv31Hs4
-	 6vvkiiHQbX6PLV4HWrnlD+WTjwmIE0up/xcSZx8zqjxr58FvSjge0iSXJhGstkLqli
-	 +OEjRyAxBWJW7hs9ejkfc1GgeE7Ift45jljooqfgCyS87lzmKpXRtWFaK3DJSJxjvN
-	 HG9tl+rm4sAyQ==
-Date: Thu, 23 Jul 2026 17:39:02 +0200
+	s=2025; t=1784824766;
+	bh=lRaiKkBstDxD/+jBirYz9dMhk2TjJNt6XNUE6aRNF+w=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Qj1yYpbZU1BsgczL0fFE4hKl6wOvo6EbmLysfIRPs04Nm4+AgG6Ioam2gdM617sjW
+	 s5P/98rvr4cnOVyK8ClSjrnGQqGzoR/KfOmCITrWDZSSXHBOKAXWE8IihebUF+QXLM
+	 OvqpBCLNj4f1W2kW1GSG8gkQw8d0LJcIkYB1y0cPO/5+lNGZsLTV+dtGMmQufZxo8c
+	 bWdKfbNG0vySdOZ8VNmaK7QK0aAcN+aKAUQhGR4U2Rw2WA+I5l8vzrQ5f03ohINInK
+	 hHCOR3b8VywqEtFZlBVsM8yty5Lu05DsWTS4ktj2pW+rhFoyeEaHg00zNENAbF15Mm
+	 erYOEkvmWLgQg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-	fw@strlen.de, horms@kernel.org
-Subject: Re: [PATCH net 09/13] ipvs: fix the checksum validations
-Message-ID: <amI1logAep3vSkfF@chamomile>
-References: <20260722211420.153933-1-pablo@netfilter.org>
- <20260722211420.153933-10-pablo@netfilter.org>
- <20260723070845.7855a0f1@kernel.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net 01/13] netfilter: nf_conntrack_sip: widen NAT rewrite delta to s32 in sip_help_tcp()
+Date: Thu, 23 Jul 2026 18:38:58 +0200
+Message-ID: <20260723163910.274695-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260723163910.274695-1-pablo@netfilter.org>
+References: <20260723163910.274695-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260723070845.7855a0f1@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Xiang Mei <xmei5@asu.edu>
 
-On Thu, Jul 23, 2026 at 07:08:45AM -0700, Jakub Kicinski wrote:
-> On Wed, 22 Jul 2026 23:14:16 +0200 Pablo Neira Ayuso wrote:
-> > +/**
-> > + * ip_vs_checksum_common_check - validate checksum for TCP/UDP/ICMP
-> > + */
-> 
-> this not-really-kdoc comment causes a bunch of new warnings,
-> and this file was previously warning free. Which in turn
-> makes our AI reviewer ignore the series. Could you respin?
+sip_help_tcp() stores the size change of each NAT-rewritten SIP message
+in s16 diff and accumulates it in s16 tdiff, but a single message can
+grow by more than S16_MAX while the packet stays under the 65535
+enlarge_skb() limit: nf_nat_sip() rewrites every matching URI, and a long
+Contact list expands the message by tens of kilobytes. diff then wraps,
+and "datalen = datalen + diff - msglen" yields a huge unsigned datalen,
+so the next iteration's ct_sip_get_header() reads past the linearized skb
+tail.
 
-Yes, I can drop the patches that have the kdoc issues and respin.
+Widen diff, tdiff and the seq_adjust hook to s32. Both are bounded by the
+65535 byte packet limit, and the seqadj core is already s32
+(nf_ct_seqadj_set() takes s32), so no previously accepted input is
+rejected.
+
+  BUG: KASAN: use-after-free in ct_sip_get_header (net/netfilter/nf_conntrack_sip.c:464)
+  Read of size 1 at addr ffff888010800000 by task ksoftirqd/1/25
+   ct_sip_get_header (net/netfilter/nf_conntrack_sip.c:464)
+   sip_help_tcp (net/netfilter/nf_conntrack_sip.c:1694)
+   nf_confirm (net/netfilter/nf_conntrack_proto.c:183)
+   nf_hook_slow (net/netfilter/core.c:619)
+   ip6_output (net/ipv6/ip6_output.c:246)
+   ip6_forward (net/ipv6/ip6_output.c:690)
+   ipv6_rcv (net/ipv6/ip6_input.c:351)
+   __netif_receive_skb_one_core (net/core/dev.c:6212)
+   process_backlog (net/core/dev.c:6676)
+   __napi_poll (net/core/dev.c:7735)
+   net_rx_action (net/core/dev.c:7955)
+   handle_softirqs (kernel/softirq.c:622)
+   run_ksoftirqd (kernel/softirq.c:1076)
+   ...
+
+Fixes: f5b321bd37fb ("netfilter: nf_conntrack_sip: add TCP support")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Link: https://patch.msgid.link/netfilter-devel/20260712234201.3213635-1-xmei5@asu.edu
+Assisted-by: Claude:claude-opus-4-8
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/nf_conntrack_sip.h | 2 +-
+ net/netfilter/nf_conntrack_sip.c           | 2 +-
+ net/netfilter/nf_nat_sip.c                 | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
+index dbc614dfe0d5..aafa0c04f917 100644
+--- a/include/linux/netfilter/nf_conntrack_sip.h
++++ b/include/linux/netfilter/nf_conntrack_sip.h
+@@ -115,7 +115,7 @@ struct nf_nat_sip_hooks {
+ 			    unsigned int *datalen);
+ 
+ 	void (*seq_adjust)(struct sk_buff *skb,
+-			   unsigned int protoff, s16 off);
++			   unsigned int protoff, s32 off);
+ 
+ 	unsigned int (*expect)(struct sk_buff *skb,
+ 			       unsigned int protoff,
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index f3f90a866338..e4a70d1d77b0 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1663,7 +1663,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 	unsigned int matchoff, matchlen;
+ 	unsigned int msglen, origlen;
+ 	const char *dptr, *end;
+-	s16 diff, tdiff = 0;
++	s32 diff, tdiff = 0;
+ 	int ret = NF_ACCEPT;
+ 	unsigned long clen;
+ 	bool term;
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index aea02f6aff09..a93eaf0f7d30 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -321,7 +321,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ }
+ 
+ static void nf_nat_sip_seq_adjust(struct sk_buff *skb, unsigned int protoff,
+-				  s16 off)
++				  s32 off)
+ {
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+-- 
+2.47.3
+
