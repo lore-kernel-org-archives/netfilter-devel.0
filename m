@@ -1,45 +1,43 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9EB6438004
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2026 10:09:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD81018871F;
+	Thu, 23 Jul 2026 10:14:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784801359; cv=none; b=I0EvUXsyWnQ6whlvrkrScRoJYe+KfOD3TNdrFvuHsKuhQNnBiXg4jeQyJgZ83JJHMmptqN76iS+D8lPQ8R+DsHHUOnPL9uXAgQA2/iiPiTBpAZeqX1GlFCBwDcoDPaWaqKM50EaYeAQS84yVCm/kEpQFIliKA9rT8wGeVTuHh20=
+	t=1784801699; cv=none; b=cQrS7J9rz4uBkS5IcalIdyCiBTFOioyzpccvgc/eLabb5lSkD9nnnsOUHH20YJWGS8CVgEWplrdSlaMB46tzlDntP8PpP6OzKBfWRKMGUsnVIjmOpm1w6Cqp2xsYDt2MilHtye8cN3VlZWCAlzjke7vqr9naSCO8t4cugqbCzCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784801359; c=relaxed/simple;
-	bh=/wtTFpC1al9eM2eU7GN4X/RrC8Uc3TV47/zic1b7I/U=;
+	s=arc-20240116; t=1784801699; c=relaxed/simple;
+	bh=DAKM3zPhPc1mJa0stWofZUFsZ9Jw0eBtP8fpd24dGsI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LAHmraVW5SS5GB011m9orbki20gbMBldho5hu8exZ3x8UlI/hEgS9i1Gj5wCR2UlLA2KrXWkInc8UcboTqGHJlnTl6J3jDONj2JazwB1Bi88MArKH1Lb67REGZO3T1hqgyIX2rEi21TxXKO5DCPhLweqfMjoc4Qyy0W0TY74KQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fMl/XTkP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=U9HAIzVUrdsUHvGxZFKpQhWQy2FjAfkaapplqEjDV+gOOJSmMR8+JwxBUWHnuMXWtsMHmfSf4Ee9vieEs+hI814hWb+1/areeVweonuj9+MNi79cuqujpyXxzGKp62je6b5qX9aWCcqnBqqbUlq1O6st6jKKHHCDkFSn0O1eL4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p9b3EZbZ; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fMl/XTkP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=U2YnnQ5c+l6I7taS/adj5ZyMdcN1yx1MOutvV86Be7E=; b=fMl/XTkPZol+GGfeC5JhxeXppm
-	BXBDcL9n4gCfa1sB8LDOmyEDcuXagCrkO1MAhwqURqT19KOPSyCqFI95FAve9wA3WrT22GpYzwERI
-	EgkC+Ke5xsj0RLsuct+b+IdB4fRFuVv4t26CbKgiKMt/CQeF3K2OPKXCMwmyAX8qc3q7xm7nFcGjd
-	KjToZOtiTpbCKNwyH3LXhz2nRhuOti9FmfgpFwm5AEIsXNO0YpSD9in9ztwVADqfcOeyt/uvDdTuV
-	5/xRy+nMFSFaj5p4p1Gj65vdpXY5Kbezw43D4GsY4pm+DsOi+5L2yaqmUp6pitDnQwXZjOgvgiXs5
-	jHOsZ20A==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wmqMc-000000003bW-42e3;
-	Thu, 23 Jul 2026 12:09:14 +0200
-Date: Thu, 23 Jul 2026 12:09:14 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Jan =?utf-8?Q?Ko=C5=84czak?= <jan.konczak@cs.put.poznan.pl>
-Subject: Re: [nft PATCH v2] parser_bison: Fix for bison < 3.6
-Message-ID: <amHoSglXwfNia7V7@orbyte.nwl.cc>
-References: <20260611125231.652353-1-phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p9b3EZbZ"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CB6B660191;
+	Thu, 23 Jul 2026 12:14:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1784801692;
+	bh=DAKM3zPhPc1mJa0stWofZUFsZ9Jw0eBtP8fpd24dGsI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=p9b3EZbZQYQGs6PIx13G6uJYz3ui78ERXO8x/unOJ15BuMHL6L2HoxQjeFgnUUJyZ
+	 VGVUHF0kdA5gEyDpHsJhxDUK4bEdqSzXA0B43SNH0TsI+dvkmjJT61rExRlGEuRKko
+	 umvyDyByPFKT2+m3oDhpqnA36r3d/W5bYivJguf30DhOODY9uwbTGpJOiO2y+xPes+
+	 dD1oKMsWxuoTkBOjtnAb89HmjmY7YHaXnmlt28Zu0HQKPxGK/8ARp/FLfXkgAH95Fa
+	 3L4T5f2rn99JHB5HkW46vrzTqADMcd3NSqTjdlS98j1Rpfct8yjsY9yUiv4i97rzPv
+	 G51GqwonQurjw==
+Date: Thu, 23 Jul 2026 12:14:51 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jaeyeong Lee <iostreampy@proton.me>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, phil@nwl.cc,
+	sveyret@gmail.com, coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: conntrack: prevent helper extension
+ relocation
+Message-ID: <amHpm2FBj8QSgI4W@chamomile>
+References: <20260715144755.00ea7dfcd9f@proton.me>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,43 +46,25 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260611125231.652353-1-phil@nwl.cc>
+In-Reply-To: <20260715144755.00ea7dfcd9f@proton.me>
 
-On Thu, Jun 11, 2026 at 02:52:25PM +0200, Phil Sutter wrote:
-> Support for 'custom' parse.error value was added in bison-3.6. Fall back
-> to previous value for earlier versions.
-> 
-> This is harder to get right than it seems: On one hand, preprocessor
-> macros can't be used in parser_bison.y's declaration section and
-> automake forbids conditional changes to AM_YFLAGS on the other.
-> 
-> Another aspect complicating things is compiling with (an up to date)
-> parser_bison.c in place vs. without: Dist tarballs generally have it in
-> place, relieving users from having to provide a YACC when compiling. The
-> existing parser_bison.c either uses parse.error=custom or not which does
-> not (should not) change when compiling. Hiding yyreport_syntax_error()
-> behind a CPPFLAG which may be set or not depending on bison presence and
-> version then causes trouble if it doesn't match how parser_bison.c was
-> created.
-> 
-> Avoid these pitfalls by:
-> - Not relying upon a preprocessor define to control parser_bison.c
->   compilation, instead check existence of the bison-internal
->   YY_LAC_ESTABLISH macro
-> - Exporting the above macro existence check in a variable for use by
->   main.c (thereby crossing the libnftables library boundary)
-> 
-> Also:
-> - Introduce have_prebuilt_bison variable in configure.ac, unifying the
->   parser_bison.c existence check and solidify the latter by also
->   comparing its timestamp
-> - Report extended parser errors enableval in configure only if
->   parser_bison.c will be recreated, otherwise we can't quite tell if it
->   will turn out to be enabled or not
-> 
-> Suggested-by: Jan Kończak <jan.konczak@cs.put.poznan.pl>
-> Fixes: 67b822f2b2624 ("parser_bison: on syntax errors, output expected tokens")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Hi,
 
-Patch applied.
+On Wed, Jul 15, 2026 at 02:48:23PM +0000, Jaeyeong Lee wrote:
+> nf_ct_ext_add() may relocate an unconfirmed conntrack's extension blob
+> when the current allocation is too small. struct nf_conn_help embeds the
+> hlist head for the master's expectations. The first expectation's
+> lnode.pprev therefore points into that extension blob.
+>
+> An nftables CT expectation object can link an expectation before a later
+> NAT expression adds extensions to the same unconfirmed conntrack. If an
+> addition relocates the blob, the copied hlist head still points to the
+> expectation, but the expectation's pprev continues to point into the
+> freed old blob. Removing the expectation later executes hlist_del_rcu()
+> and writes through this stale pointer.
+
+Thanks for your patch.
+
+For the record, I'm exploring an alternative fix from nft_ct
+expectation support itself, patch should be available in the next
+days.
