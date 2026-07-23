@@ -1,155 +1,85 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0843054E4;
-	Thu, 23 Jul 2026 07:33:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E77D3C3C15
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2026 09:23:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784791987; cv=none; b=D/382WSoMkiVu7enOz6bQ2HjQb6p7uxa2R3IFOovth6euIkCjlRvAX6qB8Hj+QAm2FmV16t7KDR2tM1Pas3Gx/cc+XkbPTDrpif9JdI6G6z/ltrBkwJmAwYdkOsLvlKlygJx/JH4cYIY+czZNTEVztmQvYCxF5UBU4f9nd8+oIA=
+	t=1784798605; cv=none; b=VTActwgVsIIADLSwftxwO/NG7w+BZ/aLiYtzyGbHoOIbDZOdsmgXdxgOKSK5U2ydbsEc7+eiO//8/adV+a9w37C1PvnuP90Da0Fan+x+MUk5HPY+5JqKiOhhDHqmPDLsroKx+c/Dax2hzGJqTmLAvrd00VPFWY//L1bYL2uPwIY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784791987; c=relaxed/simple;
-	bh=z88kpxOsECs9l4oqBFZzOKwluNP3d/NLkQvaOVLzbNw=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=dkFNGsUX3X2Rdd0zDp0JkR2TP4fAEivqJfal17odYx2W0R0RuE+h/ycvfE+5lfwgYwecVmZbgTEu2O//MTuen4JikFvNjBsM95wgigoAKfn1Q3LN0PLUuJR9KGreIEVyI4WKxrLZpUpylqI0WOo6rNBwCgT2oDrcvg3sPFAS6R4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=tpDWvC4+; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1784798605; c=relaxed/simple;
+	bh=Ikh3dwvkKhx6JiT3yjt7MQwSXtc9mE4oyDfetDG4xvU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MUdSuOAK7IlKRiDNS4gmtMgHZA1K25igUY6dg7dDdPOZE+MGG6UBarWeJmEq/gshIkn360ji0Cw3OZfW1v1z9OC+BQKUFikkZ4Ny5UMPDujQe+nfOI5sPiVdIk2pZc4mkQepmtqfNKEU4X1r9oEO8Oj8zXYGzQ7dNsYxNpHQisA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=o6RxxVE/; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="tpDWvC4+"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4h5NBb1xtNzGFDSd;
-	Thu, 23 Jul 2026 09:32:55 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1784791973; x=1786606374; bh=HefT0Bdgxr
-	rPUweBq36PrXGzdVDS+bmFrL4j/Y/5O8w=; b=tpDWvC4+xkKzS5XBGBLZT6fKb/
-	h3K0teIxCG5zg1NqgJfkKyjlefuaG5l65rXQRIhdCJMMoTepmUlwLfcyavz2pgX0
-	hRojuXnJfx7f7/TzyiObKiPU8Zc8snfs2BpsRtP3EKuAvPZs0d82YWa/r1fwxUld
-	kgsvOT715pfmFWtp4=
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id heTxlvTmL4RU; Thu, 23 Jul 2026 09:32:53 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4h5NBW65M2zGFDSW;
-	Thu, 23 Jul 2026 09:32:51 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 82CB034316E; Thu, 23 Jul 2026 09:32:51 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 813C634316D;
-	Thu, 23 Jul 2026 09:32:51 +0200 (CEST)
-Date: Thu, 23 Jul 2026 09:32:51 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: "Xiang Mei (Microsoft)" <xmei5@asu.edu>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-    Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>, 
-    Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-    Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-    Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org, 
-    coreteam@netfilter.org, netdev@vger.kernel.org, 
-    linux-kernel@vger.kernel.org, AutonomousCodeSecurity@microsoft.com, 
-    tgopinath@linux.microsoft.com, kys@microsoft.com
-Subject: Re: [PATCH nf] netfilter: ipset: fix refcount race between list:set
- GC and swap
-In-Reply-To: <20260722223832.3524006-1-xmei5@asu.edu>
-Message-ID: <fd5dcd37-c4f8-94de-6fa2-01d30427f63e@blackhole.kfki.hu>
-References: <20260722223832.3524006-1-xmei5@asu.edu>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="o6RxxVE/"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=VYPhLd7kxbqgNamClVBWOV7gN2NRgCn/s3nteRhQGzA=; b=o6RxxVE/UAVNiWi93PpfmP8GJ2
+	a3/QPyFuExzqhJxB2XMwTU/5aEihACDLmazDlj1UA/Sx8tbATSqhd94Te0XPSl/tRc3VZYp52QhhE
+	412YQ5dwkTz0ZZUCA9Ka/KhKDS4Kyul83xhtdcFFDUI56q6z4ycLc3wDCX35atMecdIu4mF3h8pFz
+	FJP1ne4Cv4eVf9cq59eWUrsSnlyfjnnWAV6vt3rzlBSxTmONcT/jtsQipS9Zl6vn/7kD0f6b9kEZu
+	g7sKqyqGKY/8KfRLI+RLmdbr4XdLL9eZkgzyC9ooRtsOQyabdhKmDM53v/Ro7zys5tc8Th395OI5L
+	wWVYc5WQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wmpe6-000000002v0-2a9l;
+	Thu, 23 Jul 2026 11:23:14 +0200
+Date: Thu, 23 Jul 2026 11:23:14 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 6/6] netlink: Call tunnel getters unconditionally
+Message-ID: <amHdggcRQjBqk9zO@orbyte.nwl.cc>
+References: <20260603192923.1378815-1-phil@nwl.cc>
+ <20260603192923.1378815-7-phil@nwl.cc>
+ <aj5oN3PT7_QusykI@chamomile>
+ <akeHC8TJrsAJZwkG@orbyte.nwl.cc>
+ <amD2ZqPDRpu0R4ia@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <amD2ZqPDRpu0R4ia@chamomile>
 
-On Wed, 22 Jul 2026, Xiang Mei (Microsoft) wrote:
+On Wed, Jul 22, 2026 at 06:57:10PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Jul 03, 2026 at 11:55:23AM +0200, Phil Sutter wrote:
+> > Hi Pablo,
+> > 
+> > On Fri, Jun 26, 2026 at 01:53:27PM +0200, Pablo Neira Ayuso wrote:
+> > > Series LGTM, only one nitpick, see below.
+> > 
+> > Thanks for your review!
+> > 
+> > [...]
+> > > >  static struct expr *
+> > > > -netlink_obj_tunnel_parse_addr(struct nftnl_obj *nlo, int attr)
+> > > > +netlink_obj_tunnel_parse_addr(struct nftnl_obj *nlo, int attr, int alt_attr)
+> > > 
+> > > Maybe I would suggest:
+> > > 
+> > > netlink_obj_tunnel_parse_addr(struct nftnl_obj *nlo, int ipv4_attr, int ipv6_attr)
+> > > 
+> > > for easier reading.
+> > 
+> > Fine with me! I'll introduce 'int attr' auto-variable then, because the
+> > code would otherwise conditionally do 'ipv4_attr = ipv6_attr' which is
+> > more confusing than the original version.
+> 
+> Ok, thanks. Feel free to merge this series once you're done with it.
 
-> __ip_set_put_byindex() resolved the index to a set pointer under RCU,
-> then took ip_set_ref_lock in __ip_set_put() to decrement set->ref.
-> ip_set_swap() holds that same lock while swapping both the ip_set_list
-> slots and the two sets' ref counters, so it can interleave between the
-> dereference and the lock acquisition, leaving the caller to decrement a
-> set whose reference already moved to the other index and hit
-> BUG_ON(set->ref == 0). list_set_gc() reaches this from timer softirq,
-> which the nfnl mutex does not serialize against swap: an expiring
-> list:set member calls list_set_del() -> ip_set_put_byindex() while
-> IPSET_CMD_SWAP runs on the referenced sets.
->
-> Resolve the index and decrement under ip_set_ref_lock, as ip_set_swap()
-> already does, keeping the refcount tied to the index rather than to a
-> stale set pointer.
->
->  kernel BUG at net/netfilter/ipset/ip_set_core.c:685!
->  Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
->  RIP: 0010:ip_set_put_byindex (net/netfilter/ipset/ip_set_core.c:870)
->  Call Trace:
->   <IRQ>
->   list_set_del (net/netfilter/ipset/ip_set_list_set.c:159)
->   set_cleanup_entries (net/netfilter/ipset/ip_set_list_set.c:181)
->   list_set_gc (net/netfilter/ipset/ip_set_list_set.c:578)
->   call_timer_fn (kernel/time/timer.c:1748)
->   __run_timers (kernel/time/timer.c:1799 kernel/time/timer.c:2374)
->   run_timer_softirq (kernel/time/timer.c:2405)
->   </IRQ>
->  Kernel panic - not syncing: Fatal exception in interrupt
->
-> Fixes: 9076aea76538 ("netfilter: ipset: Increase the number of maximal sets automatically")
-> Reported-by: AutonomousCodeSecurity@microsoft.com
-> Signed-off-by: Xiang Mei (Microsoft) <xmei5@asu.edu>
+Fixed, rationale added to commit message and pushed after making sure
+'make check' passes.
 
-Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
-
-Best regards,
-Jozsef
-
-> ---
-> net/netfilter/ipset/ip_set_core.c | 19 +++++++++++++------
-> 1 file changed, 13 insertions(+), 6 deletions(-)
->
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 6cfad152d7d1..16d33c3e28cf 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -679,11 +679,18 @@ __ip_set_get(struct ip_set *set)
-> }
->
-> static void
-> -__ip_set_put(struct ip_set *set)
-> +__ip_set_put_locked(struct ip_set *set)
-> {
-> -	write_lock_bh(&ip_set_ref_lock);
-> +	lockdep_assert_held(&ip_set_ref_lock);
-> 	BUG_ON(set->ref == 0);
-> 	set->ref--;
-> +}
-> +
-> +static void
-> +__ip_set_put(struct ip_set *set)
-> +{
-> +	write_lock_bh(&ip_set_ref_lock);
-> +	__ip_set_put_locked(set);
-> 	write_unlock_bh(&ip_set_ref_lock);
-> }
->
-> @@ -854,11 +861,11 @@ __ip_set_put_byindex(struct ip_set_net *inst, ip_set_id_t index)
-> {
-> 	struct ip_set *set;
->
-> -	rcu_read_lock();
-> -	set = rcu_dereference(inst->ip_set_list)[index];
-> +	write_lock_bh(&ip_set_ref_lock);
-> +	set = ip_set(inst, index);
-> 	if (set)
-> -		__ip_set_put(set);
-> -	rcu_read_unlock();
-> +		__ip_set_put_locked(set);
-> +	write_unlock_bh(&ip_set_ref_lock);
-> }
->
-> void
-> -- 
-> 2.43.0
->
->
->
+Thanks, Phil
