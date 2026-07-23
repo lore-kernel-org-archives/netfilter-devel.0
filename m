@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D0E83998BA
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2026 10:35:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9B7439F8B
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2026 10:35:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784802930; cv=none; b=IXxf3utpO7FpscIrVhukOcyGgkNsBtVHiucO+8+SjdWu69UMG9KehqveQl+BWHPxlNZzcwLHdmG5l8zhhjDJLDHFkf2sgWQkSTln+hLX2+OrhM48QEAsc5yk13f/Rzafv5iK/Gt465ldUQVcjBxgP71deSgp6Nw8VnclNrbhrek=
+	t=1784802933; cv=none; b=elr/UxXip7Fh72xqtTb7QDrsl7OzE96pbL9CsHUaFep4KHCQFouFNfAoej2N01kFHOTrMyKE4YMMfkoWX6UzePNHl+ibaWrdAmUXX0YQhIOWaV15ZgW2IdX7bviGN+861HjkrvhgGEoNEK2LkDZRUujRuwnZAuC39vuzyZHPYNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784802930; c=relaxed/simple;
-	bh=rVBPqRleV3+yk6FI+JR60wl+kQmhihTPhHIdl/3oAVo=;
+	s=arc-20240116; t=1784802933; c=relaxed/simple;
+	bh=S9OmasRYd5xskDx4kAa/AUU2lZ39/55FOKW3/0cEDs8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oyPRtiMz8D6hi8qci/ktVK5NzPtC/3wcr8Fvv4VJc016PjhodbENkzBQ51uGXaJZZS5QnalMrOqVgyLRtXTngO6AcFw2esODqQqvmLYC/AT17i8O5Qz9O+v4Bzwz0it6exfsgy+136ixzJIvKoxoPCVc6pMRCgjWHYepZuZIVd8=
+	 MIME-Version; b=leirEnoPu7QFf4qDNRfe/xFucBGBj2ZVS7IC7m+YqAEZQgqNcAN1/VhyyxtTK4vzO/o9B2tjcNARlQiiRiFUUUePS4p8EKn8fPgiiKzkW7WyX8Je7uFPFyLVdrW1+kpX74THy+FEgKy06ZSmJg3oDK22+zeOW113dq4pNC60HeI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F3FEA60E9D; Thu, 23 Jul 2026 12:35:18 +0200 (CEST)
+	id 742B460EA5; Thu, 23 Jul 2026 12:35:27 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: kadlec@netfilter.org
 Cc: <netfilter-devel@vger.kernel.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH ipset 1/5] tests: check_extensions: introduce and use IPSET_MACHINE_SLOW
-Date: Thu, 23 Jul 2026 12:35:00 +0200
-Message-ID: <20260723103504.3175-2-fw@strlen.de>
+Subject: [PATCH ipset 3/5] tests: prefer diff -u to cmp
+Date: Thu, 23 Jul 2026 12:35:02 +0200
+Message-ID: <20260723103504.3175-4-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260723103504.3175-1-fw@strlen.de>
 References: <20260723103504.3175-1-fw@strlen.de>
@@ -34,53 +34,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Running ipset tests on my laptop with a debug kernel (i.e. kasan,
-kmemleak and so on) fails the check_extensions subtests because the
-observed timeout is below the lower threshold.  Add IPSET_MACHINE_SLOW,
-similar to KSFT_MACHINE_SLOW used in the kernel kselftest framework.
-
-If set, raise the slack value to 30s.
+Irrelevant when things are working as expected, but is beneficial when they
+are not: diff -u is much easier to decipher than: "differ, byte x line y"
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/check_extensions | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ tests/iphash.t  | 8 ++++----
+ tests/restore.t | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/tests/check_extensions b/tests/check_extensions
-index 77e7c2cd8b90..ce39366ad46d 100755
---- a/tests/check_extensions
-+++ b/tests/check_extensions
-@@ -1,11 +1,26 @@
- #!/bin/bash
- 
- ipset=${IPSET_BIN:-../src/ipset}
-+setname="$1"
-+elem="$2"
-+wanted_timeout="$3"
-+wanted_packets="$4"
-+wanted_bytes="$5"
- 
--read ip t timeout p packets b bytes <<< $($ipset l $1 | grep ^$2)
--test -z "$timeout" -o -z "$packets" -o -z "$bytes" && exit 1
--test $timeout -gt $3 -o $timeout -lt $(($3 - 10)) && exit 1
--test $packets -ne $4 -o $bytes -ne $5 && exit 1
-+allowed_slack=10
-+[ "$IPSET_MACHINE_SLOW" = "yes" ] && allowed_slack=30
-+
-+die() {
-+	echo "FAIL: $0: $@"
-+	exit 1
-+}
-+
-+timeout_lower=$((wanted_timeout - allowed_slack))
-+
-+read ip t timeout p packets b bytes <<< $($ipset l $setname | grep ^$elem)
-+test -z "$timeout" -o -z "$packets" -o -z "$bytes" && die "at least of one timeout $timeout, packets $packets, bytes $bytes not set"
-+test $timeout -gt $wanted_timeout -o $timeout -lt $timeout_lower && die "timeout $timeout gt $wanted_timeout or $timeout lt $timeout_lower"
-+test $packets -ne $wanted_packets -o $bytes -ne $wanted_bytes && die "packets $packets ne $wanted_packets or $bytes ne $wanted_bytes"
- exit 0
- 
- 
+diff --git a/tests/iphash.t b/tests/iphash.t
+index c7c0b081e34a..e4386bbf6f52 100644
+--- a/tests/iphash.t
++++ b/tests/iphash.t
+@@ -33,13 +33,13 @@
+ # IP: Restore values so that rehashing is triggered, old format
+ 0 ipset -R < iphash.t.restore.old
+ # IP: Check that all values are restored
+-0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && cmp "$IPSET_TMP/"{.foo.1,.foo.2}
++0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && diff -u "$IPSET_TMP/"{.foo.1,.foo.2}
+ # IP: Delete test set
+ 0 ipset -X test
+ # IP: Restore values so that rehashing is triggered
+ 0 ipset -R < iphash.t.restore
+ # IP: Check that all values are restored
+-0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && cmp "$IPSET_TMP/"{.foo.1,.foo.2}
++0 (grep add iphash.t.restore | sort > "$IPSET_TMP/.foo.1") && (ipset -S test | grep add | sort > "$IPSET_TMP/.foo.2") && diff -u "$IPSET_TMP/"{.foo.1,.foo.2}
+ # IP: Flush test set
+ 0 ipset -F test
+ # IP: Delete test set
+@@ -55,7 +55,7 @@
+ # IP: Save sets
+ 0 ipset -s -f "$IPSET_TMP/.foo0" save && ./ignore.sh "$IPSET_TMP/.foo0"
+ # IP: Compare sorted save and restore
+-0 cmp "$IPSET_TMP/.foo" iphash.t.restore.sorted
++0 diff -u "$IPSET_TMP/.foo" iphash.t.restore.sorted
+ # IP: Delete test set
+ 0 ipset x test
+ # IP: Delete test2 set
+@@ -65,7 +65,7 @@
+ # IP: Save the restored set
+ 0 (ipset save test | sort > "$IPSET_TMP/.foo.1") && ./ignore.sh "$IPSET_TMP/.foo.1"
+ # IP: Compare save and restore
+-0 (sort iphash.t.large > "$IPSET_TMP/.foo.2") && (cmp "$IPSET_TMP/.foo" "$IPSET_TMP/.foo.2")
++0 (sort iphash.t.large > "$IPSET_TMP/.foo.2") && (diff -u "$IPSET_TMP/.foo" "$IPSET_TMP/.foo.2")
+ # IP: Delete all elements, one by one
+ 0 ipset list test | sed '1,/Members/d' | xargs -n1 ipset del test
+ # IP: Delete test set
+diff --git a/tests/restore.t b/tests/restore.t
+index 02da4465af94..dddd72481784 100644
+--- a/tests/restore.t
++++ b/tests/restore.t
+@@ -1,7 +1,7 @@
+ # Check multi-set restore
+ 0 ipset restore < restore.t.multi
+ # Save sets and compare
+-0 ipset save > "$IPSET_TMP/.foo" && diff restore.t.multi.saved "$IPSET_TMP/.foo"
++0 ipset save > "$IPSET_TMP/.foo" && diff -u restore.t.multi.saved "$IPSET_TMP/.foo"
+ # Delete all sets
+ 0 ipset x
+ # Check auto-increasing maximal number of sets
 -- 
 2.54.0
 
