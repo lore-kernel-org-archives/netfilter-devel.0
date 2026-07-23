@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F6C92FD7D3;
-	Thu, 23 Jul 2026 16:39:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D000374169;
+	Thu, 23 Jul 2026 16:39:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784824791; cv=none; b=EJ172I+2jPjRGO6BK8zJy1Y1d+kP1VrzoJ1mhBwr3vj2kOBfadYdEuFeGdPIsV4a26vpraJojxleW0zMcsacum0lXnq5k/eJi+h4Jv2bhwfi8ipyKH0KaC7BpDuK1S+IqRDbK7Jmm8klh7tvO+SCm96+sk4MJgfdROs/a7ZZsAA=
+	t=1784824794; cv=none; b=dRJCulpD3/9CSW43wV7h+IbE68OK5pyMDCr8Ts79rfVLJBorNBztpgEoWvwIUR7Fk4nYqqtykhvgp4kv8kLwcTX/+5wwXFY/s9eumXSOPQVXSGVQIgBIYBL9WqeOwCX0keeGsudEA/yMtVLpCQBJIvckL20mWHs3dihNXLOnvSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784824791; c=relaxed/simple;
-	bh=+RYzVjz8a7OcoKQyBbN62CweZq/vJnhZLaL0DCyGz6c=;
+	s=arc-20240116; t=1784824794; c=relaxed/simple;
+	bh=8g1/RV51XX9LeNzuoK6ttDh2e0oww3MFQH9qpfJnCbU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MOEf1CxuAg6HZq2q0K+CupyWSs3e/bDQj+99rVKT8QMltnr4FkF9Wn0Q1E84eNSlBhCJzhB+DEgxJ/0QQBPOzYOrDVtLLCs8LkCskmSH5Hu05YANarUOEtr+iBVbSj+WfkEI44HESOQQPwidxVJkEEpLrTj8/KHTyw4N2VT49ps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=i14KvutX; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=FqVUbu+I+mwWKdMcWygWt01IzGoHFpWuPvBNKNu0/+By7mFOwUeJgWPC+jUzreJx287cclIdfIYJb8J245JU+hWP2uKHSm95ipu9d7ASts+uXNo9fjOBQjZ06fxe7z7YTQyuQjM+YMWDIVxUjljIcq4d9FJQG1gM/bhvEALRGYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bLFD/rGJ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="i14KvutX"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bLFD/rGJ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EDCF8601BF;
-	Thu, 23 Jul 2026 18:39:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 36893601C4;
+	Thu, 23 Jul 2026 18:39:42 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784824775;
-	bh=RuwXbKbjTDm/EyGoa/7WZM6uITFBpJjRYd8ELjCFtJ8=;
+	s=2025; t=1784824782;
+	bh=SfN2ybKuT/bWF+UL8QF5UakHXDv6F2gLLOiPYOwioOY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=i14KvutXubgj4QhZDyBQG9J4hpjloNA6RIjAmTVGXJMnpybCl4luF0KgSz8wMsPad
-	 hXhVGmxB7ecUFw1oFL5mPn7StbmEvcqXhoboDBx4QZu43t3gZ4BI3ZkystVimQ4RD1
-	 PyVl4HHhqxwyB0q2JAnkY+b8foqgHF+HZn7H2uX66NhTNCLwL9qjzG9ecT9kVyX2d6
-	 0wFOGeA5/TVYJ1ujTqIkYyq+9VWmMqt5di56FQyvO8XT9acFzkU1Fj1OEz7s91lCgL
-	 fXM6TAMZcmd33aTS/wkucPyn1PthsxGCrPBjgYUDr9Jrg8CMXn3qhjRiZrSAj024pg
-	 AuxFshDx79yjA==
+	b=bLFD/rGJdvtImVRMtNShhiy9uMiWs5/EhLTLbjpFXtssAdUcfq0U9z0q9hJwkvB8f
+	 RwxiBPdJm3eUIsj5hJdtXvTkrCeVl0pODljyeq7RifTlIAKw2o+acDbPKHHGtr/A01
+	 4RK09PH03dOj3exkg80OXKN1lsrSugbcMDYsP5b0xWNtM80/umvr8DXYrAV/heUK4m
+	 TWiSBHTEZZ8gzlLsKRa9vLfmBOFKnjDsThThI56Gbg7xW0ANfd+PPle+LSA5dNLb9b
+	 Vv6Ph/TAx4WMAJlKlrhbCp2b83iuU3hkw1CpV3eDiowaijP8BXgf8R5BR/FHWbW9GN
+	 rSO2yqZ2k1ZsA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/13] ipvs: adjust double hashing when fwd method changes
-Date: Thu, 23 Jul 2026 18:39:03 +0200
-Message-ID: <20260723163910.274695-7-pablo@netfilter.org>
+Subject: [PATCH net 11/13] ipvs: do not mangle ICMP replies for non-first fragments
+Date: Thu, 23 Jul 2026 18:39:08 +0200
+Message-ID: <20260723163910.274695-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260723163910.274695-1-pablo@netfilter.org>
 References: <20260723163910.274695-1-pablo@netfilter.org>
@@ -54,337 +54,328 @@ Content-Transfer-Encoding: 8bit
 
 From: Julian Anastasov <ja@ssi.bg>
 
-Synced conns can be created with one forwarding method
-and later updated with different one after the dest
-server is configured. This needs adjusting the hashing
-for node hn1 because only MASQ supports double hashing.
+Sashiko warns that ip_vs_nat_icmp() unconditionally mangles the
+payload for embedded non-first IPv4 fragments. The problem is
+in the very old inverted pp->dont_defrag check which should not
+continue when embedded is a non-first TCP/UDP/SCTP fragment.
 
-Modify conn_tab_lock() to support seeking for hash node
-hn0 together with adding for hn1. By this way we can
-safely modify the forwarding method and hn1.hash_key
-under bucket lock for the first node hn0. The forwarding
-method is also protected by cp->lock as it is part of
-cp->flags.
+Check for embedded non-first fragment is also missing from
+ip_vs_out_icmp_v6(), it is needed before any connection
+lookups that expect ports after the network headers.
 
-Fix the usage of stale idx/idx2 values in conn_tab_lock
-after jumping to the retry label. Instead, use idx/idx2
-values just to order the locking for the old/new tables.
+Drop the blocking code from ip_vs_in_icmp_v6() which prevents
+ICMPv6 from local clients to use non-MASQ forwarding.
 
-Reported-by: Zhiling Zou <roxy520tt@gmail.com>
-Link: https://patch.msgid.link/1b914f41d725bc064c9ba9830dc8169329737270.1782540466.git.roxy520tt@gmail.com/
-Link: https://sashiko.dev/#/patchset/CALMqdkR704S2BG_QD_bgHTFp2%2B1QCi7n0T4zoZyTo8mDZevYSA%40mail.gmail.com
-Fixes: f20c73b0460d ("ipvs: use more keys for connection hashing")
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Link: https://sashiko.dev/#/patchset/20260720201122.79882-1-ja%40ssi.bg
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 189 +++++++++++++++++++++++++-------
- 1 file changed, 147 insertions(+), 42 deletions(-)
+ include/net/ip_vs.h             | 11 +++---
+ net/netfilter/ipvs/ip_vs_core.c | 61 ++++++++++++---------------------
+ net/netfilter/ipvs/ip_vs_xmit.c | 28 +++++++++++----
+ 3 files changed, 48 insertions(+), 52 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 0682cec5f0a7..36c5cba03f5b 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -70,25 +70,45 @@ static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
-  * bucket or hash table
-  * - hash table resize works like rehash but always rehashes into new table
-  * - bit lock on bucket serializes all operations that modify the chain
-+ * - on resize, bucket from the old table is locked before bucket from the
-+ * new table
-  * - cp->lock protects conn fields like cp->flags, cp->dest
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 4a10a01d6e2f..e6ca930a3507 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1975,8 +1975,7 @@ int ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
+ int ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		    struct ip_vs_protocol *pp, unsigned int toff,
+-		    unsigned int wlen, unsigned int hooknum,
+-		    struct ip_vs_iphdr *ciph);
++		    unsigned int hooknum, struct ip_vs_iphdr *ciph);
+ void ip_vs_dest_dst_rcu_free(struct rcu_head *head);
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -1990,8 +1989,7 @@ int ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
+ int ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		       struct ip_vs_protocol *pp, unsigned int toff,
+-		       unsigned int wlen, unsigned int hooknum,
+-		       struct ip_vs_iphdr *ciph);
++		       unsigned int hooknum, struct ip_vs_iphdr *ciph);
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -2063,12 +2061,13 @@ static inline bool ip_vs_conn_use_hash2(struct ip_vs_conn *cp)
+ }
+ 
+ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+-		    struct ip_vs_conn *cp, int dir, unsigned int toff);
++		    struct ip_vs_conn *cp, int dir, unsigned int toff,
++		    bool has_ports);
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+ void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		       struct ip_vs_conn *cp, int dir, unsigned int toff,
+-		       struct ip_vs_iphdr *ciph);
++		       bool has_ports, struct ip_vs_iphdr *ciph);
+ #endif
+ 
+ static inline __wsum ip_vs_check_diff4(__be32 old, __be32 new, __wsum oldsum)
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index cd5eb71543ec..7efa209a517b 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -924,7 +924,8 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
+  * - inout: 1=in->out, 0=out->in
   */
- 
--/* Lock conn_tab bucket for conn hash/unhash, not for rehash */
-+/**
-+ * conn_tab_lock - Lock conn_tab buckets for conn hash/unhash, not for rehash
-+ * @t:		hash table for hn0, new_tbl when new_hash=true
-+ * @t2:		hash table for hn1, new_tbl when new_hash2=true
-+ * @cp:		connection
-+ * @hash_key:	hash key for hn0
-+ * @hash_key2:	hash key for hn1
-+ * @use2:	using hn1 (double hashing) based on the forwarding method
-+ * @new_hash:	mode for hn0, hash node (true) or seek node (false)
-+ * @new_hash2:	mode for hn1, hash node (true) or seek node (false)
-+ * @head_ret:	returned head for hn0
-+ * @head2_ret:	returned head for hn1
-+ *
-+ * We support 3 modes:
-+ * - seek mode for both nodes, used for unhashing
-+ * - hash mode for both nodes, used for hashing
-+ * - seek hn0 and hash hn1, used when forwarding method is changed
-+ */
- static __always_inline void
--conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
--	      u32 hash_key2, bool use2, bool new_hash,
--	      struct hlist_bl_head **head_ret, struct hlist_bl_head **head2_ret)
-+conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_rht *t2, struct ip_vs_conn *cp,
-+	      u32 hash_key, u32 hash_key2, bool use2, bool new_hash,
-+	      bool new_hash2, struct hlist_bl_head **head_ret,
-+	      struct hlist_bl_head **head2_ret)
+ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+-		    struct ip_vs_conn *cp, int inout, unsigned int toff)
++		    struct ip_vs_conn *cp, int inout, unsigned int toff,
++		    bool has_ports)
  {
- 	struct hlist_bl_head *head, *head2;
- 	u32 hash_key_new, hash_key_new2;
--	struct ip_vs_rht *t2 = t;
--	u32 idx, idx2;
-+	int idx = 0, idx2 = 0;
-+
-+	/* Advance idx2 when new_hash is not set but hash_key2
-+	 * is for new table
-+	 */
-+	if (new_hash2 && use2 && t != t2)
-+		idx2++;
- 
--	idx = hash_key & t->mask;
--	if (use2)
--		idx2 = hash_key2 & t->mask;
--	else
--		idx2 = idx;
- 	if (!new_hash) {
- 		/* We need to lock the bucket in the right table */
- 
-@@ -100,46 +120,45 @@ conn_tab_lock(struct ip_vs_rht *t, struct ip_vs_conn *cp, u32 hash_key,
- 			 * both nodes in different tables, use idx/idx2
- 			 * for proper lock ordering for heads.
- 			 */
--			idx = hash_key & t->mask;
--			idx |= IP_VS_RHT_TABLE_ID_MASK;
--		}
--		if (use2) {
--			if (!ip_vs_rht_same_table(t2, hash_key2)) {
--				/* It is already moved to new table */
--				t2 = rcu_dereference(t2->new_tbl);
--				idx2 = hash_key2 & t2->mask;
--				idx2 |= IP_VS_RHT_TABLE_ID_MASK;
--			}
--		} else {
--			idx2 = idx;
-+			idx++;
- 		}
+ 	struct iphdr *iph	 = ip_hdr(skb);
+ 	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
+@@ -944,8 +945,7 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
  	}
-+	if (use2 && !new_hash2 && !ip_vs_rht_same_table(t2, hash_key2)) {
-+		/* It is already moved to new table */
-+		t2 = rcu_dereference(t2->new_tbl);
-+		idx2++;
-+	}
  
-+	if (!use2)
-+		idx2 = idx;
- 	head = t->buckets + (hash_key & t->mask);
- 	head2 = use2 ? t2->buckets + (hash_key2 & t2->mask) : head;
+ 	/* the TCP/UDP/SCTP port */
+-	if (IPPROTO_TCP == ciph->protocol || IPPROTO_UDP == ciph->protocol ||
+-	    IPPROTO_SCTP == ciph->protocol) {
++	if (has_ports) {
+ 		__be16 *ports = (void *)ciph + ciph->ihl*4;
  
--	local_bh_disable();
--	/* Do not touch seqcount, this is a safe operation */
+ 		if (inout)
+@@ -970,18 +970,15 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ #ifdef CONFIG_IP_VS_IPV6
+ void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		       struct ip_vs_conn *cp, int inout, unsigned int toff,
+-		       struct ip_vs_iphdr *ciph)
++		       bool has_ports, struct ip_vs_iphdr *ciph)
+ {
+ 	struct ipv6hdr *iph	 = ipv6_hdr(skb);
+-	int protocol;
+ 	struct icmp6hdr *icmph;
+ 	struct ipv6hdr *cih;
+ 
+ 	icmph = (struct icmp6hdr *)(skb->data + toff);
+ 	cih = (struct ipv6hdr *)(skb->data + ciph->off);
+ 
+-	protocol = ciph->protocol;
 -
--	if (idx <= idx2) {
-+	if (idx > idx2 || (head > head2 && idx == idx2)) {
-+		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
--		if (head != head2)
--			hlist_bl_lock(head2);
- 	} else {
--		hlist_bl_lock(head2);
- 		hlist_bl_lock(head);
-+		if (head != head2)
-+			hlist_bl_lock(head2);
- 	}
- 	if (!new_hash) {
-+		bool changed;
-+
- 		/* Ensure hash_key is read under lock */
- 		hash_key_new = READ_ONCE(cp->hn0.hash_key);
--		hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+		changed = hash_key != hash_key_new;
-+		if (use2 && !new_hash2) {
-+			hash_key_new2 = READ_ONCE(cp->hn1.hash_key);
-+			changed |= hash_key2 != hash_key_new2;
-+		} else {
-+			hash_key_new2 = hash_key2;
-+		}
- 		/* Hash changed ? */
--		if (hash_key != hash_key_new ||
--		    (hash_key2 != hash_key_new2 && use2)) {
-+		if (changed) {
- 			if (head != head2)
- 				hlist_bl_unlock(head2);
- 			hlist_bl_unlock(head);
--			local_bh_enable();
- 			hash_key = hash_key_new;
- 			hash_key2 = hash_key_new2;
- 			goto retry;
-@@ -155,7 +174,6 @@ static inline void conn_tab_unlock(struct hlist_bl_head *head,
- 	if (head != head2)
- 		hlist_bl_unlock(head2);
- 	hlist_bl_unlock(head);
--	local_bh_enable();
- }
- 
- static void ip_vs_conn_expire(struct timer_list *t);
-@@ -268,8 +286,9 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		use2 = false;
+ 	if (inout) {
+ 		iph->saddr = cp->vaddr.in6;
+ 		cih->daddr = cp->vaddr.in6;
+@@ -991,9 +988,7 @@ void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
  	}
  
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
--		      &head, &head2);
-+	local_bh_disable();
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, true /* new_hash */,
-+		      true /* new_hash2 */, &head, &head2);
+ 	/* the TCP/UDP/SCTP port */
+-	if (!ciph->fragoffs &&
+-	    (protocol == IPPROTO_TCP  || protocol == IPPROTO_UDP ||
+-	     protocol == IPPROTO_SCTP)) {
++	if (has_ports) {
+ 		__be16 *ports = (void *)(skb->data + ciph->len);
  
- 	cp->flags |= IP_VS_CONN_F_HASHED;
- 	WRITE_ONCE(cp->hn0.hash_key, hash_key);
-@@ -280,6 +299,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
+ 		IP_VS_DBG(11, "%s() changed port %d to %d\n", __func__,
+@@ -1035,6 +1030,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 	int iproto = af == AF_INET6 ? IPPROTO_ICMPV6 : IPPROTO_ICMP;
+ 	unsigned int verdict = NF_DROP;
+ 	unsigned int ctoff = ciph->len;
++	bool has_ports = false;
  
- 	conn_tab_unlock(head, head2);
-+	local_bh_enable();
- 	ret = 1;
+ 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
+ 		goto after_nat;
+@@ -1048,17 +1044,19 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 	}
  
- 	/* Schedule resizing if load increases */
-@@ -306,18 +326,20 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 		return refcount_dec_if_one(&cp->refcnt);
- 
- 	rcu_read_lock();
-+	local_bh_disable();
- 
- 	t = rcu_dereference(ipvs->conn_tab);
- 	hash_key = READ_ONCE(cp->hn0.hash_key);
- 	hash_key2 = READ_ONCE(cp->hn1.hash_key);
- 	use2 = ip_vs_conn_use_hash2(cp);
- 
--	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
--		      &head, &head2);
-+	conn_tab_lock(t, t, cp, hash_key, hash_key2, use2, false /* new_hash */,
-+		      false /* new_hash2 */, &head, &head2);
- 
- 	if (cp->flags & IP_VS_CONN_F_HASHED) {
- 		/* Decrease refcnt and unlink conn only if we are last user */
--		if (refcount_dec_if_one(&cp->refcnt)) {
-+		if (use2 == ip_vs_conn_use_hash2(cp) &&
-+		    refcount_dec_if_one(&cp->refcnt)) {
- 			hlist_bl_del_rcu(&cp->hn0.node);
- 			if (use2)
- 				hlist_bl_del_rcu(&cp->hn1.node);
-@@ -328,6 +350,7 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 
- 	conn_tab_unlock(head, head2);
- 
-+	local_bh_enable();
- 	rcu_read_unlock();
- 
- 	return ret;
-@@ -632,6 +655,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	int ntbl;
- 	int dir;
- 
-+restart:
- 	/* No packets from inside, so we can do it in 2 steps. */
- 	dir = use2 ? 1 : 0;
- 
-@@ -686,6 +710,23 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	/* Protect the cp->flags modification */
- 	spin_lock_bh(&cp->lock);
- 
-+	/* Recheck the forwarding method under lock */
-+	if (use2 != ip_vs_conn_use_hash2(cp)) {
-+		use2 = !use2;
-+		if (use2) {
-+			spin_unlock_bh(&cp->lock);
-+			/* Restart with new use2 value */
-+			goto restart;
-+		}
-+		if (dir) {
-+			/* Not started yet, so just skip dir 1 */
-+			spin_unlock_bh(&cp->lock);
-+			dir--;
-+			goto next_dir;
-+		}
-+		/* Just finish dir 0 */
+ 	if (ciph->protocol == IPPROTO_TCP || ciph->protocol == IPPROTO_UDP ||
+-	    ciph->protocol == IPPROTO_SCTP)
++	    ciph->protocol == IPPROTO_SCTP) {
+ 		ctoff += 2 * sizeof(__u16);
++		has_ports = true;
 +	}
-+
- 	/* Lock seqcount only for the old bucket, even if we are on new table
- 	 * because it affects the del operation, not the adding.
- 	 */
-@@ -752,6 +793,61 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 		goto next_dir;
- }
+ 	if (skb_ensure_writable(skb, ctoff))
+ 		goto out;
  
-+/* Change forwarding method for hashed conn */
-+static void ip_vs_conn_change_fwd_mask(struct ip_vs_conn *cp, u32 new_flags)
-+{
-+	struct netns_ipvs *ipvs = cp->ipvs;
-+	struct hlist_bl_head *head, *head2;
-+	u32 hash2, hash_key, hash_key2;
-+	struct ip_vs_rht *t, *t2;
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (af == AF_INET6)
+-		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, ciph);
++		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, has_ports, ciph);
+ 	else
+ #endif
+-		ip_vs_nat_icmp(skb, pp, cp, 1, toff);
++		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports);
+ 
+ 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
+ 		goto out;
+@@ -1142,8 +1140,7 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 
+ 	/* Is the embedded protocol header present? */
+-	if (unlikely(cih->frag_off & htons(IP_OFFSET) &&
+-		     pp->dont_defrag))
++	if (unlikely(cih->frag_off & htons(IP_OFFSET) && !pp->dont_defrag))
+ 		return NF_ACCEPT;
+ 
+ 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
+@@ -1207,6 +1204,10 @@ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	if (!pp)
+ 		return NF_ACCEPT;
+ 
++	/* Is the embedded protocol header present? */
++	if (unlikely(ciph.fragoffs && !pp->dont_defrag))
++		return NF_ACCEPT;
 +
-+	/* See ip_vs_conn_use_hash2() for reference */
-+	if ((cp->flags & IP_VS_CONN_F_TEMPLATE) ||
-+	    /* No change in double hashing ? */
-+	    (IP_VS_FWD_METHOD(cp) == IP_VS_CONN_F_MASQ) ==
-+	    ((new_flags & IP_VS_CONN_F_FWD_MASK) == IP_VS_CONN_F_MASQ)) {
-+		cp->flags = new_flags;
-+		return;
-+	}
-+	t = rcu_dereference(ipvs->conn_tab);
-+	if (ip_vs_conn_use_hash2(cp)) {
-+		/* Stop double hashing */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		hash_key2 = READ_ONCE(cp->hn1.hash_key);
-+
-+		conn_tab_lock(t, t, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, false /* new_hash2 */,
-+			      &head, &head2);
-+
-+		/* Keep both hash keys in same table */
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key);
-+		hlist_bl_del_rcu(&cp->hn1.node);
-+		cp->flags = new_flags;
-+
-+		conn_tab_unlock(head, head2);
-+	} else {
-+		/* Start double hashing */
-+
-+		hash_key = READ_ONCE(cp->hn0.hash_key);
-+
-+		t2 = rcu_dereference(t->new_tbl);
-+		hash2 = ip_vs_conn_hashkey_conn(t2, cp, true);
-+		hash_key2 = ip_vs_rht_build_hash_key(t2, hash2);
-+
-+		/* Change the forwarding method under locked hn0 */
-+		conn_tab_lock(t, t2, cp, hash_key, hash_key2, true /* use2 */,
-+			      false /* new_hash */, true /* new_hash2 */,
-+			      &head, &head2);
-+
-+		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-+		cp->flags = new_flags;
-+		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-+
-+		conn_tab_unlock(head, head2);
-+	}
-+}
-+
- /* Get default load factor to map conn_count/u_thresh to t->size */
- static int ip_vs_conn_default_load_factor(struct netns_ipvs *ipvs)
+ 	/* The embedded headers contain source and dest in reverse order */
+ 	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
+ 			     ipvs, AF_INET6, skb, &ciph);
+@@ -1865,8 +1866,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	pp = pd->pp;
+ 
+ 	/* Is the embedded protocol header present? */
+-	if (unlikely(cih->frag_off & htons(IP_OFFSET) &&
+-		     pp->dont_defrag))
++	if (unlikely(cih->frag_off & htons(IP_OFFSET) && !pp->dont_defrag))
+ 		return NF_ACCEPT;
+ 
+ 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
+@@ -1874,7 +1874,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 
+ 	offset2 = offset;
+ 	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
+-	offset = ciph.len;
+ 
+ 	/* The embedded headers contain source and dest in reverse order.
+ 	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
+@@ -1968,11 +1967,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 
+ 	/* do the statistics and put it back */
+ 	ip_vs_in_stats(cp, skb);
+-	if (IPPROTO_TCP == cih->protocol || IPPROTO_UDP == cih->protocol ||
+-	    IPPROTO_SCTP == cih->protocol)
+-		offset += 2 * sizeof(__u16);
+-	verdict = ip_vs_icmp_xmit(skb, cp, pp, iph->len, offset, hooknum,
+-				  &ciph);
++	verdict = ip_vs_icmp_xmit(skb, cp, pp, iph->len, hooknum, &ciph);
+ 
+ out:
+ 	if (likely(!new_cp))
+@@ -2032,8 +2027,8 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 	pp = pd->pp;
+ 
+-	/* Cannot handle fragmented embedded protocol */
+-	if (ciph.fragoffs)
++	/* Is the embedded protocol header present? */
++	if (ciph.fragoffs && !pp->dont_defrag)
+ 		return NF_ACCEPT;
+ 
+ 	IP_VS_DBG_PKT(11, AF_INET6, pp, skb, offset,
+@@ -2057,13 +2052,6 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		new_cp = true;
+ 	}
+ 
+-	/* VS/TUN, VS/DR and LOCALNODE just let it go */
+-	if ((hooknum == NF_INET_LOCAL_OUT) &&
+-	    (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)) {
+-		verdict = NF_ACCEPT;
+-		goto out;
+-	}
+-
+ 	verdict = NF_DROP;
+ 
+ 	/* Ensure the checksum is correct */
+@@ -2079,14 +2067,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	/* do the statistics and put it back */
+ 	ip_vs_in_stats(cp, skb);
+ 
+-	/* Need to mangle contained IPv6 header in ICMPv6 packet */
+-	offset = ciph.len;
+-	if (IPPROTO_TCP == ciph.protocol || IPPROTO_UDP == ciph.protocol ||
+-	    IPPROTO_SCTP == ciph.protocol)
+-		offset += 2 * sizeof(__u16); /* Also mangle ports */
+-
+-	verdict = ip_vs_icmp_xmit_v6(skb, cp, pp, iph->len, offset, hooknum,
+-				     &ciph);
++	verdict = ip_vs_icmp_xmit_v6(skb, cp, pp, iph->len, hooknum, &ciph);
+ 
+ out:
+ 	if (likely(!new_cp))
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index c23401c789de..0b0c5304993a 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -1503,13 +1503,14 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ int
+ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		struct ip_vs_protocol *pp, unsigned int toff,
+-		unsigned int wlen, unsigned int hooknum,
+-		struct ip_vs_iphdr *ciph)
++		unsigned int hooknum, struct ip_vs_iphdr *ciph)
  {
-@@ -1024,9 +1120,18 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
- 			conn_flags &= ~IP_VS_CONN_F_INACTIVE;
- 		/* connections inherit forwarding method from dest */
- 		flags &= ~(IP_VS_CONN_F_FWD_MASK | IP_VS_CONN_F_NOOUTPUT);
-+		flags |= conn_flags;
-+		/* Changing forwarding method for hashed conn can
-+		 * happen only under locks
-+		 */
-+		if (cp->flags & IP_VS_CONN_F_HASHED)
-+			ip_vs_conn_change_fwd_mask(cp, flags);
-+		else
-+			cp->flags = flags;
-+	} else {
-+		flags |= conn_flags;
-+		cp->flags = flags;
- 	}
--	flags |= conn_flags;
--	cp->flags = flags;
- 	cp->dest = dest;
+ 	struct rtable	*rt;	/* Route to the other host */
+ 	int rc;
+ 	int local;
+ 	int rt_mode, was_input;
++	bool has_ports = false;
++	unsigned int wlen;
  
- 	IP_VS_DBG_BUF(7, "Bind-dest %s c:%s:%d v:%s:%d "
+ 	/* The ICMP packet for VS/TUN, VS/DR and LOCALNODE will be
+ 	   forwarded directly here, because there is no need to
+@@ -1565,6 +1566,13 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		goto tx_error;
+ 	}
+ 
++	wlen = ciph->len;
++	if (ciph->protocol == IPPROTO_TCP || ciph->protocol == IPPROTO_UDP ||
++	    ciph->protocol == IPPROTO_SCTP) {
++		wlen += 2 * sizeof(__u16); /* Also mangle ports */
++		has_ports = true;
++	}
++
+ 	/* copy-on-write the packet before mangling it */
+ 	if (skb_ensure_writable(skb, wlen))
+ 		goto tx_error;
+@@ -1572,7 +1580,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+ 		goto tx_error;
+ 
+-	ip_vs_nat_icmp(skb, pp, cp, 0, toff);
++	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports);
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+ 	skb->ignore_df = 1;
+@@ -1589,10 +1597,11 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ int
+ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		struct ip_vs_protocol *pp, unsigned int toff,
+-		unsigned int wlen, unsigned int hooknum,
+-		struct ip_vs_iphdr *ciph)
++		unsigned int hooknum, struct ip_vs_iphdr *ciph)
+ {
++	bool has_ports = false;
+ 	struct rt6_info	*rt;	/* Route to the other host */
++	unsigned int wlen;
+ 	int rc;
+ 	int local;
+ 	int rt_mode;
+@@ -1650,6 +1659,13 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		goto tx_error;
+ 	}
+ 
++	wlen = ciph->len;
++	if (ciph->protocol == IPPROTO_TCP || ciph->protocol == IPPROTO_UDP ||
++	    ciph->protocol == IPPROTO_SCTP) {
++		wlen += 2 * sizeof(__u16); /* Also mangle ports */
++		has_ports = true;
++	}
++
+ 	/* copy-on-write the packet before mangling it */
+ 	if (skb_ensure_writable(skb, wlen))
+ 		goto tx_error;
+@@ -1657,7 +1673,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+ 		goto tx_error;
+ 
+-	ip_vs_nat_icmp_v6(skb, pp, cp, 0, toff, ciph);
++	ip_vs_nat_icmp_v6(skb, pp, cp, 0, toff, has_ports, ciph);
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+ 	skb->ignore_df = 1;
 -- 
 2.47.3
 
