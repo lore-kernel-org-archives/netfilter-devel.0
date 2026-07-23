@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F0D377AAC;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ACE3372B53;
 	Thu, 23 Jul 2026 16:39:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784824790; cv=none; b=aCyrGjHZz/IuOsUsD1ANuHIdTKkum7H5LMfs2pXNi1uGv+90NukAkrjq+SwBIOfxGDh1XzJ6g1FWol6L80GkvNeMImrNr//H/7T5InMnP22HZS2/PHpcjdAVyalOofzsRFCOnzVjbMkaYpwtsKd5aV3uStfK6tR8LJfVU9HLeLY=
+	t=1784824790; cv=none; b=VW95J+rrVaFR8EwC5dJ8jYiVTQzVFx2zNNxf4aVATZtKY5Fl1ruQU1MSEC2rsUpqvlpQNKaquUPzhd+4lA+vXCu6PVl/CjKG37haxOYUPvFCMsibh7SELlMpi6isgyhKTWsQBFnZikVaqiMTtjXDHERK8M18KIfDXVrXgZzJK5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1784824790; c=relaxed/simple;
-	bh=YhclAeWYDLdey4TkDZxyd6FSP3IzcQeKqKHe99VavRE=;
+	bh=EE1owj3L4mR9GBU/chUs02gtKXGfsMrt5VMh137lJT4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=l5sj1tLluplWppEGD6bKppce6KAWgchYjDabw4uN/H68WOSxEbBORAQUda8DpqsW9RtK/Gud9Y2r+9LB8bNdJIwR6idXnJ0ZBTCBLiesjA7griK8v0pDSy4G6EarlicLSN8A9SQULZ+vckw7GGDm3k2SfZffyIs4wPlVnM7DYFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lDUHnnYG; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=rJ0M/aJLwqbUZ+5yDVnvkWi9lomG7wAOimbiRYX5pw//pY5VtLklzd+anHJoPOhuS7ztrrQkTNWvsil2PbrNjaVRp5Jgtn/vfpmjsQe5ZyL1ULPo6z4RkQgs1C2UxZ6b9cSLWQ8SWsCVHtGwz3Zi3ByXwGF1QRPBV8l6cuNdyi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CHhPU8ge; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lDUHnnYG"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CHhPU8ge"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E51EB601BE;
-	Thu, 23 Jul 2026 18:39:33 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D0A90601C1;
+	Thu, 23 Jul 2026 18:39:37 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784824774;
-	bh=dBqtcj8toY/8767FJ/TrtJvXBZw6WmK2Z1Wwedwv9g8=;
+	s=2025; t=1784824778;
+	bh=LHwgdNbQGVHr6BgGMrHwVKn0AtHSLucGs6u3WEdz7G4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lDUHnnYGo28Xn1xV9oOzmP3e3AxmKaJThhgVBHKFn95lBBF4v48q7YTeXuSCecA5E
-	 fX2TdqyE4T8bsOcumtJfR/XiBu0rU/HpwYnhAvEm5UqZOUWVapDBuRWfcnelr3kxgI
-	 /4Xa+zjBMVHkwOgWbw/EQUgfBLzvKd2Gm1x9tlRjIxM1ph1yQUpPTq6nRl+0EhdE8P
-	 /keRROl5OkUfOqXUNxMihPt7HuC/aoBO+5IEw/Z6hKmdFMBXBmI6dCraASYJ0C0xLR
-	 QpgqgLPEdAX+AG5YQs7RrloK9PYVDozKu1rpjd4QRLNRgv00oRiB6leHOKoIF+5zme
-	 a5ZZvi4mDfaRQ==
+	b=CHhPU8gevaSBYfiEPljiD7Tst0AjfgupMVu/KM07c1bvAlXCpcgbRAg40W4GuYCl7
+	 lxEKLxSsjepb/67JjoaZoCk/fDFyGnSvX+OpQCGTK0xx4y9NJ/Tomqvn58Ap4wLC6+
+	 Z8vtUMfrd/wWvLgHhIKfUZkDhCiErr8chk2uTLd7xo3CcNBxvedXV8mjSih9GUidcA
+	 I27jsg+3NkhVQXvP/VWjawX+raeDYZ5I73VxWDdDv7HmxrEiyQ7OU9BLiIwCalegUN
+	 ZhB7IGmptvFgfqHFu93hrXv0iQhIu6r/2uaDEyYxYecD92kw3Dx90ChycbI9MTmHAz
+	 huKRJ9Sm9fRJA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 05/13] ipvs: do not propagate one-packet flag to synced conns
-Date: Thu, 23 Jul 2026 18:39:02 +0200
-Message-ID: <20260723163910.274695-6-pablo@netfilter.org>
+Subject: [PATCH net 08/13] netfilter: xt_hashlimit: validate hashtable supports XT_HASHLIMIT_RATE_MATCH
+Date: Thu, 23 Jul 2026 18:39:05 +0200
+Message-ID: <20260723163910.274695-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260723163910.274695-1-pablo@netfilter.org>
 References: <20260723163910.274695-1-pablo@netfilter.org>
@@ -52,50 +52,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zhiling Zou <roxy520tt@gmail.com>
+The XT_HASHLIMIT_RATE_MATCH flag mode changes the semantics of the
+dsthash_ent structure which represents an entry in the hashtable.  There
+is a union area which uses a different layout to express the rate match
+mode.
 
-Synced connections can be created before their destination exists. When
-the destination is later added, ip_vs_bind_dest() copies connection flags
-from the destination into cp->flags.
+Update .checkentry path to validate the XT_HASHLIMIT_RATE_MATCH mode
+flag is requested by two or more different rules that refer to the same
+hashtable. Otherwise, uninitialized access to the burst field in the
+union is possible.
 
-IP_VS_CONN_F_ONE_PACKET connections are not synced. If a synced
-connection inherits IP_VS_CONN_F_ONE_PACKET while it is already hashed,
-expiry can treat it as a one-packet connection and skip unlinking the
-existing conn_tab node, leaving stale hash nodes pointing at a freed
-struct ip_vs_conn.
+Reject the use of the XT_HASHLIMIT_RATE_MATCH mode flag if set on by
+revision less than 3 too.
 
-Drop IP_VS_CONN_F_ONE_PACKET from destination flags when binding synced
-connections.
-
-Fixes: 26ec037f9841 ("IPVS: one-packet scheduling")
-Cc: stable@vger.kernel.org
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Zhiling Zou <roxy520tt@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
+Reported-and-tested-by: Talha Berk Arslan <talha.anything.info@gmail.com>
+Link: https://patch.msgid.link/20260721074629.668-1-talha.anything.info@gmail.com/
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/xt_hashlimit.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 6ed2622363f0..0682cec5f0a7 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1014,6 +1014,9 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
- 	flags = cp->flags;
- 	/* Bind with the destination and its corresponding transmitter */
- 	if (flags & IP_VS_CONN_F_SYNC) {
-+		/* Synced conns are hashed, so they can not get this flag */
-+		conn_flags &= ~IP_VS_CONN_F_ONE_PACKET;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 2704b4b60d1e..9af0fa895f73 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -117,6 +117,7 @@ struct xt_hashlimit_htable {
+ 	refcount_t use;
+ 	u_int8_t family;
+ 	bool rnd_initialized;
++	bool ratematch;
+ 
+ 	struct hashlimit_cfg3 cfg;	/* config */
+ 
+@@ -323,6 +324,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		kvfree(hinfo);
+ 		return -ENOMEM;
+ 	}
++	hinfo->ratematch = !!(cfg->mode & XT_HASHLIMIT_RATE_MATCH);
+ 	spin_lock_init(&hinfo->lock);
+ 
+ 	switch (revision) {
+@@ -872,7 +874,10 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
+ 	}
+ 
+ 	/* Check for overflow. */
+-	if (revision >= 3 && cfg->mode & XT_HASHLIMIT_RATE_MATCH) {
++	if (cfg->mode & XT_HASHLIMIT_RATE_MATCH) {
++		if (revision < 3)
++			return -EINVAL;
 +
- 		/* if the connection is not template and is created
- 		 * by sync, preserve the activity flag.
- 		 */
+ 		if (cfg->avg == 0 || cfg->avg > U32_MAX) {
+ 			pr_info_ratelimited("invalid rate\n");
+ 			return -ERANGE;
+@@ -905,6 +910,15 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
+ 			mutex_unlock(&hashlimit_mutex);
+ 			return ret;
+ 		}
++	} else {
++		if ((cfg->mode & XT_HASHLIMIT_RATE_MATCH &&
++		     !(*hinfo)->ratematch) ||
++		    (!(cfg->mode & XT_HASHLIMIT_RATE_MATCH) &&
++		      (*hinfo)->ratematch)) {
++			mutex_unlock(&hashlimit_mutex);
++			htable_put(*hinfo);
++			return -EINVAL;
++		}
+ 	}
+ 	mutex_unlock(&hashlimit_mutex);
+ 
 -- 
 2.47.3
 
