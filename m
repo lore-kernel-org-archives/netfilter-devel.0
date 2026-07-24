@@ -1,131 +1,140 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE16421232
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Jul 2026 10:32:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2663C10AE;
+	Fri, 24 Jul 2026 10:49:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784889150; cv=none; b=bdHC2uhTs3DOFhg9RmGWlXzKrF8so1dQfs2ekfWhzv4O94oDpW8d3SC5bUE5MB0j37dca8PMB/O/JlphO0AVX2NvgP7ZAKSFBY/xTZ8tq7/+0XAz+NzuWFOm424UGzXAv99VNu1P2hG8dg5FW9u+f0H317d1IQJht9SltRaG4vw=
+	t=1784890186; cv=none; b=RgTXMk+1kB3IsBAjOFIZx//lvnLP1z+EzBNhB3OVreaxpdQrZdBLAzMMJsybyVcXISGEityGGgSmCmkZZTYSOKNJTZsn7Q88kmqbc/1JlyI2vGOeTIsxMUdr8fBUJPoK7h/0dDi4cWfi69xVda/2dvxRTDenNQsOoBGoEY5KIRU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784889150; c=relaxed/simple;
-	bh=C2s4hWpxdNAVzAqqOlmCGxT43Y3j275YinDQYrlxfyw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fua8i4LIoZGdaeVI2m35vn2kQ43QXoiXrVBzke2qx/ustqvuuvHraRlCv/R1dBkAFyR3ym82J/nzB8s5eN/zgWbwRByCURKC9dJy3K4gI5XwYnZjBXDZ8gtla2NjFQxwe6b972rsVm8dsKk6KKY3E5BWRrpLLZF/J/IVv0U1C4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b/UmY5GC; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1784890186; c=relaxed/simple;
+	bh=uW2xzHOzF6Z/nrW0jmeSGNNP2cBla52TvLflycN7y/w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gMcAXT8f1ZDb9SksYOl7coC/bQ0qyD/3pOdiSc7fqIvcYQkJJDhmoy4IZDCjtj7bERvYSWLaGeq+yrDXjaR1yjWeCP8N+RP+YY8bi6NKYe8TbbcEGR/PHWnNd0FKwV3owUnFGFAmeCJqO8NJeULJEIB8qWrMo5oJoB8h8GPHLiA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=a0Juvjtb; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b/UmY5GC"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id BD20060194;
-	Fri, 24 Jul 2026 12:32:16 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="a0Juvjtb"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1B23D6019C;
+	Fri, 24 Jul 2026 12:49:41 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784889136;
-	bh=sjKWk5DPmbrJN6C+y0YdcTWPDVOXuKNsqoKr98C7x0M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=b/UmY5GCc98BBea4sQ43ek0RP9w0lvEruSMvAzW3y8XBdLwzAQm/m8rJxKZTyxYpw
-	 s4ytqJrOpMZATj/AvpwgwBIVEZzZkq4IQn4ETZlcf1i31MAbdvznyx2sobO4gZpQhl
-	 LxX1ysPkJ+kdXGx55hJrwef2kTDJmtzxNFpMr3p8tAnb+0xekovYRW8jRurIAJXwWL
-	 d77wca+OsIlph9J6nUiIQiwVIREggHwcqWS6MWV1V0GxHdJGFVHr6lqE4W8vFyyhmh
-	 1thGq0DocgjmXikmtRDqaR5ARpb0Hhvu71VCyQ9vecvqjy0FO+b2udvdt2pZlCXHtZ
-	 nrOfLCVZbrgBw==
-Date: Fri, 24 Jul 2026 12:32:14 +0200
+	s=2025; t=1784890181;
+	bh=ALT8cgcDYszf3Lu3zzBXtKjXM2UT90eG8prsUEDa6u8=;
+	h=From:To:Cc:Subject:Date:From;
+	b=a0JuvjtbBq8JduKmiap8ZTbd2lj0WCBpYC57kexOV2VlmD3FRJOWxAP1ANAtbHuR6
+	 DL2GYOkQaPSG4kKLjYVA2K7u2iUUSrJLkjw6XIMy3SxSJuViLSn+fU0+LcYaKvnKUn
+	 RBAENSWrU9PD5ky4+M7BsRqBbzXm/IEKLb/MEgNbzQOKzURug2Gjn/J1sW10KTNn4T
+	 6nMH1v+7FJSwi5YueQxa6AYiZaDm97dPoc7L7LwNY3H/jcq5Eivqz1TBZAZsgARaTR
+	 G4gX0NmR8b7JajUpKmYStENW73bvMfbTO8m3PUUqNJeC2O8DcwakwD6sk5IUxfB+Tn
+	 kBHha16nBp/og==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v3 0/4] Address Sashiko review of NAT hook dump
- code
-Message-ID: <amM_LjFL83jCngtg@chamomile>
-References: <20260710151411.2358773-1-phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net-next 0/7] Netfilter/IPVS updates for net-next
+Date: Fri, 24 Jul 2026 12:49:25 +0200
+Message-ID: <20260724104932.437729-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260710151411.2358773-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-Hi Phil,
+Hi,
 
-I think we have to tackle this from a different angle the
-nfnl_hook_dump_nat() dump issues, see:
+The following patchset contains Netfilter/IPVS updates for net-next,
+just a small batch with accumulated pending updates:
 
-static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
-                              struct netlink_callback *cb,
-                              const struct nf_hook_ops *ops, int family)
-...
+1) In IPVS, use system_dfl_long_wq instead of system_long_wq, from
+   Ismael Luceno.
 
-        if ((e && i >= e->num_hook_entries) ||
-            ctx->natv != (unsigned long)e) {
-                cb->seq++;
-                return -EINTR;
-        }
+2) Add missing .checkentry in xt_tcpmss for IPv6, this is a follow up
+   to a recent harderning, from Florian Westphal.
 
-Because as sashiko reports, memory address could be recycled to defeat
-this which is unlikely, but correct.
+3) Address a sashiko report in the NAT SIP helper, from Florian Westphal.
 
-Instead of making heuristics to detect if interference has happened,
-I think there is a need for something like a hook_base_seq per-netns
-that can be used:
+4) Tear down flow entries with stale routes using the GC, this is to
+   detect route updates when hardware offload is enabled.
 
-        cb->seq = READ_ONCE(...hook_base_seq);
+5) Pass master conntrack as parameter to functions instead of using
+   exp->master as preparation work to turn exp->master into a cookie.
 
-which should be bumped when updating the hook arrays via WRITE_ONCE().
+6) Move expectation event_mask to the nf_conntrack_expect object,
+   again as preparation work to turn exp->master into a cookie.
 
-Then, a call at the end of the dump:
+7) In IPVS, use kzalloc_obj{s}() typesafe allocations, from Subasri S.
 
-        nl_dump_check_consistent(cb, nlmsg_hdr(skb));
+Please, pull these changes from:
 
-will set on NLM_F_DUMP_INTR flag so userspace can retry.
-
-I would suggest to check that i is safe to access the array, ie.
-
-        if (i >= e->num_hook_entries)
-                goto out;
-
-and perform the netlink dump even if it will result in a stale dump,
-which is what other subsystems do, ie. just add a safety check here.
-
-We can discuss later on how to make improvements to the netlink dump
-logic to detect an interference early.
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-24
 
 Thanks.
 
-On Fri, Jul 10, 2026 at 05:14:07PM +0200, Phil Sutter wrote:
-> Changes since v2:
-> - Drop patch 1 again. Fixing nfnl_hook_dump's broken NLM_F_DUMP_INTR
->   flag setting in corner-cases is out of scope of this series and should
->   be solved in a more elegant way in nfnetlink itself.
-> Changes since v1:
-> - New patch 1
-> - Fixed three aspects of patch 3
-> - Fixed two issues of patch 5
-> 
-> Patch 1 is mere preparation to add the missing case handling to
-> nfnl_hook_dump_nat().
-> 
-> Patch 2 fixes for missing READ_ONCE() calls when addressing hook ops
-> array elements.
-> 
-> Patch 3 adds missing multipart dump support to nfnl_hook_dump_nat.
-> 
-> Patch 4 adds code to detect and mitigate concurrent hook updates while
-> amidst a multipart dump to nfnl_hook_dump_nat.
-> 
-> Link: https://sashiko.dev/#/patchset/20260702105003.13550-2-fw%40strlen.de
-> 
-> Phil Sutter (4):
->   netfilter: nfnetlink_hook: Pass cb object to nfnl_hook_dump_nat()
->   netfilter: nfnetlink_hook: Address hook ops using READ_ONCE()
->   netfilter: nfnetlink_hook: Handle multipart NAT hook dumps
->   netfilter: nfnetlink_hook: Fix for concurrent NAT hooks dump and
->     change
-> 
->  net/netfilter/nfnetlink_hook.c | 48 ++++++++++++++++++++++++----------
->  1 file changed, 34 insertions(+), 14 deletions(-)
-> 
-> -- 
-> 2.54.0
-> 
+----------------------------------------------------------------
+
+The following changes since commit 89d8006259b81dd25c962f6cc8d7ab268d6ea426:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2026-07-23 14:07:40 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-24
+
+for you to fetch changes up to cca2780b61947fd27ec621541edd0902e193a609:
+
+  ipvs: use type-safe allocation helpers in ip_vs_rht_alloc (2026-07-24 11:45:19 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-07-24
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: xt_tcpmss: extend checkentry to ipv6
+      netfilter: nf_nat_sip: rewind offset when NAT shrinks the packet
+
+Ismael Luceno (1):
+      ipvs: Move defense_work and est_reload_work to system_dfl_long_wq
+
+Pablo Neira Ayuso (3):
+      netfilter: flowtable: tear down flow entries with stale dst from GC
+      netfilter: conntrack_helper: pass master conntrack to helper functions
+      netfilter: nf_conntrack_expect: store event cache in expectation
+
+Subasri S (1):
+      ipvs: use type-safe allocation helpers in ip_vs_rht_alloc
+
+ include/linux/netfilter/nf_conntrack_amanda.h | 1 +
+ include/linux/netfilter/nf_conntrack_ftp.h    | 1 +
+ include/linux/netfilter/nf_conntrack_irc.h    | 1 +
+ include/linux/netfilter/nf_conntrack_tftp.h   | 1 +
+ include/net/netfilter/nf_conntrack_expect.h   | 3 +++
+ include/net/netfilter/nf_flow_table.h         | 8 ++++++++
+ net/netfilter/ipvs/ip_vs_core.c               | 9 ++++-----
+ net/netfilter/ipvs/ip_vs_ctl.c                | 6 +++---
+ net/netfilter/ipvs/ip_vs_est.c                | 2 +-
+ net/netfilter/nf_conntrack_amanda.c           | 2 +-
+ net/netfilter/nf_conntrack_broadcast.c        | 6 ++++++
+ net/netfilter/nf_conntrack_ecache.c           | 7 +------
+ net/netfilter/nf_conntrack_expect.c           | 5 +++++
+ net/netfilter/nf_conntrack_ftp.c              | 2 +-
+ net/netfilter/nf_conntrack_irc.c              | 2 +-
+ net/netfilter/nf_conntrack_netlink.c          | 5 +++++
+ net/netfilter/nf_conntrack_tftp.c             | 2 +-
+ net/netfilter/nf_flow_table_core.c            | 2 ++
+ net/netfilter/nf_flow_table_ip.c              | 8 --------
+ net/netfilter/nf_nat_amanda.c                 | 7 ++++---
+ net/netfilter/nf_nat_ftp.c                    | 4 ++--
+ net/netfilter/nf_nat_irc.c                    | 2 +-
+ net/netfilter/nf_nat_sip.c                    | 5 +++++
+ net/netfilter/nf_nat_tftp.c                   | 5 ++---
+ net/netfilter/xt_tcpmss.c                     | 1 +
+ 25 files changed, 61 insertions(+), 36 deletions(-)
