@@ -1,75 +1,137 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 189513D810D;
-	Thu, 23 Jul 2026 19:41:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2D73A9632;
+	Fri, 24 Jul 2026 07:25:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784835670; cv=none; b=krxEWFpvW91YgLPzTh9oA+ofOAo3ozEj98xK2BSRUOE2d3RRTXTYK08m3UeOiRX1CmVD13a6rQHTuPIg+hEYEOtzsq9rEIITzK37BNCFDiTpKQCFobSejpHiBDubzLC6WSpL1Z368NzyyD117WA5X8RfSACspKE9v3Btyf9HII4=
+	t=1784877927; cv=none; b=QT4QvOhI81P8l6eStArc2084KatsCLxqVjLPdD25iUdrfoYANQ1YYtMHgoW8fzjMdyjPrOhAB/mDxADm6Q9LHAV4bnVCc6WFPRX1RORIdz+tWjbKJS+/fl5wMGwhiC8r4h8OAriYefC67F5BuVLC2x2z47KT+9acscF1CoDH+kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784835670; c=relaxed/simple;
-	bh=sD2YWSUj7wzNdTpoX39NRTKQKbedMotn10NHWytgupU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ryaqzfgPcphG0Sj7sE0uJeIBjgaZUFvAClMqpkB2y8ZQqGJ06HVCEB47pu1ZLrt4QRWcmuxX0UzatmKyylFx8XSwryR1F1frH/CbDUB9YIkfMmaRjARG8Wn5/RJemXXlmqwmJ+sT11CvHlOx1MoMrL5wG/Ix8XZC7t9SHVN0Q+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=O1HEGFNO; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1784877927; c=relaxed/simple;
+	bh=DEVYDfMKBm3IARX9KWdInCt7Umc8cb8rntG8k+OqTrw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=FB4HliEl3E37LolN6qFgisB4UVIXhQNJJQ+qw1HryxbyW3NCWxivJdBJXvL87g0KXzhZNULrq3uQ2aeC20PawTppdEEeJnzZaBquBSwQBYDZe8Yh2CmPDU59FBjvt8l7lIWT5ttprpGplxJVlxf+WW8YbOKNJjv8+j6M1uq2v2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Oq/vMj0t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="O1HEGFNO"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C660B60195;
-	Thu, 23 Jul 2026 21:41:02 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784835662;
-	bh=8X1z3bysMmPGcTut0/quhoS6/ib3wobKTW3FBdjv8Vk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=O1HEGFNOifzE+qnbOtGPoyquIPESkJYhqpZUJ/qCAnCseBG0LdUJqlJAYS1z2w1QN
-	 8QqNyTRe1c8RLDRhKti3YewLEV5ltQ/zWMjiZrZ+AHAEoVbiCeqCmyBsg1r4dt575M
-	 nMarRYiCMi9HYaB72/aGTmMGlB7vjhqTCwTUJB3ZeATIzXthuQahLGdJzdNXscYhU/
-	 3/IK9LbflNy99notD/TyuH6GH/G7OiQRISMLt3Jmwi8tcZ15Scp/aCQ4ic0A18Y9LI
-	 xmb1BN3MjfBBTp3bE+ZaVGJxY9oykpFsykwZqTtmWhBmRLoA3wvBN8FRDbtOyeoP1E
-	 Wry/7gIT8fwSA==
-Date: Thu, 23 Jul 2026 21:40:59 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-	fw@strlen.de, horms@kernel.org
-Subject: Re: [PATCH net 09/13] ipvs: fix the checksum validations
-Message-ID: <amJuS7oDeYoDJNTh@chamomile>
-References: <20260722211420.153933-1-pablo@netfilter.org>
- <20260722211420.153933-10-pablo@netfilter.org>
- <20260723070845.7855a0f1@kernel.org>
- <amI1logAep3vSkfF@chamomile>
- <20260723113726.225a92a7@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Oq/vMj0t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F32CA1F000E9;
+	Fri, 24 Jul 2026 07:25:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784877925;
+	bh=WsRSAk6YY6P1Plmx+ZS65LWEWpi9yHtNHpVjM9Z0l/k=;
+	h=From:Date:Subject:To:Cc;
+	b=Oq/vMj0t+SkKC8igA62i2ICjlE9gynpQ6gD8grG0K4G2ddoTxmFrQj8eBWirZsfu1
+	 wwOl8zua9NuVdrtI1+6UkiCrDfPPXSmf8qrCpvP211NtDNqv2ZkSUKRu4xcltoMQPs
+	 zNuK5rkmxxRD0PaVWjDEiKCb3A+OUO+teldEKfU4Fg+AUrnL/ljGXDLiYK7LBxaGW3
+	 B7WlkWFwjRgLIhsDbV2HecXrsW3Gpuy5/j/1DOvhl5aVc2DOZZWt2J0pr6nicEib/G
+	 D3qLtg4nUB9+3kio7bv2sA163/Px03LvvbiaVDDD/SlGvgLUGSc15OC5N/8eMBz4Jp
+	 w6NuLkhStcrnQ==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Date: Fri, 24 Jul 2026 09:25:00 +0200
+Subject: [PATCH net-next v3] net: ip6_tunnel: use tunnel parameters for
+ fill_forward_path route lookup
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260723113726.225a92a7@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260724-ip6ip6-route-lookup-fill_forward_path-v3-1-7b7991538614@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/5WOywrCMBREf6Vk7ZUkrWnjyv8QkT5ubLAk4TbWS
+ um/G7rSncJshoFzZmEjksWRHbOFEU52tN6lku8y1va1uyHYLnUmuVS85BXYoFKA/CMiDN7fHwG
+ MHYar8fSsqbuGOvagTVscai1EhZolViA0dt48Z+YwgsM5sktaejtGT6/twCS2/U/XJEBApfJGq
+ 6IUXOLpjuRw2Hu6bYpJfmCl/BUrE9YY3pQNF7nS+gu7rusb3TLqIzwBAAA=
+X-Change-ID: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
+To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.3
 
-On Thu, Jul 23, 2026 at 11:37:26AM -0700, Jakub Kicinski wrote:
-> On Thu, 23 Jul 2026 17:39:02 +0200 Pablo Neira Ayuso wrote:
-> > Hi,
-> > 
-> > On Thu, Jul 23, 2026 at 07:08:45AM -0700, Jakub Kicinski wrote:
-> > > On Wed, 22 Jul 2026 23:14:16 +0200 Pablo Neira Ayuso wrote:  
-> > > > +/**
-> > > > + * ip_vs_checksum_common_check - validate checksum for TCP/UDP/ICMP
-> > > > + */  
-> > > 
-> > > this not-really-kdoc comment causes a bunch of new warnings,
-> > > and this file was previously warning free. Which in turn
-> > > makes our AI reviewer ignore the series. Could you respin?  
-> > 
-> > Yes, I can drop the patches that have the kdoc issues and respin.
-> 
-> Thanks! We're seeing extra delays due to lore outage overnight
-> and a lot of submissions suddenly appearing in the pipeline.
-> Looks like this will have to wait for rc6 :(
+Reuse the flowi6 template t->fl.u.ip6 built by ip6_tnl_link_config() in
+ip6_tnl_fill_forward_path(), aligning the fast-path route lookup with
+the slow path in ipxip6_tnl_xmit(). This automatically inherits the
+correct conditional FLOWLABEL masking based on the
+IP6_TNL_F_USE_ORIG_FLOWLABEL flag.
 
-OK, no problem, thanks for explaining.
+Return -EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS,
+IP6_TNL_F_USE_ORIG_FLOWLABEL or IP6_TNL_F_USE_ORIG_FWMARK is set,
+or for collect_md tunnels, since fill_forward_path has no access to
+the original skb and cannot recover the per-packet traffic class,
+flowlabel, mark or tunnel destination needed for the route lookup.
+
+Reviewed-by: David Ahern <dsahern@kernel.org>
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+---
+Changes in v3:
+- Return EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS is set or for collect_md tunnels
+- Link to v2: https://lore.kernel.org/r/20260722-ip6ip6-route-lookup-fill_forward_path-v2-1-ff0b7b013699@kernel.org
+
+Changes in v2:
+- Reuse flowi6 template for the route lookup
+- Return EOPNOTSUPP if the tunnel is configured with
+  IP6_TNL_F_USE_ORIG_FWMARK or IP6_TNL_F_USE_ORIG_FLOWLABEL
+- Use flowi6 fields to setup net_device_path
+- Link to v1: https://lore.kernel.org/r/20260708-ip6ip6-route-lookup-fill_forward_path-v1-1-863b9647102e@kernel.org
+---
+ net/ipv6/ip6_tunnel.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+index bf8e40af60b0..97c3f61d627b 100644
+--- a/net/ipv6/ip6_tunnel.c
++++ b/net/ipv6/ip6_tunnel.c
+@@ -1845,24 +1845,30 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
+ 				     struct net_device_path *path)
+ {
+ 	struct ip6_tnl *t = netdev_priv(ctx->dev);
+-	struct flowi6 fl6 = {
+-		.daddr = t->parms.raddr,
+-	};
+ 	struct dst_entry *dst;
++	struct flowi6 fl6;
+ 	int err;
+ 
+-	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT)) {
+-		/* encaplimit option is currently not supported is
+-		 * sw-acceleration path.
+-		 */
++	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
++			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
++			      IP6_TNL_F_USE_ORIG_FWMARK))
+ 		return -EOPNOTSUPP;
+-	}
++
++	if (t->parms.collect_md)
++		return -EOPNOTSUPP;
++
++	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT))
++		return -EOPNOTSUPP;
++
++	memcpy(&fl6, &t->fl.u.ip6, sizeof(fl6));
++	fl6.flowi6_mark = t->parms.fwmark;
++	fl6.flowi6_proto = 0;
+ 
+ 	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
+ 	if (!dst->error) {
+ 		path->type = DEV_PATH_TUN;
+-		path->tun.src_v6 = t->parms.laddr;
+-		path->tun.dst_v6 = t->parms.raddr;
++		path->tun.src_v6 = fl6.saddr;
++		path->tun.dst_v6 = fl6.daddr;
+ 		path->tun.l3_proto = IPPROTO_IPV6;
+ 		path->dev = ctx->dev;
+ 		ctx->dev = dst->dev;
+
+---
+base-commit: 89d8006259b81dd25c962f6cc8d7ab268d6ea426
+change-id: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
+
+Best regards,
+-- 
+Lorenzo Bianconi <lorenzo@kernel.org>
+
