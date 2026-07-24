@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2663C10AE;
-	Fri, 24 Jul 2026 10:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE3353B52F8;
+	Fri, 24 Jul 2026 10:49:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784890186; cv=none; b=RgTXMk+1kB3IsBAjOFIZx//lvnLP1z+EzBNhB3OVreaxpdQrZdBLAzMMJsybyVcXISGEityGGgSmCmkZZTYSOKNJTZsn7Q88kmqbc/1JlyI2vGOeTIsxMUdr8fBUJPoK7h/0dDi4cWfi69xVda/2dvxRTDenNQsOoBGoEY5KIRU=
+	t=1784890188; cv=none; b=r1k7ynaLohhgPBvAnj5qFuD4i8riJTP2/DqrGp2OZl7IQaZs2OddLEnsImdd8uKqFgIqom+UMi9gonBLZVG90e+SBpB0lKFuaVa3+flN8KkUaazcnBRUD/bu8XkOOwrbjuRrVnEUjoNdlbJjPwfEPgX7T+lL9Z8+CYZC6lStKzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784890186; c=relaxed/simple;
-	bh=uW2xzHOzF6Z/nrW0jmeSGNNP2cBla52TvLflycN7y/w=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gMcAXT8f1ZDb9SksYOl7coC/bQ0qyD/3pOdiSc7fqIvcYQkJJDhmoy4IZDCjtj7bERvYSWLaGeq+yrDXjaR1yjWeCP8N+RP+YY8bi6NKYe8TbbcEGR/PHWnNd0FKwV3owUnFGFAmeCJqO8NJeULJEIB8qWrMo5oJoB8h8GPHLiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=a0Juvjtb; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1784890188; c=relaxed/simple;
+	bh=kAi0WmXHrt2WwgGYbecykDZKEmIY6rzZHbntpjlWWcw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BJVrSeMq6HhU+2h+j+valdeMrAbFhG4s7klbgN6rwM+QYyWNYdi20At7VI0J4EXIVBEm5VSNC5HsHrZUQtqmnekhSemuU6Ywz+zMKHmvblJ+thAXAPWxF7Wgp1ukGP1R8GKWTVKaihvHFB3NpZ3Wz2wssFffzlRrTUsTOC32JFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=X78KpR+H; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="a0Juvjtb"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="X78KpR+H"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1B23D6019C;
-	Fri, 24 Jul 2026 12:49:41 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0EFCD601A1;
+	Fri, 24 Jul 2026 12:49:44 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784890181;
-	bh=ALT8cgcDYszf3Lu3zzBXtKjXM2UT90eG8prsUEDa6u8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=a0JuvjtbBq8JduKmiap8ZTbd2lj0WCBpYC57kexOV2VlmD3FRJOWxAP1ANAtbHuR6
-	 DL2GYOkQaPSG4kKLjYVA2K7u2iUUSrJLkjw6XIMy3SxSJuViLSn+fU0+LcYaKvnKUn
-	 RBAENSWrU9PD5ky4+M7BsRqBbzXm/IEKLb/MEgNbzQOKzURug2Gjn/J1sW10KTNn4T
-	 6nMH1v+7FJSwi5YueQxa6AYiZaDm97dPoc7L7LwNY3H/jcq5Eivqz1TBZAZsgARaTR
-	 G4gX0NmR8b7JajUpKmYStENW73bvMfbTO8m3PUUqNJeC2O8DcwakwD6sk5IUxfB+Tn
-	 kBHha16nBp/og==
+	s=2025; t=1784890184;
+	bh=sEtPiDlXa3jUo7zCgYLR762kzgw/OqdbAM0cb77b8Sk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=X78KpR+HhLLc0n0XTJ25yby2IzCcUuxlB+b+DfB02udDF3Cbu6kWjHPQT6rNpnH0y
+	 msnw8h0j3d+qvNg6CIgtRfjnEXxvyD+9j0EeQ3Njj+4HNkOmIGDnJ4DbyBTH6qp8ct
+	 U/Sn2pNbfmCJcGAASeMiat/BwN0S16K6Ijm7WM/aANQD0++g2K2S3GGgdAY4+q2duP
+	 TGLLfCu35zHbMiRRWyjE1twyxyEpzJ9hKAAi3Uvg0jCUAHrxcGyxQWocQ9sOcUIYs5
+	 LyRz1575aI9zjnuOBIflAiDHT/74lR0S+TcTqdqwHoQDz1vLC+QHhTb/OFjsZxo9Dr
+	 RWcDcGDFNVcoQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 0/7] Netfilter/IPVS updates for net-next
-Date: Fri, 24 Jul 2026 12:49:25 +0200
-Message-ID: <20260724104932.437729-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/7] netfilter: xt_tcpmss: extend checkentry to ipv6
+Date: Fri, 24 Jul 2026 12:49:27 +0200
+Message-ID: <20260724104932.437729-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260724104932.437729-1-pablo@netfilter.org>
+References: <20260724104932.437729-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,92 +52,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS updates for net-next,
-just a small batch with accumulated pending updates:
+sashiko reports:
+ Is it intentional that the new parameter validation callback is applied
+ only to the NFPROTO_IPV4 match?
 
-1) In IPVS, use system_dfl_long_wq instead of system_long_wq, from
-   Ismael Luceno.
+Fixes: 68fc6c6470d6 ("netfilter: xt_tcpmss: add checkentry for parameter validation")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_tcpmss.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-2) Add missing .checkentry in xt_tcpmss for IPv6, this is a follow up
-   to a recent harderning, from Florian Westphal.
+diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+index b08b077d7f0a..5f7f97dbace5 100644
+--- a/net/netfilter/xt_tcpmss.c
++++ b/net/netfilter/xt_tcpmss.c
+@@ -103,6 +103,7 @@ static struct xt_match tcpmss_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "tcpmss",
+ 		.family		= NFPROTO_IPV6,
++		.checkentry	= tcpmss_mt_check,
+ 		.match		= tcpmss_mt,
+ 		.matchsize	= sizeof(struct xt_tcpmss_match_info),
+ 		.proto		= IPPROTO_TCP,
+-- 
+2.47.3
 
-3) Address a sashiko report in the NAT SIP helper, from Florian Westphal.
-
-4) Tear down flow entries with stale routes using the GC, this is to
-   detect route updates when hardware offload is enabled.
-
-5) Pass master conntrack as parameter to functions instead of using
-   exp->master as preparation work to turn exp->master into a cookie.
-
-6) Move expectation event_mask to the nf_conntrack_expect object,
-   again as preparation work to turn exp->master into a cookie.
-
-7) In IPVS, use kzalloc_obj{s}() typesafe allocations, from Subasri S.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-24
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 89d8006259b81dd25c962f6cc8d7ab268d6ea426:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2026-07-23 14:07:40 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-24
-
-for you to fetch changes up to cca2780b61947fd27ec621541edd0902e193a609:
-
-  ipvs: use type-safe allocation helpers in ip_vs_rht_alloc (2026-07-24 11:45:19 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-07-24
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: xt_tcpmss: extend checkentry to ipv6
-      netfilter: nf_nat_sip: rewind offset when NAT shrinks the packet
-
-Ismael Luceno (1):
-      ipvs: Move defense_work and est_reload_work to system_dfl_long_wq
-
-Pablo Neira Ayuso (3):
-      netfilter: flowtable: tear down flow entries with stale dst from GC
-      netfilter: conntrack_helper: pass master conntrack to helper functions
-      netfilter: nf_conntrack_expect: store event cache in expectation
-
-Subasri S (1):
-      ipvs: use type-safe allocation helpers in ip_vs_rht_alloc
-
- include/linux/netfilter/nf_conntrack_amanda.h | 1 +
- include/linux/netfilter/nf_conntrack_ftp.h    | 1 +
- include/linux/netfilter/nf_conntrack_irc.h    | 1 +
- include/linux/netfilter/nf_conntrack_tftp.h   | 1 +
- include/net/netfilter/nf_conntrack_expect.h   | 3 +++
- include/net/netfilter/nf_flow_table.h         | 8 ++++++++
- net/netfilter/ipvs/ip_vs_core.c               | 9 ++++-----
- net/netfilter/ipvs/ip_vs_ctl.c                | 6 +++---
- net/netfilter/ipvs/ip_vs_est.c                | 2 +-
- net/netfilter/nf_conntrack_amanda.c           | 2 +-
- net/netfilter/nf_conntrack_broadcast.c        | 6 ++++++
- net/netfilter/nf_conntrack_ecache.c           | 7 +------
- net/netfilter/nf_conntrack_expect.c           | 5 +++++
- net/netfilter/nf_conntrack_ftp.c              | 2 +-
- net/netfilter/nf_conntrack_irc.c              | 2 +-
- net/netfilter/nf_conntrack_netlink.c          | 5 +++++
- net/netfilter/nf_conntrack_tftp.c             | 2 +-
- net/netfilter/nf_flow_table_core.c            | 2 ++
- net/netfilter/nf_flow_table_ip.c              | 8 --------
- net/netfilter/nf_nat_amanda.c                 | 7 ++++---
- net/netfilter/nf_nat_ftp.c                    | 4 ++--
- net/netfilter/nf_nat_irc.c                    | 2 +-
- net/netfilter/nf_nat_sip.c                    | 5 +++++
- net/netfilter/nf_nat_tftp.c                   | 5 ++---
- net/netfilter/xt_tcpmss.c                     | 1 +
- 25 files changed, 61 insertions(+), 36 deletions(-)
