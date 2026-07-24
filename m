@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE74429CE6;
-	Fri, 24 Jul 2026 10:49:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C9FF425873;
+	Fri, 24 Jul 2026 10:49:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784890192; cv=none; b=NoMn+yBwq38rKdUagTeiORVgrbApn/SbQF+K/dlGl2WDqZ0eopPOsbLdMciagMx+LS5VCPvdGCTQUVOTMzkfhXJgC/NYlxLB4rexl8lkccLFsblfyDLh3AxZ6voyyF8XNoU3HmpoESV/9DrTbKr1qfM0QNqyo8E3PCDatA7H95U=
+	t=1784890194; cv=none; b=osZwSd+/+pae5FJ1SJYjuXPyDJDaKk+w6QARATCcEQ+3apu0vIfHduznJzCe7HnMwz2CANP1+K0Oo99d6GRtG71zR3VhSUcaH9Yy4wmrA17FfOP3G+sk9TFNy/CMYwE9X808kMYAlLzp7VSg60pJFEOl4qYVV7lpKjX6Mwz//Ls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784890192; c=relaxed/simple;
-	bh=kJiqKQz8EY6xe6vcHEZ5zo5eUVrOjCI/Vk/4Tz07wTg=;
+	s=arc-20240116; t=1784890194; c=relaxed/simple;
+	bh=/AjP3OxKaUkOsyz3xtHuCai4caXudoWqt6rYfs0eVmw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rQrv7FCA+5gtzUHFi51NdcH6TU/zzRWxuAgVF7z7k1lQD0lEtVxd4Ff88etutnauEM6hR0kSfqx8cIIwvCp0rhyPoXE3wVI5ysJwoJ6Is0DO+Jtv8pUxOyw7OVEN6oKIJuZ7usWe6hGgMc0ffF/HFORtJrjPX274AdOUv9ZVNqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CJbB17/9; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=MWCP7mEQ9f50Nub33AgCDTDyGSsbzuqNuXgF4oXUq6HkT/iXBQ7IoSUYSbL7LvVd+9/peThRR4zn6g40vfkdKrlZWgll3aAUJ9rzZ2cv3YEEcRL0uZTL+2jLgWH2L3SckLqYStKSva6bE481j165EzhwFgWRUjKVONo9ZxGU/BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=q92VWkEn; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CJbB17/9"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="q92VWkEn"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BD6BA601A5;
-	Fri, 24 Jul 2026 12:49:48 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4D0C5601A6;
+	Fri, 24 Jul 2026 12:49:50 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784890189;
-	bh=BeQGsFz0+dpimRHBgs/mUC+fxVu3XYl0SEUrMXioSLQ=;
+	s=2025; t=1784890190;
+	bh=SpbYwq08UmZQp8OH7y/ASuK/hcRN7HdxY8WPbEZ2txQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CJbB17/9YLJLV5cRtdpbV3HXWo6lB1buyiiaineViLfSCUBXjWKdr7hhIHp7ID8wl
-	 Wh7PpZOqX41DSHjfaO6/QfZsLjnL4iEvB2Aq0xmC1aO5WGijm3WScq6DCQzvpRvA23
-	 2PKti8AAQFhfHsta3qDCaiNSK0MMThuV1wMLqcV1Xav92TVGZuQuLhkFA1zSNtR03P
-	 So8m949xMfxzisheRvdWk2VMLVWbR+aXzwNI8otWlAW9U4V1iAAvDF0W2OstFAn7fy
-	 regBequVKdqwJ1NXQ/qJ7Im0h8I1ldPNq1CaDUmuZi1U5mdFEvXXx/wO3X+uayyuyA
-	 eOOD+rfD42qHw==
+	b=q92VWkEnNJh6877HQCAIp8G7GCmrgWWCMI1dUBkdUIvV/WDyx3TY/z4R91Yg0x2pu
+	 4UiXZfLxVhDuWC0F08Xv051YRPjTm4+P8Bbe/4b5y6VcKiSgBaUgUEDEOa9bQOnkBw
+	 KKtJwjqSWLTudCG0ZnomkyC0gQ9meMBFTZHD2CmRne4CvfLe1VwKQZafZiFEG8OiqM
+	 TwiWNAdM4csoNBEu00asmj73+hHZkN16A2Wom1pwb8HAiR3fZ+YZUE/LscL4uotxsA
+	 Hrr36k+UlK21tuQgKSLJCrjB4Ckmlyvs4hNU7T0RTjlzl7aL9aOOqbSGlJCww++y8j
+	 EUJwS97BeLwPQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 6/7] netfilter: nf_conntrack_expect: store event cache in expectation
-Date: Fri, 24 Jul 2026 12:49:31 +0200
-Message-ID: <20260724104932.437729-7-pablo@netfilter.org>
+Subject: [PATCH net-next 7/7] ipvs: use type-safe allocation helpers in ip_vs_rht_alloc
+Date: Fri, 24 Jul 2026 12:49:32 +0200
+Message-ID: <20260724104932.437729-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260724104932.437729-1-pablo@netfilter.org>
 References: <20260724104932.437729-1-pablo@netfilter.org>
@@ -52,135 +52,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Store the event cache in the expectation instead of accessing the
-exp->master cache, as a step forward towards turning the exp->master
-into a cookie.
+From: Subasri S <subasris1210@gmail.com>
 
+As per Documentation/process/deprecated.rst, open-coded kmalloc
+assignments for struct objects are deprecated. Replace
+kzalloc(sizeof(*ptr), GFP_KERNEL) with kzalloc_obj() and
+kvmalloc_array(n, sizeof(*ptr), GFP_KERNEL) with kvmalloc_objs()
+in ip_vs_rht_alloc().
+
+Compile tested with CONFIG_IP_VS=y and runtime tested using
+tools/testing/selftests/net/netfilter/ipvs.sh on x86_64/QEMU.
+
+Signed-off-by: Subasri S <subasris1210@gmail.com>
+Reviewed-by: Phil Sutter <phil@nwl.cc>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_expect.h | 3 +++
- net/netfilter/nf_conntrack_broadcast.c      | 6 ++++++
- net/netfilter/nf_conntrack_ecache.c         | 7 +------
- net/netfilter/nf_conntrack_expect.c         | 5 +++++
- net/netfilter/nf_conntrack_netlink.c        | 5 +++++
- 5 files changed, 20 insertions(+), 6 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index c024345c9bd8..5d0f5b2f12a7 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -42,6 +42,9 @@ struct nf_conntrack_expect {
- 	/* Expectation class */
- 	unsigned int class;
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index bafab93451d0..a896bfb53f07 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -176,7 +176,7 @@ void ip_vs_rht_rcu_free(struct rcu_head *head)
  
-+	/* Event filter mask */
-+	u16 event_mask;
-+
- 	/* Function to call after setup and insertion */
- 	void (*expectfn)(struct nf_conn *new,
- 			 struct nf_conntrack_expect *this);
-diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-index 6ff954f1bfb8..0922e30b6ab0 100644
---- a/net/netfilter/nf_conntrack_broadcast.c
-+++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -14,6 +14,7 @@
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_expect.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
- 
- int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 				struct nf_conn *ct,
-@@ -27,6 +28,7 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 	struct rtable *rt = skb_rtable(skb);
- 	struct in_device *in_dev;
- 	struct nf_conn_help *help = nfct_help(ct);
-+	struct nf_conntrack_ecache *ecache;
- 	__be32 mask = 0;
- 
- 	if (!help)
-@@ -79,6 +81,10 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	exp->zone = ct->zone;
- #endif
-+	ecache = nf_ct_ecache_find(ct);
-+	if (ecache)
-+		exp->event_mask = ecache->expmask;
-+
- 	nf_ct_expect_related(exp, 0);
- 	nf_ct_expect_put(exp);
- 
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index cc8d8e85169f..fb731ee235d8 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -245,7 +245,6 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
  {
- 	struct net *net = nf_ct_exp_net(exp);
- 	struct nf_ct_event_notifier *notify;
--	struct nf_conntrack_ecache *e;
+-	struct ip_vs_rht *t = kzalloc(sizeof(*t), GFP_KERNEL);
++	struct ip_vs_rht *t = kzalloc_obj(*t);
+ 	int i;
  
- 	lockdep_nfct_expect_lock_held();
+ 	if (!t)
+@@ -186,7 +186,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
  
-@@ -254,11 +253,7 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 	if (!notify)
- 		goto out_unlock;
+ 		scounts = min(scounts, buckets);
+ 		scounts = min(scounts, ml);
+-		t->seqc = kvmalloc_array(scounts, sizeof(*t->seqc), GFP_KERNEL);
++		t->seqc = kvmalloc_objs(*t->seqc, scounts);
+ 		if (!t->seqc)
+ 			goto err;
+ 		for (i = 0; i < scounts; i++)
+@@ -194,8 +194,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
  
--	e = nf_ct_ecache_find(exp->master);
--	if (!e)
--		goto out_unlock;
--
--	if (e->expmask & (1 << event)) {
-+	if (exp->event_mask & (1 << event)) {
- 		struct nf_exp_event item = {
- 			.exp	= exp,
- 			.portid	= portid,
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 7ae68d60586a..cd9af3620af5 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -330,6 +330,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 	struct nf_conntrack_helper *helper = NULL;
- 	struct nf_conn *ct = exp->master;
- 	struct net *net = read_pnet(&ct->ct_net);
-+	struct nf_conntrack_ecache *ecache;
- 	struct nf_conn_help *help;
- 	int len;
+ 		if (locks) {
+ 			locks = min(locks, scounts);
+-			t->lock = kvmalloc_array(locks, sizeof(*t->lock),
+-						 GFP_KERNEL);
++			t->lock = kvmalloc_objs(*t->lock, locks);
+ 			if (!t->lock)
+ 				goto err;
+ 			for (i = 0; i < locks; i++)
+@@ -203,7 +202,7 @@ struct ip_vs_rht *ip_vs_rht_alloc(int buckets, int scounts, int locks)
+ 		}
+ 	}
  
-@@ -342,6 +343,10 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 	exp->class = class;
- 	exp->expectfn = NULL;
- 
-+	ecache = nf_ct_ecache_find(ct);
-+	if (ecache)
-+		exp->event_mask = ecache->expmask;
-+
- 	help = nfct_help(ct);
- 	if (help)
- 		helper = rcu_dereference(help->helper);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 31cbb1b55b9e..fc3f60099af3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3524,6 +3524,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- {
- 	struct net *net = read_pnet(&ct->ct_net);
- 	struct nf_conntrack_helper *helper;
-+	struct nf_conntrack_ecache *ecache;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conn_help *help;
- 	u32 class = 0;
-@@ -3575,6 +3576,10 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 	exp->mask.src.u3 = mask->src.u3;
- 	exp->mask.src.u.all = mask->src.u.all;
- 
-+	ecache = nf_ct_ecache_find(ct);
-+	if (ecache)
-+		exp->event_mask = ecache->expmask;
-+
- 	if (cda[CTA_EXPECT_NAT]) {
- 		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
- 						 exp, nf_ct_l3num(ct));
+-	t->buckets = kvmalloc_array(buckets, sizeof(*t->buckets), GFP_KERNEL);
++	t->buckets = kvmalloc_objs(*t->buckets, buckets);
+ 	if (!t->buckets)
+ 		goto err;
+ 	for (i = 0; i < buckets; i++)
 -- 
 2.47.3
 
