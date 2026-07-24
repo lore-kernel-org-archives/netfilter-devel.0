@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17E4F3C10AE;
-	Fri, 24 Jul 2026 10:49:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE74429CE6;
+	Fri, 24 Jul 2026 10:49:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784890191; cv=none; b=QnWxQnsMR4r1eAsWrIuyIta+TgwUwNT5P5VxU5ubFJ4avV9Os70EsSjYM0JvmMSwJxvNKp+v17jYQTajWg98IGHh2PNFVTmfUcqcblfxj3X237MZg4d/9/7hThKl/4loYT7WU0L34LZRU+v6yPV0DK90pqzmB0iNxIMLSSN5L2E=
+	t=1784890192; cv=none; b=NoMn+yBwq38rKdUagTeiORVgrbApn/SbQF+K/dlGl2WDqZ0eopPOsbLdMciagMx+LS5VCPvdGCTQUVOTMzkfhXJgC/NYlxLB4rexl8lkccLFsblfyDLh3AxZ6voyyF8XNoU3HmpoESV/9DrTbKr1qfM0QNqyo8E3PCDatA7H95U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784890191; c=relaxed/simple;
-	bh=rnTQX0nhqf6FUMnf9heRKgdT1kTXqE+JtFuDdXL86x8=;
+	s=arc-20240116; t=1784890192; c=relaxed/simple;
+	bh=kJiqKQz8EY6xe6vcHEZ5zo5eUVrOjCI/Vk/4Tz07wTg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Bpg5Yb7uyxSjPNoLyLL65zyQs2alPM7vpUZPgXj4vjizarsHfgQVodyyF3dEiQZCz2DS4YtebAW6Aer2fDMm1Mq0xvRN6h+aAWXSKRdXHhW2HR8RxvHnHYwjTG+WpAxNgQt2m9jFUt/Gvz6fmPdhM8Ymt68i0F0w0vk/5R5NjmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dyTfVwyO; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=rQrv7FCA+5gtzUHFi51NdcH6TU/zzRWxuAgVF7z7k1lQD0lEtVxd4Ff88etutnauEM6hR0kSfqx8cIIwvCp0rhyPoXE3wVI5ysJwoJ6Is0DO+Jtv8pUxOyw7OVEN6oKIJuZ7usWe6hGgMc0ffF/HFORtJrjPX274AdOUv9ZVNqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CJbB17/9; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dyTfVwyO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CJbB17/9"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6182D601A4;
-	Fri, 24 Jul 2026 12:49:47 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BD6BA601A5;
+	Fri, 24 Jul 2026 12:49:48 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1784890187;
-	bh=vQtQu390isnWEESDI3hOVjy6d3FwJ47CBr0H9POOBMU=;
+	s=2025; t=1784890189;
+	bh=BeQGsFz0+dpimRHBgs/mUC+fxVu3XYl0SEUrMXioSLQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dyTfVwyOm6ObAUf2NCtJImEuENvvIMn6mxd0YJMVBSobIkOX6OVpF8gnUbpljFHvK
-	 aTdkYXP77219MzKJ1KOcbECfGcgyq/D2Gx6gW2BA8aD7a6zU57pHqG0snHj0EDfWKW
-	 SNSDps0NaA5mgijL2HRbUuab1QobFdlHfXBJOEPuw64iT/kaxh8BZu4/CWYQM0TfIJ
-	 Mt4a9oPrXO6kyQzF33VuXimJFwyof+gC1jocE0hEJ6cgsCCFHZe05b5LeTx6xspza7
-	 MuSorrewz1CRivngnZ9lOjbf7V4xnqW7V5bDsgVVA5LPwQ1Z8EmAknJdLYEKZXZMhA
-	 DIWwQVu5VZjvg==
+	b=CJbB17/9YLJLV5cRtdpbV3HXWo6lB1buyiiaineViLfSCUBXjWKdr7hhIHp7ID8wl
+	 Wh7PpZOqX41DSHjfaO6/QfZsLjnL4iEvB2Aq0xmC1aO5WGijm3WScq6DCQzvpRvA23
+	 2PKti8AAQFhfHsta3qDCaiNSK0MMThuV1wMLqcV1Xav92TVGZuQuLhkFA1zSNtR03P
+	 So8m949xMfxzisheRvdWk2VMLVWbR+aXzwNI8otWlAW9U4V1iAAvDF0W2OstFAn7fy
+	 regBequVKdqwJ1NXQ/qJ7Im0h8I1ldPNq1CaDUmuZi1U5mdFEvXXx/wO3X+uayyuyA
+	 eOOD+rfD42qHw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 5/7] netfilter: conntrack_helper: pass master conntrack to helper functions
-Date: Fri, 24 Jul 2026 12:49:30 +0200
-Message-ID: <20260724104932.437729-6-pablo@netfilter.org>
+Subject: [PATCH net-next 6/7] netfilter: nf_conntrack_expect: store event cache in expectation
+Date: Fri, 24 Jul 2026 12:49:31 +0200
+Message-ID: <20260724104932.437729-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260724104932.437729-1-pablo@netfilter.org>
 References: <20260724104932.437729-1-pablo@netfilter.org>
@@ -52,232 +52,135 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Pass master conntrack as argument to helper functions that parse the
-packet payload, instead of using exp->master. Although accessing
-exp->master is safe in this case because it refers to the master
-conntrack in used by this skb, remove it to step towards turning the
-exp->master field into a cookie value.
+Store the event cache in the expectation instead of accessing the
+exp->master cache, as a step forward towards turning the exp->master
+into a cookie.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_conntrack_amanda.h | 1 +
- include/linux/netfilter/nf_conntrack_ftp.h    | 1 +
- include/linux/netfilter/nf_conntrack_irc.h    | 1 +
- include/linux/netfilter/nf_conntrack_tftp.h   | 1 +
- net/netfilter/nf_conntrack_amanda.c           | 2 +-
- net/netfilter/nf_conntrack_ftp.c              | 2 +-
- net/netfilter/nf_conntrack_irc.c              | 2 +-
- net/netfilter/nf_conntrack_tftp.c             | 2 +-
- net/netfilter/nf_nat_amanda.c                 | 7 ++++---
- net/netfilter/nf_nat_ftp.c                    | 4 ++--
- net/netfilter/nf_nat_irc.c                    | 2 +-
- net/netfilter/nf_nat_tftp.c                   | 5 ++---
- 12 files changed, 17 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h | 3 +++
+ net/netfilter/nf_conntrack_broadcast.c      | 6 ++++++
+ net/netfilter/nf_conntrack_ecache.c         | 7 +------
+ net/netfilter/nf_conntrack_expect.c         | 5 +++++
+ net/netfilter/nf_conntrack_netlink.c        | 5 +++++
+ 5 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
-index 1719987e8fd8..deb560bb79c4 100644
---- a/include/linux/netfilter/nf_conntrack_amanda.h
-+++ b/include/linux/netfilter/nf_conntrack_amanda.h
-@@ -9,6 +9,7 @@
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index c024345c9bd8..5d0f5b2f12a7 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -42,6 +42,9 @@ struct nf_conntrack_expect {
+ 	/* Expectation class */
+ 	unsigned int class;
  
- typedef unsigned int
- nf_nat_amanda_hook_fn(struct sk_buff *skb,
-+		      struct nf_conn *ct,
- 		      enum ip_conntrack_info ctinfo,
- 		      unsigned int protoff,
- 		      unsigned int matchoff,
-diff --git a/include/linux/netfilter/nf_conntrack_ftp.h b/include/linux/netfilter/nf_conntrack_ftp.h
-index 7b62446ccec4..712702183b94 100644
---- a/include/linux/netfilter/nf_conntrack_ftp.h
-+++ b/include/linux/netfilter/nf_conntrack_ftp.h
-@@ -28,6 +28,7 @@ struct nf_ct_ftp_master {
-  * connection we should expect. */
- typedef unsigned int
- nf_nat_ftp_hook_fn(struct sk_buff *skb,
-+		   struct nf_conn *ct,
- 		   enum ip_conntrack_info ctinfo,
- 		   enum nf_ct_ftp_type type,
- 		   unsigned int protoff,
-diff --git a/include/linux/netfilter/nf_conntrack_irc.h b/include/linux/netfilter/nf_conntrack_irc.h
-index ce07250afb4e..c73b3b44a0b7 100644
---- a/include/linux/netfilter/nf_conntrack_irc.h
-+++ b/include/linux/netfilter/nf_conntrack_irc.h
-@@ -10,6 +10,7 @@
++	/* Event filter mask */
++	u16 event_mask;
++
+ 	/* Function to call after setup and insertion */
+ 	void (*expectfn)(struct nf_conn *new,
+ 			 struct nf_conntrack_expect *this);
+diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
+index 6ff954f1bfb8..0922e30b6ab0 100644
+--- a/net/netfilter/nf_conntrack_broadcast.c
++++ b/net/netfilter/nf_conntrack_broadcast.c
+@@ -14,6 +14,7 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
  
- typedef unsigned int
- nf_nat_irc_hook_fn(struct sk_buff *skb,
-+		   struct nf_conn *ct,
- 		   enum ip_conntrack_info ctinfo,
- 		   unsigned int protoff,
- 		   unsigned int matchoff,
-diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
-index e3d1739c557d..802cb7fc19cd 100644
---- a/include/linux/netfilter/nf_conntrack_tftp.h
-+++ b/include/linux/netfilter/nf_conntrack_tftp.h
-@@ -19,6 +19,7 @@ struct tftphdr {
+ int nf_conntrack_broadcast_help(struct sk_buff *skb,
+ 				struct nf_conn *ct,
+@@ -27,6 +28,7 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
+ 	struct rtable *rt = skb_rtable(skb);
+ 	struct in_device *in_dev;
+ 	struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conntrack_ecache *ecache;
+ 	__be32 mask = 0;
  
- typedef unsigned int
- nf_nat_tftp_hook_fn(struct sk_buff *skb,
-+		    struct nf_conn *ct,
- 		    enum ip_conntrack_info ctinfo,
- 		    struct nf_conntrack_expect *exp);
+ 	if (!help)
+@@ -79,6 +81,10 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	exp->zone = ct->zone;
+ #endif
++	ecache = nf_ct_ecache_find(ct);
++	if (ecache)
++		exp->event_mask = ecache->expmask;
++
+ 	nf_ct_expect_related(exp, 0);
+ 	nf_ct_expect_put(exp);
  
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 06d6ec12c86d..14ae660491f3 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -151,7 +151,7 @@ static int amanda_help(struct sk_buff *skb,
- 
- 		nf_nat_amanda = rcu_dereference(nf_nat_amanda_hook);
- 		if (nf_nat_amanda && ct->status & IPS_NAT_MASK)
--			ret = nf_nat_amanda(skb, ctinfo, protoff,
-+			ret = nf_nat_amanda(skb, ct, ctinfo, protoff,
- 					    off - dataoff, len, exp);
- 		else if (nf_ct_expect_related(exp, 0) != 0) {
- 			nf_ct_helper_log(skb, ct, "cannot add expectation");
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index f3944598c172..f4fe13fd0e70 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -515,7 +515,7 @@ static int help(struct sk_buff *skb,
- 	 * (possibly changed) expectation itself. */
- 	nf_nat_ftp = rcu_dereference(nf_nat_ftp_hook);
- 	if (nf_nat_ftp && ct->status & IPS_NAT_MASK)
--		ret = nf_nat_ftp(skb, ctinfo, search[dir][i].ftptype,
-+		ret = nf_nat_ftp(skb, ct, ctinfo, search[dir][i].ftptype,
- 				 protoff, matchoff, matchlen, exp);
- 	else {
- 		/* Can't expect this?  Best to drop packet now. */
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 4e6bafe41437..92360963757a 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -231,7 +231,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 
- 			nf_nat_irc = rcu_dereference(nf_nat_irc_hook);
- 			if (nf_nat_irc && ct->status & IPS_NAT_MASK)
--				ret = nf_nat_irc(skb, ctinfo, protoff,
-+				ret = nf_nat_irc(skb, ct, ctinfo, protoff,
- 						 addr_beg_p - ib_ptr,
- 						 addr_end_p - addr_beg_p,
- 						 exp);
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index a69559edf9b3..e672d74a6817 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -69,7 +69,7 @@ static int tftp_help(struct sk_buff *skb,
- 
- 		nf_nat_tftp = rcu_dereference(nf_nat_tftp_hook);
- 		if (nf_nat_tftp && ct->status & IPS_NAT_MASK)
--			ret = nf_nat_tftp(skb, ctinfo, exp);
-+			ret = nf_nat_tftp(skb, ct, ctinfo, exp);
- 		else if (nf_ct_expect_related(exp, 0) != 0) {
- 			nf_ct_helper_log(skb, ct, "cannot add expectation");
- 			ret = NF_DROP;
-diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
-index 8f1054920a85..330415809425 100644
---- a/net/netfilter/nf_nat_amanda.c
-+++ b/net/netfilter/nf_nat_amanda.c
-@@ -26,6 +26,7 @@ static struct nf_conntrack_nat_helper nat_helper_amanda =
- 	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int help(struct sk_buff *skb,
-+			 struct nf_conn *ct,
- 			 enum ip_conntrack_info ctinfo,
- 			 unsigned int protoff,
- 			 unsigned int matchoff,
-@@ -46,15 +47,15 @@ static unsigned int help(struct sk_buff *skb,
- 	/* Try to get same port: if not, try to change it. */
- 	port = nf_nat_exp_find_port(exp, ntohs(exp->saved_proto.tcp.port));
- 	if (port == 0) {
--		nf_ct_helper_log(skb, exp->master, "all ports in use");
-+		nf_ct_helper_log(skb, ct, "all ports in use");
- 		return NF_DROP;
- 	}
- 
- 	snprintf(buffer, sizeof(buffer), "%u", port);
--	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
-+	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo,
- 				      protoff, matchoff, matchlen,
- 				      buffer, strlen(buffer))) {
--		nf_ct_helper_log(skb, exp->master, "cannot mangle packet");
-+		nf_ct_helper_log(skb, ct, "cannot mangle packet");
- 		nf_ct_unexpect_related(exp);
- 		return NF_DROP;
- 	}
-diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-index c92a436d9c48..25d20e2970ae 100644
---- a/net/netfilter/nf_nat_ftp.c
-+++ b/net/netfilter/nf_nat_ftp.c
-@@ -61,6 +61,7 @@ static int nf_nat_ftp_fmt_cmd(struct nf_conn *ct, enum nf_ct_ftp_type type,
- /* So, this packet has hit the connection tracking matching code.
-    Mangle it, and change the expectation to match the new version. */
- static unsigned int nf_nat_ftp(struct sk_buff *skb,
-+			       struct nf_conn *ct,
- 			       enum ip_conntrack_info ctinfo,
- 			       enum nf_ct_ftp_type type,
- 			       unsigned int protoff,
-@@ -71,7 +72,6 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 	union nf_inet_addr newaddr;
- 	u_int16_t port;
- 	int dir = CTINFO2DIR(ctinfo);
--	struct nf_conn *ct = exp->master;
- 	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
- 	unsigned int buflen;
- 
-@@ -88,7 +88,7 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 
- 	port = nf_nat_exp_find_port(exp, ntohs(exp->saved_proto.tcp.port));
- 	if (port == 0) {
--		nf_ct_helper_log(skb, exp->master, "all ports in use");
-+		nf_ct_helper_log(skb, ct, "all ports in use");
- 		return NF_DROP;
- 	}
- 
-diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
-index 19c4fcc60c50..89b31fe932ba 100644
---- a/net/netfilter/nf_nat_irc.c
-+++ b/net/netfilter/nf_nat_irc.c
-@@ -30,6 +30,7 @@ static struct nf_conntrack_nat_helper nat_helper_irc =
- 	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int help(struct sk_buff *skb,
-+			 struct nf_conn *ct,
- 			 enum ip_conntrack_info ctinfo,
- 			 unsigned int protoff,
- 			 unsigned int matchoff,
-@@ -37,7 +38,6 @@ static unsigned int help(struct sk_buff *skb,
- 			 struct nf_conntrack_expect *exp)
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index cc8d8e85169f..fb731ee235d8 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -245,7 +245,6 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
  {
- 	char buffer[sizeof("4294967296 65635")];
--	struct nf_conn *ct = exp->master;
- 	union nf_inet_addr newaddr;
- 	u_int16_t port;
+ 	struct net *net = nf_ct_exp_net(exp);
+ 	struct nf_ct_event_notifier *notify;
+-	struct nf_conntrack_ecache *e;
  
-diff --git a/net/netfilter/nf_nat_tftp.c b/net/netfilter/nf_nat_tftp.c
-index 1a591132d6eb..7121e6704f34 100644
---- a/net/netfilter/nf_nat_tftp.c
-+++ b/net/netfilter/nf_nat_tftp.c
-@@ -21,17 +21,16 @@ static struct nf_conntrack_nat_helper nat_helper_tftp =
- 	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
+ 	lockdep_nfct_expect_lock_held();
  
- static unsigned int help(struct sk_buff *skb,
-+			 struct nf_conn *ct,
- 			 enum ip_conntrack_info ctinfo,
- 			 struct nf_conntrack_expect *exp)
- {
--	const struct nf_conn *ct = exp->master;
+@@ -254,11 +253,7 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 	if (!notify)
+ 		goto out_unlock;
+ 
+-	e = nf_ct_ecache_find(exp->master);
+-	if (!e)
+-		goto out_unlock;
 -
- 	exp->saved_proto.udp.port
- 		= ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
- 	exp->dir = IP_CT_DIR_REPLY;
- 	exp->expectfn = nf_nat_follow_master;
- 	if (nf_ct_expect_related(exp, 0) != 0) {
--		nf_ct_helper_log(skb, exp->master, "cannot add expectation");
-+		nf_ct_helper_log(skb, ct, "cannot add expectation");
- 		return NF_DROP;
- 	}
- 	return NF_ACCEPT;
+-	if (e->expmask & (1 << event)) {
++	if (exp->event_mask & (1 << event)) {
+ 		struct nf_exp_event item = {
+ 			.exp	= exp,
+ 			.portid	= portid,
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 7ae68d60586a..cd9af3620af5 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -330,6 +330,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
+ 	struct nf_conntrack_helper *helper = NULL;
+ 	struct nf_conn *ct = exp->master;
+ 	struct net *net = read_pnet(&ct->ct_net);
++	struct nf_conntrack_ecache *ecache;
+ 	struct nf_conn_help *help;
+ 	int len;
+ 
+@@ -342,6 +343,10 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
+ 	exp->class = class;
+ 	exp->expectfn = NULL;
+ 
++	ecache = nf_ct_ecache_find(ct);
++	if (ecache)
++		exp->event_mask = ecache->expmask;
++
+ 	help = nfct_help(ct);
+ 	if (help)
+ 		helper = rcu_dereference(help->helper);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 31cbb1b55b9e..fc3f60099af3 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3524,6 +3524,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ {
+ 	struct net *net = read_pnet(&ct->ct_net);
+ 	struct nf_conntrack_helper *helper;
++	struct nf_conntrack_ecache *ecache;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conn_help *help;
+ 	u32 class = 0;
+@@ -3575,6 +3576,10 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ 	exp->mask.src.u3 = mask->src.u3;
+ 	exp->mask.src.u.all = mask->src.u.all;
+ 
++	ecache = nf_ct_ecache_find(ct);
++	if (ecache)
++		exp->event_mask = ecache->expmask;
++
+ 	if (cda[CTA_EXPECT_NAT]) {
+ 		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
+ 						 exp, nf_ct_l3num(ct));
 -- 
 2.47.3
 
