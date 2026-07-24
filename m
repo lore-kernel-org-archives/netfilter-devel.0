@@ -1,137 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2D73A9632;
-	Fri, 24 Jul 2026 07:25:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE16421232
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Jul 2026 10:32:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784877927; cv=none; b=QT4QvOhI81P8l6eStArc2084KatsCLxqVjLPdD25iUdrfoYANQ1YYtMHgoW8fzjMdyjPrOhAB/mDxADm6Q9LHAV4bnVCc6WFPRX1RORIdz+tWjbKJS+/fl5wMGwhiC8r4h8OAriYefC67F5BuVLC2x2z47KT+9acscF1CoDH+kM=
+	t=1784889150; cv=none; b=bdHC2uhTs3DOFhg9RmGWlXzKrF8so1dQfs2ekfWhzv4O94oDpW8d3SC5bUE5MB0j37dca8PMB/O/JlphO0AVX2NvgP7ZAKSFBY/xTZ8tq7/+0XAz+NzuWFOm424UGzXAv99VNu1P2hG8dg5FW9u+f0H317d1IQJht9SltRaG4vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784877927; c=relaxed/simple;
-	bh=DEVYDfMKBm3IARX9KWdInCt7Umc8cb8rntG8k+OqTrw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=FB4HliEl3E37LolN6qFgisB4UVIXhQNJJQ+qw1HryxbyW3NCWxivJdBJXvL87g0KXzhZNULrq3uQ2aeC20PawTppdEEeJnzZaBquBSwQBYDZe8Yh2CmPDU59FBjvt8l7lIWT5ttprpGplxJVlxf+WW8YbOKNJjv8+j6M1uq2v2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Oq/vMj0t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784889150; c=relaxed/simple;
+	bh=C2s4hWpxdNAVzAqqOlmCGxT43Y3j275YinDQYrlxfyw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fua8i4LIoZGdaeVI2m35vn2kQ43QXoiXrVBzke2qx/ustqvuuvHraRlCv/R1dBkAFyR3ym82J/nzB8s5eN/zgWbwRByCURKC9dJy3K4gI5XwYnZjBXDZ8gtla2NjFQxwe6b972rsVm8dsKk6KKY3E5BWRrpLLZF/J/IVv0U1C4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b/UmY5GC; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Oq/vMj0t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F32CA1F000E9;
-	Fri, 24 Jul 2026 07:25:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784877925;
-	bh=WsRSAk6YY6P1Plmx+ZS65LWEWpi9yHtNHpVjM9Z0l/k=;
-	h=From:Date:Subject:To:Cc;
-	b=Oq/vMj0t+SkKC8igA62i2ICjlE9gynpQ6gD8grG0K4G2ddoTxmFrQj8eBWirZsfu1
-	 wwOl8zua9NuVdrtI1+6UkiCrDfPPXSmf8qrCpvP211NtDNqv2ZkSUKRu4xcltoMQPs
-	 zNuK5rkmxxRD0PaVWjDEiKCb3A+OUO+teldEKfU4Fg+AUrnL/ljGXDLiYK7LBxaGW3
-	 B7WlkWFwjRgLIhsDbV2HecXrsW3Gpuy5/j/1DOvhl5aVc2DOZZWt2J0pr6nicEib/G
-	 D3qLtg4nUB9+3kio7bv2sA163/Px03LvvbiaVDDD/SlGvgLUGSc15OC5N/8eMBz4Jp
-	 w6NuLkhStcrnQ==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Fri, 24 Jul 2026 09:25:00 +0200
-Subject: [PATCH net-next v3] net: ip6_tunnel: use tunnel parameters for
- fill_forward_path route lookup
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b/UmY5GC"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id BD20060194;
+	Fri, 24 Jul 2026 12:32:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1784889136;
+	bh=sjKWk5DPmbrJN6C+y0YdcTWPDVOXuKNsqoKr98C7x0M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=b/UmY5GCc98BBea4sQ43ek0RP9w0lvEruSMvAzW3y8XBdLwzAQm/m8rJxKZTyxYpw
+	 s4ytqJrOpMZATj/AvpwgwBIVEZzZkq4IQn4ETZlcf1i31MAbdvznyx2sobO4gZpQhl
+	 LxX1ysPkJ+kdXGx55hJrwef2kTDJmtzxNFpMr3p8tAnb+0xekovYRW8jRurIAJXwWL
+	 d77wca+OsIlph9J6nUiIQiwVIREggHwcqWS6MWV1V0GxHdJGFVHr6lqE4W8vFyyhmh
+	 1thGq0DocgjmXikmtRDqaR5ARpb0Hhvu71VCyQ9vecvqjy0FO+b2udvdt2pZlCXHtZ
+	 nrOfLCVZbrgBw==
+Date: Fri, 24 Jul 2026 12:32:14 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v3 0/4] Address Sashiko review of NAT hook dump
+ code
+Message-ID: <amM_LjFL83jCngtg@chamomile>
+References: <20260710151411.2358773-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260724-ip6ip6-route-lookup-fill_forward_path-v3-1-7b7991538614@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/5WOywrCMBREf6Vk7ZUkrWnjyv8QkT5ubLAk4TbWS
- um/G7rSncJshoFzZmEjksWRHbOFEU52tN6lku8y1va1uyHYLnUmuVS85BXYoFKA/CMiDN7fHwG
- MHYar8fSsqbuGOvagTVscai1EhZolViA0dt48Z+YwgsM5sktaejtGT6/twCS2/U/XJEBApfJGq
- 6IUXOLpjuRw2Hu6bYpJfmCl/BUrE9YY3pQNF7nS+gu7rusb3TLqIzwBAAA=
-X-Change-ID: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
-To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260710151411.2358773-1-phil@nwl.cc>
 
-Reuse the flowi6 template t->fl.u.ip6 built by ip6_tnl_link_config() in
-ip6_tnl_fill_forward_path(), aligning the fast-path route lookup with
-the slow path in ipxip6_tnl_xmit(). This automatically inherits the
-correct conditional FLOWLABEL masking based on the
-IP6_TNL_F_USE_ORIG_FLOWLABEL flag.
+Hi Phil,
 
-Return -EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS,
-IP6_TNL_F_USE_ORIG_FLOWLABEL or IP6_TNL_F_USE_ORIG_FWMARK is set,
-or for collect_md tunnels, since fill_forward_path has no access to
-the original skb and cannot recover the per-packet traffic class,
-flowlabel, mark or tunnel destination needed for the route lookup.
+I think we have to tackle this from a different angle the
+nfnl_hook_dump_nat() dump issues, see:
 
-Reviewed-by: David Ahern <dsahern@kernel.org>
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
-Changes in v3:
-- Return EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS is set or for collect_md tunnels
-- Link to v2: https://lore.kernel.org/r/20260722-ip6ip6-route-lookup-fill_forward_path-v2-1-ff0b7b013699@kernel.org
+static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+                              struct netlink_callback *cb,
+                              const struct nf_hook_ops *ops, int family)
+...
 
-Changes in v2:
-- Reuse flowi6 template for the route lookup
-- Return EOPNOTSUPP if the tunnel is configured with
-  IP6_TNL_F_USE_ORIG_FWMARK or IP6_TNL_F_USE_ORIG_FLOWLABEL
-- Use flowi6 fields to setup net_device_path
-- Link to v1: https://lore.kernel.org/r/20260708-ip6ip6-route-lookup-fill_forward_path-v1-1-863b9647102e@kernel.org
----
- net/ipv6/ip6_tunnel.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+        if ((e && i >= e->num_hook_entries) ||
+            ctx->natv != (unsigned long)e) {
+                cb->seq++;
+                return -EINTR;
+        }
 
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index bf8e40af60b0..97c3f61d627b 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1845,24 +1845,30 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 				     struct net_device_path *path)
- {
- 	struct ip6_tnl *t = netdev_priv(ctx->dev);
--	struct flowi6 fl6 = {
--		.daddr = t->parms.raddr,
--	};
- 	struct dst_entry *dst;
-+	struct flowi6 fl6;
- 	int err;
- 
--	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT)) {
--		/* encaplimit option is currently not supported is
--		 * sw-acceleration path.
--		 */
-+	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
-+			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
-+			      IP6_TNL_F_USE_ORIG_FWMARK))
- 		return -EOPNOTSUPP;
--	}
-+
-+	if (t->parms.collect_md)
-+		return -EOPNOTSUPP;
-+
-+	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT))
-+		return -EOPNOTSUPP;
-+
-+	memcpy(&fl6, &t->fl.u.ip6, sizeof(fl6));
-+	fl6.flowi6_mark = t->parms.fwmark;
-+	fl6.flowi6_proto = 0;
- 
- 	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
- 	if (!dst->error) {
- 		path->type = DEV_PATH_TUN;
--		path->tun.src_v6 = t->parms.laddr;
--		path->tun.dst_v6 = t->parms.raddr;
-+		path->tun.src_v6 = fl6.saddr;
-+		path->tun.dst_v6 = fl6.daddr;
- 		path->tun.l3_proto = IPPROTO_IPV6;
- 		path->dev = ctx->dev;
- 		ctx->dev = dst->dev;
+Because as sashiko reports, memory address could be recycled to defeat
+this which is unlikely, but correct.
 
----
-base-commit: 89d8006259b81dd25c962f6cc8d7ab268d6ea426
-change-id: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
+Instead of making heuristics to detect if interference has happened,
+I think there is a need for something like a hook_base_seq per-netns
+that can be used:
 
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo@kernel.org>
+        cb->seq = READ_ONCE(...hook_base_seq);
 
+which should be bumped when updating the hook arrays via WRITE_ONCE().
+
+Then, a call at the end of the dump:
+
+        nl_dump_check_consistent(cb, nlmsg_hdr(skb));
+
+will set on NLM_F_DUMP_INTR flag so userspace can retry.
+
+I would suggest to check that i is safe to access the array, ie.
+
+        if (i >= e->num_hook_entries)
+                goto out;
+
+and perform the netlink dump even if it will result in a stale dump,
+which is what other subsystems do, ie. just add a safety check here.
+
+We can discuss later on how to make improvements to the netlink dump
+logic to detect an interference early.
+
+Thanks.
+
+On Fri, Jul 10, 2026 at 05:14:07PM +0200, Phil Sutter wrote:
+> Changes since v2:
+> - Drop patch 1 again. Fixing nfnl_hook_dump's broken NLM_F_DUMP_INTR
+>   flag setting in corner-cases is out of scope of this series and should
+>   be solved in a more elegant way in nfnetlink itself.
+> Changes since v1:
+> - New patch 1
+> - Fixed three aspects of patch 3
+> - Fixed two issues of patch 5
+> 
+> Patch 1 is mere preparation to add the missing case handling to
+> nfnl_hook_dump_nat().
+> 
+> Patch 2 fixes for missing READ_ONCE() calls when addressing hook ops
+> array elements.
+> 
+> Patch 3 adds missing multipart dump support to nfnl_hook_dump_nat.
+> 
+> Patch 4 adds code to detect and mitigate concurrent hook updates while
+> amidst a multipart dump to nfnl_hook_dump_nat.
+> 
+> Link: https://sashiko.dev/#/patchset/20260702105003.13550-2-fw%40strlen.de
+> 
+> Phil Sutter (4):
+>   netfilter: nfnetlink_hook: Pass cb object to nfnl_hook_dump_nat()
+>   netfilter: nfnetlink_hook: Address hook ops using READ_ONCE()
+>   netfilter: nfnetlink_hook: Handle multipart NAT hook dumps
+>   netfilter: nfnetlink_hook: Fix for concurrent NAT hooks dump and
+>     change
+> 
+>  net/netfilter/nfnetlink_hook.c | 48 ++++++++++++++++++++++++----------
+>  1 file changed, 34 insertions(+), 14 deletions(-)
+> 
+> -- 
+> 2.54.0
+> 
