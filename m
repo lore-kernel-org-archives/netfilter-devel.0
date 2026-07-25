@@ -1,117 +1,105 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF752476CEE;
-	Fri, 24 Jul 2026 23:35:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5EE42F5498;
+	Sat, 25 Jul 2026 00:20:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784936112; cv=none; b=J0KWaa/Munz1//BCYW2eIjIIeNnd1whPFGcvXNYu//CpZtkf4/iPsAuY3kGvjEHlLpCWJsbZbYiD6sAP6agFEyde0Ue97aPr8n3idslwePjXgd6d3Lj2BE2Y/DY6BmGRdDhJswgTB1A9A3ZslJhCTB/2yfx9GLjbwksWwr5o2/4=
+	t=1784938857; cv=none; b=d2qiXORHZbK0urQSU1V/3nRVLvEhB2fwDr1ZUF4gcxNUDudHa5qpij7DrzcfiCXKjnqa/eWbSVQfGnNJJ+3Os4FQ2uGJM9lchNSV6KrlORKzRmnXnc5jIbeZN82xM10CgdhyYEp7UYKKEiQ17wF3RUTImUsrJUtii7oG2Aek4EA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784936112; c=relaxed/simple;
-	bh=aYrgDhizOckPspQJ6t3G3K3Lc7NOOpJo78OVx01YiFQ=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=G/cSxaNLZ38oJ0X1nq0GPY0ElORcleiWqC7Akkm8pgkr2qB4x24Wfhj25KXuDl209nPlNLwTXL/IiP67u++BEachw61Hw9arR/4iQCsKPNLl3YZpLwOJuyc1XtIlbzlSCXdN6vhikgAv3oHAtpg6bAtc5HzcC/qwyzIeJuO+DGE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E171F00A3A;
-	Fri, 24 Jul 2026 23:35:11 +0000 (UTC)
-Received: by venus (Postfix, from userid 1000)
-	id 93CE9181F1C; Sat, 25 Jul 2026 01:35:08 +0200 (CEST)
-From: Sebastian Reichel <sebastian.reichel@collabora.com>
-To: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>, 
- Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
- Alexandre Belloni <alexandre.belloni@bootlin.com>, 
- Andrew Lunn <andrew@lunn.ch>, Andrew Morton <akpm@linux-foundation.org>, 
- Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>, 
- Borislav Petkov <bp@alien8.de>, 
- =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
- Daniel Lezcano <daniel.lezcano@kernel.org>, 
- David Airlie <airlied@gmail.com>, "David S. Miller" <davem@davemloft.net>, 
- Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
- Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Hans de Goede <hansg@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
- Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
- Herbert Xu <herbert@gondor.apana.org.au>, 
- =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
- Jakub Kicinski <kuba@kernel.org>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- Jani Nikula <jani.nikula@linux.intel.com>, Jaroslav Kysela <perex@perex.cz>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>, 
- "Joerg Roedel (AMD)" <joro@8bytes.org>, Johan Hovold <johan@kernel.org>, 
- Jonathan Cameron <jic23@kernel.org>, 
- Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, 
- Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>, 
- Liam Girdwood <lgirdwood@gmail.com>, Linus Walleij <linusw@kernel.org>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Mark Brown <broonie@kernel.org>, 
- "Martin K. Petersen" <martin.petersen@oracle.com>, 
- Matthew Sakai <msakai@redhat.com>, 
- Mauro Carvalho Chehab <mchehab@kernel.org>, 
- Maxime Ripard <mripard@kernel.org>, 
- Michael Turquette <mturquette@baylibre.com>, 
- Mike Rapoport <rppt@kernel.org>, 
- Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
- Nicolas Palix <nicolas.palix@imag.fr>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, Paolo Abeni <pabeni@redhat.com>, 
- Ping-Ke Shih <pkshih@realtek.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Rodrigo Vivi <rodrigo.vivi@intel.com>, Sebastian Reichel <sre@kernel.org>, 
- Shuah Khan <shuah@kernel.org>, Simona Vetter <simona@ffwll.ch>, 
- Simon Horman <horms@verge.net.au>, Stephen Boyd <sboyd@kernel.org>, 
- Steve French <sfrench@samba.org>, Takashi Iwai <tiwai@suse.com>, 
- Thomas Renninger <trenn@suse.com>, Thomas Zimmermann <tzimmermann@suse.de>, 
- Tony Luck <tony.luck@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, 
- Vadim Fedorenko <vadim.fedorenko@linux.dev>, Vinod Koul <vkoul@kernel.org>, 
- Will Deacon <will@kernel.org>, Yazen Ghannam <Yazen.Ghannam@amd.com>, 
- Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: cocci@inria.fr, amd-gfx@lists.freedesktop.org, 
- dmaengine@vger.kernel.org, dm-devel@lists.linux.dev, 
- dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
- intel-wired-lan@lists.osuosl.org, iommu@lists.linux.dev, 
- linux-cifs@vger.kernel.org, linux-clk@vger.kernel.org, 
- linux-crypto@vger.kernel.org, linux-edac@vger.kernel.org, 
- linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, 
- linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-media@vger.kernel.org, linux-mm@kvack.org, linux-pm@vger.kernel.org, 
- linux-rdma@vger.kernel.org, linux-rtc@vger.kernel.org, 
- linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
- linux-sound@vger.kernel.org, linux-usb@vger.kernel.org, 
- linux-wireless@vger.kernel.org, lvs-devel@vger.kernel.org, 
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
-In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
-References: <20260723184538.3888637-1-ekffu200098@gmail.com>
-Subject: Re: (subset) [PATCH 00/36] treewide: remove conditional returns
- with no effect
-Message-Id: <178493610858.699463.6794401814873674138.b4-ty@collabora.com>
-Date: Sat, 25 Jul 2026 01:35:08 +0200
+	s=arc-20240116; t=1784938857; c=relaxed/simple;
+	bh=gRfnRivjw7jQp6iRrvf2/AOjaGq7gzPrLe70CwWPqmk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=fM3noOpFrDec85QNIdjqo3E7OmGf5ljaH5MlVJHqkwLx0dHqZUY+OsEgq/evgP2vqIVCaZSETNe5AjK1apkUWeV0EGE3vsPT65hBFrHSJm3XhAnmy87oMNVmd07znyk+gtvVHhn8esopJI7GMR1uVlWyOkNKu2WDCoc9CxVerQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KTLZyj5V; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KTLZyj5V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD851F000E9;
+	Sat, 25 Jul 2026 00:20:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784938856;
+	bh=dcShqlp6nucbCONZtTVl61Us5mg+JuP68W3RHgZBSxw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=KTLZyj5VjmCyls3Bugm9ub3pFXR1cRf8db1Fw8rehLXIRX6G5RdcHRRezsNy/CAPf
+	 so5eZECHQMzoPtjtlQKAdoq0bVJUDKrjhd2Iv1u3SVj7lyz7GaNHLGk16IBq1MRoN1
+	 olLFmT1ewYRBxANEbFYIXBrEBdXY/RFmC/S5nNRtL911afJIW8MI29ylDE7JiTw6aX
+	 8RtezcBF5Zy6zlc+1A6KZyNEmP4tK5BJMTvN4uSkdBWCPFwYoIof0zmGx6MsOaHBvU
+	 Z865TOvQkUtGp/IvSs7X5ge5yD2CDL2pxMUPHPJ0y37hPGGqJ+NGsSp/JRtG14rop9
+	 5TuB3xop3rDEg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93BC138111D8;
+	Sat, 25 Jul 2026 00:20:24 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.14.3
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/13] netfilter: nf_conntrack_sip: widen NAT rewrite
+ delta to s32 in sip_help_tcp()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178493882341.3363307.1970080828146409091.git-patchwork-notify@kernel.org>
+Date: Sat, 25 Jul 2026 00:20:23 +0000
+References: <20260723163910.274695-2-pablo@netfilter.org>
+In-Reply-To: <20260723163910.274695-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
+Hello:
 
-On Fri, 24 Jul 2026 03:45:02 +0900, Sang-Heon Jeon wrote:
-> While reading mm/memblock, I found a conditional return where both
-> branches return the same value:
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu, 23 Jul 2026 18:38:58 +0200 you wrote:
+> From: Xiang Mei <xmei5@asu.edu>
 > 
-> 	err = do_something();
-> 	if (err)
-> 		return err;
-> 	return err;
+> sip_help_tcp() stores the size change of each NAT-rewritten SIP message
+> in s16 diff and accumulates it in s16 tdiff, but a single message can
+> grow by more than S16_MAX while the packet stays under the 65535
+> enlarge_skb() limit: nf_nat_sip() rewrites every matching URI, and a long
+> Contact list expands the message by tens of kilobytes. diff then wraps,
+> and "datalen = datalen + diff - msglen" yields a huge unsigned datalen,
+> so the next iteration's ct_sip_get_header() reads past the linearized skb
+> tail.
 > 
 > [...]
 
-Applied, thanks!
+Here is the summary with links:
+  - [net,01/13] netfilter: nf_conntrack_sip: widen NAT rewrite delta to s32 in sip_help_tcp()
+    https://git.kernel.org/netdev/net/c/db3d0e0e5d4b
+  - [net,02/13] selftests: netfilter: nft_flowtable.sh: fix offload counter verification for tunnel tests
+    https://git.kernel.org/netdev/net/c/1d6123f87eeb
+  - [net,03/13] netfilter: nf_conntrack_expect: add and use nf_ct_expect_related_pair()
+    https://git.kernel.org/netdev/net/c/4aa63842fc92
+  - [net,04/13] netfilter: ipset: do not update comments from kernel-side hash adds
+    https://git.kernel.org/netdev/net/c/f30415929be8
+  - [net,05/13] ipvs: do not propagate one-packet flag to synced conns
+    https://git.kernel.org/netdev/net/c/a63d2dbaeb50
+  - [net,06/13] ipvs: adjust double hashing when fwd method changes
+    https://git.kernel.org/netdev/net/c/712d2993bea5
+  - [net,07/13] netfilter: nf_tables: make nft_object rhltable per table
+    https://git.kernel.org/netdev/net/c/f4f699790590
+  - [net,08/13] netfilter: xt_hashlimit: validate hashtable supports XT_HASHLIMIT_RATE_MATCH
+    https://git.kernel.org/netdev/net/c/305b63e14022
+  - [net,09/13] ipvs: fix the checksum validations
+    https://git.kernel.org/netdev/net/c/e876b75b9020
+  - [net,10/13] ipvs: fix places with wrong packet offsets
+    https://git.kernel.org/netdev/net/c/15cab31a3730
+  - [net,11/13] ipvs: do not mangle ICMP replies for non-first fragments
+    https://git.kernel.org/netdev/net/c/342e24a339b9
+  - [net,12/13] ipvs: clear the nfct flag under lock
+    https://git.kernel.org/netdev/net/c/da7d894c41d5
+  - [net,13/13] netfilter: nft_payload: fix mask build for partial field offload
+    https://git.kernel.org/netdev/net/c/39e88f28fb32
 
-[26/36] power: supply: pm8916_lbc: remove conditional return with no effect
-        commit: b7c8d46411317f135e7791c0eddc56691de63f07
-
-Best regards,
+You are awesome, thank you!
 -- 
-Sebastian Reichel <sebastian.reichel@collabora.com>
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
