@@ -1,271 +1,204 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0833939B6
-	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jul 2026 11:05:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784977507; cv=none; b=b8rM6g57Z4zFAvsJH+Fe+J7VVEiuXpKTAEjySzoHLgvAd2KG0FB6E6B0XXMbudDjfiHxqVvr0NL9pCC7/W5k+/2AjCpphYr8VuzuZ1mXxzmoBMbMnIWBntPVPS+ts3ofkEQ5OqEZ5ODNjPBMkjImAl73cKDxZ2KKY6XLFoDdfHQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784977507; c=relaxed/simple;
-	bh=k0n/ypd2e2x0CEDZWtP4OnopLDyvorxrx3X5LyK4ppM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Nk+U70HrfGSivk0gL+tSr4JmtwzeUigv4xxCeWqTykQ76qTHF7VwOcsagp8ZpP/v+OHLvly0ibZ8MEdfy2UpBq4nX1HwDw0SQHGMjxY0mpPiv512ALMO7QPOuFGEF6pKlJgoEjO8iGr478qPykHtTadRcgEWNMqRBD5vm5bjm4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eiwdx4j/; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D01C2E7BD6
+	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jul 2026 21:59:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.174
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785016775; cv=pass; b=oQhc/pAZlZLvX1RPcxGbhuFsFQRCAZix9lJjFK73JP+urlfpa5tYGqKGDW4iqCIueXl3W7tkYWQa684DSQfKL1NvPQCYjKpJX4kzdkcPU4+Nv1sm3JJQ+zcXHXbBKEEK/LfuALk0umyQ9IfLtx5y5AYRQWMY6BOv0fogDW+i8MM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785016775; c=relaxed/simple;
+	bh=U6mjhyiRpLaLB9KAl6dmzxU9rY5e4QrHQWmS+UYxkas=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=MWMdf+6dS5sjRjhlcUeMRK1KQfz6yfQs+9AV0JNMcB3peNOPqqi6N7BcvvbVkTWqvZONL5JCc/PQOmTQwP8W3tdcwXGDwN6VZaEa361tf1SywVw0JMt5pN7d5P5egpRvbykYQXmR6ZecQ2RctZQGuB4Sj1E3viR1mVWWFcoSGDE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=XJA9w0mJ; arc=pass smtp.client-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eiwdx4j/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82AED1F000E9;
-	Sat, 25 Jul 2026 11:05:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784977506;
-	bh=RNsbrdYfK08wAKqV7WGgVaMaATui5n+9wCaMWDh1RYE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=eiwdx4j/IOPTVy7cfAw/WnZujteHBeve2dmXU2mkAQXfgDPSfAK0joMq09RtVPyc7
-	 LpuewbkQOGcNgxdqqwHlHysbsmJ3HBLK2ABeHr7NL/W1P0oQlHA03YSUMoyURgr8R/
-	 4qyDemrZvgOW1nnknIrG2PxfY1xU9s3GgmxulLG+lb8G9+lQBa4xy3ZqFlz5lqE/qj
-	 9bQI/tSahXLuns8svqXK1pfv8bn3dmj5+IvFmezk5eq43ztzwSDMYfxSJiHcUJm1Lr
-	 AnqPTHCoTwVu6DBT8FbKEcBZAYecHEwsfQL+RAg15h4+gpMc4GTLVIGDiDVcOJPXRt
-	 tPKKi37DH+y1g==
-Date: Sat, 25 Jul 2026 13:05:03 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 4/4] netfilter: flowtable: release tunnel route
- on error when building forward path
-Message-ID: <amSYX4uSAaHHJWZR@lore-desk>
-References: <20260723174952.329650-1-pablo@netfilter.org>
- <20260723174952.329650-5-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="XJA9w0mJ"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2cf6d65d8a7so23604835ad.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jul 2026 14:59:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1785016771; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ne9EnEL9TvSIddKuVJGd1WW20fTB7DID4fnNLp5bQiDg6gHNAmzO3PF+T9ZbkY59os
+         qHSb6Af2nM9OsFWOUmMlGQUFSUiflw7yUekT2SxetqAn4E5ev/kFaGtHAHBMO+TcNV/y
+         9Jkayukn8bmhdVWTMAUWUqOx6V9Lake8b0G3j+QvYoOZKR0RLLRH2yFaIJqf5+guOJFn
+         xa5YGEAslH9ee4fX4ZeFkbYj1yKZWdoVSNdrd1hPmQzrTnzb4VZOEHtX3SWh3DuK7uwG
+         nn7EYdnJ4PAz3oEcxUwRI7ievwoZ27TDUSRyRyg7C460wXQwuWOeG9gqCCpWg+6uFhPn
+         XWAw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=604Ldio6O4k/Z0kUfQq96pKAmoGJa7Roa+RxaLoogKE=;
+        fh=dHZoHqTV3MYsgfBR2RPwKITDoogXeY8lP23V6lIepBk=;
+        b=liUSGQk00nZ+nFi3H4zcwrgrc3Aoo6Vt+CEh/JFP+ORObIbj7j+UhLi80/vpnd7vpu
+         bJCqaJNUpBgdpTPDyuhPDU7OZw210y4dTMdbuFb64LILSvHNVtTi0GQYL6tfjfLa/uZy
+         9cdEv35CZBduenuDWrJqptp49P/pMTp1Y7q1zs1VkRHA3GK8HDGvNAItP0fPH0h0D4FJ
+         PI8eBXKU46q3SBIxzsrM3LzAA9YsFRp5R6CBw3BK3MC2RzIRy7mnrST8epgmW18DpMvU
+         hsNSErSZhg/B2/ukF5/z4AYJTrVk9mAF/c+UIw5KR4wVEcHfimKLZ16U+fXtrmFea8JH
+         fyDQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=asu.edu; s=google; t=1785016771; x=1785621571; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=604Ldio6O4k/Z0kUfQq96pKAmoGJa7Roa+RxaLoogKE=;
+        b=XJA9w0mJDIduKhHmvKIEBwAV+1gEIKl58UyJcfEO8fl+08sceANZaaRxDqvhHSUbvW
+         84LnCgWSkSBOMrA26ZZ7w3j/byzBgSiC/kgqDnAWZITGD2021XQH6zsOxrf7nVjbCunP
+         Eu6MZQHUMnr/TCv0IExNoT/WG9pCfU4IkriBLXkq5Q3mcv9+HOK3dLOjCOsVWjCGDQZD
+         ZLeJuuYWyO1EQlj/btZSHUIJ8qduIvz4syzaYIy4azpv7WmDPRb1hjRFnG4G4aArKyug
+         fIgVZ7Xl0YgNa+QOqRLQGrlw3A/CqV9W7RUz1KyjeKiyhHbeHYMfuzcAN4hZ9lMiJxkw
+         6FhA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785016771; x=1785621571;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=604Ldio6O4k/Z0kUfQq96pKAmoGJa7Roa+RxaLoogKE=;
+        b=Th5CvFeruwXGJX12eZS/4dwMe8ZMt5H1JQFvBQpczgwGIAqCKYuVSjsMw7AOKvm+w8
+         0H8IxtWr6YBL0m9veW3pXa/ksVpLJAj/TxG60OkC1YgNhI308lE6dn6g2IficANqPAdh
+         /nhcSqQhlxnhSa6uLho114Fk+/OQvMdl+JC4sJLi+GUMptoMi8bocVL4Z6DHpm+3ZjxG
+         Utcm9kdCvdaAe/rXpuZYBQCRKONp7y3vgrC+G8PSnXxX4vZ3J+Fc28PUnbF075uwZ2ey
+         ug7onfJv/0/166DjcEFgFbHgOm+NFmToMaZn84sW/MuwofZK3R979k07c/ZOIrc5O450
+         tHJA==
+X-Forwarded-Encrypted: i=1; AHgh+RpESgy5YExPCM9rSRwRhaF0acAfM0DxTmIt3+dL+atp5eaLbyQ9YvTp93sp58dfRG/dThGecZPbo89zwWe0xiU=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx1dNq7BatBsvklpSPMcBnGIR0Gw8ueJ1GUVHzfJYEoylXxW83G
+	oTGK8sjekoRdmpz0P4BV08o/k8KmhLZYIG+MyZaVD1Cw2RNaJyg7RxsM7uibtzGg0hcr9AP3H97
+	rGhdR6i3OMNGY8L3BcPWfS1oSrdrQfErqSlxIBH2/
+X-Gm-Gg: AR+sD11LMjYjxlnbXeXaOkIGf07T/2QIAcIFNqvck63IzBQuxad2QNoCTCw6XBM1zl8
+	rrdrkqplj6GxkW3gETkYGGInMSaGD15HGiOchPW/PWqh6+Cae8/Zyj2Ssr/PuahNWGhTPL70lg5
+	eqi490cSBhAOt1PNt/0veixiF2tekI/tOJbnJPtK+9y878pM80lpsyRgdS2hQ58lsYMUj0DwpEp
+	JLzHMgnTPdu93dd8cVy8RWjWJSkBUh+k2BG/VGuyVxaJ8fBtfSTWxx2iAMHkFcIHRGTWjanhnrA
+	1wV1y2NXmkPSCo2xDg==
+X-Received: by 2002:a17:903:2bcb:b0:2c8:1c05:16aa with SMTP id
+ d9443c01a7336-2cfde7c66b1mr28574475ad.19.1785016771480; Sat, 25 Jul 2026
+ 14:59:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="/s1sPBZN7mwKCzQC"
-Content-Disposition: inline
-In-Reply-To: <20260723174952.329650-5-pablo@netfilter.org>
-
---/s1sPBZN7mwKCzQC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20260722223832.3524006-1-xmei5@asu.edu> <fd5dcd37-c4f8-94de-6fa2-01d30427f63e@blackhole.kfki.hu>
+In-Reply-To: <fd5dcd37-c4f8-94de-6fa2-01d30427f63e@blackhole.kfki.hu>
+From: Xiang Mei <xmei5@asu.edu>
+Date: Sat, 25 Jul 2026 14:59:20 -0700
+X-Gm-Features: AUfX_mxqEnB6EYWgu3OUWMFbSignSZXrEFWaUkiAUdm1kVaUAIsQfEtRBnFupLo
+Message-ID: <CAPpSM+TZwQGHUX9QnwkOa9ufBueG2g1My=ZsnYxyt_zNL7TUMg@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: ipset: fix refcount race between list:set
+ GC and swap
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	"David S . Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	AutonomousCodeSecurity@microsoft.com, tgopinath@linux.microsoft.com, 
+	kys@microsoft.com
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-> nft_flow_tunnel_update_route() can lazy fail, leaving an incomplete
-> forward path set ip. The route lookup also happens twice, once from
-> dev_fill_forward_path() and again in this aforementioned function.
->=20
-> Update ipip and ip6ip6 not to release the dst_entry and pass it on
-> via the tunnel forward path information.
->=20
-> In case of failure when setting up the forwarding path, release the
-> tunnel dst that was provided via dev_fill_forward_path().
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Thu, Jul 23, 2026 at 12:33=E2=80=AFAM Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+>
+> On Wed, 22 Jul 2026, Xiang Mei (Microsoft) wrote:
+>
+> > __ip_set_put_byindex() resolved the index to a set pointer under RCU,
+> > then took ip_set_ref_lock in __ip_set_put() to decrement set->ref.
+> > ip_set_swap() holds that same lock while swapping both the ip_set_list
+> > slots and the two sets' ref counters, so it can interleave between the
+> > dereference and the lock acquisition, leaving the caller to decrement a
+> > set whose reference already moved to the other index and hit
+> > BUG_ON(set->ref =3D=3D 0). list_set_gc() reaches this from timer softir=
+q,
+> > which the nfnl mutex does not serialize against swap: an expiring
+> > list:set member calls list_set_del() -> ip_set_put_byindex() while
+> > IPSET_CMD_SWAP runs on the referenced sets.
+> >
+> > Resolve the index and decrement under ip_set_ref_lock, as ip_set_swap()
+> > already does, keeping the refcount tied to the index rather than to a
+> > stale set pointer.
+> >
+> >  kernel BUG at net/netfilter/ipset/ip_set_core.c:685!
+> >  Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+> >  RIP: 0010:ip_set_put_byindex (net/netfilter/ipset/ip_set_core.c:870)
+> >  Call Trace:
+> >   <IRQ>
+> >   list_set_del (net/netfilter/ipset/ip_set_list_set.c:159)
+> >   set_cleanup_entries (net/netfilter/ipset/ip_set_list_set.c:181)
+> >   list_set_gc (net/netfilter/ipset/ip_set_list_set.c:578)
+> >   call_timer_fn (kernel/time/timer.c:1748)
+> >   __run_timers (kernel/time/timer.c:1799 kernel/time/timer.c:2374)
+> >   run_timer_softirq (kernel/time/timer.c:2405)
+> >   </IRQ>
+> >  Kernel panic - not syncing: Fatal exception in interrupt
+> >
+> > Fixes: 9076aea76538 ("netfilter: ipset: Increase the number of maximal =
+sets automatically")
+> > Reported-by: AutonomousCodeSecurity@microsoft.com
+> > Signed-off-by: Xiang Mei (Microsoft) <xmei5@asu.edu>
+>
+> Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+>
+> Best regards,
+> Jozsef
 
-Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Awesome, thank you for your review!
 
-> ---
->  net/ipv4/ipip.c                    |  2 +-
->  net/ipv6/ip6_tunnel.c              |  2 +-
->  net/netfilter/nf_flow_table_path.c | 62 ++++++++----------------------
->  3 files changed, 18 insertions(+), 48 deletions(-)
->=20
-> diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-> index d1aa048a6099..0a4fa1351dd7 100644
-> --- a/net/ipv4/ipip.c
-> +++ b/net/ipv4/ipip.c
-> @@ -370,10 +370,10 @@ static int ipip_fill_forward_path(struct net_device=
-_path_ctx *ctx,
->  	path->tun.src_v4.s_addr =3D tiph->saddr;
->  	path->tun.dst_v4.s_addr =3D tiph->daddr;
->  	path->tun.l3_proto =3D IPPROTO_IPIP;
-> +	path->tun.dst =3D &rt->dst;
->  	path->dev =3D ctx->dev;
-> =20
->  	ctx->dev =3D rt->dst.dev;
-> -	ip_rt_put(rt);
-> =20
->  	return 0;
->  }
-> diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-> index bf8e40af60b0..312de4a6e160 100644
-> --- a/net/ipv6/ip6_tunnel.c
-> +++ b/net/ipv6/ip6_tunnel.c
-> @@ -1864,12 +1864,12 @@ static int ip6_tnl_fill_forward_path(struct net_d=
-evice_path_ctx *ctx,
->  		path->tun.src_v6 =3D t->parms.laddr;
->  		path->tun.dst_v6 =3D t->parms.raddr;
->  		path->tun.l3_proto =3D IPPROTO_IPV6;
-> +		path->tun.dst =3D dst;
->  		path->dev =3D ctx->dev;
->  		ctx->dev =3D dst->dev;
->  	}
-> =20
->  	err =3D dst->error;
-> -	dst_release(dst);
-> =20
->  	return err;
->  }
-> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_t=
-able_path.c
-> index 8f04a4487897..9f6fc29c4e16 100644
-> --- a/net/netfilter/nf_flow_table_path.c
-> +++ b/net/netfilter/nf_flow_table_path.c
-> @@ -82,6 +82,7 @@ struct nft_forward_info {
->  	} encap[NF_FLOW_TABLE_ENCAP_MAX];
->  	u8 num_encaps;
->  	struct flow_offload_tunnel tun;
-> +	struct dst_entry *tun_dst;
->  	u8 num_tuns;
->  	u8 ingress_vlans;
->  	u8 h_source[ETH_ALEN];
-> @@ -124,15 +125,16 @@ static int nft_dev_path_info(const struct net_devic=
-e_path_stack *stack,
->  			/* DEV_PATH_VLAN, DEV_PATH_PPPOE and DEV_PATH_TUN */
->  			if (path->type =3D=3D DEV_PATH_TUN) {
->  				if (info->num_tuns)
-> -					return -1;
-> +					goto err_out;
-> =20
->  				info->tun.src_v6 =3D path->tun.src_v6;
->  				info->tun.dst_v6 =3D path->tun.dst_v6;
->  				info->tun.l3_proto =3D path->tun.l3_proto;
-> +				info->tun_dst =3D path->tun.dst;
->  				info->num_tuns++;
->  			} else {
->  				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX)
-> -					return -1;
-> +					goto err_out;
-> =20
->  				info->encap[info->num_encaps].id =3D
->  					path->encap.id;
-> @@ -153,13 +155,13 @@ static int nft_dev_path_info(const struct net_devic=
-e_path_stack *stack,
->  			switch (path->bridge.vlan_mode) {
->  			case DEV_PATH_BR_VLAN_UNTAG_HW:
->  				if (info->num_encaps =3D=3D 0)
-> -					return -1;
-> +					goto err_out;
-> =20
->  				info->ingress_vlans |=3D BIT(info->num_encaps - 1);
->  				break;
->  			case DEV_PATH_BR_VLAN_TAG:
->  				if (info->num_encaps >=3D NF_FLOW_TABLE_ENCAP_MAX)
-> -					return -1;
-> +					goto err_out;
-> =20
->  				info->encap[info->num_encaps].id =3D path->bridge.vlan_id;
->  				info->encap[info->num_encaps].proto =3D path->bridge.vlan_proto;
-> @@ -167,7 +169,7 @@ static int nft_dev_path_info(const struct net_device_=
-path_stack *stack,
->  				break;
->  			case DEV_PATH_BR_VLAN_UNTAG:
->  				if (info->num_encaps =3D=3D 0)
-> -					return -1;
-> +					goto err_out;
-> =20
->  				info->num_encaps--;
->  				break;
-> @@ -177,7 +179,7 @@ static int nft_dev_path_info(const struct net_device_=
-path_stack *stack,
->  			info->xmit_type =3D FLOW_OFFLOAD_XMIT_DIRECT;
->  			break;
->  		default:
-> -			return -1;
-> +			goto err_out;
->  		}
->  	}
-> =20
-> @@ -189,6 +191,11 @@ static int nft_dev_path_info(const struct net_device=
-_path_stack *stack,
->  		return -1;
-> =20
->  	return 0;
-> +err_out:
-> +	if (info->num_tuns)
-> +		dst_release(info->tun_dst);
-> +
-> +	return -1;
->  }
-> =20
->  static bool nft_flowtable_find_dev(const struct net_device *dev,
-> @@ -208,44 +215,6 @@ static bool nft_flowtable_find_dev(const struct net_=
-device *dev,
->  	return found;
->  }
-> =20
-> -static int nft_flow_tunnel_update_route(const struct nft_pktinfo *pkt,
-> -					struct flow_offload_tunnel *tun,
-> -					struct nf_flow_route *route,
-> -					enum ip_conntrack_dir dir)
-> -{
-> -	struct dst_entry *cur_dst =3D route->tuple[dir].dst;
-> -	struct dst_entry *tun_dst =3D NULL;
-> -	struct flowi fl =3D {};
-> -
-> -	switch (nft_pf(pkt)) {
-> -	case NFPROTO_IPV4:
-> -		fl.u.ip4.daddr =3D tun->dst_v4.s_addr;
-> -		fl.u.ip4.saddr =3D tun->src_v4.s_addr;
-> -		fl.u.ip4.flowi4_iif =3D nft_in(pkt)->ifindex;
-> -		fl.u.ip4.flowi4_dscp =3D ip4h_dscp(ip_hdr(pkt->skb));
-> -		fl.u.ip4.flowi4_mark =3D pkt->skb->mark;
-> -		fl.u.ip4.flowi4_flags =3D FLOWI_FLAG_ANYSRC;
-> -		break;
-> -	case NFPROTO_IPV6:
-> -		fl.u.ip6.daddr =3D tun->dst_v6;
-> -		fl.u.ip6.saddr =3D tun->src_v6;
-> -		fl.u.ip6.flowi6_iif =3D nft_in(pkt)->ifindex;
-> -		fl.u.ip6.flowlabel =3D ip6_flowinfo(ipv6_hdr(pkt->skb));
-> -		fl.u.ip6.flowi6_mark =3D pkt->skb->mark;
-> -		fl.u.ip6.flowi6_flags =3D FLOWI_FLAG_ANYSRC;
-> -		break;
-> -	}
-> -
-> -	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
-> -	if (!tun_dst)
-> -		return -ENOENT;
-> -
-> -	route->tuple[dir].dst =3D tun_dst;
-> -	dst_release(cur_dst);
-> -
-> -	return 0;
-> -}
-> -
->  static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
->  				struct nf_flow_route *route,
->  				const struct nf_conn *ct,
-> @@ -270,12 +239,13 @@ static int nft_dev_forward_path(const struct nft_pk=
-tinfo *pkt,
->  		route->tuple[!dir].in.encap[i].proto =3D info.encap[i].proto;
->  	}
-> =20
-> -	if (info.num_tuns &&
-> -	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
-> +	if (info.num_tuns) {
->  		route->tuple[!dir].in.tun.src_v6 =3D info.tun.dst_v6;
->  		route->tuple[!dir].in.tun.dst_v6 =3D info.tun.src_v6;
->  		route->tuple[!dir].in.tun.l3_proto =3D info.tun.l3_proto;
->  		route->tuple[!dir].in.num_tuns =3D info.num_tuns;
-> +		dst_release(route->tuple[dir].dst);
-> +		route->tuple[dir].dst =3D info.tun_dst;
->  	}
-> =20
->  	route->tuple[!dir].in.num_encaps =3D info.num_encaps;
-> --=20
-> 2.47.3
->=20
-
---/s1sPBZN7mwKCzQC
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCamSYXwAKCRA6cBh0uS2t
-rNQaAQDJZTKjZI0SFKy8edhL8PqW625/3Ptx1HBM9xJ0oTvXtgEAkU7WXtw6AtTJ
-q5qHzvA40gASm6YdAgdo0YNDA99Z3Qw=
-=4I2m
------END PGP SIGNATURE-----
-
---/s1sPBZN7mwKCzQC--
+-Xiang
+>
+> > ---
+> > net/netfilter/ipset/ip_set_core.c | 19 +++++++++++++------
+> > 1 file changed, 13 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip=
+_set_core.c
+> > index 6cfad152d7d1..16d33c3e28cf 100644
+> > --- a/net/netfilter/ipset/ip_set_core.c
+> > +++ b/net/netfilter/ipset/ip_set_core.c
+> > @@ -679,11 +679,18 @@ __ip_set_get(struct ip_set *set)
+> > }
+> >
+> > static void
+> > -__ip_set_put(struct ip_set *set)
+> > +__ip_set_put_locked(struct ip_set *set)
+> > {
+> > -     write_lock_bh(&ip_set_ref_lock);
+> > +     lockdep_assert_held(&ip_set_ref_lock);
+> >       BUG_ON(set->ref =3D=3D 0);
+> >       set->ref--;
+> > +}
+> > +
+> > +static void
+> > +__ip_set_put(struct ip_set *set)
+> > +{
+> > +     write_lock_bh(&ip_set_ref_lock);
+> > +     __ip_set_put_locked(set);
+> >       write_unlock_bh(&ip_set_ref_lock);
+> > }
+> >
+> > @@ -854,11 +861,11 @@ __ip_set_put_byindex(struct ip_set_net *inst, ip_=
+set_id_t index)
+> > {
+> >       struct ip_set *set;
+> >
+> > -     rcu_read_lock();
+> > -     set =3D rcu_dereference(inst->ip_set_list)[index];
+> > +     write_lock_bh(&ip_set_ref_lock);
+> > +     set =3D ip_set(inst, index);
+> >       if (set)
+> > -             __ip_set_put(set);
+> > -     rcu_read_unlock();
+> > +             __ip_set_put_locked(set);
+> > +     write_unlock_bh(&ip_set_ref_lock);
+> > }
+> >
+> > void
+> > --
+> > 2.43.0
+> >
+> >
+> >
