@@ -1,105 +1,183 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5EE42F5498;
-	Sat, 25 Jul 2026 00:20:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB87134F46D;
+	Sat, 25 Jul 2026 09:43:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784938857; cv=none; b=d2qiXORHZbK0urQSU1V/3nRVLvEhB2fwDr1ZUF4gcxNUDudHa5qpij7DrzcfiCXKjnqa/eWbSVQfGnNJJ+3Os4FQ2uGJM9lchNSV6KrlORKzRmnXnc5jIbeZN82xM10CgdhyYEp7UYKKEiQ17wF3RUTImUsrJUtii7oG2Aek4EA=
+	t=1784972637; cv=none; b=PLTFNGGZxsZy6buQjs8nKzLz1kcy9AOqBGeK+6DK9GUUwhnZAG4BAc3Xn21v+LFDxYeUGecKQer21iuJocCjPYTo094Db8Iix77lCvT2GAWEyTUyW9d3MmlHNJ1cxffK/jAZ/Q2JQEHWTmCYHFQ05CuartGocO5Fyn2TewML3YY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784938857; c=relaxed/simple;
-	bh=gRfnRivjw7jQp6iRrvf2/AOjaGq7gzPrLe70CwWPqmk=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=fM3noOpFrDec85QNIdjqo3E7OmGf5ljaH5MlVJHqkwLx0dHqZUY+OsEgq/evgP2vqIVCaZSETNe5AjK1apkUWeV0EGE3vsPT65hBFrHSJm3XhAnmy87oMNVmd07znyk+gtvVHhn8esopJI7GMR1uVlWyOkNKu2WDCoc9CxVerQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KTLZyj5V; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784972637; c=relaxed/simple;
+	bh=xadDKsLz3vbwIr6aH41Z7CaOY9noBVAbEIQlOHMSHxo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZB3GTfGONqVq9OlsTJ25t8pvfTXpWIvvzgQU6hCue6tkxKdfw6+w1E2CuNSGcIhiJutAG/5ja7vI8w+QmlVbXuVi9ff2E2oMJbiy1RvmN1Ck8xFIL1ubBk1ry2oSn41BcYZnuWpp0DujfyDn7wa58xa69eTK2y+qzWEXQKxjq7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XKSXMFOl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KTLZyj5V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD851F000E9;
-	Sat, 25 Jul 2026 00:20:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XKSXMFOl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 680AD1F000E9;
+	Sat, 25 Jul 2026 09:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784938856;
-	bh=dcShqlp6nucbCONZtTVl61Us5mg+JuP68W3RHgZBSxw=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=KTLZyj5VjmCyls3Bugm9ub3pFXR1cRf8db1Fw8rehLXIRX6G5RdcHRRezsNy/CAPf
-	 so5eZECHQMzoPtjtlQKAdoq0bVJUDKrjhd2Iv1u3SVj7lyz7GaNHLGk16IBq1MRoN1
-	 olLFmT1ewYRBxANEbFYIXBrEBdXY/RFmC/S5nNRtL911afJIW8MI29ylDE7JiTw6aX
-	 8RtezcBF5Zy6zlc+1A6KZyNEmP4tK5BJMTvN4uSkdBWCPFwYoIof0zmGx6MsOaHBvU
-	 Z865TOvQkUtGp/IvSs7X5ge5yD2CDL2pxMUPHPJ0y37hPGGqJ+NGsSp/JRtG14rop9
-	 5TuB3xop3rDEg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93BC138111D8;
-	Sat, 25 Jul 2026 00:20:24 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1784972634;
+	bh=ikxmqceKM6CjZZLgzbbGhufgOUwVYZSkPtOFLRTP18I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=XKSXMFOlSOY8ipmQjwbmakbcMiVJ2AkXPTHbmESOEdgpZ6wa2tvbJ+GogVDk0xbQr
+	 VkEKt3LdjKF1BPe/VeIDMbySuhj9ByoRG148y+x+m2xBXRw/a2rkaUWdOXbwW4XT+X
+	 BujG3fgefDkLQTxT6XaV/kR19YqCwDtITqOqhg5500e/nfcpmYbQrLZpVj8kdJCbGa
+	 Tol+ita7trBL5bCANIPw9/kTQz5eJJhrQFH6LaeQ3WAuOxWtfaD8RvvFKEhvJn/vvc
+	 HrTp2KcXKc1rKIyhR/0WjKJTvYZWxdzruhjBXziIw7rcaz6elc1sMazW4J85z2JqpX
+	 8XEuIHqGnOh2w==
+Date: Sat, 25 Jul 2026 11:43:52 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next v3] net: ip6_tunnel: use tunnel parameters for
+ fill_forward_path route lookup
+Message-ID: <amSFWElG-j_B8HBD@lore-desk>
+References: <20260724-ip6ip6-route-lookup-fill_forward_path-v3-1-7b7991538614@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 01/13] netfilter: nf_conntrack_sip: widen NAT rewrite
- delta to s32 in sip_help_tcp()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178493882341.3363307.1970080828146409091.git-patchwork-notify@kernel.org>
-Date: Sat, 25 Jul 2026 00:20:23 +0000
-References: <20260723163910.274695-2-pablo@netfilter.org>
-In-Reply-To: <20260723163910.274695-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="nrFEi88iiMHlAaLj"
+Content-Disposition: inline
+In-Reply-To: <20260724-ip6ip6-route-lookup-fill_forward_path-v3-1-7b7991538614@kernel.org>
 
-Hello:
+--nrFEi88iiMHlAaLj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+> Reuse the flowi6 template t->fl.u.ip6 built by ip6_tnl_link_config() in
+> ip6_tnl_fill_forward_path(), aligning the fast-path route lookup with
+> the slow path in ipxip6_tnl_xmit(). This automatically inherits the
+> correct conditional FLOWLABEL masking based on the
+> IP6_TNL_F_USE_ORIG_FLOWLABEL flag.
+>=20
+> Return -EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS,
+> IP6_TNL_F_USE_ORIG_FLOWLABEL or IP6_TNL_F_USE_ORIG_FWMARK is set,
+> or for collect_md tunnels, since fill_forward_path has no access to
+> the original skb and cannot recover the per-packet traffic class,
+> flowlabel, mark or tunnel destination needed for the route lookup.
+>=20
+> Reviewed-by: David Ahern <dsahern@kernel.org>
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+> Changes in v3:
+> - Return EOPNOTSUPP when IP6_TNL_F_USE_ORIG_TCLASS is set or for collect_=
+md tunnels
+> - Link to v2: https://lore.kernel.org/r/20260722-ip6ip6-route-lookup-fill=
+_forward_path-v2-1-ff0b7b013699@kernel.org
+>=20
+> Changes in v2:
+> - Reuse flowi6 template for the route lookup
+> - Return EOPNOTSUPP if the tunnel is configured with
+>   IP6_TNL_F_USE_ORIG_FWMARK or IP6_TNL_F_USE_ORIG_FLOWLABEL
+> - Use flowi6 fields to setup net_device_path
+> - Link to v1: https://lore.kernel.org/r/20260708-ip6ip6-route-lookup-fill=
+_forward_path-v1-1-863b9647102e@kernel.org
+> ---
+>  net/ipv6/ip6_tunnel.c | 26 ++++++++++++++++----------
+>  1 file changed, 16 insertions(+), 10 deletions(-)
 
-On Thu, 23 Jul 2026 18:38:58 +0200 you wrote:
-> From: Xiang Mei <xmei5@asu.edu>
-> 
-> sip_help_tcp() stores the size change of each NAT-rewritten SIP message
-> in s16 diff and accumulates it in s16 tdiff, but a single message can
-> grow by more than S16_MAX while the packet stays under the 65535
-> enlarge_skb() limit: nf_nat_sip() rewrites every matching URI, and a long
-> Contact list expands the message by tens of kilobytes. diff then wraps,
-> and "datalen = datalen + diff - msglen" yields a huge unsigned datalen,
-> so the next iteration's ct_sip_get_header() reads past the linearized skb
-> tail.
-> 
-> [...]
+commenting on sashiko's report:
+https://sashiko.dev/#/patchset/20260724-ip6ip6-route-lookup-fill_forward_pa=
+th-v3-1-7b7991538614%40kernel.org
 
-Here is the summary with links:
-  - [net,01/13] netfilter: nf_conntrack_sip: widen NAT rewrite delta to s32 in sip_help_tcp()
-    https://git.kernel.org/netdev/net/c/db3d0e0e5d4b
-  - [net,02/13] selftests: netfilter: nft_flowtable.sh: fix offload counter verification for tunnel tests
-    https://git.kernel.org/netdev/net/c/1d6123f87eeb
-  - [net,03/13] netfilter: nf_conntrack_expect: add and use nf_ct_expect_related_pair()
-    https://git.kernel.org/netdev/net/c/4aa63842fc92
-  - [net,04/13] netfilter: ipset: do not update comments from kernel-side hash adds
-    https://git.kernel.org/netdev/net/c/f30415929be8
-  - [net,05/13] ipvs: do not propagate one-packet flag to synced conns
-    https://git.kernel.org/netdev/net/c/a63d2dbaeb50
-  - [net,06/13] ipvs: adjust double hashing when fwd method changes
-    https://git.kernel.org/netdev/net/c/712d2993bea5
-  - [net,07/13] netfilter: nf_tables: make nft_object rhltable per table
-    https://git.kernel.org/netdev/net/c/f4f699790590
-  - [net,08/13] netfilter: xt_hashlimit: validate hashtable supports XT_HASHLIMIT_RATE_MATCH
-    https://git.kernel.org/netdev/net/c/305b63e14022
-  - [net,09/13] ipvs: fix the checksum validations
-    https://git.kernel.org/netdev/net/c/e876b75b9020
-  - [net,10/13] ipvs: fix places with wrong packet offsets
-    https://git.kernel.org/netdev/net/c/15cab31a3730
-  - [net,11/13] ipvs: do not mangle ICMP replies for non-first fragments
-    https://git.kernel.org/netdev/net/c/342e24a339b9
-  - [net,12/13] ipvs: clear the nfct flag under lock
-    https://git.kernel.org/netdev/net/c/da7d894c41d5
-  - [net,13/13] netfilter: nft_payload: fix mask build for partial field offload
-    https://git.kernel.org/netdev/net/c/39e88f28fb32
+- This is a pre-existing issue, but since you are explicitly handling
+  collect_md tunnels here, should the IPv4 equivalent in net/ipv4/ipip.c
+  also reject collect_md tunnels?
+  - this issue has not been introduced by this patch and it is fixed in
+    the following patch:
+    https://lore.kernel.org/netdev/20260725-ipip-fill-forward-path-fix-v1-1=
+-bc69fd3127d5@kernel.org/T/#u
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+- This isn't a bug introduced by this patch, but does this lockless memcpy =
+of
+  t->fl.u.ip6 and t->parms risk data corruption from concurrent updates?
+  - As pointed out by sashiko, this issue has not been introduced by this p=
+atch
+    and it is present in the slow-path as well (ipxip6_tnl_xmit()). I guess=
+ we
+    should fix it with a dedicated patch.
 
+Regards,
+Lorenzo
 
+>=20
+> diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+> index bf8e40af60b0..97c3f61d627b 100644
+> --- a/net/ipv6/ip6_tunnel.c
+> +++ b/net/ipv6/ip6_tunnel.c
+> @@ -1845,24 +1845,30 @@ static int ip6_tnl_fill_forward_path(struct net_d=
+evice_path_ctx *ctx,
+>  				     struct net_device_path *path)
+>  {
+>  	struct ip6_tnl *t =3D netdev_priv(ctx->dev);
+> -	struct flowi6 fl6 =3D {
+> -		.daddr =3D t->parms.raddr,
+> -	};
+>  	struct dst_entry *dst;
+> +	struct flowi6 fl6;
+>  	int err;
+> =20
+> -	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT)) {
+> -		/* encaplimit option is currently not supported is
+> -		 * sw-acceleration path.
+> -		 */
+> +	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
+> +			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
+> +			      IP6_TNL_F_USE_ORIG_FWMARK))
+>  		return -EOPNOTSUPP;
+> -	}
+> +
+> +	if (t->parms.collect_md)
+> +		return -EOPNOTSUPP;
+> +
+> +	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT))
+> +		return -EOPNOTSUPP;
+> +
+> +	memcpy(&fl6, &t->fl.u.ip6, sizeof(fl6));
+> +	fl6.flowi6_mark =3D t->parms.fwmark;
+> +	fl6.flowi6_proto =3D 0;
+> =20
+>  	dst =3D ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
+>  	if (!dst->error) {
+>  		path->type =3D DEV_PATH_TUN;
+> -		path->tun.src_v6 =3D t->parms.laddr;
+> -		path->tun.dst_v6 =3D t->parms.raddr;
+> +		path->tun.src_v6 =3D fl6.saddr;
+> +		path->tun.dst_v6 =3D fl6.daddr;
+>  		path->tun.l3_proto =3D IPPROTO_IPV6;
+>  		path->dev =3D ctx->dev;
+>  		ctx->dev =3D dst->dev;
+>=20
+> ---
+> base-commit: 89d8006259b81dd25c962f6cc8d7ab268d6ea426
+> change-id: 20260708-ip6ip6-route-lookup-fill_forward_path-9fc45a9118e9
+>=20
+> Best regards,
+> --=20
+> Lorenzo Bianconi <lorenzo@kernel.org>
+>=20
+
+--nrFEi88iiMHlAaLj
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCamSFWAAKCRA6cBh0uS2t
+rCoFAQCkprH2HmRiIk/GIaCfKY0lpX04YV/Ko6Dedd/TVNANsAEAjnKuqcCas5Xc
+2nlJH7d5SUXz9YzwA0PvduFoFs6EvQ4=
+=Ucx8
+-----END PGP SIGNATURE-----
+
+--nrFEi88iiMHlAaLj--
