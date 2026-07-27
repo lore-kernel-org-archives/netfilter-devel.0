@@ -1,154 +1,103 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E8E3E47B
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2026 19:41:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A141E3E0082;
+	Mon, 27 Jul 2026 20:29:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785181311; cv=none; b=uJM2hTrUThaKbUbVvml/uIu4gMYRxde7LMyvfRzp5xYcklvYN04QaQUoOtyPsZLC8oVTTZC1YYuBGwufseCxyr2N8yD4QFgAF1RZIeTSR0iUL68cKnceU9fMIF4FW1fKKKCkexyPEYgGfof68LoQkZJNlXGDeApD9LtaIOpNoLA=
+	t=1785184198; cv=none; b=ZQxoCM7NdXnAMTUY8SWw5l4LmtTPX19sHcLbvVwkwGXcdxdNp42ZIdZ2uUhkUS8X5K6MHTuKfC3EACRK6yxsQKAqTKB0CK0jBE84siTe5E2iotW0ZMJgFrpSV8ioGX8DJloRVANej+uJotmc4XJ328dDeWS2Y8rFILs1Ai9Vzeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785181311; c=relaxed/simple;
-	bh=h3kKV91z0GcHfF4cTcKe19LkPuT+5XcF8NxKSKqBgvs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OGpRxZobyJFeTxrbaBZZ939jiMqXb5Oo6/m+oKMB5gelizPDVdcPDRtfYx3KvSEA1FX7ewvrf8CWHX6lCbqohqp+n20eoToz1rB+rtrmYBO8lSIsjqqNYKqINnMVgJ4Du55khUK0iygt51MCOF1zHNUhrGMX3HfZwp/vV22VtXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=LtgFANlM; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=gueC2FTV; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=HnukP7OR; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=FHGQYE56; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1785184198; c=relaxed/simple;
+	bh=azBdmjFcUan1cGZEgw2MRCNoKvq+SPsr0rUO+RQr4Vo=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=P/aDOqnAXYLivFG7Ed0ZdEdQeko4DS7GZmM15KxWLsp+gkbdnkVd4/DDpuSmTfs/FBTcIML9mhcTnKjWo0WPgu9IBdLiTlwqSfHBeOHkRPBSVjMoUbdyXgoXWONKTUS/+my5YYi/0UbX/S6/AKgmgVzebKvyOnKFcFHNp0CoeJM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=dkT3ZUjl; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="LtgFANlM";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="gueC2FTV";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="HnukP7OR";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="FHGQYE56"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 0F97E3EA0;
-	Mon, 27 Jul 2026 19:41:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1785181303; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PVe/3FKIrTrPOiXBNg9FXwersubM3rwmJDUXscYTPCE=;
-	b=LtgFANlMnwXnbSUcwH+1tkQrhTXWY4CxR0uGvs93fJ/x/YpqSrh1aOnOotx5RzY0C26oTA
-	tUl9Ea2uYahR8JHGIv40MN1fLVhrAUw8PpHszYjmBXvGpju+Lzodyjeguz8ErCAtGcJVx/
-	ToKSj2jVjMyB7DGEYBcXwWKxGLKtMVM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1785181303;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PVe/3FKIrTrPOiXBNg9FXwersubM3rwmJDUXscYTPCE=;
-	b=gueC2FTVnWK9qEKBJ147H92hPH536oKiiAZa7R2RPWT6TFZ/VyhCqNbkhf36ZsV/5OURvg
-	G/i2W7+MCaqO6wBg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=HnukP7OR;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=FHGQYE56
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1785181299; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PVe/3FKIrTrPOiXBNg9FXwersubM3rwmJDUXscYTPCE=;
-	b=HnukP7ORQNpX7tcevkJ1JeLmk0fBe3WtoaR5r/gyE1Q5/ktZt53yPlgI4ZCK/38odBqx2j
-	UjB7PrOsmdX0kU6y2R8LPVW8JlPllxXUQPaGyU8AfUQ1wH6sRHTgJzdAZVhPoG0bwKgq/s
-	L7gIV2LvA43DQbz2TTACUKPpG0V+wpE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1785181299;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PVe/3FKIrTrPOiXBNg9FXwersubM3rwmJDUXscYTPCE=;
-	b=FHGQYE56j+dT6JEJXANvAP8+2b/ytgkFkoKYi+jq9As6Io6j57i0kdeZ/tY91tqHFBQ9q8
-	oKD/PfO4iuEwQsBg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A4B23779B9;
-	Mon, 27 Jul 2026 19:41:38 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id BvVvJXK0Z2pJawAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 27 Jul 2026 19:41:38 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	phil@nwl.cc,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf-next] netfilter: conncount: normalize tuple and zone on successful ct lookup
-Date: Mon, 27 Jul 2026 21:41:29 +0200
-Message-ID: <20260727194129.4034-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="dkT3ZUjl"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 2445421B1A;
+	Mon, 27 Jul 2026 23:29:49 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=YGP4SVauzFH96UHVQG5HR9nPrqFdyCo1oXtz6YSemtM=; b=dkT3ZUjl7Wsr
+	OIq3O9GhjHduqzCw1Cmfb6XvfaZfHdBeaw6FAZ8g0BzActZG74S+fbe4VTt6lpIo
+	2StZdGCzaQBOy1UhGD49HuIC5/dv2eaYs3BBb8SL4kzu/r6mKYUhatd5zlSmmWhH
+	MKfkUq2WY7LH+1rZ3jmPf85C/MQiItSVUmvNM1Uyh/ip8hpnX9DlmmnokpRDoxR/
+	KOmYF4iDDcjfgZpK4HfvSnLIyVU9r4lTwwMdnAXfC6uo8B9+RZ6kzVKA0iP7SrfR
+	AV8PS8esgudUrT/JZ9TaqM7luqsPwI4wKiUoeiNEdSYQ643YjREizls82ef0m6ij
+	lXw5w+jMf/ZZgBkXuDfQBA3oCcYAQpnv8+G1Nb/fCWD0Gx/FWuzCwwESrfWhzqqz
+	M4X7v0ca9v41C2Y5Lu6/yireEJBelMHFSg5Ru1TctDI7QNskdkdQ8zrxaie0goc0
+	+E6zwt+5PBXg0v51+GL0e05VtIggsWNJclLsbgAHaBWfaAfVCAp/2URGuUBbUst+
+	gQb2M2nLGZZUVq2hAOHmnVeBcgcxTtfF8RbMMhYcaCGbPVKPnw2eBbtP49cleJ/a
+	ve6uqGdonpynT/ar2qRl04H0gpBBb5Db9KZjiDryJ9/xuwXULaP2REJPrm4e3o+s
+	QvkAVfxF/WtFibBow751cJ3LNPJek2w=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 27 Jul 2026 23:29:48 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id C6B566005A;
+	Mon, 27 Jul 2026 23:29:49 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66RKTjU8087273;
+	Mon, 27 Jul 2026 23:29:48 +0300
+Date: Mon, 27 Jul 2026 23:29:45 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 0/2] ipvs: csum validations, part 2
+In-Reply-To: <20260727185024.67534-1-ja@ssi.bg>
+Message-ID: <01f8c2a3-57dc-76c5-c214-cfee9cd2255d@ssi.bg>
+References: <20260727185024.67534-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-0.994];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	RCVD_TLS_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,suse.de:dkim,strlen.de:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 0F97E3EA0
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
+Content-Type: text/plain; charset=US-ASCII
 
-When get_ct_or_tuple_from_skb() falls back to looking u a connection via
-nf_conntrack_find_get(), a successful lookup sets ct but leaves tuple
-and zone unupdated.
 
-If the packet belongs to a reply flow, tuple will remain in the reply
-direction. As conncount relies on the original direction tuple to count
-the connections consistenly, passing an unnormalized reply tuple could
-lead to problems.
+	Hello,
 
-Fix this by making sure that tuple and zone are normalized.
+On Mon, 27 Jul 2026, Julian Anastasov wrote:
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
-Note: I am sending it to nf-next because I couldn't reproduce this issue
-pointed out by Sashiko. Having said that, I still think the change
-should be done because it makes sense and for consistency reasons
-(aboved we are using the original direction too).
----
- net/netfilter/nf_conncount.c | 2 ++
- 1 file changed, 2 insertions(+)
+>         This patchset contains more fixes after the
+> previous batch of fixes for checksum validations.
+> 
+>         The first patch avoids reading the IPv4 ihl field
+> multiple times to prevent local attacker to cause
+> out-of-bounds write in ip_vs_nat_icmp.
+> 
+>         The second patch returns the per-proto checksum
+> validations which can be needed for the FORWARD hook and
+> provides helper for ICMP.
+> 
+> Julian Anastasov (2):
+>   ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+>   ipvs: return the per-proto csum validations
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 91582069f6d2..4a62d3bef711 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -158,6 +158,8 @@ static bool get_ct_or_tuple_from_skb(struct net *net,
- 		return true;
- 
- 	found_ct = nf_ct_tuplehash_to_ctrack(h);
-+	*tuple = found_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	*zone = nf_ct_zone(found_ct);
- 	*refcounted = true;
- 	*ct = found_ct;
- 
--- 
-2.55.0
+	According to Sashiko we are returning to broken
+TCP/UDP checksum for IPv6 on CHECKSUM_COMPLETE, will send v2...
+
+https://sashiko.dev/#/patchset/20260727185024.67534-1-ja%40ssi.bg
+
+pw-bot: changes-requested
+
+> 
+>  include/net/ip_vs.h                   |  31 +-------
+>  net/netfilter/ipvs/ip_vs_core.c       | 102 ++++++++++++++++----------
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c |   2 +-
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c  |  40 +++++++++-
+>  net/netfilter/ipvs/ip_vs_proto_udp.c  |  47 ++++++++++--
+>  net/netfilter/ipvs/ip_vs_xmit.c       |   2 +-
+>  6 files changed, 143 insertions(+), 81 deletions(-)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
