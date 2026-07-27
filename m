@@ -1,147 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C38E619E839;
-	Mon, 27 Jul 2026 12:12:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B3730F531
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2026 12:19:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785154377; cv=none; b=tJP4sgEJ54f1+s4OjJZ4OE5DvA/mclt0nTcmFR2ksL93euUYPv9KQTuTUEmT9vqAZgfvSIBe6ghUesPa1tZ8gb/C7num4xHneymoqIFWBPW18M1QpqLt3KzmhA15C4TfEGRr2jbaUeCKOqIxUbM5CJrxfLCut8k6o377HWTbOB8=
+	t=1785154748; cv=none; b=n+iiFeAlbs/5tfeUset0/Aej70LfNt3F+15IpycxZewQ56ga2tH2jFjYKr1hvTVz3JXxiuUf05kTzEmGDGOMvzFFMa26bTdZs8SvYVrhWjeXzUbCOSuxwWVOvNqr0wRJ2iv2qtD8S/Mm7aXXbxQTpVap6CtFzIDdHfAlLpXvP84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785154377; c=relaxed/simple;
-	bh=sotcfwjK3nAZniHL7JHKW15PRk/FoJrztaMoXgSNYfY=;
+	s=arc-20240116; t=1785154748; c=relaxed/simple;
+	bh=Qwo/mji2DKJKE+BvxfJ0q9SOTjDWd2BdxK3CbDknux8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZmVRKsHCVs1Z7hF1gAfmoNfQIhsnWD0M2Jv4P4rgo6lrrCsK+fHbLcu0lCCrGvQW1SBT3ePTtAvrSFaLWqzheRS+pbEXz6bSH7fJQBb/M8dAet8dBvlL+zfUT5nARIHFx05WYBm5l0QrRk5WWApPjrXr75DjrJpXP7PbiBQNh6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cJUiNzz1; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=D5I/FTLeZEEEb3rfMM2VbWFPvH3cdijgC/YnthMaLsuG2AXjwwIkpttK5Oi+9/3ffIgpQgjZE+f9bAQLnfeOt3DZZXLTYmcwhCAGlBk7RXb61tc5UpUHDILJ8Zk5XygusyLzw/DJhd0q9mgFg2EqRbZi4v8vfg0V8hLM8wVAdQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ROzqEP6G; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cJUiNzz1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0753E1F000E9;
-	Mon, 27 Jul 2026 12:12:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785154376;
-	bh=NuMpyXi203gMNqb11rcfOKZmtmuJN0EPDdTrfGAbmqA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=cJUiNzz1prDmu0GWRwCZ182TsRp83BQvTp0/rURfnkMQzP20L6fG8sazv0cYKgUtW
-	 pg9MCuVlTFHqe3x/O6EVkylNOZs7wcPPsZhmCr3XEWEcOo26weH2DM61fSqQ+OmbrP
-	 tvyWB2eboDXUxX9deZuSx028Hbg9foCFt8d+5Bw+IlFteVi3skzllTVeGL1XafPYbe
-	 08wppeqNa8S6eH5zJPQgihAdalyGQJliwPyAS5P+AP5v8yaQxZyfcN5KNznMD5HYbU
-	 HA3HDDWzzh9ixbV9ramHSWGxONVFCvMxk3yVAI+jirrpd4gfEm0DA5Mx/fNCvUjATc
-	 xHtThaOzcAK8w==
-Date: Mon, 27 Jul 2026 13:12:37 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	David Airlie <airlied@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans de Goede <hansg@kernel.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Jiri Pirko <jiri@resnulli.us>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Johan Hovold <johan@kernel.org>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Matthew Sakai <msakai@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Maxime Ripard <mripard@kernel.org>,
-	Michael Turquette <mturquette@baylibre.com>,
-	Mike Rapoport <rppt@kernel.org>,
-	Miri Korenblit <miriam.rachel.korenblit@intel.com>,
-	Nicolas Palix <nicolas.palix@imag.fr>,
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ROzqEP6G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1785154746;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=QqTFI/MlpXPvSf2TZ+BIjSgXRyROfyyL9QfN5nHcpMk=;
+	b=ROzqEP6Gq1gwT+PenxxDFGznrmDUh2tr6VAdtXI40gdnJ41DUNmJKD+KeYmEWKrwNynCAs
+	MqE87in4qmNqIXwLQIXWjw+ONp0ZAGclPi7Vvr7NUBwu1NzkHXjeHDbOvh21rJqVXaTgEY
+	1MpJzyVFjmHcgmCXt+m3v0KIKBtDVIA=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-208-qUGuFQnqNcWfY2hjV2Y90Q-1; Mon,
+ 27 Jul 2026 08:19:02 -0400
+X-MC-Unique: qUGuFQnqNcWfY2hjV2Y90Q-1
+X-Mimecast-MFC-AGG-ID: qUGuFQnqNcWfY2hjV2Y90Q_1785154741
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with UTF8SMTPS id C9FF91956061;
+	Mon, 27 Jul 2026 12:19:00 +0000 (UTC)
+Received: from localhost (headnet03.pony-001.prod.iad2.dc.redhat.com [10.2.32.114])
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with UTF8SMTP id F06571955F74;
+	Mon, 27 Jul 2026 12:18:59 +0000 (UTC)
+Date: Mon, 27 Jul 2026 08:18:57 -0400
+From: Eric Garver <eric@garver.life>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	Jan =?utf-8?Q?Ko=C5=84czak?= <jan.konczak@cs.put.poznan.pl>
+Subject: Re: [nft PATCH v2] parser_bison: Fix for bison < 3.6
+Message-ID: <amdMsU0e0JDYYXkD@egarver-mac.redhat.corp>
+Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Paolo Abeni <pabeni@redhat.com>, Ping-Ke Shih <pkshih@realtek.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Sebastian Reichel <sre@kernel.org>, Shuah Khan <shuah@kernel.org>,
-	Simona Vetter <simona@ffwll.ch>, Simon Horman <horms@verge.net.au>,
-	Stephen Boyd <sboyd@kernel.org>, Steve French <sfrench@samba.org>,
-	Takashi Iwai <tiwai@suse.com>, Thomas Renninger <trenn@suse.com>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Tony Luck <tony.luck@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	Vadim Fedorenko <vadim.fedorenko@linux.dev>,
-	Vinod Koul <vkoul@kernel.org>, Will Deacon <will@kernel.org>,
-	Yazen Ghannam <Yazen.Ghannam@amd.com>, cocci@inria.fr,
-	amd-gfx@lists.freedesktop.org, dmaengine@vger.kernel.org,
-	dm-devel@lists.linux.dev, dri-devel@lists.freedesktop.org,
-	intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
-	iommu@lists.linux.dev, linux-cifs@vger.kernel.org,
-	linux-clk@vger.kernel.org, linux-crypto@vger.kernel.org,
-	linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, linux-pm@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-rtc@vger.kernel.org,
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
-	linux-sound@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-wireless@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH 00/36] treewide: remove conditional returns with no effect
-Message-ID: <adcfc6f2-3309-4496-8331-1ae31e85d363@sirena.org.uk>
-References: <20260723184538.3888637-1-ekffu200098@gmail.com>
+	netfilter-devel@vger.kernel.org,
+	Jan =?utf-8?Q?Ko=C5=84czak?= <jan.konczak@cs.put.poznan.pl>
+References: <20260611125231.652353-1-phil@nwl.cc>
+ <amHoSglXwfNia7V7@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2ViMWcNJN7tv3iXJ"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
-X-Cookie: It's OKAY -- I'm an INTELLECTUAL, too.
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <amHoSglXwfNia7V7@orbyte.nwl.cc>
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
+Hey Phil,
 
---2ViMWcNJN7tv3iXJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I see a configure failure after this change [1] on ubuntu-24.04.
 
-On Fri, Jul 24, 2026 at 03:45:02AM +0900, Sang-Heon Jeon wrote:
+  ./configure: line 5247: syntax error near unexpected token `3.6,'
+  ./configure: line 5247: `			AX_PROG_BISON_VERSION(3.6,'
+  Error: Process completed with exit code 2.
 
-> All patches are independent and can be applied separately, but for
-> everyone's convenience, it would be nice if they were merged through
-> a single tree.
+Does ax_prog_bison_version.m4 need to be added to the m4 directory?
 
-Please don't do this, it does not make anything more convenient - it
-results in huge CC lists and makes it more difficult to work out who
-will actually apply things.  If there's no dependencies just send to
-each subsystem independently.
+Thanks.
+E.
 
---2ViMWcNJN7tv3iXJ
-Content-Type: application/pgp-signature; name="signature.asc"
+[1]: https://github.com/firewalld/firewalld/actions/runs/30020547439/job/89969654992
 
------BEGIN PGP SIGNATURE-----
+On Thu, Jul 23, 2026 at 12:09:14PM +0200, Phil Sutter wrote:
+> On Thu, Jun 11, 2026 at 02:52:25PM +0200, Phil Sutter wrote:
+> > Support for 'custom' parse.error value was added in bison-3.6. Fall back
+> > to previous value for earlier versions.
+> > 
+> > This is harder to get right than it seems: On one hand, preprocessor
+> > macros can't be used in parser_bison.y's declaration section and
+> > automake forbids conditional changes to AM_YFLAGS on the other.
+> > 
+> > Another aspect complicating things is compiling with (an up to date)
+> > parser_bison.c in place vs. without: Dist tarballs generally have it in
+> > place, relieving users from having to provide a YACC when compiling. The
+> > existing parser_bison.c either uses parse.error=custom or not which does
+> > not (should not) change when compiling. Hiding yyreport_syntax_error()
+> > behind a CPPFLAG which may be set or not depending on bison presence and
+> > version then causes trouble if it doesn't match how parser_bison.c was
+> > created.
+> > 
+> > Avoid these pitfalls by:
+> > - Not relying upon a preprocessor define to control parser_bison.c
+> >   compilation, instead check existence of the bison-internal
+> >   YY_LAC_ESTABLISH macro
+> > - Exporting the above macro existence check in a variable for use by
+> >   main.c (thereby crossing the libnftables library boundary)
+> > 
+> > Also:
+> > - Introduce have_prebuilt_bison variable in configure.ac, unifying the
+> >   parser_bison.c existence check and solidify the latter by also
+> >   comparing its timestamp
+> > - Report extended parser errors enableval in configure only if
+> >   parser_bison.c will be recreated, otherwise we can't quite tell if it
+> >   will turn out to be enabled or not
+> > 
+> > Suggested-by: Jan Kończak <jan.konczak@cs.put.poznan.pl>
+> > Fixes: 67b822f2b2624 ("parser_bison: on syntax errors, output expected tokens")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> 
+> Patch applied.
+> 
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmpnSzQACgkQJNaLcl1U
-h9DhKwf/RoCnDee69F9hZ06/HOdC8gDpovt8IjWRgC8X3EQmHZkTxcKWoky17APD
-5D8K2eKoz+FEDKrtFChR3EfGX0AhpmXhKtwaUanH/Qm+clf4ZjOTiguGtDpB4EVm
-bTQ0cWSCcNpHm4yfpRk8XJVw/leZO0YIsDDi9rHzgeKJVY5zWBXi6azVk3svE2Ut
-E9u3jmn1vStzN8uV36mRJ2+hgzFQOVilP6XSNNxMrdu6GJXHk/T6ZUlANNAxGcbL
-/fZLJuq1gzwgfEJevdiqJ+O9U3OQl0DV9ZELQBaghYKq6Lv3nMs3PFSromeerfgv
-GqK0jSpzheWN4gsenCQKqgt3POQM+g==
-=WTGT
------END PGP SIGNATURE-----
-
---2ViMWcNJN7tv3iXJ--
