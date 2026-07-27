@@ -1,90 +1,69 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583C0364926
-	for <netfilter-devel@vger.kernel.org>; Sun, 26 Jul 2026 12:04:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BC8D1C84BC
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2026 08:24:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785067456; cv=none; b=GTdOkJDRbFm0MO+RK8UB0RFItm20z2nNoDSTZEOZjqGPR09AuyhFW/ZqwJX1TrnBnsudgkAgehE0rgjGHu8hIh6GWnNZC7g4r//UMTbWHM5jxyg5rsV5R8qdaIoxxUgj9poOd8Pp1cCRwRGohuqzcYLjKRaLFR4GWrQkelshpQI=
+	t=1785140674; cv=none; b=YLMmPo3h6ca+4WN+n6RXnCaZu9FIgiELfJTrAm4wikjSlXz2T4O5XeSdoYYAL6mZ6M7ELZWae/F0lGVGSgXSBfuqUD7BMezoFiwwEj6H6VAUXP2yYezqG8QK8bbo7priKejTCe4N3PzRRBQDc5IHWwPbf9F9VtxROippk4h+q8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785067456; c=relaxed/simple;
-	bh=FGKsV8ImoPCSFyQuOs3PPXSenkfS7k0qbXsw6/gJzE8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=skhS7TVzziPSsT1XiA8kblxYlozN8qm/cuVV8jtFkyjlwtTaNmsQTsiaYXNrepRq01f6ySW05CjmwK/n2fbrM4iMw2Z91Qwsmb2KGfywGh1UBhDsnGnGMqlczL02AOZ7jdKVRgD+/5SLbfDPwUPabNpZbYP5fCHT7vjElbVA/Ps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XKVTSh7D; arc=none smtp.client-ip=209.85.214.180
+	s=arc-20240116; t=1785140674; c=relaxed/simple;
+	bh=31m1I3L6yrQHAiIEKUQFsNfqJ1ihqwR64inM1bAsva0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=umk6w2uzOcPBM8oRl1yR2HzOzZia2rMSF5Gz/KnR+SRP902YQVftdapJiiWk58hYXjTDdYzZ3bBT2V5URMDGY+fHMTmpiB8R0p0gF2167z7J4yHp6UnfxK+7Y3UjETfWAEX2yIDeMxmv/2d5esVidp2cMUr5X+PhgbOZMfnXevI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=tLxqIVjm; arc=none smtp.client-ip=209.85.216.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XKVTSh7D"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2caea3f742bso23704125ad.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Jul 2026 05:04:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tLxqIVjm"
+Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-38101f85591so3056284a91.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Jul 2026 01:24:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785067454; x=1785672254; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=3fMoyd4/5L04YOQj1O1Wm3TJLLgmkpWw9olt1eyRhmg=;
-        b=XKVTSh7DAfcmF4UWx7+rlchYP+EVgei/vVr+CsesJb3Kt7iwWqzjPFLrj7Uowsr5wk
-         4rBsoWMuhgnnnDsCB3DvSXBFabl+VXWR/aJidkftg+XXn33aP3idpNgI7s5e1CTucW5D
-         geQBODeA7iRf9k0Qwa1m5p24VOwy5eZRsd2SIPrWzPnYq+OkIJej1T8eAloOsfiJWiZh
-         2qPuWTkI2E7ha8x2X04zb17Ab3UhYcQ7BP/gdMP9uR0j9+k9H88JLnDBODQ4d7bLz00M
-         w6xzb8kHS7Vmn6l2XFNS8T7sg5BWAjxw7H8MIWnt6qzVMA6dsPVfo0D0F9nVvzKRMrOV
-         Q3og==
+        d=gmail.com; s=20251104; t=1785140673; x=1785745473; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8m6N3mFtdOhOJHQiHuemxfvyUCmQ5tidBvHqyyWq+o8=;
+        b=tLxqIVjmwiS4YUMUGy+GYGIjV8PzyxKkprxiKEa52ky5VbvfHWtRbTLejWTyu/UG44
+         OQQ1c4Le2/oxrDroAhJfi6gTQW+CCC8dD69E1dfWt1QconIXSphC0H5BMvjAmVCbr/GE
+         wDdbqlAOt4oN32iHAaQcSPEXL80cs6qqDndvlD/vC/BTaKtMWqipeLg0YD44bRGBl9Iy
+         Vd/KqKPjvToT27lZpXZeSHHk2R39p+QzuHoR6Ik+sCd/FlAyD29s3fg+2BkcGQZ+uTx7
+         IxhTjiG0tXh/BK4AAjSOMNOqNd7OB5bIAos/ZE8Z2sMfCu5DXfsUSI7/xJ+yUSpexyn1
+         noPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785067454; x=1785672254;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=3fMoyd4/5L04YOQj1O1Wm3TJLLgmkpWw9olt1eyRhmg=;
-        b=Al8bjg6HQYcct/bk2Y8PUrapCJH6AcYcacLiOIufKuKTRQE8Prw/V0Z8+4k2XoVVHm
-         oDlCZbzuX8HkVq4PWbOFpYaO90nc0CxxzSMdmAqh8AEWoy2jqcMNz1nNSyZmNUTAW3Lx
-         9ueyqjtl64/yVG0zYLZKn33SFfbitlARuYqJQ40rWSXGHQP7x4u840dRX/FZRhTv/FTf
-         9H3x1z5hDX+N96pK6Y+CctkSUISkyb8aucUsXCglVNRt2bJDoNi+dVgY6+zIrhwkxi61
-         ZL9Pw3NwaiydzRuyrlJBn5EgIvddA6Exeaa+Z1vWLIP945EEbL7YjwajwImdXp3Crz0X
-         RT8w==
-X-Forwarded-Encrypted: i=1; AHgh+RreA76CfcIfrQvw8X1XalOjlIbIkbdiYsgC5KV/q8k+TihNt+9wFZtrDKnzGhb1J8GWhDmQpFlSVTK8J0ChvCA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YytuKBZ3KIxzvm88OqYQoyUj36m0C7rJgzroamdNHDK3EYv6yae
-	KNs6aQl7cGs2PWgCahZ+DfYzzSso2uLfeMoymh6OE0LyV5b7hq/cOIKG
-X-Gm-Gg: AR+sD10XCAIKw/g0Tt/t5Evk3anf8S9M1GKZXhM5HyES0CUC0gDE8QMjmplcugRYfxg
-	2myxeymnAc830ximBMaBd+vYoJLUqZ8M3JBIwwHXtEOVU9atUprrKr2gRW1NhSMaEbkIU8qj7UI
-	OrFD6lgzl+E7cOrfcIUh9I3GgVpwk4jk54hFwN4/O5OTF7/75EShG3KTAV/5n6jEn6FnLiP+v9+
-	3Vwlfs7UErp5aPaOrzkjy/HWfCkIDiZeI2KqAXozXlFLqVS8RyzpBdOwaKy3yrwwsI1Mp1gaZBe
-	l8oXgNcJMUNqfuIcpyNoYA9Niu3s9vDUqQWGmv9BbJTyg0KPnZPIxsX0yQykgyJlvGTUiKKQu7M
-	dmwn1RoPRfWqCYKemtouAzISfcKdnmEZUNS4gir5h8M5591JWpXb0/yCEYB9pDVOARCkcFfye/3
-	wKc2RVi4nFmQ==
-X-Received: by 2002:a17:902:e80a:b0:2ce:b096:e517 with SMTP id d9443c01a7336-2cfde67c05dmr49489305ad.5.1785067453412;
-        Sun, 26 Jul 2026 05:04:13 -0700 (PDT)
-Received: from bogon ([2408:8207:1832:1b44::c6b])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cfde59b451sm20020865ad.13.2026.07.26.05.04.08
+        d=1e100.net; s=20251104; t=1785140673; x=1785745473;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8m6N3mFtdOhOJHQiHuemxfvyUCmQ5tidBvHqyyWq+o8=;
+        b=IrflPScgp+a3ZjWWAADLAixVtwM4p7ptubzfZ1IgZw9zGTa+4xPx9s1Q2iNDQ37nCI
+         RGkzVhQ2eCFw7S+B3hCstyTdDmQGg+t7KkjPVt0010P4/vzHtbBKXHOpobUaOCDvgMbj
+         zdo6DQ1pjymnMr0trFsGmH8+QFYwvGZUJ55DU4T52MqgNrPcchaQ6+QhZuMZhTxzKgH0
+         S87JIuGw2JRvKl+T3iRRbggwDx7aKEGkhhcs0Ib+aBBHZAM9zo5mAL3xhFbvLdsUxts/
+         CYxZLviR0+Uq9b1o2t8bWo2D38cY1CBczkcjCzSANE4US64XY+UEg/IYALaDMHQA9KYz
+         qzig==
+X-Gm-Message-State: AOJu0YwFIKQ/JX6H+O6Txa6iH+I8lkPHM+6fIo3w6Cx5gchYsVdYBP9f
+	bnC/wyVMVxKtxj9Fi8DU9zDlUM9csfxgXkU9j4+3OrUsURyXxLxcntRqBKLK+AmC
+X-Gm-Gg: AR+sD10WAA4MazL7b/R+KwA13jg3oWqWUWAo2t5yO6gPms2FxInc9+tgbEbNizSc4JN
+	ahzOOcZJnJ0uhaMfsmRNF8J2zipGTWSO47OubofBgSnxIRbJc3xU7T8N/zWy+K0+5dkQRthuBOG
+	pDYRyYABaaZoYLsKif7ROGT2ZKrTo4ZbqiA+uWi7nsE0avUoJ7g8nWSMAbtCuCthOzzn2gIxa2R
+	AZz+4EzfDE32n8x2YLap8taoOJhvvXZJeuOx/iERJyFhUDc6rBlz/lKnxLZ1jJs6g8YJwr300Gl
+	zmW6cLjtE624Y4EXNQEIRmVb3iziDBdWx267UUgkkxXXGjskuJeFqBqNZGl5+ti1O7eAbJFIRlL
+	qGuNJBZ6YAS9MnFEY90zhvroRsYy2Pg8HDxfjU8Fm8QY9zrVyOk4NIGnKI5iaGEOlTR5VdEtubF
+	WaJIJEovZi5y6MJtHH3SgT7L3LMwFXK7+i6vTik8odPgNxZpuZ
+X-Received: by 2002:a17:90b:38d1:b0:36b:4d63:4a93 with SMTP id 98e67ed59e1d1-38f1eea84b1mr9289562a91.13.1785140672362;
+        Mon, 27 Jul 2026 01:24:32 -0700 (PDT)
+Received: from r912.tailbb6e1e.ts.net ([160.30.85.32])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13d2eb01aa0sm40424106c88.3.2026.07.27.01.24.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2026 05:04:12 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: Claudiu Manoil <claudiu.manoil@nxp.com>,
-	Vladimir Oltean <vladimir.oltean@nxp.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Cong Wang <xiyou.wangcong@gmail.com>,
-	Jiri Pirko <jiri@resnulli.us>
-Cc: netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	syzbot+5a66db916cdde0dbcc1c@syzkaller.appspotmail.com,
-	Xiang Mei <xmei5@asu.edu>,
-	stable@vger.kernel.org
-Subject: [PATCH net v2] net: flow_offload: serialize driver callback lists
-Date: Sun, 26 Jul 2026 05:03:15 -0700
-Message-ID: <20260726120338.488658-1-bestswngs@gmail.com>
+        Mon, 27 Jul 2026 01:24:31 -0700 (PDT)
+From: Avinash Duduskar <avinash.duduskar@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nft] datatype: accept a numeric cgroupsv2 id on input
+Date: Mon, 27 Jul 2026 13:54:27 +0530
+Message-ID: <20260727082427.740789-1-avinash.duduskar@gmail.com>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260719175028.988301-2-bestswngs@gmail.com>
-References: <20260719175028.988301-2-bestswngs@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -93,665 +72,300 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Drivers keep flow_block_cb objects on callback lists which are often
-shared globally. TC setup normally runs under RTNL, but nftables invokes
-ndo_setup_tc() while holding only its per-netns commit mutex. Concurrent
-transactions in different netns can therefore corrupt a shared driver
-callback list.
+Once a cgroup is removed there is no path left to resolve, so the listing
+falls back to printing the raw id:
 
-The same list can also be changed after ndo_setup_tc() returns. If filter
-replay fails while binding a TC block, tcf_block_bind() removes and frees
-callbacks from its error path without synchronizing against an nftables
-transaction walking the driver list.
+  # nft list set ip t s
+  table ip t {
+          set s {
+                  type cgroupsv2
+                  elements = { 50834 }
+          }
+  }
 
-Add a flow-offload callback mutex and hold it across direct and indirect
-setup, callback ownership transfer and rollback. Move indirect-unregister
-list removal into the flow-offload core, and keep indirect-device
-registration transactional on setup failure. When TC must reject an
-indirect bind after callback installation, unwind only the callbacks
-created by that bind so existing callbacks remain intact.
+That output is not valid input. cgroupv2_type_parse() only stats
+/sys/fs/cgroup/<identifier>, so handing the id back fails:
 
-Initialize the auxiliary callback list nodes so common error paths can
-safely detach them. ENETC also inspects its callback list outside the
-setup callback, so protect those accesses with the same mutex.
+  # nft delete element ip t s { 50834 }
+  Error: cgroupv2 path fails: No such file or directory
 
-This fixes the following netdevsim failure:
+The element cannot be addressed by key at all once its cgroup is gone,
+which leaves flushing the containing set as the only way to remove it.
+The json dump does not reload either, since the id is serialised as a
+string and reaches the same parser.
+tests/shell/testcases/packetpath/cgroupv2 works around this in its
+cleanup(), added by commit 9fbc77c127e7 ("tests: shell: add cgroupv2
+socket match test case"), because "nft can't find the human-readable
+names anymore".
 
-  list_del corruption. next->prev should be ffff88800b3e30c0,
-  but was ffff88800b539e40.
-  WARNING: CPU: 0 PID: 79 at lib/list_debug.c:65
-  RIP: __list_del_entry_valid_or_report
-  flow_block_cb_setup_simple
-  nft_block_offload_cmd
-  nft_flow_rule_offload_commit
-  nf_tables_commit
-  nfnetlink_rcv_batch
+Take the id back when the path does not resolve, accepting a decimal
+number and nothing else. integer_type_parse() converts with base 0 and
+expr_evaluate_integer() does not check the sign, so it would take "0755"
+as 493, "0x1f" as 31 and "-1" as 1; strtoull() alone still accepts a
+leading sign or space. Requiring a leading digit closes both. The path
+lookup stays first, so a cgroup named as a number still resolves as a
+path.
 
-Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Link: https://lore.kernel.org/netdev/20260719175028.988301-2-bestswngs@gmail.com/
-Cc: stable@vger.kernel.org
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+A plain decimal name that does not resolve now becomes an id rather than
+an error, the way meta skuid falls back to the numeric uid when there is
+no passwd entry. nft accepting what nft printed is worth more than
+diagnosing a mistyped path.
+
+Fixes: 38228087252c ("src: add cgroupsv2 support")
+Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
 ---
+cgroupv2_type_print() still ignores -n and prints the resolved path when it
+can. This patch only makes the id nft already prints acceptable as input;
+making the print side honour -n is a separate change.
 
-v2:
-  - Move serialization to common flow-offload paths, including rollback and indirect cleanup.
-  - Preserve existing callbacks when an indirect bind fails.
-    
-  v1: https://lore.kernel.org/netdev/20260719175028.988301-2-bestswngs@gmail.com/
-  review: https://lore.kernel.org/netdev/20260724142321.GL418547@horms.kernel.org/
+dumps/cgroupv2_stale_id.nft is empty and the json dump is the metainfo
+boilerplate, because the test leaves no ruleset behind and the ids it uses are
+not stable across runs. There is no .nodump, so the dump comparison still runs.
 
- .../net/ethernet/freescale/enetc/enetc_qos.c  | 27 ++++--
- include/net/flow_offload.h                    |  6 +-
- net/core/flow_offload.c                       | 77 +++++++++++++++--
- net/netfilter/nf_flow_table_offload.c         | 28 +++---
- net/netfilter/nf_tables_offload.c             | 18 +++-
- net/sched/act_api.c                           |  4 +-
- net/sched/cls_api.c                           | 86 ++++++++++++++++---
- 7 files changed, 201 insertions(+), 45 deletions(-)
+No NFT_TEST_REQUIRES: the test uses no socket expression, so neither
+NFT_TEST_HAVE_cgroupsv2 nor nft_socket is involved. It skips with 77 without a
+writable cgroup2 mount, and the json arm skips unless -j actually works.
 
-diff --git a/drivers/net/ethernet/freescale/enetc/enetc_qos.c b/drivers/net/ethernet/freescale/enetc/enetc_qos.c
-index 7b17bca24f26..c994f878cacd 100644
---- a/drivers/net/ethernet/freescale/enetc/enetc_qos.c
-+++ b/drivers/net/ethernet/freescale/enetc/enetc_qos.c
-@@ -1601,30 +1601,41 @@ int enetc_set_psfp(struct net_device *ndev, bool en)
+Searched the netfilter-devel archive for cgroupv2: 133 messages, 2021-04-21 to
+2026-05-28, none proposing that a numeric id be accepted on input.
+
+Tested on b315dd55 with a libnftnl built from git 363b0e3, since master needs
+nftnl_set_elem_set_imm which is not in libnftnl 1.3.1. The suite gains this one
+test and no regressions; two pre-existing failures are unchanged with and
+without the patch.
+
+ src/datatype.c                                |  29 +++-
+ .../shell/testcases/parsing/cgroupv2_stale_id | 154 ++++++++++++++++++
+ .../parsing/dumps/cgroupv2_stale_id.json-nft  |  11 ++
+ .../parsing/dumps/cgroupv2_stale_id.nft       |   0
+ 4 files changed, 190 insertions(+), 4 deletions(-)
+ create mode 100755 tests/shell/testcases/parsing/cgroupv2_stale_id
+ create mode 100644 tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.json-nft
+ create mode 100644 tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.nft
+
+diff --git a/src/datatype.c b/src/datatype.c
+index 4dbca16e..adbbbacf 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -1665,11 +1665,32 @@ static struct error_record *cgroupv2_type_parse(struct parse_ctx *ctx,
+ 		 SYSFS_CGROUPSV2_PATH, sym->identifier);
+ 	cgroupv2_path[sizeof(cgroupv2_path) - 1] = '\0';
  
- int enetc_psfp_init(struct enetc_ndev_priv *priv)
- {
-+	int err = 0;
+-	if (stat(cgroupv2_path, &st) < 0)
+-		return error(&sym->location, "cgroupv2 path fails: %s",
+-			     strerror(errno));
++	if (stat(cgroupv2_path, &st) < 0) {
++		int stat_errno = errno;
++		char *end;
 +
-+	flow_block_cb_lock();
- 	if (epsfp.psfp_sfi_bitmap)
--		return 0;
-+		goto out;
- 
- 	epsfp.psfp_sfi_bitmap = bitmap_zalloc(priv->psfp_cap.max_psfp_filter,
- 					      GFP_KERNEL);
--	if (!epsfp.psfp_sfi_bitmap)
--		return -ENOMEM;
-+	if (!epsfp.psfp_sfi_bitmap) {
-+		err = -ENOMEM;
-+		goto out;
++		/* The path is gone, so the listing prints the raw id; take it
++		 * back or nft cannot parse its own output. Decimal only: a
++		 * leading zero is read as decimal, not octal, and a bare
++		 * strtoull() would take a leading sign or space too. A
++		 * non-number keeps the path error, which is what it most
++		 * likely is; only an over-wide number gets its own.
++		 */
++		if (!isdigit((unsigned char)sym->identifier[0]))
++			return error(&sym->location, "cgroupv2 path fails: %s",
++				     strerror(stat_errno));
++
++		errno = 0;
++		ino = strtoull(sym->identifier, &end, 10);
++		if (*end != '\0')
++			return error(&sym->location, "cgroupv2 path fails: %s",
++				     strerror(stat_errno));
++		if (errno == ERANGE)
++			return error(&sym->location, "cgroupv2 id out of range");
++	} else {
++		ino = st.st_ino;
 +	}
  
- 	spin_lock_init(&epsfp.psfp_lock);
- 
- 	if (list_empty(&enetc_block_cb_list))
- 		epsfp.dev_bitmap = 0;
- 
--	return 0;
-+out:
-+	flow_block_cb_unlock();
-+	return err;
- }
- 
- int enetc_psfp_clean(struct enetc_ndev_priv *priv)
- {
--	if (!list_empty(&enetc_block_cb_list))
--		return -EBUSY;
-+	int err = -EBUSY;
- 
--	clean_psfp_all();
-+	flow_block_cb_lock();
-+	if (list_empty(&enetc_block_cb_list)) {
-+		clean_psfp_all();
-+		err = 0;
+-	ino = st.st_ino;
+ 	*res = constant_expr_alloc(&sym->location, &cgroupv2_type,
+ 				   BYTEORDER_HOST_ENDIAN,
+ 				   sizeof(ino) * BITS_PER_BYTE, &ino);
+diff --git a/tests/shell/testcases/parsing/cgroupv2_stale_id b/tests/shell/testcases/parsing/cgroupv2_stale_id
+new file mode 100755
+index 00000000..9f2d49d8
+--- /dev/null
++++ b/tests/shell/testcases/parsing/cgroupv2_stale_id
+@@ -0,0 +1,154 @@
++#!/bin/bash
++
++# A cgroupsv2 element has to stay addressable once its cgroup is gone: the
++# listing prints the raw id, so that id has to be accepted back, and nothing
++# else has to be.
++
++CGROUP="/sys/fs/cgroup/nft-stale-$$"
++# numeric on purpose: a cgroup named as a number must still resolve as a path
++CGNUM="/sys/fs/cgroup/$$"
++JDUMP=
++
++cleanup()
++{
++	$NFT delete table t 2>/dev/null
++	rmdir "$CGROUP" 2>/dev/null
++	rmdir "$CGNUM" 2>/dev/null
++	[ -n "$JDUMP" ] && rm -f "$JDUMP"
++}
++trap cleanup EXIT
++
++if [ ! -w /sys/fs/cgroup ]; then
++	echo "cgroup filesystem not writable"
++	exit 77
++fi
++
++# -w alone passes on a v1 or hybrid layout, where everything below tests nothing
++if [ "$(stat -f --printf=%T /sys/fs/cgroup)" != "cgroup2fs" ]; then
++	echo "not a cgroupv2 mount"
++	exit 77
++fi
++
++if ! mkdir "$CGROUP" 2>/dev/null; then
++	# unprivileged and left over from a dead run are different facts
++	[ -d "$CGROUP" ] && {
++		echo "E: $CGROUP already exists" >&2
++		exit 1
 +	}
-+	flow_block_cb_unlock();
- 
--	return 0;
-+	return err;
- }
- 
- int enetc_setup_tc_psfp(struct net_device *ndev, void *type_data)
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 70a02ee14308..96a46ba2769d 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -647,6 +647,8 @@ struct flow_block_cb *flow_block_cb_lookup(struct flow_block *block,
- void *flow_block_cb_priv(struct flow_block_cb *block_cb);
- void flow_block_cb_incref(struct flow_block_cb *block_cb);
- unsigned int flow_block_cb_decref(struct flow_block_cb *block_cb);
-+void flow_block_cb_lock(void);
-+void flow_block_cb_unlock(void);
- 
- static inline void flow_block_cb_add(struct flow_block_cb *block_cb,
- 				     struct flow_block_offload *offload)
-@@ -741,7 +743,9 @@ void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
- int flow_indr_dev_setup_offload(struct net_device *dev, struct Qdisc *sch,
- 				enum tc_setup_type type, void *data,
- 				struct flow_block_offload *bo,
--				void (*cleanup)(struct flow_block_cb *block_cb));
-+				void (*cleanup)(struct flow_block_cb *block_cb),
-+				bool *indr_dev_added);
-+void flow_indr_dev_setup_abort(void *data);
- bool flow_indr_dev_exists(void);
- 
- #endif /* _NET_FLOW_OFFLOAD_H */
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 5071d7fe6ce2..0b4d2a2cbaf8 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -270,6 +270,8 @@ struct flow_block_cb *flow_block_cb_alloc(flow_setup_cb_t *cb,
- 	block_cb->cb_ident = cb_ident;
- 	block_cb->cb_priv = cb_priv;
- 	block_cb->release = release;
-+	INIT_LIST_HEAD(&block_cb->driver_list);
-+	INIT_LIST_HEAD(&block_cb->indr.list);
- 
- 	return block_cb;
- }
-@@ -317,11 +319,27 @@ unsigned int flow_block_cb_decref(struct flow_block_cb *block_cb)
- }
- EXPORT_SYMBOL(flow_block_cb_decref);
- 
-+static DEFINE_MUTEX(flow_block_cb_mutex);
++	echo "cannot create a cgroup"
++	exit 77
++fi
++name="${CGROUP##*/}"
++id=$(stat --printf=%i "$CGROUP")
 +
-+void flow_block_cb_lock(void)
-+{
-+	mutex_lock(&flow_block_cb_mutex);
++$NFT add table t || exit 1
++$NFT add set t s '{ type cgroupsv2; }' || exit 1
++$NFT add element t s "{ \"$name\" }" || exit 1
++
++rmdir "$CGROUP" || exit 1
++
++# Another cgroup can take this inode between the rmdir and the listing, which
++# resolves it back to a name. Narrow, and not closable from here.
++$NFT list set t s | grep -qw "$id" || {
++	echo "E: listing does not show the stale cgroup id $id" >&2
++	$NFT list set t s >&2
++	exit 1
 +}
-+EXPORT_SYMBOL(flow_block_cb_lock);
 +
-+void flow_block_cb_unlock(void)
-+{
-+	mutex_unlock(&flow_block_cb_mutex);
++$NFT delete element t s "{ $id }" || {
++	echo "E: cannot delete a cgroupsv2 element by the id that was listed" >&2
++	exit 1
 +}
-+EXPORT_SYMBOL(flow_block_cb_unlock);
 +
- bool flow_block_cb_is_busy(flow_setup_cb_t *cb, void *cb_ident,
- 			   struct list_head *driver_block_list)
- {
- 	struct flow_block_cb *block_cb;
- 
-+	lockdep_assert_held(&flow_block_cb_mutex);
-+
- 	list_for_each_entry(block_cb, driver_block_list, driver_list) {
- 		if (block_cb->cb == cb &&
- 		    block_cb->cb_ident == cb_ident)
-@@ -340,6 +358,8 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
- {
- 	struct flow_block_cb *block_cb;
- 
-+	lockdep_assert_held(&flow_block_cb_mutex);
-+
- 	if (ingress_only &&
- 	    f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
- 		return -EOPNOTSUPP;
-@@ -431,12 +451,14 @@ int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv)
- {
- 	struct flow_indr_dev *indr_dev;
- 
-+	flow_block_cb_lock();
- 	mutex_lock(&flow_indr_block_lock);
- 	list_for_each_entry(indr_dev, &flow_block_indr_dev_list, list) {
- 		if (indr_dev->cb == cb &&
- 		    indr_dev->cb_priv == cb_priv) {
- 			refcount_inc(&indr_dev->refcnt);
- 			mutex_unlock(&flow_indr_block_lock);
-+			flow_block_cb_unlock();
- 			return 0;
- 		}
- 	}
-@@ -444,12 +466,14 @@ int flow_indr_dev_register(flow_indr_block_bind_cb_t *cb, void *cb_priv)
- 	indr_dev = flow_indr_dev_alloc(cb, cb_priv);
- 	if (!indr_dev) {
- 		mutex_unlock(&flow_indr_block_lock);
-+		flow_block_cb_unlock();
- 		return -ENOMEM;
- 	}
- 
- 	list_add(&indr_dev->list, &flow_block_indr_dev_list);
- 	existing_qdiscs_register(cb, cb_priv);
- 	mutex_unlock(&flow_indr_block_lock);
-+	flow_block_cb_unlock();
- 
- 	tcf_action_reoffload_cb(cb, cb_priv, true);
- 
-@@ -465,8 +489,10 @@ static void __flow_block_indr_cleanup(void (*release)(void *cb_priv),
- 
- 	list_for_each_entry_safe(this, next, &flow_block_indr_list, indr.list) {
- 		if (this->release == release &&
--		    this->indr.cb_priv == cb_priv)
-+		    this->indr.cb_priv == cb_priv) {
-+			list_del_init(&this->driver_list);
- 			list_move(&this->indr.list, cleanup_list);
-+		}
- 	}
- }
- 
-@@ -486,6 +512,7 @@ void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
- 	struct flow_indr_dev *this, *next, *indr_dev = NULL;
- 	LIST_HEAD(cleanup_list);
- 
-+	flow_block_cb_lock();
- 	mutex_lock(&flow_indr_block_lock);
- 	list_for_each_entry_safe(this, next, &flow_block_indr_dev_list, list) {
- 		if (this->cb == cb &&
-@@ -499,11 +526,13 @@ void flow_indr_dev_unregister(flow_indr_block_bind_cb_t *cb, void *cb_priv,
- 
- 	if (!indr_dev) {
- 		mutex_unlock(&flow_indr_block_lock);
-+		flow_block_cb_unlock();
- 		return;
- 	}
- 
- 	__flow_block_indr_cleanup(release, cb_priv, &cleanup_list);
- 	mutex_unlock(&flow_indr_block_lock);
-+	flow_block_cb_unlock();
- 
- 	tcf_action_reoffload_cb(cb, cb_priv, false);
- 	flow_block_indr_notify(&cleanup_list);
-@@ -603,18 +632,31 @@ static int indir_dev_remove(void *data)
- int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
- 				enum tc_setup_type type, void *data,
- 				struct flow_block_offload *bo,
--				void (*cleanup)(struct flow_block_cb *block_cb))
-+				void (*cleanup)(struct flow_block_cb *block_cb),
-+				bool *indr_dev_added)
- {
- 	struct flow_indr_dev *this;
- 	u32 count = 0;
- 	int err;
- 
-+	lockdep_assert_held(&flow_block_cb_mutex);
-+
-+	if (indr_dev_added)
-+		*indr_dev_added = false;
-+
- 	mutex_lock(&flow_indr_block_lock);
- 	if (bo) {
--		if (bo->command == FLOW_BLOCK_BIND)
--			indir_dev_add(data, dev, sch, type, cleanup, bo);
--		else if (bo->command == FLOW_BLOCK_UNBIND)
-+		if (bo->command == FLOW_BLOCK_BIND) {
-+			err = indir_dev_add(data, dev, sch, type, cleanup, bo);
-+			if (!err) {
-+				if (indr_dev_added)
-+					*indr_dev_added = true;
-+			} else if (err != -EEXIST) {
-+				goto out_unlock;
-+			}
-+		} else if (bo->command == FLOW_BLOCK_UNBIND) {
- 			indir_dev_remove(data);
-+		}
- 	}
- 
- 	list_for_each_entry(this, &flow_block_indr_dev_list, list) {
-@@ -623,14 +665,35 @@ int flow_indr_dev_setup_offload(struct net_device *dev,	struct Qdisc *sch,
- 			count++;
- 	}
- 
-+	err = (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
-+
-+out_unlock:
- 	mutex_unlock(&flow_indr_block_lock);
- 
--	return (bo && list_empty(&bo->cb_list)) ? -EOPNOTSUPP : count;
-+	return err;
- }
- EXPORT_SYMBOL(flow_indr_dev_setup_offload);
- 
-+void flow_indr_dev_setup_abort(void *data)
-+{
-+	lockdep_assert_held(&flow_block_cb_mutex);
-+
-+	mutex_lock(&flow_indr_block_lock);
-+	WARN_ON_ONCE(indir_dev_remove(data));
-+	mutex_unlock(&flow_indr_block_lock);
++$NFT list set t s | grep -qw "$id" && {
++	echo "E: element still present after delete" >&2
++	exit 1
 +}
-+EXPORT_SYMBOL(flow_indr_dev_setup_abort);
 +
- bool flow_indr_dev_exists(void)
- {
--	return !list_empty(&flow_block_indr_dev_list);
-+	bool exists;
++$NFT add element t s "{ $id }" || exit 1
 +
-+	flow_block_cb_lock();
-+	mutex_lock(&flow_indr_block_lock);
-+	exists = !list_empty(&flow_block_indr_dev_list);
-+	mutex_unlock(&flow_indr_block_lock);
-+	flow_block_cb_unlock();
-+
-+	return exists;
- }
- EXPORT_SYMBOL(flow_indr_dev_exists);
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 801a3dd9ceea..2612978b27b4 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1186,7 +1186,6 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
- 	struct flow_block_cb *block_cb, *next;
- 	int err = 0;
- 
--	down_write(&flowtable->flow_block_lock);
- 	switch (cmd) {
- 	case FLOW_BLOCK_BIND:
- 		list_splice(&bo->cb_list, &flowtable->flow_block.cb_list);
-@@ -1201,8 +1200,6 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
- 		WARN_ON_ONCE(1);
- 		err = -EOPNOTSUPP;
- 	}
--	up_write(&flowtable->flow_block_lock);
--
- 	return err;
- }
- 
-@@ -1230,7 +1227,6 @@ static void nf_flow_table_indr_cleanup(struct flow_block_cb *block_cb)
- 	nf_flow_table_gc_cleanup(flowtable, dev);
- 	down_write(&flowtable->flow_block_lock);
- 	list_del(&block_cb->list);
--	list_del(&block_cb->driver_list);
- 	flow_block_cb_free(block_cb);
- 	up_write(&flowtable->flow_block_lock);
- }
-@@ -1239,13 +1235,15 @@ static int nf_flow_table_indr_offload_cmd(struct flow_block_offload *bo,
- 					  struct nf_flowtable *flowtable,
- 					  struct net_device *dev,
- 					  enum flow_block_command cmd,
--					  struct netlink_ext_ack *extack)
-+					  struct netlink_ext_ack *extack,
-+					  bool *indr_dev_added)
- {
- 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
- 					 extack);
- 
- 	return flow_indr_dev_setup_offload(dev, NULL, TC_SETUP_FT, flowtable, bo,
--					   nf_flow_table_indr_cleanup);
-+					   nf_flow_table_indr_cleanup,
-+					   indr_dev_added);
- }
- 
- static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
-@@ -1258,9 +1256,7 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
- 
- 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
- 					 extack);
--	down_write(&flowtable->flow_block_lock);
- 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
--	up_write(&flowtable->flow_block_lock);
- 	if (err < 0)
- 		return err;
- 
-@@ -1273,21 +1269,29 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- {
- 	struct netlink_ext_ack extack = {};
- 	struct flow_block_offload bo;
-+	bool indr_dev_added = false;
- 	int err;
- 
- 	if (!nf_flowtable_hw_offload(flowtable))
- 		return nf_flow_offload_xdp_setup(flowtable, dev, cmd);
- 
-+	flow_block_cb_lock();
-+	down_write(&flowtable->flow_block_lock);
- 	if (dev->netdev_ops->ndo_setup_tc)
- 		err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd,
- 						&extack);
- 	else
- 		err = nf_flow_table_indr_offload_cmd(&bo, flowtable, dev, cmd,
--						     &extack);
--	if (err < 0)
--		return err;
-+						     &extack,
-+						     &indr_dev_added);
-+	if (err >= 0)
-+		err = nf_flow_table_block_setup(flowtable, &bo, cmd);
-+	if (err < 0 && indr_dev_added)
-+		flow_indr_dev_setup_abort(flowtable);
-+	up_write(&flowtable->flow_block_lock);
-+	flow_block_cb_unlock();
- 
--	return nf_flow_table_block_setup(flowtable, &bo, cmd);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_offload_setup);
- 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 8998a24651ff..7189e8c4e5a0 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -414,7 +414,6 @@ static void nft_indr_block_cleanup(struct flow_block_cb *block_cb)
- 				    basechain, &extack);
- 	nft_net = nft_pernet(net);
- 	mutex_lock(&nft_net->commit_mutex);
--	list_del(&block_cb->driver_list);
- 	list_move(&block_cb->list, &bo.cb_list);
- 	nft_flow_offload_unbind(&bo, basechain);
- 	mutex_unlock(&nft_net->commit_mutex);
-@@ -426,19 +425,28 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *basechain,
- {
- 	struct netlink_ext_ack extack = {};
- 	struct flow_block_offload bo;
-+	bool indr_dev_added = false;
- 	int err;
- 
- 	nft_flow_block_offload_init(&bo, dev_net(dev), cmd, basechain, &extack);
- 
- 	err = flow_indr_dev_setup_offload(dev, NULL, TC_SETUP_BLOCK, basechain, &bo,
--					  nft_indr_block_cleanup);
--	if (err < 0)
-+					  nft_indr_block_cleanup,
-+					  &indr_dev_added);
-+	if (err < 0) {
-+		if (indr_dev_added)
-+			flow_indr_dev_setup_abort(basechain);
- 		return err;
++# json serialises the id as a string, so it reaches the same parser. The harness
++# round trip at exit sees an empty ruleset here, so do it inline, scoped to this
++# table.
++if [ "$NFT_TEST_HAVE_json" != n ] && $NFT -j list tables >/dev/null 2>&1; then
++	JDUMP=$(mktemp) || exit 1
++	$NFT -j list table t > "$JDUMP" || exit 1
++	$NFT delete table t || exit 1
++	$NFT -j -f "$JDUMP" || {
++		echo "E: a json dump holding a stale cgroupsv2 id does not reload" >&2
++		exit 1
 +	}
- 
- 	if (list_empty(&bo.cb_list))
- 		return -EOPNOTSUPP;
- 
--	return nft_block_setup(basechain, &bo, cmd);
-+	err = nft_block_setup(basechain, &bo, cmd);
-+	if (err < 0 && indr_dev_added)
-+		flow_indr_dev_setup_abort(basechain);
-+
-+	return err;
- }
- 
- static int nft_chain_offload_cmd(struct nft_base_chain *basechain,
-@@ -447,10 +455,12 @@ static int nft_chain_offload_cmd(struct nft_base_chain *basechain,
- {
- 	int err;
- 
-+	flow_block_cb_lock();
- 	if (dev->netdev_ops->ndo_setup_tc)
- 		err = nft_block_offload_cmd(basechain, dev, cmd);
- 	else
- 		err = nft_indr_block_offload_cmd(basechain, dev, cmd);
-+	flow_block_cb_unlock();
- 
- 	return err;
- }
-diff --git a/net/sched/act_api.c b/net/sched/act_api.c
-index f141634df214..317b026f0463 100644
---- a/net/sched/act_api.c
-+++ b/net/sched/act_api.c
-@@ -205,8 +205,10 @@ static int tcf_action_offload_cmd_ex(struct flow_offload_action *fl_act,
- {
- 	int err;
- 
-+	flow_block_cb_lock();
- 	err = flow_indr_dev_setup_offload(NULL, NULL, TC_SETUP_ACT,
--					  fl_act, NULL, NULL);
-+					  fl_act, NULL, NULL, NULL);
-+	flow_block_cb_unlock();
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index fee4524adc98..1c230e33e1a5 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -808,7 +808,6 @@ static void tc_block_indr_cleanup(struct flow_block_cb *block_cb)
- 			       &extack);
- 	rtnl_lock();
- 	down_write(&block->cb_lock);
--	list_del(&block_cb->driver_list);
- 	list_move(&block_cb->list, &bo.cb_list);
- 	tcf_block_unbind(block, &bo);
- 	up_write(&block->cb_lock);
-@@ -824,17 +823,20 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
- 				 struct net_device *dev, struct Qdisc *sch,
- 				 struct tcf_block_ext_info *ei,
- 				 enum flow_block_command command,
--				 struct netlink_ext_ack *extack)
-+				 struct netlink_ext_ack *extack,
-+				 bool *indr_dev_added,
-+				 unsigned int *indr_cb_count,
-+				 bool *indr_unlocked_driver_cb)
- {
- 	struct flow_block_offload bo = {};
-+	unsigned int cb_count;
-+	int err;
- 
- 	tcf_block_offload_init(&bo, dev, sch, command, ei->binder_type,
- 			       &block->flow_block, tcf_block_shared(block),
- 			       extack);
- 
- 	if (dev->netdev_ops->ndo_setup_tc) {
--		int err;
--
- 		err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
- 		if (err < 0) {
- 			if (err != -EOPNOTSUPP)
-@@ -845,21 +847,66 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
- 		return tcf_block_setup(block, &bo);
- 	}
- 
--	flow_indr_dev_setup_offload(dev, sch, TC_SETUP_BLOCK, block, &bo,
--				    tc_block_indr_cleanup);
--	tcf_block_setup(block, &bo);
-+	err = flow_indr_dev_setup_offload(dev, sch, TC_SETUP_BLOCK, block, &bo,
-+					  tc_block_indr_cleanup,
-+					  indr_dev_added);
-+	if (err < 0)
-+		return err;
-+	cb_count = list_count_nodes(&bo.cb_list);
-+	err = tcf_block_setup(block, &bo);
-+	if (err)
-+		return err;
-+	if (indr_cb_count)
-+		*indr_cb_count = cb_count;
-+	if (indr_unlocked_driver_cb)
-+		*indr_unlocked_driver_cb = bo.unlocked_driver_cb;
- 
- 	return -EOPNOTSUPP;
- }
- 
-+static void
-+tcf_block_indr_bind_rollback(struct tcf_block *block, struct net_device *dev,
-+			     struct Qdisc *sch, struct tcf_block_ext_info *ei,
-+			     unsigned int cb_count, bool unlocked_driver_cb,
-+			     bool remove_indr_dev)
-+{
-+	struct flow_block_offload bo = {};
-+	struct flow_block_cb *block_cb;
-+
-+	tcf_block_offload_init(&bo, dev, sch, FLOW_BLOCK_UNBIND,
-+			       ei->binder_type, &block->flow_block,
-+			       tcf_block_shared(block), NULL);
-+	bo.unlocked_driver_cb = unlocked_driver_cb;
-+
-+	if (remove_indr_dev)
-+		flow_indr_dev_setup_abort(block);
-+
-+	/* tcf_block_bind() splices this bind's callbacks at the list head. */
-+	while (cb_count--) {
-+		if (WARN_ON_ONCE(list_empty(&block->flow_block.cb_list)))
-+			break;
-+
-+		block_cb = list_first_entry(&block->flow_block.cb_list,
-+					    struct flow_block_cb, list);
-+		list_del_init(&block_cb->driver_list);
-+		list_del_init(&block_cb->indr.list);
-+		list_move(&block_cb->list, &bo.cb_list);
++	$NFT list set t s | grep -qw "$id" || {
++		echo "E: the id did not survive the json round trip" >&2
++		exit 1
 +	}
-+	tcf_block_unbind(block, &bo);
++else
++	echo "I: no json support, skipping the json reload check"
++fi
++
++$NFT flush set t s || exit 1
++
++# Nothing outside the form the listing emits: a plain strtoull() would take
++# "-1", "+5" and " 42", a base 0 conversion "-1", " 42", "0x10" and "1 2".
++for bogus in "-1" "+5" " 42" "0x10" "1 2" "nft-does-not-exist" "12abc"; do
++	$NFT add element t s "{ \"$bogus\" }" 2>/dev/null && {
++		echo "E: accepted \"$bogus\" as a cgroupsv2 id" >&2
++		$NFT list set t s >&2
++		exit 1
++	}
++done
++
++# Each add above also "passes" when it fails for an unrelated reason, so check
++# the set is really empty rather than trusting seven rejections.
++out=$($NFT list set t s) || exit 1
++case "$out" in
++*elements*)
++	echo "E: something was stored despite every add failing" >&2
++	echo "$out" >&2
++	exit 1
++	;;
++esac
++
++# 64 bits wide, so one past the top has to fail while the top itself works
++$NFT add element t s "{ 18446744073709551616 }" 2>/dev/null && {
++	echo "E: accepted an id wider than 64 bits" >&2
++	exit 1
++}
++$NFT add element t s "{ 18446744073709551615 }" || {
++	echo "E: rejected the largest valid id" >&2
++	exit 1
++}
++$NFT flush set t s || exit 1
++
++# 010 is decimal 10, not octal 8. Asserted by delete, since the listing would
++# try to resolve 10 to a path.
++$NFT add element t s '{ "010" }' || {
++	echo "E: rejected a decimal id with a leading zero" >&2
++	exit 1
++}
++$NFT delete element t s "{ 10 }" || {
++	echo "E: \"010\" was not taken as decimal 10" >&2
++	exit 1
 +}
 +
- static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 				  struct tcf_block_ext_info *ei,
- 				  struct netlink_ext_ack *extack)
- {
- 	struct net_device *dev = q->dev_queue->dev;
-+	bool indr_unlocked_driver_cb = false;
-+	bool indr_dev_added = false;
-+	unsigned int indr_cb_count = 0;
- 	int err;
- 
- 	down_write(&block->cb_lock);
-+	flow_block_cb_lock();
- 
- 	/* If tc offload feature is disabled and the block we try to bind
- 	 * to already has some offloaded filters, forbid to bind.
-@@ -872,14 +919,15 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 		goto err_unlock;
- 	}
- 
--	err = tcf_block_offload_cmd(block, dev, q, ei, FLOW_BLOCK_BIND, extack);
-+	err = tcf_block_offload_cmd(block, dev, q, ei, FLOW_BLOCK_BIND, extack,
-+				    &indr_dev_added, &indr_cb_count,
-+				    &indr_unlocked_driver_cb);
- 	if (err == -EOPNOTSUPP)
- 		goto no_offload_dev_inc;
- 	if (err)
- 		goto err_unlock;
- 
--	up_write(&block->cb_lock);
--	return 0;
-+	goto out_unlock;
- 
- no_offload_dev_inc:
- 	if (tcf_block_offload_in_use(block))
-@@ -888,6 +936,15 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 	err = 0;
- 	block->nooffloaddevcnt++;
- err_unlock:
-+	if (err && indr_cb_count)
-+		tcf_block_indr_bind_rollback(block, dev, q, ei,
-+					     indr_cb_count,
-+					     indr_unlocked_driver_cb,
-+					     indr_dev_added);
-+	else if (err && indr_dev_added)
-+		flow_indr_dev_setup_abort(block);
-+out_unlock:
-+	flow_block_cb_unlock();
- 	up_write(&block->cb_lock);
- 	return err;
- }
-@@ -899,14 +956,18 @@ static void tcf_block_offload_unbind(struct tcf_block *block, struct Qdisc *q,
- 	int err;
- 
- 	down_write(&block->cb_lock);
--	err = tcf_block_offload_cmd(block, dev, q, ei, FLOW_BLOCK_UNBIND, NULL);
-+	flow_block_cb_lock();
-+	err = tcf_block_offload_cmd(block, dev, q, ei, FLOW_BLOCK_UNBIND, NULL,
-+				    NULL, NULL, NULL);
- 	if (err == -EOPNOTSUPP)
- 		goto no_offload_dev_dec;
-+	flow_block_cb_unlock();
- 	up_write(&block->cb_lock);
- 	return;
- 
- no_offload_dev_dec:
- 	WARN_ON(block->nooffloaddevcnt-- == 0);
-+	flow_block_cb_unlock();
- 	up_write(&block->cb_lock);
- }
- 
-@@ -1649,7 +1710,8 @@ static int tcf_block_bind(struct tcf_block *block,
- 
- err_unroll:
- 	list_for_each_entry_safe(block_cb, next, &bo->cb_list, list) {
--		list_del(&block_cb->driver_list);
-+		list_del_init(&block_cb->driver_list);
-+		list_del_init(&block_cb->indr.list);
- 		if (i-- > 0) {
- 			list_del(&block_cb->list);
- 			tcf_block_playback_offloads(block, block_cb->cb,
++# The path has to win for a cgroup named as a number. While the directory
++# exists both readings print the same, so remove it before asserting.
++mkdir "$CGNUM" || exit 1
++numino=$(stat --printf=%i "$CGNUM")
++$NFT add element t s "{ \"$$\" }" || {
++	echo "E: cannot add a cgroup whose name is a number" >&2
++	exit 1
++}
++rmdir "$CGNUM" || exit 1
++if [ "$numino" = "$$" ]; then
++	echo "I: cgroup $$ happens to have inode $$, cannot tell the two apart"
++else
++	$NFT list set t s | grep -qw "$numino" || {
++		echo "E: \"$$\" was taken as an id, not resolved as a path" >&2
++		$NFT list set t s >&2
++		exit 1
++	}
++fi
++$NFT flush set t s || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.json-nft b/tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.json-nft
+new file mode 100644
+index 00000000..546cc597
+--- /dev/null
++++ b/tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.json-nft
+@@ -0,0 +1,11 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.nft b/tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.nft
+new file mode 100644
+index 00000000..e69de29b
+
+base-commit: b315dd551dd963f052fe49e4408e0ee02ff1ae25
 -- 
 2.55.0
 
