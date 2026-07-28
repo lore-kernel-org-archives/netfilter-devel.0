@@ -1,257 +1,145 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 617F9433BD9
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 12:26:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41F33D76;
+	Tue, 28 Jul 2026 13:13:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785241595; cv=none; b=epl7xaoY1gZgJUFQd226wGK471KmoTAJ8ZgsoQBgHkmP+5hOUJT3Vemq+PD3mQX7GqZZbyxUsqFY22tAzM96jJeJKf9H3lD4AaDG5KIENX2/k8wzCH27pfjrDwtIX9pR8LT58yzRRZ8ZgGbnsj7WBN3rhGca4A5bbJtlX32JGMg=
+	t=1785244408; cv=none; b=PWzzsoC/HRFHHfodXox/2FOA1kpQedhRDqWCaT/1AnbfnssnSuWfxCBpgiGy8n87vCt69G/cG8cEToPluJNdgWYH7gXPIXSwk4lsz4v5N6AnGpzWD1YEipw1EwRqgeBg2E6f32OX60CguQnhjhNtaxXT29T8Y4MKvI+mJ54QqL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785241595; c=relaxed/simple;
-	bh=mydt6gC8x/scIZtHxFnwWH0BX5KHXuT8Fz5dKtIe4Uo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TSPdiOgHkI+vYzLKyoaKbhKx1JelQI/GmUZWw8T4rm4oMSGD3Phcs490JsnKnY9obC2Y/SKLlI51JtIQK8LHE+8HED027Fqkhm2fJs71AwfdmsaSgxF4gdk/MW0e8PvO9z0pMlnbpl5LPg6+PBYWxXdyETPgKg8qHepyd30fu+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HmhXdIyA; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1785244408; c=relaxed/simple;
+	bh=niNG0rCQ3dlq8WFryVVNSBzxc+fvvqMvo3XYtl1MkH8=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=rsZqmRfqEASQI4ExEOqlf8Ki0+fm5ymwbgfEXNRHES9VJ1Z36GRCd4yBMDcSaay28Tx075wWJ7KA+WMhK3yeqAGA+U+53CYOuE0a9PfJKk1JEtutcl7xLkVS1jBKq4LNK2zBuEo8uhQ+eOOquE3hoqwqQatV00qKhYKF0QzZHTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=kkdXHENv; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HmhXdIyA"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6F79D601A6;
-	Tue, 28 Jul 2026 14:26:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785241585;
-	bh=gBwgX0xvU0jUh4h+3zrajgMwMfm39zwPUWgBLkh//6A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HmhXdIyA8hlo0DoPRW84YIiVj80Rm1/K5zJ4cstYQ0eGeM3wd2lWg+fv5XxD9Yxz9
-	 FUFaH/1aO92M02qLZgwcudjLk7MsC1CgkodBCOSUCX6B+RqG2Dprq/JMKNCxSXYZW+
-	 ZE0kol4+pfPLK6Sz4VXCl07NoDzMDCZzTLpI5a9v9lSMZuwGKxi6h+1AloikIXqJyO
-	 anYADSPINu5jKZDqr2n+9WYN7keClDZp0EhYHrXWBdw9LhNXzAeptkmNBPJ1unccur
-	 qaKhmG/Mzd5ll76XN5bTBir/O9cIXTEHWay/+CW8kNRLPlMMWDRLg+rKND4qWs3k7Q
-	 EAqw36J+69EaA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: lorenzo@kernel.org
-Subject: [PATCH nf-next,v4 5/5] netfilter: flowtable: release tunnel route on error when building forward path
-Date: Tue, 28 Jul 2026 14:26:15 +0200
-Message-ID: <20260728122615.142843-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260728122615.142843-1-pablo@netfilter.org>
-References: <20260728122615.142843-1-pablo@netfilter.org>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="kkdXHENv"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 2748421312;
+	Tue, 28 Jul 2026 16:04:56 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=v1tcBHoKObLs7h8JCBzGeAcPF0N5ESwmxnlfaoIjupw=; b=kkdXHENv2ZoP
+	yTvuVWWvQ/zxA1uBL/fu2MJLbwRig+n+1R8JfpZe/t7LDPZDw8id5kEk52/6CnqO
+	fHqYJy02ucWQ724NGvh5+GwrU1qoIdefw5sb4urWCBypiNd+FYQGiEY206AnNgpV
+	fSUm7itVj0mY1JaL6vjLDMo+/1a/HTfyksMdotVCeNVk82niF0FOwDj+OIHsupMK
+	Uahw4qcTx41otzssYzdQkQqzHKOJhD5wI31MNXVfeIiWMB8qs9ChgQlniQlLxiVk
+	04BkjFaUQpgGgAQNqJ3GZ6LmdxlbUZKsE040j1e32z0hS2X4Y+CpJVujln0U3zdD
+	a79grM4KqOA4f/2vlRxRT8iiVW7M76sFgt0oIUxPaPdQ9aoqctpoaDIr221tavg9
+	pPomCs79zUj7vncfXEblhoG6SnWtIDAd+AwBhlPFE/Pcy2C8fkKYopQY09EmPzPN
+	vGcqU6u3O47HvDV9Iq/GVldloaKjpern3z+Qx5N0YeNa8LcDIcZy9bQe6X0Kurxv
+	xx9X/XmVVYQTC/GVrr5K8+FRXUYrEK8TpNStqi5bRWYO5T48gbDo72sn7fKaN98k
+	Cdtb6qUt7wFERM/UT5OEF2NARiIAngqMX8hwDilYusu3/ALv3NRwNbEZINpHsGA6
+	oxVpnl7b/e+02nrzxVKJvdzswa2nYsw=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Tue, 28 Jul 2026 16:04:56 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id B0AF560B9D;
+	Tue, 28 Jul 2026 16:04:56 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66SD4o8C021690;
+	Tue, 28 Jul 2026 16:04:50 +0300
+Date: Tue, 28 Jul 2026 16:04:50 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zhiling Zou <zhilinz@nebusec.ai>
+cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        horms@verge.net.au, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+        jwiesner@suse.de, vega@nebusec.ai
+Subject: Re: [PATCH nf v2 1/1] ipvs: stop estimator after disabled calc
+ phase
+In-Reply-To: <03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz@nebusec.ai>
+Message-ID: <88204013-1cbb-faa4-289b-4038cf5b52c4@ssi.bg>
+References: <03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-nft_flow_tunnel_update_route() can lazy fail, leaving an incomplete
-forward path set ip. The route lookup also happens twice, once from
-dev_fill_forward_path() and again in this aforementioned function.
 
-Update ipip and ip6ip6 not to release the dst_entry and pass it on
-via the tunnel forward path information.
+	Hello,
 
-In case of failure when setting up the forwarding path, release the
-tunnel dst that was provided via dev_fill_forward_path().
+On Tue, 28 Jul 2026, Zhiling Zou wrote:
 
-Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v4: no changes.
+> IPVS estimator kthread 0 starts with zeroed chain and tick limits until
+> its initial calculation phase completes. If network namespace teardown
+> clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
+> without installing positive limits.
+> 
+> The kthread can then continue into its main loop and drain
+> est_temp_list with zero chain_max, tick_max and est_max_count values.
+> Each enqueue consumes one available tick row, but est_count never
+> reaches the zero est_max_count value. After all rows are consumed, the
+> row lookup returns IPVS_EST_NTICKS and ip_vs_enqueue_estimator() writes
+> past the ticks and tick_len arrays.
+> 
+> Exit kthread 0 after the calculation phase if the kthread is stopping or
+> IPVS has been disabled. That keeps temporary estimators from being
+> drained after the limits failed to initialize.
+> 
+> Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
+> Cc: stable@vger.kernel.org
+> Reported-by: Vega <vega@nebusec.ai>
+> Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+> ---
+> changes in v2:
+> - Exit the estimator kthread after the calculation phase if IPVS
+>   has been disabled or the kthread is stopping, as suggested by
+>   Julian Anastasov.
+> - Drop the later enqueue and drain guards from v1.
+> - v1 Link: https://lore.kernel.org/all/6359e0031f0ee7cc969bae3483308de362d3c709.1784878022.git.zhilinz@nebusec.ai
+> 
+>  net/netfilter/ipvs/ip_vs_est.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+> index ab09f51829512..86d20f19fe317 100644
+> --- a/net/netfilter/ipvs/ip_vs_est.c
+> +++ b/net/netfilter/ipvs/ip_vs_est.c
+> @@ -191,8 +191,11 @@ static int ip_vs_estimation_kthread(void *data)
+>  		}
+>  
+>  		/* kthread 0 will handle the calc phase */
+> -		if (ipvs->est_calc_phase)
+> +		if (ipvs->est_calc_phase) {
+>  			ip_vs_est_calc_phase(ipvs);
+> +			if (kthread_should_stop() || !READ_ONCE(ipvs->enable))
+> +				return 0;
+> +		}
+>  	}
+>  
+>  	while (1) {
+> -- 
+> 2.43.0
 
- net/ipv4/ipip.c                    |  2 +-
- net/ipv6/ip6_tunnel.c              |  4 +-
- net/netfilter/nf_flow_table_path.c | 65 ++++++++----------------------
- 3 files changed, 21 insertions(+), 50 deletions(-)
+	After the comments from Sashiko:
 
-diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-index d1aa048a6099..0a4fa1351dd7 100644
---- a/net/ipv4/ipip.c
-+++ b/net/ipv4/ipip.c
-@@ -370,10 +370,10 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
- 	path->tun.src_v4.s_addr = tiph->saddr;
- 	path->tun.dst_v4.s_addr = tiph->daddr;
- 	path->tun.l3_proto = IPPROTO_IPIP;
-+	path->tun.dst = &rt->dst;
- 	path->dev = ctx->dev;
- 
- 	ctx->dev = rt->dst.dev;
--	ip_rt_put(rt);
- 
- 	return 0;
- }
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index bf8e40af60b0..82eeed183001 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1864,12 +1864,14 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 		path->tun.src_v6 = t->parms.laddr;
- 		path->tun.dst_v6 = t->parms.raddr;
- 		path->tun.l3_proto = IPPROTO_IPV6;
-+		path->tun.dst = dst;
- 		path->dev = ctx->dev;
- 		ctx->dev = dst->dev;
- 	}
- 
- 	err = dst->error;
--	dst_release(dst);
-+	if (err)
-+		dst_release(dst);
- 
- 	return err;
- }
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 8f04a4487897..9a00fe99a50d 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -82,6 +82,7 @@ struct nft_forward_info {
- 	} encap[NF_FLOW_TABLE_ENCAP_MAX];
- 	u8 num_encaps;
- 	struct flow_offload_tunnel tun;
-+	struct dst_entry *tun_dst;
- 	u8 num_tuns;
- 	u8 ingress_vlans;
- 	u8 h_source[ETH_ALEN];
-@@ -93,7 +94,7 @@ struct nft_forward_info {
- static bool nft_flowtable_find_dev(const struct net_device *dev,
- 				   struct nft_flowtable *ft);
- 
--static int nft_dev_path_info(const struct net_device_path_stack *stack,
-+static int nft_dev_path_info(struct net_device_path_stack *stack,
- 			     struct nft_forward_info *info,
- 			     unsigned char *ha, struct nft_flowtable *ft)
- {
-@@ -124,15 +125,16 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			/* DEV_PATH_VLAN, DEV_PATH_PPPOE and DEV_PATH_TUN */
- 			if (path->type == DEV_PATH_TUN) {
- 				if (info->num_tuns)
--					return -1;
-+					goto err_out;
- 
- 				info->tun.src_v6 = path->tun.src_v6;
- 				info->tun.dst_v6 = path->tun.dst_v6;
- 				info->tun.l3_proto = path->tun.l3_proto;
-+				info->tun_dst = path->tun.dst;
- 				info->num_tuns++;
- 			} else {
- 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
--					return -1;
-+					goto err_out;
- 
- 				info->encap[info->num_encaps].id =
- 					path->encap.id;
-@@ -153,13 +155,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			switch (path->bridge.vlan_mode) {
- 			case DEV_PATH_BR_VLAN_UNTAG_HW:
- 				if (info->num_encaps == 0)
--					return -1;
-+					goto err_out;
- 
- 				info->ingress_vlans |= BIT(info->num_encaps - 1);
- 				break;
- 			case DEV_PATH_BR_VLAN_TAG:
- 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
--					return -1;
-+					goto err_out;
- 
- 				info->encap[info->num_encaps].id = path->bridge.vlan_id;
- 				info->encap[info->num_encaps].proto = path->bridge.vlan_proto;
-@@ -167,7 +169,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 				break;
- 			case DEV_PATH_BR_VLAN_UNTAG:
- 				if (info->num_encaps == 0)
--					return -1;
-+					goto err_out;
- 
- 				info->num_encaps--;
- 				break;
-@@ -177,7 +179,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 			break;
- 		default:
--			return -1;
-+			goto err_out;
- 		}
- 	}
- 
-@@ -186,9 +188,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 
- 	if (!nft_flowtable_find_dev(info->dev, ft))
--		return -1;
-+		goto err_out;
- 
- 	return 0;
-+err_out:
-+	dev_fill_forward_path_release(stack);
-+
-+	return -1;
- }
- 
- static bool nft_flowtable_find_dev(const struct net_device *dev,
-@@ -208,44 +214,6 @@ static bool nft_flowtable_find_dev(const struct net_device *dev,
- 	return found;
- }
- 
--static int nft_flow_tunnel_update_route(const struct nft_pktinfo *pkt,
--					struct flow_offload_tunnel *tun,
--					struct nf_flow_route *route,
--					enum ip_conntrack_dir dir)
--{
--	struct dst_entry *cur_dst = route->tuple[dir].dst;
--	struct dst_entry *tun_dst = NULL;
--	struct flowi fl = {};
--
--	switch (nft_pf(pkt)) {
--	case NFPROTO_IPV4:
--		fl.u.ip4.daddr = tun->dst_v4.s_addr;
--		fl.u.ip4.saddr = tun->src_v4.s_addr;
--		fl.u.ip4.flowi4_iif = nft_in(pkt)->ifindex;
--		fl.u.ip4.flowi4_dscp = ip4h_dscp(ip_hdr(pkt->skb));
--		fl.u.ip4.flowi4_mark = pkt->skb->mark;
--		fl.u.ip4.flowi4_flags = FLOWI_FLAG_ANYSRC;
--		break;
--	case NFPROTO_IPV6:
--		fl.u.ip6.daddr = tun->dst_v6;
--		fl.u.ip6.saddr = tun->src_v6;
--		fl.u.ip6.flowi6_iif = nft_in(pkt)->ifindex;
--		fl.u.ip6.flowlabel = ip6_flowinfo(ipv6_hdr(pkt->skb));
--		fl.u.ip6.flowi6_mark = pkt->skb->mark;
--		fl.u.ip6.flowi6_flags = FLOWI_FLAG_ANYSRC;
--		break;
--	}
--
--	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
--	if (!tun_dst)
--		return -ENOENT;
--
--	route->tuple[dir].dst = tun_dst;
--	dst_release(cur_dst);
--
--	return 0;
--}
--
- static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 				struct nf_flow_route *route,
- 				const struct nf_conn *ct,
-@@ -270,12 +238,13 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
- 	}
- 
--	if (info.num_tuns &&
--	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
-+	if (info.num_tuns) {
- 		route->tuple[!dir].in.tun.src_v6 = info.tun.dst_v6;
- 		route->tuple[!dir].in.tun.dst_v6 = info.tun.src_v6;
- 		route->tuple[!dir].in.tun.l3_proto = info.tun.l3_proto;
- 		route->tuple[!dir].in.num_tuns = info.num_tuns;
-+		dst_release(route->tuple[dir].dst);
-+		route->tuple[dir].dst = info.tun_dst;
- 	}
- 
- 	route->tuple[!dir].in.num_encaps = info.num_encaps;
--- 
-2.47.3
+https://sashiko.dev/#/patchset/03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz%40nebusec.ai
+
+	we have two options:
+
+1. don't try to exit early by checking ipvs->enable in
+ip_vs_est_calc_limits, ip_vs_est_calc_phase and now in
+ip_vs_estimation_kthread
+
+2. As ip_vs_estimation_kthread() can exit if ipvs->est_chain_max
+is 0 for id > 0, we can call:
+
+get_task_struct(kd->task);
+after kthread_create() in ip_vs_est_kthread_start() and
+then to use kthread_stop_put() instead of kthread_stop()
+everywhere in ip_vs_est.c
+
+	May be we should go with option 2?
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
