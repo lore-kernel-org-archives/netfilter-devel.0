@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635813AEB49
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 11:09:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A8D3F65EC
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 11:09:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785236994; cv=none; b=DSCV0xS0My9V06gpiwqsXa/iQOZnjCPEYovXCl9s5XIxpnaLcVMLI3RsOKyzY6lx/PondFSsZzU9Gly94gpqODrKYweaaO2KD8M/hLKwTuvEXJ9GmXFmo3J+nAbi4MHj7pYfBg1AVwGapP2UFABNhsF00/gh1ffED5fa9wvAh/k=
+	t=1785236995; cv=none; b=l7tageheuqi7/wX/wHfU9P1ng4uF9mVdMJ6PbqQ3cqnEYyz8VfQeEgXMOc7WrUfMHDB1yHfjb+Y544Dh4qMt0MAHwb8hbkHxALSFTyPMC2oK8ub5Qz4vGiuXCWoleaOE90qhRvdaX/Fz8hRlGqX/wLF8DoDfmvwEbOT4p2M3f2M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785236994; c=relaxed/simple;
-	bh=i2Za9tMflI3AOqbcNQEeNJykdnuBpOHGPhIYOJ8HP3c=;
+	s=arc-20240116; t=1785236995; c=relaxed/simple;
+	bh=hbgSRUjFbA/G+5RnAnowYL0CwzVsXsvg/H0Zua+aRlQ=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kQ31Lco3iWO4kVVtFJIuq6Y6PPhHfgB2Uw4UYofdlrUTBNl+2LKqjSmvCC4J5LnN+Gv/Jt6Ye0GNRCY0r4VcjO7fQzkSXuAe0WBDiIg5EyXlDRDvT/rnU9sqdc116F/AmFREUMLSwPVnXbG4A/Z9xA+a2oDFLssJxpM4YML9bAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PWrbQoHt; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=bcnMZ4YN+2geKxlbhNKFZnFbOvkuSAzkgXRSC8atmbVDtgQxNu4j43oFrOm3GqeBRVeEEU3ndyndvtSfIXLM5kZVLgydamBvm8C31e0e/fXWT96hII2f65tjF1DvuEWH2kOxzxJXk/hSSLnyrs62Es/WDifCRQaFXYbZXqrbBWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Kecu1Zn+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PWrbQoHt"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Kecu1Zn+"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id DD12E60196
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 13:09:49 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 23BD96019B
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 13:09:51 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785236990;
-	bh=/mvpVzwVIaBGFFH7weuOAdTAW5Jg9v+urv29+8FDWZo=;
+	s=2025; t=1785236991;
+	bh=W7S82bahKFwD/0DEotjf/LYgeOrlTZyh1555sOz3A9k=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=PWrbQoHt6+u+3+Ch27VPoX+wLo3gLTxOME2TUZ5W/KIylhAHGVFP0b8EVwenEWhyY
-	 SKA/5EEmuHqiEC0OclFcqDmy7kKA+90WMGlyM/H7axCQjOGcoLiPnPfCirRTUOL+Bk
-	 /Kwt+Mi+Fem7GJUi/g37rUszdW/Xy9eCy0BimT5pz2cIYz0AtwZhHau8FnFm298OUx
-	 M928ZBH91kh3MQrPKzRQl33vTph526JRGU2Xi7E1uZ1TcdFEcGmPyD+0mK9EuWGMC+
-	 wMlQkj5dDZNghqoUjCggVX4Itj0KWl/f6fwBno1n6dGqkA+Sa9OJHSJqMWm6sHClC/
-	 SU8MEJ9kMtQmQ==
+	b=Kecu1Zn+LdOtgpXNsKD6C35p/OFAkqWNEtaqi13gtGY9jEC6uV8o+dyskI49KsL0+
+	 W3sZwwu10YunZ2O+N42hgR+h6uG1TUQuigMhpXqKP9bB6DuTmrYVaYP6n/BwUIaf9c
+	 RmYJbj77VTwXBQK3gRGVBCmjo0jgcQwWxaKx9Q9umdLL1vg8DtxMcNGv3FGt3Rq0+c
+	 7T7yz2z/NFIr8iq8n7QRbtG+AJ1ticD3AoiI9ZEYDixNA8P+akvHfB7xSPf0CD7l1U
+	 +gmQxOAFlyk7P8bp6cW5dFr6oj8nLIfgg8FecKJELMTYEpTP+MRxuW0vdBg04NWL3N
+	 ix3iXNLqlzsuQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 2/5] netfilter: flowtable: consolidate flowtable device check
-Date: Tue, 28 Jul 2026 13:09:39 +0200
-Message-ID: <20260728110943.124900-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 3/5] net: do not advance stack index from dev_fwd_path()
+Date: Tue, 28 Jul 2026 13:09:40 +0200
+Message-ID: <20260728110943.124900-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260728110943.124900-1-pablo@netfilter.org>
 References: <20260728110943.124900-1-pablo@netfilter.org>
@@ -45,65 +45,83 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Check that device belongs to the flowtable right after the flowtable
-discovery path. This is a preparation patch to obtain the dst entry
-from the .fill_forward_path in tunnels.
+Update stack index from dev_fill_forward_path() instead, once the
+forward path slot has been populated.
 
-No functional changes are intended.
+Adjust existing drivers that recycle dev_fill_forward_path() as a
+way to reach the mtk SoC WDMA info.
 
 Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: no changes
+v3: remove k index variable per Lorenzo.
 
- net/netfilter/nf_flow_table_path.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/airoha/airoha_ppe.c        | 2 +-
+ drivers/net/ethernet/mediatek/mtk_ppe_offload.c | 2 +-
+ net/core/dev.c                                  | 8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 261bb44d08eb..8f04a4487897 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -90,9 +90,12 @@ struct nft_forward_info {
- 	enum flow_offload_xmit_type xmit_type;
- };
+diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
+index e4c3644dd6ec..72755ca974fa 100644
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -292,7 +292,7 @@ static int airoha_ppe_get_wdma_info(struct net_device *dev, const u8 *addr,
+ 	if (err)
+ 		return err;
  
-+static bool nft_flowtable_find_dev(const struct net_device *dev,
-+				   struct nft_flowtable *ft);
-+
- static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			     struct nft_forward_info *info,
--			     unsigned char *ha, struct nf_flowtable *flowtable)
-+			     unsigned char *ha, struct nft_flowtable *ft)
+-	path = &stack.path[stack.num_paths - 1];
++	path = &stack.path[stack.num_paths];
+ 	if (path->type != DEV_PATH_MTK_WDMA)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+index cc8c4ef8038f..7dab360b8be3 100644
+--- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
++++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+@@ -107,7 +107,7 @@ mtk_flow_get_wdma_info(struct net_device *dev, const u8 *addr, struct mtk_wdma_i
+ 	if (err)
+ 		return err;
+ 
+-	path = &stack.path[stack.num_paths - 1];
++	path = &stack.path[stack.num_paths];
+ 	if (path->type != DEV_PATH_MTK_WDMA)
+ 		return -1;
+ 
+diff --git a/net/core/dev.c b/net/core/dev.c
+index c1c1be1a6962..96c01f6e9dea 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -742,12 +742,10 @@ EXPORT_SYMBOL_GPL(dev_fill_metadata_dst);
+ 
+ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
  {
- 	const struct net_device_path *path;
- 	int i;
-@@ -178,10 +181,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 		}
- 	}
+-	int k = stack->num_paths++;
+-
+-	if (k >= NET_DEVICE_PATH_STACK_MAX)
++	if (stack->num_paths + 1 >= NET_DEVICE_PATH_STACK_MAX)
+ 		return NULL;
  
--	if (nf_flowtable_hw_offload(flowtable) &&
-+	if (nf_flowtable_hw_offload(&ft->data) &&
- 	    nft_is_valid_ether_device(info->dev))
- 		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 
-+	if (!nft_flowtable_find_dev(info->dev, ft))
-+		return -1;
-+
- 	return 0;
+-	return &stack->path[k];
++	return &stack->path[stack->num_paths];
  }
  
-@@ -253,10 +259,7 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 	int i;
+ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+@@ -773,6 +771,7 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+ 		if (ret < 0)
+ 			return -1;
  
- 	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
--	    nft_dev_path_info(&stack, &info, ha, &ft->data) < 0)
--		return -ENOENT;
--
--	if (!nft_flowtable_find_dev(info.dev, ft))
-+	    nft_dev_path_info(&stack, &info, ha, ft) < 0)
- 		return -ENOENT;
++		stack->num_paths++;
+ 		if (WARN_ON_ONCE(last_dev == ctx.dev))
+ 			return -1;
+ 	}
+@@ -785,6 +784,7 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+ 		return -1;
+ 	path->type = DEV_PATH_ETHERNET;
+ 	path->dev = ctx.dev;
++	stack->num_paths++;
  
- 	route->tuple[!dir].in.ifindex = info.dev->ifindex;
+ 	return ret;
+ }
 -- 
 2.47.3
 
