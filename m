@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C33424D65
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 11:09:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C5E8427FA3
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 11:09:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785236996; cv=none; b=Ag2qBSo3fMiTmWGu4e+1jwstnZmWng0HkVXF62xY57t6zxBmG7pnjjDirELE9ACGSpjS/IBARB9SMyyFtzM83OBsO7kAOJRi+VzOsYZ+1oo+ACNhI4Kz+lvCRu3W4iXLdEVbN4THy3OAK3LCUZJjI0bXbSxBkx6h8Oz0x+RqRg0=
+	t=1785236997; cv=none; b=KyqTk+1QEFJ5VZ7RbFLXYSjTgYXVyJ8mibryUgChf0Nr/2SAoLF+x07fJ42SINSdjv3uW9QqpxU7eXX9kWbcgvAZdaFBDQ3FKYOc2GQN/d9Lm6yhppEqhc9K0K/9E1dHGUt7UbMaGK0hfWOJ2btpK3ePXrC8cNvyIRySTCiov/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785236996; c=relaxed/simple;
-	bh=H3vnarmL/Lj/GYl/WZtn49xDLvOoUE3cvwmG0UuGwYE=;
+	s=arc-20240116; t=1785236997; c=relaxed/simple;
+	bh=/5CDAf8chLPh3LKjcoADBhWgJAHzRq5sFfpn6dsF8Po=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eYX9rvhegCmzCprXcKcL8yfubDXW/9L+CQ2i/onJdWckuiSLIq5qDdpTHbPyPMMuhR0YDLcQJSnR+0+mUBxt7WEI7HZqYSclcDqnLANZTnSOzOj4xtjwi5nxwFVF39uRUjk8uXhn4aUXI5vC8NBnJEqkHcvN8slMmemdbZXVz7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IlSamZXF; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=EuuxeAWzazPPuLOd76Y8CyH+3DFn3JiyPYJTnVSTmHtqBZYZd6quZ/slJGwggiS6a3Q3korKbVU0fk/N7Aa0UqIgOzNgb4zseu/Q+FWICBfTv4R55bWLl7nPB8BqDcUCjMuj5PU0XbRfnJCZuL8n7fpNUwvikOWAaNSkq7SbGC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BbQgA/tQ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IlSamZXF"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BbQgA/tQ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 71A4E6019C
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 13:09:52 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BFC1360194
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2026 13:09:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785236992;
-	bh=8ct9CeXdfJPRJ6VmRnitORxLHVsuz9RTjBrqUo8JRUE=;
+	s=2025; t=1785236994;
+	bh=LG+L7Kv6x3mOOnaKcnouTm4m6qeG7bxgu/+KchhGnV8=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=IlSamZXF4ttKGtkyjAdP5PArbfPcXdT/VCPRu/lV535VIp0Yh3vlATwXcV1y3z1dA
-	 7WE7xZ53EvRGWMOFOHwc5ohITW/tfP1jMOgPzLYInktdY0KLHkMdnSQC6YAQnrbrL3
-	 uIB2KusUUExVb3WX0N0tS3saztSH/RONiYCi//Jtg05E2m4VJkpbXDW1er6cFr7nph
-	 arrRbsAnht0GJErn/gVrL+I7fca9F9R2VfjYFYVxI/JDMgaznw0tc1pADbtN/HyBjH
-	 jb3fjI717hMCi9tsklRwnQ/NU1oKWW5GXwBFhGwo6acGcrdeQF7VbCfrLiJraNh5YD
-	 J0hID64fHRkcA==
+	b=BbQgA/tQB07DTCKppXvOVZjDsLnSElax1Hd4I+j2Y81hLlcCzIWbHykVXiO+UZb2U
+	 GXNmO6h8UwFGMAA6BoWGzOJXXfHSEaeMkpGr35qu81QxRgw1uQBrPrR801bwMWyQJx
+	 ugLemxhr1TRq9IFC5VlGzurtB0P+rnW0jVruwgGtdrre8RQDqAC7jmkMbz6m4ooeM/
+	 8fjRKDxBhxA7Dt2FGh5jg1iMPboLKpI6cZl4nR0AOYUmHhdzwd8AzTDvemERvCAQn3
+	 jWPv7fH1jV5U7qHIZkfcWOMl+I2tmE/IDXCWvqcppW+LiZLMZncVdh8oaL18JPunku
+	 uB2MdrmbNdc0g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 4/5] net: pass dst via net_device_path in dev_fill_forward_path()
-Date: Tue, 28 Jul 2026 13:09:41 +0200
-Message-ID: <20260728110943.124900-4-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 5/5] netfilter: flowtable: release tunnel route on error when building forward path
+Date: Tue, 28 Jul 2026 13:09:42 +0200
+Message-ID: <20260728110943.124900-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260728110943.124900-1-pablo@netfilter.org>
 References: <20260728110943.124900-1-pablo@netfilter.org>
@@ -45,122 +45,212 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add dst_entry to tunnel device path, this will allow us to remove
-a duplicated route lookup.
+nft_flow_tunnel_update_route() can lazy fail, leaving an incomplete
+forward path set ip. The route lookup also happens twice, once from
+dev_fill_forward_path() and again in this aforementioned function.
 
-This is a preparation patch to retrieve the tunnel route directly
-from the .fill_forward_path. This new dst_entry in the tunnel will be
-used by a follow up patch.
+Update ipip and ip6ip6 not to release the dst_entry and pass it on
+via the tunnel forward path information.
 
-Since dst_release() works fine on NULL interface, this is still
-noop until the flowtable starts using this.
-
-Add a new dev_fill_forward_path_release() function to drop the refcount
-on the tunnel device route, in case of error out. Export it so it can be
-use in case of error out, to drop the refcount on the tunnel route at a
-later stage.
+In case of failure when setting up the forwarding path, release the
+tunnel dst that was provided via dev_fill_forward_path().
 
 Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v3: no changes
 
- include/linux/netdevice.h |  2 ++
- net/core/dev.c            | 36 +++++++++++++++++++++++++++++++-----
- 2 files changed, 33 insertions(+), 5 deletions(-)
+ net/ipv4/ipip.c                    |  2 +-
+ net/ipv6/ip6_tunnel.c              |  4 +-
+ net/netfilter/nf_flow_table_path.c | 65 ++++++++----------------------
+ 3 files changed, 21 insertions(+), 50 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 8db25b79573e..62cfad7e6b79 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -892,6 +892,7 @@ struct net_device_path {
- 			u8		h_dest[ETH_ALEN];
- 		} encap;
- 		struct {
-+			struct dst_entry *dst;
- 			union {
- 				struct in_addr	src_v4;
- 				struct in6_addr	src_v6;
-@@ -3427,6 +3428,7 @@ int dev_get_iflink(const struct net_device *dev);
- int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
- int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
- 			  struct net_device_path_stack *stack);
-+void dev_fill_forward_path_release(struct net_device_path_stack *stack);
- struct net_device *dev_get_by_name(struct net *net, const char *name);
- struct net_device *dev_get_by_name_rcu(struct net *net, const char *name);
- struct net_device *__dev_get_by_name(struct net *net, const char *name);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 96c01f6e9dea..e0c132db15b2 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -748,6 +748,27 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
- 	return &stack->path[stack->num_paths];
+diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+index d1aa048a6099..0a4fa1351dd7 100644
+--- a/net/ipv4/ipip.c
++++ b/net/ipv4/ipip.c
+@@ -370,10 +370,10 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	path->tun.src_v4.s_addr = tiph->saddr;
+ 	path->tun.dst_v4.s_addr = tiph->daddr;
+ 	path->tun.l3_proto = IPPROTO_IPIP;
++	path->tun.dst = &rt->dst;
+ 	path->dev = ctx->dev;
+ 
+ 	ctx->dev = rt->dst.dev;
+-	ip_rt_put(rt);
+ 
+ 	return 0;
  }
- 
-+void dev_fill_forward_path_release(struct net_device_path_stack *stack)
-+{
-+	struct net_device_path *path;
-+	int k;
-+
-+	if (stack->num_paths == 0)
-+		return;
-+
-+	for (k = stack->num_paths - 1; k >= 0; k--) {
-+		path = &stack->path[k];
-+		switch (path->type) {
-+		case DEV_PATH_TUN:
-+			dst_release(path->tun.dst);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+}
-+EXPORT_SYMBOL_GPL(dev_fill_forward_path_release);
-+
- int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
- 			  struct net_device_path_stack *stack)
- {
-@@ -764,16 +785,16 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
- 		last_dev = ctx.dev;
- 		path = dev_fwd_path(stack);
- 		if (!path)
--			return -1;
-+			goto err_out;
- 
- 		memset(path, 0, sizeof(struct net_device_path));
- 		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
- 		if (ret < 0)
--			return -1;
-+			goto err_out;
- 
- 		stack->num_paths++;
- 		if (WARN_ON_ONCE(last_dev == ctx.dev))
--			return -1;
-+			goto err_out;
+diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+index bf8e40af60b0..82eeed183001 100644
+--- a/net/ipv6/ip6_tunnel.c
++++ b/net/ipv6/ip6_tunnel.c
+@@ -1864,12 +1864,14 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
+ 		path->tun.src_v6 = t->parms.laddr;
+ 		path->tun.dst_v6 = t->parms.raddr;
+ 		path->tun.l3_proto = IPPROTO_IPV6;
++		path->tun.dst = dst;
+ 		path->dev = ctx->dev;
+ 		ctx->dev = dst->dev;
  	}
  
- 	if (!ctx.dev)
-@@ -781,12 +802,17 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+ 	err = dst->error;
+-	dst_release(dst);
++	if (err)
++		dst_release(dst);
  
- 	path = dev_fwd_path(stack);
- 	if (!path)
+ 	return err;
+ }
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 8f04a4487897..9a00fe99a50d 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -82,6 +82,7 @@ struct nft_forward_info {
+ 	} encap[NF_FLOW_TABLE_ENCAP_MAX];
+ 	u8 num_encaps;
+ 	struct flow_offload_tunnel tun;
++	struct dst_entry *tun_dst;
+ 	u8 num_tuns;
+ 	u8 ingress_vlans;
+ 	u8 h_source[ETH_ALEN];
+@@ -93,7 +94,7 @@ struct nft_forward_info {
+ static bool nft_flowtable_find_dev(const struct net_device *dev,
+ 				   struct nft_flowtable *ft);
+ 
+-static int nft_dev_path_info(const struct net_device_path_stack *stack,
++static int nft_dev_path_info(struct net_device_path_stack *stack,
+ 			     struct nft_forward_info *info,
+ 			     unsigned char *ha, struct nft_flowtable *ft)
+ {
+@@ -124,15 +125,16 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 			/* DEV_PATH_VLAN, DEV_PATH_PPPOE and DEV_PATH_TUN */
+ 			if (path->type == DEV_PATH_TUN) {
+ 				if (info->num_tuns)
+-					return -1;
++					goto err_out;
+ 
+ 				info->tun.src_v6 = path->tun.src_v6;
+ 				info->tun.dst_v6 = path->tun.dst_v6;
+ 				info->tun.l3_proto = path->tun.l3_proto;
++				info->tun_dst = path->tun.dst;
+ 				info->num_tuns++;
+ 			} else {
+ 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
+-					return -1;
++					goto err_out;
+ 
+ 				info->encap[info->num_encaps].id =
+ 					path->encap.id;
+@@ -153,13 +155,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 			switch (path->bridge.vlan_mode) {
+ 			case DEV_PATH_BR_VLAN_UNTAG_HW:
+ 				if (info->num_encaps == 0)
+-					return -1;
++					goto err_out;
+ 
+ 				info->ingress_vlans |= BIT(info->num_encaps - 1);
+ 				break;
+ 			case DEV_PATH_BR_VLAN_TAG:
+ 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
+-					return -1;
++					goto err_out;
+ 
+ 				info->encap[info->num_encaps].id = path->bridge.vlan_id;
+ 				info->encap[info->num_encaps].proto = path->bridge.vlan_proto;
+@@ -167,7 +169,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 				break;
+ 			case DEV_PATH_BR_VLAN_UNTAG:
+ 				if (info->num_encaps == 0)
+-					return -1;
++					goto err_out;
+ 
+ 				info->num_encaps--;
+ 				break;
+@@ -177,7 +179,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 			break;
+ 		default:
+-			return -1;
++			goto err_out;
+ 		}
+ 	}
+ 
+@@ -186,9 +188,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 
+ 	if (!nft_flowtable_find_dev(info->dev, ft))
 -		return -1;
 +		goto err_out;
-+
- 	path->type = DEV_PATH_ETHERNET;
- 	path->dev = ctx.dev;
- 	stack->num_paths++;
  
--	return ret;
-+	return 0;
+ 	return 0;
 +err_out:
 +	dev_fill_forward_path_release(stack);
 +
 +	return -1;
  }
- EXPORT_SYMBOL_GPL(dev_fill_forward_path);
  
+ static bool nft_flowtable_find_dev(const struct net_device *dev,
+@@ -208,44 +214,6 @@ static bool nft_flowtable_find_dev(const struct net_device *dev,
+ 	return found;
+ }
+ 
+-static int nft_flow_tunnel_update_route(const struct nft_pktinfo *pkt,
+-					struct flow_offload_tunnel *tun,
+-					struct nf_flow_route *route,
+-					enum ip_conntrack_dir dir)
+-{
+-	struct dst_entry *cur_dst = route->tuple[dir].dst;
+-	struct dst_entry *tun_dst = NULL;
+-	struct flowi fl = {};
+-
+-	switch (nft_pf(pkt)) {
+-	case NFPROTO_IPV4:
+-		fl.u.ip4.daddr = tun->dst_v4.s_addr;
+-		fl.u.ip4.saddr = tun->src_v4.s_addr;
+-		fl.u.ip4.flowi4_iif = nft_in(pkt)->ifindex;
+-		fl.u.ip4.flowi4_dscp = ip4h_dscp(ip_hdr(pkt->skb));
+-		fl.u.ip4.flowi4_mark = pkt->skb->mark;
+-		fl.u.ip4.flowi4_flags = FLOWI_FLAG_ANYSRC;
+-		break;
+-	case NFPROTO_IPV6:
+-		fl.u.ip6.daddr = tun->dst_v6;
+-		fl.u.ip6.saddr = tun->src_v6;
+-		fl.u.ip6.flowi6_iif = nft_in(pkt)->ifindex;
+-		fl.u.ip6.flowlabel = ip6_flowinfo(ipv6_hdr(pkt->skb));
+-		fl.u.ip6.flowi6_mark = pkt->skb->mark;
+-		fl.u.ip6.flowi6_flags = FLOWI_FLAG_ANYSRC;
+-		break;
+-	}
+-
+-	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
+-	if (!tun_dst)
+-		return -ENOENT;
+-
+-	route->tuple[dir].dst = tun_dst;
+-	dst_release(cur_dst);
+-
+-	return 0;
+-}
+-
+ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 				struct nf_flow_route *route,
+ 				const struct nf_conn *ct,
+@@ -270,12 +238,13 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
+ 	}
+ 
+-	if (info.num_tuns &&
+-	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
++	if (info.num_tuns) {
+ 		route->tuple[!dir].in.tun.src_v6 = info.tun.dst_v6;
+ 		route->tuple[!dir].in.tun.dst_v6 = info.tun.src_v6;
+ 		route->tuple[!dir].in.tun.l3_proto = info.tun.l3_proto;
+ 		route->tuple[!dir].in.num_tuns = info.num_tuns;
++		dst_release(route->tuple[dir].dst);
++		route->tuple[dir].dst = info.tun_dst;
+ 	}
+ 
+ 	route->tuple[!dir].in.num_encaps = info.num_encaps;
 -- 
 2.47.3
 
