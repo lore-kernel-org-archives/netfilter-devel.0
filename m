@@ -1,82 +1,83 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B27183B19B2
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 13:49:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AC0F4949E9
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 13:57:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785332950; cv=none; b=ZK/KMg7Hs4mN/oHziyGU6vYUNl7oQPINP1R1RxvzhJqlMrPOBqFNbY37jck5GwzINn+D2rYagRpLgzqBsQWx62h9aAFl8KUAdQDCXmRHXq6TexS0uXWAUMIxJKpp6RDL0vRURjJMPwvOuzSPRvjNeLw/6XEODv9gEg9lH88L2aY=
+	t=1785333441; cv=none; b=WDc6ufUPgcSJ4bx5JxAjdL0xjEa02s6n3OzTME4Ude0hvSWN8jpQhlIhZkKhpvIFezT2APUeK5PXliL2SgLI2JwuNb7/4Z9zHzCynxN1pmJehqOX4x9H0RBHcE6IhA5FftaUAJvJzTStqhkqMJmjfWc0vjjLO1Mr1JWgIfm+sx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785332950; c=relaxed/simple;
-	bh=Pqt9NyKegLWTkHxOddHLz7StvU8G2POvX9oOJAjZU3s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DfyJFOivAgU25LlwIyYnc2k3zPqsw5YKO/pDbqmi07/Zvt7UmW4595Nvvwml5BC75UvBId5P9TDq+Zqh02Ky8SxibXY1CNeNQTlTziKxV/RbOl0Kmjmb3VA60Fdpj/V6fYROHTi0svwrrO0kEOsNAwnTTRw+LUQ0K5YQ4/MEa5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=EId4v66u; arc=none smtp.client-ip=209.85.210.180
+	s=arc-20240116; t=1785333441; c=relaxed/simple;
+	bh=xtv6sDi7m6aeBrIE+wYVnUSxWvDrMu4sjvSBvi8vnO8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rfyu7c3XUNjYeGB/+NV0wtyIi8jfFgOoIs583HXJU6GRrUMFnQEfHgONrvSpoDrLIjk1ZHVWLiRlSNJO95/1jtg/4nynuEj+lH/c713w7mWqNYKs2YSASyTihiGRS7YwBvADHRJnDbvghalywNNa5u/9Aah6jqv5wwRALQgjGQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=A+UaiZyV; arc=none smtp.client-ip=209.85.214.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="EId4v66u"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-848d21bbaffso1032223b3a.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 06:49:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="A+UaiZyV"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2cfbbdfa60bso9555395ad.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 06:57:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1785332935; x=1785937735; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=D+1XXvkajr6+1Yk5LVU6qEFCRRQ2xlVvX/lKvRvqY8I=;
-        b=EId4v66uTzRbPno6ZiIjrHOKnT9n++bUyB34BaOeuCBWxZDCIgeZZ5UiVlLmDa/UbQ
-         dShW/YgLd25FIGnHMhOgrCzdWYe4JOUXc/S8hOa0NycQwCpQeY0Gcjo6yGc7GvBugO3b
-         nDDnjQI3DezAGJ+g9LRnKUhJdEtEWBbY7wYHWyjfw6RfI7fHxJA9lbsCg5j3++y7ffcl
-         87rdcJHZr7UeH4DqzXLwlgBJOgfYKvy5gIP5UgBARPTSFkCT3tzoheKp+5Wyw+zSDhIi
-         qadDKiBQrodMr70kZlGAGcUyVdKe1qoybfdAWsQwGnROL5HfZ5enBf2xVlEgiV5dds82
-         Jyyg==
+        d=nebusec.ai; s=google; t=1785333430; x=1785938230; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=e9m87LSvmyMwoUxnztNDZ0Cv0nd1knfLpg/zZDbXJaQ=;
+        b=A+UaiZyVAYlQyz/wZNpouRprSioiTJhFV4KfGYKtLIByE3iWhsLJTs8g96OpfvZzUQ
+         YiDJ9mhg7iqmltSc35pnEIUv7gu5onv9yUIorBtlb7I6ga4oWdV3lBitYSougFR/Db7n
+         /GcE2a+DA2lZb2TtI+tXZhK917mWYxjWQ9Q8O1KZnkg+LUuZdyLHLV1slxC/ApCdzjlN
+         NbDgjj3g7Oko83V5a+tzUNqRZxQUUcl9PZfuykzZAIBNq4AZ7GmCkGposEZNpjUU8aRn
+         UqjYT/R2kjfKU+I6RrkhWbZmKAzOIk1o/O0GEiMviqRVOpM0tISYJNL9qFWjpQ7JBkRA
+         /xOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785332935; x=1785937735;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=D+1XXvkajr6+1Yk5LVU6qEFCRRQ2xlVvX/lKvRvqY8I=;
-        b=oUse3qWuch810w7YQlFJY0LKT0WTkcTPytPMurIbcF8qdTc3X1+GVOp/pdxP8qaRv+
-         8Ad4/fLV0uFaU1A3B6CIbyPi8FeWbwfy6NZc4DB9YZFAzbMcsp9ASWJWu1mC9DEQ7oKi
-         5OQkGX1OSsPNytY6v44a+re02ksYG25IR6L7+c3r5htfFxjn9gSgiIe7q6Nvp73WVPbz
-         EebYaCrceXCQ1cgXWT2+HdQZ8oQKG2jexnYJVmrrXI+RwiJoXF3PtsBCxSA4yNzqPWGm
-         p9nlZ897YWEDsMUOU2pUXgiE0lS81SpAYGL/avS13p5vQeqY806x22gEmo8GwESCO7EZ
-         iw/A==
-X-Gm-Message-State: AOJu0YzQqtBymwkVMU6iRM4Ejgwrn5qzJx/9MYPKju2Y6YKk1/LmfsMk
-	lpJ9gJfdCbznEkZUohajOOdADUNkLO7eLRuKIaznMGzPFppW2ALGKwguYoWKvV7gxIiha5nMdTK
-	UkeTJ4Wqu
-X-Gm-Gg: AR+sD13CEKDwhvgjosG0XpIWEn8eMs0gmZf//gZqo7thDuRoz7r8WR3zI25uXGjg4Z2
-	0bloEVDJrn1Fp+0UOkweUqAiZKQvq67AE1N24aiAkZ/urMAuzj4P4/Xo4jIUwATyGZz+2sYMQAU
-	ZfaF5/Op+SnowjYfmyenKayL8Q6VhdEYpxhcMXE0wjBnk7kMeNPuZLo5F3EkdoQJOvBoOtm2D3C
-	RdcUG1KJ500mVJ73KKFUYERHXf2NgdbB5WLXMSxwjfXEc0rb5WTImUbfXBCdTYRtZtSZ0u0OWGp
-	xWcX1ERMGl0t+YYeWPk815VRFeqiLuOzgK83HNHbjz2wubd12V4PraGVkoih3G9Ejru0ciEtCaP
-	KUkY9wlqHtOD4R939uKiVhxDi/+mqiPV2jid+pz1P+ct+7hfbb72s0ORFwsoqW3XI3PBLOa5QbK
-	xEASf0hOael6/A0mQpw/5ysfxHCEafGdyHbImMJyCY5dxb8JRnEgLUeA/4w/qHIclmphdli+k=
-X-Received: by 2002:a05:6a00:2e89:b0:845:da74:5d7c with SMTP id d2e1a72fcca58-84e93181143mr7635149b3a.32.1785332935009;
-        Wed, 29 Jul 2026 06:48:55 -0700 (PDT)
-Received: from localhost.localdomain ([115.192.250.185])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84ea02ff637sm1425886b3a.39.2026.07.29.06.48.48
+        d=1e100.net; s=20251104; t=1785333430; x=1785938230;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=e9m87LSvmyMwoUxnztNDZ0Cv0nd1knfLpg/zZDbXJaQ=;
+        b=A3+YQTp2Rjftavb/qgALqw3zRxyT2JJ22ZIOFiMY2TvM3HGht8C9OhU8ptgBRxNvtY
+         ITLFSKf6YeAyC71mxbagwGAaRe+UyFZIWxDTsVExJum2BTw4rH4/egpkqxjYQAVZuc7O
+         UnEvkj4X2muTeNQMfLg5W++0jrlwnvR4p9Ikhl1q06bJzwJRE5IztLJ/L180P1AA+w38
+         hFXWyqWMZnNPX82xCFQ2qF3XXbECKeazgk9/GuVkGS5whcXJZxIvOyL8NxMGNnhYgdpB
+         1Y+xXroQ0ugyX87yqF0UgzStTsEjt9k7lT0GBlQEv280yOD3/9EnJL7kml+YCetD0k68
+         gN5Q==
+X-Forwarded-Encrypted: i=1; AHgh+RrR6Ilql7Fqpw71QJIyi4gjrB2S1M4fe50fZZXFiFVdh7KMFjonzC2CJ/avy7dIChNCIp2vIxxHWGYnGka0WKE=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1kmGqihtrjCbTwxcfJyTgjkC66iMvUu+FoBa9mjKrC0HeVLwH
+	s6Q5f/N9773CGsy2WdOZbVYs4SYiUKeBd3H1hvxgNawN7kPNPrgdcI4tvt8a89XLE/HnuYRmUsE
+	ypDafAX2/onI=
+X-Gm-Gg: AR+sD11uGlPLnvxt4JyHbuunqmkoGy6k0xwINW4udHkEeeBK217prTy6GBEeRsOh2+s
+	YOpRG1zrmDm6lDZ7S4XWJ3ctt6c9aw47Q/6ox6fS7cewEsHPCwot9DdHmhYgVzscHWJ4BYQus0z
+	wz1p+LNk1FIDfZass1nL/om2yeWBilllBhGn/PhSU8oefDkeIsOjkcsK5Ci84oISXpZBw/KvluT
+	FmThBxsT5Vq+OW9OxNUgaIbuNKWsjd861Mqmq7kStZFsbaRLMdJWonhUpvbPSqCBkP7Lq0h5Aei
+	FhBEMw6f6PRH7l7hryh52FI9i7eXdftDkv96Zd4ugyrCpGxPBAzxlCNWJobEX051yHjfpUoIreB
+	Hwzfkyawugg7PLnBWUetMWNdN8is2yplfyXaGVcFDs0uEAIlD+DR+/IpCFX08r4d7wtYQ0z9l9T
+	DZ/39ZyqHKXenPp6J9G8Nn4rmDETcvIm0JZx+wAYxi2ucNw0n1pyUdMi63ceyEthSSwl258aV2A
+	COt
+X-Received: by 2002:a17:902:ce0b:b0:2ca:6d2a:871 with SMTP id d9443c01a7336-2d015d511fdmr79672115ad.37.1785333430367;
+        Wed, 29 Jul 2026 06:57:10 -0700 (PDT)
+Received: from Roxy.localdomain ([203.175.14.54])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d022bc5afasm11837285ad.46.2026.07.29.06.57.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Jul 2026 06:48:54 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
+        Wed, 29 Jul 2026 06:57:09 -0700 (PDT)
+From: Zhiling Zou <zhilinz@nebusec.ai>
+To: lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	ja@ssi.bg
+Cc: horms@verge.net.au,
+	pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
 	davem@davemloft.net,
 	edumazet@google.com,
+	kuba@kernel.org,
 	pabeni@redhat.com,
-	horms@kernel.org,
-	chamaken@gmail.com,
+	jwiesner@suse.de,
 	vega@nebusec.ai,
-	zihanx@nebusec.ai,
-	stable@vger.kernel.org
-Subject: [PATCH nf 1/1] netfilter: nf_conntrack_tcp: defer invalid logging until after unlock
-Date: Wed, 29 Jul 2026 13:48:17 +0000
-Message-ID: <b9b0022c68b6d0ac1a729f768466e3400a825a87.1785307981.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1785307980.git.zihanx@nebusec.ai>
-References: <cover.1785307980.git.zihanx@nebusec.ai>
+	zhilinz@nebusec.ai
+Subject: [PATCH nf v3 1/1] ipvs: stop estimator after disabled calc phase
+Date: Wed, 29 Jul 2026 21:56:59 +0800
+Message-ID: <154d1474f8c36c34d9b86c7ca1b33d73f5435241.1785289432.git.zhilinz@nebusec.ai>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -85,276 +86,91 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nf_conntrack_tcp_packet() can log invalid packets while ct->lock is still
-held. This happens both through tcp_in_window() -> nf_tcp_log_invalid()
-and through the NFCT_TCP_INVALID path -> nf_tcp_handle_invalid().
+IPVS estimator kthread 0 starts with zeroed chain and tick limits until
+its initial calculation phase completes. If network namespace teardown
+clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
+without installing positive limits.
 
-If IPv4 invalid logging is bound to nfnetlink_log and the NFLLOG instance
-has NFULNL_CFG_F_CONNTRACK enabled, the logging path re-enters conntrack
-netlink glue and reaches tcp_to_nlattr(), which tries to take ct->lock
-again. This results in recursive lock acquisition and can deadlock the
-sender in queued_spin_lock_slowpath(), followed by stalls or panic.
+The kthread can then continue into its main loop and drain
+est_temp_list with zero chain_max, tick_max and est_max_count values.
+Each enqueue consumes one available tick row, but est_count never
+reaches the zero est_max_count value. After all rows are consumed, the
+row lookup returns IPVS_EST_NTICKS and ip_vs_enqueue_estimator() writes
+past the ticks and tick_len arrays.
 
-Fix this by recording the minimal invalid-log context while ct->lock is
-held and emitting the actual log records only after dropping the lock.
-This keeps the existing invalid-log messages and still covers the timeout
-lowering log from nf_tcp_handle_invalid(), but removes the lock recursion
-from the logging path.
+Exit kthread 0 after the calculation phase if the kthread is stopping or
+IPVS has been disabled. That keeps temporary estimators from being
+drained after the limits failed to initialize.
 
-Fixes: a29a9a585b28 ("netfilter: nfnetlink_log: allow to attach conntrack")
+Estimator kthreads can now self-exit before teardown or reload stops
+kd->task. Keep an extra task reference after creation and release it
+with kthread_stop_put(), so kd->task remains valid until the stop paths
+consume that reference.
+
+Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
 Cc: stable@vger.kernel.org
 Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: Codex:gpt-5.4
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 167 +++++++++++++++++++------
- 1 file changed, 128 insertions(+), 39 deletions(-)
+changes in v3:
+- Keep an extra task_struct reference for estimator kthreads and
+  release it with kthread_stop_put(), as suggested by Julian
+  Anastasov, so self-exiting kthreads do not leave kd->task dangling.
+- v2 Link: https://lore.kernel.org/all/03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz@nebusec.ai
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index ceeed3d7fe52..00f017d9997f 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -480,37 +480,125 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 	}
- }
- 
--__printf(6, 7)
--static enum nf_ct_tcp_action nf_tcp_log_invalid(const struct sk_buff *skb,
--						const struct nf_conn *ct,
--						const struct nf_hook_state *state,
--						const struct ip_ct_tcp_state *sender,
--						enum nf_ct_tcp_action ret,
--						const char *fmt, ...)
-+enum nf_tcp_invalid_log_type {
-+	NF_TCP_LOG_NONE,
-+	NF_TCP_LOG_OVERSHOT,
-+	NF_TCP_LOG_SEQ_OVER,
-+	NF_TCP_LOG_ACK_OVER,
-+	NF_TCP_LOG_SEQ_UNDER,
-+	NF_TCP_LOG_ACK_UNDER,
-+	NF_TCP_LOG_LOWER_TIMEOUT,
-+};
-+
-+struct nf_tcp_invalid_log {
-+	enum nf_tcp_invalid_log_type type;
-+	u32 value;
-+	u8 index;
-+	u8 dir;
-+	u8 last_index;
-+};
-+
-+struct nf_tcp_invalid_logs {
-+	/* At most one tcp_in_window() log plus one lower-timeout log. */
-+	struct nf_tcp_invalid_log entries[2];
-+	u8 num;
-+};
-+
-+static void nf_tcp_queue_invalid_log(struct nf_tcp_invalid_logs *logs,
-+				     enum nf_tcp_invalid_log_type type,
-+				     u32 value, u8 index, u8 dir,
-+				     u8 last_index)
-+{
-+	struct nf_tcp_invalid_log *log;
-+
-+	if (logs->num >= ARRAY_SIZE(logs->entries))
-+		return;
-+
-+	log = &logs->entries[logs->num++];
-+	log->type = type;
-+	log->value = value;
-+	log->index = index;
-+	log->dir = dir;
-+	log->last_index = last_index;
-+}
-+
-+static enum nf_ct_tcp_action
-+nf_tcp_log_invalid(const struct nf_conn *ct,
-+		   const struct ip_ct_tcp_state *sender,
-+		   struct nf_tcp_invalid_logs *logs,
-+		   enum nf_ct_tcp_action ret,
-+		   enum nf_tcp_invalid_log_type type,
-+		   u32 value)
- {
- 	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
--	struct va_format vaf;
--	va_list args;
- 	bool be_liberal;
- 
- 	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
- 	if (be_liberal)
- 		return NFCT_TCP_ACCEPT;
- 
--	va_start(args, fmt);
--	vaf.fmt = fmt;
--	vaf.va = &args;
--	nf_ct_l4proto_log_invalid(skb, ct, state, "%pV", &vaf);
--	va_end(args);
--
-+	nf_tcp_queue_invalid_log(logs, type, value, 0, 0, 0);
- 	return ret;
- }
- 
-+static void nf_tcp_emit_invalid_log(const struct sk_buff *skb,
-+				    const struct nf_conn *ct,
-+				    const struct nf_hook_state *state,
-+				    const struct nf_tcp_invalid_log *log)
-+{
-+	switch (log->type) {
-+	case NF_TCP_LOG_OVERSHOT:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "%u bytes more than expected",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_SEQ_OVER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "SEQ is over upper bound %u (over the window of the receiver)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_ACK_OVER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "ACK is over upper bound %u (ACKed data not seen yet)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_SEQ_UNDER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "SEQ is under lower bound %u (already ACKed data retransmitted)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_ACK_UNDER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "ignored ACK under lower bound %u (possible overly delayed)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_LOWER_TIMEOUT:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "packet (index %d, dir %d) response for index %d lower timeout to %u",
-+					  log->index, log->dir,
-+					  log->last_index, log->value);
-+		break;
-+	case NF_TCP_LOG_NONE:
-+		break;
-+	}
-+}
-+
-+static void nf_tcp_emit_invalid_logs(const struct sk_buff *skb,
-+				     const struct nf_conn *ct,
-+				     const struct nf_hook_state *state,
-+				     const struct nf_tcp_invalid_logs *logs)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < logs->num; i++)
-+		nf_tcp_emit_invalid_log(skb, ct, state, &logs->entries[i]);
-+}
-+
- static enum nf_ct_tcp_action
- tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 	      unsigned int index, const struct sk_buff *skb,
- 	      unsigned int dataoff, const struct tcphdr *tcph,
--	      const struct nf_hook_state *hook_state)
-+	      struct nf_tcp_invalid_logs *logs)
- {
- 	struct ip_ct_tcp *state = &ct->proto.tcp;
- 	struct ip_ct_tcp_state *sender = &state->seen[dir];
-@@ -640,31 +728,29 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 			sender->td_end = end;
- 			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
- 
--			return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--						  "%u bytes more than expected", overshot);
-+			return nf_tcp_log_invalid(ct, sender, logs, NFCT_TCP_IGNORE,
-+					  NF_TCP_LOG_OVERSHOT, overshot);
+changes in v2:
+- Exit the estimator kthread after the calculation phase if IPVS
+  has been disabled or the kthread is stopping, as suggested by
+  Julian Anastasov.
+- Drop the later enqueue and drain guards from v1.
+- v1 Link: https://lore.kernel.org/all/6359e0031f0ee7cc969bae3483308de362d3c709.1784878022.git.zhilinz@nebusec.ai
+
+ net/netfilter/ipvs/ip_vs_est.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+index ab09f51829512..05a216a47b45e 100644
+--- a/net/netfilter/ipvs/ip_vs_est.c
++++ b/net/netfilter/ipvs/ip_vs_est.c
+@@ -191,8 +191,11 @@ static int ip_vs_estimation_kthread(void *data)
  		}
  
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_INVALID,
--					  "SEQ is over upper bound %u (over the window of the receiver)",
--					  sender->td_maxend + 1);
-+		return nf_tcp_log_invalid(ct, sender, logs, NFCT_TCP_INVALID,
-+				  NF_TCP_LOG_SEQ_OVER, sender->td_maxend + 1);
+ 		/* kthread 0 will handle the calc phase */
+-		if (ipvs->est_calc_phase)
++		if (ipvs->est_calc_phase) {
+ 			ip_vs_est_calc_phase(ipvs);
++			if (kthread_should_stop() || !READ_ONCE(ipvs->enable))
++				return 0;
++		}
  	}
  
- 	if (!before(sack, receiver->td_end + 1))
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_INVALID,
--					  "ACK is over upper bound %u (ACKed data not seen yet)",
--					  receiver->td_end + 1);
-+		return nf_tcp_log_invalid(ct, sender, logs, NFCT_TCP_INVALID,
-+				  NF_TCP_LOG_ACK_OVER, receiver->td_end + 1);
+ 	while (1) {
+@@ -270,6 +273,7 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
+ 		kd->task = NULL;
+ 		goto out;
+ 	}
++	get_task_struct(kd->task);
  
- 	/* Is the ending sequence in the receive window (if available)? */
- 	in_recv_win = !receiver->td_maxwin ||
- 		      after(end, sender->td_end - receiver->td_maxwin - 1);
- 	if (!in_recv_win)
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--					  "SEQ is under lower bound %u (already ACKed data retransmitted)",
--					  sender->td_end - receiver->td_maxwin - 1);
-+		return nf_tcp_log_invalid(ct, sender, logs, NFCT_TCP_IGNORE,
-+				  NF_TCP_LOG_SEQ_UNDER,
-+				  sender->td_end - receiver->td_maxwin - 1);
- 	if (!after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1))
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--					  "ignored ACK under lower bound %u (possible overly delayed)",
--					  receiver->td_end - MAXACKWINDOW(sender) - 1);
-+		return nf_tcp_log_invalid(ct, sender, logs, NFCT_TCP_IGNORE,
-+				  NF_TCP_LOG_ACK_UNDER,
-+				  receiver->td_end - MAXACKWINDOW(sender) - 1);
- 
- 	/* Take into account window scaling (RFC 1323). */
- 	if (!tcph->syn)
-@@ -720,10 +806,9 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- }
- 
- static void __cold nf_tcp_handle_invalid(struct nf_conn *ct,
--					 enum ip_conntrack_dir dir,
--					 int index,
--					 const struct sk_buff *skb,
--					 const struct nf_hook_state *hook_state)
-+				 enum ip_conntrack_dir dir,
-+				 int index,
-+				 struct nf_tcp_invalid_logs *logs)
+ 	set_user_nice(kd->task, sysctl_est_nice(ipvs));
+ 	if (sysctl_est_preferred_cpulist(ipvs))
+@@ -286,7 +290,7 @@ void ip_vs_est_kthread_stop(struct ip_vs_est_kt_data *kd)
  {
- 	const unsigned int *timeouts;
- 	const struct nf_tcp_net *tn;
-@@ -764,9 +849,10 @@ static void __cold nf_tcp_handle_invalid(struct nf_conn *ct,
- 
- 		timeout = READ_ONCE(timeouts[TCP_CONNTRACK_UNACK]);
- 		if (expires > timeout) {
--			nf_ct_l4proto_log_invalid(skb, ct, hook_state,
--					  "packet (index %d, dir %d) response for index %d lower timeout to %u",
--					  index, dir, ct->proto.tcp.last_index, timeout);
-+			nf_tcp_queue_invalid_log(logs,
-+						 NF_TCP_LOG_LOWER_TIMEOUT,
-+						 timeout, index, dir,
-+						 ct->proto.tcp.last_index);
- 
- 			WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
- 		}
-@@ -971,6 +1057,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	enum tcp_conntrack new_state, old_state;
- 	unsigned int index, *timeouts;
- 	enum nf_ct_tcp_action res;
-+	struct nf_tcp_invalid_logs logs = {};
- 	enum ip_conntrack_dir dir;
- 	const struct tcphdr *th;
- 	struct tcphdr _tcph;
-@@ -1252,14 +1339,16 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	if (kd->task) {
+ 		pr_info("stopping estimator thread %d...\n", kd->id);
+-		kthread_stop(kd->task);
++		kthread_stop_put(kd->task);
+ 		kd->task = NULL;
  	}
- 
- 	res = tcp_in_window(ct, dir, index,
--			    skb, dataoff, th, state);
-+			    skb, dataoff, th, &logs);
- 	switch (res) {
- 	case NFCT_TCP_IGNORE:
- 		spin_unlock_bh(&ct->lock);
-+		nf_tcp_emit_invalid_logs(skb, ct, state, &logs);
- 		return NF_ACCEPT;
- 	case NFCT_TCP_INVALID:
--		nf_tcp_handle_invalid(ct, dir, index, skb, state);
-+		nf_tcp_handle_invalid(ct, dir, index, &logs);
- 		spin_unlock_bh(&ct->lock);
-+		nf_tcp_emit_invalid_logs(skb, ct, state, &logs);
- 		return -NF_ACCEPT;
- 	case NFCT_TCP_ACCEPT:
- 		break;
+ }
+@@ -526,7 +530,7 @@ static void ip_vs_est_kthread_destroy(struct ip_vs_est_kt_data *kd)
+ 	if (kd) {
+ 		if (kd->task) {
+ 			pr_info("stop unused estimator thread %d...\n", kd->id);
+-			kthread_stop(kd->task);
++			kthread_stop_put(kd->task);
+ 		}
+ 		ip_vs_stats_free(kd->calc_stats);
+ 		kfree(kd);
 -- 
 2.43.0
 
