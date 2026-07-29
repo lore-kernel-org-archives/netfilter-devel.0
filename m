@@ -1,92 +1,143 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291B4377EBA;
-	Tue, 28 Jul 2026 21:39:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A00E17D6
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 00:16:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785274753; cv=none; b=ib5H28a1UpnA5N4Se2pavAD9/7V3IroT9HF3QDd1LKlE5SWcIYr88+oopSgXvH7VMqASDvOMj3LdepeQjeh4pHuAw74PyPSb4WrErZrojiZlhbCblduPiJ9lqi3cI3Hvh/qgWGHR9WkygMzBT4b39sDItbItP6v7T6hVEUB7zs0=
+	t=1785284217; cv=none; b=RfGRBplJ2te39spnLlKOzMt7S9ZZbFTci6NH0yjxu2VVnmDzqrQDXCRiF6ipE/BHUuwaAevRLZLEe04ZfVQk1knTOtVRgqQKOvd4isEf1+4JPkJES6dpZOOJ1UmTsOuO3tLriLpQqiZs3vut/vQC/b1zDCX12rXrT/8nAfxHqyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785274753; c=relaxed/simple;
-	bh=WITMqrzgHTQPgRpxWFsk0ZorQQBI/emyWWpjDqNJycg=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=N03FeNiAg0bh/+XOSMk0RwvNU3W53/w9zyzvucw1VXgWcWv3MMvcVQ+KQvlGzoFf+/ErrSO6orHy2m5lKVT5PFfw4xx6yzMrq9PEpZUbp4Rs8/lnpLSn8KweW5SaxUA2qIstIdFcXVZ1HXb0IsjhT0AXbMWqzNImxBFAl8WqeD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=se8ye342; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1785284217; c=relaxed/simple;
+	bh=xP3nFhVSG//yA0GlcNz1ReKO3ArSVA/l0fx/eKg8xac=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=XdrNIjf5I++fxE/vCFUxWdmhzsjdjYoh/B7kVOrcDLuUGCikt/emHNnqDUngsdJQCMgRiePOdDrOSbOO7HGPYBQF/CPoPhmNcDSObmSsbOlE0Q0b9IZUFKORe/dSTBBjQ/IOkI7jQXRZClrbry01yNf0ezLb5/C1/cCxNxua0Io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kqlej/71; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="se8ye342"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 50DA521311;
-	Wed, 29 Jul 2026 00:39:04 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=YfIx3cDuf0IbRvRgyzQM8ZdkXNZbLqHN3hcf8u9ULgc=; b=se8ye342vF9u
-	YYggMzJBqPF4Nu6LIIbyxJeOsyqa5Nf0X+pfWETZzlXHSDtOXv+mJqCVzMNO+sfx
-	DktKNhyyqAO4wlUZzph1g3cGk5VuVaVus47KeVC/VxP6f98jJ9Sy7GWIVCKRkH3o
-	T5Chh+w1703gxeEL3CHCqVSGivoIsbQ0ok7/8ZigLyMJiBNALoeC1fxFnH8PgxxB
-	sD04OBPX7a1bRxhZ+DGIzQaY/5XfuCrGXgdUWTzjzuabPA1+B4fbqaYu8B3XWqtj
-	PwDMzmdthF6isjDQETUD1yoAWP9i2eDRS93Xk54ib6jDcyM8bRGvkUu4/C+pSGv7
-	UQ1Pxj5w5S/Tv6WN943DpEtMMjsz6HENC4ckT3KmjzBcLC5Pkn/UbXBnJHGHlYVp
-	IgDs1ePfJ97ETFL9cwRefME9y6qPDetQS50hN8l2zb4PbykV/5yUH6cp3CLaB3aA
-	c5ejOyHiuIPFb2D8yIRMCRhGT2bgMFZmoD/ZGvq1VzRJMHphQ8J2vF4Ukj16ky2Y
-	kdGEB0M+0HieF6wOwPjXnJQ0uSj/Rm833n+h5x7WATgyGGS9ai5vkrCUzVzlcAGR
-	0Bvp/iid/cQVv08GoL/oL0wVTq3nhrMa3ehqHV8t1b0gsu+zp8N4XEED78tdDqnZ
-	4MDVYEzaSxqkZXjmILSl9MAtQeSYxtw=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 29 Jul 2026 00:39:04 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 01F7560B6E;
-	Wed, 29 Jul 2026 00:39:04 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66SLd3Mf066828;
-	Wed, 29 Jul 2026 00:39:03 +0300
-Date: Wed, 29 Jul 2026 00:39:03 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2 0/2] ipvs: csum validations, part 2
-In-Reply-To: <20260728202520.59179-1-ja@ssi.bg>
-Message-ID: <2274a119-991c-ccf3-8636-059ba65eb88a@ssi.bg>
-References: <20260728202520.59179-1-ja@ssi.bg>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kqlej/71"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 096B86018F
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 02:16:51 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1785284212;
+	bh=AWNeTVtbv+X/tV9cE5Btz/HMoLR9bSXjOPMldxaPWTU=;
+	h=From:To:Subject:Date:From;
+	b=kqlej/71C8TxeorN1znUJUb1l2h6QZmKbzQMfVP0/xm7sBpRaitGRltxmETm2O1d9
+	 HmqfrQMpq6IcJ6MM4baULH37/iTrOyyLSrAZI4rTv/+SiPytxP0PnZeYVW20gHNXDX
+	 HP8QOjC3cL+73X3SrTWyAeoHu7HjtmNC/dWly0HyRsZpw2mSUT6SD6tT44sq/bMLkK
+	 VvX89M5Ugc2KTa8D8K0m/FEvqdN8nQ1EAc83J0EOmUf1UegwNJ38HUL96TSLTtai+E
+	 qJGGii8oLqJA89KLyPH8lArdW4flAUafVRPwR/po5hOlte7jnqK0gFBVpYwkUUFDoh
+	 YRgnPdhRp74xA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_conntrack: move expectation hlist_head on ct extension realloc
+Date: Wed, 29 Jul 2026 02:16:45 +0200
+Message-ID: <20260729001645.254396-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Commit 7c9664351980 ("netfilter: move nat hlist_head to nf_conn") moved
+the nat hlist_head to nf_conn and it removes the .move callback for ct
+extensions. This commit description already points to the same problem
+that is being addressed for expectations by this patch:
 
-	Hello,
+ 1. ...
+ 2. When reallocation of extension area occurs we need to fixup the
+    bysource hash head via hlist_replace_rcu.
 
-On Tue, 28 Jul 2026, Julian Anastasov wrote:
+This means that the .pprev pointer of the first expectation might refer
+to a stale hlist_head after reallocation.
 
->         This patchset contains more fixes after the
-> previous batch of fixes for checksum validations.
-> 
->         The first patch avoids reading the IPv4 ihl field
-> multiple times to prevent local attacker to cause
-> out-of-bounds write in ip_vs_nat_icmp.
-> 
->         The second patch returns the checksum validations
-> which can be needed for the FORWARD hook.
-> 
-> Julian Anastasov (2):
->   ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
->   ipvs: return the csum validation for forward hook
+This bug is now easier to trigger since the introduction of the commit
+857b46027d6f ("netfilter: nft_ct: add ct expectations support") which
+allows to create expectations before the ct extension area have been
+fully set up for unconfirmed conntracks.
 
-	There is something more to fix, will send v3:
+This patch uses hlist_move_list() because this conntrack is unconfirmed,
+ie. not yet in the hashes, and it is neither visible to the conntrack
+garbage collector nor ctnetlink.
 
-https://sashiko.dev/#/patchset/20260728202520.59179-1-ja%40ssi.bg
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
+Reported-by: Jaeyeong Lee <iostreampy@proton.me>
+Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_extend.c | 33 ++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-pw-bot: changes-requested
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 0da105e1ded9..ea7795a2461f 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -87,9 +87,34 @@ static __always_inline unsigned int total_extension_size(void)
+ 	;
+ }
+ 
++static void nf_ct_ext_helper_save(struct nf_conn *ct,
++				  struct hlist_head *expectations)
++{
++	struct nf_conn_help *help;
++
++	help = nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
++	if (!help)
++		return;
++
++	hlist_move_list(&help->expectations, expectations);
++}
++
++static void nf_ct_ext_helper_restore(struct nf_conn *ct,
++				     struct hlist_head *expectations)
++{
++	struct nf_conn_help *help;
++
++	help = nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
++	if (!help)
++		return;
++
++	hlist_move_list(expectations, &help->expectations);
++}
++
+ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+ 	unsigned int newlen, newoff, oldlen, alloc;
++	HLIST_HEAD(expectations);
+ 	struct nf_ct_ext *new;
+ 
+ 	/* Conntrack must not be confirmed to avoid races on reallocation. */
+@@ -108,13 +133,17 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 		oldlen = sizeof(*new);
+ 	}
+ 
++	nf_ct_ext_helper_save(ct, &expectations);
++
+ 	newoff = ALIGN(oldlen, __alignof__(struct nf_ct_ext));
+ 	newlen = newoff + nf_ct_ext_type_len[id];
+ 
+ 	alloc = max(newlen, NF_CT_EXT_PREALLOC);
+ 	new = krealloc(ct->ext, alloc, gfp);
+-	if (!new)
++	if (!new) {
++		nf_ct_ext_helper_restore(ct, &expectations);
+ 		return NULL;
++	}
+ 
+ 	if (!ct->ext)
+ 		memset(new->offset, 0, sizeof(new->offset));
+@@ -124,6 +153,8 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	memset((void *)new + newoff, 0, newlen - newoff);
+ 
+ 	ct->ext = new;
++	nf_ct_ext_helper_restore(ct, &expectations);
++
+ 	return (void *)new + newoff;
+ }
+ EXPORT_SYMBOL(nf_ct_ext_add);
+-- 
+2.47.3
 
