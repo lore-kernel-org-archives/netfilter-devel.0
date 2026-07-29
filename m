@@ -1,92 +1,96 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F753AFCE5
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 15:09:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 997C81BD9D0
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 15:15:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785337749; cv=none; b=RWD5QOTL7FZtUnSHulwnIru1RAdhhTTatIbOWw2MNRdu7zQua50lon9mrHKfbp+h7Dvi0lekh8Nng6k8Kx5uGNTou9wK2MGcnnol/QghwFoMghkNXPsMQQFegKYyN9V3kY1cWiyI71Dq1Waq05wqPz5mZqcR9+Ym9GQ4xmswcdU=
+	t=1785338157; cv=none; b=XXxkWynhP2jsOa5vfhAo5tFoT/ckvfiQyiJX76x1h/Qn5qMtvfJlU95tVdmKkkTqfMpNIL968MiMAORuaHyDyHNqmKTIhYM5ru3O6RsTMi72xR4JQkAIdJmB6bBNV8Bdm96oRsQFimEgnp6RAh6Mfq1DA/Hvf931FcKk1fvoCDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785337749; c=relaxed/simple;
-	bh=2BEq93IF3/4Ro/l2Vzh9nBjN7tnEPLsMXfcFeShYLO0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=frZgmJUvgdo9eG9ukI9tTrlVfaERsgbxB3kjhvfBibdDfcKmySpYol6oYbjFpSl33kV8Rxb4RuKioN+zrlL22qxRo8+72v4pkULIrNlZc9aMmjA/C9a1XVL710L7EyMCd/+Aqp+F1XRZK2sKjDO3mqF7yGGD1lRWAnpzprbu7AM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F129A60293; Wed, 29 Jul 2026 17:09:03 +0200 (CEST)
-Date: Wed, 29 Jul 2026 17:09:03 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	Jianjun Chen <jianjun@tsinghua.edu.cn>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: tcp: use UNACK timeout for
- non-closing RST packets
-Message-ID: <amoXj6UGRW8SQXBT@strlen.de>
-References: <20260729142802.3572612-1-zhangmh25@mails.tsinghua.edu.cn>
+	s=arc-20240116; t=1785338157; c=relaxed/simple;
+	bh=2xtNYJ8KiybgH8VRtLGHQ33NdS36IpWFtd5rWxyxMYE=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=YHCvo4feGFPjloNLGsICZ404OP0KHIRmuCvuLjL/4Z67MITxub+h3DEYnYMfvPz+VUVuPDn3oldKH9xXX8B9mV8zwRUha7Y0kE/oE+PUA8/zrrqKUCJdiDiTZMWObCyf3rSvVU0jm53Pc7oEEOFdjVnwhLLTBkrAuPYhnDARBnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4h9Fy92My7z7s7wQ;
+	Wed, 29 Jul 2026 17:05:37 +0200 (CEST)
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id fRLpt-RcSI4B; Wed, 29 Jul 2026 17:05:35 +0200 (CEST)
+Received: from mentat.rmki.kfki.hu (unknown [148.6.40.64])
+	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
+	by smtp2.kfki.hu (Postfix) with ESMTPSA id 4h9Fy72hH7z7s7wP;
+	Wed, 29 Jul 2026 17:05:35 +0200 (CEST)
+Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
+	id 1533F14053F; Wed, 29 Jul 2026 17:05:35 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 1224B14032E;
+	Wed, 29 Jul 2026 17:05:35 +0200 (CEST)
+Date: Wed, 29 Jul 2026 17:05:35 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ipset 0/5] ipset test updates
+In-Reply-To: <20260723103504.3175-1-fw@strlen.de>
+Message-ID: <b6d371b8-66ac-c2ed-8c17-5e07630c5624@netfilter.org>
+References: <20260723103504.3175-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260729142802.3572612-1-zhangmh25@mails.tsinghua.edu.cn>
+Content-Type: text/plain; charset=US-ASCII
 
-Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn> wrote:
-> Commit be0502a3f2e9 ("netfilter: conntrack: tcp: only close if RST
-> matches exact sequence") keeps an established conntrack entry in
-> ESTABLISHED when an in-window RST does not match the expected sequence
-> number exactly, so the endpoint can validate the RST with a challenge
-> ACK.
+Hi Florian,
+
+On Thu, 23 Jul 2026, Florian Westphal wrote:
+
+> These are extensions to existing test cases, no tests are
+> disabled and all tests are expected to pass regardless if
+> the rhashtable patch set is applied or not.
 > 
-> The timeout selection nevertheless uses the CLOSE timeout for every RST
-> packet.  The bug is that timeout selection is based on the packet type,
-> not on the state transition result: even when RST validation keeps
-> new_state in ESTABLISHED, the timeout is still forced to
-> TCP_CONNTRACK_CLOSE.
+> 1) Introduce IPSET_MACHINE_SLOW to prevent ipset test timeouts on slow
+> machines. Increase the slack value to 30s when this flag is set.
 > 
-> Linux TCP independently rate limits challenge ACKs per socket.  A second
-> non-exact RST can therefore arrive after the first challenge ACK has
-> restored the timeout but before the rate limit expires.  The second RST
-> lowers the timeout to 10 seconds again while the endpoint suppresses the
-> second challenge ACK, allowing the conntrack entry to expire while both
-> TCP endpoints remain established.
+> 2) Prefer tail -n in hash:net.t tests to avoid Fedora 44 error.
 > 
-> Using the ESTABLISHED timeout for non-exact RSTs would avoid this short
-> expiration window, but it could also retain stale entries for the
-> five-day default because conntrack cannot reliably match the endpoint's
-> exact TCP state.
+> 3) Use diff -u instead of cmp in tests to improve error readability.
 > 
-> Use the UNACK timeout for RST packets that do not move the conntrack
-> entry to TCP_CONNTRACK_CLOSE.  Exact-match RSTs and accepted RST packet
-> trains still use the CLOSE timeout because their state transition result
-> is CLOSE.  This avoids the exploitable 10-second expiration window for
-> non-exact RSTs while preserving the short timeout for RSTs that
-> conntrack accepts as closing the flow.
+> 4) Add a UaF reproducer to hash:net,iface.t. Verify that deleting
+> non-existing elements fails without triggering an incorrect free.
+> 
+> 5) Add a test for CIDR matching with the "multi" flag in match_target.t.
 
-Hmm.
+Thanks! All patches are applied to the ipset git tree.
 
->  		timeout = timeouts[TCP_CONNTRACK_RETRANS];
-> -	else if (unlikely(index == TCP_RST_SET))
-> +	else if (unlikely(index == TCP_RST_SET &&
-> +			  new_state == TCP_CONNTRACK_CLOSE))
->  		timeout = timeouts[TCP_CONNTRACK_CLOSE];
+Best regards,
+Jozsef
 
-Is this needed?  If new state is TCP_CONNTRACK_CLOSE, the existing
-else branch will:
-        else
-                timeout = timeouts[new_state];
+> Florian Westphal (5):
+>   tests: check_extensions: introduce and use IPSET_MACHINE_SLOW
+>   tests: hash:net.t: prefer tail -n
+>   tests: prefer diff -u to cmp
+>   tests: hash:net,iface.t: add reproducer for UaF
+>   tests: match_target.t check for proper cidr matching
+> 
+>  tests/check_extensions | 23 +++++++++++++++++++----
+>  tests/hash:net,iface.t |  5 +++++
+>  tests/hash:net.t       |  2 +-
+>  tests/iphash.t         |  8 ++++----
+>  tests/match_target.t   | 14 +++++++++++++-
+>  tests/restore.t        |  2 +-
+>  6 files changed, 43 insertions(+), 11 deletions(-)
+> 
+> -- 
+> 2.54.0
+> 
 
-> +	else if (unlikely(index == TCP_RST_SET))
-> +		timeout = timeouts[TCP_CONNTRACK_UNACK];
-
-AFAICS this is enough:
--       else if (unlikely(index == TCP_RST_SET))
--               timeout = timeouts[TCP_CONNTRACK_CLOSE];
-+       else if (unlikely(index == TCP_RST_SET && new_state != TCP_CONNTRACK_ESTABLISHED))
-+               timeout = timeouts[TCP_CONNTRACK_UNACK];
-
-Could you test this?  Thanks!
+-- 
+E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+Address: Wigner Research Centre for Physics
+         H-1525 Budapest 114, POB. 49, Hungary
