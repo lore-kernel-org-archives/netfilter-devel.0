@@ -1,70 +1,128 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6329432E80
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 11:43:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9D522A4E9
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 11:49:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785325442; cv=none; b=sClt1yw5/PEed+aQTWjbY8U6jiWRMUvIh3b3FevsN4z2t786YINpEAJT0FrwWHcckYoEEJaLWMhcHi4pf9/6MzRWzM+Hg7EDcdoGzM011T8tYDfBPWNVKrmI/6fffdTprKkZ1vr8VI67d1QMokRkn4LLcMl4550pxbj1t1KAp4U=
+	t=1785325795; cv=none; b=f4eKOpuW5ha/UptuNgoAR4iFecfoo5d0c8Dg0VH/IEf0e7X13inoDxb2zgWm2snFgUOvJ9OSo+t/N9ByTC3N6Cy5PlsqlUxz6cv1bNSP9fosc24pPvq8kMG9L9V1Ql4Y4ZdkkX4cBzH+Ag9hMe+BwRB3HtyLsFJ2PJ+eP1Y4o8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785325442; c=relaxed/simple;
-	bh=s9Ct8SWUB0/V1NPej+xWbPcJfIrgoaCIYchz45BVdX0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gEuCDTxNO8Gh5RD/ubm2Jx7LFNjUBH6dNnHMgZFwCwTXVxmdcQERiG9GejM+Djsb13ElRf3pEdvMTD5sPAkCQBWWiPAibQZkzCKhXgCqlge5yMOmYSp2Pt5K/f+h8cT1itB7JX74XUvZ19KZtDkMOqEaHyAnqOcb/Un41+lOAx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R0a3J6HU; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785325795; c=relaxed/simple;
+	bh=Vj8t+7m6N5QKVxLOn2tddpTSAz+wK0NgXEl/WpluZc0=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Wv8LmEYIYJhyVuyJoambz/W3Wtwsf2rttY/00612aObYg7SvMMhudDd5bEJjFY6w5NWnXHTLEJcL0lpH3ZHF1i0qpY8k7Ph1zVxi8kVXnoH6P6a2wzZUpIpGDwmzPlBi1U4zQRm7Q1wGIYxAWjXvjDniRCZsQmKb4XIXVfte/OA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jLlWN+of; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R0a3J6HU"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 253A460192;
-	Wed, 29 Jul 2026 13:43:54 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jLlWN+of"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1E8DA60192
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 13:49:51 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785325434;
-	bh=8jAvAvavhWBauo7C+qGxc/U/j9AbLAZeYSo2QutEaJg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=R0a3J6HU4UyEW9XcNTRq1WgC8gHlZslIpvSESqj0NvqVL2EhEjbShxLZBDP8C6yrb
-	 7uowZOVZy951/HUQ8r7Ql5KX8E2nosj6jhaMD7Bbob01PeRA1uUuJMMnZgLnv6W4bH
-	 cyk5vAku4FC5I3eJzJWgD1Z3SKNPjvkK1+HXvdif3rWp1WQVf2xzsTABqYx4thDwEq
-	 +vA1IqEHjPeaE6bzD6sL41UwptveTh+hU5DhnIqo+dPMZnrVoVzVmMI+7rMJRYl2EO
-	 hgbDC183OepFmpjRMQBhx01RYiDbIAEzxCP6ztWmzYcV1V7VWF3DECb23OP8Xca7ke
-	 HpVp9bnSFQY3g==
-Date: Wed, 29 Jul 2026 13:43:50 +0200
+	s=2025; t=1785325791;
+	bh=UkXTGzy0Qk6vttWCi/M+1pdU6bBgs5E0P8S4WkOytkU=;
+	h=From:To:Subject:Date:From;
+	b=jLlWN+ofU8cNF1oYKeqpT4pUxD0Jj9W42RfiFmnquVs49l2I9vI9/dPZbZk4Hoek9
+	 9phGNTvpby3FL3skkePHB0f89IXbYyeBvqnskS7GpLVUHrKDgthkLl19hfd08n2Wm9
+	 8MkCcqCIcV9Pte76ehmocmUspgwRgFJNOXN+nkuXbG3HMe/cgxEzKRouJhkhCfAjWh
+	 FhyOzJVLPYrgPEGjVmZIAFNf2XT7WEc5yb8KjqtkSLg3DYrtcaFrSJrPxcTk4h3lOD
+	 55oz5hMiQiJ+1cwzzsg87gX/Hy26V4vRun2r9y6vdDi51pkxlY16ahZAZ4FlbpenYX
+	 vbtfiOGFqcnRg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Avinash Duduskar <avinash.duduskar@gmail.com>
-Cc: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] datatype: accept a numeric cgroupsv2 id on input
-Message-ID: <amnndnoOMoR05sJK@chamomile>
-References: <20260727082427.740789-1-avinash.duduskar@gmail.com>
- <amjWjTkt1Dsh66Xv@orbyte.nwl.cc>
- <amkAJuVZmpGy7pvY@chamomile>
- <amnES354HC-zVZJQ@orbyte.nwl.cc>
- <20260729100356.387951-1-avinash.duduskar@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v5 1/6] netfilter: flowtable: consolidate net_device field in nft_forward_info struct
+Date: Wed, 29 Jul 2026 13:49:42 +0200
+Message-ID: <20260729114947.403782-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260729100356.387951-1-avinash.duduskar@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 29, 2026 at 03:33:56PM +0530, Avinash Duduskar wrote:
-> On Wed, Jul 29, 2026 at 11:13:47AM +0200, Phil Sutter wrote:
-> > Is it true that integer_type_parse respects negative values as such?
-> > Because that void avoid the mentioned issue of '-1' becoming '1'.
-> > Negative values would just not match.
-> 
-> No, the sign parses but is dropped on export: "-1" stores as element 1
-> and "-2" then lists as "cgroup.procs". Garbage in, garbage out either
-> way, as you say, so v2 delegates to integer_type_parse().
-> 
-> For the metainfo dump test I will take the jq route, as a follow-up.
+info->indev and info->outdev refer to the same device, a single
+info->dev field is sufficient.
 
-Regarding this misparsing of -1, I think this issue is related to the
-integer parser, which can be revisited in a follow up patch.
+While at it, remove unused router parameter from the flowtable path
+discovery function.
 
-I'd suggest to fix the removal of cgroupsv2 by inode id, then look
-into improving the integer parser.
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: no changes
+
+ net/netfilter/nf_flow_table_path.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 98c03b487f52..261bb44d08eb 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -42,8 +42,7 @@ static bool nft_is_valid_ether_device(const struct net_device *dev)
+ 	return true;
+ }
+ 
+-static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+-				     const struct dst_entry *dst_cache,
++static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
+ 				     const struct nf_conn *ct,
+ 				     enum ip_conntrack_dir dir, u8 *ha,
+ 				     struct net_device_path_stack *stack)
+@@ -76,8 +75,7 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
+ }
+ 
+ struct nft_forward_info {
+-	const struct net_device *indev;
+-	const struct net_device *outdev;
++	const struct net_device *dev;
+ 	struct id {
+ 		__u16	id;
+ 		__be16	proto;
+@@ -109,7 +107,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 		case DEV_PATH_VLAN:
+ 		case DEV_PATH_PPPOE:
+ 		case DEV_PATH_TUN:
+-			info->indev = path->dev;
++			info->dev = path->dev;
+ 			if (is_zero_ether_addr(info->h_source))
+ 				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
+ 
+@@ -179,10 +177,9 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
+ 			return -1;
+ 		}
+ 	}
+-	info->outdev = info->indev;
+ 
+ 	if (nf_flowtable_hw_offload(flowtable) &&
+-	    nft_is_valid_ether_device(info->indev))
++	    nft_is_valid_ether_device(info->dev))
+ 		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 
+ 	return 0;
+@@ -255,17 +252,16 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	unsigned char ha[ETH_ALEN];
+ 	int i;
+ 
+-	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) < 0 ||
++	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
+ 	    nft_dev_path_info(&stack, &info, ha, &ft->data) < 0)
+ 		return -ENOENT;
+ 
+-	if (!nft_flowtable_find_dev(info.indev, ft))
++	if (!nft_flowtable_find_dev(info.dev, ft))
+ 		return -ENOENT;
+ 
+-	if (info.outdev)
+-		route->tuple[dir].out.ifindex = info.outdev->ifindex;
++	route->tuple[!dir].in.ifindex = info.dev->ifindex;
++	route->tuple[dir].out.ifindex = info.dev->ifindex;
+ 
+-	route->tuple[!dir].in.ifindex = info.indev->ifindex;
+ 	for (i = 0; i < info.num_encaps; i++) {
+ 		route->tuple[!dir].in.encap[i].id = info.encap[i].id;
+ 		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
+-- 
+2.47.3
+
