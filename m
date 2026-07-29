@@ -1,114 +1,225 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6DD43DA4B
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 09:21:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C50C40EBB2
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 09:33:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785316888; cv=none; b=lV6diekHM09svDIvPNXlPGeyxBCE6LJ3/y+eb7qFOnAebeEd3oQnbjzK7mpDNashWKnoQjCTN/PQ50gi5454t+6i9vAzSVlbA0c+IXBoiFWSGPM/13oP1bx3C3vC/HMFflnyEvBtIRYKTbKqXg4MGst3FuZfWSS6aQfxclTv2ho=
+	t=1785317633; cv=none; b=iXoZB4HoorozM+kUSmKjjJvnHS7P4fVvHbA4qznrRgcyDTxZFnhtVPzyCYQ3TiB0LKxgxN7wBprCbl52uWPSMWKF+l+94DtRB9Pb7s7ktpIUC0rXPQ6R/Mbz2Vmm6IOoThp9upzKYyPo4g4f4oQpcb76Bq7SOeEjcojsSXcSeDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785316888; c=relaxed/simple;
-	bh=72CTobXy4BOkBP9zgC9Iuli2Bfn0Mfzy/srk5goZ8SY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L/zhnSLE3pWZXYVCC8fCZNkD3ay2EBk9d6IWfaQiAVlF6CjzsdvYs7XKs3RZ/xsBYsSkoFQm67WyrGU9OZzJsaEWMFvARs6kaLTEXZiG3CZ08V5CGiwqHIV5WOKOHlJ8S1nBlvrgMgNjPNj8tLbHiBUeXxb7hDdhNjRn0IPsA4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qpzVj57z; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1785317633; c=relaxed/simple;
+	bh=xdtGxRvgKH79HJPSSoq6L4P8aZhFA0dSOVsU3HhJqU8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=SEvtoNvSiwacQ2ot0KH3JlbX/xqDDRGXLEZFvfMrrOGHaByQcpuMrQdeQVBZT7sQTnKVBO/kji/xpkG01hNjzJpjFijo10BnnD6QfMtkE+6AkSfkJcbI6S/Ir+u0+xuT4I0rjLHcA2FjHvT2GEKqXWOIEsqpslbUSK7PUESERLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=nt1k464J; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=zc0OheEP; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=C/RZem1Y; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vsOn2qkR; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qpzVj57z"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=6RQ5xwodq7p8WIQ5uoJj7hZJYV4DThqF3f5ZZ8c3Nxo=; b=qpzVj57zwKkiiaUPHj8uTLgi9A
-	Qyog5cSoi4kdNh/E53YD8vTrzTQKvMXp20DKVFk8ywhBUlyDrwlAwb7RjHcn5xu9+3oAWEv4SJkGu
-	4CusWg8HI4cGsgAE8tIIyawXLw/udkvzjXXTzlYYB0NThdE+TRqNuaHUkmKY0PL8vOnAnaw4wnPHl
-	OSBqQZDCgfua9IUQPg0nxIDTFG/2WUpYwsHrmmmvhJwwngx09/24vWyf5u0vgXH9/i/C+qBGvIN2j
-	lHWEqiXXiTQagWJJsIZMYfo7jT0ItRgozqE/ubiqqaLKu+57Js9+/TYyWBZyC92KOFkXtH0eu4O+Y
-	63yH4h2Q==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wp0Ta-000000006qd-17zl;
-	Wed, 29 Jul 2026 11:21:22 +0200
-Date: Wed, 29 Jul 2026 11:21:22 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Avinash Duduskar <avinash.duduskar@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] datatype: accept a numeric cgroupsv2 id on input
-Message-ID: <amnGEhXHD5175bxC@orbyte.nwl.cc>
-References: <20260727082427.740789-1-avinash.duduskar@gmail.com>
- <amjWjTkt1Dsh66Xv@orbyte.nwl.cc>
- <amkAJuVZmpGy7pvY@chamomile>
- <20260728201909.1773000-1-avinash.duduskar@gmail.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="nt1k464J";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="zc0OheEP";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="C/RZem1Y";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vsOn2qkR"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 21B707C9DC;
+	Wed, 29 Jul 2026 09:33:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1785317624; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=SbTwvz97aE2JyMyU+7iLR5uHygL66jAeLuo2ZNB3/Kg=;
+	b=nt1k464Jk6KwULKxaW/lAfQvJXJ8uuRDa0G+yE+E84hJAoeYAAXd2FfnRNXkS4PtWBqkCM
+	P0bMUK9EQ2TreSLOwfHEvsesHPBu9W6obpuBbE911aqhMopm7vthUcZ0OPlqb6IDvKbSnn
+	mD/dvo/lmDvehqXXJYOo9NCYc+lI6V0=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1785317624;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=SbTwvz97aE2JyMyU+7iLR5uHygL66jAeLuo2ZNB3/Kg=;
+	b=zc0OheEP7I9Epl5cfMzbulkxZkIPqfRp5GNiMJVoscPcudJXTf7bZF43xV+5PP2oxlTfIq
+	uuRbuGsyMhx7nRBQ==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1785317620; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=SbTwvz97aE2JyMyU+7iLR5uHygL66jAeLuo2ZNB3/Kg=;
+	b=C/RZem1YXJXJEjU7o7LTEYoKQq3sfjhpI8yWhUdiUu+AvhrPMj5sG3fwtAJ3s8nGONTenx
+	BFpcknF8PkvFInq2K53RL8zbx0iAA9NGtTTasR4w1oyRiBtlQEcy+v7fhXLYJ+oU4Al2ZT
+	+TqGUQQXkPKLNLm9PVfgHU0Ii3NKzn4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1785317620;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=SbTwvz97aE2JyMyU+7iLR5uHygL66jAeLuo2ZNB3/Kg=;
+	b=vsOn2qkRkinhYOMIjyjK/h9MGkyaeSdF2S2P51xl+dnxsDdfQAxcTvvh+e9epS8xfZayyM
+	Jztjtq+wyVC44OAA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EE9A1779A1;
+	Wed, 29 Jul 2026 09:33:39 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id F9JlN/PIaWq+DwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 29 Jul 2026 09:33:39 +0000
+Message-ID: <5ee31f48-b783-4e2a-8c35-933ef7fd9a66@suse.de>
+Date: Wed, 29 Jul 2026 11:33:24 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260728201909.1773000-1-avinash.duduskar@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: call skb_valid_dst() before
+ skb_dst()
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+References: <20260728084006.101762-1-pablo@netfilter.org>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260728084006.101762-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.997];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCPT_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo,netfilter.org:email]
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spam-Level: 
 
-On Wed, Jul 29, 2026 at 01:49:09AM +0530, Avinash Duduskar wrote:
-> On Tue, Jul 28, 2026 at 09:16:54PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Jul 28, 2026 at 06:19:25PM +0200, Phil Sutter wrote:
-> > > So with nft printing non-existent cgroup names using PRIu64 and parsing
-> > > code still performs the path lookup first, what is all the fuss about
-> > > non-decimal number input?
-> >
-> > They claim they cannot delete entries via numeric value, it seems.
+On 7/28/26 10:40 AM, Pablo Neira Ayuso wrote:
+> When fetching the dst_entry from the skb, check if it valid, ie. this is
+> not a template dst.
 > 
-> Correct, the earlier example proves it.
-> 
-> A typo'd id can collide with a live inode and then list as another
-> cgroup's path. Fine with dropping the checks if you prefer.
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Isn't this "garbage in, garbage out" then?
+Hi Pablo,
 
-> > > Is this AI output?
-> 
-> Yes. Point taken on the length.
-> 
-> > > Can't this just be something like (untested):
-> > > [...]
-> 
-> Yes. v2, keeping the two checks:
-> 
-> 	if (stat(cgroupv2_path, &st) == 0) {
-> 		ino = st.st_ino;
-> 	} else if (isdigit((unsigned char)sym->identifier[0])) {
-> 		char *end;
-> 
-> 		errno = 0;
-> 		ino = strtoull(sym->identifier, &end, 10);
-> 		if (*end != '\0' || errno == ERANGE)
-> 			return error(&sym->location, "invalid cgroupv2 id");
-> 	} else {
-> 		return error(&sym->location, "cgroupv2 path fails: %s",
-> 			     strerror(errno));
-> 	}
-> 
-> > > out=$($NFT -j list table t)
-> > > [...]
-> > > $NFT -j -f - <<< "$out"
-> 
-> Will do.
-> 
-> > > Hmm. Looks like we'll have to update all .json-nft files if we ever bump
-> > > json_schema_version. Maybe json_pretty should drop that array elem, we
-> > > merely keep asserting it exists and that could be done by a dedicated
-> > > shell test.
-> 
-> Can do that as a follow-up if wanted.
+I used a coccinelle script to see if this pattern is present in other 
+places. So far in Netfilter I have found this in 
+net/ipv6/netfilter/nf_reject_ipv6.c:nf_send_reset6()
 
-It may be a political decision whether that part of JSON output should
-be trimmed or not (there was hesitance when I requested to pipe output
-through json_pp). So maybe only do it if you don't break a leg over it:
-Use jq or awk to eliminate the metainfo object and write a simple test
-which asserts its presence in output.
+         if (!skb_dst(oldskb)) {
+                 nf_ip6_route(net, &dst, flowi6_to_flowi(&fl6), false);
+                 if (!dst)
+                         return;
+                 skb_dst_set(oldskb, dst);
+         }
 
-Thanks, Phil
+If I am not wrong the same problem happens here too.
+
+> ---
+>   net/netfilter/nft_meta.c | 6 ++++--
+>   net/netfilter/nft_rt.c   | 6 ++++--
+>   net/netfilter/nft_xfrm.c | 9 ++++++++-
+>   3 files changed, 16 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+> index 0a43e0787a68..01cfbaa36525 100644
+> --- a/net/netfilter/nft_meta.c
+> +++ b/net/netfilter/nft_meta.c
+> @@ -20,6 +20,7 @@
+>   #include <net/dst.h>
+>   #include <net/ip.h>
+>   #include <net/sock.h>
+> +#include <net/dst_metadata.h>
+>   #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+>   #include <net/netfilter/nf_tables.h>
+>   #include <net/netfilter/nf_tables_core.h>
+> @@ -279,11 +280,12 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
+>   static noinline bool
+>   nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
+>   {
+> -	const struct dst_entry *dst = skb_dst(skb);
+> +	const struct dst_entry *dst;
+>   
+> -	if (!dst)
+> +	if (!skb_valid_dst(skb))
+>   		return false;
+>   
+> +	dst = skb_dst(skb);
+>   	*dest = dst->tclassid;
+>   	return true;
+>   }
+> diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+> index aeb0094eafd8..841c863a08db 100644
+> --- a/net/netfilter/nft_rt.c
+> +++ b/net/netfilter/nft_rt.c
+> @@ -8,6 +8,7 @@
+>   #include <linux/netfilter.h>
+>   #include <linux/netfilter/nf_tables.h>
+>   #include <net/dst.h>
+> +#include <net/dst_metadata.h>
+>   #include <net/ip6_route.h>
+>   #include <net/route.h>
+>   #include <net/netfilter/nf_tables.h>
+> @@ -59,10 +60,11 @@ void nft_rt_get_eval(const struct nft_expr *expr,
+>   	u32 *dest = &regs->data[priv->dreg];
+>   	const struct dst_entry *dst;
+>   
+> -	dst = skb_dst(skb);
+> -	if (!dst)
+> +	if (!skb_valid_dst(skb))
+>   		goto err;
+>   
+> +	dst = skb_dst(skb);
+> +
+>   	switch (priv->key) {
+>   #ifdef CONFIG_IP_ROUTE_CLASSID
+>   	case NFT_RT_CLASSID:
+> diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
+> index 8cec43064319..c8bba697f993 100644
+> --- a/net/netfilter/nft_xfrm.c
+> +++ b/net/netfilter/nft_xfrm.c
+> @@ -12,6 +12,7 @@
+>   #include <linux/netfilter/nf_tables.h>
+>   #include <net/netfilter/nf_tables_core.h>
+>   #include <net/netfilter/nf_tables.h>
+> +#include <net/dst_metadata.h>
+>   #include <linux/in.h>
+>   #include <net/xfrm.h>
+>   
+> @@ -177,9 +178,15 @@ static void nft_xfrm_get_eval_out(const struct nft_xfrm *priv,
+>   				  struct nft_regs *regs,
+>   				  const struct nft_pktinfo *pkt)
+>   {
+> -	const struct dst_entry *dst = skb_dst(pkt->skb);
+> +	const struct dst_entry *dst;
+>   	int i;
+>   
+> +	if (!skb_valid_dst(pkt->skb)) {
+> +		regs->verdict.code = NFT_BREAK;
+> +		return;
+> +	}
+> +
+> +	dst = skb_dst(pkt->skb);
+>   	for (i = 0; dst && dst->xfrm;
+>   	     dst = ((const struct xfrm_dst *)dst)->child, i++) {
+>   		if (i < priv->spnum)
+
