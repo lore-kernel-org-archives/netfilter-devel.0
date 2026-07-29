@@ -1,196 +1,131 @@
-Received: from mail-lj1-f174.google.com (mail-lj1-f174.google.com [209.85.208.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8175B455164
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 15:28:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.174
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785338932; cv=pass; b=KCOFJu6uTl19JnJu7wgzp6Limfr/jvz8Rqg9W6aAZVvLUGLpVXSBRyaOGqc5J4UCWTmk5bIoq96xz3T+oce37ExsDO/OQHkZLOpN27s+lJCt4X6HVij2XHrLcB6uaKj5haPB3AAqF/xJ4EbCeTrMtbm9ZTUXePIVkKiIlWMWb1k=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785338932; c=relaxed/simple;
-	bh=C6R/o07THPKaUY0DQJZ5/BVO3pGAOQVKEDgT/HGBRcM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OskpYNBPTbUk+bt+4L5B0OsqnNkWz0JOkK28rkK7ZJT2SGgb/8pjVzLViO9KlXiK/RaI+klToTp12YBjWDlV9y8wGOUIUybkinKDvZO213TEgYlr8kTcsuzZHCgtxZcsAgaC4zhXwYqSCzNnVP2HQN2YvORc9kGVwgv35+yAUVg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=eVeTdH/c; arc=pass smtp.client-ip=209.85.208.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [52.187.6.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 53DFD369208
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 15:47:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.187.6.220
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785340036; cv=none; b=VRbl40bAMNN/CfDyL9k5ziNjU2sL/5g5RDBd+1CELTshFl7WNhPONZKqHGfvXvEf3geOlyZDASY86uViE6yK0vuW/V1uppK+uHkpJDVIvalTRLs4Itnxr4FDyhm7Z2AP1iJyN0DcmPNEH9D+schjdtOB8YzjOi0vgcnEFZeZ5cI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785340036; c=relaxed/simple;
+	bh=n7qLvkDV2DVe+f8RL+XCHvY3ZMFsIYhp+NjL345JuKE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=j5WIq/sDZ3k4Yit5IJT8ujRKNPqo83qKaHwgcie55yZuEHpVaWbURxLl/y0AfW/tGBPhPHnsp475UR9+2TUZwTZSSLSlJyZ1zc3paryjv1jEoqDhniltl7xXC5QkvJNkXoaiTZqwfpGLyB6kDjrKC2Tla7aZnbATQZ+YoinMs20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=bd+5+63t; arc=none smtp.client-ip=52.187.6.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="eVeTdH/c"
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-39f678705c3so470121fa.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 08:28:50 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785338928; cv=none;
-        d=google.com; s=arc-20260327;
-        b=R3PHc42jrWBLE9EUqGPb0Bcgls9gp58HVCrvtQLNG+3/GC8LjDRqC74Bb5CfHaFJWM
-         9NTaaw27e59YtsA0mV6vapXhgbAyNazdSYZN9rokpKnh3tfhl316cb8tH0UYgPTcNJSp
-         MnwLkhiym9k0+bjtisIIkJob0WeC0/2tTDDazS6HaQl38rFOPMz1zL89SPAtLt1ZF9an
-         paH5BfTUWzJtQ2cRTEunQxU5Hbv+GJMdZ4dBUVzzX0tut/axTXRqHM5IfZud0xurbniW
-         pTKbmMbqeihgXgY/OWEXaVV/6zPRXiGEprmkHnOKusZGAwFcD0hCFieCNF6aoLd0Vv7p
-         TOHw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Bk2WQ2GjrElQ8urTZLjvYR9a94JRaLak6rNQmM8ggPE=;
-        fh=gJvlCdkZxsl90K4RVoxXNEUk9Ub1Hx8vjf8gd51OHLU=;
-        b=nv4Q7ah+A1IEMIiCKNFClchBmBM3QmAd/l9d8n0oSvMq7/AxFbeS+Pz8JReAd6Cwdm
-         GIDK/39GfJI5Azo1WXo0Q7hPo6hSNLrkBcnk2ViE+ECLgeGi8pyP+gw00C5gnynk8/y8
-         Q7qb4/ZZGwtVOy1c6tNWG/VbyLrXS1sRjwG7dyDbJ0djuIGc/EBfXtreS4+yfTwz18q6
-         tfyabyd8HSifBaTZmxCcyLZPJO7CyARKbXMLO7GRwNh0HULg2AwmeZ1S39mDwDRZvfEH
-         zir2DcjEeWMERj8lxMVTEyWHmLfuzq09hY71GaGIHIxH+oHU291MSPOxj/VoejtdQgvB
-         Luxw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="bd+5+63t"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1785338928; x=1785943728; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Bk2WQ2GjrElQ8urTZLjvYR9a94JRaLak6rNQmM8ggPE=;
-        b=eVeTdH/c78UYWKJqJmYBWEHeI1yzKrrTk5QIIgL+NP3rAWbg7ex1ta23i53hDl4YmW
-         3hMw288ZGdPgVzXbApRTyX57p2BryMSR1xuCVDgFThx5dYj5fRsrH+4NtH5YqL/mbZSs
-         dLx04tFLwxn76QoJ1wlIikOCyysBUKYW/hkRC3Kl1gTOfUmJIJkYXU+8WBXhwGRWlFAW
-         3vS/tTBPMms6TVZ7wZikAfkUrP01l4AiYz32bIxuyzKy+JqAUTqfcPpuR8CE/Yt3H88t
-         ixQd7fWko9z6FH6fiaIk3w6LG9AhH/82JWXi4wJTyvyxrA/Sas5DpAVm4sSUzbjIGSzY
-         0Nkw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785338928; x=1785943728;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Bk2WQ2GjrElQ8urTZLjvYR9a94JRaLak6rNQmM8ggPE=;
-        b=L+fIV5733DTl5wpG5aMv37iSPIUMW9fYATXZL4aUOBROgDk3h1MLTpC/adim0sRH5f
-         UZLzyweuzkSNvTp0U4AaNB8kguHfLwDIljQf4s3b4x7FwCgIa3rNZCNnqjx7SWpvcoBL
-         1ViMJQzheU5a7FVGifQHDGsNCd2dtenACFiQFEPrB6iw254C8GjFxqk3gVYjFkYvP5Xm
-         hSQP3+Lb296CZtTVLN0QDAccRRXxKVLqUgI5+5tJgWEtU3OC6gRmzcbn8jkDVW+AoG3T
-         8pbAFmcotcKefslFoXceNX/PwKtgxcAdesipnJMSdd+Uh8ynqftRORAUxpUxoWNtuAZZ
-         5oxg==
-X-Gm-Message-State: AOJu0Yzh4yKFOszYqgIdEDxpov4TpqbxKJbz+yM91dRkawr2tp/0NvOo
-	yR4t6TqPnHwghwAwbq5O/zdMjsJHi7evNKPCskUBIdNVa+1nWvyTsqtpJz2zZwm4tjkYCaoBe8g
-	yHgXSq0TSu3V4+tqIdNYeznpubq4Lhy9MUeoWsBHjzq0=
-X-Gm-Gg: AR+sD11HtvrBvl0yzA3t8oMX/ZEGoU22o0vrUKCYg5ISowZKI/+uSb5545jkJiiD4qv
-	lw8alUHOzSDJYccHayiBvEikxoKknQ02usC7duw6DR8MLBJMEqj2r/h8fOJGPElK/CS5XA8sUf/
-	eD1siUIXPkM2GXKqZu3DNEJ5N0+Mnv1orQGyMBfQReY6Sh8KV4WXNRPnDCgGzTH5tAN5mULTIEr
-	iJ65kabG7D1LSDVOYnRs2Waw5w99jxZdffY/KB5WB6iVhwmrFrMu8x3IpHqAHbYqL+wQaj5LkSd
-	LagBqPUVJv3PllLladWv2WuAkJrX3XU56sfOKt33R85SdFuVmDNgCg==
-X-Received: by 2002:a2e:b017:0:b0:39e:bcf4:419a with SMTP id
- 38308e7fff4ca-39f6058be4dmr5587991fa.5.1785338928506; Wed, 29 Jul 2026
- 08:28:48 -0700 (PDT)
+	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
+	Date:Message-ID:In-Reply-To:References:MIME-Version:
+	Content-Transfer-Encoding; bh=ivDEbKDwjFWRtASf2l4Yu68/FmZZ2P14Sd
+	aIeFUoBdc=; b=bd+5+63tron13yugmL1JBCfnO6K6ofe1sGxOGJd+IW6v/AAALy
+	UxEzH9qS4OfXojffUtOvMYUXrUbgNh1jQby1X2AdS4cT/V91wCTky02iJKwaYLba
+	ALTH3Nnf/ZMRK9pfdqIXcDzzCSySrx61rJDKa/nbImL3GjaDmTvk+McPw=
+Received: from lb.. (unknown [202.112.47.69])
+	by web1 (Coremail) with SMTP id yAQGZQDni8t0IGpq9y7FAA--.16772S2;
+	Wed, 29 Jul 2026 23:47:00 +0800 (CST)
+From: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>,
+	Jianjun Chen <jianjun@tsinghua.edu.cn>
+Subject: [PATCH v2 nf-next] netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
+Date: Wed, 29 Jul 2026 15:46:52 +0000
+Message-ID: <20260729154654.3599616-1-zhangmh25@mails.tsinghua.edu.cn>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260729142802.3572612-1-zhangmh25@mails.tsinghua.edu.cn>
+References: <20260729142802.3572612-1-zhangmh25@mails.tsinghua.edu.cn>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1785307980.git.zihanx@nebusec.ai> <b9b0022c68b6d0ac1a729f768466e3400a825a87.1785307981.git.zihanx@nebusec.ai>
- <amoVNFtNX5mpbum_@strlen.de>
-In-Reply-To: <amoVNFtNX5mpbum_@strlen.de>
-From: zihan xi <zihanx@nebusec.ai>
-Date: Wed, 29 Jul 2026 23:28:36 +0800
-X-Gm-Features: AUfX_mxe4sRXouHcR4pSk1Bo3uWvGfQC9V--4kk-W--y-MegDLaNaVyOTDw84tw
-Message-ID: <CAANe3eQHBikBexNfBaKpfUgzP8iXM=bf_2Xj7pFnT5yJRbOQUA@mail.gmail.com>
-Subject: Re: [PATCH nf 1/1] netfilter: nf_conntrack_tcp: defer invalid logging
- until after unlock
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc, 
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com, horms@kernel.org, 
-	chamaken@gmail.com, vega@nebusec.ai, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:yAQGZQDni8t0IGpq9y7FAA--.16772S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxAr4DWFW3ur1fWF18try3CFg_yoW5uryUpa
+	1rKasak397JrWYyw4kK34DAF4UGrsxCrWfXryDGFyrAayDJwnYyFWfKa9F9FZrJFs5Gw12
+	vFZYgryUA3WUAa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9m14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+	0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+	64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8Jw
+	Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAG
+	YxC7MxkF7I0En4kS14v26r126r1DMxkIecxEwVAFwVW5WwCF04k20xvY0x0EwIxGrwCFx2
+	IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v2
+	6r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67
+	AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IY
+	s7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr
+	0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JU5sqAUUUUU=
+X-CM-SenderInfo: x2kd0wlpkskqxpdlz2oowvx0pjkxthxhgxhubq/1tbiAgADB2pppdq6yAAAsI
 
-On Wed, Jul 29, 2026 at 10:59=E2=80=AFPM Florian Westphal <fw@strlen.de> wr=
-ote:
->
-> Zihan Xi <zihanx@nebusec.ai> wrote:
-> > nf_conntrack_tcp_packet() can log invalid packets while ct->lock is sti=
-ll
-> > held. This happens both through tcp_in_window() -> nf_tcp_log_invalid()
-> > and through the NFCT_TCP_INVALID path -> nf_tcp_handle_invalid().
->
-> Correct, this is a bug. While I like the general direction, I find this
-> patch too large and too complicated.
->
-> Please consider making at least two patches to fix this.
->
-> - One patch to make nf_tcp_handle_invalid() return bool, then log
-> outside of spinlock().  The timeout doesn't even have to be included,
->         you can change the message to omit it (e.g. lowered timeout to
->                         UNACK or whatever).
->
-> This will help with review and it will simplify this patch too.
->
-> > +enum nf_tcp_invalid_log_type {
-> > +     NF_TCP_LOG_NONE,
-> > +     NF_TCP_LOG_OVERSHOT,
-> > +     NF_TCP_LOG_SEQ_OVER,
-> > +     NF_TCP_LOG_ACK_OVER,
-> > +     NF_TCP_LOG_SEQ_UNDER,
-> > +     NF_TCP_LOG_ACK_UNDER,
->
-> This is fine.
->
-> > +struct nf_tcp_invalid_log {
-> > +     enum nf_tcp_invalid_log_type type;
-> > +     u32 value;
-> > +     u8 index;
-> > +     u8 dir;
-> > +     u8 last_index;
->
-> index, dir, last_index no longer need this stashing once lowered-timeout
-> is solved as outlined above.
->
-> > +struct nf_tcp_invalid_logs {
-> > +     /* At most one tcp_in_window() log plus one lower-timeout log. */
-> > +     struct nf_tcp_invalid_log entries[2];
->
-> Same, once the lower-timeout is handled differently this is not needed.
->
-> > +static enum nf_ct_tcp_action
-> > +nf_tcp_log_invalid(const struct nf_conn *ct,
-> > +                const struct ip_ct_tcp_state *sender,
-> > +                struct nf_tcp_invalid_logs *logs,
-> > +                enum nf_ct_tcp_action ret,
-> > +                enum nf_tcp_invalid_log_type type,
-> > +                u32 value)
-> >  {
->
-> This function doesn't log anymore.
->
-> >  static enum nf_ct_tcp_action
-> >  tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
-> >             unsigned int index, const struct sk_buff *skb,
-> >             unsigned int dataoff, const struct tcphdr *tcph,
-> > -           const struct nf_hook_state *hook_state)
-> > +           struct nf_tcp_invalid_logs *logs)
-> >  {
-> >       struct ip_ct_tcp *state =3D &ct->proto.tcp;
-> >       struct ip_ct_tcp_state *sender =3D &state->seen[dir];
-> > @@ -640,31 +728,29 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntra=
-ck_dir dir,
-> >                       sender->td_end =3D end;
-> >                       sender->flags |=3D IP_CT_TCP_FLAG_DATA_UNACKNOWLE=
-DGED;
-> >
-> > -                     return nf_tcp_log_invalid(skb, ct, hook_state, se=
-nder, NFCT_TCP_IGNORE,
-> > -                                               "%u bytes more than exp=
-ected", overshot);
-> > +                     return nf_tcp_log_invalid(ct, sender, logs, NFCT_=
-TCP_IGNORE,
-> > +                                       NF_TCP_LOG_OVERSHOT, overshot);
->
-> Maybe rename to nf_tcp_store_invalid() or similar.  It only has to stash
-> the value (overshoot in this case) and NF_TCP_LOG_OVERSHOT.
->
-> Could you also add a lockdep_assert_not_held(ct->Lock) to the old
-> nf_ct_log_invalid() plus a comment explaining that we must not call into
-> nfnetlink_log with that lock held?
->
-> Thanks!
+Commit be0502a3f2e9 ("netfilter: conntrack: tcp: only close if RST
+matches exact sequence") keeps an established conntrack entry in
+ESTABLISHED when an in-window RST does not match the expected sequence
+number exactly, so the endpoint can validate the RST with a challenge
+ACK.
 
-Thanks, this makes sense. I=E2=80=99ll split the fix into at least two
-patches, first handling the nf_tcp_handle_invalid() timeout-lowering
-log separately by deferring it until after unlocking, then simplifying
-the remaining tcp_in_window() invalid logging path and renaming the
-helper accordingly. I=E2=80=99ll also add a lockdep assertion/comment to ma=
-ke
-the no-log-under-ct->lock rule explicit in v2.
+The timeout selection nevertheless uses the CLOSE timeout for every RST
+packet.  The bug is that timeout selection is based on the packet type,
+not on the state transition result: even when RST validation keeps
+new_state in ESTABLISHED, the timeout is still forced to
+TCP_CONNTRACK_CLOSE.
+
+Linux TCP independently rate limits challenge ACKs per socket.  A second
+non-exact RST can therefore arrive after the first challenge ACK has
+restored the timeout but before the rate limit expires.  The second RST
+lowers the timeout to 10 seconds again while the endpoint suppresses the
+second challenge ACK, allowing the conntrack entry to expire while both
+TCP endpoints remain established.
+
+Using the ESTABLISHED timeout for such RSTs would avoid this short
+expiration window, but it could also retain stale entries for the
+five-day default because conntrack cannot reliably match the endpoint's
+exact TCP state.
+
+Use the UNACK timeout for RST packets that leave the conntrack entry in
+TCP_CONNTRACK_ESTABLISHED.  Exact-match RSTs and accepted RST packet
+trains still fall through to timeouts[new_state], which preserves the
+CLOSE timeout when conntrack accepts the RST as closing the flow.
+
+This avoids the exploitable 10-second expiration window for non-exact
+RSTs while preserving the short timeout for RSTs that conntrack accepts
+as closing the flow.
+
+Fixes: be0502a3f2e9 ("netfilter: conntrack: tcp: only close if RST matches exact sequence")
+Suggested-by: Florian Westphal <fw@strlen.de>
+Reported-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
+Reported-by: Jianjun Chen <jianjun@tsinghua.edu.cn>
+Signed-off-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
+---
+v2:
+ - Simplify the timeout selection as suggested by Pablo.
+ - Use the UNACK timeout only when an RST leaves the conntrack entry in
+   TCP_CONNTRACK_ESTABLISHED.  RST packets that move the entry to
+   TCP_CONNTRACK_CLOSE now fall through to timeouts[new_state].
+
+ net/netfilter/nf_conntrack_proto_tcp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 0c1d086e9..79fba5b8b 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1280,8 +1280,9 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
+ 	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
+ 		timeout = timeouts[TCP_CONNTRACK_RETRANS];
+-	else if (unlikely(index == TCP_RST_SET))
+-		timeout = timeouts[TCP_CONNTRACK_CLOSE];
++	else if (unlikely(index == TCP_RST_SET &&
++			  new_state == TCP_CONNTRACK_ESTABLISHED))
++		timeout = timeouts[TCP_CONNTRACK_UNACK];
+ 	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
+ 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
+ 		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
+-- 
+2.43.0
+
