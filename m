@@ -1,237 +1,258 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56448372070
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 06:38:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E211D3BBFAA
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 07:30:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785393503; cv=none; b=a6Mr6nJmQMLYp/c/XkSFGGEoR4J92dU+ZdFvhzqtcRnMdtIlLJ4j0fOkgyNePK67BS7hsBSHMFX29t3DERprDNy6asRTOp8Gi7LHraDeU79FinyUbPJetMMut4mAEEBOhgGxeyih670VLKCDKLAdQoZXK3dCoFty2Azdyhg3E7o=
+	t=1785396644; cv=none; b=QWe1aX9erdmS2S/+J7aZJZsVACNaDjErsO5ngxV910YNjF+G5rOU6S/80Mq+jEBvYzT8LTM5iajBwa58lDMxw6i+Xdnlwt7fWtoO73Xq/B3LxDmnqbnHPCr2p2ZY2hjVx6ApRXi6XfNmZUrjfvvjjeR6lMllKjxtDQ74SNCRe5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785393503; c=relaxed/simple;
-	bh=ccS/vynfAjtPWGb8cQXbw2Ma7u9Kc2So5zt5lpzwcaM=;
-	h=Mime-Version:Content-Type:Date:Message-Id:From:To:Cc:Subject:
-	 References:In-Reply-To; b=Yw+qZEoUgrkSLmvhAr/S8GHe69fM020NSezsZ451zTo5kT7hPmPEpjUzUtf78nDtZ52ndA2YX1w7XvPjDHftYpdtZ6km2tNAZvdQtMcWZWlbJa0oFp7vJ3YVfWM4X5m7PkS2a7BITLSbtoCfGi/XG0QjDvm0Sy/Orl3ap2BGvos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com; spf=pass smtp.mailfrom=etsalapatis.com; dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b=pHZHCR7C; arc=none smtp.client-ip=209.85.214.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=etsalapatis.com
+	s=arc-20240116; t=1785396644; c=relaxed/simple;
+	bh=GqQpAwlYaIZs3wCFyDpIWB/NE+UztWrFJBL/6ix0W3w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DvMS5rsb8/MAhGf27pnn8FZhkDmAbIqHMzHSYsaSIOhAIKafDx3UtERZzbo2lkrcVRP4Vk9bT4rxV7Q5K1SX4RARxQCvZ2QHrxCk1hrPHeFqjRJ7wncZUuu/AhU4Mlqfat1DD4C7srxUV8Rh4x/2qC+O8L+T9Au80dWXAyp/7zg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=lytQPWeU; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b="pHZHCR7C"
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2ce87c7e3bbso20092105ad.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2026 23:38:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="lytQPWeU"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2cab973140bso24863965ad.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 00:30:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=etsalapatis-com.20251104.gappssmtp.com; s=20251104; t=1785393500; x=1785998300; darn=vger.kernel.org;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=gGidP0vHSPV0NPul0Vyzr/cFRYrRFVowQdSQZFiXkIw=;
-        b=pHZHCR7C3tPT3Z0r4VooonpWF4QZlEuUJnGudgBKFC2RitXrAmnzkSPkhrhLlF2fKs
-         mLHD1MaDmhd1yr1tGy4JyXW3FhZ1dO88b04iMaW76E+hURKiq0Eu8DNLqtYVF+SpZ5+G
-         gRPSWAhWz5L7D/SLEhZjJip+i+OlQTPK+NRpxxTQokfvn/lCbBmcILN7fqI88WBDcv54
-         TPUQnkIZpb6pI2vwh4FIAoCWPSFWStSLMz7MZkB8F8KmMZhs8GpUy/Wyow/DEpy3aZL8
-         T7s9YAVkd/I74rwyfPjcTpImFB7z3fJ+ysE2CVA/Eh9Hrl7Xi61z72WwOSWu6bAj/RmP
-         Mjtg==
+        d=nebusec.ai; s=google; t=1785396642; x=1786001442; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=fbg4G6uDy6aVTLr4SsEE/5bJimkgIjt/OIwOsBCmh8Q=;
+        b=lytQPWeUn10Zqu3wFmAbdhXLMEoT+qClCTYKFsaIRjTpY9pb12nApWsZC7jXR19TMB
+         W8YSpHfqNBnZO+8MzZVxfDcDPs/4TlpjD4+6fWrULdnoHrC/YjUhf6UpoZeTga1OgGyl
+         r26rGT8Fyu3CA2Xazhwv8pLMOqR1/S8qVZtIOwYJFheQAn4pSKkmECqLm9dj86sjE0zK
+         +ZjKYhaksudgzkYu9dPKVAzQXpVLLHNFNNwn425lnf8uJj+wW9MrC/rRCwscfQpB91M3
+         VuNpWHoC7CyjgXX5Ji/G4zQeDcoTdcyz27Ap8rE/BTFZscnBDIl47eaLKL+P1LWENLmu
+         TKZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785393500; x=1785998300;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=gGidP0vHSPV0NPul0Vyzr/cFRYrRFVowQdSQZFiXkIw=;
-        b=hK+C12neWl49o03LKdQxFsIj563g7uALBMcxcdO7UUXMPZJ+SD3tn107kiJJI4DD1+
-         QiQhF+0fPzWyp2pt7nrS7/YGuR9+gHxzxTZG8fSV/Egd90ASQzVkouJK4n7jxxQqPFa+
-         Ltb8lS573hYEl42vOyk2i8SkSXdKBR72Taq+E0PSWQSpK9rUIXiuLGotIYUwSXpvqxM+
-         Xs9BiyTTrtVvetfyxElCUC6LCOTE78KHyYinumGdP9YAdYvCJKZNssGRTgDf/RcUkHp5
-         L91SdQJ2G+3whEE6aERHkSp+PB/fcGAj8XfIH2hPUBmxxwkTkaV1cKiwuANtG2YgG21/
-         1A3w==
-X-Gm-Message-State: AOJu0Ywqp9prmYW1kr8OiTNj42HDmvf38llK/xZ3yddF7KEXVw9wZvnV
-	b8HcE37K9y53NCwjwI39Jr+Zwbzly5bI5zZcUzWpZV9d83ivqpT/KGAcm40AdAo0etw=
-X-Gm-Gg: AR+sD116JgcBEIfuVJNyGSZQC/+jPKmsxnB7sf2sXR6eUeiFmOSthTdvyr/Z9LEfAsO
-	1ZHsP2UwxmXYs/Axgta7fVcOlqf8hWHrjgMn/+VMPW7LD7tPQqdyygul1R/y0J0HmAbS662FmJf
-	QShxb0/4w1ujHHvYXkdsrCeuLOd3Cbgqsdo+3T+i9U9qWKQuLs3PM3zAIgB5p7015E/fUB5x6iY
-	8niq5X4DSkNfMs2611Qosp9fUir5zVVCVfHZWqdHP5CGkj007Pz+SJWsYfZjjBWyfQ9tZPJ1h6V
-	Ty8B4qdOscrc69L1p6cNlZCv6BC19++3G1hhC5br+yZgL7uy0ANZOxC3Z44CkqW9NZL1+7k5Nag
-	KCsq0WLn89+CwZFWJ3p2cx2Ycw1UrkhEs9+WlwIIgk7uRnm2d2HfQu/uS3RmLzmVy5Jss7LOpNS
-	hiL+UizdrHQvnaPCaVHIbaM6rPgGaytJFgVt8whTbN2x1ayEZ6tuWZBn8q3ZGBMz31lfitn1dXJ
-	5d1H/Pa7C4DiuZKRw==
-X-Received: by 2002:a17:903:1a2f:b0:2ce:8e70:3210 with SMTP id d9443c01a7336-2d035bdde67mr15176115ad.16.1785393499622;
-        Wed, 29 Jul 2026 23:38:19 -0700 (PDT)
-Received: from localhost (107-190-31-17.cpe.teksavvy.com. [107.190.31.17])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d022a15303sm21373135ad.3.2026.07.29.23.38.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 29 Jul 2026 23:38:19 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1785396642; x=1786001442;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=fbg4G6uDy6aVTLr4SsEE/5bJimkgIjt/OIwOsBCmh8Q=;
+        b=HjoWkOr12OTRScNQrw/xrBRL1C0yYGdRDW0XxvkyO76ptc8n6Kwt9fMRK/T9YrYCir
+         PsDQB2W8klpAS25hWsIMGtTRxy9p8l4oxU3ZlKFlj2IRsgBXGuHHBWv/QRNLUkkmhhKW
+         5aF3GBdHtrUBJvhfE5lTTFrffRdPVKfB6Y+iO4Sl6jfenA4J1bTc5ausmhWb1ftDgsdd
+         nR5uaFb6anyu+SC5yVzHTXbU5/oHWHBB7NDdqJAAetePwvEV4pc1vC4ecCb4eh2Ly3Qg
+         3yBVOx+GEt802y9QyluphjKBkJlniKuSPxYCzkIFwWfnHaiQkkwesPDzIvXkT09HCtF6
+         IDZQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqEZuObD6gXZyMohaQAuYJDcS6IrvfwoHsUMmedydcFeApO9JmhrY0an4BBv0p0+y8a0Gq9Us8iOAfBB4dQQVo=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwvTzLIAJ/aUkFSgfgBZ1fTWFSLf387Nmw3mfS72lH3LAXy8HGc
+	PCe8txKXKBVCBBSX/wO6rIls23RQyRrN+BjCcT3Vx8b8PSr5l7vYx3TdRb1x2O8eKyBX
+X-Gm-Gg: AR+sD10akI8zK1X+zmz7e/FJoFf83jFDPQV1lekihdlOifDykpVP8EEJmDxD1IfkOSw
+	X/YLliMFMfdNLlEfR7ZmQTFRJRzdDi/WC/oMiyo/PG0d7k29j58EMqT/HhZLffnukmaA6ehJOC5
+	NTa+Syuq0OSLiwo77awmyspEHs0tdRa891SZ9RVJnGaa8zAyuz7GjkW+A8gwUj3QXWLUoFM7Dtc
+	4TLqkiXd08UDDY7fwHWYIQprFUgnMlgeM99ZKRBrv+0zdWMROHcJAuwehgHhwm+79BW8zLmL36B
+	zsk+PP8I/4cGoGeG+uBH/OG4Aq/pEP+7Yw/RNloZsBnFTNqt58yl8kPc6LqL3K9BANs+bLwYRQD
+	t+wvydqjdOpBpj4IPyQAyoZZE7RO58Vmg1e2Lvck9L3K5cMdoE9cspE3S9TU3dXzLCxJL174NSZ
+	tFl7YOudxb40Nf6ZatF1xMBPsvsJBcUHVbf4qSSO2P0G/ezvPHJ9mZm3IjSpUdaIQaTgurPqNDz
+	8QT
+X-Received: by 2002:a17:903:388c:b0:2ce:d5e4:2fcf with SMTP id d9443c01a7336-2d035cfb3a9mr15269515ad.42.1785396642130;
+        Thu, 30 Jul 2026 00:30:42 -0700 (PDT)
+Received: from Roxy.localdomain ([203.175.14.54])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d022a7e333sm22236325ad.36.2026.07.30.00.30.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 Jul 2026 00:30:41 -0700 (PDT)
+From: Zhiling Zou <zhilinz@nebusec.ai>
+To: fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+Cc: pablo@netfilter.org,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	kaber@trash.net,
+	zhaojignmin@hotmail.com,
+	vega@nebusec.ai,
+	zhilinz@nebusec.ai
+Subject: [PATCH nf v2 1/1] netfilter: validate L4 headers after userspace packet writes
+Date: Thu, 30 Jul 2026 15:30:26 +0800
+Message-ID: <f0efaa7d67a580488fc5e32a09683c992db35742.1785392716.git.zhilinz@nebusec.ai>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 30 Jul 2026 02:38:18 -0400
-Message-Id: <DKBP6A3V5I02.3GNQ1SEZST1F0@etsalapatis.com>
-From: "Emil Tsalapatis" <emil@etsalapatis.com>
-To: "Chengfeng Ye" <nicoyip.dev@gmail.com>, "Pablo Neira Ayuso"
- <pablo@netfilter.org>, "Florian Westphal" <fw@strlen.de>, "Phil Sutter"
- <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, "Eric Dumazet"
- <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, "Paolo Abeni"
- <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>, "Alexei
- Starovoitov" <ast@kernel.org>, "Daniel Borkmann" <daniel@iogearbox.net>,
- "Jesper Dangaard Brouer" <hawk@kernel.org>, "John Fastabend"
- <john.fastabend@gmail.com>, "Stanislav Fomichev" <sdf@fomichev.me>, "Kumar
- Kartikeya Dwivedi" <memxor@gmail.com>, "Lorenzo Bianconi"
- <lorenzo@kernel.org>
-Cc: <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
- <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <bpf@vger.kernel.org>
-Subject: Re: [PATCH bpf] bpf: Fix netns reference imbalance in conntrack
- kfuncs
-X-Mailer: aerc 0.21.0-0-g5549850facc2
-References: <20260729163141.213611-1-nicoyip.dev@gmail.com>
-In-Reply-To: <20260729163141.213611-1-nicoyip.dev@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Wed Jul 29, 2026 at 12:31 PM EDT, Chengfeng Ye wrote:
-> The opts argument of the BPF conntrack kfuncs can point to a shared map
-> value.  __bpf_nf_ct_lookup() and __bpf_nf_ct_alloc_entry() read
-> opts->netns_id separately when acquiring and releasing the network
-> namespace reference.
->
-> The reference imbalance can occur as follows:
->
->   CPU 0                                  CPU 1
->   read opts->netns_id (-1)
->   skip get_net_ns_by_id()
->                                          write opts->netns_id (id)
->   read opts->netns_id (id)
->   put_net(net) /* no matching get */
->
-> The reverse transition leaks the reference.  Repeating the unmatched put
-> can destroy a live namespace and crash later users.
->
-> The kernel reported:
->
->   Oops: general protection fault, probably for non-canonical address
->   KASAN: null-ptr-deref in range [0x00000000000000e8-0x00000000000000ef]
->   RIP: 0010:bpf_prog_test_run_xdp+0x52c/0x1700
->   Call Trace:
->    __sys_bpf+0x1662/0x50c0
->    __x64_sys_bpf+0x73/0xb0
->    do_syscall_64+0xf9/0x540
->    entry_SYSCALL_64_after_hwframe+0x77/0x7f
->   Kernel panic - not syncing: Fatal exception
->
-> Read netns_id once with READ_ONCE() and use that value for validation
-> and the matching get/put pair.  Each invocation then consistently uses
-> either the calling namespace or a referenced namespace.
->
-> Fixes: aed8ee7feb44 ("net: netfilter: Deduplicate code in bpf_{xdp,skb}_c=
-t_lookup")
-> Fixes: d7e79c97c00c ("net: netfilter: Add kfuncs to allocate and insert C=
-T")
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+NFQUEUE and nft_payload can hand packet data modified by userspace back
+to the stack. Recent restrictions keep link and network headers stable,
+but the transport header can still be changed.
 
-Sashiko is right on this regarding all other fields of opts having the
-same issue. While they can't lead to a crash, let's still snapshot them
-at the beginning of the function so they don't change from under us.
-This is still far from ideal - we may read an inconsistent snapshot of
-the struct - but it's backed by BPF program-controlled memory so AFAICT
-this is the best we can do.
+A packet can therefore keep the same network header and conntrack entry
+while changing the transport header layout. For TCP, increasing doff can
+make later helper or NAT code use a different transport-header base than
+the parser used, and can make offsets point past skb->tail.
 
-pw-bot: cr
+Extend NFQUEUE payload validation to check the final L4 protocol and base
+header after IPv4 options or IPv6 extension headers. Reject packets whose
+L4 protocol no longer matches an attached non-template conntrack entry,
+reject unknown L4 protocols for writable payload replacement, and
+validate TCP data offset before reinjection.
 
-> ---
-> Please queue this fix for stable kernels.
->
->  net/netfilter/nf_conntrack_bpf.c | 20 ++++++++++++--------
->  1 file changed, 12 insertions(+), 8 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrac=
-k_bpf.c
-> index f98d1d4b42c3..8b540846f299 100644
-> --- a/net/netfilter/nf_conntrack_bpf.c
-> +++ b/net/netfilter/nf_conntrack_bpf.c
-> @@ -122,6 +122,7 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_s=
-ock_tuple *bpf_tuple,
->  	struct nf_conntrack_tuple otuple, rtuple;
->  	struct nf_conntrack_zone ct_zone;
->  	struct nf_conn *ct;
-> +	s32 netns_id;
->  	int err;
-> =20
->  	if (!(opts_len =3D=3D NF_BPF_CT_OPTS_SZ || opts_len =3D=3D 12))
-> @@ -134,7 +135,8 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_s=
-ock_tuple *bpf_tuple,
->  			return ERR_PTR(-EINVAL);
->  	}
-> =20
-> -	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
-> +	netns_id =3D READ_ONCE(opts->netns_id);
-> +	if (unlikely(netns_id < BPF_F_CURRENT_NETNS))
->  		return ERR_PTR(-EINVAL);
-> =20
->  	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, opts->l4proto,
-> @@ -147,8 +149,8 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_s=
-ock_tuple *bpf_tuple,
->  	if (err < 0)
->  		return ERR_PTR(err);
-> =20
-> -	if (opts->netns_id >=3D 0) {
-> -		net =3D get_net_ns_by_id(net, opts->netns_id);
-> +	if (netns_id >=3D 0) {
-> +		net =3D get_net_ns_by_id(net, netns_id);
->  		if (unlikely(!net))
->  			return ERR_PTR(-ENONET);
->  	}
-> @@ -171,7 +173,7 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_s=
-ock_tuple *bpf_tuple,
->  	__nf_ct_set_timeout(ct, timeout * HZ);
-> =20
->  out:
-> -	if (opts->netns_id >=3D 0)
-> +	if (netns_id >=3D 0)
->  		put_net(net);
-> =20
->  	return ct;
-> @@ -186,6 +188,7 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net =
-*net,
->  	struct nf_conntrack_tuple tuple;
->  	struct nf_conntrack_zone ct_zone;
->  	struct nf_conn *ct;
-> +	s32 netns_id;
->  	int err;
-> =20
->  	if (!opts || !bpf_tuple)
-> @@ -201,7 +204,8 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net =
-*net,
->  	}
->  	if (unlikely(opts->l4proto !=3D IPPROTO_TCP && opts->l4proto !=3D IPPRO=
-TO_UDP))
->  		return ERR_PTR(-EPROTO);
-> -	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
-> +	netns_id =3D READ_ONCE(opts->netns_id);
-> +	if (unlikely(netns_id < BPF_F_CURRENT_NETNS))
->  		return ERR_PTR(-EINVAL);
-> =20
->  	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, opts->l4proto,
-> @@ -209,8 +213,8 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net =
-*net,
->  	if (err < 0)
->  		return ERR_PTR(err);
-> =20
-> -	if (opts->netns_id >=3D 0) {
-> -		net =3D get_net_ns_by_id(net, opts->netns_id);
-> +	if (netns_id >=3D 0) {
-> +		net =3D get_net_ns_by_id(net, netns_id);
->  		if (unlikely(!net))
->  			return ERR_PTR(-ENONET);
->  	}
-> @@ -225,7 +229,7 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net =
-*net,
->  	}
-> =20
->  	hash =3D nf_conntrack_find_get(net, &ct_zone, &tuple);
-> -	if (opts->netns_id >=3D 0)
-> +	if (netns_id >=3D 0)
->  		put_net(net);
->  	if (!hash)
->  		return ERR_PTR(-ENOENT);
+For nft payload writes, reject transport-header stores that overlap TCP
+doff. nft_nh_write_ok() already rejects network-header protocol changes,
+so keeping doff stable prevents nft payload writes from changing the TCP
+header length underneath conntrack and helper users.
 
+Fixes: 5e35941d9901 ("[NETFILTER]: Add H.323 conntrack/NAT helper")
+Cc: stable@vger.kernel.org
+Reported-by: Vega <vega@nebusec.ai>
+Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+---
+changes in v2:
+- Replace the H.323-specific NAT/helper-only fix with generic validation
+  for userspace packet writes.
+- Validate NFQUEUE payload replacements after IPv4 option and IPv6
+  extension-header validation, including TCP data offset and attached
+  non-template conntrack L4 protocol consistency.
+- Reject nft_payload transport-header writes that overlap TCP doff.
+- v1 Link: https://lore.kernel.org/all/68faab5bf406aad612233e76994c649fbc547b8d.1785133455.git.zhilinz@nebusec.ai
+
+ net/netfilter/nfnetlink_queue.c | 58 +++++++++++++++++++++++++++++++--
+ net/netfilter/nft_payload.c     | 13 ++++++++
+ 2 files changed, 68 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index b8aaf39cb4d8e..562b7bf6c8777 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -28,10 +28,16 @@
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nfnetlink_queue.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/icmp.h>
++#include <linux/icmpv6.h>
+ #include <linux/list.h>
++#include <linux/sctp.h>
+ #include <linux/cgroup-defs.h>
+ #include <linux/rhashtable.h>
+ #include <linux/jhash.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
++#include <net/gre.h>
+ #include <net/gso.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+@@ -1192,6 +1198,49 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	return err;
+ }
+ 
++static bool nfqnl_validate_l4(const u8 *data, unsigned int data_len,
++			      const struct nf_queue_entry *e, u8 proto)
++{
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	enum ip_conntrack_info ctinfo;
++	const struct nf_conn *ct;
++
++	ct = nf_ct_get(e->skb, &ctinfo);
++	if (ct && !nf_ct_is_template(ct) && nf_ct_protonum(ct) != proto)
++		return false;
++#endif
++
++	switch (proto) {
++	case IPPROTO_TCP: {
++		const struct tcphdr *th = (const struct tcphdr *)data;
++		unsigned int thlen;
++
++		if (data_len < sizeof(*th))
++			return false;
++
++		thlen = __tcp_hdrlen(th);
++		if (thlen < sizeof(*th) || data_len < thlen)
++			return false;
++
++		return true;
++	}
++	case IPPROTO_UDP:
++		return data_len >= sizeof(struct udphdr);
++	case IPPROTO_ICMP:
++		return data_len >= sizeof(struct icmphdr);
++	case IPPROTO_ICMPV6:
++		return data_len >= sizeof(struct icmp6hdr);
++	case IPPROTO_SCTP:
++		return data_len >= sizeof(struct sctphdr);
++	case IPPROTO_GRE:
++		return data_len >= sizeof(struct gre_base_hdr);
++	case IPPROTO_NONE:
++		return true;
++	}
++
++	return false;
++}
++
+ static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
+ 				  const struct nf_queue_entry *e)
+ {
+@@ -1229,7 +1278,9 @@ static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
+ 	/* support for ipopts mangling would require
+ 	 * recompile + skb transport header update.
+ 	 */
+-	return nfqnl_validate_ipopts(iph, e);
++	return nfqnl_validate_ipopts(iph, e) &&
++	       nfqnl_validate_l4((const u8 *)iph + ihl, data_len - ihl, e,
++				 iph->protocol);
+ }
+ 
+ static bool nfqnl_validate_one_exthdr(const u8 *data,
+@@ -1286,7 +1337,8 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 		int hdrlen;
+ 
+ 		if (orig_nexthdr == NEXTHDR_NONE)
+-			return true;
++			return nfqnl_validate_l4(data, data_len, e,
++						 new_nexthdr);
+ 
+ 		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
+ 			return false;
+@@ -1323,7 +1375,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 		data += hdrlen;
+ 	}
+ 
+-	return true;
++	return nfqnl_validate_l4(data, data_len, e, new_nexthdr);
+ }
+ 
+ static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 391539a1ceaa7..63cf3b4f7420d 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -1077,6 +1077,17 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 	return false;
+ }
+ 
++static bool nft_th_write_ok(const struct nft_pktinfo *pkt,
++			    const struct nft_payload_set *priv)
++{
++	unsigned int doff = offsetof(struct tcphdr, ack_seq) + sizeof(__be32);
++
++	if (pkt->tprot != IPPROTO_TCP)
++		return true;
++
++	return priv->offset > doff || priv->offset + priv->len <= doff;
++}
++
+ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -1115,6 +1126,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+ 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
++		if (!nft_th_write_ok(pkt, priv))
++			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+ 	case NFT_PAYLOAD_INNER_HEADER:
+-- 
+2.43.0
