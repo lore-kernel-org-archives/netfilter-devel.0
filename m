@@ -1,122 +1,226 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F90D34B1A7;
-	Thu, 30 Jul 2026 11:34:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B994189B9
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 11:47:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785411299; cv=none; b=K/vvSLZ74vsKCLsYx6Oykr3OM/LuQcz60hiBRZzPB6MSCTCpeQRKrGGwiM1rKbPcEf0/qNRu0GPQkSC/TN2ujPjF6pZrRexbIZ1mULAurvBJjFuLTUPMgfjCo12XzHNUyDjUSDzd45lfyeBsWx3t7+31mOrNJFZ2LOUWE+dJqiQ=
+	t=1785412064; cv=none; b=gPR0WsIhz4pFE/qLASTXDZSAzqXdUDJGUb7hngxL8+mJA7jrdB32RTr07Nezg52joY5Pm57XsZXJJkPvRpTFJD1qzhGiM7hf/N/MfNUPjvBK7HdexJW0LDDSMWHsRDdVr4othY2JuSLX1KMv6B0aB9lZLSwk6M5jltHAJU5yhvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785411299; c=relaxed/simple;
-	bh=RVYNZSVp/aCa6Bj3isOk/fCqOOdnY83/mwFzZXTFFTI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AeEBUIiF+zrFIcj3xFPhBb0wBpVAXTJJ0LdcH3qyrawcMYLeE9Huj8gJ5IlrFrpUBzH34DfwwffpDbga3IYbItjozBGuJQbjQm+rH8EQrM5dOyxSBeXVnvxjhHtjB9mnOCv92uBotpBNyVSXbVzPDcRz7+F8qO9LOnlkURzwWKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AfdkaIQO; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785412064; c=relaxed/simple;
+	bh=8v+ZHdQV1jywPhaUlSOo9otBeMB2IcY6p6370N2OXGY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AAL9HcVLIOQW1y/1z0i+tN6ypFvXRFlJVYLMNb+mHGISrqBySM05NjGeA05GqFBksmcGbfFCdqIjOdD3t0Z61KO3+sLe2fEKckS4z0nWTGa2eLQYc35lWSpblHHiCkdcx6HqvYsYsrq11dkXVeqXqtInYtOcodYQjZUsKBcyn1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Mgm8KrpN; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AfdkaIQO"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 006DF60191;
-	Thu, 30 Jul 2026 13:34:54 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Mgm8KrpN"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 55AF96019F;
+	Thu, 30 Jul 2026 13:47:39 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785411295;
-	bh=SHM1MDOaW+doB9WJWI/P4+8Yuq+C3DwESvul5h5nLVE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=AfdkaIQOxwWCjpwuj0hM3+0bBPo6ASkDKLr69THcULsupy0ij4yJayVficQLFe5G+
-	 TrFcDZDyYpPkCtmknzL9PdGfgE7Chxk4eO1s37bfcqz1oqu+vMxJQJQfSwWKDlmcpQ
-	 9+mrP9V2it+NizkTazScJfax5RV/gJzm31r2rIG+w/gvW+rGLovCl2AR7sTpCrtotb
-	 HjyS8IFS6HY8XK9B6Plw9NpZDTX5IIHY/cRDMvCT9hOBPG3rIDF6653fhWa7DUIM5g
-	 ZJPT778gj0A2oE5WsckjXvBzaqoYqLlSBkj/+mUj5FKz3AEvn1olKW1gefau4RxhFj
-	 ggp7zuPHHMdvg==
-Date: Thu, 30 Jul 2026 13:34:51 +0200
+	s=2025; t=1785412059;
+	bh=JhevuNP9uaxclRsRYBZqBMU7bOEdleJD87G0037y1QQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Mgm8KrpNlCDX4Hd7Esi3oXeyIPOfzZeOTuAfgyLvLm69asGwiXxeqRSl5pz0NSqa0
+	 QeK/rVcOKKwxIxXr5qgMq8E27de6WY5JwXmn61+TPQF6Fml3MHBJR6Lark0XzNz8vE
+	 Vy0T2E7sf/Dr1nXBHasdyrD7g4NpYpT1kTTVcXvuAjeNxX2I4me4wqqL7dTurrHkgG
+	 us/m9XJZDJcZp9gBcwclreHelgXSm0L1/hE6BAVHTlCN55/QrL91Hcw/wlrtj1FS+3
+	 kHm7fjiuLF0E+dNeHEGCqdkIiiSbLcQR2mAuL5JpQVwRZbl55cqStKJob+kmrwamd7
+	 dXJfPlSxS4qhw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Zhiling Zou <zhilinz@nebusec.ai>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, phil@nwl.cc, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, kaber@trash.net, zhaojignmin@hotmail.com,
-	vega@nebusec.ai
-Subject: Re: [PATCH nf v2 1/1] netfilter: validate L4 headers after userspace
- packet writes
-Message-ID: <ams22yfvR5oNSxIN@chamomile>
-References: <f0efaa7d67a580488fc5e32a09683c992db35742.1785392716.git.zhilinz@nebusec.ai>
- <amsoo3ZjITWDE5qy@chamomile>
- <amswI7g2oCttFAvH@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: fmancera@suse.de
+Subject: [PATCH nf-next,v2] netfilter: nf_tables: call skb_valid_dst() before skb_dst()
+Date: Thu, 30 Jul 2026 13:47:33 +0200
+Message-ID: <20260730114733.515450-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <amswI7g2oCttFAvH@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 30, 2026 at 01:06:27PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > +	const struct nf_conn *ct;
-> > > +
-> > > +	ct = nf_ct_get(e->skb, &ctinfo);
-> > > +	if (ct && !nf_ct_is_template(ct) && nf_ct_protonum(ct) != proto)
-> > 
-> > I think it should be easier to disallow protocol number mangling in
-> > the IP header (layer 3 restrictions), if not done already.
-> 
-> How?  nfqueue is whole-replace, not a delta.
-> Or do you mean checking ip_hdr(skb) vs. the protocol field in userspace
-> provided buffer?
-> 
-> I would prefer this solution (i.e. check ct protocol), it still allows theoretical nfqueue based
-> tunneling header insertion, if done in prerouting before conntrack.
+When fetching the dst_entry from the skb, check if it valid, ie. this is
+not a template dst, for extensions that can be used from the netdev
+ingress and egress chains.
 
-OK
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: add reject codepath per Fernando.
 
-> > > +	switch (proto) {
-> > > +	case IPPROTO_TCP: {
-> > > +		const struct tcphdr *th = (const struct tcphdr *)data;
-> > 
-> > This needs to use skb_header_pointer() here, you cannot assume the tcp
-> > header is in a linear area.
-> 
-> data is a linear buffer coming from userspace
-> (nla_data(nfqa[NFQA_PAYLOAD]).
+ net/ipv4/netfilter/nf_reject_ipv4.c | 6 ++++--
+ net/ipv6/netfilter/nf_reject_ipv6.c | 8 ++++++--
+ net/netfilter/nft_meta.c            | 6 ++++--
+ net/netfilter/nft_rt.c              | 6 ++++--
+ net/netfilter/nft_xfrm.c            | 9 ++++++++-
+ 5 files changed, 26 insertions(+), 9 deletions(-)
 
-Indeed.
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 4626dc46808f..59ec465a9df9 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -8,6 +8,7 @@
+ #include <net/tcp.h>
+ #include <net/route.h>
+ #include <net/dst.h>
++#include <net/dst_metadata.h>
+ #include <net/netfilter/ipv4/nf_reject.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_bridge.h>
+@@ -263,6 +264,7 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
+ 	if (!dst)
+ 		return -1;
+ 
++	skb_dst_drop(skb_in);
+ 	skb_dst_set(skb_in, dst);
+ 	return 0;
+ }
+@@ -279,7 +281,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 	if (!oth)
+ 		return;
+ 
+-	if (!skb_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
++	if (!skb_valid_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
+ 		return;
+ 
+ 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+@@ -352,7 +354,7 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	if (iph->frag_off & htons(IP_OFFSET))
+ 		return;
+ 
+-	if (!skb_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
++	if (!skb_valid_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
+ 	if (skb_csum_unnecessary(skb_in) ||
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index ef5b7e85cffa..07cdaa10da0d 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -8,6 +8,7 @@
+ #include <net/ip6_route.h>
+ #include <net/ip6_fib.h>
+ #include <net/ip6_checksum.h>
++#include <net/dst_metadata.h>
+ #include <net/netfilter/ipv6/nf_reject.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_bridge.h>
+@@ -304,6 +305,7 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
+ 	if (!dst)
+ 		return -1;
+ 
++	skb_dst_drop(skb_in);
+ 	skb_dst_set(skb_in, dst);
+ 	return 0;
+ }
+@@ -336,10 +338,12 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 	fl6.fl6_sport = otcph->dest;
+ 	fl6.fl6_dport = otcph->source;
+ 
+-	if (!skb_dst(oldskb)) {
++	if (!skb_valid_dst(oldskb)) {
+ 		nf_ip6_route(net, &dst, flowi6_to_flowi(&fl6), false);
+ 		if (!dst)
+ 			return;
++
++		skb_dst_drop(oldskb);
+ 		skb_dst_set(oldskb, dst);
+ 	}
+ 
+@@ -440,7 +444,7 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
+ 
+-	if (!skb_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
++	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
+ 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 0a43e0787a68..01cfbaa36525 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -20,6 +20,7 @@
+ #include <net/dst.h>
+ #include <net/ip.h>
+ #include <net/sock.h>
++#include <net/dst_metadata.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+@@ -279,11 +280,12 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
+ static noinline bool
+ nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
+ {
+-	const struct dst_entry *dst = skb_dst(skb);
++	const struct dst_entry *dst;
+ 
+-	if (!dst)
++	if (!skb_valid_dst(skb))
+ 		return false;
+ 
++	dst = skb_dst(skb);
+ 	*dest = dst->tclassid;
+ 	return true;
+ }
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index aeb0094eafd8..841c863a08db 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -8,6 +8,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/dst.h>
++#include <net/dst_metadata.h>
+ #include <net/ip6_route.h>
+ #include <net/route.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -59,10 +60,11 @@ void nft_rt_get_eval(const struct nft_expr *expr,
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	const struct dst_entry *dst;
+ 
+-	dst = skb_dst(skb);
+-	if (!dst)
++	if (!skb_valid_dst(skb))
+ 		goto err;
+ 
++	dst = skb_dst(skb);
++
+ 	switch (priv->key) {
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_RT_CLASSID:
+diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
+index 8cec43064319..c8bba697f993 100644
+--- a/net/netfilter/nft_xfrm.c
++++ b/net/netfilter/nft_xfrm.c
+@@ -12,6 +12,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/dst_metadata.h>
+ #include <linux/in.h>
+ #include <net/xfrm.h>
+ 
+@@ -177,9 +178,15 @@ static void nft_xfrm_get_eval_out(const struct nft_xfrm *priv,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+ {
+-	const struct dst_entry *dst = skb_dst(pkt->skb);
++	const struct dst_entry *dst;
+ 	int i;
+ 
++	if (!skb_valid_dst(pkt->skb)) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++
++	dst = skb_dst(pkt->skb);
+ 	for (i = 0; dst && dst->xfrm;
+ 	     dst = ((const struct xfrm_dst *)dst)->child, i++) {
+ 		if (i < priv->spnum)
+-- 
+2.47.3
 
-> > > +	case IPPROTO_SCTP:
-> > > +		return data_len >= sizeof(struct sctphdr);
-> > > +	case IPPROTO_GRE:
-> > > +		return data_len >= sizeof(struct gre_base_hdr);
-> > > +	case IPPROTO_NONE:
-> > 
-> > Remove this and make it part of default and return true if protocol is
-> > unknown.
-> 
-> Hmm.  Its likely safe to accept unknown headers, here.
-> 
-> Perhaps next iteration should indeed do what you suggest but also check
-> check ESP and AH.
-> 
-> > Default is false for an unknown protocol, should be true.
-> 
-> I suggested it this way, i.e. don't permit unknown l4 protocols, but
-> maybe its too restrictive.
-> 
-> > > +	if (pkt->tprot != IPPROTO_TCP)
-> > > +		return true;
-> > > +
-> > > +	return priv->offset > doff || priv->offset + priv->len <= doff;
-> >                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > 
-> > maybe simply check priv->offset >= doff here?
-> 
-> Could you elaborate?  The above LGTM.  priv->offset > doff is already
-> tested?  I mean, write is ok either if offset exceeds doff (lhs)
-> or if offset + length doesn't touch doff area (rhs).
-> 
-> Did you mean "just reject everything exceeding doff"?
-> 
-> Patch LGTM, except perhaps switching to "allow unknowns" in nfqueue.
-
-OK, thanks for explaining.
