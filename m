@@ -1,31 +1,61 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9AAE388E55
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 18:39:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A98FE2DA775;
+	Thu, 30 Jul 2026 18:39:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785436777; cv=none; b=t7/1Mg3ixbQPvf+ScS988WlX8djqc06wi+Wo7kYxQX2+SXv5U1oD8Bf4bYQ1Imdw4QO9Ahzo8E+pTH5NMJUguD+nRmGujXWLhhPKzQjIXwR65sCY45rkunCp4+cfHBA08wmx+sPQhJDLywseyx8aBP7rRLks6pCEa0u2R3KO0f0=
+	t=1785436788; cv=none; b=sE4nuN6MnOHZg6N9i5/l0f1KgNb5dAUBA+fovr8blvChqwKMz30492IeWjfixtmEucDtJIktxVr+Lg2Mv7UxysnWg6+wzmclRUrwrR/xlaK4X7UcU8LVP76OBx+wpo9srEnbkmYSs8/QDPbzwPkHHNssS5IOf4Bd4XOFTNRBKMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785436777; c=relaxed/simple;
-	bh=IYOKlVUOna4KmsjQEQJvrvNl6RtfDgJUp98RLHr/Y5Y=;
+	s=arc-20240116; t=1785436788; c=relaxed/simple;
+	bh=bniUsQ6u1JZRM59YUbs8Kwvx7wTHHn8ldOx/wm0Q9HQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lRtcLM6y4eG8pos7kyWnwbOHejAmJdSiB7VlSlVLwhOrcNnsgDeJXe5xz1fDqFkj7nj+6BoHCb/No2YUOLAtEYciYh2b4sFu2qYxgIppRmki/GI6PNidleWjkyaYGu15OtNmxNnk5DdkFEnd1jOYooXRWt2EuhKSHMBUSkXAPtc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4823060380; Thu, 30 Jul 2026 20:39:20 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: kadlec@netfilter.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] netfilter: ipset: switch to rcu work
-Date: Thu, 30 Jul 2026 20:38:53 +0200
-Message-ID: <20260730183853.21868-6-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260730183853.21868-1-fw@strlen.de>
-References: <20260730183853.21868-1-fw@strlen.de>
+	 MIME-Version; b=lBzBe9dsA7ojY6OUESbUrFI8NFce8jHBHCS5uqAZ7Mo9Nl3j7u/Kmv0Ys6YYIQeFkDpQxcH/S8gGNcOgPn3ElWmAN6VcBf8o5OzV58e/Y2lRMEus89ds51nMVK1bOvbQQF5FAs1h3QDEz7ezuIVzrB+46zKqAbxWYUixQhZOohk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=RcVmhR9C; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="RcVmhR9C"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id D45A3216C7;
+	Thu, 30 Jul 2026 21:39:00 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=xX9uUmHaYlCktnwIS88QJ+fzr5Cdm5BEUmee6TVCCmQ=; b=RcVmhR9C2U/m
+	aTpfzbDGKSzckFGF+apSti94FgTVO6vUqmPF1Xk35TyRZpYzUsRmXNum9/3Pjn68
+	iPeHgz0wiAgV06j4Y8QAS/Ak2AEaXHFnLmRPJItbicKJpNZeHzZYhbuH4vT3Ea5a
+	PznnUpnlaNzOquph0wRrDQy66V0VW54ivFYoSRo+Z+8DtUyheQc4Iq702l4g+b7C
+	v+4078M9wPA0gjTlZ1Qu4f76i7W43oN6wq66H8/7xGCqWiVJzAvlyyj61+dCY68N
+	9OZ/KtjxnQsIXscC9BUNHINBBMhFLC1OJBJN5XphVI/oikBIu/hWYFysulejmGiv
+	4Nj4LCyk/8DAAfSkipk1Hp2PMFWU9eewdDIbp0nJRjY6rRYh2y5Z0j0zufVUO14x
+	5R+i1q0CubUdcHyTT1Co89clAhxNEqbvIz8a5uMpwUlyLFazT6EpBTICxjZz4AQJ
+	T30DBSQOTGL6OBImsb6/7v1pFUuCA1absTLwkvRhiB2GiWKYlaL6/rY4NTsIfhGq
+	YE/ec37H7seCjFoS2cP8+FOHYNjtooI5w6ODoftj1G0M69hP59ErIVku8r70/bMo
+	kzybV6emR9TQr2Bz36oVtD26Y76thlPTKMqxiNHuIlYWSte7qnMUyIpPND4Fq6/F
+	1qA262E10ZuV1KdMk41fzK3N7VJQffU=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 30 Jul 2026 21:39:00 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id C0C7A61BEF;
+	Thu, 30 Jul 2026 21:39:01 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66UIaDhY087547;
+	Thu, 30 Jul 2026 21:36:13 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 66UIaD1x087546;
+	Thu, 30 Jul 2026 21:36:13 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v3 1/2] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+Date: Thu, 30 Jul 2026 21:35:05 +0300
+Message-ID: <20260730183506.87473-2-ja@ssi.bg>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260730183506.87473-1-ja@ssi.bg>
+References: <20260730183506.87473-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,157 +64,252 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In the initial ipset rhashtable conversion RFC series syzbot reported
-following splat:
+Sashiko warns that local attacker can modify the packet
+while it is processed by IPVS. Some places read the
+IP ihl field multiple times which can cause out-of-bounds
+access. One such place is ip_vs_nat_icmp where we
+can write after the validated area.
 
-BUG: sleeping function [..] at kernel/irq_work.c:289
-in_atomic(): 1, [..]
- irq_work_sync.. kernel/irq_work.c:289
- rhashtable_free_and_destroy.. lib/rhashtable.c:1295
- hash_netport4_destroy.. net/netfilter/ipset/ip_set_hash_gen.h:420
- ip_set_destroy_set_rcu.. net/netfilter/ipset/ip_set_core.c:1169
- rcu_core.. kernel/rcu/tree.c:2897
+Fix it by providing ciph argument just like it is done for
+IPv6 and use ciph->len as offset to the embedded transport
+header.
 
-This is because post-rhashtable-conversion hash implementation needs
-to schedule in the destroy callback.  At this time this isn't allowed.
+Modify some IPv4 header checks by reading the ihl field
+only once.
 
-Replace existing call_rcu() based destruction with rcu_work api.
-
-Also allows to undo split of set destruction and gc work cancelling in
-a future patch.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Link: https://sashiko.dev/#/patchset/20260722101517.36313-1-ja%40ssi.bg
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- include/linux/netfilter/ipset/ip_set.h |  4 +--
- net/netfilter/ipset/ip_set_core.c      | 46 ++++++++++++++++----------
- 2 files changed, 31 insertions(+), 19 deletions(-)
+ include/net/ip_vs.h             |  2 +-
+ net/netfilter/ipvs/ip_vs_core.c | 67 +++++++++++++++++----------------
+ net/netfilter/ipvs/ip_vs_xmit.c |  2 +-
+ 3 files changed, 36 insertions(+), 35 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index cadae9b2578f..c46864cc6623 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -244,8 +244,8 @@ extern void ip_set_type_unregister(struct ip_set_type *set_type);
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index e6ca930a3507..1235f1934e94 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -2062,7 +2062,7 @@ static inline bool ip_vs_conn_use_hash2(struct ip_vs_conn *cp)
  
- /* A generic IP set */
- struct ip_set {
--	/* For call_cru in destroy */
--	struct rcu_head rcu;
-+	/* for set destruction */
-+	struct rcu_work rwork;
- 	/* The name of the set */
- 	char name[IPSET_MAXNAMELEN];
- 	/* Lock protecting the set data */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 822a53a7f502..543851a923d0 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -25,6 +25,7 @@
- static LIST_HEAD(ip_set_type_list);		/* all registered set types */
- static DEFINE_MUTEX(ip_set_type_mutex);		/* protects ip_set_type_list */
- static DEFINE_RWLOCK(ip_set_ref_lock);		/* protects the set refs */
-+static struct workqueue_struct *ipset_destroy_wq;
+ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		    struct ip_vs_conn *cp, int dir, unsigned int toff,
+-		    bool has_ports);
++		    bool has_ports, struct ip_vs_iphdr *ciph);
  
- struct ip_set_net {
- 	struct ip_set * __rcu *ip_set_list;	/* all individual sets */
-@@ -1178,22 +1179,26 @@ ip_set_setname_policy[IPSET_ATTR_CMD_MAX + 1] = {
- 				    .len = IPSET_MAXNAMELEN - 1 },
- };
- 
--/* In order to return quickly when destroying a single set, it is split
-- * into two stages:
-- * - Cancel garbage collector
-- * - Destroy the set itself via call_rcu()
-- */
--
- static void
--ip_set_destroy_set_rcu(struct rcu_head *head)
-+destroy_and_free_set(struct ip_set *set)
+ #ifdef CONFIG_IP_VS_IPV6
+ void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 6b79e0c4d9e2..0bdaeb4ed61e 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -925,28 +925,27 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
+  */
+ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		    struct ip_vs_conn *cp, int inout, unsigned int toff,
+-		    bool has_ports)
++		    bool has_ports, struct ip_vs_iphdr *ciph)
  {
--	struct ip_set *set = container_of(head, struct ip_set, rcu);
--
- 	set->variant->destroy(set);
- 	module_put(set->type->me);
- 	kfree(set);
+ 	struct iphdr *iph	 = ip_hdr(skb);
+ 	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
+-	struct iphdr *ciph	 = (struct iphdr *)(icmph + 1);
+-	unsigned int coff __maybe_unused = toff + sizeof(struct icmphdr);
++	struct iphdr *cih	 = (struct iphdr *)(icmph + 1);
+ 
+ 	if (inout) {
+ 		iph->saddr = cp->vaddr.ip;
+ 		ip_send_check(iph);
+-		ciph->daddr = cp->vaddr.ip;
+-		ip_send_check(ciph);
++		cih->daddr = cp->vaddr.ip;
++		ip_send_check(cih);
+ 	} else {
+ 		iph->daddr = cp->daddr.ip;
+ 		ip_send_check(iph);
+-		ciph->saddr = cp->daddr.ip;
+-		ip_send_check(ciph);
++		cih->saddr = cp->daddr.ip;
++		ip_send_check(cih);
+ 	}
+ 
+ 	/* the TCP/UDP/SCTP port */
+ 	if (has_ports) {
+-		__be16 *ports = (void *)ciph + ciph->ihl*4;
++		__be16 *ports = (void *)(skb->data + ciph->len);
+ 
+ 		if (inout)
+ 			ports[1] = cp->vport;
+@@ -960,10 +959,10 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	skb->ip_summed = CHECKSUM_UNNECESSARY;
+ 
+ 	if (inout)
+-		IP_VS_DBG_PKT(11, AF_INET, pp, skb, coff,
++		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
+ 			      "Forwarding altered outgoing ICMP");
+ 	else
+-		IP_VS_DBG_PKT(11, AF_INET, pp, skb, coff,
++		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
+ 			      "Forwarding altered incoming ICMP");
  }
  
-+/* In order to return quickly when destroying a single set,
-+ * destruction is done asynchronously via work queues.
-+ */
-+static void
-+ip_set_destroy_set_work(struct work_struct *work)
-+{
-+	struct ip_set *set = container_of(to_rcu_work(work),
-+					  struct ip_set, rwork);
+@@ -1056,7 +1055,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, has_ports, ciph);
+ 	else
+ #endif
+-		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports);
++		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph);
+ 
+ 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
+ 		goto out;
+@@ -1092,7 +1091,7 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	struct ip_vs_iphdr ciph;
+ 	struct ip_vs_conn *cp;
+ 	struct ip_vs_protocol *pp;
+-	unsigned int offset, ihl;
++	unsigned int offset;
+ 	union nf_inet_addr snet;
+ 
+ 	*related = 1;
+@@ -1105,7 +1104,6 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 			return NF_ACCEPT;
+ 	}
+ 
+-	ihl = ipvsh->len;
+ 	offset = ipvsh->len;
+ 	ic = skb_header_pointer(skb, offset, sizeof(_icmph), &_icmph);
+ 	if (ic == NULL)
+@@ -1131,11 +1129,15 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 
+ 	/* Now find the contained IP header */
+ 	offset += sizeof(_icmph);
++	if (!ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, true, &ciph))
++		return NF_ACCEPT; /* The packet looks wrong, ignore */
 +
-+	destroy_and_free_set(set);
-+}
-+
- static void
- _destroy_all_sets(struct ip_set_net *inst)
- {
-@@ -1283,7 +1288,8 @@ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
- 			/* Must wait for flush to be really finished  */
- 			rcu_barrier();
+ 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+-	if (!(cih && cih->version == 4 && cih->ihl >= 5))
++	if (!(cih && cih->version == 4 &&
++	      ciph.len - ciph.off >= sizeof(struct iphdr)))
+ 		return NF_ACCEPT; /* The packet looks wrong, ignore */
+ 
+-	pp = ip_vs_proto_get(cih->protocol);
++	pp = ip_vs_proto_get(ciph.protocol);
+ 	if (!pp)
+ 		return NF_ACCEPT;
+ 
+@@ -1146,8 +1148,6 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
+ 		      "Checking outgoing ICMP for");
+ 
+-	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, true, &ciph);
+-
+ 	/* The embedded headers contain source and dest in reverse order */
+ 	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
+ 			     ipvs, AF_INET, skb, &ciph);
+@@ -1155,8 +1155,8 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 
+ 	snet.ip = ipvsh->saddr.ip;
+-	return handle_response_icmp(AF_INET, skb, &snet, cp, pp, &ciph, ihl,
+-				    hooknum);
++	return handle_response_icmp(AF_INET, skb, &snet, cp, pp, &ciph,
++				    ipvsh->len, hooknum);
+ }
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -1803,10 +1803,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	/* Now find the contained IP header */
+ 	offset += sizeof(_icmph);
+ 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+-	if (!(cih && cih->version == 4 && cih->ihl >= 5))
++	if (!cih)
+ 		return NF_ACCEPT; /* The packet looks wrong, ignore */
+-	raddr = (union nf_inet_addr *)&cih->daddr;
+ 	hlen_ipip = cih->ihl * 4;
++	if (!(cih->version == 4 && hlen_ipip >= sizeof(struct iphdr)))
++		return NF_ACCEPT; /* The packet looks wrong, ignore */
++	raddr = (union nf_inet_addr *)&cih->daddr;
+ 
+ 	/* Special case for errors for IPIP/UDP/GRE tunnel packets */
+ 	tunnel = false;
+@@ -1823,9 +1825,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		if (!dest || dest->tun_type != IP_VS_CONN_F_TUNNEL_TYPE_IPIP)
+ 			return NF_ACCEPT;
+ 		offset += hlen_ipip;
+-		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+-		if (!(cih && cih->version == 4 && cih->ihl >= 5))
+-			return NF_ACCEPT; /* The packet looks wrong, ignore */
+ 		tunnel = true;
+ 	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
+ 		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
+@@ -1850,21 +1849,25 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 			/* Skip IP and UDP/GRE tunnel headers */
+ 			offset = offset2 + ulen;
+ 			/* Now we should be at the original IP header */
+-			cih = skb_header_pointer(skb, offset, sizeof(_ciph),
+-						 &_ciph);
+-			if (cih && cih->version == 4 && cih->ihl >= 5 &&
+-			    iproto == IPPROTO_IPIP)
++			if (iproto == IPPROTO_IPIP)
+ 				tunnel = true;
+ 			else
+ 				return NF_ACCEPT;
  		}
--		call_rcu(&s->rcu, ip_set_destroy_set_rcu);
-+		INIT_RCU_WORK(&s->rwork, ip_set_destroy_set_work);
-+		queue_rcu_work(ipset_destroy_wq, &s->rwork);
  	}
- 	return 0;
- out:
-@@ -2421,18 +2427,23 @@ static struct pernet_operations ip_set_net_ops = {
- static int __init
- ip_set_init(void)
- {
--	int ret = register_pernet_subsys(&ip_set_net_ops);
-+	int ret;
+ 
+-	pd = ip_vs_proto_data_get(ipvs, cih->protocol);
++	if (!ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph))
++		return NF_ACCEPT;
++	pd = ip_vs_proto_data_get(ipvs, ciph.protocol);
+ 	if (!pd)
+ 		return NF_ACCEPT;
+ 	pp = pd->pp;
+ 
++	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
++	if (!(cih && cih->version == 4 &&
++	      ciph.len - ciph.off >= sizeof(struct iphdr)))
++		return NF_ACCEPT; /* The packet looks wrong, ignore */
 +
-+	ipset_destroy_wq = alloc_ordered_workqueue("ipset_destroy_wq", 0);
-+	if (!ipset_destroy_wq)
-+		return -ENOMEM;
+ 	/* Is the embedded protocol header present? */
+ 	if (unlikely(cih->frag_off & htons(IP_OFFSET) && !pp->dont_defrag))
+ 		return NF_ACCEPT;
+@@ -1872,9 +1875,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
+ 		      "Checking incoming ICMP for");
  
-+	ret = register_pernet_subsys(&ip_set_net_ops);
- 	if (ret) {
- 		pr_err("ip_set: cannot register pernet_subsys.\n");
--		return ret;
-+		goto out_wq;
- 	}
- 
- 	ret = nfnetlink_subsys_register(&ip_set_netlink_subsys);
- 	if (ret != 0) {
- 		pr_err("ip_set: cannot register with nfnetlink.\n");
- 		unregister_pernet_subsys(&ip_set_net_ops);
--		return ret;
-+		goto out_wq;
- 	}
- 
- 	ret = nf_register_sockopt(&so_set);
-@@ -2440,10 +2451,13 @@ ip_set_init(void)
- 		pr_err("SO_SET registry failed: %d\n", ret);
- 		nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
- 		unregister_pernet_subsys(&ip_set_net_ops);
--		return ret;
-+		goto out_wq;
- 	}
- 
- 	return 0;
-+out_wq:
-+	destroy_workqueue(ipset_destroy_wq);
-+	return ret;
- }
- 
- static void __exit
-@@ -2453,9 +2467,7 @@ ip_set_fini(void)
- 	nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
- 	unregister_pernet_subsys(&ip_set_net_ops);
- 
--	/* Wait for call_rcu() in destroy */
--	rcu_barrier();
+-	offset2 = offset;
+-	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
 -
-+	destroy_workqueue(ipset_destroy_wq);
- 	pr_debug("these are the famous last words\n");
- }
+ 	/* The embedded headers contain source and dest in reverse order.
+ 	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
+ 	 */
+@@ -1904,11 +1904,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	}
  
+ 	if (tunnel) {
+-		unsigned int hlen_orig = cih->ihl * 4;
++		unsigned int hlen_orig = ciph.len - ciph.off;
+ 		__be32 info = ic->un.gateway;
+ 		__u8 type = ic->type;
+ 		__u8 code = ic->code;
+ 
++		offset2 = offset;
+ 		/* Update the MTU */
+ 		if (ic->type == ICMP_DEST_UNREACH &&
+ 		    ic->code == ICMP_FRAG_NEEDED) {
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index cdc567ceabf4..4469dcc4bb1e 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -1582,7 +1582,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+ 		goto tx_error;
+ 
+-	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports);
++	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph);
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+ 	skb->ignore_df = 1;
 -- 
-2.54.0
+2.55.0
+
 
