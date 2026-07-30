@@ -1,28 +1,58 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891D3387566
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 18:39:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40DF538B7AA;
+	Thu, 30 Jul 2026 18:39:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785436755; cv=none; b=P9GfrUWge9rky+z+kVTEXSJ/yhBjRpJ1iDqLkC+8WWMJdgNWbh8yh11cRvUf6fOKoPeeZ65+a4UYqUIbq1MY9abiGbuZiRSB1Yq5kOeZLXwXUvk0KCF2gE8ddu9dJIkNi12BFslgO8HpK8XdIepfzSBa1cUfTNU3QXd8vmh4gxc=
+	t=1785436759; cv=none; b=rzKXXdryvLh9eU6ALqXpRfj9H8Uf1XRGu85lYcI47jRC1vx6ZTzG2+xEOwa2856SD0IAkacLsrJMD2mOg8X6Pih16JrPhqZpR1By5nidoEJmkrEXImAGZxYFv6XI1SLjVgn0HxL7VoLfztW3qZGVFCvFq85YhA6HdjIUi01kYCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785436755; c=relaxed/simple;
-	bh=gQTKdK+p3r1dzsMV+wjQVg7eO3TmtrtkakAzyuKj1aM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jn8IfqxiE3z9bm9adfieE3hc9X3wYm3h1LQy/hxtly7ZKk4jk61ZRQ3erlHX9UbxvigtuUzvhXdaWuv2x03MHGEkRjgdPyBYXzTxb2LBkoIB6hcUk1QAJ5SldsJa96ahzhfcvWs1pDAm5l5CcHbAxYkmZvB2joZ17z0Pp6MOf1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F199360380; Thu, 30 Jul 2026 20:38:58 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: kadlec@netfilter.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 0/5] netfilter: ipset fixes and rhastable prep work
-Date: Thu, 30 Jul 2026 20:38:48 +0200
-Message-ID: <20260730183853.21868-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+	s=arc-20240116; t=1785436759; c=relaxed/simple;
+	bh=avTTomHfQunYRQRSDm2xT2lnRd3IyNO/RwR9BVc4UT8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oCid4ecmyHd59FD9Ywwqw4d0woRPn5mPk/ZhOtgvURR62s8kA0Xjpjg6l8sc+hkZ0Z6jNlOJKHwGJfFBLdYcS5SC35LLlqK2usquljb0/q2JZOE08qmjrumMVIDPHpxxgdaGKpc4LfxKWgaBs1yNNXOIsVGMxSpRqC365wjCKJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=wVOA6bdy; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="wVOA6bdy"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 3EAA4216C4;
+	Thu, 30 Jul 2026 21:39:00 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=M0cw6ACg
+	Nw3TC/WU8odm16aBUjO9swiWHbOtK6KHZZg=; b=wVOA6bdyDJa9X1jc1QRfsTjB
+	mGSQEUU7Ke0RFMhvbALhR5kbRgPh2HztWoBoF4mEpa3YIUuXdJst//npR+SQZA1T
+	xCRdDneY0KieX1HheFQO1J/2A9DRWZknRUcOIzqe7n9sakRBjEUbAc9+S6I1i3Rh
+	GTJHsy0ykJD/q+/LkOrcW0kpHeJc3ZMNDkiV84CWbLg1Hvq/XQos+Op/ow4anOhC
+	VCQ8NkQXG7GX7XeDGmOEL9CA5O/SD729wiyBL0+WF6elNMSgw8S8nCxiTMQTI6MS
+	w1FczuBjDj9q8UqU4LHyDcZO61tIQdkLj5eWVEl/YbgCbtRh2zJ7X587E2dhkB3M
+	uMmf3W4D1yIRH/FEpykU0KFk2ER8qnWotC/A4WzIPqfxHqfgz0rYRAvhjIXEMZY7
+	1vG5VFBLqRiB0hv6RURTsO961mXRAta6yG4st3aV/GYI3IK1OOeym0fJQ407wJ2X
+	G4Wo072mEEJLAhUDDh9ueYaDDAmZO9q3AdKcaxSaAFa8Y23oxaQFdRE7qE7VCBSB
+	KBFQmYF7VfvbdCl0giyisHYYSoHY8R8od3DlFlOmq8u+ZK36vmobxPDg4Bj6NYha
+	+MfDjBLoMfFKfg+SaxX/95umqn466fo7sE+Pc23kPAok/zJ6vH8TuiNzTsYy8ikF
+	nerreGw/nMcq1PS1Ci0=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 30 Jul 2026 21:39:00 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 1CF7A61BEF;
+	Thu, 30 Jul 2026 21:39:01 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66UIaDUM087543;
+	Thu, 30 Jul 2026 21:36:13 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 66UIaAVF087540;
+	Thu, 30 Jul 2026 21:36:10 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v3 0/2] ipvs: csum validations, part 2
+Date: Thu, 30 Jul 2026 21:35:04 +0300
+Message-ID: <20260730183506.87473-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,53 +61,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series contains a few fixes and prepation work for the
-ipset rhashtable conversion.  The rhashtable conversion patch set is
-too large to post in one pile and has one external dependency that is not
-yet in nf (queued in crypto tree).
+	Hello,
 
-I discussed this with Jozsef and we think that targeting the rhashtable
-conversion to nf tree is preferrable to nf-next due to the volume of LLM
-reports.
+        This patchset contains more fixes after the
+previous batch of fixes for checksum validations.
 
-1) Rework ipset CIDR bookkeeping with an RCU-based method to ensure
-safety on weakly-ordered architectures. Replace in-place updates with
-structure replacement. From Jozsef Kadlecsik.
+        The first patch avoids reading the IPv4 ihl field
+multiple times to prevent local attacker to cause
+out-of-bounds write in ip_vs_nat_icmp.
 
-2) Switch ext_size to atomic64_t in ipset to prevent races during parallel
-updates.  Also from Jozsef.
+        The second patch returns the checksum validations
+which can be needed for the FORWARD hook.
 
-3) Add small wrappers for hash and bucket sizes in netfilter ipset. Prepare
-for rhashtable conversion.
+Changes:
+v2->v3:
+* patch 2: rely on nf_checksum for marking the csum as
+  validated
 
-4) Add and use mtype_del_cidr_all helper in netfilter ipset. Reduce size of
-upcoming rhashtable conversion.
+v1->v2:
+* patch 2: prefer our common helper for csum validation because
+  the old TCP/UDP checksum validation for IPv6 on CHECKSUM_COMPLETE
+  was wrong
 
-5) Switch ipset destruction to use RCU work. Fix a bug where rhashtable
-destruction triggered a sleeping function. Enable future decoupling of set
-destruction and GC work.
+v1:
+* patch 2: use per-proto checksum validations
 
-Florian Westphal (3):
-  netfilter: ipset: add small wrappers for hash and bucket sizes
-  netfilter: ipset: add and use mtype_del_cidr_all helper
-  netfilter: ipset: switch to rcu work
+Julian Anastasov (2):
+  ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+  ipvs: return the csum validation for forward hook
 
-Jozsef Kadlecsik (2):
-  netfilter: ipset: rework cidr bookkeeping
-  netfilter: ipset: switch ext_size to atomic64_t
-
- include/linux/netfilter/ipset/ip_set.h       |   6 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h      |   4 +-
- net/netfilter/ipset/ip_set_core.c            |  52 ++--
- net/netfilter/ipset/ip_set_hash_gen.h        | 304 +++++++++++++------
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |   4 +-
- net/netfilter/ipset/ip_set_hash_net.c        |   4 +-
- net/netfilter/ipset/ip_set_hash_netiface.c   |   4 +-
- net/netfilter/ipset/ip_set_hash_netnet.c     |  12 +-
- net/netfilter/ipset/ip_set_hash_netport.c    |   4 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c |  12 +-
- net/netfilter/ipset/ip_set_list_set.c        |   4 +-
- 11 files changed, 266 insertions(+), 144 deletions(-)
+ include/net/ip_vs.h                   | 21 +++------
+ net/netfilter/ipvs/ip_vs_core.c       | 67 ++++++++++++++-------------
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c       |  2 +-
+ 4 files changed, 42 insertions(+), 50 deletions(-)
 
 -- 
-2.54.0
+2.55.0
+
+
