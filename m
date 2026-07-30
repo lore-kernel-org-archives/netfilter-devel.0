@@ -1,314 +1,156 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 458ED3B3BEB
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 18:08:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C772C326C;
+	Thu, 30 Jul 2026 18:36:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785434890; cv=none; b=D87WKGrUNyoltqMMKhS+TWtb9L8sH+t6sBilIqCXLv3vHNPjzN/3IGivH6Q50muFPOj0oAaX53jy3mmqlhpdmTuSKk+pZPyu9E7fMR0B8BhZhUD8lCdAjv+FLVh5sGsjljEfaUyfAMJxgrla0gLyEBD/+0sdl5bLR6u8UyBQUb8=
+	t=1785436584; cv=none; b=pwnuC9Df1COYMqLtZYTt7CfcWHMFGWoOEZJsX4kVNq4x57tIQhuqtX8g+hawCMBz109yGmjGmaTEoRQOxYINkD553NIHDtF7gj8VC5eBQ354sNiQPjGmdBh/Tj9XHo1JjoxnW4+e2GgGCEg10G/WYdAMrE8MAH+OV5u1ZitPvso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785434890; c=relaxed/simple;
-	bh=tSrfAlD2lgvetemBvKtXVwnOZ3zgTipsfi54/ygirdk=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=YOF9UF0RGNrdbHJfdnRLi9nSSRFg8f2JrXwie+XM9e+lw1z9VofRsAGlMX/Z5ECEDF5+SmfHpbuLBhxwE2R/ngUwehZeEWQ7OBPz0gS8flfy/++jybYjfhtar8/2pH+OKeW53E+jB0AP0PKPQsOaZPsrX7IN07wiXjdeSEXLfe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com; spf=pass smtp.mailfrom=etsalapatis.com; dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b=F4O1RutH; arc=none smtp.client-ip=209.85.214.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=etsalapatis.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=etsalapatis.com
+	s=arc-20240116; t=1785436584; c=relaxed/simple;
+	bh=Hf9pzuvpmc7gXrWqsgfBmHoXLetzOnMmMEfIj6MPKSU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=pJyj/iZ0+IGixYK70KPXQ7h1Oz1dOzhq5EMHDq1E12ems0IxhkhVZfIg/CU1KCcrORkYW/rcf/ZmlwRcBvfh2SRUwRh6uJqpDEjhFVPeN+AnC3bpjr2r/u1YCztRnPxq9FdqSmOAO7XrIoqp+1ECAv9Ny4xcXp9cmSzZ1AF6dVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=TMRoceNA; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=etsalapatis-com.20251104.gappssmtp.com header.i=@etsalapatis-com.20251104.gappssmtp.com header.b="F4O1RutH"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2cc7ef7ec27so1161785ad.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 11:08:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=etsalapatis-com.20251104.gappssmtp.com; s=20251104; t=1785434886; x=1786039686; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=MACLsRcN4y51CiS0cg9uBHC3yOz6OO5aiyPbHKz0564=;
-        b=F4O1RutH5IeHSzSijnjVocM1MevwxvLe6eAp7cFBulON+cfgjjHsAuNcD4uIOFXD/q
-         uZP+GdHXEOejEfsg8x79ILuL6FL5azukOHtPe+lJ9YWpvyKAkFT4t+MZLDL+HrkBaYwZ
-         nDwcvG9iqmXbM125tjkeZCrrUaKA8rdXylb1rK69c+3a7sD/vxn5UHcOVcMWprjMwHZ2
-         iZJ1/706phe3wEOvGVIHM80Bi7GGw5UWZxA0QAmS1n72KNW6pNyHao9n3QbDbBUj2P79
-         2G/Ba8FE1Vyb1nANAmA+oB3b7DH824xeqFR6o4Tqj1DT1ZgEFLthChidf/xqgcqcYvbq
-         HXWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785434886; x=1786039686;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=MACLsRcN4y51CiS0cg9uBHC3yOz6OO5aiyPbHKz0564=;
-        b=hkUqN7syX2CLY50HZpjnMhU4lfdTERhnb3gPuEglQ3zQ60qBTYVYJoMGLXrGOHHEHk
-         QXZbzxStmO4cgY1T2prEMwfdpXJ/hRtHvXtGjMbB10nwCUn3KvNrUzU13BA3pO9l7cgs
-         WL08pe2cteAeVhfI2Qwl7pJzw/CzsNwnTt920IdKKcFqfM4H1mKQU1fh5b8DYNndCZs/
-         IZK7kLPG9AnBrBN/cfdB4o6Wx6vpQTptLxD/C9iC3tHQ66/oZvsa/QWbaVWZMRWiIxr5
-         4Ylj658aNo6qch7TBRLs6mBx7lPp8mYaZ1/Yuj86DQOEsCzxgxjp6LG5mFc7I3fcWVq+
-         bDSA==
-X-Gm-Message-State: AOJu0Yw3zKjguRVg9r93rg/MkdCB2/Dc/pQBkfG6RfFxW6+N0b5cn9a6
-	2Lt/W3f++5+0Hp/ap0CgAc20W+xl5JIfs/a5RaRMJ1BdQeLjlaHf8nYoY1b+Wz3Evdo=
-X-Gm-Gg: AR+sD12NYCGZT3LwIEik9ncFFrqPU5xkWa6gk1+Zv5GG4Uyr0yFZoInMjjnM3wo1kma
-	DB9h3qnMqzaVPQsSk99zMevV55NATspsmADPqBX8SCaistbICs8ANwcanVT63VvNQI86jiwdTKb
-	dAqrPdwpfgSYGK8k1PCZnjOXmSS9q1/yi7KiRHzHTftNcxHP9Sbmp8ADrKfhRWk1Sn3NJI9JCG/
-	6xSFMy3a53PbAeiaoGbVcqVgoKZI9ohDed2k3rtFPt7c7+Fn0SIuESxUuOF1dpQKkbMgptGBH08
-	cpdfuP/UHYm4fPmymTjX4yadl44Ecy+mQtuM88UjJ1D42kIqv8Vnh5SmXFylPLRsiE6d1UGHq5Q
-	v0YcfvAH8CufTYdHFCysKHm10f4gTs6aVya9gK4DJLGpwGvAVH0NxWa3grxSXG+kF1b7fdZaAfl
-	3Wbzn4/3Jtbikt1jBv4n1+ebNKzhesPdIy2kIct9xHzd16985gb8Cin5+VegZyiB25HnSK0syZH
-	DUYs/gDzVJAVMmbfg==
-X-Received: by 2002:a17:902:ccd2:b0:2c6:90ec:f601 with SMTP id d9443c01a7336-2d035b85755mr32939755ad.8.1785434886244;
-        Thu, 30 Jul 2026 11:08:06 -0700 (PDT)
-Received: from localhost (107-190-31-17.cpe.teksavvy.com. [107.190.31.17])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d022bf845asm29948135ad.60.2026.07.30.11.08.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 30 Jul 2026 11:08:05 -0700 (PDT)
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="TMRoceNA"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id D4A35216C4;
+	Thu, 30 Jul 2026 21:36:14 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=BW+o5Ydbi/DoKtns7zCPnuADgSeOss/8HnYIqdz1Cfs=; b=TMRoceNALbSj
+	IE8OBb7wLNSnw7MOquIY23VSzhsIuoMyoVrxNNBpxmyDU71r+DO0NRXTXLkvz0Kf
+	251n97kz0e87GCxmJ25ITezr3CrdPSTxH1cl/cuQ9HF++Ofu15TK9TXrw7MUM4xc
+	XbN6HgZDCfrQDtnoFUpwqmKyBfKHnCIEVg93av9V1bnk9sJ8G7M57l0Ea8jpu5h3
+	24EbgnH3TNB92ZIS1I8bZBHfGDMws5PJEMCyAEjOLSU4zuV1F4qq18AqxTStCMcz
+	uOOK3U09RvujiOwU4AsaKDY3g5iENv5KpOH1TDK5iDFQlmMC8NKfW+wJkHzJ5Mv3
+	qxSSvmMRBk37FF/e/cyZDzP9OqgQOHUT1f8PDTWGWEdjePxxxQiP2tmUvcHXjDuV
+	V6JIB1PUo38LqcIfIk/w7XSd5ZBoALU7LM6vXpucmJzWKzjeDhb1ZJU0Bg8Pfxru
+	vyyU5gJvk1QUWxBgzulZ7UlV4szo95Ml7tdtcvrCrZW2zYdgIemtEzPFgHkl367s
+	4CBGNDP8rrZMdYIvEeIijn541XDfe6LQD8pAXGNw/95nAwJjXHtDcNhzSqZgTpUv
+	IKfXte+dquleXYQtJvV0Wl0Qnlm9Hw9Eki0msriUBYwW/qfmTQZTzf4ZJdeloeoU
+	Bp5LkfuCmQk5t2UesSx/Z1tH00eLCWs=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 30 Jul 2026 21:36:14 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id B833B61BEF;
+	Thu, 30 Jul 2026 21:36:15 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66UIaDon087551;
+	Thu, 30 Jul 2026 21:36:13 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 66UIaD6Y087550;
+	Thu, 30 Jul 2026 21:36:13 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v3 2/2] ipvs: return the csum validation for forward hook
+Date: Thu, 30 Jul 2026 21:35:06 +0300
+Message-ID: <20260730183506.87473-3-ja@ssi.bg>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260730183506.87473-1-ja@ssi.bg>
+References: <20260730183506.87473-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 30 Jul 2026 14:08:04 -0400
-Message-Id: <DKC3UER7LFE1.229F428MUH14A@etsalapatis.com>
-Cc: <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
- <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <bpf@vger.kernel.org>
-Subject: Re: [PATCH bpf v2] bpf: Fix netns reference imbalance in conntrack
- kfuncs
-From: "Emil Tsalapatis" <emil@etsalapatis.com>
-To: "Chengfeng Ye" <nicoyip.dev@gmail.com>, "Pablo Neira Ayuso"
- <pablo@netfilter.org>, "Florian Westphal" <fw@strlen.de>, "Phil Sutter"
- <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, "Eric Dumazet"
- <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, "Paolo Abeni"
- <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>, "Alexei
- Starovoitov" <ast@kernel.org>, "Daniel Borkmann" <daniel@iogearbox.net>,
- "Jesper Dangaard Brouer" <hawk@kernel.org>, "John Fastabend"
- <john.fastabend@gmail.com>, "Stanislav Fomichev" <sdf@fomichev.me>, "Kumar
- Kartikeya Dwivedi" <memxor@gmail.com>, "Lorenzo Bianconi"
- <lorenzo@kernel.org>
-X-Mailer: aerc 0.21.0-0-g5549850facc2
-References: <20260729163141.213611-1-nicoyip.dev@gmail.com>
- <20260730082958.2065194-1-nicoyip.dev@gmail.com>
-In-Reply-To: <20260730082958.2065194-1-nicoyip.dev@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Thu Jul 30, 2026 at 4:29 AM EDT, Chengfeng Ye wrote:
-> The opts argument of the BPF conntrack kfuncs can point to a shared
-> map value.  __bpf_nf_ct_lookup() and __bpf_nf_ct_alloc_entry() read
-> opts->netns_id separately when acquiring and releasing the network
-> namespace reference.
->
-> The reference imbalance can occur as follows:
->
->   CPU 0                                  CPU 1
->   read opts->netns_id (-1)
->   skip get_net_ns_by_id()
->                                          write opts->netns_id (id)
->   read opts->netns_id (id)
->   put_net(net) /* no matching get */
->
-> The reverse transition leaks the reference.  Repeating the unmatched put
-> can destroy a live namespace and crash later users.
->
-> The kernel reported:
->
->   Oops: general protection fault, probably for non-canonical address
->   KASAN: null-ptr-deref in range [0x00000000000000e8-0x00000000000000ef]
->   RIP: 0010:bpf_prog_test_run_xdp+0x52c/0x1700
->   Call Trace:
->    __sys_bpf+0x1662/0x50c0
->    __x64_sys_bpf+0x73/0xb0
->    do_syscall_64+0xf9/0x540
->    entry_SYSCALL_64_after_hwframe+0x77/0x7f
->   Kernel panic - not syncing: Fatal exception
->
-> Snapshot every input field of opts with READ_ONCE() before validating or
-> using it.  The netns_id snapshot keeps the namespace get/put pair
-> balanced, while the other snapshots keep the remaining options from
-> changing partway through an invocation.  The individual reads can still
-> observe an inconsistent combination during a concurrent update, but each
-> selected field value remains stable for that invocation.
->
-> Fixes: aed8ee7feb44 ("net: netfilter: Deduplicate code in bpf_{xdp,skb}_c=
-t_lookup")
-> Fixes: d7e79c97c00c ("net: netfilter: Add kfuncs to allocate and insert C=
-T")
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Sashiko notes that playing games with the skb dst and rt
+flags instead of providing hooknum is not a good idea
+when validating the checksums.
 
-Looking a lot better, one nit: We don't really need to read reserve[]
-into a separate variable. We use it only once, so reading it into the
-stack isn't giving us anything, in contrast to all other fields.
+Also, skipping checksum validation for FORWARD packets
+risk silent data corruption, even if the only user is
+the FTP-CMD packets coming from the real server.
 
-The bot's ordering nit is also a nice-to-have.
+Sashiko also noticed that by using common checksum
+helper in the previous commit we actually fixed old bug
+where the TCP/UDP checksum for IPv6 on CHECKSUM_COMPLETE
+was not validated correctly.
 
-pw-bot: cr
+Fixes: e876b75b9020 ("ipvs: fix the checksum validations")
+Link: https://sashiko.dev/#/patchset/20260722211420.153933-1-pablo%40netfilter.org
+Link: https://sashiko.dev/#/patchset/20260727185024.67534-1-ja%40ssi.bg
+Link: https://sashiko.dev/#/patchset/20260728202520.59179-1-ja%40ssi.bg
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ include/net/ip_vs.h                   | 19 +++++--------------
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  2 +-
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-> ---
-> Changes in v2:
-> - Snapshot l4proto, ct_zone_id, ct_zone_dir, and the reserved bytes in
->   addition to netns_id, as requested in review.
-> - Rebase onto current bpf/master.
->
-> Please queue this fix for stable kernels.
->
->  net/netfilter/nf_conntrack_bpf.c | 76 ++++++++++++++++++++++----------
->  1 file changed, 52 insertions(+), 24 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrac=
-k_bpf.c
-> index f98d1d4b42c3..c3395cb98c00 100644
-> --- a/net/netfilter/nf_conntrack_bpf.c
-> +++ b/net/netfilter/nf_conntrack_bpf.c
-> @@ -122,42 +122,56 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf=
-_sock_tuple *bpf_tuple,
->  	struct nf_conntrack_tuple otuple, rtuple;
->  	struct nf_conntrack_zone ct_zone;
->  	struct nf_conn *ct;
-> +	u16 ct_zone_id;
-> +	s32 netns_id;
-> +	u8 ct_zone_dir =3D 0;
-> +	u8 reserved[3] =3D {};
-> +	u8 l4proto;
->  	int err;
-> =20
->  	if (!(opts_len =3D=3D NF_BPF_CT_OPTS_SZ || opts_len =3D=3D 12))
->  		return ERR_PTR(-EINVAL);
-> +
-> +	netns_id =3D READ_ONCE(opts->netns_id);
-> +	l4proto =3D READ_ONCE(opts->l4proto);
-> +	ct_zone_id =3D READ_ONCE(opts->ct_zone_id);
->  	if (opts_len =3D=3D NF_BPF_CT_OPTS_SZ) {
-> -		if (opts->reserved[0] || opts->reserved[1] || opts->reserved[2])
-> +		ct_zone_dir =3D READ_ONCE(opts->ct_zone_dir);
-> +		reserved[0] =3D READ_ONCE(opts->reserved[0]);
-> +		reserved[1] =3D READ_ONCE(opts->reserved[1]);
-> +		reserved[2] =3D READ_ONCE(opts->reserved[2]);
-> +		if (reserved[0] || reserved[1] || reserved[2])
->  			return ERR_PTR(-EINVAL);
->  	} else {
-> -		if (opts->ct_zone_id)
-> +		if (ct_zone_id)
->  			return ERR_PTR(-EINVAL);
->  	}
-> =20
-> -	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
-> +	if (unlikely(netns_id < BPF_F_CURRENT_NETNS))
->  		return ERR_PTR(-EINVAL);
-> =20
-> -	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, opts->l4proto,
-> +	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, l4proto,
->  				    IP_CT_DIR_ORIGINAL, &otuple);
->  	if (err < 0)
->  		return ERR_PTR(err);
-> =20
-> -	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, opts->l4proto,
-> +	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, l4proto,
->  				    IP_CT_DIR_REPLY, &rtuple);
->  	if (err < 0)
->  		return ERR_PTR(err);
-> =20
-> -	if (opts->netns_id >=3D 0) {
-> -		net =3D get_net_ns_by_id(net, opts->netns_id);
-> +	if (netns_id >=3D 0) {
-> +		net =3D get_net_ns_by_id(net, netns_id);
->  		if (unlikely(!net))
->  			return ERR_PTR(-ENONET);
->  	}
-> =20
->  	if (opts_len =3D=3D NF_BPF_CT_OPTS_SZ) {
-> -		if (opts->ct_zone_dir =3D=3D 0)
-> -			opts->ct_zone_dir =3D NF_CT_DEFAULT_ZONE_DIR;
-> -		nf_ct_zone_init(&ct_zone,
-> -				opts->ct_zone_id, opts->ct_zone_dir, 0);
-> +		if (ct_zone_dir =3D=3D 0) {
-> +			ct_zone_dir =3D NF_CT_DEFAULT_ZONE_DIR;
-> +			opts->ct_zone_dir =3D ct_zone_dir;
-> +		}
-> +		nf_ct_zone_init(&ct_zone, ct_zone_id, ct_zone_dir, 0);
->  	} else {
->  		ct_zone =3D nf_ct_zone_dflt;
->  	}
-> @@ -171,7 +185,7 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_s=
-ock_tuple *bpf_tuple,
->  	__nf_ct_set_timeout(ct, timeout * HZ);
-> =20
->  out:
-> -	if (opts->netns_id >=3D 0)
-> +	if (netns_id >=3D 0)
->  		put_net(net);
-> =20
->  	return ct;
-> @@ -186,46 +200,60 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct ne=
-t *net,
->  	struct nf_conntrack_tuple tuple;
->  	struct nf_conntrack_zone ct_zone;
->  	struct nf_conn *ct;
-> +	u16 ct_zone_id;
-> +	s32 netns_id;
-> +	u8 ct_zone_dir =3D 0;
-> +	u8 reserved[3] =3D {};
-> +	u8 l4proto;
->  	int err;
-> =20
->  	if (!opts || !bpf_tuple)
->  		return ERR_PTR(-EINVAL);
->  	if (!(opts_len =3D=3D NF_BPF_CT_OPTS_SZ || opts_len =3D=3D 12))
->  		return ERR_PTR(-EINVAL);
-> +
-> +	netns_id =3D READ_ONCE(opts->netns_id);
-> +	l4proto =3D READ_ONCE(opts->l4proto);
-> +	ct_zone_id =3D READ_ONCE(opts->ct_zone_id);
->  	if (opts_len =3D=3D NF_BPF_CT_OPTS_SZ) {
-> -		if (opts->reserved[0] || opts->reserved[1] || opts->reserved[2])
-> +		ct_zone_dir =3D READ_ONCE(opts->ct_zone_dir);
-> +		reserved[0] =3D READ_ONCE(opts->reserved[0]);
-> +		reserved[1] =3D READ_ONCE(opts->reserved[1]);
-> +		reserved[2] =3D READ_ONCE(opts->reserved[2]);
-> +		if (reserved[0] || reserved[1] || reserved[2])
->  			return ERR_PTR(-EINVAL);
->  	} else {
-> -		if (opts->ct_zone_id)
-> +		if (ct_zone_id)
->  			return ERR_PTR(-EINVAL);
->  	}
-> -	if (unlikely(opts->l4proto !=3D IPPROTO_TCP && opts->l4proto !=3D IPPRO=
-TO_UDP))
-> +	if (unlikely(l4proto !=3D IPPROTO_TCP && l4proto !=3D IPPROTO_UDP))
->  		return ERR_PTR(-EPROTO);
-> -	if (unlikely(opts->netns_id < BPF_F_CURRENT_NETNS))
-> +	if (unlikely(netns_id < BPF_F_CURRENT_NETNS))
->  		return ERR_PTR(-EINVAL);
-> =20
-> -	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, opts->l4proto,
-> +	err =3D bpf_nf_ct_tuple_parse(bpf_tuple, tuple_len, l4proto,
->  				    IP_CT_DIR_ORIGINAL, &tuple);
->  	if (err < 0)
->  		return ERR_PTR(err);
-> =20
-> -	if (opts->netns_id >=3D 0) {
-> -		net =3D get_net_ns_by_id(net, opts->netns_id);
-> +	if (netns_id >=3D 0) {
-> +		net =3D get_net_ns_by_id(net, netns_id);
->  		if (unlikely(!net))
->  			return ERR_PTR(-ENONET);
->  	}
-> =20
->  	if (opts_len =3D=3D NF_BPF_CT_OPTS_SZ) {
-> -		if (opts->ct_zone_dir =3D=3D 0)
-> -			opts->ct_zone_dir =3D NF_CT_DEFAULT_ZONE_DIR;
-> -		nf_ct_zone_init(&ct_zone,
-> -				opts->ct_zone_id, opts->ct_zone_dir, 0);
-> +		if (ct_zone_dir =3D=3D 0) {
-> +			ct_zone_dir =3D NF_CT_DEFAULT_ZONE_DIR;
-> +			opts->ct_zone_dir =3D ct_zone_dir;
-> +		}
-> +		nf_ct_zone_init(&ct_zone, ct_zone_id, ct_zone_dir, 0);
->  	} else {
->  		ct_zone =3D nf_ct_zone_dflt;
->  	}
-> =20
->  	hash =3D nf_conntrack_find_get(net, &ct_zone, &tuple);
-> -	if (opts->netns_id >=3D 0)
-> +	if (netns_id >=3D 0)
->  		put_net(net);
->  	if (!hash)
->  		return ERR_PTR(-ENOENT);
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 1235f1934e94..d2813eb795be 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -25,9 +25,7 @@
+ #include <linux/netfilter.h>		/* for union nf_inet_addr */
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>			/* for struct ipv6hdr */
+-#include <net/route.h>
+ #include <net/ipv6.h>
+-#include <net/ip6_fib.h>
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack.h>
+ #endif
+@@ -2095,30 +2093,23 @@ static inline __wsum ip_vs_check_diff2(__be16 old, __be16 new, __wsum oldsum)
+ 	return csum_partial(diff, sizeof(diff), oldsum);
+ }
+ 
+-static inline bool ip_vs_checksum_needed(struct sk_buff *skb, int af)
++static inline bool ip_vs_checksum_needed(struct sk_buff *skb)
+ {
+ 	/* Checksum unnecessary or already validated? */
+ 	if (skb_csum_unnecessary(skb))
+ 		return false;
+-	/* LOCAL_OUT ? */
+-	if (!skb->dev || skb->dev->flags & IFF_LOOPBACK)
++	/* Locally generated ? */
++	if (!skb->dev)
+ 		return false;
+-	/* !LOCAL_IN (FORWARD) ? */
+-	if (af == AF_INET6) {
+-		if (!(dst_rt6_info(skb_dst(skb))->rt6i_flags & RTF_LOCAL))
+-			return false;
+-	} else {
+-		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL))
+-			return false;
+-	}
+ 	return true;
+ }
+ 
+ static inline bool ip_vs_checksum_common_check(struct sk_buff *skb,
+ 					       int offset, int proto, int af)
+ {
+-	if (!ip_vs_checksum_needed(skb, af))
++	if (!ip_vs_checksum_needed(skb))
+ 		return true;
++	/* Validate csum even for FORWARD */
+ 	return !nf_checksum(skb, NF_INET_LOCAL_IN, offset, proto, af);
+ }
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index 3dbd3096e163..c80567c73469 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -193,7 +193,7 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	struct sctphdr *sh;
+ 	__le32 cmp, val;
+ 
+-	if (!ip_vs_checksum_needed(skb, af))
++	if (!ip_vs_checksum_needed(skb))
+ 		return 1;
+ 	sh = (struct sctphdr *)(skb->data + sctphoff);
+ 	cmp = sh->checksum;
+-- 
+2.55.0
+
 
