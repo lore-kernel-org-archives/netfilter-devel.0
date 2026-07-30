@@ -1,165 +1,137 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED3F3D3CEE
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 09:48:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C534B4028C3;
+	Thu, 30 Jul 2026 09:52:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785404913; cv=none; b=ePQA4koEryJhVIzzRT9tkBkt1GHXYHmCG4S/xJ23Lq5wWBZ2EdX8hzyPI74M2j5AIiGDaCEoxC8E/kHXwF4cYW831O8muCkQli/gBlEfa0K9Cv7C44XTnoi8MsmwYQW+R6SwrllzawGhtdJEhWl26ybDV5o9Ryesg+vlwFUGWJ8=
+	t=1785405140; cv=none; b=o/60D3FHNkcWx0O486bQVb8F29mOnW/Oohyck3MQo8vToulPFFZS51HM/eXEcYue23rpQiJuayT3+JScxqTMG9bHrDxHwsc1ODrftAjBgXTX3eFGMHhiHQHGYX8IBHPKixcMAqAMc6H9n+vf5AsVWaz7KliA8wW1+zQrwlXdTMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785404913; c=relaxed/simple;
-	bh=DKHluWwyeMfvr6/2Po2N1P493x2aBPftgCdzSIff58g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dE2zDTmWlqgv8UCZ9tDzq2fOianHLPKO8mh5NRUjG7izeC1nmViXI9ggR6MAHGGYCCQQLUP7rETlBhr91KU+M2BBer7b4bfeS4TeiIHQvaIx2+8qQyocuSbRgMS+crLtFIy7OoFkCExHtMJvV6UE+JwL3mAmbBrXzQeEkQpUdBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KK3PmgpF; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1785405140; c=relaxed/simple;
+	bh=t894MoMYEdKrUphOfQJj8pkCwyRwo80HRcbW6XR1exk=;
+	h=Content-Type:MIME-Version:Message-Id:In-Reply-To:References:
+	 Subject:From:To:Cc:Date; b=axDhjT0thoHndcMZvuybHfxi+L/f0iXEyv/oBgr3MEdqZJEwufxtbqbJviUIDFPrxFBvHvEKmNHTdJBlUESMU9Ez+75kCyfj3OnRlM9ay7fCd1FhzunFw4GNrTJHOX3bVx6V8NO7XwH/i0JtpN7WEtufkdF7tiz4wvFk+TmqTsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VC+EP3GK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KK3PmgpF"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9A00F60191;
-	Thu, 30 Jul 2026 11:48:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785404908;
-	bh=XmUiPFnu9agOGaekMTaq2D/YHG5pqvvTeEzyLI53WK0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=KK3PmgpFfzQA6XS17Ve8WKiaE6bh3anS/8LJA6mIcuDpnGAK+AofONHX0+y/Qrjgu
-	 j/UZXbiafztVMrBd2hWuQP3xtuJOl/doj3XIfviJS+Ar6zfd8vsg2Ori84sUis/S1f
-	 I3KvHcT6RTFwedOdj67OojEqwy2U6Qad+G9YNQyj61vRxgPQ6QyKqJ0CTt8M6+5HcE
-	 PYJgSj7Z87e8XuW1SkGB1gbCq72Q7Y+OgJ2fr1JUOS14kPNyc50LmtzSu5EGwjnYSi
-	 m6d68NsP1HHS0HnlkDPjVtR2Cf8YQlELP6Wxf/XrW0lSkIfNRxdeeXtfy7sAM3y0SG
-	 k4dgEl5nBbGvA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: iostreampy@proton.me
-Subject: [PATCH nf] netfilter: nft_ct: postpone expectation creation to confirmed conntrack
-Date: Thu, 30 Jul 2026 11:48:21 +0200
-Message-ID: <20260730094822.481781-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VC+EP3GK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 441991F00A3F;
+	Thu, 30 Jul 2026 09:52:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785405138;
+	bh=xUqL87DdA8qA2aMXoECkvDvuXXO5oy6OAIDvleX9BCE=;
+	h=In-Reply-To:References:Subject:From:To:Cc:Date;
+	b=VC+EP3GKfFLT3d+mN8FImpiyFsl5cBpEICmni8wrtByv1MTDmd/rxr2NIcrgHyTCN
+	 i73DS4ezlu3VTcRQux/Q51YlE/6VdxnZBr2BnY5fxlFJKtaexXytWvEFnUj9YR/ylN
+	 Zom1t3p982D6fxnPH9M6qKBtnJ5yAnnvNP4nHk/pEqa1/1MXpKfxiD9aHPe4yXyel0
+	 BulSFbaI7ixxEy0hHqfN8xobbMjpSVqClQVJI37AsWHq0VaFDycWF1kp4GqE1uSmqz
+	 5AbLDSmxNKV+RlFWb9IUxkx7IR9VjncxT/Ri9o5O/S6/JAvv2kVXV8CobTc7u/dEFA
+	 d3vxTs60XOp9A==
+Content-Type: multipart/mixed; boundary="===============0063013281550582967=="
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Message-Id: <3bd200c7256262889a96f82d8c4c3535a1e5170067c9a9bde35a7e264814fb30@mail.kernel.org>
+In-Reply-To: <20260730082958.2065194-1-nicoyip.dev@gmail.com>
+References: <20260730082958.2065194-1-nicoyip.dev@gmail.com>
+Subject: Re: [PATCH bpf v2] bpf: Fix netns reference imbalance in conntrack kfuncs
+From: bot+bpf-ci@kernel.org
+To: nicoyip.dev@gmail.com,pablo@netfilter.org,fw@strlen.de,phil@nwl.cc,davem@davemloft.net,edumazet@google.com,kuba@kernel.org,pabeni@redhat.com,horms@kernel.org,ast@kernel.org,daniel@iogearbox.net,hawk@kernel.org,john.fastabend@gmail.com,sdf@fomichev.me,memxor@gmail.com,lorenzo@kernel.org
+Cc: netfilter-devel@vger.kernel.org,coreteam@netfilter.org,netdev@vger.kernel.org,linux-kernel@vger.kernel.org,bpf@vger.kernel.org,nicoyip.dev@gmail.com,ast@kernel.org,andrii@kernel.org,daniel@iogearbox.net,martin.lau@kernel.org,eddyz87@gmail.com,yonghong.song@linux.dev,clm@meta.com,ihor.solodrai@linux.dev
+Date: Thu, 30 Jul 2026 09:52:17 +0000 (UTC)
 
-Originally, the ct expectation support called nf_ct_helper_ext_add() for
-confirmed conntracks, which is invalid, triggering a splat. This was
-fixed by commit 1710eb913bdc ("netfilter: nft_ct: skip expectations for
-confirmed conntrack").
+--===============0063013281550582967==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 
-This is still not sufficient though. Early insertion of expectations
-into the expectations list, which resides in the ct helper extension
-area might lead to stale entries pointing to the wrong hlist_head
-through .pprev due to ct extension reallocation.
+> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+> index f98d1d4b42c3..c3395cb98c00 100644
+> --- a/net/netfilter/nf_conntrack_bpf.c
+> +++ b/net/netfilter/nf_conntrack_bpf.c
+> @@ -122,42 +122,56 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
+>  	struct nf_conntrack_tuple otuple, rtuple;
+>  	struct nf_conntrack_zone ct_zone;
+>  	struct nf_conn *ct;
+> +	u16 ct_zone_id;
+> +	s32 netns_id;
+> +	u8 ct_zone_dir = 0;
+> +	u8 reserved[3] = {};
+> +	u8 l4proto;
 
-Commit 7c9664351980 ("netfilter: move nat hlist_head to nf_conn") moved
-the nat hlist_head to nf_conn for this reason:
+This isn't a bug, but would it be worth reordering these declarations
+longest-to-shortest to match the netdev reverse-xmas-tree convention
+before this goes out again? The block goes from 'struct nf_conn *ct;'
+(21 chars) down to 's32 netns_id;' (15), then back up to 'u8 reserved[3]
+= {};' (22). The same ordering appears in __bpf_nf_ct_lookup() further
+down.
 
-     1. ...
-     2. When reallocation of extension area occurs we need to fixup the
-        bysource hash head via hlist_replace_rcu.
+>  	int err;
+>
+>  	if (!(opts_len == NF_BPF_CT_OPTS_SZ || opts_len == 12))
+>  		return ERR_PTR(-EINVAL);
+> +
+> +	netns_id = READ_ONCE(opts->netns_id);
+> +	l4proto = READ_ONCE(opts->l4proto);
+> +	ct_zone_id = READ_ONCE(opts->ct_zone_id);
+>  	if (opts_len == NF_BPF_CT_OPTS_SZ) {
+> -		if (opts->reserved[0] || opts->reserved[1] || opts->reserved[2])
+> +		ct_zone_dir = READ_ONCE(opts->ct_zone_dir);
+> +		reserved[0] = READ_ONCE(opts->reserved[0]);
+> +		reserved[1] = READ_ONCE(opts->reserved[1]);
+> +		reserved[2] = READ_ONCE(opts->reserved[2]);
+> +		if (reserved[0] || reserved[1] || reserved[2])
 
-However, I'd rather not to increase the size of the struct nf_conn for
-this feature, which only supports for creating expectations in the reply
-direction. Note that ct expectation is also broken with NAT, where the
-ct needs to be confirmed to access dnat mappings.
+This isn't a bug, but since reserved[] is only used by the check on the
+next line, could the three READ_ONCE() calls be inlined into the condition
+instead of going through a local array? The same block appears in
+__bpf_nf_ct_lookup() at the corresponding location.
 
-To address this issue, add the ct helper extension on the first packet
-matching this rule. Then, follow up packets will find the conntrack
-already in confirmed state with stable expectations list in the a ct
-helper extension area that can be used for creating the custom
-expectation.
+>  			return ERR_PTR(-EINVAL);
+>  	} else {
+> -		if (opts->ct_zone_id)
+> +		if (ct_zone_id)
+>  			return ERR_PTR(-EINVAL);
+>  	}
 
-This patch adds a new flag to annotate that the expectation for this
-rule has been already created once for this connection.
+[ ... ]
 
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-Reported-by: Jaeyeong Lee <iostreampy@proton.me>
-Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> @@ -186,46 +200,60 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+>  	struct nf_conntrack_tuple tuple;
+>  	struct nf_conntrack_zone ct_zone;
+>  	struct nf_conn *ct;
+> +	u16 ct_zone_id;
+> +	s32 netns_id;
+> +	u8 ct_zone_dir = 0;
+> +	u8 reserved[3] = {};
+> +	u8 l4proto;
+>  	int err;
+>
+>  	if (!opts || !bpf_tuple)
+>  		return ERR_PTR(-EINVAL);
+>  	if (!(opts_len == NF_BPF_CT_OPTS_SZ || opts_len == 12))
+>  		return ERR_PTR(-EINVAL);
+> +
+> +	netns_id = READ_ONCE(opts->netns_id);
+> +	l4proto = READ_ONCE(opts->l4proto);
+> +	ct_zone_id = READ_ONCE(opts->ct_zone_id);
+>  	if (opts_len == NF_BPF_CT_OPTS_SZ) {
+> -		if (opts->reserved[0] || opts->reserved[1] || opts->reserved[2])
+> +		ct_zone_dir = READ_ONCE(opts->ct_zone_dir);
+> +		reserved[0] = READ_ONCE(opts->reserved[0]);
+> +		reserved[1] = READ_ONCE(opts->reserved[1]);
+> +		reserved[2] = READ_ONCE(opts->reserved[2]);
+> +		if (reserved[0] || reserved[1] || reserved[2])
+>  			return ERR_PTR(-EINVAL);
+
+[ ... ]
+
+
 ---
- net/netfilter/nft_ct.c | 34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+AI reviewed your patch. Please fix the bug or email reply why it's not a bug.
+See: https://github.com/kernel-patches/vmtest/blob/master/ci/claude/README.md
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 03a88c77e0f0..8fbc49feb8ae 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1226,6 +1226,10 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
- 	return 0;
- }
- 
-+struct nft_ct_expect_data {
-+	unsigned long	flags;
-+};
-+
- static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 				  const struct nlattr * const tb[],
- 				  struct nft_object *obj)
-@@ -1233,6 +1237,8 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
- 	int err;
- 
-+	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nft_ct_expect_data));
-+
- 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
- 	    !tb[NFTA_CT_EXPECT_DPORT] ||
- 	    !tb[NFTA_CT_EXPECT_TIMEOUT] ||
-@@ -1297,11 +1303,14 @@ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
- 	return 0;
- }
- 
-+#define NFT_CT_EXPECT_DONE_BIT	0
-+
- static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 				   struct nft_regs *regs,
- 				   const struct nft_pktinfo *pkt)
- {
- 	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-+	struct nft_ct_expect_data *expect_data;
- 	struct nf_conntrack_expect *exp;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn_help *help;
-@@ -1310,17 +1319,34 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 	struct nf_conn *ct;
- 
- 	ct = nf_ct_get(pkt->skb, &ctinfo);
--	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct)) {
-+	if (!ct || nf_ct_is_template(ct)) {
- 		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
- 	dir = CTINFO2DIR(ctinfo);
- 
- 	help = nfct_help(ct);
--	if (!help)
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
- 	if (!help) {
--		regs->verdict.code = NF_DROP;
-+		if (!nf_ct_is_confirmed(ct))
-+			nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
-+	if (rcu_access_pointer(help->helper)) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
-+	expect_data = nfct_help_data(ct);
-+	if (!expect_data) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
-+	if (test_and_set_bit(NFT_CT_EXPECT_DONE_BIT, &expect_data->flags)) {
-+		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
- 
--- 
-2.47.3
-
+CI run summary: https://github.com/kernel-patches/bpf/actions/runs/30527661826
+--===============0063013281550582967==--
