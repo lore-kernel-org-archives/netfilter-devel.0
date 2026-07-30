@@ -1,294 +1,135 @@
-Received: from mail-pj2-f3.google.com (mail-pj2-f3.google.com [74.125.227.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F406C43B492
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 13:56:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8963B435518;
+	Thu, 30 Jul 2026 14:09:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.144
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785419786; cv=none; b=uZyCx9aAVExAdruPs7jrS3taxNkPdgBl29Kr47bI1sO18xLNw9l/ACZw44WR5U68eFsR14pOKBi92qdX50DMbkiYKZiAIjaLEmZCIIj3i/MQMgvW+UGvknNnEm62Xkwr20eW7Box3e+40ztYSoSm3aX7CNbBWYEEyET9KAMV0+Y=
+	t=1785420563; cv=none; b=rOwLp1rHo7zn9KY96nlFM+K+i09OrjIjOGBdouCuwM1Tbgwf+PH+xYUXgkmLj4TuJHsoPYzZGvUFoYHXdu59SHRBHZf6o9trc5PNvAGohcpPQ0j2iyxh9JYFk7uc8u2d8Xq2TJ9lCz4s+fsaCFU56wmOm5Gk0B7aDStTqh1vf6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785419786; c=relaxed/simple;
-	bh=/RgzJzMkBYDPKjVaTao/aTQHqE6FwYxLY8QPTP1sRqE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UNAk9Hy5fU23wiuwukXgB9AdNXVfi7sOEw7uVoy9uKoF1FJirz/OylpMwnQExuFxsQFqy8AE9Q/XsLHXxO4bTKSxJd8Alwm6ksD6E7lyeTFkoYz4lKSCXkgRxnXqwuDiER4hZWFYrt3CYS06emxqw9LK2vFVpDjFNDoCb2RJsZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=J2Ye/ls7; arc=none smtp.client-ip=74.125.227.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	s=arc-20240116; t=1785420563; c=relaxed/simple;
+	bh=cLLb8BQB8reOxL4gX8bY1a1SDpjSvWdnF4MX2pM8Di8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=npKvS565n9KWI4jkk9ac7WFOjrUtqQ44anAsrJ8T3dcPNAM9aVnsNH9vdc34PtWzQPJMDhPGT5OA+qGC/uHdgNVhQgNEyyWvk1elq76dJVMAAlkfcpi/s3pi04R7xlVx0UwdQP1adMPczwnzz1ZZLd6Uv6GyJNN0bzVtbVal9cI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com; spf=pass smtp.mailfrom=kroah.com; dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b=igutYt82; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hByCu7Iu; arc=none smtp.client-ip=202.12.124.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kroah.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="J2Ye/ls7"
-Received: by mail-pj2-f3.google.com with SMTP id d9443c01a7336-2ccbff2e6a7so10943125ad.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 06:56:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1785419784; x=1786024584; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=g4UgEAPWiFQvj83uSKPLHHyFuVn87DefEO+podN7OKQ=;
-        b=J2Ye/ls76wzXS7rMt9ao+F9HdFqNHl4AZtTnwwzWB28JDtM0sm8GM1HjOqhl6SZV8n
-         dc5i3UdP2WNrQEBhT6h3ZZvMFUJJe9ch5toB8h0c/qasrT/0k88o9l2FMmjN92rF6wCG
-         +RYgT+RyP0iTLclIYb02oSZgJ4oqgQMgvZW99maCjjKGf/U2JfL4BHSnxgPTVL7YCbW+
-         b51HKq3sjdvd1Rccd/2cT1gyGnABE6//bBqHnpeioU2fCaNCZjgiCTIX88g5lcojx39U
-         H1qBlNa7MxQ61EXfRWB9wkm+bxpoNwFASqLQhCw4/kZlpX5Q98x/jgsth2pPJbeveWoj
-         2G/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785419784; x=1786024584;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=g4UgEAPWiFQvj83uSKPLHHyFuVn87DefEO+podN7OKQ=;
-        b=XdaK4gKDfBkhyZpsvmiYoewArwK60EulOaA9+zLOkCGKRbvPAA1UhYzpSebbcnwY2x
-         eVjqv7uy2J3D+iHK8a0yPbd3WmCmFTwDvO1CJH3N6cwij2oVLp2nHmsYqqWFMDgAoQi1
-         91A/JqaTETy7nOjtB1UN/TmU4s2Hm+9ogiNnmKMghLq8c/Fr9OdmIkMbIQ4LiMDOvZ7z
-         sI5A67wDgqd0JdC+PiYlDst30L9ObpddPvv3b0Iw9NebV8SxPON+5144yjHRhiDHZAH2
-         uSlvRPswLtFMoHFZ7Y8OVu7KpJJTMYtk1zSFSbWDuU+eqaLQPWBaafIEYz/qckiXjk6V
-         KWSw==
-X-Gm-Message-State: AOJu0YwV1QFtXUu3XfVt1PywOczFMMT/LLQS3ZgxyvxwzG2ByihdVjUU
-	cbfmzPNvmXf7k/fJ+732NWM1WsVzl3d4DAuj6PiqBbq4RixaOHV9SocNuQ9WglhknenDxtJBGOp
-	ixGaXJLLCQ1A=
-X-Gm-Gg: AR+sD13ICLhi2HnCToss/PBkrsOu4jbe1Ps4zLKUAPWvHGowZmZmuTS2rkV3i+kcIls
-	G+dI5VUjhNfkIJuaAiLjr7Byl/D70nvkBTsdHEHOst4U2fo4JttBJVNgQYyOt+i3o+kfbT7ueQc
-	QuZbTdUTXyEUWdI/0I/GHCxv8UybpfNg1OqIBCiU6fPBFSntI2pxRIYHe40U70EyyrcsfcsGC/i
-	2HyWOOD0i7UPEQ4nnvlyenklvhjjbm9d6NmUgqQFm/MAE1RfjO55byvBV8yvI++yMhnpOMqGDYg
-	PZXTBw9dFAo4N1gRWkfhNkc7f/TDy1LEa21wQvcFKkUR+hSVnMFXk3H35lFpciJ0Ikec/zibx7k
-	diUO4PiUABapi0pEinNNCWbUJoAaw3tycI8DmQMAoDqGL69G/wj/EoKemMD+FIJ4ZrnAv/+78IS
-	4EDqk+mzB1XJgBUpS8cKhcoZdtjIKUCoXnk7Is690W4ybUq6Gq7fGO0K4lIgqrKJPDAIbq9k4=
-X-Received: by 2002:a17:902:f54b:b0:2cf:477f:57c5 with SMTP id d9443c01a7336-2d035beddabmr25384705ad.1.1785419784324;
-        Thu, 30 Jul 2026 06:56:24 -0700 (PDT)
-Received: from localhost.localdomain ([115.192.250.185])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d022c8b9aasm27398055ad.50.2026.07.30.06.56.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 30 Jul 2026 06:56:23 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	avagin@gmail.com,
-	vega@nebusec.ai,
-	zihanx@nebusec.ai
-Subject: [PATCH nf v2 2/2] netfilter: nf_conntrack_tcp: defer tcp_in_window invalid logging until after unlock
-Date: Thu, 30 Jul 2026 13:55:44 +0000
-Message-ID: <27612fbff3730c5d63a0e3fb0f51aeeed77ed5d7.1785348197.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1785348197.git.zihanx@nebusec.ai>
-References: <cover.1785348197.git.zihanx@nebusec.ai>
+	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="igutYt82";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hByCu7Iu"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.stl.internal (Postfix) with ESMTP id 6835E1D0002E;
+	Thu, 30 Jul 2026 10:09:20 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Thu, 30 Jul 2026 10:09:20 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm2; t=1785420560; x=1785506960; bh=8udFup9Noz
+	aduK7FJgWwdcD9QjYfOaTlmc3535sNv7o=; b=igutYt82RvwT+jgHLX+aNaI6N1
+	kSaHeQHY4TIOo217hvQWQwgqwIvsbX4rpe95c/MCWogbQm47AiAHUhiAMyouirkz
+	xfLikHzN8yD4pqlBpDcGoaZeFVKdkn6vRX0bwMi2inERan22z0EgoHOW+uJBO7z4
+	Pl0eRhFd5gOgAgreV2WlyTWiKkks8sCqoYB5AJTKUFW1DTzCBMoORAoAppUxJ4qF
+	qbLuPg5lv0fYi8YKcFEemY2+g+R2DaEW0mB1hwr5hPRS+z5B3nxGUENaNAQNFXUQ
+	ykQJzOukQzbqoNknPeChubac/3MD9/A/o9jDgDywLwqxYz57nRmH6bHmbQRw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
+	1785420560; x=1785506960; bh=8udFup9NozaduK7FJgWwdcD9QjYfOaTlmc3
+	535sNv7o=; b=hByCu7IuYFNkeWazTiTbjZ/8CfKjFJC5fMUYErNhf5h12ZHALfM
+	LykY6jU2UyPVbMI3WZkOTtk7/NDrmBiQDOwj0necQAjthOPqixVZf/aHTW+4eIho
+	ZtHQVDU6IL1R2QcTHBblfG9SKRDSckucai64A95+VrJjf6BeC6znPi1QrgAQ+jSD
+	eoa8TPGEutLAkszOa9zb3QdKmZfEATB7/uF4H/+vl4s/CQW4iw9QijGs+BskWdgb
+	5jJJ37NAwd5sKeQAYIyxGFzSJ//fJSgxhv2A4VHnV9bfoNUwCPreyMDPSkANxR/v
+	yUFfpy0D/xYcZaJTVCWprzRz0gXn6GcheaQ==
+X-ME-Sender: <xms:EFtratnOxHGTD98v-ssXFwyFZx8SYxQnt73h0YfHxpqQm-7mZdXqzg>
+    <xme:EFtrarboYlOf8QFsTIE80ap90Kb7FtDdhS3jaaPapTHRCIP9DPtNxlu7ZCfv6SQ9v
+    VeZRaDmvew_KboWN1GiGI5OnjX8QrA_RlDwVEKITK2wzcsHwQ>
+X-ME-Received: <xmr:EFtranRuFkGH6mnp7v0vakJJoLqZawj0SNvNkmI4oVT8qCLKtKuGEZehkvG6RngD4tUEOy8qcKbey4YhuTqj13A1a8_jE1vZJOXIyjcvp9w>
+X-ME-Proxy-Cause: dmFkZTEgL6A9/pkDTpV7xv0CzIX9X6r4+w8Se7aiV4ziyuaXpMOvRVc6656AynEqeA8GLs
+    +Y36ti16t6J8SQzqUa8Eua8ZXlYXoSyF8Q7SYh2RrQq0N1hUPAscANf0BTlPsZeKFr53zk
+    eOSsDdpd6mDXJOMSwTGAOBkwZJSQP3hg8d7PHCtUA/b7olZ6ksx9B8qmxI68Xtlzq/H/Es
+    tOeumULX0lCebom5vyz1SBDPO1eG9n1ukYmkSJUNPFUxX2qJwCuk4D9VL+tEtaT2s0PUQA
+    kCGaPM3UVZ9RSHax8pxw8/EnYJQW1SgkrYFvZMF6tIpBv6DFVqc9mCHxGtBsUlEXZkvdf2
+    Ubv4kHs8Fd8iaRbWpLamBUoXBtNs87VbsMBMlQzajTkSI6gQXPSTKw4NhgfryJUW7KhMFZ
+    8GHVn8XrU2aMvXNiqEuRnvlnRuuJCw8j484SGyfRRuq4dH12ET6KJGq+A1MCyGVNgo6CxW
+    1vZ1b3A0mKkBnWWz2nznTFlCC3M5/EYLEV0r1yHp0oA4i2P9mZEoYsa3zQMNvDXrzwAl1j
+    0j7gZhFB3xsrEYEfeWWeA28xerUFq0p1sqs4XxEn9jGyd/8NGpHImoEIBxRRU30htLi7sn
+    dsvwSXOF6Xy5Ke7AKBGVD2I8jzt2x8+4no00foTUtDKpbZ8CepKkswnX91qA
+X-ME-Proxy: <xmx:EFtratv0RVblwDC95gswPIsq5mP_yVeeU4SECahkenQsQ0WnItjFUQ>
+    <xmx:EFtrahEzKrvFbUM3jqxsVAh_ssTbiouqV3gXPTPjY9eRw9qRXTBWoQ>
+    <xmx:EFtramy6Jn6KDC0oR4ew1PFRb4CURg0nctEd9KMqqhrbfZc1UVDLOg>
+    <xmx:EFtraj1kkc6epvhB_zNYpxvBNteec6T9oMPuYdT29KT_i9KU47eHIw>
+    <xmx:EFtrasjtRNasGz5CpqkfNYnldFDZ5m78ZJ6aAJOQkYj91Xa6RSPQnluL>
+Feedback-ID: i787e41f1:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 30 Jul 2026 10:09:19 -0400 (EDT)
+Date: Thu, 30 Jul 2026 16:09:06 +0200
+From: Greg KH <greg@kroah.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Ilya Maximets <i.maximets@ovn.org>, stable@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Subject: Re: Backport request: "netfilter: nf_conntrack_expect: restore
+ helper propagation via expectation"
+Message-ID: <2026073054-certainty-reapply-a613@gregkh>
+References: <ee95f6ac-181e-4315-a2ae-e4d1388c5e69@ovn.org>
+ <amqHu5H6xu02Izo8@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <amqHu5H6xu02Izo8@chamomile>
 
-tcp_in_window() can emit several invalid-packet logs while ct->lock is
-still held.  If invalid logging is routed to nfnetlink_log with
-conntrack export enabled, this can re-enter conntrack netlink glue and
-recurse into tcp_to_nlattr() on the same conntrack.
+On Thu, Jul 30, 2026 at 01:07:39AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jul 29, 2026 at 11:38:17PM +0200, Ilya Maximets wrote:
+> > Hi.  The mentioned commit dcb0f9aefdd604d36710fda53c25bd7cf4a3e37a
+> > was backported to 7.0, but not further, while two commits it is fixing
+> > were backported down to 6.1.
+> > 
+> > Admittedly, the patch is not very important as far as functionality
+> > goes (at least for FTP), but the issue does change the user visible
+> > behavior and that makes all the FTP system tests in openvswitch
+> > project (in userspace) to fail.  This makes it harder to validate OVS
+> > on kernels below 7.0 and makes it unnecessarily harder to validate
+> > changes for the openvswitch kernel module on stable kernels.
+> > 
+> > So, it would be really nice to have the fix backported to the same
+> > branches where the commits it fixes were (6.1).
+> > 
+> > AFAICT, cherry-pick works without conflicts down to 6.6.  For 6.1
+> > there is a minor conflict, 6.1.y has the extra debug message:
+> > 
+> > diff --cc net/netfilter/nf_conntrack_core.c
+> > index f5c466ea1e7d,8ba5b22a1eef..000000000000
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@@ -1800,8 -1811,8 +1800,10 @@@ init_conntrack(struct net *net, struct 
+> >   		spin_lock_bh(&nf_conntrack_expect_lock);
+> >   		exp = nf_ct_find_expectation(net, zone, tuple, !tmpl || nf_ct_is_confirmed(tmpl));
+> >   		if (exp) {
+> > + 			struct nf_conntrack_helper *assign_helper;
+> > + 
+> >  +			pr_debug("expectation arrives ct=%p exp=%p\n",
+> >  +				 ct, exp);
+> >   			/* Welcome, Mr. Bond.  We've been expecting you... */
+> >   			__set_bit(IPS_EXPECTED_BIT, &ct->status);
+> >   			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+> > ---
+> > 
+> > WDYT?
+> 
+> I am fine with getting dcb0f9aefdd604d36710fda53c25bd7cf4a3e37a into
+> -stable release < 7.0 if that is what you mean.
+> 
 
-Fix this by storing only the minimal invalid-log context for the
-remaining tcp_in_window() cases and emitting the actual log after
-releasing ct->lock.  Rename the helper to reflect that it now records
-context instead of logging immediately, and add an explicit lockdep
-assertion plus comment to document that invalid TCP logs must not be
-emitted while ct->lock is held.
+Great, can someone send us properly backported/tested patches to apply?
 
-Fixes: d48668052b26 ("netfilter: fix nf_l4proto_log_invalid to log invalid packets")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: Codex:gpt-5.4
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
----
-changes in v2:
-  - Keep only the tcp_in_window() invalid logging cases in this patch.
-  - Rename the helper to reflect that it stores invalid-log context.
-  - Add a lockdep assertion and comment documenting that invalid logs must not be emitted under ct->lock.
-  - v1 Link: https://lore.kernel.org/all/cover.1785307980.git.zihanx@nebusec.ai/
----
- net/netfilter/nf_conntrack_proto_tcp.c | 113 ++++++++++++++++++-------
- 1 file changed, 82 insertions(+), 31 deletions(-)
+thanks,
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index ef31dcaffd19..e5875b7528fe 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -480,37 +480,87 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
- 	}
- }
- 
--__printf(6, 7)
--static enum nf_ct_tcp_action nf_tcp_log_invalid(const struct sk_buff *skb,
--						const struct nf_conn *ct,
--						const struct nf_hook_state *state,
--						const struct ip_ct_tcp_state *sender,
--						enum nf_ct_tcp_action ret,
--						const char *fmt, ...)
-+enum nf_tcp_invalid_log_type {
-+	NF_TCP_LOG_NONE,
-+	NF_TCP_LOG_OVERSHOT,
-+	NF_TCP_LOG_SEQ_OVER,
-+	NF_TCP_LOG_ACK_OVER,
-+	NF_TCP_LOG_SEQ_UNDER,
-+	NF_TCP_LOG_ACK_UNDER,
-+};
-+
-+struct nf_tcp_invalid_log {
-+	enum nf_tcp_invalid_log_type type;
-+	u32 value;
-+};
-+
-+static enum nf_ct_tcp_action
-+nf_tcp_store_invalid(const struct nf_conn *ct,
-+		     const struct ip_ct_tcp_state *sender,
-+		     struct nf_tcp_invalid_log *log,
-+		     enum nf_ct_tcp_action ret,
-+		     enum nf_tcp_invalid_log_type type,
-+		     u32 value)
- {
- 	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
--	struct va_format vaf;
--	va_list args;
- 	bool be_liberal;
- 
- 	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
- 	if (be_liberal)
- 		return NFCT_TCP_ACCEPT;
- 
--	va_start(args, fmt);
--	vaf.fmt = fmt;
--	vaf.va = &args;
--	nf_ct_l4proto_log_invalid(skb, ct, state, "%pV", &vaf);
--	va_end(args);
--
-+	log->type = type;
-+	log->value = value;
- 	return ret;
- }
- 
-+static void nf_tcp_log_invalid(const struct sk_buff *skb,
-+			       const struct nf_conn *ct,
-+			       const struct nf_hook_state *state,
-+			       const struct nf_tcp_invalid_log *log)
-+{
-+	/* nfnetlink_log may re-enter conntrack attribute dumping and try to
-+	 * take ct->lock again via tcp_to_nlattr(), so invalid TCP logs must
-+	 * only be emitted after dropping ct->lock.
-+	 */
-+	lockdep_assert_not_held(&ct->lock);
-+
-+	switch (log->type) {
-+	case NF_TCP_LOG_OVERSHOT:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "%u bytes more than expected",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_SEQ_OVER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "SEQ is over upper bound %u (over the window of the receiver)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_ACK_OVER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "ACK is over upper bound %u (ACKed data not seen yet)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_SEQ_UNDER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "SEQ is under lower bound %u (already ACKed data retransmitted)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_ACK_UNDER:
-+		nf_ct_l4proto_log_invalid(skb, ct, state,
-+					  "ignored ACK under lower bound %u (possible overly delayed)",
-+					  log->value);
-+		break;
-+	case NF_TCP_LOG_NONE:
-+		break;
-+	}
-+}
-+
- static enum nf_ct_tcp_action
- tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 	      unsigned int index, const struct sk_buff *skb,
- 	      unsigned int dataoff, const struct tcphdr *tcph,
--	      const struct nf_hook_state *hook_state)
-+	      struct nf_tcp_invalid_log *log)
- {
- 	struct ip_ct_tcp *state = &ct->proto.tcp;
- 	struct ip_ct_tcp_state *sender = &state->seen[dir];
-@@ -640,31 +690,29 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 			sender->td_end = end;
- 			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
- 
--			return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--						  "%u bytes more than expected", overshot);
-+			return nf_tcp_store_invalid(ct, sender, log, NFCT_TCP_IGNORE,
-+				   NF_TCP_LOG_OVERSHOT, overshot);
- 		}
- 
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_INVALID,
--					  "SEQ is over upper bound %u (over the window of the receiver)",
--					  sender->td_maxend + 1);
-+		return nf_tcp_store_invalid(ct, sender, log, NFCT_TCP_INVALID,
-+				   NF_TCP_LOG_SEQ_OVER, sender->td_maxend + 1);
- 	}
- 
- 	if (!before(sack, receiver->td_end + 1))
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_INVALID,
--					  "ACK is over upper bound %u (ACKed data not seen yet)",
--					  receiver->td_end + 1);
-+		return nf_tcp_store_invalid(ct, sender, log, NFCT_TCP_INVALID,
-+					   NF_TCP_LOG_ACK_OVER, receiver->td_end + 1);
- 
- 	/* Is the ending sequence in the receive window (if available)? */
- 	in_recv_win = !receiver->td_maxwin ||
- 		      after(end, sender->td_end - receiver->td_maxwin - 1);
- 	if (!in_recv_win)
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--					  "SEQ is under lower bound %u (already ACKed data retransmitted)",
--					  sender->td_end - receiver->td_maxwin - 1);
-+		return nf_tcp_store_invalid(ct, sender, log, NFCT_TCP_IGNORE,
-+					   NF_TCP_LOG_SEQ_UNDER,
-+					   sender->td_end - receiver->td_maxwin - 1);
- 	if (!after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1))
--		return nf_tcp_log_invalid(skb, ct, hook_state, sender, NFCT_TCP_IGNORE,
--					  "ignored ACK under lower bound %u (possible overly delayed)",
--					  receiver->td_end - MAXACKWINDOW(sender) - 1);
-+		return nf_tcp_store_invalid(ct, sender, log, NFCT_TCP_IGNORE,
-+					   NF_TCP_LOG_ACK_UNDER,
-+					   receiver->td_end - MAXACKWINDOW(sender) - 1);
- 
- 	/* Take into account window scaling (RFC 1323). */
- 	if (!tcph->syn)
-@@ -967,6 +1015,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	enum tcp_conntrack new_state, old_state;
- 	unsigned int index, *timeouts;
- 	enum nf_ct_tcp_action res;
-+	struct nf_tcp_invalid_log log = {};
- 	bool lowered_timeout = false;
- 	enum ip_conntrack_dir dir;
- 	const struct tcphdr *th;
-@@ -1249,14 +1298,16 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	}
- 
- 	res = tcp_in_window(ct, dir, index,
--			    skb, dataoff, th, state);
-+			    skb, dataoff, th, &log);
- 	switch (res) {
- 	case NFCT_TCP_IGNORE:
- 		spin_unlock_bh(&ct->lock);
-+		nf_tcp_log_invalid(skb, ct, state, &log);
- 		return NF_ACCEPT;
- 	case NFCT_TCP_INVALID:
- 		lowered_timeout = nf_tcp_handle_invalid(ct, dir, index);
- 		spin_unlock_bh(&ct->lock);
-+		nf_tcp_log_invalid(skb, ct, state, &log);
- 		if (lowered_timeout)
- 			nf_ct_l4proto_log_invalid(skb, ct, state, "lowered timeout to UNACK");
- 		return -NF_ACCEPT;
--- 
-2.43.0
-
+greg k-h
