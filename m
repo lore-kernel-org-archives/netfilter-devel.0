@@ -1,168 +1,331 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4119943B3F8;
-	Thu, 30 Jul 2026 14:44:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54953B1008
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 15:03:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785422667; cv=none; b=T5BZBHQgEisD/ZjNI9+x21d4oRHECRWkq60p8HJ3LrfzebTNGHZ/tWPHfTe+Owk697iA1JZwPaN3K1aoDfjeM/STJSw35hHHMfePa7vY7rBK0JLSpvr4xlTDyMjZU3PPV7Z64o/D/Yguux8bIRZV3f/w4V+DRHndwEqfQ6FMYto=
+	t=1785423794; cv=none; b=k5UixY2siGLpF7ILTezUijjCBV+o5InLAOnPx897271mYLXBS4oQT1FDQxU+sZ4/UnBSpkBCmbxYzBReOtRu1p+0ie8gObBd7CwYRUr0pGttfnu7Gngu3o12PEwdaxmOafvUTuyCzA3y0Isoqc/w2Xu6s+yJPlGOSL0i6pWUzhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785422667; c=relaxed/simple;
-	bh=W+/aSC2R5cXk5kZ6lsCYIa4lo31PvrlkMjSR9YZsjMw=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=fP/gWznPQvzs1wzliY2Jnlc91GGZxjJm0wBNK4iEQCLptvs+w8yiUBRGj4zpKOPNUzB6DYFVVPEwwGTTgY4cflW9mr/vY8OOilOogVpyY3HFCBbANpWlfJ31TbudEa6L8ogBfoyJ8Nl1ClO484Tfo0QoBPvZbTB1BJkc3JnPJuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=mjnqzjnj; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1785423794; c=relaxed/simple;
+	bh=vuvEvc7YzBj33EgG+ObTyNGz7082DtMnUtrHQvCCOr8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=u9Kb3GC8LzlzPiIYLmee6WGru6+hs6dWB8K/ByUdmBC/0VDLSGIxxAPrwrYrDer/rHnCMjo79OcTEnkgckTiJklHvqqo3WSUcVCIXeJfUsz9u6atrBCylr27SnXPow24elxcVbi5Z7m3X4isbXDKPIOmvGl2Q9J1sc4xiIDgDd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uc3yfqU+; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="mjnqzjnj"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id B752A216C7;
-	Thu, 30 Jul 2026 17:44:10 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=MgmBiVqiJsGJ4+M4YUx3zL6CGfPnHRbPLAt31VVBsec=; b=mjnqzjnj5lbg
-	1VFh4C+4Y0a+LlkD9TlmQK+e9Y44vCscY9/D7Wru/mCGh/SyTnTBxZN6WwLNaIDR
-	5hGGPJ+mtHEkfWI0/A1b3a+3D0HNorenRv03RPNMRGkyKJ0urHqDsUK+/S/WdG4E
-	BdZzgu0tkeJwfo+P3HaF3UqzVPNgBpgqRjpPNXs3I4Upx4me60YS6QZQPfbx+a16
-	fFdP4nq9A4zx+/5ML0A9EqAIrphlYQ7Jwj5h5BUOJHCbFTcR+3xVFVtSw/HJ/90g
-	p1mfaLldurLw9pCffa3Kw6WlO+z69G9CO48UD1wBM0S2NKCuL+avvpMNpaBt9GNm
-	+1Nhid6YHaIZwWuoXd81ifFdEujDltmQBjiXhomXhtSlijW4TLf6hEsYNyz0hQQG
-	3TW5pATN0VCGCXZqzqjQSbWh7s277MkFj9DQm7MHp6DK8aPcMAJdRhYUmUZWIx8Q
-	5SFUxbwm+6U+DHVOKPF1giAQyTYKjOewHw83EYldXfIvvxmnVM2F/vmmvVCSeRbZ
-	mpi0/Tm8whj8uMjHoRwhJkOCIB+FakNorcXlaJ3LQBou+4JpnOU97jnS6qX8tJSv
-	3kGiwxPqIJAesL3KdsPrZQzcPMa1STFyup6POTEX7SFD96uqEawXPWlTX67nWcQB
-	3zcWc21NCvybTcRfj4JmWBWNi4cPWD0=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Thu, 30 Jul 2026 17:44:10 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id A9DAD602E8;
-	Thu, 30 Jul 2026 17:44:11 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66UEi4gR065900;
-	Thu, 30 Jul 2026 17:44:04 +0300
-Date: Thu, 30 Jul 2026 17:44:04 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Zhiling Zou <zhilinz@nebusec.ai>
-cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, horms@verge.net.au, pablo@netfilter.org,
-        fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, jwiesner@suse.de, vega@nebusec.ai
-Subject: Re: [PATCH nf v3 1/1] ipvs: stop estimator after disabled calc
- phase
-In-Reply-To: <154d1474f8c36c34d9b86c7ca1b33d73f5435241.1785289432.git.zhilinz@nebusec.ai>
-Message-ID: <37114c4f-3441-41ab-6a13-bfadfb80eda3@ssi.bg>
-References: <154d1474f8c36c34d9b86c7ca1b33d73f5435241.1785289432.git.zhilinz@nebusec.ai>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uc3yfqU+"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 071E7601BE;
+	Thu, 30 Jul 2026 17:03:08 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1785423789;
+	bh=hYI0mnb0EmKdODjqWgKTus0ZngxXloM/kdqpE0X/9nk=;
+	h=From:To:Cc:Subject:Date:From;
+	b=uc3yfqU+4w1PTH5VXJOMN8XLDMUT+d6HBl31aqk2J6WjFnTp8u1Pi55LQNKn2acup
+	 aWq0Dg2n9/XwekgPdz8T6U1eaLLMfCZt8G7MRPo5hlfZjYVuq6zWjlnQrzrU7bF9Gw
+	 RZJoNoB8DGjHMSjGHkOIfgDoQlWLp3GyvCU2Pl0orlMHVuG7TM5QG4eRGozLE0I2FC
+	 6OOfNTa7yZMXzGKpB0ZYpk9mQ1DlLoUN/Exo/hQtxCNl14WrLip+Y1q3UUpW7YaX+6
+	 ihQVKXHb2sBpVBkgP3+HYricVhpsC7npI+i4lPIeZY5/7Fag1CmAAAQEvDtZUn24/Y
+	 U+u2gN/q1o9mg==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: iostreampy@proton.me
+Subject: [PATCH nf,v2] netfilter: nft_ct: move custom expectation support to helper
+Date: Thu, 30 Jul 2026 17:03:05 +0200
+Message-ID: <20260730150305.617144-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Originally, the ct expectation support called nf_ct_helper_ext_add() for
+confirmed conntracks, which is invalid, triggering a splat. This was
+fixed by commit 1710eb913bdc ("netfilter: nft_ct: skip expectations for
+confirmed conntrack") which restricted it to confirmed conntracks.
 
-	Hello,
+This is still not sufficient though. Early insertion of expectations
+into the expectations list, which resides in the ct helper extension
+area might lead to stale entries pointing to the wrong hlist_head
+through .pprev due to ct extension reallocation.
 
-On Wed, 29 Jul 2026, Zhiling Zou wrote:
+Commit 7c9664351980 ("netfilter: move nat hlist_head to nf_conn") moved
+the nat hlist_head to nf_conn for this reason:
 
-> IPVS estimator kthread 0 starts with zeroed chain and tick limits until
-> its initial calculation phase completes. If network namespace teardown
-> clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
-> without installing positive limits.
-> 
-> The kthread can then continue into its main loop and drain
-> est_temp_list with zero chain_max, tick_max and est_max_count values.
-> Each enqueue consumes one available tick row, but est_count never
-> reaches the zero est_max_count value. After all rows are consumed, the
-> row lookup returns IPVS_EST_NTICKS and ip_vs_enqueue_estimator() writes
-> past the ticks and tick_len arrays.
-> 
-> Exit kthread 0 after the calculation phase if the kthread is stopping or
-> IPVS has been disabled. That keeps temporary estimators from being
-> drained after the limits failed to initialize.
-> 
-> Estimator kthreads can now self-exit before teardown or reload stops
-> kd->task. Keep an extra task reference after creation and release it
-> with kthread_stop_put(), so kd->task remains valid until the stop paths
-> consume that reference.
-> 
-> Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
-> Cc: stable@vger.kernel.org
-> Reported-by: Vega <vega@nebusec.ai>
-> Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+     1. ...
+     2. When reallocation of extension area occurs we need to fixup the
+        bysource hash head via hlist_replace_rcu.
 
-	Looks good to me, thanks!
+However, I'd rather not increase the size of the struct nf_conn for this
+feature, it only supports for creating expectations in the other
+direction and it was broken with DNAT too.
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+To address this issue, add an internal ct helper and attach it to the
+conntrack entry to streamline the custom ct expectation support with
+existing ct helpers.
 
-> ---
-> changes in v3:
-> - Keep an extra task_struct reference for estimator kthreads and
->   release it with kthread_stop_put(), as suggested by Julian
->   Anastasov, so self-exiting kthreads do not leave kd->task dangling.
-> - v2 Link: https://lore.kernel.org/all/03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz@nebusec.ai
-> 
-> changes in v2:
-> - Exit the estimator kthread after the calculation phase if IPVS
->   has been disabled or the kthread is stopping, as suggested by
->   Julian Anastasov.
-> - Drop the later enqueue and drain guards from v1.
-> - v1 Link: https://lore.kernel.org/all/6359e0031f0ee7cc969bae3483308de362d3c709.1784878022.git.zhilinz@nebusec.ai
-> 
->  net/netfilter/ipvs/ip_vs_est.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-> index ab09f51829512..05a216a47b45e 100644
-> --- a/net/netfilter/ipvs/ip_vs_est.c
-> +++ b/net/netfilter/ipvs/ip_vs_est.c
-> @@ -191,8 +191,11 @@ static int ip_vs_estimation_kthread(void *data)
->  		}
->  
->  		/* kthread 0 will handle the calc phase */
-> -		if (ipvs->est_calc_phase)
-> +		if (ipvs->est_calc_phase) {
->  			ip_vs_est_calc_phase(ipvs);
-> +			if (kthread_should_stop() || !READ_ONCE(ipvs->enable))
-> +				return 0;
-> +		}
->  	}
->  
->  	while (1) {
-> @@ -270,6 +273,7 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
->  		kd->task = NULL;
->  		goto out;
->  	}
-> +	get_task_struct(kd->task);
->  
->  	set_user_nice(kd->task, sysctl_est_nice(ipvs));
->  	if (sysctl_est_preferred_cpulist(ipvs))
-> @@ -286,7 +290,7 @@ void ip_vs_est_kthread_stop(struct ip_vs_est_kt_data *kd)
->  {
->  	if (kd->task) {
->  		pr_info("stopping estimator thread %d...\n", kd->id);
-> -		kthread_stop(kd->task);
-> +		kthread_stop_put(kd->task);
->  		kd->task = NULL;
->  	}
->  }
-> @@ -526,7 +530,7 @@ static void ip_vs_est_kthread_destroy(struct ip_vs_est_kt_data *kd)
->  	if (kd) {
->  		if (kd->task) {
->  			pr_info("stop unused estimator thread %d...\n", kd->id);
-> -			kthread_stop(kd->task);
-> +			kthread_stop_put(kd->task);
->  		}
->  		ip_vs_stats_free(kd->calc_stats);
->  		kfree(kd);
-> -- 
-> 2.43.0
+Expose a new nf_conntrack_helper_free() function to safely release the
+internal helper that is allocated and attached to the conntrack entry to
+create the custom expectations.
 
-Regards
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
+Reported-by: Jaeyeong Lee <iostreampy@proton.me>
+Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - fix incorrect verdict on ct_expect_help()
+    - restrict expectation creation to original direction
+    - undo .num_expects atomic counter if expectation creation fails
 
---
-Julian Anastasov <ja@ssi.bg>
+ include/net/netfilter/nf_conntrack_helper.h |   2 +
+ net/netfilter/nf_conntrack_helper.c         |  18 ++-
+ net/netfilter/nft_ct.c                      | 127 +++++++++++++++-----
+ 3 files changed, 114 insertions(+), 33 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index c761cd8158b2..4420846e41f2 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -114,6 +114,8 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int,
+ void nf_conntrack_helpers_unregister(struct nf_conntrack_helper **,
+ 				     unsigned int);
+ 
++void nf_conntrack_helper_free(struct nf_conntrack_helper *me);
++
+ #define nf_conntrack_helper_deprecated(name) \
+ 	pr_warn("The %s conntrack helper is scheduled for removal.\n"	\
+ 		"Please contact the netfilter-devel mailing list if you still need this.\n", name)
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 500509b17663..1197e8793494 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -456,13 +456,8 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
+ 	return this == me;
+ }
+ 
+-void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
++void nf_conntrack_helper_free(struct nf_conntrack_helper *me)
+ {
+-	mutex_lock(&nf_ct_helper_mutex);
+-	hlist_del_rcu(&me->hnode);
+-	nf_ct_helper_count--;
+-	mutex_unlock(&nf_ct_helper_mutex);
+-
+ 	/* This helper is going away, disable it. */
+ 	rcu_assign_pointer(me->help, NULL);
+ 
+@@ -476,6 +471,17 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	if (refcount_dec_and_test(&me->ct_refcnt))
+ 		kfree_rcu(me, rcu);
+ }
++EXPORT_SYMBOL_GPL(nf_conntrack_helper_free);
++
++void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
++{
++	mutex_lock(&nf_ct_helper_mutex);
++	hlist_del_rcu(&me->hnode);
++	nf_ct_helper_count--;
++	mutex_unlock(&nf_ct_helper_mutex);
++
++	nf_conntrack_helper_free(me);
++}
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ 
+ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 03a88c77e0f0..30c9358dbf48 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1213,6 +1213,8 @@ struct nft_ct_expect_obj {
+ 	u8		l4proto;
+ 	u8		size;
+ 	u32		timeout;
++
++	struct nf_conntrack_helper *helper;
+ };
+ 
+ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
+@@ -1226,6 +1228,73 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
+ 	return 0;
+ }
+ 
++struct nft_ct_expect_data {
++	struct nft_ct_expect_obj	obj;
++	enum ip_conntrack_dir		dir;
++	atomic_t			num_expects;
++};
++
++static int ct_expect_help(struct sk_buff *skb, unsigned int protoff,
++			  struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++{
++	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	struct nft_ct_expect_data *expect_data;
++	struct nf_conntrack_expect *exp;
++	int ret = NF_ACCEPT;
++
++	expect_data = nfct_help_data(ct);
++	if (!expect_data)
++		return NF_ACCEPT;
++
++	if (expect_data->dir != dir)
++		return NF_ACCEPT;
++
++	if (!atomic_add_unless(&expect_data->num_expects, 1, expect_data->obj.size))
++		return NF_ACCEPT;
++
++	exp = nf_ct_expect_alloc(ct);
++	if (!exp) {
++		atomic_dec(&expect_data->num_expects);
++		return NF_DROP;
++	}
++
++	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
++			  &ct->tuplehash[!dir].tuple.src.u3,
++			  &ct->tuplehash[!dir].tuple.dst.u3,
++			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
++	exp->timeout += expect_data->obj.timeout;
++
++	if (nf_ct_expect_related(exp, 0) != 0) {
++		atomic_dec(&expect_data->num_expects);
++		ret = NF_DROP;
++	}
++
++	nf_ct_expect_put(exp);
++
++	return ret;
++}
++
++static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
++{
++	struct nf_conntrack_helper *ct_expect_helper;
++
++	ct_expect_helper = kzalloc_obj(struct nf_conntrack_helper);
++	if (!ct_expect_helper)
++		return -ENOMEM;
++
++	snprintf(ct_expect_helper->name, sizeof(ct_expect_helper->name), "%s",
++		 "nft_ct_expect");
++	ct_expect_helper->me = THIS_MODULE;
++	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
++	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
++	refcount_set(&ct_expect_helper->ct_refcnt, 1);
++
++	/* No need to register this helper, this is internal. */
++	priv->helper = ct_expect_helper;
++
++	return 0;
++}
++
+ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 				  const struct nlattr * const tb[],
+ 				  struct nft_object *obj)
+@@ -1233,6 +1302,8 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
+ 	int err;
+ 
++	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nft_ct_expect_data));
++
+ 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
+ 	    !tb[NFTA_CT_EXPECT_DPORT] ||
+ 	    !tb[NFTA_CT_EXPECT_TIMEOUT] ||
+@@ -1273,13 +1344,26 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
+ 	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
+ 
+-	return nf_ct_netns_get(ctx->net, ctx->family);
++	err = nf_ct_netns_get(ctx->net, ctx->family);
++	if (err < 0)
++		return err;
++
++	err = nft_ct_expect_helper_alloc(priv);
++	if (err < 0) {
++		nf_ct_netns_put(ctx->net, ctx->family);
++		return err;
++	}
++
++	return err;
+ }
+ 
+ static void nft_ct_expect_obj_destroy(const struct nft_ctx *ctx,
+-				       struct nft_object *obj)
++				      struct nft_object *obj)
+ {
++	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
++
+ 	nf_ct_netns_put(ctx->net, ctx->family);
++	nf_conntrack_helper_free(priv->helper);
+ }
+ 
+ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
+@@ -1302,50 +1386,39 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
+ 				   const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
+-	struct nf_conntrack_expect *exp;
++	struct nft_ct_expect_data *expect_data;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn_help *help;
+-	enum ip_conntrack_dir dir;
+-	u16 l3num = priv->l3num;
+ 	struct nf_conn *ct;
+ 
+ 	ct = nf_ct_get(pkt->skb, &ctinfo);
+-	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct)) {
++	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct)) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+-	dir = CTINFO2DIR(ctinfo);
+ 
+ 	help = nfct_help(ct);
+-	if (!help)
+-		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+-	if (!help) {
+-		regs->verdict.code = NF_DROP;
+-		return;
+-	}
+-
+-	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
++	if (help) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+-	if (l3num == NFPROTO_INET)
+-		l3num = nf_ct_l3num(ct);
+ 
+-	exp = nf_ct_expect_alloc(ct);
+-	if (exp == NULL) {
++	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++	if (!help) {
+ 		regs->verdict.code = NF_DROP;
+ 		return;
+ 	}
+-	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num,
+-		          &ct->tuplehash[!dir].tuple.src.u3,
+-		          &ct->tuplehash[!dir].tuple.dst.u3,
+-		          priv->l4proto, NULL, &priv->dport);
+-	exp->timeout += priv->timeout;
+ 
+-	if (nf_ct_expect_related(exp, 0) != 0)
+-		regs->verdict.code = NF_DROP;
++	expect_data = nfct_help_data(ct);
++	if (!expect_data) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++	expect_data->obj = *priv;
++	expect_data->dir = CTINFO2DIR(ctinfo);
+ 
+-	nf_ct_expect_put(exp);
++	if (help && refcount_inc_not_zero(&priv->helper->ct_refcnt))
++		rcu_assign_pointer(help->helper, priv->helper);
+ }
+ 
+ static const struct nla_policy nft_ct_expect_policy[NFTA_CT_EXPECT_MAX + 1] = {
+-- 
+2.47.3
 
