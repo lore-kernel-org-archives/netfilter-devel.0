@@ -1,47 +1,40 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C51F53F54C5
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 09:19:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED3F3D3CEE
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 09:48:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785403149; cv=none; b=qZv+ydSBwT0s3TE5ZnmRXSSTsG73FSPLNxMk8cDx2g/vRtMvs/aZVywB5wlWtyS6OWdm59/TXCnR/7jZZntKMWv4MaOiwZJvl84cPQPNsMdRVWeYjKY0ePHJgekPu9sds7NJ86qeGcbZ9gY8TEIfNbJWQFF465qnPIZJbQWfibs=
+	t=1785404913; cv=none; b=ePQA4koEryJhVIzzRT9tkBkt1GHXYHmCG4S/xJ23Lq5wWBZ2EdX8hzyPI74M2j5AIiGDaCEoxC8E/kHXwF4cYW831O8muCkQli/gBlEfa0K9Cv7C44XTnoi8MsmwYQW+R6SwrllzawGhtdJEhWl26ybDV5o9Ryesg+vlwFUGWJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785403149; c=relaxed/simple;
-	bh=Tl02vchXIgWBbP/Gw6GTA6UvT0+m1BVvdteqrzZnxE8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HgdXwdtITxp9e+AdiMR7I2zQ9gAut8qikQntnybGI2nv5F9//4qzUppl+PoXfZUDkb0iXZUByoQPtVZk5fsIBsQHECpwhYTLP28TRC/7j0VvuzOmefmwhhA1tmc/kHZgJ3N+WT+Uqt3I36LZqd9TQQSj8SdWWOjazu++gat5B5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=gAnAltFw; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1785404913; c=relaxed/simple;
+	bh=DKHluWwyeMfvr6/2Po2N1P493x2aBPftgCdzSIff58g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dE2zDTmWlqgv8UCZ9tDzq2fOianHLPKO8mh5NRUjG7izeC1nmViXI9ggR6MAHGGYCCQQLUP7rETlBhr91KU+M2BBer7b4bfeS4TeiIHQvaIx2+8qQyocuSbRgMS+crLtFIy7OoFkCExHtMJvV6UE+JwL3mAmbBrXzQeEkQpUdBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KK3PmgpF; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="gAnAltFw"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=3Qj44x4EXKpidqCV/7i8pdclVSL4AZ7WS0Po8lDOGlo=; b=gAnAltFwxE8uJDBVt3i29VvscD
-	2zrjxEqJDKxxBat8/akxIEUWeMSXDkbk/FpfS0HoQODdkcgMpJC/8iMNpwBTD8kE4SEiUZKw6iOpx
-	lKrsYo/yHhD5hrIbEbzgNC12zWU/k7EvF+/AfR5+rUgZ1toTBSOlUiKM6N/2CjazXlOV18KT8OXVl
-	NQQAnjC5DZyvcFoBDniz4W4doMY+xlqMbN63oQkGqYI/3S6z9UvL+xU7yBuBjyIc767zcYBsCzcvx
-	yZpzPx/JgCdd3a8j3kNQCxZjzXnkd3+c4u2qEEt8BazZFaLdOcWqgtWfEUa2ML8NF2xkq1D9cXBGO
-	jtJ9prgw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wpMut-000000003sK-3ezX;
-	Thu, 30 Jul 2026 11:19:03 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: [conntrack-tools PATCH v2] conntrack.8: Document --stats counters
-Date: Thu, 30 Jul 2026 11:18:24 +0200
-Message-ID: <20260730091858.1982235-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KK3PmgpF"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9A00F60191;
+	Thu, 30 Jul 2026 11:48:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1785404908;
+	bh=XmUiPFnu9agOGaekMTaq2D/YHG5pqvvTeEzyLI53WK0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=KK3PmgpFfzQA6XS17Ve8WKiaE6bh3anS/8LJA6mIcuDpnGAK+AofONHX0+y/Qrjgu
+	 j/UZXbiafztVMrBd2hWuQP3xtuJOl/doj3XIfviJS+Ar6zfd8vsg2Ori84sUis/S1f
+	 I3KvHcT6RTFwedOdj67OojEqwy2U6Qad+G9YNQyj61vRxgPQ6QyKqJ0CTt8M6+5HcE
+	 PYJgSj7Z87e8XuW1SkGB1gbCq72Q7Y+OgJ2fr1JUOS14kPNyc50LmtzSu5EGwjnYSi
+	 m6d68NsP1HHS0HnlkDPjVtR2Cf8YQlELP6Wxf/XrW0lSkIfNRxdeeXtfy7sAM3y0SG
+	 k4dgEl5nBbGvA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: iostreampy@proton.me
+Subject: [PATCH nf] netfilter: nft_ct: postpone expectation creation to confirmed conntrack
+Date: Thu, 30 Jul 2026 11:48:21 +0200
+Message-ID: <20260730094822.481781-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,71 +43,123 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Provide a brief description of each counter's meaning based on
-code-analysis in kernel's nf_conntrack_core.c and feedback from
-netfilter-devel list.
+Originally, the ct expectation support called nf_ct_helper_ext_add() for
+confirmed conntracks, which is invalid, triggering a splat. This was
+fixed by commit 1710eb913bdc ("netfilter: nft_ct: skip expectations for
+confirmed conntrack").
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Update descriptions as per feedback from Florian
----
- conntrack.8 | 42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+This is still not sufficient though. Early insertion of expectations
+into the expectations list, which resides in the ct helper extension
+area might lead to stale entries pointing to the wrong hlist_head
+through .pprev due to ct extension reallocation.
 
-diff --git a/conntrack.8 b/conntrack.8
-index 2bfd80e5d6aa4..bc78c4823881c 100644
---- a/conntrack.8
-+++ b/conntrack.8
-@@ -108,7 +108,47 @@ Flush the whole given table
- Show the table counter.
- .TP
- .BI "-S, --stats "
--Show the in-kernel connection tracking system statistics.
-+Show the in-kernel connection tracking system statistics. The returned values
-+for each CPU are:
-+.RS
-+.TP
-+.B found
-+Number of times a tuple was already found and had to be adjusted  when setting
-+up a new NAT mapping.
-+.TP
-+.B invalid
-+Number of invalid (e.g., malformed or non-IP) packets encountered.
-+.TP
-+.B insert
-+Number of conntrack entries manually inserted (via netlink or eBPF).
-+.TP
-+.B insert_failed
-+Number of new connections dropped because of unresolvable clashes with existing
-+entries.
-+.TP
-+.B drop
-+Number of packets dropped due to memory pressure.
-+.TP
-+.B early_drop
-+Number of connections dropped in an attempt to recover from a full conntrack
-+table.
-+.TP
-+.B error
-+Number of invalid ICMP/ICMPv6 packets received.
-+.TP
-+.B search_restart
-+Number of table lookups which had to be restarted. In rare cases a lookup may
-+encounter an already deleted entry which causes a search restart.
-+.TP
-+.B clash_resolve
-+Number of entry insert clashes resolved. These happen frequently with DNS
-+traffic and thus not neccessarily indicate a problem.
-+.TP
-+.B chaintoolong
-+Number of oversized hash bucket encounters upon inserting a new conntrack
-+entry. This is a fatal problem for conntrack and it will drop the packet as a
-+consequence.
-+.RE
- .TP
- .BI "-R, --load-file "
- Load entries from a given file. To read from stdin, "\-" should be specified.
+Commit 7c9664351980 ("netfilter: move nat hlist_head to nf_conn") moved
+the nat hlist_head to nf_conn for this reason:
+
+     1. ...
+     2. When reallocation of extension area occurs we need to fixup the
+        bysource hash head via hlist_replace_rcu.
+
+However, I'd rather not to increase the size of the struct nf_conn for
+this feature, which only supports for creating expectations in the reply
+direction. Note that ct expectation is also broken with NAT, where the
+ct needs to be confirmed to access dnat mappings.
+
+To address this issue, add the ct helper extension on the first packet
+matching this rule. Then, follow up packets will find the conntrack
+already in confirmed state with stable expectations list in the a ct
+helper extension area that can be used for creating the custom
+expectation.
+
+This patch adds a new flag to annotate that the expectation for this
+rule has been already created once for this connection.
+
+Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
+Reported-by: Jaeyeong Lee <iostreampy@proton.me>
+Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_ct.c | 34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 03a88c77e0f0..8fbc49feb8ae 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1226,6 +1226,10 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
+ 	return 0;
+ }
+ 
++struct nft_ct_expect_data {
++	unsigned long	flags;
++};
++
+ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 				  const struct nlattr * const tb[],
+ 				  struct nft_object *obj)
+@@ -1233,6 +1237,8 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
+ 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
+ 	int err;
+ 
++	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nft_ct_expect_data));
++
+ 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
+ 	    !tb[NFTA_CT_EXPECT_DPORT] ||
+ 	    !tb[NFTA_CT_EXPECT_TIMEOUT] ||
+@@ -1297,11 +1303,14 @@ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++#define NFT_CT_EXPECT_DONE_BIT	0
++
+ static void nft_ct_expect_obj_eval(struct nft_object *obj,
+ 				   struct nft_regs *regs,
+ 				   const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
++	struct nft_ct_expect_data *expect_data;
+ 	struct nf_conntrack_expect *exp;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn_help *help;
+@@ -1310,17 +1319,34 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
+ 	struct nf_conn *ct;
+ 
+ 	ct = nf_ct_get(pkt->skb, &ctinfo);
+-	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct)) {
++	if (!ct || nf_ct_is_template(ct)) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+ 	dir = CTINFO2DIR(ctinfo);
+ 
+ 	help = nfct_help(ct);
+-	if (!help)
+-		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 	if (!help) {
+-		regs->verdict.code = NF_DROP;
++		if (!nf_ct_is_confirmed(ct))
++			nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++
++	if (rcu_access_pointer(help->helper)) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++
++	expect_data = nfct_help_data(ct);
++	if (!expect_data) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++
++	if (test_and_set_bit(NFT_CT_EXPECT_DONE_BIT, &expect_data->flags)) {
++		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+ 
 -- 
-2.54.0
+2.47.3
 
