@@ -1,135 +1,168 @@
-Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8963B435518;
-	Thu, 30 Jul 2026 14:09:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.144
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4119943B3F8;
+	Thu, 30 Jul 2026 14:44:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785420563; cv=none; b=rOwLp1rHo7zn9KY96nlFM+K+i09OrjIjOGBdouCuwM1Tbgwf+PH+xYUXgkmLj4TuJHsoPYzZGvUFoYHXdu59SHRBHZf6o9trc5PNvAGohcpPQ0j2iyxh9JYFk7uc8u2d8Xq2TJ9lCz4s+fsaCFU56wmOm5Gk0B7aDStTqh1vf6s=
+	t=1785422667; cv=none; b=T5BZBHQgEisD/ZjNI9+x21d4oRHECRWkq60p8HJ3LrfzebTNGHZ/tWPHfTe+Owk697iA1JZwPaN3K1aoDfjeM/STJSw35hHHMfePa7vY7rBK0JLSpvr4xlTDyMjZU3PPV7Z64o/D/Yguux8bIRZV3f/w4V+DRHndwEqfQ6FMYto=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785420563; c=relaxed/simple;
-	bh=cLLb8BQB8reOxL4gX8bY1a1SDpjSvWdnF4MX2pM8Di8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=npKvS565n9KWI4jkk9ac7WFOjrUtqQ44anAsrJ8T3dcPNAM9aVnsNH9vdc34PtWzQPJMDhPGT5OA+qGC/uHdgNVhQgNEyyWvk1elq76dJVMAAlkfcpi/s3pi04R7xlVx0UwdQP1adMPczwnzz1ZZLd6Uv6GyJNN0bzVtbVal9cI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com; spf=pass smtp.mailfrom=kroah.com; dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b=igutYt82; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hByCu7Iu; arc=none smtp.client-ip=202.12.124.144
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kroah.com
+	s=arc-20240116; t=1785422667; c=relaxed/simple;
+	bh=W+/aSC2R5cXk5kZ6lsCYIa4lo31PvrlkMjSR9YZsjMw=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=fP/gWznPQvzs1wzliY2Jnlc91GGZxjJm0wBNK4iEQCLptvs+w8yiUBRGj4zpKOPNUzB6DYFVVPEwwGTTgY4cflW9mr/vY8OOilOogVpyY3HFCBbANpWlfJ31TbudEa6L8ogBfoyJ8Nl1ClO484Tfo0QoBPvZbTB1BJkc3JnPJuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=mjnqzjnj; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="igutYt82";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hByCu7Iu"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfout.stl.internal (Postfix) with ESMTP id 6835E1D0002E;
-	Thu, 30 Jul 2026 10:09:20 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-05.internal (MEProxy); Thu, 30 Jul 2026 10:09:20 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
-	:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm2; t=1785420560; x=1785506960; bh=8udFup9Noz
-	aduK7FJgWwdcD9QjYfOaTlmc3535sNv7o=; b=igutYt82RvwT+jgHLX+aNaI6N1
-	kSaHeQHY4TIOo217hvQWQwgqwIvsbX4rpe95c/MCWogbQm47AiAHUhiAMyouirkz
-	xfLikHzN8yD4pqlBpDcGoaZeFVKdkn6vRX0bwMi2inERan22z0EgoHOW+uJBO7z4
-	Pl0eRhFd5gOgAgreV2WlyTWiKkks8sCqoYB5AJTKUFW1DTzCBMoORAoAppUxJ4qF
-	qbLuPg5lv0fYi8YKcFEemY2+g+R2DaEW0mB1hwr5hPRS+z5B3nxGUENaNAQNFXUQ
-	ykQJzOukQzbqoNknPeChubac/3MD9/A/o9jDgDywLwqxYz57nRmH6bHmbQRw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-	1785420560; x=1785506960; bh=8udFup9NozaduK7FJgWwdcD9QjYfOaTlmc3
-	535sNv7o=; b=hByCu7IuYFNkeWazTiTbjZ/8CfKjFJC5fMUYErNhf5h12ZHALfM
-	LykY6jU2UyPVbMI3WZkOTtk7/NDrmBiQDOwj0necQAjthOPqixVZf/aHTW+4eIho
-	ZtHQVDU6IL1R2QcTHBblfG9SKRDSckucai64A95+VrJjf6BeC6znPi1QrgAQ+jSD
-	eoa8TPGEutLAkszOa9zb3QdKmZfEATB7/uF4H/+vl4s/CQW4iw9QijGs+BskWdgb
-	5jJJ37NAwd5sKeQAYIyxGFzSJ//fJSgxhv2A4VHnV9bfoNUwCPreyMDPSkANxR/v
-	yUFfpy0D/xYcZaJTVCWprzRz0gXn6GcheaQ==
-X-ME-Sender: <xms:EFtratnOxHGTD98v-ssXFwyFZx8SYxQnt73h0YfHxpqQm-7mZdXqzg>
-    <xme:EFtrarboYlOf8QFsTIE80ap90Kb7FtDdhS3jaaPapTHRCIP9DPtNxlu7ZCfv6SQ9v
-    VeZRaDmvew_KboWN1GiGI5OnjX8QrA_RlDwVEKITK2wzcsHwQ>
-X-ME-Received: <xmr:EFtranRuFkGH6mnp7v0vakJJoLqZawj0SNvNkmI4oVT8qCLKtKuGEZehkvG6RngD4tUEOy8qcKbey4YhuTqj13A1a8_jE1vZJOXIyjcvp9w>
-X-ME-Proxy-Cause: dmFkZTEgL6A9/pkDTpV7xv0CzIX9X6r4+w8Se7aiV4ziyuaXpMOvRVc6656AynEqeA8GLs
-    +Y36ti16t6J8SQzqUa8Eua8ZXlYXoSyF8Q7SYh2RrQq0N1hUPAscANf0BTlPsZeKFr53zk
-    eOSsDdpd6mDXJOMSwTGAOBkwZJSQP3hg8d7PHCtUA/b7olZ6ksx9B8qmxI68Xtlzq/H/Es
-    tOeumULX0lCebom5vyz1SBDPO1eG9n1ukYmkSJUNPFUxX2qJwCuk4D9VL+tEtaT2s0PUQA
-    kCGaPM3UVZ9RSHax8pxw8/EnYJQW1SgkrYFvZMF6tIpBv6DFVqc9mCHxGtBsUlEXZkvdf2
-    Ubv4kHs8Fd8iaRbWpLamBUoXBtNs87VbsMBMlQzajTkSI6gQXPSTKw4NhgfryJUW7KhMFZ
-    8GHVn8XrU2aMvXNiqEuRnvlnRuuJCw8j484SGyfRRuq4dH12ET6KJGq+A1MCyGVNgo6CxW
-    1vZ1b3A0mKkBnWWz2nznTFlCC3M5/EYLEV0r1yHp0oA4i2P9mZEoYsa3zQMNvDXrzwAl1j
-    0j7gZhFB3xsrEYEfeWWeA28xerUFq0p1sqs4XxEn9jGyd/8NGpHImoEIBxRRU30htLi7sn
-    dsvwSXOF6Xy5Ke7AKBGVD2I8jzt2x8+4no00foTUtDKpbZ8CepKkswnX91qA
-X-ME-Proxy: <xmx:EFtratv0RVblwDC95gswPIsq5mP_yVeeU4SECahkenQsQ0WnItjFUQ>
-    <xmx:EFtrahEzKrvFbUM3jqxsVAh_ssTbiouqV3gXPTPjY9eRw9qRXTBWoQ>
-    <xmx:EFtramy6Jn6KDC0oR4ew1PFRb4CURg0nctEd9KMqqhrbfZc1UVDLOg>
-    <xmx:EFtraj1kkc6epvhB_zNYpxvBNteec6T9oMPuYdT29KT_i9KU47eHIw>
-    <xmx:EFtrasjtRNasGz5CpqkfNYnldFDZ5m78ZJ6aAJOQkYj91Xa6RSPQnluL>
-Feedback-ID: i787e41f1:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 30 Jul 2026 10:09:19 -0400 (EDT)
-Date: Thu, 30 Jul 2026 16:09:06 +0200
-From: Greg KH <greg@kroah.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Ilya Maximets <i.maximets@ovn.org>, stable@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Subject: Re: Backport request: "netfilter: nf_conntrack_expect: restore
- helper propagation via expectation"
-Message-ID: <2026073054-certainty-reapply-a613@gregkh>
-References: <ee95f6ac-181e-4315-a2ae-e4d1388c5e69@ovn.org>
- <amqHu5H6xu02Izo8@chamomile>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="mjnqzjnj"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id B752A216C7;
+	Thu, 30 Jul 2026 17:44:10 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=MgmBiVqiJsGJ4+M4YUx3zL6CGfPnHRbPLAt31VVBsec=; b=mjnqzjnj5lbg
+	1VFh4C+4Y0a+LlkD9TlmQK+e9Y44vCscY9/D7Wru/mCGh/SyTnTBxZN6WwLNaIDR
+	5hGGPJ+mtHEkfWI0/A1b3a+3D0HNorenRv03RPNMRGkyKJ0urHqDsUK+/S/WdG4E
+	BdZzgu0tkeJwfo+P3HaF3UqzVPNgBpgqRjpPNXs3I4Upx4me60YS6QZQPfbx+a16
+	fFdP4nq9A4zx+/5ML0A9EqAIrphlYQ7Jwj5h5BUOJHCbFTcR+3xVFVtSw/HJ/90g
+	p1mfaLldurLw9pCffa3Kw6WlO+z69G9CO48UD1wBM0S2NKCuL+avvpMNpaBt9GNm
+	+1Nhid6YHaIZwWuoXd81ifFdEujDltmQBjiXhomXhtSlijW4TLf6hEsYNyz0hQQG
+	3TW5pATN0VCGCXZqzqjQSbWh7s277MkFj9DQm7MHp6DK8aPcMAJdRhYUmUZWIx8Q
+	5SFUxbwm+6U+DHVOKPF1giAQyTYKjOewHw83EYldXfIvvxmnVM2F/vmmvVCSeRbZ
+	mpi0/Tm8whj8uMjHoRwhJkOCIB+FakNorcXlaJ3LQBou+4JpnOU97jnS6qX8tJSv
+	3kGiwxPqIJAesL3KdsPrZQzcPMa1STFyup6POTEX7SFD96uqEawXPWlTX67nWcQB
+	3zcWc21NCvybTcRfj4JmWBWNi4cPWD0=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 30 Jul 2026 17:44:10 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id A9DAD602E8;
+	Thu, 30 Jul 2026 17:44:11 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 66UEi4gR065900;
+	Thu, 30 Jul 2026 17:44:04 +0300
+Date: Thu, 30 Jul 2026 17:44:04 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zhiling Zou <zhilinz@nebusec.ai>
+cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, horms@verge.net.au, pablo@netfilter.org,
+        fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, jwiesner@suse.de, vega@nebusec.ai
+Subject: Re: [PATCH nf v3 1/1] ipvs: stop estimator after disabled calc
+ phase
+In-Reply-To: <154d1474f8c36c34d9b86c7ca1b33d73f5435241.1785289432.git.zhilinz@nebusec.ai>
+Message-ID: <37114c4f-3441-41ab-6a13-bfadfb80eda3@ssi.bg>
+References: <154d1474f8c36c34d9b86c7ca1b33d73f5435241.1785289432.git.zhilinz@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <amqHu5H6xu02Izo8@chamomile>
+Content-Type: text/plain; charset=US-ASCII
 
-On Thu, Jul 30, 2026 at 01:07:39AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jul 29, 2026 at 11:38:17PM +0200, Ilya Maximets wrote:
-> > Hi.  The mentioned commit dcb0f9aefdd604d36710fda53c25bd7cf4a3e37a
-> > was backported to 7.0, but not further, while two commits it is fixing
-> > were backported down to 6.1.
-> > 
-> > Admittedly, the patch is not very important as far as functionality
-> > goes (at least for FTP), but the issue does change the user visible
-> > behavior and that makes all the FTP system tests in openvswitch
-> > project (in userspace) to fail.  This makes it harder to validate OVS
-> > on kernels below 7.0 and makes it unnecessarily harder to validate
-> > changes for the openvswitch kernel module on stable kernels.
-> > 
-> > So, it would be really nice to have the fix backported to the same
-> > branches where the commits it fixes were (6.1).
-> > 
-> > AFAICT, cherry-pick works without conflicts down to 6.6.  For 6.1
-> > there is a minor conflict, 6.1.y has the extra debug message:
-> > 
-> > diff --cc net/netfilter/nf_conntrack_core.c
-> > index f5c466ea1e7d,8ba5b22a1eef..000000000000
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@@ -1800,8 -1811,8 +1800,10 @@@ init_conntrack(struct net *net, struct 
-> >   		spin_lock_bh(&nf_conntrack_expect_lock);
-> >   		exp = nf_ct_find_expectation(net, zone, tuple, !tmpl || nf_ct_is_confirmed(tmpl));
-> >   		if (exp) {
-> > + 			struct nf_conntrack_helper *assign_helper;
-> > + 
-> >  +			pr_debug("expectation arrives ct=%p exp=%p\n",
-> >  +				 ct, exp);
-> >   			/* Welcome, Mr. Bond.  We've been expecting you... */
-> >   			__set_bit(IPS_EXPECTED_BIT, &ct->status);
-> >   			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
-> > ---
-> > 
-> > WDYT?
+
+	Hello,
+
+On Wed, 29 Jul 2026, Zhiling Zou wrote:
+
+> IPVS estimator kthread 0 starts with zeroed chain and tick limits until
+> its initial calculation phase completes. If network namespace teardown
+> clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
+> without installing positive limits.
 > 
-> I am fine with getting dcb0f9aefdd604d36710fda53c25bd7cf4a3e37a into
-> -stable release < 7.0 if that is what you mean.
+> The kthread can then continue into its main loop and drain
+> est_temp_list with zero chain_max, tick_max and est_max_count values.
+> Each enqueue consumes one available tick row, but est_count never
+> reaches the zero est_max_count value. After all rows are consumed, the
+> row lookup returns IPVS_EST_NTICKS and ip_vs_enqueue_estimator() writes
+> past the ticks and tick_len arrays.
 > 
+> Exit kthread 0 after the calculation phase if the kthread is stopping or
+> IPVS has been disabled. That keeps temporary estimators from being
+> drained after the limits failed to initialize.
+> 
+> Estimator kthreads can now self-exit before teardown or reload stops
+> kd->task. Keep an extra task reference after creation and release it
+> with kthread_stop_put(), so kd->task remains valid until the stop paths
+> consume that reference.
+> 
+> Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
+> Cc: stable@vger.kernel.org
+> Reported-by: Vega <vega@nebusec.ai>
+> Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
 
-Great, can someone send us properly backported/tested patches to apply?
+	Looks good to me, thanks!
 
-thanks,
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
-greg k-h
+> ---
+> changes in v3:
+> - Keep an extra task_struct reference for estimator kthreads and
+>   release it with kthread_stop_put(), as suggested by Julian
+>   Anastasov, so self-exiting kthreads do not leave kd->task dangling.
+> - v2 Link: https://lore.kernel.org/all/03a7ee4873f9dfc51add97df5b67bf0b0d793dbe.1785211268.git.zhilinz@nebusec.ai
+> 
+> changes in v2:
+> - Exit the estimator kthread after the calculation phase if IPVS
+>   has been disabled or the kthread is stopping, as suggested by
+>   Julian Anastasov.
+> - Drop the later enqueue and drain guards from v1.
+> - v1 Link: https://lore.kernel.org/all/6359e0031f0ee7cc969bae3483308de362d3c709.1784878022.git.zhilinz@nebusec.ai
+> 
+>  net/netfilter/ipvs/ip_vs_est.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+> index ab09f51829512..05a216a47b45e 100644
+> --- a/net/netfilter/ipvs/ip_vs_est.c
+> +++ b/net/netfilter/ipvs/ip_vs_est.c
+> @@ -191,8 +191,11 @@ static int ip_vs_estimation_kthread(void *data)
+>  		}
+>  
+>  		/* kthread 0 will handle the calc phase */
+> -		if (ipvs->est_calc_phase)
+> +		if (ipvs->est_calc_phase) {
+>  			ip_vs_est_calc_phase(ipvs);
+> +			if (kthread_should_stop() || !READ_ONCE(ipvs->enable))
+> +				return 0;
+> +		}
+>  	}
+>  
+>  	while (1) {
+> @@ -270,6 +273,7 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
+>  		kd->task = NULL;
+>  		goto out;
+>  	}
+> +	get_task_struct(kd->task);
+>  
+>  	set_user_nice(kd->task, sysctl_est_nice(ipvs));
+>  	if (sysctl_est_preferred_cpulist(ipvs))
+> @@ -286,7 +290,7 @@ void ip_vs_est_kthread_stop(struct ip_vs_est_kt_data *kd)
+>  {
+>  	if (kd->task) {
+>  		pr_info("stopping estimator thread %d...\n", kd->id);
+> -		kthread_stop(kd->task);
+> +		kthread_stop_put(kd->task);
+>  		kd->task = NULL;
+>  	}
+>  }
+> @@ -526,7 +530,7 @@ static void ip_vs_est_kthread_destroy(struct ip_vs_est_kt_data *kd)
+>  	if (kd) {
+>  		if (kd->task) {
+>  			pr_info("stop unused estimator thread %d...\n", kd->id);
+> -			kthread_stop(kd->task);
+> +			kthread_stop_put(kd->task);
+>  		}
+>  		ip_vs_stats_free(kd->calc_stats);
+>  		kfree(kd);
+> -- 
+> 2.43.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
