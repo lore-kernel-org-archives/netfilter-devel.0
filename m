@@ -1,133 +1,177 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 838573CF698
-	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 09:53:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 958B441684B
+	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 10:18:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785491608; cv=none; b=FJOJDdMEilQbv1tSzMFhSjie6AGLRTyZY9r/KS6LUv4b7f4lnV4RkVnUJi9P8eMVhtIqeLHsQ0Fw5XJG7cZ/5x9gtTIai3Yt/0EzfnQOtJPwXTdiqDMtSbj5aYDU9dyYGnxZAIR/Yf9+y3Wwns04uLlSQQfh2FJZc6njWvQksJ8=
+	t=1785493110; cv=none; b=HMkDDPmb6NdDSo8T2rJroXesCcoRHwS/nKWYlSuqJjZ4Dh5DLma+BxiYc8L4ojTDx3QTDbxxUnQ7f44hfRzc/MCy7BesDstZJQJOZ3II5TFtDSosc9u80/3yFiGCbBKCI4NocdATyPoZYaSXM/nlspXX1I/lvVQW50B03hkTINI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785491608; c=relaxed/simple;
-	bh=CrAMnh/7PE31+G6eSHUGKQxsjK5OaA9ieUg/6YwYsDI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=N8kFZQKeqY098loX/um90O+xQvguVp9FEzzO7s3ApTMkwn1OFl4EXjLE/9PTrQqhSYYkpuQUHzGmn3muw5P+RtnkogLBSjNcTDVJBD6BxG4pApdyMcIKCiqXa+U4swJNptvQQ2VOdv/ijY/5ng/jPlEfjcFps5Kwl93pN2lVbTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QNQ0Chjl; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785493110; c=relaxed/simple;
+	bh=hUBeNOv12FPk9ka05gjuQ4KkbWPIso8TFhtKwxbgEbE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=d1V+FspTgiyH3e3ktaC5NHgk775opaAY/hUKrzaYbc/JOzrjRVkGnXbXZlWNGC0Id0RC28jxSr2AIdx9yV2KFtBkais8j8js/oMqBNwIsIrsLi6TpcWmy/eM2W4I6IEhiJe9W3rvPDI0ZF+ZenaqnOY1OSp3Gt+4XBlI2NV5cJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JiF8b6pI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QNQ0Chjl"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 87D26601C0;
-	Fri, 31 Jul 2026 11:53:12 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JiF8b6pI"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 74D9D601BC;
+	Fri, 31 Jul 2026 12:18:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785491592;
-	bh=XL4Xed6JCg/DY5jmxoX8i4/5t77bdWqH2oCIYsLoMpQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=QNQ0ChjlWNPDLRjfc5QgkK78s1PeuGkkJue3Sv3PjBo7WSDmaVXBwLwKaDFpRJ71J
-	 62KlUUBM3bFLY3SRxFC/HCiH+phj5ygs82FBJrWQDIwV7aIP5PHmi3eJUS9pOOZXQg
-	 6GgmHXME+bTw0GpFuosuHQ87OkZ2WHsjAwkExfxQWZzYknSjgwu7JtfXRQXU1f+5N5
-	 hq6Xe0JMSuThGKIRw4Q+WF8jX3Olag/iGNhHDe2p23dCcTwixcMpeZMbotozS1+kpM
-	 DYb8POx1Da/mxl0YqUlv5sdQAqDWFUI5s3Kk2l2k9nOIfVgW7n58Q6fte+F4KAeH9b
-	 T8PV2+HsDgeWw==
+	s=2025; t=1785493094;
+	bh=2z7v0hEExWxIO2Y55UcXJmHqBgHu8d4K+J2y0HxcOR0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JiF8b6pIxq/lJY9fIR2siWWi9o5HZ0Hjdij0OJjQyb07H+ZacL0MgxKoXIb65ZTxM
+	 rMFTcrewPpJClsxp3nX51mjdk1jIYRaFEv0flWvWOj7ham3EFFJbKnq710h9XDtdpq
+	 TeHqcU0ix2pD1XPHCISEdaHABCbOXTEzN6BQNVxzI4jAbOaM7eImeL+A/SUUUEL37F
+	 cxWabNMZqVUuYNo2B3odasmrqP9X9hg3yg6+nnxYzUTY767/0qamEKbm7qL1mgRuSz
+	 oCfsvtLrv/B18LdMv+UKWqTJTCH0Yvg1dWzZvct+8NdbXA5+LUGrsAhhNn4aoQVFnm
+	 ROglxy/kf6UTA==
+Date: Fri, 31 Jul 2026 12:18:12 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf-next] netfilter: add DEBUG_NET_WARN_ON_ONCE to skb_set_nfct()
-Date: Fri, 31 Jul 2026 11:53:09 +0200
-Message-ID: <20260731095309.682239-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Florian Westphal <fw@strlen.de>
+Cc: Zihan Xi <zihanx@nebusec.ai>, netfilter-devel@vger.kernel.org,
+	phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	pabeni@redhat.com, horms@kernel.org, avagin@gmail.com,
+	vega@nebusec.ai
+Subject: Re: [PATCH nf v2 2/2] netfilter: nf_conntrack_tcp: defer
+ tcp_in_window invalid logging until after unlock
+Message-ID: <amx2ZGHC7vIUaK48@chamomile>
+References: <cover.1785348197.git.zihanx@nebusec.ai>
+ <27612fbff3730c5d63a0e3fb0f51aeeed77ed5d7.1785348197.git.zihanx@nebusec.ai>
+ <amuz5x-ib-Cuatcn@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <amuz5x-ib-Cuatcn@strlen.de>
 
-Trigger a warning if nf_ct_set() overlaps an existing ct object leading
-to refcount leak. Add this warning to skb_set_nfct() whose only user is
-nf_ct_set() instead.
+On Thu, Jul 30, 2026 at 10:28:23PM +0200, Florian Westphal wrote:
+> Zihan Xi <zihanx@nebusec.ai> wrote:
+> > tcp_in_window() can emit several invalid-packet logs while ct->lock is
+> > still held.  If invalid logging is routed to nfnetlink_log with
+> > conntrack export enabled, this can re-enter conntrack netlink glue and
+> > recurse into tcp_to_nlattr() on the same conntrack.
+> > 
+> > Fix this by storing only the minimal invalid-log context for the
+> > remaining tcp_in_window() cases and emitting the actual log after
+> > releasing ct->lock.  Rename the helper to reflect that it now records
+> > context instead of logging immediately, and add an explicit lockdep
+> > assertion plus comment to document that invalid TCP logs must not be
+> > emitted while ct->lock is held.
+> > 
+> > Fixes: d48668052b26 ("netfilter: fix nf_l4proto_log_invalid to log invalid packets")
+> > Cc: stable@vger.kernel.org
+> > Reported-by: Vega <vega@nebusec.ai>
+> > Assisted-by: Codex:gpt-5.4
+> > Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+> > ---
+> > changes in v2:
+> >   - Keep only the tcp_in_window() invalid logging cases in this patch.
+> >   - Rename the helper to reflect that it stores invalid-log context.
+> >   - Add a lockdep assertion and comment documenting that invalid logs must not be emitted under ct->lock.
+> >   - v1 Link: https://lore.kernel.org/all/cover.1785307980.git.zihanx@nebusec.ai/
+> > ---
+> >  net/netfilter/nf_conntrack_proto_tcp.c | 113 ++++++++++++++++++-------
+> >  1 file changed, 82 insertions(+), 31 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> > index ef31dcaffd19..e5875b7528fe 100644
+> > --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> > @@ -480,37 +480,87 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
+> >  	}
+> >  }
+> >  
+> > -__printf(6, 7)
+> > -static enum nf_ct_tcp_action nf_tcp_log_invalid(const struct sk_buff *skb,
+> > -						const struct nf_conn *ct,
+> > -						const struct nf_hook_state *state,
+> > -						const struct ip_ct_tcp_state *sender,
+> > -						enum nf_ct_tcp_action ret,
+> > -						const char *fmt, ...)
+> > +enum nf_tcp_invalid_log_type {
+> > +	NF_TCP_LOG_NONE,
+> > +	NF_TCP_LOG_OVERSHOT,
+> > +	NF_TCP_LOG_SEQ_OVER,
+> > +	NF_TCP_LOG_ACK_OVER,
+> > +	NF_TCP_LOG_SEQ_UNDER,
+> > +	NF_TCP_LOG_ACK_UNDER,
+> > +};
+> > +
+> > +struct nf_tcp_invalid_log {
+> > +	enum nf_tcp_invalid_log_type type;
+> > +	u32 value;
+> > +};
+> > +
+> > +static enum nf_ct_tcp_action
+> > +nf_tcp_store_invalid(const struct nf_conn *ct,
+> > +		     const struct ip_ct_tcp_state *sender,
+> > +		     struct nf_tcp_invalid_log *log,
+> > +		     enum nf_ct_tcp_action ret,
+> > +		     enum nf_tcp_invalid_log_type type,
+> > +		     u32 value)
+> >  {
+> >  	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
+> > -	struct va_format vaf;
+> > -	va_list args;
+> >  	bool be_liberal;
+> >  
+> >  	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
+> >  	if (be_liberal)
+> >  		return NFCT_TCP_ACCEPT;
+> >  
+> > -	va_start(args, fmt);
+> > -	vaf.fmt = fmt;
+> > -	vaf.va = &args;
+> > -	nf_ct_l4proto_log_invalid(skb, ct, state, "%pV", &vaf);
+> > -	va_end(args);
+> > -
+> > +	log->type = type;
+> > +	log->value = value;
+> >  	return ret;
+> >  }
+> >  
+> > +static void nf_tcp_log_invalid(const struct sk_buff *skb,
+> > +			       const struct nf_conn *ct,
+> > +			       const struct nf_hook_state *state,
+> > +			       const struct nf_tcp_invalid_log *log)
+> > +{
+> > +	/* nfnetlink_log may re-enter conntrack attribute dumping and try to
+> > +	 * take ct->lock again via tcp_to_nlattr(), so invalid TCP logs must
+> > +	 * only be emitted after dropping ct->lock.
+> > +	 */
+> > +	lockdep_assert_not_held(&ct->lock);
+> > +
+> > +	switch (log->type) {
+> > +	case NF_TCP_LOG_OVERSHOT:
+> > +		nf_ct_l4proto_log_invalid(skb, ct, state,
+> > +					  "%u bytes more than expected",
+> > +					  log->value);
+> 
+> Can you move the comment and the lockdep assert into
+> nf_ct_l4proto_log_invalid() so we can catch offenders outside
+> tcp as well?
+> 
+> SCTP seems to be buggy as well.
+> 
+> Other than that:
+> 
+> Reviewed-by: Florian Westphal <fw@strlen.de>
+> 
+> You can keep this tag in next iteration.
 
-Update existing nf_ct_set() callsites to use nf_reset_ct() first to
-clean up stale pointer to conntrack object which migh trigger false
-positive warnings.
+Please, also squash these two patches in one, they are basically the
+same logical fix plus include the SCTP fix.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/skbuff.h      | 1 +
- include/net/ip_vs.h         | 2 +-
- net/openvswitch/conntrack.c | 2 +-
- net/sched/act_ct.c          | 6 +++---
- 4 files changed, 6 insertions(+), 5 deletions(-)
+I would suggest you call this patch:
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 22eda1d54a0e..95184183180f 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -5004,6 +5004,7 @@ static inline unsigned long skb_get_nfct(const struct sk_buff *skb)
- static inline void skb_set_nfct(struct sk_buff *skb, unsigned long nfct)
- {
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	DEBUG_NET_WARN_ON_ONCE(skb->_nfct & NFCT_PTRMASK);
- 	skb->slow_gro |= !!nfct;
- 	skb->_nfct = nfct;
- #endif
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index e6ca930a3507..c8091482bc7b 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -2130,7 +2130,7 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 	if (ct) {
--		nf_conntrack_put(&ct->ct_general);
-+		nf_reset_ct(skb);
- 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 	}
- #endif
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 95697d4e16e6..08043f5bb781 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -603,7 +603,7 @@ static bool skb_nfct_cached(struct net *net,
- 		if (nf_ct_is_confirmed(ct))
- 			nf_ct_delete(ct, 0, 0);
- 
--		nf_ct_put(ct);
-+		nf_reset_ct(skb);
- 		nf_ct_set(skb, NULL, 0);
- 		return false;
- 	}
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index be535a261fa0..7395125f3cd8 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -782,7 +782,7 @@ static bool tcf_ct_skb_nfct_cached(struct net *net, struct sk_buff *skb,
- 	return true;
- 
- drop_ct:
--	nf_ct_put(ct);
-+	nf_reset_ct(skb);
- 	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 
- 	return false;
-@@ -996,7 +996,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
- 		qdisc_skb_cb(skb)->post_ct = false;
- 		ct = nf_ct_get(skb, &ctinfo);
- 		if (ct) {
--			nf_ct_put(ct);
-+			nf_reset_ct(skb);
- 			nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 		}
- 
-@@ -1034,7 +1034,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
- 
- 		/* Associate skb with specified zone. */
- 		if (tmpl) {
--			nf_conntrack_put(skb_nfct(skb));
-+			nf_reset_ct(skb);
- 			nf_conntrack_get(&tmpl->ct_general);
- 			nf_ct_set(skb, tmpl, IP_CT_NEW);
- 		}
--- 
-2.47.3
+  netfilter: nf_conntrack: defer invalid log until after unlock 
 
+Thanks.
