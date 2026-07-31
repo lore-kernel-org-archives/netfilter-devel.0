@@ -1,117 +1,79 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80CDB440A29;
-	Fri, 31 Jul 2026 15:34:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 146E1442B1D;
+	Fri, 31 Jul 2026 15:37:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785512068; cv=none; b=uVI2HBAOrjoEj4KsmeBwXps1oN4q/vSx3ZsP0A9GSBkzNJPcxncD5+ttaapbdZB4bOMEihV6VEve93lM5Q3Ap++yAoesr/xrc93vbgZjiJlzK050XD9/4f4lchc0ytEQsiawp+pT0tCld390HDHvZb44EvNb9wJ48UlSNEE32tE=
+	t=1785512233; cv=none; b=rZQ3aSmwKtIhe406ADMqp9puPwBIAY04iA/zrpX4bqpOMWDPEngG4H5LQOyHUbr0UJvYLcYCMgK7aQQlHG9WeRTEqtXC6vAWACb5EY2JO3bEwlmEdE6x4q1X+TMTX9Ko864GW/uFhKrQYhN3JJ1eneQ9mEyxszfzJcvWxuDmwLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785512068; c=relaxed/simple;
-	bh=JwPjhVTlf9BmQqtm06vIDRQhdT8cum9RlcRD/AQfkNw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hVBFFL5PkQVSb0Mu+gnuLiy4CtLMtog/AEDADjAJaA340FZFuAS1/3ZxZqYfSct8Ayu76W71D60IB2tsNT0cxvcFRePg1w9iJRr/0UNnqtNBwYyy+yzFTzg26/4hpxFMjeqAnROHRWWRMGokySdnNXoQkIZRp9Pv37vAOs9wK/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RpUbeQ4g; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785512233; c=relaxed/simple;
+	bh=0sBDKBsJe4Zi04fFTxmiDSJZIAhaXamUeVXLMj5Yq9k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gXrN74UqeD0bYFbztiwJAuIYXAYwpg1/0fApYNN+TCanbAUaAAMyWRisJ/T7L0l0G1qvgiyiQwPsptsa96Zh9Vk+sus6bjWTJ5DhJAHVXFz69/tCdAXsASYZCSpepUFhlXqS4A4RQgcU/kRg2/wOx/w0QnoXCozg/ptpjN9aCco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T1fIQY2c; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RpUbeQ4g"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E8788602B0;
-	Fri, 31 Jul 2026 17:34:23 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T1fIQY2c"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B6211601A8;
+	Fri, 31 Jul 2026 17:37:09 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785512064;
-	bh=JZCrM4g7FXNM8t4G1b65O16XG/BfXcnmH0+XDQndLrQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RpUbeQ4gmj+C1so4yNTrUlmRGuCtl/Lh39HrR8xa5CA/+5oVZnuun2D+QVPMzy41t
-	 dRxzBq6kj2i4Fk4nq6jTRlunOJL0jptYDJLhSNPeyBsNOBTImMGQ8i7vGgvv8Ar/pB
-	 1HNZ/p471LcGY+34Anc0zsYNarPrcQ0YM0D1RtQMGTmIwA//3J0/5VGnn5QVU4cXSx
-	 h+3hPi/5P48vs2JqMw8ofdtf5rcBxkRd9fHGgPYdaGTEs+oZwvuMwruKJF0fI4cb16
-	 LaC8mIw75diiXAAgaI2xdjxZIRb15Y8VMJr/DipTXmsrylr/B919GUY2kdUc4tScM7
-	 aGr3rYFWb6X0A==
+	s=2025; t=1785512229;
+	bh=Gtyue+FDmTCXzQ883/mbAImlHf7blfYdPuwqN+XQOm0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=T1fIQY2cO56VQhPcmVXQVtv8B2kPPyeMRrX+q441fNVvZsVw/eRzBs8iVOFk4rdDY
+	 B9Fah8GIM/O34GYKfOTfV3eHjrjDlVval9Ru0nZvHuA7YOZmN19ALQ+FgTN2HWJsX4
+	 xYze15jK8gi743JFdLYemNQGhfYfUmPR+sSLrkN03yuZ6xn7Imwubu3Iq+WSbkZqZQ
+	 FkCvmM7jvDfaiknhz3mAXYHEoYJS5EKZecYLHTAhBJBj3DPXw/LbKYHI7Xec74rISG
+	 lzJE/IPK0xDFRrRToaYO1/KTMuzv2GjSsxR/0kvDd5AZHmJehFRqRJ0o+DInJIBKeA
+	 h3E9RR5LEFVMg==
+Date: Fri, 31 Jul 2026 17:37:07 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net-next 9/9] netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
-Date: Fri, 31 Jul 2026 17:34:02 +0200
-Message-ID: <20260731153402.851224-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260731153402.851224-1-pablo@netfilter.org>
-References: <20260731153402.851224-1-pablo@netfilter.org>
+To: David Lee <david.lee@trailofbits.com>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, Kyle Zeng <kylebot@openai.com>,
+	Dominik 'Disconnect3d' Czarnota <dominik.czarnota@trailofbits.com>,
+	phil@nwl.cc, horms@kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nf_conntrack: prevent helper extension
+ relocation
+Message-ID: <amzBI6YKhMX3Ezib@chamomile>
+References: <20260731140811.566714-1-david.lee@trailofbits.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260731140811.566714-1-david.lee@trailofbits.com>
 
-From: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
+On Fri, Jul 31, 2026 at 02:08:10PM +0000, David Lee wrote:
+> struct nf_conn_help contains the head of the per-master expectation
+> list. hlist_add_head_rcu() makes the first expectation node point back to
+> that head, but nf_ct_ext_add() can later move the extension buffer with
+> krealloc(). This leaves the node backpointer aimed at freed memory, so
+> unlinking the expectation writes through a stale pointer.
+> 
+> Reserve the full u8-addressable extension space when adding the helper
+> extension and reuse the existing buffer once the helper is present. This
+> keeps the expectation list head stable while allowing later extensions
+> to be added.
+> 
+> Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
+> Bug found and triaged by OpenAI Security Research and 
+> validated by Trail of Bits.
 
-Commit be0502a3f2e9 ("netfilter: conntrack: tcp: only close if RST
-matches exact sequence") keeps an established conntrack entry in
-ESTABLISHED when an in-window RST does not match the expected sequence
-number exactly, so the endpoint can validate the RST with a challenge
-ACK.
+Thanks for your patch.
 
-The timeout selection nevertheless uses the CLOSE timeout for every RST
-packet.  The bug is that timeout selection is based on the packet type,
-not on the state transition result: even when RST validation keeps
-new_state in ESTABLISHED, the timeout is still forced to
-TCP_CONNTRACK_CLOSE.
+This is a duplicate of:
 
-Linux TCP independently rate limits challenge ACKs per socket.  A second
-non-exact RST can therefore arrive after the first challenge ACK has
-restored the timeout but before the rate limit expires.  The second RST
-lowers the timeout to 10 seconds again while the endpoint suppresses the
-second challenge ACK, allowing the conntrack entry to expire while both
-TCP endpoints remain established.
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260715144755.00ea7dfcd9f@proton.me/
 
-Using the ESTABLISHED timeout for such RSTs would avoid this short
-expiration window, but it could also retain stale entries for the
-five-day default because conntrack cannot reliably match the endpoint's
-exact TCP state.
+proposed fix tackles the problem from the ct expectation feature angle:
 
-Use the UNACK timeout for RST packets that leave the conntrack entry in
-TCP_CONNTRACK_ESTABLISHED.  Exact-match RSTs and accepted RST packet
-trains still fall through to timeouts[new_state], which preserves the
-CLOSE timeout when conntrack accepts the RST as closing the flow.
-
-This avoids the aggressive 10-second expiration window for non-exact
-RSTs while preserving the short timeout for RSTs that conntrack accepts
-as closing the flow.
-
-Suggested-by: Florian Westphal <fw@strlen.de>
-Reported-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
-Reported-by: Jianjun Chen <jianjun@tsinghua.edu.cn>
-Signed-off-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index ceeed3d7fe52..723e946a78f4 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1281,8 +1281,9 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
- 	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
- 		timeout = timeouts[TCP_CONNTRACK_RETRANS];
--	else if (unlikely(index == TCP_RST_SET))
--		timeout = timeouts[TCP_CONNTRACK_CLOSE];
-+	else if (unlikely(index == TCP_RST_SET &&
-+			  new_state == TCP_CONNTRACK_ESTABLISHED))
-+		timeout = timeouts[TCP_CONNTRACK_UNACK];
- 	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
- 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
- 		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
--- 
-2.47.3
-
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260730150305.617144-1-pablo@netfilter.org/
