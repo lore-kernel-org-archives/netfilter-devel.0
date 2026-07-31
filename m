@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B48526ED40;
-	Fri, 31 Jul 2026 15:18:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55CC343BDD4;
+	Fri, 31 Jul 2026 15:18:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785511103; cv=none; b=JeVaCJV22AP0/gfrjFF9I7EkQgtQB35e2O35nyvP6b6ReB1L5d2+5o2Ni07TUie6tjTp94LFQcS52zdwaV4/Pfo4wDrOW07jBOGYO5b9NRaV1PVFhqLcVhU8kqQSrJggPZzJa69o9VdhuSquMXc2ezYJEay3VdwePjpjDyAUcXo=
+	t=1785511106; cv=none; b=LCWKWMIwInQvzMF7CypekcF1lL+xAtsr77Mf2REmhz6Z5/zfp0Aobt8HTVieIhsmU9poOQAqdVhDqKqd35N8kxmH37+vsfC0IXV4PEmhDxgAmPOkGdr9R/ikC//UU8cu+cAlqJeLmTY9PobkYsUq/h5Rq8yWLq4ARp0Ui/LKHYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785511103; c=relaxed/simple;
-	bh=tpnb+MDmAA3d2zaaisJySj7y1rWETCeErWdCgxJYI2M=;
+	s=arc-20240116; t=1785511106; c=relaxed/simple;
+	bh=ZNJnYNqyvUerq+gVCFRq7uAAW/3x4veEbQrWne62cFI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mF/pQA9HHHHlSUXsS41e917VaWJRpgkqWeaV4BHPCC9Diri0QlkrSu43S+aAhjapiJbm33I041MxTR5GAwQ0f0eOKrh5o8SSd5Ueb0+GCiPinNtMwGvJvYLg/1z5LfplZUkOlPTn7DZscm6kJyCk+z1ZATtHkul1RDF9f0HFcZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YiAa15Bu; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=E0ZB2MQ8vCaAaLbZ0vIulDveVH/0ho+o52PEWguj78N8KzHdqZazBRP1lpdgzq0+vZQeGUjbPoLI5GRY7YPa8PP9tSSpFT6N9otPsBbzghgebyrRBI7IN1gr/Qv4j8ZGoG6UJVxqD/VvoQd5KDcSEb7THTaSpUnEDAxAzgrryio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FcGOX3ck; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YiAa15Bu"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FcGOX3ck"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C6DC96027A;
-	Fri, 31 Jul 2026 17:18:14 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1FD436028B;
+	Fri, 31 Jul 2026 17:18:20 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785511095;
-	bh=S/AqZ0Om7790o31yXwxNe8HYJ3Er6fWYTlj6PYGJfts=;
+	s=2025; t=1785511100;
+	bh=eJipNObVTmBrykg+VQzBtDlUT90s+n/z82mgMH9TE8Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YiAa15Bu0nXB0anhaZ0zcVVR8XmGyrqh/MUQuKALKGOZvifJWfueTtpsydVD2PFhM
-	 YX4LENZOwUUrnUZGmuLq3lIGGu6mTD7xQcqO46DAy+ly4RSRbzgUqOck0OaI1Jyg1j
-	 psLT5f6P3n+z4K3D5OnmcuyprkDWBjYItDbPPQ3I3nHdL+5rVmNG1MfJYlCA13YSOV
-	 B1xVh6RHzjleRFbiKUXGQgGAudcXecnrkq4rvpn3THXfjC4ay7a2fS5wYHeDIASdkf
-	 Un85eco/182zuki3IdfQgMAuCsl80sWnsFWihWuTQxO6560tIG+v68QSKwme+xMVwS
-	 9E0QBlM3twECQ==
+	b=FcGOX3ckiWHKSxkXuHXW6B2SnTFI04g6eKwhtvLlg2aeGB2I9cBusSvB8WbXe0ly6
+	 f+P4taHPJByiZkOAtoF0Ow0qfap4mY1fLGeXHD/pkzwoFg1BwrkJ/XmXCYUzGiNmVh
+	 YKg71DgLkhmcY9aZD5NgSobZHIgTYTA66y/pAfItA7EYKeTwcv6DJG/1UvZNNsNArC
+	 6J+A3YjCu2WBH9+UUDXh+fwQkW3AxwklqF3nzoKrKF7Sln9kJWj31O/0FT3wDyE6JV
+	 pXT6HhPVaVfwTxRZ1aCvmLTEMmIel5cbfOvYm8xp2mLt2PGRJwpgUOqsTCu7UjlOcc
+	 1D0jlz/A2TbtA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 02/10] netfilter: ebt_nflog: pin the NFLOG backend
-Date: Fri, 31 Jul 2026 17:17:58 +0200
-Message-ID: <20260731151806.849724-3-pablo@netfilter.org>
+Subject: [PATCH net 06/10] netfilter: ipset: add and use mtype_del_cidr_all helper
+Date: Fri, 31 Jul 2026 17:18:02 +0200
+Message-ID: <20260731151806.849724-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260731151806.849724-1-pablo@netfilter.org>
 References: <20260731151806.849724-1-pablo@netfilter.org>
@@ -52,101 +52,104 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-nf_log_unregister() runs after the per-net teardown so its final RCU
-grace period also drains readers that obtained the logger from a per-net
-binding.  However, ebt_nflog passes an explicit ULOG log type to
-nf_log_packet() without holding a reference on the selected logger module,
-unlike the xt_NFLOG and nft_log frontends.
+Reduces size of upcoming rhashtable conversion.
 
-An ebtables nflog rule can therefore remain callable while nfnetlink_log
-is unloaded.  The resulting interleaving is:
-
-  CPU 0                               CPU 1
-  nfnetlink_log_fini()
-    unregister_pernet_subsys()
-      kfree(nfnl_log_pernet(net))
-                                      ebt_nflog_tg()
-                                        nf_log_packet()
-                                          nfulnl_log_packet()
-                                            instance_lookup_get_rcu()
-
-The global ULOG logger is still registered at this point, so CPU 1
-dereferences the per-net state after CPU 0 has freed it.  KASAN reported:
-
-  BUG: KASAN: slab-use-after-free in instance_lookup_get_rcu
-  Read of size 8 at addr ff110001052e6210 by task poc/92
-  Call Trace:
-   instance_lookup_get_rcu+0x1ce/0x1f0 [nfnetlink_log]
-   nfulnl_log_packet+0x248/0x2fb0 [nfnetlink_log]
-   nf_log_packet+0x204/0x300
-   ebt_nflog_tg+0x351/0x550
-   ebt_do_table+0xedf/0x22b0
-  Allocated by task 90:
-   __kmalloc_noprof+0x186/0x470
-   ops_init+0x6d/0x420
-   register_pernet_operations+0x2f6/0x670
-   register_pernet_subsys+0x23/0x40
-  Freed by task 93:
-   kfree+0x131/0x3c0
-   ops_undo_list+0x3e3/0x700
-   unregister_pernet_operations+0x232/0x490
-   unregister_pernet_subsys+0x1c/0x30
-   nfnetlink_log_fini+0x34/0x450 [nfnetlink_log]
-
-Acquire the ULOG logger module reference when an ebt_nflog rule is
-validated and release it when the rule is destroyed.  Request the NFLOG
-backend for legacy callers when needed, matching xt_NFLOG.  This prevents
-module teardown until all ebt_nflog rules have stopped using the logger.
-
-Fixes: c83fa19603bd ("netfilter: nf_log: don't call synchronize_rcu in nf_log_unset")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Assisted-by: Claude:claude-sonnet-4-6
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebt_nflog.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 34 +++++++++++++--------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
-index 61bf8f4465ab..426f8adc912c 100644
---- a/net/bridge/netfilter/ebt_nflog.c
-+++ b/net/bridge/netfilter/ebt_nflog.c
-@@ -41,11 +41,25 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
- static int ebt_nflog_tg_check(const struct xt_tgchk_param *par)
- {
- 	struct ebt_nflog_info *info = par->targinfo;
-+	int ret;
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index ef586b486f51..f00c82acd7f0 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -195,6 +195,7 @@ static const union nf_inet_addr zeromask = {};
+ #undef mtype_ext_cleanup
+ #undef mtype_add_cidr
+ #undef mtype_del_cidr
++#undef mtype_del_cidr_all
+ #undef mtype_ahash_memsize
+ #undef mtype_flush
+ #undef mtype_destroy
+@@ -242,6 +243,7 @@ static const union nf_inet_addr zeromask = {};
+ #define mtype_ext_cleanup	IPSET_TOKEN(MTYPE, _ext_cleanup)
+ #define mtype_add_cidr		IPSET_TOKEN(MTYPE, _add_cidr)
+ #define mtype_del_cidr		IPSET_TOKEN(MTYPE, _del_cidr)
++#define mtype_del_cidr_all	IPSET_TOKEN(MTYPE, _del_cidr_all)
+ #define mtype_ahash_memsize	IPSET_TOKEN(MTYPE, _ahash_memsize)
+ #define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
+ #define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
+@@ -410,6 +412,17 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ }
+ #endif
  
- 	if (info->flags & ~EBT_NFLOG_MASK)
- 		return -EINVAL;
- 	info->prefix[EBT_NFLOG_PREFIX_SIZE - 1] = '\0';
--	return 0;
++static void
++mtype_del_cidr_all(struct ip_set *set, struct htype *h, const struct mtype_elem *data)
++{
++#ifdef IP_SET_HASH_WITH_NETS
++	int k;
 +
-+	ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
-+	if (ret != 0 && !par->nft_compat) {
-+		request_module("%s", "nfnetlink_log");
-+
-+		ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
-+	}
-+
-+	return ret;
++	for (k = 0; k < IPSET_NET_COUNT; k++)
++		mtype_del_cidr(set, h, DCIDR_GET(data->cidr, k), k);
++#endif
 +}
 +
-+static void ebt_nflog_tg_destroy(const struct xt_tgdtor_param *par)
-+{
-+	nf_logger_put(par->family, NF_LOG_TYPE_ULOG);
- }
+ /* Calculate the actual memory size of the set data */
+ static size_t
+ mtype_ahash_memsize(const struct htype *h, const struct htable *t)
+@@ -551,9 +564,6 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ 	struct mtype_elem *data;
+ 	u32 i, j, d;
+ 	size_t dsize = set->dsize;
+-#ifdef IP_SET_HASH_WITH_NETS
+-	u8 k;
+-#endif
+ 	u8 pos, htable_bits = t->htable_bits;
  
- static struct xt_target ebt_nflog_tg_reg __read_mostly = {
-@@ -54,6 +68,7 @@ static struct xt_target ebt_nflog_tg_reg __read_mostly = {
- 	.family     = NFPROTO_BRIDGE,
- 	.target     = ebt_nflog_tg,
- 	.checkentry = ebt_nflog_tg_check,
-+	.destroy    = ebt_nflog_tg_destroy,
- 	.targetsize = sizeof(struct ebt_nflog_info),
- 	.me         = THIS_MODULE,
- };
+ 	spin_lock_bh(&t->hregion[r].lock);
+@@ -574,11 +584,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ 			pr_debug("expired %u/%u\n", i, j);
+ 			clear_bit(j, n->used);
+ 			smp_mb__after_atomic();
+-#ifdef IP_SET_HASH_WITH_NETS
+-			for (k = 0; k < IPSET_NET_COUNT; k++)
+-				mtype_del_cidr(set, h,
+-					DCIDR_GET(data->cidr, k), k);
+-#endif
++			mtype_del_cidr_all(set, h, data);
+ 			t->hregion[r].elements--;
+ 			ip_set_ext_destroy(set, data);
+ 			d++;
+@@ -1004,11 +1010,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 			j = 0;
+ 		data = ahash_data(n, j, set->dsize);
+ 		if (!deleted) {
+-#ifdef IP_SET_HASH_WITH_NETS
+-			for (i = 0; i < IPSET_NET_COUNT; i++)
+-				mtype_del_cidr(set, h,
+-					DCIDR_GET(data->cidr, i), i);
+-#endif
++			mtype_del_cidr_all(set, h, data);
+ 			ip_set_ext_destroy(set, data);
+ 			t->hregion[r].elements--;
+ 		}
+@@ -1163,11 +1165,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		if (i + 1 == pos)
+ 			smp_store_release(&n->pos, --pos);
+ 		t->hregion[r].elements--;
+-#ifdef IP_SET_HASH_WITH_NETS
+-		for (j = 0; j < IPSET_NET_COUNT; j++)
+-			mtype_del_cidr(set, h,
+-				DCIDR_GET(d->cidr, j), j);
+-#endif
++		mtype_del_cidr_all(set, h, d);
+ 		ip_set_ext_destroy(set, data);
+ 
+ 		if (t->resizing && ext && ext->target) {
 -- 
 2.47.3
 
