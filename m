@@ -1,103 +1,60 @@
-Received: from zg8tmja2lje4os43os4xodqa.icoremail.net (zg8tmja2lje4os43os4xodqa.icoremail.net [206.189.79.184])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DD26840242B;
-	Fri, 31 Jul 2026 14:59:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=206.189.79.184
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83495402B8A;
+	Fri, 31 Jul 2026 15:02:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785509947; cv=none; b=hSRTWWiyXxsrg4BXHe8EqEJOFHickEoXRWVp/vd0VEDK5GcXIoajgzT3uQOGC9zaEr4TpN3X1AoQMpfdWLxFfvm9eRoU4iga4eKRgW2C7Tj1bXH+iuL5TF35xRuTpF5IgPJsB6X5vZj1otY0ERqGthklM2qccezWsLdgHs2tn98=
+	t=1785510155; cv=none; b=G8F2ysPgI5nZxsQE+Ikzbt3LTyyCYA0M6D2ASnEC7KNiMMs6u7Dw8Hg3kRjOyusam7NBK03GUsvYr17zXWRmw6027NgxClK4SbO+2bdM5l6UjYtcgKnhxJvhndAiMBJ0LqzCCpqBFqJwh1VqE9e6waG5l1lLzLvZcSStb8xPWMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785509947; c=relaxed/simple;
-	bh=wHUAmpND+DI3KmeIldKd2YsRDR99VNDRNYR7EzHamuY=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=QcfWl3VKrIPRtIH6L/NOgIPf7AhdGrCF7+YHDDzkF9pn/2KIZlrE5AUBH+RghlAy544ziJZd3I8N6WCMD9pwHBbe2Hj2Ugnqf9hJiuC0mAKhZ3qUlT3UIBoWIDxQG+DD8oqvY4+J76ufOIU+9KGRjJZngZSSGc6lGWKTmqVuz8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn; dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b=XA/UA8Zh; arc=none smtp.client-ip=206.189.79.184
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
+	s=arc-20240116; t=1785510155; c=relaxed/simple;
+	bh=iF1BhOtejeR085PE9sNu/M/STG1QLBKSdwVbzAl15B0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=UUSlKvzUFYk0YNv5130ANRsZ0JrmTKrLl2cv7S4niE5YPkCqjPKlIWdi6FrhVUjhkY1luKTDPZfKHY2rM0v7Wbpb9pehLHaRKmwbYPcPKm4Xjuujd/8eZh82De09CYLuY1bGx8cYBKvQowS/0qLVKa3lRJgTbxjUexiQVTxnnUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=buWwkqlu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.b="XA/UA8Zh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=mails.tsinghua.edu.cn; s=dkim; h=Received:Content-Type:
-	Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	Content-Transfer-Encoding:Message-Id:References:To; bh=wHUAmpND+
-	DI3KmeIldKd2YsRDR99VNDRNYR7EzHamuY=; b=XA/UA8ZhTbrGoX46bRTCaQnJU
-	pK2TZHHenRKblAHBd0sZOPl/yDGvHbR/4uD0e7zPC7vd9X8iuUEI63jx4lo4/Gfl
-	dDGXyoXDh45UUE6jSjxoU4O0nB4u1UJYdcLPrYBiPLf3fI6miGG4tg1aUY7Sh5NM
-	g+XbwryPmGm84NvMb4=
-Received: from smtpclient.apple (unknown [106.111.19.240])
-	by web1 (Coremail) with SMTP id yAQGZQB3F8cquGxq8yHfAA--.53903S2;
-	Fri, 31 Jul 2026 22:58:51 +0800 (CST)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="buWwkqlu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B096C1F00A3D;
+	Fri, 31 Jul 2026 15:02:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785510154;
+	bh=Ct/8b0OzeWA8cNS0UAQtJUc138sjf+Wn3O7cYJjYJMU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=buWwkqluo02urvxdtvAmPE4Y9fNBw7Gr8UX1RwA4PN/l34R5r7r3jlNXMtTKCLv2Q
+	 T4EN16nsqkGIFOn3qtFDbYXhBeq5V/l2f5+Sx3juQpKhLVoWuONoCZnfjlBDGGdLUc
+	 1qFjcq2MJ87ZGGxs3mTzgPpeXKKPfVYJsmXjBq/NfzWubPsG68K++2fNfgWEvlvbEn
+	 ZIFfWtQoiM1it2Wrcu71D2MVxrMSJus+FqkHFBlWYUaecL/keuRRCbFoWL9WS1Fcla
+	 Oau4x/oRHEU42g8iJ9vhpBZW+h6JwaSvfuAqA0DzcRdUFPIE1Dh+JwaxYP1XTb0WJs
+	 /Y+1pC2gW4Vdw==
+Date: Fri, 31 Jul 2026 08:02:33 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Zhiling Zou <zhilinz@nebusec.ai>
+Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
+ netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ razor@blackwall.org, idosch@nvidia.com, davem@davemloft.net,
+ edumazet@google.com, pabeni@redhat.com, horms@kernel.org, vega@nebusec.ai
+Subject: Re: [PATCH nf 1/1] netfilter: bridge: release template ct on non-IP
+ path
+Message-ID: <20260731080233.1956d41c@kernel.org>
+In-Reply-To: <3cf187b612fd78f8835fa9dad870326ce380f82f.1785479514.git.zhilinz@nebusec.ai>
+References: <cover.1785479514.git.zhilinz@nebusec.ai>
+	<3cf187b612fd78f8835fa9dad870326ce380f82f.1785479514.git.zhilinz@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.600.51.1.1\))
-Subject: Re: [PATCH nf] netfilter: conntrack: sctp: verify vtag before state
- changes
-From: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-In-Reply-To: <amx58O5Jb6B29XDJ@chamomile>
-Date: Fri, 31 Jul 2026 22:58:40 +0800
-Cc: netfilter-devel@vger.kernel.org,
- Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>,
- "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>,
- coreteam@netfilter.org,
- netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- stable@vger.kernel.org,
- Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>,
- Ao Wang <wangao@seu.edu.cn>,
- Xuewei Feng <fengxw06@126.com>,
- Qi Li <qli01@tsinghua.edu.cn>,
- Ke Xu <xuke@tsinghua.edu.cn>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <D67DAA07-B087-4BE9-8446-A746FC21EF01@mails.tsinghua.edu.cn>
-References: <20260728073507.30635-1-zhaoyz24@mails.tsinghua.edu.cn>
- <amkCbQ1UDRKcZBez@chamomile>
- <AD2FFF7F-7EC3-4205-BB44-508B31BC2620@mails.tsinghua.edu.cn>
- <amx58O5Jb6B29XDJ@chamomile>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-X-Mailer: Apple Mail (2.3864.600.51.1.1)
-X-CM-TRANSID:yAQGZQB3F8cquGxq8yHfAA--.53903S2
-X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
-	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYJ7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcV
-	AFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280
-	aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s0DM2vYz4IE04k24VAvwV
-	AKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
-	6x8ErcxFaVAv8VW8Ww4UJr1UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrw
-	ACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc2xSY4AK67AK
-	6ry5MxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY20_GrWkJr1UJwCF54CYxVCY1x
-	0262kKe7AKxVW8ZVWrXwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j
-	6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_GFv_WrylIxkGc2Ij64
-	vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0x
-	vEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJbIYCTnIWIevJa73UjIFyTuYvjfUIMKuUUUUU
-X-CM-SenderInfo: 52kd05r2suqzpdlo2hxwvl0wxkxdhvlgxou0/1tbiAQEFAWprzrTmFQABsN
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Pablo,
+On Fri, 31 Jul 2026 14:36:53 +0800 Zhiling Zou wrote:
+> A bridge nftables ct zone set rule can attach a conntrack template to
+> an skb before nf_ct_bridge_pre() sees it. For non-IPv4 and non-IPv6
+> EtherTypes, nf_ct_bridge_pre() currently overwrites skb->_nfct with
+> IP_CT_UNTRACKED without releasing the existing template reference.
 
-> On Jul 31, 2026, at 18:33, Pablo Neira Ayuso <pablo@netfilter.org> =
-wrote:
->=20
-> Yes, repurpose this patch to nf-next without Fixes tag and stable for =
-review.
->=20
-> Thanks.
-
-Thank you for your suggestion.
-
-We have posted an nf-next patch at =
-https://lore.kernel.org/netfilter-devel/20260731145342.56890-1-zhaoyz24@ma=
-ils.tsinghua.edu.cn/T/#u
-following your suggestion.
-
-Regards,
-Yizhou
-
-
+could be a coincidence but around the time this landed in our test tree
+the nft_queue.sh test became more flaky.
+-- 
+pw-bot: au
