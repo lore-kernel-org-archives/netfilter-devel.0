@@ -1,34 +1,33 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D071043CEF4;
-	Fri, 31 Jul 2026 15:18:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670D7402B8A;
+	Fri, 31 Jul 2026 15:34:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785511108; cv=none; b=aGclmzUbIdX8Xm0eR71+3luecBpLNnTgTWU38AYPujO0twWE2ejq0V7s/jjEKs1xkKQ9IMcNePVt0GI5lQ43tGNOtmLmCI4Tbm9zaBIJvqS+NYDki+P8jxqrgz9cG5GkzWtq1o/ciZ6d8rRQECAaASOqgvKyKv0LPYX3pIV8egE=
+	t=1785512054; cv=none; b=MH+vFBuVnAIe3VVgAv+EYQCp2xfs8yDpL5Bj1XhohVH1skmCUWK0k/5mC6qtaZSBNf2uTw11F9FRC7KCnBQ4XtBoKInu3PlU+E3l23SOcWLJtTpjQsCA4Ap/6MwQw9JG9vgjc2Wg0dNc085hmU+ocski01X8MnnEakLRjvXBx9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785511108; c=relaxed/simple;
-	bh=JJmAhK8tumR/okTi0PHddYkfrofRBf6zqg/al6oq/3Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Uin2e9OJz20pORn5o7+H3j52ndr4lfc0wx4O999d3OHwAkrTiL9Jukhifr3VVp+D2zcuLPVaWLcNPSSmrtEuFO1KPYZrI3eKRjtzw3BkYdp5UfdEOmgBkstTFbz/SPmCNIWk38ToucDnZwRR9HW1dTfkWZ/IzOZOU3zLXolKAbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FonQ6yA6; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785512054; c=relaxed/simple;
+	bh=tSPXSz0Ppy76GoaQ0pT9DFZBo1BzG8XXfo5ZVhrZUwo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qMPLia1NAXvNhc+jDXkfcg+m8VoT6+ZV6xn443G4EGTKSVWyKW2fCSTwYnYH27Ape3jnv/lJ6PreRBAOBiHH7IQCg2odxDT0kbU9R3Dy8FN3GJ9c9gN6qaeXO7O6L/iR1APUjvTNCkaHqUvayYFuYry6IpVrhyLpI0w0+H5m5Zw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vgbM3sBG; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FonQ6yA6"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vgbM3sBG"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4C4896018F;
-	Fri, 31 Jul 2026 17:18:24 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A33A0602A5;
+	Fri, 31 Jul 2026 17:34:10 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785511104;
-	bh=AfxrTSCvaAjlHCWmTWDGlJEkUVaLrEF39FJn6nJkdXs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FonQ6yA6t2ht3EBsvW2Nx63NfSbCa9HNDdbsZC1nPfy8bcDEQ/c5QQVWmSSN3/1EI
-	 SiCYM65Ahyfhd3egRocYxfYkV8hkODXn1bujIZho/cbIirupMoapfRmk7/d69RGLwy
-	 nrR929u/BK/niqXpDsG6aV+v0CoED+96GPOOgW0qW5A8gv0PcfQ+Cz7C0xMYgiL9xr
-	 C+uxGLLQLhFzBgh+XGmLjn7BNIKCaXijtLu/cwNZ0/QoVf87ftaqX6NnEE81DAPTUC
-	 Fv9kXitRulGOnckUpVe8jvElnS/XF4PrNh+b8+qhj8H8VBcjYuEfDN4lHN2Mith6Cj
-	 HMKnF/cZXUYVw==
+	s=2025; t=1785512051;
+	bh=Sgt90GZ60YUypKSrF4qNa07o+a0udM9g191tsZDbX04=;
+	h=From:To:Cc:Subject:Date:From;
+	b=vgbM3sBGWbBTloSsmtvUKircTvv7TsDPUHpJowdlMWD3XDyBz2TK/ASJQTPfdehiC
+	 I89dTFiUYJlrW1PAGaLzs27sn34uxAcYmeUpeCz/7JBcCDH4YYO9qdkAa6bEOGXExi
+	 rtJIXOuux+DLqItj+34G2bX4+ZE1MKeJneTZ68jmMdo5AIAU2REhV39HHZrP3RitTJ
+	 kZDVLx/SePMf+lo91AWdFSIk88UitpP7ok8elxvf8pLiMM+rCZccGBuY0YJk22CMmo
+	 oVPg5Vb0LzfAne+k+tydWM3rPcmypaEr+X9DiGNZDlVPDIrIM8xO6HcGeBsrr6I6/a
+	 cqVj02W4OItzg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,12 +37,10 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 10/10] netfilter: nft_ct: move custom expectation support to helper
-Date: Fri, 31 Jul 2026 17:18:06 +0200
-Message-ID: <20260731151806.849724-11-pablo@netfilter.org>
+Subject: [PATCH net-next 0/9] Netfilter updates for net-next
+Date: Fri, 31 Jul 2026 17:33:53 +0200
+Message-ID: <20260731153402.851224-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260731151806.849724-1-pablo@netfilter.org>
-References: <20260731151806.849724-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,288 +49,93 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Originally, the ct expectation support called nf_ct_helper_ext_add() for
-confirmed conntracks, which is invalid, triggering a splat. This was
-fixed by commit 1710eb913bdc ("netfilter: nft_ct: skip expectations for
-confirmed conntrack") which restricted it to confirmed conntracks.
+Hi,
 
-However, early insertion of expectations into the expectations list when
-the conntrack is unconfirmed leads to stale entries pointing to the
-wrong hlist_head through .pprev due to ct extension reallocation.
+The following patchset contains Netfilter updates for net-next:
 
-Commit 7c9664351980 ("netfilter: move nat hlist_head to nf_conn") moved
-the nat hlist_head to nf_conn for this reason:
+1) Update conncount to use the original tuple after ct lookup to ensure
+   consistent counting, from Fernando F. Mancera.
 
-     1. ...
-     2. When reallocation of extension area occurs we need to fixup the
-        bysource hash head via hlist_replace_rcu.
+2) Remove redundant net_device field in info structure that helps
+   parse the flowtable path discovery.
 
-But I'd rather not increase the size of the struct nf_conn for this
-feature, it only supports for creating expectations in the other
-direction and it was broken with DNAT too.
+3) Move net_device to flowtable check to the flowtable discovery
+   path parser. This is preparation work to pass the tunnel dst_entry
+   via .fill_forward_path.
 
-The existing feature has very limited scope because of a pre-existing
-issue: two different connections can create the same expectation leading
-to expect_clash(), resulting in packet drops.
+4) Update DSA .fill_forward_path to break at the user DSA, since
+   the conduit DSA is not used in the datapath. This slighly simplifies
+   the flowtable path discovery parser.
 
-To address this issue, add an internal ct helper and attach it to the
-conntrack entry to streamline the custom ct expectation support with
-existing ct helpers.
+5) Do not advance index in the path stack prematurely, otherwise
+   it points to uninitialized slots on error. Not an issue currently
+   but it could be once tunnel dst_entry is passed via .fill_forward_path.
 
-Expose a new nf_conntrack_helper_free() function to safely release the
-internal helper that is allocated and attached to the conntrack entry to
-create the custom expectations.
+6) Pass the tunnel dst_entry via dev_fill_forward_path().
 
-Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-Reported-by: Jaeyeong Lee <iostreampy@proton.me>
-Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_conntrack_helper.h |   2 +
- net/netfilter/nf_conntrack_helper.c         |  18 ++-
- net/netfilter/nft_ct.c                      | 127 +++++++++++++++-----
- 3 files changed, 114 insertions(+), 33 deletions(-)
+7) Update ipip and ip6ip6 tunnels to pass the dst_entry through
+   dev_fill_forward_path().
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index c761cd8158b2..4420846e41f2 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -114,6 +114,8 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int,
- void nf_conntrack_helpers_unregister(struct nf_conntrack_helper **,
- 				     unsigned int);
- 
-+void nf_conntrack_helper_free(struct nf_conntrack_helper *me);
-+
- #define nf_conntrack_helper_deprecated(name) \
- 	pr_warn("The %s conntrack helper is scheduled for removal.\n"	\
- 		"Please contact the netfilter-devel mailing list if you still need this.\n", name)
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 500509b17663..1197e8793494 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -456,13 +456,8 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
- 	return this == me;
- }
- 
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+void nf_conntrack_helper_free(struct nf_conntrack_helper *me)
- {
--	mutex_lock(&nf_ct_helper_mutex);
--	hlist_del_rcu(&me->hnode);
--	nf_ct_helper_count--;
--	mutex_unlock(&nf_ct_helper_mutex);
--
- 	/* This helper is going away, disable it. */
- 	rcu_assign_pointer(me->help, NULL);
- 
-@@ -476,6 +471,17 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	if (refcount_dec_and_test(&me->ct_refcnt))
- 		kfree_rcu(me, rcu);
- }
-+EXPORT_SYMBOL_GPL(nf_conntrack_helper_free);
-+
-+void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+{
-+	mutex_lock(&nf_ct_helper_mutex);
-+	hlist_del_rcu(&me->hnode);
-+	nf_ct_helper_count--;
-+	mutex_unlock(&nf_ct_helper_mutex);
-+
-+	nf_conntrack_helper_free(me);
-+}
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
- void nf_ct_helper_init(struct nf_conntrack_helper *helper,
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 03a88c77e0f0..30c9358dbf48 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1213,6 +1213,8 @@ struct nft_ct_expect_obj {
- 	u8		l4proto;
- 	u8		size;
- 	u32		timeout;
-+
-+	struct nf_conntrack_helper *helper;
- };
- 
- static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
-@@ -1226,6 +1228,73 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
- 	return 0;
- }
- 
-+struct nft_ct_expect_data {
-+	struct nft_ct_expect_obj	obj;
-+	enum ip_conntrack_dir		dir;
-+	atomic_t			num_expects;
-+};
-+
-+static int ct_expect_help(struct sk_buff *skb, unsigned int protoff,
-+			  struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-+{
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-+	struct nft_ct_expect_data *expect_data;
-+	struct nf_conntrack_expect *exp;
-+	int ret = NF_ACCEPT;
-+
-+	expect_data = nfct_help_data(ct);
-+	if (!expect_data)
-+		return NF_ACCEPT;
-+
-+	if (expect_data->dir != dir)
-+		return NF_ACCEPT;
-+
-+	if (!atomic_add_unless(&expect_data->num_expects, 1, expect_data->obj.size))
-+		return NF_ACCEPT;
-+
-+	exp = nf_ct_expect_alloc(ct);
-+	if (!exp) {
-+		atomic_dec(&expect_data->num_expects);
-+		return NF_DROP;
-+	}
-+
-+	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
-+			  &ct->tuplehash[!dir].tuple.src.u3,
-+			  &ct->tuplehash[!dir].tuple.dst.u3,
-+			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
-+	exp->timeout += expect_data->obj.timeout;
-+
-+	if (nf_ct_expect_related(exp, 0) != 0) {
-+		atomic_dec(&expect_data->num_expects);
-+		ret = NF_DROP;
-+	}
-+
-+	nf_ct_expect_put(exp);
-+
-+	return ret;
-+}
-+
-+static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
-+{
-+	struct nf_conntrack_helper *ct_expect_helper;
-+
-+	ct_expect_helper = kzalloc_obj(struct nf_conntrack_helper);
-+	if (!ct_expect_helper)
-+		return -ENOMEM;
-+
-+	snprintf(ct_expect_helper->name, sizeof(ct_expect_helper->name), "%s",
-+		 "nft_ct_expect");
-+	ct_expect_helper->me = THIS_MODULE;
-+	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
-+	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
-+	refcount_set(&ct_expect_helper->ct_refcnt, 1);
-+
-+	/* No need to register this helper, this is internal. */
-+	priv->helper = ct_expect_helper;
-+
-+	return 0;
-+}
-+
- static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 				  const struct nlattr * const tb[],
- 				  struct nft_object *obj)
-@@ -1233,6 +1302,8 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
- 	int err;
- 
-+	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nft_ct_expect_data));
-+
- 	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
- 	    !tb[NFTA_CT_EXPECT_DPORT] ||
- 	    !tb[NFTA_CT_EXPECT_TIMEOUT] ||
-@@ -1273,13 +1344,26 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
- 	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
- 	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
- 
--	return nf_ct_netns_get(ctx->net, ctx->family);
-+	err = nf_ct_netns_get(ctx->net, ctx->family);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_ct_expect_helper_alloc(priv);
-+	if (err < 0) {
-+		nf_ct_netns_put(ctx->net, ctx->family);
-+		return err;
-+	}
-+
-+	return err;
- }
- 
- static void nft_ct_expect_obj_destroy(const struct nft_ctx *ctx,
--				       struct nft_object *obj)
-+				      struct nft_object *obj)
- {
-+	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-+
- 	nf_ct_netns_put(ctx->net, ctx->family);
-+	nf_conntrack_helper_free(priv->helper);
- }
- 
- static int nft_ct_expect_obj_dump(struct sk_buff *skb,
-@@ -1302,50 +1386,39 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
- 				   const struct nft_pktinfo *pkt)
- {
- 	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
--	struct nf_conntrack_expect *exp;
-+	struct nft_ct_expect_data *expect_data;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn_help *help;
--	enum ip_conntrack_dir dir;
--	u16 l3num = priv->l3num;
- 	struct nf_conn *ct;
- 
- 	ct = nf_ct_get(pkt->skb, &ctinfo);
--	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct)) {
-+	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct)) {
- 		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
--	dir = CTINFO2DIR(ctinfo);
- 
- 	help = nfct_help(ct);
--	if (!help)
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--	if (!help) {
--		regs->verdict.code = NF_DROP;
--		return;
--	}
--
--	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
-+	if (help) {
- 		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
--	if (l3num == NFPROTO_INET)
--		l3num = nf_ct_l3num(ct);
- 
--	exp = nf_ct_expect_alloc(ct);
--	if (exp == NULL) {
-+	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+	if (!help) {
- 		regs->verdict.code = NF_DROP;
- 		return;
- 	}
--	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num,
--		          &ct->tuplehash[!dir].tuple.src.u3,
--		          &ct->tuplehash[!dir].tuple.dst.u3,
--		          priv->l4proto, NULL, &priv->dport);
--	exp->timeout += priv->timeout;
- 
--	if (nf_ct_expect_related(exp, 0) != 0)
--		regs->verdict.code = NF_DROP;
-+	expect_data = nfct_help_data(ct);
-+	if (!expect_data) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+	expect_data->obj = *priv;
-+	expect_data->dir = CTINFO2DIR(ctinfo);
- 
--	nf_ct_expect_put(exp);
-+	if (help && refcount_inc_not_zero(&priv->helper->ct_refcnt))
-+		rcu_assign_pointer(help->helper, priv->helper);
- }
- 
- static const struct nla_policy nft_ct_expect_policy[NFTA_CT_EXPECT_MAX + 1] = {
--- 
-2.47.3
+8) Call skb_valid_dst() before accessing skb_dst() to ensure dst_entry
+   is not a template.
 
+9) Use UNACK timeout when RST packet does not match the expected
+   window while in ESTABLISHED state, the existing approach the CLOSE
+   state timeout which is only 10 seconds. Adopt a more conservative
+   timeout by default for this case.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-31
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 2fbade66245059c78daeaccfce13ecf499fffb51:
+
+  Merge branch 'net-mctp-usb-add-support-for-mctp-over-usb-v1-1' (2026-07-30 16:55:02 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-07-31
+
+for you to fetch changes up to bf80e6802273a900311b44e47c9b1a59c6d2473c:
+
+  netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets (2026-07-31 14:47:03 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-07-31
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (1):
+      netfilter: conncount: normalize tuple and zone on successful ct lookup
+
+Minghao Zhang (1):
+      netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
+
+Pablo Neira Ayuso (7):
+      netfilter: flowtable: consolidate net_device field in nft_forward_info struct
+      netfilter: flowtable: consolidate flowtable device check
+      net: dsa: stop at the user device in .fill_forward_path
+      net: do not advance stack index from dev_fwd_path()
+      net: pass dst via net_device_path in dev_fill_forward_path()
+      netfilter: flowtable: release tunnel route on error when building forward path
+      netfilter: nf_tables: call skb_valid_dst() before skb_dst()
+
+ drivers/net/ethernet/airoha/airoha_ppe.c        |  10 ++-
+ drivers/net/ethernet/mediatek/mtk_ppe_offload.c |  10 ++-
+ include/linux/netdevice.h                       |   2 +
+ net/core/dev.c                                  |  44 +++++++---
+ net/dsa/user.c                                  |   3 +-
+ net/ipv4/ipip.c                                 |   2 +-
+ net/ipv4/netfilter/nf_reject_ipv4.c             |   6 +-
+ net/ipv6/ip6_tunnel.c                           |   4 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c             |   8 +-
+ net/netfilter/nf_conncount.c                    |   2 +
+ net/netfilter/nf_conntrack_proto_tcp.c          |   5 +-
+ net/netfilter/nf_flow_table_path.c              | 103 ++++++++----------------
+ net/netfilter/nft_meta.c                        |   6 +-
+ net/netfilter/nft_rt.c                          |   6 +-
+ net/netfilter/nft_xfrm.c                        |   9 ++-
+ 15 files changed, 121 insertions(+), 99 deletions(-)
