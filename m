@@ -1,152 +1,57 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 857D9381AE0
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 20:28:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA9A3115BC;
+	Fri, 31 Jul 2026 02:39:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785443312; cv=none; b=XP7oGK/JvkPCUCDAbv5+rXHKFP+CskIB24G0ZrBO1OGvvjveKJ2dmbM8kWPxr359jiNihMiyE+e87lSfCSsx7agVDrAj8CJy12GLUL3CcU2ueK3zYVorZ0yTHvGo9E9EPX3K5ZQs6qaPTuNuTe5p4dN5+32+QpilWvIVNoumcJI=
+	t=1785465592; cv=none; b=OP0IHcHlo7OfQrZ3s0AbZOcRvFlTjgObSNdGJx4ssw2ioJJJQ+ZXBqTVtM4+mOi4DDmOSMraq4kvWq9zl2iM5dwqRQonW0D6lsoe6xUeLbVwEG4Z/Y0i07ZD8G9XcUtDdoOJKk/YTD+OyL3mvvB+f4W+fyTrW7GFZuMMH8xvIrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785443312; c=relaxed/simple;
-	bh=Q5IWWlDu4C/1pbgwlZeMgOxuQZyEMGzQw/vG4z6ktxo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NrMyKHxwsZZZycdpQvirks/gUye8aDe32u4wRS3jASk4JjmGE9MRFs9qic10bOkcuDWS+rG5vLXFEcIuLH80hGpR5N6Yw/yyxlBlA1zEn+6dijwbAMuwaCsWO3v5jNlzokXQzI2Yn4ZO9RiAzFkhUPmOpE6/006gujfgjBZHFaM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CB7F160380; Thu, 30 Jul 2026 22:28:23 +0200 (CEST)
-Date: Thu, 30 Jul 2026 22:28:23 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Zihan Xi <zihanx@nebusec.ai>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	horms@kernel.org, avagin@gmail.com, vega@nebusec.ai
-Subject: Re: [PATCH nf v2 2/2] netfilter: nf_conntrack_tcp: defer
- tcp_in_window invalid logging until after unlock
-Message-ID: <amuz5x-ib-Cuatcn@strlen.de>
-References: <cover.1785348197.git.zihanx@nebusec.ai>
- <27612fbff3730c5d63a0e3fb0f51aeeed77ed5d7.1785348197.git.zihanx@nebusec.ai>
+	s=arc-20240116; t=1785465592; c=relaxed/simple;
+	bh=pyoHqUJEWcSmLzsg8i5K+4HRRtkJ86Nw59aowG7iOuk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=B5I27jKcyJ6KyMIJqSxlHO1l2mbkJvcsxa7KpdK1U6XohBQUGRNoCjFKqz8gQUlFFl9uy9TLe9jASYZOl8A2yKZhEd1xVldRVNNJfYKAN3rdwBktAvU0yqNvuRj5deuPb3nwVvLV+9mNYHVGfoh00ZQo7FptsgWZlxPB1JNdjHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IU0K1+4s; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IU0K1+4s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB23C1F000E9;
+	Fri, 31 Jul 2026 02:39:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785465591;
+	bh=W748aPIKPoXcDI/vKy7AwxTs3P5v5fjfe9yp6Aj9dMA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=IU0K1+4sW+Zpv1C/J/L/dGm1SO/jCcCevWj9HIYwmGLTUM+ff7VqVD1JPfFDKtsc3
+	 8mxhKK36bcFnpw11pvEAyM9kHW9nja8Hut4MU3uSfXtGfPfsmehbd13YTOvDY5TIi1
+	 iefnF7L5jp45fMqsrf/ab7tHdTue5fGWKSVVMgSoXddiIix3b0fUQa4mSR++jOcjSR
+	 LSC85BWIPuOaARJGmfuVoN7dPKninS6TaeP18gayPDt2LEi5QknmxEf1iShXsLMcTT
+	 WAMN2tOMrap96hzr1OJTTFZsn1wWXyy7JvINtddztgQQwJUHuqP4QKoJ5xVui72PH8
+	 OqjowzdO5rZjA==
+From: Sasha Levin <sashal@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Ilya Maximets <i.maximets@ovn.org>,
+	stable@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Greg KH <greg@kroah.com>
+Subject: Re: Backport request: "netfilter: nf_conntrack_expect: restore helper propagation via expectation"
+Date: Thu, 30 Jul 2026 22:39:44 -0400
+Message-ID: <20260730203650.stable-0006@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <2026073054-certainty-reapply-a613@gregkh>
+References: <ee95f6ac-181e-4315-a2ae-e4d1388c5e69@ovn.org> <amqHu5H6xu02Izo8@chamomile> <2026073054-certainty-reapply-a613@gregkh>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <27612fbff3730c5d63a0e3fb0f51aeeed77ed5d7.1785348197.git.zihanx@nebusec.ai>
+Content-Transfer-Encoding: 8bit
 
-Zihan Xi <zihanx@nebusec.ai> wrote:
-> tcp_in_window() can emit several invalid-packet logs while ct->lock is
-> still held.  If invalid logging is routed to nfnetlink_log with
-> conntrack export enabled, this can re-enter conntrack netlink glue and
-> recurse into tcp_to_nlattr() on the same conntrack.
-> 
-> Fix this by storing only the minimal invalid-log context for the
-> remaining tcp_in_window() cases and emitting the actual log after
-> releasing ct->lock.  Rename the helper to reflect that it now records
-> context instead of logging immediately, and add an explicit lockdep
-> assertion plus comment to document that invalid TCP logs must not be
-> emitted while ct->lock is held.
-> 
-> Fixes: d48668052b26 ("netfilter: fix nf_l4proto_log_invalid to log invalid packets")
-> Cc: stable@vger.kernel.org
-> Reported-by: Vega <vega@nebusec.ai>
-> Assisted-by: Codex:gpt-5.4
-> Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
-> ---
-> changes in v2:
->   - Keep only the tcp_in_window() invalid logging cases in this patch.
->   - Rename the helper to reflect that it stores invalid-log context.
->   - Add a lockdep assertion and comment documenting that invalid logs must not be emitted under ct->lock.
->   - v1 Link: https://lore.kernel.org/all/cover.1785307980.git.zihanx@nebusec.ai/
-> ---
->  net/netfilter/nf_conntrack_proto_tcp.c | 113 ++++++++++++++++++-------
->  1 file changed, 82 insertions(+), 31 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index ef31dcaffd19..e5875b7528fe 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -480,37 +480,87 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
->  	}
->  }
->  
-> -__printf(6, 7)
-> -static enum nf_ct_tcp_action nf_tcp_log_invalid(const struct sk_buff *skb,
-> -						const struct nf_conn *ct,
-> -						const struct nf_hook_state *state,
-> -						const struct ip_ct_tcp_state *sender,
-> -						enum nf_ct_tcp_action ret,
-> -						const char *fmt, ...)
-> +enum nf_tcp_invalid_log_type {
-> +	NF_TCP_LOG_NONE,
-> +	NF_TCP_LOG_OVERSHOT,
-> +	NF_TCP_LOG_SEQ_OVER,
-> +	NF_TCP_LOG_ACK_OVER,
-> +	NF_TCP_LOG_SEQ_UNDER,
-> +	NF_TCP_LOG_ACK_UNDER,
-> +};
-> +
-> +struct nf_tcp_invalid_log {
-> +	enum nf_tcp_invalid_log_type type;
-> +	u32 value;
-> +};
-> +
-> +static enum nf_ct_tcp_action
-> +nf_tcp_store_invalid(const struct nf_conn *ct,
-> +		     const struct ip_ct_tcp_state *sender,
-> +		     struct nf_tcp_invalid_log *log,
-> +		     enum nf_ct_tcp_action ret,
-> +		     enum nf_tcp_invalid_log_type type,
-> +		     u32 value)
->  {
->  	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
-> -	struct va_format vaf;
-> -	va_list args;
->  	bool be_liberal;
->  
->  	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
->  	if (be_liberal)
->  		return NFCT_TCP_ACCEPT;
->  
-> -	va_start(args, fmt);
-> -	vaf.fmt = fmt;
-> -	vaf.va = &args;
-> -	nf_ct_l4proto_log_invalid(skb, ct, state, "%pV", &vaf);
-> -	va_end(args);
-> -
-> +	log->type = type;
-> +	log->value = value;
->  	return ret;
->  }
->  
-> +static void nf_tcp_log_invalid(const struct sk_buff *skb,
-> +			       const struct nf_conn *ct,
-> +			       const struct nf_hook_state *state,
-> +			       const struct nf_tcp_invalid_log *log)
-> +{
-> +	/* nfnetlink_log may re-enter conntrack attribute dumping and try to
-> +	 * take ct->lock again via tcp_to_nlattr(), so invalid TCP logs must
-> +	 * only be emitted after dropping ct->lock.
-> +	 */
-> +	lockdep_assert_not_held(&ct->lock);
-> +
-> +	switch (log->type) {
-> +	case NF_TCP_LOG_OVERSHOT:
-> +		nf_ct_l4proto_log_invalid(skb, ct, state,
-> +					  "%u bytes more than expected",
-> +					  log->value);
+On Thu, Jul 30, 2026 at 04:09:06PM +0200, Greg KH wrote:
+>Great, can someone send us properly backported/tested patches to apply?
 
-Can you move the comment and the lockdep assert into
-nf_ct_l4proto_log_invalid() so we can catch offenders outside
-tcp as well?
+Queued for 6.18, 6.12, 6.6 and 6.1, thanks.
 
-SCTP seems to be buggy as well.
-
-Other than that:
-
-Reviewed-by: Florian Westphal <fw@strlen.de>
-
-You can keep this tag in next iteration.
+-- 
+Thanks,
+Sasha
