@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DEF934C815;
-	Fri, 31 Jul 2026 15:18:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B48526ED40;
+	Fri, 31 Jul 2026 15:18:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785511103; cv=none; b=BMzn6mwePRpgxjVx/Zzst5sMOjbTrixIskw31jcXYsTDwAHoU9B0wYkwhZEE46y0oiIRNatoWgPVm113ZsCf8sYbfdGb6VGmShGbaCRhIx++5HhvweKTaQIW7UH8+AQNtZyrwYkRkQMQQTRwLik6tmiChhqw/7+2+wRJN+zMArU=
+	t=1785511103; cv=none; b=JeVaCJV22AP0/gfrjFF9I7EkQgtQB35e2O35nyvP6b6ReB1L5d2+5o2Ni07TUie6tjTp94LFQcS52zdwaV4/Pfo4wDrOW07jBOGYO5b9NRaV1PVFhqLcVhU8kqQSrJggPZzJa69o9VdhuSquMXc2ezYJEay3VdwePjpjDyAUcXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785511103; c=relaxed/simple;
-	bh=J2MLHdlOR6qdkIVDXnz10AxuzAWeeEN8iqoHudiOueQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cQYxs3ap6+6K/VBoJXv6/GJ227Sr3zcGGq+F/S+22L/eidzeSDqSU0FWgLT5sW6VK7yUmquGEmYprSSDcGcWJ+eVzp3S6cak6C96TkEQ86Ws0shYk2b6SJNmy+3uWME2mD/mpgUATu0rtvwtF4gt1IT1P5KRofL05wBIDGRhCA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Vch6cAGq; arc=none smtp.client-ip=217.70.190.124
+	bh=tpnb+MDmAA3d2zaaisJySj7y1rWETCeErWdCgxJYI2M=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mF/pQA9HHHHlSUXsS41e917VaWJRpgkqWeaV4BHPCC9Diri0QlkrSu43S+aAhjapiJbm33I041MxTR5GAwQ0f0eOKrh5o8SSd5Ueb0+GCiPinNtMwGvJvYLg/1z5LfplZUkOlPTn7DZscm6kJyCk+z1ZATtHkul1RDF9f0HFcZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YiAa15Bu; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Vch6cAGq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YiAa15Bu"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A816D6018F;
-	Fri, 31 Jul 2026 17:18:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C6DC96027A;
+	Fri, 31 Jul 2026 17:18:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785511092;
-	bh=6T46QkAmOkJGduJ1x+B1Fxmy8sfsV+9B+TFLBxKGMXc=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Vch6cAGqII2dqxEneUa5yM5xs6ZbnH8scyyIp62vH5HGFjOkRowgu0pARuiBbMl1K
-	 OFWF0hiwa3NG9rRisi7D9RWFGCNt0Zthh+/SfUU/AUPVAH5PSm3ERUVl4jR2NjJp8d
-	 +rEVjrn2YzUzaxgR+wwkCQWwrkHPTS2x/JVxQ/LK0q5zVILfYow38WM8V8JeJLTWe2
-	 nz/KmPkCuT5BKxSRZeb9U3/cL8zoD655K5gtlLOHfIIzgLyHJ920j27SdFrEPBs7pL
-	 TmE4D/md9O1jkLMnXm6nfitTUltXDMi9kj0qcQMLaXOsSe/TcqFms3Q4Q296X6ZVEd
-	 +eXb1XiPmwq9A==
+	s=2025; t=1785511095;
+	bh=S/AqZ0Om7790o31yXwxNe8HYJ3Er6fWYTlj6PYGJfts=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=YiAa15Bu0nXB0anhaZ0zcVVR8XmGyrqh/MUQuKALKGOZvifJWfueTtpsydVD2PFhM
+	 YX4LENZOwUUrnUZGmuLq3lIGGu6mTD7xQcqO46DAy+ly4RSRbzgUqOck0OaI1Jyg1j
+	 psLT5f6P3n+z4K3D5OnmcuyprkDWBjYItDbPPQ3I3nHdL+5rVmNG1MfJYlCA13YSOV
+	 B1xVh6RHzjleRFbiKUXGQgGAudcXecnrkq4rvpn3THXfjC4ay7a2fS5wYHeDIASdkf
+	 Un85eco/182zuki3IdfQgMAuCsl80sWnsFWihWuTQxO6560tIG+v68QSKwme+xMVwS
+	 9E0QBlM3twECQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 00/10] Netfilter/IPVS fixes for net
-Date: Fri, 31 Jul 2026 17:17:56 +0200
-Message-ID: <20260731151806.849724-1-pablo@netfilter.org>
+Subject: [PATCH net 02/10] netfilter: ebt_nflog: pin the NFLOG backend
+Date: Fri, 31 Jul 2026 17:17:58 +0200
+Message-ID: <20260731151806.849724-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260731151806.849724-1-pablo@netfilter.org>
+References: <20260731151806.849724-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,225 +52,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-The following patchset contains Netfilter/IPVS fixes net, this
-includes fixes for ebtables nflog target, ipset hash type,
-IPVS kthread estimator 
+nf_log_unregister() runs after the per-net teardown so its final RCU
+grace period also drains readers that obtained the logger from a per-net
+binding.  However, ebt_nflog passes an explicit ULOG log type to
+nf_log_packet() without holding a reference on the selected logger module,
+unlike the xt_NFLOG and nft_log frontends.
 
-1) Prevent IPVS kthread estimator from draining the est_temp_list
-   when netns is being dismantled. From Zhiling Zou.
+An ebtables nflog rule can therefore remain callable while nfnetlink_log
+is unloaded.  The resulting interleaving is:
 
-2) Missing module nflog refcount bump from ebtables nflog target from
-   .checkentry path. Similar dependency exists already in xt_NFLOG and
-   nft_log. From Chengfeng Ye.
+  CPU 0                               CPU 1
+  nfnetlink_log_fini()
+    unregister_pernet_subsys()
+      kfree(nfnl_log_pernet(net))
+                                      ebt_nflog_tg()
+                                        nf_log_packet()
+                                          nfulnl_log_packet()
+                                            instance_lookup_get_rcu()
 
-3) Use RCU to fix ipset bookkeeping of cidr values on weakly-ordered
-   architectures. From Jozsef Kadlecsik.
+The global ULOG logger is still registered at this point, so CPU 1
+dereferences the per-net state after CPU 0 has freed it.  KASAN reported:
 
-4) Use atomic64_t for set->ext_size in ipset to fix parallel inserts
-   and deletes racing on updating it. From Jozsef Kadlecsik.
+  BUG: KASAN: slab-use-after-free in instance_lookup_get_rcu
+  Read of size 8 at addr ff110001052e6210 by task poc/92
+  Call Trace:
+   instance_lookup_get_rcu+0x1ce/0x1f0 [nfnetlink_log]
+   nfulnl_log_packet+0x248/0x2fb0 [nfnetlink_log]
+   nf_log_packet+0x204/0x300
+   ebt_nflog_tg+0x351/0x550
+   ebt_do_table+0xedf/0x22b0
+  Allocated by task 90:
+   __kmalloc_noprof+0x186/0x470
+   ops_init+0x6d/0x420
+   register_pernet_operations+0x2f6/0x670
+   register_pernet_subsys+0x23/0x40
+  Freed by task 93:
+   kfree+0x131/0x3c0
+   ops_undo_list+0x3e3/0x700
+   unregister_pernet_operations+0x232/0x490
+   unregister_pernet_subsys+0x1c/0x30
+   nfnetlink_log_fini+0x34/0x450 [nfnetlink_log]
 
-5) Add small wrappers for hash and bucket size to prepare the update
-   of ipset hash set types to rhashtable, from Florian Westphal.
+Acquire the ULOG logger module reference when an ebt_nflog rule is
+validated and release it when the rule is destroyed.  Request the NFLOG
+backend for legacy callers when needed, matching xt_NFLOG.  This prevents
+module teardown until all ebt_nflog rules have stopped using the logger.
 
-6) Add mtype_del_cidr_all() and use it to prepare the migration of
-   ipset hash types to rhashtable. From Florian Westphal.
+Fixes: c83fa19603bd ("netfilter: nf_log: don't call synchronize_rcu in nf_log_unset")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/netfilter/ebt_nflog.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-7) Replace existing ipset call_rcu() based destruction with rcu_work
-   api also to ease the transition to rhashtable. Also from Florian.
-
-8) Avoid reading the IPv4 ihl field multiple times to prevent local
-   attacker to cause out-of-bounds write in ip_vs_nat_icmp(), from
-   Julian Anastasov.
+diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
+index 61bf8f4465ab..426f8adc912c 100644
+--- a/net/bridge/netfilter/ebt_nflog.c
++++ b/net/bridge/netfilter/ebt_nflog.c
+@@ -41,11 +41,25 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ static int ebt_nflog_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	struct ebt_nflog_info *info = par->targinfo;
++	int ret;
  
-9) Restore the checksum validations that could be needed by the IPVS
-   FORWARD hook. Also from Julian.
+ 	if (info->flags & ~EBT_NFLOG_MASK)
+ 		return -EINVAL;
+ 	info->prefix[EBT_NFLOG_PREFIX_SIZE - 1] = '\0';
+-	return 0;
++
++	ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
++	if (ret != 0 && !par->nft_compat) {
++		request_module("%s", "nfnetlink_log");
++
++		ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
++	}
++
++	return ret;
++}
++
++static void ebt_nflog_tg_destroy(const struct xt_tgdtor_param *par)
++{
++	nf_logger_put(par->family, NF_LOG_TYPE_ULOG);
+ }
+ 
+ static struct xt_target ebt_nflog_tg_reg __read_mostly = {
+@@ -54,6 +68,7 @@ static struct xt_target ebt_nflog_tg_reg __read_mostly = {
+ 	.family     = NFPROTO_BRIDGE,
+ 	.target     = ebt_nflog_tg,
+ 	.checkentry = ebt_nflog_tg_check,
++	.destroy    = ebt_nflog_tg_destroy,
+ 	.targetsize = sizeof(struct ebt_nflog_info),
+ 	.me         = THIS_MODULE,
+ };
+-- 
+2.47.3
 
-10) Move custom ct expectation support to a helper. This is to address
-    a report of possible reallocation of the ct extension while the
-    expectations list contains entries, leading to stale .pprev.
-
-Sashiko reports that more follow ups are needed for the ipset patches as
-well as the ipset checksum fixes this is already known, but we consider
-that this is improving the situation and those can be addressed
-incrementally. Regarding patch #10, sashiko points to pre-existing
-issues in this custom ct expectation feature that I plan to address in
-net-next.
-
-When merging this PR into net.git, there will be a conflict between
-net.git and net-next.git related to patch #10 and d4beefc90a66
-("netfilter: nft_ct: support expectation creation for natted flows")
-in net-next, that can be address with the following patch:
-
-diff --cc net/netfilter/nft_ct.c
-index 30c9358dbf48,358b9287e12e..339e0c98fd70
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@@ -1228,73 -1226,6 +1228,91 @@@ static int nft_ct_expect_timeout_get(co
-  	return 0;
-  }
-  
-++#if IS_ENABLED(CONFIG_NF_NAT)
-++static void nft_ct_nat_follow_master(struct nf_conn *ct, struct nf_conntrack_expect *this)
-++{
-++	const struct nf_ct_helper_expectfn *expfn;
-++
-++	expfn = nf_ct_helper_expectfn_find_by_name("nat-follow-master");
-++	if (expfn)
-++		expfn->expectfn(ct, this);
-++}
-++#endif
-++
- +struct nft_ct_expect_data {
- +	struct nft_ct_expect_obj	obj;
- +	enum ip_conntrack_dir		dir;
- +	atomic_t			num_expects;
- +};
- +
- +static int ct_expect_help(struct sk_buff *skb, unsigned int protoff,
- +			  struct nf_conn *ct, enum ip_conntrack_info ctinfo)
- +{
- +	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- +	struct nft_ct_expect_data *expect_data;
- +	struct nf_conntrack_expect *exp;
- +	int ret = NF_ACCEPT;
- +
- +	expect_data = nfct_help_data(ct);
- +	if (!expect_data)
- +		return NF_ACCEPT;
- +
- +	if (expect_data->dir != dir)
- +		return NF_ACCEPT;
- +
- +	if (!atomic_add_unless(&expect_data->num_expects, 1, expect_data->obj.size))
- +		return NF_ACCEPT;
- +
- +	exp = nf_ct_expect_alloc(ct);
- +	if (!exp) {
- +		atomic_dec(&expect_data->num_expects);
- +		return NF_DROP;
- +	}
- +
- +	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- +			  &ct->tuplehash[!dir].tuple.src.u3,
- +			  &ct->tuplehash[!dir].tuple.dst.u3,
- +			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
- +	exp->timeout += expect_data->obj.timeout;
- +
-++#if IS_ENABLED(CONFIG_NF_NAT)
-++	if (ct->status & IPS_NAT_MASK) {
-++		exp->saved_proto.tcp.port = expect_data->obj.dport;
-++		exp->dir = !dir;
-++		exp->expectfn = nft_ct_nat_follow_master;
-++	}
-++#endif
- +	if (nf_ct_expect_related(exp, 0) != 0) {
- +		atomic_dec(&expect_data->num_expects);
- +		ret = NF_DROP;
- +	}
- +
- +	nf_ct_expect_put(exp);
- +
- +	return ret;
- +}
- +
- +static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
- +{
- +	struct nf_conntrack_helper *ct_expect_helper;
- +
- +	ct_expect_helper = kzalloc_obj(struct nf_conntrack_helper);
- +	if (!ct_expect_helper)
- +		return -ENOMEM;
- +
- +	snprintf(ct_expect_helper->name, sizeof(ct_expect_helper->name), "%s",
- +		 "nft_ct_expect");
- +	ct_expect_helper->me = THIS_MODULE;
- +	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
- +	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
- +	refcount_set(&ct_expect_helper->ct_refcnt, 1);
- +
- +	/* No need to register this helper, this is internal. */
- +	priv->helper = ct_expect_helper;
- +
- +	return 0;
- +}
- +
-  static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
-  				  const struct nlattr * const tb[],
-  				  struct nft_object *obj)
-
-
-Apologies for the extra work that the conflict resolution brings,
-I was planning to merge this fix to net-next but I just saw a second
-reporter finding exactly the same bug in net.git, so I am inclined
-towards expediting inclusion upstream of patch #10 in this series.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-07-31
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 2195424c3da2ef1829a63b807e3a900a90e57d85:
-
-  net/x25: fix use-after-free of the socket by its timers (2026-07-30 18:46:45 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-07-31
-
-for you to fetch changes up to 0b541313c8a8ee49ab8bb1f620204720a83eb7fd:
-
-  netfilter: nft_ct: move custom expectation support to helper (2026-07-31 16:46:55 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-07-31
-
-----------------------------------------------------------------
-Chengfeng Ye (1):
-      netfilter: ebt_nflog: pin the NFLOG backend
-
-Florian Westphal (3):
-      netfilter: ipset: add small wrappers for hash and bucket sizes
-      netfilter: ipset: add and use mtype_del_cidr_all helper
-      netfilter: ipset: switch to rcu work
-
-Jozsef Kadlecsik (2):
-      netfilter: ipset: rework cidr bookkeeping
-      netfilter: ipset: switch ext_size to atomic64_t
-
-Julian Anastasov (2):
-      ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
-      ipvs: return the csum validation for forward hook
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_ct: move custom expectation support to helper
-
-Zhiling Zou (1):
-      ipvs: stop estimator after disabled calc phase
-
- include/linux/netfilter/ipset/ip_set.h       |   6 +-
- include/net/ip_vs.h                          |  21 +-
- include/net/netfilter/nf_conntrack_helper.h  |   2 +
- net/bridge/netfilter/ebt_nflog.c             |  17 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h      |   4 +-
- net/netfilter/ipset/ip_set_core.c            |  52 +++--
- net/netfilter/ipset/ip_set_hash_gen.h        | 304 ++++++++++++++++++---------
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |   4 +-
- net/netfilter/ipset/ip_set_hash_net.c        |   4 +-
- net/netfilter/ipset/ip_set_hash_netiface.c   |   4 +-
- net/netfilter/ipset/ip_set_hash_netnet.c     |  12 +-
- net/netfilter/ipset/ip_set_hash_netport.c    |   4 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c |  12 +-
- net/netfilter/ipset/ip_set_list_set.c        |   4 +-
- net/netfilter/ipvs/ip_vs_core.c              |  67 +++---
- net/netfilter/ipvs/ip_vs_est.c               |  10 +-
- net/netfilter/ipvs/ip_vs_proto_sctp.c        |   2 +-
- net/netfilter/ipvs/ip_vs_xmit.c              |   2 +-
- net/netfilter/nf_conntrack_helper.c          |  18 +-
- net/netfilter/nft_ct.c                       | 127 ++++++++---
- 20 files changed, 445 insertions(+), 231 deletions(-)
-d4beefc90a66 ("netfilter: nft_ct: support expectation creation for natted flows")
