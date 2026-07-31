@@ -1,128 +1,96 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D98C40759B
-	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 11:53:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1723ADBA4
+	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 12:41:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785498841; cv=none; b=hTqsvoFy7MH/c5mtzOtdiA8fhOJhGAF0FP/2K4Ows3zFqeA55KdY2ItqDIyTMAK01pWpBVdjIo5a7p2MERsmUO9t1G5ou3L5KsGPjxIsOuts2o4iCFy5cSsbCLyKuUrG44KQBoY20r50O2fX5jJJmd/BR84OdCT5iqGgRlMFRbQ=
+	t=1785501705; cv=none; b=UPW0uxVEsA1zd8oi/8M1DNt3ZyD0gy3roVwnsBvEfrlfofXAbrBAwV+mtJRCrEJbx9jucc0dNjFV+ljoB0WXFGgL2ntyT+y9+K4kWBtUNBv+AXbSJMwUgyedReAFa4NGbsJMCGdpt81BScA75LEm8CY1v6r2pi1QoldZg2/XFQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785498841; c=relaxed/simple;
-	bh=sBj6Fg2UEygDiBCzeHK0S/aXD8dKiWcPJBWg2y3Syjs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HKySWB138pj9U+91mtxQw34H3wgWh2Czu0scbUhMgNjRf3WhjbHV12aeotsjJWXhMKuHFlnswMR60FEJchRhcVCvct6vHA+WImxUxpOEYWvjkw2kP4CF5fMKLKHXGPkiRobty3n1+/OMDsrEHxCI4bKovZmB+6ozOQbAhuNDOV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qx4cDIMG; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1785501705; c=relaxed/simple;
+	bh=/A+ChuDCuT6avA4SAPrFvWymcJb5hUP0VhdtyEVtd+w=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=gG6GF9TD5D3e8mU2H4IxlzHZncxKPVkLJKkhsDQxUZA8g8LRBvK2Bnp/D/iPAeH3r9gfWBxAI6Xa6qJgL+J9zYYI6mDXCPWwE17mOMzbS+PlQ/t2zQ/ZCkuSCRxXMHfTExtpTBVsIdhdyFYvbtGXJddaZYlcjv5fmR2dln2HH6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lKk7K4qC; arc=none smtp.client-ip=209.85.216.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qx4cDIMG"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B04DC60191;
-	Fri, 31 Jul 2026 13:53:54 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785498834;
-	bh=R8jA/J8PO79XI5ZXd6BXAwSEqp0qn+zNw0AID4mmPug=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qx4cDIMGVfTh2Pl+ZHhGcR4lvg4z/rt/UYtlTGDmQo84ZxbuY12gypnfcESNJrOW0
-	 H81a+ezHSVLqlooKa8spui0zU5mcqGdG701yiWq1E3s2IdFXUjwnjd5rZ30L2hNcHS
-	 x2b2hBZSEReR6HHlNo+pIT6o5PZT0KgRUdQlJu8MQagLTgkXKiSESn30KxCoWvfnKH
-	 l5rRTdMY8pHJYlLcHkgZgR9YT7RUiB0J9CeeYcPxQvN6N+WLDtOZHOvlWox++1w7Dw
-	 fcqSvZ1ZSt0itEGempIAuR9YOy4hd8DUqATDx4Pl0VKh77DvWOn2sQZy8KOzsRXM9p
-	 yC0JaXcaLA20g==
-Date: Fri, 31 Jul 2026 13:53:52 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Avinash Duduskar <avinash.duduskar@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lKk7K4qC"
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-38e071ed6aeso772839a91.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 05:41:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785501704; x=1786106504; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=OASzXFncVv36XVsM5ruH2oyJ4VEQ1wRUFRfWuUymhhM=;
+        b=lKk7K4qC8z7ZVdSposCFq1eyy1kXDynRPeOPcCuET1YYCj5qOPPR4ak4ssQdk4SU8I
+         teYRm0VjBE0EtNXA+dQP1INtb8KOpiWEzBFl+trEoCBBPJ/byBbg7oDFATautk2LFgYq
+         EGCuFIawzl/Fr/AuioBD+mSFSTONGrSohwfR+BsZx0mG28MoKSZD2KlZnzpGI1fSQPX+
+         6Bcbp2dR+fRncVW5lWiNhdm29yxXV+k5zDH246pXvqPzqkIVXYw6FrpeRZD7OlVa/oas
+         RNaCuJaaBukrJMLmPCDh2YGHRin5SOZPpRxrfHGAMhjorz2uusmF93WuetJWjYEIdMvc
+         IjwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785501704; x=1786106504;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=OASzXFncVv36XVsM5ruH2oyJ4VEQ1wRUFRfWuUymhhM=;
+        b=cGXSElUDA2BLHVjFQ2dMU0bDqAIRl7Y9buGgjOEsTvgj8s+X6silPZU5y9hEFTV9tA
+         szT8D1p4BSPhRmkgy4qvIJb20BPcbK7Fz+YSo5H39GNJhazN1Fjn7YdHCiakflWPoPm7
+         Prt4WitcwX1PLEEKAksSdMtJwIEBAkOFh73OM93vED9nl/VtcQB0li7Vp+ZbtnOM9tRo
+         SCFThbFFmzOY+wrxl5l+ALD7pJ43GJh81uiy3rtji/0TaNTKauKitrvbk1NSDbVY2FDA
+         wZxVqyzg0sxdx3ppnOLI92IkL1VBcaoKOZR+W7j/pDDcPO5e5mcXWARgvDzTzvPG2CQa
+         jILg==
+X-Forwarded-Encrypted: i=1; AHgh+RpKwvYos+aC/AFcjg1reNg3a9bnK2PKK58/88gdXGa4MAnk7hzkjTuvC86Ip5Ovuvz0hDLVxGA3VqmQYx+Xh0A=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyxcGPs9VNiN5//RWZDtsB9uiBkOYM0PIEAVlmWsi84bgKB31MK
+	JJMJEKJdYSTtNbNN0M0K1T+TLgloIaZkwFvKEJ03RQ4NFY+tazGkH3VfmfoWB1hS
+X-Gm-Gg: AR+sD10ohVw8pA8r4QNL3l/sIOhP4tA1+O5+7o5Rp5Zj2w3uz8BC/ZaeQmfbhXHggvl
+	0aTbnEHQW4+nxZRAhNsqETUemfurPIciv/Ilif8IqAP/OZZOn+tK48nEZ13VW7mT9bo4dr0NPgv
+	eBbxRxIxa5+oO4Cd6O/p9LhbrRFGV3ll/Mf4iB5rB0D6Z60/Adp7UMMrHELN+qy1k26WflHgy1A
+	NfNQmQK9zi9wnkRtb3uQraM3cVIcPcFJ/jHU10KeG4EPMnZQxql5FLMkSeD/MNGH14l51jLIWIJ
+	CQApZ+dCIARTDeLazB+tIYqV1vCgjfpPKVg0KSMklhQvXxdEVE5XJTvSuD84afobc0KBnHsv84A
+	jz3IrXGuKzn7/pNwqLzNzKrkV+/ylUFgYp852ZWGss/7QLVILXjv7tASWS7drCEAoVdPgXlj6EU
+	Ltt0B6oEGkWO9555OpjjhUOGQrWSOukwLVqCj+o+kxWB0uUc1kgThsHSfIXRRqOMH+vKqhcruOj
+	l20/AOBJAlgC4MjunDIqMBQEx96DfM=
+X-Received: by 2002:a17:90b:4d81:b0:38e:11ba:992e with SMTP id 98e67ed59e1d1-38fb14441b9mr1565896a91.35.1785501703821;
+        Fri, 31 Jul 2026 05:41:43 -0700 (PDT)
+Received: from r912.4v1.in ([160.30.85.32])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3153e04491dsm8274078eec.16.2026.07.31.05.41.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 31 Jul 2026 05:41:43 -0700 (PDT)
+From: Avinash Duduskar <avinash.duduskar@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nft v2] datatype: accept a numeric cgroupsv2 id on input
-Message-ID: <amyM0DqEImxfc8gK@chamomile>
-References: <20260729173748.1033454-1-avinash.duduskar@gmail.com>
+Date: Fri, 31 Jul 2026 18:11:39 +0530
+Message-ID: <20260731124139.2127004-1-avinash.duduskar@gmail.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <amyM0DqEImxfc8gK@chamomile>
+References: <20260729173748.1033454-1-avinash.duduskar@gmail.com> <amyM0DqEImxfc8gK@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260729173748.1033454-1-avinash.duduskar@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 29, 2026 at 11:07:48PM +0530, Avinash Duduskar wrote:
-> nft prints non-existent cgroup names as the raw id using PRIu64, but
-> cgroupv2_type_parse() only stats /sys/fs/cgroup/<identifier>, so the
-> listing does not load back:
-> 
->   # nft list set ip t s
->   table ip t {
->           set s {
->                   type cgroupsv2
->                   elements = { 50834 }
->           }
->   }
->   # nft delete element ip t s { 50834 }
->   Error: cgroupv2 path fails: No such file or directory
-> 
-> The element cannot be deleted by key once its cgroup is gone, only
-> flushed with the set, and a dump does not restore. The json dump has
-> the same problem, and the stale id has been visible in the wild since
-> 2022 (see Link). tests/shell/testcases/packetpath/cgroupv2 already
-> works around this in cleanup().
-> 
-> Fall back to integer_type_parse() when the path does not resolve, as
-> boolean_type_parse() already does. The path lookup stays first, so a
-> cgroup named as a number still resolves as a path. Improving the
-> integer parser is left for a follow-up as discussed in v1.
-> 
-> Fixes: 38228087252c ("src: add cgroupsv2 support")
-> Link: https://lore.kernel.org/netfilter-devel/fabde324-383a-622c-7e69-32c9b2d06191@gmail.com/
-> Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
-> ---
-> Changes since v1 (https://lore.kernel.org/netfilter-devel/20260727082427.740789-1-avinash.duduskar@gmail.com/):
-> - drop the strict decimal parser, delegate to integer_type_parse()
->   (Pablo, Phil)
-> - json test arm uses a here-string instead of a tempfile (Phil)
-> - shorter commit message and test
-> 
->  src/datatype.c                                |  13 +-
->  .../shell/testcases/parsing/cgroupv2_stale_id | 129 ++++++++++++++++++
->  .../parsing/dumps/cgroupv2_stale_id.json-nft  |  11 ++
->  .../parsing/dumps/cgroupv2_stale_id.nft       |   0
->  4 files changed, 151 insertions(+), 2 deletions(-)
->  create mode 100755 tests/shell/testcases/parsing/cgroupv2_stale_id
->  create mode 100644 tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.json-nft
->  create mode 100644 tests/shell/testcases/parsing/dumps/cgroupv2_stale_id.nft
-> 
-> diff --git a/src/datatype.c b/src/datatype.c
-> index 4dbca16e..5b3b350c 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -1665,9 +1665,18 @@ static struct error_record *cgroupv2_type_parse(struct parse_ctx *ctx,
->  		 SYSFS_CGROUPSV2_PATH, sym->identifier);
->  	cgroupv2_path[sizeof(cgroupv2_path) - 1] = '\0';
->  
-> -	if (stat(cgroupv2_path, &st) < 0)
-> +	if (stat(cgroupv2_path, &st) < 0) {
-> +		struct error_record *erec;
-> +		int stat_errno = errno;
-> +
-> +		/* the listing prints a raw id once the path is gone */
-> +		erec = integer_type_parse(ctx, sym, res);
-> +		if (!erec)
-> +			return NULL;
-> +		erec_destroy(erec);
+On Fri, Jul 31, 2026 at 01:53:52PM +0200, Pablo Neira Ayuso wrote:
+> Any reason to ignore the error that integer_type_parse() provides?
 
-Any reason to ignore the error that integer_type_parse() provides?
-Instead I would suggest:
+No, it was left over from the strict parser that owned its own message.
+Nothing follows the call, so it reduces to a direct return and the hunk
+goes from ten added lines to two:
 
-                if (erec)
-                        return erec;
++	/* the listing prints a raw id once the path is gone */
+ 	if (stat(cgroupv2_path, &st) < 0)
+-		return error(&sym->location, "cgroupv2 path fails: %s",
+-			     strerror(errno));
++		return integer_type_parse(ctx, sym, res);
 
-Thanks.
+v3 to follow.
 
->  		return error(&sym->location, "cgroupv2 path fails: %s",
-> -			     strerror(errno));
-> +			     strerror(stat_errno));
-> +	}
->  
->  	ino = st.st_ino;
->  	*res = constant_expr_alloc(&sym->location, &cgroupv2_type,
+Avi
