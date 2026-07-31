@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7B5438FED;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 558B534CFDA;
 	Fri, 31 Jul 2026 15:18:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785511106; cv=none; b=Jbz5a4CVOs++1Px22J3NegJW/vlRv5q3meGvVq4hBluTOxSpTaloipwXoEsZ+04riichhxHN2RO22AQF/kfJB1ygz/mD0pr6dh1QiWvVpJJlj/sr4GkdqO6q8KDol2wG2Os+LT0f83jzUMaBCzsksqEn8T40x/uCwI+zlxHLNFA=
+	t=1785511106; cv=none; b=L9xaVsgLyWQ+pw+8x7shhl0D3bRDbxnkjTTFsFWX5X+3W+qustQU8hANL+6pKpMIPMjkmlIhEs2eReFYoRBp4MLErEca53TMbpjedjxBzOBMtQdJ4eJ/w0QUdwPIVMnVptPgATmdwMptQ0883Hlga2/2dAePcinxNW0kqe6V3yc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785511106; c=relaxed/simple;
-	bh=8Y+zAvg4pMxyrxYbecomCNaOnnRfeFnnG/MfE5MH7KU=;
+	bh=cRTTwwyvebT20hY+0wNlk90gRm09lA43kZME+lhr+9Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ep7Kz/ljsLIBQzicC18Zv4U3xqyKCbSeOgwPBRwExOV3hLUddp6Tlegesc2KVoBNsIuWv2g7NlMp9X0FLkFjnv50tj6TrmJyeCbZc60ZaAXxNUfRKPCCRhc5C8v7c0ihXJpiTB0ptqfZe4O/dmiLWT6mmDl88wdjVNyKO5P6o+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DIq5eBVj; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Y2FqeoJZLDWgA37G4eCE48nHuxFrLYWFS+srAo4YC8JVpZLcu7W/XMPv/Oe6mts3mdUdbIlEpJyV0SrTKOupZZdM50J30SMKdHt/1fo8C5x5ycPQxQDHZw/I49uPU0QoxuaNmOL2iBrnngjRktoq0dHyI3ccU2DG3AOIkhYBq/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Lq27Vxnc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DIq5eBVj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Lq27Vxnc"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 11A776028D;
-	Fri, 31 Jul 2026 17:18:22 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4405160287;
+	Fri, 31 Jul 2026 17:18:16 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785511102;
-	bh=a6s20pRSESdeDAS2nEwzYmbRhYJOQdmsT82r637Mapk=;
+	s=2025; t=1785511096;
+	bh=k8EqcA5AxqnDjPkIsNdbqUrnd0FUAGhCRwxBKiiRMcQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DIq5eBVjswoM7JPF2kBPQuT/sPnZCOjIVyTfXxubYkOs/ogPa6HgyCY7VU7fRW/Nx
-	 s9+66G74u/qKhluyBDU6outQv34RMf+E3vHXrbId1EIClmzKGpjPa/nxY/5leNdEYg
-	 +BY9346upgeWn5k2XRz5ozywtDXS7NeJ3u1Go/KgASEYOggtLWgPx3uLQ+aV8lELHr
-	 iZsCmWhnIMteuntWaHyLx+afQZki5zwyYihEJL4GDCfG/W6q4TVQDecku9eOzIgg/m
-	 /ERTm0i119f7u7jce5MkFrgGQHdOlX45XPyo2Z1tOVTJcU9UFgkemg+rCEn/XL/v1s
-	 9H5gED0zfCxGA==
+	b=Lq27Vxncm908vJdoFpEaz5EOggmI7VJFmQd/Jc7NEB41RyiA6QGhLWVumpANeJicf
+	 7PAENZgvxzufFYeSkvHaromNiIf/2x2MRHtJ0euRFmSF2WPp5WInIMoE6t0fG7/cf8
+	 VJb+G1xyt5vZu0vqScEKIWqXeIsZLqCvA3m8b0iTcrl3MsPeBXw05i9ahRONrQRDOQ
+	 xNExdmGA+MQl/Rrw+DhW3MeQq77w6E89hBKDuF2zDieFCm4E/X4hFI4AvDuuv9p4DE
+	 MHdquYDH3XuMqAOGuoC4npt4pPJi2NUBg+d8CJUvmw0tO/JPMYFNw++/Pq6qRqSRVW
+	 giCCFn4cFaejw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 08/10] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
-Date: Fri, 31 Jul 2026 17:18:04 +0200
-Message-ID: <20260731151806.849724-9-pablo@netfilter.org>
+Subject: [PATCH net 03/10] netfilter: ipset: rework cidr bookkeeping
+Date: Fri, 31 Jul 2026 17:17:59 +0200
+Message-ID: <20260731151806.849724-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260731151806.849724-1-pablo@netfilter.org>
 References: <20260731151806.849724-1-pablo@netfilter.org>
@@ -52,254 +52,599 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-Sashiko warns that local attacker can modify the packet
-while it is processed by IPVS. Some places read the
-IP ihl field multiple times which can cause out-of-bounds
-access. One such place is ip_vs_nat_icmp where we
-can write after the validated area.
+According to sashiko, the current bookkeeping of cidr values are unsafe
+on weakly-ordered architectures. Replace the in-place updating with an
+RCU based method: create the new bookeeping structure, update and replace
+the old one with the new. Downside that we need to allocate memory when
+deleting a cidr entry - in case of memory pressure fall back to leave holes
+which possibility is taken into account at evaluation time.
 
-Fix it by providing ciph argument just like it is done for
-IPv6 and use ciph->len as offset to the embedded transport
-header.
+Thanks to Pablo (Pablo Neira Ayuso <pablo@netfilter.org>) and Cyntia
+(Cynthia <cynthia@kosmx.dev>) for helping me in debugging which resulted
+the patch "netfilter: ipset: allocate the proper memory for the generic
+hash structure" on which this very patch depends.
 
-Modify some IPv4 header checks by reading the ihl field
-only once.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Link: https://sashiko.dev/#/patchset/20260722101517.36313-1-ja%40ssi.bg
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             |  2 +-
- net/netfilter/ipvs/ip_vs_core.c | 67 +++++++++++++++++----------------
- net/netfilter/ipvs/ip_vs_xmit.c |  2 +-
- 3 files changed, 36 insertions(+), 35 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h        | 235 +++++++++++++------
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |   4 +-
+ net/netfilter/ipset/ip_set_hash_net.c        |   4 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   4 +-
+ net/netfilter/ipset/ip_set_hash_netnet.c     |  12 +-
+ net/netfilter/ipset/ip_set_hash_netport.c    |   4 +-
+ net/netfilter/ipset/ip_set_hash_netportnet.c |  12 +-
+ 7 files changed, 182 insertions(+), 93 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index e6ca930a3507..1235f1934e94 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -2062,7 +2062,7 @@ static inline bool ip_vs_conn_use_hash2(struct ip_vs_conn *cp)
- 
- void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		    struct ip_vs_conn *cp, int dir, unsigned int toff,
--		    bool has_ports);
-+		    bool has_ports, struct ip_vs_iphdr *ciph);
- 
- #ifdef CONFIG_IP_VS_IPV6
- void ip_vs_nat_icmp_v6(struct sk_buff *skb, struct ip_vs_protocol *pp,
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 6b79e0c4d9e2..0bdaeb4ed61e 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -925,28 +925,27 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
-  */
- void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		    struct ip_vs_conn *cp, int inout, unsigned int toff,
--		    bool has_ports)
-+		    bool has_ports, struct ip_vs_iphdr *ciph)
- {
- 	struct iphdr *iph	 = ip_hdr(skb);
- 	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
--	struct iphdr *ciph	 = (struct iphdr *)(icmph + 1);
--	unsigned int coff __maybe_unused = toff + sizeof(struct icmphdr);
-+	struct iphdr *cih	 = (struct iphdr *)(icmph + 1);
- 
- 	if (inout) {
- 		iph->saddr = cp->vaddr.ip;
- 		ip_send_check(iph);
--		ciph->daddr = cp->vaddr.ip;
--		ip_send_check(ciph);
-+		cih->daddr = cp->vaddr.ip;
-+		ip_send_check(cih);
- 	} else {
- 		iph->daddr = cp->daddr.ip;
- 		ip_send_check(iph);
--		ciph->saddr = cp->daddr.ip;
--		ip_send_check(ciph);
-+		cih->saddr = cp->daddr.ip;
-+		ip_send_check(cih);
- 	}
- 
- 	/* the TCP/UDP/SCTP port */
- 	if (has_ports) {
--		__be16 *ports = (void *)ciph + ciph->ihl*4;
-+		__be16 *ports = (void *)(skb->data + ciph->len);
- 
- 		if (inout)
- 			ports[1] = cp->vport;
-@@ -960,10 +959,10 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	skb->ip_summed = CHECKSUM_UNNECESSARY;
- 
- 	if (inout)
--		IP_VS_DBG_PKT(11, AF_INET, pp, skb, coff,
-+		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
- 			      "Forwarding altered outgoing ICMP");
- 	else
--		IP_VS_DBG_PKT(11, AF_INET, pp, skb, coff,
-+		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
- 			      "Forwarding altered incoming ICMP");
- }
- 
-@@ -1056,7 +1055,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
- 		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, has_ports, ciph);
- 	else
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index b2d77973272d..dd31992c915c 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -99,9 +99,15 @@ struct htable {
  #endif
--		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports);
-+		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph);
  
- 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
- 		goto out;
-@@ -1092,7 +1091,7 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	struct ip_vs_iphdr ciph;
- 	struct ip_vs_conn *cp;
- 	struct ip_vs_protocol *pp;
--	unsigned int offset, ihl;
-+	unsigned int offset;
- 	union nf_inet_addr snet;
- 
- 	*related = 1;
-@@ -1105,7 +1104,6 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 			return NF_ACCEPT;
- 	}
- 
--	ihl = ipvsh->len;
- 	offset = ipvsh->len;
- 	ic = skb_header_pointer(skb, offset, sizeof(_icmph), &_icmph);
- 	if (ic == NULL)
-@@ -1131,11 +1129,15 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 
- 	/* Now find the contained IP header */
- 	offset += sizeof(_icmph);
-+	if (!ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, true, &ciph))
-+		return NF_ACCEPT; /* The packet looks wrong, ignore */
+ /* Book-keeping of the prefixes added to the set */
++struct net_prefix {
++	u8 cidr;			/* the cidr value */
++	u32 count;			/* number of elements of this cidr */
++};
 +
- 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
--	if (!(cih && cih->version == 4 && cih->ihl >= 5))
-+	if (!(cih && cih->version == 4 &&
-+	      ciph.len - ciph.off >= sizeof(struct iphdr)))
- 		return NF_ACCEPT; /* The packet looks wrong, ignore */
+ struct net_prefixes {
+-	u32 nets[IPSET_NET_COUNT]; /* number of elements for this cidr */
+-	u8 cidr[IPSET_NET_COUNT];  /* the cidr value */
++	struct rcu_head rcu;
++	u8 len;
++	struct net_prefix nets[] __counted_by(len);
+ };
  
--	pp = ip_vs_proto_get(cih->protocol);
-+	pp = ip_vs_proto_get(ciph.protocol);
- 	if (!pp)
- 		return NF_ACCEPT;
- 
-@@ -1146,8 +1148,6 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
- 		      "Checking outgoing ICMP for");
- 
--	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, true, &ciph);
+ /* Compute the hash table size */
+@@ -127,11 +133,6 @@ htable_size(u8 hbits)
+ #else
+ #define __CIDR(cidr, i)		(cidr)
+ #endif
 -
- 	/* The embedded headers contain source and dest in reverse order */
- 	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
- 			     ipvs, AF_INET, skb, &ciph);
-@@ -1155,8 +1155,8 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 		return NF_ACCEPT;
+-/* cidr + 1 is stored in net_prefixes to support /0 */
+-#define NCIDR_PUT(cidr)		((cidr) + 1)
+-#define NCIDR_GET(cidr)		((cidr) - 1)
+-
+ #ifdef IP_SET_HASH_WITH_NETS_PACKED
+ /* When cidr is packed with nomatch, cidr - 1 is stored in the data entry */
+ #define DCIDR_PUT(cidr)		((cidr) - 1)
+@@ -141,21 +142,11 @@ htable_size(u8 hbits)
+ #define DCIDR_GET(cidr, i)	__CIDR(cidr, i)
+ #endif
  
- 	snet.ip = ipvsh->saddr.ip;
--	return handle_response_icmp(AF_INET, skb, &snet, cp, pp, &ciph, ihl,
--				    hooknum);
-+	return handle_response_icmp(AF_INET, skb, &snet, cp, pp, &ciph,
-+				    ipvsh->len, hooknum);
- }
+-#define INIT_CIDR(cidr, host_mask)	\
+-	DCIDR_PUT(((cidr) ? NCIDR_GET(cidr) : host_mask))
+-
+-#ifdef IP_SET_HASH_WITH_NET0
+-/* cidr from 0 to HOST_MASK value and c = cidr + 1 */
+-#define NLEN			(HOST_MASK + 1)
+-#define CIDR_POS(c)		((c) - 1)
+-#else
+-/* cidr from 1 to HOST_MASK value and c = cidr + 1 */
+-#define NLEN			HOST_MASK
+-#define CIDR_POS(c)		((c) - 2)
+-#endif
++#define INIT_CIDR(n, host_mask) ({				\
++	const struct net_prefixes *__n = rcu_dereference(n);		\
++	DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
++})
  
- #ifdef CONFIG_IP_VS_IPV6
-@@ -1803,10 +1803,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	/* Now find the contained IP header */
- 	offset += sizeof(_icmph);
- 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
--	if (!(cih && cih->version == 4 && cih->ihl >= 5))
-+	if (!cih)
- 		return NF_ACCEPT; /* The packet looks wrong, ignore */
--	raddr = (union nf_inet_addr *)&cih->daddr;
- 	hlen_ipip = cih->ihl * 4;
-+	if (!(cih->version == 4 && hlen_ipip >= sizeof(struct iphdr)))
-+		return NF_ACCEPT; /* The packet looks wrong, ignore */
-+	raddr = (union nf_inet_addr *)&cih->daddr;
+-#else
+-#define NLEN			0
+ #endif /* IP_SET_HASH_WITH_NETS */
  
- 	/* Special case for errors for IPIP/UDP/GRE tunnel packets */
- 	tunnel = false;
-@@ -1823,9 +1825,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (!dest || dest->tun_type != IP_VS_CONN_F_TUNNEL_TYPE_IPIP)
- 			return NF_ACCEPT;
- 		offset += hlen_ipip;
--		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
--		if (!(cih && cih->version == 4 && cih->ihl >= 5))
--			return NF_ACCEPT; /* The packet looks wrong, ignore */
- 		tunnel = true;
- 	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
- 		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
-@@ -1850,21 +1849,25 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 			/* Skip IP and UDP/GRE tunnel headers */
- 			offset = offset2 + ulen;
- 			/* Now we should be at the original IP header */
--			cih = skb_header_pointer(skb, offset, sizeof(_ciph),
--						 &_ciph);
--			if (cih && cih->version == 4 && cih->ihl >= 5 &&
--			    iproto == IPPROTO_IPIP)
-+			if (iproto == IPPROTO_IPIP)
- 				tunnel = true;
- 			else
- 				return NF_ACCEPT;
+ #define SET_ELEM_EXPIRED(set, d)	\
+@@ -292,6 +283,7 @@ static const union nf_inet_addr zeromask = {};
+ /* The generic hash structure */
+ struct htype {
+ 	struct htable __rcu *table; /* the hash table */
++	struct net_prefixes __rcu *rnets[IPSET_NET_COUNT]; /* cidr prefixes */
+ 	struct htable_gc gc;	/* gc workqueue */
+ 	u32 maxelem;		/* max elements in the hash */
+ 	u32 initval;		/* random jhash init value */
+@@ -302,9 +294,6 @@ struct htype {
+ #if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
+ 	u8 netmask;		/* netmask value for subnets to store */
+ 	union nf_inet_addr bitmask;	/* stores bitmask */
+-#endif
+-#ifdef IP_SET_HASH_WITH_NETS
+-	struct net_prefixes nets[NLEN]; /* book-keeping of prefixes */
+ #endif
+ 	/* Because 'next' is IPv4/IPv6 dependent, no elements of this
+ 	 * structure and referred in create() may come after 'next'.
+@@ -326,50 +315,92 @@ struct mtype_resize_ad {
+ /* Network cidr size book keeping when the hash stores different
+  * sized networks. cidr == real cidr + 1 to support /0.
+  */
+-static void
++static int
+ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ {
+-	int i, j;
++	struct net_prefixes *nets, *tmp;
++	int i, j, found, len = 0, ret = 0;
+ 
+ 	spin_lock_bh(&set->lock);
++	nets = __ipset_dereference(h->rnets[n]);
+ 	/* Add in increasing prefix order, so larger cidr first */
+-	for (i = 0, j = -1; i < NLEN && h->nets[i].cidr[n]; i++) {
+-		if (j != -1) {
++	for (i = 0, found = -1; i < nets->len; i++) {
++		if (nets->nets[i].count)
++			len++;
++		if (found != -1) {
+ 			continue;
+-		} else if (h->nets[i].cidr[n] < cidr) {
+-			j = i;
+-		} else if (h->nets[i].cidr[n] == cidr) {
+-			h->nets[CIDR_POS(cidr)].nets[n]++;
++		} else if (nets->nets[i].cidr < cidr) {
++			found = i;
++		} else if (nets->nets[i].cidr == cidr) {
++			nets->nets[i].count++;
+ 			goto unlock;
  		}
  	}
- 
--	pd = ip_vs_proto_data_get(ipvs, cih->protocol);
-+	if (!ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph))
-+		return NF_ACCEPT;
-+	pd = ip_vs_proto_data_get(ipvs, ciph.protocol);
- 	if (!pd)
- 		return NF_ACCEPT;
- 	pp = pd->pp;
- 
-+	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
-+	if (!(cih && cih->version == 4 &&
-+	      ciph.len - ciph.off >= sizeof(struct iphdr)))
-+		return NF_ACCEPT; /* The packet looks wrong, ignore */
+-	if (j != -1) {
+-		for (; i > j; i--)
+-			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
++	len++;
++	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
++	if (!tmp) {
++		ret = -ENOMEM;
++		goto unlock;
+ 	}
+-	h->nets[i].cidr[n] = cidr;
+-	h->nets[CIDR_POS(cidr)].nets[n] = 1;
 +
- 	/* Is the embedded protocol header present? */
- 	if (unlikely(cih->frag_off & htons(IP_OFFSET) && !pp->dont_defrag))
- 		return NF_ACCEPT;
-@@ -1872,9 +1875,6 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	IP_VS_DBG_PKT(11, AF_INET, pp, skb, offset,
- 		      "Checking incoming ICMP for");
++	tmp->len = len;
++	for (i = 0, j = 0; i < nets->len; i++) {
++		if (i == found) {
++			tmp->nets[j].cidr = cidr;
++			tmp->nets[j++].count = 1;
++		}
++		if (!nets->nets[i].count)
++			continue;
++		tmp->nets[j].cidr = nets->nets[i].cidr;
++		tmp->nets[j++].count = nets->nets[i].count;
++	}
++	if (found == -1) {
++		tmp->nets[j].cidr = cidr;
++		tmp->nets[j].count = 1;
++	}
++	rcu_assign_pointer(h->rnets[n], tmp);
++	kfree_rcu(nets, rcu);
+ unlock:
+ 	spin_unlock_bh(&set->lock);
++	return ret;
+ }
  
--	offset2 = offset;
--	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, !tunnel, &ciph);
--
- 	/* The embedded headers contain source and dest in reverse order.
- 	 * For IPIP/UDP/GRE tunnel this is error for request, not for reply.
- 	 */
-@@ -1904,11 +1904,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ static void
+ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ {
+-	u8 i, j, net_end = NLEN - 1;
++	struct net_prefixes *nets, *tmp;
++	u8 i, j, len = 0;
++	int found;
+ 
+ 	spin_lock_bh(&set->lock);
+-	for (i = 0; i < NLEN; i++) {
+-		if (h->nets[i].cidr[n] != cidr)
+-			continue;
+-		h->nets[CIDR_POS(cidr)].nets[n]--;
+-		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
+-			goto unlock;
+-		for (j = i; j < net_end && h->nets[j].cidr[n]; j++)
+-			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
+-		h->nets[j].cidr[n] = 0;
++	nets = __ipset_dereference(h->rnets[n]);
++	for (i = 0, found = -1; i < nets->len; i++) {
++		if (nets->nets[i].count)
++			len++;
++		if (nets->nets[i].cidr == cidr)
++			found = i;
++	}
++	if (unlikely(found == -1))
++		goto unlock;
++
++	nets->nets[found].count--;
++	if (nets->nets[found].count)
+ 		goto unlock;
++	len--;
++	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
++	if (!tmp)
++		/* Leave a hole */
++		goto unlock;
++
++	tmp->len = len;
++	for (i = 0, j = 0; i < nets->len; i++) {
++		if (!nets->nets[i].count || i == found)
++			continue;
++		tmp->nets[j].cidr = nets->nets[i].cidr;
++		tmp->nets[j++].count = nets->nets[i].count;
+ 	}
++	rcu_assign_pointer(h->rnets[n], tmp);
++	kfree_rcu(nets, rcu);
+ unlock:
+ 	spin_unlock_bh(&set->lock);
+ }
+@@ -402,6 +433,9 @@ static void
+ mtype_flush(struct ip_set *set)
+ {
+ 	struct htype *h = set->data;
++#ifdef IP_SET_HASH_WITH_NETS
++	struct net_prefixes *nets, *tmp;
++#endif
+ 	struct htable *t;
+ 	struct hbucket *n;
+ 	u32 r, i;
+@@ -425,7 +459,19 @@ mtype_flush(struct ip_set *set)
+ 		spin_unlock_bh(&t->hregion[r].lock);
+ 	}
+ #ifdef IP_SET_HASH_WITH_NETS
+-	memset(h->nets, 0, sizeof(h->nets));
++	for (i = 0; i < IPSET_NET_COUNT; i++) {
++		nets = ipset_dereference_nfnl(h->rnets[i]);
++		tmp = kzalloc_obj(*tmp, GFP_ATOMIC);
++		if (!tmp) {
++			u8 j;
++
++			for (j = 0; j < nets->len; j++)
++				nets->nets[j].count = 0;
++		} else {
++			rcu_assign_pointer(h->rnets[i], tmp);
++			kfree_rcu(nets, rcu);
++		}
++	}
+ #endif
+ }
+ 
+@@ -433,6 +479,9 @@ mtype_flush(struct ip_set *set)
+ static void
+ mtype_ahash_destroy(struct ip_set *set, struct htable *t, bool ext_destroy)
+ {
++#ifdef IP_SET_HASH_WITH_NETS
++	struct htype *h = set->data;
++#endif
+ 	struct hbucket *n;
+ 	u32 i;
+ 
+@@ -446,6 +495,11 @@ mtype_ahash_destroy(struct ip_set *set, struct htable *t, bool ext_destroy)
+ 		kfree(n);
  	}
  
- 	if (tunnel) {
--		unsigned int hlen_orig = cih->ihl * 4;
-+		unsigned int hlen_orig = ciph.len - ciph.off;
- 		__be32 info = ic->un.gateway;
- 		__u8 type = ic->type;
- 		__u8 code = ic->code;
++#ifdef IP_SET_HASH_WITH_NETS
++	if (ext_destroy)
++		for (i = 0; i < IPSET_NET_COUNT; i++)
++			kfree(rcu_dereference_raw(h->rnets[i]));
++#endif
+ 	ip_set_free(t->hregion);
+ 	ip_set_free(t);
+ }
+@@ -519,8 +573,7 @@ mtype_gc_do(struct ip_set *set, struct htype *h, struct htable *t, u32 r)
+ #ifdef IP_SET_HASH_WITH_NETS
+ 			for (k = 0; k < IPSET_NET_COUNT; k++)
+ 				mtype_del_cidr(set, h,
+-					NCIDR_PUT(DCIDR_GET(data->cidr, k)),
+-					k);
++					DCIDR_GET(data->cidr, k), k);
+ #endif
+ 			t->hregion[r].elements--;
+ 			ip_set_ext_destroy(set, data);
+@@ -950,8 +1003,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ #ifdef IP_SET_HASH_WITH_NETS
+ 			for (i = 0; i < IPSET_NET_COUNT; i++)
+ 				mtype_del_cidr(set, h,
+-					NCIDR_PUT(DCIDR_GET(data->cidr, i)),
+-					i);
++					DCIDR_GET(data->cidr, i), i);
+ #endif
+ 			ip_set_ext_destroy(set, data);
+ 			t->hregion[r].elements--;
+@@ -996,7 +1048,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	t->hregion[r].elements++;
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	for (i = 0; i < IPSET_NET_COUNT; i++)
+-		mtype_add_cidr(set, h, NCIDR_PUT(DCIDR_GET(d->cidr, i)), i);
++		mtype_add_cidr(set, h, DCIDR_GET(d->cidr, i), i);
+ #endif
+ 	memcpy(data, d, sizeof(struct mtype_elem));
+ overwrite_extensions:
+@@ -1110,7 +1162,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ #ifdef IP_SET_HASH_WITH_NETS
+ 		for (j = 0; j < IPSET_NET_COUNT; j++)
+ 			mtype_del_cidr(set, h,
+-				       NCIDR_PUT(DCIDR_GET(d->cidr, j)), j);
++				DCIDR_GET(d->cidr, j), j);
+ #endif
+ 		ip_set_ext_destroy(set, data);
  
-+		offset2 = offset;
- 		/* Update the MTU */
- 		if (ic->type == ICMP_DEST_UNREACH &&
- 		    ic->code == ICMP_FRAG_NEEDED) {
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 0b0c5304993a..c4508f3f43dd 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -1580,7 +1580,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
- 		goto tx_error;
+@@ -1193,28 +1245,37 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ {
+ 	struct htype *h = set->data;
+ 	struct htable *t = rcu_dereference_bh(h->table);
++	struct net_prefixes *nets0;
+ 	struct hbucket *n;
+ 	struct mtype_elem *data;
+ #if IPSET_NET_COUNT == 2
++	struct net_prefixes *nets1;
+ 	struct mtype_elem orig = *d;
+-	int ret, i, j = 0, k;
++	int ret, i, j, k;
+ #else
+-	int ret, i, j = 0;
++	int ret, i, j;
+ #endif
+ 	u32 key, multi = 0;
+ 	u8 pos;
  
--	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports);
-+	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph);
+ 	pr_debug("test by nets\n");
+-	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
++	rcu_read_lock_bh();
++	nets0 = rcu_dereference_bh(h->rnets[0]);
++#if IPSET_NET_COUNT == 2
++	nets1 = rcu_dereference_bh(h->rnets[1]);
++#endif
++	for (j = 0; j < nets0->len && !multi; j++) {
++		if (!nets0->nets[j].count)
++			continue;
+ #if IPSET_NET_COUNT == 2
+ 		mtype_data_reset_elem(d, &orig);
+-		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]), false);
+-		for (k = 0; k < NLEN && h->nets[k].cidr[1] && !multi;
+-		     k++) {
+-			mtype_data_netmask(d, NCIDR_GET(h->nets[k].cidr[1]),
+-					   true);
++		mtype_data_netmask(d, nets0->nets[j].cidr, false);
++		for (k = 0; k < nets1->len && !multi; k++) {
++			if (!nets1->nets[k].count)
++				continue;
++			mtype_data_netmask(d, nets1->nets[k].cidr, true);
+ #else
+-		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]));
++		mtype_data_netmask(d, nets0->nets[j].cidr);
+ #endif
+ 		key = HKEY(d, h->initval, t->htable_bits);
+ 		n = rcu_dereference_bh(hbucket(t, key));
+@@ -1229,7 +1290,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 				continue;
+ 			ret = mtype_data_match(data, ext, mext, set, flags);
+ 			if (ret != 0)
+-				return ret;
++				goto unlock;
+ #ifdef IP_SET_HASH_WITH_MULTI
+ 			/* No match, reset multiple match flag */
+ 			multi = 0;
+@@ -1239,7 +1300,10 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 		}
+ #endif
+ 	}
+-	return 0;
++	ret = 0;
++unlock:
++	rcu_read_unlock_bh();
++	return ret;
+ }
+ #endif
  
- 	/* Another hack: avoid icmp_send in ip_fragment */
- 	skb->ignore_df = 1;
+@@ -1504,6 +1568,9 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	int ret __attribute__((unused)) = 0;
+ 	u8 netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
+ 	union nf_inet_addr bitmask = onesmask;
++#endif
++#ifdef IP_SET_HASH_WITH_NETS
++	struct net_prefixes *nets;
+ #endif
+ 	size_t hsize;
+ 	struct htype *h;
+@@ -1604,21 +1671,25 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	 */
+ 	hbits = fls(hashsize - 1);
+ 	hsize = htable_size(hbits);
+-	if (hsize == 0) {
+-		kfree(h);
+-		return -ENOMEM;
+-	}
++	if (hsize == 0)
++		goto free_h;
+ 	t = ip_set_alloc(hsize);
+-	if (!t) {
+-		kfree(h);
+-		return -ENOMEM;
+-	}
++	if (!t)
++		goto free_h;
+ 	t->hregion = ip_set_alloc(ahash_sizeof_regions(hbits));
+-	if (!t->hregion) {
+-		ip_set_free(t);
+-		kfree(h);
+-		return -ENOMEM;
++	if (!t->hregion)
++		goto free_t;
++#ifdef IP_SET_HASH_WITH_NETS
++	for (i = 0; i < IPSET_NET_COUNT; i++) {
++		nets = kzalloc_obj(*nets);
++		if (!nets) {
++			while (i > 0)
++				kfree(rcu_dereference_raw(h->rnets[--i]));
++			goto free_hregion;
++		}
++		RCU_INIT_POINTER(h->rnets[i], nets);
+ 	}
++#endif
+ 	h->gc.set = set;
+ 	spin_lock_init(&h->gc.lock);
+ 	for (i = 0; i < ahash_numof_locks(hbits); i++)
+@@ -1682,6 +1753,16 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 		 t->htable_bits, h->maxelem, set->data, t);
+ 
+ 	return 0;
++
++#ifdef IP_SET_HASH_WITH_NETS
++free_hregion:
++	ip_set_free(t->hregion);
++#endif
++free_t:
++	ip_set_free(t);
++free_h:
++	kfree(h);
++	return -ENOMEM;
+ }
+ #endif /* IP_SET_EMIT_CREATE */
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 2d6652d43199..195853a25b06 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -138,7 +138,7 @@ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_ipportnet4 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipportnet4_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+@@ -398,7 +398,7 @@ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_ipportnet6 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipportnet6_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index ce0a9ce5a91f..092f3c9281b8 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -117,7 +117,7 @@ hash_net4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_net4 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_net4_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+@@ -291,7 +291,7 @@ hash_net6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_net6 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_net6_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 30a655e5c4fd..b44b95f766b7 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -161,7 +161,7 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netiface4 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface4_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+@@ -382,7 +382,7 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netiface6 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 8fbe649c9dd3..f7c8a1cc30fc 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -149,8 +149,10 @@ hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	e.cidr[0] = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK);
+-	e.cidr[1] = INIT_CIDR(h->nets[0].cidr[1], HOST_MASK);
++	rcu_read_lock_bh();
++	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
++	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
++	rcu_read_unlock_bh();
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(e.cidr[0]) * 8)) | HOST_MASK;
+ 
+@@ -388,8 +390,10 @@ hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	e.cidr[0] = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK);
+-	e.cidr[1] = INIT_CIDR(h->nets[0].cidr[1], HOST_MASK);
++	rcu_read_lock_bh();
++	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
++	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
++	rcu_read_unlock_bh();
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(u8) * 8)) | HOST_MASK;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index d1a0628df4ef..5de4b511de76 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -133,7 +133,7 @@ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_netport4 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netport4_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+@@ -353,7 +353,7 @@ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	const struct hash_netport6 *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netport6_elem e = {
+-		.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
++		.cidr = INIT_CIDR(h->rnets[0], HOST_MASK),
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index bf4f91b78e1d..6291532be7a5 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -157,8 +157,10 @@ hash_netportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netportnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	e.cidr[0] = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK);
+-	e.cidr[1] = INIT_CIDR(h->nets[0].cidr[1], HOST_MASK);
++	rcu_read_lock_bh();
++	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
++	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
++	rcu_read_unlock_bh();
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(e.cidr[0]) * 8)) | HOST_MASK;
+ 
+@@ -452,8 +454,10 @@ hash_netportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_netportnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	e.cidr[0] = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK);
+-	e.cidr[1] = INIT_CIDR(h->nets[0].cidr[1], HOST_MASK);
++	rcu_read_lock_bh();
++	e.cidr[0] = INIT_CIDR(h->rnets[0], HOST_MASK);
++	e.cidr[1] = INIT_CIDR(h->rnets[1], HOST_MASK);
++	rcu_read_unlock_bh();
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(u8) * 8)) | HOST_MASK;
+ 
 -- 
 2.47.3
 
