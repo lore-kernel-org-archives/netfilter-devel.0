@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 725F5439003;
-	Fri, 31 Jul 2026 15:34:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D131A4457CC;
+	Fri, 31 Jul 2026 15:34:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785512067; cv=none; b=PQniKs0qiQInIN8KKXvmE/pDPv5IiFL6O/jIuNDGLiKAG/HwoBxi+OmdXYpWHFvemzHKXocuCO9vYGh1HUIAHV3PveaDYDVccB1BgGiTkqkxcB5nlhdcvlIF3WkIZiSvPB4iatP6zlJc5xKmIO8+r6TA2iLOH/+n9m7sOBCl640=
+	t=1785512068; cv=none; b=b3G1hJPepJYwgUvQ+VqHojVR80I9pp/vunrGZ1+PzR+PlPdF2Syez/ERJpU/AVfc2Y28/f+cci7pBu9akit8YMx1aIjzBXd9YwzNU4N+qZr/i04TLer/UXDWF09lIW1W+FMBpgZu6eg4vJ3MGu0iuFwLsVrSD/HlApV39DNY3W4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785512067; c=relaxed/simple;
-	bh=XYmSFfGP1t3q9s7ieCjQNYIbDmio7nN71SjMS77/FAo=;
+	s=arc-20240116; t=1785512068; c=relaxed/simple;
+	bh=6UAkyeqLG/pUvQeYF5nENqd9rWPQ9EdB5n+OBYbqYV0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=L+pg89n1eIEyfAhIhvUf6+Ga1x+flvyyMWPbArBo1w8YT1ZhDoIMSAntxxsEKLQDtVZ5RNUSoh3KO2zofGwa6qxlg5opqbs7u3O9oyXqg822V3smJXbSDsDvv3OGwY9vx5OP54pUabCzeou4i/TT9DrOTWuC7bM3oaeEmjiPVaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GVzz1mkZ; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=e2L8X466KYbIjfG6V5x/i3N/aLjIFbAzSzHB0DBOoYpEEv6/sGAIBzpwpt7juOEj70mhBPJDBtLRjMmDkFqGwU/BL3dzSFgsYHFEdUBTxqq/aCXPWwSVukNVkRxRkl/df1wnUlgEi3cB9wi9s6DgT5pQCAyG76tM120A2483J9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ys1tSDVQ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GVzz1mkZ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ys1tSDVQ"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 10272602A5;
-	Fri, 31 Jul 2026 17:34:21 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 956BB602B2;
+	Fri, 31 Jul 2026 17:34:22 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785512061;
-	bh=/CCM+klP925bJvCZRgvgbgMaXArbrCeVc+zCSEnYW2U=;
+	s=2025; t=1785512063;
+	bh=u2gYTemH8+8jknshS8ldSGm8lRlbRYzKNuqnNRDryQs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GVzz1mkZF4DA/1yUB+w2vb6MXIXnGLMsmHjyQ/7ov0UXANIeIH+fyNn7yEQy7uDcc
-	 FRLlraAhWlkY1A8y+AvjIAOe3t5wjAX3Jdx5spyGywjMBYsW8mAnpVc2WHzbGDB4P+
-	 xkDmVjHijZitrb0euurJ148AEbiPwG3Y0WkDcHuJocW3lwCvCV/he+FUQTdCaqS3by
-	 +2AjnKR0oIG/v6KyY23/sOdBQMGJqvV5HPUeudcXiZE6pGs4fiGYeBT/JYQxdd8lUW
-	 +ECXKRAEdS5LVaBcMgOjbhf7XoCI+m8LhgqRFej5x/6SLERtk5FkasZmhHSnf97Ojq
-	 mJf6EexMJK/DA==
+	b=Ys1tSDVQkMlfzPeqcROavkoOb/C+safG6a+bX0CY6HnjDJUrIStQj+tLFeqYfQOiJ
+	 FfaDygrmdZ8dADxWuDA+dLunmQLMcZSf14bFmZf0VXazv26Js4EcK6QZEH0+mT0oue
+	 j41wtpgdnqQyQvFx4rVKyV+5/4BFOrfHswDFeW83EBeLrurSGONC06a7mPneH6UZ0P
+	 8FuK+GEe+Qo3nzN+kDFDibm/d2SHZffGQKUEY49ItbFf3Md3Zbpoy0i6OBlnlSqIv8
+	 ITFN9LqtHFJTaHbGDj5ifJPfHBrJYdBCr6mhNtJCCtH0H5BbBBNdPxdKnIdBwMyfRh
+	 0evOwI+TifTwQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 7/9] netfilter: flowtable: release tunnel route on error when building forward path
-Date: Fri, 31 Jul 2026 17:34:00 +0200
-Message-ID: <20260731153402.851224-8-pablo@netfilter.org>
+Subject: [PATCH net-next 8/9] netfilter: nf_tables: call skb_valid_dst() before skb_dst()
+Date: Fri, 31 Jul 2026 17:34:01 +0200
+Message-ID: <20260731153402.851224-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260731153402.851224-1-pablo@netfilter.org>
 References: <20260731153402.851224-1-pablo@netfilter.org>
@@ -52,210 +52,182 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nft_flow_tunnel_update_route() can lazy fail, leaving an incomplete
-forward path set ip. The route lookup also happens twice, once from
-dev_fill_forward_path() and again in this aforementioned function.
+When fetching the dst_entry from the skb, check if it valid, ie. this is
+not a template dst, for extensions that can be used from the netdev
+ingress and egress chains.
 
-Update ipip and ip6ip6 not to release the dst_entry and pass it on
-via the tunnel forward path information.
-
-In case of failure when setting up the forwarding path, release the
-tunnel dst that was provided via dev_fill_forward_path().
-
-Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/ipip.c                    |  2 +-
- net/ipv6/ip6_tunnel.c              |  4 +-
- net/netfilter/nf_flow_table_path.c | 65 ++++++++----------------------
- 3 files changed, 21 insertions(+), 50 deletions(-)
+ net/ipv4/netfilter/nf_reject_ipv4.c | 6 ++++--
+ net/ipv6/netfilter/nf_reject_ipv6.c | 8 ++++++--
+ net/netfilter/nft_meta.c            | 6 ++++--
+ net/netfilter/nft_rt.c              | 6 ++++--
+ net/netfilter/nft_xfrm.c            | 9 ++++++++-
+ 5 files changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-index 0831f6b81717..fb7d96f99b06 100644
---- a/net/ipv4/ipip.c
-+++ b/net/ipv4/ipip.c
-@@ -376,10 +376,10 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
- 	path->tun.src_v4.s_addr = tiph->saddr;
- 	path->tun.dst_v4.s_addr = tiph->daddr;
- 	path->tun.l3_proto = IPPROTO_IPIP;
-+	path->tun.dst = &rt->dst;
- 	path->dev = ctx->dev;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 4626dc46808f..59ec465a9df9 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -8,6 +8,7 @@
+ #include <net/tcp.h>
+ #include <net/route.h>
+ #include <net/dst.h>
++#include <net/dst_metadata.h>
+ #include <net/netfilter/ipv4/nf_reject.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_bridge.h>
+@@ -263,6 +264,7 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
+ 	if (!dst)
+ 		return -1;
  
- 	ctx->dev = rt->dst.dev;
--	ip_rt_put(rt);
- 
++	skb_dst_drop(skb_in);
+ 	skb_dst_set(skb_in, dst);
  	return 0;
  }
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index 97c3f61d627b..d80020bc2620 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1870,12 +1870,14 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 		path->tun.src_v6 = fl6.saddr;
- 		path->tun.dst_v6 = fl6.daddr;
- 		path->tun.l3_proto = IPPROTO_IPV6;
-+		path->tun.dst = dst;
- 		path->dev = ctx->dev;
- 		ctx->dev = dst->dev;
- 	}
+@@ -279,7 +281,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 	if (!oth)
+ 		return;
  
- 	err = dst->error;
--	dst_release(dst);
-+	if (err)
-+		dst_release(dst);
+-	if (!skb_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
++	if (!skb_valid_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
+ 		return;
  
- 	return err;
- }
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 004dc75ac357..56219b02e122 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -82,6 +82,7 @@ struct nft_forward_info {
- 	} encap[NF_FLOW_TABLE_ENCAP_MAX];
- 	u8 num_encaps;
- 	struct flow_offload_tunnel tun;
-+	struct dst_entry *tun_dst;
- 	u8 num_tuns;
- 	u8 ingress_vlans;
- 	u8 h_source[ETH_ALEN];
-@@ -93,7 +94,7 @@ struct nft_forward_info {
- static bool nft_flowtable_find_dev(const struct net_device *dev,
- 				   struct nft_flowtable *ft);
+ 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+@@ -352,7 +354,7 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	if (iph->frag_off & htons(IP_OFFSET))
+ 		return;
  
--static int nft_dev_path_info(const struct net_device_path_stack *stack,
-+static int nft_dev_path_info(struct net_device_path_stack *stack,
- 			     struct nft_forward_info *info,
- 			     unsigned char *ha, struct nft_flowtable *ft)
- {
-@@ -121,15 +122,16 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			/* DEV_PATH_VLAN, DEV_PATH_PPPOE and DEV_PATH_TUN */
- 			if (path->type == DEV_PATH_TUN) {
- 				if (info->num_tuns)
--					return -1;
-+					goto err_out;
+-	if (!skb_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
++	if (!skb_valid_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
+ 		return;
  
- 				info->tun.src_v6 = path->tun.src_v6;
- 				info->tun.dst_v6 = path->tun.dst_v6;
- 				info->tun.l3_proto = path->tun.l3_proto;
-+				info->tun_dst = path->tun.dst;
- 				info->num_tuns++;
- 			} else {
- 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
--					return -1;
-+					goto err_out;
+ 	if (skb_csum_unnecessary(skb_in) ||
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index ef5b7e85cffa..07cdaa10da0d 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -8,6 +8,7 @@
+ #include <net/ip6_route.h>
+ #include <net/ip6_fib.h>
+ #include <net/ip6_checksum.h>
++#include <net/dst_metadata.h>
+ #include <net/netfilter/ipv6/nf_reject.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_bridge.h>
+@@ -304,6 +305,7 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
+ 	if (!dst)
+ 		return -1;
  
- 				info->encap[info->num_encaps].id =
- 					path->encap.id;
-@@ -150,13 +152,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			switch (path->bridge.vlan_mode) {
- 			case DEV_PATH_BR_VLAN_UNTAG_HW:
- 				if (info->num_encaps == 0)
--					return -1;
-+					goto err_out;
- 
- 				info->ingress_vlans |= BIT(info->num_encaps - 1);
- 				break;
- 			case DEV_PATH_BR_VLAN_TAG:
- 				if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX)
--					return -1;
-+					goto err_out;
- 
- 				info->encap[info->num_encaps].id = path->bridge.vlan_id;
- 				info->encap[info->num_encaps].proto = path->bridge.vlan_proto;
-@@ -164,7 +166,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 				break;
- 			case DEV_PATH_BR_VLAN_UNTAG:
- 				if (info->num_encaps == 0)
--					return -1;
-+					goto err_out;
- 
- 				info->num_encaps--;
- 				break;
-@@ -174,7 +176,7 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 			break;
- 		default:
--			return -1;
-+			goto err_out;
- 		}
- 	}
- 
-@@ -183,9 +185,13 @@ static int nft_dev_path_info(const struct net_device_path_stack *stack,
- 		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
- 
- 	if (!nft_flowtable_find_dev(info->dev, ft))
--		return -1;
-+		goto err_out;
- 
++	skb_dst_drop(skb_in);
+ 	skb_dst_set(skb_in, dst);
  	return 0;
-+err_out:
-+	dev_fill_forward_path_release(stack);
+ }
+@@ -336,10 +338,12 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 	fl6.fl6_sport = otcph->dest;
+ 	fl6.fl6_dport = otcph->source;
+ 
+-	if (!skb_dst(oldskb)) {
++	if (!skb_valid_dst(oldskb)) {
+ 		nf_ip6_route(net, &dst, flowi6_to_flowi(&fl6), false);
+ 		if (!dst)
+ 			return;
 +
-+	return -1;
- }
- 
- static bool nft_flowtable_find_dev(const struct net_device *dev,
-@@ -205,44 +211,6 @@ static bool nft_flowtable_find_dev(const struct net_device *dev,
- 	return found;
- }
- 
--static int nft_flow_tunnel_update_route(const struct nft_pktinfo *pkt,
--					struct flow_offload_tunnel *tun,
--					struct nf_flow_route *route,
--					enum ip_conntrack_dir dir)
--{
--	struct dst_entry *cur_dst = route->tuple[dir].dst;
--	struct dst_entry *tun_dst = NULL;
--	struct flowi fl = {};
--
--	switch (nft_pf(pkt)) {
--	case NFPROTO_IPV4:
--		fl.u.ip4.daddr = tun->dst_v4.s_addr;
--		fl.u.ip4.saddr = tun->src_v4.s_addr;
--		fl.u.ip4.flowi4_iif = nft_in(pkt)->ifindex;
--		fl.u.ip4.flowi4_dscp = ip4h_dscp(ip_hdr(pkt->skb));
--		fl.u.ip4.flowi4_mark = pkt->skb->mark;
--		fl.u.ip4.flowi4_flags = FLOWI_FLAG_ANYSRC;
--		break;
--	case NFPROTO_IPV6:
--		fl.u.ip6.daddr = tun->dst_v6;
--		fl.u.ip6.saddr = tun->src_v6;
--		fl.u.ip6.flowi6_iif = nft_in(pkt)->ifindex;
--		fl.u.ip6.flowlabel = ip6_flowinfo(ipv6_hdr(pkt->skb));
--		fl.u.ip6.flowi6_mark = pkt->skb->mark;
--		fl.u.ip6.flowi6_flags = FLOWI_FLAG_ANYSRC;
--		break;
--	}
--
--	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
--	if (!tun_dst)
--		return -ENOENT;
--
--	route->tuple[dir].dst = tun_dst;
--	dst_release(cur_dst);
--
--	return 0;
--}
--
- static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 				struct nf_flow_route *route,
- 				const struct nf_conn *ct,
-@@ -267,12 +235,13 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
++		skb_dst_drop(oldskb);
+ 		skb_dst_set(oldskb, dst);
  	}
  
--	if (info.num_tuns &&
--	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
-+	if (info.num_tuns) {
- 		route->tuple[!dir].in.tun.src_v6 = info.tun.dst_v6;
- 		route->tuple[!dir].in.tun.dst_v6 = info.tun.src_v6;
- 		route->tuple[!dir].in.tun.l3_proto = info.tun.l3_proto;
- 		route->tuple[!dir].in.num_tuns = info.num_tuns;
-+		dst_release(route->tuple[dir].dst);
-+		route->tuple[dir].dst = info.tun_dst;
- 	}
+@@ -440,7 +444,7 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
  
- 	route->tuple[!dir].in.num_encaps = info.num_encaps;
+-	if (!skb_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
++	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
+ 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 0a43e0787a68..01cfbaa36525 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -20,6 +20,7 @@
+ #include <net/dst.h>
+ #include <net/ip.h>
+ #include <net/sock.h>
++#include <net/dst_metadata.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+@@ -279,11 +280,12 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
+ static noinline bool
+ nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
+ {
+-	const struct dst_entry *dst = skb_dst(skb);
++	const struct dst_entry *dst;
+ 
+-	if (!dst)
++	if (!skb_valid_dst(skb))
+ 		return false;
+ 
++	dst = skb_dst(skb);
+ 	*dest = dst->tclassid;
+ 	return true;
+ }
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index aeb0094eafd8..841c863a08db 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -8,6 +8,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/dst.h>
++#include <net/dst_metadata.h>
+ #include <net/ip6_route.h>
+ #include <net/route.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -59,10 +60,11 @@ void nft_rt_get_eval(const struct nft_expr *expr,
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	const struct dst_entry *dst;
+ 
+-	dst = skb_dst(skb);
+-	if (!dst)
++	if (!skb_valid_dst(skb))
+ 		goto err;
+ 
++	dst = skb_dst(skb);
++
+ 	switch (priv->key) {
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_RT_CLASSID:
+diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
+index 8cec43064319..c8bba697f993 100644
+--- a/net/netfilter/nft_xfrm.c
++++ b/net/netfilter/nft_xfrm.c
+@@ -12,6 +12,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/dst_metadata.h>
+ #include <linux/in.h>
+ #include <net/xfrm.h>
+ 
+@@ -177,9 +178,15 @@ static void nft_xfrm_get_eval_out(const struct nft_xfrm *priv,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+ {
+-	const struct dst_entry *dst = skb_dst(pkt->skb);
++	const struct dst_entry *dst;
+ 	int i;
+ 
++	if (!skb_valid_dst(pkt->skb)) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
++
++	dst = skb_dst(pkt->skb);
+ 	for (i = 0; dst && dst->xfrm;
+ 	     dst = ((const struct xfrm_dst *)dst)->child, i++) {
+ 		if (i < priv->spnum)
 -- 
 2.47.3
 
