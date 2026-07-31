@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670D7402B8A;
-	Fri, 31 Jul 2026 15:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844AA430CEE;
+	Fri, 31 Jul 2026 15:34:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785512054; cv=none; b=MH+vFBuVnAIe3VVgAv+EYQCp2xfs8yDpL5Bj1XhohVH1skmCUWK0k/5mC6qtaZSBNf2uTw11F9FRC7KCnBQ4XtBoKInu3PlU+E3l23SOcWLJtTpjQsCA4Ap/6MwQw9JG9vgjc2Wg0dNc085hmU+ocski01X8MnnEakLRjvXBx9E=
+	t=1785512057; cv=none; b=A5bC7NiWBHMTf79O4O1QjDnMIBRSPGrEleI8/vFKC/+qQ4s+8pPoYM/XG/7bCIrfySVZhvS9n7u4T9zi+uC3Xzj1u2fssh9KBOf02BZfVoXjWmKHrITSsPKF5JuM8jHQYZ06xDMoSEN81dKE8IKQGrZUqxyZ4m6vdQkozdjfplI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785512054; c=relaxed/simple;
-	bh=tSPXSz0Ppy76GoaQ0pT9DFZBo1BzG8XXfo5ZVhrZUwo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qMPLia1NAXvNhc+jDXkfcg+m8VoT6+ZV6xn443G4EGTKSVWyKW2fCSTwYnYH27Ape3jnv/lJ6PreRBAOBiHH7IQCg2odxDT0kbU9R3Dy8FN3GJ9c9gN6qaeXO7O6L/iR1APUjvTNCkaHqUvayYFuYry6IpVrhyLpI0w0+H5m5Zw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vgbM3sBG; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785512057; c=relaxed/simple;
+	bh=vvSLv/M4Ma/+P5n8reX4UTBcdWqla/UJ8a+9rY5hQUQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=qkfHGbK/lN2ZhUBk/Hh1x7d8OklFEEEPqK4IUZnnHtYIZ8OQi5gcsWntQ7+0XaVrKDXbnhBg3dhTUa2x8obGXuYQIfhbi1AgyQ2n8VCmLo0vrYKTlpcv9so153sJmOLVQzaOL7OcZBVm2ooiXAB7AIWnyRbmCig4o8cLXZuMDkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Fg/b9WP9; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vgbM3sBG"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Fg/b9WP9"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A33A0602A5;
-	Fri, 31 Jul 2026 17:34:10 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E11D9602A7;
+	Fri, 31 Jul 2026 17:34:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785512051;
-	bh=Sgt90GZ60YUypKSrF4qNa07o+a0udM9g191tsZDbX04=;
-	h=From:To:Cc:Subject:Date:From;
-	b=vgbM3sBGWbBTloSsmtvUKircTvv7TsDPUHpJowdlMWD3XDyBz2TK/ASJQTPfdehiC
-	 I89dTFiUYJlrW1PAGaLzs27sn34uxAcYmeUpeCz/7JBcCDH4YYO9qdkAa6bEOGXExi
-	 rtJIXOuux+DLqItj+34G2bX4+ZE1MKeJneTZ68jmMdo5AIAU2REhV39HHZrP3RitTJ
-	 kZDVLx/SePMf+lo91AWdFSIk88UitpP7ok8elxvf8pLiMM+rCZccGBuY0YJk22CMmo
-	 oVPg5Vb0LzfAne+k+tydWM3rPcmypaEr+X9DiGNZDlVPDIrIM8xO6HcGeBsrr6I6/a
-	 cqVj02W4OItzg==
+	s=2025; t=1785512053;
+	bh=bcbgSXf/mhXLp2dz0Tup+F/4IeOS+AhHG2brScSCmOo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Fg/b9WP95swTYRnzFdcqIVvJ5aLRtInp7z3mrfqzV7CyD3VwmxsgbFqBXiC9frX0J
+	 0fSTuknM6enjRPILvL660KjQOyOWMOK7/vJZ2D5oF8zJnziTc63tO/SrH3BfuB4Hrc
+	 pjT/VsTzeIPBNWlLcMNfNbbAqZrOA5l3O/OfxGbukeP+h84225Wt4k32jfyoZso/P2
+	 R4AqLhClscNq6s4cJznHFizOEr0jOHOsMFiFXT10EV9+d8DSm94R/wmsuV1X1rQNhs
+	 Z8MCUuqJlHj30Qj+5ZD5py2js+zvTy61wS4rs8McFkXWJzYpTtvUe2ckRGIFRo5rGB
+	 LDnlBhoCBB7RA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 0/9] Netfilter updates for net-next
-Date: Fri, 31 Jul 2026 17:33:53 +0200
-Message-ID: <20260731153402.851224-1-pablo@netfilter.org>
+Subject: [PATCH net-next 1/9] netfilter: conncount: normalize tuple and zone on successful ct lookup
+Date: Fri, 31 Jul 2026 17:33:54 +0200
+Message-ID: <20260731153402.851224-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260731153402.851224-1-pablo@netfilter.org>
+References: <20260731153402.851224-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,93 +52,39 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-The following patchset contains Netfilter updates for net-next:
+When get_ct_or_tuple_from_skb() falls back to looking for a connection
+via nf_conntrack_find_get(), a successful lookup sets ct but leaves
+tuple and zone unupdated.
 
-1) Update conncount to use the original tuple after ct lookup to ensure
-   consistent counting, from Fernando F. Mancera.
+If the packet belongs to a reply flow, tuple will remain in the reply
+direction. As conncount relies on the original direction tuple to count
+the connections consistenly, passing an unnormalized reply tuple could
+lead to problems.
 
-2) Remove redundant net_device field in info structure that helps
-   parse the flowtable path discovery.
+Fix this by making sure that tuple and zone are normalized.
 
-3) Move net_device to flowtable check to the flowtable discovery
-   path parser. This is preparation work to pass the tunnel dst_entry
-   via .fill_forward_path.
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conncount.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-4) Update DSA .fill_forward_path to break at the user DSA, since
-   the conduit DSA is not used in the datapath. This slighly simplifies
-   the flowtable path discovery parser.
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index e9ea6d9466e7..85487f92af50 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -158,6 +158,8 @@ static bool get_ct_or_tuple_from_skb(struct net *net,
+ 		return true;
+ 
+ 	found_ct = nf_ct_tuplehash_to_ctrack(h);
++	*tuple = found_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	*zone = nf_ct_zone(found_ct);
+ 	*refcounted = true;
+ 	*ct = found_ct;
+ 
+-- 
+2.47.3
 
-5) Do not advance index in the path stack prematurely, otherwise
-   it points to uninitialized slots on error. Not an issue currently
-   but it could be once tunnel dst_entry is passed via .fill_forward_path.
-
-6) Pass the tunnel dst_entry via dev_fill_forward_path().
-
-7) Update ipip and ip6ip6 tunnels to pass the dst_entry through
-   dev_fill_forward_path().
-
-8) Call skb_valid_dst() before accessing skb_dst() to ensure dst_entry
-   is not a template.
-
-9) Use UNACK timeout when RST packet does not match the expected
-   window while in ESTABLISHED state, the existing approach the CLOSE
-   state timeout which is only 10 seconds. Adopt a more conservative
-   timeout by default for this case.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-07-31
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 2fbade66245059c78daeaccfce13ecf499fffb51:
-
-  Merge branch 'net-mctp-usb-add-support-for-mctp-over-usb-v1-1' (2026-07-30 16:55:02 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-07-31
-
-for you to fetch changes up to bf80e6802273a900311b44e47c9b1a59c6d2473c:
-
-  netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets (2026-07-31 14:47:03 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-07-31
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: conncount: normalize tuple and zone on successful ct lookup
-
-Minghao Zhang (1):
-      netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
-
-Pablo Neira Ayuso (7):
-      netfilter: flowtable: consolidate net_device field in nft_forward_info struct
-      netfilter: flowtable: consolidate flowtable device check
-      net: dsa: stop at the user device in .fill_forward_path
-      net: do not advance stack index from dev_fwd_path()
-      net: pass dst via net_device_path in dev_fill_forward_path()
-      netfilter: flowtable: release tunnel route on error when building forward path
-      netfilter: nf_tables: call skb_valid_dst() before skb_dst()
-
- drivers/net/ethernet/airoha/airoha_ppe.c        |  10 ++-
- drivers/net/ethernet/mediatek/mtk_ppe_offload.c |  10 ++-
- include/linux/netdevice.h                       |   2 +
- net/core/dev.c                                  |  44 +++++++---
- net/dsa/user.c                                  |   3 +-
- net/ipv4/ipip.c                                 |   2 +-
- net/ipv4/netfilter/nf_reject_ipv4.c             |   6 +-
- net/ipv6/ip6_tunnel.c                           |   4 +-
- net/ipv6/netfilter/nf_reject_ipv6.c             |   8 +-
- net/netfilter/nf_conncount.c                    |   2 +
- net/netfilter/nf_conntrack_proto_tcp.c          |   5 +-
- net/netfilter/nf_flow_table_path.c              | 103 ++++++++----------------
- net/netfilter/nft_meta.c                        |   6 +-
- net/netfilter/nft_rt.c                          |   6 +-
- net/netfilter/nft_xfrm.c                        |   9 ++-
- 15 files changed, 121 insertions(+), 99 deletions(-)
