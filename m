@@ -1,80 +1,93 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBC0E42A80;
-	Sat,  1 Aug 2026 19:00:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337E52DB79C
+	for <netfilter-devel@vger.kernel.org>; Sun,  2 Aug 2026 00:00:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785610844; cv=none; b=IHFCOcgZtWjDi3M+VznC2czmVuAEK0EcZnIQGupinSxz5/3tzgdyqSTrfdWJnICJhcof0vE59kv1hKJT9/zeTUAFm8Y7KqbIUgEw9jG1YbvW4RToxnAA0ccB4BfAtRWKNcFR5MFD5RRcxQCWkcuy3FJwWwd1gjdZasw25RqPEhI=
+	t=1785628839; cv=none; b=B/8bcvPqo7gi7mt3Ui/gDN6nXEagdbzdTguKPuf4dzG3sgHK7vYZre1Wo64nBUTg/t0I3Zgo8eX5LYilfBV9WzWOF7OZy1Qo+vOHHQeaO/h3zz7kYYXcEvG+kjs0o2mycHg0+mvSnJDIbY70SCEula9K4G86ZFEYEbZH6sTn3ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785610844; c=relaxed/simple;
-	bh=5TwfFPHxatI0Aq4rrmzYPyQqaCvawx2I6nY/BlFh7Cg=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=GCBkMpmkFCDaT8+S/XIUpZiw/hcCS4nrmc7gc5913n4AdAbviElgI2jgRl61wps5n8SBXJ20mMvEjaOLliNhBPYN3HLqySHDdN8uOpZ1IYn9gZZzk2LKddDN9pJ9CYAAUjHifxlQPqqA6q8nD98ikO7zOfCtPxrQYKzFFUA3mXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iBndGI4x; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iBndGI4x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C081F00ACA;
-	Sat,  1 Aug 2026 19:00:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785610843;
-	bh=ZXU5F67pm9fxJcOvkWQZuSY6oggn4VlPEm7ge1PjZJ0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=iBndGI4xZOnaa5l7eTchYYLoJnT2x7ldd1kSUQhYXb9/SKpU51N+R6BnxwzbmUGGh
-	 cOVgdLtqRSam9tGBfQV2setgBSRWfoHUs7lCKGhr7ohwcT5TnUYKmcZad2s5d9vzkT
-	 EwRojp76mcSHDKvK6JbVqB3hJc0sxZ/XsWXjaI8UuA8TzOt5aUpgkRrRpfvZXBb1/I
-	 JVogPMJe7cA5HGTHR7CmYSk2LumGcVYvdpSxTq4JyJUcv3y/0tzDrWU4AMMJ9ReUot
-	 vOtul0+EKZKVWRTDyK5HzJTims7tjF53Bh2rTaO5bABQfw29cuEmMtl/ATPfNcBrdR
-	 Ssu0X95pFpVrw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19932380820D;
-	Sat,  1 Aug 2026 19:00:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1785628839; c=relaxed/simple;
+	bh=FkvwcGmPaYjEJ8j6+nz1j8HFd4IzNdzqUCflb2OtZN4=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=JZjo6RPK0RXxPcG3ZEBX1c+TDaIRnd/5D8mMzDVc9Yi1KfPQQhN7PM17F4o5SiUf64pZHDPHw2Boerquszwv2ueSIxcnZCHRnf0Fp4ZC5tcfw+xHGaCl3SURpso/f1uSONxev9v0WWjnj16ygXnAdbmXehyxo1NWyPRCidq3L5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-49001defc4dso3415028b6e.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 01 Aug 2026 17:00:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785628836; x=1786233636;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=DApPQPDvyDynAHjSaKvCCTdiu7dQn53eMBYw3i2c5ks=;
+        b=iYw0Z1hWEpSg2HEh50aN4kB7KSC7mMAMXgd0bOKdiVaTnaZpzTtGGffkGbc9SZRKhU
+         kRjIOx83c3E4v5ejJqZV++6OKrk6L5Lo4zRSAwY1boa0QakxWxX1rCmduRTA9sRvgMQL
+         iePlaSUhhEWS93lO5XRo6q+KCnL0ValpugVTMhSfN3uJQt6wInvA1BCFzSDB/5pWRaWP
+         7sSJMM/2lpy5idvkt3ILbcVg3ra3sdr+dcYIRAMJTHGg09eTH6atyoWNj/HiYn14DILa
+         b2Pw50ZGT6EWE3uqhXqITw4ETPFZDxIHAOcoYgKjcNfkLf6c8hJC7mK+z5eQcwWwFGUE
+         v+Xg==
+X-Forwarded-Encrypted: i=1; AHgh+RoCFkLCR5+NUtkLN79MTJU7B6ALdaM63DrpJ5TMpzxvlbQnyX1CCQg7YNpwqTkCMbnMHEin/fAPJkUFJl7rRNM=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw2VqtN3rT+Tg0m2kh2I08B7vmbdjfmpT1WYsJvQDO6GC33jpr7
+	b5m09nHYQKKFqPo5GDxaMo3PrSNljJ73dtGmFC0WvsqksfDhctWOgk+FoahMqU8mT2YpyI9aAgf
+	MscRxy6FZDV0TBU+HTkXmyI4y6V8HyaL5Ys40XD/vgkc0HH6odmLXuQLMsa8=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH bpf v3] bpf: Fix netns reference imbalance in conntrack
- kfuncs
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178561080575.1189978.12237534381784349721.git-patchwork-notify@kernel.org>
-Date: Sat, 01 Aug 2026 19:00:05 +0000
-References: <20260731160921.3245840-1-nicoyip.dev@gmail.com>
-In-Reply-To: <20260731160921.3245840-1-nicoyip.dev@gmail.com>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org,
- john.fastabend@gmail.com, sdf@fomichev.me, memxor@gmail.com,
- lorenzo@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, bpf@vger.kernel.org
+X-Received: by 2002:a05:6808:3c4a:b0:4a4:e11c:7b56 with SMTP id
+ 5614622812f47-4af5e05c3ecmr8972357b6e.8.1785628835992; Sat, 01 Aug 2026
+ 17:00:35 -0700 (PDT)
+Date: Sat, 01 Aug 2026 17:00:35 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a6e88a3.13bfb6d0.1ecdd5.0267.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Aug 2026)
+From: syzbot <syzbot+listae8a20fd53e9b2a3905f@syzkaller.appspotmail.com>
+To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hello:
+Hello netfilter maintainers/developers,
 
-This patch was applied to bpf/bpf.git (master)
-by Kumar Kartikeya Dwivedi <memxor@gmail.com>:
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-On Sat,  1 Aug 2026 00:09:21 +0800 you wrote:
-> The opts argument of the BPF conntrack kfuncs can point to a shared
-> map value.  __bpf_nf_ct_lookup() and __bpf_nf_ct_alloc_entry() read
-> opts->netns_id separately when acquiring and releasing the network
-> namespace reference.
-> 
-> The reference imbalance can occur as follows:
-> 
-> [...]
+During the period, 0 new issues were detected and 0 were fixed.
+In total, 11 issues are still open and 198 have already been fixed.
+There are also 3 low-priority issues.
 
-Here is the summary with links:
-  - [bpf,v3] bpf: Fix netns reference imbalance in conntrack kfuncs
-    https://git.kernel.org/bpf/bpf/c/fdeba03fea78
+Some of the still happening issues:
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Ref Crashes Repro Title
+<1> 10      Yes   WARNING in nf_ct_bridge_post
+                  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
+<2> 1777    Yes   INFO: task hung in addrconf_dad_work (5)
+                  https://syzkaller.appspot.com/bug?extid=82ccd564344eeaa5427d
+<3> 704     Yes   INFO: rcu detected stall in addrconf_rs_timer (6)
+                  https://syzkaller.appspot.com/bug?extid=fecf8bd19c1f78edb255
+<4> 157     Yes   INFO: rcu detected stall in br_handle_frame (6)
+                  https://syzkaller.appspot.com/bug?extid=f8850bc3986562f79619
+<5> 143     Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+<6> 80      No    INFO: task hung in nfnetlink_rcv_msg (5)
+                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
+<7> 3       No    WARNING in nf_conntrack_cleanup_net_list (2)
+                  https://syzkaller.appspot.com/bug?extid=122256c3e2bf6ec9f928
 
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
