@@ -1,75 +1,108 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E7163AD537
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2026 08:40:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863CC39FCD8
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2026 08:43:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785746455; cv=none; b=aPtnDuYyH4ZBUs3Kq9iJFBcT+UDxTL7jJr+A1skKYGxjei0rHsVdi1wggwPoQnP5E43dxG2X5mVc8uN5IU9Ouk1AUfaVZ8BuyOP96ISwBshW8B+KKMeRcH3r3kjxMcsXDaPWkZ4aOhZoZBjcADRcnRq+gZ3YnAcad8BkNKO65S0=
+	t=1785746634; cv=none; b=uNG6wsq9pq+xynAapP+cjf+ueBLIpgeXCl18IDnvLdX78MuvDJpgJLmNmSDYPnBlVrs1SXfP3eZh4M9xTu2dqiroHBg9uprsERZiDMX1wch5wWiccqpo2Fu0Gmzq3UzFx57SdUarZUJ1MZbEax+g7LMt6swCW4wvfm+us4aND9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785746455; c=relaxed/simple;
-	bh=/IKI7F7U6fbPvCK4H7Vhgnk6f3oBk/C+vGfvWhCnqRM=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=V0OtSJsp5xVexdNfDKCZ91kmCZjE71cyV/Ec+jFgUA9BfPJcaI3jqXOzZH6wxfex75DUBKtaQGpxYthW8tbVKvYIwyGkgwZsw6iw4aQnJduN92QCm7yWJQ4xWmGXOESzpVIPIUHImTZLjy3z3laP8y/zdd6USiXAlyV71fgh3So=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4hD93520zSzGFDCJ;
-	Mon, 03 Aug 2026 10:34:57 +0200 (CEST)
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id CiGToSy9ZFkk; Mon,  3 Aug 2026 10:34:55 +0200 (CEST)
-Received: from mentat.rmki.kfki.hu (254C23F7.nat.pool.telekom.hu [37.76.35.247])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4hD93265DjzGFDCH;
-	Mon, 03 Aug 2026 10:34:54 +0200 (CEST)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 461C614053C; Mon,  3 Aug 2026 10:34:54 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 42678140295;
-	Mon,  3 Aug 2026 10:34:54 +0200 (CEST)
-Date: Mon, 3 Aug 2026 10:34:54 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 0/5] netfilter: ipset fixes and rhastable prep work
-In-Reply-To: <amusRhSn19YQzmQe@strlen.de>
-Message-ID: <e7c0f855-d6bd-ce82-b223-786ed42853b7@netfilter.org>
-References: <20260730183853.21868-1-fw@strlen.de> <amusRhSn19YQzmQe@strlen.de>
+	s=arc-20240116; t=1785746634; c=relaxed/simple;
+	bh=3PXUJAHiCyFYO15Ass7OKWXcAwxiwE/nABR08LcPs7I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZKQ6OzBAti6EFXGrKlu6f0cRCQYTleK27uQSI5xKsc1HK+adbDnkZWqm4EVHubYmaVWQEK0bc848X2/ZFmvSBdSlimTPa8kKm3T4WfdKDiWNEaTH8gSWS3XBH3Mn4qDhHYICGCkIDNnWPrIvsex6i1k48LneRI88F1PGG2Iu72A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id DE02B60380; Mon, 03 Aug 2026 10:43:44 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nfnetlink_log: wait for rcu grace period before freeing pernet state
+Date: Mon,  3 Aug 2026 10:43:27 +0200
+Message-ID: <20260803084329.10282-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+sashiko reports: "nfnl_log_net_exit() calls nf_log_unset(), which
+clears the logger pointer without an RCU grace period.  Immediately after,
+ops_free_list() frees the per-net state while concurrent packets might
+still be executing nf_log_packet() under rcu_read_lock()."
 
-On Thu, 30 Jul 2026, Florian Westphal wrote:
+Clear the pointer via .pre_exit to make sure rcu readers have completed
+before pernet storage is free'd.  The change in nf_log_syslog.c is only
+done for consistency: it doesn't use pernet data.
 
-> https://sashiko.dev/#/patchset/20260730183853.21868-1-fw%40strlen.de
-> 
-> 'This is a pre-existing issue, but does asynchronous element destruction 
-> in list_set_flush() race with this synchronous zeroing of set->ext_size, 
-> causing an integer underflow?
-> 
-> If a user flushes a list:set ipset, list_set_flush() forces the counter to 0
-> here. The elements are queued for asynchronous deletion via call_rcu() inside
-> list_set_del().'
-> 
-> I will have another look at this to see if thats correct, in any case
-> this should be handled in a different change.
+Link: https://sashiko.dev/#/patchset/20260731151806.849724-1-pablo%40netfilter.org
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_log_syslog.c |  4 ++--
+ net/netfilter/nfnetlink_log.c | 13 +++++++++----
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-I should have left out the call to atomic64_set(&set->ext_size, 0) in 
-list_set_flush() and let the list_set_del() calls adjust the ext_size 
-value. What do you thing, would it solve the issue?
-
-Best regards,
-Jozsef
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index e37b09b3203b..5ffde27d450a 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -1014,7 +1014,7 @@ static int __net_init nf_log_syslog_net_init(struct net *net)
+ 	return ret;
+ }
+ 
+-static void __net_exit nf_log_syslog_net_exit(struct net *net)
++static void __net_exit nf_log_syslog_net_pre_exit(struct net *net)
+ {
+ 	nf_log_unset(net, &nf_ip_logger);
+ 	nf_log_unset(net, &nf_arp_logger);
+@@ -1025,7 +1025,7 @@ static void __net_exit nf_log_syslog_net_exit(struct net *net)
+ 
+ static struct pernet_operations nf_log_syslog_net_ops = {
+ 	.init = nf_log_syslog_net_init,
+-	.exit = nf_log_syslog_net_exit,
++	.pre_exit = nf_log_syslog_net_pre_exit,
+ };
+ 
+ static int __init nf_log_syslog_init(void)
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 5fee61b3813c..6c7fa2ed34f5 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1170,21 +1170,26 @@ static int __net_init nfnl_log_net_init(struct net *net)
+ 	return 0;
+ }
+ 
+-static void __net_exit nfnl_log_net_exit(struct net *net)
++static void __net_exit nfnl_log_net_pre_exit(struct net *net)
+ {
+-	struct nfnl_log_net *log = nfnl_log_pernet(net);
+-	unsigned int i;
+-
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ #endif
+ 	nf_log_unset(net, &nfulnl_logger);
++}
++
++static void __net_exit nfnl_log_net_exit(struct net *net)
++{
++	struct nfnl_log_net *log = nfnl_log_pernet(net);
++	unsigned int i;
++
+ 	for (i = 0; i < INSTANCE_BUCKETS; i++)
+ 		WARN_ON_ONCE(!hlist_empty(&log->instance_table[i]));
+ }
+ 
+ static struct pernet_operations nfnl_log_net_ops = {
+ 	.init	= nfnl_log_net_init,
++	.pre_exit = nfnl_log_net_pre_exit,
+ 	.exit	= nfnl_log_net_exit,
+ 	.id	= &nfnl_log_net_id,
+ 	.size	= sizeof(struct nfnl_log_net),
 -- 
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-Address: Wigner Research Centre for Physics
-         H-1525 Budapest 114, POB. 49, Hungary
+2.54.0
+
