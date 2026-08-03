@@ -1,108 +1,109 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863CC39FCD8
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2026 08:43:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632ED389106
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2026 08:55:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785746634; cv=none; b=uNG6wsq9pq+xynAapP+cjf+ueBLIpgeXCl18IDnvLdX78MuvDJpgJLmNmSDYPnBlVrs1SXfP3eZh4M9xTu2dqiroHBg9uprsERZiDMX1wch5wWiccqpo2Fu0Gmzq3UzFx57SdUarZUJ1MZbEax+g7LMt6swCW4wvfm+us4aND9o=
+	t=1785747341; cv=none; b=AsNWPVY+WOXPJ2BxfrHh95OmPJHlcERbzj8Vf3qgeZashxgBc8vhwWdQWuhCfVCnWkeVm5lyumlxOYbLZjSQ5qanBsvwJvp+w/rPK2RklfRQ4FMFMBBsoxF+WcPITs0ZfaxO3dRYdpWNCwV3FFa2Ap63rL/F3LsimvBTjHavS9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785746634; c=relaxed/simple;
-	bh=3PXUJAHiCyFYO15Ass7OKWXcAwxiwE/nABR08LcPs7I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZKQ6OzBAti6EFXGrKlu6f0cRCQYTleK27uQSI5xKsc1HK+adbDnkZWqm4EVHubYmaVWQEK0bc848X2/ZFmvSBdSlimTPa8kKm3T4WfdKDiWNEaTH8gSWS3XBH3Mn4qDhHYICGCkIDNnWPrIvsex6i1k48LneRI88F1PGG2Iu72A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1785747341; c=relaxed/simple;
+	bh=JZ/r6AOWx/g8W7hVpQGGqyG4PUTOYsj4buQkhaUhPb0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ODD9Mdc13uHKWadhdwpszo9wTHciwFsD4BkUcD4yjva+jLM0tv4k+YsI5Uv48zwGKh2hESh6EF8sZsGiKrTyiD+f2rHvj+OIL1QbIJ1v49Th0PiydhNvlN/YUfVT56nJk3s2w/qIrduTw2+3Ofjyo51oB0Z81tKpZvp25LYnFcg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DE02B60380; Mon, 03 Aug 2026 10:43:44 +0200 (CEST)
+	id 42ADC6059E; Mon, 03 Aug 2026 10:55:37 +0200 (CEST)
+Date: Mon, 3 Aug 2026 10:55:37 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nfnetlink_log: wait for rcu grace period before freeing pernet state
-Date: Mon,  3 Aug 2026 10:43:27 +0200
-Message-ID: <20260803084329.10282-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+To: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 0/5] netfilter: ipset fixes and rhastable prep work
+Message-ID: <anBXgncZCSUoDSZk@strlen.de>
+References: <20260730183853.21868-1-fw@strlen.de>
+ <amusRhSn19YQzmQe@strlen.de>
+ <e7c0f855-d6bd-ce82-b223-786ed42853b7@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e7c0f855-d6bd-ce82-b223-786ed42853b7@netfilter.org>
 
-sashiko reports: "nfnl_log_net_exit() calls nf_log_unset(), which
-clears the logger pointer without an RCU grace period.  Immediately after,
-ops_free_list() frees the per-net state while concurrent packets might
-still be executing nf_log_packet() under rcu_read_lock()."
+Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > I will have another look at this to see if thats correct, in any case
+> > this should be handled in a different change.
+> 
+> I should have left out the call to atomic64_set(&set->ext_size, 0) in 
+> list_set_flush() and let the list_set_del() calls adjust the ext_size 
+> value. What do you thing, would it solve the issue?
 
-Clear the pointer via .pre_exit to make sure rcu readers have completed
-before pernet storage is free'd.  The change in nf_log_syslog.c is only
-done for consistency: it doesn't use pernet data.
+Agree wrt. list_set_flush(), removing the explicit set should
+work.  What about:
 
-Link: https://sashiko.dev/#/patchset/20260731151806.849724-1-pablo%40netfilter.org
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_log_syslog.c |  4 ++--
- net/netfilter/nfnetlink_log.c | 13 +++++++++----
- 2 files changed, 11 insertions(+), 6 deletions(-)
+mtype_flush(struct ip_set *set)
+{
+        struct mtype *map = set->data;
 
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index e37b09b3203b..5ffde27d450a 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -1014,7 +1014,7 @@ static int __net_init nf_log_syslog_net_init(struct net *net)
- 	return ret;
- }
- 
--static void __net_exit nf_log_syslog_net_exit(struct net *net)
-+static void __net_exit nf_log_syslog_net_pre_exit(struct net *net)
- {
- 	nf_log_unset(net, &nf_ip_logger);
- 	nf_log_unset(net, &nf_arp_logger);
-@@ -1025,7 +1025,7 @@ static void __net_exit nf_log_syslog_net_exit(struct net *net)
- 
- static struct pernet_operations nf_log_syslog_net_ops = {
- 	.init = nf_log_syslog_net_init,
--	.exit = nf_log_syslog_net_exit,
-+	.pre_exit = nf_log_syslog_net_pre_exit,
- };
- 
- static int __init nf_log_syslog_init(void)
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 5fee61b3813c..6c7fa2ed34f5 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1170,21 +1170,26 @@ static int __net_init nfnl_log_net_init(struct net *net)
- 	return 0;
- }
- 
--static void __net_exit nfnl_log_net_exit(struct net *net)
-+static void __net_exit nfnl_log_net_pre_exit(struct net *net)
- {
--	struct nfnl_log_net *log = nfnl_log_pernet(net);
--	unsigned int i;
--
- #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
- #endif
- 	nf_log_unset(net, &nfulnl_logger);
-+}
-+
-+static void __net_exit nfnl_log_net_exit(struct net *net)
-+{
-+	struct nfnl_log_net *log = nfnl_log_pernet(net);
-+	unsigned int i;
-+
- 	for (i = 0; i < INSTANCE_BUCKETS; i++)
- 		WARN_ON_ONCE(!hlist_empty(&log->instance_table[i]));
- }
- 
- static struct pernet_operations nfnl_log_net_ops = {
- 	.init	= nfnl_log_net_init,
-+	.pre_exit = nfnl_log_net_pre_exit,
- 	.exit	= nfnl_log_net_exit,
- 	.id	= &nfnl_log_net_id,
- 	.size	= sizeof(struct nfnl_log_net),
--- 
-2.54.0
+        if (set->extensions & IPSET_EXT_DESTROY)
+                mtype_ext_cleanup(set);
+        bitmap_zero(map->members, map->elements);
+        set->elements = 0;
+        atomic64_set(&set->ext_size, 0);
+}
 
+in ip_set_bitmap_gen.h ?
+
+Should this be changed as well, i.e. remove atomic64_set()?
+
+AFAICS this is harmless because its synchronous and runs with
+set->lock held, so this should set ext_size to 0 again.
+
+Maybe this should be changed to
+
+NET_DEBUG_WARN_ON_ONCE(atomic64_read() != 0) ?
+
+There is another new report:
+
+#define INIT_CIDR(n, host_mask) ({                              \
+        const struct net_prefixes *__n = rcu_dereference(n);            \
+        DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
+})
+
+If we fail to allocate replacement net_prefix, then nets[0].count can
+be 0.  This means we either need to walk ->nets[] until we find a slot
+where count is > 0, or we need to resort to something like this:
+
+[ not even compile tested! ]
+
+ #define INIT_CIDR(n, host_mask)        \
+-       DCIDR_PUT((n)->len ? (n)->nets[0].cidr : host_mask)
++       DCIDR_PUT((n)->len && (n)->nets[0].count ? (n)->nets[0].cidr : host_mask)
+
+ #endif /* IP_SET_HASH_WITH_NETS */
+
+@@ -374,9 +374,20 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+        len--;
+        tmp = kzalloc(sizeof(struct net_prefixes) +
+                      len * sizeof(struct net_prefix), GFP_ATOMIC);
+-       if (!tmp)
+-               /* Leave a hole */
++       if (!tmp) { /* handle in-place */
++               for (i = 0, j = 0; i < nets->len; i++) {
++                       if (i == found)
++                               continue;
++                       if (i != j) {
++                               WRITE_ONCE(nets->nets[j].cidr, nets->nets[i].cidr);
++                               WRITE_ONCE(nets->nets[j].count, nets->nets[i].count);
++                       }
++                       j++;
++               }
++               while (j < nets->len)
++                       WRITE_ONCE(nets->nets[j++].count, 0);
+                goto unlock;
++       }
