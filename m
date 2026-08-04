@@ -1,67 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBA7436B903;
-	Mon,  3 Aug 2026 23:04:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72EAA3CC7DB;
+	Tue,  4 Aug 2026 06:02:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785798287; cv=none; b=sZa/3xGgvOZNQ4XsX993xZm48SGaFJHzHJvmvc07hCMDveb+eRsLejH+jHLXG9KSzacb5uXm+SUAwsxTqqgQZ72+2fh+xs8xo915nHF5X0G8Vqk9JGRdeEz7pWuAHH6HXLF6ZinTeX3gSmQLqeuZ8c2wPpvZ0wKiIfUY+H0qVKk=
+	t=1785823362; cv=none; b=H70BXVvPBZnQidnipz7J1MkMBnwXDYD+Gmpt8cLZlQ/ec946hwQmrE+TpOF2Qy6RBAF+dRUNePuOxoQEvZ8qy07qAD/EJ4GEvCmmqY4R+JScF22r96NStV6R5/LhyIu97eRxiuAuOkoiRe4zRw1/DAZtZpLImu0ON1a4KQf4/9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785798287; c=relaxed/simple;
-	bh=fV/vX0cIO+XOnCK8fEAz4VAe9VlB7u00hYokhyGjVqo=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=E7hm/klo8MJxqgk71KHN8s5i6XCBUqlU5lBOL3MwkXVpatnWwkFNkvZfhXTgRyP8QSHXGv69/PLx0q81NaniDWfRIpksBMYSi/FAGRCIgTmL81U7mzm/ixgZybb2pmhFAjxh1gczcVto+hti0a3m4xAaosuVSemaniqjjBvtBSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H5YRIR3C; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785823362; c=relaxed/simple;
+	bh=jiNaDxNbUZSU+UYqrYxdn8HHVoxF7bMHJrZxXYbXFyE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=O9I62BiRYr4+bJkssrcnLfNInYwbMcS6R3yUNFvUnSBId8URgVENRv7lGwJ6OnHsnaZw+oPnOUwZ2K69i6i7YFBH9L1KtDVAX6ffSZ1oUfNXrv7RRIG4UTWCBlP2mDKN3W+uFcTGpzoHn5yF/F8laXBsEVc8zmLRDT3fwza0V/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=0IHmoPbN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H5YRIR3C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4D161F000E9;
-	Mon,  3 Aug 2026 23:04:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785798286;
-	bh=fV/vX0cIO+XOnCK8fEAz4VAe9VlB7u00hYokhyGjVqo=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=H5YRIR3CHWiNY/c5PS7hpBEM5SvdP1bB1Oaemh0JigG0eNSRmCSsQacOKyETPPAJE
-	 yA6FnmKO/JlkeSdvQd1F/2dkyi5ePa11dVs8+YYXbyWtFWbJpbrN4v7JJeMJOajjea
-	 iSax2OhUv1laUmnjs2zTIASOlP0D1CI2HxX4aAwQUpM4zTMzNvI1qm4Aalmkxf3MfQ
-	 pWglChs0lK0BRA+Q9yc+7pTGIRI6I+thy4MWjfbBeVZZZvi0FAn1E7AC6LqVpAGrgh
-	 dRYWWuai2Nish2+5YiA9ZV+1pOW+q5QAhSI2cMagY9Wa6eGGHdqcb7cKd0AjlM8Peg
-	 UEEZ6n4X/yh+w==
-Date: Mon, 3 Aug 2026 16:04:44 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Weiming Shi <bestswngs@gmail.com>
-Cc: Claudiu Manoil <claudiu.manoil@nxp.com>, Vladimir Oltean
- <vladimir.oltean@nxp.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S.
- Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo
- Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, Pablo Neira
- Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Jamal
- Hadi Salim <jhs@mojatatu.com>, Cong Wang <xiyou.wangcong@gmail.com>, Jiri
- Pirko <jiri@resnulli.us>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org,
- syzbot+5a66db916cdde0dbcc1c@syzkaller.appspotmail.com, Xiang Mei
- <xmei5@asu.edu>, stable@vger.kernel.org
-Subject: Re: [PATCH net v2] net: flow_offload: serialize driver callback
- lists
-Message-ID: <20260803160444.44a1cf32@kernel.org>
-In-Reply-To: <20260726120338.488658-1-bestswngs@gmail.com>
-References: <20260719175028.988301-2-bestswngs@gmail.com>
-	<20260726120338.488658-1-bestswngs@gmail.com>
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="0IHmoPbN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9F11F000E9;
+	Tue,  4 Aug 2026 06:02:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1785823361;
+	bh=eqkmWOQL5IlExnP/Ya1lW7cAbHkCA+0+qwkykSqW6jI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=0IHmoPbNQV8QSOW4BnrSRa/pxOCjTIvjfkdiyeWfU7/PsGy73whTuoMJvBKmQtyaL
+	 85Ql1EUMJSaFUv2PBz0u2USzpt7DIU2zOejp6DPhAhoIKiR6OPQogOJsEgPo09Em+c
+	 cHY7tfGcNICWrP3oTgnrKq4SG88ar+13n314+XYA=
+Date: Tue, 4 Aug 2026 08:01:12 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Fahad Alharbi <fahad@codepure.com>
+Cc: stable@vger.kernel.org, security@kernel.org, security@ubuntu.com,
+	Sasha Levin <sashal@kernel.org>, Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: nft_set_pipapo: UAF and double free from a stranded GC batch in
+ the 5.15.y / 6.1.y / 6.6.y backports of 9df95785d3d8
+Message-ID: <2026080436-dyslexic-willfully-fb2e@gregkh>
+References: <CACiD-V1TcRTcQotj-15KvpSr8hG26y6PDx=WU5MVAdHMEsgopA@mail.gmail.com>
+ <2026080355-catcher-absurd-f9e2@gregkh>
+ <CACiD-V2ymG+0DA2aLwHWeH7oejy0g=n1NUZ6Ce9NXvJFhwJP4Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACiD-V2ymG+0DA2aLwHWeH7oejy0g=n1NUZ6Ce9NXvJFhwJP4Q@mail.gmail.com>
 
-On Sun, 26 Jul 2026 05:03:15 -0700 Weiming Shi wrote:
-> Add a flow-offload callback mutex and hold it across direct and indirect
-> setup, callback ownership transfer and rollback. Move indirect-unregister
-> list removal into the flow-offload core, and keep indirect-device
-> registration transactional on setup failure. When TC must reject an
-> indirect bind after callback installation, unwind only the callbacks
-> created by that bind so existing callbacks remain intact.
+On Mon, Aug 03, 2026 at 09:19:28PM +0300, Fahad Alharbi wrote:
+> Hello,
+> 
+> 6.6.148 backported the pipapo on-demand-clone series, but two commits from
+> the original 2024 series were not included.  Two consequences are visible in
+> the source.  Both are straightforward to confirm; no reproducer is needed.
+> 
+> Requested trees: 6.6.y
+> 
+> Missing commits:
+> 
+>   8b8a2417558c ("netfilter: nft_set_pipapo: prepare destroy function for
+>                  on-demand clone")
+>   532aec7e878b ("netfilter: nft_set_pipapo: remove dirty flag")
+> 
+> Both are Florian Westphal, 2024-04-25, and both are present in 6.10.y
+> through 7.1.y and in mainline.  Neither is in 6.6.y.
 
-Isn't the unbind / rollback stuff mostly orthogonal to the locking?
-Looks like the patch should be split.
+That is because they do not cleanly apply there.  Can you provide
+working backports for that tree, and any other older tree that you think
+needs it, so we can queue them up?
+
+thanks,
+
+greg k-h
