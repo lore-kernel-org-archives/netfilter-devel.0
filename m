@@ -1,74 +1,47 @@
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1372480968
-	for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2026 20:11:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C290431985D;
+	Wed,  5 Aug 2026 00:15:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785874318; cv=none; b=Bo7J15KU/8jCfDCd0s7Om4ULFco2f87xdGc1Ucm2j17PTPT+POLLk+Qh5q4wKm2l0c9RHrVXqjnGkY/jFMS0kYQMiiF0a5DIRh9mWPH6fvz5Um5wDGpEZ0txhmcH5fu7loZj534+LwdmE07yh5CIT8p1R3RPPYJd3GlUKIQ2+eg=
+	t=1785888933; cv=none; b=jZlGGic3h9VCtCx7EZEtqZ5AodWw/VNFtE7XH3TQiGBaiuS0a8J1Ksh3PqsgOaeJOwO9jRXocz1q2Ww9pCIDu+AKY5DX7GAbyCf8p03ssRzETL8ExT2eW4IWKPBZwGqSiAMszyQ2MqzRgwCBUWhJZ/UJgV1erAbVazdbyNZfyfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785874318; c=relaxed/simple;
-	bh=D5VOEQjUcgxGJV3YUdOgz0ueZlhARhxKU1C9Qnjncnc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NfIt63/81iRROtEQhkqLPXnhKzSUx6T5dgm0vSQV1XTpIPtKrWOXveRyaFVZrPLNXBMys8bhxQV/JcAW7W9TKFflAVivlLPcERouwYCNWpuXYaSi1rW8SimX3GoHF24wkK2kUq5GUlrZE8M6XDVvMVFrFwqc+yb9InSTxw9qLf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eSEjiaC5; arc=none smtp.client-ip=209.85.128.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785888933; c=relaxed/simple;
+	bh=I6hYB4l9xUONdHwwGt1RRvzZc+lDqH2mSH4mr4iDlI0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GK/zuQqGhdrRMBDZgkbV10H7g5DZvW2fl81h+U7WsR9GICns5f/wG9V3yqljPfKBnfmTbWNE4QvRTWeQTAFNLlfgEgY31QD1i99Zi4z2GC/2cVYLvyo2c7EhTpBEiFfzOXpxME1WAkNGMkMfY9yAjao8DvW+qzH5Xs/oQsxjHcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S2qi/CQc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eSEjiaC5"
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-49556f97a9dso1312905e9.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Aug 2026 13:11:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785874315; x=1786479115; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=JNGIDbwQT+Z5SX6USDQYc1Kl4Aa2uoNxfSsfqj3vOls=;
-        b=eSEjiaC5aLQ4aAAJxcWOAPTH/09t8orsJeenz8F8qqUg+9+ADFUkFGRnx8m192aQWM
-         +Rh+qGmU5cS4VQEVbcB3W2bM2zpAKcEhmgBnYHrAD9bh5+JDO4qIkb++KD842YLNJ7U7
-         aPUabXCL9m62ClpywdFDji4/rxHYSdOepINv/YYLuYDa5EiTVZBvoHjQ+HgSioSne1Nz
-         qne1a9z9QfTzSsheMDoja17WvUJfgj9Xf08IprIXBLllxxQdOAhKOQFGWh7BWM1n7CWE
-         M6vasPHFu3bsyyTojgM6uZgvnJzxQcFukfFATOEWcx8cAIigEmlOklOIXFJW1rB7qM3F
-         EAfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785874315; x=1786479115;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=JNGIDbwQT+Z5SX6USDQYc1Kl4Aa2uoNxfSsfqj3vOls=;
-        b=M4RQR/6Uc3YZPmUk7lT3qI12hV+LqkX/Q2mlc85Ow2DcuJhGdtFyJmg7R6xhe2Ll3l
-         j9vt+IQ0D3RzzfQIgO8mNaCB1I99eCrvfQhSEUkCU1HjCyliRN/XkG7dAf5gT++13jKe
-         CVPevc4ciWsjccUbq6V71t9xlIRiI41SIWjY6m+W0jcl4Hr98HozUJkGyxbPXHbGLpXS
-         QsrAFiPgvWrKkyQSl2IUrK/irq0cMzKMKSF0ezw8bOCElwZcK/qKCvc3SHjjgRpH7wvg
-         je5F8riN5Kknc3NSbBixzmeQQLDwK0IuKzrDs0zfAC/gj/KkTbHkzXhJYd5MqwKkxEQX
-         TJ1g==
-X-Forwarded-Encrypted: i=1; AHgh+RrbMaPmNPV9FKM1PkEBd2EIKtdSW5RbNwtb8hYBbXqgcANrCfjcyu07yJVD6mLVrx7pRhR9dyxnmayZA3WHwF4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwW8FZ+lM5b62qNcxfqUemSkMBdyCts91FHi4FTChp8+hbLvjaf
-	XNBRhhC5oFGxoP7Y9IkB70KwRGYpVSFnaAdyxdpxCDJVFuNegB2u1asv
-X-Gm-Gg: AR+sD13ds6BS4uXHx49m/Ku9aZkE32aRgB8nqrArmJGqnyFOEWTH1lZ22Tah0oFekJR
-	px8AdM484na74lmQDwiJVsxwJo0WVDwfykP8jg1AM3rRUm2XKdSE5aLLYbdtDxkLdUpVXPactjp
-	rQlweq1jbUkT2fsG7uyI3wn7eGSoNyBtYtkLtuE/ibhZS+s4mfGtR7uZS4myhcIw/WlAtDepbAH
-	UJtywTo2mhgpNIkMBIAX7LxNdd9RnLjP/wrMZaCB1V5PJYpyVwvOpAZYxo55O/8kR6cwjXDgQRJ
-	/mN2r9YqfkHulBOP/ifc3ZyuU20EDEEiQJmQSd/ayeQRqb/0v/OztIkuAxnor7kYRtgqFjH+VAp
-	ydyO0yqCX68x6ZiXg5DPGr60ESQm1T6jPw5q7NGAXE8PG1AhOS42SFUoc3A5wJauqp/I6u98t+g
-	2pxu4uYI0W8YvFgvpJD3YBMAedMG78WfSzOiUXN2qARMtmXQ39VlJOPMp2cvrJZi7VtHdfgp3Qg
-	aKXmwY/TIz+MHb+bBu/U6DjrweyPKBsMDDc585tg/v/6QgTZeHcEiY5vw5BJQmaZrDJV3/WAAqn
-	wvpAZudDH20FACds7dGAJ7psHhLSKJ0pX4x60aqoudQ=
-X-Received: by 2002:a05:600c:37c9:b0:495:4b24:1b64 with SMTP id 5b1f17b1804b1-4994e6eacc1mr13592935e9.0.1785874314990;
-        Tue, 04 Aug 2026 13:11:54 -0700 (PDT)
-Received: from thpalex.rd.francetelecom.fr (2a01cb08943588009f8850ffc9c1993c.ipv6.abo.wanadoo.fr. [2a01:cb08:9435:8800:9f88:50ff:c9c1:993c])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4994e0356d4sm25752775e9.10.2026.08.04.13.11.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 13:11:54 -0700 (PDT)
-From: Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
-X-Google-Original-From: Alexandre Ferrieux <alexandre.ferrieux@orange.com>
-To: coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org
-Cc: edumazet@google.com,
-	alexandre.ferrieux@orange.com,
-	netdev@vger.kernel.org
-Subject: [PATCH net] netfilter: nf_dup_netdev: scrub duplicates to preserve the direct path
-Date: Tue,  4 Aug 2026 22:11:50 +0200
-Message-ID: <20260804201150.16364-1-alexandre.ferrieux@orange.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S2qi/CQc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AE521F00A3A;
+	Wed,  5 Aug 2026 00:15:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785888931;
+	bh=zewP3f5UlA6W8t2+qpRTkscmoogw9bxWmIIQuKCiU3k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=S2qi/CQcBvcVomQSbQsT4+spJiNhPFNxOQ5iUcvim6Sb6FpQMC/l6rnv4ZYu1OlUZ
+	 Xl5GfiuJYqoiXAn64BPAlwc3QWnNbL7lDQRVAg8bOcCy4UYTTkEjuk7vSu+QFBkHkz
+	 Cc6DgJgmFut9csQ2Myq7tevyv2I55ydziNHYKqDNF7a04d/gujQDfXgNq+qpOt5MzQ
+	 U5/kmxuER0oREYKND+MFg6B2Jd2YqGq2EEc0STgUeZzhv0al4ehlVS/H/5R5k5NxFw
+	 +mlUDpdNKpD4qjSKaeaHZCXGB6tx4Ox0RZjoT7LZoh56Ug4aWn8TP9ASt8ylqbRpZm
+	 m95XhPMTvC+Fw==
+From: Jakub Kicinski <kuba@kernel.org>
+To: pablo@netfilter.org
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: Re: [PATCH net 02/10] netfilter: ebt_nflog: pin the NFLOG backend
+Date: Tue,  4 Aug 2026 17:15:29 -0700
+Message-ID: <20260805001529.3978646-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260731151806.849724-3-pablo@netfilter.org>
+References: <20260731151806.849724-3-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -77,47 +50,191 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The nftables 'dup' action clones the skb with its full glory of
-metadata, including references to its destination and conntrack
-information. As a consequence, a link failure on the duplicate's
-egress path ends up doing the same as it would for the direct path,
-for example invalidating the original packet's destination, which
-typically breaks all TCP connections to that address.
-
-In other words, the "dup" path has the potential to wreak havoc
-in the direct path as a consequence of secondary link failures. This
-is very bad behavior for a monitoring tool, which is the most
-obvious application of 'dup'.
-
-This patch fixes all similar scenarii by calling skb_scrub_pkt()
-on the clone, severing its link to precious direct-path state.
-
-Note: the second argument of skb_scrub_pkt(), the boolean "packet
-is crossing netns", is intentionally set to 'false', as a 'true'
-involves exaggerate scrubbing, e.g. of the timestamp, which a
-monitoring 'dup' typically wants to preserve.
-
-Signed-off-by: Alexandre Ferrieux <alexandre.ferrieux@orange.com>
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 ---
- net/netfilter/nf_dup_netdev.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+netfilter: ebt_nflog: pin the NFLOG backend
 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index c6bd5c29bed6..0f47a2135955 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -63,8 +63,10 @@ void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif)
- 		return;
- 
- 	skb = skb_clone(pkt->skb, GFP_ATOMIC);
--	if (skb)
-+	if (skb) {
-+		skb_scrub_packet(skb, false);
- 		nf_do_netdev_egress(skb, dev, nft_hook(pkt));
-+	}
- }
- EXPORT_SYMBOL_GPL(nf_dup_netdev_egress);
- 
--- 
-2.47.3
+This adds a module reference on the ULOG logger when an ebtables nflog
+rule is validated, and drops it from a new .destroy callback, so that
+nfnetlink_log cannot be unloaded while such a rule is installed.  It also
+requests the nfnetlink_log module for legacy (non nft_compat) callers.
 
+A few questions about the change and the commit message.
+
+> nf_log_unregister() runs after the per-net teardown so its final RCU
+> grace period also drains readers that obtained the logger from a per-net
+> binding.
+
+[Severity: High]
+Is this description accurate?  This isn't a bug introduced by this patch,
+but the ordering seems to be the other way around.
+
+nfnetlink_log_fini() frees the per-net state first:
+
+net/netfilter/nfnetlink_log.c:nfnetlink_log_fini() {
+	...
+	unregister_pernet_subsys(&nfnl_log_net_ops);
+	nf_log_unregister(&nfulnl_logger);
+	...
+}
+
+unregister_pernet_subsys() reaches ops_undo_list(), where the only
+synchronize_rcu() happens before the exit callbacks run, and the kfree
+follows immediately after them:
+
+net/core/net_namespace.c:ops_undo_list() {
+	...
+	list_for_each_entry_continue_reverse(ops, ops_list, list)
+		ops_exit_list(ops, net_exit_list);
+
+	ops = saved_ops;
+	list_for_each_entry_continue_reverse(ops, ops_list, list)
+		ops_free_list(ops, net_exit_list);
+	...
+}
+
+So the grace period inside nf_log_unregister() runs after struct
+nfnl_log_net has already been freed, which would mean it protects the
+module text rather than the per-net data.
+
+Does the per-net binding path stay exposed after this patch?  A logger
+bound per-net (sysctl /proc/sys/net/netfilter/nf_log/<pf>, or
+nf_log_bind_pf()) is only cleared in the pernet exit hook:
+
+net/netfilter/nfnetlink_log.c:nfnl_log_net_exit() {
+	nf_log_unset(net, &nfulnl_logger);
+	...
+}
+
+and nf_log_unset() does not wait for readers, since the grace period was
+removed by the commit named in the Fixes: tag:
+
+net/netfilter/nf_log.c:nf_log_unset() {
+	...
+			RCU_INIT_POINTER(net->nf.nf_loggers[i], NULL);
+	...
+}
+
+A reader that resolved the logger through the per-net branch of
+nf_log_packet():
+
+	if (loginfo != NULL)
+		logger = rcu_dereference(loggers[pf][loginfo->type]);
+	else
+		logger = rcu_dereference(net->nf.nf_loggers[pf]);
+
+can still be inside nfulnl_log_packet() -> nfnl_log_pernet(net) ->
+instance_lookup_get_rcu() -> __instance_lookup() when ops_free_list()
+frees the blob, which is the same KASAN signature quoted above with no
+ebtables rule involved.  Reachable loginfo == NULL callers today include
+nf_log_trace(), the conntrack helper log in net/netfilter/nf_conntrack_helper.c
+and net/netfilter/nfnetlink_osf.c.
+
+Would reordering nfnetlink_log_fini() so that nf_log_unregister() runs
+before unregister_pernet_subsys() close all of the frontends at once?
+
+> diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
+> index 61bf8f4465ab7..426f8adc912c7 100644
+> --- a/net/bridge/netfilter/ebt_nflog.c
+> +++ b/net/bridge/netfilter/ebt_nflog.c
+> @@ -41,11 +41,25 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  static int ebt_nflog_tg_check(const struct xt_tgchk_param *par)
+>  {
+>  	struct ebt_nflog_info *info = par->targinfo;
+> +	int ret;
+>  
+>  	if (info->flags & ~EBT_NFLOG_MASK)
+>  		return -EINVAL;
+>  	info->prefix[EBT_NFLOG_PREFIX_SIZE - 1] = '\0';
+> -	return 0;
+> +
+> +	ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
+
+[Severity: Medium]
+Should the commit message mention that this can reject rulesets that used
+to load?  ebt_nflog_tg_check() previously returned 0 unconditionally, so an
+ebtables nflog rule installed fine and simply logged nothing when
+loggers[pf][NF_LOG_TYPE_ULOG] was NULL.  Now the raw -ENOENT from
+nf_logger_find_get() is propagated out through xt_check_target(), so
+ebtables -A ... --nflog and ebtables-restore fail.  This seems worth
+spelling out given the Cc: stable.
+
+Also, is the stated parity with xt_NFLOG complete?  NETFILTER_XT_TARGET_NFLOG
+carries select NETFILTER_NETLINK_LOG in net/netfilter/Kconfig, while
+BRIDGE_EBT_NFLOG has no select or depends:
+
+net/bridge/netfilter/Kconfig:
+config BRIDGE_EBT_NFLOG
+	tristate "ebt: nflog support"
+	help
+	  This option enables the nflog watcher, which allows to LOG
+	  messages through the netfilter logging API, which can use
+	  either the old LOG target, the old ULOG target or nfnetlink_log
+	  as backend.
+
+On a kernel with CONFIG_BRIDGE_EBT_NFLOG set and
+CONFIG_NETFILTER_NETLINK_LOG=n, the request_module() fallback below can
+never succeed, so the target becomes unusable.  Should a
+select NETFILTER_NETLINK_LOG be added here?  The help text claiming the
+watcher can use the old LOG or ULOG targets as backend also no longer
+matches the code.
+
+> +	if (ret != 0 && !par->nft_compat) {
+> +		request_module("%s", "nfnetlink_log");
+> +
+> +		ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
+> +	}
+> +
+> +	return ret;
+
+[Severity: Medium]
+Who loads nfnetlink_log for the nft_compat case?  The !par->nft_compat
+skip is copied from xt_NFLOG, but xt_NFLOG also declares
+MODULE_SOFTDEP("pre: nfnetlink_log"), and ebt_nflog.c has no
+MODULE_SOFTDEP at all, so demand-loading ebt_nflog through
+xt_request_find_target(NFPROTO_BRIDGE, "nflog", rev) does not bring in the
+backend.
+
+The -ENOENT recovery in nft_compat only matches the uppercase names:
+
+net/netfilter/nft_compat.c:nft_target_init() {
+	...
+		if (ret == -ENOENT) {
+			const char *modname = NULL;
+
+			if (strcmp(target->name, "LOG") == 0)
+				modname = "nf_log_syslog";
+			else if (strcmp(target->name, "NFLOG") == 0)
+				modname = "nfnetlink_log";
+
+			if (modname &&
+			    nft_request_module(ctx->net, "%s", modname) == -EAGAIN)
+				return -EAGAIN;
+		}
+	...
+}
+
+The target registered here is .name = "nflog", so modname stays NULL, no
+module is requested and there is no -EAGAIN retry.  Does an nftables
+bridge-family compat rule using nflog now fail with -ENOENT unless
+nfnetlink_log is already resident, where it succeeded before?  Adding
+MODULE_SOFTDEP("pre: nfnetlink_log") to ebt_nflog.c, or extending the name
+mapping in nft_target_init(), would seem to cover it.
+
+> +}
+> +
+> +static void ebt_nflog_tg_destroy(const struct xt_tgdtor_param *par)
+> +{
+> +	nf_logger_put(par->family, NF_LOG_TYPE_ULOG);
+>  }
+>  
+>  static struct xt_target ebt_nflog_tg_reg __read_mostly = {
+> @@ -54,6 +68,7 @@ static struct xt_target ebt_nflog_tg_reg __read_mostly = {
+>  	.family     = NFPROTO_BRIDGE,
+>  	.target     = ebt_nflog_tg,
+>  	.checkentry = ebt_nflog_tg_check,
+> +	.destroy    = ebt_nflog_tg_destroy,
+>  	.targetsize = sizeof(struct ebt_nflog_info),
+>  	.me         = THIS_MODULE,
+>  };
