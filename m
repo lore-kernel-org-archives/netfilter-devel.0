@@ -1,228 +1,189 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33EC0360ECF;
-	Wed,  5 Aug 2026 00:19:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B24324716;
+	Wed,  5 Aug 2026 04:18:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785889150; cv=none; b=cRRsF7V66adHilVwekO4ifMikmqqppuyDiwJGadgtfx6VSxUM0pglNnVopvGuuZdLbEVxbk1clfjLNeqs80myacucJ9U6v9+6PKvGWq0k7X+B+FelH4zEwVDeGS3jxMdI8O1vHwHLJkm4zpRkV2w+4vvj6GKr9i1lEWd5T5kCJI=
+	t=1785903507; cv=none; b=Ft2TyCSfHEGgKJhylTzhLNGHnKy3G4tbYMTZVYdwDilRGiUNHVLOr2mj7S+p9GCPI94hDTkojdbRmIJUIgj9zbJP27bS0lj2fmNkObriLWtkq/Ye4xCgQ+PDQR8v7bbDwBLK9AkwHpw8TZWqtaAAQlaaFEfeu0ufPRW6dLQ0iI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785889150; c=relaxed/simple;
-	bh=EOvmf++v2273tqKXMyBZXJDCxChTwbTgMGkiL6l16ZI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Aj1Q+clCKsYsmt1b0TImpwovxeP8opcpF+Yt25bfeVLbAofH7aqPjPZ05qvfcIirWCVICsSM1D5IVpQ4Ap4LB74hFUtYNvM30b5hiRuwGMTxA0Cs9j33OQOnE3CTcRhtm68LtbK+GTlFcFbRODJ39HJas2uwvvVeqqyISpigFhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VkPSYTiV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785903507; c=relaxed/simple;
+	bh=XUQ/5p0vw0zVEQFmjsfYtLhCS4HGIvX+Fo2tFLPu9h4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=aPIDhMdv0saE1oxXLKs7nae5jTfdX4POSKpdVIvwlJXFwLZx98LE/jWsBLyT7kRjAHKEfztqfxaIIbqIAkDVVnMzAevgqadDekfnNhfReZudwpl+mVlmZEG7Wtqnr6hGBiGVmY3AcQ70eiS3wPyEq38BhYOH/tzB0wfxiLhM0Fw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=QVoAP7of; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VkPSYTiV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D05401F00A3A;
-	Wed,  5 Aug 2026 00:19:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785889149;
-	bh=2Rz3sso58TKbpy+4UEb41C1sF/WgqRYzR7UBDWjF9EQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=VkPSYTiVGVisBO34csTTbQUyiSEMsNN0eQ91gEc60I4nc+crUfxqTTdg58X7WpyOr
-	 E89+mJmr7ganS5e87fEkuDPncASHXLCPQwJKI15A4xusRAwagYoLrUL7aHfuZoP38Z
-	 FmzsHMOdV3GW4VNSaJrksvk4auaD03UkVUAI5io5mvh1dDMAVwlBYNW5MeoqEfoujW
-	 u28tZ4dgTdlTHE2driNjsl4EHuuqiIMbOghAFyS1n3qq2EIU/dCciqF9CfJMY9l5rL
-	 XrKPTK5At2RJXsyLH2jX88Xw6ijnsK/j6f+BVeJFdqMg7RH0vhqJsHxvikVYL8sdMG
-	 D4rlfa1G8Wdsg==
-From: Jakub Kicinski <kuba@kernel.org>
-To: pablo@netfilter.org
-Cc: Jakub Kicinski <kuba@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	davem@davemloft.net,
-	netdev@vger.kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: Re: [PATCH net-next 9/9] netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
-Date: Tue,  4 Aug 2026 17:19:07 -0700
-Message-ID: <20260805001908.3985938-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260731153402.851224-10-pablo@netfilter.org>
-References: <20260731153402.851224-10-pablo@netfilter.org>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="QVoAP7of"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id F023621CB3;
+	Wed, 05 Aug 2026 07:18:17 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=GuuHhZMYTRGY80ss6IHD4pWUrr/VGLldq8C9VCzhnqU=; b=QVoAP7ofyKQp
+	QvkulT53n4ivDJLZQbV97I+FeQ/mA3eGSEkUZDusZoSjSVcnPf59WMX/CkfuljKL
+	QJYguVu8EZRJ2VvbKEmO7W+CdaRaSf/uJza7+S/+OmxhWU/OGa/7IXoIsR2CPvlr
+	v9WlJqCVxlrLIrvi05diAoDQXnadT0znPy4vn7gkPKqGs7UtNij4KFlzvbnAiy7T
+	ynwsUGGpyPZeCAjJA39Y6J+KvXZsM2wecU4mc/mrryieHYVSOun2aE3mAG+Ll/GB
+	am5XUoF2TC5B6XHBB8GAgOsaBLTV1Gump9ck8D5pJcHbZOIoAtcthyjCdvtMrmjS
+	m91FiSlwf2lSRGo0jnWH9J+EBlymk4dpnEhgZS6TEtzJZhAxZ59SqVFKXQSH6tOc
+	drTPeqCld/CBIzXJeIreudclX1oC3bjZkvDK3DewoidKJkC/1UubHQFNvOLRBGAg
+	P1sVoD40dAlzgSZLzDVq8DIBfXW8ABH3Ecd/40dQaVxhaEYASPYF10PoaIMmm28b
+	gibDVr7UaUZgNb+m6FcekigKXta/AvL+FzwIJyoTr7Jh+cMMS0agBdNI3LD7tx59
+	2IxvJ5c6hSZ8BvP0v0ij3Xqi2dc+VvM0hvI7nYJWrDyfNB07foHOypRcL1RL+BU+
+	KNaJda4oitQhR55AurF1omujlP3f+Js=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 05 Aug 2026 07:18:17 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 46BFF60A8F;
+	Wed,  5 Aug 2026 07:18:18 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6754IE8O010992;
+	Wed, 5 Aug 2026 07:18:14 +0300
+Date: Wed, 5 Aug 2026 07:18:14 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Jakub Kicinski <kuba@kernel.org>
+cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+        fw@strlen.de, horms@kernel.org
+Subject: Re: [PATCH net 08/10] ipvs: avoid out-of-bounds write in
+ ip_vs_nat_icmp
+In-Reply-To: <20260805001534.3978877-1-kuba@kernel.org>
+Message-ID: <94204793-387d-c4f4-cdbd-c5876739ad1c@ssi.bg>
+References: <20260731151806.849724-9-pablo@netfilter.org> <20260805001534.3978877-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
----
-netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
 
-This changes the timeout selection in nf_conntrack_tcp_packet() so that an
-RST which leaves the entry in TCP_CONNTRACK_ESTABLISHED (the non-exact
-sequence case from be0502a3f2e9) gets timeouts[TCP_CONNTRACK_UNACK] instead
-of timeouts[TCP_CONNTRACK_CLOSE].  RSTs that conntrack accepts as closing
-the flow are meant to keep using timeouts[new_state].
+	Hello,
 
-A few questions below.
+On Tue, 4 Aug 2026, Jakub Kicinski wrote:
 
->     Use the UNACK timeout for RST packets that leave the conntrack entry in
->     TCP_CONNTRACK_ESTABLISHED.  Exact-match RSTs and accepted RST packet
->     trains still fall through to timeouts[new_state], which preserves the
->     CLOSE timeout when conntrack accepts the RST as closing the flow.
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> ---
+> ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+> 
+> This passes the already-parsed ip_vs_iphdr down into ip_vs_nat_icmp() so
+> the embedded transport header offset comes from ciph->len instead of a
+> second read of the inner IPv4 ihl field.  The IPv4 header sanity checks in
+> ip_vs_out_icmp() and ip_vs_in_icmp() are also reworked to read ihl only
+> once.
+> 
+> Link: https://sashiko.dev/#/patchset/20260722101517.36313-1-ja%40ssi.bg
+> 
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index 6b79e0c4d9e28..0bdaeb4ed61e4 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -925,28 +925,27 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
+> >   */
+> >  void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+> >  		    struct ip_vs_conn *cp, int inout, unsigned int toff,
+> > -		    bool has_ports)
+> > +		    bool has_ports, struct ip_vs_iphdr *ciph)
+> >  {
+> >  	struct iphdr *iph	 = ip_hdr(skb);
+> >  	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
+> > -	struct iphdr *ciph	 = (struct iphdr *)(icmph + 1);
+> > -	unsigned int coff __maybe_unused = toff + sizeof(struct icmphdr);
+> > +	struct iphdr *cih	 = (struct iphdr *)(icmph + 1);
+> >  
+> >  	if (inout) {
+> >  		iph->saddr = cp->vaddr.ip;
+> >  		ip_send_check(iph);
+> > -		ciph->daddr = cp->vaddr.ip;
+> > -		ip_send_check(ciph);
+> > +		cih->daddr = cp->vaddr.ip;
+> > +		ip_send_check(cih);
+> >  	} else {
+> >  		iph->daddr = cp->daddr.ip;
+> >  		ip_send_check(iph);
+> > -		ciph->saddr = cp->daddr.ip;
+> > -		ip_send_check(ciph);
+> > +		cih->saddr = cp->daddr.ip;
+> > +		ip_send_check(cih);
+> >  	}
+> 
+> [Severity: High]
+> This isn't a bug introduced by this patch, but the two ip_send_check(cih)
+> calls here still read the inner ihl field a second time, which looks like
+> the same multi-read pattern the commit message describes fixing in this
+> function.
+> 
+> ip_send_check() takes its own fresh read of ihl and checksums 4 * ihl
+> bytes:
+> 
+> net/ipv4/ip_output.c:ip_send_check() {
+> 	iph->check = 0;
+> 	iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
+> }
+> 
+> The only length the callers guarantee is the snapshot value ciph->len (plus
+> 4 when ports are mangled):
+> 
+> net/netfilter/ipvs/ip_vs_core.c:handle_response_icmp() {
+> 	unsigned int ctoff = ciph->len;
+> 	...
+> 		ctoff += 2 * sizeof(__u16);
+> 	if (skb_ensure_writable(skb, ctoff))
+> 		goto out;
+> 	...
+> 		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph);
+> }
+> 
+> ciph->len was computed earlier in ip_vs_fill_iph_skb_off() as
+> offset + iph->ihl * 4 from a skb_header_pointer() snapshot, and
+> skb_ensure_writable() -> pskb_may_pull() re-copies the bytes out of the
+> fragments, so the ihl byte ip_send_check() then reads can differ from the
+> one that sized the validated window.
+> 
+> If the fresh ihl is larger than the snapshot value, can ip_fast_csum() read
+> up to 40 bytes past what skb_ensure_writable() guaranteed, and fold
+> adjacent skb memory into the inner header checksum that is emitted?
+> 
+> If the fresh ihl ends up below 5 (for example the version/ihl byte going
+> from 0x45 to 0x40, compensated in tot_len so both the inner IP and ICMP
+> checksums stay valid), some architectures do not tolerate it:
+> 
+> arch/mips/include/asm/checksum.h:ip_fast_csum() {
+> 	word += 4;
+> 	do {
+> 		csum += *word;
+> 		carry = (csum < *word);
+> 		csum += carry;
+> 		word++;
+> 	} while (word != stop);
+> }
+> 
+> with stop = iph + ihl, so for ihl <= 4 the loop termination is never hit.
+> 
+> arch/s390/include/asm/checksum.h:ip_fast_csum() {
+> 	ihl -= 4;
+> 	while (ihl--)
+> 		csum += *ptr++;
+> }
+> 
+> where ihl == 0 underflows into roughly four billion forward word reads.
+> 
+> Would it make sense to checksum over the validated length
+> (ciph->len - ciph->off), or to re-validate version/ihl after
+> skb_ensure_writable(), matching what was done for the port offset?
 
-[Severity: Low]
-Should this carry a Fixes: tag?  The changelog describes a user-visible
-failure (an ESTABLISHED entry expiring after 10 seconds while both TCP
-endpoints stay established), and it names be0502a3f2e9 in prose only, so
-stable tooling has nothing machine-readable to key on.
+	New version of this patch was delayed on friday with
+some hours, so now I have a separate fix that revalidates ihl,
+ready to be applied on top of this patch...
 
-There is also a wording tension: be0502a3f2e9's own changelog presented the
-CLOSE timeout for non-exact RSTs as intentional ("With patch, timeout is
-lowered like CLOSE, but connection stays in ESTABLISHED state" / "If no
-challenge ACK is received, the connection will time out after CLOSE
-seconds").  Either adding
+Regards
 
-    Fixes: be0502a3f2e94211 ("netfilter: conntrack: tcp: only close if RST matches exact sequence")
+--
+Julian Anastasov <ja@ssi.bg>
 
-or rewording this as a deliberate policy refinement rather than a bug fix
-would make the two consistent.
-
-[Severity: Low]
-Is there a test that observes this change?  The only in-tree artifact
-covering the inexact in-window RST path,
-tools/testing/selftests/net/netfilter/packetdrill/conntrack_rst_invalid.pkt,
-checks only the state string:
-
-    // in-window but not exact match
-    +0.0 < R	42:42(0)	win 0
-    +0 `conntrack -f $NFCT_IP_VERSION -L -p tcp --dport 8080 2>/dev/null |grep -q ESTABLISHED`
-
-The timeout is now the sole observable difference for that scenario, and it
-is never inspected.
-
-On top of that, the segment labelled "in-window but not exact match" has seq
-before seen[!dir].td_maxack (the peer had acked 3001), so
-nf_conntrack_tcp_packet() rejects it at the "invalid rst" check and never
-reaches the patched timeout selection.  The test's own counter assertion
-agrees:
-
-    // Expect four invalid RSTs
-    +0 `$xtables -v -S INPUT  | grep INVALID | grep -q -- "-c 4 "`
-
-So the suite passes identically with and without this change.
-
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index ceeed3d7fe520..723e946a78f40 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1281,8 +1281,9 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
->  	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
->  	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
->  		timeout = timeouts[TCP_CONNTRACK_RETRANS];
-> -	else if (unlikely(index == TCP_RST_SET))
-> -		timeout = timeouts[TCP_CONNTRACK_CLOSE];
-> +	else if (unlikely(index == TCP_RST_SET &&
-> +			  new_state == TCP_CONNTRACK_ESTABLISHED))
-> +		timeout = timeouts[TCP_CONNTRACK_UNACK];
-
-[Severity: Medium]
-Can this new branch lengthen an entry's lifetime rather than shorten it?
-Every sibling branch in this chain only assigns when the replacement is
-smaller, for example the RETRANS branch just above and the UNACK branch just
-below:
-
-    if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
-        timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
-        timeout = timeouts[TCP_CONNTRACK_RETRANS];
-    ...
-    else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
-         IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
-         timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-        timeout = timeouts[TCP_CONNTRACK_UNACK];
-
-The new branch has no such guard.  Since this branch is only reachable via
-"new_state = old_state;" in case TCP_CONNTRACK_CLOSE, new_state is
-ESTABLISHED here, so the effective comparison is timeouts[UNACK] against
-timeouts[ESTABLISHED].
-
-With the defaults in tcp_timeouts (ESTABLISHED 5 DAYS, UNACK 5 MINS) this is
-always a lowering.  But both values are independently tunable with no
-cross-validation:
-
-    net/netfilter/nf_conntrack_standalone.c:
-    [NF_SYSCTL_CT_PROTO_TIMEOUT_TCP_ESTABLISHED] = {
-        .procname	= "nf_conntrack_tcp_timeout_established",
-        .maxlen		= sizeof(unsigned int),
-        .mode		= 0644,
-        .proc_handler	= proc_dointvec_jiffies,
-    },
-
-and tcp_timeout_nlattr_to_obj() copies CTA_TIMEOUT_TCP_* verbatim.  So an
-administrator lowering nf_conntrack_tcp_timeout_established (120 s is a
-common hardening/NAT-appliance setting) inverts the relation.
-
-__nf_ct_refresh_acct() then writes the expiry absolutely rather than
-clamping it:
-
-    net/netfilter/nf_conntrack_core.c:__nf_ct_refresh_acct() {
-        ...
-        if (nf_ct_is_confirmed(ct))
-            extra_jiffies += nfct_time_stamp;
-
-        if (READ_ONCE(ct->timeout) != extra_jiffies)
-            WRITE_ONCE(ct->timeout, extra_jiffies);
-        ...
-    }
-
-In that configuration, an in-window RST whose sequence does not match
-td_maxack pushes the entry past the configured ESTABLISHED policy, and a
-periodic stream of such RSTs can renew it indefinitely, holding entries
-against nf_conntrack_max.  Would the usual form keep the intent while
-avoiding this?
-
-    timeout = min(timeouts[new_state], timeouts[TCP_CONNTRACK_UNACK]);
-
-or the matching guard:
-
-    else if (unlikely(index == TCP_RST_SET &&
-                      new_state == TCP_CONNTRACK_ESTABLISHED) &&
-             timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-
->  	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
->  		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
->  		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-
-[Severity: Low]
-For an RST that conntrack does accept as closing the flow, is the CLOSE
-timeout really preserved?  Previously such packets took the unconditional
-timeouts[TCP_CONNTRACK_CLOSE] assignment; now they fall through into the
-DATA_UNACKNOWLEDGED and last_win == 0 branches:
-
-    else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
-         IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
-         timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-        timeout = timeouts[TCP_CONNTRACK_UNACK];
-    else if (ct->proto.tcp.last_win == 0 &&
-         timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
-        timeout = timeouts[TCP_CONNTRACK_RETRANS];
-
-Those fire precisely when nf_conntrack_tcp_timeout_close is raised above
-nf_conntrack_tcp_timeout_unacknowledged or the retrans timeout, and both
-preconditions are reachable for a closing RST: IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED
-is commonly set on a flow that carried data, and ct->proto.tcp.last_win is
-sticky since it is only refreshed for ACK-only segments.
-
-This also diverges from the other closing path in the same file, which does
-not cap:
-
-    nf_conntrack_tcp_set_closing() {
-        ...
-        timeout = timeouts[TCP_CONNTRACK_CLOSE];
-        WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
-        ...
-    }
-
-Given that, is the changelog sentence "Exact-match RSTs and accepted RST
-packet trains still fall through to timeouts[new_state], which preserves the
-CLOSE timeout when conntrack accepts the RST as closing the flow" accurate
-for non-default close timeouts?  Restoring an explicit CLOSE assignment for
-new_state == TCP_CONNTRACK_CLOSE, or adjusting the wording, would resolve
-it.
