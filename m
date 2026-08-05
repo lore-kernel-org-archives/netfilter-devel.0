@@ -1,168 +1,232 @@
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D373E5598
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 09:03:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A36E9422533
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 12:59:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785920595; cv=none; b=t/drcfwwEsDG4M6mXN1M1MN/V9/n20/5liEgZghUaN0kcaQJsViaIINR6t81MXUCdlFU6H+s0bEBQ4jlmK63bQWu/suU+3w2ywqmzrELOX+47a+INVZ+hbT6j2++TaNp+APyh/Appo9yzfTXjsZ833fPzClIcuRwKeLza+2LihA=
+	t=1785934793; cv=none; b=HoMKJN8IO9TuSchDRdUh1iw+5JT0NalHTX0x02Ml3SM6ZlSkfG40zFY9nSQEFVgG0JcC9fFjyMXEck+r+KarFHr9Jn1h1kTJe0V1IgK9RucMuHFZoxJ22+SsQhPvElWW6uJ8JkqGmtcEPuIldr5XnTsugAwmZOaJVNdwMp22QqI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785920595; c=relaxed/simple;
-	bh=3okNddUNMMKJLxYEvGq4To4XewtsNzzsNOGi+EcxEJM=;
-	h=From:Message-ID:Date:MIME-Version:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=N20Gozp8aEjWtRThQ1iXl/qmNjneAAmktFBl3Xg2sRiLCt52f2ClZ3L3DIFKPb5Zgz1/udvu9GRticiM4ucvpyYJXpQIf8qahJyY2XsdJ5cvXBE3peJ3RcHZXO0naakc/JvAQvSo9jgRk0gMn1eZdy4tYfljok6g4G+UFUJZUNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O6U0eF5J; arc=none smtp.client-ip=209.85.221.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785934793; c=relaxed/simple;
+	bh=jXfr1Lm3c3Iw3igwDjv3Jm5uIDnCWxkrQ+ax4l49S+g=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=CPO8GR5t1vCynBnF0vKRmweLFbX0w/Z8YB1SrNLU1CxixokKi/ZxbjptoyvA6SW72dVe4sdmFfW6859MZzZXRca9mYWT5Fve+A77kDnwFaFt9AtRo2VadLRL0oNGsMgw8Ag04rM418e3VpkGr501iBsDU2horPfvLu41wJM/LnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R/2QYoKW; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O6U0eF5J"
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-47fd4531020so425600f8f.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2026 02:03:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785920592; x=1786525392; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:organization
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=tCjs3K798zUAHJS4Im4IiN0IAqAb0cx8X6grJLzTFKg=;
-        b=O6U0eF5JiVZ2usxoeGpE+FavXe3+gM3xAxS9XEuVBKdKYAj8mBroWXzVEOVcZXKdNw
-         c3ZBoFvecYSlurRptz+fJjDyxe9VRFiYPr6Yad18BL4Hr4E86iG2v6Sn6Oq2EspN3eOE
-         m9LrEppzXEZGw/S0yuDR8PkyXHNdWidK3xZP6E7hSnfgq71poKObjHVanmNuzeCi7IqW
-         4tlD+qsVA4vk86hSNyuxlW/5hC1zvM6ixJnLXnHqdx67mlYcd6sZ8XhyM9vfAF84cNYD
-         DAfzmgX2iN104EzDBCYxMQvgVpfslQTwwRBHAr1jPJS/oBkEKUuy/k1IAvYtCQttHAAu
-         6oxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785920592; x=1786525392;
-        h=content-transfer-encoding:content-type:in-reply-to:organization
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=tCjs3K798zUAHJS4Im4IiN0IAqAb0cx8X6grJLzTFKg=;
-        b=tEafIwtie1MtLIrKlqUvZTusLcKRFa29Jykmrl+sxySTPTURlcG48PHWEumLCdciyc
-         LePXqRgv8tylGPThqcC9hjNkbMShhcnX5jZjDQPShPwwbAbcoE9KuOGROlaoYDgqLn0f
-         tQ9WLrhQ9iEpH9lt1ugOuCekSE7xutOn6xplH46Vfjn1QqUcn8Kad9d6xV3sHpLmFozT
-         h7N2EHv2TguL7Rdb4CoY4ivm3wP7/gA27nA2GhotK+lBPrR2gbBDpH2YwjRrkjsOEPB6
-         AqUTzXRphddK3i3qjt0yBo+kvDvcUIGkH4kiQv0xn3+wX8/9obFsUGGpp2Lor20BnOA3
-         k49w==
-X-Forwarded-Encrypted: i=1; AHgh+Rp+be2fDQ3njZTt9tv/rQItsXY6N+l68iroY3OMDSdpfFmlD5N/6yy1+4w1Ys7HVwJcio2ZL0DMB48Ldt6o9ew=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyXkYqImmnKLehluoJlincbKCE35bSQMM+R1EjcOYUzy+i1n0kw
-	YN5CrKrqu71q8537++X+TEUYcQTFkstrtFu7PfXwxL3Nis44W4IoLIy/
-X-Gm-Gg: AR+sD10WWM2zPl4jYXln8SRkxt1z1B15VgeBpOJ+mfhSZuPUnk+2gHthHWKt8xTxwgT
-	P782Uq+QXwWb5QfvZUw5buB7EdaKu92KoYT0CPO6ALSA1SWHbZW4e72ra4Sm3N5T4slGBBNQaU7
-	5deF2AYr4zRwi0ykTR63jklv3Rr8VjTpl03qC5Pfu5J45Ytl3jsZmIYPkzdDOw7Aps/v9EF6N7A
-	OlsaHXzTa3iwK5Ihv8N1fpFMKJwXI3Z+fIG03ngpmU61Ik5yrzoJnBM317izehO7TTEOdeKUs1Z
-	pZjWUpotYF82rD5mjquKOIUE/U4Gdxb9t2Y6zTdtjhHCBio3sXIPP5rz9Ff02VLbKavv38U0t0h
-	CeUeGy4g/tfeXctXN01gkPM2ijkmD7H5EJw45PR7/ZiELfXk3sCVKqMiGUHjWp+0N12gQ05T1ll
-	lMSMSytU1o18M3b3K82KJ6lwaMWV/g9QIe7Mp+dYXKZBKMDvl1PngRUPTwxQb5nLYrohNq9wF4C
-	GTf/HWlPUtDiR4JxT8siJ2xeY88+OU=
-X-Received: by 2002:a05:6000:41d3:b0:45e:e1a4:c4c3 with SMTP id ffacd0b85a97d-47fec628b57mr8844522f8f.15.1785920591607;
-        Wed, 05 Aug 2026 02:03:11 -0700 (PDT)
-Received: from [127.0.0.1] ([193.252.113.11])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47fec232d7fsm7175258f8f.20.2026.08.05.02.03.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 05 Aug 2026 02:03:10 -0700 (PDT)
-From: Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
-X-Google-Original-From: Alexandre Ferrieux <alexandre.ferrieux@orange.com>
-Message-ID: <7b7fbe75-1531-49f9-8134-033c34fa13cb@orange.com>
-Date: Wed, 5 Aug 2026 11:02:48 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R/2QYoKW"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D405C60191
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 14:59:42 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1785934783;
+	bh=qyKeF4LI9VFV778k/Q17HA9MYjqQB2xtPoEN+fUFrA0=;
+	h=From:To:Subject:Date:From;
+	b=R/2QYoKWOOYiWqXxNki1BCxY6P+r5GdvtUiqY6+eXY6RBFCsO72JXUASDrRGQ51K0
+	 QPkCsZRb84DxWQpV+rtfvIFOVy3OPYujvnqI2t1EfZ2Y1yutbepS606ewjHKflGfBk
+	 QIUGiBScp5R9FNlvY6Lf9lYNSYD0caqL1h+KX8TyQeblaMjMxLAmYgvNnJDLceUZAp
+	 Qc44IGBROH/tEETj9OZL+dw8xjIEwQxO2OVOLRldOtuRUg6u8y/AySyEb10bCgtxFM
+	 jtJsySp58yHaKGzhBnZazmH0ltedSv7TxssDLe4B4EBEV4KkVnQnNqsZYuVZiEM3Bm
+	 D6Gghe3IkCmHQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 1/2] netfilter: nf_tables: make move set_update_list to nftables per-netns
+Date: Wed,  5 Aug 2026 14:59:35 +0200
+Message-ID: <20260805125936.188642-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] netfilter: nf_dup_netdev: scrub duplicates to
- preserve the direct path
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
- Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
- edumazet@google.com, netdev@vger.kernel.org
-References: <20260804201150.16364-1-alexandre.ferrieux@orange.com>
- <anLzQeYulW2CQItC@chamomile>
-Content-Language: fr, en-US
-Organization: Orange
-In-Reply-To: <anLzQeYulW2CQItC@chamomile>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 8/5/26 10:24 AM, Pablo Neira Ayuso wrote:
-> Hi,
->
-> On Tue, Aug 04, 2026 at 10:11:50PM +0200, Alexandre Ferrieux wrote:
->> The nftables 'dup' action clones the skb with its full glory of
->> metadata, including references to its destination and conntrack
->> information. As a consequence, a link failure on the duplicate's
->> egress path ends up doing the same as it would for the direct path,
->> for example invalidating the original packet's destination, which
->> typically breaks all TCP connections to that address.
->>
->> In other words, the "dup" path has the potential to wreak havoc
->> in the direct path as a consequence of secondary link failures. This
->> is very bad behavior for a monitoring tool, which is the most
->> obvious application of 'dup'.
->
-> Can you describe your use-case a bit and how it breaks?
-Sure:
+This list is used to invoke the set .commit and .abort ops for the
+rbtree and pipapo to run GC on expired elements and replace the current
+datastructure view by the clone. For the rbtree, this also rebuild the
+datapath b-search array.
 
- - assume hosts A.eth0 and B.eth0 have active production traffic (say TCP)
- - assume we have a monitoring tool on A that dups eth0's egress to some other
-interface $MON
+From abort path, remove the set from the update_list if it is already
+bound to rule, then the rule itself takes care of releasing the set and
+its elements, otherwise, memleak is possible because set ops .abort
+only deals with removing the set data structure, not the elements.
 
-    nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
-filter ; policy accept ; }'
-    nft add rule netdev ta ch dup to $MON
+This is a preparation patch to call set .commit before processing the
+transaction list for the rbtree, no functional changes are intended.
 
- - assume something goes wrong on $MON generating link failures. In my case it
-was a GRETAP with L3 destination suddenly unreachable.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 49 ++++++++++---------------------
+ 2 files changed, 16 insertions(+), 34 deletions(-)
 
- - The next A->B packet goes through normally, but its duplicate hits
-ipv4_link_failure(), hence the dst (which is B) is expired.
-
- - As a result, (say) TCP disruptions occur. The thermometer killed the patient :)
-
-Note: as a straightforward repro, you can simply witness "noise" in simple ping
-sessions, with ghost unreach reports muxed with normal measurement:
-
-    ip link add gre1 type gretap remote 192.168.1.99 ;# on the LAN, nonexistent
-IP => will generate link failures
-    ip link set dev gre1 up
-    nft add table netdev ta
-    nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
-filter ; policy accept ; }'
-    nft add rule netdev ta ch counter dup to gre1
-    ping -n 8.8.8.8
- =>
-    PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
-    64 bytes from 8.8.8.8: icmp_seq=1 ttl=115 time=19.9 ms
-    64 bytes from 8.8.8.8: icmp_seq=2 ttl=115 time=12.8 ms
-    64 bytes from 8.8.8.8: icmp_seq=3 ttl=115 time=36.0 ms
-    64 bytes from 8.8.8.8: icmp_seq=4 ttl=115 time=30.3 ms
-    From 192.168.1.13 icmp_seq=5 Destination Host Unreachable
-    64 bytes from 8.8.8.8: icmp_seq=5 ttl=115 time=31.0 ms
-    From 192.168.1.13 icmp_seq=6 Destination Host Unreachable
-    64 bytes from 8.8.8.8: icmp_seq=6 ttl=115 time=38.0 ms
-    From 192.168.1.13 icmp_seq=7 Destination Host Unreachable
-    64 bytes from 8.8.8.8: icmp_seq=7 ttl=115 time=36.8 ms
-    From 192.168.1.13 icmp_seq=8 Destination Host Unreachable
-    64 bytes from 8.8.8.8: icmp_seq=8 ttl=115 time=23.5 ms
-    ^C
-
-
->
->> This patch fixes all similar scenarii by calling skb_scrub_pkt()
->> on the clone, severing its link to precious direct-path state.
->
-> This patch is targetted at the net tree, but nf.git is preferred.
-Okay, will retarget :)
-
-> As for the conntrack and dst, you have to explain what it breaks on
-> your end.
-Dst as shown above. Conntrack is more speculation, but my take is that in any
-case the dup path should *never* have any kind of retroaction on the observed
-path, so any "complex state" attached to the direct path should be absolutely
-isolated from "whatever happens on the dup path". Am I mistaken ?
-
--Alex
-
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 3be612145c13..238f6ecb90e9 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1949,6 +1949,7 @@ struct nftables_pernet {
+ 	struct list_head	binding_list;
+ 	struct list_head	module_list;
+ 	struct list_head	notify_list;
++	struct list_head	set_update_list;
+ 	struct mutex		commit_mutex;
+ 	u64			table_handle;
+ 	u64			tstamp;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index af357f6c5070..90a379533e08 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -595,10 +595,15 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
+ static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
++	struct nft_trans_elem *te;
+ 
+ 	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
+ 		     trans->msg_type != NFT_MSG_DELSETELEM);
+ 
++	te = nft_trans_container_elem(trans);
++	if (te->set->ops->commit && list_empty(&te->set->pending_update))
++		list_add_tail(&te->set->pending_update, &nft_net->set_update_list);
++
+ 	if (nft_trans_try_collapse(nft_net, trans)) {
+ 		kfree(trans);
+ 		return;
+@@ -10848,11 +10853,11 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
+ 	}
+ }
+ 
+-static void nft_set_commit_update(struct list_head *set_update_list)
++static void nft_set_commit_update(struct nftables_pernet *nft_net)
+ {
+ 	struct nft_set *set, *next;
+ 
+-	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
++	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
+ 		list_del_init(&set->pending_update);
+ 
+ 		if (!set->ops->commit || set->dead)
+@@ -10885,7 +10890,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	struct nft_trans_binding *trans_binding;
+ 	struct nft_trans *trans, *next;
+ 	unsigned int base_seq, gc_seq;
+-	LIST_HEAD(set_update_list);
+ 	struct nft_trans_elem *te;
+ 	struct nft_chain *chain;
+ 	struct nft_table *table;
+@@ -11091,27 +11095,13 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = nft_trans_container_elem(trans);
+-
+ 			nft_trans_elems_add(&ctx, te);
+-
+-			if (te->set->ops->commit &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+ 		case NFT_MSG_DESTROYSETELEM:
+ 			te = nft_trans_container_elem(trans);
+-
+ 			nft_trans_elems_remove(&ctx, te);
+-
+-			if (te->set->ops->commit &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+ 			if (nft_trans_obj_update(trans)) {
+@@ -11180,7 +11170,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		}
+ 	}
+ 
+-	nft_set_commit_update(&set_update_list);
++	nft_set_commit_update(nft_net);
+ 
+ 	nft_commit_notify(net, NETLINK_CB(skb).portid);
+ 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+@@ -11247,11 +11237,11 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
+-static void nft_set_abort_update(struct list_head *set_update_list)
++static void nft_set_abort_update(struct nftables_pernet *nft_net)
+ {
+ 	struct nft_set *set, *next;
+ 
+-	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
++	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
+ 		list_del_init(&set->pending_update);
+ 
+ 		if (!set->ops->abort)
+@@ -11386,33 +11376,22 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
++			te = nft_trans_container_elem(trans);
+ 			if (nft_trans_elem_set_bound(trans)) {
++				list_del_init(&te->set->pending_update);
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+-			te = nft_trans_container_elem(trans);
+ 			if (!nft_trans_elems_new_abort(&ctx, te)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+-
+-			if (te->set->ops->abort &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+ 		case NFT_MSG_DESTROYSETELEM:
+ 			te = nft_trans_container_elem(trans);
+ 
+ 			nft_trans_elems_destroy_abort(&ctx, te);
+-
+-			if (te->set->ops->abort &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+@@ -11458,7 +11437,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 
+ 	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
+ 
+-	nft_set_abort_update(&set_update_list);
++	nft_set_abort_update(nft_net);
+ 
+ 	synchronize_rcu();
+ 
+@@ -12142,6 +12121,7 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	INIT_LIST_HEAD(&nft_net->binding_list);
+ 	INIT_LIST_HEAD(&nft_net->module_list);
+ 	INIT_LIST_HEAD(&nft_net->notify_list);
++	INIT_LIST_HEAD(&nft_net->set_update_list);
+ 	mutex_init(&nft_net->commit_mutex);
+ 	net->nft.base_seq = 1;
+ 	nft_net->gc_seq = 0;
+@@ -12186,6 +12166,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->notify_list));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->destroy_list));
++	WARN_ON_ONCE(!list_empty(&nft_net->set_update_list));
+ }
+ 
+ static void nf_tables_exit_batch(struct list_head *net_exit_list)
+-- 
+2.47.3
 
