@@ -1,39 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E0CF4854F1
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 16:39:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36CDD485515
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 16:39:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785947968; cv=none; b=fGJAJ3gS5TLKoebMKf+SZsVVMCqkQH7lYcTr2SSxNwngxVxTx8JlB4Sndf1sO0hTh6baOu+RX5eFaE49pp2iavpH7B2esSPCBFsrQe+/cjtEyKerx59bj9+myGO6cIUORfoNrx/N27CLFstKm+l8wYFVlHP/sViPTRlt70fhXI8=
+	t=1785947968; cv=none; b=OPA9JWTBqU9NJT0wjavKG3dZNeYTL1bBudUTspjcVnTfJTguIRtBKcUN4HCwhJCbk6aa2nUO/F6ej7AYdfB7mrFuKaDpih2K82judOabYhTTt0gv0vD0x38jiNdiMP+SJOodKiihIe8JtbzmJrvkP2jgodM6pi5M1BIwiLKtkB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785947968; c=relaxed/simple;
-	bh=HXnp9SmZvm1woxBd6B4lMPM0n0r0458iyqfeja6u7SA=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=eyfEi5ZZOIyzYi21CX0LfbjYfO9odSlx2AQxuxGr2uBC38ZVQLN5FFJbiIleGSdfGsxZdEEQRxASLX8mVKU26RBC3+fUD6qBFP/esnorI6YWXrmqaS2jEMjCq6gtmtImKj1FHm7LDBK2sjd6vtfFbpbvOt9tzc91DyXefPFXvCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Jqc3c4CR; arc=none smtp.client-ip=217.70.190.124
+	bh=1mwl4+zdOPOFCyQokXzc5bXKkRPtwI/sd23cc7Ljq7U=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=gwMuHCVb8lF1bedIabtQCDt1WEy+ZCYnQWkLKTou4fuB7mt3fousJSbdQ2N1f+RBz0pFkLUHFSr/vFF+CBAPXsWOr2lgjZcbXeh9K04ftDVb1PRMPWPgNsM7zdl+Pfm9dFVbuPFbyd4p4Rmmrmaiuk5GdDdNzhi+HhZ3jgc+6gM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I8EYydEn; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Jqc3c4CR"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I8EYydEn"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2B47A60193
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 18:39:23 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 45E3C60295
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 18:39:24 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785947963;
-	bh=+8UQZnu50kyu8NCylv8kFOnPIjlbHMmdOc/tvHGlEfA=;
-	h=From:To:Subject:Date:From;
-	b=Jqc3c4CRSPS4H6GFbVeF+rjLWW7VblbFTOXDMfRbcbxZU7v43Ghn/dqwGAjC/bcQ1
-	 kRPGtDgCmA0ndex6XYbGafrBAjCAkAl1dbcd6NJ5XSGM3XBRCJsYKbMB/ZeXnUJGMC
-	 GyT1tlE4cT/7UHEP5XvXCvplpQylLt2sbBPqKsaYQpwA5ZI2nZ8flwGSGVmXq8/oTy
-	 L9X9lcgM56qEcbgOL3RAAE92S89rJumkJaVWpJsQ8Gk/d5TxnePWxtyWnPFutt/DwM
-	 tGiYhIi6W30prRp4oRv+o11wRBBQUXEvYT2fW8Dx5MgKzE74NOAW3yjcsFxNimTWg1
-	 qXBioM/AAAY8w==
+	s=2025; t=1785947964;
+	bh=Lggl3u1B+ajwFM3zqIlI1QMMSXEmfE6IdV/iggBs2fU=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=I8EYydEnEJwLcbM+9H9EXRZLhVKokk+xOLivhz9KE6nheA8tXWmbposv+wUlagMl2
+	 EhAK8N8Gg72Vx4tbTfbKthNezW2+cr6hpdOgY+N2DynsuZUeeE7+/rfn6Rj69S7e4o
+	 kA1/NNYkx24g31Ojt5Di0GDxo0qDieO9sNnuhRzmXvnOh7JcwrTF0nSLvS4cbHejYA
+	 uOs2vFqNRu0y65p994DzJCau+VeMszYoWMnDiteFPdlNH3DW5ll6G2u+Mpvs6aMIay
+	 0TTMb16GX70XSMnXFF1F1+73G/gQJRtjSI6BHBl7wFMGQhwSGpiBEw0tOPEINMb3ID
+	 03GeJUXpo27NQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 1/3] mergesort: use lhs expression when sorting concatenation
-Date: Wed,  5 Aug 2026 18:39:18 +0200
-Message-ID: <20260805163920.238975-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/3] segtree: basic support for binary operations in concatenated set ranges
+Date: Wed,  5 Aug 2026 18:39:19 +0200
+Message-ID: <20260805163920.238975-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260805163920.238975-1-pablo@netfilter.org>
+References: <20260805163920.238975-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,99 +45,105 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Otherwise, concatenations using binary operations hit an assertion.
+Use of tcp flags in concatenated set ranges such as (note the 100-110
+range):
 
- # cat ruleset.nft
- table inet t {
-        chain c {
-                tcp flags . tcp dport vmap { syn | ack . 80 : drop, ack . 90 : accept }
-        }
+ table ip x {
+       chain y {
+             tcp flags . tcp dport vmap { syn | ack . 80 : accept, ack . 90 : drop, rst . 100-110 : drop
+       }
  }
- # nft -f ruleset.nft
- # nft list ruleset
- nft: src/mergesort.c:23: concat_expr_msort_value: Assertion `ilen > 0' failed.
- Aborted
 
-Inspect the left-hand size of the expression for the merge sorting.
+is broken when listing the ruleset:
+
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==218685==ERROR: AddressSanitizer: SEGV on unknown address 0x50b000029798 (pc 0x7f8318b8fac0 bp 0x7ffd080a4310 sp 0x7ffd080a4198 T0)
+==218685==The signal is caused by a READ memory access.
+    #0 0x7f8318b8fac0 in __gmpz_cmp (/lib/x86_64-linux-gnu/libgmp.so.10+0x19ac0) (BuildId: dff5c2156ec812613c5e4431005c576b212dd323)
+    #1 0x7f83192fbc3f in concat_range_aggregate src/segtree.c:404
+    #2 0x7f8319240889 in netlink_list_setelems src/netlink.c:1774
+    #3 0x7f8319115fdd in cache_init_objects src/cache.c:1189
+    #4 0x7f8319116f10 in nft_cache_init src/cache.c:1266
+    #5 0x7f831911772b in nft_cache_update src/cache.c:1325
+    #6 0x7f83191eac34 in nft_evaluate src/libnftables.c:580
+    #7 0x7f83191eb8b6 in nft_run_cmd_from_buffer src/libnftables.c:638
+    #8 0x558baf3bc403 in main src/main.c:538
+
+add basic support so it works with tcp flags, add a new assertion to
+crash safely to ensure expression type is EXPR_VALUE before access
+when trying to compose the range (this code only supports EXPR_VALUE
+when building a range expression at this stage) and a new test.
 
 This patch includes a new tests/shell unit file.
 
-Fixes: 741a06ac15d2 ("mergesort: find base value expression type via recursion")
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1841
+Fixes: 8ac2f3b2fca3 ("src: Add support for concatenated set ranges")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: add tests/shell unit file.
+ src/segtree.c                                 |  27 ++-
+ .../dumps/vmap_concat_range_binary.json-nft   | 209 ++++++++++++++++++
+ .../maps/dumps/vmap_concat_range_binary.nft   |  14 ++
+ .../testcases/maps/vmap_concat_range_binary   |  22 ++
+ 4 files changed, 271 insertions(+), 1 deletion(-)
+ create mode 100644 tests/shell/testcases/maps/dumps/vmap_concat_range_binary.json-nft
+ create mode 100755 tests/shell/testcases/maps/dumps/vmap_concat_range_binary.nft
+ create mode 100755 tests/shell/testcases/maps/vmap_concat_range_binary
 
- src/mergesort.c                               |  38 +++-
- .../maps/dumps/vmap_concat_binop.json-nft     | 196 ++++++++++++++++++
- .../maps/dumps/vmap_concat_binop.nft          |  13 ++
- tests/shell/testcases/maps/vmap_concat_binop  |  19 ++
- 4 files changed, 262 insertions(+), 4 deletions(-)
- create mode 100644 tests/shell/testcases/maps/dumps/vmap_concat_binop.json-nft
- create mode 100644 tests/shell/testcases/maps/dumps/vmap_concat_binop.nft
- create mode 100755 tests/shell/testcases/maps/vmap_concat_binop
-
-diff --git a/src/mergesort.c b/src/mergesort.c
-index 2e8ddd22f813..f4b4d56b579c 100644
---- a/src/mergesort.c
-+++ b/src/mergesort.c
-@@ -12,16 +12,46 @@
- #include <gmputil.h>
- #include <list.h>
+diff --git a/src/segtree.c b/src/segtree.c
+index a721078cfa59..c8a7a3541ac3 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -362,6 +362,29 @@ static int range_mask_len(const mpz_t start, const mpz_t end, unsigned int len)
+ 	return ret;
+ }
  
-+static mpz_srcptr concat_expr_msort_value_one(const struct expr *expr,
-+					      unsigned int *i_len)
++static int concat_expr_cmp(const struct expr *r1, const struct expr *r2)
 +{
-+	mpz_srcptr i_value;
++	int ret;
 +
-+	switch (expr->etype) {
++	assert(r1->etype == r2->etype);
++
++	switch (r1->etype) {
 +	case EXPR_BINOP:
-+	case EXPR_MAPPING:
-+	case EXPR_RANGE:
-+		i_value = expr->left->value;
-+		*i_len = expr->left->len;
++		assert(r1->op == r2->op);
++		ret = 0;
++		ret = mpz_cmp(r1->left->value, r2->left->value);
++		ret |= mpz_cmp(r1->right->value, r2->right->value);
 +		break;
 +	case EXPR_VALUE:
-+		i_value = expr->value;
-+		*i_len = expr->len;
-+		break;
-+	case EXPR_RANGE_VALUE:
-+		i_value = expr->range.low;
-+		*i_len = expr->len;
++		ret = mpz_cmp(r1->value, r2->value);
 +		break;
 +	default:
-+		BUG("Unknown expression %s", expr_name(expr));
++		BUG("unexpected expression %s", expr_name(r1->key));
 +	}
 +
-+	*i_len = div_round_up(*i_len, BITS_PER_BYTE);
-+
-+	return i_value;
++	return ret;
 +}
 +
- static void concat_expr_msort_value(const struct expr *expr, mpz_t value)
- {
--	unsigned int len = 0, ilen;
-+	unsigned int len = 0, i_len;
- 	const struct expr *i;
-+	mpz_srcptr i_value;
- 	char data[512];
+ /* Given a set with two elements (start and end), transform them into a
+  * concatenation of ranges. That is, from a list of start expressions and a list
+  * of end expressions, form a list of start - end expressions.
+@@ -401,11 +424,13 @@ void concat_range_aggregate(struct expr *set)
+ 			r2_next = r2->list.next;
+ 			free_r1 = 0;
  
- 	list_for_each_entry(i, &expr_concat(expr)->expressions, list) {
--		ilen = div_round_up(i->len, BITS_PER_BYTE);
--		mpz_export_data(data + len, i->value, BYTEORDER_BIG_ENDIAN, ilen);
--		len += ilen;
-+		i_value = concat_expr_msort_value_one(i, &i_len);
-+		mpz_export_data(data + len, i_value, BYTEORDER_BIG_ENDIAN, i_len);
-+		len += i_len;
- 	}
+-			if (!mpz_cmp(r1->value, r2->value)) {
++			if (!concat_expr_cmp(r1, r2)) {
+ 				free_r1 = 1;
+ 				goto next;
+ 			}
  
- 	mpz_import_data(value, data, BYTEORDER_BIG_ENDIAN, len);
-diff --git a/tests/shell/testcases/maps/dumps/vmap_concat_binop.json-nft b/tests/shell/testcases/maps/dumps/vmap_concat_binop.json-nft
++			assert(r1->etype == EXPR_VALUE && r1->etype == EXPR_VALUE);
++
+ 			if (expr_basetype(r1)->type == TYPE_STRING &&
+ 			    expr_basetype(r2)->type == TYPE_STRING) {
+ 				string_type = true;
+diff --git a/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.json-nft b/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.json-nft
 new file mode 100644
-index 000000000000..502648f53dec
+index 000000000000..8868f2eb180e
 --- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/vmap_concat_binop.json-nft
-@@ -0,0 +1,196 @@
++++ b/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.json-nft
+@@ -0,0 +1,209 @@
 +{
 +  "nftables": [
 +    {
@@ -184,6 +193,9 @@ index 000000000000..502648f53dec
 +        },
 +        "handle": 0,
 +        "map": "verdict",
++        "flags": [
++          "interval"
++        ],
 +        "elem": [
 +          [
 +            {
@@ -204,8 +216,8 @@ index 000000000000..502648f53dec
 +          [
 +            {
 +              "concat": [
-+                "rst",
-+                100
++                "ack",
++                90
 +              ]
 +            },
 +            {
@@ -215,8 +227,13 @@ index 000000000000..502648f53dec
 +          [
 +            {
 +              "concat": [
-+                "ack",
-+                90
++                "rst",
++                {
++                  "range": [
++                    100,
++                    110
++                  ]
++                }
 +              ]
 +            },
 +            {
@@ -303,8 +320,8 @@ index 000000000000..502648f53dec
 +                  [
 +                    {
 +                      "concat": [
-+                        "rst",
-+                        100
++                        "ack",
++                        90
 +                      ]
 +                    },
 +                    {
@@ -314,8 +331,13 @@ index 000000000000..502648f53dec
 +                  [
 +                    {
 +                      "concat": [
-+                        "ack",
-+                        90
++                        "rst",
++                        {
++                          "range": [
++                            100,
++                            110
++                          ]
++                        }
 +                      ]
 +                    },
 +                    {
@@ -331,46 +353,50 @@ index 000000000000..502648f53dec
 +    }
 +  ]
 +}
-diff --git a/tests/shell/testcases/maps/dumps/vmap_concat_binop.nft b/tests/shell/testcases/maps/dumps/vmap_concat_binop.nft
-new file mode 100644
-index 000000000000..92e50a4cbcc1
+diff --git a/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.nft b/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.nft
+new file mode 100755
+index 000000000000..bc74535b852f
 --- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/vmap_concat_binop.nft
-@@ -0,0 +1,13 @@
++++ b/tests/shell/testcases/maps/dumps/vmap_concat_range_binary.nft
+@@ -0,0 +1,14 @@
 +table ip x {
 +	map y {
 +		typeof tcp flags . tcp dport : verdict
++		flags interval
 +		elements = { syn | ack . 80 : accept,
-+			     rst . 100 : drop,
-+			     ack . 90 : drop }
++			     ack . 90 : drop,
++			     rst . 100-110 : drop }
 +	}
 +
 +	chain z {
 +		tcp flags . tcp dport vmap @y
-+		tcp flags . tcp dport vmap { syn | ack . 80 : accept, rst . 100 : drop, ack . 90 : drop }
++		tcp flags . tcp dport vmap { syn | ack . 80 : accept, ack . 90 : drop, rst . 100-110 : drop }
 +	}
 +}
-diff --git a/tests/shell/testcases/maps/vmap_concat_binop b/tests/shell/testcases/maps/vmap_concat_binop
+diff --git a/tests/shell/testcases/maps/vmap_concat_range_binary b/tests/shell/testcases/maps/vmap_concat_range_binary
 new file mode 100755
-index 000000000000..fc6e9584740b
+index 000000000000..ad5ef4a9177e
 --- /dev/null
-+++ b/tests/shell/testcases/maps/vmap_concat_binop
-@@ -0,0 +1,19 @@
++++ b/tests/shell/testcases/maps/vmap_concat_range_binary
+@@ -0,0 +1,22 @@
 +#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_pipapo)
 +
 +set -e
 +
 +RULESET="table ip x {
 +        map y {
 +                typeof tcp flags . tcp dport : verdict
++                flags interval
 +                elements = { syn | ack . 80 : accept,
 +                             ack . 90 : drop,
-+			     rst . 100 : drop }
++			     rst . 100-110 : drop }
 +        }
 +
 +        chain z {
 +                tcp flags . tcp dport vmap @y
-+                tcp flags . tcp dport vmap { syn | ack . 80 : accept, ack . 90 : drop, rst . 100 : drop }
++                tcp flags . tcp dport vmap { syn | ack . 80 : accept, ack . 90 : drop, rst . 100-110 : drop }
 +        }
 +}"
 +
