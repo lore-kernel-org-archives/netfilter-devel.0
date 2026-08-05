@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1048132E121;
-	Wed,  5 Aug 2026 00:15:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D49B3603EF;
+	Wed,  5 Aug 2026 00:19:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785888938; cv=none; b=fBwX0WX+jx1B5UpGUcvqf3GD5gNyfRfN5D2tq8s26hgNh02SmEzn7/71p4H871Y1ILdNKaSSiM6qHeFG5pRhTPs+nZ9tng4pzDZ4kCQkCYYyd6Yd8iSY+cmXWZEorIjG+3vwPGwAtJNApo57tMeFVO+hRnWaIi6E87lu29i/NMw=
+	t=1785889149; cv=none; b=WS1s5zKITy1nn/XJAeSmxXvLHcuFWu7tZ6t0kw9OxGusBwzlQcLOs2XgvZwlQ8grCCBl4P3KiDDIKpnYP3uElJ2GeUaVGUJwjWH/uWyhPZNZV4uR+R8bN6Xp7gJN2oSdEbN4QPOE6lUlwIyb6hO8FR2xztZNZzeu1t07DrxtGJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785888938; c=relaxed/simple;
-	bh=nIQeHjgMVaZLbskbdo3rHMFsHh4uawloNW/hCJi2i8M=;
+	s=arc-20240116; t=1785889149; c=relaxed/simple;
+	bh=0b1d+0/0eScVDrxhtvsJObYuvU8VsFpEOXeNvpsgPDc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bAReYO3BahbFkkx2hZoaupRW3j8uvL4CZnmCFmNIn7E1NrjTeV19jNiFnPsFQBtQQOsG4qGGAZX3vtqLcJGJCRMkNGzbHAEFgrg+nfTwihGeTzhF7ClAHDoUZzwQN1MXaAKfqh2ZAxzLEqWI1QrGoWbDX8O4XV+kh19MOa9bOo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XAQCcE77; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=SYjIgppTDRza41cR8ZFwImK38/p2lq8j7rvE89b5+IvhaOHUHm39j8eJGrn7COnPyfM4uJWhuPx5LwS7VldCyvzuBjpxtYCQsptdLxEvEdLZS9/ZL1Btl4bcZnh558VYce9yXXhrV/R70z8pfJJHAv5XBz7hhxK41hAVt5q+g1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ew4Ll1pQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XAQCcE77"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD9981F00A3D;
-	Wed,  5 Aug 2026 00:15:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ew4Ll1pQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E22B1F000E9;
+	Wed,  5 Aug 2026 00:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785888936;
-	bh=vfii4wLnz80JdgEYiEuYqm/7LkljATDzKbzE5sj147g=;
+	s=k20260515; t=1785889147;
+	bh=M01c61g3la9+F8Tt+Jf/iP30fvUSw/0ZpSHAVKfvyBw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=XAQCcE77pNI+PfWx1CHiqnCdMM74oT1N4Qkfnb+106xb3gjwR90wVSM/JO3zqgiA5
-	 AyXOpE/yTD5dQBC+ZGUcRWtdY9Q+NuWFZnq5jevC0+9vGLedu653tCX+FIvqkN5B9P
-	 g99f69BwkPrSpVkHwcsu6Z+fBnCR7M3JYh6Rqpgx17DYGDbYbYKfxIHtwEIS4wNWRb
-	 Ct+9miTb8kzQzmLeYt/6Yg3typgGCV1rZ8QD7Bq2e7o7wAVIdT8JtGX+PSVDAjgbKK
-	 DfJVXpEFjPvXDwiTd4TwchcnwF89m6mANfs/8k2Bwcr1oCRniMBDmi/AGg1TcRdXLL
-	 YAHhH/l6pQ8Cw==
+	b=ew4Ll1pQnagaLo77zAQBT7quGJ9kAQw2kWI+oY01KIs2PE2noa/WggeCiID8NGr4s
+	 V2YjpHRoRATskdatRXFX4zfTXBbp7Kl+OJfHH/HflXPjcj0FtFUUlmwehcjfqwsXZ3
+	 DkhjWV3PqLW8xVNHBoHowSF1unV3Y+9149sYc+X5dQyai7UMjkmAGHXv44uDt9LE6j
+	 +UAuU+K1BJibXsAUXXhUFi/axQS8JmJsB6+jqVD3ERwm63kHQi+jeSwoTb1byc0a+P
+	 Fcz72P4jVjbnS0RiJmitGenJF7kvDM74lhoxdtrZTVEYHyQ70YvxjslQX+w/FV2+6s
+	 w/rPj9/CGbIyA==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -36,12 +36,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: Re: [PATCH net 10/10] netfilter: nft_ct: move custom expectation support to helper
-Date: Tue,  4 Aug 2026 17:15:35 -0700
-Message-ID: <20260805001535.3978948-1-kuba@kernel.org>
+Subject: Re: [PATCH net-next 7/9] netfilter: flowtable: release tunnel route on error when building forward path
+Date: Tue,  4 Aug 2026 17:19:06 -0700
+Message-ID: <20260805001906.3985830-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260731151806.849724-11-pablo@netfilter.org>
-References: <20260731151806.849724-11-pablo@netfilter.org>
+In-Reply-To: <20260731153402.851224-8-pablo@netfilter.org>
+References: <20260731153402.851224-8-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,463 +53,187 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: nft_ct: move custom expectation support to helper
+netfilter: flowtable: release tunnel route on error when building forward path
 
-This reworks the nftables ct expectation object so that the expectation is
-no longer created directly from the rule evaluation, but from an internal
-conntrack helper that is allocated per object and attached to the conntrack
-entry. nf_conntrack_helper_free() is split out of
-nf_conntrack_helper_unregister() and exported so the internal helper can be
-released when the object goes away.
+This drops the second route lookup in nft_flow_tunnel_update_route() and
+instead passes the dst_entry obtained by dev_fill_forward_path() through
+the tunnel forward path information, so ipip and ip6ip6 no longer release
+it.  On failure while building the forward path the tunnel dst is released
+via dev_fill_forward_path_release().
 
-Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
-
-A few questions about the commit message first.
-
-> Originally, the ct expectation support called nf_ct_helper_ext_add() for
-> confirmed conntracks, which is invalid, triggering a splat. This was
-> fixed by commit 1710eb913bdc ("netfilter: nft_ct: skip expectations for
-> confirmed conntrack") which restricted it to confirmed conntracks.
-
-[Severity: Low]
-Is this description inverted?  That commit skips confirmed conntracks, so
-it restricted the feature to unconfirmed ones, which is also the guard this
-patch keeps in nft_ct_expect_obj_eval():
-
-	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct)) {
-		regs->verdict.code = NFT_BREAK;
-		return;
-	}
-
-> Fixes: 857b46027d6f ("netfilter: nft_ct: add ct expectations support")
-
-[Severity: Low]
-The Fixes tag points at the 2019 feature commit, but the implementation
-relies on struct nf_conntrack_helper::ct_refcnt, which git blame on
-include/net/netfilter/nf_conntrack_helper.h attributes to commit
-ac46f3f35b6e68 (2026-06-04), on the refcount_inc_not_zero() guarded
-help->helper assignment in __nf_ct_try_assign_helper(), and on the
-kzalloc_obj() slab macro.
-
-Would a note about stable applicability be worth adding, since a tree
-without the ct_refcnt rework would not build this and has no equivalent
-lifetime scheme for an unregistered helper?
-
-> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> index 500509b17663e..1197e8793494b 100644
-> --- a/net/netfilter/nf_conntrack_helper.c
-> +++ b/net/netfilter/nf_conntrack_helper.c
-> @@ -456,13 +456,8 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
->  	return this == me;
->  }
+> diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+> index 0831f6b81717c..fb7d96f99b06b 100644
+> --- a/net/ipv4/ipip.c
+> +++ b/net/ipv4/ipip.c
+> @@ -376,10 +376,10 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+>  	path->tun.src_v4.s_addr = tiph->saddr;
+>  	path->tun.dst_v4.s_addr = tiph->daddr;
+>  	path->tun.l3_proto = IPPROTO_IPIP;
+> +	path->tun.dst = &rt->dst;
+>  	path->dev = ctx->dev;
 >  
-> -void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-> +void nf_conntrack_helper_free(struct nf_conntrack_helper *me)
->  {
-> -	mutex_lock(&nf_ct_helper_mutex);
-> -	hlist_del_rcu(&me->hnode);
-> -	nf_ct_helper_count--;
-> -	mutex_unlock(&nf_ct_helper_mutex);
-> -
->  	/* This helper is going away, disable it. */
->  	rcu_assign_pointer(me->help, NULL);
+>  	ctx->dev = rt->dst.dev;
+> -	ip_rt_put(rt);
 >  
-> @@ -476,6 +471,17 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->  	if (refcount_dec_and_test(&me->ct_refcnt))
->  		kfree_rcu(me, rcu);
->  }
-> +EXPORT_SYMBOL_GPL(nf_conntrack_helper_free);
-> +
-> +void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-> +{
-> +	mutex_lock(&nf_ct_helper_mutex);
-> +	hlist_del_rcu(&me->hnode);
-> +	nf_ct_helper_count--;
-> +	mutex_unlock(&nf_ct_helper_mutex);
-> +
-> +	nf_conntrack_helper_free(me);
-> +}
->  EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
->  
->  void nf_ct_helper_init(struct nf_conntrack_helper *helper,
-
-[ ... ]
-
-> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-> index 03a88c77e0f02..30c9358dbf48a 100644
-> --- a/net/netfilter/nft_ct.c
-> +++ b/net/netfilter/nft_ct.c
-> @@ -1226,6 +1228,73 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
 >  	return 0;
 >  }
+> diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+> index 97c3f61d627bb..d80020bc2620e 100644
+> --- a/net/ipv6/ip6_tunnel.c
+> +++ b/net/ipv6/ip6_tunnel.c
+> @@ -1870,12 +1870,14 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
+>  		path->tun.src_v6 = fl6.saddr;
+>  		path->tun.dst_v6 = fl6.daddr;
+>  		path->tun.l3_proto = IPPROTO_IPV6;
+> +		path->tun.dst = dst;
+>  		path->dev = ctx->dev;
+>  		ctx->dev = dst->dev;
+>  	}
 >  
-> +struct nft_ct_expect_data {
-> +	struct nft_ct_expect_obj	obj;
-> +	enum ip_conntrack_dir		dir;
-> +	atomic_t			num_expects;
-> +};
-> +
-> +static int ct_expect_help(struct sk_buff *skb, unsigned int protoff,
-> +			  struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-> +{
-> +	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-> +	struct nft_ct_expect_data *expect_data;
-> +	struct nf_conntrack_expect *exp;
-> +	int ret = NF_ACCEPT;
-> +
-> +	expect_data = nfct_help_data(ct);
-> +	if (!expect_data)
-> +		return NF_ACCEPT;
-> +
-> +	if (expect_data->dir != dir)
-> +		return NF_ACCEPT;
-> +
-> +	if (!atomic_add_unless(&expect_data->num_expects, 1, expect_data->obj.size))
-> +		return NF_ACCEPT;
-
-[Severity: Medium]
-Does this change the meaning of NFTA_CT_EXPECT_SIZE?  The old gate in
-nft_ct_expect_obj_eval() was:
-
-	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
-
-that is a limit on live expectations, and nf_ct_unlink_expect() decrements
-expecting[] once an expectation is consumed or times out.
-
-num_expects here is only ever decremented on failure, so it looks like a
-cumulative lifetime cap instead: after size expectations have been created,
-no further expectation is created for that conntrack even when the previous
-ones are long gone.
-
-The other difference is when the callback runs.  nf_confirm() calls
-helper_cb() for every packet of the flow once nfct_help(ct) is set, so with
-size >= 2 the first packets of an already established connection re-enter
-ct_expect_help() and re-insert the same expectation through the refresh
-path in __nf_ct_expect_check():
-
-	if (master_matches(i, expect, flags) && expect_matches(i, expect)) {
-		...
-		nf_ct_unlink_expect(i);
-		break;
-
-Should the commit message describe these two behaviour changes, since it
-presents the patch as only moving the feature into a helper?
-
-> +
-> +	exp = nf_ct_expect_alloc(ct);
-> +	if (!exp) {
-> +		atomic_dec(&expect_data->num_expects);
-> +		return NF_DROP;
-> +	}
-> +
-> +	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
-> +			  &ct->tuplehash[!dir].tuple.src.u3,
-> +			  &ct->tuplehash[!dir].tuple.dst.u3,
-> +			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
-
-[Severity: Low]
-Does NFTA_CT_EXPECT_L3PROTO still do anything after this?  The old eval
-passed the configured value:
-
-	u16 l3num = priv->l3num;
-	...
-	if (l3num == NFPROTO_INET)
-		l3num = nf_ct_l3num(ct);
-
-Here nf_ct_l3num(ct) is used unconditionally and priv->l3num is not read by
-any datapath code, while nft_ct_expect_obj_init() still parses and
-range-checks the attribute and nft_ct_expect_obj_dump() still echoes it
-back.  In an inet table, which is the one case where priv->l3num is allowed
-to differ from ctx->family, "l3proto ipv4" now has no effect on which
-conntracks get expectations.
-
-> +	exp->timeout += expect_data->obj.timeout;
-> +
-> +	if (nf_ct_expect_related(exp, 0) != 0) {
-> +		atomic_dec(&expect_data->num_expects);
-> +		ret = NF_DROP;
-> +	}
-
-[Severity: Medium]
-Can this blackhole an established flow?  The budget is given back on
-failure and nf_confirm() runs the callback for every packet:
-
-	ret = helper_cb(skb, protoff, ct, ctinfo);
-	if (ret != NF_ACCEPT)
-		return ret;
-
-So for a persistent failure the retry happens per packet and each retry
-drops the packet.  A persistent failure looks reachable: once expectation E
-has been consumed or expired, another conntrack creating a byte-identical
-tuple takes the clash path in __nf_ct_expect_check() rather than the
-replace path:
-
-	} else if (expect_clash(i, expect)) {
-		ret = -EBUSY;
-		goto out;
-
-A full expect table (-EMFILE) has the same shape.  Before this patch the
-NF_DROP could only happen for the unconfirmed first packet; now every
-subsequent packet of the confirmed connection in that direction is dropped
-for as long as the clash lasts.
-
-> +
-> +	nf_ct_expect_put(exp);
-> +
-> +	return ret;
-> +}
-> +
-> +static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
-> +{
-> +	struct nf_conntrack_helper *ct_expect_helper;
-> +
-> +	ct_expect_helper = kzalloc_obj(struct nf_conntrack_helper);
-
-[Severity: Low]
-Should this be accounted to the memcg?  kzalloc_obj() with no gfp argument
-is GFP_KERNEL, while the equivalent allocation of the same struct in
-nf_conntrack_helper_register() uses:
-
-	new_helper = kzalloc_obj(*new_helper, GFP_KERNEL_ACCOUNT);
-
-as do the nfnetlink_cthelper allocations.  The object is created from an
-NFT_MSG_NEWOBJ request and can outlive the ruleset, since every conntrack
-that got the helper assigned holds an extra ct_refcnt.
-
-> +	if (!ct_expect_helper)
-> +		return -ENOMEM;
-> +
-> +	snprintf(ct_expect_helper->name, sizeof(ct_expect_helper->name), "%s",
-> +		 "nft_ct_expect");
-> +	ct_expect_helper->me = THIS_MODULE;
-> +	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
-
-[Severity: Low]
-This assignment skips the normalization that every registered helper gets
-in __nf_conntrack_helper_register():
-
-	if (!me->expect_policy[i].max_expected)
-		me->expect_policy[i].max_expected = NF_CT_EXPECT_MAX_CNT;
-
-With "size 0", which nft_ct_expect_obj_init() accepts, the attached helper
-ends up with max_expected == 0.  __nf_ct_expect_check() then evaluates:
-
-	p = &helper->expect_policy[expect->class];
-	if (master_help->expecting[expect->class] >= p->max_expected)
-		evict_oldest_expect(master_help, expect, p);
-
-as always true, so any other creator of an expectation for that master
-(ctnetlink, for instance) takes the eviction path every time.  Is
-max_expected == 0 intended here?
-
-There is also a mismatch of meaning: max_expected is a refillable
-concurrent limit against master_help->expecting[], whereas the num_expects
-gate in ct_expect_help() treats the same configured value as a cumulative
-cap.
-
-> +	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
-> +	refcount_set(&ct_expect_helper->ct_refcnt, 1);
-> +
-> +	/* No need to register this helper, this is internal. */
-> +	priv->helper = ct_expect_helper;
-
-[Severity: Low]
-The helper's tuple stays zeroed here, so tuple.dst.protonum == 0, unlike
-every helper built by nf_ct_helper_init() which sets a real IPPROTO_*.
-The two dispatchers of ->help() disagree about that value.  nf_confirm()
-calls the callback unconditionally, while nf_ct_helper() used by act_ct and
-openvswitch filters first:
-
-	if (helper->tuple.dst.protonum != proto)
-		return NF_ACCEPT;
-
-which can never match protonum 0.  So on the act_ct/OVS path this helper is
-silently skipped and no expectation is ever created.
-
-I could not construct a concrete hook ordering where nf_ct_helper() runs
-before nf_confirm() has already created the expectation, so this may be
-harmless today, but what protonum is intended for this helper?
-NFTA_CT_EXPECT_L4PROTO describes the expected child connection, not the
-master, so no obvious value is available at object init time.
-
-> +
-> +	return 0;
-> +}
-> +
->  static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
->  				  const struct nlattr * const tb[],
->  				  struct nft_object *obj)
+>  	err = dst->error;
+> -	dst_release(dst);
+> +	if (err)
+> +		dst_release(dst);
+>  
+>  	return err;
+>  }
+> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+> index 004dc75ac357a..56219b02e1227 100644
+> --- a/net/netfilter/nf_flow_table_path.c
+> +++ b/net/netfilter/nf_flow_table_path.c
 
 [ ... ]
 
-> @@ -1273,13 +1344,26 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
->  	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
->  	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
->  
-> -	return nf_ct_netns_get(ctx->net, ctx->family);
-> +	err = nf_ct_netns_get(ctx->net, ctx->family);
-> +	if (err < 0)
-> +		return err;
-> +
-> +	err = nft_ct_expect_helper_alloc(priv);
-> +	if (err < 0) {
-> +		nf_ct_netns_put(ctx->net, ctx->family);
-> +		return err;
-> +	}
-> +
-> +	return err;
+> @@ -205,44 +211,6 @@ static bool nft_flowtable_find_dev(const struct net_device *dev,
+>  	return found;
 >  }
 >  
->  static void nft_ct_expect_obj_destroy(const struct nft_ctx *ctx,
-> -				       struct nft_object *obj)
-> +				      struct nft_object *obj)
->  {
-> +	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-> +
->  	nf_ct_netns_put(ctx->net, ctx->family);
-> +	nf_conntrack_helper_free(priv->helper);
->  }
-
-[Severity: High]
-Is it acceptable to run nf_conntrack_helper_free() once per destroyed
-object here?  It does:
-
-	rcu_assign_pointer(me->help, NULL);
-	synchronize_rcu();
-	nf_ct_expect_iterate_destroy(expect_iter_me, me);
-
-so one full RCU grace period plus a walk of the entire global expectation
-hash under spin_lock_bh(&nf_conntrack_expect_lock), work that previously
-only happened on helper module unregistration.
-
-In the abort path this runs from __nf_tables_abort():
-
-	synchronize_rcu();
-
-	list_for_each_entry_safe_reverse(trans, next, &nft_net->commit_list, list) {
-		nft_trans_list_del(trans);
-		nf_tables_abort_release(trans);
-	}
-
-which reaches nft_obj_destroy() -> nft_ct_expect_obj_destroy() while
-nft_net->commit_mutex and nfnl_lock are still held.  A batch that creates N
-ct expect objects and then fails therefore serializes N grace periods under
-the per-netns nftables mutex, with N chosen by the caller.
-__nft_release_table() on netns exit has the same property.
-
-The commit-release path already does one synchronize_rcu() for the whole
-batch, and nf_tables_commit_release() carries the comment "Memory reclaim
-happens asynchronously from work queue to prevent expensive
-synchronize_rcu() in commit phase".  Could the helper release be deferred
-to that work queue instead?
-
->  
->  static int nft_ct_expect_obj_dump(struct sk_buff *skb,
-> @@ -1302,50 +1386,39 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
->  				   const struct nft_pktinfo *pkt)
->  {
->  	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-> -	struct nf_conntrack_expect *exp;
-> +	struct nft_ct_expect_data *expect_data;
->  	enum ip_conntrack_info ctinfo;
->  	struct nf_conn_help *help;
-> -	enum ip_conntrack_dir dir;
-> -	u16 l3num = priv->l3num;
->  	struct nf_conn *ct;
->  
->  	ct = nf_ct_get(pkt->skb, &ctinfo);
-> -	if (!ct || nf_ct_is_confirmed(ct) || nf_ct_is_template(ct)) {
-> +	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct)) {
->  		regs->verdict.code = NFT_BREAK;
->  		return;
->  	}
-> -	dir = CTINFO2DIR(ctinfo);
->  
->  	help = nfct_help(ct);
-> -	if (!help)
-> -		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-> -	if (!help) {
-> -		regs->verdict.code = NF_DROP;
-> -		return;
-> -	}
+> -static int nft_flow_tunnel_update_route(const struct nft_pktinfo *pkt,
+> -					struct flow_offload_tunnel *tun,
+> -					struct nf_flow_route *route,
+> -					enum ip_conntrack_dir dir)
+> -{
+> -	struct dst_entry *cur_dst = route->tuple[dir].dst;
+> -	struct dst_entry *tun_dst = NULL;
+> -	struct flowi fl = {};
 > -
-> -	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
-> +	if (help) {
->  		regs->verdict.code = NFT_BREAK;
->  		return;
+> -	switch (nft_pf(pkt)) {
+
+[ ... ]
+
+> -	nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt));
+> -	if (!tun_dst)
+> -		return -ENOENT;
+> -
+> -	route->tuple[dir].dst = tun_dst;
+> -	dst_release(cur_dst);
+> -
+> -	return 0;
+> -}
+> -
+>  static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+>  				struct nf_flow_route *route,
+>  				const struct nf_conn *ct,
+> @@ -267,12 +235,13 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+>  		route->tuple[!dir].in.encap[i].proto = info.encap[i].proto;
+>  	}
+>  
+> -	if (info.num_tuns &&
+> -	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
+> +	if (info.num_tuns) {
+>  		route->tuple[!dir].in.tun.src_v6 = info.tun.dst_v6;
+>  		route->tuple[!dir].in.tun.dst_v6 = info.tun.src_v6;
+>  		route->tuple[!dir].in.tun.l3_proto = info.tun.l3_proto;
+>  		route->tuple[!dir].in.num_tuns = info.num_tuns;
+> +		dst_release(route->tuple[dir].dst);
+> +		route->tuple[dir].dst = info.tun_dst;
 >  	}
 
 [Severity: High]
-Does this permanently disable the statement for conntracks that already
-carry a helper extension?  The old code reused an existing extension:
+Can the dst installed here end up belonging to a different address family
+than the flow it is attached to?
 
-	help = nfct_help(ct);
-	if (!help)
-		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+The removed nft_flow_tunnel_update_route() derived the replacement dst from
+nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt)), so the dst family
+always matched the flow's l3proto.  The dst that now arrives in
+info.tun_dst follows the tunnel underlay instead:
 
-and created the expectation either way.  Now any conntrack with
-nfct_help(ct) != NULL takes NFT_BREAK, which also aborts the remainder of
-the rule, so "ct expect set e counter accept" no longer reaches accept and
-the chain policy applies instead.
+net/ipv4/ipip.c:ipip_fill_forward_path() always stores an IPv4 rtable:
 
-Three in-tree ways to be in that state before nft rules run:
+	path->tun.l3_proto = IPPROTO_IPIP;
+	path->tun.dst = &rt->dst;
 
-  init_conntrack() for a conntrack born from an expectation with
-  assign_helper set:
+net/ipv6/ip6_tunnel.c:ip6_tnl_fill_forward_path() always stores an IPv6
+rt6_info:
 
-	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-	if (help && refcount_inc_not_zero(&assign_helper->ct_refcnt))
-		rcu_assign_pointer(help->helper, assign_helper);
+	path->tun.l3_proto = IPPROTO_IPV6;
+	path->tun.dst = dst;
 
-  __nf_ct_try_assign_helper() during nf_conntrack_in() when the template
-  carries a helper:
+Neither handler consults the tunnel payload proto, and neither
+nft_dev_path_info() nor nft_dev_forward_path() checks the family before
+storing it in route->tuple[dir].dst.
 
-	if (help == NULL) {
-		help = nf_ct_helper_ext_add(ct, flags);
+The consumers cast that dst according to the inner flow family.  In
+net/netfilter/nf_flow_table_ip.c:nf_flow_offload_ipv6_hook():
 
-  and a ruleset that runs "ct helper set" (nft_ct_helper_obj_eval()) or a
-  second ct expect object on the same connection.
+	rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+	...
+	neigh = ip_neigh_gw6(rt->dst.dev, rt6_nexthop(rt, ip6_daddr));
 
-Should this case fall back to attaching the expectation data anyway, or at
-least be documented?
+and in nf_flow_offload_ip_hook():
 
->  
-> -	exp = nf_ct_expect_alloc(ct);
-> -	if (exp == NULL) {
-> +	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-> +	if (!help) {
->  		regs->verdict.code = NF_DROP;
->  		return;
->  	}
->  
-> +	expect_data = nfct_help_data(ct);
-> +	if (!expect_data) {
-> +		regs->verdict.code = NFT_BREAK;
-> +		return;
-> +	}
-> +	expect_data->obj = *priv;
+	rt = dst_rtable(tuplehash->tuple.dst_cache);
+	... rt_nexthop(rt, ip_daddr) ...
+
+net/netfilter/nf_flow_table_core.c:flow_offload_dst_cookie() does the same:
+
+	if (flow_tuple->l3proto == NFPROTO_IPV6)
+		return rt6_get_cookie(dst_rt6_info(flow_tuple->dst_cache));
+
+For an ip6_tunnel in ip4ip6 mode (t->parms.proto == IPPROTO_IPIP) carrying
+IPv4 flows, ip6_tnl_fill_forward_path() still reports l3_proto =
+IPPROTO_IPV6 and hands out an rt6_info, which nf_flow_offload_ip_hook()
+then reads through dst_rtable() and rt_nexthop()/ip_mtu_locked().  That
+configuration needs no misconfiguration to reach.
+
+The mirror case is an IPv6 flow routed out an ipip device: an ipip device
+with mtu 1480 gets an inet6_dev at NETDEV_REGISTER, so fib6_nh_init()
+accepts "ip -6 route add ... dev tunlX", and nft_dev_fill_forward_path()
+deliberately skips the ether-device requirement for tunnels, so
+ipip_fill_forward_path() hands back an rtable that becomes the dst_cache of
+an IPv6 flow.  rt6_nexthop() then reads rt6i_flags and rt6i_gateway past
+the end of a struct rtable allocated from the ip_dst_cache slab, and the
+result is used as the IPv6 next hop passed to ip_neigh_gw6().
+
+nf_flow_dst_check() does not catch this either: dst->ops->check() for the
+stored rtable is ipv4_dst_check(), which only tests rt_is_expired().
+
+Would it make sense to validate info.tun.l3_proto (or the dst's
+ops->family) against the flow's l3proto before installing info.tun_dst?
 
 [Severity: Low]
-This copies the whole struct nft_ct_expect_obj, which now includes the raw
-struct nf_conntrack_helper *helper pointer, into the conntrack helper
-extension private area, without taking a reference for that copy.  Only
-help->helper, referenced on the next line, is a valid handle.
+Should this carry a Fixes: tag?
 
-Since the conntrack extension can outlive the nft object,
-expect_data->obj.helper becomes stale once nft_ct_expect_obj_destroy() ->
-nf_conntrack_helper_free() drops the last reference and kfree_rcu() runs.
-Nothing reads it today, so this is latent, but would it be clearer to copy
-only the fields ct_expect_help() uses?
+Before this change the tunnel information was only installed when the
+second lookup succeeded:
 
-It also spends 8 of the 32 bytes available in nf_conn_help->data, and
-struct nft_ct_expect_data is already at the NF_CT_HELPER_BUILD_BUG_ON
-limit.
+	if (info.num_tuns &&
+	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
 
-> +	expect_data->dir = CTINFO2DIR(ctinfo);
->  
-> -	nf_ct_expect_put(exp);
-> +	if (help && refcount_inc_not_zero(&priv->helper->ct_refcnt))
-> +		rcu_assign_pointer(help->helper, priv->helper);
->  }
+while route->tuple[!dir].in.ifindex, route->tuple[dir].out.ifindex, the
+encaps, h_source/h_dest and xmit_type had already been written and
+nft_dev_forward_path() still returned 0.  On nf_route() failure the flow was
+offloaded with the underlay device as output but num_tuns == 0, so inner
+packets left the underlay without IPIP/IP6IP6 encapsulation, which matches
+the "incomplete forward path" described in the commit message.
 
-[ ... ]
+git blame points that construct at d30301ba4b07ac ("netfilter: flowtable:
+tunnel route update"), with the tunnel forward path support itself from
+ab427db1788581, so the bug is in released kernels rather than in-flight
+code from this series.  A Fixes: d30301ba4b07ac tag would help stable
+tracking.
+
+It may also be worth noting in the changelog that this is not standalone
+backportable: neither dev_fill_forward_path_release() nor the
+net_device_path tun.dst field exist before the earlier "net: pass dst via
+net_device_path in dev_fill_forward_path()" commit in this series.
