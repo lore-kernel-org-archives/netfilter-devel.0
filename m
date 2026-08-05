@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707CF5A79B;
-	Wed,  5 Aug 2026 23:50:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9984F22FE0E;
+	Wed,  5 Aug 2026 23:51:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785973858; cv=none; b=Z4OuW2jBknn6OBHPpexMkZpGaMITFVbn6WJjZxHrbTCXJEnK5jzm8chrtuLVTYTc09Chyfeq9KVZqKpDjaUXDzQFib+4H9Tcdq1jdIgaMNqUL7L8u9CDj2coiRQZMRd9BBmHeXcusLJqXLSqGkzExYNfZtKs2/3guXBQQ5GMulc=
+	t=1785973874; cv=none; b=u/4A9fVPIjpbKo8zmBCY3LBhUaNX6lv9SG8e+2eqyhNTF0mwOUWjXXnpDZH2wAO8BwYMEicdZRXtkXMEzGxRslMUBVKa6qNd8WXxzYPxo96LY+LKVpQNAHh6Z0rms3QskJT6VY1yzH/d/Jf9fsif8QqUqooxXm9nOUGMgL0l5ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785973858; c=relaxed/simple;
-	bh=vRZWRjhp49/dQBd0qcdo37BrR2kBNGlsrsMBR/eweH8=;
+	s=arc-20240116; t=1785973874; c=relaxed/simple;
+	bh=5bh9bF8EQwbNC2RCeRXDIYkwJuoBmNsasa7XWMZezSw=;
 	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=rRPXA2/HaA+n/7+bc5ySLIZPjK7iL72CVln6Ld/jO6CJS2jVWDX6Za19dNl58rfVDiJAjIVg3bIOBmknY4idmRC6jnS6wXs7+1i79DWwFPtx0Sjx7L3f9gBLrP5OpaD7S/nWGXUGnABMx+gUbTXrZDXFh7FQQDKFmm1PwaIQp38=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SRClgifc; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=QBrBAKA7KJI1Gy7/+2O/niDqeQZ7b1V7QlOWAhBC8FXG8bNVGfAS3UJ/0laSS6Lh2avLcbWSRsgItxlEnpCzddrRd8O34qofWbdjMAmKmMFD7X+Sd3/ZMS+i+ipsc6BrXxT5iAAkc8uVYSlBrPyBioTZFgJBQkIZYT7BR417xbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ld9BMXD9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SRClgifc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED101F000E9;
-	Wed,  5 Aug 2026 23:50:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ld9BMXD9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 274A41F000E9;
+	Wed,  5 Aug 2026 23:51:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785973856;
-	bh=RB+eHuex3Qbm8gTW9/VwZ20lopgsZ0i4+C3p+dCVa0c=;
+	s=k20260515; t=1785973873;
+	bh=OeTYL1qcMHRxHljvnv2trtnECcdQYdHf+WiYN3CgoU4=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=SRClgifcs6vDpxk1VlbO8GKOoSEfRD+Tc/aU4KnFu3k9UGYyxQouJnEzinEgA0Z+h
-	 C2FvJu2tMOyjC+ByJab9AGzGi/S5r+hG0x9hsDLWE0xou1cISh+S22NGMJjO2l+tZB
-	 wiXaXiJytTpWVj+AhCiMZ9bYX+dqb4yAkeX+vFPfc5pX/HGt3Wv/a/c8MBaB3iVdnd
-	 j6KLk9UX6aXcj/SMlMqasfeDgcI8E9xWO8P91s/3igz7bSyX1NrpHY+LC/gHjGFIMT
-	 Z9fsV8VnY6u5fim+Y0dbLpInTz/e9wz0RZ3ZFsHAwzSBCUnMecfhG/3JkxLOhLtlf2
-	 V5XNIpDpxNVng==
+	b=Ld9BMXD9fQKInIJzoffX+y03AXdZ+tWmW/gr35jUWOMKwjavnbprbvs4LwlN+SA6O
+	 WLrCXdJ0TWQfoilMrS4T3dP1qi9zhNYtGryUvnF+JTxSQs63Pwuw0YlMCWMdCAjqrU
+	 Ru+Q0W90/3KuAOo/pPjDWCkMz0sdEIEWpYx5iLsTKHaeEvc95MhDlAFXDUx883HBfO
+	 9ajOISwTyE6H+InmjH6x2sE/8636o74h2IZPmHeAgvWQaIPScHxNQ7rKNhWLK3m8om
+	 uyxxBViEHJcipRz+GD00Iqmw5i1Wcg8fpoPVaCmx0sfbC+mtUgbwib3bEfEEeNwWxv
+	 J4LkHUB4BfpRQ==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0AA6392FFD8;
-	Wed,  5 Aug 2026 23:50:17 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 1977C392FFD8;
+	Wed,  5 Aug 2026 23:50:34 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -37,13 +37,15 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 01/10] ipvs: stop estimator after disabled calc phase
+Subject: Re: [PATCH net-next 1/9] netfilter: conncount: normalize tuple and
+ zone
+ on successful ct lookup
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <178597381664.567483.1491675233336234568.git-patchwork-notify@kernel.org>
-Date: Wed, 05 Aug 2026 23:50:16 +0000
-References: <20260731151806.849724-2-pablo@netfilter.org>
-In-Reply-To: <20260731151806.849724-2-pablo@netfilter.org>
+ <178597383266.567483.8728487954347201602.git-patchwork-notify@kernel.org>
+Date: Wed, 05 Aug 2026 23:50:32 +0000
+References: <20260731153402.851224-2-pablo@netfilter.org>
+In-Reply-To: <20260731153402.851224-2-pablo@netfilter.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
@@ -51,40 +53,42 @@ Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 
 Hello:
 
-This series was applied to netdev/net.git (main)
+This series was applied to netdev/net-next.git (main)
 by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Fri, 31 Jul 2026 17:17:57 +0200 you wrote:
-> From: Zhiling Zou <zhilinz@nebusec.ai>
+On Fri, 31 Jul 2026 17:33:54 +0200 you wrote:
+> From: Fernando Fernandez Mancera <fmancera@suse.de>
 > 
-> IPVS estimator kthread 0 starts with zeroed chain and tick limits until
-> its initial calculation phase completes. If network namespace teardown
-> clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
-> without installing positive limits.
+> When get_ct_or_tuple_from_skb() falls back to looking for a connection
+> via nf_conntrack_find_get(), a successful lookup sets ct but leaves
+> tuple and zone unupdated.
+> 
+> If the packet belongs to a reply flow, tuple will remain in the reply
+> direction. As conncount relies on the original direction tuple to count
+> the connections consistenly, passing an unnormalized reply tuple could
+> lead to problems.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,01/10] ipvs: stop estimator after disabled calc phase
-    https://git.kernel.org/netdev/net/c/558f67f1340f
-  - [net,02/10] netfilter: ebt_nflog: pin the NFLOG backend
-    https://git.kernel.org/netdev/net/c/30825970339c
-  - [net,03/10] netfilter: ipset: rework cidr bookkeeping
-    https://git.kernel.org/netdev/net/c/8e5fd2a55e24
-  - [net,04/10] netfilter: ipset: switch ext_size to atomic64_t
-    https://git.kernel.org/netdev/net/c/712a6f545c35
-  - [net,05/10] netfilter: ipset: add small wrappers for hash and bucket sizes
-    https://git.kernel.org/netdev/net/c/c266769e9ede
-  - [net,06/10] netfilter: ipset: add and use mtype_del_cidr_all helper
-    https://git.kernel.org/netdev/net/c/cdd97fae0e96
-  - [net,07/10] netfilter: ipset: switch to rcu work
-    https://git.kernel.org/netdev/net/c/7defddefa95b
-  - [net,08/10] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
-    https://git.kernel.org/netdev/net/c/646922a03794
-  - [net,09/10] ipvs: return the csum validation for forward hook
-    https://git.kernel.org/netdev/net/c/99609cb0aa78
-  - [net,10/10] netfilter: nft_ct: move custom expectation support to helper
-    (no matching commit)
+  - [net-next,1/9] netfilter: conncount: normalize tuple and zone on successful ct lookup
+    https://git.kernel.org/netdev/net-next/c/e53932f0e5de
+  - [net-next,2/9] netfilter: flowtable: consolidate net_device field in nft_forward_info struct
+    https://git.kernel.org/netdev/net-next/c/f19fd12143db
+  - [net-next,3/9] netfilter: flowtable: consolidate flowtable device check
+    https://git.kernel.org/netdev/net-next/c/df1705f289ba
+  - [net-next,4/9] net: dsa: stop at the user device in .fill_forward_path
+    https://git.kernel.org/netdev/net-next/c/5be6e044bea6
+  - [net-next,5/9] net: do not advance stack index from dev_fwd_path()
+    https://git.kernel.org/netdev/net-next/c/5deda60c56ee
+  - [net-next,6/9] net: pass dst via net_device_path in dev_fill_forward_path()
+    https://git.kernel.org/netdev/net-next/c/0ad8404e7766
+  - [net-next,7/9] netfilter: flowtable: release tunnel route on error when building forward path
+    https://git.kernel.org/netdev/net-next/c/806273fcaffb
+  - [net-next,8/9] netfilter: nf_tables: call skb_valid_dst() before skb_dst()
+    https://git.kernel.org/netdev/net-next/c/689db98e535b
+  - [net-next,9/9] netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
+    https://git.kernel.org/netdev/net-next/c/bf80e6802273
 
 You are awesome, thank you!
 -- 
