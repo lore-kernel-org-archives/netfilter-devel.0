@@ -1,39 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A36E9422533
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 12:59:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DBA546EC6C
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 12:59:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785934793; cv=none; b=HoMKJN8IO9TuSchDRdUh1iw+5JT0NalHTX0x02Ml3SM6ZlSkfG40zFY9nSQEFVgG0JcC9fFjyMXEck+r+KarFHr9Jn1h1kTJe0V1IgK9RucMuHFZoxJ22+SsQhPvElWW6uJ8JkqGmtcEPuIldr5XnTsugAwmZOaJVNdwMp22QqI=
+	t=1785934794; cv=none; b=q5Qd0rnAmvBQowPwJH1wXKkf9BOiYaBKDcYyT1uX+xqCMvul7cnajJFjzlZt1xAmHqSFEeI9LEnMLk2GhnaeVx5KvSYPZFaJ4ffuPukn8aGrFMMRmpyHSBMmMM7m7r5WDB1qg/2mVwkBmfbSVnBjNXHa6GYQdbDxrb6Uof7BqUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785934793; c=relaxed/simple;
-	bh=jXfr1Lm3c3Iw3igwDjv3Jm5uIDnCWxkrQ+ax4l49S+g=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=CPO8GR5t1vCynBnF0vKRmweLFbX0w/Z8YB1SrNLU1CxixokKi/ZxbjptoyvA6SW72dVe4sdmFfW6859MZzZXRca9mYWT5Fve+A77kDnwFaFt9AtRo2VadLRL0oNGsMgw8Ag04rM418e3VpkGr501iBsDU2horPfvLu41wJM/LnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R/2QYoKW; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1785934794; c=relaxed/simple;
+	bh=fYm0ijd/uqd67B+Ste8IQK5N6uRDBlwcvZc2MxqVWGI=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=l5e5urSxwTHTIyO3dijZTndmMXFTCMyzkZaFO2BaC84ZLBhlp4ornlDOQ7Q02w80g3Sy+oKaLoXP/Hc7VC/AK2KVYuBpv35xRo8nWZCk4CXl7et20kySvxj3yspjUz/f+xEjPo71vxg3zTxv7FhuRdQPQvWbg6UeEulkIkZIMnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PYVZMxat; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R/2QYoKW"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PYVZMxat"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D405C60191
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 14:59:42 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 42371601A3
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 14:59:44 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785934783;
-	bh=qyKeF4LI9VFV778k/Q17HA9MYjqQB2xtPoEN+fUFrA0=;
-	h=From:To:Subject:Date:From;
-	b=R/2QYoKWOOYiWqXxNki1BCxY6P+r5GdvtUiqY6+eXY6RBFCsO72JXUASDrRGQ51K0
-	 QPkCsZRb84DxWQpV+rtfvIFOVy3OPYujvnqI2t1EfZ2Y1yutbepS606ewjHKflGfBk
-	 QIUGiBScp5R9FNlvY6Lf9lYNSYD0caqL1h+KX8TyQeblaMjMxLAmYgvNnJDLceUZAp
-	 Qc44IGBROH/tEETj9OZL+dw8xjIEwQxO2OVOLRldOtuRUg6u8y/AySyEb10bCgtxFM
-	 jtJsySp58yHaKGzhBnZazmH0ltedSv7TxssDLe4B4EBEV4KkVnQnNqsZYuVZiEM3Bm
-	 D6Gghe3IkCmHQ==
+	s=2025; t=1785934784;
+	bh=DhGfhvpwGyXDYlh6uRYR8Etk4FGRBRfmYN0X37D7T4U=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=PYVZMxatnfR2QBwNQfUPZh31ihqtjXKfpUoPxHH2mhd27YqmM4HxF0xp5gSgc0uyW
+	 yRT22El32GOA55Aan/BoJPx/Uw2J3YQUwySQc/RX2upNwxKSw63RCQXOuzvP1aQRQb
+	 PigpQ7aXRN7F2nhz900MM9l8zcuHSfTkDPsNah7Caws3T8DISbSidlLjOuocEumUn1
+	 w5utRg2d1CfDg/d6KHNYc9h18rH074jWAVoZ0NZtQ7fSWa02Pq1AigdINsBVemby+g
+	 NRrFLDPRUPPelgr2SrM1WlEzjZUEK0V1cPvkFSIbTtZ3f4kxj5TstEg2j4w5NVG7M2
+	 y8+AZ7CJKXVAw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 1/2] netfilter: nf_tables: make move set_update_list to nftables per-netns
-Date: Wed,  5 Aug 2026 14:59:35 +0200
-Message-ID: <20260805125936.188642-1-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/2] netfilter: nf_tables: call set ops .commit when building new ruleset
+Date: Wed,  5 Aug 2026 14:59:36 +0200
+Message-ID: <20260805125936.188642-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260805125936.188642-1-pablo@netfilter.org>
+References: <20260805125936.188642-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,191 +45,148 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This list is used to invoke the set .commit and .abort ops for the
-rbtree and pipapo to run GC on expired elements and replace the current
-datastructure view by the clone. For the rbtree, this also rebuild the
-datapath b-search array.
+The rbtree set only builds the b-search array after the new ruleset has
+been exposed through set ops .commit.
 
-From abort path, remove the set from the update_list if it is already
-bound to rule, then the rule itself takes care of releasing the set and
-its elements, otherwise, memleak is possible because set ops .abort
-only deals with removing the set data structure, not the elements.
+This is currently needed by pipapo because it purges the elements from
+the clone after the transactions are handled, therefore, pipapo still
+needs the delayed set ops .commit call after the transaction handling.
 
-This is a preparation patch to call set .commit before processing the
-transaction list for the rbtree, no functional changes are intended.
+Allow the rbtree to call .commit before the transaction handling which
+purges the stale elements from the frontend rbtree datastructure.
+
+Update rbtree .commit to skip deactivated and expired elements when
+building the new b-search array.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c     | 49 ++++++++++---------------------
- 2 files changed, 16 insertions(+), 34 deletions(-)
+ net/netfilter/nf_tables_api.c  |  9 ++++++--
+ net/netfilter/nft_set_rbtree.c | 41 +++++++++++++++++++++++++++++-----
+ 2 files changed, 42 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 3be612145c13..238f6ecb90e9 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1949,6 +1949,7 @@ struct nftables_pernet {
- 	struct list_head	binding_list;
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
-+	struct list_head	set_update_list;
- 	struct mutex		commit_mutex;
- 	u64			table_handle;
- 	u64			tstamp;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index af357f6c5070..90a379533e08 100644
+index 90a379533e08..a7006725c307 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -595,10 +595,15 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
-+	struct nft_trans_elem *te;
- 
- 	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
- 		     trans->msg_type != NFT_MSG_DELSETELEM);
- 
-+	te = nft_trans_container_elem(trans);
-+	if (te->set->ops->commit && list_empty(&te->set->pending_update))
-+		list_add_tail(&te->set->pending_update, &nft_net->set_update_list);
-+
- 	if (nft_trans_try_collapse(nft_net, trans)) {
- 		kfree(trans);
- 		return;
-@@ -10848,11 +10853,11 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
+@@ -10853,11 +10853,14 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
  	}
  }
  
--static void nft_set_commit_update(struct list_head *set_update_list)
-+static void nft_set_commit_update(struct nftables_pernet *nft_net)
+-static void nft_set_commit_update(struct nftables_pernet *nft_net)
++static void nft_set_commit_update(struct nftables_pernet *nft_net, bool early_commit)
  {
  	struct nft_set *set, *next;
  
--	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
-+	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
+ 	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
++		if (set->ops->abort_skip_removal && early_commit)
++			continue;
++
  		list_del_init(&set->pending_update);
  
  		if (!set->ops->commit || set->dead)
-@@ -10885,7 +10890,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	struct nft_trans_binding *trans_binding;
- 	struct nft_trans *trans, *next;
- 	unsigned int base_seq, gc_seq;
--	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
- 	struct nft_chain *chain;
- 	struct nft_table *table;
-@@ -11091,27 +11095,13 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			te = nft_trans_container_elem(trans);
--
- 			nft_trans_elems_add(&ctx, te);
--
--			if (te->set->ops->commit &&
--			    list_empty(&te->set->pending_update)) {
--				list_add_tail(&te->set->pending_update,
--					      &set_update_list);
--			}
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELSETELEM:
- 		case NFT_MSG_DESTROYSETELEM:
- 			te = nft_trans_container_elem(trans);
--
- 			nft_trans_elems_remove(&ctx, te);
--
--			if (te->set->ops->commit &&
--			    list_empty(&te->set->pending_update)) {
--				list_add_tail(&te->set->pending_update,
--					      &set_update_list);
--			}
- 			break;
- 		case NFT_MSG_NEWOBJ:
- 			if (nft_trans_obj_update(trans)) {
-@@ -11180,7 +11170,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+@@ -10964,6 +10967,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	}
+ 
+ 	/* step 2.  Make rules_gen_X visible to packet path */
++	nft_set_commit_update(nft_net, true);
++
+ 	list_for_each_entry(table, &nft_net->tables, list) {
+ 		list_for_each_entry(chain, &table->chains, list)
+ 			nf_tables_commit_chain(net, chain);
+@@ -11170,7 +11175,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
  		}
  	}
  
--	nft_set_commit_update(&set_update_list);
-+	nft_set_commit_update(nft_net);
+-	nft_set_commit_update(nft_net);
++	nft_set_commit_update(nft_net, false);
  
  	nft_commit_notify(net, NETLINK_CB(skb).portid);
  	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
-@@ -11247,11 +11237,11 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 	kfree(trans);
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 6222e9bb57bc..cf643e917791 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -894,6 +894,7 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	struct nft_rbtree_elem *rbe, *rbe_end = NULL;
+ 	struct net *net = read_pnet(&set->net);
++	u8 genmask = nft_genmask_next(net);
+ 	u64 tstamp = nft_net_tstamp(net);
+ 	struct rb_node *node, *next;
+ 
+@@ -901,6 +902,10 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 		next = rb_next(node);
+ 
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		if (!nft_set_elem_active(&rbe->ext, genmask)) {
++			rbe_end = NULL;
++			continue;
++		}
+ 
+ 		/* elements are reversed in the rbtree for historical reasons,
+ 		 * from highest to lowest value, that is why end element is
+@@ -1036,10 +1041,32 @@ static void nft_array_free_rcu(struct rcu_head *rcu_head)
+ 	__nft_array_free(array);
  }
  
--static void nft_set_abort_update(struct list_head *set_update_list)
-+static void nft_set_abort_update(struct nftables_pernet *nft_net)
++static struct nft_rbtree_elem *
++__nft_rbtree_prev_active(struct rb_node **pnode, u8 genmask)
++{
++	struct nft_rbtree_elem *prev_rbe;
++	struct rb_node *node = *pnode;
++
++	while (node) {
++		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		if (!nft_set_elem_active(&prev_rbe->ext, genmask)) {
++			node = rb_prev(node);
++			continue;
++		}
++
++		*pnode = node;
++		return prev_rbe;
++	}
++
++	return NULL;
++}
++
+ static void nft_rbtree_commit(struct nft_set *set)
  {
- 	struct nft_set *set, *next;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	struct nft_rbtree_elem *rbe, *prev_rbe;
++	struct net *net = read_pnet(&set->net);
++	u8 genmask = nft_genmask_next(net);
+ 	struct nft_array *old;
+ 	u32 num_intervals = 0;
+ 	struct rb_node *node;
+@@ -1061,12 +1088,12 @@ static void nft_rbtree_commit(struct nft_set *set)
  
--	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
-+	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
- 		list_del_init(&set->pending_update);
+ 	/* Reverse walk to create an array from smaller to largest interval. */
+ 	node = rb_last(&priv->root);
+-	if (node)
+-		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
+-	else
+-		prev_rbe = NULL;
  
- 		if (!set->ops->abort)
-@@ -11386,33 +11376,22 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_trans_destroy(trans);
+-	while (prev_rbe) {
++	while (node) {
++		prev_rbe = __nft_rbtree_prev_active(&node, genmask);
++		if (!prev_rbe)
++			break;
++
+ 		rbe = prev_rbe;
+ 
+ 		if (nft_rbtree_interval_start(rbe))
+@@ -1083,7 +1110,9 @@ static void nft_rbtree_commit(struct nft_set *set)
+ 		if (!node)
  			break;
- 		case NFT_MSG_NEWSETELEM:
-+			te = nft_trans_container_elem(trans);
- 			if (nft_trans_elem_set_bound(trans)) {
-+				list_del_init(&te->set->pending_update);
- 				nft_trans_destroy(trans);
- 				break;
- 			}
--			te = nft_trans_container_elem(trans);
- 			if (!nft_trans_elems_new_abort(&ctx, te)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
--
--			if (te->set->ops->abort &&
--			    list_empty(&te->set->pending_update)) {
--				list_add_tail(&te->set->pending_update,
--					      &set_update_list);
--			}
- 			break;
- 		case NFT_MSG_DELSETELEM:
- 		case NFT_MSG_DESTROYSETELEM:
- 			te = nft_trans_container_elem(trans);
  
- 			nft_trans_elems_destroy_abort(&ctx, te);
--
--			if (te->set->ops->abort &&
--			    list_empty(&te->set->pending_update)) {
--				list_add_tail(&te->set->pending_update,
--					      &set_update_list);
--			}
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWOBJ:
-@@ -11458,7 +11437,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+-		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		prev_rbe = __nft_rbtree_prev_active(&node, genmask);
++		if (!prev_rbe)
++			break;
  
- 	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
- 
--	nft_set_abort_update(&set_update_list);
-+	nft_set_abort_update(nft_net);
- 
- 	synchronize_rcu();
- 
-@@ -12142,6 +12121,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	INIT_LIST_HEAD(&nft_net->binding_list);
- 	INIT_LIST_HEAD(&nft_net->module_list);
- 	INIT_LIST_HEAD(&nft_net->notify_list);
-+	INIT_LIST_HEAD(&nft_net->set_update_list);
- 	mutex_init(&nft_net->commit_mutex);
- 	net->nft.base_seq = 1;
- 	nft_net->gc_seq = 0;
-@@ -12186,6 +12166,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
- 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
- 	WARN_ON_ONCE(!list_empty(&nft_net->notify_list));
- 	WARN_ON_ONCE(!list_empty(&nft_net->destroy_list));
-+	WARN_ON_ONCE(!list_empty(&nft_net->set_update_list));
- }
- 
- static void nf_tables_exit_batch(struct list_head *net_exit_list)
+ 		/* For anonymous sets, when adjacent ranges are found,
+ 		 * the end element is not added to the set to pack the set
 -- 
 2.47.3
 
