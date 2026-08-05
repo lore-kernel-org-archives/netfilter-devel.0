@@ -1,123 +1,284 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2733E1201
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 07:25:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666DF36195A;
+	Wed,  5 Aug 2026 07:33:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785914748; cv=none; b=S804TaJ5izZT5bL97qtEU8G/gcMEPbjeydOqUfAxnYVMDX3O7umUsudPMUANJ4guQkM3mGv8wg0cMsGVJjzBdB2PJD1r2I/0HT4FoFUohXUzo+q/cqsC12Oc28IKnaV6xkFCIvK+CqzrzAC3QLCRbYr0Uwvxs0uJOeCqBV5KRrM=
+	t=1785915208; cv=none; b=hkEl++ZKBaXcw1AxwcEG+ydFIhj/T5NEWIRrXMSHbxzFJp/9hMlRw096ymAThX/WrmBgKzHRF+iYQBQCrzXU6tkhdCUCKTJJyFVzyuidVYBhlTrBgYGb/Wmk3gzm1sTCCd5ghmcTv0eu1y3vEnfskrh6ZItVA5f0Ze+zLK5WFH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785914748; c=relaxed/simple;
-	bh=/8Mv1AI8B8h5q/dmK7nmITSjN4hpVuEk++uwNc/Z+/8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mtaic6Eu/8OmqxWuKySAefWnb3voxjoj4auzHD3NtzLsxEEPgCHXekVpt8wQfPevJ6bZ7ONuZ1FpaUjuZfnAuaJwxAaHL4b6Qs3a+5HWk524Cd7+V7YG03nlYIZo18C0iP1cu/0ALTzhRFVAZV9A7peGrJM2w4y2HtM7x6g1nTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=De7/uW+s; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q0FV8Ztd; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="De7/uW+s";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q0FV8Ztd"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1785914745;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=weTz5xMfFtmCj3eZsPtup6Hy3D3peSbc8vAfiLIUMAU=;
-	b=De7/uW+sOdJfcgaRZFAtlCYF9808xCVgux/Pfn3IQlde7niBhyx+Cxo+bFDZ8jYCQs9odT
-	Fuq5SmqRNo+GVePdRklOjJW4RMIbZzJadyxGOaOq2VmNgjVqXmfjOY6F8FSJ8+c70ij+Ip
-	PYFYEMbZZHYsco/kiYtxXaVsEy1NHZA=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-588-TJ-UtYhFMayaTEESnwb-8w-1; Wed, 05 Aug 2026 03:25:29 -0400
-X-MC-Unique: TJ-UtYhFMayaTEESnwb-8w-1
-X-Mimecast-MFC-AGG-ID: TJ-UtYhFMayaTEESnwb-8w_1785914728
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4955ce558d8so6026285e9.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2026 00:25:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1785914728; x=1786519528; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=weTz5xMfFtmCj3eZsPtup6Hy3D3peSbc8vAfiLIUMAU=;
-        b=Q0FV8ZtdVIu91NkIbgsL9TD6rN+BrysuEDzZSBjv8ubCA/uGVPq42g1Lo74TmqgiyN
-         C9eq5JkD7SSjKAn0tzlB9/VuoRFn3pX3hpLc3vuUQww1j/+Zh90vppHvVio6OKXlEl5B
-         wionqDl3FJxIx0CipioWtXbq0ano72L6tDJ+0pCrpGPZX1C2TtHESoPTrik+5ICYqKiI
-         Ieq6rvjqYcdiq4VifuMfsr8xVNiyqvs15DeY0Rznptztf3KLINZV2rluY6R7nxMbBasg
-         qMXLQnHHz04X/gPC4Y3yHj/0YUxKEKB+BHCLULk56+6Zgv3x4FEnxvo33a2E80j1SoLI
-         JYhg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785914728; x=1786519528;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=weTz5xMfFtmCj3eZsPtup6Hy3D3peSbc8vAfiLIUMAU=;
-        b=QPyFIH/ynTes5PIPHa6VrQLYOVCfqCMQNLFTgfipZloIKaynnYCV7lTnqyjnfOVf2P
-         1lFL1RX7ZiWZsfWlRjrKi7FcF/V1klKj8wjbxXNc1PKDLvSvmgMOL2cqN9X/4AKxvbA6
-         ZtGWXwWDh+cD786OlopkeOmKXtVio2u07O6lfwLLn2JpkEPgahucKsKjnWM7iBBQV3dr
-         E9DunjBeggeu3ikr0k0E562a71nkX82IM3JT1rIhc3syTl1DH8Yakc3/0dfFcqwLjAIq
-         mSccYOG9HBCqegwEIh+vwmRcDP5biXCvP/7uWT1WRgfyGGmdDfGNXhY4xJwGaw12gQ3g
-         3HPQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqqlTaaHbCT+4rQSLM93QGPrHlr7URSj9sdudPMzYWVtVNaag4uTx5sFEsUq06D1M5yqB56WzW9qAHbL36TXPY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxyC/dHZiBibqWwY4e/iMysqETAW86wyCwJWQPCmpRjYu1lS8k2
-	pSedLbVsvvtF0YbLJAHXQLUFGIpHK9whJuMT4p9lnUHL3BGcXMz2ekcgAkSG9Gz4Mmb8+AIhFol
-	HlZXHlhyKo3GMJKYgx4Mg+2v+OkAPtUUFF3O/+1FnRYSovCX5xACQQgdPiANnudZ0pXrilg==
-X-Gm-Gg: AR+sD12fCAImwQgYytnmXkBFP2sCeU6Q4RRuOW1KMLPkZx7l3rO/fdCBQokXygQqXgx
-	Qnyocjr1RCkabFvotZDconpRNCihauJpdCg1g8/U3LR9mXABVLbQx/FdbxhyIY/VBGcTqyn9Teg
-	LkPo1TMGMSFsetZBWJSz9XcZCnL581MWIv0TKHndkOhmWHORPe7ppAaWSeNhmDHvw0IJVKUab6s
-	KkYz+BzSE+ilCW4V+LL1XvC+OZBFU6aBP1615AjGDa+kR1W0lVC++tE9NbAtZK5JERVV3V9lXCN
-	0ScyBBU1rz9wDcTLxeDDLaPneyxwISHo431IMmNWweDoCBh7rEKp06Rg1PwG47T7RqzwEQdDcNf
-	Aj3GitfdTaL/K9A4uLXngaG9FGH1nKG7TOTL8TS3j6dnPmoOE5zyu3RL+Y4vJX6FkW6LCLQSqqp
-	M=
-X-Received: by 2002:a05:600c:4f83:b0:493:c42e:5be0 with SMTP id 5b1f17b1804b1-4994e6c4194mr53322315e9.0.1785914728300;
-        Wed, 05 Aug 2026 00:25:28 -0700 (PDT)
-X-Received: by 2002:a05:600c:4f83:b0:493:c42e:5be0 with SMTP id 5b1f17b1804b1-4994e6c4194mr53321845e9.0.1785914727896;
-        Wed, 05 Aug 2026 00:25:27 -0700 (PDT)
-Received: from [192.168.188.103] (ip239-44-231-195.pool-bba.aruba.it. [195.231.44.239])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4994e03589asm58416655e9.9.2026.08.05.00.25.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 05 Aug 2026 00:25:27 -0700 (PDT)
-Message-ID: <4c70e63c-3b6d-46a0-bba0-33335f73071a@redhat.com>
-Date: Wed, 5 Aug 2026 09:25:26 +0200
+	s=arc-20240116; t=1785915208; c=relaxed/simple;
+	bh=M8YrUsjeBHss+QC0jNU4fE/I1ztrK6EIaxiEmSJIbQs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Vh+0ExKnwyBZz7H/KaGsyBuAyItQDDDhGWYBpNrWDU7eZukjvsVSAbotqRSuAd9BYVWZF/nxJkwOQn7ijUgZPq8FAS1ZC62GloRD95XLn+fxJeiDi1EI/GMSaV+ZOQXtUw8qPY9GBF6Hb/vLO/xUpkM50NXy27UdfzH0zH7hE24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id AA129602B9; Wed, 05 Aug 2026 09:33:23 +0200 (CEST)
+Date: Wed, 5 Aug 2026 09:33:23 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
+	edumazet@google.com, horms@kernel.org
+Subject: Re: [PATCH net 03/10] netfilter: ipset: rework cidr bookkeeping
+Message-ID: <anLnQ5yVe1hE3VvM@strlen.de>
+References: <20260731151806.849724-4-pablo@netfilter.org>
+ <20260805001531.3978750-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 02/10] netfilter: ebt_nflog: pin the NFLOG backend
-To: Florian Westphal <fw@strlen.de>, Jakub Kicinski <kuba@kernel.org>
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
- davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
- horms@kernel.org
-References: <20260731151806.849724-3-pablo@netfilter.org>
- <20260805001529.3978646-1-kuba@kernel.org> <anLiOdg5xYKNoNLL@strlen.de>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <anLiOdg5xYKNoNLL@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260805001531.3978750-1-kuba@kernel.org>
 
-On 8/5/26 9:11 AM, Florian Westphal wrote:
-> Jakub Kicinski <kuba@kernel.org> wrote:
->> This is an AI-generated review of your patch. The human sending this
->> email has considered the AI review valid, or at least plausible.
->> ---
->> netfilter: ebt_nflog: pin the NFLOG backend
+Jakub Kicinski <kuba@kernel.org> wrote:
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> ---
+> netfilter: ipset: rework cidr bookkeeping
 > 
-> We need a way to annotate patches that they have known followups.
+> The prefix bookkeeping of the hash:net* set types is moved out of struct
+> htype into separately allocated, RCU published struct net_prefixes arrays.
+> The in-place shifting of the cidr array is replaced by allocate-copy-publish,
+> with a documented fallback to leaving holes when the allocation fails.
+> 
+> A few questions about the new bookkeeping below.
 
-Willem used direct command to sashiko after the '---' separator:
+Sigh.  I knew this would happen, but what am I supposed to do now?
 
-https://lore.kernel.org/netdev/20260726202902.760552-8-willemdebruijn.kernel@gmail.com/
+I explicitly noted that this isn't perfect and that I'm doing a
+large series to convert ip_set_hash_gen.h over to rhashtable.
 
-and it looks like that would work. I'm not sure if such per patch
-annotation fits a PR creation, possibly landing it in the cover letter
-would work. At least would work for human reviews.
+This series ATM has 19 patches.
 
-/P
+What is your advice?  Should i squashmerge unrelated patches into one
+thing?  Send the entire thing directly to net?  Make a PR just with that
+entire thing?
 
+I have no idea how to make progress here.
+
+> > -/* cidr + 1 is stored in net_prefixes to support /0 */
+> > -#define NCIDR_PUT(cidr)		((cidr) + 1)
+> > -#define NCIDR_GET(cidr)		((cidr) - 1)
+> > -
+> >  #ifdef IP_SET_HASH_WITH_NETS_PACKED
+> >  /* When cidr is packed with nomatch, cidr - 1 is stored in the data entry */
+> >  #define DCIDR_PUT(cidr)		((cidr) - 1)
+> > @@ -141,21 +142,11 @@ htable_size(u8 hbits)
+> >  #define DCIDR_GET(cidr, i)	__CIDR(cidr, i)
+> >  #endif
+> >  
+> > -#define INIT_CIDR(cidr, host_mask)	\
+> > -	DCIDR_PUT(((cidr) ? NCIDR_GET(cidr) : host_mask))
+> > -
+> > -#ifdef IP_SET_HASH_WITH_NET0
+> > -/* cidr from 0 to HOST_MASK value and c = cidr + 1 */
+> > -#define NLEN			(HOST_MASK + 1)
+> > -#define CIDR_POS(c)		((c) - 1)
+> > -#else
+> > -/* cidr from 1 to HOST_MASK value and c = cidr + 1 */
+> > -#define NLEN			HOST_MASK
+> > -#define CIDR_POS(c)		((c) - 2)
+> > -#endif
+> 
+> [Severity: Low]
+> This isn't a bug, but these were the only readers of
+> IP_SET_HASH_WITH_NET0, and the flag is still defined by
+> ip_set_hash_netiface.c and ip_set_hash_netportnet.c:
+
+This sucks.  What am I supposed to do with this?
+
+Do you want me to munge this patch to also zap this in the same commit?
+
+> [Severity: Medium]
+> Should INIT_CIDR() also look at nets[0].count?
+
+Yes, but its not *that* simple.  Let alone better for
+readability to change this here as well.
+
+tentative direction to address this is:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260804170214.27237-1-fw@strlen.de/
+
+I think I can squashmerge this one but it will be more difficult
+to explain all that is going on at the same time.
+
+> Two states created by this patch leave len non-zero with count == 0 at
+> index 0:
+> 
+>   - mtype_del_cidr() on allocation failure:
+> 
+> 	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
+> 	if (!tmp)
+> 		/* Leave a hole */
+> 		goto unlock;
+
+This is remove in the patch linked above.
+
+>   - mtype_flush() on allocation failure, which zeroes the counts but keeps
+>     len and the stored cidr values.
+
+Won't do this after rhashtable conversion.
+
+> The commit message says the hole possibility "is taken into account at
+> evaluation time" - that holds for mtype_test_cidrs(), but does it hold for
+> INIT_CIDR()?  This is unchanged at the end of the series (3a0d9fd64b67).
+
+The series is partial.  The ipset -> rhashtable conversion patch set is large:
+20 files changed, 931 insertions(+), 1271 deletions(-)
+
+> [Severity: Low]
+> Does the memsize reported to userspace need updating too?  The bookkeeping
+> is no longer part of struct htype, but mtype_ahash_memsize() still only
+> accounts for sizeof(*h):
+> 
+> 	return sizeof(*h) + sizeof(*t) + ahash_sizeof_regions(t->htable_bits);
+
+I can munge this, sure.
+
+> [Severity: Low]
+> This isn't a bug, but the comment still describes the encoding this patch
+> removes.  NCIDR_PUT()/NCIDR_GET() are gone and all call sites now pass the
+> raw value, for example:
+> 
+> 	mtype_add_cidr(set, h, DCIDR_GET(d->cidr, i), i);
+> 
+> Could the comment be updated to describe the new invariants instead
+> (descending cidr order, count == 0 marks a hole, len is the number of
+> allocated slots, /0 distinguished by count)?  The stale text is still
+> present at the end of the series (3a0d9fd64b67).
+
+I can munge this.
+
+> [Severity: Low]
+> This isn't a bug on any supported architecture, but this increment (and
+> the matching decrement in mtype_del_cidr(), plus the bulk zeroing in the
+> mtype_flush() fallback) still mutates the already published object in
+> place, with plain stores and no WRITE_ONCE().
+
+Sigh.  Will inflate diff size even more.
+
+> Since count now decides whether an entry is a live prefix or a hole, is it
+> worth annotating these accesses?
+
+Well, is it?
+
+> One way to reach the decrement of a zero count: mtype_flush() clears the
+> buckets first, a concurrent SET target add registers a cidr and inserts an
+> element, the flush fallback afterwards zeroes that count, and the later
+> delete of the still present element decrements zero.  The skew caused by the
+> ignored -ENOMEM of mtype_add_cidr() (see below) gets there as well.
+
+All of this is rewritten with the rhashtable conversion.
+
+After conversion, mtype_flush no longer performs point-blank-clobbering,
+and only entries that are successfuly detached from the rhashtable have
+their cidr count changed under lock.
+
+> > @@ -402,6 +433,9 @@ static void
+> >  mtype_flush(struct ip_set *set)
+> >  {
+> >  	struct htype *h = set->data;
+> > +#ifdef IP_SET_HASH_WITH_NETS
+> > +	struct net_prefixes *nets, *tmp;
+> > +#endif
+> >  	struct htable *t;
+> >  	struct hbucket *n;
+> >  	u32 r, i;
+> > @@ -425,7 +459,19 @@ mtype_flush(struct ip_set *set)
+> >  		spin_unlock_bh(&t->hregion[r].lock);
+> >  	}
+> >  #ifdef IP_SET_HASH_WITH_NETS
+> > -	memset(h->nets, 0, sizeof(h->nets));
+> > +	for (i = 0; i < IPSET_NET_COUNT; i++) {
+> > +		nets = ipset_dereference_nfnl(h->rnets[i]);
+> > +		tmp = kzalloc_obj(*tmp, GFP_ATOMIC);
+> > +		if (!tmp) {
+> > +			u8 j;
+> > +
+> > +			for (j = 0; j < nets->len; j++)
+> > +				nets->nets[j].count = 0;
+> > +		} else {
+> > +			rcu_assign_pointer(h->rnets[i], tmp);
+> > +			kfree_rcu(nets, rcu);
+> > +		}
+> > +	}
+> >  #endif
+> >  }
+> 
+> [Severity: Critical]
+> Does this replacement need set->lock?
+> 
+> mtype_add_cidr() and mtype_del_cidr() do the same read, publish and free
+> sequence under spin_lock_bh(&set->lock), but here only the nfnetlink mutex
+> is held.  For the hash types set->variant->region_lock is true, and
+> ip_set_lock() is then a no-op:
+
+Yes and no.  After rhashtable conversion, this mtype_flush replacement
+is gone and so are region locks.
+
+I can munge this but I considered a waste of time.
+
+> net/netfilter/ipset/ip_set_core.c:
+> static inline void
+> ip_set_lock(struct ip_set *set)
+> {
+> 	if (!set->variant->region_lock)
+> 		spin_lock_bh(&set->lock);
+> }
+> 
+> so ip_set_flush_set() -> mtype_flush() gets no serialization against the
+> cidr writers.  Those writers do not take the nfnl mutex either:
+
+Yes, thats why all of this is on the chopping block...
+
+> CPU0 (ipset flush)                  CPU1 (SET target, softirq)
+> nets = ipset_dereference_nfnl(...)
+>                                     spin_lock_bh(&set->lock);
+>                                     nets = __ipset_dereference(h->rnets[n]);
+> rcu_assign_pointer(h->rnets[i], tmp)
+> kfree_rcu(nets, rcu);
+>                                     rcu_assign_pointer(h->rnets[n], tmp);
+>                                     kfree_rcu(nets, rcu);   /* same object */
+> 
+> That queues the same rcu_head twice, and the concurrent update is lost as
+> well.  The !tmp fallback above also writes nets->nets[j].count = 0 into an
+> object the other side may already have unpublished and passed to
+> kfree_rcu().
+
+I don't see how this is possible AFTER rhashtable conversion.
+
+> [Severity: High]
+> mtype_add_cidr() changed from void to int and can now fail:
+> 
+> 	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
+> 	if (!tmp) {
+> 		ret = -ENOMEM;
+> 		goto unlock;
+> 	}
+> 
+> Should this caller check the return value?  The memcpy() commits the
+> element unconditionally, so on allocation failure the element sits in the
+> bucket with no prefix registered in h->rnets[].
+
+Yes, I added this later in the series.  I can munge this here but it
+again delays progress.  I had hoped to get this in but it increasingly
+looks like this will have to be delayed to nf-next/net-next or even
+further.  I hate this, as good as AI reviews are for finding issues they
+also start to effectively prevent bug fixes from making the tree because
+they are not meeting AI perfectness standards, whatever that means.
+
+> mtype_test_cidrs() only probes cidrs that are present with count != 0:
+> 
+> 	for (j = 0; j < nets0->len && !multi; j++) {
+> 		if (!nets0->nets[j].count)
+> 			continue;
+> 
+> so does such an element become permanently unmatchable, while still being
+> listable and deletable?
+
+No idea.  I tire of reading AI mumbo jumbo.
