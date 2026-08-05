@@ -1,42 +1,50 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE1BF48A2B1
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 16:39:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2735B48383F;
+	Wed,  5 Aug 2026 16:42:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785947968; cv=none; b=rMr+TlratnUrVFuOWyoSpJi/iS1Zp0XhIKfTfToLQusYg8AiFO7p4XHu/k6015z6C/1TcqV7bUyh2gtxuuJgQaCaT/CkaKRQTwcDdECtm5hJ74bf3/+858xLRmG1Y557cXQ/j+eHiGrl295Eh5VLZIRaOHBRmcpwYpZl9dAUSdA=
+	t=1785948125; cv=none; b=pYKvTrqU8Mw8HiT5+Y0zoy5BdvyLYQ3NmJ5jEeHuzAloC9F6BvYL4hGLNV1cgpDejyVHaxQXEhcKZtSKxUKzPV0gMCg0Gz5rbFjkyhTYMrzSZq4iYsdLTRr74+I+eVifE+DOLkhmzG6DYso4Oz9UtvyeVSWz8RtyKaWWhiIav9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785947968; c=relaxed/simple;
-	bh=Cplh6r9Ng0/E/hFbZCLGslOl7O0JvnkplUxQaADPx6Q=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oqXGzGbNKHhx0f48HfIIDqdOHoCi1G9n4ABfjp9evnYbFHkxFyY0i22x69g27veY/i8es8TnB8k44kD0zA+yFwx/d9wNTPraTnhpxaRrKul11d6/qLqj76t6LRtlMm27ZvudLF+ZlrUNBV1W5PBb0Wn2YGb2PyqgDLcaX9RdP/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Bmst8dLs; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1785948125; c=relaxed/simple;
+	bh=andGwbNDy/vJXChc5XE51DsLyyGduy20Vng835rro/s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SXuvV1Ue3m3Ay1QzgaG9kXb0xsq4Q/ZCrZUEUW1t1nQKT2Chkl6ghtrTnWxtu3JzqQw8OZYPV6ClfJwO78FkcsIaZuU2A9uG/Uhn9bBqkpbReeBb+Qc4xostyutLvpfB938IbWsl8DpCK5RfEhatdnZLHQksuZFLx8vgx0zCaw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K339JCOu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Bmst8dLs"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 037C660296
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 18:39:24 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785947965;
-	bh=9RhvJkoHy5RzkMUXU7awDmT0ETkosyjpv8ghSifCmTE=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=Bmst8dLs2ILB/QTwQ0HRvpof8Q0Yv3cV2jUnHPhzOGzWJls5RrhCRIreyYoY0F6rJ
-	 opRx3vh0ZZ6kd9Vq3Utb8FHgK05kz8pb5pFO1gfGjBDTIaayqb1N12k363CfVqRLKD
-	 56OEYr8OJu5YdnsdGRp/khAetL7H7tWNQGS4qwWPqRyq1hppTzP5InwZ4Qe5FsyDGm
-	 i8UevvT3hfxXRTWegR80jFhk7NTuxq7BmDSfOlHq+csGBrxtF4N8ayAucL0gi4y07T
-	 PJh8oA419xv/fbW76hD0sur4VVjdDsfQS7h91Ai9IaZX5tirqJiJym+95wEO1SuIt8
-	 XRMoNgChWLGUA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] tests: shell: add flush set after expiration
-Date: Wed,  5 Aug 2026 18:39:20 +0200
-Message-ID: <20260805163920.238975-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260805163920.238975-1-pablo@netfilter.org>
-References: <20260805163920.238975-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K339JCOu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 831081F00A3A;
+	Wed,  5 Aug 2026 16:42:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785948123;
+	bh=kr1QodyluVIX2VsN4MiPujwwIHFFnztNbU2xdWcrkM8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=K339JCOuI19I/GXwgk+YBehWUylRIKOcWaoI64cLusEw1RDIgs2PzFputIXVsxCSF
+	 /pkhzaquTk8Fj0wudTqqLEc2OsFXIX1KL7wf2NNQYE3j0ALLSajwAvap8JwXYFFgYy
+	 M8h6aMYT/jA6NfRWCXzQMSiX7TmQ8fAiX9yDrR+Ld/ol3CDSuGbgPXXJQn1RASsjRQ
+	 l6d3r5T/vMacL0YyvasrPFnPaHywV9HhNEOzXcvFFFGni/nm+65fHO0j8Fp/z4QJnt
+	 Zc+ZfdCkbCtt5yTohc3yeo1hclU5UC684aNKRHMDFHq0DgphaOztaEdbmZ66vR94Gp
+	 d98w0aZR3Nqcw==
+From: Sasha Levin <sashal@kernel.org>
+To: Fahad Alharbi <fahad@codepure.com>
+Cc: Sasha Levin <sashal@kernel.org>,
+	stable@vger.kernel.org,
+	security@kernel.org,
+	security@ubuntu.com,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: nft_set_pipapo: UAF and double free from a stranded GC batch in the 5.15.y / 6.1.y / 6.6.y backports of 9df95785d3d8
+Date: Wed,  5 Aug 2026 12:41:53 -0400
+Message-ID: <20260805164000.stable-0007@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <2026080436-dyslexic-willfully-fb2e@gregkh>
+References: <2026080436-dyslexic-willfully-fb2e@gregkh>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,76 +53,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a new test to cover for flush commands after elements have expired,
-this allowed me to catch a bug in:
+On Tue, Aug 04, 2026 at 08:01:12AM +0200, Greg KH wrote:
+>> Missing commits:
+>>
+>>   8b8a2417558c ("netfilter: nft_set_pipapo: prepare destroy function for
+>>                  on-demand clone")
+>>   532aec7e878b ("netfilter: nft_set_pipapo: remove dirty flag")
+>
+> That is because they do not cleanly apply there.  Can you provide
+> working backports for that tree, and any other older tree that you think
+> needs it, so we can queue them up?
 
-("netfilter: nf_tables: call set ops .commit when building new ruleset")
+Backports of those two commits would only cover 6.6.y, so they do not
+close the report on their own. The per-tree picture is:
 
-This tests works fine with <= 7.2-rc6, this is not specifically covering
-any existing regression.
+- 6.6.y: yes, it needs both. Its dependency chain pulled in the middle of
+  the 2024 on-demand-clone series but skipped 8b8a2417558c immediately
+  before it and 532aec7e878b immediately after.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../sets/dumps/flush_after_expiration.nodump  |  0
- .../testcases/sets/flush_after_expiration     | 45 +++++++++++++++++++
- 2 files changed, 45 insertions(+)
- create mode 100644 tests/shell/testcases/sets/dumps/flush_after_expiration.nodump
- create mode 100755 tests/shell/testcases/sets/flush_after_expiration
+- 6.1.y and 5.15.y: they never took the on-demand-clone series at all, so
+  those two commits do not apply there even in principle. They need a
+  structurally different, stable-only fix: make pipapo_gc_queue()
+  unconditional so the batch that pipapo_gc_scan() already allocated and
+  put on priv->gc_head cannot be stranded by the early returns sitting
+  between the two calls.
 
-diff --git a/tests/shell/testcases/sets/dumps/flush_after_expiration.nodump b/tests/shell/testcases/sets/dumps/flush_after_expiration.nodump
-new file mode 100644
-index 000000000000..e69de29bb2d1
-diff --git a/tests/shell/testcases/sets/flush_after_expiration b/tests/shell/testcases/sets/flush_after_expiration
-new file mode 100755
-index 000000000000..eaf03a546ca0
---- /dev/null
-+++ b/tests/shell/testcases/sets/flush_after_expiration
-@@ -0,0 +1,45 @@
-+#!/bin/bash
-+
-+$NFT -f - <<EOF
-+table ip x {
-+        set s0 {
-+                type inet_service
-+                elements = { 20, 21, 22 }
-+                flags interval
-+                timeout 3s
-+        }
-+}
-+EOF
-+
-+sleep 6
-+
-+$NFT flush set ip x s0
-+
-+$NFT -f - <<EOF
-+table ip x {
-+        set s1 {
-+                type ipv4_addr . inet_service
-+                elements = { 1.2.3.4 . 20, 1.2.3.5 . 21, 1.2.3.6 . 22 }
-+                flags interval
-+                timeout 3s
-+        }
-+}
-+EOF
-+
-+sleep 6
-+
-+$NFT flush set ip x s1
-+
-+$NFT -f - <<EOF
-+table ip x {
-+        set s2 {
-+                type ipv4_addr
-+                elements = { 2.2.2.1, 2.2.2.2, 2.2.2.3 }
-+                timeout 3s
-+        }
-+}
-+EOF
-+
-+sleep 6
-+
-+$NFT flush set ip x s2
 -- 
-2.47.3
-
+Thanks,
+Sasha
