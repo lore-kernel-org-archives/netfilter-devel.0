@@ -1,61 +1,94 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E7311D5CFE;
-	Wed,  5 Aug 2026 23:21:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707CF5A79B;
+	Wed,  5 Aug 2026 23:50:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785972113; cv=none; b=PkmiHS3FB6b83fDS24TdEDSGsdzOGEIZP+0z1jy0PUUWKGccdZ3AnrDTPJNoyN/LALnKuVRrzPJ019MnLFtugRrXyRol2FeBVQTJpsbsfXcYlwKaHnNJhtPIN0uS+p4oI8rkR1xxdd73fN812n/UhOnObaE7qK1ldcdXxWAs7cg=
+	t=1785973858; cv=none; b=Z4OuW2jBknn6OBHPpexMkZpGaMITFVbn6WJjZxHrbTCXJEnK5jzm8chrtuLVTYTc09Chyfeq9KVZqKpDjaUXDzQFib+4H9Tcdq1jdIgaMNqUL7L8u9CDj2coiRQZMRd9BBmHeXcusLJqXLSqGkzExYNfZtKs2/3guXBQQ5GMulc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785972113; c=relaxed/simple;
-	bh=CEeCA0TcjO8Mt9ztazo+gZ7DpbqQG2LaV4tAgv8oS6A=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OJ5qj41nEl+LCD9HssiJlkY4+aYLo14HIzDSMFDRRVPi4q2GlPhxj0wKIHxemnNZIalpz3iHwfvj4sGIgVt6+P8q5WgDuBKVnptfQgaHfRVUGOwDfqtn86liR7u2g98kDczZfEvRfYk1zECNPRWrBcCDjMWV4l0ewMuThTCrl04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D83T66ao; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785973858; c=relaxed/simple;
+	bh=vRZWRjhp49/dQBd0qcdo37BrR2kBNGlsrsMBR/eweH8=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=rRPXA2/HaA+n/7+bc5ySLIZPjK7iL72CVln6Ld/jO6CJS2jVWDX6Za19dNl58rfVDiJAjIVg3bIOBmknY4idmRC6jnS6wXs7+1i79DWwFPtx0Sjx7L3f9gBLrP5OpaD7S/nWGXUGnABMx+gUbTXrZDXFh7FQQDKFmm1PwaIQp38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SRClgifc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D83T66ao"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9B71F000E9;
-	Wed,  5 Aug 2026 23:21:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SRClgifc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED101F000E9;
+	Wed,  5 Aug 2026 23:50:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785972112;
-	bh=2np7lwzZ6nBJQum/B98LRSV64G/fvJ/ncAO/BNMZGU8=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=D83T66aofrXHdomSVcn7I9KvzaZz4uALU2JYqxuXo4GKcKyGXyxke8q8LVnqWuW/7
-	 v7Sq3FpVzmB8BAyX3iTCRigdBYslh//9AoPbQ7xmynNqZSHmXdD//hw89KVeD8GN4Z
-	 PX/mz5COE/2cO5PNpFgJgboz7Xlzr9kKGyIEh95HPU/WCK0p2emUqYH/CfehRHXlDO
-	 AnNHmFQ2GiklUeA84HwFp2hCatYvTRTpbahkJ/VAfuz5ceedNi/2vI5pN0drOJzmoR
-	 nAWQZwqKKrPpDinFdqyMWIYSXX85jbpXDG5nACHFM2d84J6xIELlLjRgJkBuqqeF0P
-	 9ELgiIVKDEkZg==
-Date: Wed, 5 Aug 2026 16:21:51 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, fw@strlen.de
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
- horms@kernel.org
-Subject: Re: [PATCH net 00/10] Netfilter/IPVS fixes for net
-Message-ID: <20260805162151.251485df@kernel.org>
-In-Reply-To: <anN1TKrRkGTwPXIQ@chamomile>
-References: <20260731151806.849724-1-pablo@netfilter.org>
-	<anN1TKrRkGTwPXIQ@chamomile>
+	s=k20260515; t=1785973856;
+	bh=RB+eHuex3Qbm8gTW9/VwZ20lopgsZ0i4+C3p+dCVa0c=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=SRClgifcs6vDpxk1VlbO8GKOoSEfRD+Tc/aU4KnFu3k9UGYyxQouJnEzinEgA0Z+h
+	 C2FvJu2tMOyjC+ByJab9AGzGi/S5r+hG0x9hsDLWE0xou1cISh+S22NGMJjO2l+tZB
+	 wiXaXiJytTpWVj+AhCiMZ9bYX+dqb4yAkeX+vFPfc5pX/HGt3Wv/a/c8MBaB3iVdnd
+	 j6KLk9UX6aXcj/SMlMqasfeDgcI8E9xWO8P91s/3igz7bSyX1NrpHY+LC/gHjGFIMT
+	 Z9fsV8VnY6u5fim+Y0dbLpInTz/e9wz0RZ3ZFsHAwzSBCUnMecfhG/3JkxLOhLtlf2
+	 V5XNIpDpxNVng==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0AA6392FFD8;
+	Wed,  5 Aug 2026 23:50:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/10] ipvs: stop estimator after disabled calc phase
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178597381664.567483.1491675233336234568.git-patchwork-notify@kernel.org>
+Date: Wed, 05 Aug 2026 23:50:16 +0000
+References: <20260731151806.849724-2-pablo@netfilter.org>
+In-Reply-To: <20260731151806.849724-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-On Wed, 5 Aug 2026 19:39:24 +0200 Pablo Neira Ayuso wrote:
-> Hi,
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Fri, 31 Jul 2026 17:17:57 +0200 you wrote:
+> From: Zhiling Zou <zhilinz@nebusec.ai>
 > 
-> After posting the review of sashiko's comment my proposal is to
-> integrate patch 1 to 9 of this PR upstream, just excluding patch 10.
+> IPVS estimator kthread 0 starts with zeroed chain and tick limits until
+> its initial calculation phase completes. If network namespace teardown
+> clears ipvs->enable during that phase, ip_vs_est_calc_phase() can return
+> without installing positive limits.
+> 
+> [...]
 
-SG! Whatever you guys prefer. Sorry for dumping the reviews on the list
-without much discernment, the netdev queue never dips below 400 patches
-these days so when we can depend on other maintainers we'll just do as
-told at this point..
+Here is the summary with links:
+  - [net,01/10] ipvs: stop estimator after disabled calc phase
+    https://git.kernel.org/netdev/net/c/558f67f1340f
+  - [net,02/10] netfilter: ebt_nflog: pin the NFLOG backend
+    https://git.kernel.org/netdev/net/c/30825970339c
+  - [net,03/10] netfilter: ipset: rework cidr bookkeeping
+    https://git.kernel.org/netdev/net/c/8e5fd2a55e24
+  - [net,04/10] netfilter: ipset: switch ext_size to atomic64_t
+    https://git.kernel.org/netdev/net/c/712a6f545c35
+  - [net,05/10] netfilter: ipset: add small wrappers for hash and bucket sizes
+    https://git.kernel.org/netdev/net/c/c266769e9ede
+  - [net,06/10] netfilter: ipset: add and use mtype_del_cidr_all helper
+    https://git.kernel.org/netdev/net/c/cdd97fae0e96
+  - [net,07/10] netfilter: ipset: switch to rcu work
+    https://git.kernel.org/netdev/net/c/7defddefa95b
+  - [net,08/10] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp
+    https://git.kernel.org/netdev/net/c/646922a03794
+  - [net,09/10] ipvs: return the csum validation for forward hook
+    https://git.kernel.org/netdev/net/c/99609cb0aa78
+  - [net,10/10] netfilter: nft_ct: move custom expectation support to helper
+    (no matching commit)
 
-Will pull the first 9 (and the -next PR).
-Thanks!
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
