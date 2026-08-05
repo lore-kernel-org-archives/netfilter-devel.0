@@ -1,57 +1,105 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0021C238C36;
-	Wed,  5 Aug 2026 17:40:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 475BF29C327;
+	Wed,  5 Aug 2026 19:12:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785951613; cv=none; b=K7L/WWOnmxl4fMMbc4Iy3dkMe3cDHiGafnPV+DvlfWHOj3HAhNX3hESMRiZxEigVrcK7JbQIJvhB/n1eThhGdmuf74KAuYDAPtCvhfjxSQJIIJo3g0mynXO1KBMchghCYBwz/9x/hB1o+gC1OOlU+vI+iBYUIoYw2y7tjuboc7U=
+	t=1785957137; cv=none; b=poZLlg4wp6GrGqQSvaqKFuxZPuEQAyOx9e2Dy2NXPagfXEQ7NcnH0BJCzfhghgLda8FluSIRDTnd5bRXW7IeHlDR6L7WfaqIOhTEEncbOWetJNDrDWUqrQO+3vaMu16eXyNUhJRc8F8j3VhBqmKWtRjwK0N/JwmO5xMU1PayWhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785951613; c=relaxed/simple;
-	bh=uIEhHr5Uq/se3lTE0pFbwYIWFkyW1YxeOf7ixtiTSok=;
+	s=arc-20240116; t=1785957137; c=relaxed/simple;
+	bh=wKuHV8hEUnjAAsu1EC0HVYrKPe4bvkiX0Ci+gBd3qKw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G+k4KFmWm+63PZO/8mm74KDvBgFYD3ouyNUiCwGA5IAAkvLay3l44FfBbZP+8dEPw7jS/C78BbCigTMN8Rk31gW/yOES0TXHI2DjikCadhD23b//l3H1uQYuXw+nNaLLjVPH3PymDkOGjmywJVLsves5U6YO/QYUcSw61in71e4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GxasPuWZ; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GxasPuWZ"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 34B4C6019E;
-	Wed,  5 Aug 2026 19:40:10 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785951610;
-	bh=uIEhHr5Uq/se3lTE0pFbwYIWFkyW1YxeOf7ixtiTSok=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GxasPuWZk/nWkhgnd3vlh/3sUSXsu+6kFVMdoLrsXPuX1mGHJhUMXLA4T8vrBq2DK
-	 RyINTQzDhEubLyf7JYXbXx6FpSpi0Drq/tsulwaz/nHeBN7g7bBGmHEAAIZqUZUzML
-	 8Th9v3sMYfSC898Ro/wZVCLG4+Z9BTDLyzhbIE+MaJ9cnHFMbVEBf3yT42EHlNRNKZ
-	 G9xFhsAKNxVffd06gJLpzr2BXGk2lrClVV6+2LqyNB2vVyX+nfApYWmxF89QTnild3
-	 gXY+Nr5GAQGnmrGqiSphM7uLxkL6w+bvA/HLk587t47JK00UTdfG0VVTqYeIE+GZ5B
-	 amGWbNP4+zyzQ==
-Date: Wed, 5 Aug 2026 19:40:07 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-	pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
-	horms@kernel.org
-Subject: Re: [PATCH net-next 0/9] Netfilter updates for net-next
-Message-ID: <anN1dx7XiePnme7g@chamomile>
-References: <20260731153402.851224-1-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=Nnsu3P1Xxxi2rPnpAlZGQx7a0T4PnqOm1CPxyK86Z9h5tsJLwzKsPkKm3IGHFboijH8KkexYhJiTQOM6wZ21AGqYaN8aDhXZOSLMcHwbJbip3UCDoeOd6TASMjp9yUuLuCMmRSmKfg2z/zh7tebHxpuSGrUcj8wSOgpazPKIfVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id DEAE360299; Wed, 05 Aug 2026 21:12:05 +0200 (CEST)
+Date: Wed, 5 Aug 2026 21:12:03 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
+	edumazet@google.com, horms@kernel.org
+Subject: Re: [PATCH net 02/10] netfilter: ebt_nflog: pin the NFLOG backend
+Message-ID: <anOLAwgI8uuhLq7m@strlen.de>
+References: <20260731151806.849724-3-pablo@netfilter.org>
+ <20260805001529.3978646-1-kuba@kernel.org>
+ <anNwSVI29j5-FfwJ@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260731153402.851224-1-pablo@netfilter.org>
+In-Reply-To: <anNwSVI29j5-FfwJ@chamomile>
 
-Hi,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >  	info->prefix[EBT_NFLOG_PREFIX_SIZE - 1] = '\0';
+> > > -	return 0;
+> > > +
+> > > +	ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
+> > 
+> > [Severity: Medium]
+> > Should the commit message mention that this can reject rulesets that used
+> > to load?  ebt_nflog_tg_check() previously returned 0 unconditionally, so an
+> > ebtables nflog rule installed fine and simply logged nothing when
+> > loggers[pf][NF_LOG_TYPE_ULOG] was NULL.  Now the raw -ENOENT from
+> > nf_logger_find_get() is propagated out through xt_check_target(), so
+> > ebtables -A ... --nflog and ebtables-restore fail.  This seems worth
+> > spelling out given the Cc: stable.
+> > 
+> > Also, is the stated parity with xt_NFLOG complete?  NETFILTER_XT_TARGET_NFLOG
+> > carries select NETFILTER_NETLINK_LOG in net/netfilter/Kconfig, while
+> > BRIDGE_EBT_NFLOG has no select or depends:
+> > 
+> > net/bridge/netfilter/Kconfig:
+> > config BRIDGE_EBT_NFLOG
+> > 	tristate "ebt: nflog support"
+> > 	help
+> > 	  This option enables the nflog watcher, which allows to LOG
+> > 	  messages through the netfilter logging API, which can use
+> > 	  either the old LOG target, the old ULOG target or nfnetlink_log
+> > 	  as backend.
+> > 
+> > On a kernel with CONFIG_BRIDGE_EBT_NFLOG set and
+> > CONFIG_NETFILTER_NETLINK_LOG=n, the request_module() fallback below can
+> > never succeed, so the target becomes unusable.  Should a
+> > select NETFILTER_NETLINK_LOG be added here?  The help text claiming the
+> > watcher can use the old LOG or ULOG targets as backend also no longer
+> > matches the code.
+> 
+> This sounds again like a pre-existing issue in ebt_nflog's Kconfig.
 
-After reading sashiko's comment, I think this nf-next PR can be
-included upstream and the only real issue can be addressed in a follow
-up.
+Yes, this is ancient by kernel standards.
 
-Thanks.
+> > > +	if (ret != 0 && !par->nft_compat) {
+> > > +		request_module("%s", "nfnetlink_log");
+> > > +
+> > > +		ret = nf_logger_find_get(par->family, NF_LOG_TYPE_ULOG);
+> > > +	}
+> > > +
+> > > +	return ret;
+> > 
+> > [Severity: Medium]
+> > Who loads nfnetlink_log for the nft_compat case?
+> 
+> This is again a pre-existing issue that should be handled in a follow
+> up, it affects xt_LOG and xt_NFLOG too.
+
+Its not, actually: in ebtables case, user has to do it manually:
+rule did load but doesn't work, now rule load would fail.
+
+I think the best fix is to just add
+MODULE_SOFTDEP("pre: nfnetlink_log");
+
+like in xt_NFLOG and let modprobe handle it.
+I don't think we should bother extending the workarounds for
+modprobe we carry in nft_compat for this.
+
+And also add a kconfig dependency to be sure.
+
+And I think it should be done in a different commit.
