@@ -1,313 +1,168 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C15513E49F7
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 08:54:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D373E5598
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 09:03:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785920050; cv=none; b=nHDrGnYLdZUYIBESBPUF/lwAg4lO4Qmyw1aM/mk3bcGhxx8VnKo9fkPXwWV007nQaMBRnOh2vYEtrTEGDSqQKCONTR5WCaKLTY05W73y6IIcZCvfFR9BDKBhIArWz2g9H/DAKD0bJ+E4OGcAuIpLNMY86MQjUN4OLKkgBcRSOPw=
+	t=1785920595; cv=none; b=t/drcfwwEsDG4M6mXN1M1MN/V9/n20/5liEgZghUaN0kcaQJsViaIINR6t81MXUCdlFU6H+s0bEBQ4jlmK63bQWu/suU+3w2ywqmzrELOX+47a+INVZ+hbT6j2++TaNp+APyh/Appo9yzfTXjsZ833fPzClIcuRwKeLza+2LihA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785920050; c=relaxed/simple;
-	bh=ZiWXWyoC7YBFxPqrh92AacqSzsXXBSu88/60x3OFoOU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=f9KKbZisC8l1+AbQTmg11QMjdIwMFgemAHurxHJxGgW4GrUftgszzpcFmMah061lVBxm7P+eDE4oBWRTR6YtOxaJCBVjxCUqj/0MoVUIEvWY79tmP+ZGkIpSLQKysy7bbcsqKjQodCdAVB5dyWQb2OS2ckG1ChhL9TCfWeXPnbg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=DGYpQORb; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=i7jW+75S; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1785920595; c=relaxed/simple;
+	bh=3okNddUNMMKJLxYEvGq4To4XewtsNzzsNOGi+EcxEJM=;
+	h=From:Message-ID:Date:MIME-Version:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=N20Gozp8aEjWtRThQ1iXl/qmNjneAAmktFBl3Xg2sRiLCt52f2ClZ3L3DIFKPb5Zgz1/udvu9GRticiM4ucvpyYJXpQIf8qahJyY2XsdJ5cvXBE3peJ3RcHZXO0naakc/JvAQvSo9jgRk0gMn1eZdy4tYfljok6g4G+UFUJZUNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O6U0eF5J; arc=none smtp.client-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="DGYpQORb";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="i7jW+75S"
-Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6758dCR62132431
-	for <netfilter-devel@vger.kernel.org>; Wed, 5 Aug 2026 08:54:07 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=qcppdkim1; bh=Su6pUumKgpP8taWCBv6778
-	NBns5sO908kIeSqx2hTLE=; b=DGYpQORbLV3qXFfNsqspPQqIkAFOt00/0xAP9d
-	agsIb914lZk1Hj3166ybKWN/ikTZKrM1bX9SyuiKA5OXwMsBhyrRvHyv3RTMmzFM
-	ejSfW+jnxJ7gGv/atQabfzZEzF9J6CB7QTcuTYypGbEYGWPcCGCFD+kWyhoYkNNj
-	mJax7/F2D6eXfSUKB+yRcX0CRzO7IYNFDgidL/82IHT+r+Ysfx//AbWCUam6mPIj
-	1pOlPsYzOu26mx4kpvQ3R5AZ3GbuyIya2+aB2dzqtO9Zzec5K1zjjhG00c/j6+X/
-	Al2RIwMwc2Dyv8WRuEnKLWkbwSRWVcYUIk4IcposEvs9joNA==
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fum56bnek-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2026 08:54:07 +0000 (GMT)
-Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-51c1eb52e1fso12324751cf.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2026 01:54:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O6U0eF5J"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-47fd4531020so425600f8f.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2026 02:03:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1785920047; x=1786524847; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=Su6pUumKgpP8taWCBv6778NBns5sO908kIeSqx2hTLE=;
-        b=i7jW+75SC1RZ9+yE5rmizjtwgelFekxj/PGWKm0urs2wBldtnFoFAg33Voo6fCaBFB
-         rq1mIkI3KC84UKSwkYNiMDUVcpCnKHEQjaOIi6M1xTh8+PdvZdBu0dBQWIcjhphznfzk
-         oxAE2428CvQNvzsoPi+cusaRcRkiWThKZDPz1rUWI/iwv3wXJEVItXPg5g7DSGeybjs2
-         RJzoiuT/4BpTqcjo+G3purxleDFVhy1PjBcXISqv2DWyDwnZigq2Eo0j6mrNAHQe7guF
-         spJucUkJc//Gy0GRJJTjmyFpctjfFE7HOiDczHZVK1lQHyXMhENNao5nPxsR/KEAk8+W
-         NyPg==
+        d=gmail.com; s=20251104; t=1785920592; x=1786525392; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:organization
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=tCjs3K798zUAHJS4Im4IiN0IAqAb0cx8X6grJLzTFKg=;
+        b=O6U0eF5JiVZ2usxoeGpE+FavXe3+gM3xAxS9XEuVBKdKYAj8mBroWXzVEOVcZXKdNw
+         c3ZBoFvecYSlurRptz+fJjDyxe9VRFiYPr6Yad18BL4Hr4E86iG2v6Sn6Oq2EspN3eOE
+         m9LrEppzXEZGw/S0yuDR8PkyXHNdWidK3xZP6E7hSnfgq71poKObjHVanmNuzeCi7IqW
+         4tlD+qsVA4vk86hSNyuxlW/5hC1zvM6ixJnLXnHqdx67mlYcd6sZ8XhyM9vfAF84cNYD
+         DAfzmgX2iN104EzDBCYxMQvgVpfslQTwwRBHAr1jPJS/oBkEKUuy/k1IAvYtCQttHAAu
+         6oxA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785920047; x=1786524847;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=Su6pUumKgpP8taWCBv6778NBns5sO908kIeSqx2hTLE=;
-        b=VFZHX2Zx2PotLZGH6bGK48u0mu8HMWfB31dubjdwvpGSFsa49XE3yEE1c7qtqZ97Z8
-         gErOYHBTT9BrWBoKCazIRcGIRsC8tHk7sKVl0dSwqa3M32N8GENlUcrA7iGsZQCLBO1K
-         CKFqVfbPgM0QoRQOy9FPBbxm3rOER+eJCKKZNwH5DIOVeCucWpSdewNGKxHw6PBbilHv
-         6MCxBn4RX/iKdB5KvwrndLNpDKQBuHYpzJWht9VXlEck6aTiCejB1+4hzHkFJjWq0wuH
-         Vx2NGIlMbCxjugDHniVM5n3i++gDqYPkuBH5jiRA3H75kDLdbTpvOgsUDRgtf9Ake85a
-         9KPQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqC9kCNseii/mHjHmvmKamILcXH+FcVSZlO4Srx9Bd5LOwSKQ+kdmXfWDk96pfRlmIAxFsj1rDxxhOwaM92tmY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxWssbK8/4ArOqyyn023xPQHLcaQZ8WO1kx07MqQDVTE9hD04t5
-	juJCEBnbpEEuRq8cW9m6UCo3tbeBwQjPn63+DHbr39WwF5f055uA+Lm4FZTPHez6W4kDAxcXPyn
-	CaJeoGoKu+SQN71kUE2JmOf1gDEAnAYAu8mkykunzTFtyiH1J7/5HFJUdrupP49tQbF+rA4I=
-X-Gm-Gg: AR+sD11oAVBr0vL853me8m/B6p45MP0EoHaY7TXYX74bnRAV0t8KmfInUXkjsYVB4UA
-	bktfWjQPxjhjZK1nXDFNMAYx23Bw6n9rjHGsDvnImBS2adcd/+RJ1cb8rCiXQhdxqlfLbT0vSC7
-	TNjxU53EuDmJrCg4F2aNM5TXqwtVr/gsQ+WgDTW5Pmmnrv9AIvIl1WoE7v/Vs5CEmxk7Xb4criy
-	kYHCQ/iKFj2s0aQsGEtJOCXPUDrS1ctnPuy+LlItBXXfzk32ebyxGiwflf09JgbUmrmbGtc6YH8
-	PV+op8uF2vb7vMJFy3oX6ssNM2SrRySFvCKXi+o+j/boL92EoAEzaQ+A/zKd3JDCoWpJOGy38yq
-	JjhpZ0UwLG7N6nIw=
-X-Received: by 2002:a05:622a:5c07:b0:51c:1a46:9148 with SMTP id d75a77b69052e-52ce61934eamr55890431cf.34.1785920046807;
-        Wed, 05 Aug 2026 01:54:06 -0700 (PDT)
-X-Received: by 2002:a05:622a:5c07:b0:51c:1a46:9148 with SMTP id d75a77b69052e-52ce61934eamr55890001cf.34.1785920046322;
-        Wed, 05 Aug 2026 01:54:06 -0700 (PDT)
-Received: from localhost ([188.216.77.92])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4994dfda556sm82948865e9.5.2026.08.05.01.54.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Aug 2026 01:54:05 -0700 (PDT)
-From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
-Date: Wed, 05 Aug 2026 10:53:09 +0200
-Subject: [PATCH nf-next] net: pass net_device_path_ctx to
- dev_fill_forward_path()
+        d=1e100.net; s=20251104; t=1785920592; x=1786525392;
+        h=content-transfer-encoding:content-type:in-reply-to:organization
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=tCjs3K798zUAHJS4Im4IiN0IAqAb0cx8X6grJLzTFKg=;
+        b=tEafIwtie1MtLIrKlqUvZTusLcKRFa29Jykmrl+sxySTPTURlcG48PHWEumLCdciyc
+         LePXqRgv8tylGPThqcC9hjNkbMShhcnX5jZjDQPShPwwbAbcoE9KuOGROlaoYDgqLn0f
+         tQ9WLrhQ9iEpH9lt1ugOuCekSE7xutOn6xplH46Vfjn1QqUcn8Kad9d6xV3sHpLmFozT
+         h7N2EHv2TguL7Rdb4CoY4ivm3wP7/gA27nA2GhotK+lBPrR2gbBDpH2YwjRrkjsOEPB6
+         AqUTzXRphddK3i3qjt0yBo+kvDvcUIGkH4kiQv0xn3+wX8/9obFsUGGpp2Lor20BnOA3
+         k49w==
+X-Forwarded-Encrypted: i=1; AHgh+Rp+be2fDQ3njZTt9tv/rQItsXY6N+l68iroY3OMDSdpfFmlD5N/6yy1+4w1Ys7HVwJcio2ZL0DMB48Ldt6o9ew=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyXkYqImmnKLehluoJlincbKCE35bSQMM+R1EjcOYUzy+i1n0kw
+	YN5CrKrqu71q8537++X+TEUYcQTFkstrtFu7PfXwxL3Nis44W4IoLIy/
+X-Gm-Gg: AR+sD10WWM2zPl4jYXln8SRkxt1z1B15VgeBpOJ+mfhSZuPUnk+2gHthHWKt8xTxwgT
+	P782Uq+QXwWb5QfvZUw5buB7EdaKu92KoYT0CPO6ALSA1SWHbZW4e72ra4Sm3N5T4slGBBNQaU7
+	5deF2AYr4zRwi0ykTR63jklv3Rr8VjTpl03qC5Pfu5J45Ytl3jsZmIYPkzdDOw7Aps/v9EF6N7A
+	OlsaHXzTa3iwK5Ihv8N1fpFMKJwXI3Z+fIG03ngpmU61Ik5yrzoJnBM317izehO7TTEOdeKUs1Z
+	pZjWUpotYF82rD5mjquKOIUE/U4Gdxb9t2Y6zTdtjhHCBio3sXIPP5rz9Ff02VLbKavv38U0t0h
+	CeUeGy4g/tfeXctXN01gkPM2ijkmD7H5EJw45PR7/ZiELfXk3sCVKqMiGUHjWp+0N12gQ05T1ll
+	lMSMSytU1o18M3b3K82KJ6lwaMWV/g9QIe7Mp+dYXKZBKMDvl1PngRUPTwxQb5nLYrohNq9wF4C
+	GTf/HWlPUtDiR4JxT8siJ2xeY88+OU=
+X-Received: by 2002:a05:6000:41d3:b0:45e:e1a4:c4c3 with SMTP id ffacd0b85a97d-47fec628b57mr8844522f8f.15.1785920591607;
+        Wed, 05 Aug 2026 02:03:11 -0700 (PDT)
+Received: from [127.0.0.1] ([193.252.113.11])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47fec232d7fsm7175258f8f.20.2026.08.05.02.03.09
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 05 Aug 2026 02:03:10 -0700 (PDT)
+From: Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
+X-Google-Original-From: Alexandre Ferrieux <alexandre.ferrieux@orange.com>
+Message-ID: <7b7fbe75-1531-49f9-8134-033c34fa13cb@orange.com>
+Date: Wed, 5 Aug 2026 11:02:48 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] netfilter: nf_dup_netdev: scrub duplicates to
+ preserve the direct path
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+ edumazet@google.com, netdev@vger.kernel.org
+References: <20260804201150.16364-1-alexandre.ferrieux@orange.com>
+ <anLzQeYulW2CQItC@chamomile>
+Content-Language: fr, en-US
+Organization: Orange
+In-Reply-To: <anLzQeYulW2CQItC@chamomile>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260805-dev_fill_forward_path-ctx-arg-v1-1-f2873d941755@oss.qualcomm.com>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3MQQqDMBAAwK/InruQGk2lXykSotnogkTZBBsQ/
- 97Q41zmgkTClODdXCB0cuI9VjwfDcyriwsh+2poVWvUoHr0dNrA22bDLl8n3h4urzjngk4WfGl
- tjO560tMA9TiEApf//4EYMFLJMN73D1GnxCN4AAAA
-X-Change-ID: 20260805-dev_fill_forward_path-ctx-arg-73366345e3b8
-To: Lorenzo Bianconi <lorenzo@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Felix Fietkau <nbd@nbd.name>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-        Simon Horman <horms@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org,
-        Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
-X-Mailer: b4 0.14.3
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA1MDA2OSBTYWx0ZWRfX+JfKwQtubIUF
- WI0j/0aOR4cAGBirFQbR76kaHCySj6oVfY+PEvlKlhDvNwwRW7ZmzsJOPa/ioNxc/IF/b/wjJK9
- tYFqcINhGyXproo27jr1vNEfjF534FWZMBnlLEaHUmdEVizHMBfLawDsM8HVGjJzFEODBtzMW6z
- qx8L9+tpd9uLgSmJTxjNfofqiiHnuf0+738OfLIoKrcHduF8jtayEp1RqVZ6eoWiknZgsp5laPO
- 6EzuWiE8dXffEnkbACYiBbyz9as2eB7i7yz8hR/Ou1pIXqek3O85i9J+GL/ZBYnMuTv73QZEYP4
- KkCjjhcTWF0hAEjK6c7LmJR+d5ggCPwFz49ykMiT7NmtKYFXRPKI4uhzxJjDyU3vU1otFFBRC4H
- rkPb66LDToAWKQhNjOUxn6lqw+G9USm5g/BxhwqULc/c8A+aszXRKxXqVudJsg9UmJGqMnhWaGX
- pMfGHQlMv0l1cDZ/Q7A==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODA1MDA2OSBTYWx0ZWRfX1kVwdciPC8ZT
- 3V4FnmcvRcREusIyof7RfUHO+VORnyaxWtkP1u6vuVNZCqykX+COrZtVe6NyCAE6C7xct8IsJCl
- gE8qSTYnNgKYJYRlvdnhK80UxhiRJGg=
-X-Proofpoint-GUID: 2SxiwKVerlwKv6swdddZdlmEtLdD2ViW
-X-Proofpoint-ORIG-GUID: 2SxiwKVerlwKv6swdddZdlmEtLdD2ViW
-X-Authority-Analysis: v=2.4 cv=GL441ONK c=1 sm=1 tr=0 ts=6a72fa2f cx=c_pps
- a=JbAStetqSzwMeJznSMzCyw==:117 a=WpTaRW6qxYHRGzLzQsVYzg==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yx91gb_oNiZeI1HMLzn7:22
- a=EUspDBNiAAAA:8 a=xc6HxeBLMKpXFN7qBEQA:9 a=QEXdDO2ut3YA:10
- a=uxP6HrT_eTzRwkO_Te1X:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-05_03,2026-08-04_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 impostorscore=0 lowpriorityscore=0 spamscore=0
- malwarescore=0 clxscore=1011 bulkscore=0 adultscore=0 phishscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608050069
 
-Refactor dev_fill_forward_path() to take a struct net_device_path_ctx
-pointer instead of a (dev, daddr) pair, so the caller can build and
-populate the context up front and keep it after the forward path walk.
+On 8/5/26 10:24 AM, Pablo Neira Ayuso wrote:
+> Hi,
+>
+> On Tue, Aug 04, 2026 at 10:11:50PM +0200, Alexandre Ferrieux wrote:
+>> The nftables 'dup' action clones the skb with its full glory of
+>> metadata, including references to its destination and conntrack
+>> information. As a consequence, a link failure on the duplicate's
+>> egress path ends up doing the same as it would for the direct path,
+>> for example invalidating the original packet's destination, which
+>> typically breaks all TCP connections to that address.
+>>
+>> In other words, the "dup" path has the potential to wreak havoc
+>> in the direct path as a consequence of secondary link failures. This
+>> is very bad behavior for a monitoring tool, which is the most
+>> obvious application of 'dup'.
+>
+> Can you describe your use-case a bit and how it breaks?
+Sure:
 
-This allows additional fields (e.g. vlan and ether_type) to be carried
-in the context and shared with ndo_fill_forward_path implementations,
-instead of being reconstructed on the stack inside the core helper.
+ - assume hosts A.eth0 and B.eth0 have active production traffic (say TCP)
+ - assume we have a monitoring tool on A that dups eth0's egress to some other
+interface $MON
 
-Update the mtk_ppe_offload, airoha_ppe and nf_flow_table_path callers to
-allocate and fill the context before invoking dev_fill_forward_path().
-The network topology resolution behaviour is unchanged.
+    nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
+filter ; policy accept ; }'
+    nft add rule netdev ta ch dup to $MON
 
-This is a preliminary patch to enable HW flowtable offload for IPv4
-over IPv6 tunnels.
+ - assume something goes wrong on $MON generating link failures. In my case it
+was a GRETAP with L3 destination suddenly unreachable.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
----
- drivers/net/ethernet/airoha/airoha_ppe.c        |  7 ++++++-
- drivers/net/ethernet/mediatek/mtk_ppe_offload.c |  7 ++++++-
- include/linux/netdevice.h                       |  2 +-
- net/core/dev.c                                  | 18 +++++++-----------
- net/netfilter/nf_flow_table_path.c              |  7 ++++++-
- 5 files changed, 26 insertions(+), 15 deletions(-)
+ - The next A->B packet goes through normally, but its duplicate hits
+ipv4_link_failure(), hence the dst (which is B) is expired.
 
-diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
-index 33ddf0d07855..53183a132100 100644
---- a/drivers/net/ethernet/airoha/airoha_ppe.c
-+++ b/drivers/net/ethernet/airoha/airoha_ppe.c
-@@ -283,14 +283,19 @@ static int airoha_ppe_get_wdma_info(struct net_device *dev, const u8 *addr,
- 				    struct airoha_wdma_info *info)
- {
- 	struct net_device_path_stack stack;
-+	struct net_device_path_ctx ctx = {
-+		.dev = dev,
-+	};
- 	struct net_device_path *path;
- 	int err;
- 
- 	if (!dev)
- 		return -ENODEV;
- 
-+	ether_addr_copy(ctx.daddr, addr);
-+
- 	rcu_read_lock();
--	err = dev_fill_forward_path(dev, addr, &stack);
-+	err = dev_fill_forward_path(&ctx, &stack);
- 	rcu_read_unlock();
- 	if (err)
- 		return err;
-diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-index cc8c4ef8038f..1ec46784f018 100644
---- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-+++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-@@ -92,6 +92,9 @@ static int
- mtk_flow_get_wdma_info(struct net_device *dev, const u8 *addr, struct mtk_wdma_info *info)
- {
- 	struct net_device_path_stack stack;
-+	struct net_device_path_ctx ctx = {
-+		.dev = dev,
-+	};
- 	struct net_device_path *path;
- 	int err;
- 
-@@ -101,8 +104,10 @@ mtk_flow_get_wdma_info(struct net_device *dev, const u8 *addr, struct mtk_wdma_i
- 	if (!IS_ENABLED(CONFIG_NET_MEDIATEK_SOC_WED))
- 		return -1;
- 
-+	ether_addr_copy(ctx.daddr, addr);
-+
- 	rcu_read_lock();
--	err = dev_fill_forward_path(dev, addr, &stack);
-+	err = dev_fill_forward_path(&ctx, &stack);
- 	rcu_read_unlock();
- 	if (err)
- 		return err;
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 8db25b79573e..d2f545016f7f 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -3425,7 +3425,7 @@ void dev_remove_offload(struct packet_offload *po);
- 
- int dev_get_iflink(const struct net_device *dev);
- int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
--int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-+int dev_fill_forward_path(struct net_device_path_ctx *ctx,
- 			  struct net_device_path_stack *stack);
- struct net_device *dev_get_by_name(struct net *net, const char *name);
- struct net_device *dev_get_by_name_rcu(struct net *net, const char *name);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index c1c1be1a6962..e2c9fe3f7a7b 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -750,41 +750,37 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
- 	return &stack->path[k];
- }
- 
--int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
-+int dev_fill_forward_path(struct net_device_path_ctx *ctx,
- 			  struct net_device_path_stack *stack)
- {
- 	const struct net_device *last_dev;
--	struct net_device_path_ctx ctx = {
--		.dev	= dev,
--	};
- 	struct net_device_path *path;
- 	int ret = 0;
- 
--	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
- 	stack->num_paths = 0;
--	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
--		last_dev = ctx.dev;
-+	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
-+		last_dev = ctx->dev;
- 		path = dev_fwd_path(stack);
- 		if (!path)
- 			return -1;
- 
- 		memset(path, 0, sizeof(struct net_device_path));
--		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
-+		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
- 		if (ret < 0)
- 			return -1;
- 
--		if (WARN_ON_ONCE(last_dev == ctx.dev))
-+		if (WARN_ON_ONCE(last_dev == ctx->dev))
- 			return -1;
- 	}
- 
--	if (!ctx.dev)
-+	if (!ctx->dev)
- 		return ret;
- 
- 	path = dev_fwd_path(stack);
- 	if (!path)
- 		return -1;
- 	path->type = DEV_PATH_ETHERNET;
--	path->dev = ctx.dev;
-+	path->dev = ctx->dev;
- 
- 	return ret;
- }
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 98c03b487f52..b9df7453f762 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -50,6 +50,9 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
- {
- 	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
- 	struct net_device *dev = dst_cache->dev;
-+	struct net_device_path_ctx ctx = {
-+		.dev = dev,
-+	};
- 	struct neighbour *n;
- 	u8 nud_state;
- 
-@@ -72,7 +75,9 @@ static int nft_dev_fill_forward_path(const struct nf_flow_route *route,
- 		return -1;
- 
- out:
--	return dev_fill_forward_path(dev, ha, stack);
-+	ether_addr_copy(ctx.daddr, ha);
-+
-+	return dev_fill_forward_path(&ctx, stack);
- }
- 
- struct nft_forward_info {
+ - As a result, (say) TCP disruptions occur. The thermometer killed the patient :)
 
----
-base-commit: a23b36233d4103def55dc8cf65698106d0bd1e62
-change-id: 20260805-dev_fill_forward_path-ctx-arg-73366345e3b8
+Note: as a straightforward repro, you can simply witness "noise" in simple ping
+sessions, with ghost unreach reports muxed with normal measurement:
 
-Best regards,
--- 
-Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+    ip link add gre1 type gretap remote 192.168.1.99 ;# on the LAN, nonexistent
+IP => will generate link failures
+    ip link set dev gre1 up
+    nft add table netdev ta
+    nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
+filter ; policy accept ; }'
+    nft add rule netdev ta ch counter dup to gre1
+    ping -n 8.8.8.8
+ =>
+    PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+    64 bytes from 8.8.8.8: icmp_seq=1 ttl=115 time=19.9 ms
+    64 bytes from 8.8.8.8: icmp_seq=2 ttl=115 time=12.8 ms
+    64 bytes from 8.8.8.8: icmp_seq=3 ttl=115 time=36.0 ms
+    64 bytes from 8.8.8.8: icmp_seq=4 ttl=115 time=30.3 ms
+    From 192.168.1.13 icmp_seq=5 Destination Host Unreachable
+    64 bytes from 8.8.8.8: icmp_seq=5 ttl=115 time=31.0 ms
+    From 192.168.1.13 icmp_seq=6 Destination Host Unreachable
+    64 bytes from 8.8.8.8: icmp_seq=6 ttl=115 time=38.0 ms
+    From 192.168.1.13 icmp_seq=7 Destination Host Unreachable
+    64 bytes from 8.8.8.8: icmp_seq=7 ttl=115 time=36.8 ms
+    From 192.168.1.13 icmp_seq=8 Destination Host Unreachable
+    64 bytes from 8.8.8.8: icmp_seq=8 ttl=115 time=23.5 ms
+    ^C
+
+
+>
+>> This patch fixes all similar scenarii by calling skb_scrub_pkt()
+>> on the clone, severing its link to precious direct-path state.
+>
+> This patch is targetted at the net tree, but nf.git is preferred.
+Okay, will retarget :)
+
+> As for the conntrack and dst, you have to explain what it breaks on
+> your end.
+Dst as shown above. Conntrack is more speculation, but my take is that in any
+case the dup path should *never* have any kind of retroaction on the observed
+path, so any "complex state" attached to the direct path should be absolutely
+isolated from "whatever happens on the dup path". Am I mistaken ?
+
+-Alex
+
 
