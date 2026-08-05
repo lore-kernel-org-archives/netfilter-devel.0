@@ -1,66 +1,68 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B843D7D67;
-	Wed,  5 Aug 2026 19:17:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F13947ECC8
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2026 21:10:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785957479; cv=none; b=sRmHSBF+Ue9IXS7sOTQoFsE8njKjFQoR2EbsmVFBeyWvn2kAPdduPpqBW6Wy0NCv8Kp0WTXNk899dpju7Z79itk5EyWMMTwoDdviwtCZnWLz/2g4VEVj1dSWPRMWn9hAF940hOx4jncp1bz5dTAEYdT069oZF/BtQUy16nZEnFQ=
+	t=1785964243; cv=none; b=jTp0evdItgwwzIPmjitCwvWjsoQj4pxJagAIoCSkDtJnwNz4ypEyqqEVPgKzvQm2cOcNf/TZsshI1bimHL79WkE//Nt+Au6azXeRskasLxUa6hjFvOjQfP5vJgFuHURsrktHdH034YxPiC0vdu8mce+MwxYsSiysWXIrdkJWqi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785957479; c=relaxed/simple;
-	bh=N3LfiXUtgKYWagMvr3ExeRVkwop8Rz4/Vns0n+q7Lw4=;
+	s=arc-20240116; t=1785964243; c=relaxed/simple;
+	bh=wHQQxcOAsLG6dAp55NkD6PDyePshKXUJUAUyHZztgF0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=n+7dYpQUPfXx4DSlaA1vjglDeZ3bmYKeWJXxBl8T9//rZ28JwcdOrSvc5lHn+t2oMOTOzmS6X6gE8/nnF76pnMubU+LkzHhmBU7VROUHo28MYd98Sk8Wmc3Lpe4VQajjyjOxc+dKTHI/V+MFeFv/pFNlnNWt2ooV1XG28HhpiVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E68E8602AB; Wed, 05 Aug 2026 21:17:52 +0200 (CEST)
-Date: Wed, 5 Aug 2026 21:17:51 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
-	edumazet@google.com, horms@kernel.org
-Subject: Re: [PATCH net 03/10] netfilter: ipset: rework cidr bookkeeping
-Message-ID: <anOMX-mBjTcG23WX@strlen.de>
-References: <20260731151806.849724-4-pablo@netfilter.org>
- <20260805001531.3978750-1-kuba@kernel.org>
- <anNwo7eKRm5HqOOD@chamomile>
+	 Content-Type:Content-Disposition:In-Reply-To; b=PghcQaq/RkwvDUuGgz6cR/NUb4j0hWvtzcZjpr6WWTCAHXG7OoWHBwwkCqfCzzOZDnF1V/T4e9zRCok+A2Y9x3m5imTVP/bgbGMKSTdlQon0wNECjc0fLiI9dF5Tew0D0BqOETEaOOBHjdoQFyaQGrDAM02kIwvgQYc0fsqSyVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gIU07NnY; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gIU07NnY"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 068F260194;
+	Wed,  5 Aug 2026 23:10:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1785964227;
+	bh=j8rA5zNp5Yiv4bGdCKXk70cNjzEDAYhrfgRTvNuXL3Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gIU07NnYeYLSDXH/UmoboxxZsZvNGuUWawhVEYfDmiBMQeNgXK6/hVX74Cm0JAQRc
+	 EiwspHM2FxSxfbk9yuG9etKy+AtKUNU5cYG2gw6f5RNvq0obgH9GysX5qYVw5iVh4u
+	 n4NZ6QSqvLIf1NEX0B0RR37WH9Mvvnz1mxjtVCz/OUnAWWXVsVYYGrSZojh8VhK6Mc
+	 w77ofyWjlxN3lHOWLG9ryKJauFgUbOEg/M4gm/KV6FKhImWub9foh8FIx650xehAom
+	 5fDHMT26cMD3VxlAxmFl8NkEpn4TB+q5YSq4MLsOE4tACbSicnLgDIJdvNNgrPdJ3E
+	 LCVDLy0IR6Hyw==
+Date: Wed, 5 Aug 2026 23:10:24 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Avinash Duduskar <avinash.duduskar@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nft v3] datatype: accept a numeric cgroupsv2 id on input
+Message-ID: <anOmwIoDMaE-Aodr@chamomile>
+References: <20260801072747.75504-1-avinash.duduskar@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <anNwo7eKRm5HqOOD@chamomile>
+In-Reply-To: <20260801072747.75504-1-avinash.duduskar@gmail.com>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Florian needs these starter ipset patches to follow with more fixes to
-> move ipset hash to use rhashtable.
->
-> For his workflow, he considers it better to do this incrementally.
+On Sat, Aug 01, 2026 at 12:57:47PM +0530, Avinash Duduskar wrote:
+> nft prints non-existent cgroup names as the raw id using PRIu64, but
+> cgroupv2_type_parse() only stats /sys/fs/cgroup/<identifier>, so the
+> listing does not load back:
+> 
+>   # nft list set ip t s
+>   table ip t {
+>           set s {
+>                   type cgroupsv2
+>                   elements = { 50834 }
+>           }
+>   }
+>   # nft delete element ip t s { 50834 }
+>   Error: cgroupv2 path fails: No such file or directory
 
-Some things I can squash and resend, but in other cases it would indeed
-be better to keep it extra to avoid too large commits and better
-document which patch is fixing what issue.
+Thanks, I have applied this v3.
 
-Many of these (new) LLM findings have root causes in older, different
-problems.
-
-> While this is not perfect, we prefer this path to address the existing
-> issues that LLMs have reported in ipset.
-
-Yes, we continue to get bug reports in code that is on the chopping
-block, so the more I changes I have to squash and then send new version
-the longer it will take to get the real conversion patches in.
-
-Around half of the LLM issues I already knew and deliberately did not
-fix in this first series to keep diff size smaller.
-
-Paolo linked to an unrelated patch having a 'sashiko: ' comment
-in the diffstat section to suppress known benign reports, I will
-try to remember and make use of this for future submissions that
-have known warts.
+I made a few minimal changes to the script, add a .nodump file instead
+of the empty stubs.
