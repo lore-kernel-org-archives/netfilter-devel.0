@@ -1,45 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569BC346A08;
-	Wed,  5 Aug 2026 07:54:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20453E5A36;
+	Wed,  5 Aug 2026 08:06:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785916497; cv=none; b=cpRNsapdRN15/CzMA0LUhifJvtQN5HywczD89JoCy7705Qt+6uZvWoQADLCEV2BpiD8DhmJFfT3OAToxOpYCb1b4EcG8Mq+2i09QbdkwbriPg9HkTPgT0ir+jfTO4bwrj+KAjpgd9irQE+D+woJoUenqI+NQTaPv3MnS6vTsoHE=
+	t=1785917224; cv=none; b=iyp9oMm4xpP15ZsdHTJNMeEj9DYctBgq2y1ejodfe/pkqFLC68eYypP4H5Ta3ZfEzg6AtHiSxcRacVpeyIXS3+/Dx3a7SiwvSFw+a08VzR9B3RY4+X+AfhfaHUk7hunC974wD1DAlb4jk2zlRQw1rtMneRdaginjE6ghUjL+cjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785916497; c=relaxed/simple;
-	bh=ztqjl2VKqqZcC14N6ZqMSQKSZq3tND6243n8qDNTEyc=;
+	s=arc-20240116; t=1785917224; c=relaxed/simple;
+	bh=nR9YQ/mw9S7ArxXAWGF/Lv9Og94U/74hmkJBYajrtMM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K73YEwZ7Wp955pq7ONRAs1uVB41ccw9lSz8hBHAHq5gmjYtIBU46GQ9Q4DSf8mMCRHf5y1dwBmU02v/7+DRRYu2o1iupIOgI9ieZAUbDQv1XgyX57pbAJgsfC5xIElzFc5t6ylCq4GNh9YtD9RnJstXNAabrHSM+WRJZoAFQcw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=i8/TpTPi; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=MI0VOKCfdbN6mbFsabADJOQbimCWDxEii1pCebXPaHiA0sZ9kgT5On13nOK0HMJX009rrCltEFY7echz2z5bW18LVS747wkJ2R9zJzDSIqbuEHjX9jo2I2WviYGPe+iUmn2F+ONrLXVAjf5RC9qFVRyzzvKHSfof0K4subNJGpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Y3BAl8I1; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="i8/TpTPi"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Y3BAl8I1"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CA7A760191;
-	Wed,  5 Aug 2026 09:54:49 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A3EB060193;
+	Wed,  5 Aug 2026 10:06:50 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1785916490;
-	bh=Er2zS5UkHfHOubMZBQiKBoNpLnX86mYzJTCX2onIuk0=;
+	s=2025; t=1785917210;
+	bh=lMtahZnJoW9GcFogemqpgeE41rU2kjsDzcWc1CWPHRs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=i8/TpTPi0DuJi7SbeUWwcRBwyVxpYE9XAvqXX1FKozsFHgbLNmPdQYxkykhvgkXED
-	 +5y9py1H1PiYZk1NFEg4xGoew+4IgA91WgG/wgY5YFLSsbws8GM9kaAzt7PyOncHCc
-	 VzENF4abrARRb+aRCIzTGQ398mmWvUk0huX3VQ3aqQlubhfdtHPdW9gIN3h2ZO/Gm3
-	 EicA4Pc+URPhVQQDnfBqN/6HMXecJ/UofiGiVtlnfmn2cJHRPJuO6EVCc6QN3IhcIE
-	 xXTDv0zFrfWZrd/GYJU2J0vbUDh2WCZKvO627dE0N4ODjojdJSL+Cfvngk4dEO1lU/
-	 6oLOus/YlZ/6A==
-Date: Wed, 5 Aug 2026 09:54:47 +0200
+	b=Y3BAl8I1t/oAgzpwmniv+lZo1Yw9IWsw7qGUDXPyshGBIVq1SEx84ERJVdcrnbB+e
+	 ITeO9TTeGIJLi46GsVQiGXomsncQT8fxGDig14zTlureNz9KhLYMbVkZnBvsXHiwfH
+	 rDVTepwjmczabDlQT8+CNlP0UnCAxZSbPJ+zKU5Y20fW03fJ0kgX/HF2PZ4zVFpz9Q
+	 Qz+g9DDEXYUg5hSHWLGb98pxntXZIDafw6SrcHr51YqjcHj/xiiMKwBblQ1pgThzyt
+	 VIP1atm5YmZAyyHZwboA8srQ5zzxilVkoiAD1ClZ6Xm7jo/WSf7WBo3NNt2Zp1R6xM
+	 ubexa4wUFMrRw==
+Date: Wed, 5 Aug 2026 10:06:48 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
 	fw@strlen.de, horms@kernel.org
-Subject: Re: [PATCH net-next 9/9] netfilter: conntrack: tcp: use UNACK
- timeout for non-closing RST packets
-Message-ID: <anLsR4y_VcrFFYL2@chamomile>
-References: <20260731153402.851224-10-pablo@netfilter.org>
- <20260805001908.3985938-1-kuba@kernel.org>
+Subject: Re: [PATCH net-next 7/9] netfilter: flowtable: release tunnel route
+ on error when building forward path
+Message-ID: <anLvGOGM_442ffej@chamomile>
+References: <20260731153402.851224-8-pablo@netfilter.org>
+ <20260805001906.3985830-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,213 +48,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260805001908.3985938-1-kuba@kernel.org>
+In-Reply-To: <20260805001906.3985830-1-kuba@kernel.org>
 
-On Tue, Aug 04, 2026 at 05:19:07PM -0700, Jakub Kicinski wrote:
-> This is an AI-generated review of your patch. The human sending this
-> email has considered the AI review valid, or at least plausible.
-> ---
-> netfilter: conntrack: tcp: use UNACK timeout for non-closing RST packets
+Hi,
+
+On Tue, Aug 04, 2026 at 05:19:06PM -0700, Jakub Kicinski wrote:
+[...]
+> [Severity: High]
+> Can the dst installed here end up belonging to a different address family
+> than the flow it is attached to?
+
+Yes, the extra check to ensure IPv4 over IPv6 does not end up with the
+wrong route is really required, LLM is right here.
+
+But such check will last not long because Lorenzo's Bianconi has been
+working on ip over ipv6 series for the tunneling.
+
+I think this is not a reason to stall this net-next series, and
+I think this can be done it a follow up?
+
+Reading the two comments on patches in this net-next PR, this is the
+only one that is really an issue and I think it can be addressed in a
+follow up.
+
+> The removed nft_flow_tunnel_update_route() derived the replacement dst from
+> nf_route(nft_net(pkt), &tun_dst, &fl, false, nft_pf(pkt)), so the dst family
+> always matched the flow's l3proto.  The dst that now arrives in
+> info.tun_dst follows the tunnel underlay instead:
 > 
-> This changes the timeout selection in nf_conntrack_tcp_packet() so that an
-> RST which leaves the entry in TCP_CONNTRACK_ESTABLISHED (the non-exact
-> sequence case from be0502a3f2e9) gets timeouts[TCP_CONNTRACK_UNACK] instead
-> of timeouts[TCP_CONNTRACK_CLOSE].  RSTs that conntrack accepts as closing
-> the flow are meant to keep using timeouts[new_state].
+> net/ipv4/ipip.c:ipip_fill_forward_path() always stores an IPv4 rtable:
 > 
-> A few questions below.
+> 	path->tun.l3_proto = IPPROTO_IPIP;
+> 	path->tun.dst = &rt->dst;
 > 
-> >     Use the UNACK timeout for RST packets that leave the conntrack entry in
-> >     TCP_CONNTRACK_ESTABLISHED.  Exact-match RSTs and accepted RST packet
-> >     trains still fall through to timeouts[new_state], which preserves the
-> >     CLOSE timeout when conntrack accepts the RST as closing the flow.
+> net/ipv6/ip6_tunnel.c:ip6_tnl_fill_forward_path() always stores an IPv6
+> rt6_info:
+> 
+> 	path->tun.l3_proto = IPPROTO_IPV6;
+> 	path->tun.dst = dst;
+> 
+> Neither handler consults the tunnel payload proto, and neither
+> nft_dev_path_info() nor nft_dev_forward_path() checks the family before
+> storing it in route->tuple[dir].dst.
+> 
+> The consumers cast that dst according to the inner flow family.  In
+> net/netfilter/nf_flow_table_ip.c:nf_flow_offload_ipv6_hook():
+> 
+> 	rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+> 	...
+> 	neigh = ip_neigh_gw6(rt->dst.dev, rt6_nexthop(rt, ip6_daddr));
+> 
+> and in nf_flow_offload_ip_hook():
+> 
+> 	rt = dst_rtable(tuplehash->tuple.dst_cache);
+> 	... rt_nexthop(rt, ip_daddr) ...
+> 
+> net/netfilter/nf_flow_table_core.c:flow_offload_dst_cookie() does the same:
+> 
+> 	if (flow_tuple->l3proto == NFPROTO_IPV6)
+> 		return rt6_get_cookie(dst_rt6_info(flow_tuple->dst_cache));
+> 
+> For an ip6_tunnel in ip4ip6 mode (t->parms.proto == IPPROTO_IPIP) carrying
+> IPv4 flows, ip6_tnl_fill_forward_path() still reports l3_proto =
+> IPPROTO_IPV6 and hands out an rt6_info, which nf_flow_offload_ip_hook()
+> then reads through dst_rtable() and rt_nexthop()/ip_mtu_locked().  That
+> configuration needs no misconfiguration to reach.
+> 
+> The mirror case is an IPv6 flow routed out an ipip device: an ipip device
+> with mtu 1480 gets an inet6_dev at NETDEV_REGISTER, so fib6_nh_init()
+> accepts "ip -6 route add ... dev tunlX", and nft_dev_fill_forward_path()
+> deliberately skips the ether-device requirement for tunnels, so
+> ipip_fill_forward_path() hands back an rtable that becomes the dst_cache of
+> an IPv6 flow.  rt6_nexthop() then reads rt6i_flags and rt6i_gateway past
+> the end of a struct rtable allocated from the ip_dst_cache slab, and the
+> result is used as the IPv6 next hop passed to ip_neigh_gw6().
+> 
+> nf_flow_dst_check() does not catch this either: dst->ops->check() for the
+> stored rtable is ipv4_dst_check(), which only tests rt_is_expired().
+> 
+> Would it make sense to validate info.tun.l3_proto (or the dst's
+> ops->family) against the flow's l3proto before installing info.tun_dst?
 > 
 > [Severity: Low]
 > Should this carry a Fixes: tag?
- 
+
 No, and it is intentional.
 
-We do not want updates on the conntrack state machine to automatically
-end up in -stable.
+I already noted this rare bug while working on this series which
+results in an incorrect fastpath in case route goes away while flow
+offload entry is being set up, but these tunneling support is recent,
+and I really preferred to go for net-next.
 
-Do we have to write this in the cover letter from this time on?
+That was a deliberate decision. Patches with Fixes: are picked more
+quickly into -stable and I did not deem this to be urgent.
 
-> [...] The changelog describes a user-visible
-> failure (an ESTABLISHED entry expiring after 10 seconds while both TCP
-> endpoints stay established), and it names be0502a3f2e9 in prose only, so
-> stable tooling has nothing machine-readable to key on.
->
-> There is also a wording tension: be0502a3f2e9's own changelog presented the
-> CLOSE timeout for non-exact RSTs as intentional ("With patch, timeout is
-> lowered like CLOSE, but connection stays in ESTABLISHED state" / "If no
-> challenge ACK is received, the connection will time out after CLOSE
-> seconds").  Either adding
+> Before this change the tunnel information was only installed when the
+> second lookup succeeded:
 > 
->     Fixes: be0502a3f2e94211 ("netfilter: conntrack: tcp: only close if RST matches exact sequence")
+> 	if (info.num_tuns &&
+> 	    !nft_flow_tunnel_update_route(pkt, &info.tun, route, dir)) {
 > 
-> or rewording this as a deliberate policy refinement rather than a bug fix
-> would make the two consistent.
+> while route->tuple[!dir].in.ifindex, route->tuple[dir].out.ifindex, the
+> encaps, h_source/h_dest and xmit_type had already been written and
+> nft_dev_forward_path() still returned 0.  On nf_route() failure the flow was
+> offloaded with the underlay device as output but num_tuns == 0, so inner
+> packets left the underlay without IPIP/IP6IP6 encapsulation, which matches
+> the "incomplete forward path" described in the commit message.
 > 
-> [Severity: Low]
-> Is there a test that observes this change?
-
-No, it is just a timeout update in conntrack, there is nothing the
-packetdrill test can do about this.
-
-> The only in-tree artifact covering the inexact in-window RST path,
-> tools/testing/selftests/net/netfilter/packetdrill/conntrack_rst_invalid.pkt,
-> checks only the state string:
+> git blame points that construct at d30301ba4b07ac ("netfilter: flowtable:
+> tunnel route update"), with the tunnel forward path support itself from
+> ab427db1788581, so the bug is in released kernels rather than in-flight
+> code from this series.  A Fixes: d30301ba4b07ac tag would help stable
+> tracking.
 > 
->     // in-window but not exact match
->     +0.0 < R	42:42(0)	win 0
->     +0 `conntrack -f $NFCT_IP_VERSION -L -p tcp --dport 8080 2>/dev/null |grep -q ESTABLISHED`
-> 
-> The timeout is now the sole observable difference for that scenario, and it
-> is never inspected.
-> 
-> On top of that, the segment labelled "in-window but not exact match" has seq
-> before seen[!dir].td_maxack (the peer had acked 3001), so
-> nf_conntrack_tcp_packet() rejects it at the "invalid rst" check and never
-> reaches the patched timeout selection.  The test's own counter assertion
-> agrees:
-> 
->     // Expect four invalid RSTs
->     +0 `$xtables -v -S INPUT  | grep INVALID | grep -q -- "-c 4 "`
-> 
-> So the suite passes identically with and without this change.
-
-Yes, that is expected.
-
-> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> > index ceeed3d7fe520..723e946a78f40 100644
-> > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > @@ -1281,8 +1281,9 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
-> >  	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
-> >  	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
-> >  		timeout = timeouts[TCP_CONNTRACK_RETRANS];
-> > -	else if (unlikely(index == TCP_RST_SET))
-> > -		timeout = timeouts[TCP_CONNTRACK_CLOSE];
-> > +	else if (unlikely(index == TCP_RST_SET &&
-> > +			  new_state == TCP_CONNTRACK_ESTABLISHED))
-> > +		timeout = timeouts[TCP_CONNTRACK_UNACK];
-> 
-> [Severity: Medium]
-> Can this new branch lengthen an entry's lifetime rather than shorten it?
-
-Yes, it is indeed extending the timeout rather intentionally.
-
-> Every sibling branch in this chain only assigns when the replacement is
-> smaller, for example the RETRANS branch just above and the UNACK branch just
-> below:
-> 
->     if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
->         timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
->         timeout = timeouts[TCP_CONNTRACK_RETRANS];
->     ...
->     else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
->          IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
->          timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
->         timeout = timeouts[TCP_CONNTRACK_UNACK];
-> 
-> The new branch has no such guard.  Since this branch is only reachable via
-> "new_state = old_state;" in case TCP_CONNTRACK_CLOSE, new_state is
-> ESTABLISHED here, so the effective comparison is timeouts[UNACK] against
-> timeouts[ESTABLISHED].
-> 
-> With the defaults in tcp_timeouts (ESTABLISHED 5 DAYS, UNACK 5 MINS) this is
-> always a lowering.
-
-Yes, and it is intentional, this is lowering the timeout indeed.
-
-Actually, it is lowering it in a less "aggressive" way, instead of
-using CLOSE timeout it uses the UNACK timeout (5 MINS) to avoid
-
-> But both values are independently tunable with no cross-validation:
-> 
->     net/netfilter/nf_conntrack_standalone.c:
->     [NF_SYSCTL_CT_PROTO_TIMEOUT_TCP_ESTABLISHED] = {
->         .procname	= "nf_conntrack_tcp_timeout_established",
->         .maxlen		= sizeof(unsigned int),
->         .mode		= 0644,
->         .proc_handler	= proc_dointvec_jiffies,
->     },
-> 
-> and tcp_timeout_nlattr_to_obj() copies CTA_TIMEOUT_TCP_* verbatim.  So an
-> administrator lowering nf_conntrack_tcp_timeout_established (120 s is a
-> common hardening/NAT-appliance setting) inverts the relation.
-> 
-> __nf_ct_refresh_acct() then writes the expiry absolutely rather than
-> clamping it:
-> 
->     net/netfilter/nf_conntrack_core.c:__nf_ct_refresh_acct() {
->         ...
->         if (nf_ct_is_confirmed(ct))
->             extra_jiffies += nfct_time_stamp;
-> 
->         if (READ_ONCE(ct->timeout) != extra_jiffies)
->             WRITE_ONCE(ct->timeout, extra_jiffies);
->         ...
->     }
-> 
-> In that configuration, an in-window RST whose sequence does not match
-> td_maxack pushes the entry past the configured ESTABLISHED policy, and a
-> periodic stream of such RSTs can renew it indefinitely, holding entries
-> against nf_conntrack_max.  Would the usual form keep the intent while
-> avoiding this?
-> 
->     timeout = min(timeouts[new_state], timeouts[TCP_CONNTRACK_UNACK]);
-> 
-> or the matching guard:
-> 
->     else if (unlikely(index == TCP_RST_SET &&
->                       new_state == TCP_CONNTRACK_ESTABLISHED) &&
->              timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-> 
-> >  	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
-> >  		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
-> >  		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-> 
-> [Severity: Low]
-> For an RST that conntrack does accept as closing the flow, is the CLOSE
-> timeout really preserved?
-
-No, and it is intentional. We are changing to the UNACK timeout which
-is less aggresive.
-
-> Previously such packets took the unconditional
-> timeouts[TCP_CONNTRACK_CLOSE] assignment; now they fall through into the
-> DATA_UNACKNOWLEDGED and last_win == 0 branches:
-> 
->     else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
->          IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
->          timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
->         timeout = timeouts[TCP_CONNTRACK_UNACK];
->     else if (ct->proto.tcp.last_win == 0 &&
->          timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
->         timeout = timeouts[TCP_CONNTRACK_RETRANS];
-> 
-> Those fire precisely when nf_conntrack_tcp_timeout_close is raised above
-> nf_conntrack_tcp_timeout_unacknowledged or the retrans timeout, and both
-> preconditions are reachable for a closing RST: IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED
-> is commonly set on a flow that carried data, and ct->proto.tcp.last_win is
-> sticky since it is only refreshed for ACK-only segments.
-> 
-> This also diverges from the other closing path in the same file, which does
-> not cap:
-> 
->     nf_conntrack_tcp_set_closing() {
->         ...
->         timeout = timeouts[TCP_CONNTRACK_CLOSE];
->         WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
->         ...
->     }
-> 
-> Given that, is the changelog sentence "Exact-match RSTs and accepted RST
-> packet trains still fall through to timeouts[new_state], which preserves the
-> CLOSE timeout when conntrack accepts the RST as closing the flow" accurate
-> for non-default close timeouts?  Restoring an explicit CLOSE assignment for
-> new_state == TCP_CONNTRACK_CLOSE, or adjusting the wording, would resolve
-> it.
-
-Not sure what wording adjustment need to be done here.
+> It may also be worth noting in the changelog that this is not standalone
+> backportable: neither dev_fill_forward_path_release() nor the
+> net_device_path tun.dst field exist before the earlier "net: pass dst via
+> net_device_path in dev_fill_forward_path()" commit in this series.
