@@ -1,80 +1,80 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10A873A75A8
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 10:30:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDD0448390
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 10:44:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786012243; cv=none; b=dgeqozMytAPPzir+hLnsshI5Q6nJ78UNeEVaKpc/G8bcPor+DWjtwXS6yj+aHzgf2D4rUXBoj6n7zefJQBFXzCPeHQfFF65nvzKfnaltKX5N5POjlC52VjZgkwy3Q8J8NHEgZC/NPSJSa+eg2HAZvrQn2rep8iymrhv5kHlXZ+M=
+	t=1786013077; cv=none; b=LAJtDfT0b9Eh15XXcJzLqPH3AH6Oy1hfmShTzNy5ENpYE01/oRKlur8MQsUirnM3OOxg/1yTkp9LmYh7vnmuPD5Z8p1Z0i/8MTr87aPQbU+e0HXis6EUvpubZiNqYXrWbkF4DMSa4Rfa9K9ZwRU66wn+qUQEDqPkptpAUrzpDko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786012243; c=relaxed/simple;
-	bh=x7CMKwemhHdTTVQqGLNNZ4UDumbNzoqVLDLA1n90ycs=;
+	s=arc-20240116; t=1786013077; c=relaxed/simple;
+	bh=8Fj9D9uRK5QFzC/WBnS6gFQhLmIMMNvMNyoe/VKej/s=;
 	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=gfM9rYDj808j6TJrne7a0KIriSSeCp7HCMKl3pwFd2sw5mNWr2p53ngNEwVPdI/k0ENSohCGZBCBMG0n8AcDs1+qkk2U0UBhUnwyAI378SzUZgqMw+L3cUr0dCiqm35NwI761uLdGxWtoR+96dfVlduQmGc4Lqbbc/gyZ69GgUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZwEbC+QC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=8VbiqY/4; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sJft2AnX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=hCRAHlig; arc=none smtp.client-ip=195.135.223.130
+	 In-Reply-To:Content-Type; b=K3LYj6h3RKsjbee/SqD6QBhu267c3i+FsWkWEnjRIgPqyuqKPFyj2FlNQbqCcyfxWB7qlp2m6nW+Dz3I5ixLjsbg7yHs8rAoK708ZJ2JWTBOyMLi/r7ywBtFI2yeVbcYkcCcI6YRBCcc4gHKyBmiMNxXNzQhv69tcshOSyESh9M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0zJ8v9rj; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=4VRlQizv; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=q4bjS1EC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=qfUhCam/; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZwEbC+QC";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="8VbiqY/4";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sJft2AnX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="hCRAHlig"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0zJ8v9rj";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="4VRlQizv";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="q4bjS1EC";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="qfUhCam/"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id F0AC77FFB1;
-	Thu,  6 Aug 2026 10:30:31 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 9DE793E10;
+	Thu,  6 Aug 2026 10:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1786012236; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	t=1786013069; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=rLj/mNR31mtZDmcNpF5A+oTj1Kvh/maFviFNrSNj2rY=;
-	b=ZwEbC+QCU002FLRDV68Ac2TPZ/fc/76azqxD4zn1UCptn+eOAUpIOkirWbGiLIdOctPw52
-	sCmomSQTMV9m2+psx3tDmBnpD+VQT58UC4ycdI6P/kfgpGtIvXoMDLIsSzjd1uUQmQdJK/
-	eJfZpLoJb3BowMuDHsgTd7chXjOI+BA=
+	bh=2dlDLfU86K4zf2WgZa5c9RZoR9Glmk1lvThRU4HQBho=;
+	b=0zJ8v9rjMQNfIE55+62TJyIf+c7fnl6is5iwtNQhWgskogaFaKG97/6PvuXhRxB7Iy8VFV
+	c+papZr7KG80aDbzaXETqfw9he1uYesgI0sSzhR5Dy5F+V3OdgS8AJIgnuoCRuyk02LCrR
+	uXmoapguOiulgoYLSH7Za1rkFmgwq9k=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1786012236;
+	s=susede2_ed25519; t=1786013069;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=rLj/mNR31mtZDmcNpF5A+oTj1Kvh/maFviFNrSNj2rY=;
-	b=8VbiqY/4wsEa/1l7WVJSyPk1DnksBVILlUA/Ns+XF2ULSAQ+SEFvp2hd2FlcHW7tcoy+/H
-	guVFv4IXyMnqaVCA==
-Authentication-Results: smtp-out1.suse.de;
+	bh=2dlDLfU86K4zf2WgZa5c9RZoR9Glmk1lvThRU4HQBho=;
+	b=4VRlQizv3hVxH9TKTr4tUWBBvnXs8fnVXqgRPVhIfkh/B9Bsz+OkHL8ev+M0Fr59yGvcuB
+	QxTIy657/Qif7mBg==
+Authentication-Results: smtp-out2.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1786012231; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	t=1786013065; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=rLj/mNR31mtZDmcNpF5A+oTj1Kvh/maFviFNrSNj2rY=;
-	b=sJft2AnXryHza8BZJSy6dOn7ykRjeZlrR+TwBDpkrZYjCkfI+pkNJHY8OciT5/YYW+5DbC
-	f49iGBY7X46VNb/hp+95JrU/jJX5hHfnoqrc9NOOxdn9BWekIjFi0v7ktgAA3PVJPa1HYX
-	1WHBOszazoMILtl7ib0YAzLX6wCnOA0=
+	bh=2dlDLfU86K4zf2WgZa5c9RZoR9Glmk1lvThRU4HQBho=;
+	b=q4bjS1ECZMKZA+cXe7BTEfcq6CaFkGBcep3Ln+lCouLBEPBY7lNlikfMTZK6RfBEPJTZFQ
+	mFwEB1BLUJ6pn5/H5vgUNZDwecRE9SGCf29sqM/V2l5+JXDDl4LyfQeyO2PcAVtzACwvrg
+	khgMh1K3Y6LYki2VhlB14oeV0HGftMo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1786012231;
+	s=susede2_ed25519; t=1786013065;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=rLj/mNR31mtZDmcNpF5A+oTj1Kvh/maFviFNrSNj2rY=;
-	b=hCRAHligF3nX0fd5wGOcqngS0V56SjX1GvCMGBtthbYJHiq4nkFAI8ZhUW4StXbZp8KJj6
-	rX7xT4ok/4tqTRCA==
+	bh=2dlDLfU86K4zf2WgZa5c9RZoR9Glmk1lvThRU4HQBho=;
+	b=qfUhCam/AFEM/eWO/yssdleOuWh+iT9ASiZ3xc3yN0IEp1RfhbpfdHw2OrjAlvorBkwcUo
+	W3ywYWR7akbuAjBA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C9412779B6;
-	Thu,  6 Aug 2026 10:30:31 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 764D6779B6;
+	Thu,  6 Aug 2026 10:44:25 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id QspdLkdidGocaAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 06 Aug 2026 10:30:31 +0000
-Message-ID: <e57417f4-b586-400c-97ad-fce9f0b6d0aa@suse.de>
-Date: Thu, 6 Aug 2026 12:30:14 +0200
+	id laQcGolldGofdgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 06 Aug 2026 10:44:25 +0000
+Message-ID: <eb83b9c7-379f-48b1-946f-e8039207480f@suse.de>
+Date: Thu, 6 Aug 2026 12:44:03 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,23 +82,19 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf,v2 2/2] netfilter: nf_tables: call set ops .commit when
- building new ruleset
+Subject: Re: [PATCH nf-next,v2] netfilter: add DEBUG_NET_WARN_ON_ONCE to
+ skb_set_nfct()
 To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-References: <20260805171115.250749-1-pablo@netfilter.org>
- <20260805171115.250749-2-pablo@netfilter.org>
+References: <20260805213003.297276-1-pablo@netfilter.org>
 Content-Language: en-US
 From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260805171115.250749-2-pablo@netfilter.org>
+In-Reply-To: <20260805213003.297276-1-pablo@netfilter.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Spam-Score: -4.30
-X-Spam-Level: 
-X-Spam-Flag: NO
 X-Spamd-Result: default: False [-4.30 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.997];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
 	MIME_GOOD(-0.10)[text/plain];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
 	ARC_NA(0.00)[];
@@ -112,177 +108,142 @@ X-Spamd-Result: default: False [-4.30 / 50.00];
 	FROM_EQ_ENVFROM(0.00)[];
 	TO_MATCH_ENVRCPT_ALL(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,netfilter.org:email,suse.de:mid]
+	DBL_BLOCKED_OPENRESOLVER(0.00)[netfilter.org:email,imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email]
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spam-Level: 
 
-On 8/5/26 7:11 PM, Pablo Neira Ayuso wrote:
-> The rbtree set only builds the b-search array after the new ruleset has
-> been exposed through set ops .commit.
+On 8/5/26 11:30 PM, Pablo Neira Ayuso wrote:
+> Trigger a warning if nf_ct_set() overlaps an existing ct object leading
+> to refcount leak. Add this warning to skb_set_nfct() whose only user is
+> nf_ct_set() instead.
 > 
-> This is currently needed by pipapo because it purges the elements from
-> the clone after the transactions are handled, therefore, pipapo still
-> needs the delayed set ops .commit call after the transaction handling.
-> 
-> Allow the rbtree to call .commit before the transaction handling which
-> purges the stale elements from the frontend rbtree datastructure.
-> 
-> Update rbtree .commit to skip deactivated and expired elements when
-> building the new b-search array.
+> Update existing nf_ct_set() callers to use nf_reset_ct() first to clean
+> up stale pointer to conntrack object which migh trigger false positive
+> warnings.
 > 
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> sashiko: there is a timestamp that prevents elements from expiring while
-> handling the transaction.
-> 
-> v2: - use NFT_GENMASK_ANY for GC scan, theoretically no new element in
->        this transaction can expire while handling the transaction but
->        let's just skip either new element or deactivated elements from
->        the GC scan.
->      - remove incorrect reset of previous rbe when performing GC scan.
-> 
->   net/netfilter/nf_tables_api.c  |  9 ++++++--
->   net/netfilter/nft_set_rbtree.c | 38 ++++++++++++++++++++++++++++------
->   2 files changed, 39 insertions(+), 8 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 90a379533e08..a7006725c307 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -10853,11 +10853,14 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
->   	}
->   }
->   
-> -static void nft_set_commit_update(struct nftables_pernet *nft_net)
-> +static void nft_set_commit_update(struct nftables_pernet *nft_net, bool early_commit)
->   {
->   	struct nft_set *set, *next;
->   
->   	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
-> +		if (set->ops->abort_skip_removal && early_commit)
-> +			continue;
-> +
 
-Hi Pablo,
-
-wouldn't it be better to add the early_commit flag to set->ops? This way 
-we don't need to check abort_skip_removal flag.
-
-I could foresee problems in the future using the same flag for this skip..
-
-What about creating a nft_commit_phase enum:
-
-enum nft_commit_phase {
-	NFT_COMMIT_PHASE_EARLY,
-	NFT_COMMIT_PHASE_DELAYED,
-};
-
-and then we can use it in nft_set_commit_update() as argument, something 
-like:
-
-static void nft_set_commit_update(struct nftables_pernet *nft_net,
-                                   enum nft_commit_phase phase)
-
-This way, early_commit makes sense on set->ops..
-
-What do you think? I am trying to think in a way to make the code more 
-readable.
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
 Thanks!
-Fernando.
 
->   		list_del_init(&set->pending_update);
->   
->   		if (!set->ops->commit || set->dead)
-> @@ -10964,6 +10967,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
->   	}
->   
->   	/* step 2.  Make rules_gen_X visible to packet path */
-> +	nft_set_commit_update(nft_net, true);
-> +
->   	list_for_each_entry(table, &nft_net->tables, list) {
->   		list_for_each_entry(chain, &table->chains, list)
->   			nf_tables_commit_chain(net, chain);
-> @@ -11170,7 +11175,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
->   		}
->   	}
->   
-> -	nft_set_commit_update(nft_net);
-> +	nft_set_commit_update(nft_net, false);
->   
->   	nft_commit_notify(net, NETLINK_CB(skb).portid);
->   	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index 6222e9bb57bc..d908b94540ef 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-> @@ -901,6 +901,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
->   		next = rb_next(node);
->   
->   		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> +		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
-> +			continue;
->   
->   		/* elements are reversed in the rbtree for historical reasons,
->   		 * from highest to lowest value, that is why end element is
-> @@ -1036,10 +1038,32 @@ static void nft_array_free_rcu(struct rcu_head *rcu_head)
->   	__nft_array_free(array);
->   }
->   
-> +static struct nft_rbtree_elem *
-> +__nft_rbtree_prev_active(struct rb_node **pnode, u8 genmask)
-> +{
-> +	struct nft_rbtree_elem *prev_rbe;
-> +	struct rb_node *node = *pnode;
-> +
-> +	while (node) {
-> +		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> +		if (!nft_set_elem_active(&prev_rbe->ext, genmask)) {
-> +			node = rb_prev(node);
-> +			continue;
-> +		}
-> +
-> +		*pnode = node;
-> +		return prev_rbe;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
->   static void nft_rbtree_commit(struct nft_set *set)
+> ---
+> sashiko: ignore current overwrites of skb->_nfct in
+> net/bridge/netfilter/nf_conntrack_bridge.c:nf_ct_bridge_pre(),
+> that will be fixed in a separated patch.
+> 
+>   include/linux/skbuff.h            |  1 +
+>   include/net/ip_vs.h               |  2 +-
+>   net/netfilter/nf_conntrack_core.c |  2 +-
+>   net/openvswitch/conntrack.c       | 12 +++---------
+>   net/sched/act_ct.c                |  6 +++---
+>   5 files changed, 9 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+> index 22eda1d54a0e..95184183180f 100644
+> --- a/include/linux/skbuff.h
+> +++ b/include/linux/skbuff.h
+> @@ -5004,6 +5004,7 @@ static inline unsigned long skb_get_nfct(const struct sk_buff *skb)
+>   static inline void skb_set_nfct(struct sk_buff *skb, unsigned long nfct)
 >   {
->   	struct nft_rbtree *priv = nft_set_priv(set);
->   	struct nft_rbtree_elem *rbe, *prev_rbe;
-> +	struct net *net = read_pnet(&set->net);
-> +	u8 genmask = nft_genmask_next(net);
->   	struct nft_array *old;
->   	u32 num_intervals = 0;
->   	struct rb_node *node;
-> @@ -1061,12 +1085,12 @@ static void nft_rbtree_commit(struct nft_set *set)
+>   #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+> +	DEBUG_NET_WARN_ON_ONCE(skb->_nfct & NFCT_PTRMASK);
+>   	skb->slow_gro |= !!nfct;
+>   	skb->_nfct = nfct;
+>   #endif
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index 8feb69158816..9c6c5336de1c 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -2130,7 +2130,7 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
+>   	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
 >   
->   	/* Reverse walk to create an array from smaller to largest interval. */
->   	node = rb_last(&priv->root);
-> -	if (node)
-> -		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> -	else
-> -		prev_rbe = NULL;
+>   	if (ct) {
+> -		nf_conntrack_put(&ct->ct_general);
+> +		nf_reset_ct(skb);
+>   		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+>   	}
+>   #endif
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 784bd1d7a9bf..d0d9e5ea84a0 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1031,7 +1031,7 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+>   		nf_conntrack_get(&ct->ct_general);
 >   
-> -	while (prev_rbe) {
-> +	while (node) {
-> +		prev_rbe = __nft_rbtree_prev_active(&node, genmask);
-> +		if (!prev_rbe)
-> +			break;
-> +
->   		rbe = prev_rbe;
+>   		nf_ct_acct_merge(ct, ctinfo, loser_ct);
+> -		nf_ct_put(loser_ct);
+> +		nf_reset_ct(skb);
+>   		nf_ct_set(skb, ct, ctinfo);
 >   
->   		if (nft_rbtree_interval_start(rbe))
-> @@ -1083,7 +1107,9 @@ static void nft_rbtree_commit(struct nft_set *set)
->   		if (!node)
->   			break;
+>   		NF_CT_STAT_INC(net, clash_resolve);
+> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+> index 95697d4e16e6..4dd82c4e87d3 100644
+> --- a/net/openvswitch/conntrack.c
+> +++ b/net/openvswitch/conntrack.c
+> @@ -603,7 +603,7 @@ static bool skb_nfct_cached(struct net *net,
+>   		if (nf_ct_is_confirmed(ct))
+>   			nf_ct_delete(ct, 0, 0);
 >   
-> -		prev_rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> +		prev_rbe = __nft_rbtree_prev_active(&node, genmask);
-> +		if (!prev_rbe)
-> +			break;
+> -		nf_ct_put(ct);
+> +		nf_reset_ct(skb);
+>   		nf_ct_set(skb, NULL, 0);
+>   		return false;
+>   	}
+> @@ -745,8 +745,7 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
 >   
->   		/* For anonymous sets, when adjacent ranges are found,
->   		 * the end element is not added to the set to pack the set
+>   		/* Associate skb with specified zone. */
+>   		if (tmpl) {
+> -			ct = nf_ct_get(skb, &ctinfo);
+> -			nf_ct_put(ct);
+> +			nf_reset_ct(skb);
+>   			nf_conntrack_get(&tmpl->ct_general);
+>   			nf_ct_set(skb, tmpl, IP_CT_NEW);
+>   		}
+> @@ -1075,12 +1074,7 @@ int ovs_ct_execute(struct net *net, struct sk_buff *skb,
+>   
+>   int ovs_ct_clear(struct sk_buff *skb, struct sw_flow_key *key)
+>   {
+> -	enum ip_conntrack_info ctinfo;
+> -	struct nf_conn *ct;
+> -
+> -	ct = nf_ct_get(skb, &ctinfo);
+> -
+> -	nf_ct_put(ct);
+> +	nf_reset_ct(skb);
+>   	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+>   
+>   	if (key)
+> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+> index 4ca7964e83c8..7f54fb4e4ec9 100644
+> --- a/net/sched/act_ct.c
+> +++ b/net/sched/act_ct.c
+> @@ -782,7 +782,7 @@ static bool tcf_ct_skb_nfct_cached(struct net *net, struct sk_buff *skb,
+>   	return true;
+>   
+>   drop_ct:
+> -	nf_ct_put(ct);
+> +	nf_reset_ct(skb);
+>   	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+>   
+>   	return false;
+> @@ -996,7 +996,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+>   		qdisc_skb_cb(skb)->post_ct = false;
+>   		ct = nf_ct_get(skb, &ctinfo);
+>   		if (ct) {
+> -			nf_ct_put(ct);
+> +			nf_reset_ct(skb);
+>   			nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+>   		}
+>   
+> @@ -1034,7 +1034,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+>   
+>   		/* Associate skb with specified zone. */
+>   		if (tmpl) {
+> -			nf_conntrack_put(skb_nfct(skb));
+> +			nf_reset_ct(skb);
+>   			nf_conntrack_get(&tmpl->ct_general);
+>   			nf_ct_set(skb, tmpl, IP_CT_NEW);
+>   		}
 
