@@ -1,412 +1,92 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D3AA3446CB
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 17:41:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5806F38E8A4
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 18:02:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786038083; cv=none; b=Aru1jHoTdtNBDOfV+UDIUOPDgasR5jy3yOLtUp2w98U7Wmd22ZC00MbxcODfFHTCUoMiwJjzG25v/lEq25ho8uZEhXwHILbojGh9oQpFfD8EK2H6N/UKLka461AIPMRzLmQ7bavvtNJpcBpZZL3xH5ui2FsjEK/00H7djy2yzuU=
+	t=1786039324; cv=none; b=E2qhRMMrNwv2ciHQyonVEhM52fqEi3UaaBfOPLwpNdcsgRWgYowP5wGzC1JtBERC0uNVJ1+UuAwuRW+DpPYH8K2a2g3TEeepVLoGckd898cBWnhCzka56MNmS+BEupkqjnMiCI41NfMgFdePQiujCDLZZAwyD91slvutJjS658E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786038083; c=relaxed/simple;
-	bh=1+XMJ7oor9eQnPBaTTrhTmu3jNyhs0IPx/ykUbDPT7g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GerCDGCeKHZVq1N0Rlf6rZtPNrLM0SrWFXoBwt5bIRJ56tgFix9fwSB/kD6L6rD2eqe1MInim0/fDQU/jns6+31hrPTkfTzOEV0lemdT05VvgkDz9rrPI9BF7W4e4KZVrBjLTxQh/rVZX59am3l2uNRDjHbGo3WjdsjNRCvpgCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1786039324; c=relaxed/simple;
+	bh=JXsmsRoVenK8GGbCUaSVjlVEh3HaZJp7IR4gyw/fMRk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Wd2SmWkDReZlSp4CBz1DpzISZwhJy2DyNqiQzbxeO0zn6p8QrNJZ6BHB/ntuoe9b7etbLJ72Up+fRqgqskNaAWhEDnR7oYXyN39oTBRNua5KemP7R7PkCOb6am1la2QqFtMl1K5CYWTzmq6uEd9Zo5wxUzQcJabenyKb///iHkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 33CC0602AB; Thu, 06 Aug 2026 19:41:19 +0200 (CEST)
+	id 82563602AB; Thu, 06 Aug 2026 20:01:58 +0200 (CEST)
+Date: Thu, 6 Aug 2026 20:01:57 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf] netfilter: ipset: remove need to allocate memory on delete operations
-Date: Thu,  6 Aug 2026 19:41:09 +0200
-Message-ID: <20260806174109.22566-1-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v2 2/2] netfilter: nf_tables: call set ops .commit
+ when building new ruleset
+Message-ID: <anTMFbo6AB9IqejA@strlen.de>
+References: <20260805171115.250749-1-pablo@netfilter.org>
+ <20260805171115.250749-2-pablo@netfilter.org>
+ <anRrLtZvlPXtqJAA@strlen.de>
+ <anSe0eK9dl1d2J7-@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <anSe0eK9dl1d2J7-@chamomile>
 
-Allocating mem via GFP_ATOMIC on delete is problematic, delete operations
-should always succeed.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Why must the blob be rebuilt before stale node purge in rbtree case?
+> 
+> ... there is a gap between the ruleset blob is built and published and
+> the set .commit interface is called to publish the new version of the
+> rbtree/pipapo datastructure.
+> 
+> See:
+> https://lore.kernel.org/netfilter-devel/589d243b-3d88-4138-9786-1bbb4347e79d@app.fastmail.com/
 
-Do in-place substitution:  When /cidr reaches 0 count (no more elements in
-the range), move ranges stored later in the array forward and keep the
-count 0 ones at the end.
+Ah. That makes sense. So the problem is not rbtree specific.  Problem is
+that packets switch over to the *new base chain* (linked to nf machinery,
+nft rule blob becomes reachable on base_seq swap:
 
-INIT_CIDR() can then check count == 0 without a need to search next element
-in the array.
+1. commit phase starts.
+2. seqcount gets bumped.
+ A.  	Packet p1 enters machinery
+3. elements get purged / chains / tables unlinked, netlink notificatons
+   etc. etc.
+ B.     Packet p1 is in nft_lookup, which gets updated base_seq,
+        but no match because rbtree blob resp. pipapo live blob
+	are empty in the 'flush ruleset; table t { ..' case.
+4. nft_set_commit_update() is called.
 
-To avoid problems on weakly ordered architectures, pack the structure so it
-is only 32bit wide, then use READ/WRITE_ONCE to store both cidr and count.
-atomically.
+If the above is right your patch makes much more sense now :-)
 
-Also update comments to mention the possible presence of ignored
-0-count-0-cidr structures at the end and need for seqcount.
+The logic with (set->ops->abort_skip_removal && early_commit)
+however is hard to grasp.
 
-seqcount is used to restart.  This avoids bogus range misses.
-Given:  [0]: /29 [1]: /24
-cpu1 reads slot 0. then, right after, cpu2 removes /29. count drops to 0,
-so it updates array to: [0], /24, [1], /0 (count 0).
+Even with NFT_COMMIT_PHASE_EARLY or whatever its bad because
+the set implementation details leak into the transaction phase.
+But I understand that you'd like to at least solve it for rbtree
+with a smaller change, so thats ok.
 
-cpu1 then skips /28: slot 0 was already visited, but slot 1 already replaced.
+Is there a long-term plan?
 
-Note that mtype_add() doesn't check mtype_add_cidr() return value; I
-don't want to mix in even more changes into one single patch.
+Maybe your 'pre-commit' phase could iterate the transaction
+log and relink transactions (add/del/update of set elements
+) to the owning set?  Contradicting transactions (destroy set x,
+then remove element from x) should have been caught earlier, so
+this delete-from-transaction-log-and-link-to-per-set-struct should
+not be a problem.  Perhaps we might see issues with changes in the
+netlink reporting order... but thats hopefully easy to avoid.
 
-mtype_add will is extensively rewritten in the rhashtable replacement
-patch and that will add the error checking.
+the ->commit() callback could then access the pending transactions
+for the set (element adds/deletes) and always get invoked early.
 
-Assisted-by: Claude:claude-sonnet-5
-Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2:
-  - detach from ipset rhashtable patchset, that needs more soak time
-  - remove mtype_flush allocation and zero out like in mtype_del.
-  - add seqcount retry even for match case to handle 'nomatch' entries
-    that might have been skipped.
+Pipapo could walk its specific elem deletions internally, then swap.
 
- net/netfilter/ipset/ip_set_hash_gen.h        | 169 +++++++++++++------
- net/netfilter/ipset/ip_set_hash_netiface.c   |   1 -
- net/netfilter/ipset/ip_set_hash_netportnet.c |   1 -
- 3 files changed, 122 insertions(+), 49 deletions(-)
+The only other issue I see is that we need a second
+list_for_each_entry_safe(trans, next, &nft_net->commit_list, list)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index f00c82acd7f0..b1f4598c1467 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -8,6 +8,7 @@
- #include <linux/rcupdate_wait.h>
- #include <linux/jhash.h>
- #include <linux/types.h>
-+#include <linux/seqlock.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/ipset/ip_set.h>
- 
-@@ -98,14 +99,34 @@ struct htable {
- #define IPSET_NET_COUNT		1
- #endif
- 
--/* Book-keeping of the prefixes added to the set */
-+/**
-+ * struct net_prefix - Representation of a network prefix.
-+ * @cidr: The CIDR prefix length.
-+ * @count: Number of occurrences.
-+ */
- struct net_prefix {
--	u8 cidr;			/* the cidr value */
--	u32 count;			/* number of elements of this cidr */
-+	u32 cidr:8;
-+	u32 count:24;
- };
- 
-+#define CIDR_MAX_COUNT ((1 << 24) - 1)
-+
-+/**
-+ * struct net_prefixes - A collection of network prefixes.
-+ * @rcu: RCU head
-+ * @seq: Sequence counter guarding in-place reordering of @nets
-+ * @len: Number of entries in the array.
-+ * @nets: Array of net_prefix structures (sorted by CIDR descending).
-+ *
-+ * @nets entries are updated in place under @set's lock. A single entry's
-+ * cidr/count pair is always updated atomically via READ_ONCE()/WRITE_ONCE(),
-+ * but removing an entry also shifts every following entry down by one slot.
-+ * Lockless readers that scan the whole array (i.e. more than a single
-+ * indexed slot) must use @seq to detect and retry across such a shift.
-+ */
- struct net_prefixes {
- 	struct rcu_head rcu;
-+	seqcount_spinlock_t seq;
- 	u8 len;
- 	struct net_prefix nets[] __counted_by(len);
- };
-@@ -143,8 +164,11 @@ htable_size(u8 hbits)
- #endif
- 
- #define INIT_CIDR(n, host_mask) ({				\
--	const struct net_prefixes *__n = rcu_dereference(n);		\
--	DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
-+	const struct net_prefixes *__n = rcu_dereference(n);	\
-+	struct net_prefix __p =					\
-+		__n->len ? READ_ONCE(__n->nets[0])		\
-+			 : (struct net_prefix){};		\
-+	DCIDR_PUT(__p.count ? __p.cidr : host_mask);		\
- })
- 
- #endif /* IP_SET_HASH_WITH_NETS */
-@@ -318,27 +342,43 @@ struct mtype_resize_ad {
- };
- 
- #ifdef IP_SET_HASH_WITH_NETS
--/* Network cidr size book keeping when the hash stores different
-- * sized networks. cidr == real cidr + 1 to support /0.
-+/**
-+ * mtype_add_cidr - Add a CIDR entry to hash table bookkeeping
-+ * @set: Pointer to the ip_set
-+ * @h: Pointer to the htype
-+ * @cidr: The CIDR prefix length
-+ * @n: The index of the net_prefix array to add @cidr to
-+ *
-+ * Performs an update if @cidr is found, otherwise performs COW-style
-+ * allocation and replacement via RCU.
-+ *
-+ * Return: 0 on success, negative error code on failure.
-  */
- static int
- mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
- {
--	struct net_prefixes *nets, *tmp;
- 	int i, j, found, len = 0, ret = 0;
-+	struct net_prefixes *nets, *tmp;
-+	struct net_prefix np;
- 
- 	spin_lock_bh(&set->lock);
- 	nets = __ipset_dereference(h->rnets[n]);
- 	/* Add in increasing prefix order, so larger cidr first */
- 	for (i = 0, found = -1; i < nets->len; i++) {
--		if (nets->nets[i].count)
-+		np = READ_ONCE(nets->nets[i]);
-+		if (np.count)
- 			len++;
- 		if (found != -1) {
- 			continue;
--		} else if (nets->nets[i].cidr < cidr) {
-+		} else if (np.cidr < cidr) {
- 			found = i;
--		} else if (nets->nets[i].cidr == cidr) {
--			nets->nets[i].count++;
-+		} else if (np.cidr == cidr) {
-+			if (np.count < CIDR_MAX_COUNT) {
-+				np.count++;
-+				WRITE_ONCE(nets->nets[i], np);
-+			} else {
-+				ret = -EOVERFLOW;
-+			}
- 			goto unlock;
- 		}
- 	}
-@@ -350,6 +390,7 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
- 	}
- 
- 	tmp->len = len;
-+	seqcount_spinlock_init(&tmp->seq, &set->lock);
- 	for (i = 0, j = 0; i < nets->len; i++) {
- 		if (i == found) {
- 			tmp->nets[j].cidr = cidr;
-@@ -371,42 +412,60 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
- 	return ret;
- }
- 
-+/**
-+ * mtype_del_cidr - Remove CIDR entry and maintain array integrity.
-+ * @set: Pointer to the ip_set.
-+ * @h: Pointer to the htype.
-+ * @cidr: The CIDR prefix length.
-+ * @n: The index of the net_prefix array to remove @cidr from
-+ *
-+ * If CIDR entry count falls to 0, this function performs a "shift-left"
-+ * operation on all following elements. This ensures that the array remains
-+ * contiguous and maintains its descending order by CIDR. The vacated slot
-+ * at the end of the array is zeroed out (cidr=0, count=0).
-+ */
- static void
- mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
- {
--	struct net_prefixes *nets, *tmp;
--	u8 i, j, len = 0;
-+	struct net_prefixes *nets;
-+	struct net_prefix np;
- 	int found;
-+	u8 i, j;
-+
-+	BUILD_BUG_ON(sizeof(struct net_prefix) != sizeof(u32));
- 
- 	spin_lock_bh(&set->lock);
- 	nets = __ipset_dereference(h->rnets[n]);
- 	for (i = 0, found = -1; i < nets->len; i++) {
--		if (nets->nets[i].count)
--			len++;
--		if (nets->nets[i].cidr == cidr)
-+		np = READ_ONCE(nets->nets[i]);
-+		if (np.count && np.cidr == cidr) {
-+			np.count--;
- 			found = i;
-+			break;
-+		}
- 	}
- 	if (unlikely(found == -1))
- 		goto unlock;
- 
--	nets->nets[found].count--;
--	if (nets->nets[found].count)
--		goto unlock;
--	len--;
--	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
--	if (!tmp)
--		/* Leave a hole */
-+	if (np.count) {
-+		WRITE_ONCE(nets->nets[found], np);
- 		goto unlock;
-+	}
- 
--	tmp->len = len;
-+	write_seqcount_begin(&nets->seq);
- 	for (i = 0, j = 0; i < nets->len; i++) {
--		if (!nets->nets[i].count || i == found)
-+		if (i == found)
- 			continue;
--		tmp->nets[j].cidr = nets->nets[i].cidr;
--		tmp->nets[j++].count = nets->nets[i].count;
-+
-+		np = READ_ONCE(nets->nets[i]);
-+		if (i != j)
-+			WRITE_ONCE(nets->nets[j], np);
-+		j++;
- 	}
--	rcu_assign_pointer(h->rnets[n], tmp);
--	kfree_rcu(nets, rcu);
-+
-+	while (j < nets->len)
-+		WRITE_ONCE(nets->nets[j++], (struct net_prefix){});
-+	write_seqcount_end(&nets->seq);
- unlock:
- 	spin_unlock_bh(&set->lock);
- }
-@@ -451,7 +510,7 @@ mtype_flush(struct ip_set *set)
- {
- 	struct htype *h = set->data;
- #ifdef IP_SET_HASH_WITH_NETS
--	struct net_prefixes *nets, *tmp;
-+	struct net_prefixes *nets;
- #endif
- 	struct htable *t;
- 	struct hbucket *n;
-@@ -477,17 +536,15 @@ mtype_flush(struct ip_set *set)
- 	}
- #ifdef IP_SET_HASH_WITH_NETS
- 	for (i = 0; i < IPSET_NET_COUNT; i++) {
--		nets = ipset_dereference_nfnl(h->rnets[i]);
--		tmp = kzalloc_obj(*tmp, GFP_ATOMIC);
--		if (!tmp) {
--			u8 j;
-+		u8 j;
- 
--			for (j = 0; j < nets->len; j++)
--				nets->nets[j].count = 0;
--		} else {
--			rcu_assign_pointer(h->rnets[i], tmp);
--			kfree_rcu(nets, rcu);
--		}
-+		spin_lock_bh(&set->lock);
-+		nets = ipset_dereference_nfnl(h->rnets[i]);
-+		write_seqcount_begin(&nets->seq);
-+		for (j = 0; j < nets->len; j++)
-+			WRITE_ONCE(nets->nets[j++], (struct net_prefix){});
-+		write_seqcount_end(&nets->seq);
-+		spin_unlock_bh(&set->lock);
- 	}
- #endif
- }
-@@ -1253,31 +1310,41 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- #if IPSET_NET_COUNT == 2
- 	struct net_prefixes *nets1;
- 	struct mtype_elem orig = *d;
-+	unsigned int seq1;
- 	int ret, i, j, k;
- #else
- 	int ret, i, j;
- #endif
--	u32 key, multi = 0;
-+	unsigned int seq0;
-+	u32 key, multi;
- 	u8 pos;
- 
- 	pr_debug("test by nets\n");
- 	rcu_read_lock_bh();
-+retry:
-+	multi = 0;
- 	nets0 = rcu_dereference_bh(h->rnets[0]);
-+	seq0 = read_seqcount_begin(&nets0->seq);
- #if IPSET_NET_COUNT == 2
- 	nets1 = rcu_dereference_bh(h->rnets[1]);
-+	seq1 = read_seqcount_begin(&nets1->seq);
- #endif
- 	for (j = 0; j < nets0->len && !multi; j++) {
--		if (!nets0->nets[j].count)
-+		struct net_prefix p0 = READ_ONCE(nets0->nets[j]);
-+
-+		if (!p0.count)
- 			continue;
- #if IPSET_NET_COUNT == 2
- 		mtype_data_reset_elem(d, &orig);
--		mtype_data_netmask(d, nets0->nets[j].cidr, false);
-+		mtype_data_netmask(d, p0.cidr, false);
- 		for (k = 0; k < nets1->len && !multi; k++) {
--			if (!nets1->nets[k].count)
-+			struct net_prefix p1 = READ_ONCE(nets1->nets[k]);
-+
-+			if (!p1.count)
- 				continue;
--			mtype_data_netmask(d, nets1->nets[k].cidr, true);
-+			mtype_data_netmask(d, p1.cidr, true);
- #else
--		mtype_data_netmask(d, nets0->nets[j].cidr);
-+		mtype_data_netmask(d, p0.cidr);
- #endif
- 		key = HKEY(d, h->initval, t->htable_bits);
- 		n = rcu_dereference_bh(hbucket(t, key));
-@@ -1302,6 +1369,13 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 		}
- #endif
- 	}
-+
-+	if (read_seqcount_retry(&nets0->seq, seq0))
-+		goto retry;
-+#if IPSET_NET_COUNT == 2
-+	if (read_seqcount_retry(&nets1->seq, seq1))
-+		goto retry;
-+#endif
- 	ret = 0;
- unlock:
- 	rcu_read_unlock_bh();
-@@ -1707,6 +1781,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 				kfree(rcu_dereference_raw(h->rnets[--i]));
- 			goto free_hregion;
- 		}
-+		seqcount_spinlock_init(&nets->seq, &set->lock);
- 		RCU_INIT_POINTER(h->rnets[i], nets);
- 	}
- #endif
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index b44b95f766b7..b602cc43565d 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -38,7 +38,6 @@ MODULE_ALIAS("ip_set_hash:net,iface");
- #define HTYPE		hash_netiface
- #define IP_SET_HASH_WITH_NETS
- #define IP_SET_HASH_WITH_MULTI
--#define IP_SET_HASH_WITH_NET0
- 
- #define STRSCPY(a, b)	strscpy(a, b, IFNAMSIZ)
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index 6291532be7a5..61af1ce27127 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -36,7 +36,6 @@ MODULE_ALIAS("ip_set_hash:net,port,net");
- #define IP_SET_HASH_WITH_PROTO
- #define IP_SET_HASH_WITH_NETS
- #define IPSET_NET_COUNT 2
--#define IP_SET_HASH_WITH_NET0
- 
- /* IPv4 variant */
- 
--- 
-2.54.0
-
+... walk, because the step-1 walk is allowed to fail.
