@@ -1,41 +1,41 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6355A2DCF57
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 22:35:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C12415F13
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 22:35:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786055747; cv=none; b=fEV6v9FojsTOVnvwbwMGLryIyHPHtDqIXbWYwLKNqRhl+N03uZhSpMR1S4m+VKcFnPrz47ueMadqzNmGlnsd782sP+J2c6hLI6Yz/dzsbA4xHGUBVteQvmZ5ZqqzSAPVddSS/8p/Yisx6CLrwPMQDL1ZdjL/xHGsIzgZHdFPm7w=
+	t=1786055748; cv=none; b=khdVcLxheGRH/5ERq7E1wFNqw2qy/ogVaKq0afj30G+Hvqyf9PQjqbPs6azCVt97u118nafbquboSasE8tWe9ozTfKRtUK6ezYomnIkfMck90X7WFcVN2RYbYqrXm0EFcuRVm52632U5ypZ8Tfs8fd4o6fT2Ye7TEr48yihIolQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786055747; c=relaxed/simple;
-	bh=dwfYnxHOcClTVePKHhU6HMdjSwOxIGIg8SF67KZ8QI0=;
+	s=arc-20240116; t=1786055748; c=relaxed/simple;
+	bh=Bcr3F+BKdIsyhE52x45ShUGHJPpCt/Azs1LFb3Aw1Z8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fB5vDjNXxtx9VK/rbsgH+87EDH/z+fap97BpFXU1Kg9xLTqX88yfWV6Tb1VQ2pmFcZxj+G3i2pBGLojX4cgyxclrz3ZPy8mURTYDAScVLNDrmYj8BdCPVUqtNBmLxW28Iz9/ISZ72HHgrqltwfaiTFVzAFMZYPKT9SBVaZ3jLPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=suIWUhAV; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=QjCZELcYdJMAah+VvbK0a8ne43XDSoUssKhSGBmz9U8/abEggRfHWyNOdB5GEdJqs/HY+sAXcX6Zni+/Ng90AQucUo2/5p+qKA7rL7sImELDYhGOBZaYU6d7fzBSdfMHJmVeSmIfvDTMdRd9RzVbgowfXYHuhZHrKsa93OzmsLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=B3N4GklT; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="suIWUhAV"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="B3N4GklT"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D4127601A7;
-	Fri,  7 Aug 2026 00:35:41 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C67EB601A6;
+	Fri,  7 Aug 2026 00:35:40 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786055742;
-	bh=rTN73bEaYOyulf2UyAvODwa9Vv93FxTOupuBuRvwbmQ=;
+	s=2025; t=1786055741;
+	bh=3ORasRXE0EurIe428Mgl34kfeDXy/C4QpbIrqb3x2c4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=suIWUhAVXFFrszsw2NsuV+QiXrtg9OyCVTHr7cpRTQTfcFXu1wFErAhnamuvbCDxq
-	 HJzBWATYKv4nOX+SOXetXq57eu5r4Mdj3yQb4wlIw9hpgcqS47gvhuBIcsgqdRfgWH
-	 /3VWGlKu0MuRKG7ApQifoX9hAX8zxbWtsjQWjNYeseq7tu6/4ld5ktb8AVSYFSneWI
-	 Sdw2gZRk0n11GSTj3rjk8t9n2diWKrMOhBZzeFflxo8Svo/fk3VgKaNkJl1nc4Kuyy
-	 dTP+rtYxU7jjXC8P2rSPT2pFuctTdax2FxJ5zgdoiftgDKGQwVk/UM4jJHdB6pHVtb
-	 bmf7ikrxyLF9A==
+	b=B3N4GklTq7VaH12pi4ZD/bY2oqtmc4XPSVh4m/Ob8Rnacn7lZsU3wj74ZwBkFKPbn
+	 Lfcsgvfp8At3HVJTMgkLWLLT3NwzGHhgGknJDsu8YSPMZkR3N6t4X8y9DRBLw0Ucc8
+	 haT80qU90DFpRH1VYHtElX7kHk7pjHAvlCrEDxUFknxergpKjiTXeJTXNNYAlOH/U8
+	 2ehJVSVX8gLmJA/f0bbnuawq3tJ4R7T0DfGth65Dd1p9VlRRyPgXThzUxU0Rb40/Ij
+	 XaDGNWuN3B7BkfJ8mdhB8wYN7jieSzu9yL4c6tK9gDOpIgCap9vEUychgxb2z+aLB0
+	 cNRuCZBaI6eKQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: lorenzo.bianconi@oss.qualcomm.com,
 	lorenzo@kernel.org
-Subject: [PATCH nf-next 2/7] net: netfilter: add ether_type to net_device_path_ctx and use it
-Date: Fri,  7 Aug 2026 00:35:30 +0200
-Message-ID: <20260806223535.523098-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 1/7] net: pass net_device_path_ctx to dev_fill_forward_path()
+Date: Fri,  7 Aug 2026 00:35:29 +0200
+Message-ID: <20260806223535.523098-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260806223535.523098-1-pablo@netfilter.org>
 References: <20260806223535.523098-1-pablo@netfilter.org>
@@ -47,88 +47,179 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add an ether_type field to struct net_device_path_ctx to reject IPv4
-over IPv6 and vice-versa, this is currently not support. Otherwise,
-incorrect dst_entry family can be reached from datapath.
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
+Refactor dev_fill_forward_path() to take a struct net_device_path_ctx
+pointer instead of a (dev, daddr) pair, so the caller can build and
+populate the context up front and keep it after the forward path walk.
+
+This allows additional fields (e.g. vlan and ether_type) to be carried
+in the context and shared with ndo_fill_forward_path implementations,
+instead of being reconstructed on the stack inside the core helper.
+
+Update the mtk_ppe_offload, airoha_ppe and nf_flow_table_path callers to
+allocate and fill the context before invoking dev_fill_forward_path().
+The network topology resolution behaviour is unchanged.
+
+This is a preliminary patch to enable HW flowtable offload for IPv4
+over IPv6 tunnels.
+
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice.h          | 1 +
- net/ipv4/ipip.c                    | 3 +++
- net/ipv6/ip6_tunnel.c              | 3 +++
- net/netfilter/nf_flow_table_path.c | 6 ++++--
- 4 files changed, 11 insertions(+), 2 deletions(-)
+v2: Just a rebase on top of current nf-next.git
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 4319b949f405..d9962c50bd60 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -939,6 +939,7 @@ struct net_device_path_stack {
- struct net_device_path_ctx {
- 	const struct net_device *dev;
- 	u8			daddr[ETH_ALEN];
-+	__be16			ether_type;
- 
- 	int			num_vlans;
- 	struct {
-diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-index fb7d96f99b06..62a374079bfc 100644
---- a/net/ipv4/ipip.c
-+++ b/net/ipv4/ipip.c
-@@ -360,6 +360,9 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
- 	const struct iphdr *tiph = &tunnel->parms.iph;
- 	struct rtable *rt;
- 
-+	if (ctx->ether_type != cpu_to_be16(ETH_P_IP))
-+		return -EOPNOTSUPP;
-+
- 	if (tunnel->collect_md)
- 		return -EOPNOTSUPP;
- 
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index d80020bc2620..3bfaa98e7f33 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1849,6 +1849,9 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
- 	struct flowi6 fl6;
+ drivers/net/ethernet/airoha/airoha_ppe.c       |  7 ++++++-
+ .../net/ethernet/mediatek/mtk_ppe_offload.c    |  7 ++++++-
+ include/linux/netdevice.h                      |  2 +-
+ net/core/dev.c                                 | 18 +++++++-----------
+ net/netfilter/nf_flow_table_path.c             |  7 ++++++-
+ 5 files changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
+index a03af9750573..92611802801e 100644
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -283,14 +283,19 @@ static int airoha_ppe_get_wdma_info(struct net_device *dev, const u8 *addr,
+ 				    struct airoha_wdma_info *info)
+ {
+ 	struct net_device_path_stack stack;
++	struct net_device_path_ctx ctx = {
++		.dev = dev,
++	};
+ 	struct net_device_path *path;
  	int err;
  
-+	if (ctx->ether_type != cpu_to_be16(ETH_P_IPV6))
-+		return -EOPNOTSUPP;
+ 	if (!dev)
+ 		return -ENODEV;
+ 
++	ether_addr_copy(ctx.daddr, addr);
 +
- 	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
- 			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
- 			      IP6_TNL_F_USE_ORIG_FWMARK))
+ 	rcu_read_lock();
+-	err = dev_fill_forward_path(dev, addr, &stack);
++	err = dev_fill_forward_path(&ctx, &stack);
+ 	rcu_read_unlock();
+ 	if (err)
+ 		return err;
+diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+index 771d9118f94a..99b28aaa7cc4 100644
+--- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
++++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+@@ -92,6 +92,9 @@ static int
+ mtk_flow_get_wdma_info(struct net_device *dev, const u8 *addr, struct mtk_wdma_info *info)
+ {
+ 	struct net_device_path_stack stack;
++	struct net_device_path_ctx ctx = {
++		.dev = dev,
++	};
+ 	struct net_device_path *path;
+ 	int err;
+ 
+@@ -101,8 +104,10 @@ mtk_flow_get_wdma_info(struct net_device *dev, const u8 *addr, struct mtk_wdma_i
+ 	if (!IS_ENABLED(CONFIG_NET_MEDIATEK_SOC_WED))
+ 		return -1;
+ 
++	ether_addr_copy(ctx.daddr, addr);
++
+ 	rcu_read_lock();
+-	err = dev_fill_forward_path(dev, addr, &stack);
++	err = dev_fill_forward_path(&ctx, &stack);
+ 	rcu_read_unlock();
+ 	if (err)
+ 		return err;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 62cfad7e6b79..4319b949f405 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -3426,7 +3426,7 @@ void dev_remove_offload(struct packet_offload *po);
+ 
+ int dev_get_iflink(const struct net_device *dev);
+ int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
+-int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
++int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 			  struct net_device_path_stack *stack);
+ void dev_fill_forward_path_release(struct net_device_path_stack *stack);
+ struct net_device *dev_get_by_name(struct net *net, const char *name);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index e50ed677de72..13dfd2113a5a 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -769,35 +769,31 @@ void dev_fill_forward_path_release(struct net_device_path_stack *stack)
+ }
+ EXPORT_SYMBOL_GPL(dev_fill_forward_path_release);
+ 
+-int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
++int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 			  struct net_device_path_stack *stack)
+ {
+ 	const struct net_device *last_dev;
+-	struct net_device_path_ctx ctx = {
+-		.dev	= dev,
+-	};
+ 	struct net_device_path *path;
+ 	int ret = 0;
+ 
+-	memcpy(ctx.daddr, daddr, sizeof(ctx.daddr));
+ 	stack->num_paths = 0;
+-	while (ctx.dev && ctx.dev->netdev_ops->ndo_fill_forward_path) {
+-		last_dev = ctx.dev;
++	while (ctx->dev && ctx->dev->netdev_ops->ndo_fill_forward_path) {
++		last_dev = ctx->dev;
+ 		path = dev_fwd_path(stack);
+ 		if (!path)
+ 			goto err_out;
+ 
+ 		memset(path, 0, sizeof(struct net_device_path));
+-		ret = ctx.dev->netdev_ops->ndo_fill_forward_path(&ctx, path);
++		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
+ 		if (ret < 0)
+ 			goto err_out;
+ 
+ 		stack->num_paths++;
+-		if (WARN_ON_ONCE(last_dev == ctx.dev))
++		if (WARN_ON_ONCE(last_dev == ctx->dev))
+ 			goto err_out;
+ 	}
+ 
+-	if (!ctx.dev)
++	if (!ctx->dev)
+ 		return ret;
+ 
+ 	path = dev_fwd_path(stack);
+@@ -805,7 +801,7 @@ int dev_fill_forward_path(const struct net_device *dev, const u8 *daddr,
+ 		goto err_out;
+ 
+ 	path->type = DEV_PATH_ETHERNET;
+-	path->dev = ctx.dev;
++	path->dev = ctx->dev;
+ 	stack->num_paths++;
+ 
+ 	return 0;
 diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 0cbde535b8ba..5f166da3b09b 100644
+index 56219b02e122..0cbde535b8ba 100644
 --- a/net/netfilter/nf_flow_table_path.c
 +++ b/net/netfilter/nf_flow_table_path.c
-@@ -44,13 +44,15 @@ static bool nft_is_valid_ether_device(const struct net_device *dev)
- 
- static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
- 				     const struct nf_conn *ct,
--				     enum ip_conntrack_dir dir, u8 *ha,
-+				     enum ip_conntrack_dir dir,
-+				     u8 *ha, __be16 ether_type,
- 				     struct net_device_path_stack *stack)
+@@ -49,6 +49,9 @@ static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
  {
  	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
  	struct net_device *dev = dst_cache->dev;
- 	struct net_device_path_ctx ctx = {
- 		.dev = dev,
-+		.ether_type = ether_type,
- 	};
++	struct net_device_path_ctx ctx = {
++		.dev = dev,
++	};
  	struct neighbour *n;
  	u8 nud_state;
-@@ -228,7 +230,7 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 	unsigned char ha[ETH_ALEN];
- 	int i;
  
--	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
-+	if (nft_dev_fill_forward_path(dst, ct, dir, ha, pkt->ethertype, &stack) < 0 ||
- 	    nft_dev_path_info(&stack, &info, ha, ft) < 0)
- 		return -ENOENT;
+@@ -71,7 +74,9 @@ static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
+ 		return -1;
  
+ out:
+-	return dev_fill_forward_path(dev, ha, stack);
++	ether_addr_copy(ctx.daddr, ha);
++
++	return dev_fill_forward_path(&ctx, stack);
+ }
+ 
+ struct nft_forward_info {
 -- 
 2.47.3
 
