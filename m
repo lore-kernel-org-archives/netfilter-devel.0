@@ -1,174 +1,411 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC3294C77D1;
-	Thu,  6 Aug 2026 19:07:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F3BC38D3F2
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Aug 2026 20:23:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786043241; cv=none; b=XA7yYFuFFFAEYu+M0Hx8Op5xzSjBE853LviW5VeC6mOdihp8C5/MkwcD4iGoZJDTYzhg1X08+eibzaJrd2b1lxxvYLrKpn8SNzHBsszDAXZE88ougZ8Uiw5GlrjAMDegtnknNtNSlAOQq/+Ht0AyCNKjYseQiijCorVYbUvVkdc=
+	t=1786047786; cv=none; b=ZJe3mLe59//EGBBz/4kFD1TeRAZT0eMDUoD8ifnE7+J1ptylLf/vqD5vKwLalKHKkawOQUDJYXZbHgIN/n7tYZwOq1ncM57xXcMmLv4dQTcODDAzprAaxmiaMP19nMm9LJmLofKw+6p58PcXwDkZSTTi2K3moQvkpIyVGMEKMZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786043241; c=relaxed/simple;
-	bh=WXcm2Yb5I04oLe14dcXdrEPwOR8hGoCD+QeGAqYfYQw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AEHc1hF25SowMbEOHH1pCtzo+9NhhXR8eZdjexjXEJITmo4nkfXlmFAGt1iIzc8D9d8ucOiSMcc8J+ZsgNaH6p36PVOAfJwd1Bn33oFKpmet3FB1qRxL7dTgXvVPFzmpP7Ah/od8cky199kShTwnh3+V41NlwUo//i2daPkIZe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=nA1aUYEN; arc=none smtp.client-ip=205.220.177.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="nA1aUYEN"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 676Ftr4v4168306;
-	Thu, 6 Aug 2026 19:06:26 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	corp-2025-04-25; bh=85JNUC8SyfLYyGobZYpdZmxyQGF0qjVqbjDUd/Wkets=; b=
-	nA1aUYENomsR9p7hfDkQr6KalTZrWQW8NET0IkudX6kxW006ofYrtz87Qku7QfJU
-	1lbtfpVmJ42Q3AQE1tcbOw0dHj5dJSylYxq+m2+YcyLW9melEp/Zo40HFGHB54iG
-	OcTwtR+niQLcarL+4OWP5kUShgYJOMrLwxEqqSkY7Lj2zjgD/sgtw+C5rg7PDGAH
-	Gv3g1ppfRFvZh8DYeUX2gV+upEZO5qZ40tc03kMw1uUKshv2LOqjagJ3HbvFdCxa
-	5hBpF9vOLZ/60dXew31tSvX4uLcqli6uolj+khGTMmHGGzK/4pK/rJL+YY5xBUHb
-	pPRuZrwRVaPtUZ7W/V2+uA==
-Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4fs8ugpqtf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 06 Aug 2026 19:06:26 +0000 (GMT)
-Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.7/8.18.1.7) with ESMTP id 676J0b6k024663;
-	Thu, 6 Aug 2026 19:06:25 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 4fs78w56e3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 06 Aug 2026 19:06:25 +0000 (GMT)
-Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 676J6LgY011247;
-	Thu, 6 Aug 2026 19:06:24 GMT
-Received: from ca-mkp2.ca.oracle.com.com (mpeterse-ol9.allregionaliads.osdevelopmeniad.oraclevcn.com [100.100.251.135])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 4fs78w56b9-3;
-	Thu, 06 Aug 2026 19:06:24 +0000 (GMT)
-From: "Martin K. Petersen" <martin.petersen@oracle.com>
-To: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Daniel Lezcano <daniel.lezcano@kernel.org>,
-        David Airlie <airlied@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans de Goede <hansg@kernel.org>, Hans Verkuil <hverkuil@kernel.org>,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Jiri Pirko <jiri@resnulli.us>, "Joerg Roedel (AMD)" <joro@8bytes.org>,
-        Johan Hovold <johan@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Linus Walleij <linusw@kernel.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Mark Brown <broonie@kernel.org>, Matthew Sakai <msakai@redhat.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <mripard@kernel.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        Miri Korenblit <miriam.rachel.korenblit@intel.com>,
-        Nicolas Palix <nicolas.palix@imag.fr>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>, Ping-Ke Shih <pkshih@realtek.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Sebastian Reichel <sre@kernel.org>, Shuah Khan <shuah@kernel.org>,
-        Simona Vetter <simona@ffwll.ch>, Simon Horman <horms@verge.net.au>,
-        Stephen Boyd <sboyd@kernel.org>, Steve French <sfrench@samba.org>,
-        Takashi Iwai <tiwai@suse.com>, Thomas Renninger <trenn@suse.com>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Tony Luck <tony.luck@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>,
-        Vadim Fedorenko <vadim.fedorenko@linux.dev>,
-        Vinod Koul <vkoul@kernel.org>, Will Deacon <will@kernel.org>,
-        Yazen Ghannam <Yazen.Ghannam@amd.com>,
-        Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: "Martin K . Petersen" <martin.petersen@oracle.com>, cocci@inria.fr,
-        amd-gfx@lists.freedesktop.org, dmaengine@vger.kernel.org,
-        dm-devel@lists.linux.dev, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
-        iommu@lists.linux.dev, linux-cifs@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mm@kvack.org, linux-pm@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-rtc@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-sound@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
-Subject: Re: (subset) [PATCH 00/36] treewide: remove conditional returns with no effect
-Date: Thu,  6 Aug 2026 15:06:08 -0400
-Message-ID: <178589207129.336697.9870225893827541543.b4-ty@oracle.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
-References: <20260723184538.3888637-1-ekffu200098@gmail.com>
+	s=arc-20240116; t=1786047786; c=relaxed/simple;
+	bh=D4zB7SpjV+gXWU2OZrJVx1vqS7ks2GOSgEqEyZWZrik=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=r/bLiSfTMWmHjUzsXRfJuqywmHPoQbMeGhA4T/pmJFfrKL8trprVr9ymrBrweCDM9b5fTaE1RnB8HbyLD8MTieMgCoMRiwSNl+BWKaDztgFOHq7GhsqSYD+XO3QJURGmwUWkPgE3FgLA+TdP8hpH+ywGOzfou7Bfvua6TDyAMco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 2D82E602AB; Thu, 06 Aug 2026 22:22:56 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf v3] netfilter: ipset: remove need to allocate memory on delete operations
+Date: Thu,  6 Aug 2026 22:22:45 +0200
+Message-ID: <20260806202246.30917-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-06_02,2026-08-06_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
- spamscore=0 malwarescore=0 bulkscore=0 lowpriorityscore=0 mlxscore=0
- phishscore=0 mlxlogscore=672 suspectscore=0 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.19.0-2606160000 definitions=main-2608060149
-X-Proofpoint-ORIG-GUID: XGMDaQGIFMb57T6Q2yvPQTQQt2debxfq
-X-Authority-Analysis: v=2.4 cv=XqnK/1F9 c=1 sm=1 tr=0 ts=6a74db32 b=1 cx=c_pps
- a=e1sVV491RgrpLwSTMOnk8w==:117 a=e1sVV491RgrpLwSTMOnk8w==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=jiCTI4zE5U7BLdzWsZGv:22 a=BqU2WV_vvsyTyxaotp0D:22 a=VwQbUJbxAAAA:8
- a=Br-j9HdbvUlrMjNZj6IA:9 a=QEXdDO2ut3YA:10 a=5yU3S35YU4bGjq-dph-N:22
- a=Bho9c0fBagfJEIQBS7DQ:22 cc=ntf awl=host:13510
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODA2MDE0OSBTYWx0ZWRfX6uIK9jT+2Jev
- rYS5Xc6Wjv9hMYRtyD0NY9wioUhY1o9ts8S44XrOIykROIC2fMM+q3H5rjkub44bNgkLDQ3tnSe
- fkx9LiuU0Ioed9eVzRB8PP2qYuZIVaHGDH9Vr333gSb2ZgsHD92v
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA2MDE0OSBTYWx0ZWRfX43FUiflrVixJ
- FNgAKsr+fsfl0ktZltC3fvW6MVFcRQRy/oySHj8nQQDMOHwfS94QLWHrXArK3j62D1c6aNzQrnl
- 2DtOuGbPQocnjuSCI1ny1WWYx/7jkkjlcfyl+lp7TEesEfkx307+KuCZo0OgIxbIwfa72MWD4em
- tn6/hMd/QXx6zH3wP5OlhrMzlp2qKgIxJlelAMfUWIkruyj4hnvKzGUkqPoF4QRZ71As9I8pV2j
- DMm/cMIaHufC6lXcsuKfUk0yiqWTx1Zr8LtQAR498eW34hEj3pAMHucta0+1CKmEnv9EN7lkU/M
- FG7jgW8yHOjl2TgueMJFzovO4heKYSqjW47oC3CHVujyZPMUqifsWdUKFoxdhd+EKhXdCEJL9b0
- LGCES5HP/CdGIqj2UaaWymZGJVFVJ4RBD/aEk7/710HO5x59Z+gVx3LZGgty2YUYCbgJE7oGTWH
- QPXliDM2eYx5QgvaSSBlrfWn/1V9lBD33lbCDCaI=
-X-Proofpoint-GUID: XGMDaQGIFMb57T6Q2yvPQTQQt2debxfq
 
-On Fri, 24 Jul 2026 03:45:02 +0900, Sang-Heon Jeon wrote:
+Allocating mem via GFP_ATOMIC on delete is problematic, delete operations
+should always succeed.
 
-> While reading mm/memblock, I found a conditional return where both
-> branches return the same value:
-> 
-> 	err = do_something();
-> 	if (err)
-> 		return err;
-> 	return err;
-> 
-> [...]
+Do in-place substitution:  When /cidr reaches 0 count (no more elements in
+the range), move ranges stored later in the array forward and keep the
+count 0 ones at the end.
 
-Applied to 7.3/scsi-queue, thanks!
+INIT_CIDR() can then check count == 0 without a need to search next element
+in the array.
 
-[30/36] scsi: mpt3sas: remove conditional return with no effect
-        https://git.kernel.org/mkp/scsi/c/c79f9bf2d87f
+To avoid problems on weakly ordered architectures, pack the structure so it
+is only 32bit wide, then use READ/WRITE_ONCE to store both cidr and count.
+atomically.
 
+Also update comments to mention the possible presence of ignored
+0-count-0-cidr structures at the end and need for seqcount.
+
+seqcount is used to restart.  This avoids bogus range misses.
+Given:  [0]: /29 [1]: /24
+cpu1 reads slot 0. then, right after, cpu2 removes /29. count drops to 0,
+so it updates array to: [0], /24, [1], /0 (count 0).
+
+cpu1 then skips /28: slot 0 was already visited, but slot 1 already replaced.
+
+Note that mtype_add() doesn't check mtype_add_cidr() return value.
+Doing this here is useless noise as this code is extensively rewritten
+in the rhashtable replacement patch.
+
+Assisted-by: Claude:claude-sonnet-5
+Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ v3: Fix double increment.
+ v2:
+  - detach from ipset rhashtable patchset, that needs more soak time
+  - remove mtype_flush allocation and zero out like in mtype_del.
+  - add seqcount retry even for match case to handle 'nomatch' entries
+    that might have been skipped.
+
+ net/netfilter/ipset/ip_set_hash_gen.h        | 169 +++++++++++++------
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   1 -
+ net/netfilter/ipset/ip_set_hash_netportnet.c |   1 -
+ 3 files changed, 122 insertions(+), 49 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index f00c82acd7f0..ea72b9794f88 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -8,6 +8,7 @@
+ #include <linux/rcupdate_wait.h>
+ #include <linux/jhash.h>
+ #include <linux/types.h>
++#include <linux/seqlock.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/ipset/ip_set.h>
+ 
+@@ -98,14 +99,34 @@ struct htable {
+ #define IPSET_NET_COUNT		1
+ #endif
+ 
+-/* Book-keeping of the prefixes added to the set */
++/**
++ * struct net_prefix - Representation of a network prefix.
++ * @cidr: The CIDR prefix length.
++ * @count: Number of occurrences.
++ */
+ struct net_prefix {
+-	u8 cidr;			/* the cidr value */
+-	u32 count;			/* number of elements of this cidr */
++	u32 cidr:8;
++	u32 count:24;
+ };
+ 
++#define CIDR_MAX_COUNT ((1 << 24) - 1)
++
++/**
++ * struct net_prefixes - A collection of network prefixes.
++ * @rcu: RCU head
++ * @seq: Sequence counter guarding in-place reordering of @nets
++ * @len: Number of entries in the array.
++ * @nets: Array of net_prefix structures (sorted by CIDR descending).
++ *
++ * @nets entries are updated in place under @set's lock. A single entry's
++ * cidr/count pair is always updated atomically via READ_ONCE()/WRITE_ONCE(),
++ * but removing an entry also shifts every following entry down by one slot.
++ * Lockless readers that scan the whole array (i.e. more than a single
++ * indexed slot) must use @seq to detect and retry across such a shift.
++ */
+ struct net_prefixes {
+ 	struct rcu_head rcu;
++	seqcount_spinlock_t seq;
+ 	u8 len;
+ 	struct net_prefix nets[] __counted_by(len);
+ };
+@@ -143,8 +164,11 @@ htable_size(u8 hbits)
+ #endif
+ 
+ #define INIT_CIDR(n, host_mask) ({				\
+-	const struct net_prefixes *__n = rcu_dereference(n);		\
+-	DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
++	const struct net_prefixes *__n = rcu_dereference(n);	\
++	struct net_prefix __p =					\
++		__n->len ? READ_ONCE(__n->nets[0])		\
++			 : (struct net_prefix){};		\
++	DCIDR_PUT(__p.count ? __p.cidr : host_mask);		\
+ })
+ 
+ #endif /* IP_SET_HASH_WITH_NETS */
+@@ -318,27 +342,43 @@ struct mtype_resize_ad {
+ };
+ 
+ #ifdef IP_SET_HASH_WITH_NETS
+-/* Network cidr size book keeping when the hash stores different
+- * sized networks. cidr == real cidr + 1 to support /0.
++/**
++ * mtype_add_cidr - Add a CIDR entry to hash table bookkeeping
++ * @set: Pointer to the ip_set
++ * @h: Pointer to the htype
++ * @cidr: The CIDR prefix length
++ * @n: The index of the net_prefix array to add @cidr to
++ *
++ * Performs an update if @cidr is found, otherwise performs COW-style
++ * allocation and replacement via RCU.
++ *
++ * Return: 0 on success, negative error code on failure.
+  */
+ static int
+ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ {
+-	struct net_prefixes *nets, *tmp;
+ 	int i, j, found, len = 0, ret = 0;
++	struct net_prefixes *nets, *tmp;
++	struct net_prefix np;
+ 
+ 	spin_lock_bh(&set->lock);
+ 	nets = __ipset_dereference(h->rnets[n]);
+ 	/* Add in increasing prefix order, so larger cidr first */
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+-		if (nets->nets[i].count)
++		np = READ_ONCE(nets->nets[i]);
++		if (np.count)
+ 			len++;
+ 		if (found != -1) {
+ 			continue;
+-		} else if (nets->nets[i].cidr < cidr) {
++		} else if (np.cidr < cidr) {
+ 			found = i;
+-		} else if (nets->nets[i].cidr == cidr) {
+-			nets->nets[i].count++;
++		} else if (np.cidr == cidr) {
++			if (np.count < CIDR_MAX_COUNT) {
++				np.count++;
++				WRITE_ONCE(nets->nets[i], np);
++			} else {
++				ret = -EOVERFLOW;
++			}
+ 			goto unlock;
+ 		}
+ 	}
+@@ -350,6 +390,7 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ 	}
+ 
+ 	tmp->len = len;
++	seqcount_spinlock_init(&tmp->seq, &set->lock);
+ 	for (i = 0, j = 0; i < nets->len; i++) {
+ 		if (i == found) {
+ 			tmp->nets[j].cidr = cidr;
+@@ -371,42 +412,60 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ 	return ret;
+ }
+ 
++/**
++ * mtype_del_cidr - Remove CIDR entry and maintain array integrity.
++ * @set: Pointer to the ip_set.
++ * @h: Pointer to the htype.
++ * @cidr: The CIDR prefix length.
++ * @n: The index of the net_prefix array to remove @cidr from
++ *
++ * If CIDR entry count falls to 0, this function performs a "shift-left"
++ * operation on all following elements. This ensures that the array remains
++ * contiguous and maintains its descending order by CIDR. The vacated slot
++ * at the end of the array is zeroed out (cidr=0, count=0).
++ */
+ static void
+ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ {
+-	struct net_prefixes *nets, *tmp;
+-	u8 i, j, len = 0;
++	struct net_prefixes *nets;
++	struct net_prefix np;
+ 	int found;
++	u8 i, j;
++
++	BUILD_BUG_ON(sizeof(struct net_prefix) != sizeof(u32));
+ 
+ 	spin_lock_bh(&set->lock);
+ 	nets = __ipset_dereference(h->rnets[n]);
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+-		if (nets->nets[i].count)
+-			len++;
+-		if (nets->nets[i].cidr == cidr)
++		np = READ_ONCE(nets->nets[i]);
++		if (np.count && np.cidr == cidr) {
++			np.count--;
+ 			found = i;
++			break;
++		}
+ 	}
+ 	if (unlikely(found == -1))
+ 		goto unlock;
+ 
+-	nets->nets[found].count--;
+-	if (nets->nets[found].count)
+-		goto unlock;
+-	len--;
+-	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
+-	if (!tmp)
+-		/* Leave a hole */
++	if (np.count) {
++		WRITE_ONCE(nets->nets[found], np);
+ 		goto unlock;
++	}
+ 
+-	tmp->len = len;
++	write_seqcount_begin(&nets->seq);
+ 	for (i = 0, j = 0; i < nets->len; i++) {
+-		if (!nets->nets[i].count || i == found)
++		if (i == found)
+ 			continue;
+-		tmp->nets[j].cidr = nets->nets[i].cidr;
+-		tmp->nets[j++].count = nets->nets[i].count;
++
++		np = READ_ONCE(nets->nets[i]);
++		if (i != j)
++			WRITE_ONCE(nets->nets[j], np);
++		j++;
+ 	}
+-	rcu_assign_pointer(h->rnets[n], tmp);
+-	kfree_rcu(nets, rcu);
++
++	while (j < nets->len)
++		WRITE_ONCE(nets->nets[j++], (struct net_prefix){});
++	write_seqcount_end(&nets->seq);
+ unlock:
+ 	spin_unlock_bh(&set->lock);
+ }
+@@ -451,7 +510,7 @@ mtype_flush(struct ip_set *set)
+ {
+ 	struct htype *h = set->data;
+ #ifdef IP_SET_HASH_WITH_NETS
+-	struct net_prefixes *nets, *tmp;
++	struct net_prefixes *nets;
+ #endif
+ 	struct htable *t;
+ 	struct hbucket *n;
+@@ -477,17 +536,15 @@ mtype_flush(struct ip_set *set)
+ 	}
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	for (i = 0; i < IPSET_NET_COUNT; i++) {
+-		nets = ipset_dereference_nfnl(h->rnets[i]);
+-		tmp = kzalloc_obj(*tmp, GFP_ATOMIC);
+-		if (!tmp) {
+-			u8 j;
++		u8 j;
+ 
+-			for (j = 0; j < nets->len; j++)
+-				nets->nets[j].count = 0;
+-		} else {
+-			rcu_assign_pointer(h->rnets[i], tmp);
+-			kfree_rcu(nets, rcu);
+-		}
++		spin_lock_bh(&set->lock);
++		nets = ipset_dereference_nfnl(h->rnets[i]);
++		write_seqcount_begin(&nets->seq);
++		for (j = 0; j < nets->len; j++)
++			WRITE_ONCE(nets->nets[j], (struct net_prefix){});
++		write_seqcount_end(&nets->seq);
++		spin_unlock_bh(&set->lock);
+ 	}
+ #endif
+ }
+@@ -1253,31 +1310,41 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ #if IPSET_NET_COUNT == 2
+ 	struct net_prefixes *nets1;
+ 	struct mtype_elem orig = *d;
++	unsigned int seq1;
+ 	int ret, i, j, k;
+ #else
+ 	int ret, i, j;
+ #endif
+-	u32 key, multi = 0;
++	unsigned int seq0;
++	u32 key, multi;
+ 	u8 pos;
+ 
+ 	pr_debug("test by nets\n");
+ 	rcu_read_lock_bh();
++retry:
++	multi = 0;
+ 	nets0 = rcu_dereference_bh(h->rnets[0]);
++	seq0 = read_seqcount_begin(&nets0->seq);
+ #if IPSET_NET_COUNT == 2
+ 	nets1 = rcu_dereference_bh(h->rnets[1]);
++	seq1 = read_seqcount_begin(&nets1->seq);
+ #endif
+ 	for (j = 0; j < nets0->len && !multi; j++) {
+-		if (!nets0->nets[j].count)
++		struct net_prefix p0 = READ_ONCE(nets0->nets[j]);
++
++		if (!p0.count)
+ 			continue;
+ #if IPSET_NET_COUNT == 2
+ 		mtype_data_reset_elem(d, &orig);
+-		mtype_data_netmask(d, nets0->nets[j].cidr, false);
++		mtype_data_netmask(d, p0.cidr, false);
+ 		for (k = 0; k < nets1->len && !multi; k++) {
+-			if (!nets1->nets[k].count)
++			struct net_prefix p1 = READ_ONCE(nets1->nets[k]);
++
++			if (!p1.count)
+ 				continue;
+-			mtype_data_netmask(d, nets1->nets[k].cidr, true);
++			mtype_data_netmask(d, p1.cidr, true);
+ #else
+-		mtype_data_netmask(d, nets0->nets[j].cidr);
++		mtype_data_netmask(d, p0.cidr);
+ #endif
+ 		key = HKEY(d, h->initval, t->htable_bits);
+ 		n = rcu_dereference_bh(hbucket(t, key));
+@@ -1302,6 +1369,13 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 		}
+ #endif
+ 	}
++
++	if (read_seqcount_retry(&nets0->seq, seq0))
++		goto retry;
++#if IPSET_NET_COUNT == 2
++	if (read_seqcount_retry(&nets1->seq, seq1))
++		goto retry;
++#endif
+ 	ret = 0;
+ unlock:
+ 	rcu_read_unlock_bh();
+@@ -1707,6 +1781,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 				kfree(rcu_dereference_raw(h->rnets[--i]));
+ 			goto free_hregion;
+ 		}
++		seqcount_spinlock_init(&nets->seq, &set->lock);
+ 		RCU_INIT_POINTER(h->rnets[i], nets);
+ 	}
+ #endif
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index b44b95f766b7..b602cc43565d 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -38,7 +38,6 @@ MODULE_ALIAS("ip_set_hash:net,iface");
+ #define HTYPE		hash_netiface
+ #define IP_SET_HASH_WITH_NETS
+ #define IP_SET_HASH_WITH_MULTI
+-#define IP_SET_HASH_WITH_NET0
+ 
+ #define STRSCPY(a, b)	strscpy(a, b, IFNAMSIZ)
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 6291532be7a5..61af1ce27127 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -36,7 +36,6 @@ MODULE_ALIAS("ip_set_hash:net,port,net");
+ #define IP_SET_HASH_WITH_PROTO
+ #define IP_SET_HASH_WITH_NETS
+ #define IPSET_NET_COUNT 2
+-#define IP_SET_HASH_WITH_NET0
+ 
+ /* IPv4 variant */
+ 
 -- 
-Martin K. Petersen
+2.54.0
+
