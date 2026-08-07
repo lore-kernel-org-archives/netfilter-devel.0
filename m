@@ -1,146 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4EBC36D517
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Aug 2026 09:02:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF79B44A403
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Aug 2026 09:07:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786093375; cv=none; b=DNbZDXAesRVI4/66bDzi8pOVqmQFwdByYSqcX2bLD2F9P7vTZf3LnpPb+Jp3eWKqKppLfyKbyyBICPuVjULIU4yGhnFnJ0jz5A7PwDjUN0ZGm9kvC6UFfgyxfUt1rfsgm8ceHoq4oq3S9gC+T91s2hSbk1iBfWehMBlnQGxB32w=
+	t=1786093644; cv=none; b=nKuQYwhOG1VQF8US8DTII/nbsu7wNdO4Zm9UbxpSIu+GnzhlLLs8jqaWgNp/dFySYgvomRvOt3P5qV8O0fTRDUvUcX9pTdA+mOp9kDzyN/wFyysN8BUbBbqtG9cPPpMcPqA9bmiCYca2L7zERsSZwf54niRDrpsFPn214/DUOH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786093375; c=relaxed/simple;
-	bh=mrtiHCJC7YC9s0v9hnaReoRj2RpTwKL4dtWRoDq8Uxk=;
+	s=arc-20240116; t=1786093644; c=relaxed/simple;
+	bh=1TrKSTZ+bpBOKYMAcQwbLCx2isLKoZGtybgMbRG9jCA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c0gAFQE1uiKq9tsmlMy8nawl47/JQZD1DkWJUbNY6GdfoccYhYRGouNUyPSWjA+4g1qxib7FJqbJIDNULlmx68V3lc11c2dEiMUEk2WtcvQie9gSi5RcHq6fx7uySIcZM07i+hIQj6ETvtZs4uckio17/4Dgp1enlRHmeTwItLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dT0GEsfX; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=lFwaZEKConrdX8Ijskw68lD3IiIASGiHywGYmEIn+PgsSfhKPSubcrCx+iwH8uQlyCnuOuBhshy4U6B7ESHaXMjpKlwDt5XZGlb6vkT8SVpeE2zsmCS9uidyx2WFmZBzF4mkpHHX3yz7Qf3lRSdJ+4DX/zU6GrLSMs5t+70HzbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KagHAN3k; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dT0GEsfX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B74461F000E9;
-	Fri,  7 Aug 2026 09:02:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786093374;
-	bh=KZo6GnnEjEj2sgmkkSiTWRTwN2S2jGjwdK0C2sk6It0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dT0GEsfXjy19UZLzQD+KxKlJR7bpHw+BoUWUSozV7Sz3l091G/fHDXBgJnJRYJ8k8
-	 fdSWuUj8W+8zvkyrg68UByJ5ZzGx5VcSGTnywwcJh1BYJ/tcGxUxbMLmWl4zau+mrF
-	 eRpepFX3LGPtZS+zpuuIBRHfb7p4nMDjjY4p/f90txWaYzkra/eQ6s9OXz1J9lFjA0
-	 9XugyfEbkNFhqIVKwJShErZAX6MWebLMfB8tqw8oEduGMYLRUCszSDNpzZY3mhOx4Y
-	 bResQviYjqIjtDq43yBRtEpeZKFizh0MCltEytQqgqM0r3Fv2KeuZXAa0BldF70L4Q
-	 FIkxV/XdOPVpw==
-Date: Fri, 7 Aug 2026 11:02:52 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, lorenzo.bianconi@oss.qualcomm.com
-Subject: Re: [PATCH nf-next 4/7] netfilter: flowtable: rename ctx.tun.proto
- to ctx.tun.inner_proto
-Message-ID: <anWfPBLT8x2GHqVs@lore-desk>
-References: <20260806223535.523098-1-pablo@netfilter.org>
- <20260806223535.523098-5-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KagHAN3k"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2ceb096e675so38262575ad.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 02:07:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786093642; x=1786698442; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=w30NsI+1RUdi2X/WAHFrnMemITJZqC+5MhrMfUj8hcw=;
+        b=KagHAN3k19O/MSUi6OaaV6ozWDEfhCmXHE8A8hXTl/rAdeLbV5zlugY/EpP1GS7GEM
+         hrFna3HHz8YCFn8nZVGcUepzd93kE07dieK77HqVcekZR+KKJVkhaP/qqH9+PEUN75Qq
+         kQfZEQR7RUjikXUscgaaw0gxmlGWO6xa2RHL5sq1jXeOSd8O57Y+vbxc8zUQOS/wolXw
+         faPgoghzyAFA1H8xu+FuSdVGAMy4tnSBmeOjIsq7c1faoHthQD26AMX0Tg6IctZeg/hC
+         Ig789AMVtjBwB33NvuOlmrgFr6Mtko4CN+NUOBYGI+kl6cYqLGT820vsUb0T7dqelAHv
+         C6kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786093642; x=1786698442;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=w30NsI+1RUdi2X/WAHFrnMemITJZqC+5MhrMfUj8hcw=;
+        b=QT1ji/ffSlEcyvu5gvrmk48Msi0XTKprJ3dXjSDXyy19a1ZrBo8K8ynMV1qPzGZSgt
+         od9Zrot7k662IJcXNHxPZYgiS7G3FWAPHEhCumtHDAC4jPT+kwaV14mmZxSzVZGIBOy3
+         SInfK1ZT0R3ZIrjlNmUupU4daTCNtfzcAsKaXNAHMDOs/7lb3whzXWhjyFF7NIlVY8G8
+         3yCNW4XE1L9+2o7EqJeH8VGHdN8wi8Y32x5zza9r1WwIOibEO0tEviZ1E0s3+P9Y0mQs
+         jFJ1xk6P+soMhiSNEy+1g8+/QcZqXAuhXaevc8x1ZTBy38Xz5ci/8qkIV3+pFxfNQ91n
+         iuhA==
+X-Forwarded-Encrypted: i=1; AHgh+RoPECbIDs664vgQ1WMZx5/Fs9a/PiPdA/mZeMsD1zn/raQ5wprrRof6pMhLt4PMi4jkI8JF55H4WWUwAunyhvY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyKG8D6yem2DtF9HZo6d8XN+nv0FpGplwblve9IR1yl2LtG/Zeb
+	Wx/JxL3rCj6jI3V3biOMnhHZWd/yrd62eYaKlO3VYxxUXOX+WLD4nzwq
+X-Gm-Gg: AR+sD11AMwzERAwGKYEA2bSkmRtViexsOqFD4EVFPVS+wrufma/AP54xQW/oYgk9uo9
+	MJxFXJsaDwHb1EpSeSumZkbj2IcVaLFyAt6CkwGnRd89fbIpAAEqBsEsUhrTmsHKZBTh7QNpH9C
+	gCCNvpWmMoL/k2BbIX8/Br9gT33PabgqyhKiak6S3hl72v1SzGRCdoKbOVTuF8GNrqzK1H8ujx9
+	0m0K7hGI4i+89GlzAOFREG0CMGEWSGtsbZJv6cWq8V/5svuWtfPF8SgT//N8ig6SO+h2wriZgUx
+	mW1/iiuO4O9dnTAwVldEOLYLmL91R/c53F5/oMtsXagkx2FRaMTU0nul/D4NFBTbktKIMlH2BeO
+	OPJxiCA5ki2TeSGDn38aPOp/VbSCNscrvtfAVr4+17QJPGV25b8oi8H/wNKp6cRIXltxmQX7ASm
+	qMc4u2gpINstoW5R/7LhdmoKjDUExixjA7DvwcUu/bWFvO/fr4OQi+Ryk=
+X-Received: by 2002:a17:902:e885:b0:2ca:e565:7b15 with SMTP id d9443c01a7336-2d0ca7f8a67mr219600325ad.10.1786093641504;
+        Fri, 07 Aug 2026 02:07:21 -0700 (PDT)
+Received: from fedora ([203.175.12.242])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d16c4a7733sm5724695ad.67.2026.08.07.02.07.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 07 Aug 2026 02:07:21 -0700 (PDT)
+Date: Fri, 7 Aug 2026 17:07:13 +0800
+From: Hangbin Liu <liuhangbin@gmail.com>
+To: Qingshuang Fu <fffsqian@163.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Qingshuang Fu <fuqingshuang@kylinos.cn>,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: Re: [PATCH net v2] selftests: netfilter: conntrack_dump_flush:
+ remove unused variables and fix typo
+Message-ID: <anWgQSbZWK6D2ONg@fedora>
+References: <20260807075928.64326-1-fffsqian@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="eKIZDs6X+rZaJUX3"
-Content-Disposition: inline
-In-Reply-To: <20260806223535.523098-5-pablo@netfilter.org>
-
---eKIZDs6X+rZaJUX3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260807075928.64326-1-fffsqian@163.com>
 
-> For consistency with the tun.l3proto rename, use same name field.
-> No functional changes are intended.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+On Fri, Aug 07, 2026 at 03:59:28PM +0800, Qingshuang Fu wrote:
+> From: Qingshuang Fu <fuqingshuang@kylinos.cn>
+> 
+> Remove unused 'rplnlh' in conntrack_data_insert(), and remove unused
+> 'rplnlh' and 'nest' variables in conntrack_count_zone() and
+> conntrack_flush_zone(). These variables were declared but never used
+> since their introduction.
+> 
+> Also fix typo: rename misspelled conntracK_count_zone() to
+> conntrack_count_zone().
+> 
+> Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> Signed-off-by: Qingshuang Fu <fuqingshuang@kylinos.cn>
 
 > ---
->  net/netfilter/nf_flow_table_ip.c | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
->=20
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_tab=
-le_ip.c
-> index e1aa01763f33..ed90809b206e 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -153,7 +153,7 @@ struct nf_flowtable_ctx {
->  		/* Tunnel IP header size */
->  		u32 hdr_size;
->  		/* IP tunnel protocol */
-> -		u8 proto;
-> +		u8 inner_proto;
->  	} tun;
->  };
-> =20
-> @@ -194,7 +194,7 @@ static void nf_flow_tuple_encap(struct nf_flowtable_c=
-tx *ctx,
->  	switch (inner_proto) {
->  	case htons(ETH_P_IP):
->  		iph =3D (struct iphdr *)(skb_network_header(skb) + offset);
-> -		if (ctx->tun.proto =3D=3D IPPROTO_IPIP) {
-> +		if (ctx->tun.inner_proto =3D=3D IPPROTO_IPIP) {
->  			tuple->tun.dst_v4.s_addr =3D iph->daddr;
->  			tuple->tun.src_v4.s_addr =3D iph->saddr;
->  			tuple->tun.inner_proto =3D IPPROTO_IPIP;
-> @@ -202,7 +202,7 @@ static void nf_flow_tuple_encap(struct nf_flowtable_c=
-tx *ctx,
->  		break;
->  	case htons(ETH_P_IPV6):
->  		ip6h =3D (struct ipv6hdr *)(skb_network_header(skb) + offset);
-> -		if (ctx->tun.proto =3D=3D IPPROTO_IPV6) {
-> +		if (ctx->tun.inner_proto =3D=3D IPPROTO_IPV6) {
->  			tuple->tun.dst_v6 =3D ip6h->daddr;
->  			tuple->tun.src_v6 =3D ip6h->saddr;
->  			tuple->tun.inner_proto =3D IPPROTO_IPV6;
-> @@ -328,7 +328,7 @@ static bool nf_flow_ip4_tunnel_proto(struct nf_flowta=
-ble_ctx *ctx,
->  		return false;
-> =20
->  	if (iph->protocol =3D=3D IPPROTO_IPIP) {
-> -		ctx->tun.proto =3D iph->protocol;
-> +		ctx->tun.inner_proto =3D iph->protocol;
->  		ctx->tun.hdr_size =3D size;
->  		ctx->offset +=3D ctx->tun.hdr_size;
->  	}
-> @@ -353,7 +353,7 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowta=
-ble_ctx *ctx,
->  		return false;
-> =20
->  	if (ip6h->nexthdr =3D=3D IPPROTO_IPV6) {
-> -		ctx->tun.proto =3D ip6h->nexthdr;
-> +		ctx->tun.inner_proto =3D ip6h->nexthdr;
->  		ctx->tun.hdr_size =3D sizeof(*ip6h);
->  		ctx->offset +=3D ctx->tun.hdr_size;
->  	}
-> @@ -367,8 +367,8 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowta=
-ble_ctx *ctx,
->  static void nf_flow_ip_tunnel_pop(struct nf_flowtable_ctx *ctx,
->  				  struct sk_buff *skb)
->  {
-> -	if (ctx->tun.proto !=3D IPPROTO_IPIP &&
-> -	    ctx->tun.proto !=3D IPPROTO_IPV6)
-> +	if (ctx->tun.inner_proto !=3D IPPROTO_IPIP &&
-> +	    ctx->tun.inner_proto !=3D IPPROTO_IPV6)
->  		return;
-> =20
->  	skb_pull(skb, ctx->tun.hdr_size);
-> --=20
-> 2.47.3
->=20
+> v2:
+>   - Drop Fixes tag as this is a cleanup, not a bug fix
 
---eKIZDs6X+rZaJUX3
-Content-Type: application/pgp-signature; name=signature.asc
+If not a bug fix, you should target to net-next.
 
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCanWfPAAKCRA6cBh0uS2t
-rNG5AQCDDtQqSbhb+Cc7D2mrt0VCrMtcja6K2U8wQOJorj8tpAD/f41L3ln6FmtD
-ubkdywaK083KjR/yX808uM78ZLeC/w0=
-=aT47
------END PGP SIGNATURE-----
-
---eKIZDs6X+rZaJUX3--
+Reviewed-by: Hangbin Liu <liuhangbin@kylinos.cn>
