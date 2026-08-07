@@ -1,116 +1,160 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 766CF3D525B
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Aug 2026 08:58:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786093085; cv=pass; b=T7zNthGQ1QmHYQnsiRBt4TbEVUzWHVIO27wOn1zAImCCIWpqSjlzthYEOoqGk7yV3z24IH3OBzXRodKNkeJX2biwDwJ1fGvitZQuy1V0a07c3yp8C3h/AONwTFNnnpoboesFDvNm3br+pBmmQ9CC1096Rdr4IK/2UBSUNxerO4g=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786093085; c=relaxed/simple;
-	bh=ZxbrVGxBp7yVKwlHa1qQNTWf1puHjwTku4y+NBPxXnk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Z9J5puYBc2otJj0/LCzQxj+FWq/aCwZVUq2VcfyeUjCyaGHMK06zp/q2FnmvURI/eL1v+9hJpvzkcGoRjWb6R8txCRYTUyeIz8cA5MXftDiP/p3hvnYfkM+LBlURQHbHkXXK2RsGm1Yaza2TVx6/B/HKE0G+P9mZR2/Sd9Mu7FM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GtUs8bWV; arc=pass smtp.client-ip=209.85.218.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5993E3346A8
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Aug 2026 09:00:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786093231; cv=none; b=WLLaRSpPAO3tDySd190LFQY8CqLC5VynuadZFqJYcKYW1H1FCzM5ZvWy/rs7IE0TjbT+m6LL79Rq4CZuZDrK1oIH3ZEfVMq9cbzpGWDsDoA37cg9afNaLzLf1/34c6W6FmEuOXLjIn9mBh72/9KuSsIMX4vIg6Je3xRYuDhv7YA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786093231; c=relaxed/simple;
+	bh=HpQJ6ScqRET77mJ9eypLApJN9/0A2otGW60Pd2zmOd4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=a94A7mmZE/Z/UHruly+Z4fLEeiu2bEkMOto+RXpJVqvFKJ6bYHIwOkQy/uJyAo/jP2ZMISsrjuA3AiUmTCP91O9FFBd5ubMBZD3BN65JFX4JCptx+INZKqIVKfyO8QGpif2g2o+9/pVLMbv4saCQ+vmFMEHAvCabBT/ElgXlOMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ovidvj6d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GtUs8bWV"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c15e592da74so393497966b.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 01:58:04 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786093082; cv=none;
-        d=google.com; s=arc-20260327;
-        b=s0J5nP6azS7VsAezeJ0z4gliEBMA4EHwSKd9gKawZ9gA6kRbaGhRpqIiWIYuHScZdJ
-         bUfsSs4nVywPdgqm0Rvf9Iv8CQZ1MI5Qzr1/vQtQJOg3fwSuogr46nKpui4mRum3XyAE
-         RGRXITe12yvlto9ogALIMa2C23lo13ENr4FgKUH+iSBoqNZj3gIzaKNkPdGazDxSAOKt
-         UFRhgQnFRhmlpnZSm/tVVEBzQecX3B6VweQzxDzFeVQIYlNG2AsBeVgBrsgnd5XQXT2l
-         1F7qkZlqTyWZZQt2UOocsz3HYiV5Rk5TQ+oLuoaz8VfI3VomApNa+PpZQUcWRJ5yzkgf
-         nijQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=ZxbrVGxBp7yVKwlHa1qQNTWf1puHjwTku4y+NBPxXnk=;
-        fh=uQN3+KfQx6ufHnEfCVzKS8a6EyO3+8Is1vt0LcqATPk=;
-        b=s0+YBGFvU3exTK8qaxwxSErYGfqwKCqyh9jKJn0uXtViNhXYkDiCYfZjvwK7N9Xiux
-         Nk414aWOFSbJP6hJ1PlQetlMRD+K4wdQMggMy4e3CoCGNw+c8vwuMIRWFynDizxO1pPb
-         /YLnbmRWBaxYrstz1BcHMYd+SbtqalPjskkM0e8wyE8iVyN4uKRbEJisascnw05G+E5M
-         XDHZ82WZvtSaC7CAm+YyZmAHG3QBjw+S4wfiO0BFkH8RAGuQi2aJgT/s902yAIvQGttF
-         nB0LWDfWvc+DFucrR/Qpu2dg1uf1szt1HsFxi/wgtsdGF5z34CmOwVEIJZbBSAmAM+Io
-         pKdg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786093082; x=1786697882; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ZxbrVGxBp7yVKwlHa1qQNTWf1puHjwTku4y+NBPxXnk=;
-        b=GtUs8bWVlQMjERRydOvwcJZjaSSudiVAiqUGc+qf1q2+G5QtVEHhTXDXtBcxGQuEZg
-         TZTyr/QiD5YZlEzy0rAHvWes7JUsTtLv/fXOW0FLJvu1HV3UsXHa4FwPfHIvZquARN23
-         IC+1x92T16ho40Jp+m3ZlGswS2HW82vmI4thLMISKT31+o1w/Bh4FsLquvDiaXEaWfH4
-         sJqWU6DEWy4ihsdLIcxk6toLKOq/n8eXT4H6sftwCfyl1Un4UVDgFlnOIDFED5LF7rQ/
-         0mhcub9Svm+r/k2GlrFCTS3bkVeZM4d5JyVzINltqYR+X78t5ngrD0l1zUQuIDtz1nOu
-         PMEg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786093082; x=1786697882;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=ZxbrVGxBp7yVKwlHa1qQNTWf1puHjwTku4y+NBPxXnk=;
-        b=jvPZ0KOVV0rhKLVl+q0DXF6GCKNbGYaIhnP3hjoCxsrEdEFh68g7a5rTsZaxnLkfCr
-         nz77sKvWAt0o+dHJILM3g2T4uTVd5U1FeH098SxmcSEMnwYagQeFg0X9Csgf1QTdvu4j
-         GY1sW91RZiXxBSS5SUbX1xjwywpmHDAWbQrIMdbKUeQzkpEQfRLUiRhUzfVS4Q6Jtilc
-         td5VdwbqqTYApkxEFMX0HszqkpA6vrRz6WLW4wFhmWElRu6SLNIkQgTlaByckEo4j9Qz
-         OUR0QK7rFoIXe+RPjFTWSuyio7loD4TQKXykfyuD8cJZDoIeMGzDewLFcfqet70RsvYn
-         2q3A==
-X-Forwarded-Encrypted: i=1; AHgh+RrG8emSBEFDmUiuQ6mAyca24C1yxIH9GTR4XszhZp4PDsJz2+nTJWtPonFlEF8oHin5/85WNe//DDoBIch3aqk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyZIs6Vld++sNBCNMh8rE+CTrC06xDT00KdopxW1w5y71WbPytl
-	lxo3TDrKIFQWv1zILfuyTI7hq8ZO4sCeN6UH3mlELfltLj18g8Ep4Lvvb0RNSuW5TzUi8BuvD72
-	GxGoMoxm9rUrTzHTPigDkfH6ViqyynQQ=
-X-Gm-Gg: AR+sD11xjawqLcgXLLq27QHf5Ah3Wkf4MLuCsjqys2naT1w/e+gcAF/03Ws4VzY3NoB
-	Yo94YzIABKFS/eFZmAfgKA8tcccRRZJpgm51jKh3Lq1U+nfTPKar41m+T4sxoqaASPiMwMEGjk6
-	PtdBX4FV3Pxt4HKqS8VKEWL+HLXE/CQKpzyGxpSoMp1gf34G0CCP+TkgRvH9I+xej8q46PfbKtl
-	6kMeTFO0g+nqHSfNd0spHXSDmkfPA/o3aNICzW1Ce5E6sTEvoWWx3OnX4HO93sqaOWCcnwRMIHM
-	lrmCo6HRRb43xSZyqmVNGvsH654I3+Gv74IP0DYALoI=
-X-Received: by 2002:a05:6938:a093:10b0:c16:66dc:3abe with SMTP id
- a640c23a62f3a-c2051ec5e07mr650524766b.28.1786093082291; Fri, 07 Aug 2026
- 01:58:02 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ovidvj6d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 672781F000E9;
+	Fri,  7 Aug 2026 09:00:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786093229;
+	bh=8/SrVsEsGaeBo5qSBX31YDymuW5fM9Z/A4YrBG5Yv1I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Ovidvj6dCKAkkwZftavRA5W/joAWVkrCqvFlughg283i5I9CobdlD/Ew810TFBwDB
+	 PY9DvWfguRBgBBT7eJjQ+4yVNSkKiAwZS8QN0mWSWL3pNhzqG8DWa28OUoDaQni+kT
+	 SbfbNlUECzopvT3DWmHT6lGuNvz+2wermJMEERcbqI/EgKNMlqy8IDR+x8S9w6lglA
+	 dIFY9Ls+eZg0PDZ2LnNwRaWz27X64BqyxQEcnPDzVVgeuuFkZyaffaUSNpAPlB7u5Q
+	 KgDObxTfloMSNx9IMLCV0s92+xDGS0wQeRGv69wfasWJqiaEpOpBxl3+u7SZBTCqBX
+	 +Qbl7RnxkniNg==
+Date: Fri, 7 Aug 2026 11:00:27 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, lorenzo.bianconi@oss.qualcomm.com
+Subject: Re: [PATCH nf-next 2/7] net: netfilter: add ether_type to
+ net_device_path_ctx and use it
+Message-ID: <anWeq32DcHjUwMfV@lore-desk>
+References: <20260806223535.523098-1-pablo@netfilter.org>
+ <20260806223535.523098-3-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260724110111.18783-1-running910@gmail.com> <amyC7_3bbwJpXIPd@chamomile>
-In-Reply-To: <amyC7_3bbwJpXIPd@chamomile>
-From: Zhixing Chen <running910@gmail.com>
-Date: Fri, 7 Aug 2026 16:57:49 +0800
-X-Gm-Features: AUfX_my8tPdK2QqmZAQFkJZ_YeSAMJRe7w2lCGZIQ9CKHeSLIi7oH4wDjrLrac4
-Message-ID: <CAMyuFdU0m_VZU+cDAJXROZTqJk8HE75mu47ttVManC_osg62zA@mail.gmail.com>
-Subject: Re: [PATCH nf v3] netfilter: ip6tables: set hotdrop for malformed
- extension header matches
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="t8m0gOoUTdlBy+Jv"
+Content-Disposition: inline
+In-Reply-To: <20260806223535.523098-3-pablo@netfilter.org>
 
-> This patch should target nf-next, it does not fix any real crash.
->
-> There are also issues in this patch to be addressed, see:
->
-> https://sashiko.dev/#/patchset/20260724110111.18783-1-running910%40gmail.com
+--t8m0gOoUTdlBy+Jv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Pablo,
+> Add an ether_type field to struct net_device_path_ctx to reject IPv4
+> over IPv6 and vice-versa, this is currently not support. Otherwise,
+> incorrect dst_entry family can be reached from datapath.
+>=20
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Thanks for the review.
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 
-I have retargeted this to nf-next in v4, as suggested. I also carefully
-reviewed the relevant code paths together with the sashiko report and
-updated the patch accordingly.
+> ---
+>  include/linux/netdevice.h          | 1 +
+>  net/ipv4/ipip.c                    | 3 +++
+>  net/ipv6/ip6_tunnel.c              | 3 +++
+>  net/netfilter/nf_flow_table_path.c | 6 ++++--
+>  4 files changed, 11 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+> index 4319b949f405..d9962c50bd60 100644
+> --- a/include/linux/netdevice.h
+> +++ b/include/linux/netdevice.h
+> @@ -939,6 +939,7 @@ struct net_device_path_stack {
+>  struct net_device_path_ctx {
+>  	const struct net_device *dev;
+>  	u8			daddr[ETH_ALEN];
+> +	__be16			ether_type;
+> =20
+>  	int			num_vlans;
+>  	struct {
+> diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+> index fb7d96f99b06..62a374079bfc 100644
+> --- a/net/ipv4/ipip.c
+> +++ b/net/ipv4/ipip.c
+> @@ -360,6 +360,9 @@ static int ipip_fill_forward_path(struct net_device_p=
+ath_ctx *ctx,
+>  	const struct iphdr *tiph =3D &tunnel->parms.iph;
+>  	struct rtable *rt;
+> =20
+> +	if (ctx->ether_type !=3D cpu_to_be16(ETH_P_IP))
+> +		return -EOPNOTSUPP;
+> +
+>  	if (tunnel->collect_md)
+>  		return -EOPNOTSUPP;
+> =20
+> diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+> index d80020bc2620..3bfaa98e7f33 100644
+> --- a/net/ipv6/ip6_tunnel.c
+> +++ b/net/ipv6/ip6_tunnel.c
+> @@ -1849,6 +1849,9 @@ static int ip6_tnl_fill_forward_path(struct net_dev=
+ice_path_ctx *ctx,
+>  	struct flowi6 fl6;
+>  	int err;
+> =20
+> +	if (ctx->ether_type !=3D cpu_to_be16(ETH_P_IPV6))
+> +		return -EOPNOTSUPP;
+> +
+>  	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
+>  			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
+>  			      IP6_TNL_F_USE_ORIG_FWMARK))
+> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_t=
+able_path.c
+> index 0cbde535b8ba..5f166da3b09b 100644
+> --- a/net/netfilter/nf_flow_table_path.c
+> +++ b/net/netfilter/nf_flow_table_path.c
+> @@ -44,13 +44,15 @@ static bool nft_is_valid_ether_device(const struct ne=
+t_device *dev)
+> =20
+>  static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
+>  				     const struct nf_conn *ct,
+> -				     enum ip_conntrack_dir dir, u8 *ha,
+> +				     enum ip_conntrack_dir dir,
+> +				     u8 *ha, __be16 ether_type,
+>  				     struct net_device_path_stack *stack)
+>  {
+>  	const void *daddr =3D &ct->tuplehash[!dir].tuple.src.u3;
+>  	struct net_device *dev =3D dst_cache->dev;
+>  	struct net_device_path_ctx ctx =3D {
+>  		.dev =3D dev,
+> +		.ether_type =3D ether_type,
+>  	};
+>  	struct neighbour *n;
+>  	u8 nud_state;
+> @@ -228,7 +230,7 @@ static int nft_dev_forward_path(const struct nft_pkti=
+nfo *pkt,
+>  	unsigned char ha[ETH_ALEN];
+>  	int i;
+> =20
+> -	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
+> +	if (nft_dev_fill_forward_path(dst, ct, dir, ha, pkt->ethertype, &stack)=
+ < 0 ||
+>  	    nft_dev_path_info(&stack, &info, ha, ft) < 0)
+>  		return -ENOENT;
+> =20
+> --=20
+> 2.47.3
+>=20
 
-I have just sent v4.
+--t8m0gOoUTdlBy+Jv
+Content-Type: application/pgp-signature; name=signature.asc
 
-Thanks,
-Zhixing
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCanWeqwAKCRA6cBh0uS2t
+rEpAAQCEFGaLMMsehBIWkIRtHGNTMeG4hW/YM2TzTGbNgrRyeAD/X1YhnhXrYJRI
+hfzk8uShsVAL1qbZSdIc+DBUn4vOLgY=
+=49JX
+-----END PGP SIGNATURE-----
+
+--t8m0gOoUTdlBy+Jv--
