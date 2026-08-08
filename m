@@ -1,104 +1,202 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21EF02EC08C
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Aug 2026 01:28:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631E626AC3
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Aug 2026 01:33:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786152483; cv=none; b=CiyuxdM+QoEF/38tWOk6XR4ZlIB3DI4EK9b7HzQj9BEaij4Chfl9yuN7SNvtG2hr3OtQSm7DrENMNMVlXu5E9DgbzqWfDADZ61qPj6nbbLEA5typsKvrA3T44xl11+xZgTMTEuWszcfAXIeIv88wxG7Vj8UEJirD+Mb9MyiRhPM=
+	t=1786152804; cv=none; b=NK5lRKYJOycCdiJqTDvDOAB2klmFMFcTRn2yN/BWmSQRcPj8tBxI2gBYyZG5ZWqNnP1oESdPkVMHdFXTEB425+KbQqPkM0aQVkQTontToSJkf1XiD6Y8qoHQ6McXoMc9hYcGB7HZnQL2JoWrUKRH7TWvEISzVAvLZKyDQOgiL7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786152483; c=relaxed/simple;
-	bh=k8NwaErlgyL51VIgD/ZRix5w5koqB6rmXYLekoNkka4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SUEKfTCthD8xk8XYV56JnD1cCbm05NuyvNDmA6IVXkgKNwJOYAn9mY/1NxRTzlcnEpE9OS3xj11d1+V6MJ9d8N+aB5Vt3EuFlhp6YFR0Ehz5BXlDAVUiiL2/vbQJmO2eCduJ7S3cxz5XBfFgF2esL/GkMty0OEJMRqfNgOId4LY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KiUPhg6r; arc=none smtp.client-ip=209.85.214.179
+	s=arc-20240116; t=1786152804; c=relaxed/simple;
+	bh=srRNMDgcUF5npNhmEcLsGTEOWa/PA77J/lFD1LQ7ZHA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KIQRuf0uUiPVInlwgSExj3fEMMEImMhLgqxBRKLXZGANtYYdbT4Qrl0J0kb7bTbB55iJnUhQQ3kbP07ScNLtIXi4f0dBC2LuD4w1Z5bpK0dhTrFh8ou1Ljd41aym0RCtQ2khd9UUaY7MtdQyM/+PVvxlu6C92PibBTEuoWBAHjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=o4ADOJIw; arc=none smtp.client-ip=209.85.214.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KiUPhg6r"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2caea3f742bso3065045ad.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 18:28:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o4ADOJIw"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2d032846c95so2112225ad.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 18:33:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786152481; x=1786757281; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=OluoS02aPHbfmE2V+QcNRc4NZfWou3oHP4B6+FynkLE=;
-        b=KiUPhg6rdsRyK34v0+gyS93Gr4Xxl5NMf+s5WJ9ySPzTftG7A3P5NO+zOcb9zF/xFk
-         5jgh+IBsJQYpCLXhY/Me3tBUPw1bvaGpDR9JVHIGTd54X88Grmlpr4SlmWRH0X5LgCVe
-         sSFXiPedgdSr1jSJi/JCRIP5Pisvp/op+o8E0I00DZkZNrxlDVPZA0RykbBjl5ZQjEsp
-         rRUxB1CZNS8rflTlGCBRdg4KgZkXtdO+/En20bA1ap1S6ls0CZ5n1oDCBBYTDDIbOQMb
-         7a7ow0WAut36XsLxLBB51eNM1CtPLG1x0bn50i/MamufceV6syu+G0Sn3JU74wcNksQp
-         ofdQ==
+        d=gmail.com; s=20251104; t=1786152803; x=1786757603; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ivEwe6vI9Hr+Vc2EiJ+jpxvy/RqtBm6iJCWEJkyxXBg=;
+        b=o4ADOJIwaVsOR8KZFbhpEJlmYsBEfir/xJ83bL8wY1ZqTS5Mdv2k5rTylOPMlMjgeh
+         S+PQK+hVci+LwIW5ZWX4soJi1Ecs1OnaaM89n7Jq4U/1h624i29wGai1LNLLNcLhADLH
+         9StWxGQCb6ZJrE3bwssiyHou+BiipE7z2SqO/AWz919UuxqGF8/sD622GF6+zfkkhZY+
+         iBhDfmiAnVolrlN+PwBdrBIarBJTjfODmzhCgJQdf+LdV7bBfUoJW8fS2tPChkmoak8W
+         I7QjhuEhiM6uBwuam+IW7U4o05EiXEoRVjXxsHykuOa3ZQROEhUG3hQ6lVGdb4f0gpTH
+         T/iA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786152481; x=1786757281;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=OluoS02aPHbfmE2V+QcNRc4NZfWou3oHP4B6+FynkLE=;
-        b=dV9bcU3jtYM++nbQd0IimAfNkQ9Z/zjVxgW86EIw4st2M+zPTndbBUGQKolQGUcA+h
-         iqBV8l+69FCdNrvTQUQ4HsuT7KK+8pca6ZWNf94pB9vvpEs9/qyvjEbM3abw+dAvW2+c
-         WMGZBEC/4ZHBlA/5t8tgJLJa0jS43RCM+BEottW1q/Rp9qQLnRk1tlBwkjXFH2EilVMq
-         6fKeFxXL3y2m03YgsMCgkUlMG7EVLGWe4IN8RgZWjZ6MIy/EoKaETf8rzNDm99TLQ1Ma
-         C5D+SZb5xuo6AWvITLujnnVbHkqoHcarYqWPw7uB7UGXS0SPLq92UZrdkoZTcaEyUV1z
-         pG5A==
-X-Gm-Message-State: AOJu0Yziwjl5DSbhzTzQkXtMPsVZx0ck4KZ+TCWaPyI0Vq7+UAzkyf+t
-	cWgi36QHRFJ0PYMVPscJPH5h0pscn9KUa5c5X2thSFCfPbHqV11THCf7T8H6g6MT
-X-Gm-Gg: AR+sD11v0C+dbyjIhZ8xN38LGbhW5AuP9jIaP/l3617/tUWthEPGfZuJxIM0kXKj6Uv
-	CcIXZLry+EHmVD8ASksZeCl2Ww16fqksaYIX8A2lo0fkAPnQ83WKVMUncd2w4baJdQ4sqlLu17Z
-	C4ki3uhP1Of8CbD0kEXx+nuUcoFuGQZjBJvp88jrPr2d1bzLdyBhVw8e3JDKt72+rCWDGAvWOCj
-	OnIXmn0Urw0fKXfQs6sDqpMiE0AATeO9sJV4CJiGP23164jyB6leHD27XqPf8qCGERG3HFhAw8r
-	5sFvlWVYaDj5OW1dMdl2Nt0dUyGtUQ6J/sGF694Fv9aF/LEsA3SH5IwXTFPCiig0HVDEXyPV8sj
-	ZIqE5vbVmiXcoHpIZps8Rf+mhMJpqi2JMgQUTjxbNZrHyJhDrfvXUV15YIlsC6CgZWIT9O+A9uR
-	0JAJzxDwBQ8zJat56qQsH6mf9YUifeSu6msaFcfZTX9KwvkEWXsHhKUkxnuW+Q8cbVxJMsDu8TR
-	rJzSuSZdkuiP1xUgSumQeWb0HQtqVzME/E=
-X-Received: by 2002:a05:6a20:cc0e:b0:3bf:ba48:ca88 with SMTP id adf61e73a8af0-3cb85e6b038mr34613488637.15.1786152481371;
-        Fri, 07 Aug 2026 18:28:01 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1786152803; x=1786757603;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ivEwe6vI9Hr+Vc2EiJ+jpxvy/RqtBm6iJCWEJkyxXBg=;
+        b=ZyMfVZ2S0MAed52RK89NzrHboP8QEv3BUtvXWk/Mp0YL+0R0iIiliVD849YQ7kUSf9
+         8W/GqL3TqXRjrVi3F3Wel9DcNyrsLml2Cr/KfwT/2l1HfdnMFjrlbfZDn7TwsnOHxvQI
+         qx26u/2tVjLxZ86oTrTAC0VErMw5ryx+UVhwt3Bvby6V7z3yLP5+dH5mykNiYXD1+DbW
+         vFcgiLc7EuT7pLndFlZ/ZCZUGmw+JqMqxFBRfJJx63L2oL4Ar896q8h07iw/XshXIFRl
+         bWO3WLjFSV1obGHUGINcATEZ3kl7qTYcPZ3bfySJVQZ1+V+87uHzz3GMNc7i5/WfBk4e
+         RUVw==
+X-Gm-Message-State: AOJu0YwLQBWf/w/zafoJ6T5Zw5lon9Pts9cABfvyYBKkN7NwXRarTESH
+	+eCtD+/Uz0N5JWzo/ofMbnKFJhQUpLAEseoSdKQ5mDiTDlYByBF13OmYP2pC4W9A
+X-Gm-Gg: AR+sD105gmRtxEKbrBo/qNTgmo6pUhlYkCtK+JHf8RVBfvQYwC0FECM4nviTVtY8fq9
+	OeT198nVLOSK8BPJV1tBp7Tmv60zUaoEWPi6hCCCggpHI2LgzycPq1zRfOcLGPC284eW3o1gRz0
+	zYeqqVyneQ6n66bENsAY7bJAAbxrBqSfpC7BHRTU1IDHueEVQ8unVLuJT/uHg45mGXpKU5Jr/HZ
+	/toftLMt/rvJwoGFU8EIqkp1S70N2+ZZkAsM4iAMgxNB7od0k8Jjx14BLDVOEbRBy0sfb7FR29p
+	Awk0LByXf+erVpPm7/DiVgguSMFmt8cbNr1MIZit0wgxBmUSxRN/H5oUFvi3hLv72VnCejO/2mS
+	xpiQrAyEnD189K8ODSIQmn2rLA3cnK8K55Ojf6hFGA+xY+q5rdskpKoGtDdGi5P3WasJ6wACVOb
+	7qOAYg1VWwKyWNl+Zr1WaUTDfriyU6WJHZsiFhh1Fg9PPM6ymLNj3hfk1nGBez17X2+gjHE4iIK
+	xStiT3eW4ipt0A0NYcbufxEGbqniK2370s=
+X-Received: by 2002:a05:6a21:e352:b0:3cb:b3fc:510f with SMTP id adf61e73a8af0-3cbb3fc5a0cmr10776778637.24.1786152802661;
+        Fri, 07 Aug 2026 18:33:22 -0700 (PDT)
 Received: from r912.tailbb6e1e.ts.net ([160.30.85.32])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14101b7ad29sm11096107c88.13.2026.08.07.18.27.59
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-315bec2ec20sm14452977eec.28.2026.08.07.18.33.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Aug 2026 18:28:00 -0700 (PDT)
+        Fri, 07 Aug 2026 18:33:22 -0700 (PDT)
 From: Avinash Duduskar <avinash.duduskar@gmail.com>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] datatype: accept a numeric cgroupsv2 id on input
-Date: Sat,  8 Aug 2026 06:57:56 +0530
-Message-ID: <20260808012756.2757796-1-avinash.duduskar@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nft] evaluate: reject negative values for unsigned datatypes
+Date: Sat,  8 Aug 2026 07:03:18 +0530
+Message-ID: <20260808013318.2766219-1-avinash.duduskar@gmail.com>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <amnGEhXHD5175bxC@orbyte.nwl.cc>
-References: <20260727082427.740789-1-avinash.duduskar@gmail.com> <amjWjTkt1Dsh66Xv@orbyte.nwl.cc> <amkAJuVZmpGy7pvY@chamomile> <20260728201909.1773000-1-avinash.duduskar@gmail.com> <amnGEhXHD5175bxC@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 29, 2026 at 11:21:22AM +0200, Phil Sutter wrote:
-> So maybe only do it if you don't break a leg over it: Use jq or awk to
-> eliminate the metainfo object and write a simple test which asserts its
-> presence in output.
+expr_evaluate_integer() only tests the upper bound, so a negative value
+passes the range check and mpz_export() then drops the sign:
 
-Two shapes work and the second is much smaller, so I'd rather you pick
-before I post.
+  # nft add element ip t m { "-1" }
+  # nft list set ip t m
+  table ip t {
+          set m {
+                  type mark
+                  elements = { 0x00000001 }
+          }
+  }
 
-1. Filter in json-pretty.sh and regenerate the dumps. 433 files, 260K.
+The error string has read "Value %s exceeds valid range 0-%s" since the
+check was added, so the contract was already unsigned; only the upper
+half of it was enforced. The result is not a wrap either: "-1" gives 1
+while "-4294967295" gives 0xffffffff.
 
-2. Same filter, plus run the stored dump through json_pretty in
-   test-wrapper.sh before the diff. 2 files, 8 lines, no regeneration.
-   The 430 dumps keep a metainfo object nothing reads until they are next
-   regenerated.
+Reject a negative value, unless the evaluation context is a chain
+priority, which is signed.
 
-Both survive a json_schema_version bump. I checked by setting a stored
-dump to schema 2: passes either way, fails without the change. Suite is
-green as root on both, and either way there is a new
-tests/shell/testcases/json/metainfo asserting nft still emits it.
+Fixes: cb7cb885d65e ("evaluate: add expr_evaluate_integer()")
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
+---
+ src/evaluate.c                                | 12 +++++
+ tests/py/any/meta.t                           |  2 +
+ .../parsing/dumps/negative_values_0.nodump    |  0
+ .../shell/testcases/parsing/negative_values_0 | 46 +++++++++++++++++++
+ 4 files changed, 60 insertions(+)
+ create mode 100644 tests/shell/testcases/parsing/dumps/negative_values_0.nodump
+ create mode 100755 tests/shell/testcases/parsing/negative_values_0
 
-Which do you prefer?
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8bb7b609..f5b88c0b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -447,6 +447,18 @@ static int expr_evaluate_integer(struct eval_ctx *ctx, struct expr **exprp)
+ 		return -1;
+ 	}
+ 
++	/* chain priorities are signed, everything else is an unsigned key:
++	 * mpz_export() drops the sign, so "-1" would silently become 1.
++	 */
++	if (mpz_sgn(expr->value) < 0 && ctx->ectx.dtype != &priority_type) {
++		valstr = mpz_get_str(NULL, 10, expr->value);
++		expr_error(ctx->msgs, expr,
++			   "Value %s is negative, expecting an unsigned value",
++			   valstr);
++		nft_gmp_free(valstr);
++		return -1;
++	}
++
+ 	if (ctx->stmt_len > ctx->ectx.len)
+ 		masklen = ctx->stmt_len;
+ 	else
+diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
+index c5ab2ad9..4f486307 100644
+--- a/tests/py/any/meta.t
++++ b/tests/py/any/meta.t
+@@ -56,6 +56,8 @@ meta mark and 0x03 == 0x01;ok;meta mark & 0x00000003 == 0x00000001
+ meta mark and 0x03 != 0x01;ok;meta mark & 0x00000003 != 0x00000001
+ meta mark 0x10;ok;meta mark 0x00000010
+ meta mark != 0x10;ok;meta mark != 0x00000010
++meta mark "-1";fail
++meta mark "-4294967295";fail
+ meta mark 0xffffff00/24;ok;meta mark & 0xffffff00 == 0xffffff00
+ 
+ meta mark or 0x03 == 0x01;ok;meta mark | 0x00000003 == 0x00000001
+diff --git a/tests/shell/testcases/parsing/dumps/negative_values_0.nodump b/tests/shell/testcases/parsing/dumps/negative_values_0.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/parsing/negative_values_0 b/tests/shell/testcases/parsing/negative_values_0
+new file mode 100755
+index 00000000..663579a0
+--- /dev/null
++++ b/tests/shell/testcases/parsing/negative_values_0
+@@ -0,0 +1,46 @@
++#!/bin/bash
++
++# mpz_export() drops the sign, so a negative value used to land as its
++# absolute value: "-1" became 1. Chain priorities are signed and must keep
++# working.
++
++set -e
++
++$NFT add table ip t
++$NFT add set ip t s '{ type mark; }'
++
++if $NFT add element ip t s '{ "-1" }' 2>/dev/null; then
++	echo "E: accepted a negative set element" >&2
++	$NFT list set ip t s >&2
++	exit 1
++fi
++
++# a rejected add must not have committed anything
++out=$($NFT list set ip t s)
++case "$out" in
++*elements*)
++	echo "E: something was stored by the failed add" >&2
++	echo "$out" >&2
++	exit 1
++	;;
++esac
++
++$NFT add chain ip t c
++
++if $NFT add rule ip t c meta mark '"-1"' 2>/dev/null; then
++	echo "E: accepted a negative value in a rule" >&2
++	exit 1
++fi
++
++# the signed exception: every spelling of a negative chain priority
++$NFT add chain ip t c1 '{ type filter hook prerouting priority -300; }'
++$NFT add chain ip t c2 '{ type filter hook prerouting priority filter - 10; }'
++
++$NFT -f - <<'NFT'
++define p = -300
++table ip t2 {
++	chain c { type filter hook prerouting priority $p; policy accept; }
++}
++NFT
++
++exit 0
 
-Thanks,
-Avinash
+base-commit: 49e418238ece947e92f87a35ef6cf50755485370
+-- 
+2.55.0
+
