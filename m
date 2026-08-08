@@ -1,68 +1,68 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631E626AC3
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Aug 2026 01:33:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 704EE26AC3
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Aug 2026 01:33:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786152804; cv=none; b=NK5lRKYJOycCdiJqTDvDOAB2klmFMFcTRn2yN/BWmSQRcPj8tBxI2gBYyZG5ZWqNnP1oESdPkVMHdFXTEB425+KbQqPkM0aQVkQTontToSJkf1XiD6Y8qoHQ6McXoMc9hYcGB7HZnQL2JoWrUKRH7TWvEISzVAvLZKyDQOgiL7w=
+	t=1786152813; cv=none; b=FxhCuXcOTZeqdOaucdYsA+CZLFA7REvygz2rNEXSF6ydN1Wk7I1n464Du1C9wj+i4mV5BUCfviUhX0Q/bkFhLDuc9rBIur8NVJwT9soBKzHcKvT52nd+eFpz0Uw7UJlL5Cf5a4E00Y+UHxHlzAOzKrh8fTyAo15z+oopzWbuG0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786152804; c=relaxed/simple;
-	bh=srRNMDgcUF5npNhmEcLsGTEOWa/PA77J/lFD1LQ7ZHA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KIQRuf0uUiPVInlwgSExj3fEMMEImMhLgqxBRKLXZGANtYYdbT4Qrl0J0kb7bTbB55iJnUhQQ3kbP07ScNLtIXi4f0dBC2LuD4w1Z5bpK0dhTrFh8ou1Ljd41aym0RCtQ2khd9UUaY7MtdQyM/+PVvxlu6C92PibBTEuoWBAHjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=o4ADOJIw; arc=none smtp.client-ip=209.85.214.176
+	s=arc-20240116; t=1786152813; c=relaxed/simple;
+	bh=CQZydE/CEjjEjCbQzv1Jupp7nvuRypMcRCritcg7L4o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z6FEWYb8EadKQHTUsugWq0zaPpCKcQEna+TTPaFOaX+AS2rWAAsSDAcyRibbUvAzziJMuWsOFmtVHDVsLh+2Mou8jsb1r3LlWUjqJzV9dfQQ3qSHIyTM51/5xF0NyyGS/+WH6bnAP4DjgmYzs4H8wRrUcQJLa2Rj1go4+9PzvuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MNPuHOlU; arc=none smtp.client-ip=209.85.216.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o4ADOJIw"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2d032846c95so2112225ad.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 18:33:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MNPuHOlU"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-38fdeaed181so147208a91.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Aug 2026 18:33:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786152803; x=1786757603; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1786152812; x=1786757612; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ivEwe6vI9Hr+Vc2EiJ+jpxvy/RqtBm6iJCWEJkyxXBg=;
-        b=o4ADOJIwaVsOR8KZFbhpEJlmYsBEfir/xJ83bL8wY1ZqTS5Mdv2k5rTylOPMlMjgeh
-         S+PQK+hVci+LwIW5ZWX4soJi1Ecs1OnaaM89n7Jq4U/1h624i29wGai1LNLLNcLhADLH
-         9StWxGQCb6ZJrE3bwssiyHou+BiipE7z2SqO/AWz919UuxqGF8/sD622GF6+zfkkhZY+
-         iBhDfmiAnVolrlN+PwBdrBIarBJTjfODmzhCgJQdf+LdV7bBfUoJW8fS2tPChkmoak8W
-         I7QjhuEhiM6uBwuam+IW7U4o05EiXEoRVjXxsHykuOa3ZQROEhUG3hQ6lVGdb4f0gpTH
-         T/iA==
+        bh=ebDQ8eacTaBTOc8nyoU6iNag7ccTAIoX2lG0pzfgOw8=;
+        b=MNPuHOlUDDxSrhQP3yocFEqfAUpckzrVmrN756CLJIAFtHzgG5Fsi2gDw4NDtltSXS
+         K/4uSaTOnhBIJBpsocVhR+o9KhLLGHjo/GP5T2A4nEQwcuurgJAbUxcspHc99JkAZ2OG
+         N6q2oIzo0h8qxE5HczBwgHTWvbf2IkAlMX6ZO/S6kAPgxk3uxCp+1WeSa/yuyJba9hjF
+         YN99SW7SQgjZ6BysLTrDTGRKMNrN40lK9UguLlOpS2EsfrK0PS9LjCoSDZ4PkO+O6ljP
+         OaDeGCjPCGoI4a8EFspPaeBpystflWP9ziD5/Q2cXDaqZE10FSYj0M4OH/cwd+HRI/C/
+         ZlVA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786152803; x=1786757603;
+        d=1e100.net; s=20251104; t=1786152812; x=1786757612;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=ivEwe6vI9Hr+Vc2EiJ+jpxvy/RqtBm6iJCWEJkyxXBg=;
-        b=ZyMfVZ2S0MAed52RK89NzrHboP8QEv3BUtvXWk/Mp0YL+0R0iIiliVD849YQ7kUSf9
-         8W/GqL3TqXRjrVi3F3Wel9DcNyrsLml2Cr/KfwT/2l1HfdnMFjrlbfZDn7TwsnOHxvQI
-         qx26u/2tVjLxZ86oTrTAC0VErMw5ryx+UVhwt3Bvby6V7z3yLP5+dH5mykNiYXD1+DbW
-         vFcgiLc7EuT7pLndFlZ/ZCZUGmw+JqMqxFBRfJJx63L2oL4Ar896q8h07iw/XshXIFRl
-         bWO3WLjFSV1obGHUGINcATEZ3kl7qTYcPZ3bfySJVQZ1+V+87uHzz3GMNc7i5/WfBk4e
-         RUVw==
-X-Gm-Message-State: AOJu0YwLQBWf/w/zafoJ6T5Zw5lon9Pts9cABfvyYBKkN7NwXRarTESH
-	+eCtD+/Uz0N5JWzo/ofMbnKFJhQUpLAEseoSdKQ5mDiTDlYByBF13OmYP2pC4W9A
-X-Gm-Gg: AR+sD105gmRtxEKbrBo/qNTgmo6pUhlYkCtK+JHf8RVBfvQYwC0FECM4nviTVtY8fq9
-	OeT198nVLOSK8BPJV1tBp7Tmv60zUaoEWPi6hCCCggpHI2LgzycPq1zRfOcLGPC284eW3o1gRz0
-	zYeqqVyneQ6n66bENsAY7bJAAbxrBqSfpC7BHRTU1IDHueEVQ8unVLuJT/uHg45mGXpKU5Jr/HZ
-	/toftLMt/rvJwoGFU8EIqkp1S70N2+ZZkAsM4iAMgxNB7od0k8Jjx14BLDVOEbRBy0sfb7FR29p
-	Awk0LByXf+erVpPm7/DiVgguSMFmt8cbNr1MIZit0wgxBmUSxRN/H5oUFvi3hLv72VnCejO/2mS
-	xpiQrAyEnD189K8ODSIQmn2rLA3cnK8K55Ojf6hFGA+xY+q5rdskpKoGtDdGi5P3WasJ6wACVOb
-	7qOAYg1VWwKyWNl+Zr1WaUTDfriyU6WJHZsiFhh1Fg9PPM6ymLNj3hfk1nGBez17X2+gjHE4iIK
-	xStiT3eW4ipt0A0NYcbufxEGbqniK2370s=
-X-Received: by 2002:a05:6a21:e352:b0:3cb:b3fc:510f with SMTP id adf61e73a8af0-3cbb3fc5a0cmr10776778637.24.1786152802661;
-        Fri, 07 Aug 2026 18:33:22 -0700 (PDT)
+        bh=ebDQ8eacTaBTOc8nyoU6iNag7ccTAIoX2lG0pzfgOw8=;
+        b=Vm8s8whbyfiDx26csKGf3FVHehfqTlODdEEFhBtBLGA24HqmgclXuFQR1HCYOoko3d
+         HpDXrYywdfSP8Gf6vNf6Wubvwpoz2vdyfMg3/KcbqRo2d/dHg3P8an0iglE1tAelcThd
+         tVXTvE/z2+MbwyGeq3oEaqY4wgeAzCsqhUj3soxWfdUhD0UcEmeP9d9sgFJbsx0bTkjR
+         YAT6Ks3G3j0bwNQeveVb87zZT3v4z59iNN9rmcIbzYxCSME89Ln+iZt8CzYjNSqaK5C3
+         ggicPZqHt9gWKyAjVRYhWjQs0qlN6ts1cAUSWhNX+z6rR5cnmhClT2/VyKgcSuLQ94b6
+         oAaw==
+X-Gm-Message-State: AOJu0YzEefGwQ34mIAsAMNKyR80VwAVeemVMW3P0JWt18sKs2uNbMvy5
+	lqV4fWYtlr+IK9+VPNeAooDymDTDoSY+BHBCf6dZxs5g7qulB8M/pigqvu5gz4fA
+X-Gm-Gg: AR+sD11u2jonM3+i/LqU6gwnJ54tIhzZPfWZXO6gnoMxpATebbZ4ZXJ4nNQ8cQb81qv
+	UeKpkAWtxPu8VLxESv3mwjtsQ4GC6xiB/fo5HYF1/JrLNot46oKsUW3xAx50jUjCk4g1/CFFa7G
+	ZFLLfsgkHn3efKMIYiFkdw7BO3yGXplHEunV4c8N9otBtFFBnS//Y1mMXCryxzVmuuTKiQREB1B
+	vXSgdjYWCyReB/Qw+rodQ+ZESJkjSEnnCj/pqZN+Jpfeh48zuCSmNjA+cYVjTQPWUjm7QLI9/2R
+	9nDKJ6DjIq+bzMJAIZiV0s8Vv3Ax2SqFLM7/GWEqmt0Mdhv9QPatQXpcjpfzs5UU73/87CrFhlw
+	iiyfKfcaxWf5jB10+iGfxBnp1LKrDs8y+7/lLArDc2J2iRb0Xm9riP6lEKLcSA35zipvQHlqnFd
+	/jMNcmuwgc+xEDS7vH0L5xravQHnNEoxFynzRieEaazXBvmXOkzxfH7jl6Mkzn781FpSGWRX5gP
+	gq/SmgAu0ib199R52DnLVjbjT6GDKmp2eg=
+X-Received: by 2002:a17:90b:5683:b0:38e:6aa7:68ad with SMTP id 98e67ed59e1d1-3903c54fbc4mr27456316a91.5.1786152811789;
+        Fri, 07 Aug 2026 18:33:31 -0700 (PDT)
 Received: from r912.tailbb6e1e.ts.net ([160.30.85.32])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-315bec2ec20sm14452977eec.28.2026.08.07.18.33.20
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-315beb88413sm19360205eec.18.2026.08.07.18.33.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Aug 2026 18:33:22 -0700 (PDT)
+        Fri, 07 Aug 2026 18:33:31 -0700 (PDT)
 From: Avinash Duduskar <avinash.duduskar@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft] evaluate: reject negative values for unsigned datatypes
-Date: Sat,  8 Aug 2026 07:03:18 +0530
-Message-ID: <20260808013318.2766219-1-avinash.duduskar@gmail.com>
+Subject: [PATCH nft] tests: shell: use an unassigned protocol number in exclusive_start_cond
+Date: Sat,  8 Aug 2026 07:03:27 +0530
+Message-ID: <20260808013327.2766739-1-avinash.duduskar@gmail.com>
 X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -72,129 +72,113 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-expr_evaluate_integer() only tests the upper bound, so a negative value
-passes the range check and mpz_export() then drops the sign:
+nft renders nexthdr through getprotobynumber(), so the dump records whichever
+name the host's /etc/protocols gives for the value. 0 is "ip" on Debian, which
+carries the legacy alias ahead of hopopt, and "hopopt" where /etc/protocols is
+generated from the IANA registry, which assigns only HOPOPT. The test fails
+there, and the dump cannot be reloaded either, because getprotobyname("ip")
+finds nothing.
 
-  # nft add element ip t m { "-1" }
-  # nft list set ip t m
-  table ip t {
-          set m {
-                  type mark
-                  elements = { 0x00000001 }
-          }
-  }
+200 is unassigned in both, so it prints numerically everywhere. 255 would not
+do: Arch's iana-etc names it "reserved".
 
-The error string has read "Value %s exceeds valid range 0-%s" since the
-check was added, so the contract was already unsigned; only the upper
-half of it was enforced. The result is not a wrap either: "-1" gives 1
-while "-4294967295" gives 0xffffffff.
-
-Reject a negative value, unless the evaluation context is a chain
-priority, which is signed.
-
-Fixes: cb7cb885d65e ("evaluate: add expr_evaluate_integer()")
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
 ---
- src/evaluate.c                                | 12 +++++
- tests/py/any/meta.t                           |  2 +
- .../parsing/dumps/negative_values_0.nodump    |  0
- .../shell/testcases/parsing/negative_values_0 | 46 +++++++++++++++++++
- 4 files changed, 60 insertions(+)
- create mode 100644 tests/shell/testcases/parsing/dumps/negative_values_0.nodump
- create mode 100755 tests/shell/testcases/parsing/negative_values_0
+ .../parsing/dumps/exclusive_start_cond.json-nft        | 10 +++++-----
+ .../testcases/parsing/dumps/exclusive_start_cond.nft   | 10 +++++-----
+ tests/shell/testcases/parsing/exclusive_start_cond     |  6 +++---
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8bb7b609..f5b88c0b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -447,6 +447,18 @@ static int expr_evaluate_integer(struct eval_ctx *ctx, struct expr **exprp)
- 		return -1;
+diff --git a/tests/shell/testcases/parsing/dumps/exclusive_start_cond.json-nft b/tests/shell/testcases/parsing/dumps/exclusive_start_cond.json-nft
+index a1fbaafd..35d6889a 100644
+--- a/tests/shell/testcases/parsing/dumps/exclusive_start_cond.json-nft
++++ b/tests/shell/testcases/parsing/dumps/exclusive_start_cond.json-nft
+@@ -2207,7 +2207,7 @@
+                   "field": "nexthdr"
+                 }
+               },
+-              "right": "ip"
++              "right": 200
+             }
+           }
+         ]
+@@ -2247,7 +2247,7 @@
+                   "field": "nexthdr"
+                 }
+               },
+-              "right": "ip"
++              "right": 200
+             }
+           }
+         ]
+@@ -2407,7 +2407,7 @@
+                   "field": "nexthdr"
+                 }
+               },
+-              "right": "ip"
++              "right": 200
+             }
+           }
+         ]
+@@ -2447,7 +2447,7 @@
+                   "field": "nexthdr"
+                 }
+               },
+-              "right": "ip"
++              "right": 200
+             }
+           }
+         ]
+@@ -2487,7 +2487,7 @@
+                   "field": "nexthdr"
+                 }
+               },
+-              "right": "ip"
++              "right": 200
+             }
+           }
+         ]
+diff --git a/tests/shell/testcases/parsing/dumps/exclusive_start_cond.nft b/tests/shell/testcases/parsing/dumps/exclusive_start_cond.nft
+index 2b94feaa..5eb28085 100644
+--- a/tests/shell/testcases/parsing/dumps/exclusive_start_cond.nft
++++ b/tests/shell/testcases/parsing/dumps/exclusive_start_cond.nft
+@@ -94,14 +94,14 @@ table ip t {
+ table ip6 t {
+ 	chain c {
+ 		meta l4proto tcp limit rate 1/second burst 5 packets ip6 saddr ::
+-		meta l4proto tcp limit rate 1/second burst 5 packets hbh nexthdr ip
+-		meta l4proto tcp limit rate 1/second burst 5 packets rt nexthdr ip
++		meta l4proto tcp limit rate 1/second burst 5 packets hbh nexthdr 200
++		meta l4proto tcp limit rate 1/second burst 5 packets rt nexthdr 200
+ 		meta l4proto tcp limit rate 1/second burst 5 packets srh last-entry 0
+ 		meta l4proto tcp limit rate 1/second burst 5 packets srh sid[1] ::
+ 		meta l4proto tcp limit rate 1/second burst 5 packets srh tag 0
+-		meta l4proto tcp limit rate 1/second burst 5 packets frag nexthdr ip
+-		meta l4proto tcp limit rate 1/second burst 5 packets dst nexthdr ip
+-		meta l4proto tcp limit rate 1/second burst 5 packets mh nexthdr ip
++		meta l4proto tcp limit rate 1/second burst 5 packets frag nexthdr 200
++		meta l4proto tcp limit rate 1/second burst 5 packets dst nexthdr 200
++		meta l4proto tcp limit rate 1/second burst 5 packets mh nexthdr 200
+ 		meta l4proto tcp limit rate 1/second burst 5 packets exthdr hbh missing
  	}
- 
-+	/* chain priorities are signed, everything else is an unsigned key:
-+	 * mpz_export() drops the sign, so "-1" would silently become 1.
-+	 */
-+	if (mpz_sgn(expr->value) < 0 && ctx->ectx.dtype != &priority_type) {
-+		valstr = mpz_get_str(NULL, 10, expr->value);
-+		expr_error(ctx->msgs, expr,
-+			   "Value %s is negative, expecting an unsigned value",
-+			   valstr);
-+		nft_gmp_free(valstr);
-+		return -1;
-+	}
-+
- 	if (ctx->stmt_len > ctx->ectx.len)
- 		masklen = ctx->stmt_len;
- 	else
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index c5ab2ad9..4f486307 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -56,6 +56,8 @@ meta mark and 0x03 == 0x01;ok;meta mark & 0x00000003 == 0x00000001
- meta mark and 0x03 != 0x01;ok;meta mark & 0x00000003 != 0x00000001
- meta mark 0x10;ok;meta mark 0x00000010
- meta mark != 0x10;ok;meta mark != 0x00000010
-+meta mark "-1";fail
-+meta mark "-4294967295";fail
- meta mark 0xffffff00/24;ok;meta mark & 0xffffff00 == 0xffffff00
- 
- meta mark or 0x03 == 0x01;ok;meta mark | 0x00000003 == 0x00000001
-diff --git a/tests/shell/testcases/parsing/dumps/negative_values_0.nodump b/tests/shell/testcases/parsing/dumps/negative_values_0.nodump
-new file mode 100644
-index 00000000..e69de29b
-diff --git a/tests/shell/testcases/parsing/negative_values_0 b/tests/shell/testcases/parsing/negative_values_0
-new file mode 100755
-index 00000000..663579a0
---- /dev/null
-+++ b/tests/shell/testcases/parsing/negative_values_0
-@@ -0,0 +1,46 @@
-+#!/bin/bash
-+
-+# mpz_export() drops the sign, so a negative value used to land as its
-+# absolute value: "-1" became 1. Chain priorities are signed and must keep
-+# working.
-+
-+set -e
-+
-+$NFT add table ip t
-+$NFT add set ip t s '{ type mark; }'
-+
-+if $NFT add element ip t s '{ "-1" }' 2>/dev/null; then
-+	echo "E: accepted a negative set element" >&2
-+	$NFT list set ip t s >&2
-+	exit 1
-+fi
-+
-+# a rejected add must not have committed anything
-+out=$($NFT list set ip t s)
-+case "$out" in
-+*elements*)
-+	echo "E: something was stored by the failed add" >&2
-+	echo "$out" >&2
-+	exit 1
-+	;;
-+esac
-+
-+$NFT add chain ip t c
-+
-+if $NFT add rule ip t c meta mark '"-1"' 2>/dev/null; then
-+	echo "E: accepted a negative value in a rule" >&2
-+	exit 1
-+fi
-+
-+# the signed exception: every spelling of a negative chain priority
-+$NFT add chain ip t c1 '{ type filter hook prerouting priority -300; }'
-+$NFT add chain ip t c2 '{ type filter hook prerouting priority filter - 10; }'
-+
-+$NFT -f - <<'NFT'
-+define p = -300
-+table ip t2 {
-+	chain c { type filter hook prerouting priority $p; policy accept; }
-+}
-+NFT
-+
-+exit 0
+ }
+diff --git a/tests/shell/testcases/parsing/exclusive_start_cond b/tests/shell/testcases/parsing/exclusive_start_cond
+index f769e7dd..8c359d93 100755
+--- a/tests/shell/testcases/parsing/exclusive_start_cond
++++ b/tests/shell/testcases/parsing/exclusive_start_cond
+@@ -70,9 +70,9 @@ stmts+=("sctp sport 0" "th sport 0")
+ udp_stmts+=("vxlan vni 0" "geneve vni 0")
+ stmts+=("gre flags 0" "gretap ip saddr 0")
+ # exthdr_expr
+-ip6_stmts+=("hbh nexthdr 0" "rt nexthdr 0" "rt0 addr[0] 0")
+-ip6_stmts+=("rt2 addr ::" "srh tag 0" "frag nexthdr 0")
+-ip6_stmts+=("dst nexthdr 0" "mh nexthdr 0" "exthdr hbh 0")
++ip6_stmts+=("hbh nexthdr 200" "rt nexthdr 200" "rt0 addr[0] 0")
++ip6_stmts+=("rt2 addr ::" "srh tag 0" "frag nexthdr 200")
++ip6_stmts+=("dst nexthdr 200" "mh nexthdr 200" "exthdr hbh 0")
+ # meta_expr
+ stmts+=("meta length 0" "mark 0" "iif 0" "iifname foo" "iiftype 0")
+ stmts+=("oif 0" "oifname foo" "oiftype 0" "skuid 0" "skgid 0" "rtclassid 0")
 
 base-commit: 49e418238ece947e92f87a35ef6cf50755485370
 -- 
