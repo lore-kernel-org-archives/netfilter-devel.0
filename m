@@ -1,109 +1,152 @@
-Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1563540B0F7
-	for <netfilter-devel@vger.kernel.org>; Sat,  8 Aug 2026 12:40:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A1BD3CAA52
+	for <netfilter-devel@vger.kernel.org>; Sun,  9 Aug 2026 10:55:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786192862; cv=none; b=RzJxB4vlbv4kVOUBCL+A1Hx+0UwvwLA1ZGrxXEOzK34effFgJZFE0dq8MjxKLTCRshy39MftUG8X3H0czjmL4OIICgODp4ME4R7mbbaVTGBuntLj4EUtDBKhyUwM6UUP/RCBZoYdpyBrrEdhpZNGtxO1oRHvaW5sOMtawKJjWi4=
+	t=1786272922; cv=none; b=UynAIK1tuwh/zmNFuKhtNob9W5XadzXkkEnO3UEyWdF87yleUgAhSakGk6Kpj0Y8JlGx+bgPrYP1JPMCRtZnyC9SLXwR3hifQ182CAfeLBaS5ti7q08TQC3srgl7B0ADvcnzb/OjNN1DVImoGdDpa/YC5Hfn2n+e1TvKT9edw5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786192862; c=relaxed/simple;
-	bh=z8EPAHu7s+07FuEHuv2oGkdPeWvtvESGS+PKzEskRmo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=U7ZR5BPoqBPo0a76/VqPmgYBiUBw18Mf1Mz3+XDUCf23Slzc/kpnFmJ8U0ns+rly5WIPPEshQV0w4VO75Qqd7Rqcnwaus9kkfJoxSzqXPPJCMYJM6dsf4pnBQBSrT45w3/9KeJ8cVe8Sz7fgSCt4JmJ+bSGJsJDR5AGS+FQLZl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=VJoPxHw/; arc=none smtp.client-ip=51.159.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="VJoPxHw/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=EEWYSG0jXWAWcdqKp70gX2oviInbQMAEiFJOOGp+4Ws=; b=VJoPxHw/PijNOI7axGgaVYaUqF
-	snTIMEYljjONvI0ZZJhrjTZoj/VC1/m3KYaZd6tjlX4pnyoEab8bseRfPoZHeSgaY9EF8AhHoukw1
-	rWqleO5qD7zVqz0yDnWwT6P+ZTTb60EyxM/R/FIiFjiED1k0tSS8EOi+RZzzFj1eiQD/tVXJlkKU1
-	3GvS2lq3qp6aoNiW3a+w5fY+568okVpNHHGSCMHjUTVUqVS6njPvXhWcrsWWaxoRbhUuIT7emRse8
-	2Aw5S5Vnhsu4LtH2MX3It0Nth8pnEeCIa1U6BPeYwh/MPaVjmiuKNBwRp5to0hlCZQe1+uUyvvJFg
-	wRUH1PsQ==;
-Received: from [151.115.150.205] (port=39726 helo=gepetto..)
-	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.99.5)
-	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1wsgM1-0000000331E-0xTJ;
-	Sat, 08 Aug 2026 14:40:44 +0200
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-Subject: [PATCH] netfilter: flowtable: publish GC-visible tuple last
-Date: Sat,  8 Aug 2026 12:40:02 +0000
-Message-ID: <20260808124019.636990-1-Jeremy.Jean@oss.cyber.gouv.fr>
-X-Mailer: git-send-email 2.47.3
+	s=arc-20240116; t=1786272922; c=relaxed/simple;
+	bh=VlnqUl3iaZmXAwXCnN1dBaBt0KYmCZmIr1MgAPH7HpQ=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=gMjbjVoW5qkng6TrFdY5S35DqvJU+f8GFYwd2vdrpVtN4NmIe+zMSen4CL8g4k4WyjnGXsPDO1+Z/SjaLv2T2uR3J+4d+GbgLzK7KaNPe810YBUUYxJStbeEWaytdVT9LKGFDxBguGL30HYUZy8/O/Y/EfQWxF4B6oRM3vuOoII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp1.kfki.hu (Postfix) with ESMTP id 4hHvt447LwzGFDCH;
+	Sun, 09 Aug 2026 12:55:08 +0200 (CEST)
+X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
+Received: from smtp1.kfki.hu ([127.0.0.1])
+ by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id o8OC5FbzWX3c; Sun,  9 Aug 2026 12:55:06 +0200 (CEST)
+Received: from mentat.rmki.kfki.hu (78-131-74-220.pool.digikabel.hu [78.131.74.220])
+	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
+	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4hHvt23dpmzGFDCG;
+	Sun, 09 Aug 2026 12:55:04 +0200 (CEST)
+Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
+	id 501A9140E07; Sun,  9 Aug 2026 12:55:04 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 4D13E14053C;
+	Sun,  9 Aug 2026 12:55:04 +0200 (CEST)
+Date: Sun, 9 Aug 2026 12:55:04 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 0/5] netfilter: ipset fixes and rhastable prep work
+In-Reply-To: <anBXgncZCSUoDSZk@strlen.de>
+Message-ID: <35080efb-adee-7063-a02e-6700e99d48c1@netfilter.org>
+References: <20260730183853.21868-1-fw@strlen.de> <amusRhSn19YQzmQe@strlen.de> <e7c0f855-d6bd-ce82-b223-786ed42853b7@netfilter.org> <anBXgncZCSUoDSZk@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - pf-012.whm.fr-par.scw.cloud
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - oss.cyber.gouv.fr
-X-Get-Message-Sender-Via: pf-012.whm.fr-par.scw.cloud: authenticated_id: jeremy.jean@oss.cyber.gouv.fr
-X-Authenticated-Sender: pf-012.whm.fr-par.scw.cloud: jeremy.jean@oss.cyber.gouv.fr
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Type: text/plain; charset=US-ASCII
 
-nf_flow_table_iterate() only treats original-direction tuple nodes as
-owning entries. Publishing the original node first lets GC observe and
-free a flow while flow_offload_add() is still inserting the reply node.
-Publish the reply node first and the original node last so GC never
-sees a partially installed flow.
+Hi Florian,
 
-KASAN can trigger slab-use-after-free read and write reports in the
-flowtable/rhashtable path (rht_deferred_worker, jhash, flow_offload_del,
-flow_offload_lookup, etc.).
+[Sorry for the long delay!]
 
-Fixes: ac2a66665e23 ("netfilter: add generic flow table infrastructure")
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
-Assisted-by: Codex:gpt-5
----
- net/netfilter/nf_flow_table_core.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+On Mon, 3 Aug 2026, Florian Westphal wrote:
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index b66e65439341..8b1165f2b5a4 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -332,17 +332,18 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
+> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > > I will have another look at this to see if thats correct, in any case
+> > > this should be handled in a different change.
+> > 
+> > I should have left out the call to atomic64_set(&set->ext_size, 0) in 
+> > list_set_flush() and let the list_set_del() calls adjust the ext_size 
+> > value. What do you thing, would it solve the issue?
+> 
+> Agree wrt. list_set_flush(), removing the explicit set should
+> work.  What about:
+> 
+> mtype_flush(struct ip_set *set)
+> {
+>         struct mtype *map = set->data;
+> 
+>         if (set->extensions & IPSET_EXT_DESTROY)
+>                 mtype_ext_cleanup(set);
+>         bitmap_zero(map->members, map->elements);
+>         set->elements = 0;
+>         atomic64_set(&set->ext_size, 0);
+> }
+> 
+> in ip_set_bitmap_gen.h ?
+> 
+> Should this be changed as well, i.e. remove atomic64_set()?
+> 
+> AFAICS this is harmless because its synchronous and runs with
+> set->lock held, so this should set ext_size to 0 again.
+
+Yes, it is synchronous so atomic64_set() just resets the value to zero 
+again.
+
+> Maybe this should be changed to
+> 
+> NET_DEBUG_WARN_ON_ONCE(atomic64_read() != 0) ?
+
+Yes, I agree: it'd add a safety check that mtype_ext_cleanup() did the job 
+properly.
  
- 	err = rhashtable_insert_fast(&flow_table->rhashtable,
--				     &flow->tuplehash[0].node,
-+				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 				     nf_flow_offload_rhash_params);
- 	if (err < 0)
- 		return err;
- 
-+	/* GC only iterates original-direction entries; publish original last. */
- 	err = rhashtable_insert_fast(&flow_table->rhashtable,
--				     &flow->tuplehash[1].node,
-+				     &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
- 				     nf_flow_offload_rhash_params);
- 	if (err < 0) {
- 		rhashtable_remove_fast(&flow_table->rhashtable,
--				       &flow->tuplehash[0].node,
-+				       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 				       nf_flow_offload_rhash_params);
- 		return err;
- 	}
+> There is another new report:
+> 
+> #define INIT_CIDR(n, host_mask) ({                              \
+>         const struct net_prefixes *__n = rcu_dereference(n);            \
+>         DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
+> })
+> 
+> If we fail to allocate replacement net_prefix, then nets[0].count can
+> be 0.  This means we either need to walk ->nets[] until we find a slot
+> where count is > 0, or we need to resort to something like this:
+
+You mean when we leave a hole in the first position? Yes, it's a corner 
+case...
+
+> [ not even compile tested! ]
+> 
+>  #define INIT_CIDR(n, host_mask)        \
+> -       DCIDR_PUT((n)->len ? (n)->nets[0].cidr : host_mask)
+> +       DCIDR_PUT((n)->len && (n)->nets[0].count ? (n)->nets[0].cidr : host_mask)
+> 
+>  #endif /* IP_SET_HASH_WITH_NETS */
+>
+> @@ -374,9 +374,20 @@ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+>         len--;
+>         tmp = kzalloc(sizeof(struct net_prefixes) +
+>                       len * sizeof(struct net_prefix), GFP_ATOMIC);
+> -       if (!tmp)
+> -               /* Leave a hole */
+> +       if (!tmp) { /* handle in-place */
+> +               for (i = 0, j = 0; i < nets->len; i++) {
+> +                       if (i == found)
+> +                               continue;
+> +                       if (i != j) {
+> +                               WRITE_ONCE(nets->nets[j].cidr, nets->nets[i].cidr);
+> +                               WRITE_ONCE(nets->nets[j].count, nets->nets[i].count);
+> +                       }
+> +                       j++;
+> +               }
+> +               while (j < nets->len)
+> +                       WRITE_ONCE(nets->nets[j++].count, 0);
+>                 goto unlock;
+> +       }
+
+... and I agree that your suggestion above is fine. We are talking about 
+the case when the SET target adds/deletes an entry to/from a hash:*net* 
+type of set and it should figure out the cidr value to use for the network 
+address to add. The convention is "use the first, i.e. the most specific 
+value from the list of already added cidr values or if (the list) is 
+empty, the host_mask cidr. If the count of most specific cidr reached zero 
+but the new net_prefix could not be created to remove it, it's fine to 
+fall back to host_mask. Especially when the holes are moved to the end of 
+the array.
+
+Best regards,
+Jozsef
 -- 
-2.47.3
-
+E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+Address: Wigner Research Centre for Physics
+         H-1525 Budapest 114, POB. 49, Hungary
