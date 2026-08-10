@@ -1,72 +1,74 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CECE2C21F4
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 13:04:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7E1403B16
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 15:11:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786367064; cv=none; b=l1dW7rnX80ZVKvMgFrppx/VIzihRHjrv5PSegajjdcg5t/9jKOEmSumitAJ+aviRU0DbOShJxmnLP6tsl4J50xdHTK9bjNrkRvnrxFY9ru592KnPa0lDWMv66m5fiGJo6TQNagz5YmZFwO+H5zsU4HY7KvVKzTpqIAQxwW864dg=
+	t=1786374666; cv=none; b=SCmqfJsp2OZj3VhONOoqF9iaOih5ulHE/Vglgc9Po+y9G5yt6hZL9HAyEPP0jA+ZVe1tEdTL4aWZ3HzINqmRn5LQ8ltW+D1xnVlzGBdYcb0viB8yMqWI5LRBgWsU7QtmQl5FcnBe7AukpPMG3ZuGlIa/N+mHaURvYgazumwNctQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786367064; c=relaxed/simple;
-	bh=l75s9+vQ0iAUXoZb5LktxSV6GEijvQnyzcrarvMVlgA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f+jZPRUqq0suXcm+aZQBWowG7+4Z6RZhfKGTvatKyruS7l9uX3Rg2SsoElZIrHzonB2ZAtXPqH6XY/5Xjj25xLMNijiRKmc7AeggqhrvnaiArn8rf9qaxbi/LP+naI2T/JWqgZBkX+4GimzuzqP7VbbXlQpWMXMc9oNlQhtyj5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fp4ByUta; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1786374666; c=relaxed/simple;
+	bh=55EWUy2u7pA7pUwkK0viiWjoz0QiUvsMy6bw/sJ4Ec8=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=fXRp1UDqHBGay/9gnWiOGHrOV5Ow/oeiPs1Lm3WLOmbeICTiAwXtqzCQDvhdOY2Ap+OBpB/gqVPdPlQIUeLEPuWwTFDKXTY9U5xYsQBfrMMq4EaQ81O4CnvvB3/EnzObAjDDtGkTSSPQ9aJ2jtPwLeDy9gzC32dLjqhZsDxfr/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=YYkzQSf5; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fp4ByUta"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 04E0660265;
-	Mon, 10 Aug 2026 15:04:20 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786367060;
-	bh=fxYmMgjDXEV+6Y8dwy2f4K2xQhdCKyAaKuht1DDQXDQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=fp4ByUtaSUB3/trGhrIbvtEqEb9VDaj4PUZ9LjkLlxQXmI/3YfyA0vOTolaqT78Kl
-	 marjxgl3vhXhiPJ11nCl5F2rUpqwtOLyIKdHZ/2vsTkpALlwMMhHVwyhLSH+KUdmpi
-	 d65dYJBiJ1XF77Ny1c2sghu83j5ON7fIrL075x0YWR+i/gH8tMAN6UdADoFWhq3b/p
-	 xqFv6eRgZggz7NtaTAdAWFlqmzWWJo/O5B0SnISatGRwVoMw2L5yJbv9x/v8A6RrEa
-	 28nBW2hFuJ9eQruj0CRq2qD9kPrvbnPMXNyUVCmHMH2fJyU5/mLJBnPIe1cIvUtYAe
-	 fiAm+SrrEaS9g==
-Date: Mon, 10 Aug 2026 15:04:16 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="YYkzQSf5"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4hJdVk4lx8z3sb2P;
+	Mon, 10 Aug 2026 17:10:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1786374652; x=1788189053; bh=OCjV3bf53r
+	6Cqgza/XZdD4f8StDLgqcPeGXtNHjlcPE=; b=YYkzQSf5nzZirF8gtgGg0jlWZ0
+	CduAxEZUnUf0bd6w2hnMidzGnDDx4wI98kA3ISNeWcCIH90RxvneKZFOwihZE6ge
+	FyJavH2NJo7i3hdnrFH67eIrESiBGixmCQbi9uk5TdP3X8wbGVIZAVNW3XoOnRyU
+	kgzZVMpTk1h7GtdzA=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id C4vOXnjeXNMt; Mon, 10 Aug 2026 17:10:52 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4hJdVh4r8Rz3sb2M;
+	Mon, 10 Aug 2026 17:10:52 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 9658534317F; Mon, 10 Aug 2026 17:10:52 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 9456E34317E;
+	Mon, 10 Aug 2026 17:10:52 +0200 (CEST)
+Date: Mon, 10 Aug 2026 17:10:52 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: Florian Westphal <fw@strlen.de>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: ipset: fix list type element drift bug
-Message-ID: <annMUJ7jQoPBh2HT@chamomile>
-References: <20260806135341.8896-1-fw@strlen.de>
- <6082ea3a-15d3-650a-98a0-403b1bab7b5d@netfilter.org>
- <aniLwNENxpoK-qK2@strlen.de>
+cc: Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: ipset: remove need to allocate memory on
+ delete operations
+In-Reply-To: <aniNjO71_0Bv2UMI@strlen.de>
+Message-ID: <902ca062-a9be-9a30-99b3-d98cd4941e3b@blackhole.kfki.hu>
+References: <20260804170214.27237-1-fw@strlen.de> <abb4fda6-444f-2c79-573a-740529e468c9@netfilter.org> <aniNjO71_0Bv2UMI@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aniLwNENxpoK-qK2@strlen.de>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-On Sun, Aug 09, 2026 at 04:16:32PM +0200, Florian Westphal wrote:
-> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
-> 
-> Thanks for reviewing!
-> 
-> > > +	if (n) {
-> > >  		list_set_replace(set, e, n);
-> > > +		return 0;
-> > > +	}
-> > > +
-> > >  	else if (next)
-> > >  		list_add_tail_rcu(&e->list, &next->list);
-> 
-> While it makes no difference from correctness, the
-> above looks very weird, so I propose to turn the else if into plain if (next).
-> 
-> (Did not spot it before sending...).
+Hi Florian,
 
-For the record: I mangled the patch to remove this else when applying
-this. No need to resend.
+On Sun, 9 Aug 2026, Florian Westphal wrote:
+
+>> 2**24 is a lot but still a reachable limit.
+>
+> Hmm. 16m entries...  I guess its possible for very small prefix
+> lengths?  We could use BITS_PER_LONG == 64 but it gets more ugly then.
+
+I was thinking on IPv6 where it's more possible. But hash:ip has no such 
+limitation with same-size prefixes so there are other solutions to store 
+large number of same-size prefixes.
+
+Best regards,
+Jozsef
+
