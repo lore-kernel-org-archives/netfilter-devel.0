@@ -1,253 +1,231 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA7F3C1966
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 11:35:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC64344DB9;
+	Mon, 10 Aug 2026 13:01:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786361761; cv=none; b=AyYuMh+KdfVrNj4z0KhzhbJx1yxvJH8vm1OUxY2t9V4VOWkW+6ulShXaMb8bH3GwUEEfDxsjY/uno3evVfoFU6/RVqa1vcYbeRsgqu5XscmqutrO5raEWfR5it287hlXKGYdE8UsV7/EN9mOxjSMSbZGz9AtIEPst+iluSfzK4I=
+	t=1786366880; cv=none; b=MY2ToK3VgCRqM4VG50/FlK94FaimGi0AxGtFpU04Po8wdQBh9oBqL4/+W6CsMtqWI8WBgWVF4v6kiHPL2nBLgrcD/b7OI78JSLsEg7+KPr/cK8yiA8NIiefOFFylMaQ41pXFreu+zz6ouQqhb9++VV34uhAAPmNvJlU6NPEn9jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786361761; c=relaxed/simple;
-	bh=Za7XUGIBrDMufcV0XC4PXfmcqtB8Mjn0HouJg58CGOY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CB6hCjuWheG+v2OPAH0NsWOqdGZTRd7mXrsGBE7Q2b6RyFl3qXCdtjCAtznlKqidww/gxFTFMy0HnjHkp4kjqeeRoE7PFYvgq3gsdN5UXJ+ZR+VMSjILzVYknIdjS4Y5rTvJ4IR8VSnQTJyxRLHK54Yz+kxgvrpWhkJjtABUG0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zpi281f6; arc=none smtp.client-ip=209.85.214.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786366880; c=relaxed/simple;
+	bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Q3BBo4fDQZ7ubKBHFJE65GZmoQyXhSmHDmRPgaqkmoy0XtonNY7bhg8b6LtsHdsLAnEnPh7dSgAeRD8ZyI6OeQaUsdHbAnnFOaUUNSyuh9cJYQVbi8XqfgRn8pXIi+pEf+tMOhmLsmRqp8QII4pSuYaTIs3y6ijuy7pVqWHpEaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MF87dA4H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zpi281f6"
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2ce7d2adef4so23061245ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 04:35:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786361759; x=1786966559; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=wFJbz/bMMl0zlR9CL+aL3jmzM2HCn9dNxoYO9TVpRtY=;
-        b=Zpi281f6emfxhKQquMCqtpLa4wFak0DWRJo4lOnnt1vMr2DfyKzcACyzbrLV+OTqKB
-         2KhJO1c9WOK+iE8TxD/ULHmAiYpegvTCb1jnc265hI2tuGr2R4DrkKs13fY9Xx0yOt6f
-         +04I1a5ZOHXZJaQlfOcLrg0pvS8CMDMLgWPQnh5kXr2F6VRZ4XR4AbfjzTWAQ8z+7xx4
-         mXxNmDmJnwXZ2TpYVqHXNsv1Zr35Cg9tCL+RPDiOiBUfgM726l5cE8r4bbnZO0/V2j3t
-         Qa/efEOf/xZfrguCbrlP5lwXAgKootjNCSl0XPLg531sYkgdD8+RdGDmnDdT8x3esfAX
-         v6Tg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786361759; x=1786966559;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=wFJbz/bMMl0zlR9CL+aL3jmzM2HCn9dNxoYO9TVpRtY=;
-        b=LyuUqdRn30fgzDb2zGd8Vj1RvH2Qs5hMVn3m7wp085BQsREyl4VadvnA+ZFFOvpf1k
-         zmR7YxxQF4Y3IBk2CNgW1B/6b3L1fJcM284MG0UIzqsDim12aZcu7Wd7HUbtxQtwCz9a
-         s7WUGXrmEgR+Nuh+h7sjjVg5aOI72pVt6tSALaYWOQxOIXq709bIoSaT8RDWbXNsX0k6
-         Sg2krUd2PKqzE0YJeaCbRcK73o3ASShC/zzqOIWnUMf4OpOKTalD3pXMS+CgRjrbIaSh
-         BQJ4TYy1bFHUqqVkwqk0cItvGOC2o+ZDxNgYKbR6scKu6oxKEkv3qf/X5MsFr0onQ/7J
-         b4oA==
-X-Forwarded-Encrypted: i=1; AHgh+RpCjfOX7GtUkvP19eooXgYpanyRlOb1V9MZiRwuUZqAYdfkZgNbCrGXzo2xbpiv3zO3/OiP0f+tXAon0OyZabQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwZsSCyqicokkaFK2f1vAKh3fLL8Br/GxzANn4j35sketAW0Qak
-	2n1Y6shYOu6Bize++jbLQNCfPg078QLKkuAXMMJi5r6DqR7jjW0L3SX9
-X-Gm-Gg: AR+sD11MS6p35aM20259/myhMNoPQAAfR5j88ASctFsi9Z3u+n/nvBXdZVl3IQ4gQ9V
-	tZXgU9yh/uBfVNOY2lyUfgnQX7fWK/hhDVvEQ1tfUmYD+OaCdAiolo772REUtvpJEt3tYlqnirG
-	BDRuUw+UBJXXzCU3G6jSYVnEcIPDd0U0ksdJfb30vZvt+MQqdju+5D6WvqQyGAdl+wXtMVTtyNl
-	6Htg8r3pLVnl6b6yu5z5MsoZemgKZ0P232+14FLSOrxeiYRzzIxYhX2s+AY0UbrpAkN/pK68s8X
-	ckFD1inYRWUriMjENMZv7fdvekykEmZyZjp0mNdwSfjUYCdv4fRUez7+lXYzD/7vIL/lJoXl5A6
-	2AeMK839bmG391xgPnIvVzqXbmLQpN9rGwFJV3SUbj2ScsL+PLmGES/jWs5QQ6bHFyA80Wn3Pb0
-	SDMgUF0RBLf+rke16LVmJ5D4voKz7rQmLhljxl7cWTnwdaiEHyO/38OyFBIh5KTY5OQw==
-X-Received: by 2002:a17:903:4688:b0:2ce:fa3a:45f7 with SMTP id d9443c01a7336-2d294c490d6mr244427775ad.16.1786361758903;
-        Mon, 10 Aug 2026 04:35:58 -0700 (PDT)
-Received: from TENCENT64.site ([103.7.29.106])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d16c4fc743sm34049575ad.80.2026.08.10.04.35.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Aug 2026 04:35:58 -0700 (PDT)
-From: Fourie Zhang <littleddfu@gmail.com>
-X-Google-Original-From: Fourie Zhang <fouriezhang@tencent.com>
-To: pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-Cc: Fourie Zhang <fouriezhang@tencent.com>,
-	stable@kernel.org,
-	TencentOS Corvus AI <corvus@tencent.com>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: don't queue packet path object notifications
-Date: Mon, 10 Aug 2026 19:35:01 +0800
-Message-ID: <20260810113525.2695823-1-fouriezhang@tencent.com>
-X-Mailer: git-send-email 2.43.7
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MF87dA4H"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1711BC2BCF4;
+	Mon, 10 Aug 2026 13:01:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1786366880;
+	bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+	h=From:Subject:Date:To:Cc:From;
+	b=MF87dA4Hwuj3rCMVTvC3Fb1voy3qRxC2A8SE83NfuggEKXcD/lkJxGJuwDKc8WBjj
+	 s0zsg123Kwsc4Xf09Laf7wqcL1VL41cytVjAw1C0ypxnMsBuQgQmIJuOLGYULlEn/4
+	 GLyGVyu2AnEx/zvKK8Jyp6dWAqkI7VS9zKFqi9MeRoTjS69QygXnwtUqEgrQLdhM5t
+	 Zlj3eQ5s/l99/efO3zIMAFoZJ4/GJ/yujVs/xl6QWeGrb3ClF1IQFHDaN6J/L7v2ao
+	 nwIOZOdxKQXUKeJgP1lbmJ7pyZzYAOH8w4Z8PfMZxjZ0jfx3z9HnkMX2VDUiopV/y8
+	 /odt+X8avSgrg==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBFABC5AE49;
+	Mon, 10 Aug 2026 13:01:19 +0000 (UTC)
+From: Joel Granados <joel.granados@kernel.org>
+Subject: [PATCH v4 0/3] net: sysctl: Const Qualify sysctl ctl_table arrays
+Date: Mon, 10 Aug 2026 15:01:01 +0200
+Message-Id: <20260810-jag-net_const_qualify-v4-0-77e888237c69@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAI3LeWoC/4XN3w6CIBTH8VdpXEcD/IN01Xu05ggPSjkoMJdzv
+ nvoTbXmuvz+tvM5IwrgDQS034zIQ2+CcTZGut0g1UhbAzZVbMQIy0nOBL7IGlvoSuVs6Mr7Q7Z
+ GD1inQATPRCUVR/H25kGb5+IeT7EbEzrnh+VNT+f1n9hTTDGAKM6FVikh6nAFb6HdOV+jmezZm
+ +GErzEsMpnMVMZIQkFWP0zywdBkjUkwwZwVQoMACTL/YqZpegGPNhJWSQEAAA==
+X-Change-ID: 20260629-jag-net_const_qualify-f4e09759dac7
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, 
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, 
+ Xin Long <lucien.xin@gmail.com>, 
+ Steffen Klassert <steffen.klassert@secunet.com>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, 
+ Stefano Garzarella <sgarzare@redhat.com>
+Cc: chia-yu.chang@nokia-bell-labs.com, netdev@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ virtualization@lists.linux.dev, Joel Granados <joel.granados@kernel.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5898;
+ i=joel.granados@kernel.org; h=from:subject:message-id;
+ bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+ b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGp5y5twjBp9PkaBkJVArZV0vNU+Y5SyiRu0I
+ gY8qTif8U7UuIkBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqecubAAoJELqXzVK3
+ lkFPNYoL/2yPuP9Ro5Gv2xl1JABHhoOLEFlO2RFgGzQ9RwzM4oFc+czv9e31UtVyXC2DwVdtTtT
+ otBeXQSxIwV8UaZbcFX6GTMB/x1vRIhDgl6UNP9l+FKduQjZLmO/Gmn8bYxGx3aY/ZkQOL+1H1i
+ Dvo5yvsNn0j4QYgDnYk5x2q9zJz7Eng2JXPqq6RnJZf/q6QobJKrqDJ3qhbvvFmyFRk/dxLvpPJ
+ D2gy9Aw2Jk0Q2IOXvp2V6Yialv72aXGUO4YX8u2IKwtkqLgZmCanWWzWeDcOA6/XaRFMmHqgnhR
+ atl78dncx2r66L5J2ew8TwEc2MtFL/vnLqfPOUgW5rEM7W2G8tOYGFyANhoKwK/kREXV5bmE9Ul
+ iWxxcO1Rbv1onvtzIBgvuE1JMvGTiJRBZ1BslXjCbrc6eLvS6+dX2O1XcThuXo85zv6WHeT6YA3
+ OqSnEzHdueRSfS3pC/fNxEO3UojWnxR8KZ+GHwjn1eCmJbNaoom22pVh6LnF5l9ueMMiaKVynR7
+ T8=
+X-Developer-Key: i=joel.granados@kernel.org; a=openpgp;
+ fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
+X-Endpoint-Received: by B4 Relay for joel.granados@kernel.org/default with
+ auth_id=239
 
-All file:line references below are against v7.2-rc4 (ac5b0e5651b1). The
-trace was captured on 7.2.0-rc6-kasan72rc6 (075b74841bd0), where the same
-lines apply.
+What?
+=====
+We do two things:
+1. Reject netns-unsafe: Replace warning and file permission change with
+   an error (reject registration) when an "unsafe" net sysctl
+   registration is detected.
+2. Const qualify: Const qualify network templated ctl_table arrays and
+   unconditional kmemdup'ed ctl_table arrays.
 
-nft_obj_notify() is exported and reached from the packet path. Its only
-in-tree caller is nft_quota_obj_eval() (net/netfilter/nft_quota.c:68),
-which notifies with GFP_ATOMIC while evaluating a rule for a transiting
-packet, holding no mutex.
+Why?
+====
+The main motivation for this is to continue with the const qualification
+of the ctl_table arrays [1]. The permission change inside
+ensure_safe_net_sysctl disallows cons qualifiaction as it basically
+modifies the entries before running the sysctl registration.
 
-Since commit 67cc570edaa0 ("netfilter: nf_tables: coalesce multiple
-notifications into one skbuff") that notification is no longer sent
-immediately. __nft_obj_notify() queues it onto nft_net->notify_list via
-nft_notify_enqueue() (net/netfilter/nf_tables_api.c:1211), which is a bare
-list_add_tail(). notify_list has no lock of its own
-(include/net/netfilter/nf_tables.h:1951), it is serialised by commit_mutex:
-the six other enqueue sites all run inside a netlink transaction, and the
-drain in nft_commit_notify() (net/netfilter/nf_tables_api.c:10746) does
-list_del() + kfree_skb() from nf_tables_commit() with commit_mutex held.
+      ent->mode &= ~0222;
 
-Sending packets through a chain that references a depleted quota object
-therefore races an unlocked list_add_tail() against list_del() +
-kfree_skb() on another CPU. The WRITE_ONCE(prev->next, new) in __list_add()
-then stores through an sk_buff that has already been freed:
+On reject netns-unsafe?
+=======================
+* I believe that there is currently now way that the permission change
+  gets executed [2]
+* I found one case where the warning message was posted to lore
+  (vsock_sysctl_register) [3], but it made its to mainline as part of
+  the second case in [2].
+* We should error anyway because writing to the global sysctl value
+  through a child netns is indicative of a bug [4].
 
-  BUG: KASAN: slab-use-after-free in __nft_obj_notify+0x2c5/0x2d0
-  Write of size 8 at addr ff110001047183c0 by task poc/76
-  CPU: 0 UID: 1000 PID: 76 Comm: poc Tainted: G  W  7.2.0-rc6-kasan72rc6 #4
-  Call Trace:
-   <IRQ>
-   __nft_obj_notify (include/linux/list.h:164 include/linux/list.h:191
-                     net/netfilter/nf_tables_api.c:1211
-                     net/netfilter/nf_tables_api.c:8743)
-   nft_quota_obj_eval (net/netfilter/nft_quota.c:68)
-   nft_do_chain_inet
-   nf_hook_slow
-   __ip_local_out
-   ip_push_pending_frames
-   udp_send_skb
-   udp_sendmsg
-   __x64_sys_sendto
+On Const qualification?
+=======================
+We can separate the places where network registers sysctl tables into
+three groups:
+1. Static global: The unchanged global static arrays are passed along to
+   sysctl register.
+2. Always kmemdup: The global static arrays are always kmemdup'ed before
+   passing them along to sysctl register.
+3. Dynamic global: The global static array is changed in place before
+   passing it along to sysctl register.
 
-  Allocated by task 77:
-   __alloc_skb (net/core/skbuff.c:704)
-   __nft_obj_notify (include/net/netlink.h:1055
-                     net/netfilter/nf_tables_api.c:8731)
-   nft_quota_obj_eval (net/netfilter/nft_quota.c:68)
-   nft_do_chain
+This series handles case 1 and 2. It leaves 3 for a later point as
+const qualifying those global ctl_tables is more involved.
 
-  Freed by task 79:
-   nf_tables_commit (include/linux/skbuff.h:1332
-                     net/netfilter/nf_tables_api.c:10759
-                     net/netfilter/nf_tables_api.c:11185)
-   nfnetlink_rcv_batch (net/netfilter/nfnetlink.c:574)
-   netlink_unicast
-   netlink_sendmsg
+I would be very thankful if you point me to anything that I have missed
+in my analysis that shows that this cannot/shouldn't be done.
 
-  The buggy address belongs to the cache skbuff_head_cache of size 232
+Changes in v4:
+- Addressed comments contained in [5]
+- Removed the RFC tag. Get back to me if you want me to restart the
+  patch versions
+- Link to v3: https://lore.kernel.org/r/20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org
 
-Queueing from the packet path is wrong even leaving the race aside:
-notify_list is only drained by nft_commit_notify() from nf_tables_commit()
-(:11185), so a notification enqueued outside a transaction is not sent
-until some later netlink batch commits, if one ever does.
+Changes in v3:
+- Const qualified 2 of the 3 cases within the net directory ctl_table
+  register sites.
+- Link to v2: https://lore.kernel.org/r/20260707-jag-net_const_qualify-v2-1-5a5c52031ead@kernel.org
 
-The gfp argument that nft_obj_notify() still takes is a leftover of the
-pre-67cc570edaa0 behaviour, where this path called nfnetlink_send()
-directly. Restore that: split the message construction out into
-nft_obj_notify_alloc() and let each caller decide what to do with the skb.
-nft_obj_notify(), the exported one reached from the packet path, sends it
-straight away; nf_tables_obj_notify(), which runs under commit_mutex, keeps
-queueing it, so transaction notifications are still coalesced.
+Changes in v2:
+- Rebased on top of net-next
+- Updated subject to "RFC net-next"
+- Link to v1: https://lore.kernel.org/r/20260629-jag-net_const_qualify-v1-1-ee98b8fc400c@kernel.org
 
-Fixes: 67cc570edaa0 ("netfilter: nf_tables: coalesce multiple notifications into one skbuff")
-Cc: stable@kernel.org
-Reported-by: TencentOS Corvus AI <corvus@tencent.com>
-Assisted-by: tencentos-corvus-ai:kimi-k3
-Signed-off-by: Fourie Zhang <fouriezhang@tencent.com>
+Best
+
+[1]
+  https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/commit/?h=constfy-sysctl-6.14-rc1&id=1751f872cc97f992ed5c4c72c55588db1f0021e1
+
+[2]
+  I have identified 4 contexts relevant to the ensure_safe_net_sysctl call
+  inside the network sysctl registration.
+
+  1. When the (struct net) == &init_net (like in iw_cm_init): In this case
+     ensure_safe_net_sysctl is not executed and permission modification
+     never happens.
+
+  2. When the ctl_table data (->data) gets "manually" assigned to
+     something other init_net (like in vsock_sysctl_register): In this
+     case ensure_safe_net_sysctl *is* executed but the data that is passed
+     is neither a module address (!is_module_address) nor a kernel core
+     address (!is_kernel_core_data); so the permission modification never
+     happens.
+
+  3. When the permissions are explicitly changed on a kmemdup'ed ctl_table
+     array (like in sysctl_core_net_init): in this case
+     ensure_safe_net_sysctl *is* executed but the permission modification
+     never happens as the mode is not writable.
+
+  4. When ctl have custom proc_handlers (like in nf_lwtunnel_net_init): In
+     this case ->data is NULL so it is not a module address
+     (!is_module_address) nor a kernel core address
+     (!is_kernel_core_data), so permission modification never happens.
+
+  It seems like there is no way of executing the permission change in
+  ensure_safe_net_sysctl. Please correct me if this is inaccurate and help
+  me find the case that I missed.
+
+[3]
+  https://lore.kernel.org/all/20260302194926.90378-1-graf@amazon.com/
+
+[4]
+  The ensure_safe_net_sysctl function was introduced in Commit:
+  31c4d2f160eb7b17cbead24dc6efed06505a3fee ("net: Ensure net namespace
+  isolation of sysctls") which states that it is trying to prevent a
+  leak (indicative of a bug).
+
+[5]
+  https://patchwork.kernel.org/project/netdevbpf/patch/20260713-jag-net_const_qualify-v3-1-7289fe9eaea6@kernel.org/
+
 ---
-A KASAN reproducer for this issue is available if requested.
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
 
- net/netfilter/nf_tables_api.c | 36 ++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+---
+Joel Granados (3):
+      net: enforce net sysctl registration
+      net: Const qualify ctl_tables that kmemdup unconditionally
+      net: Const qualify network templated ctl_tables Arrays
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index af357f6c5070..ac0211758790 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8715,18 +8715,17 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
- 	return nft_delobj(&ctx, obj);
- }
- 
--static void
--__nft_obj_notify(struct net *net, const struct nft_table *table,
--		 struct nft_object *obj, u32 portid, u32 seq, int event,
--		 u16 flags, int family, int report, gfp_t gfp)
-+static struct sk_buff *
-+nft_obj_notify_alloc(struct net *net, const struct nft_table *table,
-+		     struct nft_object *obj, u32 portid, u32 seq, int event,
-+		     u16 flags, int family, int report, gfp_t gfp)
- {
--	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!report &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return;
-+		return NULL;
- 
- 	skb = nlmsg_new(NLMSG_GOODSIZE, gfp);
- 	if (skb == NULL)
-@@ -8740,16 +8739,17 @@ __nft_obj_notify(struct net *net, const struct nft_table *table,
- 		goto err;
- 	}
- 
--	nft_notify_enqueue(skb, report, &nft_net->notify_list);
--	return;
-+	return skb;
- err:
- 	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
-+	return NULL;
- }
- 
- void nft_obj_notify(struct net *net, const struct nft_table *table,
- 		    struct nft_object *obj, u32 portid, u32 seq, int event,
- 		    u16 flags, int family, int report, gfp_t gfp)
- {
-+	struct sk_buff *skb;
- 	char *buf = kasprintf(gfp, "%s:%u",
- 			      table->name, nft_base_seq(net));
- 
-@@ -8762,17 +8762,27 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
- 			gfp);
- 	kfree(buf);
- 
--	__nft_obj_notify(net, table, obj, portid, seq, event,
--			 flags, family, report, gfp);
-+	/* Called from the packet path, holding no mutex: notify_list is
-+	 * serialised by commit_mutex, so send this notification directly.
-+	 */
-+	skb = nft_obj_notify_alloc(net, table, obj, portid, seq, event,
-+				   flags, family, report, gfp);
-+	if (skb)
-+		nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report, gfp);
- }
- EXPORT_SYMBOL_GPL(nft_obj_notify);
- 
- static void nf_tables_obj_notify(const struct nft_ctx *ctx,
- 				 struct nft_object *obj, int event)
- {
--	__nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid,
--			 ctx->seq, event, ctx->flags, ctx->family,
--			 ctx->report, GFP_KERNEL);
-+	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
-+	struct sk_buff *skb;
-+
-+	skb = nft_obj_notify_alloc(ctx->net, ctx->table, obj, ctx->portid,
-+				   ctx->seq, event, ctx->flags, ctx->family,
-+				   ctx->report, GFP_KERNEL);
-+	if (skb)
-+		nft_notify_enqueue(skb, ctx->report, &nft_net->notify_list);
- }
- 
- /*
+ include/net/net_namespace.h             |  5 +--
+ net/core/sysctl_net_core.c              | 38 +++++++++++++++--------
+ net/ipv4/devinet.c                      |  2 +-
+ net/ipv4/sysctl_net_ipv4.c              | 54 +++++++++++++++++++--------------
+ net/ipv4/xfrm4_policy.c                 | 22 +++++++++++---
+ net/ipv6/icmp.c                         |  2 +-
+ net/ipv6/route.c                        |  2 +-
+ net/ipv6/sysctl_net_ipv6.c              |  2 +-
+ net/ipv6/xfrm6_policy.c                 | 22 +++++++++++---
+ net/netfilter/nf_conntrack_standalone.c |  2 +-
+ net/netfilter/nf_hooks_lwtunnel.c       |  4 +--
+ net/sctp/sysctl.c                       |  2 +-
+ net/smc/smc_sysctl.c                    | 26 +++++++++++-----
+ net/sysctl_net.c                        | 25 +++++++--------
+ net/unix/sysctl_net_unix.c              | 21 ++++++++++---
+ net/vmw_vsock/af_vsock.c                | 25 ++++++++++-----
+ net/xfrm/xfrm_sysctl.c                  |  2 +-
+ 17 files changed, 169 insertions(+), 87 deletions(-)
+---
+base-commit: 001b5d347d8ba39b2dccaefcc57967b18caec8fe
+change-id: 20260629-jag-net_const_qualify-f4e09759dac7
+
+Best regards,
 -- 
-2.43.7
+Joel Granados <joel.granados@kernel.org>
+
 
