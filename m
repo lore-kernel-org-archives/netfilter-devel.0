@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6965343802A;
-	Mon, 10 Aug 2026 19:06:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5EF43B4B3;
+	Mon, 10 Aug 2026 19:06:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786388801; cv=none; b=LaoiNgFnygUlLrGk0uv/lHL9uPzoWxmuVDwhBqd0jJAE2xiRlaUFGiOx3hof4Bp/gK9GE+rflu8GDBjRMe5K0h1BrnLtgHNags3UZ0w6Dj4iC02uqRPz4a+I2CBevLS7N3ezQsp60kdtVPIzZo4nF8IHxwH5dbV4nXpcmgk9Ww8=
+	t=1786388803; cv=none; b=jdK+S8AuIO0xpQ2z059bBB5577ie/Fxcacdw0KbO2eBgqMjclBn5j8uhVgEbFUGFLzopIsZVrPG/+4JaVkKW1cqAQ+URy9pqbfJGY8dGvUf+v5+n8L3RpQ9/CgMv7BUpOJsHyTQDRFUCl5BDgbaqCiHj3v5Nvp9vgnjAp8ESR3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786388801; c=relaxed/simple;
-	bh=Op0vNfpgM/Wz0JW4dXx8N/Vh+xdkT7YOsf2iTs1KWYQ=;
+	s=arc-20240116; t=1786388803; c=relaxed/simple;
+	bh=AACnIXax3fDGBPnqWpLacestezF3kBB08pa/SuWzWVw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rasqFbgORp388PHIMaBOUdCwPYfLFJGlzA1F73wRKWSUkqKMna0KtrjfQS6unac4GpwHjpE8GDh9S7oFDl6DeK60RdXbb/V6+0xZds1orWQJzALKZCezQdM7x8y/pD4e2ISfstbHGkMylJgK/Q1aHLYXuXLBEKjv9HY3hUdq2T4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tAGLMUbw; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=CBsPpW6/t4e+y13N3EqjmUrP1r9ENOtr84yZgw9ZHcvUsmTW3KjFCdXEmtTQ+qz9DoB1XzoFonG9X3vXkWUaF6ubgfRxR7I0/F5Wvc7DyVC7883Um74zYxOVJg6plLN2N0BgW/ljc2dIa+M/TcEFP/DLOy8qOFGEF4rwhp99Qm0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C1Oq30zX; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tAGLMUbw"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C1Oq30zX"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9E8F06028D;
-	Mon, 10 Aug 2026 21:06:36 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 897606028E;
+	Mon, 10 Aug 2026 21:06:38 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786388797;
-	bh=J1cIVvSNqe3ui55kbY9eOengPCBlJJpyjO5mGQJ2Rk8=;
+	s=2025; t=1786388799;
+	bh=RapDeowCfsFdfGorRVjwASMw9nzxQb9kj4Y6bRbgoqo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tAGLMUbwe7CyHOfjCXhKj+Y8BtIBuIJ+UlSy9G0QccidIT31B3weskr5TfVCezypH
-	 v+Pk4RXsv88KgoupGsY8JkG4/Dy3hw8XPeSnxrOmfbvoC8d6WeUN0cIcDAbyokWr4q
-	 4QObWcPWPIsfjS4eaIijeyfTYgiZk4LRK0+aIFXYP2KIvnquEIEKnozMpoRH1nTvGX
-	 d5GQ/f7xZ3hGiIC7Duh4VIPKrLvcWrx5+UcZNcBaNw3fm6BpdAwc7xZVMTxIAeQRoc
-	 RXbVS2rWvozxQbcD4OZp/CGGhfshsMykXyrNUdMXdfB988Bmn30mQUIdT0ddwbsOgN
-	 qwz3gr1ajv4Sg==
+	b=C1Oq30zXBG344laZfs6lT7soatTg7GVphyitduSBbX61vT/3KKgulaTGKaueE4obz
+	 YDY2GkNA8t34vzuniAdEgr8d6ZALNN2p+L57ZvMRD9LXHoZVX5DxgYGxduZP4J6+Zn
+	 KmpQfwAbYb3q1RkK9N8MqgyxeyLmIj79hYypAUmtWtaLsjKBO47Hb/Rp+noZqVGgn/
+	 qFP275NmfP59JaopzCDHKl8BtHg1+38FQDl5MAc8kCd58Grht70gFrcZLmEZPv1LGS
+	 GX06j8OGfKdQ8z1xHCTte+qXpEE4lL9Y8FOE8374Y+pTxpBzSJlHOuUAiVw7wZXHPq
+	 qbxpjanbTTVmg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 03/13] ipvs: add totalconns for dest
-Date: Mon, 10 Aug 2026 21:06:11 +0200
-Message-ID: <20260810190621.894119-4-pablo@netfilter.org>
+Subject: [PATCH net 04/13] ipvs: properly update the overload flag on dest edit
+Date: Mon, 10 Aug 2026 21:06:12 +0200
+Message-ID: <20260810190621.894119-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
 References: <20260810190621.894119-1-pablo@netfilter.org>
@@ -55,10 +55,22 @@ Content-Transfer-Encoding: 8bit
 
 From: Julian Anastasov <ja@ssi.bg>
 
-Replace the inactconns dest counter with totalconns, now
-inactconns can be obtained from totalconns - activeconns.
-This reduces the atomic inc/dec ops for TCP/SCTP from
-6 to 4 if the connection is established and then closed.
+The upper/lower connection thresholds for dest can be changed,
+so use ip_vs_dest_update_overload() to properly update the
+dest overload flag.
+
+The thresholds were not limited, fit them in the 0 .. INT_MAX
+range as already done in ipvsadm.
+
+As the thresholds are also read when connections are created
+and expired, use WRITE_ONCE/READ_ONCE to access them.
+
+As the lower threshold is optional, use (u - (u >> 2)) to
+calculate the 75% default value based on the upper threshold
+by preserving the integer rounding, as suggested by Yizhou Zhao.
+
+Trigger flag update when totalconns reaches one of the
+thresholds and use dst_lock to serialize the updating.
 
 Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Cc: stable@vger.kernel.org
@@ -66,245 +78,210 @@ Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h                   | 17 ++++++++++++-----
- net/netfilter/ipvs/ip_vs_conn.c       | 24 +++++++-----------------
- net/netfilter/ipvs/ip_vs_ctl.c        | 10 +++++-----
- net/netfilter/ipvs/ip_vs_lc.c         |  4 ++--
- net/netfilter/ipvs/ip_vs_proto_sctp.c |  2 --
- net/netfilter/ipvs/ip_vs_proto_tcp.c  |  2 --
- net/netfilter/ipvs/ip_vs_sync.c       |  7 ++-----
- 7 files changed, 28 insertions(+), 38 deletions(-)
+ include/net/ip_vs.h             |  3 ++
+ net/netfilter/ipvs/ip_vs_conn.c | 27 +++++--------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 67 +++++++++++++++++++++++++++++----
+ 3 files changed, 72 insertions(+), 25 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index d2813eb795be..11f430646db8 100644
+index 11f430646db8..e99382930617 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
-@@ -987,7 +987,7 @@ struct ip_vs_dest {
- 
- 	/* connection counters and thresholds */
- 	atomic_t		activeconns;	/* active connections */
--	atomic_t		inactconns;	/* inactive connections */
-+	atomic_t		totalconns;	/* total connections */
+@@ -991,6 +991,7 @@ struct ip_vs_dest {
  	atomic_t		persistconns;	/* persistent connections */
  	__u32			u_threshold;	/* upper threshold */
  	__u32			l_threshold;	/* lower threshold */
-@@ -2220,14 +2220,21 @@ void ip_vs_unregister_hooks(struct netns_ipvs *ipvs, unsigned int af);
- static inline int
- ip_vs_dest_conn_overhead(struct ip_vs_dest *dest)
- {
--	/* We think the overhead of processing active connections is 256
-+	/* We think the overhead of processing active connections is 257
- 	 * times higher than that of inactive connections in average. (This
--	 * 256 times might not be accurate, we will change it later) We
-+	 * 257 times might not be accurate, we will change it later) We
- 	 * use the following formula to estimate the overhead now:
--	 *		  dest->activeconns*256 + dest->inactconns
-+	 *		  dest->activeconns*256 + dest->totalconns
- 	 */
- 	return (atomic_read(&dest->activeconns) << 8) +
--		atomic_read(&dest->inactconns);
-+		atomic_read(&dest->totalconns);
-+}
-+
-+static inline int
-+ip_vs_dest_inactconns(const struct ip_vs_dest *dest)
-+{
-+	return max(atomic_read(&dest->totalconns) -
-+		   atomic_read(&dest->activeconns), 0);
++	__u32			l_threshold_val;/* used lower threshold */
+ 
+ 	/* for destination cache */
+ 	spinlock_t		dst_lock;	/* lock of dst_cache */
+@@ -1907,6 +1908,8 @@ static inline void ip_vs_dest_put_and_free(struct ip_vs_dest *dest)
+ 		kfree(dest);
  }
  
- #ifdef CONFIG_IP_VS_PROTO_TCP
++void ip_vs_dest_update_overload(struct ip_vs_dest *dest, int mode);
++
+ /* IPVS sync daemon data and function prototypes
+  * (from ip_vs_sync.c)
+  */
 diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 36c5cba03f5b..4d0a6f718ced 100644
+index 4d0a6f718ced..abf52a226fee 100644
 --- a/net/netfilter/ipvs/ip_vs_conn.c
 +++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1081,12 +1081,6 @@ static inline void ip_vs_bind_xmit_v6(struct ip_vs_conn *cp)
- #endif
+@@ -1141,22 +1141,22 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
  
- 
--static inline int ip_vs_dest_totalconns(struct ip_vs_dest *dest)
--{
--	return atomic_read(&dest->activeconns)
--		+ atomic_read(&dest->inactconns);
--}
--
- /*
-  *	Bind a connection entry with a virtual service destination
-  *	Called just after a new connection entry is created.
-@@ -1153,8 +1147,7 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ 	/* Update the connection counters */
+ 	if (!(flags & IP_VS_CONN_F_TEMPLATE)) {
++		int tc;
++
+ 		/* It is a normal connection, so modify the counters
+ 		 * according to the flags, later the protocol can
+ 		 * update them on state change
  		 */
  		if (!(flags & IP_VS_CONN_F_INACTIVE))
  			atomic_inc(&dest->activeconns);
--		else
--			atomic_inc(&dest->inactconns);
-+		atomic_inc(&dest->totalconns);
+-		atomic_inc(&dest->totalconns);
++		tc = atomic_inc_return(&dest->totalconns);
++		if (tc == READ_ONCE(dest->u_threshold))
++			ip_vs_dest_update_overload(dest, 1);
  	} else {
  		/* It is a persistent connection/template, so increase
  		   the persistent connection counter */
-@@ -1162,7 +1155,7 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ 		atomic_inc(&dest->persistconns);
  	}
- 
- 	if (dest->u_threshold != 0 &&
--	    ip_vs_dest_totalconns(dest) >= dest->u_threshold)
-+	    atomic_read(&dest->totalconns) >= dest->u_threshold)
- 		dest->flags |= IP_VS_DEST_F_OVERLOAD;
+-
+-	if (dest->u_threshold != 0 &&
+-	    atomic_read(&dest->totalconns) >= dest->u_threshold)
+-		dest->flags |= IP_VS_DEST_F_OVERLOAD;
  }
  
-@@ -1244,13 +1237,10 @@ static inline void ip_vs_unbind_dest(struct ip_vs_conn *cp)
+ 
+@@ -1237,27 +1237,20 @@ static inline void ip_vs_unbind_dest(struct ip_vs_conn *cp)
  
  	/* Update the connection counters */
  	if (!(cp->flags & IP_VS_CONN_F_TEMPLATE)) {
--		/* It is a normal connection, so decrease the inactconns
--		   or activeconns counter */
--		if (cp->flags & IP_VS_CONN_F_INACTIVE) {
--			atomic_dec(&dest->inactconns);
--		} else {
-+		/* It is a normal connection, so decrease the counters */
-+		if (!(cp->flags & IP_VS_CONN_F_INACTIVE))
++		int tc;
++
+ 		/* It is a normal connection, so decrease the counters */
+ 		if (!(cp->flags & IP_VS_CONN_F_INACTIVE))
  			atomic_dec(&dest->activeconns);
--		}
-+		atomic_dec(&dest->totalconns);
+-		atomic_dec(&dest->totalconns);
++		tc = atomic_fetch_dec(&dest->totalconns);
++		if (tc == READ_ONCE(dest->l_threshold_val))
++			ip_vs_dest_update_overload(dest, -1);
  	} else {
  		/* It is a persistent connection/template, so decrease
  		   the persistent connection counter */
-@@ -1258,10 +1248,10 @@ static inline void ip_vs_unbind_dest(struct ip_vs_conn *cp)
+ 		atomic_dec(&dest->persistconns);
  	}
  
- 	if (dest->l_threshold != 0) {
--		if (ip_vs_dest_totalconns(dest) < dest->l_threshold)
-+		if (atomic_read(&dest->totalconns) < dest->l_threshold)
- 			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
- 	} else if (dest->u_threshold != 0) {
--		if (ip_vs_dest_totalconns(dest) * 4 < dest->u_threshold * 3)
-+		if (atomic_read(&dest->totalconns) * 4 < dest->u_threshold * 3)
- 			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
- 	} else {
- 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+-	if (dest->l_threshold != 0) {
+-		if (atomic_read(&dest->totalconns) < dest->l_threshold)
+-			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
+-	} else if (dest->u_threshold != 0) {
+-		if (atomic_read(&dest->totalconns) * 4 < dest->u_threshold * 3)
+-			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
+-	} else {
+-		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+-			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
+-	}
+-
+ 	ip_vs_dest_put(dest);
+ }
+ 
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index bcf40b8c41cf..45f534427d23 100644
+index 45f534427d23..974773642af8 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1445,7 +1445,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 	dest->port = udest->port;
- 
- 	atomic_set(&dest->activeconns, 0);
--	atomic_set(&dest->inactconns, 0);
-+	atomic_set(&dest->totalconns, 0);
- 	atomic_set(&dest->persistconns, 0);
- 	refcount_set(&dest->refcnt, 1);
- 
-@@ -3031,7 +3031,7 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
- 					   ip_vs_fwd_name(atomic_read(&dest->conn_flags)),
- 					   atomic_read(&dest->weight),
- 					   atomic_read(&dest->activeconns),
--					   atomic_read(&dest->inactconns));
-+					   ip_vs_dest_inactconns(dest));
- 			else
- #endif
- 				seq_printf(seq,
-@@ -3042,7 +3042,7 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
- 					   ip_vs_fwd_name(atomic_read(&dest->conn_flags)),
- 					   atomic_read(&dest->weight),
- 					   atomic_read(&dest->activeconns),
--					   atomic_read(&dest->inactconns));
-+					   ip_vs_dest_inactconns(dest));
- 
- 		}
+@@ -1304,6 +1304,40 @@ void ip_vs_stats_free(struct ip_vs_stats *stats)
  	}
-@@ -3670,7 +3670,7 @@ __ip_vs_get_dest_entries(struct netns_ipvs *ipvs, const struct ip_vs_get_dests *
- 			entry.u_threshold = dest->u_threshold;
- 			entry.l_threshold = dest->l_threshold;
+ }
+ 
++/* Update overload flag based on number of dest conns and lower/upper
++ * connection thresholds:
++ * - conns reach u_threshold and exceed it: set the flag
++ * - conns go below l_threshold (or 75% of u_threshold): clear the flag
++ */
++static void __ip_vs_dest_update_overload(struct ip_vs_dest *dest, int mode)
++{
++	int conns;
++	u32 l, u;
++
++	lockdep_assert_held(&dest->dst_lock);
++	u = READ_ONCE(dest->u_threshold);
++	if (!u)
++		goto unset;
++	l = READ_ONCE(dest->l_threshold_val);
++	conns = atomic_read(&dest->totalconns);
++	if (conns >= (mode > 0 ? l : u)) {
++		dest->flags |= IP_VS_DEST_F_OVERLOAD;
++		return;
++	}
++	if (conns >= (mode < 0 ? u : l))
++		return;
++
++unset:
++	dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
++}
++
++void ip_vs_dest_update_overload(struct ip_vs_dest *dest, int mode)
++{
++	spin_lock_bh(&dest->dst_lock);
++	__ip_vs_dest_update_overload(dest, mode);
++	spin_unlock_bh(&dest->dst_lock);
++}
++
+ /*
+  *	Update a destination in the given service
+  */
+@@ -1370,10 +1404,19 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	/* set the dest status flags */
+ 	dest->flags |= IP_VS_DEST_F_AVAILABLE;
+ 
+-	if (udest->u_threshold == 0 || udest->u_threshold > dest->u_threshold)
+-		dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
+-	dest->u_threshold = udest->u_threshold;
+-	dest->l_threshold = udest->l_threshold;
++	if (READ_ONCE(dest->u_threshold) != udest->u_threshold ||
++	    READ_ONCE(dest->l_threshold) != udest->l_threshold) {
++		spin_lock_bh(&dest->dst_lock);
++		WRITE_ONCE(dest->u_threshold, udest->u_threshold);
++		WRITE_ONCE(dest->l_threshold, udest->l_threshold);
++		/* Low threshold defaults to 75% of upper threshold */
++		WRITE_ONCE(dest->l_threshold_val,
++			   udest->l_threshold ? :
++			   (udest->u_threshold -
++			    (udest->u_threshold >> 2)));
++		__ip_vs_dest_update_overload(dest, 0);
++		spin_unlock_bh(&dest->dst_lock);
++	}
+ 
+ 	dest->af = udest->af;
+ 
+@@ -1486,6 +1529,9 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
+ 	}
+ 
++	if (udest->u_threshold > INT_MAX)
++		return -EINVAL;
++
+ 	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+ 		if (udest->tun_port == 0) {
+ 			pr_err("%s(): tunnel port is zero\n", __func__);
+@@ -1559,6 +1605,9 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
+ 	}
+ 
++	if (udest->u_threshold > INT_MAX)
++		return -EINVAL;
++
+ 	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+ 		if (udest->tun_port == 0) {
+ 			pr_err("%s(): tunnel port is zero\n", __func__);
+@@ -3667,8 +3716,8 @@ __ip_vs_get_dest_entries(struct netns_ipvs *ipvs, const struct ip_vs_get_dests *
+ 			entry.port = dest->port;
+ 			entry.conn_flags = atomic_read(&dest->conn_flags);
+ 			entry.weight = atomic_read(&dest->weight);
+-			entry.u_threshold = dest->u_threshold;
+-			entry.l_threshold = dest->l_threshold;
++			entry.u_threshold = READ_ONCE(dest->u_threshold);
++			entry.l_threshold = READ_ONCE(dest->l_threshold);
  			entry.activeconns = atomic_read(&dest->activeconns);
--			entry.inactconns = atomic_read(&dest->inactconns);
-+			entry.inactconns = ip_vs_dest_inactconns(dest);
+ 			entry.inactconns = ip_vs_dest_inactconns(dest);
  			entry.persistconns = atomic_read(&dest->persistconns);
- 			ip_vs_copy_stats(&kstats, &dest->stats);
- 			ip_vs_export_stats_user(&entry.stats, &kstats);
-@@ -4282,7 +4282,7 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+@@ -4277,8 +4326,10 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+ 			 dest->tun_port) ||
+ 	    nla_put_u16(skb, IPVS_DEST_ATTR_TUN_FLAGS,
+ 			dest->tun_flags) ||
+-	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+-	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH, dest->l_threshold) ||
++	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH,
++			READ_ONCE(dest->u_threshold)) ||
++	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH,
++			READ_ONCE(dest->l_threshold)) ||
  	    nla_put_u32(skb, IPVS_DEST_ATTR_ACTIVE_CONNS,
  			atomic_read(&dest->activeconns)) ||
  	    nla_put_u32(skb, IPVS_DEST_ATTR_INACT_CONNS,
--			atomic_read(&dest->inactconns)) ||
-+			ip_vs_dest_inactconns(dest)) ||
- 	    nla_put_u32(skb, IPVS_DEST_ATTR_PERSIST_CONNS,
- 			atomic_read(&dest->persistconns)) ||
- 	    nla_put_u16(skb, IPVS_DEST_ATTR_ADDR_FAMILY, dest->af))
-diff --git a/net/netfilter/ipvs/ip_vs_lc.c b/net/netfilter/ipvs/ip_vs_lc.c
-index 38cc38c5d8bb..18b976a7c4d2 100644
---- a/net/netfilter/ipvs/ip_vs_lc.c
-+++ b/net/netfilter/ipvs/ip_vs_lc.c
-@@ -30,7 +30,7 @@ ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
- 
- 	/*
- 	 * Simply select the server with the least number of
--	 *        (activeconns<<5) + inactconns
-+	 *        (activeconns*256) + totalconns
- 	 * Except whose weight is equal to zero.
- 	 * If the weight is equal to zero, it means that the server is
- 	 * quiesced, the existing connections to the server still get
-@@ -56,7 +56,7 @@ ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
- 			      IP_VS_DBG_ADDR(least->af, &least->addr),
- 			      ntohs(least->port),
- 			      atomic_read(&least->activeconns),
--			      atomic_read(&least->inactconns));
-+			      ip_vs_dest_inactconns(least));
- 
- 	return least;
- }
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index c80567c73469..fb8af6b15a39 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -446,12 +446,10 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
- 				(next_state != IP_VS_SCTP_S_ESTABLISHED)) {
- 				atomic_dec(&dest->activeconns);
--				atomic_inc(&dest->inactconns);
- 				cp->flags |= IP_VS_CONN_F_INACTIVE;
- 			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
- 				   (next_state == IP_VS_SCTP_S_ESTABLISHED)) {
- 				atomic_inc(&dest->activeconns);
--				atomic_dec(&dest->inactconns);
- 				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
- 			}
- 		}
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 99a286fdc90c..fec0e8b47b71 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -526,12 +526,10 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
- 			    !tcp_state_active(new_state)) {
- 				atomic_dec(&dest->activeconns);
--				atomic_inc(&dest->inactconns);
- 				cp->flags |= IP_VS_CONN_F_INACTIVE;
- 			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
- 				   tcp_state_active(new_state)) {
- 				atomic_inc(&dest->activeconns);
--				atomic_dec(&dest->inactconns);
- 				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
- 			}
- 		}
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 93038abbf5e0..ea5fdd4f4ce7 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -878,13 +878,10 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 		spin_lock_bh(&cp->lock);
- 		if ((cp->flags ^ flags) & IP_VS_CONN_F_INACTIVE &&
- 		    !(flags & IP_VS_CONN_F_TEMPLATE) && dest) {
--			if (flags & IP_VS_CONN_F_INACTIVE) {
-+			if (flags & IP_VS_CONN_F_INACTIVE)
- 				atomic_dec(&dest->activeconns);
--				atomic_inc(&dest->inactconns);
--			} else {
-+			else
- 				atomic_inc(&dest->activeconns);
--				atomic_dec(&dest->inactconns);
--			}
- 		}
- 		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
- 		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
 -- 
 2.47.3
 
