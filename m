@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 186D043C7B5;
-	Mon, 10 Aug 2026 19:06:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944DB43B3D8;
+	Mon, 10 Aug 2026 19:06:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786388809; cv=none; b=Yoh2/LikP3eIbnA41MyZFCWLHBb3sPiwFvx2BPdiv0ACjm98n4vXxKFE/0dlEz5ZUFQ9SHCxwEZYPU5xJvMUmWDNsM3Q3beCWR7frdd86R9LUrHKWrlJv6z3ni5J8oanob88LmbcBXlWbOQu384Q5rvI+SOQTHwxLgj2vLGps0Y=
+	t=1786388811; cv=none; b=RKUfqZx068MeHNABwS+mvyEX/aNo2iY50YfRgmnaNPt5fyMVSX52OgVhD/SXyz52/2bvpgZvcBii3bwTqAcv9F6WVtchyl+j4Hq4U5O8j2bNC2PIlUw+VZuF8q2Os6eRu0DH//617+FD4eDJu/WPwf71eWrRG0DB3PADgA8m488=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786388809; c=relaxed/simple;
-	bh=7PpGWqTECjkvabFCWNkXlpfmhF3Ch9myM4T4ovihGG8=;
+	s=arc-20240116; t=1786388811; c=relaxed/simple;
+	bh=cYGQ0k2vo1qUPyPgE4nGLEQs9eTKlTcggQhaodq6oEE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GnoDmQz1PDrLPJiEKWVlANooqeZOZxVJ/gkufujMgy/p9VyymhVAEGsjKrox6U/BBllyRABrv6TDRL96IjzSzcSYN7wgAT40MKs8nVqEv7zbWaHnN2jS8t0htgDdV9A/YpsJENd0hvkwsBFLr5PwOHNDxY/X9+aiqgPNtV9S+bY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JvL/+fcq; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Mik550DyACO4oPW85JwS19l0BD7IYRc6MplDAPdmPETbU3kEl0doO3Y3w/u6TFwZjeJO2s2I+WFTpVzC8Y368BUHjA6268p1XXOHDvSX90OG6LEl9h84Khhc9MeAaRDDgxPnaJ7zShz+auPkbEtWn5bD5M1OEFyfbUz4u0KraLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lt9IGfzh; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JvL/+fcq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lt9IGfzh"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C1F906028B;
-	Mon, 10 Aug 2026 21:06:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 27C7E6028C;
+	Mon, 10 Aug 2026 21:06:47 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786388806;
-	bh=2/iyOKQKOdWkD259vMgf9M4AMTI97tZ3zU5U3cidqbU=;
+	s=2025; t=1786388807;
+	bh=a1+jVSRwwE2lkU5kAZHpLkb+xYD6RSYb15iwWxd1+eg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JvL/+fcqonaiOwGdi1vKsIWa0/Lj4t5VB+zHuuD58kwO/Rrnqa+m//iXsQ/KurnR6
-	 FcKPwCp3vCDnWjeF/shnhJ7pKJe/SDrVKoOmj+q56bJzi5Y6gpVFKQibcbOpA0DNzi
-	 hHA9E2JV1NERlkxwhopXYWWJC7ybbd5AWhj8zka88YVQqIszXOCckk0us6baOE5NJk
-	 1Frg/QbROEt9aThtfPGQjsWFwB0PhCpGNtC09fXScQyIbbKyTAOnJ2PCYk4cfMo4v7
-	 baRySZeoU4IQUiZ9NPFKfg2OsUtV00FdCe+S3ofkaDe7JKj+NxCUbSFWnMuavEEcpA
-	 kvUlfNi/LkpiA==
+	b=lt9IGfzhhP/Hf29yuFFeF7BkAqhZbfiylRZoyAhWQ73xbsjw+OxSlDyYweyL+1mWl
+	 V3huyNLzUWFJJcCpUnzPBN2wkViM1qVWNuAJIGj/4A6mlHr37oPWiY62o7UePAfXrF
+	 nlNVqTactj8VwP9E3UuzDsvwfmPpGLra2nr/Qk+ZyGneJWJ03fBVs6bFzyfeS+s1Rp
+	 ybIH93nwx84rOE/jxEfYTgFD+NHcopmGVEVGXuHC43GEB7c0O7mPgWCUyiPqebrQx+
+	 AvkvUXyR1SHipVYWzCwuNBnumN7uUvLxLAZ07pK5ANF26iRx0lRUewvHRWe6+JFlKE
+	 Nzyy0Haxn2ycg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 09/13] ipvs: revalidate ihl to prevent out-of-bounds access
-Date: Mon, 10 Aug 2026 21:06:17 +0200
-Message-ID: <20260810190621.894119-10-pablo@netfilter.org>
+Subject: [PATCH net 10/13] netfilter: nf_tables_offload: suppress WARN_ON_ONCE for ENOMEM in abort path
+Date: Mon, 10 Aug 2026 21:06:18 +0200
+Message-ID: <20260810190621.894119-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
 References: <20260810190621.894119-1-pablo@netfilter.org>
@@ -53,100 +53,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Alexey Velichayshiy <a.velichayshiy@ispras.ru>
 
-While the outer IP header is already pulled into the skb head,
-we must be careful and revalidate the embedded headers after
-reading them from the skb frags to prevent out-of-bounds
-access.
+In nft_flow_rule_offload_abort(), WARN_ON_ONCE(err) is triggered on every
+error during rollback, including -ENOMEM. Memory allocation failures are
+expected under low-memory conditions and do not indicate a kernel bug.
 
-One such place reported by Sashiko is ip_vs_nat_icmp() where
-local process can change the ihl field and after
-skb_ensure_writable() we can see larger value which is a
-problem for the ip_send_check(cih) calls.
+Trace for example:
+nft_flow_offload_chain() // FLOW_BLOCK_BIND
+  nft_flow_block_chain()
+    nft_chain_offload_cmd()
+      nft_block_offload_cmd()
+        ->ndo_setup_tc()
+        nsim_setup_tc()
+          flow_block_cb_setup_simple()
+            flow_block_cb_alloc() // fails to -ENOMEM
 
-Add check to drop the packet if the ihl field is changed.
+The warning was reproduced on the 5.10 stable kernel under memory pressure
+via fault injection, but the underlying bug exists in mainline as well,
+as demonstrated by the ENOMEM trace above. The following splat was
+triggered during nf_tables transaction processing:
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Link: https://sashiko.dev/#/patchset/20260730183506.87473-1-ja%40ssi.bg
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+WARNING: CPU: 0 PID: 8567 at net/netfilter/nf_tables_offload.c:532 nft_flow_rule_offload_abort net/netfilter/nf_tables_offload.c:532 [inline]
+WARNING: CPU: 0 PID: 8567 at net/netfilter/nf_tables_offload.c:532 nft_flow_rule_offload_commit+0x971/0xcd0 net/netfilter/nf_tables_offload.c:591
+Modules linked in:
+CPU: 0 PID: 8567 Comm: syz-executor.0 Not tainted 5.10.260-syzkaller #0
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
+RIP: 0010:nft_flow_rule_offload_abort net/netfilter/nf_tables_offload.c:532 [inline]
+RIP: 0010:nft_flow_rule_offload_commit+0x971/0xcd0 net/netfilter/nf_tables_offload.c:591
+Call Trace:
+ nf_tables_commit+0x3bd/0x4bd0 net/netfilter/nf_tables_api.c:8604
+ nfnetlink_rcv_batch+0xb1e/0x1f20 net/netfilter/nfnetlink.c:509
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:579 [inline]
+ nfnetlink_rcv+0x3b3/0x420 net/netfilter/nfnetlink.c:597
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x6cd/0xa00 net/netfilter/af_netlink.c:1340
+ netlink_sendmsg+0x906/0xe10 net/netfilter/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:651 [inline]
+ __sock_sendmsg+0x155/0x190 net/socket.c:663
+ ____sys_sendmsg+0x705/0x870 net/socket.c:2379
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2433
+ __sys_sendmsg+0xe9/0x1c0 net/socket.c:2462
+ do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x67/0xd1
+
+Change the condition to WARN_ON_ONCE(err && err != -ENOMEM) so that
+warnings are only emitted for unexpected errors. This aligns with the
+common kernel practice of not warning on -ENOMEM.
+
+Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
+
+Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
+Signed-off-by: Alexey Velichayshiy <a.velichayshiy@ispras.ru>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             |  2 +-
- net/netfilter/ipvs/ip_vs_core.c | 11 +++++++++--
- net/netfilter/ipvs/ip_vs_xmit.c |  3 ++-
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_offload.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index fc2ef5ef31a6..be3a6617adf4 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -2068,7 +2068,7 @@ static inline bool ip_vs_conn_use_hash2(struct ip_vs_conn *cp)
- 	       !(cp->flags & IP_VS_CONN_F_TEMPLATE);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 8998a24651ff..0ac3c26dfb3d 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -558,7 +558,7 @@ static void nft_flow_rule_offload_abort(struct net *net,
+ 			break;
+ 		}
+ 
+-		if (WARN_ON_ONCE(err))
++		if (WARN_ON_ONCE(err && err != -ENOMEM))
+ 			break;
+ 	}
  }
- 
--void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
-+bool ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		    struct ip_vs_conn *cp, int dir, unsigned int toff,
- 		    bool has_ports, struct ip_vs_iphdr *ciph);
- 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index a46e7acdd8e1..eb806813292a 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -923,7 +923,7 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
-  * Packet has been made sufficiently writable in caller
-  * - inout: 1=in->out, 0=out->in
-  */
--void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
-+bool ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		    struct ip_vs_conn *cp, int inout, unsigned int toff,
- 		    bool has_ports, struct ip_vs_iphdr *ciph)
- {
-@@ -931,6 +931,11 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
- 	struct iphdr *cih	 = (struct iphdr *)(icmph + 1);
- 
-+	/* Before now we may used ihl from skb frag, revalidate it after
-+	 * copying it into skb head to prevent out-of-bounds access
-+	 */
-+	if (cih->ihl * 4 != ciph->len - ciph->off)
-+		return false;
- 	if (inout) {
- 		iph->saddr = cp->vaddr.ip;
- 		ip_send_check(iph);
-@@ -964,6 +969,7 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	else
- 		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
- 			      "Forwarding altered incoming ICMP");
-+	return true;
- }
- 
- #ifdef CONFIG_IP_VS_IPV6
-@@ -1055,7 +1061,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
- 		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, has_ports, ciph);
- 	else
- #endif
--		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph);
-+		if (!ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph))
-+			goto out;
- 
- 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
- 		goto out;
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index fc7403186394..04450a48f01a 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -1580,7 +1580,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
- 		goto tx_error;
- 
--	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph);
-+	if (!ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph))
-+		goto tx_error;
- 
- 	/* Another hack: avoid icmp_send in ip_fragment */
- 	skb->ignore_df = 1;
 -- 
 2.47.3
 
