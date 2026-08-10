@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944DB43B3D8;
-	Mon, 10 Aug 2026 19:06:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77EAA4398ED;
+	Mon, 10 Aug 2026 19:06:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786388811; cv=none; b=RKUfqZx068MeHNABwS+mvyEX/aNo2iY50YfRgmnaNPt5fyMVSX52OgVhD/SXyz52/2bvpgZvcBii3bwTqAcv9F6WVtchyl+j4Hq4U5O8j2bNC2PIlUw+VZuF8q2Os6eRu0DH//617+FD4eDJu/WPwf71eWrRG0DB3PADgA8m488=
+	t=1786388811; cv=none; b=Surr2HnPjiyIWr5zU8zR8JTTaC0lXaa2hBrXo1rSTL1Adt7n/mJYgcGmAhoFxAzjkyMZkvigp3RMmxBMTBplXcO4ihY3+N4RaEMuerKU9S3QERw4MdpVLaj57OP/tgi9hHuibPickH3i7pJANJBA+VJICK7xULb5vK5r+1ZpTm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786388811; c=relaxed/simple;
-	bh=cYGQ0k2vo1qUPyPgE4nGLEQs9eTKlTcggQhaodq6oEE=;
+	bh=It4zNg+yEZG5oQGX8ot/c/jijGbLPUuypmWD9AIhRf4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Mik550DyACO4oPW85JwS19l0BD7IYRc6MplDAPdmPETbU3kEl0doO3Y3w/u6TFwZjeJO2s2I+WFTpVzC8Y368BUHjA6268p1XXOHDvSX90OG6LEl9h84Khhc9MeAaRDDgxPnaJ7zShz+auPkbEtWn5bD5M1OEFyfbUz4u0KraLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lt9IGfzh; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version:Content-Type; b=jCh3magRbBJi0f+a32Sjhq5I3ANlkLxJM1mlUtPLlmwxoFqlWYqbr0zxjrl9IWawuhWrNyV2NxgdY8sO9EM/qXsO3t96Q9BZlAQMVCi2Ezajcpcg6VstKVpZO57MtIZHFxzvC8bKn0eUu7phSdbGN73jHnRJRagO9O8xNt35d4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VLqCVNvy; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lt9IGfzh"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VLqCVNvy"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 27C7E6028C;
-	Mon, 10 Aug 2026 21:06:47 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 61A506028E;
+	Mon, 10 Aug 2026 21:06:48 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786388807;
-	bh=a1+jVSRwwE2lkU5kAZHpLkb+xYD6RSYb15iwWxd1+eg=;
+	s=2025; t=1786388808;
+	bh=v988Iog1h9uF2SxdgCbWCzeRIXa98D8MWl7kjSVnZig=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lt9IGfzhhP/Hf29yuFFeF7BkAqhZbfiylRZoyAhWQ73xbsjw+OxSlDyYweyL+1mWl
-	 V3huyNLzUWFJJcCpUnzPBN2wkViM1qVWNuAJIGj/4A6mlHr37oPWiY62o7UePAfXrF
-	 nlNVqTactj8VwP9E3UuzDsvwfmPpGLra2nr/Qk+ZyGneJWJ03fBVs6bFzyfeS+s1Rp
-	 ybIH93nwx84rOE/jxEfYTgFD+NHcopmGVEVGXuHC43GEB7c0O7mPgWCUyiPqebrQx+
-	 AvkvUXyR1SHipVYWzCwuNBnumN7uUvLxLAZ07pK5ANF26iRx0lRUewvHRWe6+JFlKE
-	 Nzyy0Haxn2ycg==
+	b=VLqCVNvy5ty+49QVrlQRuCtFMIyhhxjKOLlTsTD2uAyry+SUL9Igmb5XTu+rg4f3L
+	 9u9LcvbcJrSvGpTYQcVHeKNmf6xOUdb+YplOjWJ7/oPLdG+C/mSb0yTGvxmAY7VhA4
+	 Nt1/0iFpSldvgLx4hulS6ZUEz/NRm4na89bpDduJ47Js94srg6R2oGUwetK8JWjtGq
+	 84ENZm7kQDTKG7hfp3wPtC/p2mNiPyx44CdrcxyzPW00RvtjwXDnd6jTFWtv5fgQ6c
+	 CfHO/99APsjV4PVzZOCDC8StIiudEZ4mg9+o6LgcrBlQOAjSJTquV4YQBref3/1i6k
+	 7aIJ1DE1KVBIw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 10/13] netfilter: nf_tables_offload: suppress WARN_ON_ONCE for ENOMEM in abort path
-Date: Mon, 10 Aug 2026 21:06:18 +0200
-Message-ID: <20260810190621.894119-11-pablo@netfilter.org>
+Subject: [PATCH net 11/13] netfilter: flowtable: publish GC-visible tuple last
+Date: Mon, 10 Aug 2026 21:06:19 +0200
+Message-ID: <20260810190621.894119-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
 References: <20260810190621.894119-1-pablo@netfilter.org>
@@ -51,78 +51,55 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Alexey Velichayshiy <a.velichayshiy@ispras.ru>
+From: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
 
-In nft_flow_rule_offload_abort(), WARN_ON_ONCE(err) is triggered on every
-error during rollback, including -ENOMEM. Memory allocation failures are
-expected under low-memory conditions and do not indicate a kernel bug.
+nf_flow_table_iterate() only treats original-direction tuple nodes as
+owning entries. Publishing the original node first lets GC observe and
+free a flow while flow_offload_add() is still inserting the reply node.
+Publish the reply node first and the original node last so GC never
+sees a partially installed flow.
 
-Trace for example:
-nft_flow_offload_chain() // FLOW_BLOCK_BIND
-  nft_flow_block_chain()
-    nft_chain_offload_cmd()
-      nft_block_offload_cmd()
-        ->ndo_setup_tc()
-        nsim_setup_tc()
-          flow_block_cb_setup_simple()
-            flow_block_cb_alloc() // fails to -ENOMEM
+KASAN can trigger slab-use-after-free read and write reports in the
+flowtable/rhashtable path (rht_deferred_worker, jhash, flow_offload_del,
+flow_offload_lookup, etc.).
 
-The warning was reproduced on the 5.10 stable kernel under memory pressure
-via fault injection, but the underlying bug exists in mainline as well,
-as demonstrated by the ENOMEM trace above. The following splat was
-triggered during nf_tables transaction processing:
-
-WARNING: CPU: 0 PID: 8567 at net/netfilter/nf_tables_offload.c:532 nft_flow_rule_offload_abort net/netfilter/nf_tables_offload.c:532 [inline]
-WARNING: CPU: 0 PID: 8567 at net/netfilter/nf_tables_offload.c:532 nft_flow_rule_offload_commit+0x971/0xcd0 net/netfilter/nf_tables_offload.c:591
-Modules linked in:
-CPU: 0 PID: 8567 Comm: syz-executor.0 Not tainted 5.10.260-syzkaller #0
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
-RIP: 0010:nft_flow_rule_offload_abort net/netfilter/nf_tables_offload.c:532 [inline]
-RIP: 0010:nft_flow_rule_offload_commit+0x971/0xcd0 net/netfilter/nf_tables_offload.c:591
-Call Trace:
- nf_tables_commit+0x3bd/0x4bd0 net/netfilter/nf_tables_api.c:8604
- nfnetlink_rcv_batch+0xb1e/0x1f20 net/netfilter/nfnetlink.c:509
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:579 [inline]
- nfnetlink_rcv+0x3b3/0x420 net/netfilter/nfnetlink.c:597
- netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
- netlink_unicast+0x6cd/0xa00 net/netfilter/af_netlink.c:1340
- netlink_sendmsg+0x906/0xe10 net/netfilter/af_netlink.c:1919
- sock_sendmsg_nosec net/socket.c:651 [inline]
- __sock_sendmsg+0x155/0x190 net/socket.c:663
- ____sys_sendmsg+0x705/0x870 net/socket.c:2379
- ___sys_sendmsg+0x100/0x170 net/socket.c:2433
- __sys_sendmsg+0xe9/0x1c0 net/socket.c:2462
- do_syscall_64+0x33/0x40 arch/x86/entry/common.c:46
- entry_SYSCALL_64_after_hwframe+0x67/0xd1
-
-Change the condition to WARN_ON_ONCE(err && err != -ENOMEM) so that
-warnings are only emitted for unexpected errors. This aligns with the
-common kernel practice of not warning on -ENOMEM.
-
-Found by Linux Verification Center (linuxtesting.org) with Syzkaller.
-
-Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
-Signed-off-by: Alexey Velichayshiy <a.velichayshiy@ispras.ru>
+Fixes: ac2a66665e23 ("netfilter: add generic flow table infrastructure")
+Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+Assisted-by: Codex:gpt-5
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_offload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 8998a24651ff..0ac3c26dfb3d 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -558,7 +558,7 @@ static void nft_flow_rule_offload_abort(struct net *net,
- 			break;
- 		}
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index b66e65439341..8b1165f2b5a4 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -332,17 +332,18 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
  
--		if (WARN_ON_ONCE(err))
-+		if (WARN_ON_ONCE(err && err != -ENOMEM))
- 			break;
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+-				     &flow->tuplehash[0].node,
++				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
+ 				     nf_flow_offload_rhash_params);
+ 	if (err < 0)
+ 		return err;
+ 
++	/* GC only iterates original-direction entries; publish original last. */
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+-				     &flow->tuplehash[1].node,
++				     &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
+ 				     nf_flow_offload_rhash_params);
+ 	if (err < 0) {
+ 		rhashtable_remove_fast(&flow_table->rhashtable,
+-				       &flow->tuplehash[0].node,
++				       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
+ 				       nf_flow_offload_rhash_params);
+ 		return err;
  	}
- }
 -- 
 2.47.3
 
