@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77EAA4398ED;
-	Mon, 10 Aug 2026 19:06:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5BE43B484;
+	Mon, 10 Aug 2026 19:06:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786388811; cv=none; b=Surr2HnPjiyIWr5zU8zR8JTTaC0lXaa2hBrXo1rSTL1Adt7n/mJYgcGmAhoFxAzjkyMZkvigp3RMmxBMTBplXcO4ihY3+N4RaEMuerKU9S3QERw4MdpVLaj57OP/tgi9hHuibPickH3i7pJANJBA+VJICK7xULb5vK5r+1ZpTm0=
+	t=1786388813; cv=none; b=AHq2llOzcToYrwQEA3U/AdylN58kumRl7SjlfXc5v2OJKtze0wjCmvSVOpY6pF4sN0FX0PL8pKIKbL0VyVy6UHPxX2OaBe621V7NR2KjvD+D/hwNBnOeZpWYXoEY04fe9AEpmnZvK82cEhQ5uPJ4S8aKdZ/GYziNe0yc5rA3EZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786388811; c=relaxed/simple;
-	bh=It4zNg+yEZG5oQGX8ot/c/jijGbLPUuypmWD9AIhRf4=;
+	s=arc-20240116; t=1786388813; c=relaxed/simple;
+	bh=vm4zrQ8cBJ39uQvNCExo0wgd4eHJEkSGn4Xoojrip5A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jCh3magRbBJi0f+a32Sjhq5I3ANlkLxJM1mlUtPLlmwxoFqlWYqbr0zxjrl9IWawuhWrNyV2NxgdY8sO9EM/qXsO3t96Q9BZlAQMVCi2Ezajcpcg6VstKVpZO57MtIZHFxzvC8bKn0eUu7phSdbGN73jHnRJRagO9O8xNt35d4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VLqCVNvy; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=TdU8WMpmmhjd1CCJPuLDfCsgBsGZqvrs6pc3x35NHvgQH+rLgjYd9/Ya9TpdXi9kJx/Ly6cKO5LEHsm4+zc5v0JDBoItChST/0KsRCxmFeLyA0Xx3OmdVQ+sx2GomQq4DMuwfvx52RFvUFJ6OAmsqVvnNfmw/uEjAzWxzTRpswE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mwzHq48W; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VLqCVNvy"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mwzHq48W"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 61A506028E;
-	Mon, 10 Aug 2026 21:06:48 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8E04E601A2;
+	Mon, 10 Aug 2026 21:06:49 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786388808;
-	bh=v988Iog1h9uF2SxdgCbWCzeRIXa98D8MWl7kjSVnZig=;
+	s=2025; t=1786388810;
+	bh=8jonHFW92Yd9hJqj5CLwavm35Ms9ujPKrAmOyl9eid4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VLqCVNvy5ty+49QVrlQRuCtFMIyhhxjKOLlTsTD2uAyry+SUL9Igmb5XTu+rg4f3L
-	 9u9LcvbcJrSvGpTYQcVHeKNmf6xOUdb+YplOjWJ7/oPLdG+C/mSb0yTGvxmAY7VhA4
-	 Nt1/0iFpSldvgLx4hulS6ZUEz/NRm4na89bpDduJ47Js94srg6R2oGUwetK8JWjtGq
-	 84ENZm7kQDTKG7hfp3wPtC/p2mNiPyx44CdrcxyzPW00RvtjwXDnd6jTFWtv5fgQ6c
-	 CfHO/99APsjV4PVzZOCDC8StIiudEZ4mg9+o6LgcrBlQOAjSJTquV4YQBref3/1i6k
-	 7aIJ1DE1KVBIw==
+	b=mwzHq48Wq8Hw0N6scOakRpxWdNUOQNhpT+Yj+Nw1wxJULF2TljTVToosPizMyHD2w
+	 JeSoMSavaeolNsBMwVRZ3O2v84I6v1hPKO3f72kAi9VY5RzeqGqAZtSZu32buTO7uw
+	 WlvzmSxs2aImOpRbaoM0W41bz4V31fagJhk4pNtsuk3Rwf12ofHc/rtEc/vI0CLZNB
+	 41XGlQSBctayASjeu6HQLOfaJJPn8qUe7LqX043QZ0BWWyaggDex+3/2dZQHTFmi7l
+	 EpIjGkUL1sor/GROomqAIuKSns7DfLnIZqjSfAiaLVNzeo22PmUvvWTJ7SO7V5S5SH
+	 aR7m9zTGMsGtw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 11/13] netfilter: flowtable: publish GC-visible tuple last
-Date: Mon, 10 Aug 2026 21:06:19 +0200
-Message-ID: <20260810190621.894119-12-pablo@netfilter.org>
+Subject: [PATCH net 12/13] netfilter: ipset: fix list type element drift bug
+Date: Mon, 10 Aug 2026 21:06:20 +0200
+Message-ID: <20260810190621.894119-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
 References: <20260810190621.894119-1-pablo@netfilter.org>
@@ -51,55 +51,41 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+From: Florian Westphal <fw@strlen.de>
 
-nf_flow_table_iterate() only treats original-direction tuple nodes as
-owning entries. Publishing the original node first lets GC observe and
-free a flow while flow_offload_add() is still inserting the reply node.
-Publish the reply node first and the original node last so GC never
-sees a partially installed flow.
+If list_set_uadd() calls list_set_replace() to swap an expired entry,
+the element count remains the same, therefore the increment must be elided.
 
-KASAN can trigger slab-use-after-free read and write reports in the
-flowtable/rhashtable path (rht_deferred_worker, jhash, flow_offload_del,
-flow_offload_lookup, etc.).
-
-Fixes: ac2a66665e23 ("netfilter: add generic flow table infrastructure")
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
-Assisted-by: Codex:gpt-5
+Fixes: 702b71e7c666 ("netfilter: ipset: Add element count to all set types header")
+Link: https://sashiko.dev/#/patchset/20260806101947.2802-1-fw%40strlen.de
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ net/netfilter/ipset/ip_set_list_set.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index b66e65439341..8b1165f2b5a4 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -332,17 +332,18 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
- 
- 	err = rhashtable_insert_fast(&flow_table->rhashtable,
--				     &flow->tuplehash[0].node,
-+				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 				     nf_flow_offload_rhash_params);
- 	if (err < 0)
- 		return err;
- 
-+	/* GC only iterates original-direction entries; publish original last. */
- 	err = rhashtable_insert_fast(&flow_table->rhashtable,
--				     &flow->tuplehash[1].node,
-+				     &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
- 				     nf_flow_offload_rhash_params);
- 	if (err < 0) {
- 		rhashtable_remove_fast(&flow_table->rhashtable,
--				       &flow->tuplehash[0].node,
-+				       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 				       nf_flow_offload_rhash_params);
- 		return err;
- 	}
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index ca3ef9479e83..0bc2370773af 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -301,9 +301,12 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	e->set = set;
+ 	INIT_LIST_HEAD(&e->list);
+ 	list_set_init_extensions(set, ext, e);
+-	if (n)
++	if (n) {
+ 		list_set_replace(set, e, n);
+-	else if (next)
++		return 0;
++	}
++
++	if (next)
+ 		list_add_tail_rcu(&e->list, &next->list);
+ 	else if (prev)
+ 		list_add_rcu(&e->list, &prev->list);
 -- 
 2.47.3
 
