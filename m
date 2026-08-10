@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1B343BDC2;
-	Mon, 10 Aug 2026 19:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 186D043C7B5;
+	Mon, 10 Aug 2026 19:06:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786388808; cv=none; b=qLnzOeTd5aLFqidcBV5gW6l//k33asCBr8t+SrxzFWhcDWNybWCQ3yDZAIQJ4zbHLUlOLMDxyBT/iQjugewpwbjfFVNbSKj82VRagTuIPpj7i/xLLlcsMKvH+bwPh1vaimUEV4VoXURtP/+bGziboznrlU6lhzNHeoLTViK+5Zw=
+	t=1786388809; cv=none; b=Yoh2/LikP3eIbnA41MyZFCWLHBb3sPiwFvx2BPdiv0ACjm98n4vXxKFE/0dlEz5ZUFQ9SHCxwEZYPU5xJvMUmWDNsM3Q3beCWR7frdd86R9LUrHKWrlJv6z3ni5J8oanob88LmbcBXlWbOQu384Q5rvI+SOQTHwxLgj2vLGps0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786388808; c=relaxed/simple;
-	bh=X7egvmQOhrK0H5GE0yOQ0pRV/Nvcw0aCufRWITgqqdE=;
+	s=arc-20240116; t=1786388809; c=relaxed/simple;
+	bh=7PpGWqTECjkvabFCWNkXlpfmhF3Ch9myM4T4ovihGG8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tUjEma5H+kj0bGT1kFigb3oTin5Xa1z5e37PENjPy23K3KV1YKZUzQCxl7oOEC09lIeTb7d08gvnCu5T2FAVkIpn7tmdi/4gdAiOT0m0PJnttGkatASOEiqyRaN73yHD3JwMfJEFnRXFWHD440gs2gwX1smOltAhUMFVGlaOOHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QWeFh5zK; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=GnoDmQz1PDrLPJiEKWVlANooqeZOZxVJ/gkufujMgy/p9VyymhVAEGsjKrox6U/BBllyRABrv6TDRL96IjzSzcSYN7wgAT40MKs8nVqEv7zbWaHnN2jS8t0htgDdV9A/YpsJENd0hvkwsBFLr5PwOHNDxY/X9+aiqgPNtV9S+bY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JvL/+fcq; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QWeFh5zK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JvL/+fcq"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 97140601A2;
-	Mon, 10 Aug 2026 21:06:44 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C1F906028B;
+	Mon, 10 Aug 2026 21:06:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786388805;
-	bh=cYh50l4l7a1UtKivV6jGuwD3q9YyWelEZeUWDE6uiwU=;
+	s=2025; t=1786388806;
+	bh=2/iyOKQKOdWkD259vMgf9M4AMTI97tZ3zU5U3cidqbU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QWeFh5zKS3NeMaxPYJJBP2IbxgfOVS4nXWMvoAF+JiBy8EdeHlKJ6WIKQmt6RDDT+
-	 3tXZcvJIj6pzDjPwu895/cOQzsHGTPQedWlr/Esax9Dh0hk8jc24b6mKD+SX7raNgC
-	 lMp7zglZVthXeY/pwAJ9ZiQPNcu9RytcVGmxTgn16Pys73FnTN9suXND0f/QU7n+c9
-	 NZeGfeoaYbIrUzK1jNByBiTP+izyCRp39ShoaYN5uZ363EFpGBFdPsTLibw7l4N2KU
-	 yADDFkmavO6Bu/Ot3dZOUKmyV5s0kSjSoBj7YYo9rvEn90FO1b6MitV7uimly+Tjq3
-	 UTMP8dVjjhBwg==
+	b=JvL/+fcqonaiOwGdi1vKsIWa0/Lj4t5VB+zHuuD58kwO/Rrnqa+m//iXsQ/KurnR6
+	 FcKPwCp3vCDnWjeF/shnhJ7pKJe/SDrVKoOmj+q56bJzi5Y6gpVFKQibcbOpA0DNzi
+	 hHA9E2JV1NERlkxwhopXYWWJC7ybbd5AWhj8zka88YVQqIszXOCckk0us6baOE5NJk
+	 1Frg/QbROEt9aThtfPGQjsWFwB0PhCpGNtC09fXScQyIbbKyTAOnJ2PCYk4cfMo4v7
+	 baRySZeoU4IQUiZ9NPFKfg2OsUtV00FdCe+S3ofkaDe7JKj+NxCUbSFWnMuavEEcpA
+	 kvUlfNi/LkpiA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 08/13] ipvs: clear IPv4 options after rebasing tunnel ICMP errors
-Date: Mon, 10 Aug 2026 21:06:16 +0200
-Message-ID: <20260810190621.894119-9-pablo@netfilter.org>
+Subject: [PATCH net 09/13] ipvs: revalidate ihl to prevent out-of-bounds access
+Date: Mon, 10 Aug 2026 21:06:17 +0200
+Message-ID: <20260810190621.894119-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
 References: <20260810190621.894119-1-pablo@netfilter.org>
@@ -53,46 +53,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Kyle Zeng <kylebot@openai.com>
+From: Julian Anastasov <ja@ssi.bg>
 
-ip_vs_in_icmp() rebases an skb from the outer ICMP packet to the
-quoted original request before passing it to icmp_send(). However,
-IPCB(skb)->opt still describes the outer IPv4 header.
+While the outer IP header is already pulled into the skb head,
+we must be careful and revalidate the embedded headers after
+reading them from the skb frags to prevent out-of-bounds
+access.
 
-A timestamp option in the outer header can therefore leave an offset
-that points into the quoted transport header after the rebase.
-__ip_options_echo() treats a byte at that stale location as the option
-length and copies it into the fixed-size option storage on the
-__icmp_send() stack, causing a stack out-of-bounds write.
+One such place reported by Sashiko is ip_vs_nat_icmp() where
+local process can change the ihl field and after
+skb_ensure_writable() we can see larger value which is a
+problem for the ip_send_check(cih) calls.
 
-Clear the stale option metadata after resetting the network header.
-Keep the remaining control block fields, including the ingress
-interface used by the ICMP response path.
+Add check to drop the packet if the ihl field is changed.
 
-Fixes: f2edb9f7706d ("ipvs: implement passive PMTUD for IPIP packets")
-Cc: stable@vger.kernel.org
-Assisted-by: Codex:gpt-5.6-sol Codex:gpt-5.5-cyber
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Co-developed-by: David Lee <david.lee@trailofbits.com>
-Signed-off-by: David Lee <david.lee@trailofbits.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Link: https://sashiko.dev/#/patchset/20260730183506.87473-1-ja%40ssi.bg
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 1 +
- 1 file changed, 1 insertion(+)
+ include/net/ip_vs.h             |  2 +-
+ net/netfilter/ipvs/ip_vs_core.c | 11 +++++++++--
+ net/netfilter/ipvs/ip_vs_xmit.c |  3 ++-
+ 3 files changed, 12 insertions(+), 4 deletions(-)
 
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index fc2ef5ef31a6..be3a6617adf4 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -2068,7 +2068,7 @@ static inline bool ip_vs_conn_use_hash2(struct ip_vs_conn *cp)
+ 	       !(cp->flags & IP_VS_CONN_F_TEMPLATE);
+ }
+ 
+-void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
++bool ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		    struct ip_vs_conn *cp, int dir, unsigned int toff,
+ 		    bool has_ports, struct ip_vs_iphdr *ciph);
+ 
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 95af77b68851..a46e7acdd8e1 100644
+index a46e7acdd8e1..eb806813292a 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1950,6 +1950,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (pskb_pull(skb, offset2) == NULL)
- 			goto ignore_tunnel;
- 		skb_reset_network_header(skb);
-+		memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
- 		/* Ensure the IP header is present in headroom */
- 		if (!pskb_may_pull(skb, hlen_orig))
- 			goto ignore_tunnel;
+@@ -923,7 +923,7 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
+  * Packet has been made sufficiently writable in caller
+  * - inout: 1=in->out, 0=out->in
+  */
+-void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
++bool ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		    struct ip_vs_conn *cp, int inout, unsigned int toff,
+ 		    bool has_ports, struct ip_vs_iphdr *ciph)
+ {
+@@ -931,6 +931,11 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	struct icmphdr *icmph	 = (struct icmphdr *)(skb->data + toff);
+ 	struct iphdr *cih	 = (struct iphdr *)(icmph + 1);
+ 
++	/* Before now we may used ihl from skb frag, revalidate it after
++	 * copying it into skb head to prevent out-of-bounds access
++	 */
++	if (cih->ihl * 4 != ciph->len - ciph->off)
++		return false;
+ 	if (inout) {
+ 		iph->saddr = cp->vaddr.ip;
+ 		ip_send_check(iph);
+@@ -964,6 +969,7 @@ void ip_vs_nat_icmp(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	else
+ 		IP_VS_DBG_PKT(11, AF_INET, pp, skb, ciph->off,
+ 			      "Forwarding altered incoming ICMP");
++	return true;
+ }
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -1055,7 +1061,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		ip_vs_nat_icmp_v6(skb, pp, cp, 1, toff, has_ports, ciph);
+ 	else
+ #endif
+-		ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph);
++		if (!ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph))
++			goto out;
+ 
+ 	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
+ 		goto out;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index fc7403186394..04450a48f01a 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -1580,7 +1580,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+ 		goto tx_error;
+ 
+-	ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph);
++	if (!ip_vs_nat_icmp(skb, pp, cp, 0, toff, has_ports, ciph))
++		goto tx_error;
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+ 	skb->ignore_df = 1;
 -- 
 2.47.3
 
