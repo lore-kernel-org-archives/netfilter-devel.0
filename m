@@ -1,82 +1,50 @@
-Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7F0C363C75
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 16:07:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5D0339391;
+	Mon, 10 Aug 2026 19:06:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786378028; cv=none; b=M74xZ4ZmqRljQZHhYY4IxfKrHobzexR6kzUZGxaGB1p8Q7UYUe1Crzkz55z9N8Ahr7lRsvTEkNFY1mxJIYN9dxwJpW6a8nWXwU20gdZsumfT939aXyWN6MfZgD1vP2GDWhPQwc09YbTXeOsKFKsbvs3ObtLi/IVLbSQz4AEkiiE=
+	t=1786388798; cv=none; b=XpATz0r1AWCO2mj4wa6n0mwd6tZMqVQfOGmqUMqhMmXMQXu6su4YOLaOUMxf9uMAyS+JdJvI9xYBEeGTT4VjRdRdNPZGWSr9SPH2IgzKXhx7oz9qbDR/VL1hG4gAXakGz9HQAaumnM0R85Hsv7PYcYuuac4ABbSkveeoUM4dna0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786378028; c=relaxed/simple;
-	bh=TNUssqU+6WjzJhYGg+GE3ddxY9P2DiNmni13QbBxsMY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sAX3eXuWMLrcFog+z4xaKd8FtmkBhx8L8XXdjIv1ivxBhhcrarf5VTY7on2Af1l5Yjbv1NUwknhGaYD6jfmjCyUHc6IFhvAzahGsKCM7pPv9DePMgP0PmfvM5f5yKXclNmdqPszxZSFZY7zuJn1HywD1+jgSen4XaJF1S+/xYEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com; spf=pass smtp.mailfrom=trailofbits.com; dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b=gzAro5Hs; arc=none smtp.client-ip=209.85.219.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trailofbits.com
+	s=arc-20240116; t=1786388798; c=relaxed/simple;
+	bh=/PjTonEg/Pdiel3kfJzelrmU/r5I8RW0FIJY1Mkn7cU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=JJ/ZUtFR5G0bXIZA6aBK/BFPG3vY51mJCELtB8q8INLB7DvZZ59BPIFCk+Kk3UMQpDckoQq1gDpW7xSKkgApgaqeYRHGLLvDWjzQlD4kfRIx1DrFqdz/62G2ea7ByaV0R4lau7KXK/D+Xj1mtVkGuSLT7BWjAaI5JCqoR2nNnLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Z2q2I18q; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b="gzAro5Hs"
-Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-908934450cdso17712116d6.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2026 09:07:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=trailofbits.com; s=google; t=1786378026; x=1786982826; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1WVUCeqwLELgUg4fs5XXfLh0aBANIvrQI7hc+E9tLXw=;
-        b=gzAro5Hsy/RZgbug/CVZnbM8O6/F42LNrimntqXBbQ4Kya3P6kc8ApbonIJVfOMkkU
-         LN2byDuOFWc89Ex5K9/+SP9XF6bZ33+LTLPxAyb2NBo2vtNyMkFsmiwdS1551FKmwVbY
-         rDQACzEVFyxqokeYpVk2VNGl0ikyjJJ2Lxqo82dr6z7z51eGrCXMaQWpu5J2Hopyhhte
-         m00q/gfzocidYv3MutAi5burPiUz1Iw0g6kz3ZVwWOgd9YKIZVbTpRqIFAUhfZC80tPk
-         Z2m8RPdOLdHW+9l57pVoz7OpADbzhTNK71mMzurZHNva2WwnFHidqofwLrVFSjUe6L8a
-         tbwg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786378026; x=1786982826;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1WVUCeqwLELgUg4fs5XXfLh0aBANIvrQI7hc+E9tLXw=;
-        b=R/CIDC6/uDzc5c1V8+Yl/Nh6ytw2L40Wf6ogPFG8lVWzDvO/gTx0tdj5vZLhiouZS5
-         0n6IopRn9zB0JydoHmV6vvSoh0h6ynqS8mzV+dbw5Hd+XBLqe//gn3FKhTkulx9nGIv8
-         tCaUMJf6ESz+Q+Eun2sRqSaXPBVPng5j7EUTpW+/HH7hQY+vyaZN5ia+XBX23yFJ+qqU
-         v2ItBXN+1D1I2WIB05ThjkM5kUX/5z3CjoMlyWw5PLujugTWaSBJlnbtvKKG7l0zzcKE
-         djfmqh9bcOb9cy3qBwNwVgTT1eeS32XJpITu7SfMYDYl6YoIcUIa0oEqasZsfgOMaxUf
-         xG4Q==
-X-Forwarded-Encrypted: i=1; AHgh+Rq87Q3C5bYxUqv7QlniEzvjbfsp7ZkQhA64eXOOBm6YQuEAyEEXDuxmWBTGPSaMlSllf1EUo5nqrCg9b3nCk6M=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwMoK8Kg4aHAFvHcANkEqMPPo0l0/7JconJyPWeGLCF5jqA5iTf
-	gKuDtybllR2nmD1TlkOXTp9OOmlR0Az6d4lw3IOKB2ndCqOndwauPK+f/7OT95xRGRM=
-X-Gm-Gg: AR+sD11hSbDVnB/cuC7/KyfTF1vF1fSixkVUMYsM6HX2dwKqnTzwg91zxRLaIeCRFek
-	n7V9QbKtdCji66R/AWw5/bY3vQDj//KUhp32ulKTyruhFMFUl/cXTCMspFkA7StM9PBKNaAba6/
-	iBRVlDEcnXnHcOk8hDEksMbSVHhXw2ck9IuRkGQJn/AnBhTlBENGylbxPF3YnztJ7JvNQABSOPX
-	C3INVGg+LxLCDhI+cD3JibgS9XbkgFHGnRx7HZDR8IIJAJZi/FX+6y/t836ZbtuTaG4VHzjdrQ5
-	zshZmyn76SdwBddd131xuwmUpE4zjsNOvQ3S4EWWXtbMvXrIy6Vu/jOwkUTwGzZ9V7ubJ0jFn/K
-	BzYrdY9QhiQaFEh58V+UPSrVBe1jwXtjiqLd0MnN2Umm+WvxOS9UaUjTq+rwv+LmuegtjEmiOWu
-	h4djxqD+h9lV0hzKfgEX93XaXmhKJ0hEdOmFgYKbio7yNRKZKXYH53kAnUL4BxlfKr3p4=
-X-Received: by 2002:a05:6214:85c7:10b0:90a:35f9:9694 with SMTP id 6a1803df08f44-90a35f99750mr183376416d6.31.1786378025540;
-        Mon, 10 Aug 2026 09:07:05 -0700 (PDT)
-Received: from localhost ([146.190.222.192])
-        by smtp.gmail.com with UTF8SMTPSA id 6a1803df08f44-908a918d7f1sm74673426d6.10.2026.08.10.09.07.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 10 Aug 2026 09:07:05 -0700 (PDT)
-From: David Lee <david.lee@trailofbits.com>
-To: pablo@netfilter.org,
-	fw@strlen.de,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com
-Cc: Kyle Zeng <kylebot@openai.com>,
-	Dominik 'Disconnect3d' Czarnota <dominik.czarnota@trailofbits.com>,
-	phil@nwl.cc,
-	horms@kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Z2q2I18q"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 27EB16028B;
+	Mon, 10 Aug 2026 21:06:34 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1786388794;
+	bh=tHg/VPEgf8FhAXf7mX7rYmIofkOTBQXP3sL1wZOiZkw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Z2q2I18qvcFmngZbhi+MUOcOwfMKsIbFu8/He6ttgZJHEkTTFVKQbH1i6HVctMXFp
+	 erbQ7//i/djT0aG0L391uBc4keaLqoEVwldsKA088y/Xgz4+05nAby6zHIncSuTHlv
+	 74AEmexN5vRAVMOHldPMht7wAeRJxHu2H/SfuAdODKeu43hkznJPVjhXWk+pt/ijez
+	 KNmBD5SgR6fqzNBThysAmLGI7s7FuDemcGWyJQZZpG6/kRuRil/GryNrDLSRAr9NNa
+	 pbngWZ0kZV6lLQMptV4RpfliUsYZTSR+CKV5fPO7iYiAOiJO/siTmtV+3fFa5m0nyZ
+	 FiFcleorCVrKA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	David Lee <david.lee@trailofbits.com>
-Subject: [PATCH nf v2] netfilter: nf_reject: initialize IPCB at inet ingress
-Date: Mon, 10 Aug 2026 16:07:03 +0000
-Message-ID: <20260810160703.861885-1-david.lee@trailofbits.com>
-X-Mailer: git-send-email 2.43.0
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net 01/13] netfilter: ipset: fix refcount race between list:set GC and swap
+Date: Mon, 10 Aug 2026 21:06:09 +0200
+Message-ID: <20260810190621.894119-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260810190621.894119-1-pablo@netfilter.org>
+References: <20260810190621.894119-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -85,99 +53,87 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Kyle Zeng <kylebot@openai.com>
+From: "Xiang Mei (Microsoft)" <xmei5@asu.edu>
 
-The inet ingress hook runs before ip_rcv_core() and ip6_rcv_core(), so
-neither IPCB nor IP6CB has been initialized when nft_reject_inet passes
-a packet to nf_send_unreach() or nf_send_unreach6(). skb->cb can
-therefore retain metadata from an earlier protocol layer.
+__ip_set_put_byindex() resolved the index to a set pointer under RCU,
+then took ip_set_ref_lock in __ip_set_put() to decrement set->ref.
+ip_set_swap() holds that same lock while swapping both the ip_set_list
+slots and the two sets' ref counters, so it can interleave between the
+dereference and the lock acquisition, leaving the caller to decrement a
+set whose reference already moved to the other index and hit
+BUG_ON(set->ref == 0). list_set_gc() reaches this from timer softirq,
+which the nfnl mutex does not serialize against swap: an expiring
+list:set member calls list_set_del() -> ip_set_put_byindex() while
+IPSET_CMD_SWAP runs on the referenced sets.
 
-For IPv4, icmp_send() treats IPCB(skb)->opt as parsed IPv4 options.
-Stale option offsets can make __ip_options_echo() copy an
-attacker-controlled length into its 40-byte reply option buffer and
-overflow the stack. On an unpatched v7.2-rc5 kernel, the IPv4
-reproducer produced:
+Resolve the index and decrement under ip_set_ref_lock, as ip_set_swap()
+already does, keeping the refcount tied to the index rather than to a
+stale set pointer.
 
-  BUG: KASAN: stack-out-of-bounds in __ip_options_echo()
-  Write of size 255
+  kernel BUG at net/netfilter/ipset/ip_set_core.c:685!
+  Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+  RIP: 0010:ip_set_put_byindex (net/netfilter/ipset/ip_set_core.c:870)
+  Call Trace:
+   <IRQ>
+   list_set_del (net/netfilter/ipset/ip_set_list_set.c:159)
+   set_cleanup_entries (net/netfilter/ipset/ip_set_list_set.c:181)
+   list_set_gc (net/netfilter/ipset/ip_set_list_set.c:578)
+   call_timer_fn (kernel/time/timer.c:1748)
+   __run_timers (kernel/time/timer.c:1799 kernel/time/timer.c:2374)
+   run_timer_softirq (kernel/time/timer.c:2405)
+   </IRQ>
+  Kernel panic - not syncing: Fatal exception in interrupt
 
-For IPv6, icmpv6_send() consumes IP6CB(skb) as parsed IPv6 metadata. It
-always uses iif for source selection and, when MIP6 is enabled, uses
-dsthao as an extension-header offset. These fields must not be stale.
-
-For NF_INET_INGRESS, clear the address-family-specific control block
-and restore its input interface before constructing the ICMP error.
-This matches the initialization normally performed by ip_rcv_core()
-and ip6_rcv_core().
-
-Fixes: 117ca1f8920c ("netfilter: nft_reject_inet: allow to use reject from inet ingress")
-Cc: stable@vger.kernel.org
-Assisted-by: Codex:gpt-5.6-sol Codex:gpt-5.5-cyber
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Co-developed-by: David Lee <david.lee@trailofbits.com>
-Signed-off-by: David Lee <david.lee@trailofbits.com>
+Fixes: 9076aea76538 ("netfilter: ipset: Increase the number of maximal sets automatically")
+Reported-by: AutonomousCodeSecurity@microsoft.com
+Signed-off-by: Xiang Mei (Microsoft) <xmei5@asu.edu>
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Changes in v2:
-- Initialize IP6CB in nf_send_unreach6() for inet ingress.
-- Preserve the IPv6 input interface before constructing the reply dst.
+ net/netfilter/ipset/ip_set_core.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-v1: https://lore.kernel.org/netfilter-devel/20260804095105.715387-1-david.lee@trailofbits.com/
-
-Bug found and triaged by OpenAI Security Research and
-validated by Trail of Bits.
-
-Trail of Bits has an IPv4 reproducer for this bug that triggers the
-KASAN stack-out-of-bounds write in __ip_options_echo() and can share it
-if needed. A separate IPv6 test reaches nf_send_unreach6() from inet
-ingress and confirms that an ICMPv6 unreachable is constructed.
-
- net/ipv4/netfilter/nf_reject_ipv4.c | 6 ++++++
- net/ipv6/netfilter/nf_reject_ipv6.c | 9 +++++++++
- 2 files changed, 15 insertions(+)
-
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 4626dc46808f..4933f65138d6 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -355,6 +355,12 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
- 	if (!skb_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
- 		return;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 543851a923d0..0a86a170ba90 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -680,11 +680,18 @@ __ip_set_get(struct ip_set *set)
+ }
  
-+	/* Inet ingress runs before IPv4 initializes IPCB. */
-+	if (hook == NF_INET_INGRESS) {
-+		memset(IPCB(skb_in), 0, sizeof(*IPCB(skb_in)));
-+		IPCB(skb_in)->iif = skb_in->skb_iif;
-+	}
+ static void
+-__ip_set_put(struct ip_set *set)
++__ip_set_put_locked(struct ip_set *set)
+ {
+-	write_lock_bh(&ip_set_ref_lock);
++	lockdep_assert_held(&ip_set_ref_lock);
+ 	BUG_ON(set->ref == 0);
+ 	set->ref--;
++}
 +
- 	if (skb_csum_unnecessary(skb_in) ||
- 	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
- 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index ef5b7e85cffa..c36910b8a95a 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -9,6 +9,7 @@
- #include <net/ip6_fib.h>
- #include <net/ip6_checksum.h>
- #include <net/netfilter/ipv6/nf_reject.h>
-+#include <net/dst_metadata.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
++static void
++__ip_set_put(struct ip_set *set)
++{
++	write_lock_bh(&ip_set_ref_lock);
++	__ip_set_put_locked(set);
+ 	write_unlock_bh(&ip_set_ref_lock);
+ }
  
-@@ -440,6 +441,14 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
- 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
- 		skb_in->dev = net->loopback_dev;
+@@ -855,11 +862,11 @@ __ip_set_put_byindex(struct ip_set_net *inst, ip_set_id_t index)
+ {
+ 	struct ip_set *set;
  
-+	/* Inet ingress runs before IPv6 initializes IP6CB. */
-+	if (hooknum == NF_INET_INGRESS) {
-+		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
-+		IP6CB(skb_in)->iif = skb_valid_dst(skb_in) ?
-+				     ip6_dst_idev(skb_dst(skb_in))->dev->ifindex :
-+				     skb_in->dev->ifindex;
-+	}
-+
- 	if (!skb_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
- 		return;
+-	rcu_read_lock();
+-	set = rcu_dereference(inst->ip_set_list)[index];
++	write_lock_bh(&ip_set_ref_lock);
++	set = ip_set(inst, index);
+ 	if (set)
+-		__ip_set_put(set);
+-	rcu_read_unlock();
++		__ip_set_put_locked(set);
++	write_unlock_bh(&ip_set_ref_lock);
+ }
  
+ void
 -- 
-2.53.0
+2.47.3
+
