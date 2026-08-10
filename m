@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14414432BF5;
-	Mon, 10 Aug 2026 19:40:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7D574457D0;
+	Mon, 10 Aug 2026 19:40:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786390837; cv=none; b=W/9c1GWh/9gYgx51WnYYuxm12N7a+T6XT3ioBQfV3itOdEDoINwzSUcnInK8OgcvonfvZGzJSiUQOkD/2XNuOzrayJ78DgVKyL1w5J03hDliQIKZDdl4bM1Klu2fplR+VWvRWvZczwSeFd+GRpc68AH+NYiQn+c/kEMIZNRd4OA=
+	t=1786390841; cv=none; b=QugE7YIUQmoQEL22twU+QxD+JR7WgTM26+yFcfuGxVRN7jwmcsaEcXVUW7KWoOYUyFqHFZs9GGctuSaO/fsjbdrn2c8wu4qAIzgXmrYD1X/wF9TjUA/P8e0RJjTt3qPlFdkIzvQCssRaurpRMXI/sbQ4JgQszrYkRI+j+3ZMhgE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786390837; c=relaxed/simple;
-	bh=0EAjSCXnYUyYuIsO3Q9piIJNNl7gSfuePnwiWuXg9FY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kztdg3qnJT0EmrMx5qFXqwVOjvxTI22WFPeOD8amJq276xnW1UcdHDJ0eIvoU6jYJEZT/Mm6b7+mmmZR1CmaRBpmbXMcMbbfWfzH3+Dd0B2Aa+97JGyE4V63lZ42NY/O7yxGd5s/nk08yxmR3NDw7kA1pcoaFv3rIoGJaBDWmOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kFt6DTWa; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1786390841; c=relaxed/simple;
+	bh=uSfPAxQNra/Mp9/C1zsLSNEc2xA/UbD5izMyloHrycY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=B8dO3S/f27KMffmn+AbyrppKSX575xaHNMEz1tn/omjlPxDV2X8hsJJDAwoe7eKPvWjdtjmp74/y4h76smDvdglbErH/PwvfUfdpajQAx2yY86vz1hIRGpqpk8RHmrd25FDeuh3oSmd6bZisLO+wuusN/F5WK6hb2HlEaXe90YQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dyvmZPvw; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kFt6DTWa"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dyvmZPvw"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3AB1860191;
-	Mon, 10 Aug 2026 21:40:23 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C5586601A2;
+	Mon, 10 Aug 2026 21:40:24 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786390823;
-	bh=DnF6D6doch70BjOG5tsyGGWCSkYdLOl6oZ2xlWpR0cQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=kFt6DTWaXMqSSUsYCAXWnCVkqpxW3SsuBBTBxXNbNe1ipAlQx4DNLL9icb5wocPSK
-	 oscUMwmRshovnRXpckr/VDTR9+UWSt8twudTyXwQv5oCaH17ujj31tLUkfkIdCi+31
-	 hTs7DsgPW+u2m2SsYXbrzYUcNd71xsV7dWhdqUyhLtNPGRsin6A1hID4gLR3MooF8q
-	 ys4fzaOe+Y7BjteKUmomVPEnQL/edGqd0wJ1Kd+FbzxmD3Plr1blYIKgIhCaxNrJGF
-	 8EZ3/IxtrN20kRVrtdDS2gLSyf0DCfNdUgtYTcASqxysdfqoyTvEwuhWklDMcUYrSJ
-	 g3nN2ngEOwJ1A==
+	s=2025; t=1786390825;
+	bh=3lpsYv/0S47/CG5LOgKkfoM3ZhusyzsYGHQlIG9w/fY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=dyvmZPvwhqLHUJDdPck/6RA+xSTLGs5pyh4IdOypbvaXdp+FYAAncDulE0wtKxCOO
+	 BeNtMuWrKjaJt+5iEVpR1AoB/4JzOZ4+zTjlhEG0LQt4C3dtVKqy4XCQcdabWiTLEq
+	 rJf4hG8zjU/DjduiX8kyZqTnpRDievE2A7H20BJ/wI2MfZ1vqrcivvd/Or1biCoBun
+	 n+T4+aytqqz1ftxCvm0BY0TaPt6/C6FD/LelcfgUkVrwe4VPLnWXj3bE1su1I0mUOw
+	 McjeffNnTN7/vvolSejaP1N8fuPf8DWYe9DK3snz936SEWmqq2SX5vWS31R9DuPaI+
+	 e0JJ5SOat1w+w==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,10 +39,12 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 00/12] Netfilter updates for net
-Date: Mon, 10 Aug 2026 21:40:03 +0200
-Message-ID: <20260810194015.932627-1-pablo@netfilter.org>
+Subject: [PATCH net-next 01/12] netfilter: add DEBUG_NET_WARN_ON_ONCE to skb_set_nfct()
+Date: Mon, 10 Aug 2026 21:40:04 +0200
+Message-ID: <20260810194015.932627-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260810194015.932627-1-pablo@netfilter.org>
+References: <20260810194015.932627-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,106 +53,130 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Trigger a warning if nf_ct_set() overlaps an existing ct object leading
+to refcount leak. Add this warning to skb_set_nfct() whose only user is
+nf_ct_set() instead.
 
-The following patchset contains Netfilter updates for net-next.
-This includes an enhancement to detect ct memleaks easier via
-DEBUG_NET and flowtable preparation patches for IPv4 over IPV6
-and vice-versa. This also includes a fix for the nft_ct custom
-expectation support.
+Update existing nf_ct_set() callers to use nf_reset_ct() first to clean
+up stale pointer to conntrack object which migh trigger false positive
+warnings.
 
-1) Add DEBUG_NET_WARN_ON_ONCE to nf_ct_set() to spot ct memleaks.
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/skbuff.h            |  1 +
+ include/net/ip_vs.h               |  2 +-
+ net/netfilter/nf_conntrack_core.c |  2 +-
+ net/openvswitch/conntrack.c       | 12 +++---------
+ net/sched/act_ct.c                |  6 +++---
+ 5 files changed, 9 insertions(+), 14 deletions(-)
 
-2) Pass struct net_device_path_ctx to dev_fill_forward_path() to
-   make it easier to pass more parameters to this function.
-   From Lorenzo Bianconi.
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 22eda1d54a0e..95184183180f 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -5004,6 +5004,7 @@ static inline unsigned long skb_get_nfct(const struct sk_buff *skb)
+ static inline void skb_set_nfct(struct sk_buff *skb, unsigned long nfct)
+ {
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	DEBUG_NET_WARN_ON_ONCE(skb->_nfct & NFCT_PTRMASK);
+ 	skb->slow_gro |= !!nfct;
+ 	skb->_nfct = nfct;
+ #endif
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index b3bb228ad75c..3dca7d387dd0 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -2121,7 +2121,7 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 	if (ct) {
+-		nf_conntrack_put(&ct->ct_general);
++		nf_reset_ct(skb);
+ 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+ 	}
+ #endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 784bd1d7a9bf..d0d9e5ea84a0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1031,7 +1031,7 @@ static int __nf_ct_resolve_clash(struct sk_buff *skb,
+ 		nf_conntrack_get(&ct->ct_general);
+ 
+ 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
+-		nf_ct_put(loser_ct);
++		nf_reset_ct(skb);
+ 		nf_ct_set(skb, ct, ctinfo);
+ 
+ 		NF_CT_STAT_INC(net, clash_resolve);
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index 95697d4e16e6..4dd82c4e87d3 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -603,7 +603,7 @@ static bool skb_nfct_cached(struct net *net,
+ 		if (nf_ct_is_confirmed(ct))
+ 			nf_ct_delete(ct, 0, 0);
+ 
+-		nf_ct_put(ct);
++		nf_reset_ct(skb);
+ 		nf_ct_set(skb, NULL, 0);
+ 		return false;
+ 	}
+@@ -745,8 +745,7 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+ 
+ 		/* Associate skb with specified zone. */
+ 		if (tmpl) {
+-			ct = nf_ct_get(skb, &ctinfo);
+-			nf_ct_put(ct);
++			nf_reset_ct(skb);
+ 			nf_conntrack_get(&tmpl->ct_general);
+ 			nf_ct_set(skb, tmpl, IP_CT_NEW);
+ 		}
+@@ -1075,12 +1074,7 @@ int ovs_ct_execute(struct net *net, struct sk_buff *skb,
+ 
+ int ovs_ct_clear(struct sk_buff *skb, struct sw_flow_key *key)
+ {
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct;
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-
+-	nf_ct_put(ct);
++	nf_reset_ct(skb);
+ 	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+ 
+ 	if (key)
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 4ca7964e83c8..7f54fb4e4ec9 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -782,7 +782,7 @@ static bool tcf_ct_skb_nfct_cached(struct net *net, struct sk_buff *skb,
+ 	return true;
+ 
+ drop_ct:
+-	nf_ct_put(ct);
++	nf_reset_ct(skb);
+ 	nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+ 
+ 	return false;
+@@ -996,7 +996,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+ 		qdisc_skb_cb(skb)->post_ct = false;
+ 		ct = nf_ct_get(skb, &ctinfo);
+ 		if (ct) {
+-			nf_ct_put(ct);
++			nf_reset_ct(skb);
+ 			nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+ 		}
+ 
+@@ -1034,7 +1034,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+ 
+ 		/* Associate skb with specified zone. */
+ 		if (tmpl) {
+-			nf_conntrack_put(skb_nfct(skb));
++			nf_reset_ct(skb);
+ 			nf_conntrack_get(&tmpl->ct_general);
+ 			nf_ct_set(skb, tmpl, IP_CT_NEW);
+ 		}
+-- 
+2.47.3
 
-3) Add ether_type field to net_device_path context structucture.
-
-4) Rename tun.l3_proto field to tun.inner_proto.
-
-5) Rename ctx.tun.proto to ctx.tun.inner_proto.
-
-6) Store ether_type in flowtable context.
-
-7) Move IPv4 and IPv6 xmit path to a helper function.
-
-8) Move encapsulation header parser out of the flowtable lookup
-   function.
-
-9) Rework nft_ct custom expectation support to address a possible
-   reallocation of ct extension area while expectation list also
-   contains expectations. Move datapath to a ct helper to fix it.
-
-10) Ensure timeout is always lowered for the non-closing RST case
-    in the TCP connection tracking.
-
-11) Bail out when inserting already dead expectation, this should
-    not ever happen, hence report it via DEBUG_NET.
-
-12) Comestic updates for improving the conntrack selftest dump and
-    flush userspace program, from Qingshuang Fu.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-08-10
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 001b5d347d8ba39b2dccaefcc57967b18caec8fe:
-
-  Merge branch 'net-devmem-allow-rx-buf-size-page_size-per-binding' (2026-08-07 18:32:41 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-08-10
-
-for you to fetch changes up to 736fb8632217bd27da6b2e3f1f8cbbe3193fc2d8:
-
-  selftests: netfilter: conntrack_dump_flush: remove unused variables and fix typo (2026-08-10 21:20:44 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-08-10
-
-----------------------------------------------------------------
-Lorenzo Bianconi (1):
-      net: pass net_device_path_ctx to dev_fill_forward_path()
-
-Pablo Neira Ayuso (10):
-      netfilter: add DEBUG_NET_WARN_ON_ONCE to skb_set_nfct()
-      net: netfilter: add ether_type to net_device_path_ctx and use it
-      netfilter: flowtable: rename tun.l3_proto to tun.inner_proto
-      netfilter: flowtable: rename ctx.tun.proto to ctx.tun.inner_proto
-      netfilter: flowtable: store ethertype in flowtable context
-      netfilter: flowtable: move ipv4 and ipv6 xmit path to function
-      netfilter: flowtable: detach layer 2 encapsulation parser from lookup
-      netfilter: nft_ct: move custom expectation support to helper
-      netfilter: conntrack: always lower timeout for non-closing RST packets
-      netfilter: nf_conntrack_expect: bail out on insert dead expectations
-
-Qingshuang Fu (1):
-      selftests: netfilter: conntrack_dump_flush: remove unused variables and fix typo
-
- drivers/net/ethernet/airoha/airoha_ppe.c           |   7 +-
- drivers/net/ethernet/mediatek/mtk_ppe_offload.c    |   7 +-
- include/linux/netdevice.h                          |   5 +-
- include/linux/skbuff.h                             |   1 +
- include/net/ip_vs.h                                |   2 +-
- include/net/netfilter/nf_conntrack_helper.h        |   1 +
- include/net/netfilter/nf_flow_table.h              |   2 +-
- net/core/dev.c                                     |  18 +--
- net/ipv4/ipip.c                                    |   5 +-
- net/ipv6/ip6_tunnel.c                              |   5 +-
- net/netfilter/nf_conntrack_core.c                  |   2 +-
- net/netfilter/nf_conntrack_expect.c                |   6 +
- net/netfilter/nf_conntrack_helper.c                |  14 +-
- net/netfilter/nf_conntrack_proto_tcp.c             |   3 +-
- net/netfilter/nf_flow_table_ip.c                   | 167 ++++++++++++---------
- net/netfilter/nf_flow_table_path.c                 |  17 ++-
- net/netfilter/nft_ct.c                             | 167 +++++++++++++++------
- net/openvswitch/conntrack.c                        |  12 +-
- net/sched/act_ct.c                                 |   6 +-
- .../selftests/net/netfilter/conntrack_dump_flush.c |  31 ++--
- 20 files changed, 305 insertions(+), 173 deletions(-)
