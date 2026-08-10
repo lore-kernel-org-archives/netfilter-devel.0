@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E213E442B1B;
-	Mon, 10 Aug 2026 19:40:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE29644210D;
+	Mon, 10 Aug 2026 19:40:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786390845; cv=none; b=dA/BHhPrXyBPChEtvkXMNQxvo/Ad+5ceoTfjQzkzZx03V4b3Iz3HZudmm1iM1IGc0eQ4AxB2XM4FGrHi2ihDvoDv9mbketKRv10jKqjS3KSZIj3enqJK34gIQeO0Cmkh71VADCTaI3+VSkEwHbc2sQBN+Yq7aTfVDvXy4ojvH4w=
+	t=1786390845; cv=none; b=RFP5kcHHa0Lw7+JKPKiZQDxAgJpBYM9X4t8Q0J0lHhJxHI0x3jNUqFJbuSqIMvqCw8ypbdIGNx1KjxDUv0tTBRRfT2z91IixRvCNSy7w/xvv+vxNoW0NusfMF4HJnMr13i9Fe2MX5yCFiUeymGF6KYvJHNdokKpEz/6idkkDgZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786390845; c=relaxed/simple;
-	bh=sGPbjTrK4sfewwkXmOq80OnQGjDW5MFnDkBGPtxFKNs=;
+	bh=/GR1aA5NjVzHpnxnnr9DuT01NbxKvfI2TSyH9tXhw4k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=H5Diodi5fK4C1UK3LYVANOKnn8MFwSwyWC0TMTVQ6ZVxVqMno2P+4nZAizFP82QFy8YF8WM0ba7LbFSCJdN8HlX9RtftzY7Y5qx5fh1FJAyUK7pOVDEjS6V7n8QmFPxgzkASme18UeJVkP1B7Duvns3kEtrm3vCrMrdbEVKPQL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fmfLvGpe; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=L8MGoC5OKdc8/691VZ6Qn5iF6JWsgR9YWxeDR9lj32m0EtZlF7b+V7yDoUHFg/okAT6c9QWBSOgOhdvYUZIWgv6hNOpwQR+ahIVHYNX4+hhnFG1wKdWbsp5g1OfIdGycqVUh+9kQ/Ni39v/+ii/xDrlJaWysQO7F5rKjB/auQ0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aj8z8SBc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fmfLvGpe"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aj8z8SBc"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0E502601BD;
-	Mon, 10 Aug 2026 21:40:32 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 25973601A6;
+	Mon, 10 Aug 2026 21:40:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786390832;
-	bh=G9Y4FyXuFhfiAsTmqiYFEpl7tfVhC0cTvGw0sND/AaA=;
+	s=2025; t=1786390828;
+	bh=6+n0SpBQz7Q4Ll+/CWUDnXwehltauK0f3CM/YD7sT8M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fmfLvGpepu1EW903lcrSR5QrnNw7062NpyWe+aPnzm3WXYC8CeVq9CUZ8iLTOglNd
-	 eCZlSeC3EnHPIIIyrGkL3PAdJAsAMxVaTL4do1Mn/5f3c82EodYi4Gb5tGJUbIAidM
-	 N4aoMAjpJ2K1/eUxF7BIooy2bATS5eQPlJs6CFudWMUpMDNkp2QLQRRj4wLRIXdNHL
-	 /MH0llstPvpAXZwK7kNpx8+y6NdAhWxDhc2NoGbsLIAZHth5F0pyOvh+OFP4zzUu2f
-	 Xp2bgFPtaUfj5J9NuPWh3DDvsN75X1blD+1qAavFCHKfj2tWQ/peMLezZS6ExcbKLU
-	 12Xgt/ed9C7Gg==
+	b=aj8z8SBcM7g9isLTaN/3iFKzck2U3udsGg9WhbPlHfNa21vkofplFDPiFnkocCD0X
+	 LqgVwlOzFUJEbFBy/Fctik/XzXN1WKYDYrLTEWmJqxdwv0iGwvlwNnvuKEUCjDWuDP
+	 yvh1RLFtZykRrYDZVbR41pIu2Uu3hF+XBiG6bFhtCAL1iGHboaeEiF+lWY/lnfeePt
+	 OJ4ig0+KVCasdledF3+pg09FQdA1vsJRx+ip+5VXaSCYHyuRU+wSF6Gi3x5l3fyNCv
+	 0pwkQcb9rEeaFjKveAy6lwkp8eEfUn8MJ7WI1oya2OSpPD8vg4EmBGgKYkYuXmPAPa
+	 EZbpWHU1YAPhQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 06/12] netfilter: flowtable: store ethertype in flowtable context
-Date: Mon, 10 Aug 2026 21:40:09 +0200
-Message-ID: <20260810194015.932627-7-pablo@netfilter.org>
+Subject: [PATCH net-next 03/12] net: netfilter: add ether_type to net_device_path_ctx and use it
+Date: Mon, 10 Aug 2026 21:40:06 +0200
+Message-ID: <20260810194015.932627-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260810194015.932627-1-pablo@netfilter.org>
 References: <20260810194015.932627-1-pablo@netfilter.org>
@@ -53,133 +53,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a new field to store the ethertype of the packet, skipping layer 2
-encapsulation. Store the ether_type in the context after parsing the
-layer 2 header for the first time and then use it later on.
+Add an ether_type field to struct net_device_path_ctx to reject IPv4
+over IPv6 and vice-versa, this is currently not support. Otherwise,
+incorrect dst_entry family can be reached from datapath.
 
 Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 47 +++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ include/linux/netdevice.h          | 1 +
+ net/ipv4/ipip.c                    | 3 +++
+ net/ipv6/ip6_tunnel.c              | 3 +++
+ net/netfilter/nf_flow_table_path.c | 6 ++++--
+ 4 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 7692ae7aa853..3f417a43bd12 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -147,6 +147,7 @@ static bool ip_has_options(unsigned int thoff)
- 
- struct nf_flowtable_ctx {
- 	const struct net_device	*in;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 17d28adb029b..2327a2703b83 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -941,6 +941,7 @@ struct net_device_path_stack {
+ struct net_device_path_ctx {
+ 	const struct net_device *dev;
+ 	u8			daddr[ETH_ALEN];
 +	__be16			ether_type;
- 	u32			offset;
- 	u32			hdrsize;
+ 
+ 	int			num_vlans;
  	struct {
-@@ -161,7 +162,6 @@ static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
- 				struct sk_buff *skb,
- 				struct flow_offload_tuple *tuple)
- {
--	__be16 inner_proto = skb->protocol;
- 	struct vlan_ethhdr *veth;
- 	struct pppoe_hdr *phdr;
- 	struct ipv6hdr *ip6h;
-@@ -179,19 +179,17 @@ static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
- 		tuple->encap[i].id = ntohs(veth->h_vlan_TCI);
- 		tuple->encap[i].proto = skb->protocol;
--		inner_proto = veth->h_vlan_encapsulated_proto;
- 		offset += VLAN_HLEN;
- 		break;
- 	case htons(ETH_P_PPP_SES):
- 		phdr = (struct pppoe_hdr *)skb_network_header(skb);
- 		tuple->encap[i].id = ntohs(phdr->sid);
- 		tuple->encap[i].proto = skb->protocol;
--		inner_proto = *((__be16 *)(phdr + 1));
- 		offset += PPPOE_SES_HLEN;
- 		break;
- 	}
+diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+index fb7d96f99b06..62a374079bfc 100644
+--- a/net/ipv4/ipip.c
++++ b/net/ipv4/ipip.c
+@@ -360,6 +360,9 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	const struct iphdr *tiph = &tunnel->parms.iph;
+ 	struct rtable *rt;
  
--	switch (inner_proto) {
-+	switch (ctx->ether_type) {
- 	case htons(ETH_P_IP):
- 		iph = (struct iphdr *)(skb_network_header(skb) + offset);
- 		if (ctx->tun.inner_proto == IPPROTO_IPIP) {
-@@ -377,10 +375,10 @@ static void nf_flow_ip_tunnel_pop(struct nf_flowtable_ctx *ctx,
- }
- 
- static bool nf_flow_skb_encap_protocol(struct nf_flowtable_ctx *ctx,
--				       struct sk_buff *skb, __be16 proto)
-+				       struct sk_buff *skb)
- {
--	__be16 inner_proto = skb->protocol;
- 	struct vlan_ethhdr *veth;
-+	__be16 ether_type;
- 	bool ret = false;
- 
- 	switch (skb->protocol) {
-@@ -389,22 +387,27 @@ static bool nf_flow_skb_encap_protocol(struct nf_flowtable_ctx *ctx,
- 			return false;
- 
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
--		if (veth->h_vlan_encapsulated_proto == proto) {
--			ctx->offset += VLAN_HLEN;
--			inner_proto = proto;
--			ret = true;
--		}
-+		ctx->ether_type = veth->h_vlan_encapsulated_proto;
-+		ctx->offset += VLAN_HLEN;
-+		ret = true;
- 		break;
- 	case htons(ETH_P_PPP_SES):
--		if (nf_flow_pppoe_proto(skb, &inner_proto) &&
--		    inner_proto == proto) {
--			ctx->offset += PPPOE_SES_HLEN;
--			ret = true;
--		}
-+		if (!nf_flow_pppoe_proto(skb, &ether_type))
-+			return false;
++	if (ctx->ether_type != cpu_to_be16(ETH_P_IP))
++		return -EOPNOTSUPP;
 +
-+		ctx->ether_type = ether_type;
-+		ctx->offset += PPPOE_SES_HLEN;
-+		ret = true;
-+		break;
-+	case htons(ETH_P_IP):
-+	case htons(ETH_P_IPV6):
-+		ctx->ether_type = skb->protocol;
- 		break;
-+	default:
-+		return false;
- 	}
+ 	if (tunnel->collect_md)
+ 		return -EOPNOTSUPP;
  
--	switch (inner_proto) {
-+	switch (ctx->ether_type) {
- 	case htons(ETH_P_IP):
- 		ret = nf_flow_ip4_tunnel_proto(ctx, skb);
- 		break;
-@@ -456,7 +459,10 @@ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
- {
- 	struct flow_offload_tuple tuple = {};
+diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+index 042d743edb6c..d063add01f52 100644
+--- a/net/ipv6/ip6_tunnel.c
++++ b/net/ipv6/ip6_tunnel.c
+@@ -1852,6 +1852,9 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	struct flowi6 fl6;
+ 	int err;
  
--	if (!nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IP)))
-+	if (!nf_flow_skb_encap_protocol(ctx, skb))
-+		return NULL;
++	if (ctx->ether_type != cpu_to_be16(ETH_P_IPV6))
++		return -EOPNOTSUPP;
 +
-+	if (unlikely(ctx->ether_type != htons(ETH_P_IP)))
- 		return NULL;
+ 	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
+ 			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
+ 			      IP6_TNL_F_USE_ORIG_FWMARK))
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 0cbde535b8ba..5f166da3b09b 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -44,13 +44,15 @@ static bool nft_is_valid_ether_device(const struct net_device *dev)
  
- 	if (nf_flow_tuple_ip(ctx, skb, &tuple) < 0)
-@@ -1103,7 +1109,10 @@ nf_flow_offload_ipv6_lookup(struct nf_flowtable_ctx *ctx,
+ static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
+ 				     const struct nf_conn *ct,
+-				     enum ip_conntrack_dir dir, u8 *ha,
++				     enum ip_conntrack_dir dir,
++				     u8 *ha, __be16 ether_type,
+ 				     struct net_device_path_stack *stack)
  {
- 	struct flow_offload_tuple tuple = {};
+ 	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
+ 	struct net_device *dev = dst_cache->dev;
+ 	struct net_device_path_ctx ctx = {
+ 		.dev = dev,
++		.ether_type = ether_type,
+ 	};
+ 	struct neighbour *n;
+ 	u8 nud_state;
+@@ -228,7 +230,7 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	unsigned char ha[ETH_ALEN];
+ 	int i;
  
--	if (!nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IPV6)))
-+	if (!nf_flow_skb_encap_protocol(ctx, skb))
-+		return NULL;
-+
-+	if (unlikely(ctx->ether_type != htons(ETH_P_IPV6)))
- 		return NULL;
+-	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
++	if (nft_dev_fill_forward_path(dst, ct, dir, ha, pkt->ethertype, &stack) < 0 ||
+ 	    nft_dev_path_info(&stack, &info, ha, ft) < 0)
+ 		return -ENOENT;
  
- 	if (nf_flow_tuple_ipv6(ctx, skb, &tuple) < 0)
 -- 
 2.47.3
 
