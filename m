@@ -1,77 +1,77 @@
-Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com [209.85.128.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D9CC4248C8
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 09:22:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0C0D41D655
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 09:58:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.177
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786440136; cv=pass; b=E0b49LuAUzaYKdhUv0EoAuSlkAwPXBzDy+qmxlc+ivhr9TuEuEKOZN8nxjjoFL1WwbcTyMhL9hy2YUxYfl0LRd5PX0SjKTC3N1oLrdNCFoRb+UPjdoU8jlcccuOKLOpFHrQYEfBRHLkbRVc8pKFiOsk7QevjjotrVhOJeMmxAJA=
+	t=1786442314; cv=pass; b=DwGzw1RNk/INzO9riyJySzX/eMZU/KQovJMoRV0PQHscoJ/pr0ErxW5ThubjYnXkDYiQIXI5BIonDwMZBJ41eEN1ktm3kdCqG5cWiykwQ2Ccgxul/ICctwwHETWikmGfG3NALT5hfAlZKFHb7KstzoTl44YfYnqIiQZg8s/bMmY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786440136; c=relaxed/simple;
-	bh=UyqOqTXfdCKJJ8uu1rhMMIWAc76R/YHa+u/4VTr2ttA=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=RdUrSSfVb1fqglJ4xLimNnk6km6T0iND7iHH5LOdvTruZRVNP+KTAYxrqy3i1/TAZ2om65G87KKo88iWzQTHljay1WWS5CEFSp3SdvEAWcvHi1BEqC9SmmJpuhzg/FkPMGD2GLB1IhlaqpebD/GQMz+a4r2yfWl587rGaKqXzGo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KSRutBxz; arc=pass smtp.client-ip=209.85.128.180
+	s=arc-20240116; t=1786442314; c=relaxed/simple;
+	bh=d6RYoB4Uiv+lGRgZMBX13TnfD3IWzzfZnhpWnoV3Pes=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=lMTUCFx4RXhdVyCkpVlth15lMWIzREG1k5O7ljn04uQRi0s2p+OHI9gnBZKo864yVgQN6YzlCCB9mVK8kCcEPuTuLuV4s4dT8jHrS5Zru6rVpdZ9GUN/gFPZcNLDka/3jUZMbJ2jGshrn5WGdg+BX6jWK4LHlYvJk0njopHOsZU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Z/Ks06c2; arc=pass smtp.client-ip=209.85.128.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KSRutBxz"
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-82113c53aeaso7788197b3.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 02:22:13 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786440133; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z/Ks06c2"
+Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-8201447e8cdso44557237b3.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 02:58:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786442311; cv=none;
         d=google.com; s=arc-20260327;
-        b=r+DFsLPH/I3CjhDniqXJqlhhPoKTbmX7eSE2NJb2V731rd4IJOyDyMob9C2fnqftX/
-         9Dk6fjhmjk4rIJWNg0hnzV7vCGiCx2s6yV2oHhgJripGKf7NwyuVGS2BEbuZDVV+qPbw
-         VRf4F1geLYT7hk8g5eUwHRFMeKPKoh8eAXqobhdAF4r6DOr3r1qrFeBJusogOLbzCkKY
-         lpGDPGOPvEhCUJkdDzPC2noqzXddSmLonf8G9KbJWpCzV7mAGucLnmrUJrQLLmeiEiCR
-         gxo2Q29WbTJpA3EqC13QKGnMNTl4GxPv4tJyupo1GgXl55d4L/atBpR2L5pvqqEiTlDB
-         79LA==
+        b=X5CphH9B8Abvirk3hJ5yKvwjVeSByR9PKhA48yzw5qfzzzWdNn97UUJXiC1v15GJkI
+         pex4howj0MPNXnInmz1IxIw5m6Qw+EedZKhxMqq5aKjejp10Fqja0LWSLD8NqPlUJFiF
+         0tHI8z+uoBcXX+atp2GVYSt9qZ19ROPIhU6A+PhGGCQp4LempnMdI7VlEEQp5MkCyZFK
+         OEO8LX7/pfYZczOVa1xZkg364sAw33NkCqFCxyC+tqV6nNDfX2I+5zF0ae0jbN2r1fX3
+         duFPcMXi+evWn3GNf5V/REngRRPOzMbf/qmRu9K7kQlkFXS5d2S13fFdCklUvQumOm3W
+         U4Xw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=r5O6k0DY9DjFJdDFPov26RfyitfELd8eUk6GOPlDyJk=;
-        fh=cLe/kE8DnlMTRpQBnl5xbUCeOm+0+18VcHsWldvcgeo=;
-        b=JPq1IExOFR6zuLmT6kMtHhRYimdsByXMfTBvifwL2QWbEaKsLzZanvAU4XL9MmjmXL
-         /+2bp/qyU47bjqjjfEGDrCCcfV7B9BkQspcJdot6DqlyMuavFK8Tt7ib3cbgMkzhqPIb
-         +J3ucfrevQOUBzQuAifBX3HaSF1c673hcn+4oqK5VXI0jWbTodiTQViAJyncIJYZDe7X
-         fRq+snDcM1mm/P3J8IePuB1COzcfd48/oONKpwFB0NqqJXENgUkd9tksXX2DAMn64so5
-         Yeoia2eXTqArb1lBSFYKdWu+gW6b+9F43SwW5clGDACG++cPx44ADd7FozT6PeL7MwBl
-         l0Lg==;
+        bh=o5NGtSqMw5cDWljS6WDYTXG7/aYChPFYlMJBTyzLkN0=;
+        fh=XGifei1neXJ3CAQ6yqDhdTJD6hobOgXFIlmWI/Jun3E=;
+        b=j6y0NbyDRFrBCLsRgAOw5OdRD75Hfas1gmu7abXTd38r5MQTVWev39hGyO1GB15vjX
+         RrXzW1ix6mgfN2UlVQ6ug+AiwcQ5Q1G/TqTe3t7AsjKT5W2Ydyvmmf8ReHZjftK4TOsH
+         t2pzRi1STJpclWSK2UCkiB85GEf50AJEMtPSjBIwU1etgrQoaYGgtT0nhFgXcDy93ABV
+         GEka0Hi3Kl1YmpxkpqC9n7F64tL22Frz1D+BpH/lUsN+8JSrVOrJz9Ce0OpYIxtT9G+/
+         n5NhthX3hMwe8xTEValSwwRfTrE3g8hA4P9Fp1cfDafh7qTAX/eESIjrooDZwTIL4tcj
+         PADQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786440133; x=1787044933; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1786442311; x=1787047111; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:mime-version:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=r5O6k0DY9DjFJdDFPov26RfyitfELd8eUk6GOPlDyJk=;
-        b=KSRutBxzfT3FTzf2Y5ZUXkd/SlQGkecvxrFCS5NIIEFOsL5J/yMl9VpMRyGBwAr6Nd
-         4AJRwPuGQGf7Kw29vr4Wf9JEWvR/ApfmkR1MN3JrOCn/EQK+xfliKyf13sICLQTPs6TX
-         uvG7ibtIyImwJYB2AboxC3KLQBaU80oE9/r8mZLepQzxXVdVh6XOsbam8/i3aRhgTFNX
-         64tACae6m7t3LI7og59CQDnpme/D7Jh96vGqEoCnB3ZHzn45zZqvV+JJRb9Tb4e5f6iL
-         opq5x855hG9f7jpQO8Yly1c6L7Q7RazxX3ZrUjDFTZFNgSPss2U5gj6ociuhwNJ0TOMb
-         nq5A==
+        bh=o5NGtSqMw5cDWljS6WDYTXG7/aYChPFYlMJBTyzLkN0=;
+        b=Z/Ks06c2ADUZ2vbNdHo6xctjqxLesfcbd94s/ZR4HgsQ/TxfzR0jmz2PQSM4E05l/q
+         QHlDTF/fWxiB1XjCNIgJgIWKEi0BycU5f1B7uzEIXPbKiu1gb5+s9DHFktEKnqCFUc+q
+         Dpp7jaNVcYIE9miBtXljPOtxAKc2Z73O11+Xpg9locP+3CZDt1YQb4MUdd00m557c5iW
+         X5gBSxRGwZ5R1QinwG5zArGrxtjLGgsVU8eZ3EXwV6Y6H5jDpEjjXuWjbwfMXQCM9ufb
+         ybDynaaQ6PZ0AGKVoUPC0k0ysY5+EM+BUcxLvwyjcDYFi78nEGukyZG1Ml94DHf0dNDD
+         Ywjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786440133; x=1787044933;
+        d=1e100.net; s=20251104; t=1786442311; x=1787047111;
         h=content-type:cc:to:subject:message-id:date:from:mime-version
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=r5O6k0DY9DjFJdDFPov26RfyitfELd8eUk6GOPlDyJk=;
-        b=Owiey1VCmOFjfq2rXKPRNo9Xl/jHq1BXyCX8F3Z6PkImcrdURgyJAGdHkVrZrIqQ7H
-         ztEHNu4ZVkltkTmxtsXzupVf9MP4I05TxLybcIZunQ/xAsDFEtJ9xDpsqUiMpG9ol35I
-         D4woGq98lIO/QPlWKTYQlrn4uAkDjO6BIaZ2c4ExEPhkSuwlgtmBoz6SW9kCpPCLdWRf
-         L/jq3blUna/eOpN2whtq9lLtqwwQSkrHIu7zOfTvEIkhLXG4Xn906TuF56QJbpuP0Gnf
-         gF8yTvkw6h+CskCe2n+JZt7lCVrNK15Rg85kKXl8GHx6lDJPah89R5WKT7CXUWaZ/HoQ
-         Rqvw==
-X-Forwarded-Encrypted: i=1; AHgh+RrZq+nMHp37e6au28h8zw6K21BNsqPUkEiEtj7tjAe/4c9ZNi9QsWgyTRqc/qXUKZQPvVioCsUMs/qCNC+4weY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyoZpNng50ZsvCaJs5ae/emGTjYOOg+91sRc8ceqp6qsgjFAEf0
-	+PxgaJNpmi40WqZWURcYX+cnGi5wGZMW287CezZ3AmuqcesWYp8FKGfmkbzWDgXu9E302NiwK0w
-	W4Z/z3RzvaJgoAyrg0S9AwNImYL4ft6ngI0Xk9jQ=
-X-Gm-Gg: AR+sD11pgKPfkIMS9fs63IwEl0yYj+OkXVHs5gCPY2bavPWFpbrSrBzySuXDRspR98B
-	1l70RFoGNHtDHX0GqAW48yu4E3XRiGscxOgHNAZsSTx0M2VXyccUGJDXK9B15S9iAVX70zx4cEG
-	1bJJRuMA+zd1KrtjIjlkG3tCSsN39R8f8vRLk2lXr9JC9DJIeuvX8Sp8Zj3KfkQSRCQZwu3ZGS8
-	6KwXknhgn9OC02ZMvo5qc4cULztFZAWok4R724XCBCGoFvh5kTMudJhJN4sy12yORiSMClGwkFy
-	eQp8LZlvDQ4aHExvTr8KPUpgHVsoRsUksDOv7DTT4li7U5B5qilks6U=
-X-Received: by 2002:a05:690c:6f13:b0:81f:2403:9e70 with SMTP id
- 00721157ae682-82f2bd7db37mr11977607b3.19.1786440132469; Tue, 11 Aug 2026
- 02:22:12 -0700 (PDT)
+        bh=o5NGtSqMw5cDWljS6WDYTXG7/aYChPFYlMJBTyzLkN0=;
+        b=aUNmzQOg0tU1hUQrA18+ipEfQ/Z+6Zu2LZnAkmYP28YxV582fJ2P6WQ3+OBvePCCLW
+         Qw9HIl6szowYDyeBlsavC9zEEwTlX9Uk6qiciXcwYnK+/t2f4PpHnmRG7fPLnoNTOmg8
+         9OQigIZY+jKB9Wz9d66pImho7iGbfDUXrKaqqml3A8QcWT6gYgpZJgYK+UeHPmEoIKme
+         6bxOX5OSzF1M/CFBcWxCfpoRRdSkPBhXiUtNXqO9qCBVBjtBy+vcNjP4/jeTEgsaYyhc
+         EIbw5uEI/rDnYWqLwohFpWKFhjzT9m+jRN7k3NFMfXRPkjaKEsLFCeG07alHa//NO+na
+         QLfg==
+X-Forwarded-Encrypted: i=1; AHgh+Rr474E9zwsLxcqnE8XrK//wo9/1O/+s56cHOuQ4nS7XEP6ULIte1/dIjsZyGo6ppuNOz7HCAxSIPz9G0jHgqcM=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzeonLMkyZ0p9V+kmRpCXz85bNopt7MWH8dzEQ9qZW5hqHLlJTx
+	sykxVHQI+LpopwkRmBl7wiHe6p1L6FYMJcRZi3Yn6K251XKtO/RADDO+ugNwo5aSDwrpIur677s
+	p2wgSneKfZVXHQArD82QaeJY6rJHrViE=
+X-Gm-Gg: AR+sD12xDV5DYh2S7dmwzGVk2xhoWe+LZ6CfRWmPOa2KmJnoyQuTwvkayGk4Pj4s9QF
+	LvOv+43eJP7ZJghEbfRylnrsKo5xkawHBhAXqVOURvtA4+4TuHmAqZN3Pz60W4qV5i6UjnzqNSY
+	aMbrgOaoeQyUXherYnIK0SQ+OEQ9ToHx9LVBuxv5rW8WM6Dk6jR29P2VgjJRND/ScamS1qD0HoI
+	cz9Q13epxIefnHYv86idyBjq70BoJwAYSRLp3U6XSKU04SmYbntXypJB//yZO7PfhlI96TOdg/a
+	2B1IKgDFZQUdOLZmEG2CMp9FNROHLyNcG/kGTmtuMylg
+X-Received: by 2002:a05:690c:e3c9:b0:80d:c2cc:f673 with SMTP id
+ 00721157ae682-82f2b3cee5cmr12466067b3.20.1786442310416; Tue, 11 Aug 2026
+ 02:58:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -79,69 +79,66 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 From: Wei Fang <void0red@gmail.com>
-Date: Tue, 11 Aug 2026 17:22:01 +0800
-X-Gm-Features: AUfX_mw6DXV6ALe86hJnt2ujmDRPJLESx9Gd6gB9mL0xlFkmVOGKSvMQ_9A0Mgk
-Message-ID: <CANE+tVpU7gL3ZJ9ro4oNKsqdN01mDMBpUou0ABakiO2WrT5gSw@mail.gmail.com>
-Subject: [nf_tables] rbtree interval set: in one batch, re-adding element E0
- makes deleting an unrelated interval E1 fail with -ENOENT
+Date: Tue, 11 Aug 2026 17:58:18 +0800
+X-Gm-Features: AUfX_mzd1mxLM3yaKzSytCFyiC_bWnMF9SelQt4TpORyeAT0GL_ciOF9XvA5RhA
+Message-ID: <CANE+tVp8_NhE+KL6ZNPGjaGMLPxrCWw_A5sY0jotrvThB6idXg@mail.gmail.com>
+Subject: [nf_tables] pipapo: inserting an interval that strictly contains an
+ existing one is accepted; rbtree rejects the same insert
 To: pablo@netfilter.org
 Cc: fw@strlen.de, netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
 	k.chen@smail.nju.edu.cn
 Content-Type: text/plain; charset="UTF-8"
+
+Hi netfilter-devel,
 
 The following nf_tables issue was found by metamorphic testing on
 linux-next 7.2.0-rc6-next-20260803 (x86_64) and reproduced on four
 independent VMs.  The reproducer is a single self-contained C program
 that uses only the raw netlink API (no nft CLI involved).
 
-This report is about the rbtree interval-set backend: re-adding an
-existing interval element in the same batch as deleting an unrelated
-interval makes the delete fail with -ENOENT, although the same two
-operations succeed when sent separately.
+This report is about interval-set overlap validation: inserting an
+interval that strictly contains an existing one is rejected with
+-EEXIST on the rbtree backend but silently accepted on pipapo, so
+interval-set semantics depend on which backend the kernel picks.
 
 Problem
 -------
-On an interval set that already contains two intervals, one batch
-that does both of the following fails on the second operation:
-
-1. re-add element E0 without NLM_F_EXCL (update semantics);
-2. delete a different interval E1.
-
-The delete returns -ENOENT.  Sending the same two operations in
-separate messages succeeds.  A transaction must not change what an
-operation does: batched and unbatched execution must behave the same.
+The same overlapping-insert sequence gives different results
+depending on which backend the kernel picks: inserting an interval
+that strictly contains an existing interval is rejected with -EEXIST
+on rbtree but silently accepted on pipapo.  The nft CLI hides this -
+it performs its own userspace overlap check and refuses to send
+overlapping elements.
 
 Steps to reproduce
 ------------------
-One batch on an ipv4_addr INTERVAL set with two existing intervals:
+Two sets with identical elements, differing only in backend
+selection:
 
-1. re-add E0 = [10.0.1.0..10.0.2.0) without NLM_F_EXCL;
-2. delete E1 = [10.0.2.0..10.0.3.0).
-
-Raw netlink is required: the nft CLI re-sorts interval elements and
-hides the ordering.
+1. rbtree: set s, INTERVAL, key_len 4 - insert
+   [1.1.1.1..1.1.1.11), then [1.1.1.0..1.1.1.12);
+2. pipapo: set s, INTERVAL|CONCAT, key_len 8 (two 4-byte fields) -
+   the same two elements.
 
 Expected vs. actual
 -------------------
-expected (observed when sent separately): all operations ack 0
-actual (single batch): [0, 0, 0, 0, -2] - the delete of E1 fails
-with -ENOENT
+expected: both backends reject the overlapping insert (-EEXIST)
+actual:   rbtree rejects (-17); pipapo accepts (0)
 
 Root cause
 ----------
-net/netfilter/nft_set_rbtree.c: when the re-add takes the in-batch
-EEXIST path, nft_rbtree_insert() records the matched start element
-in priv->start_rbe_cookie (nft_rbtree_set_start_cookie()).  Later in
-the same batch, deleting E1 reaches the END node of the interval
-being deleted and calls nft_rbtree_deactivate_same_interval(), which
-compares against that cookie.  The cookie still points at E0's start
-element instead of E1's, the comparison fails, the deactivate
-returns NULL, and __nft_setelem_deactivate() (nf_tables_api.c)
-turns that into -ENOENT.
+net/netfilter/nft_set_pipapo.c, nft_pipapo_insert(): the overlap
+check probes only the two endpoints of the new interval
+(pipapo_get(start) and pipapo_get(end) -> -ENOTEMPTY) plus an exact
+duplicate (-EEXIST).  A new interval that strictly contains an
+existing one has both endpoints outside the existing interval, so
+both probes miss and the insert is accepted.  (The reverse case - a
+new interval strictly inside an existing one - is caught, because
+the start endpoint hits.)
+
 
 Reproducer
----------------
-
+----------------
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -156,19 +153,19 @@ Reproducer
 #include <time.h>
 #include <unistd.h>
 
-/* NFT_MSG_* enum values come directly from <linux/netfilter/nf_tables.h>
+/* NFT_MSG_* enum comes from <linux/netfilter/nf_tables.h>
  * (NEWTABLE=0, GETTABLE=1, DELTABLE=2, NEWCHAIN=3, ..., NEWRULE=6) --
- * do not #define the same names; that would break the header enum. */
+ * do not #define the same names; it would break the header enum. */
 #define NFT_MSG_TYPE(s, m) (((s) << 8) | (m))
 
-/* ---------------- encoding helpers (wire format matches the Python
-version) ---------------- */
+/* ---------------- encoding helpers (wire-identical to the Python
+reference) ---------------- */
 
 static void put_u16(char **p, uint16_t v) { memcpy(*p, &v, 2); *p += 2; }
 static void put_u32(char **p, uint32_t v) { memcpy(*p, &v, 4); *p += 4; }
 
-/* attr: little-endian len/type header + payload, 4-byte tail
-alignment (len excludes pad) */
+/* attr: little-endian len/type header + payload, 4-byte aligned at
+the end (len excludes pad) */
 static void put_attr(char **p, uint16_t type, const void *data, uint16_t len)
 {
     put_u16(p, 4 + len);
@@ -244,6 +241,7 @@ static void nl_open(void)
     fcntl(nl_fd, F_SETFL, fl | O_NONBLOCK);
 }
 
+/* Collect NLMSG_ERROR acks, map seq -> errno; wait at most wait_ms */
 static int collect_acks(uint32_t *wanted, int nwanted, int *errs,
                         int wait_ms)
 {
@@ -281,7 +279,7 @@ static int collect_acks(uint32_t *wanted, int nwanted, int *errs,
 
 static int E(int v) { return v == 0x7fffffff ? -1 : v; }
 
-/* send batch (BEGIN + n body msgs + END); collect body acks into errs[] */
+/* Send batch (BEGIN + n bodies + END); collect body acks into errs[] */
 static void send_and_collect(char msgs[][512], int *lens, uint32_t *seqs,
                              int n, uint32_t begin_seq, uint32_t end_seq,
                              int *errs, int wait_ms)
@@ -298,8 +296,8 @@ static void send_and_collect(char msgs[][512], int *lens, uint32_t *seqs,
     collect_acks(seqs, n, errs, wait_ms);
 }
 
-/* DELTABLE inside a batch; deleting a nonexistent table is harmless
-(-ENOENT), used to clean leftovers */
+/* DELTABLE (inside batch); deleting a nonexistent table returns -ENOENT,
+ * harmless; used to clean up leftovers */
 static void del_table(uint8_t family, const char *tbl)
 {
     char blob[1024], *p = blob;
@@ -321,18 +319,20 @@ static void del_table(uint8_t family, const char *tbl)
 
 /* ---------------- scenario construction ---------------- */
 
-/* interval endpoints (network-order bytes, same as v_a1.py) */
-static const uint8_t E0[4]     = { 0x0a, 0x00, 0x01, 0x00 };  /* 10.0.1.0 */
-static const uint8_t E0_END[4] = { 0x0a, 0x00, 0x02, 0x00 };  /* 10.0.2.0 */
-static const uint8_t E1[4]     = { 0x0a, 0x00, 0x02, 0x00 };  /* 10.0.2.0 */
-static const uint8_t E1_END[4] = { 0x0a, 0x00, 0x03, 0x00 };  /* 10.0.3.0 */
+/* interval endpoints (network-order bytes) */
+static const uint8_t OV[4]       = { 0x01, 0x01, 0x01, 0x01 };  /* 1.1.1.1 */
+static const uint8_t OV_END[4]   = { 0x01, 0x01, 0x01, 0x0b };  /* 1.1.1.11 */
+static const uint8_t CONT[4]     = { 0x01, 0x01, 0x01, 0x00 };  /* 1.1.1.0 */
+static const uint8_t CONT_END[4] = { 0x01, 0x01, 0x01, 0x0c };  /* 1.1.1.12 */
+/* concat key = two 4-byte fields concatenated (key_len 8) */
+static const uint8_t OV2[8]       = { 1,1,1,1,  1,1,1,1 };
+static const uint8_t OV_END2[8]   = { 1,1,1,11, 1,1,1,11 };
+static const uint8_t CONT2[8]     = { 1,1,1,0,  1,1,1,0 };
+static const uint8_t CONT_END2[8] = { 1,1,1,12, 1,1,1,12 };
 
-/* Single interval element: attr type (1+idx), payload = [FLAGS(3)=1 for END
- * only] + KEY(1){ DATA(1)=4-byte key } (elems_raw_interval encoding).
- * Containers never set NLA_F_NESTED (kernel nla_parse_nested_deprecated
- * does not check the flag). */
-static void put_interval_elem(char **p, int idx, const uint8_t key[4],
-                              int is_end)
+/* rbtree element (raw_interval encoding): [FLAGS(3)=1 only on END] +
+ * KEY(1){ DATA(1)=4-byte key }, attr type 1+idx */
+static void put_rb_elem(char **p, int idx, const uint8_t key[4], int is_end)
 {
     char inner[64], *q = inner;
     if (is_end)
@@ -343,63 +343,72 @@ static void put_interval_elem(char **p, int idx, const uint8_t key[4],
     put_attr(p, 1 + idx, inner, (int)(q - inner));
 }
 
-/* install batch: table t + set s(interval, ipv4_addr) + 4 interval elements */
-static void mk_install(char (*msgs)[512], int *lens, uint32_t *seqs)
+/* pipapo element (elems_concat_interval encoding): KEY(1){ DATA(1)=8B } +
+ * KEY_END(10){ DATA(1)=8B }, attr type 1+idx. Container has no NLA_F_NESTED. */
+static void put_pp_elem(char **p, int idx, const uint8_t key[8],
+                        const uint8_t end[8])
 {
-    char attrs[256], *p;
-    int alen;
+    char body[96], *q = body;
+    char kd[16], *k = kd;
+    put_attr(&k, NFTA_DATA_VALUE, key, 8);
+    put_attr(&q, NFTA_SET_ELEM_KEY, kd, (int)(k - kd));
+    char ed[16], *e = ed;
+    put_attr(&e, NFTA_DATA_VALUE, end, 8);
+    put_attr(&q, NFTA_SET_ELEM_KEY_END, ed, (int)(e - ed));
+    put_attr(p, 1 + idx, body, (int)(q - body));
+}
 
-    p = attrs;
-    put_attr_str(&p, NFTA_TABLE_NAME, "t");
-    alen = (int)(p - attrs);
-    lens[0] = build_msg(msgs[0], NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES,
-                        NFT_MSG_NEWTABLE),
-                        NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seqs[0], 2,
-                        0, attrs, alen);
+/* NEWTABLE: NAME(1) */
+static void mk_table(char *buf, int *len, uint32_t seq)
+{
+    char attrs[64], *p = attrs;
+    put_attr_str(&p, NFTA_TABLE_NAME, "mt-be");
+    *len = build_msg(buf, NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES, NFT_MSG_NEWTABLE),
+                     NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seq, 2, 0,
+                     attrs, (int)(p - attrs));
+}
 
-    /* NEWSET: TABLE(1) NAME(2) FLAGS(3)=INTERVAL KEY_TYPE(4)=7 KEY_LEN(5)=4
-     * ID(10)=0 (NFTA_SET_ID is mandatory) */
-    p = attrs;
-    put_attr_str(&p, NFTA_SET_TABLE, "t");
+/* NEWSET: TABLE(1) NAME(2) FLAGS(3) KEY_TYPE(4)=7 KEY_LEN(5) ID(10)=0;
+ * with_concat adds DESC(9){ CONCAT(2){ FIELD_LEN(1){ LEN(1)=be32 4 } x2 } } */
+static void mk_set(char *buf, int *len, uint32_t seq, int with_concat)
+{
+    char attrs[256], *p = attrs;
+    put_attr_str(&p, NFTA_SET_TABLE, "mt-be");
     put_attr_str(&p, NFTA_SET_NAME, "s");
-    put_attr_be32(&p, NFTA_SET_FLAGS, NFT_SET_INTERVAL);
+    put_attr_be32(&p, NFTA_SET_FLAGS,
+                  with_concat ? (NFT_SET_INTERVAL | NFT_SET_CONCAT)
+                              : NFT_SET_INTERVAL);
     put_attr_be32(&p, NFTA_SET_KEY_TYPE, 7);      /* ipv4_addr */
-    put_attr_be32(&p, NFTA_SET_KEY_LEN, 4);
+    put_attr_be32(&p, NFTA_SET_KEY_LEN, with_concat ? 8 : 4);
     put_attr_be32(&p, NFTA_SET_ID, 0);
-    alen = (int)(p - attrs);
-    lens[1] = build_msg(msgs[1], NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES,
-                        NFT_MSG_NEWSET),
-                        NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seqs[1], 2,
-                        0, attrs, alen);
+    if (with_concat) {
+        char fields[64], *f = fields;
+        for (int i = 0; i < 2; i++) {
+            char fl[16], *q = fl;
+            put_attr_be32(&q, NFTA_SET_FIELD_LEN, 4);
+            put_attr(&f, 1, fl, (int)(q - fl));
+        }
+        char concat[72], *c = concat;
+        put_attr(&c, NFTA_SET_DESC_CONCAT, fields, (int)(f - fields));
+        put_attr(&p, NFTA_SET_DESC, concat, (int)(c - concat));
+    }
+    *len = build_msg(buf, NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES, NFT_MSG_NEWSET),
+                     NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seq, 2, 0,
+                     attrs, (int)(p - attrs));
+}
 
-    /* NEWSETELEM: TABLE(1) NAME(2) ELEMENTS(3){ elems type=1..4 } */
-    p = attrs;
-    put_attr_str(&p, NFTA_SET_ELEM_LIST_TABLE, "t");
+/* NEWSETELEM (rbtree backend): TABLE(1) NAME(2) ELEMENTS(3){4 elements} */
+static void mk_elems_rb(char *buf, int *len, uint32_t seq)
+{
+    char attrs[256], *p = attrs;
+    put_attr_str(&p, NFTA_SET_ELEM_LIST_TABLE, "mt-be");
     put_attr_str(&p, NFTA_SET_ELEM_LIST_SET, "s");
     {
         char elems[256], *q = elems;
-        const uint8_t *keys[4] = { E0, E0_END, E1, E1_END };
+        const uint8_t *keys[4] = { OV, OV_END, CONT, CONT_END };
         int ends[4] = { 0, 1, 0, 1 };
         for (int i = 0; i < 4; i++)
-            put_interval_elem(&q, i, keys[i], ends[i]);
-        put_attr(&p, NFTA_SET_ELEM_LIST_ELEMENTS, elems, (int)(q - elems));
-    }
-    alen = (int)(p - attrs);
-    lens[2] = build_msg(msgs[2], NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES,
-                        NFT_MSG_NEWSETELEM),
-                        NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seqs[2], 2,
-                        0, attrs, alen);
-}
-
-/* re-add e0 (single point, no EXCL -> update semantics, errno 0) */
-static void mk_readd(char *buf, int *len, uint32_t seq)
-{
-    char attrs[256], *p = attrs;
-    put_attr_str(&p, NFTA_SET_ELEM_LIST_TABLE, "t");
-    put_attr_str(&p, NFTA_SET_ELEM_LIST_SET, "s");
-    {
-        char elems[64], *q = elems;
-        put_interval_elem(&q, 0, E0, 0);
+            put_rb_elem(&q, i, keys[i], ends[i]);
         put_attr(&p, NFTA_SET_ELEM_LIST_ELEMENTS, elems, (int)(q - elems));
     }
     *len = build_msg(buf, NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES,
@@ -408,69 +417,69 @@ NFT_MSG_NEWSETELEM),
                      attrs, (int)(p - attrs));
 }
 
-/* delete interval 2 (END element first, then start, same order as v_a1.py) */
-static void mk_del(char *buf, int *len, uint32_t seq)
+/* NEWSETELEM (pipapo backend): same overlapping sequence, concat encoding */
+static void mk_elems_pp(char *buf, int *len, uint32_t seq)
 {
     char attrs[256], *p = attrs;
-    put_attr_str(&p, NFTA_SET_ELEM_LIST_TABLE, "t");
+    put_attr_str(&p, NFTA_SET_ELEM_LIST_TABLE, "mt-be");
     put_attr_str(&p, NFTA_SET_ELEM_LIST_SET, "s");
     {
-        char elems[64], *q = elems;
-        put_interval_elem(&q, 0, E1_END, 1);
-        put_interval_elem(&q, 1, E1, 0);
+        char elems[256], *q = elems;
+        put_pp_elem(&q, 0, OV2, OV_END2);
+        put_pp_elem(&q, 1, CONT2, CONT_END2);
         put_attr(&p, NFTA_SET_ELEM_LIST_ELEMENTS, elems, (int)(q - elems));
     }
     *len = build_msg(buf, NFT_MSG_TYPE(NFNL_SUBSYS_NFTABLES,
-NFT_MSG_DELSETELEM),
-                     NLM_F_REQUEST | NLM_F_ACK, seq, 2, 0, attrs,
-                     (int)(p - attrs));
+NFT_MSG_NEWSETELEM),
+                     NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE, seq, 2, 0,
+                     attrs, (int)(p - attrs));
 }
 
 /* ---------------- main ---------------- */
 
 int main(void)
 {
-    char msgs[5][512];
-    int lens[5];
-    uint32_t seqs[5];
-    int errs[5];
+    char msgs[3][512];
+    int lens[3];
+    uint32_t seqs[3];
+    int errs[3];
 
     nl_open();
-    del_table(2, "t");              /* clean up leftovers from previous run */
+    del_table(2, "mt-be");          /* cleanup of leftovers from previous run */
 
-    /* control batch: install only -> all errno 0 */
+    /* control batch (rbtree backend): overlapping insert must be
+rejected (last errno -17) */
     seqs[0] = 11; seqs[1] = 12; seqs[2] = 13;
-    mk_install(msgs, lens, seqs);
+    mk_table(msgs[0], &lens[0], seqs[0]);
+    mk_set(msgs[1], &lens[1], seqs[1], 0);
+    mk_elems_rb(msgs[2], &lens[2], seqs[2]);
     send_and_collect(msgs, lens, seqs, 3, 10, 14, errs, 1500);
-    printf("control ack errno: [%d, %d, %d] (expected all 0)\n",
-           E(errs[0]), E(errs[1]), E(errs[2]));
-    del_table(2, "t");
+    int rb_elem = E(errs[2]);
+    printf("rbtree ack errno: [%d, %d, %d] (overlap should be rejected)\n",
+           E(errs[0]), E(errs[1]), rb_elem);
+    del_table(2, "mt-be");
 
-    /* variant batch: install + re-add e0 + delete interval 2 -> readd
-0, delete should be 0; bug: delete -2 */
+    /* variant batch (pipapo backend): same sequence -> must also be
+rejected; bug: accepted (0) */
     seqs[0] = 101; seqs[1] = 102; seqs[2] = 103;
-    mk_install(msgs, lens, seqs);
-    seqs[3] = 104;
-    mk_readd(msgs[3], &lens[3], seqs[3]);
-    seqs[4] = 105;
-    mk_del(msgs[4], &lens[4], seqs[4]);
-    send_and_collect(msgs, lens, seqs, 5, 100, 106, errs, 2000);
-    int readd = E(errs[3]), dele = E(errs[4]);
-    printf("variant ack errno: [%d, %d, %d, %d, %d] (last two =
-re-add/delete)\n",
-           E(errs[0]), E(errs[1]), E(errs[2]), readd, dele);
-    del_table(2, "t");
+    mk_table(msgs[0], &lens[0], seqs[0]);
+    mk_set(msgs[1], &lens[1], seqs[1], 1);
+    mk_elems_pp(msgs[2], &lens[2], seqs[2]);
+    send_and_collect(msgs, lens, seqs, 3, 100, 104, errs, 1500);
+    int pp_elem = E(errs[2]);
+    printf("pipapo ack errno: [%d, %d, %d] (same sequence)\n",
+           E(errs[0]), E(errs[1]), pp_elem);
+    del_table(2, "mt-be");
 
-    if (readd == 0 && dele == -2)
-        printf("REPRODUCED: in-batch re-add of e0 makes deleting interval 2 "
-               "fail with -ENOENT (rbtree start_rbe_cookie intra-batch
-pollution)\n");
-    else if (readd == 0 && dele == 0)
-        printf("NOT_REPRODUCED: delete succeeds after the re-add "
-               "(no pollution)\n");
+    if (rb_elem != 0 && pp_elem == 0)
+        printf("REPRODUCED: rbtree rejects the overlapping insert (%d) "
+               "while pipapo accepts it (0) - backend divergence\n", rb_elem);
+    else if (rb_elem != 0 && pp_elem != 0)
+        printf("NOT_REPRODUCED: pipapo also rejects it (%d) - no divergence\n",
+               pp_elem);
     else
-        printf("UNAVAILABLE: unexpected observation (readd=%d, del=%d)\n",
-               readd, dele);
+        printf("UNAVAILABLE: unexpected observation (rbtree=%d, pipapo=%d)\n",
+               rb_elem, pp_elem);
 
     close(nl_fd);
     return 0;
