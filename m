@@ -1,122 +1,208 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
+Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1F0243C7B9
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 11:37:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.176
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786448252; cv=pass; b=CaKPFsJNHoTPud5ADk+uOGE+/vwtEgtN1eE9WvKK56EmXdFNrdB3OrCW4hF0BNZHAQrvYjmiiTvNaFlTppNQYCg76i8tmAbEvLzhbbU6ylMWK2aeKJvThgYRiLsdbp485LlJ/3ppbqyCZc2NZ+I8E89h/WvwnlSQ8aNFHIsBsms=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786448252; c=relaxed/simple;
-	bh=gpuZODGzj68Y84eTLk6uQfkMqrQHsTooID37VgaUIfk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Uk38J9dLAmdYiQSnoeEUcxtLDofYr580TuYjkH46KXGa9/zbzpUq1alfRsQnLVbxn8oVx7P53mC2FMocAaWnqCWXGMlnH3vDBxdWq+GEoyXgy2r1ay07xgpDuoD4MX51fqr7Jf+UEnPRUo4cBqV4OGixn2h8kCpNYyyo9OWrKNA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bbl+BHnU; arc=pass smtp.client-ip=209.85.128.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B953B4499A4
+	for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 13:42:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786455786; cv=none; b=SgGJN0vSQmo53iQbDllCqww43kDkv2VdldxSLMnkptIv390xba/GxsuGVOae7Ft6fbAvu9x8uAu1V/1njvM3YOXqmroGGX0y9yzMZJui/YlNIykiQtSoz+PlYh6m3XL/jJs6XWsZlbSy2E6JGF83a3Ma/y6YgY9oRHQmcNv+Y7Y=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786455786; c=relaxed/simple;
+	bh=llPx3cypXX7ah/dLtPveDgfYxJJ+3zoRvKL7d6BCynY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=iLa185tmy0r0ULvkwAnGrWif9ooB3R5h6ExImew68jDCCcYtvephYPbTCRaOLYqPYlkCDtzP4qgQlgrkOT/duem21mcK7BsWDVmimd/QAH5uyBcI7UIz/+oz+Uu1pTQeb/8SjW2EWPt3lBJWtDWexpnKJJPEwrH+9qdrLNe3mgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=boLneXeo; arc=none smtp.client-ip=209.85.221.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bbl+BHnU"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-81f64e8dfbcso44362777b3.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 04:37:30 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786448250; cv=none;
-        d=google.com; s=arc-20260327;
-        b=SVW50xwKSMvhvsUo++S55H7MbVZ8x0GbSSG+zmSbMA8StCCbHyvQSi5Ar2vRbesczD
-         tDTS6caFyFkbRtgtR9C01FNSl+YnPqtoA2kbf0Mft50TxewtZjOA8WJYTUPdajzAiOx1
-         O5zK9D0x+P2OMyWAqiOCBxrTzJMfU/xOgoTmxs9p7B5ZRYCqeOfe0/EfV/szi9UICwN0
-         oW4YLBQUhXsMalnkzGHL87IOiVXeEPqM50k9jN0Mf/m50idRF34fJpZSL6nhJm5mvdkp
-         w/s1TlnTdaPsvjpaZnuLLKi5UQddTkuR2vn+aZBXqTBHBsdivs600Jlx1DnexYDnsigK
-         jJBw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=02wA3GNr7vAUbL7lTzE1Bgm13rZFC+V6O8LJD+mzFT8=;
-        fh=x43113ub9UrsJIGMG1ejnZO0OmoNoruOtaH/j6SXnXU=;
-        b=VaVr85as0Ov4EDsVKdvwWC6wKE3F0V6S9wC3iV5VVfUnMrOEBXgR94a2sq6YaUmBRJ
-         fdA9kkSonU103p9VWf/XLzvlapCdXMA0bh30mCgTJeJykB23lRKaMZ8Q7FH6K4H6dCij
-         +kn23k1oec7019VhSL4JdgLIJ9/XafHFY/y2t3fJ/9SZIMtni7M6vwKeBZGFGUPTcdfL
-         hAlTG+EfOAlrXq+BUUAePNBBsuKkJtxAftE9hmNhSeKUBp4VEKma5sRIsRZU15ovPzsb
-         Yb5YZMA+k5bfHSB7RF1sUrxl7l32vPzITLiiTvcTZtvtzdQf9pBOZW9tC87rqWAiSs4G
-         y9TA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="boLneXeo"
+Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-47f703a9e5dso426725f8f.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 06:42:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786448250; x=1787053050; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=02wA3GNr7vAUbL7lTzE1Bgm13rZFC+V6O8LJD+mzFT8=;
-        b=Bbl+BHnUxmtUWv9+zlr8JdnyA5CY+o9iFiCEMdZaNDLHIFZf61jIFbJhpP60cOtmi4
-         4HpHI4A8xcV3KD94rPzuanhGbpsBmbCIcXmIpVpK43OLJCySLNWOW6s8wu8IlZFcp9GE
-         S3ZdTn/V9kMSvAkrlZMmbT63G/BDIcnoo4c53yUtP11lHERi/phjqvDmt1guB4QZXBic
-         xoNuzdtO+dERrRG8bxWBzEOHsIeF2I+6Od9fRWmHIUr+zWpK4fkpv2A0HOchA8SGyxBQ
-         NW6FoO5I0SW4Q4crdTx5MW+kZv4sI7gamVR78N/bj+Kzn6OjnoUgUGSLEwsqQHUOSFmd
-         U1+Q==
+        d=gmail.com; s=20251104; t=1786455773; x=1787060573; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cNlm5JWf5Gei4gF1YndDyWw03fbPwXMOf3tbs8aGpQs=;
+        b=boLneXeoAXNq0jkhWLs5RWmPae+UtRXxvJT4yZTDgedCbyaiSI3JQf3jfNCtgymk3x
+         rY+rtldl8NcXT/2MTVDkOqwc3ilQ+IY55nOd5+zQvAvIznAY99EMimJGWYIa5QzUgvCA
+         vBEAjTVMLtLVi+/GM935H9vp8vL4FOexLU9oIg2C0PxS53z2z2NnQQn7fXX7dflM5soR
+         GuCQI/WkNWaEU3kaTUP2gKaYDUwV1/WwBgbXF1iwpBwWjvKTvb80XZ1S880XQfSuuszA
+         w3v3iwQtEyXGJodn/orPaxRbSnhVBhLTxHc1BIYFLXARw7fx13MgqEi8Xjpg3oiESOsj
+         IVVA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786448250; x=1787053050;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=02wA3GNr7vAUbL7lTzE1Bgm13rZFC+V6O8LJD+mzFT8=;
-        b=RMm4cRw4Disgjlf8VeGYYhtUanmClfg8sJEZuLwI6GSnaueAolM18QxjG5BWjPCf+j
-         jBO3mcIMW7IVKKXbhLA4JZfVf9xs2IQgxbs75/BvuQrhiYoxE8xor0iQNUJEX6pYpYeL
-         5p13IJqyF2Gw56hpxULI+cFHR0OcVlR++P/pDuPGkf+ZZkefm5Kfr+1l9FFEju7AuyhV
-         yBBK4wVrBR5CBdDF/xKoTPql1NRe15/7xA089DvtxgAYIE/M1DIH0nR24p1B41CU5NeG
-         d1L7Itu9XVtl8yYhE179+z89LqAmpNPRT/AfdKl7CWlaSFTlzBkazk3OwlgwjTuaPyVx
-         J97g==
-X-Forwarded-Encrypted: i=1; AHgh+RqrIsHwAO1rk4tcHGoOKezn0hXGAjyi5+ijM2wBwwWfM4k4lY3NGS70nNpZHVM583xc88SE/bHrH/f9NzH6AM0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyT+KzqG0Q52cjEl1AKCEbnkF0EMsu/9Niw0YHfUOinmxcRTqrf
-	WyxQ/taZbomYg24QTdrCnjvYJ5UMP+o6n9jp3cGq9BiWEoJv7Jeux4wDI6ZNgbpVYIYOwX6HRvD
-	VH52bWKJeeDC4qZSNcBBNRo3oJpLkdHs=
-X-Gm-Gg: AR+sD11Xa0qx2l9viy9sbgLDn1epwsfrDay6r1gLFqIXdJ4fH5Ot15wC/6SH2NjeOTg
-	5ghmyVwyRrbuEqYI2OVPfIXPJDL1sdjBsqO7gy23Pcz5yrE5ySN6K07h4SDceRzctuQyMX0ylo0
-	gbrtoG7EBVieecvwInSCwrle+GH2NlVNVdNbj3cH75dMG1L6kmOmafn/Agx5kucuQZp22GYOtOa
-	AWIeuk/4SXOg2ugmFHlZCfEiD4m/9NXAINOE2PS+0nKS/efiTKmJ6F1klnO0cd5ltUOrAbQARj0
-	iTuNxNRQe8KAzxwBwXuh4I1Fw7iJs1Tc48b4NIGM9dPx
-X-Received: by 2002:a05:690c:630c:b0:814:7a54:3a93 with SMTP id
- 00721157ae682-82f2ceefb77mr17793617b3.23.1786448249594; Tue, 11 Aug 2026
- 04:37:29 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1786455773; x=1787060573;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=cNlm5JWf5Gei4gF1YndDyWw03fbPwXMOf3tbs8aGpQs=;
+        b=sZdyAe+AIoWSWRimrzWi4wVTKokAizoJFbsFGkt5XItDbwpnAMY2H4E7kFYyL5Azef
+         FmvnPp/npYq1Z0LfvV5Jt2z/Ot/a7BoJ+GHh3yk53gjoVxcUDkTIQgPYhKK1Uluy++JO
+         inwxqflHbzFpe+Er60lBjf/fOQFJSFVYl3BpGQoTGmAKBSsLW5zqteBTmggBb6UZUBHH
+         N3glWKs3wuB8VAaorvCJ0+ppPh/f9IRDoraMCKrckimT9nqoslGUJeKetdJTOLA+Xq8Y
+         59wIXAZfIcdrSorJqsem4ABulcKuby4QOpzJYYOvUpdyDU9R7XoPYbgTg4ixziiOl8s/
+         Np3g==
+X-Gm-Message-State: AOJu0YzfPT/nXpFZ6LpgI95IA/8+tVomHvSbBVJQvUi9lE9PBoY0fuZD
+	I57aD/VhQLBn0MQLT6Xz97Xf/7Ac2aIjwFjzG2YB10Gl7UNcOud4cVQxTg7vruqk
+X-Gm-Gg: AR+sD135b03BpCR3mYRnFtNpj/wFL5RL9X7Ib0lzQYZXpgIT+S/LbCckD/qITuhrgY4
+	fWOSwpvOIWMwKEqkmIBhmAU60H48GQUuvczJx470TGgQoebawI4kDlcginXv16LTOicQLgZ2cx0
+	X6H/UwQBN7sHThaYPHGQRMBPw0JB3D6FabR+0QqrLv3b8QbU7Kh1Zd0ldJiY76UeicVOUDxvmyA
+	yREuoIER5Lr11kU7V81gZO7p8CbKWa73Kh8zfE8Af2XowFgHxmXn/Hhp4XAwAVcdK/mXTc77fk9
+	RAWrVAs4g9ERQc+CGi23KCfB1ZOaBA7jpZVumD1paZZM8DzdTh698s8xKvJtS0GnEUN5tjbFwv/
+	xYsnP9pm+KxG2z+kadDXkJAcQZmadb05bSVEUow/hrvRMLk1cNzKyIUj2OvmbkKUyAjwEUgiZy3
+	lb2Fc19N95oM7fnMY8ZPzSH/j/DOqEZ1GHVvEeOXVjdQzIPblzlUIm0jT/lIXvtBGKePiqz0CoE
+	8EkFxk49X6YCQ==
+X-Received: by 2002:a05:600c:4f88:b0:499:726a:117c with SMTP id 5b1f17b1804b1-4997a62dc6emr2549885e9.19.1786455773361;
+        Tue, 11 Aug 2026 06:42:53 -0700 (PDT)
+Received: from DINA5CG53728ZV.evosoft.com ([136.226.199.15])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49974146933sm80558755e9.10.2026.08.11.06.42.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 Aug 2026 06:42:52 -0700 (PDT)
+From: Gergely Palotas <palotasgergely@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Gergely Palotas <palotasgergely@gmail.com>
+Subject: [nft PATCH 1/2] parser_json: fix CMD_OBJ/NFT_OBJECT mismatch in delete path
+Date: Tue, 11 Aug 2026 15:43:25 +0200
+Message-ID: <20260811134326.300827-2-palotasgergely@gmail.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260811134326.300827-1-palotasgergely@gmail.com>
+References: <20260811134326.300827-1-palotasgergely@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CANE+tVp8_NhE+KL6ZNPGjaGMLPxrCWw_A5sY0jotrvThB6idXg@mail.gmail.com>
- <anr3YZJrnS_2RbEp@strlen.de> <CANE+tVr69qqyreBbWWk_2FqpMfQAqde-JF=weECditGJF=uZ3g@mail.gmail.com>
- <anr-MVb8okTwL1X2@strlen.de> <CANE+tVqc+NNN8EfpK+cEYV63Pmn3OHS81PBAGqB1RHidraChLw@mail.gmail.com>
- <ansISMIJIOfIUrAA@strlen.de>
-In-Reply-To: <ansISMIJIOfIUrAA@strlen.de>
-From: Wei Fang <void0red@gmail.com>
-Date: Tue, 11 Aug 2026 19:37:15 +0800
-X-Gm-Features: AUfX_mwteNvpOL0nmjT_bwBHdao2sjOLME1eLVUy0NIXXnKZXOzimnkR0H5Sxdw
-Message-ID: <CANE+tVoK9apuFYNpm13tUHU6TvtNgdNi-GkYg03B6gOPHVaRUQ@mail.gmail.com>
-Subject: Re: [nf_tables] pipapo: inserting an interval that strictly contains
- an existing one is accepted; rbtree rejects the same insert
-To: Florian Westphal <fw@strlen.de>
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, 
-	netdev@vger.kernel.org, k.chen@smail.nju.edu.cn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Understood - thanks for the detailed explanations.
+The dispatch tables in json_parse_cmd_add() and json_parse_cmd_list()
+pass NFT_OBJECT_CT_TIMEOUT, NFT_OBJECT_CT_EXPECT and NFT_OBJECT_TUNNEL
+(kernel constants from <linux/netfilter/nf_tables.h>) as the cmd_obj
+argument to json_parse_cmd_add_object(), which declares its parameter
+as enum cmd_obj.
 
-Best regards,
+On the delete/list/destroy early-return path, cmd_obj is forwarded
+directly to cmd_alloc(), which expects enum cmd_obj values. For ct
+timeout, NFT_OBJECT_CT_TIMEOUT=7 aliases to CMD_OBJ_CHAIN=7, so a
+JSON delete of a ct timeout is sent to the kernel as a delete chain
+netlink message, returning EINVAL. The same mismatch affects ct
+expectation and tunnel objects.
 
+The add path was unaffected because the switch/case blocks inside the
+function also used NFT_OBJECT_* constants and contained explicit
+cmd_obj = CMD_OBJ_* assignments before falling through to cmd_alloc().
+Those assignments are never reached on the delete path due to the
+early return.
 
-On Tue, Aug 11, 2026 at 7:32=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> Wei Fang <void0red@gmail.com> wrote:
-> > The report is about inserting a *new interval that strictly
-> > contains an existing one*.  On a pipapo set: first insert
-> > [1.1.1.1..1.1.1.11), then insert [1.1.1.0..1.1.1.12).
-> > On the kernel under test:
->
-> There is currently no way to detect this is in an efficient
-> manner.
->
-> Kernel would have to lookup all combinations of
-> 1.1.1.0..1.1.1.12: 1.1.1.1, 1.1.1.2, 1.1.1.3, ...
->
-> It checks start and end key only.
+Fix this by using CMD_OBJ_* constants consistently in the dispatch
+tables, matching the declared type of the parameter. Update the
+switch cases and the CT_HELPER identity checks in the function
+prologue to use CMD_OBJ_* as well, and drop the now-unnecessary
+cmd_obj reassignments inside each case.
+
+Signed-off-by: Gergely Palotas <palotasgergely@gmail.com>
+---
+ src/parser_json.c | 34 +++++++++++++++-------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index e0144b9b..6f40f8d8 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -3792,11 +3792,11 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 			    "table", &h.table.name))
+ 		return NULL;
+ 	if ((op != CMD_DELETE ||
+-	     cmd_obj == NFT_OBJECT_CT_HELPER) &&
++	     cmd_obj == CMD_OBJ_CT_HELPER) &&
+ 	    json_unpack_err(ctx, root, "{s:s}", "name", &h.obj.name)) {
+ 		return NULL;
+ 	} else if ((op == CMD_DELETE || op == CMD_DESTROY) &&
+-		   cmd_obj != NFT_OBJECT_CT_HELPER &&
++		   cmd_obj != CMD_OBJ_CT_HELPER &&
+ 		   json_unpack(root, "{s:s}", "name", &h.obj.name) &&
+ 		   json_unpack(root, "{s:I}", "handle", &h.handle.id)) {
+ 		json_error(ctx, "Either name or handle required to delete an object.");
+@@ -3812,7 +3812,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 		h.obj.name = xstrdup(h.obj.name);
+ 
+ 	if (op == CMD_DELETE || op == CMD_LIST || op == CMD_DESTROY) {
+-		if (cmd_obj == NFT_OBJECT_CT_HELPER)
++		if (cmd_obj == CMD_OBJ_CT_HELPER)
+ 			return cmd_alloc_obj_ct(op, NFT_OBJECT_CT_HELPER,
+ 						&h, int_loc, obj_alloc(int_loc));
+ 		return cmd_alloc(op, cmd_obj, &h, int_loc, NULL);
+@@ -3849,8 +3849,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 			}
+ 		}
+ 		break;
+-	case NFT_OBJECT_CT_HELPER:
+-		cmd_obj = CMD_OBJ_CT_HELPER;
++	case CMD_OBJ_CT_HELPER:
+ 		obj->type = NFT_OBJECT_CT_HELPER;
+ 		if (!json_unpack(root, "{s:s}", "type", &tmp)) {
+ 			int ret;
+@@ -3881,8 +3880,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 		}
+ 		obj->ct_helper.l3proto = l3proto;
+ 		break;
+-	case NFT_OBJECT_CT_TIMEOUT:
+-		cmd_obj = CMD_OBJ_CT_TIMEOUT;
++	case CMD_OBJ_CT_TIMEOUT:
+ 		init_list_head(&obj->ct_timeout.timeout_list);
+ 		obj->type = NFT_OBJECT_CT_TIMEOUT;
+ 		if (!json_unpack(root, "{s:s}", "protocol", &tmp)) {
+@@ -3905,8 +3903,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 		if (json_parse_ct_timeout_policy(ctx, root, obj))
+ 			goto err_free_obj;
+ 		break;
+-	case NFT_OBJECT_CT_EXPECT:
+-		cmd_obj = CMD_OBJ_CT_EXPECT;
++	case CMD_OBJ_CT_EXPECT:
+ 		obj->type = NFT_OBJECT_CT_EXPECT;
+ 		if (!json_unpack(root, "{s:s}", "l3proto", &tmp) &&
+ 		    parse_family(tmp, &l3proto)) {
+@@ -3972,8 +3969,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+ 
+ 		obj->synproxy.flags |= flags;
+ 		break;
+-	case NFT_OBJECT_TUNNEL:
+-		cmd_obj = CMD_OBJ_TUNNEL;
++	case CMD_OBJ_TUNNEL:
+ 		obj->type = NFT_OBJECT_TUNNEL;
+ 		if (json_parse_tunnel(ctx, root, obj))
+ 			goto err_free_obj;
+@@ -4011,10 +4007,10 @@ static struct cmd *json_parse_cmd_add(struct json_ctx *ctx,
+ 		{ "flowtable", CMD_OBJ_FLOWTABLE, json_parse_cmd_add_flowtable },
+ 		{ "counter", CMD_OBJ_COUNTER, json_parse_cmd_add_object },
+ 		{ "quota", CMD_OBJ_QUOTA, json_parse_cmd_add_object },
+-		{ "ct helper", NFT_OBJECT_CT_HELPER, json_parse_cmd_add_object },
+-		{ "ct timeout", NFT_OBJECT_CT_TIMEOUT, json_parse_cmd_add_object },
+-		{ "ct expectation", NFT_OBJECT_CT_EXPECT, json_parse_cmd_add_object },
+-		{ "tunnel", NFT_OBJECT_TUNNEL, json_parse_cmd_add_object },
++		{ "ct helper", CMD_OBJ_CT_HELPER, json_parse_cmd_add_object },
++		{ "ct timeout", CMD_OBJ_CT_TIMEOUT, json_parse_cmd_add_object },
++		{ "ct expectation", CMD_OBJ_CT_EXPECT, json_parse_cmd_add_object },
++		{ "tunnel", CMD_OBJ_TUNNEL, json_parse_cmd_add_object },
+ 		{ "limit", CMD_OBJ_LIMIT, json_parse_cmd_add_object },
+ 		{ "secmark", CMD_OBJ_SECMARK, json_parse_cmd_add_object },
+ 		{ "synproxy", CMD_OBJ_SYNPROXY, json_parse_cmd_add_object }
+@@ -4186,11 +4182,11 @@ static struct cmd *json_parse_cmd_list(struct json_ctx *ctx,
+ 		{ "counters", CMD_OBJ_COUNTERS, json_parse_cmd_list_multiple },
+ 		{ "quota", CMD_OBJ_QUOTA, json_parse_cmd_add_object },
+ 		{ "quotas", CMD_OBJ_QUOTAS, json_parse_cmd_list_multiple },
+-		{ "ct helper", NFT_OBJECT_CT_HELPER, json_parse_cmd_add_object },
++		{ "ct helper", CMD_OBJ_CT_HELPER, json_parse_cmd_add_object },
+ 		{ "ct helpers", CMD_OBJ_CT_HELPERS, json_parse_cmd_list_multiple },
+-		{ "ct timeout", NFT_OBJECT_CT_TIMEOUT, json_parse_cmd_add_object },
+-		{ "ct expectation", NFT_OBJECT_CT_EXPECT, json_parse_cmd_add_object },
+-		{ "tunnel", NFT_OBJECT_TUNNEL, json_parse_cmd_add_object },
++		{ "ct timeout", CMD_OBJ_CT_TIMEOUT, json_parse_cmd_add_object },
++		{ "ct expectation", CMD_OBJ_CT_EXPECT, json_parse_cmd_add_object },
++		{ "tunnel", CMD_OBJ_TUNNEL, json_parse_cmd_add_object },
+ 		{ "tunnels", CMD_OBJ_TUNNELS, json_parse_cmd_list_multiple },
+ 		{ "limit", CMD_OBJ_LIMIT, json_parse_cmd_add_object },
+ 		{ "limits", CMD_OBJ_LIMIT, json_parse_cmd_list_multiple },
+-- 
+2.47.3
+
