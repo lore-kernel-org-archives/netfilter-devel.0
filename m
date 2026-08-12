@@ -1,45 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E313101A6;
-	Wed, 12 Aug 2026 20:34:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3FC034BA50;
+	Wed, 12 Aug 2026 20:36:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786566883; cv=none; b=vBj3fJ/YiPWdYvUGW0r85YlDjnFJLiKeK90B+BvbabK1OtsbEZNPRXziNYkUEA6hRNlG8DnnjYZE61oCZtbyiGIcIKR5PdT+EIxJWU0AaV6hu0uB7ZlPRnuo9Z5vfsIWxZUyhF50VGPq1uxRw2EKyQKRXycjZXS8UedqPrxd/LE=
+	t=1786566983; cv=none; b=UAz79ArPsg2VhoYut95zGoGb6QI17FMSbKUnFsM8xfYD8lsd/mk8T8QehDvanYrTtfRmlXJzfob+PMT+D9f8DSV+oK9CT0ainIw0lxZM1kmEixfUpknR/gTHpz4+Pi5xbgkpuZPMmhj4T9t42JbEw88NYbT9JuKnsgeIW3lqwSI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786566883; c=relaxed/simple;
-	bh=ybYSZ3lsCEKbMckLOeHW/7XBHlTknWGJMP9BHEUVklI=;
+	s=arc-20240116; t=1786566983; c=relaxed/simple;
+	bh=WL6w9LOVRM/msDJ2jr6+UAOv7xEI8RDKE76/cIidYCc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ielksFzUC8jVO4Z8M3kpNqwOXkeLDuWxJvZv/CnJG53RE2F3EdcjhxuR1pZj9QfKwfJeT6z8rS0P0OPukRziIpocC0Q7q0jiOBceeVeMEWqePKTJF3dmTxrInFHnv74XA32KddqI03UuqOOTsf22XPYIc3F3NypI3tQv1YI5AOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PANkdZP4; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=sMClDmIOi1CsH2OGacuifYX9LSsv7+5G+JQd7AJ3kX+acuB9gFCcKa/6CCrkBS/c0o1WBTygb5Ku+TQY4Qns4VbwrZVgFG3IRz1MoRyjQr/ufA3lJJrO8i7yM8PsZvPbymJbbgpU2gVlzTZkhvsHUx2IibXU3KRQYERk6v4jfj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qM1xAbd2; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PANkdZP4"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qM1xAbd2"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786566869;
-	bh=Ez0F/16kNv/GmLYc9iKPtKgua+9IcU41y9NzxtXy/xU=;
+	s=2025; t=1786566979;
+	bh=8m/FI2CMD2FpXB8LzuThZq14v9VvMSjId8GyjncAa+I=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PANkdZP4KeWudLz4ZrOBRwkTG9R4JX2UyUM017FAgKFpZ/9sDG7MIeNp8C+dHcZA4
-	 3C5FHlbuyzymn0ntBADzW4v/rnSB4/DZrti2eXxY3YwCz/G5JhAazulSbKKjW4bz/J
-	 d6BbztawHmaFalxNuuEEhBaa3+yyzTFtlNea4bFbMTfg7WTc20bkJQhG9aFtq7+ozb
-	 QbC233YSCp7Q2X6R6vZZ7bvfyNvzOBMS8ouKJ3ln2DYlvCxTnCLq3wg9++BXT3WMhw
-	 53dq1sh9NW5dQSVQ4cK86fZstSqCwqwxOdJEB2wd8rtr8+rx5ACBOj71Zza93QInYE
-	 N80diLqZ72tqg==
+	b=qM1xAbd2k3SWb2Fy6VUHFhNQQmCbMpKscflVWyizsfWnJnAR+epfcf+o1Ovh+UDyz
+	 Fy2jiXwzbCSoxnmgzUyWLIROqAA4s+DebolCHKK87wyJhdMlC5w7V6seQW4JzxqNkO
+	 unTaYQiclokIUYVrUTG9PBaIbyk6deXJTUaxCqAeST4mj7Nt1nQD1AFoZ3A8TQt5aA
+	 EsobzyBZF8Eahl2hFInlMmoyG0pMoQyjNB0lSFt5srHhI+QD9bwDcm80vorVyAvj4q
+	 ArEhsWw+Al0YPStWL7pbxEpurH5o8ORcx2C5hWg0ub9sjBiToTYCPEDhm0Nf7frKjM
+	 K48wjEJRZrhsg==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id E885160058;
-	Wed, 12 Aug 2026 22:34:28 +0200 (CEST)
-Date: Wed, 12 Aug 2026 22:34:26 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C65EC60077;
+	Wed, 12 Aug 2026 22:36:18 +0200 (CEST)
+Date: Wed, 12 Aug 2026 22:36:16 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
 	horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net-next 03/12] net: netfilter: add ether_type to
- net_device_path_ctx and use it
-Message-ID: <anzY0oTiZdWkt0eF@chamomile>
-References: <20260810194015.932627-4-pablo@netfilter.org>
- <20260812013443.1673999-1-kuba@kernel.org>
+Subject: Re: [PATCH net-next 06/12] netfilter: flowtable: store ethertype in
+ flowtable context
+Message-ID: <anzZQBvrnNOhQfjK@chamomile>
+References: <20260810194015.932627-7-pablo@netfilter.org>
+ <20260812013444.1674732-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,226 +48,156 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260812013443.1673999-1-kuba@kernel.org>
+In-Reply-To: <20260812013444.1674732-1-kuba@kernel.org>
 
-Hi Jakub,
-
-On Tue, Aug 11, 2026 at 06:34:43PM -0700, Jakub Kicinski wrote:
+On Tue, Aug 11, 2026 at 06:34:44PM -0700, Jakub Kicinski wrote:
 > This is an AI-generated review of your patch. The human sending this
 > email has considered the AI review valid, or at least plausible.
 > ---
-> net: netfilter: add ether_type to net_device_path_ctx and use it
+> netfilter: flowtable: store ethertype in flowtable context
 > 
-> This adds an ether_type field to struct net_device_path_ctx and makes the
-> ipip and ip6tnl ndo_fill_forward_path callbacks reject a context whose
-> ether_type does not match their own address family.  The netfilter
-> flowtable path builder fills the new field from pkt->ethertype.
+> This adds an ether_type field to struct nf_flowtable_ctx, sets it while
+> parsing the layer 2 header in nf_flow_skb_encap_protocol(), and replaces
+> the local inner_proto computations in nf_flow_tuple_encap() and
+> nf_flow_skb_encap_protocol() with reads of ctx->ether_type.  The IPv4 and
+> IPv6 lookup helpers now compare ctx->ether_type themselves instead of
+> passing an expected protocol down.
 > 
-> > diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> > index 17d28adb029bb..2327a2703b835 100644
-> > --- a/include/linux/netdevice.h
-> > +++ b/include/linux/netdevice.h
-> > @@ -941,6 +941,7 @@ struct net_device_path_stack {
-> >  struct net_device_path_ctx {
-> >  	const struct net_device *dev;
-> >  	u8			daddr[ETH_ALEN];
-> > +	__be16			ether_type;
-> >  
-> >  	int			num_vlans;
-> >  	struct {
+> No Link: tags in the commit header.
 > 
-> [Severity: Medium]
-> This new field becomes a mandatory input for the tunnel
-> ndo_fill_forward_path callbacks, but only the netfilter context builder is
-> updated here.  The two other in-tree constructors of the context still use
-> designated initializers that set only .dev, so ether_type stays zero:
-> 
-> drivers/net/ethernet/mediatek/mtk_ppe_offload.c:mtk_flow_get_wdma_info() {
-> 	struct net_device_path_ctx ctx = {
-> 		.dev = dev,
-> 	};
-> 	...
-> }
-> 
-> drivers/net/ethernet/airoha/airoha_ppe.c:airoha_ppe_get_wdma_info() {
-> 	struct net_device_path_ctx ctx = {
-> 		.dev = dev,
-> 	};
-> 	...
-> }
-> 
-> Zero matches neither ETH_P_IP nor ETH_P_IPV6, and dev_fill_forward_path()
-> turns any negative return from the callback into a full abort:
-> 
-> net/core/dev.c:dev_fill_forward_path() {
-> 	...
-> 		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
-> 		if (ret < 0)
-> 			goto err_out;
-> 	...
-> }
-> 
-> So does an ipip or ip6tnl device anywhere in the walk now always fail path
-> resolution for those two drivers, even for the same-family case that used
-> to work, leaving the PPE/WED entry unprogrammed?  Both drivers know the
-> flow's L3 protocol at that point, so could they populate ether_type as
-> well?
-> 
-> Would it also help to document in the struct that 0 means "unknown" and is
-> treated as unsupported by the tunnel callbacks?
-
-This is fine, Lorenzo Bianconi will follow up with ip6ip and ipip6
-support for this soon.
-
-> > diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-> > index fb7d96f99b06b..62a374079bfcb 100644
-> > --- a/net/ipv4/ipip.c
-> > +++ b/net/ipv4/ipip.c
-> > @@ -360,6 +360,9 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
-> >  	const struct iphdr *tiph = &tunnel->parms.iph;
-> >  	struct rtable *rt;
-> >  
-> > +	if (ctx->ether_type != cpu_to_be16(ETH_P_IP))
-> > +		return -EOPNOTSUPP;
-> > +
-> >  	if (tunnel->collect_md)
-> >  		return -EOPNOTSUPP;
-> >  
-> 
-> [Severity: Low]
-> The commit message describes a datapath defect ("incorrect dst_entry family
-> can be reached from datapath"), but there is no Fixes: tag.  Without this
-> gate, an IPv6 flow routed out of an ipip device makes
-> ipip_fill_forward_path() succeed and return an IPv4 rtable in
-> path->tun.dst, after which nft_dev_path_info() reads the v6 members of the
-> address union and nft_dev_forward_path() installs that dst:
-> 
-> net/netfilter/nf_flow_table_path.c:nft_dev_forward_path() {
-> 	...
-> 		dst_release(route->tuple[dir].dst);
-> 		route->tuple[dir].dst = info.tun_dst;
-> 	...
-> }
-> 
-> The two handlers were added by ab427db17885 ("netfilter: flowtable: Add
-> IPIP rx sw acceleration") and d98103575dcd, and the tunnel dst hand-off was
-> last touched by 806273fcaffb82 ("netfilter: flowtable: release tunnel route
-> on error when building forward path").  Could a Fixes: tag against one of
-> these be added so a backport can be keyed off it?
-
-I can request this patch to go to -stable, not a big deal.
-
-> It would also be worth noting in the message that this is not
-> standalone-backportable: it depends on the preceding commit 635bf8763d7e
-> ("net: pass net_device_path_ctx to dev_fill_forward_path()"), since before
-> that the context was built inside net/core/dev.c and the netfilter caller
-> had no way to pass an ethertype.
-> 
-> [Severity: Medium]
-> This isn't a bug introduced by this patch, but the new gate only validates
-> the packet's L3 protocol and still leaves the tunnel device's configured
-> payload protocol unchecked.  An ipip link can be configured with
-> iph.protocol == IPPROTO_MPLS (mplsip), and such a device shares
-> ipip_netdev_ops and therefore this callback, yet the callback never consults
-> tunnel->parms.iph.protocol and unconditionally sets
-> path->tun.inner_proto = IPPROTO_IPIP.
-> 
-> The device's own paths do enforce it:
-> 
-> net/ipv4/ipip.c:ipip_tunnel_xmit() {
-> 	...
-> 	if (tiph->protocol != ipproto && tiph->protocol != 0)
-> 		goto tx_error;
-> 	...
-> }
-> 
-> net/ipv4/ipip.c:ipip_rcv() {
-> 	...
-> 		if (tunnel->parms.iph.protocol != ipproto &&
-> 		    tunnel->parms.iph.protocol != 0)
-> 			goto drop;
-> 	...
-> }
-> 
-> The offload path then writes the hardcoded value itself:
-> 
-> net/netfilter/nf_flow_table_ip.c:nf_flow_tunnel_ipip_push() {
-> 	...
-> 	iph->protocol	= tuple->tun.l3_proto;
-> 	...
-> }
-> 
-> So for an mplsip ipip device, does the slow path drop the first packet
-> while every subsequent packet of the offloaded flow is encapsulated (and
-> matching ingress packets decapsulated) with a protocol number that
-> contradicts the device configuration?  Should the gate also compare against
-> tunnel->parms.iph.protocol?
-> 
-> > diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-> > index 042d743edb6c0..d063add01f523 100644
-> > --- a/net/ipv6/ip6_tunnel.c
-> > +++ b/net/ipv6/ip6_tunnel.c
-> > @@ -1852,6 +1852,9 @@ static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
-> >  	struct flowi6 fl6;
-> >  	int err;
-> >  
-> > +	if (ctx->ether_type != cpu_to_be16(ETH_P_IPV6))
-> > +		return -EOPNOTSUPP;
-> > +
-> >  	if (t->parms.flags & (IP6_TNL_F_USE_ORIG_TCLASS |
-> >  			      IP6_TNL_F_USE_ORIG_FLOWLABEL |
-> >  			      IP6_TNL_F_USE_ORIG_FWMARK))
-> 
-> [Severity: Medium]
-> Same pre-existing observation on the IPv6 side, not something this patch
-> introduces: t->parms.proto is ignored while path->tun.inner_proto is always
-> set to IPPROTO_IPV6, whereas the software paths reject a mismatch:
-> 
-> net/ipv6/ip6_tunnel.c:ipxip6_tnl_xmit() {
-> 	...
-> 	tproto = READ_ONCE(t->parms.proto);
-> 	if (tproto != protocol && tproto != 0)
-> 		return -1;
-> 	...
-> }
-> 
-> ip6_tnl_rcv() applies the same check on receive.  For an ip6tnl in ip4ip6
-> mode, does the offload path end up forwarding traffic that the tunnel
-> device itself would drop?
-
-As said I plan to request this patch to get into -stable to address
-this too.
-
-> > diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-> > index 0cbde535b8bae..5f166da3b09be 100644
-> > --- a/net/netfilter/nf_flow_table_path.c
-> > +++ b/net/netfilter/nf_flow_table_path.c
-> > @@ -44,13 +44,15 @@ static bool nft_is_valid_ether_device(const struct net_device *dev)
-> >  
-> >  static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
-> >  				     const struct nf_conn *ct,
-> > -				     enum ip_conntrack_dir dir, u8 *ha,
-> > +				     enum ip_conntrack_dir dir,
-> > +				     u8 *ha, __be16 ether_type,
-> >  				     struct net_device_path_stack *stack)
+> > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> > index 7692ae7aa8539..3f417a43bd122 100644
+> > --- a/net/netfilter/nf_flow_table_ip.c
+> > +++ b/net/netfilter/nf_flow_table_ip.c
+> > @@ -161,7 +162,6 @@ static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
+> >  				struct sk_buff *skb,
+> >  				struct flow_offload_tuple *tuple)
 > >  {
-> >  	const void *daddr = &ct->tuplehash[!dir].tuple.src.u3;
-> >  	struct net_device *dev = dst_cache->dev;
-> >  	struct net_device_path_ctx ctx = {
-> >  		.dev = dev,
-> > +		.ether_type = ether_type,
-> >  	};
-> >  	struct neighbour *n;
-> >  	u8 nud_state;
+> > -	__be16 inner_proto = skb->protocol;
+> >  	struct vlan_ethhdr *veth;
+> >  	struct pppoe_hdr *phdr;
+> >  	struct ipv6hdr *ip6h;
+> > @@ -179,19 +179,17 @@ static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
+> >  		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
+> >  		tuple->encap[i].id = ntohs(veth->h_vlan_TCI);
+> >  		tuple->encap[i].proto = skb->protocol;
+> > -		inner_proto = veth->h_vlan_encapsulated_proto;
+> >  		offset += VLAN_HLEN;
+> >  		break;
+> >  	case htons(ETH_P_PPP_SES):
+> >  		phdr = (struct pppoe_hdr *)skb_network_header(skb);
+> >  		tuple->encap[i].id = ntohs(phdr->sid);
+> >  		tuple->encap[i].proto = skb->protocol;
+> > -		inner_proto = *((__be16 *)(phdr + 1));
+> >  		offset += PPPOE_SES_HLEN;
+> >  		break;
+> >  	}
+> >  
+> > -	switch (inner_proto) {
+> > +	switch (ctx->ether_type) {
+> >  	case htons(ETH_P_IP):
+> >  		iph = (struct iphdr *)(skb_network_header(skb) + offset);
+> >  		if (ctx->tun.inner_proto == IPPROTO_IPIP) {
+> 
+> [Severity: Medium]
+> 
+> Does this hunk change behaviour for PPPoE frames rather than just moving
+> the ethertype into the context?
+> 
+> Before this patch, the PPPoE arm fed the raw PPP protocol id into the
+> switch:
+> 
+> net/netfilter/nf_flow_table_ip.c:nf_flow_tuple_encap() {
+> 	case htons(ETH_P_PPP_SES):
+> 		...
+> 		inner_proto = *((__be16 *)(phdr + 1));
+> 		offset += PPPOE_SES_HLEN;
+> 		break;
+> 	}
+> 
+> 	switch (inner_proto) {
+> 	case htons(ETH_P_IP):
+> 	...
+> }
+> 
+> PPP_IP is 0x0021 and PPP_IPV6 is 0x0057, so inner_proto could never equal
+> htons(ETH_P_IP) (0x0800) or htons(ETH_P_IPV6) (0x86dd), and PPPoE frames
+> always landed in the default: arm.  That left
+> tuple->tun.{src_v4,dst_v4,src_v6,dst_v6} and tuple->tun.inner_proto zero
+> even when nf_flow_skb_encap_protocol() -> nf_flow_ip4_tunnel_proto() had
+> already set ctx->tun.inner_proto = IPPROTO_IPIP.
+> 
+> After the patch, ctx->ether_type for PPPoE is the value normalised by
+> __nf_flow_pppoe_proto() in include/net/netfilter/nf_flow_table.h:
+> 
+> 	switch (proto) {
+> 	case htons(PPP_IP):
+> 		return htons(ETH_P_IP);
+> 	case htons(PPP_IPV6):
+> 		return htons(ETH_P_IPV6);
+> 	}
+> 
+> so these tunnel arms now execute for PPPoE traffic and populate
+> tuple->tun.
+> 
+> struct flow_offload_tunnel tun sits before the __hash marker in struct
+> flow_offload_tuple, so it is part of the rhashtable lookup key, and the
+> control path always installs non-zero endpoints for tunnel flows:
+> 
+> net/netfilter/nf_flow_table_core.c:flow_offload_fill_tuple() {
+> 	flow_tuple->tun = route->tuple[dir].in.tun;
+> 	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
+> }
+> 
+> filled from DEV_PATH_TUN in nft_dev_path_info(), which can be walked
+> together with DEV_PATH_PPPOE in the same path stack (ipip or ip6tnl over a
+> PPPoE underlay).  That means PPPoE encapsulated IPIP/IP6IP6 rx flows
+> previously missed their flowtable entry on every packet and now start
+> matching.
+> 
+> Should the commit message mention this, and should a Fixes: tag be added
+> pointing at ab427db17885 ("netfilter: flowtable: Add IPIP rx sw
+> acceleration") and d98103575dcd ("netfilter: flowtable: Add IP6IP6 rx sw
+> acceleration"), which introduced the raw PPP id versus ETH_P_* comparison?
+> As written, the message only says "Store the ether_type in the context
+> after parsing the layer 2 header for the first time and then use it later
+> on", which reads as a pure cleanup.
+
+I will make sure this reaches -stable at some point as this fixes ipip
+and ip6ip6 over pppoe.
+
+> The behaviour persists to the end of the series (nf_flow_tuple_encap() at
+> 839e6caf13c7 still switches on ctx->ether_type), so no later patch
+> documents or reverts it.
+> 
+> > @@ -389,22 +387,27 @@ static bool nf_flow_skb_encap_protocol(struct nf_flowtable_ctx *ctx,
+> >  			return false;
+> >  
+> >  		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
+> > -		if (veth->h_vlan_encapsulated_proto == proto) {
+> > -			ctx->offset += VLAN_HLEN;
+> > -			inner_proto = proto;
+> > -			ret = true;
+> > -		}
+> > +		ctx->ether_type = veth->h_vlan_encapsulated_proto;
+> > +		ctx->offset += VLAN_HLEN;
+> > +		ret = true;
+> >  		break;
+> >  	case htons(ETH_P_PPP_SES):
+> > -		if (nf_flow_pppoe_proto(skb, &inner_proto) &&
+> > -		    inner_proto == proto) {
+> > -			ctx->offset += PPPOE_SES_HLEN;
+> > -			ret = true;
+> > -		}
+> > +		if (!nf_flow_pppoe_proto(skb, &ether_type))
+> > +			return false;
+> > +
+> > +		ctx->ether_type = ether_type;
+> > +		ctx->offset += PPPOE_SES_HLEN;
+> > +		ret = true;
+> > +		break;
+> 
+> This is the store of the normalised ETH_P_* value that nf_flow_tuple_encap()
+> later consumes for PPPoE frames.
 > 
 > [ ... ]
-> 
-> > @@ -228,7 +230,7 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
-> >  	unsigned char ha[ETH_ALEN];
-> >  	int i;
-> >  
-> > -	if (nft_dev_fill_forward_path(dst, ct, dir, ha, &stack) < 0 ||
-> > +	if (nft_dev_fill_forward_path(dst, ct, dir, ha, pkt->ethertype, &stack) < 0 ||
-> >  	    nft_dev_path_info(&stack, &info, ha, ft) < 0)
-> >  		return -ENOENT;
-> >
