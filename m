@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7759F36B910;
-	Wed, 12 Aug 2026 01:34:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D05369D55;
+	Wed, 12 Aug 2026 01:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786498489; cv=none; b=N2lmXBpL7Vj8xB9UhfLoafDnG8FW405PP0As42/ozBusHk9eFYH3XHsOAgtwtCb3noS4NHaKnQnD0C/MSDw1s3Sr2iJleP1eZwrWZ7k76umoQLjiPJipMlRWaWndlasChQP3tmvT+NIcW+64RcViDubapbtEGVbbq1wJOA1Uuu0=
+	t=1786498490; cv=none; b=FuYvVyG79ZHcmnZNbk+FXMKVuMY5D+VLCap5e7n+NFTgVd37CFYpf9+xLwNmHH9/FmIjoX3PWPoPLQpibqHdQAiMgDyClntNPTj9Buoj3k59aUMSQHV1Bsp6KwobrNa0St9Lgmox2SEgXaa282HWEArkzbkYPDDm7G9k4yfIc48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786498489; c=relaxed/simple;
-	bh=03VYT4F9/jtJMdPaZeiitt4zFXsQBI0Z9ta3tWBvV+c=;
+	s=arc-20240116; t=1786498490; c=relaxed/simple;
+	bh=n5MteN7NuHLdIf39gHaaYz2OmteUVnv8QJWxynhb+0A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BX20mp+YHCNv/8DSruIqb+xMM0VO2RyG+GOUGklkL34/dZ7ykDRnpo7AMYsFwlpJOr5rQEDONYD3fYR/vSGO6z/m+NvpbukVBRps6kqv3M3IDEdWe5EiUdAgf1v4mLHcdcPdIeinvxWdGMIoYgQsEwjqs54rk4AjBzyhO1HnNbo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gF9+CcuG; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=FjzfPR2i3+dwa5Xsqy6tUNrwHDVOi33kxhKU9lYvGYH+mkG3aBYmnNQJpU840GK4sJtC5AG84ajQLSBeyAKIR8O4QIDvK1OlTzX3nWh9saUP0Rb+XoC8DF1RG60mC0v+Yqd9IXp8tTtzJbPPt0zAs5CGJxEo4ENwe0SdcT8+9n4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XrJro6lA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gF9+CcuG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A651F00A3A;
-	Wed, 12 Aug 2026 01:34:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XrJro6lA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E0351F00A3D;
+	Wed, 12 Aug 2026 01:34:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786498487;
-	bh=9suvTQ7EpCQCGoJn7MpxwcAPGxBwzXH+J7YvdvPq62I=;
+	s=k20260515; t=1786498488;
+	bh=rNHgyiJtyIEXvqtnLESwYFU0SJwNyKhO04LHA2Ah6Gw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=gF9+CcuG9EpNKj7S2hKJj8BGqI4Ae6KrQpwIIAoTl45DNcfF50VdbERlA/8D5tRWb
-	 T8Q/ZdfFjvMe4ahW2VMkxO+6T1ysSWgnYiODGCiLZNFTXuMUy0cRLm4NN17mvszI4z
-	 F7Z8d6K0LoaqU15S/3g1KZWmOofWt5KT0KB+b5JvWdFt6xDzAfPLYamUE4knRPqafW
-	 OpFikVVzaVhN7rNio0OGLYC0VztswHZKcMUwuRzecyRaQU1ssA3sNDv1cYsf8g1aVd
-	 GszWYJYVmN/KWbTrOAZEErz1ogRWAmPRkkUMFWRArWsXtptOeHEREiAShC9DEHXIz2
-	 MZyRdNHSsu5xg==
+	b=XrJro6lAAIVPbOBtTesPZwmst4TJizQrQ3hpRnv2mcfbE6NJd5MPesfaJmRDDZr+B
+	 l9RSdQtflh35IqfZQyByth4ktNArH0f+ZFwmcSKV9rCSljKSMSTI82Q0H3qTKxK2jM
+	 tAWgFAF420wAhkPDI47JDr/oCPilWRHnQvIAbTb0hfKsm8PJAOXYhA5d6BBpcEm0Yb
+	 3MqfsIS6QJuBZJ4S4NovtML5KIYHMxL7cdr07UWnN5SxmIKHFXwz7Mfl9L2BGCzLen
+	 ACtjMQr0J0HGcAjaEf/12ajXDgoJgWf4XttEpHHGbaohmNU+fH+YCyHogfO55958PV
+	 F53f6dYD8iyFA==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net-next 09/12] netfilter: nft_ct: move custom expectation support to helper
-Date: Tue, 11 Aug 2026 18:34:46 -0700
-Message-ID: <20260812013446.1676035-1-kuba@kernel.org>
+Subject: Re: [PATCH net-next 11/12] netfilter: nf_conntrack_expect: bail out on insert dead expectations
+Date: Tue, 11 Aug 2026 18:34:47 -0700
+Message-ID: <20260812013447.1676073-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260810194015.932627-10-pablo@netfilter.org>
-References: <20260810194015.932627-10-pablo@netfilter.org>
+In-Reply-To: <20260810194015.932627-12-pablo@netfilter.org>
+References: <20260810194015.932627-12-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,390 +54,126 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: nft_ct: move custom expectation support to helper
+netfilter: nf_conntrack_expect: bail out on insert dead expectations
 
-This moves the nft ct expectation support from creating the expectation
-directly in the object eval path to allocating an internal (unregistered)
-conntrack helper that is attached to the conntrack, so the expectation is
-created from the helper callback at confirmation time. A new exported
-nf_conntrack_helper_release() is added to tear down that internal helper.
+This adds a check in nf_ct_expect_related_report() that refuses insertion
+of an expectation carrying NF_CT_EXPECT_DEAD, returning -EINVAL and
+triggering DEBUG_NET_WARN_ON_ONCE(). It is described as hardening for
+b8b09dc2bf35 ("netfilter: nf_conntrack_expect: use conntrack GC to reap
+expectations").
 
-Link: https://patch.msgid.link/20260715144755.00ea7dfcd9f@proton.me
+A couple of questions about the placement of the new check and about the
+DEAD flag itself.
 
-A few questions below.
-
-> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> index 506c580347615..c30ae3f203bee 100644
-> --- a/net/netfilter/nf_conntrack_helper.c
-> +++ b/net/netfilter/nf_conntrack_helper.c
-> @@ -448,6 +448,15 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
->  	return this == me;
->  }
+> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+> index 10b130a7b230b..f1f0c582db5df 100644
+> --- a/net/netfilter/nf_conntrack_expect.c
+> +++ b/net/netfilter/nf_conntrack_expect.c
+> @@ -528,6 +528,12 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+>  	int ret;
 >  
-> +void nf_conntrack_helper_release(struct nf_conntrack_helper *me)
-> +{
-> +	nf_ct_expect_iterate_destroy(expect_iter_me, me);
+>  	spin_lock_bh(&nf_conntrack_expect_lock);
+> +	if (expect->flags & NF_CT_EXPECT_DEAD) {
+> +		DEBUG_NET_WARN_ON_ONCE(1);
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
 > +
-> +	if (refcount_dec_and_test(&me->ct_refcnt))
-> +		kfree_rcu(me, rcu);
-> +}
-> +EXPORT_SYMBOL_GPL(nf_conntrack_helper_release);
-> +
->  void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->  {
->  	mutex_lock(&nf_ct_helper_mutex);
-> @@ -463,10 +472,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->  	 */
->  	synchronize_rcu();
->  
-> -	nf_ct_expect_iterate_destroy(expect_iter_me, me);
-> -
-> -	if (refcount_dec_and_test(&me->ct_refcnt))
-> -		kfree_rcu(me, rcu);
-> +	nf_conntrack_helper_release(me);
->  }
->  EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
->  
-> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-> index 358b9287e12e8..9dbf127df9c81 100644
-> --- a/net/netfilter/nft_ct.c
-> +++ b/net/netfilter/nft_ct.c
-
-[ ... ]
-
-> @@ -1226,6 +1228,93 @@ static int nft_ct_expect_timeout_get(const struct nlattr *attr, u32 *val)
->  	return 0;
->  }
->  
-> +#if IS_ENABLED(CONFIG_NF_NAT)
-> +static void nft_ct_nat_follow_master(struct nf_conn *ct, struct nf_conntrack_expect *this)
-> +{
-> +	const struct nf_ct_helper_expectfn *expfn;
-> +
-> +	expfn = nf_ct_helper_expectfn_find_by_name("nat-follow-master");
-> +	if (expfn)
-> +		expfn->expectfn(ct, this);
-> +}
-> +#endif
-> +
-> +struct nft_ct_expect_data {
-> +	struct nft_ct_expect_obj	obj;
-> +	enum ip_conntrack_dir		dir;
-> +};
-> +
-> +static int ct_expect_help(struct sk_buff *skb, unsigned int protoff,
-> +			  struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-> +{
-> +	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-> +	struct nft_ct_expect_data *expect_data;
-> +	struct nf_conntrack_expect *exp;
-> +	int ret = NF_ACCEPT;
-> +	u16 l3num;
-> +
-> +	if (nf_ct_is_confirmed(ct))
-> +		return NF_ACCEPT;
-> +
-> +	expect_data = nfct_help_data(ct);
-> +	if (!expect_data)
-> +		return NF_ACCEPT;
-> +
-> +	if (expect_data->dir != dir)
-> +		return NF_ACCEPT;
-> +
-> +	exp = nf_ct_expect_alloc(ct);
-> +	if (!exp)
-> +		return NF_DROP;
-> +
-> +	if (expect_data->obj.l3num == NFPROTO_INET)
-> +		l3num = nf_ct_l3num(ct);
-> +	else
-> +		l3num = expect_data->obj.l3num;
 
 [Severity: Low]
-This isn't a bug introduced by this patch, but can obj.l3num ever be
-NFPROTO_INET here?  nft_ct_expect_obj_init() rejects it:
+Would it make sense to put this check in __nf_ct_expect_check() instead?
 
-	case NFPROTO_INET: /* tuple.src.l3num supports NFPROTO_IPV4/6 only */
-	default:
-		return -EAFNOSUPPORT;
+The other exported insertion entry point, nf_ct_expect_related_pair(),
+goes straight from the lock to __nf_ct_expect_check() and
+nf_ct_expect_insert() with no NF_CT_EXPECT_DEAD test:
 
-so priv->l3num, and therefore the copy in expect_data->obj.l3num, can never
-hold NFPROTO_INET and the nf_ct_l3num(ct) branch looks unreachable.  The same
-code existed in the old nft_ct_expect_obj_eval() and was moved verbatim, so
-this is only a cleanup note: either drop the branch or let init accept
-NFPROTO_INET and resolve it per packet.
+net/netfilter/nf_conntrack_expect.c:nf_ct_expect_related_pair() {
+	spin_lock_bh(&nf_conntrack_expect_lock);
+	master_help = nfct_help(expect[0]->master);
+	if (!master_help || master_help != nfct_help(expect[1]->master)) {
+		ret = -EINVAL;
+		goto out;
+	}
 
-> +
-> +	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num,
-> +			  &ct->tuplehash[!dir].tuple.src.u3,
-> +			  &ct->tuplehash[!dir].tuple.dst.u3,
-> +			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
-> +	exp->timeout += expect_data->obj.timeout;
-> +
-> +#if IS_ENABLED(CONFIG_NF_NAT)
-> +	if (ct->status & IPS_NAT_MASK) {
-> +		exp->saved_proto.tcp.port = expect_data->obj.dport;
-> +		exp->dir = !dir;
-> +		exp->expectfn = nft_ct_nat_follow_master;
-> +	}
-> +#endif
-> +	if (nf_ct_expect_related(exp, 0) != 0)
-> +		ret = NF_ACCEPT;
-> +
-> +	nf_ct_expect_put(exp);
-> +
-> +	return ret;
-> +}
-> +
-> +static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
-> +{
-> +	struct nf_conntrack_helper *ct_expect_helper;
-> +
-> +	ct_expect_helper = kzalloc_obj(struct nf_conntrack_helper,
-> +				       GFP_KERNEL_ACCOUNT);
-> +	if (!ct_expect_helper)
-> +		return -ENOMEM;
-> +
-> +	snprintf(ct_expect_helper->name, sizeof(ct_expect_helper->name), "%s",
-> +		 "nft_ct_expect");
-> +	ct_expect_helper->me = THIS_MODULE;
-> +	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
-> +	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
-> +	refcount_set(&ct_expect_helper->ct_refcnt, 1);
-> +
-> +	/* No need to register this helper, this is internal. */
-> +	priv->helper = ct_expect_helper;
-> +
-> +	return 0;
-> +}
-> +
-
-[ ... ]
-
-> @@ -1272,13 +1363,31 @@ static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
->  
->  	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
->  	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
-> +	if (!priv->size)
-> +		priv->size = NF_CT_EXPECT_MAX_CNT;
-
-[Severity: Medium]
-Does this break the round-trip of NFTA_CT_EXPECT_SIZE?  priv->size is what
-nft_ct_expect_obj_dump() echoes back:
-
-	    nla_put_u8(skb, NFTA_CT_EXPECT_SIZE, priv->size))
-
-so an object created with size 0 is now listed as size 255.  The policy
-[NFTA_CT_EXPECT_SIZE] = { .type = NLA_U8 } accepts 0, so this is reachable
-from userspace.
-
-The meaning of size 0 also flips: the pre-patch eval tested
-
-	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size)
-
-which is always true for 0, i.e. size 0 meant "never create expectations",
-whereas it now means "allow the maximum".
-
-Would it work to apply the substitution only where it is needed, i.e. to
-expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected in
-nft_ct_expect_helper_alloc(), and keep the user-supplied value in
-priv->size?  That is what __nf_conntrack_helper_register() does, but there
-the clamped value lives in an internal policy struct that is never sent to
-userspace.
-
-Related: with the new scheme ct_expect_help() only runs while the conntrack
-is unconfirmed and only for the single recorded direction, so at most one
-expectation per conntrack is created and the size attribute has no
-observable effect anymore.
-
-> +
-> +	err = nf_ct_netns_get(ctx->net, ctx->family);
-> +	if (err < 0)
-> +		return err;
->  
-> -	return nf_ct_netns_get(ctx->net, ctx->family);
-> +	err = nft_ct_expect_helper_alloc(priv);
-> +	if (err < 0) {
-> +		nf_ct_netns_put(ctx->net, ctx->family);
-> +		return err;
-> +	}
-> +
-> +	return err;
->  }
->  
->  static void nft_ct_expect_obj_destroy(const struct nft_ctx *ctx,
-> -				       struct nft_object *obj)
-> +				      struct nft_object *obj)
->  {
-> +	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-> +	struct nf_conntrack_helper *me = priv->helper;
-> +
-> +	/* This helper is going away, disable it. */
-> +	rcu_assign_pointer(me->help, NULL);
-> +	nf_conntrack_helper_release(me);
->  	nf_ct_netns_put(ctx->net, ctx->family);
->  }
-
-[Severity: High]
-Is a grace period needed between clearing me->help and sweeping the
-expectation table here?  nf_conntrack_helper_unregister() does exactly these
-two steps with a synchronize_rcu() in between:
-
-	rcu_assign_pointer(me->help, NULL);
-
-	/* Make sure every nothing is still using the helper unless its a
-	 * connection in the hash.
-	 */
-	synchronize_rcu();
-
-	nf_conntrack_helper_release(me);
-
-The refactor left the grace period in the unregister wrapper, so the new
-external caller does not get it.
-
-Can an in-flight ct_expect_help() then insert an expectation after the sweep
-has finished?
-
-CPU A (softirq), nf_confirm():
-	helper_cb = rcu_dereference(helper->help);	/* still ct_expect_help */
+	for (i = 0; i < 2; i++) {
+		ret = __nf_ct_expect_check(expect[i], master_help, flags);
 	...
-	ret = helper_cb(skb, protoff, ct, ctinfo);
-	  ct_expect_help()
-	    nf_ct_expect_alloc() / nf_ct_expect_init()
+}
 
-CPU B (process context), object delete:
-	nft_ct_expect_obj_destroy()
-	  rcu_assign_pointer(me->help, NULL);
-	  nf_conntrack_helper_release()
-	    nf_ct_expect_iterate_destroy(expect_iter_me, me);  /* sweeps */
+Since nf_ct_unexpect_related() now only sets the bit and leaves the
+expectation linked on hnode/lnode until GC runs:
 
-CPU A continues:
-	    nf_ct_expect_related(exp, 0)	/* takes nf_conntrack_expect_lock
-						   after the sweep, inserts */
+net/netfilter/nf_conntrack_expect.c:nf_ct_unexpect_related() {
+	spin_lock_bh(&nf_conntrack_expect_lock);
+	WRITE_ONCE(exp->flags, exp->flags | NF_CT_EXPECT_DEAD);
+	spin_unlock_bh(&nf_conntrack_expect_lock);
+}
 
-rcu_assign_pointer() does not wait for a reader that already loaded the old
-pointer, and the callback is reached through the conntrack's own
-help->helper in nf_confirm() (and nf_ct_helper() in nf_conntrack_ovs.c), not
-through the nft object, so the nf_tables commit-time synchronize_rcu() that
-precedes ops->destroy() does not fence it.
+a resubmission of a DEAD-but-still-linked expectation on the pair path
+would reach nf_ct_expect_insert() and call hlist_add_head_rcu() on
+already-linked nodes, plus double-count cnet->expect_count and
+master_help->expecting[class].
 
-Since this sweep is the only teardown for these expectations, would the
-escaped expectation (exp->helper == me, and exp->expectfn ==
-nft_ct_nat_follow_master when NAT is in use) then keep admitting a RELATED
-connection after the object/rule is gone, until its timeout expires or the
-master conntrack dies?
+The gap in the pair path is pre-existing and not introduced by this patch,
+and I could not find any in-tree caller that actually reaches it. The two
+pair callers, nf_nat_sdp_media() in net/netfilter/nf_nat_sip.c and
+nat_rtp_rtcp() in net/ipv4/netfilter/nf_nat_h323.c, allocate the
+expectations per packet with flags cleared, retry only on -EBUSY (before
+anything is published), and call nf_ct_unexpect_related() only on the
+terminal error exits that return immediately. When the tuple hash is
+unchanged, __nf_ct_expect_check()'s own expired-entry loop would also
+unlink the stale entry first.
 
-The commit message says:
+Would it still be worth making the invariant symmetric, given the commit
+message says this should not ever happen?
 
-    The nft_ct module removal always waits for rcu grace period, then the
-    NULL helper callback is observed after this.
-
-but nft_ct_expect_obj_destroy() itself does not wait; object destruction is
-not module removal.  Would keeping the unregister ordering here (or folding
-the synchronize_rcu() into nf_conntrack_helper_release()) be preferable?
-
->  
-> @@ -1297,27 +1406,14 @@ static int nft_ct_expect_obj_dump(struct sk_buff *skb,
-
-[ ... ]
-
->  static void nft_ct_expect_obj_eval(struct nft_object *obj,
->  				   struct nft_regs *regs,
->  				   const struct nft_pktinfo *pkt)
->  {
->  	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-> -	struct nf_conntrack_expect *exp;
-> +	struct nft_ct_expect_data *expect_data;
->  	enum ip_conntrack_info ctinfo;
->  	struct nf_conn_help *help;
-> -	enum ip_conntrack_dir dir;
-> -	u16 l3num = priv->l3num;
->  	struct nf_conn *ct;
->  
->  	ct = nf_ct_get(pkt->skb, &ctinfo);
-> @@ -1325,45 +1421,30 @@ static void nft_ct_expect_obj_eval(struct nft_object *obj,
->  		regs->verdict.code = NFT_BREAK;
->  		return;
->  	}
-> -	dir = CTINFO2DIR(ctinfo);
->  
->  	help = nfct_help(ct);
-> -	if (!help)
-> -		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-> -	if (!help) {
-> -		regs->verdict.code = NF_DROP;
-> -		return;
-> -	}
-> -
-> -	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
-> +	if (help) {
->  		regs->verdict.code = NFT_BREAK;
->  		return;
->  	}
+Separately, on the DEAD flag itself:
 
 [Severity: Medium]
-Is this change of behaviour intended?  The old code reused an existing
-nf_conn_help extension; now any conntrack that already carries one gives up
-with NFT_BREAK and no expectation is created at all.
+This is a pre-existing issue rather than something introduced here, but
+since this patch is tightening the semantics of the same flag: is the
+kernel-private NF_CT_EXPECT_DEAD bit supposed to be visible over ctnetlink?
 
-A help extension can already be present on an unconfirmed conntrack from
-several places, for example:
+The uAPI header keeps it out of the userspace-visible mask:
 
-  - nft_ct_helper_obj_eval() calling nf_ct_helper_ext_add() for a preceding
-    "ct helper set" statement
-  - __nf_ct_try_assign_helper() from init_conntrack()
-  - the exp->assign_helper path in init_conntrack():
+include/uapi/linux/netfilter/nf_conntrack_common.h {
+#ifdef __KERNEL__
+#define NF_CT_EXPECT_DEAD		0x8
+#define NF_CT_EXPECT_MASK	(NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE | \
+				 NF_CT_EXPECT_USERSPACE)
+#endif
+}
 
-	assign_helper = rcu_dereference(exp->assign_helper);
-	if (assign_helper) {
-		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+and the input policy enforces that mask, so a request carrying 0x8 is
+rejected with -EINVAL:
 
-  - ctnetlink created conntracks
-  - a second "ct expectation set" statement
+net/netfilter/nf_conntrack_netlink.c:exp_nla_policy {
+	[CTA_EXPECT_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NF_CT_EXPECT_MASK),
+}
 
-Since NFT_BREAK aborts the whole rule, do the statements following
-"ct expectation set" (counter/log/accept/jump) get skipped too, so such
-packets now fall through to the next rule or the chain policy?
+But the dump path exports the raw value:
 
-Also, on the commit message:
+net/netfilter/nf_conntrack_netlink.c:ctnetlink_exp_dump_expect() {
+	    nla_put_be32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags)) ||
+}
 
-    I'd rather not increase the size of the struct nf_conn for this feature
-    has very limited scope: only one expectation can be created at a time
-    given expect_clash() will make nf_ct_expect_related() reports EBUSY.
+Because the expectation now stays linked after nf_ct_unexpect_related()
+sets the bit, the value can be observed with 0x8 set through the
+IPEXP_DESTROY event from nf_ct_unlink_expect_report(), and through
+ctnetlink_exp_ct_dump_table(), which walks help->expectations without the
+nf_ct_exp_is_expired() filter that ctnetlink_exp_dump_table() and
+__nf_ct_expect_find() apply:
 
-Is that accurate for the pre-patch code?  expect_clash() goes through
-nf_ct_tuple_mask_cmp(), which compares the destination tuple including
-dst.u.all, so two expectation objects with different dports on the same
-master did not clash and could coexist up to priv->size.  Should the commit
-message describe the single-expectation limit as something this patch
-introduces rather than as existing behaviour?
+net/netfilter/nf_conntrack_netlink.c:ctnetlink_exp_ct_dump_table() {
+	hlist_for_each_entry_rcu(exp, &help->expectations, lnode) {
+		if (l3proto && exp->tuple.src.l3num != l3proto)
+			continue;
+	...
+}
 
-> -	if (l3num == NFPROTO_INET)
-> -		l3num = nf_ct_l3num(ct);
->  
-> -	exp = nf_ct_expect_alloc(ct);
-> -	if (exp == NULL) {
-> +	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-> +	if (!help) {
->  		regs->verdict.code = NF_DROP;
->  		return;
->  	}
+A tool that reads CTA_EXPECT_FLAGS and replays it gets a value the same
+kernel refuses on input. Would masking with NF_CT_EXPECT_MASK in
+ctnetlink_exp_dump_expect() be appropriate here?
 
-[ ... ]
-
-> +	expect_data = nfct_help_data(ct);
-> +	if (!expect_data) {
-> +		regs->verdict.code = NFT_BREAK;
-> +		return;
->  	}
-> -#endif
-> -	if (nf_ct_expect_related(exp, 0) != 0)
-> -		regs->verdict.code = NF_DROP;
-> +	expect_data->obj = *priv;
-> +	expect_data->obj.helper = NULL;
-> +	expect_data->dir = CTINFO2DIR(ctinfo);
->  
-> -	nf_ct_expect_put(exp);
-> +	if (help && refcount_inc_not_zero(&priv->helper->ct_refcnt))
-> +		rcu_assign_pointer(help->helper, priv->helper);
->  }
+This behaviour dates back to b8b09dc2bf35 and is unchanged through the end
+of the series.
