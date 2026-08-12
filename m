@@ -1,162 +1,132 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE41C36196B
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 23:19:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCC8D2C11E4
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Aug 2026 00:30:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786490353; cv=none; b=nv4d3HTS+QAW/brJpyCwIxuv4fBVD2IP43sF5zItxWBEYYCfFC1QeivLeL2D4X8a+B9EEHAH5VC0Ly8igbDTdMkMGfNE2UPtpwDLaGVWT9uLuoyv/CYZ/xuqIpK83XKL34hx0bF2sufrU/dj7AIAn77UBokieipFYmDWNCgFY6Q=
+	t=1786494619; cv=none; b=h7b8hja18h765I0QG2TttvJRdqurBL5MD68+kETUtr6peHnksbURsE/ukSBZ0hCmikYzyBf/Qawk39LJOyTSPGcMtv3c54w8RqV5D1/VuAVxIL4Sg8FmoQxPhlW54zHR0m1i/lylSObnEUjaArKd4t/0DYjk3PBsFs2/SV9Rclk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786490353; c=relaxed/simple;
-	bh=InKmnI0Ba9idJtgF+HdWs4qS3HezrgoaJ4WBkzPxx2I=;
-	h=From:Message-ID:Date:MIME-Version:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=OMp0v2H3c1kFgb9+r/eMWHQTzX2jlmUNr3KSqVqQUDLdCNot7kf5VjKyNbOhNT0EjVYire/aDuYpX7WhD2SJN131imE6inKuxN1neYsY5EDn3nxi98VEDVFojjz6nwBt5jbFZQnMusITqoEPCSQkvzEFNSszDu/XV3OUwRzXG2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nZtN5VF1; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786494619; c=relaxed/simple;
+	bh=uxrn58UdygRHqUBAHOyq9snOJTFjaE9eVr40nZZClrQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hkIYihscCkCi+Bgq4LEV7HLcpzPjFMxxjzHW54FsrX0soRZlfUSw0mxzAi/Wqv0qG9grahdh6p1TLp4dETRVCGw3MEoiLcWDmdW2zFDqhlNXULAJAVHzu3TiiKoYYZar688zqXuLUbAWiBiJT58BL6aL9sA9hLPbTPGTzuWRCc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OM2HWhtS; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nZtN5VF1"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-47f59f25ec4so104131f8f.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 16:19:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786490350; x=1787095150; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:organization
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=NKWFCfgsTlLlt4GmvjwvhUR2/Nc7HI3joWyPH2vxn8s=;
-        b=nZtN5VF1i7qlxG7fzcqF1qenBHyqBEZlZKpJyYVLXxpI75oV8Krel948Cr0sV/6Z61
-         TGOpF71VmRn13hg5VCUtYSWOUemT4q6jszezarByCM5R3hrEVDzP2xUoylbbayfgIpLV
-         u+ksFEuGdnbd3vWqzcr8kvDkHclMega9iwFErwiw3spt7SmCntGS49H9AuQA/aOsdhpo
-         C4Dn7+fk4HbuCsLHpS4zsNraGGJQKji2JBplhEWBKN1xIQ98sqydRQmNdE7pT1Wjj1Tu
-         RF5enSM6ArLASKBLcC0iY3mvZsL8g0eCfNkUgvm/IdgxAO/9MQSNM/anYh3MyWxAwvxv
-         dGDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786490350; x=1787095150;
-        h=content-transfer-encoding:content-type:in-reply-to:organization
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=NKWFCfgsTlLlt4GmvjwvhUR2/Nc7HI3joWyPH2vxn8s=;
-        b=WTg1/KPCmsHuIxISIYgrQNW3vlthhWlXKBNgz3rbZmbqEdVaauxl5RCHPuW+3Wy8DM
-         A6j01x5R2u2GyZioG3UPbyrsa0SBOpNYAYVPxz5MHaHTVQy4QsWZh6pBEzCqGW92Xuzq
-         ycJ1QrISSCoVkB8AlDy2MzsEWXYIV6fvPDNL19u2byGQsES3/i+q9hi5AKVAbl6gp7xx
-         9SgSdlknRF8yzW+Hd8Sf7xSuzTZxOH51bV1hDN5laZ40hUQSAO81yf4BQ8wFhbCvK6lS
-         H4Yhs6oTAXVX3WlBxqCCYWM1pNc+/J1gkx8046GiUEQ92BqEBUDOzAJlD7l+aTpjaYs7
-         d7FA==
-X-Forwarded-Encrypted: i=1; AHgh+RrtYec0928pj3zSjkcFkcJRGF+hWLhIXVqNmAeFZf40d5d7l4QfvFiNKn+Pka4g1PObD0xlhDgAK0jHiecrfZM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzikdaL+9xWwroVv2CPMhuQIxONOE+KyxqZsuLUevtkLXwk7grR
-	GxO+5h7uDertDNvTFJIpjoQIJ0/n0h6VDUGpfn/5ycP5jkwJvADngB0b
-X-Gm-Gg: AR+sD10f/1NgvECazWlSdHFUjFp2lBbSowD7NyhvysAExejVg4SuqXvX0zolSeb0Wa9
-	u4iTdYyg0xLpGCDPKkIbEeBWzNHz+MEeDG/93kaodDsd+wMvZ6yqMhxNoLV19pNpDjpw1FB38J4
-	4lMZ6Y0R2UpY9Zm0Jg3gmxbuBx9qI5joSezWC4Up4cN1qa6ecwTfFC1eETAnBTsq4Dm7i7Mwizq
-	ZUcONkOm4Qh958t/rh2x8lDb0uieYqKoTTRBNbKujLncrGkQRbCY62lVCgJhkfFJn/Y7fogrNeQ
-	WA+z1icN5e+te5vIDdeykpVG4xlD23PK14iNksrMxnAZaInyeuffgW/TIe6gCE+dI6yguz+oOHp
-	TnRgGXAF1QBh4RzULni3G1YFUUk4doU4kLAdZLnERJJZ+5JtXxGE0N1ZJ39FQiah8jT87G92Wau
-	qX50E33zhD/RAlKZf9xphjM3xtOnT15/8SuAPVVUWIlw9M+Rn4RnIdKKI27XYqCQdzyAUGrdxn9
-	PQzURDw4vh0S3wqSKaArB89+YlTv5U=
-X-Received: by 2002:a05:6000:4006:b0:47f:9266:9bde with SMTP id ffacd0b85a97d-48152b15f62mr542628f8f.4.1786490349894;
-        Tue, 11 Aug 2026 16:19:09 -0700 (PDT)
-Received: from [127.0.0.1] ([193.252.113.11])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48150d4e260sm2094006f8f.17.2026.08.11.16.19.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 11 Aug 2026 16:19:09 -0700 (PDT)
-From: Alexandre Ferrieux <alexandre.ferrieux@gmail.com>
-X-Google-Original-From: Alexandre Ferrieux <alexandre.ferrieux@orange.com>
-Message-ID: <64228e38-b619-4836-aa41-1594567db082@orange.com>
-Date: Wed, 12 Aug 2026 01:19:07 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OM2HWhtS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1786494614;
+	bh=zDfJq8zDe6Ak9N2EBmZYw0bJIWVkaLemrUWPHNhP3CU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OM2HWhtS901bTr1+QQUPpA2bxw1OpXeA3hgMKIWlkDN/vcJ4Hj/vzWZuWsPfnCnN4
+	 IBkZhsxb5LsBOI+RI2KCQS4YsVzVeVzX1WQINdN4hyfLs6R07EiheFOo9zocf2q0lF
+	 Q0ecu3WFLP8A1U6F0f4ClfI1rc78N7ijJeaUL9uGfO4IytDd+2TLTqM5DX2c9FM6eu
+	 kTwHsbM6UhcChTUJTesEazXIJ6x0yCtWZD1KZEaycilvqQKZAMDarGQ0E2QbZ9sF8/
+	 xFHw+WDryIj8kSBF+xCbLr60kvXFQDxWPv2343ki0hKsosPX/R+6Wf89TZz3L9JMU/
+	 mgD3PfBChWiFQ==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 313036007B;
+	Wed, 12 Aug 2026 02:30:14 +0200 (CEST)
+Date: Wed, 12 Aug 2026 02:30:11 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v2 2/2] netfilter: nf_tables: call set ops .commit
+ when building new ruleset
+Message-ID: <anu-k2MbkI1Hx7zC@chamomile>
+References: <20260805171115.250749-1-pablo@netfilter.org>
+ <20260805171115.250749-2-pablo@netfilter.org>
+ <anRrLtZvlPXtqJAA@strlen.de>
+ <anSe0eK9dl1d2J7-@chamomile>
+ <anTMFbo6AB9IqejA@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] netfilter: nf_dup_netdev: scrub duplicates to
- preserve the direct path
-To: Alexandre Ferrieux <alexandre.ferrieux@gmail.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
- edumazet@google.com, netdev@vger.kernel.org
-References: <20260804201150.16364-1-alexandre.ferrieux@orange.com>
- <anLzQeYulW2CQItC@chamomile>
- <7b7fbe75-1531-49f9-8134-033c34fa13cb@orange.com>
-Content-Language: fr, en-US
-Organization: Orange
-In-Reply-To: <7b7fbe75-1531-49f9-8134-033c34fa13cb@orange.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <anTMFbo6AB9IqejA@strlen.de>
 
-Hi,
+Hi Florian,
 
->> On Tue, Aug 04, 2026 at 10:11:50PM +0200, Alexandre Ferrieux wrote:
->>>
->>> In other words, the "dup" path has the potential to wreak havoc
->>> in the direct path as a consequence of secondary link failures. This
->>> is very bad behavior for a monitoring tool, which is the most
->>> obvious application of 'dup'.
->>
->> Can you describe your use-case a bit and how it breaks?
-> Sure:
+On Thu, Aug 06, 2026 at 08:01:57PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > Why must the blob be rebuilt before stale node purge in rbtree case?
+> > 
+> > ... there is a gap between the ruleset blob is built and published and
+> > the set .commit interface is called to publish the new version of the
+> > rbtree/pipapo datastructure.
+> > 
+> > See:
+> > https://lore.kernel.org/netfilter-devel/589d243b-3d88-4138-9786-1bbb4347e79d@app.fastmail.com/
 > 
->  - assume hosts A.eth0 and B.eth0 have active production traffic (say TCP)
->  - assume we have a monitoring tool on A that dups eth0's egress to some other
-> interface $MON
+> Ah. That makes sense. So the problem is not rbtree specific.  Problem is
+> that packets switch over to the *new base chain* (linked to nf machinery,
+> nft rule blob becomes reachable on base_seq swap:
 > 
->     nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
-> filter ; policy accept ; }'
->     nft add rule netdev ta ch dup to $MON
-> 
->  - assume something goes wrong on $MON generating link failures. In my case it
-> was a GRETAP with L3 destination suddenly unreachable.
-> 
->  - The next A->B packet goes through normally, but its duplicate hits
-> ipv4_link_failure(), hence the dst (which is B) is expired.
-> 
->  - As a result, (say) TCP disruptions occur. The thermometer killed the patient :)
-> 
-> Note: as a straightforward repro, you can simply witness "noise" in simple ping
-> sessions, with ghost unreach reports muxed with normal measurement:
-> 
->     ip link add gre1 type gretap remote 192.168.1.99 ;# on the LAN, nonexistent
-> IP => will generate link failures
->     ip link set dev gre1 up
->     nft add table netdev ta
->     nft add chain netdev ta ch '{type filter hook egress device "eth0" priority
-> filter ; policy accept ; }'
->     nft add rule netdev ta ch counter dup to gre1
->     ping -n 8.8.8.8
->  =>
->     PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
->     64 bytes from 8.8.8.8: icmp_seq=1 ttl=115 time=19.9 ms
->     64 bytes from 8.8.8.8: icmp_seq=2 ttl=115 time=12.8 ms
->     64 bytes from 8.8.8.8: icmp_seq=3 ttl=115 time=36.0 ms
->     64 bytes from 8.8.8.8: icmp_seq=4 ttl=115 time=30.3 ms
->     From 192.168.1.13 icmp_seq=5 Destination Host Unreachable
->     64 bytes from 8.8.8.8: icmp_seq=5 ttl=115 time=31.0 ms
->     From 192.168.1.13 icmp_seq=6 Destination Host Unreachable
->     64 bytes from 8.8.8.8: icmp_seq=6 ttl=115 time=38.0 ms
->     From 192.168.1.13 icmp_seq=7 Destination Host Unreachable
->     64 bytes from 8.8.8.8: icmp_seq=7 ttl=115 time=36.8 ms
->     From 192.168.1.13 icmp_seq=8 Destination Host Unreachable
->     64 bytes from 8.8.8.8: icmp_seq=8 ttl=115 time=23.5 ms
->     ^C
-> 
-> 
->>
->>> This patch fixes all similar scenarii by calling skb_scrub_pkt()
->>> on the clone, severing its link to precious direct-path state.
->>
->> This patch is targetted at the net tree, but nf.git is preferred.
-> Okay, will retarget :)
-> 
->> As for the conntrack and dst, you have to explain what it breaks on
->> your end.
-> Dst as shown above. Conntrack is more speculation, but my take is that in any
-> case the dup path should *never* have any kind of retroaction on the observed
-> path, so any "complex state" attached to the direct path should be absolutely
-> isolated from "whatever happens on the dup path". Am I mistaken ?
-What do you think ? Is the description of the problem satisfactory ? Is the
-proposed solution acceptable ?
+> 1. commit phase starts.
+> 2. seqcount gets bumped.
+>  A.  	Packet p1 enters machinery
+> 3. elements get purged / chains / tables unlinked, netlink notificatons
+>    etc. etc.
+>  B.     Packet p1 is in nft_lookup, which gets updated base_seq,
+>         but no match because rbtree blob resp. pipapo live blob
+> 	are empty in the 'flush ruleset; table t { ..' case.
+> 4. nft_set_commit_update() is called.
 
--Alex
+Yes. The empty set is exposed to the packet path for a short time span,
+until nft_set_commit_update() is called.
+
+> If the above is right your patch makes much more sense now :-)
+> 
+> The logic with (set->ops->abort_skip_removal && early_commit)
+> however is hard to grasp.
+
+I can add a specific .early_commit in v3 as Fernando suggested.
+
+> Even with NFT_COMMIT_PHASE_EARLY or whatever its bad because
+> the set implementation details leak into the transaction phase.
+> But I understand that you'd like to at least solve it for rbtree
+> with a smaller change, so thats ok.
+>
+> Is there a long-term plan?
+>
+> Maybe your 'pre-commit' phase could iterate the transaction
+> log and relink transactions (add/del/update of set elements
+> ) to the owning set?  Contradicting transactions (destroy set x,
+> then remove element from x) should have been caught earlier, so
+> this delete-from-transaction-log-and-link-to-per-set-struct should
+> not be a problem.  Perhaps we might see issues with changes in the
+> netlink reporting order... but thats hopefully easy to avoid.
+>
+> the ->commit() callback could then access the pending transactions
+> for the set (element adds/deletes) and always get invoked early.
+>
+> Pipapo could walk its specific elem deletions internally, then swap.
+> 
+> The only other issue I see is that we need a second
+> list_for_each_entry_safe(trans, next, &nft_net->commit_list, list)
+> 
+> ... walk, because the step-1 walk is allowed to fail.
+
+I was considering to address this from the pipapo datastructure itself.
+The idea would be similar to what the rbtree does, which is to offer a
+front-end pipapo datastructure that is exposed to control plane that can
+be updated under the commit mutex and that is not exposed to packet
+path. Then use it from this new .early_commit interface to clone it,
+then publish the new version and release the stale via RCU.
+
+Same approach for the bitmap set.
+
+As for the non-rhashtable version, it could be possible to build a
+compact hashtable based on the control plane datastructure, ie.
+rhashtable would be only used for control plane and a compact hashtable
+(using array for buckets and chains) will be built from the new
+.early_commit interface to publish to datapath.
+
+Exception are dynsets, where a single rhashtable can be used, both to
+control and datapath.
