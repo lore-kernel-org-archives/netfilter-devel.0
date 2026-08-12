@@ -1,107 +1,161 @@
-Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45AB33624C9
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Aug 2026 01:10:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.178
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786497051; cv=pass; b=VgWRe405q8YTaNsxu5nFBqNZ4kMhfNj8tu71l6BROufzPudPcwaVum7jL6RRC/sCNPOW7V97xjHVkq51r2Xf7V0zElrV4RLyvLpZ72fRKBZerEQHnIFNw69Rtk785ALfjSDy++pfXGRcIPaDSxAkk7Vokx/IYZlFKZemn0p96k0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786497051; c=relaxed/simple;
-	bh=5t3RlIc3kEj4RmoONu8QAh7Ng832/Cl8+ScHBGHKlaM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=USPlm3HcrUrY4mZrwPI/I/djB7iHq1EAj0Jt4O33BqkpETmmmgSH+URaU70OyOwggbadyEbHUjnf5mSjazklRnNuhTCIBTA41FiPNpBIUvxAhn3Gjhczj283AtZn0m4ysxU676jcZIVLQk2cmRJr5M3uR3NhO4CbaQ77pVlntiQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i6/hjLdK; arc=pass smtp.client-ip=209.85.128.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 281D81E5B70;
+	Wed, 12 Aug 2026 01:34:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786498484; cv=none; b=rGq107yvEcvt84i1+uZ+KeFJ0bdhmIjoZbRVqgKA4gD/uU7vfg7uCyxlWQOXQ42kUkI1aHlXk316ZxdIua1ZTl4xaAX0BIUi3zpkFE9wHtPmf/ggE+NurjbBX976yFpJr6L/t8DEKvUemcN1x8PyXfys80+4t7n+ws4o2CeHv0M=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786498484; c=relaxed/simple;
+	bh=+WuVLE8XlBwxiZXnm3wRd/oyRUQxHSpx7DesQbCx6ig=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=AVAqeOoVWLSILahRv94ORKYi+tifW70iuPNixVnht25U+g9rpaQ1n14HL3I3RBpKnkPga1YCZ1Meh0XFPQcNAJMELqg7HF3uAf9YN+DMnCZKV74zVQBWc+FuP64oTOIQuQRV5gT01W6wqZXBfRhJh1UoYefG90bb5KY/5G1JqHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lYPhNELs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i6/hjLdK"
-Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-80e2cfe6918so4898407b3.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2026 18:10:50 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786497049; cv=none;
-        d=google.com; s=arc-20260327;
-        b=EZ41785EiPYqJS3gHaqJk6kMLZTTIGVA3s5QuWyosZakl6zuW7sXnqAkezK0C13mVU
-         5d1xgdQl45Eqq1uqCazhDBRijvssSvIegMmNGu0TcRPCOHna77cjXvXc2NzAaIb4sVdO
-         4VRrUx3rF4JYUX++bPpalME/aJGlY+G2XbIRTO+cJMOPivRPRKY69URqveazLNtUBpmd
-         yuIaJLppFNDx3Cb0ndMpqmZeMwpRNj9b5QgEqExIrXNObUad/chHfNKZlJYAUxpEZ9z4
-         qfR4jeYofSk0i7QtPQxjlIPYShfaqs6+GbPXZmNnSWgVSNaajb1QGWvell+/g2r6eLtE
-         KyBQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=ePxAQ1gF6Cdxv8dE9tKiquqdBA8YHy7R3qxF5nLM8Bs=;
-        fh=sfI1fWE/hMcQurr0IT2i54BJ2iudyZ/MBpJ2p8YCKfI=;
-        b=LTue34Y9f0MaDzeZ2UNTP8msZdmRshk4Tp85nNWRFXwFdBwjJ64hsd8hKMcTdlIyGv
-         kURHSgaznUbJ2p3AF3myF95uhcbJOxnmrxPPK+oPgSqUzINwWw/MNEMoMfwGmc+XM5dU
-         BYP2QY2HdgUvjcwHtg081nRVSxMegcBajxQQ+0lWU1w4csaIrvr+RyVLwE1AishKjMW9
-         SU0Bav8+ZTy1f2ocvLY0UFF0j4uJsqZ3GDjWL/ZhVqx6JBWbzQ7FInfPSQxeqZWN/Aa+
-         Nu83TBMq+RtgpRgkKwNa068KnvCK2gtxSzvhqsUWjLrBa0fikE60oVgfXOQM4/DPLaym
-         W1OQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786497049; x=1787101849; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ePxAQ1gF6Cdxv8dE9tKiquqdBA8YHy7R3qxF5nLM8Bs=;
-        b=i6/hjLdKjPNAtLaQlKA3lChB9ziBannBtT6yj4eo1dY/zPiVQoS6c6RZ4hm9YM0mKh
-         tecoacNhbX3vThbS7s4SZJIl9NSSdxRG6QPDOslu69S0KKZIz2c72pVHP7C+rlBvoYIB
-         t1f9el55QURcYsS3r7sL/X9YksPyrXcNrp9JEqQv7Rd0SLBLmzxdM9Eajk9gXtqIOdHm
-         R0AXoiV/TZWjYLZf7x7VgRHhLJMYH8t8i315JAWwec40HY5c27ZqbH6gsRBkErEgLUim
-         zRJSjlu4sv7vD3n9HcWN1UaRt1Zjm9EB6FbABURgs1tQRaFG6wcecP6CI2eNji++vmRo
-         c6Pw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786497049; x=1787101849;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=ePxAQ1gF6Cdxv8dE9tKiquqdBA8YHy7R3qxF5nLM8Bs=;
-        b=D7dI8IZCmufS2cRwxLtkpVVsmzdvmM6sIfe+fsTTP4paQQ9m+zl0b6ccE2MlF0l593
-         y35AOm9LB6uCbuLmtw8mTq8NwgHJOpcG+bJ2APpGaRTwdWYEFBpQst4LUs8Qv7ZrUo9y
-         xT95ihLbAyedMp5Ckzm2shDtV/3Yuh7ZcdUgTtgOCG1OtaFLI4Upcjir7N0O3rO9R2OO
-         1U2V0KUp4Xw+xJIyLuH+OKGrfNGxU3tMc+Ry3Qh6WZ9luttm0dSK1eUkwM+0kRTnPmu0
-         sd2Ncriu5/51QIckK3mjSHL93wQrqUVg84UNrrc1LZkE/ljeETlfGdXfcfFEE+1zez8G
-         X0FQ==
-X-Forwarded-Encrypted: i=1; AHgh+RpBPp+DVQzlWAc+H4CkdSl+6PM369OBAGo0dfcT3krZkhj8vnkgRJWvV1X/D8oOCJo2TXhh3lqHBEoofq2nV80=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyj3cxt91I5eNQEhtUSt6xnhomjFgDd9pPXY9qS3ENfZPXzuCtr
-	INyhh0fmvBUPYW1/nY6SgW42RLhkHLBUeSITXg7nlp2/aqfAkaO/j72JJloB4Kej+PPziHwxdgq
-	qPO9R8Ocv+gqx+Qg7wD09G1wAw82dexhptLLt/IUOmA==
-X-Gm-Gg: AR+sD12uJFKKkc3ZaNEdsivbrKhkdl7fYZ21x95IM8N9U7xLD6TMgN/N+j1o49U93Ar
-	2L4zs+H84feO6KTnI/m5d4SwfI9xrVXsnFDiV4e3mY7Svmv0Jw4+0+EMRvriLBzNpznwFSaZNiw
-	GPiPdCwLq2Ha9eqbtnMJwsm0kM8pnYk2xQgaArms5P95y2pm1rQxQGeBDerAoVgDLjJzSzcRtnY
-	zBTXl+IMWcpR2yp4KAVmRHnotMRWcof/ZKWopoYbyjXBXrsQJFrbSqm6Ggs440RMbpdHS6ZFru+
-	eaT9iYHOt50XHSvVULi23TonTW1E6AK7UT87QH//1cgmpA==
-X-Received: by 2002:a05:690c:6e8a:b0:82d:aaf8:b263 with SMTP id
- 00721157ae682-83105644946mr10914937b3.10.1786497048925; Tue, 11 Aug 2026
- 18:10:48 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lYPhNELs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3CC71F00A3A;
+	Wed, 12 Aug 2026 01:34:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786498483;
+	bh=+UN3hw2Py8vkOT6kz6KqudeU1QTOD0kTavExJEhAu7g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=lYPhNELs5nybGobFPtzSjX3xdRUys94PMcVJwpwaN8K3WcqtIQofSpCCis3G+L5xt
+	 Ukl3hjTtwLjIJz3tHqMmLLkDbP0VJTXdg69C0O1KFzN8C/X2hYWZmgH199h6jhGvfn
+	 ZOL7ketOX6IbbtEEABhW1xVy9NGax78qdVh/y/rhrh9hv1YOkwcbdGhjdg9dsNG/pJ
+	 xMO3jELPYOIu0uBDqQVbg+O2jzoD4/O/QY+WoAWSEmF2TEj8MhRr+xOwGQABs/UWSN
+	 EaZ0O8T/STlUd7d3SxSw1hm5e+EeuicfuW2R8abUcQt9YmuCiA1vlDwy0ub8D1R++g
+	 hcG+XTcFBKVDw==
+From: Jakub Kicinski <kuba@kernel.org>
+To: pablo@netfilter.org
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: Re: [PATCH net-next 01/12] netfilter: add DEBUG_NET_WARN_ON_ONCE to skb_set_nfct()
+Date: Tue, 11 Aug 2026 18:34:41 -0700
+Message-ID: <20260812013441.1673114-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260810194015.932627-2-pablo@netfilter.org>
+References: <20260810194015.932627-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CANE+tVpU7gL3ZJ9ro4oNKsqdN01mDMBpUou0ABakiO2WrT5gSw@mail.gmail.com>
- <antTASZYV9q81Ucc@chamomile>
-In-Reply-To: <antTASZYV9q81Ucc@chamomile>
-From: Wei Fang <void0red@gmail.com>
-Date: Wed, 12 Aug 2026 09:10:38 +0800
-X-Gm-Features: AUfX_mzNPWt8-9A5YfiRwXeRO2G3IDeBrCjSbnyHuFx6225wNASGATbNgDPNNeo
-Message-ID: <CANE+tVq_U0dM7hXE3Vn5VVFR5iFD_JoSfQv0ZVn28RuepUy0cw@mail.gmail.com>
-Subject: Re: [nf_tables] rbtree interval set: in one batch, re-adding element
- E0 makes deleting an unrelated interval E1 fail with -ENOENT
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
-	k.chen@smail.nju.edu.cn
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hi,
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
+---
+netfilter: add DEBUG_NET_WARN_ON_ONCE to skb_set_nfct()
 
-Understood - thank you for the explanation.  I accept the
-ordering point: the reproducer's delete message sent the END
-element before the START element of its interval, which does not
-follow the element ordering this interface relies on.
+This adds a DEBUG_NET_WARN_ON_ONCE() to skb_set_nfct() that fires when
+skb->_nfct already holds a conntrack pointer, so that nf_ct_set() calls
+overwriting a live ct object are caught.  Several existing nf_ct_set()
+callers in ipvs, conntrack clash resolution, openvswitch and act_ct are
+converted to call nf_reset_ct() first.
 
-Thanks again for your time.
+> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+> index 22eda1d54a0e8..95184183180f6 100644
+> --- a/include/linux/skbuff.h
+> +++ b/include/linux/skbuff.h
+> @@ -5004,6 +5004,7 @@ static inline unsigned long skb_get_nfct(const struct sk_buff *skb)
+>  static inline void skb_set_nfct(struct sk_buff *skb, unsigned long nfct)
+>  {
+>  #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+> +	DEBUG_NET_WARN_ON_ONCE(skb->_nfct & NFCT_PTRMASK);
+>  	skb->slow_gro |= !!nfct;
+>  	skb->_nfct = nfct;
+>  #endif
 
-Best regards,
+[Severity: High]
+Was nf_ct_bridge_pre() in net/bridge/netfilter/nf_conntrack_bridge.c meant
+to be converted too?
+
+That hook deliberately lets an skb carrying a conntrack template through its
+entry check:
+
+net/bridge/netfilter/nf_conntrack_bridge.c:nf_ct_bridge_pre() {
+	ct = nf_ct_get(skb, &ctinfo);
+	if ((ct && !nf_ct_is_template(ct)) ||
+	    ctinfo == IP_CT_UNTRACKED)
+		return NF_ACCEPT;
+
+The ETH_P_IP and ETH_P_IPV6 arms then hand the template to
+nf_conntrack_in(), which zeroes skb->_nfct and drops the template reference
+with nf_ct_put(tmpl) at its out: label, so those paths satisfy the new
+precondition.  The default: arm does not:
+
+	default:
+		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+		return NF_ACCEPT;
+	}
+
+Since the new warning tests the old value of skb->_nfct regardless of the
+new value, does nf_ct_set(skb, NULL, IP_CT_UNTRACKED) here trip
+DEBUG_NET_WARN_ON_ONCE() whenever a template is still attached?
+
+Can a template be attached before this hook runs?  An nft bridge base chain
+in NF_BR_PRE_ROUTING at a priority below NF_IP_PRI_CONNTRACK (-200) appears
+to be accepted, as nf_tables_api.c only restricts priorities at or below
+NF_IP_PRI_CONNTRACK for NAT-type chains.  A rule with ct zone set in such a
+chain reaches nft_ct_set_zone_eval():
+
+net/netfilter/nft_ct.c:nft_ct_set_zone_eval() {
+	...
+	nf_ct_set(skb, ct, IP_CT_NEW);
+
+which takes a reference on the per-CPU template (or allocates a fresh one
+via nf_ct_tmpl_alloc() when that one is busy).  nft_do_chain_bridge()
+evaluates rules for every ethertype, including ARP, PPPoE and LLDP frames,
+which then land in the default: arm above.
+
+With CONFIG_DEBUG_NET=y, does this turn any received non-IPv4/IPv6 frame on
+such a bridge into a warning splat, and a panic when panic_on_warn=1?
+
+Separately, the reference drop at that site is not new: the overwrite has
+always discarded the template reference without nf_conntrack_put().  Does
+that pin the per-CPU template refcount above 1 permanently, so
+nft_ct_set_zone_eval() takes the nf_ct_tmpl_alloc() path for every later
+frame, and each of those allocations is leaked by the same
+nf_ct_set(skb, NULL, IP_CT_UNTRACKED)?
+
+For reference, the same shape was converted in this patch:
+
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index b3bb228ad75cb..3dca7d387dd08 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -2121,7 +2121,7 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
+>  	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+>  
+>  	if (ct) {
+> -		nf_conntrack_put(&ct->ct_general);
+> +		nf_reset_ct(skb);
+>  		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+>  	}
+>  #endif
+
+[ ... ]
+
+Would adding nf_reset_ct(skb) before the nf_ct_set() in the default: arm of
+nf_ct_bridge_pre() be the right fix?  If it is intentionally left for a
+separate change, could the commit message mention it so that a new warning
+in bridge plus conntrack zone setups is not a surprise?
+
+Checking the tip of the series (839e6caf13c7332db9b40817696bb7a326b810d5),
+nf_ct_bridge_pre() is still unchanged and the warning in skb_set_nfct() is
+still present.
+
+Two nearby nf_ct_set() users also set a ct on an skb without clearing a
+possible pre-existing one: nf_conntrack_attach() in
+net/netfilter/nf_conntrack_core.c and tcf_ct_flow_table_restore_skb() in
+include/net/tc_act/tc_ct.h.  Both rely on the caller supplying a fresh skb.
+Is that assumption worth documenting alongside the new invariant?
