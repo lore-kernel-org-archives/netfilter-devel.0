@@ -1,120 +1,70 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F30547255A
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 12:00:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4B533B6CB
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 12:12:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786622432; cv=none; b=eCG9zRpsugk9TXL/GpKwvBMmOlTB9rdo4lZNqodesk31Cs198nFtwfT6Dni4fNgA0ycX1bAFWYAsZ8YFN/tsPOL6zE4yETu8kci1LxZA/RrSFMozYJZfEgf1iey62czDNKtESCrDnmCj80PUR2TzjAnXmd7xPDPnLWw8JOLWJfs=
+	t=1786623170; cv=none; b=PVCX6DBOv9b8R83mGOprN5VAhGs1tMzlV/DoIDG6DKNcVjKqq22tpVCrpV5Rk8zhUN08KsOZaZ8YcS/GK7TWKV1U1z+uFSCY9k2MBPG1P1ioDX6RKYEBsnYbt77rcjd6P7IsPZs2koo3QBv7qdPD0aCcojejcwit3GAGXrYTLiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786622432; c=relaxed/simple;
-	bh=UG7yUo4hGpvRObwENe1hGmPCzpMjUMvvpZmBZu4ruNs=;
+	s=arc-20240116; t=1786623170; c=relaxed/simple;
+	bh=pJiH90pC6G852CxScH90Z5oQ6waqX/vt+hwOQD+qx/Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K+wYKg3FTjdUxLbPt8JlkSDiWaWeQA76t8D/qL4GcxW+htnICRZHSbO3wZsaPbB7pPN7MbLMiM24obizb6f1Wm8tD6FaIsDZY7z+NElnkpsDi8Pxd2clAFypmOjIwGsnrlHZDopcxRRN8/iG7wHrjdrbImuJPlCc/R1+82lfNKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LZ86Xjs8; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=rtnpLgopvcR/SyyA3xuOKXcObzSBgknurlv1LRKDkWsEhZ1o9MwOnHgd+PeDENfWtKkx/hG4PWD1issl6e079kU/gnqGfcFY6fiy/pWAALbSDFLscEMU7xL4XJxYA09/7npdhQFPL3xB0Awl4wTew25iLie8rq6xlE5mUR9y598=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=AASTSI8q; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LZ86Xjs8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786622426;
-	bh=6gQ2Lx2mHUDCrwVddybJi++7VGHnsnaTl5Sh7jFwdTc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LZ86Xjs8sHDE41oMxSgMLD3cU52bZWsYU7ozEKwhQ4Aq158YgCWlEwaAtPgyrAg5b
-	 tTIUvdBlzd2cMhiRyeBL6+q3bKXsPOy9AirN08MZ3QTKy9GCq13OEE/eZ85TfGAAmO
-	 tfywxxjzT0RqFt5X4wop9KYMxfZ5qqT8NhyWdUKEmDqqLg7tyNlxybJhdmn4vhWSY8
-	 Aq3EoaJD5DOWpUp0zH5F0h41AFkr7YdGZqwmJwRcgoKZM8XJ5EU82NMU7eE1TvTfga
-	 EFyFSH/xUo9LCUarjMsgvaCK0no51fgzJhf/ZrV3U5i76nwvGBGXI5ZU7uB4pbmOyr
-	 awrOzO4yG9uiQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id E37776005B;
-	Thu, 13 Aug 2026 14:00:25 +0200 (CEST)
-Date: Thu, 13 Aug 2026 14:00:22 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="AASTSI8q"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=BqYAjnuyOeFoU9PnJ5hjyw+PKpjd5h8rK8sETmVUIJU=; b=AASTSI8q9WSrBTXvXI3cR08CYH
+	12v0kb0MiDqwDbJiV/vCCYYmX6mbpa1uoinmE0XolTi7oseP6m/g83jehl7WgTBKNgWOloWq6m16o
+	R1XYblqnOmo2jhBIU61QSuyYMKav0MHR8eCqxgYCbEmpeOZyaZNI6knJa0S8HCX26fqVFkhlE1DE9
+	pLtQhm9+uQUUslE7E/DRyB30zsDoxHqyL4On6MpK7Gbcl/NpM4ba3qkDWBIMv9cwc6HFFngzGJ1Uo
+	XX80dHJATKmUVRVfnGOZTc51OJEIGv565AYqsnwlgUKpT3oKnK88VIndWbnYxhtVyWr7P+VgSywlX
+	5i7qWSAg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wuUIg-000000004E5-1lqN;
+	Thu, 13 Aug 2026 14:12:46 +0200
+Date: Thu, 13 Aug 2026 14:12:46 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
 	Avinash Duduskar <avinash.duduskar@gmail.com>
 Subject: Re: [nft PATCH 0/2] tests: shell: Keep dumps with numeric protocol
  values
-Message-ID: <an2x1tOQN99iCI8L@chamomile>
+Message-ID: <an20vo1H68LVrCw_@orbyte.nwl.cc>
 References: <20260813114556.2685869-1-phil@nwl.cc>
+ <an2x1tOQN99iCI8L@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260813114556.2685869-1-phil@nwl.cc>
+In-Reply-To: <an2x1tOQN99iCI8L@chamomile>
 
-Hi Phil,
+Hi Pablo,
 
-On Thu, Aug 13, 2026 at 01:45:54PM +0200, Phil Sutter wrote:
-> Adjust the test wrapper to create dumps with --numeric-protocol option
-> (patch 1) and update all dumps (patch 2).
-
-Is this to make it consistent through different distros due to
-different definitions in /etc/services?
-
-Thanks!
-
-> One could also set --stateless, py test suite does that, too. Though
-> there are tests (in packetpath dir) which seem to rely upon counter or
-> other stateful data to be matched in dump files, so keep state for now.
+On Thu, Aug 13, 2026 at 02:00:22PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Aug 13, 2026 at 01:45:54PM +0200, Phil Sutter wrote:
+> > Adjust the test wrapper to create dumps with --numeric-protocol option
+> > (patch 1) and update all dumps (patch 2).
 > 
-> Phil Sutter (2):
->   tests: shell: Use --numeric-protocol for dumps
->   tests: shell: Convert dumps to numeric protocols
-> 
->  tests/shell/helpers/test-wrapper.sh           |  9 ++--
->  .../cache/dumps/0003_cache_update_0.json-nft  |  4 +-
->  .../cache/dumps/0003_cache_update_0.nft       |  4 +-
->  .../chains/dumps/0041chain_binding_0.nft      |  4 +-
->  .../maps/dumps/0010concat_map_0.json-nft      |  2 +-
->  .../testcases/maps/dumps/0010concat_map_0.nft |  2 +-
->  .../testcases/maps/dumps/0013map_0.json-nft   |  2 +-
->  .../shell/testcases/maps/dumps/0013map_0.nft  |  2 +-
->  .../maps/dumps/anon_objmap_concat.json-nft    |  4 +-
->  .../maps/dumps/anon_objmap_concat.nft         |  2 +-
->  .../maps/dumps/named_limits.json-nft          | 14 ++---
->  .../testcases/maps/dumps/named_limits.nft     | 14 ++---
->  .../maps/dumps/nat_addr_port.json-nft         | 16 +++---
->  .../testcases/maps/dumps/nat_addr_port.nft    | 16 +++---
->  .../maps/dumps/typeof_maps_0.json-nft         |  6 +--
->  .../testcases/maps/dumps/typeof_maps_0.nft    |  4 +-
->  .../dumps/typeof_maps_add_delete.json-nft     |  2 +-
->  .../maps/dumps/typeof_maps_add_delete.nft     |  2 +-
->  .../dumps/0012different_defines_0.json-nft    |  4 +-
->  .../nft-f/dumps/0012different_defines_0.nft   |  2 +-
->  .../dumps/named_set_as_protocol_dep.json-nft  |  4 +-
->  .../nft-f/dumps/named_set_as_protocol_dep.nft |  2 +-
->  .../testcases/nft-f/dumps/sample-ruleset.nft  |  4 +-
->  .../optimizations/dumps/merge_reject.json-nft | 12 ++---
->  .../optimizations/dumps/merge_reject.nft      |  4 +-
->  .../dumps/merge_stmts_concat.json-nft         |  4 +-
->  .../dumps/merge_stmts_concat.nft              |  2 +-
->  .../dumps/merge_vmap_raw.json-nft             | 10 ++--
->  .../optimizations/dumps/merge_vmap_raw.nft    | 10 ++--
->  .../optimizations/dumps/merge_vmaps.json-nft  |  4 +-
->  .../optimizations/dumps/merge_vmaps.nft       |  2 +-
->  .../dumps/exclusive_start_cond.json-nft       | 52 +++++++++----------
->  .../parsing/dumps/exclusive_start_cond.nft    | 42 +++++++--------
->  .../parsing/dumps/large_rule_pipe.json-nft    | 24 ++++-----
->  .../parsing/dumps/large_rule_pipe.nft         | 12 ++---
->  .../0037_set_with_inet_service_0.json-nft     | 10 ++--
->  .../dumps/0037_set_with_inet_service_0.nft    | 10 ++--
->  .../shell/testcases/sets/dumps/0047nat_0.nft  |  2 +-
->  .../sets/dumps/0067nat_concat_interval_0.nft  |  6 +--
->  .../sets/dumps/0067nat_interval_0.nft         |  2 +-
->  .../testcases/sets/dumps/set_eval_0.json-nft  |  4 +-
->  .../shell/testcases/sets/dumps/set_eval_0.nft |  2 +-
->  .../sets/dumps/sets_with_ifnames.json-nft     |  4 +-
->  .../sets/dumps/sets_with_ifnames.nft          |  4 +-
->  .../transactions/dumps/0049huge_0.json-nft    | 16 +++---
->  .../transactions/dumps/0049huge_0.nft         |  8 +--
->  46 files changed, 186 insertions(+), 185 deletions(-)
-> 
-> -- 
-> 2.54.0
-> 
+> Is this to make it consistent through different distros due to
+> different definitions in /etc/services?
+
+Yes, but it's about /etc/protocols. See Avinash's attempt at eliminating
+an actual problem there (and my response to it):
+
+https://lore.kernel.org/netfilter-devel/20260808013327.2766739-1-avinash.duduskar@gmail.com/
+
+Thanks, Phil
