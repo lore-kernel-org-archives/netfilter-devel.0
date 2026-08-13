@@ -1,59 +1,60 @@
-Received: from sonic312-30.consmr.mail.ne1.yahoo.com (sonic312-30.consmr.mail.ne1.yahoo.com [66.163.191.211])
+Received: from sonic306-27.consmr.mail.ne1.yahoo.com (sonic306-27.consmr.mail.ne1.yahoo.com [66.163.189.89])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6696C3ED3CA
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 20:49:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.191.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4413ED3CA
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 20:49:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.189.89
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786654155; cv=none; b=JhUkpEVAdnukIsCFHNUi6hJs4zxliYE4gBTj0tH4KnSDBVZLUGC8WxDq5xMHJ5uzrnOdDif1jBgq/aKxUsK7CsEAprHRW1+UDewH8uqbHgcZAdAjjfJlsBEPLtoqfQuRvhMBW2QIV9JyJDXkp1P/PM5coG+Axr05iASHcZ/w6Oc=
+	t=1786654159; cv=none; b=Zq1a/dRJoIUA1rBKlTa9uWwFSYs7LjPwNt6Z0qJQh+x1YK2kEfPwtVSbW0X1YtR3/yHQt4DUWNJ5Et2C1RN2x2PH9qfJTfUrwr6T5zcnW0PPKqT55JfBnGtATv0i/WniaJ8Z3jpQ4BOIpmWm6q0qariqy3uFhTeorLx+v7UkrN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786654155; c=relaxed/simple;
-	bh=DIQU+6auSh2IH5hwCPHBRsjGy2ENr2rewD3KTBPZauA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:References; b=L06Nm2CTH9IOmuvN+DscDliiixOHKzgu7gnlupMqRsHYoP5Qd7P15zygD2eH0+aWBOYJUhHRKOY1mozZ/AOlKfQ7AOPgtTBCaTZeO8OOfHrb8iDDKSL/dX1jPqT5FMuzU6Fb8NYFYGnzLrDKGNkRhaSAnmVKPb3FpUORoJX/JIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=TjFFaPvg; arc=none smtp.client-ip=66.163.191.211
+	s=arc-20240116; t=1786654159; c=relaxed/simple;
+	bh=s5artP1LDQIWhdH1NzccW8mdrQNOfSA1a6tUvGlrj4U=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=OdQNmhw56lEL4LGs8o3ZNdZ/uZtElCPeQmv9F4STl9rO8xP5WJGO5yKncX7ks6j1Sq2TKMn9kQOnDsrVi4YxxYVKvkUXGf8J3fTjPLSUu0Ir/FJrTYDTQ5u2tzMTPd2Rm4rQ24/fRBWG/EKnu0I8JTiJXD7yj5ja8Z7BUADm+mY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=lmEdUXyf; arc=none smtp.client-ip=66.163.189.89
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="TjFFaPvg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654152; bh=/RMT55IF9krlnK8CsE8LRu5kxWE2zTAjTr2x93QxEpA=; h=From:To:Cc:Subject:Date:References:From:Subject:Reply-To; b=TjFFaPvgJ9b72N+qaZQJLU8PHcZsC5eerargR66R8A31h/HmClVKWBX+qS6hfJ0Z/znGoo+5l+FDseudjp/AtcKpK4xy9tT39emtqhRcPqdPW9udZ5bDMR/bnB2p5KS1+hT1tKdmNG6shXVJZQI0S25TLUPtM23c76NRDojJv0OMfC1u5p1SInrZgvgKMCzk738UHw04qET3CVqLzriheYFT7itcm0m43pU9j+HQPTHa8BMy5s405WIid8EEiims4H2FdA8AmpZrrhw5bCUk1Pj6H4kbkDpUJXWlYTyFLnSdwiiSdr115jvfZcfPj5qkfJ/vUEWqE0xvLjaGlVXGWQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654152; bh=am7R0gBvRkkJHhwcTc4xrmJJfxWFF35LHGRnGI6OiFu=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=LS8AiTg87omGqd4GWiCTb06ae5MPqNs1kjBHFIHN/Q2lcAA1yioB0zXwKRklGQCvtyYqG8H/zlo+U522FL+rJcIDQ+BFQwoUl+0m8QzTtdK0uZs7O6KvaFEfwZaVbrsDPZjY+2/kI6ClrZ4FPQK7SjZspA7JKdg0it5Z/K6ZFiX3hApP7gWsO6wBiOU0zrf8DngbJT1RmGuKI5/4OoFVciidLrV4nR9vmdesFyyy1w/U8cHI7ihxOioSA3MstADWhCADK1TxIo03uijcCyb9BDOQSp1Abl03cfDvGJSoEfstJevgV4FEFu7d/52cHRaZLwl/PrcWiGX3/e7zklzgIw==
-X-YMail-OSG: PXqJN5AVM1nMUZk1ij9VznziUc6mIyncqkuVhWhrrq7hJhll9fkUcjj3837BdkG
- 3Ll3Qp_7vgSS_AENnvYbgN0JUDq9OpQm3MWrK2AjlObej7Soo5YLgKYEnjlaZmLxNW.zdpeEeOHq
- UbOfT7aPir3po_qDnfrcHpC4ZSybFoSVKXQR_YtDUmRcYQ7Hq_O9GlQFsAhgigYonyw3XwryBSst
- 4p99x7ErMtD2yhSR9q2z.GAoeQDNTMBS1dThQl8UufSpm6T1UOsulmF5gwpue.xH_i8z9rcCv7J9
- zJmuEk7iwLjrniIlSnCIQuV308marDT8JupagaqGp.3Xgx0m2TiRNZKkWL4aDIleqB03j8qWTfe9
- SXtFmJI_smfr7P1ESA79604X5Q.7VRQyD2h6h6IOOcU4oVMsZRi16Ur_vW0bA6eSdacenKU1V4jH
- 4mcTjF.htq9PX37q2SvvqoJTIMw6hB9jhm_9DN652jRUnq6ns6PkatsobXadRrBTDIfRY5a5Keri
- xpKxFsKvTC.YJ1nOF.klySBD_rt5YsWpBF8yyP287M79hUj5Cm.6Q70Jo.fcFFOF1rJW7xhf.ZsC
- YlP1pnj9LIAjK_5aAQlnmqZX.Diq.nfeBCoRbMO90.LBZ1NRVAhX00Z6OkS1UWWI1osEO6bFZCTx
- GcNQ9s.FQEzRvjXqAlRhQusPhS7kD1cwApk61.iRGC5Fu5gpfXH9vcQQAJHmJ0cnjJcMfIWTKRrT
- FWKkjzfa7PLhryQ1TQefOJEUM5x_AsgNB1lxelLOzhtodBZLFwWu37LfH6N_o8efaadnBPUp3kE7
- ILuhq5XBkfAgxYxlZRr15gSUQ0qIoNHBoAp5WAJVAVO703CGgpS3.gtX1mtuO9o6QF52EnVbOffX
- qDN2LUWXRTdmPvt7kGjAU9PsMG1dQkH79wkFVqcOg2H1e697j.E4zvgWy_8HZRWRgYFqLsxpCqcI
- fwPGiaZwLDu5kKczUekWWZtZumtgOUqQ6_DYPWOL0dQ.XI6wn8tmLeVcKPaGW1PmGlkvPrrSUFgh
- mLhntiOVrPCY_Yec4CjYLTRQyNDBzaoxgeVv3FdbL1Ep_zxbfM0qoGhm9Q9dxtGF5veoUJk6RB2G
- PBtqcQYtcNrg9WVIxeF9O2xz8.h9mZA2TtSXJ5.Yd1i.XcCqBMZOk7nrEAD.qj6NoxKLbdlU8Apq
- PyJci_vdGMOlNYL8PRjHdYiO4fsGL38XFCIyjCMqNrWEaia.kNUKkGQ0lkrJPxG3AXnEFXI7jAyY
- SsQpYJeDD.k_NApG5B1coMK4urIb.tZ0cRiRoutW291A_PNV5OapCoqmjNejAhVE55jfFBd3F1UZ
- Gwv491.jEJe9dFLnACBPZJtUmBWJkjQMUbU0uhCZSKLxEm6i_VLBG6aWAOKDFLgX3EKE3pZUiXsf
- 8UZ.swip1CqDUU3ihlY8WnEIJBR4AVx0Tg46UMsNKnhga.Na532XGgTTqBbYQWtB39.hNDZF8IFz
- FpzoKe2J6KZUf0bSZPh9YvqoYCmey8zcYNqX4Y5tosny8I_hWRCxHnqr2zGPFqzfq.cGtNMkE4j0
- t3hbm61J2Vx0sPQbK96PbvNLB32nCU_dJFzNfpiptAf6SBJMnPt96XOrfMq86LbccNvZxnqv6hmD
- gbM5OPeGxSkA2FuAZw1brUlOaHTs.2lHaABPr7DYaeC.La9ej9.cUFia_4YPC2iLJ9aNTSq9XGjE
- IuwxHQMxHQKp6rp7e2Ueu99_8eqp8ucRW5bAZ8HL794OaONg6s66oNcIGFEr.b8xV5bkRljZDW8C
- 78KO67f9eGVl87WTiBPtR8cXpzIzB8wplB9.YykBM978NHF.1WZ8wOh0zcBkjvDYvXy3X4cyeHQp
- y2gi2iILlY_Cp_kMeL9SlUmOITKmTfzGfxyOTUDogeo9078HLhQ6WkDfXbqZq0ISXUo9u4VT2lup
- VNH3mnSMhoMzFZVXGGcWeQxik0ggsRAGKsdn_7wOXOSTvw6JaaOSm7q1tE145X.kOl7siuM.kbka
- Y5MkjUzUPgekhwHmyKohVIAaKGAibpxw1ODdIyM6hrwrbceId_bpcgA.skiaYwjAfyHdv13EbKCd
- 5K5F900lFxYvXEratjwPc0RJcw78fc19Eg7sXI5hqHsrz5bZ8ZCru5ycXAfqXYqEk6HFU5bFINnD
- 1LCLQv0zISwA4knjG0HlWAWNpWwA9dhmRMNSMb.r15YmZQ8s0J1ZMopz_ZbOMWSfvQJ76E8CowWJ
- 3invtJzd7MI_XY5TH.XAJQ1xWeLYhy7514cJRxueTaAkTZuTKqN1SiGoZX2QqAVUFhv_eEYFVQ3I
- 9yAbUITU45moWF5UXEX0S2g--
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="lmEdUXyf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654156; bh=ED8dgmLby4uDvmQmYjzWJwEfBzVYP4wU4faKBGjAcEo=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=lmEdUXyfBPuMcxDiFFWDNhr5nLi5X6ecLYp4xoMh2HKBtvywgAETVCA6gIBuDK4Msdx5+PjndqA/DvFL0eNeWj2FA9i2NjOjVywVoFDlRgJnAS0r4w8IF78sA/TY8hMO14ftSFvBkR2SVNVvyYpI1GiN+jWstW5MgBRPA4vjhKlpW2+nq2aQ3cAnU6+Pvn8Lw1zd/lgSnMMaUIE9zpBFcHhq7r8CX5n8gM+AcB12m2rZBb69B+cZ4HgA5M4W0ycAqdGWzMCcxrRklu1r6LheddyssEjS5VZHgLbwyfB0bPi8ToiPQxjAQ/HvbQIT9MmieW2dbb77YRtEH+m81nGU/g==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654156; bh=KUaGpOy2b8TtfyDWk5b5Yhrja/CHfpWVBJBbthJvJ97=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=shTNst2vku2ID3wTuCgRFmF6wnNO7cvM5cPUW6sp2DXVvz13ckPerKfhJujRzHqqObfbH0ZXAcAXR2LZCJNppJl0xYmcwZH6BJejTSXd03szjm0C3AidLxfWVdGdiDwXSJpIwQudmxWa9333QtTKnyF7PCVakCiFCpFAY5GepmK0H1if6kN/Nd+TMAIZVLWjNpHAA671xyYaQUUqwssiGtBYY89LEdaHpNYByv0XW3MHmkAjyKmqu6jT8knd0iZlgY2P9pkX5PHVLpYTu2U3og6BbaJ/rkP4Ji2LczBCM5LFzvD9ggPu2q4hbHc2tfdddby1v13WrN38KUZm5mZDHg==
+X-YMail-OSG: NE_mH_gVM1mJrncOfyNJgEZqlITHP1oKTkq.qtypC_o9eFVc3h0e95Nfk5ZtFuT
+ aGkqmv9GM6nGkWemslN5P2S._5.uGEz1DcLWfnaSGc5lgiuJyQF28qi8Z1aCrpaHqO5vDNYTNODt
+ AOZhaOiaZ5_64Y2tQ.Y9nGJ4sdSMY7IvqOxNmA4b9k2ozV8FYSXBgINfxDK1EtqpnjY7TU0I7jET
+ ftwu4MeHm17SCWl06YBPXY96YbbS74LLwYBoEZ40.PCsEMNkZyqWAOJDVVFD5abIrMaFVg4pNvBp
+ pSSs.lSqPYdtun78GaVyrcp2.Bi7QAdWphqI3bSrQNxpNNMkkRWcINVYwRQ.ksmyhqGNy1h87s5S
+ DDZUPdH8QwOfoCZ4M.P.wSHHIfbE7ozhx.gdA4czgHyHNhlHi2a6W9hz0plRQWkELIwac4546uPJ
+ vBM.hYtTtbI.KW4811cCQXuskecgsm5x_aJyRW4Wcwz4AhaL3lNAxItUKtqXKfM3xxyvMNuZiMgn
+ tFg3GfFtDp_Os45VoRrVmpYwfVU5goUG7s5TsNjsm8VDXjMQ5V1Ed7.WE5Ndp0Tb.wvkQ35pqfQd
+ D79uYolN67aZXNufPtF1IYihrL6DD9dkAszuTX7f6BHrh0HF7MRtq0NwUa4OpT4miSoi2QhIZHqE
+ tlOgc4_vKuij.xQtGd267GISmH0xt0z9lczDZtX9mgkQQo4dCxgc8tO8Z6M4206LxLbkSNIvGOyr
+ gTbJrjk8tv.vThhU8Ho26GwPrunUgIA0Q9LzGzbzmkhSGJ6O6o_tKr_qDIcYLDHGxD2nLs13J5lc
+ Zo3yiDpxfbHuhdeMJ4uKPwFsRufKIh9Mxr2tScMTOm1TQ_I6VhQ2AK1ka5BsNmSZB.cBkZTujaOz
+ FnW1yEp2ofza.Dcq1u4bTsWyaKj8zDjs.qyx5MccELYQCmS3MUr4T34YZeIkNrAvGLcyOKR1BeAO
+ 6vaxWnh1iMHLDdav4p9JshT7Or9jGJYC5Mk_Pq.LjEmWvjj3.WsmeoT9ltPzq7QgQO5oaiVhsiMN
+ x9yZ40y71gD7q_xW8kuY9OZPS3DiZqEJ.UbyA3An6XbVCNe.twBo5HVDROfdod8BJ7uglh93Cq75
+ 54Vzpbg62NSuK8MgFRMlPO6m1ZYSxTmMRTRbLOsuGPmiqXqoQz_pq1m5JIQDUG1Qgcu51w4ebTKD
+ .KjDqbUGJdyemZe7ah8I3XT9cEz7tByyEaZVLsFCU4q33SviqLWnZheg_mrK9pBjOVwO_TXyJu_I
+ nFesJx1bj7hmxOxx0HdEAiUlzRZkpVYaAwuGt_NLdzJyRaEbC.ry6ZvSYixTaA4DfTNZompNetZr
+ zno.SzE_h64zNtAcFcxYqg2E5nfMivEHTzgoWeG66jjWHxUQfKpKzVFtow5MqDuwzD7SrOIqrEPd
+ kHtPYdsa2lPgx6gl41NXgHZcy603sRcun9_Ms6yXVdx1.orweL1kaZoET79jLJF1TEALkOEUTQ.W
+ 5CPiZop9nUDzV6pesjS73C8Gyt.zmx6ZT.eZ8nHRnChmmH0KBJSkI6UtZEtWqgjyXFPgHG1OBAP3
+ cW26ROpz2BLSSqzhTmrWolvkls8O5hq25Lv6MUTSZ5punVgAkdqbUulzI92w16gEpRDvOHE2TPOB
+ mEyTmKDla4U2oBwIT3bGWW6jqF5rQwZzlP_YtfmrpluLzJ37Em9NXsS9ZI3cbNDExnkiG01nEzb0
+ MFup7py8j8OnYAFmTkc7Ul1RIa9Rpl6NPptxOFeZ46iE2xtKemHOdb2B2NpfJ2GTL._4XCnwSBrS
+ E7kDvpwEQBTH0Inklaqsw84i.PLsPJhrCCkbSmHgDRl4Gzmu9fuw8hhGCsO_4RTqhw6o0q3v4gFk
+ Ej9JxvI9hWTGu_haWvAzKW3jBlHqOog.ZpBbQBsFdaA6sIthjPBmX2H8lvMDg7kQBEC756JjX249
+ uDiPbdwUJfD292fpiC1mj9Dvh8xhcWwG5fRJGUj4mTnfDFakK3UY_vpvX_05uRtXrHZr0SZ_bp39
+ 9cKy.HiWdw4oIhOzy438Wab5v7fuxM.L8pbXBd3Q8BLaEvSHml2xuJvGDrFF7S58ziDtro3EyECg
+ 7qkdnw.65vVNDNgtyRpeJo7.v6fDVxbI3MNdYq1IqOyY0SMKuiKX0bURyB6mdVwY4kBCecgVYczp
+ 4ITW3XBPS0zNTkgymBP9CcRT.I.O1BSysv_AXpM17a72EG7A7.zPqyckBDIRFswt8o0x_Ecj2E4P
+ ofekgTmbzUYgnBf44fA1JanqONynWWmzozoLgIgHC6m9VeDFsHHtSAc8xdbkjCuqGNfux.eje6jn
+ XrCtSd.Xw_Gp0zoF99CDMzgtkR98-
 X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: e5e0a941-d512-4301-bce2-2ac91937ec17
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic312.consmr.mail.ne1.yahoo.com with HTTP; Thu, 13 Aug 2026 20:49:12 +0000
+X-Sonic-ID: 732d7d6b-6705-4274-ba08-40485e0f121c
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic306.consmr.mail.ne1.yahoo.com with HTTP; Thu, 13 Aug 2026 20:49:16 +0000
 Received: by hermes--production-gq1-678d9dd684-6hkng (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID afc5ff34d004487469fb59f8ce77dff6;
-          Thu, 13 Aug 2026 20:49:07 +0000 (UTC)
+          Thu, 13 Aug 2026 20:49:13 +0000 (UTC)
 From: Casey Schaufler <casey@schaufler-ca.com>
 To: casey@schaufler-ca.com,
 	paul@paul-moore.com,
@@ -71,10 +72,12 @@ Cc: linux-kernel@vger.kernel.org,
 	penguin-kernel@i-love.sakura.ne.jp,
 	stephen.smalley.work@gmail.com,
 	selinux@vger.kernel.org
-Subject: [PATCH 0/7] Change skb secmarks to x-array indexes
-Date: Thu, 13 Aug 2026 13:48:47 -0700
-Message-ID: <20260813204854.19211-1-casey@schaufler-ca.com>
+Subject: [PATCH 4/7] SELinux: hooks for secctx_to_lsmprop and update_lsmprop
+Date: Thu, 13 Aug 2026 13:48:51 -0700
+Message-ID: <20260813204854.19211-5-casey@schaufler-ca.com>
 X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260813204854.19211-1-casey@schaufler-ca.com>
+References: <20260813204854.19211-1-casey@schaufler-ca.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,81 +85,64 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-References: <20260813204854.19211-1-casey.ref@schaufler-ca.com>
 
-When security secmarks were added to the Linux network stack there was
-only one Linux Security Module (LSM), SELinux.  SELinux already used the
-concept of a security ID (secid) as the representation of the security
-information about a system subject (active entity) or object (passive
-entity). Adding a container for a secid, the secmark, to the sk_buff
-structure allowed for efficient transmission of the SELinux secid for
-socket based access controls.
+Implement these hooks.
 
-Subsequent LSMs have chosen to represent security information more
-directly. Smack and AppArmor use pointers to structures containing
-relevant information. Alas, these pointers do not fit in the u32 secmark
-on most modern architectures. These LSMs are required to provide a secid
-mapping to use secmarks.
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+---
+ security/selinux/hooks.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-Even with all LSMs that use secmarks having a secid to reference the
-security information the mechanism is imperfect. A system that wants
-to use multiple LSMs that use secmarks is constrained by the size
-of the secmark. There is no rational way to fit multiple secids in a
-secmark. While it would be possible to allow one LSM to use the secmark
-and any others to be told it is unavailable, this has been deemed an
-unacceptable limitation.
-
-There is a lsm_prop structure available that contains security information
-for any LSM that maintains it. The secmark cannot, unfortunately,
-contain one. Instead, an x-array of lsm_prop structures is maintained,
-and the index (secxa) is used in the secmark instead of the single LSM
-restricted secid.
-
-Uses of security_secctx_to_secid() have been changed to
-security_secctx_to_lsmprop() in the netfilter and iptables code.
-The security_secmark_relabel_packet() function has been updated to accept
-an lsm_prop pointer rather than a secid.
-
-To support multiple LSMs using a secmark it is necessary to re-evaluate
-which lsm_prop structure represents the current security information
-at each step where the secmark can be set. Smack sets the secmark for
-every packet.  Netfilter, used by SELinux, Smack and AppArmor, will set
-the secmark on selected packets at a later time. If Smack and AppArmor
-are active on a system Smack will set the secmark initially, and AppArmor
-may reset it by netfilter rule.
-
-https://github.com/cschaufler/lsm-stacking#secmark-xa-7.2-rc5-v1
-
-Casey Schaufler (7):
-  net, smack: Create a function to set secmarks
-  LSM: Implement x array functions for secmarks
-  LSM: Two hooks for manipulating struct lsm_prop
-  SELinux: hooks for secctx_to_lsmprop and update_lsmprop
-  Smack: hooks for secctx_to_lsmprop and update_lsmprop
-  Apparmor: hooks for secctx_to_lsmprop and update_lsmprop
-  net, lsm: Change skb secmarks to x-array indexes
-
- include/linux/lsm_hook_defs.h     |   6 +-
- include/linux/lsm_secxa.h         |  22 ++++++
- include/linux/security.h          |  21 +++++-
- net/netfilter/nfnetlink_queue.c   |  12 ++-
- net/netfilter/nft_meta.c          |  16 ++--
- net/netfilter/xt_CONNSECMARK.c    |   3 +-
- net/netfilter/xt_SECMARK.c        |  15 ++--
- security/Makefile                 |   1 +
- security/apparmor/include/secid.h |   4 +
- security/apparmor/lsm.c           |   2 +
- security/apparmor/net.c           |   8 +-
- security/apparmor/secid.c         |  23 ++++++
- security/lsm_secxa.c              | 119 ++++++++++++++++++++++++++++++
- security/security.c               |  38 +++++++++-
- security/selinux/hooks.c          |  89 +++++++++++++++++++---
- security/smack/smack_lsm.c        |  46 +++++++++++-
- security/smack/smack_netfilter.c  |   9 ++-
- 17 files changed, 398 insertions(+), 36 deletions(-)
- create mode 100644 include/linux/lsm_secxa.h
- create mode 100644 security/lsm_secxa.c
-
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 8d6945edae7a..c05c05e71078 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -6946,6 +6946,15 @@ static int selinux_ismaclabel(const char *name)
+ 	return (strcmp(name, XATTR_SELINUX_SUFFIX) == 0);
+ }
+ 
++static int selinux_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
++				  int lsmid)
++{
++	if (lsmid == LSM_ID_SELINUX || lsmid == LSM_ID_UNDEF)
++		dest->selinux.secid = src->selinux.secid;
++
++	return 0;
++}
++
+ static int selinux_secid_to_secctx(u32 secid, struct lsm_context *cp)
+ {
+ 	u32 seclen;
+@@ -6964,6 +6973,13 @@ static int selinux_secid_to_secctx(u32 secid, struct lsm_context *cp)
+ 	return seclen;
+ }
+ 
++static int selinux_secctx_to_lsmprop(const char *secdata, u32 seclen,
++				     struct lsm_prop *prop)
++{
++	return security_context_to_sid(secdata, seclen, &prop->selinux.secid,
++				       GFP_KERNEL);
++}
++
+ static int selinux_lsmprop_to_secctx(struct lsm_prop *prop,
+ 				     struct lsm_context *cp)
+ {
+@@ -7694,6 +7710,7 @@ static struct security_hook_list selinux_hooks[] __ro_after_init = {
+ 
+ 	LSM_HOOK_INIT(ismaclabel, selinux_ismaclabel),
+ 	LSM_HOOK_INIT(secctx_to_secid, selinux_secctx_to_secid),
++	LSM_HOOK_INIT(secctx_to_lsmprop, selinux_secctx_to_lsmprop),
+ 	LSM_HOOK_INIT(release_secctx, selinux_release_secctx),
+ 	LSM_HOOK_INIT(inode_invalidate_secctx, selinux_inode_invalidate_secctx),
+ 	LSM_HOOK_INIT(inode_notifysecctx, selinux_inode_notifysecctx),
+@@ -7812,6 +7829,7 @@ static struct security_hook_list selinux_hooks[] __ro_after_init = {
+ 	LSM_HOOK_INIT(sem_alloc_security, selinux_sem_alloc_security),
+ 	LSM_HOOK_INIT(secid_to_secctx, selinux_secid_to_secctx),
+ 	LSM_HOOK_INIT(lsmprop_to_secctx, selinux_lsmprop_to_secctx),
++	LSM_HOOK_INIT(update_lsmprop, selinux_update_lsmprop),
+ 	LSM_HOOK_INIT(inode_getsecctx, selinux_inode_getsecctx),
+ 	LSM_HOOK_INIT(sk_alloc_security, selinux_sk_alloc_security),
+ 	LSM_HOOK_INIT(tun_dev_alloc_security, selinux_tun_dev_alloc_security),
 -- 
 2.54.0
 
