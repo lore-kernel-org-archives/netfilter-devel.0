@@ -1,115 +1,235 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55D0B370AF6
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 12:58:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C84A23909F
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 13:00:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786625929; cv=none; b=UABGuIvcqHnHhvxLqMJn9/J6vh55DoamzrFxU6bpZWv+rdzFRvOgy1EadCl+ajjAfPkw3WIAPp9OIAhwTr3helOkZ18js3zQ2kGE5sfcd12Rz3GKYDweSH3QDn+bUN2d5Fy8e3YOkNxGVGS7jYVxa2rIvxYSCQGWQvkcnq+ux/U=
+	t=1786626044; cv=none; b=X7iPKc0NeYU3gEeb0c4j4DlZ+fEyqfJNudG49gsftzFxdEBo/bUmElFNV5XoMGcYh3Ascx9ba7fcRWUkgU97cfhcxVwdgRAMa0sdR00dOjoLn1g0Wz2VfhGvuC6Yxo1RoNGmGxgdqUHgusQyn59A2Uk8vSw7CPYxViO+FimMzzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786625929; c=relaxed/simple;
-	bh=yJmzG+EgAjtP+juW9ZUOSRbW45vhY+U18DDRPDYtzLM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=igHfXr9MYfJl2r7pv5IOUqVARSAG59YwqPfZCy9u53xPBza6fLHklepuVXThhztNzpXBd2NAm8B77NAakpQlg9WZZ52SE/VimzEBLRnR7OdZy9J+L1+0twFe2ci5ntwEAP9JW9Mdq6vE0AYzgG0R9XT3lxvoPlxX6DZBYWafFY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sA9ddR0/; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1786626044; c=relaxed/simple;
+	bh=Q0s48f3PXEUjG2Bh5CIGB7LZ2ZMRGEJdf4wLybwCjbo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ipkHPlyFgTuFPKx0vITvwy5hp+JTIG3cs0L2r4PQOwII5b+SbioN0K966xTE4GqOIcQFvu05HK2Oln+/Bjl8jPuoGmuBlhLFenP3Jayt9WTc4HsI9UvZvYJqTlKkg2fF897FCGesfz9x1wE15WnBc2o/guhB0poyv2Zic2/fWNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cRL8cRJv; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sA9ddR0/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cRL8cRJv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786625924;
-	bh=WKGHMPuW9+F13eKvreOmA5tufj9OLtbYHagNBkcrjKQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sA9ddR0/TQ53PCe4TIKEWThWqSWOh3PYjCnhqAfLbdqcptApxMrNUEqmOYXuGbgU/
-	 /h32iJDhvhmrZXh0VCr1gfvF+oMiYDqSdArPVssHYcSIzkd0Rvf7dkfPIRIFBKoaKa
-	 Nw4TkBjMsmi9cCanoOUlpGqENviO+Oyt1cltg+ApzVeNB/ZvLx7fbfcSyed2VK/KRU
-	 Va7fhYcurUUysMx4ft0gtUeUAD/R4dNQWBUwKYTK4Ht7OjyJPWzDmakDekHAHOigiR
-	 G0NXRMff1nX2b1XaRBqwNfP91GtUjcSa+0f68fbFvzSM0zNpx052vrw0Z8uAiKpdgq
-	 1wakeBVy3kwcQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B8C6E60081;
-	Thu, 13 Aug 2026 14:58:44 +0200 (CEST)
-Date: Thu, 13 Aug 2026 14:58:41 +0200
+	s=2025; t=1786626039;
+	bh=QVKJv/fDmsdktJEgLDBW1KtATwdyqN3KglVJCWmBngg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=cRL8cRJvZRKY6aR2gywwCr3faHvgrCVnwUTe+pJMF94o9Qd8ilb9Vr9U19PRbaRkM
+	 DVPimd37/TlwMbYLx8kxwNIIFxzXZeSFqLJRhiIPcoH8B9MPBKbCz9/BfI+/D3EoS2
+	 Jzd21WTTdxqMX2xJrkKuAYtZY7KxNGC1vIWtni/867y1X/q/YZ1PcnvrZRqpIBG1QG
+	 Rj+A0UuwJteU0Uw+WMhQc8hRWTsk1hGV8mPpz+m7av1K8EVr6ako5sIhxMHmqmnXWi
+	 mD/FUxxNbCM3n0DPW+AL/592LmN3RLWrTlniVxhNvGUe7BewHBf9QxQpxcm+6XEmjy
+	 4DwOOShUUjlHw==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7B0516005E;
+	Thu, 13 Aug 2026 15:00:39 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Avinash Duduskar <avinash.duduskar@gmail.com>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] evaluate: reject negative values for unsigned
- datatypes
-Message-ID: <an2_gW-ZhrAACQmb@chamomile>
-References: <20260808013318.2766219-1-avinash.duduskar@gmail.com>
- <an2o0fusJ0K-_CbS@orbyte.nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v2 1/2] netfilter: nf_tables: move set_update_list to nftables per-netns
+Date: Thu, 13 Aug 2026 15:00:35 +0200
+Message-ID: <20260813130036.1088563-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <an2o0fusJ0K-_CbS@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 13, 2026 at 01:21:53PM +0200, Phil Sutter wrote:
-> On Sat, Aug 08, 2026 at 07:03:18AM +0530, Avinash Duduskar wrote:
-> > expr_evaluate_integer() only tests the upper bound, so a negative value
-> > passes the range check and mpz_export() then drops the sign:
-> > 
-> >   # nft add element ip t m { "-1" }
-> >   # nft list set ip t m
-> >   table ip t {
-> >           set m {
-> >                   type mark
-> >                   elements = { 0x00000001 }
-> >           }
-> >   }
-> > 
-> > The error string has read "Value %s exceeds valid range 0-%s" since the
-> > check was added, so the contract was already unsigned; only the upper
-> > half of it was enforced. The result is not a wrap either: "-1" gives 1
-> > while "-4294967295" gives 0xffffffff.
-> > 
-> > Reject a negative value, unless the evaluation context is a chain
-> > priority, which is signed.
-> > 
-> > Fixes: cb7cb885d65e ("evaluate: add expr_evaluate_integer()")
-> > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
-> > ---
-> >  src/evaluate.c                                | 12 +++++
-> >  tests/py/any/meta.t                           |  2 +
-> >  .../parsing/dumps/negative_values_0.nodump    |  0
-> >  .../shell/testcases/parsing/negative_values_0 | 46 +++++++++++++++++++
-> >  4 files changed, 60 insertions(+)
-> >  create mode 100644 tests/shell/testcases/parsing/dumps/negative_values_0.nodump
-> >  create mode 100755 tests/shell/testcases/parsing/negative_values_0
-> > 
-> > diff --git a/src/evaluate.c b/src/evaluate.c
-> > index 8bb7b609..f5b88c0b 100644
-> > --- a/src/evaluate.c
-> > +++ b/src/evaluate.c
-> > @@ -447,6 +447,18 @@ static int expr_evaluate_integer(struct eval_ctx *ctx, struct expr **exprp)
-> >  		return -1;
-> >  	}
-> >  
-> > +	/* chain priorities are signed, everything else is an unsigned key:
-> > +	 * mpz_export() drops the sign, so "-1" would silently become 1.
-> > +	 */
-> > +	if (mpz_sgn(expr->value) < 0 && ctx->ectx.dtype != &priority_type) {
-> 
-> Although it might remain the only case, I don't like the special-casing
-> here. Looking at struct datatype, we have a 32bit field for flags with
-> only two bits used yet. Maybe introduce an 'is_signed' bit to check
-> here?
+This list is used to invoke the set .commit and .abort ops for the
+rbtree and pipapo to run GC on expired elements and replace the current
+datastructure view by the clone. For the rbtree, this also rebuild the
+datapath b-search array.
 
-Yes, I wonder if we can do this in a more generic way, like specifying
-in the datatype itself the min and maximum value expected from the
-integer. I don't expect "signed 128-bit only". Maybe add a new
-interface to struct datatype to validate the value is within the
-boundaries? Maybe something like:
+From abort path, remove the set from the update_list if it is already
+bound to rule, then the rule itself takes care of releasing the set and
+its elements, otherwise, memleak is possible because set ops .abort
+only deals with removing the set data structure, not the elements.
 
- if (ctx->ectx.dtype && ctx->ectx.dtype->validate) {
-        erec = ctx->ectx.dtype->validate(expr->value));
-        if (erec)
-                return -1;
+This is a preparation patch to call set .commit before processing the
+transaction list for the rbtree, no functional changes are intended.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes.
+
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 49 ++++++++++---------------------
+ 2 files changed, 16 insertions(+), 34 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 3be612145c13..238f6ecb90e9 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1949,6 +1949,7 @@ struct nftables_pernet {
+ 	struct list_head	binding_list;
+ 	struct list_head	module_list;
+ 	struct list_head	notify_list;
++	struct list_head	set_update_list;
+ 	struct mutex		commit_mutex;
+ 	u64			table_handle;
+ 	u64			tstamp;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f398792673db..110c0a31f8f2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -595,10 +595,15 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
+ static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
++	struct nft_trans_elem *te;
+ 
+ 	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
+ 		     trans->msg_type != NFT_MSG_DELSETELEM);
+ 
++	te = nft_trans_container_elem(trans);
++	if (te->set->ops->commit && list_empty(&te->set->pending_update))
++		list_add_tail(&te->set->pending_update, &nft_net->set_update_list);
++
+ 	if (nft_trans_try_collapse(nft_net, trans)) {
+ 		kfree(trans);
+ 		return;
+@@ -10848,11 +10853,11 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
+ 	}
  }
+ 
+-static void nft_set_commit_update(struct list_head *set_update_list)
++static void nft_set_commit_update(struct nftables_pernet *nft_net)
+ {
+ 	struct nft_set *set, *next;
+ 
+-	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
++	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
+ 		list_del_init(&set->pending_update);
+ 
+ 		if (!set->ops->commit || set->dead)
+@@ -10885,7 +10890,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	struct nft_trans_binding *trans_binding;
+ 	struct nft_trans *trans, *next;
+ 	unsigned int base_seq, gc_seq;
+-	LIST_HEAD(set_update_list);
+ 	struct nft_trans_elem *te;
+ 	struct nft_chain *chain;
+ 	struct nft_table *table;
+@@ -11097,27 +11101,13 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = nft_trans_container_elem(trans);
+-
+ 			nft_trans_elems_add(&ctx, te);
+-
+-			if (te->set->ops->commit &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+ 		case NFT_MSG_DESTROYSETELEM:
+ 			te = nft_trans_container_elem(trans);
+-
+ 			nft_trans_elems_remove(&ctx, te);
+-
+-			if (te->set->ops->commit &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+ 			if (nft_trans_obj_update(trans)) {
+@@ -11186,7 +11176,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		}
+ 	}
+ 
+-	nft_set_commit_update(&set_update_list);
++	nft_set_commit_update(nft_net);
+ 
+ 	nft_commit_notify(net, NETLINK_CB(skb).portid);
+ 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+@@ -11253,11 +11243,11 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
+-static void nft_set_abort_update(struct list_head *set_update_list)
++static void nft_set_abort_update(struct nftables_pernet *nft_net)
+ {
+ 	struct nft_set *set, *next;
+ 
+-	list_for_each_entry_safe(set, next, set_update_list, pending_update) {
++	list_for_each_entry_safe(set, next, &nft_net->set_update_list, pending_update) {
+ 		list_del_init(&set->pending_update);
+ 
+ 		if (!set->ops->abort)
+@@ -11392,33 +11382,22 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
++			te = nft_trans_container_elem(trans);
+ 			if (nft_trans_elem_set_bound(trans)) {
++				list_del_init(&te->set->pending_update);
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+-			te = nft_trans_container_elem(trans);
+ 			if (!nft_trans_elems_new_abort(&ctx, te)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+-
+-			if (te->set->ops->abort &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+ 		case NFT_MSG_DESTROYSETELEM:
+ 			te = nft_trans_container_elem(trans);
+ 
+ 			nft_trans_elems_destroy_abort(&ctx, te);
+-
+-			if (te->set->ops->abort &&
+-			    list_empty(&te->set->pending_update)) {
+-				list_add_tail(&te->set->pending_update,
+-					      &set_update_list);
+-			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+@@ -11464,7 +11443,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 
+ 	WARN_ON_ONCE(!list_empty(&nft_net->commit_set_list));
+ 
+-	nft_set_abort_update(&set_update_list);
++	nft_set_abort_update(nft_net);
+ 
+ 	synchronize_rcu();
+ 
+@@ -12148,6 +12127,7 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	INIT_LIST_HEAD(&nft_net->binding_list);
+ 	INIT_LIST_HEAD(&nft_net->module_list);
+ 	INIT_LIST_HEAD(&nft_net->notify_list);
++	INIT_LIST_HEAD(&nft_net->set_update_list);
+ 	mutex_init(&nft_net->commit_mutex);
+ 	net->nft.base_seq = 1;
+ 	nft_net->gc_seq = 0;
+@@ -12192,6 +12172,7 @@ static void __net_exit nf_tables_exit_net(struct net *net)
+ 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->notify_list));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->destroy_list));
++	WARN_ON_ONCE(!list_empty(&nft_net->set_update_list));
+ }
+ 
+ static void nf_tables_exit_batch(struct list_head *net_exit_list)
+-- 
+2.47.3
 
