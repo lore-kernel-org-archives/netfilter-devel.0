@@ -1,60 +1,60 @@
-Received: from sonic307-15.consmr.mail.ne1.yahoo.com (sonic307-15.consmr.mail.ne1.yahoo.com [66.163.190.38])
+Received: from sonic314-27.consmr.mail.ne1.yahoo.com (sonic314-27.consmr.mail.ne1.yahoo.com [66.163.189.153])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E01835C1B1
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 20:59:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.190.38
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECCA3438485
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Aug 2026 20:59:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.189.153
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786654773; cv=none; b=Nvratneo4UT5c9liY/O/RYzh7cFTijPE8aqQ5eZg/+5bTKcb4WO6Th0CClkSdZbwOs/Jb+ziOmMwjS9XdREwf8F8uPsUME0zJx/9Iv4wTDxi6OS/YX3yIP99PXjAOeSdYPbMLw8caSwMteoln39/i+Vi716hcUOiNQxRq2gWBcM=
+	t=1786654778; cv=none; b=txawK2wZ+jk3m2eYx2swBjEFjZu3I4Qbf4AkpN6AeTeKJByfZ2vyu01JZneee9qpsUg9zHPLG4QsL250qWQtZaGGBeRC8GMna7q0ZEYN96dFcpZaLNpsYtFEuyNDSFMIiT3EjqYwXvnQdW2yyN1jmv10i3d/IBtnjZxvUpTV9jY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786654773; c=relaxed/simple;
-	bh=ucSHUE7F2He/v65mfJnm8qKl06ZZN6jMNIuyCzgKkmM=;
+	s=arc-20240116; t=1786654778; c=relaxed/simple;
+	bh=iplEOpAuewoDbtmO5Bgo946/rCYzlrvNkYvSo61Gg+0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BCgOz7klxtq6QdESj8Da5URsVfM2QS3HAaVnKgFLxiRzyMnA4tfHjPVKJJx92KrXHjWajxv2dsT43FzEGNoK9RrLZc1upsz85sX6LQRvhUaVdQFOdxsMA2VhXuwQ77cJiqLXO/oaRgHw8rKe4ivwKyReeujFOKrYEt1sRR/YQ/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=HgV4gZlO; arc=none smtp.client-ip=66.163.190.38
+	 MIME-Version; b=F7kReQO7YF7wofu3Ji54qT85GHMJtmbmkJzP0GBbhZ2YOhd2fLFZEw2lwMCYD8JbyndQjU3/fVyt4kpr4bzQ11vqT2h9k/lCtfwXBo3uasxkF+GpS1xG0XoiCF0Q4crbHl7pi7Z+iCWnbiSUOpR80vuFnr8NF1HHi4U5/85M3W0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=c3Mn0nRj; arc=none smtp.client-ip=66.163.189.153
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="HgV4gZlO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654769; bh=sDHCxHvBj3bCkYweuZ9BxvPJbXdZ56Ci0vAjxYPJVdU=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=HgV4gZlOWgLCNfYCGn+u99v5CkZfJ5st1UYy/qdQ287zxF4e4z5FQMtit2K1a+seHN1IhCElMeWQnjZ11B4nc8Ru+p0MRCAQmVpwbDmIFNUZshT9xZe0AabHkV2t1VZKtMZ+Y0YYiYjOR4coTt5qF1BvcbqCAzAjglCLDsyj5ZsHg9NbousV1wHrlKCzgLWk2Apsc/f6Zu4SXc2osyJNSD7ob/sqzSK3+0bcPXfPWoJFWqyh5q1ZPaV1xtcsN4kM87ju/BD4owmzf8H0/fnq4tfO3E9rWmMk+H+4b8bqSNxemy3pfE30BXiHhVRISZPu2gPGSJhGN233verqQaekRQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654769; bh=HIYDMZxQccBKbir7Ml16MJ7ZjCHc2OPrsUHb1Jik0qi=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=kVY7eSgIkB41BueNylZx9d3PuXAqkEDfZReQiZD5zMka0AxYAFP0XOu6bPc1GPidSTndVLLvzd6sWQ1j46ienq/fvZ7eFmXMLbrdasBVwekxYc6KSwOY7KjxAWPM3Kz/mIQNBPyXKG28IBnncAyt+GSBa0Lo7lLX3QCFSVQKGIS6C9r5bU6N68n4C+/n0Y9SwwZ8s7awVdE5ptzqlHdm/lUU8qYnxq4lxhHP8akEY7lref1OOcmUZPris6bVQQUeKxofSLCF0XBtQuwSRyWIM6/kpvWxrkbKMJIb6akCCNtqYwvrqgJfUF7Rs6fEcfFpgq7Q77+3M6+A7nfPlexTeg==
-X-YMail-OSG: aJLRldoVM1kVIP5pT1W70jK1xP_Mg3FHL8EYG35rT10I6P7CiytQSdnBZJsRjEx
- YDPCiJLuDxPmmay_zgjaoj6CcDPN5neK4PcSVeSx53omHah21lGwBgFcVA2zmR_F6b6KsJMcfxoh
- pIOiACBCy0VqN7SQQWEDmMbN6yMbshtCDG_d50Ic0E4twllkv5NnuBvOTvde545K6H_T9DeGR8Wh
- HTiSPREM4HUOUitn_lyzxSoG6ZqwiGiDj4Fzfdl_E18Oz8w1eHCQKyrpUJPBPKnrgIhga74auMkc
- NObpsNo5s8ZjW7XErsvUPTrjZXTiGmIQQt9Q9SdleCWfvqqihpQkavn5A1G8oeUCg6ZPi3eN5tg2
- X3m3_Uo0RUiIkup9scPzUYl2.bqhCOy8oA3R6z6tIM5mxEl_pNgZo7JrapTYuf.TVpOCKqcfXhO7
- PXgjjxbbIeMcEOupzXPJ5CFtaR4lJ3b8PgS.eMKHUqFe05IDkirbAHoUcXL1N9J3.2kgbrCvPc1S
- .zCaETh6rmRZyniMe3kckYhMQSGUKse2cfjuhV4PLSpr7XFlnozYRgfQxvDVKuCrDZGbGP.CCaEg
- C9kgC01rNg7UU5YHaswrKONDnP1T76Ywv8LCc_AerkO9FLVKlT31y_4XtsbT78xc7bQnFOm480SM
- NZQ21hAl9xlYmMpYyNs_y8NRApOx.Df26tMEhal9x0CdXNI1rOAmhbWY4eJ3aiQmQJs2ebr4Bb9M
- VRNo16uwVpbpOHrK_TPw_v11rFun7tPjgaeJHntxFU.lgF81GHnBnthVQP.k.2fBjJHcUS_RuyBt
- aWTxT19bPoGCrMGfmsC6juHWqln0TvvKLjSsYupNmy45KMzAU93HkIi9Dp5bf6Cm8cFymiEGVFIN
- v0FcNGVNqDbRGar3z1S2WAFs1VD5f6Gl0t2byVPzPriRtaT.MPNvubd9D0S3BEKozgKCN7N4aLdn
- 7HDTN5bBs_ogfAHr3_wHwyra6xLSGgDz_gBkmtBSvQPA9xzF6fnshgdZgSIu.9yqBqH6tYWcpwsI
- G0MHAo2f3qf3oZDzWww.iFBDFQgXfrhqwdefrBgrQKdUBbpv4qjSOLmHf_h3NOSBertujA2OkK5h
- KCbiyrqMjzFYzoOVd3LN5gVncxrGSmNo_ds_Q1NqY9f1xUGuYwDTqGjD.nm4b2tZ84tbw0ZKL4GI
- cEyyg6biWTdhJuOqBUFOckUONhpqrAzyWKVHkZrUEtrR.jzGAz9LUY0BZueT3d..Wk5we_AJE_OJ
- WT.ATVNQMVpvLl4vnv4bB1Al3WL5FxGm16vgaCQA.CraSP_oNf4ta8EvGo9BfYNWz6ehERkWnFsv
- GnKZBbalcYBKZ.b0TjeJZqZ4r2OT4fB_AXtypdQmPw7jHdp2Hq54Lq1MLxh75W1lNtb6yns7JNXG
- oMrMn7.H.UN0iVqVMRgdROlQ4pyQT.UbJOu9RQE2K8FN5uNHW4zq8xeywCEuwPmHkU9ibLqcPktC
- MdOlpSEXhJzCxLNJquJtH5Oo6vseTdahTh0AVY7OTWxzrj30YqBMflCheeuyImQYZ9SO2qAJjIwA
- G7.feRZffedw7O0ymyhA0FLFEtT5Fw9V.G1dErS_HgjiddRfyWY9O3FYSZsWiCFNdqodVGPoqO9m
- 1NaE1NX6xnIdvNtal8_ZA.XoIp.c2MYPtTFrY5GUJIl6BD7BLWP.cpKYjR2.6ke4TUzWGfw5EsVW
- VvBtKmHABNlLaDDidLs7qSzuVF.tvGpXk3n66_l3mjfbjSyEgApIir2va2z4LMS1b3DUpoQ0RyLI
- FkAdD6MMntKOMQiJD8GBPEA8tamFjf.JYsXki1h.LScQmOKxBX6PvZzGHb3kVlloEHMmkcxCZrU4
- P7Iky90f_oxpYgKHAKOog_mKf3E5h0lYR936t9IuPmmaN.INmjVx8Zc0xVR7Mo00keYwF8lnSgIx
- PgbdCK2spL5NfCZOYFP3O6NMtT0.P2dq8spOhTtjxcMfY2nveyFjLCtC3WexwJm8iPvoNC7gsur7
- xZOfYXP_JMGDyt4d36rEIAYEQpyHgxka8XqiqFHWeyUSETs09dBrjSHjU1KaWsz74NnhnPyOAlMG
- XuUh8eoDQpHVy8gFjukLwZ4imD5SISb3QnQ7AWlDP9LBoUGZ5VwF4DTXzwnxoC.A.PV9aJ4qlJYO
- cGvGp9QhoNkaosALlUD4DGbymgjBCruaz3Q7Hy2Y19gzDq_6TZV.g9Nl6FbRXfs1o5Ir7ZguMPGe
- VrM1Y54M03MNID2o2z5qJnAC40p_x_Lp7FopfkBXR_9Z4bbxsUU7KtINxc5u_Cte0mQjSsNvCitk
- V5jNKfw5WWyAQwkCWSflARK4dLA--
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="c3Mn0nRj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654775; bh=L8gF9lbb3/GdM063c/AqJxtVF10JcTPk+9Ii0LVaols=; h=From:To:Cc:Subject:Date:In-Reply-To:References:From:Subject:Reply-To; b=c3Mn0nRjddd37T/EP2WpMG9zFCl00+SHVRYe+X9IKJdPYG83mnP3ATutvQf0q4KqwcT5WLpjlNUsUHXD3FKbcT0fGbN+pSkiulkBRD1Xlh1NBwuV2FOoWvxIKYxDJxbR27Oa3eVkwZntKRZ5MrAgG4ckSGZGO6vZ9cxJ0e7b2mULFSglAvdiWaugVQpwXgYBOMQNHUxqAneJ9RD8Cv9NtxmfEIvAIhJdp0bL3/xmBjAWxAqZJHy4ZZDrHfN/VPdyYd0XZH827KWbEAUTkz0qdZUV4n7c/i1SYXlriQXyw/QNAcvIsx55BRiLk0ymRhBM0vIKqDNI1oIjSbrkKib/eg==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1786654775; bh=bT0lGHdFMPn5QSXBUcZZAWIWY3q+ILHb9ZA+rVJMDUa=; h=X-Sonic-MF:From:To:Subject:Date:From:Subject; b=W72pRKat9oLbOCegwLCZNZflvtTMF7e8elBjWB+PRahIuRFQNbGP89boR3oyiFKhV8v5qGJf9/6k0kbZXDaCJxrz0RdhMjCrZnp/YDxct0yjLieiQ75Ig18Nhdfk1nMXZPTyWkNt5An7f3Dm103CHA/nFA6InIk2s1y8jR8OAr57Ho1se6rWfrS6sazVWjQjUpvXVJGcVmIbM5Fi1dzecXktAV9y3bicgFsH5D8aRootLvmrnLypEzV9/D6qITCE5cdlmqMbglkx97QczftEpCpeohUmhfm4Pl+Kfv0kXGIfjYHwOoLIin88gfVWFoDSeNltMa2sGFZ4fN+VLb/auw==
+X-YMail-OSG: v.aM1UEVM1mRwhXWuoIVtQjgLTChcQQxIObiZted9Av0P_KoQiCW.xehYlBLl4A
+ PLwehYS3vk8PER1Xh0xS1.yuwDmZYiTxyHZuTVmkM159P3eBPxHZP5zrkrBoKD3rb0yphLvwGBFw
+ 3oY6IMYZaDc768E4yXc0kAgWZ.CrLCaVxqNicV70IETUJCWPTUW8dVm9IQ_mPY6g3MoyUmsNVbcA
+ Hsx_WfkBco_j.Ruv5oRn08NQS2Wfz1ZOjNwFfIIZ0i0w3DNHjpBx1T9mWZd0sxRJ9dqgGpdUuTx8
+ rVYZF9F.Xm6ZU6Vw6MF4rvQBUZ9nAacp6UOJDoxVdHiUNB_Xg6mXMfNXaec8M2x4aCstqwRpNjPy
+ c7E6AbQkOtiOK9OEyBFKGlxmOFs9QxJ8tNK0_.r8EkqII2DX3FL2hwLKxBBPxGo._nVaPA7SM7tM
+ NKx4iACoecExmdLp3AJcrl69dpQqNuyFIfejqSdD.zcBdnERZrkSGCkZAhHbdMJ1CZ_o6qSmvqwJ
+ bnndJdun2GlyI27OixsCL4zzoYtnjoJoCkjxU7FL_6GvaoWnd.qqzBL8x8AxXBqt5RgkYBeMXOom
+ ESNLKjH4rQGYzPyB0QKqMc30DJaVzzHHj8kWcPLKr1DZrhoUzdaR_wjv4MJ4reyFQHqE8Q5IRt06
+ vkPs_aRho2szOvPOEACcP1ZIoCgegXkKkwX3oLDj7o.sss.u9Uxu2G92HtMkoez5xxsxEwAD3Vc_
+ C7kRDfirVII3KUFrObh7kcWjiAzq36POX16zxRT61wTB5Ot07LQz0zeIpmd2hVsGmJ5_ujZ8HTOn
+ I2z3AwRqtgHVYfpciOqJbvobJ3gXeQ3.387L_44bzjhVHovykA8OouPd3sN.UnmKYvadQnRw3kTn
+ FJjSUr932.a1nbXEDCfbk0kCrOgQ327edZhNmnZIaA1S43ULRdmslw9FieM.YgyB6oFYwnZFm79.
+ Xt2ZgoBZ.8qoulNYdynHD1LPSet70qNK9fMfYYVRC_cfXiedCXC5l5hVaRxH6YBXKqSv7HubvAGJ
+ Eo1Nk5vwRsgix54M6xX3geqBcQ8AHeXu7CBetfsh_LHXRfh_b4fQZDu8_jy0xZJ.qjr.cYCMaCpD
+ MunEwUo0RQ.boGMOWNmFBUHXh3ckOaksrSde5Jo9SgFNLVzpQRmAAeOBCHcwpx9nTUWOFH54UmxV
+ tBOdB9leo_z2hXT9AhyK6Odrd0unf7lQvFsVB.76KmYdcohJ0wNOfrkMUxFZ35PVeA_7S.atGbil
+ M56LNxShuCbFJ_Ne2fZYnpwoTqwgY1DYbonSzk0hL9HuZjWu_e9oUdgSqucItfEOeZu_vhsnco4_
+ pTBnVVWiXmiOR8yB_0D6j7yGBCoilC4FlxK4z8JjMSStXl.CYYYq.q1T89x24csVxQjP5i760O_T
+ gB.WGcCGEPUaZV3fh95ExKK3e7qcp3kTeBzCdyKUwVlhtYXHHF9FWhkx8f0dfoh31zFz7CpkHeyv
+ rv1VUbiTJ6RGQbb3azj5D6uF0mzs1d93MDQPcKRU9L4TpX..XS6E2Uvny8RWpm4gmaU9OENjQH67
+ TQDucHVDQbVqsVE3IHg9NTp5uqe1GQbJEtaFUTQpp5AezAWGjZ0oZvYkmBW1iwZ0YKwAJPIoxQfV
+ seggGTamasoVAs8fLQhb_bqtcQ8qDyDMRPGErj.ujm__rPfeeXbF26LrAfZ_q1M1wMAdRoCpnsSS
+ ECBsI7emrRmKIno_jOICb1xF7urBEH89cBY._0YnBOiv_OgKV0hLBB5TjsfcKeSmNWaN_LfGtiMM
+ OQaOxEq15AG_dLHd9Zf9qEkeRnXVE2KyvaNQXlTm1laZdie9db9v9qS.oAvivvkBy.V9ILnUIQRc
+ HBTkSlGo_mIPpOlfzeXw3vXUBG3aHa6T2TIa8KkGnFLoykwpqjfAAMSOr4Tw0kr1sJ6lbaL4uU.6
+ 3g0Luj4Qz6D.fongKWk9dE1GX_UF03E69N0WMHG3jaWdbXnRBrlJkFMIlpwrIVVbWelUuu0n86Xe
+ SBJ8aqwfGjNiPSNntx_pHWLUvGEK4SZwf1HOe85hg799WAYnme.YODkYUmvD4PeFdr1UkCLlv3DW
+ H_7UILBPn4AfHAL._V9MYUZHzc776s18rNPtlkDotIP1q1VpeYsFasx9FPdFcUZqC38UEVS4UjwI
+ UZvoz6F_7dv_jALSvix_fR2AFmsGvSL3DPk2dpm72fNvmTUsfMLrtPFtOZ.dofufu23RYIkBGJm7
+ D9xgKAe4RX6DHO.XmAdYs2dcn6bojntgT0mITsok9RP83SB_fxjSotKwQGQZpkJ5pyt7emKlfW25
+ .A.4uBYRKRo93gfKviGaKhsvUks7g
 X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 079dcd19-d024-439c-b9ca-4b87691621de
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic307.consmr.mail.ne1.yahoo.com with HTTP; Thu, 13 Aug 2026 20:59:29 +0000
+X-Sonic-ID: b6a70a9e-8261-4e33-811a-1e77ff204f88
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic314.consmr.mail.ne1.yahoo.com with HTTP; Thu, 13 Aug 2026 20:59:35 +0000
 Received: by hermes--production-gq1-678d9dd684-6hkng (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID afc5ff34d004487469fb59f8ce77dff6;
-          Thu, 13 Aug 2026 20:49:12 +0000 (UTC)
+          Thu, 13 Aug 2026 20:49:16 +0000 (UTC)
 From: Casey Schaufler <casey@schaufler-ca.com>
 To: casey@schaufler-ca.com,
 	paul@paul-moore.com,
@@ -72,9 +72,9 @@ Cc: linux-kernel@vger.kernel.org,
 	penguin-kernel@i-love.sakura.ne.jp,
 	stephen.smalley.work@gmail.com,
 	selinux@vger.kernel.org
-Subject: [PATCH 3/7] LSM: Two hooks for manipulating struct lsm_prop
-Date: Thu, 13 Aug 2026 13:48:50 -0700
-Message-ID: <20260813204854.19211-4-casey@schaufler-ca.com>
+Subject: [PATCH 6/7] Apparmor: hooks for secctx_to_lsmprop and update_lsmprop
+Date: Thu, 13 Aug 2026 13:48:53 -0700
+Message-ID: <20260813204854.19211-7-casey@schaufler-ca.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260813204854.19211-1-casey@schaufler-ca.com>
 References: <20260813204854.19211-1-casey@schaufler-ca.com>
@@ -86,130 +86,77 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-security_update_lsmprop() updates the property of the
-specified LSM in the @dest structure with that in the @src.
-
-security_secctx_to_lsmprop() sets the @prop field associated
-with the LSM specified to the value of the passed security
-context.
-
-LSM specific implementations of these hooks to follow.
+Implement these hooks.
 
 Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
 ---
- include/linux/lsm_hook_defs.h |  4 ++++
- include/linux/security.h      | 17 +++++++++++++++++
- security/security.c           | 32 ++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+)
+ security/apparmor/include/secid.h |  4 ++++
+ security/apparmor/lsm.c           |  2 ++
+ security/apparmor/secid.c         | 23 +++++++++++++++++++++++
+ 3 files changed, 29 insertions(+)
 
-diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
-index 65c9609ec207..3666d821b8a1 100644
---- a/include/linux/lsm_hook_defs.h
-+++ b/include/linux/lsm_hook_defs.h
-@@ -305,7 +305,11 @@ LSM_HOOK(int, 0, ismaclabel, const char *name)
- LSM_HOOK(int, -EOPNOTSUPP, secid_to_secctx, u32 secid, struct lsm_context *cp)
- LSM_HOOK(int, -EOPNOTSUPP, lsmprop_to_secctx, struct lsm_prop *prop,
- 	 struct lsm_context *cp)
-+LSM_HOOK(int, -EOPNOTSUPP, update_lsmprop, struct lsm_prop *dest,
-+	 struct lsm_prop *src, int lsmid)
- LSM_HOOK(int, 0, secctx_to_secid, const char *secdata, u32 seclen, u32 *secid)
-+LSM_HOOK(int, 0, secctx_to_lsmprop, const char *secdata, u32 seclen,
-+	 struct lsm_prop *prop)
- LSM_HOOK(void, LSM_RET_VOID, release_secctx, struct lsm_context *cp)
- LSM_HOOK(void, LSM_RET_VOID, inode_invalidate_secctx, struct inode *inode)
- LSM_HOOK(int, 0, inode_notifysecctx, struct inode *inode, void *ctx, u32 ctxlen)
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 153e9043058f..b209d681e79a 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -576,6 +576,11 @@ int security_secid_to_secctx(u32 secid, struct lsm_context *cp);
- int security_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp,
- 			       int lsmid);
- int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
-+int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
-+			       struct lsm_prop *prop, int lsmid);
-+
-+int security_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
+diff --git a/security/apparmor/include/secid.h b/security/apparmor/include/secid.h
+index 6025d3849cf8..b290ae8f9b01 100644
+--- a/security/apparmor/include/secid.h
++++ b/security/apparmor/include/secid.h
+@@ -28,6 +28,10 @@ struct aa_label *aa_secid_to_label(u32 secid);
+ int apparmor_secid_to_secctx(u32 secid, struct lsm_context *cp);
+ int apparmor_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp);
+ int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
++int apparmor_secctx_to_lsmprop(const char *secdata, u32 seclen,
++			       struct lsm_prop *prop);
++int apparmor_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
 +			    int lsmid);
- void security_release_secctx(struct lsm_context *cp);
- void security_inode_invalidate_secctx(struct inode *inode);
- int security_inode_notifysecctx(struct inode *inode, void *ctx, u32 ctxlen);
-@@ -1581,6 +1586,12 @@ static inline int security_lsmprop_to_secctx(struct lsm_prop *prop,
- 	return -EOPNOTSUPP;
+ void apparmor_release_secctx(struct lsm_context *cp);
+ 
+ 
+diff --git a/security/apparmor/lsm.c b/security/apparmor/lsm.c
+index 88d12e89d115..1f304b88eaf9 100644
+--- a/security/apparmor/lsm.c
++++ b/security/apparmor/lsm.c
+@@ -1766,6 +1766,8 @@ static struct security_hook_list apparmor_hooks[] __ro_after_init = {
+ 	LSM_HOOK_INIT(secid_to_secctx, apparmor_secid_to_secctx),
+ 	LSM_HOOK_INIT(lsmprop_to_secctx, apparmor_lsmprop_to_secctx),
+ 	LSM_HOOK_INIT(secctx_to_secid, apparmor_secctx_to_secid),
++	LSM_HOOK_INIT(secctx_to_lsmprop, apparmor_secctx_to_lsmprop),
++	LSM_HOOK_INIT(update_lsmprop, apparmor_update_lsmprop),
+ 	LSM_HOOK_INIT(release_secctx, apparmor_release_secctx),
+ 
+ #ifdef CONFIG_IO_URING
+diff --git a/security/apparmor/secid.c b/security/apparmor/secid.c
+index 28caf66b9033..51f3e4ab053e 100644
+--- a/security/apparmor/secid.c
++++ b/security/apparmor/secid.c
+@@ -106,6 +106,29 @@ int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
+ 	return 0;
  }
  
-+static inline int security_update_lsmprop(struct lsm_prop *dest,
-+					  struct lsm_prop *src, int lsmid)
++int apparmor_secctx_to_lsmprop(const char *secdata, u32 seclen,
++			       struct lsm_prop *prop)
 +{
-+	return -EOPNOTSUPP;
++	struct aa_label *label;
++
++	label = aa_label_strn_parse(&root_ns->unconfined->label, secdata,
++				    seclen, GFP_KERNEL, false, false);
++	if (IS_ERR(label))
++		return PTR_ERR(label);
++	prop->apparmor.label = label;
++
++	return 0;
 +}
 +
- static inline int security_secctx_to_secid(const char *secdata,
- 					   u32 seclen,
- 					   u32 *secid)
-@@ -1588,6 +1599,12 @@ static inline int security_secctx_to_secid(const char *secdata,
- 	return -EOPNOTSUPP;
- }
- 
-+static inline int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
-+					     struct lsm_prop *prop, int lsmid);
-+{
-+	return -EOPNOTSUPP;
-+}
-+
- static inline void security_release_secctx(struct lsm_context *cp)
- {
- }
-diff --git a/security/security.c b/security/security.c
-index 71aea8fdf014..932a2eca28b3 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -3965,6 +3965,13 @@ int security_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp,
- }
- EXPORT_SYMBOL(security_lsmprop_to_secctx);
- 
-+int security_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
++int apparmor_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
 +			    int lsmid)
 +{
-+	return call_int_hook(update_lsmprop, dest, src, lsmid);
++	if (lsmid == LSM_ID_APPARMOR || lsmid == LSM_ID_UNDEF)
++		dest->apparmor.label = src->apparmor.label;
++
++	return 0;
 +}
-+EXPORT_SYMBOL(security_update_lsmprop);
 +
- /**
-  * security_secctx_to_secid() - Convert a secctx to a secid
-  * @secdata: secctx
-@@ -3982,6 +3989,31 @@ int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
- }
- EXPORT_SYMBOL(security_secctx_to_secid);
- 
-+/**
-+ * security_secctx_to_lsmprop() - Convert a secctx to a lsmprop
-+ * @secdata: secctx
-+ * @seclen: length of secctx
-+ * @prop: prop
-+ * @lsmid: which LSM the context is appropriate to.
-+ *
-+ * Convert security context to an lsmprop.
-+ *
-+ * Return: Returns 0 on success, error on failure.
-+ */
-+int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
-+			       struct lsm_prop *prop, int lsmid)
-+{
-+	struct lsm_static_call *scall;
-+
-+	lsm_for_each_hook(scall, secctx_to_lsmprop) {
-+		if (lsmid != LSM_ID_UNDEF && lsmid != scall->hl->lsmid->id)
-+			continue;
-+		return scall->hl->hook.secctx_to_lsmprop(secdata, seclen, prop);
-+	}
-+	return LSM_RET_DEFAULT(secctx_to_lsmprop);
-+}
-+EXPORT_SYMBOL(security_secctx_to_lsmprop);
-+
- /**
-  * security_release_secctx() - Free a secctx buffer
-  * @cp: the security context
+ void apparmor_release_secctx(struct lsm_context *cp)
+ {
+ 	if (cp->id == LSM_ID_APPARMOR) {
 -- 
 2.54.0
 
