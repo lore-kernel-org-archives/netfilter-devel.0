@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAD7301486;
-	Sat, 15 Aug 2026 20:58:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9747630B529;
+	Sat, 15 Aug 2026 20:58:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786827535; cv=none; b=bjL7Hg4oS5kGnO9AxQuO+WwU4Cgr6Z1y8Pz1dmzR/GJABCf70ST/E1HsbXgZxNA0SU8rZaLtZ8nklBsMy6IBgmng5fQ9GsNm91JiQb10Y1pvQjvb/yiRa7eRVwpst9ahM+kUAefqicWAwF0YHEjpOQaDKN61mAq6xN6K+vAn2zs=
+	t=1786827535; cv=none; b=XyXJ0cf09PPPSww6K3aoR+PWyRy1yaM8Pq1OJ7P8A4n5SKVBdwYkQLUWWBgd9mxm3/kxTplyK8ayRF7IFMyDgGZhjx4Of6WMDx7+ofLB5gY/VFEw1D802W7qfDUysafaPavygIJvfedSjP40oM/0U0BAdNBwi8Um4jQIpziUucg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786827535; c=relaxed/simple;
-	bh=a+UVB2Bnwm4stP7asM1cIn9KPbJM+1njaSHZyHYZz08=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LInKcXym/K2p/JGTUDY5SuHNVERsm3mvsh5BgVEKwC8+kW5bF6ZqMqO7DkELzNapbGL1EkWJjB/lQibxfMMb5fRLqWs7DcZPlIcwMvzhleJYAKW27c2gwxRmTzeyGYVaZkPaSYT3WO7MvN7urt8xlBUzWlEbIdB4Uys7xZbsfXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hvTBwZqI; arc=none smtp.client-ip=100.103.45.18
+	bh=qpE0SJBd/BU2HephsAzlP5g74fPECM3Mk5F0nbBZYgc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=WIf1fMFdYuSmllpw/m9fwhjX/D8XsJvBRZMgxans7UKHxAI/l7WoReKnvSplj+/eczLcemuLnNjYCPyoNDmH0ktVRwDv8ZIEvLdowV8LZfyuWrHr0qNgV9+GoDbY9feGBtosVrZHg4jQ8V/dLTnEJlavbpi5uBLLSZDQnzdC4RE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Culfq8xO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hvTBwZqI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB431F00A3D;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Culfq8xO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 050B91F00A3F;
 	Sat, 15 Aug 2026 20:58:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786827533;
-	bh=jTPLTySzhTKI3LvXFGQsh5a1kRSEhMypXn99Vw/XsUE=;
-	h=From:To:Cc:Subject:Date;
-	b=hvTBwZqIcKqUtC+yadUTvUkbB9Rk9Gg+EJrmdHg12mGSRYraqOcSJKKOEq/4y0r8U
-	 NnWyiAStFP4n3lxBdzC329bXrWwSff1Sqpr3D7zyGNccYF4BP2+knIhmOHJzv7/K1t
-	 zzJnLvdGvvCpj+uTi0nEoKqjPnfNmqFQRpjQko0T5JjgivtYMKXgOvIqPjLgAFny1X
-	 //V/Es1hOklYRtvTwvwAX9HhYkWgjIAJw249XdvmqDFRTsiSI8MgTajhtjPAtE9Sd1
-	 yL858FNAk4A+XGae3miEIPuIcseWQzL87d9NsVEBlpXsHHCBBHc3tG5B/zH9ugH8pi
-	 z/gKTY9fP8OBA==
+	s=k20260515; t=1786827534;
+	bh=G6Tmug8/NbG6q5O/f3xJp199ph8j+UrYbX3xYD3RUzM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Culfq8xOoK2pwMt/1SYnVBsOSSpWx1gAu02eFHt78VXxFbmX8zd2okqGN+YEUAbrE
+	 kiiFe1WbixwJ1TVDYmVuB4JbnoJ7lbUEs+347MUJY083IeoppCsyZtyxu+FhmS/+R1
+	 l2ob47keBcDWt+qTxrcqVZNhX4neHR6kxEXYdPrVuAAPjt/e+MoCo1yxNFo6s8xR+Q
+	 IoCGX343o+gXUo2eRH2WOQgWLL3Omq5/PQs3LPzbNowZZFezlH3w9X4Ip0ApUX/TAw
+	 wMT6r6yc50EOl8q9RUeIpOAXqPvO8bzLP9IbMG2kBUua6RqRv76yTgcMjZm1ovNTbw
+	 gp1l8az9gJkaA==
 From: Eric Biggers <ebiggers@kernel.org>
 To: x86@kernel.org
 Cc: linux-kernel@vger.kernel.org,
@@ -37,11 +38,14 @@ Cc: linux-kernel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>,
-	Eric Biggers <ebiggers@kernel.org>
-Subject: [PATCH 0/6] x86: add missing vzeroupper instructions
-Date: Sat, 15 Aug 2026 13:57:44 -0700
-Message-ID: <20260815205750.169336-1-ebiggers@kernel.org>
+	Eric Biggers <ebiggers@kernel.org>,
+	stable@vger.kernel.org
+Subject: [PATCH 1/6] xor: add missing vzeroupper to AVX code
+Date: Sat, 15 Aug 2026 13:57:45 -0700
+Message-ID: <20260815205750.169336-2-ebiggers@kernel.org>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260815205750.169336-1-ebiggers@kernel.org>
+References: <20260815205750.169336-1-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,34 +54,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Assembly code using YMM or ZMM registers is supposed to end with the
-vzeroupper instruction in order to avoid degrading the performance of
-any later SSE code.  Since this only affects performance and not
-correctness, it is sometimes overlooked.  Most kernel code does it
-correctly, but a few cases were missed.  This series fixes them.
+Since the AVX optimized XOR code uses YMM registers, execute vzeroupper
+before returning from it.  This is needed to avoid degrading the
+performance of any later SSE code that may happen to be executed.
 
-It should be easiest to take the full series through the x86 tree.
+Fixes: ea4d26ae24e5 ("raid5: add AVX optimized RAID5 checksumming")
+Cc: stable@vger.kernel.org
+Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+---
+ lib/raid/xor/x86/xor-avx.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Eric Biggers (6):
-  xor: add missing vzeroupper to AVX code
-  raid6: add missing vzeroupper to AVX2 code
-  raid6: add missing vzeroupper to AVX-512 code
-  crypto: x86/aria - add missing vzeroupper in AVX2 code
-  crypto: x86/aria - add missing vzeroupper in AVX-512 code
-  netfilter: nft_set_pipapo_avx2: add missing vzeroupper
-
- arch/x86/crypto/aria-aesni-avx2-asm_64.S  |  6 ++++++
- arch/x86/crypto/aria-gfni-avx512-asm_64.S |  3 +++
- lib/raid/raid6/x86/avx2.c                 |  6 ++++++
- lib/raid/raid6/x86/avx512.c               |  6 ++++++
- lib/raid/raid6/x86/recov_avx2.c           |  2 ++
- lib/raid/raid6/x86/recov_avx512.c         |  2 ++
- lib/raid/xor/x86/xor-avx.c                |  1 +
- net/netfilter/nft_set_pipapo_avx2.c       | 17 ++++++++---------
- 8 files changed, 34 insertions(+), 9 deletions(-)
-
-
-base-commit: db2ddb87143519e20a95aa36c60b36107b736a58
+diff --git a/lib/raid/xor/x86/xor-avx.c b/lib/raid/xor/x86/xor-avx.c
+index f7777d7aa269..95b21e7225e8 100644
+--- a/lib/raid/xor/x86/xor-avx.c
++++ b/lib/raid/xor/x86/xor-avx.c
+@@ -147,6 +147,7 @@ static void xor_gen_avx(void *dest, void **srcs, unsigned int src_cnt,
+ {
+ 	kernel_fpu_begin();
+ 	xor_gen_avx_inner(dest, srcs, src_cnt, bytes);
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
 -- 
 2.55.0
 
