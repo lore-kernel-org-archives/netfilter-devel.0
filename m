@@ -1,80 +1,131 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142833B27F4
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 14:25:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C87F395DAA
+	for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 15:14:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786890326; cv=none; b=ArdD4DRVutI/cOFsjBVO07AO1ZzQNxBTSj2zcbMRud/7XY4vfPMX8W9kXRgioGn9J3C9x3J+d8GUiorOIStiAhixpBDzoeoT8KBJtF+qYfy2JQkw+bHqU8gaxOWWPh4Cpm7aSZQvJ0DV9fyC29m/9msdfwqfxWb/0kxDWCbJyyA=
+	t=1786893296; cv=none; b=DydLfIVkMGLo6Td91Hb7ThKvIHC4CmqxCOZVH+qw+ppnhZ/21t/c4jN/WDYJl23pasUpq5rSqnOPkiDqng3rNuE7uyOBRHBBtsk+0D1dqcni5Cjlje233nVsQoem9AIn4NuU/ze0YrcVfj5VD8+I9HBuAK0z4lReR8tPo3JpQX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786890326; c=relaxed/simple;
-	bh=xF2iBSKGmcPdYKQZwEOXStGCa20ILMUoy1eD7D/FcyE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cjtgCj+BmjYW26Hw1O0HiXAvrKJZfPQ2TM4u5IGEvxsIWX1kSQnB8a2ATpWEjjqQ07309zfMxnLyREXBHRe6ZTxizb9LVS8vxAzWf247t7FYj3/Bp/JXNO5j+uBkwRfYFstBPLXSKo2ZHAojU1SR4eEUlspjGqUp4zK+GdBJY9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 892EE6051B; Sun, 16 Aug 2026 16:25:14 +0200 (CEST)
-Date: Sun, 16 Aug 2026 16:25:14 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Vimal Agrawal <avimalin@gmail.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, coreteam@netfilter.org,
-	Vimal Agrawal <vimal.agrawal@sophos.com>
-Subject: Re: netfilter: nf_nat: race in nf_nat_setup_info() corrupts
- nat_bysource list (GPF / soft lockup)
-Message-ID: <aoHISuGf2vzWk2s0@strlen.de>
-References: <CALkUMdRXAB1nGsBhg77zg2VGZyh-D+rL8kxqDDiEs6qmcXev=g@mail.gmail.com>
+	s=arc-20240116; t=1786893296; c=relaxed/simple;
+	bh=oHad1wyox8qdDpY81HM8XfWbSH7UCwe0GLxzkyCErM4=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=XZ2DxnzHoC+GOc2OiZm5oporWfV6pky4Rhwy4eYjzkFK/QF8YRmMaNeq1O5efL2YczPQaDaHr5EF2M8lnPVMyWtZwzUNbu2cpZ7WkUkKYPvK1RTX/ZIx8gR6ktPE+8BYVpqH/vwFKR4tShXkjPZ4IhLDN/NrJTrnvXMoX1w6nAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bfv+1QI4; arc=none smtp.client-ip=209.85.221.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bfv+1QI4"
+Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-47f703a9e5dso1156550f8f.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 08:14:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786893292; x=1787498092; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=oDn1zkAJTAhRzfQXoiRfUNpmt/wvhx4bAoFeaZmIx14=;
+        b=bfv+1QI4UV37TIKxa1TGhmFpcxlnBRLXA3kdutOATbmkmxGlaVPInNN7+AJ/aywRBQ
+         h9zunZb2XN2eK5jSWcZMZHo+tM0A+Yw5gYyjr8hCuzt9kWLFxsz2ATY7un6PO4sJz23t
+         d2wFNByaLUh9s7W+1mi3dLFSnBjbwvrElqjBnA8V06L/SrfPaujtc10tRlb/F4Fkr9F2
+         de3HaQM1KhFuBk6SxL8tgAK1zbxOaRb8Apqu8xo28DVJpHVHPE7F/+d9m+wKMhhbsFYq
+         05Lh0y89uoNWSLMI+tv9hquMOn6QEJp4+fqoo00S+gb5yrTY7+nx1JNnYYM3CCAoJXem
+         /Nkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786893292; x=1787498092;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=oDn1zkAJTAhRzfQXoiRfUNpmt/wvhx4bAoFeaZmIx14=;
+        b=KATGrS0Ki9ZkL4fO4WW0H8pLQVPyzJDtQzG4lmX/2T45fifl+yonniG9ncCxn8x2Bl
+         oFNTDzMM2sXSKJE8crbs02NVODpkJrJvkniSuIfXjA0hXdU8AANEwskbhYAKgeVx3EAL
+         yfHDnFrs4WS3ukTni5ky4d6/OuCUFiO7BD9F72mN4UQwUOnoucvAZcUaroQvR8bJVBRq
+         PAUI2XfaxuSehpb8X63+32j09bQxEUaPa3TfXgwc6YTjgVUPwNpCiJ2fwiIbXJZ9mE4u
+         +hvauwGXrwIU1VZkT23XblQU0F33IIT2jWahymT4JeoKc9McG43k728YMmd5tTlYS/+u
+         pYig==
+X-Forwarded-Encrypted: i=1; AHgh+Rqvlc/AH4kMeCLof24kbAw/Ju99GvIFjagUFBHBi4UobN+jFz8nBwNjpso/wYVWwVnXJYDaL3Pho2AsDfqb8sE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyEO7UHpExcnk01c7xCcJG5hZQXHH7Ebczy87FMqAGgwDgmaZEP
+	cWHdJOCmP1HLO/M01+znHA4SXXEsJ4ODCCswhl4pPDe/ZRKDem8GWEtcbuPY9xS3
+X-Gm-Gg: AR+sD13q3esEC9th6PR0a+YfUQJuUEnPZVuYQFEOQ9R/0L2Bll6+9U/5KKeqDql6Xdq
+	whIbG3Wf6dqyOp7ufTPHz+5ehgtWeqsFhY4Uu4mPP5NnjPUT4PiY15PXJK6IqrStBE2FKMoz46W
+	x5BLkesg2MoaL8kk25vzwVicaR7cxr+o1ghC2XruGGBxroEVbyxb/IfRHS0m8X/tjNZFMLbhbk3
+	CA18s+LdzgsEmygrbEoxGOn99Y/rZB+1BpZGboKw05BfompjZ8hwhEUzDbwBStlLdV3oR9WawyO
+	GgT0R4RswYlenOBGZlh0oG1k7ES4LlQ+SlJXrAyaYKgEwEYdjc+8QwtLMrUbAiCqh/ueXRPF8Wz
+	+zL/5kQfOIBFLx+wT3eX+evO8JsJp+8EXBVe9do03tp2qRdpHW3oGu7MxuhMpIkc7wfBg9Q/uQF
+	ECJMCQZ1SZUjwfLLWLKp8xlGCQe2bMVEpsLL4PjycXSZEdaJ6HF++abuDP8gqeoPQyPWrk4E4Zk
+	mRtzIC47m5dXZSlQA0Os9pocw==
+X-Received: by 2002:a05:600c:6a10:b0:499:79ba:a754 with SMTP id 5b1f17b1804b1-49987973094mr241171505e9.11.1786893292329;
+        Sun, 16 Aug 2026 08:14:52 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49987b2a176sm223938615e9.4.2026.08.16.08.14.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 16 Aug 2026 08:14:52 -0700 (PDT)
+Date: Sun, 16 Aug 2026 16:14:50 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org,
+ linux-raid@vger.kernel.org, Christoph Hellwig <hch@infradead.org>,
+ linux-crypto@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>,
+ Taehee Yoo <ap420073@gmail.com>, netfilter-devel@vger.kernel.org, Pablo
+ Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil
+ Sutter <phil@nwl.cc>
+Subject: Re: [PATCH 0/6] x86: add missing vzeroupper instructions
+Message-ID: <20260816161450.05fd24f2@pumpkin>
+In-Reply-To: <20260815205750.169336-1-ebiggers@kernel.org>
+References: <20260815205750.169336-1-ebiggers@kernel.org>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALkUMdRXAB1nGsBhg77zg2VGZyh-D+rL8kxqDDiEs6qmcXev=g@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Vimal Agrawal <avimalin@gmail.com> wrote:
-> Our custom module can decide to send the first packet of a conntrack
-> to userspace via NFQUEUE while the rest of the packets for that
-> conntrack follow the standard kernel forward path.
-> In the case of a bridge, br_flood() clones skbs, and those clones
-> share one unconfirmed conntrack for the initial packet(s) (via
-> skb_clone()'s __nf_copy(), which just bumps the refcount and copies
-> the same ct pointer).
+On Sat, 15 Aug 2026 13:57:44 -0700
+Eric Biggers <ebiggers@kernel.org> wrote:
+
+> Assembly code using YMM or ZMM registers is supposed to end with the
+> vzeroupper instruction in order to avoid degrading the performance of
+> any later SSE code.  Since this only affects performance and not
+> correctness, it is sometimes overlooked.  Most kernel code does it
+> correctly, but a few cases were missed.  This series fixes them.
 > 
-> br_flood() clones the skb; Skb1 and Skb2 share one unconfirmed ct:
->   Skb1 (cpu1): -> nfqueue -> [userspace verdict] -> reinject -> SNAT
-> -> confirm (cpu2)
->   Skb2 (cpu1): -> SNAT -> confirm (cpu1)
-> Skb1's reinject-triggered SNAT (cpu2) races Skb2's synchronous SNAT
-> (cpu1) on the same, still-unconfirmed ct.
+> It should be easiest to take the full series through the x86 tree.
+
+Would it be better to an an unconditional vzeroupper in kernel_fpu_end()?
+It could go in kernel_fpu_start() but that might have a bigger effect
+on latency.
+(I assume there is one in kernel_fpu_start() if it actually saves
+the user registers?)
+
+Looking the latency/uops seems reasonably on everything 'recent' except
+zen-1 and knights-landing.
+Although the microcode patch for zen-2 might make that a lot worse.
+
+	David  
+
+
 > 
-> Because of this, SNAT for the two skbs sharing the unconfirmed
-> conntrack races across two different CPUs. nf_nat_setup_info() sees on
-> both CPUs that the conntrack isn't yet SNAT-initialized, and both try
-> to initialize it — pushing the same conntrack node onto the
-> nat_bysource hash chain twice, corrupting the list.
+> Eric Biggers (6):
+>   xor: add missing vzeroupper to AVX code
+>   raid6: add missing vzeroupper to AVX2 code
+>   raid6: add missing vzeroupper to AVX-512 code
+>   crypto: x86/aria - add missing vzeroupper in AVX2 code
+>   crypto: x86/aria - add missing vzeroupper in AVX-512 code
+>   netfilter: nft_set_pipapo_avx2: add missing vzeroupper
+> 
+>  arch/x86/crypto/aria-aesni-avx2-asm_64.S  |  6 ++++++
+>  arch/x86/crypto/aria-gfni-avx512-asm_64.S |  3 +++
+>  lib/raid/raid6/x86/avx2.c                 |  6 ++++++
+>  lib/raid/raid6/x86/avx512.c               |  6 ++++++
+>  lib/raid/raid6/x86/recov_avx2.c           |  2 ++
+>  lib/raid/raid6/x86/recov_avx512.c         |  2 ++
+>  lib/raid/xor/x86/xor-avx.c                |  1 +
+>  net/netfilter/nft_set_pipapo_avx2.c       | 17 ++++++++---------
+>  8 files changed, 34 insertions(+), 9 deletions(-)
+> 
+> 
+> base-commit: db2ddb87143519e20a95aa36c60b36107b736a58
 
-Yes, conntrack assumes exclusive access, this is why nfqueue has all
-these hacks to drop cloned skbs where we don't own the unconfirmed skb,
-e.g. in nfqnl_enqueue_packet().
-
-We could add more hacks but "fixing" nf_nat_setup_info() doesn't really
-help, its only one of many possible races.
-
-If you want to add more hacks, you could move:
-
-        /* It's done. */
-        if (maniptype == NF_NAT_MANIP_DST)
-                ct->status |= IPS_DST_NAT_DONE;
-        else
-                ct->status |= IPS_SRC_NAT_DONE;
-
-in nf_nat_setup_info to test_and_Set_bit() done while holding the
-lock to add to unconfirmed list, failure causes drop.
-But it won't solve the underlying design defects.
