@@ -1,137 +1,104 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 440C23A641F
-	for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 17:07:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D514812B143;
+	Sun, 16 Aug 2026 17:17:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786900026; cv=none; b=lQaFaoIixrL/GVVDtg2fWXO+CLHu9j1YoVZkh4HQbHRkVVUHFbR4yoYv+88OUNJlsR9cw9WzymFhR5rEeLuKh7ddydXLS0UURLnmZzXKqPXboAQAsBWhYbcWkH9Zr1Q5y+Abfzzt06Z+wJJiW4bDzBRsG7FixUmzpUZGuwkKHHw=
+	t=1786900643; cv=none; b=YCM7IKkfXhEawn/DYD0NjdwzvY+067IqCe2OzhHPdE+JhqOQUMzam4OoNlBWfFPCVxH9WejBVm2ivWxXW4VUTKQI7RKrhvhgSn7wDucWDdgmcNDKfa/7Pr1RmtmfMlpXSA7nS3fJlMW3ZKZEYqnBFxMFCiipR2fUnleOoBzfmUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786900026; c=relaxed/simple;
-	bh=gxV4kQ+OCvgh/Dml0PD7+RUVFmfyn0qzpnWoEaFYUHc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fV0flHlMCP5xOG1JXjyvBgo76DWK0ZRwKpPLxib51hHdJzrZLUYQpnr1XT4U6uZmu+nxXSF2aObzIGjLXUWbLmbvRtUT9x31LiOUU/XhUPbhJPenfbQlTcng+5qTw6vfvthRzZ0ZNp058FW1nMqAculV7DAAby35iL+xkeyWW+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PrBiQKJA; arc=none smtp.client-ip=209.85.128.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786900643; c=relaxed/simple;
+	bh=qQs895llp3+NBaTBB/u4BZEsjzJQPb7wbXSDRx49l4c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MIcCetddN2lSLUFj1KALdK65L/GpTIfLF/eCS/PY98A+lcGZxvhu6lZ4rVw0jO2yqzQ0PVou9hC5CP+mQHPEEHevgvFX4tmMY1t+GCmn5E+bEFXejJFgZ6mzRojm6DmjbULTcw1vCJFrR/rV6NsqCQAOwdYQmYe5ZstxDrvTafc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NzxGdgvM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PrBiQKJA"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-49800c6a846so30543065e9.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 16 Aug 2026 10:07:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786900023; x=1787504823; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=ADy21TiCO8lIm8cjutcu3wh44q8LK9FtOZhFKac1cq8=;
-        b=PrBiQKJAusXaH5q6tA+c4lXbXKI2onxlRcGg7V6WM+LLG4eaD5BcLStlREPVBghGaR
-         avuO2drhkRlP+gFINM64qNeaRALQ6YXBaxfdQILb0V9AHMLRkPZt3zCe+IhEeBNb/atC
-         wuQ5HO1SboTXLpVNewSPQCyXLdSzeWdzgbZy/gMzMQlc+xV7wBpYqlmzfosvmuTVLexI
-         FjALWs8yRC/NvScwN6tLH86Ty0GS68hkD6hZPbCk+Ws/REKD18uWRnibBxdWVxVlUOuZ
-         YgeJsEViQ14VWIhxh5rXrtg1TZqRPDYd2qQBaGnV6V38yuvYjA3gIDLdzeOKi+qdVtfn
-         e0ow==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786900023; x=1787504823;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ADy21TiCO8lIm8cjutcu3wh44q8LK9FtOZhFKac1cq8=;
-        b=rS9TK3fOB2OsNj+Fp4aCR9+a00364eNT1TxBSdRTMEx8Rs8v0eUf/dsQ8sRlZ5j1WM
-         JRrf+i4sqqckAyfVp8Jp8Dv89Juwtt1+3MQVNlAVdAo3gd/QvQgZCfp5osry+0HD1rev
-         t1YmjeiPCuX7yImysv+Xp7Lr7r4En2cwbuOmLCqlMQ/EW+dZ/MMB8DEPLmXzVFO2WIKJ
-         +wyfremczzJuP1m0z3g2Pa9sY0dQNj5LdqRqRe2j0SLdaKQ8UTauqvAyAA/DcdI0NumK
-         oKzi33of8MEQNH9PMTA1J92QBOgD1DKGwMOFQuoun2psutITlhqyi0wCQmFVFfVsTEOQ
-         9AcQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rr4AMcegvUN/pIuEk1SpzV/mn6QrWQsxWTK03/Bh5ziZaGSRfEZh7X6V0PHDnevPkc7eDXKK8ZXs5e3dBaXvZ8=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz1Xtaj1xLF9nSfepsYlBBZiefFF/KICve2wjqpxDrPr2rFuqF5
-	5xNkAsg7dUrq2Eh/k4mq6EdrYg3L37iYbw/zQvZl2RCkL+2d6l0ccdXA
-X-Gm-Gg: AR+sD106aj7A37YVGACnLItfVQmChAqgI57awvO8uqvKDm6Y1marGIaPUk/fS6j8jO6
-	th3Kvih5kOLRiqS35mXxyJZ6y/F0hdsAPxF5ZQ0F24BWjW3Ulo1Jgyl23ei/YTWlGqdrZ0oHkkd
-	g3Xh1ooEGw5THvNmP7y5ZnRHMSBBcW9LJ5i6SEnz5wUOJeOyLt7bv1As6oOki3UfSyryU36tss/
-	752FeLjES95Of9gr+rEC1cX+TpwWMcmQ3W8fl6KtpvVS3M2rFxjf8rK8XH+L9juW8GsqrwAoRVt
-	h9ovCHgSz4GMqh585Gepba+x4CEBA1tP+AIrcbfkuXl1CFrQeJ7Sh7Z2zcL9HEhqC+TvC+utX0u
-	n1N2PoAii0hGje733wOVWLW9dEqGtXYwfJoOjjE+mezNc4P65+x7CTTBBvgzzE04HjHnNPhESjw
-	m0YAQqDGEkrgQXGsNRG+lAlYuPLnpZTawJUQA+DZn7IOZKoZqyfYcyVKHPvAjKHMLi70/5NRN51
-	k8CDPiQDInVnJ+dsbceV2hOsftImb1GVTGiv61219JBo16dtv8+QWYacnGWloTR67gk8A2T1v8R
-	YJ68QWofuQHv+M3YPTpj5ZEVY9tinQWVbFmHtyk=
-X-Received: by 2002:a05:600c:6289:b0:499:84fe:ca8c with SMTP id 5b1f17b1804b1-499879332e1mr265118815e9.5.1786900023344;
-        Sun, 16 Aug 2026 10:07:03 -0700 (PDT)
-Received: from localhost.localdomain (p54a14b85.dip0.t-ipconnect.de. [84.161.75.133])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4999618acafsm55671335e9.14.2026.08.16.10.07.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Aug 2026 10:07:03 -0700 (PDT)
-From: Bernard Ladenthin <bernard.ladenthin@gmail.com>
-To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
-	kunit-dev@googlegroups.com,
-	davem@davemloft.net,
-	Bernard Ladenthin <bernard.ladenthin@gmail.com>
-Subject: [PATCH 4/4] lib/ts_fsm: document that a match must consume the remaining data
-Date: Sun, 16 Aug 2026 19:05:40 +0200
-Message-ID: <20260816170541.3384-5-bernard.ladenthin@gmail.com>
-X-Mailer: git-send-email 2.49.0.windows.1
-In-Reply-To: <20260816170541.3384-1-bernard.ladenthin@gmail.com>
-References: <20260816170541.3384-1-bernard.ladenthin@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NzxGdgvM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24B381F000E9;
+	Sun, 16 Aug 2026 17:17:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786900642;
+	bh=M/h/VKraDmVMZA+gi8h7rskdhp64x8VBXTi34IssNSk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=NzxGdgvMoWIUi8JEzLty141E5YT820oPFYOo2EmD4Gp6LFXnvb3kpwBPBuk4z4tLD
+	 kqBHMr5FPVenm33jh3XVxLy6Crz44/RsPZVdVK/FHpugTwT6aW5i26pnBNrJ32qN6H
+	 190VAjdFGTPcotF4SqetMzLNEsN17x8k3JxS/b6tC3opCNiCvcGrCgmY2so2mmUF4c
+	 5p2RU+VV9k8VlluR7fQB7ZXjgaZCpbUBrQy18eX06heOINKpuaM8s2Ae7JFBDDzWDa
+	 XCOkBSGOfry165CNdTazu0iBL2Zm5yQmLmEOieyg+3+2IApz/UCRhNn9a5NQZVxRu2
+	 0m/mRJ49SWxWA==
+Date: Sun, 16 Aug 2026 10:15:18 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: Stefano Brivio <sbrivio@redhat.com>
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org,
+	linux-raid@vger.kernel.org, Christoph Hellwig <hch@infradead.org>,
+	linux-crypto@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Taehee Yoo <ap420073@gmail.com>, netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH 6/6] netfilter: nft_set_pipapo_avx2: add missing
+ vzeroupper
+Message-ID: <20260816171518.GA2013@sol>
+References: <20260815205750.169336-1-ebiggers@kernel.org>
+ <20260815205750.169336-7-ebiggers@kernel.org>
+ <20260816123839.3670e5c3@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260816123839.3670e5c3@elisabeth>
 
-fsm_find() reports a match only once the token chain has matched and the
-data is exhausted:
+On Sun, Aug 16, 2026 at 12:38:41PM +0200, Stefano Brivio wrote:
+> Eric, thanks for taking care of this.
+> 
+> The patch looks good to me, I just have two questions:
+> 
+> On Sat, 15 Aug 2026 13:57:50 -0700
+> Eric Biggers <ebiggers@kernel.org> wrote:
+> 
+> > Since pipapo_get_avx2() uses YMM registers, execute vzeroupper before
+> > returning from it.  This is needed to avoid degrading the performance of
+> > any later SSE code that may happen to be executed.
+> 
+> Out of curiosity: was this prompted by some observed latency spike in
+> execution of SSE code, or it's just meant to satisfy the recommendation
+> from AMD and Intel to use it while transitioning from AVX to SSE modes?
 
-	for (tok_idx = 0; tok_idx < fsm->ntokens; tok_idx++) { ... }
+This one was found by code review.  But the latency spike has been
+observed in other cases with missing vzeroupper, so it's definitely a
+real effect at least on some CPUs.
 
-	if (end_of_data())
-		goto found_match;
-no_match:
-	return UINT_MAX;
+> > Fixes: 7400b063969b ("nft_set_pipapo: Introduce AVX2-based lookup implementation")
+> > Cc: stable@vger.kernel.org
+> 
+> Is this really stable material? Skipping vzeroupper might have a
+> performance impact, but it's not an issue for correctness.
+> 
+> The main reason why I'm asking is that, while vzeroupper might look
+> harmless and obviously safe, it actually caused CVE-2023-20593
+> ("ZenBleed") on AMD Zen 2.
+> 
+> I expect systems receiving stable kernel updates to also run the
+> patched microcode by now, so I'm not overly concerned in any case.
 
-A chain of three specific tokens therefore matches the text "abc" but not
-"abcd". [TS_FSM_HEAD_IGNORE, a, b] does not find "ab" in "xxabyy".
-Searching for a pattern in the middle of the data needs TS_FSM_HEAD_IGNORE
-at the front and a TS_FSM_ANY token at the end. The latter short-circuits
-through "if (next == NULL) goto found_match".
+It's awkward to mark something as a fix, then not actually want it to be
+fixed everywhere.  The stable maintainers know this, and they often
+apply fixes anyway regardless of 'Cc stable'.
 
-The file header explains the head anchoring but says nothing about the
-tail, which makes the interface easy to misuse. Describe it.
+And if vzeroupper is really not safe due to ZenBleed, then why is it
+used everywhere else in the kernel?  This is just one of the few
+exceptions that doesn't have it.  If it's not safe then they should all
+be alternatives that patch them out to no-ops on affected CPUs.
 
-This documents the behaviour as it stands. If the end-of-data requirement
-is not intended, the fix belongs in fsm_find() and this patch should be
-dropped in favour of that.
+But since that was never implemented, and userspace almost always uses
+vzeroupper too, it seems the only real solution is the microcode.  I
+don't think it makes sense to have a middle ground where almost all of
+userspace uses vzeroupper, ~97% of the kernel uses vzeroupper, and a
+random 3% of the kernel doesn't use it.
 
-Signed-off-by: Bernard Ladenthin <bernard.ladenthin@gmail.com>
----
-This is my first kernel submission. Corrections on anything I got wrong in
-the process are welcome.
-
- lib/ts_fsm.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/lib/ts_fsm.c b/lib/ts_fsm.c
-index 053615f4fcd7..ceec6295505c 100644
---- a/lib/ts_fsm.c
-+++ b/lib/ts_fsm.c
-@@ -18,6 +18,13 @@
-  *   is enabled by default and can be disabled by inserting
-  *   TS_FSM_HEAD_IGNORE as the first token in the chain.
-  *
-+ *   A match is only reported once the data has been consumed as well: the
-+ *   token chain has to account for every remaining octet, not just for the
-+ *   pattern itself. A chain of three specific tokens therefore matches the
-+ *   text "abc" but not "abcd". To look for a pattern somewhere in the
-+ *   middle of the data, prepend a token with TS_FSM_HEAD_IGNORE and append
-+ *   one with TS_FSM_ANY, the latter matching whatever follows.
-+ *
-  *   The runtime performance of the algorithm should be around O(n),
-  *   however while in strict mode the average runtime can be better.
-  */
--- 
-2.49.0.windows.1
-
+- Eric
