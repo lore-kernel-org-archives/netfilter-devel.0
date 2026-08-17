@@ -1,113 +1,104 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706B440EB88
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 12:27:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB4D41D131;
+	Mon, 17 Aug 2026 12:41:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786969621; cv=none; b=aZjwJ76BbIJn5POi9RHx1tqPJ7AGMlqcqCGRndpPHmcWeuP132GAVWVUCNQI/pgV8123iehKHRr/8E9nWiT6e67asuD+QIQZlPhgxOoSP7jsLcBWmj1c61sTzfxg5g8kUMhR7vudsK7a3g0jsArl5MIroVGua6a5IwdEst9vnOg=
+	t=1786970512; cv=none; b=o34GxSPmrTmAHry9nShZCYTEg1kAtljO0Q5bVP1YZBRstZbWfAjHL5m//bdaxDv4OXEZtt+59y/+K68OkNdJrhAWXvtXnrE4b9t6K7Fj7ILVeoVCiSEUTlF3S+1OqruN/mivLeRlqTiebG+/iQRncVneZU6H7ATJZzHPLhZxAtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786969621; c=relaxed/simple;
-	bh=vxeVfeW6zooT+9KX15Er2Iqr0q1ZzIzweWnGgdvaw2o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hEkghoClIZYN7u//K6TXP5JO0VIJ8YSUinzQk3BcpHnr8vgWBWKTTRTD9A7VMv5qG101WKFn5TO6xV9YSiiqRquA3o5l3RgbOnLciIozZY+1oWUrz2WLW0NCkLXN+akXNrYFF05hy1Ig300n4AllTXJIsA/Fw291Hzd7xd1dFJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; arc=none smtp.client-ip=209.85.210.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-84fa3b14ee1so2426382b3a.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 05:27:00 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786969620; x=1787574420;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=/57BaLz+tLijcaeADmJoAOsj71IPp4lhVndhbF00yas=;
-        b=rA2LY2ex3xhblO5TNfWUF6NN2k7IRJZHlySPzl1oVbk+gRkuFSv5tllSs/jiz6LijI
-         Dxpatqqg6BtSPjNsMGsSWpyDpbJxTz9OOePnn6KTF9HjKuWY7f1w8Iyqub0pqvw61pCf
-         tuEQsQcI0kFSE5ghf0laKEkYWYER+wv1QmVsPvDeu0cMgrHVolf4B7ouvtZ/9q0OXGxY
-         hAPteTB+9koP92LzjLx59y87KRK1FbwRWECgRgSEDygDYiJ5zhtHUYDj1TFnMwIh+C4t
-         gHDflBzwfxPeSa8qqHSeyuunl0z2PNhcw0pX6dSq0vzXAQq4kmymSQH62OuX74nSXDLE
-         nEwA==
-X-Gm-Message-State: AOJu0YwWXlytGYLMjoxHNSIJh4TI4ME0ve4o5kOeyYHaxUClW9YflPKT
-	HWfPH7cpXba/gCV7YMldZQDy+fhTUpWcu7bwB1daB4osKrX+9whXRt4wiBQtuNU4GmhlGJ1acil
-	iKmD88qEcMg42Xw==
-X-Gm-Gg: AR+sD11K1E0/N427stoJ66RcSX/c560ZeTpQW12coVQbuiAb4x+ywgTjswLy82W6xFa
-	a/HvPRp5UaGChdmd8vHaaHJlPTQxa859LMjq6SrBOoY2YWM7CXuSYhLbb0yVIhNfJJ4w1ZCdYru
-	jXbwybc2daa4XpCMtAnDpub7cHVzkk63Kg0r1XxUnWJEuKpATHsb11SQTha8jLbS/3u9loIeo/4
-	xqk09NOe3P4PolMbyYZdUobwKAurfHjxEIifSndpAC7SG+JUvK4OOHweXj2hfP9fppZSFgAfWf5
-	VQrbaIOXPzjhFvma11oJ5/zoQUpEZ2ekU6Fom8RsQlN1kxvI1lICkhUhgugjh7xHQzsvRFwcZFw
-	W2/yS8gwuaiU2PGZgtQwV8LUL4TkK/w6sGIs8wXpXVNAT0XoU4ie6ysQNZdXkqlUOXce2ot5Pdl
-	06lSpqn7WHhPgrK0UvpUb9RWAEGh/ir9LoIi9s5bDOMi8y3XXcugiL86TzLhj8I2651pGqVbOe4
-	UT6C1wP2c+GapbQZ5tQXIU=
-X-Received: by 2002:a05:6a00:1149:b0:847:7ffd:ce35 with SMTP id d2e1a72fcca58-851b87eaa83mr298344b3a.8.1786969619658;
-        Mon, 17 Aug 2026 05:26:59 -0700 (PDT)
-Received: from Roxy.localdomain (n220246089185.netvigator.com. [220.246.89.185])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-851b407294fsm465580b3a.25.2026.08.17.05.26.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2026 05:26:58 -0700 (PDT)
-From: Zhiling Zou zhilinz@nebusec.ai
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	bazsi@balabit.hu,
-	kaber@trash.net,
-	hidden@balabit.hu,
-	vega@nebusec.ai,
-	zhilinz@nebusec.ai
-Subject: [PATCH nf 1/1] netfilter: xt_TPROXY: require IPv6 protocol match
-Date: Mon, 17 Aug 2026 20:26:37 +0800
-Message-ID: <6ca536c61d358bfb1bdfd20aafe3cc16acfd45db.1786968834.git.zhilinz@nebusec.ai>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1786968834.git.zhilinz@nebusec.ai>
-References: <cover.1786968834.git.zhilinz@nebusec.ai>
+	s=arc-20240116; t=1786970512; c=relaxed/simple;
+	bh=zfRrz7xtFN8cML7zAWcaqtwHfaRnTQd5653n6MGI790=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=rSGb7IPjgZkjK7X7jcEwQSnSbz2yEkn55nBw2d5iIAn1y+oX1b+HVT43QvdjDK5hKMFB3wYz/ZS6pIFgInO7MYtSF76NZmkf2xiqAHws6ULsdLjFXelHAyeLhBRLnWm33tbQlBfIPxsGHZIpaROuLWV59IyznmQBkxIfpMDnoGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=ZIxxJvGI; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="ZIxxJvGI"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 9553A21CE3;
+	Mon, 17 Aug 2026 15:41:35 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=EAgjmPwBop0nYLxGKQsEdv5d+OQgoOwpt8TK8CSF/MM=; b=ZIxxJvGIc+Z0
+	494EEa61I1bN60ptZvT0gpVsq3iwRSEI1siEeQ3yPRxa508AoEvaTOd47Vy1FhjX
+	sBG0T8XPjnLjzZzqwhjZoisL/+981PSH0kzXeaF6Dhbfdn2VxyVpC37VIr53WotU
+	FW7JdCVLbXCkAwiB7QBwIGkb9AkvXqcH09QYlmc5a5GG5BI0FWsgY617AGAoBx4g
+	fo8D4J0HA/pr1Ej5ZICa5yNg2AXdu9fYMZC4V9rxfabtha78EoA7Xp4IOIgj+I4I
+	EizcdrZ+r0bn8FlHyntd6sUdPOPz0VmMLuH7EaXFUIL7P3AOl9XU3OQqF8iVhjf+
+	Ygztrso8IdwGQLhAstlpUqnf+m92VwdcbFc17FRfQMQqPB1FCfj5UiCEpwM5iNr1
+	UQk65GWhjcr5onQXnoV2thHlijBRUhXz6kD+HiUCe8pE/sumSnQQNDqg6Dc8kKkJ
+	8dmtVbdQL/A1LB0rpl6DV+68vWsIae1caFPbwApV0e+aWy2sXg8Tm5CatJ5Ojkct
+	KwJ/R2HSnOIyyL/YZEC36A8EYBf/pSWFHQcW+uGYbI6S9rMNEPyP/wz+jVdDP/nL
+	a5vGJcYyLI5sQ6feXcwlbSv8EUZXoZ+hlttujdRqh0xa4VlVSdSfpG+vqQ0s8ie0
+	eA7/ONw8smJC1WL8I9GxJzzIFthSrXI=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 17 Aug 2026 15:41:35 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id ADB6760A57;
+	Mon, 17 Aug 2026 15:41:37 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 67HCfXMC047864;
+	Mon, 17 Aug 2026 15:41:35 +0300
+Date: Mon, 17 Aug 2026 15:41:33 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zhiling Zou <zhilinz@nebusec.ai>
+cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        horms@verge.net.au, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+        vega@nebusec.ai
+Subject: Re: [PATCH nf v2 0/1] ipvs: bound LBLCR and LBLC cache growth
+In-Reply-To: <cover.1786949472.git.zhilinz@nebusec.ai>
+Message-ID: <90ff9fd0-b46b-7eac-ade3-d0ebbb0ec06b@ssi.bg>
+References: <cover.1786949472.git.zhilinz@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-From: Zhiling Zou <zhilinz@nebusec.ai>
 
-tproxy_tg6_check() verifies the protocol field value but does not
-require IP6T_F_PROTO. A crafted ip6tables rule can set the field to
-TCP or UDP while leaving the protocol matching flag clear.
+	Hello,
 
-ip6_packet_match() treats such a rule as protocol agnostic and can
-invoke tproxy_tg6_v1() for ICMPv6. nf_tproxy_get_sock_v6() warns for
-protocols other than TCP and UDP.
+On Mon, 17 Aug 2026, Zhiling Zou wrote:
 
-Reject rules without IP6T_F_PROTO so TPROXY is invoked only for the
-protocols it supports.
+> Hi Linux kernel maintainers,
+> 
+> We found and validated an issue in net/netfilter/ipvs/ip_vs_lblcr.c.
+> The bug is reachable by a non-root user through a new user and network
+> namespace. The same cache growth bound is also missing from the sibling
+> LBLC scheduler in net/netfilter/ipvs/ip_vs_lblc.c.
 
-Fixes: 6ad7889327a5e ("tproxy: added IPv6 support to the TPROXY target")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
----
- net/netfilter/xt_TPROXY.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+	Sashiko reports for a missing atomic_dec(&tbl->entries)
+in ip_vs_lblc_new(), after the ip_vs_lblc_del(en) call:
 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 5f60e7298a1ea..13a94c9d06c0f 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -179,7 +179,8 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- 	if (err)
- 		return err;
- 
--	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
-+	if ((i->flags & IP6T_F_PROTO) &&
-+	    (i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
- 	    !(i->invflags & IP6T_INV_PROTO))
- 		return 0;
- 
--- 
-2.43.0
+https://sashiko.dev/#/patchset/17cbb1d0649f4e19aa2e407ab4b528d42b8edac4.1786949472.git.zhilinz%40nebusec.ai
+
+	But it is not related to this patch. The GC
+probably needs to be improved because with this patch
+we should be freeing 16 entries in average from single
+bucket but before that we are not caching new dests for
+60 secs.
+
+	While max_size works like a low threshold for
+entries in cache, we do not define maximum to apply.
+After checking the code again, we may need to provide more
+bonus for the normal traffic to cache entries in the next
+minute (eg. +50%) while we are freeing cached entries in
+the background to free space for the new dests. Because
+without caching we are not using the servers persistently.
+
+	May be separate patch can rename max_size to
+min_size and to add max_size = min_size * 3 / 2 as a
+limit for allocations. For this patch we can use just
+"max_size * 3 / 2".
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
