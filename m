@@ -1,158 +1,110 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8D6448D19
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 16:47:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90EFF4399C4;
+	Mon, 17 Aug 2026 17:18:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786985266; cv=none; b=goObq3Pu3JsfYeT43ZXOkdn/HSnMyodIRrXeBaqBEa7/1x6jyKD7QBanijikzs04hvYPpHEzIP1JSO5W2pykaNdcQJVBeT1riddLQVSujbUPIYdoHqvLhJeNi43j8VgKUwO165Ky0CcA1nQBp+2Kh9aL4T0v38sgi1Xml0MFAAQ=
+	t=1786987115; cv=none; b=XB0NuF2TiHdua1n2geRrLCAzuf/noOHicM0+iJTnIdRVrsPMHbKIPZeHDUUG6Lj0Df1hAqJsnF/SwaDy7BFi1A7zZQDR8qGYHPHrM+aw2CrsJg5FIgFxUP1DrMEtch9CCzuMZdp7kvMsEiBjwNm5SW15HEDgKfgKkZzmtMgfPI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786985266; c=relaxed/simple;
-	bh=0p3WOnL6yw5tZfwzP2qcXDJvyiasKkqMukDZYDj/kXs=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q46wwgxXU1xm5PRncbxCONPZ9D6xBfYiBeGZKX07Hy7LeMPDEPnpMeYrVyNqBooUogZIEWshFVGxT7vkn+YLmobpdpdbXsEsiG5ip+u1Lb9O0eoFDjhJsTzvxHbWlW6vfmtgMs9R3jqoFTpuZcMHfOsoioPcCe8T2bmnK3XphsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pkeZvZQu; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1786987115; c=relaxed/simple;
+	bh=75z5q3lZ1shKUcnVwuxR1BTMrHkKbEQ/GFVG+kHgnwU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=q4CMqLbHGFjH8oT6LGZwuvEhVVpNIq/u7DpCKpcmizG00uMjn7d8LtaEQTOHkcpFxutoO81hsjGQXxzZEE1+5HQZi4fzJuNRk81KddnGga1azWsmHu9iILZpPfVY9jR8KRPga74awIdFwl+ja8nekSZa/TyKu6JuyD8VUJQIhwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IYGrnuNp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pkeZvZQu"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786985263;
-	bh=C0pojBgWaOuLGrlCJBCAzFqFk0YXLdy7nwlopEAvRBE=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=pkeZvZQu264eD4x9Sj9NVAKBK0WzdEcvGaxMgVsTjamrfV9Mm2XYMUlQOqc4mZtWm
-	 B7wyZEIbkxLq4woXDtASpIXojLn743JinGbEgWpBe7CIvTyxi6MA+lPbu+iTp5o57J
-	 a1psXn5gv4jFk9jezDHGLpw3+fcSVVFrp86mpgrccHojOvcSqXzHHCckbqWrYTuoYw
-	 kYUFUSi2v/fPJEYg2jy0APFzOU+N8aK+WoHRFFFj22uw2cqFfKAykycjdU4BWNi/lO
-	 eNLyWs5HflTXYyiCYfs078fKCfm3YwMw75zTftBrAMBlECSfm2bzOPuRbbA6ZoQRdW
-	 eF15XndtB4mZw==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EA5076007A
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 18:47:42 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3 4/4] netfilter: flowtable: let GC handle partially set up flow
-Date: Mon, 17 Aug 2026 18:47:35 +0200
-Message-ID: <20260817164735.1207999-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260817164735.1207999-1-pablo@netfilter.org>
-References: <20260817164735.1207999-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IYGrnuNp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB381F00A3A;
+	Mon, 17 Aug 2026 17:18:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786987114;
+	bh=cqEALtTdwDfe70tQT8Qbqwqn8D+Vx33cN/J1LRfH9Oo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=IYGrnuNpsE4ty78aLZFp2z93MlBewFcwHHKAm1h9dihA+Noq6KfkuxM78CyLq6Pte
+	 HUq8tN2lHzGLJX4fM0ZhNI9eHA2lfm1Cu8P37JqjcXkLxAFVl/P3GQMkltWLr8x24m
+	 wF7KOAdqrLLGvZ57JOeERubHe1if6tCduzKw7DLEFaSzG68flAI38AHTBZz+eW9Moq
+	 gKGEJ+8wAYf1P1aKgCkTqK3ALmDHIQRC6Wl1EwAIlChDbuqbHKyQL0/IibeYhPPNhv
+	 /mqdIrt2CaSNALRThFiGDQH5nLPkPtmHVcdEeEBzYPlSwqtm9Ki6wiwSqSrFP5fN+n
+	 0WekyPaT5Duyg==
+Date: Mon, 17 Aug 2026 10:18:34 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: David Laight <david.laight.linux@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>, x86@kernel.org,
+	linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org,
+	linux-crypto@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Taehee Yoo <ap420073@gmail.com>, netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH 0/6] x86: add missing vzeroupper instructions
+Message-ID: <20260817171834.GA8327@quark>
+References: <20260815205750.169336-1-ebiggers@kernel.org>
+ <20260816161450.05fd24f2@pumpkin>
+ <20260816173159.GB2013@sol>
+ <aoLRJ7igR5GTMfuO@infradead.org>
+ <20260817115523.7c6c646a@pumpkin>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260817115523.7c6c646a@pumpkin>
 
-If the reply tuple cannot be inserted into the rhashtable, let GC remove
-the tuple in the original direction. Otherwise, the flowtable lockless
-rcu iterator might be already walking over such flow entry and access
-different recycled ct due to the typesafe rcu semantics.
+On Mon, Aug 17, 2026 at 11:55:23AM +0100, David Laight wrote:
+> On Mon, 17 Aug 2026 02:15:19 -0700
+> Christoph Hellwig <hch@infradead.org> wrote:
+> 
+> > On Sun, Aug 16, 2026 at 10:31:59AM -0700, Eric Biggers wrote:
+> > > As for kernel_fpu_begin(), no, it doesn't do vzeroupper.
+> > > 
+> > > I do think that some years down the line, we'll drop the use of SSE in
+> > > the kernel entirely.  At that point, vzeroupper in kernel_fpu_end()
+> > > would make sense.  
+> > 
+> > Or add kernel_avx_{begin,end} wrappers that include the vzeroupper
+> > in kernel_avx_end.  That would be a lot easier to use than the manual
+> > vzeroupper in every modern user of in-kernel AVX.
+> > 
+> 
+> You might want one in the start as well.
+> I have a theory that the avx512 logic was added as a completely separate block.
+> This meant it could be included in cpu for testing but disabled in any
+> released to customers.
+> (Or maybe the it is the original avx logic that used latches not in the
+> normal register file.)
+> A side effect is that different latches are used for the low bits of the
+> registers - so when you change to/from avx512 the register contents have to
+> be transferred between the blocks - adding latency.
+> So if the wrong registers are live for the code you are going to execute
+> the data has to be transferred across.
+> 
+> There are also other effects as well.
+> I found this link: https://travisdowns.github.io/blog/2020/01/17/avxfreq1.html
+> It is a few years old now (2020) but probably still relevant.
+> A quick summary is that the first 256 or 512 bit instruction starts a 9us
+> window where the cpu runs at 1/4 speed, for 512 bit that is followed by 11us
+> where nothing happens at all. 
 
-The rhashtable_remove_fast() call in flow_offload_del() will just report
-ENOENT for the reply tuple.
+The linked article is about Skylake, which is an older Intel CPU that
+has a bad AVX-512 implementation with overly-eager downclocking.  Later
+Intel CPUs improved the implementation.  And of course, AMD just
+implemented it properly from the start without the downclocking issues.
+Information about AMD Zen 5's AVX-512 implementation can be found here:
+https://www.numberworld.org/blogs/2024_8_7_zen5_avx512_teardown/
 
-Let the GC clear the offload bit when setting up the
+Most of the AVX-512 optimized code in the kernel already requires
+!X86_FEATURE_PREFER_YMM, excluding Skylake as well as Ice Lake.
 
-While at it, remove WARN_ON_ONCE() which is reachable in case of OOM
-in tc act_ct.
+That being said, if I recall correctly, even with Intel's improved
+implementation on Sapphire Rapids and Emerald Rapids, Intel does still
+have some start-up latency for accessing ZMM registers.  AMD doesn't.  I
+don't believe vzeroupper helps, unfortunately.
 
-Fixes: ac2a66665e23 ("netfilter: add generic flow table infrastructure")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: new in this series
+I've considered setting X86_FEATURE_PREFER_YMM on all Intel CPUs, but
+then even workloads that would benefit from ZMM registers wouldn't use
+them.  And I suspect the Intel folks wouldn't agree with that either.
 
- net/netfilter/nf_flow_table_core.c |  8 +++++---
- net/netfilter/nft_flow_offload.c   |  8 +-------
- net/sched/act_ct.c                 | 12 ++----------
- 3 files changed, 8 insertions(+), 20 deletions(-)
-
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 8c84f02c4dd3..27cbabc092d0 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -341,9 +341,11 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 				     nf_flow_offload_rhash_params);
- 	if (err < 0) {
--		rhashtable_remove_fast(&flow_table->rhashtable,
--				       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
--				       nf_flow_offload_rhash_params);
-+		/* Let GC handle this flow in partial state, confirm it so it
-+		 * is handled as an expired flow. The rhashtable_remove_fast()
-+		 * call will just report ENOENT for the reply tuple.
-+		 */
-+		set_bit(NF_FLOW_CONFIRMED, &flow->flags);
- 		return err;
- 	}
- 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 32b4281038dd..54671006ce98 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -59,7 +59,6 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	struct flow_offload *flow;
- 	enum ip_conntrack_dir dir;
- 	struct nf_conn *ct;
--	int ret;
- 
- 	if (nft_flow_offload_skip(pkt->skb, nft_pf(pkt)))
- 		goto out;
-@@ -118,14 +117,9 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		flow_offload_ct_tcp(ct);
- 
- 	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
--	ret = flow_offload_add(flowtable, flow);
--	if (ret < 0)
--		goto err_flow_add;
--
-+	flow_offload_add(flowtable, flow);
- 	return;
- 
--err_flow_add:
--	flow_offload_free(flow);
- err_flow_alloc:
- 	dst_release(route.tuple[dir].dst);
- 	dst_release(route.tuple[!dir].dst);
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index e250969c84ac..31df7f9bce86 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -427,16 +427,13 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- {
- 	struct nf_conn_act_ct_ext *act_ct_ext;
- 	struct flow_offload *entry;
--	int err;
- 
- 	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
- 		return;
- 
- 	entry = flow_offload_alloc(ct);
--	if (!entry) {
--		WARN_ON_ONCE(1);
-+	if (!entry)
- 		goto err_alloc;
--	}
- 
- 	if (tcp) {
- 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
-@@ -451,14 +448,9 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
- 		tcf_ct_flow_tc_ifidx(entry, act_ct_ext, FLOW_OFFLOAD_DIR_REPLY);
- 	}
- 
--	err = flow_offload_add(&ct_ft->nf_ft, entry);
--	if (err)
--		goto err_add;
--
-+	flow_offload_add(&ct_ft->nf_ft, entry);
- 	return;
- 
--err_add:
--	flow_offload_free(entry);
- err_alloc:
- 	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
- }
--- 
-2.47.3
-
+- Eric
