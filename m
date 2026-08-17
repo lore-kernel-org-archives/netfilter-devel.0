@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED283F39ED;
-	Mon, 17 Aug 2026 23:30:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888DA3F3269;
+	Mon, 17 Aug 2026 23:30:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787009407; cv=none; b=eaRdrsawkTVQJwFutkm0Ezn1EYktj+9r1JVeW2ZJrRQknC+OWfq/ZbLnM4vpD4ovjBeG1xQRZnb6xz9wz8ZtIAv6SPwjKWMJTfPF/lXNm92J32mRR/lm9bWYborzchg9YSGsGydJbS6e8AYqOv02NBXBLlsJBwukFXxHZ71JmjU=
+	t=1787009409; cv=none; b=TgB5tLvkDJ/woCW+0cvS8/OPQd/bxVR/cX56Ydm1GZgL7l6QWYdTIJjxooXrXv0DzFxRn6KZqgmYmwCSrzRNTl8b626tjx5F/TYk4tFT0qerLW3Ha4z57ZBVBpqtMMcH7n8L4VK7hs8PX4wxiAuNU2tatl3RT/r0PdbNPePABkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787009407; c=relaxed/simple;
-	bh=MTKB7tTmUDdfywsdQFsR/u1BaseDJbxTBBfOWhLSZLY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XUbqxZK48C1wd/rls/X4mA7ZWpgPchkrV4cS3Lft5VelV549CBEnc4ZMEPrgxlttER0gLcadOcVf+1/tAfFUIo9OmMZL9UXKWTXcizim29FndSG7ECHGXmQp3+oBanLJM7Et16gsOYuHUGtwhdCgZO6UWzRS3lDg+SDF1TNuI6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QHcyyaRC; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787009409; c=relaxed/simple;
+	bh=QQvuhruh716hml4fHHissdjiHU1M8hHWTGR67xGP6xY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=EwMOpHbGLE8przDXCbva5Z53P+lmjFeZl4DXUAMPvq0FXQepnvZdTfkc1Wcs4lhbq9u6ou8Ri2zVJIUhrQGGQZSODVtbvP8EfPTK+5axKZphDehSxXM+Nj0uGl33fG2/DH+zhc8+QhUx/SfoEohY42zs67ItMfw9UhxFib7zy50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=i2Nw6lml; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QHcyyaRC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="i2Nw6lml"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787009403;
-	bh=4cp4h9Bw2QyzOtLYfquZKWar6kzy1eJNiOtjb54qfws=;
-	h=From:To:Cc:Subject:Date:From;
-	b=QHcyyaRCLuwygCNFZ83EJWX1dWumfgE/BQ1LBOyt+Gj5FAo+zo9BXOLdkZ8pFaQP9
-	 umbut0b5fSWjdUv0lPcGWMkHHs0OLwszseKEP96QfVhg/c99JlN9Nh+jhpQo4sctl3
-	 xLM6wolQBcnA17iJ90ph/BR4ALfeKsseeA4th9LFDkwwTrroEHbncoeWsOInLs1C/a
-	 SW1TMsRdRiT+W2PAFDcj0ADlFVoKfQNpKcY+Z/2JMZ0sLp8DpVedkuS63DsG4ZCWoF
-	 xEUcrPWK1Svc0fwGvfephrhMH0UcbvuhiA8GB8aAvk/E9CLvjbqv6d9C0yL/8/g0Cd
-	 2xbGE5zocwyfw==
+	s=2025; t=1787009405;
+	bh=I+XUX5T3MloOr1Yhm8jqZbc3yYw+IV9YvJLbtWiXOoI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=i2Nw6lml4WCbz/nbxzMXcaZbIrBL2/aeeoXszCKO8aBN1YFYnH9DulW6gsNnLjVOw
+	 cYsUWrJi3QRnsmCLiWn6oSBUntBmqOw1t6PJX2sxST9EYroxMcfty+jLEbMcumkTPY
+	 DxB1g4kSRt/NppklObGXprI1Q8Y/P37yVNigKXxEWK74Xlg848aM5cvs0PRPyB0BJL
+	 b/aJ+Pt6rZEGDiL/zHN4uBjgUO6LiXxPLwXKNlAaznhfCqy1r0cmpy8Pm9d0XiC0JB
+	 gnIWpbzbW91UNA5Lz1rF5tW23dGFSys9nlVnjyaeSq3OYGohDw/DtnqL0uZi/6Cbpu
+	 TsBc62t87DCYA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 055EA6005F;
-	Tue, 18 Aug 2026 01:30:02 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A64246008C;
+	Tue, 18 Aug 2026 01:30:04 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,10 +39,12 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 0/8] Netfilter/IPVS fixes for net-next
-Date: Tue, 18 Aug 2026 01:29:49 +0200
-Message-ID: <20260817232957.1281637-1-pablo@netfilter.org>
+Subject: [PATCH net-next 1/8] netfilter: validate L4 headers after userspace packet writes
+Date: Tue, 18 Aug 2026 01:29:50 +0200
+Message-ID: <20260817232957.1281637-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260817232957.1281637-1-pablo@netfilter.org>
+References: <20260817232957.1281637-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,91 +53,208 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Zhiling Zou <zhilinz@nebusec.ai>
 
-The following patchset contains Netfilter/IPVS fixes for net-next,
-I am targetting this tree since 7.2 has been already released.
-This contains fixes for nf_tables, revisit issues with expectation
-infra updates reported by sashiko, an ipset fix for deletions in the
-hash:net type and tne fix for the IPVS FTP helper.
+NFQUEUE and nft_payload can hand packet data modified by userspace back
+to the stack. Recent restrictions keep link and network headers stable,
+but transport header fields can still be changed.
 
-1) Validate layer 4 header mangling done via nfnetlink_queue and
-   nft_payload, this is a follow up to recent similar validation
-   at layer 3. From Zhiling Zou.
+A packet can therefore keep the same network header and conntrack entry
+while changing the transport header layout. For TCP, increasing doff can
+make later helper or NAT code use a different transport-header base than
+the parser used, and can make offsets point past skb->tail.
 
-2) Do not allocate memory on delete operations in ipset hash:net
-   type, delete operation must always succeed. From Florian Westphal.
+Extend NFQUEUE payload validation to check the final L4 protocol and
+known base headers after IPv4 options or IPv6 extension headers. Reject
+packets whose L4 protocol no longer matches an attached non-template
+conntrack entry, and reject IP fragments that already have such a
+conntrack entry before trying to validate transport headers. Unknown L4
+protocols are left to their normal protocol handlers.
 
-3) Deliver nft_obj overquota packet path notification directly via
-   nfnetlink, do not use the control plane batch logic.
-   From Fourie Zhang.
+For nft payload writes, reject transport-header stores that overlap TCP
+doff. nft_nh_write_ok() already rejects network-header protocol changes,
+so keeping doff stable prevents nft payload writes from changing the TCP
+header length underneath conntrack and helper users.
 
-4) Follow up to controlidate check for reinserted dead expectations,
-   to cover the nf_conntrack_expect_related_pair() function too.
+This patch is a follow up to commit df07998dfd40 ("netfilter: nftables:
+restrict linklayer and network header writes") and commit 54f34607d184
+("netfilter: nfnetlink_queue: restrict writes to network header").
 
-5) Do not expose expectation dead flag to userspace via ctnetlink.
+Reported-by: Vega <vega@nebusec.ai>
+Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue.c | 72 +++++++++++++++++++++++++++++++--
+ net/netfilter/nft_payload.c     | 13 ++++++
+ 2 files changed, 82 insertions(+), 3 deletions(-)
 
-6) Make commit set_update_list per-netns to prepare to publish
-   set clone earlier.
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index b8aaf39cb4d8..c727668b0c5b 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -28,10 +28,17 @@
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nfnetlink_queue.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/icmp.h>
++#include <linux/icmpv6.h>
++#include <linux/ip.h>
+ #include <linux/list.h>
++#include <linux/sctp.h>
+ #include <linux/cgroup-defs.h>
+ #include <linux/rhashtable.h>
+ #include <linux/jhash.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
++#include <net/gre.h>
+ #include <net/gso.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+@@ -1206,10 +1213,62 @@ static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
+ 	return memcmp(iph_new + 1, ip_hdr(e->skb) + 1, ihl - sizeof(*iph_orig)) == 0;
+ }
+ 
++static bool nfqnl_validate_l4(const u8 *data, unsigned int data_len,
++			      const struct nf_queue_entry *e, u8 proto,
++			      bool fragment)
++{
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	enum ip_conntrack_info ctinfo;
++	const struct nf_conn *ct;
++
++	ct = nf_ct_get(e->skb, &ctinfo);
++	if (ct && !nf_ct_is_template(ct)) {
++		if (fragment || nf_ct_protonum(ct) != proto)
++			return false;
++	}
++#endif
++
++	if (fragment)
++		return true;
++
++	switch (proto) {
++	case IPPROTO_TCP: {
++		const struct tcphdr *th = (const struct tcphdr *)data;
++		unsigned int thlen;
++
++		if (data_len < sizeof(*th))
++			return false;
++
++		thlen = __tcp_hdrlen(th);
++		if (thlen < sizeof(*th) || data_len < thlen)
++			return false;
++
++		return true;
++	}
++	case IPPROTO_UDP:
++		return data_len >= sizeof(struct udphdr);
++	case IPPROTO_ICMP:
++		return data_len >= sizeof(struct icmphdr);
++	case IPPROTO_ICMPV6:
++		return data_len >= sizeof(struct icmp6hdr);
++	case IPPROTO_SCTP:
++		return data_len >= sizeof(struct sctphdr);
++	case IPPROTO_GRE:
++		return data_len >= sizeof(struct gre_base_hdr);
++	case IPPROTO_AH:
++		return data_len >= sizeof(struct ip_auth_hdr);
++	case IPPROTO_ESP:
++		return data_len >= sizeof(struct ip_esp_hdr);
++	}
++
++	return true;
++}
++
+ static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
+ 			       const struct nf_queue_entry *e)
+ {
+ 	unsigned int ihl;
++	bool fragment;
+ 
+ 	if (data_len < sizeof(*iph))
+ 		return false;
+@@ -1226,10 +1285,14 @@ static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
+ 	if (ntohs(iph->tot_len) != data_len)
+ 		return false;
+ 
++	fragment = iph->frag_off & htons(IP_MF | IP_OFFSET);
++
+ 	/* support for ipopts mangling would require
+ 	 * recompile + skb transport header update.
+ 	 */
+-	return nfqnl_validate_ipopts(iph, e);
++	return nfqnl_validate_ipopts(iph, e) &&
++	       nfqnl_validate_l4((const u8 *)iph + ihl, data_len - ihl, e,
++				 iph->protocol, fragment);
+ }
+ 
+ static bool nfqnl_validate_one_exthdr(const u8 *data,
+@@ -1273,6 +1336,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 	const u8 *data = (const u8 *)ip6_new;
+ 	u8 orig_nexthdr = ip6_orig->nexthdr;
+ 	u8 new_nexthdr = ip6_new->nexthdr;
++	bool fragment = false;
+ 
+ 	if (new_nexthdr != orig_nexthdr)
+ 		return false;
+@@ -1286,7 +1350,8 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 		int hdrlen;
+ 
+ 		if (orig_nexthdr == NEXTHDR_NONE)
+-			return true;
++			return nfqnl_validate_l4(data, data_len, e,
++						 new_nexthdr, fragment);
+ 
+ 		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
+ 			return false;
+@@ -1297,6 +1362,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 
+ 		switch (orig_nexthdr) {
+ 		case NEXTHDR_FRAGMENT:
++			fragment = true;
+ 			hdrlen = sizeof(struct frag_hdr);
+ 			break;
+ 		case NEXTHDR_AUTH:
+@@ -1323,7 +1389,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
+ 		data += hdrlen;
+ 	}
+ 
+-	return true;
++	return nfqnl_validate_l4(data, data_len, e, new_nexthdr, fragment);
+ }
+ 
+ static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 8a4472fd77d9..e315d35f73d4 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -1067,6 +1067,17 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 	return false;
+ }
+ 
++static bool nft_th_write_ok(const struct nft_pktinfo *pkt,
++			    const struct nft_payload_set *priv)
++{
++	unsigned int doff = offsetof(struct tcphdr, ack_seq) + sizeof(__be32);
++
++	if (pkt->tprot != IPPROTO_TCP)
++		return true;
++
++	return priv->offset > doff || priv->offset + priv->len <= doff;
++}
++
+ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -1105,6 +1116,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
+ 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+ 			goto err;
++		if (!nft_th_write_ok(pkt, priv))
++			goto err;
+ 		offset = nft_thoff(pkt);
+ 		break;
+ 	case NFT_PAYLOAD_INNER_HEADER:
+-- 
+2.47.3
 
-7) Publish the set clone earlier from commit path to address set
-   lookup failures during table re-creation, this is targetting
-   the rbtree and pipapo set backends.
-
-8) Fix an integer overflow in the IPVS FTP helper. A similar fix
-   was already proposed for the conntrack FTP helper months ago.
-   From Joas Antonio dos Santos. 
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-08-18
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit e6a5d573d24cd375e09d24f136523cb3cc85c9d3:
-
-  net: dsa: drop explicit NULL comparisons (2026-08-14 13:57:27 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-08-18
-
-for you to fetch changes up to e625a9477d12baaff4025c5f9989184a907ea8fc:
-
-  ipvs: fix integer overflow in ftp helper port/address parsing (2026-08-18 00:56:43 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-08-18
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: ipset: remove need to allocate memory on delete operations
-
-Fourie Zhang (1):
-      netfilter: nf_tables: don't queue packet path object notifications
-
-Joas Antonio dos Santos (1):
-      ipvs: fix integer overflow in ftp helper port/address parsing
-
-Pablo Neira Ayuso (4):
-      netfilter: nf_conntrack_expect: consolidate check for insertion of dead expectation
-      netfilter: ctnetlink: do not expose expectation DEAD flag
-      netfilter: nf_tables: move set_update_list to nftables per-netns
-      netfilter: nf_tables: call set ops .commit when building new ruleset blob
-
-Zhiling Zou (1):
-      netfilter: validate L4 headers after userspace packet writes
-
- include/net/netfilter/nf_tables.h            |   1 +
- net/netfilter/ipset/ip_set_hash_gen.h        | 168 +++++++++++++++++++--------
- net/netfilter/ipset/ip_set_hash_netiface.c   |   1 -
- net/netfilter/ipset/ip_set_hash_netportnet.c |   1 -
- net/netfilter/ipvs/ip_vs_ftp.c               |  10 +-
- net/netfilter/nf_conntrack_expect.c          |  11 +-
- net/netfilter/nf_conntrack_netlink.c         |   2 +-
- net/netfilter/nf_tables_api.c                | 137 +++++++++++++---------
- net/netfilter/nfnetlink_queue.c              |  72 +++++++++++-
- net/netfilter/nft_payload.c                  |  13 +++
- 10 files changed, 302 insertions(+), 114 deletions(-)
