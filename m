@@ -1,92 +1,142 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD23944BCB8
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 16:11:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC61422522
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 16:47:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786983114; cv=none; b=kFNsAGa9Qj7CxTxQytExhtNNfnm4Q3iMXOKiZCL2fYpds7cNsvUosK9nMmSsdovubr8Hjkx8orzT4w8rt2ypInLZyxFwe5OFKhah9a9hQ9DTu1BJ0VCjqC8wDpgkg1TCoODqvG0G/JMrAr76aieO3nQn69rRdEhCBgIRV62Qn74=
+	t=1786985263; cv=none; b=nOSwcf8UC/WT07yGc/oE2jnAZjPQcJ7ucEjGJLfLkk0lp0WCoSzzQUCv1Ovg6ZwbdXmGQOmAPCvVq4kVhm9+4oEAY1B88GZCX6pbNDQ6ONZGF6iv9IASfPRRE2VESN+CCKYbEm8KvYtIKnfCwN0GFqDBsyPnP3j0eni4j73J6iI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786983114; c=relaxed/simple;
-	bh=Kbtv+kseRirEjX8NKpgWEuDqk7mrTOS1mtVRsueoYzI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wc+mYbkf/KluLCIXeTzzpax7Rp3Soe3DNXhA2l/+jLabcz/baybJTlLQzAlZh/JOxNe3Sy6bFU61rXBpKqnnCnoJ+9wIxPEDD/w5NcnPYFUPmxlkrbzQxGA4yjSZmAQnVQqWzw4yXy3eM7yBjmNd4AlWKSptoD3xuEFYTnrCmjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EVHbTDjf; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1786985263; c=relaxed/simple;
+	bh=fyq2OsCfWN2iUa7TyQOrns/hAVxadQ4VdE5cgGro0yM=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=dyydoQtxOrLrP+MJAnZZSCb1sjfU30leqG3wIX6ErsSCnrufdv2sBgTqtwCFqqly6ZDP3f/9nAaaJVzl+4BKDCVwnl0UQcW0zEfXh7oGWoYvTNxe3u5006LxOtBgCOe3XfC2pVDc/+OrAUSs6ETneJILgPu1octvj/VzFF8ipqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AR7EqD86; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EVHbTDjf"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AR7EqD86"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1786983108;
-	bh=8JCBk6fkEas2REKnDM3WrvkZKeC00+5UuOELMXSHac8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EVHbTDjfy/sgglX6JrB/OV4AQX8EXOAvMc5AZ6k0Np6VyOXCY1zv+m3BVkL8VBVNm
-	 LzYcIyFADQzbFvBE+5Ejm2SZmXdLShNFm33lYuLQBrzZa+gcKbOj1FQb24tjhoFVYL
-	 i3YpJM58b1eyBEianZHfNzXZOpLEfMD08nF/lBAw5ilQaMIlselCA0Bi+RkmOS24yB
-	 87VOW5sW+VFcoyaF0CnnBfcNTsGu763f527rYMjTP1OkYOH9RVUk6CGtIh9iyh1WiR
-	 z1lwK5Z6GQDYvhNfXMeqAyug4X9k0rxxQdNHzITQb94j7j2UqlQbFQUITtW5ocQkp9
-	 Yvd+dEExGl2nw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 4E90E60077;
-	Mon, 17 Aug 2026 18:11:48 +0200 (CEST)
-Date: Mon, 17 Aug 2026 18:11:45 +0200
+	s=2025; t=1786985260;
+	bh=4j8Qy4WC+Jqi3RvhZvRX9SGNiJ9cHFYSfBzFXlu4e+M=;
+	h=From:To:Subject:Date:From;
+	b=AR7EqD86t+Cp5DKCftDEwBJ+XMkAaM6ksx3zQxe9Vx61hmpVsLR7TlwR7uF2Aa0aV
+	 5VdIs05RecSHlZVEKXyi8CJr/XKGpNEa0yeSbInEZYjsDbWtxbntshxPxzZr10LVCG
+	 niM76xe+uZkDioxXR7hcNl2qMZS3EfGZCg/AftIOY/v0A7PLd2DNY4PpldaKQQICVS
+	 kocoIx19KmfbxXfPlnI5Dt+z/ugBE+G11gxroUyWFabGU48SxdEHOeq585Hqls1PZR
+	 oNjGgy/l79XrcbIeaBGsUD+KVD/ApWC/VVncN4WYWTBAlwRJy8SiavHKFe4DZfEE59
+	 lq93eS2dBOamw==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DBB6460076
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Aug 2026 18:47:39 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: ZhilingZouzhilinz@nebusec.ai
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	horms@kernel.org, bazsi@balabit.hu, kaber@trash.net,
-	hidden@balabit.hu, vega@nebusec.ai, zhilinz@nebusec.ai
-Subject: Re: [PATCH nf 1/1] netfilter: xt_TPROXY: require IPv6 protocol match
-Message-ID: <aoMywaT0eQWFS3I7@chamomile>
-References: <cover.1786968834.git.zhilinz@nebusec.ai>
- <6ca536c61d358bfb1bdfd20aafe3cc16acfd45db.1786968834.git.zhilinz@nebusec.ai>
- <aoMx5TSCLinBXwNz@chamomile>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v3 1/4] netfilter: flowtable: add and use NF_FLOW_CONFIRMED bit to skip GC
+Date: Mon, 17 Aug 2026 18:47:32 +0200
+Message-ID: <20260817164735.1207999-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aoMx5TSCLinBXwNz@chamomile>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Aug 17, 2026 at 06:08:08PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Aug 17, 2026 at 08:26:37PM +0800, ZhilingZouzhilinz@nebusec.ai wrote:
-> > From: Zhiling Zou <zhilinz@nebusec.ai>
-> > 
-> > tproxy_tg6_check() verifies the protocol field value but does not
-> > require IP6T_F_PROTO. A crafted ip6tables rule can set the field to
-> > TCP or UDP while leaving the protocol matching flag clear.
-> > 
-> > ip6_packet_match() treats such a rule as protocol agnostic and can
-> > invoke tproxy_tg6_v1() for ICMPv6. nf_tproxy_get_sock_v6() warns for
-> > protocols other than TCP and UDP.
-> > 
-> > Reject rules without IP6T_F_PROTO so TPROXY is invoked only for the
-> > protocols it supports.
-> > 
-> > Fixes: 6ad7889327a5e ("tproxy: added IPv6 support to the TPROXY target")
-> > Cc: stable@vger.kernel.org
-> > Reported-by: Vega <vega@nebusec.ai>
-> > Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
-> > ---
-> >  net/netfilter/xt_TPROXY.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-> > index 5f60e7298a1ea..13a94c9d06c0f 100644
-> > --- a/net/netfilter/xt_TPROXY.c
-> > +++ b/net/netfilter/xt_TPROXY.c
-> > @@ -179,7 +179,8 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
-> >  	if (err)
-> >  		return err;
-> >  
-> > -	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
-> > +	if ((i->flags & IP6T_F_PROTO) &&
-> > +	    (i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
-> >  	    !(i->invflags & IP6T_INV_PROTO))
-> 
-> And why not tproxy_tg4_check?
+This new NF_FLOW_CONFIRMED bit is set on once the flow entry has fully
+been set up, so it can be exposed to the GC.
 
-I answer myself: there is no such flag in IPv4.
+Apparently, there is a narrow window where GC might walk over a flow
+entry while it is in a partial state, ie. flow entry has been inserted
+in the hashes but the NF_FLOW_HW has not been set up yet. While packets
+are flowing in the software datapath that could teardown the flow.
+
+This reverts commit 2014ac62df9d ("netfilter: flowtable: publish
+GC-visible tuple last") since reversing the tuple order insertion only
+mitigates the issue for one scenario.
+
+Note that the flowtable iterators can still find reach flows in partial
+state. This is fine because they are used for cleanup scenario (ie.
+netdevice is gone) where the teardown bit is set on. On flowtable
+removal, no flow is seen in partial state because the flow_offload
+action already does not see packets (ie. flowtable in detached from
+rule).
+
+The datapath lookup function still can find the flow in partial state,
+this is addressed by a follow up patch which adds a check to skip
+expired flows.
+
+Fixes: 2014ac62df9d ("netfilter: flowtable: publish GC-visible tuple last")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: - remove check from lookup path
+    - add smp_mb__before_atomic() before set_bit(NF_FLOW_CONFIRMED, ...
+
+ include/net/netfilter/nf_flow_table.h |  1 +
+ net/netfilter/nf_flow_table_core.c    | 16 +++++++++++-----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index ce414118962f..618d26e49fdf 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -189,6 +189,7 @@ enum nf_flow_flags {
+ 	NF_FLOW_HW_PENDING,
+ 	NF_FLOW_HW_BIDIRECTIONAL,
+ 	NF_FLOW_HW_ESTABLISHED,
++	NF_FLOW_CONFIRMED,
+ };
+ 
+ enum flow_offload_type {
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 8b1165f2b5a4..cbb56ca94717 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -332,18 +332,17 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
+ 
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+-				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
++				     &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
+ 				     nf_flow_offload_rhash_params);
+ 	if (err < 0)
+ 		return err;
+ 
+-	/* GC only iterates original-direction entries; publish original last. */
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+-				     &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
++				     &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
+ 				     nf_flow_offload_rhash_params);
+ 	if (err < 0) {
+ 		rhashtable_remove_fast(&flow_table->rhashtable,
+-				       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
++				       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
+ 				       nf_flow_offload_rhash_params);
+ 		return err;
+ 	}
+@@ -353,6 +352,9 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ 	if (nf_flowtable_hw_offload(flow_table))
+ 		nf_flow_offload_add(flow_table, flow);
+ 
++	smp_mb__before_atomic();
++	set_bit(NF_FLOW_CONFIRMED, &flow->flags);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_add);
+@@ -568,8 +570,12 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
+-	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
++	bool teardown;
++
++	if (!test_bit(NF_FLOW_CONFIRMED, &flow->flags))
++		return;
+ 
++	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct) ||
+ 	    nf_flow_custom_gc(flow_table, flow)) {
+-- 
+2.47.3
+
