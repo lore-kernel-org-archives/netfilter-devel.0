@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888DA3F3269;
-	Mon, 17 Aug 2026 23:30:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE8363F412B;
+	Mon, 17 Aug 2026 23:30:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787009409; cv=none; b=TgB5tLvkDJ/woCW+0cvS8/OPQd/bxVR/cX56Ydm1GZgL7l6QWYdTIJjxooXrXv0DzFxRn6KZqgmYmwCSrzRNTl8b626tjx5F/TYk4tFT0qerLW3Ha4z57ZBVBpqtMMcH7n8L4VK7hs8PX4wxiAuNU2tatl3RT/r0PdbNPePABkI=
+	t=1787009411; cv=none; b=p67vcGZ4+O0w8ja8zWgeavReECxh6aFSREAmkwvFWGOcXxk8RgqDsaw2C7yboW3ycmbehMsgAP71rPjeLoxSIe9uVU+ioFmyrO9j2ZQ8gWk+S0+rRSAMHhtIKfVluAW0DyBU3KEnkXpZJLugE9FG8aoaJe4e6FwA9qyDccChMoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787009409; c=relaxed/simple;
-	bh=QQvuhruh716hml4fHHissdjiHU1M8hHWTGR67xGP6xY=;
+	s=arc-20240116; t=1787009411; c=relaxed/simple;
+	bh=VTjgy2kZjoS0PUKdh2bD6uz2PWlKXej0a6UnewyIvDY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EwMOpHbGLE8przDXCbva5Z53P+lmjFeZl4DXUAMPvq0FXQepnvZdTfkc1Wcs4lhbq9u6ou8Ri2zVJIUhrQGGQZSODVtbvP8EfPTK+5axKZphDehSxXM+Nj0uGl33fG2/DH+zhc8+QhUx/SfoEohY42zs67ItMfw9UhxFib7zy50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=i2Nw6lml; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=gJe24iBqcDlg2ZPhL4SyxXYmBOUqE+bmhfChCAji1fwMCD0JGAATXTdhbF5C2rRJMTrenXCYZMwgL0lAwEJs25IiBnOpknuyPFAyNv2xr4r2vYR7a9GfcJS7FebY3FZSOpfgQamQy+ufSrW7vLgZvaC6qC8ZT6uX6tU4uTBkt1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b7tvQ5ng; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="i2Nw6lml"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b7tvQ5ng"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787009405;
-	bh=I+XUX5T3MloOr1Yhm8jqZbc3yYw+IV9YvJLbtWiXOoI=;
+	s=2025; t=1787009406;
+	bh=gaGA334N+5MSKdGqqOp8dN6f7jjxRrtFkfkQv6I34oE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=i2Nw6lml4WCbz/nbxzMXcaZbIrBL2/aeeoXszCKO8aBN1YFYnH9DulW6gsNnLjVOw
-	 cYsUWrJi3QRnsmCLiWn6oSBUntBmqOw1t6PJX2sxST9EYroxMcfty+jLEbMcumkTPY
-	 DxB1g4kSRt/NppklObGXprI1Q8Y/P37yVNigKXxEWK74Xlg848aM5cvs0PRPyB0BJL
-	 b/aJ+Pt6rZEGDiL/zHN4uBjgUO6LiXxPLwXKNlAaznhfCqy1r0cmpy8Pm9d0XiC0JB
-	 gnIWpbzbW91UNA5Lz1rF5tW23dGFSys9nlVnjyaeSq3OYGohDw/DtnqL0uZi/6Cbpu
-	 TsBc62t87DCYA==
+	b=b7tvQ5ngkRsDPe175pfznaJleUDOvPjCb6OGRyy5jnY29UNox1zZ6/eZcdX54EdJB
+	 UNDzeWMJY+CzWVOMRIKN+fG1dgsj//NfHtF1ri2U5JK4qmVmD2PNL0zGi4MTveVJz1
+	 fQk6Ictr69m3rBtBuTmRCphN/GgMNEi61P1yh9LMHp1TKju6tF1ZFADzgaMlTXjoJL
+	 8JFstjSzu0GzpckBNgfkrmnDTbnakIMAIx4KTp3WTMr5iDjYAQdkrh5OLL6dXZOAZq
+	 8zyl5lDhjntxYfUdQREqnEhwvtj4PlS2V4kSmSuL59E3zPYMChZJg/c9Dvjh5PvSv8
+	 YuZmX9Lm6rqUA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A64246008C;
-	Tue, 18 Aug 2026 01:30:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 22E156008D;
+	Tue, 18 Aug 2026 01:30:06 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 1/8] netfilter: validate L4 headers after userspace packet writes
-Date: Tue, 18 Aug 2026 01:29:50 +0200
-Message-ID: <20260817232957.1281637-2-pablo@netfilter.org>
+Subject: [PATCH net-next 2/8] netfilter: ipset: remove need to allocate memory on delete operations
+Date: Tue, 18 Aug 2026 01:29:51 +0200
+Message-ID: <20260817232957.1281637-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260817232957.1281637-1-pablo@netfilter.org>
 References: <20260817232957.1281637-1-pablo@netfilter.org>
@@ -53,208 +53,376 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zhiling Zou <zhilinz@nebusec.ai>
+From: Florian Westphal <fw@strlen.de>
 
-NFQUEUE and nft_payload can hand packet data modified by userspace back
-to the stack. Recent restrictions keep link and network headers stable,
-but transport header fields can still be changed.
+Allocating mem via GFP_ATOMIC on delete is problematic, delete operations
+should always succeed.
 
-A packet can therefore keep the same network header and conntrack entry
-while changing the transport header layout. For TCP, increasing doff can
-make later helper or NAT code use a different transport-header base than
-the parser used, and can make offsets point past skb->tail.
+Do in-place substitution:  When /cidr reaches 0 count (no more elements in
+the range), move ranges stored later in the array forward and keep the
+count 0 ones at the end.
 
-Extend NFQUEUE payload validation to check the final L4 protocol and
-known base headers after IPv4 options or IPv6 extension headers. Reject
-packets whose L4 protocol no longer matches an attached non-template
-conntrack entry, and reject IP fragments that already have such a
-conntrack entry before trying to validate transport headers. Unknown L4
-protocols are left to their normal protocol handlers.
+INIT_CIDR() can then check count == 0 without a need to search next element
+in the array.
 
-For nft payload writes, reject transport-header stores that overlap TCP
-doff. nft_nh_write_ok() already rejects network-header protocol changes,
-so keeping doff stable prevents nft payload writes from changing the TCP
-header length underneath conntrack and helper users.
+To avoid problems on weakly ordered architectures, pack the structure so it
+is only 32bit wide, then use READ/WRITE_ONCE to store both cidr and count.
+atomically.
 
-This patch is a follow up to commit df07998dfd40 ("netfilter: nftables:
-restrict linklayer and network header writes") and commit 54f34607d184
-("netfilter: nfnetlink_queue: restrict writes to network header").
+Also update comments to mention the possible presence of ignored
+0-count-0-cidr structures at the end and need for seqcount.
 
-Reported-by: Vega <vega@nebusec.ai>
-Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+seqcount is used to restart.  This avoids bogus range misses.
+Given:  [0]: /29 [1]: /24
+cpu1 reads slot 0. then, right after, cpu2 removes /29. count drops to 0,
+so it updates array to: [0], /24, [1], /0 (count 0).
+
+cpu1 then skips /28: slot 0 was already visited, but slot 1 already replaced.
+
+Note that mtype_add() doesn't check mtype_add_cidr() return value.
+Doing this here is useless noise as this code is extensively rewritten
+in the rhashtable replacement patch.
+
+Assisted-by: Claude:claude-sonnet-5
+Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 72 +++++++++++++++++++++++++++++++--
- net/netfilter/nft_payload.c     | 13 ++++++
- 2 files changed, 82 insertions(+), 3 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h        | 168 +++++++++++++------
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   1 -
+ net/netfilter/ipset/ip_set_hash_netportnet.c |   1 -
+ 3 files changed, 121 insertions(+), 49 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index b8aaf39cb4d8..c727668b0c5b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -28,10 +28,17 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/netfilter/nf_conntrack_common.h>
-+#include <linux/icmp.h>
-+#include <linux/icmpv6.h>
-+#include <linux/ip.h>
- #include <linux/list.h>
-+#include <linux/sctp.h>
- #include <linux/cgroup-defs.h>
- #include <linux/rhashtable.h>
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index f00c82acd7f0..80ca523f304b 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -8,6 +8,7 @@
+ #include <linux/rcupdate_wait.h>
  #include <linux/jhash.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
-+#include <net/gre.h>
- #include <net/gso.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
-@@ -1206,10 +1213,62 @@ static bool nfqnl_validate_ipopts(const struct iphdr *iph_new,
- 	return memcmp(iph_new + 1, ip_hdr(e->skb) + 1, ihl - sizeof(*iph_orig)) == 0;
- }
+ #include <linux/types.h>
++#include <linux/seqlock.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/ipset/ip_set.h>
  
-+static bool nfqnl_validate_l4(const u8 *data, unsigned int data_len,
-+			      const struct nf_queue_entry *e, u8 proto,
-+			      bool fragment)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	enum ip_conntrack_info ctinfo;
-+	const struct nf_conn *ct;
+@@ -98,14 +99,34 @@ struct htable {
+ #define IPSET_NET_COUNT		1
+ #endif
+ 
+-/* Book-keeping of the prefixes added to the set */
++/**
++ * struct net_prefix - Representation of a network prefix.
++ * @cidr: The CIDR prefix length.
++ * @count: Number of occurrences.
++ */
+ struct net_prefix {
+-	u8 cidr;			/* the cidr value */
+-	u32 count;			/* number of elements of this cidr */
++	u32 cidr:8;
++	u32 count:24;
+ };
+ 
++#define CIDR_MAX_COUNT ((1 << 24) - 1)
 +
-+	ct = nf_ct_get(e->skb, &ctinfo);
-+	if (ct && !nf_ct_is_template(ct)) {
-+		if (fragment || nf_ct_protonum(ct) != proto)
-+			return false;
-+	}
-+#endif
-+
-+	if (fragment)
-+		return true;
-+
-+	switch (proto) {
-+	case IPPROTO_TCP: {
-+		const struct tcphdr *th = (const struct tcphdr *)data;
-+		unsigned int thlen;
-+
-+		if (data_len < sizeof(*th))
-+			return false;
-+
-+		thlen = __tcp_hdrlen(th);
-+		if (thlen < sizeof(*th) || data_len < thlen)
-+			return false;
-+
-+		return true;
-+	}
-+	case IPPROTO_UDP:
-+		return data_len >= sizeof(struct udphdr);
-+	case IPPROTO_ICMP:
-+		return data_len >= sizeof(struct icmphdr);
-+	case IPPROTO_ICMPV6:
-+		return data_len >= sizeof(struct icmp6hdr);
-+	case IPPROTO_SCTP:
-+		return data_len >= sizeof(struct sctphdr);
-+	case IPPROTO_GRE:
-+		return data_len >= sizeof(struct gre_base_hdr);
-+	case IPPROTO_AH:
-+		return data_len >= sizeof(struct ip_auth_hdr);
-+	case IPPROTO_ESP:
-+		return data_len >= sizeof(struct ip_esp_hdr);
-+	}
-+
-+	return true;
-+}
-+
- static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
- 			       const struct nf_queue_entry *e)
++/**
++ * struct net_prefixes - A collection of network prefixes.
++ * @rcu: RCU head
++ * @seq: Sequence counter guarding in-place reordering of @nets
++ * @len: Number of entries in the array.
++ * @nets: Array of net_prefix structures (sorted by CIDR descending).
++ *
++ * @nets entries are updated in place under @set's lock. A single entry's
++ * cidr/count pair is always updated atomically via READ_ONCE()/WRITE_ONCE(),
++ * but removing an entry also shifts every following entry down by one slot.
++ * Lockless readers that scan the whole array (i.e. more than a single
++ * indexed slot) must use @seq to detect and retry across such a shift.
++ */
+ struct net_prefixes {
+ 	struct rcu_head rcu;
++	seqcount_spinlock_t seq;
+ 	u8 len;
+ 	struct net_prefix nets[] __counted_by(len);
+ };
+@@ -143,8 +164,11 @@ htable_size(u8 hbits)
+ #endif
+ 
+ #define INIT_CIDR(n, host_mask) ({				\
+-	const struct net_prefixes *__n = rcu_dereference(n);		\
+-	DCIDR_PUT((__n)->len ? (__n)->nets[0].cidr : host_mask);\
++	const struct net_prefixes *__n = rcu_dereference(n);	\
++	struct net_prefix __p =					\
++		__n->len ? READ_ONCE(__n->nets[0])		\
++			 : (struct net_prefix){};		\
++	DCIDR_PUT(__p.count ? __p.cidr : host_mask);		\
+ })
+ 
+ #endif /* IP_SET_HASH_WITH_NETS */
+@@ -318,27 +342,43 @@ struct mtype_resize_ad {
+ };
+ 
+ #ifdef IP_SET_HASH_WITH_NETS
+-/* Network cidr size book keeping when the hash stores different
+- * sized networks. cidr == real cidr + 1 to support /0.
++/**
++ * mtype_add_cidr - Add a CIDR entry to hash table bookkeeping
++ * @set: Pointer to the ip_set
++ * @h: Pointer to the htype
++ * @cidr: The CIDR prefix length
++ * @n: The index of the net_prefix array to add @cidr to
++ *
++ * Performs an update if @cidr is found, otherwise performs COW-style
++ * allocation and replacement via RCU.
++ *
++ * Return: 0 on success, negative error code on failure.
+  */
+ static int
+ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
  {
- 	unsigned int ihl;
-+	bool fragment;
+-	struct net_prefixes *nets, *tmp;
+ 	int i, j, found, len = 0, ret = 0;
++	struct net_prefixes *nets, *tmp;
++	struct net_prefix np;
  
- 	if (data_len < sizeof(*iph))
- 		return false;
-@@ -1226,10 +1285,14 @@ static bool nfqnl_validate_ip4(const struct iphdr *iph, unsigned int data_len,
- 	if (ntohs(iph->tot_len) != data_len)
- 		return false;
- 
-+	fragment = iph->frag_off & htons(IP_MF | IP_OFFSET);
-+
- 	/* support for ipopts mangling would require
- 	 * recompile + skb transport header update.
- 	 */
--	return nfqnl_validate_ipopts(iph, e);
-+	return nfqnl_validate_ipopts(iph, e) &&
-+	       nfqnl_validate_l4((const u8 *)iph + ihl, data_len - ihl, e,
-+				 iph->protocol, fragment);
- }
- 
- static bool nfqnl_validate_one_exthdr(const u8 *data,
-@@ -1273,6 +1336,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 	const u8 *data = (const u8 *)ip6_new;
- 	u8 orig_nexthdr = ip6_orig->nexthdr;
- 	u8 new_nexthdr = ip6_new->nexthdr;
-+	bool fragment = false;
- 
- 	if (new_nexthdr != orig_nexthdr)
- 		return false;
-@@ -1286,7 +1350,8 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 		int hdrlen;
- 
- 		if (orig_nexthdr == NEXTHDR_NONE)
--			return true;
-+			return nfqnl_validate_l4(data, data_len, e,
-+						 new_nexthdr, fragment);
- 
- 		if (unlikely(exthdr_cnt++ >= IP6_MAX_EXT_HDRS_CNT))
- 			return false;
-@@ -1297,6 +1362,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 
- 		switch (orig_nexthdr) {
- 		case NEXTHDR_FRAGMENT:
-+			fragment = true;
- 			hdrlen = sizeof(struct frag_hdr);
- 			break;
- 		case NEXTHDR_AUTH:
-@@ -1323,7 +1389,7 @@ static bool nfqnl_validate_exthdr(const struct ipv6hdr *ip6_new,
- 		data += hdrlen;
+ 	spin_lock_bh(&set->lock);
+ 	nets = __ipset_dereference(h->rnets[n]);
+ 	/* Add in increasing prefix order, so larger cidr first */
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+-		if (nets->nets[i].count)
++		np = READ_ONCE(nets->nets[i]);
++		if (np.count)
+ 			len++;
+ 		if (found != -1) {
+ 			continue;
+-		} else if (nets->nets[i].cidr < cidr) {
++		} else if (np.cidr < cidr) {
+ 			found = i;
+-		} else if (nets->nets[i].cidr == cidr) {
+-			nets->nets[i].count++;
++		} else if (np.cidr == cidr) {
++			if (np.count < CIDR_MAX_COUNT) {
++				np.count++;
++				WRITE_ONCE(nets->nets[i], np);
++			} else {
++				ret = -EOVERFLOW;
++			}
+ 			goto unlock;
+ 		}
+ 	}
+@@ -350,6 +390,7 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
  	}
  
--	return true;
-+	return nfqnl_validate_l4(data, data_len, e, new_nexthdr, fragment);
+ 	tmp->len = len;
++	seqcount_spinlock_init(&tmp->seq, &set->lock);
+ 	for (i = 0, j = 0; i < nets->len; i++) {
+ 		if (i == found) {
+ 			tmp->nets[j].cidr = cidr;
+@@ -371,42 +412,60 @@ mtype_add_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ 	return ret;
  }
  
- static bool nfqnl_validate_ip6(const struct ipv6hdr *ip6, unsigned int data_len,
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 8a4472fd77d9..e315d35f73d4 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -1067,6 +1067,17 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
- 	return false;
- }
++/**
++ * mtype_del_cidr - Remove CIDR entry and maintain array integrity.
++ * @set: Pointer to the ip_set.
++ * @h: Pointer to the htype.
++ * @cidr: The CIDR prefix length.
++ * @n: The index of the net_prefix array to remove @cidr from
++ *
++ * If CIDR entry count falls to 0, this function performs a "shift-left"
++ * operation on all following elements. This ensures that the array remains
++ * contiguous and maintains its descending order by CIDR. The vacated slot
++ * at the end of the array is zeroed out (cidr=0, count=0).
++ */
+ static void
+ mtype_del_cidr(struct ip_set *set, struct htype *h, u8 cidr, u8 n)
+ {
+-	struct net_prefixes *nets, *tmp;
+-	u8 i, j, len = 0;
++	struct net_prefixes *nets;
++	struct net_prefix np;
+ 	int found;
++	u8 i, j;
++
++	BUILD_BUG_ON(sizeof(struct net_prefix) != sizeof(u32));
  
-+static bool nft_th_write_ok(const struct nft_pktinfo *pkt,
-+			    const struct nft_payload_set *priv)
-+{
-+	unsigned int doff = offsetof(struct tcphdr, ack_seq) + sizeof(__be32);
+ 	spin_lock_bh(&set->lock);
+ 	nets = __ipset_dereference(h->rnets[n]);
+ 	for (i = 0, found = -1; i < nets->len; i++) {
+-		if (nets->nets[i].count)
+-			len++;
+-		if (nets->nets[i].cidr == cidr)
++		np = READ_ONCE(nets->nets[i]);
++		if (np.count && np.cidr == cidr) {
++			np.count--;
+ 			found = i;
++			break;
++		}
+ 	}
+ 	if (unlikely(found == -1))
+ 		goto unlock;
+ 
+-	nets->nets[found].count--;
+-	if (nets->nets[found].count)
+-		goto unlock;
+-	len--;
+-	tmp = kzalloc_flex(*tmp, nets, len, GFP_ATOMIC);
+-	if (!tmp)
+-		/* Leave a hole */
++	if (np.count) {
++		WRITE_ONCE(nets->nets[found], np);
+ 		goto unlock;
++	}
+ 
+-	tmp->len = len;
++	write_seqcount_begin(&nets->seq);
+ 	for (i = 0, j = 0; i < nets->len; i++) {
+-		if (!nets->nets[i].count || i == found)
++		if (i == found)
+ 			continue;
+-		tmp->nets[j].cidr = nets->nets[i].cidr;
+-		tmp->nets[j++].count = nets->nets[i].count;
 +
-+	if (pkt->tprot != IPPROTO_TCP)
-+		return true;
++		np = READ_ONCE(nets->nets[i]);
++		if (i != j)
++			WRITE_ONCE(nets->nets[j], np);
++		j++;
+ 	}
+-	rcu_assign_pointer(h->rnets[n], tmp);
+-	kfree_rcu(nets, rcu);
 +
-+	return priv->offset > doff || priv->offset + priv->len <= doff;
-+}
++	while (j < nets->len)
++		WRITE_ONCE(nets->nets[j++], (struct net_prefix){});
++	write_seqcount_end(&nets->seq);
+ unlock:
+ 	spin_unlock_bh(&set->lock);
+ }
+@@ -451,7 +510,7 @@ mtype_flush(struct ip_set *set)
+ {
+ 	struct htype *h = set->data;
+ #ifdef IP_SET_HASH_WITH_NETS
+-	struct net_prefixes *nets, *tmp;
++	struct net_prefixes *nets;
+ #endif
+ 	struct htable *t;
+ 	struct hbucket *n;
+@@ -477,17 +536,15 @@ mtype_flush(struct ip_set *set)
+ 	}
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	for (i = 0; i < IPSET_NET_COUNT; i++) {
+-		nets = ipset_dereference_nfnl(h->rnets[i]);
+-		tmp = kzalloc_obj(*tmp, GFP_ATOMIC);
+-		if (!tmp) {
+-			u8 j;
++		u8 j;
+ 
+-			for (j = 0; j < nets->len; j++)
+-				nets->nets[j].count = 0;
+-		} else {
+-			rcu_assign_pointer(h->rnets[i], tmp);
+-			kfree_rcu(nets, rcu);
+-		}
++		spin_lock_bh(&set->lock);
++		nets = ipset_dereference_nfnl(h->rnets[i]);
++		write_seqcount_begin(&nets->seq);
++		for (j = 0; j < nets->len; j++)
++			WRITE_ONCE(nets->nets[j], (struct net_prefix){});
++		write_seqcount_end(&nets->seq);
++		spin_unlock_bh(&set->lock);
+ 	}
+ #endif
+ }
+@@ -1253,31 +1310,41 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ #if IPSET_NET_COUNT == 2
+ 	struct net_prefixes *nets1;
+ 	struct mtype_elem orig = *d;
++	unsigned int seq1;
+ 	int ret, i, j, k;
+ #else
+ 	int ret, i, j;
+ #endif
+-	u32 key, multi = 0;
++	unsigned int seq0;
++	u32 key, multi;
+ 	u8 pos;
+ 
+ 	pr_debug("test by nets\n");
+ 	rcu_read_lock_bh();
++retry:
++	multi = 0;
+ 	nets0 = rcu_dereference_bh(h->rnets[0]);
++	seq0 = read_seqcount_begin(&nets0->seq);
+ #if IPSET_NET_COUNT == 2
+ 	nets1 = rcu_dereference_bh(h->rnets[1]);
++	seq1 = read_seqcount_begin(&nets1->seq);
+ #endif
+ 	for (j = 0; j < nets0->len && !multi; j++) {
+-		if (!nets0->nets[j].count)
++		struct net_prefix p0 = READ_ONCE(nets0->nets[j]);
 +
- static void nft_payload_set_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
-@@ -1105,6 +1116,8 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 	case NFT_PAYLOAD_TRANSPORT_HEADER:
- 		if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
- 			goto err;
-+		if (!nft_th_write_ok(pkt, priv))
-+			goto err;
- 		offset = nft_thoff(pkt);
- 		break;
- 	case NFT_PAYLOAD_INNER_HEADER:
++		if (!p0.count)
+ 			continue;
+ #if IPSET_NET_COUNT == 2
+ 		mtype_data_reset_elem(d, &orig);
+-		mtype_data_netmask(d, nets0->nets[j].cidr, false);
++		mtype_data_netmask(d, p0.cidr, false);
+ 		for (k = 0; k < nets1->len && !multi; k++) {
+-			if (!nets1->nets[k].count)
++			struct net_prefix p1 = READ_ONCE(nets1->nets[k]);
++
++			if (!p1.count)
+ 				continue;
+-			mtype_data_netmask(d, nets1->nets[k].cidr, true);
++			mtype_data_netmask(d, p1.cidr, true);
+ #else
+-		mtype_data_netmask(d, nets0->nets[j].cidr);
++		mtype_data_netmask(d, p0.cidr);
+ #endif
+ 		key = HKEY(d, h->initval, t->htable_bits);
+ 		n = rcu_dereference_bh(hbucket(t, key));
+@@ -1304,6 +1371,12 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 	}
+ 	ret = 0;
+ unlock:
++	if (read_seqcount_retry(&nets0->seq, seq0))
++		goto retry;
++#if IPSET_NET_COUNT == 2
++	if (read_seqcount_retry(&nets1->seq, seq1))
++		goto retry;
++#endif
+ 	rcu_read_unlock_bh();
+ 	return ret;
+ }
+@@ -1707,6 +1780,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 				kfree(rcu_dereference_raw(h->rnets[--i]));
+ 			goto free_hregion;
+ 		}
++		seqcount_spinlock_init(&nets->seq, &set->lock);
+ 		RCU_INIT_POINTER(h->rnets[i], nets);
+ 	}
+ #endif
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index b44b95f766b7..b602cc43565d 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -38,7 +38,6 @@ MODULE_ALIAS("ip_set_hash:net,iface");
+ #define HTYPE		hash_netiface
+ #define IP_SET_HASH_WITH_NETS
+ #define IP_SET_HASH_WITH_MULTI
+-#define IP_SET_HASH_WITH_NET0
+ 
+ #define STRSCPY(a, b)	strscpy(a, b, IFNAMSIZ)
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 6291532be7a5..61af1ce27127 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -36,7 +36,6 @@ MODULE_ALIAS("ip_set_hash:net,port,net");
+ #define IP_SET_HASH_WITH_PROTO
+ #define IP_SET_HASH_WITH_NETS
+ #define IPSET_NET_COUNT 2
+-#define IP_SET_HASH_WITH_NET0
+ 
+ /* IPv4 variant */
+ 
 -- 
 2.47.3
 
