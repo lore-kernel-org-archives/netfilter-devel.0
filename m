@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 442CB46AF0A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A98E46C4BF;
 	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786987351; cv=none; b=ntGsVSKz58GzVxTtDg1L1uCMBPnkSH9s6pKLpx08RGAKjTRUnpK74kfmlPuA/0WtOgW58LP4/PI0mhB4mypSiWb3NvFwmnutkuseR7thPlrGi3CxkFCuOzAoLqttff7aE/hC8pFHRvrAko9vQyZTZV1C2DD93YBxG7gx3ln7W9o=
+	t=1786987351; cv=none; b=DxkjwFGzYNUZgQ1Jv5r27c1U5txDaSotY8V8uvcnawQjZ+V7K8CnmTAr78Olr/Nh5xEDWfsIBLDNzd15tDipOHLtk91gkQal9HCBNDpmQ4CrEHhmeJJB7AvAeIBcQtEUj0a3a0LPqlnJkoztwKWEBddD/lkhcoHhJp4NhnzMk4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786987351; c=relaxed/simple;
-	bh=zTdYOCGpPbvo6ufi809Rri+YRM94kX0f0IXePRW5ia8=;
+	bh=VljahOe7p0VAPWPJ3YuDXhxu24pzuwulFn3TWrtzzxw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=gBUuTIwSv+5/SGRmeidtgn9yqW3j/9fqKqGCQD2sQEZDpQNLMo86bu77cxjhA70NTZir1c04o40d1bzWTPp7CoViH2CRUfEm7TXYS0wZoUB6yi0SdTJAC7JOo37SGhDNm3BTZmgw+kMDcni2bd3SYoSbTBpOJFz67m7OeuYOoTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P52QHUq3; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=Q8d8S5ciIjxkDN+W/0X58ZCTxojlszyfjS3SELDQP3TgdExXCMtdkArz92LDrMFTylPjroIawNFvkBzgHVfsz6VQEhqmGR6LfLCCzlp1fagflblFPn8MlK3gMmNI+PxWfsxEsUPvfsqkbRnhdTox/bS94UKIuKruyEtbcHtf+Q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OZlR7Gvl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P52QHUq3"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E3897C2BCFF;
-	Mon, 17 Aug 2026 17:22:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OZlR7Gvl"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 49D00C2BCB3;
+	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1786987351;
-	bh=zTdYOCGpPbvo6ufi809Rri+YRM94kX0f0IXePRW5ia8=;
+	bh=VljahOe7p0VAPWPJ3YuDXhxu24pzuwulFn3TWrtzzxw=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=P52QHUq3/xcorcXZu7r6tCjygUQFwidPFzHoCJgQuXjwkzo58DSIP80l4FJrf3if4
-	 IGJxZWmoAC6om3/Pwce84778ATkDQKcLgVIMAL0vOMFlBmmca6FD8oaYdBTTYcRfZ5
-	 EwrO5S4MitRZmQnMm/3v8xxyfFsB1FsDgnA7FwMEr8WSS5Yb6prfvV8wyAyRX+eCnc
-	 esGFRuBzJWG3k2DAO7rcs6fN0+sDoukjnFGeEJUdWErwJzMVBxQvpKluM3rNFGa/V7
-	 iNCV3jOh4HXj8ubJZ22K3sPGKlOfUxoRrbJPaJtK7kADVDB/zshSt1nESuDBIygr9W
-	 zIG63CTRAn3Xw==
+	b=OZlR7Gvl1KE/j9ReXCRHP7Rt86OUBhV/ePaNwQDyxcSXkkG5ol2WLsDDGFfjNCBcV
+	 PVIxF+ltwYjsXvOKAVy0xT+OFtG/i2egwaPIEq+RSrBCEqfBwsbu0GbdftUrtK0AMA
+	 gGyxvRwfi/0LSmYuoH7CUu6+igpzb2LmBbmOGT9OQgMTCdtZBSOc1C7pEq3X4e11gR
+	 YQhh8T1NPYniY1M0Ph059yqC59e10h8OudFMBZ3j7XV2N3EqMPAjGj+nbuz6HxS0z0
+	 AdXgrz48igGjkaF05KQEDMxDTaOpxI7mwNwQtTNHR1zDXvoFTR68QNRpp1EvLon2X/
+	 CvyjSfvtEP8Cg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5935C5B572;
-	Mon, 17 Aug 2026 17:22:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2782DC5DF70;
+	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 From: Jim Cromie via B4 Relay <devnull+jim.cromie.gmail.com@kernel.org>
-Date: Mon, 17 Aug 2026 11:22:17 -0600
-Subject: [PATCH 3/9] bpf/verifier: Route verifier stack state node
- allocations to folio_pool
+Date: Mon, 17 Aug 2026 11:22:19 -0600
+Subject: [PATCH 5/9] bpf/syscall: Route generic_map_update_batch key/value
+ allocations to folio_scratchpad
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,7 +41,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260817-folio-pool-v1-v1-3-0c1d230aa3af@gmail.com>
+Message-Id: <20260817-folio-pool-v1-v1-5-0c1d230aa3af@gmail.com>
 References: <20260817-folio-pool-v1-v1-0-0c1d230aa3af@gmail.com>
 In-Reply-To: <20260817-folio-pool-v1-v1-0-0c1d230aa3af@gmail.com>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -71,11 +71,11 @@ Cc: netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
  linux-mm@kvack.org, coreteam@netfilter.org, netdev@vger.kernel.org, 
  Jim Cromie <jim.cromie@gmail.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1786987349; l=3668;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1786987349; l=2199;
  i=jim.cromie@gmail.com; s=20260203; h=from:subject:message-id;
- bh=wd43RzukeW/QIRUOsguKGysZSVWNap+EkJQwmYjEf9A=;
- b=RF7O0cJ6UhuZWtoBFwIEZu/Uet9+m63ZwGntlkc7HifWVQ9cB6lvVPZZZ7oAkyvhDWt0UEWjL
- GN7mnVJCnK5CEvsqbKbNn1jrRMc23jiFMLCZ23LsNR5YNbIQiBnNZdV
+ bh=vm1aaD+pwQaXZSzhLFkT2JsY0U2BVsRDPtRXCFebL2I=;
+ b=yxcUp3EtGyfmt7m8wjQpy/d4ZRch/7Ef/TJRKDqN6xOkUjagZRS1UvxqNUT9srZNE0A5I/Kqf
+ Rvrf7VwYNhcAwfea2Ce5fgAe4ET6iLCh6mOiZH9iu26PxjqF38ObHo2
 X-Developer-Key: i=jim.cromie@gmail.com; a=ed25519;
  pk=C6E5ODlPQo7ZBynATXH9wg7K6HxP0pIXyf4s38Qw0XE=
 X-Endpoint-Received: by B4 Relay for jim.cromie@gmail.com/20260203 with
@@ -85,101 +85,73 @@ Reply-To: jim.cromie@gmail.com
 
 From: Jim Cromie <jim.cromie@gmail.com>
 
-Embed a struct folio_pool inside struct bpf_verifier_env to allocate
-transient bpf_verifier_stack_elem frames using direct-map large folios,
-releasing all frames in bulk at the end of bpf_check().
-
-Use folio_pool_alloc_obj() to preserve strict type specificity at callsites.
+Use struct folio_scratchpad to allocate transient key and value buffers
+during map update batch operations, bypassing SLUB cache churn.
 
 Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 ---
- include/linux/bpf_verifier.h |  3 +++
- kernel/bpf/verifier.c        | 16 +++++++++++++---
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ kernel/bpf/syscall.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/bpf_verifier.h b/include/linux/bpf_verifier.h
-index 39a851e690ec..43f5f0eaffac 100644
---- a/include/linux/bpf_verifier.h
-+++ b/include/linux/bpf_verifier.h
-@@ -898,6 +898,8 @@ struct bpf_scc_info {
- 
- struct bpf_liveness;
- 
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 6db306d23b47..8ef48673b933 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -19,6 +19,7 @@
+ #include <linux/fdtable.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
 +#include <linux/folio_pool.h>
-+
- /* single container for all structs
-  * one verifier_env per bpf_check() call
-  */
-@@ -907,6 +909,7 @@ struct bpf_verifier_env {
- 	struct bpf_prog *prog;		/* eBPF program being verified */
- 	const struct bpf_verifier_ops *ops;
- 	struct module *attach_btf_mod;	/* The owner module of prog->aux->attach_btf */
-+	struct folio_pool state_pool;	/* pool for transient state nodes */
- 	struct bpf_verifier_stack_elem *head; /* stack of verifier states to be processed */
- 	int stack_size;			/* number of states to be processed */
- 	bool strict_alignment;		/* perform strict pointer alignment checks */
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index fdc5fbb1f78c..8a9e66ce4dc8 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -1725,7 +1725,7 @@ static int pop_stack(struct bpf_verifier_env *env, int *prev_insn_idx,
- 		*prev_insn_idx = head->prev_insn_idx;
- 	elem = head->next;
- 	bpf_free_verifier_state(&head->st, false);
--	kfree(head);
-+	folio_pool_free_elem(head);
- 	env->head = elem;
- 	env->stack_size--;
- 	return 0;
-@@ -1743,6 +1743,8 @@ static bool error_recoverable_with_nospec(int err)
- 	return err == -EPERM || err == -EACCES || err == -EINVAL;
+ #include <linux/license.h>
+ #include <linux/filter.h>
+ #include <linux/kernel.h>
+@@ -2059,12 +2060,15 @@ int generic_map_delete_batch(struct bpf_map *map,
+ 	return err;
  }
  
-+DEFINE_STATIC_KEY_TRUE(bpf_state_pool_key);
++DEFINE_STATIC_KEY_TRUE(bpf_batch_scratchpad_key);
 +
- static struct bpf_verifier_state *push_stack(struct bpf_verifier_env *env,
- 					     int insn_idx, int prev_insn_idx,
- 					     bool speculative)
-@@ -1751,7 +1753,9 @@ static struct bpf_verifier_state *push_stack(struct bpf_verifier_env *env,
- 	struct bpf_verifier_stack_elem *elem;
- 	int err;
+ int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
+ 			     const union bpf_attr *attr,
+ 			     union bpf_attr __user *uattr)
+ {
+ 	void __user *values = u64_to_user_ptr(attr->batch.values);
+ 	void __user *keys = u64_to_user_ptr(attr->batch.keys);
++	struct folio_scratchpad batch_sp;
+ 	u32 value_size, cp, max_count;
+ 	void *key, *value;
+ 	int err = 0;
+@@ -2083,13 +2087,17 @@ int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
+ 	if (put_user(0, &uattr->batch.count))
+ 		return -EFAULT;
  
--	elem = kzalloc_obj(struct bpf_verifier_stack_elem, GFP_KERNEL_ACCOUNT);
-+	elem = folio_pool_alloc_obj(env, state_pool,
-+				    struct bpf_verifier_stack_elem,
-+				    GFP_KERNEL_ACCOUNT);
- 	if (!elem)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -2275,7 +2279,9 @@ static struct bpf_verifier_state *push_async_cb(struct bpf_verifier_env *env,
- 	struct bpf_verifier_stack_elem *elem;
- 	struct bpf_func_state *frame;
- 
--	elem = kzalloc_obj(struct bpf_verifier_stack_elem, GFP_KERNEL_ACCOUNT);
-+	elem = folio_pool_alloc_obj(env, state_pool,
-+				    struct bpf_verifier_stack_elem,
-+				    GFP_KERNEL_ACCOUNT);
- 	if (!elem)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -19789,6 +19795,9 @@ int bpf_check(struct bpf_prog **prog, union bpf_attr *attr, bpfptr_t uattr,
- 	if (!env)
+-	key = kvmalloc(map->key_size, GFP_USER | __GFP_NOWARN);
++	folio_scratchpad_init_key(&batch_sp, 0, &bpf_batch_scratchpad_key);
++
++	key = folio_scratchpad_alloc(&batch_sp, map->key_size,
++				     sizeof(void *), GFP_USER | __GFP_NOWARN);
+ 	if (!key)
  		return -ENOMEM;
  
-+	folio_pool_init_key(&env->state_pool, sizeof(struct bpf_verifier_stack_elem),
-+			    get_order(SZ_64K), &bpf_state_pool_key);
-+
- 	env->bt.env = env;
+-	value = kvmalloc(value_size, GFP_USER | __GFP_NOWARN);
++	value = folio_scratchpad_alloc(&batch_sp, value_size,
++				       sizeof(void *), GFP_USER | __GFP_NOWARN);
+ 	if (!value) {
+-		kvfree(key);
++		folio_scratchpad_free(&batch_sp);
+ 		return -ENOMEM;
+ 	}
  
- 	len = (*prog)->len;
-@@ -20055,6 +20064,7 @@ int bpf_check(struct bpf_prog **prog, union bpf_attr *attr, bpfptr_t uattr,
- 	bpf_clear_insn_aux_data(env, 0, env->prog->len);
- err_free_env:
- 	bpf_stack_liveness_free(env);
-+	folio_pool_free(&env->state_pool);
- 	kvfree(env->cfg.insn_postorder);
- 	kvfree(env->scc_info);
- 	kvfree(env->succ);
+@@ -2111,8 +2119,7 @@ int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
+ 	if (copy_to_user(&uattr->batch.count, &cp, sizeof(cp)))
+ 		err = -EFAULT;
+ 
+-	kvfree(value);
+-	kvfree(key);
++	folio_scratchpad_free(&batch_sp);
+ 
+ 	return err;
+ }
 
 -- 
 2.55.0
