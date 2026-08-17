@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A98E46C4BF;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AC0A46C836;
 	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786987351; cv=none; b=DxkjwFGzYNUZgQ1Jv5r27c1U5txDaSotY8V8uvcnawQjZ+V7K8CnmTAr78Olr/Nh5xEDWfsIBLDNzd15tDipOHLtk91gkQal9HCBNDpmQ4CrEHhmeJJB7AvAeIBcQtEUj0a3a0LPqlnJkoztwKWEBddD/lkhcoHhJp4NhnzMk4k=
+	t=1786987351; cv=none; b=RQUYTiKnM1IGXpAc44ODUk7E/bX8ZuHyKXIU9Lj7oROaPVajTp93iQMprGVwUSOOnayNWyLONwOdJ/sZmIYIekYLSg2a3If4dD5PuK8HPEY/vCoFlc/BIIBlks1Iz4tZdDElO8WpD8VENQyhFywRoi7t2DtnmnIDq+wV/4OhdB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786987351; c=relaxed/simple;
-	bh=VljahOe7p0VAPWPJ3YuDXhxu24pzuwulFn3TWrtzzxw=;
+	bh=RVVE5r0NGUE4k5ybuOlp+7aHs2IlhNHimZ4YfYSSYDE=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Q8d8S5ciIjxkDN+W/0X58ZCTxojlszyfjS3SELDQP3TgdExXCMtdkArz92LDrMFTylPjroIawNFvkBzgHVfsz6VQEhqmGR6LfLCCzlp1fagflblFPn8MlK3gMmNI+PxWfsxEsUPvfsqkbRnhdTox/bS94UKIuKruyEtbcHtf+Q4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OZlR7Gvl; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=dZc93F95/Qm4j7rQVYAggNtUIFHjYLx4o6G9fpgcZjWXzIg5aa9fcVdETtZt1bXmHOhhXNN8EKODO0giRnV5FrflhFgAPGqAGRsxcjAbnd7sKK/0flgzgFWsNBUvWJuhpckIoUqc1hligcOWouDx5VtrpK+tNSMqmIs6ZDFHPmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vgm6nGYx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OZlR7Gvl"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 49D00C2BCB3;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vgm6nGYx"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 7AE43C2BCF6;
 	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1786987351;
-	bh=VljahOe7p0VAPWPJ3YuDXhxu24pzuwulFn3TWrtzzxw=;
+	bh=RVVE5r0NGUE4k5ybuOlp+7aHs2IlhNHimZ4YfYSSYDE=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=OZlR7Gvl1KE/j9ReXCRHP7Rt86OUBhV/ePaNwQDyxcSXkkG5ol2WLsDDGFfjNCBcV
-	 PVIxF+ltwYjsXvOKAVy0xT+OFtG/i2egwaPIEq+RSrBCEqfBwsbu0GbdftUrtK0AMA
-	 gGyxvRwfi/0LSmYuoH7CUu6+igpzb2LmBbmOGT9OQgMTCdtZBSOc1C7pEq3X4e11gR
-	 YQhh8T1NPYniY1M0Ph059yqC59e10h8OudFMBZ3j7XV2N3EqMPAjGj+nbuz6HxS0z0
-	 AdXgrz48igGjkaF05KQEDMxDTaOpxI7mwNwQtTNHR1zDXvoFTR68QNRpp1EvLon2X/
-	 CvyjSfvtEP8Cg==
+	b=Vgm6nGYxPCpnhsPyBgdcgF8JbuxFF/gy/YpTLAh4AKZLyV0AmkmhdqB4ijiDN8khe
+	 d340Rr/KNdjeRaI8m59OUPzO92PqxbPW8i3f3zry1G9MtF/bAX8+tbShkp742iWpyO
+	 WfY44+cLHZhbzyyWPz6Txlra1l3JKspyLvgK3BBASHhU+Z2E2AFGwEvsJ7yhzVerx1
+	 5v5mnOrdoDy/qA8hk+7aDRJ6j9GQ2IwAj2VkSCRpYdCvRZcljSxlE7ex2jcvYIfaQ6
+	 d5uQdEcENIC0s+Px4jfZxngrNy+jKzR6HQvWyTgsY4H/zIr9QwVXyJZkBEMtkk1avG
+	 4kb03jlxCo8oQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2782DC5DF70;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56928C5B572;
 	Mon, 17 Aug 2026 17:22:31 +0000 (UTC)
 From: Jim Cromie via B4 Relay <devnull+jim.cromie.gmail.com@kernel.org>
-Date: Mon, 17 Aug 2026 11:22:19 -0600
-Subject: [PATCH 5/9] bpf/syscall: Route generic_map_update_batch key/value
- allocations to folio_scratchpad
+Date: Mon, 17 Aug 2026 11:22:20 -0600
+Subject: [PATCH 6/9] locking/lockdep: Fallback to folio_pool in
+ alloc_list_entry when static pool is full
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,7 +41,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260817-folio-pool-v1-v1-5-0c1d230aa3af@gmail.com>
+Message-Id: <20260817-folio-pool-v1-v1-6-0c1d230aa3af@gmail.com>
 References: <20260817-folio-pool-v1-v1-0-0c1d230aa3af@gmail.com>
 In-Reply-To: <20260817-folio-pool-v1-v1-0-0c1d230aa3af@gmail.com>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -71,11 +71,11 @@ Cc: netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
  linux-mm@kvack.org, coreteam@netfilter.org, netdev@vger.kernel.org, 
  Jim Cromie <jim.cromie@gmail.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1786987349; l=2199;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1786987349; l=4052;
  i=jim.cromie@gmail.com; s=20260203; h=from:subject:message-id;
- bh=vm1aaD+pwQaXZSzhLFkT2JsY0U2BVsRDPtRXCFebL2I=;
- b=yxcUp3EtGyfmt7m8wjQpy/d4ZRch/7Ef/TJRKDqN6xOkUjagZRS1UvxqNUT9srZNE0A5I/Kqf
- Rvrf7VwYNhcAwfea2Ce5fgAe4ET6iLCh6mOiZH9iu26PxjqF38ObHo2
+ bh=Hw9H0XS3lRz/8Cusmj0TdRoN7GOnkgdGE/QpF+OTKZE=;
+ b=7ApQuwEsLmNusDVgP3wGCUer5jWN1Mvb2G7RmfE1VdvcfA0Sc3zPBxPrhepGf2Qoooi58cGiI
+ /JMtsQaQwZxAKM58qj6awvp+EWf0JxWRjrcSmYqhuYL91ZsT2xJmsy6
 X-Developer-Key: i=jim.cromie@gmail.com; a=ed25519;
  pk=C6E5ODlPQo7ZBynATXH9wg7K6HxP0pIXyf4s38Qw0XE=
 X-Endpoint-Received: by B4 Relay for jim.cromie@gmail.com/20260203 with
@@ -85,73 +85,120 @@ Reply-To: jim.cromie@gmail.com
 
 From: Jim Cromie <jim.cromie@gmail.com>
 
-Use struct folio_scratchpad to allocate transient key and value buffers
-during map update batch operations, bypassing SLUB cache churn.
+Use struct folio_pool to dynamically expand lock dependency storage when
+the static list_entries pool is exhausted, avoiding premature lockdep
+disabling.
 
 Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 ---
- kernel/bpf/syscall.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ kernel/locking/lockdep.c           | 35 ++++++++++++++++++++++++++++++++++-
+ kernel/locking/lockdep_internals.h |  2 ++
+ kernel/locking/lockdep_proc.c      | 16 ++++++++++++++--
+ 3 files changed, 50 insertions(+), 3 deletions(-)
 
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 6db306d23b47..8ef48673b933 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -19,6 +19,7 @@
- #include <linux/fdtable.h>
- #include <linux/file.h>
- #include <linux/fs.h>
+diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
+index 2d4c5bab5af8..f0f58db090ff 100644
+--- a/kernel/locking/lockdep.c
++++ b/kernel/locking/lockdep.c
+@@ -58,12 +58,37 @@
+ #include <linux/context_tracking.h>
+ #include <linux/console.h>
+ #include <linux/kasan.h>
 +#include <linux/folio_pool.h>
- #include <linux/license.h>
- #include <linux/filter.h>
- #include <linux/kernel.h>
-@@ -2059,12 +2060,15 @@ int generic_map_delete_batch(struct bpf_map *map,
- 	return err;
- }
- 
-+DEFINE_STATIC_KEY_TRUE(bpf_batch_scratchpad_key);
 +
- int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
- 			     const union bpf_attr *attr,
- 			     union bpf_attr __user *uattr)
- {
- 	void __user *values = u64_to_user_ptr(attr->batch.values);
- 	void __user *keys = u64_to_user_ptr(attr->batch.keys);
-+	struct folio_scratchpad batch_sp;
- 	u32 value_size, cp, max_count;
- 	void *key, *value;
- 	int err = 0;
-@@ -2083,13 +2087,17 @@ int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
- 	if (put_user(0, &uattr->batch.count))
- 		return -EFAULT;
- 
--	key = kvmalloc(map->key_size, GFP_USER | __GFP_NOWARN);
-+	folio_scratchpad_init_key(&batch_sp, 0, &bpf_batch_scratchpad_key);
++DEFINE_STATIC_KEY_TRUE(lockdep_pool_key);
++static struct folio_pool lockdep_pool =
++	FOLIO_POOL_INIT_KEY(lockdep_pool, sizeof(struct lock_list),
++			    FOLIO_POOL_64K_ORDER, &lockdep_pool_key);
 +
-+	key = folio_scratchpad_alloc(&batch_sp, map->key_size,
-+				     sizeof(void *), GFP_USER | __GFP_NOWARN);
- 	if (!key)
- 		return -ENOMEM;
++static int __init setup_lockdep_folio_pool(char *str)
++{
++	bool enable;
++
++	if (!kstrtobool(str, &enable)) {
++		if (enable)
++			static_branch_enable(&lockdep_pool_key);
++		else
++			static_branch_disable(&lockdep_pool_key);
++	}
++	return 1;
++}
++__setup("lockdep.folio_pool=", setup_lockdep_folio_pool);
  
--	value = kvmalloc(value_size, GFP_USER | __GFP_NOWARN);
-+	value = folio_scratchpad_alloc(&batch_sp, value_size,
-+				       sizeof(void *), GFP_USER | __GFP_NOWARN);
- 	if (!value) {
--		kvfree(key);
-+		folio_scratchpad_free(&batch_sp);
- 		return -ENOMEM;
- 	}
+ #include <asm/sections.h>
  
-@@ -2111,8 +2119,7 @@ int generic_map_update_batch(struct bpf_map *map, struct file *map_file,
- 	if (copy_to_user(&uattr->batch.count, &cp, sizeof(cp)))
- 		err = -EFAULT;
+ #include "lockdep_internals.h"
+ #include "lock_events.h"
  
--	kvfree(value);
--	kvfree(key);
-+	folio_scratchpad_free(&batch_sp);
++void lockdep_pool_stats(unsigned int *nr_chunks, size_t *chunk_size, size_t *tail_used)
++{
++	folio_pool_stats(&lockdep_pool, nr_chunks, chunk_size, tail_used);
++}
++
+ #include <trace/events/lock.h>
  
- 	return err;
- }
+ #ifdef CONFIG_PROVE_LOCKING
+@@ -1404,11 +1429,19 @@ static struct lock_list *alloc_list_entry(void)
+ 				      ARRAY_SIZE(list_entries));
+ 
+ 	if (idx >= ARRAY_SIZE(list_entries)) {
++		struct lock_list *p;
++
++		p = folio_pool_alloc_type(&lockdep_pool, struct lock_list,
++					  GFP_ATOMIC);
++		if (p) {
++			nr_list_entries++;
++			return p;
++		}
+ 		if (!debug_locks_off_graph_unlock())
+ 			return NULL;
+ 
+ 		nbcon_cpu_emergency_enter();
+-		print_lockdep_off("BUG: MAX_LOCKDEP_ENTRIES too low!");
++		print_lockdep_off("BUG: MAX_LOCKDEP_ENTRIES too low and folio_pool exhausted!");
+ 		dump_stack();
+ 		nbcon_cpu_emergency_exit();
+ 		return NULL;
+diff --git a/kernel/locking/lockdep_internals.h b/kernel/locking/lockdep_internals.h
+index 0e5e6ffe91a3..f802160c0dd5 100644
+--- a/kernel/locking/lockdep_internals.h
++++ b/kernel/locking/lockdep_internals.h
+@@ -159,6 +159,8 @@ extern unsigned long max_lock_class_idx;
+ extern struct lock_class lock_classes[MAX_LOCKDEP_KEYS];
+ extern unsigned long lock_classes_in_use[];
+ 
++void lockdep_pool_stats(unsigned int *nr_chunks, size_t *chunk_size, size_t *tail_used);
++
+ #ifdef CONFIG_PROVE_LOCKING
+ extern unsigned long lockdep_count_forward_deps(struct lock_class *);
+ extern unsigned long lockdep_count_backward_deps(struct lock_class *);
+diff --git a/kernel/locking/lockdep_proc.c b/kernel/locking/lockdep_proc.c
+index 1916db9aa46b..3e6f24ae9b34 100644
+--- a/kernel/locking/lockdep_proc.c
++++ b/kernel/locking/lockdep_proc.c
+@@ -288,8 +288,20 @@ static int lockdep_stats_show(struct seq_file *m, void *v)
+ 			nr_lock_classes, MAX_LOCKDEP_KEYS);
+ 	seq_printf(m, " dynamic-keys:                  %11lu\n",
+ 			nr_dynamic_keys);
+-	seq_printf(m, " direct dependencies:           %11lu [max: %lu]\n",
+-			nr_list_entries, MAX_LOCKDEP_ENTRIES);
++	{
++		unsigned int fp_chunks = 0;
++		size_t fp_chunk_sz = 0, fp_tail_used = 0;
++
++		lockdep_pool_stats(&fp_chunks, &fp_chunk_sz, &fp_tail_used);
++		if (fp_chunks) {
++			seq_printf(m, " direct dependencies:           %11lu [dynamic: %u x %zu kB, tail: %zu kB/%zu kB]\n",
++				   nr_list_entries, fp_chunks, fp_chunk_sz / 1024,
++				   fp_tail_used / 1024, fp_chunk_sz / 1024);
++		} else {
++			seq_printf(m, " direct dependencies:           %11lu [max: %lu]\n",
++				   nr_list_entries, MAX_LOCKDEP_ENTRIES);
++		}
++	}
+ 	seq_printf(m, " indirect dependencies:         %11lu\n",
+ 			sum_forward_deps);
+ 
 
 -- 
 2.55.0
