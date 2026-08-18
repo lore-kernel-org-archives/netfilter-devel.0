@@ -1,62 +1,41 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05CDB376A16;
-	Tue, 18 Aug 2026 20:17:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CBBF175A74
+	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 22:31:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787084248; cv=none; b=QewTUSe8vlqVxvwyBDm+9dBNDBRxnBdehBPA97ArhBe7SVJUt0N3Nonx07wRelYR/p6u+MsG2NB+vdUEorT8kgMdhgJ7PyD4KhDNyxfXyf+ychxRDL5CuIceMLgtqOMZ/NbLDWQsOkdM0Lk+AaX/7BNFkRmPranj3ZPbwhO5HjY=
+	t=1787092289; cv=none; b=Y70nG0a9o5JuJ2r/HeEOGfzYX34JmV4zeaX1kpgYrfwBOsgiHN4yDjvZ5YV1aNxn4Xr4hv4eKZfqWZTDboUCE2VHNAtUZhlNGhjufpghzI2HHPPoWBpUgYV++RdtEJOhmBcftkIuzq4Co9tK1GdOvvmFYN9nv6VwR+7L4I61swM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787084248; c=relaxed/simple;
-	bh=JpHHj35FkGBLiU/LWm6Hzh64bz7NqhwxKdzb3VX0EOI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pF3fM2AM2JQVq4QK1FzHFt8hdMj6pBDfNXCe4fsq5NvCWxhqQwyTpU3FBv4N1xRQCGnaaV0Dnxdlr1CO+SoFpz4NOs3682Ch/wS9XYin97eScRha3BSSot2w7592mOtzKMBqD1VPm5Jcrz4aOXqcxAYAk7ov+cAY+BQW459EdF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=5IvFN7+w; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1787092289; c=relaxed/simple;
+	bh=4HPnqvjaQPUYSy1rMC4v+84g9bMXkSRKcpAIvzt0BuA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MwnMrBA37zq+ZW/IkYB4izmSLfQ9b5JoxXeTTX9+uaq8kMxf/Zq2wbXEQ1Xt2628O3UA7+IJ/HpISmXb6dCRaf7Fc6r+AtFob4AnJFV6lP9BAZliD3iySPxrtGgDtSZ+L6fWeqGvr6CbNTjytqwU8t11+bN2D8BRZqhN48VVxLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JahRq/Bu; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="5IvFN7+w"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 2489221DBF;
-	Tue, 18 Aug 2026 23:17:13 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=m+dvpQnJxszAtsaLlh834Lb4G8Qek8B1GHTn5sF2l18=; b=5IvFN7+wB4cy
-	YC0vt+gwhGlCbC5AReOvrP6KpJfX25upRxRflELip0mgYY6Ce/gIdSdSsGKwKsj4
-	c189+odEYH8ZqaVOYFU0W7Ch5Wdi9hnxlm2gFWbuUGdCgIYau3RBy7ZIp6yaFBr5
-	rGGR2Vrc/yo8zjbeAQWG887L3XpuwiDcm9bsCLmHvCFdzCPpr+mRyWzpinxh4f5F
-	z8iUP3jzDOUaotFn1GAYpBI4fylbGRscuzyh3BH30wRDdC7J+nOU5LXGCBVVNcNN
-	LJlQTqOeNCjFySIHvqzD9p/CIao6biPJyyEv1ocep45LvzOZ9MGgdRy2+anJFLVn
-	czBD7hnna6Lh8xV7/Y+jyOmzz105VK2gVjus2SRbGfzH4bqw229UwvWMpVo6uolu
-	vmxKv0wEQyfYXIX/pyGWOjOEPqZnAtDcF6Ew07BIqSO+wrlE3IwugQVRdAbs6rSP
-	t4P9Jlk2I0UGFDZYV8OsCs2ay3iyDDwdWvJKCtQN2tswcRO86/RaUMnvtNm/dA33
-	98UW2XBivnJ/K4lVwYtZBioKYMWbnY29HgokYcW3eaOMuNokpgy51Xhu6GdFkdUS
-	RQg4FX+iHDiR34rtxTWU1z4tGoBi2sh1bnOi/NV5WW5gfdFpoJcyQNARaZ0SeSXK
-	SLjlBuLeXE0+tJj957ww59Ond6cjxjg=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 18 Aug 2026 23:17:13 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 37D9E61DD5;
-	Tue, 18 Aug 2026 23:17:15 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 67IKH4Js121476;
-	Tue, 18 Aug 2026 23:17:04 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 67IKH4T1121474;
-	Tue, 18 Aug 2026 23:17:04 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: stable@vger.kernel.org
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: [PATCH -stable 1/1] ipvs: separate destination availability state
-Date: Tue, 18 Aug 2026 23:16:38 +0300
-Message-ID: <20260818201638.121446-2-ja@ssi.bg>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260818201638.121446-1-ja@ssi.bg>
-References: <20260818201638.121446-1-ja@ssi.bg>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JahRq/Bu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1787092283;
+	bh=LaYFs3EQUHICHT5dIyx0Zf3pxuTHr/ADC7oBkZEwBmQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=JahRq/BugijQSejVj7mjkGsoABlG5m5fW7wZunkTXzjTU6AgC/8BKBwZGbwUpwYQe
+	 6tQRNVZuPmh5Vi1BxBY+4jK5DdwxmfAGPLcQm+Nj9EixBq7lkRSmhLVqHiHSeMMoj3
+	 mlTZu2FU7SFNrPFYdMKu+0CYuCTWDeXkclcgj/0qXq/8GNeqPGHb3UIH4Qb6C8GeFv
+	 uo6f2qKnLU4PS3W37sGIqf7efmN8XTsa7y423RtzuUAa/8cFS6s517VdeVu0NRdys8
+	 lhHvvFw9TqQQPBeHyNFqpxFP6QmzM89Hy0GlvQZTZcQZrjPts7FzvcdFahB4ejnxOX
+	 MPIsqdpHLaXeQ==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4D4946005E;
+	Wed, 19 Aug 2026 00:31:23 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	hdthky0@gmail.com
+Subject: [PATCH nf] netfilter: nft_dynset: missing .clone_destroy call when honoring set expression
+Date: Wed, 19 Aug 2026 00:31:18 +0200
+Message-ID: <20260818223118.1390042-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -65,227 +44,125 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
+If the set definition provides template stateful expressions and the
+dynset expression does not specify any, then these template expressions
+are cloned without holding refcount on modules because the template
+already did this for us.
 
-commit cdcc4e46180df8161f4d2f3c6fd6beaf6990133d upstream.
+The expression cloning is usually reserved to allocate expressions in
+the packet. However, this mechanism is also used by the dynset
+expression to allocate the template dynset expression.
 
-IPVS configuration paths update destination availability while connection
-accounting updates destination overload state. The two independent states
-share dest->flags, so their read-modify-write updates can race and lose one
-another.
+For the connlimit expression, this results in a WARNING splat due to
+module refcount imbalance because the destroy path drops the module
+refcount when the clone did not bump it.
 
-Keep OVERLOAD in flags, where the preceding patch serializes its updates
-with dst_lock, and move AVAILABLE to cflags. This keeps configuration-
-controlled availability out of the scheduler hot cacheline until a
-scheduler needs to check it. It also prevents availability updates from
-clobbering overload state.
+To address this issue, annotate that these stateful expressions have
+cloned from the set, so the destroy path uses .destroy_clone to release
+them.
 
-The destination status bits are not exposed through the IPVS sockopt or
-netlink interfaces, so keep their definitions in the internal IPVS header.
-
-Readers can still observe stale destination state; this does not provide a
-cross-field snapshot.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
-Reported-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-Reported-by: Yuxiang Yang <yangyx22@mails.tsinghua.edu.cn>
-Reported-by: Ao Wang <wangao@seu.edu.cn>
-Reported-by: Xuewei Feng <fengxw06@126.com>
-Reported-by: Qi Li <qli01@tsinghua.edu.cn>
-Reported-by: Ke Xu <xuke@tsinghua.edu.cn>
-Link: https://lore.kernel.org/all/8913381c-1e02-35c7-0ec4-61de5a12fd35@ssi.bg/
-Assisted-by: Claude-Code:GLM-5.2
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Yizhou Zhao <zhaoyz24@mails.tsinghua.edu.cn>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set definition")
+Reported-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-(cherry picked from commit cdcc4e46180df8161f4d2f3c6fd6beaf6990133d)
-[ Julian: Backport by removing the hunks from ip_vs_xmit.c ]
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- include/net/ip_vs.h              | 7 +++++++
- include/uapi/linux/ip_vs.h       | 6 ------
- net/netfilter/ipvs/ip_vs_conn.c  | 4 ++--
- net/netfilter/ipvs/ip_vs_core.c  | 6 +++---
- net/netfilter/ipvs/ip_vs_ctl.c   | 4 ++--
- net/netfilter/ipvs/ip_vs_dh.c    | 4 ++--
- net/netfilter/ipvs/ip_vs_lblc.c  | 2 +-
- net/netfilter/ipvs/ip_vs_lblcr.c | 8 ++++----
- 8 files changed, 21 insertions(+), 20 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     |  4 ++--
+ net/netfilter/nft_dynset.c        | 25 ++++++++++++++++++-------
+ 3 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index b65009a226e0..94dfc3a265ee 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -34,6 +34,12 @@
- #define IP_VS_HDR_INVERSE	1
- #define IP_VS_HDR_ICMP		2
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 238f6ecb90e9..13f8807d05b8 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -874,6 +874,8 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
+ 			    struct nft_expr *expr_array[]);
+ void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
+ 			       struct nft_set_elem_expr *elem_expr);
++void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
++				 struct nft_expr *expr);
+ void nft_set_elem_destroy(const struct nft_set *set,
+ 			  const struct nft_elem_priv *elem_priv,
+ 			  bool destroy_expr);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 71f4227d7ac7..06b9754d1c25 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6830,8 +6830,8 @@ struct nft_elem_priv *nft_set_elem_init(const struct nft_set *set,
+ 	return ERR_PTR(-EINVAL);
+ }
  
-+/* Destination Server Flags */
-+#define IP_VS_DEST_F_OVERLOAD	0x0002		/* server is overloaded */
-+
-+/* Destination Server Config Flags */
-+#define IP_VS_DEST_CF_AVAILABLE	0x0001		/* server is available */
-+
- /* Generic access of ipvs struct */
- static inline struct netns_ipvs *net_ipvs(struct net* net)
+-static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
+-					struct nft_expr *expr)
++void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
++				 struct nft_expr *expr)
  {
-@@ -725,6 +731,7 @@ struct ip_vs_dest {
- 	volatile unsigned int	flags;		/* dest status flags */
- 	atomic_t		conn_flags;	/* flags to copy to conn */
- 	atomic_t		weight;		/* server weight */
-+	unsigned long		cflags;		/* config flags */
- 	atomic_t		last_weight;	/* server latest weight */
- 	__u16			tun_type;	/* tunnel type */
- 	__be16			tun_port;	/* tunnel port */
-diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-index 1ed234e7f251..2c37c6ac7525 100644
---- a/include/uapi/linux/ip_vs.h
-+++ b/include/uapi/linux/ip_vs.h
-@@ -28,12 +28,6 @@
- #define IP_VS_SVC_F_SCHED_SH_FALLBACK	IP_VS_SVC_F_SCHED1 /* SH fallback */
- #define IP_VS_SVC_F_SCHED_SH_PORT	IP_VS_SVC_F_SCHED2 /* SH use port */
+ 	if (expr->ops->destroy_clone) {
+ 		expr->ops->destroy_clone(ctx, expr);
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index ee9d3e7b1ecf..935a07b47a44 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -19,7 +19,8 @@ struct nft_dynset {
+ 	u8				sreg_key;
+ 	u8				sreg_data;
+ 	bool				invert;
+-	bool				expr;
++	u8				expr:1,
++					cloned:1;
+ 	u8				num_exprs;
+ 	u64				timeout;
+ 	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
+@@ -168,6 +169,19 @@ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+ 	[NFTA_DYNSET_EXPRESSIONS] = { .type = NLA_NESTED },
+ };
  
--/*
-- *      Destination Server Flags
-- */
--#define IP_VS_DEST_F_AVAILABLE	0x0001		/* server is available */
--#define IP_VS_DEST_F_OVERLOAD	0x0002		/* server is overloaded */
++static void nft_dynset_expr_destroy(const struct nft_ctx *ctx,
++				    struct nft_dynset *priv)
++{
++	int i;
++
++	for (i = 0; i < priv->num_exprs; i++) {
++		if (priv->cloned)
++			__nft_set_elem_expr_destroy(ctx, priv->expr_array[i]);
++		else
++			nft_expr_destroy(ctx, priv->expr_array[i]);
++	}
++}
++
+ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr,
+ 			   const struct nlattr * const tb[])
+@@ -312,6 +326,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 			return err;
+ 
+ 		priv->num_exprs = set->num_exprs;
++		priv->cloned = true;
+ 	}
+ 
+ 	nft_set_ext_prepare(&priv->tmpl);
+@@ -339,8 +354,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	return 0;
+ 
+ err_expr_free:
+-	for (i = 0; i < priv->num_exprs; i++)
+-		nft_expr_destroy(ctx, priv->expr_array[i]);
++	nft_dynset_expr_destroy(ctx, priv);
+ 	return err;
+ }
+ 
+@@ -365,11 +379,8 @@ static void nft_dynset_destroy(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr)
+ {
+ 	struct nft_dynset *priv = nft_expr_priv(expr);
+-	int i;
 -
- /*
-  *      IPVS sync daemon states
-  */
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index e42fed876596..7da11628073b 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -759,7 +759,7 @@ int ip_vs_check_template(struct ip_vs_conn *ct, struct ip_vs_dest *cdest)
- 	 * Checking the dest server status.
- 	 */
- 	if ((dest == NULL) ||
--	    !(dest->flags & IP_VS_DEST_F_AVAILABLE) ||
-+	    !(dest->cflags & IP_VS_DEST_CF_AVAILABLE) ||
- 	    expire_quiescent_template(ipvs, dest) ||
- 	    (cdest && (dest != cdest))) {
- 		IP_VS_DBG_BUF(9, "check_template: dest not available for "
-@@ -1408,7 +1408,7 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
- 				continue;
+-	for (i = 0; i < priv->num_exprs; i++)
+-		nft_expr_destroy(ctx, priv->expr_array[i]);
  
- 			dest = cp->dest;
--			if (!dest || (dest->flags & IP_VS_DEST_F_AVAILABLE))
-+			if (!dest || (dest->cflags & IP_VS_DEST_CF_AVAILABLE))
- 				continue;
++	nft_dynset_expr_destroy(ctx, priv);
+ 	nf_tables_destroy_set(ctx, priv->set);
+ }
  
- 			if (atomic_read(&cp->n_control))
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index d121ea3d16bc..1f62ca2f7330 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -124,7 +124,7 @@ ip_vs_in_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 	struct ip_vs_dest *dest = cp->dest;
- 	struct netns_ipvs *ipvs = cp->ipvs;
- 
--	if (dest && (dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+	if (dest && (dest->cflags & IP_VS_DEST_CF_AVAILABLE)) {
- 		struct ip_vs_cpu_stats *s;
- 		struct ip_vs_service *svc;
- 
-@@ -160,7 +160,7 @@ ip_vs_out_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 	struct ip_vs_dest *dest = cp->dest;
- 	struct netns_ipvs *ipvs = cp->ipvs;
- 
--	if (dest && (dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+	if (dest && (dest->cflags & IP_VS_DEST_CF_AVAILABLE)) {
- 		struct ip_vs_cpu_stats *s;
- 		struct ip_vs_service *svc;
- 
-@@ -2030,7 +2030,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
- 	}
- 
- 	/* Check the server status */
--	if (cp && cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+	if (cp && cp->dest && !(cp->dest->cflags & IP_VS_DEST_CF_AVAILABLE)) {
- 		/* the destination server is not available */
- 		if (sysctl_expire_nodest_conn(ipvs)) {
- 			bool old_ct = ip_vs_conn_uses_old_conntrack(cp, skb);
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 5dea5a14e85f..c0257ef4d8b0 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1058,7 +1058,7 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 	}
- 
- 	/* set the dest status flags */
--	dest->flags |= IP_VS_DEST_F_AVAILABLE;
-+	dest->cflags |= IP_VS_DEST_CF_AVAILABLE;
- 
- 	if (READ_ONCE(dest->u_threshold) != udest->u_threshold ||
- 	    READ_ONCE(dest->l_threshold) != udest->l_threshold) {
-@@ -1325,7 +1325,7 @@ static void __ip_vs_unlink_dest(struct ip_vs_service *svc,
- 				struct ip_vs_dest *dest,
- 				int svcupd)
- {
--	dest->flags &= ~IP_VS_DEST_F_AVAILABLE;
-+	dest->cflags &= ~IP_VS_DEST_CF_AVAILABLE;
- 
- 	/*
- 	 *  Remove it from the d-linked destination list.
-diff --git a/net/netfilter/ipvs/ip_vs_dh.c b/net/netfilter/ipvs/ip_vs_dh.c
-index 75f4c231f4a0..f04d2530a093 100644
---- a/net/netfilter/ipvs/ip_vs_dh.c
-+++ b/net/netfilter/ipvs/ip_vs_dh.c
-@@ -220,8 +220,8 @@ ip_vs_dh_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
- 
- 	s = (struct ip_vs_dh_state *) svc->sched_data;
- 	dest = ip_vs_dh_get(svc->af, s, &iph->daddr);
--	if (!dest
--	    || !(dest->flags & IP_VS_DEST_F_AVAILABLE)
-+	if (!dest ||
-+	    !(dest->cflags & IP_VS_DEST_CF_AVAILABLE)
- 	    || atomic_read(&dest->weight) <= 0
- 	    || is_overloaded(dest)) {
- 		ip_vs_scheduler_err(svc, "no destination available");
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index 156181a3bacd..9bb1e05063dc 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -503,7 +503,7 @@ ip_vs_lblc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
- 		 */
- 
- 		dest = en->dest;
--		if ((dest->flags & IP_VS_DEST_F_AVAILABLE) &&
-+		if ((dest->cflags & IP_VS_DEST_CF_AVAILABLE) &&
- 		    atomic_read(&dest->weight) > 0 && !is_overloaded(dest, svc))
- 			goto out;
- 	}
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index a021e6aba3d7..1a53c1254fe5 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -170,8 +170,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
- 		if (least->flags & IP_VS_DEST_F_OVERLOAD)
- 			continue;
- 
--		if ((atomic_read(&least->weight) > 0)
--		    && (least->flags & IP_VS_DEST_F_AVAILABLE)) {
-+		if ((atomic_read(&least->weight) > 0) &&
-+		    (least->cflags & IP_VS_DEST_CF_AVAILABLE)) {
- 			loh = ip_vs_dest_conn_overhead(least);
- 			goto nextstage;
- 		}
-@@ -187,8 +187,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
- 
- 		doh = ip_vs_dest_conn_overhead(dest);
- 		if (((__s64)loh * atomic_read(&dest->weight) >
--		     (__s64)doh * atomic_read(&least->weight))
--		    && (dest->flags & IP_VS_DEST_F_AVAILABLE)) {
-+		     (__s64)doh * atomic_read(&least->weight)) &&
-+		    (dest->cflags & IP_VS_DEST_CF_AVAILABLE)) {
- 			least = dest;
- 			loh = doh;
- 		}
 -- 
-2.55.0
-
+2.47.3
 
