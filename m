@@ -1,107 +1,77 @@
-Received: from mail-vs1-f54.google.com (mail-vs1-f54.google.com [209.85.217.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B7D84779A9
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 13:31:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88CB224B13
+	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 14:08:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787059907; cv=none; b=HbMURGF0HC1+OV8n6XFA2azIPGkMAS3zI/X6WWfJlIjQKLHBWxtCIZdaAU1D85bz2gjIAPlfKJSFVVLvjQ1ANMDZ6Ge7PZnljX75pf/E1Hx9I3PnjTbY2NqGvzpPskjYeAATs0ox0MqikV9IokuUmlEoyTqbWVZ5KzWOc6+dZZQ=
+	t=1787062138; cv=none; b=lqrOA1OygApDkPZ20+GKrX1EmljwmIEDnY0lIS5km6oOmW8uLmPCBU5sSf5AyfDUPdEgLNV9/rOpw2KrJujuBvvkxChjTjEJ6B85MkMhX5ZRQyAVrgHbaTxBn/89iYYhvzg1Usc9qEO++mUjJ3RWhTLhfcexUrQVgKg2WkT+soY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787059907; c=relaxed/simple;
-	bh=9ksLitU+RMU/Q29jtaln1uT0drIAfpCR5lPImCraH6w=;
-	h=Message-ID:Date:Content-Type:MIME-Version:From:To:Cc:Subject; b=fsaYWHddkPcE8sNlJl40wXVe0hsl9sXqwbyKGcG3IF8N2By1yZ32VG67YJLpDPTum0ohXUukcFVK93sISclc80Y6Ybxsx0GDLAxas+2N/t8JakkkaZ2S948FCKbyg6W+8sJu97V1H7re+KHwzp9eWtA/8r9ZXhJhuTRwsvQNK34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W+hepQ4y; arc=none smtp.client-ip=209.85.217.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787062138; c=relaxed/simple;
+	bh=GtJ6y/q1hjZwsiXmjvbxP9A75PxszwmTTnuonQnhXrA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MyJv9XlKmeaZfGqnwUYWz/WFgl90UlEjf2Weyn6R0DUXTwC9mPAG0f7bofw2eZ7DXyJvERhnjb6QcGinAui4EeoTzxjwxZsAr7hH8pQx6FxM92WAn4RoojTeQ3F7m+Am/2BPdRgFcsUTVkYF7pJu+r7LmVegx6I/iAeBNuGxq/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f33HapWj; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W+hepQ4y"
-Received: by mail-vs1-f54.google.com with SMTP id ada2fe7eead31-76535268562so1218466137.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 06:31:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787059905; x=1787664705; darn=vger.kernel.org;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=9ksLitU+RMU/Q29jtaln1uT0drIAfpCR5lPImCraH6w=;
-        b=W+hepQ4yzJFzLMtKNAzcgAE0reNrMgcFLSkwxfNscYcl8gSgVLePSfEpF1mkyFTM03
-         9pXZ8rhB9kY0LgDCOtd2NcCDr6CdvsT/vwhNRPtq1GWvIqSd/f/bKBwcb/Zt472z8kyd
-         tezRGlDDGL16nP46Er9cmUFiW56ne2OTollx+XdAJi+5GQAShljnVICEV+viHCSOPaNm
-         k2nz3BvvSUQCjSadAVzy5g6iYsexUoFXms1jNep9+UR1tOx6ONXPRF7i1OV+DdPCk2ox
-         H8uTBLgeqk6UMNDde83CJjSreqjqHar2Bh0izQetxNMThGFcLbxe7U/x5SV6cz1gsIJe
-         SgVQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787059905; x=1787664705;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=9ksLitU+RMU/Q29jtaln1uT0drIAfpCR5lPImCraH6w=;
-        b=ngbgQ6hm62FTVP1+tCbBvn96b10SzJUxWofIXqd+AVMAUKjQwWNYPFGK0ENZ+ZY0TW
-         O/f6zVqodYaKedyTMOhXToxv0kyPmCJYrKgHKQC529r4/n0qYael6xNzcIWc9c73Rc5q
-         qXAZwf+Kj+Bkyy0gdPKYwFTKmydX7aFVpQFu275czpsx8Z6YQwQoUK04WkRP8V5doGVk
-         6MO+wrWBHzewz6jPnYFJ5KQdduUK3uvakapeql+tsDKdwE4OoT/ETkTvOZSkfwZeAXCT
-         woCafK/eJ34zJqCnrOjjm2erMzUjec0eKRE4RUX6HSt9ZoZSUfwHwrfM5Er9+6/9C4et
-         MqkQ==
-X-Gm-Message-State: AOJu0YxTwXUe3MZfWJXQ6b7Tu37btftdJOHQIpDwlrQdL+SrEB3E/O4M
-	2I3UZ0PKc2BESNS7pnlCLmIE9QePKmqhvjmUMbRg79UARtQGq5YPAE1PjOrijW4FB7w=
-X-Gm-Gg: AR+sD11ue1HamSjTHUWCtuj2V+vmmC01DN2n3SpKtUjyGSnOuxyFNJ9gMF/tLtZDP8l
-	x6y3KyLMyUtxJ/NxK+YWgAw30v7oqIhddLC6uAto85ZwMiRIzr3RLMLG+WcWY6mCsv5FJU8DEpS
-	7C0/4hla4gOCUtQD5E8D4AqKZDLC03OpdyP4qGVWVaylDMu5GS5p+btRNajekXrQ8+HQMzpBct1
-	0zT21wsZS1XXqruiwhTSzRqjvPHrZCUgKF8ReJpWzJdLWEtyIdqNXtTgvROMxaaRf9cSA6RrmQM
-	IDxzAQOlYComljzHAlaXcg/bEeJ9LY8tFln4EIttT82+3vW4oUCT9fJKj+l8yONl/I3GQCF5C1l
-	rak63oarWaO21VdBeCm5SteTjavJ6fbmRJefBnmWSr3zulkBfRK6Fny8IckoLwmCtok5TKKpkat
-	I0tTEPi0ab1fS9bgw7czeJ3E+TNZWjgEFRWhDzCdunigGB1Nb44/NxEOebVYm7s59MARUKwNtge
-	C7zKx10l5RXyF4Aqvr7vcM5KmVx8MqCvm7EwNCzEUUlIJcbznC7hLPWvfqtWXiuyrONSkSnDPWb
-	MbW2eHsO72HOJy0XiIFWa/MZeCOhkISOTCq2ZiBS1aVx3uplVGGMMgM6cy4HIxI/IFro8b/gXjT
-	GJ4c59w==
-X-Received: by 2002:a05:6102:8089:b0:737:9edc:36f8 with SMTP id ada2fe7eead31-7747aeab567mr2442406137.1.1787059904974;
-        Tue, 18 Aug 2026 06:31:44 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa (201-93-31-34.dial-up.telesp.net.br. [201.93.31.34])
-        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-773c3111330sm3715222137.5.2026.08.18.06.31.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Aug 2026 06:31:43 -0700 (PDT)
-Message-ID: <6a845ebf.38c7cd2a.f0cff.2405@mx.google.com>
-Date: Tue, 18 Aug 2026 06:31:43 -0700 (PDT)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f33HapWj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1787062133;
+	bh=F3LGpAMS8t8IYmyDYp7IGMsEzFx4EBovazp85JLL53Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=f33HapWj9DeCdc1htYSBa6t56imuzltwA4PUl5N1vpEoydiFoYjDhpd5VUlC/DNui
+	 CjUnpEHAlgcEg1x3t6ZrvwuuEnko/35GiQ+YkNwcCYa+p3lwMZV7gMHPoZgTNQDgp3
+	 jS3VnQTjzQvvtt6Z5p54SJI6QTXRC9S6f63jeDwaoBgyTTO6ySQjkHIS9O7gzOHiLC
+	 PulwShmWf7Z15FgYIkIGBv0c3NpZhyYPquD45v5ARGHLu+DGGOh6XZP3BeOQ3yENlS
+	 LEfWvE5jvZefzY+8oqjeUs1II2yaynuwh0vXtyVSdXbZQNaIRI85UcweKZUSt+PeRD
+	 2wJizCKSdK07Q==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 28BB260057;
+	Tue, 18 Aug 2026 16:08:53 +0200 (CEST)
+Date: Tue, 18 Aug 2026 16:08:50 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <ej@inai.de>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, fmancera@suse.de
+Subject: Re: [PATCH nf-next 3/4] netfilter: x_tables: do not print specified
+ table
+Message-ID: <aoRncqkQkSmSyIio@chamomile>
+References: <20260818122741.1329660-1-pablo@netfilter.org>
+ <20260818122741.1329660-3-pablo@netfilter.org>
+ <8q4r3s01-nr0n-5on1-1s49-n37p56q00327@vanv.qr>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-To: pablo@netfilter.org, fw@strlen.de
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH net v3] netfilter: nf_conntrack_sip: fix OOB read in sip_skip_whitespace()
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <8q4r3s01-nr0n-5on1-1s49-n37p56q00327@vanv.qr>
 
-c2lwX3NraXBfd2hpdGVzcGFjZSgpIHJldHVybnMgZHB0ciB1bmNoYW5nZWQgd2hlbiBpdHMgb3du
-IGxvb3AKZXhoYXVzdHMgdGhlIGJ1ZmZlciAoZHB0ciA9PSBsaW1pdCksIGluc3RlYWQgb2YgTlVM
-TCBsaWtlIGl0cyBzaWJsaW5nCnNpcF9mb2xsb3dfY29udGludWF0aW9uKCkgcmV0dXJucyBvbiBp
-dHMgb3duICJubyBtb3JlIGRhdGEiIHBhdGguCgpjdF9zaXBfZ2V0X2hlYWRlcigpIG9ubHkgY2hl
-Y2tzIGZvciBOVUxMIGFmdGVyIGNhbGxpbmcgaXQ6CgogIGRwdHIgPSBzaXBfc2tpcF93aGl0ZXNw
-YWNlKGRwdHIsIGxpbWl0KTsKICBpZiAoZHB0ciA9PSBOVUxMKQogICAgICAgICAgYnJlYWs7CiAg
-aWYgKCpkcHRyICE9ICc6JyB8fCArK2RwdHIgPj0gbGltaXQpCiAgICAgICAgICBicmVhazsKCnNv
-IGEgcmVjb2duaXplZCBoZWFkZXIgbmFtZSBmb2xsb3dlZCBvbmx5IGJ5IHNwYWNlcy90YWJzIHJ1
-bm5pbmcgdG8KdGhlIGV4YWN0IGVuZCBvZiB0aGUgU0lQIHBheWxvYWQsIHdpdGggbm8gY29sb24s
-IG1ha2VzIHRoZSB2ZXJ5IG5leHQKc3RhdGVtZW50IHJlYWQgb25lIGJ5dGUgcGFzdCB0aGUgYnVm
-ZmVyLgoKTWFrZSBib3RoICJubyBtb3JlIGRhdGEiIG91dGNvbWVzIHJldHVybiBOVUxMLCBtYXRj
-aGluZyB0aGUKY29udmVudGlvbiBzaXBfZm9sbG93X2NvbnRpbnVhdGlvbigpIGFscmVhZHkgdXNl
-cyBhbmQgdGhhdCBib3RoCmV4aXN0aW5nIGNhbGxlcnMgYWxyZWFkeSBjaGVjayBmb3IuCgpGaXhl
-czogZWE0NWYxMmEyNzY2ZCAoIltORVRGSUxURVJdOiBuZl9jb25udHJhY2tfc2lwOiBwYXJzZSBT
-SVAgaGVhZGVycyBwcm9wZXJseSIpClNpZ25lZC1vZmYtYnk6IEpvYXMgQW50b25pbyBkb3MgU2Fu
-dG9zIDxqb2FzYW50b25pbzEwOEBnbWFpbC5jb20+Ci0tLQpUZXN0aW5nOiA3LWJ5dGUgcmVwcm9k
-dWNlciAoIlxyXG5UbyAgICIsIG5vIGNvbG9uLCBidWZmZXIgZW5kcyBvbgp0cmFpbGluZyBzcGFj
-ZXMpIG5vIGxvbmdlciBjcmFzaGVzOyA1MDAwMDAtcnVuIGxpYkZ1enplciByZWdyZXNzaW9uCmFn
-YWluc3QgYSB1c2Vyc3BhY2UgaGFybmVzcyBsaW5raW5nIHRoZSB1bm1vZGlmaWVkIGV4dHJhY3Rl
-ZCBwYXJzaW5nCmZ1bmN0aW9ucyBpcyBjbGVhbiwgbm8gYmVoYXZpb3IgY2hhbmdlIG9uIHRoZSBl
-eGlzdGluZyBjb3JwdXMuClJlcHJvZHVjZXIgYnl0ZXMgYXZhaWxhYmxlIG9uIHJlcXVlc3QuCgog
-bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfc2lwLmMgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwg
-MSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVy
-L25mX2Nvbm50cmFja19zaXAuYyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX3NpcC5jCmlu
-ZGV4IDY4MzBjOWRhMy4uMDAwMDAwMDAwIDEwMDY0NAotLS0gYS9uZXQvbmV0ZmlsdGVyL25mX2Nv
-bm50cmFja19zaXAuYworKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19zaXAuYwpAQCAt
-NDI5LDcgKzQyOSw3IEBAIHN0YXRpYyBjb25zdCBjaGFyICpzaXBfc2tpcF93aGl0ZXNwYWNlKGNv
-bnN0IGNoYXIgKmRwdHIsIGNvbnN0IGNoYXIgKmxpbWl0KQogCQlkcHRyID0gc2lwX2ZvbGxvd19j
-b250aW51YXRpb24oZHB0ciwgbGltaXQpOwogCQlicmVhazsKIAl9Ci0JcmV0dXJuIGRwdHI7CisJ
-cmV0dXJuIGRwdHIgPCBsaW1pdCA/IGRwdHIgOiBOVUxMOwogfQoKIC8qIFNlYXJjaCB3aXRoaW4g
-YSBTSVAgaGVhZGVyIHZhbHVlLCBkZWFsaW5nIHdpdGggY29udGludWF0aW9uIGxpbmVzICovCg==
+On Tue, Aug 18, 2026 at 02:55:35PM +0200, Jan Engelhardt wrote:
+> 
+> On Tuesday 2026-08-18 14:27, Pablo Neira Ayuso wrote:
+> 
+> >This is defensive, possibly this string has been already been sanitized
+> >but simply print that this match/target extension can only be used for a
+> >given table.
+> 
+> >@@ -95,8 +95,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
+> > 
+> > 	if (strcmp(par->table, "mangle") != 0 &&
+> > 	    strcmp(par->table, "raw") != 0) {
+> >-		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
+> >-				    par->table);
+> >+		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n");
+> > 		return -EINVAL;
+> > 	}
+> 
+> You have now robbed the user of information where the problem
+> originated from (and thus removed an avenue on further diagnosis /
+> remediation), which is one of the classic UI/UX sins[1].
+>
+> (There should be countless webpages out there that can explain
+> better than me what's a good and what's a bad error message.)
+
+You are right, I will keep this patch back.
