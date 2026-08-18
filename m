@@ -1,77 +1,117 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88CB224B13
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 14:08:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB1E233C19E;
+	Tue, 18 Aug 2026 20:00:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787062138; cv=none; b=lqrOA1OygApDkPZ20+GKrX1EmljwmIEDnY0lIS5km6oOmW8uLmPCBU5sSf5AyfDUPdEgLNV9/rOpw2KrJujuBvvkxChjTjEJ6B85MkMhX5ZRQyAVrgHbaTxBn/89iYYhvzg1Usc9qEO++mUjJ3RWhTLhfcexUrQVgKg2WkT+soY=
+	t=1787083250; cv=none; b=tkxXhy/okhe+ffgeI6NcNdqGZ0zt47qwhGiR1yEFYbBx/36yxUhYu+oVKnD2Q7dmaJv3NHeR2jaIqaq4nXVzWrdKtrq4Yt+sr01dL4PP9ZOPF7rUADWfBBJeIN4sOAKcx2jPGqY4pYPuYT8yMwW29KncR+YLaLGchlntcVENNKo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787062138; c=relaxed/simple;
-	bh=GtJ6y/q1hjZwsiXmjvbxP9A75PxszwmTTnuonQnhXrA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MyJv9XlKmeaZfGqnwUYWz/WFgl90UlEjf2Weyn6R0DUXTwC9mPAG0f7bofw2eZ7DXyJvERhnjb6QcGinAui4EeoTzxjwxZsAr7hH8pQx6FxM92WAn4RoojTeQ3F7m+Am/2BPdRgFcsUTVkYF7pJu+r7LmVegx6I/iAeBNuGxq/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f33HapWj; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1787083250; c=relaxed/simple;
+	bh=3JB4Ul6RnauhkZ3bESLwCZHjH6hhBLaQUgj2NNTpug4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HVA1BJ39J1XshgZBxi3xdFsncsHj4zuyXZSQKTGQNkikE/HdsRyqxPQAlAiZo6S89rslTY3P/RkDo8Sum2zSL5wi18QQ0kSSrDNdmICpyQQBzNgZbnNevBBDd4IsJjWS6vNQldXa1p3k9uv+H58NM/1zrBYO9f99xscC/bz7YJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=iTXoPBsK; arc=none smtp.client-ip=51.159.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f33HapWj"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787062133;
-	bh=F3LGpAMS8t8IYmyDYp7IGMsEzFx4EBovazp85JLL53Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=f33HapWj9DeCdc1htYSBa6t56imuzltwA4PUl5N1vpEoydiFoYjDhpd5VUlC/DNui
-	 CjUnpEHAlgcEg1x3t6ZrvwuuEnko/35GiQ+YkNwcCYa+p3lwMZV7gMHPoZgTNQDgp3
-	 jS3VnQTjzQvvtt6Z5p54SJI6QTXRC9S6f63jeDwaoBgyTTO6ySQjkHIS9O7gzOHiLC
-	 PulwShmWf7Z15FgYIkIGBv0c3NpZhyYPquD45v5ARGHLu+DGGOh6XZP3BeOQ3yENlS
-	 LEfWvE5jvZefzY+8oqjeUs1II2yaynuwh0vXtyVSdXbZQNaIRI85UcweKZUSt+PeRD
-	 2wJizCKSdK07Q==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 28BB260057;
-	Tue, 18 Aug 2026 16:08:53 +0200 (CEST)
-Date: Tue, 18 Aug 2026 16:08:50 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jan Engelhardt <ej@inai.de>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, fmancera@suse.de
-Subject: Re: [PATCH nf-next 3/4] netfilter: x_tables: do not print specified
- table
-Message-ID: <aoRncqkQkSmSyIio@chamomile>
-References: <20260818122741.1329660-1-pablo@netfilter.org>
- <20260818122741.1329660-3-pablo@netfilter.org>
- <8q4r3s01-nr0n-5on1-1s49-n37p56q00327@vanv.qr>
+	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="iTXoPBsK"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=CF7yKTw/RELwvrdqXvhQFeaxVVDHW7oMfWk/EhDZ1vU=; b=iTXoPBsKl10NfFxNoAZkKXP+bW
+	0hwQDo3WzJJqhIxO/Sbk7vjxzIAUeYPdmfle8NY0NUVhJexv+u2G9NHVcX6yhOgIW3T/af8sWcDUu
+	jcmkfnDlR0JJw42tEFM6YLeIEof6m7R5xiObiqOB6dNaToTsa4OIrabTiF2T9k3360o+MxwAQ0rB5
+	WrnaBeAxZ6I68T8Jc0BjON02uUA6vIt4Eae4g/U+AzxRbkPo5BLseIQIt1TaGbk4lebLFu/IlV9Hi
+	aydAjJYO1/9mrHMSipX+jz3daS96RCJILFdmeMx0ftonNG0tz3RrOCPgAhy/oC2jlRr1GrF3zqPLw
+	we55FoGQ==;
+Received: from [151.115.150.205] (port=46976 helo=gepetto..)
+	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.99.5)
+	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
+	id 1wwPzL-0000000GQLT-3d79;
+	Tue, 18 Aug 2026 22:00:46 +0200
+From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
+Subject: [PATCH] netfilter: flowtable: publish HW_DEAD after worker is done
+Date: Tue, 18 Aug 2026 20:00:15 +0000
+Message-ID: <20260818200014.2218933-2-Jeremy.Jean@oss.cyber.gouv.fr>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <8q4r3s01-nr0n-5on1-1s49-n37p56q00327@vanv.qr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - pf-012.whm.fr-par.scw.cloud
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - oss.cyber.gouv.fr
+X-Get-Message-Sender-Via: pf-012.whm.fr-par.scw.cloud: authenticated_id: jeremy.jean@oss.cyber.gouv.fr
+X-Authenticated-Sender: pf-012.whm.fr-par.scw.cloud: jeremy.jean@oss.cyber.gouv.fr
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 
-On Tue, Aug 18, 2026 at 02:55:35PM +0200, Jan Engelhardt wrote:
-> 
-> On Tuesday 2026-08-18 14:27, Pablo Neira Ayuso wrote:
-> 
-> >This is defensive, possibly this string has been already been sanitized
-> >but simply print that this match/target extension can only be used for a
-> >given table.
-> 
-> >@@ -95,8 +95,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
-> > 
-> > 	if (strcmp(par->table, "mangle") != 0 &&
-> > 	    strcmp(par->table, "raw") != 0) {
-> >-		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
-> >-				    par->table);
-> >+		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n");
-> > 		return -EINVAL;
-> > 	}
-> 
-> You have now robbed the user of information where the problem
-> originated from (and thus removed an avenue on further diagnosis /
-> remediation), which is one of the classic UI/UX sins[1].
->
-> (There should be countless webpages out there that can explain
-> better than me what's a good and what's a bad error message.)
+flow_offload_work_del() sets NF_FLOW_HW_DEAD before the work handler
+clears NF_FLOW_HW_PENDING. Once a flow is both HW_DYING and HW_DEAD, a
+concurrent garbage collection pass can remove it and schedule it for RCU
+freeing.
 
-You are right, I will keep this patch back.
+The offload worker holds neither an RCU read lock nor a reference to the
+flow. If it is preempted after publishing HW_DEAD, the RCU callback can
+free the flow before the worker resumes and clears HW_PENDING, resulting
+in a use-after-free.
+
+Move HW_DEAD publication to the common worker epilogue after the pending
+bit is cleared, making it the final flow access by destroy work. Order all
+preceding flow accesses before publishing the bit that allows garbage
+collection to free the object.
+
+Fixes: 2c8897953f3b ("netfilter: flowtable: Add pending bit for offload work")
+Assisted-by: Codex:gpt-5
+Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+---
+ net/netfilter/nf_flow_table_offload.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 801a3dd9ceea..6757fd89c1f1 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -995,7 +995,6 @@ static void flow_offload_work_del(struct flow_offload_work *offload)
+ 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+ 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+ 		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
+-	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+ }
+ 
+ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
+@@ -1059,6 +1058,12 @@ static void flow_offload_work_handler(struct work_struct *work)
+ 	}
+ 
+ 	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
++	if (offload->cmd == FLOW_CLS_DESTROY) {
++		/* Publish after the worker's last flow access. */
++		smp_mb__before_atomic();
++		set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
++	}
++
+ 	kfree(offload);
+ }
+ 
+-- 
+2.47.3
+
