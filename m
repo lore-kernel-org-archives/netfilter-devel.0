@@ -1,41 +1,41 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221DD472540
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 12:27:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BD1947255F
+	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 12:27:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787056079; cv=none; b=PFbDIZDXnTODueZXv6zo5qsQblxpt010hG9vfdrEO5Q7WdbHiJjhIQmpiRBeP96zjPbYCW0vIF2FF3ZZlSBGgWAtfV1fCv3UWGPpt+ANuC0He7Re3kmY+GmlbPZPezFGH5XL0pO97Mt8Vdl4QOkUpNfPKGJQZf6YyLZVK931S5E=
+	t=1787056082; cv=none; b=gnRKwSMW7zhF3/Tu1nSgbwvcugx6vQqDUF5Pa0oD9ojMQCMZwe3Cg0Qob9tnCxbAMkR8ceOgQRydGpABEL0rsEZBrssFA6IiZyYH0k+m0CUADx2RvwS0tSXYRf2IUix+VFGWxMEVQPluEipZn9AHlQrK0bUSYZGdRMOaYGaa+34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787056079; c=relaxed/simple;
-	bh=XPB3UBbGesrqLgOIVR7UNZKsdqEel0CIIfBSs4NdGLc=;
+	s=arc-20240116; t=1787056082; c=relaxed/simple;
+	bh=lMEVuVVRGnJvmwxOsVy0qzVkO8ZealLF2uSDM4Oy474=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=evTGps7HZUeRZWnheU9TMFQfXUHbLSmyFjkzYHAjd4+YWsVBHo94jhFhqdECdxgIomiIE+OhjIU0vL7OzXLvQ92oxEAW6gaQwaYuG7ntrtc3Ih/ErTWHdv9te2wO4JyfSPy1/akoSTJ/voT9J0JJD15YjKGwjsesZEelUQJLGls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SLW7ntXS; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=jcCaIyqZcdISlaSA/X0XA+deRIoKEy9DZsF083vo06/zlyv9WiMjdIRmkjflXRLsiQV409M2k2Ycu5KJJATNGvQSYp0QFNsFgipRMjLX5RnFj4r+VfZ6QVLPb5MHlWclex+os+8aOn6NIvjNIvN7zt+ITS/5jUIVM4V3Ywc1cPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gn35Tim+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SLW7ntXS"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gn35Tim+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787056073;
-	bh=Ik5MsqOImy9JRqwhdda46UzV1pW6xH1XJBq9uSEb3uQ=;
+	s=2025; t=1787056076;
+	bh=62KGDNgtF1YQzYYG5nkFS7vrOTzzxEcdG8QblpAZgqo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=SLW7ntXSfaWETVaDLZqW6kKTVRPKMYcNRseq5yci/MxQNvUeTbuqe+gS+1lnNjj4B
-	 8adNQD0fl6Vn7redTIc7eQvlZZzdWsIdU0YVms8ARJXn8Ool8is8164H/SPPMcOOQM
-	 vqTqOv5+rFB1xe1k4DTQiW4HC+A+lM5e2+4HFtuhsYblOrRQopWtytlbB4EzgRsRHX
-	 06H/Bm5PVc02fd99OHMbG9kxrcIjqKW4vqyAYnH/ez3EQckYxVMlAlHlOEDJKRImTE
-	 QCqlpmbEuqAs0RL4DdYL4MFEwu7UmyORAjsK1YOajZpGwIqRYVcyRrrP0/2zMIao1V
-	 00woJKtnv9qUg==
+	b=gn35Tim+2WJnCrlFw8y7SqIA/781ghvaE/sV7dPh3j2mMGrF+KAVnTfyk4YSgBCLF
+	 baAfHRBNHwcVsnobmqSnJGMdjIuCyywuc52KBfoQgyZmUI85M53awM78jODU0YuWxD
+	 64ka8LbeaolQ7ZEo1ni6336srAqsTEEo3yEORwjnLdA6sBpg6PacRsCkSKvPVoxlHn
+	 hrEw1pOKCj869KuzNa+UaGQ7vJ4GYOBwqD3GvUjn+tzfTH7Hmtz1bcxcU6JeilZui8
+	 iHs7I8cXI2tUjtjsZZwcMYCrR2ZNkWJApio27cQPwcTkXg7goAhOynex1/O5T8/gSc
+	 w4eP39bd6y13A==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 45E586005E;
-	Tue, 18 Aug 2026 14:27:53 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7570160058;
+	Tue, 18 Aug 2026 14:27:56 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de,
 	fmancera@suse.de
-Subject: [PATCH nf-next 2/4] netfilter: xt_CT: check for nul-terminated timeout and helper name
-Date: Tue, 18 Aug 2026 14:27:39 +0200
-Message-ID: <20260818122741.1329660-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/4] netfilter: x_tables: do not print specified table
+Date: Tue, 18 Aug 2026 14:27:40 +0200
+Message-ID: <20260818122741.1329660-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260818122741.1329660-1-pablo@netfilter.org>
 References: <20260818122741.1329660-1-pablo@netfilter.org>
@@ -47,40 +47,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Otherwise, ignore malformed helper/timeout string that userspace
-provides.
+This is defensive, possibly this string has been already been sanitized
+but simply print that this match/target extension can only be used for a
+given table.
 
-Fixes: 84f3bb9ae9db ("netfilter: xtables: add CT target")
-Fixes: 24de58f46516 ("netfilter: xt_CT: allow to attach timeout policy + glue code")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_CT.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ipt_rpfilter.c  | 3 +--
+ net/ipv6/netfilter/ip6t_rpfilter.c | 2 +-
+ net/netfilter/xt_CONNSECMARK.c     | 3 +--
+ net/netfilter/xt_SECMARK.c         | 3 +--
+ 4 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index e78660dfdf4b..91326014ade1 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -195,7 +195,8 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 		goto err3;
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 6d9bf5106868..2c38fd6624aa 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -95,8 +95,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "raw") != 0) {
+-		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
+-				    par->table);
++		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n");
+ 		return -EINVAL;
  	}
  
--	if (info->helper[0]) {
-+	if (info->helper[0] &&
-+	    strnlen(info->helper, sizeof(info->helper)) < sizeof(info->helper)) {
- 		if (strnlen(info->helper, sizeof(info->helper)) == sizeof(info->helper)) {
- 			ret = -ENAMETOOLONG;
- 			goto err3;
-@@ -206,7 +207,8 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 			goto err3;
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 67c87a88cde4..af8d10d49de8 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -118,7 +118,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "raw") != 0) {
+-		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
++		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n",
+ 				    par->table);
+ 		return -EINVAL;
+ 	}
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 1494b3ee30e1..4e4436a9104b 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -87,8 +87,7 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "security") != 0) {
+-		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
+-				    par->table);
++		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table\n");
+ 		return -EINVAL;
  	}
  
--	if (info->timeout[0]) {
-+	if (info->timeout[0] &&
-+	    strnlen(info->timeout, sizeof(info->timeout)) < sizeof(info->timeout)) {
- 		if (strnlen(info->timeout, sizeof(info->timeout)) == sizeof(info->timeout)) {
- 			ret = -ENAMETOOLONG;
- 			goto err4;
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 5bc5ea505eb9..38e8e410b4e8 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -79,8 +79,7 @@ secmark_tg_check(const char *table, struct xt_secmark_target_info_v1 *info)
+ 
+ 	if (strcmp(table, "mangle") != 0 &&
+ 	    strcmp(table, "security") != 0) {
+-		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
+-				    table);
++		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table\n");
+ 		return -EINVAL;
+ 	}
+ 
 -- 
 2.47.3
 
