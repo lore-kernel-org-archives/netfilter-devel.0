@@ -1,41 +1,41 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BD1947255F
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 12:27:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A2247277C
+	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2026 12:28:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787056082; cv=none; b=gnRKwSMW7zhF3/Tu1nSgbwvcugx6vQqDUF5Pa0oD9ojMQCMZwe3Cg0Qob9tnCxbAMkR8ceOgQRydGpABEL0rsEZBrssFA6IiZyYH0k+m0CUADx2RvwS0tSXYRf2IUix+VFGWxMEVQPluEipZn9AHlQrK0bUSYZGdRMOaYGaa+34=
+	t=1787056083; cv=none; b=aB9JRNExgosSjQXuUAwNA9saFUIo/wcIf7jNbAIy6DCoklE8jOsRk8gPG5NgomTEK8LTsYmAIayxVaRCDbKcgeH9RmWUNTXTz/YC1/r109dIw4N1sXbGt9hkCSsQhEYMQ6rnZqrTMJadMymo5nLcXSpNFDEX7RQLJidbHk2DRGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787056082; c=relaxed/simple;
-	bh=lMEVuVVRGnJvmwxOsVy0qzVkO8ZealLF2uSDM4Oy474=;
+	s=arc-20240116; t=1787056083; c=relaxed/simple;
+	bh=II5JoCPW3HLMlskf3/SsR5+SqkUSC4J6WiJiyiMMba4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jcCaIyqZcdISlaSA/X0XA+deRIoKEy9DZsF083vo06/zlyv9WiMjdIRmkjflXRLsiQV409M2k2Ycu5KJJATNGvQSYp0QFNsFgipRMjLX5RnFj4r+VfZ6QVLPb5MHlWclex+os+8aOn6NIvjNIvN7zt+ITS/5jUIVM4V3Ywc1cPw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gn35Tim+; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Ho6g1zVVvpRPtrifP8ewy8NAPooFacC7R+gQBXhYE8DhTDeErgT0UaKAK2/+Xc7FuN4+w1TjI142jp7Uv4O6ec99/McDo1PdAvU7izP21aN3QYY7OKz9I8u2vnT+I7GNQiunYIpG5yBwH6LRyodQGZneSZ055a7/qK7MOue7xBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LiC0WNAI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gn35Tim+"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LiC0WNAI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787056076;
-	bh=62KGDNgtF1YQzYYG5nkFS7vrOTzzxEcdG8QblpAZgqo=;
+	s=2025; t=1787056078;
+	bh=sn3LCXplqtWLOv+Fl8eFVSXtgDcPZ9TYxc+Uz7mpKaE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gn35Tim+2WJnCrlFw8y7SqIA/781ghvaE/sV7dPh3j2mMGrF+KAVnTfyk4YSgBCLF
-	 baAfHRBNHwcVsnobmqSnJGMdjIuCyywuc52KBfoQgyZmUI85M53awM78jODU0YuWxD
-	 64ka8LbeaolQ7ZEo1ni6336srAqsTEEo3yEORwjnLdA6sBpg6PacRsCkSKvPVoxlHn
-	 hrEw1pOKCj869KuzNa+UaGQ7vJ4GYOBwqD3GvUjn+tzfTH7Hmtz1bcxcU6JeilZui8
-	 iHs7I8cXI2tUjtjsZZwcMYCrR2ZNkWJApio27cQPwcTkXg7goAhOynex1/O5T8/gSc
-	 w4eP39bd6y13A==
+	b=LiC0WNAIzS2gHSQoO1UMP4mTf4GUJ98fRGRSUtjd+1nXSeUsTZF/cBxwbggWHTdWt
+	 dJU1syr1fbZkiQbs7cRbdDystWac0QMBPTaohzzpbKG4n9PKlwVEClG7MBHYM0nfbB
+	 l8OosWMyt2x40FbLI4jsoitdygkzyFp9ymkoC+Q9T68imvZtwiHDPp/SJ9vwhE3z1+
+	 eeSXWkRthQ6ap2KKqVUXIZCeEjqfA4gYyMQzsnQtv0TOiX92lTL1UnDrrTWrwkE8YJ
+	 8PHBEvV4K+6KCf5cPyAfH66xCHa5IlSe9JFusWQhFReKTAj8A4CAC+etGJS4bsBmoX
+	 k3ySbP+6Vs9cQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7570160058;
-	Tue, 18 Aug 2026 14:27:56 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C10F260077;
+	Tue, 18 Aug 2026 14:27:57 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de,
 	fmancera@suse.de
-Subject: [PATCH nf-next 3/4] netfilter: x_tables: do not print specified table
-Date: Tue, 18 Aug 2026 14:27:40 +0200
-Message-ID: <20260818122741.1329660-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 4/4] netfilter: xt_cgroup: use pr_info_ratelimited()
+Date: Tue, 18 Aug 2026 14:27:41 +0200
+Message-ID: <20260818122741.1329660-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260818122741.1329660-1-pablo@netfilter.org>
 References: <20260818122741.1329660-1-pablo@netfilter.org>
@@ -47,70 +47,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is defensive, possibly this string has been already been sanitized
-but simply print that this match/target extension can only be used for a
-given table.
+This seems to be the last xtables extension not using the ratelimited
+version, update it.
 
+Fixes: c38c4597e4bf ("netfilter: implement xt_cgroup cgroup2 path match")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/ipt_rpfilter.c  | 3 +--
- net/ipv6/netfilter/ip6t_rpfilter.c | 2 +-
- net/netfilter/xt_CONNSECMARK.c     | 3 +--
- net/netfilter/xt_SECMARK.c         | 3 +--
- 4 files changed, 4 insertions(+), 7 deletions(-)
+ net/netfilter/xt_cgroup.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index 6d9bf5106868..2c38fd6624aa 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -95,8 +95,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index 43d2ae2be628..ac1b7e71cd7f 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -33,7 +33,7 @@ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
  
- 	if (strcmp(par->table, "mangle") != 0 &&
- 	    strcmp(par->table, "raw") != 0) {
--		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
--				    par->table);
-+		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n");
+ 	if (!IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
+-		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		pr_info_ratelimited(NET_CLS_CLASSID_INVALID_MSG);
  		return -EINVAL;
  	}
  
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 67c87a88cde4..af8d10d49de8 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -118,7 +118,7 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
- 
- 	if (strcmp(par->table, "mangle") != 0 &&
- 	    strcmp(par->table, "raw") != 0) {
--		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
-+		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table\n",
- 				    par->table);
+@@ -49,7 +49,7 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
  		return -EINVAL;
- 	}
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index 1494b3ee30e1..4e4436a9104b 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -87,8 +87,7 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
  
- 	if (strcmp(par->table, "mangle") != 0 &&
- 	    strcmp(par->table, "security") != 0) {
--		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
--				    par->table);
-+		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table\n");
+ 	if (!info->has_path && !info->has_classid) {
+-		pr_info("xt_cgroup: no path or classid specified\n");
++		pr_info_ratelimited("xt_cgroup: no path or classid specified\n");
  		return -EINVAL;
  	}
  
-diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
-index 5bc5ea505eb9..38e8e410b4e8 100644
---- a/net/netfilter/xt_SECMARK.c
-+++ b/net/netfilter/xt_SECMARK.c
-@@ -79,8 +79,7 @@ secmark_tg_check(const char *table, struct xt_secmark_target_info_v1 *info)
+@@ -59,7 +59,7 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 	}
  
- 	if (strcmp(table, "mangle") != 0 &&
- 	    strcmp(table, "security") != 0) {
--		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
--				    table);
-+		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table\n");
+ 	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
+-		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		pr_info_ratelimited(NET_CLS_CLASSID_INVALID_MSG);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -89,7 +89,7 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 
+ 	if (!info->has_path && !info->has_classid) {
+-		pr_info("xt_cgroup: no path or classid specified\n");
++		pr_info_ratelimited("xt_cgroup: no path or classid specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -99,7 +99,7 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 	}
+ 
+ 	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
+-		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		pr_info_ratelimited(NET_CLS_CLASSID_INVALID_MSG);
  		return -EINVAL;
  	}
  
