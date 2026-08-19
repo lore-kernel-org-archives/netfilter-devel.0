@@ -1,283 +1,320 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAAB27E1DC
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 13:46:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2AB23CEB99;
+	Wed, 19 Aug 2026 18:15:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787147195; cv=none; b=D8SZdp3txL7NmEqnFNR2X/lNgYG2Ybc82ApBJBFk17JqBD8+eAzZrN38VzsItA15eFNxQr/VnYnV4bCbrQkWL01UD0mk5KQOtKzE9/G9itKbeTxQFcHuIRP2Ee400+p9TBVzdwx6Jpeptt5iX8C5OiEXgtQQyL1G80oqItMHfgA=
+	t=1787163362; cv=none; b=YurhwXLgyGnCx12C4vHn17j/xvW9GYCwkjlFy+dMo4kcryl9Eo3LY6ddHeSeQ33obcUvPaXxT3/6QsZHnAc+58qW0tNvgEbW9KEZFaWpeSlb97YW5QBDG5JF7cZPZwXVXqp1CHX5ef5zVVOGt/7jAHo/Z2ZJdu6rZGvTjpl5Qd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787147195; c=relaxed/simple;
-	bh=lapnEzJsA2GSlRYwkgtI9KCuH/nqC0+s8fymoZaLcag=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PEe4iCrdKbTtzLu8MAi2mhPx323e4YXT6l/ojQrCOW2P+mOLaHZN9EeF8mdaXzsieeyr6alFWKvcZ4DSB8fbV66UgfdwXatDOizw0VDPHeZQ30TgAEJPOLdbtpaPKCCft4NAOfWzBpHawKHJ4D10w4taepzCdMsEr1fk6KdwEPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SBKlsfLM; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1787163362; c=relaxed/simple;
+	bh=hxty/hn4eltm6C0Y4EZQnHbws7rSxIFBmMOEDEavcn4=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ugTBPWmn6bPhWtL10mP0QU1x35L1uU195HfhaImiPwHumpOWfEePfEWLsU4Z+7OnUMqT0L0wkgJT6cOUnCDWZxUXm81VLNcZwF9YAW6TCc0+slMdgM3D1jmeE2nUFIGzFZDiq89qohnSmTI5s7ZMGx429R3IgWS2pHVT06KwoLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=j6B0Jy5s; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SBKlsfLM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787147191;
-	bh=ffwWv48kmCTdFbByjyenNxvknfXguQvCaYIdEZFVkIg=;
-	h=From:To:Cc:Subject:Date:From;
-	b=SBKlsfLMymGUj1P+6yY+wFk6+Iu3o/TWeUc2z0ry2rurnnJa4FH74FtttD/yUO+XO
-	 pIOUFfnPWtexaAC7xBU8ustyhXW+qR3IHkno06z/JD2FYPpVuGVu9ggDp6QzyMGhA/
-	 05uwCjpGqHQ58cvQp1nJUriSw79KMn4tcrG83AiUZ8QUy4YuJHLStw+hAFRj42Q0GX
-	 Ws8+xqAm/eHIYTHjnlFYlAHE4ruibsbpUyhihPKZ1tMZZEPby4g15myrV9HYsfKXu2
-	 +lBArzF5Vo+PM8dUkbsOkE+JXsjbY8lya094iMsV7PN4pM+Nej0qKoE5xMY2RJPm+p
-	 j9Fr0LRcftRcg==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5D2B16009D;
-	Wed, 19 Aug 2026 15:46:31 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de,
-	hdthky0@gmail.com
-Subject: [PATCH nf,v3] netfilter: nf_tables: skip double clone set expressions on element insert
-Date: Wed, 19 Aug 2026 15:46:28 +0200
-Message-ID: <20260819134628.1494340-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="j6B0Jy5s"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Cc:To:Content-Transfer-Encoding:Content-Type:MIME-Version:
+	Message-Id:Date:Subject:From:From:Reply-To;
+	bh=fdQkiyp3Qsqh2GCyFxM5saepTDceNMzdb1x19L1bJys=; b=j6B0Jy5s0l1rIqoAIFUFYRNw0A
+	O8zrKTcRNqYe8rdyon/tzyD/f+r40qZQ7xbPPGamCanY/2lKECgUFlsAbWuIiWsKJ1uNL7wtKRWk+
+	cPXGDEGxS3HvolMLPzNOY28Kvn6oRBQCJdkcQsttJeBjiMHhNAR5TCc275oy7UBPYFoxzvLCb2dsT
+	s+0Bni82WNohP8aBWozbNZO3ullR3nDwaNzrKvoTnob3s/xCOxd7ENU0zSyAh33ApHNg5CrkT0jyW
+	tx4C8qWCUjFsSc/ZqPM+8Cf3aly39EwR7qsWIcA1xwW4acnjRr5lLTbFLnksh8HBG1pzPaVoHK1Nr
+	wEee9tBw==;
+Received: from 186-249-147-181.shared.desktop.com.br ([186.249.147.181] helo=[127.0.1.1])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1wwkpH-006ENH-4M; Wed, 19 Aug 2026 20:15:47 +0200
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+Subject: [PATCH RFC v3 00/13] sysctl: add module aliases
+Date: Wed, 19 Aug 2026 15:16:13 -0300
+Message-Id: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAO3yhWoC/4WNQQqDMBBFryKzbkqSosauhEIP0G1xEc2oA2pKx
+ kpFvHtTL9Dl/4///gaMgZDhmmwQcCEmP8VwOSXQ9HbqUJCLGbTUmTTKCF65mQcxevceUNiBLCM
+ L3aZGqlphnSuI21fAlj6H9wmP+w2qWPbEsw/r8bXoA/3RLlpI4VKbFc5imhempO7Hzo0fodr3/
+ QtVQJ5iwAAAAA==
+X-Change-ID: 20260818-sysctl-module-aliases-2f5801b1eb71
+To: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>, 
+ Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>
+Cc: kernel-dev@igalia.com, linux-riscv@lists.infradead.org, 
+ linux-kernel@vger.kernel.org, fsverity@lists.linux.dev, 
+ keyrings@vger.kernel.org, bpf@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
+ netdev@vger.kernel.org, linux-wpan@vger.kernel.org, 
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com, 
+ virtualization@lists.linux.dev, Mauricio Faria de Oliveira <mfo@igalia.com>
+X-Mailer: b4 0.14.2
 
-Both the dynset and newsetelem path clone the existing set expressions
-when setting set element expressions if no override expressions are
-provided. This results in a double clone, once to clone the template set
-expressions then another clone on the new element. Add a flag to
-annotate if userspace provides a override expression (ie. expression of
-the same type of the set but different configuration), otherwise borrow
-the existing expression from the set. Add conditionals to release
-expression iif they represent an override.
+This series adds 'sysctl:' aliases to modules that register sysctl tables; e.g.:
 
-This simplifies the existing logic and it also fixes a bug with the
-connlimit expression which results in a module refcount imbalance
-WARNING splat when resorting on the default set expressions.
+        $ modinfo ./mpls_router.ko  | grep sysctl:
+        alias:          sysctl:*/net/mpls/conf/*/input
+        alias:          sysctl:*/net/mpls/default_ttl
+        alias:          sysctl:*/net/mpls/ip_ttl_propagate
+        alias:          sysctl:*/net/mpls/platform_labels
 
-Fixes: 65038428b2c6 ("netfilter: nf_tables: allow to specify stateful expression in set definition")
-Fixes: fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set definition")
-Reported-by: Xingyuan Mo <hdthky0@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+It provides a trivial way to map /proc/sys files to modules (not trivial today),
+and for userspace to handle nonexistent /proc/sys files (e.g., procps's sysctl
+and systemd-sysctl applying tunables) with "modprobe sysctl:<...>" and a retry.
+
+This is done almost automatically with register_sysctl(), register_net_sysctl()
+and friends as wrappers of MODULE_SYSCTL_TABLE (similar to MODULE_DEVICE_TABLE),
+which emits symbols for file2alias/modpost to find and parse the sysctl tables.
+
+The big exception to 'almost' are sysctl tables and paths allocated or defined
+at runtime (e.g., per-namespace or per-device), as all information is required
+at build-time. Fortunately, such tables and paths are often based on 'templates'
+which are static and can be used.
+
+This is done by plumbing the template table/path as optional arguments (macros
+with default values as default_gfp()), so not to create functions for all cases:
+
+        register_sysctl(path, table [, table_tmpl [, path_tmpl]]);
+        register_net_sysctl(net, path, table [, table_tmpl[, path_tmpl]]);
+        register_net_sysctl_sz(net, path, table, size [, table_tmpl[, path_tmpl]]);
+
+In this series:
+- Patch 1 prevents a build error later.
+- Patch 2 adds CONFIG_SYSCTL_MODULE_ALIASES.
+- Patch 3 adds MODULE_SYSCTL_TABLE().
+- Patches 4-5 add register_sysctl() wrapper and update some callers.
+- Patches 6-10 add register_net_sysctl[_sz]() wrappers and update some callers.
+- Patches 11-13 add file2alias support.
+
+Not all maintainers/reviewers (specially for the many changes in net/) are
+in To/Cc in respect of their time, as this RFC probably needs more general
+and earlier feedback before settling on specific changes for their review.
+All lists are included for visibility, though.
+
+Example
+=======
+
+To put it all together, 'mpls_router.ko' (used above) from 'net/mpls/af_mpls.c':
+        
+- Tables:
+
+        static const struct ctl_table mpls_table[] = {
+                {
+                        .procname       = "platform_labels",
+                ...
+                        .procname       = "ip_ttl_propagate",
+                ...
+                        .procname       = "default_ttl",
+                },
+        };
+        
+        static const struct ctl_table mpls_dev_table[] = {
+                {
+                        .procname       = "input",
+                ...
+                },
+        };
+
+- Registration:
+
+        net->mpls.ctl = register_net_sysctl_sz(net, "net/mpls", table,
+                                               table_size, mpls_table);
+
+        #define path_template "net/mpls/conf/%s"
+        ...
+        mdev->sysctl = register_net_sysctl_sz(net, path, table, table_size,
+                                              mpls_dev_table, path_template);
+
+- Symbols:
+
+        $ objdump -t net/mpls/mpls_router.ko \
+          | grep '__mod_device_table__.*__sysctl__'
+        0000000000000900 l     O .data  0000000000000018
+                __mod_device_table__kmod_mpls_router__sysctl__mpls_table.177
+        0000000000000940 l     O .data  0000000000000018
+                __mod_device_table__kmod_mpls_router__sysctl__mpls_dev_table.174
+
+- file2alias:
+
+        $ grep '^MODULE_ALIAS("sysctl:' net/mpls/mpls_router.mod.c
+        MODULE_ALIAS("sysctl:*/net/mpls/platform_labels");
+        MODULE_ALIAS("sysctl:*/net/mpls/ip_ttl_propagate");
+        MODULE_ALIAS("sysctl:*/net/mpls/default_ttl");
+        MODULE_ALIAS("sysctl:*/net/mpls/conf/*/input");
+
+- modinfo:
+
+        $ modinfo ./mpls_router.ko  | grep sysctl:
+        alias:          sysctl:*/net/mpls/conf/*/input
+        alias:          sysctl:*/net/mpls/default_ttl
+        alias:          sysctl:*/net/mpls/ip_ttl_propagate
+        alias:          sysctl:*/net/mpls/platform_labels
+
+Testing
+=======
+
+Configurations:
+- allmodconfig with the option enabled (check for 'MODULE_ALIAS("sysctl:' lines)
+- allmodconfig with the option disabled (check for code errors)
+- allyesconfig with the option enabled (check for include errors)
+
+Architectures (test different bitness, endianness, and ELF handling)
+- x86_64, i386
+- arm, arm64
+- arc
+- alpha
+- loongarch
+- m68k
+- mips(64)(el)
+- parisc(64)
+- powerpc(64(le))
+- riscv
+- sparc64
+- s390
+
+The resulting '.mod.c' files of allmodconfig with the option enabled was checked
+for consistency across all architectures, and that the new aliases lines are the
+difference to allmodconfig with the option disabled.
+
+Disabling
+=========
+
+- Per-call:
+
+  Use 'register_sysctl_sz()' or '__register_net_sysctl_sz()' directly.
+
+- Per-file:
+
+  Use '#define SYSCTL_MODULE_ALIASES_DISABLE'.
+
+- System-wide:
+
+  Maybe something along these lines:
+
+        # cat /etc/modprobe.d/no-sysctl.conf
+        alias sysctl:* no-sysctl
+        install no-sysctl /bin/false
+
+        # modinfo -F name sysctl:/proc/net/mpls/default_ttl
+        mpls_router
+
+        # modprobe sysctl:/proc/net/mpls/default_ttl
+        modprobe: ERROR: Error running install command '/bin/false' for module no_sysctl: retcode 1
+        modprobe: ERROR: could not insert 'no_sysctl': Invalid argument
+
+P.S.
+====
+
+I wrote proof-of-concept patches for procps sysctl and systemd-sysctl some time
+ago, which worked as expected, i.e., successfully set sysctl tunables which did
+not exist in /proc/sys, by running 'modprobe sysctl:/proc/sys/...' and retrying.
+
+Should this series eventually be merged, the patches will be submitted upstream
+as well, for userspace to start consuming it.
+
+Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+
+Changes in v3:
+- All issues were reported by sashiko-bot@kernel.org.
+- Tested allmodconfig with option enabled on x86_64.
+- Patch 2:
+  - Fix typo ('s/options/option/').
+- Patch 3:
+  - Fix usage of __UNIQUE_ID().
+  - Add __must_be_array() in MODULE_SYSCTL_TABLE().
+- Patch 4:
+  - Remove trailing backslash in register_sysctl().
+- Patch 6:
+  - Fix missing __register_net_sysctl_sz() in !CONFIG_SYSCTL.
+- Patch 13:
+  - Fix potential out-of-bounds read in do_sysctl_entry().
+  - Add check for entry size of zero.
+- Link to v2: https://lore.kernel.org/r/20260818-sysctl-module-aliases-v2-0-d5a69dae5798@igalia.com
+
+Changes in v2:
+- This is based on the series submitted 4 years ago,
+  with Originally-by: tags added in related patches.
+- Link to v1: https://lore.kernel.org/linux-fsdevel/20220722022416.137548-1-mfo@canonical.com/
+
 ---
-v3: update missing spot in nft_dynset to address leak in error path.
+Mauricio Faria de Oliveira (13):
+      keys, pidns, fs/verity, riscv/vector: reorder '#include <linux/sysctl.h>'
+      proc: add config option SYSCTL_MODULE_ALIASES
+      sysctl, mod_devicetable: add macro MODULE_SYSCTL_TABLE
+      sysctl: add register_sysctl() wrapper for MODULE_SYSCTL_TABLE
+      sysctl, parport: update register_sysctl() callers with template arguments
+      sysctl, net: add register_net_sysctl{_sz}() wrappers for MODULE_SYSCTL_TABLE
+      sysctl, net: update register_net_sysctl{_sz}() callers with template arguments
+      sysctl, net: update register_net_sysctl_sz(ARRAY_SIZE(table_tmpl)) with template arguments
+      sysctl, ipv6: update register_net_sysctl{_sz}() callers with template arguments
+      sysctl, net: update register_net_sysctl_sz() edge case
+      sysctl: unrandomize struct ctl_table.procname
+      modpost: move addend_*_rel() calls into addend_rel()
+      modpost: handle MODULE_SYSCTL_TABLE symbols
 
- include/net/netfilter/nf_tables.h |  2 --
- net/netfilter/nf_tables_api.c     | 56 ++++++++++---------------------
- net/netfilter/nft_dynset.c        | 23 ++++++++-----
- 3 files changed, 32 insertions(+), 49 deletions(-)
+ arch/riscv/kernel/vector.c              |   1 +
+ drivers/net/vrf.c                       |   3 +-
+ drivers/parport/procfs.c                |  26 +++-
+ fs/proc/Kconfig                         |  13 ++
+ fs/verity/init.c                        |   1 +
+ include/linux/key.h                     |   1 -
+ include/linux/mod_devicetable.h         |   7 +
+ include/linux/pid_namespace.h           |   1 +
+ include/linux/sysctl.h                  | 110 ++++++++++++++-
+ include/net/ipv6.h                      |   6 +-
+ include/net/net_namespace.h             |  47 ++++++-
+ net/bridge/br_netfilter_hooks.c         |   3 +-
+ net/core/neighbour.c                    |  11 +-
+ net/core/sysctl_net_core.c              |   3 +-
+ net/ieee802154/6lowpan/reassembly.c     |   2 +-
+ net/ipv4/devinet.c                      |  12 +-
+ net/ipv4/ip_fragment.c                  |   3 +-
+ net/ipv4/route.c                        |   3 +-
+ net/ipv4/sysctl_net_ipv4.c              |   2 +-
+ net/ipv4/xfrm4_policy.c                 |   3 +-
+ net/ipv6/addrconf.c                     |   7 +-
+ net/ipv6/icmp.c                         |   6 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c |   4 +-
+ net/ipv6/reassembly.c                   |   3 +-
+ net/ipv6/route.c                        |  10 +-
+ net/ipv6/sysctl_net_ipv6.c              |  13 +-
+ net/ipv6/xfrm6_policy.c                 |   3 +-
+ net/mpls/af_mpls.c                      |   9 +-
+ net/mptcp/ctrl.c                        |   3 +-
+ net/netfilter/ipvs/ip_vs_ctl.c          |   4 +-
+ net/netfilter/ipvs/ip_vs_lblc.c         |   3 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c        |   3 +-
+ net/netfilter/nf_conntrack_standalone.c |   5 +-
+ net/netfilter/nf_log.c                  |   9 +-
+ net/rds/tcp.c                           |   4 +-
+ net/sctp/sysctl.c                       |   3 +-
+ net/smc/smc_sysctl.c                    |   2 +-
+ net/sysctl_net.c                        |  10 +-
+ net/unix/sysctl_net_unix.c              |   3 +-
+ net/vmw_vsock/af_vsock.c                |   4 +-
+ net/xfrm/xfrm_sysctl.c                  |   2 +-
+ scripts/mod/devicetable-offsets.c       |   6 +
+ scripts/mod/file2alias.c                | 237 ++++++++++++++++++++++++++++++++
+ scripts/mod/modpost.c                   |  46 ++++---
+ scripts/mod/modpost.h                   |  25 ++++
+ 45 files changed, 575 insertions(+), 107 deletions(-)
+---
+base-commit: 2697ef8943c9985c14708a6429e21812693857b2
+change-id: 20260818-sysctl-module-aliases-2f5801b1eb71
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 238f6ecb90e9..9d597482363d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -870,8 +870,6 @@ struct nft_elem_priv *nft_set_elem_init(const struct nft_set *set,
- 					const u32 *key, const u32 *key_end,
- 					const u32 *data,
- 					u64 timeout, u64 expiration, gfp_t gfp);
--int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
--			    struct nft_expr *expr_array[]);
- void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
- 			       struct nft_set_elem_expr *elem_expr);
- void nft_set_elem_destroy(const struct nft_set *set,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 71f4227d7ac7..20c562174b27 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6921,39 +6921,11 @@ static void nft_trans_elems_destroy(const struct nft_ctx *ctx,
- 		nf_tables_set_elem_destroy(ctx, te->set, te->elems[i].priv);
- }
- 
--int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
--			    struct nft_expr *expr_array[])
--{
--	struct nft_expr *expr;
--	int err, i, k;
--
--	for (i = 0; i < set->num_exprs; i++) {
--		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
--		if (!expr)
--			goto err_expr;
--
--		err = nft_expr_clone(expr, set->exprs[i], GFP_KERNEL_ACCOUNT);
--		if (err < 0) {
--			kfree(expr);
--			goto err_expr;
--		}
--		expr_array[i] = expr;
--	}
--
--	return 0;
--
--err_expr:
--	for (k = i - 1; k >= 0; k--)
--		nft_expr_destroy(ctx, expr_array[k]);
--
--	return -ENOMEM;
--}
--
- static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 				   const struct nft_set_ext_tmpl *tmpl,
- 				   const struct nft_set_ext *ext,
- 				   struct nft_expr *expr_array[],
--				   u32 num_exprs)
-+				   u32 num_exprs, bool override_exprs)
- {
- 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
- 	u32 len = sizeof(struct nft_set_elem_expr);
-@@ -6976,7 +6948,8 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 			goto err_elem_expr_setup;
- 
- 		elem_expr->size += expr_array[i]->ops->size;
--		nft_expr_destroy(ctx, expr_array[i]);
-+		if (override_exprs)
-+			nft_expr_destroy(ctx, expr_array[i]);
- 		expr_array[i] = NULL;
- 	}
- 
-@@ -6984,7 +6957,9 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 
- err_elem_expr_setup:
- 	for (; i < num_exprs; i++) {
--		nft_expr_destroy(ctx, expr_array[i]);
-+		if (override_exprs)
-+			nft_expr_destroy(ctx, expr_array[i]);
-+
- 		expr_array[i] = NULL;
- 	}
- 
-@@ -7280,6 +7255,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_set_binding *binding;
- 	struct nft_elem_priv *elem_priv;
- 	struct nft_object *obj = NULL;
-+	bool override_exprs = false;
- 	struct nft_userdata *udata;
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
-@@ -7385,6 +7361,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 
- 		expr_array[0] = expr;
- 		num_exprs = 1;
-+		override_exprs = true;
- 
- 		if (set->num_exprs && set->exprs[0]->ops != expr->ops) {
- 			err = -EOPNOTSUPP;
-@@ -7413,6 +7390,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			}
- 			expr_array[i] = expr;
- 			num_exprs++;
-+			override_exprs = true;
- 
- 			if (set->num_exprs && expr->ops != set->exprs[i]->ops) {
- 				err = -EOPNOTSUPP;
-@@ -7426,9 +7404,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		}
- 	} else if (set->num_exprs > 0 &&
- 		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
--		err = nft_set_elem_expr_clone(ctx, set, expr_array);
--		if (err < 0)
--			goto err_set_elem_expr_clone;
-+		for (i = 0; i < set->num_exprs; i++)
-+			expr_array[i] = set->exprs[i];
- 
- 		num_exprs = set->num_exprs;
- 	}
-@@ -7567,7 +7544,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		udata->len = ulen - 1;
- 		nla_memcpy(&udata->data, nla[NFTA_SET_ELEM_USERDATA], ulen);
- 	}
--	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs);
-+	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs,
-+				      override_exprs);
- 	if (err < 0)
- 		goto err_elem_free;
- 
-@@ -7675,9 +7653,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err_parse_key:
- 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err_set_elem_expr:
--	for (i = 0; i < num_exprs && expr_array[i]; i++)
--		nft_expr_destroy(ctx, expr_array[i]);
--err_set_elem_expr_clone:
-+	if (override_exprs) {
-+		for (i = 0; i < num_exprs && expr_array[i]; i++)
-+			nft_expr_destroy(ctx, expr_array[i]);
-+	}
-+
- 	return err;
- }
- 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ee9d3e7b1ecf..83e56b1aa858 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -19,7 +19,8 @@ struct nft_dynset {
- 	u8				sreg_key;
- 	u8				sreg_data;
- 	bool				invert;
--	bool				expr;
-+	bool				expr:1,
-+					override_exprs:1;
- 	u8				num_exprs;
- 	u64				timeout;
- 	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
-@@ -257,6 +258,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 
- 		priv->num_exprs++;
- 		priv->expr_array[0] = dynset_expr;
-+		priv->override_exprs = true;
- 
- 		if (set->num_exprs > 1 ||
- 		    (set->num_exprs == 1 &&
-@@ -289,6 +291,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			}
- 			priv->expr_array[i] = dynset_expr;
- 			priv->num_exprs++;
-+			priv->override_exprs = true;
- 
- 			if (set->num_exprs) {
- 				if (i >= set->num_exprs) {
-@@ -307,9 +310,8 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			goto err_expr_free;
- 		}
- 	} else if (set->num_exprs > 0) {
--		err = nft_set_elem_expr_clone(ctx, set, priv->expr_array);
--		if (err < 0)
--			return err;
-+		for (i = 0; i < set->num_exprs; i++)
-+			priv->expr_array[i] = set->exprs[i];
- 
- 		priv->num_exprs = set->num_exprs;
- 	}
-@@ -339,8 +341,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	return 0;
- 
- err_expr_free:
--	for (i = 0; i < priv->num_exprs; i++)
--		nft_expr_destroy(ctx, priv->expr_array[i]);
-+	if (priv->override_exprs) {
-+		for (i = 0; i < priv->num_exprs; i++)
-+			nft_expr_destroy(ctx, priv->expr_array[i]);
-+	}
- 	return err;
- }
- 
-@@ -367,9 +371,10 @@ static void nft_dynset_destroy(const struct nft_ctx *ctx,
- 	struct nft_dynset *priv = nft_expr_priv(expr);
- 	int i;
- 
--	for (i = 0; i < priv->num_exprs; i++)
--		nft_expr_destroy(ctx, priv->expr_array[i]);
--
-+	if (priv->override_exprs) {
-+		for (i = 0; i < priv->num_exprs; i++)
-+			nft_expr_destroy(ctx, priv->expr_array[i]);
-+	}
- 	nf_tables_destroy_set(ctx, priv->set);
- }
- 
+Best regards,
 -- 
-2.47.3
+Mauricio Faria de Oliveira <mfo@igalia.com>
 
