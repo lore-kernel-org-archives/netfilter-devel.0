@@ -1,40 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A19B9CA6F
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 13:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7FB84766A0
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 13:44:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787144977; cv=none; b=FuUf0AG0Ar2Mn/+wZ+bvv8NKeA5fmD8oYPnnWHOQHMiYyKLPTPrRYTC4zEHB2NPuK8kRLd9eEFvJsed1vQUJZRj+T8qIlLpPJn7OcV7aAC1dbVr4KhQJ4yRAUZ04PFlTjOhu0A7JP3Iytls0UzfZb9BJDq+4E6gJYW+jxxqjxmE=
+	t=1787147074; cv=none; b=u9t4xWM7XRbA4FWROQ1G97Absm92PRJ4DhbHKqkg4/Opl9U7SdvPh0b4140Wsmq6GWCZ03N0mpFYK6ixR4+a/Pu6mwEoRAM9GsSN7vdG7BnRqhBWqj/UW5+/Y/qxT1cjUR3KR/lzJF1zoSEPe1xFIlU5wmL7d2GxUtPtXcWmnXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787144977; c=relaxed/simple;
-	bh=f6706qEC6T+APVnWl7j39Ry9ArGRYPA1160faEzQJ0I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Jglml3henrwj2ETIEpvXUTaa8/o4U6uHyblS0d3yYpJt2PopHbziitwmBG4kwoGTci2UPeap0zzdwcsRXzNc7kx+MDWJroomDKGmmEKo8HspVruUsyqrgI182RkLi4SLK0pBh6fNTVy/TZ8vWaAA6uMaMAygKlF0QRuL1w7UDcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pBe5+xog; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787147074; c=relaxed/simple;
+	bh=WBsVK+gzgxbYEAyLv+kVnBLcMwXDIjQbCSTciCk8qto=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=phE0pFLPBn+o4kqIPvjMGlxRPXONkdoUD2vaL2p5yl+roCM2L4qBG0glHZOEWWD56Qkzn5WqWcFSmovW0AeyHQjA4iZIxsAbVlz56Ju20O2633oJHx8uwzNtvwyUw8geLxJFL1YuLakpNWtz9FT2Zy98RepuHZL7tpUUwIt0dVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YYCVeZZv; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pBe5+xog"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YYCVeZZv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787144964;
-	bh=iGJnc64xebPe203BjA+7ruigtpBVdOgCbmJ/fsyw1BE=;
+	s=2025; t=1787147068;
+	bh=fA0LWoyNWTfZ22sw69p/ILWAh6dj4lEJreQYRuaqWVQ=;
 	h=From:To:Cc:Subject:Date:From;
-	b=pBe5+xog7vRxiEsYJO2Sy46pxvqX7vPahU13Rwj9AgR8YHmkykEAICCbMiDdFOUqD
-	 b3qFJs8fOFbVBPGIEXc/9yTHeWjP5nv+IZdc6gGvFuN7hmaTynnD0JFxlnpGT8496Z
-	 7WhxM16UUlZxVDAQ8NB98C24Hnp+TGadV5chXXL6eF/99UX8VLZypeFYduIbch7PdV
-	 hpbO0xHCwJfYj16SuYVaSqWVtlTSXPyR9Kno/uo8uE8i7FQtPXcHXDWYr/SdL1uKGU
-	 UsJmP4KnnzSUTKMfH6fr4pWnfmEANwemyNzZIZIbuZBCwrlVdrKqK669dzLYclNlnR
-	 7eUY+aZ8Rf2qg==
+	b=YYCVeZZv4ZMQbbPQKqmKTuD0GBSMga3gaUwr/DxmHjwTqG6v9bGfpm0gruQx2selQ
+	 uQ0qYDYVGpFdTZSMc7tzkJX31h1bZ9DxrHfeIM2OkFhwIxa1wZtOluNQ5Rir4CA+c0
+	 Nog7YhaRoTYvqssza85K02kE7tZ2YksPkkn4a1bLnxBF+13Oqpd8Gq4WcAmrJdnpOO
+	 i2KKC6lc7004v+3rYgIkBN/Sr3lRBMq7s5I4fTo73Ryz0NUPyHj1tVIKBOu+s+oCZq
+	 ICSxh6jSi+RetsRHkEub1DLG46V4Al7ZPtvxlq2Yznu4HfnlQXUjh42R/Cx/2jgX3/
+	 uYzzm9yHPUz3w==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B3E5260058;
-	Wed, 19 Aug 2026 15:09:24 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E4F756008F;
+	Wed, 19 Aug 2026 15:44:27 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de,
 	hdthky0@gmail.com
-Subject: [PATCH nf] netfilter: nf_tables: skip double clone set expressions on element insert
-Date: Wed, 19 Aug 2026 15:09:21 +0200
-Message-ID: <20260819130921.1487083-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: nf_tables: skip double clone set expressions on element insert
+Date: Wed, 19 Aug 2026 15:44:25 +0200
+Message-ID: <20260819134425.1491745-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -62,8 +62,7 @@ Fixes: fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set d
 Reported-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v1: Supersedes [nf] netfilter: nft_dynset: missing .clone_destroy call when honoring set expression
-    follow a different approach to tackle this issue.
+v2: set on override_exprs flag ealier to fix a leak in error path.
 
  include/net/netfilter/nf_tables.h |  2 --
  net/netfilter/nf_tables_api.c     | 56 ++++++++++---------------------
@@ -84,7 +83,7 @@ index 238f6ecb90e9..9d597482363d 100644
  			       struct nft_set_elem_expr *elem_expr);
  void nft_set_elem_destroy(const struct nft_set *set,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 71f4227d7ac7..34fcc7602e24 100644
+index 71f4227d7ac7..20c562174b27 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -6921,39 +6921,11 @@ static void nft_trans_elems_destroy(const struct nft_ctx *ctx,
@@ -157,19 +156,24 @@ index 71f4227d7ac7..34fcc7602e24 100644
  	struct nft_userdata *udata;
  	struct nft_data_desc desc;
  	enum nft_registers dreg;
-@@ -7390,6 +7366,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			err = -EOPNOTSUPP;
- 			goto err_set_elem_expr;
- 		}
+@@ -7385,6 +7361,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 		expr_array[0] = expr;
+ 		num_exprs = 1;
 +		override_exprs = true;
- 	} else if (nla[NFTA_SET_ELEM_EXPRESSIONS]) {
- 		struct nft_expr *expr;
- 		struct nlattr *tmp;
-@@ -7424,11 +7401,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 		if (set->num_exprs && set->exprs[0]->ops != expr->ops) {
  			err = -EOPNOTSUPP;
- 			goto err_set_elem_expr;
+@@ -7413,6 +7390,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			}
+ 			expr_array[i] = expr;
+ 			num_exprs++;
++			override_exprs = true;
+ 
+ 			if (set->num_exprs && expr->ops != set->exprs[i]->ops) {
+ 				err = -EOPNOTSUPP;
+@@ -7426,9 +7404,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
  		}
-+		override_exprs = true;
  	} else if (set->num_exprs > 0 &&
  		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
 -		err = nft_set_elem_expr_clone(ctx, set, expr_array);
@@ -206,7 +210,7 @@ index 71f4227d7ac7..34fcc7602e24 100644
  }
  
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ee9d3e7b1ecf..4c9ac19c3788 100644
+index ee9d3e7b1ecf..729c26e3274a 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
 @@ -19,7 +19,8 @@ struct nft_dynset {
@@ -219,14 +223,14 @@ index ee9d3e7b1ecf..4c9ac19c3788 100644
  	u8				num_exprs;
  	u64				timeout;
  	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
-@@ -264,6 +265,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			err = -EOPNOTSUPP;
- 			goto err_expr_free;
- 		}
+@@ -257,6 +258,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 
+ 		priv->num_exprs++;
+ 		priv->expr_array[0] = dynset_expr;
 +		priv->override_exprs = true;
- 	} else if (tb[NFTA_DYNSET_EXPRESSIONS]) {
- 		struct nft_expr *dynset_expr;
- 		struct nlattr *tmp;
+ 
+ 		if (set->num_exprs > 1 ||
+ 		    (set->num_exprs == 1 &&
 @@ -306,10 +308,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
  			err = -EOPNOTSUPP;
  			goto err_expr_free;
