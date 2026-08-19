@@ -1,40 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7FB84766A0
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 13:44:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAAB27E1DC
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 13:46:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787147074; cv=none; b=u9t4xWM7XRbA4FWROQ1G97Absm92PRJ4DhbHKqkg4/Opl9U7SdvPh0b4140Wsmq6GWCZ03N0mpFYK6ixR4+a/Pu6mwEoRAM9GsSN7vdG7BnRqhBWqj/UW5+/Y/qxT1cjUR3KR/lzJF1zoSEPe1xFIlU5wmL7d2GxUtPtXcWmnXI=
+	t=1787147195; cv=none; b=D8SZdp3txL7NmEqnFNR2X/lNgYG2Ybc82ApBJBFk17JqBD8+eAzZrN38VzsItA15eFNxQr/VnYnV4bCbrQkWL01UD0mk5KQOtKzE9/G9itKbeTxQFcHuIRP2Ee400+p9TBVzdwx6Jpeptt5iX8C5OiEXgtQQyL1G80oqItMHfgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787147074; c=relaxed/simple;
-	bh=WBsVK+gzgxbYEAyLv+kVnBLcMwXDIjQbCSTciCk8qto=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=phE0pFLPBn+o4kqIPvjMGlxRPXONkdoUD2vaL2p5yl+roCM2L4qBG0glHZOEWWD56Qkzn5WqWcFSmovW0AeyHQjA4iZIxsAbVlz56Ju20O2633oJHx8uwzNtvwyUw8geLxJFL1YuLakpNWtz9FT2Zy98RepuHZL7tpUUwIt0dVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YYCVeZZv; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787147195; c=relaxed/simple;
+	bh=lapnEzJsA2GSlRYwkgtI9KCuH/nqC0+s8fymoZaLcag=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PEe4iCrdKbTtzLu8MAi2mhPx323e4YXT6l/ojQrCOW2P+mOLaHZN9EeF8mdaXzsieeyr6alFWKvcZ4DSB8fbV66UgfdwXatDOizw0VDPHeZQ30TgAEJPOLdbtpaPKCCft4NAOfWzBpHawKHJ4D10w4taepzCdMsEr1fk6KdwEPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SBKlsfLM; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YYCVeZZv"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SBKlsfLM"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787147068;
-	bh=fA0LWoyNWTfZ22sw69p/ILWAh6dj4lEJreQYRuaqWVQ=;
+	s=2025; t=1787147191;
+	bh=ffwWv48kmCTdFbByjyenNxvknfXguQvCaYIdEZFVkIg=;
 	h=From:To:Cc:Subject:Date:From;
-	b=YYCVeZZv4ZMQbbPQKqmKTuD0GBSMga3gaUwr/DxmHjwTqG6v9bGfpm0gruQx2selQ
-	 uQ0qYDYVGpFdTZSMc7tzkJX31h1bZ9DxrHfeIM2OkFhwIxa1wZtOluNQ5Rir4CA+c0
-	 Nog7YhaRoTYvqssza85K02kE7tZ2YksPkkn4a1bLnxBF+13Oqpd8Gq4WcAmrJdnpOO
-	 i2KKC6lc7004v+3rYgIkBN/Sr3lRBMq7s5I4fTo73Ryz0NUPyHj1tVIKBOu+s+oCZq
-	 ICSxh6jSi+RetsRHkEub1DLG46V4Al7ZPtvxlq2Yznu4HfnlQXUjh42R/Cx/2jgX3/
-	 uYzzm9yHPUz3w==
+	b=SBKlsfLMymGUj1P+6yY+wFk6+Iu3o/TWeUc2z0ry2rurnnJa4FH74FtttD/yUO+XO
+	 pIOUFfnPWtexaAC7xBU8ustyhXW+qR3IHkno06z/JD2FYPpVuGVu9ggDp6QzyMGhA/
+	 05uwCjpGqHQ58cvQp1nJUriSw79KMn4tcrG83AiUZ8QUy4YuJHLStw+hAFRj42Q0GX
+	 Ws8+xqAm/eHIYTHjnlFYlAHE4ruibsbpUyhihPKZ1tMZZEPby4g15myrV9HYsfKXu2
+	 +lBArzF5Vo+PM8dUkbsOkE+JXsjbY8lya094iMsV7PN4pM+Nej0qKoE5xMY2RJPm+p
+	 j9Fr0LRcftRcg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E4F756008F;
-	Wed, 19 Aug 2026 15:44:27 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5D2B16009D;
+	Wed, 19 Aug 2026 15:46:31 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de,
 	hdthky0@gmail.com
-Subject: [PATCH nf,v2] netfilter: nf_tables: skip double clone set expressions on element insert
-Date: Wed, 19 Aug 2026 15:44:25 +0200
-Message-ID: <20260819134425.1491745-1-pablo@netfilter.org>
+Subject: [PATCH nf,v3] netfilter: nf_tables: skip double clone set expressions on element insert
+Date: Wed, 19 Aug 2026 15:46:28 +0200
+Message-ID: <20260819134628.1494340-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -62,7 +62,7 @@ Fixes: fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set d
 Reported-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: set on override_exprs flag ealier to fix a leak in error path.
+v3: update missing spot in nft_dynset to address leak in error path.
 
  include/net/netfilter/nf_tables.h |  2 --
  net/netfilter/nf_tables_api.c     | 56 ++++++++++---------------------
@@ -210,7 +210,7 @@ index 71f4227d7ac7..20c562174b27 100644
  }
  
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ee9d3e7b1ecf..729c26e3274a 100644
+index ee9d3e7b1ecf..83e56b1aa858 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
 @@ -19,7 +19,8 @@ struct nft_dynset {
@@ -231,11 +231,17 @@ index ee9d3e7b1ecf..729c26e3274a 100644
  
  		if (set->num_exprs > 1 ||
  		    (set->num_exprs == 1 &&
-@@ -306,10 +308,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			err = -EOPNOTSUPP;
+@@ -289,6 +291,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 			}
+ 			priv->expr_array[i] = dynset_expr;
+ 			priv->num_exprs++;
++			priv->override_exprs = true;
+ 
+ 			if (set->num_exprs) {
+ 				if (i >= set->num_exprs) {
+@@ -307,9 +310,8 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
  			goto err_expr_free;
  		}
-+		priv->override_exprs = true;
  	} else if (set->num_exprs > 0) {
 -		err = nft_set_elem_expr_clone(ctx, set, priv->expr_array);
 -		if (err < 0)
