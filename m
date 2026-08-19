@@ -1,44 +1,43 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB2433A4F4B;
-	Wed, 19 Aug 2026 21:50:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83027440631
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2026 22:18:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787176251; cv=none; b=MufRSUoPCvyizRodx3JHQJ3AdC6HLVH6CqP/awOPXEAR2CDVqNjA96SbJhsaN/tb0/njBc7klz+Fgt2Seqp6UFXCM8g+cB6+/aRuaTNymwZ0YMLGqZoeej8Oe4MERXbwmKGuj7j9xnAGAlFN2+K1AD6Lq9GoNvQXZUkd/Hlef3E=
+	t=1787177898; cv=none; b=ADQHbmPdYEcps3Irp/FV69eC+g4XOu0zTRPfPo4w/4qN2Mje3UI8FDwdpet2xPsWjzMkGAbSct4pqq1SW8+ByiI5YbhMY+DKvjILTGeEncHnLk5iXAgJo0f1Yq0LWYWp1cIlFgftoysoGL4zUfMu94G9Iblad1fyzH1IfSf7nsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787176251; c=relaxed/simple;
-	bh=Y2NIjvsedjRYR1SCxwQ51gGchsCYoLkJc9jlPfATTJc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=U0FOrDlMxvPs3E3wEFa8INcsyn59WZ2c5ILKmDiKQCTAjRyi+LscBIa0dw3d6sK6Z5TZujWJ+Giq5AfoSjfwie4eVqBZt8d1v2S/DJFjeKmw52H/3zhwIXTqX07AVCuCMeZ0GcbyAq9Y7AYacOtdbXyjIRNMgTE3YEyeT9p5udo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Uex7j1Kh; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787177898; c=relaxed/simple;
+	bh=qvlG1tIUD6WzdxpLcCj1qrrjSmBNQhBFzJi7UNJ2DRs=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=doDymd+XCkuQPcWUz72Fd9bRdU2k/85MhDd1aqrRtYpV8qK+dWH6sMtjPaohnpOKR5g6xjDEc+sYGsaAXz3i52BZFU/CPciBpsG0yVfjIorRCjyWaFllZe7O7wYK06VFK5CnDohCHNUqRN/7qPwxApi1PJ50ziwYli8Sw9Q5Ixc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bWRW61CL; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Uex7j1Kh"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bWRW61CL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787176246;
-	bh=4gpYNfPeuAMpVu8sW4sj7NReGmBq9Aoc1L9135qgF7Q=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Uex7j1Kh5fHjeAH8mTOs7EXSiQHNs12wgrDosOOGIRQaNxFTs+Oneh5hGVjA8zQai
-	 0d5hHBzjNtSC9xe1rmBr0k/bE9WORLLqKdyAYtnPK1bYsvoIQxVo5liUizIImAmoqs
-	 fq0h78KOV9izYlw6Ganz+QAcDP9/KkId6ziSY072fgzu4763TpSASlUacOX+IgouwS
-	 bVMubFnej60PtUIr8wT35JU1SfxWsLaUmklhdZDacPu8CRL8nt989FO9GmXLBHh1c6
-	 3HkpEzWR6g/lobSoYIamWmr+Rl6TvlRl6iNLh0H+VG5VElImrqC2NP4t2+GMoKBBp7
-	 AAYCKZsHsLRUw==
+	s=2025; t=1787177894;
+	bh=fzWQRfidhJkzCAmSNsfD5V/lDjYj+Z4KTHNO3mPfZEg=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=bWRW61CL/evDaKf0/LhGvto/fWZmWPMiIkKLbgNY/mP8BQTJEni/iQEqPjhVXtixU
+	 A7mq2CKW5+1c6V5/AtvjaEqawtM8sDTAsCuetHq/DRrarz2Ld/3a7uivOxjNcR3mAA
+	 G+1gdv7s7x37vj78XNZ+ZJ5MGXGdlTa3qkYUwM+pV1ERSxcJZjcufti5vDcb/m+orp
+	 +o45MtzU3PQ3I5RNoulAvrfF8xw/cDVUq8Ps8+dGxiz9Q/XTD3hO2llinacgbG8sX3
+	 dzauqyRgjT6pXua7uBos1uEwnbGbRBBig5ExmMG5zL2fq6sj1wlCZDQSncQazakRKN
+	 f4vapbBMv4BAQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 050BF6008A;
-	Wed, 19 Aug 2026 23:50:45 +0200 (CEST)
-Date: Wed, 19 Aug 2026 23:50:43 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 22CC36005F;
+	Thu, 20 Aug 2026 00:18:14 +0200 (CEST)
+Date: Thu, 20 Aug 2026 00:18:11 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-	pabeni@redhat.com, edumazet@google.com, horms@kernel.org, ja@ssi.bg
-Subject: Re: [PATCH net-next 0/8] Netfilter/IPVS fixes for net-next
-Message-ID: <aoYlM3J0SP51Kpoh@chamomile>
-References: <20260817232957.1281637-1-pablo@netfilter.org>
- <aoTzAYyHk7E-HTE_@strlen.de>
+To: Phil Sutter <phil@nwl.cc>,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH nft v3] src: add connlimit stateful object support
+Message-ID: <aoYroy95PDpVGwWH@chamomile>
+References: <20251124173557.4345-1-fmancera@suse.de>
+ <aScsaQxELgnDDzHp@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,73 +46,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aoTzAYyHk7E-HTE_@strlen.de>
+In-Reply-To: <aScsaQxELgnDDzHp@orbyte.nwl.cc>
 
-TLDR; I can post new v2 for this PR if needed, the left-over of
-LIST_HEAD(set_update_list) in patch #6 is a bit embarrasing from
-cosmetic standpoint because I will need a oneliner patch to remove it.
-And I can re-target to net.git as Paolo already mentioned.
-
-Anything else can be addressed by follow ups.
-
-See below my comments (extending Florian's) for more details.
-
-On Wed, Aug 19, 2026 at 02:04:17AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > 1) Validate layer 4 header mangling done via nfnetlink_queue and
-> >    nft_payload, this is a follow up to recent similar validation
-> >    at layer 3. From Zhiling Zou.
+On Wed, Nov 26, 2025 at 05:35:53PM +0100, Phil Sutter wrote:
+> On Mon, Nov 24, 2025 at 06:35:57PM +0100, Fernando Fernandez Mancera wrote:
+> > Add support for "ct count" stateful object. E.g
+> > 
+> > table ip mytable {
+> > 	ct count ssh-connlimit { until 4 }
+> > 	ct count http-connlimit { over 1000 }
+> >         chain mychain {
+> >                 type filter hook input priority filter; policy accept;
+> >                 ct count name tcp dport map { 22 : "ssh-connlimit", 80 : "http-connlimit" } meta mark set 0x1
+> >         }
+> > }
+> > 
+> > The kernel code has been there for a long time but never used.
+> > 
+> > Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 > 
-> This needs a followup patch to add validation of the checksum field.
-> 
-> > 2) Do not allocate memory on delete operations in ipset hash:net
-> >    type, delete operation must always succeed. From Florian Westphal.
-> 
-> The AI feedback should be ignored for this one.
-> The missing check for the error is valid, it is added in the pending
-> rhashtable patchset.
+> Reviewed-by: Phil Sutter <phil@nwl.cc>
 
-3) Deliver nft_obj overquota packet path notification directly via
-   nfnetlink, do not use the control plane batch logic.
-   From Fourie Zhang.
+I have applied this patch that has been around for a while.
 
-AI feedback is not an issue. The overquita events is triggered from
-packet path, reordering wrt. to transaction handling is not an issue.
-
-5) Do not expose expectation dead flag to userspace via ctnetlink.
-
-This isn't a bug introduced by this patch but...
-ctnetlink_exp_ct_dump_table(), reached via IPCTNL_MSG_EXP_GET with
-NLM_F_DUMP plus CTA_EXPECT_MASTER, has no such filter..."
-
-Yes, nf_ct_exp_is_expired() can be added to that path too.
-
-"This is a pre-existing issue ... should the read of exp->flags in
-ctnetlink_exp_dump_expect() be READ_ONCE()?"
-
-Yes, there are a few spots in the tree missing READ_ONCE(exp->flags),
-including this one in this patch.
-
-6) Make commit set_update_list per-netns to prepare to publish
-   set clone earlier.
-
-Yes, there is a left-over LIST_HEAD(set_update_list) that needs to be
-removed in nf_tables_commit() path.
-
-7) Publish the set clone earlier from commit path to address set
-   lookup failures during table re-creation, this is targetting
-   the rbtree and pipapo set backends.
-
-Yes, set->dead flag is not set on now and an issue that was fixed
-recently can pop up again.
-
-"Does this open a window where the old ruleset is evaluated against
-next-generation set contents?"
-
-Yes, this is know and this patch is a step forward improving the
-situation in this regard.
-
-Regarding the check in nft_set_do_lookup(), it is only useful at this
-stage to set backends with no .commit interface.
-
-Let me know, thanks.
+JFR: I had to make a minor rebase on top of main.
