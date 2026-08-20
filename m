@@ -1,46 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC86A2DEA86;
-	Thu, 20 Aug 2026 10:34:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A46411670
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2026 11:16:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787222101; cv=none; b=PY7p7ZSW+ySQXl3BkYd0qfgLJ7GR+lwm28KsnvGbibP+z/t71rmVbg/ZduJZ6iIlZwceZllJ5Y4lLTmctT6BLvBDUCrFqN/GbVM722e9ojqyzXo0PPzuuY/F8pnXfLYXYiZKqQ5/0xwV07XZMS1hFbbMJiORt2xBUlk0IU9sj1s=
+	t=1787224563; cv=none; b=MGToHFaAF4LbqBbexcalXHLpci2mCSBKRuy/c00vLjXRjl+odZj/daxlYmrt8LEV9MPmcdFdpERtXzD0EPTam99ImX3hOTzM6fhjUikmrurEW8NYi9Wk0vtzBf9Cj9M1aJ0tsEbJ9X7UtVyNwC2DZ+0PmMR/HO0NEMggz6+cfnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787222101; c=relaxed/simple;
-	bh=c9u5pCCvXEdH2a5xC1x/9p0o3i3IsCHIIjPkBq7BcLg=;
+	s=arc-20240116; t=1787224563; c=relaxed/simple;
+	bh=jkmmn3OBy8jTozWh0CCHPDaE1SSNzvV0r7Dq7rewSAw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t9OCqJy1QKDEX8HJRyw9/akg0rnR0Fn7mFNIW6MF934L0jMqOIKZSX/Qjr5v6s7LVHlPrSjnsW1egI/bLrcfjKDmnwmKgx6AMir4utFEFi8ChW4cS6+aBsuWmlaf9mh/n8zlHOICGqDL7ItujT/iU8Usg5vkoP/5i1nowV/KO+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jac4XQkV; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=Xf7TP5vcir2wZFgUXf3UqbeAi46+vTEEd95HXcHdfteDX2npfODjxLxR+p02sLV7mOAJTCl4RTOBIlK6qDKD2D+Y5ryDSaH4u8oMp3ITiT99ooz6wi2uhfa1H2YsjeC1/s+Gi/CblvVdK2X3vE4YRNr/iFV8XxlrazBgJAChsfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IgtGO1b3; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jac4XQkV"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IgtGO1b3"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787222095;
-	bh=rfFZbGyyye/E+XYJFY7hEc1bdglhDJEhf7sRgwDKayQ=;
+	s=2025; t=1787224559;
+	bh=2nq3qA9YxSsSdwuGqhob9nIbnhrF3NPCp4r5DKUMhH0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jac4XQkVRx2gFP6ejYyQ4GaJywHmvm3Cux5vc+XTGufJ8z4fqgU9RJKR6kosDBkUk
-	 T0eY5MSZV8SEnNFKyoRBzpEb9ZMRB7/EiGIIuRbAzLvSlVzSvQ7nWcyueVnyEq6WFS
-	 P15MMcYo3MklDGz88nakcF18WibeXo7RpgtVWez/iGMv4Hu77PVCs+725dY7oP0Wtq
-	 370HhiQrAiX8ST52dkY9/ZOaOFij2+EgdT3Fhagqs+NOx9qaPMMwLXDkhV1rJuw5UB
-	 lWbE6v+z7mu+a9R4B/KU5rCawv1zAaPn/0wxP9n0dxPYPRX93T7sP6M7QyrH31QVJ1
-	 6yWC3SRLAKk8g==
+	b=IgtGO1b3TD2la8Fy2UH3SIMuBTUc5aVceDl9u8H1bZR8IHJGSsxB92hkEsajaAhII
+	 WHHMA2kTYYDo5L1/T4qyu7Yev5JhTFNLAylCTjUOI6KUdvzYoHKBSmVXzEbqlZxeeY
+	 UjcdtMzgDJitw4/ZcZ/KT/Cz3dZnnJBD29+Vt3AOOsc2wEppmg3EHrukGxZ2XhDsdt
+	 LBDk8IGcQFYSzeke2bP5w5tE07AP2oL3Bxwc8cVCaaMQt5VvodZb6yJr9AN5U+iZds
+	 lsjghmVycHw1x75BfeW2i8Xmsly3U+SIn6BAz2Qb1GuSmfORuuS4C4xmHHWLvkLaoW
+	 pkQFQrEkEZSlQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 19D8A6008C;
-	Thu, 20 Aug 2026 12:34:55 +0200 (CEST)
-Date: Thu, 20 Aug 2026 12:34:52 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6DE536008E;
+	Thu, 20 Aug 2026 13:15:59 +0200 (CEST)
+Date: Thu, 20 Aug 2026 13:15:57 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-	edumazet@google.com, horms@kernel.org, ja@ssi.bg
-Subject: Re: [PATCH net-next 0/8] Netfilter/IPVS fixes for net-next
-Message-ID: <aobYTLPoIDiwLEhh@chamomile>
-References: <20260817232957.1281637-1-pablo@netfilter.org>
- <aoTzAYyHk7E-HTE_@strlen.de>
- <aoYlM3J0SP51Kpoh@chamomile>
- <eeb04db2-3c08-4b4d-97a0-02e418ed2537@redhat.com>
+To: Adrian Moisey <adrian@changeover.za.net>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] netlink_linearize: size nat register allocation by
+ address expression
+Message-ID: <aobh7eQw-eqF1iQI@chamomile>
+References: <20260806185020.95154-1-adrian@changeover.za.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,21 +45,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <eeb04db2-3c08-4b4d-97a0-02e418ed2537@redhat.com>
+In-Reply-To: <20260806185020.95154-1-adrian@changeover.za.net>
 
-On Thu, Aug 20, 2026 at 12:26:33PM +0200, Paolo Abeni wrote:
-> On 8/19/26 11:50 PM, Pablo Neira Ayuso wrote:
-> > TLDR; I can post new v2 for this PR if needed, the left-over of
-> > LIST_HEAD(set_update_list) in patch #6 is a bit embarrasing from
-> > cosmetic standpoint because I will need a oneliner patch to remove it.
-> > And I can re-target to net.git as Paolo already mentioned.
-> > 
-> > Anything else can be addressed by follow ups.
->
-> Note that we are waiting for Linus to pull the net-next PR, so we have
-> to wait a little more to process this one.
+On Thu, Aug 06, 2026 at 08:50:20PM +0200, Adrian Moisey wrote:
+> nat statements with a literal concatenation of address and port, e.g.
 > 
-> WRT report, I think follow-ups are preferable where possible and really
-> reduce pressure on the ML, but if _you prefer_ a v2 please go ahead.
+>   dnat ip6 addr . port to fd00:10:244::4 . 6443
+> 
+> allocated a fixed 128-bit register block for the address, but the ip6
+> address . port concatenation is 144 bits (5 registers), so
+> netlink_gen_concat overran into unallocated registers and hit the
+> assertion 'dreg < ctx->reg_low' in netlink_gen_expr. IPv4 escaped by
+> luck since its 48-bit concatenation fits into the padded block.
+> 
+> Allocate the register based on the address expression instead, which
+> sizes by expr->len for concatenations, and add the matching
+> release_register() call. Extend the nat_addr_port test with literal
+> concatenation rules for ip and ip6.
 
-Let's just follow up then.
+Applied, thanks
