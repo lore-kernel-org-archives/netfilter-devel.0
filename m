@@ -1,119 +1,96 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41A83793CE
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2026 16:54:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7C53B6BEE;
+	Thu, 20 Aug 2026 19:21:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787244849; cv=none; b=iolZ79fb+99swHFHyCaABnxvhssC5rQMI7S5nZPoG8ueDj1mck8UP97KExA+boVvl7IsjLLT7shxBTReQdBCAJzTo2Ab/1TJroGvvGFN3xLzPiOZFH3FXD2rdLwDTiDjgzTj2S4pyCNUM5tRGNqb8w1tbahnOcpdgjWlSl8oMLo=
+	t=1787253699; cv=none; b=O3bspt+/TEQuwwKFp3Fzvqb3asBVXNRRwoqRfg3AS6WOKD0skKxFmMaF9wjtnQyJqLTxoAbQeplvEqmN+trwzhsh3RFit5SKvoa3uE7ZUnK4JK1SJ2t3O11pk0124md35CUBTsIBT8eNQ0YiX65vRRiUU1far839RrANAgGBnK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787244849; c=relaxed/simple;
-	bh=qI0pBVxW/E0c+P8237p6YjvLvf0YAi43SCrxWVIlWo8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RxQfYv49jVk7HNoJyhF7lOj3wafBm/hsyr/R6Rh8r6ndRjdrn1pBPNvvEhOFRE+g6bq72uX/qYUxu1pw9BuroxbO/ExIyCGIaRsCTzTjyzuv5u5oe4pB27hEzNrexuE2nORDt11YnM2RTdIHHOc9W46jVh0tBTRC7ldqyq6r9mE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 45FD060424; Thu, 20 Aug 2026 18:54:04 +0200 (CEST)
-Date: Thu, 20 Aug 2026 18:53:58 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Vimal Agrawal <avimalin@gmail.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, coreteam@netfilter.org,
-	Vimal Agrawal <vimal.agrawal@sophos.com>
-Subject: Re: netfilter: nf_nat: race in nf_nat_setup_info() corrupts
- nat_bysource list (GPF / soft lockup)
-Message-ID: <aocxJneF3V2jbwyg@strlen.de>
-References: <CALkUMdRXAB1nGsBhg77zg2VGZyh-D+rL8kxqDDiEs6qmcXev=g@mail.gmail.com>
- <aoHISuGf2vzWk2s0@strlen.de>
- <CALkUMdRqwCXbA+9tSFgxxA=pBCAPymRbLBa-UXUi6PE1qytvAA@mail.gmail.com>
- <aoMlCi9pduIyddFU@strlen.de>
- <CALkUMdRTdv9rHqgNO29mWNk6VDbMM8X0kJ8DP5pdWM+nJOpH1w@mail.gmail.com>
+	s=arc-20240116; t=1787253699; c=relaxed/simple;
+	bh=+8XCHqy6XMni+PV2WSHAaBn5kyKP+Y8HnO+WTHAUFT8=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=msGarS88YwLtKNWzR6sVzClJVauuW5dKHE/GCc3iiPHPFcRwWR4WHgxw1S+w0eK51NGafeExxbOEbM/rzwQLAhpXCb2761oNM1DBwZHyr2IooZ1zJCIzPtXgVAuPAONNtoB8TNfHkmjYsw+l5mV/B16uDTw+SMf2hrRfBL3dru0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hUlp9P4e; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hUlp9P4e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 608F91F00A3A;
+	Thu, 20 Aug 2026 19:21:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787253698;
+	bh=3ke803YbDGtkVRlrM1yri7IGu32Rw8qV/NlZLgWKrAc=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=hUlp9P4e1blvMBkvZLmPS+NLpVwqcw1IMJSiTbIxQfgCwLzoOBv/OA/KkpLl4zP1V
+	 hlEOcWSpR+q8nWNi0BU53fOkl954F7wcCwINAGDvReM49o7fsxFMDBIO2dKIny1zda
+	 8Qe+FQdBEvF+MIM1OWNzgDq3jwGpWvSGz4dgIXKiMJBkgzK6EGr/tXBTtbPV3MDiUg
+	 ujIHL68KCKr0buiEBmqkk5zuIJSgQry8anEKZs0oxXyIA14ng9jmoFdk0hFfmObd61
+	 nf+DnTRg578St1Me/rroUHiVGKWFaHXroTTMd5I4gOwURqx43WJMXhQ/nJJur/Gh1u
+	 rX88tIk3fmVGA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D097F392444E;
+	Thu, 20 Aug 2026 19:20:49 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALkUMdRTdv9rHqgNO29mWNk6VDbMM8X0kJ8DP5pdWM+nJOpH1w@mail.gmail.com>
+Subject: Re: [PATCH net-next 1/8] netfilter: validate L4 headers after
+ userspace
+ packet writes
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178725364838.443080.6278729391435867373.git-patchwork-notify@kernel.org>
+Date: Thu, 20 Aug 2026 19:20:48 +0000
+References: <20260817232957.1281637-2-pablo@netfilter.org>
+In-Reply-To: <20260817232957.1281637-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 
-Vimal Agrawal <avimalin@gmail.com> wrote:
-> The specific precondition — br_flood() cloning skbs that share one
-> unconfirmed ct — is stock br_netfilter behavior, not anything in our
-> custom module; nf_ct_drop_unconfirmed()'s own comment already names
-> this exact case (br_netfilter/multicast routing). The only thing our
-> module does is decide, per-packet, whether to route a given skb
-> through NFQUEUE — which is exactly what the NFQUEUE API is for, not an
-> unusual or abusive use of it. What's missing isn't anything in our
-> module; it's that nf_ct_drop_unconfirmed()'s "am I the exclusive owner
-> of this unconfirmed ct" check only runs at NFQUEUE-enqueue time.
+Hello:
 
-Yes, but why is that not enough?
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-> sibling clone that never goes through NFQUEUE — e.g. one that takes
-> the plain synchronous forward path while another clone of the same ct
-> is off in NFQUEUE + reinject — never hits that check at all, and stock
-> kernel code doesn't check it anywhere else on that path either.
-
-Yes, but that is serialized, no?
-
-If checks in nfnetlink_queue are supposed to make sure that we can't
-have concurrent execution for unconfirmed conntracks, something that
-plain bridge isn't supposed to cause (its a for-each loop, so first
-skb->nfct gets confirmed, and rest is safe).
-
-If even one skb gets processed by nfqueue, then the existing checks
-are supposed to drop the packet on either queue or reinject.
-
-See nf_ct_drop_unconfirmed() and entry->nf_ct_is_unconfirmed check
-in nfqnl_reinject().
-
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -839,17 +839,25 @@ nf_nat_setup_info(struct nf_conn *ct,
->                                       &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
->                 lock = &nf_nat_locks[srchash % CONNTRACK_LOCKS];
->                 spin_lock_bh(lock);
-> +               /* Concurrent callers can reach here for the same,
-> +                * still-unconfirmed ct (skb_clone()/GSO segmentation/
-> +                * nf_ct_attach() can share one ct across skbs processed on
-> +                * different CPUs before it is confirmed). test_and_set_bit()
-> +                * makes the check-and-mark atomic under this same lock, so
-> +                * only the first caller links the node; a losing caller
-> +                * drops instead of double-linking and corrupting the list.
-> +                */
-> +               if (test_and_set_bit(IPS_SRC_NAT_DONE_BIT, &ct->status)) {
-> +                       spin_unlock_bh(lock);
-> +                       return NF_DROP;
-> +               }
->                 hlist_add_head_rcu(&ct->nat_bysource,
->                                    &nf_nat_bysource[srchash]);
->                 spin_unlock_bh(lock);
-> +       } else {
-> +               set_bit(IPS_DST_NAT_DONE_BIT, &ct->status);
->         }
+On Tue, 18 Aug 2026 01:29:50 +0200 you wrote:
+> From: Zhiling Zou <zhilinz@nebusec.ai>
 > 
-> -       /* It's done. */
-> -       if (maniptype == NF_NAT_MANIP_DST)
-> -               ct->status |= IPS_DST_NAT_DONE;
-> -       else
-> -               ct->status |= IPS_SRC_NAT_DONE;
-> -
->         return NF_ACCEPT;
->  }
->  EXPORT_SYMBOL(nf_nat_setup_info);
+> NFQUEUE and nft_payload can hand packet data modified by userspace back
+> to the stack. Recent restrictions keep link and network headers stable,
+> but transport header fields can still be changed.
+> 
+> A packet can therefore keep the same network header and conntrack entry
+> while changing the transport header layout. For TCP, increasing doff can
+> make later helper or NAT code use a different transport-header base than
+> the parser used, and can make offsets point past skb->tail.
+> 
+> [...]
 
-Looks fine.  But I'd like to understand why its necessary resp.
-what path is triggering the cloned-and-parallel case in the first place.
+Here is the summary with links:
+  - [net-next,1/8] netfilter: validate L4 headers after userspace packet writes
+    https://git.kernel.org/netdev/net/c/112e447d17f7
+  - [net-next,2/8] netfilter: ipset: remove need to allocate memory on delete operations
+    https://git.kernel.org/netdev/net/c/e80456d79ec8
+  - [net-next,3/8] netfilter: nf_tables: don't queue packet path object notifications
+    https://git.kernel.org/netdev/net/c/7904b94768e9
+  - [net-next,4/8] netfilter: nf_conntrack_expect: consolidate check for insertion of dead expectation
+    https://git.kernel.org/netdev/net/c/5fc04d4648f4
+  - [net-next,5/8] netfilter: ctnetlink: do not expose expectation DEAD flag
+    https://git.kernel.org/netdev/net/c/322371b09058
+  - [net-next,6/8] netfilter: nf_tables: move set_update_list to nftables per-netns
+    https://git.kernel.org/netdev/net/c/b343ededb3f9
+  - [net-next,7/8] netfilter: nf_tables: call set ops .commit when building new ruleset blob
+    https://git.kernel.org/netdev/net/c/1e3b9e1c77fe
+  - [net-next,8/8] ipvs: fix integer overflow in ftp helper port/address parsing
+    https://git.kernel.org/netdev/net/c/e625a9477d12
 
-> Does keeping this fix scoped to
-> nf_nat_setup_info() seem reasonable to you, with the broader
-> extension/status-write question left open for separate discussion?
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Yes, its fine, but I'd like to understand WHY this is happening first.
-If we really have legitimate parallel cases that we can't handle, we
-will eventually need a major redesign of conntrack engine.
+
