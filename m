@@ -1,103 +1,85 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B8130568F;
-	Fri, 21 Aug 2026 06:53:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFDD745DF63;
+	Fri, 21 Aug 2026 09:39:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787295230; cv=none; b=eLxWDrGTEJBp6JnJCFJoh8lpEfJPAPsa0kyVn7WE1KoBfY8Ow88cm7+AT5y+Uzsowjim/JTnIixqDwGV15v5qr+OuIXGTnCVZhhob0as5zwNw5A5QonwoCENsDGHNKKMv+CyAMvW4wJx2JaHqmte+X+wdhwWj8mmlZcot3m3aVg=
+	t=1787305170; cv=none; b=JXQwkTtyJf4T3598lKEI9I9zGYMjJ+MppZMHy//aqIlrsNhPGoFzxRKrPWTRpU8ByCLeC85FDcI7X3vMFbMDaOTgDk9OqoPH74a/1hqujun4j72eiV6/NUct0JCyMORW+SooQfJfO31W56C16MKbypfwJYIV2hZ0T1zJE35Lzu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787295230; c=relaxed/simple;
-	bh=ldZNRvlu97rfpX+QNcQmwNXSPgx4MCegm+liDWtc89A=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cNThWgUTHGVSoFj2TmmvO6L6K2twWn4ZilO82HpirJCLvKbYOjZePitCu7BnCCy00D7G1TUsZS6/Ujuq3h/ex32YYkAVhk7kJSaP1J3PpqAW8bku8ajEVNrN5vEM/jlKN2mCCDDFuyw/nDOvVPYQBoasa3w1ARSgnWa6owHFxXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=YQceVb1H; arc=none smtp.client-ip=220.197.31.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1787305170; c=relaxed/simple;
+	bh=Fe3VXKtdaYDqWDY06EYgX2pTwJu1BP/kWGB0orWUPyM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Vkvoh5hRdzVmTvIz+GK7Qbjahc9+xOS3B5aVfZ+8wJosQcggACzeOAyigeqbSRNm3EEdPzxOs9mF4a1CBTPKaYnD+XT4Jv80O0xdkwU50MJMyPQ1H+udSgy+IvP891CABxLnYdVdBbQO37EL0aswT0p3IO1GAtbPOV7CjATKtSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bkVd/R1d; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="YQceVb1H"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=0j
-	FgTP983VS4DNdECUgkLZK3SDwibegoRo9L/KQvF/0=; b=YQceVb1HHN7eYt/xQc
-	9g971f+jWY9zR9tlOQowDIKEhvfR2Y+JFdTpGJq5/NdwtUaoHppeVO+bUe+FJi1r
-	qHR6cJyVyd1su1/CeebU9rSq8Ya9Kgbo0lsbKcxDhJMX6Y2PTYrmxNP+BPyQ/uYV
-	xRbGP1nY7np1QmbAQZ7nfdOsM=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-4 (Coremail) with SMTP id _____wA3pcqt9YdqIzfLRA--.20490S2;
-	Fri, 21 Aug 2026 14:52:31 +0800 (CST)
-From: luoqing <l1138897701@163.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>,
-	Jing Min Zhao <zhaojignmin@hotmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net] netfilter: nf_conntrack_h323: fix double cursor advance in decode_int()
-Date: Fri, 21 Aug 2026 14:52:29 +0800
-Message-Id: <20260821065229.121871-1-l1138897701@163.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bkVd/R1d"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1787304774;
+	bh=we9FCJiO9fcgT4U49pP6TIQkwzXYMuqpwtrgWTxq+KY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bkVd/R1dtDts3Fko8+Hya7manqWF8DjnbGd2yvVO7sAo5UNyXVzaZPpXv6P+Gqu46
+	 4qZPXxxq8+qlS1pBXg57REQmgUYFAu3xksHfjLFivxa+p2IL1HNA3RJ+QggGwGSQuF
+	 tXvsyXEDtK1DH58Tyy9+Y14LfYh6tPIfkOUmA+RcNI44psMTi9nSER24rIDp5O2ed/
+	 /iXw+Ocj6XXJSkgm+8ZFBIPhmpgAok90e+I7VOdiigVcmJqefC+rFnDsYJQZkPda6V
+	 VNhSeHmWXr1hmV8eK2m20NOjhKT+B7pEihCmAQObjq+9bA5ZQXPykUgLEH/kxP2C+c
+	 GYZjiYSFLlhuA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D21C16005B;
+	Fri, 21 Aug 2026 11:32:53 +0200 (CEST)
+Date: Fri, 21 Aug 2026 11:32:49 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Linkui Xiao <xiaolinkui@126.com>
+Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Linkui Xiao <xiaolinkui@kylinos.cn>
+Subject: Re: [PATCH] netfilter: osf: remove unreachable break in nf_osf_ttl()
+Message-ID: <aogbQZyLQonPE-GV@chamomile>
+References: <20260821022817.153861-1-xiaolinkui@126.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wA3pcqt9YdqIzfLRA--.20490S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Kry7Wr13KF1kuF1rZr1rXrb_yoW8Ww4Dpr
-	ZxK39rGr9xXF4Skw4jga97AFyxJ398Cr43WryrtayFk398JF4UWay5K34YgFy7Jr4kJFyU
-	AF1YvFZrAa1kXFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jjuWLUUUUU=
-X-CM-SenderInfo: jorrjmiyzxliqr6rljoofrz/xtbC3g8laWqH9a86nwAA3P
+In-Reply-To: <20260821022817.153861-1-xiaolinkui@126.com>
 
-From: Qing Luo <luoqing@kylinos.cn>
+On Fri, Aug 21, 2026 at 10:28:17AM +0800, Linkui Xiao wrote:
+> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+> 
+> In nf_osf_ttl(), the break statement after return in NF_OSF_TTL_TRUE
+> case is unreachable dead‑code. The return statement exits the function
+> immediately, so break will never execute.
+> 
+> Remove the useless break, no functional change.
 
-In the CONS case of decode_int(), when the field is actually decoded
-(base is not NULL and the field carries the DECODE attribute),
-get_uint() already advances the bitstream cursor by 'len' bytes.  The
-subsequent unconditional "bs->cur += len" then advances the cursor a
-second time over the same data, so the parser skips 'len' extra bytes.
+Please, use [PATCH nf-next] to specify this goes to the netfilter tree.
 
-All fields following such an integer are decoded from a wrong bit
-position.  This affects the timeToLive field in RAS
-RegistrationRequest/RegistrationConfirm messages: subsequent fields
-(e.g. transport addresses) end up being parsed from arbitrary offsets
-inside the message, so the helper may create expectations based on
-bogus addresses/ports.
+Thanks.
 
-Only advance the cursor manually when get_uint() was not called, so
-that the value bytes are consumed exactly once in either case.
-
-Fixes: 5e35941d9901 ("[NETFILTER]: Add H.323 conntrack/NAT helper")
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Qing Luo <luoqing@kylinos.cn>
----
- net/netfilter/nf_conntrack_h323_asn1.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index 6830c9da3507..a51275cc4d0f 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -336,8 +336,9 @@ static int decode_int(struct bitstr *bs, const struct field_t *f,
- 			unsigned int v = get_uint(bs, len) + f->lb;
- 			PRINT(" = %u", v);
- 			*((unsigned int *)(base + f->offset)) = v;
-+		} else {
-+			bs->cur += len;
- 		}
--		bs->cur += len;
- 		break;
- 	case UNCO:
- 		BYTE_ALIGN(bs);
--- 
-2.25.1
-
+> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+> ---
+>  net/netfilter/nfnetlink_osf.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+> index 92002079f8ea..a3f855905d52 100644
+> --- a/net/netfilter/nfnetlink_osf.c
+> +++ b/net/netfilter/nfnetlink_osf.c
+> @@ -36,7 +36,6 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
+>  	switch (ttl_check) {
+>  	case NF_OSF_TTL_TRUE:
+>  		return ip->ttl == f_ttl;
+> -		break;
+>  	case NF_OSF_TTL_NOCHECK:
+>  		return 1;
+>  	case NF_OSF_TTL_LESS:
+> -- 
+> 2.25.1
+> 
