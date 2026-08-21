@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C3573603DB;
-	Fri, 21 Aug 2026 15:39:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05B042B75A;
+	Fri, 21 Aug 2026 15:39:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787326754; cv=none; b=JCBCknm2mTlQuOYq9aUsBqcKufq3UDIBvRmWLJ8R1tpZW8EV3+Ue00xRaLfsnO7fIoqShWwYwfoq2o4i7kvA0TVetRJL7Zk/s60QjHqlrD19IhAxFCeemPccsjVgI6Pz+SP6sAIAw2Tb1IF5hB+tULD3SjFqjVQWhSTBp3sJbAs=
+	t=1787326756; cv=none; b=n2znJC9IT+w9FWiwRgROWm/KoVKo+g2Ru1JV9GOpX8t3crZkxVUql5Px+qRLjNHwimDiCFxur3P1HChZpib8WPitp89A+hwB6O84I5Ma8VtYQLQLXbrArDt2DHAWoIFWLWiV5TnWCYRdI51jFfeRcIfB/dzUd0bKA1Y485nf9I8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787326754; c=relaxed/simple;
-	bh=uyJMkI7NYyB8cZNlXlAbKOSV3GR4mj3ptJQ3pkoLwY8=;
+	s=arc-20240116; t=1787326756; c=relaxed/simple;
+	bh=D3kYz19dbJoHCMLTrlmJmUIRtdpCKnZ5WnOoTAS68qc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rSnN374zMxV4GALApOCHG7Pqg7X007slqb/aLEny+MW99lUP7lYMzRqcr0zlcsVzMtiktyAYHptqcJEqewRHPmivTLb9wiTJRqCdSzA9IZ5VRoyKiI8fRdFT6i+fw8RtRyHxJwEEJU4XoWsB1dNF2mxhoKRT7qYdpvJP7+vl87c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HL7ntqW/; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=BE/eHPyo8pA/ASowHvsm8oqkIRat1MOBWzgiBoeFjw4vHyz3x51f6cuYqDoB1HKm2VsXjinnDGXMdSKnTW2x8jXj5+IwsLHDwNSq+iDols/4LCVFPDg6/kUGoOc59ONd8viSjC81U1RXGnRdOu6Kaps8dzxwK2t8nl6suu4gYiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VTO7Rw3+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HL7ntqW/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VTO7Rw3+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787326747;
-	bh=t9cyzwjMC/MqRCXZJA3wYHlhY27Jb73vUEFZwgMvedA=;
+	s=2025; t=1787326749;
+	bh=NjoJ5AGJkle91/bS2voX13Lfg9On22etO4k9d0QaRkw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HL7ntqW/ntaMt04awQyn1+GjigM3A7a3qbBdx6SrQGMuF0HNRhTh+Bc3u9x87Tcnv
-	 urDA3IeUZSKbY/g75UHhL5kUEigWyQsnjRK32UT1Tkh0dtX7SHLn+78l+lK2cCdYHG
-	 aHx3iIKxNNIer8lkX/buXre3p/MVD3bU5uLOkB4EcqK7/czQlPGs8UfpmJo/0U6Fd6
-	 IMt6H4sJPwrCtSdLfMFyBeTPIO/kPow6Wh6Z8DgQgFzSx3UEDlwocjZdzNqGqDmz1e
-	 p6ByoZCkQWpIWjWDUs3SMxghoJAcfJOIKOwxQ+bdpNb7yeckWZpgUSTX8fd4dr53Tj
-	 rVo/N+gAPAjaQ==
+	b=VTO7Rw3+KDXOYsnWQG2c+SYR4W97/fNxDIfSMk/PO6Sn3833U+58ZDkd4coT0fHy1
+	 /LdJDIhnp5UJ1EU+3GVyQE8yl/rK+4oEU9a+vKYlt8KwDtNKmYunZtF4vTyKro4+Q0
+	 czoL08NxFm1Wrn501u+x2eHZEb3HWwwock3AI37Aiu7SUnbQYQ7SFoO/j/Encf4Mda
+	 /3mfRkQYJ17TkSSpxG1aHkU3gXhTBM8J57XgkUfH7AXNzTjZ6HXKlIcePCmxtZWKEg
+	 YCVTElOEDCj2wR6s3VWtPl/RziG55qzPfBY3jgn4tf1JffGBACd6Gn/8Iho1kbC3NS
+	 uvCoQesxd4KcQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CB8806008E;
-	Fri, 21 Aug 2026 17:39:06 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4417B60094;
+	Fri, 21 Aug 2026 17:39:09 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 07/10] netfilter: nf_tables: skip double clone set expressions on element insert
-Date: Fri, 21 Aug 2026 17:38:30 +0200
-Message-ID: <20260821153833.245589-8-pablo@netfilter.org>
+Subject: [PATCH net 08/10] netfilter: nf_tables: fix device name and prefix match in hook lookup
+Date: Fri, 21 Aug 2026 17:38:31 +0200
+Message-ID: <20260821153833.245589-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260821153833.245589-1-pablo@netfilter.org>
 References: <20260821153833.245589-1-pablo@netfilter.org>
@@ -53,248 +53,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Both the dynset and newsetelem path clone the existing set expressions
-when setting set element expressions if no override expressions are
-provided. This results in a double clone, once to clone the template set
-expressions then another clone on the new element. Add a flag to
-annotate if userspace provides a override expression (ie. expression of
-the same type of the set but different configuration), otherwise borrow
-the existing expression from the set. Add conditionals to release
-expression iif they represent an override. Use this new override_exprs
-flag to dump the dynset expression override to userspace.
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-This simplifies the existing logic and it also fixes a bug with the
-connlimit expression which results in a module refcount imbalance
-WARNING splat when resorting on the default set expressions.
+Currently, a netdev chain or flowtable hooked to a device prefix can be
+unintentionally deleted or updated by a control-plane request targeting
+an exact device name or even a shorter one due to the usage of min() to
+calculate the length to match.
 
-Fixes: 65038428b2c6 ("netfilter: nf_tables: allow to specify stateful expression in set definition")
-Fixes: fca05d4d61e6 ("netfilter: nft_dynset: honor stateful expressions in set definition")
-Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+Fix this by making sure an exact device match never matches a prefix and
+that both the target and the candidate have the same length.
+
+Reported-by: Wei Fang <void0red@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
+Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  2 --
- net/netfilter/nf_tables_api.c     | 56 ++++++++++---------------------
- net/netfilter/nft_dynset.c        | 25 ++++++++------
- 3 files changed, 33 insertions(+), 50 deletions(-)
+ net/netfilter/nf_tables_api.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 238f6ecb90e9..9d597482363d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -870,8 +870,6 @@ struct nft_elem_priv *nft_set_elem_init(const struct nft_set *set,
- 					const u32 *key, const u32 *key_end,
- 					const u32 *data,
- 					u64 timeout, u64 expiration, gfp_t gfp);
--int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
--			    struct nft_expr *expr_array[]);
- void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
- 			       struct nft_set_elem_expr *elem_expr);
- void nft_set_elem_destroy(const struct nft_set *set,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 71f4227d7ac7..20c562174b27 100644
+index 20c562174b27..d160f6ea0dc2 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6921,39 +6921,11 @@ static void nft_trans_elems_destroy(const struct nft_ctx *ctx,
- 		nf_tables_set_elem_destroy(ctx, te->set, te->elems[i].priv);
+@@ -1978,7 +1978,7 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
+ 	return -ENOSPC;
  }
  
--int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
--			    struct nft_expr *expr_array[])
--{
--	struct nft_expr *expr;
--	int err, i, k;
--
--	for (i = 0; i < set->num_exprs; i++) {
--		expr = kzalloc(set->exprs[i]->ops->size, GFP_KERNEL_ACCOUNT);
--		if (!expr)
--			goto err_expr;
--
--		err = nft_expr_clone(expr, set->exprs[i], GFP_KERNEL_ACCOUNT);
--		if (err < 0) {
--			kfree(expr);
--			goto err_expr;
--		}
--		expr_array[i] = expr;
--	}
--
--	return 0;
--
--err_expr:
--	for (k = i - 1; k >= 0; k--)
--		nft_expr_destroy(ctx, expr_array[k]);
--
--	return -ENOMEM;
--}
--
- static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 				   const struct nft_set_ext_tmpl *tmpl,
- 				   const struct nft_set_ext *ext,
- 				   struct nft_expr *expr_array[],
--				   u32 num_exprs)
-+				   u32 num_exprs, bool override_exprs)
+-static bool hook_is_prefix(struct nft_hook *hook)
++static bool hook_is_prefix(const struct nft_hook *hook)
  {
- 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
- 	u32 len = sizeof(struct nft_set_elem_expr);
-@@ -6976,7 +6948,8 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 			goto err_elem_expr_setup;
- 
- 		elem_expr->size += expr_array[i]->ops->size;
--		nft_expr_destroy(ctx, expr_array[i]);
-+		if (override_exprs)
-+			nft_expr_destroy(ctx, expr_array[i]);
- 		expr_array[i] = NULL;
- 	}
- 
-@@ -6984,7 +6957,9 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
- 
- err_elem_expr_setup:
- 	for (; i < num_exprs; i++) {
--		nft_expr_destroy(ctx, expr_array[i]);
-+		if (override_exprs)
-+			nft_expr_destroy(ctx, expr_array[i]);
-+
- 		expr_array[i] = NULL;
- 	}
- 
-@@ -7280,6 +7255,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_set_binding *binding;
- 	struct nft_elem_priv *elem_priv;
- 	struct nft_object *obj = NULL;
-+	bool override_exprs = false;
- 	struct nft_userdata *udata;
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
-@@ -7385,6 +7361,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 
- 		expr_array[0] = expr;
- 		num_exprs = 1;
-+		override_exprs = true;
- 
- 		if (set->num_exprs && set->exprs[0]->ops != expr->ops) {
- 			err = -EOPNOTSUPP;
-@@ -7413,6 +7390,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			}
- 			expr_array[i] = expr;
- 			num_exprs++;
-+			override_exprs = true;
- 
- 			if (set->num_exprs && expr->ops != set->exprs[i]->ops) {
- 				err = -EOPNOTSUPP;
-@@ -7426,9 +7404,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		}
- 	} else if (set->num_exprs > 0 &&
- 		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
--		err = nft_set_elem_expr_clone(ctx, set, expr_array);
--		if (err < 0)
--			goto err_set_elem_expr_clone;
-+		for (i = 0; i < set->num_exprs; i++)
-+			expr_array[i] = set->exprs[i];
- 
- 		num_exprs = set->num_exprs;
- 	}
-@@ -7567,7 +7544,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		udata->len = ulen - 1;
- 		nla_memcpy(&udata->data, nla[NFTA_SET_ELEM_USERDATA], ulen);
- 	}
--	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs);
-+	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs,
-+				      override_exprs);
- 	if (err < 0)
- 		goto err_elem_free;
- 
-@@ -7675,9 +7653,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err_parse_key:
- 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err_set_elem_expr:
--	for (i = 0; i < num_exprs && expr_array[i]; i++)
--		nft_expr_destroy(ctx, expr_array[i]);
--err_set_elem_expr_clone:
-+	if (override_exprs) {
-+		for (i = 0; i < num_exprs && expr_array[i]; i++)
-+			nft_expr_destroy(ctx, expr_array[i]);
-+	}
-+
- 	return err;
+ 	return strlen(hook->ifname) >= hook->ifnamelen;
  }
+@@ -2445,8 +2445,11 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+ 	struct nft_hook *hook;
  
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ee9d3e7b1ecf..fa4da694e92d 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -19,7 +19,8 @@ struct nft_dynset {
- 	u8				sreg_key;
- 	u8				sreg_data;
- 	bool				invert;
--	bool				expr;
-+	bool				expr:1,
-+					override_exprs:1;
- 	u8				num_exprs;
- 	u64				timeout;
- 	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
-@@ -257,6 +258,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	list_for_each_entry(hook, hook_list, list) {
+-		if (!strncmp(hook->ifname, this->ifname,
+-			     min(hook->ifnamelen, this->ifnamelen))) {
++		if (hook_is_prefix(hook) != hook_is_prefix(this))
++			continue;
++		if (hook->ifnamelen != this->ifnamelen)
++			continue;
++		if (!strncmp(hook->ifname, this->ifname, hook->ifnamelen)) {
+ 			if (hook->flags & NFT_HOOK_REMOVE)
+ 				continue;
  
- 		priv->num_exprs++;
- 		priv->expr_array[0] = dynset_expr;
-+		priv->override_exprs = true;
- 
- 		if (set->num_exprs > 1 ||
- 		    (set->num_exprs == 1 &&
-@@ -289,6 +291,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			}
- 			priv->expr_array[i] = dynset_expr;
- 			priv->num_exprs++;
-+			priv->override_exprs = true;
- 
- 			if (set->num_exprs) {
- 				if (i >= set->num_exprs) {
-@@ -307,9 +310,8 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			goto err_expr_free;
- 		}
- 	} else if (set->num_exprs > 0) {
--		err = nft_set_elem_expr_clone(ctx, set, priv->expr_array);
--		if (err < 0)
--			return err;
-+		for (i = 0; i < set->num_exprs; i++)
-+			priv->expr_array[i] = set->exprs[i];
- 
- 		priv->num_exprs = set->num_exprs;
- 	}
-@@ -339,8 +341,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	return 0;
- 
- err_expr_free:
--	for (i = 0; i < priv->num_exprs; i++)
--		nft_expr_destroy(ctx, priv->expr_array[i]);
-+	if (priv->override_exprs) {
-+		for (i = 0; i < priv->num_exprs; i++)
-+			nft_expr_destroy(ctx, priv->expr_array[i]);
-+	}
- 	return err;
- }
- 
-@@ -367,9 +371,10 @@ static void nft_dynset_destroy(const struct nft_ctx *ctx,
- 	struct nft_dynset *priv = nft_expr_priv(expr);
- 	int i;
- 
--	for (i = 0; i < priv->num_exprs; i++)
--		nft_expr_destroy(ctx, priv->expr_array[i]);
--
-+	if (priv->override_exprs) {
-+		for (i = 0; i < priv->num_exprs; i++)
-+			nft_expr_destroy(ctx, priv->expr_array[i]);
-+	}
- 	nf_tables_destroy_set(ctx, priv->set);
- }
- 
-@@ -393,7 +398,7 @@ static int nft_dynset_dump(struct sk_buff *skb,
- 			 nf_jiffies64_to_msecs(priv->timeout),
- 			 NFTA_DYNSET_PAD))
- 		goto nla_put_failure;
--	if (priv->set->num_exprs == 0) {
-+	if (priv->set->num_exprs == 0 || priv->override_exprs) {
- 		if (priv->num_exprs == 1) {
- 			if (nft_expr_dump(skb, NFTA_DYNSET_EXPR,
- 					  priv->expr_array[0], reset))
 -- 
 2.47.3
 
