@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24BB836896D;
-	Fri, 21 Aug 2026 15:39:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B51D1429036;
+	Fri, 21 Aug 2026 15:39:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787326756; cv=none; b=jvZK9ODtqbED9dOQGxre9duC029ovhQn3jsT5PxwAWIcwn+h0wX3PX/2HQEwFe6XpBEgr41rxq/in6Wca+EyBaWiGBhBZlHRJN5deauKclDfMTgDFu01YVdnWl43RV0jNCbQgDldrOOBsuFxMEx0NAdOnQtg4G+xO2pCGm8KZk4=
+	t=1787326757; cv=none; b=WzAX81eXyN0aliGQ1faV2UOKy9HhW4UF4TAqWhC5ERtmAoUn0kl3g/a65vqHtr586DiMbbz3uoyPiangv1YbMWd+1Yb03/sCNyRdkdIdNfBjnFiTV97fBKKaUomXz3CggEjtC8q2l4uQ4UlOCOpECkBRffiOvhPDi7dtbcVQ84M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787326756; c=relaxed/simple;
-	bh=3mNveH24JBGypCJrCVklJmEi6cTSuGAMD0imu/ESO+4=;
+	s=arc-20240116; t=1787326757; c=relaxed/simple;
+	bh=O5lVVY2ez5DfMCjdf9U3tamW1CH3RjYbcUOqTdLZGdc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mFej8JS+2SY3tWpeJVQi1uUD652uXucNyWxAheRfHpmuhTQwBVEZ/jnccOUIRZwLSwr/tW7biWaNOtdooTiEbdC2KNdHZShlODNYS+X1rWoVOzQn3GOJVQDLNQn00EIsynYj8YLfIsYLMYWLhcFq03z92C3hYILKBDXBNOgw86A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dvDntc6U; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=jlY+UDsPRnhn181JEPylJWmVL1+LGB7z1Go+h4XNcFN+Qk48m5ltEAUBCPyrwHWKzZJtNencZqGRbaJFo7ngU6GgAMyiHXtNuxn06Fayu0qMFBff2YJEzNWJZZd+g8ocd8gX7dbk5m+6gEWP5WCicSNahZKlJnWjqmLUq2B0cvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FDqlFE6M; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dvDntc6U"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FDqlFE6M"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787326751;
-	bh=4qqhL1YOOTnBhsZaw58FbRJsHj1rXZBcjFtNjJVHoOo=;
+	s=2025; t=1787326753;
+	bh=m2OAul4wYx+Ji4sRz9+RoTgI/CuKBjYXbyAEypRFiMg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dvDntc6UukW6eByh/UgtgxjdrW1OeGDHIrGXcOLtIJZSPwWmDlgK0w7LkM7z8wJZl
-	 aahbDJM2l3UL9QserLnR+A2pSYBSvkGMSpE8LX9hbIaXipfuFONawjhkuiEj6xN0Oq
-	 3u3UkVvx65oPz+TuOOOVE2bjgHq1EmQqsrk5nWhqTK2SPzEJmWUz4Alb4PCLL75nBq
-	 pxPYkZe9J2+zQnsmQjV91LPM++77Xl3xgw7f7UvHosr3ZqUk3U8LVfB1ra7LrDYGHi
-	 gYE5SkxjeSCliEpJIYd6qnLx5tAhls1ccbTcd3cBdIwW6Dsp0ZA3+0ejxK3lyXjazH
-	 SdJHwD26k+Dtg==
+	b=FDqlFE6MdHVMA9tDVkpHKs7iwAQvJ5VT8Vm2Ttfe5EmVZ/3n5iFIZxmfBkwSeo9kG
+	 z9fhKfWARPOQHYfqVgHzREuA6qqk5LzY1CRe1N2B1YPYvGAMv/T3FzgS5EM/N26ESc
+	 6S2/2TS7gQXSwrAo7x7U8v8XVZpNouGLoCZ34nNFJ7WO9ctvGtfXReLRhPfAucLLGH
+	 6LYWNz6ryRdsq5PeMwgffB3gMPJsVbQiiFo70A8eQ0Pfcx3qLU2Qx23UdoVaZphW1B
+	 oaA0c1y4YpQk97KQTdGTNQNELW/MB0YDUdThnjtHYhvavUim24S1DoiFnDAr1Jn1dt
+	 oMYYJkcll+gIg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 049B160056;
-	Fri, 21 Aug 2026 17:39:10 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8D58C60097;
+	Fri, 21 Aug 2026 17:39:12 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 09/10] netfilter: nf_tables: set on dead bit when performing early element removal
-Date: Fri, 21 Aug 2026 17:38:32 +0200
-Message-ID: <20260821153833.245589-10-pablo@netfilter.org>
+Subject: [PATCH net 10/10] netfilter: nf_tables: remove leftover set_update_list
+Date: Fri, 21 Aug 2026 17:38:33 +0200
+Message-ID: <20260821153833.245589-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260821153833.245589-1-pablo@netfilter.org>
 References: <20260821153833.245589-1-pablo@netfilter.org>
@@ -53,33 +53,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-.commit call for sets is skipped if set->dead flag is set on, but this
-flag is set on later in the commit path.
+This list has been moved to per-netns, remove onstack list which is not
+used anymore.
 
-This also reintroduces the bug fixed in commit 7315dc1e122c8
-("netfilter: nf_tables: skip set commit for deleted/destroyed sets").
-
-Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
+Fixes: b343ededb3f9 netfilter: nf_tables: move set_update_list to nftables per-netns
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nf_tables_api.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d160f6ea0dc2..4f3be3b10f2f 100644
+index 4f3be3b10f2f..5cee9e46cca4 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -10877,6 +10877,10 @@ static void nft_set_commit_update(struct nft_ctx *ctx,
- 		nft_ctx_update(ctx, trans);
- 
- 		switch (trans->msg_type) {
-+		case NFT_MSG_DELSET:
-+		case NFT_MSG_DESTROYSET:
-+			nft_trans_set(trans)->dead = 1;
-+			break;
- 		case NFT_MSG_DELSETELEM:
- 			te = nft_trans_container_elem(trans);
- 			if (!te->set->ops->commit)
+@@ -11298,7 +11298,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	struct nft_trans *trans, *next;
+-	LIST_HEAD(set_update_list);
+ 	struct nft_trans_elem *te;
+ 	struct nft_ctx ctx = {
+ 		.net = net,
 -- 
 2.47.3
 
