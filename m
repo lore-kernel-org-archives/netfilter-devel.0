@@ -1,158 +1,111 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7881C494809
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2026 13:30:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75D5B2BE02C;
+	Fri, 21 Aug 2026 13:34:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787319015; cv=none; b=HVcTmY6yiDWYjxT4zRBVSf6a5J/t5cyeXQDssdiGHY8Ju3krjYzsVadp2SVnUq9e7VlIqVM6CmZBiul5ttp3+hhVRFXRcP3krF2Kp/9m8boN4P8qTs9vEhSkNeYVfWInexeVv/O+85iH7nX7AZ3mbQUeJVqN/wOKGPeiJzA81s0=
+	t=1787319252; cv=none; b=OYxKdfmYTNjbFaYaAsbee3jR5CHl+pCG1ptn7/nYncAqMLTafsL0nF/pEykc2tlD8DGjpQgDGMmW1+XAHQVPW4lwo4fMJ1nuedRMPAlJEssnlvz1GoHTsQfNpxtldnNAud+mBKT6FI0ZTsZe1m7coqlnXAWYEgdxIPb1ULYWi7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787319015; c=relaxed/simple;
-	bh=9GLDLaDk1D2e+9CwvI77yOR3VtEoIBWAyGEaVZLC1bs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qpU99EwiJgAIUsDoANg9QrECo8QrvRJswKTi1osFJGXqBfIoc9a9dR4uGpJzfOz6DCYZd9Z9zw0W9tC+cX2amApHHzIzuButEAs+GoPGTXmwhwAxUI2jeWxBTZ4nRZXztzTjXCQ7maVjpPR6cI3F1HU1DnbetsHBz3ADUXL1Scc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WX6JCLra; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1787319252; c=relaxed/simple;
+	bh=bAdbSU41Z/vBmC+QsvGL2nnUK1uHasaCpMfmR5D0HMk=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=AMr9oXBzbvSHDQjjR/yuN5GfhhYqdEcv7rGoeu5E0HkJvVqhMNvXDl3Y8PbLVzzRczd2uHgitcsaLs41hE3F2UefVaIbKUDbgVhtToM8sozUYVlMeSYGhp8Z/eLfJgJADayPbgRFbPNWM6YwmHwvh388bl890wTPwelhMUCfpT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=r7kCHm7F; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WX6JCLra"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787319010;
-	bh=vITNVFSOLWnVb2Sr+f7FIAjbvsc4G072AvU70+ZMrLo=;
-	h=From:To:Cc:Subject:Date:From;
-	b=WX6JCLraPoD4Y5r/tpUz5O6rAB+vmWmtpcjUKR+20OSFJuZB6DV1SgYpXQtXZhEXk
-	 swWq4sVS9DR6G1lf4PWJtK6y17neYfGE+doKBYrjBU7zTT6n7XDMHgVVogp7iCIvpS
-	 69ZMPihHCoWx9K0TKXU3rcASFTgq3C/ypNM22p4KESOF2ReNtbnnDbCEpaRbNEDjLl
-	 NQ3/uvjXxhZEydLTKT1sR6AvIqKUZ8qZaXsL8ze468PdSfcWyLDj9upeuNO8zembxm
-	 +oLpUpoDyaCY/rldQDOBwmG1uK1XWa0jMuJbX2xRlGRkSV+x+rClh09alywZHJkDH3
-	 oY80GNHLw17BA==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C78416008E;
-	Fri, 21 Aug 2026 15:30:09 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: ZhilingZouzhilinz@nebusec.ai
-Subject: [PATCH nf] netfilter: x_tables: require IP6T_F_PROTO when matching protocol
-Date: Fri, 21 Aug 2026 15:29:52 +0200
-Message-ID: <20260821132952.90204-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="r7kCHm7F"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 9EF681A168D;
+	Fri, 21 Aug 2026 13:34:06 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 6FB8D604AA;
+	Fri, 21 Aug 2026 13:34:06 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id AB14C11C7714B;
+	Fri, 21 Aug 2026 15:33:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1787319241; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=zW+S1lFLlEZ8r/53t/D9PI+ul66jA+3Kp+sHgvAr+/w=;
+	b=r7kCHm7FWgieHBMibFsZedfMtdS736rojrERN7LviZCgayDbUyYjDVyCc3aQq725kI+1by
+	yAnf4w2NK2zH+U6epwNMvNqvsMfjCFwSMC5nk/2U05WkJebnfjer2ZSJmX7mFS0i1U6kF4
+	HCiYcp8nGKnhHqhUfGuk+TNxQl0VXq2GwA2/PbXuks8p/uI2PnS/Go44lhgdmb/tFzX/i+
+	JZL4ipXEdmwsCxCQZE0/4ZBkRaMJ9qvWN9wAno8e9Tot9q063I8nvXdyVu3T23jlMM+ISU
+	S1Eu7Woy6pDLK7wBvQ/DfORBIkSJZykkSZAzJGTaHiqCaycs1I6DNuSf9OU95w==
+From: "Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>
+Subject: [PATCH 0/4] ipv4: start using dst_dev_rcu()
+Date: Fri, 21 Aug 2026 15:33:34 +0200
+Message-Id: <20260821-cve-2025-40074-6-1-v1-0-cad5cf499b76@bootlin.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMwQ6CMBCE4Vchc3bJttIqvIrhAHXR9YCm1UZCe
+ HerHr9J5l+RJKokdNWKKFmT3ucCs6sQrsN8EdJzMSxbz0fLFLJQgaOG+dCQJ0OtC47Fj+0w7VG
+ OjyiTvn/RE7KvTb2g/+/pNd4kPL9FbNsHx3Hk9H4AAAA=
+X-Change-ID: 20260820-cve-2025-40074-6-1-95c50e6b9af3
+To: stable@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Wei Wang <weiwan@google.com>, 
+ Martin KaFai Lau <kafai@fb.com>, 
+ Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, 
+ David Ahern <dsahern@kernel.org>, 
+ Steffen Klassert <steffen.klassert@secunet.com>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, Miguel Gazquez <miguel.gazquez@bootlin.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1787319234; l=1466;
+ i=miguel.gazquez@bootlin.com; s=20250708; h=from:subject:message-id;
+ bh=bAdbSU41Z/vBmC+QsvGL2nnUK1uHasaCpMfmR5D0HMk=;
+ b=olU9DwrBVWSMkioHfKwGPrq0oLqinw/QYpzOKDRXs31MmmfhIOU7GTNoh+QXx0L6SzUhHm7Q6
+ +R710KwyYW9AKQuBYQWMKHfixeWGrYDririy8MNXii/4khh3/61IRWx
+X-Developer-Key: i=miguel.gazquez@bootlin.com; a=ed25519;
+ pk=k/2KI9jkmayaF0ghZ8QYUH9Wm/kFHDhl8QoZ0RHbr4w=
+X-Last-TLS-Session-Version: TLSv1.3
 
-Several check() functions validate the protocol field value but do not
-require IP6T_F_PROTO. A crafted ip6tables rule can set the field to TCP
-or UDP while leaving the protocol matching flag clear.
+Three other patches are required to be able to apply cleanly the final patch.
 
-Reject rules without IP6T_F_PROTO so the match/target is invoked only
-for the protocols it supports.
+Signed-off-by: Miguel Gazquez <miguel.gazquez@bootlin.com>
 
-In the TPROXY target, this allows to reach a WARN in packet path.
-
-Fixes: 6ad7889327a5e ("tproxy: added IPv6 support to the TPROXY target")
-Link: https://patch.msgid.link/cover.1786968834.git.zhilinz@nebusec.ai/
-Reported-by: Vega <vega@nebusec.ai>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Florian mentioned xt_l2tp is also missing this, but xt_multiport also
-needs it. I could not find any other user of .proto which does not
-validate IP6T_F_PROTO in IPv6.
+Eric Dumazet (4):
+      net: dst: add four helpers to annotate data-races around dst->dev
+      ipv4: adopt dst_dev, skb_dst_dev and skb_dst_dev_net[_rcu]
+      net: dst: introduce dst->dev_rcu
+      ipv4: start using dst_dev_rcu()
 
- net/netfilter/xt_TPROXY.c    |  3 ++-
- net/netfilter/xt_ecn.c       |  1 +
- net/netfilter/xt_l2tp.c      | 20 ++++++++++++--------
- net/netfilter/xt_multiport.c |  3 +++
- 4 files changed, 18 insertions(+), 9 deletions(-)
+ include/net/dst.h             | 34 ++++++++++++++++++++++++++++++----
+ include/net/inet_hashtables.h |  2 +-
+ include/net/ip.h              | 11 ++++++-----
+ include/net/route.h           |  2 +-
+ net/core/dst.c                |  4 ++--
+ net/core/sock.c               |  6 +++---
+ net/ipv4/icmp.c               | 28 +++++++++++++++-------------
+ net/ipv4/igmp.c               |  2 +-
+ net/ipv4/ip_fragment.c        |  9 +++++++--
+ net/ipv4/ip_output.c          |  4 ++--
+ net/ipv4/ip_vti.c             |  4 ++--
+ net/ipv4/ipmr.c               |  2 +-
+ net/ipv4/netfilter.c          |  4 ++--
+ net/ipv4/route.c              | 10 +++++-----
+ net/ipv4/tcp_fastopen.c       |  4 +++-
+ net/ipv4/tcp_ipv4.c           |  3 ++-
+ net/ipv4/tcp_metrics.c        |  8 ++++----
+ net/ipv4/xfrm4_output.c       |  2 +-
+ 18 files changed, 88 insertions(+), 51 deletions(-)
+---
+base-commit: 7e6e670547210424443261b2d54d2acfff85a37c
+change-id: 20260820-cve-2025-40074-6-1-95c50e6b9af3
 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 5f60e7298a1e..13a94c9d06c0 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -179,7 +179,8 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- 	if (err)
- 		return err;
- 
--	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
-+	if ((i->flags & IP6T_F_PROTO) &&
-+	    (i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
- 	    !(i->invflags & IP6T_INV_PROTO))
- 		return 0;
- 
-diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-index a8503f5d26bf..a5c99f00c201 100644
---- a/net/netfilter/xt_ecn.c
-+++ b/net/netfilter/xt_ecn.c
-@@ -139,6 +139,7 @@ static int ecn_mt_check6(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 
- 	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
-+	    ip->flags & IP6T_F_PROTO &&
- 	    (ip->proto != IPPROTO_TCP || ip->invflags & IP6T_INV_PROTO)) {
- 		pr_info_ratelimited("cannot match TCP bits for non-tcp packets\n");
- 		return -EINVAL;
-diff --git a/net/netfilter/xt_l2tp.c b/net/netfilter/xt_l2tp.c
-index a61eb81e9f49..346cbc168009 100644
---- a/net/netfilter/xt_l2tp.c
-+++ b/net/netfilter/xt_l2tp.c
-@@ -267,14 +267,16 @@ static int l2tp_mt_check4(const struct xt_mtchk_param *par)
- 	if (ret != 0)
- 		return ret;
- 
--	if ((ip->proto != IPPROTO_UDP) &&
--	    (ip->proto != IPPROTO_L2TP)) {
-+	if (!(ip->flags & IP6T_F_PROTO) ||
-+	    (ip->proto != IPPROTO_UDP &&
-+	     ip->proto != IPPROTO_L2TP)) {
- 		pr_info_ratelimited("missing protocol rule (udp|l2tpip)\n");
- 		return -EINVAL;
- 	}
- 
--	if ((ip->proto == IPPROTO_L2TP) &&
--	    (info->version == 2)) {
-+	if (!(ip->flags & IP6T_F_PROTO) ||
-+	    (ip->proto == IPPROTO_L2TP &&
-+	     info->version == 2)) {
- 		pr_info_ratelimited("v2 doesn't support IP mode\n");
- 		return -EINVAL;
- 	}
-@@ -294,14 +296,16 @@ static int l2tp_mt_check6(const struct xt_mtchk_param *par)
- 	if (ret != 0)
- 		return ret;
- 
--	if ((ip->proto != IPPROTO_UDP) &&
--	    (ip->proto != IPPROTO_L2TP)) {
-+	if (!(ip->flags & IP6T_F_PROTO) ||
-+	    (ip->proto != IPPROTO_UDP &&
-+	     ip->proto != IPPROTO_L2TP)) {
- 		pr_info_ratelimited("missing protocol rule (udp|l2tpip)\n");
- 		return -EINVAL;
- 	}
- 
--	if ((ip->proto == IPPROTO_L2TP) &&
--	    (info->version == 2)) {
-+	if (!(ip->flags & IP6T_F_PROTO) ||
-+	    (ip->proto == IPPROTO_L2TP &&
-+	     info->version == 2)) {
- 		pr_info_ratelimited("v2 doesn't support IP mode\n");
- 		return -EINVAL;
- 	}
-diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
-index bff5f53a9bef..b48c2cbbee62 100644
---- a/net/netfilter/xt_multiport.c
-+++ b/net/netfilter/xt_multiport.c
-@@ -156,6 +156,9 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
- 	const struct ip6t_ip6 *ip = par->entryinfo;
- 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
- 
-+	if (!(ip->flags & IP6T_F_PROTO))
-+		return -EINVAL;
-+
- 	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
- 		return -EINVAL;
- 
--- 
-2.47.3
+Best regards,
+--  
+Miguel Gazquez (Schneider Electric) <miguel.gazquez@bootlin.com>
 
