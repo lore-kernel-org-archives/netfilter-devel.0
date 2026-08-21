@@ -1,141 +1,107 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D1764908D8
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2026 14:02:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5DD14C77A7
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2026 14:38:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787320950; cv=none; b=ei9euXTIwSnTw9PE662NaRo/4SHQrlNNeKK2LtNhnQi5P4a4+K/7shhpPeKOycFWkTwxHooWMm2xzdNBKf0l5h1H478gY90jmnYd1Vysz/71Z5l631LgwUB8ZpPXn3lEdhxDLU62vq1dzm7XRyf9yCFB9ZatBaY4W/R/WWuIYzI=
+	t=1787323121; cv=none; b=e8RXLxfHbosk5TfDj7ei/6QxIRHKkp6oYxDhtIVfhHZSMVpMZfTMOjkJJEOJ4krBFxDREJHg1N2b3WQSF+FoYAqqKqCbS7pmDAhjctn7GR80xRNyVtmBSw/n6niuLN9+MFTcpMunQHqlNmhXbNWV7W4LNXfvCfOaJwStRTJbEyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787320950; c=relaxed/simple;
-	bh=MYwKCYlpxs6RYzV8/2cja2K2vORTDV48s0iVyIdz+TU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=k9Ibe8dd5oIZUaOuNxegK4y49d0fRaZyQWbPvTCOuZz08qs1lv+23lvzc1AiY1V7vijmwd8Dwvja0GJFyQaGY1lutAYKK2IcUo5yegii/ZyYmVuEB3f6joDaYYOKUNC1mIIjGfITKneNRITdANUwK5xm7MowM/riG3QxsQ/ZvU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Dw3681r2; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787323121; c=relaxed/simple;
+	bh=vkIDaX/VnBre4OxtEWbc9T9gN4uHzF9vewFYprwkfI8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Er/ckYgZat5JxFsdNDTcUTFAjbpJ/rG6RHdpy6HZ+7pdDYPVMKTX4xfWCaXl2rSg2VErHniZy3L1U3o1qJkFz6mkq69Sofv+mojNeS+0um+mWjemBZU+omXb8Tq+X+NnnMhPsVF/SsWFkTchl33a92tzrJI+rJbIkzGwTiJYVbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=md1ag0bE; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Dw3681r2"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="md1ag0bE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787320946;
-	bh=am2Bof4oaRQC7DX6OwjnwGdKcMkHD/1tjUAAvky7cz0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Dw3681r2ip98nxsi8AkseLqMgt8lDvigKDoqrM8+etGKaT3hUBRbAshmHtb4BJTvI
-	 Ymx4bLRK1X7cS1cc76REMRiFaL917OJma1I6t2cBAgzUYGFhXk7WhQvqRUSq8eDqjP
-	 V/jr50RAnn2G4/X1S60cxRzvTgavO0b4McsP04/jWnOGinNkc4o12a9Qj5cMAgLSy7
-	 sck3PTMJk0OgvGuf+uLlEx6vJ5+Msa54/RD2YQIHjd0IjXQKUGMstM6pwO62C26HEG
-	 feqQDaj9GY9r0KIzpozV/5YOtty5tXyE6/LFpbiSs98l7kVhuxuY71NbyFC+Pne4lh
-	 qEbsRHHV6oTCw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 213D96008B;
-	Fri, 21 Aug 2026 16:02:26 +0200 (CEST)
-Date: Fri, 21 Aug 2026 16:02:22 +0200
+	s=2025; t=1787323115;
+	bh=uF0MRqnBDvlHPfd5GgCFi4AmQ5Uhq5yhWFSVjCIXfuk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=md1ag0bEaPPm58TOQey9I8sMHb3mQ4F0W2Sl6OOkbG4CKILLLETaFSshggzXGhuPj
+	 azJq24IDOs1yDRh1sxfG65FCIGf+SIfVInKm0k04vXdeFpuTnf8s9uZLMxJk0F7j2e
+	 vqhgSWNNkx8m2ADDbY0dfmVddmEi1C6eQhHP6ziUczAVwvegPY44+F4mtdj/4pHB+7
+	 H8SF8FwBZNRdiwcmu0AOFB2x9e2cIMJG8+6p/WZIe+QHj94/WvPQ+ocYRRqZqvH7JN
+	 3dCE1XnQ64zNY/ZB8xi0yoWbsYwqYG1YJA66F9R0HGv4AirbYbyYuXOV0jMNyMI1dE
+	 uwB3xUKjtM9SA==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1CCE96008B;
+	Fri, 21 Aug 2026 16:38:35 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Zhiling Zou <zhilinz@nebusec.ai>
-Subject: Re: [PATCH nf-next] netfilter: x_tables: reject missing '-p' flag
- and check for INV flag
-Message-ID: <aohabszy_Ac23p7x@chamomile>
-References: <20260821134136.18191-1-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next 03/10] netfilter: nf_tables: use GFP_KERNEL_ACCOUNT
+Date: Fri, 21 Aug 2026 16:38:20 +0200
+Message-ID: <20260821143827.183963-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260821143827.183963-1-pablo@netfilter.org>
+References: <20260821143827.183963-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260821134136.18191-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-Hi,
+GFP_KERNEL_ACCOUNT is preferred these days for memcg, replace
+GFP_KERNEL by GFP_KERNEL_ACCOUNT.
 
-On Fri, Aug 21, 2026 at 03:41:36PM +0200, Florian Westphal wrote:
-> ip6tables traverser doesn't walk ipv6 extension headers unless the PROTO
-> flag is set, so direct sockopt-users can bypass the check (ip6tables
-> always sets it if '-p' flag is given.  This is a cleanup patch, it
-> doesn't fix any real bug.
+Just a few leftover in nft_ct and the pipapo set backend.
 
-I really think it is better to squash the TPROXY fix into this one
-too, it is the same logical fix.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_ct.c         | 7 ++++---
+ net/netfilter/nft_set_pipapo.c | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Sashiko also hinting to fix ip6_tables core check for this protocol
-flag:
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 9dbf127df9c8..89760874336c 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -365,7 +365,7 @@ static bool nft_ct_tmpl_alloc_pcpu(void)
+ 		return true;
+ 
+ 	for_each_possible_cpu(cpu) {
+-		tmp = nf_ct_tmpl_alloc(&init_net, &zone, GFP_KERNEL);
++		tmp = nf_ct_tmpl_alloc(&init_net, &zone, GFP_KERNEL_ACCOUNT);
+ 		if (!tmp) {
+ 			nft_ct_tmpl_put_pcpu();
+ 			return false;
+@@ -848,7 +848,8 @@ nft_ct_timeout_parse_policy(void *timeouts,
+ 	struct nlattr **tb;
+ 	int ret = 0;
+ 
+-	tb = kzalloc_objs(*tb, l4proto->ctnl_timeout.nlattr_max + 1);
++	tb = kzalloc_objs(*tb, l4proto->ctnl_timeout.nlattr_max + 1,
++			  GFP_KERNEL_ACCOUNT);
+ 
+ 	if (!tb)
+ 		return -ENOMEM;
+@@ -934,7 +935,7 @@ static int nft_ct_timeout_obj_init(const struct nft_ctx *ctx,
+ 	}
+ 
+ 	timeout = kzalloc(sizeof(struct nf_ct_timeout) +
+-			  l4proto->ctnl_timeout.obj_size, GFP_KERNEL);
++			  l4proto->ctnl_timeout.obj_size, GFP_KERNEL_ACCOUNT);
+ 	if (timeout == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_proto_put;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 978bb0c01106..3617bb66094d 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -2298,7 +2298,7 @@ static int nft_pipapo_init(const struct nft_set *set,
+ 	if (field_count > NFT_PIPAPO_MAX_FIELDS)
+ 		return -EINVAL;
+ 
+-	m = kmalloc_flex(*m, f, field_count);
++	m = kmalloc_flex(*m, f, field_count, GFP_KERNEL_ACCOUNT);
+ 	if (!m)
+ 		return -ENOMEM;
+ 
+-- 
+2.47.3
 
-https://sashiko.dev/#/patchset/20260821134136.18191-1-fw%40strlen.de
-
-Thanks!
-
-> Reported-by: Zhiling Zou <zhilinz@nebusec.ai>
-> Fixes: 74f77a6b2b1c ("netfilter: introduce l2tp match extension")
-> Fixes: af0d29cd2a73 ("netfilter: xtables: add an IPv6 capable version of the ECN match")
-> Fixes: a89ecb6a2ef7 ("[NETFILTER]: x_tables: unify IPv4/IPv6 multiport match")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Can also be applied to nf, but I don't think this one is urgent.
-> 
->  net/netfilter/xt_ecn.c       |  3 ++-
->  net/netfilter/xt_l2tp.c      | 11 +++++++----
->  net/netfilter/xt_multiport.c |  3 +++
->  3 files changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-> index a8503f5d26bf..008e7fcbeb22 100644
-> --- a/net/netfilter/xt_ecn.c
-> +++ b/net/netfilter/xt_ecn.c
-> @@ -139,7 +139,8 @@ static int ecn_mt_check6(const struct xt_mtchk_param *par)
->  		return -EINVAL;
->  
->  	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
-> -	    (ip->proto != IPPROTO_TCP || ip->invflags & IP6T_INV_PROTO)) {
-> +	    (!(ip->flags & IP6T_F_PROTO) ||
-> +	     ip->proto != IPPROTO_TCP || ip->invflags & IP6T_INV_PROTO)) {
->  		pr_info_ratelimited("cannot match TCP bits for non-tcp packets\n");
->  		return -EINVAL;
->  	}
-> diff --git a/net/netfilter/xt_l2tp.c b/net/netfilter/xt_l2tp.c
-> index a61eb81e9f49..ad2d559caa99 100644
-> --- a/net/netfilter/xt_l2tp.c
-> +++ b/net/netfilter/xt_l2tp.c
-> @@ -267,8 +267,9 @@ static int l2tp_mt_check4(const struct xt_mtchk_param *par)
->  	if (ret != 0)
->  		return ret;
->  
-> -	if ((ip->proto != IPPROTO_UDP) &&
-> -	    (ip->proto != IPPROTO_L2TP)) {
-> +	if (ip->invflags & IPT_INV_PROTO ||
-> +	    (ip->proto != IPPROTO_UDP &&
-> +	    ip->proto != IPPROTO_L2TP)) {
->  		pr_info_ratelimited("missing protocol rule (udp|l2tpip)\n");
->  		return -EINVAL;
->  	}
-> @@ -294,8 +295,10 @@ static int l2tp_mt_check6(const struct xt_mtchk_param *par)
->  	if (ret != 0)
->  		return ret;
->  
-> -	if ((ip->proto != IPPROTO_UDP) &&
-> -	    (ip->proto != IPPROTO_L2TP)) {
-> +	if (((ip->flags & IP6T_F_PROTO) == 0 ||
-> +	     ip->invflags & IP6T_INV_PROTO ||
-> +	   (ip->proto != IPPROTO_UDP &&
-> +	    ip->proto != IPPROTO_L2TP))) {
->  		pr_info_ratelimited("missing protocol rule (udp|l2tpip)\n");
->  		return -EINVAL;
->  	}
-> diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
-> index a1691ff405d3..48aa25749063 100644
-> --- a/net/netfilter/xt_multiport.c
-> +++ b/net/netfilter/xt_multiport.c
-> @@ -160,6 +160,9 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
->  	const struct ip6t_ip6 *ip = par->entryinfo;
->  	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
->  
-> +	if (!(ip->flags & IP6T_F_PROTO))
-> +		return -EINVAL;
-> +
->  	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
->  		return -EINVAL;
->  
-> -- 
-> 2.54.0
-> 
-> 
