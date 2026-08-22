@@ -1,81 +1,48 @@
-Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE9023AE87
-	for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 18:47:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C41A25B0BD;
+	Sat, 22 Aug 2026 19:52:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787424439; cv=none; b=N3X/bC7Q6BDVY6T0DXD0DDwxpc4+9Yw6dyZ3RvTmQ/7G8sCfQjHW+cuqG3Fcgvjnobnq5BKiWPHp/mktEpfj4k/M4t41R/Wx098NES1kjplCKDRW2itFBPCVanM2mkPSpNMF2KpMedLWKajqPlxUXwaikLX22IWCJ9m3wNTOkoI=
+	t=1787428350; cv=none; b=ulYGIlpOktKXWhKzr0aPqiw4B0NA2KAKQWRMS3BIH3uWteCn70daSQCP45YNQs2RaS3pHAgR0mJMUFUcFSqd2LuEULboYngOynA/pf+hYcdRwVN9YLHx5Ufhyypzsx37jhMpfA3SSlZfyeurgWW6D3DddIFJIdz15bBemjTjU6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787424439; c=relaxed/simple;
-	bh=5G43uPiVL/j+Dzwm9QTc44uc3K3VaXP56vy3ld8EoOE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=igyXz07yluaCuoDTfXptBrJ3Ruj/UHwtENCrxlqVdvponNW5iQldkLgwbMwKX1W9ZMo/h2DwMFwfZ4qNfjXgyF3vR9GmR1KZydHnZDH/PnBMRP6Qa0vM9e3A0y7vmXtBzKPHZm4Xtt93TOssy1P9uzoM5kVwdplyCdnKysEgpDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OfMgf1F+; arc=none smtp.client-ip=209.85.210.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787428350; c=relaxed/simple;
+	bh=dqkm2Y2Z8oZLWCfTlui6iUTnoqJ8cOctOSikVSw+MKc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=lpPQQFHSvniE5Ht0AxckYc1SNe778Krdnaa2vQFSOKgwoyQd9Gsed3V9DjkxufL5suqEsS5LeaXyFBx+tSWqFe3y68weDvRk7ra0IZE4QCjzUr6TkevI7hfxcIStgqvJKwU5ORZyV8gyzZw6lYWS7SYU5xmG7bK+4/t/Ozb/Rf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eLDaTgr+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OfMgf1F+"
-Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8484a24ccf8so108449b3a.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 11:47:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787424437; x=1788029237; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=r6krEZZrAdPiGjprMWBKZfrQRUv9wjYiRrwTo40Vuek=;
-        b=OfMgf1F+Vxyq+yV3XHsyCTTLvHGVdO9N2BEk2bI0Cg/SdKLPaG1cxRuI2tqTWTvXCV
-         Y3SQRzlLUu12A0F8mGV2EFw0H+ibPj2q4JPDAS2u14w7PXHzRl2QXka2LO9uNYoq2fU0
-         nOEb8EJr7lC6PnsAdjhuE/7u/t03Da/tvvJlZD39+Ru/MGF9Znl9zGLVkL3jxyzCCc04
-         DkYV2YtMu6q2hlM9Nf4mKfnE9LN25anbFu2cAa4utOJ1Q66ou8LLvdWrilANCDtX2nKk
-         OajxTqC6tuo3QMfiPKKfvyhi7kiMxybM+FqZaTSzVZBA96ZmnXCrolRKh0KKLWjvrgQQ
-         C4wQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787424437; x=1788029237;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=r6krEZZrAdPiGjprMWBKZfrQRUv9wjYiRrwTo40Vuek=;
-        b=O25Mz9M333kt46bAzSpH9So8fp2uSm6j2OkOF5RQUirzhbHduClfmQkN9Hto/kHfII
-         Rl81Fanb1fTYp2jSIhal8FjNksEgbc1PPHC8l5lAMIP+WewMZFBvIFFd+agxfRVLZPXq
-         SILn4o5EQN+Ysm2sD28V5ypDHoJjPAGrTFkwlfPtOedeVJuYDpFZGMoN3I5TOosAWcT0
-         1iuLUgYg9+piJS51lHd786U/R1kJethu/VDyZtZhKMNHosaDugQqCYR4lZAy5bd7pDws
-         EWWtI5t5a9sml4PUQIOce8y9Q79aliINGXfb+1AwXsN62kwyUJbl4oKPz/WYu9PznnqV
-         UDwQ==
-X-Gm-Message-State: AFuF++kjbRysNPIrOprlq3GYZSHa5kYTy1DyGMkO8j/CQZ1IchqgoulW
-	7bmfD9p8dOCM/Jr5VPKmer6WzQTpK+h09FY98qwS3IGCgzYqvObPg5Vi
-X-Gm-Gg: AR+sD10+rg/Vu9k5Xw5Qtn9+NwWCLjmt1tLtV4iebVvDbueNkwflfOgzDonRHdxh+4p
-	e0uG8/X9ItgEl7v7fs++P3KYQ3asGZHrDHuI8WwwPMtsq16CHfLBYRJNkSpWicteANiEG2/NRWU
-	9ZHDC+bpy9c/pLO/zs6Lgq06UAVEiAKgbVy0Z+985HHWwNfkoJHUiwV98MoUjAwd7jfyORvCNES
-	gUYV/+35g+uaUSO+Qw/kdSG09h8eAoxV/JL8cpkV1iaVOn00anteYrFAsy3QsyrVTTobQY/YGvo
-	YRUcC/pYy5JLpX1rWR4BxE15RbLXhXeSjEuJrb8WAkf84HiPmkGgGsMI45wGt+3fSUbWBk9qPR9
-	Tz/OCuUdYVpmdQ4KAcRunZUsGTjWPFRr6y4Xb4Pxa8OarmNDrDsy+SWp0TKZeMWc9FW9L5aYya0
-	AS9wZSu49lvVGQHL3Z58UKK+Gig2zbQ/lhWcqOW5oCADxn+Ph745adtSchOjnub+oqhDtMmxv8f
-	Wdfj3idFIJZ26e+N7HBnzUun6T8mx03/1fubkTiLKQ77Hfmf7P8u/w=
-X-Received: by 2002:a17:902:fc4e:b0:2d3:aecd:51f7 with SMTP id d9443c01a7336-2d64ae3a7c7mr135100305ad.1.1787424437214;
-        Sat, 22 Aug 2026 11:47:17 -0700 (PDT)
-Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-327f9209fafsm16623681eec.23.2026.08.22.11.47.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 22 Aug 2026 11:47:16 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Gao feng <gaofeng@cn.fujitsu.com>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eLDaTgr+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 419FB1F000E9;
+	Sat, 22 Aug 2026 19:52:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787428348;
+	bh=SYXxYr+BNHKYI7TPucTk2nxUl/C/7LIZvT7oCJghudA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=eLDaTgr+VHAK5jYxNFwodn4uQBhNDZY0ULLkga18tMYXg/0Z2oOAAY8Jew9y0Wz5u
+	 mJ10bp6XdAFhSQwe9Mb9uif5yYYMpt35B5reuuM1Bz3b+C3XxeZmdhpCBtEEMRhGAK
+	 mgJVrr9+0fJrAcICilCnIXo6dInrT2iy8ThdekCQZCYMpDTRSh8UksQBfh3CZyf3K1
+	 LhyPP7CRnzJAt48myznOfdgUZA0cEJNjCUtRkYx0XCBJXEEJSeCvCAkJ58EbOJSDCR
+	 2tcGbEhPe8FereZOB5pOt6Gp4qVF+6N33rJphyz8FZrmnUQTGT3Z6lnegf803+B8W6
+	 P1o5t9SHwEWwA==
+From: Jakub Kicinski <kuba@kernel.org>
+To: pablo@netfilter.org
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] netfilter: nf_log: clear per-net loggers on unregister
-Date: Sun, 23 Aug 2026 02:46:58 +0800
-Message-ID: <20260822184658.3787672-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	pabeni@redhat.com,
+	edumazet@google.com,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: Re: [PATCH net 05/10] netfilter: x_tables: remove pr_debug
+Date: Sat, 22 Aug 2026 12:52:27 -0700
+Message-ID: <20260822195227.2202694-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260821153833.245589-6-pablo@netfilter.org>
+References: <20260821153833.245589-6-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -84,128 +51,244 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Logger backends unregister their per-network namespace operations before
-unregistering their global logger. This leaves a window where a sysctl or
-netlink writer can rebind a per-net logger after the old per-net
-selection was cleared, but before the global logger registration is
-removed.
-
-The race looks like this:
-
-  CPU 0                                 CPU 1
-  ----                                  ----
-  unregister_pernet_subsys()
-    nf_log_unset(net, logger)
-      net->nf.nf_loggers[pf] = NULL
-
-                                        lock nf_log_mutex
-                                        find logger in loggers[][]
-                                        net->nf.nf_loggers[pf] = logger
-                                        unlock nf_log_mutex
-
-  nf_log_unregister(logger)
-    lock nf_log_mutex
-    loggers[pf][type] = NULL
-    unlock nf_log_mutex
-    synchronize_rcu()
-  module exit returns
-  module core frees backend memory
-
-Later, a sysctl read or nf_log_packet() reads net->nf.nf_loggers[pf]
-and dereferences the stale logger.
-
-nf_log_unregister() only removes the backend from the global logger
-table. It does not clear matching net->nf.nf_loggers[] entries that were
-rebound by CPU 1 after per-net teardown. Once module unload completes,
-those per-net pointers can still reference static data from the unloaded
-logger backend, and later readers can dereference freed module memory.
-
-The kernel reported:
-
-  BUG: unable to handle page fault for address: fffffbfff806d2f4
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  Oops: Oops: 0000 [#1] SMP KASAN NOPTI
-  RIP: 0010:nf_log_proc_dostring+0x2aa/0x4d0
-  Call Trace:
-   proc_sys_call_handler+0x325/0x540
-   vfs_read+0x6e1/0xa20
-   ksys_read+0xf7/0x1c0
-   do_syscall_64+0xf9/0x520
-  Modules linked in: [last unloaded: nf_log_syslog]
-
-Fix this by clearing matching per-net logger selections in every live
-network namespace while holding nf_log_mutex after removing the global
-registrations. Writers that run before this pass are covered by the
-per-net clears, and writes that run later can no longer find the logger
-in loggers[][]. The existing synchronize_rcu() then covers readers of
-both the global and per-net pointers before module memory is released.
-
-Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 ---
- net/netfilter/nf_log.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+netfilter: x_tables: remove pr_debug
 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index f4d80654dfe6..442c69f544a1 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -42,6 +42,18 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
- 	return NULL;
- }
- 
-+static void __nf_log_unset(struct net *net, const struct nf_logger *logger)
-+{
-+	const struct nf_logger *log;
-+	int i;
-+
-+	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
-+		log = nft_log_dereference(net->nf.nf_loggers[i]);
-+		if (log == logger)
-+			RCU_INIT_POINTER(net->nf.nf_loggers[i], NULL);
-+	}
-+}
-+
- int nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
- {
- 	const struct nf_logger *log;
-@@ -62,15 +74,8 @@ EXPORT_SYMBOL(nf_log_set);
- 
- void nf_log_unset(struct net *net, const struct nf_logger *logger)
- {
--	int i;
--	const struct nf_logger *log;
--
- 	mutex_lock(&nf_log_mutex);
--	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
--		log = nft_log_dereference(net->nf.nf_loggers[i]);
--		if (log == logger)
--			RCU_INIT_POINTER(net->nf.nf_loggers[i], NULL);
--	}
-+	__nf_log_unset(net, logger);
- 	mutex_unlock(&nf_log_mutex);
- }
- EXPORT_SYMBOL(nf_log_unset);
-@@ -112,6 +117,7 @@ EXPORT_SYMBOL(nf_log_register);
- void nf_log_unregister(struct nf_logger *logger)
- {
- 	const struct nf_logger *log;
-+	struct net *net;
- 	int i;
- 
- 	mutex_lock(&nf_log_mutex);
-@@ -120,6 +126,10 @@ void nf_log_unregister(struct nf_logger *logger)
- 		if (log == logger)
- 			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
- 	}
-+	rcu_read_lock();
-+	for_each_net_rcu(net)
-+		__nf_log_unset(net, logger);
-+	rcu_read_unlock();
- 	mutex_unlock(&nf_log_mutex);
- 	synchronize_rcu();
- }
--- 
-2.43.0
+This drops the pr_debug() calls from a set of xtables matches and
+targets, and converts the ones in the .check paths into
+pr_info_ratelimited() so that legacy iptables users get a hint in dmesg
+when a rule is rejected.
+
+A few observations below.
+
+> diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+> index 6d1a5d2026a67..37c207d3152a4 100644
+> --- a/net/ipv6/netfilter/ip6t_hbh.c
+> +++ b/net/ipv6/netfilter/ip6t_hbh.c
+
+[ ... ]
+
+> @@ -166,16 +144,16 @@ static int hbh_mt6_check(const struct xt_mtchk_param *par)
+>  	const struct ip6t_opts *optsinfo = par->matchinfo;
+>  
+>  	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
+> -		pr_debug("unknown flags %X\n", optsinfo->invflags);
+> +		pr_info_ratelimited("unknown flags %X\n", optsinfo->invflags);
+>  		return -EINVAL;
+>  	}
+>  	if (optsinfo->optsnr > IP6T_OPTS_OPTSNR) {
+> -		pr_debug("too many supported opts specified\n");
+> +		pr_info_ratelimited("too many supported opts specified\n");
+>  		return -EINVAL;
+>  	}
+>  
+>  	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
+> -		pr_debug("Not strict - not implemented");
+> +		pr_info_ratelimited("Not strict - not implemented");
+>  		return -EINVAL;
+>  	}
+
+[Severity: Low]
+Should this string get a trailing newline like its two siblings in
+hbh_mt6_check()?
+
+The missing '\n' was harmless while this was pr_debug() (compiled out or
+dynamic-debug gated), but as an unconditional pr_info_ratelimited() the
+record is left open for continuation:
+
+kernel/printk/printk.c:printk_sprint() {
+	/* Mark and strip a trailing newline. */
+	if (text_len && text[text_len - 1] == '\n') {
+		text_len--;
+		*flags |= LOG_NEWLINE;
+	}
+}
+
+kernel/printk/printk.c:vprintk_store() {
+	/* A message without a trailing newline can be continued. */
+	if (!(flags & LOG_NEWLINE))
+		prb_commit(&e);
+	else
+		prb_final_commit(&e);
+}
+
+So an iptables-legacy rule with IP6T_OPTS_NSTRICT set produces a dmesg
+line that gets glued to whatever is printed next, which works against the
+"hint via dmesg" goal in the changelog.
+
+The same missing '\n' appears in three more of the converted strings, noted
+below.
+
+> diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+> index 278b52752f364..0c01ac2746d1f 100644
+> --- a/net/ipv6/netfilter/ip6t_rt.c
+> +++ b/net/ipv6/netfilter/ip6t_rt.c
+> @@ -155,18 +155,18 @@ static int rt_mt6_check(const struct xt_mtchk_param *par)
+>  	const struct ip6t_rt *rtinfo = par->matchinfo;
+>  
+>  	if (rtinfo->invflags & ~IP6T_RT_INV_MASK) {
+> -		pr_debug("unknown flags %X\n", rtinfo->invflags);
+> +		pr_info_ratelimited("unknown flags %X\n", rtinfo->invflags);
+>  		return -EINVAL;
+>  	}
+>  	if (rtinfo->addrnr > IP6T_RT_HOPS) {
+> -		pr_debug("too many addresses specified\n");
+> +		pr_info_ratelimited("too many addresses specified\n");
+>  		return -EINVAL;
+>  	}
+>  	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
+>  	    (!(rtinfo->flags & IP6T_RT_TYP) ||
+>  	     (rtinfo->rt_type != 0) ||
+>  	     (rtinfo->invflags & IP6T_RT_INV_TYP))) {
+> -		pr_debug("`--rt-type 0' required before `--rt-0-*'");
+> +		pr_info_ratelimited("`--rt-type 0' required before `--rt-0-*'");
+>  		return -EINVAL;
+>  	}
+
+[Severity: Low]
+Same question here in rt_mt6_check(): the two messages above it end in
+'\n' but this one does not, so a rule with IP6T_RT_RES or IP6T_RT_FST_MASK
+and rt_type != 0 leaves the record un-terminated.
+
+> diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+> index bfcf2d44e93db..15b698ea98aa6 100644
+> --- a/net/netfilter/xt_IDLETIMER.c
+> +++ b/net/netfilter/xt_IDLETIMER.c
+
+[ ... ]
+
+> @@ -171,7 +168,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+>  
+>  	ret = sysfs_create_file(idletimer_tg_kobj, &info->timer->attr.attr);
+>  	if (ret < 0) {
+> -		pr_debug("couldn't add file to sysfs");
+> +		pr_info_ratelimited("couldn't add file to sysfs");
+>  		goto out_free_attr;
+>  	}
+
+[Severity: Low]
+Would it be worth adding the '\n' here in idletimer_tg_create() too?  This
+one is reached from idletimer_tg_checkentry() when sysfs_create_file()
+fails, and the other strings converted in this file
+("timeout value is zero\n", "label is empty or not nul-terminated\n") are
+newline terminated.
+
+> @@ -220,7 +217,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+>  
+>  	ret = sysfs_create_file(idletimer_tg_kobj, &info->timer->attr.attr);
+>  	if (ret < 0) {
+> -		pr_debug("couldn't add file to sysfs");
+> +		pr_info_ratelimited("couldn't add file to sysfs");
+>  		goto out_free_attr;
+>  	}
+
+[Severity: Low]
+And the second copy of the same string, in idletimer_tg_create_v1(),
+reached from idletimer_tg_checkentry_v1().
+
+[ ... ]
+
+> @@ -534,7 +490,7 @@ static int __init idletimer_tg_init(void)
+>  	idletimer_tg_class = class_create("xt_idletimer");
+>  	err = PTR_ERR(idletimer_tg_class);
+>  	if (IS_ERR(idletimer_tg_class)) {
+> -		pr_debug("couldn't register device class\n");
+> +		pr_info_ratelimited("couldn't register device class\n");
+>  		goto out;
+>  	}
+>  
+> @@ -542,7 +498,7 @@ static int __init idletimer_tg_init(void)
+>  					    MKDEV(0, 0), NULL, "timers");
+>  	err = PTR_ERR(idletimer_tg_device);
+>  	if (IS_ERR(idletimer_tg_device)) {
+> -		pr_debug("couldn't register system device\n");
+> +		pr_info_ratelimited("couldn't register system device\n");
+>  		goto out_class;
+>  	}
+>  
+> @@ -551,7 +507,7 @@ static int __init idletimer_tg_init(void)
+>  	err = xt_register_targets(idletimer_tg, ARRAY_SIZE(idletimer_tg));
+>  
+>  	if (err < 0) {
+> -		pr_debug("couldn't register xt target\n");
+> +		pr_info_ratelimited("couldn't register xt target\n");
+>  		goto out_dev;
+>  	}
+
+[Severity: Low]
+The changelog says:
+
+    Still, turn pr_debug() into pr_info_ratelimited() in the .check
+    path since this helps provide a hint via dmesg in legacy iptables.
+
+These three conversions are in idletimer_tg_init(), which is __init and not
+an xtables checkentry callback, so they fall outside the ".check path"
+described above.
+
+Were these intended?  Ratelimiting can never trigger on a one-shot module
+init failure, and pr_err() would be the usual level for class_create(),
+device_create() and xt_register_targets() failing.
+
+> diff --git a/net/netfilter/xt_NETMAP.c b/net/netfilter/xt_NETMAP.c
+> index cb2ee80d84fa8..8c86d9a43373a 100644
+> --- a/net/netfilter/xt_NETMAP.c
+> +++ b/net/netfilter/xt_NETMAP.c
+> @@ -106,11 +106,11 @@ static int netmap_tg4_check(const struct xt_tgchk_param *par)
+>  	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+>  
+>  	if (!(mr->range[0].flags & NF_NAT_RANGE_MAP_IPS)) {
+> -		pr_debug("bad MAP_IPS.\n");
+> +		pr_info_ratelimited("bad MAP_IPS.\n");
+>  		return -EINVAL;
+>  	}
+>  	if (mr->rangesize != 1) {
+> -		pr_debug("bad rangesize %u.\n", mr->rangesize);
+> +		pr_info_ratelimited("bad rangesize %u.\n", mr->rangesize);
+>  		return -EINVAL;
+>  	}
+>  	return nf_ct_netns_get(par->net, par->family);
+
+[Severity: Low]
+Do these new messages need a pr_fmt() in this file to be identifiable?
+
+xt_NETMAP.c and xt_REDIRECT.c do not define pr_fmt(), so the fallback in
+include/linux/printk.h applies:
+
+	#define pr_fmt(fmt) fmt
+
+while the peer site does define one:
+
+net/netfilter/xt_MASQUERADE.c:
+	#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+and prints the byte-identical strings "bad MAP_IPS." and
+"bad rangesize %u".  The result is that MASQUERADE reports
+"xt_MASQUERADE: bad MAP_IPS." while NETMAP and REDIRECT report a bare
+"bad MAP_IPS.", so dmesg no longer says which target rejected the rule.
+With pr_debug() the dynamic debug machinery supplied module, file and
+function, so this did not matter before.
+
+> diff --git a/net/netfilter/xt_REDIRECT.c b/net/netfilter/xt_REDIRECT.c
+> index ff66b56a3f97d..27bc0545c4f74 100644
+> --- a/net/netfilter/xt_REDIRECT.c
+> +++ b/net/netfilter/xt_REDIRECT.c
+> @@ -51,11 +51,11 @@ static int redirect_tg4_check(const struct xt_tgchk_param *par)
+>  	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+>  
+>  	if (mr->range[0].flags & NF_NAT_RANGE_MAP_IPS) {
+> -		pr_debug("bad MAP_IPS.\n");
+> +		pr_info_ratelimited("bad MAP_IPS.\n");
+>  		return -EINVAL;
+>  	}
+>  	if (mr->rangesize != 1) {
+> -		pr_debug("bad rangesize %u.\n", mr->rangesize);
+> +		pr_info_ratelimited("bad rangesize %u.\n", mr->rangesize);
+>  		return -EINVAL;
+>  	}
+>  	return nf_ct_netns_get(par->net, par->family);
+
+[Severity: Low]
+Same for redirect_tg4_check() in xt_REDIRECT.c, which also has no pr_fmt()
+definition.
