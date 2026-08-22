@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B3A933509B;
-	Sat, 22 Aug 2026 19:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC5535C6B3;
+	Sat, 22 Aug 2026 19:52:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787428351; cv=none; b=UpuQ79+FWof34L3aKkrP/I/ds2Xu89JoX9SQPe9UE28jQed+A/olN4Ktfh96YgCoB9LYXXq54+TGaNeQn42ArIO7ZLkdOs23TpCcbyK89j2zTk2U8hkQT/8RFzWAjiYdxw7LwxNia3MYKAyQcKTU0DHPqIq8x/G8GL8hZ8m3zp4=
+	t=1787428352; cv=none; b=WJKesHDPNSw9dTOcUhPY2uHvTFu8y4BzE+WOpSW1HIxA5bxMuAmQv4ZU2KSofr87xl95Dat+qt22YMRy73jJHpz5jSTTgP9dNYW1S6jI83CrrBCDNuoVX3gPAJ+5FriMtpvX9FuWlqKmiR+krCEd1IXsavvzUkBYXhtbsTWIxhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787428351; c=relaxed/simple;
-	bh=fbqjlq/oRv8id+yKRqwSGqwvTNNBwD+1Ik2oSTIEEd8=;
+	s=arc-20240116; t=1787428352; c=relaxed/simple;
+	bh=DDSQG0YTmPN70vhZ5heV8FldIgtoTMseXM/RPgNLpzI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LJzcpI010vXM4KIMTf+UcC/LHAVIaFcAgmm7zNhCV7raJzv0mIKssqppXJusFEW+PGhSKo686gbzqOaS2kGs6il3FDpiGB4+KjD2UciLGkbG+4Lx1p7PJ1GG+dtnuYZzIl0qiSOC65jp0rRTNlco4vDNgGAgWPVf94/GnlvlEyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NZlAJ+0w; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=lBTh7KvAt/v2TW6pLBxfn80M2IecIr5XWDs2W5AuYF/WUjD+ZGBJhNQM1DfrKTTxc+6flJ58IgSvXzZDDzjjTR2w/0OXheBJ5axVRXnq3hJJAUcA0P9kcwmQ55s1V/KDba66hsK7CWa5AkTyyMTGYNYGOFHXpHkT0rT15IUfHGI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kewWpmXr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NZlAJ+0w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 879AA1F00A3A;
-	Sat, 22 Aug 2026 19:52:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kewWpmXr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95ABA1F000E9;
+	Sat, 22 Aug 2026 19:52:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787428349;
-	bh=1y/Ij/7CBNXG9SnFyyOZBy8FkjITm7Iy9qRrD7huDyo=;
+	s=k20260515; t=1787428350;
+	bh=6iEer5yYBqesO3j/DLpaZgcrBEZ9aOZfrMNyVlTbvp4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=NZlAJ+0w1b5DX27yxKcXkR6RY0ZytKR5mGCDDD6dGIoogokeK09OF01Ej0TQJZKzA
-	 k2ATLmLmOBXpK18ReCAjqNN2CYRb/2qjH2AnZJzI97sK9D6fny9C5jAFlW416s/wup
-	 IhxAZFWRVvQtr3imLG5vXz+98GQGxLn6QJW7hgS99BP8ZtADxJ0Yb6kM7VEIa+VADa
-	 uoBpWffBPxI0vzrhBcXVceU9uVAPviK87aKmGhZpuosUJ34Bk4vRabxy2TEgY7chkg
-	 M9X2G513NVh2+WHCUdukGit9im4Rvp1EDBMiArtZEfgjA0NSc5YedYfjwqmAyHZc7o
-	 7UOC02c6Ecfjg==
+	b=kewWpmXrzBOO0rGRmYwRWq4Cq5vrxjGhUV7VNcilbr8VXL8vcoHWaDD3FNwz6/xSN
+	 h7tYieYZDdR8ansxgCOAKzNT5B5afXwgU0BOPT3Jg5KN4JwzPC0htaoy7B67/XTIot
+	 gvhc7GnTYkbY2fv1ECgUWICkbnye3OCLgKY4BpPNnDaSu019/LmcSLlYFs/iOazsFw
+	 qGvH8KioFyjjlypcemvGNpbnLdczDI2FjFzOY++anoxgj6mz5KK75Q2dcCQrFy7nML
+	 /SW97Wll+C8yHqX2rrR69Uz+U7dxVK2/Am31y5h2xTSg8CFYzTkUfpdw0Gxs21Fv7L
+	 fxkHWlT4qu+Fg==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net 07/10] netfilter: nf_tables: skip double clone set expressions on element insert
-Date: Sat, 22 Aug 2026 12:52:28 -0700
-Message-ID: <20260822195228.2202729-1-kuba@kernel.org>
+Subject: Re: [PATCH net 08/10] netfilter: nf_tables: fix device name and prefix match in hook lookup
+Date: Sat, 22 Aug 2026 12:52:30 -0700
+Message-ID: <20260822195230.2202763-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260821153833.245589-8-pablo@netfilter.org>
-References: <20260821153833.245589-8-pablo@netfilter.org>
+In-Reply-To: <20260821153833.245589-9-pablo@netfilter.org>
+References: <20260821153833.245589-9-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,87 +54,144 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: nf_tables: skip double clone set expressions on element insert
+netfilter: nf_tables: fix device name and prefix match in hook lookup
 
-This adds an override_exprs flag so that the dynset and newsetelem paths
-borrow the set's expressions instead of cloning them when userspace does
-not supply an override, and releases the expression array only when it
-really is an override.  The same flag is now used to decide whether the
-dynset expression override is dumped back to userspace.
+This changes nft_hook_list_find() so a hook spec only matches another
+spec of the same kind (prefix vs exact name) and the same length,
+replacing the previous strncmp() over min(hook->ifnamelen,
+this->ifnamelen).  hook_is_prefix() also gains a const argument.
 
-> diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-> index ee9d3e7b1ecf1..fa4da694e92d8 100644
-> --- a/net/netfilter/nft_dynset.c
-> +++ b/net/netfilter/nft_dynset.c
-> @@ -19,7 +19,8 @@ struct nft_dynset {
->  	u8				sreg_key;
->  	u8				sreg_data;
->  	bool				invert;
-> -	bool				expr;
-> +	bool				expr:1,
-> +					override_exprs:1;
->  	u8				num_exprs;
->  	u64				timeout;
->  	struct nft_expr			*expr_array[NFT_SET_EXPR_MAX];
+Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
+
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 20c562174b278..d160f6ea0dc29 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
 
 [ ... ]
 
-> @@ -393,7 +398,7 @@ static int nft_dynset_dump(struct sk_buff *skb,
->  			 nf_jiffies64_to_msecs(priv->timeout),
->  			 NFTA_DYNSET_PAD))
->  		goto nla_put_failure;
-> -	if (priv->set->num_exprs == 0) {
-> +	if (priv->set->num_exprs == 0 || priv->override_exprs) {
->  		if (priv->num_exprs == 1) {
->  			if (nft_expr_dump(skb, NFTA_DYNSET_EXPR,
->  					  priv->expr_array[0], reset))
+> @@ -2445,8 +2445,11 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+>  	struct nft_hook *hook;
+>  
+>  	list_for_each_entry(hook, hook_list, list) {
+> -		if (!strncmp(hook->ifname, this->ifname,
+> -			     min(hook->ifnamelen, this->ifnamelen))) {
+> +		if (hook_is_prefix(hook) != hook_is_prefix(this))
+> +			continue;
+> +		if (hook->ifnamelen != this->ifnamelen)
+> +			continue;
+> +		if (!strncmp(hook->ifname, this->ifname, hook->ifnamelen)) {
+>  			if (hook->flags & NFT_HOOK_REMOVE)
+>  				continue;
+>  
 
-[Severity: Medium]
-Can the message emitted by nft_dynset_dump() after this change be rejected
-by nft_dynset_init() when it is replayed?
+[Severity: Critical]
+nft_hook_list_find() has two callers with different expectations, and this
+turns it into a pure identity comparator for both.  The delete/get paths
+(nf_tables_delchain_hook(), nft_flowtable_del_hook()) want identity, but
+the add paths use it as an overlap rejector:
 
-With the widened condition, a dynset attached to a set that owns
-expressions (set->num_exprs > 0) now dumps its override.  For
-priv->num_exprs > 1 that override is emitted as an NFTA_DYNSET_EXPRESSIONS
-nest:
+nf_tables_parse_netdev_hooks()
+	if (nft_hook_list_find(hook_list, hook)) {
+		NL_SET_BAD_ATTR(extack, tmp);
+		nft_netdev_hook_free(hook);
+		err = -EEXIST;
+		goto err_hook;
+	}
 
-net/netfilter/nft_dynset.c:nft_dynset_dump() {
-	...
-	u32 flags = priv->invert ? NFT_DYNSET_F_INV : 0;
-	...
-	} else if (priv->num_exprs > 1) {
-		struct nlattr *nest;
+and the same in nf_tables_updchain(), nft_register_flowtable_net_hooks()
+and nft_flowtable_update().
 
-		nest = nla_nest_start_noflag(skb, NFTA_DYNSET_EXPRESSIONS);
-	...
-	if (nla_put_be32(skb, NFTA_DYNSET_FLAGS, htonl(flags)))
-	...
-}
+The Fixes-referenced commit 6d07a289504a states the min() compare was
+deliberate: "When checking for duplicate hooks, compare the shortest
+prefix so a device may never match more than a single hook spec."  Does
+this change intentionally drop that invariant?
 
-The dumped NFTA_DYNSET_FLAGS is computed only from priv->invert, so
-NFT_DYNSET_F_EXPR is never set, even though priv->expr records that
-userspace passed it at creation time.  On the parse side the
-NFTA_DYNSET_EXPRESSIONS branch requires that flag:
+Concretely, is this still rejected after the patch?
 
-net/netfilter/nft_dynset.c:nft_dynset_init() {
-	...
-	} else if (tb[NFTA_DYNSET_EXPRESSIONS]) {
+  nft add chain netdev t c \
+    '{ type filter hook ingress devices = { "eth*", "eth0" } ; }'
+
+Before, prefix "eth" (ifnamelen 3) and exact "eth0" (ifnamelen 5) matched
+via strncmp(..., min(3, 5)) and gave -EEXIST.  Now
+hook_is_prefix(hook) != hook_is_prefix(this) short-circuits, so both hooks
+end up in the same hook_list.  Prefix "eth" versus prefix "eth0" is
+likewise separated by the ifnamelen compare.
+
+nft_netdev_hook_alloc() then builds one nf_hook_ops per matching netdev
+per hook:
+
+	for_each_netdev(net, dev) {
+		if (strncmp(dev->name, hook->ifname, hook->ifnamelen))
+			continue;
 		...
-		if (!priv->expr)
-			return -EINVAL;
+		ops->dev = dev;
+		list_add_tail(&ops->list, &hook->ops_list);
+	}
+
+so two distinct nft_hook objects each own an ops with ops->dev == eth0,
+and nft_netdev_register_hooks() registers both.  nf_hook_entries_grow()
+only rejects duplicates for NF_HOOK_OP_BPF, so both land in
+eth0->nf_hooks_ingress and the base chain is evaluated twice per packet.
+For flowtables the cross-flowtable -EEXIST guard in
+nft_register_flowtable_net_hooks() is bypassed the same way, so the same
+device gets two FLOW_BLOCK_BIND calls.
+
+Can this also leave a dangling struct net_device pointer?  Both notifier
+loops service only the first hook that owns an ops for the device, because
+of the unconditional break after the switch:
+
+net/netfilter/nft_chain_filter.c:nft_netdev_event() {
+	list_for_each_entry(hook, &basechain->hook_list, list) {
+		ops = nft_hook_find_ops(hook, dev);
+		...
+		switch (event) {
+		case NETDEV_UNREGISTER:
+			...
+			nf_unregister_net_hook(dev_net(dev), ops);
+			list_del_rcu(&ops->list);
+			kfree_rcu(ops, rcu);
+			break;
+		...
+		}
+		break;
+	}
+	return 0;
+}
+
+nft_flowtable_event() in nf_tables_api.c has the same trailing break.  On
+ip link del eth0 only the first hook's ops is unregistered and freed; the
+second hook keeps a registered nf_hook_ops whose ops->dev points at the
+device that is then freed, since nf_hook_ops holds no device reference.
+
+A later teardown (nft delete chain, nft delete table, dormant toggle,
+netns exit) walks every ops:
+
+net/netfilter/nf_tables_api.c:nft_netdev_unregister_hooks() {
+	list_for_each_entry_safe(hook, next, hook_list, list) {
+		if (!(table->flags & NFT_TABLE_F_DORMANT)) {
+			list_for_each_entry(ops, &hook->ops_list, list)
+				nf_unregister_net_hook(net, ops);
+		}
 	...
 }
 
-So a rule with two override expressions on an NFT_SET_EVAL set that also
-has two set expressions (for example counter plus quota) appears to be
-dumped in a form that the kernel's own parser refuses with -EINVAL when the
-netlink message is sent back (raw netlink echo, or libnftnl parse-then-build
-restore paths).  Before this patch that configuration emitted no expression
-attributes at all, so the replay was accepted and silently fell back to the
-set's expressions.
+and __nf_unregister_net_hook() reaches nf_hook_entry_head(net, pf,
+reg->hooknum, reg->dev), which does dev_net(dev) and returns
+&dev->nf_hooks_ingress, i.e. a read and then a write through the stale
+pointer.  For flowtables, nft_unregister_flowtable_ops() additionally
+calls ->setup(..., ops->dev, FLOW_BLOCK_UNBIND) on the freed device.  The
+orphaned nf_hook_entries blob is also leaked.
 
-The missing NFT_DYNSET_F_EXPR in the dump path predates this patch (it is
-already reachable for priv->set->num_exprs == 0 with more than one
-expression), but the new condition extends the asymmetry to
-override-on-eval-set rules that used to round-trip.  Should
-nft_dynset_dump() also report NFT_DYNSET_F_EXPR when priv->expr is set?
+On NETDEV_REGISTER the same break means only one of two covering hooks
+gains an ops, so the other stays permanently unhooked.
+
+Would it work to keep the strict identity match only for the
+delete/update lookups and retain the prefix-overlap semantics for the
+add/-EEXIST paths, e.g. as two separate helpers?  Alternatively, should
+the unconditional break in nft_netdev_event() and nft_flowtable_event()
+be dropped so every matching hook is serviced?
+
+The commit message describes only the delete/update lookup semantics; the
+fact that configurations previously rejected with -EEXIST are now
+accepted is not mentioned.  Could that be spelled out?
