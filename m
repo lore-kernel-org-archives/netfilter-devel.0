@@ -1,51 +1,50 @@
 Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574543806AD;
-	Sat, 22 Aug 2026 21:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E505391E4E;
+	Sat, 22 Aug 2026 21:40:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787433009; cv=none; b=hDjcTKjDjXwLH4elIG7mqaWk3Xsr/XRDvmMHYF+lz7ym6dG52+mRTmL9mCR29FSzZBkSLpviTJRba46ZFtVJQO8IMqIrPqalzSm2/btlQ9kmEJeuV52wPkvp5hr7cufPrTPqOT3r8O3u9lSHbkoQs4MFHtohT3FFPyaqNPyNMvs=
+	t=1787434857; cv=none; b=keT7YU/pFNSJrGhFrIVvJr7q/xOPdN4Opc/k+xyCoNKw12t4+Qu/0pneEsac57xYOg3ihmWg03zlLu9noMGi/rdRZ+dE7vTnmKa4ZW1wl+15ByNq0Erm6CLl7FYY2Qld7+Z84e4op3Pc6Inidr8Tdtwk6Mf9QIqayRXQf7ifVSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787433009; c=relaxed/simple;
-	bh=KgMG14rJzYNAPdkqdc/7hpNJMhpNCZOeJSw3p41Ibig=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=XVyxTpEB8IPQVRapRg6k9gDDUnI+9dcRmS/EJfbmciv3ifkIujkQnsdwrAM+S1VuBgyU5ZqIT1BoR6b3ljPRQRptkLlBAQMqkSnSkaiQKa4qz1lwnLdonIVV7QNjQdBl7M3mA8OOSKjXz8RcGWUTm7BHR0nLzYpaBjZppyJXLU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=IlVRaI0a; arc=none smtp.client-ip=51.159.188.251
+	s=arc-20240116; t=1787434857; c=relaxed/simple;
+	bh=A4s3UTiN8VWGIBo1FYs2EtBsQgxLARFTAbxUCm64UX0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=L8p//ljvtNsEiFTizdeEjDD/ccA5uAqJtB3gbkusvtRSttpnAxwjmQtXbFufL7NaZFmBf/rh4v/XXol2j+vOtmNlilAcczyzGROslBZM6SozhN5r5t9up1Ghzc5nFSPG78pnRwsFHi33lZZzwoIRATQiwMctBZl0rBUr4pN+LS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=qJGGTUFF; arc=none smtp.client-ip=51.159.188.251
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="IlVRaI0a"
+	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="qJGGTUFF"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
 	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
 	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=F9fPZhNohuA0JOQgrOmi2L2GIR7rpgyy1St6QvWxGlM=; b=IlVRaI0aObrKY+vOmNgCHiXM9v
-	KcQx5d86IBU2ePAYMEShJg53/m2FJ67NzIf2KkSP6tpP9s8o7u0BJ4dTGRbaIwMUeqvvb62IHSB/8
-	RiRLT9OQC4fyp1xO8BY86MkSnjjG5PkaleTfnPeTe4cHla511igXStB137gojWgIj/4/YeKHTj39/
-	cqQQdKpWysIaIMHv5RctDz70f3q0T41DL2TA3HqKHQdrpGinJ89jPaNQIhgXdGGcDD0YGWpW/rfxG
-	hVv7Kpi4piBByYZ+Kqf2pb6L4ZPMRTLExsRHneWYnjbcYx8oBCDdZge23/Kwbji/kzewoGQ73eEQZ
-	91Oew7IA==;
-Received: from [151.115.150.205] (port=39662 helo=gepetto..)
+	bh=n1plMMyIhqZm/1yY+TGu5dN1ZmuNrYf+7MNQAinowsc=; b=qJGGTUFFipHSWjsTvTm2mzx9XT
+	Ak4DMmV8BrSHIfhr4Hcc79mcIFFAvOWcmQhJYPfIty6qQ1sH8lYHYNcAcva5NLc/taedBhpahyHce
+	yO2dpI+V5BJV/11U6od6E0GGu2olLpX52DQNDbwkfxv44yfbDSKdL+zq4dVHgcaNp/TXKIdHufSg5
+	kx5lP7yWNs6HIK9P3p/DzEyrqk7h082WgXCrvEK+6GUZ2MKwBmzJ1hjnyNvdawdvr0IDb7q9ClDLQ
+	LemTi96PnhEXQDgW2b9E8NjqkV0gB5eM6ZqUDK5SBJBYHCxSZk9Yh2+LGV/pu6KJZCTiAUEq0wGdM
+	zZW+KqvQ==;
+Received: from [151.115.150.205] (port=44306 helo=gepetto..)
 	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.99.5)
 	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1wxsyb-00000002OEp-2AlV;
-	Sat, 22 Aug 2026 23:10:04 +0200
+	id 1wxtSI-00000002nXQ-3dlV;
+	Sat, 22 Aug 2026 23:40:45 +0200
 From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-To: pablo@netfilter.org,
-	fw@strlen.de
-Cc: phil@nwl.cc,
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org,
 	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-Subject: [PATCH] netfilter: bpf: disallow conntrack kfuncs for token programs
-Date: Sat, 22 Aug 2026 21:09:46 +0000
-Message-ID: <20260822210945.1003967-2-Jeremy.Jean@oss.cyber.gouv.fr>
+Subject: [PATCH] netfilter: nf_conntrack: avoid truncating IPv6 nexthdr offset
+Date: Sat, 22 Aug 2026 21:40:13 +0000
+Message-ID: <20260822214012.1028305-2-Jeremy.Jean@oss.cyber.gouv.fr>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -66,59 +65,40 @@ X-Source:
 X-Source-Args: 
 X-Source-Dir: 
 
-BPF tokens delegate BPF and network-admin capability checks to the token
-owning user namespace. Conntrack kfuncs nevertheless accept a network
-namespace ID relative to the program context without checking whether the
-token has authority over the resolved namespace.
+find_prev_fhdr() returns the offset of the Next Header field before an IPv6
+Fragment header through an int pointer, but stores the offset in a u8 local.
+An extension header chain can put this field beyond byte 255, causing the
+offset to wrap before it is saved in the fragment queue.
 
-An XDP program attached to a veth in a child network namespace can use
-the peer namespace ID for init_net. bpf_xdp_ct_alloc() then allocates an
-entry in init_net, bpf_ct_insert_entry() publishes it, and the lookup and
-mutation kfuncs can subsequently access that host state.
+Reassembly later uses the wrapped value to update the preceding Next Header
+field.  This overwrites another byte in the IPv6 header chain and can make
+conntrack parse a different transport tuple from the one used by IPv6 local
+delivery.  A two-fragment packet can, for example, be recorded as UDP
+destination port 53 while its payload is delivered to UDP port 9999.
 
-The verifier retains the token in prog->aux, but it cannot determine the
-runtime namespace selected through bpf_ct_opts. Conservatively reject the
-conntrack kfunc set for token-loaded programs. The kfunc interface is
-explicitly unstable, and ordinary token-authorized XDP programs remain
-available.
+Use int for the working offset, matching the output argument and the other
+offset variables in this path.
 
-Fixes: caf8f28e036c ("bpf: Add BPF token support to BPF_PROG_LOAD command")
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
 Assisted-by: Codex:gpt-5
 Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
 ---
- net/netfilter/nf_conntrack_bpf.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index c2df7c9..4075ee1 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -532,9 +532,24 @@ BTF_ID_FLAGS(func, bpf_ct_set_status)
- BTF_ID_FLAGS(func, bpf_ct_change_status)
- BTF_KFUNCS_END(nf_ct_kfunc_set)
- 
-+static int nf_conntrack_kfunc_filter(const struct bpf_prog *prog, u32 kfunc_id)
-+{
-+	/*
-+	 * Conntrack kfuncs accept a netns ID relative to the program context.
-+	 * The verifier cannot determine which user namespace owns that target.
-+	 * Do not let a token delegate authority over arbitrary peer netns state.
-+	 */
-+	if (prog->aux->token &&
-+	    btf_id_set8_contains(&nf_ct_kfunc_set, kfunc_id))
-+		return -EACCES;
-+
-+	return 0;
-+}
-+
- static const struct btf_kfunc_id_set nf_conntrack_kfunc_set = {
- 	.owner = THIS_MODULE,
- 	.set   = &nf_ct_kfunc_set,
-+	.filter = nf_conntrack_kfunc_filter,
- };
- 
- int register_nf_conntrack_bpf(void)
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 599c49bf0a0a..be72c4346f8b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -398,7 +398,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ {
+ 	u8 nexthdr = ipv6_hdr(skb)->nexthdr;
+ 	const int netoff = skb_network_offset(skb);
+-	u8 prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
++	int prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
+ 	int start = netoff + sizeof(struct ipv6hdr);
+ 	int len = skb->len - start;
+ 	u8 prevhdr = NEXTHDR_IPV6;
 -- 
 2.47.3
-
 
