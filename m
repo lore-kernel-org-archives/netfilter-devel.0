@@ -1,125 +1,211 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD84A3AD524;
-	Sat, 22 Aug 2026 16:57:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE9023AE87
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 18:47:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787417877; cv=none; b=PWZICcON09mlh5yYX/YH6fC62fZRhJtCWPtdvTy44GHSe1jyAaEBJg1ci3BLCBE9fdahUicl7fXZMCuFoto6zifmgPZDEX38vqKFRaOCqhHiqUU92trMf3l93bcCoHOObgOgBpNKmDG613M70t99z/L0chXIoAaeeaD1SLlBeas=
+	t=1787424439; cv=none; b=N3X/bC7Q6BDVY6T0DXD0DDwxpc4+9Yw6dyZ3RvTmQ/7G8sCfQjHW+cuqG3Fcgvjnobnq5BKiWPHp/mktEpfj4k/M4t41R/Wx098NES1kjplCKDRW2itFBPCVanM2mkPSpNMF2KpMedLWKajqPlxUXwaikLX22IWCJ9m3wNTOkoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787417877; c=relaxed/simple;
-	bh=ZyUMEwGyn3c46u0NkjvE6TPVTBK/Rka0z+HlcRnaztA=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=qLYInuKIw+SQfQQdUEA6QJ5BE9lNUnohz34zWlmlq6GoA+Ss2Ip8jEdG+6MV+qa4FuG6nZ/t5rSgIsVxGFCr7v8zekAjK6GxXLVbL32Ftv72AZp8uf+YK6K/dKQ3RqGrH/ut64Nho4GM7YWorUyfW7ZZU4yLtlIXAyo4N+SXkgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=ZbJz80fF; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1787424439; c=relaxed/simple;
+	bh=5G43uPiVL/j+Dzwm9QTc44uc3K3VaXP56vy3ld8EoOE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=igyXz07yluaCuoDTfXptBrJ3Ruj/UHwtENCrxlqVdvponNW5iQldkLgwbMwKX1W9ZMo/h2DwMFwfZ4qNfjXgyF3vR9GmR1KZydHnZDH/PnBMRP6Qa0vM9e3A0y7vmXtBzKPHZm4Xtt93TOssy1P9uzoM5kVwdplyCdnKysEgpDU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OfMgf1F+; arc=none smtp.client-ip=209.85.210.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="ZbJz80fF"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=yYKcqboW2hgBCm128jlsW+fEFCrg/+/6fC0pPe2118M=; b=ZbJz80fFfEN7nkrQcV8gZZ+oUE
-	hK4b5lCtnutJj1yjrMLG1BeMt0eRSLfkdrmKM4eHnKGLezlJuWTp5PE4Yk5I8WwkhFUD/NLwoWW4n
-	Kgoi6umxhGYQrdvfuOl1eQJfSB2LqC2y7kE7ojq4xPJnthVMSJ1B/QHaWoEf/g77lioyDCXJrLvb/
-	oQl5Mf6I5KIUU5NF4+0OK4F/1HCTyG3AyKjVGEAWQTKkqOyLofBPXDv5TiWlXFVXOhetvM/QCUWOj
-	m7wOT9QmpBgbf2IXG+RYeBlApw4DIxLHSB8HUlP5n8fh+hpB0Atv0lItGBl1gr+NsfEKmAfTF0dcm
-	tc6UfpYw==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1wxp25-007Utx-Ae; Sat, 22 Aug 2026 18:57:25 +0200
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1wxp24-0013TF-9m; Sat, 22 Aug 2026 18:57:25 +0200
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <mfo@igalia.com>)
-	id 1wxp24-00000002uHU-0yE7;
-	Sat, 22 Aug 2026 18:57:24 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OfMgf1F+"
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8484a24ccf8so108449b3a.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 11:47:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787424437; x=1788029237; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=r6krEZZrAdPiGjprMWBKZfrQRUv9wjYiRrwTo40Vuek=;
+        b=OfMgf1F+Vxyq+yV3XHsyCTTLvHGVdO9N2BEk2bI0Cg/SdKLPaG1cxRuI2tqTWTvXCV
+         Y3SQRzlLUu12A0F8mGV2EFw0H+ibPj2q4JPDAS2u14w7PXHzRl2QXka2LO9uNYoq2fU0
+         nOEb8EJr7lC6PnsAdjhuE/7u/t03Da/tvvJlZD39+Ru/MGF9Znl9zGLVkL3jxyzCCc04
+         DkYV2YtMu6q2hlM9Nf4mKfnE9LN25anbFu2cAa4utOJ1Q66ou8LLvdWrilANCDtX2nKk
+         OajxTqC6tuo3QMfiPKKfvyhi7kiMxybM+FqZaTSzVZBA96ZmnXCrolRKh0KKLWjvrgQQ
+         C4wQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787424437; x=1788029237;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=r6krEZZrAdPiGjprMWBKZfrQRUv9wjYiRrwTo40Vuek=;
+        b=O25Mz9M333kt46bAzSpH9So8fp2uSm6j2OkOF5RQUirzhbHduClfmQkN9Hto/kHfII
+         Rl81Fanb1fTYp2jSIhal8FjNksEgbc1PPHC8l5lAMIP+WewMZFBvIFFd+agxfRVLZPXq
+         SILn4o5EQN+Ysm2sD28V5ypDHoJjPAGrTFkwlfPtOedeVJuYDpFZGMoN3I5TOosAWcT0
+         1iuLUgYg9+piJS51lHd786U/R1kJethu/VDyZtZhKMNHosaDugQqCYR4lZAy5bd7pDws
+         EWWtI5t5a9sml4PUQIOce8y9Q79aliINGXfb+1AwXsN62kwyUJbl4oKPz/WYu9PznnqV
+         UDwQ==
+X-Gm-Message-State: AFuF++kjbRysNPIrOprlq3GYZSHa5kYTy1DyGMkO8j/CQZ1IchqgoulW
+	7bmfD9p8dOCM/Jr5VPKmer6WzQTpK+h09FY98qwS3IGCgzYqvObPg5Vi
+X-Gm-Gg: AR+sD10+rg/Vu9k5Xw5Qtn9+NwWCLjmt1tLtV4iebVvDbueNkwflfOgzDonRHdxh+4p
+	e0uG8/X9ItgEl7v7fs++P3KYQ3asGZHrDHuI8WwwPMtsq16CHfLBYRJNkSpWicteANiEG2/NRWU
+	9ZHDC+bpy9c/pLO/zs6Lgq06UAVEiAKgbVy0Z+985HHWwNfkoJHUiwV98MoUjAwd7jfyORvCNES
+	gUYV/+35g+uaUSO+Qw/kdSG09h8eAoxV/JL8cpkV1iaVOn00anteYrFAsy3QsyrVTTobQY/YGvo
+	YRUcC/pYy5JLpX1rWR4BxE15RbLXhXeSjEuJrb8WAkf84HiPmkGgGsMI45wGt+3fSUbWBk9qPR9
+	Tz/OCuUdYVpmdQ4KAcRunZUsGTjWPFRr6y4Xb4Pxa8OarmNDrDsy+SWp0TKZeMWc9FW9L5aYya0
+	AS9wZSu49lvVGQHL3Z58UKK+Gig2zbQ/lhWcqOW5oCADxn+Ph745adtSchOjnub+oqhDtMmxv8f
+	Wdfj3idFIJZ26e+N7HBnzUun6T8mx03/1fubkTiLKQ77Hfmf7P8u/w=
+X-Received: by 2002:a17:902:fc4e:b0:2d3:aecd:51f7 with SMTP id d9443c01a7336-2d64ae3a7c7mr135100305ad.1.1787424437214;
+        Sat, 22 Aug 2026 11:47:17 -0700 (PDT)
+Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-327f9209fafsm16623681eec.23.2026.08.22.11.47.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 22 Aug 2026 11:47:16 -0700 (PDT)
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Gao feng <gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Chengfeng Ye <nicoyip.dev@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] netfilter: nf_log: clear per-net loggers on unregister
+Date: Sun, 23 Aug 2026 02:46:58 +0800
+Message-ID: <20260822184658.3787672-1-nicoyip.dev@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sat, 22 Aug 2026 13:57:24 -0300
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
-Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>,
- Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon
- Horman <horms@kernel.org>, kernel-dev@igalia.com,
- linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
- fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
- lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-sctp@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
- virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
- MODULE_SYSCTL_TABLE
-In-Reply-To: <aomlfGJM61qZKxx2@monoceros>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
- <aomlfGJM61qZKxx2@monoceros>
-Message-ID: <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
-X-Sender: mfo@igalia.com
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005
-X-Spam-Score: -20
-X-Spam-Bar: --
 
-On 2026-08-22 10:41, Uwe Kleine-König wrote:
-> Hello,
+Logger backends unregister their per-network namespace operations before
+unregistering their global logger. This leaves a window where a sysctl or
+netlink writer can rebind a per-net logger after the old per-net
+selection was cleared, but before the global logger registration is
+removed.
 
-Hey,
+The race looks like this:
 
-> 
-> On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
->> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
->> with pointers to a sysctl table's path and entries, and table/entry sizes.
-> 
-> That new struct doesn't seem to contain any pointer?
+  CPU 0                                 CPU 1
+  ----                                  ----
+  unregister_pernet_subsys()
+    nf_log_unset(net, logger)
+      net->nf.nf_loggers[pf] = NULL
 
-The struct module_sysctl_table fields .path and .table are pointers,
-although with kernel_ulong_t type so that the same 32/64-bit size is
-used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
-which might differ with CROSS_COMPILE).
+                                        lock nf_log_mutex
+                                        find logger in loggers[][]
+                                        net->nf.nf_loggers[pf] = logger
+                                        unlock nf_log_mutex
 
-> 
->> That symbol will be handled by file2alias.c (modpost) with the changes in
->> mod_devicetable.h and devicetable-offsets.c.
->> 
->> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
->> a per-file basis to disable the macro and change the symbol name pattern.
->> 
->> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
->> ---
->>  include/linux/mod_devicetable.h   |  7 +++++++
->>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++++++++
->>  scripts/mod/devicetable-offsets.c |  6 ++++++
->>  3 files changed, 55 insertions(+)
-> 
-> Please put the new struct in a separate header. Apart from not being
-> about a device table, I'm currently work on removing
-> <linux/mod_devicetable.h>. See commit
-> ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
+  nf_log_unregister(logger)
+    lock nf_log_mutex
+    loggers[pf][type] = NULL
+    unlock nf_log_mutex
+    synchronize_rcu()
+  module exit returns
+  module core frees backend memory
 
-Sure; I looked at that earlier (thanks for the instructive commit
-message, by the way) and found the new struct to be similar to "struct
-cpu_feature isn't really a device_id struct" (not moved), but apparently
-missed the trailing "fow now", which is clearer now. Fixed for v4.
+Later, a sysctl read or nf_log_packet() reads net->nf.nf_loggers[pf]
+and dereferences the stale logger.
 
-Thank you,
+nf_log_unregister() only removes the backend from the global logger
+table. It does not clear matching net->nf.nf_loggers[] entries that were
+rebound by CPU 1 after per-net teardown. Once module unload completes,
+those per-net pointers can still reference static data from the unloaded
+logger backend, and later readers can dereference freed module memory.
 
-> 
-> Best regards
-> Uwe
+The kernel reported:
 
+  BUG: unable to handle page fault for address: fffffbfff806d2f4
+  #PF: supervisor read access in kernel mode
+  #PF: error_code(0x0000) - not-present page
+  Oops: Oops: 0000 [#1] SMP KASAN NOPTI
+  RIP: 0010:nf_log_proc_dostring+0x2aa/0x4d0
+  Call Trace:
+   proc_sys_call_handler+0x325/0x540
+   vfs_read+0x6e1/0xa20
+   ksys_read+0xf7/0x1c0
+   do_syscall_64+0xf9/0x520
+  Modules linked in: [last unloaded: nf_log_syslog]
+
+Fix this by clearing matching per-net logger selections in every live
+network namespace while holding nf_log_mutex after removing the global
+registrations. Writers that run before this pass are covered by the
+per-net clears, and writes that run later can no longer find the logger
+in loggers[][]. The existing synchronize_rcu() then covers readers of
+both the global and per-net pointers before module memory is released.
+
+Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+---
+ net/netfilter/nf_log.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index f4d80654dfe6..442c69f544a1 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -42,6 +42,18 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
+ 	return NULL;
+ }
+ 
++static void __nf_log_unset(struct net *net, const struct nf_logger *logger)
++{
++	const struct nf_logger *log;
++	int i;
++
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
++		log = nft_log_dereference(net->nf.nf_loggers[i]);
++		if (log == logger)
++			RCU_INIT_POINTER(net->nf.nf_loggers[i], NULL);
++	}
++}
++
+ int nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
+ {
+ 	const struct nf_logger *log;
+@@ -62,15 +74,8 @@ EXPORT_SYMBOL(nf_log_set);
+ 
+ void nf_log_unset(struct net *net, const struct nf_logger *logger)
+ {
+-	int i;
+-	const struct nf_logger *log;
+-
+ 	mutex_lock(&nf_log_mutex);
+-	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
+-		log = nft_log_dereference(net->nf.nf_loggers[i]);
+-		if (log == logger)
+-			RCU_INIT_POINTER(net->nf.nf_loggers[i], NULL);
+-	}
++	__nf_log_unset(net, logger);
+ 	mutex_unlock(&nf_log_mutex);
+ }
+ EXPORT_SYMBOL(nf_log_unset);
+@@ -112,6 +117,7 @@ EXPORT_SYMBOL(nf_log_register);
+ void nf_log_unregister(struct nf_logger *logger)
+ {
+ 	const struct nf_logger *log;
++	struct net *net;
+ 	int i;
+ 
+ 	mutex_lock(&nf_log_mutex);
+@@ -120,6 +126,10 @@ void nf_log_unregister(struct nf_logger *logger)
+ 		if (log == logger)
+ 			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
+ 	}
++	rcu_read_lock();
++	for_each_net_rcu(net)
++		__nf_log_unset(net, logger);
++	rcu_read_unlock();
+ 	mutex_unlock(&nf_log_mutex);
+ 	synchronize_rcu();
+ }
 -- 
-Mauricio
+2.43.0
