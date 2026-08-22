@@ -1,79 +1,75 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B51D1429036;
-	Fri, 21 Aug 2026 15:39:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B809D33260B
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 08:14:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787326757; cv=none; b=WzAX81eXyN0aliGQ1faV2UOKy9HhW4UF4TAqWhC5ERtmAoUn0kl3g/a65vqHtr586DiMbbz3uoyPiangv1YbMWd+1Yb03/sCNyRdkdIdNfBjnFiTV97fBKKaUomXz3CggEjtC8q2l4uQ4UlOCOpECkBRffiOvhPDi7dtbcVQ84M=
+	t=1787386463; cv=none; b=qvg38S3hJ4CYwu4FuBvhpzFX+ZpemNmKWk3Uq5LEACM9786WK2ZWVA7dU6Msm6EPZsGpBug7e/Of8gKkQWpqDdUVcUuA1KOS8WHo+c/QGw5ddyU/tz4AVxuDRjShI7lu6QRulr8XbYUEcyp3M3PeMxzKt2qVRiOB6ZaK7tYxfIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787326757; c=relaxed/simple;
-	bh=O5lVVY2ez5DfMCjdf9U3tamW1CH3RjYbcUOqTdLZGdc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jlY+UDsPRnhn181JEPylJWmVL1+LGB7z1Go+h4XNcFN+Qk48m5ltEAUBCPyrwHWKzZJtNencZqGRbaJFo7ngU6GgAMyiHXtNuxn06Fayu0qMFBff2YJEzNWJZZd+g8ocd8gX7dbk5m+6gEWP5WCicSNahZKlJnWjqmLUq2B0cvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FDqlFE6M; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FDqlFE6M"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787326753;
-	bh=m2OAul4wYx+Ji4sRz9+RoTgI/CuKBjYXbyAEypRFiMg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FDqlFE6MdHVMA9tDVkpHKs7iwAQvJ5VT8Vm2Ttfe5EmVZ/3n5iFIZxmfBkwSeo9kG
-	 z9fhKfWARPOQHYfqVgHzREuA6qqk5LzY1CRe1N2B1YPYvGAMv/T3FzgS5EM/N26ESc
-	 6S2/2TS7gQXSwrAo7x7U8v8XVZpNouGLoCZ34nNFJ7WO9ctvGtfXReLRhPfAucLLGH
-	 6LYWNz6ryRdsq5PeMwgffB3gMPJsVbQiiFo70A8eQ0Pfcx3qLU2Qx23UdoVaZphW1B
-	 oaA0c1y4YpQk97KQTdGTNQNELW/MB0YDUdThnjtHYhvavUim24S1DoiFnDAr1Jn1dt
-	 oMYYJkcll+gIg==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8D58C60097;
-	Fri, 21 Aug 2026 17:39:12 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	horms@kernel.org,
-	fw@strlen.de,
-	ja@ssi.bg
-Subject: [PATCH net 10/10] netfilter: nf_tables: remove leftover set_update_list
-Date: Fri, 21 Aug 2026 17:38:33 +0200
-Message-ID: <20260821153833.245589-11-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260821153833.245589-1-pablo@netfilter.org>
-References: <20260821153833.245589-1-pablo@netfilter.org>
+	s=arc-20240116; t=1787386463; c=relaxed/simple;
+	bh=x9QYQUykGRJVsCLttahJWpPKup9Jt0yWXvXGFh86Vco=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mVlm3uYZ6bka/H1I6OwiVeY4EldNNczAaqf5O4MjCWaGTH81PG6NgqqXOn7fbdqY3ZBekpGYpdUcZQQFU0W4Xpiu93TZ1DyozKBbyhrz5UKB9Awo+XyWSx6PYEkuvxvPtJYEasAY8mKg5gZ4uS18s8PhLl8q5VqpIqFQ/LcQlog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 60E9B6051B; Sat, 22 Aug 2026 10:14:19 +0200 (CEST)
+Date: Sat, 22 Aug 2026 10:14:19 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Zhiling Zou <zhilinz@nebusec.ai>
+Subject: Re: [PATCH nf-next] netfilter: x_tables: reject missing '-p' flag
+ and check for INV flag
+Message-ID: <aolaWzC1PI7zeYRN@strlen.de>
+References: <20260821134136.18191-1-fw@strlen.de>
+ <aohabszy_Ac23p7x@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aohabszy_Ac23p7x@chamomile>
 
-This list has been moved to per-netns, remove onstack list which is not
-used anymore.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Aug 21, 2026 at 03:41:36PM +0200, Florian Westphal wrote:
+> > ip6tables traverser doesn't walk ipv6 extension headers unless the PROTO
+> > flag is set, so direct sockopt-users can bypass the check (ip6tables
+> > always sets it if '-p' flag is given.  This is a cleanup patch, it
+> > doesn't fix any real bug.
+> 
+> I really think it is better to squash the TPROXY fix into this one
+> too, it is the same logical fix.
 
-Fixes: b343ededb3f9 netfilter: nf_tables: move set_update_list to nftables per-netns
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 1 -
- 1 file changed, 1 deletion(-)
+I don't mind either way.  I did not do it because unlike TPROXY these
+are benign.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4f3be3b10f2f..5cee9e46cca4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -11298,7 +11298,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nft_trans *trans, *next;
--	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
- 	struct nft_ctx ctx = {
- 		.net = net,
--- 
-2.47.3
+> Sashiko also hinting to fix ip6_tables core check for this protocol
+> flag:
+> 
+> https://sashiko.dev/#/patchset/20260821134136.18191-1-fw%40strlen.de
 
+Not so sure.  Maybe just do this?  I don't think proto > 0 and flag
+unset makes any sense.
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -647,6 +647,13 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 	/* Clear counters and comefrom */
+ 	e->counters = ((struct xt_counters) { 0, 0 });
+ 	e->comefrom = 0;
++
++	/* Make sure F_PROTO is set, else ip6_packet_match
++	 * won't do the right thing.
++	 */
++	if (e->ipv6.proto)
++		e->ipv6.flags |= IP6T_F_PROTO;
++
+ 	return 0;
+ }
+ 
