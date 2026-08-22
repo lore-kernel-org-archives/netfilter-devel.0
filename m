@@ -1,75 +1,146 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B809D33260B
-	for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 08:14:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64D73403EF
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 13:41:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787386463; cv=none; b=qvg38S3hJ4CYwu4FuBvhpzFX+ZpemNmKWk3Uq5LEACM9786WK2ZWVA7dU6Msm6EPZsGpBug7e/Of8gKkQWpqDdUVcUuA1KOS8WHo+c/QGw5ddyU/tz4AVxuDRjShI7lu6QRulr8XbYUEcyp3M3PeMxzKt2qVRiOB6ZaK7tYxfIA=
+	t=1787406119; cv=none; b=uX8KXNPdSVzdb0lrSVo0c4VsfS9R/0lkxUJVULN0PAM2FRWgiLlofb8Uhtjfc+vDGemOslFoLgFtIweE5pqp3ojQLdtMRV/SKqJDOVmKIvTERdv6ac1iSgHmb7CnqZ8/tqP/18UejB1veoTN1TUa6iaOzC7fn9PEKHXHXxkOYsc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787386463; c=relaxed/simple;
-	bh=x9QYQUykGRJVsCLttahJWpPKup9Jt0yWXvXGFh86Vco=;
+	s=arc-20240116; t=1787406119; c=relaxed/simple;
+	bh=ShtTkIU3ezbFJIydaBLYCMvhC/wGsulze2uz5bQe5G4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mVlm3uYZ6bka/H1I6OwiVeY4EldNNczAaqf5O4MjCWaGTH81PG6NgqqXOn7fbdqY3ZBekpGYpdUcZQQFU0W4Xpiu93TZ1DyozKBbyhrz5UKB9Awo+XyWSx6PYEkuvxvPtJYEasAY8mKg5gZ4uS18s8PhLl8q5VqpIqFQ/LcQlog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 60E9B6051B; Sat, 22 Aug 2026 10:14:19 +0200 (CEST)
-Date: Sat, 22 Aug 2026 10:14:19 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Zhiling Zou <zhilinz@nebusec.ai>
-Subject: Re: [PATCH nf-next] netfilter: x_tables: reject missing '-p' flag
- and check for INV flag
-Message-ID: <aolaWzC1PI7zeYRN@strlen.de>
-References: <20260821134136.18191-1-fw@strlen.de>
- <aohabszy_Ac23p7x@chamomile>
+	 Content-Type:Content-Disposition:In-Reply-To; b=fqDGkBcvOV4xbBLMGAdU9fQ/H4OYs+AUyAr5vrXzmzHlJh6M3cM3CnGETa4CKEGlmqOPRQHCA5iklS+YDBwu5uV259R72NbUwG40arytROg8JR2kTc5KBXKjXq7kPfyKIRsTYEV/uFHZsUx6GidjKkOBNPIK3P2tIF+1ucutFFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=NWr95Y6+; arc=none smtp.client-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="NWr95Y6+"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c15d3cd51b2so308587166b.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Aug 2026 06:41:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1787406114; x=1788010914; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Aj3ZYubTvLgnR11pZYHVat4EVUJdKX6AnHgTVge4+Wc=;
+        b=NWr95Y6+8gr1dd6kImBWVKkc9Ow7+W1hOqUbome1tczYJ0l7VolXq0eP+XhSlE2lop
+         cfrU27AzjWjNSHtmZZ6RuHDw63H/Aw3j1SR3ZUJxRQSBgNqaamZlv7pWt8qP16vXkNr8
+         RFuxFu+K2wzi5JQkrBzAM56wOg7B0Pw6h7m1cwa5fQL+1N4vZ9VmnU0fSvXmiMFSSbLp
+         PwxvZznnm7VHgzn3KPh0fvhzv105HloBofPB+0hansRG9f8EL4WMC1/pwoxYuig5g5ac
+         rHPjkA9B4VHQUiuu3DSUboCniUrCCNStbMPToZGTj1YRemJ0JduZoppZNUOsUtWyRRr6
+         6eqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787406114; x=1788010914;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Aj3ZYubTvLgnR11pZYHVat4EVUJdKX6AnHgTVge4+Wc=;
+        b=pwBjTYGe6U4D/hagHjnD5/tTktlst/VPdksDML0OKk5ykSAaMW7fJDuhKM1iRnuvMC
+         CydMOasJayTRuFtYpPAQuGcLkx9zYS3Uu47+F2YkCHx5P8N+Y2cUvIM1MK/bxbUThuGc
+         zXKaV3L7sgun1Vsi7Hx7wtUQN9Z/Jb2cLJrjCElMKaQ/y8QtdEle06nKhKbrljZQoGYH
+         Q6sfzlrU/Dt8nGGo43c5GCzyMFEGHzo+/59OrdWe+oOa6hxewinJUn0Y6+NM+iyO5Plu
+         zEHaz2sEAkzThUtKj19aJylj9NMnCf1uH6UwFkOVL4iENBFqFflMHoTxQXaj8tXOFUo7
+         3Oeg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp5tV/MAeeQBsRo9TQVRu9fq76xSmjRnwx+AoJUiOM0l/BZVcyYeGDDEwZR75vWk3JKFxXP5cOiGnc34V1BJpU=@vger.kernel.org
+X-Gm-Message-State: AFuF++mfANmLyd/3tS1d0c8ZY+PXUPOPWxdrg7hh7PrCezHDs/wvugIj
+	JugEFJdTj7USzTPEvVS37uZWOTLnP6Vrza0kuJBklSmQJqQkqj3F5D7DybW7EWH/0IY=
+X-Gm-Gg: AR+sD13ANrsGNsLXgmDvujmi0hdSS8F68WdjaUqRMFsnwJldD1bNoS9LDN0DyIAhWRz
+	mrRoEEAmsWwsKFbOKIfWhPUD/hQKz54fuc+IWxCQPRFGykMlT0/JUjdedKHHbzGAfd7KEaL+MNW
+	VOOrFZELt22yUxGyq9HyueUIZdqZWQxR0P+AQA+L5vK5d+bOVqKvnubveSZg6JOnRVi1FK8Kn7V
+	KI9LO/sDmvnQSOitfFp9cnWzDGANSXl3/k3QLV6ZSExp56mwGiXbT4EVPk6nQBAtlmBdc6PogjP
+	LI/mjsjYKqynxLT1+uUmDKshaKiz0f53QLKEgZ/dB913XK45Ib1vyE2pGh7LBG7WqX/byDevQg0
+	cRs/Ot7TffLyWy086kWMGBhIfWXoR7J86aOxsFvfLv7ENTn+mhUPhilGBsQvkdnhkmxsPVmQKtB
+	eF1+vV4gtQIU0POrOFaOktQ9ocZo2JeUo34W1cmbDV68G3xqYeHkf2TVfOQC9L8iTtPQ==
+X-Received: by 2002:a17:907:8908:b0:c21:35d0:f435 with SMTP id a640c23a62f3a-c24924db408mr547750766b.10.1787406113365;
+        Sat, 22 Aug 2026 06:41:53 -0700 (PDT)
+Received: from localhost ([2a02:8071:56d1:2de0:1d24:d58d:2b65:c291])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-c249606a8fasm387614266b.8.2026.08.22.06.41.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 22 Aug 2026 06:41:52 -0700 (PDT)
+Date: Sat, 22 Aug 2026 15:41:50 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+To: Mauricio Faria de Oliveira <mfo@igalia.com>
+Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	kernel-dev@igalia.com, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-s390@vger.kernel.org, bridge@lists.linux.dev, mptcp@lists.linux.dev, 
+	rds-devel@oss.oracle.com, virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+Message-ID: <aomlfGJM61qZKxx2@monoceros>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="akn7oxv4v2qk2wdq"
 Content-Disposition: inline
-In-Reply-To: <aohabszy_Ac23p7x@chamomile>
+In-Reply-To: <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Aug 21, 2026 at 03:41:36PM +0200, Florian Westphal wrote:
-> > ip6tables traverser doesn't walk ipv6 extension headers unless the PROTO
-> > flag is set, so direct sockopt-users can bypass the check (ip6tables
-> > always sets it if '-p' flag is given.  This is a cleanup patch, it
-> > doesn't fix any real bug.
-> 
-> I really think it is better to squash the TPROXY fix into this one
-> too, it is the same logical fix.
 
-I don't mind either way.  I did not do it because unlike TPROXY these
-are benign.
+--akn7oxv4v2qk2wdq
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+MIME-Version: 1.0
 
-> Sashiko also hinting to fix ip6_tables core check for this protocol
-> flag:
-> 
-> https://sashiko.dev/#/patchset/20260821134136.18191-1-fw%40strlen.de
+Hello,
 
-Not so sure.  Maybe just do this?  I don't think proto > 0 and flag
-unset makes any sense.
+On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
+> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
+> with pointers to a sysctl table's path and entries, and table/entry sizes.
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -647,6 +647,13 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
- 	/* Clear counters and comefrom */
- 	e->counters = ((struct xt_counters) { 0, 0 });
- 	e->comefrom = 0;
-+
-+	/* Make sure F_PROTO is set, else ip6_packet_match
-+	 * won't do the right thing.
-+	 */
-+	if (e->ipv6.proto)
-+		e->ipv6.flags |= IP6T_F_PROTO;
-+
- 	return 0;
- }
- 
+That new struct doesn't seem to contain any pointer?
+
+> That symbol will be handled by file2alias.c (modpost) with the changes in
+> mod_devicetable.h and devicetable-offsets.c.
+>=20
+> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
+> a per-file basis to disable the macro and change the symbol name pattern.
+>=20
+> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+> ---
+>  include/linux/mod_devicetable.h   |  7 +++++++
+>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++=
+++++++
+>  scripts/mod/devicetable-offsets.c |  6 ++++++
+>  3 files changed, 55 insertions(+)
+
+Please put the new struct in a separate header. Apart from not being
+about a device table, I'm currently work on removing
+<linux/mod_devicetable.h>. See commit
+ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
+
+Best regards
+Uwe
+
+--akn7oxv4v2qk2wdq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqJpxsACgkQj4D7WH0S
+/k5bfgf9HJoNnVEr9RCdAghOTP5QqFmH5ae7Kbmnodv6c6Pi9JGIjjGbeT5eKw3e
+JkSKqdEnlVMrLoKrhneRsxwTDGPrZvrLZrPLdZwJmPWZn5Fg+kkOO9yFAGPeMsPX
+S6UP1NY9kaCiBtlcsGT9EvMWz0jWVAWX1xb7Y2WcVZJsCWdcPhvWc3/lIbw3E4o7
+PqLtSFblkQmtGl2OL4WkP6xhEPH6qQO9BAmhLVKKZwFW5/l4sHmXRrpgSJlroR3b
+iH3liIeS6wxFp/fMYuFRryGHNMXn6gC447OnOCTmGNEj7+7Y3COwSGivgubcRIzI
+RkmxkMf2Iuntnwp4oQzCbipE5EiKGA==
+=SPY4
+-----END PGP SIGNATURE-----
+
+--akn7oxv4v2qk2wdq--
