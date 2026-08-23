@@ -1,175 +1,285 @@
-Received: from mail-yx1-f48.google.com (mail-yx1-f48.google.com [74.125.224.48])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77B40379EFF
-	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2026 17:05:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE732F693B;
+	Sun, 23 Aug 2026 17:37:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787504762; cv=none; b=mZ/P7ag5xoKZrBGga68Qr9rW1eptKqOrvXOsCvWKH/q9fQkUx1oggKSVZm2W+DLNHbHADRZ9Va01k/4tZBe54hUzo03iImo1PrBSOwR4uQXy1FBKA8u1HdlLF11uQIrdaeBxvtMocUnwcGdwSumj3Ji/AVXuQ+bCMH/ibNlk2BQ=
+	t=1787506655; cv=none; b=t04BCz2dvPeHWAd7EcnBiHHuldj1oWd8GZ1QJQUBLzsybJvyWkPilk/vUF3Yk5rFY/WaZauGtnOc+brkJJidV+25aPQp7DlA8OZTW3DU2IKvfP+kP8bxIpFNHBNzQVAa15uZbqLFXZZ7NjsYpzPs8GfOs52mvEHkYEiTJ96fDdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787504762; c=relaxed/simple;
-	bh=MOSoskfPWCJYTRcElhbU7017zaNB/Jrp/HctCMM0yCU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kq721No4uHcvEZjvBs0u2WYUWis2V/5W4i1t/yQ9umb8JWC1F/Cl73JWzTnCRGr9PAWghCoeu+3BcISsXJVw9YEcnJRQyrauJptmvlxIJKxQYVqKOsu0a4ZPIZLtQG88dCgwsh7Kt/ljIcGqt5bBZ6jt/BFympbdeyMjpupBphs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jfE6OZiZ; arc=none smtp.client-ip=74.125.224.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787506655; c=relaxed/simple;
+	bh=jG22L5f2P1rIBR7jfV20CBvuPd9BU82NjHCemViNrwc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CPERq5+IgMRD8K/NXObQe0J/clHogGAXeu00N0UvMVe0clsRrFD1M95nwggvYFri2zWCEG8Zbv6j83OqljjEjuwKoR033FKqyuPzVPvSmq/WmjXzbSuH8QTbYsqBo+agqLqy0A7GvL2MwDJ9CP1ijIdRkAKR38dgXjyCRktPrIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=oqQ4cIgS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=WCxgppjr; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wKhzLl9P; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=fn/hEGc0; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jfE6OZiZ"
-Received: by mail-yx1-f48.google.com with SMTP id 956f58d0204a3-66787b93a0aso302113d50.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2026 10:05:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787504754; x=1788109554; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=esjqTaDB5DT6wtV4Y9AzgjqpTCrwMQJOjGYCKVsLIlo=;
-        b=jfE6OZiZqfBaNW0nhyP/lZjc7Vog5R1/gxYLbRc13QdcVBI7eds/P9Pb5JpKM0zngZ
-         /3frcuK4JN0d1jA+BOqHB7fcUqsGngxxSre8z5e6OjZyydlAWnE4E2ygbVYSnAnYUKOn
-         S8Ft960HzFsHi64gLVrXkpGWcN6osyWlz2g5E3WmgvVwVeEilwBaXJtSCDpTIm2wp1H0
-         J8z7KF90hfu7q9M3M/v5zu4UzYivx8f/CMp8sB7jUGDCSxabchvfkpTyUZOOLUbRaQ69
-         FRs7kOiAyZWpmY40cE2ybtpDJ8oJLma6BKZucmO/wozU2lEQoQXQw4ZajemHcbuNHUEL
-         5wig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787504754; x=1788109554;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=esjqTaDB5DT6wtV4Y9AzgjqpTCrwMQJOjGYCKVsLIlo=;
-        b=Y1UEDToo+eol5l3miomeQpIQvLcNpEvDLPyDmEZRCguUSnTPk4HkhUyLcYAbP9yGR/
-         vRdZV70vjtt9D/El4GFbj6/QxWWR9jUPP0YlVKkYxSs4z2y+r2khVBhlyw4Vcj1RPD8+
-         mvCSZZ+YqFnTqrkqITW/NW9qlAP5Jhkft4v7s+j2WRhxTO5M5C1dSnu5oQYkxAcfuiwG
-         MWGKoE13qoGSiT7EVLcB2XtTw6qEZpxxv4U7AiLkfNJIM8p/xgq4wMd2hYagRR4pQ6Ll
-         w28Wx461XwZH61v5JdO15gzpUjbEpfAIkqtb/qj+tp0IVlmNwkEvgRAwsMr8Ht1HHTvz
-         vhPQ==
-X-Forwarded-Encrypted: i=1; AHgh+RrDFmAg+P9RMUM+sa51HnqWkUePogvwJL9Bx2yb4L+e6agITsNfIp+rim9B4yqKeCXCIn51LQzb1DXJVMdtE7g=@vger.kernel.org
-X-Gm-Message-State: AFuF++msZ0Zqe84NFWVMNImHCo0rfuVmNwod8sfsWhpVfMULXPsMl5kB
-	sigZfFRuMo5X/dxN/u0NmL1RqcQk5U5Vti+g5/JGE6sNF/sa+npbyLNyQyAqBVdXTmw=
-X-Gm-Gg: AR+sD10uW0Hxs1+ZAokk9SvA6JaMXHb5khr+ODcIOg0CxWoDTpmjy/niYvtEca048lv
-	pHHVFqreFfFQUijwZ+JcA5wC6FoHn1kVhjajWP4AvmRii0AwrCtpl6LrmG4/IFG/wEYi9hp9aVC
-	M2IUeSVyd+Y75E6JQs8uenJSbrvygNdfPTISRFdM4SeHqX0Zexgoqs5wcXO9K00GneTzxpfy5Qa
-	+gNomS8J9qiOvvLFgdW0LfkbtfhXL7XPqXaGgGb9wo3Jmc2y88b5WK/JFKXNeOnsvIQ3GjkwquY
-	ZAodkyRPW+t9iM3QtV/SP1k3ZhiCv/8eKn6dnJU6u8dx68F5bxPrjayHPuuQZ74/pC1llrfNROt
-	hdP5eB1GoXRk+IZx5DyAZ9W0qBf3uqrY2FdSei/jrk5j6oEa9sVo18+jM4tX0PsWb3AL4rrj6+o
-	M5Q5UZGZ/M/SmqASfo9UCGmK1G03s0v0D4inPmBq4hCZbLy+v0Qwxf0/lWzrWUk6mWZoM90L1NX
-	VZZqF32v2oNtylpMXxntYtiGaBNrK6t7IMlKiIWQrRhHlwzLYdE/H0=
-X-Received: by 2002:a05:690e:4849:b0:668:99ce:a033 with SMTP id 956f58d0204a3-66ce4a9b51fmr4978933d50.2.1787504753689;
-        Sun, 23 Aug 2026 10:05:53 -0700 (PDT)
-Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
-        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-66cf4a2c3c2sm2333298d50.17.2026.08.23.10.05.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Aug 2026 10:05:52 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Gao feng <gaofeng@cn.fujitsu.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net v2] netfilter: nf_log: unregister loggers before per-net teardown
-Date: Mon, 24 Aug 2026 01:05:38 +0800
-Message-ID: <20260823170538.3856770-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oqQ4cIgS";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="WCxgppjr";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wKhzLl9P";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="fn/hEGc0"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 7A5D386466;
+	Sun, 23 Aug 2026 17:37:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1787506647; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FJ9rwPgU84Y78qa/zDD9kIClhwNRKRJnBFUV1+JnGVw=;
+	b=oqQ4cIgSBQ5OEayjijalPlXj/1V8butCH0ymsXEklKjZoMMK5nNkT/7g4yICALDsx21fwT
+	yaK+ETfNUJtFjmSkDx1NOqP2KV+5nedCHbhPjUcnFFK3Riqt7p4sxN8rI4felV2GPxVon6
+	uckfa6EIVV2/LruiFEpfAh5wmsEGBmo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1787506647;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FJ9rwPgU84Y78qa/zDD9kIClhwNRKRJnBFUV1+JnGVw=;
+	b=WCxgppjrHK2mRp6Br/IJjk+6GWdrj74axsZl6/d2AlWR+lPHFFEUNBuyKgGLgsNazQ8xul
+	agREMWOp4f/juwCg==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=wKhzLl9P;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="fn/hEGc0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1787506643; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FJ9rwPgU84Y78qa/zDD9kIClhwNRKRJnBFUV1+JnGVw=;
+	b=wKhzLl9P4LhGkVagfRn9DLBkgaznwaDEufQYJWyOWcHvLuHGCj1dg/99+gG7edhmN55f2c
+	io7DwbtOC5LyLvIGG4tJwNpQH/ebwGHDQje3Bqfo5xuBFE0bi+ll2qcNcPrrH0Xlpp+d1I
+	3EUrilNxu319CJ/tPjmpRNiVIZE9KRo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1787506643;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FJ9rwPgU84Y78qa/zDD9kIClhwNRKRJnBFUV1+JnGVw=;
+	b=fn/hEGc0ShGG1W/qqK1ScGA4aZ/uL1R7EBTYigtZ+m7lvF61+T/NZX5MOkjUthk3RXqlBN
+	fxkg0y954fXhm7DA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E982513325;
+	Sun, 23 Aug 2026 17:37:22 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id bPwxNtIvi2p8ZwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Sun, 23 Aug 2026 17:37:22 +0000
+Message-ID: <456872c2-d5ee-4951-aac6-2573cfb6b585@suse.de>
+Date: Sun, 23 Aug 2026 19:36:48 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 08/10] netfilter: nf_tables: fix device name and
+ prefix match in hook lookup
+To: Jakub Kicinski <kuba@kernel.org>, pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+ horms@kernel.org, fw@strlen.de, ja@ssi.bg
+References: <20260821153833.245589-9-pablo@netfilter.org>
+ <20260822195230.2202763-1-kuba@kernel.org>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260822195230.2202763-1-kuba@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim];
+	RCVD_COUNT_TWO(0.00)[2];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Spam-Flag: NO
+X-Spam-Score: -4.51
+X-Spam-Level: 
+X-Rspamd-Queue-Id: 7A5D386466
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
 
-nf_log_syslog and nfnetlink_log unregister their per-network namespace
-operations before unregistering their global logger backends. This
-leaves a window where a sysctl or netlink writer can rebind the still-
-registered logger after the per-net pre-exit callback cleared the old
-selection.
+On 8/22/26 9:52 PM, Jakub Kicinski wrote:
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> ---
+> netfilter: nf_tables: fix device name and prefix match in hook lookup
+> 
+> This changes nft_hook_list_find() so a hook spec only matches another
+> spec of the same kind (prefix vs exact name) and the same length,
+> replacing the previous strncmp() over min(hook->ifnamelen,
+> this->ifnamelen).  hook_is_prefix() also gains a const argument.
+> 
+> Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
+> 
+>> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+>> index 20c562174b278..d160f6ea0dc29 100644
+>> --- a/net/netfilter/nf_tables_api.c
+>> +++ b/net/netfilter/nf_tables_api.c
+> 
+> [ ... ]
+> 
+>> @@ -2445,8 +2445,11 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+>>   	struct nft_hook *hook;
+>>   
+>>   	list_for_each_entry(hook, hook_list, list) {
+>> -		if (!strncmp(hook->ifname, this->ifname,
+>> -			     min(hook->ifnamelen, this->ifnamelen))) {
+>> +		if (hook_is_prefix(hook) != hook_is_prefix(this))
+>> +			continue;
+>> +		if (hook->ifnamelen != this->ifnamelen)
+>> +			continue;
+>> +		if (!strncmp(hook->ifname, this->ifname, hook->ifnamelen)) {
+>>   			if (hook->flags & NFT_HOOK_REMOVE)
+>>   				continue;
+>>   
+> 
+> [Severity: Critical]
+> nft_hook_list_find() has two callers with different expectations, and this
+> turns it into a pure identity comparator for both.  The delete/get paths
+> (nf_tables_delchain_hook(), nft_flowtable_del_hook()) want identity, but
+> the add paths use it as an overlap rejector:
+> 
+> nf_tables_parse_netdev_hooks()
+> 	if (nft_hook_list_find(hook_list, hook)) {
+> 		NL_SET_BAD_ATTR(extack, tmp);
+> 		nft_netdev_hook_free(hook);
+> 		err = -EEXIST;
+> 		goto err_hook;
+> 	}
+> 
+> and the same in nf_tables_updchain(), nft_register_flowtable_net_hooks()
+> and nft_flowtable_update().
+> 
+> The Fixes-referenced commit 6d07a289504a states the min() compare was
+> deliberate: "When checking for duplicate hooks, compare the shortest
+> prefix so a device may never match more than a single hook spec."  Does
+> this change intentionally drop that invariant?
+> 
+> Concretely, is this still rejected after the patch?
+> 
+>    nft add chain netdev t c \
+>      '{ type filter hook ingress devices = { "eth*", "eth0" } ; }'
+> 
+> Before, prefix "eth" (ifnamelen 3) and exact "eth0" (ifnamelen 5) matched
+> via strncmp(..., min(3, 5)) and gave -EEXIST.  Now
+> hook_is_prefix(hook) != hook_is_prefix(this) short-circuits, so both hooks
+> end up in the same hook_list.  Prefix "eth" versus prefix "eth0" is
+> likewise separated by the ifnamelen compare.
+> 
+> nft_netdev_hook_alloc() then builds one nf_hook_ops per matching netdev
+> per hook:
+> 
+> 	for_each_netdev(net, dev) {
+> 		if (strncmp(dev->name, hook->ifname, hook->ifnamelen))
+> 			continue;
+> 		...
+> 		ops->dev = dev;
+> 		list_add_tail(&ops->list, &hook->ops_list);
+> 	}
+> 
+> so two distinct nft_hook objects each own an ops with ops->dev == eth0,
+> and nft_netdev_register_hooks() registers both.  nf_hook_entries_grow()
+> only rejects duplicates for NF_HOOK_OP_BPF, so both land in
+> eth0->nf_hooks_ingress and the base chain is evaluated twice per packet.
+> For flowtables the cross-flowtable -EEXIST guard in
+> nft_register_flowtable_net_hooks() is bypassed the same way, so the same
+> device gets two FLOW_BLOCK_BIND calls.
+> 
+> Can this also leave a dangling struct net_device pointer?  Both notifier
+> loops service only the first hook that owns an ops for the device, because
+> of the unconditional break after the switch:
+> 
+> net/netfilter/nft_chain_filter.c:nft_netdev_event() {
+> 	list_for_each_entry(hook, &basechain->hook_list, list) {
+> 		ops = nft_hook_find_ops(hook, dev);
+> 		...
+> 		switch (event) {
+> 		case NETDEV_UNREGISTER:
+> 			...
+> 			nf_unregister_net_hook(dev_net(dev), ops);
+> 			list_del_rcu(&ops->list);
+> 			kfree_rcu(ops, rcu);
+> 			break;
+> 		...
+> 		}
+> 		break;
+> 	}
+> 	return 0;
+> }
+> 
+> nft_flowtable_event() in nf_tables_api.c has the same trailing break.  On
+> ip link del eth0 only the first hook's ops is unregistered and freed; the
+> second hook keeps a registered nf_hook_ops whose ops->dev points at the
+> device that is then freed, since nf_hook_ops holds no device reference.
+> 
+> A later teardown (nft delete chain, nft delete table, dormant toggle,
+> netns exit) walks every ops:
+> 
+> net/netfilter/nf_tables_api.c:nft_netdev_unregister_hooks() {
+> 	list_for_each_entry_safe(hook, next, hook_list, list) {
+> 		if (!(table->flags & NFT_TABLE_F_DORMANT)) {
+> 			list_for_each_entry(ops, &hook->ops_list, list)
+> 				nf_unregister_net_hook(net, ops);
+> 		}
+> 	...
+> }
+> 
+> and __nf_unregister_net_hook() reaches nf_hook_entry_head(net, pf,
+> reg->hooknum, reg->dev), which does dev_net(dev) and returns
+> &dev->nf_hooks_ingress, i.e. a read and then a write through the stale
+> pointer.  For flowtables, nft_unregister_flowtable_ops() additionally
+> calls ->setup(..., ops->dev, FLOW_BLOCK_UNBIND) on the freed device.  The
+> orphaned nf_hook_entries blob is also leaked.
+> 
+> On NETDEV_REGISTER the same break means only one of two covering hooks
+> gains an ops, so the other stays permanently unhooked.
+> 
+> Would it work to keep the strict identity match only for the
+> delete/update lookups and retain the prefix-overlap semantics for the
+> add/-EEXIST paths, e.g. as two separate helpers?  Alternatively, should
+> the unconditional break in nft_netdev_event() and nft_flowtable_event()
+> be dropped so every matching hook is serviced?
+> 
+> The commit message describes only the delete/update lookup semantics; the
+> fact that configurations previously rejected with -EEXIST are now
+> accepted is not mentioned.  Could that be spelled out?
+> 
 
-The race looks like this:
+Hi,
 
-  CPU 0                                 CPU 1
-  ----                                  ----
-  unregister_pernet_subsys()
-    nf_log_unset(net, logger)
-      net->nf.nf_loggers[pf] = NULL
+About the add path it was intended, what it wasn't is the UAF. The AI 
+review managed to catch it. Btw, sashiko.dev didn't catch it, it seems 
+the NIPA instance is managing to catch more subtle bugs.
 
-                                        lock nf_log_mutex
-                                        find logger in loggers[][]
-                                        net->nf.nf_loggers[pf] = logger
-                                        unlock nf_log_mutex
+This patch needs a V2 enforcing an exact match on delete/update path 
+while using the current approach on the add path. I am sending one 
+tomorrow first thing in the morning.
 
-  nf_log_unregister(logger)
-    lock nf_log_mutex
-    loggers[pf][type] = NULL
-    unlock nf_log_mutex
-    synchronize_rcu()
-  module exit returns
-  module core frees backend memory
-
-Later, a sysctl read or packet logging operation can dereference the
-stale per-net logger pointer.
-
-Fix this by unregistering the global logger backends before tearing down
-per-net state. Once the global registrations are gone, later writers can
-no longer rebind the logger. unregister_pernet_subsys() already waits
-for an RCU grace period after the pre-exit callback clears the per-net
-selection, while nf_log_unregister() continues to cover readers of the
-global logger table.
-
-Apply this ordering fix to both nf_log backends that combine per-net
-teardown with global logger registration.
-
-Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
----
-Changes in v2:
-- Rework the fix around backend teardown ordering instead of clearing
-  per-net bindings from nf_log_unregister().
-- Apply the ordering fix to both nf_log_syslog and nfnetlink_log.
-- Drop the redundant trailing synchronize_rcu().
-
-Link: https://lore.kernel.org/netdev/20260822184658.3787672-1-nicoyip.dev@gmail.com/ [v1]
----
- net/netfilter/nf_log_syslog.c | 2 +-
- net/netfilter/nfnetlink_log.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -1073,12 +1073,12 @@
- 
- static void __exit nf_log_syslog_exit(void)
- {
--	unregister_pernet_subsys(&nf_log_syslog_net_ops);
- 	nf_log_unregister(&nf_ip_logger);
- 	nf_log_unregister(&nf_arp_logger);
- 	nf_log_unregister(&nf_ip6_logger);
- 	nf_log_unregister(&nf_netdev_logger);
- 	nf_log_unregister(&nf_bridge_logger);
-+	unregister_pernet_subsys(&nf_log_syslog_net_ops);
- }
- 
- module_init(nf_log_syslog_init);
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1233,8 +1233,8 @@
- {
- 	nfnetlink_subsys_unregister(&nfulnl_subsys);
- 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
--	unregister_pernet_subsys(&nfnl_log_net_ops);
- 	nf_log_unregister(&nfulnl_logger);
-+	unregister_pernet_subsys(&nfnl_log_net_ops);
- }
- 
- MODULE_DESCRIPTION("netfilter userspace logging");
--- 
-2.43.0
+Thanks,
+Fernando.
