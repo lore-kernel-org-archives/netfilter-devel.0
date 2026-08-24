@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8C345DF42
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 16:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0208C40A924
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 16:04:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787587439; cv=none; b=G/wRTJyzVPfsftoWCrhJ2ZfdhC4N3CXwEZ9lNDbb3JR8iQOr11HZd79SUvRWqhRUhgunhi1fkrPKIDjxrEILtHqebkXF4vmCXJXj9/U+G6LvMkaW9q9QRap1OYVuXvfItEHVEHYWSjY0M0/K5XBM/zgFxAq5lST5r7AO4sNAdZ0=
+	t=1787587443; cv=none; b=jKdlQnnc/wlcFOeZMqkogLdkvvRBWi3nypMp0B0qU10hWUtb8OJb5qRcTMnzfSIKBQGa3ZNHZeQYOCQiMl/UoXPa5NlMAunP1ANpamU8odm7eLGMkFQiai6IzZDd84KD85hN9uKXn4dkR3Ku3Ve535xB218G0Dwf3r3V5UTVQE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787587439; c=relaxed/simple;
-	bh=crRp+n8ywbwiU0s2VPw9BqNIRcD8uZOn1vp3xQwrx64=;
+	s=arc-20240116; t=1787587443; c=relaxed/simple;
+	bh=VxjIimb7fERSGPIUa3r5Yhus37fYugItqrMBLCkMtQ0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=u+anj2N1S2DZrM/LLs3qV1zPpsVyHcKAIUCJQpV9qscvtxdb3cEHEyE4oZUrzj1TXmHmkfS5hFQN04YejD1FIVsRz+eJuBeDia3o+pIPKm6AJIC+boM+2N7REMlnxLdGHObV4L9miFYh3a5pBAXChG2xFouUG2+Rlj+ZFJWUuQs=
+	 MIME-Version; b=pL1VNtGnrCPVmLonled9UJaVd+0tmz4HpYL/kXGmHUj8HnfqoSgOTedvLfnH1JUoEp6VGNfhFnWqKnxkdQ8KohsF4ocRDgCdhqpLKUNjHEbE5eFXm6LwoNjnbMmxmgnToQJK4GCH97WYLeET417edSEbKgNW2GuanFOR3cD4V6M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 5BFFC60EBD; Mon, 24 Aug 2026 18:03:56 +0200 (CEST)
+	id 9FB4B6035B; Mon, 24 Aug 2026 18:04:00 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 4/5] netfilter: ipset: re-add forceadd support
-Date: Mon, 24 Aug 2026 18:03:27 +0200
-Message-ID: <20260824160328.12099-5-fw@strlen.de>
+Subject: [PATCH nf 5/5] netfilter: ipset: also report mem size for cidr storage to userspace
+Date: Mon, 24 Aug 2026 18:03:28 +0200
+Message-ID: <20260824160328.12099-6-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260824160328.12099-1-fw@strlen.de>
 References: <20260824160328.12099-1-fw@strlen.de>
@@ -34,127 +34,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The rhashtable conversion removed the SET_WITH_FORCEADD eviction logic.
+After the 'Fixes' commit, the storage is allocated dynamically.
+Include this when reporting the mem usage.
 
-Add mtype_remove_random() helper to lookup a random key slot.
-If there is an element, try to evict it and allow add of the new element
-just like before the rhashtable conversion.
-
-Assisted-by: Claude:claude-opus-4-6
+Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 77 +++++++++++++++++++++++++--
- 1 file changed, 72 insertions(+), 5 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 092badee89ec..d86ee5898773 100644
+index d86ee5898773..266cab31180e 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -154,6 +154,9 @@ static const union nf_inet_addr zeromask = {};
- #undef mtype_kadt
- #undef mtype_uadt
- 
-+#undef mtype_remove_random
-+#undef mtype_remove_key
-+#undef mtype_remove_cmpfn
- #undef mtype_add
- #undef mtype_do_set_exts
- #undef mtype_del
-@@ -205,6 +208,9 @@ static const union nf_inet_addr zeromask = {};
- #define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
- #define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
- 
-+#define mtype_remove_random	IPSET_TOKEN(MTYPE, _remove_random)
-+#define mtype_remove_key	IPSET_TOKEN(MTYPE, _remove_key)
-+#define mtype_remove_cmpfn	IPSET_TOKEN(MTYPE, _remove_cmpfn)
- #define mtype_add		IPSET_TOKEN(MTYPE, _add)
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
- #define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
-@@ -654,6 +660,65 @@ mtype_rht_size(struct ip_set *set, u32 *elements, size_t *ext_size)
+@@ -658,6 +658,23 @@ mtype_rht_size(struct ip_set *set, u32 *elements, size_t *ext_size)
+ 	*elements = ipset_hash_nelems(h);
+ 	*ext_size = *elements *
  		    (offsetof(struct mtype_rht_elem, elem) + set->dsize);
++
++#ifdef IP_SET_HASH_WITH_NETS
++	{
++		const struct net_prefixes *nets;
++		int i;
++
++		rcu_read_lock();
++
++		for (i = 0; i < IPSET_NET_COUNT; i++) {
++			nets = rcu_dereference(h->rnets[i]);
++			if (nets)
++				*ext_size += ksize(nets);
++		}
++
++		rcu_read_unlock();
++	}
++#endif
  }
  
-+static u32 mtype_remove_key(const void *data, u32 len, u32 seed)
-+{
-+	return get_random_u32();
-+}
-+
-+static int mtype_remove_cmpfn(struct rhashtable_compare_arg *arg, const void *obj)
-+{
-+	return 0; /* always match */
-+}
-+
-+/**
-+ * mtype_remove_random() - Remove a random element from the set (forceadd)
-+ * @set: Pointer to the ip_set
-+ * @h: Pointer to the htype
-+ *
-+ * This is best-effort: no expensive linear scan is done, 'return false'
-+ * is acceptable outcome.
-+ *
-+ * Return: true if an element was evicted, false otherwise.
-+ */
-+static bool
-+mtype_remove_random(struct ip_set *set, struct htype *h)
-+{
-+	static const struct rhashtable_params ip_set_hash_rnd_params = {
-+		.head_offset	= offsetof(struct mtype_rht_elem, node),
-+		.key_offset	= offsetof(struct mtype_rht_elem, elem),
-+		.hashfn		= mtype_remove_key,
-+		.obj_hashfn	= mtype_rht_obj_hashfn,
-+		.obj_cmpfn	= mtype_remove_cmpfn,
-+		.key_len	= sizeof(u32),
-+	};
-+	struct mtype_rht_elem *e = NULL;
-+	bool removed = false;
-+	static const u32 k;
-+
-+#ifdef IP_SET_HASH_WITH_MULTI
-+	{
-+		struct rhlist_head *list = rhltable_lookup(&h->rhlt, &k,
-+							   ip_set_hash_rnd_params);
-+		if (!list)
-+			return false;
-+
-+		e = container_of(list, typeof(*e), node);
-+	}
-+#else
-+	e = rhashtable_lookup(&h->ht, &k, ip_set_hash_rnd_params);
-+#endif
-+	if (e && !ipset_hash_remove(h, e))
-+		removed = true;
-+
-+	if (removed) {
-+		mtype_del_cidr_all(set, h, &e->elem);
-+		ip_set_ext_destroy(set, &e->elem);
-+		kfree_rcu(e, rcu);
-+	}
-+
-+	return removed;
-+}
-+
- /* Add an element to a hash and update the internal counters when succeeded,
-  * otherwise report the proper error code.
-  */
-@@ -723,11 +788,13 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	}
+ static u32 mtype_remove_key(const void *data, u32 len, u32 seed)
+@@ -710,11 +727,8 @@ mtype_remove_random(struct ip_set *set, struct htype *h)
+ 	if (e && !ipset_hash_remove(h, e))
+ 		removed = true;
  
- 	if (!old && ipset_hash_nelems(h) >= h->maxelem) {
--		if (net_ratelimit())
--			pr_warn("Set %s is full, maxelem %u reached\n",
--				set->name, h->maxelem);
--		ret = -IPSET_ERR_HASH_FULL;
--		goto out_rcu_unlock;
-+		if (!SET_WITH_FORCEADD(set) || !mtype_remove_random(set, h)) {
-+			if (net_ratelimit())
-+				pr_warn("Set %s is full, maxelem %u reached\n",
-+					set->name, h->maxelem);
-+			ret = -IPSET_ERR_HASH_FULL;
-+			goto out_rcu_unlock;
-+		}
- 	}
+-	if (removed) {
+-		mtype_del_cidr_all(set, h, &e->elem);
+-		ip_set_ext_destroy(set, &e->elem);
+-		kfree_rcu(e, rcu);
+-	}
++	if (removed)
++		ipset_hash_elem_destroy_free(set, h, e);
  
- 	e = kzalloc(offsetof(struct mtype_rht_elem, elem) + set->dsize,
+ 	return removed;
+ }
 -- 
 2.54.0
 
