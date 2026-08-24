@@ -1,32 +1,33 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291943932E5
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 21:56:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0E84350A05
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 22:18:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787608568; cv=none; b=VIctBJKuEahraJNzo8PHQDQqUKTIE9wLRukJlOTTTfxeCJc/p7MgvSD02l6oyGW52Ce6H+V4qao+1Fu6VyMcyewgvg47XCI+OCStXJow9ivyya/7F7eTbYAlx1TF9Gag6N67GNX7OjTZ7cbmzOd3W61+MKNzcopeEdQKY0tB+BE=
+	t=1787609899; cv=none; b=X8/hb46MmhCHZWcdD9J2fW5oYgPHnAVYuwNvEWT8uj8+OG44/Eq/t1o6OR3XcyvWmzBCK/4/A/o27uU4uJBle32W6rsNvDs7tfSuB/m6TDG+CVkr8j1zbn48L2LMFdxPTspHbhg35PW3wkTyhWPIYxz+PfhRFJmzQLmvHM2gHzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787608568; c=relaxed/simple;
-	bh=A6vMBqiTX4RyuI2scNrUB///RJBLcTbeZUl7pevwzmI=;
+	s=arc-20240116; t=1787609899; c=relaxed/simple;
+	bh=2sBkomBPzWMZyohPLYzS/fskVUzQUQSkE6mtKXMeTdk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G/AEHD4i2REwbXQy/GOMdkPvhK/tS1bIeCbjC6U5MdBLWs9EOhUeG+xeb51foIuUZKNRVKjxzofcAvTE30CtNwSOv7Pkhgt4nCTxPe9xtEvRX2oXgA9lTTA8fwkY6/jkO0rSU6W7HAy1X55b8rvLUUhMDmG55b1fb1OnAf20dWw=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q0wWonDcJZ19eipOGsFM0E5JtG+e5Q2E+BDr0Tcq7597JsaXTp6d3y+XoYSMm7TgHIX72/p6b0qspMUu30eVlpfznApWyZujraTr3XuREmI+jeUB40Y9EfNqRR9UYpkdD6FFrdodCpaKoDT0PHsuNg2h1yjy0HwIHNm1+HlM0EY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4988160388; Mon, 24 Aug 2026 23:56:01 +0200 (CEST)
-Date: Mon, 24 Aug 2026 23:55:59 +0200
+	id 136B960388; Tue, 25 Aug 2026 00:18:14 +0200 (CEST)
+Date: Tue, 25 Aug 2026 00:18:12 +0200
 From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org, Zhiling Zou <zhilinz@nebusec.ai>
 Subject: Re: [PATCH nf-next] netfilter: x_tables: reject missing '-p' flag
  and check for INV flag
-Message-ID: <aoy977yxzSEsViun@strlen.de>
+Message-ID: <aozDJO7EMyfuupGq@strlen.de>
 References: <20260821134136.18191-1-fw@strlen.de>
  <aohabszy_Ac23p7x@chamomile>
  <aolaWzC1PI7zeYRN@strlen.de>
  <aoy8kFZkXMNOHUcR@chamomile>
+ <aoy977yxzSEsViun@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,37 +36,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aoy8kFZkXMNOHUcR@chamomile>
+In-Reply-To: <aoy977yxzSEsViun@strlen.de>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Sashiko also hinting to fix ip6_tables core check for this protocol
-> > > flag:
-> > > 
-> > > https://sashiko.dev/#/patchset/20260821134136.18191-1-fw%40strlen.de
-> > 
-> > Not so sure.  Maybe just do this?  I don't think proto > 0 and flag
-> > unset makes any sense.
-> > 
-> > diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-> > --- a/net/ipv6/netfilter/ip6_tables.c
-> > +++ b/net/ipv6/netfilter/ip6_tables.c
-> > @@ -647,6 +647,13 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
-> >  	/* Clear counters and comefrom */
-> >  	e->counters = ((struct xt_counters) { 0, 0 });
-> >  	e->comefrom = 0;
-> > +
-> > +	/* Make sure F_PROTO is set, else ip6_packet_match
-> > +	 * won't do the right thing.
-> > +	 */
-> > +	if (e->ipv6.proto)
-> > +		e->ipv6.flags |= IP6T_F_PROTO;
+Florian Westphal <fw@strlen.de> wrote:
+> > Userspace always provides a zeroed e->ipv6.proto when unused, correct?
 > 
-> Userspace always provides a zeroed e->ipv6.proto when unused, correct?
+> Yes, ip6tables raises it when it parses '-p' option.
+> 
+> > If so, LGTM.
+> 
+> Alright, I will respin tomorrow, thanks.
+> 
+> Do you want me to include the TPROXY fix too?
 
-Yes, ip6tables raises it when it parses '-p' option.
+Actually nft_compat.c already does:
 
-> If so, LGTM.
+ if (proto)
+   entry->e6.ipv6.flags |= IP6T_F_PROTO;
 
-Alright, I will respin tomorrow, thanks.
-
-Do you want me to include the TPROXY fix too?
+so the only other necessary fix is the check for 'INV' in xt_l2tp.c.
