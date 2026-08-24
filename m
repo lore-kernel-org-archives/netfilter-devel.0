@@ -1,340 +1,166 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2DB93890E5;
-	Mon, 24 Aug 2026 20:27:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3CDB38E8A7;
+	Mon, 24 Aug 2026 21:04:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787603262; cv=none; b=e2STPc7bKVHf3SFkY/BG0VLjyjxtP7BTyR8zw9Q32VrLdqYxyalmQoZndXe8zb6WuYYBjY1Lf9cFC1QUYWl1mclW2xPGLtOBKm1OCh9LM99+TS7XGcAlMqGi1kFNgF55r2irfMpzz/zfW3RIjcoZVMsEIlhKLYzwRqpKWd0kpf4=
+	t=1787605474; cv=none; b=KMisXyDPE8iQzJgKO4IoXM/RU4TcrkRtJe/1ibppRWAUh3lGF+GVJGFJAQbOIIkJs85X1ZgZ1pL1nkyWzy8QcpPmpiuG9QX2Xn5eb5JOPHbUdNiN3ivkhuEM3ycqQXF3FS4CHvY3O007CYHZ0Q+FN5tWaehWbVY/HmZNF0VHl/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787603262; c=relaxed/simple;
-	bh=JvCxg1f8pC1LvDw4Zwko49LV1cJ1MXJGDwSwhDVsc4I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a7qWSwQXYr7ZSf570eYOSCyrsrMpL+lsqPVu88W06qWa7F6IAKkkefyKJpYFGc+8NNq0hWk8fp/wlpmj16iTWFxEwyU1XCqE97EGkDbKSuK7ZtUTEmdnU2RZMR3YZnepLM6vjuYBG/LGPHjyA9YS9HVD20d2aqRDG7g1wyyBCh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qd33JWTo; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1787605474; c=relaxed/simple;
+	bh=lxWgaRS9cMBj7nzIKwYlcYTMb1BOWwOR02+GTkayrjs=;
+	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Message-ID:Content-Type; b=tOJcsLmxSt32AlM8oGbzxW3CAcfdRTAb+tn11139PffJiCr5hehlx8+2AVFXu30urmDTAvjcAotF+sKrJBLl0x4CiDhdqiuJOBB85wCO54imV5b9COHMGuTK43tM6l2tksifIbWRaBa2PB9gzdd1VLOBn9S1qql6YVhPMuhEsO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=iN4IZpg9; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qd33JWTo"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787603255;
-	bh=LRoEoS/IuN/SHhY1q7FogEj9sLI2rq4XNeGHJI0Sf8I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Qd33JWTolQP4X6yegmVU7fdkrrFO0RexnNBlx0IKubmfUd07dcYqvLkzyBsA7/uJL
-	 /kg+FyLYY1ayijbwo5GN7oBK1J8YmU8dxbahFKKUpQ5Cmd4aHW/Izk+/K/g6N3+ABJ
-	 pG8CKJ5Yn+C6dUuUrP2jHy6ij6Y618Cl6blsEMeCPUzWo6LVvWuXwHt+T9HnyjZO0G
-	 WBqWsgQMUV1eltoQiVPWLMJLTc5+JQZ8knRxNVW5T/fS4zi1gKJtFcFZKnWE9d6J/o
-	 WukfmMosjpb6t46xkv2cRIqBkEBoyMbIqIBFBMDuYqoF1jHN8eYSwKwZ1zYFc4AC+7
-	 CLOWep6rNEIwQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B632560078;
-	Mon, 24 Aug 2026 22:27:35 +0200 (CEST)
-Date: Mon, 24 Aug 2026 22:27:32 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jaeyoung Chung <jjy600901@snu.ac.kr>
-Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	fw@strlen.de, kuba@kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-	horms@kernel.org, linux-kernel@vger.kernel.org, phil@nwl.cc,
-	eulgyukim@snu.ac.kr
-Subject: Re: [BUG] general protection fault in __instance_destroy
-Message-ID: <aoypNGqcr0yrrKqc@chamomile>
-References: <20260824152532.2261892-1-jjy600901@snu.ac.kr>
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="iN4IZpg9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
+	:From:Date:MIME-Version:From:Reply-To;
+	bh=8Sz3WqkTSXrjfECQs9syX3OabIkTQfaoXng/2r3y3YI=; b=iN4IZpg94uQW7Qq71fa8RM3vEW
+	kYkZAE7Go3UMAHPCbMam59vi5F2G4bm4hWXaQvDe+IlXyYEvE3ysOyCUtZqscnptJn7q2InbNaFyu
+	soOubYTTGaNo34QYmi9ty2VVZJpRy9sTLLWPw/LK3yUGKpUbS/U50cLhVIERjuM4Ft+aoWfPy9dJE
+	gK9eUfYGXhRTBPX+kELcjgSnMYflg6ghgE0MkoYvLv42MzvqNcu61ANFS228b1Ien6EVqp3z8FXTb
+	NuEjADHZt8gwoX1gXWGgh+2+Dm/yjJ9PlQHQ27wXDkIEUhwmsrSPlTWDbQQk59YiDr1KX9MY2E47t
+	G2P9q0Eg==;
+Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
+	by fanzine2.igalia.com with esmtps 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1wybpt-008hfh-DY; Mon, 24 Aug 2026 23:04:05 +0200
+Received: from webmail.service.igalia.com ([192.168.21.45])
+	by mail.igalia.com with esmtp (Exim)
+	id 1wybps-003b3A-2i; Mon, 24 Aug 2026 23:04:05 +0200
+Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
+	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
+	(envelope-from <mfo@igalia.com>)
+	id 1wybps-00000003RKa-04eN;
+	Mon, 24 Aug 2026 23:04:03 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260824152532.2261892-1-jjy600901@snu.ac.kr>
+Date: Mon, 24 Aug 2026 18:04:03 -0300
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>,
+ Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon
+ Horman <horms@kernel.org>, kernel-dev@igalia.com,
+ linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+ fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
+ virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+In-Reply-To: <aotteDcc588iwC6g@monoceros>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
+ <aomlfGJM61qZKxx2@monoceros> <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
+ <aotteDcc588iwC6g@monoceros>
+Message-ID: <4aa22e41e8ff4bab6638cf0baaa9d07b@igalia.com>
+X-Sender: mfo@igalia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005,KAM_SHORT=0.001
+X-Spam-Score: -20
+X-Spam-Bar: --
 
-Hi,
+On 2026-08-23 19:12, Uwe Kleine-König wrote:
+> Hello Mauricio,
+> 
+> On Sat, Aug 22, 2026 at 01:57:24PM -0300, Mauricio Faria de Oliveira wrote:
+>> On 2026-08-22 10:41, Uwe Kleine-König wrote:
+>> > On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
+>> >> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
+>> >> with pointers to a sysctl table's path and entries, and table/entry sizes.
+>> > 
+>> > That new struct doesn't seem to contain any pointer?
+>> 
+>> The struct module_sysctl_table fields .path and .table are pointers,
+>> although with kernel_ulong_t type so that the same 32/64-bit size is
+>> used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
+>> which might differ with CROSS_COMPILE).
+> 
+> Cross compilation isn't an issue for the already existing device id
+> structures; many of them also contain pointers.
+> (While modpost doesn't use the pointers, the size of the structures must
+> be known to correctly interpret the arrays.)
 
-On Tue, Aug 25, 2026 at 12:25:25AM +0900, Jaeyoung Chung wrote:
-> Hello,
-> 
-> We found a "general protection fault in __instance_destroy" on Linux v7.2.
-> The issue was found by our own race fuzzer. We have not analyzed the root cause,
-> so we do not have a proposed fix to offer.
-> 
-> To reproduce the race reliably, we applied the delay patch below to the
-> kernel and ran the C reproducer as root inside an x86_64 QEMU guest. The
-> crash log we observed, the delay patch and the reproducer are all included
-> below.
-> 
-> The following kernel config options are required to reproduce the issue:
->     CONFIG_NETFILTER=y
->     CONFIG_NETFILTER_NETLINK=y
->     CONFIG_NETFILTER_NETLINK_LOG=y
->     CONFIG_NET=y
->     CONFIG_KASAN=y
-> 
-> We hope this report is useful. Please let us know if any further
-> information would help.
+Indeed. I missed some device_id structures with pointers, and that
+devicetable-offsets.c is cross-compiled to generate
+devicetable-offsets.h for file2alias.c to use offsets and sizes of the
+target architecture.
 
-It seems instance_destroy() lost race with nfulnl_rcv_nl_event().
+I'll change .path and .table to pointers in the next version.
 
-instance_destroy() calls hlist_del_rcu() for an instance that was
-already removed by nfulnl_rcv_nl_event().
+> Also sizeof(long) differs between architectures and I can compile for
+> arm(32) just fine on amd64.
+> 
+> Additionally there is hardware out there that has sizeof(void *) = 16
+> but sizeof(long) = 8. Up until recently I worked on mainlining that (and
+> it has business reasons only I stopped, so I guess and hope I will
+> continue at some point in the future). See
+> https://lwn.net/Articles/1037974/ for some details if you're interested.
 
-nfulnl_recv_config() holds a reference on the instance but it is not
-sufficient.
+Cool.
 
-> Reported-by: Eulgyu Kim <eulgyukim@snu.ac.kr>
-> Reported-by: Jaeyoung Chung <jjy600901@snu.ac.kr>
 > 
-> Kernel delay patch:
-> ==================================================================
-> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-> index 6c7fa2ed34f5..04d2250f992a 100644
-> --- a/net/netfilter/nfnetlink_log.c
-> +++ b/net/netfilter/nfnetlink_log.c
-> @@ -37,6 +37,8 @@
->  
->  #include <linux/atomic.h>
->  #include <linux/refcount.h>
-> +#include <linux/delay.h>
-> +#include <linux/sched.h>
->  
->  
->  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-> @@ -982,6 +984,9 @@ static int nfulnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
->  				goto out;
->  			}
->  
-> +			if (strncmp(current->comm, "syzrepro1", 10) == 0) {
-> +				mdelay(100);
-> +			}
->  			instance_destroy(log, inst);
->  			goto out_put;
->  		default:
-> diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-> index 5202fe0b0867..0ba2ab6c4547 100644
-> --- a/net/netlink/af_netlink.c
-> +++ b/net/netlink/af_netlink.c
-> @@ -25,6 +25,7 @@
->  #include <linux/kernel.h>
->  #include <linux/filter.h>
->  #include <linux/init.h>
-> +#include <linux/delay.h>
->  #include <linux/signal.h>
->  #include <linux/sched.h>
->  #include <linux/errno.h>
-> @@ -724,6 +725,9 @@ static int netlink_release(struct socket *sock)
-n>  		return 0;
->  
->  	netlink_remove(sk);
-> +	if (strncmp(current->comm, "syzrepro0", 10) == 0) {
-> +		mdelay(60);
-> +	}
->  	sock_orphan(sk);
->  	nlk = nlk_sk(sk);
->  
-> ==================================================================
+> I would be great if your series didn't introduce a new obstacle for
+> that.
+
+Absolutely. I'll be happy to adjust the series and testing for that.
+
+Could you please confirm one should just follow [1], which uses [2] to
+build the LLVM toolchain, and use it to build the kernel [3]?
+
+[1] https://github.com/cheri-linux#building-and-running
+[2] https://github.com/cheri-linux/buildroot
+[3] https://github.com/CHERI-Alliance/linux/tree/codasip-cheri-riscv-7.1
+
+>> >> That symbol will be handled by file2alias.c (modpost) with the changes in
+>> >> mod_devicetable.h and devicetable-offsets.c.
+>> >> 
+>> >> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
+>> >> a per-file basis to disable the macro and change the symbol name pattern.
+>> >> 
+>> >> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+>> >> ---
+>> >>  include/linux/mod_devicetable.h   |  7 +++++++
+>> >>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++++++++
+>> >>  scripts/mod/devicetable-offsets.c |  6 ++++++
+>> >>  3 files changed, 55 insertions(+)
+>> > 
+>> > Please put the new struct in a separate header. Apart from not being
+>> > about a device table, I'm currently work on removing
+>> > <linux/mod_devicetable.h>. See commit
+>> > ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
+>> 
+>> Sure; I looked at that earlier (thanks for the instructive commit
+>> message, by the way) and found the new struct to be similar to "struct
+>> cpu_feature isn't really a device_id struct" (not moved), but apparently
+>> missed the trailing "fow now", which is clearer now. Fixed for v4.
 > 
-> C reproducer:
-> ==================================================================
-> #define _GNU_SOURCE
-> #include <errno.h>
-> #include <pthread.h>
-> #include <sched.h>
-> #include <stdio.h>
-> #include <stdlib.h>
-> #include <string.h>
-> #include <sys/prctl.h>
-> #include <sys/socket.h>
-> #include <unistd.h>
-> #include <linux/netlink.h>
+> Yeah, I didn't move that because it was an outlier in the header as it's
+> not a device id. IMHO it should go to something like
+> include/linux/cpu_feature.h.
+
+Ack.
+
+cheers,
+
 > 
-> #define SYSCHK(x) ({ long __r = (long)(x); if (__r == -1L) { perror(#x); exit(1); } __r; })
-> 
-> #define NETLINK_NETFILTER 12
-> #define NFNL_SUBSYS_ULOG 4
-> #define NFULNL_MSG_CONFIG 1
-> #define NFULA_CFG_CMD 1
-> #define BIND 1
-> #define UNBIND 2
-> 
-> /* Two threads take the same portid in turn, overlapping BIND/UNBIND on the
->  * same group 0 instance
->  */
-> #define PORTID 0x00524143u
-> #define SPIN 4000000
-> 
-> static volatile unsigned g_go, g_done;
-> static volatile int g_stop;
-> 
-> static int build_cfg(char *buf, unsigned char cmd)
-> {
-> 	struct nlmsghdr *nlh = (struct nlmsghdr *)buf;
-> 	unsigned short nla[2] = { 5, NFULA_CFG_CMD };
-> 	unsigned char *p = (unsigned char *)buf + NLMSG_HDRLEN;
-> 
-> 	memset(buf, 0, 64);
-> 	nlh->nlmsg_len = NLMSG_HDRLEN + 12;
-> 	nlh->nlmsg_type = (NFNL_SUBSYS_ULOG << 8) | NFULNL_MSG_CONFIG;
-> 	nlh->nlmsg_flags = NLM_F_REQUEST;
-> 	nlh->nlmsg_seq = 1;
-> 	memcpy(p + 4, nla, 4);
-> 	p[8] = cmd;
-> 	return NLMSG_HDRLEN + 12;
-> }
-> 
-> static int nl_send(int fd, const char *buf, int len)
-> {
-> 	struct sockaddr_nl dst = { .nl_family = AF_NETLINK };
-> 	struct iovec iov = { (void *)buf, len };
-> 	struct msghdr mh = { .msg_name = &dst, .msg_namelen = sizeof(dst),
-> 			     .msg_iov = &iov, .msg_iovlen = 1 };
-> 
-> 	return sendmsg(fd, &mh, 0);
-> }
-> 
-> static int nl_open_bind(void)
-> {
-> 	struct sockaddr_nl a = { .nl_family = AF_NETLINK, .nl_pid = PORTID };
-> 	int fd = SYSCHK(socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER));
-> 	long spin;
-> 
-> 	for (spin = 0; spin < SPIN && !g_stop; spin++) {
-> 		if (bind(fd, (struct sockaddr *)&a, sizeof(a)) == 0)
-> 			return fd;
-> 		if (errno != EADDRINUSE)
-> 			break;
-> 		sched_yield();
-> 	}
-> 	close(fd);
-> 	return -1;
-> }
-> 
-> static void *binder(void *u)
-> {
-> 	char buf[64];
-> 	int len, i;
-> 
-> 	(void)u;
-> 	prctl(PR_SET_NAME, "syzrepro0", 0, 0, 0);
-> 	len = build_cfg(buf, BIND);
-> 	for (i = 1; i <= 120 && !g_stop; i++) {
-> 		long spin;
-> 		int fd = nl_open_bind();
-> 
-> 		if (fd < 0 || nl_send(fd, buf, len) < 0) {
-> 			if (fd >= 0)
-> 				close(fd);
-> 			break;
-> 		}
-> 		__sync_synchronize();
-> 		g_go = i;
-> 		__sync_synchronize();
-> 		close(fd);
-> 		for (spin = 0; g_done < (unsigned)i && spin < SPIN; spin++)
-> 			sched_yield();
-> 	}
-> 	g_stop = 1;
-> 	return NULL;
-> }
-> 
-> static void *unbinder(void *u)
-> {
-> 	char buf[64];
-> 	unsigned last = 0;
-> 	int len;
-> 
-> 	(void)u;
-> 	prctl(PR_SET_NAME, "syzrepro1", 0, 0, 0);
-> 	len = build_cfg(buf, UNBIND);
-> 	while (!g_stop) {
-> 		unsigned cur;
-> 		int fd;
-> 
-> 		for (;;) {
-> 			cur = g_go;
-> 			if (cur != last)
-> 				break;
-> 			if (g_stop)
-> 				return NULL;
-> 			sched_yield();
-> 		}
-> 		last = cur;
-> 		fd = nl_open_bind();
-> 		if (fd >= 0) {
-> 			nl_send(fd, buf, len);
-> 			close(fd);
-> 		}
-> 		__sync_synchronize();
-> 		g_done = cur;
-> 		__sync_synchronize();
-> 	}
-> 	return NULL;
-> }
-> 
-> int main(void)
-> {
-> 	pthread_t t0, t1;
-> 
-> 	pthread_create(&t1, NULL, unbinder, NULL);
-> 	pthread_create(&t0, NULL, binder, NULL);
-> 	pthread_join(t0, NULL);
-> 	g_stop = 1;
-> 	pthread_join(t1, NULL);
-> 	return 0;
-> }
-> ==================================================================
-> 
-> Crash log:
-> ==================================================================
-> Oops: general protection fault, probably for non-canonical address 0xfbd59c0000000024: 0000 [#1] SMP KASAN PTI
-> KASAN: maybe wild-memory-access in range [0xdead000000000120-0xdead000000000127]
-> CPU: 0 UID: 0 PID: 401 Comm: syzrepro1 Not tainted 7.2.0-dirty #2 PREEMPT 
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
-> RIP: 0010:__hlist_del include/linux/list.h:1029 [inline]
-> RIP: 0010:hlist_del_rcu include/linux/rculist.h:599 [inline]
-> RIP: 0010:__instance_destroy+0x5a/0x190 net/netfilter/nfnetlink_log.c:234
-> Code: f2 fc 4c 8b 3b 4c 8d 73 08 4c 89 f5 48 c1 ed 03 42 80 7c 2d 00 00 74 08 4c 89 f7 e8 60 b5 f2 fc 4d 8b 26 4c 89 e0 48 c1 e8 03 <42> 80 3c 28 00 74 08 4c 89 e7 e8 37 b6 f2 fc 4d 89 3c 24 4d 85 ff
-> RSP: 0018:ffff88811118f350 EFLAGS: 00010a06
-> RAX: 1bd5a00000000024 RBX: ffff888107955000 RCX: 0000000000000001
-> RDX: 0000000000000001 RSI: 0000000000000004 RDI: ffff888107955000
-> RBP: 1ffff11020f2aa01 R08: ffff88811118f36f R09: 1ffff11022231e6d
-> R10: dffffc0000000000 R11: ffffed1022231e6e R12: dead000000000122
-> R13: dffffc0000000000 R14: ffff888107955008 R15: 0000000000000000
-> FS:  00007b5300d0a6c0(0000) GS:ffff88817d75f000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007b5300dfc010 CR3: 000000011127e000 CR4: 00000000000006f0
-> Call Trace:
->  <TASK>
->  instance_destroy net/netfilter/nfnetlink_log.c:256 [inline]
->  nfulnl_recv_config+0x60e/0xf70 net/netfilter/nfnetlink_log.c:990
->  nfnetlink_rcv_msg+0x5d5/0x760 net/netfilter/nfnetlink.c:300
->  netlink_rcv_skb+0x168/0x310 net/netlink/af_netlink.c:2560
->  nfnetlink_rcv+0x370/0x2140 net/netfilter/nfnetlink.c:667
->  netlink_unicast_kernel net/netlink/af_netlink.c:1323 [inline]
->  netlink_unicast+0x652/0x880 net/netlink/af_netlink.c:1349
->  netlink_sendmsg+0x5a1/0x870 net/netlink/af_netlink.c:1904
->  sock_sendmsg_nosec net/socket.c:775 [inline]
->  __sock_sendmsg+0x18f/0x1a0 net/socket.c:790
->  ____sys_sendmsg+0x468/0x660 net/socket.c:2684
->  ___sys_sendmsg+0x15e/0x1a0 net/socket.c:2738
->  __sys_sendmsg net/socket.c:2770 [inline]
->  __do_sys_sendmsg net/socket.c:2775 [inline]
->  __se_sys_sendmsg net/socket.c:2773 [inline]
->  __x64_sys_sendmsg+0x11e/0x170 net/socket.c:2773
->  do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
->  do_syscall_64+0xf7/0x370 arch/x86/entry/syscall_64.c:94
->  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-> RIP: 0033:0x7b5300e18c4d
-> Code: 28 89 54 24 1c 48 89 74 24 10 89 7c 24 08 e8 ea ab f7 ff 8b 54 24 1c 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 2e 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 33 44 89 c7 48 89 44 24 08 e8 3e ac f7 ff 48
-> RSP: 002b:00007b5300d09dc0 EFLAGS: 00000293 ORIG_RAX: 000000000000002e
-> RAX: ffffffffffffffda RBX: 0000000000000028 RCX: 00007b5300e18c4d
-> RDX: 0000000000000000 RSI: 00007b5300d09e10 RDI: 0000000000000003
-> RBP: 0000000000000003 R08: 0000000000000000 R09: 00007ffd57a75617
-> R10: 0000000000000000 R11: 0000000000000293 R12: 000000000000001c
-> R13: 00007b5300d09e60 R14: 00007ffd57a75520 R15: 00007b530050a000
->  </TASK>
-> Modules linked in:
-> ---[ end trace 0000000000000000 ]---
-> ==================================================================
-> 
-> 
+> Best regards
+> Uwe
+
+-- 
+Mauricio
