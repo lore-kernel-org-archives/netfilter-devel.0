@@ -1,31 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0208C40A924
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 16:04:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D04377006
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 19:28:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787587443; cv=none; b=jKdlQnnc/wlcFOeZMqkogLdkvvRBWi3nypMp0B0qU10hWUtb8OJb5qRcTMnzfSIKBQGa3ZNHZeQYOCQiMl/UoXPa5NlMAunP1ANpamU8odm7eLGMkFQiai6IzZDd84KD85hN9uKXn4dkR3Ku3Ve535xB218G0Dwf3r3V5UTVQE8=
+	t=1787599733; cv=none; b=XD5RS2b5W2u5A5aa04W0WiNW2CG75poF5gUqXE9wBnOz09A0cB2eDhH+wSwPV/SNVEBcZHf3Hhco8QG+z8nr8gExrA9TMkDPDSmHdmd3okGi3INZ25f2swZezOvgvnN50OfOv3xjiAQTmKJwKIcNpmWajcYh8Llgvg8bV1doEoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787587443; c=relaxed/simple;
-	bh=VxjIimb7fERSGPIUa3r5Yhus37fYugItqrMBLCkMtQ0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pL1VNtGnrCPVmLonled9UJaVd+0tmz4HpYL/kXGmHUj8HnfqoSgOTedvLfnH1JUoEp6VGNfhFnWqKnxkdQ8KohsF4ocRDgCdhqpLKUNjHEbE5eFXm6LwoNjnbMmxmgnToQJK4GCH97WYLeET417edSEbKgNW2GuanFOR3cD4V6M=
+	s=arc-20240116; t=1787599733; c=relaxed/simple;
+	bh=DDwf6BISWyWN0neFvwIljoSQqVqz0425nHhIrVbuNkg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VPgmoS4Uskg7BXLb5Xj1pc7EzDjxZQGhLpIq9qqVq4UvllAqRdvxSbvHjB8w15RvROSZt7tSQkH3BprdIvNhYgF0y0PspZxzGfKbq/M3MfsEMwamhU/TT3Nvf2yxNd8NZoRuqn2/NUeHBWHXoScojsuSCexySyeEu3V5LTfMIpA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9FB4B6035B; Mon, 24 Aug 2026 18:04:00 +0200 (CEST)
+	id 520DF602A3; Mon, 24 Aug 2026 21:28:49 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] netfilter: ipset: also report mem size for cidr storage to userspace
-Date: Mon, 24 Aug 2026 18:03:28 +0200
-Message-ID: <20260824160328.12099-6-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nft_payload: restrict checksum offsets to known values
+Date: Mon, 24 Aug 2026 21:28:43 +0200
+Message-ID: <20260824192843.28439-1-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260824160328.12099-1-fw@strlen.de>
-References: <20260824160328.12099-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,57 +30,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-After the 'Fixes' commit, the storage is allocated dynamically.
-Include this when reporting the mem usage.
+We need to prevent userspace from corrupting e.g. tcp->doff, because
+many locations in conntrack and conntrack helpers rely on
+nf_conntrack_in() having validated the packet headers.
+nft_payload allows to alter headers later which invalidates this
+assumption.
 
-Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
+The 'Fixes' commit restricts writes to safe fields, but there is
+another side channel: the checksum location.
+
+Restrict this too.  Reported via sashiko/gemini.
+
+Fixes: 112e447d17f7 ("netfilter: validate L4 headers after userspace packet writes")
+Assisted-by: Claude:claude-opus-4-6
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ net/netfilter/nft_payload.c | 36 +++++++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index d86ee5898773..266cab31180e 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -658,6 +658,23 @@ mtype_rht_size(struct ip_set *set, u32 *elements, size_t *ext_size)
- 	*elements = ipset_hash_nelems(h);
- 	*ext_size = *elements *
- 		    (offsetof(struct mtype_rht_elem, elem) + set->dsize);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index e315d35f73d4..70f70a65e327 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -1008,11 +1008,13 @@ static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
+ 		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
+ 			return false;
+ 
+-		/* no further check here; offset can't be negative so bogus
+-		 * offsets can corrupt L4 or payload but not l3 headers.
+-		 * We already allow arbitrary l4/inner payload writes.
+-		 */
+-		return true;
++		/* Validate csum_offset is one of the supported transport header checksums */
++		if (priv->csum_offset == offsetof(struct tcphdr, check) ||
++		    priv->csum_offset == offsetof(struct udphdr, check) ||
++		    priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum))
++			return true;
 +
-+#ifdef IP_SET_HASH_WITH_NETS
-+	{
-+		const struct net_prefixes *nets;
-+		int i;
++		return false;
+ 	case NFT_PAYLOAD_INNER_HEADER:
+ 		return true;
+ 	case NFT_PAYLOAD_TUN_HEADER:
+@@ -1046,6 +1048,25 @@ static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
+ 	return false;
+ }
+ 
++static bool nft_payload_csum_th_write_ok(const struct nft_payload_set *priv,
++					 const struct nft_pktinfo *pkt)
++{
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		return false;
 +
-+		rcu_read_lock();
-+
-+		for (i = 0; i < IPSET_NET_COUNT; i++) {
-+			nets = rcu_dereference(h->rnets[i]);
-+			if (nets)
-+				*ext_size += ksize(nets);
-+		}
-+
-+		rcu_read_unlock();
++	switch (pkt->tprot) {
++	case IPPROTO_TCP:
++		return priv->csum_offset == offsetof(struct tcphdr, check);
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		return priv->csum_offset == offsetof(struct udphdr, check);
++	case IPPROTO_ICMPV6:
++		return priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum);
 +	}
-+#endif
- }
- 
- static u32 mtype_remove_key(const void *data, u32 len, u32 seed)
-@@ -710,11 +727,8 @@ mtype_remove_random(struct ip_set *set, struct htype *h)
- 	if (e && !ipset_hash_remove(h, e))
- 		removed = true;
- 
--	if (removed) {
--		mtype_del_cidr_all(set, h, &e->elem);
--		ip_set_ext_destroy(set, &e->elem);
--		kfree_rcu(e, rcu);
--	}
-+	if (removed)
-+		ipset_hash_elem_destroy_free(set, h, e);
- 
- 	return removed;
- }
++
++	return false;
++}
++
+ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 				      const struct nft_payload_set *priv)
+ {
+@@ -1055,9 +1076,10 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+ 		return nft_payload_csum_nh_write_ok(priv, pkt);
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
++		return nft_payload_csum_th_write_ok(priv, pkt);
+ 	case NFT_PAYLOAD_INNER_HEADER:
+-		/* neither offsets are validated, offsets cannot be
+-		 * negative so real l3 headers cannot be mangled.
++		/* offset is not validated, offset cannot be
++		 * negative so real l3/l4 headers cannot be mangled.
+ 		 */
+ 		return true;
+ 	case NFT_PAYLOAD_TUN_HEADER:
 -- 
 2.54.0
 
