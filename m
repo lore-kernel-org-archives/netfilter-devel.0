@@ -1,84 +1,90 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A602350A05
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 22:19:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2669331EBB
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 22:23:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787609950; cv=none; b=EOBb5qhmlCXFRlWrFeGFse0vSy8nr7cwtqPkG9u3Ge4zf4o5p3i3hWgDCchhut6S4TfP+TKfoscH4d5y0/HE65yjHI+SWZv4wlce0ws1Q/2F0KB1O00HtnUVuLcf3FSnLGtFjGY6TK9uyuCG7vn+JhfIeSId4gKzwwCTwIa4es4=
+	t=1787610188; cv=none; b=GL5UXXsJSr8b1WoKR+6c17jdKDglJ6MkSBtVCg3NVo3qMbRvGiRl+VH9NQ6kH6XXNCIfzwihf5ZjZOi0c2HqEyxOhPElpxMH8o9bQw1xppukrKp0NPBh1o+fUpotEIMLyY+kQENBilPm/Nm5utL2pc2jlGsV+7pBnTgEUb1h1cw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787609950; c=relaxed/simple;
-	bh=Yh1jZ3+AxrVabd4VrdClN3ov/fhsHsUl4PGk/O3keqM=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=fht2CEe6RiooQp9/TMDHa1XEFFeo7tOX/Ffn9c7UmOu82iLCs3b4hu7NxEwmWMjt2EB2CsP/R82AVNI+Kh+s6V5/p7WA8h6sx+RGjFxwN3AJeFQXrIAGPIZdb1iIPe3bpe7jhrHC/2IPNY0qcIiEemoK/TQ3iwLjQ4Z/gxEB+EQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EXbxNJTQ; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787610188; c=relaxed/simple;
+	bh=FY+esbbfI6Zihk1qykZkAI22KHpBUpkrb6KaHP7dJJQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BclLFQdZ2dKqfXzlS3W/Ca2oHBTlA9zL/Mn9RUGjRrImM/nqYEw7rC7su6A17xBFlTGEoJUjWmEsb/yI81bghyFy4oAnlrMAMRiM2WANHzEy3lYk2tVymrM2aDvddDEwDgWT8fsvFisIpL1p1+HGMTwrDkdCSnKOpguU+5FZkpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=G6aFziEe; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EXbxNJTQ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="G6aFziEe"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787609946;
-	bh=6XVoVpri3e9sFHZoc+U/2osKSPMavlWYeRVni++0xPI=;
-	h=From:To:Subject:Date:From;
-	b=EXbxNJTQdMxsl2lTe1siRFhIM230648LzMyuTqwEMD7tI2GKLm/+n8ncA5MEg7Njd
-	 x0q5MbEFurrEJfDwGu5UuVsH+bW3cGued0/VyZVVoFIK3kPD5LAyEOvijhzrpekGAY
-	 BrpDskmpzEx+tYfqn4aMN8ZrJ2lJTHYiNmSfwVq3qggw94rZ03EucSmJpc45S3ps1X
-	 qhkHMIVo7wpJioCCKhbvhRPwZ42x5dfY34DYP6BkyK/z0UvP+uXBwDV9utgpkstgky
-	 QapsFuy63ynCvVLQ5ChnPbJqxelsrpMEZSYt8cSCpTPqBoiN7QRzYmzZn+mb5XO7o9
-	 gaix8CZuNlGaA==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B58286008C
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 00:19:06 +0200 (CEST)
+	s=2025; t=1787610184;
+	bh=x1ooKgD8bjSL4Mohn67kglBfc1gvarrYiPkKb5/CcQw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=G6aFziEeCOQJblE3t/fVnAu3Vn4hLX8CVqJx11wBcZIHJWNRFynTGZH68mmJBPYUa
+	 WWIikCYuuXRWI7PjD9z1WH9vCuptw6OP7vRTY4bptm9jSUyDvPl2r+Fh464a6uz2fg
+	 XmjmIfeDveCAz61PF//j/TThHiCqcrwO438g62fIeM/XynTm2lJdDDFoCGLsNyobtv
+	 ADg8d5NfTdsjSfmGQYHKcyhe1e3Ne+ENOix6xXEEoHFyDjCjARlN5ILyhOUbi0Gt03
+	 B4yCviBBJs842YgabivCYO5xrOqcUmAwPXwyOnpVW6JG1hdkRYp2SzWGlWGMdgLWoZ
+	 W4x+QNo9jkFaQ==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A38B56005C;
+	Tue, 25 Aug 2026 00:23:04 +0200 (CEST)
+Date: Tue, 25 Aug 2026 00:23:01 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: lwtunnel: expose read-only sysctl nf_hooks_lwtunnel for non init-netns
-Date: Tue, 25 Aug 2026 00:19:02 +0200
-Message-ID: <20260824221902.96694-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, Zhiling Zou <zhilinz@nebusec.ai>
+Subject: Re: [PATCH nf-next] netfilter: x_tables: reject missing '-p' flag
+ and check for INV flag
+Message-ID: <aozERf3kQQYrPjMk@chamomile>
+References: <20260821134136.18191-1-fw@strlen.de>
+ <aohabszy_Ac23p7x@chamomile>
+ <aolaWzC1PI7zeYRN@strlen.de>
+ <aoy8kFZkXMNOHUcR@chamomile>
+ <aoy977yxzSEsViun@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aoy977yxzSEsViun@strlen.de>
 
-Expose nf_hooks_lwtunnel sysctl with 0444 mode from non init-netns
-instead of 0644, sashiko reports this is exposing a global static branch
-to modification by unprivileged users.
+On Mon, Aug 24, 2026 at 11:55:59PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > Sashiko also hinting to fix ip6_tables core check for this protocol
+> > > > flag:
+> > > > 
+> > > > https://sashiko.dev/#/patchset/20260821134136.18191-1-fw%40strlen.de
+> > > 
+> > > Not so sure.  Maybe just do this?  I don't think proto > 0 and flag
+> > > unset makes any sense.
+> > > 
+> > > diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> > > --- a/net/ipv6/netfilter/ip6_tables.c
+> > > +++ b/net/ipv6/netfilter/ip6_tables.c
+> > > @@ -647,6 +647,13 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+> > >  	/* Clear counters and comefrom */
+> > >  	e->counters = ((struct xt_counters) { 0, 0 });
+> > >  	e->comefrom = 0;
+> > > +
+> > > +	/* Make sure F_PROTO is set, else ip6_packet_match
+> > > +	 * won't do the right thing.
+> > > +	 */
+> > > +	if (e->ipv6.proto)
+> > > +		e->ipv6.flags |= IP6T_F_PROTO;
+> > 
+> > Userspace always provides a zeroed e->ipv6.proto when unused, correct?
+> 
+> Yes, ip6tables raises it when it parses '-p' option.
+> 
+> > If so, LGTM.
+> 
+> Alright, I will respin tomorrow, thanks.
+> 
+> Do you want me to include the TPROXY fix too?
 
-Fixes: a2225e0250c5 ("netfilter: move the sysctl nf_hooks_lwtunnel into the netfilter core")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_hooks_lwtunnel.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+I think that is nf-next material, for correctness. Not urgent.
 
-diff --git a/net/netfilter/nf_hooks_lwtunnel.c b/net/netfilter/nf_hooks_lwtunnel.c
-index 4e1eef1ba0f1..0b4fca26233f 100644
---- a/net/netfilter/nf_hooks_lwtunnel.c
-+++ b/net/netfilter/nf_hooks_lwtunnel.c
-@@ -68,14 +68,18 @@ static int __net_init nf_lwtunnel_net_init(struct net *net)
- {
- 	const struct ctl_table *table;
- 	struct ctl_table_header *hdr;
-+	struct ctl_table *dup;
- 
- 	table = nf_lwtunnel_sysctl_table;
- 	if (!net_eq(net, &init_net)) {
--		table = kmemdup(nf_lwtunnel_sysctl_table,
--				sizeof(nf_lwtunnel_sysctl_table),
--				GFP_KERNEL);
--		if (!table)
-+		dup = kmemdup(nf_lwtunnel_sysctl_table,
-+			      sizeof(nf_lwtunnel_sysctl_table),
-+			      GFP_KERNEL);
-+		if (!dup)
- 			goto err_alloc;
-+
-+		dup->mode = 0444;
-+		table = dup;
- 	}
- 
- 	hdr = register_net_sysctl_sz(net, "net/netfilter", table,
--- 
-2.47.3
-
+Thanks!
