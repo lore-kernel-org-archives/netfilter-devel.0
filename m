@@ -1,81 +1,81 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-yx1-f43.google.com (mail-yx1-f43.google.com [74.125.224.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5165F30E821
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 09:28:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2386E412BF2
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 11:58:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787563714; cv=none; b=IGbFDReUcyuvVoa8wZ0i/9s5Z/OISMiDDCtseFoXFkf/97EGHwxgsOgfQEnA1kxuynN/h9yCaTX/+Mi+4tTfrCx584r3n1nn7I89VDvdfWSE0pwZUQLbtJywhBsuNmzrfBssbOpYH1Zwys22+Kx9A4+pFEuhmWBGlUMHBKB1EAs=
+	t=1787572720; cv=none; b=Izwn1FZ3ZAHsptAO7TnNhYAhCTEsnkVsOfZs6kjpQzcALqhtY4TYg+9R1vHkC2uNEsPyHdy55NzecPCSFJl4wVh+gayBCbfz1uuIzbetbPgZqEpwH0NsQvH5Yet3HbOBMIjiEOpJ6Bl/0nXiBfsVD2qA03CG6WxdYwTYaFUlATA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787563714; c=relaxed/simple;
-	bh=3ryfcmwwVhQjb4DFMpe2ryTChSGN2DZ+yVDU4XYuKh4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NOmuH8m9Y3ZzHvTpDURQdDygazFEGKWpFpbpeC3WpqF8jojFdf4rxY/mH/uIZ6ryPoZQxaLB5X/12M+n8UBGWCGSAuojdipysRFVnfqHd7gTAO6xL3ojKiSe8Y47uoP49G0Z1XjG4PaTXy0EXU7I3pVXcavpPuQRbovskOMdgLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZZ4K0sVi; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=n8yOF1EX; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Le5K69z1; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=s7b66dpX; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1787572720; c=relaxed/simple;
+	bh=rwVtocl8QFG6AaUZrwl4HjX8gTEbKaqLxkOKeOAb5m8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ub8EFfJO11BHL3yjbseAOQz/4yAOOLre+eRmlzH/DMKdOoT77sxTJ6vxfDy9UQvZlMjuKjhPUEDSVfY9YK+uITCuix3ynyR2Tg9MqV9klDc6uY/nPEmewiHSzRw1QRctxmlsBo1i6wnFfRKt8e78bfiVdxASe/DhMdXWGO5k40Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HzWBr09R; arc=none smtp.client-ip=74.125.224.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZZ4K0sVi";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="n8yOF1EX";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Le5K69z1";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="s7b66dpX"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 6D3D186730;
-	Mon, 24 Aug 2026 09:28:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1787563700; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=m8iyOUi5M3YBZQBfrKiGjJh8x1FFCAkdZudipAfZeiU=;
-	b=ZZ4K0sVitTOvYbYSu1bkOlJf72QjbVLjTFzpW070Ju+zz8ixkSm95unzD6nNlDMo+RIet4
-	SyHfUlqy1vZ5EDguyk5IXvQaP/rqpfGA05SGoT6NQshXFw9anIEYN+REb2GG7lF0TYmLI0
-	x0NogTGvbYZxfP5TqTPBJI/6akURHOo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1787563700;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=m8iyOUi5M3YBZQBfrKiGjJh8x1FFCAkdZudipAfZeiU=;
-	b=n8yOF1EXJ7ulQOS4vnCYG90JJy0hXNQ5uYZ51W7bjvAXiDaDtKeaQY39KFfG23D0pyWSHv
-	1YD+j5gq1f4LMOAA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1787563696; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=m8iyOUi5M3YBZQBfrKiGjJh8x1FFCAkdZudipAfZeiU=;
-	b=Le5K69z1j12qmtqnIEeRwwlo4gmxvErE3GczEB92BuTSUnEuBnOCnKsr6OYY+dQB7apqmB
-	PEE9gCCE3MyN26wi/Ook1b1hHy4MsN+0TSuBEFSGPucly5ZCj2+D3/2PNHJq0/bG0BFIkQ
-	+whNlBwXEYEp/272bGqEvYoS3ttzlis=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1787563696;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=m8iyOUi5M3YBZQBfrKiGjJh8x1FFCAkdZudipAfZeiU=;
-	b=s7b66dpX6wwBjPqtNdjQ7XyoMpbqLxADQGol7IauJn9iet0JcQKfd3I6HsBR7mwevg5c0J
-	aJbXU+XJCpWPPNCw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 01CC913335;
-	Mon, 24 Aug 2026 09:28:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id HPs9Oa8OjGpSZwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 24 Aug 2026 09:28:15 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Wei Fang <void0red@gmail.com>
-Subject: [PATCH nf v2] netfilter: nf_tables: fix device name and prefix match in hook lookup
-Date: Mon, 24 Aug 2026 11:28:05 +0200
-Message-ID: <20260824092805.4940-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HzWBr09R"
+Received: by mail-yx1-f43.google.com with SMTP id 956f58d0204a3-66787b93a0aso404575d50.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Aug 2026 04:58:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787572718; x=1788177518; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ZFQ1cWzuhWOIEwwaSmn6Rpdvmfaw4ozucDVtslq1L8Y=;
+        b=HzWBr09RCmRoq/bxVeP0Zjgbh2DBU0ABmNOoF89ZPshp5wpA5jaoBwhbl1coqfEZ02
+         DeE1TG0nEb4D7UPdQkLshtbTUW8j5okRBCh2TI0Mrh8vq1t+0oXae7jAtz2UYySsbv4c
+         ZQjQ92MveJ6g5H89V0kCjv9enEgPby/mLGiZ64o88RW1lB8st9+5BSdevT1qGQjt6vaf
+         SzMxa8QlADtCPdB6NRlv1I7N0wFylvYBAOiLQuOvq7acGCs8EjrIk9qxCxPMMmDzx9u7
+         4jbCAIAPbBjZvBFrc7aoCe/s4AXG5PRiVR/w6eTopY60SVudyhZThuaQBm3gLWAjNev+
+         ub1Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787572718; x=1788177518;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ZFQ1cWzuhWOIEwwaSmn6Rpdvmfaw4ozucDVtslq1L8Y=;
+        b=qJCpBWVR/GqPGWQnj0LE3VEgPKamR1qLnGaU64GZrnpuAGYcGz8gF0+2+WtQKwSSU+
+         f8g3idL860Drjvj84l4dcZT7PAkEeCEHGZanQ1PrONJLogV++GfDpS+tdhn7mmvwxgAL
+         Y2a8tMSNvRSb41UJSXMW8JUKtWQ2TN//EAO1zpcZwMjVsc6/anKbxZEKgCwwuPL9MuZq
+         nQjFAkKuwScCw8h/hZnRoWVTqeOvKY+muwRwPfnLEvzi40QUD00hX6BVEOkZGWIewhgr
+         IN2BKujv6mA0OBooPMuUlAelO/Iv4GOWTYpzZ68kwNbwExobcXoK/wvLjYruk55k7o9T
+         qjQQ==
+X-Gm-Message-State: AFuF++k/vTGvH/gS2JR5rQJYI/PVer8zXK/zHctfZu6PnImyTxyUzKlR
+	LWkyK0mxhh7034MV7LD54AkJvXyuxi3ltGOgSztQQ0IoU2tdoy2SeyoH
+X-Gm-Gg: AR+sD13N/P1CYxIDXxQBNZWi/4+5y+GD19msptpxs6+rpwe+zMvqaDqNEbhy773294W
+	dt6yn4EyVYGtIyYjJZChtzHMcSH8dVkzBdJvnIbb/iw9tEiHDM2AbBcotsS8CJctsBb9tcBtu0N
+	+NWmz/M3KTWC9aEuKM2kLwW/Rikic9qjuMS0bfoFdEUDPt3THdeLenMMcW9FIiSGcClNi2mPGDD
+	JoyEFF17Ewin/L7iqCbizaQSisQF7n6vMqUWhGrRc/cyUX+l26HnB7MciYYTbMgP6Yrg1nzK9gp
+	DN07oWpXmusXAuE11hS7a8x0i/E/DHMCf3uA3Nn5iCUt/kkjXy+D3nDpdTFuTuCuSD8Pk+lPfaC
+	ILNtTbnef2Hd3E2hX1yN91gjyUgNwVeDL8soXw+/Oo2d1f5CGj4eFvfcEBLYdFLRszHEvfNJ5pg
+	2yMPRQVlW0iFqwVCzV89m4eDPHTcLx/8J0OLADZJg6xFzRcaL50hliyGiXXa9VDZPxykJvuXe9I
+	vg83TDtJ1dDP+iz+T0g94NWmfparfzVl0N0J08veD2//Osd0yVUcwA3CEULp+BWfw==
+X-Received: by 2002:a53:acc1:0:20b0:668:430b:a928 with SMTP id 956f58d0204a3-66ce48b6cdfmr6454864d50.0.1787572717705;
+        Mon, 24 Aug 2026 04:58:37 -0700 (PDT)
+Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-66cf4a0c6c3sm3474127d50.12.2026.08.24.04.58.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Aug 2026 04:58:37 -0700 (PDT)
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Paul Blakey <paulb@mellanox.com>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Chengfeng Ye <nicoyip.dev@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] netfilter: flowtable: flush delete work after final GC
+Date: Mon, 24 Aug 2026 19:58:29 +0800
+Message-ID: <20260824115829.205118-1-nicoyip.dev@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -83,108 +83,84 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[netfilter.org,strlen.de,nwl.cc,suse.de,gmail.com];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
-	RCVD_COUNT_TWO(0.00)[2];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
 
-Currently, a netdev chain or flowtable hooked to a device prefix can be
-unintentionally deleted by a control-plane request targeting an exact
-device name or even a shorter one due to the usage of min() to calculate
-the length to match.
+nf_flow_table_offload_flush_cleanup() drains delete work before its final
+garbage-collection pass. That pass can itself queue more delete work.
 
-Fix this by making sure an exact device match never matches a prefix and
-that both the target and the candidate have the same length during
-delete operation. The add and update paths retain the existing overlap
-matching to prevent a single device from matching multiple hooks.
+During teardown, one possible interleaving is:
 
-Reported-by: Wei Fang <void0red@gmail.com>
-Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
-Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+  teardown worker                         delete worker
+  first GC: work allocation fails
+    leave flow retryable
+  drain delete workqueue
+  final GC: allocation succeeds
+    queue FLOW_CLS_DESTROY work
+  destroy rhashtable
+  free flowtable
+                                          read flowtable->net
+
+nf_flow_table_offload_flush_cleanup() flushes only the delete work that
+was queued before the final GC. NF_FLOW_HW_DYING is set only after
+successful work allocation, so a GFP_ATOMIC allocation failure during the
+first GC leaves the entry eligible for retry. If that retry later succeeds
+in the final GC, it queues new destroy work after the earlier flush, and
+that work can retain a stale flowtable pointer past the free.
+
+This was reproducible with failslab forcing the initial GFP_ATOMIC
+allocation failure, and KASAN reported:
+
+  BUG: KASAN: slab-use-after-free in flow_offload_work_handler+0xbe8/0xe30
+  Read of size 8 at addr ffff888109c9fd98 by task kworker/u16:3/397
+  Workqueue: nf_ft_offload_del flow_offload_work_handler
+  Call Trace:
+   print_report+0xd0/0x630
+   kasan_report+0xce/0x100
+   flow_offload_work_handler+0xbe8/0xe30
+   process_one_work+0x63a/0x1070
+   worker_thread+0x45b/0xd10
+   kthread+0x2c6/0x3b0
+   ret_from_fork+0x36e/0x5a0
+  Allocated by task 87:
+   nf_tables_newflowtable+0x5d0/0x22f0
+   nfnetlink_rcv_batch+0x1396/0x1d00
+   netlink_unicast+0x5f5/0x860
+   netlink_sendmsg+0x70a/0xba0
+  Freed by task 11:
+   kfree+0x131/0x3c0
+   nf_tables_trans_destroy_work+0xb26/0xeb0
+   process_one_work+0x63a/0x1070
+   worker_thread+0x45b/0xd10
+  Last potentially related work creation:
+   __queue_work+0x68e/0x1030
+   flow_offload_del+0x74c/0xad0
+   nf_flow_offload_gc_step+0x264/0x8e0
+   nf_flow_table_gc_run+0xcd/0x150
+   nf_flow_table_offload_flush_cleanup+0x5c/0x70
+   nf_flow_table_free+0x280/0x350
+   nf_tables_flowtable_destroy+0x71/0x270
+
+Flush the delete workqueue again after the final GC. This keeps every
+successfully queued destroy operation within the flowtable lifetime.
+
+Fixes: c921ffe85333 ("netfilter: flowtable: Fix flushing of offloaded flows on free")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 ---
- net/netfilter/nf_tables_api.c | 27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c112ecc4fca3..3ad9a5e88c5b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1978,7 +1978,7 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
- 	return -ENOSPC;
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 801a3dd9ceea..0fd09554b9ce 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1167,6 +1167,7 @@ void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
+ 	if (nf_flowtable_hw_offload(flowtable)) {
+ 		flush_workqueue(nf_flow_offload_del_wq);
+ 		nf_flow_table_gc_run(flowtable);
++		flush_workqueue(nf_flow_offload_del_wq);
+ 	}
  }
  
--static bool hook_is_prefix(struct nft_hook *hook)
-+static bool hook_is_prefix(const struct nft_hook *hook)
- {
- 	return strlen(hook->ifname) >= hook->ifnamelen;
- }
-@@ -2457,6 +2457,27 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
- 	return NULL;
- }
- 
-+static struct nft_hook *nft_hook_list_find_strict(struct list_head *hook_list,
-+						  const struct nft_hook *this)
-+{
-+	struct nft_hook *hook;
-+
-+	list_for_each_entry(hook, hook_list, list) {
-+		if (hook_is_prefix(hook) != hook_is_prefix(this))
-+			continue;
-+		if (hook->ifnamelen != this->ifnamelen)
-+			continue;
-+		if (!strncmp(hook->ifname, this->ifname, hook->ifnamelen)) {
-+			if (hook->flags & NFT_HOOK_REMOVE)
-+				continue;
-+
-+			return hook;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- static int nf_tables_parse_netdev_hooks(struct net *net,
- 					const struct nlattr *attr,
- 					struct list_head *hook_list,
-@@ -3257,7 +3278,7 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
- 		return err;
- 
- 	list_for_each_entry(this, &chain_hook.list, list) {
--		hook = nft_hook_list_find(&basechain->hook_list, this);
-+		hook = nft_hook_list_find_strict(&basechain->hook_list, this);
- 		if (!hook) {
- 			err = -ENOENT;
- 			goto err_chain_del_hook;
-@@ -9383,7 +9404,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 		return err;
- 
- 	list_for_each_entry(this, &flowtable_hook.list, list) {
--		hook = nft_hook_list_find(&flowtable->hook_list, this);
-+		hook = nft_hook_list_find_strict(&flowtable->hook_list, this);
- 		if (!hook) {
- 			err = -ENOENT;
- 			goto err_flowtable_del_hook;
 -- 
-2.55.0
+2.43.0
 
