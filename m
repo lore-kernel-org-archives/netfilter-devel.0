@@ -1,71 +1,54 @@
-Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDCC53E9C18
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 09:12:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A8E3D8122
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 10:24:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787649136; cv=none; b=kpHITpSRHwL2tUirBsWA2tj0z8OZUGGHHcZw6ZOZ6rYgIiD/msUMb3Sg7jmnEWLEG0lpr4pbbgCsExKTMOFr0GmH4yF9oKDN8coOs3g2NGgz8ezXWnv20eI/hoY1RU8706amGlZ4ZOGgHzThq+WlznfwID48jNpNbtVRxicn7Z4=
+	t=1787653479; cv=none; b=qgwc7ZMjJFecggn/Zt3i3TVJxnpCsTLIrE8zIhTzyId4DpNiz+VQ2fgu6hHybzHlUFbMURh62pD9vQbkJeD/M2Qjfp3uavCAA1FTuB7+EGP4qn+HgbfTdj35f98RRjFoog1a0zRx7AU09c/6c55ETKSUQ8Hfe47ON9kiG1tLAHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787649136; c=relaxed/simple;
-	bh=RYTgmNzbCcdgdZixJPJV1jW7mvKJmZX2kwBDmBpozhc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ClJmlt4Ud4aCvpFtpri/buuE9Zfs30XTSQRnJXVhqu/yyw7YMEepiJTynAhoYJpw2eKkHSDIBXP040WVWJYhb6EWixpT21viLDr3fOklDydoUxzpGN8h+UeYQT/WmstEWtQO92qqd4gqW+8kaE1rJvdPrl4aL8k637OOgjVzrTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CJjuxRTm; arc=none smtp.client-ip=209.85.167.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787653479; c=relaxed/simple;
+	bh=huc9MNG7bnfQDb4YA1yNaZ1JkEEVRLGsxhUkXqFX9Eo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=C4BILJdMMhSTu/jWZWPXiOTfKR50m0E5PJpJR6e3nwj6RS0I1HMCQbSy7O+LIk3l5qRxIqsjcDxOVRzBc5xvEAgX279n6UydfXm3unhLgjVp9IlzqaU4I+0ck+IKFRR/iThNYSsfq6q18OJLp0OrOn7GoV+qRbmenpt7gZpkfac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YFy0sSuW; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CJjuxRTm"
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b49fee1ce9so65947e87.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 02:12:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787649133; x=1788253933; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=mMBLO7CL+KFPWweenYms5rwiRJoiwPTDdcMzsEXMcSQ=;
-        b=CJjuxRTmJa6BACni4cbSGdC4RzjSu/NX/B3UMY6MWL6bdhUtn7pgE3dh85NyAAt7UF
-         VMtumdjhwzlQsnKjH8bVdtE813jxM+Me54hM3Z8fI//16BoKfE1SiWmj+LRlkr8cWh48
-         UpDuZTT+VxvszPkVhsmf26m1+8c6GgoIFio3GjhoW3JlnuZJLiDDvu6JBmoXKkFaYUou
-         r8x2U8X9VKErYeX5WxIR+l32txnhRnODuKaMMrrU3G1ES/0o0YFpV1Y48n0m5+3SBSw4
-         CKfvktUwpD7g7IuDr/xcmQSQSG56O3HvRIGYCO+jzqoR9oxWrufPlvEM56ZRN+WT46l5
-         CqlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787649133; x=1788253933;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=mMBLO7CL+KFPWweenYms5rwiRJoiwPTDdcMzsEXMcSQ=;
-        b=sYRT24aScShvGrK1ibqXc4bvSM8GJUS1aTS0aG33unoilV6LztCkrfJ13A/g7j2B36
-         +xZP3rBDH312VZX5o58I7CgcYFX7mCl/beIdzNTmEA2kOUiDLa0McD0CNzMNlcabiwKt
-         VPTSu0kZI3H0MBaD0xUjgonAHNd0UkkaEMMdvOnhaj1EwXLAPA8Qz1IazZOlO8fEkrg5
-         QluLrdqSaot5aScw1Ic9kn5ROBd8E2boEbzQbijZgQDuvFgG53pbG9pMpq26o4pnfj9p
-         9ELR4hR0GtVpBsENaRSQKSOU/Ys297z4TMFcLHxl5i5FDz/dGhJPPxjD9FdHdwSNkHjY
-         8JqA==
-X-Gm-Message-State: AFuF++nIC05ZUF4sB6YSJmq6qmXpjjHcODtuYbH4dio+otIw/9Dnoota
-	Ym/kpInuzmzfYcbIcM9MB5klUM8+B915Q/YAFoLv6TZOwlc9jrYq3aJz1R1qVyrwVeQ=
-X-Gm-Gg: AR+sD11D4bHgTQRCFgzOs6VG/ZctgZ0BtymggSRSZm8CIuPGmladU0KCkSXGRz77rO6
-	DyT6RV1AkIe1qEX2AeT6ZhJCCVbrw2wsHitCsBKjUPmIgScnGoJvOx3856qM/SEZ5pTd7rELJev
-	Y8Np75dL7ayaT0yPKf2B/DrQYcDWogk7t/awE2unelwS8gNT60mUPbIRHhRzTFXt+b+Lu4z28kb
-	k8Okv73D1kOBhLsFtXXdz4s1mLwzaxEvFgd6dU+7bo3xaIN8yqYBI/UiCN3fkQmhBpMVnTAHlTQ
-	Mo3Dqtvv2p/BV7lnjMIUjnahgN9g6j4pV/+SunwvjxZT6KCkK+Fmh2pvw9JXtUupRB7PN4Bja9z
-	D2vpxZtW6PA/JQy1sSeqAylC1evTr4GgBHokC1GH5NOJBWx0qZ+6zAv/SybooAgf1jzpzgttK7W
-	7vPjOcNAfGgauXhv0sCXWZB4rOUl4jOIY3h1XFet+uFbzRaOkThk9yx3VNHO/uN7vOIQHl85q2+
-	w==
-X-Received: by 2002:a05:6512:3b90:b0:5b4:5846:d925 with SMTP id 2adb3069b0e04-5b484233905mr9784308e87.21.1787649132506;
-        Tue, 25 Aug 2026 02:12:12 -0700 (PDT)
-Received: from theodors-laptop.. ([81.95.140.58])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b4995cb5a7sm570794e87.62.2026.08.25.02.12.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Aug 2026 02:12:12 -0700 (PDT)
-From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YFy0sSuW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1787653476;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=odcxIC4n9Nc/nLxSJzM/I6l5N26VPcNOjpqfKSsuwAA=;
+	b=YFy0sSuW/orRujT33/SWmZxNYdcK45K5tIW1dOAyQrUUcMlyO8xZ4K8vnthd1CZ2iM3Pmf
+	EG+v6BpWZPTpjaQs77IbMimvkmenpk1AOGt4TtFrV2QYzZo7/q7AztqHUhjNUWtaLxamPD
+	m9O2TNth5WQNViOLSwL3S0/IY6N+6rc=
+Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-184-flBobaCNO8iOZQx_9XW87A-1; Tue,
+ 25 Aug 2026 06:24:34 -0400
+X-MC-Unique: flBobaCNO8iOZQx_9XW87A-1
+X-Mimecast-MFC-AGG-ID: flBobaCNO8iOZQx_9XW87A_1787653474
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 0DA84195DE72
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 10:24:34 +0000 (UTC)
+Received: from fedora.localdomain (unknown [10.43.3.90])
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 6A3CE1955DAA;
+	Tue, 25 Aug 2026 10:24:33 +0000 (UTC)
+Received: by fedora.localdomain (Postfix, from userid 1000)
+	id 9495295850C; Tue, 25 Aug 2026 12:24:31 +0200 (CEST)
+From: Jiri Peska <jpeska@redhat.com>
 To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netdev@vger.kernel.org,
-	Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-Subject: [PATCH] netfilter: nft_nat: fully initialise new_addr in netmap setup
-Date: Tue, 25 Aug 2026 12:10:56 +0300
-Message-Id: <20260825091056.253147-1-theodorlarionov@gmail.com>
-X-Mailer: git-send-email 2.34.1
+Cc: jpeska@redhat.com,
+	fwestpha@redhat.com
+Subject: [PATCH nft] tests: shell: Add coverage for nf_connlabels_replace()
+Date: Tue, 25 Aug 2026 12:24:29 +0200
+Message-ID: <20260825102429.173237-1-jpeska@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -73,39 +56,206 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-nft_nat_setup_netmap() builds the mapped address in an on-stack
-union nf_inet_addr. For an IPv4 mapping it writes only the 4-byte .ip
-member and the loop runs a single 32-bit iteration, but it then copies
-the whole 16-byte union into range->min_addr and range->max_addr, so the
-upper 12 bytes reach nf_nat_setup_info() uninitialised.
-
-KMSAN reports an uninit-value in nf_nat_setup_info() reached from
-nft_nat_eval(). The IPv6 path fills all 16 bytes and is not affected.
-
-Zero-initialise new_addr.
-
-Fixes: 3ff7ddb1353d ("netfilter: nft_nat: add netmap support")
-Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+Signed-off-by: Jiri Peska <jpeska@redhat.com>
 ---
- net/netfilter/nft_nat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/shell/testcases/packetpath/ct_label_set |  27 ++++
+ .../packetpath/dumps/ct_label_set.json-nft    | 132 ++++++++++++++++++
+ .../packetpath/dumps/ct_label_set.nft         |  11 ++
+ 3 files changed, 170 insertions(+)
+ create mode 100755 tests/shell/testcases/packetpath/ct_label_set
+ create mode 100644 tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
+ create mode 100644 tests/shell/testcases/packetpath/dumps/ct_label_set.nft
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index e32cd9fbc7c2e..7b026305b5fea 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -65,7 +65,7 @@ static void nft_nat_setup_netmap(struct nf_nat_range2 *range,
- 				 const struct nft_nat *priv)
- {
- 	struct sk_buff *skb = pkt->skb;
--	union nf_inet_addr new_addr;
-+	union nf_inet_addr new_addr = {};
- 	__be32 netmask;
- 	int i, len = 0;
- 
-
-base-commit: 7cbfb180945ce529608e4d4e24a6d483699fab1e
+diff --git a/tests/shell/testcases/packetpath/ct_label_set b/tests/shell/testcases/packetpath/ct_label_set
+new file mode 100755
+index 00000000..554829c0
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/ct_label_set
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++set -e
++
++ip link set lo up
++
++$NFT -f - <<EOF
++table ip test {
++    counter labeled {}
++    chain output {
++        type filter hook output priority filter; policy accept;
++            # set bit 1 on each echo-request
++            icmp type echo-request ip daddr 127.0.0.1 ct label set 1
++            # count only if label is already set
++            icmp type echo-request ip daddr 127.0.0.1 ct label 1 counter name labeled
++    }
++}
++EOF
++
++# Packet 1: replace sets bit 1
++ping -c 1 -W 1 127.0.0.1 >/dev/null
++
++# Packet 2+: same rule applies on same ICMP ct
++ping -c 2 -W 1 127.0.0.1 >/dev/null
++
++# Assert correct number of matched packets
++$NFT list counter ip test labeled | grep -q 'packets 3'
+diff --git a/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft b/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
+new file mode 100644
+index 00000000..f8e2945a
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
+@@ -0,0 +1,132 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "test",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "test",
++        "name": "output",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "counter": {
++        "family": "ip",
++        "name": "labeled",
++        "table": "test",
++        "handle": 0,
++        "packets": 3,
++        "bytes": 252
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test",
++        "chain": "output",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "ip",
++                  "field": "daddr"
++                }
++              },
++              "right": "127.0.0.1"
++            }
++          },
++          {
++            "mangle": {
++              "key": {
++                "ct": {
++                  "key": "label"
++                }
++              },
++              "value": 1
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test",
++        "chain": "output",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "ip",
++                  "field": "daddr"
++                }
++              },
++              "right": "127.0.0.1"
++            }
++          },
++          {
++            "match": {
++              "op": "in",
++              "left": {
++                "ct": {
++                  "key": "label"
++                }
++              },
++              "right": 1
++            }
++          },
++          {
++            "counter": "labeled"
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/packetpath/dumps/ct_label_set.nft b/tests/shell/testcases/packetpath/dumps/ct_label_set.nft
+new file mode 100644
+index 00000000..261677f8
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/ct_label_set.nft
+@@ -0,0 +1,11 @@
++table ip test {
++	counter labeled {
++		packets 3 bytes 252
++	}
++
++	chain output {
++		type filter hook output priority filter; policy accept;
++		icmp type echo-request ip daddr 127.0.0.1 ct label set 1
++		icmp type echo-request ip daddr 127.0.0.1 ct label 1 counter name "labeled"
++	}
++}
 -- 
-2.34.1
+2.54.0
 
