@@ -1,54 +1,27 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A8E3D8122
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 10:24:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53DD93F6C55
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 10:29:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787653479; cv=none; b=qgwc7ZMjJFecggn/Zt3i3TVJxnpCsTLIrE8zIhTzyId4DpNiz+VQ2fgu6hHybzHlUFbMURh62pD9vQbkJeD/M2Qjfp3uavCAA1FTuB7+EGP4qn+HgbfTdj35f98RRjFoog1a0zRx7AU09c/6c55ETKSUQ8Hfe47ON9kiG1tLAHc=
+	t=1787653742; cv=none; b=K1QqSuP9OpSjlI7bdwvT7qjROf2OuKuFH60YQ+tGaVeDe0t631T5IHG9eo+mrheZS76Dq/DJSFLNewbkTZv6MlmJ2ngtIRf7khewv3h9n33iK+kXoVU41lwOo/fu7j9vPDEKX63dpDF0sPR8+Q+GvcIZgIA2iGUbYM9N2MMG2yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787653479; c=relaxed/simple;
-	bh=huc9MNG7bnfQDb4YA1yNaZ1JkEEVRLGsxhUkXqFX9Eo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=C4BILJdMMhSTu/jWZWPXiOTfKR50m0E5PJpJR6e3nwj6RS0I1HMCQbSy7O+LIk3l5qRxIqsjcDxOVRzBc5xvEAgX279n6UydfXm3unhLgjVp9IlzqaU4I+0ck+IKFRR/iThNYSsfq6q18OJLp0OrOn7GoV+qRbmenpt7gZpkfac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YFy0sSuW; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YFy0sSuW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1787653476;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=odcxIC4n9Nc/nLxSJzM/I6l5N26VPcNOjpqfKSsuwAA=;
-	b=YFy0sSuW/orRujT33/SWmZxNYdcK45K5tIW1dOAyQrUUcMlyO8xZ4K8vnthd1CZ2iM3Pmf
-	EG+v6BpWZPTpjaQs77IbMimvkmenpk1AOGt4TtFrV2QYzZo7/q7AztqHUhjNUWtaLxamPD
-	m9O2TNth5WQNViOLSwL3S0/IY6N+6rc=
-Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-184-flBobaCNO8iOZQx_9XW87A-1; Tue,
- 25 Aug 2026 06:24:34 -0400
-X-MC-Unique: flBobaCNO8iOZQx_9XW87A-1
-X-Mimecast-MFC-AGG-ID: flBobaCNO8iOZQx_9XW87A_1787653474
-Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 0DA84195DE72
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 10:24:34 +0000 (UTC)
-Received: from fedora.localdomain (unknown [10.43.3.90])
-	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 6A3CE1955DAA;
-	Tue, 25 Aug 2026 10:24:33 +0000 (UTC)
-Received: by fedora.localdomain (Postfix, from userid 1000)
-	id 9495295850C; Tue, 25 Aug 2026 12:24:31 +0200 (CEST)
-From: Jiri Peska <jpeska@redhat.com>
-To: netfilter-devel@vger.kernel.org
-Cc: jpeska@redhat.com,
-	fwestpha@redhat.com
-Subject: [PATCH nft] tests: shell: Add coverage for nf_connlabels_replace()
-Date: Tue, 25 Aug 2026 12:24:29 +0200
-Message-ID: <20260825102429.173237-1-jpeska@redhat.com>
+	s=arc-20240116; t=1787653742; c=relaxed/simple;
+	bh=HB0LKX/qXeIFAkp0SWooApI3WQmynhDtDY7y5aOfxuo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WOTTbrRhnH6aTwxe9dAdqmT1Y98q5r9JwOQwG6eqP0ExnHkvixM66e8DyndvHaibkBEgeei2kP6NBB9SFLbvGT1XtgD8z78Gn+hmcUsWCXJWMRw7np6Dd5CZKAReH/B9QilaLLKHrmkBBZNfxQ+O5+y9qhuetmxbqM1VURWPPM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id BD7356045E; Tue, 25 Aug 2026 12:28:57 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: arp_tables: remove the 32bit compat interface
+Date: Tue, 25 Aug 2026 12:28:36 +0200
+Message-ID: <20260825102836.19696-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,206 +29,589 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-Signed-off-by: Jiri Peska <jpeska@redhat.com>
+This feature is required to use 32bit arptables binary on 64bit kernels.
+It's already off in many distributions including Debian and Fedora for
+many years.
+
+Zap arptables first, it's the most esoteric of the 4 flavors.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/shell/testcases/packetpath/ct_label_set |  27 ++++
- .../packetpath/dumps/ct_label_set.json-nft    | 132 ++++++++++++++++++
- .../packetpath/dumps/ct_label_set.nft         |  11 ++
- 3 files changed, 170 insertions(+)
- create mode 100755 tests/shell/testcases/packetpath/ct_label_set
- create mode 100644 tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
- create mode 100644 tests/shell/testcases/packetpath/dumps/ct_label_set.nft
+ passing this via nf, I want to avoid future bug fixes in nf that would
+ then always collide with nf-next. I think ebtables32 is another good
+ candidate.  If you prefer to nuke everyhing at once please let me know.
+ Plan was to nuke ebtables32 in next cycle and ip/ip6tables after that.
 
-diff --git a/tests/shell/testcases/packetpath/ct_label_set b/tests/shell/testcases/packetpath/ct_label_set
-new file mode 100755
-index 00000000..554829c0
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/ct_label_set
-@@ -0,0 +1,27 @@
-+#!/bin/bash
+ include/linux/netfilter_arp/arp_tables.h |  19 -
+ net/ipv4/netfilter/arp_tables.c          | 472 +----------------------
+ 2 files changed, 3 insertions(+), 488 deletions(-)
+
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 05631a25e622..8b8d472eff34 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -56,23 +56,4 @@ void arpt_unregister_table(struct net *net, const char *name);
+ extern unsigned int arpt_do_table(void *priv, struct sk_buff *skb,
+ 				  const struct nf_hook_state *state);
+ 
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-#include <net/compat.h>
+-
+-struct compat_arpt_entry {
+-	struct arpt_arp arp;
+-	__u16 target_offset;
+-	__u16 next_offset;
+-	compat_uint_t comefrom;
+-	struct compat_xt_counters counters;
+-	unsigned char elems[];
+-};
+-
+-static inline struct xt_entry_target *
+-compat_arpt_get_target(struct compat_arpt_entry *e)
+-{
+-	return (void *)e + e->target_offset;
+-}
+-
+-#endif /* CONFIG_COMPAT */
+ #endif /* _ARPTABLES_H */
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index a87e07e80d0d..db307fa49f3f 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -23,7 +23,6 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/err.h>
+-#include <net/compat.h>
+ #include <net/sock.h>
+ #include <linux/uaccess.h>
+ 
+@@ -724,80 +723,6 @@ static int copy_entries_to_user(unsigned int total_size,
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-static void compat_standard_from_user(void *dst, const void *src)
+-{
+-	int v = *(compat_int_t *)src;
+-
+-	if (v > 0)
+-		v += xt_compat_calc_jump(NFPROTO_ARP, v);
+-	memcpy(dst, &v, sizeof(v));
+-}
+-
+-static int compat_standard_to_user(void __user *dst, const void *src)
+-{
+-	compat_int_t cv = *(int *)src;
+-
+-	if (cv > 0)
+-		cv -= xt_compat_calc_jump(NFPROTO_ARP, cv);
+-	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
+-}
+-
+-static int compat_calc_entry(const struct arpt_entry *e,
+-			     const struct xt_table_info *info,
+-			     const void *base, struct xt_table_info *newinfo)
+-{
+-	const struct xt_entry_target *t;
+-	unsigned int entry_offset;
+-	int off, i, ret;
+-
+-	off = sizeof(struct arpt_entry) - sizeof(struct compat_arpt_entry);
+-	entry_offset = (void *)e - base;
+-
+-	t = arpt_get_target_c(e);
+-	off += xt_compat_target_offset(t->u.kernel.target);
+-	newinfo->size -= off;
+-	ret = xt_compat_add_offset(NFPROTO_ARP, entry_offset, off);
+-	if (ret)
+-		return ret;
+-
+-	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+-		if (info->hook_entry[i] &&
+-		    (e < (struct arpt_entry *)(base + info->hook_entry[i])))
+-			newinfo->hook_entry[i] -= off;
+-		if (info->underflow[i] &&
+-		    (e < (struct arpt_entry *)(base + info->underflow[i])))
+-			newinfo->underflow[i] -= off;
+-	}
+-	return 0;
+-}
+-
+-static int compat_table_info(const struct xt_table_info *info,
+-			     struct xt_table_info *newinfo)
+-{
+-	struct arpt_entry *iter;
+-	const void *loc_cpu_entry;
+-	int ret;
+-
+-	if (!newinfo || !info)
+-		return -EINVAL;
+-
+-	/* we dont care about newinfo->entries */
+-	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
+-	newinfo->initial_entries = 0;
+-	loc_cpu_entry = info->entries;
+-	ret = xt_compat_init_offsets(NFPROTO_ARP, info->number);
+-	if (ret)
+-		return ret;
+-	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
+-		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
+-		if (ret != 0)
+-			return ret;
+-	}
+-	return 0;
+-}
+-#endif
+-
+ static int get_info(struct net *net, void __user *user, const int *len)
+ {
+ 	char name[XT_TABLE_MAXNAMELEN];
+@@ -811,23 +736,11 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		return -EFAULT;
+ 
+ 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-	if (in_compat_syscall())
+-		xt_compat_lock(NFPROTO_ARP);
+-#endif
+ 	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
+ 	if (!IS_ERR(t)) {
+ 		struct arpt_getinfo info;
+ 		const struct xt_table_info *private = t->private;
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-		struct xt_table_info tmp;
+ 
+-		if (in_compat_syscall()) {
+-			ret = compat_table_info(private, &tmp);
+-			xt_compat_flush_offsets(NFPROTO_ARP);
+-			private = &tmp;
+-		}
+-#endif
+ 		memset(&info, 0, sizeof(info));
+ 		info.valid_hooks = t->valid_hooks;
+ 		memcpy(info.hook_entry, private->hook_entry,
+@@ -846,10 +759,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
+ 		module_put(t->me);
+ 	} else
+ 		ret = PTR_ERR(t);
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-	if (in_compat_syscall())
+-		xt_compat_unlock(NFPROTO_ARP);
+-#endif
 +
-+set -e
-+
-+ip link set lo up
-+
-+$NFT -f - <<EOF
-+table ip test {
-+    counter labeled {}
-+    chain output {
-+        type filter hook output priority filter; policy accept;
-+            # set bit 1 on each echo-request
-+            icmp type echo-request ip daddr 127.0.0.1 ct label set 1
-+            # count only if label is already set
-+            icmp type echo-request ip daddr 127.0.0.1 ct label 1 counter name labeled
-+    }
-+}
-+EOF
-+
-+# Packet 1: replace sets bit 1
-+ping -c 1 -W 1 127.0.0.1 >/dev/null
-+
-+# Packet 2+: same rule applies on same ICMP ct
-+ping -c 2 -W 1 127.0.0.1 >/dev/null
-+
-+# Assert correct number of matched packets
-+$NFT list counter ip test labeled | grep -q 'packets 3'
-diff --git a/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft b/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
-new file mode 100644
-index 00000000..f8e2945a
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/ct_label_set.json-nft
-@@ -0,0 +1,132 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "test",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "test",
-+        "name": "output",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "counter": {
-+        "family": "ip",
-+        "name": "labeled",
-+        "table": "test",
-+        "handle": 0,
-+        "packets": 3,
-+        "bytes": 252
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "test",
-+        "chain": "output",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "icmp",
-+                  "field": "type"
-+                }
-+              },
-+              "right": "echo-request"
-+            }
-+          },
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "daddr"
-+                }
-+              },
-+              "right": "127.0.0.1"
-+            }
-+          },
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "label"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "test",
-+        "chain": "output",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "icmp",
-+                  "field": "type"
-+                }
-+              },
-+              "right": "echo-request"
-+            }
-+          },
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "payload": {
-+                  "protocol": "ip",
-+                  "field": "daddr"
-+                }
-+              },
-+              "right": "127.0.0.1"
-+            }
-+          },
-+          {
-+            "match": {
-+              "op": "in",
-+              "left": {
-+                "ct": {
-+                  "key": "label"
-+                }
-+              },
-+              "right": 1
-+            }
-+          },
-+          {
-+            "counter": "labeled"
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/packetpath/dumps/ct_label_set.nft b/tests/shell/testcases/packetpath/dumps/ct_label_set.nft
-new file mode 100644
-index 00000000..261677f8
---- /dev/null
-+++ b/tests/shell/testcases/packetpath/dumps/ct_label_set.nft
-@@ -0,0 +1,11 @@
-+table ip test {
-+	counter labeled {
-+		packets 3 bytes 252
-+	}
-+
-+	chain output {
-+		type filter hook output priority filter; policy accept;
-+		icmp type echo-request ip daddr 127.0.0.1 ct label set 1
-+		icmp type echo-request ip daddr 127.0.0.1 ct label 1 counter name "labeled"
-+	}
-+}
+ 	return ret;
+ }
+ 
+@@ -1059,367 +969,6 @@ static int do_add_counters(struct net *net, sockptr_t arg, unsigned int len)
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-struct compat_arpt_replace {
+-	char				name[XT_TABLE_MAXNAMELEN];
+-	u32				valid_hooks;
+-	u32				num_entries;
+-	u32				size;
+-	u32				hook_entry[NF_ARP_NUMHOOKS];
+-	u32				underflow[NF_ARP_NUMHOOKS];
+-	u32				num_counters;
+-	compat_uptr_t			counters;
+-	struct compat_arpt_entry	entries[];
+-};
+-
+-static inline void compat_release_entry(struct compat_arpt_entry *e)
+-{
+-	struct xt_entry_target *t;
+-
+-	t = compat_arpt_get_target(e);
+-	module_put(t->u.kernel.target->me);
+-}
+-
+-static int
+-check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
+-				  struct xt_table_info *newinfo,
+-				  unsigned int *size,
+-				  const unsigned char *base,
+-				  const unsigned char *limit)
+-{
+-	struct xt_entry_target *t;
+-	struct xt_target *target;
+-	unsigned int entry_offset;
+-	int ret, off;
+-
+-	if ((unsigned long)e % __alignof__(struct compat_arpt_entry) != 0 ||
+-	    (unsigned char *)e + sizeof(struct compat_arpt_entry) >= limit ||
+-	    (unsigned char *)e + e->next_offset > limit)
+-		return -EINVAL;
+-
+-	if (e->next_offset < sizeof(struct compat_arpt_entry) +
+-			     sizeof(struct compat_xt_entry_target))
+-		return -EINVAL;
+-
+-	if (!arp_checkentry(&e->arp))
+-		return -EINVAL;
+-
+-	ret = xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+-					    e->next_offset);
+-	if (ret)
+-		return ret;
+-
+-	off = sizeof(struct arpt_entry) - sizeof(struct compat_arpt_entry);
+-	entry_offset = (void *)e - (void *)base;
+-
+-	t = compat_arpt_get_target(e);
+-	target = xt_request_find_target(NFPROTO_ARP, t->u.user.name,
+-					t->u.user.revision);
+-	if (IS_ERR(target)) {
+-		ret = PTR_ERR(target);
+-		goto out;
+-	}
+-	t->u.kernel.target = target;
+-
+-	off += xt_compat_target_offset(target);
+-	*size += off;
+-	ret = xt_compat_add_offset(NFPROTO_ARP, entry_offset, off);
+-	if (ret)
+-		goto release_target;
+-
+-	return 0;
+-
+-release_target:
+-	module_put(t->u.kernel.target->me);
+-out:
+-	return ret;
+-}
+-
+-static void
+-compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+-			    unsigned int *size,
+-			    struct xt_table_info *newinfo, unsigned char *base)
+-{
+-	struct xt_entry_target *t;
+-	struct arpt_entry *de;
+-	unsigned int origsize;
+-	int h;
+-
+-	origsize = *size;
+-	de = *dstptr;
+-	memcpy(de, e, sizeof(struct arpt_entry));
+-	memcpy(&de->counters, &e->counters, sizeof(e->counters));
+-
+-	*dstptr += sizeof(struct arpt_entry);
+-	*size += sizeof(struct arpt_entry) - sizeof(struct compat_arpt_entry);
+-
+-	de->target_offset = e->target_offset - (origsize - *size);
+-	t = compat_arpt_get_target(e);
+-	xt_compat_target_from_user(t, dstptr, size);
+-
+-	de->next_offset = e->next_offset - (origsize - *size);
+-	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
+-		if ((unsigned char *)de - base < newinfo->hook_entry[h])
+-			newinfo->hook_entry[h] -= origsize - *size;
+-		if ((unsigned char *)de - base < newinfo->underflow[h])
+-			newinfo->underflow[h] -= origsize - *size;
+-	}
+-}
+-
+-static int translate_compat_table(struct net *net,
+-				  struct xt_table_info **pinfo,
+-				  void **pentry0,
+-				  const struct compat_arpt_replace *compatr)
+-{
+-	unsigned int i, j;
+-	struct xt_table_info *newinfo, *info;
+-	void *pos, *entry0, *entry1;
+-	struct compat_arpt_entry *iter0;
+-	struct arpt_replace repl;
+-	unsigned int size;
+-	int ret;
+-
+-	info = *pinfo;
+-	entry0 = *pentry0;
+-	size = compatr->size;
+-	info->number = compatr->num_entries;
+-
+-	j = 0;
+-	xt_compat_lock(NFPROTO_ARP);
+-	ret = xt_compat_init_offsets(NFPROTO_ARP, compatr->num_entries);
+-	if (ret)
+-		goto out_unlock;
+-	/* Walk through entries, checking offsets. */
+-	xt_entry_foreach(iter0, entry0, compatr->size) {
+-		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
+-							entry0,
+-							entry0 + compatr->size);
+-		if (ret != 0)
+-			goto out_unlock;
+-		++j;
+-	}
+-
+-	ret = -EINVAL;
+-	if (j != compatr->num_entries)
+-		goto out_unlock;
+-
+-	ret = -ENOMEM;
+-	newinfo = xt_alloc_table_info(size);
+-	if (!newinfo)
+-		goto out_unlock;
+-
+-	memset(newinfo->entries, 0, size);
+-
+-	newinfo->number = compatr->num_entries;
+-	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+-		newinfo->hook_entry[i] = compatr->hook_entry[i];
+-		newinfo->underflow[i] = compatr->underflow[i];
+-	}
+-	entry1 = newinfo->entries;
+-	pos = entry1;
+-	size = compatr->size;
+-	xt_entry_foreach(iter0, entry0, compatr->size)
+-		compat_copy_entry_from_user(iter0, &pos, &size,
+-					    newinfo, entry1);
+-
+-	/* all module references in entry0 are now gone */
+-
+-	xt_compat_flush_offsets(NFPROTO_ARP);
+-	xt_compat_unlock(NFPROTO_ARP);
+-
+-	memcpy(&repl, compatr, sizeof(*compatr));
+-
+-	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+-		repl.hook_entry[i] = newinfo->hook_entry[i];
+-		repl.underflow[i] = newinfo->underflow[i];
+-	}
+-
+-	repl.num_counters = 0;
+-	repl.counters = NULL;
+-	repl.size = newinfo->size;
+-	ret = translate_table(net, newinfo, entry1, &repl);
+-	if (ret)
+-		goto free_newinfo;
+-
+-	*pinfo = newinfo;
+-	*pentry0 = entry1;
+-	xt_free_table_info(info);
+-	return 0;
+-
+-free_newinfo:
+-	xt_free_table_info(newinfo);
+-	return ret;
+-out_unlock:
+-	xt_compat_flush_offsets(NFPROTO_ARP);
+-	xt_compat_unlock(NFPROTO_ARP);
+-	xt_entry_foreach(iter0, entry0, compatr->size) {
+-		if (j-- == 0)
+-			break;
+-		compat_release_entry(iter0);
+-	}
+-	return ret;
+-}
+-
+-static int compat_do_replace(struct net *net, sockptr_t arg, unsigned int len)
+-{
+-	int ret;
+-	struct compat_arpt_replace tmp;
+-	struct xt_table_info *newinfo;
+-	void *loc_cpu_entry;
+-	struct arpt_entry *iter;
+-
+-	if (len < sizeof(tmp))
+-		return -EINVAL;
+-	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+-		return -EFAULT;
+-
+-	/* overflow check */
+-	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+-		return -ENOMEM;
+-	if (tmp.num_counters == 0)
+-		return -EINVAL;
+-	if ((u64)len < (u64)tmp.size + sizeof(tmp))
+-		return -EINVAL;
+-
+-	tmp.name[sizeof(tmp.name)-1] = 0;
+-
+-	newinfo = xt_alloc_table_info(tmp.size);
+-	if (!newinfo)
+-		return -ENOMEM;
+-
+-	loc_cpu_entry = newinfo->entries;
+-	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
+-			tmp.size) != 0) {
+-		ret = -EFAULT;
+-		goto free_newinfo;
+-	}
+-
+-	ret = translate_compat_table(net, &newinfo, &loc_cpu_entry, &tmp);
+-	if (ret != 0)
+-		goto free_newinfo;
+-
+-	ret = __do_replace(net, tmp.name, tmp.valid_hooks, newinfo,
+-			   tmp.num_counters, compat_ptr(tmp.counters));
+-	if (ret)
+-		goto free_newinfo_untrans;
+-	return 0;
+-
+- free_newinfo_untrans:
+-	xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
+-		cleanup_entry(iter, net);
+- free_newinfo:
+-	xt_free_table_info(newinfo);
+-	return ret;
+-}
+-
+-static int compat_copy_entry_to_user(struct arpt_entry *e, void __user **dstptr,
+-				     compat_uint_t *size,
+-				     struct xt_counters *counters,
+-				     unsigned int i)
+-{
+-	struct xt_entry_target *t;
+-	struct compat_arpt_entry __user *ce;
+-	u_int16_t target_offset, next_offset;
+-	compat_uint_t origsize;
+-	int ret;
+-
+-	origsize = *size;
+-	ce = *dstptr;
+-	if (copy_to_user(ce, e, offsetof(struct compat_arpt_entry, counters)) ||
+-	    copy_to_user(&ce->counters, &counters[i], sizeof(counters[i])))
+-		return -EFAULT;
+-
+-	*dstptr += sizeof(struct compat_arpt_entry);
+-	*size -= sizeof(struct arpt_entry) - sizeof(struct compat_arpt_entry);
+-
+-	target_offset = e->target_offset - (origsize - *size);
+-
+-	t = arpt_get_target(e);
+-	ret = xt_compat_target_to_user(t, dstptr, size);
+-	if (ret)
+-		return ret;
+-	next_offset = e->next_offset - (origsize - *size);
+-	if (put_user(target_offset, &ce->target_offset) != 0 ||
+-	    put_user(next_offset, &ce->next_offset) != 0)
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static int compat_copy_entries_to_user(unsigned int total_size,
+-				       struct xt_table *table,
+-				       void __user *userptr)
+-{
+-	struct xt_counters *counters;
+-	const struct xt_table_info *private = table->private;
+-	void __user *pos;
+-	unsigned int size;
+-	int ret = 0;
+-	unsigned int i = 0;
+-	struct arpt_entry *iter;
+-
+-	counters = alloc_counters(table);
+-	if (IS_ERR(counters))
+-		return PTR_ERR(counters);
+-
+-	pos = userptr;
+-	size = total_size;
+-	xt_entry_foreach(iter, private->entries, total_size) {
+-		ret = compat_copy_entry_to_user(iter, &pos,
+-						&size, counters, i++);
+-		if (ret != 0)
+-			break;
+-	}
+-	vfree(counters);
+-	return ret;
+-}
+-
+-struct compat_arpt_get_entries {
+-	char name[XT_TABLE_MAXNAMELEN];
+-	compat_uint_t size;
+-	struct compat_arpt_entry entrytable[];
+-};
+-
+-static int compat_get_entries(struct net *net,
+-			      struct compat_arpt_get_entries __user *uptr,
+-			      int *len)
+-{
+-	int ret;
+-	struct compat_arpt_get_entries get;
+-	struct xt_table *t;
+-
+-	if (*len < sizeof(get))
+-		return -EINVAL;
+-	if (copy_from_user(&get, uptr, sizeof(get)) != 0)
+-		return -EFAULT;
+-	if (*len != sizeof(struct compat_arpt_get_entries) + get.size)
+-		return -EINVAL;
+-
+-	get.name[sizeof(get.name) - 1] = '\0';
+-
+-	xt_compat_lock(NFPROTO_ARP);
+-	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
+-	if (!IS_ERR(t)) {
+-		const struct xt_table_info *private = t->private;
+-		struct xt_table_info info;
+-
+-		ret = compat_table_info(private, &info);
+-		if (!ret && get.size == info.size) {
+-			ret = compat_copy_entries_to_user(private->size,
+-							  t, uptr->entrytable);
+-		} else if (!ret)
+-			ret = -EAGAIN;
+-
+-		xt_compat_flush_offsets(NFPROTO_ARP);
+-		module_put(t->me);
+-		xt_table_unlock(t);
+-	} else
+-		ret = PTR_ERR(t);
+-
+-	xt_compat_unlock(NFPROTO_ARP);
+-	return ret;
+-}
+-#endif
+-
+ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ 		unsigned int len)
+ {
+@@ -1432,12 +981,7 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_SET_REPLACE:
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-		if (in_compat_syscall())
+-			ret = compat_do_replace(sock_net(sk), arg, len);
+-		else
+-#endif
+-			ret = do_replace(sock_net(sk), arg, len);
++		ret = do_replace(sock_net(sk), arg, len);
+ 		break;
+ 
+ 	case ARPT_SO_SET_ADD_COUNTERS:
+@@ -1466,12 +1010,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 		break;
+ 
+ 	case ARPT_SO_GET_ENTRIES:
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-		if (in_compat_syscall())
+-			ret = compat_get_entries(sock_net(sk), user, len);
+-		else
+-#endif
+-			ret = get_entries(sock_net(sk), user, len);
++		ret = get_entries(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_GET_REVISION_TARGET: {
+@@ -1568,11 +1107,6 @@ static struct xt_target arpt_builtin_tg[] __read_mostly = {
+ 		.name             = XT_STANDARD_TARGET,
+ 		.targetsize       = sizeof(int),
+ 		.family           = NFPROTO_ARP,
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-		.compatsize       = sizeof(compat_int_t),
+-		.compat_from_user = compat_standard_from_user,
+-		.compat_to_user   = compat_standard_to_user,
+-#endif
+ 	},
+ 	{
+ 		.name             = XT_ERROR_TARGET,
 -- 
-2.54.0
+2.55.0
 
