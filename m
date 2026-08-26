@@ -1,166 +1,110 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail1.fiberby.net (mail1.fiberby.net [193.104.135.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A13236EA8D
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 19:06:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D641847CC8E;
+	Wed, 26 Aug 2026 19:42:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.104.135.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787771220; cv=none; b=U1wAhNu+3NdO4Wwc/WQDvwMKLlocxXWaxjnPAtEbv5Z7Vz+AsA+y8KQab3HyQxsi5TIwl18PHagZvfNfuONpGdbW4Ty+Z3TpSY1JMVdF1n4JsBe0lUULluH7KQnCmC606TfOYrFXC27sqdROSy5x2hnC+0S5V6AW9YpJkc5fwRM=
+	t=1787773332; cv=none; b=tQQXSFjz/e1BPN2xn3Ll8npDXCUzi7mK8xobqeGHoXoIbo9rtQy+VpiK5UVqIHBDbhSFXMHihdJYzTROmWiTDCQkhLRWVFURB8W1r2t42Nscu3JTafZjg3SpMsRtY6dloVut8nWn9F0g9+sKVwdjrUPYspg/IHhXI2plO/cqZGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787771220; c=relaxed/simple;
-	bh=A5k7BWCOZgIQsoSZO3DMvAmXbgs10x4TTaDl4ZH1KEM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Eu7h+qRM9g4bfdlArY+MzDSZuRB28rR8L6BbpUIwXd7QxuvsUBArTM9AC40QZuLKnALp0dg3NGLbhh8vQEKl1UC33UT4PDXpyq/kw7qXh9fujIA9//xql9Soq/Hx7UUPPxQU1LJ24ODnGq4FaYz+SEsMCFowQ4MmTv2X6olLH+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=C+8uVBJo; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1787773332; c=relaxed/simple;
+	bh=n5+zW/sLXcx1YtKY8np6uGvCc7Muo5pDQvEIJAesLos=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=RvMA4Nj7C7RUVmpXOYkYMdyH29Gtpas6EdDiYKjZceGgBGH9FrcQq+gTVoc3Lh6QpHuB71b0/7ABVHKyZHv2IA45dVv4d0hNuNBq6IcQ1Vc09hmvJ1vUSjGXXTkUpJUkdLTukOy28/PPj24n3GAw5NtT8FTvcoCye0RtDCiDFV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=ET8CBYu+; arc=none smtp.client-ip=193.104.135.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="C+8uVBJo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=xN7H7fpIIYC9JcxJWNeIETsFzH6jOGGvF4ccX5MTnZc=; b=C+8uVBJoOC5UX279kDNMNnIUgJ
-	O6HmLwWVOPbVtZpWL5bFqzoiPbE2oI+FMoBttDL/t8pYMknCV/qGOfr5MSEBCsiLqRKwXaaoYoeZG
-	giCl68oM0tZDdJ+zua4biByU+PlvJj7K3LH4tAB7bfGcA6wM6cewJWDJ/1QU2AdFB1e0wwwCjtHZC
-	9shnXdOfS/Wsdt2WMrrgCSTlCu+a2m8PuVUgNEQvPcr//aeffdV0MBonwUBgZxSMgx5wrs8wMC5Zu
-	wxdt+tFwexF2Z1QKQzuIY5E2vpztqI4q2NhBA2ocZDfOA6OMGaSpWLYLVPmH9oeqmxLjxTaTpcE3f
-	mUNCKH4g==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1wzIxU-000000001oW-2Vis;
-	Wed, 26 Aug 2026 21:06:48 +0200
-Date: Wed, 26 Aug 2026 21:06:48 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	pablo@netfilter.org, fw@strlen.de, Wei Fang <void0red@gmail.com>
-Subject: Re: [PATCH nf v3] netfilter: nf_tables: fix device name and prefix
- match in hook lookup
-Message-ID: <ao85SJiRW5JlieJs@orbyte.nwl.cc>
-References: <20260826133208.4550-1-fmancera@suse.de>
- <ao8SujdfOcqEJLUD@orbyte.nwl.cc>
- <ddea4e10-2aa9-4063-ab17-5c86d5ec7125@suse.de>
+	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="ET8CBYu+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fiberby.net;
+	s=202008; t=1787773316;
+	bh=n5+zW/sLXcx1YtKY8np6uGvCc7Muo5pDQvEIJAesLos=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=ET8CBYu+Q7E+A8tRwIXw4hZxzpB2sJWVTf+2MNuxXBaQqArP+IhNrnuUyluPP2LWB
+	 AwfTiWPjzemIeRrxpIfocAKolIq15Ou5SG198lf6FmiagknC80bNkhOICQylpykH9D
+	 RrA586cpC4LRyARW/6JWCvgxgtHJtKlmWaExWH+71uQe7QkGuPuEwM2qTu/cLujix2
+	 E8xOWGyMvB1jd3iE5/QKkZ26Zwh1YXD2blO1R12zNGD13/Rta/BeZAnJJk45eEz17q
+	 lMj1+MNS5A/X66cknx2NQNQGME2qFPfJCiruJoWOF7z+bIR7wE1Tg0M0By8PppuO33
+	 tbHHfpIuB13Gg==
+Received: from x201s (193-104-135-243.ip4.fiberby.net [193.104.135.243])
+	by mail1.fiberby.net (Postfix) with ESMTPSA id CBB6D60075;
+	Wed, 26 Aug 2026 19:41:55 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by x201s (Postfix) with ESMTP id 6C1EB20079C;
+	Wed, 26 Aug 2026 19:40:35 +0000 (UTC)
+Message-ID: <2e89120d-c18d-4d0b-9e7c-149611475271@fiberby.net>
+Date: Wed, 26 Aug 2026 19:40:35 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ddea4e10-2aa9-4063-ab17-5c86d5ec7125@suse.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] netlink: specs: fix the conntrack filter type
+To: Ilya Maximets <i.maximets@ovn.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Donald Hunter <donald.hunter@gmail.com>,
+ "Remy D. Farley" <one-d-wide@protonmail.com>,
+ "Matthieu Baerts (NGI0)" <matttbe@kernel.org>,
+ Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
+ netdev@vger.kernel.org
+References: <20260825155832.3685714-1-i.maximets@ovn.org>
+ <94842eea-a296-4ab9-a026-2475757a82b8@fiberby.net>
+ <7b1f615f-d435-4b83-a180-67cf9a4223a0@ovn.org>
+Content-Language: en-US
+From: =?UTF-8?Q?Asbj=C3=B8rn_Sloth_T=C3=B8nnesen?= <ast@fiberby.net>
+In-Reply-To: <7b1f615f-d435-4b83-a180-67cf9a4223a0@ovn.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Wed, Aug 26, 2026 at 06:47:57PM +0200, Fernando Fernandez Mancera wrote:
-> On 8/26/26 6:22 PM, Phil Sutter wrote:
-> > On Wed, Aug 26, 2026 at 03:32:08PM +0200, Fernando Fernandez Mancera wrote:
-> >> Currently, a netdev chain or flowtable hooked to a device prefix can be
-> >> unintentionally deleted by a control-plane request targeting an exact
-> >> device name or even a shorter one due to the usage of min() to calculate
-> >> the length to match.
-> >>
-> >> Fix this by making sure an exact device match never matches a prefix and
-> >> that both the target and the candidate have the same length during
-> >> delete operation. The add and update paths retain the existing overlap
-> >> matching to prevent a single device from matching multiple hooks.
-> >>
-> >> Reported-by: Wei Fang <void0red@gmail.com>
-> >> Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
-> >> Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
-> >> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-> >> ---
-> >>   net/netfilter/nf_tables_api.c | 24 ++++++++++++++----------
-> >>   1 file changed, 14 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> >> index c112ecc4fca3..9ef12feec1ac 100644
-> >> --- a/net/netfilter/nf_tables_api.c
-> >> +++ b/net/netfilter/nf_tables_api.c
-> >> @@ -1978,7 +1978,7 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
-> >>   	return -ENOSPC;
-> >>   }
-> >>   
-> >> -static bool hook_is_prefix(struct nft_hook *hook)
-> >> +static bool hook_is_prefix(const struct nft_hook *hook)
-> > 
-> > This is an unrelated change now.
-> > 
+On 8/26/26 6:38 PM, Ilya Maximets wrote:
+> On 8/26/26 7:20 PM, Asbjørn Sloth Tønnesen wrote:
+>> On 8/25/26 3:58 PM, Ilya Maximets wrote:
+>>> The CTA_FILTER doesn't contain nested tuple attributes, instead it
+>>> contains bit masks that specify which tuple attributes to filter on.
+>>> The values for filtering are taken from the top-level CTA_TUPLE_ORIG
+>>> and CTA_TUPLE_REPLY.
+>>
+>> As identified by Sashiko-NIPA[1], then CTA_TUPLE_ORIG and CTA_TUPLE_REPLY
+>> are both absent from the GET DUMP request attribute list.
+>>
+>> However this doesn't prevent ynl CLI from sending the attributes:
+>>
+>> $ sudo ./tools/net/ynl/pyynl/cli.py --family conntrack --dump get --json \
+>>     '{"nfgen-family": 2, "filter": {"orig-flags": 1}}'
+>> Netlink error: Invalid argument
+>>
+>> $ sudo ./tools/net/ynl/pyynl/cli.py --family conntrack --dump get --json \
+>> '{"nfgen-family": 2, "filter": {"orig-flags": 1}, "tuple-orig": {"tuple-ip": {"ip-v4-src": "192.255.0.255", "ip-v4-dst":
+>> "192.255.255.0"}}}'
+>> []
+>>
+>> Otherwise, LGTM.
+>>
+>> [1] https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260825155832.3685714-1-i.maximets%40ovn.org
 > 
-> Oops, yes sorry.
+> The reported issue is preexisting and a little orthogonal to the goal of
+> this patch.  I.e. missing dump attributes vs wrong type of attributes that
+> are specified.
 > 
-> >>   {
-> >>   	return strlen(hook->ifname) >= hook->ifnamelen;
-> >>   }
-> >> @@ -2440,11 +2440,14 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
-> >>   }
-> >>   
-> >>   static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
-> >> -					   const struct nft_hook *this)
-> >> +					   const struct nft_hook *this,
-> >> +					   bool strict)
-> >>   {
-> >>   	struct nft_hook *hook;
-> >>   
-> >>   	list_for_each_entry(hook, hook_list, list) {
-> >> +		if (strict && hook->ifnamelen != this->ifnamelen)
-> >> +			continue;
-> >>   		if (!strncmp(hook->ifname, this->ifname,
-> >>   			     min(hook->ifnamelen, this->ifnamelen))) {
-> >>   			if (hook->flags & NFT_HOOK_REMOVE)
-> >> @@ -2486,7 +2489,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
-> >>   			err = PTR_ERR(hook);
-> >>   			goto err_hook;
-> >>   		}
-> >> -		if (nft_hook_list_find(hook_list, hook)) {
-> >> +		if (nft_hook_list_find(hook_list, hook, false)) {
-> >>   			NL_SET_BAD_ATTR(extack, tmp);
-> >>   			nft_netdev_hook_free(hook);
-> >>   			err = -EEXIST;
-> >> @@ -2943,7 +2946,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
-> >>   					ops->hook	= basechain->ops.hook;
-> >>   				}
-> >>   
-> >> -				if (nft_hook_list_find(&basechain->hook_list, h)) {
-> >> +				if (nft_hook_list_find(&basechain->hook_list, h, false)) {
-> > 
-> > I think this should be a strict match. It fixes a problem you didn't
-> > intend to fix (I feel like an LLM-reviewer now), when updating a chain
-> > with a partially matching wildcard:
-> > 
-> > | add table netdev t
-> > | add chain netdev t c '{ type filter hook ingress priority 0; devices = { eth* }; }'
-> > | add chain netdev t c '{ type filter hook ingress priority 0; devices = { et* }; }'
-> > 
-> > The last command should return EEXIST instead of being accepted and
-> > treated as a NOP.
+> I can add all the missing attributes: tuple-orig, tuple-reply, mark-mask
+> and status-mask.  Either as a separate patch, or fold the change into this
+> one, but rename it into something like:
+>    "netlink: specs: fix conntrack filtering attributes and types"
 > 
-> Hm. I am not so sure about it. Wouldn't that allow for overlapping 
-> devices with prefixes?
+> WDYT?
 
-You're right! I tested my concern with a flowtable, which behaves as I
-expected (so the strict lookup suggested below works as it should). With
-chains however, there is no duplicate hook check as for flowtables in
-nft_register_flowtable_net_hooks.
+I agree that it is a little orthogonal, but OTOH the patch doesn't really fix
+anything meaningful when the YNL spec doesn't allow actually making the request.
+The commit message directly refers to attributes not allowed in the YNL spec,
+without declaring it as intentionally deferred (like the filter bitmasks).
 
-I think the policy was to allow multiple netdev chains on the same
-interface but not multiple flowtables. And IIRC, it wasn't clear whether
-this restriction is really needed (e.g. for hw offloading) or kept "just
-in case".
+I see mark-mask and status-mask as a fully orthogonal issue, as they don't
+clash with the commit message.
 
-Either way, the duplicate hook check for flowtables just coincidentally
-happens to do what we need, namely reject non-strict matching hooks in
-the same flowtable/chain. This deserves a distinct lookup loop for both
-flowtables and chains IMO.
-
-I'll look into that tomorrow and once I have something I'll also submit
-the test cases I wrote.
-
-> Given this is not straightforward and we need to think a bit about it, 
-> Pablo leave this out of the next PR to netdev. I am going to do a bit 
-> more testing.
-
-Sorry for putting obstacles in your way. :(
-
-Cheers, Phil
+I would just fold tuple-orig and tuple-reply into this patch, and leave
+mark-mask and status-mask for another patch.  Alternatively make it a series.
