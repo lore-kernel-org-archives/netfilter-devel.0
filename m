@@ -1,72 +1,39 @@
-Received: from mail-wr2-f11.google.com (mail-wr2-f11.google.com [74.125.225.75])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A723C489879
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 22:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C106C39E16C
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 23:32:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787781902; cv=none; b=VAX2gB9j7Wk/TVcovZtRE3BHTXuu5tERxxzT0gzbF+3UVp1i5syVzZC74oTSMTzez/GyAG/S99qZi8KlsjRHNgLLBG8Nds4LpEm2/KJjF67vwET58tKuFA9+NLkHmgjj7Hf1EYz4oLov5UqQD9iUlrKRhR1Km6QTbHCY2UwO1A0=
+	t=1787787149; cv=none; b=pb5hhtaXSsWJtWt0lCN1P8050UdfHvdhxGdAKGnfCWur611zAxDXG1NawG+Ktua/9NB120MU20cgnHerupP5koHn4Y1YsOCatzqY2Kh2tfkbhuNz0oEhTgDgTms8mzvDg4E9fkgcJilxC+Mm02ck+8SMKcBQt1oAlUQ7sH+hT78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787781902; c=relaxed/simple;
-	bh=mUOu4prFbH3IaF5Zx3eYa4vcy/qKSL+mXorCQl1XPlk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dDoKocjSLgPetac4k8poBnzcUsN7FEnpeN6aVKiqIfIvqJy5xZCCy6ZIkbQGV3jBLr4vQFUlOzgPtDWqRm1prelHXTbPB/bYFuy8eRE7ppURw6ry5/2HS/ey0BbFPdTJfaoQDWY1FW6LzzpmwGLxsbdqP1JN1NV6iIZk9VhhhE4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.75
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr2-f11.google.com with SMTP id ffacd0b85a97d-482e61db882so165753f8f.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 15:05:00 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787781899; x=1788386699;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=YabbSQ2ZCljuR5SzDy1HfG5T6nOzAXlSelOf65B5pQ4=;
-        b=NbLI3l8Sv0AX82odkmFcBRdZfZ+YgIK97G7A2u8U/YmGv9zZ+xkEjXLS4MXegnairm
-         ZWFBtweWLsdXt41wKB+x8b2DZDGIXlXaKieA6y6OyPYwqab5xPrFzlmLfSj7Rdhf8Snd
-         XeP8SdhkLBmIJyA+/h2N8qXI7wquHX3vGzVzMvZIcZjxtKtU/ToLJ9dTAmeCGRLa/2ni
-         Qcno99PyYaOvw8BCWGY3pUMRHswVEH1NpJUrTjUtqDF8H1tBrc/aAtXzf2edN0guuOld
-         Tcga7BnqZCw4RGaaR0Rm1HixX4BGJKbPCI95U1ilrHj+ctCcpRyQ+1ASGexTxwuKTKxs
-         PISQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqwHbe7yWGPtcMvcKXJKN70sdxWydg76yXWRQJImhpHnnM7ElKt32VeEEoHXDjUwaBtRHHBLk69m1S8i+hOevw=@vger.kernel.org
-X-Gm-Message-State: AFuF++kLx9WOkjZGE9TRXhYRcTyv2v6Wqs++Fa0WDBA73Ta+R/bExBHc
-	frua1Ei7Ys4V1nemeWNee9jskkayuOxPZ7UUpjFjg5cNkXTHw+yAki97
-X-Gm-Gg: AR+sD11tcvNSCddsceRwCk+4plTyQ8Z7ZJqs1BjCSAvNJsIixGeZ9YxQ5tpY4uMOsbq
-	ubYkxnBU1Ljv1ZRtjK6eXbPwG/bJDpXnifqt7i+hz2yJDol5JP+iHOCNieYPVAkXzSCI39k0GJB
-	1N0DHxh2j8S/aTXZeba4aPmLixkr3ZOOTfqfaeCg4GVfwV+EAM0UqbQJlxMXnKmTyxaH7x++wGQ
-	8JYhY3dob2DC+sU9RI1sVZa2cWbD6ykNdb4WcSom0S46l2ygYlgw2+zZPuYLjsA5uJpw1B1Rnxk
-	BHsdehv5jXAh+hbeoRGSZnO1Qgwl+lMY5nQsZCR4akWqwRUxARTo3XMZvKh/mA66K0fp1fxx23y
-	8XClS2F/5Cnmfc2Ve7rpsMHE76/ioS5k3IlIj0Z7CeuAybxWs1FHvdxVyT1rr8AZudlW5/CzklK
-	F82qPKVSAdSm2m1yURYzMtFwICQJqweGMkiDHJy8Zop+Ze9IbCnWezu0oj5MuLFTczFGdJ51+Sj
-	elRULPicCc1LxTpPA==
-X-Received: by 2002:a05:6000:40e0:b0:482:ee81:f0ca with SMTP id ffacd0b85a97d-482ee81f321mr819706f8f.12.1787781898817;
-        Wed, 26 Aug 2026 15:04:58 -0700 (PDT)
-Received: from im-t490s.redhat.com (37-48-53-4.nat.epc.tmcz.cz. [37.48.53.4])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482e27a9f0esm4446370f8f.10.2026.08.26.15.04.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Aug 2026 15:04:58 -0700 (PDT)
-From: Ilya Maximets <i.maximets@ovn.org>
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Donald Hunter <donald.hunter@gmail.com>,
-	"Remy D. Farley" <one-d-wide@protonmail.com>,
-	"Matthieu Baerts (NGI0)" <matttbe@kernel.org>,
-	Florian Westphal <fw@strlen.de>,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	=?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>,
-	Ilya Maximets <i.maximets@ovn.org>,
-	stable@vger.kernel.org
-Subject: [PATCH net v2 2/2] netlink: specs: add missing mask attributes for conntrack dump
-Date: Thu, 27 Aug 2026 00:01:12 +0200
-Message-ID: <20260826220444.4054714-3-i.maximets@ovn.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260826220444.4054714-1-i.maximets@ovn.org>
-References: <20260826220444.4054714-1-i.maximets@ovn.org>
+	s=arc-20240116; t=1787787149; c=relaxed/simple;
+	bh=QCQOF5VtmUx/frt2G3goufshzY6tjHXChEhMOHKGXLk=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=mmisSL8ey87puSW0Kn41WsSPlWlGjJfVjU4PES43Y62dLb/RccI3S/lSFUWb2Brzt8a0lxb3UKL2oMUsx4TFlOJA5VNTt5L4Ad2Pquy5Jurq0ho34P7g0JOmJmmQa4fzXJma/SS5uEHM3CXeblopfsEXKbNg7SH07d6egzv+TWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OeIbEkxj; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OeIbEkxj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1787787139;
+	bh=gy47BcGso3QCderVN5By5y/h3a0ortx4ZZPK26a/+ms=;
+	h=From:To:Subject:Date:From;
+	b=OeIbEkxjxAONKjezNl9VjctVqMRMz11BnyYvV76AyIHBiC9HX+S0M2Qw0HlUMzHPZ
+	 bcp1nQ02v+QG6DkO+ARynbZBCjc/v+28+eV03GJ2U1OHsymrtzPjfjYpXGuCiDlToa
+	 CtGfRFnjhv2aUIWgBugTgG9wDeyUunthdp/2GvaE56+jDECzLFn3Ud3Z/v4e2fFfk/
+	 YQ34A6PdA2ALp+lB1fLT6GIc8fDn5uFxi2a/2nqhod6kD45sh6JmEtUty5p0wdbzXB
+	 XwZAld1YQMMeO7IFLt3CcCPqjXU/bYs1H6AJSyij6Op8LcjkdI03ha55D8DrGXhtgR
+	 IB58z5lWIxJ3w==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id E54776007D
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 01:32:18 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2 1/2] netfilter: flowtable: defer ct stats sync via worker
+Date: Thu, 27 Aug 2026 01:32:14 +0200
+Message-ID: <20260826233215.279277-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -75,39 +42,165 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-'mark-mask' and 'status-mask' are defined and supported by the
-conntrack dump, but missing from the list of arguments.
+Use the existing gc worker to sync flow stats with ct stats. It is not
+safe to access flow->ct from datapath since the GC worker drops the ct
+refcount on teardown while datapath could still be accessing the ct
+object to update the stats, this is related to conntrack typesafe RCU.
 
-While at it, the order of the arguments should follow the order of
-their definition in the enum ctattr_type.  That appears to be a common
-convention for other spec files.
+Update nf_ct_acct_add() to take u64 for packets and bytes to ensure u32
+truncation is not an issue.
 
-Fixes: 23fc9311a526 ("netlink: specs: add conntrack dump and stats dump support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
+Fixes: 53c2b2899af7 ("netfilter: flowtable: add counter support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/netlink/specs/conntrack.yaml | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+v2: - update flowtable ipv6 and tc act_ct too
+    - update nf_ct_acct_add() to use u64 to prevent truncation
+    - move nf_flow_sync_ct_stats() call after teardown check,
+      still race with GC could lead to miss some final packets
+      due to lockless rhashtable lookups winning race on teardown,
+      this is best effort. Best way would be to expose a netlink
+      interface for flow entries, instead of synchronizing with ct.
 
-diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index 6ba28cb1c2ab..b1eb102ab843 100644
---- a/Documentation/netlink/specs/conntrack.yaml
-+++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -604,10 +604,12 @@ operations:
-           attributes:
-             - tuple-orig
-             - tuple-reply
--            - mark
--            - filter
-             - status
-+            - mark
-             - zone
-+            - mark-mask
-+            - filter
-+            - status-mask
-         reply:
-           value: 0x100
-           attributes:
+ include/net/netfilter/nf_conntrack_acct.h |  3 +--
+ include/net/netfilter/nf_flow_table.h     |  3 +++
+ net/netfilter/nf_conntrack_core.c         |  3 +--
+ net/netfilter/nf_flow_table_core.c        | 18 ++++++++++++++++++
+ net/netfilter/nf_flow_table_ip.c          | 12 ++++++++----
+ net/sched/act_ct.c                        |  6 ++++--
+ 6 files changed, 35 insertions(+), 10 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
+index a120685cac93..a6700a0cca06 100644
+--- a/include/net/netfilter/nf_conntrack_acct.h
++++ b/include/net/netfilter/nf_conntrack_acct.h
+@@ -65,8 +65,7 @@ static inline void nf_ct_set_acct(struct net *net, bool enable)
+ #endif
+ }
+ 
+-void nf_ct_acct_add(struct nf_conn *ct, u32 dir, unsigned int packets,
+-		    unsigned int bytes);
++void nf_ct_acct_add(struct nf_conn *ct, u32 dir, u64 packets, u64 bytes);
+ 
+ static inline void nf_ct_acct_update(struct nf_conn *ct, u32 dir,
+ 				     unsigned int bytes)
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index f2e2771f188f..6060202133c7 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -171,6 +171,9 @@ struct flow_offload_tuple {
+ 			u32		iifidx;
+ 		} tc;
+ 	};
++
++	atomic64_t			packets;
++	atomic64_t			bytes;
+ };
+ 
+ struct flow_offload_tuple_rhash {
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d0d9e5ea84a0..00acd4dee707 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -921,8 +921,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
+ 
+-void nf_ct_acct_add(struct nf_conn *ct, u32 dir, unsigned int packets,
+-		    unsigned int bytes)
++void nf_ct_acct_add(struct nf_conn *ct, u32 dir, u64 packets, u64 bytes)
+ {
+ 	struct nf_conn_acct *acct;
+ 
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 03241d4bfd5e..625caaa8addf 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -13,6 +13,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
++#include <net/netfilter/nf_conntrack_acct.h>
+ 
+ static DEFINE_MUTEX(flowtable_lock);
+ static LIST_HEAD(flowtables);
+@@ -565,6 +566,21 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 	nf_ct_put(ct);
+ }
+ 
++static void __nf_flow_sync_ct_stats(struct flow_offload *flow, int dir)
++{
++	u64 pkts, bytes;
++
++	pkts = atomic64_xchg(&flow->tuplehash[dir].tuple.packets, 0);
++	bytes = atomic64_xchg(&flow->tuplehash[dir].tuple.bytes, 0);
++	nf_ct_acct_add(flow->ct, dir, pkts, bytes);
++}
++
++static void nf_flow_sync_ct_stats(struct flow_offload *flow)
++{
++	__nf_flow_sync_ct_stats(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
++	__nf_flow_sync_ct_stats(flow, FLOW_OFFLOAD_DIR_REPLY);
++}
++
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
+@@ -581,6 +597,8 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 		nf_flow_table_extend_ct_timeout(flow->ct);
+ 	}
+ 
++	nf_flow_sync_ct_stats(flow);
++
+ 	if (teardown) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+ 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index c8c29a9a1684..a9bf4d61d25b 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -509,8 +509,10 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 	ip_decrease_ttl(iph);
+ 	skb_clear_tstamp(skb);
+ 
+-	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+-		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
++	if (flow_table->flags & NF_FLOWTABLE_COUNTER) {
++		atomic64_add(1, &tuplehash->tuple.packets);
++		atomic64_add(skb->len, &tuplehash->tuple.bytes);
++	}
+ 
+ 	return 1;
+ }
+@@ -1104,8 +1106,10 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 	ip6h->hop_limit--;
+ 	skb_clear_tstamp(skb);
+ 
+-	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+-		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
++	if (flow_table->flags & NF_FLOWTABLE_COUNTER) {
++		atomic64_add(1, &tuplehash->tuple.packets);
++		atomic64_add(skb->len, &tuplehash->tuple.bytes);
++	}
+ 
+ 	return 1;
+ }
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 9080cb386c16..5c647c9fe5d7 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -726,8 +726,10 @@ static bool tcf_ct_flow_table_lookup(struct tcf_ct_params *p,
+ 
+ 	nf_conntrack_get(&ct->ct_general);
+ 	nf_ct_set(skb, ct, ctinfo);
+-	if (nf_ft->flags & NF_FLOWTABLE_COUNTER)
+-		nf_ct_acct_update(ct, dir, skb->len);
++	if (nf_ft->flags & NF_FLOWTABLE_COUNTER) {
++		atomic64_add(1, &tuplehash->tuple.packets);
++		atomic64_add(skb->len, &tuplehash->tuple.bytes);
++	}
+ 
+ 	return true;
+ }
 -- 
-2.55.0
+2.47.3
 
