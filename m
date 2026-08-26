@@ -1,39 +1,38 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F16231C91
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2026 23:50:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB9213D891
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 00:31:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787701832; cv=none; b=qOGoMT+lYT/YMdBwGUzhG0TCnI+18N/ZM4kYEqGgISGYGUJQpBLm7ilvFXc7naqmil3ekn0oNEOHoRAjlZY2QKGokzljT5HldeZMMsuZvmQia38a1rbdDL4KW9pTekWZgqsud9Cv1v8SyQAA82V5ietQTmeBS05sdFa/rH/xWqM=
+	t=1787704290; cv=none; b=RHd37E0pruhc8xl0nIBAkiBFD4j6JYdu6pNHBqC6cnZ3XyywJIuJZOUtGIBlL2SFs1gfoRbggkSYLnD8s55N8vww84+2A+dVv6SeMDjlXrWPIJfBAZbR8O4sQWGpSZjBekFThvUKJo7ENCAtIhW78fNxeD1HkoIy42LD2fjvb+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787701832; c=relaxed/simple;
-	bh=WZ6xXXPbrxhjLL+mEc0hT6oCBMPlrA1ddOIod51vmgk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LIGMBwH/irv7UOMPe95bCzC7ryB10/uLyV4cxOLuRtbuyJl1LVHHN4uFTm2NoGFFhzah0azoFN8nyyxV1k4R6aiEVoIUe5mcAyVrQkM0ShdVvZa8ug0SAdYYs8YfMHtucz0ueCLK/1n1J663eAUkBH2kSw4xnCZWUKsDghdlDhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b9EPwtSY; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1787704290; c=relaxed/simple;
+	bh=mN8Sr9nN9Z1RZ/fg4vd7zf6rYTVyI/THJimCiCD3law=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ak8yyHxHoa+V0HbZ4STsBwtMXz+ZGudoGhpuvm0RhYcUJcCLRqZpgR7F97yP4Ajqga2IBlYW5WEcrIbn1Vrdubnbe0huLlGV6V+IQZkaRcDjSJoxjlfM7Xu5kBJJN4BqyrIWuQjIas3QKnmg6iD2muuQfDbUxfN7/y+YErj4x0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TVr9xmXd; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b9EPwtSY"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TVr9xmXd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787701827;
-	bh=kXzp55v9RjY9kYDdWQ4kWCZQ0MCBrrQGG8DLIxl6Je8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=b9EPwtSYu4AHacBtkP8cozdw7pj/KtokkTwsrZNcTHvYXv0dP2SGJnXH5bKFOlwtb
-	 54WgDf3WDDhHIxmmfJBJEP1UYKfAoO1BqCaHgZ8jTCGZEBAlYHqmtf5wMCE+iMLAqu
-	 xXr7wcg9xK4owHFBdpaHgS1WC1rDaA/rqZ7YG9Zu3/osL3xhDCritMfkoxedJXEA4s
-	 ylgN9aPc8F46reMcRUjk0axz7lDRkCIkFRcnOX6Ghm7GJHJbhAU8zQO5W8pOrIknlh
-	 sNF3CeXhEHcqWBXNgt/NmHCDC8vftPjlzct8wBUMSELQ+UtYlfbXm38uNxM4/hff/v
-	 9wpny0zjb8Dag==
+	s=2025; t=1787704283;
+	bh=/4O/USCDJ+C2N3slzi76KirR5ZiTeYeJx5aLJEHHNPI=;
+	h=From:To:Subject:Date:From;
+	b=TVr9xmXdbp/IMqCkCq8lm4Zr9Epz9HsJCP7bawLlqsqw6jlsIYhQfHv8uO4t06tgJ
+	 nF1CPWkSXOvBQr9H7mp8EH0BWg/akYE3cslnSdgh5oK9nLem6Schj/cixmTJ5lHs94
+	 9aBVfBzslSSGRF0okxVZPa3Q67eS/PJraWwe7FrHs28+oy6r5vfoEGiizN5iVNZ/5U
+	 C6ejT96YCJ6kgzmNWzxi6hA01/6CzL1TsDjd/W+g5MTK1NqmY/fP2mkU4wyeFPFIeQ
+	 0bQkdKjTCEvzXGGeG3dshE5ip4BbqzurZOvRFQ5sXhUUcYdSTDqeMzjHzemU28UOpf
+	 GPNFXZ+RfbDlg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3784860085;
-	Wed, 26 Aug 2026 01:50:27 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A7C5C60088
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2026 02:31:23 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf] netfilter: flowtable: defer ct stats sync via worker
-Date: Wed, 26 Aug 2026 01:50:23 +0200
-Message-ID: <20260825235023.140011-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: x_tables: remove pr_debug
+Date: Wed, 26 Aug 2026 02:31:18 +0200
+Message-ID: <20260826003118.206485-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -43,96 +42,933 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use the existing gc worker to sync flow stats with ct stats. It is not
-safe to access flow->ct from datapath since the GC worker drops the ct
-refcount on teardown while datapath could still be accessing the ct
-object to update the stats, due to ct typesafe rcu semantics.
+Remove pr_debug() for these xtables extensions, these have no use these
+days. Still, turn pr_debug() into pr_info_ratelimited() in the .check
+path since this helps provide a hint via dmesg in legacy iptables.
 
-Fixes: 53c2b2899af7 ("netfilter: flowtable: add counter support")
+Exception is xt_IDLETIMER in the module init path, where pr_err() is
+used.
+
+Add missing pr_fmt() definition in xt_REDIRECT, xt_NETMAP and
+xt_MASQUERADE.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-There is also flow_offload_fixup_ct(), which is also accessing flow->ct
-to adjust state and timeout to hand over the ct back to classic path.
+v2: address issues reported by netdev's sashiko.
 
- include/net/netfilter/nf_flow_table.h |  3 +++
- net/netfilter/nf_flow_table_core.c    | 21 ++++++++++++++++++++-
- net/netfilter/nf_flow_table_ip.c      |  6 ++++--
- 3 files changed, 27 insertions(+), 3 deletions(-)
+ net/ipv4/netfilter/ipt_ah.c    | 10 +----
+ net/ipv6/netfilter/ip6t_ah.c   | 27 +-------------
+ net/ipv6/netfilter/ip6t_frag.c | 41 +-------------------
+ net/ipv6/netfilter/ip6t_hbh.c  | 40 +++++---------------
+ net/ipv6/netfilter/ip6t_mh.c   |  3 --
+ net/ipv6/netfilter/ip6t_rt.c   |  6 +--
+ net/netfilter/xt_IDLETIMER.c   | 68 ++++++----------------------------
+ net/netfilter/xt_LOG.c         |  4 +-
+ net/netfilter/xt_MASQUERADE.c  |  4 +-
+ net/netfilter/xt_NETMAP.c      |  6 ++-
+ net/netfilter/xt_REDIRECT.c    |  6 ++-
+ net/netfilter/xt_esp.c         | 10 +----
+ net/netfilter/xt_ipcomp.c      |  8 +---
+ net/netfilter/xt_iprange.c     | 32 ++--------------
+ net/netfilter/xt_ipvs.c        |  1 -
+ net/netfilter/xt_multiport.c   |  4 --
+ net/netfilter/xt_sctp.c        | 19 +---------
+ net/netfilter/xt_tcpudp.c      |  8 +---
+ 18 files changed, 51 insertions(+), 246 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index f2e2771f188f..6060202133c7 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -171,6 +171,9 @@ struct flow_offload_tuple {
- 			u32		iifidx;
- 		} tc;
- 	};
-+
-+	atomic64_t			packets;
-+	atomic64_t			bytes;
- };
- 
- struct flow_offload_tuple_rhash {
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 03241d4bfd5e..a1f37ca956b8 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -13,6 +13,7 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
-+#include <net/netfilter/nf_conntrack_acct.h>
- 
- static DEFINE_MUTEX(flowtable_lock);
- static LIST_HEAD(flowtables);
-@@ -565,11 +566,29 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
- 	nf_ct_put(ct);
- }
- 
-+static void __nf_flow_sync_ct_stats(struct flow_offload *flow, int dir)
-+{
-+	u64 pkts, bytes;
-+
-+	pkts = atomic64_xchg(&flow->tuplehash[dir].tuple.packets, 0);
-+	bytes = atomic64_xchg(&flow->tuplehash[dir].tuple.bytes, 0);
-+	nf_ct_acct_add(flow->ct, dir, pkts, bytes);
-+}
-+
-+static void nf_flow_sync_ct_stats(struct flow_offload *flow)
-+{
-+	__nf_flow_sync_ct_stats(flow, FLOW_OFFLOAD_DIR_ORIGINAL);
-+	__nf_flow_sync_ct_stats(flow, FLOW_OFFLOAD_DIR_REPLY);
-+}
-+
- static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
- 				    struct flow_offload *flow, void *data)
+diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
+index 161ba412cb08..7131f297ada2 100644
+--- a/net/ipv4/netfilter/ipt_ah.c
++++ b/net/ipv4/netfilter/ipt_ah.c
+@@ -19,12 +19,7 @@ MODULE_DESCRIPTION("Xtables: IPv4 IPsec-AH SPI match");
+ static inline bool
+ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
  {
--	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+	bool teardown;
-+
-+	nf_flow_sync_ct_stats(flow);
- 
-+	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
- 	    !nf_flow_dst_check(&flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index c8c29a9a1684..66be815ac2fe 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -509,8 +509,10 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
- 	ip_decrease_ttl(iph);
- 	skb_clear_tstamp(skb);
- 
--	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
--		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
-+	if (flow_table->flags & NF_FLOWTABLE_COUNTER) {
-+		atomic64_add(1, &tuplehash->tuple.packets);
-+		atomic64_add(skb->len, &tuplehash->tuple.bytes);
-+	}
- 
- 	return 1;
+-	bool r;
+-	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+-		 invert ? '!' : ' ', min, spi, max);
+-	r = (spi >= min && spi <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (spi >= min && spi <= max) ^ invert;
  }
+ 
+ static bool ah_mt(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -42,7 +37,6 @@ static bool ah_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		/* We've been asked to examine this packet, and we
+ 		 * can't.  Hence, no choice but to drop.
+ 		 */
+-		pr_debug("Dropping evil AH tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+@@ -58,7 +52,7 @@ static int ah_mt_check(const struct xt_mtchk_param *par)
+ 
+ 	/* Must specify no unknown invflags */
+ 	if (ahinfo->invflags & ~IPT_AH_INV_MASK) {
+-		pr_debug("unknown flags %X\n", ahinfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", ahinfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 1258783ed876..dab7dbc6a675 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -24,13 +24,7 @@ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ static inline bool
+ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
+ {
+-	bool r;
+-
+-	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+-		 invert ? '!' : ' ', min, spi, max);
+-	r = (spi >= min && spi <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (spi >= min && spi <= max) ^ invert;
+ }
+ 
+ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -62,23 +56,6 @@ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return false;
+ 	}
+ 
+-	pr_debug("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
+-	pr_debug("RES %04X ", ah->reserved);
+-	pr_debug("SPI %u %08X\n", ntohl(ah->spi), ntohl(ah->spi));
+-
+-	pr_debug("IPv6 AH spi %02X ",
+-		 spi_match(ahinfo->spis[0], ahinfo->spis[1],
+-			   ntohl(ah->spi),
+-			   !!(ahinfo->invflags & IP6T_AH_INV_SPI)));
+-	pr_debug("len %02X %04X %02X ",
+-		 ahinfo->hdrlen, hdrlen,
+-		 (!ahinfo->hdrlen ||
+-		  (ahinfo->hdrlen == hdrlen) ^
+-		  !!(ahinfo->invflags & IP6T_AH_INV_LEN)));
+-	pr_debug("res %02X %04X %02X\n",
+-		 ahinfo->hdrres, ah->reserved,
+-		 !(ahinfo->hdrres && ah->reserved));
+-
+ 	return spi_match(ahinfo->spis[0], ahinfo->spis[1],
+ 			  ntohl(ah->spi),
+ 			  !!(ahinfo->invflags & IP6T_AH_INV_SPI)) &&
+@@ -93,7 +70,7 @@ static int ah_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_ah *ahinfo = par->matchinfo;
+ 
+ 	if (ahinfo->invflags & ~IP6T_AH_INV_MASK) {
+-		pr_debug("unknown flags %X\n", ahinfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", ahinfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index 3aad6439386b..f5f3cfb8704c 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -23,12 +23,7 @@ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+ static inline bool
+ id_match(u_int32_t min, u_int32_t max, u_int32_t id, bool invert)
+ {
+-	bool r;
+-	pr_debug("id_match:%c 0x%x <= 0x%x <= 0x%x\n", invert ? '!' : ' ',
+-		 min, id, max);
+-	r = (id >= min && id <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (id >= min && id <= max) ^ invert;
+ }
+ 
+ static bool
+@@ -53,38 +48,6 @@ frag_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return false;
+ 	}
+ 
+-	pr_debug("INFO %04X ", fh->frag_off);
+-	pr_debug("OFFSET %04X ", ntohs(fh->frag_off) & ~0x7);
+-	pr_debug("RES %02X %04X", fh->reserved, ntohs(fh->frag_off) & 0x6);
+-	pr_debug("MF %04X ", fh->frag_off & htons(IP6_MF));
+-	pr_debug("ID %u %08X\n", ntohl(fh->identification),
+-		 ntohl(fh->identification));
+-
+-	pr_debug("IPv6 FRAG id %02X ",
+-		 id_match(fraginfo->ids[0], fraginfo->ids[1],
+-			  ntohl(fh->identification),
+-			  !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)));
+-	pr_debug("res %02X %02X%04X %02X ",
+-		 fraginfo->flags & IP6T_FRAG_RES, fh->reserved,
+-		 ntohs(fh->frag_off) & 0x6,
+-		 !((fraginfo->flags & IP6T_FRAG_RES) &&
+-		   (fh->reserved || (ntohs(fh->frag_off) & 0x06))));
+-	pr_debug("first %02X %02X %02X ",
+-		 fraginfo->flags & IP6T_FRAG_FST,
+-		 ntohs(fh->frag_off) & ~0x7,
+-		 !((fraginfo->flags & IP6T_FRAG_FST) &&
+-		   (ntohs(fh->frag_off) & ~0x7)));
+-	pr_debug("mf %02X %02X %02X ",
+-		 fraginfo->flags & IP6T_FRAG_MF,
+-		 ntohs(fh->frag_off) & IP6_MF,
+-		 !((fraginfo->flags & IP6T_FRAG_MF) &&
+-		   !((ntohs(fh->frag_off) & IP6_MF))));
+-	pr_debug("last %02X %02X %02X\n",
+-		 fraginfo->flags & IP6T_FRAG_NMF,
+-		 ntohs(fh->frag_off) & IP6_MF,
+-		 !((fraginfo->flags & IP6T_FRAG_NMF) &&
+-		   (ntohs(fh->frag_off) & IP6_MF)));
+-
+ 	return id_match(fraginfo->ids[0], fraginfo->ids[1],
+ 			 ntohl(fh->identification),
+ 			 !!(fraginfo->invflags & IP6T_FRAG_INV_IDS)) &&
+@@ -103,7 +66,7 @@ static int frag_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_frag *fraginfo = par->matchinfo;
+ 
+ 	if (fraginfo->invflags & ~IP6T_FRAG_INV_MASK) {
+-		pr_debug("unknown flags %X\n", fraginfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", fraginfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 6d1a5d2026a6..6008dcff8488 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -79,14 +79,6 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return false;
+ 	}
+ 
+-	pr_debug("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
+-
+-	pr_debug("len %02X %04X %02X ",
+-		 optinfo->hdrlen, hdrlen,
+-		 (!(optinfo->flags & IP6T_OPTS_LEN) ||
+-		  ((optinfo->hdrlen == hdrlen) ^
+-		   !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
+-
+ 	ret = (!(optinfo->flags & IP6T_OPTS_LEN) ||
+ 	       ((optinfo->hdrlen == hdrlen) ^
+ 		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+@@ -96,8 +88,6 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (!(optinfo->flags & IP6T_OPTS_OPTS)) {
+ 		return ret;
+ 	} else {
+-		pr_debug("Strict ");
+-		pr_debug("#%d ", optinfo->optsnr);
+ 		for (temp = 0; temp < optinfo->optsnr; temp++) {
+ 			/* type field exists ? */
+ 			if (hdrlen < 1)
+@@ -108,13 +98,9 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 				break;
+ 
+ 			/* Type check */
+-			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8) {
+-				pr_debug("Tbad %02X %02X\n", *tp,
+-					 (optinfo->opts[temp] & 0xFF00) >> 8);
++			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8)
+ 				return false;
+-			} else {
+-				pr_debug("Tok ");
+-			}
++
+ 			/* Length check */
+ 			if (*tp) {
+ 				u16 spec_len;
+@@ -129,26 +115,18 @@ hbh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 					break;
+ 				spec_len = optinfo->opts[temp] & 0x00FF;
+ 
+-				if (spec_len != 0x00FF && spec_len != *lp) {
+-					pr_debug("Lbad %02X %04X\n", *lp,
+-						 spec_len);
++				if (spec_len != 0x00FF && spec_len != *lp)
+ 					return false;
+-				}
+-				pr_debug("Lok ");
++
+ 				optlen = *lp + 2;
+ 			} else {
+-				pr_debug("Pad1\n");
+ 				optlen = 1;
+ 			}
+ 
+-			/* Step to the next */
+-			pr_debug("len%04X\n", optlen);
+-
+ 			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
+-			    temp < optinfo->optsnr - 1) {
+-				pr_debug("new pointer is too large!\n");
++			    temp < optinfo->optsnr - 1)
+ 				break;
+-			}
++
+ 			ptr += optlen;
+ 			hdrlen -= optlen;
+ 		}
+@@ -166,16 +144,16 @@ static int hbh_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_opts *optsinfo = par->matchinfo;
+ 
+ 	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
+-		pr_debug("unknown flags %X\n", optsinfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", optsinfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 	if (optsinfo->optsnr > IP6T_OPTS_OPTSNR) {
+-		pr_debug("too many supported opts specified\n");
++		pr_info_ratelimited("too many supported opts specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
+-		pr_debug("Not strict - not implemented");
++		pr_info_ratelimited("Not strict - not implemented\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
+index fd492b69acbc..ba6dcc7791a0 100644
+--- a/net/ipv6/netfilter/ip6t_mh.c
++++ b/net/ipv6/netfilter/ip6t_mh.c
+@@ -42,14 +42,11 @@ static bool mh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (mh == NULL) {
+ 		/* We've been asked to examine this packet, and we
+ 		   can't.  Hence, no choice but to drop. */
+-		pr_debug("Dropping evil MH tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+ 
+ 	if (mh->ip6mh_proto != IPPROTO_NONE) {
+-		pr_debug("Dropping invalid MH Payload Proto: %u\n",
+-			 mh->ip6mh_proto);
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 278b52752f36..8051425213dd 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -155,18 +155,18 @@ static int rt_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_rt *rtinfo = par->matchinfo;
+ 
+ 	if (rtinfo->invflags & ~IP6T_RT_INV_MASK) {
+-		pr_debug("unknown flags %X\n", rtinfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", rtinfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 	if (rtinfo->addrnr > IP6T_RT_HOPS) {
+-		pr_debug("too many addresses specified\n");
++		pr_info_ratelimited("too many addresses specified\n");
+ 		return -EINVAL;
+ 	}
+ 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
+ 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
+ 	     (rtinfo->rt_type != 0) ||
+ 	     (rtinfo->invflags & IP6T_RT_INV_TYP))) {
+-		pr_debug("`--rt-type 0' required before `--rt-0-*'");
++		pr_info_ratelimited("`--rt-type 0' required before `--rt-0-*'\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index bfcf2d44e93d..fe7d8d19629b 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -102,8 +102,6 @@ static void idletimer_tg_expired(struct timer_list *t)
+ {
+ 	struct idletimer_tg *timer = timer_container_of(timer, t, timer);
+ 
+-	pr_debug("timer %s expired\n", timer->attr.attr.name);
+-
+ 	schedule_work(&timer->work);
+ }
+ 
+@@ -111,7 +109,6 @@ static void idletimer_tg_alarmproc(struct alarm *alarm, ktime_t now)
+ {
+ 	struct idletimer_tg *timer = alarm->data;
+ 
+-	pr_debug("alarm %s expired\n", timer->attr.attr.name);
+ 	schedule_work(&timer->work);
+ }
+ 
+@@ -171,7 +168,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 
+ 	ret = sysfs_create_file(idletimer_tg_kobj, &info->timer->attr.attr);
+ 	if (ret < 0) {
+-		pr_debug("couldn't add file to sysfs");
++		pr_info_ratelimited("couldn't add file to sysfs\n");
+ 		goto out_free_attr;
+ 	}
+ 
+@@ -220,7 +217,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 
+ 	ret = sysfs_create_file(idletimer_tg_kobj, &info->timer->attr.attr);
+ 	if (ret < 0) {
+-		pr_debug("couldn't add file to sysfs");
++		pr_info_ratelimited("couldn't add file to sysfs\n");
+ 		goto out_free_attr;
+ 	}
+ 
+@@ -228,7 +225,6 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 	kobject_uevent(idletimer_tg_kobj,KOBJ_ADD);
+ 
+ 	list_add(&info->timer->entry, &idletimer_tg_list);
+-	pr_debug("timer type value is %u", info->timer_type);
+ 	info->timer->timer_type = info->timer_type;
+ 	info->timer->refcnt = 1;
+ 
+@@ -263,9 +259,6 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
+ {
+ 	const struct idletimer_tg_info *info = par->targinfo;
+ 
+-	pr_debug("resetting timer %s, timeout period %u\n",
+-		 info->label, info->timeout);
+-
+ 	mod_timer(&info->timer->timer,
+ 		  secs_to_jiffies(info->timeout) + jiffies);
+ 
+@@ -280,9 +273,6 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
+ {
+ 	const struct idletimer_tg_info_v1 *info = par->targinfo;
+ 
+-	pr_debug("resetting timer %s, timeout period %u\n",
+-		 info->label, info->timeout);
+-
+ 	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
+ 		idletimer_start_alarm_sec(info->timer, info->timeout);
+ 	} else {
+@@ -296,17 +286,17 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
+ static int idletimer_tg_helper(struct idletimer_tg_info *info)
+ {
+ 	if (info->timeout == 0) {
+-		pr_debug("timeout value is zero\n");
++		pr_info_ratelimited("timeout value is zero\n");
+ 		return -EINVAL;
+ 	}
+ 	if (info->timeout >= INT_MAX / 1000) {
+-		pr_debug("timeout value is too big\n");
++		pr_info_ratelimited("timeout value is too big\n");
+ 		return -EINVAL;
+ 	}
+ 	if (info->label[0] == '\0' ||
+ 	    strnlen(info->label,
+ 		    MAX_IDLETIMER_LABEL_SIZE) == MAX_IDLETIMER_LABEL_SIZE) {
+-		pr_debug("label is empty or not nul-terminated\n");
++		pr_info_ratelimited("label is empty or not nul-terminated\n");
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -318,34 +308,25 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
+ 	struct idletimer_tg_info *info = par->targinfo;
+ 	int ret;
+ 
+-	pr_debug("checkentry targinfo%s\n", info->label);
+-
+ 	ret = idletimer_tg_helper(info);
+ 	if(ret < 0)
+-	{
+-		pr_debug("checkentry helper return invalid\n");
+ 		return -EINVAL;
+-	}
+ 	mutex_lock(&list_mutex);
+ 
+ 	info->timer = __idletimer_tg_find_by_label(info->label);
+ 	if (info->timer) {
+ 		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
+-			pr_debug("Adding/Replacing rule with same label and different timer type is not allowed\n");
+ 			mutex_unlock(&list_mutex);
++			pr_info_ratelimited("Adding/Replacing rule with same label and different timer type is not allowed\n");
+ 			return -EINVAL;
+ 		}
+ 
+ 		info->timer->refcnt++;
+ 		mod_timer(&info->timer->timer,
+ 			  secs_to_jiffies(info->timeout) + jiffies);
+-
+-		pr_debug("increased refcnt of timer %s to %u\n",
+-			 info->label, info->timer->refcnt);
+ 	} else {
+ 		ret = idletimer_tg_create(info);
+ 		if (ret < 0) {
+-			pr_debug("failed to create timer\n");
+ 			mutex_unlock(&list_mutex);
+ 			return ret;
+ 		}
+@@ -360,30 +341,23 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+ 	struct idletimer_tg_info_v1 *info = par->targinfo;
+ 	int ret;
+ 
+-	pr_debug("checkentry targinfo%s\n", info->label);
+-
+ 	if (info->send_nl_msg)
+ 		return -EOPNOTSUPP;
+ 
+ 	ret = idletimer_tg_helper((struct idletimer_tg_info *)info);
+ 	if(ret < 0)
+-	{
+-		pr_debug("checkentry helper return invalid\n");
+ 		return -EINVAL;
+-	}
+ 
+-	if (info->timer_type > XT_IDLETIMER_ALARM) {
+-		pr_debug("invalid value for timer type\n");
++	if (info->timer_type > XT_IDLETIMER_ALARM)
+ 		return -EINVAL;
+-	}
+ 
+ 	mutex_lock(&list_mutex);
+ 
+ 	info->timer = __idletimer_tg_find_by_label(info->label);
+ 	if (info->timer) {
+ 		if (info->timer->timer_type != info->timer_type) {
+-			pr_debug("Adding/Replacing rule with same label and different timer type is not allowed\n");
+ 			mutex_unlock(&list_mutex);
++			pr_info_ratelimited("Adding/Replacing rule with same label and different timer type is not allowed\n");
+ 			return -EINVAL;
+ 		}
+ 
+@@ -393,21 +367,15 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+ 			ktime_t tout = alarm_expires_remaining(&info->timer->alarm);
+ 			struct timespec64 ktimespec = ktime_to_timespec64(tout);
+ 
+-			if (ktimespec.tv_sec > 0) {
+-				pr_debug("time_expiry_remaining %lld\n",
+-					 ktimespec.tv_sec);
++			if (ktimespec.tv_sec > 0)
+ 				idletimer_start_alarm_ktime(info->timer, tout);
+-			}
+ 		} else {
+ 				mod_timer(&info->timer->timer,
+ 					secs_to_jiffies(info->timeout) + jiffies);
+ 		}
+-		pr_debug("increased refcnt of timer %s to %u\n",
+-			 info->label, info->timer->refcnt);
+ 	} else {
+ 		ret = idletimer_tg_create_v1(info);
+ 		if (ret < 0) {
+-			pr_debug("failed to create timer\n");
+ 			mutex_unlock(&list_mutex);
+ 			return ret;
+ 		}
+@@ -421,19 +389,13 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
+ {
+ 	const struct idletimer_tg_info *info = par->targinfo;
+ 
+-	pr_debug("destroy targinfo %s\n", info->label);
+-
+ 	mutex_lock(&list_mutex);
+ 
+ 	if (--info->timer->refcnt > 0) {
+-		pr_debug("decreased refcnt of timer %s to %u\n",
+-			 info->label, info->timer->refcnt);
+ 		mutex_unlock(&list_mutex);
+ 		return;
+ 	}
+ 
+-	pr_debug("deleting timer %s\n", info->label);
+-
+ 	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
+ 
+@@ -448,19 +410,13 @@ static void idletimer_tg_destroy_v1(const struct xt_tgdtor_param *par)
+ {
+ 	const struct idletimer_tg_info_v1 *info = par->targinfo;
+ 
+-	pr_debug("destroy targinfo %s\n", info->label);
+-
+ 	mutex_lock(&list_mutex);
+ 
+ 	if (--info->timer->refcnt > 0) {
+-		pr_debug("decreased refcnt of timer %s to %u\n",
+-			 info->label, info->timer->refcnt);
+ 		mutex_unlock(&list_mutex);
+ 		return;
+ 	}
+ 
+-	pr_debug("deleting timer %s\n", info->label);
+-
+ 	list_del(&info->timer->entry);
+ 	mutex_unlock(&list_mutex);
+ 
+@@ -534,7 +490,7 @@ static int __init idletimer_tg_init(void)
+ 	idletimer_tg_class = class_create("xt_idletimer");
+ 	err = PTR_ERR(idletimer_tg_class);
+ 	if (IS_ERR(idletimer_tg_class)) {
+-		pr_debug("couldn't register device class\n");
++		pr_err("couldn't register device class\n");
+ 		goto out;
+ 	}
+ 
+@@ -542,7 +498,7 @@ static int __init idletimer_tg_init(void)
+ 					    MKDEV(0, 0), NULL, "timers");
+ 	err = PTR_ERR(idletimer_tg_device);
+ 	if (IS_ERR(idletimer_tg_device)) {
+-		pr_debug("couldn't register system device\n");
++		pr_err("couldn't register system device\n");
+ 		goto out_class;
+ 	}
+ 
+@@ -551,7 +507,7 @@ static int __init idletimer_tg_init(void)
+ 	err = xt_register_targets(idletimer_tg, ARRAY_SIZE(idletimer_tg));
+ 
+ 	if (err < 0) {
+-		pr_debug("couldn't register xt target\n");
++		pr_err("couldn't register xt target\n");
+ 		goto out_dev;
+ 	}
+ 
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index f39244f9c0ed..de3f176792a0 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -50,12 +50,12 @@ static int log_tg_check(const struct xt_tgchk_param *par)
+ 		return -EINVAL;
+ 
+ 	if (loginfo->level >= 8) {
+-		pr_debug("level %u >= 8\n", loginfo->level);
++		pr_info_ratelimited("level %u >= 8\n", loginfo->level);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (loginfo->prefix[sizeof(loginfo->prefix)-1] != '\0') {
+-		pr_debug("prefix is not null-terminated\n");
++		pr_info_ratelimited("prefix is not null-terminated\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/net/netfilter/xt_MASQUERADE.c b/net/netfilter/xt_MASQUERADE.c
+index eae05c178336..cea488cec544 100644
+--- a/net/netfilter/xt_MASQUERADE.c
++++ b/net/netfilter/xt_MASQUERADE.c
+@@ -21,11 +21,11 @@ static int masquerade_tg_check(const struct xt_tgchk_param *par)
+ 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+ 
+ 	if (mr->range[0].flags & NF_NAT_RANGE_MAP_IPS) {
+-		pr_debug("bad MAP_IPS.\n");
++		pr_info_ratelimited("bad MAP_IPS.\n");
+ 		return -EINVAL;
+ 	}
+ 	if (mr->rangesize != 1) {
+-		pr_debug("bad rangesize %u\n", mr->rangesize);
++		pr_info_ratelimited("bad rangesize %u\n", mr->rangesize);
+ 		return -EINVAL;
+ 	}
+ 	return nf_ct_netns_get(par->net, par->family);
+diff --git a/net/netfilter/xt_NETMAP.c b/net/netfilter/xt_NETMAP.c
+index cb2ee80d84fa..7da065a472e0 100644
+--- a/net/netfilter/xt_NETMAP.c
++++ b/net/netfilter/xt_NETMAP.c
+@@ -4,6 +4,8 @@
+  * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/ip.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -106,11 +108,11 @@ static int netmap_tg4_check(const struct xt_tgchk_param *par)
+ 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+ 
+ 	if (!(mr->range[0].flags & NF_NAT_RANGE_MAP_IPS)) {
+-		pr_debug("bad MAP_IPS.\n");
++		pr_info_ratelimited("bad MAP_IPS.\n");
+ 		return -EINVAL;
+ 	}
+ 	if (mr->rangesize != 1) {
+-		pr_debug("bad rangesize %u.\n", mr->rangesize);
++		pr_info_ratelimited("bad rangesize %u.\n", mr->rangesize);
+ 		return -EINVAL;
+ 	}
+ 	return nf_ct_netns_get(par->net, par->family);
+diff --git a/net/netfilter/xt_REDIRECT.c b/net/netfilter/xt_REDIRECT.c
+index ff66b56a3f97..dd050947257b 100644
+--- a/net/netfilter/xt_REDIRECT.c
++++ b/net/netfilter/xt_REDIRECT.c
+@@ -8,6 +8,8 @@
+  * NAT funded by Astaro.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/if.h>
+ #include <linux/inetdevice.h>
+ #include <linux/ip.h>
+@@ -51,11 +53,11 @@ static int redirect_tg4_check(const struct xt_tgchk_param *par)
+ 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+ 
+ 	if (mr->range[0].flags & NF_NAT_RANGE_MAP_IPS) {
+-		pr_debug("bad MAP_IPS.\n");
++		pr_info_ratelimited("bad MAP_IPS.\n");
+ 		return -EINVAL;
+ 	}
+ 	if (mr->rangesize != 1) {
+-		pr_debug("bad rangesize %u.\n", mr->rangesize);
++		pr_info_ratelimited("bad rangesize %u.\n", mr->rangesize);
+ 		return -EINVAL;
+ 	}
+ 	return nf_ct_netns_get(par->net, par->family);
+diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+index 2a1c0ad0ff07..68fd75884268 100644
+--- a/net/netfilter/xt_esp.c
++++ b/net/netfilter/xt_esp.c
+@@ -25,12 +25,7 @@ MODULE_ALIAS("ip6t_esp");
+ static inline bool
+ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
+ {
+-	bool r;
+-	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+-		 invert ? '!' : ' ', min, spi, max);
+-	r = (spi >= min && spi <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (spi >= min && spi <= max) ^ invert;
+ }
+ 
+ static bool esp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -48,7 +43,6 @@ static bool esp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		/* We've been asked to examine this packet, and we
+ 		 * can't.  Hence, no choice but to drop.
+ 		 */
+-		pr_debug("Dropping evil ESP tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+@@ -62,7 +56,7 @@ static int esp_mt_check(const struct xt_mtchk_param *par)
+ 	const struct xt_esp *espinfo = par->matchinfo;
+ 
+ 	if (espinfo->invflags & ~XT_ESP_INV_MASK) {
+-		pr_debug("unknown flags %X\n", espinfo->invflags);
++		pr_info_ratelimited("unknown flags %X\n", espinfo->invflags);
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
+index 472da639a32e..3299c1ea60f9 100644
+--- a/net/netfilter/xt_ipcomp.c
++++ b/net/netfilter/xt_ipcomp.c
+@@ -29,12 +29,7 @@ MODULE_ALIAS("ip6t_ipcomp");
+ static inline bool
+ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
+ {
+-	bool r;
+-	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+-		 invert ? '!' : ' ', min, spi, max);
+-	r = (spi >= min && spi <= max) ^ invert;
+-	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
+-	return r;
++	return (spi >= min && spi <= max) ^ invert;
+ }
+ 
+ static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -52,7 +47,6 @@ static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		/* We've been asked to examine this packet, and we
+ 		 * can't.  Hence, no choice but to drop.
+ 		 */
+-		pr_debug("Dropping evil IPComp tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 0c9e014e30b4..bf61141fb785 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -24,27 +24,15 @@ iprange_mt4(const struct sk_buff *skb, struct xt_action_param *par)
+ 		m  = ntohl(iph->saddr) < ntohl(info->src_min.ip);
+ 		m |= ntohl(iph->saddr) > ntohl(info->src_max.ip);
+ 		m ^= !!(info->flags & IPRANGE_SRC_INV);
+-		if (m) {
+-			pr_debug("src IP %pI4 NOT in range %s%pI4-%pI4\n",
+-			         &iph->saddr,
+-			         (info->flags & IPRANGE_SRC_INV) ? "(INV) " : "",
+-			         &info->src_min.ip,
+-			         &info->src_max.ip);
++		if (m)
+ 			return false;
+-		}
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+ 		m  = ntohl(iph->daddr) < ntohl(info->dst_min.ip);
+ 		m |= ntohl(iph->daddr) > ntohl(info->dst_max.ip);
+ 		m ^= !!(info->flags & IPRANGE_DST_INV);
+-		if (m) {
+-			pr_debug("dst IP %pI4 NOT in range %s%pI4-%pI4\n",
+-			         &iph->daddr,
+-			         (info->flags & IPRANGE_DST_INV) ? "(INV) " : "",
+-			         &info->dst_min.ip,
+-			         &info->dst_max.ip);
++		if (m)
+ 			return false;
+-		}
+ 	}
+ 	return true;
+ }
+@@ -73,27 +61,15 @@ iprange_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		m  = iprange_ipv6_lt(&iph->saddr, &info->src_min.in6);
+ 		m |= iprange_ipv6_lt(&info->src_max.in6, &iph->saddr);
+ 		m ^= !!(info->flags & IPRANGE_SRC_INV);
+-		if (m) {
+-			pr_debug("src IP %pI6 NOT in range %s%pI6-%pI6\n",
+-				 &iph->saddr,
+-				 (info->flags & IPRANGE_SRC_INV) ? "(INV) " : "",
+-				 &info->src_min.in6,
+-				 &info->src_max.in6);
++		if (m)
+ 			return false;
+-		}
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+ 		m  = iprange_ipv6_lt(&iph->daddr, &info->dst_min.in6);
+ 		m |= iprange_ipv6_lt(&info->dst_max.in6, &iph->daddr);
+ 		m ^= !!(info->flags & IPRANGE_DST_INV);
+-		if (m) {
+-			pr_debug("dst IP %pI6 NOT in range %s%pI6-%pI6\n",
+-				 &iph->daddr,
+-				 (info->flags & IPRANGE_DST_INV) ? "(INV) " : "",
+-				 &info->dst_min.in6,
+-				 &info->dst_max.in6);
++		if (m)
+ 			return false;
+-		}
+ 	}
+ 	return true;
+ }
+diff --git a/net/netfilter/xt_ipvs.c b/net/netfilter/xt_ipvs.c
+index 253c71cc9a63..e13c0ffb73a9 100644
+--- a/net/netfilter/xt_ipvs.c
++++ b/net/netfilter/xt_ipvs.c
+@@ -148,7 +148,6 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ out_put_cp:
+ 	__ip_vs_conn_put(cp);
+ out:
+-	pr_debug("match=%d\n", match);
+ 	return match;
+ }
+ 
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index a1691ff405d3..bff5f53a9bef 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -37,7 +37,6 @@ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ 		if (minfo->pflags[i]) {
+ 			/* range port matching */
+ 			e = minfo->ports[++i];
+-			pr_debug("src or dst matches with %d-%d?\n", s, e);
+ 
+ 			switch (minfo->flags) {
+ 			case XT_MULTIPORT_SOURCE:
+@@ -58,8 +57,6 @@ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ 			}
+ 		} else {
+ 			/* exact port matching */
+-			pr_debug("src or dst matches with %d?\n", s);
+-
+ 			switch (minfo->flags) {
+ 			case XT_MULTIPORT_SOURCE:
+ 				if (src == s)
+@@ -97,7 +94,6 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		/* We've been asked to examine this packet, and we
+ 		 * can't.  Hence, no choice but to drop.
+ 		 */
+-		pr_debug("Dropping evil offset=0 tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index b46a6a512058..d35c21d9651b 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -48,30 +48,17 @@ match_packet(const struct sk_buff *skb,
+ 	const struct xt_sctp_flag_info *flag_info = info->flag_info;
+ 	int flag_count = info->flag_count;
+ 
+-#ifdef DEBUG
+-	int i = 0;
+-#endif
+-
+ 	if (chunk_match_type == SCTP_CHUNK_MATCH_ALL)
+ 		SCTP_CHUNKMAP_COPY(chunkmapcopy, info->chunkmap);
+ 
+ 	do {
+ 		sch = skb_header_pointer(skb, offset, sizeof(_sch), &_sch);
+ 		if (sch == NULL || sch->length == 0) {
+-			pr_debug("Dropping invalid SCTP packet.\n");
+ 			*hotdrop = true;
+ 			return false;
+ 		}
+-#ifdef DEBUG
+-		pr_debug("Chunk num: %d\toffset: %d\ttype: %d\tlength: %d"
+-			 "\tflags: %x\n",
+-			 ++i, offset, sch->type, htons(sch->length),
+-			 sch->flags);
+-#endif
+ 		offset += SCTP_PAD4(ntohs(sch->length));
+ 
+-		pr_debug("skb->len: %d\toffset: %d\n", skb->len, offset);
+-
+ 		if (SCTP_CHUNKMAP_IS_SET(info->chunkmap, sch->type)) {
+ 			switch (chunk_match_type) {
+ 			case SCTP_CHUNK_MATCH_ANY:
+@@ -121,18 +108,14 @@ sctp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct sctphdr *sh;
+ 	struct sctphdr _sh;
+ 
+-	if (par->fragoff != 0) {
+-		pr_debug("Dropping non-first fragment.. FIXME\n");
++	if (par->fragoff != 0)
+ 		return false;
+-	}
+ 
+ 	sh = skb_header_pointer(skb, par->thoff, sizeof(_sh), &_sh);
+ 	if (sh == NULL) {
+-		pr_debug("Dropping evil TCP offset=0 tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+-	pr_debug("spt: %d\tdpt: %d\n", ntohs(sh->source), ntohs(sh->dest));
+ 
+ 	return  SCCHECK(ntohs(sh->source) >= info->spts[0]
+ 			&& ntohs(sh->source) <= info->spts[1],
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index f76cf18f1a24..70608b8d06ab 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -44,8 +44,6 @@ tcp_find_option(u_int8_t option,
+ 	u_int8_t _opt[60 - sizeof(struct tcphdr)];
+ 	unsigned int i;
+ 
+-	pr_debug("finding option\n");
+-
+ 	if (!optlen)
+ 		return invert;
+ 
+@@ -81,10 +79,8 @@ static bool tcp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		   causes this. Its a cracker trying to break in by doing a
+ 		   flag overwrite to pass the direction checks.
+ 		*/
+-		if (par->fragoff == 1) {
+-			pr_debug("Dropping evil TCP offset=1 frag.\n");
++		if (par->fragoff == 1)
+ 			par->hotdrop = true;
+-		}
+ 		/* Must not be a fragment. */
+ 		return false;
+ 	}
+@@ -93,7 +89,6 @@ static bool tcp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (th == NULL) {
+ 		/* We've been asked to examine this packet, and we
+ 		   can't.  Hence, no choice but to drop. */
+-		pr_debug("Dropping evil TCP offset=0 tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
+@@ -145,7 +140,6 @@ static bool udp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (uh == NULL) {
+ 		/* We've been asked to examine this packet, and we
+ 		   can't.  Hence, no choice but to drop. */
+-		pr_debug("Dropping evil UDP tinygram.\n");
+ 		par->hotdrop = true;
+ 		return false;
+ 	}
 -- 
 2.47.3
 
