@@ -1,39 +1,39 @@
 Received: from mail1.fiberby.net (mail1.fiberby.net [193.104.135.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC7134119E0;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CE663CDBA5;
 	Thu, 27 Aug 2026 11:05:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.104.135.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787828727; cv=none; b=BDdZd8aYdrRglwdiRsJf+a9q0WU6DEtFsTg3OXqpuyRaK7mVjk/AXlN7pnGLOe5wn+F1B0ScVlw6L25KJx5gkepGzM7jpWKStyF+fnxgvJCmmKoupV/XMteLPGaIHC4VXWz7kH5CbkdK5gkiv+VDhcaBcHXdzKKhHypcqXmxZ6Y=
+	t=1787828729; cv=none; b=FdjeJ4VZb5ZW7wFm5dHJeF2FworxlFESAsI/Ebak1t8HgJ/0evje7W/QjaxxhbmHhw3TGCo9kC66TvRgvXf2IHzfaLSi6r5DCXpNpwEQzgDJ1TrCSK0BrUZNb7nf2Gwc59W8XYwJ6iG8bMw9zQWNH1IHSWGoQySQXZXOlez3Hx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787828727; c=relaxed/simple;
-	bh=wrbO5xEko2/wPq3psOwt2Xe5JSaJqFn+y4oalO3VoGA=;
+	s=arc-20240116; t=1787828729; c=relaxed/simple;
+	bh=fmfXQZB0uXWgiiShpulwf1mMv7Yv65jiwQKkNRm5mPg=;
 	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=AlYUeX6HeBZ9KyTAB1dBEukBbfPi4kVYHJKEfo+WV6FL5Kq8fPBbF8YHHHGToS04fdumMfj+BqpK1ceaSs0JZM/a9MNfxwrkxuXcRWOGn/vPyoo3sksE5XnfPXgmTpCig0md/lycB+tNx620BLWly2cfNucFzo+skQqJv27h3ok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=bK3KaqFT; arc=none smtp.client-ip=193.104.135.124
+	 In-Reply-To:Content-Type; b=tUqdZr9gwdEHAqbFxIueW1TPWCI4PBDJUVUpVYY65Fu4DMpvN3TxCabiifct5Ev40Zno/LMz4tXB2sMcrbQqmWEmGzi8pHhcwJSMbVsPkVo0AJQXcWMnGi2Yr69Cf0aa/0Fp2wRPxHKLU5YrudYyyVIDjYdqbpYtCOTYlSehBGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=TeQhdhXS; arc=none smtp.client-ip=193.104.135.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="bK3KaqFT"
+	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="TeQhdhXS"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fiberby.net;
 	s=202008; t=1787828719;
-	bh=wrbO5xEko2/wPq3psOwt2Xe5JSaJqFn+y4oalO3VoGA=;
+	bh=fmfXQZB0uXWgiiShpulwf1mMv7Yv65jiwQKkNRm5mPg=;
 	h=Date:From:Subject:To:Cc:References:In-Reply-To:From;
-	b=bK3KaqFTpC6wA8SjtEXcisn+m1s1a1T2cD+zLwipJ6+MgxX3h8/1YScHEEfn89Vtb
-	 cL4j0gP6nnm4RvcU0CA7LTTam/1DKO1EW2Czl4z7Ta94vIBL8yET/TNjUxoscJWIT4
-	 fB+f9xPnPabm0bPkmbMGTrg7ceCHMvCOKfQQ0HDgQzDzAQdMflONnKjU6tw/p06eKj
-	 p0xb0rYD/RLbnHHgj06nDrErzaxUBjlBv5uuvWHtYelEIVHveL2NiGgVKK6FjMnuxP
-	 zsd/vwGfiDdw2E/i/5fMmsIxN5rKcag0irIlk0646dJ0Xp1Ky9qYDrC5jSIxUIaIzj
-	 OgzvxbC+i4yXg==
+	b=TeQhdhXScGO7wJWYfousrDHMDNn41ARql6Q2fcKVZ1NgInejU1QrFM1LBUyhiS+LP
+	 xYfNNhBjbsZTeepeY6pKvXkZLDMnDEEvA9S+gsFZIS97o20u1O/b/XqBytpQwPRB2W
+	 7zmZrTNShKn0e+b8bZUnngcVMNYo6d+CifkhIVn/Mni1NrcQiXMntX4l387GUeT9lR
+	 oTXKQRR3LaHWioxvWiTy230eU5xxymtki6my9CM8/ZjUGLa54HBCOWh6Wu1KzDs5bU
+	 hPAiAgtrvi1YHirNZcaH5A9tfJy2eqdJHdcvBjpCsHOQ02/s6qoTplguc4T39QLpP2
+	 guSFEc7InlB0g==
 Received: from x201s (193-104-135-243.ip4.fiberby.net [193.104.135.243])
-	by mail1.fiberby.net (Postfix) with ESMTPSA id E2EF0600BF;
+	by mail1.fiberby.net (Postfix) with ESMTPSA id B3C8F60075;
 	Thu, 27 Aug 2026 11:05:18 +0000 (UTC)
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by x201s (Postfix) with ESMTP id 5308C200890;
-	Thu, 27 Aug 2026 11:04:42 +0000 (UTC)
-Message-ID: <f051ab36-6b94-4b93-bf5e-387a62324bec@fiberby.net>
-Date: Thu, 27 Aug 2026 11:04:42 +0000
+	by x201s (Postfix) with ESMTP id 3920C201763;
+	Thu, 27 Aug 2026 11:04:55 +0000 (UTC)
+Message-ID: <94804df2-4b2d-4b2a-9a4c-9bc09a6a3f1d@fiberby.net>
+Date: Thu, 27 Aug 2026 11:04:54 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,7 +42,8 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 From: =?UTF-8?Q?Asbj=C3=B8rn_Sloth_T=C3=B8nnesen?= <ast@fiberby.net>
-Subject: Re: [PATCH net v2 1/2] netlink: specs: fix the conntrack filter type
+Subject: Re: [PATCH net v2 2/2] netlink: specs: add missing mask attributes
+ for conntrack dump
 To: Ilya Maximets <i.maximets@ovn.org>, netdev@vger.kernel.org
 Cc: "David S. Miller" <davem@davemloft.net>,
  Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
@@ -53,22 +54,19 @@ Cc: "David S. Miller" <davem@davemloft.net>,
  Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
  netfilter-devel@vger.kernel.org, stable@vger.kernel.org
 References: <20260826220444.4054714-1-i.maximets@ovn.org>
- <20260826220444.4054714-2-i.maximets@ovn.org>
+ <20260826220444.4054714-3-i.maximets@ovn.org>
 Content-Language: en-US
-In-Reply-To: <20260826220444.4054714-2-i.maximets@ovn.org>
+In-Reply-To: <20260826220444.4054714-3-i.maximets@ovn.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
 On 8/26/26 10:01 PM, Ilya Maximets wrote:
-> The CTA_FILTER doesn't contain nested tuple attributes, instead it
-> contains bit masks that specify which tuple attributes to filter on.
-> The values for filtering are taken from the top-level CTA_TUPLE_ORIG
-> and CTA_TUPLE_REPLY, which are also missing in the attribute list
-> for the dump request.
+> 'mark-mask' and 'status-mask' are defined and supported by the
+> conntrack dump, but missing from the list of arguments.
 > 
-> The bits themselves somehow are not in the public headers, so not
-> defining them in the spec either for now.  Once they are public in
-> uAPI, they can be added here with enum-as-flags.
+> While at it, the order of the arguments should follow the order of
+> their definition in the enum ctattr_type.  That appears to be a common
+> convention for other spec files.
 > 
 > Fixes: 23fc9311a526 ("netlink: specs: add conntrack dump and stats dump support")
 > Cc: stable@vger.kernel.org
