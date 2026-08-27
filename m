@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E956047CA87
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 17:44:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E34783C2D
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 17:45:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787852661; cv=none; b=isyVDVMWnkirJKfmeqyOsXVEC6nnzIB7jiHzPelMR05OPrPn6p1Zyv96+rnDMKstsnpIrkDUHCOOiN7ytC64vZt4eae+DO+CmseADnvz+ky9Qgot1O4mB+bPJAMwVb/15zIrRFh0H7xg6n9tUmuuxM8tvOhtJk3fKIKqGehyaXg=
+	t=1787852744; cv=none; b=iROkAOT2pYYwKK4szo670wQUjf8E/TCI4tKJIire8Aba0j2AV9IiuWYKqepMZBkNElq6w7m97fXLfzI/fyGBJ4sXi6ygQUN9tZbLpO8ua1DW6bvLQ6kRM+ah/3ut/ChLo3vcNxoilGkDjnQK6oC+kgn/ZIQLL3HCHNjSNNOZa0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787852661; c=relaxed/simple;
-	bh=4QTyasIJPc5xQgemtKv3Y8i446gOKFj9+foRq5BZeDg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RGKgAZezxiUW/zGBvjmFUtO1qezBBwOENguiijzhatO29TFtU0KWGxGGVO3lZy5stncSh6I+XwwEnhRODSij5HTl9UmpiwLK6BReEL2XX316l+2rys7GAiSswgTSetOdUk5p4V0gFx3z7y3BkWaIG3z68LCqsXJnRExPCd2Vb0I=
+	s=arc-20240116; t=1787852744; c=relaxed/simple;
+	bh=9xC83mFvUfdHhEn41N4ID5m6K4b8PuMT2tj5sRrBelw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oqj8wASPCfEHqwEFWJr0XF5+HRkbxkcKdzMKWmsgLGI0tiZvM+ZEHx2WulhG3Pr4uYYGKjB/BLNk2kamkWpOFTrv4XS7dB3USnbP+90DwYV2C/H/9dyiqzYt6Aego6ZL0f+uX2SP2GXK7I3PsiX3eELiqoZ1jJNJkZXrIrQJ/9s=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 191F7602F5; Thu, 27 Aug 2026 19:44:10 +0200 (CEST)
+	id 973D96033B; Thu, 27 Aug 2026 19:45:33 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>,
-	Nikolay Aleksandrov <razor@blackwall.org>
-Subject: [PATCH nf] netfilter: disable br_netfilter in user namespaces
-Date: Thu, 27 Aug 2026 19:41:10 +0200
-Message-ID: <20260827174110.11894-1-fw@strlen.de>
+	co+63bad23bb3b4cd85@bugs.sh
+Subject: [PATCH nf] netfilter: bridge: verify device is a bridge port
+Date: Thu, 27 Aug 2026 19:45:25 +0200
+Message-ID: <20260827174525.16334-1-fw@strlen.de>
 X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,143 +31,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-br_netfilter has way too many bugs, schedule for removal and disable
-the feature in user namespaces.
+commit ccb9fd4b8753 ("netfilter: revalidate bridge ports") closed an
+rcu escape where a bridge port is removed from the bridge and then reassigned
+to a different device.
 
-In particular, we get more and more gadgets to have bridge ports escape
-rcu_read_lock() protection, then underlying device gets reconfigured
-(macvlan or something else), then reinject into network stack causes
-crash because net_device is assumed to still have bridge rx data
-associated with it.
+Unfortunately there are gadgets other than nfqueue that allow such
+escapes, one way is br_netfilter: skb will be queeud to defrag engine,
+leave rcu protection, then, on reinject, stored device index may point
+to a different device:
 
-br_netfilter is an ancient kludge that emulates ip stack from within the
-bridge and then calls into ipv4/ipv6 netfilter hooks to have bridged
-frames processed via iptables/ip6tables by setting the 'call-iptables'
-sysctls to 1. It is NOT related to ebtables or nftables 'bridge' family
-at all.
+BUG: KASAN: slab-out-of-bounds in br_forward+0x304/0x370 [bridge]
+[..]
+Call Trace:
+ br_forward+0x304/0x370 [bridge]
+ nft_reject_bridge_eval+0x441/0x10c1 [nft_reject_bridge]
+ nft_do_chain+0x21f/0x1610 [nf_tables]
+ nft_do_chain_bridge+0x21b/0x1220 [nf_tables]
+ nf_hook_slow+0xaa/0x1e0
+ br_nf_hook_thresh+0x1f1/0x3b0 [br_netfilter]
+ br_nf_pre_routing_finish+0x78f/0x14d0 [br_netfilter]
+ br_nf_pre_routing+0xd96/0x1630 [br_netfilter]
+ nf_hook_bridge_pre+0x290/0x4b0 [bridge]
+ __netif_receive_skb_core.constprop.0+0x55b/0x2ba0
 
-Note that in addition to call-iptables, sysctls, the bridge itself exposes
-call-iptables per port via netlink and sysfs ('BROPT_NF_CALL_IPTABLES')
-toggles.
+Revalidate unconditionally.  The fixes tag is intentionally wrong; that
+change is a dependency and is also a required bug fix.
 
-Those are still available, the brnet structure is scoped to br_netfilter;
-exposing it bridge-wide is a big no-no.
-
-This relies on brnf_device_event() no longer registering the base
-br_netfilter hooks, so while BROPT_NF_CALL_IPTABLES can be set, it
-has no effect because the hooks that evaluate this feature bit
-are never registered.
-
-brnf_init_net can no longer depend on CONFIG_SYSCTL, else such builds
-never disable support in user namespaces.
-
-Cc: Nikolay Aleksandrov <razor@blackwall.org>
+Fixes: 9874808878d9 ("netfilter: bridge: replace physindev with physinif in nf_bridge_info")
+Reported-by: co+63bad23bb3b4cd85@bugs.sh
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/br_netfilter_hooks.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ include/linux/netfilter_bridge.h | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0a394e5f4391..b09b9236e617 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -54,6 +54,7 @@ static unsigned int brnf_net_id __read_mostly;
- 
- struct brnf_net {
- 	bool enabled;
-+	bool in_userns;
- 
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header *ctl_hdr;
-@@ -1100,7 +1101,7 @@ static int brnf_device_event(struct notifier_block *unused, unsigned long event,
- 
- 	net = dev_net(dev);
- 	brnet = net_generic(net, brnf_net_id);
--	if (brnet->enabled)
-+	if (brnet->enabled || brnet->in_userns)
- 		return NOTIFY_OK;
- 
- 	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
-@@ -1229,9 +1230,11 @@ static inline void br_netfilter_sysctl_default(struct brnf_net *brnf)
- 	brnf->filter_pppoe_tagged = 0;
- 	brnf->pass_vlan_indev = 0;
- }
-+#endif
- 
- static int br_netfilter_sysctl_init_net(struct net *net)
- {
-+#ifdef CONFIG_SYSCTL
- 	struct ctl_table *table = brnf_table;
- 	struct brnf_net *brnet;
- 
-@@ -1259,25 +1262,37 @@ static int br_netfilter_sysctl_init_net(struct net *net)
- 
- 		return -ENOMEM;
- 	}
--
-+#endif
- 	return 0;
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index 743475ca7e9d..46cfebc587d8 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -55,12 +55,21 @@ static inline int nf_bridge_get_physoutif(const struct sk_buff *skb)
+ 	return nf_bridge->physoutdev ? nf_bridge->physoutdev->ifindex : 0;
  }
  
- static void br_netfilter_sysctl_exit_net(struct net *net,
- 					 struct brnf_net *brnet)
- {
--	const struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
-+#ifdef CONFIG_SYSCTL
-+	struct ctl_table_header *header = brnet->ctl_hdr;
- 
--	unregister_net_sysctl_table(brnet->ctl_hdr);
-+	if (!header)
-+		return;
++static inline struct net_device *
++__nf_bridge_get_physport(struct net_device *dev)
++{
++	return dev && netif_is_bridge_port(dev) ? dev : NULL;
++}
 +
-+	unregister_net_sysctl_table(header);
- 	if (!net_eq(net, &init_net))
--		kfree(table);
-+		kfree(header->ctl_table_arg);
-+#endif
- }
- 
- static int __net_init brnf_init_net(struct net *net)
+ static inline struct net_device *
+ nf_bridge_get_physindev(const struct sk_buff *skb, struct net *net)
  {
-+	if (net->user_ns != &init_user_ns) {
-+		struct brnf_net *brnet = net_generic(net, brnf_net_id);
-+
-+		brnet->in_userns = true;
-+		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
-+		return 0;
-+	}
-+
- 	return br_netfilter_sysctl_init_net(net);
- }
--#endif
+ 	const struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
  
- static void __net_exit brnf_exit_net(struct net *net)
+-	return nf_bridge ? dev_get_by_index_rcu(net, nf_bridge->physinif) : NULL;
++	if (!nf_bridge)
++		return NULL;
++
++	return __nf_bridge_get_physport(dev_get_by_index_rcu(net, nf_bridge->physinif));
+ }
+ 
+ static inline struct net_device *
+@@ -68,7 +77,7 @@ nf_bridge_get_physoutdev(const struct sk_buff *skb)
  {
-@@ -1289,15 +1304,11 @@ static void __net_exit brnf_exit_net(struct net *net)
- 		brnet->enabled = false;
- 	}
+ 	const struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
  
--#ifdef CONFIG_SYSCTL
- 	br_netfilter_sysctl_exit_net(net, brnet);
--#endif
+-	return nf_bridge ? nf_bridge->physoutdev : NULL;
++	return nf_bridge ? __nf_bridge_get_physport(nf_bridge->physoutdev) : NULL;
  }
  
- static struct pernet_operations brnf_net_ops __read_mostly = {
--#ifdef CONFIG_SYSCTL
- 	.init = brnf_init_net,
--#endif
- 	.exit = brnf_exit_net,
- 	.id   = &brnf_net_id,
- 	.size = sizeof(struct brnf_net),
-@@ -1318,7 +1329,7 @@ static int __init br_netfilter_init(void)
- 	}
- 
- 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
--	printk(KERN_NOTICE "Bridge firewalling registered\n");
-+	pr_warn("br_netfilter is slated for removal in 2027.\n");
- 	return 0;
- }
- 
+ static inline bool nf_bridge_in_prerouting(const struct sk_buff *skb)
 -- 
 2.54.0
 
