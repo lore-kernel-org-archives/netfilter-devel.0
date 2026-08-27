@@ -1,210 +1,173 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D02D247F770;
-	Thu, 27 Aug 2026 14:54:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E956047CA87
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 17:44:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787842463; cv=none; b=OLT5ORy+6GSiUhdP906YBz7NX6bvBqLTIkEtWGRXvgh0ZMd0dDpcJVUkW4e7ZXBJNgJjNQUh5DcZQ5f90SZVJmYG62hfihWXaMV3T46VbJ/wmJWkIKVYF4d4lDxeDlLvlpu49ivq+7amqTba4SM37prBAItl9yZhoGTSm0GY3HQ=
+	t=1787852661; cv=none; b=isyVDVMWnkirJKfmeqyOsXVEC6nnzIB7jiHzPelMR05OPrPn6p1Zyv96+rnDMKstsnpIrkDUHCOOiN7ytC64vZt4eae+DO+CmseADnvz+ky9Qgot1O4mB+bPJAMwVb/15zIrRFh0H7xg6n9tUmuuxM8tvOhtJk3fKIKqGehyaXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787842463; c=relaxed/simple;
-	bh=vA6XlNiwOBux8epsbZa89V45XQ6kUfKQK8P7Lt87cVg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NCzk7SiL/Aichg6O0N2cisXsLgKBW3WLdhfAGjmD1z2SfZZ5eTuVutEMxRZQ4YU4aaDf5JcS+KX1X0J1HDBo5SGeO3wMeCJ4z3qCWO8d9vK1uH5xZhx9SVCFVbrY6tMZsPlRtcpDoDe2bzNCs0sb3VGqtHryWD6YGLtzr2X1oO0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C3sMd+3P; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C3sMd+3P"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1787842450;
-	bh=4ZkYinyf88pXEloZGVMGV/26vir7D5/yrLpFCdyD1DM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=C3sMd+3PxWNXjvj8cwEQYRJ8lqNwdvFJXY5g2gBl2ir3i4GotNa+tsN01ZEY3Ve44
-	 TgFKUQ717Q7VpVGxDiEqxnTpvkLVdliCFgmKTE7PG8bvdIPeT4BJaNQ+D779XfoMcE
-	 PtpnsydupqS4a9duqL7Y9Rzjx/QGWd/hMIYa8S8xPYD9xPfVl2PXT4bWxH5r0YbUrq
-	 fIzflYXUddrful1PssmIxCqzmpOsT2njSVv9eT9W7DObV5ClMW1556oaqe8BDY9twJ
-	 y94Dkyqoc6GQXmZOZG0fQ9mThugjPy/jKJVhlJLvHPeUJU+QupnRt4l/t5xojHcCaO
-	 VNHArZl6Ynxhw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D9E9F60081;
-	Thu, 27 Aug 2026 16:54:09 +0200 (CEST)
-Date: Thu, 27 Aug 2026 16:54:07 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
-	netdev@vger.kernel.org, Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Sabrina Dubroca <sd@queasysnail.net>, Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>, linux-kernel@vger.kernel.org
-Subject: Re: [BUG] net/bridge: out-of-bounds in br_forward()
-Message-ID: <apBPj741ai10Wajf@chamomile>
-References: <fai12uKS5302YnCQV4E3zlDqcsAS5aGcMutS@bugs.sh>
- <apBJyKJ7zs4kUmpd@strlen.de>
+	s=arc-20240116; t=1787852661; c=relaxed/simple;
+	bh=4QTyasIJPc5xQgemtKv3Y8i446gOKFj9+foRq5BZeDg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RGKgAZezxiUW/zGBvjmFUtO1qezBBwOENguiijzhatO29TFtU0KWGxGGVO3lZy5stncSh6I+XwwEnhRODSij5HTl9UmpiwLK6BReEL2XX316l+2rys7GAiSswgTSetOdUk5p4V0gFx3z7y3BkWaIG3z68LCqsXJnRExPCd2Vb0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 191F7602F5; Thu, 27 Aug 2026 19:44:10 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Nikolay Aleksandrov <razor@blackwall.org>
+Subject: [PATCH nf] netfilter: disable br_netfilter in user namespaces
+Date: Thu, 27 Aug 2026 19:41:10 +0200
+Message-ID: <20260827174110.11894-1-fw@strlen.de>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <apBJyKJ7zs4kUmpd@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 27, 2026 at 04:29:28PM +0200, Florian Westphal wrote:
-> co <co+63bad23bb3b4cd85@bugs.sh> wrote:
-> > We found a bug reachable in:
-> > 
-> >     path    net/bridge/netfilter
-> >     crash   out-of-bounds in br_forward()
-> >     commit  7b5344954050 ("Merge tag 'nf-26-08-10' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf")
-> 
-> I'm looking into these reports, I think this is the same
-> underlying bug as the other report; a variant of
-> 
-> ccb9fd4b8753 ("netfilter: revalidate bridge ports")
-> 
-> That bug uses nfnetlink_queue for RCU escape, the other two reports
-> use defrag engine.
+br_netfilter has way too many bugs, schedule for removal and disable
+the feature in user namespaces.
 
-I started this patch. I think this can still happen with native
-nfnetlink_queue support for the bridge family?
+In particular, we get more and more gadgets to have bridge ports escape
+rcu_read_lock() protection, then underlying device gets reconfigured
+(macvlan or something else), then reinject into network stack causes
+crash because net_device is assumed to still have bridge rx data
+associated with it.
 
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index cd2b04236a99..b3a51ba72e9c 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -44,7 +44,7 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
-  */
- static void nft_reject_br_send_v4_tcp_reset(struct net *net,
-                                            struct sk_buff *oldskb,
--                                           const struct net_device *dev,
-+                                           struct net_bridge_port *port,
-                                            int hook)
+br_netfilter is an ancient kludge that emulates ip stack from within the
+bridge and then calls into ipv4/ipv6 netfilter hooks to have bridged
+frames processed via iptables/ip6tables by setting the 'call-iptables'
+sysctls to 1. It is NOT related to ebtables or nftables 'bridge' family
+at all.
+
+Note that in addition to call-iptables, sysctls, the bridge itself exposes
+call-iptables per port via netlink and sysfs ('BROPT_NF_CALL_IPTABLES')
+toggles.
+
+Those are still available, the brnet structure is scoped to br_netfilter;
+exposing it bridge-wide is a big no-no.
+
+This relies on brnf_device_event() no longer registering the base
+br_netfilter hooks, so while BROPT_NF_CALL_IPTABLES can be set, it
+has no effect because the hooks that evaluate this feature bit
+are never registered.
+
+brnf_init_net can no longer depend on CONFIG_SYSCTL, else such builds
+never disable support in user namespaces.
+
+Cc: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/br_netfilter_hooks.c | 33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 0a394e5f4391..b09b9236e617 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -54,6 +54,7 @@ static unsigned int brnf_net_id __read_mostly;
+ 
+ struct brnf_net {
+ 	bool enabled;
++	bool in_userns;
+ 
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header *ctl_hdr;
+@@ -1100,7 +1101,7 @@ static int brnf_device_event(struct notifier_block *unused, unsigned long event,
+ 
+ 	net = dev_net(dev);
+ 	brnet = net_generic(net, brnf_net_id);
+-	if (brnet->enabled)
++	if (brnet->enabled || brnet->in_userns)
+ 		return NOTIFY_OK;
+ 
+ 	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
+@@ -1229,9 +1230,11 @@ static inline void br_netfilter_sysctl_default(struct brnf_net *brnf)
+ 	brnf->filter_pppoe_tagged = 0;
+ 	brnf->pass_vlan_indev = 0;
+ }
++#endif
+ 
+ static int br_netfilter_sysctl_init_net(struct net *net)
  {
-        struct sk_buff *nskb;
-@@ -55,12 +55,12 @@ static void nft_reject_br_send_v4_tcp_reset(struct net *net,
++#ifdef CONFIG_SYSCTL
+ 	struct ctl_table *table = brnf_table;
+ 	struct brnf_net *brnet;
  
-        nft_reject_br_push_etherhdr(oldskb, nskb);
+@@ -1259,25 +1262,37 @@ static int br_netfilter_sysctl_init_net(struct net *net)
  
--       br_forward(br_port_get_rcu(dev), nskb, false, true);
-+       br_forward(port, nskb, false, true);
+ 		return -ENOMEM;
+ 	}
+-
++#endif
+ 	return 0;
  }
  
- static void nft_reject_br_send_v4_unreach(struct net *net,
-                                          struct sk_buff *oldskb,
--                                         const struct net_device *dev,
-+                                         struct net_bridge_port *port,
-                                          int hook, u8 code)
+ static void br_netfilter_sysctl_exit_net(struct net *net,
+ 					 struct brnf_net *brnet)
  {
-        struct sk_buff *nskb;
-@@ -71,12 +71,12 @@ static void nft_reject_br_send_v4_unreach(struct net *net,
+-	const struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header *header = brnet->ctl_hdr;
  
-        nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--       br_forward(br_port_get_rcu(dev), nskb, false, true);
-+       br_forward(port, nskb, false, true);
- }
- 
- static void nft_reject_br_send_v6_tcp_reset(struct net *net,
-                                            struct sk_buff *oldskb,
--                                           const struct net_device *dev,
-+                                           struct net_bridge_port *port,
-                                            int hook)
- {
-        struct sk_buff *nskb;
-@@ -87,13 +87,13 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 
-        nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--       br_forward(br_port_get_rcu(dev), nskb, false, true);
-+       br_forward(port, nskb, false, true);
- }
- 
- 
- static void nft_reject_br_send_v6_unreach(struct net *net,
-                                          struct sk_buff *oldskb,
--                                         const struct net_device *dev,
-+                                         struct net_bridge_port *port,
-                                          int hook, u8 code)
- {
-        struct sk_buff *nskb;
-@@ -104,37 +104,47 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
- 
-        nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--       br_forward(br_port_get_rcu(dev), nskb, false, true);
-+       br_forward(port, nskb, false, true);
- }
- 
- static void nft_reject_bridge_eval(const struct nft_expr *expr,
-                                   struct nft_regs *regs,
-                                   const struct nft_pktinfo *pkt)
- {
--       struct nft_reject *priv = nft_expr_priv(expr);
-        const unsigned char *dest = eth_hdr(pkt->skb)->h_dest;
-+       struct nft_reject *priv = nft_expr_priv(expr);
-+       const struct net_device *dev = nft_in(pkt);
-+       struct net_bridge_port *port;
- 
-        if (is_broadcast_ether_addr(dest) ||
-            is_multicast_ether_addr(dest))
-                goto out;
- 
-+       if (!dev || !netif_is_bridge_port(dev) ||
-+           netdev_master_upper_dev_get_rcu((struct net_device *)dev))
-+               goto out;
+-	unregister_net_sysctl_table(brnet->ctl_hdr);
++	if (!header)
++		return;
 +
-+       port = br_port_get_rcu(dev);
-+       if (!port)
-+               goto out;
++	unregister_net_sysctl_table(header);
+ 	if (!net_eq(net, &init_net))
+-		kfree(table);
++		kfree(header->ctl_table_arg);
++#endif
+ }
+ 
+ static int __net_init brnf_init_net(struct net *net)
+ {
++	if (net->user_ns != &init_user_ns) {
++		struct brnf_net *brnet = net_generic(net, brnf_net_id);
 +
-        switch (eth_hdr(pkt->skb)->h_proto) {
-        case htons(ETH_P_IP):
-                switch (priv->type) {
-                case NFT_REJECT_ICMP_UNREACH:
-                        nft_reject_br_send_v4_unreach(nft_net(pkt), pkt->skb,
--                                                     nft_in(pkt),
-+                                                     port,
-                                                      nft_hook(pkt),
-                                                      priv->icmp_code);
-                        break;
-                case NFT_REJECT_TCP_RST:
-                        nft_reject_br_send_v4_tcp_reset(nft_net(pkt), pkt->skb,
--                                                       nft_in(pkt),
-+                                                       port,
-                                                        nft_hook(pkt));
-                        break;
-                case NFT_REJECT_ICMPX_UNREACH:
-                        nft_reject_br_send_v4_unreach(nft_net(pkt), pkt->skb,
--                                                     nft_in(pkt),
-+                                                     port,
-                                                      nft_hook(pkt),
-                                                      nft_reject_icmp_code(priv->icmp_code));
-                        break;
-@@ -144,18 +154,18 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
-                switch (priv->type) {
-                case NFT_REJECT_ICMP_UNREACH:
-                        nft_reject_br_send_v6_unreach(nft_net(pkt), pkt->skb,
--                                                     nft_in(pkt),
-+                                                     port,
-                                                      nft_hook(pkt),
-                                                      priv->icmp_code);
-                        break;
-                case NFT_REJECT_TCP_RST:
-                        nft_reject_br_send_v6_tcp_reset(nft_net(pkt), pkt->skb,
--                                                       nft_in(pkt),
-+                                                       port,
-                                                        nft_hook(pkt));
-                        break;
-                case NFT_REJECT_ICMPX_UNREACH:
-                        nft_reject_br_send_v6_unreach(nft_net(pkt), pkt->skb,
--                                                     nft_in(pkt),
-+                                                     port,
-                                                      nft_hook(pkt),
-                                                      nft_reject_icmpv6_code(priv->icmp_code));
-                        break;
++		brnet->in_userns = true;
++		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
++		return 0;
++	}
++
+ 	return br_netfilter_sysctl_init_net(net);
+ }
+-#endif
+ 
+ static void __net_exit brnf_exit_net(struct net *net)
+ {
+@@ -1289,15 +1304,11 @@ static void __net_exit brnf_exit_net(struct net *net)
+ 		brnet->enabled = false;
+ 	}
+ 
+-#ifdef CONFIG_SYSCTL
+ 	br_netfilter_sysctl_exit_net(net, brnet);
+-#endif
+ }
+ 
+ static struct pernet_operations brnf_net_ops __read_mostly = {
+-#ifdef CONFIG_SYSCTL
+ 	.init = brnf_init_net,
+-#endif
+ 	.exit = brnf_exit_net,
+ 	.id   = &brnf_net_id,
+ 	.size = sizeof(struct brnf_net),
+@@ -1318,7 +1329,7 @@ static int __init br_netfilter_init(void)
+ 	}
+ 
+ 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
+-	printk(KERN_NOTICE "Bridge firewalling registered\n");
++	pr_warn("br_netfilter is slated for removal in 2027.\n");
+ 	return 0;
+ }
+ 
+-- 
+2.54.0
 
