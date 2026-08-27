@@ -1,97 +1,66 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D6C355F5C
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 14:35:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D02D247F770;
+	Thu, 27 Aug 2026 14:54:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787841356; cv=none; b=Vlk8tloT5rW2nSp8IWGfRy6QO9DCl9VRR+XDVOpQV1bP7wJhWLiO73A+WIzTadXLC+z5xj6Sjpdr1Lidm9vCLyDw5uwMSWxSFMnN7ZubRGHWk0y7l2a4vB8YqjWyBYaP1095qNQh9mm5uOY6CP1D685Bn1w994zj6f2BbsYQTkI=
+	t=1787842463; cv=none; b=OLT5ORy+6GSiUhdP906YBz7NX6bvBqLTIkEtWGRXvgh0ZMd0dDpcJVUkW4e7ZXBJNgJjNQUh5DcZQ5f90SZVJmYG62hfihWXaMV3T46VbJ/wmJWkIKVYF4d4lDxeDlLvlpu49ivq+7amqTba4SM37prBAItl9yZhoGTSm0GY3HQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787841356; c=relaxed/simple;
-	bh=OvCuE3tKhuByh3bh7M7tAUdCId7sWjvotChThY107eQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=s3NdtkuGget3wYT92iP0T1S56ryfbTI7egj7GX06jzgN6cUD6urrvyRYoHYY57bCMcJTEKSYtVuBWXrivvp86+297bJiMB0DR2K52IcVYlVA6KAyDvWOEebe0t5D7/nTC84cdKQMDHTOhRkXjfztYrwRac0mCy/IxKFreNmjaps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org; spf=none smtp.mailfrom=blackwall.org; dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b=O8ZuG4JY; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
+	s=arc-20240116; t=1787842463; c=relaxed/simple;
+	bh=vA6XlNiwOBux8epsbZa89V45XQ6kUfKQK8P7Lt87cVg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NCzk7SiL/Aichg6O0N2cisXsLgKBW3WLdhfAGjmD1z2SfZZ5eTuVutEMxRZQ4YU4aaDf5JcS+KX1X0J1HDBo5SGeO3wMeCJ4z3qCWO8d9vK1uH5xZhx9SVCFVbrY6tMZsPlRtcpDoDe2bzNCs0sb3VGqtHryWD6YGLtzr2X1oO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C3sMd+3P; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.b="O8ZuG4JY"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-c2533d83e3bso223758366b.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 07:35:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall.org; s=google; t=1787841353; x=1788446153; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=BKzWbSJH9JlleRjv6GcxliujufDL4y1EreMLQdzQ5Js=;
-        b=O8ZuG4JYk/T88A/KhRbMbOoCTWH30TPfEzzBHbskre3HDhnFEEAExjlSCNRs4iw+p3
-         pMCzMI6ZqVuaVFQdb2DwIe4PFg25/1Hv62p8iwVS8nA5yXwCR59wEuG4MtZwsD0y6q3+
-         fbSi2sj9OHOSdQWKteCkHmAZHUCNq/KPZqMrN/5MJRjRQLsYYOuPz9GB6BHQBq60q+HY
-         otc5Xdrq3VIcL/LPkpYFk29nU6/E4ppOvlHAE3cLm2XF41Rc6hTt3NunTaMbMEM/vHUq
-         MAonY2TFLKWX3iAqpNTbW/eEqHN3Scxbs+zoTHsYTFTLo/hAQXNQzmcfmPF9qlfOo6M1
-         UFSg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787841353; x=1788446153;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=BKzWbSJH9JlleRjv6GcxliujufDL4y1EreMLQdzQ5Js=;
-        b=jnaEb3EDshzBUvAbJikKa9JT4/hmCbSoFbav2vg4obFvDt5v0X3603wXP8+XWoXo43
-         Tb0JRaOgD8Zsgri3bQDy25H44I3oPfLQuQX5dUefaNksWYHpvZu8VRmNqUTAmgcvtxgA
-         8vHU1F5kdIoyiM+k5FT/5QSN+0TWjAGe138eVvuHBcw/XKEpq7AoF4DR3C/2LzfZKaTJ
-         b6yUz+io8Aq5/D8b4AJROJSlZBXTk8t2muUy7elhA6IYQ1c8sIIysg5dwXYCqepbPmS8
-         tsBXoc3535qrRQNWzew3tnDkqrFBxCIkWAeKUtHl7pF3TFOI+E2cN6JiZ7t/hvZ2WnJC
-         ziAA==
-X-Forwarded-Encrypted: i=1; AHgh+RrbzEdkP0epuCiSqkHTiBQnGjI5wSOu2zQGZ5jHtj8mGyH39BQOeljV15eMRWf52iLgnuz9VVavN14FiV3EOQs=@vger.kernel.org
-X-Gm-Message-State: AFuF++kjODO1uphBnQXwx745HbhrnVfQF9srh9tXYmuzTvg6It0bOW8Y
-	o/Fm8khjtAVcWpybph13W3JISIAxjIit5sOn1PCOsucBXe+52/sXAcXB5J7wNKcYjGA=
-X-Gm-Gg: AR+sD13XjucHpUwgfPyZSEnqNXtAEX4IU4JNiPESSxXUvlk0MuTMtH9gz5QcDMPezIr
-	XJFkulRAGov5SKmo7TVay6P5hl21ZAVpaPnzGtD6/KHO5OHwtBZwlXL9rYic5kSpeXgAybB9X9O
-	8W29NbeMvXRrrbSP7uCxyqcHpLq6CA6ZsY9FFPg/ydrBC9vuvk6lO6Bhx73xa2exjoGrIzwGYq/
-	DvYQGfEBNFQYzuegmbsPemt/4FIHcViY5o3E6DHnudZh2WAqAXtzC/pXyFi3cruKp4LUQPZ5b2H
-	THw9UbOnfTer4/9Ok4afuOGULobnJM3wPoHSep4MCvTQ/jKhchIT22zfEFxXX4Pl0D6VPCHS1L/
-	7aeA14KLX/jjP+nTM3Pq4wQTRGoNYO1TAGLuWeK90oxqy1vDdDkYoeejCz8aVyY3/wMGYTpmSZn
-	RAWoiwLazGbfyrBOJXRnuJfheTGjJv3l0hr1A67Hm4Rga96wdfpVPckUH6yPOb8Q96jaHn90NZ2
-	9tjygZbd4BYVyqfqKM=
-X-Received: by 2002:a17:907:c08c:b0:c21:752f:c44e with SMTP id a640c23a62f3a-c250bc0f7e6mr1797816966b.16.1787841352449;
-        Thu, 27 Aug 2026 07:35:52 -0700 (PDT)
-Received: from [192.168.0.161] (78-154-15-182.ip.btc-net.bg. [78.154.15.182])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c250a5d62dfsm738498266b.4.2026.08.27.07.35.51
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 27 Aug 2026 07:35:51 -0700 (PDT)
-Message-ID: <ddf53430-f3ce-4ca8-aacd-3fd8ffc81091@blackwall.org>
-Date: Thu, 27 Aug 2026 17:35:50 +0300
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C3sMd+3P"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1787842450;
+	bh=4ZkYinyf88pXEloZGVMGV/26vir7D5/yrLpFCdyD1DM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=C3sMd+3PxWNXjvj8cwEQYRJ8lqNwdvFJXY5g2gBl2ir3i4GotNa+tsN01ZEY3Ve44
+	 TgFKUQ717Q7VpVGxDiEqxnTpvkLVdliCFgmKTE7PG8bvdIPeT4BJaNQ+D779XfoMcE
+	 PtpnsydupqS4a9duqL7Y9Rzjx/QGWd/hMIYa8S8xPYD9xPfVl2PXT4bWxH5r0YbUrq
+	 fIzflYXUddrful1PssmIxCqzmpOsT2njSVv9eT9W7DObV5ClMW1556oaqe8BDY9twJ
+	 y94Dkyqoc6GQXmZOZG0fQ9mThugjPy/jKJVhlJLvHPeUJU+QupnRt4l/t5xojHcCaO
+	 VNHArZl6Ynxhw==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D9E9F60081;
+	Thu, 27 Aug 2026 16:54:09 +0200 (CEST)
+Date: Thu, 27 Aug 2026 16:54:07 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
+	netdev@vger.kernel.org, Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Sabrina Dubroca <sd@queasysnail.net>, Phil Sutter <phil@nwl.cc>,
+	Simon Horman <horms@kernel.org>, linux-kernel@vger.kernel.org
+Subject: Re: [BUG] net/bridge: out-of-bounds in br_forward()
+Message-ID: <apBPj741ai10Wajf@chamomile>
+References: <fai12uKS5302YnCQV4E3zlDqcsAS5aGcMutS@bugs.sh>
+ <apBJyKJ7zs4kUmpd@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] net/bridge: out-of-bounds in br_forward()
-Content-Language: en-US, bg
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc: bridge@lists.linux.dev, netdev@vger.kernel.org,
- Pablo Neira Ayuso <pablo@netfilter.org>, Ido Schimmel <idosch@nvidia.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Sabrina Dubroca <sd@queasysnail.net>, Phil Sutter <phil@nwl.cc>,
- Simon Horman <horms@kernel.org>, linux-kernel@vger.kernel.org
-References: <fai12uKS5302YnCQV4E3zlDqcsAS5aGcMutS@bugs.sh>
- <apBJyKJ7zs4kUmpd@strlen.de>
-From: Nikolay Aleksandrov <razor@blackwall.org>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 In-Reply-To: <apBJyKJ7zs4kUmpd@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 27/08/2026 17:29, Florian Westphal wrote:
+On Thu, Aug 27, 2026 at 04:29:28PM +0200, Florian Westphal wrote:
 > co <co+63bad23bb3b4cd85@bugs.sh> wrote:
->> We found a bug reachable in:
->>
->>      path    net/bridge/netfilter
->>      crash   out-of-bounds in br_forward()
->>      commit  7b5344954050 ("Merge tag 'nf-26-08-10' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf")
+> > We found a bug reachable in:
+> > 
+> >     path    net/bridge/netfilter
+> >     crash   out-of-bounds in br_forward()
+> >     commit  7b5344954050 ("Merge tag 'nf-26-08-10' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf")
 > 
 > I'm looking into these reports, I think this is the same
 > underlying bug as the other report; a variant of
@@ -100,17 +69,142 @@ On 27/08/2026 17:29, Florian Westphal wrote:
 > 
 > That bug uses nfnetlink_queue for RCU escape, the other two reports
 > use defrag engine.
-> 
-> And sure, its br_netfilter again -- I think we will have to consider
-> removing it even though it will break existing setups.
-> 
 
-+10
+I started this patch. I think this can still happen with native
+nfnetlink_queue support for the bridge family?
 
-> As a compromise, I suggest to reject br_netfilter in user namespaces,
-> i.e. call_iptables cannot be enabled anymore unless you have
-> CAP_NET_ADMIN in init net.
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index cd2b04236a99..b3a51ba72e9c 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -44,7 +44,7 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
+  */
+ static void nft_reject_br_send_v4_tcp_reset(struct net *net,
+                                            struct sk_buff *oldskb,
+-                                           const struct net_device *dev,
++                                           struct net_bridge_port *port,
+                                            int hook)
+ {
+        struct sk_buff *nskb;
+@@ -55,12 +55,12 @@ static void nft_reject_br_send_v4_tcp_reset(struct net *net,
+ 
+        nft_reject_br_push_etherhdr(oldskb, nskb);
+ 
+-       br_forward(br_port_get_rcu(dev), nskb, false, true);
++       br_forward(port, nskb, false, true);
+ }
+ 
+ static void nft_reject_br_send_v4_unreach(struct net *net,
+                                          struct sk_buff *oldskb,
+-                                         const struct net_device *dev,
++                                         struct net_bridge_port *port,
+                                          int hook, u8 code)
+ {
+        struct sk_buff *nskb;
+@@ -71,12 +71,12 @@ static void nft_reject_br_send_v4_unreach(struct net *net,
+ 
+        nft_reject_br_push_etherhdr(oldskb, nskb);
+ 
+-       br_forward(br_port_get_rcu(dev), nskb, false, true);
++       br_forward(port, nskb, false, true);
+ }
+ 
+ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
+                                            struct sk_buff *oldskb,
+-                                           const struct net_device *dev,
++                                           struct net_bridge_port *port,
+                                            int hook)
+ {
+        struct sk_buff *nskb;
+@@ -87,13 +87,13 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
+ 
+        nft_reject_br_push_etherhdr(oldskb, nskb);
+ 
+-       br_forward(br_port_get_rcu(dev), nskb, false, true);
++       br_forward(port, nskb, false, true);
+ }
+ 
+ 
+ static void nft_reject_br_send_v6_unreach(struct net *net,
+                                          struct sk_buff *oldskb,
+-                                         const struct net_device *dev,
++                                         struct net_bridge_port *port,
+                                          int hook, u8 code)
+ {
+        struct sk_buff *nskb;
+@@ -104,37 +104,47 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
+ 
+        nft_reject_br_push_etherhdr(oldskb, nskb);
+ 
+-       br_forward(br_port_get_rcu(dev), nskb, false, true);
++       br_forward(port, nskb, false, true);
+ }
+ 
+ static void nft_reject_bridge_eval(const struct nft_expr *expr,
+                                   struct nft_regs *regs,
+                                   const struct nft_pktinfo *pkt)
+ {
+-       struct nft_reject *priv = nft_expr_priv(expr);
+        const unsigned char *dest = eth_hdr(pkt->skb)->h_dest;
++       struct nft_reject *priv = nft_expr_priv(expr);
++       const struct net_device *dev = nft_in(pkt);
++       struct net_bridge_port *port;
+ 
+        if (is_broadcast_ether_addr(dest) ||
+            is_multicast_ether_addr(dest))
+                goto out;
+ 
++       if (!dev || !netif_is_bridge_port(dev) ||
++           netdev_master_upper_dev_get_rcu((struct net_device *)dev))
++               goto out;
++
++       port = br_port_get_rcu(dev);
++       if (!port)
++               goto out;
++
+        switch (eth_hdr(pkt->skb)->h_proto) {
+        case htons(ETH_P_IP):
+                switch (priv->type) {
+                case NFT_REJECT_ICMP_UNREACH:
+                        nft_reject_br_send_v4_unreach(nft_net(pkt), pkt->skb,
+-                                                     nft_in(pkt),
++                                                     port,
+                                                      nft_hook(pkt),
+                                                      priv->icmp_code);
+                        break;
+                case NFT_REJECT_TCP_RST:
+                        nft_reject_br_send_v4_tcp_reset(nft_net(pkt), pkt->skb,
+-                                                       nft_in(pkt),
++                                                       port,
+                                                        nft_hook(pkt));
+                        break;
+                case NFT_REJECT_ICMPX_UNREACH:
+                        nft_reject_br_send_v4_unreach(nft_net(pkt), pkt->skb,
+-                                                     nft_in(pkt),
++                                                     port,
+                                                      nft_hook(pkt),
+                                                      nft_reject_icmp_code(priv->icmp_code));
+                        break;
+@@ -144,18 +154,18 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
+                switch (priv->type) {
+                case NFT_REJECT_ICMP_UNREACH:
+                        nft_reject_br_send_v6_unreach(nft_net(pkt), pkt->skb,
+-                                                     nft_in(pkt),
++                                                     port,
+                                                      nft_hook(pkt),
+                                                      priv->icmp_code);
+                        break;
+                case NFT_REJECT_TCP_RST:
+                        nft_reject_br_send_v6_tcp_reset(nft_net(pkt), pkt->skb,
+-                                                       nft_in(pkt),
++                                                       port,
+                                                        nft_hook(pkt));
+                        break;
+                case NFT_REJECT_ICMPX_UNREACH:
+                        nft_reject_br_send_v6_unreach(nft_net(pkt), pkt->skb,
+-                                                     nft_in(pkt),
++                                                     port,
+                                                      nft_hook(pkt),
+                                                      nft_reject_icmpv6_code(priv->icmp_code));
+                        break;
 
-+1000 :)
-
-I absolutely agree on both counts.
