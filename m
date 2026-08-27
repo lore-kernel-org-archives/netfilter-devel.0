@@ -1,35 +1,46 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEC98367294;
-	Thu, 27 Aug 2026 20:21:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2DEC385D7B
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2026 20:38:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787862072; cv=none; b=HSPUA1/GKRqdxxoUeCOcG1vHAM8MW+IPPKQMYFX2McHJ5d67CTaXjClk4TzcQh7TKgdafllJOEbBeBr/4X/z42yvTLhRrw5JRyn+vdnKhPFTfp3wGNtjtY9LWZFUn0Ya+252L3LKkV8GYxUdIPd57Ed9N1x2i/AhRwxrhLtGAAw=
+	t=1787863145; cv=none; b=ImEIizKD2PHpsgJYvhOqcvrccUNiFDDeOnVdIoU59sOnb4bw1Abfsi4YUXdFr8Stm7CoSKZA8zB/PdlpvoOuAgPwuX6kKfS4I4MVSbWvoxjkiJyN4hgnMSFZAxsMx3lu5nqUyWWGaaqKyQzu6dRPxFtbAlnlFWcKuKIjOlAYu14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787862072; c=relaxed/simple;
-	bh=Hy6k6rtknp1wLepsLUlPrQj6De3LF//lAJAv4AsW/I0=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=kYYwnH52SqVbk6wG4R7IYrj0Cpuk/RJZWRg8GLDLxu4jQRRSCK1az8eOVzcbgUNxU7RcgFQmNu80qDVtxU5AGN1sNY70SapPERK7opvTZwzp6YAgTVVenpNaes+gMB80GFcFiVRb9NpGS+rJY0WvHu6LKlvPfGPTxJIrFZh3Bfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LJGXolVP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787863145; c=relaxed/simple;
+	bh=lTG4tBCTJp8RjASW3Whkklh57zoqOYmiBiWfupM/fTU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rP9Slvv33oSZ/9UcVuaqIWdq4BZ8a5YzluNnARd1PBDJFWSHWpVafXUvHE1S/lx0iD+c/D61kNc6aXS/KlPure1PjqGch5Ey1JLgaajz45WNrfyJ72QSeJZrTE/o3A0J/s/0LJYCsrdw3S47PX0HjUaFQgoeSvnkSJI8ig/BdmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=j5wAk3f8; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LJGXolVP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 321CD1F000E9;
-	Thu, 27 Aug 2026 20:21:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787862071;
-	bh=B4NewAbYGOMvD6sf8OmhzS8aGOIsOZ5GWtY1xLdv0C0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=LJGXolVP+P9osXAMyEIVXvGkHe+5lSJ88DyxtdwqA2GEo+7ggCovd66LwnUSxrU93
-	 qM1txxxjaM3rx/aKIwBhXk9JI2ZiQ62eyAcoKAidnGLnZzYew9h0fO6bvrDAlAV1Lb
-	 WwzjIewM/u6Ksd0rNtsYXA8T+dRCpDoX9dSCnCVuZiwMTLFtABwqp7oqgR9e24g6qd
-	 RNfLTNq0FZWJFM9EowC3FfuiPMsMej41qVpUEZPJRrFb8QHsSHjaW1/1wglmf8F035
-	 BW1Y6shX6NO5ZLUZUdsc+a3pQb6WP6e6jXAwDBBuRaSfQZFHjM8byg+e6Wl/eEb/Q3
-	 +3Zm/UmU3p/1A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0A323809A8D;
-	Thu, 27 Aug 2026 20:20:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="j5wAk3f8"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Eq5L2EF6BY41gBLb1wNX5ZW3yKOm6cc8FAO//ogHgkY=; b=j5wAk3f8AROUbab3QIltGByPah
+	qc5EpDFMh+wh8dDe6gj9aCR9kvFQOXLjqR/8zi4M5Qi+nWtTjcg4z/dkLef2nVMUn+/6qQ04cAF32
+	zdB0QkzA7d6fBMtyRjbD+s1l+aVUZizeGGIEvPBIm1OKd90OYLdBl1zuztJcjo/YmKCY58BD/f1qI
+	ZAmOl+fwSiyiJPc9PO6bStmXID8WBv+Pv6ORm9wDiSM1iskTvtewV7FBxuVW/jnm5u0fmRU9CoCqY
+	scDKOei2+mScexbaicIIK2REbAKy1/1XjiyC340y5diQ7/Qq10B5C8G3lX4H7YHVEycHYSdpcne0i
+	BvmzRDgw==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1wzgrx-000000000ur-1QGV;
+	Thu, 27 Aug 2026 22:38:41 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nf PATCH] netfilter: nfnetlink: Fix for interrupted hook dumps
+Date: Thu, 27 Aug 2026 22:38:36 +0200
+Message-ID: <20260827203836.273337-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,58 +48,280 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/9] netfilter: tproxy: use DEBUG_NET_WARN_ON_ONCE for
- protocol fallbacks
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178786201649.1828680.14620589672296774268.git-patchwork-notify@kernel.org>
-Date: Thu, 27 Aug 2026 20:20:16 +0000
-References: <20260827141733.423453-2-pablo@netfilter.org>
-In-Reply-To: <20260827141733.423453-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 
-Hello:
+Handling of concurrent hook changes with a dump in progress was
+problematic in nfnl_hook_dump and entirely broken in nfnl_hook_dump_nat.
+Address all issues in a single patch to please the review LLM.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Introduce sequence numbers in struct netns_nf to replace pointer
+value-based modification detection which may fail due to memory buffer
+reuse. This also eliminates the need for most manual cb->seq updates and
+excessive array index value checks.
 
-On Thu, 27 Aug 2026 16:17:25 +0200 you wrote:
-> From: Fernando Fernandez Mancera <fmancera@suse.de>
-> 
-> Replace WARN_ON calls with DEBUG_NET_WARN_ON_ONCE in the default switch
-> blocks of nf_tproxy_get_sock_v4 and v6. Unsupported transport protocols
-> are already safely handled by returning a NULL socket pointer. This
-> prevents unnecessary system panics when panic_on_warn=1 is enabled in
-> production systems.
-> 
-> [...]
+Since nat hook updates are protected by a different mutex than others,
+they have to bump their own sequence number. nfnl_hook_dump_nat
+therefore open-codes what nl_dump_check_consistent does but bumps
+cb->seq instead of setting NLM_F_DUMP_INTR flag.
 
-Here is the summary with links:
-  - [net,1/9] netfilter: tproxy: use DEBUG_NET_WARN_ON_ONCE for protocol fallbacks
-    https://git.kernel.org/netdev/net/c/1f0391aea883
-  - [net,2/9] netfilter: conncount: use DEBUG_NET_WARN_ON_ONCE on reaching count limit
-    https://git.kernel.org/netdev/net/c/9b4ab1f3fed8
-  - [net,3/9] netfilter: nf_tables: move hardware offload step after building the chain blob
-    https://git.kernel.org/netdev/net/c/b1881d362e19
-  - [net,4/9] netfilter: nft_set_pipapo_avx2: add missing vzeroupper
-    https://git.kernel.org/netdev/net/c/55dd20f0f4b1
-  - [net,5/9] netfilter: x_tables: remove pr_debug
-    https://git.kernel.org/netdev/net/c/f43358489db4
-  - [net,6/9] netfilter: x_tables: replace pr_{info,err}() by pr_info_ratelimited()
-    https://git.kernel.org/netdev/net/c/793d9eda4821
-  - [net,7/9] netfilter: nf_tables: skip double clone set expressions on element insert
-    https://git.kernel.org/netdev/net/c/43559058d21e
-  - [net,8/9] netfilter: nf_tables: set on dead bit when performing early element removal
-    https://git.kernel.org/netdev/net/c/132a02beb46f
-  - [net,9/9] netfilter: nf_tables: remove leftover set_update_list
-    https://git.kernel.org/netdev/net/c/fc04229727d8
+Dumps of many nat hooks was entirely broken since the array index was
+not (re)stored. Use cb->args[1] for that and make sure it is reset upon
+completion as the same dump may loop over multiple arrays of nat hooks.
 
-You are awesome, thank you!
+In nfnl_hook_dump, don't signal NLM_F_DUMP_INTR if
+nfnl_hook_entries_head returns error: This is a permanent condition
+which does not change during a dump. It is already caught by
+nfnl_hook_dump_start though, so should not happen anyway.
+
+In general, access ops array pointer values using READ_ONCE since they
+are assigned to using WRITE_ONCE.
+
+Avoid setting NLM_F_DUMP_INTR flag in garbage memory by calling
+nl_dump_check_consistent only for non-empty skbs. If not a single
+netlink message was created, nfnetlink code will take care of setting
+the flag.
+
+Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
+Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+This patch replaces the previous series with subject "Address Sashiko
+review of NAT hook dump code" which addressed nf-next. Since the
+problematic commit b010e2a4a9ac is in Linus' git meanwhile, turn this
+into a stable update.
+---
+ include/net/netns/netfilter.h  |  2 +
+ net/netfilter/core.c           | 13 ++++++
+ net/netfilter/nf_nat_core.c    | 14 ++++++-
+ net/netfilter/nfnetlink_hook.c | 73 ++++++++++++++++++++--------------
+ 4 files changed, 71 insertions(+), 31 deletions(-)
+
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+index a6a0bf4a247e..7fd78394d1e7 100644
+--- a/include/net/netns/netfilter.h
++++ b/include/net/netns/netfilter.h
+@@ -33,5 +33,7 @@ struct netns_nf {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ 	unsigned int defrag_ipv6_users;
+ #endif
++	unsigned int hook_base_seq;
++	unsigned int nat_hook_base_seq;
+ };
+ #endif
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 675a1034b340..a284b3241211 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -386,6 +386,15 @@ static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
+ #endif
+ }
+ 
++static void bump_hook_base_seq(struct net *net)
++{
++	unsigned int base_seq = READ_ONCE(net->nf.hook_base_seq);
++
++	while (++base_seq == 0)
++		;
++	smp_store_release(&net->nf.hook_base_seq, base_seq);
++}
++
+ static int __nf_register_net_hook(struct net *net, int pf,
+ 				  const struct nf_hook_ops *reg)
+ {
+@@ -428,6 +437,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 	new_hooks = nf_hook_entries_grow(p, reg);
+ 
+ 	if (!IS_ERR(new_hooks)) {
++		bump_hook_base_seq(net);
+ 		hooks_validate(new_hooks);
+ 		rcu_assign_pointer(*pp, new_hooks);
+ 	}
+@@ -506,6 +516,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
+ 			net_dec_egress_queue();
+ #endif
+ 		nf_static_key_dec(reg, pf);
++		bump_hook_base_seq(net);
+ 	} else {
+ 		WARN_ONCE(1, "hook not found, pf %d num %d", pf, reg->hooknum);
+ 	}
+@@ -784,6 +795,8 @@ static int __net_init netfilter_net_init(struct net *net)
+ 		return -ENOMEM;
+ 	}
+ #endif
++	net->nf.hook_base_seq = 1;
++	net->nf.nat_hook_base_seq = 1;
+ 
+ 	return 0;
+ }
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 8ac326e1eb5b..ff2cba8df886 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1160,6 +1160,15 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
+ }
+ #endif
+ 
++static void bump_nat_hook_base_seq(struct net *net)
++{
++	unsigned int base_seq = READ_ONCE(net->nf.nat_hook_base_seq);
++
++	while (++base_seq == 0)
++		;
++	smp_store_release(&net->nf.nat_hook_base_seq, base_seq);
++}
++
+ static struct nf_ct_helper_expectfn follow_master_nat = {
+ 	.name		= "nat-follow-master",
+ 	.expectfn	= nf_nat_follow_master,
+@@ -1245,8 +1254,10 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 	}
+ 
+ 	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
+-	if (ret == 0)
++	if (ret == 0) {
++		bump_nat_hook_base_seq(net);
+ 		nat_proto_net->users++;
++	}
+ 
+ 	mutex_unlock(&nf_nat_proto_mutex);
+ 	return ret;
+@@ -1284,6 +1295,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		goto unlock;
+ 	priv = nat_ops[hooknum].priv;
+ 	nf_hook_entries_delete_raw(&priv->entries, ops);
++	bump_nat_hook_base_seq(net);
+ 
+ 	if (nat_proto_net->users == 0) {
+ 		nf_unregister_net_hooks(net, nat_ops, ops_count);
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 95005e9a6066..31013c321099 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -54,7 +54,6 @@ static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
+ 
+ struct nfnl_dump_hook_data {
+ 	char devname[IFNAMSIZ];
+-	unsigned long headv;
+ 	u8 hook;
+ };
+ 
+@@ -338,27 +337,48 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
+ }
+ 
+ static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+-			      const struct nfnl_dump_hook_data *ctx,
+-			      const struct nf_hook_ops *ops,
+-			      int family, unsigned int seq)
++			      struct netlink_callback *cb,
++			      const struct nf_hook_ops *ops, int family)
+ {
+ 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
+-	struct nf_hook_entries *e = rcu_dereference(priv->entries);
++	struct nfnl_dump_hook_data *ctx = cb->data;
++	struct net *net = sock_net(nlskb->sk);
+ 	struct nf_hook_ops **nat_ops;
+-	int i, err;
++	unsigned int i = cb->args[1];
++	struct nf_hook_entries *e;
++	unsigned int base_seq;
++	int err = 0;
+ 
++	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
++
++	e = rcu_dereference(priv->entries);
+ 	if (!e)
+ 		return 0;
+ 
+ 	nat_ops = nf_hook_entries_get_hook_ops(e);
+ 
+-	for (i = 0; i < e->num_hook_entries; i++) {
+-		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
+-					 ops->priority, family, seq);
++	for (; i < e->num_hook_entries; i++) {
++		err = nfnl_hook_dump_one(nlskb, ctx,
++					 READ_ONCE(nat_ops[i]),
++					 ops->priority, family,
++					 cb->nlh->nlmsg_seq);
+ 		if (err)
+-			return err;
++			break;
++
+ 	}
+-	return 0;
++
++	if (!err) {
++		i = 0;
++	}
++	cb->args[1] = i;
++
++	if (cb->args[2] && base_seq != cb->args[2]) {
++		cb->seq++;
++		err = -EINTR;
++	}
++	cb->args[2] = base_seq;
++
++	return err;
+ }
+ 
+ static int nfnl_hook_dump(struct sk_buff *nlskb,
+@@ -373,35 +393,31 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
+ 	unsigned int i = cb->args[0];
+ 
+ 	rcu_read_lock();
++	cb->seq = smp_load_acquire(&net->nf.hook_base_seq);
+ 
+ 	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
+-	if (!e)
++	if (!e || IS_ERR(e))
+ 		goto done;
+ 
+-	if (IS_ERR(e)) {
+-		cb->seq++;
+-		goto done;
+-	}
+-
+-	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
+-		cb->seq++;
+-
+ 	ops = nf_hook_entries_get_hook_ops(e);
+ 
+ 	for (; i < e->num_hook_entries; i++) {
+-		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
+-			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
+-						 cb->nlh->nlmsg_seq);
+-		else
+-			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
+-						 ops[i]->priority, family,
++		const struct nf_hook_ops *cur = READ_ONCE(ops[i]);
++
++		if (cur->hook_ops_type == NF_HOOK_OP_NAT)
++			err = nfnl_hook_dump_nat(nlskb, cb, cur, family);
++		else {
++			err = nfnl_hook_dump_one(nlskb, ctx, cur,
++						 cur->priority, family,
+ 						 cb->nlh->nlmsg_seq);
++		}
+ 		if (err)
+ 			break;
+ 	}
+ 
+ done:
+-	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
++	if (nlskb->len > 0)
++		nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
+ 	rcu_read_unlock();
+ 	cb->args[0] = i;
+ 	return nlskb->len;
+@@ -442,10 +458,7 @@ static int nfnl_hook_dump_start(struct netlink_callback *cb)
+ 		return -ENOMEM;
+ 
+ 	strscpy(ctx->devname, name, sizeof(ctx->devname));
+-	ctx->headv = (unsigned long)head;
+ 	ctx->hook = hooknum;
+-
+-	cb->seq = 1;
+ 	cb->data = ctx;
+ 
+ 	return 0;
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.54.0
 
