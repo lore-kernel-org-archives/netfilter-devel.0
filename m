@@ -1,31 +1,35 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 855573537EE
-	for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2026 15:24:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BFD3B14C6;
+	Fri, 28 Aug 2026 23:01:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787930641; cv=none; b=ap/zs40cJHim/8bYqNo4Eah7sg8fTnmwQ86dLYfs2NvZ5ofTFLlgjB1QNIgRW9q//GhhtWmJAJN6XoKZyLztAbLBPa2iBvwEdMrSw3TZJSJODYR/M7LgjGW5nFWccxDMUPotbcNIiir/OSrqMFXIkETQ/OQ6iKU7BZ9WedIpAfw=
+	t=1787958074; cv=none; b=SR83D1ZV3K5l+XYoTP0y1QHL+hFpzNEZ3Yzs5kwx/35HcsWmorT9EJOShIOkBDi0Xjp5Lcq5EtycAhRHuUNSAzhciYPLh4P+R8evKj2gG+4lSB3z2A78TMMRdvnQigAFnl3EiacLjmhHcO/95u4Aj81xO5OiJFWJZmEeJ5e/tu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787930641; c=relaxed/simple;
-	bh=i2rNPSmcYyp+LNO9HgQ4eEp/pDfk3xxECg+C/tGJ2v8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Z2YCqV+3enTMTCB62Fq+azo5VlGHv11HE9wThec78OLxlyX9eRf6aQ/R00S4pMT+60byc3T6XvcrBj2OySFExaeng8CbShOzCoX65VbtnRfrW8HmIfIQKebtgZfSunK8qTb/fpIKfqOm7SWbb4JGfm871ADtlTBkL9J8JI1aD5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 1E5BA60795; Fri, 28 Aug 2026 17:23:59 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v3 5/5] netfilter: ipset: also report mem size for cidr storage to userspace
-Date: Fri, 28 Aug 2026 17:22:56 +0200
-Message-ID: <20260828152256.8759-6-fw@strlen.de>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260828152256.8759-1-fw@strlen.de>
-References: <20260828152256.8759-1-fw@strlen.de>
+	s=arc-20240116; t=1787958074; c=relaxed/simple;
+	bh=PPeG5YKwww2XuYRnneRrs0ve93HXjp1lGixZDJxZUmE=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=lPyq54UQqAjRt8+UE9LxOn5qdIIgMJDzdIUemAc5boYDPVqAHk3d3dMmpK2CW+1EVWEYpQEkMSY4LWQekCg/4qslBlAbNX8cppbC1UJIMnJvLfs5WCobzfILa/LQUwa5heHgOV7FF9kLJMota+yXlCy6dxlLWFICPrEpaYuHnj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZPqkEj2G; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZPqkEj2G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C89C1F00A3D;
+	Fri, 28 Aug 2026 23:01:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787958073;
+	bh=pmCvNyGR8BfcjGV8vuTR2JD9A97SHyuiLHn7yTZHmWI=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=ZPqkEj2G6Q3itfhdaA26MQlan0yNxTa2MFvIdFE5icBR6EKpoVVqHBCOIwnrFzmtm
+	 u9+PsFVXXFjKmlmIYxNJ8QLpUS3MPfq5wvu5yz81ZtRzMaxG0hPbg0G0Lq97RjeS39
+	 OZFt1QEqN9Tb3KCpao1d9jDyy6rpGFUonkwBqqz91JC1kskvkvUrrgRDd+gwT3smEd
+	 Suem4oArd2o7dzi+ZPUiiIf2gU0wiG4DByPme8ewn61JwgnhptX+WPX3N+Nw4lZ4lT
+	 IChLw0yluBsYUGBb9vMSq7GmQgsOC3uorzqhX1XBZTIOdQO4tjSvLoMa/PaYPajVE2
+	 Db1bibu5iV8pA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 196E8380AA69;
+	Fri, 28 Aug 2026 23:00:19 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,59 +37,45 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2 0/2] netlink: specs: fixes for conntrack dump
+ filtering
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178795801796.2832451.10191767513560282573.git-patchwork-notify@kernel.org>
+Date: Fri, 28 Aug 2026 23:00:17 +0000
+References: <20260826220444.4054714-1-i.maximets@ovn.org>
+In-Reply-To: <20260826220444.4054714-1-i.maximets@ovn.org>
+To: Ilya Maximets <i.maximets@ovn.org>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ donald.hunter@gmail.com, one-d-wide@protonmail.com, matttbe@kernel.org,
+ fw@strlen.de, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ ast@fiberby.net
 
-After the 'Fixes' commit, the storage is allocated dynamically.
-Include this when reporting the mem usage.
+Hello:
 
-Fixes: 8e5fd2a55e24 ("netfilter: ipset: rework cidr bookkeeping")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v3: no change.
- net/netfilter/ipset/ip_set_hash_gen.h | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index e156ea725f3c..245a5dbd7d5b 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -668,6 +668,23 @@ mtype_rht_size(struct ip_set *set, u32 *elements, size_t *ext_size)
- 	*elements = ipset_hash_nelems(h);
- 	*ext_size = *elements *
- 		    (offsetof(struct mtype_rht_elem, elem) + set->dsize);
-+
-+#ifdef IP_SET_HASH_WITH_NETS
-+	{
-+		const struct net_prefixes *nets;
-+		int i;
-+
-+		rcu_read_lock();
-+
-+		for (i = 0; i < IPSET_NET_COUNT; i++) {
-+			nets = rcu_dereference(h->rnets[i]);
-+			if (nets)
-+				*ext_size += ksize(nets);
-+		}
-+
-+		rcu_read_unlock();
-+	}
-+#endif
- }
- 
- static u32 mtype_remove_key(const void *data, u32 len, u32 seed)
-@@ -721,11 +738,8 @@ mtype_remove_random(struct ip_set *set, struct htype *h)
- 	if (e && !ipset_hash_remove(h, e))
- 		removed = true;
- 
--	if (removed) {
--		mtype_del_cidr_all(set, h, &e->elem);
--		ip_set_ext_destroy(set, &e->elem);
--		kfree_rcu(e, rcu);
--	}
-+	if (removed)
-+		ipset_hash_elem_destroy_free(set, h, e);
- 
- 	return removed;
- }
+On Thu, 27 Aug 2026 00:01:10 +0200 you wrote:
+> Version 2:
+>  - Also added missing tuple attributes for the dump request.
+>  - Converted into a set by adding the patch 2.
+> 
+> Version 1:
+>  - https://lore.kernel.org/r/20260825155832.3685714-1-i.maximets@ovn.org
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,v2,1/2] netlink: specs: fix the conntrack filter type
+    https://git.kernel.org/netdev/net/c/2a004bfb62bd
+  - [net,v2,2/2] netlink: specs: add missing mask attributes for conntrack dump
+    https://git.kernel.org/netdev/net/c/8b348496cbec
+
+You are awesome, thank you!
 -- 
-2.54.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
