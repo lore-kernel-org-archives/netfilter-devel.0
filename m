@@ -1,89 +1,120 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B48A84B53E5;
-	Mon, 31 Aug 2026 16:08:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD4C5474F;
+	Mon, 31 Aug 2026 17:39:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788192494; cv=none; b=qcdkzWOFBhDmf7gItco9sk0Bmw02JCucD5w05X8qw/mAh2CL4YW6+sKYLkkSATWXc5Ft4b1oyv7G06xzu14D34fCsGkfi6hGrsUdo8oTkPUrFgOm5GutHtEoCV0aex7iu583IbWcxhCED90nmLXAwbFVzUqndtOfLusxNkqP+Ls=
+	t=1788197957; cv=none; b=skEAobZz6kvGMRUALs3YEDPTD7jgfQNu7tJf0Kq29qr748GQwZa/K7h4zoQWjUqx5MOWNl33gfFjdTOpO60SGX6lZxM8BJ0wGR05FdXYNR4gaRhjkF3LxS8BR0HHOixPfcCOXhj6Oj+7n/C9+WDpbQ1OmnJhseuyUn2Kuccncfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788192494; c=relaxed/simple;
-	bh=WHOQNZF3WUFg0mYJDCKbEeNUeeXEiQebbyFdkqK7PBU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ZAwf/KzaAZgSTRn/dwwuWWR1EDaNlvitxds7ePV4f8jMJSiZYpNiVxuKTwMQgBd/dlpX9IFnyilj+wvITbhuMqfV1n9xcZlO5DplLZrdQ6Hxh+IwisWn8tlFTTR4puw2LcT/jdprtgNMRoKFt9XzMlvizyUw6xqk6tXqPECB0W8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=tyFKKIfZ; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1788197957; c=relaxed/simple;
+	bh=csqSwyhefTIzkKmCj7qQ+cfvJTmkPUFMOWQoj8Qgqu4=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=eRhMZ3elWzjkori7eFvOl02s5oaJFEKlXsEB7jX63ciD2x8SBq1ads5dcpyLO94SfcSNSiBSXFDTCrXDRg2kXvn0KzHbHcAHWJCiTmO1rnAdgiIZiUO5IqF46C4TXDTKR1+GTC+hpfj5mfoPCFOr3mrYXlAREEfRr7duyU8Kr1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dRLmM6rU; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="tyFKKIfZ"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 519A91A1906;
-	Mon, 31 Aug 2026 16:08:11 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 266D360231;
-	Mon, 31 Aug 2026 16:08:11 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 04B7411C791E9;
-	Mon, 31 Aug 2026 18:08:05 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1788192489; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:content-language:in-reply-to:references;
-	bh=+8ZebgPAjuIHcgT3bCLdV3LtzjyA0gL3LmHxoQrhx+A=;
-	b=tyFKKIfZYtSmHbB6SRGVddmbIWu4KlkYfzUm/ZI2B1ma+cge5AYk8BUQSvQWjBihB06cKO
-	7w9p/nW3GyfTL36vc0dF/x0Y/y/K6m5UASja3v+Ocja8lCvnUd5i2nCo3J3O0Sk77gTIVQ
-	7gsN6+Y/oPsj1I+xfUyupgxFglmDjR87mDEQCc6SqymXfSTleH/de6puRt329aaYHFs0dF
-	J2SqYyhjyhE6S5TiFBFTtfDNl2fFOxv+jdbB9zftCyuIjqjE4tyHvG+yC1f1eansSxt0ex
-	NAezWFPnePq8tVUGtkvoZDYUHZ+NUDPc9nRhY4jSynn3zDZpfUm+7ayqfzSqXg==
-Message-ID: <2d335ef9-baeb-4672-bcb3-c00bd988c83a@bootlin.com>
-Date: Mon, 31 Aug 2026 18:08:05 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dRLmM6rU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1788197946;
+	bh=0bpU+GRbtJlvCX9ZJt5x8GoB/+iu61+0H8Mpxv3TMJ8=;
+	h=Date:From:To:Cc:Subject:From;
+	b=dRLmM6rUJD6uisrwXYzvlxcbJSYwtnrwuNZKNqcOiCNUFYGrchDgCjUbnVuxHagQ8
+	 sgi8oIeGlKoZBfSTQbe+VA4IJuKK1uhFt69npvAR3QKyAr7M5FyNWSzQ4lgVOOzC60
+	 BhyKAY3QwC1u5wC7Q2aRuLiFAhGnn0ZXBDovISNGjl0Xqb8xHBtvMNRgvxKksUoDye
+	 j1H4B13KMsa0gl//XKE26hAumNcP7C80wy519Al+6SwGzQ+Y3/gt+DXb6ahPIC550r
+	 x020xDimW55RQeE9JFKzoCOWnqhpeiaCLtFwcl3MlFIydKJckDCingFUa099IGQQBp
+	 4xFnxkOMNOWtA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 04E4860052;
+	Mon, 31 Aug 2026 19:39:06 +0200 (CEST)
+Date: Mon, 31 Aug 2026 19:39:03 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
+Subject: [ANNOUNCE] libnftnl 1.3.2 release
+Message-ID: <apW8N9X8ptmF9fIo@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6.1.y 4/4] ipv4: start using dst_dev_rcu()
-To: Greg KH <greg@kroah.com>
-Cc: stable@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Wei Wang <weiwan@google.com>,
- Martin KaFai Lau <kafai@fb.com>, Hideaki YOSHIFUJI
- <yoshfuji@linux-ipv6.org>, David Ahern <dsahern@kernel.org>,
- Steffen Klassert <steffen.klassert@secunet.com>,
- Herbert Xu <herbert@gondor.apana.org.au>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org
-References: <20260821-cve-2025-40074-6-1-v1-0-cad5cf499b76@bootlin.com>
- <20260821-cve-2025-40074-6-1-v1-4-cad5cf499b76@bootlin.com>
- <2026082454-jacket-gravity-6ddc@gregkh>
-Content-Language: en-US
-From: Miguel Gazquez <miguel.gazquez@bootlin.com>
-In-Reply-To: <2026082454-jacket-gravity-6ddc@gregkh>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
-
-Hi.
-
-Le 24/08/2026 à 15:47, Greg KH a écrit :
-> 
-> We need a working 6.6.y version first, before we can take this one.
-
-I sent the backport for the 6.6.y version
-
-> 
-> thanks,
-> 
-> greg k-h
+Content-Type: multipart/mixed; boundary="2RAc12NeVxEjd7v6"
+Content-Disposition: inline
 
 
-Thanks,
-Miguel Gazquez
--- 
-Miguel Gazquez, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+--2RAc12NeVxEjd7v6
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
+Hi!
+
+The Netfilter project proudly presents:
+
+        libnftnl 1.3.2
+
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem.
+This library is currently used by nftables.
+
+This release contains:
+
+- Support for connlimit stateful objects
+- Fix compilation of examples for musl libc
+- Validate geneve class and type attribute size in setter
+- Validate kernel does not provide too long geneve data attribute
+- Remove internal nftnl_set{,_elem}_clone() function
+- Do not print userdata content through snprintf API
+- Enhancements for the snprint API to display data according to
+  size and byteorder, this includes new functions
+  nftnl_{expr,set_elem}_set_imm() to decorate the data.
+- Remove a trailing whitespace in snprintf() API for
+  expressions.
+- More improvements for the snprintf() API for set elements:
+  no colon is printed if data is not provided, print object names
+  in maps and print flags only if non-zero.
+
+See ChangeLog that comes attached to this email for more details on
+the updates.
+
+You can download it from:
+
+https://www.netfilter.org/projects/libnftnl/downloads.html
+
+Happy firewalling.
+
+--2RAc12NeVxEjd7v6
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="changes-libnftnl-1.3.2.txt"
+
+Anna Wilcox (1):
+      examples: nft-rule-add: Fix compile on musl libc
+
+Fernando Fernandez Mancera (1):
+      src: add connlimit stateful object support
+
+Pablo Neira Ayuso (1):
+      build: libnftnl 1.3.2 release
+
+Pengpeng Hou (2):
+      tunnel: check kernel does not provide too large geneve data
+      tunnel: validate geneve class and type from setter
+
+Phil Sutter (12):
+      set_elem: Review debug output
+      expr: data_reg: Avoid extra whitespace
+      expr: Pass byteorder to struct expr_ops::set callback
+      data_reg: Introduce struct nftnl_data_reg::byteorder field
+      data_reg: Introduce struct nftnl_data_reg::sizes array
+      Introduce nftnl_{expr,set_elem}_set_imm()
+      data_reg: Respect data byteorder when printing
+      data_reg: Support concatenated data
+      udata: Store u32 udata values in Big Endian
+      Revert "udata: Store u32 udata values in Big Endian"
+      src: Do not include userdata content in debug output
+      set{,_elem}: Drop nftnl_set{,_elem}_clone()
+
+
+--2RAc12NeVxEjd7v6--
