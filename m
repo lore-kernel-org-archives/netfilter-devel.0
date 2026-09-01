@@ -1,71 +1,212 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 280F5335555
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Sep 2026 09:53:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E3B46C838;
+	Tue,  1 Sep 2026 10:02:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788256388; cv=none; b=niIAvhuapOYe/EEjHSKMBINMSYdxo+p81bTUYA0Cjdq1Q+CPN+e2D8lNo7Tb19pqluUyl/TB7mwfKjGsDnEHly8tMLqhCe8Qho1S9hz/17k6myuSCrxQTOAvXwP+RTs7Z6D2hJim1yP60JZHyeEaj1uwU3Hh3rOVWp+83NT3SSU=
+	t=1788256971; cv=none; b=eahxtkPFdlpFgER/byMG5xcbz4MJOnKstHcS0o9k9zpdpSw7aZlenal/yeckAYuIDyi56hnkLT66pgUR5DBle/Scjddgmprn4WVXE1BCTaaxV7WT2wBvcHhuTb+ElnboO23Woq8LoBjpO3M3EfhTmQ0lhw11DZc6c2qRrGTfD70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788256388; c=relaxed/simple;
-	bh=sTEkv3TMgWeFpsXMIqILkqs4+HupYOD6HU+8AL/7O4U=;
+	s=arc-20240116; t=1788256971; c=relaxed/simple;
+	bh=HbSdLjTjJUdTky2bws03qOZikJSboGBn0O25V/oljsQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AAfuN3+0ADvmiMIyjyLERwnCYaYvA3AR+HbJHg2AaauzQ59qJBVepQ1j2zbIjb+iiF06izOj9U69MDHoqV96RFzSjPEQ3pn6pKunNKKEKkSt0B7Z42oGx0o0kKWnV4Lrjtt9btVtcFjzuFT+3umJfugF6m6m0ut6bLfDT6V51eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=DShgqHx3; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=tPKhJYG5g7zTQne2oHdZxFBFRFT0ldzYmrJm/pfwHQYjCL3WdT1i3hrA+4hbt423+Kt2+4GZRTRV3yEijwQ5je8ZRKc51TJADtxoENGdgd+ED8ZfFgbrzsYiXDW+i/0xOuEYnlWA6nwIty3JzGs3RfxnsV9xWnhGbeoJvPyNwVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KVDlZDxz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="DShgqHx3"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=9Gu/rf2SZLVxDjGBuBU9Ht7Yl3Sj29x0F7n9z7RGk8g=; b=DShgqHx3fwM3T/fd/wlT83VgyB
-	rkRbQbGqZPEz7UPkFoZEONC7MKYpTVWupfo2OWWpMfe7r980bwwPesrTMi/ij7NRcKGhDdgRTgEEP
-	ynwdrAydg0+ZdIwqFzLXNvaIg0DE/kUiWaVNsb+dQ2wvYJy5v+NJhi58rcYVzCR847B8g2nOjqBoZ
-	9LMAOFvYX6SryuaT/KTlv9UZtDc4ZD/bx8vPGc3K/cEPHZJJ3iQi49/BFW1cFijBQcDFfNxZhvpjm
-	zGCtIeBrAG16H7ZhuR2MWfNIwj9/uupQZ25yd2hABZ95Qy/5X3kVIFTFSda787+nV6lzM79v4NtNV
-	2DAlmWiQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1x1LAt-00000000065-44S1;
-	Tue, 01 Sep 2026 11:53:04 +0200
-Date: Tue, 1 Sep 2026 11:53:03 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KVDlZDxz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87FC91F000E9;
+	Tue,  1 Sep 2026 10:02:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788256970;
+	bh=qTNTRFksulITxbCKCrKekyh27ztnjvfQBlMPOzze/R0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=KVDlZDxz3IgiyyMurz47BqcV+W3bJGh5q+Zb23WWjqxabE5OjQGssBjofNL1ag2XZ
+	 HEbYkah4jzDFsPKhduQsWzNpHzISPguk7bJUwSsoT6Hzbq2w7MMSYgpW6HitwbzcPc
+	 8WpL3Pua8GTmPHdFGV6TYAaqk05B0oTpvHS7SFkmJ74vzvT2c7/ZAbxWM5yAiuRJrp
+	 hzIBDB/8+2i8YZGgU8UF+oZnqXokJj5czfGJoQulh+W5QgvNF9L+xi9gtA5c/q6kXS
+	 yVKqBgw9lwSj5QzbjpJN8KFXgJfc7i3bplQpWN9YxoEpNkOztXf5sDXpBYAlL7M3ib
+	 cTeozus6m0WyA==
+Date: Tue, 1 Sep 2026 12:02:47 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Julius Bairaktaris <julius@bairaktaris.de>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] tests: shell: Test odd netdev hook updates
-Message-ID: <apagf_aZh7-dre1O@orbyte.nwl.cc>
-References: <20260827204255.274666-1-phil@nwl.cc>
- <2fa302ed-71bc-4136-8955-cddb234b5e24@suse.de>
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Felix Fietkau <nbd@nbd.name>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: flowtable: carry a priority into the
+ offload
+Message-ID: <apaix8MjIkRPjHVq@lore-desk>
+References: <20260901092632.369248-1-julius@bairaktaris.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="/qSlxrVubm3pHBHu"
+Content-Disposition: inline
+In-Reply-To: <20260901092632.369248-1-julius@bairaktaris.de>
+
+--/qSlxrVubm3pHBHu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2fa302ed-71bc-4136-8955-cddb234b5e24@suse.de>
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 01, 2026 at 09:54:27AM +0200, Fernando Fernandez Mancera wrote:
-> On 8/27/26 10:42 PM, Phil Sutter wrote:
-> > These should cover what Fernando fixes in his kernel patch "netfilter:
-> > nf_tables: fix device name and prefix match in hook lookup" as well as
-> > some bonus cases I came up with.
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> 
-> Thanks Phil! These tests cover a lot of different cases.
-> 
-> Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> A flow rule handed to a driver describes NAT, encapsulation and the
+> output device, but not how the flow should be treated on the way out,
+> so hardware with priority queues can only fall back on the DSCP the
+> packet carries.
+>=20
+> Carry skb->priority of the packet that created the flow and emit it as
+> FLOW_ACTION_PRIORITY, the action act_skbedit already emits on the tc
+> path. "meta priority set" before "flow add" then reaches the hardware.
+> A flow without a priority emits no action; mtk and airoha, the two
+> in-tree consumers of these rules, ignore the new one as they do
+> FLOW_ACTION_CSUM.
+>=20
+> The flowtable holds one flow for both directions and the expression
+> runs once, so the priority applies to both; per-direction
+> classification is not carried.
+>=20
+> Assisted-by: Claude:claude-opus-5
+> Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 
-Thanks for your review, Fernando!
+Hi Julius,
 
-Pablo, I'll push this out now, which means we'll get two failing test
-cases until kernel fixes are ready and deployed. Fine with you?
+we have already discussed about this kind of approach to offload skb priori=
+ty
+into drivers that support flowtable hw offload. The main blocking point is =
+we
+need the same feature in the flowtable sw path in order to not introduce any
+missing capability in the kernel tx path.
 
-Cheers, Phil
+Regards,
+Lorenzo
+
+> ---
+> The consumer of the emitted action is a DSA driver for the IPQ8074 PPE,
+> maintained in OpenWrt; measured there, "meta priority set" ahead of
+> "flow add" places offloaded flows in the port's hardware priority
+> queues. The mtk and airoha hunks are compile-tested only. The new field
+> grows struct flow_offload by eight bytes on 64-bit; the entry allocates
+> from its own kmem_cache, so no allocation-class change.
+>=20
+>  drivers/net/ethernet/airoha/airoha_ppe.c        |  1 +
+>  drivers/net/ethernet/mediatek/mtk_ppe_offload.c |  1 +
+>  include/net/netfilter/nf_flow_table.h           |  1 +
+>  net/netfilter/nf_flow_table_offload.c           | 11 +++++++++++
+>  net/netfilter/nft_flow_offload.c                |  7 +++++++
+>  5 files changed, 21 insertions(+)
+>=20
+> diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ether=
+net/airoha/airoha_ppe.c
+> index 92611802801e..2afce76ad131 100644
+> --- a/drivers/net/ethernet/airoha/airoha_ppe.c
+> +++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+> @@ -1161,6 +1161,7 @@ static int airoha_ppe_flow_offload_replace(struct a=
+iroha_eth *eth,
+>  		case FLOW_ACTION_REDIRECT:
+>  			odev =3D act->dev;
+>  			break;
+> +		case FLOW_ACTION_PRIORITY:
+>  		case FLOW_ACTION_CSUM:
+>  			break;
+>  		case FLOW_ACTION_VLAN_PUSH:
+> diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/ne=
+t/ethernet/mediatek/mtk_ppe_offload.c
+> index 99b28aaa7cc4..4ee99e8e4a34 100644
+> --- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> +++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> @@ -378,6 +378,7 @@ mtk_flow_offload_replace(struct mtk_eth *eth, struct =
+flow_cls_offload *f,
+>  		case FLOW_ACTION_REDIRECT:
+>  			odev =3D act->dev;
+>  			break;
+> +		case FLOW_ACTION_PRIORITY:
+>  		case FLOW_ACTION_CSUM:
+>  			break;
+>  		case FLOW_ACTION_VLAN_PUSH:
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilte=
+r/nf_flow_table.h
+> index f2e2771f188f..23218c8cbc3d 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -202,6 +202,7 @@ struct flow_offload {
+>  	unsigned long				flags;
+>  	u16					type;
+>  	u32					timeout;
+> +	u32					priority;
+>  	struct rcu_head				rcu_head;
+>  };
+> =20
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
+w_table_offload.c
+> index 801a3dd9ceea..caaadffc2563 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -696,6 +696,17 @@ nf_flow_rule_route_common(struct net *net, const str=
+uct flow_offload *flow,
+>  	    flow_offload_eth_dst(net, flow, dir, flow_rule) < 0)
+>  		return -1;
+> =20
+> +	if (flow->priority) {
+> +		struct flow_action_entry *entry;
+> +
+> +		entry =3D flow_action_entry_next(flow_rule);
+> +		if (!entry)
+> +			return -1;
+> +
+> +		entry->id =3D FLOW_ACTION_PRIORITY;
+> +		entry->priority =3D flow->priority;
+> +	}
+> +
+>  	tuple =3D &flow->tuplehash[dir].tuple;
+> =20
+>  	for (i =3D 0; i < tuple->encap_num; i++) {
+> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_of=
+fload.c
+> index 32b4281038dd..dd3ac2b9c963 100644
+> --- a/net/netfilter/nft_flow_offload.c
+> +++ b/net/netfilter/nft_flow_offload.c
+> @@ -117,6 +117,13 @@ static void nft_flow_offload_eval(const struct nft_e=
+xpr *expr,
+>  	if (tcph)
+>  		flow_offload_ct_tcp(ct);
+> =20
+> +	/* Whatever classified this packet before it reached the flowtable also
+> +	 * describes every packet the hardware will forward in its place, so
+> +	 * carry it into the offload rather than losing it with the software
+> +	 * path.
+> +	 */
+> +	flow->priority =3D pkt->skb->priority;
+> +
+>  	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
+>  	ret =3D flow_offload_add(flowtable, flow);
+>  	if (ret < 0)
+>=20
+> base-commit: 91ec2035134982b98fab0609a9fd8480e8217dc1
+> --=20
+> 2.53.0
+>=20
+
+--/qSlxrVubm3pHBHu
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCapaixwAKCRA6cBh0uS2t
+rO6BAQDATMMj9psNMDyU5heE/YH01LAOWYjr6ZhqoY+od26axgEAmapqfjkDrUmq
+l70nCQ9+MTNflnFu+hLQGuQ4HGwL3AI=
+=wTb6
+-----END PGP SIGNATURE-----
+
+--/qSlxrVubm3pHBHu--
