@@ -1,390 +1,355 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5922B30B521
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Sep 2026 11:15:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D479363C46;
+	Tue,  1 Sep 2026 11:51:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788261346; cv=none; b=mT6AZuMqM8nU5i/NRgUD+iSTyjG8r++SyRBNcWPJ7tkOOxians5ROeivK3vNtLCCFGbsgyj2uBWHZ3TSSnd9t5/g4mqp2R6uPpM4BZ2m9vBvH3KPRKIqIIhZZWiPAU7tbD6mftzE9Ylh9ggQQH8Je1Ten0F3SQ4Uf/8onepb7oY=
+	t=1788263463; cv=none; b=FNl8RjxKlvBZINCwOGINytuS2V2UzCEIooHhMFuq/ovPJSemv7WQdzojsMz+Rth2ZlcKSAVloiC08xddS3NFmRPF/o39aaQ8Zwe5TwzGz9erW3Bl+TwQrjxJmhalZHsmuZcmCyOIJ1MIav8aSdYdgfhPTrdX9VWUyXrjiDhRMyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788261346; c=relaxed/simple;
-	bh=FN1aWfXQTl8/MzNQhfIPQJb7PFwhg+7hW4VA5JlbFnU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Gf17C3+QRIk3M3g9ehXSXf3uRGuDLuoc1DEYelMrZdpz5BVy4RB+BLdUN6MJj3LQffguvZqVFnrKfEu+rUljUVSE6fv/u3CQ5M6EOt1Yzni9W+FPtTm0mnD9VzQHES6neX9mO8GDzuzhto8Hx7nSRpLpzmVanwGP/ywGDGXMoNs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=DPtCHJi3; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=m/ircIyG; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=lhRxhjXQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=1f4cx1ah; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1788263463; c=relaxed/simple;
+	bh=zqdUYV1yNctxuRi2ceiURU5QKjQzKpJ/jpsDnKflsTc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fYQsbJ1BNim9ufD0x1LI4lcsCt2eFvQQ0+qtL61SKDS7l6+xv/b6CkWFzAoCmH08T4hWzMpkGOOGNSRTsiaqDNlAQx9ncfRUDY3qO6OWahLzKmzcBF1Gc4ptqrgqIpiOFf0O5p+odme8Yc+a2YCG4oQ+xVRpsEpf12JmYBSZDg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=VfUylumr; arc=none smtp.client-ip=198.252.153.129
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="DPtCHJi3";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="m/ircIyG";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="lhRxhjXQ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="1f4cx1ah"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="VfUylumr"
+Received: from fews01-sea.riseup.net (fews01-sea-pn.riseup.net [10.0.1.109])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id DB9E22263B;
-	Tue,  1 Sep 2026 11:15:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1788261338; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6cnSNSfc0pM2gxtkMLp3njDUg87MSAE2sObIUw0cuOg=;
-	b=DPtCHJi3kes0BFndWab4TjE71iMZ02tah83dKolYWWnrAzBmTeMKZXjhLnHBQeZxy8/fjl
-	VhvJdqTy/59vt10vUpS78NFGo7ljn5vtTslgm4HiVdKj48Ozesk2F1w0F8cCOfCaH0LQ7o
-	mfqes2ySAyjAXdJgDsIorj0W5i7HUeg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1788261338;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6cnSNSfc0pM2gxtkMLp3njDUg87MSAE2sObIUw0cuOg=;
-	b=m/ircIyGaEXvpUgBcQckrF1HMWRWKKdTVxV7AOqk/B00mGbBk2H2lovxtuVsm/kymD5aVU
-	ROzhwtU6rKv/x9DQ==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=lhRxhjXQ;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=1f4cx1ah
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1788261333; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6cnSNSfc0pM2gxtkMLp3njDUg87MSAE2sObIUw0cuOg=;
-	b=lhRxhjXQL+JSx5YNQukM2krPOfB4Lb8jp1ZFxqwJMUPSCDxuTD4LvkUc2mK3SoaiyLThUy
-	NpM9gy7ESpGa2cWWj2Of1MttOA+dS4Sf8xVkc6D481gShoQZDAn1NxPQoqmQ4DBskYB91r
-	k7rCyYmr1eINjdN8BD593Q45XT95dAk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1788261333;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6cnSNSfc0pM2gxtkMLp3njDUg87MSAE2sObIUw0cuOg=;
-	b=1f4cx1ahLlwUi3A3+9wF8BZAsRXTz4JbGHtcOr69H8c+622lVg/pJbtcHy09q3eXS6W3II
-	W9NgZ/pPYXYG08Cg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8F38E13515;
-	Tue,  1 Sep 2026 11:15:33 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 35sEINWzlmokLgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 01 Sep 2026 11:15:33 +0000
-Message-ID: <40767533-e1b7-4beb-a1c9-c721123134ca@suse.de>
-Date: Tue, 1 Sep 2026 13:15:05 +0200
+	by mx1.riseup.net (Postfix) with ESMTPS id 4hZ41b1B0tzDqhC;
+	Tue,  1 Sep 2026 11:50:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=riseup.net; s=squak;
+	t=1788263454; bh=IPswc6Cjd8p7WwVezZA2g6UODoR/ie6W2jlz9aPTgYY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=VfUylumrcmaQjvyhXLkMyiR9wENqWf4nTKiGtdP8Yvs/Q5OqprQU4gIcKq0gKOIok
+	 46FJYz5quOY4S4XLDs53bNJwcZ1+mtizdi3Q3gCrvScbu94Bxzoh9HCltv1nydkw0V
+	 m/yoim5TLMIg2q0i6yXrsZWZucC3RsqmJXC0zyQA=
+X-Riseup-User-ID: E5F8F7D98D2829322768F754E05AE5AE62A09FBC44B70DAB5A0A24EA938CE3A6
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	 by fews01-sea.riseup.net (Postfix) with ESMTPSA id 4hZ41Q1d1Sz1xpZ;
+	Tue,  1 Sep 2026 11:50:34 +0000 (UTC)
+From: =?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>
+To: David Ahern <dsahern@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Neal Cardwell <ncardwell@google.com>,
+	Ido Schimmel <idosch@nvidia.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: =?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>,
+	Simon Horman <horms@kernel.org>,
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Phil Sutter <phil@nwl.cc>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Junseo Lim <zirajs7@gmail.com>,
+	Leon Hwang <leon.hwang@linux.dev>,
+	Xuanqiang Luo <luoxuanqiang@kylinos.cn>,
+	Willem de Bruijn <willemb@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Qi Tang <tpluszz77@gmail.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	Joe Damato <joe@dama.to>,
+	Breno Leitao <leitao@debian.org>,
+	Li RongQing <lirongqing@baidu.com>,
+	netdev@vger.kernel.org (open list:VRF),
+	linux-kernel@vger.kernel.org (open list),
+	netfilter-devel@vger.kernel.org (open list:NETFILTER),
+	coreteam@netfilter.org (open list:NETFILTER),
+	bpf@vger.kernel.org (open list:BPF [MISC]:Keyword:(?:\b|_)bpf(?:\b|_))
+Subject: [PATCH net] net/ipv6: don't route packets with unknown source address
+Date: Tue,  1 Sep 2026 13:50:07 +0200
+Message-ID: <20260901115021.50057-1-ihuguet@riseup.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [nf PATCH] netfilter: nf_tables: Fix netdev hook sanity checks
-To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-References: <20260827204815.275949-1-phil@nwl.cc>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260827204815.275949-1-phil@nwl.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: DB9E22263B
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:dkim,suse.de:mid,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 8/27/26 10:48 PM, Phil Sutter wrote:
-> Wildcard interface names were confused with non-wildcard ones or those
-> matching the wildcard's prefix. Fix for odd behaviour when updating
-> flowtable or netdev chain hook devices.
-> 
-> Unify behaviour between flowtable and netdev chain parsers by having
-> both call the same parsing/validating code, also with old NFTA_HOOK_DEV
-> attribute (which is still used for single hook updates by user space).
-> 
-> The validating code must distinguish between hooks being added or
-> deleted (duplicates are ignored in the former case). Transport this info
-> in a 'bool add' parameter, but rename the existing one with same name
-> first since that actually reflects whether the code is parsing hooks for
-> a new object or an existing one.
-> 
-> Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-> This is a follow-up to Fernando's "netfilter: nf_tables: fix device name
-> and prefix match in hook lookup", sorting odd behaviour in similar,
-> other cases, too. With his v4 and this patch in place, the new nftables
-> shell tests pass for me.
-> ---
->   net/netfilter/nf_tables_api.c | 102 +++++++++++++++++++++++-----------
->   1 file changed, 71 insertions(+), 31 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 500ef483e485..8fac88f07d74 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2450,10 +2450,44 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
->   	return NULL;
->   }
->   
-> +static struct nft_hook *
-> +nf_tables_parse_netdev_hook(struct net *net,
-> +			    const struct nlattr *tmp,
-> +			    struct list_head *hook_list,
-> +			    struct list_head *old_hook_list,
-> +			    bool prefix, bool add)
-> +{
-> +	struct nft_hook *hook;
-> +
-> +	hook = nft_netdev_hook_alloc(net, tmp, prefix);
-> +	if (IS_ERR(hook))
-> +		return hook;
-> +
-> +	/* Reject new hooks which overlap */
-> +	if (nft_hook_list_find(hook_list, hook, false)) {
-> +		nft_netdev_hook_free(hook);
-> +		return ERR_PTR(-EEXIST);
-> +	}
-> +	/* Skip this exact duplicate when adding */
-> +	if (nft_hook_list_find(old_hook_list, hook, true)) {
-> +		if (add) {
-> +			nft_netdev_hook_free(hook);
-> +			return NULL;
-> +		}
-> +	/* Reject partial overlaps in either case */
-> +	} else if (nft_hook_list_find(old_hook_list, hook, false)) {
-> +		nft_netdev_hook_free(hook);
-> +		return ERR_PTR(add ? -EEXIST : -ENOENT);
-> +	}
-> +	return hook;
-> +}
-> +
->   static int nf_tables_parse_netdev_hooks(struct net *net,
->   					const struct nlattr *attr,
->   					struct list_head *hook_list,
-> -					struct netlink_ext_ack *extack)
-> +					struct list_head *old_hook_list,
-> +					struct netlink_ext_ack *extack,
-> +					bool add)
->   {
->   	struct nft_hook *hook, *next;
->   	const struct nlattr *tmp;
-> @@ -2473,18 +2507,17 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
->   			goto err_hook;
->   		}
->   
-> -		hook = nft_netdev_hook_alloc(net, tmp, prefix);
-> +		hook = nf_tables_parse_netdev_hook(net, tmp, hook_list,
-> +						   old_hook_list, prefix, add);
-> +		if (!hook)
-> +			continue;
-> +
->   		if (IS_ERR(hook)) {
->   			NL_SET_BAD_ATTR(extack, tmp);
->   			err = PTR_ERR(hook);
->   			goto err_hook;
->   		}
-> -		if (nft_hook_list_find(hook_list, hook, false)) {
-> -			NL_SET_BAD_ATTR(extack, tmp);
-> -			nft_netdev_hook_free(hook);
-> -			err = -EEXIST;
-> -			goto err_hook;
-> -		}
-> +
->   		list_add_tail(&hook->list, hook_list);
->   		n++;
->   
-> @@ -2513,13 +2546,17 @@ struct nft_chain_hook {
->   
->   static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
->   				  struct list_head *hook_list,
-> -				  struct netlink_ext_ack *extack, u32 flags)
-> +				  struct list_head *old_hook_list,
-> +				  struct netlink_ext_ack *extack, u32 flags,
-> +				  bool add)
->   {
->   	struct nft_hook *hook;
->   	int err;
->   
->   	if (tb[NFTA_HOOK_DEV]) {
-> -		hook = nft_netdev_hook_alloc(net, tb[NFTA_HOOK_DEV], false);
-> +		hook = nf_tables_parse_netdev_hook(net, tb[NFTA_HOOK_DEV],
-> +						   hook_list, old_hook_list,
-> +						   false, false);
->   		if (IS_ERR(hook)) {
->   			NL_SET_BAD_ATTR(extack, tb[NFTA_HOOK_DEV]);
->   			return PTR_ERR(hook);
-> @@ -2528,7 +2565,8 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
->   		list_add_tail(&hook->list, hook_list);
->   	} else if (tb[NFTA_HOOK_DEVS]) {
->   		err = nf_tables_parse_netdev_hooks(net, tb[NFTA_HOOK_DEVS],
-> -						   hook_list, extack);
-> +						   hook_list, old_hook_list,
-> +						   extack, add);
->   		if (err < 0)
->   			return err;
->   
-> @@ -2544,8 +2582,10 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
->   static int nft_chain_parse_hook(struct net *net,
->   				struct nft_base_chain *basechain,
->   				const struct nlattr * const nla[],
-> -				struct nft_chain_hook *hook, u8 family,
-> -				u32 flags, struct netlink_ext_ack *extack)
-> +				struct nft_chain_hook *hook,
-> +				struct list_head *old_hook_list, u8 family,
-> +				u32 flags, struct netlink_ext_ack *extack,
-> +				bool add)
->   {
->   	struct nftables_pernet *nft_net = nft_pernet(net);
->   	struct nlattr *ha[NFTA_HOOK_MAX + 1];
-> @@ -2623,7 +2663,8 @@ static int nft_chain_parse_hook(struct net *net,
->   
->   	INIT_LIST_HEAD(&hook->list);
->   	if (nft_base_chain_netdev(family, hook->num)) {
-> -		err = nft_chain_parse_netdev(net, ha, &hook->list, extack, flags);
-> +		err = nft_chain_parse_netdev(net, ha, &hook->list,
-> +					     old_hook_list, extack, flags, add);
->   		if (err < 0) {
->   			module_put(type->owner);
->   			return err;
-> @@ -2756,6 +2797,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
->   	if (nla[NFTA_CHAIN_HOOK]) {
->   		struct nft_stats __percpu *stats = NULL;
->   		struct nft_chain_hook hook = {};
-> +		LIST_HEAD(empty);
->   
->   		if (table->flags & __NFT_TABLE_F_UPDATE)
->   			return -EINVAL;
-> @@ -2763,8 +2805,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
->   		if (flags & NFT_CHAIN_BINDING)
->   			return -EOPNOTSUPP;
->   
-> -		err = nft_chain_parse_hook(net, NULL, nla, &hook, family, flags,
-> -					   extack);
-> +		err = nft_chain_parse_hook(net, NULL, nla, &hook, &empty,
-> +					   family, flags, extack, true);
->   		if (err < 0)
->   			return err;
->   
-> @@ -2916,7 +2958,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
->   
->   		basechain = nft_base_chain(chain);
->   		err = nft_chain_parse_hook(ctx->net, basechain, nla, &hook,
-> -					   ctx->family, flags, extack);
-> +					   &basechain->hook_list,
-> +					   ctx->family, flags, extack, true);
->   		if (err < 0)
->   			return err;
->   
-> @@ -2936,7 +2979,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
->   					ops->hook	= basechain->ops.hook;
->   				}
->   
-> -				if (nft_hook_list_find(&basechain->hook_list, h, false)) {
-> +				if (nft_hook_list_find(&basechain->hook_list, h, true)) {
->   					list_del(&h->list);
->   					nft_netdev_hook_free(h);
->   					continue;
-> @@ -3246,7 +3289,8 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
->   		return -EOPNOTSUPP;
->   
->   	err = nft_chain_parse_hook(ctx->net, basechain, nla, &chain_hook,
-> -				   ctx->family, chain->flags, extack);
-> +				   &basechain->hook_list, ctx->family,
-> +				   chain->flags, extack, false);
->   	if (err < 0)
->   		return err;
->   
-> @@ -8866,7 +8910,8 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
->   				    const struct nlattr * const nla[],
->   				    struct nft_flowtable_hook *flowtable_hook,
->   				    struct nft_flowtable *flowtable,
-> -				    struct netlink_ext_ack *extack, bool add)
-> +				    struct netlink_ext_ack *extack,
-> +				    bool new, bool add)
->   {
->   	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1];
->   	struct nf_hook_ops *ops;
-> @@ -8882,7 +8927,7 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
->   	if (err < 0)
->   		return err;
->   
-> -	if (add) {
-> +	if (new) {
->   		if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
->   		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
->   			NL_SET_BAD_ATTR(extack, nla[NFTA_FLOWTABLE_NAME]);
-> @@ -8918,7 +8963,8 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
->   		err = nf_tables_parse_netdev_hooks(ctx->net,
->   						   tb[NFTA_FLOWTABLE_HOOK_DEVS],
->   						   &flowtable_hook->list,
-> -						   extack);
-> +						   &flowtable->hook_list,
-> +						   extack, add);
->   		if (err < 0)
->   			return err;
->   	}
-> @@ -9112,17 +9158,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
->   	int err;
->   
->   	err = nft_flowtable_parse_hook(ctx, nla, &flowtable_hook, flowtable,
-> -				       extack, false);
-> +				       extack, false, true);
->   	if (err < 0)
->   		return err;
->   
->   	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
-> -		if (nft_hook_list_find(&flowtable->hook_list, hook, false)) {
-> -			list_del(&hook->list);
-> -			nft_netdev_hook_free(hook);
-> -			continue;
-> -		}
-> -
+Don't allow routing packets with a source address that is not configured
+in the host. Allow it only in certain cases like when using a
+transparent socket, by setting the ANYSRC flag in flowi_flags.
 
-Hi Phil,
+Until now, it was possible to send such a packet if a route can be found
+in the routing table for it. For example:
+1. Configure an address 1:2::3:4/64 and a static route 1:2::/64
+2. Establish a TCP connection to 1:2::3:4
+3. Remove the address from the interface, but keep the route.
+4. Packets are still sent out by the TCP connection because of
+   the static route. No incoming packets are accepted, though.
 
-Hm.. we should be able to also get rid of this check in 
-nf_tables_updchain() no? Or am I missing something? AFAICS, this is 
-already validated in the parse function with your patch.
+This patch prevents the outgoing packets to be sent in normal
+circumnstances.
 
-                                 if 
-(nft_hook_list_find(&basechain->hook_list, h, true)) {
-                                         list_del(&h->list);
-                                         nft_netdev_hook_free(h);
-                                         continue;
-                                 }
+This aligns the behaviour with the IPv4 stack. To determine the places
+where the ANYSRC needs to be set, I set the flag in the same places as
+the IPv4 stack does.
 
+Apart from consolidating the behaviour of both stacks, there is a more
+important reason why this is needed. RFC 4862 states that "an invalid
+address MUST NOT be used as the source address of outbound packets".
+Therefore, sending packets with a source address considered "invalid",
+like an expired address, is disallowed.
 
-Other than that, the patch looks good to me.
+Signed-off-by: Íñigo Huguet <ihuguet@riseup.net>
 
-Thanks!
-Fernando
+---
+
+Testing: tested with a manual reproducer executing the steps described
+above. Tested also with transparent sockets to ensure that the packets
+are sent in that case. Also executed the following selftests to prevent
+potential regressions: fcnal-ipv6, fib_tests, fib-onlink-tests,
+nft_nat, nft_tproxy_tcp, nft_tproxy_udp.
+
+The change in the netfilter's ip6_route_me_harder function is the one
+that I'm more unsure about. It was not clear to me the reason why it was
+done like this in the IPv4 counterpart. Please review carefully.
+---
+ drivers/net/vrf.c                |  1 +
+ net/core/lwt_bpf.c               |  1 +
+ net/ipv6/af_inet6.c              |  1 +
+ net/ipv6/datagram.c              |  1 +
+ net/ipv6/inet6_connection_sock.c |  2 ++
+ net/ipv6/ip6_output.c            | 28 ++++++++++++++++++++++++++++
+ net/ipv6/netfilter.c             | 10 ++++++++--
+ net/ipv6/ping.c                  |  1 +
+ net/ipv6/raw.c                   |  1 +
+ net/ipv6/syncookies.c            |  1 +
+ net/ipv6/tcp_ipv6.c              |  2 ++
+ net/ipv6/udp.c                   |  1 +
+ net/l2tp/l2tp_ip6.c              |  2 ++
+ 13 files changed, 50 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
+index a0557a3a7026..6c09d5f46d6b 100644
+--- a/drivers/net/vrf.c
++++ b/drivers/net/vrf.c
+@@ -432,6 +432,7 @@ static netdev_tx_t vrf_process_v6_outbound(struct sk_buff *skb,
+ 	fl6.flowlabel = ip6_flowinfo(iph);
+ 	fl6.flowi6_mark = skb->mark;
+ 	fl6.flowi6_proto = iph->nexthdr;
++	fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
+ 
+ 	dst = ip6_dst_lookup_flow(net, NULL, &fl6, NULL);
+ 	if (IS_ERR(dst) || dst == dst_null)
+diff --git a/net/core/lwt_bpf.c b/net/core/lwt_bpf.c
+index da49364ec63d..e8b954282689 100644
+--- a/net/core/lwt_bpf.c
++++ b/net/core/lwt_bpf.c
+@@ -233,6 +233,7 @@ static int bpf_lwt_xmit_reroute(struct sk_buff *skb)
+ 		fl6.flowi6_mark = skb->mark;
+ 		fl6.flowi6_uid = sock_net_uid(net, sk);
+ 		fl6.flowlabel = ip6_flowinfo(iph6);
++		fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
+ 		fl6.flowi6_proto = iph6->nexthdr;
+ 		fl6.daddr = iph6->daddr;
+ 		fl6.saddr = iph6->saddr;
+diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
+index 282912a11999..e55a36372ab2 100644
+--- a/net/ipv6/af_inet6.c
++++ b/net/ipv6/af_inet6.c
+@@ -820,6 +820,7 @@ int inet6_sk_rebuild_header(struct sock *sk)
+ 	fl6->fl6_dport = inet->inet_dport;
+ 	fl6->fl6_sport = inet->inet_sport;
+ 	fl6->flowi6_uid = sk_uid(sk);
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(fl6));
+ 
+ 	ip6_ecmp_set_mp_hash(sock_net(sk), fl6, sk->sk_txhash);
+diff --git a/net/ipv6/datagram.c b/net/ipv6/datagram.c
+index 38d7b4845281..0773bfa0342d 100644
+--- a/net/ipv6/datagram.c
++++ b/net/ipv6/datagram.c
+@@ -52,6 +52,7 @@ static void ip6_datagram_flow_key_init(struct flowi6 *fl6,
+ 	fl6->flowi6_mark = sk->sk_mark;
+ 	fl6->fl6_dport = inet->inet_dport;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6->flowlabel = ip6_make_flowinfo(np->tclass, np->flow_label);
+ 	fl6->flowi6_uid = sk_uid(sk);
+ 
+diff --git a/net/ipv6/inet6_connection_sock.c b/net/ipv6/inet6_connection_sock.c
+index 3e4ce8cb478e..f295f3efe243 100644
+--- a/net/ipv6/inet6_connection_sock.c
++++ b/net/ipv6/inet6_connection_sock.c
+@@ -45,6 +45,7 @@ struct dst_entry *inet6_csk_route_req(const struct sock *sk,
+ 	fl6->flowi6_mark = ireq->ir_mark;
+ 	fl6->fl6_dport = ireq->ir_rmt_port;
+ 	fl6->fl6_sport = htons(ireq->ir_num);
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6->flowi6_uid = sk_uid(sk);
+ 	security_req_classify_flow(req, flowi6_to_flowi_common(fl6));
+ 
+@@ -71,6 +72,7 @@ struct dst_entry *inet6_csk_route_socket(struct sock *sk,
+ 	fl6->daddr = sk->sk_v6_daddr;
+ 	fl6->saddr = np->saddr;
+ 	fl6->flowlabel = np->flow_label;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	IP6_ECN_flow_xmit(sk, fl6->flowlabel);
+ 
+ 	if (sk->sk_protocol == IPPROTO_TCP)
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 8fc4766c8da9..57eebe347902 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1191,6 +1191,34 @@ static int ip6_dst_lookup_tail(struct net *net, const struct sock *sk,
+ 	if (err)
+ 		goto out_err_release;
+ 
++	/* Routing packets with a source address not present in the host is
++	 * disallowed unless the ANYSRC flag is set (i.e. with transparent sockets).
++	 * The source address must be in the same L3 domain as the destination device.
++	 */
++	if (!ipv6_addr_any(&fl6->saddr) &&
++	    !(fl6->flowi6_flags & FLOWI_FLAG_ANYSRC)) {
++		struct net_device *oif_dev;
++
++		rcu_read_lock();
++		/* For local routes, (*dst)->dev can be 'lo', which has no l3mdev
++		 * master, so that the L3 domain wouldn't match if the source
++		 * address is in a VRF-enslaved device. To avoid that, check the
++		 * outgoing interface from the flowi6 structure instead.
++		 */
++		if (fl6->flowi6_oif)
++			oif_dev = dev_get_by_index_rcu(net, fl6->flowi6_oif);
++		else
++			oif_dev = (*dst)->dev;
++
++		if (!ipv6_chk_addr_and_flags(net, &fl6->saddr, oif_dev,
++					     1, 1, IFA_F_TENTATIVE))
++			err = -ENETUNREACH;
++		rcu_read_unlock();
++
++		if (err)
++			goto out_err_release;
++	}
++
+ #ifdef CONFIG_IPV6_OPTIMISTIC_DAD
+ 	/*
+ 	 * Here if the dst entry we've looked up
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index a7025ec87035..7c19ecbec112 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -26,11 +26,11 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	const struct ipv6hdr *iph = ipv6_hdr(skb);
+ 	struct sock *sk = sk_to_full_sk(sk_partial);
+ 	struct net_device *dev = skb_dst_dev(skb);
++	int daddr_type = ipv6_addr_type(&iph->daddr);
+ 	struct flow_keys flkeys;
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
+-	int strict = (ipv6_addr_type(&iph->daddr) &
+-		      (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL));
++	int strict = daddr_type & (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL);
+ 	struct flowi6 fl6 = {
+ 		.flowi6_l3mdev = l3mdev_master_ifindex(dev),
+ 		.flowi6_mark = skb->mark,
+@@ -41,6 +41,12 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	};
+ 	int err;
+ 
++	fl6.flowi6_flags = sk ? inet_sk_flowi_flags(sk) : 0;
++	if (daddr_type & (IPV6_ADDR_UNICAST | IPV6_ADDR_LINKLOCAL))
++		fl6.flowi6_flags |= FLOWI_FLAG_ANYSRC;
++	else
++		fl6.saddr = in6addr_any;
++
+ 	if (sk && sk->sk_bound_dev_if)
+ 		fl6.flowi6_oif = sk->sk_bound_dev_if;
+ 	else if (strict)
+diff --git a/net/ipv6/ping.c b/net/ipv6/ping.c
+index 6e90d0bf9f3d..d0964396c2c5 100644
+--- a/net/ipv6/ping.c
++++ b/net/ipv6/ping.c
+@@ -140,6 +140,7 @@ static int ping_v6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	fl6.flowi6_proto = IPPROTO_ICMPV6;
+ 	fl6.saddr = np->saddr;
+ 	fl6.daddr = *daddr;
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6.flowi6_mark = ipc6.sockc.mark;
+ 	fl6.flowi6_uid = sk_uid(sk);
+ 	fl6.fl6_icmp_type = user_icmph.icmp6_type;
+diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+index b965258cf9e5..ef5ddbe7ac10 100644
+--- a/net/ipv6/raw.c
++++ b/net/ipv6/raw.c
+@@ -887,6 +887,7 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
+ 
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 	if (hdrincl)
+ 		fl6.flowi6_flags |= FLOWI_FLAG_KNOWN_NH;
+ 
+diff --git a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
+index b581cb1ee2e8..3d665e93fcac 100644
+--- a/net/ipv6/syncookies.c
++++ b/net/ipv6/syncookies.c
+@@ -242,6 +242,7 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
+ 		fl6.flowi6_mark = ireq->ir_mark;
+ 		fl6.fl6_dport = ireq->ir_rmt_port;
+ 		fl6.fl6_sport = inet_sk(sk)->inet_sport;
++		fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 		fl6.flowi6_uid = sk_uid(sk);
+ 		security_req_classify_flow(req, flowi6_to_flowi_common(&fl6));
+ 
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index df9c29eb5c1f..401a1297e7db 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -268,6 +268,7 @@ static int tcp_v6_connect(struct sock *sk, struct sockaddr_unsized *uaddr,
+ 	fl6->flowi6_mark = sk->sk_mark;
+ 	fl6->fl6_dport = usin->sin6_port;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	if (IS_ENABLED(CONFIG_IP_ROUTE_MULTIPATH) && !fl6->fl6_sport)
+ 		fl6->flowi6_flags = FLOWI_FLAG_ANY_SPORT;
+ 	fl6->flowi6_uid = sk_uid(sk);
+@@ -979,6 +980,7 @@ static void tcp_v6_send_response(const struct sock *sk, struct sk_buff *skb, u32
+ 	fl6.fl6_dport = t1->dest;
+ 	fl6.fl6_sport = t1->source;
+ 	fl6.flowi6_uid = sock_net_uid(net, sk && sk_fullsock(sk) ? sk : NULL);
++	fl6.flowi6_flags = sk ? inet_sk_flowi_flags(sk) : 0;
+ 	security_skb_classify_flow(skb, flowi6_to_flowi_common(&fl6));
+ 
+ 	/* Pass a socket to ip6_dst_lookup either it is for RST
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 93478d1ad576..5154d445ba9c 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -1656,6 +1656,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	if (ipv6_addr_any(&fl6->saddr) && !ipv6_addr_any(&np->saddr))
+ 		fl6->saddr = np->saddr;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 
+ 	if (cgroup_bpf_enabled(CGROUP_UDP6_SENDMSG) && !connected) {
+ 		err = BPF_CGROUP_RUN_PROG_UDP6_SENDMSG_LOCK(sk,
+diff --git a/net/l2tp/l2tp_ip6.c b/net/l2tp/l2tp_ip6.c
+index bdaae1b64d25..22ae5bc2669a 100644
+--- a/net/l2tp/l2tp_ip6.c
++++ b/net/l2tp/l2tp_ip6.c
+@@ -633,6 +633,8 @@ static int l2tp_ip6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	else if (!fl6.flowi6_oif)
+ 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
+ 
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
++
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
+ 
+ 	fl6.flowlabel = ip6_make_flowinfo(ipc6.tclass, fl6.flowlabel);
+-- 
+2.54.0
+
