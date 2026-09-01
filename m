@@ -1,86 +1,80 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62CE469855
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Sep 2026 07:31:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD3EA175A62
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Sep 2026 07:55:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788247901; cv=none; b=rY4jrIRRNvC4DgNt7bOQJok2uGgHRC64/d/4cQ8EOWPtC+3eL8zE6Eh3dEpeCdXfxRu/O+FtDecr6du1gzx191ZXUqdd/1jYin8u+lp1uDiRSiZ8Ka1qjgyFj7q0cMHkUgqDSo0aYvJfx9a5I/CZmYzDKo05TzRU6BB7VVlBEMg=
+	t=1788249314; cv=none; b=Pa4gcOWrsg5zjic3jjJe8c2Fl2TXOGEMqgVaC7J73VU0jwxSEJZP8B54jrhhXHNuR/mJEvMM5Mw95Gsbkyal+5vWJRwq70L7dPYPOCLq1i/0TKRl9Wp1C3YTIBpPJxYecxOZhkg/mmA2+5ynrOQE2VP7w6vCePYjlo/hoLgp2Fk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788247901; c=relaxed/simple;
-	bh=zGhJ9HaYyZ7K+ijAn1Ufy6dOppFjBPbx8iBoOPASPKI=;
+	s=arc-20240116; t=1788249314; c=relaxed/simple;
+	bh=QalSucg5gNjn3xbrobi5W0npUNneac13bfJmDZgtEMc=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=K93rkD+g30pz3i1ri00ik8sBZmmCwB5nzKvm3or/Lw+jYm6ek800tRTpfXHk/LGIi3Sk0fIUpWbkJXzoWQPsMapQTit1tdZtO4MQBCyH58/dOlFCyEEtV/Q+llxNkgRmvCcViiU+ZoyLau2u/ruUK/UxlEkYvgb3X1SjHmubNBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q1Wa+7GT; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=d3+2Pgsu; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 In-Reply-To:Content-Type; b=M0GlKaynVRa9qDpqmoQZDGVJy5p6Hqz81e9uahO3vRf/v5MnKE1H/8iYqAq48pLtfb+2Gc6JzxPPt6bP5oQnrSbnzaF0e378GFheZZj/euJ0hiJyxR316bf+iTddHlrcdzRO+qEvGKru8WbpnY5xEX9AmYaxRkqx+M0vmkqsDD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=aZ8z4ivS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=W8Abu1yW; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=W0sxOWTc; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=8J7NQRNg; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q1Wa+7GT";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="d3+2Pgsu"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1788247898;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="aZ8z4ivS";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="W8Abu1yW";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="W0sxOWTc";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="8J7NQRNg"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 52E591FDD8;
+	Tue,  1 Sep 2026 07:55:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1788249306; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=996Do7cli1wrzMhcoRVI4Dpnoxul8kFICpQpjRm0D38=;
-	b=Q1Wa+7GTKlMbY30qBPm1Urd7SVdZkxruKDfLKXKsSSGFaYGdYBpJOB9LlDpFWysPVLCHOu
-	xRGpEQIa9zSKPC/7diSSpizmsoJUapR2jPC+a0w0q7h6uk9xoYLWP+eTKSzIDx6T/Ik74I
-	8pzGLHm2VxZfsyDEtZaZkYhRFkuPuK0=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-676-L0QEuMtxN2aSFPMkjf67yw-1; Tue, 01 Sept 2026 03:31:37 -0400
-X-MC-Unique: L0QEuMtxN2aSFPMkjf67yw-1
-X-Mimecast-MFC-AGG-ID: L0QEuMtxN2aSFPMkjf67yw_1788247896
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4955fd77c18so23857355e9.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Sep 2026 00:31:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1788247896; x=1788852696; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=996Do7cli1wrzMhcoRVI4Dpnoxul8kFICpQpjRm0D38=;
-        b=d3+2Pgsu5au1M4JiH/POPF6OA8Xseak3F9Vd33GIWXM7MNyI/2ipxh2azm35l012Z5
-         NH0gIzHi+YbfdaLGv1xNNa073tzwlsSfmnEcVUpVu0vNgneS22il0i4khfnpoFOvzEdD
-         6Ik2n5KBqpI7QhUq7o7nopBh4r7zfJ8MbxQ33wgniwVdJCcKHRC0wHwTIO6ejJhGprhz
-         qT/OxUB2fi0WFsy7Sn6HBEqhHrb07iKrKqFeyoM4qUla8rhYkMyPgFExWZi3mCkijvL6
-         yIuO7d2czFx5Z9BK28Eca0GKvS6uiM2hg2zFm6AzAfyzHvhgeep/IAc3+LOGf2sxgXbc
-         BD7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788247896; x=1788852696;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=996Do7cli1wrzMhcoRVI4Dpnoxul8kFICpQpjRm0D38=;
-        b=Ur9ZYaJ5yyMVLZI+UDu/GBevy6PUXvVNrsZachzSKSf3uEsqD3wBWAdsAGxl+4dmzF
-         4q8aXDHMs5XG3SigI/w4L3gS5KxLO1w7W8oimrIdZpiUaePyh3S7Nw9v42vD7MBPE7Q5
-         r6q05+RdG9QMuFkZc21M0y+1es7oCi1Km2PL8cGj4EHW+0zyvl8RrITwKqggFrnpdisM
-         2mRfKjokvGYYLkKI6ntIjPlsAnVYVu/upnHaIxOn+V/T3DYPWOL5TsOzewXHBhIdP9cS
-         W1jH6Xy798m5ILxcEfaKfVLZc3k/oDfLik79hyn4XDhT4bA4aelTWXAc2Q/TzC1E/WD6
-         QqpQ==
-X-Forwarded-Encrypted: i=1; AHgh+Ro/aLvuzLkgOgHl7m36iZ+yhdaX/0ILFVPyhTcRtjFKhgn5CD+ItBs+1RQILVc0J6mHIlx0/y44WcuJ2RHQ7Pg=@vger.kernel.org
-X-Gm-Message-State: AFuF++nMwnXRhF2mmd/J/WXKhgZkWNNuAOXQnSYitD8uxwhLBmEuJNtv
-	EHJAPWXeqGwLsNqnkH0mLYMCIKBXvf6aHVULoL2tdKP5pULOPuHKWeYjB+sQKzE2Rutev82T8H4
-	Ex9OAAILfS/eCjTg5i0lBZy8dalR/1J39VNZOc42bBbdRhfyALVwRWYwH9VxD14PSBege1Q==
-X-Gm-Gg: AR+sD126bXmGwqYqNBTV6qW7EOBIrStPAKFkmVDFS09DKDl+pUlFu76Tfw07x9E62Ve
-	gUQupkzAqadENEFi1PDx67rYIqXzUoNSvxCEdeJdyytm5whya7v5xHmCDWuOByMTETB2wuObBe7
-	yTp/mpo3+Xr6Kh5z0sClfXu/9u8kqi1I1nJV4UmmQyadUnr0kdT1TW/B1wq/uUNVgPxjA8IqeY2
-	ncDhwM4h1IOLF6UDg1u6dgKZnuj1LzX2QTRBnY2a0lBZxGGSTHdR3Lag17gTjHr2IVg+xzjwIJb
-	fFwAT6QAijFjyJ/KpmDl06t48ekwYsHHv5RB6VCv39W6bO9DMEqdB6pU05/wsC5Sp9/tT8fAWRo
-	IgulHkCHBrzQw6l32VP7vYy18LDJBC172E+mFjwnXpi/5iUoc0EEf+5RzIFNew2x0LRjsShLRlg
-	==
-X-Received: by 2002:a05:600c:a114:b0:49b:9438:7785 with SMTP id 5b1f17b1804b1-49cdc429f02mr92591605e9.4.1788247892935;
-        Tue, 01 Sep 2026 00:31:32 -0700 (PDT)
-X-Received: by 2002:a05:600c:a114:b0:49b:9438:7785 with SMTP id 5b1f17b1804b1-49cdc429f02mr92579265e9.4.1788247886584;
-        Tue, 01 Sep 2026 00:31:26 -0700 (PDT)
-Received: from [192.168.188.103] (ip245-45-231-195.pool-bba.aruba.it. [195.231.45.245])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49cdce10f08sm49011395e9.7.2026.09.01.00.31.25
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 01 Sep 2026 00:31:25 -0700 (PDT)
-Message-ID: <3b647dc9-6653-4a75-b0f9-d934337ac2ef@redhat.com>
-Date: Tue, 1 Sep 2026 09:31:24 +0200
+	bh=kS3wNiJTsYHkuakJ5f1luPKPKo/jHUGcdVTS/7rkrzA=;
+	b=aZ8z4ivS61WfAhGSkk0ofcjIOG7GPlrsKnlQ6Ft0cBglmjp4dws3xeITrmKuuUVOhP/37x
+	Rd9Yv58+MOfOdSOfIYMu5AvmYJoBRpgd9+0o4VqNhW041vFmGXeCcRK8hqpwhssybM3asB
+	K0TDKDRs+jXbbATOuYq2ic0TMwCehXc=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1788249306;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kS3wNiJTsYHkuakJ5f1luPKPKo/jHUGcdVTS/7rkrzA=;
+	b=W8Abu1yWCCp8V7872tvq49YKcbyGKhzbY1ceClmtZZbcCibebT6rlwy8BzH3nLdZiw2DIu
+	0SRJYXBzJ6J71bAw==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1788249302; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kS3wNiJTsYHkuakJ5f1luPKPKo/jHUGcdVTS/7rkrzA=;
+	b=W0sxOWTcQS6MTQSXt5laB1F+cr0jco1AMnc3KlNtsJSHy126kzz6RQtJjf0Dd0AsEGYsLU
+	1d74JaXdLdhTqSHItcemeaajDXWEkF/zBt4fm4EIF2ZQvlV+Q2za/xikmyGtn1J5IbDMon
+	nVrwUcbvQ3AIT8ZnYCnt4z1cZmiRl5M=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1788249302;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kS3wNiJTsYHkuakJ5f1luPKPKo/jHUGcdVTS/7rkrzA=;
+	b=8J7NQRNgtgO61t+2MkUNt4PkidFfwFRBOgRXufnRkOrvvjPR3LkMdbLwpmCig6iKjT4D/k
+	h4RvXXBfhuz2CjBg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0950013515;
+	Tue,  1 Sep 2026 07:55:01 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id miYQO9WElmoBYwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 01 Sep 2026 07:55:01 +0000
+Message-ID: <2fa302ed-71bc-4136-8955-cddb234b5e24@suse.de>
+Date: Tue, 1 Sep 2026 09:54:27 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -88,32 +82,154 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [ANNOUNCE] A Syzbot-style Platform for Verifying and Fixing
- LLM-reported Bugs
-To: Guenter Roeck <linux@roeck-us.net>, Yuan Tan <yuantan098@gmail.com>,
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, workflows@vger.kernel.org,
- frankw@nebusec.ai, jhs@mojatatu.com, ksummit@lists.linux.dev,
- kuba@kernel.org, kerneljasonxing@gmail.com, roman.gushchin@linux.dev,
- jgg@nvidia.com, mchehab+huawei@kernel.org, torvalds@linux-foundation.org,
- ben.copeland@linaro.org, gregkh@linuxfoundation.org
-References: <20260830115546.3942129-1-yuantan098@gmail.com>
- <98d4603b-0559-46ea-8b76-1f0245b3b266@roeck-us.net>
-From: Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [nft PATCH] tests: shell: Test odd netdev hook updates
+To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+References: <20260827204255.274666-1-phil@nwl.cc>
 Content-Language: en-US
-In-Reply-To: <98d4603b-0559-46ea-8b76-1f0245b3b266@roeck-us.net>
-Content-Type: text/plain; charset=UTF-8
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260827204255.274666-1-phil@nwl.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Spam-Level: 
+X-Spam-Score: -4.30
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.996];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo,nwl.cc:email]
 
-On 8/31/26 9:08 PM, Guenter Roeck wrote:
-> On 8/30/26 04:55, Yuan Tan wrote:
->> LLM-powered tools such as Sashiko and Claskiko produce a significant number
+On 8/27/26 10:42 PM, Phil Sutter wrote:
+> These should cover what Fernando fixes in his kernel patch "netfilter:
+> nf_tables: fix device name and prefix match in hook lookup" as well as
+> some bonus cases I came up with.
 > 
-> Is "Claskiko" misspelled ? I don't find a reference to it.
-Clashiko is the "informal" name for the sashiko instance running on the
-networking subsystem CI. Since it's ongoing under constant improvements
-and changes due to a lot of effort from Jakub, there is no formal
-documentation on it.
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-/P
+Thanks Phil! These tests cover a lot of different cases.
+
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+
+>   .../chains/netdev_chain_update_wildcard_hook  | 45 +++++++++++++++++++
+>   .../testcases/flowtable/update_wildcard_hook  | 45 +++++++++++++++++++
+>   2 files changed, 90 insertions(+)
+>   create mode 100755 tests/shell/testcases/chains/netdev_chain_update_wildcard_hook
+>   create mode 100755 tests/shell/testcases/flowtable/update_wildcard_hook
+> 
+> diff --git a/tests/shell/testcases/chains/netdev_chain_update_wildcard_hook b/tests/shell/testcases/chains/netdev_chain_update_wildcard_hook
+> new file mode 100755
+> index 0000000000000..1381f4be2a5f1
+> --- /dev/null
+> +++ b/tests/shell/testcases/chains/netdev_chain_update_wildcard_hook
+> @@ -0,0 +1,45 @@
+> +#!/bin/bash
+> +
+> +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
+> +
+> +RC=0
+> +
+> +die() {
+> +	echo "FAIL: $@"
+> +	((RC++))
+> +	$NFT list ruleset
+> +}
+> +
+> +$NFT add table netdev t || die "add table failed"
+> +
+> +do_chain() { # (cmd, devspec, thp)
+> +	$NFT $1 chain netdev t c "{ $3 devices = { $2 }; }"
+> +}
+> +
+> +thp='type filter hook ingress priority 0;'
+> +
+> +do_chain add foo* "$thp" || die "initial add chain failed"
+> +do_chain create foo* "$thp" && die "duplicated create initial chain allowed"
+> +do_chain add foo* || die "duplicated hook add failed"
+> +
+> +do_chain add "bar*, bar*" && die "duplicate wildcard add allowed"
+> +do_chain add "bar, bar" && die "duplicate device add allowed"
+> +
+> +do_chain add foo && die "update with non-wildcard allowed"
+> +do_chain add fo* && die "update with shorter wildcard allowed"
+> +do_chain add fooo* && die "update with longer wildcard allowed"
+> +
+> +# add after testing delete in case deletion is allowed when it should not
+> +
+> +do_chain delete foo && die "delete non-wildcard hook allowed"
+> +do_chain add foo* || die "duplicated hook add failed"
+> +
+> +do_chain delete fo* && die "delete shorter wildcard allowed"
+> +do_chain add foo* || die "duplicated hook add failed"
+> +
+> +do_chain delete fooo* && die "delete longer wildcard allowed"
+> +do_chain add foo* || die "duplicated hook add failed"
+> +
+> +do_chain delete foo* || die "delete initial chain hook failed"
+> +
+> +exit $RC
+> diff --git a/tests/shell/testcases/flowtable/update_wildcard_hook b/tests/shell/testcases/flowtable/update_wildcard_hook
+> new file mode 100755
+> index 0000000000000..a67c8bffe0687
+> --- /dev/null
+> +++ b/tests/shell/testcases/flowtable/update_wildcard_hook
+> @@ -0,0 +1,45 @@
+> +#!/bin/bash
+> +
+> +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
+> +
+> +RC=0
+> +
+> +die() {
+> +	echo "FAIL: $@"
+> +	((RC++))
+> +	$NFT list ruleset
+> +}
+> +
+> +$NFT add table t || die "add table failed"
+> +
+> +do_ft() { # (cmd, devspec, thp)
+> +	$NFT $1 flowtable t ft "{ $3 devices = { $2 }; }"
+> +}
+> +
+> +thp='hook ingress priority 0;'
+> +
+> +do_ft add foo* "$thp" || die "initial add flowtable failed"
+> +do_ft create foo* "$thp" && die "duplicated create initial flowtable allowed"
+> +do_ft add foo* || die "duplicated hook add failed"
+> +
+> +do_ft add "bar*, bar*" && die "duplicate wildcard add allowed"
+> +do_ft add "bar, bar" && die "duplicate device add allowed"
+> +
+> +do_ft add foo && die "update with non-wildcard allowed"
+> +do_ft add fo* && die "update with shorter wildcard allowed"
+> +do_ft add fooo* && die "update with longer wildcard allowed"
+> +
+> +# add after testing delete in case deletion is allowed when it should not
+> +
+> +do_ft delete foo && die "delete non-wildcard hook allowed"
+> +do_ft add foo* || die "duplicated hook add failed"
+> +
+> +do_ft delete fo* && die "delete shorter wildcard allowed"
+> +do_ft add foo* || die "duplicated hook add failed"
+> +
+> +do_ft delete fooo* && die "delete longer wildcard allowed"
+> +do_ft add foo* || die "duplicated hook add failed"
+> +
+> +do_ft delete foo* || die "delete initial flowtable hook failed"
+> +
+> +exit $RC
 
