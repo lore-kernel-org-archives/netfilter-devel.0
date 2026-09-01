@@ -1,112 +1,77 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4903B3E274C
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2026 23:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB73A39D3FD;
+	Tue,  1 Sep 2026 01:22:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788218141; cv=none; b=L1pOzSXGpOea6gQVu6ooRcMKNdZSWrF4zWaKrC1VUVH00yBywRvcbGCZcxzE1z02exvF9mYwe7D/3kC1A2to+NZuWuEtR7Pa/MyJKYhzJBWbRanJVebPqeNdzR+Afnz6AYIkjXNMA9ljs1BeL0p3jC1nL6kvql6TxkzTQGcDhrw=
+	t=1788225723; cv=none; b=hlwp2TEoead/1/PFVX9lSsAdBybbaky88cw/mlT+/gQZomsMgOD4zvSQu3e4e8pouyHsdfIUfb+CkcIlEdzE0r+HRmoLMsyKcTPaX6FzCZoj8+Upj6/TEzUcy6xu6oP/Lwx+5eH2nOsudfrrj41Plrbj4dWW7+OiTi3WB0dvgsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788218141; c=relaxed/simple;
-	bh=nLjNT1G5JUYYPrhknY0eB9x0ZjckXKrDo9yhKokRjVk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DhHiJsMWUXmkQ9Hknju+FuS9KefZF3IeVtbFfLJAGJLTQPxvIXx/3QgXAhPP+34yQ/ayklXzhgT+2hTbZS8F7YO8Pv8cZLAd7FKlElZuuIetnLLGOLWT2mJePAAFVLtRorZe7PUt6TYyrZxe2x7UV9f+27NDEajuhPwnrfnHI4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NDowiLX+; arc=none smtp.client-ip=209.85.128.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788225723; c=relaxed/simple;
+	bh=kf3JwUxSQPCNsBeJ1W33FuzQTEV/mi4ddV9bThbV82g=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Yo3X6sSE535avn2+4E1lARq1rzvLN4xiC/73PpHLXDdCUTm/94OSKySiQAofQqVEP8pCJK8s7EjITezQxpwvAIwO/BF1NvJ6lwdZgfoEqAXZfFcobUT+e3SHZXz+PaBaAjny6aRn+MuHboPPUR3KpBbwUaz7vqxg2i8cerOjZQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kpevG456; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NDowiLX+"
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-495437bb891so3640345e9.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2026 16:15:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788218137; x=1788822937; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=4Cbbg1ZOVRL0U5f2uy8yCobIVDqIxQsXjzjOSTe5SUM=;
-        b=NDowiLX+9lFsVlgSpsbSBI75OdoGWkBcd3+W3sPqomHUJpEOngiZS3JDPCNK1zCk4D
-         PcT9p7Nna0HxKYETKWidlLgKKejGVXkefLQCYsmapqoXMMXjOwnN/bL19XZlsyqt44Ao
-         iAzD2ha+jTDygPTOv/mws4TcV37rJ4rQJo+0hg4NJn5xqvKQq9rqFtypGeCFvGNYL9yf
-         wL4rQSduJCopY8p2S0Oet+5tRnKQoH5kWpK4ERvz2J53riqnNK6rp+mSgeWsn6KLmSh8
-         4LbJUyeF8HWyWUKI6vTvLDaOC2J31Wmjjr7D0Bvn1WXm3mFpepcxRKG3saI/T19WDCC+
-         VQ8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788218137; x=1788822937;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=4Cbbg1ZOVRL0U5f2uy8yCobIVDqIxQsXjzjOSTe5SUM=;
-        b=R++PAgL+dtCPE5vYf2NY/XpyE68zh7NnmD4QpK09j2SIWx85RjHqzbo5zISJA3O4fi
-         er9OoS/URw7CbVZI6M2H1Beb06YUlGsNBDBTKMTNfB+Qe+08dpDX5zdZks0fx4sn9M9j
-         brfUsuSY4TbfRgekzF+P6bRef43TU6CamnGbwuDAuofYSevoVhUL7a0/Zx0R02Fs9hhl
-         /F2cd0xvBXimtcZa4OtSt3/vMxV6Lop/w76AWSLmIjhjIZvJyOnQ8K7hKBt6ktM15ZlD
-         KnqLBLqpwH2CapWFxnsa08NvSuJrO1RE1H/4ibqLrxZwPCuvR8V9JAsdQp6mLa2KNRsn
-         qTrQ==
-X-Forwarded-Encrypted: i=1; AHgh+RrW3XgDXjo4UN3LbOgcB3cTYeeTeKFrEWUs3qc9x10Dik3agMdD+uXNtNfPHoosfhn7C3gM0hR3bfu0oLJr0Pw=@vger.kernel.org
-X-Gm-Message-State: AFuF++n9fgKHHzzDPG4vy4zEsbswIoxGSYldDLz8D9RCz311QZ4GGNvQ
-	1eFMa4/1SvzYijcAVp/QKXk6T2qwEa7XM0qJMH6ejK3VBDzgmXeUKxM7
-X-Gm-Gg: AR+sD11k5s55I98h9KQat6LOpJuDlvkvyaHLdA/nQb9ZaL1Z+keXlvPHnzdg4QvruqF
-	9AzVSmUo3tvbssz0BEcYUTwiqUyrZQZgncnxSO3tSbDBbLqMQFTAcjxqCz3nHhIS8hXlge6vE0U
-	DAvkw3w0fBjUKNaFhXB6t+aKEDSC0g77JLutwJ404lbxqi9e7sfDrWsKxGtCh6fuGAw5o73lP7E
-	T+2DfOhnkzT4SZxL1zpeuHNL8LktoC48IjxoMsAFcyDa5SNyjsmDB+CRcAJhep6GdWHWr2ts40B
-	Jt6VnRTr6NRvVMFoNH/cThYx9n/5PpiPe7lSLK0/U8Z/PsDGEnlqi1wiSoTaBZSCh/o7KiUNZDz
-	alEF5Ihg3aCG1qIikAxmdrNTLzHk4SZivEo6qet7IFtyfWXrZGD6kFT2l0Yrg29hEE7f42+2ld3
-	/eicY47MGQZawidQpD3sXM36e0PInWB1/6gDJ2e99/g8ogD6enARn5+NmsCfQ4mnli2GXqwTQuL
-	0gtbLm5TsT0KOL+xwg0kpPjlHH6oy0CU5iBLaQ/RTauSax24k1hnNiYyjOg5mxjilpAPCVkJCRf
-	Ll9JUkHM4vPAcCYVcbEiKQjVDuno9PCmtxVYnu8jFudqqEXXBpzByR6hT4lqn9U=
-X-Received: by 2002:a05:600c:6819:b0:493:f783:c46a with SMTP id 5b1f17b1804b1-49cdd41ca5amr23361785e9.6.1788218137195;
-        Mon, 31 Aug 2026 16:15:37 -0700 (PDT)
-Received: from unknown748F3CBA5068 (dynamic-2a02-3100-acb9-0201-68d0-34d2-ad1a-175a.310.pool.telefonica.de. [2a02:3100:acb9:201:68d0:34d2:ad1a:175a])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48442d6e9cfsm957147f8f.22.2026.08.31.16.15.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2026 16:15:36 -0700 (PDT)
-Date: Tue, 1 Sep 2026 01:15:33 +0200
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: stable@vger.kernel.org, Florian Westphal <fw@strlen.de>, 
-	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Mukul Sikka <mukul.sikka@broadcom.com>, Keerthana K <keerthana.kalyanasundaram@broadcom.com>, 
-	Stefano Brivio <sbrivio@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Brennan Lamoreaux <brennan.lamoreaux@broadcom.com>, Bin Lan <lanbincn@139.com>, XiaoHua Wang <561399680@139.com>, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6.1.y 6.6.y] netfilter: nft_set_pipapo: restore cloned
- mapping table memcg accounting
-Message-ID: <apYKQbvpIWvY8Jqi@gmail.com>
-References: <20260831194905.45045-1-kmehltretter@gmail.com>
- <apX9AZoNkpVrBMIE@chamomile>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kpevG456"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAD181F00A3D;
+	Tue,  1 Sep 2026 01:21:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788225718;
+	bh=ry3n3u/QgT+ueyUZE3MNBWNcN9sxIUHDI00PpIe/2SQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=kpevG456BrJchHPPJsynXc6IjfzzXMaAh9EBv7GX7BUdr3GcsfSeuCmZACVB1nBTZ
+	 G9yyWEYj2MuoP0If1QVZEglLUMrTQz4xyLZPQvHqMLRk7D70vzCZVb+lTF4rKcVOlE
+	 cL5WzzOxEKwRRHTLMCdiWDuWt0W5Uv2da1XBmrPILoGtp2k4NS4/Yj3ePNyUsjWlyv
+	 08/6DgmvLISPgkFwk8FgrPuvCDycOr7veTDhRMOl4+oXaLuReupClTR2O13mDlpQma
+	 +51Cv3nwcXtkR9+/afBrmfMoDp0rXZwAEBFCKCGuvCkE85dCx41nZ77napNFgzBgfL
+	 xmFGXGcZ4K/Sg==
+From: Sasha Levin <sashal@kernel.org>
+To: stable@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Martin KaFai Lau <kafai@fb.com>,
+	Wei Wang <weiwan@google.com>,
+	David Ahern <dsahern@kernel.org>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	"Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>,
+	Kuniyuki Iwashima <kuniyu@google.com>
+Subject: Re: [PATCH 6.6.y 0/4] ipv4: start using dst_dev_rcu()
+Date: Mon, 31 Aug 2026 21:21:47 -0400
+Message-ID: <20260831-daily-reply-0003-dst-dev-rcu-6-6@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260831-cve-2025-40074-6-6-v1-0-027e51b162a3@bootlin.com>
+References: <20260831-cve-2025-40074-6-6-v1-0-027e51b162a3@bootlin.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <apX9AZoNkpVrBMIE@chamomile>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Sep 01, 2026 at 12:15:29AM +0100, Pablo Neira Ayuso wrote:
-> > 
-> > Fixes: a4983e89e3b1 ("netfilter: nft_set_pipapo: do not rely on ZERO_SIZE_PTR")
-> > Fixes: 32bad10de347 ("netfilter: nft_set_pipapo: do not rely on ZERO_SIZE_PTR")
-> 
-> This two Fixes: tag do not make any sense to me.
+> Three other patches are required to be able to apply cleanly the final patch.
+>
+> Eric Dumazet (4):
+>       net: dst: add four helpers to annotate data-races around dst->dev
+>       ipv4: adopt dst_dev, skb_dst_dev and skb_dst_dev_net[_rcu]
+>       net: dst: introduce dst->dev_rcu
+>       ipv4: start using dst_dev_rcu()
 
-The two Fixes tags are for the two stable branches:
+Queued the series for 6.6, thanks.
 
-- a4983e89e3b1 is the 6.1.y backport
-- 32bad10de347 is the 6.6.y backport
-
-Both backports changed this allocation from GFP_KERNEL_ACCOUNT back to
-GFP_KERNEL, which introduced the regression. The accounting was correct
-before these commits.
-
-I used one Fixes tag for each target tree. I am not sure what the usual
-preference is here: one common patch with both Fixes tags, or separate
-patches for each tree. Which do you prefer?
-
+-- 
 Thanks,
-Karl
+Sasha
