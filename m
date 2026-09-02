@@ -1,52 +1,52 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0CD23B0594
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Sep 2026 07:44:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEE86369D7C
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Sep 2026 07:49:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788335063; cv=none; b=YzvLisWBBpVEoYYVAlXPC6iaCdUAbXXlJ2bptTsbFGLaXpqFhQFUtxwaEl9AMCfwNheodtzWBOQigOLTErSSFNMl7NKVCVPYwk6Wxtq18eRHGNEqyRTBwR54V4g4Kl/+ONhF9GYO0VkSZ8mIGAIDgURQIc70N2mv0tk3Ia1/UFw=
+	t=1788335363; cv=none; b=Q0IdY1t0+8tnQQ0LEfJ3OCnTGaJGGOMFfIAoNzAAWIeGAb5fwpzi4tIwxINaBeRMU3RzWVZAik9e4nE4EdFU2maxp7kPetD07Z34Oeo57ePOmpErhO4EhLpGJv9OQshsVX+V5Dz2iRIJTecXZEGOW/WmKc5ISLVbNi3jleRNrvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788335063; c=relaxed/simple;
-	bh=lUEXN/cNnins6NCxbN6mJ0lPlyW/2bgCO+2TQmEP8uQ=;
+	s=arc-20240116; t=1788335363; c=relaxed/simple;
+	bh=0EVQaEgUMnWD6ndhjWCHV79jwEKT8zctodQwsAxi7zE=;
 	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=A2FcuX1zlR+89CqaPEitNeI/rYKxmgX0BV1WmFCGU8oNxlQhJU7vooFLErkRFUxTBIUTPKRCFYAYIn1U9/BfSbmebNbl6k800E4BEl1NmeHcGgB2MKp0mFl1rWmRBfs+NzTUXEBp2seVpOdRos695Q0keyC7YspVH8CPG1tfTCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=NP6/E/Dn; arc=none smtp.client-ip=148.6.0.50
+	 MIME-Version:Content-Type; b=EEk8iMOdKV+3YSGs5h+sKhC7MrbM7rv3bzlRcClZGR8YAIPDiB8kHopm05gFsy0FxIEGZRB8F49bX5DxcWC5HdounjO16KiBlh9g5qDMqAp+XyhNxMUsJiDqgIUNvGTL+Srbs2bW87fGFuxk1tJtTeLHjpTt+LzUpe4Uk3WDQus=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=sEKswZAY; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="NP6/E/Dn"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="sEKswZAY"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4hZZJv3brKzGFDCb;
-	Wed, 02 Sep 2026 09:35:43 +0200 (CEST)
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4hZZT52Vj6z7s7x7;
+	Wed, 02 Sep 2026 09:42:49 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:message-id
 	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1788334541; x=1790148942; bh=PjaPzGBA47
-	GRcaJkFrJFDciCt6ozUVCqpBmydIZNOT8=; b=NP6/E/Dnk1WLocRhhtbKdq0Msb
-	FHnf7eEtOWgyTAiA7k277U4kgMoesmvMoDPwP5V/L2vwVQO0xMdE8CfBdmO4HlN0
-	xJssg/2kJiy7B5GlVcNkciswMDEm+Hq3fMfSgPUlWvW8f06qTKXhtHgA4pm8KJq0
-	34+66uhsBpQNeQshc=
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id 3b-tOX7i7BP8; Wed,  2 Sep 2026 09:35:41 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4hZZJs3Sk8zGFDCN;
-	Wed, 02 Sep 2026 09:35:41 +0200 (CEST)
+	:received; s=20151130; t=1788334967; x=1790149368; bh=/TwLLihAU2
+	PStC5I1kCAEv7kXo22vLx4PylhvgetLOI=; b=sEKswZAYuV2xG6ShlKuxRxiKr5
+	VTyul5kM269VJUgUhSN6vOq2w2iAUBexom2DVvfD10PscKoJbcbELEwf3v1eeHwa
+	2RO9AxU0AzXE2XAPYE0Zwv2C4xM+rnQXnxp6gcC5bTTNdoO3wMzNA+uvAhHB7K3g
+	wUErM2u2/gxVacgNc=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id tEiLd3gfsUKW; Wed,  2 Sep 2026 09:42:47 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4hZZT32FMcz7s7x6;
+	Wed, 02 Sep 2026 09:42:47 +0200 (CEST)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 63806340CFD; Wed, 02 Sep 2026 09:35:41 +0200 (CEST)
+	id 3DA0E340CFD; Wed, 02 Sep 2026 09:42:47 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 6111B340CFC;
-	Wed, 02 Sep 2026 09:35:41 +0200 (CEST)
-Date: Wed, 2 Sep 2026 09:35:41 +0200 (CEST)
+	by blackhole.kfki.hu (Postfix) with ESMTP id 3B1F7340CFC;
+	Wed, 02 Sep 2026 09:42:47 +0200 (CEST)
+Date: Wed, 2 Sep 2026 09:42:47 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: Florian Westphal <fw@strlen.de>
 cc: netfilter-devel@vger.kernel.org, Jozsef Kadlecsik <kadlec@netfilter.org>
 Subject: Re: [PATCH nf v3 3/5] netfilter: ipset: replace internal hash table
  with rhashtable
 In-Reply-To: <apem1I-sJWVSfMT8@strlen.de>
-Message-ID: <5d837288-85be-4c12-1889-44d193793f5c@blackhole.kfki.hu>
+Message-ID: <b3255f47-9f9e-a377-d3b0-d15f254740e2@blackhole.kfki.hu>
 References: <20260828152256.8759-1-fw@strlen.de> <20260828152256.8759-4-fw@strlen.de> <apem1I-sJWVSfMT8@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -142,17 +142,15 @@ On Wed, 2 Sep 2026, Florian Westphal wrote:
 >
 > Or we delay this while I work on an rhashtable_flush() that can
 > detach internal hash memory from the rhashtable set to avoid this.
->
+
+Ignore my previous mail. Better delay it if it can be solved in 
+rhashtable_flush(). That'd be a nice solution.
+
 > I have no idea what the best course of action is here, but adding
 > an extra data structure (list for instance) is something I want to
 > avoid.
 
-What do you think about swapping? Create a new empty set, swap with the 
-one to be flushed and after the RCU grace period delete the swapped out 
-set. As far as I see the only downside is that it requires successful 
-memory allocation.
-
-> All other LLM comments were, as far as I could tell, hallucinations.
+Yes, I agree completely.
 
 Best regards,
 Jozsef
