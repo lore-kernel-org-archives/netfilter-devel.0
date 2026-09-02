@@ -1,104 +1,125 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01DB7351C27
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Sep 2026 21:55:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCD801FC110
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Sep 2026 04:32:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788299747; cv=none; b=j6QFI+ey8acQJX2eqyoSzatpWBpma7/d3oneiXKoSIXPanJdwNSqKAbwAM1Vb3VuM9uv/chv74vkAEB7CcRi5k8tWp0ZWfWNlRcwnt+ySgOE3sNLOoy2wRpzXkrDX74LlnTKp9hLXakhenyPAM0YSwaFeSBIqM/HGgr+fB283EQ=
+	t=1788323552; cv=none; b=jx8f0ZDCcpJ5ax4R9F/VSrZjytRItCopb2CoQVavuoIdotC5eWNGZLTboTNNbEFSml8BUfTna2mMAPqEWp7LbfGrKXFcKoAfXF5CP5mSnXsRghbhhGWpccozZS/sjFZxswSKA4Ai7QELw8haYt+uNNwIoJ85d+bzOSHpaNtRic0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788299747; c=relaxed/simple;
-	bh=qyjYbO1iAM2QBCqnjIgXvx1xweLuWcGAfcsIfxmx66E=;
+	s=arc-20240116; t=1788323552; c=relaxed/simple;
+	bh=ag6wBx6EU6jpVF7fTQVV/XorcQjc/a5Dx3PiZH0js64=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CVaM0bGlk7sybCZW+3FkcU/WT/l9GZm/6yoInvum27mVwWok2H51fLWepAt5KrqgddmPhCYYXPE24LbXw52cbqpCSNx9Za/6mKLbS5iAXu9zqR2yzc3rtzu3/TSaEwNojubhmPFMmlI4acZDzWBusW5OoK7+3NiozSyf8kq8iF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LFpEDwLC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LFpEDwLC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788299742;
-	bh=gwuzn8mAzXuC2W27xXJy3pQm92C4NbHCT0cgzHPofbI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LFpEDwLCwAoicBuFAJUNtvVlJXMquviWd2DnXvt/yrF8xotDYKaj1L04HXRnQ+M5U
-	 sHlaW7OBcQ1nEVetatkrKtTf5rfi6xmhRrnu7LzHxhEuFGM6Qm44hOF3bnRPXnKdTK
-	 olb8BBWdPNqZtK4ambTNO2EgVpdjm4emyWa4gYWDD8QjTpLVYyMMScNtcB8M9r3UUG
-	 4g1/DfVmcqovcCkop1yYkSUndm2poOBaLidd6y3a2hgrWFfAxc8KeFUdlAvsjtgboB
-	 lu5aM6C491Rym89vPfQK8dxurIbaeDtqeH70eDeA72Y2qqSnRNeKRtTvJHyBvzm6u+
-	 VBbEgkBPtD0RQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A74616007A;
-	Tue,  1 Sep 2026 23:55:42 +0200 (CEST)
-Date: Tue, 1 Sep 2026 23:55:39 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=nhMYu8179OXsL4615taJd1eyWD/Of8aEIhRYEaGYlh46DX+CrAZN1eWW4LpYxLMdEhMo9gd6baZEIM4UfRj6zZtI97MlyNrTLR896ara8zGHDXaOY7D/0Sz9eJY3eFkN+lH1r1Rn8SaUuHnfT67it/AuwMegSP8sIT/zZIpgnSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id D689B60405; Wed, 02 Sep 2026 06:32:20 +0200 (CEST)
+Date: Wed, 2 Sep 2026 06:32:20 +0200
+From: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: Re: [PATCH nf] netfilter: nf_nat: unregister and release hooks on
- error
-Message-ID: <apdJ27G-YYAkr7fa@chamomile>
-References: <20260901213519.945074-1-pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Subject: Re: [PATCH nf v3 3/5] netfilter: ipset: replace internal hash table
+ with rhashtable
+Message-ID: <apem1I-sJWVSfMT8@strlen.de>
+References: <20260828152256.8759-1-fw@strlen.de>
+ <20260828152256.8759-4-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260901213519.945074-1-pablo@netfilter.org>
+In-Reply-To: <20260828152256.8759-4-fw@strlen.de>
 
-On Tue, Sep 01, 2026 at 11:35:19PM +0200, Pablo Neira Ayuso wrote:
-> After the base nat hooks are registered, the first nested nat hook is
-> added through nf_hook_entries_insert_raw() and ->users is bumped.
-> 
-> However, sashiko reports that nf_hook_entries_insert_raw() fails, then
-> ->users count remains at zero and nf_nat_unregister_fn() could hit
-> WARN_ON() since base nat hooks with no users is unexpected in the
-> unregistration path.
-
-Too fast, this is botched. I'll provide v2.
-
-> Fixes: 1cd472bf036c ("netfilter: nf_nat: add nat hook register functions to nf_nat")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Florian Westphal <fw@strlen.de> wrote:
+> Assisted-by: Claude:claude-opus-4-6
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  net/netfilter/nf_nat_core.c | 18 ++++++++++++++----
->  1 file changed, 14 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index 8ac326e1eb5b..71027754b5ab 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -1240,15 +1240,25 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
->  	nat_ops = nat_proto_net->nat_hook_ops;
->  	priv = nat_ops[hooknum].priv;
->  	if (WARN_ON_ONCE(!priv)) {
-> -		mutex_unlock(&nf_nat_proto_mutex);
-> -		return -EOPNOTSUPP;
-> +		ret = -EOPNOTSUPP;
-> +		goto err_out;
->  	}
->  
->  	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
-> -	if (ret == 0)
-> -		nat_proto_net->users++;
-> +	if (ret)
-> +		goto err_out;
->  
-> +	nat_proto_net->users++;
->  	mutex_unlock(&nf_nat_proto_mutex);
+>  v3:
+>  serialize rhltable insertion with set->lock, else we can inject identical elements.
+>  nit: also rename mtype_rht_size toke-replace
+>  add kdoc comment to say that mtype_flush cannot guarantee set is empty
+>  after flush (parallel re-add).
+>  I ignored the LLM review wrt 'skipped elements' on set walks, with
+>  parallel mutations (internal resizes, deletes) a stable walk would
+>  require significantly more work, such as keeping elements on a
+>  dedicated list.  It should be ok as-is.
+
+[..]
+
+> -/* Flush a hash type of set: destroy all elements */
+> +/**
+> + * mtype_flush() - Flush a hash set type by destroying all elements.
+> + * @set: Pointer to the ip_set.
+> + *
+> + * Because other CPUs may concurrently insert new entries into the table
+> + * while flush is in progress, there is no guarantee that the table will
+> + * be empty upon return.
+> + */
+>  static void
+>  mtype_flush(struct ip_set *set)
+>  {
+>  	struct htype *h = set->data;
+> -#ifdef IP_SET_HASH_WITH_NETS
+> -	struct net_prefixes *nets;
+> -#endif
+> -	struct htable *t;
+> -	struct hbucket *n;
+> -	u32 r, i;
+> -
+> -	t = ipset_dereference_nfnl(h->table);
+> -	for (r = 0; r < ahash_numof_locks(t->htable_bits); r++) {
+> -		spin_lock_bh(&t->hregion[r].lock);
+> -		for (i = ahash_bucket_start(r, t->htable_bits);
+> -		     i < ahash_bucket_end(r, t->htable_bits); i++) {
+> -			n = __ipset_dereference(hbucket(t, i));
+> -			if (!n)
+> +	struct rhashtable_iter hti;
+> +	struct mtype_rht_elem *e;
+> +	unsigned int dropped;
 > +
-> +	return 0;
-> +err_out:
-> +	if (nat_proto_net->users == 0) {
-> +		nf_unregister_net_hooks(net, nat_ops, ops_count);
-> +		mutex_unlock(&nf_nat_proto_mutex);
-> +		kfree_rcu(nat_ops, rcu);
-> +	}
+> +	ipset_hash_walk_enter(h, &hti);
+> +restart:
+> +	dropped = 0;
+> +	rhashtable_walk_start(&hti);
 > +
->  	return ret;
->  }
->  
-> -- 
-> 2.47.3
-> 
-> 
+> +	while ((e = rhashtable_walk_next(&hti))) {
+> +		if (IS_ERR(e)) {
+> +			if (PTR_ERR(e) == -EAGAIN)
+>  				continue;
+> -			if (set->extensions & IPSET_EXT_DESTROY)
+> -				mtype_ext_cleanup(set, n);
+> -			/* FIXME: use slab cache */
+> -			rcu_assign_pointer(hbucket(t, i), NULL);
+> -			kfree_rcu(n, rcu);
+> +			break;
+> +		}
+> +		if (ipset_hash_remove(h, e))
+> +			continue; /* Concurrent delete? skip */
+> +		mtype_del_cidr_all(set, h, &e->elem);
+> +		ip_set_ext_destroy(set, &e->elem);
+> +		kfree_rcu(e, rcu);
+> +
+> +		if (dropped++ > 128 && need_resched()) {
+> +			rhashtable_walk_stop(&hti);
+> +			cond_resched();
+> +			goto restart;
+
+As expected this triggers reject patterns in LLM.
+
+I can go back to v1, which had no restart, which in turn triggered
+'softirq lockup with large sets' reject patterns, but doesn't have
+the "may skip elements" "problem".
+
+Or we delay this while I work on an rhashtable_flush() that can
+detach internal hash memory from the rhashtable set to avoid this.
+
+I have no idea what the best course of action is here, but adding
+an extra data structure (list for instance) is something I want to
+avoid.
+
+All other LLM comments were, as far as I could tell, hallucinations.
