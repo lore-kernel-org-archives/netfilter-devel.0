@@ -1,154 +1,333 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81D883CFF73
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Sep 2026 10:08:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.133.124
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788343733; cv=pass; b=psW2LF41ge3UMOG5y+CYm/C2Pmk0x/EEuLlV0QFQXU3JarSladVhUfE0tf5nWngcVAiMxpYPtdDh5sbsjPBt9vWnDGrjEeHAf2hGTXTSez7JERHK9iLIyk6hTJHBS+9Bdl6PnVjZZ0CwQF2s11wjeioiyBDRSEk7glqxuo3MgyM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788343733; c=relaxed/simple;
-	bh=e22SUgGgIJ3poJkGI8HTllTE/j2hDqd/FF+MOcjqrxQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YyzTPq6D0IXmZcOZOweLXOxc0xW8TSnRDvc3Nb7dEqWpU5g8+fYehzSYIqeBgzUExuUDdd2PpKBDlgy3mR9iXH5SjfypozkqsQ9Q2nGoqdSDQj1vUbTUFGd/glHpLdEwb7qvsATtxzmNSEO8HXiWL4f2rW+61TxvQijDeYfqKMc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=dfL+csT0; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=nMnUnst2; arc=pass smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 520B2469848
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Sep 2026 10:41:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788345722; cv=none; b=t6s9MJQUMlWym7At9gUCxEqqSR2olZ8aJ8VBSRUUYazzbsGXztE6CntFhWLjboiqmL/IO1aTF6949/ZDmcOq8ZIR059yemp0oL7IexDxLAVdcwb83TnaDcbt+6z11zAvNer+5mE6N/YEsCRQeOcSCtDe2nIOLGhydZCOauZCEdM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788345722; c=relaxed/simple;
+	bh=Ll7zDsoVWdM/3iPBBOfp1B425GtkFjp1mKvE0Vi5pdg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f8vs/+LzqaprILMh9DqYGI9ULjcFXIlzGO0Y0tfg/LoIbZ3hHVzLjhZlODDgOnNLHa4fvfXNptiedhf/xyRmBgRgpvhQHnWmwERHfmB/SXLsVOGUU8Z9SZjHKIEqpbqXOmMBye8Uo3Lya/BTxc1LCYeqzvWaG6CjpYFGEVRD/Y0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=MxSnB7/y; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dfL+csT0";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="nMnUnst2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1788343730;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=e22SUgGgIJ3poJkGI8HTllTE/j2hDqd/FF+MOcjqrxQ=;
-	b=dfL+csT0Nr7xjunVMrWBZlNCiQt7UH7K6PChQBnNvuEuySRDckDlJ6slanlDe6FfbOf1WG
-	78itl4bxceY85d3W8oPm10HVAdyTciIwX6j7zoi3tgt1m2OvVDv+2/shiuKCGQ4svhYPtf
-	xh9S8YZvYeJq+V7NubwuiFxdRO1l56M=
-Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
- [209.85.167.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-358-ZB5SoaU2PVutq4_QFxDTzw-1; Wed, 02 Sept 2026 06:08:48 -0400
-X-MC-Unique: ZB5SoaU2PVutq4_QFxDTzw-1
-X-Mimecast-MFC-AGG-ID: ZB5SoaU2PVutq4_QFxDTzw_1788343727
-Received: by mail-lf1-f71.google.com with SMTP id 2adb3069b0e04-5b5e2f313cfso429348e87.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Sep 2026 03:08:48 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788343727; cv=none;
-        d=google.com; s=arc-20260327;
-        b=LDNE0udWjLAqZ6vpJRWwkPN2BcTifJHlT6Lc1VjT3lnS6oCaLX5D2Syc8IV6iHjPRJ
-         K9IcdMr/RaAjhEGsh2cHXqpQHz3L1MJ39ZAmCJMsGF5qnfe8YfPJPFutx+e/EfwY+WgE
-         gLUlLLcEG6Lc+cORjrOstLf24tWU+jbwj03PkKQe6Ilgndt3GNZaEqBfiNwDORokGF8V
-         1z2RIDZWrnocSJ6IrOW4UhogrGPcQZMWVIdjfg+JGpA7bDQrMKwLPewHnP8j3c/N0rZQ
-         lzlMFcr6VvyWE5rxARHJEQuiDORSEfMRyDXaCIVyHHxZR/2LSXSONxc8k1qBb/cCNXzl
-         X9GQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=e22SUgGgIJ3poJkGI8HTllTE/j2hDqd/FF+MOcjqrxQ=;
-        fh=m9ErU9OwZrBIFaNm+ZmOs7sTf7zhCMNlFnda7pw9/P8=;
-        b=BzmIM8ZFfT4E1eDCSfA5GS3/bBILMPpaXBE9iAyrHo7ms/jPTQxUbvts78C6v54+ZL
-         YCFd+aFvY80EY+hddGJ/a6V6WDHlIq6Hk1QFKpbGEYYS7U6FMbJEt4tGHkFkgqVUj+9g
-         fx8bnq/K0GSeFpdNP1GqQCaeZmUrue0K7Q8YMpVcp4pK8Pu7JvZSUTNvJYw2BaV0jrWn
-         TtO1ow9n43KGYtrvZ9vlzFsJIb8uj6XsfxeqcOPiQDyxTqClvTq/UnrrCnh5RXg0qJUu
-         GTr7DCzng02A+AsQ3pvj5LsQ+SLZg8TIkFZDd+YzKj5a/2k25zSACQgjVl9MKPCyyYEY
-         TuUQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1788343727; x=1788948527; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=e22SUgGgIJ3poJkGI8HTllTE/j2hDqd/FF+MOcjqrxQ=;
-        b=nMnUnst2Yx0Msk7zIwj8FUlVvIvyw9uUohHRoadFQgmiUybQVvU7oCdIqVzEYZXI/M
-         R9PlX28mc7pvtT/9xfKJzMhgP0PTJpjgWFFOywPEKu8Wb8D1RLWLQMuylGXcXThU9cLa
-         3zMR9vPguuUufi079763jqFqQvHkCgS0lt0zKRclnvLZwruKDfQJ0Z+4SYN9kf1rH3vJ
-         fHPqbyRlbodTVHZ1FEX5+98uxyF7o6UIKWqghYBjO+vL+AbAYkwLX4grefGEwnJmWfwT
-         ufVM2IAtguMhAV95KRuQPNcoyC8LAhXss087Rf4EYTqhnLqxjE8+J+9dLI9Lei5Mzg1a
-         hO8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788343727; x=1788948527;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=e22SUgGgIJ3poJkGI8HTllTE/j2hDqd/FF+MOcjqrxQ=;
-        b=HSnQbDxKpa4ne7ayXP6zXxG/wbgAwjomjs9TgyP1NB6vKUrH4HxLoug/2MY2glW1b0
-         KUIH+OA1nnwT0N5yDHs8f9dEvsCXZwvr5uKAcJXoNkSq2oBkz1VJaLiMOpE4cloG12Wb
-         6fnW52dRkb3adoZkIqFbtg7MKvMUpj5Z8Y09E4FN7FC8NlwBbDxXJHUBWQ7CY4e5hkzZ
-         wcWmxq7xnOBFTaj23ZrUHen99OyAwkLYGHVPbPhfttIyPvRB9WZKlplJf3QV6u+HHqag
-         dlMhEsqV+uKtIOWV5VJFi5ymi6DFI1ddjp97rnKErhFCOBzHFUzuqcxNndQEDNVf/fgw
-         4DZA==
-X-Forwarded-Encrypted: i=1; AKwUvBxQKLDKpoKhNvTzvUMyT5IYgACBC/qr4OuJ6uJ0jdu6v1A4smAG0lHdt3u40In+uNtZaZBxoU6T45wEWBeeIuc=@vger.kernel.org
-X-Gm-Message-State: AFuF++mMvJ0OXTLj2MSsVRamR8mjLEwLMweBznoEKcZNXobfWRmvC3yc
-	h4/fE8tY9NTxkS6jdGjGKFL7OBG765dNx3Fj7Pg3K8VzAEN3WuPsn6N9n9QEuV2QIICftlxiZVU
-	nrFffv9s7LQz/qmxvv9dDZn96rUS5hLScLObKccJ6/cuUcEenqXYtxo1z1qR63WVaQOh51AsejW
-	SDVf5KokLV3MuIcodCk47aH1YimRNug14M14ZQjCIYCO8P
-X-Gm-Gg: AYBFou1t2aufwDfWX/xvPQyth/BFi2zhXSeATnjPQOsdqX8SNvn2QfaWDSB94DTBFUx
-	GK+r7YWGSKaQKU2NEAlBNyRQ70V1d2eSeBgfQUdwsVMkH9M9LUGJPb+OJmx6AVWi3q/EukoFSf1
-	PFcx5339y1T0cDcKR6JcAgdmmJmMYv8kD+FGnbMQPWym2wESAmbPTpW2CK
-X-Received: by 2002:a05:6512:1252:b0:5ae:b0f0:c217 with SMTP id 2adb3069b0e04-5b60834b9bdmr1404119e87.9.1788343727393;
-        Wed, 02 Sep 2026 03:08:47 -0700 (PDT)
-X-Received: by 2002:a05:6512:1252:b0:5ae:b0f0:c217 with SMTP id
- 2adb3069b0e04-5b60834b9bdmr1404086e87.9.1788343726954; Wed, 02 Sep 2026
- 03:08:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="MxSnB7/y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=BSb/0IKyGGtL3E/chuk4wMEU+xuuxFw1zVhuCeCRPPQ=; b=MxSnB7/y+7SzbHyhZA87av1ka+
+	bnXMHnFtGSwOjFUnQgW+u8YmKEf+ycqgnKyl10G9wc6/LXdYhyer5z7rbqy+WolP5RdtgRPbg19Na
+	2BdZLfGbKAJlGwhp0S/IW1tBZXgsmvBdoRBXEibf/AZfaX70AlGasE4N8GcvlQVof2YbUNPslrrPS
+	EvsebjwlCJ4aVB2PrRR2fK8/xc2HCGpJkW4XYoofJUcvWU7xSiAy2I/U8ziIN3i8dV1RMeo4o/CzU
+	oDluG13BSk4nHEp/nwrUeWMZUtakkqrEQgBiGNuM3OaFjiLk9CZ0A8kSDAFaLv8vJJf7ryHzUzp7Q
+	HY9EOaXg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1x1iPc-000000004S9-3eei;
+	Wed, 02 Sep 2026 12:41:48 +0200
+Date: Wed, 2 Sep 2026 12:41:48 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH] netfilter: nf_tables: Fix netdev hook sanity checks
+Message-ID: <apf9bOiDOkMiyEej@orbyte.nwl.cc>
+References: <20260827204815.275949-1-phil@nwl.cc>
+ <40767533-e1b7-4beb-a1c9-c721123134ca@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260901115021.50057-1-ihuguet@riseup.net> <3d8ef804-efc1-46c7-bbb4-f1a6c26fed8b@kernel.org>
-In-Reply-To: <3d8ef804-efc1-46c7-bbb4-f1a6c26fed8b@kernel.org>
-From: =?UTF-8?B?w43DsWlnbyBIdWd1ZXQ=?= <ihuguet@redhat.com>
-Date: Wed, 2 Sep 2026 12:08:34 +0200
-X-Gm-Features: AcwNN1WWjJG56_BD-BZvMi7yD139IVOfUkEJ5Q53fMWfoLWzhUAroA5GHqaqbfc
-Message-ID: <CACT4oueX-g20hKft6Z1Aj3rNK2Fi7MYHZz=LdBd3RKWu+YK-0A@mail.gmail.com>
-Subject: Re: [PATCH net] net/ipv6: don't route packets with unknown source address
-To: Matthieu Baerts <matttbe@kernel.org>
-Cc: =?UTF-8?B?w43DsWlnbyBIdWd1ZXQ=?= <ihuguet@riseup.net>, 
-	David Ahern <dsahern@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Neal Cardwell <ncardwell@google.com>, Ido Schimmel <idosch@nvidia.com>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Simon Horman <horms@kernel.org>, 
-	Kuniyuki Iwashima <kuniyu@google.com>, Phil Sutter <phil@nwl.cc>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Fernando Fernandez Mancera <fmancera@suse.de>, Alexei Starovoitov <ast@kernel.org>, Junseo Lim <zirajs7@gmail.com>, 
-	Leon Hwang <leon.hwang@linux.dev>, Xuanqiang Luo <luoxuanqiang@kylinos.cn>, 
-	Willem de Bruijn <willemb@google.com>, Kees Cook <kees@kernel.org>, Qi Tang <tpluszz77@gmail.com>, 
-	Jeff Layton <jlayton@kernel.org>, Joe Damato <joe@dama.to>, Breno Leitao <leitao@debian.org>, 
-	Li RongQing <lirongqing@baidu.com>, "open list:VRF" <netdev@vger.kernel.org>, 
-	open list <linux-kernel@vger.kernel.org>, 
-	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>, 
-	"open list:NETFILTER" <coreteam@netfilter.org>, 
-	"open list:BPF [MISC] :Keyword:(?:b|_)bpf(?:b|_)" <bpf@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <40767533-e1b7-4beb-a1c9-c721123134ca@suse.de>
 
-On Tue, Sep 1, 2026 at 7:41=E2=80=AFPM Matthieu Baerts <matttbe@kernel.org>=
- wrote:
-> Thank you for looking at this, but I think your patch is causing
-> multiple KASAN warnings, e.g.
->
-> https://netdev-ctrl.bots.linux.dev/logs/vmksft/net-extra-dbg/results/8045=
-84/24-connect-deny-ipv6/stderr
->
-> And a few more, see:
->
-> https://netdev.bots.linux.dev/branch_deltas/net-next-2026-09-01--15-01.ht=
-ml
+Hi Fernando,
 
-As far as I can see all the warnings are in the tcp_v6_send_response
-function. I guess that sk may be a request socket there, so it's not
-valid to treat it as a inet_sk in all cases. I will send a v2 with the
-fix.
+On Tue, Sep 01, 2026 at 01:15:05PM +0200, Fernando Fernandez Mancera wrote:
+> On 8/27/26 10:48 PM, Phil Sutter wrote:
+> > Wildcard interface names were confused with non-wildcard ones or those
+> > matching the wildcard's prefix. Fix for odd behaviour when updating
+> > flowtable or netdev chain hook devices.
+> > 
+> > Unify behaviour between flowtable and netdev chain parsers by having
+> > both call the same parsing/validating code, also with old NFTA_HOOK_DEV
+> > attribute (which is still used for single hook updates by user space).
+> > 
+> > The validating code must distinguish between hooks being added or
+> > deleted (duplicates are ignored in the former case). Transport this info
+> > in a 'bool add' parameter, but rename the existing one with same name
+> > first since that actually reflects whether the code is parsing hooks for
+> > a new object or an existing one.
+> > 
+> > Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> > This is a follow-up to Fernando's "netfilter: nf_tables: fix device name
+> > and prefix match in hook lookup", sorting odd behaviour in similar,
+> > other cases, too. With his v4 and this patch in place, the new nftables
+> > shell tests pass for me.
+> > ---
+> >   net/netfilter/nf_tables_api.c | 102 +++++++++++++++++++++++-----------
+> >   1 file changed, 71 insertions(+), 31 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index 500ef483e485..8fac88f07d74 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -2450,10 +2450,44 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+> >   	return NULL;
+> >   }
+> >   
+> > +static struct nft_hook *
+> > +nf_tables_parse_netdev_hook(struct net *net,
+> > +			    const struct nlattr *tmp,
+> > +			    struct list_head *hook_list,
+> > +			    struct list_head *old_hook_list,
+> > +			    bool prefix, bool add)
+> > +{
+> > +	struct nft_hook *hook;
+> > +
+> > +	hook = nft_netdev_hook_alloc(net, tmp, prefix);
+> > +	if (IS_ERR(hook))
+> > +		return hook;
+> > +
+> > +	/* Reject new hooks which overlap */
+> > +	if (nft_hook_list_find(hook_list, hook, false)) {
+> > +		nft_netdev_hook_free(hook);
+> > +		return ERR_PTR(-EEXIST);
+> > +	}
+> > +	/* Skip this exact duplicate when adding */
+> > +	if (nft_hook_list_find(old_hook_list, hook, true)) {
+> > +		if (add) {
+> > +			nft_netdev_hook_free(hook);
+> > +			return NULL;
+> > +		}
+> > +	/* Reject partial overlaps in either case */
+> > +	} else if (nft_hook_list_find(old_hook_list, hook, false)) {
+> > +		nft_netdev_hook_free(hook);
+> > +		return ERR_PTR(add ? -EEXIST : -ENOENT);
+> > +	}
+> > +	return hook;
+> > +}
+> > +
+> >   static int nf_tables_parse_netdev_hooks(struct net *net,
+> >   					const struct nlattr *attr,
+> >   					struct list_head *hook_list,
+> > -					struct netlink_ext_ack *extack)
+> > +					struct list_head *old_hook_list,
+> > +					struct netlink_ext_ack *extack,
+> > +					bool add)
+> >   {
+> >   	struct nft_hook *hook, *next;
+> >   	const struct nlattr *tmp;
+> > @@ -2473,18 +2507,17 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
+> >   			goto err_hook;
+> >   		}
+> >   
+> > -		hook = nft_netdev_hook_alloc(net, tmp, prefix);
+> > +		hook = nf_tables_parse_netdev_hook(net, tmp, hook_list,
+> > +						   old_hook_list, prefix, add);
+> > +		if (!hook)
+> > +			continue;
+> > +
+> >   		if (IS_ERR(hook)) {
+> >   			NL_SET_BAD_ATTR(extack, tmp);
+> >   			err = PTR_ERR(hook);
+> >   			goto err_hook;
+> >   		}
+> > -		if (nft_hook_list_find(hook_list, hook, false)) {
+> > -			NL_SET_BAD_ATTR(extack, tmp);
+> > -			nft_netdev_hook_free(hook);
+> > -			err = -EEXIST;
+> > -			goto err_hook;
+> > -		}
+> > +
+> >   		list_add_tail(&hook->list, hook_list);
+> >   		n++;
+> >   
+> > @@ -2513,13 +2546,17 @@ struct nft_chain_hook {
+> >   
+> >   static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
+> >   				  struct list_head *hook_list,
+> > -				  struct netlink_ext_ack *extack, u32 flags)
+> > +				  struct list_head *old_hook_list,
+> > +				  struct netlink_ext_ack *extack, u32 flags,
+> > +				  bool add)
+> >   {
+> >   	struct nft_hook *hook;
+> >   	int err;
+> >   
+> >   	if (tb[NFTA_HOOK_DEV]) {
+> > -		hook = nft_netdev_hook_alloc(net, tb[NFTA_HOOK_DEV], false);
+> > +		hook = nf_tables_parse_netdev_hook(net, tb[NFTA_HOOK_DEV],
+> > +						   hook_list, old_hook_list,
+> > +						   false, false);
+> >   		if (IS_ERR(hook)) {
+> >   			NL_SET_BAD_ATTR(extack, tb[NFTA_HOOK_DEV]);
+> >   			return PTR_ERR(hook);
+> > @@ -2528,7 +2565,8 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
+> >   		list_add_tail(&hook->list, hook_list);
+> >   	} else if (tb[NFTA_HOOK_DEVS]) {
+> >   		err = nf_tables_parse_netdev_hooks(net, tb[NFTA_HOOK_DEVS],
+> > -						   hook_list, extack);
+> > +						   hook_list, old_hook_list,
+> > +						   extack, add);
+> >   		if (err < 0)
+> >   			return err;
+> >   
+> > @@ -2544,8 +2582,10 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
+> >   static int nft_chain_parse_hook(struct net *net,
+> >   				struct nft_base_chain *basechain,
+> >   				const struct nlattr * const nla[],
+> > -				struct nft_chain_hook *hook, u8 family,
+> > -				u32 flags, struct netlink_ext_ack *extack)
+> > +				struct nft_chain_hook *hook,
+> > +				struct list_head *old_hook_list, u8 family,
+> > +				u32 flags, struct netlink_ext_ack *extack,
+> > +				bool add)
+> >   {
+> >   	struct nftables_pernet *nft_net = nft_pernet(net);
+> >   	struct nlattr *ha[NFTA_HOOK_MAX + 1];
+> > @@ -2623,7 +2663,8 @@ static int nft_chain_parse_hook(struct net *net,
+> >   
+> >   	INIT_LIST_HEAD(&hook->list);
+> >   	if (nft_base_chain_netdev(family, hook->num)) {
+> > -		err = nft_chain_parse_netdev(net, ha, &hook->list, extack, flags);
+> > +		err = nft_chain_parse_netdev(net, ha, &hook->list,
+> > +					     old_hook_list, extack, flags, add);
+> >   		if (err < 0) {
+> >   			module_put(type->owner);
+> >   			return err;
+> > @@ -2756,6 +2797,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
+> >   	if (nla[NFTA_CHAIN_HOOK]) {
+> >   		struct nft_stats __percpu *stats = NULL;
+> >   		struct nft_chain_hook hook = {};
+> > +		LIST_HEAD(empty);
+> >   
+> >   		if (table->flags & __NFT_TABLE_F_UPDATE)
+> >   			return -EINVAL;
+> > @@ -2763,8 +2805,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
+> >   		if (flags & NFT_CHAIN_BINDING)
+> >   			return -EOPNOTSUPP;
+> >   
+> > -		err = nft_chain_parse_hook(net, NULL, nla, &hook, family, flags,
+> > -					   extack);
+> > +		err = nft_chain_parse_hook(net, NULL, nla, &hook, &empty,
+> > +					   family, flags, extack, true);
+> >   		if (err < 0)
+> >   			return err;
+> >   
+> > @@ -2916,7 +2958,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+> >   
+> >   		basechain = nft_base_chain(chain);
+> >   		err = nft_chain_parse_hook(ctx->net, basechain, nla, &hook,
+> > -					   ctx->family, flags, extack);
+> > +					   &basechain->hook_list,
+> > +					   ctx->family, flags, extack, true);
+> >   		if (err < 0)
+> >   			return err;
+> >   
+> > @@ -2936,7 +2979,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+> >   					ops->hook	= basechain->ops.hook;
+> >   				}
+> >   
+> > -				if (nft_hook_list_find(&basechain->hook_list, h, false)) {
+> > +				if (nft_hook_list_find(&basechain->hook_list, h, true)) {
+> >   					list_del(&h->list);
+> >   					nft_netdev_hook_free(h);
+> >   					continue;
+> > @@ -3246,7 +3289,8 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
+> >   		return -EOPNOTSUPP;
+> >   
+> >   	err = nft_chain_parse_hook(ctx->net, basechain, nla, &chain_hook,
+> > -				   ctx->family, chain->flags, extack);
+> > +				   &basechain->hook_list, ctx->family,
+> > +				   chain->flags, extack, false);
+> >   	if (err < 0)
+> >   		return err;
+> >   
+> > @@ -8866,7 +8910,8 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+> >   				    const struct nlattr * const nla[],
+> >   				    struct nft_flowtable_hook *flowtable_hook,
+> >   				    struct nft_flowtable *flowtable,
+> > -				    struct netlink_ext_ack *extack, bool add)
+> > +				    struct netlink_ext_ack *extack,
+> > +				    bool new, bool add)
+> >   {
+> >   	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1];
+> >   	struct nf_hook_ops *ops;
+> > @@ -8882,7 +8927,7 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+> >   	if (err < 0)
+> >   		return err;
+> >   
+> > -	if (add) {
+> > +	if (new) {
+> >   		if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
+> >   		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
+> >   			NL_SET_BAD_ATTR(extack, nla[NFTA_FLOWTABLE_NAME]);
+> > @@ -8918,7 +8963,8 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+> >   		err = nf_tables_parse_netdev_hooks(ctx->net,
+> >   						   tb[NFTA_FLOWTABLE_HOOK_DEVS],
+> >   						   &flowtable_hook->list,
+> > -						   extack);
+> > +						   &flowtable->hook_list,
+> > +						   extack, add);
+> >   		if (err < 0)
+> >   			return err;
+> >   	}
+> > @@ -9112,17 +9158,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+> >   	int err;
+> >   
+> >   	err = nft_flowtable_parse_hook(ctx, nla, &flowtable_hook, flowtable,
+> > -				       extack, false);
+> > +				       extack, false, true);
+> >   	if (err < 0)
+> >   		return err;
+> >   
+> >   	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
+> > -		if (nft_hook_list_find(&flowtable->hook_list, hook, false)) {
+> > -			list_del(&hook->list);
+> > -			nft_netdev_hook_free(hook);
+> > -			continue;
+> > -		}
+> > -
+> 
+> Hi Phil,
+> 
+> Hm.. we should be able to also get rid of this check in 
+> nf_tables_updchain() no? Or am I missing something? AFAICS, this is 
+> already validated in the parse function with your patch.
+> 
+>                                  if 
+> (nft_hook_list_find(&basechain->hook_list, h, true)) {
+>                                          list_del(&h->list);
+>                                          nft_netdev_hook_free(h);
+>                                          continue;
+>                                  }
 
-Thanks!
+Good point! It is complicated, though:
 
+With netdev chains, we get either NFTA_HOOK_DEV or _DEVS attribute. I
+didn't want to mess with the code in nft_chain_parse_netdev too much, so
+I decided to always set 'add' parameter to false when calling
+nf_tables_parse_netdev_hook for _DEV attribute.
 
---=20
-=C3=8D=C3=B1igo Huguet
+Looking at it again, it seems possible to pass the real 'add' value and
+call list_add_tail conditionally in there. AIUI, IS_ERR(NULL) should
+evaluate to false, so that part does not need to be touched.
 
+I'll try that and see what LLM and test suites say about it. :)
+
+> Other than that, the patch looks good to me.
+
+Thanks, Phil
