@@ -1,327 +1,308 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010027.outbound.protection.outlook.com [52.101.201.27])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 939204B8DE2
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 14:39:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788446374; cv=none; b=bPAulmrvUzDeBtiKY6g7c27IDx6fUG7W5/gVuOxKM+WctGLkLL6cC8yXh8qrcV7n9ILBn5J3YREo7Rj+h6Ha/dJbwUB0g/3zyG769BBINen3Hpv+kMOP5fGpfjQCY98d9HFDg5kZSaYsh/8C1V4j/J/iZmx52oLdXjMHZCRZDdM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788446374; c=relaxed/simple;
-	bh=XdXnuPwFnYXnixHao68pJYRCGOPllzZpKxbNR4CqZWs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=O8ZwW2UsPGuKQb0u5cgQ8KNxbLzQXdaaMR7rsSL4PasAunzXg8/siHpfBDoArhA/+n/hwmnkY5qY/HPNSOxIST59/lhQ+6RllibDeJtN8/HVY1fvoWT2FYYVQ10qwQlbCRdhzprJuYSWZIDMWxDurZQ8t8SQSS+6w9WlQNrX4O4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=b9SfyVLS; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33333449B00;
+	Thu,  3 Sep 2026 14:56:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.27
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788447417; cv=fail; b=kUWADVSeN79qjcGWbY00aD4/XpMm+5n785/DD6B8F9oqkVncSWQGsmhLszGa/aaIsGEvMJ9jgYzWwhvaybqOFPQUmclWlTzRjjwOvxoFdNe28RXVZd6KvXp14UgcUD15+3mO67BsBQJuZRVgvte1zohIi70XyeyyWwIIF9cmDUg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788447417; c=relaxed/simple;
+	bh=HBpfbZrABma3nBhBy8xzDxuNQHS0kSRbzHyJKhn2X0o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=iw0nmu/8xZxI5wGEfATfsB+Y+4TcWizItp6d3WQFLaeEvt7A4xkDxMLg4E6RPiNwgzKT2rVwxgfLFrt4ktssQ3ZKTImjkp1VqTrYdGxurYbmqT2zS3xki7E0n+9xSOHM7sapbEcBEqzFcS/mW7dHsaOeCTwjkuXegwC/C6Mo/0c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=fail (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bNovHC8g reason="signature verification failed"; arc=fail smtp.client-ip=52.101.201.27
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="b9SfyVLS"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=JBpkjFLfC0WUS5MudHUpCVWe7tNovT4sj/M0bCWeLAo=; b=b9SfyVLSpS5GOBz4bS6LsQBVTn
-	XPb6/Uj5etLVv6o11GzkmLpC2iaAUKpoNLV3GQo90NPZ7FWOc3iGcvmLiKcHihb2xsQpSmPHN8fYN
-	LfTvubDC4xLIo4cRdc3sAzYTtN/b8wamV5/lx2QUSSJm/LbA+iKz1XxeObUPMQm5ca39cGt8HsJLb
-	ceH1EqxeTfI43zK8yS0S/7GIVX5SO+NcNPMwDmbqjHIFGzCYGHfWGEKRxX3KeWhXU04QZ7gXr25QE
-	1fn3NbE3Pqyefxrn8XVDinbDOKbCMgiISQhGClbcs1vN/YKOWVpmASiyXkKUklZlBYEAozisur1/b
-	ePZCgSVQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1x28b8-000000004UQ-24t7;
-	Thu, 03 Sep 2026 16:39:26 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nf PATCH v2] netfilter: nfnetlink: Fix for interrupted hook dumps
-Date: Thu,  3 Sep 2026 16:39:21 +0200
-Message-ID: <20260903143921.942724-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bNovHC8g"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=eSHEMyrvfWWEjC/eFkjUsL1YOdGv1mkJHeG50HhJUdZCXNwAgublcq7ebJSedukfLtQXYmz5BOJsznjqVqHzfW6a0De6AutekB01uxduq0TPKPJ/p/JOMp1cG/xuNK3OAkAGQHcoWjLVQxuV2SBk9X8sTq/sULiyJh/E2m470gmc6oOJpEmU/0RpzobU9FsvWn3by9AN3PIGd+iDDOBEfN7iIYpwInM2gSU5+UBwUMU4lfaj5AMHaEoTeXh7fqZHx3cmkyUxKzUNs5z8GY6fkIwGdZdNvvhiycDK9BB1YKZ1NBS//tnhajQfqtLip3PzqbPLwe/z7HE8NKM37hoTeg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=05XLMyosGQ1n9NZ1btwMp9PFm8zVPT+J1e2//5MTT2o=;
+ b=aW10icutl0r4mZfO20WrpFpNIZtJ0oJ24Xc3HS7y+c6wVI7A5DA+uNE4moKqUmA7iFhH/ysqhEXnRpKMs7Tldm9hloXsRxFi8F8/dWSCTIWN+053PXmkRwUlXHR0bSg19IWRR48PvUVoaALYOKzoMQSS4gb93l/SMMiFgR9IQ/olkziUbJNjyDYKU0FnYKbBOvpUrv8Re53Vb+ejgXloSCIgjM9lL9CQiiW2bpY3FufjZDeS5l/PpejZVAXoH2lQikkfdJN8X0t5VWKZXNiF3sj/hohlF1L1mSVRYTzBhfPp96McWGVGYeFxsuLWge2qta2mXXnhjDrjfwypyl9ujg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=05XLMyosGQ1n9NZ1btwMp9PFm8zVPT+J1e2//5MTT2o=;
+ b=bNovHC8gcg2VWMnW+ISpOn9nDu03PgPK92YX3BwfSzKDVUeJU22fFR0PJECx/bXteKlRlgMGoutq1JoDZne8WiQ1hwcSPZ6S2ohDQj9AXfdmyz0zGHa7qQcl+F4AEvIVUO86ZBJ+3arWj0Is4eWIi0MdfPNdT9PjGPr3UcZV/uyAZJEr7m2bczvSkoTFeFZ7dpjh0+ikC2KMTpxQ0ztnJ6E0zNvDCI0rwkIlqbxgjgGBD2zlCs4CNikTZw1L5jAUyj1l8qRzjrF6GF7kFOMh0+X65e1n1eJzKaAVXT9d/eHIUbAtDtLDf1Wsc1w5Bz280dNMH97fkiOB32xuroJY4A==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH0PR12MB7957.namprd12.prod.outlook.com (2603:10b6:510:281::22)
+ by DS5PPF482CFEB7D.namprd12.prod.outlook.com (2603:10b6:f:fc00::64a) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Thu, 3 Sep
+ 2026 14:56:41 +0000
+Received: from PH0PR12MB7957.namprd12.prod.outlook.com
+ ([fe80::9251:acc2:cc63:3499]) by PH0PR12MB7957.namprd12.prod.outlook.com
+ ([fe80::9251:acc2:cc63:3499%3]) with mapi id 15.21.0360.008; Thu, 3 Sep 2026
+ 14:56:41 +0000
+Date: Thu, 3 Sep 2026 17:56:31 +0300
+From: Ido Schimmel <idosch@nvidia.com>
+To: =?iso-8859-1?B?zfFpZ28=?= Huguet <ihuguet@riseup.net>
+Cc: David Ahern <dsahern@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Neal Cardwell <ncardwell@google.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	dcaratti@redhat.com, ihuguet@redhat.com,
+	Simon Horman <horms@kernel.org>,
+	Kuniyuki Iwashima <kuniyu@google.com>, Phil Sutter <phil@nwl.cc>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Junseo Lim <zirajs7@gmail.com>,
+	Martin KaFai Lau <martin.lau@kernel.org>,
+	Xuanqiang Luo <luoxuanqiang@kylinos.cn>,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	Leon Hwang <leon.hwang@linux.dev>,
+	Willem de Bruijn <willemb@google.com>, Kees Cook <kees@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Qi Tang <tpluszz77@gmail.com>, Joe Damato <joe@dama.to>,
+	Breno Leitao <leitao@debian.org>,
+	Li RongQing <lirongqing@baidu.com>,
+	"open list:VRF" <netdev@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>,
+	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:BPF [MISC]:Keyword:(?:b|_)bpf(?:b|_)" <bpf@vger.kernel.org>
+Subject: Re: [PATCH net v2] net/ipv6: don't route packets with unknown source
+ address
+Message-ID: <20260903145631.GA182962@shredder>
+References: <20260903121057.80006-1-ihuguet@riseup.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260903121057.80006-1-ihuguet@riseup.net>
+X-ClientProxiedBy: FR3P281CA0031.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:1c::9) To PH0PR12MB7957.namprd12.prod.outlook.com
+ (2603:10b6:510:281::22)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR12MB7957:EE_|DS5PPF482CFEB7D:EE_
+X-MS-Office365-Filtering-Correlation-Id: 257fa5b8-496e-4686-7c50-08df09cb9069
+X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|7416014|376014|6133799003|22082099003|18002099003|3023799007|56012099006|10067099003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	9qhu+qbQQfDm/k/22QuNQo3JsdPYxIISdAtiwVGBzt9OnGUejPJhyEADDlXnH3ECq82yUBn1wqHImJAyXsWoCS/HgkYTfHWEzAOs50TKMkWmqDgn+ngPbK5wN6iQdbKJ5XXE0akXBWCduuNfpM6PGWiieoOsQad35lyE76DlJg1grPygZJa2YFS/Up+/WPYXSP/uGHZ8DHPZzQVsaVnHhuRJRoQCUNqnadpbHD2PbJsAu02oyYFwng9ECFb03kAulb/iav4qC2rnofmFNFiddmyBEJZf0ARE1CsiPMHPVJKAJTmqVO45FwIKIDL0sSA4uv9Yy+OV3DDlaclXAVPC+2Z8fd+a0LnNsr1OCmtcpvEn0/1v1g4PqcWfjxzL28el+PzYdOp0UCAhb6pDs+VtsjQ57zHZYQQawuib/K4n0PsO3o+wB/JArrlp+VGljqOP5iqfahuWg1eSg1f67f8PMk+s9EEvIYJval/nM0DrOc45XD4Uh9za/2/xMsBOdZuSHQfbFjN6w/32kZJOUVCFqFGzKbMl8kzSW2AUnjJGPIJmBh0wSjFPmxtk7pEqLI+fdhJ6WkCnxNcpdb6ZbNXq0R3CAfayeTizr5JvRzcqgiTmFwQ9F5KwmHCAE3D2/KYMoMnWL43DHc+qkebCQ5LOWf7ke9F0hcM3cuodGfkviA4=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB7957.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(7416014)(376014)(6133799003)(22082099003)(18002099003)(3023799007)(56012099006)(10067099003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?iso-8859-1?Q?29ZQkZLGsoqNZusK2eVOTETr1t9Jm/l98IFmywcZXdtND0te/EuJt4+2pY?=
+ =?iso-8859-1?Q?RIoLDa802hD4FAV/7BEBbWv6Pfy7ZdjFYBQQMaJYru+46qjXix2LSvKJVo?=
+ =?iso-8859-1?Q?cWR+aFHvfPUYXme8AUtuVrV29/hqWZdgeBAeaJqNXASWMW4lA3C18hdbl/?=
+ =?iso-8859-1?Q?kqzUaxarkoGJMHG6iY1Xb6kFt0+lH2C6cstVXSkj7jceUX1r6oIfJQrJqO?=
+ =?iso-8859-1?Q?lJGZ3psJqL777y6C18Mo4c2APvjgG0i/WGDuWlPIRRXqMotO44TMmqKdEL?=
+ =?iso-8859-1?Q?LRSMnNuERk3/IvEZ9Ehv64oRA2/QBP2loqJSppqYPPInEIfGw8Z5HEaV4L?=
+ =?iso-8859-1?Q?Vg5k7K3D1ovW5ufZghQ/xKUDD0B9QZQk7s8Rm6se0ZENP2H/XwWspvbaab?=
+ =?iso-8859-1?Q?s0xfS8NlbipUZy4OVI4ObobzwewRHguhMdvla+PImFBAdWP7mz9apGpWT3?=
+ =?iso-8859-1?Q?imlCwGZRClCWe7tfOjKcxl2iRtV7DuRp6NFi1UyaDBpPlDVLzHWf9urzy0?=
+ =?iso-8859-1?Q?NjVxs5xSKeSD2K4XAXmnAHRj3lq4diSW6o1qFslDjCsNxcMcDiQ+S9LT6V?=
+ =?iso-8859-1?Q?VDSCZra/HgsNMfYRnld41Ss5SkcL/CJdtsRAObF9LZ/A36flnyh92fmdEo?=
+ =?iso-8859-1?Q?fYG0LV4HhHvNv+qTtPW6BZjewee6FZD0nQoJC/uKqtM/AeEpL+Q4n2oHmY?=
+ =?iso-8859-1?Q?VliOaQjgw/D6CmEM9stNd1/cSkFjeeuUFo+6/tPW8PGY9TDuBmAOtIeHle?=
+ =?iso-8859-1?Q?a5XntG3xevi0zItE+S1PcXq4pKY/9ZZ33+zX04FbRykhD0KAgejIOGK9Ar?=
+ =?iso-8859-1?Q?X5BAH5UgxC9qaiB0LodZijwjGx1yr94FLHc4aM3WZvxtvlF4ru8u+xj8jt?=
+ =?iso-8859-1?Q?hRS5ndwzpg2NKKr+Vy36Wycc9TtAcm2I7waTbDBtj8eYHq/Ir7x+K5riQP?=
+ =?iso-8859-1?Q?Wmnf0kpO9WDIlgbfQuV3XqgC3XgVlsklfHQA7DllMBLu6oufPnVLWrHVAU?=
+ =?iso-8859-1?Q?tUku2R4ep/3x8361YQv+PSFvjZHVqeKcWOqvEuUnTjk/h7eGHDmi9ilgcJ?=
+ =?iso-8859-1?Q?tiEI2ItjFuufSLxXLP5uZTwX+STbdhEh6qvEhF9qiZ04cYtQNK0V68djZ5?=
+ =?iso-8859-1?Q?9JqYcXDKtKVuWQ3iHZc2gDOZHP86eMKoQ/RcFOyl2HOAZ8X5koER7qrRx9?=
+ =?iso-8859-1?Q?AWo/LS5ZOVjyPDy7oSQwbd1uZUqBxX94vROmFKL7eIv8PWYIrfIHxx3DG+?=
+ =?iso-8859-1?Q?yb2QNwsLy4shWiCylbS+DoRhYxQsGFdUpjTaR/2C208VG20DXJ58fHTbfL?=
+ =?iso-8859-1?Q?iwEZRgil7G55Bb0deG3X2MvM2NRyi5lTnN73UNf7EsxodgEi3vPsdJn58T?=
+ =?iso-8859-1?Q?b4K/N7YZfziQLXaTikIxlUVbL22WYLQnLE19z/QprFVdcZny/d+ljpZQVV?=
+ =?iso-8859-1?Q?a0WK2yENPEwAGRS5i1C7vyZU4NyrqLUTwd7pylA6hOdSM/VY9+tCsEvF+l?=
+ =?iso-8859-1?Q?GlH7Z9pska/NJIiw81w1vcqMR9dmwnJd7q1V7F3zlZ9FM8aICk1n5K6oEI?=
+ =?iso-8859-1?Q?tA7e6+vqgPmRIUQxUzx6VayGSd/WSguoJ0TV9FwIJ61IERtJK/VId5cYdE?=
+ =?iso-8859-1?Q?VOPxEABabINcR3HWyrfha7m926jkKr0wip98Emo1CZpWLqgkAn+8u+kuQC?=
+ =?iso-8859-1?Q?0TOhWmG/SkFEcpLdvhlHsZHlnSIyK8jx+1UijD6folnOdeCJkVsW6m9meZ?=
+ =?iso-8859-1?Q?6tioIppXMnGAGuQyE45HW9E2py71Ag1ql/JyBfACIQ8HPG?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 257fa5b8-496e-4686-7c50-08df09cb9069
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB7957.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 14:56:41.7699
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ZdPepdS3k0luZrFPAGdAdfoot+nfZXT8AV25bxnCmVFE2z3REgaDECdnaUbL2a5UejH98SRD3Biec5UsbvSqkw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS5PPF482CFEB7D
 
-Handling of concurrent hook changes with a dump in progress was
-problematic in nfnl_hook_dump and entirely broken in nfnl_hook_dump_nat.
-Address all issues in a single patch to please the review LLM.
+On Thu, Sep 03, 2026 at 02:10:40PM +0200, Íñigo Huguet wrote:
+> Don't allow routing packets with a source address that is not configured
+> in the host. Allow it only in certain cases like when using a
+> transparent socket, by setting the ANYSRC flag in flowi_flags.
+> 
+> Until now, it was possible to send such a packet if a route can be found
+> in the routing table for it. For example:
+> 1. Configure an address 1:2::3:4/64 and a static route 1:2::/64
+> 2. Establish a TCP connection to 1:2::3:4
+> 3. Remove the address from the interface, but keep the route.
+> 4. Packets are still sent out by the TCP connection because of
+>    the static route. No incoming packets are accepted, though.
+> 
+> This patch prevents the outgoing packets to be sent in normal
+> circumnstances.
+> 
+> This aligns the behaviour with the IPv4 stack. To determine the places
+> where the ANYSRC needs to be set, I set the flag in the same places as
+> the IPv4 stack does.
+> 
+> Apart from consolidating the behaviour of both stacks, there is a more
+> important reason why this is needed. RFC 4862 states that "an invalid
+> address MUST NOT be used as the source address of outbound packets".
+> Therefore, sending packets with a source address considered "invalid",
+> like an expired address, is disallowed.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Signed-off-by: Íñigo Huguet <ihuguet@riseup.net>
+> 
+> ---
+> 
+> v2:
+> - Fix a slab-out-of-bounds bug: in
+>   tcp_v6_send_response we must not read the inet_flags because it may
+>   not be an inet_sk, but a request socket.
+>   Detected by syzbot, Sashiko and other bots.
+> - Use the addr_type from saddr instead of daddr in ip6_route_me_harder.
+>   Detected by Sashiko.
+> - Don't overwrite flowi_flags in tcp_v6_connect when setting the
+>   ANY_SPORT flag. Detected by Sashiko.
+> - Fixed line length warnings.
+> v1: https://lore.kernel.org/netdev/20260901115021.50057-1-ihuguet@riseup.net/
+> 
+> Testing: tested with a manual reproducer executing the steps described
+> above. Tested also with transparent sockets to ensure that the packets
+> are sent in that case. Also executed the following selftests to prevent
+> potential regressions: fcnal-ipv6, fib_tests, fib-onlink-tests,
+> nft_nat, nft_tproxy_tcp, nft_tproxy_udp.
+> 
+> The change in the netfilter's ip6_route_me_harder function is the one
+> that I'm more unsure about. It was not clear to me the reason why it was
+> done like this in the IPv4 counterpart. Please review carefully.
+> ---
+>  drivers/net/vrf.c                |  1 +
+>  net/core/lwt_bpf.c               |  1 +
+>  net/ipv6/af_inet6.c              |  1 +
+>  net/ipv6/datagram.c              |  1 +
+>  net/ipv6/inet6_connection_sock.c |  2 ++
+>  net/ipv6/ip6_output.c            | 28 ++++++++++++++++++++++++++++
+>  net/ipv6/netfilter.c             | 11 +++++++++--
+>  net/ipv6/ping.c                  |  1 +
+>  net/ipv6/raw.c                   |  1 +
+>  net/ipv6/syncookies.c            |  1 +
+>  net/ipv6/tcp_ipv6.c              |  4 +++-
+>  net/ipv6/udp.c                   |  1 +
+>  net/l2tp/l2tp_ip6.c              |  2 ++
+>  13 files changed, 52 insertions(+), 3 deletions(-)
 
-Introduce sequence numbers in struct netns_nf to replace pointer
-value-based modification detection which may fail due to memory buffer
-reuse. This also eliminates the need for most manual cb->seq updates and
-excessive array index value checks.
+1. This is a behavior change, not a bug fix, and should be targeted at
+net-next without a Fixes tag.
 
-Since nat hook updates are protected by a different mutex than others,
-they have to bump their own sequence number. nfnl_hook_dump_nat
-therefore open-codes what nl_dump_check_consistent does but bumps
-cb->seq instead of setting NLM_F_DUMP_INTR flag.
+2. What is the motivation for this drastic change beyond RFC conformance
+and parity with IPv4? IMO, these two are not a good enough reason to
+make such a change with a huge blast radius.
 
-Dumps of many nat hooks was entirely broken since the array index was
-not (re)stored. Use cb->args[1] for that and make sure it is reset upon
-completion as the same dump may loop over multiple arrays of nat hooks.
+Here's a recent example of a one line change that argued for IPv4 parity
+and was eventually reverted due to regression reports:
 
-In nfnl_hook_dump, don't signal NLM_F_DUMP_INTR if
-nfnl_hook_entries_head returns error: This is a permanent condition
-which does not change during a dump. It is already caught by
-nfnl_hook_dump_start though, so should not happen anyway.
+https://lore.kernel.org/all/20260104032357.38555-1-yuhuang@redhat.com/
+https://lore.kernel.org/netdev/20260521135310.GC977@cmadams.net/
 
-In general, access ops array pointer values using READ_ONCE since they
-are assigned to using WRITE_ONCE.
+3. See [1] for a list of regressions that AI flagged. Even if v3 fixes
+all of them (which means a much bigger diff), I don't think such a
+change will be merged without a proper real-world motivation beyond RFC
+conformance and IPv4 parity.
 
-Avoid setting NLM_F_DUMP_INTR flag in garbage memory by calling
-nl_dump_check_consistent only for non-empty skbs. If not a single
-netlink message was created, nfnetlink code will take care of setting
-the flag.
+Thanks
 
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Reset cursor value and perform EINTR check if NAT priv->entries
-  becomes NULL during dump.
----
- include/net/netns/netfilter.h  |  2 +
- net/netfilter/core.c           | 13 ++++++
- net/netfilter/nf_nat_core.c    | 14 ++++++-
- net/netfilter/nfnetlink_hook.c | 75 ++++++++++++++++++++--------------
- 4 files changed, 72 insertions(+), 32 deletions(-)
+[1]
+1. Any-IP (local prefix routes) stops working
 
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index a6a0bf4a247e..7fd78394d1e7 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -33,5 +33,7 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	unsigned int defrag_ipv6_users;
- #endif
-+	unsigned int hook_base_seq;
-+	unsigned int nat_hook_base_seq;
- };
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 675a1034b340..a284b3241211 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -386,6 +386,15 @@ static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
- #endif
- }
- 
-+static void bump_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.hook_base_seq, base_seq);
-+}
-+
- static int __nf_register_net_hook(struct net *net, int pf,
- 				  const struct nf_hook_ops *reg)
- {
-@@ -428,6 +437,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
- 	new_hooks = nf_hook_entries_grow(p, reg);
- 
- 	if (!IS_ERR(new_hooks)) {
-+		bump_hook_base_seq(net);
- 		hooks_validate(new_hooks);
- 		rcu_assign_pointer(*pp, new_hooks);
- 	}
-@@ -506,6 +516,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 			net_dec_egress_queue();
- #endif
- 		nf_static_key_dec(reg, pf);
-+		bump_hook_base_seq(net);
- 	} else {
- 		WARN_ONCE(1, "hook not found, pf %d num %d", pf, reg->hooknum);
- 	}
-@@ -784,6 +795,8 @@ static int __net_init netfilter_net_init(struct net *net)
- 		return -ENOMEM;
- 	}
- #endif
-+	net->nf.hook_base_seq = 1;
-+	net->nf.nat_hook_base_seq = 1;
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 8ac326e1eb5b..ff2cba8df886 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1160,6 +1160,15 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
-+static void bump_nat_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.nat_hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.nat_hook_base_seq, base_seq);
-+}
-+
- static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.name		= "nat-follow-master",
- 	.expectfn	= nf_nat_follow_master,
-@@ -1245,8 +1254,10 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 	}
- 
- 	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
--	if (ret == 0)
-+	if (ret == 0) {
-+		bump_nat_hook_base_seq(net);
- 		nat_proto_net->users++;
-+	}
- 
- 	mutex_unlock(&nf_nat_proto_mutex);
- 	return ret;
-@@ -1284,6 +1295,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		goto unlock;
- 	priv = nat_ops[hooknum].priv;
- 	nf_hook_entries_delete_raw(&priv->entries, ops);
-+	bump_nat_hook_base_seq(net);
- 
- 	if (nat_proto_net->users == 0) {
- 		nf_unregister_net_hooks(net, nat_ops, ops_count);
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 95005e9a6066..21a759168c38 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -54,7 +54,6 @@ static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
- 
- struct nfnl_dump_hook_data {
- 	char devname[IFNAMSIZ];
--	unsigned long headv;
- 	u8 hook;
- };
- 
-@@ -338,27 +337,48 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
- }
- 
- static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
--			      const struct nfnl_dump_hook_data *ctx,
--			      const struct nf_hook_ops *ops,
--			      int family, unsigned int seq)
-+			      struct netlink_callback *cb,
-+			      const struct nf_hook_ops *ops, int family)
- {
- 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
--	struct nf_hook_entries *e = rcu_dereference(priv->entries);
-+	struct nfnl_dump_hook_data *ctx = cb->data;
-+	struct net *net = sock_net(nlskb->sk);
- 	struct nf_hook_ops **nat_ops;
--	int i, err;
-+	unsigned int i = cb->args[1];
-+	struct nf_hook_entries *e;
-+	unsigned int base_seq;
-+	int err = 0;
- 
-+	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
-+
-+	e = rcu_dereference(priv->entries);
- 	if (!e)
--		return 0;
-+		goto out;
- 
- 	nat_ops = nf_hook_entries_get_hook_ops(e);
- 
--	for (i = 0; i < e->num_hook_entries; i++) {
--		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
--					 ops->priority, family, seq);
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nfnl_hook_dump_one(nlskb, ctx,
-+					 READ_ONCE(nat_ops[i]),
-+					 ops->priority, family,
-+					 cb->nlh->nlmsg_seq);
- 		if (err)
--			return err;
-+			break;
-+
- 	}
--	return 0;
-+out:
-+	if (!err) {
-+		i = 0;
-+	}
-+	cb->args[1] = i;
-+
-+	if (cb->args[2] && base_seq != cb->args[2]) {
-+		cb->seq++;
-+		err = -EINTR;
-+	}
-+	cb->args[2] = base_seq;
-+
-+	return err;
- }
- 
- static int nfnl_hook_dump(struct sk_buff *nlskb,
-@@ -373,35 +393,31 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
- 	unsigned int i = cb->args[0];
- 
- 	rcu_read_lock();
-+	cb->seq = smp_load_acquire(&net->nf.hook_base_seq);
- 
- 	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
--	if (!e)
-+	if (!e || IS_ERR(e))
- 		goto done;
- 
--	if (IS_ERR(e)) {
--		cb->seq++;
--		goto done;
--	}
--
--	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
--		cb->seq++;
--
- 	ops = nf_hook_entries_get_hook_ops(e);
- 
- 	for (; i < e->num_hook_entries; i++) {
--		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
--			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
--						 cb->nlh->nlmsg_seq);
--		else
--			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
--						 ops[i]->priority, family,
-+		const struct nf_hook_ops *cur = READ_ONCE(ops[i]);
-+
-+		if (cur->hook_ops_type == NF_HOOK_OP_NAT)
-+			err = nfnl_hook_dump_nat(nlskb, cb, cur, family);
-+		else {
-+			err = nfnl_hook_dump_one(nlskb, ctx, cur,
-+						 cur->priority, family,
- 						 cb->nlh->nlmsg_seq);
-+		}
- 		if (err)
- 			break;
- 	}
- 
- done:
--	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	if (nlskb->len > 0)
-+		nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
- 	rcu_read_unlock();
- 	cb->args[0] = i;
- 	return nlskb->len;
-@@ -442,10 +458,7 @@ static int nfnl_hook_dump_start(struct netlink_callback *cb)
- 		return -ENOMEM;
- 
- 	strscpy(ctx->devname, name, sizeof(ctx->devname));
--	ctx->headv = (unsigned long)head;
- 	ctx->hook = hooknum;
--
--	cb->seq = 1;
- 	cb->data = ctx;
- 
- 	return 0;
--- 
-2.54.0
+   Setup: ip -6 route add local 2001:db8::/64 dev lo (or the rule + table
+   form from commit ab79ad14a2d5), TCP listener on [::].
 
+   Path: tcp_v6_send_synack() -> inet6_csk_route_req() sets
+   fl6->saddr = ireq->ir_v6_loc_addr with flags 0 -> ip6_dst_lookup_tail()
+   -> ipv6_chk_addr_and_flags() misses because the address is only in the
+   FIB, not in inet6_addr_lst -> -ENETUNREACH.
+
+   Same for inet6_csk_route_socket() on the accepted socket,
+   tcp_v6_send_response() for RSTs, and icmpv6_echo_reply(), which keeps
+   the incoming daddr as saddr when ipv6_unicast_destination() (RTF_LOCAL)
+   is true.
+
+   Effect: no SYN-ACK, no echo reply, no RST for any Any-IP address.
+   IPv4 avoids this via the local-table fallback in __ip_dev_find().
+
+2. Anycast source addresses rejected
+
+   Anycast addresses live in idev->ac_list, not inet6_addr_lst. Three
+   paths pick one deliberately:
+
+   - icmp6_send() uses ipv6_chk_acast_addr_src() to source ICMPv6 errors
+     from the anycast daddr of the offending packet.
+   - icmpv6_echo_reply() with anycast_src_echo_reply=1.
+   - ip6_datagram_send_ctl() accepts an anycast IPV6_PKTINFO source
+     (commit 7c90cc2d40ca), then udpv6_sendmsg() ->
+     ip6_sk_dst_lookup_flow() fails it.
+
+   Effect: ICMPv6 errors and echo replies for anycast destinations are
+   dropped with OUTNOROUTES incremented. UDP sendmsg() with an anycast
+   pktinfo passes the ancillary-data check and then fails with
+   -ENETUNREACH.
+
+3. TIME_WAIT replies of IP_TRANSPARENT connections dropped
+
+   tcp_v6_send_response() uses "sk && sk_fullsock(sk)" to decide the
+   flags. tcp_v6_rcv() reaches it with a timewait socket for both
+   TCP_TW_ACK (tcp_v6_timewait_ack() -> tcp_v6_send_ack()) and TCP_TW_RST
+   (tcp_v6_send_reset()). sk_fullsock() is false there, flags are 0, and
+   fl6.saddr is the proxied non-local address.
+
+   Effect: tproxy'd IPv6 connections send no ACK or RST from TIME_WAIT.
+   IPv4 uses inet_sk_transparent(), which reads tw->tw_transparent and
+   ireq->no_srccheck.
+
+4. BPF-set non-local IPv6 tunnel sources stop working
+
+   bpf_skb_set_tunnel_key() sets key.flow_flags = FLOWI_FLAG_ANYSRC only
+   in the IPv4 branch (commit b8fff748521c, added so a program can use
+   e.g. a container address as the outer source). udp_tunnel6_dst_lookup()
+   (vxlan, geneve, bareudp) copies key->u.ipv6.src into fl6.saddr and
+   never copies key->flow_flags. Before the patch this did not matter
+   because IPv6 never checked the source.
+
+   Effect: IPv6 collect_md tunnels with a BPF-chosen non-local source get
+   -ENETUNREACH while the IPv4 equivalent keeps working.
+
+5. ICMPv6 errors under IPsec lost in the relookup path
+
+   icmpv6_route_lookup() does a second ip6_dst_lookup() with fl2 from
+   xfrm_decode_session_reverse() when the first xfrm_lookup() returned
+   -EPERM. fl2.saddr is the daddr of the packet in error, which is a
+   remote host when the packet was being forwarded through a gateway. The
+   new check fails it, relookup_failed has dst == NULL in the -EPERM case,
+   and the function returns ERR_PTR(-ENETUNREACH).
+
+   Effect: RFC 4301 ICMP handling on IPsec gateways with a block policy no
+   longer sends the error into the tunnel. icmp_route_lookup() sets
+   fl4_2.flowi4_flags |= FLOWI_FLAG_ANYSRC for exactly this relookup.
