@@ -1,155 +1,372 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5673149EC48
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 11:55:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63684582E0;
+	Thu,  3 Sep 2026 12:11:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788436542; cv=none; b=gYlq3yZQWOr3srMdv3io7tCoMCwruTLUdGg30E5fhRIZj5ozKb/jQtCZDiNeGMY9d3XyQkB2nnL0tPE3dkZ1K3a2JLi5aBG/zJw9AIqb4a4455nQXFvzLnPwzLbqrfJgbXQFpM85bcUMcqGfF7ICUplE9+6pGo+EmOJMlX9+lPA=
+	t=1788437512; cv=none; b=pblgWZ2SxkZgr8u4CnH8AGT3XRJiLjwRU/DNiwyO/EehKxdFtvtYqZvxs4TO3YzWl111wuMLnhj0SjEAU+6+CpPsDcc6wtfm4Ycstvx7GHRYMbwuOevTNXbLtsaPYjuyXxFGfWLiGaWQ2tv0+pjS79A04qO2xqAASRiAG6dB9D4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788436542; c=relaxed/simple;
-	bh=DGBqDOeyzfNy+29WumkC3kdwnB2FhZZ+segPy9L+b28=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hvJU5yvTr0/mm+VJ4JwAL7hhQ9AMZMJ+YWG5ELR514latl0hdMpKEzz3zOnBF7Vq1l2n0x6B4vRkI7qLFLN/2W120V60FzRrA08kyQj5cf9ywbtahNrEcPH8NIA68jBk+qOuW1iHqyNZaS2hMAMykzI6Ay6whP/njD2y+dFsebc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=fheNGpj1; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	s=arc-20240116; t=1788437512; c=relaxed/simple;
+	bh=JH/hzcAavC0H8FmWU5Q7zuUiCpVsc/LyiaarkmLyaNo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hyb8VWCJgLA4MZJEsbLkonKHdbqk9q7jsJNHqUYR10ZvQsBZBEZuNM/pbOYQJwyOzTRLcsPEuCmDpXSpKdFSpGYOgtvzuhQpxRwZQqvf8gkiXshM4sDDM0zG3Mq+jEyjILxSa7uijuv4UNPck3b/sr6BoZTGmMMSH97TBqaQdds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=U1knWzrT; arc=none smtp.client-ip=198.252.153.129
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="fheNGpj1"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-39927410578so3980765a91.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 04:55:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1788436537; x=1789041337; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1i8Z8yZUed8BAdZrDOJbsKwDdPch3XADEoDyC5AXu00=;
-        b=fheNGpj1WPIhb3B98s/v7oSY2M1JDejBAVFPgWwF4/RllwHLGJlZcyZQHYUANcgoHV
-         0uwJ+yuTwit82EvY4vF0wtAfPcqOMKNEUGGDM/uxjlcP6n6E4z2XC4zL7beOO15uMhPz
-         xpbFmpfRsIm8mqGwHAiJhkY9xgOc5F8Dkju1X6CQRUjc5AkHM7VAn2t6qkRUwOYFxQAD
-         zd+d0JSeJ00gPBMABx9GKYqGEiI09afFBjEP8EjwTuAo5edAEGXXt5ZtCdnyqEbsY8UI
-         X/YVMrKJjT2LBis6Tv6rD9stMfy9S/yFFfr6vWDJ9srkv4KMvQL463Fq/svIrk7EFm7T
-         5YZg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788436537; x=1789041337;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1i8Z8yZUed8BAdZrDOJbsKwDdPch3XADEoDyC5AXu00=;
-        b=AFFMaGMOQMy4nTSYaX8ZiREvJKiCQ1akAYq7kEDJgoBHZoURf2zOK0rBL7FiQQ8XJb
-         8FxID0F1/ecF4WQsyYv14MkDHvgAPFBVnQlfcMFd/9md0XENhqB0/m0g/xhR0IrRwfGM
-         5k5iYIhFgOznhLIr1FAJK0SNeiZ7ISj1GQE2T/j3Jnus82wJsuNJcN/jQcmRUb4EkJIx
-         V9P6imgZWB3/IaBeUQ9oxhpHTw2KOM8kSeZsWoGzp8pTrGI7HFYS2Y6Gw0Sg510X0n3C
-         3Zdw43ClOqH2ccrzY1rljj8YQsehOkWl2ON55fY2WDF3xfIbx2k2AAxOXw6qL/gMq+kW
-         /Jhg==
-X-Gm-Message-State: AFuF++kvFxpOYwOvQpgV7ubrR9E0aGILS+BwYVpa6P/2onTa2D5IqPnj
-	RrCm9K22z1fqtjU3T7DWTC6l225jR+J2x1jPIAR/ugNMUJBxOuz9HDaac7C+CUqTbd6MuPt0xu8
-	2QGlRfw==
-X-Gm-Gg: AYBFou1xsVSLIQ+GKi1HkfDoz5cSizFi91t34CpQA1g2FSb8dtiA4wlsb2dGGbw93xE
-	QI44PHsw4fR7dQJpr/oZuc2rs0c5KdWX9cnqoUQEQuodwuNkm/zDNjW3SUl2J+dxlc3HBW0S6Rb
-	GJlKaylUVZjDnA04FLA4ni6Ubo7mGMxs1A/D88HgJRh+AnTfQKBK/aeAXw5zhysZIA0C9k1mlC1
-	p4QTmHp3oW+H3IgtKBuffYGCeSLrCjdrf/0aHLVrcnfYMv3GSpxhBO1JePHrgRZxxIBYfEa0uUQ
-	gKNdr7X36dDKvY1co5LMfelam2uxcF2huBrjtfja/RsVsgCAjVYf+kPfDrWBOS1U8xxU+vhMOmD
-	9zeAclOeNWYDsfdi0mvacfgfq1iRb35MqnLRRnBzfRefXngbYcy/xknND4lZQ8o99e2Ubdh9dj7
-	RHTwGPXdZp+eG5LB1u1uOLv8meM9chKGqEw/3vPQxrp/U4rkZhpR0FZu3Iu1J/Xjy3HtOIf3LwN
-	UKa4k+wJpHSOH26F/BF3mnZ6Ixq0pE=
-X-Received: by 2002:a17:90a:f94f:b0:398:bacb:1137 with SMTP id 98e67ed59e1d1-39aee21a4demr19811899a91.19.1788436536858;
-        Thu, 03 Sep 2026 04:55:36 -0700 (PDT)
-Received: from b6ad5085b32f.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39b08bcc090sm5222206a91.4.2026.09.03.04.55.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Sep 2026 04:55:36 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="U1knWzrT"
+Received: from fews03-sea.riseup.net (fews03-sea-pn.riseup.net [10.0.1.153])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx1.riseup.net (Postfix) with ESMTPS id 4hbJNt60GczDqvK;
+	Thu,  3 Sep 2026 12:11:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=riseup.net; s=squak;
+	t=1788437503; bh=iOcJhdl6V0OT+jCZ0BRqIAXous5Y56fe107eM1JBtbU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=U1knWzrTdcsRDcMfBEcr3Lhq6NYnjV6/xTlHsw90xVhLm9EK0CItJu1/xINhpohBp
+	 mkmkIY7FK81K/UvBoE7SEtyMNUQJmcD1FJHLNWOVs4llcZZBmmqulamUpnWRsp3OPt
+	 NeXVBAoEFKNwo9VNFRaqF9yKyPBwCX7GCvVxOVrA=
+X-Riseup-User-ID: 982A598FC2EC681F239DB5A20A70FA23F9330A4D04C93A71856379E0136F96F7
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	 by fews03-sea.riseup.net (Postfix) with ESMTPSA id 4hbJNj2Hm4z1y13;
+	Thu,  3 Sep 2026 12:11:33 +0000 (UTC)
+From: =?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>
+To: David Ahern <dsahern@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>,
+	Neal Cardwell <ncardwell@google.com>,
+	Ido Schimmel <idosch@nvidia.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: dcaratti@redhat.com,
+	ihuguet@redhat.com,
+	=?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>,
 	Simon Horman <horms@kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Vega <vega@nebusec.ai>,
-	Zihan Xi <zihanx@nebusec.ai>
-Subject: [PATCH nf v2 1/1] netfilter: nf_dup: disable duplication in user namespaces
-Date: Thu,  3 Sep 2026 11:55:21 +0000
-Message-ID: <34fe34497e78fc763a3f93605e29ce2a3fd7438b.1788425393.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1788425393.git.zihanx@nebusec.ai>
-References: <cover.1788425393.git.zihanx@nebusec.ai>
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Phil Sutter <phil@nwl.cc>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Junseo Lim <zirajs7@gmail.com>,
+	Martin KaFai Lau <martin.lau@kernel.org>,
+	Xuanqiang Luo <luoxuanqiang@kylinos.cn>,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	Leon Hwang <leon.hwang@linux.dev>,
+	Willem de Bruijn <willemb@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Qi Tang <tpluszz77@gmail.com>,
+	Joe Damato <joe@dama.to>,
+	Breno Leitao <leitao@debian.org>,
+	Li RongQing <lirongqing@baidu.com>,
+	netdev@vger.kernel.org (open list:VRF),
+	linux-kernel@vger.kernel.org (open list),
+	netfilter-devel@vger.kernel.org (open list:NETFILTER),
+	coreteam@netfilter.org (open list:NETFILTER),
+	bpf@vger.kernel.org (open list:BPF [MISC]:Keyword:(?:\b|_)bpf(?:\b|_))
+Subject: [PATCH net v2] net/ipv6: don't route packets with unknown source address
+Date: Thu,  3 Sep 2026 14:10:40 +0200
+Message-ID: <20260903121057.80006-1-ihuguet@riseup.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-nf_dup_ipv4() and nf_dup_ipv6() send a cloned packet through
-ip_local_out() or ip6_local_out(), so the clone can traverse netfilter
-hooks again. A network namespace owned by a non-initial user namespace
-can combine NFQUEUE with TEE or nftables dup and retain the clone until
-a later verdict resumes it. The transient in_nf_duplicate task guard
-has already been cleared by then, so the resumed clone can be
-duplicated again and generate packets without bound.
+Don't allow routing packets with a source address that is not configured
+in the host. Allow it only in certain cases like when using a
+transparent socket, by setting the ANYSRC flag in flowi_flags.
 
-There is no sensible use case for packet duplication in a user
-namespace. Skip IPv4 and IPv6 duplication when the network namespace is
-not owned by the initial user namespace. Keep the existing TEE/dup
-behavior in the initial user namespace.
+Until now, it was possible to send such a packet if a route can be found
+in the routing table for it. For example:
+1. Configure an address 1:2::3:4/64 and a static route 1:2::/64
+2. Establish a TCP connection to 1:2::3:4
+3. Remove the address from the interface, but keep the route.
+4. Packets are still sent out by the TCP connection because of
+   the static route. No incoming packets are accepted, though.
 
-Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+This patch prevents the outgoing packets to be sent in normal
+circumnstances.
+
+This aligns the behaviour with the IPv4 stack. To determine the places
+where the ANYSRC needs to be set, I set the flag in the same places as
+the IPv4 stack does.
+
+Apart from consolidating the behaviour of both stacks, there is a more
+important reason why this is needed. RFC 4862 states that "an invalid
+address MUST NOT be used as the source address of outbound packets".
+Therefore, sending packets with a source address considered "invalid",
+like an expired address, is disallowed.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Íñigo Huguet <ihuguet@riseup.net>
+
 ---
-changes in v2:
-  - drop the persistent struct sk_buff::nf_duplicated field and nf_copy()
-    change from v1
-  - disable IPv4/IPv6 duplication in network namespaces owned by a
-    non-initial user namespace, as preferred on review
-  - v1 Link: https://lore.kernel.org/all/cover.1787903722.git.zihanx@nebusec.ai/
 
- net/ipv4/netfilter/nf_dup_ipv4.c | 3 +++
- net/ipv6/netfilter/nf_dup_ipv6.c | 3 +++
- 2 files changed, 6 insertions(+)
+v2:
+- Fix a slab-out-of-bounds bug: in
+  tcp_v6_send_response we must not read the inet_flags because it may
+  not be an inet_sk, but a request socket.
+  Detected by syzbot, Sashiko and other bots.
+- Use the addr_type from saddr instead of daddr in ip6_route_me_harder.
+  Detected by Sashiko.
+- Don't overwrite flowi_flags in tcp_v6_connect when setting the
+  ANY_SPORT flag. Detected by Sashiko.
+- Fixed line length warnings.
+v1: https://lore.kernel.org/netdev/20260901115021.50057-1-ihuguet@riseup.net/
 
-diff --git a/net/ipv4/netfilter/nf_dup_ipv4.c b/net/ipv4/netfilter/nf_dup_ipv4.c
-index 9a773502f10a..c33dae248c47 100644
---- a/net/ipv4/netfilter/nf_dup_ipv4.c
-+++ b/net/ipv4/netfilter/nf_dup_ipv4.c
-@@ -53,6 +53,9 @@ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- {
- 	struct iphdr *iph;
+Testing: tested with a manual reproducer executing the steps described
+above. Tested also with transparent sockets to ensure that the packets
+are sent in that case. Also executed the following selftests to prevent
+potential regressions: fcnal-ipv6, fib_tests, fib-onlink-tests,
+nft_nat, nft_tproxy_tcp, nft_tproxy_udp.
+
+The change in the netfilter's ip6_route_me_harder function is the one
+that I'm more unsure about. It was not clear to me the reason why it was
+done like this in the IPv4 counterpart. Please review carefully.
+---
+ drivers/net/vrf.c                |  1 +
+ net/core/lwt_bpf.c               |  1 +
+ net/ipv6/af_inet6.c              |  1 +
+ net/ipv6/datagram.c              |  1 +
+ net/ipv6/inet6_connection_sock.c |  2 ++
+ net/ipv6/ip6_output.c            | 28 ++++++++++++++++++++++++++++
+ net/ipv6/netfilter.c             | 11 +++++++++--
+ net/ipv6/ping.c                  |  1 +
+ net/ipv6/raw.c                   |  1 +
+ net/ipv6/syncookies.c            |  1 +
+ net/ipv6/tcp_ipv6.c              |  4 +++-
+ net/ipv6/udp.c                   |  1 +
+ net/l2tp/l2tp_ip6.c              |  2 ++
+ 13 files changed, 52 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
+index a0557a3a7026..6c09d5f46d6b 100644
+--- a/drivers/net/vrf.c
++++ b/drivers/net/vrf.c
+@@ -432,6 +432,7 @@ static netdev_tx_t vrf_process_v6_outbound(struct sk_buff *skb,
+ 	fl6.flowlabel = ip6_flowinfo(iph);
+ 	fl6.flowi6_mark = skb->mark;
+ 	fl6.flowi6_proto = iph->nexthdr;
++	fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
  
-+	if (net->user_ns != &init_user_ns)
-+		return;
+ 	dst = ip6_dst_lookup_flow(net, NULL, &fl6, NULL);
+ 	if (IS_ERR(dst) || dst == dst_null)
+diff --git a/net/core/lwt_bpf.c b/net/core/lwt_bpf.c
+index da49364ec63d..e8b954282689 100644
+--- a/net/core/lwt_bpf.c
++++ b/net/core/lwt_bpf.c
+@@ -233,6 +233,7 @@ static int bpf_lwt_xmit_reroute(struct sk_buff *skb)
+ 		fl6.flowi6_mark = skb->mark;
+ 		fl6.flowi6_uid = sock_net_uid(net, sk);
+ 		fl6.flowlabel = ip6_flowinfo(iph6);
++		fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
+ 		fl6.flowi6_proto = iph6->nexthdr;
+ 		fl6.daddr = iph6->daddr;
+ 		fl6.saddr = iph6->saddr;
+diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
+index 282912a11999..e55a36372ab2 100644
+--- a/net/ipv6/af_inet6.c
++++ b/net/ipv6/af_inet6.c
+@@ -820,6 +820,7 @@ int inet6_sk_rebuild_header(struct sock *sk)
+ 	fl6->fl6_dport = inet->inet_dport;
+ 	fl6->fl6_sport = inet->inet_sport;
+ 	fl6->flowi6_uid = sk_uid(sk);
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(fl6));
+ 
+ 	ip6_ecmp_set_mp_hash(sock_net(sk), fl6, sk->sk_txhash);
+diff --git a/net/ipv6/datagram.c b/net/ipv6/datagram.c
+index 38d7b4845281..0773bfa0342d 100644
+--- a/net/ipv6/datagram.c
++++ b/net/ipv6/datagram.c
+@@ -52,6 +52,7 @@ static void ip6_datagram_flow_key_init(struct flowi6 *fl6,
+ 	fl6->flowi6_mark = sk->sk_mark;
+ 	fl6->fl6_dport = inet->inet_dport;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6->flowlabel = ip6_make_flowinfo(np->tclass, np->flow_label);
+ 	fl6->flowi6_uid = sk_uid(sk);
+ 
+diff --git a/net/ipv6/inet6_connection_sock.c b/net/ipv6/inet6_connection_sock.c
+index 3e4ce8cb478e..f295f3efe243 100644
+--- a/net/ipv6/inet6_connection_sock.c
++++ b/net/ipv6/inet6_connection_sock.c
+@@ -45,6 +45,7 @@ struct dst_entry *inet6_csk_route_req(const struct sock *sk,
+ 	fl6->flowi6_mark = ireq->ir_mark;
+ 	fl6->fl6_dport = ireq->ir_rmt_port;
+ 	fl6->fl6_sport = htons(ireq->ir_num);
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6->flowi6_uid = sk_uid(sk);
+ 	security_req_classify_flow(req, flowi6_to_flowi_common(fl6));
+ 
+@@ -71,6 +72,7 @@ struct dst_entry *inet6_csk_route_socket(struct sock *sk,
+ 	fl6->daddr = sk->sk_v6_daddr;
+ 	fl6->saddr = np->saddr;
+ 	fl6->flowlabel = np->flow_label;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	IP6_ECN_flow_xmit(sk, fl6->flowlabel);
+ 
+ 	if (sk->sk_protocol == IPPROTO_TCP)
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 8fc4766c8da9..a83ca449e308 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1191,6 +1191,34 @@ static int ip6_dst_lookup_tail(struct net *net, const struct sock *sk,
+ 	if (err)
+ 		goto out_err_release;
+ 
++	/* Routing packets with a src addr not present in the host is not
++	 * allowed unless the ANYSRC flag is set (i.e. with transparent socket).
++	 * The address must be in the same L3 domain as the destination device.
++	 */
++	if (!ipv6_addr_any(&fl6->saddr) &&
++	    !(fl6->flowi6_flags & FLOWI_FLAG_ANYSRC)) {
++		struct net_device *oif_dev;
 +
- 	local_bh_disable();
- 	if (current->in_nf_duplicate)
- 		goto out;
-diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
-index 6da3102b7c1b..a5f6f074a7e9 100644
---- a/net/ipv6/netfilter/nf_dup_ipv6.c
-+++ b/net/ipv6/netfilter/nf_dup_ipv6.c
-@@ -47,6 +47,9 @@ static bool nf_dup_ipv6_route(struct net *net, struct sk_buff *skb,
- void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		 const struct in6_addr *gw, int oif)
- {
-+	if (net->user_ns != &init_user_ns)
-+		return;
++		rcu_read_lock();
++		/* For local routes (*dst)->dev can be 'lo', which has no l3mdev
++		 * master, so that the L3 domain wouldn't match if the source
++		 * address is in a VRF-enslaved device. To avoid that, check the
++		 * outgoing interface from the flowi6 structure instead.
++		 */
++		if (fl6->flowi6_oif)
++			oif_dev = dev_get_by_index_rcu(net, fl6->flowi6_oif);
++		else
++			oif_dev = (*dst)->dev;
 +
- 	local_bh_disable();
- 	if (current->in_nf_duplicate)
- 		goto out;
++		if (!ipv6_chk_addr_and_flags(net, &fl6->saddr, oif_dev,
++					     1, 1, IFA_F_TENTATIVE))
++			err = -ENETUNREACH;
++		rcu_read_unlock();
++
++		if (err)
++			goto out_err_release;
++	}
++
+ #ifdef CONFIG_IPV6_OPTIMISTIC_DAD
+ 	/*
+ 	 * Here if the dst entry we've looked up
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index a7025ec87035..716fc6e246de 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -29,8 +29,9 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	struct flow_keys flkeys;
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
+-	int strict = (ipv6_addr_type(&iph->daddr) &
+-		      (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL));
++	int saddr_type = ipv6_addr_type(&iph->saddr);
++	int daddr_type = ipv6_addr_type(&iph->daddr);
++	int strict = daddr_type & (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL);
+ 	struct flowi6 fl6 = {
+ 		.flowi6_l3mdev = l3mdev_master_ifindex(dev),
+ 		.flowi6_mark = skb->mark,
+@@ -41,6 +42,12 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
+ 	};
+ 	int err;
+ 
++	fl6.flowi6_flags = sk ? inet_sk_flowi_flags(sk) : 0;
++	if (saddr_type & (IPV6_ADDR_UNICAST | IPV6_ADDR_LINKLOCAL))
++		fl6.flowi6_flags |= FLOWI_FLAG_ANYSRC;
++	else
++		fl6.saddr = in6addr_any;
++
+ 	if (sk && sk->sk_bound_dev_if)
+ 		fl6.flowi6_oif = sk->sk_bound_dev_if;
+ 	else if (strict)
+diff --git a/net/ipv6/ping.c b/net/ipv6/ping.c
+index 6e90d0bf9f3d..d0964396c2c5 100644
+--- a/net/ipv6/ping.c
++++ b/net/ipv6/ping.c
+@@ -140,6 +140,7 @@ static int ping_v6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	fl6.flowi6_proto = IPPROTO_ICMPV6;
+ 	fl6.saddr = np->saddr;
+ 	fl6.daddr = *daddr;
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 	fl6.flowi6_mark = ipc6.sockc.mark;
+ 	fl6.flowi6_uid = sk_uid(sk);
+ 	fl6.fl6_icmp_type = user_icmph.icmp6_type;
+diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+index b965258cf9e5..ef5ddbe7ac10 100644
+--- a/net/ipv6/raw.c
++++ b/net/ipv6/raw.c
+@@ -887,6 +887,7 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
+ 
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 	if (hdrincl)
+ 		fl6.flowi6_flags |= FLOWI_FLAG_KNOWN_NH;
+ 
+diff --git a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
+index b581cb1ee2e8..3d665e93fcac 100644
+--- a/net/ipv6/syncookies.c
++++ b/net/ipv6/syncookies.c
+@@ -242,6 +242,7 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
+ 		fl6.flowi6_mark = ireq->ir_mark;
+ 		fl6.fl6_dport = ireq->ir_rmt_port;
+ 		fl6.fl6_sport = inet_sk(sk)->inet_sport;
++		fl6.flowi6_flags = inet_sk_flowi_flags(sk);
+ 		fl6.flowi6_uid = sk_uid(sk);
+ 		security_req_classify_flow(req, flowi6_to_flowi_common(&fl6));
+ 
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index df9c29eb5c1f..ae69e71b0859 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -268,8 +268,9 @@ static int tcp_v6_connect(struct sock *sk, struct sockaddr_unsized *uaddr,
+ 	fl6->flowi6_mark = sk->sk_mark;
+ 	fl6->fl6_dport = usin->sin6_port;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 	if (IS_ENABLED(CONFIG_IP_ROUTE_MULTIPATH) && !fl6->fl6_sport)
+-		fl6->flowi6_flags = FLOWI_FLAG_ANY_SPORT;
++		fl6->flowi6_flags |= FLOWI_FLAG_ANY_SPORT;
+ 	fl6->flowi6_uid = sk_uid(sk);
+ 
+ 	opt = rcu_dereference_protected(np->opt, lockdep_sock_is_held(sk));
+@@ -979,6 +980,7 @@ static void tcp_v6_send_response(const struct sock *sk, struct sk_buff *skb, u32
+ 	fl6.fl6_dport = t1->dest;
+ 	fl6.fl6_sport = t1->source;
+ 	fl6.flowi6_uid = sock_net_uid(net, sk && sk_fullsock(sk) ? sk : NULL);
++	fl6.flowi6_flags = sk && sk_fullsock(sk) ? inet_sk_flowi_flags(sk) : 0;
+ 	security_skb_classify_flow(skb, flowi6_to_flowi_common(&fl6));
+ 
+ 	/* Pass a socket to ip6_dst_lookup either it is for RST
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 93478d1ad576..5154d445ba9c 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -1656,6 +1656,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	if (ipv6_addr_any(&fl6->saddr) && !ipv6_addr_any(&np->saddr))
+ 		fl6->saddr = np->saddr;
+ 	fl6->fl6_sport = inet->inet_sport;
++	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
+ 
+ 	if (cgroup_bpf_enabled(CGROUP_UDP6_SENDMSG) && !connected) {
+ 		err = BPF_CGROUP_RUN_PROG_UDP6_SENDMSG_LOCK(sk,
+diff --git a/net/l2tp/l2tp_ip6.c b/net/l2tp/l2tp_ip6.c
+index bdaae1b64d25..22ae5bc2669a 100644
+--- a/net/l2tp/l2tp_ip6.c
++++ b/net/l2tp/l2tp_ip6.c
+@@ -633,6 +633,8 @@ static int l2tp_ip6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 	else if (!fl6.flowi6_oif)
+ 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
+ 
++	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
++
+ 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
+ 
+ 	fl6.flowlabel = ip6_make_flowinfo(ipc6.tclass, fl6.flowlabel);
 -- 
-2.43.0
+2.54.0
 
