@@ -1,123 +1,78 @@
-Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D40134EF0C
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 08:09:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.179
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788422959; cv=pass; b=RpfSebkODFybB5ANSBXAFezsuzBGCrSyadoQ3XhZO8DiWY5kn4l57LFiRU/lOoXYc6OTZk4DcBbl8ZwWIDaRxsmlNG6MejvuWnRWDDYdHtg2AdkfoJUrjz8itrLppUqwlHQr1Z1IDrV5rHrUlJYT6BtGRIB+2W+CcZOu4+6NEeo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788422959; c=relaxed/simple;
-	bh=dWEo3mp7frOFVKITzORF+6HHk5U6mbYoC8XrjT44of8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AVorXTGRJq7CjtgotC0ldahHANeotBYKls0S0gejBMZM4pMJvBHILnwEdKhyaFuccYzxSws2uRkJqnW25Ium/uOIQF811yPX3x3uvjtnpuQLtKHD/goD72dlCNdMDpX1k0q/uyAXfs2mPcFcpJzuPIJ372QODs+eljeoV985gV4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=k+HhOoMk; arc=pass smtp.client-ip=209.85.208.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D97843164C5
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 08:11:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788423064; cv=none; b=e0h/JVEDJ8yQjvx61pdfGRVwreI+kU+1+al2Ks62G1fWEGNj6HhhyucL/aLKHk0T5naSHXae00qYrYJcAJBDCGQSn67NXpc76tx0Gd7G5VrOT1yCX6COaKye7gk5NZJCLY0yEriNCG+hNU3l/0rtkM6eg2nnyA5GrGlfNuKRSv0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788423064; c=relaxed/simple;
+	bh=yW+zJ+WrMEh6GVU0mbaswbeJq94S/3LXSkASp1cgT8c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=G/qaqPE1Gu/5QHwFL46qcoEYtszGOx5R8t8WgpD6ggD2aCULQ2YvSQStntd61J9KqP0E3FNRfgoTObwNqJTSK8UmPT0mUBy5xyWKQwpENjL7Od9erVpysPRk6QlZCurUyA6UK678Dbfx5Om2PGMsCyzV++Ly/HLjFxfoRDIGs8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pOUAgXOv; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="k+HhOoMk"
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-3a2e985245eso15305051fa.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 01:09:17 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788422956; cv=none;
-        d=google.com; s=arc-20260327;
-        b=JvTi5bdNiClTjN7tc6yv1R0z3Z1hH7bnnSEq9DEQspo87hkDOwa6NMTDed+g53QGjF
-         ua+gCgafD9x3onpi5aM4+nxtbYqWh2DS1XM49BrSb45PDhj0F8zzarAZ+9DNITtjQJWl
-         KSUowdczm8h2RgrEvXhNcZy2HZ9k1g9IgJ4JFY0RqOYFXdSwz0B6g6n+GKnICRxSBul0
-         jdDt9T0FARbguNtATFF5hdCn4A8rqiZo8MqFGuXlzIhXROH7qf+kHE9McHJAPvIXhllH
-         pUc+0W/LnnlDDX77XMHF5y6/7Qw3VBVUNfEsEXZuHo4qH+HDZ+ZcLk//QAFCE8D5adTU
-         0GKA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=XTfy45raSGSmQ3CPJ+k8R7TpaweRcKOSHtZadmJbOaM=;
-        fh=XnAaFOEHODbcgK03uUB94aO8k75tlFmGP4rrQWYmH/w=;
-        b=LgiuWfJNzIVc7AFJZOJMgJXNosNbU9zqQB4Sbr2ltj/5DKFWoamkayn6nimNiIa5V3
-         7SZia+4kv9ANKj5rcxApOD+/xGlxNGJFudVhCr6PS8dwZ3yqVPK2r2PSg1BROreTLzEF
-         XlBzK84Bb6U/3vPlTaY1N3MNBcoGW5KGxRbTQwHtBLKfRaMSngJHC7Bz2yjkZZulZYnu
-         ucT0xGt/D7zor2PQdzhMcG0mR7U7HC34T5uldWqLFvuTZUViyfExnVUgAdoPQ385pGfj
-         JsbbEvUbZ7caA0QUmXigxDVKcH2KZUGyUogeUYwy77fzQN18asn9VFV1/7pmA073uAVT
-         ehZg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1788422956; x=1789027756; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=XTfy45raSGSmQ3CPJ+k8R7TpaweRcKOSHtZadmJbOaM=;
-        b=k+HhOoMk6tLRoMus9fcYwhdY69VwLNTc+4p+IDImaI4AoiK3BLP67bD4OJY3x17luV
-         tZDTqDifOEFMu4J4vHkZwLZMr+HsyumkVqzkU6ZI3pMB9g8U0ltgFtrlxD2e2/OxHa0+
-         iO6VWeVs5t2Yg9zM0mVufn79jPdTNOC/ffoVl0tSVHCYcm+oEHePv4JGolDmo7ARLW7s
-         eDNd/OkC703ZRdRC0/T7I+OwjmecjtMnyHyvq6E2rbRLgW9o3YmVn654PbY1CDt+8NTB
-         WMItEVfAcnlyzJkdSY6t2/9TlgxJtmbjfOXDXgRHiSAe4U3nJf0XZjZgTkFQqC2nsnJw
-         0jkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788422956; x=1789027756;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=XTfy45raSGSmQ3CPJ+k8R7TpaweRcKOSHtZadmJbOaM=;
-        b=V2HgDB5QPMEDKyFM4TKc9fN7EZqAWFA5uTRYaKSgWClqSABSpYDdJeP+uC53acQ3wy
-         POiYubI5m2zQSN6VMgv9ZxXdaDtZlRJ8lVG6Wh1z85Eo7w9/4JUyR7XSnT44g5mikD8G
-         ukXma9cDVOpHsk8iNabw8FZV6aEh5lLU46uydaD1SKdX8aR0kgLwhN932fbCoqzsyQS5
-         s+qO6ParH3N/92/8v1JVohI96kjQv/knR0sBDUbqR5coAnlt6APvMtXzYN5lR5SoL9e6
-         SygOZW1IL2kik9mYsmbXEMpW61GAohafUYrfG5K/yw8a7aBr+auuu/EF570oMUBIeEei
-         X3qQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxdg6iOox6kyOI7FRTA4hJaWBmfdSpGxtwvwidM0zbKD6zxMfgenLzX6H8VeanrsbntazU0xK/1vT7neK/PXhs=@vger.kernel.org
-X-Gm-Message-State: AFuF++noIpvE2+P39N3HrTeWYROsqMzV8cPkc2tLBZMXOU1BgZ45I8+b
-	HjWwnk+da7CV4diJeUHqQ7kpj5RU1ITwg4QFWSrsqH9RTbouHMqweqk27rVBEsui0xID/nbYBwX
-	sVmd8KSVhcRKTzF8BWO/33T/ufCyV0sacOW0xT5xBZb0=
-X-Gm-Gg: AYBFou3O6C6O0/bs5b3odaqlgQB9yxjIri7W5XmgiIpSVmQTJscAzho555Z4j5XV25B
-	dvdQNxA6sawZu8tuPPmfo73rYpaGJVFq2h6DVP3/jBzhA9lR7rCD2Budo7ac08kuy0EJMY2Hpse
-	tjnlNxmK3U7A6Dksro//kXroGgozizDjQ1azhiInc0bDx9ChzUB0VKm8R7PPSJ7pEjgJh6mAljQ
-	mhEeyDkeWqY2BIwFuxM/D647R10fs1RIBxtVO2yIRIGfBOIl9b10x//GMgjZ/0ojpZsPUs/lJTg
-	S+U8bEXtFQSoTmlKOtMdTz+wGd5X/1hJQyUiPzUgswUAbsMxosFMKZLet7J1UNh1fWiImgtmu0o
-	=
-X-Received: by 2002:a05:651c:4ca:b0:3a3:115d:daf0 with SMTP id
- 38308e7fff4ca-3a35008931dmr18616021fa.6.1788422955902; Thu, 03 Sep 2026
- 01:09:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pOUAgXOv"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=fyXkySHwnOy8p9cdPTEPbLikVkf+fnXSNXVmhoUZQes=; b=pOUAgXOvqQvQ1yNVBX/G12FxjW
+	RVkJENfnqes4OUZAFiTkaWwpSsVZK0uGBhQNMNuWh01lmYskdPaitAU4zs9Csnkj0BVaeOu5bFfWf
+	1AQwUbBOyzimK42a6k3LUkqdn6bPOFqE448UIkzYbHDjrzQZ/L7VtzUECI0mRdyvWb+zax7linxHY
+	q4ybbGOwTRiqUY4zmz0xiQGXhi/d3oidgLgnu4bwRjDVRkTiGeJTJqctCLaXoC8PkiJ1neaxfghin
+	vJwT/rsE9QDCWFrcoPdOL0sFzqhHz8EUDlRO/Z3CHw3qu8lS2oDqeiC9EGe+xHVkFRhuvYeqr9Idp
+	5ZOmdQSQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1x22XD-000000007jc-1IVh;
+	Thu, 03 Sep 2026 10:10:59 +0200
+Date: Thu, 3 Sep 2026 10:10:59 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] tests: shell: Test odd netdev hook updates
+Message-ID: <apkrk6yl5etmE364@orbyte.nwl.cc>
+References: <20260827204255.274666-1-phil@nwl.cc>
+ <2fa302ed-71bc-4136-8955-cddb234b5e24@suse.de>
+ <apagf_aZh7-dre1O@orbyte.nwl.cc>
+ <apbns1SLfAn5zClE@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1787903722.git.zihanx@nebusec.ai> <8e45ea5d0cf764267a90d959fa40f0f831aabf08.1787903722.git.zihanx@nebusec.ai>
- <apKl65BbdyWCtre7@strlen.de> <CAANe3eT8ycDkomgpzZmni7hMrUX1fr2dE4QvQOcKCPEcw=J=2A@mail.gmail.com>
- <apkahwSdQhuE6gRV@strlen.de>
-In-Reply-To: <apkahwSdQhuE6gRV@strlen.de>
-From: zihan xi <zihanx@nebusec.ai>
-Date: Thu, 3 Sep 2026 16:09:03 +0800
-X-Gm-Features: AcwNN1Wd0FgsqLjcXjqWHA6w1DrMXZKkBLBFaJpau8ih4FBDSOgZEW2Xg9zNQoQ
-Message-ID: <CAANe3eS22cFoqz1DWAkLXkskZqO3istpX6ARSKvBKBBVKKKdtQ@mail.gmail.com>
-Subject: Re: [PATCH nf 1/1] netfilter: nf_dup: prevent asynchronous duplicate recursion
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, coreteam@netfilter.org, 
-	stable@vger.kernel.org, Vega <vega@nebusec.ai>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <apbns1SLfAn5zClE@chamomile>
 
-On Thu, Sep 3, 2026 at 2:58=E2=80=AFPM Florian Westphal <fw@strlen.de> wrot=
-e:
->
-> zihan xi <zihanx@nebusec.ai> wrote:
-> > If you do prefer to keep a small nf_dup-only change, I can prepare eith=
-er:
-> >
-> > 1. disable IPv4/IPv6 dup in network namespaces owned by a non-initial u=
-ser
-> >    namespace; or
->
-> I think this is the better option, someone would have to explain
-> the use-case for DUP in a user netns.
+On Tue, Sep 01, 2026 at 04:56:51PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 01, 2026 at 11:53:03AM +0200, Phil Sutter wrote:
+> > On Tue, Sep 01, 2026 at 09:54:27AM +0200, Fernando Fernandez Mancera wrote:
+> > > On 8/27/26 10:42 PM, Phil Sutter wrote:
+> > > > These should cover what Fernando fixes in his kernel patch "netfilter:
+> > > > nf_tables: fix device name and prefix match in hook lookup" as well as
+> > > > some bonus cases I came up with.
+> > > > 
+> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > 
+> > > Thanks Phil! These tests cover a lot of different cases.
+> > > 
+> > > Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> > 
+> > Thanks for your review, Fernando!
+> > 
+> > Pablo, I'll push this out now, which means we'll get two failing test
+> > cases until kernel fixes are ready and deployed. Fine with you?
+> 
+> We usually wait for fixes to propagate upstream before applying tests
+> to userspace.
 
-Thanks. I will take this option and send a v2 that skips IPv4/IPv6
-duplication when the network namespace is owned by a non-initial user
-namespace.
-
-Best regards,
-Zihan Xi
+ACK, will do.
