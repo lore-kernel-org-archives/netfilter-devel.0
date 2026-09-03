@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1E52931F5;
-	Thu,  3 Sep 2026 00:41:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65DAE2D8364;
+	Thu,  3 Sep 2026 00:42:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788396121; cv=none; b=eppZb64310QkFGL/7sFjiXrw0ngc2kLvgnNjs7uBTVH6a3C4sF93kuSMwT+jmH8hA2l07mTdhgbljMe72dKuELSbVmDXlkzv27vOSWU92Fv2v3n0tB6Lg/0m4mXDvzszPXCJ5gUHCPGbI/2QssEn+TIPDS7yy0IKwBXLAFwFZlg=
+	t=1788396123; cv=none; b=sL5pEaq2VzDX6BPvn9hPEl2J03u9OpqagKmAqIlAdhF2IpHWQFjBUpl1bM50joLfk5F3eMp5ByclHudK0e+4Mana0bAptNyKNXFmL6AdTUBnhE8qNLx38uZcnv9BtpcquMNXvre8UHb+dYmvjPuk0jxlbuc5bFpvEyMiC/r9uHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788396121; c=relaxed/simple;
-	bh=ogxmNEYh8SWXfPRe313HfZDaNF1W8nAeDl81/4R28GA=;
+	s=arc-20240116; t=1788396123; c=relaxed/simple;
+	bh=iXzGaYTy/Oqp+cbiwiF4jWxNES3dOeYJpf0jg4feALo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QKhFWnmxujLiI8lkJmBXiOKKyq1c+hbVknmKELVepqvYGJzpI8os+ERWqhvth35a58z/5QwJPV2HvA6L+dkfoFfKG85L7QkvR58yQfXOxkvDwu9jnTTv5Fom0zWgaE2YuCLkoxodEzaCSTziwUVIPkcfGbRcDlBjUqRLCsiTQGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=d56Z7kOq; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=hap3Iy430Pofcu9ZsRr/Z7WGHLh0gxI8abrtHt4j/wJsYeymz/YGvlZmdmy6TKBsTdts6pphylpT65FedZVACNUcuZh8KhZXoAQoRM3PyGOOW3u4iLasZr1ajJRHFtj6LlbNIRCe3dArgaQpKeHXbVkNNSRuHkOxgNgNhcqixk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D4HU7EMd; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="d56Z7kOq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D4HU7EMd"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788396117;
-	bh=1yXqIV58sXy9JBDXSxnDUpCcuIJfw+yd+mIzGJkNuA4=;
+	s=2025; t=1788396119;
+	bh=SVk5xIYlvI1HY9/YlutJ14OPeJkUOoImMOBeva92XNk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=d56Z7kOqKnsUlwUwo+J9sAVT7tPKXC7nedrskolNOc6U/YN+UZQxg3azMBlImrlr9
-	 2W6A7UyTvPEAaZdSCBqhdI/MpD754uuRfy7xecpsKvY74Qm5iEmEzExmNk1gW6iKEl
-	 27CaFTz2au75VXmGgJ3KeNUGq1G+U9DcfY/6SKDvNw/Wo69TqGCFdJ3+9XAZ/SBI1E
-	 7Ze/JLOCTxsKtZ5IRnAQp8QF+sh1b8zMa6p52ylM6+mkN0x8pL1qLaaBal/T9PjkRw
-	 wENPQVRytFyTP2W2AWSkfS5pnX1bEFOZ+ZVg6tcGwYxfGstjHGB8v77rHPM0KW6aHh
-	 TOPhBWMIDEgfw==
+	b=D4HU7EMdcYEPLxMxRGkH5QTbQ+jHMtxYXY4IjO3x7+mebyIoMwDQZDzZcgRF+i5xq
+	 5W1wX3Sqsssis4G0PRAqKNSgfiVwcuIBAHeWgnHiIzOw+w8VkQQp8MctmWZiTF+kAX
+	 f0I1anxkgcJ1Yq6AhxSjPYWhWQ+GuN1Ipq8oJwRW8pJ4RDmml4FNp2Fjgc6I9S2EIU
+	 ZtFX84sRMHRIYsMmXMMbWxBep2/AXPHqZvrBVNZwWDhjaW4bjnRXlVdjdiRxwUF7KL
+	 UHtvVTcifyTgRXcNZ9kZIKWjZyvpLZFqhYLuOiY7tcOnEf+pQIWTOBGjmD1DD+wpwV
+	 8+tv8d4Yx8t3w==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 374F1607AD;
-	Thu,  3 Sep 2026 02:41:57 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 84433607AE;
+	Thu,  3 Sep 2026 02:41:58 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 02/12] ipvs: fix reversed sequence option serialization
-Date: Thu,  3 Sep 2026 02:41:39 +0200
-Message-ID: <20260903004149.1037028-3-pablo@netfilter.org>
+Subject: [PATCH net 03/12] netfilter: nf_conntrack_sip: fix OOB read in sip_skip_whitespace()
+Date: Thu,  3 Sep 2026 02:41:40 +0200
+Message-ID: <20260903004149.1037028-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260903004149.1037028-1-pablo@netfilter.org>
 References: <20260903004149.1037028-1-pablo@netfilter.org>
@@ -53,43 +53,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Kyle Zeng <kylebot@openai.com>
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
 
-hton_seq() expects the host-order source first and the unaligned
-network-order destination second. The version 1 sync sender passes these
-arguments in reverse for both sequence blocks. This leaves 24 bytes of the
-kmalloc-backed message unwritten. It may disclose stale heap data and
-replace the live connection sequence state with values read from the
-buffer.
+sip_skip_whitespace() returns dptr unchanged when its own loop
+exhausts the buffer (dptr == limit), instead of NULL like its sibling
+sip_follow_continuation() returns on its own "no more data" path.
 
-Pass the connection sequence state as the source and the message payload as
-the destination for both blocks.
+ct_sip_get_header() only checks for NULL after calling it:
 
-Fixes: 986a07579533 ("IPVS: Backup, Change sending to Version 1 format")
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+  dptr = sip_skip_whitespace(dptr, limit);
+  if (dptr == NULL)
+          break;
+  if (*dptr != ':' || ++dptr >= limit)
+          break;
+
+so a recognized header name followed only by spaces/tabs running to
+the exact end of the SIP payload, with no colon, makes the very next
+statement read one byte past the buffer.
+
+Make both "no more data" outcomes return NULL, matching the
+convention sip_follow_continuation() already uses and that both
+existing callers already check for.
+
+Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_sync.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 1deb063cd72c..5383aeafb0ae 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -747,9 +747,9 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
- 	if (cp->flags & IP_VS_CONN_F_SEQ_MASK) {
- 		*(p++) = IPVS_OPT_SEQ_DATA;
- 		*(p++) = sizeof(struct ip_vs_sync_conn_options);
--		hton_seq((struct ip_vs_seq *)p, &cp->in_seq);
-+		hton_seq(&cp->in_seq, (struct ip_vs_seq *)p);
- 		p += sizeof(struct ip_vs_seq);
--		hton_seq((struct ip_vs_seq *)p, &cp->out_seq);
-+		hton_seq(&cp->out_seq, (struct ip_vs_seq *)p);
- 		p += sizeof(struct ip_vs_seq);
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 3ccf34fc1c53..64bc440b1181 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -423,7 +423,7 @@ static const char *sip_skip_whitespace(const char *dptr, const char *limit)
+ 		dptr = sip_follow_continuation(dptr, limit);
+ 		break;
  	}
- 	/* Handle pe data */
+-	return dptr;
++	return dptr < limit ? dptr : NULL;
+ }
+ 
+ /* Search within a SIP header value, dealing with continuation lines */
 -- 
 2.47.3
 
