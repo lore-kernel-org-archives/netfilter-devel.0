@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 779E42C3251;
-	Thu,  3 Sep 2026 00:42:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5ABB2C032E;
+	Thu,  3 Sep 2026 00:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788396124; cv=none; b=RkYK4XggNJiYXRJ+7cIyzbbscSUF87AQKAWuVGMYs1E+bMaQ2E3EZUxfck+aedn/010X9+Tt7S1L9mTWU75NNzNmK4hK69OVISOCcGd9GRg6Mm+9eWgCAZubAEOpRpDTihNYAEPHEoMkFM/i+NkXvqD/NmFBMH+tXPTlMzGjU0k=
+	t=1788396127; cv=none; b=bMLWu+QuDGACSXzxGB6qYba92HwQ/Hp/B5imQ9MtyVXNGeLdnMIpsnxN7HSC7cx2IgZKZMLekilnnTFiqcxz3G9cH71OPHGszU4fuwg7IIE3SLuNwcF7AStfwdqt8DyJb8tLXPYhp/1CYOlaNi536wKkjxcguN2U3EtU9IWKBHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788396124; c=relaxed/simple;
-	bh=KDMZxKBokX/eFmwjI6AiPYr9lz9zdu6GtHeQGtGseKM=;
+	s=arc-20240116; t=1788396127; c=relaxed/simple;
+	bh=j//+aCoHo69GvaL29DTIKGJcsWJ3gzsqCSwwbIsUKZU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ce/vD0SJNNzqkNHaMz/FfO/+MvYobuY1ZNzyM5jO1X1+3dKgdxY8URVcVIm4j7cv4hBV0miWPG104DzALIjegWqK9yUw2YqWPB4Hyacl8OH1aWHePFXCoXhlT9qH+p62CP6C/pWLiKhnGGjM3+188f+Ppy1bFN3w2QQAmVgekAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lqPZ0Ykr; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=JSMZTR3HMczYUgnYJSfh15ovvTxIZDUTYpJfxPhFqq5YUSP+Y5g0jlvNnUg+atvmV9fY1lCSR4o3Gv85mUfIYCAWnNK3zWr8DqLpzk4M3v3A4afv5GsB/Q/UOEdfANfg+opkVPrBGRSPaBZx4wMOorpmcSiTIcJ/pJ5tIHwkZbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S4iLxEdC; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lqPZ0Ykr"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S4iLxEdC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788396120;
-	bh=+Qvb7ZF0hgN+b8Z8TtazAeZH6daOLVVsMU/uL6SjuRs=;
+	s=2025; t=1788396121;
+	bh=75zm4Zv/VJQ0PNPQaL6qVc2OOOCrx9vK8HC4FqbFJUM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lqPZ0Ykrg1UDVj9ks7VKUj056W6rCxnUYKuykOX2Gnw9FC75nVmya618/2e8Yk12G
-	 Dxe8ttpzUJKGxWj3i4xF8vFyhgs90xb5JIoFTDEGTaMSvK36etC/Hu73hysMAHbPdq
-	 0Npsq2rjeC0KWbwSgBBAhwZXiZc1HG39UCNOKPzGpNFeQELDoJoJV/CGjBBvvU6MFt
-	 fza0FRyAbMQBDhTAyQ+5OFAkaWJWq6yIstS+r0+uJuDkfjgHtJLBq+AzYHTqp6lxj6
-	 h+R/51kL9OjSQhk63qN8MgMwFoYqhwfcGUcbRi8JbwibYSmPHI4kMlX68klACdODqy
-	 Q/NIEKcbaO4Xw==
+	b=S4iLxEdCWdchVJMDXnMgzm8xLecgWrKuw8n7wrvtL6pYSwVxA28s0Pv0NAWXbvztl
+	 nZctVuAkFcNSc7Zm6TbuzHEe4jMmbfvMWuCcB2I0S02hbwXE1UdYnAN35fNd7V9Y6h
+	 lmvDZ6Cq/3XBf4tE/6zlcrC2p2LQxtI92UPuTgbJwZJASQh7Z8CwU53RyQx5MGv9Dt
+	 iClQbjDJevq2NT3KsWJgzErjW7jt+d4SK06HR/FJ56adLdiTqsOeTWn2FY6ypfXddC
+	 PdKIK3w+zF34NHikqaI29VVmL4GUPBvbIrPItswKlIEk43pXTgWucVZP7QeV6O0TPr
+	 vBMTO0vfUVUBg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CEC406079C;
-	Thu,  3 Sep 2026 02:41:59 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 318B3607AB;
+	Thu,  3 Sep 2026 02:42:01 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 04/12] netfilter: cttimeout: prevent UAF during module unload
-Date: Thu,  3 Sep 2026 02:41:41 +0200
-Message-ID: <20260903004149.1037028-5-pablo@netfilter.org>
+Subject: [PATCH net 05/12] netfilter: nf_log: unregister loggers before per-net teardown
+Date: Thu,  3 Sep 2026 02:41:42 +0200
+Message-ID: <20260903004149.1037028-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260903004149.1037028-1-pablo@netfilter.org>
 References: <20260903004149.1037028-1-pablo@netfilter.org>
@@ -55,68 +55,87 @@ Content-Transfer-Encoding: 8bit
 
 From: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-nf_ct_set_timeout() protects the timeout hook dereference and policy lookup
-with rcu_read_lock(). cttimeout_exit(), however, unregisters the per-net
-operations before it clears the hook.
+nf_log_syslog and nfnetlink_log unregister their per-network namespace
+operations before unregistering their global logger backends. This
+leaves a window where a sysctl or netlink writer can rebind the still-
+registered logger after the per-net pre-exit callback cleared the old
+selection.
 
-This allows the following interleaving:
+The race looks like this:
 
-  CPU 0                              CPU 1
-  cttimeout_exit()                   nf_ct_set_timeout()
-    unregister_pernet_subsys()         rcu_read_lock()
-      kfree(pernet)                     h = nf_ct_timeout_hook
-                                        h->timeout_find_get()
-                                          nfct_timeout_pernet()
+  CPU 0                                 CPU 1
+  ----                                  ----
+  unregister_pernet_subsys()
+    nf_log_unset(net, logger)
+      net->nf.nf_loggers[pf] = NULL
 
-The hook still points to ctnl_timeout_find_get() when CPU 1 looks up the
-already freed per-net timeout list. KASAN reported:
+                                        lock nf_log_mutex
+                                        find logger in loggers[][]
+                                        net->nf.nf_loggers[pf] = logger
+                                        unlock nf_log_mutex
 
-  BUG: KASAN: slab-use-after-free in ctnl_timeout_find_get
-  Read of size 8 by task poc/90
-  Call Trace:
-   ctnl_timeout_find_get+0x271/0x2a0 [nfnetlink_cttimeout]
-   nf_ct_set_timeout+0x7b/0x3c0
-   xt_ct_tg_check+0x724/0xb20
-   xt_check_target+0x234/0xa90
-   do_ipt_set_ctl+0x570/0x1270
-  Allocated by task 89:
-   __kmalloc_noprof+0x16e/0x460
-   ops_init+0x6d/0x420
-   register_pernet_operations+0x2f6/0x670
-  Freed by task 91:
-   kfree+0x131/0x390
-   ops_undo_list+0x3d4/0x730
-   unregister_pernet_operations+0x232/0x490
-   unregister_pernet_subsys+0x1c/0x30
-   cttimeout_exit+0x52/0x970 [nfnetlink_cttimeout]
+  nf_log_unregister(logger)
+    lock nf_log_mutex
+    loggers[pf][type] = NULL
+    unlock nf_log_mutex
+    synchronize_rcu()
+  module exit returns
+  module core frees backend memory
 
-Clear the hook and wait for existing readers before unregistering the
-per-net operations. This blocks new policy lookups and ensures readers that
-observed the hook finish before the per-net storage is freed.
+Later, a sysctl read or packet logging operation can dereference the
+stale per-net logger pointer.
 
-Fixes: ebfbe67568a7 ("netfilter: cttimeout: use net_generic infra")
+Fix this by unregistering the global logger backends before tearing down
+per-net state. Once the global registrations are gone, later writers can
+no longer rebind the logger. unregister_pernet_subsys() already waits
+for an RCU grace period after the pre-exit callback clears the per-net
+selection, while nf_log_unregister() continues to cover readers of the
+global logger table.
+
+Apply this ordering fix to both nf_log backends that combine per-net
+teardown with global logger registration.
+
+Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
 Cc: stable@vger.kernel.org
 Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_log_syslog.c | 2 +-
+ net/netfilter/nfnetlink_log.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 66c2016f6049..132c02ac7c4e 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -652,9 +652,9 @@ static void __exit cttimeout_exit(void)
- {
- 	nfnetlink_subsys_unregister(&cttimeout_subsys);
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index f24288088c0d..c3fd398ffcd7 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -1073,12 +1073,12 @@ static int __init nf_log_syslog_init(void)
  
--	unregister_pernet_subsys(&cttimeout_ops);
- 	RCU_INIT_POINTER(nf_ct_timeout_hook, NULL);
- 	synchronize_net();
-+	unregister_pernet_subsys(&cttimeout_ops);
+ static void __exit nf_log_syslog_exit(void)
+ {
+-	unregister_pernet_subsys(&nf_log_syslog_net_ops);
+ 	nf_log_unregister(&nf_ip_logger);
+ 	nf_log_unregister(&nf_arp_logger);
+ 	nf_log_unregister(&nf_ip6_logger);
+ 	nf_log_unregister(&nf_netdev_logger);
+ 	nf_log_unregister(&nf_bridge_logger);
++	unregister_pernet_subsys(&nf_log_syslog_net_ops);
  }
  
- module_init(cttimeout_init);
+ module_init(nf_log_syslog_init);
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 6c7fa2ed34f5..9d7fec570abe 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1233,8 +1233,8 @@ static void __exit nfnetlink_log_fini(void)
+ {
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
+-	unregister_pernet_subsys(&nfnl_log_net_ops);
+ 	nf_log_unregister(&nfulnl_logger);
++	unregister_pernet_subsys(&nfnl_log_net_ops);
+ }
+ 
+ MODULE_DESCRIPTION("netfilter userspace logging");
 -- 
 2.47.3
 
