@@ -1,85 +1,162 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f2.google.com (mail-pj2-f2.google.com [74.125.227.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABCED486623
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 11:34:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E0444E659
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 11:39:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788435289; cv=none; b=Vd0WcMx6J7RhVUSF/z1CBh4wUYlT9fA+f+T9vH0CXUNRwHWnej/GTVPuitAuIcA3JbLYK3/0Nv2C6s8tn/zAU0olyZon0JX71MZmCYRo55HxXQXt04HEIcWkhdlM6YTtvp1d3NYxoVAKV3waSs+8VCZLiVKNrbDDqQ0pS2O99io=
+	t=1788435553; cv=none; b=H+AVRcbC/ow9VWzZOhG5/cCupLDJ5dcZk4vzdtfSyuB7t2sb2Bm1JS0oPpL95qjCnuyjrB2A6nJxjp5XI5qhoerWXUDghdri40wf5UHEiBoYgXPcVlY1I8QbnafioXawAv8QUvogKhVlq+ZCUzEQws3uitGsr2YKHYEQd+IGn8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788435289; c=relaxed/simple;
-	bh=ismyEqWP6CfrQ5vVpVnh6c0FOmnArAZ2f9mWtE8L3ok=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pcxcgqetrJeVWXGfdHY4eGaQjh5z1c5LFw4BZt+13g+D4X9/YTNoQLBYtGIbHQ+NUxU1mEVM6TG0qRVSyfJKRmOoraXXCoRKBEzjFF+YFoFRYZmP9jBDcU/ggh1rIz0rXpNkBKC0K/sKxlthLKs9CgJei7DnOioeVmeKN4pbIoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KkTUpR8E; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1788435553; c=relaxed/simple;
+	bh=ro5ycANoLWJJCE9324sTDjhQ6jvDY7a4igZpzbhFBBg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Qs6joQHvr6b0k9K7CRDnfysmapViE6UXLY/bCO9TfiX7+lsvT+u3/ZhxrMXBTE7+aSrAne4FFf3FSJkiMsBs3y0slx4HBGvxgsTgwJ5AeUk8dP+B3RdhHKxfJejYrSwNZGciZ2lg6QClgi95qcSFYYo9yEr3fO8vvEDA56KJN8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=WXcs3L4s; arc=none smtp.client-ip=74.125.227.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KkTUpR8E"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788435262;
-	bh=1+TOGSQ6D7fuRI94cXsTMmDY/L4a2nzVoPR7bWiKf9o=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=KkTUpR8ELfuCXSEHDdysWzSbG8uPU4Taih49gY/6/OxaRJA6WXiJq6NCALLUYc72E
-	 pr+d8nwgrMLaCykhXtGQ78iz0S4ydJJv3T6VSuoN1fIBf11CxSP9mIIdvRgcs07C2G
-	 sR0wR2eLThDHLrpvJ0vdCscBMinkh1d/lCSFLfbie1QkZ9rwyNPldHhGr+Etfy0osh
-	 egO+kkRBgkyNI0vCW9/yGzHUfEW5ohUP0IIK1m0mwyjL9OmRnpCCyIgsiGiMsdT0gt
-	 5RNbvNG3tMK3OqsMR55lEgsXvtflFSP7WTvRatpflF4R8c6qYwhznV+vcZ8mK2Di/P
-	 IoI7Lf/0YGRsw==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6748C607EE
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 13:34:22 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 6/8] netfilter: nat: use GFP_KERNEL_ACCOUNT
-Date: Thu,  3 Sep 2026 13:34:11 +0200
-Message-ID: <20260903113413.1122606-6-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260903113413.1122606-1-pablo@netfilter.org>
-References: <20260903113413.1122606-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="WXcs3L4s"
+Received: by mail-pj2-f2.google.com with SMTP id d9443c01a7336-2ccc2e84048so9038175ad.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 04:39:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=nebusec.ai; s=google; t=1788435540; x=1789040340; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=cRU7hLnxNiZ55MaNHqLlZScRyTHKVnmWkFZTM4ExPyA=;
+        b=WXcs3L4si6KuoF36NArKZksDtLUaaDRzsPBs6vgmdr3dhPO0GaGg1FPC6h9eICs25A
+         BwWj79QoY32YPaAG+WTDJv5q0O3qHPOLZAiiMnxLVJ7B2pcVRMDqlTljyFkKRwiK4zgX
+         lbGp0yetCe+EFhcXvym+ZseSffsKNVaUoU6NRt5nfufO1qFwRvhrWCmuhd8ZKS8T/fIs
+         cIIEYGkLskaE0Gfk1FX2505LfjfxxmjCDOE7dt8ediDIfzlPKQVhqyY7nLpXv+ces+48
+         G/Yak+a3yL30OQK27ubwqavdxv4i7+VjksFeo87EDG1HzYWSyyBKcaNeNYKnXDQYeDJq
+         HlHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788435540; x=1789040340;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cRU7hLnxNiZ55MaNHqLlZScRyTHKVnmWkFZTM4ExPyA=;
+        b=FBSbI1myMfKQgLRXxzvU1d2oNVczauwRnCFyXuRSCz4WrASxB2/vjdtc/wU5IoDxmm
+         fA05quOV/Hu7VYQ3nVuhRzoGq+/xBBwWQLMQt9NDhyeNr4WlKeB9jqwgFhc70Hz3deTs
+         HhSXxfugro8oEdo1heeQzcAiEa6teWCAFsPG+PPckVMjjGnl2T9110DjB4666swo2kOA
+         U00JP55HFQD9eDx8pKY7qKJpncvQDuoSW468bZ/k5uBuq/3i3JPAtoYTsUsNFhhoqRBV
+         ApnPsROE2OdMO8mSbAtNwUjf04klV3+Ahv0BhqSNng0FdpMi0qxgLye4snFezqzw8W6o
+         vWUw==
+X-Forwarded-Encrypted: i=1; AKwUvBz7CU/vMk744SQCMC7SYLdkwuM4EFAZ6LOn2jYWXMs19IFiep83Irn8F+T0fta7gw07wLKdoaG1VwYgwK6P1k4=@vger.kernel.org
+X-Gm-Message-State: AFuF++mTWBFOQzHuA1JG0eSRtLvVuMYKmdRBmo1z5cGDLi6KLzC/qnmy
+	VUYoEwJG13h8YBDJS+r/3vmMJeet25G+GGH5tW+b0W+4IuO4XsAsO1G0Vt8MSUEac/x0
+X-Gm-Gg: AYBFou2vVEta8/j4N4SG+oo5kKYT7C9yA+dgFwRLi7gP6hQoN16HTQI5qXllQuwqpTv
+	xoWT9PQjwJllAeWujFlCnX89sn57lIM43Q7Kz/bgkjHokC64gIHGmyHK8biXryR4+YyhlBimI2R
+	vL5VF6w85F6jNRtoN1kgSi/NnYzp/xhCaOUjjVXhdlPrC7roLEx+Petv3j/tk+ptJFV3D5tGsEL
+	t6mfFdUf/SL/uX+16smKlNpJ0RPcogw67xFZt/18+FH0dlnEmiilZOwJLHp+Dhn+IkEkOnI+TLf
+	71LE8nb501Kkbc3y3Xwp/PBU2pYUuYill0I28JnrpbfyEvdo+OnzjXFmHaRYDAcZiqniF+c9Kgw
+	1LCVJ01XPgDgciJKqbXqUorbPmUKTQD/3BFSVbcmWwHZ8F6/hvmt63TntK0GjlA+E7qHDY47MuX
+	nM61q8rMbEoDi/1OEnhLB6k8AukzRLVQiblHSItIBbLRgND4wWyAbZHZxzJHvfGyFYgzU/r4Lx8
+	mcvhJgzNslaofzMBNe8dZXkW87h8wqG7KRQWjTF/w==
+X-Received: by 2002:a17:90b:164d:b0:398:c16e:69d3 with SMTP id 98e67ed59e1d1-39aedeb9aecmr17724130a91.1.1788435539824;
+        Thu, 03 Sep 2026 04:38:59 -0700 (PDT)
+Received: from [192.168.4.59] (c-73-93-246-205.hsd1.ca.comcast.net. [73.93.246.205])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14319922eb4sm5341286c88.7.2026.09.03.04.38.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 03 Sep 2026 04:38:59 -0700 (PDT)
+Message-ID: <e105651b-a773-4a46-80e9-1e2ff0b665f4@nebusec.ai>
+Date: Thu, 3 Sep 2026 04:38:57 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ANNOUNCE] A Syzbot-style Platform for Verifying and Fixing
+ LLM-reported Bugs
+To: Jan Kara <jack@suse.cz>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ linux-kernel@vger.kernel.org, workflows@vger.kernel.org, frankw@nebusec.ai,
+ jhs@mojatatu.com, ksummit@lists.linux.dev, kuba@kernel.org,
+ pabeni@redhat.com, kerneljasonxing@gmail.com, roman.gushchin@linux.dev,
+ jgg@nvidia.com, mchehab+huawei@kernel.org, torvalds@linux-foundation.org,
+ ben.copeland@linaro.org, gregkh@linuxfoundation.org, yuantan098@gmail.com
+References: <20260830115546.3942129-1-yuantan098@gmail.com>
+ <f73vtlhwpdgrt5klkk2cgxfuqsvwvvlhzti4nu7hgdevwbqhvt@g2udlammqolb>
+Content-Language: en-US
+From: Yuan Tan <yuant@nebusec.ai>
+In-Reply-To: <f73vtlhwpdgrt5klkk2cgxfuqsvwvvlhzti4nu7hgdevwbqhvt@g2udlammqolb>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-GFP_KERNEL_ACCOUNT is preferred these days for memcg, replace
-GFP_KERNEL by GFP_KERNEL_ACCOUNT.
+On 9/2/26 08:10, Jan Kara wrote:
+> Hi,
+>
+> On Sun 30-08-26 04:55:45, Yuan Tan wrote:
+>> A month ago, I posted an RFC[1] to the mailing list proposing an automated
+>> platform that validates AI-reported bugs and prepares draft fixes, and
+>> later discussed the idea at the Netdev conference. After further
+>> development, it is finally ready.
+>>
+>> While preparing to send this email, I noticed that Roman has since started
+>> a related discussion:
+>> [MAINTAINERS SUMMIT] The place of AI code review in the Linux Kernel process
+>>
+>> It turns out this platform already addresses several of the needs raised
+>> there.
+>>
+>> The platform is available at:
+>> https://bugtracker.nebusec.ai
+>>
+>> It is currently hosted under my company's domain for convenience. I would
+>> prefer to move it to a neutral, community-oriented domain once the project
+>> name is settled.
+>> Access is currently restricted to maintainers whose email addresses are
+>> listed in the Linux kernel MAINTAINERS file.
+>> For now, only bug reports from the net subsystem have been fully imported
+>> and processed.
+> I was playing with this for a while and this looks useful. Some notes I have:
+>
+> 1) When you download the patch, it has 'From' field set to some value (I've
+> actually seen different values in different patches). Perhaps it would make
+> sense to automatically set From to the person downloading the patch (or
+> maybe value configured in user's profile)?
+>
+Fixed!
+>
+> 2) Based on current state of the kernel doc, the patches should contain
+> "Assisted-by: LLM" tag although I understand that might be controversial.
+Fixed! 
+>
+> 3) It would be nice if you could "assign" the report to yourself - i.e.,
+> you've decided to handle this and don't want co-maintainers to waste time
+> on it anymore.
 
-Allocate the internal nat hook via GFP_KERNEL_ACCOUNT.
+This feature is ready now. Our fixing team will also assign bugs to
+themselves. Feel free to remove their names if you think it would be
+better for you to fix a particular bug yourself. Our team definitely
+won’t know this part of the code as well as the maintainers do, and
+reviewing our patches may sometimes take more effort than fixing the bug
+directly.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: no changes, address leak reported by sashiko in separated patch,
-    this should not cause conflict with nf.git
+As for patch generation, I’ll make some adjustments. This is indeed
+because I explicitly asked the llm in the prompt to follow the reverse
+Christmas tree style.
 
- net/netfilter/nf_nat_core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Also, I haven’t had a chance yet to enable fix-status tracking or import
+the Sashiko bug reports for the fs subsystem. So far, I’ve only finished
+this for net, as cleaning up and normalizing all the data has been quite
+a bit of work.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 8ac326e1eb5b..09cc5b8fd6af 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1204,14 +1204,15 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 	if (!nat_proto_net->nat_hook_ops) {
- 		WARN_ON(nat_proto_net->users != 0);
- 
--		nat_ops = kmemdup_array(orig_nat_ops, ops_count, sizeof(*orig_nat_ops), GFP_KERNEL);
-+		nat_ops = kmemdup_array(orig_nat_ops, ops_count, sizeof(*orig_nat_ops),
-+					GFP_KERNEL_ACCOUNT);
- 		if (!nat_ops) {
- 			mutex_unlock(&nf_nat_proto_mutex);
- 			return -ENOMEM;
- 		}
- 
- 		for (i = 0; i < ops_count; i++) {
--			priv = kzalloc_obj(*priv);
-+			priv = kzalloc_obj(*priv, GFP_KERNEL_ACCOUNT);
- 			if (priv) {
- 				nat_ops[i].priv = priv;
- 				continue;
--- 
-2.47.3
+Some fs bugs may still be outside the threat model, such as those
+requiring a corrupted or malicious filesystem to trigger. I haven’t
+filtered those out yet.
 
+Over the next couple of days, I’ll first run the fix-status detection
+for the filesystem bugs and try to reduce as much unnecessary work for
+you as possible.
+
+Yuan
+
+>
+> Thanks for putting together the service.
+>
+> 								Honza
