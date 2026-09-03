@@ -1,79 +1,79 @@
 Received: from smtp-relay-internal-0.canonical.com (smtp-relay-internal-0.canonical.com [185.125.188.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0931400DE8
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 09:39:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B34FB3FC5D1
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 09:40:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788428375; cv=none; b=muWbb49gzBMOLryvEwwFt82PlocE8SVzxNlbBtxNDLazad3XH8n1fp+RyJ5G9WVCSkBkiBODVxhSs8uVeXiKJWKbFALX+Md8fVqmyN8PrViCAllK9v5dMRJG7c4CE2+IdFiQNtP+01T8AzXrjaClUNgwXejwlSULMKE9sbveyCw=
+	t=1788428423; cv=none; b=sSSgLXq1dIWs5kBVNysrZoBGS00KVK2H3Xieyxzue8xjxYPpfW4CeWWIuxfYApiHbI1ZTgkGQlcn2LXzTijZF1TVEyj8A4tv5EAkkcCue4Kc8mP4PZDmQD4MzQzOQRF/gQYJx2+mxOPNFoLOQm9ECFCuz6Cg7s/R1mCjKI/ZC6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788428375; c=relaxed/simple;
-	bh=eteUzrmkq8h8GgYq7AnBB8NLtsAMTQF/SAj+F1OBPTU=;
+	s=arc-20240116; t=1788428423; c=relaxed/simple;
+	bh=RVY5KRyKZZG2Y+gJh7LxXAAi3xdCkxmVkaTQ446fAwo=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hP5ZpenBqQvTNvv1e9qYXi5eLZl5mhjaAJ5Ki3Gu1ieEz++hdhmHfi9yMirL5+MIqANNxjAoeuIOU6rJh7v02w1XyguTX0TC24nwB7xPX6AaIxY+fWmXpRH1cNuM88O+eBO6GAwhPAr6ZU39OdLFooi4gHs8+hJRe6+4Z4uWxDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=canonical.com; spf=pass smtp.mailfrom=canonical.com; dkim=pass (4096-bit key) header.d=canonical.com header.i=@canonical.com header.b=ZvwxeX3l; arc=none smtp.client-ip=185.125.188.122
+	 In-Reply-To:Content-Type; b=TR90RJyxgQTcYo5Zb4ADjgM5C4PGemlmaJKPkWujqs6BK+NSf//tQmsdDUPlw1BY4FNB/JRlkxrNZvbUVqA3WLEZ3HS6L7nxnl5yoiybqQiFklFA4csGIKDURrZiYDbnJa5RXcweh5VnRkTjOiSDF0wTfMMvz2aPJ/OuWzlknu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=canonical.com; spf=pass smtp.mailfrom=canonical.com; dkim=pass (4096-bit key) header.d=canonical.com header.i=@canonical.com header.b=NnRYiOAu; arc=none smtp.client-ip=185.125.188.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=canonical.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canonical.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=canonical.com header.i=@canonical.com header.b="ZvwxeX3l"
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
+	dkim=pass (4096-bit key) header.d=canonical.com header.i=@canonical.com header.b="NnRYiOAu"
+Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 23C4244BA8
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 09:39:29 +0000 (UTC)
+	by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 27D6D44B96
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 09:40:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-	s=20251003; t=1788428369;
-	bh=KKkLnet/xNso2VgwykzycKd8FLUzbCAtDdRFW1K53Ic=;
+	s=20251003; t=1788428418;
+	bh=UnqC0vVCveGL8BfKzx1mgmJlLA7UfcDCGVJE34qJcis=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
 	 In-Reply-To:Content-Type;
-	b=ZvwxeX3la+ukS5I5aysGjGnhc0dZ9tU3buK6XpFI6YQJsGY0Li1brx0iLXjDo5Wpq
-	 V7rkwlPtzO40UpY+LuJxoZ/EkhgPjqNFIPWBlIAcdEzgVYRKHKByPbqPwLL7EM/g/f
-	 Qy0fmDp4lCbxT8nDCQkUhERXpWkove9jguHBptFNLh3VzcfvBoOsAdDcQ5UlEI7ocb
-	 nwmRn4MXLpIdO5FjR+SSFBNh3+SQv4UAI74Ijc/2CwB0K+tHiRh5JvnTXxL/Y/JHqQ
-	 5WkEDjnW2Otap9O8nDDNRc4D95ILySo6/ZPQNeRIxHi34grscPz5lh67SbEwmqTnuN
-	 sq6cFZTsdsANy/dCOcQafyYLORmOVlRzjS5MfkVN8J57mQLCJI6wLWvz7TB/Uanf3N
-	 Ug0lEtCTFGfnhr4HKIIObr82iXmtbIFK3n41pUATx7//tGcmBqBrzpk+yLWmai7EJS
-	 C+EwYbhv/nYLzm0Ojpo/VlQUW6A+YEzakk527w/I5taxCBeR1ccxkxOeWpXg97Gk9q
-	 wcsE+DMAjkeeOupVUkRTJWQexrWZz8KGotHWmiUDDJhJYfKPDCgvXnqy4ORZ0kcs1z
-	 MiMvrTXpru/evX9FZ6P1xaFkyS47mfkkmKvuvDbz1RYIXIo0JMraQsY+kxgHrjiP+9
-	 HLnIlooLx4HSE16h/Tsva4sE=
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-398d292eac1so4492527a91.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 02:39:29 -0700 (PDT)
+	b=NnRYiOAuXVs6LhpWCvOWLJrBbVsxRoNOg7vP6ovVcsk2+3/xgnbwIsChB4ygUKSCh
+	 DWA7ub5zMoKCQPmeG9UZCfpBZ2o8IgaB0peccHwHvpoRExG+ZHdwuJp1rXQ0rACXWk
+	 1EXJkcvmbp/BP16cmmY7YOCnN8wOuF03qk4Jv0cCZI1GN0LkUkDJBaJLUu8nUBR+Vc
+	 d6nW7/+FT5Izq1w6aLj4a+kuHsueUbF2z2Od/hD9k3ZlVne/+tky3gnqDRrf4dRZ3r
+	 KZwvm1WgSEC0qERLzS3NQSKO0YJMq81x+FMkqHGFvnNryGalbGw5CDMR/oKcfbRvCY
+	 OD/wcg5VC9X91BSf0F+vn9AXHUKNWVTDnQvGeR0tNN24xQ89qFYy5FgNHPKbyvs56x
+	 K/5k9VA2WrJdAW5Shz7HAp55L6RylKo06dquDNuAuSlXrAOVInQRipOyh7bEVKahSu
+	 zjUKIgPSL1y6+07MQjBdKnaVQ5O3P8gcl6C/O58Lv/AZLCdt1gGYQ1e3FMT6S9LCf4
+	 72loptRoEQZwqpbsI6al7Q7WTAklN27ZjHowKEHhXJU1tIU75v2SOZ2iEid/BWKWo2
+	 79ATPPMPbJiMOOEBQQDXwDmwljkaP9k2daI86LfJbhGuRPqklxu8jbngRnEVrMBfnd
+	 sWVOomGJCGFTsmiZL3kKn3yU=
+Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-84e4ef486c7so867298b3a.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 02:40:18 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788428367; x=1789033167;
+        d=1e100.net; s=20251104; t=1788428416; x=1789033216;
         h=content-transfer-encoding:content-type:in-reply-to:organization
          :autocrypt:from:content-language:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=KKkLnet/xNso2VgwykzycKd8FLUzbCAtDdRFW1K53Ic=;
-        b=a2o+agONeE4VTxWXWMrjz7wGl5glcabYwSuaVyjkkAk7TxV0wbSSI6O5Jbq+3USShd
-         Kcy8dqIzEIru4W3DtBvP9Hhocj1EjaihyreSElazVLNIGWJT5RYr92OLOHoKxwFyCfUb
-         6TggsmaKRCVPLjuFux4VXOC95qeeff5/6k760cpJ6Oh5h9AOOtTIhe4LIoXL0Xq+eP98
-         k/uOIyg9qPuUapMFPNKq+BSRX2+e+MKfGL65kh611++Vozgh/K2623ExhFJBp9SvD36T
-         r5AJi5hT6V9cbYeO8P57H0+fsrSOYeGVDt6Syr0rwzUYXVtZEua5g4O8GQNB4jjhz5rB
-         wRSw==
-X-Forwarded-Encrypted: i=1; AKwUvBzHW2dpjO+yloJPljv51iN5XQm9ZIfFVH2HJTEub70RWiWtzG3F5L4Gvkrin6l7zg57SDO6VuZMkJdnesqtZVA=@vger.kernel.org
-X-Gm-Message-State: AFuF++nhxSELFDx7CfUDSTG79+Qw+1d4IzAWY+Jvrotud5BvA4snamYl
-	eAA0eEDED/dSTeQyUY4YQZjYx2Hoo1y8DCsRwVNYm485RknB/co4xUF9YBWO4pOAFqJN9uWwgle
-	4WjvDmG379RxNwOnSkDAXLDVF/KdijmamJQp94JTBZmQLRD4CWH9alDRHYN7AvK8ZpEfuU1r6QR
-	9XfWOg+AO4xA==
-X-Gm-Gg: AYBFou1oztHJpc0/R6EJMt2Zn3rkk+nt9nhOfU/qnKZcXCBrhb66EjSAp79OdHizsYh
-	0ea3lseFjauYug5zO+W9NhWIhQsA8K3aGRJj1/qVZopxF5GcDflGtKvT4zNYlEHqfPlBrcV94Z4
-	2TYYioVkZhF0LcsMSfkZb9+Ult59WIkvyrDDNA0W5ITpcSFWXSk+pEUQxGw8/lEoECCnWTRIcJD
-	hITETe5lDS2UPf8XXKDhia6QgnmZtLLxOgQ2wFostw8kZTPdKG6irzucKU8irchk/HCwxgKqtIe
-	WOYoyjnD4bRbooI5b1H06tAuDSBATUduEep4zNXwvCvNCwSOFv254BbWab5dds2tiHDZDaEd5bL
-	pIi6BQBZjFi8AeHE=
-X-Received: by 2002:a17:90a:d604:b0:398:c9be:cca8 with SMTP id 98e67ed59e1d1-39aedf5e124mr17481259a91.2.1788428367512;
-        Thu, 03 Sep 2026 02:39:27 -0700 (PDT)
-X-Received: by 2002:a17:90a:d604:b0:398:c9be:cca8 with SMTP id 98e67ed59e1d1-39aedf5e124mr17481215a91.2.1788428367163;
-        Thu, 03 Sep 2026 02:39:27 -0700 (PDT)
+        bh=UnqC0vVCveGL8BfKzx1mgmJlLA7UfcDCGVJE34qJcis=;
+        b=QUvtBwKdtBm+F6a7/rLC/JnqZ53AtXvsLmC45HgxOYTpOgBlsVzw0s1pG8xanAfWqy
+         A05NPEfscBQsLD+AI1Iw/ODtc+12D5l9fJuWfwdtbetrd7DsLFXCWasN+xu+zvreDrxW
+         4aglgj/pgHY60Yrk/dxpQHZfxTDe6dRowVrA4iMFSKDOYF3Ldy+o34/JX7M03MSTjWB4
+         3a4C8K1+GgsZK5QIS7iO5qUTi40nRRAlwhwvrq3xv9+smwpxtuH4aYx8/FlZYxUfMza5
+         qfkDgP/FsgaZnk0MugTnIIxo6OS2X4JSDxwLue2IjufP9pYphm2htlzjZDAsDts9zjwo
+         Y7oA==
+X-Forwarded-Encrypted: i=1; AKwUvBx9asqb7LsZWx5bG5RhObt4o8mbdzYGUh42e/c5sXOiWm29ta+QBk6fOa8u6hPB3Xm5yCQj4N3qS2gJjHgqgik=@vger.kernel.org
+X-Gm-Message-State: AFuF++kCJ+rmG1EhgGVHwunmjBdJYLYb+dKkEdG8uS6S3aqBplSNC+nm
+	6oMUi3aH7eaMr1fAOencZXiZvAR81UgFu/+hDkhqZ6rCIWScZ05Remxb1IQIwLgfRJvUiwJeato
+	Ptk8HqKZ94iPRoOjWgxlqsF94wGQZSWWW+U9eIpUz40DL9bmre+6GgtzedEl/Q1Xyk2OCVzc7B7
+	wZTEnOp34Rvw==
+X-Gm-Gg: AYBFou16vqHhXOcwAg6RrzhxxdavrbhBXKl2m7PLw1snK9huuyN7QXYNKrJGQLyD0Tr
+	JoI8P1Sj1sE3sYf1Dma6yqFiEJI3tL6kRnS95O5gJP0zmfcqgae7DtBBw+ArZfa4c47kO11+Q23
+	COqADwiVDgll2YquCLMppxpUOIEQaXGQcieY52wWOnmxoVw5bZv8ktlEl9eX4roIHHXU3/1ohN2
+	w2iyQEkp2OJ+ksRto9/Ey1qt769IvQ9O7amFAxW7/nw5E2ausWrO8lcGqn8rCQRs0/nHM+y3UsC
+	iKzqPth40VdiDjMnfd9mKOAW0p9SgMfjZrAyBXngFd9UOhCPOPxEIAIBxtJ7VUQgTVr/fW0T4Sj
+	SDDBC1cy16OdDLAc=
+X-Received: by 2002:a05:6a00:6c8d:b0:848:48d0:934 with SMTP id d2e1a72fcca58-85ffe10a034mr4079639b3a.18.1788428416588;
+        Thu, 03 Sep 2026 02:40:16 -0700 (PDT)
+X-Received: by 2002:a05:6a00:6c8d:b0:848:48d0:934 with SMTP id d2e1a72fcca58-85ffe10a034mr4079592b3a.18.1788428416154;
+        Thu, 03 Sep 2026 02:40:16 -0700 (PDT)
 Received: from [192.168.192.72] ([50.47.147.90])
-        by smtp.googlemail.com with ESMTPSA id 98e67ed59e1d1-39b08cacbb0sm4360801a91.13.2026.09.03.02.39.25
+        by smtp.googlemail.com with ESMTPSA id d2e1a72fcca58-85db24f20besm2739047b3a.7.2026.09.03.02.40.14
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 03 Sep 2026 02:39:26 -0700 (PDT)
-Message-ID: <231fbb7c-0b31-4379-b02a-a79e3b9c28ae@canonical.com>
-Date: Thu, 3 Sep 2026 02:39:24 -0700
+        Thu, 03 Sep 2026 02:40:15 -0700 (PDT)
+Message-ID: <5502dfbf-29cb-4ed3-b635-44d3bda80d60@canonical.com>
+Date: Thu, 3 Sep 2026 02:40:14 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -81,8 +81,7 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 6/7] Apparmor: hooks for secctx_to_lsmprop and
- update_lsmprop
+Subject: Re: [PATCH v2 3/7] LSM: Two hooks for manipulating struct lsm_prop
 To: Casey Schaufler <casey@schaufler-ca.com>, paul@paul-moore.com,
  linux-security-module@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
  phil@nwl.cc
@@ -91,7 +90,7 @@ Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
  keescook@chromium.org, penguin-kernel@i-love.sakura.ne.jp,
  stephen.smalley.work@gmail.com, selinux@vger.kernel.org
 References: <20260902220150.18586-1-casey@schaufler-ca.com>
- <20260902220150.18586-7-casey@schaufler-ca.com>
+ <20260902220150.18586-4-casey@schaufler-ca.com>
 Content-Language: en-US
 From: John Johansen <john.johansen@canonical.com>
 Autocrypt: addr=john.johansen@canonical.com; keydata=
@@ -137,88 +136,137 @@ Autocrypt: addr=john.johansen@canonical.com; keydata=
  +T7sv9+iY+e0Y+SolyJgTxMYeRnDWE6S77g6gzYYHmcQOWP7ZMX+MtD4SKlf0+Q8li/F9GUL
  p0rw8op9f0p1+YAhyAd+dXWNKf7zIfZ2ME+0qKpbQnr1oizLHuJX/Telo8KMmHter28DPJ03 lT9Q
 Organization: Canonical
-In-Reply-To: <20260902220150.18586-7-casey@schaufler-ca.com>
+In-Reply-To: <20260902220150.18586-4-casey@schaufler-ca.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-
-the code itself looks right
-same nit on update_lsmprop as previous two patches.
-
-I know you are working within the insane constraints of the secid, but it really
-hurts that apparmor has a local xarray for secids, and now the LSM infra has
-one too. I know its a problem to be solved later, I am just griping about the
-current state of affairs.
-
-
 On 9/2/26 15:01, Casey Schaufler wrote:
-> Implement these hooks.
+> security_update_lsmprop() updates the property of the
+> specified LSM in the @dest structure with that in the @src.
+> 
+> security_secctx_to_lsmprop() sets the @prop field associated
+> with the LSM specified to the value of the passed security
+> context.
+> 
+> LSM specific implementations of these hooks to follow.
 > 
 > Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+
+lgtm
+
+Reviewed-by: John Johansen <john.johansen@canonical.com>
+
 > ---
->   security/apparmor/include/secid.h |  4 ++++
->   security/apparmor/lsm.c           |  2 ++
->   security/apparmor/secid.c         | 21 +++++++++++++++++++++
->   3 files changed, 27 insertions(+)
+>   include/linux/lsm_hook_defs.h |  4 ++++
+>   include/linux/security.h      | 16 ++++++++++++++++
+>   security/security.c           | 32 ++++++++++++++++++++++++++++++++
+>   3 files changed, 52 insertions(+)
 > 
-> diff --git a/security/apparmor/include/secid.h b/security/apparmor/include/secid.h
-> index 6025d3849cf8..ba7adf2fc09e 100644
-> --- a/security/apparmor/include/secid.h
-> +++ b/security/apparmor/include/secid.h
-> @@ -28,6 +28,10 @@ struct aa_label *aa_secid_to_label(u32 secid);
->   int apparmor_secid_to_secctx(u32 secid, struct lsm_context *cp);
->   int apparmor_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp);
->   int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
-> +int apparmor_secctx_to_lsmprop(const char *secdata, u32 seclen,
-> +			       struct lsm_prop *prop);
-> +void apparmor_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
+> diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
+> index 65c9609ec207..679c40a8e127 100644
+> --- a/include/linux/lsm_hook_defs.h
+> +++ b/include/linux/lsm_hook_defs.h
+> @@ -305,7 +305,11 @@ LSM_HOOK(int, 0, ismaclabel, const char *name)
+>   LSM_HOOK(int, -EOPNOTSUPP, secid_to_secctx, u32 secid, struct lsm_context *cp)
+>   LSM_HOOK(int, -EOPNOTSUPP, lsmprop_to_secctx, struct lsm_prop *prop,
+>   	 struct lsm_context *cp)
+> +LSM_HOOK(void, LSM_RET_VOID, update_lsmprop, struct lsm_prop *dest,
+> +	 struct lsm_prop *src, int lsmid)
+>   LSM_HOOK(int, 0, secctx_to_secid, const char *secdata, u32 seclen, u32 *secid)
+> +LSM_HOOK(int, -EINVAL, secctx_to_lsmprop, const char *secdata, u32 seclen,
+> +	 struct lsm_prop *prop)
+>   LSM_HOOK(void, LSM_RET_VOID, release_secctx, struct lsm_context *cp)
+>   LSM_HOOK(void, LSM_RET_VOID, inode_invalidate_secctx, struct inode *inode)
+>   LSM_HOOK(int, 0, inode_notifysecctx, struct inode *inode, void *ctx, u32 ctxlen)
+> diff --git a/include/linux/security.h b/include/linux/security.h
+> index 153e9043058f..19adc19eb9af 100644
+> --- a/include/linux/security.h
+> +++ b/include/linux/security.h
+> @@ -576,6 +576,11 @@ int security_secid_to_secctx(u32 secid, struct lsm_context *cp);
+>   int security_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp,
+>   			       int lsmid);
+>   int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid);
+> +int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
+> +			       struct lsm_prop *prop, int lsmid);
+> +
+> +void security_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
 > +			     int lsmid);
->   void apparmor_release_secctx(struct lsm_context *cp);
->   
->   
-> diff --git a/security/apparmor/lsm.c b/security/apparmor/lsm.c
-> index 88d12e89d115..1f304b88eaf9 100644
-> --- a/security/apparmor/lsm.c
-> +++ b/security/apparmor/lsm.c
-> @@ -1766,6 +1766,8 @@ static struct security_hook_list apparmor_hooks[] __ro_after_init = {
->   	LSM_HOOK_INIT(secid_to_secctx, apparmor_secid_to_secctx),
->   	LSM_HOOK_INIT(lsmprop_to_secctx, apparmor_lsmprop_to_secctx),
->   	LSM_HOOK_INIT(secctx_to_secid, apparmor_secctx_to_secid),
-> +	LSM_HOOK_INIT(secctx_to_lsmprop, apparmor_secctx_to_lsmprop),
-> +	LSM_HOOK_INIT(update_lsmprop, apparmor_update_lsmprop),
->   	LSM_HOOK_INIT(release_secctx, apparmor_release_secctx),
->   
->   #ifdef CONFIG_IO_URING
-> diff --git a/security/apparmor/secid.c b/security/apparmor/secid.c
-> index 28caf66b9033..d35fdbf074e0 100644
-> --- a/security/apparmor/secid.c
-> +++ b/security/apparmor/secid.c
-> @@ -106,6 +106,27 @@ int apparmor_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
->   	return 0;
+>   void security_release_secctx(struct lsm_context *cp);
+>   void security_inode_invalidate_secctx(struct inode *inode);
+>   int security_inode_notifysecctx(struct inode *inode, void *ctx, u32 ctxlen);
+> @@ -1581,6 +1586,11 @@ static inline int security_lsmprop_to_secctx(struct lsm_prop *prop,
+>   	return -EOPNOTSUPP;
 >   }
 >   
-> +int apparmor_secctx_to_lsmprop(const char *secdata, u32 seclen,
-> +			       struct lsm_prop *prop)
+> +static inline void security_update_lsmprop(struct lsm_prop *dest,
+> +					   struct lsm_prop *src, int lsmid)
 > +{
-> +	struct aa_label *label;
-> +
-> +	label = aa_label_strn_parse(&root_ns->unconfined->label, secdata,
-> +				    seclen, GFP_KERNEL, false, false);
-> +	if (IS_ERR(label))
-> +		return PTR_ERR(label);
-> +	prop->apparmor.label = label;
-> +
-> +	return 0;
 > +}
 > +
-> +void apparmor_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
+>   static inline int security_secctx_to_secid(const char *secdata,
+>   					   u32 seclen,
+>   					   u32 *secid)
+> @@ -1588,6 +1598,12 @@ static inline int security_secctx_to_secid(const char *secdata,
+>   	return -EOPNOTSUPP;
+>   }
+>   
+> +static inline int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
+> +					     struct lsm_prop *prop, int lsmid)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +
+>   static inline void security_release_secctx(struct lsm_context *cp)
+>   {
+>   }
+> diff --git a/security/security.c b/security/security.c
+> index 71aea8fdf014..1dec0037370b 100644
+> --- a/security/security.c
+> +++ b/security/security.c
+> @@ -3965,6 +3965,13 @@ int security_lsmprop_to_secctx(struct lsm_prop *prop, struct lsm_context *cp,
+>   }
+>   EXPORT_SYMBOL(security_lsmprop_to_secctx);
+>   
+> +void security_update_lsmprop(struct lsm_prop *dest, struct lsm_prop *src,
 > +			     int lsmid)
 > +{
-> +	if (lsmid == LSM_ID_APPARMOR || lsmid == LSM_ID_UNDEF)
-> +		dest->apparmor.label = src->apparmor.label;
+> +	call_void_hook(update_lsmprop, dest, src, lsmid);
 > +}
+> +EXPORT_SYMBOL(security_update_lsmprop);
 > +
->   void apparmor_release_secctx(struct lsm_context *cp)
->   {
->   	if (cp->id == LSM_ID_APPARMOR) {
+>   /**
+>    * security_secctx_to_secid() - Convert a secctx to a secid
+>    * @secdata: secctx
+> @@ -3982,6 +3989,31 @@ int security_secctx_to_secid(const char *secdata, u32 seclen, u32 *secid)
+>   }
+>   EXPORT_SYMBOL(security_secctx_to_secid);
+>   
+> +/**
+> + * security_secctx_to_lsmprop() - Convert a secctx to a lsmprop
+> + * @secdata: secctx
+> + * @seclen: length of secctx
+> + * @prop: prop
+> + * @lsmid: which LSM the context is appropriate to.
+> + *
+> + * Convert security context to an lsmprop.
+> + *
+> + * Return: Returns 0 on success, error on failure.
+> + */
+> +int security_secctx_to_lsmprop(const char *secdata, u32 seclen,
+> +			       struct lsm_prop *prop, int lsmid)
+> +{
+> +	struct lsm_static_call *scall;
+> +
+> +	lsm_for_each_hook(scall, secctx_to_lsmprop) {
+> +		if (lsmid != LSM_ID_UNDEF && lsmid != scall->hl->lsmid->id)
+> +			continue;
+> +		return scall->hl->hook.secctx_to_lsmprop(secdata, seclen, prop);
+> +	}
+> +	return LSM_RET_DEFAULT(secctx_to_lsmprop);
+> +}
+> +EXPORT_SYMBOL(security_secctx_to_lsmprop);
+> +
+>   /**
+>    * security_release_secctx() - Free a secctx buffer
+>    * @cp: the security context
 
