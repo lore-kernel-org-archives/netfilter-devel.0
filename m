@@ -1,372 +1,215 @@
-Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63684582E0;
-	Thu,  3 Sep 2026 12:11:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D650184
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2026 12:18:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788437512; cv=none; b=pblgWZ2SxkZgr8u4CnH8AGT3XRJiLjwRU/DNiwyO/EehKxdFtvtYqZvxs4TO3YzWl111wuMLnhj0SjEAU+6+CpPsDcc6wtfm4Ycstvx7GHRYMbwuOevTNXbLtsaPYjuyXxFGfWLiGaWQ2tv0+pjS79A04qO2xqAASRiAG6dB9D4=
+	t=1788437895; cv=none; b=osDfDdhc7LiNHbCz2hB/+b+3DUQvRf+20DiC00dYUxAu/Vsz3dbB7CKfyWy2iYFrDnEOPz9pelzVuRq01yCilskm6PHn9iFv04uk3/4F2e/CGFpq7etkUl7Pr8FVIZMXdz8/mW/tAzWmczincVvEmATC1MVJS+6wdeDLxYX05sY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788437512; c=relaxed/simple;
-	bh=JH/hzcAavC0H8FmWU5Q7zuUiCpVsc/LyiaarkmLyaNo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hyb8VWCJgLA4MZJEsbLkonKHdbqk9q7jsJNHqUYR10ZvQsBZBEZuNM/pbOYQJwyOzTRLcsPEuCmDpXSpKdFSpGYOgtvzuhQpxRwZQqvf8gkiXshM4sDDM0zG3Mq+jEyjILxSa7uijuv4UNPck3b/sr6BoZTGmMMSH97TBqaQdds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=U1knWzrT; arc=none smtp.client-ip=198.252.153.129
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
+	s=arc-20240116; t=1788437895; c=relaxed/simple;
+	bh=Q9uLEjPuUsW8cwmTICkYlym/RVuiMzxRLrjoajqUW+o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nr0Bb37B7cOtkXxOgy0DQVmbm6Be1lfo4T5pC61NqcGOmxXcOin70Nmbgq0qRsqhNJyVzmAIRLqfpaCMoNYPAB6Zohgf5+L8f1rdZKBXBptuNJzyl82jah4MgPZ2YsXVftfMnOfGuUCMg1QQagiclCI7tbk2MYuu15S/+IsyCF0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QOdP+vzq; arc=none smtp.client-ip=209.85.167.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="U1knWzrT"
-Received: from fews03-sea.riseup.net (fews03-sea-pn.riseup.net [10.0.1.153])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx1.riseup.net (Postfix) with ESMTPS id 4hbJNt60GczDqvK;
-	Thu,  3 Sep 2026 12:11:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=riseup.net; s=squak;
-	t=1788437503; bh=iOcJhdl6V0OT+jCZ0BRqIAXous5Y56fe107eM1JBtbU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=U1knWzrTdcsRDcMfBEcr3Lhq6NYnjV6/xTlHsw90xVhLm9EK0CItJu1/xINhpohBp
-	 mkmkIY7FK81K/UvBoE7SEtyMNUQJmcD1FJHLNWOVs4llcZZBmmqulamUpnWRsp3OPt
-	 NeXVBAoEFKNwo9VNFRaqF9yKyPBwCX7GCvVxOVrA=
-X-Riseup-User-ID: 982A598FC2EC681F239DB5A20A70FA23F9330A4D04C93A71856379E0136F96F7
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	 by fews03-sea.riseup.net (Postfix) with ESMTPSA id 4hbJNj2Hm4z1y13;
-	Thu,  3 Sep 2026 12:11:33 +0000 (UTC)
-From: =?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>
-To: David Ahern <dsahern@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Neal Cardwell <ncardwell@google.com>,
-	Ido Schimmel <idosch@nvidia.com>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QOdP+vzq"
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5b15dcaca31so2226425e87.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2026 05:18:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788437891; x=1789042691; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/fGnKM9GO11+CKzG0GTZXAjAlnoptWC/LUlsemO5pbE=;
+        b=QOdP+vzqL0xearGydJsDKTswjqdrKKVTga1kQKO8ZV8m5wLPxGDjTaWgeSwz8HxyWI
+         gmKg8W0S0k82u+yOaeHeTm1EsIBqzCoTNrDgIUdSNSlctb18ijes1SGpJjZQTdAAJSeO
+         XRSGive4YBYJwV2+1+n8oeudZ7Z7jd8tAQQwcv9ACCAPC4cwbIqjXTPNwHe6gPRdmq9L
+         Ex95VAxu7RoRhkyhPxb/x7AoKStKuTrkfs7YzLK0bT8RokoPNrwoeyKQFQIHYiPokzS2
+         mhDMLfy7Pz2l6gNUHPJiBge4XjxGEAbVvqbABX/+rBxGbu5UkK6ITa7p5cShqs4InJdL
+         aCpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788437891; x=1789042691;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=/fGnKM9GO11+CKzG0GTZXAjAlnoptWC/LUlsemO5pbE=;
+        b=AOfpS9eHZ/d2sgsUfjUnqvf4n5c+CpByerQZ6Dx9VXvNPHJA8W7v+4KwtwKSR8omZC
+         2lfAUHAzeS9WMjaeoqvS9UWtaZK05+k1xYB4f/vWHU1DmZ9cqJUy0IWvWhFcbmkr4Gx6
+         +OL1x2TtDtW2+Rk+tOrpLKqGTbYCjyWg4+DqtIrFQ0NnEOa5vKJUtSs2i3fFNs4ECDAY
+         QNBd6m2LHKMLYwotpEW5qd1KRXJ3NubClUUO4VBjrctyaRBrkEbo0GXd7zuh8ufPlbZ2
+         vEykxy7PS7ah6NAFtsh5MJQyuDYbBgohZwoP7utzwJIC7i/gsxyouoxaDaSPZUDAQ7vX
+         P2LA==
+X-Forwarded-Encrypted: i=1; AKwUvBwsJ6XgAJlnTuXc+vmjC/WQ4lev+ZXy34xvnYAWdQGJVkhDKVDlLPVWzU4hOyuKam/DOfT98kE+bzp9IldFEds=@vger.kernel.org
+X-Gm-Message-State: AFuF++nBwPvphg+GjOVJs6b27wmLZLf/91qg7tQQWe15ywxzUfbjOzzP
+	+/9imnydNAVdBiwuDrnxUdzzZ1TlSPe6QCV/R6HWMGps3glKjswj4DBf
+X-Gm-Gg: AYBFou0/dW/nRBTQeSw6SDdmO8XCkg6G5YTs1prmLTd1gXBOV03kw5+h0LK3mMvM1R0
+	j3MgoiUw+YYAm2/oJ2ntumO21PSUK3kAJrsILGqYid1MQcmj/bL7t4/2mGkeEbl15BE4sbq+Fp7
+	g6V5nfNujxXxlCbkz4vNevhHIXvZP/SUKhiedLe3q8ARGKUYVeQSdZIW8xpi8GIQhv4IVtQ7W81
+	rHZcXQ3T5uNCxhIBPnohboLH8l0qDyXjv6drvUfmfB++yV2y3N8clGzvwhQj9tCCfv1SEUGbufv
+	6BNHoH+hbOc+hxRYSW5PsShmL0YeoCpXroC5e8ExtuDL+qS7aHsHBYS6grBLBOgMtW31WD/5GCK
+	Y0qoUrrCJ4gP70+cRyYKSHzHz/c+N4M//SbWR5L3029wx5K6FXl8iyTaVqwu37krKgrIfpqy+Py
+	GLic5bdtgkJK3AmbWIWaY6O0OqkERySD1cZNw7JzfBs7osA+uRRdq1glemIrqew8YgxfVCvmbTX
+	gqjoEj8FA==
+X-Received: by 2002:a05:6512:318d:b0:5b2:a558:b222 with SMTP id 2adb3069b0e04-5b6083395a2mr3870492e87.10.1788437890958;
+        Thu, 03 Sep 2026 05:18:10 -0700 (PDT)
+Received: from grower.astralinux.ru ([38.74.72.197])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b606b1cb8bsm1251212e87.22.2026.09.03.05.18.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 03 Sep 2026 05:18:10 -0700 (PDT)
+From: Alexander Martyniuk <alexevgmart@gmail.com>
+To: stable@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alexander Martyniuk <alexevgmart@gmail.com>,
+	lvc-project@linuxtesting.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Cc: dcaratti@redhat.com,
-	ihuguet@redhat.com,
-	=?UTF-8?q?=C3=8D=C3=B1igo=20Huguet?= <ihuguet@riseup.net>,
-	Simon Horman <horms@kernel.org>,
-	Kuniyuki Iwashima <kuniyu@google.com>,
-	Phil Sutter <phil@nwl.cc>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Junseo Lim <zirajs7@gmail.com>,
-	Martin KaFai Lau <martin.lau@kernel.org>,
-	Xuanqiang Luo <luoxuanqiang@kylinos.cn>,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Leon Hwang <leon.hwang@linux.dev>,
-	Willem de Bruijn <willemb@google.com>,
-	Kees Cook <kees@kernel.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	Christian Brauner <brauner@kernel.org>,
-	Qi Tang <tpluszz77@gmail.com>,
-	Joe Damato <joe@dama.to>,
-	Breno Leitao <leitao@debian.org>,
-	Li RongQing <lirongqing@baidu.com>,
-	netdev@vger.kernel.org (open list:VRF),
-	linux-kernel@vger.kernel.org (open list),
-	netfilter-devel@vger.kernel.org (open list:NETFILTER),
-	coreteam@netfilter.org (open list:NETFILTER),
-	bpf@vger.kernel.org (open list:BPF [MISC]:Keyword:(?:\b|_)bpf(?:\b|_))
-Subject: [PATCH net v2] net/ipv6: don't route packets with unknown source address
-Date: Thu,  3 Sep 2026 14:10:40 +0200
-Message-ID: <20260903121057.80006-1-ihuguet@riseup.net>
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@kernel.org,
+	Yuan Tan <yuantan098@gmail.com>,
+	Yifan Wu <yifanwucs@gmail.com>,
+	Juefei Pu <tomapufckgml@gmail.com>,
+	Xin Liu <bird@lzu.edu.cn>,
+	Haoze Xie <royenheart@gmail.com>,
+	Ren Wei <n05ec@lzu.edu.cn>
+Subject: [PATCH 5.10] netfilter: nf_queue: pin bridge device while NFQUEUE holds fake dst
+Date: Thu,  3 Sep 2026 15:17:57 +0300
+Message-ID: <20260903121758.3660436-1-alexevgmart@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Don't allow routing packets with a source address that is not configured
-in the host. Allow it only in certain cases like when using a
-transparent socket, by setting the ANYSRC flag in flowi_flags.
+From: Haoze Xie <royenheart@gmail.com>
 
-Until now, it was possible to send such a packet if a route can be found
-in the routing table for it. For example:
-1. Configure an address 1:2::3:4/64 and a static route 1:2::/64
-2. Establish a TCP connection to 1:2::3:4
-3. Remove the address from the interface, but keep the route.
-4. Packets are still sent out by the TCP connection because of
-   the static route. No incoming packets are accepted, though.
+commit c9c9b37f8c5505224e8d206184df3bb668ee00cf upstream.
 
-This patch prevents the outgoing packets to be sent in normal
-circumnstances.
+The br_netfilter fake rtable is embedded in struct net_bridge and is
+attached to bridged packets with skb_dst_set_noref(). If such a packet is
+queued to NFQUEUE, __nf_queue() upgrades that fake dst with
+skb_dst_force().
 
-This aligns the behaviour with the IPv4 stack. To determine the places
-where the ANYSRC needs to be set, I set the flag in the same places as
-the IPv4 stack does.
+At that point the queued skb can hold a real dst reference after bridge
+teardown has started. The problem is not that every bridged packet needs
+its own dst reference. The problem is that NFQUEUE can keep the bridge
+private fake dst alive after unregister begins.
 
-Apart from consolidating the behaviour of both stacks, there is a more
-important reason why this is needed. RFC 4862 states that "an invalid
-address MUST NOT be used as the source address of outbound packets".
-Therefore, sending packets with a source address considered "invalid",
-like an expired address, is disallowed.
+Fix this by keeping the bridge fake dst model unchanged and pinning the
+bridge master device only while the packet sits in NFQUEUE. Record the
+bridge device in nf_queue_entry when the queued skb carries a bridge fake
+dst, take a device reference for the queue lifetime, and drop it when the
+queue entry is freed.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Íñigo Huguet <ihuguet@riseup.net>
+Also make sure queued entries are reaped when that bridge device goes
+down, and drop the redundant nf_bridge_info_exists() test from the fake
+dst detection.
 
+This keeps netdev_priv(br->dev) alive until verdict completion, so the
+embedded fake rtable and its metrics backing storage cannot be freed out
+from under dst_release(). It also avoids the constant refcount bump and
+avoids using ipv4-specific dst helpers for IPv6 bridge traffic.
+
+Fixes: 34666d467cbf ("netfilter: bridge: move br_netfilter out of the core")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Haoze Xie <royenheart@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Alexander Martyniuk <alexevgmart@gmail.com>
 ---
+Backport fix for CVE-2026-72255
+ include/net/netfilter/nf_queue.h |  1 +
+ net/netfilter/nf_queue.c         | 16 ++++++++++++++++
+ net/netfilter/nfnetlink_queue.c  |  3 +++
+ 3 files changed, 20 insertions(+)
 
-v2:
-- Fix a slab-out-of-bounds bug: in
-  tcp_v6_send_response we must not read the inet_flags because it may
-  not be an inet_sk, but a request socket.
-  Detected by syzbot, Sashiko and other bots.
-- Use the addr_type from saddr instead of daddr in ip6_route_me_harder.
-  Detected by Sashiko.
-- Don't overwrite flowi_flags in tcp_v6_connect when setting the
-  ANY_SPORT flag. Detected by Sashiko.
-- Fixed line length warnings.
-v1: https://lore.kernel.org/netdev/20260901115021.50057-1-ihuguet@riseup.net/
-
-Testing: tested with a manual reproducer executing the steps described
-above. Tested also with transparent sockets to ensure that the packets
-are sent in that case. Also executed the following selftests to prevent
-potential regressions: fcnal-ipv6, fib_tests, fib-onlink-tests,
-nft_nat, nft_tproxy_tcp, nft_tproxy_udp.
-
-The change in the netfilter's ip6_route_me_harder function is the one
-that I'm more unsure about. It was not clear to me the reason why it was
-done like this in the IPv4 counterpart. Please review carefully.
----
- drivers/net/vrf.c                |  1 +
- net/core/lwt_bpf.c               |  1 +
- net/ipv6/af_inet6.c              |  1 +
- net/ipv6/datagram.c              |  1 +
- net/ipv6/inet6_connection_sock.c |  2 ++
- net/ipv6/ip6_output.c            | 28 ++++++++++++++++++++++++++++
- net/ipv6/netfilter.c             | 11 +++++++++--
- net/ipv6/ping.c                  |  1 +
- net/ipv6/raw.c                   |  1 +
- net/ipv6/syncookies.c            |  1 +
- net/ipv6/tcp_ipv6.c              |  4 +++-
- net/ipv6/udp.c                   |  1 +
- net/l2tp/l2tp_ip6.c              |  2 ++
- 13 files changed, 52 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-index a0557a3a7026..6c09d5f46d6b 100644
---- a/drivers/net/vrf.c
-+++ b/drivers/net/vrf.c
-@@ -432,6 +432,7 @@ static netdev_tx_t vrf_process_v6_outbound(struct sk_buff *skb,
- 	fl6.flowlabel = ip6_flowinfo(iph);
- 	fl6.flowi6_mark = skb->mark;
- 	fl6.flowi6_proto = iph->nexthdr;
-+	fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 6b4de68a762e..2637d1512929 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -16,6 +16,7 @@ struct nf_queue_entry {
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	struct net_device	*bridge_dev;
+ 	struct net_device	*physin;
+ 	struct net_device	*physout;
+ #endif
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index d9d35658a357..47ed9a353107 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -67,6 +67,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 		nf_queue_sock_put(state->sk);
  
- 	dst = ip6_dst_lookup_flow(net, NULL, &fl6, NULL);
- 	if (IS_ERR(dst) || dst == dst_null)
-diff --git a/net/core/lwt_bpf.c b/net/core/lwt_bpf.c
-index da49364ec63d..e8b954282689 100644
---- a/net/core/lwt_bpf.c
-+++ b/net/core/lwt_bpf.c
-@@ -233,6 +233,7 @@ static int bpf_lwt_xmit_reroute(struct sk_buff *skb)
- 		fl6.flowi6_mark = skb->mark;
- 		fl6.flowi6_uid = sock_net_uid(net, sk);
- 		fl6.flowlabel = ip6_flowinfo(iph6);
-+		fl6.flowi6_flags = FLOWI_FLAG_ANYSRC;
- 		fl6.flowi6_proto = iph6->nexthdr;
- 		fl6.daddr = iph6->daddr;
- 		fl6.saddr = iph6->saddr;
-diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-index 282912a11999..e55a36372ab2 100644
---- a/net/ipv6/af_inet6.c
-+++ b/net/ipv6/af_inet6.c
-@@ -820,6 +820,7 @@ int inet6_sk_rebuild_header(struct sock *sk)
- 	fl6->fl6_dport = inet->inet_dport;
- 	fl6->fl6_sport = inet->inet_sport;
- 	fl6->flowi6_uid = sk_uid(sk);
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 	security_sk_classify_flow(sk, flowi6_to_flowi_common(fl6));
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_put(entry->bridge_dev);
+ 	dev_put(entry->physin);
+ 	dev_put(entry->physout);
+ #endif
+@@ -83,6 +84,8 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ {
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	const struct sk_buff *skb = entry->skb;
++	struct dst_entry *dst = skb_dst(skb);
++	struct net_device *dev = NULL;
+ 	struct nf_bridge_info *nf_bridge;
  
- 	ip6_ecmp_set_mp_hash(sock_net(sk), fl6, sk->sk_txhash);
-diff --git a/net/ipv6/datagram.c b/net/ipv6/datagram.c
-index 38d7b4845281..0773bfa0342d 100644
---- a/net/ipv6/datagram.c
-+++ b/net/ipv6/datagram.c
-@@ -52,6 +52,7 @@ static void ip6_datagram_flow_key_init(struct flowi6 *fl6,
- 	fl6->flowi6_mark = sk->sk_mark;
- 	fl6->fl6_dport = inet->inet_dport;
- 	fl6->fl6_sport = inet->inet_sport;
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 	fl6->flowlabel = ip6_make_flowinfo(np->tclass, np->flow_label);
- 	fl6->flowi6_uid = sk_uid(sk);
- 
-diff --git a/net/ipv6/inet6_connection_sock.c b/net/ipv6/inet6_connection_sock.c
-index 3e4ce8cb478e..f295f3efe243 100644
---- a/net/ipv6/inet6_connection_sock.c
-+++ b/net/ipv6/inet6_connection_sock.c
-@@ -45,6 +45,7 @@ struct dst_entry *inet6_csk_route_req(const struct sock *sk,
- 	fl6->flowi6_mark = ireq->ir_mark;
- 	fl6->fl6_dport = ireq->ir_rmt_port;
- 	fl6->fl6_sport = htons(ireq->ir_num);
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 	fl6->flowi6_uid = sk_uid(sk);
- 	security_req_classify_flow(req, flowi6_to_flowi_common(fl6));
- 
-@@ -71,6 +72,7 @@ struct dst_entry *inet6_csk_route_socket(struct sock *sk,
- 	fl6->daddr = sk->sk_v6_daddr;
- 	fl6->saddr = np->saddr;
- 	fl6->flowlabel = np->flow_label;
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 	IP6_ECN_flow_xmit(sk, fl6->flowlabel);
- 
- 	if (sk->sk_protocol == IPPROTO_TCP)
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 8fc4766c8da9..a83ca449e308 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -1191,6 +1191,34 @@ static int ip6_dst_lookup_tail(struct net *net, const struct sock *sk,
- 	if (err)
- 		goto out_err_release;
- 
-+	/* Routing packets with a src addr not present in the host is not
-+	 * allowed unless the ANYSRC flag is set (i.e. with transparent socket).
-+	 * The address must be in the same L3 domain as the destination device.
-+	 */
-+	if (!ipv6_addr_any(&fl6->saddr) &&
-+	    !(fl6->flowi6_flags & FLOWI_FLAG_ANYSRC)) {
-+		struct net_device *oif_dev;
+ 	nf_bridge = nf_bridge_info_get(skb);
+@@ -93,6 +96,18 @@ static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+ 		entry->physin = NULL;
+ 		entry->physout = NULL;
+ 	}
 +
-+		rcu_read_lock();
-+		/* For local routes (*dst)->dev can be 'lo', which has no l3mdev
-+		 * master, so that the L3 domain wouldn't match if the source
-+		 * address is in a VRF-enslaved device. To avoid that, check the
-+		 * outgoing interface from the flowi6 structure instead.
-+		 */
-+		if (fl6->flowi6_oif)
-+			oif_dev = dev_get_by_index_rcu(net, fl6->flowi6_oif);
-+		else
-+			oif_dev = (*dst)->dev;
-+
-+		if (!ipv6_chk_addr_and_flags(net, &fl6->saddr, oif_dev,
-+					     1, 1, IFA_F_TENTATIVE))
-+			err = -ENETUNREACH;
-+		rcu_read_unlock();
-+
-+		if (err)
-+			goto out_err_release;
++	if (entry->state.pf == NFPROTO_BRIDGE &&
++	    dst && (dst->flags & DST_FAKE_RTABLE)) {
++		WARN_ON_ONCE(!rcu_read_lock_held());
++		dev = READ_ONCE(dst->dev);
 +	}
 +
- #ifdef CONFIG_IPV6_OPTIMISTIC_DAD
- 	/*
- 	 * Here if the dst entry we've looked up
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index a7025ec87035..716fc6e246de 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -29,8 +29,9 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
- 	struct flow_keys flkeys;
- 	unsigned int hh_len;
- 	struct dst_entry *dst;
--	int strict = (ipv6_addr_type(&iph->daddr) &
--		      (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL));
-+	int saddr_type = ipv6_addr_type(&iph->saddr);
-+	int daddr_type = ipv6_addr_type(&iph->daddr);
-+	int strict = daddr_type & (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL);
- 	struct flowi6 fl6 = {
- 		.flowi6_l3mdev = l3mdev_master_ifindex(dev),
- 		.flowi6_mark = skb->mark,
-@@ -41,6 +42,12 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
- 	};
- 	int err;
++	/* Must hold a reference on the bridge device: dst_hold() protects
++	 * the dst itself, but the fake rtable is embedded in bridge-private
++	 * storage that netdevice teardown can free independently.
++	 */
++	entry->bridge_dev = dev;
+ #endif
+ }
  
-+	fl6.flowi6_flags = sk ? inet_sk_flowi_flags(sk) : 0;
-+	if (saddr_type & (IPV6_ADDR_UNICAST | IPV6_ADDR_LINKLOCAL))
-+		fl6.flowi6_flags |= FLOWI_FLAG_ANYSRC;
-+	else
-+		fl6.saddr = in6addr_any;
+@@ -109,6 +124,7 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 	dev_hold(state->out);
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dev_hold(entry->bridge_dev);
+ 	dev_hold(entry->physin);
+ 	dev_hold(entry->physout);
+ #endif
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 1541d6801001..f91cc1b8804d 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -910,6 +910,9 @@ dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+ 
+ 	if (physinif == ifindex || physoutif == ifindex)
+ 		return 1;
 +
- 	if (sk && sk->sk_bound_dev_if)
- 		fl6.flowi6_oif = sk->sk_bound_dev_if;
- 	else if (strict)
-diff --git a/net/ipv6/ping.c b/net/ipv6/ping.c
-index 6e90d0bf9f3d..d0964396c2c5 100644
---- a/net/ipv6/ping.c
-+++ b/net/ipv6/ping.c
-@@ -140,6 +140,7 @@ static int ping_v6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
- 	fl6.flowi6_proto = IPPROTO_ICMPV6;
- 	fl6.saddr = np->saddr;
- 	fl6.daddr = *daddr;
-+	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
- 	fl6.flowi6_mark = ipc6.sockc.mark;
- 	fl6.flowi6_uid = sk_uid(sk);
- 	fl6.fl6_icmp_type = user_icmph.icmp6_type;
-diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
-index b965258cf9e5..ef5ddbe7ac10 100644
---- a/net/ipv6/raw.c
-+++ b/net/ipv6/raw.c
-@@ -887,6 +887,7 @@ static int rawv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
- 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
- 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
- 
-+	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
- 	if (hdrincl)
- 		fl6.flowi6_flags |= FLOWI_FLAG_KNOWN_NH;
- 
-diff --git a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
-index b581cb1ee2e8..3d665e93fcac 100644
---- a/net/ipv6/syncookies.c
-+++ b/net/ipv6/syncookies.c
-@@ -242,6 +242,7 @@ struct sock *cookie_v6_check(struct sock *sk, struct sk_buff *skb)
- 		fl6.flowi6_mark = ireq->ir_mark;
- 		fl6.fl6_dport = ireq->ir_rmt_port;
- 		fl6.fl6_sport = inet_sk(sk)->inet_sport;
-+		fl6.flowi6_flags = inet_sk_flowi_flags(sk);
- 		fl6.flowi6_uid = sk_uid(sk);
- 		security_req_classify_flow(req, flowi6_to_flowi_common(&fl6));
- 
-diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
-index df9c29eb5c1f..ae69e71b0859 100644
---- a/net/ipv6/tcp_ipv6.c
-+++ b/net/ipv6/tcp_ipv6.c
-@@ -268,8 +268,9 @@ static int tcp_v6_connect(struct sock *sk, struct sockaddr_unsized *uaddr,
- 	fl6->flowi6_mark = sk->sk_mark;
- 	fl6->fl6_dport = usin->sin6_port;
- 	fl6->fl6_sport = inet->inet_sport;
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 	if (IS_ENABLED(CONFIG_IP_ROUTE_MULTIPATH) && !fl6->fl6_sport)
--		fl6->flowi6_flags = FLOWI_FLAG_ANY_SPORT;
-+		fl6->flowi6_flags |= FLOWI_FLAG_ANY_SPORT;
- 	fl6->flowi6_uid = sk_uid(sk);
- 
- 	opt = rcu_dereference_protected(np->opt, lockdep_sock_is_held(sk));
-@@ -979,6 +980,7 @@ static void tcp_v6_send_response(const struct sock *sk, struct sk_buff *skb, u32
- 	fl6.fl6_dport = t1->dest;
- 	fl6.fl6_sport = t1->source;
- 	fl6.flowi6_uid = sock_net_uid(net, sk && sk_fullsock(sk) ? sk : NULL);
-+	fl6.flowi6_flags = sk && sk_fullsock(sk) ? inet_sk_flowi_flags(sk) : 0;
- 	security_skb_classify_flow(skb, flowi6_to_flowi_common(&fl6));
- 
- 	/* Pass a socket to ip6_dst_lookup either it is for RST
-diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
-index 93478d1ad576..5154d445ba9c 100644
---- a/net/ipv6/udp.c
-+++ b/net/ipv6/udp.c
-@@ -1656,6 +1656,7 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
- 	if (ipv6_addr_any(&fl6->saddr) && !ipv6_addr_any(&np->saddr))
- 		fl6->saddr = np->saddr;
- 	fl6->fl6_sport = inet->inet_sport;
-+	fl6->flowi6_flags = inet_sk_flowi_flags(sk);
- 
- 	if (cgroup_bpf_enabled(CGROUP_UDP6_SENDMSG) && !connected) {
- 		err = BPF_CGROUP_RUN_PROG_UDP6_SENDMSG_LOCK(sk,
-diff --git a/net/l2tp/l2tp_ip6.c b/net/l2tp/l2tp_ip6.c
-index bdaae1b64d25..22ae5bc2669a 100644
---- a/net/l2tp/l2tp_ip6.c
-+++ b/net/l2tp/l2tp_ip6.c
-@@ -633,6 +633,8 @@ static int l2tp_ip6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
- 	else if (!fl6.flowi6_oif)
- 		fl6.flowi6_oif = READ_ONCE(np->ucast_oif);
- 
-+	fl6.flowi6_flags = inet_sk_flowi_flags(sk);
-+
- 	security_sk_classify_flow(sk, flowi6_to_flowi_common(&fl6));
- 
- 	fl6.flowlabel = ip6_make_flowinfo(ipc6.tclass, fl6.flowlabel);
++	if (entry->bridge_dev && entry->bridge_dev->ifindex == ifindex)
++		return 1;
+ #endif
+ 	if (entry->skb_dev && entry->skb_dev->ifindex == ifindex)
+ 		return 1;
 -- 
-2.54.0
+2.43.0
 
