@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5ABB2C032E;
-	Thu,  3 Sep 2026 00:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F37B2BE03B;
+	Thu,  3 Sep 2026 00:42:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788396127; cv=none; b=bMLWu+QuDGACSXzxGB6qYba92HwQ/Hp/B5imQ9MtyVXNGeLdnMIpsnxN7HSC7cx2IgZKZMLekilnnTFiqcxz3G9cH71OPHGszU4fuwg7IIE3SLuNwcF7AStfwdqt8DyJb8tLXPYhp/1CYOlaNi536wKkjxcguN2U3EtU9IWKBHM=
+	t=1788396129; cv=none; b=QyoJwCenIDicMhTDn4NqEnuZmbdomvC5fuD+IomrW/5KUTIFlKBvH4vdaS0q1WJwygtOiRkDbaGO+vyhi+Afby1i0+bf3mPy25VFm72J3Kd7ntHDpg/UFPqrH3d3RkkWB+rqm5jiseJSb7RYK9Jv3nonA79GNvLaOKpiV5dEe4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788396127; c=relaxed/simple;
-	bh=j//+aCoHo69GvaL29DTIKGJcsWJ3gzsqCSwwbIsUKZU=;
+	s=arc-20240116; t=1788396129; c=relaxed/simple;
+	bh=7F48GGueHHiZlMRgR27FTzJxfy4Ds8TJpOmwoWth1gw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JSMZTR3HMczYUgnYJSfh15ovvTxIZDUTYpJfxPhFqq5YUSP+Y5g0jlvNnUg+atvmV9fY1lCSR4o3Gv85mUfIYCAWnNK3zWr8DqLpzk4M3v3A4afv5GsB/Q/UOEdfANfg+opkVPrBGRSPaBZx4wMOorpmcSiTIcJ/pJ5tIHwkZbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S4iLxEdC; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=GXtyRmYBGsHtXLABge/a+sSzMXVu/QrJDZJJEYbERauNNw9vHXbUlSEvDFo1+q/1RZ/Uv5e5KLAf+UqicyKdo2cBTWWBy2VVM6oQ3WDzh/wbsDcU07gK93bVAUuqW4S+qhxKPPJpUhFUebK0lWjs4dDea7lS3+vnAzpY9afzkok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f0MAWfvG; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S4iLxEdC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f0MAWfvG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788396121;
-	bh=75zm4Zv/VJQ0PNPQaL6qVc2OOOCrx9vK8HC4FqbFJUM=;
+	s=2025; t=1788396124;
+	bh=KGrFjt5YPGTrTxX4mlTeL4qLQISN+Eq4vm9IJh0iFRA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=S4iLxEdCWdchVJMDXnMgzm8xLecgWrKuw8n7wrvtL6pYSwVxA28s0Pv0NAWXbvztl
-	 nZctVuAkFcNSc7Zm6TbuzHEe4jMmbfvMWuCcB2I0S02hbwXE1UdYnAN35fNd7V9Y6h
-	 lmvDZ6Cq/3XBf4tE/6zlcrC2p2LQxtI92UPuTgbJwZJASQh7Z8CwU53RyQx5MGv9Dt
-	 iClQbjDJevq2NT3KsWJgzErjW7jt+d4SK06HR/FJ56adLdiTqsOeTWn2FY6ypfXddC
-	 PdKIK3w+zF34NHikqaI29VVmL4GUPBvbIrPItswKlIEk43pXTgWucVZP7QeV6O0TPr
-	 vBMTO0vfUVUBg==
+	b=f0MAWfvGI+5PSnCv+gvtx9gC6tvtENOr05hKXkcaN5CrX7TLLxdNseNTHPEkestfH
+	 QqizJpMdWYOiggz3IfUQuRe9PpkXk//Tnk9aaJK0eXVc9V/miMf0MqHNPqHaYmS+a/
+	 zK16AU0qBfkQ4cfoJqMQg78MrFISsX8ENNjDLMWGsQEcIG6TRIFlKDx/0cyMbsdlJh
+	 65XPW9SLrM7DBgKypiir84CVwDdVw42TaXNIGNTza/5yTBUO+7KDybKu0YpsBIHwWv
+	 XbfKe7o5WuITGPQSKEnDH5gZ20QP5MlYDVWtRGYgVerQzU3x3xWrptzyyCC4o43CH8
+	 VUBZ17h0eruUQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 318B3607AB;
-	Thu,  3 Sep 2026 02:42:01 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id EA40F607AE;
+	Thu,  3 Sep 2026 02:42:03 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 05/12] netfilter: nf_log: unregister loggers before per-net teardown
-Date: Thu,  3 Sep 2026 02:41:42 +0200
-Message-ID: <20260903004149.1037028-6-pablo@netfilter.org>
+Subject: [PATCH net 07/12] netfilter: nft_payload: restrict checksum offsets to known values
+Date: Thu,  3 Sep 2026 02:41:44 +0200
+Message-ID: <20260903004149.1037028-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260903004149.1037028-1-pablo@netfilter.org>
 References: <20260903004149.1037028-1-pablo@netfilter.org>
@@ -53,89 +53,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-nf_log_syslog and nfnetlink_log unregister their per-network namespace
-operations before unregistering their global logger backends. This
-leaves a window where a sysctl or netlink writer can rebind the still-
-registered logger after the per-net pre-exit callback cleared the old
-selection.
+We need to prevent userspace from corrupting e.g. tcp->doff, because
+many locations in conntrack and conntrack helpers rely on
+nf_conntrack_in() having validated the packet headers.
+nft_payload allows to alter headers later which invalidates this
+assumption.
 
-The race looks like this:
+The 'Fixes' commit restricts writes to safe fields, but there is
+another side channel: the checksum location.
 
-  CPU 0                                 CPU 1
-  ----                                  ----
-  unregister_pernet_subsys()
-    nf_log_unset(net, logger)
-      net->nf.nf_loggers[pf] = NULL
+Restrict this too.  Reported via sashiko/gemini.
 
-                                        lock nf_log_mutex
-                                        find logger in loggers[][]
-                                        net->nf.nf_loggers[pf] = logger
-                                        unlock nf_log_mutex
-
-  nf_log_unregister(logger)
-    lock nf_log_mutex
-    loggers[pf][type] = NULL
-    unlock nf_log_mutex
-    synchronize_rcu()
-  module exit returns
-  module core frees backend memory
-
-Later, a sysctl read or packet logging operation can dereference the
-stale per-net logger pointer.
-
-Fix this by unregistering the global logger backends before tearing down
-per-net state. Once the global registrations are gone, later writers can
-no longer rebind the logger. unregister_pernet_subsys() already waits
-for an RCU grace period after the pre-exit callback clears the per-net
-selection, while nf_log_unregister() continues to cover readers of the
-global logger table.
-
-Apply this ordering fix to both nf_log backends that combine per-net
-teardown with global logger registration.
-
-Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Fixes: 112e447d17f7 ("netfilter: validate L4 headers after userspace packet writes")
+Assisted-by: Claude:claude-opus-4-6
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_log_syslog.c | 2 +-
- net/netfilter/nfnetlink_log.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_payload.c | 36 +++++++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index f24288088c0d..c3fd398ffcd7 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -1073,12 +1073,12 @@ static int __init nf_log_syslog_init(void)
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index e315d35f73d4..70f70a65e327 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -1008,11 +1008,13 @@ static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
+ 		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
+ 			return false;
  
- static void __exit nf_log_syslog_exit(void)
- {
--	unregister_pernet_subsys(&nf_log_syslog_net_ops);
- 	nf_log_unregister(&nf_ip_logger);
- 	nf_log_unregister(&nf_arp_logger);
- 	nf_log_unregister(&nf_ip6_logger);
- 	nf_log_unregister(&nf_netdev_logger);
- 	nf_log_unregister(&nf_bridge_logger);
-+	unregister_pernet_subsys(&nf_log_syslog_net_ops);
+-		/* no further check here; offset can't be negative so bogus
+-		 * offsets can corrupt L4 or payload but not l3 headers.
+-		 * We already allow arbitrary l4/inner payload writes.
+-		 */
+-		return true;
++		/* Validate csum_offset is one of the supported transport header checksums */
++		if (priv->csum_offset == offsetof(struct tcphdr, check) ||
++		    priv->csum_offset == offsetof(struct udphdr, check) ||
++		    priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum))
++			return true;
++
++		return false;
+ 	case NFT_PAYLOAD_INNER_HEADER:
+ 		return true;
+ 	case NFT_PAYLOAD_TUN_HEADER:
+@@ -1046,6 +1048,25 @@ static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
+ 	return false;
  }
  
- module_init(nf_log_syslog_init);
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 6c7fa2ed34f5..9d7fec570abe 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1233,8 +1233,8 @@ static void __exit nfnetlink_log_fini(void)
++static bool nft_payload_csum_th_write_ok(const struct nft_payload_set *priv,
++					 const struct nft_pktinfo *pkt)
++{
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++		return false;
++
++	switch (pkt->tprot) {
++	case IPPROTO_TCP:
++		return priv->csum_offset == offsetof(struct tcphdr, check);
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		return priv->csum_offset == offsetof(struct udphdr, check);
++	case IPPROTO_ICMPV6:
++		return priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum);
++	}
++
++	return false;
++}
++
+ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 				      const struct nft_payload_set *priv)
  {
- 	nfnetlink_subsys_unregister(&nfulnl_subsys);
- 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
--	unregister_pernet_subsys(&nfnl_log_net_ops);
- 	nf_log_unregister(&nfulnl_logger);
-+	unregister_pernet_subsys(&nfnl_log_net_ops);
- }
- 
- MODULE_DESCRIPTION("netfilter userspace logging");
+@@ -1055,9 +1076,10 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+ 		return nft_payload_csum_nh_write_ok(priv, pkt);
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
++		return nft_payload_csum_th_write_ok(priv, pkt);
+ 	case NFT_PAYLOAD_INNER_HEADER:
+-		/* neither offsets are validated, offsets cannot be
+-		 * negative so real l3 headers cannot be mangled.
++		/* offset is not validated, offset cannot be
++		 * negative so real l3/l4 headers cannot be mangled.
+ 		 */
+ 		return true;
+ 	case NFT_PAYLOAD_TUN_HEADER:
 -- 
 2.47.3
 
