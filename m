@@ -1,154 +1,166 @@
-Received: from mail-wr2-f9.google.com (mail-wr2-f9.google.com [74.125.225.73])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 748E7503BEE
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 16:44:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E9050C2B7;
+	Fri,  4 Sep 2026 16:55:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788540266; cv=none; b=sinXHJ89i2bN3vtCB2eIun/G/M59a5sODe+Ytw9qPmFc6/sEqomElpjBMMUQvZf1alIQsEgUgyuKOvUal0pd27KBA3Lcd6MCYkwYiVLMo7nRJNS/ic7oIBigf+GKMiXf9Q2M4WL5fbhLUPuB2mNQ/9KGFdl3wJg+JNngdUlPEOo=
+	t=1788540953; cv=none; b=esv+En1jVWAWbbfRjb7x4nGAsHqN8tT9epg+s+XYrEMvjx7q3qe6CKSAfStfIkZcwvYTlIfx55FYQvyuL49DltzEC4eUROM/oQkUC+evwS95gboGOJrYYjwfBUaCj7026BEaFnHOb7gVXjlSLIaYqhj86sVgueScG5TyCrU90SQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788540266; c=relaxed/simple;
-	bh=+T8uCAV9OTwG6wpyBUuRwrNrLb3w9G4dozxeqmZKwYk=;
+	s=arc-20240116; t=1788540953; c=relaxed/simple;
+	bh=PMKRteyqCXyoT9j2cQ6OndqOm2Znk0k8aZ/GwApvEKA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DTj3IGVdfvmiJLb15My2JBjBXqIFl0gcd4jHPGvddqt7BuOnNDraaBuZJEs22wZSO9fXCgndqZIaXGLThKKNbn7wKjzyuxg5o0LBNvNpZvskM+psXVDdYsSriUYpyRseQamPFclzg+3qBtFJbMWyXdcA7lZKCBE3+ILGH08NGa0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr2-f9.google.com with SMTP id ffacd0b85a97d-4843169420fso279743f8f.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Sep 2026 09:44:24 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788540262; x=1789145062;
-        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=MkwLEvNPno1uKGbPkCGLW8m9xq+mdFjkf26jMfmqkHM=;
-        b=McF3XaqXM3JKFs4BaCWef1at+jlWSjBuYg4/V7kk1Ka+ZpLHOEkNy7MJSQ6VET4Hec
-         da2OGwNyKUEtFavdKyzAUyhnGGYno5MObIABUAhGb8oJJ6M3AsD0J43C6SUj2UFVK69K
-         3z9Q07GlFU2xfpqBvi8kL350agCJpMb1reqq1GULdZVg/OIpyHOaLrtRB9Cv0mzqyP0B
-         S3bJrSxH+W9VRzw+AvWnMVL7jE5U74+ENAcSfhSEigMnZLVRS8Z+vBihz73lTh5HIIxN
-         RGUovdeMbvO4dywHGO4SHqL/BTOfKmVbMLiGxeow9GpdXS4qMBT8mNUJIiBYfCy2MxR1
-         ppNg==
-X-Forwarded-Encrypted: i=1; AKwUvBx9oMxVJfrMWpQLVYcKp8FdeMIAO8D2052SX6GFKCLPm8JxjMqxX1ONcK5EAm/DVxdlGYcLTqfrkCFEEtYNr54=@vger.kernel.org
-X-Gm-Message-State: AFuF++lr/svU6fw35TPBwD67CdlPGAPA39SIQ9oe1jtqZNltE4BtShN2
-	y6+HIzahE3vozi4UdxX7SD9OkAAblazxdWesyGnHtfFrWC1y0Lv/3H5Hs3U/YNOC
-X-Gm-Gg: AYBFou2HtBTJY8FBRyf7Y8P1cNl3XvXgk3MJ68LTTjLFvIKFGDFN9hxqWohYo7GPVL/
-	2bfCPG7i9h0pVRPoOTUoQliK4041qDVPDq/O3RjlfZeVo2P4DdkwCuhQKq5ezUWrVp8iQY9Nstm
-	S5szIJFPqhL5WPB0KSEP3OOkmuQCo+PlnGs0IxhX3SB9R/MRTHik/J0vrSSCF9s+cip6Pyd9h3v
-	WbfAR5ngFRbox8GjtXyvdvtr31tlkT34a/1DhLDoXz7fbIN+kVKU+VG6VBCErBbNsfeSH9Bio4Q
-	TpRNDYqb4Mb7X2D8Srs5UuQMyvNWA/Jg8YEZjHd7T+8owP5lRU6F92fvdi+SjuYzBTlVo12oTav
-	7qE6VO2wgyis9NqRmA9JUcn/C16NU3o1FHrdm+KKTbm2JvRdyPmiRe8at5JRmX+sEOSLl1d4xut
-	qtCH0pdy1Uku3kgyijgD97mIISsXhT1gI52N5kb4B+Ld5KmuIzVknH3j99irFMyDPpTcpoLFEzQ
-	IFvJuiARxWNbw==
-X-Received: by 2002:a05:600c:34d0:b0:49c:fc6e:a3d3 with SMTP id 5b1f17b1804b1-49cfc6ea71amr44437245e9.18.1788540262467;
-        Fri, 04 Sep 2026 09:44:22 -0700 (PDT)
-Received: from [192.168.88.241] (37-48-53-4.nat.epc.tmcz.cz. [37.48.53.4])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49cfd3f8192sm42737055e9.3.2026.09.04.09.44.21
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 04 Sep 2026 09:44:22 -0700 (PDT)
-Message-ID: <4c350065-7efa-4301-b287-95c1c554d427@ovn.org>
-Date: Fri, 4 Sep 2026 18:44:20 +0200
+	 In-Reply-To:Content-Type; b=FccFe2N4YnUxdE07uUxoTxMuIiat2NKzP7/HgGuVpvWLxcLVr0VmcILFishWP3w+iRV1atrSFm8YbTdsGHqLqkcmuKoDPehJWeJupGVULBWA7unA2zHmGqRGEtU08vf9vE2Te5iPwOqlyZcn40pwxukULQixu8fgHxJ3IlVnXxE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=elx3YIa1; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="elx3YIa1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF8631F00A3D;
+	Fri,  4 Sep 2026 16:55:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788540950;
+	bh=1caeJ4CBjFZSEixrsLbgrXs0FWOuP0V+WtvS5rQmTwk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=elx3YIa1UmECc6XcWgUzuUoENTeFEaSvXhXKx5/wy+KO8TgsJhIwSii3mQTTESX7v
+	 e5VB6xj6d1RBPVaOpUJQVczODEWvU26SNw1FgCUl3dgfIbzg+7KWrg76RdLCl1LsWz
+	 g9sxWWich6b55LjLx2WjhAVG2HirNEB7mvhwI3Bu4QgZq8piomOpcy1MP00M89RFF0
+	 U1dYp/3r4bdIuOqTrn/GS0VwRfCmg2Cv053z9fyu7dxBlQO2X8mXeiubzSz5VouaQQ
+	 eUcC/DVzrAhgWkomBTpg1p8tuV1jp9ZtqRs3HskBSeMy9Ipitgo7YpSI82z2R/gQh2
+	 NhRCmFXfY/B6w==
+Message-ID: <3ce5323e-18a5-41d0-860b-588b79074589@kernel.org>
+Date: Fri, 4 Sep 2026 18:55:43 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 2/2] selftests: forwarding: use KHDR_INCLUDES in
- CFLAGS
-To: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>,
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net 1/2] selftests: netfilter: use KHDR_INCLUDES in CFLAGS
+Content-Language: fr
+To: Ilya Maximets <i.maximets@ovn.org>,
  Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
  Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
  Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
  Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
  Shuah Khan <shuah@kernel.org>, David Ahern <dsahern@kernel.org>,
  Ido Schimmel <idosch@nvidia.com>
-Cc: Ilya Maximets <i.maximets@ovn.org>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-kernel@vger.kernel.org
 References: <20260904-net-sft-nf-khdr_includes-v1-0-92455af428e9@kernel.org>
- <20260904-net-sft-nf-khdr_includes-v1-2-92455af428e9@kernel.org>
-Content-Language: en-US
-From: Ilya Maximets <i.maximets@ovn.org>
-Autocrypt: addr=i.maximets@ovn.org; keydata=
- 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
-In-Reply-To: <20260904-net-sft-nf-khdr_includes-v1-2-92455af428e9@kernel.org>
+ <20260904-net-sft-nf-khdr_includes-v1-1-92455af428e9@kernel.org>
+ <5d871ca2-1db4-47b8-bd48-34b3fa42961e@ovn.org>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <5d871ca2-1db4-47b8-bd48-34b3fa42961e@ovn.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 9/4/26 6:13 PM, Matthieu Baerts (NGI0) wrote:
-> KHDR_INCLUDES is typically used to include headers from the kernel
-> source directory instead of only relying on the ones from the host: they
-> can be missing or outdated.
-> 
-> The kselftest doc recommends assigning KHDR_INCLUDES to CFLAGS in a
-> target Makefile. lib.mk will set KHDR_INCLUDES to "-isystem
-> $(top_srcdir)/usr/include" if the user didn't set it, e.g. if the kernel
-> was built in a different build directory.
-> 
-> Other net targets have KHDR_INCLUDES added to their CFLAGS.
-> 
-> Fixes: 05068eaa67b2 ("selftest: net: Add basic functionality tests for ipmr.")
-> Link: https://docs.kernel.org/dev-tools/kselftest.html#contributing-new-tests-details
-> Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
-> ---
->  tools/testing/selftests/net/forwarding/Makefile | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/tools/testing/selftests/net/forwarding/Makefile b/tools/testing/selftests/net/forwarding/Makefile
-> index bbaf4d937dd8..1bdfd141c0fb 100644
-> --- a/tools/testing/selftests/net/forwarding/Makefile
-> +++ b/tools/testing/selftests/net/forwarding/Makefile
-> @@ -1,5 +1,7 @@
->  # SPDX-License-Identifier: GPL-2.0+ OR MIT
->  
-> +CFLAGS += $(KHDR_INCLUDES)
-> +
->  TEST_PROGS := \
->  	bridge_activity_notify.sh \
->  	bridge_fdb_learning_limit.sh \
-> 
+Hi Ilya,
 
-Reviewed-by: Ilya Maximets <i.maximets@ovn.org>
+On 04/09/2026 18:41, Ilya Maximets wrote:
+> On 9/4/26 6:13 PM, Matthieu Baerts (NGI0) wrote:
+>> KHDR_INCLUDES is typically used to include headers from the kernel
+>> source directory instead of only relying on the ones from the host: they
+>> can be missing or outdated.
+>>
+>> The kselftest doc recommends assigning KHDR_INCLUDES to CFLAGS in a
+>> target Makefile. lib.mk will set KHDR_INCLUDES to "-isystem
+>> $(top_srcdir)/usr/include" if the user didn't set it, e.g. if the kernel
+>> was built in a different build directory.
+>>
+>> Other net targets have KHDR_INCLUDES added to their CFLAGS.
+>>
+>> Fixes: 3f189349e52a ("selftests: netfilter: move to net subdir")
+> 
+> I think, this should point to a commit that added the first C test:
+> 
+> Fixes: a64d558d8cf9 ("selftests: netfilter: add nfqueue test case")
+
+Good catch! I saw that CFLAGS was set before, but indeed, KHDR_INCLUDES
+wasn't.
+
+If we want to change the Fixes tag, we will also need to add:
+
+Fixes: a52540522c95 ("selftests/landlock: Fix out-of-tree builds")
+
+Which is when KHDR_INCLUDES got introduced. (Or it is enough with the
+current Fixes tag, as long as it is included in the last stable version:
+that's probably enough for CIs using kselftests from the last stable
+version on older ones.)
+
+@Net maintainers: please tell me if I need to change the Fixes tag in a v2.
+
+>> Link: https://docs.kernel.org/dev-tools/kselftest.html#contributing-new-tests-details
+>> Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+>> ---
+>>  tools/testing/selftests/net/netfilter/Makefile | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
+>> index f88dd4ef8d26..df3c20c90f5d 100644
+>> --- a/tools/testing/selftests/net/netfilter/Makefile
+>> +++ b/tools/testing/selftests/net/netfilter/Makefile
+>> @@ -2,6 +2,8 @@
+>>  
+>>  top_srcdir = ../../../../..
+>>  
+>> +CFLAGS += $(KHDR_INCLUDES)
+>> +
+>>  HOSTPKG_CONFIG := pkg-config
+>>  MNL_CFLAGS := $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
+>>  MNL_LDLIBS := $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
+>>
+> 
+> This solves my problem with building netfilter tests locally with uAPI
+> modifications.  Beside the Fixes tag, LGTM.
+Thank you for having checked!
+
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
+
