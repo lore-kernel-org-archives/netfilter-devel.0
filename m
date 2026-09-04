@@ -1,327 +1,206 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40C9548987B
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 12:52:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C2C4A1DE8;
+	Fri,  4 Sep 2026 13:41:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788526346; cv=none; b=L6E64zJZdaXdghnYQFG7snsLBGv/By1UybcsTDam0Rz/cjghURPjMd4ogxlFgquEsfxDuouVjVxb1RgAD3GIEtQQAiuKnWyD9Djp7LiSQFZ1LQ820dgppy4oNr5ScnlvR5ERGg6YxUwGr5tTfD2OCHetdc9JKaw9BlfdbQQDC2k=
+	t=1788529286; cv=none; b=H9EmPDx8oMcGvDWXOdj5ac4izD0UfDi3JjNy6lTv2D747VzViCDjRt6CF9UIhRBMZw3Er9EuzIGcPYz2c+2CbuLd5FeX7hMT4G98bBy5cRsFqXz8hh2LbXyFV9PHe8KvhcNUy1pfK9gxJIUk81eBDB2FvhrhdVwa8AHEB+9uTYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788526346; c=relaxed/simple;
-	bh=pB24N6EAYNG1BzMtJlj/i5yxwU/jGXo/VzsFyTfUmnM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fODg4EOm1iWRBy2IZQqTnfunmkrhjKLpyLtfU9V+XMNAn1K9zv3mdZAv5R7Ddg0B27nib6ikFqS+nGJEK3TlsvR5WMJO8wwR7TR7MlCCEiidZwF6US8VmxokGY/KYOJdJT+D1JQ4TQhaGqlAsIXLGd75ND1F1ogAtS6ttUqbn/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EUI92L81; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1788529286; c=relaxed/simple;
+	bh=XpJfIMIhQlpWkBS3G8YydbBP5+NYWNB6n3UR3QCht1w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IFfaoYEPtHUkJvOJmefWFUbviSf3neTRZt014Ta5t7PUF0dNvVqnmtPy23xbwOUJSuhWsjIggeA0LV86zPXew/9IBnVtLxvhDHLEVA6ltC6+/RTXzHC1JmA6zYRKHj8eyOLytXndt/WEyN3T0r4bGjK+kOorsV37waGjaCpCEsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Tl3HNtlX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EUI92L81"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=AwY0Y/AwG55nHUFC6z5YoX5MqYTpa0g0v4tHFMPypFQ=; b=EUI92L81NWPEyZ0a930M6awTxx
-	od55+XmEjZvCn/Zg0JQfkTaC0s23AFIau4UxwGrDrTw+1xf8ZcBVx8iTLITt5spXKr+0yxW8/CzY6
-	vGjmU/D9O+eU60uXQ2NvTHYEWoCegjdWpDaojHizOkk5pgF2C5OA7WKHTC8RjT9G53mRekanhiHh6
-	LVNqHKNHElRT9BVQ4g8f7FKhHuRHk4iPSe4vPAtF1p3QUZrDz5lwBmw/5zoZ+1XSM7sQD4BIJGnoX
-	gvmyDB6ZSI4PFJWGx7G72sU54XZTK9VQrttxk4UgtpADU8jvYrM/BZuKZfKWgyYOebySOI+ba7vU1
-	mbzIX/Hw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1x2TP2-000000007XX-394D;
-	Fri, 04 Sep 2026 14:52:20 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nf PATCH v3] netfilter: nfnetlink: Fix for interrupted hook dumps
-Date: Fri,  4 Sep 2026 14:52:15 +0200
-Message-ID: <20260904125215.1272252-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Tl3HNtlX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0867A1F00A3E;
+	Fri,  4 Sep 2026 13:41:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788529284;
+	bh=sdodzR4Na8Sqljw2U9YzO1/rhfdn+6lstjf3xmHL5yY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Tl3HNtlXjcpki9vJTKEAAdlO/sey7IATDkDXoGNKQfG6pfaXr4LGdJJGRG8VQgzou
+	 M2pMGSsjenEtPt2HYbit8AGm+zwRYU5v9RbQSzJXr8V0rQyNFsminbBOzSV0N/aKVy
+	 T4tc0TMfejuONmEj3jri/Jm7C22kCrbauJZDyv4yvs6lFrYeqtaQ8mYSZwNVYPTehg
+	 cT52vtqmWpeUlt6o2nazGP1yTRVmu/xV1wgVt7M30HHfVo+7BRpk5YyYZU+0oqF4Pn
+	 MWvpnb80OGvr0tGNxDUJrHuklEe72v1ymZTXWjhbrsp5Xlo+jUMr6KkZv93KHG7u4Z
+	 HKQTZQoMlaj1A==
+Date: Fri, 4 Sep 2026 15:41:09 +0200
+From: Joel Granados <joel.granados@kernel.org>
+To: Mauricio Faria de Oliveira <mfo@igalia.com>
+Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
+	Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, kernel-dev@igalia.com, 
+	linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, fsverity@lists.linux.dev, 
+	keyrings@vger.kernel.org, bpf@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, linux-wpan@vger.kernel.org, 
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+	bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com, 
+	virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
+Message-ID: <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
+ <53155340c897560bfc67e61ba9568fd6@igalia.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="f2bekayrv5kknxjs"
+Content-Disposition: inline
+In-Reply-To: <53155340c897560bfc67e61ba9568fd6@igalia.com>
 
-Handling of concurrent hook changes with a dump in progress was
-problematic in nfnl_hook_dump and entirely broken in nfnl_hook_dump_nat.
-Address all issues in a single patch to please the review LLM.
 
-Introduce sequence numbers in struct netns_nf to replace pointer
-value-based modification detection which may fail due to memory buffer
-reuse. This also eliminates the need for most manual cb->seq updates and
-excessive array index value checks.
+--f2bekayrv5kknxjs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since nat hook updates are protected by a different mutex than others,
-they have to bump their own sequence number. nfnl_hook_dump_nat
-therefore open-codes what nl_dump_check_consistent does but bumps
-cb->seq instead of setting NLM_F_DUMP_INTR flag.
+On Thu, Aug 20, 2026 at 06:22:13PM -0300, Mauricio Faria de Oliveira wrote:
+> On 2026-08-20 09:51, Joel Granados wrote:
+> > On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Oliveira wr=
+ote:
+> >> This series adds 'sysctl:' aliases to modules that register sysctl tab=
+les; e.g.:
+> >>=20
+> >>         $ modinfo ./mpls_router.ko  | grep sysctl:
+> >>         alias:          sysctl:*/net/mpls/conf/*/input
+> >>         alias:          sysctl:*/net/mpls/default_ttl
+> >>         alias:          sysctl:*/net/mpls/ip_ttl_propagate
+> >>         alias:          sysctl:*/net/mpls/platform_labels
+> >>=20
+> >> It provides a trivial way to map /proc/sys files to modules (not trivi=
+al today),
+> >> and for userspace to handle nonexistent /proc/sys files (e.g., procps'=
+s sysctl
+> >> and systemd-sysctl applying tunables) with "modprobe sysctl:<...>" and=
+ a retry.
+> >>=20
+> >> This is done almost automatically with register_sysctl(), register_net=
+_sysctl()
+> >> and friends as wrappers of MODULE_SYSCTL_TABLE (similar to MODULE_DEVI=
+CE_TABLE),
+> >> which emits symbols for file2alias/modpost to find and parse the sysct=
+l tables.
+> >>=20
+> >> The big exception to 'almost' are sysctl tables and paths allocated or=
+ defined
+> >> at runtime (e.g., per-namespace or per-device), as all information is =
+required
+> >> at build-time. Fortunately, such tables and paths are often based on '=
+templates'
+> >> which are static and can be used.
+> >>=20
+> >> This is done by plumbing the template table/path as optional arguments=
+ (macros
+> >> with default values as default_gfp()), so not to create functions for =
+all cases:
+> >>=20
+> >>         register_sysctl(path, table [, table_tmpl [, path_tmpl]]);
+> >>         register_net_sysctl(net, path, table [, table_tmpl[, path_tmpl=
+]]);
+> >>         register_net_sysctl_sz(net, path, table, size [, table_tmpl[, =
+path_tmpl]]);
+> >=20
+> > The "what" is described but I'm missing more clarity on the "why". Why
+> > does this need to be trivial? Where is it that you will know the sysctl
+> > file path of a module and not the module name or alias?
+>=20
+> Thanks for looking at this.
+>=20
+> The problem this feature addresses is sysctl settings not applied
+> because modules aren't yet loaded when systemd-sysctl/procps's sysctl
+> runs on boot, and the usage of /etc/modules as a workaround.
 
-Dumps of many nat hooks was entirely broken since the array index was
-not (re)stored. Use cb->args[1] for that and make sure it is reset upon
-completion as the same dump may loop over multiple arrays of nat hooks.
+Sorry for insisting, but is it not possible to set the sysctls after the
+modules have been loaded? Why is the order to first set the sysctl and
+then load the module?
 
-In nfnl_hook_dump, don't signal NLM_F_DUMP_INTR if
-nfnl_hook_entries_head returns error: This is a permanent condition
-which does not change during a dump. It is already caught by
-nfnl_hook_dump_start though, so should not happen anyway.
+>=20
+> This can be addressed with a way for sysctl tools to load the module for
+> a non-existent sysctl file path.
+> For that, the mapping between a sysctl file path (known) and its module
+> (unknown) needs to be trivial.
+This touches on my question. How is the file path known and the module
+not known? The module is the one providing the paths, not the other way
+around. Why choose to just work with sysctl path lists and not include
+the modules that go with them?
 
-In general, access ops array pointer values using READ_ONCE since they
-are assigned to using WRITE_ONCE.
+>=20
+> It may not seem serious at first, but I've seen this consume significant
+> engineering time and impact production systems, in a previous technical
+> support job.
+> An example: cloud deployments with non-scalable network routing
+> performance due to nf_conntrack_max not applied after reboot or an
+> upgrade because the component which turned out to help with the
+> /etc/modules workaround had its placement changed from network router
+> nodes.
+This is more understandable to me. The issue is that you loose the
+relationship between sysctl paths and modules on updates. Are there
+other cases where the module would not be loaded?
 
-Avoid setting NLM_F_DUMP_INTR flag in garbage memory by calling
-nl_dump_check_consistent only for non-empty skbs. If not a single
-netlink message was created, nfnetlink code will take care of setting
-the flag.
+And doesn't it create another problem where you will load modules that
+you don't expect (on the update)?
 
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v2:
-- Bump seq after RCU-pointer assign in __nf_register_net_hook
-- Fix coding style (braces)
-- Rebase onto https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260902232856.1024959-1-pablo@netfilter.org/
+>=20
+> > Additionally, sysctls are not module specific; they are a way to
+> > read/write kernel variables. Putting a module specific aspect in the
+> > function arguments (that needs to be ignored in non-module cases) seems
+> > wrong. Why not use the module subsys to add sysctl alias instead of the
+> > sysctl subsys?
+>=20
+> Fair point. The current design has 2 reasons:
+>=20
+> 1) Use the 'path' argument (raised in [1]), only available in the
+> register sysctl functions.
+> 2) Use a more implicit/transparent approach, instead of more
+> explicit/declarative approach.=20
 
-Changes since v1:
-- Reset cursor value and perform EINTR check if NAT priv->entries
-  becomes NULL during dump.
----
- include/net/netns/netfilter.h  |  2 +
- net/netfilter/core.c           | 13 ++++++
- net/netfilter/nf_nat_core.c    | 11 +++++
- net/netfilter/nfnetlink_hook.c | 74 ++++++++++++++++++++--------------
- 4 files changed, 69 insertions(+), 31 deletions(-)
+I get that the data is there and you would be able to do it, but it
+still seems misplaced. Additionally, are you planning to move all the
+modules to this scheme? If not, does that mean that some modules would
+work and some wouldn't? And how would you make sure that modules would
+use the correct call moving forward?
 
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index a6a0bf4a247e..7fd78394d1e7 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -33,5 +33,7 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	unsigned int defrag_ipv6_users;
- #endif
-+	unsigned int hook_base_seq;
-+	unsigned int nat_hook_base_seq;
- };
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 675a1034b340..d041f916c98b 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -386,6 +386,15 @@ static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
- #endif
- }
- 
-+static void bump_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.hook_base_seq, base_seq);
-+}
-+
- static int __nf_register_net_hook(struct net *net, int pf,
- 				  const struct nf_hook_ops *reg)
- {
-@@ -430,6 +439,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
- 	if (!IS_ERR(new_hooks)) {
- 		hooks_validate(new_hooks);
- 		rcu_assign_pointer(*pp, new_hooks);
-+		bump_hook_base_seq(net);
- 	}
- 
- 	mutex_unlock(&nf_hook_mutex);
-@@ -506,6 +516,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 			net_dec_egress_queue();
- #endif
- 		nf_static_key_dec(reg, pf);
-+		bump_hook_base_seq(net);
- 	} else {
- 		WARN_ONCE(1, "hook not found, pf %d num %d", pf, reg->hooknum);
- 	}
-@@ -784,6 +795,8 @@ static int __net_init netfilter_net_init(struct net *net)
- 		return -ENOMEM;
- 	}
- #endif
-+	net->nf.hook_base_seq = 1;
-+	net->nf.nat_hook_base_seq = 1;
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index a4858c2b2d65..27d67a677aa4 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1160,6 +1160,15 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
-+static void bump_nat_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.nat_hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.nat_hook_base_seq, base_seq);
-+}
-+
- static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.name		= "nat-follow-master",
- 	.expectfn	= nf_nat_follow_master,
-@@ -1244,6 +1253,7 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		nat_proto_net->nat_hook_ops = nat_ops;
- 
- 	nat_proto_net->users++;
-+	bump_nat_hook_base_seq(net);
- 
- 	mutex_unlock(&nf_nat_proto_mutex);
- 
-@@ -1298,6 +1308,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		goto unlock;
- 	priv = nat_ops[hooknum].priv;
- 	nf_hook_entries_delete_raw(&priv->entries, ops);
-+	bump_nat_hook_base_seq(net);
- 
- 	if (nat_proto_net->users == 0) {
- 		nf_unregister_net_hooks(net, nat_ops, ops_count);
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 95005e9a6066..b05fd79397c5 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -54,7 +54,6 @@ static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
- 
- struct nfnl_dump_hook_data {
- 	char devname[IFNAMSIZ];
--	unsigned long headv;
- 	u8 hook;
- };
- 
-@@ -338,27 +337,47 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
- }
- 
- static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
--			      const struct nfnl_dump_hook_data *ctx,
--			      const struct nf_hook_ops *ops,
--			      int family, unsigned int seq)
-+			      struct netlink_callback *cb,
-+			      const struct nf_hook_ops *ops, int family)
- {
- 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
--	struct nf_hook_entries *e = rcu_dereference(priv->entries);
-+	struct nfnl_dump_hook_data *ctx = cb->data;
-+	struct net *net = sock_net(nlskb->sk);
- 	struct nf_hook_ops **nat_ops;
--	int i, err;
-+	unsigned int i = cb->args[1];
-+	struct nf_hook_entries *e;
-+	unsigned int base_seq;
-+	int err = 0;
- 
-+	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
-+
-+	e = rcu_dereference(priv->entries);
- 	if (!e)
--		return 0;
-+		goto out;
- 
- 	nat_ops = nf_hook_entries_get_hook_ops(e);
- 
--	for (i = 0; i < e->num_hook_entries; i++) {
--		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
--					 ops->priority, family, seq);
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nfnl_hook_dump_one(nlskb, ctx,
-+					 READ_ONCE(nat_ops[i]),
-+					 ops->priority, family,
-+					 cb->nlh->nlmsg_seq);
- 		if (err)
--			return err;
-+			break;
-+
- 	}
--	return 0;
-+out:
-+	if (!err)
-+		i = 0;
-+	cb->args[1] = i;
-+
-+	if (cb->args[2] && base_seq != cb->args[2]) {
-+		cb->seq++;
-+		err = -EINTR;
-+	}
-+	cb->args[2] = base_seq;
-+
-+	return err;
- }
- 
- static int nfnl_hook_dump(struct sk_buff *nlskb,
-@@ -373,35 +392,31 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
- 	unsigned int i = cb->args[0];
- 
- 	rcu_read_lock();
-+	cb->seq = smp_load_acquire(&net->nf.hook_base_seq);
- 
- 	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
--	if (!e)
-+	if (!e || IS_ERR(e))
- 		goto done;
- 
--	if (IS_ERR(e)) {
--		cb->seq++;
--		goto done;
--	}
--
--	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
--		cb->seq++;
--
- 	ops = nf_hook_entries_get_hook_ops(e);
- 
- 	for (; i < e->num_hook_entries; i++) {
--		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
--			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
--						 cb->nlh->nlmsg_seq);
--		else
--			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
--						 ops[i]->priority, family,
-+		const struct nf_hook_ops *cur = READ_ONCE(ops[i]);
-+
-+		if (cur->hook_ops_type == NF_HOOK_OP_NAT) {
-+			err = nfnl_hook_dump_nat(nlskb, cb, cur, family);
-+		} else {
-+			err = nfnl_hook_dump_one(nlskb, ctx, cur,
-+						 cur->priority, family,
- 						 cb->nlh->nlmsg_seq);
-+		}
- 		if (err)
- 			break;
- 	}
- 
- done:
--	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	if (nlskb->len > 0)
-+		nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
- 	rcu_read_unlock();
- 	cb->args[0] = i;
- 	return nlskb->len;
-@@ -442,10 +457,7 @@ static int nfnl_hook_dump_start(struct netlink_callback *cb)
- 		return -ENOMEM;
- 
- 	strscpy(ctx->devname, name, sizeof(ctx->devname));
--	ctx->headv = (unsigned long)head;
- 	ctx->hook = hooknum;
--
--	cb->seq = 1;
- 	cb->data = ctx;
- 
- 	return 0;
--- 
-2.54.0
+>=20
+> I guess that a different design could use MODULE_SYSCTL_TABLE() as
+> MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
+> register sysctl functions.
+> However, it seems to require moving the value of the path argument (or
+> its template) into the macro and still referencing it in the function
+> (or its instantiation of the template), which adds obfuscation, to all
+> callers.=20
+>=20
+> What do you think?
+It might be that having it inside the module subsys is more work, but I
+believe that there is the right place to have it. I still don't see that
+adding a module specific arg to the sysctl register is a good thing.
 
+
+Best
+
+--f2bekayrv5kknxjs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmqaymwACgkQupfNUreW
+QU+lGQv9G3M3cE2j6nFu2ajfmqXn/HK3F13D57StjtuTwbNUrTKJAl5NYfXzFtv/
+WI0RRjBuOJKO4tZwqjX37MLUYJqa3GYA6eoQ8efnCCygEUInpicx3wittaZqtnv0
+TGnCLpyb4BHmtJRx6lEoZFyU4juYti6APKn4p2+CBQN9jPCn2RbFf8fRCql2G7F2
+LpM/O+tkXTZ8iY6iGjkROFdKmbNXq0JO5m6dOOgtyJt/m4dLF+ivs7HxExEvaAdq
+0vMjANmTDelElI17ouGEstSU8WLY1R+rMEzMbm5Y5lTWK0MxCkReBjJSEx/yAQEZ
+ecNJej849cFo1mun6yzEB6+3tiB1IGZaTerj7LfxHm+Ku9nVZ4p29/emoQ0UzWdd
+SkWXhwUZbVGehFGYaCTT7KVDcv5fZiCr2WBM0POFIXhmSIk0CSLezhFr6JDElVov
+R12dzrMN46WspdvHiWrBWBGMtUh+8hxByKgR+YduWJfKyeKBoQnsai2u+4zJ7Ayp
+sBanGs6K
+=SHqf
+-----END PGP SIGNATURE-----
+
+--f2bekayrv5kknxjs--
