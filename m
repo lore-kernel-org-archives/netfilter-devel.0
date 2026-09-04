@@ -1,61 +1,48 @@
-Received: from pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.1.125])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BC69377566;
-	Fri,  4 Sep 2026 01:31:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.1.125
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99D437BE9F;
+	Fri,  4 Sep 2026 02:01:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788485470; cv=none; b=GxARmoNBMIORIw7KA/74J3QrSoiSsgfHQ3dUFZ6XiUQZpcn12cSfnGIguZKbjfsjB2NtyT/fc+2GSiftFkzPKghDUzuGyE2QxdFKOUVVngirp5Wqwl/jNwwM0DVBEsq+0dZo9cdx92v4+p0HJHQL0sZnznPt1K5nBF0fOsmq6tk=
+	t=1788487310; cv=none; b=UlZRu0Oubugp6bZvUm4bwqBsO04MqfH/W6erV6iePiuLPrkxTW1/VxIjljTKaK/1kLy8EJmWDdIpLGKVpq7tCY4XOxxe5waAaH45d8EhyKucuFV3+YoSjjkRREOovX3tvTETMgB3BhxcQrxzW/1DCUKfUuHsU/bqsRF/VAcE3RA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788485470; c=relaxed/simple;
-	bh=RLYIBihWFAZe8Pd+AhyecYDThJcw4PROecgrkLzIoCE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Z1w7xuRJXW76sY1z/SMTGC2oM6wdxUT7azkR3CHLf6+Tup8ZNLzSRS1pUfYV8jYMxbYMsT7a58s8uR6xxSdRhHhhDSdJ848ZU5M82ID91bFbN3i+OqW2XzuXms6PfEuRWaorl+5salROMCVD1ouUmPzkzDUUw75EZGPxsfLxLpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=rcPpKyR4; arc=none smtp.client-ip=44.246.1.125
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1788487310; c=relaxed/simple;
+	bh=hi1dzW28asLaA45TMukwaGQCsiuqSEEuyVQIzem+0Pc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=plb10qSJTuBgoejzehTuU0+9xtJp41mHo+LNFk6n6q3+qB1/WKf0NJXpLIWcWxYwo5yXIJe/SntK8fMWNH4eLHcyyc4zP32fD6wyDvM5yVkPeEJnxbtqxik3DpLZovSB29pSP+EJa2hGpIL48V4i60OXlA6XT9aAWgTpr6ULbPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gatZT6FL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="rcPpKyR4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1788485469; x=1820021469;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=bahJnU9qsHIbxRAQzoBVDDsLsFedAZHhW5MPInxWE84=;
-  b=rcPpKyR4FxrCKeFkuB/BWSC+B/SoQE1NOLgBSyb4Llw2tz+pNMfPeerd
-   JSbEk3MaxQmEvsVM8v+Wq4J/HXjEo2TPE/F06XjR4Y8Ji2memrRGhqK+H
-   lU/mQI0ISh3PCN59di+Qs4MI3gdIYF3wcldR4Dooa9Nf/GCdlB18c0OCY
-   iZjB/Kt7WlGxIGbPEex+QQ8h+gM74jeGcvB+JTMD+COzgs+o6QTQg5Xkd
-   0Es6xs9jRaz1jtncYv6jGWdMvGPCeJ2I1AuJ02BOFls4BU1mdxhcj2IXt
-   /aBf6TDtv8I0llm687IZgq2pdwj750s+feg9hWmyj1fFumrsy7AOhuI6n
-   w==;
-X-CSE-ConnectionGUID: 6eqHi8/dTJao1iW7qe1bqg==
-X-CSE-MsgGUID: KyDRdKszQcyRYRAyaKWXIA==
-X-IronPort-AV: E=Sophos;i="6.25,260,1779148800"; 
-   d="scan'208";a="27782135"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2026 01:31:05 +0000
-Received: from EX19MTAUWB001.ant.amazon.com [205.251.233.104:14188]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.47.243:2525] with esmtp (Farcaster)
- id 836b5b7c-d03b-4cc0-bcc0-1335b995bfd2; Fri, 4 Sep 2026 01:31:05 +0000 (UTC)
-X-Farcaster-Flow-ID: 836b5b7c-d03b-4cc0-bcc0-1335b995bfd2
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
- Fri, 4 Sep 2026 01:31:05 +0000
-Received: from dev-dsk-surajjs-2c-afd24e6d.us-west-2.amazon.com
- (10.189.247.117) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.46; Fri, 4 Sep 2026
- 01:31:05 +0000
-From: Suraj Jitindar Singh <surajjs@amazon.com>
-To: <stable@vger.kernel.org>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
-	<kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-Subject: [PATCH 6.1.y] netfilter: nf_tables: make nft_object rhltable per table
-Date: Fri, 4 Sep 2026 01:31:02 +0000
-Message-ID: <20260904013102.22326-1-surajjs@amazon.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gatZT6FL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A9E1F000E9;
+	Fri,  4 Sep 2026 02:01:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788487308;
+	bh=SjzWGTs/gThMP0YOXrb9dBIISNJJz2x+tIcCydeFXyA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=gatZT6FLWVSHRkb4YT8PXUM87mBhjY+IXaPjD7gb6YuOnUGQdGBKWS8r7QaMjgWur
+	 gq6Riovb7wONBAYPbLtbqvgeRpuPZvdiMzOCk7+vBpgrn8z2vGnEJBzWx650liFxlC
+	 8qHcjXyQlTJqjpLmfqqeSTgFTKqK6Yp4mNavAWof9OYWVlb0x4fTBB0cGcVZrnXROt
+	 wT3wxwexiObfh+KWbCwPTkonmDq98xEf49tZDyQUOaS28f/hVqAxQNPZXPuDwzg0fM
+	 n9CHTatKgWlIMNRhjL1ypyuiJyLkwqn8F8zQKPudH+YkNlOA3kwjOjp/GFsCI7wCYF
+	 aKOyaCY5+KOzA==
+From: Jakub Kicinski <kuba@kernel.org>
+To: pablo@netfilter.org
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: Re: [PATCH net 06/12] ipvs: bound LBLCR and LBLC cache growth
+Date: Thu,  3 Sep 2026 19:01:40 -0700
+Message-ID: <20260904020140.3549818-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260903004149.1037028-7-pablo@netfilter.org>
+References: <20260903004149.1037028-7-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,219 +50,149 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D032UWB002.ant.amazon.com (10.13.139.190) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-commit f4f699790590bd0896c48a71e9232a65198f92f0 upstream.
-
-The nft_object rhltable is global, this allows for accessing objects
-that are being dismangled from lookup path by other existing netns.
-Given the nft_obj_destroy() releases the object inmediately, this might
-lead to use-after-free of these objects that are being released.
-Make the existing rhltable per table to address this issue to deal with
-with the nft_rcv_nl_event() path too.
-
-Update nft_obj_lookup() to take the table as non-const, otherwise,
-compiler complains when passing the objname_ht to rhltable_lookup().
-
-Fixes: 4d44175aa5bb ("netfilter: nf_tables: handle nft_object lookups via rhltable")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-[ 6.1: Conflicts in nf_tables_api.c because 6.1 lacks three mainline
-  refactors: 0be908750162 ("netfilter: nf_tables: pass nft_table to
-  destroy function", v6.11), e169285f8c56 ("netfilter: nf_tables: do
-  not store nft_ctx in transaction objects", v6.11) and f80a612dd77c
-  ("netfilter: nf_tables: add support to destroy operation", v6.3).
-  As a result 6.1's nf_tables_table_destroy() still takes an nft_ctx;
-  struct nft_trans still embeds an nft_ctx (so the owning table is
-  trans->ctx.table, not a per-transaction table local); and the commit
-  path has no NFT_MSG_DESTROYOBJ case. Resolved by destroying the
-  per-table objname_ht via ctx->table in nf_tables_table_destroy(), and
-  by passing the owning table trans->ctx.table to nft_obj_del() in the
-  commit and abort paths; 6.1's single NFT_MSG_DELOBJ case is retained.
-  The header and all other hunks applied cleanly. ]
-Signed-off-by: Suraj Jitindar Singh <surajjs@amazon.com>
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 ---
- include/net/netfilter/nf_tables.h |  4 +++-
- net/netfilter/nf_tables_api.c     | 34 +++++++++++++++----------------
- 2 files changed, 19 insertions(+), 19 deletions(-)
+ipvs: bound LBLCR and LBLC cache growth
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 4e8cf4e13f8f..6c82feab2ad5 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1211,6 +1211,7 @@ static inline void nft_use_inc_restore(u32 *use)
-  *	@sets: sets in the table
-  *	@objects: stateful objects in the table
-  *	@flowtables: flow tables in the table
-+ *	@objname_ht: hashtable for objects lookup by name
-  *	@hgenerator: handle generator state
-  *	@handle: table handle
-  *	@use: number of chain references to this table
-@@ -1226,6 +1227,7 @@ struct nft_table {
- 	struct list_head		sets;
- 	struct list_head		objects;
- 	struct list_head		flowtables;
-+	struct rhltable			objname_ht;
- 	u64				hgenerator;
- 	u64				handle;
- 	u32				use;
-@@ -1304,7 +1306,7 @@ static inline void *nft_obj_data(const struct nft_object *obj)
- #define nft_expr_obj(expr)	*((struct nft_object **)nft_expr_priv(expr))
- 
- struct nft_object *nft_obj_lookup(const struct net *net,
--				  const struct nft_table *table,
-+				  struct nft_table *table,
- 				  const struct nlattr *nla, u32 objtype,
- 				  u8 genmask);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7240f494d83b..71ada0af4c85 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -42,8 +42,6 @@ enum {
- 	NFT_VALIDATE_DO,
- };
- 
--static struct rhltable nft_objname_ht;
--
- static u32 nft_chain_hash(const void *data, u32 len, u32 seed);
- static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed);
- static int nft_chain_hash_cmp(struct rhashtable_compare_arg *, const void *);
-@@ -1419,6 +1417,10 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (err)
- 		goto err_chain_ht;
- 
-+	err = rhltable_init(&table->objname_ht, &nft_objname_ht_params);
-+	if (err < 0)
-+		goto err_obj_ht;
-+
- 	INIT_LIST_HEAD(&table->chains);
- 	INIT_LIST_HEAD(&table->sets);
- 	INIT_LIST_HEAD(&table->objects);
-@@ -1437,6 +1439,8 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	list_add_tail_rcu(&table->list, &nft_net->tables);
- 	return 0;
- err_trans:
-+	rhltable_destroy(&table->objname_ht);
-+err_obj_ht:
- 	rhltable_destroy(&table->chains_ht);
- err_chain_ht:
- 	kfree(table->udata);
-@@ -1599,6 +1603,7 @@ static void nf_tables_table_destroy(struct nft_ctx *ctx)
- 		return;
- 
- 	rhltable_destroy(&ctx->table->chains_ht);
-+	rhltable_destroy(&ctx->table->objname_ht);
- 	kfree(ctx->table->name);
- 	kfree(ctx->table->udata);
- 	kfree(ctx->table);
-@@ -7151,7 +7156,7 @@ void nft_unregister_obj(struct nft_object_type *obj_type)
- EXPORT_SYMBOL_GPL(nft_unregister_obj);
- 
- struct nft_object *nft_obj_lookup(const struct net *net,
--				  const struct nft_table *table,
-+				  struct nft_table *table,
- 				  const struct nlattr *nla, u32 objtype,
- 				  u8 genmask)
- {
-@@ -7167,7 +7172,7 @@ struct nft_object *nft_obj_lookup(const struct net *net,
- 		     !lockdep_commit_lock_is_held(net));
- 
- 	rcu_read_lock();
--	list = rhltable_lookup(&nft_objname_ht, &k, nft_objname_ht_params);
-+	list = rhltable_lookup(&table->objname_ht, &k, nft_objname_ht_params);
- 	if (!list)
- 		goto out;
- 
-@@ -7446,7 +7451,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (err < 0)
- 		goto err_trans;
- 
--	err = rhltable_insert(&nft_objname_ht, &obj->rhlhead,
-+	err = rhltable_insert(&table->objname_ht, &obj->rhlhead,
- 			      nft_objname_ht_params);
- 	if (err < 0)
- 		goto err_obj_ht;
-@@ -7642,8 +7647,8 @@ nf_tables_getobj_single(u32 portid, const struct nfnl_info *info,
- 	struct netlink_ext_ack *extack = info->extack;
- 	u8 genmask = nft_genmask_cur(info->net);
- 	u8 family = info->nfmsg->nfgen_family;
--	const struct nft_table *table;
- 	struct net *net = info->net;
-+	struct nft_table *table;
- 	struct nft_object *obj;
- 	struct sk_buff *skb2;
- 	u32 objtype;
-@@ -9310,9 +9315,9 @@ static void nf_tables_commit_chain(struct net *net, struct nft_chain *chain)
- 		nf_tables_commit_chain_free_rules_old(g0);
- }
- 
--static void nft_obj_del(struct nft_object *obj)
-+static void nft_obj_del(struct nft_table *table, struct nft_object *obj)
- {
--	rhltable_remove(&nft_objname_ht, &obj->rhlhead, nft_objname_ht_params);
-+	rhltable_remove(&table->objname_ht, &obj->rhlhead, nft_objname_ht_params);
- 	list_del_rcu(&obj->list);
- }
- 
-@@ -9963,7 +9968,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			}
- 			break;
- 		case NFT_MSG_DELOBJ:
--			nft_obj_del(nft_trans_obj(trans));
-+			nft_obj_del(trans->ctx.table, nft_trans_obj(trans));
- 			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
- 					     NFT_MSG_DELOBJ);
- 			break;
-@@ -10222,7 +10227,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 				nft_trans_destroy(trans);
- 			} else {
- 				nft_use_dec_restore(&trans->ctx.table->use);
--				nft_obj_del(nft_trans_obj(trans));
-+				nft_obj_del(trans->ctx.table, nft_trans_obj(trans));
- 			}
- 			break;
- 		case NFT_MSG_DELOBJ:
-@@ -10860,7 +10865,7 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 		nft_set_destroy(&ctx, set);
- 	}
- 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
--		nft_obj_del(obj);
-+		nft_obj_del(table, obj);
- 		nft_use_dec(&table->use);
- 		nft_obj_destroy(&ctx, obj);
- 	}
-@@ -11023,10 +11028,6 @@ static int __init nf_tables_module_init(void)
- 	if (err < 0)
- 		goto err_netdev_notifier;
- 
--	err = rhltable_init(&nft_objname_ht, &nft_objname_ht_params);
--	if (err < 0)
--		goto err_rht_objname;
--
- 	err = nft_offload_init();
- 	if (err < 0)
- 		goto err_offload;
-@@ -11049,8 +11050,6 @@ static int __init nf_tables_module_init(void)
- err_netlink_notifier:
- 	nft_offload_exit();
- err_offload:
--	rhltable_destroy(&nft_objname_ht);
--err_rht_objname:
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
- err_netdev_notifier:
- 	nf_tables_core_module_exit();
-@@ -11074,7 +11073,6 @@ static void __exit nf_tables_module_exit(void)
- 	cancel_work_sync(&trans_gc_work);
- 	cancel_work_sync(&trans_destroy_work);
- 	rcu_barrier();
--	rhltable_destroy(&nft_objname_ht);
- 	nf_tables_core_module_exit();
- }
- 
--- 
-2.47.3
+This adds a hard admission limit to ip_vs_lblc_new() and
+ip_vs_lblcr_new(), rejecting new cache entries once atomic_read(&tbl->entries)
+reaches max_size * 3 / 2.  The stated intent is to leave headroom so the
+periodic collector can catch up while the scheduler fallback keeps serving
+traffic.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
+> index 693bcc82ccb7..8180a7ba9f53 100644
+> --- a/net/netfilter/ipvs/ip_vs_lblc.c
+> +++ b/net/netfilter/ipvs/ip_vs_lblc.c
+> @@ -204,6 +204,9 @@ ip_vs_lblc_new(struct ip_vs_lblc_table *tbl, const union nf_inet_addr *daddr,
+>  			return en;
+>  		ip_vs_lblc_del(en);
+>  	}
+> +	if (atomic_read(&tbl->entries) >= tbl->max_size * 3 / 2)
+> +		return NULL;
+> +
+>  	en = kmalloc_obj(*en, GFP_ATOMIC);
+>  	if (!en)
+>  		return NULL;
+
+[Severity: High]
+Can tbl->entries be trusted as a bound on the number of live entries in
+ip_vs_lblc_new()?  The replacement path just above the new test is the only
+ip_vs_lblc_del() call site that does not decrement the counter:
+
+net/netfilter/ipvs/ip_vs_lblc.c:ip_vs_lblc_new() {
+	en = ip_vs_lblc_get(af, tbl, daddr);
+	if (en) {
+		if (en->dest == dest)
+			return en;
+		ip_vs_lblc_del(en);	/* no atomic_dec(&tbl->entries) */
+	}
+	...
+}
+
+The helper itself does not touch the counter:
+
+static inline void ip_vs_lblc_del(struct ip_vs_lblc_entry *en)
+{
+	hlist_del_rcu(&en->list);
+	call_rcu(&en->rcu_head, ip_vs_lblc_rcu_free);
+}
+
+while every other caller pairs it with an explicit decrement, e.g. in
+ip_vs_lblc_flush(), ip_vs_lblc_full_check() and ip_vs_lblc_check_expire():
+
+			ip_vs_lblc_del(en);
+			atomic_dec(&tbl->entries);
+
+Does that mean each dest change for an already cached daddr adds +1 to
+tbl->entries while the live entry count stays the same, since
+ip_vs_lblc_hash() is the only place that increments?
+
+	hlist_add_head_rcu(&en->list, &tbl->bucket[hash]);
+	atomic_inc(&tbl->entries);
+
+If so, does the drift ever get corrected?  The collector decrements only when
+it removes a real entry, so it lowers both the counter and the live count
+equally, and tbl->entries otherwise seems to be reset only in
+ip_vs_lblc_init_svc().
+
+There also looks to be a second effect from the placement of the new test
+after ip_vs_lblc_del(): when the limit fires, the old entry has already been
+unlinked and NULL is returned without a decrement and without a replacement,
+so the table shrinks while the counter stays where it is.
+
+The replacement path appears to be driven by remote packets, since
+ip_vs_lblc_schedule() calls __ip_vs_lblc_schedule() and then
+ip_vs_lblc_new() with a different dest whenever the cached dest is not
+available, has zero weight, or is_overloaded():
+
+	dest = __ip_vs_lblc_schedule(svc);
+	...
+	spin_lock_bh(&svc->sched_lock);
+	if (!tbl->dead)
+		ip_vs_lblc_new(tbl, &iph->daddr, svc->af, dest);
+
+Once the accumulated drift alone reaches max_size * 3 / 2 (24576 with the
+default 16384), does ip_vs_lblc_new() return NULL permanently for that
+service, even with an empty table?  That would leave LBLC locality caching
+disabled for the lifetime of the service, with every packet taking the full
+__ip_vs_lblc_schedule() dest walk and ip_vs_lblc_check_expire() still
+scanning all 1024 buckets under svc->sched_lock looking for entries that are
+no longer there.
+
+That also seems to conflict with the commit message text:
+
+    The extra headroom lets the periodic collector catch up while the
+    existing scheduler fallback continues to use the selected destination
+    when cache creation fails.
+
+Would adding the missing atomic_dec(&tbl->entries) next to the
+ip_vs_lblc_del(en) in ip_vs_lblc_new(), or moving the new test ahead of the
+lookup and delete, make the limit match the live entry count?
+
+Note that ip_vs_lblcr_new() below places the identical test inside
+if (!en), before any removal, and has no unbalanced delete, so the two
+schedulers' counters do not appear to satisfy the same invariant even though
+the same expression is applied to both.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+> index f53f05ceea36..858393b1d2d1 100644
+> --- a/net/netfilter/ipvs/ip_vs_lblcr.c
+> +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+> @@ -363,6 +363,9 @@ ip_vs_lblcr_new(struct ip_vs_lblcr_table *tbl, const union nf_inet_addr *daddr,
+>  
+>  	en = ip_vs_lblcr_get(af, tbl, daddr);
+>  	if (!en) {
+> +		if (atomic_read(&tbl->entries) >= tbl->max_size * 3 / 2)
+> +			return NULL;
+> +
+>  		en = kmalloc_obj(*en, GFP_ATOMIC);
+>  		if (!en)
+>  			return NULL;
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but does the new limit still leave
+the per-bucket chain length unbounded?  ip_vs_lblc_hashkey() and
+ip_vs_lblcr_hashkey() hash the destination address with no per-table random
+seed:
+
+	return hash_32(ntohl(addr_fold), IP_VS_LBLC_TAB_BITS);
+
+so bucket selection for a chosen address is predictable offline, and
+ip_vs_lblc_get() / ip_vs_lblcr_get() walk the chain linearly on every
+scheduled packet:
+
+	hlist_for_each_entry_rcu(en, &tbl->bucket[hash], list)
+		if (ip_vs_addr_equal(af, &en->addr, addr))
+			return en;
+
+Since the new test caps only the total entry count and not the chain length,
+can all 24576 permitted entries be steered into a single one of the 1024
+buckets, leaving the lookup in softirq context (and again under
+spin_lock_bh(&svc->sched_lock) from ip_vs_lblc_new()) walking a ~24k element
+list per packet?  The patch does reduce the worst case compared to the
+unbounded chain before it, so this is a pre-existing exposure rather than
+something the patch adds, but would seeding the hash or bounding chain length
+be worth doing on top?
