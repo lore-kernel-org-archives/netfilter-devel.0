@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E5751C34D;
-	Fri,  4 Sep 2026 18:13:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F128B51D502;
+	Fri,  4 Sep 2026 18:20:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788545605; cv=none; b=tGMNo1YvrEiYg7jVZPuADWeAktESEN9FDyev7Jtku+1XW3LaWALKAOGMJQLZTcBaUeowBhcs83NMVkd4MCPU4X0E5nMpLB6z1XeFDXqeALN+aMLKqSnDW1fljkBEGZa6VYrylnNmSTeqVUQ1EXnnFdUpF7V7pDUzBdKN7kkSBts=
+	t=1788546058; cv=none; b=T/xk937BsgKCH7XZs54t+ocQEUbAjo10mij+X/AuG7t/fIJo/iA3IdUeHthgPrvDe0Dv0Vzg8QmgI6agmYYjyFYQS4g9bf5Cg2vsU5xslfsD8oj2vstSHyBJ5N22r38NGOFnMi4pqPcopWu0ml9yP6rqjc1K12KGoRBj0md1jpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788545605; c=relaxed/simple;
-	bh=Ln3gAUSzCB5HMVUDQiFq3TwODoT8YzzxNhNfCV04lRE=;
+	s=arc-20240116; t=1788546058; c=relaxed/simple;
+	bh=Gm4jAv8Q/Ixx6cJaVpUyex1GmWlcgUchAFCIWIACM3c=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=M9HHRsmUrNww66q0z1GNCSUOdeVPmNxxZa5vV9smJcxCjwL4myi5ykYaBpFXLcRD92avcelngswjjSpR5Lc9NrGTzWtCJ7AE6Dky+f5dfCFKhugWkbyos7P1xdQMxH8jZZvusXg5+y0i2f1w3XqzIRoTml88Ng7OoRwoFgpyvPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IBUJFiB7; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=l+o8jtT3EPqzoEXcq8kSgc6YiFLTl7Yy7ljPYQ5Vqbp3dmjYIf0ysSSxDXk1xhTI/cHGOuWoVLkKxIF2Whw+Vq/r1F1YsK34fRAbQgVGBSc7Xqs2hKlVWNgl6HSREBLN1Odya8MDh/bLuE/qAq8oC1l6p4qQ1s/v4FqbNUpEFnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=COCwJ2KC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IBUJFiB7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6991F00A3F;
-	Fri,  4 Sep 2026 18:13:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="COCwJ2KC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 859391F00A3D;
+	Fri,  4 Sep 2026 18:20:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788545604;
-	bh=ObkFAWguM+b0ApnsFDARamSmV0+WgAi5JakfcjNI4Pc=;
+	s=k20260515; t=1788546051;
+	bh=IMN2JFH1gPSJzIjOdKnHV28uPhAr9nPgsv+BiIIUKHM=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=IBUJFiB7tKI4sEXSQyjZhHQNLTbjxHUkWgbvMo/ZmodXN/f9zK8LURJmtGiiPf1YM
-	 GBGjphFMyroVfDlFCD43i3OeeE9loubfrOse9QSgV+t2Nv8uxfuW3E5x7k39EskcTB
-	 e+911pBnEDUn9rHkUKeaJ5USW+dbRkVzpzuOO274am3hf83K1P85pld8WFcznoEhyG
-	 h48SemBTIQjK7FrwmJkZE0xXL5hEbBGNF/gUtO4O/tNBcMAgdLZPkdofuLXSj8cp6n
-	 E6QNt0vh6oIxE6f6BrL7pNe1Kwrnye0POng8HrCeVa2y8gBCRVCVx94RbNW/aMwHdk
-	 NfwEvpiLBkkJg==
-Message-ID: <b51812fb-3140-4dd5-8fdb-3715616e3bcc@kernel.org>
-Date: Fri, 4 Sep 2026 20:13:17 +0200
+	b=COCwJ2KCP5+tAnsi0n3j6CEEVbFytQtQCPxhEmmL5C+MoXUJ2a2mL5iknrbLvVxUe
+	 n0QdSoHRtLkKqlHHP2OD+RAGKKkTX5GtknSdV3ZZzSMR3KfVmk67pIwzW35Th7XLRN
+	 upBS4A6VxLlu0tuku1GcCPiSBZJlcPQvMY3YyrcW3PsLhC7aGoHI+BEQbl+H7RHwTl
+	 z0w3DJ4ofjFZKOUOQftiO34ksBnXSnvptZIQ7fzp/Y5qMZwEZZbmynWL/7Kt7Jhfkf
+	 TMRmO1uZejea2gWJy7tINE8f0t9mzlF0FmeUrhXXKD/aAzsj469gvqGydMAMwYl8mJ
+	 A7DDZKsW4ICTg==
+Message-ID: <64123435-9acc-4d96-806b-4092a2c80628@kernel.org>
+Date: Fri, 4 Sep 2026 20:20:44 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,21 +35,18 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH nf-next] netfilter: conntrack: make filtering by zone
- discoverable
+Subject: Re: [PATCH net 0/2] selftests: net: use KHDR_INCLUDES in CFLAGS
 Content-Language: fr
-To: Ilya Maximets <i.maximets@ovn.org>, netfilter-devel@vger.kernel.org
-Cc: netdev@vger.kernel.org, Donald Hunter <donald.hunter@gmail.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- Shuah Khan <shuah@kernel.org>, =?UTF-8?Q?Asbj=C3=B8rn_Sloth_T=C3=B8nnesen?=
- <ast@fiberby.net>, "Remy D. Farley" <one-d-wide@protonmail.com>,
- linux-kernel@vger.kernel.org, coreteam@netfilter.org,
- linux-kselftest@vger.kernel.org
-References: <20260904174452.1913072-1-i.maximets@ovn.org>
- <35704da5-5a12-4b23-b684-dcadc432a380@ovn.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Ilya Maximets <i.maximets@ovn.org>, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+ David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>
+References: <20260904-net-sft-nf-khdr_includes-v1-0-92455af428e9@kernel.org>
 From: Matthieu Baerts <matttbe@kernel.org>
 Autocrypt: addr=matttbe@kernel.org; keydata=
  xsFNBFXj+ekBEADxVr99p2guPcqHFeI/JcFxls6KibzyZD5TQTyfuYlzEp7C7A9swoK5iCvf
@@ -95,59 +92,33 @@ Autocrypt: addr=matttbe@kernel.org; keydata=
  JY6dglzGKnCi/zsmp2+1w559frz4+IC7j/igvJGX4KDDKUs0mlld8J2u2sBXv7CGxdzQoHaz
  lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
 Organization: NGI0 Core
-In-Reply-To: <35704da5-5a12-4b23-b684-dcadc432a380@ovn.org>
+In-Reply-To: <20260904-net-sft-nf-khdr_includes-v1-0-92455af428e9@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 04/09/2026 20:06, Ilya Maximets wrote:
-> On 9/4/26 7:44 PM, Ilya Maximets wrote:
->> Conntrack flush supports filtering by zone using CTA_ZONE, but this
->> attribute is really hard to use from user space applications.  The
->> reason is that it is not possible to tell if it's supported or not.
->>
->> Older kernels silently ignore CTA_ZONE.  And in that case they just
->> happily flush all the entries from all zones breaking all the existing
->> connections.  So, applications have to infer support from the kernel
->> version.  While it works in most cases, it's not a particularly
->> reliable or desired way to check kernel capabilities from applications
->> that aim to be portable.  There should be a better way to probe or
->> discover features in the kernel.
->>
->> The CTA_FILTER interface on the other hand is simple enough to probe.
->> We can check for NLM_F_DUMP_FILTERED in the dump to see if filtering
->> is supported.  And unknown sub-attributes in CTA_FILTER are rejected
->> explicitly since strict validation is in use there.
->>
->> Let's add new CTA_FILTER_ZONE that signals that CTA_ZONE should be
->> filtered on.  It is a flag, since everything in the CTA_FILTER is a
->> bit mask, i.e., a form of a flag.  If set, it means that CTA_ZONE must
->> be present and be used for filtering.  If the flag is not set however,
->> the filtering on CTA_ZONE will still take place to ensure backwards
->> compatibility.  So, the flag doesn't really change the filtering
->> behavior, but it allows user space applications to properly discover
->> support for CTA_ZONE filtering without need to rely on kernel version
->> parsing or risk accidental flushes of the entire conntrack table,
->> and also without modifying the kernel state.
->>
->> A new test variant is added to test with and without the new flag.
->> Since the setup code is moved into a shared function, expectations
->> replaced with assertions to bail early if the base setup fails to
->> avoid the cascade of secondary failures that can be misleading.
->> Error return is only for the SKIP cases.
->>
->> Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
->> ---
-> CI reported a build failure for the selftest.  It is caused by this issue:
->   https://lore.kernel.org/r/20260904-net-sft-nf-khdr_includes-v1-1-92455af428e9@kernel.org
-> 
-> Not related to the patch itself.
+Hi Jakub,
 
-Mmh, my patch didn't get picked up in the tests because the Clang build
-failed with Rust programs. Not sure why it got that with my patch, nor
-why your patch didn't hit the same issue :)
+On 04/09/2026 18:13, Matthieu Baerts (NGI0) wrote:
+> KHDR_INCLUDES is typically used to include headers from the kernel
+> source directory instead of only relying on the ones from the host: they
+> can be missing or outdated. See the issue reported in [1] where users
+> have to set USERCFLAGS instead, which shouldn't be needed.
+> 
+> The kselftest doc [2] recommends assigning KHDR_INCLUDES to CFLAGS in a
+> target Makefile. lib.mk will set KHDR_INCLUDES to "-isystem
+> $(top_srcdir)/usr/include" if the user didn't set it, e.g. if the kernel
+> was built in a different build directory.
+> 
+> Other net targets have KHDR_INCLUDES added to their CFLAGS.
+
+These patches didn't get picked up in the tests because the Clang build
+failed with Rust code:
+
+https://netdev-ctrl.bots.linux.dev/logs/build/1158213/14791779/build_clang/stderr
+
+I only modified the selftests here. Other patches sent before me have
+the same issue, but some sent after don't. One of those "random" issues
+on the build server?
 
 Cheers,
 Matt
--- 
-Sponsored by the NGI0 Core fund.
-
