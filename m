@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E794B5221F0
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 18:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06D69523784
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 18:54:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788548052; cv=none; b=Sy0IYixtcC4JOrSzLwz8njDtVHO8zfpHKQH5WAOMLIPILEQM6GhqX0c2XP314VTvN5juVxdAluufmFMLnJamCUoHA0EbZUupdbAfXunb1JhdOzmqAdb6ZxKJJqNrwi5tPSTrfN1pFDxIAJIhWW2uDl33MyO4ukM2a861HmfoRzU=
+	t=1788548056; cv=none; b=qHxmUGhJymGsY/dQWuBmpGO60vTWq/H1Cye8YV0g+I6QyJUF7R5pWyjVOjrc+4lmWmXKJcKvl1l+/2+j+Pvz574ir5G7F5cKgkar7MtIBMGmyGv96kAPaixhdpqeVNNJyy64fzStAlTIHXhoD3YGHKlD/8sC4uklsiZajf2oj9M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788548052; c=relaxed/simple;
-	bh=4iTEDBT+ITu+XlPTqft2fGemXLd3iwTcWgcfeLwUzJs=;
+	s=arc-20240116; t=1788548056; c=relaxed/simple;
+	bh=4ApzHjCrnNh19ASNUfivZfrd/4aYekNVAlT6JC2corU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gna6Nc9iJzYIiZzWpbujSs451MvK5D2+EMkmVFDh5WVfeycrdPO0vvDg+zaNTH5plcgeE31wr+QsqH4OZtdhh7ibhT+A97OrLxS9/ifYw2rTkIZuNiAPUZHQUMoDZwMTqP4y2U5P5AtdX/beTVYVBAaLvjlA+RlN5GT2b9a/gMI=
+	 MIME-Version; b=I8p91gSTuAyIQ437myggRdCO4MlEQjlEj3+BrCB9A7KdbHERSPx5hTowGhZyyQM7DJZV1dLccoUBvY2IxZ7Mpm171z4QukwagzQNZY1HGD8uh3Ap9YG8nfaZn85moFdp4BUbgGOJ/5R0ky9sMR6WySAv6A9e+toB87FTBjZ0Q+E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D73206035B; Fri, 04 Sep 2026 20:54:07 +0200 (CEST)
+	id 24C2660405; Fri, 04 Sep 2026 20:54:12 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v4 08/13] netfilter: ipset: remove last region lock usage
-Date: Fri,  4 Sep 2026 20:53:16 +0200
-Message-ID: <20260904185321.30313-9-fw@strlen.de>
+Subject: [PATCH nf-next v4 09/13] netfilter: ipset: remove multi-flag
+Date: Fri,  4 Sep 2026 20:53:17 +0200
+Message-ID: <20260904185321.30313-10-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260904185321.30313-1-fw@strlen.de>
 References: <20260904185321.30313-1-fw@strlen.de>
@@ -34,337 +34,410 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Move lock responsibility into kadt/uadt/flush callbacks and remove the
-last .region_lock users.  Keep bitmap types IPSET_TEST lockless, this
-is called from xt_set / datapath.
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-Assisted-by: Claude:claude-opus-4-6
+This is a leftover from the old hash table that needed this to know both
+when to skip already-matched identical ip/mask pairs and to know the
+number of same-key elements to size the hash buckets.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/ipset/ip_set.h    |  8 -------
- net/netfilter/ipset/ip_set_bitmap_gen.h   |  2 ++
- net/netfilter/ipset/ip_set_bitmap_ip.c    | 14 +++++++++--
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 13 +++++++++-
- net/netfilter/ipset/ip_set_bitmap_port.c  | 14 +++++++++--
- net/netfilter/ipset/ip_set_core.c         | 29 +----------------------
- net/netfilter/ipset/ip_set_hash_gen.h     |  1 -
- net/netfilter/ipset/ip_set_list_set.c     |  7 ++++++
- 8 files changed, 46 insertions(+), 42 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h        | 22 +++++++-------------
+ net/netfilter/ipset/ip_set_hash_ip.c         |  6 ++----
+ net/netfilter/ipset/ip_set_hash_ipmac.c      |  6 ++----
+ net/netfilter/ipset/ip_set_hash_ipmark.c     |  6 ++----
+ net/netfilter/ipset/ip_set_hash_ipport.c     |  6 ++----
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |  6 ++----
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |  6 ++----
+ net/netfilter/ipset/ip_set_hash_mac.c        |  3 +--
+ net/netfilter/ipset/ip_set_hash_net.c        |  6 ++----
+ net/netfilter/ipset/ip_set_hash_netiface.c   |  8 ++-----
+ net/netfilter/ipset/ip_set_hash_netnet.c     |  6 ++----
+ net/netfilter/ipset/ip_set_hash_netport.c    |  6 ++----
+ net/netfilter/ipset/ip_set_hash_netportnet.c |  6 ++----
+ 13 files changed, 30 insertions(+), 63 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index c46864cc6623..37cfda517c1b 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -188,14 +188,6 @@ struct ip_set_type_variant {
- 	bool (*same_set)(const struct ip_set *a, const struct ip_set *b);
- 	/* Cancel ongoing garbage collectors before destroying the set*/
- 	void (*cancel_gc)(struct ip_set *set);
--	/* Region-locking is used */
--	bool region_lock;
--};
--
--struct ip_set_region {
--	spinlock_t lock;	/* Region lock */
--	size_t ext_size;	/* Size of the dynamic extensions */
--	u32 elements;		/* Number of elements vs timeout */
- };
- 
- /* Max range where every element is added/deleted in one step */
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index d6a7e6604542..0b6dd2e13433 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -73,11 +73,13 @@ mtype_flush(struct ip_set *set)
- {
- 	struct mtype *map = set->data;
- 
-+	spin_lock_bh(&set->lock);
- 	if (set->extensions & IPSET_EXT_DESTROY)
- 		mtype_ext_cleanup(set);
- 	bitmap_zero(map->members, map->elements);
- 	set->elements = 0;
- 	DEBUG_NET_WARN_ON_ONCE(atomic64_read(&set->ext_size) > 0);
-+	spin_unlock_bh(&set->lock);
- }
- 
- /* Calculate the actual memory size of the set data */
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index ac7febce074f..9307c89d2837 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -115,6 +115,7 @@ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct bitmap_ip_adt_elem e = { .id = 0 };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+	int ret;
- 	u32 ip;
- 
- 	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
-@@ -123,7 +124,14 @@ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
- 
- 	e.id = ip_to_id(map, ip);
- 
--	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	if (adt == IPSET_TEST)
-+		return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+
-+	spin_lock_bh(&set->lock);
-+	ret = adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	spin_unlock_bh(&set->lock);
-+
-+	return ret;
- }
- 
- static int
-@@ -178,15 +186,17 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ip < map->first_ip || ip_to > map->last_ip)
- 		return -IPSET_ERR_BITMAP_RANGE;
- 
-+	spin_lock_bh(&set->lock);
- 	for (; !before(ip_to, ip); ip += map->hosts) {
- 		e.id = ip_to_id(map, ip);
- 		ret = adtfn(set, &e, &ext, &ext, flags);
- 
- 		if (ret && !ip_set_eexist(ret, flags))
--			return ret;
-+			break;
- 
- 		ret = 0;
- 	}
-+	spin_unlock_bh(&set->lock);
- 	return ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 5921fd9d2dca..720650d0c3f1 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -214,6 +214,7 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct bitmap_ipmac_adt_elem e = { .id = 0, .add_mac = 1 };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+	int ret;
- 	u32 ip;
- 
- 	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
-@@ -235,7 +236,14 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	if (is_zero_ether_addr(e.ether))
- 		return -EINVAL;
- 
--	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	if (adt == IPSET_TEST)
-+		return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+
-+	spin_lock_bh(&set->lock);
-+	ret = adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	spin_unlock_bh(&set->lock);
-+
-+	return ret;
- }
- 
- static int
-@@ -273,7 +281,10 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
- 		memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
- 		e.add_mac = 1;
- 	}
-+
-+	spin_lock_bh(&set->lock);
- 	ret = adtfn(set, &e, &ext, &ext, flags);
-+	spin_unlock_bh(&set->lock);
- 
- 	return ip_set_eexist(ret, flags) ? 0 : ret;
- }
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index ca875c982424..ea644bd420c5 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -134,6 +134,7 @@ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 	__be16 __port;
- 	u16 port = 0;
-+	int ret;
- 
- 	if (!ip_set_get_ip_port(skb, opt->family,
- 				opt->flags & IPSET_DIM_ONE_SRC, &__port))
-@@ -146,7 +147,14 @@ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
- 
- 	e.id = port_to_id(map, port);
- 
--	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	if (adt == IPSET_TEST)
-+		return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+
-+	spin_lock_bh(&set->lock);
-+	ret = adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+	spin_unlock_bh(&set->lock);
-+
-+	return ret;
- }
- 
- static int
-@@ -194,15 +202,17 @@ bitmap_port_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (port_to > map->last_port)
- 		return -IPSET_ERR_BITMAP_RANGE;
- 
-+	spin_lock_bh(&set->lock);
- 	for (; port <= port_to; port++) {
- 		e.id = port_to_id(map, port);
- 		ret = adtfn(set, &e, &ext, &ext, flags);
- 
- 		if (ret && !ip_set_eexist(ret, flags))
--			return ret;
-+			break;
- 
- 		ret = 0;
- 	}
-+	spin_unlock_bh(&set->lock);
- 	return ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 0a86a170ba90..339726b33342 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -730,20 +730,6 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
- 	return ip_set_dereference_nfnl(inst->ip_set_list)[index];
- }
- 
--static inline void
--ip_set_lock(struct ip_set *set)
--{
--	if (!set->variant->region_lock)
--		spin_lock_bh(&set->lock);
--}
--
--static inline void
--ip_set_unlock(struct ip_set *set)
--{
--	if (!set->variant->region_lock)
--		spin_unlock_bh(&set->lock);
--}
--
- int
- ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
- 	    const struct xt_action_param *par, struct ip_set_adt_opt *opt)
-@@ -763,9 +749,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
- 	if (ret == -EAGAIN) {
- 		/* Type requests element to be completed */
- 		pr_debug("element must be completed, ADD is triggered\n");
--		ip_set_lock(set);
- 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
--		ip_set_unlock(set);
- 		ret = 1;
- 	} else {
- 		/* --return-nomatch: invert matched element */
-@@ -794,9 +778,7 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
- 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
- 		return -IPSET_ERR_TYPE_MISMATCH;
- 
--	ip_set_lock(set);
- 	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
--	ip_set_unlock(set);
- 
- 	return ret;
- }
-@@ -807,7 +789,6 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
- 	   const struct xt_action_param *par, struct ip_set_adt_opt *opt)
- {
- 	struct ip_set *set = ip_set_rcu_get(xt_net(par), index);
--	int ret = 0;
- 
- 	BUG_ON(!set);
- 	pr_debug("set %s, index %u\n", set->name, index);
-@@ -816,11 +797,7 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
- 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
- 		return -IPSET_ERR_TYPE_MISMATCH;
- 
--	ip_set_lock(set);
--	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
--	ip_set_unlock(set);
--
--	return ret;
-+	return set->variant->kadt(set, skb, par, IPSET_DEL, opt);
- }
- EXPORT_SYMBOL_GPL(ip_set_del);
- 
-@@ -1311,9 +1288,7 @@ ip_set_flush_set(struct ip_set *set)
- {
- 	pr_debug("set: %s\n",  set->name);
- 
--	ip_set_lock(set);
- 	set->variant->flush(set);
--	ip_set_unlock(set);
- }
- 
- static int ip_set_flush(struct sk_buff *skb, const struct nfnl_info *info,
-@@ -1767,9 +1742,7 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- 			__ip_set_put_netlink(set);
- 		}
- 
--		ip_set_lock(set);
- 		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
--		ip_set_unlock(set);
- 		retried = true;
- 	} while (ret == -ERANGE ||
- 		 (ret == -EAGAIN &&
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 4efc93333aef..b6614ddb9e78 100644
+index b6614ddb9e78..973adb854082 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1313,7 +1313,6 @@ static const struct ip_set_type_variant mtype_variant = {
- 	.resize	= NULL,
- 	.same_set = mtype_same_set,
- 	.cancel_gc = mtype_cancel_gc,
--	.region_lock = true,
- };
- 
- #ifdef IP_SET_EMIT_CREATE
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index f070088742d6..738f14a73684 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -119,6 +119,7 @@ list_set_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	int ret = -EINVAL;
- 
- 	rcu_read_lock();
-+	spin_lock_bh(&set->lock);
- 	switch (adt) {
- 	case IPSET_TEST:
- 		ret = list_set_ktest(set, skb, par, opt, &ext);
-@@ -132,6 +133,7 @@ list_set_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	default:
- 		break;
- 	}
-+	spin_unlock_bh(&set->lock);
- 	rcu_read_unlock();
- 
- 	return ret;
-@@ -401,10 +403,13 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
- 		if (!e.before)
- 			e.before = -1;
- 	}
-+
-+	spin_lock_bh(&set->lock);
- 	if (adt != IPSET_TEST && SET_WITH_TIMEOUT(set))
- 		set_cleanup_entries(set);
- 
- 	ret = adtfn(set, &e, &ext, &ext, flags);
-+	spin_unlock_bh(&set->lock);
- 
- finish:
- 	if (e.refid != IPSET_INVALID_ID)
-@@ -421,9 +426,11 @@ list_set_flush(struct ip_set *set)
- 	struct list_set *map = set->data;
- 	struct set_elem *e, *n;
- 
-+	spin_lock_bh(&set->lock);
- 	list_for_each_entry_safe(e, n, &map->members, list)
- 		list_set_del(set, e);
- 	DEBUG_NET_WARN_ON_ONCE(set->elements > 0);
-+	spin_unlock_bh(&set->lock);
+@@ -278,10 +278,7 @@ static int mtype_rht_cmpfn(struct rhashtable_compare_arg *arg, const void *obj)
+ #ifdef IP_SET_HASH_WITH_MULTI
+ 	return !mtype_key_equal(&e->elem, (const struct mtype_elem *)arg->key);
+ #else
+-	u32 multi = 0;
+-
+-	return !mtype_data_equal(&e->elem,
+-				 (const struct mtype_elem *)arg->key, &multi);
++	return !mtype_data_equal(&e->elem, (const struct mtype_elem *)arg->key);
+ #endif
  }
  
- static void
+@@ -737,7 +734,6 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	{
+ 		struct rhlist_head *tmp, *list;
+ 		unsigned int seen = 0;
+-		u32 multi = 0;
+ 
+ 		list = rhltable_lookup(&h->rhlt, d, mtype_rht_params);
+ 		if (!list)
+@@ -749,8 +745,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 					ipset_hash_elem_destroy_free(set, old);
+ 				continue;
+ 			}
+-
+-			if (mtype_data_equal(&old->elem, d, &multi))
++			if (mtype_data_equal(&old->elem, d))
+ 				goto insert;
+ 			++seen;
+ 		}
+@@ -841,10 +836,9 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		if (list) {
+ 			const struct mtype_rht_elem *dup;
+ 			struct rhlist_head *tmp;
+-			u32 multi = 0;
+ 
+ 			rhl_for_each_entry_rcu(dup, tmp, list, node) {
+-				if (dup == e || !mtype_data_equal(&dup->elem, d, &multi))
++				if (dup == e || !mtype_data_equal(&dup->elem, d))
+ 					continue;
+ 
+ 				/* check for duplicate key insertion: unlikely,
+@@ -930,13 +924,12 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ #ifdef IP_SET_HASH_WITH_MULTI
+ 	{
+ 		struct rhlist_head *tmp, *list;
+-		u32 multi = 0;
+ 
+ 		list = rhltable_lookup(&h->rhlt, d, mtype_rht_params);
+ 		if (!list)
+ 			goto out_unlock;
+ 		rhl_for_each_entry_rcu(e, tmp, list, node) {
+-			if (!mtype_data_equal(&e->elem, d, &multi))
++			if (!mtype_data_equal(&e->elem, d))
+ 				continue;
+ 			if (SET_ELEM_EXPIRED(set, &e->elem))
+ 				goto out_unlock;
+@@ -995,8 +988,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ #else
+ 	int ret, j;
+ #endif
++	bool multi = false;
+ 	unsigned int seq0;
+-	u32 multi;
+ 
+ 	pr_debug("test by nets\n");
+ retry:
+@@ -1035,7 +1028,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 		rhl_for_each_entry_rcu(e, tmp, list, node) {
+ 			if (!SET_ELEM_EXPIRED(set, &e->elem))
+ 				multi = true;
+-			if (!mtype_data_equal(&e->elem, d, &multi))
++			if (!mtype_data_equal(&e->elem, d))
+ 				continue;
+ 			ret = mtype_data_match(&e->elem, ext, mext, set, flags);
+ 			if (ret)
+@@ -1100,14 +1093,13 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ #ifdef IP_SET_HASH_WITH_MULTI
+ 	{
+ 		struct rhlist_head *tmp, *list;
+-		u32 multi = 0;
+ 
+ 		list = rhltable_lookup(&h->rhlt, d, mtype_rht_params);
+ 		if (!list)
+ 			goto out;
+ 
+ 		rhl_for_each_entry_rcu(e, tmp, list, node) {
+-			if (!mtype_data_equal(&e->elem, d, &multi))
++			if (!mtype_data_equal(&e->elem, d))
+ 				continue;
+ 			ret = mtype_data_match(&e->elem, ext, mext, set, flags);
+ 			if (ret)
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index 9b82ec5d4037..44aac980b0b2 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -49,8 +49,7 @@ struct hash_ip4_elem {
+ 
+ static bool
+ hash_ip4_data_equal(const struct hash_ip4_elem *e1,
+-		    const struct hash_ip4_elem *e2,
+-		    u32 *multi)
++		    const struct hash_ip4_elem *e2)
+ {
+ 	return e1->ip == e2->ip;
+ }
+@@ -181,8 +180,7 @@ struct hash_ip6_elem {
+ 
+ static bool
+ hash_ip6_data_equal(const struct hash_ip6_elem *ip1,
+-		    const struct hash_ip6_elem *ip2,
+-		    u32 *multi)
++		    const struct hash_ip6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6);
+ }
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
+index dced4c5f3ca3..88f4931aadeb 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmac.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
+@@ -50,8 +50,7 @@ struct hash_ipmac4_elem {
+ 
+ static bool
+ hash_ipmac4_data_equal(const struct hash_ipmac4_elem *e1,
+-		       const struct hash_ipmac4_elem *e2,
+-		       u32 *multi)
++		       const struct hash_ipmac4_elem *e2)
+ {
+ 	return e1->ip == e2->ip && ether_addr_equal(e1->ether, e2->ether);
+ }
+@@ -150,8 +149,7 @@ struct hash_ipmac6_elem {
+ 
+ static bool
+ hash_ipmac6_data_equal(const struct hash_ipmac6_elem *e1,
+-		       const struct hash_ipmac6_elem *e2,
+-		       u32 *multi)
++		       const struct hash_ipmac6_elem *e2)
+ {
+ 	return ipv6_addr_equal(&e1->ip.in6, &e2->ip.in6) &&
+ 		ether_addr_equal(e1->ether, e2->ether);
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
+index 6196b0112cf9..88c8239ea3b8 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
+@@ -45,8 +45,7 @@ struct hash_ipmark4_elem {
+ 
+ static bool
+ hash_ipmark4_data_equal(const struct hash_ipmark4_elem *ip1,
+-			const struct hash_ipmark4_elem *ip2,
+-			u32 *multi)
++			const struct hash_ipmark4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->mark == ip2->mark;
+@@ -181,8 +180,7 @@ struct hash_ipmark6_elem {
+ 
+ static bool
+ hash_ipmark6_data_equal(const struct hash_ipmark6_elem *ip1,
+-			const struct hash_ipmark6_elem *ip2,
+-			u32 *multi)
++			const struct hash_ipmark6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ip1->mark == ip2->mark;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 7842ff4ad74f..f2f41700d59e 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -53,8 +53,7 @@ struct hash_ipport4_elem {
+ 
+ static bool
+ hash_ipport4_data_equal(const struct hash_ipport4_elem *ip1,
+-			const struct hash_ipport4_elem *ip2,
+-			u32 *multi)
++			const struct hash_ipport4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->port == ip2->port &&
+@@ -223,8 +222,7 @@ struct hash_ipport6_elem {
+ 
+ static bool
+ hash_ipport6_data_equal(const struct hash_ipport6_elem *ip1,
+-			const struct hash_ipport6_elem *ip2,
+-			u32 *multi)
++			const struct hash_ipport6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ip1->port == ip2->port &&
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index b1b24358c810..7e82bcd9aa42 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -49,8 +49,7 @@ struct hash_ipportip4_elem {
+ 
+ static bool
+ hash_ipportip4_data_equal(const struct hash_ipportip4_elem *ip1,
+-			  const struct hash_ipportip4_elem *ip2,
+-			  u32 *multi)
++			  const struct hash_ipportip4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->ip2 == ip2->ip2 &&
+@@ -220,8 +219,7 @@ struct hash_ipportip6_elem {
+ 
+ static bool
+ hash_ipportip6_data_equal(const struct hash_ipportip6_elem *ip1,
+-			  const struct hash_ipportip6_elem *ip2,
+-			  u32 *multi)
++			  const struct hash_ipportip6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ipv6_addr_equal(&ip1->ip2.in6, &ip2->ip2.in6) &&
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 58a47a0f89f0..01950dbff27d 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -62,8 +62,7 @@ struct hash_ipportnet4_elem {
+ 
+ static bool
+ hash_ipportnet4_data_equal(const struct hash_ipportnet4_elem *ip1,
+-			   const struct hash_ipportnet4_elem *ip2,
+-			   u32 *multi)
++			   const struct hash_ipportnet4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->ip2 == ip2->ip2 &&
+@@ -320,8 +319,7 @@ struct hash_ipportnet6_elem {
+ 
+ static bool
+ hash_ipportnet6_data_equal(const struct hash_ipportnet6_elem *ip1,
+-			   const struct hash_ipportnet6_elem *ip2,
+-			   u32 *multi)
++			   const struct hash_ipportnet6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ipv6_addr_equal(&ip1->ip2.in6, &ip2->ip2.in6) &&
+diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
+index 4c195db349f7..0e7b30faddee 100644
+--- a/net/netfilter/ipset/ip_set_hash_mac.c
++++ b/net/netfilter/ipset/ip_set_hash_mac.c
+@@ -40,8 +40,7 @@ struct hash_mac4_elem {
+ 
+ static bool
+ hash_mac4_data_equal(const struct hash_mac4_elem *e1,
+-		     const struct hash_mac4_elem *e2,
+-		     u32 *multi)
++		     const struct hash_mac4_elem *e2)
+ {
+ 	return ether_addr_equal(e1->ether, e2->ether);
+ }
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 157660674f1d..431f0ae56054 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -50,8 +50,7 @@ struct hash_net4_elem {
+ 
+ static bool
+ hash_net4_data_equal(const struct hash_net4_elem *ip1,
+-		     const struct hash_net4_elem *ip2,
+-		     u32 *multi)
++		     const struct hash_net4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->cidr == ip2->cidr;
+@@ -221,8 +220,7 @@ struct hash_net6_elem {
+ 
+ static bool
+ hash_net6_data_equal(const struct hash_net6_elem *ip1,
+-		     const struct hash_net6_elem *ip2,
+-		     u32 *multi)
++		     const struct hash_net6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ip1->cidr == ip2->cidr;
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 82b00337cfef..0869a62ef200 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -74,11 +74,9 @@ hash_netiface4_key_equal(const struct hash_netiface4_elem *ip1,
+ 
+ static bool
+ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
+-			  const struct hash_netiface4_elem *ip2,
+-			  u32 *multi)
++			  const struct hash_netiface4_elem *ip2)
+ {
+ 	return hash_netiface4_key_equal(ip1, ip2) &&
+-	       (++*multi) &&
+ 	       (ip1->wildcard ?
+ 		strncmp(ip1->iface, ip2->iface, strlen(ip1->iface)) == 0 :
+ 		strcmp(ip1->iface, ip2->iface) == 0);
+@@ -314,11 +312,9 @@ hash_netiface6_key_equal(const struct hash_netiface6_elem *ip1,
+ 
+ static bool
+ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
+-			  const struct hash_netiface6_elem *ip2,
+-			  u32 *multi)
++			  const struct hash_netiface6_elem *ip2)
+ {
+ 	return hash_netiface6_key_equal(ip1, ip2) &&
+-	       (++*multi) &&
+ 	       (ip1->wildcard ?
+ 		strncmp(ip1->iface, ip2->iface, strlen(ip1->iface)) == 0 :
+ 		strcmp(ip1->iface, ip2->iface) == 0);
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 4e77e40ebc2c..a6bd24e3b1ac 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -58,8 +58,7 @@ struct hash_netnet4_elem {
+ 
+ static bool
+ hash_netnet4_data_equal(const struct hash_netnet4_elem *ip1,
+-			const struct hash_netnet4_elem *ip2,
+-			u32 *multi)
++			const struct hash_netnet4_elem *ip2)
+ {
+ 	return ip1->ipcmp == ip2->ipcmp &&
+ 	       ip1->ccmp == ip2->ccmp;
+@@ -295,8 +294,7 @@ struct hash_netnet6_elem {
+ 
+ static bool
+ hash_netnet6_data_equal(const struct hash_netnet6_elem *ip1,
+-			const struct hash_netnet6_elem *ip2,
+-			u32 *multi)
++			const struct hash_netnet6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip[0].in6, &ip2->ip[0].in6) &&
+ 	       ipv6_addr_equal(&ip1->ip[1].in6, &ip2->ip[1].in6) &&
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index dfe8f995abbe..a301aff67c6d 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -60,8 +60,7 @@ struct hash_netport4_elem {
+ 
+ static bool
+ hash_netport4_data_equal(const struct hash_netport4_elem *ip1,
+-			 const struct hash_netport4_elem *ip2,
+-			 u32 *multi)
++			 const struct hash_netport4_elem *ip2)
+ {
+ 	return ip1->ip == ip2->ip &&
+ 	       ip1->port == ip2->port &&
+@@ -277,8 +276,7 @@ struct hash_netport6_elem {
+ 
+ static bool
+ hash_netport6_data_equal(const struct hash_netport6_elem *ip1,
+-			 const struct hash_netport6_elem *ip2,
+-			 u32 *multi)
++			 const struct hash_netport6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
+ 	       ip1->port == ip2->port &&
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 0dc79d37beac..8575a2c5e215 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -59,8 +59,7 @@ struct hash_netportnet4_elem {
+ 
+ static bool
+ hash_netportnet4_data_equal(const struct hash_netportnet4_elem *ip1,
+-			    const struct hash_netportnet4_elem *ip2,
+-			    u32 *multi)
++			    const struct hash_netportnet4_elem *ip2)
+ {
+ 	return ip1->ipcmp == ip2->ipcmp &&
+ 	       ip1->ccmp == ip2->ccmp &&
+@@ -352,8 +351,7 @@ struct hash_netportnet6_elem {
+ 
+ static bool
+ hash_netportnet6_data_equal(const struct hash_netportnet6_elem *ip1,
+-			    const struct hash_netportnet6_elem *ip2,
+-			    u32 *multi)
++			    const struct hash_netportnet6_elem *ip2)
+ {
+ 	return ipv6_addr_equal(&ip1->ip[0].in6, &ip2->ip[0].in6) &&
+ 	       ipv6_addr_equal(&ip1->ip[1].in6, &ip2->ip[1].in6) &&
 -- 
 2.55.0
 
