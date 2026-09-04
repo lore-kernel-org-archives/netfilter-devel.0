@@ -1,53 +1,53 @@
-Received: from mail-wr2-f10.google.com (mail-wr2-f10.google.com [74.125.225.74])
+Received: from mail-wr2-f9.google.com (mail-wr2-f9.google.com [74.125.225.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D853B840B
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 16:41:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 748E7503BEE
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 16:44:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788540108; cv=none; b=uE2sI/ajlNTcRsIJ1CM7flk5h9I3/wA+yd2LttVxOwPMUKZGFfipzcpAj6HYdznX9O0tsK+i1PUwYEM0Ae7NwoBrGhSAbTiPeB78FaCEASbc+9rczgT1BpnWM3wyFd1kVRkM2mvg3grFD3q4Ir/9V1MA8VN+eC9cFX6uWd4Js+Y=
+	t=1788540266; cv=none; b=sinXHJ89i2bN3vtCB2eIun/G/M59a5sODe+Ytw9qPmFc6/sEqomElpjBMMUQvZf1alIQsEgUgyuKOvUal0pd27KBA3Lcd6MCYkwYiVLMo7nRJNS/ic7oIBigf+GKMiXf9Q2M4WL5fbhLUPuB2mNQ/9KGFdl3wJg+JNngdUlPEOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788540108; c=relaxed/simple;
-	bh=W+1DwyqZ0vEIC8ZbwjnEAQ/i6kezzc44cJHGVgpIou4=;
+	s=arc-20240116; t=1788540266; c=relaxed/simple;
+	bh=+T8uCAV9OTwG6wpyBUuRwrNrLb3w9G4dozxeqmZKwYk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BR54Nq3wn/froS5jFC9WzwquCpH5pwSZbmgs5jUbhqUVYilBhP74Adj6YlLV0VcDP3XslapxVwKWL2Neka2CSYjoT6sRONkCEJFfBo/vQr3yOAvbQENPxA47NJxq+WIAFDhGrhcZly/FXHVPALNWtNRq1KJCnu2gPnDvzURLDuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.74
+	 In-Reply-To:Content-Type; b=DTj3IGVdfvmiJLb15My2JBjBXqIFl0gcd4jHPGvddqt7BuOnNDraaBuZJEs22wZSO9fXCgndqZIaXGLThKKNbn7wKjzyuxg5o0LBNvNpZvskM+psXVDdYsSriUYpyRseQamPFclzg+3qBtFJbMWyXdcA7lZKCBE3+ILGH08NGa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr2-f10.google.com with SMTP id ffacd0b85a97d-484373a2e82so452447f8f.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Sep 2026 09:41:46 -0700 (PDT)
+Received: by mail-wr2-f9.google.com with SMTP id ffacd0b85a97d-4843169420fso279743f8f.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Sep 2026 09:44:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788540104; x=1789144904;
+        d=1e100.net; s=20251104; t=1788540262; x=1789145062;
         h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=irPlhgKRfCP6rMpUfujetCdiJVbOXFe5xjl9vJMRqUQ=;
-        b=mq2AH23FxSNV/Q+P9Ejothd9Jy2WuZ1nSyFu5lvzGyA4eqRZROQl/Ufes725/Ko/Wi
-         VTaDFwJANfvSIdm7GfsJgtnURktCV30wnhLgz+5IBCILPttvB4S2NPS9kUDc5uLPbv51
-         DlyVsDjz8O+PlYQSamX6+83UUbiTCVsVknATMf+d72T5HavynPlT4WpZER8sW6p0vIp4
-         CgbTN2gr9oHL/qOLh86EiJWg1kf8IIebH2y8DJ1ebduSoFCqa4MESyicY6AXVJ0xnXfh
-         TR/p9zPGE38zEp2QBtWqUdTJRqmzm4xTPmZlI/uPziPp/WhhfTiebIOyYHGlqOzdB7Np
-         SibQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzLye11f4R0Os+3fus/Gbok95h47Aq4efvI1y2YdAMFJGicLUBBSM/Mg8qNevD4nFkz9WiImeMIKVAKdyCiDTc=@vger.kernel.org
-X-Gm-Message-State: AFuF++lQq0BaPgK6QJwbgZxALF41kRYwT8/yh1i/a9iHWE9MpF/FtTFs
-	WUzgXHpPFobhrhpOOLpEJpCQ/1fblYBPoMg2dgkykAXZLTh2zkz3OpMO
-X-Gm-Gg: AYBFou1hz3QfWoTNidSp8UUw1LXUzmA3KR8qI5OjvWKpbOmEqzcWOTn7a4yVigfAxgf
-	jZAqfzVNb5S/BwyiNX8NGjMx81DUdCtj6D61IebXqVPK1Gj9J5NMAL3RfZjDjZCeboQHKzhyX/k
-	HnxNzq2Zpw6nivYX/xRFqGUas9tb29dZa01+WGX+O9zXu3elsCEUXZRlGiufH3y+zK6i+RBEyIM
-	7V0xuHFNM8lbaKFbYjEflOPIs4Um0/z101Aq8qSlaiNMhp7tQ20kOaVqBCpLGzz0axy/99T9w0O
-	u9wY0PP2X3dXOX5Zqb5ZZXhlA4DjBhxKYHanz0OW33Ac1vC8qPiYevnol03J3vRruMiGIgqDA2e
-	x34STNDk1gB7/KqMrFDpOz6wUwqppF6enlnN2NKawwaNSyGHXwnTv6VWnOSjrgSrr+RnXzp5t8C
-	wJWeRad/qN+VwcCnCvvGxrYq+79g3WDq9vAEbgwHeG/DJ1QkQlWDjMqzEZEWX2xr02GE+VO8deL
-	SY0P3+xW9flYCrGeBqZ3/X+
-X-Received: by 2002:a05:6000:605:b0:485:8b66:f5 with SMTP id ffacd0b85a97d-4858b660161mr10077690f8f.18.1788540104208;
-        Fri, 04 Sep 2026 09:41:44 -0700 (PDT)
+        bh=MkwLEvNPno1uKGbPkCGLW8m9xq+mdFjkf26jMfmqkHM=;
+        b=McF3XaqXM3JKFs4BaCWef1at+jlWSjBuYg4/V7kk1Ka+ZpLHOEkNy7MJSQ6VET4Hec
+         da2OGwNyKUEtFavdKyzAUyhnGGYno5MObIABUAhGb8oJJ6M3AsD0J43C6SUj2UFVK69K
+         3z9Q07GlFU2xfpqBvi8kL350agCJpMb1reqq1GULdZVg/OIpyHOaLrtRB9Cv0mzqyP0B
+         S3bJrSxH+W9VRzw+AvWnMVL7jE5U74+ENAcSfhSEigMnZLVRS8Z+vBihz73lTh5HIIxN
+         RGUovdeMbvO4dywHGO4SHqL/BTOfKmVbMLiGxeow9GpdXS4qMBT8mNUJIiBYfCy2MxR1
+         ppNg==
+X-Forwarded-Encrypted: i=1; AKwUvBx9oMxVJfrMWpQLVYcKp8FdeMIAO8D2052SX6GFKCLPm8JxjMqxX1ONcK5EAm/DVxdlGYcLTqfrkCFEEtYNr54=@vger.kernel.org
+X-Gm-Message-State: AFuF++lr/svU6fw35TPBwD67CdlPGAPA39SIQ9oe1jtqZNltE4BtShN2
+	y6+HIzahE3vozi4UdxX7SD9OkAAblazxdWesyGnHtfFrWC1y0Lv/3H5Hs3U/YNOC
+X-Gm-Gg: AYBFou2HtBTJY8FBRyf7Y8P1cNl3XvXgk3MJ68LTTjLFvIKFGDFN9hxqWohYo7GPVL/
+	2bfCPG7i9h0pVRPoOTUoQliK4041qDVPDq/O3RjlfZeVo2P4DdkwCuhQKq5ezUWrVp8iQY9Nstm
+	S5szIJFPqhL5WPB0KSEP3OOkmuQCo+PlnGs0IxhX3SB9R/MRTHik/J0vrSSCF9s+cip6Pyd9h3v
+	WbfAR5ngFRbox8GjtXyvdvtr31tlkT34a/1DhLDoXz7fbIN+kVKU+VG6VBCErBbNsfeSH9Bio4Q
+	TpRNDYqb4Mb7X2D8Srs5UuQMyvNWA/Jg8YEZjHd7T+8owP5lRU6F92fvdi+SjuYzBTlVo12oTav
+	7qE6VO2wgyis9NqRmA9JUcn/C16NU3o1FHrdm+KKTbm2JvRdyPmiRe8at5JRmX+sEOSLl1d4xut
+	qtCH0pdy1Uku3kgyijgD97mIISsXhT1gI52N5kb4B+Ld5KmuIzVknH3j99irFMyDPpTcpoLFEzQ
+	IFvJuiARxWNbw==
+X-Received: by 2002:a05:600c:34d0:b0:49c:fc6e:a3d3 with SMTP id 5b1f17b1804b1-49cfc6ea71amr44437245e9.18.1788540262467;
+        Fri, 04 Sep 2026 09:44:22 -0700 (PDT)
 Received: from [192.168.88.241] (37-48-53-4.nat.epc.tmcz.cz. [37.48.53.4])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48588394fa1sm7491043f8f.8.2026.09.04.09.41.42
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49cfd3f8192sm42737055e9.3.2026.09.04.09.44.21
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 04 Sep 2026 09:41:43 -0700 (PDT)
-Message-ID: <5d871ca2-1db4-47b8-bd48-34b3fa42961e@ovn.org>
-Date: Fri, 4 Sep 2026 18:41:42 +0200
+        Fri, 04 Sep 2026 09:44:22 -0700 (PDT)
+Message-ID: <4c350065-7efa-4301-b287-95c1c554d427@ovn.org>
+Date: Fri, 4 Sep 2026 18:44:20 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -55,7 +55,8 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 1/2] selftests: netfilter: use KHDR_INCLUDES in CFLAGS
+Subject: Re: [PATCH net 2/2] selftests: forwarding: use KHDR_INCLUDES in
+ CFLAGS
 To: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>,
  Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
  Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
@@ -67,7 +68,7 @@ Cc: Ilya Maximets <i.maximets@ovn.org>, netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org, netdev@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
 References: <20260904-net-sft-nf-khdr_includes-v1-0-92455af428e9@kernel.org>
- <20260904-net-sft-nf-khdr_includes-v1-1-92455af428e9@kernel.org>
+ <20260904-net-sft-nf-khdr_includes-v1-2-92455af428e9@kernel.org>
 Content-Language: en-US
 From: Ilya Maximets <i.maximets@ovn.org>
 Autocrypt: addr=i.maximets@ovn.org; keydata=
@@ -113,7 +114,7 @@ Autocrypt: addr=i.maximets@ovn.org; keydata=
  yWOKeCw9bCZX4a/uFw77TZMEq3upjeq21oi6NMTwvvWWMYuEKNi0340yZRrBdcDhbXkl9x/o
  skB2IbnvSB8iikbPng1ihCTXpA2yxioUQ96Akb+WEGopPWzlxTTK+T03G2ljOtspjZXKuywV
  Wu/eHyqHMyTu8UVcMRR44ki8wam0LMs+fH4dRxw5ck69AkV+JsYQVfI7tdOu7+r465LUfg==
-In-Reply-To: <20260904-net-sft-nf-khdr_includes-v1-1-92455af428e9@kernel.org>
+In-Reply-To: <20260904-net-sft-nf-khdr_includes-v1-2-92455af428e9@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
@@ -129,34 +130,25 @@ On 9/4/26 6:13 PM, Matthieu Baerts (NGI0) wrote:
 > 
 > Other net targets have KHDR_INCLUDES added to their CFLAGS.
 > 
-> Fixes: 3f189349e52a ("selftests: netfilter: move to net subdir")
-
-I think, this should point to a commit that added the first C test:
-
-Fixes: a64d558d8cf9 ("selftests: netfilter: add nfqueue test case")
-
+> Fixes: 05068eaa67b2 ("selftest: net: Add basic functionality tests for ipmr.")
 > Link: https://docs.kernel.org/dev-tools/kselftest.html#contributing-new-tests-details
 > Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
 > ---
->  tools/testing/selftests/net/netfilter/Makefile | 2 ++
+>  tools/testing/selftests/net/forwarding/Makefile | 2 ++
 >  1 file changed, 2 insertions(+)
 > 
-> diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-> index f88dd4ef8d26..df3c20c90f5d 100644
-> --- a/tools/testing/selftests/net/netfilter/Makefile
-> +++ b/tools/testing/selftests/net/netfilter/Makefile
-> @@ -2,6 +2,8 @@
->  
->  top_srcdir = ../../../../..
+> diff --git a/tools/testing/selftests/net/forwarding/Makefile b/tools/testing/selftests/net/forwarding/Makefile
+> index bbaf4d937dd8..1bdfd141c0fb 100644
+> --- a/tools/testing/selftests/net/forwarding/Makefile
+> +++ b/tools/testing/selftests/net/forwarding/Makefile
+> @@ -1,5 +1,7 @@
+>  # SPDX-License-Identifier: GPL-2.0+ OR MIT
 >  
 > +CFLAGS += $(KHDR_INCLUDES)
 > +
->  HOSTPKG_CONFIG := pkg-config
->  MNL_CFLAGS := $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
->  MNL_LDLIBS := $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
+>  TEST_PROGS := \
+>  	bridge_activity_notify.sh \
+>  	bridge_fdb_learning_limit.sh \
 > 
-
-This solves my problem with building netfilter tests locally with uAPI
-modifications.  Beside the Fixes tag, LGTM.
 
 Reviewed-by: Ilya Maximets <i.maximets@ovn.org>
