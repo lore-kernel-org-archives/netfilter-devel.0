@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1431F37E5D6;
-	Fri,  4 Sep 2026 02:01:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABAA1377550;
+	Fri,  4 Sep 2026 02:01:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788487311; cv=none; b=XW5coaOBQxPUFAYG78imXkxCb0UCc46u1qpfZsyxeqSBdxxWCRsaz7VkH0qGNSCckJUstXEXCVLWwclEqK3c6TdhN6mo4SjOtkHpKhTtNyQKcCmmAQ1rDGLi1Ov0BbMWQzHYKtVe+zNIuKJCwO32HPqtS7uO0p8kGdMO8L0UD4w=
+	t=1788487317; cv=none; b=aql6nenZx1cLfR1yPL2gxy5CUa+827zoxm1HFkn+WOI3SxcSmmP27+WTDmkORqw0A4ip7BJCpJpYvBdVhDlnRPZsf+0woegbygQJBLXkWYgGeILSVmLx8IAF9WsxBumwjJKiYWXbb/50kTjQr7l8BM6N5MlaYmDAwwERZEwWmCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788487311; c=relaxed/simple;
-	bh=Pnqi3vdJlLfP+DBJKG+BCY+PHnGPcPuSaJ51aaVp0Lo=;
+	s=arc-20240116; t=1788487317; c=relaxed/simple;
+	bh=+nibOcGODcN0zKOlivj33cq2XgQew6fQgDTGQvTiMuc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ldJueXdda+8CySfnDQSiSozqlaYIA3TR3FUraeDcEjl/CttwbF93vq3FYyr+N777+VOO8hm5BDFNFwze4vou9ETfSCOs/GmkCjQftFkWQSKYSXmCceUs5eiO2QfwPHiL2EmjlRRRLumZ3Domwkp38PYc/sES7csmtHJiX6kecFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mnMH79aC; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=ueqnXG3mKTqlPHM9j2dqhvM7uiUyEprZ+RDZt8MSGdhZjG4cfhAoels+gZP7tBd44dI+x8YQVVJl87DNk7uyJ65Y9iJMAUIgXPneC4ZsENTvGVEVMWI8NM6dT1eN0caDDtRnivQHDJwqTuWcwGTk6nOBE2APuy+eySyexfxpniw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c0tSiANP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mnMH79aC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772CB1F00A3D;
-	Fri,  4 Sep 2026 02:01:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c0tSiANP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F5541F000E9;
+	Fri,  4 Sep 2026 02:01:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788487309;
-	bh=claOqgXATEZ54h/TRFqscxDfWqA4miXj+3iH9Qamd3Y=;
+	s=k20260515; t=1788487314;
+	bh=t8PQ61q8kKSnvaTKEuI+RYzHNnqTXi8DAxuZw98HUAk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=mnMH79aCf3ZQ/V+bnCFkXBkMQSAPTbJ1KecAZwtn5L6brKnD9zfepyFsFoHGXKFdB
-	 hAorqVOyFdOscce8a0sUbsumlas6qIIGucJkYBAajc6wjnCj6N5DX3KdkMKIJ7TaUg
-	 1sWMM/hD7+yR+lKIAkI9gxKx3eVfQ/DKHOEEGyhfGGLTmoW8MLHyJzVmXT1I1LbxRI
-	 /xjD+FlfCWs25yfBVhY0oVapcKbfRc2NDskjzC82IUN6PV+7jCgalVnC3mZmnmn/S6
-	 tyWWA3v4tMCXSDdd81KQbnyI3tkOGhGNj59sCyfVn3PzKjJ3VdSFj92FIceImeMR5c
-	 U1i9gmjWvnlkw==
+	b=c0tSiANPOa7d2t+1xBTqZHs4n1+1pkIXQf0hDV5ayOTdeuJh5hn4ych6+YBpvBxtI
+	 gXnPSvgvE0B7vgO8KItuzFSS0xe6Uak9/SPOL3Ps2HGApuV3Quh9maM6FBzN+e1kDg
+	 1MQf9zsatfVvhdANuVTj6uHlgGPDlq3bZkHxZc8TRNXt77pfn5LlQL0nUHAZIWnqrJ
+	 JjMYT/RjXuafd2CZkwMcTq+0QMDiDbUM1isNdZGmKriVyhel68/BAGfPuOZqdhS4my
+	 WXW9KF+a+VUd5H3m8tVWnfVwWpnpg89XuuKfPG+9cconf1xXVgMW+ATAc8PfGc5vOz
+	 OHZfAGpv/jrdw==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net 07/12] netfilter: nft_payload: restrict checksum offsets to known values
-Date: Thu,  3 Sep 2026 19:01:48 -0700
-Message-ID: <20260904020148.3549914-1-kuba@kernel.org>
+Subject: Re: [PATCH net 09/12] netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
+Date: Thu,  3 Sep 2026 19:01:49 -0700
+Message-ID: <20260904020149.3549947-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260903004149.1037028-8-pablo@netfilter.org>
-References: <20260903004149.1037028-8-pablo@netfilter.org>
+In-Reply-To: <20260903004149.1037028-10-pablo@netfilter.org>
+References: <20260903004149.1037028-10-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,126 +54,115 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: nft_payload: restrict checksum offsets to known values
+netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
 
-This restricts the NFT_PAYLOAD_CSUM_INET checksum offset for transport
-header writes, both at rule load time in
-nft_payload_validate_inet_csum_offset() and at packet time via the new
-nft_payload_csum_th_write_ok() helper.  Previously the transport header
-case accepted any csum_offset.
+The NETLINK_URELEASE notifier now takes the NFNL_SUBSYS_QUEUE mutex around
+the instance teardown loop, so it can no longer run concurrently with
+nfqnl_recv_config().  The comment in nfqnl_recv_config() is updated to
+explain that the notifier blocks on the subsystem mutex held by the caller.
 
-> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-> index e315d35f73d4..70f70a65e327 100644
-> --- a/net/netfilter/nft_payload.c
-> +++ b/net/netfilter/nft_payload.c
-> @@ -1008,11 +1008,13 @@ static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
->  		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
->  			return false;
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index c727668b0c5b..a3bc00280051 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -1593,6 +1593,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+>  	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
+>  		int i;
 >  
-> -		/* no further check here; offset can't be negative so bogus
-> -		 * offsets can corrupt L4 or payload but not l3 headers.
-> -		 * We already allow arbitrary l4/inner payload writes.
-> -		 */
-> -		return true;
-> +		/* Validate csum_offset is one of the supported transport header checksums */
-> +		if (priv->csum_offset == offsetof(struct tcphdr, check) ||
-> +		    priv->csum_offset == offsetof(struct udphdr, check) ||
-> +		    priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum))
-> +			return true;
-> +
-> +		return false;
->  	case NFT_PAYLOAD_INNER_HEADER:
->  		return true;
->  	case NFT_PAYLOAD_TUN_HEADER:
-> @@ -1046,6 +1048,25 @@ static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
->  	return false;
->  }
->  
-> +static bool nft_payload_csum_th_write_ok(const struct nft_payload_set *priv,
-> +					 const struct nft_pktinfo *pkt)
-> +{
-> +	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
-> +		return false;
-> +
-> +	switch (pkt->tprot) {
-> +	case IPPROTO_TCP:
-> +		return priv->csum_offset == offsetof(struct tcphdr, check);
-> +	case IPPROTO_UDP:
-> +	case IPPROTO_UDPLITE:
-> +		return priv->csum_offset == offsetof(struct udphdr, check);
-> +	case IPPROTO_ICMPV6:
-> +		return priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum);
-> +	}
-> +
-> +	return false;
-> +}
+> +		nfnl_lock(NFNL_SUBSYS_QUEUE);
+>  		/* destroy all instances for this portid */
+>  		spin_lock(&q->instances_lock);
+>  		for (i = 0; i < INSTANCE_BUCKETS; i++) {
 
-[Severity: High]
-Should nft_payload_csum_th_write_ok() also handle IPPROTO_ICMP?  There is
-no arm for it, and neither IPPROTO_ICMP nor struct icmphdr appear anywhere
-in nft_payload.c (linux/icmp.h is not included), so pkt->tprot ==
-IPPROTO_ICMP falls out of the switch and returns false.
+[Severity: Medium]
+The new mutex gives mutual exclusion, but does it give any ordering
+against the socket unhash?  In netlink_release() the socket is removed
+from the hash table before the notifier chain is invoked:
 
-At the same time the load time check above accepts csum_offset == 2,
-because the two checksum fields sit at the same offset:
-
-include/uapi/linux/icmp.h:
-struct icmphdr {
-  __u8		type;
-  __u8		code;
-  __sum16	checksum;
-  ...
-
-So a rule such as:
-
-    nft add rule ip filter output icmp id set 1
-
-still loads without error, but at packet time the checksum fixup is
-skipped.  In nft_payload_set_eval() the helper is only the middle operand
-of an && chain, so a false return does not reach the err label:
-
-	if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
-	    nft_payload_csum_write_ok(pkt, priv) &&
-	    nft_payload_csum_inet(skb, src, fsum, tsum, csum_offset))
-		goto err;
+net/netlink/af_netlink.c:netlink_release() {
 	...
-	if (skb_ensure_writable(skb, max(offset + priv->len, 0)) ||
-	    skb_store_bits(skb, offset, src, priv->len) < 0)
-		goto err;
+	netlink_remove(sk);
+	sock_orphan(sk);
+	...
+	if (nlk->portid && nlk->bound) {
+		struct netlink_notify n = {
+			...
+			.portid = nlk->portid,
+		};
+		blocking_notifier_call_chain(&netlink_chain,
+					     NETLINK_URELEASE, &n);
+	}
+}
 
-Does this mean the ICMPv4 header bytes are still rewritten by
-skb_store_bits() while the old checksum is left in place, so such packets
-go out with a stale checksum?  Before this patch the
-NFT_PAYLOAD_TRANSPORT_HEADER case of nft_payload_csum_write_ok() returned
-true unconditionally, so previously working ICMPv4 mangling rules would
-change behaviour here.
+Once netlink_remove(sk) has run, the portid is free for anyone else to
+claim:
 
-The accepted protocol list looks like the one in
-nft_payload_l4csum_offset(), which serves the csum_flags pseudo-header
-path and therefore has a reason to omit ICMPv4.  Is that the right list to
-reuse for the NFT_PAYLOAD_CSUM_INET path?
+net/netlink/af_netlink.c:netlink_bind() {
+	...
+	err = nladdr->nl_pid ?
+		netlink_insert(sk, nladdr->nl_pid) :
+		netlink_autobind(sock);
+}
 
-Two things that may be worth considering: adding
+So the sequence below looks possible:
 
-	case IPPROTO_ICMP:
-		return priv->csum_offset == offsetof(struct icmphdr, checksum);
+  thread A: close() -> netlink_remove(sk) unhashes portid P
+  thread B: bind(P) succeeds
+  thread B: NFQNL_MSG_CONFIG / NFQNL_CFG_CMD_BIND
+            -> instance_create(q, queue_num, NETLINK_CB(skb).portid)
+               stamps inst->peer_portid = P
+  thread A: blocking_notifier_call_chain(NETLINK_URELEASE) finally runs
 
-to nft_payload_csum_th_write_ok(), and making the run time refusal set
-NFT_BREAK rather than silently skipping the checksum update, so load time
-and run time agree.
+Since the loop here keys ownership only on the numeric portid:
 
-> @@ -1055,9 +1076,10 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
->  	case NFT_PAYLOAD_NETWORK_HEADER:
->  		return nft_payload_csum_nh_write_ok(priv, pkt);
->  	case NFT_PAYLOAD_TRANSPORT_HEADER:
-> +		return nft_payload_csum_th_write_ok(priv, pkt);
->  	case NFT_PAYLOAD_INNER_HEADER:
-> -		/* neither offsets are validated, offsets cannot be
-> -		 * negative so real l3 headers cannot be mangled.
-> +		/* offset is not validated, offset cannot be
-> +		 * negative so real l3/l4 headers cannot be mangled.
->  		 */
->  		return true;
->  	case NFT_PAYLOAD_TUN_HEADER:
+	hlist_for_each_entry_safe(inst, t2, head, hlist) {
+		if (n->portid == inst->peer_portid)
+			__instance_destroy(inst);
+	}
 
-[ ... ]
+does thread A's notifier then destroy the instance that thread B just
+created?  __instance_destroy() does hlist_del_rcu() plus
+queue_rcu_work(), and instance_destroy_work() -> nfqnl_flush() drops all
+queued packets, after which thread B's NFQNL_MSG_VERDICT calls fail with
+-ENODEV from verdict_instance_lookup(), leaving the NFQUEUE rule to drop
+or bypass traffic depending on the queue-bypass setting.
+
+The portid-based ownership test itself predates this patch, but does the
+new mutex widen the window rather than narrow it?  Before, the notifier
+only contended on q->instances_lock and could easily win the race and
+find nothing to destroy.  Now, if the notifier arrives at any point while
+the re-binding socket is inside nfqnl_recv_config() holding the QUEUE
+mutex (which sleeps in kzalloc_obj(GFP_KERNEL_ACCOUNT) and
+rhashtable_init()), the notifier is parked until that CONFIG operation
+completes, so it is guaranteed to run after the new instance is linked
+and will match it.
+
+Would keying ownership on the socket identity, or refcounting instances
+as the commit message notes is currently missing, avoid this rather than
+relying on the subsystem mutex?
+
+> @@ -1606,6 +1607,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+>  			}
+>  		}
+>  		spin_unlock(&q->instances_lock);
+> +		nfnl_unlock(NFNL_SUBSYS_QUEUE);
+>  	}
+>  	return NOTIFY_DONE;
+>  }
+> @@ -1925,9 +1927,9 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+>  
+>  	/* Lookup queue under RCU. After peer_portid check (or for new queue
+>  	 * in BIND case), the queue is owned by the socket sending this message.
+> -	 * A socket cannot simultaneously send a message and close, so while
+> -	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
+> -	 * socket close) cannot destroy this queue. Safe to use without RCU.
+> +	 * nfqnl_rcv_nl_event() will block on the nfnl subsys mutex that is
+> +	 * held by the caller, so the queue cannot be destroyed in parallel,
+> +	 * even after we drop the RCU read lock.
+>  	 */
+>  	rcu_read_lock();
+>  	queue = instance_lookup(q, queue_num);
+
+This finding was flagged as requiring validation, so please double check
+whether the portid reuse window described above is reachable in practice
+on your side.
