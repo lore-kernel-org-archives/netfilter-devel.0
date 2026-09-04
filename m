@@ -1,464 +1,263 @@
-Received: from mail-wr2-f11.google.com (mail-wr2-f11.google.com [74.125.225.75])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B6533E92BD
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Sep 2026 17:44:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F37419CC0F;
+	Fri,  4 Sep 2026 17:45:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788543902; cv=none; b=thTMI8iMvzE3W0k5OtwpCawrEZSaqfulzf7ceIA4QU0LJlqgMlc1kKHr2NX5ZwhaL81lX85SQcAuAVvJOT+wyJxF2B7zpXOeb7jaSRH1fdG2sMYkzpN3xUV18VD5sUbfFsS7rFK3Z/9ZolBZ4GUrvJuVfGNRmyqJGxCqhq9mwx4=
+	t=1788543963; cv=none; b=FtfIgNPdCpF9g2wG3w6wnMRD8M3Vrc2CiDpo6W6jK3AsOaGga3CviFJQX7xclctyggjJtFtpfc+A0zgkDStdBFtk+pS0cQGlGeQfpJp+GWX3ikHer+iI/rZ6DUD5C0zSnjd6rTC3yBWhp8J074JRmIRkBoT45eRaFurBRvvavvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788543902; c=relaxed/simple;
-	bh=QxoyOPmnBP+2vXmnQmmz4vCdiQx0RF4yUXLxKepKWhI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Vf+M/S3zWmvRTNqgLlou1hri5g7Z49nStZIld4eiqzdsZO7lz4RXSCXandhyRNprC4RvVtAKu3MN5TQOY/yiiWX4hyR+F5F8FQ3DJ2rMRshJUIuO590tiw6vg/pn/dIs74B+7hCIQd+vGTVAarreDLOZVP8njza0J0KWuSzGTsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.75
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr2-f11.google.com with SMTP id ffacd0b85a97d-483960225ccso379484f8f.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Sep 2026 10:44:59 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788543898; x=1789148698;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=A4kzJ/kne5IQ47RkaKkc8cz1uyvHKgyGYe6SvCcVy1s=;
-        b=bin2oWwIDArYbdOQcRGvMXpuarNgMxY5Nbvczfmfdjtz9uA/w9XATv8bwvE6SQYYnh
-         K0eDyZzn5CJGzdi9jqWZx0pyTlhM4U08ijTrja953BiXfq9W65IyJiy17tdEUw2TGSeU
-         ibYA9rSa98VUd4LGkMFPKJTJ851LlV5owCYgzcmJLUHYi/B549+r7qIxSHHa8x6QuDYY
-         FLfX6r09oQd8MT6WZnQW4439KEU2EWNJLQ5k0r4cnSJ56tJg77yo+PDUFvfZmwMq4PV5
-         CPbuJNi9EOJFgV2RwmJz7Qw6v+m1xqldSoKdV3aJ5avxoirmpqkuPVHecE3CHCkK85kD
-         NpPg==
-X-Gm-Message-State: AFuF++lNC0vwxkauEwJY+9V5OgM4UO+xbAQjEkiDZjFRCECKxn67eB09
-	YZ7tDeFqZFotlHoa5YqCPC6Qn1HJNjxwpIGjxar8Lq8DVvq2pCb7xcC3zey52YjL
-X-Gm-Gg: AYBFou0WiC1tXfuuMQDaflHtSurZGYepcbMIEWY/ptT0EJiC6Y2EJZXknuKTUfAzgyM
-	A9jFK+lftlpO86K6GKTz9ocVnWstcrkqthCb/wtGXzRxIkP66xuV4bxJQ9vdMPL+FLVHu6uelpU
-	0Id8bm9VzZRJL6gjGnkcgyAeYiAGEPLKTQejWzJSKI0txlVk8wxHpi5Bo6LJumIXpBouTrdo0cR
-	wfc+lHRqUErZKS7jmAhD5Uz8W0yOsuaejgT0VLCfHZyZ7lix0eiwVTsH9owVRro/4Y3k4YZSmGR
-	OCTwDiUVmvMtw4jrrw/AdS+vDuI2gwXciMRyffcR3H2sNmQpHoW4mr1SPP2pbo5ajENYppQuMB+
-	3cRzBscGlPqBmGOa0mmICS0S+Sz+8t+cDA2ba1g173kEF0To8oKqlYKxIb194MCDE8XGoGuG1gd
-	OaYoinkOhEehtSwtO5QUlS7Ql4tEDi7pp7ZL0x4WMKywmWJtTiWG9BkJOUgrwJ8Dn5FVxu/VWZM
-	/IBxDRFk+p8spY1pkU=
-X-Received: by 2002:a05:600c:3e0a:b0:495:6e68:5df2 with SMTP id 5b1f17b1804b1-49cf8267a36mr91107025e9.12.1788543897684;
-        Fri, 04 Sep 2026 10:44:57 -0700 (PDT)
-Received: from im-t490s.redhat.corp (37-48-53-4.nat.epc.tmcz.cz. [37.48.53.4])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49cfd3f815bsm36889475e9.4.2026.09.04.10.44.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2026 10:44:56 -0700 (PDT)
-From: Ilya Maximets <i.maximets@ovn.org>
-To: netfilter-devel@vger.kernel.org
-Cc: netdev@vger.kernel.org,
-	Donald Hunter <donald.hunter@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>,
-	=?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>,
-	"Matthieu Baerts (NGI0)" <matttbe@kernel.org>,
-	"Remy D. Farley" <one-d-wide@protonmail.com>,
-	linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	Ilya Maximets <i.maximets@ovn.org>
-Subject: [PATCH nf-next] netfilter: conntrack: make filtering by zone discoverable
-Date: Fri,  4 Sep 2026 19:44:45 +0200
-Message-ID: <20260904174452.1913072-1-i.maximets@ovn.org>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1788543963; c=relaxed/simple;
+	bh=IpIcXmZ5y3zAPIXH0ITLn7oZOKruZHk0aeMQju5DuzE=;
+	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Message-ID:Content-Type; b=liIdabv0fHEGSagt+zcALKdoTP26oHgIOD+yqxoMV7dNVVb3KwbEV6Ywr8evNoX6eIuomRnWopowKTrGrmXBu8RkX1G+M2rWr2yLizCR4SIdjktIBMudrSrLPBRVezbkyLnDV1fkMrUqbPHza16Zf5U9GoxxvFZaCM0BM7RSq/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=pMU/YCpY; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="pMU/YCpY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
+	:From:Date:MIME-Version:From:Reply-To;
+	bh=3kJ7V4qqJDGktsGa6HvFkInxay1XxXTxaazUjY3g2Hg=; b=pMU/YCpYNVsT4y/cw1wUdM7zig
+	6FGELePr69ke+QNUk1G581g+plUqC63/ulntoNIxp4pmbIVxfOia9PckTHSRm7xpUciNq57SZzqVN
+	cbsILUiD8lzSdwcwFXmRLM5CfmP+hPRfm6lYmxFlKNBEyu4prtcCynH9vE1ksDe8NHMM4ChUZakqb
+	g9JR+994Oc+oJQ4Q0AJSntCNDkHoysIvAdma6HpwZmNS1nvN6HQ7sdhdssRvg1w9t7SZEOTJlyvat
+	sUbSdbal24ShKj5UheutEWEXP6HsQ9h5DXMVF9LQie/eE7V27D08mGmnS+RWfYNHD9zmSk/JT0i/e
+	OBepHvZQ==;
+Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
+	by fanzine2.igalia.com with esmtps 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1x2Xyg-00Ezrc-2e; Fri, 04 Sep 2026 19:45:26 +0200
+Received: from webmail.service.igalia.com ([192.168.21.45])
+	by mail.igalia.com with esmtp (Exim)
+	id 1x2Xye-001h2m-Ee; Fri, 04 Sep 2026 19:45:25 +0200
+Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
+	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
+	(envelope-from <mfo@igalia.com>)
+	id 1x2Xye-00000006G3f-1esz;
+	Fri, 04 Sep 2026 19:45:24 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Date: Fri, 04 Sep 2026 14:45:23 -0300
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+To: Joel Granados <joel.granados@kernel.org>
+Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>,
+ Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
+ Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ kernel-dev@igalia.com, linux-riscv@lists.infradead.org,
+ linux-kernel@vger.kernel.org, fsverity@lists.linux.dev,
+ keyrings@vger.kernel.org, bpf@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
+ virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
+In-Reply-To: <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
+ <53155340c897560bfc67e61ba9568fd6@igalia.com>
+ <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
+Message-ID: <b1a6cec17e7c828fcebe310ca2a0d25b@igalia.com>
+X-Sender: mfo@igalia.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005
+X-Spam-Score: -20
+X-Spam-Bar: --
 
-Conntrack flush supports filtering by zone using CTA_ZONE, but this
-attribute is really hard to use from user space applications.  The
-reason is that it is not possible to tell if it's supported or not.
+On 2026-09-04 10:41, Joel Granados wrote:
+> On Thu, Aug 20, 2026 at 06:22:13PM -0300, Mauricio Faria de Oliveira wrote:
+>> On 2026-08-20 09:51, Joel Granados wrote:
+>> > On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Oliveira wrote:
+>> >> This series adds 'sysctl:' aliases to modules that register sysctl tables; e.g.:
+>> >> 
+>> >>         $ modinfo ./mpls_router.ko  | grep sysctl:
+>> >>         alias:          sysctl:*/net/mpls/conf/*/input
+>> >>         alias:          sysctl:*/net/mpls/default_ttl
+>> >>         alias:          sysctl:*/net/mpls/ip_ttl_propagate
+>> >>         alias:          sysctl:*/net/mpls/platform_labels
+>> >> 
+>> >> It provides a trivial way to map /proc/sys files to modules (not trivial today),
+>> >> and for userspace to handle nonexistent /proc/sys files (e.g., procps's sysctl
+>> >> and systemd-sysctl applying tunables) with "modprobe sysctl:<...>" and a retry.
+>> >> 
+>> >> This is done almost automatically with register_sysctl(), register_net_sysctl()
+>> >> and friends as wrappers of MODULE_SYSCTL_TABLE (similar to MODULE_DEVICE_TABLE),
+>> >> which emits symbols for file2alias/modpost to find and parse the sysctl tables.
+>> >> 
+>> >> The big exception to 'almost' are sysctl tables and paths allocated or defined
+>> >> at runtime (e.g., per-namespace or per-device), as all information is required
+>> >> at build-time. Fortunately, such tables and paths are often based on 'templates'
+>> >> which are static and can be used.
+>> >> 
+>> >> This is done by plumbing the template table/path as optional arguments (macros
+>> >> with default values as default_gfp()), so not to create functions for all cases:
+>> >> 
+>> >>         register_sysctl(path, table [, table_tmpl [, path_tmpl]]);
+>> >>         register_net_sysctl(net, path, table [, table_tmpl[, path_tmpl]]);
+>> >>         register_net_sysctl_sz(net, path, table, size [, table_tmpl[, path_tmpl]]);
+>> > 
+>> > The "what" is described but I'm missing more clarity on the "why". Why
+>> > does this need to be trivial? Where is it that you will know the sysctl
+>> > file path of a module and not the module name or alias?
+>> 
+>> Thanks for looking at this.
+>> 
+>> The problem this feature addresses is sysctl settings not applied
+>> because modules aren't yet loaded when systemd-sysctl/procps's sysctl
+>> runs on boot, and the usage of /etc/modules as a workaround.
+> 
+> Sorry for insisting, but is it not possible to set the sysctls after the
+> modules have been loaded? Why is the order to first set the sysctl and
+> then load the module?
 
-Older kernels silently ignore CTA_ZONE.  And in that case they just
-happily flush all the entries from all zones breaking all the existing
-connections.  So, applications have to infer support from the kernel
-version.  While it works in most cases, it's not a particularly
-reliable or desired way to check kernel capabilities from applications
-that aim to be portable.  There should be a better way to probe or
-discover features in the kernel.
+No worries, and thanks for getting back to this.
 
-The CTA_FILTER interface on the other hand is simple enough to probe.
-We can check for NLM_F_DUMP_FILTERED in the dump to see if filtering
-is supported.  And unknown sub-attributes in CTA_FILTER are rejected
-explicitly since strict validation is in use there.
+Yes, the former is possible and usually how that happens, but it is not
+guaranteed, thus the latter might happen -- unintentionally.
 
-Let's add new CTA_FILTER_ZONE that signals that CTA_ZONE should be
-filtered on.  It is a flag, since everything in the CTA_FILTER is a
-bit mask, i.e., a form of a flag.  If set, it means that CTA_ZONE must
-be present and be used for filtering.  If the flag is not set however,
-the filtering on CTA_ZONE will still take place to ensure backwards
-compatibility.  So, the flag doesn't really change the filtering
-behavior, but it allows user space applications to properly discover
-support for CTA_ZONE filtering without need to rely on kernel version
-parsing or risk accidental flushes of the entire conntrack table,
-and also without modifying the kernel state.
+For example, a sysctl setting can be configured in /etc/sysctl.d/*.conf,
+which is manually tested and confirmed to apply it correctly. However,
+that might have worked only because its module was inadvertently loaded
+earlier (e.g., for something else by the sysadmin, or by something else
+in the system). The next time the system boots, the module is not
+automatically loaded, thus the sysctl setting fails to be applied when
+the (previously working) /etc/sysctl.d/*.conf is parsed.
 
-A new test variant is added to test with and without the new flag.
-Since the setup code is moved into a shared function, expectations
-replaced with assertions to bail early if the base setup fails to
-avoid the cascade of secondary failures that can be misleading.
-Error return is only for the SKIP cases.
+Also, a sysctl setting may, or may not, be tied to a module; it can be
+built-in. This can change with kernel configuration, e.g., distro.
 
-Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
----
+So, another example: a sysadmin learns of a sysctl setting in
+documentation tested with another distro, which has it built-in. It
+fails to apply on this distro, which has it in a module, because the
+module isn't loaded. (Now the sysadmin is left to figure that out, and
+then which kernel module provides the sysctl setting.) 
 
-One other alternative is to make CTA_FILTER_ZONE a U16 sub-attribute
-instead of a FLAG and prioritize it over the CTA_ZONE.  But it feels
-like a FLAG is better suited for the CTA_FILTER, even if it takes a
-bit of extra space in the request.  Though I'm OK with reworking this
-into U16 or some other mechanism that would make the feature
-discoverable, if there are better ideas.
+Note that both examples can be combined. (And the poor sysadmin is, in a
+reboot happening days/weeks/months later, left to also figure out that
+the sysctl setting is not applied, and whatever effect that caused,
+because that particular module was not loaded on boot, and should be
+added to /etc/modules).
 
- Documentation/netlink/specs/conntrack.yaml    |   5 +
- .../linux/netfilter/nfnetlink_conntrack.h     |   1 +
- net/netfilter/nf_conntrack_netlink.c          |  11 ++
- .../net/netfilter/conntrack_dump_flush.c      | 143 ++++++++++++------
- 4 files changed, 115 insertions(+), 45 deletions(-)
+>> This can be addressed with a way for sysctl tools to load the module for
+>> a non-existent sysctl file path.
+>> For that, the mapping between a sysctl file path (known) and its module
+>> (unknown) needs to be trivial.
+> This touches on my question. How is the file path known and the module
+> not known? The module is the one providing the paths, not the other way
+> around. Why choose to just work with sysctl path lists and not include
+> the modules that go with them?
 
-diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index b1eb102ab8432..cfc113ba34029 100644
---- a/Documentation/netlink/specs/conntrack.yaml
-+++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -371,6 +371,11 @@ attribute-sets:
-         name: reply-flags
-         type: u32
-         doc: bitmask of tuple fields to filter on, reply direction
-+      -
-+        name: zone
-+        type: flag
-+        doc: filter on conntrack zone id; requires the top-level zone
-+          (``CTA_ZONE``) attribute
-   -
-     name: conntrack-attrs
-     attributes:
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index 43233af75b9d5..985f9c08d3e9b 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -285,6 +285,7 @@ enum ctattr_filter {
- 	CTA_FILTER_UNSPEC,
- 	CTA_FILTER_ORIG_FLAGS,
- 	CTA_FILTER_REPLY_FLAGS,
-+	CTA_FILTER_ZONE,
- 	__CTA_FILTER_MAX
- };
- #define CTA_FILTER_MAX (__CTA_FILTER_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9b4e29557ec33..ffc29a407749d 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -911,6 +911,7 @@ struct ctnetlink_filter {
- static const struct nla_policy cta_filter_nla_policy[CTA_FILTER_MAX + 1] = {
- 	[CTA_FILTER_ORIG_FLAGS]		= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
- 	[CTA_FILTER_REPLY_FLAGS]	= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
-+	[CTA_FILTER_ZONE]		= { .type = NLA_FLAG },
- };
- 
- static int ctnetlink_parse_filter(const struct nlattr *attr,
-@@ -930,6 +931,9 @@ static int ctnetlink_parse_filter(const struct nlattr *attr,
- 	if (tb[CTA_FILTER_REPLY_FLAGS])
- 		filter->reply_flags = nla_get_u32(tb[CTA_FILTER_REPLY_FLAGS]);
- 
-+	if (tb[CTA_FILTER_ZONE])
-+		filter->zone_filter = true;
-+
- 	return 0;
- }
- 
-@@ -1006,6 +1010,7 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
- 	if (err)
- 		goto err_filter;
- 
-+	/* CTA_ZONE is allowed without CTA_FILTER_ZONE. */
- 	if (cda[CTA_ZONE]) {
- 		err = ctnetlink_parse_zone(cda[CTA_ZONE], &filter->zone);
- 		if (err < 0)
-@@ -1020,6 +1025,12 @@ ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
- 	if (err < 0)
- 		goto err_filter;
- 
-+	/* CTA_FILTER_ZONE cannot be set without CTA_ZONE. */
-+	if (filter->zone_filter && !cda[CTA_ZONE]) {
-+		err = -EINVAL;
-+		goto err_filter;
-+	}
-+
- 	if (filter->orig_flags) {
- 		if (!cda[CTA_TUPLE_ORIG]) {
- 			err = -EINVAL;
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-index 31b8250ddc53d..63f41356fe6d6 100644
---- a/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-+++ b/tools/testing/selftests/net/netfilter/conntrack_dump_flush.c
-@@ -215,7 +215,22 @@ static int count_entries(const struct nlmsghdr *nlh, void *data)
- 	return MNL_CB_OK;
- }
- 
--static int conntrack_count_zone(struct mnl_socket *sock, uint16_t zone)
-+static void put_zone_attr(struct nlmsghdr *nlh, uint16_t zone,
-+			  bool use_cta_filter)
-+{
-+	struct nlattr *nest;
-+
-+	mnl_attr_put_u16(nlh, CTA_ZONE, htons(zone));
-+
-+	if (use_cta_filter) {
-+		nest = mnl_attr_nest_start(nlh, CTA_FILTER);
-+		mnl_attr_put(nlh, CTA_FILTER_ZONE, 0, NULL);
-+		mnl_attr_nest_end(nlh, nest);
-+	}
-+}
-+
-+static int conntrack_count_zone(struct mnl_socket *sock, uint16_t zone,
-+				bool use_cta_filter)
- {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -235,7 +250,7 @@ static int conntrack_count_zone(struct mnl_socket *sock, uint16_t zone)
- 	nfh->version = NFNETLINK_V0;
- 	nfh->res_id = 0;
- 
--	mnl_attr_put_u16(nlh, CTA_ZONE, htons(zone));
-+	put_zone_attr(nlh, zone, use_cta_filter);
- 
- 	ret = mnl_socket_sendto(sock, nlh, nlh->nlmsg_len);
- 	if (ret < 0) {
-@@ -261,7 +276,8 @@ static int conntrack_count_zone(struct mnl_socket *sock, uint16_t zone)
- 	return reply_counter;
- }
- 
--static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone)
-+static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone,
-+				bool use_cta_filter)
- {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -281,7 +297,7 @@ static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone)
- 	nfh->version = NFNETLINK_V0;
- 	nfh->res_id = 0;
- 
--	mnl_attr_put_u16(nlh, CTA_ZONE, htons(zone));
-+	put_zone_attr(nlh, zone, use_cta_filter);
- 
- 	ret = mnl_socket_sendto(sock, nlh, nlh->nlmsg_len);
- 	if (ret < 0) {
-@@ -304,43 +320,40 @@ static int conntrack_flush_zone(struct mnl_socket *sock, uint16_t zone)
- 	return 0;
- }
- 
--FIXTURE(conntrack_dump_flush)
--{
--	struct mnl_socket *sock;
--};
--
--FIXTURE_SETUP(conntrack_dump_flush)
-+static int conntrack_zone_setup(struct __test_metadata *_metadata,
-+				struct mnl_socket **sock)
- {
- 	struct in6_addr src, dst;
- 	int ret;
- 
--	self->sock = mnl_socket_open(NETLINK_NETFILTER);
--	if (!self->sock) {
-+	*sock = mnl_socket_open(NETLINK_NETFILTER);
-+	if (!*sock) {
- 		perror("mnl_socket_open");
--		SKIP(return, "cannot open netlink_netfilter socket");
-+		SKIP(return -1, "cannot open netlink_netfilter socket");
- 	}
- 
--	ret = mnl_socket_bind(self->sock, 0, MNL_SOCKET_AUTOPID);
-+	ret = mnl_socket_bind(*sock, 0, MNL_SOCKET_AUTOPID);
- 	EXPECT_EQ(ret, 0);
- 
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID);
-+	ret = conntrack_count_zone(*sock, TEST_ZONE_ID, false);
- 	if (ret < 0 && errno == EPERM)
--		SKIP(return, "Needs to be run as root");
-+		SKIP(return -1, "Needs to be run as root");
- 	else if (ret < 0 && errno == EOPNOTSUPP)
--		SKIP(return, "Kernel does not seem to support conntrack zones");
-+		SKIP(return -1,
-+		     "Kernel does not seem to support conntrack zones");
- 
--	ret = conntrack_data_generate_v4(self->sock, 0xf0f0f0f0, 0xf1f1f1f1,
-+	ret = conntrack_data_generate_v4(*sock, 0xf0f0f0f0, 0xf1f1f1f1,
- 					 TEST_ZONE_ID);
--	EXPECT_EQ(ret, 0);
--	ret = conntrack_data_generate_v4(self->sock, 0xf2f2f2f2, 0xf3f3f3f3,
-+	ASSERT_EQ(ret, 0);
-+	ret = conntrack_data_generate_v4(*sock, 0xf2f2f2f2, 0xf3f3f3f3,
- 					 TEST_ZONE_ID + 1);
--	EXPECT_EQ(ret, 0);
--	ret = conntrack_data_generate_v4(self->sock, 0xf4f4f4f4, 0xf5f5f5f5,
-+	ASSERT_EQ(ret, 0);
-+	ret = conntrack_data_generate_v4(*sock, 0xf4f4f4f4, 0xf5f5f5f5,
- 					 TEST_ZONE_ID + 2);
--	EXPECT_EQ(ret, 0);
--	ret = conntrack_data_generate_v4(self->sock, 0xf6f6f6f6, 0xf7f7f7f7,
-+	ASSERT_EQ(ret, 0);
-+	ret = conntrack_data_generate_v4(*sock, 0xf6f6f6f6, 0xf7f7f7f7,
- 					 NF_CT_DEFAULT_ZONE_ID);
--	EXPECT_EQ(ret, 0);
-+	ASSERT_EQ(ret, 0);
- 
- 	src = (struct in6_addr) {{
- 		.__u6_addr32 = {
-@@ -358,9 +371,9 @@ FIXTURE_SETUP(conntrack_dump_flush)
- 			0x02000000
- 		}
- 	}};
--	ret = conntrack_data_generate_v6(self->sock, src, dst,
-+	ret = conntrack_data_generate_v6(*sock, src, dst,
- 					 TEST_ZONE_ID);
--	EXPECT_EQ(ret, 0);
-+	ASSERT_EQ(ret, 0);
- 	src = (struct in6_addr) {{
- 		.__u6_addr32 = {
- 			0xb80d0120,
-@@ -377,9 +390,9 @@ FIXTURE_SETUP(conntrack_dump_flush)
- 			0x04000000
- 		}
- 	}};
--	ret = conntrack_data_generate_v6(self->sock, src, dst,
-+	ret = conntrack_data_generate_v6(*sock, src, dst,
- 					 TEST_ZONE_ID + 1);
--	EXPECT_EQ(ret, 0);
-+	ASSERT_EQ(ret, 0);
- 	src = (struct in6_addr) {{
- 		.__u6_addr32 = {
- 			0xb80d0120,
-@@ -396,9 +409,9 @@ FIXTURE_SETUP(conntrack_dump_flush)
- 			0x06000000
- 		}
- 	}};
--	ret = conntrack_data_generate_v6(self->sock, src, dst,
-+	ret = conntrack_data_generate_v6(*sock, src, dst,
- 					 TEST_ZONE_ID + 2);
--	EXPECT_EQ(ret, 0);
-+	ASSERT_EQ(ret, 0);
- 
- 	src = (struct in6_addr) {{
- 		.__u6_addr32 = {
-@@ -416,14 +429,51 @@ FIXTURE_SETUP(conntrack_dump_flush)
- 			0x08000000
- 		}
- 	}};
--	ret = conntrack_data_generate_v6(self->sock, src, dst,
-+	ret = conntrack_data_generate_v6(*sock, src, dst,
- 					 NF_CT_DEFAULT_ZONE_ID);
--	EXPECT_EQ(ret, 0);
-+	ASSERT_EQ(ret, 0);
- 
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID);
-+	return 0;
-+}
-+
-+FIXTURE(conntrack_dump_flush)
-+{
-+	struct mnl_socket *sock;
-+};
-+
-+FIXTURE_VARIANT(conntrack_dump_flush)
-+{
-+	bool use_cta_filter;
-+};
-+
-+FIXTURE_VARIANT_ADD(conntrack_dump_flush, cta_zone)
-+{
-+	.use_cta_filter = false,
-+};
-+
-+FIXTURE_VARIANT_ADD(conntrack_dump_flush, cta_filter)
-+{
-+	.use_cta_filter = true,
-+};
-+
-+FIXTURE_SETUP(conntrack_dump_flush)
-+{
-+	int ret;
-+
-+	if (conntrack_zone_setup(_metadata, &self->sock))
-+		return;
-+
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID, false);
- 	EXPECT_GE(ret, 2);
- 	if (ret > 2)
- 		SKIP(return, "kernel does not support filtering by zone");
-+
-+	if (variant->use_cta_filter) {
-+		ret = conntrack_count_zone(self->sock, TEST_ZONE_ID, true);
-+		if (ret < 0 && errno == EINVAL)
-+			SKIP(return, "kernel does not support CTA_FILTER_ZONE");
-+		ASSERT_GE(ret, 0);
-+	}
- }
- 
- FIXTURE_TEARDOWN(conntrack_dump_flush)
-@@ -434,39 +484,42 @@ TEST_F(conntrack_dump_flush, test_dump_by_zone)
- {
- 	int ret;
- 
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID,
-+				   variant->use_cta_filter);
- 	EXPECT_EQ(ret, 2);
- }
- 
- TEST_F(conntrack_dump_flush, test_flush_by_zone)
- {
-+	bool filter = variant->use_cta_filter;
- 	int ret;
- 
--	ret = conntrack_flush_zone(self->sock, TEST_ZONE_ID);
-+	ret = conntrack_flush_zone(self->sock, TEST_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 0);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 0);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 1);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 1, filter);
- 	EXPECT_EQ(ret, 2);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 2);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 2, filter);
- 	EXPECT_EQ(ret, 2);
--	ret = conntrack_count_zone(self->sock, NF_CT_DEFAULT_ZONE_ID);
-+	ret = conntrack_count_zone(self->sock, NF_CT_DEFAULT_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 2);
- }
- 
- TEST_F(conntrack_dump_flush, test_flush_by_zone_default)
- {
-+	bool filter = variant->use_cta_filter;
- 	int ret;
- 
--	ret = conntrack_flush_zone(self->sock, NF_CT_DEFAULT_ZONE_ID);
-+	ret = conntrack_flush_zone(self->sock, NF_CT_DEFAULT_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 0);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 2);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 1);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 1, filter);
- 	EXPECT_EQ(ret, 2);
--	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 2);
-+	ret = conntrack_count_zone(self->sock, TEST_ZONE_ID + 2, filter);
- 	EXPECT_EQ(ret, 2);
--	ret = conntrack_count_zone(self->sock, NF_CT_DEFAULT_ZONE_ID);
-+	ret = conntrack_count_zone(self->sock, NF_CT_DEFAULT_ZONE_ID, filter);
- 	EXPECT_EQ(ret, 0);
- }
- 
+The sysctl tools and configuration files only know about the file path,
+not the module. The sysctl tools know the file path when parsing the
+configuration files, converting a 'dir.file = value' line into opening
+/proc/sys/dir/value and writing value into it.
+
+The format of configuration files only include file paths and values,
+but not modules, per sysctl.conf(5) and sysctl.d(5). This is reasonable,
+as there may, or may not, be a module for the sysctl setting (i.e.,
+module vs. built-in).
+
+Maybe I misunderstand the context for your questions; please let me
+know.
+Also, could you please clarify what you mean by 'include the modules
+that go with them' [sysctl path files] ?
+
+>> It may not seem serious at first, but I've seen this consume significant
+>> engineering time and impact production systems, in a previous technical
+>> support job.
+>> An example: cloud deployments with non-scalable network routing
+>> performance due to nf_conntrack_max not applied after reboot or an
+>> upgrade because the component which turned out to help with the
+>> /etc/modules workaround had its placement changed from network router
+>> nodes.
+> This is more understandable to me. The issue is that you loose the
+> relationship between sysctl paths and modules on updates. Are there
+> other cases where the module would not be loaded?
+
+In general, there is no guarantee that a module is loaded by the time a
+sysctl setting is about to be applied -- during system boot or even
+later.
+
+The example for system boot is covered previously. An example for
+'later' / after system boot: on network device testing which includes
+module unload/reload and sysctl settings for network performance, one
+might unload the module, and mistakenly first apply sysctl settings then
+reload the module, thus loosing the performance tuning on that one
+testing round.
+
+> And doesn't it create another problem where you will load modules that
+> you don't expect (on the update)?
+
+Sorry, not sure I understand the meaning of 'update' correctly, but yes,
+if there is a hard-coded module load (e.g., /etc/modules or in scripts),
+that happens. However, AFAICT, loading unexpected modules is less of a
+problem than not loading required modules, or may not be a problem.
+
+With an auto-load mechanism in place, hard-coding/force-load is not
+required, and neither problem (loading unexpected modules due to
+hard-coding, and not loading required modules due to lack of
+hard-coding) would happen, IIUIC.
+
+>> > Additionally, sysctls are not module specific; they are a way to
+>> > read/write kernel variables. Putting a module specific aspect in the
+>> > function arguments (that needs to be ignored in non-module cases) seems
+>> > wrong. Why not use the module subsys to add sysctl alias instead of the
+>> > sysctl subsys?
+>> 
+>> Fair point. The current design has 2 reasons:
+>> 
+>> 1) Use the 'path' argument (raised in [1]), only available in the
+>> register sysctl functions.
+>> 2) Use a more implicit/transparent approach, instead of more
+>> explicit/declarative approach. 
+> 
+> I get that the data is there and you would be able to do it, but it
+> still seems misplaced. Additionally, are you planning to move all the
+> modules to this scheme? If not, does that mean that some modules would
+> work and some wouldn't? And how would you make sure that modules would
+> use the correct call moving forward?
+
+This scheme currently covers all modules, AFAIK, as it is wrapped in the
+functions that register sysctl tables.
+
+On moving forward: usage of such functions in a way that breaks a
+requirement of this series (e.g., failing to specify the template
+table/path parameter(s), or not having constant initializers) hits a
+build error, as the requirements are actually from the compiler.
+
+>> I guess that a different design could use MODULE_SYSCTL_TABLE() as
+>> MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
+>> register sysctl functions.
+>> However, it seems to require moving the value of the path argument (or
+>> its template) into the macro and still referencing it in the function
+>> (or its instantiation of the template), which adds obfuscation, to all
+>> callers. 
+>> 
+>> What do you think?
+> It might be that having it inside the module subsys is more work, but I
+> believe that there is the right place to have it. I still don't see that
+> adding a module specific arg to the sysctl register is a good thing.
+
+Ok, cool. I can work on a different design.
+
+Please just let me know whether you are OK with the remaining (above),
+and I'll be happy to tackle this.
+
+Thanks again,
+
+> 
+> 
+> Best
+
 -- 
-2.55.0
-
+Mauricio
