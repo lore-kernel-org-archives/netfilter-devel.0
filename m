@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99D437BE9F;
-	Fri,  4 Sep 2026 02:01:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1431F37E5D6;
+	Fri,  4 Sep 2026 02:01:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788487310; cv=none; b=UlZRu0Oubugp6bZvUm4bwqBsO04MqfH/W6erV6iePiuLPrkxTW1/VxIjljTKaK/1kLy8EJmWDdIpLGKVpq7tCY4XOxxe5waAaH45d8EhyKucuFV3+YoSjjkRREOovX3tvTETMgB3BhxcQrxzW/1DCUKfUuHsU/bqsRF/VAcE3RA=
+	t=1788487311; cv=none; b=XW5coaOBQxPUFAYG78imXkxCb0UCc46u1qpfZsyxeqSBdxxWCRsaz7VkH0qGNSCckJUstXEXCVLWwclEqK3c6TdhN6mo4SjOtkHpKhTtNyQKcCmmAQ1rDGLi1Ov0BbMWQzHYKtVe+zNIuKJCwO32HPqtS7uO0p8kGdMO8L0UD4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788487310; c=relaxed/simple;
-	bh=hi1dzW28asLaA45TMukwaGQCsiuqSEEuyVQIzem+0Pc=;
+	s=arc-20240116; t=1788487311; c=relaxed/simple;
+	bh=Pnqi3vdJlLfP+DBJKG+BCY+PHnGPcPuSaJ51aaVp0Lo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=plb10qSJTuBgoejzehTuU0+9xtJp41mHo+LNFk6n6q3+qB1/WKf0NJXpLIWcWxYwo5yXIJe/SntK8fMWNH4eLHcyyc4zP32fD6wyDvM5yVkPeEJnxbtqxik3DpLZovSB29pSP+EJa2hGpIL48V4i60OXlA6XT9aAWgTpr6ULbPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gatZT6FL; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=ldJueXdda+8CySfnDQSiSozqlaYIA3TR3FUraeDcEjl/CttwbF93vq3FYyr+N777+VOO8hm5BDFNFwze4vou9ETfSCOs/GmkCjQftFkWQSKYSXmCceUs5eiO2QfwPHiL2EmjlRRRLumZ3Domwkp38PYc/sES7csmtHJiX6kecFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mnMH79aC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gatZT6FL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A9E1F000E9;
-	Fri,  4 Sep 2026 02:01:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mnMH79aC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772CB1F00A3D;
+	Fri,  4 Sep 2026 02:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788487308;
-	bh=SjzWGTs/gThMP0YOXrb9dBIISNJJz2x+tIcCydeFXyA=;
+	s=k20260515; t=1788487309;
+	bh=claOqgXATEZ54h/TRFqscxDfWqA4miXj+3iH9Qamd3Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=gatZT6FLWVSHRkb4YT8PXUM87mBhjY+IXaPjD7gb6YuOnUGQdGBKWS8r7QaMjgWur
-	 gq6Riovb7wONBAYPbLtbqvgeRpuPZvdiMzOCk7+vBpgrn8z2vGnEJBzWx650liFxlC
-	 8qHcjXyQlTJqjpLmfqqeSTgFTKqK6Yp4mNavAWof9OYWVlb0x4fTBB0cGcVZrnXROt
-	 wT3wxwexiObfh+KWbCwPTkonmDq98xEf49tZDyQUOaS28f/hVqAxQNPZXPuDwzg0fM
-	 n9CHTatKgWlIMNRhjL1ypyuiJyLkwqn8F8zQKPudH+YkNlOA3kwjOjp/GFsCI7wCYF
-	 aKOyaCY5+KOzA==
+	b=mnMH79aCf3ZQ/V+bnCFkXBkMQSAPTbJ1KecAZwtn5L6brKnD9zfepyFsFoHGXKFdB
+	 hAorqVOyFdOscce8a0sUbsumlas6qIIGucJkYBAajc6wjnCj6N5DX3KdkMKIJ7TaUg
+	 1sWMM/hD7+yR+lKIAkI9gxKx3eVfQ/DKHOEEGyhfGGLTmoW8MLHyJzVmXT1I1LbxRI
+	 /xjD+FlfCWs25yfBVhY0oVapcKbfRc2NDskjzC82IUN6PV+7jCgalVnC3mZmnmn/S6
+	 tyWWA3v4tMCXSDdd81KQbnyI3tkOGhGNj59sCyfVn3PzKjJ3VdSFj92FIceImeMR5c
+	 U1i9gmjWvnlkw==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net 06/12] ipvs: bound LBLCR and LBLC cache growth
-Date: Thu,  3 Sep 2026 19:01:40 -0700
-Message-ID: <20260904020140.3549818-1-kuba@kernel.org>
+Subject: Re: [PATCH net 07/12] netfilter: nft_payload: restrict checksum offsets to known values
+Date: Thu,  3 Sep 2026 19:01:48 -0700
+Message-ID: <20260904020148.3549914-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260903004149.1037028-7-pablo@netfilter.org>
-References: <20260903004149.1037028-7-pablo@netfilter.org>
+In-Reply-To: <20260903004149.1037028-8-pablo@netfilter.org>
+References: <20260903004149.1037028-8-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,145 +54,126 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-ipvs: bound LBLCR and LBLC cache growth
+netfilter: nft_payload: restrict checksum offsets to known values
 
-This adds a hard admission limit to ip_vs_lblc_new() and
-ip_vs_lblcr_new(), rejecting new cache entries once atomic_read(&tbl->entries)
-reaches max_size * 3 / 2.  The stated intent is to leave headroom so the
-periodic collector can catch up while the scheduler fallback keeps serving
-traffic.
+This restricts the NFT_PAYLOAD_CSUM_INET checksum offset for transport
+header writes, both at rule load time in
+nft_payload_validate_inet_csum_offset() and at packet time via the new
+nft_payload_csum_th_write_ok() helper.  Previously the transport header
+case accepted any csum_offset.
 
-> diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-> index 693bcc82ccb7..8180a7ba9f53 100644
-> --- a/net/netfilter/ipvs/ip_vs_lblc.c
-> +++ b/net/netfilter/ipvs/ip_vs_lblc.c
-> @@ -204,6 +204,9 @@ ip_vs_lblc_new(struct ip_vs_lblc_table *tbl, const union nf_inet_addr *daddr,
->  			return en;
->  		ip_vs_lblc_del(en);
->  	}
-> +	if (atomic_read(&tbl->entries) >= tbl->max_size * 3 / 2)
-> +		return NULL;
+> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+> index e315d35f73d4..70f70a65e327 100644
+> --- a/net/netfilter/nft_payload.c
+> +++ b/net/netfilter/nft_payload.c
+> @@ -1008,11 +1008,13 @@ static bool nft_payload_validate_inet_csum_offset(const struct nft_ctx *ctx,
+>  		if (priv->csum_flags) /* makes no sense, asks for "re-update" of L4 checksum */
+>  			return false;
+>  
+> -		/* no further check here; offset can't be negative so bogus
+> -		 * offsets can corrupt L4 or payload but not l3 headers.
+> -		 * We already allow arbitrary l4/inner payload writes.
+> -		 */
+> -		return true;
+> +		/* Validate csum_offset is one of the supported transport header checksums */
+> +		if (priv->csum_offset == offsetof(struct tcphdr, check) ||
+> +		    priv->csum_offset == offsetof(struct udphdr, check) ||
+> +		    priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum))
+> +			return true;
 > +
->  	en = kmalloc_obj(*en, GFP_ATOMIC);
->  	if (!en)
->  		return NULL;
+> +		return false;
+>  	case NFT_PAYLOAD_INNER_HEADER:
+>  		return true;
+>  	case NFT_PAYLOAD_TUN_HEADER:
+> @@ -1046,6 +1048,25 @@ static bool nft_payload_csum_nh_write_ok(const struct nft_payload_set *priv,
+>  	return false;
+>  }
+>  
+> +static bool nft_payload_csum_th_write_ok(const struct nft_payload_set *priv,
+> +					 const struct nft_pktinfo *pkt)
+> +{
+> +	if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
+> +		return false;
+> +
+> +	switch (pkt->tprot) {
+> +	case IPPROTO_TCP:
+> +		return priv->csum_offset == offsetof(struct tcphdr, check);
+> +	case IPPROTO_UDP:
+> +	case IPPROTO_UDPLITE:
+> +		return priv->csum_offset == offsetof(struct udphdr, check);
+> +	case IPPROTO_ICMPV6:
+> +		return priv->csum_offset == offsetof(struct icmp6hdr, icmp6_cksum);
+> +	}
+> +
+> +	return false;
+> +}
 
 [Severity: High]
-Can tbl->entries be trusted as a bound on the number of live entries in
-ip_vs_lblc_new()?  The replacement path just above the new test is the only
-ip_vs_lblc_del() call site that does not decrement the counter:
+Should nft_payload_csum_th_write_ok() also handle IPPROTO_ICMP?  There is
+no arm for it, and neither IPPROTO_ICMP nor struct icmphdr appear anywhere
+in nft_payload.c (linux/icmp.h is not included), so pkt->tprot ==
+IPPROTO_ICMP falls out of the switch and returns false.
 
-net/netfilter/ipvs/ip_vs_lblc.c:ip_vs_lblc_new() {
-	en = ip_vs_lblc_get(af, tbl, daddr);
-	if (en) {
-		if (en->dest == dest)
-			return en;
-		ip_vs_lblc_del(en);	/* no atomic_dec(&tbl->entries) */
-	}
+At the same time the load time check above accepts csum_offset == 2,
+because the two checksum fields sit at the same offset:
+
+include/uapi/linux/icmp.h:
+struct icmphdr {
+  __u8		type;
+  __u8		code;
+  __sum16	checksum;
+  ...
+
+So a rule such as:
+
+    nft add rule ip filter output icmp id set 1
+
+still loads without error, but at packet time the checksum fixup is
+skipped.  In nft_payload_set_eval() the helper is only the middle operand
+of an && chain, so a false return does not reach the err label:
+
+	if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
+	    nft_payload_csum_write_ok(pkt, priv) &&
+	    nft_payload_csum_inet(skb, src, fsum, tsum, csum_offset))
+		goto err;
 	...
-}
+	if (skb_ensure_writable(skb, max(offset + priv->len, 0)) ||
+	    skb_store_bits(skb, offset, src, priv->len) < 0)
+		goto err;
 
-The helper itself does not touch the counter:
+Does this mean the ICMPv4 header bytes are still rewritten by
+skb_store_bits() while the old checksum is left in place, so such packets
+go out with a stale checksum?  Before this patch the
+NFT_PAYLOAD_TRANSPORT_HEADER case of nft_payload_csum_write_ok() returned
+true unconditionally, so previously working ICMPv4 mangling rules would
+change behaviour here.
 
-static inline void ip_vs_lblc_del(struct ip_vs_lblc_entry *en)
-{
-	hlist_del_rcu(&en->list);
-	call_rcu(&en->rcu_head, ip_vs_lblc_rcu_free);
-}
+The accepted protocol list looks like the one in
+nft_payload_l4csum_offset(), which serves the csum_flags pseudo-header
+path and therefore has a reason to omit ICMPv4.  Is that the right list to
+reuse for the NFT_PAYLOAD_CSUM_INET path?
 
-while every other caller pairs it with an explicit decrement, e.g. in
-ip_vs_lblc_flush(), ip_vs_lblc_full_check() and ip_vs_lblc_check_expire():
+Two things that may be worth considering: adding
 
-			ip_vs_lblc_del(en);
-			atomic_dec(&tbl->entries);
+	case IPPROTO_ICMP:
+		return priv->csum_offset == offsetof(struct icmphdr, checksum);
 
-Does that mean each dest change for an already cached daddr adds +1 to
-tbl->entries while the live entry count stays the same, since
-ip_vs_lblc_hash() is the only place that increments?
+to nft_payload_csum_th_write_ok(), and making the run time refusal set
+NFT_BREAK rather than silently skipping the checksum update, so load time
+and run time agree.
 
-	hlist_add_head_rcu(&en->list, &tbl->bucket[hash]);
-	atomic_inc(&tbl->entries);
+> @@ -1055,9 +1076,10 @@ static bool nft_payload_csum_write_ok(const struct nft_pktinfo *pkt,
+>  	case NFT_PAYLOAD_NETWORK_HEADER:
+>  		return nft_payload_csum_nh_write_ok(priv, pkt);
+>  	case NFT_PAYLOAD_TRANSPORT_HEADER:
+> +		return nft_payload_csum_th_write_ok(priv, pkt);
+>  	case NFT_PAYLOAD_INNER_HEADER:
+> -		/* neither offsets are validated, offsets cannot be
+> -		 * negative so real l3 headers cannot be mangled.
+> +		/* offset is not validated, offset cannot be
+> +		 * negative so real l3/l4 headers cannot be mangled.
+>  		 */
+>  		return true;
+>  	case NFT_PAYLOAD_TUN_HEADER:
 
-If so, does the drift ever get corrected?  The collector decrements only when
-it removes a real entry, so it lowers both the counter and the live count
-equally, and tbl->entries otherwise seems to be reset only in
-ip_vs_lblc_init_svc().
-
-There also looks to be a second effect from the placement of the new test
-after ip_vs_lblc_del(): when the limit fires, the old entry has already been
-unlinked and NULL is returned without a decrement and without a replacement,
-so the table shrinks while the counter stays where it is.
-
-The replacement path appears to be driven by remote packets, since
-ip_vs_lblc_schedule() calls __ip_vs_lblc_schedule() and then
-ip_vs_lblc_new() with a different dest whenever the cached dest is not
-available, has zero weight, or is_overloaded():
-
-	dest = __ip_vs_lblc_schedule(svc);
-	...
-	spin_lock_bh(&svc->sched_lock);
-	if (!tbl->dead)
-		ip_vs_lblc_new(tbl, &iph->daddr, svc->af, dest);
-
-Once the accumulated drift alone reaches max_size * 3 / 2 (24576 with the
-default 16384), does ip_vs_lblc_new() return NULL permanently for that
-service, even with an empty table?  That would leave LBLC locality caching
-disabled for the lifetime of the service, with every packet taking the full
-__ip_vs_lblc_schedule() dest walk and ip_vs_lblc_check_expire() still
-scanning all 1024 buckets under svc->sched_lock looking for entries that are
-no longer there.
-
-That also seems to conflict with the commit message text:
-
-    The extra headroom lets the periodic collector catch up while the
-    existing scheduler fallback continues to use the selected destination
-    when cache creation fails.
-
-Would adding the missing atomic_dec(&tbl->entries) next to the
-ip_vs_lblc_del(en) in ip_vs_lblc_new(), or moving the new test ahead of the
-lookup and delete, make the limit match the live entry count?
-
-Note that ip_vs_lblcr_new() below places the identical test inside
-if (!en), before any removal, and has no unbalanced delete, so the two
-schedulers' counters do not appear to satisfy the same invariant even though
-the same expression is applied to both.
-
-> diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-> index f53f05ceea36..858393b1d2d1 100644
-> --- a/net/netfilter/ipvs/ip_vs_lblcr.c
-> +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-> @@ -363,6 +363,9 @@ ip_vs_lblcr_new(struct ip_vs_lblcr_table *tbl, const union nf_inet_addr *daddr,
->  
->  	en = ip_vs_lblcr_get(af, tbl, daddr);
->  	if (!en) {
-> +		if (atomic_read(&tbl->entries) >= tbl->max_size * 3 / 2)
-> +			return NULL;
-> +
->  		en = kmalloc_obj(*en, GFP_ATOMIC);
->  		if (!en)
->  			return NULL;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but does the new limit still leave
-the per-bucket chain length unbounded?  ip_vs_lblc_hashkey() and
-ip_vs_lblcr_hashkey() hash the destination address with no per-table random
-seed:
-
-	return hash_32(ntohl(addr_fold), IP_VS_LBLC_TAB_BITS);
-
-so bucket selection for a chosen address is predictable offline, and
-ip_vs_lblc_get() / ip_vs_lblcr_get() walk the chain linearly on every
-scheduled packet:
-
-	hlist_for_each_entry_rcu(en, &tbl->bucket[hash], list)
-		if (ip_vs_addr_equal(af, &en->addr, addr))
-			return en;
-
-Since the new test caps only the total entry count and not the chain length,
-can all 24576 permitted entries be steered into a single one of the 1024
-buckets, leaving the lookup in softirq context (and again under
-spin_lock_bh(&svc->sched_lock) from ip_vs_lblc_new()) walking a ~24k element
-list per packet?  The patch does reduce the worst case compared to the
-unbounded chain before it, so this is a pre-existing exposure rather than
-something the patch adds, but would seeding the hash or bounding chain length
-be worth doing on top?
+[ ... ]
