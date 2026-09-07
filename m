@@ -1,100 +1,86 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA18451FCB6;
-	Mon,  7 Sep 2026 17:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 138814657C6
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 18:19:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788801474; cv=none; b=JGwyKtLdJg9n9z2i4ClWjShc/A0S5WF7fw4r2lddYgCpjubTacx48MlGky0xe3t6XlnNamtdYXNG1JMOF3OSdIrpZtZeF0ZnCnOjV8CwBjLCSagnRu/kF4HygcR8Lg9cpxnldxUlAg2Ey2kToFwB4BJ+Q6/mHedcTuI8DUf/BFE=
+	t=1788805194; cv=none; b=YsPg5Hp8H9EU+OBFVu2Aa8GkL81dYIB7oMReW9lAPt4h5U6Ugod3RJaKnU1zhwQ/Z4M8RKWedF2tNbwkbAfJJUEsogzMZnCdDhgJPTK9AEhyJzUPHxbT7DRfk0Yhc2jYqzcLIs3T483dtmLyefBOp7rV/X8odgeGqUTsczlfyfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788801474; c=relaxed/simple;
-	bh=SQyDg5b53VBSiX9ghzf0r40iQLnrJ3Hs8NKhpP5AJlc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SFeFJaefvKtNLOhX9mUn2iISKZqYjUBuADoTHxJeTa4y/OjTH27IFWJYbq5ki1tWjEDOdujMfgS0vVsniXlF57WXgdfnUQB5mwDcyZBnHTivKqwbvq4YkcZWZj8oR5boiX3v+03rykFqjZQ1Xyb8sPWb8T+qiGMzsnDr0a7v7k8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dcOJcdiV; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1788805194; c=relaxed/simple;
+	bh=ld8j1LbkhQ4yMlx+8fPJDd6CeFLLKyblD112CLHA85Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y5z7vK7GMT+9g45sMmboTai2kVYsgKiLafs3yKJRpEa7SL6TrlZdQk3QNaKC/L0QM/3H9f2gRV/TMNxRVKlmuMxLrvGTj2WZ9dfMOuLy5eRY0SwHBE9qte3CiZ8PYOC13Sx0eZMsIHTjRZN+0C+5mxOqj5HtqAfbUOVuM3b+ruQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WXflyt+6; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dcOJcdiV"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WXflyt+6"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788801470;
-	bh=GLya4uiEw6iBjW9I+BvelF89lS2037O9hCQ63uvv7wk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dcOJcdiVK+neFdOG5PAPmt8LiqwY3S3h63roD1o269mB92VVRfTb53OVAtd4m0lj6
-	 PlGWbS/KUoYr1uZ3Z5PYGnszPWzvm8ye5/bG3Y9DUYRjNZxiPZG1Z0cvHU0koxm12k
-	 xjiq2H+1IO1JtgwKRv0/lo570ZyZ10JU6kxxD/YBH0tA8LhrKU2A7vurIoRvB3ib7U
-	 67+HdRBRDr1+QFwQbBpZhyRKdHE3F0fNpeA2lWQMCS74q9qC4/ztyxdp/lzxhAQxO9
-	 B6YX2/v+xTH0JtRmKcQf7pmHeg4gJeUYFl52+GLk40Iy+HdtVpzaVCjRHpSg8EvlqV
-	 LnFtTJAcYL/+Q==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BDEF4607D1;
-	Mon,  7 Sep 2026 19:17:49 +0200 (CEST)
+	s=2025; t=1788805189;
+	bh=B36RDM4fPTVXnfJE99VpQBSKYvAkjK8ScIvgSlWF5BI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WXflyt+6p3jNggvBwpWFrJly1Jx6cRMlpnYHTELj9V7Pdlmz7vi/8DAUrPnluofoR
+	 EasqqpqiUci3nGBH3vR2kV+7oyIls4kqLncBhd1H7lbSSwJcWFA4pduYF/hoI4ch+o
+	 3Oy6RY/i/vKZokctI9FHQJShfzT7HRQwrvXby7UgEcm1NUCU7V4XrmPTtYEJBnzU/R
+	 nshm7qA6pGGRa0IjR7QhVPmpzciIRz0cFlab4Ye5Np9g3ZlmzhdOCOSdAZCO1Lh0TA
+	 FBlKazyAF84NQERvIahvFCIV5iHY2mAxWId+h0iMdLk7reRXjmpWPO6jB4Hgmhid6t
+	 7wZSihMHr+kbw==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6A5AE6065B;
+	Mon,  7 Sep 2026 20:19:49 +0200 (CEST)
+Date: Mon, 7 Sep 2026 20:19:47 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	horms@kernel.org,
-	fw@strlen.de,
-	ja@ssi.bg
-Subject: [PATCH net 9/9] netfilter: report NLM_F_DUMP_FILTERED when all is filtered out
-Date: Mon,  7 Sep 2026 19:17:32 +0200
-Message-ID: <20260907171732.1407739-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260907171732.1407739-1-pablo@netfilter.org>
-References: <20260907171732.1407739-1-pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH v3] netfilter: nfnetlink: Fix for interrupted hook
+ dumps
+Message-ID: <ap8AQ1DCUET8Ggkd@chamomile>
+References: <20260904125215.1272252-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260904125215.1272252-1-phil@nwl.cc>
 
-From: Ilya Maximets <i.maximets@ovn.org>
+Hi Phil,
 
-NLM_F_DUMP_FILTERED is only set on data elements in the conntrack dump.
-But when everything is filtered out it is confusing for the user space,
-since the flag is not reported anymore and it looks like the table was
-empty, which may or may not be the case.
+On Fri, Sep 04, 2026 at 02:52:15PM +0200, Phil Sutter wrote:
+> @@ -338,27 +337,47 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
+>  }
+>  
+>  static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
+> -			      const struct nfnl_dump_hook_data *ctx,
+> -			      const struct nf_hook_ops *ops,
+> -			      int family, unsigned int seq)
+> +			      struct netlink_callback *cb,
+> +			      const struct nf_hook_ops *ops, int family)
+>  {
+>  	struct nf_nat_lookup_hook_priv *priv = ops->priv;
+> -	struct nf_hook_entries *e = rcu_dereference(priv->entries);
+> +	struct nfnl_dump_hook_data *ctx = cb->data;
+> +	struct net *net = sock_net(nlskb->sk);
+>  	struct nf_hook_ops **nat_ops;
+> -	int i, err;
+> +	unsigned int i = cb->args[1];
+> +	struct nf_hook_entries *e;
+> +	unsigned int base_seq;
+> +	int err = 0;
+>  
+> +	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
 
-'answer_flags' were introduced precisely for this use case, and the
-conntrack dump should set the flag in there in case the filtering was
-applied.
+Maybe annnotate this base sequence in the .start via:
 
-This is important, for example, to be able to tell if the filters are
-supported or not by the kernel without modifying the kernel state.
+struct netlink_dump_control c = {
+        .start = ...;
 
-With the proper reporting of NLM_F_DUMP_FILTERED on NLMSG_DONE, an
-application in user space can just try and dump with an arbitrary
-filter without worrying that there could be no matching entry.  The
-reported flag will signal that the filtering was applied and therefore
-supported.
+We should probably start doing this in other nfnetlink subsystems too.
 
-Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c | 2 ++
- 1 file changed, 2 insertions(+)
+This will help catch an interference between two netlink recv() calls
+which results in calling netlink_dump() which calls this function.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9b4e29557ec3..579ada063b1b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1077,6 +1077,8 @@ static int ctnetlink_start(struct netlink_callback *cb)
- 	}
- 
- 	cb->data = filter;
-+	if (filter)
-+		cb->answer_flags = NLM_F_DUMP_FILTERED;
- 	return 0;
- }
- 
--- 
-2.47.3
-
+Let me know, thanks!
