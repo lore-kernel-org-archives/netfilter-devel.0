@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8932521214;
-	Mon,  7 Sep 2026 17:17:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4488C521210;
+	Mon,  7 Sep 2026 17:17:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788801467; cv=none; b=uERDw8MdaoZlq1NNL2I+Czjz3CUxJKTPRVPEfnqGSe3hw/K5bn9gtSgJr5om4f4Vs7M2trvw7aawe+Lt+fQWkQg/NgACRFmq5UPfWXRS1diwers3b64g+K+/vRBuwryWg6VNwRmpip9imBlFnxspx46XP8jCH2WNqHxRmVgO6VY=
+	t=1788801470; cv=none; b=GTnBN4tK9Xw8/0XE3byeOQqiHdGMz6GGjdSlkHZI12z8+yZygG+WSyCjeClzoYaJDgGZdBKfxKgFqlBSAwfQkD4+ywFHEhd/krZptz9CUQsk0uogZthDJcyeR82+Om52gXa5sEAX2aQ5VGy53ciE91lSMvgWmKFxS+27YSpE08Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788801467; c=relaxed/simple;
-	bh=j//+aCoHo69GvaL29DTIKGJcsWJ3gzsqCSwwbIsUKZU=;
+	s=arc-20240116; t=1788801470; c=relaxed/simple;
+	bh=M7GILb7a3ZSjQOaiKONK940WhxlKwmFXhn67ZTZnX8o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=K5lzDo5mYUVWDa2ZcQFOLQx2O5R/cbLwVI/iJxRqWugyPGxx7A/U+1J9aVupAncYaN42rCEijLnQMf9Q33TP9TM45cfrkmMT1TL/+ri69GOSICKZh8fyrKQnKbKORtQ2IccAebvtF52zAOzDLxrPlXnqWH2EiuZohBam2KgHJTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=E9C0xZbJ; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Dg3iSCEgkwzbbUivKWI9wGVbpK1kS2A760x0J7bryaL6KzykVM1SRWaGAOPm0GaqTROhm9bf7hvrQNxhFnYUe2e3IYNf6vK0W4NxOs5wX5p4bLJ84n3cp0djsC4p9Iiy82O9AvcZ/hMubDMAPiBvxbFQ/X6PwbsGYeJkBA+cFgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=or93Foii; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="E9C0xZbJ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="or93Foii"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788801463;
-	bh=75zm4Zv/VJQ0PNPQaL6qVc2OOOCrx9vK8HC4FqbFJUM=;
+	s=2025; t=1788801465;
+	bh=aC6nXRLp5ci2lipBNlpSOKOCDVA8haAPZwzv5qFn8Oo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=E9C0xZbJOwmxeq0PtROROCxexPo0HZg4rShFjQNnecb/i+SsKvaj9lH0rMRL54wu3
-	 wRYDyuOLJV5DV95Vn12joMplapzrXafShH0Zppt7h+/gMdnGUP6V6Xd08Nsp9GOxlJ
-	 sk2dGQOLCLpI/qWWZo4f/4E4ZCZzF84je6KW2KZi3iyf60zeSr92L+d38Rr+WSHpTY
-	 SeHgOqdy/dHEhdt0C20ieUTUT76bjP3k0YZ3Ohs9nSsKQrWlWk6JCRdlTS3SBSUYgC
-	 YTFAE2rsJeSUm26rIN/ISnekg31pBYk9KiuLdxSlMUY+Tfw/NwT2y3IovQBcHpZjNt
-	 llWM7JsuOefLQ==
+	b=or93FoiipXdlzdTwIWYjzC0hpBz4I3rNsJIMa/P+ZI6f/Nrm6UIYetnJ28QO/JcgC
+	 5INhYF84hxFDf1+BwBXe7DjNqIZyvb2ZS3eqeh8NNAW/KyhLi2NxYfEuXVyIQsTWnv
+	 sqBhz2SzkOrBiWZxbyfGI5nSa6wuhEcr22LoQbTkDDuq6WPcemFSw3Nomaw2X+i2WM
+	 5ory4800eLsgU7reFzDSXKohKNlANQ4/KtsNKYlWfgWUp2nrjeljr3wlDwosgz5+cU
+	 0TacpxrXT2yJ9ZbOLgCKc/PDYe07Wuo3a6/RqSw0Ml9IaH3dPPS1Uua19GDEAU00Du
+	 qhalCgc5YBGEA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 50E14607D4;
-	Mon,  7 Sep 2026 19:17:43 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BBF4F607D5;
+	Mon,  7 Sep 2026 19:17:44 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 5/9] netfilter: nf_log: unregister loggers before per-net teardown
-Date: Mon,  7 Sep 2026 19:17:28 +0200
-Message-ID: <20260907171732.1407739-6-pablo@netfilter.org>
+Subject: [PATCH net 6/9] netfilter: nfnetlink_log: cope with concurrent instance destruction
+Date: Mon,  7 Sep 2026 19:17:29 +0200
+Message-ID: <20260907171732.1407739-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260907171732.1407739-1-pablo@netfilter.org>
 References: <20260907171732.1407739-1-pablo@netfilter.org>
@@ -53,89 +53,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-nf_log_syslog and nfnetlink_log unregister their per-network namespace
-operations before unregistering their global logger backends. This
-leaves a window where a sysctl or netlink writer can rebind the still-
-registered logger after the per-net pre-exit callback cleared the old
-selection.
+Instances are refcounted. However, only memory release happens on the
+1 -> 0 transition; the unlink from hashes can occur with any refcount.
 
-The race looks like this:
+Uncooperative userspace can force a situation where a queue is pending
+for destruction from netlink event while a different socket with same
+portid processes an UNBIND request.
 
-  CPU 0                                 CPU 1
-  ----                                  ----
-  unregister_pernet_subsys()
-    nf_log_unset(net, logger)
-      net->nf.nf_loggers[pf] = NULL
+With right timing, this will unhash the instance again:
 
-                                        lock nf_log_mutex
-                                        find logger in loggers[][]
-                                        net->nf.nf_loggers[pf] = logger
-                                        unlock nf_log_mutex
+Oops: general protection fault, [..]
+Call Trace:
+ <TASK>
+ nfulnl_recv_config+0x31a/0xd50
+ nfnetlink_rcv_msg+0x7c2/0xeb0
 
-  nf_log_unregister(logger)
-    lock nf_log_mutex
-    loggers[pf][type] = NULL
-    unlock nf_log_mutex
-    synchronize_rcu()
-  module exit returns
-  module core frees backend memory
-
-Later, a sysctl read or packet logging operation can dereference the
-stale per-net logger pointer.
-
-Fix this by unregistering the global logger backends before tearing down
-per-net state. Once the global registrations are gone, later writers can
-no longer rebind the logger. unregister_pernet_subsys() already waits
-for an RCU grace period after the pre-exit callback clears the per-net
-selection, while nf_log_unregister() continues to cover readers of the
-global logger table.
-
-Apply this ordering fix to both nf_log backends that combine per-net
-teardown with global logger registration.
-
-Fixes: 5b023fc8d8e0 ("netfilter: enable per netns support for nf_loggers")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Fixes: 0597f2680d66 ("[NETFILTER]: Add new "nfnetlink_log" userspace packet logging facility")
+Reported-by: Eulgyu Kim <eulgyukim@snu.ac.kr>
+Reported-by: Jaeyoung Chung <jjy600901@snu.ac.kr>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_log_syslog.c | 2 +-
- net/netfilter/nfnetlink_log.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_log.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index f24288088c0d..c3fd398ffcd7 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -1073,12 +1073,12 @@ static int __init nf_log_syslog_init(void)
- 
- static void __exit nf_log_syslog_exit(void)
- {
--	unregister_pernet_subsys(&nf_log_syslog_net_ops);
- 	nf_log_unregister(&nf_ip_logger);
- 	nf_log_unregister(&nf_arp_logger);
- 	nf_log_unregister(&nf_ip6_logger);
- 	nf_log_unregister(&nf_netdev_logger);
- 	nf_log_unregister(&nf_bridge_logger);
-+	unregister_pernet_subsys(&nf_log_syslog_net_ops);
- }
- 
- module_init(nf_log_syslog_init);
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 6c7fa2ed34f5..9d7fec570abe 100644
+index 9d7fec570abe..d923f2cb1398 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -1233,8 +1233,8 @@ static void __exit nfnetlink_log_fini(void)
+@@ -228,13 +228,18 @@ static void __nfulnl_flush(struct nfulnl_instance *inst);
+ static void
+ __instance_destroy(struct nfulnl_instance *inst)
  {
- 	nfnetlink_subsys_unregister(&nfulnl_subsys);
- 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
--	unregister_pernet_subsys(&nfnl_log_net_ops);
- 	nf_log_unregister(&nfulnl_logger);
-+	unregister_pernet_subsys(&nfnl_log_net_ops);
- }
++	spin_lock(&inst->lock);
++	if (inst->copy_mode == NFULNL_COPY_DISABLED) {
++		/* attempt to UNBIND a queue already pending
++		 * destruction via netlink close event. Ignore.
++		 */
++		spin_unlock(&inst->lock);
++		return;
++	}
++
+ 	/* first pull it out of the global list */
+ 	hlist_del_rcu(&inst->hlist);
  
- MODULE_DESCRIPTION("netfilter userspace logging");
+-	/* then flush all pending packets from skb */
+-
+-	spin_lock(&inst->lock);
+-
+ 	/* lockless readers wont be able to use us */
+ 	inst->copy_mode = NFULNL_COPY_DISABLED;
+ 
 -- 
 2.47.3
 
