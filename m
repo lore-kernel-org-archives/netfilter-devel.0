@@ -1,184 +1,167 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B7E385529
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 07:24:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.133.124
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788765870; cv=pass; b=gsgy3nc9ZtsLw3X1dwsL2y49bRYVOeB7w0HHrViSo9HcrFd3ziP341rExknSXubZIHAgvqxO7iVdHoeJ8OY7y23/fWjSUaZL4VLEejXJ34J7jJ3ldfwHLMxBmf3qbo1+eDd85GqFDfx9xCINnlyA7A1NEPHtRBrDp+JEH2hEaL0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788765870; c=relaxed/simple;
-	bh=2yE2vKhYco15cq1LAqgS54dJAg4li6tJCb9pHzWm1p8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NAck0xyuH9UaMz1zeZ82ZchHSTmJ0YP5m00M4+40n8RBh1gH3+E1iZYMCAG0+p+TADhT2dAkdrysDIEq5ZYiFdyRAYtpdGYmxwRKXWbc1hr6oIYftNTCtrmhYx8K6fij5Sbti4ZOu+Kqe5gRQHJVODQ4txo8bQRtZs0zVQHOre8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=S8ZiJ5Iz; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=B4Uvh9Kh; arc=pass smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58B9340DB29
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 07:34:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788766449; cv=none; b=sz3DIvAuc5vbNlqm5p+FS3tAHQBFcot+lI71M2Sddbf5X5jpP6r+JTkQ5uD/3lZJKu2m4fqAW0kik5zdDVORS2AkxLZdmLCj3Pcny00dpTnNgiI1F7mTtGjfnqNpxrnkp3QNgTcTLlC3SirBB4VbM0HvskWBONRcDzW4KH2DnVw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788766449; c=relaxed/simple;
+	bh=yagJzAETAF4TC2pRSdlDch5zUPhjR+z4M/nbHRlg9vQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=X+r3ezYMPhNgYt6aF6L7TXDYCACvHl7w3c4Bt3ezq+foG7aSsOXML3lVXj5fdAnclu0AL5u7tZI+rpfQvqdj3efZ9PVCJ2FgTHQ7ELB/fH6XQPuBCyNip7+NlRykNTUWjtJ88JaFy1yeUvkk3i3mSZvWeHRctvAHzM+aT1sI5Do=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=AsydXSqe; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=JmmuyVMm; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="S8ZiJ5Iz";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="B4Uvh9Kh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1788765868;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2yE2vKhYco15cq1LAqgS54dJAg4li6tJCb9pHzWm1p8=;
-	b=S8ZiJ5IzRswZcAlOTqhqSg8tZTG1pVm4aNsPGvgcg92Fj6H/mjYX75htO4w9cZWz6/rueM
-	J+Pt5DaG4gXkI47eWEugo5Rny+0+IVyyKcLuOpXOU3YQHfb2UeZ6e4JfqFiSwOoZrllVub
-	+dG8ov1Jgf97752WqpWRCpPEn3PWpuQ=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-80-FwYUu5UcMD6dCt5VXNaOCw-1; Mon, 07 Sep 2026 03:24:27 -0400
-X-MC-Unique: FwYUu5UcMD6dCt5VXNaOCw-1
-X-Mimecast-MFC-AGG-ID: FwYUu5UcMD6dCt5VXNaOCw_1788765866
-Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-5b60bfcb6fcso1784397e87.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2026 00:24:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788765866; cv=none;
-        d=google.com; s=arc-20260327;
-        b=GQHNo186ILoz5qvPY6CGA3jg7HGaHwThgaQZYJ2cL1EM6v2PpjrYi//G29ty8hLFnw
-         TnOxVcXDSedVFV0zO7nLGhTlGVeLm2CY4K0TEqmyJTekzQML29dWaIDHDJmy1PchM9WI
-         Z1e+an16YFbo+XfhA0E3XSKkkw7O6Y6SNruqQqScG3VD0ANqSKz9kt1pDwykrMglgXTT
-         l+6TF31pdykUh1hl0WiZ0vdapMIDhhd15X2gHy5wmGoeQ0+CBVQnKVDLcFwetAlzPpCw
-         q9Fc/olkTcS7vp/Z2XxiipYbfNmYFJCS8UP7hkJeXrGTaNiA3OXnvo8WazubCLQvHcoE
-         G78w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=2yE2vKhYco15cq1LAqgS54dJAg4li6tJCb9pHzWm1p8=;
-        fh=cEHA0S5Qe1wlFOI7kR0f3gJ+N6hJQ/ZRXA5OaB9GTMU=;
-        b=gXoQyKZUEqJqvQdf84XntRGdoinZOTfK7CSEeeplB7SwThU/3vIdeWmelRr4Ym0qQZ
-         O/uJSmc3uefAitPhgvNx9r9teOLcYikfZ9Trj4ZjosHFiVqeUvKhr1kUFhpvFyWn+4zr
-         vWqoafncgmjvDzKWSDUop/19Tmv1dv0oqLPvQB51Ui9ewp8HGqWq/y8HLtOJ21XbNv2w
-         vsqGLYS6OtakB9FKW8MNGHJAdXzyigU0X4Z/jNNdJ6/MLlZdX6eqQoXca5DlicGPnhrG
-         fJ/5Ad6bmpPfhTOcGSAsOquUb/HSb7/wVvAqGNezId6c4CMvcw1VwIcuDnSOK2V7RAUv
-         aOzA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="AsydXSqe";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="JmmuyVMm"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68777J1j4161113
+	for <netfilter-devel@vger.kernel.org>; Mon, 7 Sep 2026 07:34:07 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=BCeB2q39kGDNUzJWVGp367
+	dKzfsU4Ljb97JBe37jcyk=; b=AsydXSqeRixpMaoIVj1h4B2ZDcov3KreYxAomN
+	H9OEO/1qF1X3PW+XaY5E7AFHwwD4ewHsYtbw86JuHENHtjbL//1Vc1H0woS0jZlp
+	V0HjM47ULHAuparY43HyQ+TTEEn93PwhE4UuKQmmfeQ9HBysW7m9xveXeslFI/TS
+	vR7EmGYLMoknfE6Hy+wDN5D/xZtuMsMrXUKlm16M6wAImwa1y1PDvPHHNlNRsBE7
+	pKfju2gSByU51Qw6JykPpKQggcGTE7OVjBGq1aKmFITP1uAO0JclyPGIKgdW8DTY
+	pkSJtaJqunyP/aTivGgA2c44LGZ40fP95ARpE/UBWvcG2Npw==
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ghfwjhg3m-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2026 07:34:07 +0000 (GMT)
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-930b571432fso509223185a.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2026 00:34:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1788765866; x=1789370666; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=2yE2vKhYco15cq1LAqgS54dJAg4li6tJCb9pHzWm1p8=;
-        b=B4Uvh9Kh038DoTB9gEMhPTq75k2pfy56Vh0rJgVZ914d3OJux9BdPQdPtLi9p4A0EL
-         jHGN1rXi5iABqzb2dKM7HlbsASwafFzIl2UxW6/wYXe/MUcAz4wRHzI8X+Vp85oiXjPC
-         oE1QHAKd2rmNwHqMT7K2TGix/eJmCbKAHYJn21tgaBs2uPScY+5pcYN4z5bm6noyzrF4
-         lPSzIMP+3C3Wdr9Lk4ZQa5ayx85Jzw/vpeN514kUZn6VzyTbY7KoGw1m7fzKBDDxCNsj
-         Lj5etN2/Ks74jHdzULam1Bz3jeBo8eBeUlepKaC9AcnQznMy+jbtrB8x2wzwes+pJJ/9
-         eiHA==
+        d=oss.qualcomm.com; s=google; t=1788766446; x=1789371246; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=BCeB2q39kGDNUzJWVGp367dKzfsU4Ljb97JBe37jcyk=;
+        b=JmmuyVMm8ixtR+8BXNqJzWC8L5Hnb/xV7djha72vX0D3b9AFuZQHK8p1+cD1pjepPn
+         2E8vhMS/xvV7zpKgiNBZjlnX9xjQMCNj7l+FDAJL2euu2HOOfxIKiKIgI2S/3Fl3P0y+
+         uPR3l7w4iPNqlPYyAUdt3mGyGJUFgwJlRbhFjMvOdKDXatzPDPvbFs4dRzOFH1Pa23fN
+         /gjAnKApOWlr9xuVHrdRN4+yliWDoPhQ2WJvLvbb6bxpG78CLPDCb5lu+DRIIDWW+MSD
+         04gNV9gxvEofT6nEe92PeYxCFR+ig7shPDqq1ETT18Syf9mvTBq0nzHU081oyJYkrlIQ
+         CP4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788765866; x=1789370666;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=2yE2vKhYco15cq1LAqgS54dJAg4li6tJCb9pHzWm1p8=;
-        b=BPYeAQIxdVP4G7w9JvAGNxmGbJTotPKgDGdNr4sdfmF1hhHsc60OP4CTw4HyHdKBTH
-         MlTkpr3Ng+yTRbn6R9iIExUIfzLtAGtfcgYW0mO47oKjMxDO/W5Vp650NiDUyQmxC04Z
-         eJ0u7aKofTgB42ioUYKnvwdBgIcyJuxUalw3gum9jjUZhP5EYy9OlDfnjHd+0dO+guhn
-         C7hiN9gXFqmmJdTtCEn6IJhEIpzkgGzJEPySgfVSCqJ8IEj3DBPtLyTwM97YoySahXka
-         osrH8o+Yy00FkzbSpQQsQBlkdrpabKXCyLtJ/PyuGf3wpWyyQeza9z4rnYLAhTpJT47m
-         nFWw==
-X-Forwarded-Encrypted: i=1; AKwUvBzqljAesnyk5F6JsDmoG/Xk890fuEVBsSHCezCeE8gDw1dals97aj/idIjDyI8jfluWPElwunneMnVIvd+evxY=@vger.kernel.org
-X-Gm-Message-State: AFuF++nmvEJwTLBqq9Wwr0Sg6MQKzULvEakrZ13E9rfIR4N2DHVm20AP
-	MKHURPwi6syMHCZ/xYFy9ylodmqqUtl2yeW/Yi6Cili3kjmsFbrH4gpVRzJm+KjDn3nFq8zE+pc
-	9z7QQrEaoQpgT22gw61FjpTC2PbOn1Zbb8dEqJ7jtbZA3f/uLPTKKDkCMWRUpn9AuxSogvRXn5Q
-	9FNsUKX/BXnSOy+ZCF2TNu3XwDO4EKp1vyWqVFs6h0nIVJ
-X-Gm-Gg: AYBFou1TR/AxgbIZKjcHo0N7Goq/gpxseuRQ75qeOHHDUNR5WGDZHsE5qXaZxdCVRJn
-	4RvyVjFSsWJFMwFfArSTCwOdaFA/jirVN531gocDzp0kk+tfCCMYqiD0TP9CQpzsJ1kjbhuJDzd
-	6G81y0QTy/gi8nsUtK8Idv51P7TnqPj5YtgvVIu9yyDOj+rqvpQwWWZG1t
-X-Received: by 2002:a05:6512:3f0e:b0:5b5:e86f:3550 with SMTP id 2adb3069b0e04-5b616eed114mr3346348e87.9.1788765865579;
-        Mon, 07 Sep 2026 00:24:25 -0700 (PDT)
-X-Received: by 2002:a05:6512:3f0e:b0:5b5:e86f:3550 with SMTP id
- 2adb3069b0e04-5b616eed114mr3346309e87.9.1788765865162; Mon, 07 Sep 2026
- 00:24:25 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1788766446; x=1789371246;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=BCeB2q39kGDNUzJWVGp367dKzfsU4Ljb97JBe37jcyk=;
+        b=EO9bTdmisAtee3yyWfp0iRXakY+yS6WL1Utq6tIUurrPaHnE872cVukWuJpMIOLwtM
+         /Ua4MBJhbyTQKNOnwqLEH1NwVgRC6d2Qpmyr1d8iDrjXTAMhoJLknIWUmbkAtlkxxzCq
+         aK0tgYSNEvG+gf871y+NnvWyH2xXPXtyMuXXdBnpmKLrFQkyqvy+BgCpxEijubrNbp1b
+         MBQGGQwMUmxMxnShuIBh+N7T1VpJ58cjwa8W/cQF0truCE9bfO6d9Hjf+/hH/0N34c4N
+         QkinWmjG8GLcKpf5Y5TKGdm+X2KjWneSq5n5M2JWwJQpUdreyKTeYSimS3gku7l5/79P
+         zdqQ==
+X-Gm-Message-State: AFuF++l1pbywcmMhgj+gTtdgcd+FfaGnaOwXSwBhqEShwOKBsqIzyp3Z
+	17zN6I67yvQ3n6w1VO9z5M3H+wdJ5TlHLAhef0Mhjq7tDU2MBsTZN1KAJDh38O9AqBXQ2LKifGI
+	kTW23KF+hrkXqxNTyyYM7PiFRGdgqIHGFwbn6I+WHAICp98S5LezQU9zn4ydmHJT4AgDQqsM=
+X-Gm-Gg: AYBFou0gydaaX82+9YRNHLj9hdjMPz7RIVZK84R/1LcL71K8sK8P4QJ36VWf0YqZg6G
+	YZd74VWjk0hOjbKZck5JNqNjJhtDuw3nd/QqDdeCUijQMCPuXOLkG+1PDDQ8gxKM7IZPtA6M5X8
+	uU628qPw2NxIRFdgOad2RqSkr1aAjeiQKzb4Jzw11Aodpe57Ug4H1p2Xdc1hbpJnu2wfZB5VgAX
+	+QrL1JSRZKXjuJHWmhkIkqqPkd3IwCCTSE9dE2yQFpWQ+B7sy63XrJZ77V/9zdhe+qyJ+qzx3KE
+	IPn8hIbXXCsuLhpcJ2dH0NPET3g3a/pkd4fvbCMvfei/dH6Gk42JVEz4Tbn7c5GLxWkaIyN19yf
+	ucw226JFznZMnrQ==
+X-Received: by 2002:a05:620a:8393:b0:939:78da:5c2f with SMTP id af79cd13be357-93978da5d6amr1959837685a.43.1788766446254;
+        Mon, 07 Sep 2026 00:34:06 -0700 (PDT)
+X-Received: by 2002:a05:620a:8393:b0:939:78da:5c2f with SMTP id af79cd13be357-93978da5d6amr1959834485a.43.1788766445826;
+        Mon, 07 Sep 2026 00:34:05 -0700 (PDT)
+Received: from localhost ([188.216.77.92])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4858ab73c2bsm24990405f8f.22.2026.09.07.00.34.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Sep 2026 00:34:04 -0700 (PDT)
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+Subject: [PATCH nf-next v2 0/6] net: netfilter: preliminary support for
+ IPv4 over IPv6 and SIT flowtable offload
+Date: Mon, 07 Sep 2026 09:33:35 +0200
+Message-Id: <20260907-nf-flowtable-sw-accel-ip6ip-sit-preliminary-v2-0-7c6ac1750725@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260903121057.80006-1-ihuguet@riseup.net> <20260903145631.GA182962@shredder>
-In-Reply-To: <20260903145631.GA182962@shredder>
-From: =?UTF-8?B?w43DsWlnbyBIdWd1ZXQ=?= <ihuguet@redhat.com>
-Date: Mon, 7 Sep 2026 09:24:13 +0200
-X-Gm-Features: AcwNN1VwMZKu46IzJzKROmEYRy2rjJetX0BeFnxsi74O5FJcBryBFl6vpHj-5Dg
-Message-ID: <CACT4oufRecaPSMTJPK3yJurmaEaMN5i_CArV-mHd=rAA4zOJEw@mail.gmail.com>
-Subject: Re: [PATCH net v2] net/ipv6: don't route packets with unknown source address
-To: Ido Schimmel <idosch@nvidia.com>
-Cc: =?UTF-8?B?w43DsWlnbyBIdWd1ZXQ=?= <ihuguet@riseup.net>, 
-	David Ahern <dsahern@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Neal Cardwell <ncardwell@google.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, Willem de Bruijn <willemdebruijn.kernel@gmail.com>, dcaratti@redhat.com, 
-	Simon Horman <horms@kernel.org>, Kuniyuki Iwashima <kuniyu@google.com>, Phil Sutter <phil@nwl.cc>, 
-	Daniel Borkmann <daniel@iogearbox.net>, Junseo Lim <zirajs7@gmail.com>, 
-	Martin KaFai Lau <martin.lau@kernel.org>, Xuanqiang Luo <luoxuanqiang@kylinos.cn>, 
-	Fernando Fernandez Mancera <fmancera@suse.de>, Leon Hwang <leon.hwang@linux.dev>, 
-	Willem de Bruijn <willemb@google.com>, Kees Cook <kees@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, Qi Tang <tpluszz77@gmail.com>, Joe Damato <joe@dama.to>, 
-	Breno Leitao <leitao@debian.org>, Li RongQing <lirongqing@baidu.com>, 
-	"open list:VRF" <netdev@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, 
-	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>, 
-	"open list:NETFILTER" <coreteam@netfilter.org>, 
-	"open list:BPF [MISC]:Keyword:(?:b|_)bpf(?:b|_)" <bpf@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/52OQQ6CMBBFr0Jm7ZBSBMWV9zAsSp3KJKXFFgFDu
+ LsNR3Dzk5+XvP83iBSYItyyDQLNHNm7VOQpA90r9yLkZ+oghaxFIwp0Bo31y6Q6SxgXVFqTRR5
+ rHjHyhGMgywM7Fb5Y1WVlFInSlATJmJjh9Vh7QBI5WidoE+g5Tj58jxdzceC/BucCBV4knZuOr
+ roszN3HmL8/ymo/DHkKaPd9/wGqP9Ch9gAAAA==
+X-Change-ID: 20260901-nf-flowtable-sw-accel-ip6ip-sit-preliminary-5635fae03f3e
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+        Andrew Lunn <andrew+netdev@lunn.ch>, David Ahern <dsahern@kernel.org>,
+        Ido Schimmel <idosch@nvidia.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org,
+        Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.3
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA3MDA4MCBTYWx0ZWRfX5vWHN7T+22xA
+ 5dCR3pxwN0N2ZaYUDeZQH9JoylxCwm86f3swOLDMLwVxKa5oxcHLBgv3/hXMSy4lMyt6SFjKrUs
+ WAczYWtGR30owB6v8wzHuEig3gIQDpY=
+X-Authority-Analysis: v=2.4 cv=NanWEWD4 c=1 sm=1 tr=0 ts=6a9e68ef cx=c_pps
+ a=qKBjSQ1v91RyAK45QCPf5w==:117 a=WpTaRW6qxYHRGzLzQsVYzg==:17
+ a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22
+ a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8 a=hjUsVgM4bzNdy_QoUQ0A:9 a=QEXdDO2ut3YA:10
+ a=NFOGd7dJGGMPyQGDc5-O:22
+X-Proofpoint-GUID: dGJnAC-Hz5NGsVtxfABWMKHpGRj8eL7s
+X-Proofpoint-ORIG-GUID: dGJnAC-Hz5NGsVtxfABWMKHpGRj8eL7s
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA3MDA4MCBTYWx0ZWRfXwD/OzDMFtLI0
+ QkOx+1s7hxKd8FNMJsuKtKbk2H6KAFvzTpyCc+vXoawpPOjxxqQVwh9H5tcEnE3tbImxji/HQyW
+ CzApq9snVN9UWYnsCrzorOI5ODv8TaTzX7oC7m8Bc2O9Au7MCR+9MVWEo4Muv9l8DQqRbuZCPvn
+ VdWsu/ZH72G28I3sLSxlRjwi9IGDFnwnc3YuT5Nry+P2Przwu7qlZjU18kmTy2cE6RKl245b9bO
+ UNEu8pqGwZlBqwvxNr43ypWMkC/V6r63mUT98iH3y0q79J2oPag2MFs37tHHLzm+n7h4NYN+YwN
+ r2kFEMz7UgvGhFID3n6omirsBX/9HLGr0qLKn6NThJb6C4d7xGJMN+I58+fbLBvHhIeW+ISg0xr
+ mvpax6DFPA2nV7luXwax6asjd7e2pRzPDf4ywUrPYzfFug0ak3ILPtilPpUeYHzv31j8RpPg/ju
+ pWBrTbw7BB9gJEabm8Q==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-07_02,2026-09-03_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 spamscore=0 impostorscore=0 suspectscore=0 adultscore=0
+ priorityscore=1501 lowpriorityscore=0 phishscore=0 bulkscore=0 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609070080
 
-On Thu, Sep 3, 2026 at 4:57=E2=80=AFPM Ido Schimmel <idosch@nvidia.com> wro=
-te:
-> 1. This is a behavior change, not a bug fix, and should be targeted at
-> net-next without a Fixes tag.
+Introduce some preliminary changes needed to support flowtable offload
+for IPv4 over IPv6 and SIT traffic.
 
-I see it as a bug. If you remove an address or its valid_lft expires,
-the expectation is that it's not used any more. Anyway, even if we
-consider it a bug, it's certainly not urgent, so it's OK for me to
-send it to net-next instead.
+---
+Changes in v2:
+- Fix dir configuration in nf_flow_offload_check_mtu() to compute tunnel
+  MTU overhead.
+- Link to v1: https://lore.kernel.org/r/20260901-nf-flowtable-sw-accel-ip6ip-sit-preliminary-v1-0-72e49be8c31f@oss.qualcomm.com
 
-> 2. What is the motivation for this drastic change beyond RFC conformance
-> and parity with IPv4? IMO, these two are not a good enough reason to
-> make such a change with a huge blast radius.
+---
+Lorenzo Bianconi (6):
+      net: netfilter: nf_flow_table: recognize IPv4/IPv6 in tunnel proto matching
+      net: netfilter: nf_flow_table: set inner protocol when popping tunnel header
+      net: netfilter: nf_flow_table: populate tunnel tuple regardless of inner protocol
+      net: netfilter: add encap_proto to flow_offload_tunnel
+      net: netfilter: nf_flow_table: refactor MTU check for tunnel offload
+      net: netfilter: nf_flow_table: unify tunnel push for IPv4 and IPv6
 
-IMHO conforming to RFCs is always a strong reason. But beyond that, I
-think that the current behavior is wrong because, as I've said above,
-keeping using an address that has been removed or expired is not OK.
+ include/linux/netdevice.h             |   1 +
+ include/net/netfilter/nf_flow_table.h |   1 +
+ net/ipv4/ipip.c                       |   1 +
+ net/ipv6/ip6_tunnel.c                 |   1 +
+ net/netfilter/nf_flow_table_ip.c      | 201 ++++++++++++++++++++++------------
+ net/netfilter/nf_flow_table_path.c    |   2 +
+ 6 files changed, 135 insertions(+), 72 deletions(-)
+---
+base-commit: 6ebcf5074cff0402730c6981d2397139fee6322d
+change-id: 20260901-nf-flowtable-sw-accel-ip6ip-sit-preliminary-5635fae03f3e
 
-It's true that it's difficult to spot all the corner cases that may be
-affected by the changes, so the tradeoff of fixing vs risk of
-regressions is not that clear, I understand it.
-
-> 3. See [1] for a list of regressions that AI flagged. Even if v3 fixes
-> all of them (which means a much bigger diff), I don't think such a
-> change will be merged without a proper real-world motivation beyond RFC
-> conformance and IPv4 parity.
-
-I will try to address all of them; thanks.
-
-About the real-world motivation: this comes from a customer's bug
-report, who is worried about packet leaks in their production
-environment. I mentioned IPv4 parity and RFC compliance because I
-thought that without those arguments it would be very difficult for
-the patch to be accepted.
-
-
-On Fri, Sep 4, 2026 at 12:38=E2=80=AFAM Jakub Kicinski <kuba@kernel.org> wr=
-ote:
-> breaks a bunch of selftests, too, FWIW
-> Please make sure to mend those if you want to forge ahead as a non-fix
-
-Sure!
-
-
-On Fri, Sep 4, 2026 at 12:22=E2=80=AFPM Matthieu Baerts <matttbe@kernel.org=
-> wrote:
-> Just in case, do not hesitate to look at the new countainers that might
-> help you running those tests locally:
-
-I didn't know about this, thank you!
-
---=20
-=C3=8D=C3=B1igo Huguet
+Best regards,
+-- 
+Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
