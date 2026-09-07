@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1B4F51E421;
-	Mon,  7 Sep 2026 17:17:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7479151FCD5;
+	Mon,  7 Sep 2026 17:17:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788801464; cv=none; b=TOisPFLYXPKt+JPJn3fmgQLtQRMfO0X0od1oVfYTeXnHt0XDsDi7CyS0t2Yy+IURt16/k+FkBcebyYCRrwG8Sz2OL7S1EhpcKUBlDgRuqExxqv6QzeVbxyJO0EcGgLu2kRnZ4KJvD9pbeHlVKvFaAfBziAYix6vsbeQesmqGTzM=
+	t=1788801466; cv=none; b=OBqQbHSO1hdyTJfFWoczxlESxlW9AH2rHn89803jObPDTuwQKst5u4I9SoWN14wBvNAQ5ryq6Uwv7iFQ1dSV6dabTKFqe7Gbwd/gvT8OI3Flhj+EMTnlQIO4JYQIy4vL97BCY4xtAaJjMjRXJKiriHdCoGd5+0iBudJU+Ueu6vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788801464; c=relaxed/simple;
-	bh=iXzGaYTy/Oqp+cbiwiF4jWxNES3dOeYJpf0jg4feALo=;
+	s=arc-20240116; t=1788801466; c=relaxed/simple;
+	bh=KDMZxKBokX/eFmwjI6AiPYr9lz9zdu6GtHeQGtGseKM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mpsIflyM86aiUQXUmRuEmRnAn+SDgdqSP4ZF5s71vkVBxT1EcVda8i/pM0QjnyPhnOrogmhuOws15Eg4OgAOvIPdFiNd18rjhHHjC58xwFtZKKdyV3nYWQ4A3LknyBE40R4WCUklrCWsNAlpCWlLMw25QY9M5JPhPLPodyml/DA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YrLSzIHy; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Tj05VeLmxCuIS85B39ezbyaqNz/HtsuPwpg5JbeKdRqviT62/oV+5fL94u6UUI0/INsktiCKZYzSU+lyk9eQeqrXcG7F+Rid7K5BhWuMCurQPnRpP8o88rvL++riIfPoyORNN34zjcm7ZPbna2CurjXp64jUVlm5pGjJUSYcOJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rBcSAe0t; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YrLSzIHy"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rBcSAe0t"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788801461;
-	bh=SVk5xIYlvI1HY9/YlutJ14OPeJkUOoImMOBeva92XNk=;
+	s=2025; t=1788801462;
+	bh=+Qvb7ZF0hgN+b8Z8TtazAeZH6daOLVVsMU/uL6SjuRs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YrLSzIHyZP4W/O4v2QwsOYi2SUZQ5NtYpnwFUvDx74rRXH8kDB7UWrNG8y6vncGQR
-	 reHBea+nlQv7OtoblCt6fE+5tIFdGe1iWRXNyxlTIY9PuhHOB+UIfNBAeL6Ou/jvvG
-	 jv3n+YG9xx+YAk8/E/IKUR8Y3nrYjKv70iBox93wrUgNJ/gg+vBkKJzknqzVUQ/+g3
-	 TAx3MsYHZQRg9w05IaNtDJwTpFTS/UWEQ1MDMhLGJXBzz0zGOhn2pmOURbaKRQ/NQl
-	 QuCL0ug1cbV934ORVLwLzmKKrbRkWd0GFzG7yovq+b0gQ102/qIITvew9fLJ09mWJ+
-	 bKR/E4I0ZvHsA==
+	b=rBcSAe0t/hUuksXgymcIXUZLS4gdJw6btyHaq1f8B9J9oRhuUoYdIGyKirpdhsSSy
+	 objSmrGrcAL3WkBm9zBKe0OKRty0nbmI3km4N3IGpoTt8IaATRWWajCAXxOUIFBHj9
+	 ch0f8TBDR2CYgafHrECet4WEmZbQHceSdGhBY8jcguIa/3kXqkLjwdRLDaK031zKLC
+	 r4tI4qlF2jZzf6Mg1J0t16b685D2x+eoBO0aENrJV62yIIfWqo3e7aGLpDaIuQFFIZ
+	 OQllpoJIpVBjbpVcUyv2KXG2s7JaFfNhnXv2A7+sxgfvjHrkZRNhuNGeqBTGPDNnR9
+	 DXv9JZ6v78fmQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8C00F607D2;
-	Mon,  7 Sep 2026 19:17:40 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E78DD607D3;
+	Mon,  7 Sep 2026 19:17:41 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 3/9] netfilter: nf_conntrack_sip: fix OOB read in sip_skip_whitespace()
-Date: Mon,  7 Sep 2026 19:17:26 +0200
-Message-ID: <20260907171732.1407739-4-pablo@netfilter.org>
+Subject: [PATCH net 4/9] netfilter: cttimeout: prevent UAF during module unload
+Date: Mon,  7 Sep 2026 19:17:27 +0200
+Message-ID: <20260907171732.1407739-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260907171732.1407739-1-pablo@netfilter.org>
 References: <20260907171732.1407739-1-pablo@netfilter.org>
@@ -53,48 +53,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-sip_skip_whitespace() returns dptr unchanged when its own loop
-exhausts the buffer (dptr == limit), instead of NULL like its sibling
-sip_follow_continuation() returns on its own "no more data" path.
+nf_ct_set_timeout() protects the timeout hook dereference and policy lookup
+with rcu_read_lock(). cttimeout_exit(), however, unregisters the per-net
+operations before it clears the hook.
 
-ct_sip_get_header() only checks for NULL after calling it:
+This allows the following interleaving:
 
-  dptr = sip_skip_whitespace(dptr, limit);
-  if (dptr == NULL)
-          break;
-  if (*dptr != ':' || ++dptr >= limit)
-          break;
+  CPU 0                              CPU 1
+  cttimeout_exit()                   nf_ct_set_timeout()
+    unregister_pernet_subsys()         rcu_read_lock()
+      kfree(pernet)                     h = nf_ct_timeout_hook
+                                        h->timeout_find_get()
+                                          nfct_timeout_pernet()
 
-so a recognized header name followed only by spaces/tabs running to
-the exact end of the SIP payload, with no colon, makes the very next
-statement read one byte past the buffer.
+The hook still points to ctnl_timeout_find_get() when CPU 1 looks up the
+already freed per-net timeout list. KASAN reported:
 
-Make both "no more data" outcomes return NULL, matching the
-convention sip_follow_continuation() already uses and that both
-existing callers already check for.
+  BUG: KASAN: slab-use-after-free in ctnl_timeout_find_get
+  Read of size 8 by task poc/90
+  Call Trace:
+   ctnl_timeout_find_get+0x271/0x2a0 [nfnetlink_cttimeout]
+   nf_ct_set_timeout+0x7b/0x3c0
+   xt_ct_tg_check+0x724/0xb20
+   xt_check_target+0x234/0xa90
+   do_ipt_set_ctl+0x570/0x1270
+  Allocated by task 89:
+   __kmalloc_noprof+0x16e/0x460
+   ops_init+0x6d/0x420
+   register_pernet_operations+0x2f6/0x670
+  Freed by task 91:
+   kfree+0x131/0x390
+   ops_undo_list+0x3d4/0x730
+   unregister_pernet_operations+0x232/0x490
+   unregister_pernet_subsys+0x1c/0x30
+   cttimeout_exit+0x52/0x970 [nfnetlink_cttimeout]
 
-Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Clear the hook and wait for existing readers before unregistering the
+per-net operations. This blocks new policy lookups and ensures readers that
+observed the hook finish before the per-net storage is freed.
+
+Fixes: ebfbe67568a7 ("netfilter: cttimeout: use net_generic infra")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_sip.c | 2 +-
+ net/netfilter/nfnetlink_cttimeout.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 3ccf34fc1c53..64bc440b1181 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -423,7 +423,7 @@ static const char *sip_skip_whitespace(const char *dptr, const char *limit)
- 		dptr = sip_follow_continuation(dptr, limit);
- 		break;
- 	}
--	return dptr;
-+	return dptr < limit ? dptr : NULL;
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 66c2016f6049..132c02ac7c4e 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -652,9 +652,9 @@ static void __exit cttimeout_exit(void)
+ {
+ 	nfnetlink_subsys_unregister(&cttimeout_subsys);
+ 
+-	unregister_pernet_subsys(&cttimeout_ops);
+ 	RCU_INIT_POINTER(nf_ct_timeout_hook, NULL);
+ 	synchronize_net();
++	unregister_pernet_subsys(&cttimeout_ops);
  }
  
- /* Search within a SIP header value, dealing with continuation lines */
+ module_init(cttimeout_init);
 -- 
 2.47.3
 
