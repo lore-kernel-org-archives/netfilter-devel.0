@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED5C39794A
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 18:56:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0E0F3BB690
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 18:56:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788807364; cv=none; b=jFMA5JDJtdZLPZxGKBD9kYaEiPotALeaH/EEqyE3F0fl392vyVCdZdK4fPA+nm1QanIOBFTJ9TqTg7+NRpAlUE8jai/zDmJNE8IqSEvm55RHs5fF1KqqoDmlnxc/R9IVqIl0aAkXn49a/FFu1i+sW0pkjs0LkvyqegRcp8cekfI=
+	t=1788807365; cv=none; b=OIzF1nt/SKVyT688D+brepQLdVI8AGfJYUEG8W/pVdGgBW/lsPYJqndkySitgDAErH0dRZJ3fuX8Wlt3eEKW5zDan3xSZrRARA/igtmnr6quzOVNXXEN31ocMLdOxjq8Pwuuzay+XBd0URk9Q0qi5+g7o4zqYZyHzCNOS+z/OOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788807364; c=relaxed/simple;
-	bh=KHmaaNGSo1IoO0UCjgfyyoKINbvfQpXpoGpXNkqENio=;
+	s=arc-20240116; t=1788807365; c=relaxed/simple;
+	bh=PJub26XM+j+cusRcVIn0baATPwidZC3GOg/jR2f/6Xc=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=A4InXgBBUZaqYCzMhMG3dDAHoSsM2xCwYvmY2xIW9P7TBaTCvP7F4BD2YnMU/BEx+DP6WliPrGo+CqDQKQ5VfzdP4gdCdsT/sRmSyjQo/lNxqLK6n8vxI9nVyjVUmUHA1QSwlC+332xLTsE/rkVywlYfKmrz8RgopFJSR8mHgkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j1/RWI38; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=KQBA1ZNK67etiEGbZECZiE78YHSDDg64kpRUuRR7ZqQmYFhdOYZ0QJ5LBmoWGjCusg8CYwcwb7GkOzGcuaK4e76CfWl/uE7Z8RmgdGzcwmr2k85FqYOMo6tQNHNpEG5DDqOesJyw+yXDFA0TaaAgex5VmmOjY6B/kGIoD6YVGBw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sAQgM2Hi; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j1/RWI38"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sAQgM2Hi"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788807361;
-	bh=iamynmgZLfX/9Fb/mGgQaJ9QRISjeOmQQeWzNRvF2qA=;
+	s=2025; t=1788807362;
+	bh=l0w3eAQt4C2+YIQwjaCiRdeSRRB6b+qqoUIFEjDQ9uw=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=j1/RWI38TInk5gRFf5SxuOMFD8eQ88uzpX9x7XuHa+kQEyCatG0uak47CO2WylEG1
-	 nEnHGOuQ6vNdzyn93LwtP0i93l9hVAo+EcPds2mLXM1m5nC/f7dEMy0raGHFtAGsJ5
-	 83GajopEhPu8EQgOF95JvaSDZ+cuR87qF67yPjKTzl6YRPvibF+sCsu+pCbmWEyt+a
-	 bANz7/LUUWkyv8457gn6XVk61m0XNTl2oqSWp+zslYWDuMRY0pwROPDwRoiQv8GKZG
-	 5DWUMsnSRu2W31rTZxzh4fSb0oXrTHlo8rwTQBdhvlIFvaZS0SBnau5dnVlt0IMipH
-	 8+R82HR0bzgmw==
+	b=sAQgM2HiOIWeP0oGVCkI9kd2Qxiu3Zp8b5cRnUK9LA0FH7PQFdspofBiQDcmNz3kE
+	 HUbaEiD5Ju9V3B0rrAzZ4vOMbvFblMShdL7r8wYdEF7nql7VSmp/lxd8VMNZ4m/gP5
+	 b3uOKsgcFHGGrD1LH6kMLJr4IyUeUtrmTPlZQ2hlDUBNNc6Txiufj3psSiLrabXzCS
+	 9t8taYAX62Or2JKaAMcXGiytFGN4T6sT4TyHxOna+a1+WfKNXnelmB9BKAnezSQRHW
+	 CIm1zgYNrCydiFmNHqISjmUlKmmuttGtQ5yvyGRtwhdFjr5NW1iGJFlvuSbUi/75Tw
+	 /jhD8GKCVPs4Q==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 00ED760798
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 20:56:00 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E78FD60792
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 20:56:01 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v3 5/8] netfilter: sysctl: use GFP_KERNEL_ACCOUNT
-Date: Mon,  7 Sep 2026 20:55:49 +0200
-Message-ID: <20260907185552.1422008-5-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 6/8] netfilter: nat: use GFP_KERNEL_ACCOUNT
+Date: Mon,  7 Sep 2026 20:55:50 +0200
+Message-ID: <20260907185552.1422008-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260907185552.1422008-1-pablo@netfilter.org>
 References: <20260907185552.1422008-1-pablo@netfilter.org>
@@ -48,56 +48,37 @@ Content-Transfer-Encoding: 8bit
 GFP_KERNEL_ACCOUNT is preferred these days for memcg, replace
 GFP_KERNEL by GFP_KERNEL_ACCOUNT.
 
-Allocate per-netns sysctl via GFP_KERNEL_ACCOUNT.
+Allocate the internal nat hook via GFP_KERNEL_ACCOUNT.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v3: no changes
 
- net/netfilter/nf_conntrack_standalone.c | 2 +-
- net/netfilter/nf_hooks_lwtunnel.c       | 2 +-
- net/netfilter/nf_log.c                  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_nat_core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index f4f2d82192d5..d88a10230862 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1009,7 +1009,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	BUILD_BUG_ON(ARRAY_SIZE(nf_ct_sysctl_table) != NF_SYSCTL_CT_LAST_SYSCTL);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 8ac326e1eb5b..09cc5b8fd6af 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1204,14 +1204,15 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 	if (!nat_proto_net->nat_hook_ops) {
+ 		WARN_ON(nat_proto_net->users != 0);
  
- 	table = kmemdup(nf_ct_sysctl_table, sizeof(nf_ct_sysctl_table),
--			GFP_KERNEL);
-+			GFP_KERNEL_ACCOUNT);
- 	if (!table)
- 		return -ENOMEM;
+-		nat_ops = kmemdup_array(orig_nat_ops, ops_count, sizeof(*orig_nat_ops), GFP_KERNEL);
++		nat_ops = kmemdup_array(orig_nat_ops, ops_count, sizeof(*orig_nat_ops),
++					GFP_KERNEL_ACCOUNT);
+ 		if (!nat_ops) {
+ 			mutex_unlock(&nf_nat_proto_mutex);
+ 			return -ENOMEM;
+ 		}
  
-diff --git a/net/netfilter/nf_hooks_lwtunnel.c b/net/netfilter/nf_hooks_lwtunnel.c
-index 4e1eef1ba0f1..40c6fce14a63 100644
---- a/net/netfilter/nf_hooks_lwtunnel.c
-+++ b/net/netfilter/nf_hooks_lwtunnel.c
-@@ -73,7 +73,7 @@ static int __net_init nf_lwtunnel_net_init(struct net *net)
- 	if (!net_eq(net, &init_net)) {
- 		table = kmemdup(nf_lwtunnel_sysctl_table,
- 				sizeof(nf_lwtunnel_sysctl_table),
--				GFP_KERNEL);
-+				GFP_KERNEL_ACCOUNT);
- 		if (!table)
- 			goto err_alloc;
- 	}
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index f4d80654dfe6..f1d3649e3fc6 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -493,7 +493,7 @@ static int netfilter_log_sysctl_init(struct net *net)
- 	if (!net_eq(net, &init_net)) {
- 		table = kmemdup(nf_log_sysctl_table,
- 				 sizeof(nf_log_sysctl_table),
--				 GFP_KERNEL);
-+				 GFP_KERNEL_ACCOUNT);
- 		if (!table)
- 			goto err_alloc;
- 	} else {
+ 		for (i = 0; i < ops_count; i++) {
+-			priv = kzalloc_obj(*priv);
++			priv = kzalloc_obj(*priv, GFP_KERNEL_ACCOUNT);
+ 			if (priv) {
+ 				nat_ops[i].priv = priv;
+ 				continue;
 -- 
 2.47.3
 
