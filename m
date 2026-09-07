@@ -1,61 +1,63 @@
-Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C5B43CB554
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 09:52:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E023B4570C7
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Sep 2026 09:52:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788774770; cv=none; b=DnFlDOs6auaq9WWIipsbNXUDZIGVuV3ZuxZteJA3X6eTemVDocS/9bsqDSK40NH7PVlAX1JI6UtWL8Vj8b5QcVSAFzeV9yyy/+gYstUL/ToASlf53mnfjRnJ6bEkw8V0cB/BNZcSLYdPezHnL7zizHnugHmNfrHAJuJVdizgWao=
+	t=1788774775; cv=none; b=P4NNcFQ6EKby10B7QTXpn0cwkrWSpBcOfAF11fFKhf8oE+6uMshcr0eB49jlVE5pOTDO0Q6M0STuF5TJJ58wJTuVMYu206PWCXac3zRzfAw0hHluF9CTuEwul8qkCvGPjXwLIrBejlaxenbvG0GsoVpt2fdQsXp6wLk4lciHF3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788774770; c=relaxed/simple;
-	bh=cqlFSrgeVcyAu1DwjM5N2nW2E2ZNBwopzV3zyer3On4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KpbngPtov79LJwsm9vCn6IPsoWgo7Dnm/ZD3mkI5h5hXfiL1Z8cVD3Kq068VnbUReqqWLx5YxiheKSzJFsg51rGjn47FNYkGKmyQmLEJiby4lb470dRbN9yfxbFlzrb+Z1iiZzMsXvu6NtAmPz0nKqM9OB6uQV46Ul/AnlSCkpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bjLwZjxq; arc=none smtp.client-ip=209.85.215.171
+	s=arc-20240116; t=1788774775; c=relaxed/simple;
+	bh=R5R4dBbRkL18oaDcmT8H6C5VQWPuThc9w+Im8ln/9mI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=l1vANUpZtWoTgMnnNwMn+5irVnoWY+fWj6UEm0uL0+KHOxlaP4r01/y3kaDs/Yeeag4aag7DO8PRoy4XVeuklCpiKPqa8BO7tiGxwhBlJjzhWnAURDsNLm4gbdfMGPIHQv7os8ut2hWREiPTylI/SJ73y7JQoMVjcjA6ADRARpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LaiO/q0o; arc=none smtp.client-ip=209.85.216.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bjLwZjxq"
-Received: by mail-pg1-f171.google.com with SMTP id 41be03b00d2f7-cc1cf287ef8so2904356a12.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2026 02:52:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LaiO/q0o"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-38ec1402b05so3056315a91.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2026 02:52:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788774768; x=1789379568; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=iLGaza3s6F5rgIQf4Pq3PulD1HjtmOc+h6lAEkmWtfU=;
-        b=bjLwZjxqs6MoH7uIcpsGHtDVI9kXVStsDfRBRRognSb1JCxLQh1n+wyNUtlKNwyVSa
-         1idNSCcz7PUMJARA9h2KsWv/MBgaEFd/+dysIFEPTwPya9ALc8Gsvd/96xSUyvJ0zhxF
-         254x1gKhTc9mLrUsS637Wwwpi5P+ZF9MNZX1nByvRUMX3kzi2nuZABbGGoArtAnZQlTT
-         SXwY2sW0z53WVUkgky+Qb2JSLa01zfegGOCo8Zu9x0uKxiZGp2lcwBU5ZNRv8WjgLzX2
-         2s3YT4mKFyZq9nPpcGe51v+MJa9x8+EJmpf9Cn8nbMGv82qIXBYOWZxQ89fbHYiBTq5S
-         jIKg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788774768; x=1789379568;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1788774773; x=1789379573; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=iLGaza3s6F5rgIQf4Pq3PulD1HjtmOc+h6lAEkmWtfU=;
-        b=aJTDcZKmDh/9DTYWYYjpP7El4AFyTGC7d6q6YLTSLXMf3c89kMXhths8SfW3fW9B8x
-         fZNE7cZHIRfepjuv+IT3mniGTbkvwFGERRYFYjNBCPEJ7lECl6yX5/yf5A25w0JdNs0r
-         2aRnvYcs/HI7qbTIl4gDhC1s6K031++79z6zyRTX+y0eqKQ7BjoCfJzIJWCbECB5KIO+
-         zyw0P8QmGq+Hd6JzSXaPHRYfWoi1zLTPopuvXtm3oon//YeU8kRC4uM3srPZUAXqqORw
-         P7vY1sqjVQv8ix2cHsTVQ1Ev8HbvSILJqdCXoLzYcsltU18JpLYOw/inBZYuxI/N0SCM
-         2YkA==
-X-Gm-Message-State: AFuF++mWjwd97RV0zlLTTXICTVcAng62K1D78g6QVOOO0P1AQFUIE3mo
-	bjyofRZhLtd13XsRr4SrE5z5vfAyOLMRT21BXRLSeHRI69EImivn09dqB0hgCEVa6l4=
-X-Gm-Gg: AYBFou0Cyq3ibKCe2sWdQGj+TOWYr/LayREq60CMi4KkqueVCTyY73EGucevSx7qmXS
-	l7fFabpQFkFe22uOHCIUKzPq1sWTZvq6rLWDrOgy1xYBuwBj+2eShF/vgS654aIeERrk/abfO6Y
-	G3ImN1SILUeCj+7e66X9ag6frlTal0h8Dn1Cvu0Aw9d3OtdE8MEJGd39qqm3DDHu+ZNgCZdVz3F
-	nI+IKwcDsYu0gkjsCBm5WnVTaqkYBYuHY/WtZCtnd/8XtjkRxffuM6xgX8CvassD+aJh1oJPz+P
-	nIUKpJ62B2zcj1GdSIsBgOwktAot26RsN9sfuTdYo6TfEsqKXecukiLvy7DOBptC8vfWIdM690R
-	pV/cTbkbXKegzaacJRqtrgWXvPtw9ECEhCic6tF/diC36b3Ameh82xx58A8yo790QerjJ/CvbEc
-	aEqZBlos2n1G1FSnP6/CtKQU+9kmn/f1LkgUotqWAplNciJEj5sonHJUoFcgu2DQMM76b1TK7h1
-	rE7oimcZGOXAylWP1LSlay4
-X-Received: by 2002:a17:90b:1d52:b0:398:dcef:c040 with SMTP id 98e67ed59e1d1-39b26242a20mr34261880a91.19.1788774768453;
-        Mon, 07 Sep 2026 02:52:48 -0700 (PDT)
+        bh=xJgFBYg28tVOaKzoqkIGeWjpddjUWJ3I21idFrjiKm4=;
+        b=LaiO/q0oGMceb6psUFFMiEoYqNzQqRDTrmxUF9jvpnuzBkNiDCAFOUKM9fub7pQ62/
+         Ou4dPnjgI9ha1zD4W3G9mS/JB0D4sk7OB/6NPg8D5mW8uzHv3TH0PfgxR7H+ajW9PfJV
+         RIvBPDYvPhfbJDz4sZIw3jdqO5hZ8Z9oh7LHHJQ/677JA6eXbSFIzZaSKr8Kn4cryN7t
+         2SzneNiJ0NQ5fxh5A3eZzeFB9U+vXy0FrZIesCaKTSanzlkqfk0fjR0Nu29wiPqu1SSB
+         zMKT9clIaP827qZKT/RVwNzpi8NS48JcUiedFYbJHtLllHXxNqo2zF5UifykepjV63g3
+         gs8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788774773; x=1789379573;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xJgFBYg28tVOaKzoqkIGeWjpddjUWJ3I21idFrjiKm4=;
+        b=i7/vGNJNbSAmyXy2OrrwtNiLXCWrHua8RkgmHUm1Cd5/jcwCf96YYUGt94jH5eIuMv
+         6DweeFV6mAOpw03m94NF2FAH1mOk4mJdycrS47igcVvxkz1C7ejkHwoNiZMZqtOXJ0w1
+         4OcoURpvKGNOxmVB7RvGO+WafJjePy1n/2nykOTtFWdgUXShw7GLreg3vv6wn39ZxCAE
+         a/gB/z12kC/wUa6wWg/+3u9ZSjqQBXiwqzdGwLTB/odYK6FnR/wfJkVTikQDRgEkX5Nn
+         wGjW/j9FWql9niaXm/UKVEWFKtdIPWzshmm2jFK64OGkqwjQ8z5KAdVn8pS/Jzmlr2DX
+         W9Qw==
+X-Gm-Message-State: AFuF++mhtvx11Cm2um9wS1LjRYqOMvsbJQ67epewSyywplR3QipOH9vM
+	BuRTCEwnqwTFXLc9N6TFMio8rdeXIk/FJeNsM784QMlDpOfQ/T4b7ojc
+X-Gm-Gg: AYBFou2bZukgd3gp5IVP+3/+dDU4f8U2bQ+fuktJLhpxt/CYMCLHHWg3JwqTdI1MrCQ
+	sGwDAR3vFzl9lka3CZ14Jd9B+HwXhEIgJcpyHpvUg0eSIfg3ruKpntyOxf0r6M8A2I6FpVZUfAa
+	EFyNadGKS8XFh22DKjaNY+h8Y/Y1b0yNucp8g+rKEvssPXlQdEnuBzLyNIa6cF9P+uLchwfmKuV
+	UlKEXfIzQFA3MJcA5GGkaqkt9dODhD/J2JptsnW5saO9VnU7PApWQZjIpO1wTvOC85TA8z1kR5C
+	4tVBWgXjEcUqWzk8lg6nfByjI0Vn9qIr2H+QoUzmejiq6TgQsZjqf3oS+f8mNxj2siX2COEIfgy
+	dmHBqwl0NFGMgqhU83ZpY+4K+DexI51T1ybqzwTLHK1gGlIV7XjMtkrqmOqt61FabcYgy/gw+ej
+	U4dnWJktJiCfmoz6NXX1NGsoG3+biYEjsY7rzuJntdq4+kbpHzXMu6MWB933aqIWRrwmrcJzFJD
+	+Os39wsT6+jP75TsOCRMKcj
+X-Received: by 2002:a17:90b:5246:b0:39a:e983:d4bd with SMTP id 98e67ed59e1d1-39b262a3cf7mr35585786a91.24.1788774773211;
+        Mon, 07 Sep 2026 02:52:53 -0700 (PDT)
 Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14332405e92sm18924258c88.8.2026.09.07.02.52.44
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14332405e92sm18924258c88.8.2026.09.07.02.52.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Sep 2026 02:52:48 -0700 (PDT)
+        Mon, 07 Sep 2026 02:52:52 -0700 (PDT)
 From: Hemanth Selam <hemanth.selam@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
@@ -71,10 +73,12 @@ Cc: netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-kselftest@vger.kernel.org
-Subject: [PATCH nf-next v2 0/3] netfilter: fix typos in comments
-Date: Mon,  7 Sep 2026 15:22:38 +0530
-Message-ID: <20260907095241.24441-1-hemanth.selam@gmail.com>
+Subject: [PATCH nf-next v2 1/3] netfilter: arp_tables: fix typo "alignement" in comment
+Date: Mon,  7 Sep 2026 15:22:39 +0530
+Message-ID: <20260907095241.24441-2-hemanth.selam@gmail.com>
 X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20260907095241.24441-1-hemanth.selam@gmail.com>
+References: <20260907095241.24441-1-hemanth.selam@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -83,25 +87,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Three comment typos under netfilter, split one per component.  Found with scripts/checkpatch.pl using the
-misspelling list in scripts/spelling.txt.  Comments only, no code
+Fix a typo in comments, found with scripts/checkpatch.pl using the
+misspelling list in scripts/spelling.txt. Only touches comments, no code
 changes.
 
-v1 went out with a bare [PATCH] and a "net:" subject prefix.  As
-maintainer-netdev.rst asks, v2 designates the patches to a tree, and
-each subject now names the component it touches instead of "net:".  The
-series is rebased onto that tree; the diff is unchanged.
+Assisted-by: Cursor:claude-opus-5
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+---
 
-v1: https://lore.kernel.org/all/20260907064239.39910-1-hemanth.selam@gmail.com/
+Notes:
+    v2: designate the patch to nf-next and use a subject prefix naming the
+    component, as maintainer-netdev.rst asks; v1 went out with a bare
+    [PATCH] and a "net:" prefix. Rebased onto nf-next, diff unchanged.
+    
+    v1: https://lore.kernel.org/all/20260907064239.39910-1-hemanth.selam@gmail.com/
 
+ net/ipv4/netfilter/arp_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hemanth Selam (3):
-  netfilter: arp_tables: fix typo "alignement" in comment
-  netfilter: ipset: fix typo "artifical" in comment
-  selftests: netfilter: fix typo "adress" in comment
-
- net/ipv4/netfilter/arp_tables.c                                 | 2 +-
- net/netfilter/ipset/ip_set_core.c                               | 2 +-
- tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
-
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index a87e07e80d0d..b680bd14d329 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -59,7 +59,7 @@ static inline int arp_devaddr_compare(const struct arpt_devaddr_info *ap,
+ /*
+  * Unfortunately, _b and _mask are not aligned to an int (or long int)
+  * Some arches dont care, unrolling the loop is a win on them.
+- * For other arches, we only have a 16bit alignement.
++ * For other arches, we only have a 16bit alignment.
+  */
+ static unsigned long ifname_compare(const char *_a, const char *_b, const char *_mask)
+ {
