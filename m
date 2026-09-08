@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B9359B680;
-	Tue,  8 Sep 2026 18:04:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D66159D62E;
+	Tue,  8 Sep 2026 18:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788890645; cv=none; b=lC+F2L20gETRaC91jFmjz+qDo0QfmHQ/6UaYZxVNlcijsqvlFRATnkVXwe7ZOS8vNG1LIw77oGIffo21mSoCyXgusTWN+JOhVhmXhD/82uG5HIMSjeeC3YIWU1fqYGQtaZwZxppShFIP4545Qzqia9F/0UTlqsvWTqgmiaZP/Tk=
+	t=1788890646; cv=none; b=gCMgSujoUmjrOzUKAaUjJKDlBoesOhhXWSG2jvOBaQZNpyMkKORtGdFB5NmxT6y7sqau6TraD2lx4AAim3hWdPDxVN6N4CDN/eBBtmEtsa4dLx/mhmhm9+ibJWK0UrhUO60+PUJ2U5cGsaOPu0ofEjQpcN8jZFvwtTgGKIoydiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788890645; c=relaxed/simple;
-	bh=Ctd1KS+4jf7JMt3sCdm3ZYVsTiwXj1II+3wdUH/wZpA=;
+	s=arc-20240116; t=1788890646; c=relaxed/simple;
+	bh=Qiz79g5PSVcF2IF2qvisBggszh3TiyNR4PTMGRDyixA=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Q1WfvOfL/tp8w+Go0B9AMudCbVg7BGQCKjaHJ7+tR01Hldy9IXxsqr1WpmCpBXuuya67kitUXNQ5iPNvdEtgVcm2y4LVpfNJ1HR77YqQTGcOjRcDxPZ0qz62BfDQ7HLF07uAcbCjjfLd/v98TwWprgJZP+90UKq8Trpb7aoqKXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gzzWEl04; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=KNlFiBbd522OILb0WBYMkzZEuOjpOhyoWJYJ/T4av+xe+zRVxlLrxWp1XBdrP8E/45dRWXlD6WXNHP8d2dUqPFGUo+Jd4dblDt92WeSc31MXPmWYh67Gox3yfiVkSNF0kC89Vv2b+8gVroBO6QNiPtoRhrTo1w7wUCQLzDeiz0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bFowyx9l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gzzWEl04"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5288B1F00A3D;
-	Tue,  8 Sep 2026 18:04:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bFowyx9l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70EA61F00A3E;
+	Tue,  8 Sep 2026 18:04:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788890643;
-	bh=buhByO91OPmUw3TQNbYRrcJuDVj7u7MVKgqm1Neb8Pw=;
+	s=k20260515; t=1788890644;
+	bh=mMiLERTI+z1WkeyyclW/+eyrW1pM6m7F9OGHgIZnVK0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=gzzWEl04lr2hm75tAH8xRjdei7lSGGPC2tLhYrmF8FeqWgdyYgeOLzcyIlZcNeTOQ
-	 WhPXDbLm+VArnPBCCnDW8BS5AY2YupzxRKSz4314Ly4LNKZcYhrwSjoEWZ+MUvY8yQ
-	 H+YXNxJhqvD3VUrCzpchYIoDtfNl6kUxF2GtpTXXlEd1I5F2nrz5GdeblNCK9Ko7Zj
-	 GCv3K2lkgUVHmJEwenF9FziFYYgkMKco1F7GqrkuYYnSFpl8bVY3a/vlGQNnPPA7NB
-	 bOBoYFCXH86hC33+HyvJYH2NFVb90CoRC1ExII/uMGVEM8xg3mbF8N8EaZPwiL3Yns
-	 Et+usJ7e06uDw==
-Subject:
- Re: [PATCH net 7/9] netfilter: arp_tables: remove the 32bit compat interface
+	b=bFowyx9lbV9WqlkvST20RfCd9ey2npkjm2azEGfL0Pcd+pfDEU4JrWHzEWrQsXdF8
+	 JY8jgSVjyPf0Z1JBW4QgbGf4SdsuIbv48KeW28Xh9UoWQd2U2OVXsUPHcWPzbH7o92
+	 WFG+O/nlOWun0KK7YSj15ZNILYW7uRGjcFJ2KbxvMD+QYAoEh74JKLEwBH3HYrK3p5
+	 +2yLb6VH+6Kebgzb8AzPWK6kManbNIGYzxSMd4CNo1FZDPplC64smvI5eII5i5gcTq
+	 GjfAvJ9cJxPpY1k7XbfbSWwSvZ9hBQC7xSq6Xd6Hbmaznqbk9g0iHSgWPj2Axuxd4V
+	 6o/TYnzbII8RA==
+Subject: Re: [PATCH net 8/9] netfilter: ip6_tables: set F_PROTO when proto
+ value is nonzero
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 08 Sep 2026 18:04:02 +0000
-Message-ID: <178889064289.219967.7333044974025476861@kernel.org>
-In-Reply-To: <20260907171732.1407739-8-pablo@netfilter.org>
-References: <20260907171732.1407739-8-pablo@netfilter.org>
+Date: Tue, 08 Sep 2026 18:04:04 +0000
+Message-ID: <178889064403.219967.3259522251975828189@kernel.org>
+In-Reply-To: <20260907171732.1407739-9-pablo@netfilter.org>
+References: <20260907171732.1407739-9-pablo@netfilter.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,156 +52,68 @@ issue(s) to consider:
 
 Critical: 0 · High: 0 · Medium: 0 · Low: 1
 
-- [Low] The arptables 32-bit compat interface is only partially removed.
+- [Low] Stale/contradicted UAPI documentation for `struct
+  ip6t_ip6::proto`.
 
 --
 
-netfilter: arp_tables: remove the 32bit compat interface
+netfilter: ip6_tables: set F_PROTO when proto value is nonzero
 
-This removes all arptables-specific 32-bit compat translation code from
-net/ipv4/netfilter/arp_tables.c, drops struct compat_arpt_entry and its
-accessor from include/linux/netfilter_arp/arp_tables.h, and updates the
-NETFILTER_XTABLES_COMPAT help text to no longer mention arp.
+This makes the kernel set IP6T_F_PROTO for any rule that carries a nonzero
+ipv6.proto, so ip6_packet_match() always performs the protocol comparison
+and extension header walk instead of skipping it when userspace left the
+flag clear. It mirrors the normalisation already done in nft_compat.c.
 
-> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-> index a87e07e80d0de..db307fa49f3f6 100644
-> --- a/net/ipv4/netfilter/arp_tables.c
-> +++ b/net/ipv4/netfilter/arp_tables.c
-
-[ ... ]
-
-> @@ -811,23 +736,11 @@ static int get_info(struct net *net, void __user *user, const int *len)
->  		return -EFAULT;
->  
->  	name[XT_TABLE_MAXNAMELEN-1] = '\0';
-> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-> -	if (in_compat_syscall())
-> -		xt_compat_lock(NFPROTO_ARP);
-> -#endif
->  	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
->  	if (!IS_ERR(t)) {
->  		struct arpt_getinfo info;
->  		const struct xt_table_info *private = t->private;
-> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-> -		struct xt_table_info tmp;
->  
-> -		if (in_compat_syscall()) {
-> -			ret = compat_table_info(private, &tmp);
-> -			xt_compat_flush_offsets(NFPROTO_ARP);
-> -			private = &tmp;
-> -		}
-> -#endif
->  		memset(&info, 0, sizeof(info));
->  		info.valid_hooks = t->valid_hooks;
->  		memcpy(info.hook_entry, private->hook_entry,
-
-[ ... ]
-
-> @@ -1432,12 +981,7 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
->  
->  	switch (cmd) {
->  	case ARPT_SO_SET_REPLACE:
-> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-> -		if (in_compat_syscall())
-> -			ret = compat_do_replace(sock_net(sk), arg, len);
-> -		else
-> -#endif
-> -			ret = do_replace(sock_net(sk), arg, len);
-> +		ret = do_replace(sock_net(sk), arg, len);
->  		break;
->  
->  	case ARPT_SO_SET_ADD_COUNTERS:
+> diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> index f42fb96ef64b6..313c4aac377aa 100644
+> --- a/net/ipv6/netfilter/ip6_tables.c
+> +++ b/net/ipv6/netfilter/ip6_tables.c
+> @@ -647,6 +647,11 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+>  	/* Clear counters and comefrom */
+>  	e->counters = ((struct xt_counters) { 0, 0 });
+>  	e->comefrom = 0;
+> +
+> +	/* set F_PROTO, else ip6_packet_match won't do the right thing. */
+> +	if (e->ipv6.proto)
+> +		e->ipv6.flags |= IP6T_F_PROTO;
+> +
+>  	return 0;
+>  }
 
 [Severity: Low]
+Should the uapi header comment be updated in the same patch?  The
+description of struct ip6t_ip6::proto in
+include/uapi/linux/netfilter_ipv6/ip6_tables.h still documents the
+opposite contract:
 
-Should the two arptables ctl handlers also stop accepting compat callers?
-Both do_arpt_set_ctl() and do_arpt_get_ctl() still start with:
+	/* Upper protocol number
+	 * ...
+	 * - You also need to set IP6T_FLAGS_PROTO to "flags" to check protocol.
+	 */
+	__u16 proto;
 
-	if (!xt_compat_check())
-		return -EPERM;
+After this change, a non-standard userspace that follows that comment and
+sets proto = IPPROTO_TCP while leaving flags = 0 (expecting a
+protocol-agnostic rule) gets a protocol-narrowed rule instead, and
+ip6_packet_match() now takes the flag-gated branch, including the
+ipv6_find_hdr() walk and its *hotdrop = true path when the lookup fails
+with _frag_off == 0:
 
-and that helper intentionally lets 32-bit callers continue when
-CONFIG_NETFILTER_XTABLES_COMPAT is set:
+	if (ip6info->flags & IP6T_F_PROTO) {
+		...
+		protohdr = ipv6_find_hdr(skb, protoff, -1, &_frag_off, NULL);
+		if (protohdr < 0) {
+			if (_frag_off == 0)
+				*hotdrop = true;
 
-include/linux/netfilter/x_tables.h:xt_compat_check() {
-	if (!in_compat_syscall())
-		return true;
+Standard ip6tables always sets IP6T_F_PROTO together with -p, so this only
+affects hand-crafted rule blobs, and the resulting rule is stricter rather
+than unsafe.  Still, the field's documented meaning changes here.
 
-	pr_warn_once("%s %s\n",
-		     "xtables 32bit compat interface no longer supported",
-		     "in namespaces and will be removed soon.");
-
-	if (!capable(CAP_NET_ADMIN))
-		return false;
-#endif
-	return true;
-}
-
-So a 32-bit task with CAP_NET_ADMIN now falls straight into the native
-handlers, which gives three different behaviours:
-
-ARPT_SO_GET_INFO succeeds and copies out the native xt_table_info values,
-since the compat_table_info() rescaling above is gone:
-
-		memcpy(info.hook_entry, private->hook_entry,
-		       sizeof(info.hook_entry));
-		memcpy(info.underflow, private->underflow,
-		       sizeof(info.underflow));
-		info.num_entries = private->number;
-		info.size = private->size;
-
-Are those offsets and size still meaningful to a caller that will walk them
-using the 32-bit struct arpt_entry layout?
-
-ARPT_SO_SET_REPLACE and ARPT_SO_GET_ENTRIES end up failing with -EINVAL
-purely as a side effect of header size arithmetic in do_replace() and
-get_entries() (76 vs 80 bytes for the replace header, 36 + size vs
-40 + size for the get_entries header) rather than a defined unsupported
-error.  Would an explicit rejection be clearer here, for example:
-
-	if (in_compat_syscall())
-		return -EOPNOTSUPP;
-
-ARPT_SO_SET_ADD_COUNTERS keeps a working 32-bit ABI, because
-do_add_counters() -> xt_copy_counters() still carries its own compat branch
-that converts compat_xt_counters_info for every family, NFPROTO_ARP
-included:
-
-net/netfilter/x_tables.c:xt_copy_counters() {
-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-	if (in_compat_syscall()) {
-		/* structures only differ in size due to alignment */
-		struct compat_xt_counters_info compat_tmp;
-	...
-}
-
-Does "remove the 32bit compat interface" then hold for that sockopt?  If
-leaving the shared counter path compat-capable until the other three
-flavors are converted is intended, could the commit message say so?
-
-One more asymmetry: the ip_tables, ip6_tables and ebtables ctl handlers
-still branch on in_compat_syscall() after the same xt_compat_check() call,
-so the shared helper now means "translate" for those flavors and "warn,
-then run the native path" for arptables.  Along the same lines, a 32-bit
-task without CAP_NET_ADMIN now gets -EPERM plus a warning about a compat
-interface that no longer exists for this flavor.
-
-> @@ -1466,12 +1010,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
->  		break;
->  
->  	case ARPT_SO_GET_ENTRIES:
-> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
-> -		if (in_compat_syscall())
-> -			ret = compat_get_entries(sock_net(sk), user, len);
-> -		else
-> -#endif
-> -			ret = get_entries(sock_net(sk), user, len);
-> +		ret = get_entries(sock_net(sk), user, len);
->  		break;
->  
->  	case ARPT_SO_GET_REVISION_TARGET: {
-
-[ ... ]
+While in that comment, IP6T_FLAGS_PROTO does not exist anywhere in the
+tree; the macro defined a few lines below is IP6T_F_PROTO.  That name is a
+pre-existing typo and was not introduced by this patch, but it sits in the
+same sentence this change invalidates.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260907171732.1407739-2-pablo%40netfilter.org
