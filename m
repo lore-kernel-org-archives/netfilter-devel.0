@@ -1,41 +1,44 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF895A5138
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Sep 2026 22:52:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06137526AAE;
+	Tue,  8 Sep 2026 23:22:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788907936; cv=none; b=gWoGVaVsr21TU7/AqyWuEF5MKnQhs1xhNvWtW99IlhXwJhAh+KKhU2YOpca9Em4GL6LmPl4QWg78RHSsDUzHirU+mBaB35xy678N7QF89k4jypYpi+nxNopTAyIuRJNMeIzgz8k2F/CIGrj+pfC9bRj3bupy+GuS6xbHZ737ui0=
+	t=1788909734; cv=none; b=nbzfWuwbnDNvBC2KudIhINMfnfAEv9lZVZ7N/GnWiKSHMtGxn6Ye7/EIE6sL8yuvy4MIOqQ9pddAh16ir8ckRk+4MtqzKsHFQ71B5Tnc+lJrrn5yjl0xEGmKexIdnmdcrXogkwXMj4uDDc8SLFj0mDOMTGMpGLQsMo9fP3p49mY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788907936; c=relaxed/simple;
-	bh=RmYr8Gn1uVRbvi7p+2QyyTy/R78KJb9x685VdSJnIxw=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Zy6giXpjCQN0VV7CupggF2j7uTkLBOaHFyzDs9qce7ionQ7aW32cOXN7yP6b+Dv4zVgKkck1t+w8b2LMjK/deCQqikXSLlH+E0uRTDpS1D/O1hmA9cInnfdtwc9lHwTL2gbhQCpTCpKSqjU4IYl+yXqotZNDJuuQ5NREVmKUs4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CT8rzjaU; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1788909734; c=relaxed/simple;
+	bh=U3Ewt1HxqFgezcCs3pkzTUqGDN7qsfm2PWFoGP4/ewI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mR1voU94CVxKfz2Pf2IeQ4HS9uIaRl48Ko3aMVqumk6KtF+twpMT+Nur6dVV9G4WJU8QMHHkwVRj6HmZoXU3D7fA5yh519We6iA6JIN/Gj3kzI0EZjqvv17IPJcFyEfs9vgmbU6IHsZGT5WgbkxLlZ86g4k+jDOdBMvu2cbTkAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qSiCTatc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CT8rzjaU"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qSiCTatc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788907931;
-	bh=yXhPhnZw3xwi+ddTJJKC/Aa2L8HD1BQcTV5aPFKfcRU=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=CT8rzjaUAjsOLIr4UFVc9BExQ+1QjCpajLeCG+3facw5KskCkE9jXSBrPL+PMtnGF
-	 2Jn9B3SNiWoG5aFpgVM4dVbQbvWKkHeYZqKRTTryh37GyG2ySye1xP5ip5W+NpSjkk
-	 cAlIHfFnkY6o3b980plsDSQ4wj8s5aqk+kr4IzES1VXp3wVyRNoXt+L+9ZQjTgnFAF
-	 lgZ4nU+hJ/ERKpNA8+rNTTUndVvwuIeCK9pK4xpWi4LQ8Q5pt59Dto6ucraGvk9ezm
-	 dPvw1hg0BNG+gLAYta9g1JZTHpIax4wvYOjDI6uWr22/VLTv9L5TgCo7qw6zhwihNk
-	 yVMu8Yx/RNWSA==
+	s=2025; t=1788909723;
+	bh=zi9rHuLTECil4aj5OuLg83poLLbvzzRAfIDR4BoBSa4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=qSiCTatcX7lLiJsgCbIHXX3NyPeB/IGasBMyedNbbR/kzUbHkF6Vm8eq3bd2aHD99
+	 VLcg4rMlKQN9w6Lorj4YKivumyPDgov/xHYVVQzyCXD5epYVOua7diDM0ix7ddBWJ0
+	 sPUVskX1hajmg4FSpzwSmio2qaCpO6S8irZ6IlVHB63IRd5fxSkPhPH2jm/5UpSP9y
+	 F/S2pF7Pb1SQ3+lTqr38YV2+nJ3+9hVEz9XhG2SBr4Nr/7ZItlwLtLuBQ4B+CnTDet
+	 IxnpYvE+1PCRIretE12DDJ5wHhQA6Z3/WAtVt4oLM+c/PuVTb0g8jipVLMUH8HIR5R
+	 X9EaIrnzRsemA==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B5D8A606A4
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2026 00:52:11 +0200 (CEST)
-Date: Wed, 9 Sep 2026 00:52:09 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 7B6BD6008E;
+	Wed,  9 Sep 2026 01:22:03 +0200 (CEST)
+Date: Wed, 9 Sep 2026 01:22:01 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: set on this module via struct
- netlink_dump_control
-Message-ID: <aqCRmY8gKdqdrPqE@chamomile>
-References: <20260908221610.1524744-1-pablo@netfilter.org>
+To: Aohan Mei <ljp1205831794@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, phil@nwl.cc,
+	coreteam@netfilter.org, Aohan Mei <henrymei@tencent.com>,
+	TencentOS Corvus AI <corvus@tencent.com>, stable@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: skip expired catchall elements
+ in dedup walk
+Message-ID: <aqCYmZ6_Kc0OqRcR@chamomile>
+References: <20260908123252.1162896-1-ljp1205831794@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,143 +47,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260908221610.1524744-1-pablo@netfilter.org>
+In-Reply-To: <20260908123252.1162896-1-ljp1205831794@gmail.com>
 
-For clarity, I plan to rename this patch subject to before applying.
-
-netfilter: hold reference on module during netlink dump
-
-On Wed, Sep 09, 2026 at 12:16:10AM +0200, Pablo Neira Ayuso wrote:
-> Modules can be removed in the middle of a netlink dump. Set .module to
-> THIS_MODULE in struct netlink_dump_control to hold a reference on the
-> module while netlink dump is in progress.
+On Tue, Sep 08, 2026 at 08:32:47PM +0800, Aohan Mei wrote:
+> From: Aohan Mei <henrymei@tencent.com>
 > 
-> See commit 6dc878a8ca39 ("netlink: add reference of module in
-> netlink_dump_start") which describes this problem.
+> nft_setelem_catchall_insert() looks up duplicates with
+> nft_set_elem_active() only, while nft_set_catchall_lookup() and the
+> dump path additionally skip expired and dead elements.
 > 
-> Fixes: a7b4f989a629 ("netfilter: ipset: IP set core support")
-> Fixes: c1d10adb4a52 ("[NETFILTER]: Add ctnetlink port for nf_conntrack")
-> Fixes: 50978462300f ("netfilter: add cttimeout infrastructure for fine timeout tuning")
-> Fixes: 9413902796f5 ("netfilter: add extended accounting infrastructure over nfnetlink")
-> Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Once a catchall element with a timeout expires, this predicate drift
+> makes it invisible to userspace dumps, yet it still blocks
+> re-insertion: with NLM_F_EXCL the request fails with -EEXIST, and
+> without it the request reports success but silently inserts nothing.
+> The stale entry only goes away when the (user-tunable) gc interval
+> elapses, so the catchall rule may silently stop matching for an
+> arbitrarily long time after its first expiration.
+> 
+> Align the dedup walk with the lookup and dump predicates: only an
+> element that is active, not expired and not dead counts as a
+> duplicate.
+> 
+> Reported-by: TencentOS Corvus AI <corvus@tencent.com>
+> Cc: stable@vger.kernel.org
+> Fixes: aaa31047a6d2 ("netfilter: nftables: add catch-all set element support")
+> Assisted-by: CodeBuddy:Kimi-K3
+> Signed-off-by: Aohan Mei <henrymei@tencent.com>
 > ---
->  net/netfilter/ipset/ip_set_core.c    | 1 +
->  net/netfilter/nf_conntrack_netlink.c | 7 +++++++
->  net/netfilter/nfnetlink_acct.c       | 1 +
->  net/netfilter/nfnetlink_cthelper.c   | 1 +
->  net/netfilter/nfnetlink_cttimeout.c  | 1 +
->  5 files changed, 11 insertions(+)
+>  net/netfilter/nf_tables_api.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 0a86a170ba90..624c5f14acf6 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -1733,6 +1733,7 @@ static int ip_set_dump(struct sk_buff *skb, const struct nfnl_info *info,
->  			.start = ip_set_dump_start,
->  			.dump = ip_set_dump_do,
->  			.done = ip_set_dump_done,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 579ada063b1b..2340885b2076 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1682,6 +1682,7 @@ static int ctnetlink_get_conntrack(struct sk_buff *skb,
->  			.start = ctnetlink_start,
->  			.dump = ctnetlink_dump_table,
->  			.done = ctnetlink_done,
-> +			.module = THIS_MODULE,
->  			.data = (void *)cda,
->  		};
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 765a92fa90d6..6458ee26dcd9 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -6995,7 +6995,9 @@ static int nft_setelem_catchall_insert(const struct net *net,
 >  
-> @@ -1826,6 +1827,7 @@ static int ctnetlink_get_ct_dying(struct sk_buff *skb,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = ctnetlink_dump_dying,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> @@ -1840,6 +1842,7 @@ static int ctnetlink_get_ct_unconfirmed(struct sk_buff *skb,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = ctnetlink_dump_unconfirmed,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> @@ -2555,6 +2558,7 @@ static int ctnetlink_stat_ct_cpu(struct sk_buff *skb,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = ctnetlink_ct_stat_cpu_dump,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> @@ -3278,6 +3282,7 @@ static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
->  		.dump = ctnetlink_exp_ct_dump_table,
->  		.start = ctnetlink_dump_exp_ct_start,
->  		.done = ctnetlink_dump_exp_ct_done,
-> +		.module = THIS_MODULE,
->  	};
->  
->  	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_MASTER,
-> @@ -3327,6 +3332,7 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
->  		else {
->  			struct netlink_dump_control c = {
->  				.dump = ctnetlink_exp_dump_table,
-> +				.module = THIS_MODULE,
->  			};
->  			return netlink_dump_start(info->sk, skb, info->nlh, &c);
+>  	list_for_each_entry(catchall, &set->catchall_list, list) {
+>  		ext = nft_set_elem_ext(set, catchall->elem);
+> -		if (nft_set_elem_active(ext, genmask)) {
+> +		if (nft_set_elem_active(ext, genmask) &&
+> +		    !nft_set_elem_expired(ext) &&
+
+This should be:
+                    __nft_set_elem_expired(ext, tstamp) 
+
+> +		    !nft_set_elem_is_dead(ext)) {
+
+I don't think dead flag is set on for catchall elements?
+
+>  			*priv = catchall->elem;
+>  			return -EEXIST;
 >  		}
-> @@ -3748,6 +3754,7 @@ static int ctnetlink_stat_exp_cpu(struct sk_buff *skb,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = ctnetlink_exp_stat_cpu_dump,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-> index 8ff1e0ad5cb0..39a62bb9a6e6 100644
-> --- a/net/netfilter/nfnetlink_acct.c
-> +++ b/net/netfilter/nfnetlink_acct.c
-> @@ -284,6 +284,7 @@ static int nfnl_acct_get(struct sk_buff *skb, const struct nfnl_info *info,
->  			.dump = nfnl_acct_dump,
->  			.start = nfnl_acct_start,
->  			.done = nfnl_acct_done,
-> +			.module = THIS_MODULE,
->  			.data = (void *)tb[NFACCT_FILTER],
->  		};
->  
-> diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-> index 5b6a09f46903..1331aba007ba 100644
-> --- a/net/netfilter/nfnetlink_cthelper.c
-> +++ b/net/netfilter/nfnetlink_cthelper.c
-> @@ -644,6 +644,7 @@ static int nfnl_cthelper_get(struct sk_buff *skb, const struct nfnl_info *info,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = nfnl_cthelper_dump_table,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
-> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-> index 132c02ac7c4e..29de875d1713 100644
-> --- a/net/netfilter/nfnetlink_cttimeout.c
-> +++ b/net/netfilter/nfnetlink_cttimeout.c
-> @@ -277,6 +277,7 @@ static int cttimeout_get_timeout(struct sk_buff *skb,
->  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
->  		struct netlink_dump_control c = {
->  			.dump = ctnl_timeout_dump,
-> +			.module = THIS_MODULE,
->  		};
->  		return netlink_dump_start(info->sk, skb, info->nlh, &c);
->  	}
 > -- 
-> 2.47.3
+> 2.43.7
 > 
 > 
