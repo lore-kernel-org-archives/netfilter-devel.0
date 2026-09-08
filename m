@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EBBD59D61B;
-	Tue,  8 Sep 2026 18:04:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B9359B680;
+	Tue,  8 Sep 2026 18:04:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788890644; cv=none; b=l89GlkQ5SkDNVHBf4ZlZcOgA6q8uEqfsjnzOxv978q/I1Hbc/Cp3HCxMMmLSVR3J9FBs/QHrbnwnG+zdcyZ5P4dVU9Mg2oy3UC9lDc9+7172N0MHS4iiSiGwxRMU/EvT8eVoQf2NxyUA867yBuk2VbFoY5+DZ1bpaL6FwhRbdU4=
+	t=1788890645; cv=none; b=lC+F2L20gETRaC91jFmjz+qDo0QfmHQ/6UaYZxVNlcijsqvlFRATnkVXwe7ZOS8vNG1LIw77oGIffo21mSoCyXgusTWN+JOhVhmXhD/82uG5HIMSjeeC3YIWU1fqYGQtaZwZxppShFIP4545Qzqia9F/0UTlqsvWTqgmiaZP/Tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788890644; c=relaxed/simple;
-	bh=ZBk6B19vG9Sra1Av/g7R6wy2+3dvzFq+xH3DUEo5cuU=;
+	s=arc-20240116; t=1788890645; c=relaxed/simple;
+	bh=Ctd1KS+4jf7JMt3sCdm3ZYVsTiwXj1II+3wdUH/wZpA=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=uxohD5chlBWHFFyQlLvsDUi275S0gFmx2t9+qPR0g04st1UnwpYoyPvkTZX2dFcrXEKocxIKxRgjIyxMtrva2lU0fPYgn6TYD7ayIa0WA38diBjmG9FLp3ytfv/qNBwKyMAuVLGAEwsBBwIEejml0RGpuFH2z9ASGhTKYBe5wL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SIsUTFeh; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=Q1WfvOfL/tp8w+Go0B9AMudCbVg7BGQCKjaHJ7+tR01Hldy9IXxsqr1WpmCpBXuuya67kitUXNQ5iPNvdEtgVcm2y4LVpfNJ1HR77YqQTGcOjRcDxPZ0qz62BfDQ7HLF07uAcbCjjfLd/v98TwWprgJZP+90UKq8Trpb7aoqKXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gzzWEl04; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SIsUTFeh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B4101F00A3A;
-	Tue,  8 Sep 2026 18:04:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gzzWEl04"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5288B1F00A3D;
+	Tue,  8 Sep 2026 18:04:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788890642;
-	bh=H7s4JtONqF4Pi0x8N4keB4JODkU+W2Qd9K/O5CFwllI=;
+	s=k20260515; t=1788890643;
+	bh=buhByO91OPmUw3TQNbYRrcJuDVj7u7MVKgqm1Neb8Pw=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=SIsUTFehconGAovaJq3arO64Ey8DGO0M+qD/r3tMKXYxGSwPA89eUpytlK6EK4uIM
-	 KFTRSAq0IoGBshGdMpM1alLx4xT5U+8pSGtWLj+rx9ojrCMLfEuRLI1NdHgWOy62ki
-	 v6KsWidS1PstPJYh/sCSgYS3WY8Oh4N4EzBiWCFb0A8mJ04J1S4OBu5yr5to4CIyB8
-	 pQInpH79Q8tRfW+jN/UjTwfOKRYU2GnBtA/Ab/9XbiJSqaH7LItJVjyqKiVdhRlixw
-	 jDJQOwqfVEN18RN1exxhsrrBdv4pH0EETs6IKY8OOYGoXwF627ACAyyTBOEKBZo90S
-	 ASi66/zxqQFrw==
+	b=gzzWEl04lr2hm75tAH8xRjdei7lSGGPC2tLhYrmF8FeqWgdyYgeOLzcyIlZcNeTOQ
+	 WhPXDbLm+VArnPBCCnDW8BS5AY2YupzxRKSz4314Ly4LNKZcYhrwSjoEWZ+MUvY8yQ
+	 H+YXNxJhqvD3VUrCzpchYIoDtfNl6kUxF2GtpTXXlEd1I5F2nrz5GdeblNCK9Ko7Zj
+	 GCv3K2lkgUVHmJEwenF9FziFYYgkMKco1F7GqrkuYYnSFpl8bVY3a/vlGQNnPPA7NB
+	 bOBoYFCXH86hC33+HyvJYH2NFVb90CoRC1ExII/uMGVEM8xg3mbF8N8EaZPwiL3Yns
+	 Et+usJ7e06uDw==
 Subject:
- Re: [PATCH net 4/9] netfilter: cttimeout: prevent UAF during module unload
+ Re: [PATCH net 7/9] netfilter: arp_tables: remove the 32bit compat interface
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 08 Sep 2026 18:04:01 +0000
-Message-ID: <178889064168.219967.15151233151602486944@kernel.org>
-In-Reply-To: <20260907171732.1407739-5-pablo@netfilter.org>
-References: <20260907171732.1407739-5-pablo@netfilter.org>
-X-sashiko-severity: High
+Date: Tue, 08 Sep 2026 18:04:02 +0000
+Message-ID: <178889064289.219967.7333044974025476861@kernel.org>
+In-Reply-To: <20260907171732.1407739-8-pablo@netfilter.org>
+References: <20260907171732.1407739-8-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -50,94 +50,158 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Critical: 0 · High: 0 · Medium: 0 · Low: 1
 
-- [High] cttimeout_exit() only drains RCU readers that reach the per-net
-  timeout storage through nf_ct_timeout_hook.
+- [Low] The arptables 32-bit compat interface is only partially removed.
 
 --
 
-netfilter: cttimeout: prevent UAF during module unload
+netfilter: arp_tables: remove the 32bit compat interface
 
-This reorders cttimeout_exit() so that nf_ct_timeout_hook is cleared and
-synchronize_net() is called before unregister_pernet_subsys() frees the
-per-net timeout storage.  That closes the window where nf_ct_set_timeout()
-could still reach the freed nfct_timeout_pernet blob through the hook.
+This removes all arptables-specific 32-bit compat translation code from
+net/ipv4/netfilter/arp_tables.c, drops struct compat_arpt_entry and its
+accessor from include/linux/netfilter_arp/arp_tables.h, and updates the
+NETFILTER_XTABLES_COMPAT help text to no longer mention arp.
 
-> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-> index 66c2016f6049d..132c02ac7c4ea 100644
-> --- a/net/netfilter/nfnetlink_cttimeout.c
-> +++ b/net/netfilter/nfnetlink_cttimeout.c
-> @@ -652,9 +652,9 @@ static void __exit cttimeout_exit(void)
->  {
->  	nfnetlink_subsys_unregister(&cttimeout_subsys);
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index a87e07e80d0de..db307fa49f3f6 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+
+[ ... ]
+
+> @@ -811,23 +736,11 @@ static int get_info(struct net *net, void __user *user, const int *len)
+>  		return -EFAULT;
 >  
-> -	unregister_pernet_subsys(&cttimeout_ops);
->  	RCU_INIT_POINTER(nf_ct_timeout_hook, NULL);
->  	synchronize_net();
-> +	unregister_pernet_subsys(&cttimeout_ops);
->  }
+>  	name[XT_TABLE_MAXNAMELEN-1] = '\0';
+> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+> -	if (in_compat_syscall())
+> -		xt_compat_lock(NFPROTO_ARP);
+> -#endif
+>  	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
+>  	if (!IS_ERR(t)) {
+>  		struct arpt_getinfo info;
+>  		const struct xt_table_info *private = t->private;
+> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+> -		struct xt_table_info tmp;
+>  
+> -		if (in_compat_syscall()) {
+> -			ret = compat_table_info(private, &tmp);
+> -			xt_compat_flush_offsets(NFPROTO_ARP);
+> -			private = &tmp;
+> -		}
+> -#endif
+>  		memset(&info, 0, sizeof(info));
+>  		info.valid_hooks = t->valid_hooks;
+>  		memcpy(info.hook_entry, private->hook_entry,
 
-[Severity: High]
-Does this leave the same per-net object reachable from the netlink dump
-path during unload?
+[ ... ]
 
-cttimeout_get_timeout() starts the dump without a module reference:
+> @@ -1432,12 +981,7 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, sockptr_t arg,
+>  
+>  	switch (cmd) {
+>  	case ARPT_SO_SET_REPLACE:
+> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+> -		if (in_compat_syscall())
+> -			ret = compat_do_replace(sock_net(sk), arg, len);
+> -		else
+> -#endif
+> -			ret = do_replace(sock_net(sk), arg, len);
+> +		ret = do_replace(sock_net(sk), arg, len);
+>  		break;
+>  
+>  	case ARPT_SO_SET_ADD_COUNTERS:
 
-net/netfilter/nfnetlink_cttimeout.c:cttimeout_get_timeout() {
-	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
-		struct netlink_dump_control c = {
-			.dump = ctnl_timeout_dump,
-		};
-		return netlink_dump_start(info->sk, skb, info->nlh, &c);
-	}
+[Severity: Low]
 
-With no .module set, __netlink_dump_start()'s try_module_get(control->module)
-is try_module_get(NULL), which succeeds without taking anything, and
-cb->module stays NULL.  nf_tables_api.c and nfnetlink_hook.c pass
-.module = THIS_MODULE in their netlink_dump_control for comparison.
+Should the two arptables ctl handlers also stop accepting compat callers?
+Both do_arpt_set_ctl() and do_arpt_get_ctl() still start with:
 
-ctnl_timeout_dump() reads the per-net blob that unregister_pernet_subsys()
-frees, and it is not gated by nf_ct_timeout_hook:
+	if (!xt_compat_check())
+		return -EPERM;
 
-net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_dump() {
-	rcu_read_lock();
-	pernet = nfct_timeout_pernet(net);
-	list_for_each_entry_rcu(cur, &pernet->nfct_timeout_list, head) {
+and that helper intentionally lets 32-bit callers continue when
+CONFIG_NETFILTER_XTABLES_COMPAT is set:
 
-Is the following sequence possible?
+include/linux/netfilter/x_tables.h:xt_compat_check() {
+	if (!in_compat_syscall())
+		return true;
 
-1. IPCTNL_MSG_TIMEOUT_NEW creates one policy; cttimeout_new_timeout() does
-   __module_get(THIS_MODULE).
-2. A NLM_F_DUMP IPCTNL_MSG_TIMEOUT_GET parks the dump: with one entry
-   present ctnl_timeout_dump() returns skb->len > 0, netlink_dump() queues
-   the skb and leaves nlk->cb_running set with cb->dump =
-   ctnl_timeout_dump.
-3. IPCTNL_MSG_TIMEOUT_DELETE removes the policy, and ctnl_timeout_del()
-   does module_put(THIS_MODULE), so the module refcount is back to zero
-   while the dump is still parked.
-4. rmmod runs cttimeout_exit().  The synchronize_rcu() inside
-   nfnetlink_subsys_unregister() and the new synchronize_net() only wait
-   for RCU read-side sections, and a parked dump is not in one, so
-   unregister_pernet_subsys() frees the nfct_timeout_pernet allocation and
-   the module text goes away.
-5. The next recvmsg() on that netlink socket resumes the dump:
+	pr_warn_once("%s %s\n",
+		     "xtables 32bit compat interface no longer supported",
+		     "in namespaces and will be removed soon.");
 
-net/netlink/af_netlink.c:netlink_recvmsg() {
-	if (READ_ONCE(nlk->cb_running) &&
-	    atomic_read(&sk->sk_rmem_alloc) <= sk->sk_rcvbuf / 2) {
-		ret = netlink_dump(sk, false);
+	if (!capable(CAP_NET_ADMIN))
+		return false;
+#endif
+	return true;
+}
 
-which is an indirect call through cb->dump into freed module text, and
-then a read of the freed pernet->nfct_timeout_list.
+So a 32-bit task with CAP_NET_ADMIN now falls straight into the native
+handlers, which gives three different behaviours:
 
-Should the dump control also carry .module = THIS_MODULE so the parked
-dump pins the module across the unload, given the commit is aimed at the
-same freed nfct_timeout_pernet object during module unload?
+ARPT_SO_GET_INFO succeeds and copies out the native xt_table_info values,
+since the compat_table_info() rescaling above is gone:
 
-Note that a dump over an empty policy list does not park: ctnl_timeout_dump()
-returns 0 there and netlink_dump() finishes the dump immediately, so the
-create/park/delete order above is what makes it reproducible.
+		memcpy(info.hook_entry, private->hook_entry,
+		       sizeof(info.hook_entry));
+		memcpy(info.underflow, private->underflow,
+		       sizeof(info.underflow));
+		info.num_entries = private->number;
+		info.size = private->size;
+
+Are those offsets and size still meaningful to a caller that will walk them
+using the 32-bit struct arpt_entry layout?
+
+ARPT_SO_SET_REPLACE and ARPT_SO_GET_ENTRIES end up failing with -EINVAL
+purely as a side effect of header size arithmetic in do_replace() and
+get_entries() (76 vs 80 bytes for the replace header, 36 + size vs
+40 + size for the get_entries header) rather than a defined unsupported
+error.  Would an explicit rejection be clearer here, for example:
+
+	if (in_compat_syscall())
+		return -EOPNOTSUPP;
+
+ARPT_SO_SET_ADD_COUNTERS keeps a working 32-bit ABI, because
+do_add_counters() -> xt_copy_counters() still carries its own compat branch
+that converts compat_xt_counters_info for every family, NFPROTO_ARP
+included:
+
+net/netfilter/x_tables.c:xt_copy_counters() {
+#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+	if (in_compat_syscall()) {
+		/* structures only differ in size due to alignment */
+		struct compat_xt_counters_info compat_tmp;
+	...
+}
+
+Does "remove the 32bit compat interface" then hold for that sockopt?  If
+leaving the shared counter path compat-capable until the other three
+flavors are converted is intended, could the commit message say so?
+
+One more asymmetry: the ip_tables, ip6_tables and ebtables ctl handlers
+still branch on in_compat_syscall() after the same xt_compat_check() call,
+so the shared helper now means "translate" for those flavors and "warn,
+then run the native path" for arptables.  Along the same lines, a 32-bit
+task without CAP_NET_ADMIN now gets -EPERM plus a warning about a compat
+interface that no longer exists for this flavor.
+
+> @@ -1466,12 +1010,7 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+>  		break;
+>  
+>  	case ARPT_SO_GET_ENTRIES:
+> -#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+> -		if (in_compat_syscall())
+> -			ret = compat_get_entries(sock_net(sk), user, len);
+> -		else
+> -#endif
+> -			ret = get_entries(sock_net(sk), user, len);
+> +		ret = get_entries(sock_net(sk), user, len);
+>  		break;
+>  
+>  	case ARPT_SO_GET_REVISION_TARGET: {
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260907171732.1407739-2-pablo%40netfilter.org
