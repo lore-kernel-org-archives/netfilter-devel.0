@@ -1,46 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25271492E35
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2026 00:34:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EE815695;
+	Wed,  9 Sep 2026 00:52:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788914048; cv=none; b=oHy1Lu6rIjg7+HVE1gkNmQLlTo5ZbfdORHX57PNc60M4PdMuWwAsknUaLMqZh7QXOUGMn6wkzNIxbi8mjevIVBju/4H3ocLkNSdxDQCy6V7Jp8yKYbNBp03yvfl5Gbdnn3bG44h2eJw/YC6EuuA2L0rOw0Ei2q/8BrEKlKSaA1U=
+	t=1788915148; cv=none; b=VZcqHDxa/hQ4LWSIPL/6NQXWEBGHekgCCanq2W+sFqLjChwyCErnt3GVigEYwbwpGFhCh5dQxL7Gog4hg6jS/dwLVx9eDp8Gcf6qGSCn410+qH2n2OmuPl6egGuMRxHV+4b8R/JmrigLWeF8v+E3ZSx/1+5CQHLvsSuC2LmwKbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788914048; c=relaxed/simple;
-	bh=7vFbFVExogiZDgMXxFawmHinnL5ylrVDBmYXfL4VR5w=;
+	s=arc-20240116; t=1788915148; c=relaxed/simple;
+	bh=Drg/l6eNiJdS6WrlfQrpnPJ76x1G5CGd7qHtm5jtorQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pAIWtYCpUs8E3UtpCJcunkJ4FPXaK5muwCkmjv9CVY4CAruj9aePOGN2Sn1Ng6LUaCCio145KQEFOVi48EmR9b5bGhSEoxnsY8HDojgAVLu1NQj2drEVUbRypDZbNIITJA8QrXfSHFyf/wBO9dJX20H8FXlrqP31FbPPXHtADGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PICoCU1v; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=bCSYCD3yqXXzbUuBdoemde6r9ps8JB7Uihb1Ecq+O/bWwbtW09f4dn/oAJrAkxNpLAKaD5o1Fvo92HxTv1LzefXoxxk4vdDDhegUGVd2UaDqC5RcIXd2emXxVEoQmxRoVOP7UwGQOguao2upxhuxTzK7TCQkafph86VeQ4v+FIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JyPVbB8s; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PICoCU1v"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JyPVbB8s"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1788914044;
-	bh=cX71tHeHMsSQNid3GR0olVpDxLx/poWhRTF3U8bcmKA=;
+	s=2025; t=1788915144;
+	bh=PdGrfA7zAJp8SMGp43M+kuZoPzHGQOyKC+mFwVh5MdE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PICoCU1vjuANA8iAS7HEdEmgFeqkZ50sWFReC24+nd6G4Al5NygM/ImHUD3lVELAt
-	 +uAIBiylwm3fGrjFn37c+5JqnQubVlTHpKk5p9q4VZ3vGVFufDnE+s+sQMkbcrvSSI
-	 fm6htTT/mHBygi4R26MvUNNwwsKVnUVDchovzgNvvNt6uzpGg0a4TMs0qk6ihfx8z7
-	 pcvaBTX+STCDyniR217C5LHClVkjD4p8daAMTwnehBT4yRsnYv61cJJ7R01Ru8TOSD
-	 DnIi22EMCS1Kq/3XI3u14+27GWWGewUVDY5PvVTFp04e3YxOgoQGKEZhceYu5K0p1d
-	 BFOOzCtJteseA==
+	b=JyPVbB8sokRxp9wH5rtHPwiP5BmZGjxP4vvpGtrxjWYPSXDJMdBGwcvgvtua7g3w1
+	 fpHSFbq4X473mFXMC8BRQugNouEwQ0pTo+BlwdQsaJCBph5qKMk8awXinvVgoZAzRm
+	 MQnIJ96RUHRjz+XLfW+MtDt1Saf2g0A8wJgG7I9pO7mUBaRt1JXLip1T0SNHMYv9GE
+	 3H6f+gV7MPAheRxGENC+/u9NEBM3GWRTZDLhuU2M8OrXUiTPnhoj7mDr8J32LM+tUY
+	 UJkVOo8L0ayfZQsBzckOUMkC3o/sNrR7XOnmHIZcG7hU2s8flBvS4pGMFFmQAsKKoS
+	 gEnATSwN37UQQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 29D7B607CD;
-	Wed,  9 Sep 2026 02:34:04 +0200 (CEST)
-Date: Wed, 9 Sep 2026 02:34:01 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 770C16017D;
+	Wed,  9 Sep 2026 02:52:24 +0200 (CEST)
+Date: Wed, 9 Sep 2026 02:52:22 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH v3] netfilter: nfnetlink: Fix for interrupted hook
- dumps
-Message-ID: <aqCpea5w45dXZ3p1@chamomile>
-References: <20260904125215.1272252-1-phil@nwl.cc>
- <ap8AQ1DCUET8Ggkd@chamomile>
- <ap_T9yc-1IP0SPXs@orbyte.nwl.cc>
- <aqACYYwn1pYp735Z@chamomile>
- <aqAUL70ynrF6cT0G@orbyte.nwl.cc>
+To: Zihan Xi <zihanx@nebusec.ai>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf 0/1] netfilter: x_tables: avoid holding mutex over
+ faultable user copies
+Message-ID: <aqCtxhu5Av_RLtY8@chamomile>
+References: <cover.1788244146.git.zihanx@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,90 +51,26 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aqAUL70ynrF6cT0G@orbyte.nwl.cc>
+In-Reply-To: <cover.1788244146.git.zihanx@nebusec.ai>
 
-On Tue, Sep 08, 2026 at 03:57:03PM +0200, Phil Sutter wrote:
-> On Tue, Sep 08, 2026 at 02:41:05PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Sep 08, 2026 at 11:23:03AM +0200, Phil Sutter wrote:
-> > > Hi Pablo,
-> > > 
-> > > On Mon, Sep 07, 2026 at 08:19:47PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Fri, Sep 04, 2026 at 02:52:15PM +0200, Phil Sutter wrote:
-> > > > > @@ -338,27 +337,47 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
-> > > > >  }
-> > > > >  
-> > > > >  static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
-> > > > > -			      const struct nfnl_dump_hook_data *ctx,
-> > > > > -			      const struct nf_hook_ops *ops,
-> > > > > -			      int family, unsigned int seq)
-> > > > > +			      struct netlink_callback *cb,
-> > > > > +			      const struct nf_hook_ops *ops, int family)
-> > > > >  {
-> > > > >  	struct nf_nat_lookup_hook_priv *priv = ops->priv;
-> > > > > -	struct nf_hook_entries *e = rcu_dereference(priv->entries);
-> > > > > +	struct nfnl_dump_hook_data *ctx = cb->data;
-> > > > > +	struct net *net = sock_net(nlskb->sk);
-> > > > >  	struct nf_hook_ops **nat_ops;
-> > > > > -	int i, err;
-> > > > > +	unsigned int i = cb->args[1];
-> > > > > +	struct nf_hook_entries *e;
-> > > > > +	unsigned int base_seq;
-> > > > > +	int err = 0;
-> > > > >  
-> > > > > +	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
-> > > > 
-> > > > Maybe annnotate this base sequence in the .start via:
-> > > > 
-> > > > struct netlink_dump_control c = {
-> > > >         .start = ...;
-> > > > 
-> > > > We should probably start doing this in other nfnetlink subsystems too.
-> > > > 
-> > > > This will help catch an interference between two netlink recv() calls
-> > > > which results in calling netlink_dump() which calls this function.
-> > > 
-> > > I do not comprehend, sorry. The concurrent hook dumps have distinct cb
-> > > buffers and net->nf.{nat_,}hook_base_seq is shared but read-only. How
-> > > does the problematic interference happen?
-> > 
-> > See nf_tables_dump_rules_start() for instance. It allocates the struct
-> > nft_rule_dump_ctx, which is reachable through .start, .dump and .done
-> > callbacks. I think it should be possible to annotate the current
-> > base_seq at the beginning of the netlink dump from .start in a ctx
-> > object. Then, use it from .dump to check if dump is consistent (ie.
-> > turn on the NLM_F_DUMP_INTR flag).
-> > 
-> > So, instead of fetching the current sequence from .dump like this:
-> > 
-> >         cb->seq = nft_base_seq(net);
-> > 
-> > Use the sequence available in the new ctx object, ie. from .dump path
-> > you do this:
-> > 
-> >         cb->seq = ctx->seq;
+On Tue, Sep 01, 2026 at 01:47:53PM +0000, Zihan Xi wrote:
+[...]
+> Reproducer:
 > 
-> But to detect a concurrent hook update between to .dump callback calls
-> (if skb space was exceeded), the current value in per-net data has to
-> be fetched, no? So this would have to look like this in .dump callback:
+> The following files must be saved with these exact names in one directory.
+> The commands below build all helpers and run the FUSE/user-namespace path.
+> The FUSE helper binary is named poc-userns-trig so the hung-task comm
+> matches the crash log. The captured panic is hung_task after that task
+> blocked for more than 10 seconds, and then khungtaskd panics because
+> hung_task_panic=1. A 10-second timeout alone only warns; it does not
+> panic. The tested guest enabled panic on the kernel command line with
+> hung_task_panic=1 hung_task_timeout_secs=10
+> hung_task_check_interval_secs=10 panic=-1. poc.sh, poc-userns-trig and
+> poc.c also write these sysctls when they are writable:
 > 
-> | ctx->seq = nft_base_seq(net);
-> | cb->seq = ctx->seq;
-> 
-> Then I don't get the detour via struct nfnl_dump_hook_data. Or is it
-> possible we get multiple concurrent dump requests on the same netlink
-> socket and thus cb->seq (and cb->prev_seq) gets shared between them?
-> 
-> > Because netlink_dump() is called for each userspace recv() call (netlink
-> > delivers the chunked listing in several messages), this would allow
-> > userspace to know that the listing is inconsistent, then optionally
-> > retry.
-> > 
-> > Makes sense to you?
-> 
-> Not quite, sorry.
+>     echo 10 > /proc/sys/kernel/hung_task_timeout_secs
+>     echo 10 > /proc/sys/kernel/hung_task_check_interval_secs
+>     echo 10 > /proc/sys/kernel/hung_task_warnings
+>     echo 1 > /proc/sys/kernel/hung_task_panic
 
-Right, I got confused by the LLM report.
-
-Should be postpone bumping the seq also after array has been shrunk as
-LLM suggest in the remove path? For consistency with the insert
-operations, just bump sequence _after_ the datastructure update.
+This configuration does not look sensible to me.
