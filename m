@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 641F93914FF;
-	Wed,  9 Sep 2026 18:32:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1AE2379C46;
+	Wed,  9 Sep 2026 18:52:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788978766; cv=none; b=XiyJ/TywOJpeaGto2aWt5I6JZNq6rhJa0juax9xWpKfZiD2oJ5yuJHeBGAQUabWV6Kt/VNsCgbXoXxEYi0f6x76tWOgWE8xPqU8MYuIZxuUDrv1bmCJznGTjBBkIs/R3chdMyna895MD6k7JDbyCYfdrFa7XSGs4HHOhUPzioTo=
+	t=1788979937; cv=none; b=UnC5dn567z9LpdCc0dT99kOAixs66f2ziRvkvcH+5iaFdbyAfVgrh/0xjUBsJl7+uObik+SsWhyabR7nZt4DqK84hG2krhN3VO42SqiHxWnMJ13e/iu0alnkCb6UnfnIbhaMnGgxIl6URcfKFPIZYsszPB8IId5pkHqPtpeMI8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788978766; c=relaxed/simple;
-	bh=UyA4gwJfNBtYA72mFz5c1xNj6vmnsqYQs1s1F0ZHQvo=;
+	s=arc-20240116; t=1788979937; c=relaxed/simple;
+	bh=lqj4FvGFlEJ5FuacsuDuZx4Ha1Iy7mqTj5ytXSOg6PY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TCgizkLaP58X1nQC6yy/h1WyJdm9v/dEEogGEIR8CPTJwSwRw5lZrx0gp+omhEexmOC40ub517ZNhyZbEmMBh9LIBOdeMQ4RSEQz+l0n9B2O7MZmxfIfTwC7kLXaFEAilED3Hsf5QHtDcgtvH5W2Es89tHUAS0q9YoHLKbKIHSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K3FYq64m; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=hnD7T9QqYUeM/kNnb4J5BQPT9MGH5jAxmUu4WyVe/6Ifd1noQV7W1Fpwy4bdbHKYW+bqCbLhmN3uCL8t0pQmKC8J7ukXBVyYWAmZCVRr5700RBvIoo6RS9Lz8wQRy0UBgggHKAK5IT2WqqwD9YnJmLVdTiYJ9fQMo+69YuZfA4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FHidKaRV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K3FYq64m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 863091F000FF;
-	Wed,  9 Sep 2026 18:32:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FHidKaRV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58D201F000FF;
+	Wed,  9 Sep 2026 18:52:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788978765;
-	bh=HiSTiY4oBPBZl2QbXfv+J4fnrrSwcXXY5KIB8y912DA=;
+	s=k20260515; t=1788979936;
+	bh=JhBrkPGbWgGAvtAaMe0LAPoWBvMekSbbVmJYCuZJDIA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=K3FYq64mJdHOqsEEAK8pnGGzjfSFc5jNwDL02w4hp1WQVwJpNqukKoA5YsFCmKpAE
-	 HY9d71MKnz0XIvZdBe3R10joRit5JCommqzvi986cIwrGLW/1J+e7K6OrRMbUNuJtr
-	 440Wl1ol8pQ7YgbiTz8CGMk2w8A/xzgKh6yvXd0bCgTX0zLrzS891rhAMIeJW/n6C4
-	 38azY53pe+v1bmXHJ+TQZIWCyX1Foa6aapZYOs0PU5LRBO0vsEe6ul1ES83ExYUZqZ
-	 eC70jqY4/HoB/QVVewHrfB+1kssNdn5TU581ibvTa5wCjAIy2i96SvIoDCABTnl473
-	 Z1R3DWgO936TA==
+	b=FHidKaRVG0lBtroCYLJx4dBPD8Jm/R7V6jy35zSv8VH2mDi/7OxFa1rthVqCT9v4S
+	 mnjj7dlhckRZSvvbHhI+24akZn41hc+cTVIWCZ6geLY9A2eJqlcaSicmjuMtzPEtWu
+	 n2c47jh5EoTh07kngeuPi6F9KJUhjMKeRlkQKGFmluPsTr0BugVdQh+4euSEg7sER+
+	 /8XigF7tJ7Lu3/QugFjcMtJQNwcWYhUz7PBt+AdU1QeFty4DfgOlGC3DMjd8f9cvpL
+	 Ju6sGhfzRMh+6v8pzqL30k/daKuHlSLTgAk1h8zorJL5/93fVg1d72TujuSVwDH6OK
+	 2yVrp9ib0nuYQ==
 Subject:
- Re: [PATCH] netfilter: nf_conntrack_h323: fix OOB read in decode_enum()
+ Re: [PATCH nf] netfilter: ip6t_rpfilter: handle routes without inet6_dev
 From: netdev-bot+sashiko@kernel.org
-To: elb12345@hotmail.co.uk
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+To: bestswngs@gmail.com
+Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, stable@vger.kernel.org, kuba@kernel.org
-Date: Wed, 09 Sep 2026 18:32:44 +0000
-Message-ID: <178897876404.219967.5503826011910199741@kernel.org>
-In-Reply-To: =?utf-8?q?=3CAS8P251MB00011EEAA381DC17852BA37CC8B22=40AS8P251MB?=
- =?utf-8?q?0001=2EEURP251=2EPROD=2EOUTLOOK=2ECOM=3E?=
-References: =?utf-8?q?=3CAS8P251MB00011EEAA381DC17852BA37CC8B22=40AS8P251MB0?=
- =?utf-8?q?001=2EEURP251=2EPROD=2EOUTLOOK=2ECOM=3E?=
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ co+459f67f4d8af8ce6@bugs.sh, xmei5@asu.edu
+Date: Wed, 09 Sep 2026 18:52:14 +0000
+Message-ID: <178897993484.219967.3278656276914447043@kernel.org>
+In-Reply-To: <20260906034939.3746540-1-bestswngs@gmail.com>
+References: <20260906034939.3746540-1-bestswngs@gmail.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -54,89 +54,119 @@ issue(s) to consider:
 
 Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Medium] get_bitmap() dereferences one byte more than
-  nf_h323_error_boundary() validates whenever l = bs->bit + b is an…
+- [Medium] net/ipv6/netfilter/ip6t_rpfilter.c:rpfilter_lookup_reverse6()
+  now makes strict-mode matching depend on the presence of an optional…
 
 --
 
-netfilter: nf_conntrack_h323: fix OOB read in decode_enum()
+netfilter: ip6t_rpfilter: handle routes without inet6_dev
 
-This adds a nf_h323_error_boundary(bs, 0, 1) check in decode_enum() before
-the extension marker bit is read with get_bit(), matching what decode_seq()
-and decode_choice() already do.  Without it, a truncated H.323 message can
-cause a one-byte read past bs->end.
+This reorders rpfilter_lookup_reverse6() so loose mode is evaluated before
+touching rt->rt6i_idev, and adds a NULL check on rt6i_idev before the strict
+mode device comparison.  The stated trigger is a route using an external
+nexthop object whose device lost its inet6_dev.
 
-> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-> index 6830c9da3507c..ba6ce1f04e1ed 100644
-> --- a/net/netfilter/nf_conntrack_h323_asn1.c
-> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
-> @@ -363,6 +363,8 @@ static int decode_enum(struct bitstr *bs, const struct field_t *f,
->  {
->  	PRINT("%*s%s\n", level * TAB_SIZE, " ", f->name);
+Closes: https://lore.kernel.org/all/VtWUkE8QzJt5CroTj2V2v3ZQ0gwbXZ7nq7I3@bugs.sh/
+
+> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+> index 67c87a88cde4f..2bcc96f9385cb 100644
+> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
+> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+> @@ -72,9 +72,11 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+>  		goto out;
+>  	}
 >  
-> +	if (nf_h323_error_boundary(bs, 0, 1))
-> +		return H323_ERROR_BOUND;
->  	if ((f->attr & EXT) && get_bit(bs)) {
->  		INC_BITS(bs, 7);
->  	} else {
+> -	if (rt->rt6i_idev->dev == dev ||
+> -	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
+> -	    (flags & XT_RPFILTER_LOOSE))
+> +	if (flags & XT_RPFILTER_LOOSE)
+> +		ret = true;
+> +	else if (rt->rt6i_idev &&
+> +		 (rt->rt6i_idev->dev == dev ||
+> +		  l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex))
+>  		ret = true;
 
 [Severity: Medium]
-The check added here closes the decode_enum() case, but does the same
-one-byte over-read remain reachable through get_bitmap()?
+Should the strict-mode comparison use the route's nexthop device instead of
+rt6i_idev?  With this form, strict mode returns no-match for exactly the
+routes the commit message describes, i.e. those whose device has no
+inet6_dev, even when the packet did arrive on that device.
 
-nf_h323_error_boundary() only rounds up when there is a partial byte:
+rt6i_idev is filled in best-effort in ip6_rt_copy_init():
 
-	bits += bs->bit;
-	bytes += bits / BITS_PER_BYTE;
-	if (bits % BITS_PER_BYTE > 0)
-		bytes++;
+net/ipv6/route.c:ip6_rt_copy_init() {
+	...
+	rt->rt6i_idev = dev ? in6_dev_get(dev) : NULL;
+	...
+}
 
-	if (bs->cur + bytes > bs->end)
-		return 1;
+while the device itself is always present on the returned route, since
+ip6_create_rt_rcu() allocates it from res->nh->fib_nh_dev:
 
-So for bits + bs->bit == 16 it only requires bs->cur + 2 <= bs->end.
+net/ipv6/route.c:ip6_create_rt_rcu() {
+	struct net_device *dev = res->nh->fib_nh_dev;
+	...
+	nrt = ip6_dst_alloc(dev_net(dev), dev, flags);
+	...
+}
 
-get_bitmap() with l == bs->bit + b == 16 consumes two bytes in the loop and
-then dereferences a third:
+Would comparing rt->dst.dev keep the strict-mode contract and make the NULL
+guard unnecessary?
 
-	for (bytes = l >> 3, shift = 24, v = 0; bytes;
-	     bytes--, shift -= 8)
-		v |= (unsigned int)(*bs->cur++) << shift;
+Does this also make the two in-tree implementations of the same reverse path
+semantics disagree?  nft_fib_ipv6.c derives the device from the fib6
+nexthops and never looks at rt6i_idev:
 
-	if (l < 32) {
-		v |= (unsigned int)(*bs->cur) << shift;
-		v <<= bs->bit;
-	}
+net/ipv6/netfilter/nft_fib_ipv6.c:nft_fib6_info_nh_dev_match() {
+	return nh_dev == dev ||
+	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
+}
 
-The third byte is at bs->end.  The same holds for l == 24, where the loop
-reads three bytes and the l < 32 branch reads a fourth.
+and the IPv4 half of the same match does the same thing:
 
-The width is attacker controlled at the extension bitmap in decode_seq():
+net/ipv4/netfilter/ipt_rpfilter.c:rpfilter_lookup_reverse() {
+	...
+	return fib_info_nh_uses_dev(res.fi, dev) || flags & XT_RPFILTER_LOOSE;
+}
 
-	bmp2_len = get_bits(bs, 7) + 1;
-	if (nf_h323_error_boundary(bs, 0, bmp2_len))
-		return H323_ERROR_BOUND;
-	if (bmp2_len > 32)
-		return H323_ERROR_RANGE;
-	bmp2 = get_bitmap(bs, bmp2_len);
+So for one topology, nft fib saddr . iif oif would still match while
+iptables -m rpfilter in strict mode would not, and the common
+-m rpfilter --invert -j DROP rule would then drop the packet.
 
-Picking bmp2_len = 16 - bs->bit keeps bmp2_len within 1..32 while making l
-exactly 16, so the boundary check asks for two remaining bytes and
-get_bitmap() touches a third.  The earlier bmp = get_bitmap(bs, f->sz) call
-in decode_seq() has the same property whenever bs->bit + f->sz is 16 or 24,
-with the width coming from the static field table.
+Two paths where the verdict looks like it changes rather than staying
+incidentally the same:
 
-The stray byte is masked off afterwards by:
+1) The VRF second pass.  vrf_ip6_rcv() re-runs PRE_ROUTING with dev set to
+the VRF master:
 
-	v &= 0xffffffff << (32 - b);
+drivers/net/vrf.c:vrf_ip6_rcv() {
+	...
+	skb = vrf_rcv_nfhook(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, vrf_dev);
+	...
+}
 
-and bs->end stays inside h323_buffer or inside the skb linear area, so
-nothing is corrupted or leaked, but it is the same class of read past the
-intended end of the bitstream that the subject line describes.
+If the reverse route's nexthop is an enslaved device whose inet6_dev was
+torn down, and the fib6_info uses an external nexthop object so the route
+survives:
 
-Would it make sense to respin this covering the
-nf_h323_error_boundary()/get_bitmap() accounting as well, so that the
-decoder family is consistent?
+net/ipv6/route.c:fib6_ifdown() {
+	...
+	if (rt == net->ipv6.fib6_null_entry || rt->nh)
+		return 0;
+	...
+}
+
+then the l3mdev_master_ifindex_rcu() clause that used to accept this is now
+skipped entirely.
+
+2) A cached exception route (RTF_CACHE, e.g. a PMTU exception) created while
+the nexthop device had no inet6_dev keeps rt6i_idev NULL even after the
+device's inet6_dev is recreated, so a packet arriving on that very device is
+reported as not matching.
+
+Is the NULL rt6i_idev case meant to be treated as "route exists but device
+unknown", or is the intent that the check simply never needed rt6i_idev in
+the first place?
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/AS8P251MB00011EEAA381DC17852BA37CC8B22%40AS8P251MB0001.EURP251.PROD.OUTLOOK.COM
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260906034939.3746540-1-bestswngs%40gmail.com
