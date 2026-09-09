@@ -1,349 +1,159 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C0C41F5DF
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2026 09:35:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890423E7BB4;
+	Wed,  9 Sep 2026 09:39:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788946521; cv=none; b=Ir4Ft1z7MDC3hY3q8G1pT6s9aOtvTbGYHqZBuG69aAXuFa9bdTQXbeJ7nph1LUoXhgFmJ0M5Ow5S5G0DCmW5ZPsCOe1t9VyxLGUV7JLy14LHjeg+GIyRMXKlEGzasd7gAGAR2+NwKbs8PUwclR+lpCIizW/8ZI0AXPLYJW7dfO0=
+	t=1788946773; cv=none; b=lSoA1AigVz/SwydhPmiT2CQBKENrfyukifqIR0H+LCFojVeIteHLK9LWMa0SzXzFpNak+pQ/Z/CS73ESrFADQUvD129YeApNaG1EwQYFRhh8LWjbE0atrolCvrgFE+3W7ZwzfqkUUH+CXpeprFIIoHL2qFLmYh1uwfvu5s4Zr2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788946521; c=relaxed/simple;
-	bh=YMjHj+UsmlkThPhexh3uqrQifzqMbRYPvkx3Ytkg9aE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EFIcomG7w+ANZXEJcrFRXlKQgyv9JeuFyeuxiRAA8vRiNHg+M9dKUC0cruvWy/0vTe2hr291X2lsuoBUz4DjTQTACRSW2oNjIz0rN4T/tIwT6WbLLhNxjMYSmVMXXocDLkxu8Q0agDdsalwtBmfHmeLROUs+XTyDkL3AGHoRS9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=IA2b8ACp; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1788946773; c=relaxed/simple;
+	bh=fjKhVmcr/EyK4vU6sArnT209Vzr1k4r+UlW7jCrishk=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=MZY2QTKttm0Lcj72otXDkzn2KuWKFvt4BbFG2k3d0XOuzv/hcV9v1QjmR2V1qOfhqtaHgumWWxTZSLLIl6HaRr4XRu3Ngt5j4VrR1NU25uzbUdMn0KELeehbmcT/gnXAqciKRSGXkij/+/ORC2IedCaIId0tMQgeJeRW8MC3asE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WiZItjS6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="IA2b8ACp"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=b5P8V/yQ+atfhyv+mzvBJsCo1YaWk/uS2KvmxF7NBe8=; b=IA2b8ACpeZiNiz5apMcT3m9UcH
-	kZmBw/IXG5JG9m9TX472dwlMbjy0+SVDQl/zwehgF2uWJkXWwaaJs+3lN/276oRsVY0EU1AfZDg6P
-	8JymzGTSb3ncDwd7ND5c4UvpBq3zj4Nwvv9Wn5/w3Ahqh3P9Cc+4QE9ev7HzL0XujK04916z/bu4R
-	wrlVhW0ZzXLt9SDwbZnfTdbsP+dLoj05AKRMTkDmuoGrfisWB7OYF+jc7V5AdLiTv/P7tUZmwkL4j
-	Cq0AiBQOn930IUftAwoXVrAIJviCopJtHEGhRgva/ESwRmiPLQbCaA0nUdRBdI3zaPKZAGWOjx+yX
-	O4eiKtbg==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1x4Eho-000000005mM-3P7v;
-	Wed, 09 Sep 2026 11:35:00 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nf PATCH v4] netfilter: nfnetlink: Fix for interrupted hook dumps
-Date: Wed,  9 Sep 2026 11:34:55 +0200
-Message-ID: <20260909093455.3034863-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WiZItjS6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506081F00A3F;
+	Wed,  9 Sep 2026 09:39:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788946763;
+	bh=N3lXI2lCWgiKvFN9Nv+hgXcmmvBtqm5fZVQQwl0WoDM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=WiZItjS6ZXCBi++sMU+hy7N9lVH9ifMOX5REnYAb91AF2Cn1jrQjNUOhykxucZnFP
+	 WMU9ijSCWyGbhtO0SNMmFscgqYkBr+XDo4T/s7T134wIkXiFJK/M6rZvuUinSm27ms
+	 LEprg2QDdAnYV678w90vUt1T/xNxeG4kzxz92K11oRPBiZin4icdz6u4e9Txmqie39
+	 kYPeqNqm1zLGxPgtYnQ18LMNmSltVyIHxOcv3+1zq6s8DvxsEl0vsrb3eMwnxTul+2
+	 ahRBKWzdOkkUjWjv0q8YI0MvB/zCroVNlxepPZ19RdksBcqdvFduLzUFy2O/zs6yT0
+	 77vtOfHDwosig==
+Subject: Re: [PATCH] netfilter: conntrack_amanda: fix port value truncation
+From: netdev-bot+sashiko@kernel.org
+To: elb12345@hotmail.co.uk
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org, kuba@kernel.org
+Date: Wed, 09 Sep 2026 09:39:22 +0000
+Message-ID: <178894676277.219967.1844924383954861310@kernel.org>
+In-Reply-To: =?utf-8?q?=3CAS8P251MB0001CCFE2A0F40637E5A366CC8B32=40AS8P251MB?=
+ =?utf-8?q?0001=2EEURP251=2EPROD=2EOUTLOOK=2ECOM=3E?=
+References: =?utf-8?q?=3CAS8P251MB0001CCFE2A0F40637E5A366CC8B32=40AS8P251MB0?=
+ =?utf-8?q?001=2EEURP251=2EPROD=2EOUTLOOK=2ECOM=3E?=
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Handling of concurrent hook changes with a dump in progress was
-problematic in nfnl_hook_dump and entirely broken in nfnl_hook_dump_nat.
-Address all issues in a single patch to please the review LLM.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider:
 
-Introduce sequence numbers in struct netns_nf to replace pointer
-value-based modification detection which may fail due to memory buffer
-reuse. This also eliminates the need for most manual cb->seq updates and
-excessive array index value checks.
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
-Since nat hook updates are protected by a different mutex than others,
-they have to bump their own sequence number. nfnl_hook_dump_nat
-therefore open-codes what nl_dump_check_consistent does but bumps
-cb->seq instead of setting NLM_F_DUMP_INTR flag.
+- [High] net/netfilter/nf_conntrack_amanda.c:amanda_help() — the new
+  range check closes only the htons() truncation window for numbers that…
 
-Dumps of many nat hooks was entirely broken since the array index was
-not (re)stored. Use cb->args[1] for that and make sure it is reset upon
-completion as the same dump may loop over multiple arrays of nat hooks.
+--
 
-In nfnl_hook_dump, don't signal NLM_F_DUMP_INTR if
-nfnl_hook_entries_head returns error: This is a permanent condition
-which does not change during a dump. It is already caught by
-nfnl_hook_dump_start though, so should not happen anyway.
+netfilter: conntrack_amanda: fix port value truncation
 
-In general, access ops array pointer values using READ_ONCE since they
-are assigned to using WRITE_ONCE.
+The patch parses the Amanda CONNECT port into an unsigned long and rejects
+values above 65535 before the htons() conversion, instead of relying on the
+old "port == 0 || len > 5" test.  A new tmp_port variable holds the
+simple_strtoul() result.
 
-Avoid setting NLM_F_DUMP_INTR flag in garbage memory by calling
-nl_dump_check_consistent only for non-empty skbs. If not a single
-netlink message was created, nfnetlink code will take care of setting
-the flag.
+> diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+> index 14ae660491f36..057cef7e2a7ed 100644
+> --- a/net/netfilter/nf_conntrack_amanda.c
+> +++ b/net/netfilter/nf_conntrack_amanda.c
+> @@ -91,6 +91,7 @@ static int amanda_help(struct sk_buff *skb,
+>  	char pbuf[sizeof("65535")], *tmp;
+>  	u16 len;
+>  	__be16 port;
+> +	unsigned long tmp_port;
+>  	int ret = NF_ACCEPT;
+>  	nf_nat_amanda_hook_fn *nf_nat_amanda;
+>  
+> @@ -132,10 +133,11 @@ static int amanda_help(struct sk_buff *skb,
+>  			break;
+>  		pbuf[len] = '\0';
+>  
+> -		port = htons(simple_strtoul(pbuf, &tmp, 10));
+> +		tmp_port = simple_strtoul(pbuf, &tmp, 10);
+>  		len = tmp - pbuf;
+> -		if (port == 0 || len > 5)
+> +		if (tmp_port == 0 || tmp_port > 65535 || len > 5)
+>  			break;
+> +		port = htons(tmp_port);
 
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v3:
-- Bump hook_base_seq after potential array shrinking for consistency
+[Severity: High]
+Can the new tmp_port > 65535 test ever fire, and does it close the case
+described in the changelog?
 
-Changes since v2:
-- Bump seq after RCU-pointer assign in __nf_register_net_hook
-- Fix coding style (braces)
-- Rebase onto https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260902232856.1024959-1-pablo@netfilter.org/
+In amanda_help(), the digit string is copied into a 6-byte buffer and the
+copy length is clamped before parsing:
 
-Changes since v1:
-- Reset cursor value and perform EINTR check if NAT priv->entries
-  becomes NULL during dump.
----
- include/net/netns/netfilter.h  |  2 +
- net/netfilter/core.c           | 18 ++++++++-
- net/netfilter/nf_nat_core.c    | 11 +++++
- net/netfilter/nfnetlink_hook.c | 74 ++++++++++++++++++++--------------
- 4 files changed, 73 insertions(+), 32 deletions(-)
+net/netfilter/nf_conntrack_amanda.c:amanda_help() {
+	char pbuf[sizeof("65535")], *tmp;
+	...
+		len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
+		if (skb_copy_bits(skb, off, pbuf, len))
+			break;
+		pbuf[len] = '\0';
+}
 
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index a6a0bf4a247e..7fd78394d1e7 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -33,5 +33,7 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	unsigned int defrag_ipv6_users;
- #endif
-+	unsigned int hook_base_seq;
-+	unsigned int nat_hook_base_seq;
- };
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 675a1034b340..940dea2663e9 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -386,6 +386,15 @@ static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
- #endif
- }
- 
-+static void bump_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.hook_base_seq, base_seq);
-+}
-+
- static int __nf_register_net_hook(struct net *net, int pf,
- 				  const struct nf_hook_ops *reg)
- {
-@@ -430,6 +439,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
- 	if (!IS_ERR(new_hooks)) {
- 		hooks_validate(new_hooks);
- 		rcu_assign_pointer(*pp, new_hooks);
-+		bump_hook_base_seq(net);
- 	}
- 
- 	mutex_unlock(&nf_hook_mutex);
-@@ -483,6 +493,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- {
- 	struct nf_hook_entries __rcu **pp;
- 	struct nf_hook_entries *p;
-+	bool found;
- 
- 	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
- 	if (!pp)
-@@ -496,7 +507,8 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 		return;
- 	}
- 
--	if (nf_remove_net_hook(p, reg)) {
-+	found = nf_remove_net_hook(p, reg);
-+	if (found) {
- #ifdef CONFIG_NETFILTER_INGRESS
- 		if (nf_ingress_hook(reg, pf))
- 			net_dec_ingress_queue();
-@@ -511,6 +523,8 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 	}
- 
- 	p = __nf_hook_entries_try_shrink(p, pp);
-+	if (found)
-+		bump_hook_base_seq(net);
- 	mutex_unlock(&nf_hook_mutex);
- 	if (!p)
- 		return;
-@@ -784,6 +798,8 @@ static int __net_init netfilter_net_init(struct net *net)
- 		return -ENOMEM;
- 	}
- #endif
-+	net->nf.hook_base_seq = 1;
-+	net->nf.nat_hook_base_seq = 1;
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index a4858c2b2d65..27d67a677aa4 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1160,6 +1160,15 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
-+static void bump_nat_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.nat_hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.nat_hook_base_seq, base_seq);
-+}
-+
- static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.name		= "nat-follow-master",
- 	.expectfn	= nf_nat_follow_master,
-@@ -1244,6 +1253,7 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		nat_proto_net->nat_hook_ops = nat_ops;
- 
- 	nat_proto_net->users++;
-+	bump_nat_hook_base_seq(net);
- 
- 	mutex_unlock(&nf_nat_proto_mutex);
- 
-@@ -1298,6 +1308,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		goto unlock;
- 	priv = nat_ops[hooknum].priv;
- 	nf_hook_entries_delete_raw(&priv->entries, ops);
-+	bump_nat_hook_base_seq(net);
- 
- 	if (nat_proto_net->users == 0) {
- 		nf_unregister_net_hooks(net, nat_ops, ops_count);
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 95005e9a6066..b05fd79397c5 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -54,7 +54,6 @@ static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
- 
- struct nfnl_dump_hook_data {
- 	char devname[IFNAMSIZ];
--	unsigned long headv;
- 	u8 hook;
- };
- 
-@@ -338,27 +337,47 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
- }
- 
- static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
--			      const struct nfnl_dump_hook_data *ctx,
--			      const struct nf_hook_ops *ops,
--			      int family, unsigned int seq)
-+			      struct netlink_callback *cb,
-+			      const struct nf_hook_ops *ops, int family)
- {
- 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
--	struct nf_hook_entries *e = rcu_dereference(priv->entries);
-+	struct nfnl_dump_hook_data *ctx = cb->data;
-+	struct net *net = sock_net(nlskb->sk);
- 	struct nf_hook_ops **nat_ops;
--	int i, err;
-+	unsigned int i = cb->args[1];
-+	struct nf_hook_entries *e;
-+	unsigned int base_seq;
-+	int err = 0;
- 
-+	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
-+
-+	e = rcu_dereference(priv->entries);
- 	if (!e)
--		return 0;
-+		goto out;
- 
- 	nat_ops = nf_hook_entries_get_hook_ops(e);
- 
--	for (i = 0; i < e->num_hook_entries; i++) {
--		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
--					 ops->priority, family, seq);
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nfnl_hook_dump_one(nlskb, ctx,
-+					 READ_ONCE(nat_ops[i]),
-+					 ops->priority, family,
-+					 cb->nlh->nlmsg_seq);
- 		if (err)
--			return err;
-+			break;
-+
- 	}
--	return 0;
-+out:
-+	if (!err)
-+		i = 0;
-+	cb->args[1] = i;
-+
-+	if (cb->args[2] && base_seq != cb->args[2]) {
-+		cb->seq++;
-+		err = -EINTR;
-+	}
-+	cb->args[2] = base_seq;
-+
-+	return err;
- }
- 
- static int nfnl_hook_dump(struct sk_buff *nlskb,
-@@ -373,35 +392,31 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
- 	unsigned int i = cb->args[0];
- 
- 	rcu_read_lock();
-+	cb->seq = smp_load_acquire(&net->nf.hook_base_seq);
- 
- 	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
--	if (!e)
-+	if (!e || IS_ERR(e))
- 		goto done;
- 
--	if (IS_ERR(e)) {
--		cb->seq++;
--		goto done;
--	}
--
--	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
--		cb->seq++;
--
- 	ops = nf_hook_entries_get_hook_ops(e);
- 
- 	for (; i < e->num_hook_entries; i++) {
--		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
--			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
--						 cb->nlh->nlmsg_seq);
--		else
--			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
--						 ops[i]->priority, family,
-+		const struct nf_hook_ops *cur = READ_ONCE(ops[i]);
-+
-+		if (cur->hook_ops_type == NF_HOOK_OP_NAT) {
-+			err = nfnl_hook_dump_nat(nlskb, cb, cur, family);
-+		} else {
-+			err = nfnl_hook_dump_one(nlskb, ctx, cur,
-+						 cur->priority, family,
- 						 cb->nlh->nlmsg_seq);
-+		}
- 		if (err)
- 			break;
- 	}
- 
- done:
--	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	if (nlskb->len > 0)
-+		nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
- 	rcu_read_unlock();
- 	cb->args[0] = i;
- 	return nlskb->len;
-@@ -442,10 +457,7 @@ static int nfnl_hook_dump_start(struct netlink_callback *cb)
- 		return -ENOMEM;
- 
- 	strscpy(ctx->devname, name, sizeof(ctx->devname));
--	ctx->headv = (unsigned long)head;
- 	ctx->hook = hooknum;
--
--	cb->seq = 1;
- 	cb->data = ctx;
- 
- 	return 0;
+So simple_strtoul() sees at most 5 characters, which bounds tmp_port at
+99999 and bounds len = tmp - pbuf at 5.
+
+For a reply payload of "CONNECT DATA 123456\n", pbuf becomes "12345",
+tmp_port becomes 12345 and len becomes 5, so all three clauses of
+
+		if (tmp_port == 0 || tmp_port > 65535 || len > 5)
+
+pass and an expectation is installed for TCP port 12345 even though the
+advertised value was 123456.  Isn't that the same "conntrack expectation
+for an unintended port" the changelog is trying to eliminate, just via the
+fixed-size copy rather than the u16 narrowing?
+
+Would it make sense to also reject the token when the digit run is not
+terminated inside the examined region, for example bailing out when
+stop - off > sizeof(pbuf) - 1, or when the character following the parsed
+digits is still a digit, the way the FTP helper's parsers require an
+explicit terminator?
+
+There is also a NAT-side effect of the clamp.  amanda_help() hands len to
+the NAT hook as matchlen:
+
+			ret = nf_nat_amanda(skb, ct, ctinfo, protoff,
+					    off - dataoff, len, exp);
+
+and net/netfilter/nf_nat_amanda.c:help() replaces exactly matchlen bytes:
+
+	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo,
+				      protoff, matchoff, matchlen,
+				      buffer, strlen(buffer))) {
+
+With a 6-digit advertisement, matchlen is 5, so only 5 of the 6 digit bytes
+are rewritten and a trailing digit stays in the forwarded payload.  Should
+the over-long digit run be rejected before reaching the NAT hook?
+
+> +
+>  		exp = nf_ct_expect_alloc(ct);
+>  		if (exp == NULL) {
+
+Separately, the changelog states:
+
+  "The existing check "port == 0 || len > 5" is insufficient: it
+   catches values that truncate to zero (e.g. 65536) and strings longer
+   than 5 digits"
+
+Given the min_t() clamp above, len can never exceed 5, so the len > 5
+clause looks like it was already unreachable and cannot catch strings
+longer than 5 digits.  Could that sentence be reworded, and should the
+now-dead len > 5 clause be dropped or replaced by a real over-long check?
+
 -- 
-2.54.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/AS8P251MB0001CCFE2A0F40637E5A366CC8B32%40AS8P251MB0001.EURP251.PROD.OUTLOOK.COM
