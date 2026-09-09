@@ -1,106 +1,90 @@
-Received: from abb.hmeau.com (abb.hmeau.com [180.181.231.80])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-29.mta1.migadu.com [95.215.58.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F03233956;
-	Wed,  9 Sep 2026 04:17:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=180.181.231.80
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7AC45519D
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Sep 2026 07:56:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.29
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788927433; cv=none; b=NcQIZeLlVVo8b54ZXe/ijGc7yqMbLz3Bk/8c0gWb+9hNr3cbwwsbqtluduZxtRaadS7PNreefx1QpfkNZn76yjen5niO8yrHXDouJnqNDc5F8lj7xQ4KP6DspdhQx86frxHaZaD4osPU8vq+dG9nbNUgVIRqlI+LDYobngH+BAc=
+	t=1788940580; cv=none; b=RH0ejyA1NJ/OTBfmyfyWOw7Eq6Su4SgVWutXbar2Zni/ThNFZOskcbZUgT+pIdCw2aYHKR3sidkPm5jbGAdE7znoxrEdeEJ0WwYno8NB7Guj7lJWDiLpwgocLKEpvboRnKD3KyWzgc/vcJXtc+pKTPGrj/shDzy7U5VuZkpPp3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788927433; c=relaxed/simple;
-	bh=bGs4Y4knPDmO1nXjVQ5ybGA0Nqi1ee5tzdcqakm0VHU=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=BNYDit5zEKA3maSXRypXXkJj9P5kC94IxJskIlDTuzyXKWonYPpPYqnUnpFatsi2ES9fgbAHc3frTqgnQbmMCKWu2H2L+l/gLnKb3YY1qflFvwf+VuroEOtVMTVCAO9C8Fqzj7/KB7ZhvVAXtwhEdKObz4YqYoYO7NQ0e9kQ3aY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au; spf=pass smtp.mailfrom=gondor.apana.org.au; dkim=pass (2048-bit key) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.b=eGTliDBC; arc=none smtp.client-ip=180.181.231.80
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
+	s=arc-20240116; t=1788940580; c=relaxed/simple;
+	bh=NNu2AEdz7//rwAJPmsE49oyejxssnUM+nGFAvmkANE0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sWC/pYu6bL4QdY4+QCTC27U6kUEmNkE/ILm6q8SL+9TQCCORM3BoXIVi1KI52feaBNCfrjFO1Gt3o8mb827IHdCzn1QJjIT/KAtrtYh96jFY4xZwWXXPikbf2b230c6kf0sFRCHIZLRZ35V1a5zHgVFQsqXb6kpZUssvEK1KY6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=hpH474kx; arc=none smtp.client-ip=95.215.58.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.b="eGTliDBC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=gondor.apana.org.au; s=h01; h=In-Reply-To:Content-Type:MIME-Version:
-	Message-ID:Subject:Cc:To:From:Date:cc:to:subject:message-id:date:from:
-	content-type:references:reply-to;
-	bh=OXhqcdI0P8/u9DXixJVjUQyk5kYiT9r16XQzUG2qi6E=; b=eGTliDBCQdQyvkf0s9Wc0ByAVL
-	afb/lqvfZIjpzQN+EtOBTH0HQzqV+5z9MJ6Dmxnc8Kgd4KTFvnxxgfsHX9OE7Wn12dao9Nrv+rRr5
-	xu0Q8IPcYbbJ7tuYVzuKtpY+JN8Eg8CWtDiFFX9CP2L85MC7zTqbTa6yIwCB3RF/TmuH+Ig2Kes3Q
-	i5V12CyxUtYYTllb7NiWn8GvryGcM6MMxFuvvpa/Lt6Ne1ln3A3UlHQ5hZO1sdjkyxeTjl+AwnStt
-	ovqoEsSr/QgtUxQyvBQJiFbDYmjGHMPWsNmSrnRQ/uxFjwRxZmK0vuI8HGhG/EXtcuVrP9icOP4KF
-	Qda5yT7Q==;
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-	by formenos.hmeau.com with smtp (Exim 4.98.2 #2 (Debian))
-	id 1x49k8-0000000C7rs-351f;
-	Wed, 09 Sep 2026 12:17:05 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Wed, 09 Sep 2026 14:17:04 +1000
-Date: Wed, 9 Sep 2026 14:17:04 +1000
-From: Herbert Xu <herbert@gondor.apana.org.au>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-	linux-crypto@vger.kernel.org
-Subject: Re: [PATCH nf-next v4 01/13] rhashtable: add
- rhashtable_flush_and_free helper
-Message-ID: <aqDdwKMbvd9aErLy@gondor.apana.org.au>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="hpH474kx"
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=NNu2AEdz7//rwAJPmsE49oyejxssnUM+nGFAvmkANE0=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1788940575; v=1; x=1789545375;
+ b=hpH474kx/DPfAC+QG78HnSjXVeZNzizOAs326X6xbHWV9vOSfTTBouBHh2aub+TJ+kVvPxHx
+ RxOrXR6D3b5Hf8eKjq5XluVFkrHaaSauN5GF7Mht26PhCc1SshwlE9D0sBJHpHkMbvcoqjq/owJ
+ 6Wao7A4bwKYOaVcfObijE0fI=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 590c92423473aef6;
+	Wed, 09 Sep 2026 07:56:15 +0000
+X-Mizu-Trace-ID: 590c92423473aef6
+X-Migadu-Flow: FLOW_OUT
+From: Qingfang Deng <qingfang.deng@linux.dev>
+To: netfilter-devel@vger.kernel.org,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Jiri Pirko <jiri@resnulli.us>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Oz Shlomo <ozsh@nvidia.com>,
+	Vlad Buslov <vladbu@nvidia.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Qingfang Deng <qingfang.deng@linux.dev>
+Subject: [PATCH nf] net/sched: act_ct: set net pointer before publishing flowtable
+Date: Wed,  9 Sep 2026 15:56:05 +0800
+Message-ID: <20260909075606.1508155-1-qingfang.deng@linux.dev>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260904185321.30313-2-fw@strlen.de>
-X-Newsgroups: apana.lists.os.linux.cryptoapi,apana.lists.os.linux.netfilter.devel
+Content-Transfer-Encoding: 8bit
 
-Florian Westphal <fw@strlen.de> wrote:
->
-> +void rhashtable_flush_and_free(struct rhashtable *ht,
-> +                              void (*free_fn)(void *ptr, void *arg),
-> +                              void *arg)
-> +{
-> +       struct bucket_table *tbl, *old_tbl, *last_tbl, *new_tbl;
-> +       struct rhashtable_walker *walker;
-> +       unsigned int i;
-> +
-> +       new_tbl = bucket_table_alloc(ht, rounded_hashtable_size(&ht->p),
-> +                                    GFP_KERNEL);
-> +       if (!new_tbl)
-> +               new_tbl = bucket_table_alloc(ht, ht->p.min_size,
-> +                                            GFP_KERNEL | __GFP_NOFAIL);
-> +
-> +       mutex_lock(&ht->mutex);
+nf_flow_table_init() adds the flowtable to the global flowtables list.
+However, tcf_ct_flow_table_get() sets the table's network namespace only
+after that call, leaving a window where the published table has a NULL
+namespace pointer.
 
-Before starting the work you need to stop all existing rehashes.
+Set the namespace before calling nf_flow_table_init() so that flowtable
+list walkers can rely on it being initialized.
 
-This is where it helps if you impose restrictions on the caller.
-For example, if you could guarantee that no insertions or removals
-occur during the call to rhashtable_flush_and_free (the duration of
-the call does not include the actual freeing, which can occur later),
-then it's much easier since you could just call cancel_work_sync on
-the rehashes.
+Fixes: fc54d9065f90 ("net/sched: act_ct: set 'net' pointer when creating new nf_flow_table")
+Signed-off-by: Qingfang Deng <qingfang.deng@linux.dev>
+---
+ net/sched/act_ct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If you can't guarantee that, then we'll need some sort of a flag to
-stop the rehashes manually.
-
-> +       /* Splice the new, empty table onto the tail of the live table ... */
-> +       old_tbl = rht_dereference(ht->tbl, ht);
-> +       do {
-> +               last_tbl = rhashtable_last_table(ht, old_tbl);
-> +       } while (rhashtable_rehash_attach(ht, last_tbl, new_tbl));
-
-This loop is only needed if you impose no restrictions on the caller.
-And if we're going to do this, then you'd need to fix the logic in
-rhashtable_insert_rehash as otherwise it may interpret this as a
-rehash (as opposed to a resize) which could fail with EBUSY.
-
-In fact I think this could become a lot simpler since the two
-tables don't need to mix at all.
-
-Just add an old_tbl field to struct rhashtable, then move the
-old table into it and directly write the new table to tbl.  That
-way none of the complications from overlapping insertions matter
-anymore.
-
-Cheers,
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 9080cb386c16..6bd19db68d97 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -349,10 +349,10 @@ static int tcf_ct_flow_table_get(struct net *net, struct tcf_ct_params *params)
+ 	ct_ft->nf_ft.type = &flowtable_ct;
+ 	ct_ft->nf_ft.flags |= NF_FLOWTABLE_HW_OFFLOAD |
+ 			      NF_FLOWTABLE_COUNTER;
++	write_pnet(&ct_ft->nf_ft.net, net);
+ 	err = nf_flow_table_init(&ct_ft->nf_ft);
+ 	if (err)
+ 		goto err_init;
+-	write_pnet(&ct_ft->nf_ft.net, net);
+ 
+ 	__module_get(THIS_MODULE);
+ out_unlock:
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.43.0
+
