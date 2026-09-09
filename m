@@ -1,44 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1AE2379C46;
-	Wed,  9 Sep 2026 18:52:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D202D3B8D7E;
+	Wed,  9 Sep 2026 19:21:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788979937; cv=none; b=UnC5dn567z9LpdCc0dT99kOAixs66f2ziRvkvcH+5iaFdbyAfVgrh/0xjUBsJl7+uObik+SsWhyabR7nZt4DqK84hG2krhN3VO42SqiHxWnMJ13e/iu0alnkCb6UnfnIbhaMnGgxIl6URcfKFPIZYsszPB8IId5pkHqPtpeMI8Y=
+	t=1788981706; cv=none; b=r4QNCWEQyMfY+FmVJLjxXYbz/Ia57NtfOsjWpr4wOs0xWe4AU8X3yNKUtGPEgl2Zii1c1miqsrxiIZj9xgifXqDZqV+/b5puuOmPa3I5ih5lO8j8SM9XbylmnEekw0+ZAckcws0+nrq6dzoj9EWglKgW63VNBULznstn6YY4HYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788979937; c=relaxed/simple;
-	bh=lqj4FvGFlEJ5FuacsuDuZx4Ha1Iy7mqTj5ytXSOg6PY=;
+	s=arc-20240116; t=1788981706; c=relaxed/simple;
+	bh=wItJgys1WkoCBv9Nv/62nASo8IwyR5mnOPwWb60Kmu8=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=hnD7T9QqYUeM/kNnb4J5BQPT9MGH5jAxmUu4WyVe/6Ifd1noQV7W1Fpwy4bdbHKYW+bqCbLhmN3uCL8t0pQmKC8J7ukXBVyYWAmZCVRr5700RBvIoo6RS9Lz8wQRy0UBgggHKAK5IT2WqqwD9YnJmLVdTiYJ9fQMo+69YuZfA4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FHidKaRV; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=QhUVYRGMrWPYOsArYSclrcmfWa9DVY7s8yE76si7h9XRxT2OhwvdyIWKqyM/HnydmImYNViMopCGHWfk3Qf6ICKP01NFPhsdVSAuycrf2TQEBUWe9sMEmBHu1nUwNcaFUORDif+2v6BJz5qXWoSkgAza1poFHNIWDgDs9kbXN1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lftNlYty; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FHidKaRV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58D201F000FF;
-	Wed,  9 Sep 2026 18:52:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lftNlYty"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C8D91F000FF;
+	Wed,  9 Sep 2026 19:21:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788979936;
-	bh=JhBrkPGbWgGAvtAaMe0LAPoWBvMekSbbVmJYCuZJDIA=;
+	s=k20260515; t=1788981704;
+	bh=0dPH5qYcxrlDKWgIHKe2IFZsZPUZ6aoHJ9KkYKMgFZs=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=FHidKaRVG0lBtroCYLJx4dBPD8Jm/R7V6jy35zSv8VH2mDi/7OxFa1rthVqCT9v4S
-	 mnjj7dlhckRZSvvbHhI+24akZn41hc+cTVIWCZ6geLY9A2eJqlcaSicmjuMtzPEtWu
-	 n2c47jh5EoTh07kngeuPi6F9KJUhjMKeRlkQKGFmluPsTr0BugVdQh+4euSEg7sER+
-	 /8XigF7tJ7Lu3/QugFjcMtJQNwcWYhUz7PBt+AdU1QeFty4DfgOlGC3DMjd8f9cvpL
-	 Ju6sGhfzRMh+6v8pzqL30k/daKuHlSLTgAk1h8zorJL5/93fVg1d72TujuSVwDH6OK
-	 2yVrp9ib0nuYQ==
+	b=lftNlYtymdMvrlagU6hpqyz3324ojlhSea3M0Mz0xtSTRTcCSFURnTR32azbMBJC1
+	 vCHlGhobdbO43RIa0nTG2e3FPvtepQLPBlOK7vHocL1MTFTPX5DbiZl4+6fQWZg3Z3
+	 9qzORfGCY9TzGJ5F1Dwrl4Vcmr+dEsq/X+8YLdB6A5HLzndchLnhePYjkqRmzOTExL
+	 jRZW3+Z3z1+LC0o92xQNLcm5j5WDfC17kJH49CI88itKJ6g3pOfehUL/+F6DF9gpaX
+	 GjBR2ksEJHUjM6r7ZBHD3GvFQfpeAEoiquCL3uuI+uwhhumHcvNLQYu4pOa5ZV3jRd
+	 sB1+XuL+v+qUg==
 Subject:
- Re: [PATCH nf] netfilter: ip6t_rpfilter: handle routes without inet6_dev
+ Re: [PATCH nf] netfilter: flowtable: advertise the vlan match in used_keys
 From: netdev-bot+sashiko@kernel.org
-To: bestswngs@gmail.com
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- co+459f67f4d8af8ce6@bugs.sh, xmei5@asu.edu
-Date: Wed, 09 Sep 2026 18:52:14 +0000
-Message-ID: <178897993484.219967.3278656276914447043@kernel.org>
-In-Reply-To: <20260906034939.3746540-1-bestswngs@gmail.com>
-References: <20260906034939.3746540-1-bestswngs@gmail.com>
+To: julius@bairaktaris.de
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, coreteam@netfilter.org, netdev@vger.kernel.org, kuba@kernel.org
+Date: Wed, 09 Sep 2026 19:21:43 +0000
+Message-ID: <178898170386.219967.2768890098511373106@kernel.org>
+In-Reply-To: <20260906141947.480524-1-julius@bairaktaris.de>
+References: <20260906141947.480524-1-julius@bairaktaris.de>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -49,124 +46,146 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Critical: 0 · High: 0 · Medium: 2 · Low: 0
 
-- [Medium] net/ipv6/netfilter/ip6t_rpfilter.c:rpfilter_lookup_reverse6()
-  now makes strict-mode matching depend on the presence of an optional…
+- [Medium] Commit message justification names a driver that cannot
+  consume the newly advertised key.
+- [Medium] The `else` branch of the second encapsulation block now
+  declares an outer VLAN match that describes the wrong tag when the…
 
 --
 
-netfilter: ip6t_rpfilter: handle routes without inet6_dev
+netfilter: flowtable: advertise the vlan match in used_keys
 
-This reorders rpfilter_lookup_reverse6() so loose mode is evaluated before
-touching rt->rt6i_idev, and adds a NULL check on rt6i_idev before the strict
-mode device comparison.  The stated trigger is a route using an external
-nexthop object whose device lost its inet6_dev.
+nf_flow_rule_match() fills the vlan and cvlan dissector keys and sets their
+offsets, but never sets the matching bits in match->dissector.used_keys.
+This patch ORs BIT_ULL(FLOW_DISSECTOR_KEY_VLAN) and
+BIT_ULL(FLOW_DISSECTOR_KEY_CVLAN) into used_keys where the keys are filled.
 
-Closes: https://lore.kernel.org/all/VtWUkE8QzJt5CroTj2V2v3ZQ0gwbXZ7nq7I3@bugs.sh/
-
-> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-> index 67c87a88cde4f..2bcc96f9385cb 100644
-> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
-> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-> @@ -72,9 +72,11 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
->  		goto out;
->  	}
->  
-> -	if (rt->rt6i_idev->dev == dev ||
-> -	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
-> -	    (flags & XT_RPFILTER_LOOSE))
-> +	if (flags & XT_RPFILTER_LOOSE)
-> +		ret = true;
-> +	else if (rt->rt6i_idev &&
-> +		 (rt->rt6i_idev->dev == dev ||
-> +		  l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex))
->  		ret = true;
+> netfilter: flowtable: advertise the vlan match in used_keys
+>
+> mtk_ppe_offload.c reads the ingress vlan through flow_rule_match_key()
+> and so never gets it, and a driver that checks used_keys against the
+> keys it supports installs an entry that ignores the tag.
 
 [Severity: Medium]
-Should the strict-mode comparison use the route's nexthop device instead of
-rt6i_idev?  With this form, strict mode returns no-match for exactly the
-routes the commit message describes, i.e. those whose device has no
-inet6_dev, even when the packet did arrive on that device.
+Is the mtk part of this justification accurate?  In
+mtk_flow_offload_replace() the FLOW_DISSECTOR_KEY_VLAN read sits inside the
+addr_type == 0 arm:
 
-rt6i_idev is filled in best-effort in ip6_rt_copy_init():
-
-net/ipv6/route.c:ip6_rt_copy_init() {
-	...
-	rt->rt6i_idev = dev ? in6_dev_get(dev) : NULL;
-	...
-}
-
-while the device itself is always present on the returned route, since
-ip6_create_rt_rcu() allocates it from res->nh->fib_nh_dev:
-
-net/ipv6/route.c:ip6_create_rt_rcu() {
-	struct net_device *dev = res->nh->fib_nh_dev;
-	...
-	nrt = ip6_dst_alloc(dev_net(dev), dev, flags);
+drivers/net/ethernet/mediatek/mtk_ppe_offload.c:mtk_flow_offload_replace() {
+	switch (addr_type) {
+	case 0:
+		offload_type = MTK_PPE_PKT_TYPE_BRIDGE;
+		...
+		if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_VLAN)) {
+			...
+			data.vlan_in = match.key->vlan_id;
+		...
+	case FLOW_DISSECTOR_KEY_IPV4_ADDRS:
 	...
 }
 
-Would comparing rt->dst.dev keep the strict-mode contract and make the NULL
-guard unnecessary?
+But nf_flow_rule_match() always sets key->control.addr_type to
+FLOW_DISSECTOR_KEY_IPV4_ADDRS or FLOW_DISSECTOR_KEY_IPV6_ADDRS and returns
+-EOPNOTSUPP for anything else, so flowtable rules always take the IPv4/IPv6
+arms, which do not look at the vlan key at all.  mtk also never reads
+FLOW_DISSECTOR_KEY_CVLAN and has no used_keys whitelist, so its behaviour
+looks unchanged by this patch, before and after.
 
-Does this also make the two in-tree implementations of the same reverse path
-semantics disagree?  nft_fib_ipv6.c derives the device from the fib6
-nexthops and never looks at rt6i_idev:
+The driver whose behaviour does change appears to be mlx5e, through
+mlx5e_rep_setup_ft_cb() -> mlx5e_rep_setup_tc_cls_flower() ->
+__parse_cls_flower().  The other TC_SETUP_FT consumers (airoha_ppe.c,
+mtk_wed.c, mt76, netdevsim) contain no FLOW_DISSECTOR_KEY_VLAN read either,
+and nfp does not implement TC_SETUP_FT at all.
 
-net/ipv6/netfilter/nft_fib_ipv6.c:nft_fib6_info_nh_dev_match() {
-	return nh_dev == dev ||
-	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
+Could the changelog name the driver that actually consumes the new bits,
+and drop or reword the mtk claim?
+
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 801a3dd9ceea3..9ef89127bf252 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -126,6 +126,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+>  		nf_flow_rule_vlan_match(&key->vlan, &mask->vlan,
+>  					tuple->encap[0].id,
+>  					tuple->encap[0].proto);
+> +		match->dissector.used_keys |= BIT_ULL(FLOW_DISSECTOR_KEY_VLAN);
+>  		vlan_encap = true;
+>  	}
+>  
+> @@ -137,12 +138,16 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+>  			nf_flow_rule_vlan_match(&key->cvlan, &mask->cvlan,
+>  						tuple->encap[1].id,
+>  						tuple->encap[1].proto);
+> +			match->dissector.used_keys |=
+> +				BIT_ULL(FLOW_DISSECTOR_KEY_CVLAN);
+>  		} else {
+>  			NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_VLAN,
+>  					  vlan);
+>  			nf_flow_rule_vlan_match(&key->vlan, &mask->vlan,
+>  						tuple->encap[1].id,
+>  						tuple->encap[1].proto);
+> +			match->dissector.used_keys |=
+> +				BIT_ULL(FLOW_DISSECTOR_KEY_VLAN);
+
+[Severity: Medium]
+Can this else branch now advertise a vlan key that describes the wrong tag?
+
+The branch is taken whenever vlan_encap is false, which includes the case
+where encap[0] is simply not 802.1Q, because the first block tests:
+
+net/netfilter/nf_flow_table_offload.c:nf_flow_rule_match() {
+	if (tuple->encap_num > 0 && !(tuple->in_vlan_ingress & BIT(0)) &&
+	    tuple->encap[0].proto == htons(ETH_P_8021Q)) {
+	...
 }
 
-and the IPv4 half of the same match does the same thing:
+encap[0] is the outermost tag on the wire, since flow_offload_fill_route()
+reverses the path-walk order:
 
-net/ipv4/netfilter/ipt_rpfilter.c:rpfilter_lookup_reverse() {
-	...
-	return fib_info_nh_uses_dev(res.fi, dev) || flags & XT_RPFILTER_LOOSE;
-}
-
-So for one topology, nft fib saddr . iif oif would still match while
-iptables -m rpfilter in strict mode would not, and the common
--m rpfilter --invert -j DROP rule would then drop the packet.
-
-Two paths where the verdict looks like it changes rather than staying
-incidentally the same:
-
-1) The VRF second pass.  vrf_ip6_rcv() re-runs PRE_ROUTING with dev set to
-the VRF master:
-
-drivers/net/vrf.c:vrf_ip6_rcv() {
-	...
-	skb = vrf_rcv_nfhook(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, vrf_dev);
+net/netfilter/nf_flow_table_core.c:flow_offload_fill_route() {
+	for (i = route->tuple[dir].in.num_encaps - 1; i >= 0; i--) {
+		flow_tuple->encap[j].id = route->tuple[dir].in.encap[i].id;
+		flow_tuple->encap[j].proto = route->tuple[dir].in.encap[i].proto;
 	...
 }
 
-If the reverse route's nexthop is an enslaved device whose inet6_dev was
-torn down, and the fib6_info uses an external nexthop object so the route
-survives:
+and encap[].proto is copied verbatim from the configured VLAN protocol,
+which can be ETH_P_8021AD:
 
-net/ipv6/route.c:fib6_ifdown() {
-	...
-	if (rt == net->ipv6.fib6_null_entry || rt->nh)
-		return 0;
+net/8021q/vlan_dev.c:vlan_dev_fill_forward_path() {
+	path->encap.proto = vlan->vlan_proto;
 	...
 }
 
-then the l3mdev_master_ifindex_rcu() clause that used to accept this is now
-skipped entirely.
+net/bridge/br_vlan.c:br_vlan_fill_forward_path_pvid() {
+	path->bridge.vlan_proto = br->vlan_proto;
+	...
+}
 
-2) A cached exception route (RTF_CACHE, e.g. a PMTU exception) created while
-the nexthop device had no inet6_dev keeps rt6i_idev NULL even after the
-device's inet6_dev is recreated, so a packet arriving on that very device is
-reported as not matching.
+So with an 802.1ad outer tag and an 802.1Q tag beneath it, the first block
+is skipped, vlan_encap stays false, and the else branch stores the inner
+tag (encap[1].id, tpid 0x8100) into key->vlan, the outer vlan slot.  Before
+this patch that key was inert; with the bit set it becomes an authoritative
+match, while the action side pops only the 802.1Q tag:
 
-Is the NULL rt6i_idev case meant to be treated as "route exists but device
-unknown", or is the intent that the check simply never needed rt6i_idev in
-the first place?
+net/netfilter/nf_flow_table_offload.c:nf_flow_rule_route_common() {
+		if (tuple->encap[i].proto == htons(ETH_P_8021Q)) {
+			entry = flow_action_entry_next(flow_rule);
+			if (!entry)
+				return -1;
+			entry->id = FLOW_ACTION_VLAN_POP;
+	...
+}
+
+Would it be better to gate the else branch on tuple->in_vlan_ingress &
+BIT(0), or to return -EOPNOTSUPP when the outer encapsulation is not
+802.1Q, so the declared match and the emitted actions agree on which tag is
+outermost?
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260906034939.3746540-1-bestswngs%40gmail.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260906141947.480524-1-julius%40bairaktaris.de
