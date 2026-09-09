@@ -1,143 +1,124 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4C3253ECE4;
-	Wed,  9 Sep 2026 11:14:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7E5934216C;
+	Wed,  9 Sep 2026 11:16:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788952459; cv=none; b=X3Xk4+6VgujIZJroWZpYCOR+H/K0IsekiBglqr9lFMkW0Z23nrfnASOi7FYbY3nPxj8PayHdqtdzLYtUOeo00Ibd9WFi0tTPhghPh1RPBqKjOfXZ3m5+OTsk7FloZvl4/ifus9db3pgvXgHyRpvRzcm6VCf7J73PY3fWMni3hWc=
+	t=1788952590; cv=none; b=n1PLJnnGSHKd/jmtpj0XA7unLj4bbKRHAvq9g1m3sTZCor0x2v0tSeel2NSiVgzXgI4m8LJT67bmQ9hzafPDVN9SLxclNCpT/uuCdY1/26FGbRBpOP6dwRNtfQhGdCDNMYN9JhEjUn6tR8XV+2jlq7qgLTwkrq2Pd/0rbIZIhWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788952459; c=relaxed/simple;
-	bh=6AkcFA8xvJQiWJbVmV/wdENsC1jXvpnqPDdQZttbXH4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AGVwMrf6yuuNY6RrRmATdRYFkVEQz1FnUa68qFbXilUBEHOinETACImPEV4YoA62UaXwEu3cIGKPZgFbjwVLLvEM8KKRe7nRyb0Ss+/OtzXVmIy0M8BM0UTrg2SrxYWc4Ad6ej/mzze0rU4bYU8+fOVW75RtMpx/tPGuTTlvpVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=aTnDa8Pi; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1788952590; c=relaxed/simple;
+	bh=pM18hodoYh89Gegf5eGFurmx1byx//TJX5LP6hLooqI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V3nP1jFPSbJybSCWLBX3dxPzy/1exCwPWAGpC9dDHEmjNE1UshTBlZBdG95V+YxsKsPGVor2imCDU2f9U58sTQX9yP590dZLJ+t93eE0+VWa/5LC7JfYcfXvccRd4UKGjGushRJQyXcbJYWT7uZVAK/v4msbNJW2qk0eqgAPEIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=I9MY6P17; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="aTnDa8Pi"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 723CB22737;
-	Wed, 09 Sep 2026 14:14:02 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=5QruN4Vp
-	ZoHQ4a2Sz35ZjBi85b7VTPQqg+tsn0HgrYc=; b=aTnDa8PiAv+dW+FgqozUP5oT
-	plCMlXx1agxbxoeI41RSE3mm9QBivna8RTJ2qSnpBo8dQ6pTuc7aLk+yXFNl1bco
-	GrmrdER3DJlIylNajgs3csd4yDq5zmlozid7FzbZF1DcgPSbRroNRgTNW2t2Y+y2
-	XwIPrp42/crNUtAqXiDYM8oLiXXAx/gruAJfcWyFreOOxrcLJIwB1yXa/aTKRAqn
-	IDCtgXoqO6kizveq8aArpixWk0QwaJd/Pr/cqwJ+DqB3a2bIx3nPBXiPQaB/fohI
-	BbP69eBXupx73uyLirAh9/NameCkZY1D1F+B21FVvCVIZzc6xKj79AVa4cOZB+Rp
-	/kl3EGxQKgsJBWtiHozz1FVcoR4WImGTgKBtak27GwM31GNkYQXmYn0uUZRq55J8
-	vMQP20wm83wN4T6clR4GirMoiTIHVqNAIfctUdjI9uAy4DcyZboQyr3E8TlM3vng
-	uu13ScvLVk6G+uUKYmWg1P8M3qh9Dgu1QFWpg+yc5JKUSKPjwXUpPWK39WOzA+z0
-	w/3KtYNquGF9H4Sqi0VGIF9RES9SQkgc0imtOHkShKLtAp34n4CYFqPjNvnnLFK8
-	atIYtlaAm4Oai0LtiX0DhW1CpJ4Aaf6Qjez/YF0FYg14X1pv2kAI4CwcfU/++Y+K
-	xHBmk8IlWjSn5szyAYo=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 09 Sep 2026 14:14:02 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id BD65C61EF9;
-	Wed,  9 Sep 2026 14:14:03 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 689BDuX1044381;
-	Wed, 9 Sep 2026 14:13:56 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 689BDs3i044375;
-	Wed, 9 Sep 2026 14:13:54 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] ipvs: read the seq_mask only once on sync
-Date: Wed,  9 Sep 2026 14:13:38 +0300
-Message-ID: <20260909111338.44357-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="I9MY6P17"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=4ckrxe/i82aP6rQ3gEczXf00HbaLYCnnzYIs+1cYnUA=; b=I9MY6P17RMOR6umrSD7CrvQbB6
+	Fq6xrt0UEQwtcfJy+3/2c56gGJJECNjfhdKw2ttRedzjX2sN7xK5SZPkW9VPPnbp+GJAPgB718/JZ
+	J/tLGVligIIXn1CJjIT02RSzH5XR/hCm9PX+4awvYqugW1pamVytMM9gOZxr4QGWAF5om/UpWduBU
+	0ARPhpr774jtDA8CLnIte6F8IS89q1/SuC6yWKh32XLdwtW6PnFOX9fGycGX44ImWWq/AiSUpP+S3
+	LA5v+8A4ksBfh9u8aC5Oh3idoQSHkPB1uMehULffYICFT29V63E3+EA8BPYSkOWBI5JZOLf3trHgn
+	d15vMe2A==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1x4GHo-000000006wU-2nnZ;
+	Wed, 09 Sep 2026 13:16:16 +0200
+Date: Wed, 9 Sep 2026 13:16:16 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Qingfang Deng <qingfang.deng@linux.dev>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: flowtable: check namespace before
+ iterating flows
+Message-ID: <aqFAALdUODUjUMo0@orbyte.nwl.cc>
+References: <20260909081705.1512600-1-qingfang.deng@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260909081705.1512600-1-qingfang.deng@linux.dev>
 
-Sashiko reports for possible heap buffer overflow when
-generating sync message for the v0 and v1 message formats.
-We should read the seq_mask from cp->flags only once because
-another CPU can concurrently set the mask between the two
-reads. Note that IPVS does not set the seq_mask anymore
-for the ip_vs_ftp.c helper starting from commit 7f1c40757951
-("IPVS: make FTP work with full NAT support") (2.6.36+).
+Hi,
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Link: https://sashiko.dev/#/patchset/20260903004149.1037028-1-pablo%40netfilter.org
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- net/netfilter/ipvs/ip_vs_sync.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+On Wed, Sep 09, 2026 at 04:17:04PM +0800, Qingfang Deng wrote:
+> nf_flow_table_cleanup() walks every registered flow table, checking the
+> network namespace for each flow in nf_flow_table_do_cleanup(). As a
+> result, tables in other namespaces are still iterated and their cleanup
+> work is flushed.
+> 
+> Compare the flow table's namespace with the device's namespace in
+> nf_flow_table_cleanup() and skip nonmatching tables. This avoids
+> unnecessary iteration and work flushing, and leaves the per-flow cleanup
+> callback to check only the interface index.
+> 
+> Signed-off-by: Qingfang Deng <qingfang.deng@linux.dev>
+> ---
+>  net/netfilter/nf_flow_table_core.c | 17 +++++++----------
+>  1 file changed, 7 insertions(+), 10 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 03241d4bfd5e..52cca7a8f141 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -730,14 +730,9 @@ static void nf_flow_table_do_cleanup(struct nf_flowtable *flow_table,
+>  {
+>  	struct net_device *dev = data;
+>  
+> -	if (!dev) {
+> -		flow_offload_teardown(flow);
+> -		return;
+> -	}
+> -
+> -	if (net_eq(nf_ct_net(flow->ct), dev_net(dev)) &&
+> -	    (flow->tuplehash[0].tuple.iifidx == dev->ifindex ||
+> -	     flow->tuplehash[1].tuple.iifidx == dev->ifindex))
+> +	if (!dev ||
+> +	    flow->tuplehash[0].tuple.iifidx == dev->ifindex ||
+> +	    flow->tuplehash[1].tuple.iifidx == dev->ifindex)
+>  		flow_offload_teardown(flow);
+>  }
+>  
+> @@ -754,8 +749,10 @@ void nf_flow_table_cleanup(struct net_device *dev)
+>  	struct nf_flowtable *flowtable;
+>  
+>  	mutex_lock(&flowtable_lock);
+> -	list_for_each_entry(flowtable, &flowtables, list)
+> -		nf_flow_table_gc_cleanup(flowtable, dev);
+> +	list_for_each_entry(flowtable, &flowtables, list) {
+> +		if (net_eq(read_pnet(&flowtable->net), dev_net(dev)))
+> +			nf_flow_table_gc_cleanup(flowtable, dev);
+> +	}
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 5383aeafb0ae..07303d74e39f 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -543,8 +543,8 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
- 	struct ip_vs_sync_conn_v0 *s;
- 	struct ip_vs_sync_buff *buff;
- 	struct ipvs_master_sync_state *ms;
-+	unsigned int seq_mask, len;
- 	int id;
--	unsigned int len;
- 
- 	if (unlikely(cp->af != AF_INET))
- 		return;
-@@ -564,8 +564,8 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
- 	id = select_master_thread_id(ipvs, cp);
- 	ms = &ipvs->ms[id];
- 	buff = ms->sync_buff;
--	len = (cp->flags & IP_VS_CONN_F_SEQ_MASK) ? FULL_CONN_SIZE :
--		SIMPLE_CONN_SIZE;
-+	seq_mask = READ_ONCE(cp->flags) & IP_VS_CONN_F_SEQ_MASK;
-+	len = seq_mask ? FULL_CONN_SIZE : SIMPLE_CONN_SIZE;
- 	if (buff) {
- 		m = (struct ip_vs_sync_mesg_v0 *) buff->mesg;
- 		/* Send buffer if it is for v1 */
-@@ -599,7 +599,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
- 	s->daddr = cp->daddr.ip;
- 	s->flags = htons(cp->flags & ~IP_VS_CONN_F_HASHED);
- 	s->state = htons(cp->state);
--	if (cp->flags & IP_VS_CONN_F_SEQ_MASK) {
-+	if (seq_mask) {
- 		struct ip_vs_sync_conn_options *opt =
- 			(struct ip_vs_sync_conn_options *)&s[1];
- 		memcpy(opt, &cp->sync_conn_opt, sizeof(*opt));
-@@ -635,6 +635,7 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
- 	int id;
- 	__u8 *p;
- 	unsigned int len, pe_name_len, pad;
-+	unsigned int seq_mask;
- 
- 	/* Handle old version of the protocol */
- 	if (sysctl_sync_ver(ipvs) == 0) {
-@@ -674,7 +675,8 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
- #endif
- 		len = sizeof(struct ip_vs_sync_v4);
- 
--	if (cp->flags & IP_VS_CONN_F_SEQ_MASK)
-+	seq_mask = READ_ONCE(cp->flags) & IP_VS_CONN_F_SEQ_MASK;
-+	if (seq_mask)
- 		len += sizeof(struct ip_vs_sync_conn_options) + 2;
- 
- 	if (cp->pe_data_len)
-@@ -744,7 +746,7 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
- 		s->v4.vaddr = cp->vaddr.ip;
- 		s->v4.daddr = cp->daddr.ip;
- 	}
--	if (cp->flags & IP_VS_CONN_F_SEQ_MASK) {
-+	if (seq_mask) {
- 		*(p++) = IPVS_OPT_SEQ_DATA;
- 		*(p++) = sizeof(struct ip_vs_sync_conn_options);
- 		hton_seq(&cp->in_seq, (struct ip_vs_seq *)p);
--- 
-2.55.0
+A second caller of nf_flow_table_gc_cleanup is
+nf_flow_table_indr_cleanup in net/netfilter/nf_flow_table_offload.c. Is
+the net_eq-check needed there as well? If not, could you please update
+the patch description with a statement explaining why?
 
+Thanks, Phil
 
+>  	mutex_unlock(&flowtable_lock);
+>  }
+>  EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
+> -- 
+> 2.43.0
+> 
+> 
