@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E24EA2737FC;
-	Thu, 10 Sep 2026 00:38:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A43EA2ED141;
+	Thu, 10 Sep 2026 00:38:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789000740; cv=none; b=cq7u6fliKP+8rbNOyKQWa51OnmjwXXDHtc2dM5Q38utdgEXMGwk9rOoiBf0SSs5iK5V2eyb2Fyp5svD6AOikRLVDd1wU1kqwUBJP6oPCIzu7GPnNKI8u0s7ttjMW/uKDN3FxL3nI6WLW0FlvwW5vSvUOzNTm9uf9AvBwR+P2XNY=
+	t=1789000740; cv=none; b=E37L7GwKMimypjR2CXUr6Q4sT5E/k0TQ/vGhvXedehrTyKj5gm+TBSw0zfTDypei1PobUw7Dy94H/dGOyPRPPrPkP3e3P2WtxdBCgu/LHEhyoUZpOZ6Ip3e6qwZDfDaXSPx/nHtIKhUDxSX6jd0pgdhwWcD6SxqsHC1me6QjAh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789000740; c=relaxed/simple;
-	bh=8S+VC+QLjFC9N1DvXRNaZ5cr0lG3r5sPRjk+EySz4GM=;
+	bh=8hHonr/10mfxOkrkzXWVRhkJRBtZSJpQeADO+Tc5WEE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O00+9DlMhVGYYDe3hqPww1XNekn1DrSClJu5Tabdp45oTkty/hXA2iNjEG+edbvxhD54jGfSwzDf3Uq8iT4EgKAlYgF0RlDTWZjkeBmNGE1t+3zNYO10pEaIqBZYSJnZzIi3BFpTC9tHdg7cC7Z3S8j7OuDn7tfVdvJqNPBTiIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PQk2LM1O; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=ddLR4ksU2fssqimDs27Sy5pa9sqac1K64xbEhngidwdaNv/dTvlyxcu5G9KK6UWQlSHEwRtbwR0yfgIXqOiPmrpF7a31kfM2LSnUgPo0pCrE0VbOMnHgao6uxYZuutO8LB1/nHEun/JRbB07zgXnAWS1lV6GEmQ+/LFVH42Nug4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nwMkg2Bh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PQk2LM1O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 592001F00899;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nwMkg2Bh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68301F0089B;
 	Thu, 10 Sep 2026 00:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789000738;
-	bh=fd7uF2EC+ShQ6FKopQiXVcQaj22x5FqWP/Zmd7ZvjM4=;
+	s=k20260515; t=1789000739;
+	bh=gIz6q4zqDDVQkAk8KGHUFzu+AYmyavpBt2mDIvx2snA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PQk2LM1O/cHY8tRO79QSsKHHaYjlZmtxYO0dBKPM7Qfyukk6VxmKyUXtIIYiqDLm4
-	 jMZ/IwWfYNJvScZmo4uoZS49XEPB669t61lrDW0IFpZKkeEmwAUyIxrdB3DZ2Rpwxi
-	 VODrgjm6PWhVAD8QPlaL8zLrz48LB5nntIIBRtjHGAAnJ+E3dCd9Cv29YSpIHrNfbq
-	 Nxp5auuQlWnp65Nfn7cQ9NcYSv3JA0McrxnitsfJ8dJZeSZbS7iMzmzWehY6mG3Erj
-	 +kZ7Ys1eZepaOHayNIUtyq1UrGgFXO4TAZEfFCo2KDgWoyuS2vprPtmkEKYiBXIX3T
-	 FAy7uJ5b1KVrw==
+	b=nwMkg2BhC4CdXxpu4XFVJ9dRQ7gIC6sulmcnNbjapCKkp4bv+7qxIlbpYVBtb9geT
+	 c0DmsiDz5rkjg/zm0cDZRTqSqmAuJmUMTCB9miLKh5ljhl86js2cQh2h81GBVBMVxC
+	 KAS3Y1kc5mrJ287tuyYUTBhn9YLXp3S/e80oR9TG3r4ocBZ6kNhAT4K2KX9TTsPcG8
+	 5/EuTqZuFgNybQs/J/0vKvO0vTGTyd12vmfmC0HM3JxRpkFPhQobUCSZDSwF7IRetD
+	 jSS7GS/T1nz62GOCZcruyzGQzqlVosaUeeSeNjbgkihzIQi/BCCdKq8XXeexZC+DhL
+	 cKA604b/71vlA==
 From: Jakub Kicinski <kuba@kernel.org>
 To: davem@davemloft.net
 Cc: netdev@vger.kernel.org,
@@ -42,9 +42,9 @@ Cc: netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	Jakub Kicinski <kuba@kernel.org>,
 	Sashiko <netdev-bot+sashiko@kernel.org>
-Subject: [PATCH net-next 1/7] netlink: specs: conntrack: timestamp is a nest, not a be64
-Date: Wed,  9 Sep 2026 17:38:45 -0700
-Message-ID: <20260910003852.2184031-2-kuba@kernel.org>
+Subject: [PATCH net-next 2/7] netlink: specs: conntrack: fix the get reply attribute lists
+Date: Wed,  9 Sep 2026 17:38:46 -0700
+Message-ID: <20260910003852.2184031-3-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260910003852.2184031-1-kuba@kernel.org>
 References: <20260910003852.2184031-1-kuba@kernel.org>
@@ -56,73 +56,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ctnetlink_dump_timestamp() wraps CTA_TIMESTAMP_START
-and CTA_TIMESTAMP_STOP in a nest, but the spec declares CTA_TIMESTAMP
-as a flat be64. ynl picks reply attributes out of the attribute set rather
-than the operation's attribute list, so the mistyped attribute stops
-the whole dump:
+CTA_NAT_SRC and CTA_NAT_DST are input-only.  The only references to either
+are cda[] reads in ctnetlink_setup_nat() and the rejection in
+ctnetlink_change_conntrack(); no path ever puts them into a message, so
+neither belongs in a reply.  nat-dst was listed twice on top of that.
 
-  Error decoding 'timestamp' from 'conntrack-attrs'
-  Traceback (most recent call last):
-    File "tools/net/ynl/pyynl/cli.py", line 314, in main
-      reply = ynl.dump(args.dump, attrs)
-    File "tools/net/ynl/pyynl/lib/ynl.py", line 1082, in _decode
-      decoded = attr.as_scalar(attr_spec['type'], attr_spec.byte_order)
-    File "tools/net/ynl/pyynl/lib/ynl.py", line 291, in as_scalar
-      return format_.unpack(self.raw)[0]
-  struct.error: unpack requires a buffer of 8 bytes
-
-The tstamp extension is only attached when CONFIG_NF_CONNTRACK_TIMESTAMP
-is enabled and nf_conntrack_timestamp is turned on, which is off by default
-and is why every dump does not hit this.
-
-stop is omitted for live entries, so it stays optional like every other
-member here.  The pad member mirrors counter-attrs, which covers the same
-nla_put_be64() padding.
+CTA_TIMESTAMP is the opposite case - both the do and the dump reach
+ctnetlink_fill_info() with extinfo set, so ctnetlink_dump_extinfo() ->
+ctnetlink_dump_timestamp() emits it, but the lists never named it.
 
 Reported-by: Sashiko <netdev-bot+sashiko@kernel.org>
 Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260826220444.4054714-1-i.maximets@ovn.org
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- Documentation/netlink/specs/conntrack.yaml | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ Documentation/netlink/specs/conntrack.yaml | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index b1eb102ab843..2b7f16cc4133 100644
+index 2b7f16cc4133..174697ce125e 100644
 --- a/Documentation/netlink/specs/conntrack.yaml
 +++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -345,6 +345,20 @@ doc: >-
-       -
-         name: secctx-name
-         type: string
-+  -
-+    name: timestamp-attrs
-+    attributes:
-+      -
-+        name: start
-+        type: u64
-+        byte-order: big-endian
-+      -
-+        name: stop
-+        type: u64
-+        byte-order: big-endian
-+      -
-+        name: pad
-+        type: pad
-   -
-     name: synproxy-attrs
-     attributes:
-@@ -458,8 +472,8 @@ doc: >-
-         nested-attributes: secctx-attrs
-       -
-         name: timestamp
--        type: u64
--        byte-order: big-endian
-+        type: nest
-+        nested-attributes: timestamp-attrs
-       -
-         name: mark-mask
-         type: u32
+@@ -596,20 +596,18 @@ doc: >-
+             - status
+             - protoinfo
+             - help
+-            - nat-src
+-            - nat-dst
+             - timeout
+             - mark
+             - counters-orig
+             - counters-reply
+             - use
+             - id
+-            - nat-dst
+             - tuple-master
+             - seq-adj-orig
+             - seq-adj-reply
+             - zone
+             - secctx
++            - timestamp
+             - labels
+             - synproxy
+       dump:
+@@ -632,20 +630,18 @@ doc: >-
+             - status
+             - protoinfo
+             - help
+-            - nat-src
+-            - nat-dst
+             - timeout
+             - mark
+             - counters-orig
+             - counters-reply
+             - use
+             - id
+-            - nat-dst
+             - tuple-master
+             - seq-adj-orig
+             - seq-adj-reply
+             - zone
+             - secctx
++            - timestamp
+             - labels
+             - synproxy
+     -
 -- 
 2.55.0
 
