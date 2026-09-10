@@ -1,68 +1,67 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABB6E3264CB
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE0513955C0
 	for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 09:00:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789030866; cv=none; b=Bk24t1l8h+cqbhs0ixHfVbUDEcrKB3UV/9xlU+YAAfQVmcRTW+SNbxC/vmDPLftldS7Jm86bL39MI22jRKZrpyj3ayGxsobwvl0DAWCLkxiYywoebIKLjMcACqTvr5wp/aMnR5ILJenRTu2TF+QptFKvay9RWgXkeFdoiPM+00k=
+	t=1789030866; cv=none; b=RGTOS3xf54zXmjyPEzmnODpYkHU0ofqR+1NDDeJkU4GV2vu3YRQffElkU/KedpnGDmD+cU14XqxWCEkkSwy3DfV3798fnj2mszGyMWTid8qwWoZQ9NF34E5K1BJRfgyfTqLs0bgd+dPYfhqz9I6LGGJhO424enXMUYL+UrokrsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789030866; c=relaxed/simple;
-	bh=aiOlrU8SPLLSxXxmoliWQ97yoakbvmOPHkOmt7DqkOY=;
+	bh=tYhCwCWxuhguq6pfAupubVPjCxdBVlF4RC/Qb+PCngw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=a7UY17cMvsbwePfxPMdUwUQ/QYh7mIPrd0HeVUZ9Ihf9KNDTThB0oZYvCiHULYzFJHw6f62vr3On3iuaUOEXr4AL19ufMkrtf1iTilDK7J1th4It5c5rlzWzs2Uzff1CJvrZ1shLNzpHbxCSsR6E78juFNLTZMGCe27MQSu3Lco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=lLAJSLj3; arc=none smtp.client-ip=209.85.218.43
+	 MIME-Version; b=mg1qjHzW2frvlh/JS9vNv20OcxX6arj0kgaHL+rtJ5Y23sDc8j2EdTacS1uaUk+nU/xQB3mHxhHkh9pdG9RWynC/iU0lbCbsBenJVynlMePYxWJhVv3cEE9G07TIL1DOPRiwbNgtgdoeBWUckrY5pL+UPeJjYAwFR5Fi9mJqPpA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=N1xfBMQp; arc=none smtp.client-ip=209.85.218.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="lLAJSLj3"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c2938116fefso276919566b.1
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="N1xfBMQp"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-c2940d16190so196630766b.3
         for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 02:00:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1789030855; x=1789635655; darn=vger.kernel.org;
+        d=bairaktaris.de; s=google; t=1789030854; x=1789635654; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=VL7uwmVve2coZFoj6sSDZb9y2OX7dyJBOYXu4XyOYm4=;
-        b=lLAJSLj343DkpEeiAHb+6V53GFpRquRcmGYj/vR4SJhy1NZKzrJlgpIzcSpCl7sOLn
-         Eu5zLKmBZBIF0LI7huw3n1j1nP5Gw/oEshg/KdFB/Vecn1J14HM9jMD3U6J4Km/knWMG
-         ujfOo10aI8gGElWz589TmBEEW0onLTgj3kkT3eokXwyz5u2tpq/I0haMZJ0yINC72OUu
-         gdrqK1gvIyngcK6ZVxWEabhkYyAV2Yzb80l5iPKOVUF50DWhFkBuUrhQpq1ZmfczPXrh
-         4DjeSmrv0vapicdcClE+CwIw2iiK53k+btRLFPKkICDYBJPAcEzUfNDM+1KTgW3Czrw8
-         amsg==
+        bh=znPVXyZXPnFTO1sJfrnUQLvHd7wsibn1+GKNiaFiRTA=;
+        b=N1xfBMQpU9V0Gdm/PhYI6O8emI+YJt5rZG+nYrxO0tu+E7et4PV9qBZJ0AvB3aNNAk
+         PPLqDG5oUyBUugTFoxEFA0Fb/uxu0QEJMNx01IOmNh9aDozViYtt5S4/SYwmWDVPDRiG
+         qwuF6ff2NZfLuPWnrwfE3cExCxFqxVSerNwiatG0sar9Cxa39FSUWGGYYD8yPI59MBDw
+         HS/kXPB/Cjb4AK62Acaa6PwiU9Pq+ojDJq7jKdaKD9bEkJfuH9idzfV+U0Jo1jo+dBmV
+         MKY+ti5wUyF2TmIbmTeXSCbds3c18RWrHbb1wN4B7ZpTZ7ybSmWifXoZ8zlKBi9Ci7wg
+         lqVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789030855; x=1789635655;
+        d=1e100.net; s=20251104; t=1789030854; x=1789635654;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VL7uwmVve2coZFoj6sSDZb9y2OX7dyJBOYXu4XyOYm4=;
-        b=eYoZV4sfIzveMREhEw/eU/7ZzVtYx1nSqbGabqICvGv6DKaym843bBGYGH1AWPMLm/
-         /U+JKDOJyjB+eHxmiemQLvTf+eM4YYzTOAsHlGxbqnpo8yg2tIYrGkOU/mESDCZiUbEy
-         PxE0OqNnpOxMyYyvM/VGctPauF0k6iEjiudZM/bfxD7dQ3MzQ75Guqjn+j4hxJDpWSYT
-         wBPOKUu/n4PTGyY0qFKmKVXZfn+pJqx0ETLKaCaDL3TlBbJhi3t73ym4iRewFAgK8gDM
-         5qe/9sGbW67tgKbBf1XZjoZ4TVPjqkhQYHMbFjsTiYGZpWd/ylE5Kt19mn1aUn971HDa
-         no9A==
-X-Forwarded-Encrypted: i=1; AKwUvBwx9jvT6V29bRu4KNDlLMFWo4BQmCBYUh1AUs1E3bMrkAaHWDhH6ol6ticyN6qElg9KxUChGLtCmOYjZi8krZ0=@vger.kernel.org
-X-Gm-Message-State: AFuF++kuRlX+c61wH5F3KK2jejAopcAcbLB9XNvzjR9PdHU87gWNmAp4
-	4A/5RloZjUc7tszXJrq6CPz8a+1Wd+nEbwmMinQZcZEgmZBvB+Cg+fZOm2GU59sCQvnJxXWVWxz
-	uNfYSv7Jb9dPz7A==
-X-Gm-Gg: AYBFou04EU2bT3V7swI9QW6qGzu4cV7Bfs8opuzd7OMviMX9r1tSrbrcBtPjNOniEax
-	s74i2EjwVAVChfWqPaJN/C3lCub1zi33SVViEMCWNaWGCqNYh5sjuDp+zVm9jaJcxmGGUov7hyu
-	et7PFvbKhssILEWgTMY5F0XP9YhzyIi3KzTVtYNHE3Tdp3FYb3hnd5Wf4LZZbpzJ4xLcd56gy3r
-	6iDIEy+gTIxcpHK17W52q3clhoLU367B44NkiSdqvnjKEjfUtRW6byjjRHVck87oRYPmvbK/sF7
-	TM1OVF0Lhs5ilwtvMOAnZ85I3BnsmK5PcUmyASZw0BN6nBJeS4rgH//7j4iI9SNJaPro2GKAm/6
-	PbIMRd9PaFRWGS6ohAT184+pp7YchUO2Hkf0KlVeV2AhU7FfSsJkeUInqztuwAq2kzEB0/VEUL3
-	AUIAFiZ4X5t8o2zd04334fhyTOCWzPTWmy7x+k++DH3kezoXO/UynVOavbuyhj3asUPPnWPHt8V
-	2ejdrvY27amSX0uHs9ubOmgVsRa7fg+dJHKKUObR3HkbrqKjalY1qQQ9stcWPnhOr0bFmrwhphd
-	2hus5oULqrEpTmyAjpeEzfCy+l0sU4dGgrhAvEDBGCltomqzhAvoGcP3yv8lKwyu5EBIe4Z3ni+
-	K1RVEFtsEER4Bd315trJyYiWEzDC4l08dIUVaKVv4b1WzpY2NBozfHJcaQVVVFBQ8E83rEODzm7
-	2y2TV9ZA==
-X-Received: by 2002:a17:906:730e:b0:c20:af9d:4533 with SMTP id a640c23a62f3a-c260c9f74d6mr1653720266b.19.1789030854926;
+        bh=znPVXyZXPnFTO1sJfrnUQLvHd7wsibn1+GKNiaFiRTA=;
+        b=j3cPUKQG3ZwVuBK/vM3pVkzAXPZna4TxFYHK/AgR/g/j7sNuBmG9p5wWnJzWIXEXqe
+         uQZWAuWYN4By1KDdQDhLsiRDF2t+qgJGIgWbfyGHcLFzLTz0VVjHMCzxRnHPSNPYe2w8
+         e4M67aY25do8WGRtctOJefdX7fnmsZzrDAGr9orneeL9fg4SBdJ8/Ej7aufwf7CzfjPR
+         VRrPKq9wLTvB0fyYqVHMTCHZ69EY+jAXipZDls/9PPDv8rRj6/RXdrqs3oISh+9hpzHE
+         SiU+kqNGhFZTERiwKfaOxIP/iSB/RsEqen3LScPpPow6CKD+E6AF7U+VknxyWMd66Alx
+         izFg==
+X-Forwarded-Encrypted: i=1; AKwUvBwjog6QlAF0qN5qtKCvSfREzxOF81G+t3kilBvRTSXM/uKAppohskNJez1gTDrcC+UNNxJQwm3ZEsbzQY8T2cM=@vger.kernel.org
+X-Gm-Message-State: AFuF++mNwAfSedx5Z1dkcmZ/iVbMgLd7xYdQHVqF0K4xlMEwTTZCcta5
+	pieLWh/T6d2bD3eTRXnyIreG+v+7/cLej1sxXVOnw6pcG//LHQoU6WOgjPddFS7o5A==
+X-Gm-Gg: AYBFou3wnUxxHBWUwnfBRKsxpIy5K7ETO/HGiPeLi5vOyc4gGsMbA8ibYPlhc6gRA7d
+	nY/ySMfetLxH5rAtcOqs6VcT0CjTSOgjfHfm9RcEBqzssc7jIdEda2uENeACStXSDc64WuzHCud
+	JtjOcCNs7WzNIl1A3atrB3rohudhMYqOhvRHNAFTKtt33bJzH7cDSL2QX3yCltYlZahpXEbpvU9
+	PVYIrvzoHyDWsBusZ4mZ4gelbjfIYwIyUq2rxxV8HGoi05Mmyqdud8osfKULWS987TjB+9WA5AT
+	8eP2KaYiN6CC7hqysuP13c7m8tGD16jOtpaE2o5Y5PdWOxntwY0MFZNq7PJrUTxtjTs5LQPpcBj
+	SZEt3K958sw0/QFKRCvvGPVAFcC3+YUxzqy+B2Y1YzPDXLo015ua10GAGZMPKQzihz09KGt1UfJ
+	aXeKUQluv3AxZcVURxK9HfxZfu8BpZe79qwh4dfwRQ0IyuFc8Vhey9jSxJMS0nEf54tuTxyjKs5
+	z5ikD8EyLs+ymUZwb98IP88O/7pQzmtfDDjq9Geuhvwp1Oeyp16GcAfgotOx9c6VpRTsN4sR3qi
+	iWp2pKMxDVE06ExSZqF/gpRHiB/DvPKyf9OyZPupJscQb7n2bZwdyco9dlZSNAh4vgqF2mfWCTq
+	rjV7d+M0NOi71E/R2XdJPcUeZhyzudO6Pcvs/Mo06yiEl/sCgWEnr23Fw86R0f3ub3KnO6fD04X
+	u4maKGPw==
+X-Received: by 2002:a17:906:8d89:b0:c24:c250:a6b5 with SMTP id a640c23a62f3a-c260c993a9amr1596510266b.12.1789030854121;
         Thu, 10 Sep 2026 02:00:54 -0700 (PDT)
 Received: from Desktop.fritz.box ([217.26.235.87])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c293eaf1ae8sm156106766b.40.2026.09.10.02.00.54
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c293eaf1ae8sm156106766b.40.2026.09.10.02.00.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Sep 2026 02:00:54 -0700 (PDT)
+        Thu, 10 Sep 2026 02:00:53 -0700 (PDT)
 From: Julius Bairaktaris <julius@bairaktaris.de>
 To: pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org
@@ -71,9 +70,9 @@ Cc: kadlec@netfilter.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	geldot@protonmail.com
-Subject: [PATCH nf-next 3/4] netfilter: nft_flow_offload: offload a TCP flow that has no reply
-Date: Thu, 10 Sep 2026 11:00:51 +0200
-Message-ID: <20260910090052.2034970-4-julius@bairaktaris.de>
+Subject: [PATCH nf-next 2/4] netfilter: flowtable: promote a flow offloaded in one direction only
+Date: Thu, 10 Sep 2026 11:00:50 +0200
+Message-ID: <20260910090052.2034970-3-julius@bairaktaris.de>
 In-Reply-To: <20260910090052.2034970-1-julius@bairaktaris.de>
 References: <20260910090052.2034970-1-julius@bairaktaris.de>
 Precedence: bulk
@@ -84,67 +83,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Gary Dotzler <geldot@protonmail.com>
+A flow offloaded in the original direction alone carries a reply tuple
+that conntrack has never seen a packet for. Leave that direction on the
+classic path, so conntrack tracks it, and offload it as well once the
+connection is assured.
 
-A connection whose reply never reaches the host cannot become assured,
-and only assured TCP connections are offered to the flowtable, so every
-packet of it stays on the classic path.
+act_ct promotes its unidirectional UDP flows on the same condition.
 
-Offer such a connection to the flowtable in the original direction. The
-reply direction follows once conntrack has seen a reply, so a flow that
-starts one-directional picks it up if the path turns symmetric.
-
-Signed-off-by: Gary Dotzler <geldot@protonmail.com>
-Co-developed-by: Julius Bairaktaris <julius@bairaktaris.de>
 Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 Assisted-by: Claude:claude-opus-5
 ---
- include/net/netfilter/nf_conntrack_l4proto.h | 7 +++++++
- net/netfilter/nft_flow_offload.c             | 6 ++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index fde2427ceb8f..a4e3d9ed7a64 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -208,6 +208,13 @@ static inline bool nf_conntrack_tcp_established(const struct nf_conn *ct)
- 	return ct->proto.tcp.state == TCP_CONNTRACK_ESTABLISHED &&
- 	       test_bit(IPS_ASSURED_BIT, &ct->status);
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index c8c29a9a1684..f2cd5c2c5365 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -465,6 +465,26 @@ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+ 	return flow_offload_lookup(flow_table, &tuple);
  }
-+
-+/* A flow picked up without its reply cannot become assured. */
-+static inline bool nf_conntrack_tcp_unreplied(const struct nf_conn *ct)
+ 
++/* The reply direction of a flow offloaded in one direction only stays on the
++ * classic path so that conntrack sees it. Once conntrack has, the flow is
++ * offloaded in both directions.
++ */
++static bool nf_flow_reply_unoffloaded(struct nf_flowtable *flow_table,
++				      struct flow_offload *flow,
++				      enum flow_offload_tuple_dir dir)
 +{
-+	return ct->proto.tcp.state == TCP_CONNTRACK_ESTABLISHED &&
-+	       !test_bit(IPS_SEEN_REPLY_BIT, &ct->status);
++	if (dir != FLOW_OFFLOAD_DIR_REPLY ||
++	    test_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags))
++		return false;
++
++	if (test_bit(IPS_ASSURED_BIT, &flow->ct->status)) {
++		set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
++		flow_offload_refresh(flow_table, flow, true);
++	}
++
++	return true;
 +}
- #endif
++
+ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 				   struct nf_flowtable *flow_table,
+ 				   struct flow_offload_tuple_rhash *tuplehash,
+@@ -478,6 +498,9 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
  
- #ifdef CONFIG_NF_CT_PROTO_SCTP
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 32b4281038dd..0b6be8ac3d24 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -73,7 +73,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt),
- 					  sizeof(_tcph), &_tcph);
- 		if (unlikely(!tcph || tcph->fin || tcph->rst ||
--			     !nf_conntrack_tcp_established(ct)))
-+			     (!nf_conntrack_tcp_established(ct) &&
-+			      !nf_conntrack_tcp_unreplied(ct))))
- 			goto out;
- 		break;
- 	case IPPROTO_UDP:
-@@ -117,7 +118,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	if (tcph)
- 		flow_offload_ct_tcp(ct);
++	if (nf_flow_reply_unoffloaded(flow_table, flow, dir))
++		return 0;
++
+ 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
+ 	if (flow->tuplehash[!dir].tuple.tun_num)
+ 		mtu -= sizeof(*iph);
+@@ -1074,6 +1097,9 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
  
--	__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
-+	if (!tcph || !nf_conntrack_tcp_unreplied(ct))
-+		__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
- 	ret = flow_offload_add(flowtable, flow);
- 	if (ret < 0)
- 		goto err_flow_add;
++	if (nf_flow_reply_unoffloaded(flow_table, flow, dir))
++		return 0;
++
+ 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
+ 	if (flow->tuplehash[!dir].tuple.tun_num)
+ 		mtu -= sizeof(*ip6h);
 -- 
 2.53.0
 
