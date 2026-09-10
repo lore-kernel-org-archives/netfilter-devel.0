@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E783128B6;
-	Thu, 10 Sep 2026 00:39:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D3C72F3C07;
+	Thu, 10 Sep 2026 00:39:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789000742; cv=none; b=KAwb5FeYP36twHtokFpSgmQeQsREw6t7wQNvMmH14BXiKw6FOuePe6Dor2AkZQ+UlV+IC7AgTJr6j/jJAnbCGncbuFaXzrPzbnVnzacaXwTkT74ERztXY2pqylobqJR48OU5irt6ohFcX+gmtamFOrHud2ll0blNMZBPs/e4gWM=
+	t=1789000743; cv=none; b=pq5NWy51dPJ+XVRj7Yw726PgzOuZ0TNdRoigeRTANwhEuWSeXyca1T/WO1Std8OjHAMVegxNmgugRVN4vi1qljyGg1TDOPZEIDfOdO+wKYhORZepD3YjztM69JXcZTXJ3QOYXdviV65tCawdtp88tCoYGUXs777BX4N7plNadrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789000742; c=relaxed/simple;
-	bh=MPOLRi1v1RgERTL4UNzEiKtF1A3h0doVVeKx2ZF7kgQ=;
+	s=arc-20240116; t=1789000743; c=relaxed/simple;
+	bh=HtZ/FaiWy3G92BIVc4aBnXKTuSdgn2yluHqB8/qNAEk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OaCCQcTP7s8y8lYc3fjcEfqOjHWfClusQENb94u4hvJwnX+JsoPDBiP7K0Ga+83Dm9Rb1YsZWiU+HZHmemCQStx65nJHSpsbkqs1EHaxygsV2u/zcLN8bTeTxQ29r6RQrhzlsIv/u9vblmi7p8VHRkLYRF+BlNtVYabbpABNTg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MmJTbwtt; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=EkJk60a7+FOB9xIWd8Iao8/Y2pjSUJXMomT77MVjKn2mTDkLX2+zVu0V2TFfiLXxjm5ZnRieev1bWrVrksJ79dBiIJE/RqSTwvVgWF4qng6JBm/yCs0ETCf0Llr7tQwezRsObdukDIIReEo0Hf3qPHTggFBKMaV4Ljz49NEJCHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NEJgQExZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MmJTbwtt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4140D1F0089A;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NEJgQExZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CE31F00893;
 	Thu, 10 Sep 2026 00:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789000741;
-	bh=BjCh3h/bIG3klQVY1szsDy+8FPDqAo0zXHtBtldez04=;
+	s=k20260515; t=1789000742;
+	bh=WV5VcM+tSlqjapfOmSj938u9AtiyS4h6/2mxeEkuHns=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=MmJTbwttgxhECDUVPSgQDR817NQMolZJyGHgOuHjVwkKzfna5t2+qE6Ovg7euctNq
-	 AVfIVrdxt2DlVY3NeJlQFheMPWRa3nf0UFaQnFTPAqiI5l1C2rzrsvpHIRqbPVAvlz
-	 RFugdueVKdxqdLKfx33LGh+vks43hv2AO69jIgly7EH/iM4JlvDIQ5ukiTx74yYTTN
-	 jcktvoNVl0xKh0wYBVTXtOCQXL9GzT3101ekr1qm+hT2c1vX8tfMED103AiCSoHWpl
-	 LZVtT1OphKasdWOJZUcosJQrbnwRrck3GIdgGEQGO8ItqIzYXFm/xqvU3fWGD034EB
-	 EwSEsiYtJxo1w==
+	b=NEJgQExZ1X4UKxIF7MFP0Wl8/JHg25X2ESzBPZi58XN+GDTuoLkwM68ZDGj5gbwwC
+	 IOt+hhI+x71G6Mgva1yzojBbD9QzZoJR/WpZ8sSangQcuWuC2XDz6K8+V4LiQFxK21
+	 B6L0aF7608JzmMDlGvKiaLxc2Ay1UireBiYtDIH5aH3K2D9d06GSLOoD7yA03ICWnx
+	 5y1MBmzo2tm0/yoSLroS/XoVjFJah05w3RwA1YutkOBDgzy+LlBfDL+3Xw9lZbN65h
+	 AV9OlAjkveH+V0ZWOHK/ZNILDkDo7Hw4IYuR4ni3YoZjoLkXmJaqevnftN79J1tmaY
+	 DnmGbtW1eJeWg==
 From: Jakub Kicinski <kuba@kernel.org>
 To: davem@davemloft.net
 Cc: netdev@vger.kernel.org,
@@ -41,9 +41,9 @@ Cc: netdev@vger.kernel.org,
 	pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org,
 	Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net-next 6/7] netlink: specs: conntrack: fix the per-CPU stats reply
-Date: Wed,  9 Sep 2026 17:38:50 -0700
-Message-ID: <20260910003852.2184031-7-kuba@kernel.org>
+Subject: [PATCH net-next 7/7] netlink: specs: conntrack: tweak definition of obsolete attrs
+Date: Wed,  9 Sep 2026 17:38:51 -0700
+Message-ID: <20260910003852.2184031-8-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260910003852.2184031-1-kuba@kernel.org>
 References: <20260910003852.2184031-1-kuba@kernel.org>
@@ -55,38 +55,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ctnetlink_ct_stat_cpu_fill_info() emits CTA_STATS_INVALID but
-does not emit CTA_STATS_SEARCHED. Update the attr list, and
-remove the false annotation of invalid as obsolete.
+CTA_SECMARK, CTA_COUNTERS32_{PACKETS,BYTES} are all obsolete
+be32 attrs. Since they are obsolete we don't bother with
+the byte-order annotation, but let's be consistent about
+marking them as u32 with doc: obsolete.
+
+The attrs were obsoleted by:
+commit 584015727a3b ("netfilter: accounting rework: ct_extend + 64bit counters (v4)")
+commit 1cc63249adfa ("conntrack: export lsm context rather than internal secid via netlink")
 
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- Documentation/netlink/specs/conntrack.yaml | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/netlink/specs/conntrack.yaml | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index ec90d3d05841..9ba93370275d 100644
+index 9ba93370275d..1d163130241a 100644
 --- a/Documentation/netlink/specs/conntrack.yaml
 +++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -530,7 +530,7 @@ doc: >-
-         name: invalid
-         type: u32
-         byte-order: big-endian
--        doc: obsolete
-+        doc: packets which could not be tracked
+@@ -116,9 +116,11 @@ doc: >-
        -
-         name: ignore
+         name: packets-old
          type: u32
-@@ -661,8 +661,8 @@ doc: >-
-         reply:
-           value: 0x104
-           attributes:
--            - searched
-             - found
-+            - invalid
-             - insert
-             - insert-failed
-             - drop
++        doc: obsolete
+       -
+         name: bytes-old
+         type: u32
++        doc: obsolete
+       -
+         name: pad
+         type: pad
+@@ -465,7 +467,7 @@ doc: >-
+         nested-attributes: seqadj-attrs
+       -
+         name: secmark
+-        type: binary
++        type: u32
+         doc: obsolete
+       -
+         name: zone
 -- 
 2.55.0
 
