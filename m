@@ -1,99 +1,68 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-68.mta1.migadu.com [95.215.58.68])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D3C72F3C07;
-	Thu, 10 Sep 2026 00:39:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5640C390987
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 06:09:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.68
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789000743; cv=none; b=pq5NWy51dPJ+XVRj7Yw726PgzOuZ0TNdRoigeRTANwhEuWSeXyca1T/WO1Std8OjHAMVegxNmgugRVN4vi1qljyGg1TDOPZEIDfOdO+wKYhORZepD3YjztM69JXcZTXJ3QOYXdviV65tCawdtp88tCoYGUXs777BX4N7plNadrE=
+	t=1789020582; cv=none; b=A/hUBl0zTglVo80GkM1uSgfI1/KqF+6YlC1F6IktJYv0PnMZjLA1yjklJ04prqSrDZrW+qa8qf2v748AkXQPy7ZF9BmH7lYcNjbX1KEEt91XOUF2BYXq/wwUcHO0xKAuddm5hC1Bj20tMvq6a5fHnV06QE0uL8uvkoiXaIq7G6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789000743; c=relaxed/simple;
-	bh=HtZ/FaiWy3G92BIVc4aBnXKTuSdgn2yluHqB8/qNAEk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EkJk60a7+FOB9xIWd8Iao8/Y2pjSUJXMomT77MVjKn2mTDkLX2+zVu0V2TFfiLXxjm5ZnRieev1bWrVrksJ79dBiIJE/RqSTwvVgWF4qng6JBm/yCs0ETCf0Llr7tQwezRsObdukDIIReEo0Hf3qPHTggFBKMaV4Ljz49NEJCHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NEJgQExZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789020582; c=relaxed/simple;
+	bh=3HCylPQKsJ8fUNFwZtSlf0bSntqmGVxL++6F/eBsEyk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:Cc:From:
+	 In-Reply-To:Content-Type; b=aIUc+Qo91w6kd3YOqEs4EqOEeiFCCzuAxOpqFRp4OlBEQnmpRE0Kzz+xUw0FTQFF4hsK2I9/s+2N6pkayCjdCMbP5NTWikpkko5jAz593WM+ydjRfTyG09UUoANAUEcFVnO0U7B/xFQnry4wCfxfpwjW4FMDoYroR/Ps8p/dQTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=tWD1akzZ; arc=none smtp.client-ip=95.215.58.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NEJgQExZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CE31F00893;
-	Thu, 10 Sep 2026 00:39:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789000742;
-	bh=WV5VcM+tSlqjapfOmSj938u9AtiyS4h6/2mxeEkuHns=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=NEJgQExZ1X4UKxIF7MFP0Wl8/JHg25X2ESzBPZi58XN+GDTuoLkwM68ZDGj5gbwwC
-	 IOt+hhI+x71G6Mgva1yzojBbD9QzZoJR/WpZ8sSangQcuWuC2XDz6K8+V4LiQFxK21
-	 B6L0aF7608JzmMDlGvKiaLxc2Ay1UireBiYtDIH5aH3K2D9d06GSLOoD7yA03ICWnx
-	 5y1MBmzo2tm0/yoSLroS/XoVjFJah05w3RwA1YutkOBDgzy+LlBfDL+3Xw9lZbN65h
-	 AV9OlAjkveH+V0ZWOHK/ZNILDkDo7Hw4IYuR4ni3YoZjoLkXmJaqevnftN79J1tmaY
-	 DnmGbtW1eJeWg==
-From: Jakub Kicinski <kuba@kernel.org>
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	andrew+netdev@lunn.ch,
-	horms@kernel.org,
-	donald.hunter@gmail.com,
-	ast@fiberby.net,
-	i.maximets@ovn.org,
-	one-d-wide@protonmail.com,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net-next 7/7] netlink: specs: conntrack: tweak definition of obsolete attrs
-Date: Wed,  9 Sep 2026 17:38:51 -0700
-Message-ID: <20260910003852.2184031-8-kuba@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260910003852.2184031-1-kuba@kernel.org>
-References: <20260910003852.2184031-1-kuba@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="tWD1akzZ"
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=3HCylPQKsJ8fUNFwZtSlf0bSntqmGVxL++6F/eBsEyk=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1789020570; v=1; x=1789625370;
+ b=tWD1akzZtMLkfbT9ggj2f1pwGykNKiEdiQP/STXZRYpWaJ7P6Qrl7kr7Ole1+I8wjlOlSwgI
+ nM6SqhWV1xwLxqQ9AlAnZr+YCCRjQORShZROvXTNRjL3xKW1SEtPDZV2YByD5z4tEjqOwCOLej+
+ 7mW6KjYYRHz+WX+bmX+ByZyo=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 11fc99cf0e5798a2;
+	Thu, 10 Sep 2026 06:09:30 +0000
+X-Mizu-Trace-ID: 11fc99cf0e5798a2
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <fa0181b9-d715-41c6-8086-af410ee4131b@linux.dev>
+Date: Thu, 10 Sep 2026 14:09:25 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nf] net/sched: act_ct: set net pointer before publishing
+ flowtable
+To: Qingfang Deng <qingfang.deng@linux.dev>
+References: <20260909075606.1508155-1-qingfang.deng@linux.dev>
+Cc: netfilter-devel@vger.kernel.org, Jamal Hadi Salim <jhs@mojatatu.com>,
+ Jiri Pirko <jiri@resnulli.us>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Oz Shlomo <ozsh@nvidia.com>, Vlad Buslov <vladbu@nvidia.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+From: Xuanqiang Luo <xuanqiang.luo@linux.dev>
+In-Reply-To: <20260909075606.1508155-1-qingfang.deng@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-CTA_SECMARK, CTA_COUNTERS32_{PACKETS,BYTES} are all obsolete
-be32 attrs. Since they are obsolete we don't bother with
-the byte-order annotation, but let's be consistent about
-marking them as u32 with doc: obsolete.
+> nf_flow_table_init() adds the flowtable to the global flowtables list.
+> However, tcf_ct_flow_table_get() sets the table's network namespace only
+> after that call, leaving a window where the published table has a NULL
+> namespace pointer.
 
-The attrs were obsoleted by:
-commit 584015727a3b ("netfilter: accounting rework: ct_extend + 64bit counters (v4)")
-commit 1cc63249adfa ("conntrack: export lsm context rather than internal secid via netlink")
+The window does exist, but can any existing code path actually read
+flowtable->net during this window? Could you also describe that path
+in the commit message?
 
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
----
- Documentation/netlink/specs/conntrack.yaml | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index 9ba93370275d..1d163130241a 100644
---- a/Documentation/netlink/specs/conntrack.yaml
-+++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -116,9 +116,11 @@ doc: >-
-       -
-         name: packets-old
-         type: u32
-+        doc: obsolete
-       -
-         name: bytes-old
-         type: u32
-+        doc: obsolete
-       -
-         name: pad
-         type: pad
-@@ -465,7 +467,7 @@ doc: >-
-         nested-attributes: seqadj-attrs
-       -
-         name: secmark
--        type: binary
-+        type: u32
-         doc: obsolete
-       -
-         name: zone
--- 
-2.55.0
+Thanks,
+Xuanqiang
 
