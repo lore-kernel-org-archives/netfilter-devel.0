@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6821D30FF30;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E783128B6;
 	Thu, 10 Sep 2026 00:39:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789000742; cv=none; b=cf6RnxM7yskIH9QaqJM+o9bVCCBaO2vkw5tR42VPGnaKawhNnV34sPIsBzMoWBUkA3qC0pVLWtL/R3a2HJGK20GoRVhQp/8ZkScLs2lTMKCOSBaJMeMWKk7R/ZA0RHZ5+fxf664ME0oejEcHx7peMlCpBrNPqN/2RsAvW4a8inA=
+	t=1789000742; cv=none; b=KAwb5FeYP36twHtokFpSgmQeQsREw6t7wQNvMmH14BXiKw6FOuePe6Dor2AkZQ+UlV+IC7AgTJr6j/jJAnbCGncbuFaXzrPzbnVnzacaXwTkT74ERztXY2pqylobqJR48OU5irt6ohFcX+gmtamFOrHud2ll0blNMZBPs/e4gWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789000742; c=relaxed/simple;
-	bh=3r0SBKxk74JyZctThil+pvDrzEAa0SCbRbKlfSnroJk=;
+	bh=MPOLRi1v1RgERTL4UNzEiKtF1A3h0doVVeKx2ZF7kgQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XSF6bcgxgIzrdbM6w+InVYQNJh0fQlGfhSZ0bCyFiiUY+WWMfycGX6Jm/z8Pr5FFOZS/EKlmcd9sEEnl0FoQfjp/+VnLcZEuGwpoNfI+/c+NxSILNaZ1mMVjdT6VkGe4hyTEwL+nR6L4dy1yZP839PbLH2Zz5RL3Q8H1sRpHj+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WR+qBR8S; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=OaCCQcTP7s8y8lYc3fjcEfqOjHWfClusQENb94u4hvJwnX+JsoPDBiP7K0Ga+83Dm9Rb1YsZWiU+HZHmemCQStx65nJHSpsbkqs1EHaxygsV2u/zcLN8bTeTxQ29r6RQrhzlsIv/u9vblmi7p8VHRkLYRF+BlNtVYabbpABNTg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MmJTbwtt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WR+qBR8S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFC001F00899;
-	Thu, 10 Sep 2026 00:39:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MmJTbwtt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4140D1F0089A;
+	Thu, 10 Sep 2026 00:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1789000741;
-	bh=A5NbmLopHGo6DYM4Aiw/xk1psYZzmj5Ko/ihVEr9Jps=;
+	bh=BjCh3h/bIG3klQVY1szsDy+8FPDqAo0zXHtBtldez04=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=WR+qBR8Si0BM5Ai919zayXVVXsiR4Koeh6jHrRJWbdXTVAv7TyGyEQo97r8wiqwBp
-	 5Rn9Ro4b8t3hGRm6nNNxqnId3KLzRsbBvM5NGFPaYMi9+E8GK22X+iOuCIajgDZJIo
-	 l3+SOuRhnGWLdGfA5dsMUtviZgh7nPU6nrA4gm/d5jXABtl8tgIQmACOCXzpddaSbp
-	 KRsO1ps0RBdCE+uLpIaeEILaw3TM8aNhGbTgsUhLlmamkLxT/8kSORTq+FTmk1l8Dz
-	 SLlg9/C0+GjCbWSgJEjmBsf5GcBXmMAf3EtBK78XZ0Oz8KCcwmkQ/NKmgJhUgvTpTk
-	 MfJuhpCXrNaUg==
+	b=MmJTbwttgxhECDUVPSgQDR817NQMolZJyGHgOuHjVwkKzfna5t2+qE6Ovg7euctNq
+	 AVfIVrdxt2DlVY3NeJlQFheMPWRa3nf0UFaQnFTPAqiI5l1C2rzrsvpHIRqbPVAvlz
+	 RFugdueVKdxqdLKfx33LGh+vks43hv2AO69jIgly7EH/iM4JlvDIQ5ukiTx74yYTTN
+	 jcktvoNVl0xKh0wYBVTXtOCQXL9GzT3101ekr1qm+hT2c1vX8tfMED103AiCSoHWpl
+	 LZVtT1OphKasdWOJZUcosJQrbnwRrck3GIdgGEQGO8ItqIzYXFm/xqvU3fWGD034EB
+	 EwSEsiYtJxo1w==
 From: Jakub Kicinski <kuba@kernel.org>
 To: davem@davemloft.net
 Cc: netdev@vger.kernel.org,
@@ -41,9 +41,9 @@ Cc: netdev@vger.kernel.org,
 	pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org,
 	Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net-next 5/7] netlink: specs: conntrack: describe CTA_HELP_INFO
-Date: Wed,  9 Sep 2026 17:38:49 -0700
-Message-ID: <20260910003852.2184031-6-kuba@kernel.org>
+Subject: [PATCH net-next 6/7] netlink: specs: conntrack: fix the per-CPU stats reply
+Date: Wed,  9 Sep 2026 17:38:50 -0700
+Message-ID: <20260910003852.2184031-7-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260910003852.2184031-1-kuba@kernel.org>
 References: <20260910003852.2184031-1-kuba@kernel.org>
@@ -55,31 +55,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nfnl_cthelper_to_nlattr() seems to output CTA_HELP_INFO but the spec
-doesn't have a definition for it, add one.
+ctnetlink_ct_stat_cpu_fill_info() emits CTA_STATS_INVALID but
+does not emit CTA_STATS_SEARCHED. Update the attr list, and
+remove the false annotation of invalid as obsolete.
 
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- Documentation/netlink/specs/conntrack.yaml | 6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/netlink/specs/conntrack.yaml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Documentation/netlink/specs/conntrack.yaml b/Documentation/netlink/specs/conntrack.yaml
-index 0d1528507c4b..ec90d3d05841 100644
+index ec90d3d05841..9ba93370275d 100644
 --- a/Documentation/netlink/specs/conntrack.yaml
 +++ b/Documentation/netlink/specs/conntrack.yaml
-@@ -292,6 +292,12 @@ doc: >-
-         name: help-name
-         type: string
-         doc: helper name
-+      -
-+        name: help-info
-+        type: binary
-+        doc: >-
-+          Private data of a user space helper, only present for helpers
-+          registered via nfnetlink_cthelper with a non-zero data length.
-   -
-     name: nat-proto-attrs
-     attributes:
+@@ -530,7 +530,7 @@ doc: >-
+         name: invalid
+         type: u32
+         byte-order: big-endian
+-        doc: obsolete
++        doc: packets which could not be tracked
+       -
+         name: ignore
+         type: u32
+@@ -661,8 +661,8 @@ doc: >-
+         reply:
+           value: 0x104
+           attributes:
+-            - searched
+             - found
++            - invalid
+             - insert
+             - insert-failed
+             - drop
 -- 
 2.55.0
 
