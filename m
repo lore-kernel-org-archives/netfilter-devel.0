@@ -1,155 +1,154 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5373ACEE2;
-	Thu, 10 Sep 2026 07:29:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FDD340F721
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 08:03:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789025361; cv=none; b=rUO1sQycoKLkbggS8bViJ0LydPdWXaQMvUYKuS7Ugf62YM2hlQaeIS0r6i7Mq4RsT/PTk1YGW704s0It72/+RXWcz55gNZDndKrOYnN7B0ywYampJtTMRMzzVXvFk/gjnJK7o5CC04R3TzGcMxW55L+CuSGt3N/tn3QjFn4u4uU=
+	t=1789027429; cv=none; b=VHiH3ORgiuPC8Q0Nvnw4+eOdFcI4I6CozEzZEYExf/zSPCE/oYk4ijCrk9XvrEbUTMfg17OSnD+JoW6htIJ0Tjq5Wx63bBe+Nv2NgBTU/op62c3jZKEc8rgD6F4lW1TTMl5D0IbsIdrUDhPTQ1/Zajc0DRsNqwYwufadF4POfk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789025361; c=relaxed/simple;
-	bh=SDMg6oyZQw6A03eQKQ3Uptuv442Scy0myCx4pmCTZ2Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FHQz6scCWV33MkIR946szX9zjH0u7lV9vCWs1XGSf+MwewJQ2+lwTvHvcjy54nNBUGWh+FgOhgvS46fSujU5m7guQMTpMa9KkMvP/tWCxIWQysMQCEL5mfbYFsPKEZ/UQ1W0gzce9ntQMpDOvf9JvApGqT0DyADNmn132ATMePU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MY03GOet; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789027429; c=relaxed/simple;
+	bh=It3hGucDlDiimzY7cb7O9jAeM6W782d0j84+5HqyF5I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IHBCkFSAf8Qu2jcBsCmNEhmducUbxHoJsuxOamWJadoJsWlEPHf8KoSZRjOG4ydDnOk0t6iW8D47uXqL9+dVdtIhY13Q3ACQG7qhBHJYSr/ls5jryvDQGx3FrPWNMDh0uFfPaialYHZp+vBnFtMWoxP/4iyusyfGITJlOYm/Pv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dGmvS1vx; arc=none smtp.client-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MY03GOet"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9E611F0089E;
-	Thu, 10 Sep 2026 07:29:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789025359;
-	bh=u3R7KOyofrS0wRSjak8aNV75X2Czsw9QjnW4+38O/ZQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=MY03GOetu5SKBp9nkWTrxqdG7Jl6/NG2Hl+PUb+xVMhfRY77IW+ocH4B48v9OlZH+
-	 2jNjsuE5l7TpMAH4tErFkuASZJQp1s4gqxabcfqFAipFRFLnJoAF9of4isP7Umzi7X
-	 Br84MtRcqTzhRIQx94sSrFT2GUsb/WfFTvrliT9WRrtFns/42kuCEHMX+eQj6SGnZj
-	 6SKyKJyXMZFLIO/MXaq1HQg5I1fUaIXvYvH2imSIKOP1ZdPpYtxN5Nzhby8vBAnpSq
-	 IKWJdVIggpp6it5npUAN6DPsZWIKMJdRJSMqtDQcP+//G3+4DT/6tHCVZ5uOWCi/vM
-	 lQfu9E+dLqOeg==
-Date: Thu, 10 Sep 2026 09:29:14 +0200
-From: Joel Granados <joel.granados@kernel.org>
-To: Mauricio Faria de Oliveira <mfo@igalia.com>
-Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, kernel-dev@igalia.com, 
-	linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, fsverity@lists.linux.dev, 
-	keyrings@vger.kernel.org, bpf@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, linux-wpan@vger.kernel.org, 
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
-	bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com, 
-	virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
-Message-ID: <uufwu7rqyxf7h55lgavcwrnylnq5gdbd7o5d7mfugrxpblds2d@adra5c2z22gg>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
- <53155340c897560bfc67e61ba9568fd6@igalia.com>
- <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
- <b1a6cec17e7c828fcebe310ca2a0d25b@igalia.com>
- <rywhz6soawf5dzyui5g7dnbufsgpxr7ma7honuhejwgncemzrm@f32at7hl6ugm>
- <6e93af907298022f077126f1be7bd386@igalia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dGmvS1vx"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2d8f265cbe6so58503065ad.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 01:03:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789027414; x=1789632214; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=i8zhbFIVLiK3IaZuONcJMvzZFWnMkWhoBnRei/mXFFQ=;
+        b=dGmvS1vxQmfm28mdcgr2t/zq4MoCMBORveSLgeaT1V4o+aBUi/6aEaZJ6S7AJl9EWA
+         P1vwF8oiWde7dqi6RUz8SNty52wD2NDpDTeWuyb25p9ZSovJxnmcLThGjCveLz1iQETv
+         iZ9UwFkAg58UV0GzyMAPhYL9my0ojnvFQbNWwFGhhRUXBl/LBtS2jB2v59niM9QDOCgF
+         YPLp76W4sL5CMx5QDyhdTJ70PeztfykU8FEYG2J7nu+sI2eZ8QqdwggVB3PIxyMyHEWQ
+         ZVlWkxgIWyMOUKZtY3h/GntjVb0nBdAJPr+Flwwg+DR58Iv84Otk4iK4TFSvEChrbQgm
+         ab8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789027414; x=1789632214;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=i8zhbFIVLiK3IaZuONcJMvzZFWnMkWhoBnRei/mXFFQ=;
+        b=aMXvy50sH6mlIKgPA0gux9KTRQ8f70S6MZ2RD+K3Gk5NXJ96biIIPh7D3JO3AicBkk
+         HKUQ/os1nryhcsL7cvYFmJ2TTLVrxHTAcJVTfbG/wOMvCIdIWwXHYibkeVIXYWl12myP
+         JWCVWyMYlDecEqEOhRGA//HM4hKuIJo6bL8EYWLm6nVj6xhgLjPMw5BSkK0qA+03WO1o
+         o4O7GLGuhErDpcD4b8KuFnKXx0VMx+STyRlhiTxnn8Un8E0iY17u7Gnm1xySM0qMUM1o
+         zcNyx4hIp63Zs6kb6YrvcGf3PuLI7lfougPauN2jmtRLf3iOlt9yvgYqwzrevpcp0AbH
+         CWYQ==
+X-Gm-Message-State: AFuF++lsf3Hn0OLyByN+6GCVP1vUDEJBRJiS2tYuJT2uCqC+iwHiwGsb
+	jQSOES5ju2KPLXPhigYLmuOYOVp86pcGtUlEz/1RfYkUsVE3Qalu3H88KPzaRLJEo4w=
+X-Gm-Gg: AYBFou03S7pguQz/8eexnbl5DtsvHJW1839PaWEVviMBjxshTr5zIXOvkghikZOlqb5
+	7UN/DQYWIWNNW4FqFrI3qPdlfjYFMQ43rK0anID5VGi4qYeQcL4ESPYDdF62MY7Ua69wBE842WI
+	ntX7S4LwZbxAq6WasXja6CJLrxZSNvAHkht0s0cakRu3ex3HY3lRLsoMQRkT83UdgYpVrKts3Wn
+	i2IWsrFXJVinZSHH05vLk+T2qkeIGIfiaa+tWukj/8SfOOX2PvuwOlm4Am06yCr185otOtr8FDH
+	iodjfk4el2Nm6UKa0M6CLor5AS0kmRmdMF8NdiPnR6lwIGd/33zCP28HuL9XeL/Xx1DOGw4zFi6
+	qdBdEE33ROBKhOi6ONCdodqwtK+O6NpUzPXlL5/anrgrDBZbFjZZWjNh/l29ES4+0o1H1yYXE9+
+	TJmrwoO31HAjZb3ick8WDNIY4a4oYUBFoidNgrOV9MM7SKZFquizqUvh4ISbDg+0uZ2ydgi4DB5
+	FWegc168IZk+Y0f0FY0sGsx99Z85ua2GLMboRfVSnBVH1wj
+X-Received: by 2002:a17:902:b114:b0:2d9:1dee:43e3 with SMTP id d9443c01a7336-2db12757f17mr383673035ad.18.1789027413851;
+        Thu, 10 Sep 2026 01:03:33 -0700 (PDT)
+Received: from localhost.localdomain ([180.101.244.71])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2db2db7f088sm69745075ad.35.2026.09.10.01.03.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 01:03:33 -0700 (PDT)
+From: Aohan Mei <ljp1205831794@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	coreteam@netfilter.org,
+	Aohan Mei <henrymei@tencent.com>,
+	TencentOS Corvus AI <corvus@tencent.com>,
+	stable@vger.kernel.org
+Subject: [PATCH nf v2] netfilter: nf_tables: skip expired catchall elements on insert and delete
+Date: Thu, 10 Sep 2026 16:03:19 +0800
+Message-ID: <20260910080324.2663491-1-ljp1205831794@gmail.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="fccfp65dlmdatj3e"
-Content-Disposition: inline
-In-Reply-To: <6e93af907298022f077126f1be7bd386@igalia.com>
+Content-Transfer-Encoding: 8bit
 
+From: Aohan Mei <henrymei@tencent.com>
 
---fccfp65dlmdatj3e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+nft_setelem_catchall_insert() looks up duplicates with
+nft_set_elem_active() only, while nft_set_catchall_lookup() and the
+dump path additionally skip expired elements.
 
-On Wed, Sep 09, 2026 at 02:29:30PM -0300, Mauricio Faria de Oliveira wrote:
-> On 2026-09-09 11:07, Joel Granados wrote:
-> > On Fri, Sep 04, 2026 at 02:45:23PM -0300, Mauricio Faria de Oliveira wr=
-ote:
-> >> On 2026-09-04 10:41, Joel Granados wrote:
-> >> > On Thu, Aug 20, 2026 at 06:22:13PM -0300, Mauricio Faria de Oliveira=
- wrote:
-> >> >> On 2026-08-20 09:51, Joel Granados wrote:
-> >> >> > On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Olive=
-ira wrote:
-> >> >> >> This series adds 'sysctl:' aliases to modules that register sysc=
-tl tables; e.g.:
-> > <... snip ...>
-> >> > use the correct call moving forward?
-> >>=20
-> >> This scheme currently covers all modules, AFAIK, as it is wrapped in t=
-he
-> >> functions that register sysctl tables.
-> >>=20
-> >> On moving forward: usage of such functions in a way that breaks a
-> >> requirement of this series (e.g., failing to specify the template
-> >> table/path parameter(s), or not having constant initializers) hits a
-> >> build error, as the requirements are actually from the compiler.
-> >>=20
-> >> >> I guess that a different design could use MODULE_SYSCTL_TABLE() as
-> >> >> MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
-> >> >> register sysctl functions.
-> >> >> However, it seems to require moving the value of the path argument =
-(or
-> >> >> its template) into the macro and still referencing it in the functi=
-on
-> >> >> (or its instantiation of the template), which adds obfuscation, to =
-all
-> >> >> callers.=20
-> >> >>=20
-> >> >> What do you think?
-> >> > It might be that having it inside the module subsys is more work, bu=
-t I
-> >> > believe that there is the right place to have it. I still don't see =
-that
-> >> > adding a module specific arg to the sysctl register is a good thing.
-> >>=20
-> >> Ok, cool. I can work on a different design.
-> >>=20
-> >> Please just let me know whether you are OK with the remaining (above),
-> >> and I'll be happy to tackle this.
-> >=20
-> > What is "the remaining"?
->=20
-> I meant the rest of the email, addressing the points/questions you
-> raised.
+Once a catchall element with a timeout expires, this predicate drift
+makes it invisible to userspace dumps, yet it still blocks
+re-insertion: with NLM_F_EXCL the request fails with -EEXIST, and
+without it the request reports success but silently inserts nothing.
+The stale entry only goes away when the (user-tunable) gc interval
+elapses, so the catchall rule may silently stop matching for an
+arbitrarily long time after its first expiration.
 
-* The dependency on a sysctl path to load a module still is
-  backwards to me. It should be: I need feature A, I load modules
-  M{1,2,3} for A and I set sysctl S{1,2,3...}. Not sure why sysctl tools
-  do it the other way around.
+The delete path shows the same drift: nft_setelem_catchall_deactivate()
+picks the first active-next entry in the catchall list, so with an
+expired entry still pending GC it retires the stale entry instead of
+the fresh one, and it deactivates an element that userspace no longer
+sees instead of failing with -ENOENT.
 
-* The fact that the invariance is in the sysctl path and not the module
-  identifier maybe points to a deeper issue.=20
+Align both walks with the lookup and dump predicates: only an element
+that is active and not expired counts as a duplicate or delete
+candidate, using a single timestamp snapshot for the expiry checks.
 
-* I still believe that this is better placed outside the sysctl
-  subsys as it does not cater solely to module loading.
+Reported-by: TencentOS Corvus AI <corvus@tencent.com>
+Cc: stable@vger.kernel.org
+Fixes: aaa31047a6d2 ("netfilter: nftables: add catch-all set element support")
+Assisted-by: CodeBuddy:Kimi-K3
+Signed-off-by: Aohan Mei <henrymei@tencent.com>
+---
+v2: drop the is_dead check, it does not belong to this dedup walk;
+    use __nft_set_elem_expired() with a single timestamp snapshot;
+    also skip expired catchall elements in the delete path.
+v1: https://lore.kernel.org/netfilter-devel/REPLACE-WITH-V1-MESSAGE-ID
 
-Best
+ net/netfilter/nf_tables_api.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 765a92fa90d6..0f3449cca5d2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6991,11 +6991,13 @@ static int nft_setelem_catchall_insert(const struct net *net,
+ {
+ 	struct nft_set_elem_catchall *catchall;
+ 	u8 genmask = nft_genmask_next(net);
++	u64 tstamp = get_jiffies_64();
+ 	struct nft_set_ext *ext;
+ 
+ 	list_for_each_entry(catchall, &set->catchall_list, list) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+-		if (nft_set_elem_active(ext, genmask)) {
++		if (nft_set_elem_active(ext, genmask) &&
++		    !__nft_set_elem_expired(ext, tstamp)) {
+ 			*priv = catchall->elem;
+ 			return -EEXIST;
+ 		}
+@@ -7088,11 +7090,13 @@ static int nft_setelem_catchall_deactivate(const struct net *net,
+ 					   struct nft_set_elem *elem)
+ {
+ 	struct nft_set_elem_catchall *catchall;
++	u64 tstamp = get_jiffies_64();
+ 	struct nft_set_ext *ext;
+ 
+ 	list_for_each_entry(catchall, &set->catchall_list, list) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+-		if (!nft_is_active_next(net, ext))
++		if (!nft_is_active_next(net, ext) ||
++		    __nft_set_elem_expired(ext, tstamp))
+ 			continue;
+ 
+ 		kfree(elem->priv);
+-- 
+2.43.7
 
-
-
---fccfp65dlmdatj3e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmqiXEIACgkQupfNUreW
-QU+Jpgv/QNMzfwgyYS5bGcjcIdeGmbwPVB4niFRMrcLkDpeUPt2bAuU2q0Si+c2j
-8ZRwIaAx22BLUNWWDpobcza7W5C1A17rIR76XCMUnFSb0n/IWP5htK0UHazibk/r
-s8lxhIQXP5lQAHUSyOaKXEqmO60aWL/VkIxb+qJe3ThcHSESPRVQxL56e054d/fG
-0Hh+/ckA3Yy8AAKkaF1Q52F6thgEqtHKMSNZkdp+XN3Q+IQHRUGULXvXeTgvp4QY
-u5WK/w8RJz5+KQwW6//kpXBCY9uVado45tRrFS/H0fClXF6ovdXuTK169krtJi92
-qouie+C4qFsAjPRGPOQjOYXmCIa8/sKwsArW4CmTg0J9WN3BwQxJksy0jWqaxULM
-xRPx9OxYsSrYZGglZitaJMnNQnc+X20/vQ4lBotfmrMPdUgSrMAzOHO0AcFXBUs9
-s1DSQoFZe+/Kg4RCkGzgk55VbnT0V81UPFbcYx6yuyjb+yZWoTMUpHy8Q47//r54
-Y5lWmFsv
-=Y70+
------END PGP SIGNATURE-----
-
---fccfp65dlmdatj3e--
