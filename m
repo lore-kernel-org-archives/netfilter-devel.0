@@ -1,214 +1,142 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A28370AEB;
-	Thu, 10 Sep 2026 18:55:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31DEA35A384
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 20:02:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789066546; cv=none; b=qI04ZCD/mffz8cpWqepYGMFV8Mp+SckjY1mMcAa6rsDe9kbC0stcfx2zD+J7+I3u1JbuCYOfprkKBtOdQXCzDaRdWO8wC3s07a4U34v1gZM4aPdg96uWmghvXCkFNLpDqk3ix6QSKvlbeFommd9l3PlW59y1YVogEyWBeklnOxg=
+	t=1789070556; cv=none; b=TO+QYLerLhHPQQCQjPJJnKb47JFnPaBxVBvMRqbS/qpW3vi9s8SXMrJPoi+oQBivZUFoDNuP63eJlkj4G4AcvwRfJqRbGYEVcXz9ZKd+WAyfrR6z0NVIIQ1HtVWzuubo9J2mibV5+owGUtQ1jNyJZvwD4iEZFSGVWqpcukA6jR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789066546; c=relaxed/simple;
-	bh=jA1OIjMBwv91UuOt5Tn56hy+6IGDF/xyXBVDc+O0W7c=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=A+ac7OsFdCSk2ZgjggUEYNyk4qABfHooj+hlO9MbViUc0WCRtXI5eLFkxpk7W9dQ5JYKjN2SCapwFEuOSIMOYCeUAUznU6rWrRcXDK+Uv8sJjOm3BmsrZD6qMF1fS9r9KQgw8cQJYtc7xANVQGzoX0yYNcmROoSIKr0IrqWz3ac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F6i3O5AT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789070556; c=relaxed/simple;
+	bh=A3hZp6S0iVLSHK0F2SHRfV8fdm35uGWaIJU8a37QGP8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rd1YA7T9qcGL9LAUHmJ6ttY37YG6nSQFtU2mylzbiBEHOeg6URpELD59/+2k0aCMXKUMViEldILhfWRFmBmUEMwBVb4V8pPY+Z2tLPNZvwF8puzluCThM1qBkjcbVavrblCA8jc0qsUA4SqHn3XN6RnGlwujc68efHUr/7hBdWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QdHeWh2E; arc=none smtp.client-ip=74.125.225.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F6i3O5AT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC6741F008A6;
-	Thu, 10 Sep 2026 18:55:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789066544;
-	bh=CrpBp6UrC3ldEa5GcKmmPo3oz74G2RAnpQBvJ2o9k1k=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=F6i3O5AT5R2f9Yx+JsX4oi2MbBVZy6vhmuah8fyZ7HoRM4fcwu9ko/hMOipVkG55B
-	 1Zmg31PLcmFyjN/6qwvx+Gi14CUmpNgqwIW3GIcgTV8r/HdYjj80cmHBvTlnPKg5uR
-	 OFZIpZsE3LqRG10E9rSuJaexxU9wT5CasLzhcaoOUlc1HtwpM6VduzyZ+RCbNEeTCG
-	 7mnywN+8+H6LvsHwXafWrsaQmZDzIueYYyazPefKJGcMkw5e44QHRXV4epY9oIt8b/
-	 VxUYOa++vQ7n7D+qHzq2qnf380yDhptkzXHvt9CgqRKD1Qe5yMUYoD9jvQW061SukA
-	 KzIemnQ3+sQfA==
-Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id C451EF40069;
-	Thu, 10 Sep 2026 14:55:42 -0400 (EDT)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Thu, 10 Sep 2026 14:55:42 -0400
-X-ME-Sender: <xms:Lv2iajO020W1DUB7kxvyyEY7DfRl-e2BIJTX073yLiFUhMClSPWBiA>
-    <xme:Lv2iaoxfBFeDEd_VmLtT0qd94HDtXRhhpDvUfHkJM_m66XDNqrBNS-B2koOqMN4lP
-    Sa0Ug9f_2FH0Kq2r3-yqf79TNecZT6-Lakr_OXpOKrFWd9sWBuPoBo>
-X-ME-Proxy-Cause: dmFkZTF4DbH3FZ3dPjetu62giaNH+KK3h7Vnr+fEg85PysIt/4nck/4imrawKEp8DsE6Pr
-    r0whIQLHunubPaHCLLANlXfZ8RvcApjV2EH4HvJnIa7IIlTjW/aieFsEYioNdVnIC1pGZ7
-    r7+Be7rv47aINSOQmPbhGzYvhtHf8def9lEg4PtjWAs9LAnZxAA8HHEDG0Nu5Q4D+ErnGo
-    wbL3v3GuUBm9m4647OHl9jiHICZ+8M7+WaOVrci5hxhVfG9CY47ExztZrbckd1/ZxcD0FZ
-    vwDE7nYg/E3N/QLZgdrUVACuceWMJkJ6Wb+Z2hJc7h8HgoI8f/4b+gnUnlKGDgCx/5CDPJ
-    po6DIC9Q8yofj6Gyo3f7FKL5mt0EHv82L6g17/YO3gWxVRbIFJetz+YWg8fgbv7WuFfefm
-    hnLsmWUjBQVBzx6B9SMuUsPATs4OJtGO1f+mnt0J/1peJ5Nq63D3J9EC8B1PaX5BKnWN5n
-    NTUc5qHazXKrxzCndz85zJiyINbeiTNLTCeRjTR7RMcNSUFcXqheUFmGnh70f88dysYIhz
-    x/wWpwuzN1bBTEbUGCyOiSyCxaCxeioaasg+88aeLfS3v1QhYfc5bHYGwrmHrU/cjZ20YX
-    SgmgetWptaxFGpGrTy/DDcJdYBDIVEtFh7oH120w4eOuhoZaxlVn3LGzD7xQ
-X-ME-Proxy: <xmx:Lv2iagKDhe4ENuyDEBPe0XuX5JV95iH3pOzVxXrfT1HwGt5hmy731g>
-    <xmx:Lv2iavY0YWPFwc5heNSQaejsEbm3T9Hzm9qfGqn3H3Ql0pmX2TgP2A>
-    <xmx:Lv2ias4lIQtLaB1oGx0UNzfhFXq0OCShC-yE9ybCKPEj_MhGksso3A>
-    <xmx:Lv2iaoJl7Z6wMLyQsn5RJgRWdIhUrImOwvxM7EqgPgmRZWBE2AuVGw>
-    <xmx:Lv2iaqawY0GSonv8zq4bA_iHkDoRcvBDh1ekvmmQAljAmwqWH4krgir7>
-Feedback-ID: ifa6e4810:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 8F75E7811F0; Thu, 10 Sep 2026 14:55:42 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QdHeWh2E"
+Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49cc9f581c4so827755e9.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2026 13:02:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789070553; x=1789675353; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ly0zpPrI27aaOVayRwfu5QMDzC7RwvjeeGzfZnLG77c=;
+        b=QdHeWh2EOqi9mHZ2zFY1OU7P5N2FUR1Gtac7NDIpMd9L7HoWSNgWRU5lXDh4/g/1IF
+         o3ubzxqQ+GCsocse9/TvNtSwNkZzQHbgKMkLMwBfxSTICcTphvFVEPMRXxgWkk9cWBNY
+         shsCFlgV80mGNvm4xPcPnXqq93lSrK9o5rco21t3rKLFKkxZ4N44FxMa+NclsYfK7d4F
+         mLWCzj/BObQNbCwYMml0YMWZI2xj91kPL4kzsEekwq/pUo2GbbwncoyJpK3+elD06jjs
+         6s5RgKcdUx+Nyzqhd82u9vSWHWe5kpgw4svrgzRZWBvgN3MStV758iXfEgUN/oSD5Hrd
+         u/Zw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789070553; x=1789675353;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ly0zpPrI27aaOVayRwfu5QMDzC7RwvjeeGzfZnLG77c=;
+        b=H7gseBBYcf0/hn11yCie2ZhyJ0mPWaEA255zQBwtiP9PMkC9yipOfAVL/IeijHfKOA
+         hr/uoIp8vlgC0MoQgHfhHonEmytz6Ct/o6O5CQORVks7wDRZEZdoJHFmRmwqtnpHWcyk
+         NKpwhNxM9SaBez1ODr3OkkQFVBZSRgluTOm3cN0OUhzyHpcLY4/iR7EbkMC2KA1uuRWQ
+         nMMBY31GGk6yAGiQ8w2QcKL2U+xFz5eDhvqPVQsS9LtJexwBx3GkG8y/c95SNe4lWkQb
+         iRWoOHel1VsaFRMo8PtuZSSoXaUaQpQMVfTdYPHp+3hF7OFXuFAt1xaesgqVVWsYputI
+         o7rg==
+X-Forwarded-Encrypted: i=1; AKwUvBzwuo0FNFReD41Mdj/KR3IarplukTp6ynn//fFEiS7Wx3UOr9pU6ITt+GYQxk2TWIBqben+j0wXKBqgxQuh/ME=@vger.kernel.org
+X-Gm-Message-State: AFuF++lUymh7Az9ufxUCbUZ3mho0Q9eyLOOxi4b8jh11B8tuTCKVeysx
+	BTy5fXfRnhY43+8jYTtTssNlGyb2tL7HwkAcdS/icNDzDj0kO+LKhWkG
+X-Gm-Gg: AYBFou2Fu+pndk7xfS2soEyHgTeVV4H/iSPaEY7otlQWG2YFH6eu4vxF7NoFU2CW9dV
+	9cKXUrze0jTBO4qzshRUNRH2gncmGdKU2ds+rBiXfDOi2A10gaFobZ/xE6R7jlmAtUP6rt64Z7e
+	+WAgj/ZTdU8Gcu1+sFAx0HZLZ6z6keEbMk7mW/7TjV31zVaD4caxYvOmrt5CXnUQcp/SxevmEvi
+	RdrzyDi6WFDtDJiwwrEkXLvViETfVLkNIjeKtK5Yw2WHS15kuE35EhDUHqYZu7e6IhZ6vlbS1Lk
+	GZQ0N5s8xQEVOYmEaul7ekY9OQCLwppJx5rpXZ2neOpCiMTNLEl22GHTajknHPtDOHZuFs03U/t
+	gHdeuOolvNQLiCY9l06Wboq3Btx2No+zfQ/FyzF493kLuJZLQffNksOK7bdZOcKHEjYY/GAPldI
+	sbQeDlGJNYF3Q8t0NuLsVlcFkemcy4a1KyIPfAiudfXVjqfJ3JsTwXBmJzDERlpkxHCzIqHcz+b
+	8aCxGPBaHw0FrfRbr3gU/2MDQgZ+0aKxMysU1i23KA6Q5SMRel2Q/51Y0JG0wxM4bV4HbIjmDPt
+	uxgvmFBb1oB+HTpMJ2Cs1sPIHQKCK/u5IaOF+wD9kH/N261riyWkXXRPKcwZuo9okMyAhKHohcu
+	mhfjXD4pXbcXSJWny
+X-Received: by 2002:a05:600c:348a:b0:49d:29ab:67f8 with SMTP id 5b1f17b1804b1-49e6108ad2amr10904115e9.12.1789070553232;
+        Thu, 10 Sep 2026 13:02:33 -0700 (PDT)
+Received: from MacBook-Pro-von-Karl.localdomain (dynamic-2a02-3100-b3d9-b901-601c-58ef-b3f5-74f5.310.pool.telefonica.de. [2a02:3100:b3d9:b901:601c:58ef:b3f5:74f5])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49e62227071sm638505e9.3.2026.09.10.13.02.31
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 10 Sep 2026 13:02:32 -0700 (PDT)
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	Phil Sutter <phil@nwl.cc>,
+	Fernando Fernandez Mancera <ffmancera@riseup.net>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nft_synproxy: use the family-aware checksum helper
+Date: Thu, 10 Sep 2026 22:02:28 +0200
+Message-Id: <20260910200228.5127-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AHIlAaKAQArc
-Date: Thu, 10 Sep 2026 14:55:20 -0400
-From: "Chuck Lever" <cel@kernel.org>
-To: "Fernando Fernandez Mancera" <fmancera@suse.de>, netdev@vger.kernel.org
-Cc: "Simon Horman" <horms@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, edumazet@google.com,
- davem@davemloft.net, "Jason Gunthorpe" <jgg@ziepe.ca>,
- "Leon Romanovsky" <leon@kernel.org>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "Tony Nguyen" <anthony.l.nguyen@intel.com>,
- "Przemek Kitszel" <przemyslaw.kitszel@intel.com>,
- "Elad Nachman" <enachman@marvell.com>,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
- "Mark Bloch" <mbloch@nvidia.com>, "Ido Schimmel" <idosch@nvidia.com>,
- "Petr Machata" <petrm@nvidia.com>,
- "Edward Cree" <ecree.xilinx@gmail.com>,
- "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
- "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
- "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
- "Arend van Spriel" <arend.vanspriel@broadcom.com>,
- "Miri Korenblit" <miriam.rachel.korenblit@intel.com>,
- "Keith Busch" <kbusch@kernel.org>, "Jens Axboe" <axboe@kernel.dk>,
- "Christoph Hellwig" <hch@lst.de>, "Sagi Grimberg" <sagi@grimberg.me>,
- "Chaitanya Kulkarni" <kch@nvidia.com>,
- "Saurav Kashyap" <skashyap@marvell.com>,
- "Javed Hasan" <jhasan@marvell.com>,
- GR-QLogic-Storage-Upstream@marvell.com,
- "James Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Martin K. Petersen" <mkp@kernel.org>,
- "Nilesh Javali" <njavali@marvell.com>,
- "Manish Rangankar" <mrangankar@marvell.com>,
- "Varun Prakash" <varun@chelsio.com>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "David Howells" <dhowells@redhat.com>,
- "Marc Dionne" <marc.dionne@auristor.com>,
- "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, "Olga Kornievskaia" <okorniev@redhat.com>,
- "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
- "Marek Lindner" <marek.lindner@mailbox.org>,
- "Simon Wunderlich" <sw@simonwunderlich.de>,
- "Antonio Quartulli" <antonio@mandelbit.com>,
- "Sven Eckelmann" <sven@narfation.org>,
- "Nikolay Aleksandrov" <razor@blackwall.org>,
- "Pablo Neira Ayuso" <pablo@netfilter.org>,
- "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
- "Johannes Berg" <johannes@sipsolutions.net>,
- "Matthieu Baerts" <matttbe@kernel.org>,
- "Mat Martineau" <martineau@kernel.org>,
- "Geliang Tang" <geliang@kernel.org>, "Julian Anastasov" <ja@ssi.bg>,
- "Aaron Conole" <aconole@redhat.com>,
- "Eelco Chaudron" <echaudro@redhat.com>,
- "Ilya Maximets" <i.maximets@ovn.org>,
- "Allison Henderson" <achender@kernel.org>,
- "Jamal Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>,
- "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
- "Xin Long" <lucien.xin@gmail.com>,
- "D. Wythe" <alibuda@linux.alibaba.com>,
- "Dust Li" <dust.li@linux.alibaba.com>,
- "Sidraya Jayagond" <sidraya@linux.ibm.com>,
- "Mahanta Jambigi" <mjambigi@linux.ibm.com>,
- "Tony Lu" <tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>,
- "Jon Maloy" <jmaloy@redhat.com>,
- "Tung Quang Nguyen" <tung.quang.nguyen@est.tech>,
- "Steffen Klassert" <steffen.klassert@secunet.com>,
- "Herbert Xu" <herbert@gondor.apana.org.au>,
- "Casey Schaufler" <casey@schaufler-ca.com>,
- "Paul Moore" <paul@paul-moore.com>, "James Morris" <jmorris@namei.org>,
- "Serge E. Hallyn" <serge@hallyn.com>,
- "Vikas Gupta" <vikas.gupta@broadcom.com>,
- "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
- "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
- "Nicolai Buchwitz" <nb@tipi-net.de>,
- =?UTF-8?Q?Markus_Bl=C3=B6chl?= <markus@blochl.de>,
- "Arnd Bergmann" <arnd@arndb.de>,
- "Heiner Kallweit" <hkallweit1@gmail.com>,
- "Florian Fainelli" <florian.fainelli@broadcom.com>,
- "Krzysztof Kozlowski" <krzk@kernel.org>,
- "Qingfang Deng" <qingfang.deng@linux.dev>,
- "Julian Braha" <julianbraha@gmail.com>,
- "Ethan Nelson-Moore" <enelsonmoore@gmail.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Eric Biggers" <ebiggers@kernel.org>, "Ard Biesheuvel" <ardb@kernel.org>,
- "Neal Cardwell" <ncardwell@google.com>,
- "Kuniyuki Iwashima" <kuniyu@google.com>,
- "Willem de Bruijn" <willemb@google.com>, "Alyssa Ross" <hi@alyssa.is>,
- "Joel Granados" <joel.granados@kernel.org>,
- "Oleg Nesterov" <oleg@redhat.com>, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
- oss-drivers@corigine.com, linux-net-drivers@amd.com,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
- brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
- linux-nvme@lists.infradead.org,
- "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
- target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
- b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
- linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
- linux-security-module@vger.kernel.org
-Message-Id: <ff6ff699-e942-455f-8816-49af24afb370@app.fastmail.com>
-In-Reply-To: <20260910144914.8025-2-fmancera@suse.de>
-References: <20260910144914.8025-1-fmancera@suse.de>
- <20260910144914.8025-2-fmancera@suse.de>
-Subject: Re: [PATCH 01/13 net-next] net: ipv4: introduce CONFIG_IPV4 to decouple the
- IPv4 stack
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+nft_synproxy_do_eval() verifies the TCP checksum before it switches on
+skb->protocol.  It uses nf_ip_checksum(), which constructs an IPv4
+pseudo header and relies on the IPv4 header checksum when folding the
+whole skb.  Neither operation is valid for an IPv6 packet.
 
+A correctly checksummed IPv6 segment can therefore fail verification
+when it reaches the hook as CHECKSUM_NONE or, at NF_INET_LOCAL_IN,
+CHECKSUM_COMPLETE.  nft_synproxy_do_eval() returns NF_DROP before
+nft_synproxy_eval_v6() can send a SYN-ACK.
 
-On Thu, Sep 10, 2026, at 10:48 AM, Fernando Fernandez Mancera wrote:
-> Historically, the IPv4 protocol has been linked to the core INET
-> subsystem. Because shared infrastructure like the TCP/UDP engine,
-> routing or INET hashtables live inside net/ipv4/, it has been impossible
-> to compile a kernel with only IPv6 support.
->
-> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
-> 'def_bool y' for now. This does not allow to completely disable the
-> IPv4 stack yet but it lays the necessary build-system work for that
-> goal.
->
-> In addition, multiple subsystems Kconfig symbols across networking
-> features like tunnels, drivers and filesystems have been adjusted to
-> depend on IPv4. Keep on mind that follow-up work is required to convert
-> the Kconfig symbol to bool and remove the dependency on IPv4 where it
-> makes sense.
->
-> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+nft_synproxy_validate() deliberately admits NFPROTO_IPV6 and
+NFPROTO_INET, and the xtables counterpart ip6t_SYNPROXY.c already calls
+nf_ip6_checksum().
 
-> diff --git a/net/sunrpc/Kconfig b/net/sunrpc/Kconfig
-> index e7808e5714dc..58e6f6db3100 100644
-> --- a/net/sunrpc/Kconfig
-> +++ b/net/sunrpc/Kconfig
-> @@ -1,7 +1,7 @@
->  # SPDX-License-Identifier: GPL-2.0-only
->  config SUNRPC
->  	tristate
-> -	depends on MULTIUSER
-> +	depends on MULTIUSER && IPV4
-> 
->  config SUNRPC_GSS
->  	tristate
+Use nf_checksum() with nft_pf() so the checksum helper dispatches to the
+packet family's implementation.
 
-Acked-by: Chuck Lever <cel@kernel.org>
+Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
+Assisted-by: LLM
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+---
 
+Notes (testing):
+    Testing:
+    - Raspberry Pi 400 with bcmgenet and 6.18.39+rpt-rpi-v8: the base kernel
+      received IPv6 SYNs but sent no reply.  IPv4 with the same synproxy rule
+      and IPv6 without synproxy completed normally.
+    - Two x86_64 QEMU guests with pcnet CHECKSUM_NONE receive packets: the
+      current-mainline base completed the IPv4 handshake but dropped six
+      IPv6 SYNs.  With this patch, both families completed SYN, SYN-ACK and
+      ACK.  ICMP controls passed and the invalid-drop counters stayed zero.
 
+ net/netfilter/nft_synproxy.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 9ed288c9d168..554a96a000f4 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -118,7 +118,8 @@ static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
+ 		return;
+ 	}
+ 
+-	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
++	if (nf_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP,
++			nft_pf(pkt))) {
+ 		regs->verdict.code = NF_DROP;
+ 		return;
+ 	}
+
+base-commit: 50d05c7c76c96b90462f24debacca971d2e86713
 -- 
-Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
+2.53.0
+
