@@ -1,42 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B613344F54B
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 11:21:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0CC46A5F8
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 11:21:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789125723; cv=none; b=HxsE0AJbLTgbfKfT8VV04mSBrc2os6HVE3LY/a50yFHHNCTpNLc+pr2rACH1+nr1niE0PwM7SngSrciwfDkK4So/KG0NSLqHrqaJICqrhEJuOIISar8/mjaTv7GFVLuh5xY7Jl/fxzqqIQJ8FljLAfDgc6Kk6YkJNBm18vcMQ4s=
+	t=1789125724; cv=none; b=QP9CBZlt5hVg4EkNeKFfL3XCx2OLnMS3UspB1yJ/MABuIp6H8/tKbrsHCZKHAHbCdWnn9A22fJr7HNr25ZodApOEKf/A3KhCyS7malcGtPl9hQQQjSdKzFjuWcbstGoAYJ6CL0m8npRhQr7Kgz7RDRLX/fbPIaADwx9iEaDJ2UM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789125723; c=relaxed/simple;
-	bh=QhjDyHn2pGCF+34V5jBipN5cbD11FdPQE/XPc3uLWWw=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KHfam1GVp7rCQbUe1h+hkb9HGGAOD/g6myoG1oOS6ihBVZ1mrXfl4JOrRO2cavv1kceXs+asoP2zHX8lDiCTEJ3HdxV/xbHtkqqP2XVHIKnCcuYELGNAEZV9/LChEhiqyvlT93WINz+ddFgYa/ywRHW6hrhjrWmXls+qen0Aj9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IaSQO91I; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789125724; c=relaxed/simple;
+	bh=zzdol0X/wHRQkVjaRHVnrC3I8DrcxoVP5RRUMpBXBBY=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=InhdyjtYEkYqFKeEwNQ+3NrO6J/wJ8Sh635eIwON2DERVhwl8YqSMm7CqkM2swdm1tPW7aRf/ljPnYPGqgtxjWHMpRrgHPYMR9Zo4ec+1Uk8wwaXWy6yicd0gjID2u23wSx3kKmlgbNCpObYTAVVPYK/gBBYoYWIZ4RnOabSFt4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W11ekwJ2; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IaSQO91I"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W11ekwJ2"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789125711;
-	bh=xFKn8L9lspfrZDh17Sk1g4QmXa8rZyF1HPa88db7nVg=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=IaSQO91I6nXcLrSi20ndKA49P4zWJimzCjojdSqt0vECNf03X8DwsfX2rXRXXhHHB
-	 Hi2/lwn/J3N5jbJxrCN1O+F2BdFzQkbT9IRqjU+KzM4CTTdR5nguGZa1GeZCZ/eu3J
-	 6c7XWN921zDYBI37AgoUz7l45g+oN58bAzyGHmyN62ngF+tt7pTAdX2pc27EGB+YYX
-	 XOOr8OXSTE7FRw8M7O6KUusM8KUcVUgzgpGp2PuGqG93WoGcFcISc+jszWVGjH6vFq
-	 SzOzW3+Vc3PyEIEYdPXHNIZfEZTURf+KD6/gKXZqFIzZq1FXYQIWOUtTEPcG6Mf+QP
-	 MO64O2hmj6xuA==
+	s=2025; t=1789125708;
+	bh=ayzowO38GeqYOZso0R4sroZ8Yaa31vT6veueMfsOcVY=;
+	h=From:To:Subject:Date:From;
+	b=W11ekwJ2PAwverRn5w4ElP61B6YZlCfC1GL5onY2FED0Veo83L0omHM0SGkBn0Zsf
+	 iCMaOpk63mrWkG+rkyV1m0CNZe5ZfkDqvip5bK95ynIREvSMAi4AzXqKuF3GAQKWy1
+	 Xdg5MVp5VWe7DkFgH2CBgXh7wM0GSr/iWHNXcohORj69wFZiaTwwX/9UDC5IkCrugW
+	 GXI818FBmA93RIGTxL6VURib+SaoTVDuk9aEsh76Ws4qHiTYJs+WCzXvjIstocmg6r
+	 BUYGgcvfB1pUBIpFZ7A4fDGe9y9E//zI5oUjDl7mWmbbzf0Eg4rNGn38XJAEhhTzvF
+	 qw3krJPiJZnbQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 658CE603DE
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 13:21:51 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E810C603D4
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 13:21:47 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH net 3/4] netfilter: nf_nat: unregister and release hooks on error
-Date: Fri, 11 Sep 2026 13:21:43 +0200
-Message-ID: <20260911112144.1860514-4-pablo@netfilter.org>
+Subject: [PATCH net,v2 0/4] Netfilter fixes for net
+Date: Fri, 11 Sep 2026 13:21:40 +0200
+Message-ID: <20260911112144.1860514-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260911112144.1860514-1-pablo@netfilter.org>
-References: <20260911112144.1860514-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,85 +42,64 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If nf_hook_entries_insert_raw() fails, the NAT hooks get never released,
-resulting in a memleak.
+v2: - reword the commit description of the nf_nat_register_fn() to
+      explicitly refer to the memleak, so LLM does not get confused.
+    - drop the xt_IDLETIMER and module = THIS_MODULE in netlink_dump.
+    - keep back IPVS fix as Julian prefer to send a v2. 
+-o-
 
-Postpone setting nat_proto_net->nat_hook_ops when the hooks are
-registered to simplify the error path to decide whether the nat hooks
-need unwinding.
+Hi,
 
-Fixes: 1cd472bf036c ("netfilter: nf_nat: add nat hook register functions to nf_nat")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c | 46 ++++++++++++++++++++++++-------------
- 1 file changed, 30 insertions(+), 16 deletions(-)
+The following patchset contains Netfilter fixes for net:
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 8ac326e1eb5b..a4858c2b2d65 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1224,31 +1224,45 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		}
+1) Fix KMSAN reports an uninit-value in nf_nat_setup_info() for netmap,
+   from Theodor Arsenij Larionov Trichkine.
  
- 		ret = nf_register_net_hooks(net, nat_ops, ops_count);
--		if (ret < 0) {
--			mutex_unlock(&nf_nat_proto_mutex);
--			for (i = 0; i < ops_count; i++) {
--				priv = nat_ops[i].priv;
--				kfree_rcu(priv, rcu_head);
--			}
--			kfree_rcu(nat_ops, rcu);
--			return ret;
--		}
--
--		nat_proto_net->nat_hook_ops = nat_ops;
-+		if (ret < 0)
-+			goto err_free_hooks;
-+	} else {
-+		nat_ops = nat_proto_net->nat_hook_ops;
- 	}
+2) Restrict deletion of netdevice in basechain and flowtable to exact
+   matching only, from Fernando F. Mancera.
  
--	nat_ops = nat_proto_net->nat_hook_ops;
- 	priv = nat_ops[hooknum].priv;
- 	if (WARN_ON_ONCE(!priv)) {
--		mutex_unlock(&nf_nat_proto_mutex);
--		return -EOPNOTSUPP;
-+		ret = -EOPNOTSUPP;
-+		goto err_unregister_hooks;
- 	}
+3) Fix nf_nat_register_fn() error path allowing for a memleak.
  
- 	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
--	if (ret == 0)
--		nat_proto_net->users++;
-+	if (ret)
-+		goto err_unregister_hooks;
-+
-+	if (!nat_proto_net->nat_hook_ops)
-+		nat_proto_net->nat_hook_ops = nat_ops;
-+
-+	nat_proto_net->users++;
+4) Hold reference on ct until flow is released to address, otherwise
+   access to release ct->ext or different ct due to typesafe RCU
+   semantics.
  
- 	mutex_unlock(&nf_nat_proto_mutex);
-+
-+	return 0;
-+
-+err_unregister_hooks:
-+	if (nat_proto_net->nat_hook_ops) {
-+		mutex_unlock(&nf_nat_proto_mutex);
-+		return ret;
-+	}
-+	nf_unregister_net_hooks(net, nat_ops, ops_count);
-+err_free_hooks:
-+	mutex_unlock(&nf_nat_proto_mutex);
-+	for (i = 0; i < ops_count; i++) {
-+		priv = nat_ops[i].priv;
-+		kfree_rcu(priv, rcu_head);
-+	}
-+	kfree_rcu(nat_ops, rcu);
-+
- 	return ret;
- }
- 
--- 
-2.47.3
+Please, pull these changes from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-11
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 78445023439506ebd83b86d40b1e428a3b309d4a:
+
+  Merge tag 'net-7.3-rc3' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2026-09-10 14:07:48 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-11
+
+for you to fetch changes up to e75a9fa1d44bcbd66ea02e8781bcca6ea4076e0d:
+
+  netfilter: flowtable: hold reference on ct until flow is released (2026-09-11 13:04:15 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-09-11
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (1):
+      netfilter: nf_tables: fix device name and prefix match in hook lookup
+
+Pablo Neira Ayuso (2):
+      netfilter: nf_nat: unregister and release hooks on error
+      netfilter: flowtable: hold reference on ct until flow is released
+
+Theodor Arsenij Larionov Trichkine (1):
+      netfilter: nft_nat: fully initialise new_addr in netmap setup
+
+ net/netfilter/nf_flow_table_core.c | 12 ++++++++--
+ net/netfilter/nf_nat_core.c        | 46 +++++++++++++++++++++++++-------------
+ net/netfilter/nf_tables_api.c      | 22 ++++++++++--------
+ net/netfilter/nft_nat.c            |  2 +-
+ 4 files changed, 54 insertions(+), 28 deletions(-)
