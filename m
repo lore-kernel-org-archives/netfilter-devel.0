@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2191D443C3F
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 11:21:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3228D43DECA
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 11:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789125719; cv=none; b=IvQ0pEZefTyDn5E3GCJnokuMXcZdjAFbv8uMaggtqw1iTvxJb96aX32RcsbcYveS9b6+60BzOv66hj/H/vqFQybU2bbRYmckG11ybw+lZA3TOEnPCUljttNpCvILLeziXnLAMb4476iiy01wiPxhL7TzaBaVV0Ryqr2Cx5/bCU0=
+	t=1789125721; cv=none; b=KyGcnK2CXNSXmkOCtYJ20PiNN0+p5UO5VUhJLBlLwdU2tq/AwnT2yhPGNOdAWlT9Kkc//mwY8GA8MH1naTsJqqp5KUG2WrJdxvXJaDJ+1iky7cNFr/efrf3SSrhcc7N+aDIRVESJRJ3GEU6sAevrcUl3pUGce1vlWmC3Za7CKt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789125719; c=relaxed/simple;
-	bh=Y2X/E8hy84EI/tNM0FrQqixMjy6juDhQY6qo77mmPyM=;
+	s=arc-20240116; t=1789125721; c=relaxed/simple;
+	bh=HYcqT1RRpPWrPjRgsoRjWlMz9mkzCzVDAcgANm5l7ik=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RwFVLgzu/N/xXkz54UZcIATLCBPNz5rwO0IGna5y/0HBA44CVkB5p43TTv50EAwkwZCwRZlvlO6tSF/RNy7j6E6cctAvprSymF8BO1VMLJUtcguK+OSPoeT7o7XETYb6ATMUkLsqPr++kQ45/bvdLH7te0Vgfc9xhKjXDYUzums=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=s6snFb7b; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=NfqyQsjklMldfY7YdLDPTADElMuZMtQopNwtW5/Zk8kmD6jQia5AGZQ9iCpl5HkI5Ou9wLRBQspubACRI5v78W5vKa/sMOyU5cCa379eABVY3H9Q3+WULEgeWgr7NcdaO+h+AcK481hjv9VHE2NQjtJieKWuqjBm089IutUJa3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AKGiSlzR; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="s6snFb7b"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AKGiSlzR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789125709;
-	bh=wu9smSKyIWyeps8oUEotPo2VmYFuxqCbE0wWjR8D2sY=;
+	s=2025; t=1789125710;
+	bh=mgUL1pj5GumT5FyU/5MP+viMXx/+3FUen6Uwb/NhO9U=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=s6snFb7bH/lcU00UZxzwrBaG56oMGDoL9/WWpQuI3+8s8T6Ggn5PWgqsGid2noKtH
-	 SzmgV7nkv0hrVCDJmbKVy1lkMhWf29zQ+jl4sT+i5o3O0rwns8a2sdQ6l/LLxeWIzQ
-	 M3GdlbLbOr+EKiaL2cmY4XlYnrU4Yl78Tu6vpDWQhr9f+JWawfinxXGs78WqGsICuT
-	 i3dGzc8zn4M2voTAxoD6fQxf7lR51DPa69HHpSXM7mcxaRJRSrSkmHNLidRLkum7OZ
-	 7vZBhvlcqcxpGtyN6wiYQni2RTNhQZgmQwqar+5ckjNml3bVfUDpIsMADh5TBX7YlU
-	 NGyTR5cVY+aRA==
+	b=AKGiSlzRwmn68nGvx1TpFp2YBeeOTD6DEHQfbqdv4hoJftvoGaEf63d9YBKPqnDnT
+	 OOj0a5eLOvC/LO5AT4I7FGrxjxSrV7dlcMQqVkthnUwVtWbBR1S1lEA+1t5pU4Hw8M
+	 sMdbGtaihNYgkuauuUDKSd7hxhvz2S2qg1CkNY8sVceknNVKENVg2H2eqaCk3drHFe
+	 JEOGkmd0xWLFlLURHf2h40SSnO+IeJbgsNMcTtn1sr8xgQA/rumMkYYFWodUf37XBQ
+	 dyys61FqxpK+57NJshfslqoeYOx/PGAi1yesae7Ch30wwuIQSGRFgXJZ6U/XLNbt3l
+	 IwVi1hinXP1dg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 85387603DA
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 13:21:49 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 61514603DB
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 13:21:50 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH net 1/4] netfilter: nft_nat: fully initialise new_addr in netmap setup
-Date: Fri, 11 Sep 2026 13:21:41 +0200
-Message-ID: <20260911112144.1860514-2-pablo@netfilter.org>
+Subject: [PATCH net 2/4] netfilter: nf_tables: fix device name and prefix match in hook lookup
+Date: Fri, 11 Sep 2026 13:21:42 +0200
+Message-ID: <20260911112144.1860514-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260911112144.1860514-1-pablo@netfilter.org>
 References: <20260911112144.1860514-1-pablo@netfilter.org>
@@ -45,40 +45,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-nft_nat_setup_netmap() builds the mapped address in an on-stack
-union nf_inet_addr. For an IPv4 mapping it writes only the 4-byte .ip
-member and the loop runs a single 32-bit iteration, but it then copies
-the whole 16-byte union into range->min_addr and range->max_addr, so the
-upper 12 bytes reach nf_nat_setup_info() uninitialised.
+Currently, a netdev chain or flowtable hooked to a device prefix can be
+unintentionally deleted by a control-plane request targeting an exact
+device name or even a shorter one due to the usage of min() to calculate
+the length to match.
 
-KMSAN reports an uninit-value in nf_nat_setup_info() reached from
-nft_nat_eval(). The IPv6 path fills all 16 bytes and is not affected.
+Fix this by making sure an exact device match never matches a prefix and
+that both the target and the candidate have the same length during
+delete operation. The add and update paths retain the existing overlap
+matching to prevent a single device from matching multiple hooks.
 
-Zero-initialise new_addr.
-
-Fixes: 3ff7ddb1353d ("netfilter: nft_nat: add netmap support")
-Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+Reported-by: Wei Fang <void0red@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
+Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_nat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index e32cd9fbc7c2..cdbd800cac96 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -64,8 +64,8 @@ static void nft_nat_setup_netmap(struct nf_nat_range2 *range,
- 				 const struct nft_pktinfo *pkt,
- 				 const struct nft_nat *priv)
- {
-+	union nf_inet_addr new_addr = {};
- 	struct sk_buff *skb = pkt->skb;
--	union nf_inet_addr new_addr;
- 	__be32 netmask;
- 	int i, len = 0;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 31fbd5a28937..c0b754a2d45b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2440,11 +2440,14 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ }
  
+ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
+-					   const struct nft_hook *this)
++					   const struct nft_hook *this,
++					   bool strict)
+ {
+ 	struct nft_hook *hook;
+ 
+ 	list_for_each_entry(hook, hook_list, list) {
++		if (strict && hook->ifnamelen != this->ifnamelen)
++			continue;
+ 		if (!strncmp(hook->ifname, this->ifname,
+ 			     min(hook->ifnamelen, this->ifnamelen))) {
+ 			if (hook->flags & NFT_HOOK_REMOVE)
+@@ -2486,7 +2489,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
+ 			err = PTR_ERR(hook);
+ 			goto err_hook;
+ 		}
+-		if (nft_hook_list_find(hook_list, hook)) {
++		if (nft_hook_list_find(hook_list, hook, false)) {
+ 			NL_SET_BAD_ATTR(extack, tmp);
+ 			nft_netdev_hook_free(hook);
+ 			err = -EEXIST;
+@@ -2943,7 +2946,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 					ops->hook	= basechain->ops.hook;
+ 				}
+ 
+-				if (nft_hook_list_find(&basechain->hook_list, h)) {
++				if (nft_hook_list_find(&basechain->hook_list, h, false)) {
+ 					list_del(&h->list);
+ 					nft_netdev_hook_free(h);
+ 					continue;
+@@ -2956,7 +2959,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 					    !nft_trans_chain_update(trans))
+ 						continue;
+ 
+-					if (nft_hook_list_find(&nft_trans_chain_hooks(trans), h)) {
++					if (nft_hook_list_find(&nft_trans_chain_hooks(trans),
++							       h, false)) {
+ 						nft_chain_release_hook(&hook);
+ 						return -EEXIST;
+ 					}
+@@ -3257,7 +3261,7 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
+ 		return err;
+ 
+ 	list_for_each_entry(this, &chain_hook.list, list) {
+-		hook = nft_hook_list_find(&basechain->hook_list, this);
++		hook = nft_hook_list_find(&basechain->hook_list, this, true);
+ 		if (!hook) {
+ 			err = -ENOENT;
+ 			goto err_chain_del_hook;
+@@ -9053,7 +9057,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 			if (!nft_is_active_next(net, ft))
+ 				continue;
+ 
+-			if (nft_hook_list_find(&ft->hook_list, hook)) {
++			if (nft_hook_list_find(&ft->hook_list, hook, false)) {
+ 				err = -EEXIST;
+ 				goto err_unregister_net_hooks;
+ 			}
+@@ -9130,7 +9134,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 		return err;
+ 
+ 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
+-		if (nft_hook_list_find(&flowtable->hook_list, hook)) {
++		if (nft_hook_list_find(&flowtable->hook_list, hook, false)) {
+ 			list_del(&hook->list);
+ 			nft_netdev_hook_free(hook);
+ 			continue;
+@@ -9143,7 +9147,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 			    !nft_trans_flowtable_update(trans))
+ 				continue;
+ 
+-			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook)) {
++			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook, false)) {
+ 				err = -EEXIST;
+ 				goto err_flowtable_update_hook;
+ 			}
+@@ -9363,7 +9367,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
+ 		return err;
+ 
+ 	list_for_each_entry(this, &flowtable_hook.list, list) {
+-		hook = nft_hook_list_find(&flowtable->hook_list, this);
++		hook = nft_hook_list_find(&flowtable->hook_list, this, true);
+ 		if (!hook) {
+ 			err = -ENOENT;
+ 			goto err_flowtable_del_hook;
 -- 
 2.47.3
 
