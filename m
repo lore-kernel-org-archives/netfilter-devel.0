@@ -1,235 +1,363 @@
-Received: from sonic309-27.consmr.mail.ne1.yahoo.com (sonic309-27.consmr.mail.ne1.yahoo.com [66.163.184.153])
+Received: from mail-pg1-f180.google.com (mail-pg1-f180.google.com [209.85.215.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8A440EB8E
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 18:59:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.184.153
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE7D3B8413
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 19:20:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789153201; cv=none; b=F/5Tbk6CkYxb4exAlem+uLemVgikDzb59zE686+HNAnXyrvWW06ZGRWly6EF266Su5fUrTTvmd25CKscedt0sJDaZX0hbieLfPyqfIy904cZK5M+005WRmJ6GhG5JD/P10DxooBGLHp8C7pwk4wrnWcyiX9C1p1t6VkS4vFDgAE=
+	t=1789154423; cv=none; b=rBWOn0Tv0BzUpFCCkPoUfkQclM29fFsi4hL0ZSg1YMU/N0hk2d+7GLwV0+JRRIK6y4M65TCCTe1Kddypy53N4d7XUXG0/cfn6p8UwVAh2XRpOAh0Znx8DlQNsAllSDQ/huIeWcdyrpJsPeprKjuWrNGfQJ069ViZSkDxfRdxZfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789153201; c=relaxed/simple;
-	bh=j2KmhlXONrKBmB8LioVo80v7kvdpDGCasJKpOD3AEpI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=sghgG3AGuMEvHZgQlariarV0dmBbIxzG50DBjmwZBQCKyBnr3xiW4YfJ76z6p82Wq9lNB/6G6hDCIDWpDQxUrphDrshW97hvUzN9AwH7JlavLMUaRAl5XyvCcbh5Z8iYiiyMx83CPx+63JIbMHyvpejPz9XWkUK99vVCSp03+Os=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=mtnVsO1V; arc=none smtp.client-ip=66.163.184.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
+	s=arc-20240116; t=1789154423; c=relaxed/simple;
+	bh=S7kT94gyWHWbRJUXlP+n5VOhNPdwJZ9KetYD4zW3obk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SclKNkoRF3VhP+JlL5H55DJnQjBaAS2suEEmb5ZfhSDSrHBBnkm0BdoqK5FddB4TFOskffXa9RNSHF31ri8pIX6B2YatcuPCszyvXYq8Qf/RXVyH9vqOhEoPvvOWgk6pJ+C4DfucYQOtQxxYj0Wv2yC/DJqZZQeFRPUgts9E91E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pOHkME6s; arc=none smtp.client-ip=209.85.215.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="mtnVsO1V"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1789153195; bh=zPVAGvXA6BnDWmfJT3hQO0CB11Qqf66yZudh5n1EjA4=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=mtnVsO1VgKbez7SKzhsZplk6k0C9XTTXVlxzDnocNXEcQseScGzBI7NWgOkXr4UILYLp6xbh3FIHjwLdF+94WxMDb6ujNlEcAFFKECqG920WYAFTuiITuNW7RthvaIhN2AGu1tuq2GVpBfCumq35u7066l2/TlrAMDkZmZlUvAigViqjupi7aBGwM9ZfIWBkvefsp7nBcyrkSTSqOsa7ztb5+NPXMFhRnRdMy9gfukC2ZSMaXT2zEFTPBCWkqYo2lirWEQBy5QRK0sCqVkOeCrTj8u7fNeZOIN/CP0VXPWlqAHIOyz7yk4QRsYpt/9dz6e+97O94sev9f7/GzTpfMA==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1789153195; bh=8D6wX+F6GVfY3825euMFl9WpyXMjynR9Yldv18g8cqJ=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=bu4h9TPqgz2/xWApTNwcDeX3xsfNIFng8n/Rtz3yUlQCrPCz+m2kDMyd3M9a6Pms/kzWOPV43nupzqMml3jzOYsaiLLPly+AkpJFunibZo005zZSyijIaAunEVowe0JkVkRQWqOp3EyjFNwnYUBwktLOD74qKN3sUJjX3iT+AbTuQVUXuxCWnSHC8A/cGDFK6WSahfUHLR5Es1J3SpdWDOemGlmdMRQbZ7mhtYCUeOSYpeLQzl3jnYI9DzlW5RN8oiwsfwkf4cKnC3dFl7o/M6y2kWAU4NLhB44efnNs/WkreEBGwafOavMDhpRceTX4GcgwwjSW0pqGP8TqOam0tQ==
-X-YMail-OSG: 8IyxdVsVM1mOeDHP02iAS1e9vux4wp6Hm34349yjZZrE7KsVj4bJUTR76BW4BsK
- t19TLIIWTyEsL_xO6KYI6B3mIpTeWkCM7DlTvfoOQfuCsksf_DXfrnK4xY9kwKnB_FwtGMbXBVdX
- AwHEtPMyDd0o.V_n5VGZNusTss9eVCLkYUnExyioYPyx.Ad4XLy1Yhw66DZ6.cR7ayiSRijYW.xl
- 305XtUrCNu_HX0zlFhl1UhhhGTmHJWDT71o9fTQtscG7_EeuKRlbSitXpH3h2TWZBa1RvmugXEHt
- NXIrMOJrZi6l.PxmX8gxMKPF7q1N60fwVrVibI3BInE.6oUKBezs64Ge8lnfaH6urMLx_mS7NELj
- fXVYAq93FCVN6TNK0NO4G.DDrLjcDRa6hhwWgZ6gQzEbJo2rpUwMXusCpi7RZb5Xl3sf4c2Idq5Z
- 0YImN5yN2Urf87vmiFS8KvS6LQ8PAxxZyfXHUJ3TEbGILnbZXPD5AE_DFX2IpeDORzsdcSFaaNsu
- PJkDjGDNOOvznQ5FlWaMAh4HXH3i3.mQ0coMj6GUf4QwkG4eANVdkaMTdWJZeTV84xjq7hqr6XKn
- o1scllR7Z5GUkeTy8KNCbUrtqv5E7kUADSyywm2a.wUqCoxo5Q3A_YP0K0NZvpEKIs__FnlhdUI.
- q6m1Q09A2eYBeXmEIYZVeEkeB6sdw07Xxs8UUJuHZE0QHuKHXMrXD_xXTsGItQCvTPP8CDbX0kKe
- ImJUDil.4vy3ev72uHxHJEEWTnnuXYA_JydfBvosMnQg1N3bxdnWSWbU2Hkt3TqOn6I.FzGn6QG_
- wsFBAfZcXdPDj4v8n_Tn.11J7xLNj.C3Aoi_G63Dg8IjAO6.e7VyY4IIR7JohfOWwH7InWSPpd09
- L29Cgia4I5UJL8gTvOEtfAvKgJVnNCz.yi5pOsZY4j1II_vQDkb6oXyLuPEDAyPzDAFFnOiaNrKy
- x__Q1X.5B_1hlU32VDdlR0ZzLRLA1TJ22OXVHP7afTQZ2CEoO7JYf46la6agBDr8b5v6ACnNyYi0
- GhQZCLFp11jCoUSoTlX.swZ.VjvjiKiFxK1Ye.Y6beRQedZ1ShvRS3cGHZHLn0swNHUkffkG9fb3
- wOfjV.FBc9wUaDKFQWfxyDbjXO0IH0ejj1F4V87qTPUt2sRlRHwco_cjX6g8TQk3W1CWHZtJA8Pg
- tO3nnFPJrvQPKZpn49aFsX1c5K2ek4fcHTXgnHk4H1.HrFvV3xEMDEis4jnnSAlsgA8Rm6LvLdIz
- lUg33b0GLbxZzg0mpAIxtqrcQSofu5UyShBm.JhuDp9auiAWoHUZSz0qhhAGEt_GOhTOREfqCBZC
- G6fI4Yi.C177vKFVtiV63RCPKV3rxhhPlhyBZpV1ZUxEcqMjslksyvWTd6aT7vgXecZzbEB6Bbui
- PugKq5FvUYO.LajsfrgW6MxwegEMCwQHnJMQsa2Iiv_WjPIMQuqDSEH9zrUbp_k8Xt_MeBiTqXQs
- nXvD7ppdbgFMJjhFv1sbwFcotEUmdosnZNJTFj_.B9RbrhQTms0KTlTxt_kE8.NgiydL256Tokh1
- HbALEC9RtboqkogXmLNqhc9AtDZczzRhCNRn7Z2X3503NCMm88agdrjLobSs1H5d7xBdfXfFzDWy
- Nz0tAs4FjfupGpoHER0xGTafNDNwQhDzAsAi3Ns1zjs3AtY5PvuGfAWSa8fMSFBU03tXksZYFxo1
- ciJ0G1CvL1rd97I47QzrDWZ_28XKoUL8AUG1lo9hZdautcKmTjHBsHXCLAZuNOQ3VbTsaUcfqmee
- .irw7XZlKDpogx7TQrdIKjc686.9W3GLbec8PuplPYGKvHJJhuSP9jlcnM383VDSt8cLbmPuXq9q
- UfjAsSbY4zvrKu6HdDJcxvB8cx34WFQXftbm93mMXhuwnptgfKF5CDKWcQBHwqRHYsXSxAFpKM8S
- qTa3rFjIKqr1IO0XflZkb9XFSArGJix7oo_Xxz5tbTfxDmTZDSh6g_DFbDgKseITvTHLKJIf.Srg
- zVnCjD4ejDk1_J0rl97idNrtwcyBVrtsm8.34xwlrjrR25Rurg9citobqWcZ.BDfjnhc_fKhZQyb
- r8KhLp1zYO8PYT1BKGbEHUeMHroTq.j3oed5iHJ6xgxNJfL4MoCriV4lpnAthSrrU4GyoV4x2VqX
- oF_R8TC4LfHd6y98CdJloF.SZ2BtSQy89uStonDjpuGCXoEaZ98PKpIPceNx_hW37SyYRbmrBaKQ
- gu6._.5jHmTHesUwGqpIpKbbNaYhF7Q3yiS79YqO5LS7oubsSfX7dqeASC8h1m47H6U5NdATLY3r
- Y73pK8ITPNSGyICENKhMFqA--
-X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 155296a8-f4ef-4124-9fbd-d64e0f082663
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic309.consmr.mail.ne1.yahoo.com with HTTP; Fri, 11 Sep 2026 18:59:55 +0000
-Received: by hermes--production-gq1-678d9dd684-n95jq (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 54d69622036feeec9e5203b92a9973ac;
-          Fri, 11 Sep 2026 18:59:50 +0000 (UTC)
-Message-ID: <6f01eff3-20c9-488b-84f4-8c6456f2e54d@schaufler-ca.com>
-Date: Fri, 11 Sep 2026 11:59:47 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pOHkME6s"
+Received: by mail-pg1-f180.google.com with SMTP id 41be03b00d2f7-cc149372c14so1004931a12.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 12:20:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789154414; x=1789759214; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=0Ltn9QsACl3W1ghNoImkrkU5bUSxgLkJUPq5HsL+RRs=;
+        b=pOHkME6s5Tu5FWP/ViZCLA9qEsFtzDD1SCngn14Ocx1bG+5s7EWKZ0Isj9X5iY9veZ
+         jA5Yp7frfzWHDDp9wwfCFBtAueZ+xqyH7Hv13ZTZiK5XFUpSvt6nUyGhKfEksfB7mjNc
+         I8UKnAa7bSThYuRRpA2vMzUprC0xX3kfWyPTSg7J+dHw/KSy3VIYzZZc0fZCg7INL/XC
+         ahZOqb0/pIQ5sp4y4yVn8lqWwxozgPLcGjryVYq0KrzQTj7fMhKy+jzjtEDvJx5eqzNT
+         u7YDh/P4Ce8KSdf5ORvls7qUVPMeqvphmpOCzIz1txn3mU6Ve0yI1tNfIlgx/Z1xkt1m
+         qoWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789154414; x=1789759214;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=0Ltn9QsACl3W1ghNoImkrkU5bUSxgLkJUPq5HsL+RRs=;
+        b=VKBHuFU9b6bm8gEuEcxC/DYQOV9agej30iO7qaTdVsVuHAry8Q4YJ2VnbN50d1zO8R
+         8/zoVt0Oquc7BIzMwJtiQZ6CNRHMxBcYXqwZLSPeDb1ReGPVGLyv/s2W0Wujs4dBCpnZ
+         EGN1I0g9GLgCf7eo6bQqAXeCSeZGMtsBF27AF0YSgjZuKqfKr6EsOv/mmCIZezBDBaf0
+         Rp8tZbwS5JlcJBOGapZf+mtPAaE30VqTXOrJQNpBxFRNTkgU432z0wcyAuhSk10ENohC
+         hpYjqellwSCFR+uV7e4u/OmNtIVzoyDPf2U9VHMJg9PdnCiD5A52o2Vv2ZpsnBjlVXL/
+         FzEw==
+X-Gm-Message-State: AFuF++k84RNsdDp23Gwnq84pqgQRSEbgo69rujY9JySrCiOJQgE0edNr
+	2MDSeg3DJr3dUz7lL321ZMr+TEhZF/BzCm31l3Rolzhh557vkiYnZHZunfAXDn+M
+X-Gm-Gg: AYBFou2uRPn4/fQxsw6OktJyqbcdri9mw2NJCPldJWwlAPdyL9axIQc3lia9InPjQqX
+	uIx+Ban2XAJT9c/baQ2j+ZY5oltSTPNePJ+aFEU5YDgfND615rbcWwBlX2AAT9n8IN+N7PTXJYJ
+	nmtctMEN8RVrBvNdZcaUQuCQH593Fnsc+7HiwsbUtGWNaY+bVejJzko4uKtuE/fABd84sVGAt5U
+	tIf219U5yMW44e2kcS8lFZyWW1VyKQxVtMhPBzZ6pRvOKmTh2yia5WJ82mDXti86e7UK3omuq/V
+	hROHy+SpC/957K6kTw2WuIOYr8nloXLxV3zZfLS1OhC+z1ScACg/Uir771hVcZe5prL2wnJ+rpJ
+	KtOaFnbMpbiI32fKFCquz1H95nE6nB1ZVtvGeynVDkzqWHXuJSKpBKM0lK5LYgQdvRi1OFWamVF
+	vOnngmd6zNOXdZXm0mkjKuropm9gG2yzv+LmeLgLEiNCgiIwIeE3ojXaRJ15FYXNYF18EF3QIgz
+	d+Bt5TKTFu2XWZ+MF2aTxFvJzty45Yr
+X-Received: by 2002:a05:6a21:113:b0:3da:7140:da35 with SMTP id adf61e73a8af0-3daed331022mr10233371637.15.1789154413958;
+        Fri, 11 Sep 2026 12:20:13 -0700 (PDT)
+Received: from r912.4v1.in ([182.70.116.80])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4cf015csm9350289eec.4.2026.09.11.12.20.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Sep 2026 12:20:13 -0700 (PDT)
+From: Avinash Duduskar <avinash.duduskar@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Kamil Kwiek <kamil.kwiek@gmail.com>
+Subject: [PATCH nft] src: release scope symbols by reference count
+Date: Sat, 12 Sep 2026 00:50:09 +0530
+Message-ID: <20260911192009.2472193-1-avinash.duduskar@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/13 net-next] net: ipv4: introduce CONFIG_IPV4 to
- decouple the IPv4 stack
-To: Fernando Fernandez Mancera <fmancera@suse.de>, netdev@vger.kernel.org
-Cc: horms@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, davem@davemloft.net, Jason Gunthorpe <jgg@ziepe.ca>,
- Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- Tony Nguyen <anthony.l.nguyen@intel.com>,
- Przemek Kitszel <przemyslaw.kitszel@intel.com>,
- Elad Nachman <enachman@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Ido Schimmel <idosch@nvidia.com>, Petr Machata <petrm@nvidia.com>,
- Edward Cree <ecree.xilinx@gmail.com>,
- Maxime Chevallier <maxime.chevallier@bootlin.com>,
- Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>,
- Arend van Spriel <arend.vanspriel@broadcom.com>,
- Miri Korenblit <miriam.rachel.korenblit@intel.com>,
- Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
- Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
- Chaitanya Kulkarni <kch@nvidia.com>, Saurav Kashyap <skashyap@marvell.com>,
- Javed Hasan <jhasan@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com,
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- "Martin K. Petersen" <mkp@kernel.org>, Nilesh Javali <njavali@marvell.com>,
- Manish Rangankar <mrangankar@marvell.com>, Varun Prakash
- <varun@chelsio.com>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- David Howells <dhowells@redhat.com>, Marc Dionne <marc.dionne@auristor.com>,
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
- Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
- Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
- Marek Lindner <marek.lindner@mailbox.org>,
- Simon Wunderlich <sw@simonwunderlich.de>,
- Antonio Quartulli <antonio@mandelbit.com>,
- Sven Eckelmann <sven@narfation.org>,
- Nikolay Aleksandrov <razor@blackwall.org>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, Johannes Berg <johannes@sipsolutions.net>,
- Matthieu Baerts <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>,
- Geliang Tang <geliang@kernel.org>, Julian Anastasov <ja@ssi.bg>,
- Aaron Conole <aconole@redhat.com>, Eelco Chaudron <echaudro@redhat.com>,
- Ilya Maximets <i.maximets@ovn.org>, Allison Henderson <achender@kernel.org>,
- Jamal Hadi Salim <jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>,
- Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
- Xin Long <lucien.xin@gmail.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
- Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond
- <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>,
- Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
- Jon Maloy <jmaloy@redhat.com>, Tung Quang Nguyen
- <tung.quang.nguyen@est.tech>, Steffen Klassert
- <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
- Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
- "Serge E. Hallyn" <serge@hallyn.com>, Vikas Gupta
- <vikas.gupta@broadcom.com>,
- Bhargava Marreddy <bhargava.marreddy@broadcom.com>,
- Rajashekar Hudumula <rajashekar.hudumula@broadcom.com>,
- Nicolai Buchwitz <nb@tipi-net.de>, =?UTF-8?Q?Markus_Bl=C3=B6chl?=
- <markus@blochl.de>, Arnd Bergmann <arnd@arndb.de>,
- Heiner Kallweit <hkallweit1@gmail.com>,
- Florian Fainelli <florian.fainelli@broadcom.com>,
- Krzysztof Kozlowski <krzk@kernel.org>,
- Qingfang Deng <qingfang.deng@linux.dev>, Julian Braha
- <julianbraha@gmail.com>, Ethan Nelson-Moore <enelsonmoore@gmail.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Eric Biggers <ebiggers@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
- Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>,
- Willem de Bruijn <willemb@google.com>, Alyssa Ross <hi@alyssa.is>,
- Joel Granados <joel.granados@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- intel-wired-lan@lists.osuosl.org, oss-drivers@corigine.com,
- linux-net-drivers@amd.com, linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
- brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
- linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org,
- target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
- b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
- linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
- linux-security-module@vger.kernel.org,
- Casey Schaufler <casey@schaufler-ca.com>
-References: <20260910144914.8025-1-fmancera@suse.de>
- <20260910144914.8025-2-fmancera@suse.de>
- <ee89e26c-3dad-450b-8861-badf19afa141@schaufler-ca.com>
- <dfd9590c-e029-4432-9a13-c789f708cfee@suse.de>
-Content-Language: en-US
-From: Casey Schaufler <casey@schaufler-ca.com>
-In-Reply-To: <dfd9590c-e029-4432-9a13-c789f708cfee@suse.de>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Mailer: WebService/1.1.26525 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-On 9/11/2026 11:31 AM, Fernando Fernandez Mancera wrote:
-> On 9/11/26 7:46 PM, Casey Schaufler wrote:
->> On 9/10/2026 7:48 AM, Fernando Fernandez Mancera wrote:
->>> Historically, the IPv4 protocol has been linked to the core INET
->>> subsystem. Because shared infrastructure like the TCP/UDP engine,
->>> routing or INET hashtables live inside net/ipv4/, it has been
->>> impossible
->>> to compile a kernel with only IPv6 support.
->>>
->>> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
->>> 'def_bool y' for now. This does not allow to completely disable the
->>> IPv4 stack yet but it lays the necessary build-system work for that
->>> goal.
->>>
->>> In addition, multiple subsystems Kconfig symbols across networking
->>> features like tunnels, drivers and filesystems have been adjusted to
->>> depend on IPv4. Keep on mind that follow-up work is required to convert
->>> the Kconfig symbol to bool and remove the dependency on IPv4 where it
->>> makes sense.
->>>
->>> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
->>> ---
->>>   
->>
->> ...
->>
->>
->>>   security/smack/Kconfig                        |  1 +
->>>   54 files changed, 126 insertions(+), 66 deletions(-)
->>>
->> ...
->>
->>> diff --git a/security/smack/Kconfig b/security/smack/Kconfig
->>> index 5a8dfad469c3..b4e6d0168bd1 100644
->>> --- a/security/smack/Kconfig
->>> +++ b/security/smack/Kconfig
->>> @@ -3,6 +3,7 @@ config SECURITY_SMACK
->>>       bool "Simplified Mandatory Access Control Kernel Support"
->>>       depends on NET
->>>       depends on INET
->>> +    depends on IPV4
->>>       depends on SECURITY
->>>       select NETLABEL
->>>       select SECURITY_NETWORK
->>
->> Why would this make sense? You're introducing the capability to use
->> IP6 by itself, which is admirable, but you're disallowing that
->> configuration
->> with the Smack LSM. It appears that you've done a mechanical lookup
->> in the
->> Kconfig files and applied the minimal change to make the kernel compile,
->> which probably works for most cases. It does not work for Smack. Unless
->> there's a strong argument that Smack with IPv6 and without IPv4 is
->> and always
->> will be a pointless configuration you have my NAK.
->>
->>
->
-> Right, that was kind of the point. The idea was to be able to compile
-> core networking without IPv4. There are still plenty of modules that
-> depends on IPv4. It does not mean that they will remain like that
-> forever as I mentioned my idea was a follow-up on the series to avoid
-> having a too long series.
->
-> Anyway, I can make Smack to do not depend on IPv4 on this series if
-> that could grant an ACK.
+nft -f aborts when a define in table or chain scope takes its value from
+another variable:
 
-Yes, that would be acceptable. I apologize in advance for the Smack IPv6
-implementation. Replacing it with a proper CALIPSO stack has been on the
-todo list since CALIPSO was introduced.
+  define outer = 111
 
->
-> Thanks,
-> Fernando.
->
+  table inet t {
+          define inner = $outer
+  }
+
+  nft: src/rule.c:579: scope_release: Assertion `sym->refcnt == 1' failed.
+
+$outer becomes a variable expression that takes a reference on the
+symbol, and it is still holding that reference when the top level scope
+is released: the table has gone into the cache, so cmd_free() drops one
+of its references rather than freeing it.  Using $inner in a rule does
+not release it either, expr_evaluate_variable() shares or clones
+sym->expr rather than destroying it.
+
+It happens without the cache too.  When the table already exists,
+cmd_free() frees it together with its scope, while the rule commands
+that nft_cmd_expand() split out of the same block are still holding
+their variable expressions.
+
+scope_release() asserted the count was 1 and then freed the symbol
+whatever it was, so on a build with NDEBUG this is a use-after-free
+rather than an abort.  The same gap leaks a symbol that is undefined
+while a define still refers to it.
+
+Ordering fixes, as in b73298405cda ("rule: fix sym refcount assertion"),
+settle one instance at a time.  Make the count own the symbol instead:
+scope_release() and variable_expr_destroy() both release through
+symbol_put(), so the symbol goes away with its last reference and the
+order these run in stops mattering.
+
+Fixes: 12a223ced7f6 ("libnftables: release top level scope")
+Reported-by: Kamil Kwiek <kamil.kwiek@gmail.com>
+Closes: https://lore.kernel.org/netfilter/20260910190351.38f2aafd@devtravel.lan/
+Assisted-by: LLM
+Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
+---
+Both new tests fail without the patch, nft aborts rather than returning, and
+pass with it.  The rest of tests/shell is unchanged here: 498 ok, 10 skipped,
+and 6 failures that are there with or without the patch.
+
+Built with -DNDEBUG and ASan, both shapes above report a heap-use-after-free
+before the patch and are clean after it, as is the whole of tests/shell (no
+reports with ASAN_OPTIONS=log_path set).  With LSan, the undefine case leaks
+the symbol before and nothing after.
+
+The patch drops the assert from scope_release().  The same check still holds
+in scope_free(), which runs once the cache has been released, so I can add it
+there in a second patch if you would rather keep it somewhere.
+
+ include/rule.h                                |  1 +
+ src/expression.c                              |  3 +-
+ src/rule.c                                    |  7 +--
+ .../shell/testcases/nft-f/0033define_scope_0  | 22 ++++++++
+ .../nft-f/0034define_scope_existing_1         | 25 +++++++++
+ .../nft-f/dumps/0033define_scope_0.json-nft   | 53 +++++++++++++++++++
+ .../nft-f/dumps/0033define_scope_0.nft        |  5 ++
+ .../0034define_scope_existing_1.json-nft      | 18 +++++++
+ .../dumps/0034define_scope_existing_1.nft     |  2 +
+ 9 files changed, 129 insertions(+), 7 deletions(-)
+ create mode 100755 tests/shell/testcases/nft-f/0033define_scope_0
+ create mode 100755 tests/shell/testcases/nft-f/0034define_scope_existing_1
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0033define_scope_0.json-nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0033define_scope_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.json-nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.nft
+
+diff --git a/include/rule.h b/include/rule.h
+index 77023da2..7b7b7eb1 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -126,6 +126,7 @@ extern struct symbol *symbol_lookup(const struct scope *scope,
+ struct symbol *symbol_lookup_fuzzy(const struct scope *scope,
+ 				   const char *identifier);
+ struct symbol *symbol_get(const struct scope *scope, const char *identifier);
++void symbol_put(struct symbol *sym);
+ 
+ enum table_flags {
+ 	TABLE_F_DORMANT		= (1 << 0),
+diff --git a/src/expression.c b/src/expression.c
+index 39221ba8..c450746a 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -352,8 +352,7 @@ static void variable_expr_clone(struct expr *new, const struct expr *expr)
+ 
+ static void variable_expr_destroy(struct expr *expr)
+ {
+-	assert_refcount_safe(expr->sym->refcnt);
+-	expr->sym->refcnt--;
++	symbol_put(expr->sym);
+ }
+ 
+ static const struct expr_ops variable_expr_ops = {
+diff --git a/src/rule.c b/src/rule.c
+index 85376e63..0ffe2ca1 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -576,11 +576,8 @@ void scope_release(const struct scope *scope)
+ 	struct symbol *sym, *next;
+ 
+ 	list_for_each_entry_safe(sym, next, &scope->symbols, list) {
+-		assert(sym->refcnt == 1);
+ 		list_del(&sym->list);
+-		free_const(sym->identifier);
+-		expr_free(sym->expr);
+-		free(sym);
++		symbol_put(sym);
+ 	}
+ }
+ 
+@@ -616,7 +613,7 @@ struct symbol *symbol_get(const struct scope *scope, const char *identifier)
+ 	return sym;
+ }
+ 
+-static void symbol_put(struct symbol *sym)
++void symbol_put(struct symbol *sym)
+ {
+ 	assert_refcount_safe(sym->refcnt);
+ 	if (--sym->refcnt == 0) {
+diff --git a/tests/shell/testcases/nft-f/0033define_scope_0 b/tests/shell/testcases/nft-f/0033define_scope_0
+new file mode 100755
+index 00000000..dcb258a7
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0033define_scope_0
+@@ -0,0 +1,22 @@
++#!/bin/bash
++
++# a define in table or chain scope holds a reference to the outer variable it
++# expands to.  The table is kept in the cache once the ruleset is committed, so
++# that reference outlives the release of the top-level scope.
++
++set -e
++
++RULESET="define outer = 111
++
++table inet t {
++	define t_unused = \$outer
++	define t_used = \$outer
++
++	chain c {
++		define c_unused = \$outer
++
++		meta iifgroup { \$t_used } counter
++	}
++}"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/nft-f/0034define_scope_existing_1 b/tests/shell/testcases/nft-f/0034define_scope_existing_1
+new file mode 100755
+index 00000000..a14a58dd
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0034define_scope_existing_1
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++# Same defines, but the table already exists in the kernel, so table_evaluate()
++# takes no reference on the parsed one.  nft_cmd_expand() has moved the rules
++# into commands of their own, and cmd_free() frees the table and its scope while
++# a rule command still holds the variable expression.  The rule is rejected on
++# purpose, which is what leaves that expression unevaluated.
++#
++# The ruleset must be rejected with 1, not aborted.
++
++set -e
++
++$NFT add table inet t
++
++RULESET="table inet t {
++	define B = 111
++
++	chain c {
++		tcp dport 70000 meta iifgroup \$B counter
++	}
++}"
++
++rc=0
++$NFT -f - <<< "$RULESET" || rc=$?
++[ "$rc" -eq 1 ]
+diff --git a/tests/shell/testcases/nft-f/dumps/0033define_scope_0.json-nft b/tests/shell/testcases/nft-f/dumps/0033define_scope_0.json-nft
+new file mode 100644
+index 00000000..0aa83c42
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0033define_scope_0.json-nft
+@@ -0,0 +1,53 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "inet",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "t",
++        "name": "c",
++        "handle": 0
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "meta": {
++                  "key": "iifgroup"
++                }
++              },
++              "right": 111
++            }
++          },
++          {
++            "counter": {
++              "packets": 0,
++              "bytes": 0
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0033define_scope_0.nft b/tests/shell/testcases/nft-f/dumps/0033define_scope_0.nft
+new file mode 100644
+index 00000000..d206007a
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0033define_scope_0.nft
+@@ -0,0 +1,5 @@
++table inet t {
++	chain c {
++		iifgroup 111 counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.json-nft b/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.json-nft
+new file mode 100644
+index 00000000..10372b0e
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.json-nft
+@@ -0,0 +1,18 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "inet",
++        "name": "t",
++        "handle": 0
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.nft b/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.nft
+new file mode 100644
+index 00000000..17838bdf
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0034define_scope_existing_1.nft
+@@ -0,0 +1,2 @@
++table inet t {
++}
+
+base-commit: fcef13a358a0755a0bd980910d47989b064a756d
+-- 
+2.55.0
+
