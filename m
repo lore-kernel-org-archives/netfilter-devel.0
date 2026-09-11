@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90EC3176EE;
-	Fri, 11 Sep 2026 14:16:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B224B351C34;
+	Fri, 11 Sep 2026 14:22:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789136181; cv=none; b=T/NPYJUbAV+3pZ/3HDGpOzGIWOZ1PBGuE+MERSeYimtaRQw9HzRgHZl6mP1Cti40WuQLHgYbG4JZraezGrjqcejXzQKPJtXJp//v6rgOLFT9CV6ZaoK7ZBH9rqzdGkBye1+u3ghUUtL5juqZtDeB8dbkFyuXeIRCgEj8lfoR49w=
+	t=1789136534; cv=none; b=PFC7ZfzYYNb8pa/qOOtuD25CFHo6EONM2rR5ihz08MLOscuoxde6xBwaUXmB1OvpDr2c9Sdawgum/gVwJxAOGk9Acoy2y0yy65k7HjWsgCvop5L8IVzeyiZFHZ36SABwIeQgju1kDcDIZj5wqYEAFK2gb/BauBHopUXGqalvw/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789136181; c=relaxed/simple;
-	bh=EYbbpQ3y37CueHq6a/zzfaBp4Zfxr4lAJheNpVlMvc4=;
+	s=arc-20240116; t=1789136534; c=relaxed/simple;
+	bh=jmNvfqXjweVniseb8oBYU2SlAr/cTHg9c4d+ZJ85pK8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V8yt8554nxLzbNJS9i69xiehcKGQeVEo1U91SgEOAJJ+UY0GBPx8NTV/KtCRbWF6r35nASq9dNWyFKR0g4uld3wprJPZREt04vyEUz+nwClFWbfr4dVegN0Rh4gPZkpaXAOCfMrDPCS78q3qQs8IYSPK6gB5kG4IXCn1qphX6nI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ku5QvH3g; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=s1rllgNy80WjzN+qY91STWPJa9Jh9ScpQxxOHeoFm18IAI7yfEe9fpBTfW81yo0/Fztlu5rO2fzd3tsTM4HZAnKA7h6FTqKA5CTeppyoidISc9vFP42m/5xbY7viWY25RNDGBlOlNjpMDrzE2Cz0xlfxHJW6PPRRra4WFK2Z/ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dRmx73Q/; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ku5QvH3g"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dRmx73Q/"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789136177;
-	bh=zTB5FaGnMQ9Eajoy9Go/iErsiV2SixZ9YqiLKCvyUGE=;
+	s=2025; t=1789136530;
+	bh=Ox7YSacdV7h2InVZd1Iw3kxrYUsfnmdCyCbV+t17m9Y=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ku5QvH3gVAX3uEzdSpe3/zK3/5JtfJGwqpq6zXAOTYLVQbsvx4jzXUL25cxOLROWa
-	 2FHEfNzk7zzLuAIq/NbkGwtvunFCUh2XjgfXn0DCFJek5K5roqKblGIY8RLaFApm9f
-	 +qTs/qDuYSr16EEDwblP5onlCKHSYiAhD6dr50v6SEZ421gAMkxUiszKVx9PuHgboi
-	 363PXcfCTLbXnqTgqkWM4xFF50MjXbQSlOgXt6+B4BpzAykjAuKOInIGfCSmsEbcHQ
-	 dW7cbU3JaYBNHtamJyKGGW+NcGMkRUGFa0XpzlqJddMyagXTQ8EJMJgsV7Cqy2mKIh
-	 f4/i+8hO8BECg==
+	b=dRmx73Q/BqINvAznK12hHcya8HwHtUWWApvOp3949LNn7lbg00QuvV+XbJvOBjmqk
+	 qnEwahN+MXSnHfEuFfB1jR68KSJV6kbVjaVJ/xb+0CiEn0uE2i1XBtRydooWhtihAe
+	 ebUrtLoLjFoZWeD/L0U8JIzqTghuuQ/82VVra4VnwvUiGoKv/7Bzf/6sGEmuU0u2m7
+	 B9XRVOFTG34sHFOjTeXMsKvEYcAF8eNJasho/uhyMrptFRXMDjNDfnCUrPAURY3wGk
+	 ZT57vPYEODsmxnxI3PBQQnPCs+Bk0eIDIuYS8daqFCGitNr6DorRDxTwpAZhvEU6Pg
+	 +/tE0aGrVoVdQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B2FD5603DB;
-	Fri, 11 Sep 2026 16:16:17 +0200 (CEST)
-Date: Fri, 11 Sep 2026 16:16:15 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 06475603E1;
+	Fri, 11 Sep 2026 16:22:10 +0200 (CEST)
+Date: Fri, 11 Sep 2026 16:22:07 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Julius Bairaktaris <julius@bairaktaris.de>
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	geldot@protonmail.com
-Subject: Re: [PATCH nf-next 0/4] netfilter: offload a TCP flow whose reply is
- never seen
-Message-ID: <aqQNL0qIkmFNGANg@chamomile>
-References: <20260910090052.2034970-1-julius@bairaktaris.de>
- <aqPpBJvfTwKrxSGG@chamomile>
- <CAC1t37KDNB6+v7Xq51AGrPtYZ4U95kUEQ6HDJSKt5YYE6+0zdA@mail.gmail.com>
- <aqQLqwJVRROZ-cvH@chamomile>
+To: Farhad Alemi <farhad.alemi@berkeley.edu>
+Cc: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	falemi@asu.edu, Simon Horman <horms@kernel.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net] net: reject a forward path that loops back to the
+ tunnel
+Message-ID: <aqQOj8EHUb6ZzWjR@chamomile>
+References: <CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,31 +51,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aqQLqwJVRROZ-cvH@chamomile>
+In-Reply-To: <CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com>
 
-On Fri, Sep 11, 2026 at 04:09:51PM +0200, Pablo Neira Ayuso wrote:
-> Hi Julius,
+Hi,
+
+On Fri, Sep 11, 2026 at 12:17:08AM +0000, Farhad Alemi wrote:
+> ipip_fill_forward_path() and ip6_tnl_fill_forward_path() assign the outer
+> route's device to ctx->dev without checking that it differs from the tunnel
+> device itself.  When a tunnel's outer route resolves back to that same
+> tunnel, the walk in dev_fill_forward_path() makes no progress and trips its
+> loop check WARN_ON_ONCE(last_dev == ctx->dev). Release the route and
+> return -EOPNOTSUPP when the resolved dst device equals ctx->dev, so the
+> path walk either advances to a different device or fails cleanly.
+
+I think we can remove this WARN_ON_ONCE() from dev_fill_forward_path(), ie.
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index ecfbd72d5d1a..c67900354fa6 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -789,7 +789,7 @@ int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+                        goto err_out;
+ 
+                stack->num_paths++;
+-               if (WARN_ON_ONCE(last_dev == ctx->dev))
++               if (last_dev == ctx->dev)
+                        goto err_out;
+        }
+ 
+> Closes: https://lore.kernel.org/all/CA+0ovCgaRvbd0Udj70b2xxG8Cx3CaCpNhnf1V4RWQuDveZYZhA@mail.gmail.com/
+> Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
+> ---
+> --- a/net/ipv4/ipip.c
+> +++ b/net/ipv4/ipip.c
+> @@ -375,6 +375,12 @@ static int ipip_fill_forward_path(struct
+> net_device_path_ctx *ctx,
+>  	if (IS_ERR(rt))
+>  		return PTR_ERR(rt);
 > 
-> On Fri, Sep 11, 2026 at 12:10:04PM +0000, Julius Bairaktaris wrote:
-> > Hi Pablo,
-> > 
-> > thanks for taking your time to review.
-> > 
-> > > conntrack needs to see packets in both directions, are you assuming a
-> > > packet-based load balancer in front of it?
-> > 
-> > No, an asymmetric route is in front of it, with two subnets sharing one
-> > L2 segment and the server answering over that link, so the router only
-> > ever sees one direction.
+> +	/* The path walk must advance: a route back into the tunnel is a loop. */
+> +	if (rt->dst.dev == ctx->dev) {
+> +		ip_rt_put(rt);
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+>  	path->type = DEV_PATH_TUN;
+>  	path->tun.src_v4.s_addr = tiph->saddr;
+>  	path->tun.dst_v4.s_addr = tiph->daddr;
+> --- a/net/ipv6/ip6_tunnel.c
+> +++ b/net/ipv6/ip6_tunnel.c
+> @@ -1863,7 +1863,12 @@ static int ip6_tnl_fill_forward_path(struct
+> net_device_path_ctx *ctx,
+>  	fl6.flowi6_proto = 0;
 > 
-> I see this requirement to support asymmetric path keeps coming, but
-> how hard is really to maintain this TCP state machine to deal with all
-> possible scenarios? ie. invalid transitions, retransmissions, etc.
-> this all without having access to full TCP connection.  Is it that you
-> need NAT and the stateless NAT in nftables does not fulfill your
-> requirements?
-
-I can reply myself, you're targetting at offloading this flow via the
-flowtable.
-
-Let me take a look what can be done here for this assymetric case.
+>  	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
+> -	if (!dst->error) {
+> +	err = dst->error;
+> +	/* The path walk must advance: a route back into the tunnel is a loop. */
+> +	if (!err && dst->dev == ctx->dev)
+> +		err = -EOPNOTSUPP;
+> +
+> +	if (!err) {
+>  		path->type = DEV_PATH_TUN;
+>  		path->tun.src_v6 = fl6.saddr;
+>  		path->tun.dst_v6 = fl6.daddr;
+> @@ -1873,7 +1878,6 @@ static int ip6_tnl_fill_forward_path(struct
+> net_device_path_ctx *ctx,
+>  		ctx->dev = dst->dev;
+>  	}
+> 
+> -	err = dst->error;
+>  	if (err)
+>  		dst_release(dst);
