@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A5D749E12E;
-	Fri, 11 Sep 2026 00:46:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C847124DFF9;
+	Fri, 11 Sep 2026 00:46:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789087609; cv=none; b=iQAfb+QdrEPz/UAOS5yjQvEqyvqEhXoaH3G89GvSd89H3+P68ddulCRDb927OXv9/5Y/Y3tHQOs+EQVzdAMyI0mjri5YWtpSVAgSjDWb4sK7rViEoZkvVdH9Wq0hMXWY2R6z5ihGwRpa7pPYXqYYF2wMD5FEN7W9lYOG8cRKQt8=
+	t=1789087611; cv=none; b=STRkD4UKbgJzwhA4KmIrgORkNj+EbOGYX7V1mkWmrJHeH1YMMILLH+MxRjmHcO+moZFRJeGRiOJjvUQFli38AIusbwbF4J85Xz+cFmc4cq1CDC04JauW8RqWHWj2hHI3hMMAtpJF8SaoJRRt0F/1bXUzxIhihpsezk5PTh9EdD4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789087609; c=relaxed/simple;
-	bh=34aMvopukcGCrRjzEwxQESkBi4yPukkSReLU50rmW8Q=;
+	s=arc-20240116; t=1789087611; c=relaxed/simple;
+	bh=W9QT6MKArWeiRqUu7xjLVjolw5ltK46Mb0V8sVV3HCs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ReGOhy03v47fOYADF6Kc8ITBRuu/6QUWdED1n9dTyiBUpmRav8tLz45qLT88WF4WtxtAGg8GSHqPy44h+H1Mp2L5V+LpfjcmgxEP1ALYxqoro8HHNy+6knlfjO7MY871iZi15Md6rTt2QV5hPZoTrSMwgZgdaCtR4ox2YdEQPCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NUf8+Wcf; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=akHFEZnCYKqaMOzChEjhpkI3iGnyQqOPea5x/5WYGQQe3pX8wPhBRO7JBL4wPFevjq/4FmszTnpa/t+gzYDoXxzqt7/jK87IAv91EkIIUxeA4Ty/aFIGvUE94A1sKBlBxDJ5hE7oSdll+K1SDApGeNu4O8x+nvDbaehtdOBThho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=El4B51gi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NUf8+Wcf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D27621F000FF;
-	Fri, 11 Sep 2026 00:46:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="El4B51gi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12C831F00893;
+	Fri, 11 Sep 2026 00:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789087608;
-	bh=apyN4di2S1WNp8Pmxi+8S+a8yWkGRLG/9W7cf0bM0Ew=;
+	s=k20260515; t=1789087609;
+	bh=GJN//9gGmjYdMh3gO7fGap+2bNx9UvSrgufp6buM4v0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=NUf8+WcfwxvHHFjS7/yVFE0y4IYVM3DITwrJmWeFG92TCX5TypaqVjMlA91uYIq2B
-	 n/JhpAua/EuqR9MS9pCBqTALvre8Jc1uukVa56GZU/VXmpepHiG7uMZNxHJyHFEYrK
-	 K4AqN6CUq5A/kA74xjRYPYRPSm3PDN1sZU7/VEFn5+nJIv/2LQyQdIBdcu23r0Yz07
-	 oS9An9F7vWq+RABMATR3ruryGuTdAHBUIXRKH/X/D/PoIrNrRcLQnUKPkUeWnCGFnj
-	 KDpEZYnGJepiRLA+C9A8/cZCCKRFPMV+Y+Mv7Fz1y5p84NdZvJ5yWK6V82hfDok2dz
-	 WCHAOvJsyHASw==
+	b=El4B51gi8h+RDuXSOlMQWeJIPSL73P8LjeewfER6gpWbcf7D8TtHM1Vcy+CiPMqr8
+	 UUhqS6hXQZBsGT7jbd3WuQ3i0jYnnNdgI84HWDQPnYeaZIDXabZF3Gd1z2iZaNpvpB
+	 HWRb8ixoE3s9cRJAMcA8HDorqKKbyr1jCnpD5w4fzBO2Am6OG2tqWb2a3/n5ocNPB+
+	 OuUD8AoJdgNL8KSkx5FMwkcus5JwmRN3VBpbdIakSzh4TDpdcjBSm4oFg5eJXbeW4V
+	 vy71KHDsH0k4LS98AWeWSA2LHCzPyoO+r0MxZ6VcK38CwwfwvOpkm8/L+0Ve0ibASP
+	 Km1EaMHErTziA==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net 3/7] netfilter: nf_nat: unregister and release hooks on error
-Date: Thu, 10 Sep 2026 17:46:46 -0700
-Message-ID: <20260911004646.2877858-1-kuba@kernel.org>
+Subject: Re: [PATCH net 4/7] ipvs: revalidate ihl before icmp_send
+Date: Thu, 10 Sep 2026 17:46:48 -0700
+Message-ID: <20260911004648.2877894-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260909221844.1650275-4-pablo@netfilter.org>
-References: <20260909221844.1650275-4-pablo@netfilter.org>
+In-Reply-To: <20260909221844.1650275-5-pablo@netfilter.org>
+References: <20260909221844.1650275-5-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,92 +54,195 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: nf_nat: unregister and release hooks on error
+ipvs: revalidate ihl before icmp_send
 
-This defers assigning nat_proto_net->nat_hook_ops until the nested nat hook
-has actually been inserted, and adds an error path that unregisters the base
-nat hooks and frees the nat_ops array plus the per-hook private data when
-insertion fails.  The code change itself looks right and restores the
-"nat_hook_ops != NULL implies users > 0" invariant.
+This adds a check in ip_vs_in_icmp() that drops the packet when the
+embedded IP header's ihl no longer matches the length that was validated
+from the frag copy, sets the transport header before icmp_send(), and
+passes the tunnel protocol to ipv4_update_pmtu() instead of 0.
 
-The question below is only about the changelog wording.
+Link: https://sashiko.dev/#/patchset/20260806105211.34622-1-ja%40ssi.bg
 
-> However, sashiko reports that nf_hook_entries_insert_raw() fails, then
-> ->users count remains at zero and nf_nat_unregister_fn() could hit
-> WARN_ON() since base nat hooks with no users is unexpected in the
-> unregistration path.
+A few questions below.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index ba0957798bad0..c41fac3ed873e 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1934,7 +1934,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+>  			IP_VS_DBG(12, "ICMP for %s %pI4->%pI4: mtu=%u\n",
+>  				  outer_proto, &ip_hdr(skb)->saddr,
+>  				  &ip_hdr(skb)->daddr, mtu);
+> -			ipv4_update_pmtu(skb, ipvs->net, mtu, 0, 0);
+> +			ipv4_update_pmtu(skb, ipvs->net, mtu, 0,
+> +					 ip_hdr(skb)->protocol);
 
 [Severity: Medium]
-Is this WARN_ON() actually reachable from the described sequence?
 
-The WARN is the users == 0 check at the top of nf_nat_unregister_fn():
+The new protocol argument becomes fl4.flowi4_proto inside
+ipv4_update_pmtu()->__build_flow_key(), and it is used both by
+__ip_route_output_key() and by the fib_lookup() in
+__ip_rt_update_pmtu().
 
-	mutex_lock(&nf_nat_proto_mutex);
-	if (WARN_ON(nat_proto_net->users == 0))
-		goto unlock;
+The route IPVS actually transmits these tunnel packets on is looked up
+and cached by do_output_route4(), which leaves flowi4_proto at zero:
 
-Every in-tree caller seems to unregister only ops whose registration
-returned 0.  ipt_nat_register_lookups() (and the ip6 counterpart) unwinds
-with:
+net/netfilter/ipvs/ip_vs_xmit.c:do_output_route4() {
+	memset(&fl4, 0, sizeof(fl4));
+	fl4.daddr = daddr;
+	fl4.flowi4_flags = (rt_mode & IP_VS_RT_MODE_KNOWN_NH) ?
+			   FLOWI_FLAG_KNOWN_NH : 0;
+	...
+}
 
-	ret = nf_nat_ipv4_register_fn(net, &ops[i]);
-	if (ret) {
-		while (i)
-			nf_nat_ipv4_unregister_fn(net, &ops[--i]);
+and fib4_rule_match() keys on that field:
 
-so the failing index is never unregistered, and for i == 0 nothing is
-unregistered at all.
+net/ipv4/fib_rules.c:fib4_rule_match() {
+	...
+	if (rule->ip_proto && (rule->ip_proto != fl4->flowi4_proto))
+		return 0;
+	...
+}
 
-nf_nat_inet_register_fn() in nf_nat_proto.c unregisters only the IPv6 half
-on IPv4 failure, and that half had returned 0, so users for IPv6 is at
-least 1:
+With an FRA_IP_PROTO rule configured, can the two lookups now land in
+different tables, so the exception ends up on a nexthop IPVS never
+consults?  The read-back immediately below would then still return the
+unreduced MTU:
 
-	ret = nf_nat_register_fn(net, NFPROTO_IPV4, ops, nf_nat_ipv4_ops,
-				 ARRAY_SIZE(nf_nat_ipv4_ops));
-	if (ret)
-		nf_nat_unregister_fn(net, NFPROTO_IPV6, ops,
-					ARRAY_SIZE(nf_nat_ipv6_ops));
+			if (dest) {
+				struct ip_vs_dest_dst *dest_dst;
 
-For nft_chain_nat, nf_tables_addchain()'s err_register_hook path does
-nft_chain_del() plus nft_trans_destroy() without calling
-nf_tables_unregister_hook(), and nf_tables_table_enable() disables only the
-chains that registered successfully.
+				dest_dst = rcu_dereference(dest->dest_dst);
+				if (dest_dst)
+					mtu = dst_mtu(dest_dst->dst_cache);
+			}
 
-The leftover state after the pre-patch failure also stays self-consistent:
-nat_hook_ops is non-NULL with users == 0, so the next successful
-nf_nat_register_fn() takes the existing-ops path, bumps users to 1 without
-re-registering base hooks, and its matching unregister brings users back to
-0 with exactly one nf_unregister_net_hooks().
+and the ICMP relayed to the client would advertise the stale larger
+value, leaving the passive PMTUD added by f2edb9f7706d ineffective for
+such setups.
 
-> +err_unregister_hooks:
-> +	if (nat_proto_net->nat_hook_ops) {
-> +		mutex_unlock(&nf_nat_proto_mutex);
-> +		return ret;
-> +	}
-> +	nf_unregister_net_hooks(net, nat_ops, ops_count);
-> +err_free_hooks:
-> +	mutex_unlock(&nf_nat_proto_mutex);
-> +	for (i = 0; i < ops_count; i++) {
-> +		priv = nat_ops[i].priv;
-> +		kfree_rcu(priv, rcu_head);
-> +	}
-> +	kfree_rcu(nat_ops, rcu);
+The multipath variant of this does not seem to apply, since
+__ip_rt_update_pmtu() installs the exception on every path when
+fib_info_num_path(res.fi) > 1.
 
-Isn't the failure this new path actually fixes a leak rather than a WARN?
+Other in-tree callers of ipv4_update_pmtu() pass the real protocol, but
+they also set flowi4_proto on their transmit lookup; IPVS does not.
+Would it make sense to set flowi4_proto in do_output_route4() as well,
+so the two keys agree?
 
-On the first nat registration for a family in a netns, an
-nf_hook_entries_insert_raw() failure (for example the allocation inside
-nf_hook_entries_grow()) previously left the base nat hooks registered in
-that netns forever, still traversing every packet, and leaked both the
-kmemdup_array()'d nat_ops array and the four nf_nat_lookup_hook_priv
-allocations.  Nothing reclaims them later, since nat_net_ops declares only
-.id and .size:
+[Severity: Medium]
 
-	static struct pernet_operations nat_net_ops = {
-		.id = &nat_net_id,
-		.size = sizeof(struct nat_net),
-	};
+Under the same assumption the commit message makes, that a local process
+can mutate the bytes between the frag read and the pull, is the protocol
+byte read here trusted?
 
-Could the changelog describe that signature instead, so anyone bisecting or
-backporting looks for leaked hook registrations and memory rather than a
-WARN splat?
+Everything that authorized this tunnel was checked on the on-stack copy
+taken earlier in ip_vs_in_icmp():
+
+	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+	if (!cih)
+		return NF_ACCEPT;	/* The packet looks wrong, ignore */
+	hlen_ipip = cih->ihl * 4;
+	if (!(cih->version == 4 && hlen_ipip >= sizeof(struct iphdr)))
+		return NF_ACCEPT;	/* The packet looks wrong, ignore */
+	raddr = (union nf_inet_addr *)&cih->daddr;
+	...
+	if (cih->protocol == IPPROTO_IPIP) {
+	...
+	} else if ((cih->protocol == IPPROTO_UDP ||
+		    cih->protocol == IPPROTO_GRE) &&
+
+whereas ip_hdr(skb)->protocol here is re-read from the linear area after
+pskb_may_pull(skb, hlen_ipip).  If those bytes can change, the value fed
+to ipv4_update_pmtu(), and hence fl4.flowi4_proto for
+__ip_route_output_key() and update_or_create_fnhe(), is not necessarily
+the IPIP/UDP/GRE value that was validated, which works against the
+"provide correct protocol to ipv4_update_pmtu()" goal.
+
+Would saving cih->protocol into a local at validation time and passing
+that local here be preferable to re-reading the header?
+
+For what it is worth, the saddr/daddr/tos that __build_flow_key() reads
+from skb->data at this call site have the same exposure, but that part
+predates this patch.
+
+>  			/* Client uses PMTUD? */
+>  			if (!(frag_off & htons(IP_DF)))
+>  				goto ignore_tunnel;
+> @@ -1960,6 +1961,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+>  		/* Ensure the IP header is present in headroom */
+>  		if (!pskb_may_pull(skb, hlen_orig))
+>  			goto ignore_tunnel;
+> +		skb_set_transport_header(skb, hlen_orig);
+> +		/* Before now we may used ihl from skb frag, revalidate it after
+> +		 * copying it into skb head to prevent out-of-bounds access
+> +		 */
+> +		if (ip_hdr(skb)->ihl * 4 != hlen_orig)
+> +			goto ignore_tunnel;
+
+[Severity: Medium]
+
+Is the "out-of-bounds access" wording in this comment, and in the commit
+message, accurate for the current tree?
+
+The commit message says:
+
+    "we must be careful and revalidate the embedded headers after
+    reading them from the skb frags to prevent out-of-bounds
+    access"
+
+and
+
+    "local process can change the ihl field and after
+    pskb_may_pull() we can see larger value which is a problem
+    for the icmp_send() call."
+
+Every ihl-derived access reachable from this icmp_send() call looks
+bounds-checked.  The tracepoint in include/trace/events/icmp.h reads the
+quoted header through skb_header_pointer() and copes with a NULL return:
+
+	if (iph->protocol == IPPROTO_UDP)
+		uh = skb_header_pointer(skb,
+					skb_network_offset(skb) +
+					(iph->ihl << 2),
+					sizeof(_uh), &_uh);
+
+	if (!uh) {
+	...
+
+__icmp_send() does the same for its inner probe:
+
+net/ipv4/icmp.c:__icmp_send() {
+	...
+		itp = skb_header_pointer(skb_in,
+					 skb_network_header(skb_in) +
+					 (iph->ihl << 2) + ...
+		if (!itp)
+			goto out;
+	...
+}
+
+and __ip_options_echo() works on IPCB(skb)->opt, which is zeroed just
+above the pull:
+
+		memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+
+so it returns immediately on optlen == 0.  With that, does a mutated ihl
+today produce anything worse than wrong or zeroed tracepoint fields?
+
+Related question on the Fixes tag:
+
+    Fixes: 7fcc2fe39fed ("net: icmp: avoid invalid transport header access in icmp_send tracepoint")
+
+That commit replaced the skb_transport_header() dereference in the
+tracepoint with the bounds-checked skb_header_pointer() read shown above,
+so it introduced the ihl-based offset but not an out-of-bounds access.
+Since there is no remaining skb_transport_header() consumer in the
+icmp_send() path, what does the added skb_set_transport_header(skb,
+hlen_orig) feed?  Could the tag and the comment be reworded to describe
+this as hardening plus a transport-header fixup, rather than a fix for an
+out-of-bounds read?
+
+>  		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
+>  			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
+>  			type, code, ntohl(info));
