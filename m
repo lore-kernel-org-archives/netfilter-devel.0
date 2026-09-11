@@ -1,270 +1,208 @@
-Received: from mail-pz2-f39.google.com (mail-pz2-f39.google.com [74.125.228.39])
+Received: from sonic302-28.consmr.mail.ne1.yahoo.com (sonic302-28.consmr.mail.ne1.yahoo.com [66.163.186.154])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC16435E94F
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 14:59:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B30B64AC14E
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 18:06:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.186.154
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789138797; cv=none; b=fHTVaBrnzQmu+a01Sf6q6dIZHcR48W2lpJGsPvEZxJBNNVzwa2S5ii6Vl1WsGo3/+BddhUcEqmFDJ6eMA0KuuNHK03rIOz5Zw9rSdIA18o5p3Ir6fy/9ltPHQA6kT+wGkRF93EicGyLK5XRj2uNRdisGMfXqXB/LIJFQhjAwjyM=
+	t=1789150009; cv=none; b=N0VN3Ns7GzHFICfl0lG6Hcw17cBx5/yCFG0PRssqg0vrfyoxrdFzYIJhSJSUAWriS0Cwj9hAk6ZgfbySlW315jiYBdhdcL9/awGLhwYK6zqs1KWoDJQe0wbk5A38gHaDjOAHC3x+aHhOeO37YK0hQ0SevtLhoqvXCWsmGay4evE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789138797; c=relaxed/simple;
-	bh=Usat8xz3UqpSSfKNuaqFESpqvYc1Nf1epx0yc3zzBFo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TjZIRFSJq/YQfvcR+JhPCW5h+gIvoxU1jSmspmAr9RxezmXoa+h+0niFJqY4soSgn6iiLoBOfmhey2AoyzpRRpMPufnN7szT1gJmXnviMrbCHD3lTe8BIcrjArsoa7LK5xAByrUGblBi7wMEZK+KSG98PIVcWvs5qi7j1BUDsJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jWb5S88A; arc=none smtp.client-ip=74.125.228.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789150009; c=relaxed/simple;
+	bh=Z57Iku1thXyXrd/tJuHixAzTq3I2TFBtAiDxp2vv5n8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=b2dkxcqFfAaBBNqvkXNCHK55EeQfdmojyDMWbOuUapa3EOM/LplQ83sbjs5C5ZBVtX8uOBEcg3dDf7IZW08PI6CroQq6g7+yqpmMIYi5xa4bDWw3e9XsUYOXR+xD2zhZL5YArRDhYawhEE8J0vste9bEnthapCjZeaHY4h9EMaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=QUsVFHGS; arc=none smtp.client-ip=66.163.186.154
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jWb5S88A"
-Received: by mail-pz2-f39.google.com with SMTP id 41be03b00d2f7-cc4b29fa803so34473a12.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 07:59:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789138795; x=1789743595; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bBgINZr+o2IuvA/OKo1w80EwBRPUUPH1Co9Itt86ykY=;
-        b=jWb5S88AmYie6Z816j3h60Oq/P26oyAX0beKMAX5foXzQ4cjowVUcxzfeHFxO5lTdP
-         lZwGzsQkw4xwXWWb9KM6v96LfbY/fvtcccf8EEjZikw6zkAki2uVfDHAxS+nXwT/e9kq
-         hZ0V3wVuOVeQ7Tegi+6izBi46Rnb/XTJLNpwjq5Ae7p1HN7EyVTEnpRIDyUzBI3T+TzN
-         fkwz7EKd4FHLaKqvaBOnrEkg3caWtRH9HmYJWsT1zhS5PwpuLm8SpGFBX4fH6USQXo1W
-         23AO3aXisrownmuJOsL1hX59/ACYk0ECl2yAvOXhBKIet25HnktP7X82Y25sQUznV3tp
-         5rxg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789138795; x=1789743595;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=bBgINZr+o2IuvA/OKo1w80EwBRPUUPH1Co9Itt86ykY=;
-        b=SvDODd5ho38Np12qwIMEWgTZr8rZZExXYlAvnJcQvjRq44Jd6KQ5OkT7f+Cpn+CYf1
-         sPSU/eLbPS2X5XSI/SUXld6UKFCP/8cBxUZbqfcMkFPwU+BwoatxhD0hE/wrsoR04Lyb
-         IFyXdAUae5wRJLpBYYrgz4vVNxgWqxV5VL/19n3uPSX/J1cUeTLFJokgKigmS7oPa8fc
-         /DUopbcA795e1afnAlf8M/eL6qxrTkd4RLtfspxSmT6XLHjH0Ix5o/i0P2kVgf8tQxFR
-         WCvCGnp7BEw+4nCM2zyKxqthgIXtc/kAHUuj5cvGyP2k9H8EZlXt4wKoLOPPupdWyUE8
-         4eeQ==
-X-Gm-Message-State: AFuF++lFf8izANu4dBvYq3GfH2RPq+Qdqt1rDGeqgTome7p0jicjALej
-	bGYQOH9K8BhQIEPUcVM78+v2WU6sSzCDpJIV8UKt8ULlsjvwtEqbaHhdOqdXuQ==
-X-Gm-Gg: AYBFou1qnTTHkKALtXJxsSj7W20XoCuQEZTGiocvhbgWC+qZduIpGQRjKFn2B8Cfhz1
-	5mcZONegZehUuVYY/qUcmoehcq9y1qCP4SdwBR7SHgrlNnalaIpp7MT/yJKj8juouiPW1ZsIUgN
-	kkNf7/clvEIbQ4qMW2xW4L0Xnc3cupTJOiL8xej5t3yGz6QEpIq11JPl4BRlJ4Rpv6Cf5a3x6ig
-	x/3Y6aVgeEYjnYm3ncSTKhaynu7A7SF4d9Hk4/YhVeLsM+HfDYDLX4KaPbHO99BNr1O/2ChBk6+
-	pD8auWACjxBX+eeSWfvuLBhLaOH4n/HDv5DnPHKe5qIt/hj87XWC9UqgOPnYOcs04/mniNlPgpo
-	KhxboNPpiH/OP82Cp6Kx9Z6zGa0G0BSAjY+5up7aUZaDBywSrjdjhnbb+t0v/3Hb+Vvgv62+5YX
-	CNCg6T8P+I7ynj6qg6szWumWtuPfPDvRZjS598Lu4gmreAHffhYg9ge8/bgF9RrRuAO4hbQ8mey
-	NsNOyssXqSQp6aUPch021ruZue7fNsO
-X-Received: by 2002:a05:6a21:4cc1:b0:3d3:b00b:50fc with SMTP id adf61e73a8af0-3daed434594mr7926293637.28.1789138794823;
-        Fri, 11 Sep 2026 07:59:54 -0700 (PDT)
-Received: from r912.4v1.in ([182.70.116.80])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4efc398sm8129995eec.19.2026.09.11.07.59.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Sep 2026 07:59:54 -0700 (PDT)
-From: Avinash Duduskar <avinash.duduskar@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft] tests: shell: drop metainfo from the json dump comparison
-Date: Fri, 11 Sep 2026 20:29:49 +0530
-Message-ID: <20260911145949.30765-1-avinash.duduskar@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="QUsVFHGS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1789150006; bh=N0ksFx+o56aUgsrzSCG07cwcgBEXSZlDOBLwLo9KB9k=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=QUsVFHGSb8/vzoszXujXv/uGW5y6ihVtv2vcO3ZYtTIH+ukhyf4QoT2Y5rdfRs4fNj7nkicpR0TKDraU6oEO8sEATzzY8qX5y05eNVoVUial3q7wfuUmdKjdrbo5zBX1m2XkK2kluXeqxu9tWJmNJzJ4Zl+OCa7ocZyXqZ0GzehxNNfaVSbtASIqHk7qn659aqnt3AZWwKF/H30QukrNsqtfTl5jclzUwb3CQVDHEmo7r3Uc0jM2C+Qd4fNeGq2Ho6Ei0wfbaJZ7CtIR3yCR5pz1Y1YCJ7FPn6oQcsYUmhgyevM9cFT49JZDYd8i8iHTrCuSFFIdZrPgNP5WwOZreA==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1789150006; bh=ySeJixRwcHqCzuwukNF7JPkwGJIIhWyKcQrXrVrdBMv=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=dEKdNQSkW+ePLDPobERtLTyj3PQizxtYdZxikyzoU6NoRe88MmW6znoCllyz87ta+Js7RS+IUiux/o16DU+Ug6isN/IV6q3UyNjXfHGfB03J5EQEWRt2ND5W2mM99evupTXUimeCyc7akfxGLm2KMmyecF+iVGcl78HYlC14Iwz605Rn1t/BRi0VuUW13ra3hxsOziHkFOsUxGy+2MrTfx+qKoyMjQpxmkLBuRWw/DvNS32LaqcCPNpeVOuHLR/UqWsVp4o9Z4kQ8Farhwl+oV30/9ilZdmQvoq7hoxvoAziq5LmRbdxADNe7FCp9n69ijF3EX2FxuVoxSIYJASxzQ==
+X-YMail-OSG: Z9UMG9YVM1lctHC24HnZvwkpAFOQdH7gglIMIGoN9uePiY6tmM1qasTJ0aPnTzX
+ tzt29oMHmILoCJ0h7IC3u49YVUVYpMiAR3DOapJZF7js1zavVTijW7mz6eDy0Aknu2cJAIMBsqct
+ C3ya42KOnkk9oeom.b.QTEgcQUSRb.xUyEOV838qqsLQzKYF7X4scufuZH2ZMtPbL4WXhFrvUpaa
+ b2h7qJsroiEU4KnSo_4R743CTWkEixpeInkhNH0gSxv83Oy2Qp2WDEFOmBoIryMYglQrGdPXsoBd
+ pWMZwxUFVMji3.9WaIrRLWEwU0aCVr.y7dg7LlQywAhwgodXzjq7xYZrwHNyfNkFOZOORAsIxvzh
+ T2.QUhV.JpcG1Fb6DrNXHkSYUzD9f0kby6nX1oVX_X3RSxKW_gdPGix0Yg2F.SZCIlWjZiWlfSct
+ EHuva2iR3235_wLAiNbAoBnNIA0auBPdbrWlPKgBy8dD1rjj1N.QzBmZteeApzGC5cTnvC6GdB_Y
+ pj2GFD41VlRPuSGzC1TI4dE8UtcO9WCWDGJJ.N9ljlE7ridZHp5sXcvrlb2a1bJn8b8g.gM_k0Y.
+ rhnpwwCd5hEjjm.jA8eaExquIyZEltU8Mn8S09036R4ZIVIUqtSgx2_UM_72JpAgdr93yUloY4Ni
+ ZkPaUGtv8xsIZjdsKhzb9Di_L2bWvEmHR1tEWk0sRpWSJgpkcV4TInr7E.FKZCDYRWAgpQas1uQJ
+ 1TOZ6fnSFy0FwYnc34A27vgJO53IRnC3i1fXQzozdz_ciT8l.ZAKAjYby7iyEEUlPZ7AuInZrPza
+ IEdzUZNoQry0p.FCLskNePKfkzaolmO7kf1Xy1P9r1wU3jjfCqpzfxKG3gMpYwfVAsVNnOv6gDzl
+ McJQL.IE2U_X9ZGVZjg4rkSvsjGUx_bL4lOIDeQWj5nb8EO_hS3ZFeOXVa76rEtJBTamfTTW_7Zc
+ elKXzO0c0jsF_iGOvV2sX9TtagZFju13DPJgDpCFgKnK8RfROr.IP761grH7JdkzCRfBscbKj8k7
+ Ahwv8KwS_qMFpGCZsVnKIueTdlB7CJitfx_aC17KoiI.w5vP5MeCFnyYnZ36ZuvoA4KiKo_Ncwrm
+ CZCI96cIwehGcjN454ZgHYgmbxlMsQdtxl0ALCXIEd231qZxI5r3jKKzqWBRQBT6wyOE.JLSQXU3
+ bZlUojN5mC7Gx19NhnLlG.lg751JnoD40Ciw_ysQAywCq2134cpLDvJiqE5XaWXg_KeWNaSx07Rp
+ Z.Hp4cWssIRHg5vMk_aZs5Z7gP2r111AT0tPqB.Zl36I7EcMncMSuoK6TpjUpeCFPNA2Uzn6lWpv
+ Ayq9XnDzPBBYPg3Z5Yq8pSj2VM5qO2prq6fi4wRQysNvd_1lqrs3VtFc9ydPyX8RD8VYVSxv1uJ1
+ FB2N7hJH1gYewxLqD1TrMgTjhWKaalb0ZCqhrFy0PdSKktKHFroGOPZfZWAV4mekQimDDZkSUtnC
+ yw.h8nHeNuzHO8V0HTM_P4nsUeGGf6aLnKrOA9cgDr2U7b1pfnZjwOEC9f3OwqLxHVtN7DxbxRBt
+ XbRaMJ0t0JXpnmzFjCEwxOIe4YxMA79ojl0uBwAtD0Fy0woxF6BF3RJ1ZPPU0_PUXxNYTPAv797g
+ hCvs4V7D7ilhn2pHF7zgioCgAymlDwbbb1kS25sFEgT.ab0mYvR_DTYvZdm8xvptaKga9_3Q_4la
+ Nfg7LDwLu90rXbR_jFSVDg8_CRrWzNGZoExyv2KC5Ioxx4w5Z.vFZMm71aSdZqcz97awS9O27LEy
+ zOpyEkEiGjFrw1cgZZtyu3Ew0HqIQ0h4xkl52jQ4XgT.30ChKEVFYvIV7iuJxGT28kntbVLk7n5h
+ Qgdut7ArndRx8PCSev3URpMnf8AM0zR8NhPyD_xl.PBWGf9W2RDA6RRWpdjmgFHBTId2lKL_nSJl
+ LkxGwDO7rDn_SxbCFne8eoKNae0qOWs798diQQVJL0Ddb8aFSC4LFGAwrr_d22T4W8yy.Ndfb49y
+ z2dOYbOpJhAl12Ftt1XOzJGQFgwPv5Q_tiwpkT27_1AfToPZ2tfNNwEU5LXsoecZNMjPL637Fs88
+ Pm9FtfEyd0XJbD1XOE.f.OBlHHpbiaJgp4mXcZx0q4HZOY4DX10_8VcqfbSEaXrmk1KmYyVyvbHM
+ 3QxDwZXAF5FNMwXncGbQWYGe_Azdm2WnLc5rY4RP0yu0DZzoy5yQFXvQ.VZQ0.Ig5LzjCVNNskre
+ .fT9yhcSlPWI3IHZaEsNbS3ASejCKAAQtyEkTugxQ5eM1GTORRydzR8ohwGmxc5gursUvWq1obkV
+ s1L1HzWgkFSZ7
+X-Sonic-MF: <casey@schaufler-ca.com>
+X-Sonic-ID: b76ab4a0-2ab9-47b3-8cf5-8bdd5faf0803
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic302.consmr.mail.ne1.yahoo.com with HTTP; Fri, 11 Sep 2026 18:06:46 +0000
+Received: by hermes--production-gq1-678d9dd684-kwnw4 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 399694003e99ff36e3a7b206375e9b12;
+          Fri, 11 Sep 2026 17:46:02 +0000 (UTC)
+Message-ID: <ee89e26c-3dad-450b-8861-badf19afa141@schaufler-ca.com>
+Date: Fri, 11 Sep 2026 10:46:00 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 01/13 net-next] net: ipv4: introduce CONFIG_IPV4 to
+ decouple the IPv4 stack
+To: Fernando Fernandez Mancera <fmancera@suse.de>, netdev@vger.kernel.org
+Cc: horms@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, davem@davemloft.net, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ Tony Nguyen <anthony.l.nguyen@intel.com>,
+ Przemek Kitszel <przemyslaw.kitszel@intel.com>,
+ Elad Nachman <enachman@marvell.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Ido Schimmel <idosch@nvidia.com>, Petr Machata <petrm@nvidia.com>,
+ Edward Cree <ecree.xilinx@gmail.com>,
+ Maxime Chevallier <maxime.chevallier@bootlin.com>,
+ Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+ Alexandre Torgue <alexandre.torgue@foss.st.com>,
+ Arend van Spriel <arend.vanspriel@broadcom.com>,
+ Miri Korenblit <miriam.rachel.korenblit@intel.com>,
+ Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+ Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+ Chaitanya Kulkarni <kch@nvidia.com>, Saurav Kashyap <skashyap@marvell.com>,
+ Javed Hasan <jhasan@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <mkp@kernel.org>, Nilesh Javali <njavali@marvell.com>,
+ Manish Rangankar <mrangankar@marvell.com>, Varun Prakash
+ <varun@chelsio.com>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ David Howells <dhowells@redhat.com>, Marc Dionne <marc.dionne@auristor.com>,
+ Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+ Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+ Marek Lindner <marek.lindner@mailbox.org>,
+ Simon Wunderlich <sw@simonwunderlich.de>,
+ Antonio Quartulli <antonio@mandelbit.com>,
+ Sven Eckelmann <sven@narfation.org>,
+ Nikolay Aleksandrov <razor@blackwall.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, Johannes Berg <johannes@sipsolutions.net>,
+ Matthieu Baerts <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>,
+ Geliang Tang <geliang@kernel.org>, Julian Anastasov <ja@ssi.bg>,
+ Aaron Conole <aconole@redhat.com>, Eelco Chaudron <echaudro@redhat.com>,
+ Ilya Maximets <i.maximets@ovn.org>, Allison Henderson <achender@kernel.org>,
+ Jamal Hadi Salim <jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>,
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+ Xin Long <lucien.xin@gmail.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
+ Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond
+ <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>,
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+ Jon Maloy <jmaloy@redhat.com>, Tung Quang Nguyen
+ <tung.quang.nguyen@est.tech>, Steffen Klassert
+ <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
+ Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
+ "Serge E. Hallyn" <serge@hallyn.com>, Vikas Gupta
+ <vikas.gupta@broadcom.com>,
+ Bhargava Marreddy <bhargava.marreddy@broadcom.com>,
+ Rajashekar Hudumula <rajashekar.hudumula@broadcom.com>,
+ Nicolai Buchwitz <nb@tipi-net.de>, =?UTF-8?Q?Markus_Bl=C3=B6chl?=
+ <markus@blochl.de>, Arnd Bergmann <arnd@arndb.de>,
+ Heiner Kallweit <hkallweit1@gmail.com>,
+ Florian Fainelli <florian.fainelli@broadcom.com>,
+ Krzysztof Kozlowski <krzk@kernel.org>,
+ Qingfang Deng <qingfang.deng@linux.dev>, Julian Braha
+ <julianbraha@gmail.com>, Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Eric Biggers <ebiggers@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+ Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>,
+ Willem de Bruijn <willemb@google.com>, Alyssa Ross <hi@alyssa.is>,
+ Joel Granados <joel.granados@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ intel-wired-lan@lists.osuosl.org, oss-drivers@corigine.com,
+ linux-net-drivers@amd.com, linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
+ brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
+ linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org,
+ target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
+ b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
+ rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
+ linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
+ linux-security-module@vger.kernel.org,
+ Casey Schaufler <casey@schaufler-ca.com>
+References: <20260910144914.8025-1-fmancera@suse.de>
+ <20260910144914.8025-2-fmancera@suse.de>
+Content-Language: en-US
+From: Casey Schaufler <casey@schaufler-ca.com>
+In-Reply-To: <20260910144914.8025-2-fmancera@suse.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Mailer: WebService/1.1.26525 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-The comparison reads nothing from the metainfo object, but 431 dumps carry
-one, so bumping json_schema_version would mean regenerating all of them.
+On 9/10/2026 7:48 AM, Fernando Fernandez Mancera wrote:
+> Historically, the IPv4 protocol has been linked to the core INET
+> subsystem. Because shared infrastructure like the TCP/UDP engine,
+> routing or INET hashtables live inside net/ipv4/, it has been impossible
+> to compile a kernel with only IPv6 support.
+>
+> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
+> 'def_bool y' for now. This does not allow to completely disable the
+> IPv4 stack yet but it lays the necessary build-system work for that
+> goal.
+>
+> In addition, multiple subsystems Kconfig symbols across networking
+> features like tunnels, drivers and filesystems have been adjusted to
+> depend on IPv4. Keep on mind that follow-up work is required to convert
+> the Kconfig symbol to bool and remove the dependency on IPv4 where it
+> makes sense.
+>
+> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> ---
+>  
 
-Add a helper that drops the object and apply it to both sides of the dump
-diff. Nothing else changes: json-pretty.sh stays as it is, so what nft
-emits, what `nft -j --check` is fed and what DUMPGEN writes are untouched.
+...
 
-Nothing then asserts that nft still emits metainfo, so add a test. It also
-pins that the jq and python3 branches agree and that both reject a
-malformed ruleset, which a host with jq never exercises.
 
-Link: https://lore.kernel.org/netfilter-devel/amnGEhXHD5175bxC@orbyte.nwl.cc/
-Suggested-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Avinash Duduskar <avinash.duduskar@gmail.com>
----
- tests/shell/helpers/json-strip-metainfo.sh    | 39 +++++++++++
- tests/shell/helpers/test-wrapper.sh           | 24 ++++++-
- tests/shell/testcases/json/0009metainfo_0     | 69 +++++++++++++++++++
- .../json/dumps/0009metainfo_0.nodump          |  0
- 4 files changed, 129 insertions(+), 3 deletions(-)
- create mode 100755 tests/shell/helpers/json-strip-metainfo.sh
- create mode 100755 tests/shell/testcases/json/0009metainfo_0
- create mode 100644 tests/shell/testcases/json/dumps/0009metainfo_0.nodump
+>  security/smack/Kconfig                        |  1 +
+>  54 files changed, 126 insertions(+), 66 deletions(-)
+>
+...
 
-diff --git a/tests/shell/helpers/json-strip-metainfo.sh b/tests/shell/helpers/json-strip-metainfo.sh
-new file mode 100755
-index 00000000..0115250d
---- /dev/null
-+++ b/tests/shell/helpers/json-strip-metainfo.sh
-@@ -0,0 +1,39 @@
-+#!/bin/bash -e
-+
-+exec_strip() {
-+	# `jq` and the python3 fallback must produce the same output. Both
-+	# reject a non-array "nftables" rather than reshaping it. They are not
-+	# equivalent on every malformed input, only on what the test pins, and
-+	# only nft's own output reaches this.
-+
-+	if command -v jq &>/dev/null ; then
-+		exec jq '
-+			if (.nftables | type) != "array" then
-+				error("nftables is not an array")
-+			else
-+				.nftables |= map(select(has("metainfo") | not))
-+			end'
-+	fi
-+
-+	# Fallback to python3.
-+	exec python3 -c '
-+import json
-+import sys
-+
-+parsed = json.load(sys.stdin)
-+if not isinstance(parsed.get("nftables"), list):
-+    sys.exit("nftables is not an array")
-+parsed["nftables"] = [x for x in parsed["nftables"] if "metainfo" not in x]
-+print(json.dumps(parsed, indent=2))
-+'
-+}
-+
-+[ "$#" -le 1 ] || { echo "At most one argument supported" ; exit 1 ; }
-+
-+if [ "$#" -eq 1 ] ; then
-+	# One argument passed. This must be a JSON file.
-+	[ -f "$1" ] || { echo "File \"$1\" does not exist" ; exit 1 ; }
-+	exec_strip < "$1"
-+fi
-+
-+exec_strip
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index 78a01d56..49b5d66e 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -54,6 +54,12 @@ json_pretty() {
- 	"$NFT_TEST_BASEDIR/helpers/json-pretty.sh" "$@" 2>&1 || :
- }
- 
-+json_strip_metainfo() {
-+	# No `|| :` here. A failure must fail the dump check, not silently
-+	# leave a truncated file for the diff to compare.
-+	"$NFT_TEST_BASEDIR/helpers/json-strip-metainfo.sh" "$@"
-+}
-+
- TEST="$1"
- TESTBASE="$(basename "$TEST")"
- TESTDIR="$(dirname "$TEST")"
-@@ -228,11 +234,23 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
- 		diff_check_setcount "$DUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after"
- 	fi
- 	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
--		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
--			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
-+		# Drop metainfo from both sides: the comparison ignores it, so
-+		# a json_schema_version bump needs no dump regeneration.
-+		rc_strip=0
-+		json_strip_metainfo "$JDUMPFILE" \
-+			> "$NFT_TEST_TESTTMPDIR/dump-expected.json-stripped" \
-+			2> "$NFT_TEST_TESTTMPDIR/strip-err" || rc_strip=1
-+		json_strip_metainfo "$NFT_TEST_TESTTMPDIR/ruleset-after.json-pretty" \
-+			> "$NFT_TEST_TESTTMPDIR/ruleset-after.json-stripped" \
-+			2>> "$NFT_TEST_TESTTMPDIR/strip-err" || rc_strip=1
-+		if [ "$rc_strip" -ne 0 ] ; then
-+			show_file "$NFT_TEST_TESTTMPDIR/strip-err" "Command \`json-strip-metainfo.sh\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
-+			rc_dump=1
-+		elif ! $DIFF -u "$NFT_TEST_TESTTMPDIR/dump-expected.json-stripped" "$NFT_TEST_TESTTMPDIR/ruleset-after.json-stripped" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
-+			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$NFT_TEST_TESTTMPDIR/dump-expected.json-stripped\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json-stripped\"\` (metainfo stripped from \"$JDUMPFILE\" and the live dump)" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
- 			rc_dump=1
- 		else
--			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json"
-+			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "$NFT_TEST_TESTTMPDIR/strip-err"
- 		fi
- 	fi
- fi
-diff --git a/tests/shell/testcases/json/0009metainfo_0 b/tests/shell/testcases/json/0009metainfo_0
-new file mode 100755
-index 00000000..63b726a0
---- /dev/null
-+++ b/tests/shell/testcases/json/0009metainfo_0
-@@ -0,0 +1,69 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_json)
-+
-+# The dump comparison strips the metainfo object, so nothing else asserts
-+# that nft still emits one. Both branches of the strip helper are exercised
-+# here too, because a host with jq never runs the python3 fallback. The
-+# ruleset below is scaffolding for those checks, hence the .nodump stub.
-+
-+set -e
-+
-+STRIP="$NFT_TEST_BASEDIR/helpers/json-strip-metainfo.sh"
-+
-+TMP="$NFT_TEST_TESTTMPDIR/metainfo"
-+mkdir -p "$TMP"
-+
-+$NFT flush ruleset
-+$NFT add table ip t
-+$NFT add chain ip t c
-+
-+$NFT -j list ruleset > "$TMP/ruleset.json"
-+
-+if ! grep -q '"metainfo"' "$TMP/ruleset.json" ; then
-+	echo "E: nft no longer emits a metainfo object" >&2
-+	exit 1
-+fi
-+if ! grep -q '"json_schema_version"' "$TMP/ruleset.json" ; then
-+	echo "E: metainfo carries no json_schema_version" >&2
-+	exit 1
-+fi
-+
-+"$STRIP" "$TMP/ruleset.json" > "$TMP/stripped.json"
-+
-+if grep -q '"metainfo"' "$TMP/stripped.json" ; then
-+	echo "E: metainfo survived the strip" >&2
-+	cat "$TMP/stripped.json" >&2
-+	exit 1
-+fi
-+if ! grep -q '"table"' "$TMP/stripped.json" ; then
-+	echo "E: the strip removed more than metainfo" >&2
-+	cat "$TMP/stripped.json" >&2
-+	exit 1
-+fi
-+
-+# Both branches must agree. Hide jq so the fallback runs.
-+if command -v python3 &>/dev/null ; then
-+	mkdir -p "$TMP/nojq"
-+	ln -s "$(command -v python3)" "$TMP/nojq/python3"
-+	PATH="$TMP/nojq" "$STRIP" "$TMP/ruleset.json" > "$TMP/stripped-python3.json"
-+	if ! cmp "$TMP/stripped.json" "$TMP/stripped-python3.json" ; then
-+		echo "E: jq and python3 branches disagree" >&2
-+		diff -u "$TMP/stripped.json" "$TMP/stripped-python3.json" >&2 || :
-+		exit 1
-+	fi
-+fi
-+
-+# Malformed input must fail, not be silently reshaped.
-+for bad in '{"nftables":{"a":1}}' '{"a":1}' ; do
-+	if echo "$bad" | "$STRIP" > /dev/null 2>&1 ; then
-+		echo "E: strip accepted malformed input: $bad" >&2
-+		exit 1
-+	fi
-+	if command -v python3 &>/dev/null ; then
-+		if echo "$bad" | PATH="$TMP/nojq" "$STRIP" > /dev/null 2>&1 ; then
-+			echo "E: python3 branch accepted malformed input: $bad" >&2
-+			exit 1
-+		fi
-+	fi
-+done
-diff --git a/tests/shell/testcases/json/dumps/0009metainfo_0.nodump b/tests/shell/testcases/json/dumps/0009metainfo_0.nodump
-new file mode 100644
-index 00000000..e69de29b
+> diff --git a/security/smack/Kconfig b/security/smack/Kconfig
+> index 5a8dfad469c3..b4e6d0168bd1 100644
+> --- a/security/smack/Kconfig
+> +++ b/security/smack/Kconfig
+> @@ -3,6 +3,7 @@ config SECURITY_SMACK
+>  	bool "Simplified Mandatory Access Control Kernel Support"
+>  	depends on NET
+>  	depends on INET
+> +	depends on IPV4
+>  	depends on SECURITY
+>  	select NETLABEL
+>  	select SECURITY_NETWORK
 
-base-commit: fcef13a358a0755a0bd980910d47989b064a756d
--- 
-2.55.0
+Why would this make sense? You're introducing the capability to use
+IP6 by itself, which is admirable, but you're disallowing that configuration
+with the Smack LSM. It appears that you've done a mechanical lookup in the
+Kconfig files and applied the minimal change to make the kernel compile,
+which probably works for most cases. It does not work for Smack. Unless
+there's a strong argument that Smack with IPv6 and without IPv4 is and always
+will be a pointless configuration you have my NAK.
 
