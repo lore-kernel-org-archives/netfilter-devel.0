@@ -1,105 +1,100 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0CC46A5F8
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 11:21:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F331924676D;
+	Fri, 11 Sep 2026 11:31:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789125724; cv=none; b=QP9CBZlt5hVg4EkNeKFfL3XCx2OLnMS3UspB1yJ/MABuIp6H8/tKbrsHCZKHAHbCdWnn9A22fJr7HNr25ZodApOEKf/A3KhCyS7malcGtPl9hQQQjSdKzFjuWcbstGoAYJ6CL0m8npRhQr7Kgz7RDRLX/fbPIaADwx9iEaDJ2UM=
+	t=1789126302; cv=none; b=Q3Di2S9goM8LbBJ7CrgHixXe/OcdjLhgMLDtumFt0xAu5yBivFI5NWh/yf0kszYy0dv8I2z9tXhGQKwCJcQkpczbVQ/Kz3Pw/U9jCX8CQ6X+NVWr5y758pcuQUajY6dE7pUaiqSc3F4UGw/iFPfT4bop0krT4p6ayIpZwP7GZVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789125724; c=relaxed/simple;
-	bh=zzdol0X/wHRQkVjaRHVnrC3I8DrcxoVP5RRUMpBXBBY=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=InhdyjtYEkYqFKeEwNQ+3NrO6J/wJ8Sh635eIwON2DERVhwl8YqSMm7CqkM2swdm1tPW7aRf/ljPnYPGqgtxjWHMpRrgHPYMR9Zo4ec+1Uk8wwaXWy6yicd0gjID2u23wSx3kKmlgbNCpObYTAVVPYK/gBBYoYWIZ4RnOabSFt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W11ekwJ2; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789126302; c=relaxed/simple;
+	bh=BHo9LMSaBsPymS/+x9Dr+UAJYrHUkuz0QCym+XAFhSk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=g0/uW+kuqoXdEveok5QxAbqIJtFcpGVDzLonTmZwHn9k2kz0QG7+9IhIbLRxky22RimdTnw/pZNiYQxkPN6+d5ftkIr1URpl3RMVllGvM0x6rcoHKJ1MNEe2gqst2TI7Sg+pvAMZTaXWO4usZkdjnyoQsWBpcQj2V0OnF5+aDlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M11OMq6u; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W11ekwJ2"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M11OMq6u"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789125708;
-	bh=ayzowO38GeqYOZso0R4sroZ8Yaa31vT6veueMfsOcVY=;
-	h=From:To:Subject:Date:From;
-	b=W11ekwJ2PAwverRn5w4ElP61B6YZlCfC1GL5onY2FED0Veo83L0omHM0SGkBn0Zsf
-	 iCMaOpk63mrWkG+rkyV1m0CNZe5ZfkDqvip5bK95ynIREvSMAi4AzXqKuF3GAQKWy1
-	 Xdg5MVp5VWe7DkFgH2CBgXh7wM0GSr/iWHNXcohORj69wFZiaTwwX/9UDC5IkCrugW
-	 GXI818FBmA93RIGTxL6VURib+SaoTVDuk9aEsh76Ws4qHiTYJs+WCzXvjIstocmg6r
-	 BUYGgcvfB1pUBIpFZ7A4fDGe9y9E//zI5oUjDl7mWmbbzf0Eg4rNGn38XJAEhhTzvF
-	 qw3krJPiJZnbQ==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E810C603D4
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 13:21:47 +0200 (CEST)
+	s=2025; t=1789126277;
+	bh=eQfvuCdYfDRbgvg7ST+cptCBp6rGeQKuTgDUuvhUYN8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=M11OMq6uCQK2ZUZBRWR3sbDzkUSYg15/6HetxD8/sR6640FoMfZnFH2vNsZkTkEvy
+	 EZSswCJvKzoSJoK4F5mJktixypsfCQbp18RznUrNCa0CWvKSMcWPZ5sU02WekdRxKt
+	 5uJ+VHapViwBdY2CsWOQx0nspHy6gpbFxcmpZEJLxum/R8g0KQP2fPWWtpJv0BeYRJ
+	 UOxUm2UKj5gVX6IGPNfu9GCJisFNrQIZfKBFLr4rnQT9C8+PVh+KGxVbjnC8VZcHff
+	 On0M+Ytj+8A9Ab6PB48UqcWNDXmt+8TIG4R1jnZvZk6YcCXSFjtKjpkZr2PK9B484o
+	 eevczF7F3mRqw==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 675CF603DC;
+	Fri, 11 Sep 2026 13:31:17 +0200 (CEST)
+Date: Fri, 11 Sep 2026 13:31:14 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH net,v2 0/4] Netfilter fixes for net
-Date: Fri, 11 Sep 2026 13:21:40 +0200
-Message-ID: <20260911112144.1860514-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Alice Mikityanska <alice.kernel@fastmail.im>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Felix Fietkau <nbd@nbd.name>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Alice Mikityanska <alice@isovalent.com>,
+	Sashiko <sashiko-bot@kernel.org>
+Subject: Re: [PATCH net] netfilter: flowtable: Saturate 16-bit flow_tuple->mtu
+Message-ID: <aqPmghtf5zrFaFao@chamomile>
+References: <20260910162052.94648-1-alice.kernel@fastmail.im>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-
-v2: - reword the commit description of the nf_nat_register_fn() to
-      explicitly refer to the memleak, so LLM does not get confused.
-    - drop the xt_IDLETIMER and module = THIS_MODULE in netlink_dump.
-    - keep back IPVS fix as Julian prefer to send a v2. 
--o-
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260910162052.94648-1-alice.kernel@fastmail.im>
 
 Hi,
 
-The following patchset contains Netfilter fixes for net:
+On Thu, Sep 10, 2026 at 07:20:52PM +0300, Alice Mikityanska wrote:
+> From: Alice Mikityanska <alice@isovalent.com>
+> 
+> ip6_dst_mtu_maybe_forward clamps its return value to IP6_MAX_MTU, which
+> is 40 bytes bigger than U16_MAX. While it can be a valid IPv6 MTU (IPv6
+> payload_len doesn't include the header), this value is assigned to the
+> 16-bit flow_tuple->mtu in flow_offload_fill_route.
+> 
+> To avoid the overflow, use U16_MAX for all MTUs bigger than 65535. Since
+> flow_tuple->mtu is just a threshold for the software flowtable fast
+> path, packets exceeding it won't be dropped, but rather punted to the
+> normal forwarding path: nf_flow_offload_ipv6_forward returns 0, and
+> nf_flow_offload_ipv6_hook returns NF_ACCEPT.
+> 
+> Reported-by: Sashiko <sashiko-bot@kernel.org>
+> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260901195714.673548-1-alice.kernel%40fastmail.im
+> Fixes: 4f3780c004ef ("netfilter: nf_flow_table: cache mtu in struct flow_offload_tuple")
+> Assisted-by: Codex:gpt-5.6-sol
+> Signed-off-by: Alice Mikityanska <alice@isovalent.com>
+> ---
+>  net/netfilter/nf_flow_table_core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 03241d4bfd5e..8f15540ae206 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -107,7 +107,8 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+>  		flow_tuple->mtu = ip_dst_mtu_maybe_forward(dst, true);
+>  		break;
+>  	case NFPROTO_IPV6:
+> -		flow_tuple->mtu = ip6_dst_mtu_maybe_forward(dst, true);
+> +		flow_tuple->mtu = min(ip6_dst_mtu_maybe_forward(dst, true),
+> +				      U16_MAX);
 
-1) Fix KMSAN reports an uninit-value in nf_nat_setup_info() for netmap,
-   from Theodor Arsenij Larionov Trichkine.
- 
-2) Restrict deletion of netdevice in basechain and flowtable to exact
-   matching only, from Fernando F. Mancera.
- 
-3) Fix nf_nat_register_fn() error path allowing for a memleak.
- 
-4) Hold reference on ct until flow is released to address, otherwise
-   access to release ct->ext or different ct due to typesafe RCU
-   semantics.
- 
-Please, pull these changes from:
+This reminds me we should not catch the mtu.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-11
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 78445023439506ebd83b86d40b1e428a3b309d4a:
-
-  Merge tag 'net-7.3-rc3' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net (2026-09-10 14:07:48 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-11
-
-for you to fetch changes up to e75a9fa1d44bcbd66ea02e8781bcca6ea4076e0d:
-
-  netfilter: flowtable: hold reference on ct until flow is released (2026-09-11 13:04:15 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-09-11
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: nf_tables: fix device name and prefix match in hook lookup
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_nat: unregister and release hooks on error
-      netfilter: flowtable: hold reference on ct until flow is released
-
-Theodor Arsenij Larionov Trichkine (1):
-      netfilter: nft_nat: fully initialise new_addr in netmap setup
-
- net/netfilter/nf_flow_table_core.c | 12 ++++++++--
- net/netfilter/nf_nat_core.c        | 46 +++++++++++++++++++++++++-------------
- net/netfilter/nf_tables_api.c      | 22 ++++++++++--------
- net/netfilter/nft_nat.c            |  2 +-
- 4 files changed, 54 insertions(+), 28 deletions(-)
+>  		break;
+>  	}
+>  
+> -- 
+> 2.55.0
+> 
