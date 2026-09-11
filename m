@@ -1,125 +1,197 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B224B351C34;
-	Fri, 11 Sep 2026 14:22:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAC4364940
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 14:43:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789136534; cv=none; b=PFC7ZfzYYNb8pa/qOOtuD25CFHo6EONM2rR5ihz08MLOscuoxde6xBwaUXmB1OvpDr2c9Sdawgum/gVwJxAOGk9Acoy2y0yy65k7HjWsgCvop5L8IVzeyiZFHZ36SABwIeQgju1kDcDIZj5wqYEAFK2gb/BauBHopUXGqalvw/g=
+	t=1789137801; cv=none; b=l8RYnBg9/MkxFNxJpmWW1tRXH2ybepcJ3I3nvarp1pBUoIJVc2p+nw7390SRBJ+A5u1Qhn7koj4UehBJNSNz8pCpExEYr9VzLvnY9Gq0IsRcXvwF+nrTfoPBQAhA2j3OezCvByqXeZZm3QgzGw/zsH0w6Srakh0cuxbWmcGyKAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789136534; c=relaxed/simple;
-	bh=jmNvfqXjweVniseb8oBYU2SlAr/cTHg9c4d+ZJ85pK8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s1rllgNy80WjzN+qY91STWPJa9Jh9ScpQxxOHeoFm18IAI7yfEe9fpBTfW81yo0/Fztlu5rO2fzd3tsTM4HZAnKA7h6FTqKA5CTeppyoidISc9vFP42m/5xbY7viWY25RNDGBlOlNjpMDrzE2Cz0xlfxHJW6PPRRra4WFK2Z/ZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dRmx73Q/; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1789137801; c=relaxed/simple;
+	bh=ktgZrY/nHGePdsQPbZ7EV7nBq6cM3xMgEMfbkQL+PSk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DB+ApG3DJyMR8ineRendLVvlac52Yyu5EpWP9h0SQ+tLxb01+xhgMB6iL1I/o7Ehe32TvPAFcsihtlV0VFjRdX4ibEK/7CsKGh14W7rGMt1fp/vZ8E5gHziMs8X1zmXIOHLeku5yL6TvXKT9AHIn8ZB5ttIXPaPt9Up5hyzt28c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wIoRNVPQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=k4BlAGef; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=lt23tjB3; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=qFL3n1cw; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dRmx73Q/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789136530;
-	bh=Ox7YSacdV7h2InVZd1Iw3kxrYUsfnmdCyCbV+t17m9Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dRmx73Q/BqINvAznK12hHcya8HwHtUWWApvOp3949LNn7lbg00QuvV+XbJvOBjmqk
-	 qnEwahN+MXSnHfEuFfB1jR68KSJV6kbVjaVJ/xb+0CiEn0uE2i1XBtRydooWhtihAe
-	 ebUrtLoLjFoZWeD/L0U8JIzqTghuuQ/82VVra4VnwvUiGoKv/7Bzf/6sGEmuU0u2m7
-	 B9XRVOFTG34sHFOjTeXMsKvEYcAF8eNJasho/uhyMrptFRXMDjNDfnCUrPAURY3wGk
-	 ZT57vPYEODsmxnxI3PBQQnPCs+Bk0eIDIuYS8daqFCGitNr6DorRDxTwpAZhvEU6Pg
-	 +/tE0aGrVoVdQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 06475603E1;
-	Fri, 11 Sep 2026 16:22:10 +0200 (CEST)
-Date: Fri, 11 Sep 2026 16:22:07 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Farhad Alemi <farhad.alemi@berkeley.edu>
-Cc: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	falemi@asu.edu, Simon Horman <horms@kernel.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] net: reject a forward path that loops back to the
- tunnel
-Message-ID: <aqQOj8EHUb6ZzWjR@chamomile>
-References: <CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wIoRNVPQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="k4BlAGef";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="lt23tjB3";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="qFL3n1cw"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id A44A31FEF6;
+	Fri, 11 Sep 2026 14:43:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1789137792; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=d50VCDE7WV/v+z7r4NeMw2l0iZnX1FScJUUlpoZuHHQ=;
+	b=wIoRNVPQVougeGi0WDxKzkVND9OhHg8BfqrNxiUIhy3pDnUZJnKNIVVX52RPk1bJP35bcc
+	QEtHqxQWa/Noef4dp7xziurHLuGN+fptYPXm7aJv2kDu9eEgQZoOsnuI1EygC8Qtfa23zn
+	u+b5YyvTURP/0X/paI9gc9fmCVZBrF4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1789137792;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=d50VCDE7WV/v+z7r4NeMw2l0iZnX1FScJUUlpoZuHHQ=;
+	b=k4BlAGefIQKsCBx4rfBXMoKPUn8kyOoH0FSDJvD3IO6cmO6ZjcMv5Jox6lK9BbUNeeToNg
+	dYeccFkHTku+NVCg==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=lt23tjB3;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=qFL3n1cw
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1789137788; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=d50VCDE7WV/v+z7r4NeMw2l0iZnX1FScJUUlpoZuHHQ=;
+	b=lt23tjB3lw6jHNou8qYzQRiGCfPtlwBMp3r9mLbK6ItNJt5vuQ/BTKVWjlk4rsQIw/66j4
+	j5mNeVD7mliEesYr2aWB3KRY7WRW8KWuaJk7q1GxDQBX8lQCKBif/be8G2q/2D8SgJ02tn
+	a8AXyMFmMZBIdABpwujzPkDw8nKd5xE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1789137788;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=d50VCDE7WV/v+z7r4NeMw2l0iZnX1FScJUUlpoZuHHQ=;
+	b=qFL3n1cw7ZEA2MF4jrVE+0uNdmftLIpntBhETR3hrPmgug2DA/cs2xlHCUFd1lSQtDpAKG
+	GMuhFZYNI78eKICg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 18B75132D3;
+	Fri, 11 Sep 2026 14:43:08 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id SS01A3wTpGq8CAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 11 Sep 2026 14:43:08 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	phil@nwl.cc,
+	fw@strlen.de,
+	pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	VEGA <vega@nebusec.ai>
+Subject: [PATCH nf-next] netfilter: conntrack: prevent nf_conntrack_buckets race condition
+Date: Fri, 11 Sep 2026 16:42:55 +0200
+Message-ID: <20260911144255.4900-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+X-Spam-Score: -3.01
+X-Rspamd-Queue-Id: A44A31FEF6
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:email,suse.de:mid];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCPT_COUNT_SEVEN(0.00)[7];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Spam-Flag: NO
 
-Hi,
+There is a race condition in the nf_conntrack_buckets sysctl handler.
+The implementation uses a single global variable as a temporary buffer
+to parse user input. Because sysctl handlers are not locked, a
+concurrent read or write can overwrite this shared variable after a
+writer has parsed its input but before the actual resize occurs.
 
-On Fri, Sep 11, 2026 at 12:17:08AM +0000, Farhad Alemi wrote:
-> ipip_fill_forward_path() and ip6_tnl_fill_forward_path() assign the outer
-> route's device to ctx->dev without checking that it differs from the tunnel
-> device itself.  When a tunnel's outer route resolves back to that same
-> tunnel, the walk in dev_fill_forward_path() makes no progress and trips its
-> loop check WARN_ON_ONCE(last_dev == ctx->dev). Release the route and
-> return -EOPNOTSUPP when the resolved dst device equals ctx->dev, so the
-> path walk either advances to a different device or fails cleanly.
+While this sysctl is only writable from the initial network namespace,
+the race can trigger if a monitoring daemon reads the sysctl while an
+administrator or orchestrator is writing to it.
 
-I think we can remove this WARN_ON_ONCE() from dev_fill_forward_path(), ie.
+Fix this by removing the unnecessary global state by using a local-stack
+table instead and delegating the locking/serialization to
+nf_conntrack_hash_resize() function.
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index ecfbd72d5d1a..c67900354fa6 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -789,7 +789,7 @@ int dev_fill_forward_path(struct net_device_path_ctx *ctx,
-                        goto err_out;
+Fixes: 3183ab8997a4 ("netfilter: conntrack: allow increasing bucket size via sysctl too")
+Reported-by: VEGA <vega@nebusec.ai>
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+Note: this isn't relevant enough to land in nf tree in my opinion, let's
+aim for nf-next so we avoid a false sense of urgency
+---
+ net/netfilter/nf_conntrack_standalone.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index f4f2d82192d5..4b692a184e94 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -533,27 +533,22 @@ EXPORT_SYMBOL_GPL(nf_conntrack_count);
+ /* Sysctl support */
  
-                stack->num_paths++;
--               if (WARN_ON_ONCE(last_dev == ctx->dev))
-+               if (last_dev == ctx->dev)
-                        goto err_out;
-        }
+ #ifdef CONFIG_SYSCTL
+-/* size the user *wants to set */
+-static unsigned int nf_conntrack_htable_size_user __read_mostly;
+-
+ static int
+ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
+ 			 void *buffer, size_t *lenp, loff_t *ppos)
+ {
++	unsigned int htable_size = READ_ONCE(nf_conntrack_htable_size);
++	struct ctl_table tmp = *table;
+ 	int ret;
  
-> Closes: https://lore.kernel.org/all/CA+0ovCgaRvbd0Udj70b2xxG8Cx3CaCpNhnf1V4RWQuDveZYZhA@mail.gmail.com/
-> Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-> ---
-> --- a/net/ipv4/ipip.c
-> +++ b/net/ipv4/ipip.c
-> @@ -375,6 +375,12 @@ static int ipip_fill_forward_path(struct
-> net_device_path_ctx *ctx,
->  	if (IS_ERR(rt))
->  		return PTR_ERR(rt);
-> 
-> +	/* The path walk must advance: a route back into the tunnel is a loop. */
-> +	if (rt->dst.dev == ctx->dev) {
-> +		ip_rt_put(rt);
-> +		return -EOPNOTSUPP;
-> +	}
-> +
->  	path->type = DEV_PATH_TUN;
->  	path->tun.src_v4.s_addr = tiph->saddr;
->  	path->tun.dst_v4.s_addr = tiph->daddr;
-> --- a/net/ipv6/ip6_tunnel.c
-> +++ b/net/ipv6/ip6_tunnel.c
-> @@ -1863,7 +1863,12 @@ static int ip6_tnl_fill_forward_path(struct
-> net_device_path_ctx *ctx,
->  	fl6.flowi6_proto = 0;
-> 
->  	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
-> -	if (!dst->error) {
-> +	err = dst->error;
-> +	/* The path walk must advance: a route back into the tunnel is a loop. */
-> +	if (!err && dst->dev == ctx->dev)
-> +		err = -EOPNOTSUPP;
-> +
-> +	if (!err) {
->  		path->type = DEV_PATH_TUN;
->  		path->tun.src_v6 = fl6.saddr;
->  		path->tun.dst_v6 = fl6.daddr;
-> @@ -1873,7 +1878,6 @@ static int ip6_tnl_fill_forward_path(struct
-> net_device_path_ctx *ctx,
->  		ctx->dev = dst->dev;
->  	}
-> 
-> -	err = dst->error;
->  	if (err)
->  		dst_release(dst);
+-	/* module_param hashsize could have changed value */
+-	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
++	tmp.data = &htable_size;
+ 
+-	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	ret = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+ 	if (ret < 0 || !write)
+ 		return ret;
+ 
+ 	/* update ret, we might not be able to satisfy request */
+-	ret = nf_conntrack_hash_resize(nf_conntrack_htable_size_user);
+-
+-	/* update it to the actual value used by conntrack */
+-	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
++	ret = nf_conntrack_hash_resize(htable_size);
+ 	return ret;
+ }
+ 
+@@ -657,7 +652,6 @@ static const struct ctl_table nf_ct_sysctl_table[] = {
+ 	},
+ 	[NF_SYSCTL_CT_BUCKETS] = {
+ 		.procname       = "nf_conntrack_buckets",
+-		.data           = &nf_conntrack_htable_size_user,
+ 		.maxlen         = sizeof(unsigned int),
+ 		.mode           = 0644,
+ 		.proc_handler   = nf_conntrack_hash_sysctl,
+@@ -1153,8 +1147,6 @@ static int __init nf_conntrack_standalone_init(void)
+ 		ret = -ENOMEM;
+ 		goto out_sysctl;
+ 	}
+-
+-	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
+ #endif
+ 
+ 	nf_conntrack_init_end();
+-- 
+2.55.0
+
