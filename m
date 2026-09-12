@@ -1,155 +1,142 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3144C378832
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 03:57:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789185432; cv=none; b=reKh632NPJhnI88sO+pn2KzYJeaAtNWRiB057o1Y7bO7Ag6qh4VEa+nUb/K/2d5q2ahIkrLIQzqU0NxrOZBTo3SQwxLtlnSSKphlggMiA9eg8dHuHQQ5FQlxM0HaA3rCPPR3QsYJmrfDUacx1/v9/yYe5yBnzwzzP3SElT+QzxY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789185432; c=relaxed/simple;
-	bh=nEYVPwCFDnBCF24sANEBFZ55tkqiF4LKtVf0rB2hQ2E=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PfP2LVTEJ/BXo6yyhRb9cZYvsUUL9t9B4+WA0hN81u1gpzxU2jgWSEttFc5xS2dDrB0MhaQB/HDQmzCLFYHfbHm7sTuOC7yAnwNvcrr/vEmNhIhk9GJBZLLp3YO/51kJIy1yUtEEonyw895XBwvmmOUWNdKePO5gmB7oCQwQM00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=fJz+kNp+; arc=none smtp.client-ip=209.85.214.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 212D8346A08
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 07:40:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.12
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789198813; cv=pass; b=tH1pu8Xn5rqpx1RJ8E8j6pVkkXGMSjrWtsNkCQPL9SoHN25ziwThhztC55eKAhJtWsxOwjTJDSBi/jZb3vMEM7elzBeNRxoOUQL0EQ5KVhGcXeUp9G7hCOBRFRe4JzHvqOex2ZOGhUvsqrtT0lzknIXw7/EyMGG0NVIbtnSR2AY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789198813; c=relaxed/simple;
+	bh=a5BgZIa2nN3V7GG8MnhDOEO9Xluz3rwKpxUKZrZY1y0=;
+	h=From:MIME-Version:Date:Message-ID:Subject:To:Cc:Content-Type; b=M8i+2p7S/PTO2pRStH6wSFlfC+bOf9Uh25UNZhZShMxLO6+e78G/5o9UjK0QjhYRtDtGyUGOGnkSVyh2efcwWFTYGjXA0vKpJgdIpAUg/SKUtDasMN1x0qoJ3Z8Rz+IhVgmk1VXv2u/A0zXoS0M/zx8wj7lkmqrO4uTwOh4RzFY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=berkeley.edu; spf=pass smtp.mailfrom=berkeley.edu; dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b=OMN+nqkl; arc=pass smtp.client-ip=74.125.228.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=berkeley.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=berkeley.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="fJz+kNp+"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2cfbbdfa60bso16281295ad.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Sep 2026 20:57:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b="OMN+nqkl"
+Received: by mail-pz2-f12.google.com with SMTP id 41be03b00d2f7-cc4bdf8acd6so494753a12.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 00:40:11 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789198811; cv=none;
+        d=google.com; s=arc-20260327;
+        b=JCIvHkAFVQ7UPM+tyPC3fwzO1L89Z1ClvpFCVg91641MHZRHFC3TAL/BKc14b8TaWm
+         AzLOv40MaJ3zK+F0wSACN4eZidVv3QIQfs3nOtQbX+FULn9vTi4faHahlqgVwgz3HWSu
+         MWSX5TgBeGXihZDfbm6QmDDVh1rePby+Y7XMHqHbF25NYuhhspPtHL5nEPqZ7Ih6Ye3R
+         roJskLA8KGIBR9KVcitxYy2SNVBgdDt55J8UmCqcXT+ColQIanazebpywqMK0OI/CMQE
+         X2FPX92D+UvpndtIizpFsgN2Dj92nxkOXAc4hqEuq8qa3QovcQxNKDrF/N8ukvpnyote
+         wJrw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:mime-version:from:dkim-signature;
+        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
+        fh=eTDwCOGkVlyYfFTr+KK5fM2V9LhZd5BeA4cEaDy9UZw=;
+        b=g8XLuR0vuePxLDNujCqnerJyKQqfWP061fh/7DZha0EVZabGacijogrLto23tBxDWG
+         1G5Cr60p1yulMMVZvY+kvoZUVl6tiq+gFI27YnRhq4lKBRAyi+zeTp5PEEjMvmpuVzh0
+         /wPMtNPN0+0K7gz1sQEoFdrZnCQZbWGQfhwWGNVP/f9i1h+w1NMuR34lQ0q7u78IH6xN
+         IZwEIfa27xSvk/bLrveUKubPP/RMxqX/9D+Kok3tnCg8usBIJv6Ngq6yCJ0InN5R/73J
+         ZDd4unWt5CAPexZo+asu8EfiVH9bXvB0ksoOWHWRCAQxFZdKCaxRYX6C3asca2e2QOHc
+         P9Dg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1789185430; x=1789790230; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=gFsPOOs+5rcBWfV3FhiHZ78dDluV27U/FXNygCAg6wI=;
-        b=fJz+kNp+PQHDjlOwmmBpg5hdejlfojifH1hARbglIneEihYwuIPaVaUtOj2uRd/U4/
-         mscD1dKSHaVZWCHHLeh8RBToTvbNo7qdvB1j9zZ+nGmmuyhy3xQuOk62F4c2SDJDVXRj
-         fTxOdUlgap2qJAou2q1exUyb/0meghRURtYGyDr+zMAqo44cy7XuUPQCiaaKH3nXbYUP
-         lQq/uSoE7iSrwpbx0cyOcq33CboIFqAVjsSPXTsGiAV0l0jZaGBqzXXXtYCYJ0tjkKsr
-         CJMmQhvhYCUruOyfRTJPFV887LpPKsMYW2tC3Ic23M4E7n+xi5res8H+UbZLYHzULeCL
-         DUSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789185430; x=1789790230;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+        d=berkeley.edu; s=google; t=1789198811; x=1789803611; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=gFsPOOs+5rcBWfV3FhiHZ78dDluV27U/FXNygCAg6wI=;
-        b=Agi2GMc2dJF0m6AgTRe8I4FWKSdtmXyfzj4OFvokP1tgB6paEdpQLIIvhrfNFKPZVC
-         DKz4BWP84zh97QeSiKUxoH8tVbzDCf6tQZ8QvYVWghDZ812EQYYzoYdBKPCN0tw2kD9/
-         BLdNcIDyY1xuBqvQ0NmlAnttIj3rd8lmP/6M7dC+IltL0COsMSuZUhxeIzIshBXH0nQp
-         diCfS0Ns0CaMKbNOSC9SoU/C1tukHZJB3f4YHwquDGQDqVOi4CEnjyaTY4W29AR+lGUK
-         y87vFHwxllzGF9LlO+7uSUg3mU1345hPRk9A3SrkHQ2/wI32PsbRcUZGYgdLnuUBV70/
-         VbUw==
-X-Forwarded-Encrypted: i=1; AKwUvBwwP/iIZKdCZCyO+li7PubqDnHIKCIJfIU40SO9EYPfiOoh1z0Hw6uM78e7JlZirFrAZooOXcQ0SKIG+bBbpmY=@vger.kernel.org
-X-Gm-Message-State: AFuF++kHW48SEcDLN7JW8fBrcgxAVSfa1nharyng+uUgKVsw/TaRcc18
-	fU0jMe2fgOqyNlG1XPTyWTcgZyPrZTcRit6tygPeTRMM/8ts0A+pJDHQ6GOLhcrQnWp4
-X-Gm-Gg: AYBFou0ICTgX5LvRffJOjY81IxomninkJK37722BgKNBTQH/DHq9OiB6mPAB+eNMUHn
-	WjH0wCLb4YOElHFHjYQclaURJq720YAb04fHAkGT0yxWsRJlypHok7NEmETioTqH94XbuHqTa4n
-	Xadcpbt8zd7axY6we/tPj/c24q0ifIhUW3OdUWsxlzsCM/QQ5tdbHsfZxnVQfV7WyzDsim8OPWf
-	r0BZG1SPOlrwtyL47cjoJ4IrCwsOX5KExtdIlOqYeV1B4Xr+v0BM7DkEuhGvS7rg2jEgIUa42MZ
-	KzH/h2vmJWpwrI3IkoB2M+YCMLXTzEbLPmE1q8otGicwRPNcOACNNuXqYgqODrj7sG6KTpExFal
-	WDc59VPhxOBTnQ1bEkzL8FrpIxW//m4Owv92S3Q3FZYUtrLjG0GuYJgtAykht3NTDnX7c6T04jv
-	qZZLeQbl296lz4BtWQBtKBlcGzVhHoRcNIpwy5qRjf2JcE6zICcgS5iZnn8CxknspdX9J6QG4YS
-	8YPCdDVnHPBS8/QhEXd1WNlRi6FHA==
-X-Received: by 2002:a17:90b:2b50:b0:380:21b7:e727 with SMTP id 98e67ed59e1d1-39d9c1c199dmr12405499a91.14.1789185430385;
-        Fri, 11 Sep 2026 20:57:10 -0700 (PDT)
-Received: from b6ad5085b32f.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39d95864b4fsm8454407a91.15.2026.09.11.20.57.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Sep 2026 20:57:09 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: horms@verge.net.au,
-	ja@ssi.bg,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com
-Cc: zihanx@nebusec.ai,
-	phil@nwl.cc,
-	netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Vega <vega@nebusec.ai>,
-	Luxing Yin <root@tr0jan.top>
-Subject: [PATCH nf 1/1] ipvs: avoid stack overflow from recursive connection expiration
-Date: Sat, 12 Sep 2026 03:56:51 +0000
-Message-ID: <a127d72fa8bf59646fcd6f856cf63834f7a7c888.1789110326.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1789110326.git.zihanx@nebusec.ai>
-References: <cover.1789110326.git.zihanx@nebusec.ai>
+        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
+        b=OMN+nqklVDfMdt0nt/oR8IX/v2tMsZLPn7d5gYUNxzhpm9jH0ORZw2hKmqg8lWA0rB
+         lzwa1bcYSLxPxJbrw0VCk6T4Zrq03uEZfbeDk1GQbLSbRhMoZHUrIySl0qSiMFCrWOe7
+         LEDz/C7y57r0G14FWil9ccCN5nfGtSkZ/ryy2NWWN47c3JLy0cRu14fi5nIm2bV2P2NI
+         X3PsPA4NxDRDgVqXTkSAsPvQEjMBtr9G6u8VZ3NCmxsYpM22RI1/40hd3uFJVOkbylCI
+         e6otxTorETJ0MtznvOJNQLO3YpPQu/IADoppXDIwBE9my5qCEu9brIez2rm+oGKdeHNb
+         UDLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789198811; x=1789803611;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
+        b=d3TETt7xFD/epSwJXAAg/27Xid6PDpXOcxSPxjmMdSvhIAXi4tSu81Ro8e+wsH+REs
+         8lTpC2XExqykovfLt27Zt4R6HQh1KDNCi6hqhqsUBvQFBvZLbCFqCEVI3+RbEMpT/UvQ
+         eQ09kqRvtIaYGqNC3O8+AaSrY2Jep/Ze58owGfZ6ulY2/2UbQyo3y1N3W1a1M+b3nk6h
+         VJQuueurle3sqvAq5Gv+I1kRUdAFEejfQfU4YQ2tjJkM7zcaSm09V5jB3UNCqo85i31O
+         0wH5NwSx9llzR1wblBIrjtL9MdwzxZSu9sZ/yGDRgJq2ZxATRfB7ob4/JgnxYPvyjq7Q
+         GviQ==
+X-Forwarded-Encrypted: i=1; AKwUvBz4zf7rwFqJANlLcTZalVROo2+NwCXvzMYKH6MVnRWH4Kf9dcayf5UtszZKaLbep15A/IhoNZz0h81M/2/frek=@vger.kernel.org
+X-Gm-Message-State: AFuF++kv4CXuf2b4/fCdAMOIJ7+j1mMkrvzMzQH/Z+CMz2IxU1eYCzJK
+	2lxRyvu4W/0aYAZkdg3BLxb+SWZn89FhpWHiPWiFP598q+ch6rAAfBqcdCCckCtGMMQnZ+Eloay
+	QxjIo27flaA5dG/bgLrXA7YSxzGOoqNyyS/izST7n
+X-Gm-Gg: AYBFou06fIioteob9m4sOX3oIHk3gE6kjlId/xUPeyDul6wZdYPhcQCML2qDA+BIfeK
+	Lhev6NJskD5sAUQJK8wbfUJUSD8J9zi8X+YjXn7PGnYbN+S7uiKylPv1x1aNTAnQEevajR+euqO
+	bDavGsURuLbG7kCpAT9nMYJTeL8iQLrHWiTnwdTD4tvneuUD+PdBMFy4fzurw2e9ObW4PuKxzx1
+	0n3N9sGrrARbOTKOQInyOkbhns5MTXVBkxQMK5emel0LiX0IkvcsMGC00x8XhVt/4VuJQ1NhNw7
+	L/+JBfDzrt46QSYrtehgqwG17xpHCubFTqfCsA2jCsHnQR47FOPuBZTi7S49ELTFfxTTS4deLe9
+	GKOazRdQLv77SLOxcWZreffkQzqHyBmz8jRo5kXtykTU=
+X-Received: by 2002:a05:6a20:3ca8:b0:3d0:868d:8ccb with SMTP id
+ adf61e73a8af0-3daed418649mr14691447637.13.1789198810266; Sat, 12 Sep 2026
+ 00:40:10 -0700 (PDT)
+Received: from 474444807712 named unknown by gmailapi.google.com with
+ HTTPREST; Sat, 12 Sep 2026 07:40:09 +0000
+Received: from 474444807712 named unknown by gmailapi.google.com with
+ HTTPREST; Sat, 12 Sep 2026 07:40:09 +0000
+From: Farhad Alemi <farhad.alemi@berkeley.edu>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Date: Sat, 12 Sep 2026 07:40:09 +0000
+X-Gm-Features: AcwNN1U7oiMPPggvAGkLxJ8f4FS-S3NfnynfUNKYcvJ3EJSPIXU-keM5UBnvdpg
+Message-ID: <CA+0ovCgKDOk+Bg6Gh5Lwx94u_jJjQ30-vY1JcY2BYfhnWJJbPA@mail.gmail.com>
+Subject: [PATCH net v2] net: remove WARN_ON_ONCE() from the
+ dev_fill_forward_path() loop check
+To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Cc: falemi@asu.edu, Simon Horman <horms@kernel.org>, 
+	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+	Lorenzo Bianconi <lorenzo@kernel.org>, Xuanqiang Luo <xuanqiang.luo@linux.dev>, 
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-When a controlled IPVS connection expires, its controller may be expired
-synchronously if it has no remaining controlled connections. A chain of
-controlled connections can then cause recursive calls to
-ip_vs_conn_expire() and exhaust the kernel stack during namespace cleanup.
+ipip_fill_forward_path() and ip6_tnl_fill_forward_path() look up the
+route to the tunnel's remote endpoint and set ctx->dev to its device,
+which is the tunnel itself when that route resolves back to the tunnel.
+dev_fill_forward_path() then makes no progress and trips
+WARN_ON_ONCE(last_dev == ctx->dev) as soon as a flowtable tries to
+offload a flow through the tunnel. That routing loop is a configuration
+any CAP_NET_ADMIN user can set up, and ip_tunnel_xmit() and
+ip6_tnl_xmit() already treat it as a tx error, so remove the warning and
+just fail the walk, as commit 008e7a7c293b ("net: remove WARN_ON_ONCE
+when accessing forward path array") did for the path stack overflow.
 
-Defer controller expiration to its timer instead of expiring it
-synchronously. Set its timeout to zero, expedite its pending timer with
-ip_vs_conn_expire_now(), and drop the temporary reference. This preserves
-the existing cleanup semantics while limiting cleanup to one controller per
-timer callback.
-
-Fixes: f9200a52eedf ("ipvs: avoid expiring many connections from timer")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
+Fixes: d98103575dcd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
+Closes: https://lore.kernel.org/all/CA+0ovCgaRvbd0Udj70b2xxG8Cx3CaCpNhnf1V4RWQuDveZYZhA@mail.gmail.com/
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Assisted-by: Claude:claude-opus-5 syzkaller
+Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+v2:
+ - Remove the WARN_ON_ONCE() in dev_fill_forward_path() instead of
+   rejecting the looping route in the tunnel drivers (Pablo Neira Ayuso).
+ - Add the Fixes: tags (Xuanqiang Luo).
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 6fa3e1dc534c3..023c01707d862 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1330,20 +1330,6 @@ static void ip_vs_conn_del(struct ip_vs_conn *cp)
+v1: https://lore.kernel.org/all/CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com/
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index ecfbd72d5d1a..c67900354fa6 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -789,7 +789,7 @@ int dev_fill_forward_path(struct net_device_path_ctx
+ 			goto err_out;
+
+ 		stack->num_paths++;
+-		if (WARN_ON_ONCE(last_dev == ctx->dev))
++		if (last_dev == ctx->dev)
+ 			goto err_out;
  	}
- }
- 
--/* Try to delete connection while holding reference */
--static void ip_vs_conn_del_put(struct ip_vs_conn *cp)
--{
--	if (timer_delete(&cp->timer)) {
--		/* Drop cp->control chain too */
--		if (cp->control)
--			cp->timeout = 0;
--		__ip_vs_conn_put(cp);
--		ip_vs_conn_expire(&cp->timer);
--	} else {
--		__ip_vs_conn_put(cp);
--	}
--}
--
- static void ip_vs_conn_expire(struct timer_list *t)
- {
- 	struct ip_vs_conn *cp = timer_container_of(cp, t, timer);
-@@ -1372,7 +1358,9 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 			    (!(ct->flags & IP_VS_CONN_F_TEMPLATE) ||
- 			     !(ct->state & IP_VS_CTPL_S_ASSURED))) {
- 				IP_VS_DBG(4, "drop controlling connection\n");
--				ip_vs_conn_del_put(ct);
-+				ct->timeout = 0;
-+				ip_vs_conn_expire_now(ct);
-+				__ip_vs_conn_put(ct);
- 			} else if (has_ref) {
- 				__ip_vs_conn_put(ct);
- 			}
--- 
-2.43.0
 
+-- 
+2.53.0
