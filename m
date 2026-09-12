@@ -1,142 +1,190 @@
-Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
+Received: from mail-pz2-f17.google.com (mail-pz2-f17.google.com [74.125.228.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 212D8346A08
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 07:40:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D700361DDA
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 07:42:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.17
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789198813; cv=pass; b=tH1pu8Xn5rqpx1RJ8E8j6pVkkXGMSjrWtsNkCQPL9SoHN25ziwThhztC55eKAhJtWsxOwjTJDSBi/jZb3vMEM7elzBeNRxoOUQL0EQ5KVhGcXeUp9G7hCOBRFRe4JzHvqOex2ZOGhUvsqrtT0lzknIXw7/EyMGG0NVIbtnSR2AY=
+	t=1789198949; cv=pass; b=WE5zyuQrG4C1P6dgSbdYx7Wc6qQcjOI0aZDxjejT7fsiN5PVlX7m9KOkaQNZJRAV+nG6F5UnO8AvTNJtiMchLA6uuP2mIKuwCTztR2yqjOJjRYH1E47eBc/7P+LwAxRxnwdznVLunfKc5puGo9CLzx4HhY+dqfnvtxuCKE1eQIQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789198813; c=relaxed/simple;
-	bh=a5BgZIa2nN3V7GG8MnhDOEO9Xluz3rwKpxUKZrZY1y0=;
-	h=From:MIME-Version:Date:Message-ID:Subject:To:Cc:Content-Type; b=M8i+2p7S/PTO2pRStH6wSFlfC+bOf9Uh25UNZhZShMxLO6+e78G/5o9UjK0QjhYRtDtGyUGOGnkSVyh2efcwWFTYGjXA0vKpJgdIpAUg/SKUtDasMN1x0qoJ3Z8Rz+IhVgmk1VXv2u/A0zXoS0M/zx8wj7lkmqrO4uTwOh4RzFY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=berkeley.edu; spf=pass smtp.mailfrom=berkeley.edu; dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b=OMN+nqkl; arc=pass smtp.client-ip=74.125.228.12
+	s=arc-20240116; t=1789198949; c=relaxed/simple;
+	bh=WRqQjY0nqBY7Sg3i9roQRCJWKcirMX5AO+S0jXiSkBk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Ona5B9DQcYUVgQpJVG/wT+uJrqfCz2H9gr5mpA8/coUL8NqFs1Dbsf2PaonaG7ge78mCKsrejXjStIg9G2n5YufAWlEPmBoXUuiClGvwt287SQZYEe3QGthkTNpt9IiYJfhPA5rFlMz0pCv3V3bOGBympBelct5BWqhStQK5biU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=berkeley.edu; spf=pass smtp.mailfrom=berkeley.edu; dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b=K2ha96Vg; arc=pass smtp.client-ip=74.125.228.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=berkeley.edu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=berkeley.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b="OMN+nqkl"
-Received: by mail-pz2-f12.google.com with SMTP id 41be03b00d2f7-cc4bdf8acd6so494753a12.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 00:40:11 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789198811; cv=none;
+	dkim=pass (2048-bit key) header.d=berkeley.edu header.i=@berkeley.edu header.b="K2ha96Vg"
+Received: by mail-pz2-f17.google.com with SMTP id 41be03b00d2f7-cc4c3304784so642526a12.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Sep 2026 00:42:28 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789198948; cv=none;
         d=google.com; s=arc-20260327;
-        b=JCIvHkAFVQ7UPM+tyPC3fwzO1L89Z1ClvpFCVg91641MHZRHFC3TAL/BKc14b8TaWm
-         AzLOv40MaJ3zK+F0wSACN4eZidVv3QIQfs3nOtQbX+FULn9vTi4faHahlqgVwgz3HWSu
-         MWSX5TgBeGXihZDfbm6QmDDVh1rePby+Y7XMHqHbF25NYuhhspPtHL5nEPqZ7Ih6Ye3R
-         roJskLA8KGIBR9KVcitxYy2SNVBgdDt55J8UmCqcXT+ColQIanazebpywqMK0OI/CMQE
-         X2FPX92D+UvpndtIizpFsgN2Dj92nxkOXAc4hqEuq8qa3QovcQxNKDrF/N8ukvpnyote
-         wJrw==
+        b=AjEqE8FWf+2GkjS/AX1Wmyy7/Y1e+kJ8Cw/CLdGTiHI6n/CGKPjf6On2EqGiMbfCwb
+         oz8BC8vZ2qyIIRnvtq4z3pTGx8G/OxI4FA11ILTtiVRS9Wnx+Wxzq+YmUzmsGAPNn0dZ
+         qS9Dm9GZqloGQuBj1F00i5G2yIEaUpr9TyDjiLZDpZu+cqarRHHvKl/IvIf9NWgdrYKo
+         q0xDoWK0Z1EFrsp/8nJS0a7Tt3RX8sya2/MfezOu8HaRup/3ICLL1VTFVC6txBbRVe9t
+         l+9ZlQOFXIYIz/01Bc1mzVMd6Dllzse8baf9GlIDwuOj4ur5vm1ND5WC/nJVgHJmTI/S
+         FvlQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:mime-version:from:dkim-signature;
-        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
-        fh=eTDwCOGkVlyYfFTr+KK5fM2V9LhZd5BeA4cEaDy9UZw=;
-        b=g8XLuR0vuePxLDNujCqnerJyKQqfWP061fh/7DZha0EVZabGacijogrLto23tBxDWG
-         1G5Cr60p1yulMMVZvY+kvoZUVl6tiq+gFI27YnRhq4lKBRAyi+zeTp5PEEjMvmpuVzh0
-         /wPMtNPN0+0K7gz1sQEoFdrZnCQZbWGQfhwWGNVP/f9i1h+w1NMuR34lQ0q7u78IH6xN
-         IZwEIfa27xSvk/bLrveUKubPP/RMxqX/9D+Kok3tnCg8usBIJv6Ngq6yCJ0InN5R/73J
-         ZDd4unWt5CAPexZo+asu8EfiVH9bXvB0ksoOWHWRCAQxFZdKCaxRYX6C3asca2e2QOHc
-         P9Dg==;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=3tJuKuoSzWQ5ciLlrNmqFia+HpadVqWjy0A5pW8ADTg=;
+        fh=Is7aKdVDsHN5yWhHRzwAUHMjBnhvgQ36hrtuMJNkfck=;
+        b=harw4N1NUGXEIbb+ZsXPa/m2kQy5A/2ljcU8Ujjur+7gC+IGMTNrhXRyD+x21rjDgY
+         vdGASzpZc7CR7aIY5QlzJhjsCtqpP7F+2tNbdIKsjTB/othPCpC8UD18shRRAkgqd7Yh
+         qc9yGgWR/ajZ4gvr8dgXtRo3Qjb04iy0MjgvJ8chBWaJPfdDr7PbS8MAe8+omYLouGAv
+         nYYuVi+X5ox9h57DgBDIDrBtlUBMrwCWd4hm6IMH/S2/ZXa+8epwaXSX+GgvDRCsxU8l
+         SX3AcCia7uUoNMqtL52Qxe4NVFy5VJuvppedmkzqJohnDw0xk5vp1aPKGYdjL003UK7+
+         3cWw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=berkeley.edu; s=google; t=1789198811; x=1789803611; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:mime-version:from:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
-        b=OMN+nqklVDfMdt0nt/oR8IX/v2tMsZLPn7d5gYUNxzhpm9jH0ORZw2hKmqg8lWA0rB
-         lzwa1bcYSLxPxJbrw0VCk6T4Zrq03uEZfbeDk1GQbLSbRhMoZHUrIySl0qSiMFCrWOe7
-         LEDz/C7y57r0G14FWil9ccCN5nfGtSkZ/ryy2NWWN47c3JLy0cRu14fi5nIm2bV2P2NI
-         X3PsPA4NxDRDgVqXTkSAsPvQEjMBtr9G6u8VZ3NCmxsYpM22RI1/40hd3uFJVOkbylCI
-         e6otxTorETJ0MtznvOJNQLO3YpPQu/IADoppXDIwBE9my5qCEu9brIez2rm+oGKdeHNb
-         UDLQ==
+        d=berkeley.edu; s=google; t=1789198948; x=1789803748; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=3tJuKuoSzWQ5ciLlrNmqFia+HpadVqWjy0A5pW8ADTg=;
+        b=K2ha96VgLBfj7USJ7QqRxz23DB91IQe7GzVSUzMTPVJ6B+Jj5kwmDCDk8EvJ8E/RWp
+         EOBGd2Ql4GqP8upRk3W6RU79rjJsG5ZR8GFo8Aep8ZuebNMuYlVzEh7Ml1ZGoVL5Ran9
+         TE7+H2o1gEFTlwpF3sQyvIxlWSolPfHdihJ5SfYKiFl/I4Z99W5LVDf5NaYsGEZIAL4J
+         QZZV2s4SAV4VQqVk0NidAF7ELdZyc/v5VHCHERf7VDm96gv/LOrqqx+Q/v5q8PlZC7Nv
+         F7OKsSVimmPYvcnpczF8Fbi8fehChZgiQUcCk1kS7eZOATARbNjM+PE6i2Hl7axckKf0
+         LP1w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789198811; x=1789803611;
-        h=content-type:cc:to:subject:message-id:date:mime-version:from
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=QG2SNeNOqKf6itNXVRATkNtIQBJP4qkHEst2cXeq/Oc=;
-        b=d3TETt7xFD/epSwJXAAg/27Xid6PDpXOcxSPxjmMdSvhIAXi4tSu81Ro8e+wsH+REs
-         8lTpC2XExqykovfLt27Zt4R6HQh1KDNCi6hqhqsUBvQFBvZLbCFqCEVI3+RbEMpT/UvQ
-         eQ09kqRvtIaYGqNC3O8+AaSrY2Jep/Ze58owGfZ6ulY2/2UbQyo3y1N3W1a1M+b3nk6h
-         VJQuueurle3sqvAq5Gv+I1kRUdAFEejfQfU4YQ2tjJkM7zcaSm09V5jB3UNCqo85i31O
-         0wH5NwSx9llzR1wblBIrjtL9MdwzxZSu9sZ/yGDRgJq2ZxATRfB7ob4/JgnxYPvyjq7Q
-         GviQ==
-X-Forwarded-Encrypted: i=1; AKwUvBz4zf7rwFqJANlLcTZalVROo2+NwCXvzMYKH6MVnRWH4Kf9dcayf5UtszZKaLbep15A/IhoNZz0h81M/2/frek=@vger.kernel.org
-X-Gm-Message-State: AFuF++kv4CXuf2b4/fCdAMOIJ7+j1mMkrvzMzQH/Z+CMz2IxU1eYCzJK
-	2lxRyvu4W/0aYAZkdg3BLxb+SWZn89FhpWHiPWiFP598q+ch6rAAfBqcdCCckCtGMMQnZ+Eloay
-	QxjIo27flaA5dG/bgLrXA7YSxzGOoqNyyS/izST7n
-X-Gm-Gg: AYBFou06fIioteob9m4sOX3oIHk3gE6kjlId/xUPeyDul6wZdYPhcQCML2qDA+BIfeK
-	Lhev6NJskD5sAUQJK8wbfUJUSD8J9zi8X+YjXn7PGnYbN+S7uiKylPv1x1aNTAnQEevajR+euqO
-	bDavGsURuLbG7kCpAT9nMYJTeL8iQLrHWiTnwdTD4tvneuUD+PdBMFy4fzurw2e9ObW4PuKxzx1
-	0n3N9sGrrARbOTKOQInyOkbhns5MTXVBkxQMK5emel0LiX0IkvcsMGC00x8XhVt/4VuJQ1NhNw7
-	L/+JBfDzrt46QSYrtehgqwG17xpHCubFTqfCsA2jCsHnQR47FOPuBZTi7S49ELTFfxTTS4deLe9
-	GKOazRdQLv77SLOxcWZreffkQzqHyBmz8jRo5kXtykTU=
-X-Received: by 2002:a05:6a20:3ca8:b0:3d0:868d:8ccb with SMTP id
- adf61e73a8af0-3daed418649mr14691447637.13.1789198810266; Sat, 12 Sep 2026
- 00:40:10 -0700 (PDT)
-Received: from 474444807712 named unknown by gmailapi.google.com with
- HTTPREST; Sat, 12 Sep 2026 07:40:09 +0000
-Received: from 474444807712 named unknown by gmailapi.google.com with
- HTTPREST; Sat, 12 Sep 2026 07:40:09 +0000
-From: Farhad Alemi <farhad.alemi@berkeley.edu>
-X-Mailer: git-send-email 2.53.0
+        d=1e100.net; s=20251104; t=1789198948; x=1789803748;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=3tJuKuoSzWQ5ciLlrNmqFia+HpadVqWjy0A5pW8ADTg=;
+        b=DqSy20XFYcnhqEQ+ezaCq1mmL/m3a7HyM/PTyMwYLvV9riF7k7QGRiNIbwLHhHWoVL
+         Qo0IoAgSh55UE58kF6/xda2WI2KQgmJV6P0Ds13uhnL3iVju2i2EC3XdAQb/MzZLJC+C
+         +m1vYZQH3oZ/FFqZ0fgv5v5eofuuILZ8FYS8b37kDm1ak38Z38yTxtKjXdO3Yo0no0Ee
+         HwVU+qljpxSfXKYbrN/UV8ZocGZdPhdd1ait6BwGP4nGYMCHDpQayicK8yhj778DeQcK
+         k3WqEbH74CWFMMw0gcJmitVZY21NWxJGonMvmQ/c2P9SwW+2qdC6malAO04vbFfZA8Y6
+         8BKw==
+X-Forwarded-Encrypted: i=1; AKwUvBwgU21ykmf1EvCcZt66XKwhSDZrv65MCeXoVBQD5Aq+6uQx/JRAHHaKLzKOsgvUG+vvIzCFQSSim5RDKBv9jIQ=@vger.kernel.org
+X-Gm-Message-State: AFuF++mpx69ixJOln972BA5f/JRIzMpoc1Cpg+UMdQ5K6JYnynyOiZr1
+	8hCfIsihRmwrwlIr1EIFwEc8eR3RaJBQzFecdEIR8ijUZe7URQ9ouB/rTqAXnpUU5rCGGp99oKz
+	qVJOegs9qHEUmtB/ShLjewy9lVXGFaPuKPOOZ5fwi
+X-Gm-Gg: AYBFou0bKYkRuFe4dOQyEuhPHWsQI7ErkP87wkP5KXBOEYOBGxDxXNGCPUIw8NemG0s
+	1E0MNrzRVdse1NoGamIa8BuGuKC/RjTFRa/UtVptMGzcnpvyOACgYFXpKhy6iXSL/dmuO7RUott
+	R7RalWWWYD8q7/B6osyUdYP6K+UBqiaxCN9WBWKwucTnryXFKSTteEr5buYsNlkYp++Kg1SvwoQ
+	XJXqge/kBXEn9hNdAkdiWHZoGtX3rQNtR/9d7birerut7XYXQJw1mXq/fmOh2llF3/GtRnnglFs
+	61rjPWE2NI33eA7XJ3aTCSOB8+WzF9F8I+4qQQ5h4cSzIK0YvJlSU1oM5g4UYKsegSEXvrt0/G6
+	JvrhzUPb9pWjhQeQy83m8US6EV2p8YqGoCgMUBIs/w7XJ15VDaxHFKJ/jy5BVtODjJevQRekAe6
+	o=
+X-Received: by 2002:a05:6a21:6f88:b0:3d8:f78a:9349 with SMTP id
+ adf61e73a8af0-3daed2e2f72mr16961102637.13.1789198947035; Sat, 12 Sep 2026
+ 00:42:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sat, 12 Sep 2026 07:40:09 +0000
-X-Gm-Features: AcwNN1U7oiMPPggvAGkLxJ8f4FS-S3NfnynfUNKYcvJ3EJSPIXU-keM5UBnvdpg
-Message-ID: <CA+0ovCgKDOk+Bg6Gh5Lwx94u_jJjQ30-vY1JcY2BYfhnWJJbPA@mail.gmail.com>
-Subject: [PATCH net v2] net: remove WARN_ON_ONCE() from the
- dev_fill_forward_path() loop check
-To: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+References: <CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com>
+ <aqQOj8EHUb6ZzWjR@chamomile>
+In-Reply-To: <aqQOj8EHUb6ZzWjR@chamomile>
+From: Farhad Alemi <farhad.alemi@berkeley.edu>
+Date: Sat, 12 Sep 2026 00:42:16 -0700
+X-Gm-Features: AcwNN1XLN5elLlT8PdL_Nzk9pxZ6_ooMYs8Rf-40WoQTVCImUG3ej9Qw_PbxJGY
+Message-ID: <CA+0ovCg74Rj-rvV1kcLDj4nftRaX356-g4oc02kQSk3O7b_Mog@mail.gmail.com>
+Subject: Re: [PATCH net] net: reject a forward path that loops back to the tunnel
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
 	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Cc: falemi@asu.edu, Simon Horman <horms@kernel.org>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-	Lorenzo Bianconi <lorenzo@kernel.org>, Xuanqiang Luo <xuanqiang.luo@linux.dev>, 
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, falemi@asu.edu, 
+	Simon Horman <horms@kernel.org>, Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ipip_fill_forward_path() and ip6_tnl_fill_forward_path() look up the
-route to the tunnel's remote endpoint and set ctx->dev to its device,
-which is the tunnel itself when that route resolves back to the tunnel.
-dev_fill_forward_path() then makes no progress and trips
-WARN_ON_ONCE(last_dev == ctx->dev) as soon as a flowtable tries to
-offload a flow through the tunnel. That routing loop is a configuration
-any CAP_NET_ADMIN user can set up, and ip_tunnel_xmit() and
-ip6_tnl_xmit() already treat it as a tx error, so remove the warning and
-just fail the walk, as commit 008e7a7c293b ("net: remove WARN_ON_ONCE
-when accessing forward path array") did for the path stack overflow.
+Xuanqiang and Pablo, many thanks for the helpful hints. I=E2=80=99ve sent o=
+ut
+a v2 addressing the comments above. Please let me know if any further
+modifications are needed. Thanks!
 
-Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
-Fixes: d98103575dcd ("netfilter: flowtable: Add IP6IP6 rx sw acceleration")
-Closes: https://lore.kernel.org/all/CA+0ovCgaRvbd0Udj70b2xxG8Cx3CaCpNhnf1V4RWQuDveZYZhA@mail.gmail.com/
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Assisted-by: Claude:claude-opus-5 syzkaller
-Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
----
-v2:
- - Remove the WARN_ON_ONCE() in dev_fill_forward_path() instead of
-   rejecting the looping route in the tunnel drivers (Pablo Neira Ayuso).
- - Add the Fixes: tags (Xuanqiang Luo).
-
-v1: https://lore.kernel.org/all/CA+0ovCj+Pd5owGH+51rA8-RDu9YFx5oYUv8bV0zOE72QgVfY0A@mail.gmail.com/
-
-diff --git a/net/core/dev.c b/net/core/dev.c
-index ecfbd72d5d1a..c67900354fa6 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -789,7 +789,7 @@ int dev_fill_forward_path(struct net_device_path_ctx
- 			goto err_out;
-
- 		stack->num_paths++;
--		if (WARN_ON_ONCE(last_dev == ctx->dev))
-+		if (last_dev == ctx->dev)
- 			goto err_out;
- 	}
-
--- 
-2.53.0
+On Fri, Sep 11, 2026 at 7:22=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
+>
+> Hi,
+>
+> On Fri, Sep 11, 2026 at 12:17:08AM +0000, Farhad Alemi wrote:
+> > ipip_fill_forward_path() and ip6_tnl_fill_forward_path() assign the out=
+er
+> > route's device to ctx->dev without checking that it differs from the tu=
+nnel
+> > device itself.  When a tunnel's outer route resolves back to that same
+> > tunnel, the walk in dev_fill_forward_path() makes no progress and trips=
+ its
+> > loop check WARN_ON_ONCE(last_dev =3D=3D ctx->dev). Release the route an=
+d
+> > return -EOPNOTSUPP when the resolved dst device equals ctx->dev, so the
+> > path walk either advances to a different device or fails cleanly.
+>
+> I think we can remove this WARN_ON_ONCE() from dev_fill_forward_path(), i=
+e.
+>
+> diff --git a/net/core/dev.c b/net/core/dev.c
+> index ecfbd72d5d1a..c67900354fa6 100644
+> --- a/net/core/dev.c
+> +++ b/net/core/dev.c
+> @@ -789,7 +789,7 @@ int dev_fill_forward_path(struct net_device_path_ctx =
+*ctx,
+>                         goto err_out;
+>
+>                 stack->num_paths++;
+> -               if (WARN_ON_ONCE(last_dev =3D=3D ctx->dev))
+> +               if (last_dev =3D=3D ctx->dev)
+>                         goto err_out;
+>         }
+>
+> > Closes: https://lore.kernel.org/all/CA+0ovCgaRvbd0Udj70b2xxG8Cx3CaCpNhn=
+f1V4RWQuDveZYZhA@mail.gmail.com/
+> > Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
+> > ---
+> > --- a/net/ipv4/ipip.c
+> > +++ b/net/ipv4/ipip.c
+> > @@ -375,6 +375,12 @@ static int ipip_fill_forward_path(struct
+> > net_device_path_ctx *ctx,
+> >       if (IS_ERR(rt))
+> >               return PTR_ERR(rt);
+> >
+> > +     /* The path walk must advance: a route back into the tunnel is a =
+loop. */
+> > +     if (rt->dst.dev =3D=3D ctx->dev) {
+> > +             ip_rt_put(rt);
+> > +             return -EOPNOTSUPP;
+> > +     }
+> > +
+> >       path->type =3D DEV_PATH_TUN;
+> >       path->tun.src_v4.s_addr =3D tiph->saddr;
+> >       path->tun.dst_v4.s_addr =3D tiph->daddr;
+> > --- a/net/ipv6/ip6_tunnel.c
+> > +++ b/net/ipv6/ip6_tunnel.c
+> > @@ -1863,7 +1863,12 @@ static int ip6_tnl_fill_forward_path(struct
+> > net_device_path_ctx *ctx,
+> >       fl6.flowi6_proto =3D 0;
+> >
+> >       dst =3D ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
+> > -     if (!dst->error) {
+> > +     err =3D dst->error;
+> > +     /* The path walk must advance: a route back into the tunnel is a =
+loop. */
+> > +     if (!err && dst->dev =3D=3D ctx->dev)
+> > +             err =3D -EOPNOTSUPP;
+> > +
+> > +     if (!err) {
+> >               path->type =3D DEV_PATH_TUN;
+> >               path->tun.src_v6 =3D fl6.saddr;
+> >               path->tun.dst_v6 =3D fl6.daddr;
+> > @@ -1873,7 +1878,6 @@ static int ip6_tnl_fill_forward_path(struct
+> > net_device_path_ctx *ctx,
+> >               ctx->dev =3D dst->dev;
+> >       }
+> >
+> > -     err =3D dst->error;
+> >       if (err)
+> >               dst_release(dst);
