@@ -1,67 +1,67 @@
-Received: from mail-ej2-f6.google.com (mail-ej2-f6.google.com [74.125.228.134])
+Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585473839B8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1A63859FC
 	for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 10:42:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.134
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789296175; cv=none; b=ljFXQhYgLIR1zu9cLQzPZA+92ElJU0/7ZBe1kNsmiQqzQl8c0h046tEFLFmwLkEbMnPkMxvSiYX6jhyiw2erOmbIunVuyTfiz2mnsgyrOaNp3I6YTp8awCtZDRNEeZ+w+5rZ2LKxAF/k0dxCBfxB6jYDOqdIc+4mJzgMnEG28AE=
+	t=1789296176; cv=none; b=JrgYvneCkmJyvO1AIA0uNzUvsRBqOkkCSTvBnOdnp331XzR2NNMORuyj8RlznypEJcdg/HhNB5r9yyI82hv3XcpFdtO1xWqbCAUWOCPWGufiuOY+ajLumzrdkiNp96apy1OFmcrnhref2uPadjNmxCQCzERqnsG1VaF1DfjtQBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789296175; c=relaxed/simple;
-	bh=Hgj7etMDcCAJvV15w/tbXFhz6t0NQuJpjZlontCcE+U=;
+	s=arc-20240116; t=1789296176; c=relaxed/simple;
+	bh=fTfKStrClqR55tzhyaDyK+BD9gze8UiiG0g5UehBaTw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=aoX7O5g3+0d8yhaxYnKoMKLEjhEkkX1HAniwDd72HPYdxZcMal+O53TBzpvtebRjDGMVUsh1SOLZbawc2C+eFoukQ0WIP3cuh9sRIX9fFbCrgxm8jU+3YMzJ+QaPzAeiS9cDsOHUqPIFu300m/JGFZOtkPw9NddZadK92iIuBq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=LlWu4H64; arc=none smtp.client-ip=74.125.228.134
+	 MIME-Version; b=SGhJ1EKQp0FW2FDqvCTSTwo914DA0hNNXDzwXWvPg5JOTtiIyNT02hsy+OJRsoBtbJWi53SjuhWY1AXRubYgl9zf9DvC1VnHM1btQZNB2wWRbZzOES7TrrhuDIHRhY0LgeildAh2oMUZenJ5yDrb4QlUr2iZSjeY45AtN///D4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=t2A/LOPq; arc=none smtp.client-ip=74.125.228.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="LlWu4H64"
-Received: by mail-ej2-f6.google.com with SMTP id a640c23a62f3a-c294716dbf3so174876766b.1
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="t2A/LOPq"
+Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f705536so304370866b.1
         for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 03:42:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1789296172; x=1789900972; darn=vger.kernel.org;
+        d=bairaktaris.de; s=google; t=1789296173; x=1789900973; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=L7E6Jghy9mgdjP+MNRkB5vpWmg9D4fAqbUGCwdvSH9A=;
-        b=LlWu4H64sijtqwvN3Ptqdhc+cOGNCMWNtLhJJ/dILKk2H40UNZSDL/irzxZ4jLiTJq
-         DmlNYek7sNAHEvF52/cX0clvKnZFkRvpCq6u4DXhrT1tH11JxushNkRcZzxR1GFvVss2
-         VKNjtf7PD5f5wYt7aMLrw9OdioU4BeeMLkjGbSFqCOmCqUdDiBUVRWv0/Ql6PDdFF7M7
-         Z+YmV3jNU3/1SvcyShAnMTori55OmCjo8RL//yYXt4PApO9RTCMRyBd40KD8FkXg5Kn5
-         ikfJEzBrcTzI1W2T/TpzG/kuI2PMIStr6miwRoLZXH8b4kCVxh/yhrezt2lmrYjsqzA5
-         J0Tw==
+        bh=9nM7ywUqdFcMRbh5STvNAn1ZHgHDbVHpRXhuS1Nnh+0=;
+        b=t2A/LOPqsqLafjN3ufMn2iuoWl7TZ8gbsTMwB9L1YDETNnm4xl3u8XsS4DmxCz5g6D
+         0q7pY08DSAKDRxOkfYIVK97w7pnIXSU9IZyqBYBlyXGCb43QhqhBeaegCLqCma1ojn60
+         hO3BYignmgzppRiYD/eb1zH6YLJcb/Ha97zkqcLXsZ8Zvc4ATwTGi1AMxpGgJw82pq8H
+         JAZy5GWUsCSQLHwXH0iL52zmtJgA4Fs9MohSjOdme380EqVVlhytI0SlWCDbzsK6vitJ
+         J/gvTYKDprHFXn0Cxp/6jn7+ysE/xx/+SpjrGhs0gyClRe21kG1Lnpa02TMXcLbJfrTH
+         bHfQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789296172; x=1789900972;
+        d=1e100.net; s=20251104; t=1789296173; x=1789900973;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=L7E6Jghy9mgdjP+MNRkB5vpWmg9D4fAqbUGCwdvSH9A=;
-        b=qrbDkimSdj6KvXLrHG2ZMrSYgRWXJgYC4t2mkRci1SFjLZhW25CaJQulP2CFR52eMV
-         xz9DeWaOmfvlg1RKHWd/xKvKHT5DqmNo0CRxic5Szc4ewDcIJ/iVY1cRWoz6fyv8F98s
-         egUS5KHZsK2BQyrXaOpcmVhIQiSBAN267/0muBpD4lwzkCpcDux/IgOQah7s+Fyx0M0X
-         XWlX6t1vkZL1UTjDUKSYIzeq0eNQSD4CTi3i2q2Yc1y9tzLFXal7k5btAi3rSQ5UKw9g
-         GQCDemf/tFxVI5LZwL4zcaH/dIECm09LKXoW501C/HHJAL64SjLCPU8FcHYKAuoG/lbn
-         nAKg==
-X-Gm-Message-State: AFuF++lyl7t4oqjWYGcELzDnWh8FsJdoF0zhGpyeLmqKGExbLNNNMmhL
-	1qXqog1cHmJq6EW3iHjWVtlwpvrLmj446s/a5nn3dZw1KSfuEkKnd+vs3PFXntrklhAU7HU5R+w
-	X2HYBzpGphe6Fv6Kt
-X-Gm-Gg: AYBFou36t9WQExg7kxiTQmFpTZcykz0saw9ZYxBRUxqaDa5c32cYSy7VqM4Km/lrX2V
-	5rzDyDVKnj5H4Myzue8a1tkRrYyU6L3CT+NpwSEuam2Lv8BYg9LJasz53m5E98EFqBFCGUc5Cvx
-	Rc4ShtZqDoV4uykTQcwwFTg8FHD2mq7wTE2CY1y5xlqa8fJiVU6c7IFos7rmiMikY7QbGvtjHGO
-	gksfFmGrsFJzq1LSIV/HeCUdy2BXI8d7/8bvTTPiD5MmtRodIad1rYf5Lcv68sarDSIxIcIlx91
-	x2mgD3cEbYW7VpPKQoWxMrJyPg5Nx7dDlwowjrFfpssay3lH4RgsTNh3QPVE4aogevLPp9OR7v0
-	yOBbWJGgzio/5Q62a+7BgpoaA3jRQwePq3pwDtgyAtxkpB2M4g738Zed4rbLWxRadjDMzBzPHgj
-	CYzLw9sIogY7RtLnYYQNJQHh6u4nQRrM05TO9i8QxeSk/WYfWFwWY9XXa9Phf3Wa+lNoWMdzzUT
-	Ko/709vGMSx91Yi4i9k8LYaa+jJnVjAPJf85r2c5r0tME7wh9R3VeFI8U2bRSCrAZ8+SMiTrWG2
-	huUX332oeT+pxvbx5mb5J3kBAraieiiYwgm71Jm97gJelepn63Ao8VWc6pGuHaIC+nkAOXfd1yt
-	OFWfVd8vKyndUljj9h/te8sKTjsTFfM/vzyUl868ObaZXEElio1EtgLCocqZ3501SOa66sUNudX
-	Hv1c/5znCC4Wqcn8TeM/LpU20=
-X-Received: by 2002:a17:907:c708:b0:c26:1691:b36e with SMTP id a640c23a62f3a-c2985880e9dmr342461566b.39.1789296172284;
-        Sun, 13 Sep 2026 03:42:52 -0700 (PDT)
+        bh=9nM7ywUqdFcMRbh5STvNAn1ZHgHDbVHpRXhuS1Nnh+0=;
+        b=CcrvM11KtwqYvsYuKE8i3C9Ez4HZZWMp11GZvz6/hWxZ2XCG7a33HJpTZa2r7LzZRR
+         GiZLKA3cg/kBeC9P4cLczBvAIckTz8wbc1R1fhI6IBFATIl73shyxFdqpSWjY8IjQzEu
+         fJDEVwt9lkamytFz81VKjGixW43u3PLQ/FFaOasEDvdKq3M0emFtwNYrkwonoFiv1KqK
+         tNr2M8Ulp7PaYM+qDYhlhlI33JXaX3sCfEmA23aXyfpsuVdp+dcDYk7Gk64iXyUmeJDf
+         myHICAGM57MWJsDJDfPWXo8TxzW/14iRbhtw5YstCAHMlH7Xi05exFw15uZyhEJf/eil
+         dDuA==
+X-Gm-Message-State: AFuF++ntXRF/reePCtx4wBHlaAEtRZvEQi0XnsUTu2ir1UYlSbkAAzsx
+	ZKUWsNSJ8ozxgpj4svvd6mdOH5U1pJV8x22/iar5g5sMGGEXAvXqmCblcp7pS+VZY0GXV8o58mr
+	Tp4aOEe9MAy1/vA==
+X-Gm-Gg: AYBFou2LI2YztMwhyJ2gpboMsEvor8bYHuukm2189y60ltxpd0VDpLUZ9yO+EhJSiHw
+	hzTLmVKTAw5BDkn8SfVP0958aPFhdKQYyn+uIRLx37wScvGTLl+45CBPWAtlqoEzQ0ccdFmtZOA
+	VUP/lC3iHGMHRmJ6IpCfc96LpLustNYi5M6SeyVomSrQdbXHn6rId/Yc28giNx90u+hoL/jwWSe
+	GiKWICabrTtF9HkIKyI7U/BaXY9em79NIGPZjk1ACYuq49tPf2Y1xAKOqGA1jWYyONZ2kYMWO7N
+	piGcwzubIFzkK6HygFaxKU8YM5HNniv5jDrUtSCHSViBf0exSpPtYuZeqbWwlZQ10wqigyGGyTP
+	6NSfIiRZ3bx6jX7QjRT4umMF0YPz8MjY5F5R8NB/dCsQtg4Uu3mCDKZynCBHfAdrRBqRW67zCAN
+	JBSeRCF5Pdre6OS6ulA8Txpri4IIQ1rvD7wUPJ60pwYdgkacssQ+9g8cLj2uAuIVidlGlHVtsiM
+	Tvyui6C7rDXosSKiH3spFZLAop3TmvfZ1WbQ0hJH8iFSJETK45np+I3oSDGMkgdEHKUDM7CYXPA
+	MBKyF8lsb/ID9UWuLAfJ2qU989fWLV6LYsl8zeiQrEnjev9gj9/0rtzk1pH16aingGmWkZf1DxL
+	tafwCkHp0Vlu4sjfceSBBQLEDDDDf3rRuO+6j5yXii/znKwhB6O8QcZ4LtZ0nUf3yprGg7VqIfS
+	EmCeBS2WO/U2dl0ETuLeVEosw=
+X-Received: by 2002:a17:906:4785:b0:c29:41c1:3779 with SMTP id a640c23a62f3a-c296654863amr641767066b.11.1789296173373;
+        Sun, 13 Sep 2026 03:42:53 -0700 (PDT)
 Received: from Desktop (p54aff833.dip0.t-ipconnect.de. [84.175.248.51])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c296605b438sm278678266b.26.2026.09.13.03.42.51
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c296605b438sm278678266b.26.2026.09.13.03.42.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Sep 2026 03:42:51 -0700 (PDT)
+        Sun, 13 Sep 2026 03:42:52 -0700 (PDT)
 From: Julius Bairaktaris <julius@bairaktaris.de>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
@@ -73,12 +73,13 @@ Cc: pablo@netfilter.org,
 	saeedm@nvidia.com,
 	tariqt@nvidia.com,
 	mbloch@nvidia.com
-Subject: [PATCH nf v2 0/2] netfilter: flowtable: correct and advertise the vlan match
-Date: Sun, 13 Sep 2026 12:42:49 +0200
-Message-ID: <20260913104251.648421-1-julius@bairaktaris.de>
+Subject: [PATCH nf v2 1/2] netfilter: flowtable: fill the vlan key from the outermost tag only
+Date: Sun, 13 Sep 2026 12:42:50 +0200
+Message-ID: <20260913104251.648421-2-julius@bairaktaris.de>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260906141947.480524-1-julius@bairaktaris.de>
+In-Reply-To: <20260913104251.648421-1-julius@bairaktaris.de>
 References: <20260906141947.480524-1-julius@bairaktaris.de>
+ <20260913104251.648421-1-julius@bairaktaris.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -87,46 +88,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nf_flow_rule_match() builds a vlan match for an offloaded flow and
-never declares it in used_keys, so no driver reads it. Patch 1
-restricts the vlan key to the tag that is outermost on the frame.
-Patch 2 sets the used_keys bits.
+The else branch of the second encapsulation block stores encap[1] in
+the vlan key whenever the first block left it unfilled. The first
+block skips encap[0] when the switch strips it, and also when it is
+not 802.1Q. In the second case, an 802.1ad tag outside an 802.1Q tag,
+encap[0] is still the first tag on the frame and the key describes
+the inner tag as the outer one.
 
-mlx5e is the in-tree driver that reads the vlan key. With the key
-undeclared, __parse_cls_flower() installs an untagged-only match for a
-flow whose ingress path carries a tag. After patch 2, mlx5 hardware without
-outer_second_vid support rejects a double-tagged flow instead of
-installing a match that cannot hit, and the flow stays in the software
-path as before.
+Store encap[1] in the vlan key only when encap[0] is stripped. The
+802.1ad case then gets no vlan key, as a single 802.1ad tag does
+today. The action list is unchanged.
 
-An 802.1ad tag is neither matched nor popped, before and after this
-series, and a flow with an 802.1ad tag outside an 802.1Q tag gets no
-vlan key after patch 1, as a flow with a single 802.1ad tag does
-today. The pop action for the inner 802.1Q tag stays: mtk and airoha
-ignore the vlan keys and FLOW_ACTION_VLAN_POP and accept that rule
-today, so patch 1 does not reject it. Matching and popping 802.1ad is
-a separate change.
+Fixes: 3e1b0c168f6c ("netfilter: flowtable: add vlan match offload support")
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
+---
+ net/netfilter/nf_flow_table_offload.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Patch 2 is tested with an out-of-tree driver on IPQ8074 (6.18): the
-driver reads the ingress vid and offloads the flow. The mlx5e
-behaviour is read from the driver and was not run on mlx5 hardware.
-
-Changes in v2:
-- Name mlx5e as the consumer instead of mtk. mtk_flow_offload_replace()
-  reads the vlan key only in its addr_type == 0 arm, which a flowtable
-  rule never takes.
-- Add patch 1. The else branch of the second encapsulation block was
-  also reached with an 802.1ad tag outside an 802.1Q tag and described
-  the inner tag as the outer one.
-- v1: https://lore.kernel.org/netfilter-devel/20260906141947.480524-1-julius@bairaktaris.de/
-
-Julius Bairaktaris (2):
-  netfilter: flowtable: fill the vlan key from the outermost tag only
-  netfilter: flowtable: advertise the vlan match in used_keys
-
- net/netfilter/nf_flow_table_offload.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 801a3dd9ceea..19adc6c7725f 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -137,7 +137,7 @@ static int nf_flow_rule_match(struct nf_flow_match *match,
+ 			nf_flow_rule_vlan_match(&key->cvlan, &mask->cvlan,
+ 						tuple->encap[1].id,
+ 						tuple->encap[1].proto);
+-		} else {
++		} else if (tuple->in_vlan_ingress & BIT(0)) {
+ 			NF_FLOW_DISSECTOR(match, FLOW_DISSECTOR_KEY_VLAN,
+ 					  vlan);
+ 			nf_flow_rule_vlan_match(&key->vlan, &mask->vlan,
 -- 
 2.53.0
 
