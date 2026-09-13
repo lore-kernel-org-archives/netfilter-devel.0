@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC7F383300;
-	Sun, 13 Sep 2026 20:55:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 627AC38236F;
+	Sun, 13 Sep 2026 20:55:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789332907; cv=none; b=iVABLTfojNlV4oJEBRLJNSdciSqm1MrGjoouiAPLNss5yHjANPI2RkNyldcFBMvWJ3Vd9TWxQkQGEx84rxR8+Ofqj7SqL89HPMr+6Zt9fvfM2bZjb7HrPjlEFG5QeWw0QlW8N2Hy34vlRINtf6ffB5gvfR5izATUcbgF3yYkA94=
+	t=1789332919; cv=none; b=PnHX1xBabk3xmCm9CUPthRtqGQoXtX2MZDtHxK/Kz5crZsSh/2tTxKbQnXoBHinr7HtCVhwiztPp4LHS+HRqAwPKFF9vJxGopcyrrC5FoEFAu4TdLMyjZ3bBrpci+kFfZntW5RO8AFPETYxR3cMkxs0fwKv1taFZgMWQRdm1b4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789332907; c=relaxed/simple;
-	bh=HYcqT1RRpPWrPjRgsoRjWlMz9mkzCzVDAcgANm5l7ik=;
+	s=arc-20240116; t=1789332919; c=relaxed/simple;
+	bh=QhjDyHn2pGCF+34V5jBipN5cbD11FdPQE/XPc3uLWWw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O7RdsH1BfrKqTElC+x8dHFrUXtEbTBc0OSfy/uGOBAnEg1zm551Te0cpPd2AvlS8VJPwUPIzxrjBm/DTYv3srMvo/KUI0kmvDQHPTwVn/5/SrH3OcVQHFxzBkUXRWWDnAhXfxqDqK1HkbaHxAIlDW5Y+rpWspaoL274r1ndFtWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DMAw56Ud; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=uZEIMFcyzuiXsT7nBk72KbwgzI5Rtuzyr7X92GVD3N137dszntaw1OLWV78Dq9kKAb8KiuNWJBwvb1mRL9e0CG7ZafZYadJqjjLvqI0PZOBPUqwLskVZtJGmWxHjoh3C04EBKE+IFBZtfWHj31C9iEi5ri0z1zIYnodOtB8j/88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HTRikNce; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DMAw56Ud"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HTRikNce"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789332898;
-	bh=mgUL1pj5GumT5FyU/5MP+viMXx/+3FUen6Uwb/NhO9U=;
+	s=2025; t=1789332900;
+	bh=xFKn8L9lspfrZDh17Sk1g4QmXa8rZyF1HPa88db7nVg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DMAw56Ud+LrJpnEsGyFdUgcJh7/iKXOGlZX+dT6zfYPIrxy+mGEWNX2JzpMVL+ICG
-	 RqGWnqw9x+NKTH9wMuh91ogpbEhBVyGVGlyj8CqzZsyx8GUMxvBDWec7UCrIFAbCHs
-	 +uMLuKv2JOhJsXQKi3nYJHVbvC0e0IHUSE9jkbGnRMPXDzmv6NYlbzf8mZl6bkdXhN
-	 kOtEjGeTzmJ+ma78UEvhh64xxyN1GK6DOZ85AUKb4lyQm3YD9cS66FyxZ0eW+3xdun
-	 Szmmo2KFEhny3VeWYDHINZBEqM2I0yhzxffxpzmQtmY4SpTVzzNc7W+z6Bnu5MAkRQ
-	 lXhkmapiGv5vA==
+	b=HTRikNcesVSEKgbgVYgesv/E98bL/1HOlQnk7sR5gMY5eecUXm3GL0HsJKlfqR3Qj
+	 QWWT3JPk3TwO8g0c+X6AhMEwkjn0vzXbHgL8IDs7jStJOo76CEZ3294JRIWKy2GnrU
+	 zlwxPX+OVI9dwbuADecPKMrzKJ4UltgXkd+AXntFojRCjx5hR//FTgtW3oSc20ZnM9
+	 nh06SCTpmIYf9k1FnoVLuW08NQmfMabSRiOTNpyUix+N63MZLFlYk7jEvMNpD/f0j1
+	 04w+i9h5jFAiccXWo1Kv0v/8Xgft8DMoNOgXqbOptgCSG37I5RiEoJrKouGZmNwBbZ
+	 K9WRjtsTehEKw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 57B276005A;
-	Sun, 13 Sep 2026 22:54:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C17046005B;
+	Sun, 13 Sep 2026 22:54:59 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 2/4] netfilter: nf_tables: fix device name and prefix match in hook lookup
-Date: Sun, 13 Sep 2026 22:54:45 +0200
-Message-ID: <20260913205447.1889203-3-pablo@netfilter.org>
+Subject: [PATCH net 3/4] netfilter: nf_nat: unregister and release hooks on error
+Date: Sun, 13 Sep 2026 22:54:46 +0200
+Message-ID: <20260913205447.1889203-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260913205447.1889203-1-pablo@netfilter.org>
 References: <20260913205447.1889203-1-pablo@netfilter.org>
@@ -53,120 +53,85 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+If nf_hook_entries_insert_raw() fails, the NAT hooks get never released,
+resulting in a memleak.
 
-Currently, a netdev chain or flowtable hooked to a device prefix can be
-unintentionally deleted by a control-plane request targeting an exact
-device name or even a shorter one due to the usage of min() to calculate
-the length to match.
+Postpone setting nat_proto_net->nat_hook_ops when the hooks are
+registered to simplify the error path to decide whether the nat hooks
+need unwinding.
 
-Fix this by making sure an exact device match never matches a prefix and
-that both the target and the candidate have the same length during
-delete operation. The add and update paths retain the existing overlap
-matching to prevent a single device from matching multiple hooks.
-
-Reported-by: Wei Fang <void0red@gmail.com>
-Closes: https://lore.kernel.org/netfilter-devel/CANE+tVrDeNCHQVmsqkV2ozeBqyE3GtRDMhZgsg1bhw10yGNTRQ@mail.gmail.com/
-Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: 1cd472bf036c ("netfilter: nf_nat: add nat hook register functions to nf_nat")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ net/netfilter/nf_nat_core.c | 46 ++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 31fbd5a28937..c0b754a2d45b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2440,11 +2440,14 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 8ac326e1eb5b..a4858c2b2d65 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1224,31 +1224,45 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		}
+ 
+ 		ret = nf_register_net_hooks(net, nat_ops, ops_count);
+-		if (ret < 0) {
+-			mutex_unlock(&nf_nat_proto_mutex);
+-			for (i = 0; i < ops_count; i++) {
+-				priv = nat_ops[i].priv;
+-				kfree_rcu(priv, rcu_head);
+-			}
+-			kfree_rcu(nat_ops, rcu);
+-			return ret;
+-		}
+-
+-		nat_proto_net->nat_hook_ops = nat_ops;
++		if (ret < 0)
++			goto err_free_hooks;
++	} else {
++		nat_ops = nat_proto_net->nat_hook_ops;
+ 	}
+ 
+-	nat_ops = nat_proto_net->nat_hook_ops;
+ 	priv = nat_ops[hooknum].priv;
+ 	if (WARN_ON_ONCE(!priv)) {
+-		mutex_unlock(&nf_nat_proto_mutex);
+-		return -EOPNOTSUPP;
++		ret = -EOPNOTSUPP;
++		goto err_unregister_hooks;
+ 	}
+ 
+ 	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
+-	if (ret == 0)
+-		nat_proto_net->users++;
++	if (ret)
++		goto err_unregister_hooks;
++
++	if (!nat_proto_net->nat_hook_ops)
++		nat_proto_net->nat_hook_ops = nat_ops;
++
++	nat_proto_net->users++;
+ 
+ 	mutex_unlock(&nf_nat_proto_mutex);
++
++	return 0;
++
++err_unregister_hooks:
++	if (nat_proto_net->nat_hook_ops) {
++		mutex_unlock(&nf_nat_proto_mutex);
++		return ret;
++	}
++	nf_unregister_net_hooks(net, nat_ops, ops_count);
++err_free_hooks:
++	mutex_unlock(&nf_nat_proto_mutex);
++	for (i = 0; i < ops_count; i++) {
++		priv = nat_ops[i].priv;
++		kfree_rcu(priv, rcu_head);
++	}
++	kfree_rcu(nat_ops, rcu);
++
+ 	return ret;
  }
  
- static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
--					   const struct nft_hook *this)
-+					   const struct nft_hook *this,
-+					   bool strict)
- {
- 	struct nft_hook *hook;
- 
- 	list_for_each_entry(hook, hook_list, list) {
-+		if (strict && hook->ifnamelen != this->ifnamelen)
-+			continue;
- 		if (!strncmp(hook->ifname, this->ifname,
- 			     min(hook->ifnamelen, this->ifnamelen))) {
- 			if (hook->flags & NFT_HOOK_REMOVE)
-@@ -2486,7 +2489,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
- 			err = PTR_ERR(hook);
- 			goto err_hook;
- 		}
--		if (nft_hook_list_find(hook_list, hook)) {
-+		if (nft_hook_list_find(hook_list, hook, false)) {
- 			NL_SET_BAD_ATTR(extack, tmp);
- 			nft_netdev_hook_free(hook);
- 			err = -EEXIST;
-@@ -2943,7 +2946,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 					ops->hook	= basechain->ops.hook;
- 				}
- 
--				if (nft_hook_list_find(&basechain->hook_list, h)) {
-+				if (nft_hook_list_find(&basechain->hook_list, h, false)) {
- 					list_del(&h->list);
- 					nft_netdev_hook_free(h);
- 					continue;
-@@ -2956,7 +2959,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 					    !nft_trans_chain_update(trans))
- 						continue;
- 
--					if (nft_hook_list_find(&nft_trans_chain_hooks(trans), h)) {
-+					if (nft_hook_list_find(&nft_trans_chain_hooks(trans),
-+							       h, false)) {
- 						nft_chain_release_hook(&hook);
- 						return -EEXIST;
- 					}
-@@ -3257,7 +3261,7 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
- 		return err;
- 
- 	list_for_each_entry(this, &chain_hook.list, list) {
--		hook = nft_hook_list_find(&basechain->hook_list, this);
-+		hook = nft_hook_list_find(&basechain->hook_list, this, true);
- 		if (!hook) {
- 			err = -ENOENT;
- 			goto err_chain_del_hook;
-@@ -9053,7 +9057,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			if (!nft_is_active_next(net, ft))
- 				continue;
- 
--			if (nft_hook_list_find(&ft->hook_list, hook)) {
-+			if (nft_hook_list_find(&ft->hook_list, hook, false)) {
- 				err = -EEXIST;
- 				goto err_unregister_net_hooks;
- 			}
-@@ -9130,7 +9134,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 		return err;
- 
- 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
--		if (nft_hook_list_find(&flowtable->hook_list, hook)) {
-+		if (nft_hook_list_find(&flowtable->hook_list, hook, false)) {
- 			list_del(&hook->list);
- 			nft_netdev_hook_free(hook);
- 			continue;
-@@ -9143,7 +9147,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 			    !nft_trans_flowtable_update(trans))
- 				continue;
- 
--			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook)) {
-+			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook, false)) {
- 				err = -EEXIST;
- 				goto err_flowtable_update_hook;
- 			}
-@@ -9363,7 +9367,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 		return err;
- 
- 	list_for_each_entry(this, &flowtable_hook.list, list) {
--		hook = nft_hook_list_find(&flowtable->hook_list, this);
-+		hook = nft_hook_list_find(&flowtable->hook_list, this, true);
- 		if (!hook) {
- 			err = -ENOENT;
- 			goto err_flowtable_del_hook;
 -- 
 2.47.3
 
