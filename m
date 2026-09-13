@@ -1,238 +1,132 @@
-Received: from mail-lr2-f12.google.com (mail-lr2-f12.google.com [74.125.230.76])
+Received: from mail-ej2-f6.google.com (mail-ej2-f6.google.com [74.125.228.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D048E3C1F4F
-	for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 07:14:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.76
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789283651; cv=pass; b=NC028dyIZ2PfZ8+SE4V/4Ib8K5UiH3zJ6z6/EH+vrrScd6UPWwmmuoVCRAoOkKjrny4m6bOF0p/oZe3gY8NzEOuyZDRkrWgDZBmmVN3RJ7dVT4en32wX75CBGVb4lvrwPsqR88pzoSP86QbAcY/HjeN3FiRUFW1FV5ubuIZAvis=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789283651; c=relaxed/simple;
-	bh=37ug2nMqVijwXjDMz+dkuUWa2OB5OvqNxj209iQ0QhI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qpL6Sr4v8KzquU2ZGqBYkXBdHr7pwwz0hNlRVefX4MLLOTRbKUXrFjEaJ+mvHa8euKKvHPKCgRWAbj9p9CkJXa1/a7KCkDn2Pyyksd3D9csPsi0TIIvSV9trv9LLp41k+pqB74RNTbARTqVVjNRdje/n8GW2BqxPmUTHz/JeSiw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=W5N88WAd; arc=pass smtp.client-ip=74.125.230.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585473839B8
+	for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 10:42:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.134
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789296175; cv=none; b=ljFXQhYgLIR1zu9cLQzPZA+92ElJU0/7ZBe1kNsmiQqzQl8c0h046tEFLFmwLkEbMnPkMxvSiYX6jhyiw2erOmbIunVuyTfiz2mnsgyrOaNp3I6YTp8awCtZDRNEeZ+w+5rZ2LKxAF/k0dxCBfxB6jYDOqdIc+4mJzgMnEG28AE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789296175; c=relaxed/simple;
+	bh=Hgj7etMDcCAJvV15w/tbXFhz6t0NQuJpjZlontCcE+U=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=aoX7O5g3+0d8yhaxYnKoMKLEjhEkkX1HAniwDd72HPYdxZcMal+O53TBzpvtebRjDGMVUsh1SOLZbawc2C+eFoukQ0WIP3cuh9sRIX9fFbCrgxm8jU+3YMzJ+QaPzAeiS9cDsOHUqPIFu300m/JGFZOtkPw9NddZadK92iIuBq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=LlWu4H64; arc=none smtp.client-ip=74.125.228.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="W5N88WAd"
-Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a2ff176d5bso11534291fa.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 00:14:09 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789283648; cv=none;
-        d=google.com; s=arc-20260327;
-        b=nYEB+BMWWR7dIJdeN1PFwqfrOojXuNiFXAQ7upuuZTz9seyc1Lg+8rdLdgT+HCDPjH
-         PT0O7ZXa2y/ZaQ5S3CKfLLEOK+yxTtsPweHSl3ZJq5eozOIfdYPcSWXUFs9pfHrvJOnK
-         G5tH/Nz/u0OP2Tig6eK+nsIZwP2Vj6MCtb9IW1YcQoEcVgXsmpambf/OVOjswZP8Gz9z
-         DzUF+z3gMs//Jo36kA3urX/5Q+W4J5ljKTL9RMMgBNPBGBDahCGgRaOeajD/UIDdoA4l
-         UDTe4G7kXUhC3brLQFI/wohexmAxqK7E8ADOCGd4+psGr4O9GetNmT93AerB8/FxQsBQ
-         gXiA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Zc6rn6hBg7Dbx72kKEyqG0IA3oFbZYoVZQLtRzcZKOg=;
-        fh=MvvXm+fRmQ8Hp0kNxU3WbgETHsAIdoktgrhKWDXYyUw=;
-        b=Y/R/ZQuMq3KYp3JQPgr4yUXWd7WLiR7cm3CE4cK3fMtMxMRpUXckbTkfLbTziRwi4S
-         2HxtATEGOfuAWCKkBhfj4i1Mg1GfBd2PI94siJGTmJADsCsrQZ0XAE1jrryQD4djTayW
-         pV4Ik/B6CjmHO3seXg1mbNsTALWjmns+AzL8k54G1ZBununk38liAizxScED4lvd1wl7
-         UeXtthpahHmP/YsvW8QQV9uiB5OCwJRw9Id/oQ7pKr1O02mnWHFGbTNfCrblvJGTuiiE
-         v0PWqPdeKag0xOV8RvpzSnfgq7wu19UXLQ5TbqSFibkFc7Ivva/iLjSu/lIbfucyvenp
-         O7ZA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="LlWu4H64"
+Received: by mail-ej2-f6.google.com with SMTP id a640c23a62f3a-c294716dbf3so174876766b.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Sep 2026 03:42:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1789283648; x=1789888448; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Zc6rn6hBg7Dbx72kKEyqG0IA3oFbZYoVZQLtRzcZKOg=;
-        b=W5N88WAdSLB/LLV5+MllrleynP8UTzD5IVug07B9VXEVXlZhejamBLAWaEIo1kQNjH
-         GnjePwnoI1Fn9Nf8qU4tshKUSHyR80ixzy81aRmSZrk3c0ThU6WQONsY+K4LN8cRlPxe
-         zJtwP8l+fnEq9qVl1Z5alg5KY9kgwQiqlKzm5sQJx9VfFGrkEYPpTIkjR5g8AYBt0FJ/
-         HSvfwhqyf4Ru001u4tJsqCfhhGjeNngzVgWjBN4aFEgVwRCghl7LUy9YjC7EcIT+E1qs
-         THHZNTIzrR+6BXm459mfo1WZLKIlylVtkrHj1P4gRPLTyF2fjCTflotmyGyHnMZpPZrT
-         +Kgg==
+        d=bairaktaris.de; s=google; t=1789296172; x=1789900972; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=L7E6Jghy9mgdjP+MNRkB5vpWmg9D4fAqbUGCwdvSH9A=;
+        b=LlWu4H64sijtqwvN3Ptqdhc+cOGNCMWNtLhJJ/dILKk2H40UNZSDL/irzxZ4jLiTJq
+         DmlNYek7sNAHEvF52/cX0clvKnZFkRvpCq6u4DXhrT1tH11JxushNkRcZzxR1GFvVss2
+         VKNjtf7PD5f5wYt7aMLrw9OdioU4BeeMLkjGbSFqCOmCqUdDiBUVRWv0/Ql6PDdFF7M7
+         Z+YmV3jNU3/1SvcyShAnMTori55OmCjo8RL//yYXt4PApO9RTCMRyBd40KD8FkXg5Kn5
+         ikfJEzBrcTzI1W2T/TpzG/kuI2PMIStr6miwRoLZXH8b4kCVxh/yhrezt2lmrYjsqzA5
+         J0Tw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789283648; x=1789888448;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Zc6rn6hBg7Dbx72kKEyqG0IA3oFbZYoVZQLtRzcZKOg=;
-        b=pbIX32NmAMhG8rgaIe9O189FIQCeiCGy+lDGdQbJqWJrS0/fQmSYHkLylJoPIZfSjJ
-         eGjoKahOl2HtJGdM2LTpcW6MF9JKJjRjGI0o13YSnPFQyjuQ0wAoWgL7lNKqbekTLrob
-         gTKIL558QrhIJQzRlA4/XFQnGOosfx9eY+ogQKDlf32PTnOdehzXgAEWeqHxhRX/7ljL
-         AeIT9bS3of/9zzjgIybgOpxmADQ7GbUsD3LSVPRv9pu3hiCz2i4zek11pJV7O40hpWD8
-         3pk7TGp8unmnHDbuJn7/jnAcf3uf1V5aAkAmQVa44SEMpZXiy5Gq4Jn7ezL8sLZVwcOC
-         K8CA==
-X-Forwarded-Encrypted: i=1; AKwUvBwde6KF1c96JznY4XRhBgnDPtrpy+3B+UWgjsgI4w7MNTwsnTl9xm7RrmIxe2vx9gMbGCGM5WIBtvv39IRAgfA=@vger.kernel.org
-X-Gm-Message-State: AFuF++nInZBGUCuNEyo6PlWW0NMyzCi3R02OXy1mB8WSf882xAokwAF+
-	DCsU0IOnGnSo+JEXHvROi/BrFfRLJ2CEkGLQ83+xpu5NtRdUTErYUiNAGvCr+JP6iq/UOJjIDvx
-	S4JN4kyew1lvoE04LiifH0i86n6f11OWr16zH4comoyk=
-X-Gm-Gg: AYBFou0PyOcVL0Qlg4WO8ONu9D2LqC5bVR6u8rq30+azfpnU0PEfFHZo3Bg3ZJ/bmO9
-	YiC36RXSd2S7F64HzX94tdaXq+ienqQckjUFaCC7Ka5uFMGuuGpdVNUsAEfqLn4D9qU1HHHFVJ5
-	VFasPNi7fKhEhtCZY9poEeLrFcxlfDj0qdvwbLXppSXmMlW9XTSADkhCGSw3Fyiue8NTAomxLqj
-	WMsvpA9ANDVNSnnU3vTiAAjnxSB/BW5aewb0C6gbt8CoZsojo6kF33m5LZJN+kbkFZ+BobnwwgH
-	e1Fl61RAwcF7dSUMkyAn1JUBeS2vsovahuTCcEPXgW1LW/efy9JEFtQfRz51waWGaj51jl0dIk+
-	swf/WsCHSRdQ=
-X-Received: by 2002:a05:651c:4cb:b0:3a1:4f33:f60e with SMTP id
- 38308e7fff4ca-3a5a521976amr22625301fa.8.1789283647218; Sun, 13 Sep 2026
- 00:14:07 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1789296172; x=1789900972;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=L7E6Jghy9mgdjP+MNRkB5vpWmg9D4fAqbUGCwdvSH9A=;
+        b=qrbDkimSdj6KvXLrHG2ZMrSYgRWXJgYC4t2mkRci1SFjLZhW25CaJQulP2CFR52eMV
+         xz9DeWaOmfvlg1RKHWd/xKvKHT5DqmNo0CRxic5Szc4ewDcIJ/iVY1cRWoz6fyv8F98s
+         egUS5KHZsK2BQyrXaOpcmVhIQiSBAN267/0muBpD4lwzkCpcDux/IgOQah7s+Fyx0M0X
+         XWlX6t1vkZL1UTjDUKSYIzeq0eNQSD4CTi3i2q2Yc1y9tzLFXal7k5btAi3rSQ5UKw9g
+         GQCDemf/tFxVI5LZwL4zcaH/dIECm09LKXoW501C/HHJAL64SjLCPU8FcHYKAuoG/lbn
+         nAKg==
+X-Gm-Message-State: AFuF++lyl7t4oqjWYGcELzDnWh8FsJdoF0zhGpyeLmqKGExbLNNNMmhL
+	1qXqog1cHmJq6EW3iHjWVtlwpvrLmj446s/a5nn3dZw1KSfuEkKnd+vs3PFXntrklhAU7HU5R+w
+	X2HYBzpGphe6Fv6Kt
+X-Gm-Gg: AYBFou36t9WQExg7kxiTQmFpTZcykz0saw9ZYxBRUxqaDa5c32cYSy7VqM4Km/lrX2V
+	5rzDyDVKnj5H4Myzue8a1tkRrYyU6L3CT+NpwSEuam2Lv8BYg9LJasz53m5E98EFqBFCGUc5Cvx
+	Rc4ShtZqDoV4uykTQcwwFTg8FHD2mq7wTE2CY1y5xlqa8fJiVU6c7IFos7rmiMikY7QbGvtjHGO
+	gksfFmGrsFJzq1LSIV/HeCUdy2BXI8d7/8bvTTPiD5MmtRodIad1rYf5Lcv68sarDSIxIcIlx91
+	x2mgD3cEbYW7VpPKQoWxMrJyPg5Nx7dDlwowjrFfpssay3lH4RgsTNh3QPVE4aogevLPp9OR7v0
+	yOBbWJGgzio/5Q62a+7BgpoaA3jRQwePq3pwDtgyAtxkpB2M4g738Zed4rbLWxRadjDMzBzPHgj
+	CYzLw9sIogY7RtLnYYQNJQHh6u4nQRrM05TO9i8QxeSk/WYfWFwWY9XXa9Phf3Wa+lNoWMdzzUT
+	Ko/709vGMSx91Yi4i9k8LYaa+jJnVjAPJf85r2c5r0tME7wh9R3VeFI8U2bRSCrAZ8+SMiTrWG2
+	huUX332oeT+pxvbx5mb5J3kBAraieiiYwgm71Jm97gJelepn63Ao8VWc6pGuHaIC+nkAOXfd1yt
+	OFWfVd8vKyndUljj9h/te8sKTjsTFfM/vzyUl868ObaZXEElio1EtgLCocqZ3501SOa66sUNudX
+	Hv1c/5znCC4Wqcn8TeM/LpU20=
+X-Received: by 2002:a17:907:c708:b0:c26:1691:b36e with SMTP id a640c23a62f3a-c2985880e9dmr342461566b.39.1789296172284;
+        Sun, 13 Sep 2026 03:42:52 -0700 (PDT)
+Received: from Desktop (p54aff833.dip0.t-ipconnect.de. [84.175.248.51])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c296605b438sm278678266b.26.2026.09.13.03.42.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Sep 2026 03:42:51 -0700 (PDT)
+From: Julius Bairaktaris <julius@bairaktaris.de>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	wenxu@ucloud.cn,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com
+Subject: [PATCH nf v2 0/2] netfilter: flowtable: correct and advertise the vlan match
+Date: Sun, 13 Sep 2026 12:42:49 +0200
+Message-ID: <20260913104251.648421-1-julius@bairaktaris.de>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260906141947.480524-1-julius@bairaktaris.de>
+References: <20260906141947.480524-1-julius@bairaktaris.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1789110326.git.zihanx@nebusec.ai> <d99cb205-24fc-7446-55ad-4ec9d79aac1d@ssi.bg>
-In-Reply-To: <d99cb205-24fc-7446-55ad-4ec9d79aac1d@ssi.bg>
-From: zihan xi <zihanx@nebusec.ai>
-Date: Sun, 13 Sep 2026 15:13:54 +0800
-X-Gm-Features: AcwNN1VXwXGHgzutYNNcW-pu10V6yDK71GNfucz-I1ocWnp42Hrzm0uFodmzH7U
-Message-ID: <CAANe3eQFtNuPpw1_W11hDf_S22WK99LD_FDSijt1Gu85_hELvw@mail.gmail.com>
-Subject: Re: [PATCH nf 0/1] ipvs: avoid stack overflow from recursive
- connection expiration
-To: Julian Anastasov <ja@ssi.bg>
-Cc: horms@verge.net.au, pablo@netfilter.org, fw@strlen.de, davem@davemloft.net, 
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, phil@nwl.cc, 
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sun, Sep 13, 2026 at 1:50=E2=80=AFAM Julian Anastasov <ja@ssi.bg> wrote:
->
->
->         Hello,
->
-> On Sat, 12 Sep 2026, Zihan Xi wrote:
->
-> > Hi Linux kernel maintainers,
-> >
-> > We found and validated an issue triggered through
-> > net/netfilter/ipvs/ip_vs_ftp.c. An unprivileged user can trigger it by
-> > creating a user namespace and a network namespace. We tested the fix wi=
-th
-> > the same trigger. The change applies to the generic
-> > ip_vs_conn_expire() control-chain cleanup path. For the reported trigge=
-r,
-> > it only defers recursive controller expiration; testing showed no chang=
-e to
-> > other IPVS behavior.
-> >
-> > We will provide detailed information about the bug
-> > in this email, along with a PoC to trigger it.
-> >
-> > ---- details below ----
-> >
-> > Bug details:
-> >
-> > The trigger entry point is ip_vs_ftp_out() in
-> > net/netfilter/ipvs/ip_vs_ftp.c. It parses an EPSV reply and creates a
-> > wildcard data connection using the advertised port. If that port is 21,
-> > ip_vs_conn_new() binds the new connection to the FTP helper a second ti=
-me,
-> > because 21 is the helper's control port. The connection has
-> > IP_VS_CONN_F_NO_CPORT, so the next connection from the same client to t=
-he
-> > VIP on port 21 matches the wildcard entry instead of creating a new
-> > top-level entry. Repeating EPSV builds a chain of controlled connection=
-s.
->
->         Hm, may be we should also avoid such long chains.
-> Probably in separate patch, for example:
->
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ft=
-p.c
-> index 9e3e005a8263..0622169b5970 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-> @@ -237,6 +237,17 @@ static int ip_vs_ftp_get_addrport(char *data, char *=
-data_limit,
->         return 1;
->  }
->
-> +static bool is_control_port(u16 port)
-> +{
-> +       int i;
-> +
-> +       for (i =3D 0; i < ports_count; i++) {
-> +               if (ports[i] =3D=3D port)
-> +                       return true;
-> +       }
-> +       return false;
-> +}
-> +
->  /* Look at outgoing ftp packets to catch the response to a PASV/EPSV com=
-mand
->   * from the server (inside-to-outside).
->   * When we see one, we build a connection entry with the client address,
-> @@ -293,6 +304,9 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struc=
-t ip_vs_conn *cp,
->
->                 IP_VS_DBG(7, "PASV response (%pI4:%u) -> %pI4:%u detected=
-\n",
->                           &from.ip, ntohs(port), &cp->caddr.ip, 0);
-> +               /* Do not redirect data to control ports */
-> +               if (!port || is_control_port(ntohs(port)))
-> +                       return 0;
->         } else if (cp->app_data =3D=3D (void *) IP_VS_FTP_EPSV) {
->                 data =3D ip_vs_ftp_data_ptr(skb, ipvsh);
->                 data_limit =3D skb_tail_pointer(skb);
-> @@ -529,6 +543,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct=
- ip_vs_conn *cp,
->                 return 1;
->         }
->
-> +       if (!port)
-> +               return 0;
-> +
->         /* Passive mode off */
->         cp->app_data =3D (void *) IP_VS_FTP_ACTIVE;
->
->         The only problem I see with your proposed change is
-> that we may need 2-3 timer ticks to expire a DATA->CTL->TPL
-> chain. Or it expires on the same tick?
->
->         Alternative would be to jump to the beginnig of the
-> function after successful timer_delete() for our cp->control,
-> i.e. to use loop instead of recursion. I.e. ip_vs_conn_del_put()
-> can be converted to function that returns bool instead of
-> calling ip_vs_conn_expire(), so that we can know if to loop.
->
->         If ip_vs_conn_flush() demands faster expiring, a
-> loop will work faster. What do you think?
->
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
->
+nf_flow_rule_match() builds a vlan match for an offloaded flow and
+never declares it in used_keys, so no driver reads it. Patch 1
+restricts the vlan key to the tag that is outermost on the frame.
+Patch 2 sets the used_keys bits.
 
-Hello Julian,
+mlx5e is the in-tree driver that reads the vlan key. With the key
+undeclared, __parse_cls_flower() installs an untagged-only match for a
+flow whose ingress path carries a tag. After patch 2, mlx5 hardware without
+outer_second_vid support rejects a double-tagged flow instead of
+installing a match that cannot hit, and the flow stays in the software
+path as before.
 
-Thanks for reviewing this and for suggesting the FTP helper change.
+An 802.1ad tag is neither matched nor popped, before and after this
+series, and a flow with an 802.1ad tag outside an 802.1Q tag gets no
+vlan key after patch 1, as a flow with a single 802.1ad tag does
+today. The pop action for the inner 802.1Q tag stays: mtk and airoha
+ignore the vlan keys and FLOW_ACTION_VLAN_POP and accept that rule
+today, so patch 1 does not reject it. Matching and popping 802.1ad is
+a separate change.
 
-I agree that a loop is preferable, especially if ip_vs_conn_flush() needs t=
-o
-expire the controller chain promptly. The follow-up is split into two
-separate patches.
+Patch 2 is tested with an out-of-tree driver on IPQ8074 (6.18): the
+driver reads the ingress vid and offloads the flow. The mlx5e
+behaviour is read from the driver and was not run on mlx5 hardware.
 
-The first patch changes ip_vs_conn_del_put() to report whether it successfu=
-lly
-deleted the controller's timer. ip_vs_conn_expire() then follows the
-controller through a repeat path instead of recursively invoking itself. Th=
-is
-keeps cleanup synchronous, avoids recursive stack growth, and does not wait
-for additional timer ticks.
+Changes in v2:
+- Name mlx5e as the consumer instead of mtk. mtk_flow_offload_replace()
+  reads the vlan key only in its addr_type == 0 arm, which a flowtable
+  rule never takes.
+- Add patch 1. The else branch of the second encapsulation block was
+  also reached with an 802.1ad tag outside an 802.1Q tag and described
+  the inner tag as the outer one.
+- v1: https://lore.kernel.org/netfilter-devel/20260906141947.480524-1-julius@bairaktaris.de/
 
-The second patch is a separate FTP helper fix that prevents the helper from
-creating unnecessarily long controller chains. ip_vs_ftp_out() rejects a
-zero port and configured control ports in the passive-data path, covering
-both PASV and EPSV. ip_vs_ftp_in() also rejects a zero client port in activ=
-e
-mode.
+Julius Bairaktaris (2):
+  netfilter: flowtable: fill the vlan key from the outermost tag only
+  netfilter: flowtable: advertise the vlan match in used_keys
 
-Best regards,
+ net/netfilter/nf_flow_table_offload.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Zihan Xi
+-- 
+2.53.0
+
