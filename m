@@ -1,137 +1,78 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 627AC38236F;
-	Sun, 13 Sep 2026 20:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58075390C9E;
+	Sun, 13 Sep 2026 22:12:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789332919; cv=none; b=PnHX1xBabk3xmCm9CUPthRtqGQoXtX2MZDtHxK/Kz5crZsSh/2tTxKbQnXoBHinr7HtCVhwiztPp4LHS+HRqAwPKFF9vJxGopcyrrC5FoEFAu4TdLMyjZ3bBrpci+kFfZntW5RO8AFPETYxR3cMkxs0fwKv1taFZgMWQRdm1b4I=
+	t=1789337542; cv=none; b=az1Lwgwyu1+PS5Dn2/FdjK37pNUx18s3oetZFQJ7nBWNAf5Zzex+B65SqURQPD9f3DrLBGZsnUAc1p8KhiGN1ljiR+/Y9eleqgTUgiB4q1/IPFLdw4ExBwpNUhrhTEztTw+GdFbwAqo/0HKiKqHcQsxcdNz+ZifL5B53tZ+73Fg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789332919; c=relaxed/simple;
-	bh=QhjDyHn2pGCF+34V5jBipN5cbD11FdPQE/XPc3uLWWw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uZEIMFcyzuiXsT7nBk72KbwgzI5Rtuzyr7X92GVD3N137dszntaw1OLWV78Dq9kKAb8KiuNWJBwvb1mRL9e0CG7ZafZYadJqjjLvqI0PZOBPUqwLskVZtJGmWxHjoh3C04EBKE+IFBZtfWHj31C9iEi5ri0z1zIYnodOtB8j/88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HTRikNce; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789337542; c=relaxed/simple;
+	bh=XfTMzgpSMJDp9Ib78sUZKa2WH0c+7+ufSCLyIggQGEE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=I4ZbVpQ7bfpqLTQYndacPjrnh0qAAZwe06JmTUaJexFodLKY/N3i7I6sJaY12OZSXJBXiqBgsKvYoCK/EyV7nhb5cLIaAeR/8cREO58w+efDS/6O1dN6OSKwmsk9xPvCRcXwIGXyMA1SwABKS1cHr+otqepvMMuwvJsgrRR84ak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dIBL9Dh4; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HTRikNce"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dIBL9Dh4"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789332900;
-	bh=xFKn8L9lspfrZDh17Sk1g4QmXa8rZyF1HPa88db7nVg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HTRikNcesVSEKgbgVYgesv/E98bL/1HOlQnk7sR5gMY5eecUXm3GL0HsJKlfqR3Qj
-	 QWWT3JPk3TwO8g0c+X6AhMEwkjn0vzXbHgL8IDs7jStJOo76CEZ3294JRIWKy2GnrU
-	 zlwxPX+OVI9dwbuADecPKMrzKJ4UltgXkd+AXntFojRCjx5hR//FTgtW3oSc20ZnM9
-	 nh06SCTpmIYf9k1FnoVLuW08NQmfMabSRiOTNpyUix+N63MZLFlYk7jEvMNpD/f0j1
-	 04w+i9h5jFAiccXWo1Kv0v/8Xgft8DMoNOgXqbOptgCSG37I5RiEoJrKouGZmNwBbZ
-	 K9WRjtsTehEKw==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C17046005B;
-	Sun, 13 Sep 2026 22:54:59 +0200 (CEST)
+	s=2025; t=1789337535;
+	bh=B6erEurSeK3IOCHg4FHichbep/sok8bKkr3OG42L1fI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=dIBL9Dh4tP5Ph+9GKAV1xazh02Ib5oIDRx65EgJU9BloLEZKL8J2+EfSHQ1a/kjAZ
+	 l6yeF2ZHyShjrcpFaD2tRiwpfxC/frOLN/cVrE4oTlOKps+3qS+G35FGXIy8fGXUqg
+	 3jWd4pVDznTGzRInnofYVKxxk8prdxufr6z/lg61/laHQ415aBq0XZbo/O6yCEhvqK
+	 rZe6c8QCbQ/+/hvv4aozKAbRs6neRn3VylaqD6BEPLISoJbAYlwMg4bs3WYTKtuZWm
+	 GCQa8dYql0mSWhoeL/hFH1fiVURBX7P/tBQ6uBEm+XF/5+yKBRSsWG4FYjTGAuCKIm
+	 2SVH8MmF5/NLA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id DC49260055;
+	Mon, 14 Sep 2026 00:12:15 +0200 (CEST)
+Date: Mon, 14 Sep 2026 00:12:13 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	horms@kernel.org,
-	fw@strlen.de,
-	ja@ssi.bg
-Subject: [PATCH net 3/4] netfilter: nf_nat: unregister and release hooks on error
-Date: Sun, 13 Sep 2026 22:54:46 +0200
-Message-ID: <20260913205447.1889203-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260913205447.1889203-1-pablo@netfilter.org>
-References: <20260913205447.1889203-1-pablo@netfilter.org>
+To: Hauke Mehrtens <hauke@hauke-m.de>
+Cc: stable@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: network flow offloading broken in 6.18.45+
+Message-ID: <aqcfvRE3aHoAx8s7@chamomile>
+References: <7dfa42f6-64c1-4084-bfea-d57500c245cf@hauke-m.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <7dfa42f6-64c1-4084-bfea-d57500c245cf@hauke-m.de>
 
-If nf_hook_entries_insert_raw() fails, the NAT hooks get never released,
-resulting in a memleak.
+Hi Hauke,
 
-Postpone setting nat_proto_net->nat_hook_ops when the hooks are
-registered to simplify the error path to decide whether the nat hooks
-need unwinding.
+On Wed, Sep 09, 2026 at 06:29:50PM +0200, Hauke Mehrtens wrote:
+> Hi,
+> 
+> flow offloading is currently broken in Linux 6.18.45.
+> 
+> Since the backport of commit b5964aac51e0 ("netfilter: flowtable:
+> consolidate xmit path") to Linux 6.18.45. This is happening in a router with
+> traffic from wifi to the Ethernet device when mac80211 returns -EOPNOTSUPP.
+> 
+> Upstream fixed it in 871df5007eda ("netfilter: flowtable: bail out if
+> forward path cannot be discovered") by not offloading the flow at all.
+> backporting this change looks more complicated.
+> 
+> This cam up in a discussion in an OpenWrt PR:
+> https://github.com/openwrt/openwrt/pull/24800
+> 
+> An LLM suggested this change: https://github.com/openwrt/openwrt/pull/24800/changes/394d741e6e76ecd172dbbf1d9ba171e378211734
 
-Fixes: 1cd472bf036c ("netfilter: nf_nat: add nat hook register functions to nf_nat")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c | 46 ++++++++++++++++++++++++-------------
- 1 file changed, 30 insertions(+), 16 deletions(-)
+Patch went away.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 8ac326e1eb5b..a4858c2b2d65 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1224,31 +1224,45 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		}
- 
- 		ret = nf_register_net_hooks(net, nat_ops, ops_count);
--		if (ret < 0) {
--			mutex_unlock(&nf_nat_proto_mutex);
--			for (i = 0; i < ops_count; i++) {
--				priv = nat_ops[i].priv;
--				kfree_rcu(priv, rcu_head);
--			}
--			kfree_rcu(nat_ops, rcu);
--			return ret;
--		}
--
--		nat_proto_net->nat_hook_ops = nat_ops;
-+		if (ret < 0)
-+			goto err_free_hooks;
-+	} else {
-+		nat_ops = nat_proto_net->nat_hook_ops;
- 	}
- 
--	nat_ops = nat_proto_net->nat_hook_ops;
- 	priv = nat_ops[hooknum].priv;
- 	if (WARN_ON_ONCE(!priv)) {
--		mutex_unlock(&nf_nat_proto_mutex);
--		return -EOPNOTSUPP;
-+		ret = -EOPNOTSUPP;
-+		goto err_unregister_hooks;
- 	}
- 
- 	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
--	if (ret == 0)
--		nat_proto_net->users++;
-+	if (ret)
-+		goto err_unregister_hooks;
-+
-+	if (!nat_proto_net->nat_hook_ops)
-+		nat_proto_net->nat_hook_ops = nat_ops;
-+
-+	nat_proto_net->users++;
- 
- 	mutex_unlock(&nf_nat_proto_mutex);
-+
-+	return 0;
-+
-+err_unregister_hooks:
-+	if (nat_proto_net->nat_hook_ops) {
-+		mutex_unlock(&nf_nat_proto_mutex);
-+		return ret;
-+	}
-+	nf_unregister_net_hooks(net, nat_ops, ops_count);
-+err_free_hooks:
-+	mutex_unlock(&nf_nat_proto_mutex);
-+	for (i = 0; i < ops_count; i++) {
-+		priv = nat_ops[i].priv;
-+		kfree_rcu(priv, rcu_head);
-+	}
-+	kfree_rcu(nat_ops, rcu);
-+
- 	return ret;
- }
- 
--- 
-2.47.3
+> It seams to work, but I do not understand this part of the code god enough
+> to judge if this is correct.
 
+Could you attach the patch to this email for review?
+
+Thanks.
