@@ -1,27 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9B8490C04
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2026 16:59:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E08144E673
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2026 16:59:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789405149; cv=none; b=M0WM92MPiY7xEGqyVsGhp7G3rhoZ/CpXU8SRmNp7W0lT+qh1Gcl2sYo/MMo/+BrWb/BiW5AKSkbkKpcsmEw38+9p5jZD6blpElodvqqrMy4xOfy4IWHKxH73AR0LmvCDVHB99VMkmQB/EKfU6tZFz20Zdl+Wf3pToCqEknuM11U=
+	t=1789405153; cv=none; b=FyZ8V2kU3jQZaGXvT8LbhZ46wKpQE/ig+VJBAKRY5PLqQSautSwm1mql65qgcA2+csvIXdXKIhj9Uuuu8yPlPD4lng8nvWsAqZi7Ob8rIcoGpZnoSUL81HD5h/NnykC6lkz5oYlFbZ9sRpapTPPDarINh2fKBFT2qGfspyD0E+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789405149; c=relaxed/simple;
-	bh=x5vcxClQAEk8K9oiSFAUxxx5Bxaj2i1a5oLXU+v2idI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OYp65AgwyY4VyPTnqulKmL8CcE9lUnGTPjYagGFAxkP6yS+3UoGZonkiSVIxvG39USaW1fW4x1bo4jxujXXsxHoM7zvovH9raULGLEv5dkncoDSd97Wot2N7kCmG+Ru37wH6DnH7h+sc88aNJiw8TFm0/1DRkxHDfWkbijM9l4Q=
+	s=arc-20240116; t=1789405153; c=relaxed/simple;
+	bh=BSpiGGP1C9WJcIYYKpOmPtqsuTBU8AB5Eh5rWFu/kmA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BLCK25N34S3FO6oS23iVE/rwXg2b3ZLKw5kerObkSdNXowG/PI25K9+LOvDXDZUBLuNzfGHtMYCGG6zYAo7qa/Q+HKuTjxbvjdVkCCEj8chEXYaYULrd+m6qoPAg9GMV9w2ArnVQPfX7MM2TvlED/me0OAHNAzyHzlnQ70R9ElM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A4CF26032B; Mon, 14 Sep 2026 18:59:04 +0200 (CEST)
+	id E4C7760468; Mon, 14 Sep 2026 18:59:08 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 1/6] netfilter: nf_conntrack: validate skb->_nfct and packet headers
-Date: Mon, 14 Sep 2026 18:58:37 +0200
-Message-ID: <20260914165842.4505-2-fw@strlen.de>
+Subject: [PATCH nf 2/6] netfilter: nf_conntrack: refactor helper call logic in nf_confirm()
+Date: Mon, 14 Sep 2026 18:58:38 +0200
+Message-ID: <20260914165842.4505-3-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260914165842.4505-2-fw@strlen.de>
+References: <20260914165842.4505-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,128 +33,198 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-skbs coming from loopback already have skb->_nfct attached.
-act_ct may also attach a conntrack to the skb.
+The current implementation of nf_confirm() handles several distinct
+tasks: retrieving the connection, calculating protocol offsets for
+different network families, and executing the associated helpers or
+sequence adjustments.
 
-Facilities like clsact or pedit can alter headers which may then result
-in e.g. UDP packet with TCP nf_conn.
+Move functionality to extra functions:
 
-Revalidate that this skb matches the skb l3/l4 header.  If not, drop the
-stale reference and let nf_conntrack_in perform a re-lookup.
+1. nf_confirm_get_protoff(): Isolates the logic for determining the
+   protocol offset (protoff) for IPv4 and IPv6 packets.
+2. nf_ct_call_helper(): Encapsulates the decision-making process of
+   whether to call a connection tracking helper or perform sequence
+   adjustment, utilizing nf_confirm_get_protoff() to find the correct
+   offset.
 
-For conntrack helpers, more checks may be required, e.g. tcph->doff
-revalidation.  This is handled in a followup patch.
+NF_CT_STAT_INC_ATOMIC() is now incremented for any NF_DROP, earlier
+this was elided in some cases, IMO that was a bug all along.
 
-Note that the Fixes tag is bogus, back then this was perfectly fine.
-
-namespaces and especially unprivileged user namespaces did not exist and
-all crash-configs were in the "don't do that, then" department.
+Followup patches will extend these new functions with stricter checks.
 
 Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 75 +++++++++++++++++++++++++++----
- 1 file changed, 66 insertions(+), 9 deletions(-)
+ include/net/netfilter/nf_conntrack_helper.h |   2 +
+ net/netfilter/nf_conntrack_proto.c          | 113 +++++++++++++++-----
+ 2 files changed, 87 insertions(+), 28 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d0d9e5ea84a0..57edb07e9b3b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2000,6 +2000,63 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
- 	return generic_packet(ct, skb, ctinfo);
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 335b8c43694f..4b5ee758cff3 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -124,6 +124,8 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 
+ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
+ 		 enum ip_conntrack_info ctinfo, u16 proto);
++int nf_ct_call_helper(struct sk_buff *skb, struct nf_conn *ct,
++		      enum ip_conntrack_info ctinfo);
+ int nf_ct_add_helper(struct nf_conn *ct, const char *name, u8 family,
+ 		     u8 proto, bool nat, struct nf_conntrack_helper **hp);
+ 
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 7a40e4e0e33e..32f900c155de 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -131,36 +131,16 @@ static bool in_vrf_postrouting(const struct nf_hook_state *state)
+ 	return false;
  }
  
-+/**
-+ * nf_ct_get_careful - Get connection tracking entry with protocol revalidation
-+ *
-+ * @skb: Socket buffer whose conntrack entry is to be retrieved
-+ * @state: Netfilter hook state
-+ * @dataoff: Offset to the layer-4 header within @skb
-+ * @protonum: protocol number (e.g., IPPROTO_TCP)
-+ * @ctinfo: Pointer to store ip_conntrack_info
-+ *
-+ * This function retrieves the connection tracking entry associated with @skb.
-+ * Performs revalidation of packet header, unlike nf_ct_get().
-+ *
-+ * If earlier in-kernel mangling (e.g., via TC pedit or clsact) altered packet
-+ * contents (e.g. changing TCP to UDP), this function will drop the conntrack
-+ * reference and returns NULL.  skbs coming in via NF_INET_LOCAL_OUT are
-+ * trusted and never revalidated.
-+ *
-+ * Returns:
-+ *   %NULL - No valid conntrack entry exists or revalidation failed.
-+ *   Pointer to &struct nf_conn associated with skb, may be a template.
-+ */
-+static struct nf_conn *
-+nf_ct_get_careful(struct sk_buff *skb,
-+		  const struct nf_hook_state *state,
-+		  unsigned int dataoff, u8 protonum,
-+		  enum ip_conntrack_info *ctinfo)
-+{
-+	struct nf_conn *tmpl = nf_ct_get(skb, ctinfo);
-+	struct nf_conntrack_tuple tuple;
-+
-+	/* LOCAL_OUT is trusted: in case stack sends ICMP error, skb gets
-+	 * the conntrack assigned via nf_ct_attach().
-+	 *
-+	 * Such conntrack may not even be in hashtable yet, so
-+	 * nf_conntrack_handle_icmp() cannot find a connection matching
-+	 * the inner header.
-+	 */
-+	if (state->hook == NF_INET_LOCAL_OUT)
-+		return tmpl;
-+
-+	if (!tmpl || nf_ct_is_template(tmpl))
-+		return tmpl;
-+
-+	if (state->pf != nf_ct_l3num(tmpl))
-+		goto error;
-+
-+	if (nf_ct_get_tuple(skb, skb_network_offset(skb),
-+			    dataoff, state->pf, protonum, state->net,
-+			    &tuple) &&
-+	    nf_ct_tuple_equal(&tuple, nf_ct_tuple(tmpl, CTINFO2DIR(*ctinfo))))
-+		return tmpl;
-+
-+error:
-+	nf_reset_ct(skb);
-+	return NULL;
-+}
-+
- unsigned int
- nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+-unsigned int nf_confirm(void *priv,
+-			struct sk_buff *skb,
+-			const struct nf_hook_state *state)
++static bool nf_confirm_get_protoff(struct sk_buff *skb, struct net *net,
++				   struct nf_conn *ct,
++				   enum ip_conntrack_info ctinfo,
++				   unsigned int *protoffp)
  {
-@@ -2008,21 +2065,21 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 	u_int8_t protonum;
- 	int dataoff, ret;
+-	int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
+-			 struct nf_conn *ct,
+-			 enum ip_conntrack_info conntrackinfo);
+-	const struct nf_conn_help *help;
+-	enum ip_conntrack_info ctinfo;
+ 	unsigned int protoff;
+-	struct nf_conn *ct;
+-	bool seqadj_needed;
+ 	__be16 frag_off;
+ 	int start;
+ 	u8 pnum;
  
--	tmpl = nf_ct_get(skb, &ctinfo);
-+	/* rcu_read_lock()ed by nf_hook_thresh */
-+	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
-+	if (dataoff <= 0) {
-+		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
-+		return NF_ACCEPT;
-+	}
-+
-+	tmpl = nf_ct_get_careful(skb, state, dataoff, protonum, &ctinfo);
- 	if (tmpl || ctinfo == IP_CT_UNTRACKED) {
- 		/* Previously seen (loopback or untracked)?  Ignore. */
- 		if ((tmpl && !nf_ct_is_template(tmpl)) ||
- 		     ctinfo == IP_CT_UNTRACKED)
- 			return NF_ACCEPT;
--		skb->_nfct = 0;
--	}
+-	ct = nf_ct_get(skb, &ctinfo);
+-	if (!ct || in_vrf_postrouting(state))
+-		return NF_ACCEPT;
+-
+-	help = nfct_help(ct);
+-
+-	seqadj_needed = test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) && !nf_is_loopback_packet(skb);
+-	if (!help && !seqadj_needed)
+-		return nf_conntrack_confirm(skb);
+-
+-	/* helper->help() do not expect ICMP packets */
+-	if (ctinfo == IP_CT_RELATED_REPLY)
+-		return nf_conntrack_confirm(skb);
+-
+ 	switch (nf_ct_l3num(ct)) {
+ 	case NFPROTO_IPV4:
+ 		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
+@@ -169,16 +149,56 @@ unsigned int nf_confirm(void *priv,
+ 		pnum = ipv6_hdr(skb)->nexthdr;
+ 		start = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum, &frag_off);
+ 		if (start < 0 || (frag_off & htons(~0x7)) != 0)
+-			return nf_conntrack_confirm(skb);
++			return false;
  
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
--	if (dataoff <= 0) {
--		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
--		ret = NF_ACCEPT;
--		goto out;
-+		skb->_nfct = 0;
+ 		protoff = start;
+ 		break;
+ 	default:
+-		return nf_conntrack_confirm(skb);
++		DEBUG_NET_WARN_ONCE(1, "helper invoked on non-IP family!");
++		return false;
  	}
  
- 	if (protonum == IPPROTO_ICMP || protonum == IPPROTO_ICMPV6) {
++	*protoffp = protoff;
++	return true;
++}
++
++/**
++ * nf_ct_call_helper() - Invoke the connection tracking helper for a packet
++ * @skb:    The socket buffer containing the packet to be processed.
++ * @ct:     The connection tracking entry associated with this packet.
++ * @ctinfo: The current connection track information (state) of the packet.
++ *
++ * This function calls the l4 connection tracking helper (e.g. ftp, sip...) if
++ * one was assigned to the connection.
++ *
++ * Return: verdict (NF_ACCEPT, NF_DROP, ...)
++ */
++int nf_ct_call_helper(struct sk_buff *skb, struct nf_conn *ct,
++		      enum ip_conntrack_info ctinfo)
++{
++	struct net *net = nf_ct_net(ct);
++	const struct nf_conn_help *help;
++	bool seqadj_needed;
++	unsigned int protoff;
++
++	help = nfct_help(ct);
++
++	seqadj_needed = test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) && !nf_is_loopback_packet(skb);
++	if (!help && !seqadj_needed)
++		return NF_ACCEPT;
++
++	/* helper->help() do not expect ICMP packets */
++	if (ctinfo == IP_CT_RELATED_REPLY)
++		return NF_ACCEPT;
++
++	if (!nf_confirm_get_protoff(skb, net, ct, ctinfo, &protoff))
++		return NF_ACCEPT;
++
+ 	if (help) {
+ 		const struct nf_conntrack_helper *helper;
++		int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
++				 struct nf_conn *ct,
++				 enum ip_conntrack_info conntrackinfo);
+ 		int ret;
+ 
+ 		/* rcu_read_lock()ed by nf_hook */
+@@ -195,9 +215,46 @@ unsigned int nf_confirm(void *priv,
+ 	}
+ 
+ 	if (seqadj_needed &&
+-	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
+-		NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
++	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff))
+ 		return NF_DROP;
++
++	return NF_ACCEPT;
++}
++
++/**
++ * nf_confirm - Confirm (commit) a connection tracking entry
++ * @priv: Private data from the netfilter hook registration (unused)
++ * @skb: Packet
++ * @state: Netfilter hook state containing context (netns, hooknum, in/out devices)
++ *
++ * This function is invoked as the final step of the connection tracking
++ * processing pipeline. It performs two main operations:
++ *
++ * 1. Invokes the associated conntrack helper (if registered) to allow
++ *    layer 7 specific parsing and NAT mangling.
++ *
++ * 2. Commits a new conntrack entry to the conntrack hash table, making it
++ *    globally visible and enabling future packet lookups for stateful tracking.
++ *
++ * Returns: A netfilter verdict, e.g. NF_ACCEPT or NF_DROP.
++ */
++unsigned int nf_confirm(void *priv,
++			struct sk_buff *skb,
++			const struct nf_hook_state *state)
++{
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++	int ret;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct || in_vrf_postrouting(state))
++		return NF_ACCEPT;
++
++	ret = nf_ct_call_helper(skb, ct, ctinfo);
++	if (unlikely(ret != NF_ACCEPT)) {
++		if (ret == NF_DROP)
++			NF_CT_STAT_INC_ATOMIC(state->net, drop);
++		return ret;
+ 	}
+ 
+ 	/* We've seen it coming out the other side: confirm it */
 -- 
 2.55.0
 
