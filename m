@@ -1,90 +1,104 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE60F45DF68;
-	Mon, 14 Sep 2026 12:28:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 435C3463B96
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2026 12:33:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789388933; cv=none; b=P3ET0lN+qkgZvZZLhLqv/ME2IH8JeOBrDoncqvyeFds9GNA1w8GM+mTrY3nVRZGBJjX/A9sKs4JeE8ooBs+LGHX8azPPikyeUCyS/8m1XSQirkHzeVPnB/bXDnAcVb02XGN8yzXzYItQAX1+I3KGnkjwXTlCyYBAtuqG+omg1Fc=
+	t=1789389222; cv=none; b=s1gv2fw1BCggm1Y6Eu2RxnzemQWpnAMml2I+Ygm9mLjcF4ihXlYyPYoPMQTSs9YAEsrwDgW/Y+mKOZQQw7mauQbz3sEWE5j8haez32+xjtGDPaNnTKD8RxzrGN43aVFQU4X40cDPN8/Emoe0tPyaztR+xTPLOa2r8LFsO9WxIvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789388933; c=relaxed/simple;
-	bh=88gjqkU5xAcXF48o6O1dmyPVBsMwJ9OhfUENJXfo0d4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JxkkEaoPchzXb4DoiUVByQzINR2JKHNu3zNWU6c7fgh3PWrnC9hb5RpMYI7OtA5M/rNHqJW7axSM4HhGWWYLUAv/O+opHWJrrAvJdwlzoowr39BZ6527Ee0SCdOa07SlG8GVcU17yrqdbmVerBQGEjsHqtXPWWW5xaheDyt9/bc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Tv0/W2bo; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789389222; c=relaxed/simple;
+	bh=aFZduLWws3PfQNR14vltzqVwT9gBXOl50HVQnfIVy0s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LDAsPGxKkI0CV1ERR/w3loXWP3Z51rCIwyzQ1O4Kzt/0Ataku2Lt/KWQset+W4w9fYJPs8kwVCaoKUgmUdDl1h3iaUF89hG1QplrHXzkgCtZgCLD/JjrJUc+2UZmL6puchFkLealH2jTC7mwwzwsvNQA5hbni0kJ9sXkSEl4o9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MAo8u+Wx; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Tv0/W2bo"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MAo8u+Wx"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789388928;
-	bh=ZcTvJohNr77d40JF4EM+rf0NaLP39PMwUENUc5J5E30=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Tv0/W2boC7DCz5e03hPfHDNKJyIIDcX4ZUZx//g4I07paFLPdKz1pXA/TH171esk4
-	 IsIP1avG57Wep1131WSxMBSkJ0IkScW5Wu6U8NUhBObIaEowLIfebJI6JzhkVeahd3
-	 F5rpyQmpCqOHJImRkKfv53jv/Y6J06DPDOXPt5xlwmvGaglGs34W0eix8Py/ZvUmjZ
-	 KodqVPJ9pXaSttDU0hZ4Ip4gwq92Dcv8F+DoFm+5ciBBR7ihJ5yoDyJCWaaoShs8Rl
-	 +GyY9MqEJARI2wWVowtXa1efJdf7P+Usj1pmIWeLEQLzVa/WG1HjyQ95RTzApRO6OD
-	 RWUZIWlTQl2Eg==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 779B760055;
-	Mon, 14 Sep 2026 14:28:48 +0200 (CEST)
-Date: Mon, 14 Sep 2026 14:28:46 +0200
+	s=2025; t=1789389217;
+	bh=wLPAcp7J3zwLeMDnznxHPnNcJyPKlkUvOCzDhEu1MfM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=MAo8u+WxSE2mjOrtc8vitXu6g0BZR8fV3JTKdimj4wzHP25EYA/FKV1Rbkn9rJrPu
+	 NoR0nBblGYyVxoh8+h10rRpvpuOfEHtEArQBbqEbmMj0LzJcx+XuOEssxCg8BiLoAC
+	 dOklwYvk2b764jnx9k8kQPEhF5Dz8it/PAENNvRn3KSgk2xVNyY0fV+oiXQYYW9jjT
+	 wLNC/uMbOk1tP+C2B4OQGamklvn5RmE4a9OVLYK2rJRe1ff0btHGFzvHCTO2PBEAcz
+	 +mS3szOlOlZPq1V+TdW8t5YqzNTLYVn+COg1StanQfoa0J14rhg1GGsHeEahS2Ceyy
+	 a4Srtd9wlc67Q==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8AEC960055;
+	Mon, 14 Sep 2026 14:33:37 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Hauke Mehrtens <hauke@hauke-m.de>
-Cc: stable@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: network flow offloading broken in 6.18.45+
-Message-ID: <aqfofgtUfyXlfHLr@chamomile>
-References: <7dfa42f6-64c1-4084-bfea-d57500c245cf@hauke-m.de>
- <aqcfvRE3aHoAx8s7@chamomile>
- <aqcgG0y-nYz4DWz3@chamomile>
+To: netfilter-devel@vger.kernel.org
+Cc: hauke@hauke-m.de
+Subject: [PATCH nf,v2] net: update dev_fill_forward_path() to handle mac80211 special case
+Date: Mon, 14 Sep 2026 14:33:34 +0200
+Message-ID: <20260914123334.1964397-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aqcgG0y-nYz4DWz3@chamomile>
+Content-Transfer-Encoding: 8bit
 
-Hi,
+Before commit b5964aac51e0 ("netfilter: flowtable: consolidate xmit
+path"), there was a fallback to create a bypass in case
+.ndo_fill_forward_path fails.
 
-On Mon, Sep 14, 2026 at 12:13:50AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 14, 2026 at 12:12:16AM +0200, Pablo Neira Ayuso wrote:
-> > Hi Hauke,
-> > 
-> > On Wed, Sep 09, 2026 at 06:29:50PM +0200, Hauke Mehrtens wrote:
-> > > Hi,
-> > > 
-> > > flow offloading is currently broken in Linux 6.18.45.
-> > > 
-> > > Since the backport of commit b5964aac51e0 ("netfilter: flowtable:
-> > > consolidate xmit path") to Linux 6.18.45. This is happening in a router with
-> > > traffic from wifi to the Ethernet device when mac80211 returns -EOPNOTSUPP.
-> > > 
-> > > Upstream fixed it in 871df5007eda ("netfilter: flowtable: bail out if
-> > > forward path cannot be discovered") by not offloading the flow at all.
-> > > backporting this change looks more complicated.
-> > > 
-> > > This cam up in a discussion in an OpenWrt PR:
-> > > https://github.com/openwrt/openwrt/pull/24800
-> > > 
-> > > An LLM suggested this change: https://github.com/openwrt/openwrt/pull/24800/changes/394d741e6e76ecd172dbbf1d9ba171e378211734
-> > 
-> > Patch went away.
-> > 
-> > > It seams to work, but I do not understand this part of the code god enough
-> > > to judge if this is correct.
-> > 
-> > Could you attach the patch to this email for review?
-> 
-> I've found it :)
-> 
-> https://github.com/openwrt/openwrt/commit/d2b53b8043e17087b877bfc2335cbba87dffb4e0
+Commit d787a3e38f01 ("mac80211: add support for .ndo_fill_forward_path")
+relies on such fallback, so most mac80211 drivers used to work since
+they do not provide a net_fill_forward_path interface.
 
-I've proposed the following fix:
+Add a special case to dev_fill_forward_path() by returning 1 in case
+.ndo_fill_forward_path is implemented but this is expected to be the
+last device in the forward path stack.
 
-https://lore.kernel.org/netfilter-devel/20260914122456.1963453-1-pablo@netfilter.org/
+Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: do not incremental stack->num_path, use the existing empty slot.
+
+ net/core/dev.c       | 4 +++-
+ net/mac80211/iface.c | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index ecfbd72d5d1a..53140edfd1b4 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -787,6 +787,8 @@ int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 		ret = ctx->dev->netdev_ops->ndo_fill_forward_path(ctx, path);
+ 		if (ret < 0)
+ 			goto err_out;
++		else if (ret > 0)
++			goto out;
+ 
+ 		stack->num_paths++;
+ 		if (WARN_ON_ONCE(last_dev == ctx->dev))
+@@ -795,7 +797,7 @@ int dev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 
+ 	if (!ctx->dev)
+ 		return ret;
+-
++out:
+ 	path = dev_fwd_path(stack);
+ 	if (!path)
+ 		goto err_out;
+diff --git a/net/mac80211/iface.c b/net/mac80211/iface.c
+index 43460a705a6b..8c0cc2b4c6ed 100644
+--- a/net/mac80211/iface.c
++++ b/net/mac80211/iface.c
+@@ -998,7 +998,7 @@ static int ieee80211_netdev_fill_forward_path(struct net_device_path_ctx *ctx,
+ 	local = sdata->local;
+ 
+ 	if (!local->ops->net_fill_forward_path)
+-		return -EOPNOTSUPP;
++		return 1;
+ 
+ 	rcu_read_lock();
+ 	switch (sdata->vif.type) {
+-- 
+2.47.3
+
