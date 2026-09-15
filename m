@@ -1,63 +1,63 @@
 Received: from mail-vs2-f12.google.com (mail-vs2-f12.google.com [74.125.227.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A11163AD510
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2026 22:41:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E43F3457E47
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2026 22:41:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789512095; cv=none; b=d2X2Sm7OZUNF242+10+Sa34OIgKlEgVSgl2qO3lBxqgNRxBhNBPbyIcv603Kit6da279jUqSkmVgf7cPWemwUK5QtRDIzt7hvtmcOQZ8rLP7/3G5XS5heQNzcv/k7gKlvLAagCQUjG87XCdcY585lRd/m6ruApXkaknXVFKYCxk=
+	t=1789512099; cv=none; b=UOmSS+hZwS/TFWaPNEPMdMRT3EL3oYKfHISfVlpe8CuMxhJc0CnGe9IRplsYgHUJ0SUmMQO8XaskxHLIV7mK9H9XDvCRIikBX8aCzt37L5i9nn0GvfDbUgD7lXayPpFVOHLrnEteb5NtibfoXtPJccwzD0exUUFgV2568C1V2lY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789512095; c=relaxed/simple;
-	bh=Kyh4J3uXxKY1C5bNjX3MqrZtSsK7sPC1wg2NbNBCIwQ=;
+	s=arc-20240116; t=1789512099; c=relaxed/simple;
+	bh=b5HK13t+01lwgK8AZFDZ/c6dAg/YzLEfRUoQx1+pzkc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kfbQvgvvJn/kFPAiOi2m1hEF9uCSRPW1+sqC1yFlIXal2oV778X/8SlIBHc01/XsU9EZ7uMFtXJuf/JeRaEKkHKhybbgQFbPL9ZU+RQzPp+Hsa22hw9W2eFv/uRFN23zP92W7ehhLV2i5ovw3psT2VvlziN/sStRdk+vRLA02qY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NdSdKhdS; arc=none smtp.client-ip=74.125.227.12
+	 MIME-Version; b=qQSI00Uusxf7wLGvXkG60BHpkb/8CERff7jBbrI7PL5zb5gNSLHqyUN3My7z5hwzdJmPg5niJXTddztzang5AMix5Z43kVNBE0CUCV/KHTbvNY1lmP5c7eUKs+lrjJ0t4ZvpcnTG0aSopEtc8fI0PowzDIQQFKU8bAqDO0BHAb4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GXqLpPGs; arc=none smtp.client-ip=74.125.227.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NdSdKhdS"
-Received: by mail-vs2-f12.google.com with SMTP id 71dfb90a1353d-5c67e4d9197so203332e0c.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2026 15:41:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GXqLpPGs"
+Received: by mail-vs2-f12.google.com with SMTP id 71dfb90a1353d-5c67e2ff27eso222127e0c.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2026 15:41:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789512092; x=1790116892; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1789512097; x=1790116897; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=StfeLdJl3NyRKAxmr0Q5/80WQQS9SqqL1W9LYvixQ08=;
-        b=NdSdKhdScUzYzMswHvXVNikOpAnUaU7uhcaPZrFQjTnmgD6yb6CurcXqH8r3xJdS2D
-         e1JRz2FMqQpbKVk6ushXLvSWMjhW4ir1N1R4j/YqnxoC+lW1Ts/CC79dUD75ObZOezBw
-         UXQtXtBOOz54fEYuOVaqaIhHMQcerH3Og3uDeVdgzm+0hXbLH40lyapDKBUPaEQgyIlE
-         SMHJzNsDVBhgkYTkbg7znDMEqYx+R/p8RW1S00ABUJ6KAWDeOGSzUM8UwFys919GNC4Z
-         iN58Fn45wOapDfRETWbabiAaTXH/xiNkcMx64h8WQR+wklgunAJVQvJHCE9/xDvCVN9n
-         hqfg==
+        bh=dv7QSeB8GfKRYOXWHXl+MRBO8PNA3iqQd4syPlAQa2E=;
+        b=GXqLpPGsdfhKOjl1gaEAsnDI7Mp+MYioj9hqxB3IKIJ+icU0z8gGvlLsCgFOHZposs
+         TkkK2Hx0ddpO2e+O2f93gZCGzcssXMriDekgqFMV0QtB9bRexQya675lnyJcbQW5cm/G
+         DBtKIM/xj2WxnEp2wcy6PlFqVmN1MKk3PZ1LC8gcBNgHBRmkMdTmmQ2FNou4cxU5qxsk
+         G8XrNpsCyWKXH9u6a/e3jr3sE2ZHebjdSuOA4ORFTV5VTFYeT7YAc9LKpKyEuwylCYLU
+         YfxqMizG/Ks/OilIEUtNoTJ89q74CBImr4E44/WV4+r1BnGiuZCQWBcFMAGpevaClpFP
+         DeXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789512092; x=1790116892;
+        d=1e100.net; s=20260707; t=1789512097; x=1790116897;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=StfeLdJl3NyRKAxmr0Q5/80WQQS9SqqL1W9LYvixQ08=;
-        b=y1w8in6S/G55XlXScryM+xjQON/mAWp/GHpbY8mKHAEq9cVSFkr2Hqh0iyVBelfhg4
-         wCfRlGjmTHH3gIvk6nXtL58OhQYYIuR5ZxVR5RYKZIZL0rSRu5M99CZ48Volg7VkplnW
-         zKrOYURaypEakZIUllN6MdzNfZ4zqdkb3EvwcV73o2u6SqscZuCdLUxqwjBREZSYrgSP
-         wxuoEPgB9GjUVvP9a9TMRARXjBb2KIox3Fmiew7mqDEvakxIfplVaZe6q5uj10ob5Wld
-         LTBxzap9tb1rAzAilpGUnIoM/L5Ju6BqViN3F4KuTQag3naDHWqkC/GRfcHrkbCFr08z
-         FFMQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzHY7wqvvJ9ilOMRKdUzYrLl3Zg+nCHnWMKEf1KxlT5RliSkfNLucoICfIE0brqOc1lBbc1QiX8dQmzdqxgl9w=@vger.kernel.org
-X-Gm-Message-State: AFuF++loMWKQt9r38b2B+dH6WzLzEyhpIZ82HUZ5hnVOl3tCvMdbRLsE
-	cuixBPE4tmsXaqsSttoUEOkYOHyshdxwjexIgO4OE1M73zhtWsLzaRog
-X-Gm-Gg: AYBFou36N3Q2gxDSOLDX8d6d3w7+HRD71JZW1JoLGNk++Yoa2PXpCn8sJ2bGW7K2oTo
-	UdidSXJxpN+GwI7bt8IbmNkxVain23O0XPW4BGzPjp8f56kdLsGvAR/ZSl4j5nRuT0wbYskEic3
-	hRKzF4K9NHJvIyfFd3n5EIuLwBc9sacJygtydtbD2uxSLfYJVljnNZvqBorgCKpiUC+1t+a0k+3
-	jttHn2TJGgaboucb/0E5hf/uuVfQ9RXNbgmwNCBHq/dVlKPRr79DFVYQySULd766L96XR94Z/0o
-	Oh/Rb8m1VEc0KSBPM4xgj2ErCkDwpsbbgci0WsPYhAKWZ6Zmyj5+ZjZaYmMEoGyC9VPVWG2psBs
-	vcNvymhtJO8OCR6tT/hIsFgTR2sqqsJ4pQ4A35sSLLRAVQJiwyuk/UkIexuO1b1oPgNLS5/BOzf
-	xcod+lWxkoFIO5RUQ0YeHdZO6NWrBnPatSRZPYKj/vVmA9UhuyzLsevYpaoaw+/bM=
-X-Received: by 2002:a05:6122:288f:b0:5c6:6189:c756 with SMTP id 71dfb90a1353d-5c99ab6f120mr226744e0c.2.1789512092282;
-        Tue, 15 Sep 2026 15:41:32 -0700 (PDT)
+        bh=dv7QSeB8GfKRYOXWHXl+MRBO8PNA3iqQd4syPlAQa2E=;
+        b=v3qEOHo6COYoljnrmtORF+ktXFzGDRovAlcsZ38LqgSZJ/ryyLs1/dlwGG/LkBsJD+
+         /tSYZhxZCPeZEs6d7juWYKwscYYvaC/wCcm0FJqIGPl6G25A7Ec9YKUflPjPPaqHn/Qz
+         PFBfZGp3dNH/ozxbyHtzo51OvMyk29J5cqRkzn+MPTmfw6DpqJOENGDW/DL0pQyT+h70
+         ZnYX1UNa3c6HSciG8d0IFOFhWQoLPHFOomY+wv4WKa+1/aDUbQheYJieJtW+BjZZi/6h
+         Xbjo1wMBhnE7yzks1A9siQnJ1+JjPzs9EbZo6P0G2hJK88Cf6a5XSxShyGTlhzj1ZrPN
+         s1rQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxEfqveW7TSp/PWZb8CA9Ft4ja/q0w00eIWUpnjC8cXEpCiA6xjy3CgwHsW8Vi2ZylQuD6dqcaW7TEmsQA9lKk=@vger.kernel.org
+X-Gm-Message-State: AFuF++lqRJv8AfGqLBfVeoZL7b79B/PTEGkpxh7hsKxq4GZXOrX9QBDI
+	74DVQna7V0/stYQ28/Cj7MFzdJDKI+Xf/J4srhRSFVLGACZbvspytKI6
+X-Gm-Gg: AYBFou0gKjatTdYcfB8ltQECqGkqoHCB7VD4ior/pM1TDgPkdzpiMduZps5vCQci2PS
+	T0+TB72DjsXI6HQ8sMq0bRDz3tOSiNf5MqcQIEq+VnQbh1LoYnBx1sZ2hh3q/aNhjdUJUvlsUjT
+	W1Qw8whOsGabTyMpaTGDuOwUXprBtVKb2FcNRZH8c0MUZAkKf5iWplwmyMhS0wkJd9Pp/NaTUOY
+	F5sLPazyGo/XqNzkzSTWkOmd/7LKcUFtXZj+BlfqAKVFocxAatwOCqEIkuo35dBA6DjwwpN82Rs
+	7CtzVqQLXa5Lu6aHNwpdq9sucsk6fLMpuNyLkxZLUGqA4mM7qQlb5Y+t7jmirbnb3gboaQ2iZnm
+	qdgCdy/2lOYBchhvb3KtaPKxSeRU2g74JEf262Y7EBXFQLxxgpcZ4dq5cgXnlzgqJqb8p7A05XV
+	nj2UYYT+FeCpNHdryhZSwbhOoICPj90HxMCsE1ZJNLjw9yELGAry6e5b/F7s17JfA=
+X-Received: by 2002:a05:6122:d24:b0:5c7:fbb5:6ea0 with SMTP id 71dfb90a1353d-5c99ae061c4mr302570e0c.4.1789512096679;
+        Tue, 15 Sep 2026 15:41:36 -0700 (PDT)
 Received: from adriano ([190.215.95.120])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c9988e5f27sm974975e0c.1.2026.09.15.15.41.28
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c9988e5f27sm974975e0c.1.2026.09.15.15.41.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Sep 2026 15:41:32 -0700 (PDT)
+        Tue, 15 Sep 2026 15:41:36 -0700 (PDT)
 From: Adriano Cordova <adrianox@gmail.com>
 To: Simon Horman <horms@verge.net.au>,
 	Julian Anastasov <ja@ssi.bg>
@@ -73,9 +73,9 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	lvs-devel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	Adriano Cordova <adrianox@gmail.com>
-Subject: [PATCH v2 1/4] ipvs: add flags for per-service secure TCP state table
-Date: Tue, 15 Sep 2026 19:41:01 -0300
-Message-ID: <20260915224104.639985-2-adrianox@gmail.com>
+Subject: [PATCH v2 2/4] ipvs: stamp per-service secure_tcp on connections
+Date: Tue, 15 Sep 2026 19:41:02 -0300
+Message-ID: <20260915224104.639985-3-adrianox@gmail.com>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260915224104.639985-1-adrianox@gmail.com>
 References: <20260915224104.639985-1-adrianox@gmail.com>
@@ -87,45 +87,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add IP_VS_SVC_F_SECURE_TCP to mark a virtual service for the
-DoS-hardened TCP connection state table, and
-IP_VS_CONN_F_SECURE_TCP to carry that capability on a connection
-so the TCP state machine can select the hardened table for it.
-
-The service flag is 0x0100: bits 0x0008/0x0010/0x0020 are the
-scheduler bits, so leave 0x0040/0x0080 free for schedulers.
+Set IP_VS_CONN_F_SECURE_TCP on every connection bound to a
+destination whose service carries IP_VS_SVC_F_SECURE_TCP.
 
 Signed-off-by: Adriano Cordova <adrianox@gmail.com>
 ---
 Changes in v2:
-- Let IP_VS_SVC_F_SECURE_TCP be 0x0100, leaving 0x0040/0x0080 free for
-  scheduler flags.
-- Let IP_VS_CONN_F_SECURE_TCP be (1 << 17) and drop it from
-  IP_VS_CONN_F_BACKUP_MASK.
+- Set the flag in ip_vs_bind_dest() instead of at every ip_vs_conn_new()
+  call site.
 
- include/uapi/linux/ip_vs.h | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++++
+ net/netfilter/ipvs/ip_vs_core.c | 3 +++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-index 2c37c6ac7525..ade170109ff4 100644
---- a/include/uapi/linux/ip_vs.h
-+++ b/include/uapi/linux/ip_vs.h
-@@ -27,6 +27,7 @@
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 6fa3e1dc534c..0b465298b64b 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1090,6 +1090,7 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ {
+ 	unsigned int conn_flags;
+ 	__u32 flags;
++	struct ip_vs_service *svc;
  
- #define IP_VS_SVC_F_SCHED_SH_FALLBACK	IP_VS_SVC_F_SCHED1 /* SH fallback */
- #define IP_VS_SVC_F_SCHED_SH_PORT	IP_VS_SVC_F_SCHED2 /* SH use port */
-+#define IP_VS_SVC_F_SECURE_TCP	0x0100		/* use the hardened TCP table */
+ 	/* if dest is NULL, then return directly */
+ 	if (!dest)
+@@ -1102,6 +1103,9 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ 	if (cp->protocol != IPPROTO_UDP)
+ 		conn_flags &= ~IP_VS_CONN_F_ONE_PACKET;
+ 	flags = cp->flags;
++	svc = rcu_dereference(dest->svc);
++	if (svc && (svc->flags & IP_VS_SVC_F_SECURE_TCP))
++		flags |= IP_VS_CONN_F_SECURE_TCP;
+ 	/* Bind with the destination and its corresponding transmitter */
+ 	if (flags & IP_VS_CONN_F_SYNC) {
+ 		/* Synced conns are hashed, so they can not get this flag */
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index ba0957798bad..aa8a3a964ffd 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -784,6 +784,9 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 				      IP_VS_CONN_F_ONE_PACKET : 0;
+ 		union nf_inet_addr daddr = { .all = { 0, 0, 0, 0 } };
  
- /*
-  *      IPVS sync daemon states
-@@ -105,6 +106,7 @@
- 
- /* Flags that are not sent to backup server start from bit 16 */
- #define IP_VS_CONN_F_NFCT	(1 << 16)	/* use netfilter conntrack */
-+#define IP_VS_CONN_F_SECURE_TCP	(1 << 17)	/* use the hardened TCP table */
- 
- /* Connection flags from destination that can be changed by user space */
- #define IP_VS_CONN_F_DEST_MASK (IP_VS_CONN_F_FWD_MASK | \
++		if (svc->flags & IP_VS_SVC_F_SECURE_TCP)
++			flags |= IP_VS_CONN_F_SECURE_TCP;
++
+ 		/* create a new connection entry */
+ 		IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __func__);
+ 		{
 -- 
 2.51.0
 
