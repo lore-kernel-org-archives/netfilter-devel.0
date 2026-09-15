@@ -1,94 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E8927A47F;
-	Tue, 15 Sep 2026 00:21:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8DF33A961A;
+	Tue, 15 Sep 2026 08:15:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789431672; cv=none; b=gTk3UldlpS8+i0bY68BlQjGp+JRVEirAze6lmOwLrWmehiGzNYFeCCbasGfv4O608YV0TtV8vWVvLXA8C2wgGtVwalmpKDKdE3mpEv274bvDN8APzS2rB8HMgdWt1q3CUyO8zUenzrkIFodEnIe6aJsOYmClSMc3rHFAzd/LZG8=
+	t=1789460134; cv=none; b=h5NsRtGAtIVAAQd0Udbi3XwozPu4MNfTuR2S2IbVziiaht/kn1lYSmiEwhzycICmEjJca+oK1tcg0RoaIxDz+0f3o+qVHH402TOqeIpNXsDV74cZBhUacrZSzTmKiV8uDqYMIfyY4k9F25wfD4VGOOyU3sJ+M27bqmJRdV4u4Xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789431672; c=relaxed/simple;
-	bh=cUnjdvNRb1PXE6Rc0wmy0k+B6Job5/nz4WuKYy68McU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=SUi1vDe4aN0huO2rxANeK0QFUPXYABPe1LvP1t4TmJ17xhWkVLvKWTVtp9uRfYuSNtM1OP4KB5myg+dvnf4fZYKI66V92d4466ziL7NcTN1RN4V1mcTdtGsks5YDKmgvGobybkUSVxYFJEAERXMjpSlZNDVCD2zXIIj3WTYZj8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xv6P3Sgb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789460134; c=relaxed/simple;
+	bh=cPRbZPEs8ojOrPWPVXYqdY5vmFNELiY+U1btNbqjbqo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OL9/LKzmbqXxjil7oOM/m0qZlrh78YjV2NSkobuaHSRe+cfUrD/DNEfIHvKjfz6fKv+ibQxxeELlXhIZmULa4unfryB3kfAr7+zjmQmp4FOmOE+UczvX6uzFp1ma1D9W2oN1Awo3WhkMkrkJC3uFX1IGe6AODIpybSBUb0Bs3rw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OA4GbUeH; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xv6P3Sgb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E260C1F000FF;
-	Tue, 15 Sep 2026 00:21:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789431670;
-	bh=E20L9yKp4XRKGgOaSdJzezBFqCiY2QemMpeF4gDk6tc=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=Xv6P3SgbR/XPl5VzWg8N63sVLz/BrKmz+QY7D4+vjHj9SGXvxBJK1la/WTDyzq552
-	 EnWb/KE+C6x1RDJXJuqAzD6AdukGDMMoFZ4ZyACNqMqcbf0m7cBsufjB6gPHd6bRIG
-	 TR+dx9+/bZGuVGVY5zf9UWOVzu8vwLXyggwmYg64DVlGx7xJGrAxcz0Z8AqeWkB/V5
-	 wzdB3PzN5yFWC/hydeBSSs9lWNQCeRcCShCk/VHaISLw/oAL/3DkhVr1zl0UP69X7V
-	 BB0f/5E7hfMZJD0Yd6FsprKyqHJSK49E4RSFOd9bkmw1DU0yV4EYVDnwedcqwsQtgm
-	 B7SvbU70rlb7A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 1983C3924FFC;
-	Tue, 15 Sep 2026 00:20:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OA4GbUeH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1789460123;
+	bh=+mLf7YJol3PGpt7VzxE3z1ex1n/DMEGBgz1mEFBBuqQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OA4GbUeHsWCMBylKJv5e4/ybLArn0rDP3Hiyj7oUY1xdS56Y+NRjZ9OOd/ggGguNY
+	 AIJEcP3UFMFkymnwKuPaTW5gDAZVLKBwThHwei8lDdkvOpUBOvobvGYmbJKTEJu+/4
+	 7esN1I9zbRhsMVLGJuHCKOmau1+7hJfeMu6Cfl71TOKswGQgNyvof6Y4XuRc4dvZM/
+	 HoO0wSUPF3wkmqrNcdMceCaTXNR8qNfRz5PfYAQWuo6y+heHlOG0Ynzm5Qeqc3eQkJ
+	 yoH+AfsanB7Ds0Vja2uvi+w+FwIfuR3ASboQ0HMjIiFCz4OSLhvlA/KNStW2ngXGyv
+	 6PiaeSMmVURpg==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D28EF60054;
+	Tue, 15 Sep 2026 10:15:22 +0200 (CEST)
+Date: Tue, 15 Sep 2026 10:15:20 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Hauke Mehrtens <hauke@hauke-m.de>
+Cc: stable@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: network flow offloading broken in 6.18.45+
+Message-ID: <aqj-mK5O-J4PcbLv@chamomile>
+References: <7dfa42f6-64c1-4084-bfea-d57500c245cf@hauke-m.de>
+ <aqcfvRE3aHoAx8s7@chamomile>
+ <aqcgG0y-nYz4DWz3@chamomile>
+ <aqfofgtUfyXlfHLr@chamomile>
+ <aqfqQPP2Y7iG3kM_@chamomile>
+ <a031049b-ca94-4e11-b7b8-7b4c2acba954@hauke-m.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/8] netfilter: seqadj: do not take ct lock if
- seqadj
- is NULL
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178943160590.1282643.5687217999370487767.git-patchwork-notify@kernel.org>
-Date: Tue, 15 Sep 2026 00:20:05 +0000
-References: <20260911084437.1838161-2-pablo@netfilter.org>
-In-Reply-To: <20260911084437.1838161-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <a031049b-ca94-4e11-b7b8-7b4c2acba954@hauke-m.de>
 
-Hello:
-
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Fri, 11 Sep 2026 10:44:30 +0200 you wrote:
-> From: Fernando Fernandez Mancera <fmancera@suse.de>
+On Tue, Sep 15, 2026 at 02:20:25AM +0200, Hauke Mehrtens wrote:
+> On 9/14/26 14:36, Pablo Neira Ayuso wrote:
+> > On Mon, Sep 14, 2026 at 02:28:49PM +0200, Pablo Neira Ayuso wrote:
+> > > Hi,
+> > > 
+> > > On Mon, Sep 14, 2026 at 12:13:50AM +0200, Pablo Neira Ayuso wrote:
+> > > > On Mon, Sep 14, 2026 at 12:12:16AM +0200, Pablo Neira Ayuso wrote:
+> > > > > Hi Hauke,
+> > > > > 
+> > > > > On Wed, Sep 09, 2026 at 06:29:50PM +0200, Hauke Mehrtens wrote:
+> > > > > > Hi,
+> > > > > > 
+> > > > > > flow offloading is currently broken in Linux 6.18.45.
+> > > > > > 
+> > > > > > Since the backport of commit b5964aac51e0 ("netfilter: flowtable:
+> > > > > > consolidate xmit path") to Linux 6.18.45. This is happening in a router with
+> > > > > > traffic from wifi to the Ethernet device when mac80211 returns -EOPNOTSUPP.
+> > > > > > 
+> > > > > > Upstream fixed it in 871df5007eda ("netfilter: flowtable: bail out if
+> > > > > > forward path cannot be discovered") by not offloading the flow at all.
+> > > > > > backporting this change looks more complicated.
+> > > > > > 
+> > > > > > This cam up in a discussion in an OpenWrt PR:
+> > > > > > https://github.com/openwrt/openwrt/pull/24800
+> > > > > > 
+> > > > > > An LLM suggested this change: https://github.com/openwrt/openwrt/pull/24800/changes/394d741e6e76ecd172dbbf1d9ba171e378211734
+> > > > > 
+> > > > > Patch went away.
+> > > > > 
+> > > > > > It seams to work, but I do not understand this part of the code god enough
+> > > > > > to judge if this is correct.
+> > > > > 
+> > > > > Could you attach the patch to this email for review?
+> > > > 
+> > > > I've found it :)
+> > > > 
+> > > > https://github.com/openwrt/openwrt/commit/d2b53b8043e17087b877bfc2335cbba87dffb4e0
+> > > 
+> > > I've proposed the following fix:
+> > > 
+> > > https://lore.kernel.org/netfilter-devel/20260914122456.1963453-1-pablo@netfilter.org/
+> > 
+> > Actually, this v2 should work:
+> > 
+> > https://lore.kernel.org/netfilter-devel/20260914123334.1964397-1-pablo@netfilter.org/
 > 
-> This is a small optimization, only take ct lock if seqadj is present. In
-> the unlikely case seqadj isn't present we can return immediately. This
-> is consistent with the behavior of other functions that checks seqadj.
+> Hi Pablo,
 > 
-> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Thank you for looking into this.
 > 
-> [...]
+> I think we have to handle DEV_PATH_MTK_WDMA like we do it with DEV_PATH_DSA
+> in nft_dev_path_info() too.
 
-Here is the summary with links:
-  - [net-next,1/8] netfilter: seqadj: do not take ct lock if seqadj is NULL
-    https://git.kernel.org/netdev/net-next/c/1b9c4f3f9cd2
-  - [net-next,2/8] netfilter: x_tables: use GFP_KERNEL_ACCOUNT in match/target
-    https://git.kernel.org/netdev/net-next/c/ba100f6f2a02
-  - [net-next,3/8] netfilter: nfnetlink: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/ef2344e67c0c
-  - [net-next,4/8] netfilter: nf_tables: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/e8609e8d56fb
-  - [net-next,5/8] netfilter: synproxy: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/399a0b7f3258
-  - [net-next,6/8] netfilter: sysctl: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/324ca7a2b6fe
-  - [net-next,7/8] netfilter: nat: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/70deb8ec08cf
-  - [net-next,8/8] netfilter: conncount: use GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net-next/c/0e28586ee444
+I don't think you can find DEV_PATH_MTK_WDMA from nft_dev_path_info().
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+There is a story about this: Felix needed a way to expose the MTK SoC
+capabilities in some way to drivers, he decided to use the
+.fill_forward_path interface for this purpose.
 
+See mtk_flow_get_wdma_info(), it makes a direct call to
+dev_fill_forward_path() to get the DEV_PATH_MTK_WDMA.
+Therefore, it is not possible to see DEV_PATH_MTK_WDMA from
+nft_dev_path_info() because it does not belong there.
 
+I suggested a new interface for this but SoC requirements were not
+clear at the time IIRC.
+
+My patch is a workaround, so dev_fill_forward_path() does not fail for
+this case.
+
+> mt7915_net_fill_forward_path() from
+> drivers/net/wireless/mediatek/mt76/mt7915/main.c could also return
+> -ENODEV like mac80211 does.
+> Should we backport 871df5007eda to 6.18 instead?
+
+Does 871df5007eda fix the issue for you?
+
+If I understood correctly, this simply results in not setting up the
+flowtable bypass? ie. ethernet to wifi will just fall back to classic
+forwarding path.
