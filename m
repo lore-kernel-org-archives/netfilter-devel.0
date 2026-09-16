@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C6E37F8CC
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2026 13:28:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE21F2D8385
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2026 13:37:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789565300; cv=none; b=UtLodiS6X0vBZORgkDEXyYegbWqDQl7yG8NOE4R1WAb8rEiXXqct9yOBwxzsfYmWyTcqLoIBgfU21PUnyZB3EO9FeRPhc+nN4uE2HtKDb+MaRGtF9rJOZ88ttXGCNqp4P9nidZoOoDxuZ4DN2k2Nuoi+2MGi9GO7oQuJHtamnFg=
+	t=1789565839; cv=none; b=HC+43n1+enJNtfIKh92gza+/PVnme0owjcYSrI4lZr2m380Ow1QukxyD2bZSNWqlgcZlFxYvaLpOHzpA+dbhUofv+Myw1SJmykF5DdTbvOHcn7oyS6MDRRdS6Q78uWh93EI1AoZKF21eLE4SdeZaJFLJB2n7ca/rtjaWQLHB2Pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789565300; c=relaxed/simple;
-	bh=2ZTaS7Da3jgSsjtHKJAYkfxE6JpQdlysYBwVPPKQouQ=;
+	s=arc-20240116; t=1789565839; c=relaxed/simple;
+	bh=ZLRK81DuCBuMineVX4SMGNoKOo07CIODxoquIypC8wM=;
 	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VQNszNYRFshXLpRNGZ78q2deMSsOCLFN8mq929jaCSQ0HChRkui+P7lfvOnhF491Jatjt4KIK+SMSE2OZ0xBxzuUewRLQHBgUtPTK6JDTpBGL8/d+l/nVHsJVaUvNr6/OqIvoDvIVMSTdo48JCe9/lRQ44iK7dHeBUkBek5xv9g=
+	 Content-Type:Content-Disposition:In-Reply-To; b=n4j1iLHtna5i9s8vE8WltsBn9BpaOHIBiPMBUFJfUcfV4Gw/idxtiSm9fyYUHf8MJPFr8gYQBqwpXEb/MWn7HLsjc7EeLjbiLzjv0ui6tJSZCqwtYfJ5MwQ8mmyST/6J9P5VH0EU516FexgaerRzCMOhrZtJ3FseQqK0frY0j0g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 04CB760456; Wed, 16 Sep 2026 15:28:16 +0200 (CEST)
-Date: Wed, 16 Sep 2026 15:28:16 +0200
+	id 3AFCC6067F; Wed, 16 Sep 2026 15:37:14 +0200 (CEST)
+Date: Wed, 16 Sep 2026 15:37:13 +0200
 From: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nf-next v5 0/6] ipset: replace internal hash table with
  rhashtable
-Message-ID: <aqqZcI0loN5OPmA6@strlen.de>
+Message-ID: <aqqbiUdRKZi7QWKL@strlen.de>
 References: <20260916125151.28062-1-fw@strlen.de>
  <aqqZJ8mgGIS48TJt@strlen.de>
 Precedence: bulk
@@ -44,4 +44,4 @@ Florian Westphal <fw@strlen.de> wrote:
 > I hate this world.  More LLM mumbojumbo.  No idea I can ever get
 > this in a mergeable state.
 
-And to add: No longer sure its worth the pain.
+Giving up on this series, I don't know how to fix this and to pacify LLM
