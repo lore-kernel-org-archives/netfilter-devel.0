@@ -1,39 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9871486E7D
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2026 22:00:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83483350A18
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Sep 2026 22:02:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789596067; cv=none; b=XwyIiZD3omd8yKJ3Qv/5F4zrTG3N7ppPX9eSygMe9xas+6NEtQvcK9+JHD9cJAI6RckaX1qcS9fXpgIBWFE4oyCm/SYPO/W+dRcpuzmpSq8Dil+DdZy0n0tJo6/5vDfR2Cy9k3SmH83jNCDEJtxzdol6VmF/cL/Hfs/AZ+4RAwg=
+	t=1789596181; cv=none; b=jJ3EHdo77l4Fqj9lQsAY20YojU8CHez1G9tPRVpwc364C5lyT4SA5iqZSx1tmZ1h0ElXapdUoywY0+YOhrFcYrckAi1r/FSIf79QAzupvzQkB6op9Ru+XW7VzJ42BouxTxGVIaN6yF76E1qISA65vvvrgQ+A7682BIC6257Ow1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789596067; c=relaxed/simple;
-	bh=CQU76Rt++E+dxQEbFnlVdW285XHYsG88ICZF1VrQZNE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XI+7GkoxFdw3QmFjHaxAiDhL3d2XYvjiJdx2ljm5hpEjbQ8VvokT/9g8Kf5r0Kt+sZ6+EssASlMUK9XerQBl//b/Aaq2+sus85ReTvqvZnI+QLKqOGnaHQbRs8Hr4Wp1LRzJt4iXd4oewdf/EBBHwl2xncfM0kuTEuqStfp6lz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R4Iysrsn; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789596181; c=relaxed/simple;
+	bh=1O0zeldlGrCvMT1vPwUbU2hWkJ+wNAI4fotyXmQscYY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=S2hOEJMDxPwEhg9r5ydvBBmz/IT7SPoH6GcyQupHcPetfGJdGiPliPPLo2tHWZQjZpK4zAHKJ7NBKNMzwOjucSByoh2Tjrg5YwYNlhN1AdVS36QopyPzFiUWAMz0nj+N64d4JCunryk6XcOIW1U9fpsBdk454HvP1oc1uZh7YTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZLtTEZI7; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R4Iysrsn"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZLtTEZI7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789596050;
-	bh=ExDtGepP7OIpyX3f8PkqNnVmXuYb6tNdfz5wtWgUWJA=;
+	s=2025; t=1789596174;
+	bh=PAiJmkGS8N9scxMzmTQjNUnUNTUXw4R22VBIgx1zfGc=;
 	h=From:To:Cc:Subject:Date:From;
-	b=R4IysrsnbVwnER5ogoJnFiLqwnSjs69zW3ry7VoDVGwO/3QPZDdaZRQUhVmuCwK5s
-	 PseNY48se17/nV8AbdZWoYOIbc3NR+SXEKYrwScpbzC2Wvj1oRxIOsQqMsE5/vDA3W
-	 8hpdUwudmqMZ3ghMKJ7gkXbG8MYFWrqp+MbKpZPAvbh4D+gNVFeQqKdE33006cfA64
-	 lCg1+eKEnKBHCmkBoaYATLuM0KvgU09uWjdG5hnwtcxrlAKbRXESAvt02DG5WnutNt
-	 6f3JvQqI5U/2DPQ+KVB3F52+sCW4kGuYZoCYDGjBi9BQXSxzEHg4NIBdFXnysK3dl8
-	 jhJNN0VOizZqw==
+	b=ZLtTEZI7GhDV+q1AhJWSCh56za9fezhTuUdTguGLPLvCaHt+sg/dbpVTKL9PxMpUu
+	 HnmlT9gvimtyWLapzBMkzzdAkTpZiNsNP0mN0zlOBtJWwdgIF3JmwDYTPcdySczqnL
+	 AqKf+7GvT9vIIvf4PzeMzfdYhnno+ezKY1KqZQbNb3/5bqAqjToPjBP92Z9M+wMS3o
+	 VzqoK94nPEEdZT4+GoESZx59jr3JBTbpJD5SMIAaRwEqXyXw7Cq+eg9w8drjFqi7S+
+	 ZlrsU8iW1Y1AvzViNNgWomJ7V6vk3Uq3NfNibbbvuPHk1Bex5wQ/Rv8smM2APfVHTj
+	 4Rkfpd2XXhOrw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5DB2A60090;
-	Thu, 17 Sep 2026 00:00:50 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2F06C60097;
+	Thu, 17 Sep 2026 00:02:54 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nf-next] netfilter: nfnetlink_queue: hash queue instance by portid too
-Date: Thu, 17 Sep 2026 00:00:47 +0200
-Message-ID: <20260916220047.95751-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: nfnetlink_queue: hash queue instance by portid too
+Date: Thu, 17 Sep 2026 00:02:51 +0200
+Message-ID: <20260916220251.97427-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -54,15 +54,13 @@ with the same portid are destroyed.
 Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-@Florian: this is the rare race that Clashiko uncover with your fix.
-          This is a pre-existing issue. I have to check if nfnetlink_log
-	  is also affected.
+v2: look up at the right instance_table in instance_lookup_by_portid()
 
  net/netfilter/nfnetlink_queue.c | 31 +++++++++++++++++++++++++++++--
  1 file changed, 29 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a3bc00280051..cbb586231fbd 100644
+index a3bc00280051..07f279c9dd54 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
 @@ -69,6 +69,7 @@
@@ -103,7 +101,7 @@ index a3bc00280051..cbb586231fbd 100644
 +	struct nfqnl_instance *inst;
 +	struct hlist_head *head;
 +
-+	head = &q->instance_table[instance_portid_hashfn(portid)];
++	head = &q->instance_table_portid[instance_portid_hashfn(portid)];
 +	hlist_for_each_entry(inst, head, hlist) {
 +		if (inst->peer_portid == portid)
 +			return inst;
