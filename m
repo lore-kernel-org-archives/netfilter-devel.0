@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038EC4DA9D0;
-	Wed, 16 Sep 2026 23:17:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5EE94FECE1;
+	Wed, 16 Sep 2026 23:17:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789600628; cv=none; b=HkO72IQ8jKVNslscoz5tJwib1AzA3GCy8drsUlaG11PkzK78ewXlH3XBs/UtwHeBBS2a+e7mt0r3UcZmyhRw7BztqQkTAVWAVBaTC3nhcOJ7HZ6hS55SC4RdnuPcitCC1sq/jsIc1ykbF2esC8fPDGaIXSvPPi2TAPN41tD0Ado=
+	t=1789600629; cv=none; b=NxS8toMB4O8nKjYBJ3JKwUPYW09FeLafs7F7wrlI2x+0SKB71fgfr3/TH5hiHLvwjVYehenSXvKR9N2ML4d0E2sJyojbQ7wtHT/mrOtkwjz30lR4T1l2d+HGeRSH8h/acwGE/6v68/trHAc/F3/rtjawavo7rlA0CP+MHc2emYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789600628; c=relaxed/simple;
-	bh=LRBAn/gSjLVMiBYvPCXU4zVNeROpHhD72QB9Hh1Yets=;
+	s=arc-20240116; t=1789600629; c=relaxed/simple;
+	bh=ChULSigMkmfHrDW1omPPnrtNQkPkdpTBqq3S0JwV6Uc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=N8MZTUFrbmvInTRJw9ZF33Elh2kabKp3fJXI+JvQ8SiR4cugW9iqXD4oh5Y6yqrK/WKL0hayxExaFsESL+9w+x7Etx9DiYhXgeUINepw2fjb/s3NL9u0MTUnO2gSbaTTRpyd0Z6nWsRtfGyEVN8D3duuSJKcQsWWW3uG8iLJLKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WCilmPty; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=jlE9T+hUejRt30w23sizyf+mi7xlGC4gHzZnMkQ0fcEny9D0ZRTBbAOEmJGv4CwZ2VbCUW5eptMuGSEIRkgeEhr3rcAkv6JAJmohF2CkBBy17Ir4eMWeM6f0v8aKvSif9EhD3rp68uMvp5gNRJKvnYFp1VOPD+ffdlGdi+ak5s8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vxTMhpNa; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WCilmPty"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vxTMhpNa"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789600624;
-	bh=pwI87iUI9Q4Tgu3BTmxXOF1xrw0BpTWMEKE/AgAXBLg=;
+	s=2025; t=1789600626;
+	bh=16a/pzgNET+iZ6Rjzywu6Hd4HhCpGwpW7EJeDjb7N18=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WCilmPtyiqEF6HE9ARTl8yoOfksiGHQoJDECC2210YWO5ZJByJnj+6Wo5k55CjrTw
-	 e1qZg/fOgrp28XChgW+NioBtndIZT6cRP1rBi8Vr0WswOUPTNQQBy3HmRNjEyAqbh7
-	 PF5TXbsxOch6bi08d0XDcRgQ9YVBuhhIBc6euDZ0O6CShdyyb2trr8qjCvVR+yIeqS
-	 7HG4p48XvWB+wnv1Oj5FsZQMO56EgsFEEiovPaTn18zSBTtrVTdXgX2p8msmBNNaKY
-	 vBv8NMcCHH1pVjuvVU5n774NWdAi9mBUSYmj43/sKss6Z7GjrZcaQjMCG+QZIFf/Yg
-	 /JkKrGP0y8pQQ==
+	b=vxTMhpNanXA3VDNr/xHmRE0QwMsAELppwZAQ5fFaAjcQ3hKzBaxInK7c9VDNIjoMb
+	 zafAZZhrqfgBMfSI/fRhP5dmswcmDEEtegIjnT0f5IBFADRu6siA18sjGx/D0cEyW/
+	 3/qRfUplCrd04t+0VHHZ7me6/v/bg1hZuyxQmj8omSYvcKCsozosE7n+DMTNvBkosw
+	 Bppl8TBRsfaTPZxndihcpJLO+C0l8pTbvHXBudt2D2r4oCCNSFm/Ffrl5vUgBu4wkK
+	 zMILjEfnS0kOTCFuCqNJrx0O5po03oRX7RT5V4B3XX5q0zWOxCBAs1LL2ViEbVeBhj
+	 eHHtOvtXW3HYw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3B65C60091;
-	Thu, 17 Sep 2026 01:17:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7CF8960088;
+	Thu, 17 Sep 2026 01:17:05 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 06/10] ipvs: revalidate ihl before icmp_send
-Date: Thu, 17 Sep 2026 01:16:47 +0200
-Message-ID: <20260916231652.127456-7-pablo@netfilter.org>
+Subject: [PATCH net 07/10] ipvs: filter some flags received in the backup server
+Date: Thu, 17 Sep 2026 01:16:48 +0200
+Message-ID: <20260916231652.127456-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260916231652.127456-1-pablo@netfilter.org>
 References: <20260916231652.127456-1-pablo@netfilter.org>
@@ -55,43 +55,95 @@ Content-Transfer-Encoding: 8bit
 
 From: Julian Anastasov <ja@ssi.bg>
 
-While the outer IP header is already pulled into the skb head, we must
-be careful and revalidate the embedded headers after reading them from
-the skb frags to prevent possible out-of-bounds access.
+While the IPVS SYNC protocol is not secure by design
+we can still protect the backup server from messages that
+can wreak havoc.
 
-One such place reported by Sashiko is ip_vs_in_icmp() where local
-process can change the ihl field and after pskb_may_pull() we can see
-larger value. Even if icmp_send() has checks to prevent out-of-bounds
-access, play safe and add check to drop the packet if the ihl field is
-changed.  As the outer headers are pulled, make sure the transport
-header is updated too, it was used before commit 7fcc2fe39fed ("net:
-icmp: avoid invalid transport header access in icmp_send tracepoint")
+This commit addresses problems from received connection flags
+or their combinations. We now drop messages as follows:
 
-Fixes: f2edb9f7706d ("ipvs: implement passive PMTUD for IPIP packets")
-Link: https://sashiko.dev/#/patchset/20260806105211.34622-1-ja%40ssi.bg
+1. the NO_CPORT+TEMPLATE combination allows lookups for normal
+connections to hit template which can break in many ways
+
+2. ONE_PACKET: it is not sent by master, so we do not
+expect it in backup. Before now it was ignored by
+IP_VS_CONN_F_BACKUP_MASK for protocol v1 while protocol
+v0 created connections that are not hashed and dropped
+immediately. Better to apply the IP_VS_CONN_F_BACKUP_MASK
+also to the flags from v0 messages for consistency with v1.
+
+Fixes: 87375ab47cd0 ("[IPVS]: ip_vs_ftp breaks connections using persistence")
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/ipvs/ip_vs_sync.c | 33 ++++++++++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index ba0957798bad..fd503f0efb57 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1960,6 +1960,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		/* Ensure the IP header is present in headroom */
- 		if (!pskb_may_pull(skb, hlen_orig))
- 			goto ignore_tunnel;
-+		skb_set_transport_header(skb, hlen_orig);
-+		/* Before now we may used ihl from skb frag, revalidate it after
-+		 * copying it into skb head to prevent out-of-bounds access
-+		 */
-+		if (ip_hdr(skb)->ihl * 4 != hlen_orig)
-+			goto ignore_tunnel;
- 		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
- 			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
- 			type, code, ntohl(info));
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 5383aeafb0ae..69dc28153ec1 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -949,6 +949,21 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
+ 	ip_vs_conn_put(cp);
+ }
+ 
++/* Check for incompatible flags */
++static bool ip_vs_sync_validate_flags(u32 flags)
++{
++	/* We do not expect NO_CPORT, especially to allow lookups
++	 * to hit templates
++	 */
++	if (flags & IP_VS_CONN_F_NO_CPORT) {
++		if (flags & IP_VS_CONN_F_TEMPLATE)
++			return false;
++	}
++	if (flags & IP_VS_CONN_F_ONE_PACKET)
++		return false;
++	return true;
++}
++
+ /*
+  *  Process received multicast message for Version 0
+  */
+@@ -972,8 +987,7 @@ static void ip_vs_process_message_v0(struct netns_ipvs *ipvs, const char *buffer
+ 			return;
+ 		}
+ 		s = (struct ip_vs_sync_conn_v0 *) p;
+-		flags = ntohs(s->flags) | IP_VS_CONN_F_SYNC;
+-		flags &= ~IP_VS_CONN_F_HASHED;
++		flags = ntohs(s->flags);
+ 		if (flags & IP_VS_CONN_F_SEQ_MASK) {
+ 			opt = (struct ip_vs_sync_conn_options *)&s[1];
+ 			p += FULL_CONN_SIZE;
+@@ -986,6 +1000,13 @@ static void ip_vs_process_message_v0(struct netns_ipvs *ipvs, const char *buffer
+ 			p += SIMPLE_CONN_SIZE;
+ 		}
+ 
++		if (!ip_vs_sync_validate_flags(flags)) {
++			IP_VS_DBG(2, "BACKUP v0, Invalid flags 0x%X\n", flags);
++			continue;
++		}
++		flags &= IP_VS_CONN_F_BACKUP_MASK;
++		flags |= IP_VS_CONN_F_SYNC;
++
+ 		state = ntohs(s->state);
+ 		if (!(flags & IP_VS_CONN_F_TEMPLATE)) {
+ 			pp = ip_vs_proto_get(s->protocol);
+@@ -1141,7 +1162,13 @@ static inline int ip_vs_proc_sync_conn(struct netns_ipvs *ipvs, __u8 *p, __u8 *m
+ 	}
+ 
+ 	/* Get flags and Mask off unsupported */
+-	flags  = ntohl(s->v4.flags) & IP_VS_CONN_F_BACKUP_MASK;
++	flags = ntohl(s->v4.flags);
++	if (!ip_vs_sync_validate_flags(flags)) {
++		IP_VS_DBG(3, "BACKUP, Invalid flags 0x%X\n", flags);
++		retc = 25;
++		goto out;
++	}
++	flags &= IP_VS_CONN_F_BACKUP_MASK;
+ 	flags |= IP_VS_CONN_F_SYNC;
+ 	state = ntohs(s->v4.state);
+ 
 -- 
 2.47.3
 
