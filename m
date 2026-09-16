@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 545B74D9F75;
-	Wed, 16 Sep 2026 23:17:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC5374CDA22;
+	Wed, 16 Sep 2026 23:17:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789600623; cv=none; b=sBvn0e/5y9/zdiO7Yx7VVn4Bs28US2SYk+3l+frJAdfmLEYuezelfJYnW+yXVnVIfTPoktE6u99ebNqu+UIwn2m55HWTuVznhvayoB6FIXfoKJFCoj/8Y4CMy078kSRj2G0eKb7jKLOpETflBhJecqUyqOvzL7B6pZgkGt5hvTg=
+	t=1789600624; cv=none; b=FsgXpTXTxfNPpivp8tke85aTOZN7YmXF8IgJyWZ02C/BL1A47SI3MjJMS7bycnSe2BZ8iGZ9pemrr7UsDYWfjJ/QhxOSN3YrJiYU5C+EO668u/qp4FSraWfQdfzxszf206afrQ7sZNYpfAudeqJzwVIzwl+qAk4RHsj0KStQX+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789600623; c=relaxed/simple;
-	bh=ss13MxwnGIx1g3X9fTYg5DYEkxDbZYEtajlyIUkHZKY=;
+	s=arc-20240116; t=1789600624; c=relaxed/simple;
+	bh=Me8xftH3rOGBjQhK+kMtrkecExm6eS0RQgg9t8Stnjc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=a/J9uBhJYD5kQaqIPcCXsdJZD9ZuRQHZrOz1KIwB68y0IgQh3vGIB5QA4He/m5sKT25fU1DjgC3UMYQTvI6MU+xudH8qovHy4xmFmUaVDN1B5pnXd8B1yCbbE19JqtFhm2VR47Fi2GYuT8+Ykro7735Ab5iJlBwsuWD1F2Ewuxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=a5eeHD24; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=J0JcfZNAw6ZEBmtuo8Q7BP0pCeXPg5GRoJMoo4DwOdqoCnQLHiDhB4KCGohmwFJ7Q9a0ZfAV9VIN3WJnh/VEF7lwsYwkTif8UfJNJAvlPHT0Jl2DrqLNWmJBTljTrPkFedgiPje2mT8y9OO27hDdwGevu4SeDDh4015DGtqsOgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IJWh4bAv; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="a5eeHD24"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IJWh4bAv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789600619;
-	bh=/22HIQY5PgEk9H1q86B9JJ7/MyzfiEVxP7YLBHcOcIk=;
+	s=2025; t=1789600620;
+	bh=08cxZCjDbFNhxjzhJ9tap9ER4pgFbk5CK7pyqmcuhAs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=a5eeHD24nH2KEQmIwzKYMunbHUl1dKk+QnL8UyrnhPVlJjYz1bZOKpjZ+LXw5/+VO
-	 fSjYhzvRsqXsw2oAokIK2OvIEfsHLq/GlW2VIFFfx5RMQ2ScJu1ftkKST/91ITSngH
-	 h/xBJoYwDU1joxj4RQH6MMmbiGnEXdivfZnTfy1bo4cNECk3N7FLFCgZSYbxsUVSmm
-	 ivKOYsMYBiZ/tYbxD8w0sLbsJvYDL07shl7sR64OqaKqBpk+H1lfT1viQyVL3zDtcv
-	 TeCk4873xZdbBG8KF+eespbkWbzM1TMqpHw9rYpvc7kX8oEhkOKNAyFtRoIqvZ/rEi
-	 WUnQPC1x5hiJg==
+	b=IJWh4bAvlKdwjVrjlPmHrbZxnz75iw1ieoaI9Ww2OiBwLn4zTWDx44Zsndq9hnc5S
+	 sCSIZXWLErFdZiHC2gjKiFkgpEfNknfBb8bpAqlCG3lKCZGwR5w/b5l1gXbzmEOLoI
+	 eXoB4IfVoFnx/kk5eCvGT058/vID8jK+WyNTvaXd8JFZLoL0b0Yy8oP797LtXJ05oJ
+	 NoONbHv0nCIMONBbt7VyR/aQXOTCzSL/vooiGzzgMj54g9TfxCjsdXODhzr1gi9Zny
+	 LCHakH9PcBej3AsDqxCXv29lP3jrJEXi1ul4t6qBpSa4YcHw3Q4ALo/KsjmkZDbAIB
+	 0vL9G6UXdwfhg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E9CB16008E;
-	Thu, 17 Sep 2026 01:16:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 51E556008F;
+	Thu, 17 Sep 2026 01:17:00 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 02/10] netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
-Date: Thu, 17 Sep 2026 01:16:43 +0200
-Message-ID: <20260916231652.127456-3-pablo@netfilter.org>
+Subject: [PATCH net 03/10] netfilter: ip6t_rpfilter: reject routes without inet6_dev
+Date: Thu, 17 Sep 2026 01:16:44 +0200
+Message-ID: <20260916231652.127456-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260916231652.127456-1-pablo@netfilter.org>
 References: <20260916231652.127456-1-pablo@netfilter.org>
@@ -53,65 +53,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Weiming Shi <bestswngs@gmail.com>
 
-We must serialize the release notifier and the config netlink function.
-A concurrent thread can issue close() which can call the release function
-while unrelated socket processes UNBIND request for same portid:
+ip6_route_lookup() can return an error-free route whose rt6i_idev is
+NULL. Lowering an external nexthop device's MTU below IPV6_MIN_MTU tears
+down its inet6_dev while fib6_ifdown() leaves routes using nexthop objects
+in the FIB. An unprivileged user can construct this state with rtnetlink
+in a private user and network namespace, then trigger a NULL dereference
+through an IPv6 rpfilter lookup:
 
-Oops: general protection fault, [..]
-RIP: 0010:__instance_destroy+0x60/0x210 [nfnetlink_queue]
-Call Trace:
- nfqnl_recv_config+0x9b0/0xdc0 [nfnetlink_queue]
- nfnetlink_rcv_msg+0x7c2/0xeb0
- ? __pfx_nfnetlink_rcv_msg+0x10/0x10
+  Oops: general protection fault, probably for non-canonical address
+  0xdffffc0000000000
+  KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+  RIP: rpfilter_mt (net/ipv6/netfilter/ip6t_rpfilter.c:75)
+  Call Trace:
+  ip6t_do_table (net/ipv6/netfilter/ip6_tables.c:316)
+  nf_hook_slow (net/netfilter/core.c:619)
+  ipv6_rcv (net/ipv6/ip6_input.c:351)
+  __netif_receive_skb_one_core (net/core/dev.c:6216)
+  process_backlog (net/core/dev.c:6680)
+  __napi_poll (net/core/dev.c:7739)
+  net_rx_action (net/core/dev.c:7959)
+  handle_softirqs (kernel/softirq.c:622)
+  do_softirq.part.0 (kernel/softirq.c:523)
+  __local_bh_enable_ip (kernel/softirq.c:450)
+  __dev_queue_xmit (net/core/dev.c:4913)
+  packet_sendmsg (net/packet/af_packet.c:3139)
+  __sys_sendto (net/socket.c:2252)
+  __x64_sys_sendto (net/socket.c:2259)
+  do_syscall_64 (arch/x86/entry/syscall_64.c:94)
+  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+  Kernel panic - not syncing: Fatal exception in interrupt
 
-After this, parallel UNBIND and URELEASE events are impossible.
+Reject routes without an inet6_dev immediately after lookup. Such routes
+are not eligible for reverse-path filtering, and the check protects all
+later rt6i_idev dereferences.
 
-This change isn't nice, but its the shortest fix given instances
-are not refcounted and the nfnetlink config callback drops the
-rcu read lock early due to need for sleeping allocations.
-
-Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: e26f9a480fb6 ("netfilter: add ipv6 reverse path filter match")
+Reported-by: co+459f67f4d8af8ce6@bugs.sh
+Closes: https://lore.kernel.org/all/VtWUkE8QzJt5CroTj2V2v3ZQ0gwbXZ7nq7I3@bugs.sh/
+Suggested-by: Florian Westphal <fw@strlen.de>
+Assisted-by: Claude:gpt-5
+Cc: stable@vger.kernel.org
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/ip6t_rpfilter.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c727668b0c5b..a3bc00280051 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1593,6 +1593,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
- 	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
- 		int i;
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 67c87a88cde4..b5def30c3127 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -61,7 +61,7 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 		fl6.flowi6_oif = dev->ifindex;
  
-+		nfnl_lock(NFNL_SUBSYS_QUEUE);
- 		/* destroy all instances for this portid */
- 		spin_lock(&q->instances_lock);
- 		for (i = 0; i < INSTANCE_BUCKETS; i++) {
-@@ -1606,6 +1607,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
- 			}
- 		}
- 		spin_unlock(&q->instances_lock);
-+		nfnl_unlock(NFNL_SUBSYS_QUEUE);
- 	}
- 	return NOTIFY_DONE;
- }
-@@ -1925,9 +1927,9 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
+-	if (rt->dst.error)
++	if (rt->dst.error || !rt->rt6i_idev)
+ 		goto out;
  
- 	/* Lookup queue under RCU. After peer_portid check (or for new queue
- 	 * in BIND case), the queue is owned by the socket sending this message.
--	 * A socket cannot simultaneously send a message and close, so while
--	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
--	 * socket close) cannot destroy this queue. Safe to use without RCU.
-+	 * nfqnl_rcv_nl_event() will block on the nfnl subsys mutex that is
-+	 * held by the caller, so the queue cannot be destroyed in parallel,
-+	 * even after we drop the RCU read lock.
- 	 */
- 	rcu_read_lock();
- 	queue = instance_lookup(q, queue_num);
+ 	if (rt->rt6i_flags & (RTF_REJECT|RTF_ANYCAST))
 -- 
 2.47.3
 
