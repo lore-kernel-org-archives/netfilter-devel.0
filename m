@@ -1,161 +1,202 @@
-Received: from mta0.migadu.com (out-213.mta0.migadu.com [91.218.175.213])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A494FB9CD
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 12:42:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.213
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AACFB5111A3
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 13:09:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789648938; cv=none; b=I4vGrnGJztBCnn9IDHPHAnBWbD6qJJu3/AWzTNuYzg4Ub/L1cqVQAvdcwzVMP3Re7RbJBjAxDMYf3x4Q06T7dr9qA3quJIGvr94dcnooBtqfDqZv9HSisEYMWVafZaMcit+v60D0xWsMXedR8nOfbnChuIaaS5VL+cQAQAUXfpU=
+	t=1789650581; cv=none; b=pKD/PhPSYTMMTeeXGNmSdhBjAXmGUi33jTodXyAAIyuhfY97cOu2VY4vQFj2JlL3WBWljXZY3yL3ehFhW7R+r/sa3FA6qrEVBRv2L/IzGpKoAmT6P3hoTZxbbk9mlbwROlhYaMKPnIHMVUGVVHCDAnVeuArvK+KVLCjMjC3sKjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789648938; c=relaxed/simple;
-	bh=X8Rwlaxr4CS6AlKne4l5YvG9acTFvMARS52buVLDJkc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TJXYiXeLmbaxA+BSlaATmE7juVUXN/8HhYN/OdMikvkRcMTv5B+9gmhYlreZDhaxJbLMOPGXavPzG4YkWApWYn5dBxFxonQkLDuWY75xdBhl2TdZuTdiBLD7DYOS5B6VVlkE4B3lOma96IPWwaD7ly8YKFj74GrzWWwco1ymddg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=EW81XCCg; arc=none smtp.client-ip=91.218.175.213
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="EW81XCCg"
-X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=X8Rwlaxr4CS6AlKne4l5YvG9acTFvMARS52buVLDJkc=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1789648925; v=1; x=1790253725;
- b=EW81XCCgZztRTCOltDEWCw8Cc0KxcSLE4MyIP4IIP8iiv2Lym1NoEx5IRN+PfVEcfL9fgSka
- KkFMY/QLtPFW0Gm89+CE0ugrKa09an79zPMdshPs6rYBNgnezo+xSaP6yi1wUG/3mY4RAAPPI1n
- nPBDQYKaqy8+7CiTixihgH30=
-X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 7678bcde10ec6b73;
-	Thu, 17 Sep 2026 12:42:05 +0000
-X-Mizu-Trace-ID: 7678bcde10ec6b73
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <d8aab597-62b5-444a-a6cf-efd2642d9a81@linux.dev>
-Date: Thu, 17 Sep 2026 20:42:00 +0800
+	s=arc-20240116; t=1789650581; c=relaxed/simple;
+	bh=JcpTYRW6UjibXNsj4BEoV32K2F4NHw8W/M7/hnmmBq4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=HHk71o90jRt2qYZT9BEDW+rzgk8595LbeRYL+7W+I5PEG+cVAUVZTJ8KwccZsR+AW20j0xZ5RpyZ8+g8cji3LU8zYERFP2QDejz2EhSg85rrB7OqULOL9QQ+ttnN8oqGKK6fAzmSsUCsfLxJ5oVhnSJYro0KDWWjPhNO9452hQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id EFC0560301; Thu, 17 Sep 2026 15:09:33 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf 1/6] netfilter: nf_conntrack: validate skb->_nfct and packet headers
+Date: Thu, 17 Sep 2026 15:09:17 +0200
+Message-ID: <20260917130922.17699-2-fw@strlen.de>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260917130922.17699-1-fw@strlen.de>
+References: <20260917130922.17699-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 0/1] ipvs: bound twos scheduler destination walks
-To: Julian Anastasov <ja@ssi.bg>
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- Simon Horman <horms@verge.net.au>, pablo@netfilter.org, fw@strlen.de,
- phil@nwl.cc, darby.payne@gmail.com, vega@nebusec.ai, zzyy19904204639@163.com
-References: <cover.1789117690.git.zzyy19904204639@163.com>
- <861399d8-c71f-6589-d4cd-3549d9c5bc00@ssi.bg>
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-In-Reply-To: <861399d8-c71f-6589-d4cd-3549d9c5bc00@ssi.bg>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
+skbs coming from loopback already have skb->_nfct attached.
+act_ct may also attach a conntrack to the skb.
 
-On 9/15/26 2:01 AM, Julian Anastasov wrote:
-> 	Hello,
->
-> On Sun, 13 Sep 2026, Ren Wei wrote:
->
->> From: Darong Lu <zzyy19904204639@163.com>
+Facilities like clsact or pedit can alter headers which may then result
+in e.g. UDP packet with TCP nf_conn.
 
+Revalidate that this skb matches the skb l3/l4 header.  If not, drop the
+stale reference and let nf_conntrack_in perform a re-lookup.
 
-[...]
+For conntrack helpers, more checks may be required, e.g. tcph->doff
+revalidation.  This is handled in a followup patch.
 
->> The root cause is that both walks are unbounded. If the iterator follows a
->> reused list entry, it can continue walking indefinitely and prevent the
->> scheduler from returning. The fix reads the service destination count before
->> each walk and stops after that many entries, while preserving the existing
->> scheduler algorithm and RCU list traversal.
-> 	I'm trying to understand how the iterator can be
-> tricked to loop forever: to loop, it should never reach
-> &svc->destinations, so it must walk unlinked nodes which
-> create some loop between them. But READ_ONCE soon or later
-> will read actual ptr from memory, so it should reach to
-> &svc->destinations. We know that entries end up in reverse
-> order in the list after they are added but how looks the
-> list that causes the loop?
->
-> 	OTOH, I don't understand why we need two full lookups to
-> trigger the problem, can it happen with one list_for? Other
-> schedulers also walk the list twice, for example, RR remembers
-> previous position.
->
-> 	I assume the problem is caused by the dest_trash.
-> It seems, we need a general solution to this problem.
-> One option is to penalize with synchronize_rcu() if we detect
-> dest that is reused too soon. But even that looks complex to
-> implement.
+Note that the Fixes tag is bogus, back then this was perfectly fine:
+namespaces, esp. unprivileged user namespaces, did not exist and all
+crash-configs were in the "don't do that, then" department.
 
-
-I think we can use pair(get_state_synchronize_rcu, cond_synchronize_rcu) 
-instead.
-For 'ipvsadm -C && ipvsadm -R', synchronize_rcu is only called once.
-
-
- From ccbb304ab17e00849ea0bf31582d384e6b2768ba Mon Sep 10 00:00:00 2001
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-Date: Thu, 10 Sep 2026 19:36:57 +0800
-Subject: [PATCH] ipvs: wait for readers before reusing dest from trash
-
-__ip_vs_unlink_dest() and ip_vs_rs_unhash() remove the dest with
-list_del_rcu()/hlist_del_rcu(), so readers can still be on it. If
-ip_vs_add_dest() picks the same dest from trash right away,
-__ip_vs_update_dest() links it into another service and rs_table,
-and those readers follow the new next pointers into a different
-list.
-
-A synchronize_rcu() on the delete side costs one grace period per
-dest, which makes 'ipvsadm -C' with many real servers very slow.
-Doing it on the reuse side has the same problem with 'ipvsadm -R'.
-So record a grace period cookie when the dest goes to trash and use
-cond_synchronize_rcu() on reuse. The first wait covers every dest
-trashed before it, so a full restore waits at most once.
-
-Fixes: bcbde4c0a755 ("ipvs: make the service replacement more robust")
-Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-  include/net/ip_vs.h            | 1 +
-  net/netfilter/ipvs/ip_vs_ctl.c | 6 ++++++
-  2 files changed, 7 insertions(+)
+ v2: more complicated checks to handle NAT on loopback.
+ Test for this has been committed to nftables.git.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 32fde731bceb..81b7600ac959 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1013,6 +1013,7 @@ struct ip_vs_dest {
+ net/netfilter/nf_conntrack_core.c | 115 +++++++++++++++++++++++++++---
+ 1 file changed, 106 insertions(+), 9 deletions(-)
 
-      struct rcu_head        rcu_head;
-      struct list_head    t_list;        /* in dest_trash */
-+    unsigned long        rcu_state;    /* GP cookie when trashed */
-      unsigned int        in_rs_table:1;    /* we are in rs_table */
-  };
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 4c1c739446b7..99da7b74500f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1159,6 +1159,7 @@ static void ip_vs_trash_put_dest(struct netns_ipvs 
-*ipvs,
-      /* dest lives in trash with reference */
-      list_add(&dest->t_list, &ipvs->dest_trash);
-      dest->idle_start = istart;
-+    dest->rcu_state = get_state_synchronize_rcu();
-      spin_unlock_bh(&ipvs->dest_trash_lock);
-  }
-
-@@ -1566,6 +1567,11 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct 
-ip_vs_dest_user_kern *udest)
-                    IP_VS_DBG_ADDR(svc->af, &dest->vaddr),
-                    ntohs(dest->vport));
-
-+        /* Readers may still follow n_list/d_list of the unlinked
-+         * dest, wait before linking it again.
-+         */
-+        cond_synchronize_rcu(dest->rcu_state);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d0d9e5ea84a0..14b49045d758 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2000,6 +2000,102 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+ 	return generic_packet(ct, skb, ctinfo);
+ }
+ 
 +
-          ret = ip_vs_start_estimator(svc->ipvs, &dest->stats);
-          /* On error put back dest into the trash */
-          if (ret < 0)
---
-2.43.0
++static bool nf_ct_check_icmp_inner(const struct sk_buff *skb,
++				   const struct nf_hook_state *state,
++				   unsigned int dataoff,
++				   struct nf_conn *ct,
++				   enum ip_conntrack_dir dir)
++{
++	unsigned int nhoff = skb_network_offset(skb);
++	static const unsigned int icmp_hdrsz = 8;
++	struct nf_conntrack_tuple tuple;
++
++	nhoff += dataoff + icmp_hdrsz;
++
++	if (!nf_ct_get_tuplepr(skb, nhoff, state->pf, state->net, &tuple))
++		return false;
++
++	return nf_ct_tuple_equal(&tuple, nf_ct_tuple(ct, !dir));
++}
++
++/**
++ * nf_ct_get_careful - Get connection tracking entry with protocol revalidation
++ *
++ * @skb: Socket buffer whose conntrack entry is to be retrieved
++ * @state: Netfilter hook state
++ * @dataoff: Offset to the layer-4 header within @skb
++ * @protonum: protocol number (e.g., IPPROTO_TCP)
++ * @ctinfo: Pointer to store ip_conntrack_info
++ *
++ * This function retrieves the connection tracking entry associated with @skb.
++ * Performs revalidation of packet header, unlike nf_ct_get().
++ *
++ * If earlier in-kernel mangling (e.g., via TC pedit or clsact) altered packet
++ * contents (e.g. changing TCP to UDP), this function will drop the conntrack
++ * reference and returns NULL.  skbs coming in via NF_INET_LOCAL_OUT are
++ * trusted and never revalidated.
++ *
++ * Returns:
++ *   %NULL - No valid conntrack entry exists or revalidation failed.
++ *   Pointer to &struct nf_conn associated with skb, may be a template.
++ */
++static struct nf_conn *
++nf_ct_get_careful(struct sk_buff *skb,
++		  const struct nf_hook_state *state,
++		  unsigned int dataoff, u8 protonum,
++		  enum ip_conntrack_info *ctinfo)
++{
++	struct nf_conn *tmpl = nf_ct_get(skb, ctinfo);
++	struct nf_conntrack_tuple inverse;
++	struct nf_conntrack_tuple tuple;
++	enum ip_conntrack_dir dir;
++
++	/* LOCAL_OUT is trusted: in case stack sends ICMP error, skb gets
++	 * the conntrack assigned via nf_ct_attach().
++	 *
++	 * Such conntrack may not even be in hashtable yet, so
++	 * nf_conntrack_handle_icmp() cannot find a connection matching
++	 * the inner header.
++	 */
++	if (state->hook == NF_INET_LOCAL_OUT)
++		return tmpl;
++
++	if (!tmpl || nf_ct_is_template(tmpl))
++		return tmpl;
++
++	if (state->pf != nf_ct_l3num(tmpl))
++		goto error;
++
++	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
++			    dataoff, state->pf, protonum, state->net,
++			    &tuple))
++		goto error;
++
++	dir = CTINFO2DIR(*ctinfo);
++	if (nf_ct_tuple_equal(&tuple, nf_ct_tuple(tmpl, dir)))
++		return tmpl;
++
++	if (*ctinfo == IP_CT_RELATED || *ctinfo == IP_CT_RELATED_REPLY) {
++		if (state->pf == NFPROTO_IPV4 && protonum == IPPROTO_ICMP &&
++		    nf_ct_check_icmp_inner(skb, state, dataoff, tmpl, dir))
++			return tmpl;
++
++		if (state->pf == NFPROTO_IPV6 && protonum == IPPROTO_ICMPV6 &&
++		    nf_ct_check_icmp_inner(skb, state, dataoff, tmpl, dir))
++			return tmpl;
++	}
++
++	if (!nf_ct_invert_tuple(&inverse, &tuple))
++		goto error;
++
++	if ((tmpl->status & IPS_NAT_MASK) && nf_ct_tuple_equal(&inverse, nf_ct_tuple(tmpl, !dir)))
++		return tmpl;
++error:
++	nf_reset_ct(skb);
++	return NULL;
++}
++
+ unsigned int
+ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ {
+@@ -2008,21 +2104,22 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ 	u_int8_t protonum;
+ 	int dataoff, ret;
+ 
+-	tmpl = nf_ct_get(skb, &ctinfo);
++	/* rcu_read_lock()ed by nf_hook_thresh */
++	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
++	if (dataoff <= 0) {
++		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
++		nf_reset_ct(skb);
++		return NF_ACCEPT;
++	}
++
++	tmpl = nf_ct_get_careful(skb, state, dataoff, protonum, &ctinfo);
+ 	if (tmpl || ctinfo == IP_CT_UNTRACKED) {
+ 		/* Previously seen (loopback or untracked)?  Ignore. */
+ 		if ((tmpl && !nf_ct_is_template(tmpl)) ||
+ 		     ctinfo == IP_CT_UNTRACKED)
+ 			return NF_ACCEPT;
+-		skb->_nfct = 0;
+-	}
+ 
+-	/* rcu_read_lock()ed by nf_hook_thresh */
+-	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
+-	if (dataoff <= 0) {
+-		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
+-		ret = NF_ACCEPT;
+-		goto out;
++		skb->_nfct = 0;
+ 	}
+ 
+ 	if (protonum == IPPROTO_ICMP || protonum == IPPROTO_ICMPV6) {
+-- 
+2.55.0
 
