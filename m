@@ -1,50 +1,161 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-213.mta0.migadu.com [91.218.175.213])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9324F417BD9
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 09:30:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A494FB9CD
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 12:42:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.213
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789637433; cv=none; b=a9p7xUmBQ/G/8x37mTUuo5reP+C+1JJBrPnZ4pbJIHTIvsLPaBpkyryDsKErfvBZUMZ4oLeYwMjP/qle6ajLTRCY4DirZ+iTS4wrcBoQIUfk1fZkHeNsIKL7pxYsGyNQ4/eGtjs/M8pAFuI5P7cfAOUlyhLIDXjubgZc7LQrJbE=
+	t=1789648938; cv=none; b=I4vGrnGJztBCnn9IDHPHAnBWbD6qJJu3/AWzTNuYzg4Ub/L1cqVQAvdcwzVMP3Re7RbJBjAxDMYf3x4Q06T7dr9qA3quJIGvr94dcnooBtqfDqZv9HSisEYMWVafZaMcit+v60D0xWsMXedR8nOfbnChuIaaS5VL+cQAQAUXfpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789637433; c=relaxed/simple;
-	bh=jTBZmIX/EvihRRk9tWHDESZPkZbQE9iQekWZoWb/hkc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UTqt0m2I9JnvOpKAEDPHnNElpFvLUH1HXHPKhiJKCAyrPySqUPm9BhFEBaCqWvTFfx12T214d0vgEBNXMby9PTjKePb4p1mvgpv6tNQhBnMmQjGSs5Iv/gUGcKDH6+9cCT3/yh0fyAQBmdq9zUte3S+eiAJQPOt/lu5IhEfD9IA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 5488B602B9; Thu, 17 Sep 2026 11:30:21 +0200 (CEST)
-Date: Thu, 17 Sep 2026 11:30:21 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: nfnetlink_queue: hash queue instance
- by portid too
-Message-ID: <aquzLbobvDTITG9t@strlen.de>
-References: <20260916220047.95751-1-pablo@netfilter.org>
- <aqtuUg-rFmUZYoD0@strlen.de>
- <aquqvnzVYmnEISp5@chamomile>
+	s=arc-20240116; t=1789648938; c=relaxed/simple;
+	bh=X8Rwlaxr4CS6AlKne4l5YvG9acTFvMARS52buVLDJkc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TJXYiXeLmbaxA+BSlaATmE7juVUXN/8HhYN/OdMikvkRcMTv5B+9gmhYlreZDhaxJbLMOPGXavPzG4YkWApWYn5dBxFxonQkLDuWY75xdBhl2TdZuTdiBLD7DYOS5B6VVlkE4B3lOma96IPWwaD7ly8YKFj74GrzWWwco1ymddg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=EW81XCCg; arc=none smtp.client-ip=91.218.175.213
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="EW81XCCg"
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=X8Rwlaxr4CS6AlKne4l5YvG9acTFvMARS52buVLDJkc=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1789648925; v=1; x=1790253725;
+ b=EW81XCCgZztRTCOltDEWCw8Cc0KxcSLE4MyIP4IIP8iiv2Lym1NoEx5IRN+PfVEcfL9fgSka
+ KkFMY/QLtPFW0Gm89+CE0ugrKa09an79zPMdshPs6rYBNgnezo+xSaP6yi1wUG/3mY4RAAPPI1n
+ nPBDQYKaqy8+7CiTixihgH30=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 7678bcde10ec6b73;
+	Thu, 17 Sep 2026 12:42:05 +0000
+X-Mizu-Trace-ID: 7678bcde10ec6b73
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <d8aab597-62b5-444a-a6cf-efd2642d9a81@linux.dev>
+Date: Thu, 17 Sep 2026 20:42:00 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aquqvnzVYmnEISp5@chamomile>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 0/1] ipvs: bound twos scheduler destination walks
+To: Julian Anastasov <ja@ssi.bg>
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ Simon Horman <horms@verge.net.au>, pablo@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, darby.payne@gmail.com, vega@nebusec.ai, zzyy19904204639@163.com
+References: <cover.1789117690.git.zzyy19904204639@163.com>
+ <861399d8-c71f-6589-d4cd-3549d9c5bc00@ssi.bg>
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+In-Reply-To: <861399d8-c71f-6589-d4cd-3549d9c5bc00@ssi.bg>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Needs threads that race to kill and resurrect the same queue all over
-> > again, constantly.
-> 
-> I think this can happen with different queue number and same netlink
-> portid.
 
-You mean using several nfqueue instances at once from same fd?
-Nobody does that.  This is a 20 years old interface.
+On 9/15/26 2:01 AM, Julian Anastasov wrote:
+> 	Hello,
+>
+> On Sun, 13 Sep 2026, Ren Wei wrote:
+>
+>> From: Darong Lu <zzyy19904204639@163.com>
 
-And what would be the point...?  Other than trying to crash the kernel,
-that is?
+
+[...]
+
+>> The root cause is that both walks are unbounded. If the iterator follows a
+>> reused list entry, it can continue walking indefinitely and prevent the
+>> scheduler from returning. The fix reads the service destination count before
+>> each walk and stops after that many entries, while preserving the existing
+>> scheduler algorithm and RCU list traversal.
+> 	I'm trying to understand how the iterator can be
+> tricked to loop forever: to loop, it should never reach
+> &svc->destinations, so it must walk unlinked nodes which
+> create some loop between them. But READ_ONCE soon or later
+> will read actual ptr from memory, so it should reach to
+> &svc->destinations. We know that entries end up in reverse
+> order in the list after they are added but how looks the
+> list that causes the loop?
+>
+> 	OTOH, I don't understand why we need two full lookups to
+> trigger the problem, can it happen with one list_for? Other
+> schedulers also walk the list twice, for example, RR remembers
+> previous position.
+>
+> 	I assume the problem is caused by the dest_trash.
+> It seems, we need a general solution to this problem.
+> One option is to penalize with synchronize_rcu() if we detect
+> dest that is reused too soon. But even that looks complex to
+> implement.
+
+
+I think we can use pair(get_state_synchronize_rcu, cond_synchronize_rcu) 
+instead.
+For 'ipvsadm -C && ipvsadm -R', synchronize_rcu is only called once.
+
+
+ From ccbb304ab17e00849ea0bf31582d384e6b2768ba Mon Sep 10 00:00:00 2001
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Date: Thu, 10 Sep 2026 19:36:57 +0800
+Subject: [PATCH] ipvs: wait for readers before reusing dest from trash
+
+__ip_vs_unlink_dest() and ip_vs_rs_unhash() remove the dest with
+list_del_rcu()/hlist_del_rcu(), so readers can still be on it. If
+ip_vs_add_dest() picks the same dest from trash right away,
+__ip_vs_update_dest() links it into another service and rs_table,
+and those readers follow the new next pointers into a different
+list.
+
+A synchronize_rcu() on the delete side costs one grace period per
+dest, which makes 'ipvsadm -C' with many real servers very slow.
+Doing it on the reuse side has the same problem with 'ipvsadm -R'.
+So record a grace period cookie when the dest goes to trash and use
+cond_synchronize_rcu() on reuse. The first wait covers every dest
+trashed before it, so a full restore waits at most once.
+
+Fixes: bcbde4c0a755 ("ipvs: make the service replacement more robust")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+---
+  include/net/ip_vs.h            | 1 +
+  net/netfilter/ipvs/ip_vs_ctl.c | 6 ++++++
+  2 files changed, 7 insertions(+)
+
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 32fde731bceb..81b7600ac959 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1013,6 +1013,7 @@ struct ip_vs_dest {
+
+      struct rcu_head        rcu_head;
+      struct list_head    t_list;        /* in dest_trash */
++    unsigned long        rcu_state;    /* GP cookie when trashed */
+      unsigned int        in_rs_table:1;    /* we are in rs_table */
+  };
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 4c1c739446b7..99da7b74500f 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1159,6 +1159,7 @@ static void ip_vs_trash_put_dest(struct netns_ipvs 
+*ipvs,
+      /* dest lives in trash with reference */
+      list_add(&dest->t_list, &ipvs->dest_trash);
+      dest->idle_start = istart;
++    dest->rcu_state = get_state_synchronize_rcu();
+      spin_unlock_bh(&ipvs->dest_trash_lock);
+  }
+
+@@ -1566,6 +1567,11 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct 
+ip_vs_dest_user_kern *udest)
+                    IP_VS_DBG_ADDR(svc->af, &dest->vaddr),
+                    ntohs(dest->vport));
+
++        /* Readers may still follow n_list/d_list of the unlinked
++         * dest, wait before linking it again.
++         */
++        cond_synchronize_rcu(dest->rcu_state);
++
+          ret = ip_vs_start_estimator(svc->ipvs, &dest->stats);
+          /* On error put back dest into the trash */
+          if (ret < 0)
+--
+2.43.0
+
