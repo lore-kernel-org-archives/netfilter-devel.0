@@ -1,125 +1,127 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0561E4562BD;
-	Thu, 17 Sep 2026 08:55:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E7533A8740;
+	Thu, 17 Sep 2026 09:04:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789635316; cv=none; b=LuB2hCX19ORY8+g2zdSES08DFMTd0O3qdEVPLeqAv9lehxYuoZJoZ13Yiwu2e79O29jzfQYvU+JDrtNtz/ThnvgzrTJTXCZWUGgxUlMZn+g1KHrXYRqtbYvBElsfHvO/nEs7ELfGxG/fXwRV0W6MEl/QfwNf7DTV33CyvqB11FY=
+	t=1789635897; cv=none; b=akcSKdfsDCj6CxT3sgZe/U1RwaEqDwE28WSyhLJ2t50FkchKOY6pB5jySKtSCvNaMH4Tfo0c3d85H+M6RlrFSghL4KtCWrCmCiEY9MVyKndjjdUNIr+HFwpuEfWA9Zh9JONqh7aGFXyWqSVmNESBN+i+YOPMbi9zZ2XA+qAzpZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789635316; c=relaxed/simple;
-	bh=vn31ij5EjMpSY4fNULl9mNiHva1/BB4PcHzqjFUIWVM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q4DZOt8IBiKZrMu54PXTXb6+KjEvPzUtx+fuO5Dvl7xrdrzDzrrEgnwHJbanKnbDOE10xoQ3+pSCYh5/3SXpfBwsUojkoypKWSgO6K0RoW9zB3IoY2qU6m324cO4ZeHioxtake93xa7ejPQuKxmZk/53DY/qJFzYxIf2mhvtVoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=E24bQLqZ; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1789635897; c=relaxed/simple;
+	bh=H6OPmzFwTjfe2eL8uEAAuQ1eUL3Da6keNYthN0hTbXE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=u7A6+aB9e7rs9YhQhYBhIWaSKBOIEwFa0yBjQ4+HXcto2sIG5z1NfmUw1l9rhu8xhLQEpJQJFmXkGcTIZqwKGNDfpu5KO7V03V83g/zjYRk7vPXwaTqqb50cFAqJhftNr7EE86skkQ9+D7xNpGxWnP6Iq2itNg+oXX9/trHxDr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cQogZB/F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="E24bQLqZ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789635308;
-	bh=VyrNncgMjLTsBvabQF8/YlHLzKKib3TBgXLmZZSfKgQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=E24bQLqZqCbhYofFpFX5C/Yn90lZRe1Y1Sl92lkL5j5M0O9HmOV/qfTuszP+xhHMZ
-	 PHgtIrJLt1Cmp9zNstWDEva8MV+TOpfIOOGS3+ge9KpPnCGTwcnq0yz+rlsZ1KlMyp
-	 +vq4s4VZYDlux6eyjR9b7eMbj375oF+kgQXvTWbHA4pkLKuOhr3fom7iTZp0KNyE9I
-	 yLDpyxv8KzYcp9FiUJju60ACYct+BWomEPCeqvjhM4j6ErtuYmYPrZsZMCAArGhFau
-	 4xUQE97+l1D5vk3XmZBUshNUkKbwXKerlMtqkh4AKdD0+Nr95zNzHgTT4DuGfneKfl
-	 cbtKQePrSd1nA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9A1346005F;
-	Thu, 17 Sep 2026 10:55:08 +0200 (CEST)
-Date: Thu, 17 Sep 2026 10:55:05 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: Hangbin Liu <hangbin.liu@linux.dev>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, mptcp@lists.linux.dev,
-	Hangbin Liu <liuhangbin@kylinos.cn>
-Subject: Re: [PATCH net] selftests: net: update netfilter netlink config
-Message-ID: <aquq6fEQiDq5Ey59@chamomile>
-References: <20260917-selftest_config-v1-1-bf25ccbfb18e@kylinos.cn>
- <f557e44a-86b6-4ebb-ad35-d7bc5902929a@suse.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cQogZB/F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB8351F000FF;
+	Thu, 17 Sep 2026 09:04:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789635896;
+	bh=r81n00ylFVbyi96blicKVcB99WJF9XijQa/VIFWtlN0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=cQogZB/FKoirxTs55cGY3oQTBAKjyLSqUKFQUl8h6Xz5BCC7tYntnrwYJmIVk89po
+	 27sDFLDfwdyjZX4vyejb54CEeApvVokldjnrisu5slepHYkDG9cUhVUMazhzHIA+4q
+	 CLuuSrMPNbT+29zz5o/j9s+Fw7h+xHC/0EUVEH1dqugAbcUqvAFe/47k5ec0hw8Afj
+	 hoJYO19SdICilqFotCwrlF2oKhJlnJHVZ4pXo74GrEXpbHCWMWtYMN16DIyZ0VXGkg
+	 6QBGKLnB/z9Ur/EsfJHieNjkMRhLDn/8Zk+u2CLr13552mxiBKZzU5mjiSjSl/PAVF
+	 BoayYu/uGq55w==
+Message-ID: <fc614ec4-428a-4e3d-b366-9db5f6e44078@kernel.org>
+Date: Thu, 17 Sep 2026 11:04:47 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net] selftests: net: update netfilter netlink config
+Content-Language: fr
+To: Hangbin Liu <hangbin.liu@linux.dev>
+Cc: netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, mptcp@lists.linux.dev,
+ Hangbin Liu <liuhangbin@kylinos.cn>,
+ Fernando Fernandez Mancera <fmancera@suse.de>,
+ Mat Martineau <martineau@kernel.org>, Geliang Tang <geliang@kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>
+References: <20260917-selftest_config-v1-1-bf25ccbfb18e@kylinos.cn>
+ <f557e44a-86b6-4ebb-ad35-d7bc5902929a@suse.de>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
 In-Reply-To: <f557e44a-86b6-4ebb-ad35-d7bc5902929a@suse.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 17, 2026 at 09:06:48AM +0200, Fernando Fernandez Mancera wrote:
+Hi Hangbin,
+
+On 17/09/2026 09:06, Fernando Fernandez Mancera wrote:
 > On 9/17/26 4:17 AM, Hangbin Liu wrote:
-> > From: Hangbin Liu <liuhangbin@kylinos.cn>
-> > 
-> > Since commit d4349ba9872d ("netfilter: allow nfnetlink built-in only"),
-> > NETFILTER_NETLINK was changed to a bool. Use 'y' instead of 'm'.
-> > Otherwise the build emits:
-> > 
-> >    .config:5688:warning: symbol value 'm' invalid for NETFILTER_NETLINK
-> > 
-> > Fixes: d4349ba9872d ("netfilter: allow nfnetlink built-in only")
-> > Signed-off-by: Hangbin Liu <liuhangbin@kylinos.cn>
+>> From: Hangbin Liu <liuhangbin@kylinos.cn>
+>>
+>> Since commit d4349ba9872d ("netfilter: allow nfnetlink built-in only"),
+>> NETFILTER_NETLINK was changed to a bool. Use 'y' instead of 'm'.
+>> Otherwise the build emits:
+>>
+>>    .config:5688:warning: symbol value 'm' invalid for NETFILTER_NETLINK
+>>
+>> Fixes: d4349ba9872d ("netfilter: allow nfnetlink built-in only")
+>> Signed-off-by: Hangbin Liu <liuhangbin@kylinos.cn>
 > 
 > Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Acked-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Thanks!
 
-Thanks.
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
 
-> Thanks!
-> 
-> > ---
-> > This is a simple update addressing the same issue, so I’d like to post it
-> > directly to netdev instead of bothering two separate subsystems
-> > (mptcp and netfilter).
-> > ---
-> >   tools/testing/selftests/net/mptcp/config     | 2 +-
-> >   tools/testing/selftests/net/netfilter/config | 2 +-
-> >   2 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/tools/testing/selftests/net/mptcp/config b/tools/testing/selftests/net/mptcp/config
-> > index 59051ee2a986..bb9c4c97c620 100644
-> > --- a/tools/testing/selftests/net/mptcp/config
-> > +++ b/tools/testing/selftests/net/mptcp/config
-> > @@ -18,7 +18,7 @@ CONFIG_NET_CLS_ACT=y
-> >   CONFIG_NET_CLS_FW=m
-> >   CONFIG_NETFILTER=y
-> >   CONFIG_NETFILTER_ADVANCED=y
-> > -CONFIG_NETFILTER_NETLINK=m
-> > +CONFIG_NETFILTER_NETLINK=y
-> >   CONFIG_NETFILTER_XTABLES=m
-> >   CONFIG_NETFILTER_XTABLES_LEGACY=y
-> >   CONFIG_NETFILTER_XT_MATCH_BPF=m
-> > diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-> > index c3c121b6f300..629b2b29ed1a 100644
-> > --- a/tools/testing/selftests/net/netfilter/config
-> > +++ b/tools/testing/selftests/net/netfilter/config
-> > @@ -44,7 +44,7 @@ CONFIG_NET_CLS_U32=m
-> >   CONFIG_NETDEVSIM=m
-> >   CONFIG_NETFILTER=y
-> >   CONFIG_NETFILTER_ADVANCED=y
-> > -CONFIG_NETFILTER_NETLINK=m
-> > +CONFIG_NETFILTER_NETLINK=y
-> >   CONFIG_NETFILTER_NETLINK_QUEUE=m
-> >   CONFIG_NETFILTER_SYNPROXY=m
-> >   CONFIG_NETFILTER_XTABLES=m
-> > 
-> > ---
-> > base-commit: 1dd85662fee6e2ac580b1c4f9a0c0a7ae6e31f0e
-> > change-id: 20260917-selftest_config-286bdd44b22b
-> > 
-> > Best regards,
-> 
