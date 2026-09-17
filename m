@@ -1,31 +1,49 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C2BE4E80D0
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 13:10:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21AE84D178D
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2026 17:32:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789650603; cv=none; b=VjqMI7rs+8tcRQG/0p4oXt6SIIFwILWgZoAh0VCbGb365RSdfcihAeoQcJ4mbu4aU66umeNsGCY/c49I4A/kINw39reR3YoWLE6EIEozX9kmQwApfr5Ojxc8/tgX/7MMi2+JB0apbx27FR3axKsf/tEw3QY+gh4/XBAYDqABf/I=
+	t=1789666336; cv=none; b=tC9jASuwCrI1m4vxyqTM/fmF//SOZaPlGy9/pUqKFyU9Ix6vW1PVa8qiCEIJAfobF7sZ1dvHiHW97soJcV/W3ZCHGCftHkLkiflxC4lTxM5Vcu1M30xa1nl87FWU8HhTuvYWNFVgJ/GmDdfeInrCnbZpgPuErMc7hqpYBv89txA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789650603; c=relaxed/simple;
-	bh=a9SRH/kTcWpSqe5MWZBhEhRpR0z39mlAaE6Gv1yTFM8=;
+	s=arc-20240116; t=1789666336; c=relaxed/simple;
+	bh=j2N2CKr0J4KruUbXkro6efkPLMGLbrhKT58v2HZGN3M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CTvrQBIy2LHFT/9c4y67FVr8t/x6Wk7X5lXykK2JTJN1SdZOgRXVo+sONrV5LiJCzbNwlgs/qAZMLBZE+LtuZbnQNmGE/co3H6RB1O0d0ya5Zhu252RpMyfijP50YXlb9o0t85oqG609Q4RnKFdgOFcgQHyth4uIv/cPRJCJpQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 573E6602FF; Thu, 17 Sep 2026 15:09:55 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Kyle Zeng <kylebot@openai.com>
-Subject: [PATCH v2 nf 6/6] netfilter: nft_ct: validate timeout object protocol
-Date: Thu, 17 Sep 2026 15:09:22 +0200
-Message-ID: <20260917130922.17699-7-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260917130922.17699-1-fw@strlen.de>
-References: <20260917130922.17699-1-fw@strlen.de>
+	 MIME-Version; b=e1KenXXDHSFxhDy80Lw9mqmCp33ICFPkg2B4uJZ86M3wmsTp1g7o0ZsBLYlU1YH0ohsdeteFipGdML6Dnz4srk8Scl32Kox5tzkP8l6mPaLHLefZ8BzwcmAogizAsH02dqtac4oiFItj8b7V3fpYI/BUuu96PhexecrSkQ8rlS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZRfcNzBD; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZRfcNzBD"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=h4FFokQirexjcHgmJcn44s3BFwNd7eX6NPvq9Sw6Kiw=; b=ZRfcNzBDeKgGs4R3rEpDMMCnmx
+	qSzkIMVGyEoPEQHaOh5Wz84U183gnP25N1q/Sk8abIR5dXA6+1Yc9RKJAzRi5htps52G8lzrfvsVW
+	eCTEtJCAgUgmyIbHOUCJmZOo2cojL0CUqdjZnBugBNzWTe2issLvQ1BV8zdAMzTW+jBdO0hHRRmO/
+	O1XUBNpGGcpg5fXsZo6NFkPV8D14/BmXYpwlTkspot0wMFdBAibXExwwFCElcoDrn7H8rwJveY6KD
+	T2ZOWOcZyRg/fFxpKgtgZ9WE7v5BXwgzyKDCpocvlruzR9CUQtGLaaJ+s7aL91k3jAqLgOwpiSlnZ
+	LFwOmWJw==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1x7Fxs-000000004iP-2Ber;
+	Thu, 17 Sep 2026 19:32:04 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 2/2] doc: nft.8: Document caveats when mixing clients
+Date: Thu, 17 Sep 2026 19:31:59 +0200
+Message-ID: <20260917173159.2077268-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260917173159.2077268-1-phil@nwl.cc>
+References: <20260917173159.2077268-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,115 +52,91 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nft_ct_timeout_obj_eval() only compares the timeout object protocol with
-packet metadata. A packet header can be changed after conntrack attaches
-an entry, so this metadata does not necessarily describe the entry.
+The "do not touch" warning message nft emits for tables with rules using
+compat expressions has been complained about for being confusing.
+Replace it with a reference to nft.8 and describe the implications there.
 
-Timeout objects contain protocol-specific arrays. Attaching an object for
-a protocol with fewer timeout states to an entry for one with more states
-lets the conntrack tracker read beyond the object.
-
-Require the object protocol to match the conntrack tuple protocol before
-attaching it. This mirrors validation by named timeout policies and
-nftables conntrack helper objects.
-
-Based on original patch from Kyle Zheng, who also authored this commit
-message.
-
-LLM review complains about _ext_add() races with cloned unconfirmed skbs.
-conntrack never supported this; fixing it is hard and out of scope for this
-change.
-
-Fixes: 0434ccdcf883 ("netfilter: nf_tables: rework ct timeout set support")
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- v2:
- keep nft_ct expectation as is, LLM claims this broke nft expectation support.
- changelog: I'm too stupid to fix all bugs at once.
+ doc/nft.txt | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/rule.c  |  4 ++--
+ 2 files changed, 48 insertions(+), 2 deletions(-)
 
- net/netfilter/nft_ct.c | 48 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index a1093311414b..1cecdcae1f4e 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -839,6 +839,38 @@ static struct nft_expr_type nft_notrack_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 15e5c0de33f4d..a7ef9a7183b5b 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -1090,6 +1090,52 @@ being processed (in step 4 above) so following commands find it there.
+ * Keep in mind that reset command won't unroll. Its effects will persist
+   despite the failing transaction which reverts all other commands.
  
-+/**
-+ * nft_ct_get_safe() - Return nf_conn with extra checks
-+ * @pkt:     nftables packet information structure
-+ * @l4proto: The expected Layer 4 protocol
-+ * @ctinfop: packet ip_conntrack_info storage
-+ *
-+ * Returns the conntrack entry only if it is unconfirmed, non-template and
-+ * matches the expected L4 protocol.
-+ *
-+ * Return: Pointer to the &struct nf_conn if all checks pass; NULL otherwise.
-+ */
-+static struct nf_conn *nft_ct_get_safe(const struct nft_pktinfo *pkt,
-+				       u8 l4proto, enum ip_conntrack_info *ctinfop)
-+{
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
++MIXED USE
++---------
++A kernel ruleset created by nft may be read and modified by any other program.
++This practicaly constitutes a form of inter-process communication with the
++kernel as data channel. Nftables' flexible ruleset specification makes
++compatibility issues likely.
 +
-+	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	if (!ct || l4proto != pkt->tprot)
-+		return NULL;
++WITH IPTABLES-NFT
++~~~~~~~~~~~~~~~~~
++In general, mixed use of iptables-nft and nft within the same host/netns is not
++advisable and may lead to obscure bugs in both tools. A ruleset created by
++iptables-nft should not be modified using nft and vice-versa.
 +
-+	if (l4proto != nf_ct_protonum(ct))
-+		return NULL;
++In order to replicate legacy behaviour, iptables-nft makes use of compat
++expressions in kernel. These allow nftables to call xtables kernel extensions.
++Content of compat expressions is extension-specific, nft requires libxtables to
++interpret the data. If available, it will use its xlate callbacks to print
++equivalent nftables statements, just like iptables-translate does.
 +
-+	if (READ_ONCE(ct->status) & (IPS_TEMPLATE | IPS_CONFIRMED))
-+		return NULL;
++If a ruleset dump containing such (translated) compat expressions is restored
++again using nft, the resulting ruleset will not contain any compat expressions
++anymore. This may cause subtle changes in behaviour but will almost certainly
++break ruleset parsing in iptables-nft.
 +
-+	if (ctinfop)
-+		*ctinfop = ctinfo;
-+	return ct;
-+}
++If a translation is not possible, nft prints the well-known compat expression
++fields (type and name) in a format the parser will detect and reject with a
++verbose message. This is to make sure such an incomplete ruleset dump is not
++restored by accident.
 +
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- static int
- nft_ct_timeout_parse_policy(void *timeouts,
-@@ -878,14 +910,12 @@ static void nft_ct_timeout_obj_eval(struct nft_object *obj,
- 				    const struct nft_pktinfo *pkt)
- {
- 	const struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
--	struct nf_conn *ct = (struct nf_conn *)skb_nfct(pkt->skb);
- 	struct nf_conn_timeout *timeout;
- 	const unsigned int *values;
-+	struct nf_conn *ct;
++WITH OTHER VERSIONS OF NFT
++~~~~~~~~~~~~~~~~~~~~~~~~~~
++While nft is supposed to be backwards-compatible, i.e. Rulesets created by any
++older version must parse correctly, the other direction is hard to even handle
++sanely. The result of parsing a ruleset "from the future" may vary from success
++to crash and from obviously broken rulesets to subtle bugs or minimal changes
++in behaviour.
++
++If a ruleset should remain readable by all involved versions, only the oldest
++version should make modifications and all others should limit themselves to
++read-only access.
++
++Starting with version 1.1.6, nft annotates created tables with its own version
++and warns if tables fetched from kernel are annotated with a newer version.
++While its absence is not a guarantee, its presence clearly indicates a
++problematic setup.
++
+ ERROR REPORTING
+ ---------------
+ When an error is detected, nft shows the line(s) containing the error, the
+diff --git a/src/rule.c b/src/rule.c
+index 0ffe2ca1955da..552c17df05f83 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1284,11 +1284,11 @@ static void table_print(const struct table *table, struct output_ctx *octx)
  
--	if (priv->l4proto != pkt->tprot)
--		return;
--
--	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct))
-+	ct = nft_ct_get_safe(pkt, priv->l4proto, NULL);
-+	if (!ct)
- 		return;
+ 	if (table->has_xt_stmts)
+ 		fprintf(octx->error_fp,
+-			"# Warning: table %s %s is managed by iptables-nft, do not touch!\n",
++			"# Warning: Table %s %s is managed by iptables-nft, see MIXED USE in nft(8).\n",
+ 			family, table->handle.table.name);
+ 	if (table->is_from_future)
+ 		fprintf(octx->error_fp,
+-			"# Warning: table %s %s was created by a newer version of nftables? Content may be incomplete!\n",
++			"# Warning: Table %s %s was created by a newer version of nft, see MIXED USE in nft(8).\n",
+ 			family, table->handle.table.name);
  
- 	timeout = nf_ct_timeout_find(ct);
-@@ -1114,14 +1144,12 @@ static void nft_ct_helper_obj_eval(struct nft_object *obj,
- 				   const struct nft_pktinfo *pkt)
- {
- 	const struct nft_ct_helper_obj *priv = nft_obj_data(obj);
--	struct nf_conn *ct = (struct nf_conn *)skb_nfct(pkt->skb);
- 	struct nf_conntrack_helper *to_assign = NULL;
- 	struct nf_conn_help *help;
-+	struct nf_conn *ct;
- 
--	if (!ct ||
--	    nf_ct_is_confirmed(ct) ||
--	    nf_ct_is_template(ct) ||
--	    priv->l4proto != nf_ct_protonum(ct))
-+	ct = nft_ct_get_safe(pkt, priv->l4proto, NULL);
-+	if (!ct)
- 		return;
- 
- 	switch (nf_ct_l3num(ct)) {
+ 	nft_print(octx, "table %s %s {", family, table->handle.table.name);
 -- 
-2.55.0
+2.54.0
 
