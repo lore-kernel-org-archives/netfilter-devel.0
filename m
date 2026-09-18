@@ -1,27 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F205D13A258
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 15:40:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E93733D512
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 15:40:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789746023; cv=none; b=ix3WhiXjw6Zuyjol+9q4yOxhpKddY9PUXn3eSKzjcf20CFLnqAY1D10+x625ExmCsc/zYTAVQU/BeJPAhftrtM2fJ6echjCi1uWwRyXs8KO2hwAzaJd3pzyIFtwx7/KI8tkZcIpifz5Z4WWe+0ypDHqhG9sI420CNHICHn3gh+I=
+	t=1789746028; cv=none; b=CS7JxjCMU3ogS8c+YJRZ33Xk+RBedat1GKIVIuQ5p/lI62Bh+SnydFFIYqZEGiYGGM/N2ZuLOr2WfWyjvtuhcmRhtTZckOtzZ0lx2474Vc/fe2MvnL0QTcnm+ueKagOOiGtJOQZ4ZcWcye+WBiY+2YBzesZuRvzL/uvEVeNYEAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789746023; c=relaxed/simple;
-	bh=AKTyDWdCFofVwTBNBQAbVUB+t/I945u7zwQ4bFLldTs=;
+	s=arc-20240116; t=1789746028; c=relaxed/simple;
+	bh=rFCOhdWXfbC5joJoqSyJd8+XeI4ylrwkWZBd92/+/3g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ppq9SRdflLOPdKiXIsBZXp4AjhWySIXNDCAVYlstqMVBBw2CGz9ZYKVHktMNJgOwe6rO1fW95dh+Vz91gxf1hWgENYswnFCy5QWDdr6mMf+UTddrYo7WQVF337CosaA0K+BKhq5zYQ0zqT0WSpcc4JnQ4+bLYgnXywFUghkZfFg=
+	 MIME-Version; b=QHc+rV3YAiT0ztIA/9bWFD/k7wgFlaot5nPwuJ0Bx5QreeppQSkAfVm6dOJBeGB0bjP9h/UP2yaeU2SGM+D0BrCz7knY7qIoCPKcZQlH3f9v6b3l96dIBDrhFG2la+bMFoZYuIixHIYln6OHh5jLnKBFyvspvaNoNdYs3tl5dno=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 977A160468; Fri, 18 Sep 2026 17:40:07 +0200 (CEST)
+	id 29B786055C; Fri, 18 Sep 2026 17:40:16 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf 4/6] netfilter: conntrack: replace open-coded helper invocation
-Date: Fri, 18 Sep 2026 16:58:07 +0200
-Message-ID: <20260918145809.12938-5-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Kyle Zeng <kylebot@openai.com>
+Subject: [PATCH v3 nf 6/6] netfilter: nft_ct: validate timeout object protocol
+Date: Fri, 18 Sep 2026 16:58:09 +0200
+Message-ID: <20260918145809.12938-7-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260918145809.12938-1-fw@strlen.de>
 References: <20260918145809.12938-1-fw@strlen.de>
@@ -33,92 +34,110 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace duplicated logic with the new nf_ct_call_helper() helper.
-No functional changes intended, except the additional checks to
-ensure the helper can process the given packet.
+nft_ct_timeout_obj_eval() only compares the timeout object protocol with
+packet metadata. A packet header can be changed after conntrack attaches
+an entry, so this metadata does not necessarily describe the entry.
 
-LLM complains about the the existing early !helper-return in
-nf_ct_helper(), but I prefer to keep this as-is.
+Timeout objects contain protocol-specific arrays. Attaching an object for
+a protocol with fewer timeout states to an entry for one with more states
+lets the conntrack tracker read beyond the object.
 
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Require the object protocol to match the conntrack tuple protocol before
+attaching it. This mirrors validation by named timeout policies and
+nftables conntrack helper objects.
+
+Based on original patch from Kyle Zheng, who also authored this commit
+message.
+
+LLM review complains about _ext_add() races with cloned unconfirmed skbs.
+conntrack never supported this; fixing it is hard and out of scope for this
+change.
+
+Fixes: 0434ccdcf883 ("netfilter: nf_tables: rework ct timeout set support")
+Signed-off-by: Kyle Zeng <kylebot@openai.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_ovs.c | 53 +-------------------------------
- 1 file changed, 1 insertion(+), 52 deletions(-)
+ v3: remove 'ctinfop' arg from nft_ct_get_safe(), it was unused
+ since v2.
 
-diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-index b4085af3ad1c..fa64ec168e6e 100644
---- a/net/netfilter/nf_conntrack_ovs.c
-+++ b/net/netfilter/nf_conntrack_ovs.c
-@@ -12,16 +12,8 @@
- int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 		 enum ip_conntrack_info ctinfo, u16 proto)
+ net/netfilter/nft_ct.c | 44 ++++++++++++++++++++++++++++++++----------
+ 1 file changed, 34 insertions(+), 10 deletions(-)
+
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index a1093311414b..21c5d14b0d08 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -839,6 +839,34 @@ static struct nft_expr_type nft_notrack_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++/**
++ * nft_ct_get_safe() - Return nf_conn with extra checks
++ * @pkt:     nftables packet information structure
++ * @l4proto: The expected Layer 4 protocol
++ *
++ * Returns the conntrack entry only if it is unconfirmed, non-template and
++ * matches the expected L4 protocol.
++ *
++ * Return: Pointer to the &struct nf_conn if all checks pass; NULL otherwise.
++ */
++static struct nf_conn *nft_ct_get_safe(const struct nft_pktinfo *pkt, u8 l4proto)
++{
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(pkt->skb, &ctinfo);
++	if (!ct || l4proto != pkt->tprot)
++		return NULL;
++
++	if (l4proto != nf_ct_protonum(ct))
++		return NULL;
++
++	if (READ_ONCE(ct->status) & (IPS_TEMPLATE | IPS_CONFIRMED))
++		return NULL;
++
++	return ct;
++}
++
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ static int
+ nft_ct_timeout_parse_policy(void *timeouts,
+@@ -878,14 +906,12 @@ static void nft_ct_timeout_obj_eval(struct nft_object *obj,
+ 				    const struct nft_pktinfo *pkt)
  {
--	int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
--			 struct nf_conn *ct,
--			 enum ip_conntrack_info conntrackinfo);
- 	const struct nf_conntrack_helper *helper;
- 	const struct nf_conn_help *help;
--	unsigned int protoff;
--	int err;
--
--	if (ctinfo == IP_CT_RELATED_REPLY)
--		return NF_ACCEPT;
+ 	const struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+-	struct nf_conn *ct = (struct nf_conn *)skb_nfct(pkt->skb);
+ 	struct nf_conn_timeout *timeout;
+ 	const unsigned int *values;
++	struct nf_conn *ct;
  
- 	help = nfct_help(ct);
- 	if (!help)
-@@ -35,50 +27,7 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 	    helper->nfproto != proto)
- 		return NF_ACCEPT;
+-	if (priv->l4proto != pkt->tprot)
+-		return;
+-
+-	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct))
++	ct = nft_ct_get_safe(pkt, priv->l4proto);
++	if (!ct)
+ 		return;
  
--	switch (proto) {
--	case NFPROTO_IPV4:
--		protoff = ip_hdrlen(skb);
--		proto = ip_hdr(skb)->protocol;
--		break;
--	case NFPROTO_IPV6: {
--		u8 nexthdr = ipv6_hdr(skb)->nexthdr;
--		__be16 frag_off;
--		int ofs;
--
--		ofs = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
--				       &frag_off);
--		if (ofs < 0 || (frag_off & htons(~0x7)) != 0) {
--			pr_debug("proto header not found\n");
--			return NF_ACCEPT;
--		}
--		protoff = ofs;
--		proto = nexthdr;
--		break;
--	}
--	default:
--		WARN_ONCE(1, "helper invoked on non-IP family!");
--		return NF_DROP;
--	}
--
--	if (helper->l4proto != proto)
--		return NF_ACCEPT;
--
--	helper_cb = rcu_dereference(helper->help);
--	if (!helper_cb)
--		return NF_ACCEPT;
--
--	err = helper_cb(skb, protoff, ct, ctinfo);
--	if (err != NF_ACCEPT)
--		return err;
--
--	/* Adjust seqs after helper.  This is needed due to some helpers (e.g.,
--	 * FTP with NAT) adusting the TCP payload size when mangling IP
--	 * addresses and/or port numbers in the text-based control connection.
--	 */
--	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
--	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff))
--		return NF_DROP;
--	return NF_ACCEPT;
-+	return nf_ct_call_helper(skb, ct, ctinfo);
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper);
+ 	timeout = nf_ct_timeout_find(ct);
+@@ -1114,14 +1140,12 @@ static void nft_ct_helper_obj_eval(struct nft_object *obj,
+ 				   const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_ct_helper_obj *priv = nft_obj_data(obj);
+-	struct nf_conn *ct = (struct nf_conn *)skb_nfct(pkt->skb);
+ 	struct nf_conntrack_helper *to_assign = NULL;
+ 	struct nf_conn_help *help;
++	struct nf_conn *ct;
  
+-	if (!ct ||
+-	    nf_ct_is_confirmed(ct) ||
+-	    nf_ct_is_template(ct) ||
+-	    priv->l4proto != nf_ct_protonum(ct))
++	ct = nft_ct_get_safe(pkt, priv->l4proto);
++	if (!ct)
+ 		return;
+ 
+ 	switch (nf_ct_l3num(ct)) {
 -- 
 2.55.0
 
