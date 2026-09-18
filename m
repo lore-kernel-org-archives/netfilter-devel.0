@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B7E4E322E;
-	Fri, 18 Sep 2026 11:28:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D948A4E5350;
+	Fri, 18 Sep 2026 11:28:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789730939; cv=none; b=eUDjAio6Cqo+2SOePWsfmixqAUKvnen6vIr5yo5N2kILDl2IS5Lj1zlSrHeanSPDdRux9HGbK6cVmjQAm09Qa9qmV64lKo5PPURlUzgYN1iiSnYC1R4pK8+zHEjUKWggeOyPcDVzZekZqKSQYI5r4jm6l81HPmpRfTS2w16PWc4=
+	t=1789730941; cv=none; b=fMT5r9NwX9kp/mRrpyqeW9GgJpFf9KFATyv5ECpopLl44XO1hPoX3DhYPmqsJoOrEMkSjNW62CHnv+9BcAcMH92e7hnNp5/rjDchdcZ9n+lasjzJ8Sgq2ouKnfHBva4YPpcS0QDlitIjf7oIRu4D6p+47L8Ht6MKNlautXy9meE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789730939; c=relaxed/simple;
-	bh=pE28NPY90UD0ILyt7TwrgYXG8yrnhL/dDYROUIZ9dsc=;
+	s=arc-20240116; t=1789730941; c=relaxed/simple;
+	bh=LRBAn/gSjLVMiBYvPCXU4zVNeROpHhD72QB9Hh1Yets=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sItH2/T/DfovS2ZuRXNdH15LIuyISQj2qNNe4GLWkWAs7Jj7whuvrLGUH2JDS/kFIvsBhIYIOkW8F75H8L19wuuH/i+Vl6pJFn1uiXOUp3DfktNNVs918tZhb70ZUaXg6z++Yomif6I1phmxmk6T6Ojxi2aoOUdTJoC1gR1i57k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BWun6hFl; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=aYGypnVnhJ8EZDGAY8Tl/m4qADUHPR2S+DIuTArfqRe2HRqtbrW8+rpN/D03b5Hy0G9aAhdydX3gZZA0qwjsTTOm3wOYZi8IvHX759tVGb9wEiOD+8QT2zwBunHpvmGlq1zkD9tOhcG8WvpUjwCK0LDr8zIiCz1MQ967UnDpOIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QfcL/YsQ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BWun6hFl"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QfcL/YsQ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789730936;
-	bh=azYOXXiaAE+HlioLyPG6TNLzwtbPax/e5gPYnraZ35E=;
+	s=2025; t=1789730937;
+	bh=pwI87iUI9Q4Tgu3BTmxXOF1xrw0BpTWMEKE/AgAXBLg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BWun6hFlP3UR81OMTIAWOI5BPEWXL2uEX0aqzY3z+08si5soWO8SFoILaKDROJly1
-	 ow3xDrDv1fpM1p28u1qxcjGaxsoY6yGobNJQxtMQGn70Pq0zQyK/IBDOV65TsWnvgu
-	 bMa9/DoGXl3oqY8RuPwV/zd4B1Jkekjl1k/Wf/JtsLADa2CWkTghnodof3c5rgJAjw
-	 3ytPPMbCuWmi+JkXflGxj2pMl1jxh3Wat0EJ+u0GvLxCpNVK0KzWRcTdgNvLBUO0a1
-	 vHoavqyjf8IJ9FDevLrqkX3brNfy13HX+WzNW2xuMpF0qUKBmMByy0x1wWNw+Ksjva
-	 NSza9eSC/XoVA==
+	b=QfcL/YsQqWZasp++9Iobi4aVakFfsJzUEWuKcEgnpvynKiekeOxr51zXzWyxdZ8k1
+	 mBoJQOQHa9g9i0isTFGy8SSA0LVcZifGufnKJhRGVaveyC3y3CU/vH2usMi2tLM/Ih
+	 BHmyzxw4XwmaKAY4UXPlK4qkpeicx9Zaw0dPtqHmwRDDefZf44xRXtqdyljUufPVbL
+	 xVhp8gPiB/RhOV/B5mMynsL7vAbnYUNraqka6VrzOkrkvRbp+l/iNi+Z8q1+vK7Vvn
+	 73mNLVP63nv401bog2E3/namAUr/8FBmUjINPFwdJnio0aOADFBQiXx7uACrY3HSlH
+	 76Q2BK5QThmVA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B73C96005D;
-	Fri, 18 Sep 2026 13:28:55 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E594F60060;
+	Fri, 18 Sep 2026 13:28:56 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 5/8] netfilter: nft_synproxy: use the family-aware checksum helper
-Date: Fri, 18 Sep 2026 13:28:41 +0200
-Message-ID: <20260918112844.194503-6-pablo@netfilter.org>
+Subject: [PATCH net 6/8] ipvs: revalidate ihl before icmp_send
+Date: Fri, 18 Sep 2026 13:28:42 +0200
+Message-ID: <20260918112844.194503-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260918112844.194503-1-pablo@netfilter.org>
 References: <20260918112844.194503-1-pablo@netfilter.org>
@@ -53,47 +53,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Karl Mehltretter <kmehltretter@gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
 
-nft_synproxy_do_eval() verifies the TCP checksum before it switches on
-skb->protocol.  It uses nf_ip_checksum(), which constructs an IPv4
-pseudo header and relies on the IPv4 header checksum when folding the
-whole skb.  Neither operation is valid for an IPv6 packet.
+While the outer IP header is already pulled into the skb head, we must
+be careful and revalidate the embedded headers after reading them from
+the skb frags to prevent possible out-of-bounds access.
 
-A correctly checksummed IPv6 segment can therefore fail verification
-when it reaches the hook as CHECKSUM_NONE or, at NF_INET_LOCAL_IN,
-CHECKSUM_COMPLETE.  nft_synproxy_do_eval() returns NF_DROP before
-nft_synproxy_eval_v6() can send a SYN-ACK.
+One such place reported by Sashiko is ip_vs_in_icmp() where local
+process can change the ihl field and after pskb_may_pull() we can see
+larger value. Even if icmp_send() has checks to prevent out-of-bounds
+access, play safe and add check to drop the packet if the ihl field is
+changed.  As the outer headers are pulled, make sure the transport
+header is updated too, it was used before commit 7fcc2fe39fed ("net:
+icmp: avoid invalid transport header access in icmp_send tracepoint")
 
-nft_synproxy_validate() deliberately admits NFPROTO_IPV6 and
-NFPROTO_INET, and the xtables counterpart ip6t_SYNPROXY.c already calls
-nf_ip6_checksum().
-
-Use nf_checksum() with nft_pf() so the checksum helper dispatches to the
-packet family's implementation.
-
-Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
-Assisted-by: LLM
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Fixes: f2edb9f7706d ("ipvs: implement passive PMTUD for IPIP packets")
+Link: https://sashiko.dev/#/patchset/20260806105211.34622-1-ja%40ssi.bg
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_synproxy.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/ipvs/ip_vs_core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-index 9ed288c9d168..554a96a000f4 100644
---- a/net/netfilter/nft_synproxy.c
-+++ b/net/netfilter/nft_synproxy.c
-@@ -118,7 +118,8 @@ static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
- 		return;
- 	}
- 
--	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
-+	if (nf_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP,
-+			nft_pf(pkt))) {
- 		regs->verdict.code = NF_DROP;
- 		return;
- 	}
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index ba0957798bad..fd503f0efb57 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1960,6 +1960,12 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		/* Ensure the IP header is present in headroom */
+ 		if (!pskb_may_pull(skb, hlen_orig))
+ 			goto ignore_tunnel;
++		skb_set_transport_header(skb, hlen_orig);
++		/* Before now we may used ihl from skb frag, revalidate it after
++		 * copying it into skb head to prevent out-of-bounds access
++		 */
++		if (ip_hdr(skb)->ihl * 4 != hlen_orig)
++			goto ignore_tunnel;
+ 		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
+ 			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
+ 			type, code, ntohl(info));
 -- 
 2.47.3
 
