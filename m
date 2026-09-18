@@ -1,41 +1,42 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB1D51DE0F;
-	Fri, 18 Sep 2026 18:25:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2ECA51DAF1
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 18:25:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789755911; cv=none; b=oE/e3wclN2Ih7LHkMohgHTrMjMmbfiEUCN02fU+jdjxRYwskDubQUhX5BvqKCIOz3Qj8Ny6CxbOOxFfyFiaivQzMM87TbeDrE7WPfOo6ixoz9VubwC7na31gexs3aiGZrvH/OVO/j+E2Y6M7CvOi2/1ARSEU6J/mtjXcrkULaIY=
+	t=1789755921; cv=none; b=YcQmPZrgJjbEiqYe5jerOrT3oItfLKsWtdPl485xpu2D6G7cJ5qnYBPK1NOwVYtagPtCfe2pPqFgGKdoIZSoLVlIX4aX9oJjQs+vCXYnh8202AMtcP5uOTJDd6hdXljuYDvlUNdpwc7PbdS413miaxqFvoPU3GS/KBnDqHdPnLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789755911; c=relaxed/simple;
-	bh=VDhkMJnUuOdzALwBnQYd2/1PePxTf7wjQwS6ixEbijg=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=lAo/kLvJljXlT9s+Bhdfq8iVl+X89hVL/WJPcidGJq2JlwT7y61D+d/lcDzHoHUVbHbxOk+ANvLMY9a8Birk8SBV3/Sg19mOY0+66thz+aqhktrqexLrMS+7BluF1MeV/tkBcmyMu7oQbP8Ln13mFnJnvX8iNk7AwxcjeOrpBqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=y3BHAb1k; arc=none smtp.client-ip=185.246.84.56
+	s=arc-20240116; t=1789755921; c=relaxed/simple;
+	bh=xU97uUXSBagsr9GmQsHQZz14yy9MIHq+sTygSuX+pUo=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=rDFvIlhEY6X5gViEjn7QY9wT0jtmWqniUY/A9OOS4fpynsO0CoZ1HgNjj3BtudD93W+1cEfvUJziJn0y4J5FSa60NQaWlcNEibJXS671iFM/yRGLRqz903ZFyepVgUy76zABIf5zuzDTJN0TMhpTNuVkqeR2baHy+E4OxGrxp/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=BkcygTY0; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="y3BHAb1k"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="BkcygTY0"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id CBFF21A0997;
-	Fri, 18 Sep 2026 18:25:08 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 2A8DB4E407BD;
+	Fri, 18 Sep 2026 18:25:18 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id A070460649;
-	Fri, 18 Sep 2026 18:25:08 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id DC35910328E70;
-	Fri, 18 Sep 2026 20:24:59 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id F26DF60649;
+	Fri, 18 Sep 2026 18:25:17 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5BA4810329076;
+	Fri, 18 Sep 2026 20:25:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1789755903; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=Ta++TkZosJaiAmjfhJhLLNBPGPCULtPoxdA6ItNFrp4=;
-	b=y3BHAb1kF+DxJW2OiQwbDUpuF4Hp5ztJJcc9FDblYFlWB0/B5IZzuCS33/UP5Rp9MwIBMj
-	KtsbzOcl/c+2sdJgDbbCp233gWvqv3ITSNtMo4b9dZ7AUFf/tXOSdpDXE/wwGEs6/shmx1
-	qZr0KjebGyfEjlcWYwnMTTD47ssA1A6IbeAW3JQXTWkc2wbnJ3lrYZId2r7zZeo39ofWQF
-	m4mp3uLOPivBfYiNQUBQ+KaAv7qezbOGkBttwuVHLmRkmkio83q5wuR4KGOcVNAVMXqh0+
-	Hs6yBCmyJSFCgNnzCM3wamQO6rc9TBikB64r+ipz6inzvTgbuPta+Ham7PkbJA==
+	t=1789755912; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=NQhcRprTw25ITjYAfpiTxCx6Y2AUlx+f46fkhpetZkc=;
+	b=BkcygTY0+qVPb1X9zeEAOPT6Sl4tVSOo41ZSwGlMLE72kXVMv5xC/9d8RLnmrq0VGmHUZa
+	HtB8rTlxIC29z6TKCb3+DKE6/GdhbEjrQlw669NSJgIoIldi+sXEAsHWdXuw/Hu0r6lvrX
+	yHY3eORqIpb5Aw7YMMsEx9lvN9nVGKT5yY/YqzhOfy4OD//fZCjMKDUiPoiG2ebLKezoLX
+	h2ABrvy66Jo6AMCtFliQtOMQwgGz5R30aiVSmg0pypfS5j6imNSATA7VMgBWv+LsHSBP8c
+	G03WxM6E6NpC7Bqp5s3XjUIzAw0HEIU0wFYLSPvEe1anZgKQpKBMm9CDXz5j2Q==
 From: "Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>
-Subject: [PATCH 6.1.y 0/3] netfilter: nf_conntrack_expect: use conntrack GC
- to reap expectations
-Date: Fri, 18 Sep 2026 20:24:52 +0200
-Message-Id: <20260918-cve-2026-80668-6-1-v1-0-7a8667286d67@bootlin.com>
+Date: Fri, 18 Sep 2026 20:24:53 +0200
+Subject: [PATCH 6.1.y 1/3] netfilter: nf_conntrack_pptp: move GRE specific
+ cleanup to GRE tracker
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,10 +45,9 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMwQ6CMBCE4Vche3ZJW8hafRXjoZRRlwOYVomG8
- O4WOX6TzL9QRlJkOlcLJcyadRoL7KGi+AjjHax9MTnjxJys5ziDN7A3Ip6FLQc0bY9wdKHpqBy
- fCTf9/KMXktrWX7ruc353A+JrC9K6/gCcGMESfQAAAA==
-X-Change-ID: 20260918-cve-2026-80668-6-1-ae34dea72a3b
+Message-Id: <20260918-cve-2026-80668-6-1-v1-1-7a8667286d67@bootlin.com>
+References: <20260918-cve-2026-80668-6-1-v1-0-7a8667286d67@bootlin.com>
+In-Reply-To: <20260918-cve-2026-80668-6-1-v1-0-7a8667286d67@bootlin.com>
 To: stable@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
  Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
@@ -60,51 +60,209 @@ Cc: Benjamin Robin <benjamin.robin@bootlin.com>,
  "Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>, 
  Sasha Levin <sashal@kernel.org>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1789755899; l=1996;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1789755899; l=6834;
  i=miguel.gazquez@bootlin.com; s=20250708; h=from:subject:message-id;
- bh=VDhkMJnUuOdzALwBnQYd2/1PePxTf7wjQwS6ixEbijg=;
- b=KdACUJ+A7foO3WeUXSgI3206CwaaBsMjN9IuNYqoqMWck4OKhe/IBC0fjW9PYnbeAokGsFz87
- mt1P/vGbClpC0ZK9//DAIHz0JU6GFWBnSeJrNrxCXy4pWBT4swn9hjS
+ bh=tbozF3pXafltgmdWVlAd94i6K9+Ap0Jr/y6XWjzrfW0=;
+ b=B0UMV/Q+gXnLaxFgugVI99GqrKrfR2cY7Ucl8fpUskzaG3nfZgUVuK4BzueLiyQ0PtEXaKayx
+ 8k90JCSoDbcDGdyTOX7SNgOLKh0SsX4N25+rFnK61qED09P7WqD8n/c
 X-Developer-Key: i=miguel.gazquez@bootlin.com; a=ed25519;
  pk=k/2KI9jkmayaF0ghZ8QYUH9Wm/kFHDhl8QoZ0RHbr4w=
 X-Last-TLS-Session-Version: TLSv1.3
 
-Backported two other patches, to make this fix apply cleanly.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
+[ Upstream commit fe97fd540a03034a780224f24b0b2f0e21c9c763 ]
+
+Move the GRE specific cleanup to nf_conntrack_proto_gre.c to ensure that
+the .destroy callback for the pptp helper is still reachable by existing
+conntrack entries while pptp module is being removed.
+
+This is a preparation patch, no functional changes are intended.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Stable-dep-of: 979c13114c0b ("netfilter: nf_conntrack_expect: store master_tuple in expectation")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Miguel Gazquez (Schneider Electric) <miguel.gazquez@bootlin.com>
 ---
-Pablo Neira Ayuso (3):
-      netfilter: nf_conntrack_pptp: move GRE specific cleanup to GRE tracker
-      netfilter: conntrack: check NULL when retrieving ct extension
-      netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |  4 ++
+ net/netfilter/nf_conntrack_pptp.c              | 63 +-------------------------
+ net/netfilter/nf_conntrack_proto_gre.c         | 61 +++++++++++++++++++++++++
+ 3 files changed, 67 insertions(+), 61 deletions(-)
 
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h     |   4 +
- include/net/netfilter/nf_conntrack_expect.h        |  16 +-
- include/net/netfilter/nf_conntrack_helper.h        |   2 +
- include/uapi/linux/netfilter/nf_conntrack_common.h |   1 +
- net/ipv4/netfilter/nf_nat_h323.c                   |  12 ++
- net/ipv4/netfilter/nf_nat_pptp.c                   |  14 +-
- net/netfilter/nf_conntrack_broadcast.c             |   3 +
- net/netfilter/nf_conntrack_core.c                  |  33 +++-
- net/netfilter/nf_conntrack_expect.c                | 174 ++++++++++-----------
- net/netfilter/nf_conntrack_ftp.c                   |   6 +
- net/netfilter/nf_conntrack_h323_main.c             |  22 ++-
- net/netfilter/nf_conntrack_helper.c                |  10 +-
- net/netfilter/nf_conntrack_netlink.c               |  22 ++-
- net/netfilter/nf_conntrack_pptp.c                  |  72 ++-------
- net/netfilter/nf_conntrack_proto_gre.c             |  71 +++++++++
- net/netfilter/nf_conntrack_sane.c                  |   3 +
- net/netfilter/nf_conntrack_seqadj.c                |  17 +-
- net/netfilter/nf_conntrack_sip.c                   |  54 +++++--
- net/netfilter/nf_nat_sip.c                         |  12 ++
- net/netfilter/nfnetlink_cthelper.c                 |   6 +
- net/netfilter/nft_ct.c                             |   3 +-
- 21 files changed, 363 insertions(+), 194 deletions(-)
----
-base-commit: 1a8763b93150b2c8f3992c27a5ce7857fee4ab0f
-change-id: 20260918-cve-2026-80668-6-1-ae34dea72a3b
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 2c8c2b023848..890fa73d96d8 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -26,4 +26,8 @@ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite;
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre;
+ #endif
+ 
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_PPTP)
++void gre_pptp_destroy_siblings(struct nf_conn *ct);
++#endif
++
+ #endif /*_NF_CONNTRACK_IPV4_H*/
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 4c679638df06..759683d7de4f 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -124,65 +124,6 @@ static void pptp_expectfn(struct nf_conn *ct,
+ 	}
+ }
+ 
+-static int destroy_sibling_or_exp(struct net *net, struct nf_conn *ct,
+-				  const struct nf_conntrack_tuple *t)
+-{
+-	const struct nf_conntrack_tuple_hash *h;
+-	const struct nf_conntrack_zone *zone;
+-	struct nf_conntrack_expect *exp;
+-	struct nf_conn *sibling;
+-
+-	pr_debug("trying to timeout ct or exp for tuple ");
+-	nf_ct_dump_tuple(t);
+-
+-	zone = nf_ct_zone(ct);
+-	h = nf_conntrack_find_get(net, zone, t);
+-	if (h)  {
+-		sibling = nf_ct_tuplehash_to_ctrack(h);
+-		pr_debug("setting timeout of conntrack %p to 0\n", sibling);
+-		sibling->proto.gre.timeout	  = 0;
+-		sibling->proto.gre.stream_timeout = 0;
+-		nf_ct_kill(sibling);
+-		nf_ct_put(sibling);
+-		return 1;
+-	} else {
+-		exp = nf_ct_expect_find_get(net, zone, t);
+-		if (exp) {
+-			pr_debug("unexpect_related of expect %p\n", exp);
+-			nf_ct_unexpect_related(exp);
+-			nf_ct_expect_put(exp);
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/* timeout GRE data connections */
+-static void pptp_destroy_siblings(struct nf_conn *ct)
+-{
+-	struct net *net = nf_ct_net(ct);
+-	const struct nf_ct_pptp_master *ct_pptp_info = nfct_help_data(ct);
+-	struct nf_conntrack_tuple t;
+-
+-	nf_ct_gre_keymap_destroy(ct);
+-
+-	/* try original (pns->pac) tuple */
+-	memcpy(&t, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple, sizeof(t));
+-	t.dst.protonum = IPPROTO_GRE;
+-	t.src.u.gre.key = ct_pptp_info->pns_call_id;
+-	t.dst.u.gre.key = ct_pptp_info->pac_call_id;
+-	if (!destroy_sibling_or_exp(net, ct, &t))
+-		pr_debug("failed to timeout original pns->pac ct/exp\n");
+-
+-	/* try reply (pac->pns) tuple */
+-	memcpy(&t, &ct->tuplehash[IP_CT_DIR_REPLY].tuple, sizeof(t));
+-	t.dst.protonum = IPPROTO_GRE;
+-	t.src.u.gre.key = ct_pptp_info->pac_call_id;
+-	t.dst.u.gre.key = ct_pptp_info->pns_call_id;
+-	if (!destroy_sibling_or_exp(net, ct, &t))
+-		pr_debug("failed to timeout reply pac->pns ct/exp\n");
+-}
+-
+ /* expect GRE connections (PNS->PAC and PAC->PNS direction) */
+ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
+ {
+@@ -347,7 +288,7 @@ pptp_inbound_pkt(struct sk_buff *skb, unsigned int protoff,
+ 		info->cstate = PPTP_CALL_NONE;
+ 
+ 		/* untrack this call id, unexpect GRE packets */
+-		pptp_destroy_siblings(ct);
++		gre_pptp_destroy_siblings(ct);
+ 		break;
+ 
+ 	case PPTP_WAN_ERROR_NOTIFY:
+@@ -593,7 +534,7 @@ static struct nf_conntrack_helper pptp __read_mostly = {
+ 	.tuple.src.u.tcp.port	= cpu_to_be16(PPTP_CONTROL_PORT),
+ 	.tuple.dst.protonum	= IPPROTO_TCP,
+ 	.help			= conntrack_pptp_help,
+-	.destroy		= pptp_destroy_siblings,
++	.destroy		= gre_pptp_destroy_siblings,
+ 	.expect_policy		= &pptp_exp_policy,
+ };
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 728eeb0aea87..dcff889b574e 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -283,6 +283,67 @@ gre_timeout_nla_policy[CTA_TIMEOUT_GRE_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+ 
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_PPTP)
++static int destroy_sibling_or_exp(struct net *net, struct nf_conn *ct,
++				  const struct nf_conntrack_tuple *t)
++{
++	const struct nf_conntrack_tuple_hash *h;
++	const struct nf_conntrack_zone *zone;
++	struct nf_conntrack_expect *exp;
++	struct nf_conn *sibling;
++
++	pr_debug("trying to timeout ct or exp for tuple ");
++	nf_ct_dump_tuple(t);
++
++	zone = nf_ct_zone(ct);
++	h = nf_conntrack_find_get(net, zone, t);
++	if (h)  {
++		sibling = nf_ct_tuplehash_to_ctrack(h);
++		pr_debug("setting timeout of conntrack %p to 0\n", sibling);
++		sibling->proto.gre.timeout        = 0;
++		sibling->proto.gre.stream_timeout = 0;
++		nf_ct_kill(sibling);
++		nf_ct_put(sibling);
++		return 1;
++	} else {
++		exp = nf_ct_expect_find_get(net, zone, t);
++		if (exp) {
++			pr_debug("unexpect_related of expect %p\n", exp);
++			nf_ct_unexpect_related(exp);
++			nf_ct_expect_put(exp);
++			return 1;
++		}
++	}
++	return 0;
++}
++
++void gre_pptp_destroy_siblings(struct nf_conn *ct)
++{
++	struct net *net = nf_ct_net(ct);
++	const struct nf_ct_pptp_master *ct_pptp_info = nfct_help_data(ct);
++	struct nf_conntrack_tuple t;
++
++	nf_ct_gre_keymap_destroy(ct);
++
++	/* try original (pns->pac) tuple */
++	memcpy(&t, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple, sizeof(t));
++	t.dst.protonum = IPPROTO_GRE;
++	t.src.u.gre.key = ct_pptp_info->pns_call_id;
++	t.dst.u.gre.key = ct_pptp_info->pac_call_id;
++	if (!destroy_sibling_or_exp(net, ct, &t))
++		pr_debug("failed to timeout original pns->pac ct/exp\n");
++
++	/* try reply (pac->pns) tuple */
++	memcpy(&t, &ct->tuplehash[IP_CT_DIR_REPLY].tuple, sizeof(t));
++	t.dst.protonum = IPPROTO_GRE;
++	t.src.u.gre.key = ct_pptp_info->pac_call_id;
++	t.dst.u.gre.key = ct_pptp_info->pns_call_id;
++	if (!destroy_sibling_or_exp(net, ct, &t))
++		pr_debug("failed to timeout reply pac->pns ct/exp\n");
++}
++EXPORT_SYMBOL_GPL(gre_pptp_destroy_siblings);
++#endif
++
+ void nf_conntrack_gre_init_net(struct net *net)
+ {
+ 	struct nf_gre_net *net_gre = gre_pernet(net);
 
-Best regards,
---  
-Miguel Gazquez (Schneider Electric) <miguel.gazquez@bootlin.com>
+-- 
+2.55.0
 
