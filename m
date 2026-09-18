@@ -1,38 +1,38 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F594DBD62
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 11:53:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63BF2331222
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 12:45:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789732404; cv=none; b=Y29IzP1GNC8U/cRY2B7d43IS3YSYuJL8UmnUt9faFvTIkkg08mn85i4mMiRRKlvNiZkZ6elFaDVXhAEu5iMCiuLleGhXkvMzA3L609qBPQljyP4SAuQecys2yFX0ZoSgYcr189vffUr+jkfpPW/u+/Uj9pdXAdwDV6DZDSOiE7c=
+	t=1789735546; cv=none; b=JfOuLaYQXMRRwP6Tf9rTHCsMRa1mtBkl0Fw10q05stQtUm41GtPSVpf1/UvcK40MQ0ZRhS7aJKHNbgawlCeUlV+K/i8eWu32bI5GGtAeyAm+SJM8kymUo0e0J8jTrdEevR3AXLGX7xj3Srygzc2RGCs2bJ8wB+FfPi6/emtDtvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789732404; c=relaxed/simple;
-	bh=Lah7Y8Uuyz1z9TljDqatGO0ZK+lRwIabLQfKkLivJoY=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Lp5X2kTUxu/r/8j5PkZr18wu3hx5hxEkBxoTFtmWRE0Sa1clLHEiWj2vV8y36xkWusGdlfcFOZdxrkojemv7LERw6L86vqiZMYpKk2zIhWw6w1vTWRBf6QOelbG3pFmTN2+VejGfmDW616qm05/sVhuexlG/1xpOSj46fj4HgIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lUsmZBEq; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1789735546; c=relaxed/simple;
+	bh=PXI0N/nAV12GIr9D1SbLMD+w+u+m1UZL9XQKb0SveXs=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=W/mK0hWQkj76RGMw5DFHZkir29hGyTbuIRkHOfnuySQY5r8gdjsP12rGnIq+YUA7qehfO5gFD6hJfOnSxxOEIsetz33endT4JZGYVO/tGCu0H04WpC1E9ciUFlIRs/V73BgPgyly/YP4vJT4rTy2ciAp9y8apipI78NKBCGET0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sdQkpync; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lUsmZBEq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sdQkpync"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789732400;
-	bh=BGuTV1nfznEn3oUJT12F7lU8AJHxYsqCXZkZbOZtxR8=;
+	s=2025; t=1789735539;
+	bh=UzzItHO8EDihsQZ8QTxesTl/BUJH/l6EWlncQeKcas8=;
 	h=From:To:Subject:Date:From;
-	b=lUsmZBEqEA6zNEZhT4JOZncGl+VLZTgmxX7VtEA0r95NGBjKo1XLwJWFdY7T0juSh
-	 y43zx+RpPV4SR1KNKVLNtqMLtYWUV+ybbXupbcu8ACWpMFLwMbk8EZVF5aWCr0+jnW
-	 nNEmFtYLjQbwJ8YMuofZVGwKLM7rJ0PX3dws5EAVVwhLtbII8yfCDvFFZ4YT7HrT7Y
-	 uTWaIEEwpFN+86SDl8rLVVvIXVueK4vbnlVX0y4zmc+K78mXbQQg5IGWYsp0qoy8Uj
-	 ERf0gHL6xf9vpUS5eV0kBDINT/rXN4GcnrtV58WadB+/Hq5n/UPixxwUdI2mzY84bj
-	 1E8yzCHLMay7g==
+	b=sdQkpync+uHn1FEAZlRMdlQ/4zELKnzva4sBr/z3Jz9pj49UiqTVCbWhVAWqeKAME
+	 30skwXfDXTBMjJXIsJ/orx0Sia1T7ZIgRdEECNm9jd6dTgJhhfnmYuULKJUIFMH8nw
+	 27clrspHpPBAhmdLhc8qUDSwcaITc799f/eV4avGPxzYEu+n33FWBupubrWDnMY/by
+	 Pgk3/KUyuYo+k7BbGkFimnneW1YyN+/tud8eGqgiC/Yo/bXUGQpbSHrTqRXnYKLm7s
+	 w3tKO+pSqkMs6dnaGsKyIT08DDYZ8WOYJ+AMYhS6x5VqPt9LEcqlpxRWRZE9cYPtiv
+	 ZihHTJ1D8g/ag==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5E2D960058
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 13:53:20 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 94EFE60057
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 14:45:39 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: flowtable: generalize pending status bit
-Date: Fri, 18 Sep 2026 13:53:17 +0200
-Message-ID: <20260918115317.200054-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: flowtable: generalize pending status bit
+Date: Fri, 18 Sep 2026 14:45:35 +0200
+Message-ID: <20260918124535.209897-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -54,12 +54,13 @@ the flow has been fully added in both directions.
 Fixes: 2c8897953f3b ("netfilter: flowtable: Add pending bit for offload work")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-This patch supersedes the patch that adds the _CONFIRMED bit by reusing this existing bit.
+v2: rename sched/act_ct.c too.
 
  include/net/netfilter/nf_flow_table.h | 2 +-
  net/netfilter/nf_flow_table_core.c    | 7 ++++++-
  net/netfilter/nf_flow_table_offload.c | 6 +++---
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ net/sched/act_ct.c                    | 2 +-
+ 4 files changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
 index f2e2771f188f..f14fd70e8289 100644
@@ -119,6 +120,19 @@ index 801a3dd9ceea..2409cbd44a02 100644
 +		clear_bit(NF_FLOW_PENDING, &flow->flags);
  		return NULL;
  	}
+ 
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 9080cb386c16..97d38608a451 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -289,7 +289,7 @@ static bool tcf_ct_flow_is_outdated(const struct flow_offload *flow)
+ {
+ 	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
+ 	       test_bit(IPS_HW_OFFLOAD_BIT, &flow->ct->status) &&
+-	       !test_bit(NF_FLOW_HW_PENDING, &flow->flags) &&
++	       !test_bit(NF_FLOW_PENDING, &flow->flags) &&
+ 	       !test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
+ }
  
 -- 
 2.47.3
