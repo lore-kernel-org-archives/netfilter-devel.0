@@ -1,140 +1,174 @@
-Received: from mail-pj2-f14.google.com (mail-pj2-f14.google.com [74.125.227.142])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42EB33859D7
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 09:27:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50F3E3FCB3D;
+	Fri, 18 Sep 2026 09:51:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789723654; cv=none; b=qX7aktYcKtHjUMOpzWgItpTzh9zrsiuWhD0t8DThcnrED1+DTJXIJ670HwWWLuFn4JpotKLespfxmuP+6aOARi2RxoMimRA0oE+A1Zc2U80klyn8GbFtAHaeHg7K/qRNH5VEHaTsDJpIHq+C9x+HPvt/LMBckFR/PyyJeoVZvI4=
+	t=1789725092; cv=none; b=GUxRg2/ozGcoOxHOlOqm+Bbsy27uqZd2WbSpawt7IWquAOT2mzcmQ5A5DSg3ggCXnevYa2VbJp+cq9dwnXhymCSiVUbS/1ThFkN/8PdH3OJXk2J/lMH4yxFoc+hWwW4r8/LMsoXKE3/A6BIMYoTFZWMTG5S8eG1HIcgtNd1loME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789723654; c=relaxed/simple;
-	bh=2PXsBgcttta8/ln/T+kh5VwFoAg8a4SHHUUDPkGKktA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uPPNALB9DtY7wzpiD12Yytty9UfDdHmvx3eUql8HOr7B4MY4Rtgja0UIeQVcdMSlAgcRhnGDTmJon/1y0LjBQdzzgOgCAi7ugylH+A1a5MxFkE8Tl2ess9VThSFYXY3Qp4waIM53wH5+ISqetLys/P2XVOtPCJJwF23u1FJJULQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=MzmP2juZ; arc=none smtp.client-ip=74.125.227.142
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="MzmP2juZ"
-Received: by mail-pj2-f14.google.com with SMTP id d9443c01a7336-2d747f05ffcso3951475ad.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 02:27:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1789723652; x=1790328452; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TnR2h6Lhahi1XJAT4chuG9BB2ZebCYMBA16Kb3amT3c=;
-        b=MzmP2juZdTTZC0yyBjL+IK5I/rW2wZM20pmJlhWQJDnslailMZCtz0bNEiKp48nl2i
-         FuR0Kda3oHAsN7ERC+BExfr3vRRqoZ7iVu4Dj9tZbogXFs899Fgbpi9nd0JcNSMUUfTo
-         oyKgSZx8LIjO/8sRwnuIP3f6Vcuk8XpqtgJ68+tgqVC0fdypKSO6IdMetCcar3yHx52G
-         U8sBcS3VrX3dWMKmb5V1s0trtzRIW8rHyMthMe9OW9kHbYEqa+LxwVj+pL7ukCU0EEpV
-         iOxYc7hNah9mcol9OAHJT5ykFCaY5+ApSfGcnge1iZgaLkJLUpEh4eUFvGNTaOzGmTBZ
-         L2sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789723652; x=1790328452;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TnR2h6Lhahi1XJAT4chuG9BB2ZebCYMBA16Kb3amT3c=;
-        b=pJBSD/YyhNjFpBgitXgfCPGS4ppy+Q8dWul2OFiTANi1tXMa75qwGwps7JolRbGhRQ
-         n/tP2gjxBiEu+ZZDBYO5RaqyN7QiKbzZ1IpTgRO4WH828eDeGOeklq0bIUNYIqNB76b/
-         dnPxf0aJGFsDBrGsKSjyhO7WVWYcahTrSR6HWjx2pr/1usK3JE6SwGDgu8ME+Cw4a9Ut
-         9TMbG7tHdzrmJ0kr9Xc0Wgw9nF9ZLCz4Qa4pmud6FS4qpnpA+F08XFk65kCC7jcjFDXy
-         AOYnkkETFJZq1DfHoDqMXNxfJd25K7pubR4uR1jHEdDQXd7pQYKGVJjDWLPKaR9z+mIp
-         VPxA==
-X-Gm-Message-State: AFuF++lWKSR2m+H3IuE4w6etjpEEYdCX6CtUC5nouUUbEQd9kTXNXAYj
-	dEGix1TsqeEe38DOANzm+l2HA1NGai7ZzVrWXsvWOoldZZLjz0ExYc/niEDD3nkbZPR4ZBAYQ26
-	FJ/6gig==
-X-Gm-Gg: AYBFou3N5bRNdgbDZggG4oo0dv9ia2ZE84ZUKoXL77Z19OsRR9HvFVn1LNlB68hGBoA
-	H/15mEL0zki0dLG9r+dIdxnJ1/AU2/swVL3b841jxcgNbMvtRzxnaULS1xdqXu2LXwDjljnwpUx
-	V6nNXAAR73e5UvgWYPxx0Ou6+Zd2qXds2i+/3SzFDlFus4HjyeX2ZckwfT68EAopz5vc6atewsh
-	xwNcW3WEPwEloqDSugYoSVrqdz11cJjXwdkm578HRTyOG53xp5CUtL4epQ9n/vT7VGtwk9lBGvx
-	zCgFKtI2LyxC7K0ZiJqULVk9Ox3KS7FhLcyblAZZTDGsHam5PXvX4CkP2WzAcGbzLtGaYA3B9L6
-	lvpN8tcAb+JT7RXjYvl5SWVShfeR+bucZpvKEnBIU2BzNDllUkIx/ERMsM8cV9gQY1044ODMtpF
-	xfIq0IH7xPDSQRUzmvx18D4Hj0w6wNRKN6mzf0VAnmi9xDw+AnqbO9eVkxNVeVIS8HqUJculfIB
-	Dng75mDRw==
-X-Received: by 2002:a17:90b:518c:b0:39e:4fb:fdcf with SMTP id 98e67ed59e1d1-39e54bc3c40mr4463380a91.14.1789723652609;
-        Fri, 18 Sep 2026 02:27:32 -0700 (PDT)
-Received: from enjou-Legion-Y7000P-2019 ([167.71.204.91])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e5a3e3dbcsm2285005a91.5.2026.09.18.02.27.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Sep 2026 02:27:32 -0700 (PDT)
-From: Ren Wei <weir@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	kaber@trash.net,
-	vega@nebusec.ai,
-	petalzu987@gmail.com,
-	weir@nebusec.ai
-Subject: [PATCH nf 1/1] netfilter: nf_ip6_checksum: validate checksum offset
-Date: Fri, 18 Sep 2026 17:26:52 +0800
-Message-ID: <434460e777176900147de4beb73badb34f6b5e11.1789660425.git.petalzu987@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <cover.1789660425.git.petalzu987@gmail.com>
-References: <cover.1789660425.git.petalzu987@gmail.com>
+	s=arc-20240116; t=1789725092; c=relaxed/simple;
+	bh=vtCfapWI5NXcSSkmMilrOl+Ac/EUHYBOY3iu9mjTt54=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LUpiCBcudZnAFVR3pNaihf6IxH0ytsz47uCBU0KDmFLDRG0ivuBVS2ix1m/xDrTXJAhBmh84I2mkTN9exY+0TYcjBmKF8jkLDaNNCb0ZEjyzDH7/pZ9PyqEpeJvkUN9/swrPfYfONzGA31q6QXZmHz59B0GsYqaPiXCD5Ee6DmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 87B2560468; Fri, 18 Sep 2026 11:51:21 +0200 (CEST)
+Date: Fri, 18 Sep 2026 11:51:21 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
+	edumazet@google.com, horms@kernel.org, ja@ssi.bg
+Subject: Re: [PATCH net 02/10] netfilter: nfnetlink_queue: hold nfnl mutex in
+ event notifier
+Message-ID: <aq0Fr087oC6MH4kQ@strlen.de>
+References: <20260916231652.127456-3-pablo@netfilter.org>
+ <20260918020409.3513342-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260918020409.3513342-1-kuba@kernel.org>
 
-From: Zixuan Chai <petalzu987@gmail.com>
+Jakub Kicinski <kuba@kernel.org> wrote:
+> This is an AI-generated review of your patch. The human sending this
+> email has considered the AI review valid, or at least plausible.
+> ---
+> netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
+> 
+> This takes the NFNL_SUBSYS_QUEUE mutex around the instance destroy loop in
+> nfqnl_rcv_nl_event() so that the NETLINK_URELEASE notifier can no longer run
+> in parallel with nfqnl_recv_config().  The stale comment in nfqnl_recv_config()
+> is updated to describe the new serialization.
 
-nf_ip6_checksum() passes dataoff to skb_checksum() as the length
-argument without checking that it does not exceed skb->len. A malformed
-IPv6 extension header can make ipv6_find_hdr() return an offset past the
-end of the packet, causing the SYNPROXY target to hit the BUG_ON(len) in
-skb_checksum().
+This fixes a unpriv netns root exploit.  At least I think so.  Its
+simple enough to look at and should be small enough to backport.
 
-The exported nf_checksum_partial() helper can also receive a range that
-extends beyond skb->len. Validate dataoff before checksum traversal and
-validate len in the partial path before using dataoff + len for checksum
-completion. Return CSUM_MANGLED_0 for invalid input so callers reject
-malformed packets before checksum traversal.
+The LLM report makes me wonder:
 
-Fixes: 422c346fad80 ("[NETFILTER]: Add address family specific checksum helpers")
-Fixes: d63a650736f5 ("[NETFILTER]: Add partial checksum validation helper")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Signed-off-by: Zixuan Chai <petalzu987@gmail.com>
-Signed-off-by: Ren Wei <weir@nebusec.ai>
----
- net/netfilter/utils.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+1. Does this patch not fix it?  If so, how does the reproducer need
+to be changed to make it trigger KASAN/UaF again?  Doesn't say.
 
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 29c4dcc362c7..18f12552aa5d 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -67,6 +67,9 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
- 	__sum16 csum = 0;
- 
-+	if (unlikely(dataoff > skb->len))
-+		return CSUM_MANGLED_0;
-+
- 	switch (skb->ip_summed) {
- 	case CHECKSUM_COMPLETE:
- 		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
-@@ -145,6 +148,9 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- {
- 	__sum16 csum = 0;
- 
-+	if (unlikely(dataoff > skb->len || len > skb->len - dataoff))
-+		return CSUM_MANGLED_0;
-+
- 	switch (family) {
- 	case AF_INET:
- 		csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
--- 
-2.34.1
+2. Does this add a regression?  Doesn't say.  Tests I have pass.
+
+> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> > index c727668b0c5be..a3bc002800510 100644
+> > --- a/net/netfilter/nfnetlink_queue.c
+> > +++ b/net/netfilter/nfnetlink_queue.c
+> > @@ -1593,6 +1593,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+> >  	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
+> >  		int i;
+> >  
+> > +		nfnl_lock(NFNL_SUBSYS_QUEUE);
+> >  		/* destroy all instances for this portid */
+> >  		spin_lock(&q->instances_lock);
+> >  		for (i = 0; i < INSTANCE_BUCKETS; i++) {
+> 
+> [Severity: Medium]
+> This is a pre-existing issue, not something introduced here, but does waiting
+> on the nfnl queue mutex here make it easier to destroy an instance that belongs
+> to a different socket?
+
+So what?
+
+This is a 20 year old interface. NOONE, and I really mean, NO ONE, has
+raised a bug report in all these years.
+
+*WHAT* does a *SENSIBLE* userspace program need to do so that it ends up
+in a bad state?
+
+From where I'm standing, there is a crash bug that is fixed by
+this patch without observable new regression.
+
+Aside from not crashing, kernel should also not have to perform absurd
+stunts to somehow make sense of whatever crap userspace is trying to do.
+
+> The destroy loop in nfqnl_rcv_nl_event() picks victims by portid only:
+> 
+> 	hlist_for_each_entry_safe(inst, t2, head, hlist) {
+> 		if (n->portid == inst->peer_portid)
+> 			__instance_destroy(inst);
+> 	}
+> 
+> and net/netlink/af_netlink.c:netlink_release() makes the portid reusable well
+> before the notifier runs:
+> 
+> netlink_release()
+> 	netlink_remove(sk);		/* portid is free for reuse here */
+> 	sock_orphan(sk);
+> 	...
+> 	blocking_notifier_call_chain(&netlink_chain,
+> 				     NETLINK_URELEASE, &n);
+> 
+> With the new nfnl_lock(NFNL_SUBSYS_QUEUE), the notifier now blocks for the
+> whole duration of any NFQNL_MSG_CONFIG handling (including instance_create()
+> and its sleeping rhashtable_init()), in any netns, since
+> net/netfilter/nfnetlink.c:nfnl_lock() takes the single global
+> table[NFNL_SUBSYS_QUEUE].mutex.  So this sequence looks possible:
+> 
+> thread 1: close() of a NETLINK_NETFILTER socket with portid X
+> 	  netlink_remove() releases X, notifier is pending
+
+This is normally done by some applications when they shut down as
+part of SIGTERM for example. Others just exit().
+
+> thread 2: binds portid X, sends NFQNL_CFG_CMD_BIND
+> 	  nfnetlink_rcv_msg() -> nfqnl_recv_config() under the queue mutex
+> 	  instance_create() links a fresh instance with peer_portid == X
+
+Why would one try do that...?  Just... don't do that?
+And I don't follow how this can work.  LLM clains thread 1 is now
+blocked in nfnl_lock(NFNL_SUBSYS_QUEUE), which thread 2 holds.
+
+Therefore, as thread 1 couldn't yet run the notifier, the old queue is
+still registered... no?
+
+> thread 1: notifier finally acquires the mutex, matches
+> 	  inst->peer_portid == X and calls __instance_destroy() on the
+> 	  brand new instance
+
+> Can the ownership check that the new comment relies on detect this?
+> 
+> 	queue = instance_lookup(q, queue_num);
+> 	if (queue && queue->peer_portid != NETLINK_CB(skb).portid) {
+> 
+> peer_portid matches in the recycled-portid case, so the check passes and the
+> instance is still torn down by the older socket's notification.
+
+Not following :-/
+
+Even if that test passes, why does it not hit the 'return -EBUSY' in
+NFQNL_CFG_CMD_BIND?
+
+If it did not, then instance_lookup() did not return a result, i.e.
+queue was already done?  Can't make sense of anything anymore.
+
+> There is no memory safety problem, the instance is unlinked once and freed via
+> queue_rcu_work().  The visible effect is that a live socket's queue silently
+> disappears, its queued packets are flushed, packets hitting the NFQUEUE rule
+> then fail with -ESRCH (dropped unless fail-open or bypass is set), and later
+> CONFIG messages for that queue number return -ENODEV.  It requires
+> CAP_NET_ADMIN in the netns and a concurrent close/bind, and no later commit in
+> this series touches net/netfilter/nfnetlink_queue.c.
+
+I have no idea how to sensibly change this patch to address this 'bug'.
+
+And thats my main source of frustration with all the LLM walls we have
+now in place.
+
+A human telling me that I fucked up usually has the courtesy of providing
+an alternative solution or a hint to get things move in the right
+direction again.
+
+Or even 'I don't like it because of problem XYZ but I don't have a better
+idea either'.
+
+LLM just says 'something is wrong, you figure out the details of fixing
+this'.  I would like to make better patches, but I don't know how.
