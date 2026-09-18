@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A9AE4E50C9;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7B7E4E322E;
 	Fri, 18 Sep 2026 11:28:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789730939; cv=none; b=J/nplwE9dgSv554oeZYBioBONx3t2BhG7oJX0MpuBgoIDYRQkt1z1pa8yf1t1xUmBohmFh2C6wuI8pat+R736OAtRM+blzZIiZRCjyDb9PuXg2jKwK96laIfHc+57HjFdOQhlDYYB2of+2lyoq8tOUT6qU/RgoCw/rpKtiN6GjA=
+	t=1789730939; cv=none; b=eUDjAio6Cqo+2SOePWsfmixqAUKvnen6vIr5yo5N2kILDl2IS5Lj1zlSrHeanSPDdRux9HGbK6cVmjQAm09Qa9qmV64lKo5PPURlUzgYN1iiSnYC1R4pK8+zHEjUKWggeOyPcDVzZekZqKSQYI5r4jm6l81HPmpRfTS2w16PWc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789730939; c=relaxed/simple;
-	bh=/RQHfKgCaU147VxaqvEupAC0iifZR3I20zA7MLbwWlM=;
+	bh=pE28NPY90UD0ILyt7TwrgYXG8yrnhL/dDYROUIZ9dsc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=llYlagzaQliUoCI8LHtMNIQEO1epZdqApwEH83JokHqdzvOBPdBERKPgAgkRS66qEt4bIeu2IbQ0gTLug3IpMe/JxY46GvAzfV7nEXrGx+PuFqqgAbGTyh2avn508UeGvqVj2iEjFXQaM+LEwZuJn8BoJWabw9sDVXnOyYIcNGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LGUvzSnF; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=sItH2/T/DfovS2ZuRXNdH15LIuyISQj2qNNe4GLWkWAs7Jj7whuvrLGUH2JDS/kFIvsBhIYIOkW8F75H8L19wuuH/i+Vl6pJFn1uiXOUp3DfktNNVs918tZhb70ZUaXg6z++Yomif6I1phmxmk6T6Ojxi2aoOUdTJoC1gR1i57k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BWun6hFl; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LGUvzSnF"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BWun6hFl"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789730935;
-	bh=2AhBNRafA8j6ojIqlQWNUURFuw21/+BbcwdGr0mr26w=;
+	s=2025; t=1789730936;
+	bh=azYOXXiaAE+HlioLyPG6TNLzwtbPax/e5gPYnraZ35E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LGUvzSnF+edscWp7yi9HeNe6gauZVJEScMwBNgkMbzBFmZASqRYvKsA9/pt3j8xRt
-	 /+eV4cuIg5OG2ErTixaXs4vIJr7jxiXjIrk9c6sKNmISDfVXIQNdouGJ/rYaejS4Y0
-	 fClWQUIWczD7ppOyXanJbbxwQL06ZA6Daxp+ek/AZAS4FP0TF7nkenNUPMSJg3xY1b
-	 Ic37mWs0NOvRmpKYXGM5dUZUrGjKunUJKYSoKa17Z7E9sytXZsYxDCzIjraY7iHJTf
-	 OYhk2JWNMZ4PrpBRu4PEkHO7PvClIW2WfQ3OYC2rkw5FF07D4+1brg+XTud5JzJZkB
-	 p9HCdMMXi7D2w==
+	b=BWun6hFlP3UR81OMTIAWOI5BPEWXL2uEX0aqzY3z+08si5soWO8SFoILaKDROJly1
+	 ow3xDrDv1fpM1p28u1qxcjGaxsoY6yGobNJQxtMQGn70Pq0zQyK/IBDOV65TsWnvgu
+	 bMa9/DoGXl3oqY8RuPwV/zd4B1Jkekjl1k/Wf/JtsLADa2CWkTghnodof3c5rgJAjw
+	 3ytPPMbCuWmi+JkXflGxj2pMl1jxh3Wat0EJ+u0GvLxCpNVK0KzWRcTdgNvLBUO0a1
+	 vHoavqyjf8IJ9FDevLrqkX3brNfy13HX+WzNW2xuMpF0qUKBmMByy0x1wWNw+Ksjva
+	 NSza9eSC/XoVA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 81C2D60078;
-	Fri, 18 Sep 2026 13:28:54 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B73C96005D;
+	Fri, 18 Sep 2026 13:28:55 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 4/8] netfilter: ip6t_rt: fix zero-address non-strict match out-of-bounds read
-Date: Fri, 18 Sep 2026 13:28:40 +0200
-Message-ID: <20260918112844.194503-5-pablo@netfilter.org>
+Subject: [PATCH net 5/8] netfilter: nft_synproxy: use the family-aware checksum helper
+Date: Fri, 18 Sep 2026 13:28:41 +0200
+Message-ID: <20260918112844.194503-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260918112844.194503-1-pablo@netfilter.org>
 References: <20260918112844.194503-1-pablo@netfilter.org>
@@ -53,86 +53,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Luxiao Xu <rakukuip@gmail.com>
+From: Karl Mehltretter <kmehltretter@gmail.com>
 
-rt_mt6_check() permits rules to be configured with rtinfo->addrnr == 0
-even when address matching (IP6T_RT_FST_MASK) is requested.
+nft_synproxy_do_eval() verifies the TCP checksum before it switches on
+skb->protocol.  It uses nf_ip_checksum(), which constructs an IPv4
+pseudo header and relies on the IPv4 header checksum when folding the
+whole skb.  Neither operation is valid for an IPv6 packet.
 
-In the IP6T_RT_FST_NSTRICT path, rt_mt6() evaluates packet routing
-addresses against rtinfo->addrs[i] and terminates backwards at the bottom
-of the loop:
+A correctly checksummed IPv6 segment can therefore fail verification
+when it reaches the hook as CHECKSUM_NONE or, at NF_INET_LOCAL_IN,
+CHECKSUM_COMPLETE.  nft_synproxy_do_eval() returns NF_DROP before
+nft_synproxy_eval_v6() can send a SYN-ACK.
 
-    if (ipv6_addr_equal(ap, &rtinfo->addrs[i])) {
-        i++;
-    }
-    if (i == rtinfo->addrnr)
-        break;
+nft_synproxy_validate() deliberately admits NFPROTO_IPV6 and
+NFPROTO_INET, and the xtables counterpart ip6t_SYNPROXY.c already calls
+nf_ip6_checksum().
 
-When addrnr is 0, if the first packet address matches rtinfo->addrs[0],
-i is incremented to 1. Because i is now strictly greater than addrnr (0),
-the loop termination condition (i == rtinfo->addrnr) is bypassed and will
-never be satisfied.
+Use nf_checksum() with nft_pf() so the checksum helper dispatches to the
+packet family's implementation.
 
-If a crafted IPv6 packet contains matching routing addresses, i will
-advance past IP6T_RT_HOPS (16). The subsequent call to ipv6_addr_equal()
-reads beyond struct ip6t_rt, triggering UBSAN/KASAN out-of-bounds warnings
-or kernel panics.
-
-Fix this by:
-1. Rejecting rules in rt_mt6_check() where IP6T_RT_FST_MASK is set but
-   rtinfo->addrnr is zero.
-2. In rt_mt6(), moving the termination condition (i < rtinfo->addrnr)
-   into the for-loop header condition and removing the backwards break
-   at the end of the loop body.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Suggested-by: Florian Westphal <fw@strlen.de>
+Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
 Assisted-by: LLM
-Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
-Signed-off-by: Ren Wei <weir@nebusec.ai>
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_rt.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ net/netfilter/nft_synproxy.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index 8051425213dd..9880faf3cc7d 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -96,7 +96,8 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 			unsigned int i = 0;
- 
- 			for (temp = 0;
--			     temp < (unsigned int)((hdrlen - 8) / 16);
-+			     temp < (unsigned int)((hdrlen - 8) / 16) &&
-+			     i < rtinfo->addrnr;
- 			     temp++) {
- 				ap = skb_header_pointer(skb,
- 							ptr
-@@ -112,8 +113,6 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 				if (ipv6_addr_equal(ap, &rtinfo->addrs[i]))
- 					i++;
--				if (i == rtinfo->addrnr)
--					break;
- 			}
- 			if (i == rtinfo->addrnr)
- 				return ret;
-@@ -162,6 +161,12 @@ static int rt_mt6_check(const struct xt_mtchk_param *par)
- 		pr_info_ratelimited("too many addresses specified\n");
- 		return -EINVAL;
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 9ed288c9d168..554a96a000f4 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -118,7 +118,8 @@ static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
+ 		return;
  	}
-+
-+	if ((rtinfo->flags & IP6T_RT_FST_MASK) && !rtinfo->addrnr) {
-+		pr_info_ratelimited("address list match requested but addrnr is 0\n");
-+		return -EINVAL;
-+	}
-+
- 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
- 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
- 	     (rtinfo->rt_type != 0) ||
+ 
+-	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
++	if (nf_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP,
++			nft_pf(pkt))) {
+ 		regs->verdict.code = NF_DROP;
+ 		return;
+ 	}
 -- 
 2.47.3
 
