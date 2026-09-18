@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E004E322E;
-	Fri, 18 Sep 2026 11:28:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AEEC42F70D;
+	Fri, 18 Sep 2026 11:28:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789730935; cv=none; b=p0PTa45iCwM1C3cwqAtHhS3Uxf4aD4jPTgT59eQmRf0K1xfxThvBvY10MV6EN3JUS1w8zmiULv+4whOpxXu8ES20hvW9uODXcxneUw8l9o+cbwh5x1DFbk3+zYKqM3Dg7UaoKDuRN/sccLiMs+z+Zwhzwb+uxWEQLL6HqL+zQk0=
+	t=1789730936; cv=none; b=iPB68Cftb7wshdYEhs4IuCB3xloodg5aijcrtGMdqLBiwwX/Hter95SEW3SA2Dgb807euQJt9gT9gwuZJZAF2wUXRdpVapp7DeWGCFWt/vzG58JnYRdk3rtc+4j+VPopJkVtvySIq8RkuoE8LUP4Dc1P46yrqYZixf0z2CsypFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789730935; c=relaxed/simple;
-	bh=4HfuHVWBDeEsxxv8e0VT7aodI1+OuVHGTWmLKRxxxvw=;
+	s=arc-20240116; t=1789730936; c=relaxed/simple;
+	bh=ss13MxwnGIx1g3X9fTYg5DYEkxDbZYEtajlyIUkHZKY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=AC6mam4GXgp5GzgVUB6Zv+34i17I4D2R2H32eQ5A+Bpo+1O58xVx4cxeE9K1gvyhfPqdFIvzAsKniTHuVJd/IXlUeI4cORBNSGpGOFb4jljhg9EuOs5FvqBPMzIyZ/zd5RfGAUFcNHoSZnjggDKcRshsZuHHj4d9iTuAjy9umgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N1+xcMZP; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=UKNIujm4QCP5ld01a9+lU9hociZgC4Xtpe9rqMtMQvZBdfXjq7DtIre+e3MuTOw+TqHRLZXO4AN87GKwAt7gjP57ei4eHPPlR8Y5rRgsAlJt7S5f2dn602fdS0BOQIY3+FOikDyzdPTlSS+RXGoH/V+ehcFpyFY/e4l7+cRpCfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UwFKbZiB; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N1+xcMZP"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UwFKbZiB"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789730931;
-	bh=2X8mObAesaPVjweNT9/lS2qSkKHcZ69bb7cf/OianZw=;
+	s=2025; t=1789730932;
+	bh=/22HIQY5PgEk9H1q86B9JJ7/MyzfiEVxP7YLBHcOcIk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=N1+xcMZP6ovkRNvRtamWh8248zAvywTZ/jaOYvJld5ScawyEFkl1NpATNL6cuZzoO
-	 PTuco7GwlEF6oWd0XX0W0E6yRqF3Mhra88i9MawBrTuQHG1CNYLRqiudDZosQBLiHu
-	 caay8bZS/xlR5Dc3eko/Iadiq89/Z85pJyJQz/G1aM9R0gb1TvYggTeBLSft/pUaz/
-	 mXAgwqh8MjLB1wNlZiaaFr8Y8yioORpuC7lQz4TdQBG+iBLYIb9VZAVVAnlux+3mpT
-	 cjGCQHs73WeAIKd3hCrRkNu1XfgORUgV7sqrFn8iVXTXtmrUunISoM8rBJ4CYqHs4W
-	 ubU0scIvinOiA==
+	b=UwFKbZiBPyrDp1xWq1mgHCcJTy9iVwi2AVJb/RdJSykQdM/1S+ShZP2QhfeaOjCKn
+	 qM/5kFf/tSoA0/B6m3+hhZRucLU0o5LA709aT1IvBZFZMP0fI6266pYk3QYpQniUnp
+	 iVI9HEyEQfzAC9P0c4UudFz4hubOW7SsAsGdQIfSh9pX2+xqL66Q8iVlwOky2MWgnH
+	 wnrh4aoyYy6uutFQNtHZYeonnobDTZ7EGvKNnVXD0CuHov9weS5dXnwrj2HzT3i6nS
+	 MRceX9l8kpifxtCgtoA+WdPWXZZxT09EJKXEFUVy5/Y6tvUBDZZThUkf1rwgFyKU94
+	 +klQcOUaJ+rGQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A540460060;
-	Fri, 18 Sep 2026 13:28:50 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id EB31060076;
+	Fri, 18 Sep 2026 13:28:51 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 1/8] netfilter: flowtable: publish HW_DEAD after worker is done
-Date: Fri, 18 Sep 2026 13:28:37 +0200
-Message-ID: <20260918112844.194503-2-pablo@netfilter.org>
+Subject: [PATCH net 2/8] netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
+Date: Fri, 18 Sep 2026 13:28:38 +0200
+Message-ID: <20260918112844.194503-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260918112844.194503-1-pablo@netfilter.org>
 References: <20260918112844.194503-1-pablo@netfilter.org>
@@ -51,59 +51,67 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+From: Florian Westphal <fw@strlen.de>
 
-flow_offload_work_del() sets NF_FLOW_HW_DEAD before the work handler
-clears NF_FLOW_HW_PENDING. Once a flow is both HW_DYING and HW_DEAD, a
-concurrent garbage collection pass can remove it and schedule it for RCU
-freeing.
+We must serialize the release notifier and the config netlink function.
+A concurrent thread can issue close() which can call the release function
+while unrelated socket processes UNBIND request for same portid:
 
-The offload worker holds neither an RCU read lock nor a reference to the
-flow. If it is preempted after publishing HW_DEAD, the RCU callback can
-free the flow before the worker resumes and clears HW_PENDING, resulting
-in a use-after-free.
+Oops: general protection fault, [..]
+RIP: 0010:__instance_destroy+0x60/0x210 [nfnetlink_queue]
+Call Trace:
+ nfqnl_recv_config+0x9b0/0xdc0 [nfnetlink_queue]
+ nfnetlink_rcv_msg+0x7c2/0xeb0
+ ? __pfx_nfnetlink_rcv_msg+0x10/0x10
 
-Move HW_DEAD publication to the common worker epilogue after the pending
-bit is cleared, making it the final flow access by destroy work. Order all
-preceding flow accesses before publishing the bit that allows garbage
-collection to free the object.
+After this, parallel UNBIND and URELEASE events are impossible.
 
-Fixes: 2c8897953f3b ("netfilter: flowtable: Add pending bit for offload work")
-Assisted-by: Codex:gpt-5
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+This change isn't nice, but its the shortest fix given instances
+are not refcounted and the nfnetlink config callback drops the
+rcu read lock early due to need for sleeping allocations.
+
+Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_queue.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 801a3dd9ceea..6757fd89c1f1 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -995,7 +995,6 @@ static void flow_offload_work_del(struct flow_offload_work *offload)
- 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
- 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
- 		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
--	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
- }
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index c727668b0c5b..a3bc00280051 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1593,6 +1593,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+ 	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
+ 		int i;
  
- static void flow_offload_tuple_stats(struct flow_offload_work *offload,
-@@ -1059,6 +1058,12 @@ static void flow_offload_work_handler(struct work_struct *work)
++		nfnl_lock(NFNL_SUBSYS_QUEUE);
+ 		/* destroy all instances for this portid */
+ 		spin_lock(&q->instances_lock);
+ 		for (i = 0; i < INSTANCE_BUCKETS; i++) {
+@@ -1606,6 +1607,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+ 			}
+ 		}
+ 		spin_unlock(&q->instances_lock);
++		nfnl_unlock(NFNL_SUBSYS_QUEUE);
  	}
- 
- 	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
-+	if (offload->cmd == FLOW_CLS_DESTROY) {
-+		/* Publish after the worker's last flow access. */
-+		smp_mb__before_atomic();
-+		set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-+	}
-+
- 	kfree(offload);
+ 	return NOTIFY_DONE;
  }
+@@ -1925,9 +1927,9 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
  
+ 	/* Lookup queue under RCU. After peer_portid check (or for new queue
+ 	 * in BIND case), the queue is owned by the socket sending this message.
+-	 * A socket cannot simultaneously send a message and close, so while
+-	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
+-	 * socket close) cannot destroy this queue. Safe to use without RCU.
++	 * nfqnl_rcv_nl_event() will block on the nfnl subsys mutex that is
++	 * held by the caller, so the queue cannot be destroyed in parallel,
++	 * even after we drop the RCU read lock.
+ 	 */
+ 	rcu_read_lock();
+ 	queue = instance_lookup(q, queue_num);
 -- 
 2.47.3
 
