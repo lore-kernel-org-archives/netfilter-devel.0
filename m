@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 793453B47C3;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A003E2F6920;
 	Fri, 18 Sep 2026 02:04:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789697056; cv=none; b=Ux9HTopE/n2bTi4oNp6HoaNeJl54dcyFNTN55/q3YcSK1KXMaxHQH/nvrihj9/Q4HIFmjXzllJN+pS+yFRf5flVnQeZcscvH9b5QrKPuOns+/yLh2SZFS0Qkm19t/vAIM93K6LQH8SGm+oQas15lF9FLIG/Vscj8R45h1BjyRtM=
+	t=1789697057; cv=none; b=e29XVEMvH4cTSAAgnwVT2I0CaF2Y9g7n7TfVXg+iaSKz+QYaMTsfdlJQssRYj3AubrhZlCiTgO9NgcVQk1rH2ne8rKzKcnuM6hCpJdO9ak/veEfN23V1njHfj5uDUV9XZznPFZxfSI/ccPUagaW3EbO0UVjbV9hfVYCvlCp38Tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789697056; c=relaxed/simple;
-	bh=Bp6mkDc0mD4rxyW1Gr3Sv25qwAm8a8kl+kZGApgaB3k=;
+	s=arc-20240116; t=1789697057; c=relaxed/simple;
+	bh=BSaMaj9ThBC4ebL0Qas/kMRfN7b4mliUAF5mS2mWi/U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Vkc0srBulbPSe8pXEgwBZ+Relmx3MbCTtyR7ZDjMSH684qw/Y2DLR0a9zJ6I2xW14m/rFVBmfF5VkntI1ID7hSxR/QG/8Kt7yeEB0aYakZR6yGQ0tGh1wjkRVjBvU9B/atJSgjbJo56jOmx88RoiM8N5gvOdmSOPWmUNH2fGEt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WV5oiI6w; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=Ob2q1RIFUNEsgcw4Onr5OzXZlnctaUJjbJYdXsPOUy+iM7rMwfTKp/MQnpgaW7KwnKvKNTAx6j6msc/JWSewcGhQAWVjkQMXg65CKKcbZcIOtv2cSa/86D/+LTjtvy6sGKGPNHgWpUOfEftgQpCc7ddyZooeH7pXBt8o+vmeNtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dOCmXdZh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WV5oiI6w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 182EF1F00898;
-	Fri, 18 Sep 2026 02:04:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dOCmXdZh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC711F00893;
+	Fri, 18 Sep 2026 02:04:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789697051;
-	bh=JaboV52UYUJtbPOiiBs4a/Eliiv9mnd+EHX5MYq3Eb0=;
+	s=k20260515; t=1789697050;
+	bh=M217qkgdd1STms7C0pMa3ofp24XB/0WG5bbZ8Mdp2TM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=WV5oiI6w0dkqMMA7zzieLibEbRvObGjrrhSmuu40InfHrY9vAfs4BHlMbM5aUYtfd
-	 smNZnru9ZaMo+mKqJfGY4a4Pa09g0kGeUq3ZQBJGKDdV6c7nyyee/PqEkSv+QYQwY4
-	 kEbc+WDPTIlhbgg5YiWlaBUabIMZzUWy/7UW8XNGiJCxQ1QwVo8+zHw0cdx+xuLH7O
-	 UpiPCae0BXfaHqtZePydASlTUXOb0e9wRdBjSzv5PsQX3AGaQ2jdpydbTZxfFY3VIB
-	 v/anRwihBOmCAN8dtu6pL5aUAJT2JQJgn4DiWu/PVDvZVb+4/VllXnHW9d9meOcJg4
-	 H/lRjk/7HT+Pw==
+	b=dOCmXdZh4kK3UgMsNa0tAyZHOVtHu7KbrigzowrpDE/JD9Ka4MvSUVROQqy0dtoLP
+	 gFCOmhtyiQ/POjhOZSfFA+7IDJonnsrDyGxLFzOYKal7MSTkQXMO++3mkXdW9T9XLC
+	 i/l8OpRLhHxddmVF/0OMEk/6ZIEnOziF/cA8Zj75BckcNxpBAqrrWVq/O/CclVdXiQ
+	 WpudmvmDmaNQx6m7jllK9NKL/2v43KRf/NpQQBw8ncyZW+AociWSuirA3gNnUXBUEK
+	 sxjdqwfmliP6htIYVum+t/Vx0UJJZtBLWwHYOwwXuKlv/3Hs16Ol7Ft9mGZGqBVsTB
+	 VbnBtpI6kW+xQ==
 From: Jakub Kicinski <kuba@kernel.org>
 To: pablo@netfilter.org
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -37,12 +37,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: Re: [PATCH net 03/10] netfilter: ip6t_rpfilter: reject routes without inet6_dev
-Date: Thu, 17 Sep 2026 19:04:10 -0700
-Message-ID: <20260918020410.3513378-1-kuba@kernel.org>
+Subject: Re: [PATCH net 02/10] netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
+Date: Thu, 17 Sep 2026 19:04:08 -0700
+Message-ID: <20260918020409.3513342-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260916231652.127456-4-pablo@netfilter.org>
-References: <20260916231652.127456-4-pablo@netfilter.org>
+In-Reply-To: <20260916231652.127456-3-pablo@netfilter.org>
+References: <20260916231652.127456-3-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,91 +54,98 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-netfilter: ip6t_rpfilter: reject routes without inet6_dev
+netfilter: nfnetlink_queue: hold nfnl mutex in event notifier
 
-This adds a NULL check on rt6i_idev right after the ip6_route_lookup()
-call in rpfilter_lookup_reverse6(), so routes that survived in the FIB
-after their nexthop device lost its inet6_dev are skipped. It protects
-the later rt6i_idev->dev dereferences in the same function.
+This takes the NFNL_SUBSYS_QUEUE mutex around the instance destroy loop in
+nfqnl_rcv_nl_event() so that the NETLINK_URELEASE notifier can no longer run
+in parallel with nfqnl_recv_config().  The stale comment in nfqnl_recv_config()
+is updated to describe the new serialization.
 
-Closes: https://lore.kernel.org/all/VtWUkE8QzJt5CroTj2V2v3ZQ0gwbXZ7nq7I3@bugs.sh/
-
-> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-> index 67c87a88cde4f..b5def30c3127e 100644
-> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
-> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-> @@ -61,7 +61,7 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
->  		fl6.flowi6_oif = dev->ifindex;
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index c727668b0c5be..a3bc002800510 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -1593,6 +1593,7 @@ nfqnl_rcv_nl_event(struct notifier_block *this,
+>  	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
+>  		int i;
 >  
->  	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
-> -	if (rt->dst.error)
-> +	if (rt->dst.error || !rt->rt6i_idev)
->  		goto out;
+> +		nfnl_lock(NFNL_SUBSYS_QUEUE);
+>  		/* destroy all instances for this portid */
+>  		spin_lock(&q->instances_lock);
+>  		for (i = 0; i < INSTANCE_BUCKETS; i++) {
 
-[Severity: High]
-This isn't a bug introduced by this patch, but if rt6i_idev can be NULL on
-an error-free route, does the same dereference remain unguarded in
-validate_ipv6_net_dev() in drivers/infiniband/core/cma.c?
+[Severity: Medium]
+This is a pre-existing issue, not something introduced here, but does waiting
+on the nfnl queue mutex here make it easier to destroy an instance that belongs
+to a different socket?
 
-drivers/infiniband/core/cma.c:validate_ipv6_net_dev() {
-	struct rt6_info *rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
-					 &src_addr->sin6_addr, net_dev->ifindex,
-					 NULL, strict);
-	bool ret;
+The destroy loop in nfqnl_rcv_nl_event() picks victims by portid only:
 
-	if (!rt)
-		return false;
+	hlist_for_each_entry_safe(inst, t2, head, hlist) {
+		if (n->portid == inst->peer_portid)
+			__instance_destroy(inst);
+	}
 
-	ret = rt->rt6i_idev->dev == net_dev;
+and net/netlink/af_netlink.c:netlink_release() makes the portid reusable well
+before the notifier runs:
+
+netlink_release()
+	netlink_remove(sk);		/* portid is free for reuse here */
+	sock_orphan(sk);
 	...
-}
+	blocking_notifier_call_chain(&netlink_chain,
+				     NETLINK_URELEASE, &n);
 
-The !rt test there looks equivalent to the rt->dst.error test this patch
-just found insufficient, since rt6_lookup() only returns NULL for the
-error case:
+With the new nfnl_lock(NFNL_SUBSYS_QUEUE), the notifier now blocks for the
+whole duration of any NFQNL_MSG_CONFIG handling (including instance_create()
+and its sleeping rhashtable_init()), in any netns, since
+net/netfilter/nfnetlink.c:nfnl_lock() takes the single global
+table[NFNL_SUBSYS_QUEUE].mutex.  So this sequence looks possible:
 
-net/ipv6/route.c:rt6_lookup() {
-	dst = fib6_rule_lookup(net, &fl6, skb, flags, ip6_pol_route_lookup);
-	if (dst->error == 0)
-		return dst_rt6_info(dst);
+thread 1: close() of a NETLINK_NETFILTER socket with portid X
+	  netlink_remove() releases X, notifier is pending
 
-	dst_release(dst);
+thread 2: binds portid X, sends NFQNL_CFG_CMD_BIND
+	  nfnetlink_rcv_msg() -> nfqnl_recv_config() under the queue mutex
+	  instance_create() links a fresh instance with peer_portid == X
 
-	return NULL;
-}
+thread 1: notifier finally acquires the mutex, matches
+	  inst->peer_portid == X and calls __instance_destroy() on the
+	  brand new instance
 
-So the route class described in this commit message, an error-free cache
-route whose rt6i_idev was left NULL by ip6_rt_copy_init():
+Can the ownership check that the new comment relies on detect this?
 
-net/ipv6/route.c:ip6_rt_copy_init() {
-	...
-	rt->rt6i_idev = dev ? in6_dev_get(dev) : NULL;
-	...
-}
+	queue = instance_lookup(q, queue_num);
+	if (queue && queue->peer_portid != NETLINK_CB(skb).portid) {
 
-would pass the !rt check and then be dereferenced when validating an
-incoming RoCE CM request via validate_net_dev() -> validate_ipv6_net_dev().
+peer_portid matches in the recycled-portid case, so the check passes and the
+instance is still torn down by the older socket's notification.
 
-The other in-tree readers of the field already treat NULL as legal:
+There is no memory safety problem, the instance is unlinked once and freed via
+queue_rcu_work().  The visible effect is that a live socket's queue silently
+disappears, its queued packets are flushed, packets hitting the NFQUEUE rule
+then fail with -ESRCH (dropped unless fail-open or bypass is set), and later
+CONFIG messages for that queue number return -ENODEV.  It requires
+CAP_NET_ADMIN in the netns and a concurrent close/bind, and no later commit in
+this series touches net/netfilter/nfnetlink_queue.c.
 
-net/ipv6/fib6_rules.c:fib6_rule_suppress() {
-	...
-	if (rt->rt6i_idev)
-		dev = rt->rt6i_idev->dev;
-	...
-}
+>  			}
+>  		}
+>  		spin_unlock(&q->instances_lock);
+> +		nfnl_unlock(NFNL_SUBSYS_QUEUE);
+>  	}
+>  	return NOTIFY_DONE;
+>  }
+> @@ -1925,9 +1927,9 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+>  
+>  	/* Lookup queue under RCU. After peer_portid check (or for new queue
+>  	 * in BIND case), the queue is owned by the socket sending this message.
+> -	 * A socket cannot simultaneously send a message and close, so while
+> -	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
+> -	 * socket close) cannot destroy this queue. Safe to use without RCU.
+> +	 * nfqnl_rcv_nl_event() will block on the nfnl subsys mutex that is
+> +	 * held by the caller, so the queue cannot be destroyed in parallel,
+> +	 * even after we drop the RCU read lock.
+>  	 */
 
-net/ipv6/icmp.c:icmp6_send() {
-	...
-		if (rt6 && rt6->rt6i_idev)
-			dev = rt6->rt6i_idev->dev;
-	...
-}
-
-Would a follow-up patch adding the same guard to cma.c make sense? Note
-that reaching the cma.c site is not unprivileged end-to-end the way the
-rpfilter path is: it needs the NULL-idev route to exist in the namespace
-of the RoCE netdev, which normally means CAP_NET_ADMIN in init_net plus an
-RDMA-capable device. Nothing later in this series touches
-drivers/infiniband/core/cma.c or net/ipv6/route.c, so the call site is
-still unguarded at the end of the series.
+[ ... ]
