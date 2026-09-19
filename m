@@ -1,45 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DA8B35C694;
-	Sat, 19 Sep 2026 14:47:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEA25303A04;
+	Sat, 19 Sep 2026 14:57:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789829243; cv=none; b=N/OWkyVyO/WfgeeYuZOOGX3ntfhzeTCJAo3qAkktAvgMukJa35EGhar/DjLk7faWqhwJ7yd1f2GiZTzY7l6sFxv5e2kiTgUCt0hoaz7eePScbyncQCDdh3By/oWXcVcK3jDxB/jUQBRtxOXjppC9JriBMMgpItvOIx18TSH6gSI=
+	t=1789829847; cv=none; b=ubyvF9RvU+ho3Xb0/eO56akWj8icL6m8HRNPcfpHCAD+zM3/e2wZIgyZ8GiB3MCnUajOJCxxhBs9zekaQxXyp8Z3qsvHE+cLykxZti4hKF9RlOk8Gv61TA0GFYS/OrWzjcM5l07Mc7QlrPWwINjLn+iE+4hexkmsv2s5nfWuqeQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789829243; c=relaxed/simple;
-	bh=IiEQH8GbuuuigZZCVChq6S+q0DhP0Gv80e7Rwl+awTY=;
+	s=arc-20240116; t=1789829847; c=relaxed/simple;
+	bh=zGw4/GQyB0BvC/r8wxMX56dY/5wBm7rSVFZ78cps40I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UCj3ECvY4sM8L+yLRHIgFJf5Ko7ARKyvj4nLXBO14hC/wKh5CttAP9ItBKWhoqDyn9SE+JxjDVU1zQ/6wI1GzZLGrpy1nqJ2VzW9/mU2F5IOr1yHQYq2rieTDkSFxZxLc/Q5SZ2FNMJcH/m1EFEh9PAqoB5OBEnXM1pdLBfJZC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lOxslzOU; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=svyJDU/LFbq9KAHrPpqQJCQHTSpOnRABNoXThnD1ZZH7YIQrV4fQ6ctEh2fwRCFL8c9+DUSoN10xCNBHwiDvcpuizvJwBRRXcAcl0HoPdi5ZnMBM8p04XtWA9tnRPAQQJM9lmHMq7AYw3sNeYeJZxT5jZcx8mm+aofGdWpZTJNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=isHYP5JK; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lOxslzOU"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="isHYP5JK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789829230;
-	bh=EdHjWGVCwcXILuUkFI3Og4x/jlX7w43tKBkPJl2oQ1M=;
+	s=2025; t=1789829842;
+	bh=bVw1liNHg8dgZkUyHaFRFX/LoRQkrWnHOmvA5rzLjcI=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lOxslzOU/GYtHiRhPZeHQ9WxnDdL8Zc0EyWURS48iI7tRsYRag14ASmOEhfE8S7mc
-	 4KA51JqwQ1yuEiXrzem8+EcMb+2WQHiWLfjNVSHw3gXPFUafACFWg+2+WVdzd68A97
-	 bMHzvLrACGwlPYfofuaIG862nbTSrUzyBrboksSAA0vas3C0J0RRCkwFCZdqWqHCOb
-	 N/YpxHKW69J7JVCt94itkdR1Y3tGnxP99wcKi91EG5x/UX60CCkhG/x+IcuB9Sl3Fb
-	 jIWlUCrh6iFWZIrMgeBIJqq4+e3GpbaSigekGlt79UpGTrQilMT/mKTxZ3b/qyQZdx
-	 3DvHIdhWOhuyA==
+	b=isHYP5JKlmfWd3fwsLj3uSIHXddmoL+ULL2xHHuIoGgWWorZwk/wNrXROG+cso3y0
+	 RxIIzZ3rPDyn+/H9CT9WG6LN0L0agroIpn4K1Ag2/IXBVn8owg7rO5NhK1UNj9GcMJ
+	 qM9E7+4+Qr8g42MPo7MUVKYiS214kh6HsLkzyV3rLmipCjnm6weF6y8HuFiPA7LJWa
+	 DBG6yhmTnoM3NhvGQ6qh25ZpBT9Vl/YlYG/1e4/2BxzrergbhhNjkrTJXmPgW7092C
+	 bgNIFTHHzx9X+472kfWS8jbvk+5fR1bHhoMzVR2r1TmmBi/huPbJI2YXDVq1kgU3l8
+	 hkBtef0dE315Q==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5EB756005A;
-	Sat, 19 Sep 2026 16:47:10 +0200 (CEST)
-Date: Sat, 19 Sep 2026 16:47:07 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id DEF8C60074;
+	Sat, 19 Sep 2026 16:57:21 +0200 (CEST)
+Date: Sat, 19 Sep 2026 16:57:18 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev-bot+sashiko@kernel.org
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+To: kuba@kernel.org
+Cc: netdev-bot+sashiko@kernel.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
 	edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net 1/8] netfilter: flowtable: publish HW_DEAD after
- worker is done
-Message-ID: <aq6ga3KjFLr5z3lL@chamomile>
-References: <20260918112844.194503-2-pablo@netfilter.org>
- <178982488874.22033.15959147673465185831@kernel.org>
+Subject: Re: [PATCH net 8/8] netfilter: nf_tables: skip expired catchall
+ elements on insert and delete
+Message-ID: <aq6iznIv5wHnIhDg@chamomile>
+References: <20260918112844.194503-9-pablo@netfilter.org>
+ <178982489117.22033.1574367831667981015@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,152 +49,145 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <178982488874.22033.15959147673465185831@kernel.org>
+In-Reply-To: <178982489117.22033.1574367831667981015@kernel.org>
 
-On Sat, Sep 19, 2026 at 01:34:48PM +0000, netdev-bot+sashiko@kernel.org wrote:
+Hi Jakub,
+
+This comments below look like brainstorming, nothing really that
+should prevent this patch from being merged.
+
+On Sat, Sep 19, 2026 at 01:34:51PM +0000, netdev-bot+sashiko@kernel.org wrote:
 > Thank you for your contribution! Sashiko AI review found 1 potential
 > issue(s) to consider:
 > 
-> Critical: 0 · High: 1 · Medium: 0 · Low: 0
+> Critical: 0 · High: 0 · Medium: 1 · Low: 0
 > 
-> - [High] Incomplete fix: the FLOW_CLS_STATS (and, in a narrower window,
->   FLOW_CLS_REPLACE) offload work items still hold an unreferenced, non-…
+> - [Medium] The relaxed duplicate predicate in
+>   nft_setelem_catchall_insert() (nf_tables_api.c:7003-7016) removes the…
 > 
 > --
 > 
-> netfilter: flowtable: publish HW_DEAD after worker is done
+> netfilter: nf_tables: skip expired catchall elements on insert and delete
 > 
-> The NF_FLOW_HW_DEAD publication is moved out of flow_offload_work_del()
-> into the common flow_offload_work_handler() epilogue, after
-> NF_FLOW_HW_PENDING is cleared, so that the destroy work item does not
-> touch the flow after garbage collection is allowed to free it.
-
-This is a pre-existing issue. I have a patch for this already in the
-queue for the stats case.
-
-This patch is already improving the situation.
-
-> > diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> > index 801a3dd9ceea..6757fd89c1f1 100644
-> > --- a/net/netfilter/nf_flow_table_offload.c
-> > +++ b/net/netfilter/nf_flow_table_offload.c
-> > @@ -995,7 +995,6 @@ static void flow_offload_work_del(struct flow_offload_work *offload)
-> >  	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
-> >  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> >  		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
-> > -	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-> >  }
+> This aligns nft_setelem_catchall_insert() and
+> nft_setelem_catchall_deactivate() with the lookup and dump predicates, so
+> an expired catchall element no longer counts as a duplicate and no longer
+> gets picked as the delete candidate. Both walks now also test
+> __nft_set_elem_expired() with the per-netns transaction timestamp and
+> nft_set_elem_is_dead().
+> 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index c0b754a2d45b..b59628e6240c 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -6995,11 +6995,14 @@ static int nft_setelem_catchall_insert(const struct net *net,
+> >  {
+> >  	struct nft_set_elem_catchall *catchall;
+> >  	u8 genmask = nft_genmask_next(net);
+> > +	u64 tstamp = nft_net_tstamp(net);
+> >  	struct nft_set_ext *ext;
 > >  
-> >  static void flow_offload_tuple_stats(struct flow_offload_work *offload,
-> > @@ -1059,6 +1058,12 @@ static void flow_offload_work_handler(struct work_struct *work)
+> >  	list_for_each_entry(catchall, &set->catchall_list, list) {
+> >  		ext = nft_set_elem_ext(set, catchall->elem);
+> > -		if (nft_set_elem_active(ext, genmask)) {
+> > +		if (nft_set_elem_active(ext, genmask) &&
+> > +		    !__nft_set_elem_expired(ext, tstamp) &&
+> > +		    !nft_set_elem_is_dead(ext)) {
+> >  			*priv = catchall->elem;
+> >  			return -EEXIST;
+> >  		}
 > >  	}
-> >  
-> >  	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
-> > +	if (offload->cmd == FLOW_CLS_DESTROY) {
-> > +		/* Publish after the worker's last flow access. */
-> > +		smp_mb__before_atomic();
-> > +		set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-> > +	}
-> > +
-> >  	kfree(offload);
-> >  }
 > 
-> [Severity: High]
-> Does this reordering also cover the FLOW_CLS_STATS and FLOW_CLS_REPLACE work
-> items?  The clear_bit() above runs for every command, and for stats work the
-> flow can already be gone by the time the worker reaches it.
+> [Severity: Medium]
+> Can repeated expire-then-readd cycles grow set->catchall_list without
+> bound here?
 > 
-> The sequence I think is still possible, all on a flow that has NF_FLOW_HW set:
+> With the relaxed predicate, the expired entry is skipped but stays linked
+> and genmask-active until GC runs, so the tail of
+> nft_setelem_catchall_insert() appends a second entry alongside it:
 > 
-> A remote FIN/RST marks the flow closing in nf_flow_state_check():
+> 	catchall = kmalloc_obj(*catchall, GFP_KERNEL_ACCOUNT);
+> 	if (!catchall)
+> 		return -ENOMEM;
 > 
-> net/netfilter/nf_flow_table_ip.c:nf_flow_state_check() {
-> 	if ((tcph->fin || tcph->rst) &&
-> 	    !test_bit(NF_FLOW_CLOSING, &flow->flags))
-> 		set_bit(NF_FLOW_CLOSING, &flow->flags);
-> }
+> 	catchall->elem = elem->priv;
+> 	list_add_tail_rcu(&catchall->list, &set->catchall_list);
 > 
-> nf_flow_offload_gc_step() then queues the destroy work, and the flow stays
-> linked in the rhashtable:
+> Unlike ordinary elements, catchall elements are excluded from the size
+> accounting in nft_add_set_elem():
+
+Set size is specified by user... User can create a set without a set
+size... This comment makes no sense.
+
+> 	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
+> 		unsigned int max = nft_set_maxsize(set), nelems;
 > 
-> net/netfilter/nf_flow_table_core.c:nf_flow_offload_gc_step() {
-> 	} else if (test_bit(NF_FLOW_CLOSING, &flow->flags) &&
-> 		   test_bit(NF_FLOW_HW, &flow->flags) &&
-> 		   !test_bit(NF_FLOW_HW_DYING, &flow->flags)) {
-> 		nf_flow_offload_del(flow_table, flow);
-> 	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
-> 		nf_flow_offload_stats(flow_table, flow);
+> 		nelems = atomic_inc_return(&set->nelems);
+> 		if (nelems > max)
+> 			set_full = true;
 > 	}
+> 
+> so the "return set_full ? -ENFILE : 0;" limiter that caps accumulation of
+> ordinary elements does not apply to this path. Is there anything else that
+> bounds the number of stale catchall entries a set can hold?
+
+We could sets a cap for maximum number of items in a transaction, but
+noone requested this so far. There is also memcg which should provide
+a cap.
+
+> Reclamation looks like it depends entirely on GC, and the interval is
+> user-tunable with no upper bound (NFTA_SET_GC_INTERVAL is accepted as a u32
+> in milliseconds and nft_set_gc_interval() just converts it):
+> 
+> include/net/netfilter/nf_tables.h:nft_set_gc_interval() {
+> 	u32 gc_int = READ_ONCE(set->gc_int);
+> 
+> 	return gc_int ? msecs_to_jiffies(gc_int) : HZ;
 > }
 > 
-> The destroy worker now clears NF_FLOW_HW_PENDING and publishes
-> NF_FLOW_HW_DEAD.  Since NF_FLOW_HW, NF_FLOW_HW_DYING and NF_FLOW_HW_DEAD are
-> never cleared again anywhere in the tree, a later garbage collection pass on
-> the same flow falls through to the last branch above and queues a stats work
-> item, because nf_flow_offload_work_alloc() only gates on the pending bit:
+> For nft_set_rhash and nft_set_rbtree the catchall reclaim runs only from
+> the delayed gc work requeued with that value, so with a large gc-interval
+> the window for accumulation is correspondingly large.
+>
+> There is also a packet-path effect: nft_set_catchall_lookup() walks the
+> whole list, and new elements are appended at the tail, so every accumulated
+> stale entry is dereferenced before the live one is found:
 > 
-> net/netfilter/nf_flow_table_offload.c:nf_flow_offload_work_alloc() {
-> 	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
-> 		return NULL;
-> 	...
-> 	offload->flow = flow;
-> }
+> 	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
+> 		ext = nft_set_elem_ext(set, catchall->elem);
+> 		if (nft_set_elem_active(ext, genmask) &&
+> 		    !nft_set_elem_expired(ext) &&
+> 		    !nft_set_elem_is_dead(ext))
+> 			return ext;
+> 	}
 > 
-> So a stats work item can exist for a flow that already has HW_DYING and
-> HW_DEAD set.  When NF_FLOW_TEARDOWN is then set (expiry, ct dying, dst
-> invalid, netdev down, or a SYN on the closing flow via
-> nf_flow_state_check() -> flow_offload_teardown()), the next pass frees it:
+> Would it be preferable to reuse or force-reclaim the stale catchall element
+> on insert, rather than only ignoring it?
+
+Maybe, but that is unrelated to this patch.
+
+> > @@ -7092,11 +7095,14 @@ static int nft_setelem_catchall_deactivate(const struct net *net,
+> >  					   struct nft_set_elem *elem)
+> >  {
+> >  	struct nft_set_elem_catchall *catchall;
+> > +	u64 tstamp = nft_net_tstamp(net);
+> >  	struct nft_set_ext *ext;
+> >  
+> >  	list_for_each_entry(catchall, &set->catchall_list, list) {
+> >  		ext = nft_set_elem_ext(set, catchall->elem);
+> > -		if (!nft_is_active_next(net, ext))
+> > +		if (!nft_is_active_next(net, ext) ||
+> > +		    __nft_set_elem_expired(ext, tstamp) ||
+> > +		    nft_set_elem_is_dead(ext))
+> >  			continue;
+> >  
+> >  		kfree(elem->priv);
 > 
-> net/netfilter/nf_flow_table_core.c:nf_flow_offload_gc_step() {
-> 	if (teardown) {
-> 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
-> 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
-> 				nf_flow_offload_del(flow_table, flow);
-> 			else if (test_bit(NF_FLOW_HW_DEAD, &flow->flags))
-> 				flow_offload_del(flow_table, flow);
-> 	...
-> }
-> 
-> flow_offload_del() -> flow_offload_free() -> call_rcu(&flow->rcu_head,
-> flow_offload_free_rcu) waits only for RCU readers.  The stats worker holds no
-> reference and no RCU read lock, and it sleeps in
-> down_read(&flowtable->flow_block_lock) and in the driver callbacks, so can
-> the grace period elapse while flow_offload_work_stats() is still using the
-> flow here?
-> 
-> net/netfilter/nf_flow_table_offload.c:flow_offload_work_stats() {
-> 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> 	...
-> 	offload->flow->timeout = max_t(u64, offload->flow->timeout,
-> 				       lastused + flow_offload_get_timeout(offload->flow));
-> }
-> 
-> and then in the shared epilogue:
-> 
-> 	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
-> 
-> That looks like the same "worker writes flow flags after the flow may have
-> been freed" pattern the commit message describes, just reached through the
-> stats work item instead of the destroy one.
-> 
-> The ordering in nf_flow_table_gc_cleanup() seems to make this explicit on the
-> netdev-down and flowtable-delete paths:
-> 
-> net/netfilter/nf_flow_table_core.c:nf_flow_table_gc_cleanup() {
-> 	nf_flow_table_iterate(flowtable, nf_flow_table_do_cleanup, dev);
-> 	flush_delayed_work(&flowtable->gc_work);
-> 	nf_flow_table_offload_flush(flowtable);
-> }
-> 
-> Teardown is set, the gc flush frees the HW_DEAD flows, and only afterwards
-> are the add/del/stats workqueues drained.  Should the flush of the offload
-> workqueues happen before the gc flush here?
-> 
-> Would it make sense for the free decision in nf_flow_offload_gc_step() to
-> also consult NF_FLOW_HW_PENDING, or for the work items to take a reference
-> on the flow (or for work admission to be refused once NF_FLOW_HW_DYING is
-> set), rather than only reordering the two bit operations in the destroy
-> worker?
+> [Severity: Medium]
+> Related to the above: with stale entries now skipped and -ENOENT returned,
+> per-element DELSETELEM can no longer retire the accumulated entries, so a
+> full set flush or set deletion appears to be the only way to drop them
+> before GC fires. Is that the intended behaviour?
 > 
 > -- 
 > Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260918112844.194503-2-pablo%40netfilter.org
