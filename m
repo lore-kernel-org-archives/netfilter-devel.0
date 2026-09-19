@@ -1,62 +1,64 @@
-Received: from mail-pz2-f43.google.com (mail-pz2-f43.google.com [74.125.228.43])
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDD55314D06
-	for <netfilter-devel@vger.kernel.org>; Sat, 19 Sep 2026 03:29:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF44C331EC3
+	for <netfilter-devel@vger.kernel.org>; Sat, 19 Sep 2026 03:34:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789788579; cv=none; b=u+oGOCgmj+zUhrTivV6+wdGDkuGJl4DoX2wWEFaBBUfHcv9ZYVd55VzcQA6tr4UI9tp2hlZxIK7cMviYZAGyiDc4I7t7taEKuCjjEEc1iezyJbeaXhk74LPrRNBb3uaFdNLdKwRDYBkLXzCM6z0cW4LrITXv4auhFhHvzjJSoxQ=
+	t=1789788864; cv=none; b=fua/Kj7Xiw1WxVWO9pdojKBVjBsh0PBZxhIMNiWMXJNyJNgyNU4aW7q5B2IDatrGeZ1eg9ApYQ2lw0jbpCe2l0svAoHYpm1fnTdvWyiS8G4h/BExSM2m22xFlJXhhp1mF4ZCccN3BFCy/1nXw9G9vrrYdEGOic7iPTdfSY+atSU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789788579; c=relaxed/simple;
-	bh=Kpjx1RIkavXK32hKs8VpAOoak/OwV60NfDZF48LiohY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FfdFt/ThyCmoVTbTzGeHsT1VChvP0/JZK/xoJnBr450rGiID/p0/q75WaNV7KOPLqg4G969pdA1vj2qxpxnxyHn7ss7joDUkM7m8eC30umX3Ve0fpHUqB3au5JEANBAcXp7c1cm+UdFqcqbh5/ScZ5xe0gwi5S2Jto8u47p4S50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wz0v+fZa; arc=none smtp.client-ip=74.125.228.43
+	s=arc-20240116; t=1789788864; c=relaxed/simple;
+	bh=Mjm+u1p75mFRLkvZFTf5dwnqY7Fg+z8VjFahbelkFCA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=p8kJaquWFEMqHnc6fgGoTKVZlZIAmbmIRamoc01aK+f1P7TWATWAOl9QB87pENKo8eCPsAEXZOkjSXhMfDkbqAP8B8cfZyAoU6k0vR2gp4L4kKo9kT28mA3lcgAoRsxyDtaK1Ih0TIT7/SA5wnWx5y3OCAzck/yCocrKcCzzBsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M5q2NJRw; arc=none smtp.client-ip=74.125.227.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wz0v+fZa"
-Received: by mail-pz2-f43.google.com with SMTP id d2e1a72fcca58-85469b35611so930429b3a.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 20:29:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M5q2NJRw"
+Received: by mail-pj2-f13.google.com with SMTP id 98e67ed59e1d1-396ccafb751so1174446a91.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2026 20:34:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789788576; x=1790393376; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=muMIYjiiSeBsL1eUzeEwgPRRBWkaPT6ZobNvYIG+NcA=;
-        b=Wz0v+fZa12YeWq9CupoXbd4g3Heuy2vo9dBdZTECWgIqd8MCQF10K48hf5g8FZK/S0
-         daeOvREp/qm0QJt87mvmmbD5jQjoSLpr6BhjJYr2USmeaR4K1E8ZT2G2jd/eJI6Ts+9Q
-         7I/jvtO8erNqdru1r4k+MzVlazxOwctuXs6Ceczsl1RYDUs0bcWqKE5zyVEP4/qautnZ
-         rVeUiuej1QX9EIzRz4U0NTxjNnUVFlIOeIQFPVhOyLbpeQz9cdFfhTmGmXLKEWdwCEXe
-         kwwigLQg43umaGHHqnOcG7nLuxhJkFKLy0tlAOugi8ZNKXtWLEmsfq0ulnGck+OTKBJc
-         O16Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789788576; x=1790393376;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1789788862; x=1790393662; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=muMIYjiiSeBsL1eUzeEwgPRRBWkaPT6ZobNvYIG+NcA=;
-        b=PBllYfyt7Qbs3c2joZRspVOBytlvai5AXvKYA/ctdNUD7JzewXnhW0uiUYM54Qf1T6
-         oVZGPZNYpnNY45ELrd4BN6jwnXjh24+6wGX02gljv8f/724CIBuJy253mASlXg4f3fYV
-         jI+BpoNxKa848oU5Rn5v7j1aH8rDurg0QWiPMoksjaZCgt9diyW+vAOcKqCoi0PqR1Xs
-         fYdq+bJEuxbDbjZzTgPTIzCwFcNoUcZdTy4M+hlmAfKYO87qUS4szL0W35t8kiWcOTLx
-         eUlTn95fZRAoCS0MXVb+j7jtWqOg9NvXlFC/RU/DpLWtye7Xbh7Wk2jrIoimo1DXguEa
-         bVYQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzVev5Ikp4JjUimS6ILl8EHyodkAPK/ifUlFnzYJUbY8nzcNUCvMjkZtWo/Xxl2GOLp8WraJIDzM4Iq8tr0eAk=@vger.kernel.org
-X-Gm-Message-State: AFuF++nEP/RAA3pYq+l8YAuDZ/jhTpUkjU1dtGaBKBOCVwDEYO2YBIzb
-	3qd+lSdbZ+bm/ylBl0b5WmUrEl+fwmZnTz9Q3goIuPXmLle43fiLtX1P
-X-Gm-Gg: AYBFou29euWzrcKv/nG+f8AJw2uETrXiqxdNS109jrfOCWpobPvcwh8g6GnpMbJFtBn
-	ew/gklKQMQEjyHNXqYCCYP4vpnhKCKwKEJgzIDuFkWB2+efumC4iSiYzlcWTuwREQ6WgO7J1WHz
-	hq7jD3WbFUgWxsUMYiOFY2oCYCTzDwhnHQxIaK99kAhXSl/jvzEv1k4XXu3VWtHBArLJJFUwuwY
-	Y2fsp3RrlhH7W3+zgS39Zx8nX72S5LbvJsZHjVo07RhhMn6pMlRVruYHma/QrxBdFtunq8/6K3w
-	3scLT0EmP83KqZ5vwHu6Gip9rK3eucP2m6Sb+RRdfyEqFdMqEE6HOws9hfF+LQpt+GRlPynVW7P
-	Qu7jFn5JuWUrVvDr4draXdsnnPy+1Z+n3ZhTl4R4QQpZTxymBPx4ynJijIwunIr2shD/B1sFGZL
-	t88GAhdMdQAzW3UbXT27wHUT3SN20Z5Rjf9scKQUUOEX7r71VPCJBgNOSyI0fVjU5Awc5l9ufjB
-	3yPv3Z0dyuyySPu
-X-Received: by 2002:a05:6a00:3e22:b0:851:8394:1696 with SMTP id d2e1a72fcca58-874dbfee622mr7775440b3a.12.1789788576058;
-        Fri, 18 Sep 2026 20:29:36 -0700 (PDT)
+        bh=BAJlgrBRZ5OuM1n3rZmR1mVZuClmJsamQ0VjEnP9+oo=;
+        b=M5q2NJRwrYVBlHh2XYl2DcN7248Y7W0Mc99kVmYJ6FM7XIB5hNJpe3iF5HpoFvWqZh
+         AcjmOgaDFIf25gVTBSg9Z0lm0F2iSdvc3CVPbolignYspaNsv4fo5IFpJLRZ7vXchMrx
+         dIBVS/GOFO/dH51APK6D5PxK/NTsCJtoOB+j/f2yTcQM41Vp/f3PcdygqVaPQJO5cf6k
+         yQMf4pAWBvQ9FkivFSa9E9f0MKwqPlj0h2AJd5XKYxvFKF8+mPvMdzrGZLUQ8J+TB+ji
+         66OhW31FKKms7TY7luo9592pOj0AYSuuQT4JraCl+g2Y5ixG6jqzdy4xR9piBcuScpgU
+         NW1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789788862; x=1790393662;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=BAJlgrBRZ5OuM1n3rZmR1mVZuClmJsamQ0VjEnP9+oo=;
+        b=CNyL4I8QzsEWvPCTyUIVTZLeIZPhuRzZcacrEvl0tO8SAx5TOCDNdSEPSZ/OdmmSYJ
+         F6pTRlorZtlZhjuCuai06HvAJiYwaWohBlG+J2GJeCiKfkUVXFfNOZU1zb3vBqHURlWc
+         7tMbcqpcNiY0LD+LfwljdjqsZ61vPDkMW5zP0dK9xOXE70JxPtvv4BHGwR0++6vJoty0
+         oaZGwEX79YZ3Kwo6Z9jJBsFDF1pi5QM3VSbZVmCgcwH0DwRFzU+ZDyWGTlFLJhXaz1ou
+         Nu2LxN37kN3WgQE1eMm0rLKkHv/5attsNUkx2AIc2DjYKcto6DhDZzGbR/6Trb3JLrg7
+         iLRw==
+X-Forwarded-Encrypted: i=1; AKwUvByh130+h10QNaFUVGKuSPjxcq5uEiQIGqDfR/faz6G6+2gQ1QTyqXXxaE27DGSd125aK03dJA0uquB667jCN6g=@vger.kernel.org
+X-Gm-Message-State: AFuF++kkqqeLf6cE9p/zGzz+Oh5mlB3LrbDs7uH/8CyLmGwpZ+rQAClz
+	w012qfhZxNDi81fAxugEE5fFpf9+FdcdW/wNspmg2U0RNoegNyIn6YY7v9upWA==
+X-Gm-Gg: AYBFou2aeYMfVNeD5Tt5t3naEnD+H0dDMdzmWYGgiEkFxVObosoCb6O8evBcFucsanG
+	pD7znxRe7aB4SxdeUtkWm26MXK3WF+O5WDBUf5NjbxJW83rla24ZN3fN5vgnZLmhrzg8zvQvLnO
+	3CYUmB/AyJmhwPIaMS9R96xOfOx9nOERkpiBX8LwGSh3uyjidzgES5AV5JOR9rTXsOdKbyTzMyU
+	GRHc8mOymIlmkhQq3AXCbozY3HURmlVDJkNOxE8K0ZZRCIPFs6Pdouj8UHoVkOn9iQqP3tfNudi
+	uqxwQoEsXqdD1D7ZYG92O/kZ4ZFdibZ6vWCJXAdFunj1Hs6rWhQ3vdmxyelAKo4lCFX5exV/ase
+	8RS3z0QxBSJAzSNT+rzDDKlCy2ECQbfGtGBfV+9Z43R/qCzAPeh6sZ6LVcLAdAiSDP739zYdtPO
+	daxDq/WIyR8VyDLPdV60wEL25In1QQa1VTgZfHSRkIfdUw7cU8Srb4OtPh3/boavpv/jFyg5zQc
+	qHAHoxMKwrawFJi
+X-Received: by 2002:a17:90b:5403:b0:39e:6a7f:eeed with SMTP id 98e67ed59e1d1-39e6a7ff0b0mr4607745a91.18.1789788862096;
+        Fri, 18 Sep 2026 20:34:22 -0700 (PDT)
 Received: from thangnn-ASUS.. ([2405:4802:1d4a:e90:814e:e9d3:767e:9a2a])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-877a6be0d58sm489281b3a.7.2026.09.18.20.29.32
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e6c3145e5sm2313913a91.5.2026.09.18.20.34.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Sep 2026 20:29:35 -0700 (PDT)
+        Fri, 18 Sep 2026 20:34:21 -0700 (PDT)
 From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -71,10 +73,12 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	syzbot+83439cb981624bd8d068@syzkaller.appspotmail.com
-Subject: [PATCH] netfilter: nf_tables: defer object destruction on abort past commit_mutex
-Date: Sat, 19 Sep 2026 10:29:28 +0700
-Message-ID: <20260919032928.78841-1-ngocthang2710.1999@gmail.com>
+Subject: [PATCH v2] netfilter: nf_tables: defer object destruction on abort past commit_mutex
+Date: Sat, 19 Sep 2026 10:34:15 +0700
+Message-ID: <20260919033415.79813-1-ngocthang2710.1999@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260919032928.78841-1-ngocthang2710.1999@gmail.com>
+References: <20260919032928.78841-1-ngocthang2710.1999@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -146,9 +150,12 @@ Closes: https://syzkaller.appspot.com/bug?extid=83439cb981624bd8d068
 Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 ---
+v2: shortened two in-code comments that were needlessly long for what
+    they explain; no functional change from v1.
+
  include/net/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c     | 55 +++++++++++++++++++++++++++----
- 2 files changed, 49 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c     | 40 +++++++++++++++++++++++++------
+ 2 files changed, 34 insertions(+), 7 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
 index 9d597482363d..e77831e3494c 100644
@@ -163,7 +170,7 @@ index 9d597482363d..e77831e3494c 100644
  
  /**
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c0b754a2d45b..04bb3d4f16ad 100644
+index c0b754a2d45b..a8b3bf969bd8 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -146,6 +146,7 @@ static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
@@ -174,20 +181,13 @@ index c0b754a2d45b..04bb3d4f16ad 100644
  
  static void nft_trans_gc_work(struct work_struct *work);
  static DECLARE_WORK(trans_gc_work, nft_trans_gc_work);
-@@ -10288,8 +10289,19 @@ static void nf_tables_trans_destroy_work(struct work_struct *w)
+@@ -10288,8 +10289,12 @@ static void nf_tables_trans_destroy_work(struct work_struct *w)
  	synchronize_rcu();
  
  	list_for_each_entry_safe(trans, next, &head, list) {
 -		nft_trans_list_del(trans);
 -		nft_commit_release(trans);
-+		/*
-+		 * binding_list is already unlinked here: for commit-origin
-+		 * transactions it was never linked to begin with, and for
-+		 * abort-origin ones nft_trans_list_del() unlinked it under
-+		 * commit_mutex before this trans was queued (see
-+		 * __nf_tables_abort()) since that list is only ever walked
-+		 * under that mutex. Only detach from the local work list.
-+		 */
++		/* binding_list unlink, if any, already done under commit_mutex. */
 +		list_del(&trans->list);
 +		if (trans->aborted)
 +			nf_tables_abort_release(trans);
@@ -196,7 +196,7 @@ index c0b754a2d45b..04bb3d4f16ad 100644
  	}
  }
  
-@@ -11278,6 +11290,10 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+@@ -11278,6 +11283,10 @@ static void nf_tables_abort_release(struct nft_trans *trans)
  			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
  		break;
  	}
@@ -207,21 +207,13 @@ index c0b754a2d45b..04bb3d4f16ad 100644
  	kfree(trans);
  }
  
-@@ -11482,12 +11498,37 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+@@ -11482,12 +11491,29 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
  
  	nft_set_abort_update(nft_net);
  
 -	synchronize_rcu();
-+	/*
-+	 * Defer destruction past an RCU grace period, same as the commit
-+	 * path (see nf_tables_commit_release()): an abort must not block
-+	 * on synchronize_rcu() while holding commit_mutex, since every
-+	 * other nf_tables netlink request queues up behind that mutex.
-+	 *
-+	 * nft_trans_list_del() also unlinks bindable NEWSET/NEWCHAIN
-+	 * transactions from nft_net->binding_list, which is only ever
-+	 * walked under commit_mutex (see nf_tables_commit()), so that
-+	 * unlink has to happen here and not from the unlocked workqueue.
++	/* Defer past the GP like nf_tables_commit_release(); keep the
++	 * binding_list unlink here, under commit_mutex (see nft_trans_list_del()).
 +	 */
 +	if (!list_empty(&nft_net->commit_list)) {
 +		LIST_HEAD(head);
