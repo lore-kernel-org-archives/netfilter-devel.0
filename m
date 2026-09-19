@@ -1,174 +1,105 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk2-f1.google.com (mail-qk2-f1.google.com [74.125.230.193])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5096433C195;
-	Sat, 19 Sep 2026 13:34:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789824893; cv=none; b=UETQOeB3XBNHAP4j4D8JMzLw1e3kq+tU6JupK3FfrCYlHk9DgyzrBavmQ4iaHDdBe/rCPI7mkdXz8dgxICqhqwHvLNuBiEwEXpqby+gkNunmph7O2qK2PZAs9iD2WvbkZ3IoLNYXEhjuv42d1sUBOdWGnYGUmQSoo0QBe9+XbmQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789824893; c=relaxed/simple;
-	bh=/x7Bii4UWQIZtRjHvZYE9R1XuP8UemCNMwqZufE7QRc=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Yn3dpZCMMbtusLjsrZvDhb2DiSjwIdwYXpprCYlRB/CnsPdbS+UAKvBrXA/8rK6yThIhUiWy+G4jYwA7tKiTPejKBOFGVIqttGlJwLNhawJNBk0LwEuf0nv5ZEJpfvIAskNLWqZ8oxPXqUkFf/3UeGeDmPXtX8RiaY1+gkpFqFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lCBearYS; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABF05156C6A
+	for <netfilter-devel@vger.kernel.org>; Sat, 19 Sep 2026 14:35:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.193
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789828518; cv=pass; b=CXp04OJjgf2DuY5G8ueWDOJ+7DL3JmsL/bjjvSB2OoV0Tl5C9MwUYZUNcK5vt1YVlVgAOh0Np1ktdhvasMvWmczGU51wXtWiHXAZL1MxwWv8uP9TdrpI7CcIYTJcxbQC43zByP9d9JeP629nz8WMWthmYRA0dL6rderVaSOp/dE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789828518; c=relaxed/simple;
+	bh=8saC3WK/Tc2ObLz85Zwc7YvU1ZkWTm9hD005/9QnwQE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SIdmk62rKFdzZ5zkhILuuyMkTmkTmtQchTVfMMuDYVKd5wr6Gh0mf16GKOsCbpmmTCgewHqUbx5ETgL7l5ezqkMXuntFttj5epUNA6dwFfklMpJkq3HKOOQTbF/1VFBlgjzD68RffQ0VeoqQ4wg74U3IXiaxyOq+3jZGS/7bxIE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AjYsofwG; arc=pass smtp.client-ip=74.125.230.193
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lCBearYS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90E2C1F00898;
-	Sat, 19 Sep 2026 13:34:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789824892;
-	bh=Bbe7YnppLJoDT1UF+JlYMGeorH++IAnA/Vm//9dsWWI=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=lCBearYSKud+xDlMfhmHAiGfR8xZKu2CSdhJWXqre0VEB5dpeDZXSJcGFA6FVIefl
-	 epHETPQdcDL3pZ4ERY1cGHgT0dcTv4Kyt5zrPf1BShj8flvMA9/ay6yfODhAkvcs3O
-	 6nMR1yq7EtNGm1m7IJ/HswAzfx7GdaFsDAsiH6VG1hjpqZL6eDDD9NDrz4JGCqxAaP
-	 1NkfqoOLMLemKUMwKPYUlf0SLcqqoMGUMJqxYH88t4OorRUOyJkXWQhM/Bipi1Ed0/
-	 5Ut8lXjzDrSIYH+qdilrYwoGZcy9cIw7xfAEJlPhIh1NS3kGBEeqQX7/uStVaEAOtK
-	 /WP5iAmqUUinw==
-Subject: Re: [PATCH net 8/8] netfilter: nf_tables: skip expired catchall
- elements on insert and delete
-From: netdev-bot+sashiko@kernel.org
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 19 Sep 2026 13:34:51 +0000
-Message-ID: <178982489117.22033.1574367831667981015@kernel.org>
-In-Reply-To: <20260918112844.194503-9-pablo@netfilter.org>
-References: <20260918112844.194503-9-pablo@netfilter.org>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AjYsofwG"
+Received: by mail-qk2-f1.google.com with SMTP id af79cd13be357-9395921bc31so158597885a.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Sep 2026 07:35:16 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789828515; cv=none;
+        d=google.com; s=arc-20260327;
+        b=RvYy3sLbo8LqjQgBfabnZj3BOXcfYo8A6CKiJe22i2MHyfc4JtW5VrQAucGAjMGhca
+         81P5j7ddIogizDsSo87U/61JtCRlyRJqgQIDxFixyH1o+avlU2+xcI6DWFCgizGsyL0A
+         /7oLJho330MMa5bn69rdpNVpuK0nIVtoC5sLhRnUIWhVKn86RLtKY3qWy6zF0mLrKV7i
+         w5N1xDspsHAQvRjCO4/nku+Vh/MIxUYYByjHn96uPUs2wzH7otTuW7he215wik/qxFGf
+         n0nUluekXRUFJ8Ouv03mwYFCHku+XDFMBZVog5Vq6xBs20CxM8Ql3z1bkX6+ybNdeGsC
+         pi8A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=8saC3WK/Tc2ObLz85Zwc7YvU1ZkWTm9hD005/9QnwQE=;
+        fh=EOModxpWtNyGxZ7/8l8fCQq/rDkKsYGzoaQvawC0omc=;
+        b=WZbSv1SNqrSdhOsBPJpFaObd2BO5bpfmd1NIZPngeAgJpjwsmG+pLvH57QVcQoNyBf
+         ct6CT1mKHXtvKxr1ShauVfuHiyUrL5VEA1TmyP0gFus5UA5iXPNWAsNFsHKn0ABqoSrj
+         ODrErECwwJVKpGKf2FVwK+D+6V01VEooJjWTH8kvH46Z7nLU60NCyLI/zAHW8JexFvEq
+         g96/iljkLP+iwj1A8urhJWxoRS/p42WhscEA0yyAm1W8tlZCdYyHV9VG6Gq9t/mAQ3BR
+         Q0A84m18E2f4B6VClGtP+ryXER3VqFpOhUVgH4i7crVQeH2HMpVa0rxH9YwVvuaNiY3J
+         g4Ug==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789828515; x=1790433315; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=8saC3WK/Tc2ObLz85Zwc7YvU1ZkWTm9hD005/9QnwQE=;
+        b=AjYsofwGvjSbIDEo1UvrMpnB5dpmXCoIrhzxlI5kMrLCvkKWB62w3u2r9ZOfkUTvRT
+         dXsIMSzOpm/7DK9dRRn4rrMyuoh+FdFdOoeduc1feE2pAKuw3eRsDv8UJ5Ar2MCnEzj8
+         Chyw+R+G7ddQ3Hy9WAni7Rsf+p6eWO61bQ+4qZ09GFerz8bEC3PchNEyZy023VN83cEY
+         1I76z54Oac8ky4rnzF9p5oTm4o/+3/sz/Sv6IRIeYpD4Po6ss88TyBg0ut5jWyaegPKV
+         0TTqbHBF4gbn15hztc23hSTlvqXFlUQhxnqI409r2DxK3vcVOn1dwpdz3WohU2kMYOB6
+         V6zA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789828515; x=1790433315;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=8saC3WK/Tc2ObLz85Zwc7YvU1ZkWTm9hD005/9QnwQE=;
+        b=Jb6GkaLtH8UdvrdCxe+1LqrdZJgw0WbKuHT9nani4bTltEjCBptsMpm1iJ74yRMNVs
+         ZSw0YVyFTuV4nKzHxg2e2llLuXAzbN0iiK//Q6Clma4mjJJ2iJ2eNewZi4x58FnCuVWb
+         C73/aFx6LSROrFmq6GgEC0uzYv0WFwZmPxQxmFqvTl8OaoJm4vVWRAnN8OD4Mxgh8IKS
+         m+dAzqVqra1+7eQmOuvN0CgX/Gp1qbxKnVIW6nX5YOkCnsBOP/LdUNtT1r7JdsB8UXF6
+         6riI13dISKHYTglPL65UZRyuWS9j9krQhL1rA0xTYuuDyKbvGb0+4K2m3wHWOUmnRotT
+         czTw==
+X-Forwarded-Encrypted: i=1; AKwUvByWafmi0y5mkVwMHGhBVCR7pZHqQ+VBAdALWXbaVVQjKoR2QjIywy7jW7qWeCK38IYjeV9bQbjO+cvexmR7kDc=@vger.kernel.org
+X-Gm-Message-State: AFuF++kYX37rFD3bnQf1XuzNBD10u/ufuKfwm+Qs7fpNXSA0gBF46S17
+	/BYmvfwrH32fA26c/s4pkzWuWxc8UZRAiSdkgeXcZhQ3ILczOQFlBpBOLZb98qIT0tj7AVQNYuH
+	3GE0fx+zt9ze6a1HD/5SvWfx2wAgJFMk=
+X-Gm-Gg: AYBFou2y4W4XnPEKIs3k+Tq4gG5noaP2ZPimNDUJqXJ75QNzriFWeqPuwhlx7oAT9gZ
+	eHGcJ2Weo/zGBaia/F/19pSyjnRHeYbWhCwm1KXpt+iOkGhb9qethzR76JQXuylYVufe6SznNfC
+	kxjUTbzZMr2/rYQQgSVEiJO92yncI4LJ/gD1SQZTjs7G1/Lxwq82bcXisa2R0XR63QTdpPqLLhW
+	w4WelF2Y6SOI0YIJb/Ro4UuAqLzQkF6u844tUfQ313Vqqy4zqCIw4b30K1slAvIHCUSgf+3DR+C
+	rYwyKbOEbAsf43iy8FPSNa/m6GTdO8OO/n4L3mP81plndlB2Y47xS5L65tZMMh7IrQ==
+X-Received: by 2002:a05:620a:4808:b0:939:1459:efb2 with SMTP id
+ af79cd13be357-93bf55953b6mr188632085a.24.1789828515591; Sat, 19 Sep 2026
+ 07:35:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <cover.1789660425.git.petalzu987@gmail.com> <aq0UpHHbvxjR2jLb@strlen.de>
+ <aq1HaYS96SNn7HJY@strlen.de>
+In-Reply-To: <aq1HaYS96SNn7HJY@strlen.de>
+From: Zixuan Chai <petalzu987@gmail.com>
+Date: Sat, 19 Sep 2026 22:35:03 +0800
+X-Gm-Features: AcwNN1X3sw00P_oKgwlXDKMU8ulsrx6Q4wcrphBpx55MN9FfmXdSd0ZhMooLvPo
+Message-ID: <CADTzad+sgZSw78eqSo9VmVBRHRej+=Oyu+eP8HvzLyAokH6qTg@mail.gmail.com>
+Subject: Re: [PATCH nf 0/1] netfilter: nf_ip6_checksum: validate checksum offset
+To: Florian Westphal <fw@strlen.de>
+Cc: Ren Wei <weir@nebusec.ai>, netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	phil@nwl.cc, davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
+	pabeni@redhat.com, horms@kernel.org, kaber@trash.net, vega@nebusec.ai
+Content-Type: text/plain; charset="UTF-8"
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider:
+Hi Florian, Pablo,
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Thanks. Agreed, these are separate issues.
 
-- [Medium] The relaxed duplicate predicate in
-  nft_setelem_catchall_insert() (nf_tables_api.c:7003-7016) removes the…
+I'm working on a follow-up patch for ipv6_skip_exthdr().
 
---
-
-netfilter: nf_tables: skip expired catchall elements on insert and delete
-
-This aligns nft_setelem_catchall_insert() and
-nft_setelem_catchall_deactivate() with the lookup and dump predicates, so
-an expired catchall element no longer counts as a duplicate and no longer
-gets picked as the delete candidate. Both walks now also test
-__nft_set_elem_expired() with the per-netns transaction timestamp and
-nft_set_elem_is_dead().
-
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index c0b754a2d45b..b59628e6240c 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -6995,11 +6995,14 @@ static int nft_setelem_catchall_insert(const struct net *net,
->  {
->  	struct nft_set_elem_catchall *catchall;
->  	u8 genmask = nft_genmask_next(net);
-> +	u64 tstamp = nft_net_tstamp(net);
->  	struct nft_set_ext *ext;
->  
->  	list_for_each_entry(catchall, &set->catchall_list, list) {
->  		ext = nft_set_elem_ext(set, catchall->elem);
-> -		if (nft_set_elem_active(ext, genmask)) {
-> +		if (nft_set_elem_active(ext, genmask) &&
-> +		    !__nft_set_elem_expired(ext, tstamp) &&
-> +		    !nft_set_elem_is_dead(ext)) {
->  			*priv = catchall->elem;
->  			return -EEXIST;
->  		}
->  	}
-
-[Severity: Medium]
-Can repeated expire-then-readd cycles grow set->catchall_list without
-bound here?
-
-With the relaxed predicate, the expired entry is skipped but stays linked
-and genmask-active until GC runs, so the tail of
-nft_setelem_catchall_insert() appends a second entry alongside it:
-
-	catchall = kmalloc_obj(*catchall, GFP_KERNEL_ACCOUNT);
-	if (!catchall)
-		return -ENOMEM;
-
-	catchall->elem = elem->priv;
-	list_add_tail_rcu(&catchall->list, &set->catchall_list);
-
-Unlike ordinary elements, catchall elements are excluded from the size
-accounting in nft_add_set_elem():
-
-	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
-		unsigned int max = nft_set_maxsize(set), nelems;
-
-		nelems = atomic_inc_return(&set->nelems);
-		if (nelems > max)
-			set_full = true;
-	}
-
-so the "return set_full ? -ENFILE : 0;" limiter that caps accumulation of
-ordinary elements does not apply to this path. Is there anything else that
-bounds the number of stale catchall entries a set can hold?
-
-Reclamation looks like it depends entirely on GC, and the interval is
-user-tunable with no upper bound (NFTA_SET_GC_INTERVAL is accepted as a u32
-in milliseconds and nft_set_gc_interval() just converts it):
-
-include/net/netfilter/nf_tables.h:nft_set_gc_interval() {
-	u32 gc_int = READ_ONCE(set->gc_int);
-
-	return gc_int ? msecs_to_jiffies(gc_int) : HZ;
-}
-
-For nft_set_rhash and nft_set_rbtree the catchall reclaim runs only from
-the delayed gc work requeued with that value, so with a large gc-interval
-the window for accumulation is correspondingly large.
-
-There is also a packet-path effect: nft_set_catchall_lookup() walks the
-whole list, and new elements are appended at the tail, so every accumulated
-stale entry is dereferenced before the live one is found:
-
-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
-		ext = nft_set_elem_ext(set, catchall->elem);
-		if (nft_set_elem_active(ext, genmask) &&
-		    !nft_set_elem_expired(ext) &&
-		    !nft_set_elem_is_dead(ext))
-			return ext;
-	}
-
-Would it be preferable to reuse or force-reclaim the stale catchall element
-on insert, rather than only ignoring it?
-
-> @@ -7092,11 +7095,14 @@ static int nft_setelem_catchall_deactivate(const struct net *net,
->  					   struct nft_set_elem *elem)
->  {
->  	struct nft_set_elem_catchall *catchall;
-> +	u64 tstamp = nft_net_tstamp(net);
->  	struct nft_set_ext *ext;
->  
->  	list_for_each_entry(catchall, &set->catchall_list, list) {
->  		ext = nft_set_elem_ext(set, catchall->elem);
-> -		if (!nft_is_active_next(net, ext))
-> +		if (!nft_is_active_next(net, ext) ||
-> +		    __nft_set_elem_expired(ext, tstamp) ||
-> +		    nft_set_elem_is_dead(ext))
->  			continue;
->  
->  		kfree(elem->priv);
-
-[Severity: Medium]
-Related to the above: with stale entries now skipped and -ENOENT returned,
-per-element DELSETELEM can no longer retire the accumulated entries, so a
-full set flush or set deletion appears to be the only way to drop them
-before GC fires. Is that the intended behaviour?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260918112844.194503-2-pablo%40netfilter.org
+Thanks,
+Zixuan Chai
