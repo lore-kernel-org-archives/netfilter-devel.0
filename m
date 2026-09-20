@@ -1,98 +1,91 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922B9445ADD;
-	Sun, 20 Sep 2026 14:10:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC2D47207E;
+	Sun, 20 Sep 2026 17:50:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789913409; cv=none; b=DtT8MENymkSBrwHOuc/fzsvDvT3KoQpeqlr6F9+H7Jf9gVk9/XKFA6rm94qcljn/89D1PejenazJCn9poHCE2u0V4rzG7nYB8gWTHnFDevTZ/cT5aKcnSGDL7kpDa5Gupx7bm0dIiGRLEsuG2R7VNcTtV8uN5QPzG4uu5pmebjo=
+	t=1789926660; cv=none; b=d8MTgHo+dmOOKswD8Y5TjFTD6WqsbTsVXRNQ84nD8N5CU83Fu1AZeBqd68sB11B4x7c5abuHAXZlaD45wj1q5NFsdGP+IpuU1nuToDDxebDnovnFw+LizkFdd49b9lcHLTx/mb0/pztN+Qhf33DgfsBE+v9s4OMePtcB4xFN3+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789913409; c=relaxed/simple;
-	bh=RAwpRinokFbmsWfbjOhUYu9E7xo792Rc6rShwectdbs=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=VFrQnwG7trG+f0se/expEL8Mp6jhlqGsRSz4e3hSCn9n4WWi7J4DF55FXqTOHfH+9J0XYGaT+D+f8W046uQMEhmCTAPl/20L5B4KsW/gKPW0NZRc8pPvwo943F+styB3YJbTp203qUBoJRB8Ix+K4iXGfhLtvtQPkPFoCTdkw0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=oMxdndPX; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1789926660; c=relaxed/simple;
+	bh=YIF66qllk6GtYeJ+gCXlEew+S2dXgsn/uJ/jKw126qg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=lA+kEaVZ/4ABZHO6zjlQjLIpIA0KhJpQdoySIrdJKDNpUZ7R26uqBphINvTU2cNn7ujDrBd2vgWnT2r1s2e+lc7P87huwK8cyRL5cbum8cz/JezJt0tN9pvfqqhQ4/tZ0/6eVeVlZMI+IjWUpbLcn85oNkOdVrZDfL32oCrQBh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PuT6B4IH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="oMxdndPX"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 889CE213A9;
-	Sun, 20 Sep 2026 17:09:55 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=0kSGxOsT2kMBxUhaJYvgYhP29t1aRmGrsHWWAOcTsMA=; b=oMxdndPXIWEj
-	uny011REFFTwbO4RKExNtkm9vFxiIz0DUBSN8ux54TR5CxlxP60qKfbv2yJWOOBa
-	dU1Co+kWLrIZZPbrG+pf5vny9AmlmXcZxHgv/EwpQllxCqpcFDFL+cYBcUcmqZlA
-	CTS3rMvBqTCq9fhzjYwsm4pyf2vyDkfFBJc7cnU6C+YUbE+SMyvA6hAllkOZHWNE
-	Bm7xqtiUPdim1pEHdKXmBFMl+uIV2iOoRo+0lhC2JlloZ2pRlklsk+BG+tJORr1u
-	YweoJXtCKsoA6bMdanX6HlvfLH8MjGrQyi11ZJhuXQZLLF2ekHHzikrKBqFW13Hd
-	0es8t9l10VVEgXe5NAaG/OGzopjsim3zh1EbDWmk7a1lslZOyEn5KHP9f7sIMqKC
-	xbXjbGW0zXw2mQplO3rIU7adDypmpt8T5ijl1RKuLOsDoO8Nxv/C9RJlOifTEfJg
-	dekKCPFZAy9A1mYsRIONHs19lhPZhlilwezNS3ZwhUXNLW/Gl2fOKeswinaULZqx
-	eYKLYiO5PTZ+TAdQ4wDtpZqM3n8BpX83wZSS1D+8sc+Jd6Tyx6IH8yWne1/vbjt4
-	XrSRMIdB4yUJAn4DVfVTcxwho299tKI1S+KOEMlNb3l0E7ZOoAToBvLBC2Svr0Kh
-	9JqY/WQJgiyCny/Q7DfF06Ib/o2d7LE=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sun, 20 Sep 2026 17:09:55 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 9B1C660851;
-	Sun, 20 Sep 2026 17:09:57 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 68KE9qxt037118;
-	Sun, 20 Sep 2026 17:09:54 +0300
-Date: Sun, 20 Sep 2026 17:09:52 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Jiayuan Chen <jiayuan.chen@linux.dev>
-cc: Yuan Tan <yuant@nebusec.ai>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
-        pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, darby.payne@gmail.com,
-        zzyy19904204639@163.com, Ren Wei <weir@nebusec.ai>
-Subject: Re: [PATCH net 0/1] ipvs: bound twos scheduler destination walks
-In-Reply-To: <b2a1cc29-74ef-48e4-bd41-283279f2f670@linux.dev>
-Message-ID: <7ab0cfc7-96c8-eaea-f560-fc18ddf1201a@ssi.bg>
-References: <cover.1789117690.git.zzyy19904204639@163.com> <861399d8-c71f-6589-d4cd-3549d9c5bc00@ssi.bg> <d8aab597-62b5-444a-a6cf-efd2642d9a81@linux.dev> <bfdbe9ba-f213-64e9-668d-e951aa0c2863@ssi.bg> <f04216a2-263a-4e2d-9641-5be0fe4c766f@nebusec.ai>
- <d000dd3a-0e8e-5b04-4642-fc1be0ffedaf@ssi.bg> <b2a1cc29-74ef-48e4-bd41-283279f2f670@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PuT6B4IH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43741F00893;
+	Sun, 20 Sep 2026 17:50:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789926659;
+	bh=WEiHJJqTfb53NKSiO3STRwLVThzo4igrI6pvysvlz2k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=PuT6B4IHXVNDvr43Ky7hmATBjGxsVpCN+yNdTcJ78QdbbIRxQLEwt0PZyAsRZiBKd
+	 nCQabesgz4L0RuXtBBXhRyEChPu/FafWfDrLNXoCnLuphDvW8CL3e5buE4FWHMgfeM
+	 +Nl7awnyaH9I/Re2o2awgM6N/fg79qJaicx4Xsp+blTjfodFK0/wIWT21DeRTt9TOz
+	 pbjuwg1/QLLLNCGuRv48nTusMTe10eyNo3HjFejtFO9Yb690aRRz/opzYv48HmWXUG
+	 Th/0JYHPUIaTpWKc3/nIjS6V6HBlqim9q4nYiTT6iqpsQ4d4WIb7WSf2dqSqJ0RLqx
+	 Qz7mc3XU+LJFw==
+From: Sasha Levin <sashal@kernel.org>
+To: stable@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	David Ahern <dsahern@kernel.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Benjamin Robin <benjamin.robin@bootlin.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>
+Subject: Re: [PATCH 6.12.y 0/3] netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
+Date: Sun, 20 Sep 2026 13:50:40 -0400
+Message-ID: <2026-09-20-daily-reply-0008-re-nf-conntrack-expect-gc@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260918-cve-2026-80668-v2-v1-0-fcefceb49144@bootlin.com>
+References: <20260918-cve-2026-80668-v2-v1-0-fcefceb49144@bootlin.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-792102681-1789913396=:34383"
+Content-Transfer-Encoding: 8bit
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> Backported two other patches in order for the fix to apply cleanly.
 
----1463811672-792102681-1789913396=:34383
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Thanks for splitting this per tree, but could you respin? This applies to the
+6.6.y and 6.1.y postings too.
 
+6.18.y carries the bug and has no series, so all three are blocked behind it.
+Your 6.12 patches 1/3 and 2/3 apply to 6.18 unchanged, and 3/3 fails only three
+hunks, all because 6.18 spells timer_delete() and timer_container_of() where
+6.12 has del_timer() and from_timer(), on
+deleted lines only.
 
-	Hello,
+Patch 3/3 has no "[ Upstream commit b8b09dc2bf35a00d4e0556b5d6308c7b917ebda2 ]"
+line, so the CVE fix would land with no upstream reference.
 
-On Sun, 20 Sep 2026, Jiayuan Chen wrote:
+Patches 2/3 and 3/3 carry no Signed-off-by from you.
 
-> On 9/20/26 9:19 PM, Julian Anastasov wrote:
-> > 
-> > 2. I can post my change after adding a proper commit
-> > message (Co-developed-by, etc), then it can be attached as
-> > 1/1 to your modified 0/1 problem report
-> >
-> >  I'll wait Jiayuan's decision.
-> 
-> 
-> Feel free to take any further action  :)
-> 
-> I just gave my idea and hope anyone can be inspired by this.
+In 2/3 the new "return false" in nf_ct_gre_keymap_add() is wrong here:
+the function returns int on these trees, where 0 is success, so the
+error path reports success. It needs a negative errno.
 
-	Thanks! Then I'll post single patch soon...
+The series is missing 4aa63842fc92 ("netfilter: nf_conntrack_expect: add
+and use nf_ct_expect_related_pair()"), Fixes: b8b09dc2bf35, already in
+7.1.y and 7.2. Without it the SIP and H.323 helpers re-insert
+expectations they have just unexpected.
 
-Regards
+The Stable-dep-of: 979c13114c0b trailer on 1/3 and 2/3 names a commit
+the series never applies.
 
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-792102681-1789913396=:34383--
-
+-- 
+Thanks,
+Sasha
