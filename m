@@ -1,179 +1,126 @@
-Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD52331ED7
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 06:13:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6CEB245012;
+	Mon, 21 Sep 2026 06:50:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789971206; cv=none; b=BmBdiGmETaKijMeuxmcGtlAy2L7XVOb1QmZueroznQDct4tDVBRNRdF6sDW7OEsrYk3D8JuvZjTFFOP4NR6FyJYVd+0M8ToiQ2JnQRAidlKmiWk2U5iTIVgEoRpztZzGdFdSMGsvsT3TMCAIBVa3BqOaIqv7DW2GzlhwOjW7F4c=
+	t=1789973459; cv=none; b=qbIm44O/UDr3k6VoUKlF2g6SET9/b02RUIu0yBJf7nsh0rz7L9HK6P/TGtsU12hY2uB8B+7o9/QF1FntIEeu1C+s3t1zYSy5DeK42iWNJUddpzAzlpGAylPoJQEF5vob9E781nauSatoED9JTULYckdD/bNbIl4GOIcLUyaM/cM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789971206; c=relaxed/simple;
-	bh=3rTdupL47kcB7pOpSsKb4iIveq9v3F1up+yJLJR67Ok=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XO7ww8Pli7YWN+6c6Nbx+oIbpu46n8CjpPNYx3Kz72XcRRL+8vOcANy23ITzAoNzE7FIOznk6ZNz5QfoV+voWgv76aSReODuAki+AtRKGYkYbEhycviofAZMNZIpfya9DY0VihG/r+zv2YflmM+Q11Ywo/F1c2SGbCVxJQD4fFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mp8AKF6U; arc=none smtp.client-ip=74.125.227.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789973459; c=relaxed/simple;
+	bh=6f0eCkeGFCciTpnm1HOobpxQ0s5oxwvG28Sv0p2qS48=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=WDrvyIb0xzTUHvWoMf7YHJTZh2aAJ8Ff2h3z0xpOFE5OkDd7JgEevSqRzt8t2iPpr8A4WjH+gKCPgH15r1/F1G+fo2D08bzi+SQKED/6aKX7llBE8+5DqdH8n2TFjolsJCKVPjJIhXrfh7jPQXyxMR9w2JSw4RELxLSYhRmK1T0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=FKf24MKD; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mp8AKF6U"
-Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2dd4ef687f5so4065265ad.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Sep 2026 23:13:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789971204; x=1790576004; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=7Iu72UFRQJ+xSZSF5kBVRPs0ErHGDd1b7nGwylpaInY=;
-        b=mp8AKF6UDpRPe8pzKk8sSWXePFnh+Cy516FAZ93PvX06TNACWNEUa0O1M/sBYCbg+L
-         5VKtD2I09moZGpyPMQ7aLkQIuB8J4d5eJWzx1d5H8v1/m98f1K7Dte5NDzU+6tihjAEN
-         OJIqNes81QMyKyUyRcdtKo00zLPK6KavI2p09gGpHqluzdfErllivtKOkhgyCimZOQia
-         3GcBrMvbgUqurcq3uS1jRuw9IyzPuSiiktpF84/L0dZTwSk09uICxdBntbs/Ydk4hwlH
-         Rvuz5VGKyj/I5vjhAbRjsALkGHPJ/r3QkjAT9xYKvb4cNh/G2QR0GIj7/m1cXIhwELQV
-         0Dug==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789971204; x=1790576004;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=7Iu72UFRQJ+xSZSF5kBVRPs0ErHGDd1b7nGwylpaInY=;
-        b=or2f4rOjzvnn7XFun3XGS5/hYi9QrrGwVDE6ar2LrUtqCdETFKGUfpwoj/UOXrylhR
-         7+5fKJ3WM3/bSUojMBd70v+fwH9iSoqki6FKEiZRkLqS9A8PPWqqgDsUC3ZadBt+9z8f
-         eOMX+nHfOGrIMy614DUJ17SgC9TQCnJ7h1ggQo9UStRIVqaPZSRdZHaKez8qX/GB5/FJ
-         MhGpq3mGjtLrmoI9MbOm8YQn5+5xN/6/9VHgfwzVcbwP6bJ0UUngLQLE6UT1d2nlCOVm
-         9F2fHBfq4bwBTofSgUrqRE0HmoaXknLXDdd1AMaGvqsEb6Zicu0NSUbEiDcMi5FFX+yG
-         lypg==
-X-Gm-Message-State: AFuF++kM423thQxoVDNEQCdq2NVogwg9mpcyoVtILvjxx5PSgPKtLqIN
-	+d1QGH3Uh6PksU6dDz0pQ68Sk8osaxLRUl7sq2baNZYz1afHVZf4/0jh
-X-Gm-Gg: AYBFou2qe87X9bn7GZtcyaJc8dUNxs/sttFQK9tccb7lHxb3xNkvbhcM7TiLzXmIeOO
-	vRX7reuSnM/bZSsXTdJeCzFEHVv6be3ixuEr3RqCO63s4EsMaz3ZWeZgkHsxhFPOlq6Hf4rc8BT
-	GVUAb5SaGciVkJNh7cIYscQPrZCjqLFEEiwbgQ2a+QdUalJFd7zGg20SLuDxsx3fJ7xp7uDXydp
-	ngTQ/Qu1M2Qf3shAxthiXNc1U17Lcu9XBhr90hdCsLvUCKElzug5gQrsaCZvCzEw1pxgPJd/6ko
-	3EAaEYvmaeixjx22/fPwCeH/zyt8vMZ7l9b1GxAhZZ5wt1Mp36umivctq1R9FksEworbGnq3HYV
-	ZDoEKGGkxKhBGVBEoo7NcjZoOHKnhgN6k7NBhkbj2w2tfPiTs40AJ9RQmhaKCQnI0NDCl722w+P
-	3ZkzQ5tqIj2f8T+tmTJR1biVuRbum+vXK5JtpHj5yg8hp4KwbNfmJUHTbVKcKmLk2bVN9jNzx3w
-	rQa9fiz5JA=
-X-Received: by 2002:a17:903:b87:b0:2d8:d29b:c1e5 with SMTP id d9443c01a7336-2ddb644f014mr176238725ad.0.1789971204182;
-        Sun, 20 Sep 2026 23:13:24 -0700 (PDT)
-Received: from localhost.localdomain ([175.159.181.20])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ddc16b4a8dsm27497765ad.12.2026.09.20.23.13.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 20 Sep 2026 23:13:23 -0700 (PDT)
-From: Yu Junzhe <junzheyu1@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [BUG] netfilter: unbounded nftables reject recursion on inet OUTPUT
-Date: Mon, 21 Sep 2026 06:13:20 +0000
-Message-ID: <20260921061320.543-1-junzheyu1@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="FKf24MKD"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 9D6D9213B0;
+	Mon, 21 Sep 2026 09:50:48 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=RfTcnOOoHbgriPhJ1Vzr0zRBmP8UA0p7+omFHNT3LAA=; b=FKf24MKDRyB6
+	KlwVQpo0abcsTAu/7Csc8mX7LoUxjLwpzZGDxCQ9idlr62p0F8pL/kCWKl/iaN7r
+	/GMYKI4wI3Q3BYCyykrmmc537gLjBqHHMEaoE9SXdoHtmmPAfIMqTpi12p9MSnbf
+	2V6gBQD0hVqLJ60YPfOLZ+PDjIKBYTOd+AowTdO3vb7uTiZDVzK5TFWM8pSPjbll
+	m+JAFjAGhJM77lxj6Y5Hx5ZiA1//TdWkEDWhvYcy1pOAncMjC1gNb5m3kRvBWgXL
+	LIZPYDmABa7l75bptlmsQjDHEUARuKcgKgC0LuTw/XQSdKMfoM2tdKRM14ndDKm+
+	JDXqWRGw5dByrjm9zK0h7YuAVD1ZGHJ+wG//JWgqWaOmgLA0/GhNBw2Hg40waVus
+	a4uoFBVEzueFbEz0ZLDxfCLuFaybY7enQ85Ez5zhOWXfXD9KzvSezgLfEBZhw030
+	921SJZxBqE/5HCAb3dWrkUKK586QLVCGtG+IZI01RAxRG+Lv938k5x4fPvw0BGCf
+	v40WARMo9DmRBK2A/IbwJE5uaP7te+FClSciLl6DsSnfOVy1ZkIqe+a1YioG/710
+	fmSBEjKDxN2LRPJGEWTLbrgk5Lrb2HRjVkg7qunuVe/iZT6kUu3JaUa1DP5Y7Pib
+	PtRuGJrJ881BcqETVEbDotnjjDUIHIE=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 21 Sep 2026 09:50:48 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 6F7F8605C2;
+	Mon, 21 Sep 2026 09:50:50 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 68L6omnT015991;
+	Mon, 21 Sep 2026 09:50:48 +0300
+Date: Mon, 21 Sep 2026 09:50:48 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: netdev-bot+sashiko@kernel.org
+cc: zihanx@nebusec.ai, horms@verge.net.au, pablo@netfilter.org, fw@strlen.de,
+        phil@nwl.cc, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v2 1/2] ipvs: avoid stack overflow from recursive
+ connection expiration
+In-Reply-To: <178996076640.2160803.16028832049809238100@kernel.org>
+Message-ID: <e1efae34-24a7-3b24-22b0-6a838aa93d52@ssi.bg>
+References: <20260917030301.5502-1-zihanx@nebusec.ai> <178996076640.2160803.16028832049809238100@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="-1463811672-861824406-1789973449=:8320"
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I am reporting unbounded hook recursion on inet OUTPUT: an nftables
-output chain that does a TCP flags payload-set followed by
-"reject with tcp reset" makes nf_send_reset() re-enter the same
-NF_INET_LOCAL_OUT hook until the kernel stack is exhausted.
+---1463811672-861824406-1789973449=:8320
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-Summary
-=======
 
-nft_reject_inet_eval() calls nf_send_reset(), which builds a RST skb
-and transmits it with ip_local_out(). That walks the same OUTPUT
-hooks again.
+	Hello,
 
-The only loop guard in nf_reject_ip_tcphdr_get() is the packet-content
-check:
+On Mon, 21 Sep 2026, netdev-bot+sashiko@kernel.org wrote:
 
-  /* No RST for RST. */
-  if (oth->rst)
-          return NULL;
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issue(s) to consider.
+> 
+> Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [High] ipvs: use-after-free in ip_vs_conn_expire() due to timer re-
+>   arming race
+> - [Low] ip_vs_conn_del_put() (net/netfilter/ipvs/ip_vs_conn.c:1333-1346)
+>   keeps its old comment "Try to delete connection while holding…
+> 
+> Pre-existing issues:
+> - [High] ip_vs_conn_del_put() (net/netfilter/ipvs/ip_vs_conn.c:1336-1341)
+>   cancels the controller's timer, drops the caller's only reference on…
+> 
+> --
+> 
+> ipvs: avoid stack overflow from recursive connection expiration
+> 
+> This changes ip_vs_conn_del_put() to return whether it managed to delete
+> the controller's timer, and makes ip_vs_conn_expire() loop back with the
+> controller instead of recursing into itself.  The stated goal is to keep
+> chain cleanup synchronous while using a single stack frame.
+> 
+> v1 Link: https://lore.kernel.org/all/cover.1789110326.git.zihanx@nebusec.ai/
 
-If a payload-set runs first and rewrites the TCP flags byte to SYN,
-that guard never sees RST, so another RST is generated. The cycle is:
+	Zihan, IPVS has conn refcounting which does not look
+natural: the hash table has reference and the timer callback
+has no reference. Let me try today to change the refcounting,
+so that unhashing occurs after last reference is dropped,
+the conn lookups already use inc_not_zero, so we will try
+to consider the timer_delete as successful stealing of
+the refcnt from the timer callback (yes, the callback should
+hold refcnt, not the hashing). But first let me try if the
+idea would be successful. As result, your change should
+be small as before, we should be able to delete conns safely.
 
-  nft_do_chain
-    -> nft_reject_inet_eval
-      -> nf_send_reset
-        -> ip_local_out
-          -> nf_hook_slow
-            -> nft_do_chain
+Regards
 
-nft_reject_inet_validate() allows NF_INET_LOCAL_OUT.
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-861824406-1789973449=:8320--
 
-This is a legal nftables configuration (payload set + reject with tcp
-reset on an output base chain), including with CAP_NET_ADMIN in a
-network namespace. I do not claim privilege escalation; the result we
-see is local DoS (stack overflow, then panic).
-
-I am aware of the existing recursion bound on the netdev fwd/neigh
-xmit path. nf_send_reset() via ip_local_out() does not use it.
-
-Affected
-========
-
-- Confirmed on Linux 6.6.144, KASAN guest (CONFIG_VMAP_STACK not set).
-  On that config the overflowing SP walks into adjacent slab; KASAN
-  first reports a write in __unwind_start while tracking __alloc_skb
-  from the next RST. Those frames are collateral. The defect is
-  unbounded hook recursion.
-- Source review of torvalds/linux master as of 2026-09-21:
-  nf_send_reset() still calls ip_local_out(); the only loop guard is
-  still if (oth->rst); nft_reject_inet_validate() still allows
-  NF_INET_LOCAL_OUT. The PoC was not re-run on tip.
-- Files: net/ipv4/netfilter/nf_reject_ipv4.c,
-  net/netfilter/nft_reject_inet.c
-- Config: CONFIG_NF_TABLES=y, CONFIG_NF_TABLES_INET=y,
-  CONFIG_NFT_REJECT_INET=y (KASAN used for the report)
-
-Ruleset that triggers it
-========================
-
-  table inet t {
-          chain out {
-                  type filter hook output priority 0;
-                  tcp flags set syn
-                  reject with tcp reset
-          }
-  }
-
-Then connect() to 127.0.0.1 in that netns (a SYN on lo).
-
-Crash excerpt (minimized PoC, Linux 6.6.144 KASAN)
-==================================================
-
-BUG: KASAN: use-after-free in __unwind_start+0x36/0x840
-Write of size 112 at addr ff1100000659ff88 by task repro/221
-CPU: 1 PID: 221 Comm: repro Not tainted 6.6.144 #1
-Call Trace:
-  __alloc_skb
-  nf_send_reset
-  nft_reject_inet_eval
-  nft_do_chain
-  nft_do_chain_inet
-  nf_hook_slow
-  __ip_local_out
-  ip_local_out
-  nf_send_reset
-  nft_reject_inet_eval
-  nft_do_chain
-  ... (repeats until stack exhaustion; then GPF / panic)
-
-Reproducer
-==========
-
-A self-contained C PoC (raw NETLINK_NETFILTER batch, no nft binary)
-and a Docker/QEMU package are available on request. VM-only: the
-program overflows the guest kernel stack. Please do not run it on a
-host kernel.
-
-I am happy to test patches or send the reproducer.
-
-Thanks,
-Yu Junzhe
-FuzzAnything <fuzzanything@gmail.com>
