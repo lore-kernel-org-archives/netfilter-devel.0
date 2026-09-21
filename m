@@ -1,162 +1,102 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f7.google.com (mail-wm2-f7.google.com [74.125.225.135])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3602472F8C
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 12:29:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3ED54AA1CE
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 14:57:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.135
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789993775; cv=none; b=MDaSiuQ6ZCTNwIdi2k512IjCBfIqd+bHvE+rNxWNMJJWe2zdPztzC1CKLN/txgVGZIPw7l0GQT/B7kZFYiGtCi/9tIc1dfBYyhaSzZRXz0gXMqBGorKG6kncoz3E8o90BQCkOf71x5mE2oiGcWDVQpEGPYpc8HpjY1K0UP6RCMM=
+	t=1790002640; cv=none; b=uuIV9VvnRDslxEWfUttsRA75ay2Oit69eyWXKZ/bM4vH4wJsGPfgRDfp1n75Q4rOQ1ig0Gbmezt7ZLvHERxemBbr7JDJGolNUwMoVdV47Ju/Csbap9ElT9PWn+TBJapEH0B2WvSODkEu+j+sZtv6++NtsjDEZrB4B0Fr/aGXqS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789993775; c=relaxed/simple;
-	bh=rGymVVekDKx+EfkGFAyTKJyvfTycKyQ4OTOVqR2kP4M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BnapHRkmlTqR6rxNGDpfNB9tNEhTP8SLn4xxqioD+RygQJC9Ni3SRXRaVA1Ry+9o4C4lRb+nxo9Z45fUU6N2rLgKXeXwbIQEWxjdScXod8C8wC8Kbrv9IEdvL/ix1VTsl69NbGjgpSBIyoc1Ck7gCux4XqiAobBP/wu4amkNGxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aUQgzzbs; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aUQgzzbs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1789993770;
-	bh=a4OSSFnA1F7YavqFduhVcxtQ41QW7astHH7FNNIbgVg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=aUQgzzbstMGGJPX+QsDoUE2LesCKnP3Ar9tGIyAQNsqKiftGY6xtZq9LS3DUZG0cU
-	 ns8ZIo4DW0nMlSs7KVtcLHHMQdopkKMpGQlj4uZgLLdMziwnJqnCSoM1vDRhacfb8w
-	 D1kH6oF3octnE1/d6gjuppRi5f6iNHCwCp8aLKqub/LGe+32cWYhteiXSQ1MWq8eJ2
-	 shAJO1vuF6cMiE5OZbphKl7t6UpMcWIqrWqgMEmg5T71xXWuHDTkQxWZLiLLTpUlSq
-	 fdPYtOyZ4vtEB9cdQkkmDwEVzl3AIwX8ac7O0YrsbH/CpkoDTcd+S8kuhez4sBADic
-	 2IpLam/qsREUA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CE33E60076;
-	Mon, 21 Sep 2026 14:29:29 +0200 (CEST)
-Date: Mon, 21 Sep 2026 14:29:26 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: bestswngs@gmail.com
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	phil@nwl.cc, xmei5@asu.edu, co+ee5e50ef2670e5f4@bugs.sh
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: skip transaction elements
- during GC
-Message-ID: <arEjJkGYX4Q-EbhK@chamomile>
-References: <20260921020821.2587086-2-bestswngs@gmail.com>
- <arEeRLnELoQYlEur@chamomile>
+	s=arc-20240116; t=1790002640; c=relaxed/simple;
+	bh=bOu2j+h1JsGrW/73PwD/ne4SKy+cAAoi4+vaYnS3JPE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Pqp4mvCDS3c4EES7UOZ6b0kBso9ablXp0lv/tsZ4KMIODN/69N9ejTB8Jrveg4S3KJrO+JoCL4LuFUt/qoG9cLCjUcpgTkg4Ebm6z89t3zbS2QPO4HAFR8UuUbGg6mUnnsJrsjRV2weaaJeFWbSDo/yFfVEYcEeXpdDCLDdnKlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.135
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-wm2-f7.google.com with SMTP id 5b1f17b1804b1-49e8361492fso12426475e9.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 07:57:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790002631; x=1790607431;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=1ezyNqdfklEHB2imnyaqpGNvPz3WXjxpC3pksDJMQYU=;
+        b=nGtQp3rIoFoqqeqBDUEmZEU8CM8mT7Kl2Ezxut4UtX0g3zxmZm3nX/LtDG8iBU9Q3e
+         a8Qh33SnKjiof0tUK7abwpCag+uh0AQI6WA9CBRey4uuenyTw+gtWhLNYwT9WRZEbd/N
+         7Q8qJq0+pTJRVx4Dwy8TsoZUETXHCSikFrBa6E0YJYPIMWbepWlpwx5cbZ0pJZgtVayP
+         GnxVt9LMpJsjs9rq2OhQrc+oD5VgTidQYNka8MqR1d6e7rOZxVAzxyStEfp0Rdp3OfEv
+         AmqK0VJQ6Ub4V3JPdyMSbaes+nFufNe7fzyeAy/bjFUfuTI92U6U0CdC50Kr8QbCcWOo
+         Jw8g==
+X-Forwarded-Encrypted: i=1; AKwUvBy88IdwmdPT1pdEBWV5zd2aw+DAiOG88BIovHTRVpDcfNVJgyFsXrvBKoW66qUk3nlO4lnIdomz2m5pvJyWOig=@vger.kernel.org
+X-Gm-Message-State: AFuF++lczl422wKOsm2FVjSaCV1DRNt2YdZtegumZmKbm97z+a+94TQk
+	eNYbDDgWE/CKaO0y0nNw9nNxcAQsupGOpejqOpo4/51b/a/IE+Y+8XzC
+X-Gm-Gg: AYBFou1Xtjd3jj5SXBhWTflm80UqRG4i7nDLdwb01O60Pam2yu9SEkfIjoYCXotwImm
+	0vciPrC4SnZbXS/DsQGwNiV2Tew7m879Vig704PMokF5tUHPlJQ7YGqi06RqphIMXX7MfcnZYVs
+	DdsIf7SQs/L85L7O3VB4wxfweKJ0JcRqX4ngxPbW/VBAVhbGg6PI6YW5wI2qXzWRzqm9XGxvJwJ
+	CFsKvmrbq3dKR4bL9lLD7YAPjck33tO3r2BZt9IIvt+GWuRy1AT/flSJ/bpWnBmlFYD2/YqVzWn
+	xOrsBCLrCoO6jEWIHlYRKEJE4LuqFhRd1mGM2JeYh1is4ZVXyj71cuABKJHrv97h11xgtxKKjc0
+	RC+tXJzJkHUI6/IQHyZnzVDT2LM6otTlbA/9XAV7evBrIfGdbfYjZAESMhaOFWv2RduVYsSO3cy
+	b5dzhQZHlVDSZOtllTjb50G/xpgPICeDeCTQn7F/EvHoBgoAZ8sZCB4JGAIU8pBGYZU0JNdWqi6
+	WlhWrCfm6tmBqk1d28UPH3ev1DudKBaM3uICr2WnarRhG6Ox6Be
+X-Received: by 2002:a05:600c:3493:b0:49f:bd3c:bc21 with SMTP id 5b1f17b1804b1-49fc573b55emr150845005e9.28.1790002630316;
+        Mon, 21 Sep 2026 07:57:10 -0700 (PDT)
+Received: from im-t490s.redhat.corp (78-80-107-225.customers.tmcz.cz. [78.80.107.225])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fcd0eabfcsm243153905e9.3.2026.09.21.07.57.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Sep 2026 07:57:09 -0700 (PDT)
+From: Ilya Maximets <i.maximets@ovn.org>
+To: netdev@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Aaron Conole <aconole@redhat.com>,
+	Eelco Chaudron <echaudro@redhat.com>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Jiri Pirko <jiri@resnulli.us>,
+	Xin Long <lucien.xin@gmail.com>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	dev@openvswitch.org,
+	Ilya Maximets <i.maximets@ovn.org>
+Subject: [PATCH net 0/6] ovs, net/sched: fixes for UAF after conntrack extension realloc
+Date: Mon, 21 Sep 2026 16:55:42 +0200
+Message-ID: <20260921145655.3167436-1-i.maximets@ovn.org>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <arEeRLnELoQYlEur@chamomile>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 21, 2026 at 02:08:40PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 21, 2026 at 10:08:22AM +0800, bestswngs@gmail.com wrote:
-> > From: Weiming Shi <bestswngs@gmail.com>
-> > 
-> > Since nft_set_commit_update() runs set commit callbacks before processing
-> > NEWSETELEM transactions, nft_rbtree_gc_scan() can observe elements added by
-> > the transaction being committed.
-> > 
-> > The scan records an interval end in rbe_end without checking the element's
-> > transaction state. A later, unrelated expired start then moves both
-> > elements to the expired list.
-> >
-> > The synchronous GC queue can free the new end
-> > element before the transaction subsequently activates it, causing a
-> > use-after-free.
-> > 
-> > Only consider elements that are fully active in both generations. This
-> > keeps transaction-state elements out of the GC scan and preserves interval
-> > pairing across skipped elements.
-> >
-> > KASAN reports:
-> > 
-> >   BUG: KASAN: slab-use-after-free in nft_setelem_activate
-> >   nft_setelem_activate net/netfilter/nf_tables_api.c:7047
-> >   nf_tables_commit net/netfilter/nf_tables_api.c:11137
-> > 
-> >   Allocated by task 130:
-> >   nft_set_elem_init net/netfilter/nf_tables_api.c:6794
-> >   nft_add_set_elem net/netfilter/nf_tables_api.c:7523
-> > 
-> >   Freed by task 130:
-> >   nft_trans_gc_trans_free net/netfilter/nf_tables_api.c:10506
-> >   rcu_core kernel/rcu/tree.c:2919
-> >
-> > Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
-> > Reported-by: <co+ee5e50ef2670e5f4@bugs.sh>
-> > Assisted-by: LLM
-> > Signed-off-by: Weiming Shi <bestswngs@gmail.com>
-> > ---
-> >  net/netfilter/nft_set_rbtree.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> > index 9894832281c4b..12431b55752fb 100644
-> > --- a/net/netfilter/nft_set_rbtree.c
-> > +++ b/net/netfilter/nft_set_rbtree.c
-> > @@ -900,6 +900,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
-> >  		next = rb_next(node);
-> >  
-> >  		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> > +		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
-> > +			continue;
-> >  
-> >  		/* elements are reversed in the rbtree for historical reasons,
-> >  		 * from highest to lowest value, that is why end element is
-> 
-> Maybe simply set rbe_end to NULL when rbe is found and is not
-> expired?
-> 
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index 9894832281c4..a9f2ae3c91cf 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-> @@ -909,8 +909,10 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
->                         rbe_end = rbe;
->                         continue;
->                 }
-> -               if (!__nft_set_elem_expired(&rbe->ext, tstamp))
-> +               if (!__nft_set_elem_expired(&rbe->ext, tstamp)) {
-> +                       rbe_end = NULL;
->                         continue;
-> +               }
->  
->                 /* end element needs to be removed first, it has
->                  * no timeout extension.
-
-My proposed chunk is not correct, it still allows for the problem to
-happen.
-
-Maybe restrict this to:
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 9894832281c4..bc331c6ae339 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -905,7 +905,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
-                 * from highest to lowest value, that is why end element is
-                 * always visited before the start element.
-                 */
--               if (nft_rbtree_interval_end(rbe)) {
-+               if (nft_rbtree_interval_end(rbe) &&
-+                   nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY)) {
-                        rbe_end = rbe;
-                        continue;
-                }
-
-for symmetry with:
-
-commit 60c0c230c6f046da536d3df8b39a20b9a9fd6af0
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Wed Feb 7 18:49:51 2024 +0100
- 
-    netfilter: nft_set_rbtree: skip end interval element from gc
+One clean up change plus two fixes for the UAF on helper extension
+realloc x 2.  First half for OVS and the second half for the similar
+code in act_ct.  This should cover all the known cases of this problem
+in these two modules.
 
 
-But I suspect this is leaving stale (expired) overlapping intervals in
-the set when building it from nft_rbtree_commit(), so the fix still
-looks incomplete me.
+Ilya Maximets (6):
+  net: openvswitch: conntrack: avoid modifying shared unconfirmed ct
+    entry
+  net: openvswitch: conntrack: remove 'add_helper' dead code
+  net: openvswitch: conntrack: fix helper UAF due to extensions realloc
+  net/sched: act_ct: avoid modifying shared unconfirmed ct entry
+  net/sched: act_ct: remove 'add_helper' dead code
+  net/sched: act_ct: fix helper UAF due to extensions realloc
 
-I want to have a close look and make a test case for this, this is not
-well covered by tests.
+ include/net/netfilter/nf_conntrack.h |  5 ++++
+ net/openvswitch/conntrack.c          | 37 +++++++++++++++++++-------
+ net/sched/act_ct.c                   | 39 +++++++++++++++++++++-------
+ 3 files changed, 61 insertions(+), 20 deletions(-)
+
+-- 
+2.55.0
+
