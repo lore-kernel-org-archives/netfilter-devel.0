@@ -1,61 +1,63 @@
-Received: from mail-vs2-f40.google.com (mail-vs2-f40.google.com [74.125.227.40])
+Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C42F24E020E
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 20:57:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.40
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0607C4DE715
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 20:57:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790024235; cv=none; b=ExqmKliHP8SebgBa6YXlfArtsIH3UsH6fUjZkIt1TlBEZGkeazNZD48Ms3s+aIIOfBPxFsVDLJcsAZ1MvJqjCcqGKkAixBLA7mrQpVIk+N7sAUihE1l6yxqBEpsoSHIo3tkTYhqkvmGB+22189ZZ/Ok4sD1twLJF6jG+bK6sqXw=
+	t=1790024238; cv=none; b=qhvi1U/GBTvcA15r4Lf3CUkPt7nkit2WRGyPt+QLolv0NP1yw869FNBU+LlGpSu0u332exxEaek7hb1iLLrD7YVvy38t4OJgi7VHP20rcxwMa8MQZWWL1AFqWILbXCeHkR1jhkinBqFXlXSrI8YSVMHFKXU1a7O6FNlVLWdGr9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790024235; c=relaxed/simple;
-	bh=QBGnVsKL7XQ6CEv4zCqkLJszS+z3nzpJRHqlJUn7+kk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=joa84PnNL487hy6KkNyoVyNUBpLABZ4hnmZ1JAeksUbW8au2UWz0vLZKpUziKTKlAHZxExfBmzgfPpp4m64zdi03/cARFPfVu+MMbOqBmbeYPcebfGL8Aucd27JVo+JB+as5Z2wu0CKo0WP5vtpwYAJEBZXMn1LLkG/Jxjgt4Zc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CQNCXLC/; arc=none smtp.client-ip=74.125.227.40
+	s=arc-20240116; t=1790024238; c=relaxed/simple;
+	bh=XwLRDqoGDPXb6K5PWgL1M7DdV69+VMAJJyWkcb0+NUo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=U8qkMMw7rubpIDPzaT8fhrtnEe51wZFoiSyGsec8Xkcp1DBYkabPPORWLQKGZk26Dj/8OwtdiI2oVcNfrPfmZR/za3COqSfdlZMditkSg1jiDzjh4hpMZCw2DTauxNeEb4BafNKpD3R+td7UsUyBgTZl7FM+1EYHrptb4SDaO4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gctrSTTw; arc=none smtp.client-ip=209.85.221.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CQNCXLC/"
-Received: by mail-vs2-f40.google.com with SMTP id ada2fe7eead31-7aa0603e450so573137137.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 13:57:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gctrSTTw"
+Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5c675e64ffcso265226e0c.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 13:57:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790024232; x=1790629032; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=NlPHnolCKbK4Um4HjBJGTEj15gE2VNMVPjQkwtQhdCo=;
-        b=CQNCXLC/Egyi753be36mcjSPM9LAd79jOK4BEkUccMmj3KsKRH3IhRi/czF3th3Uhg
-         KBDZfIOBV7QRtr6B8Hl9Uqwqh/Ywbz2mlT+IJopqUdPySv8W65F3JXF79KERT2/uQ3di
-         ywfUWsY7T/KF4RG0D6ANDE5HURZlCMmd+vFt7y/fw0xhotOinBMIvRHKupB5qfXPmy9T
-         7IwpTHToF/JRai2eibx/7DZr8oN7hUCrF/YnVwmAvoHShx5QlqaiKjoj+c3u365TexuS
-         uOEC3fj763Px6K2voyeote4jasJfbal9El+ricZIAu+zuSfu4hHF9lxZKxGMKSap/+2b
-         LlSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790024232; x=1790629032;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1790024235; x=1790629035; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=NlPHnolCKbK4Um4HjBJGTEj15gE2VNMVPjQkwtQhdCo=;
-        b=eo+DbMcCx7gihQLM5LBgKaS0MhTvqjWHooeBs2gpks4/JkM8KheiCmLmJ6ue4L6ZnI
-         YReTCWMpo9Jlysjj7S6f/yNS+gslxsyvkjK2TBcDEKytt/qbg7S2O2WlTQRQPjxasQe3
-         xiWnPpNJ6r3mfxNRPa7pDIf+SzV4NT92RBkBXH9cWutGZkEqu/c7eQkKwOUvEEIqiSS5
-         u327pmGoaGZwh/+1vLk4BetJhow3ao3YnAmjyguarsZiceggAn+FGGF2ipPE7TP2QiUD
-         g2IpByV9zt0iQUogXipF1jMXCIzLvuk4ycZe8M4awme3G+vQ+ccs/PKj2HUUNwFSUy6I
-         +cBA==
-X-Forwarded-Encrypted: i=1; AKwUvBxanj2/m8no1zTXbOEdt499PdHydzwFjExok2QmEMUJBzMRgi9eW3Ps4GHNpNVjCUCMuLd1JKOZqHsDx5iR7sM=@vger.kernel.org
-X-Gm-Message-State: AFuF++kgOPPS2NqaVFHJa6OYQAoQ55C3Nr+PFK13A4dQJOgGZKtdNPL1
-	kjbJUiq9rfex0RYxSbVuObMVKfdi23dmU6751G1UPCjY5Mz3RSbE5Ve0
-X-Gm-Gg: AYBFou0qhKPr960GA1sxyzyoNqB0AT7G/HObAlpktRHSuUWyIz4ctTBlFGZmmKFhHNs
-	K78lnYyy1OesnURyPJC7EEcgngURUeheL8XwT9204e6eQcsm38TxhwbYwiLfE2j3qnmmOMxGOIq
-	LM/MEzmFDxnCxTv+9PEPpX2UNUzlNpK0G6gK83xCu+NbGmZuGXTcXJuYjwe3Oh0cWInqZ95MQn6
-	Ku2uEZ94pXzN0bzvqQvqXxYoMNnxVlkFPJpac5l5Lo/g7xcqThpqjJKrLDh3HEJ2a8SCBOZwcWH
-	H+bXLYBnY5wUVPk90B/FT6ULo2/Z+uQRrOrIyMAgM/a/jQ3yWfhW8nxhJWAU+Otsk1dF3TC9m8/
-	DLt0ZwsLyXO9db/bwCRGRCo+Rcighjn3AbX3VrkPLeCi5m8j+MwvjR4yE34eI0WTr0noz11DFv2
-	a5bzokbx5cqLJSw/eYc48YXMqjVHzbXf+P72ATjMZ3mrWO1jCBShUbXPMcthfyNVo=
-X-Received: by 2002:a05:6102:5120:b0:7a8:b017:1e3e with SMTP id ada2fe7eead31-7a8b01729b8mr3872343137.21.1790024231821;
-        Mon, 21 Sep 2026 13:57:11 -0700 (PDT)
+        bh=83+plyF4HOp6Tc6yDaOIUjOh/yxbiFagCuYc/tYX0qs=;
+        b=gctrSTTwh4KNldwSOKV4v9wn6xM3km2liI0bThL0e3MKs+L5sSxsYX6hiLihvTnXdC
+         ku2HRaTnNhLChkKO6nZ19EJmAGOhmZVG7nv3aGERcadabr5OjfowsbVJJL2ZNL+IQdTA
+         TZ4g4idRdhnJiCM6g3p0R/4z2WiO5RB8d+yp/M35TR7CcNQryP7AGd3W90riorE4KrtR
+         YAUbyttQIbVzMSOSl6njNhujmrbYel19QJCVRf/n63I/vUlsrn5zrwB3LHnWF4d0ivff
+         ldUJ8MFJd+qZmlerCs+7CyhKP9GCwN915N0WtyHfZQ1Yb03r02cY0BQs9S+JPSBWSrlW
+         Xilw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790024235; x=1790629035;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=83+plyF4HOp6Tc6yDaOIUjOh/yxbiFagCuYc/tYX0qs=;
+        b=gIDCFFu8kbC+zzTvKND42chupQgYTOwbcKIhjH0HwYcY7ANN6Zzlq24L+65MMkqAP8
+         eMbE0fqO7zZVqOOvgQ0wAzbxOLSpw3Elqz4DDbl9Nc29xLKp8ghHHGFNIEWTyUNhCqzx
+         uYLwwYU0O9Nkdx0mWc4WXUFQchb8091RQUh+JkLQdtDxtVwIT4PPWHU6tWVfTpTxSpVX
+         cd4l/uacx/pl8bmX3fvOabAXiW/Ejfslvu6fCe5+IvBG/Zbg8wPh4wkH+dMdVm7no0RH
+         rqfaoEWnvioG6VXfc4GegisIJ72gcW0XtTkmOu7+CO41FzHVWpT8TPInHnvtku2fbnMk
+         pNLQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzFQDnDMX8z3HES8RTaF236o6pakoPqWEVQol4icVpdS+2aG6NDFVYQB9Xw1cUq1yieGmVu8QsGQkrfOh6dfvI=@vger.kernel.org
+X-Gm-Message-State: AFuF++koT5DY6Nq3FO3GyL5j69Mu71QczTSvE6zJLWuUpLGR5OIE35Tg
+	Y88z0GCtGBdnJQ4DvoqO6C0f9MP3MgvEDqE4N22g4EPRONN0uH4XrCXB
+X-Gm-Gg: AYBFou3VURbN5wCtydQIIeOLVajC8IRY/pgU+gl9mfteiniGTTBm+VKDBrTY78B9FtU
+	0wMyd6FpIemsEzzEwFUFTGfgbS/Qge/dh7EyceyxLAH5LFhX8HX6BoDB5JnEVgzGf6C1G84TqyF
+	2O8TpeUXIW99wbpiEB1g0bSH8mHlJ04UM7vSmxH9uRfk2BQtuzR53/9lBJWTV0Zwn97BnXbdcXe
+	jrVl1aKxtNueQItLfQcFEyBDvqwqP4jWC3pDDi3DaV/86cEukNuhaEMca8T4kxxX+3RigO9Gi/U
+	vt+BkUomgpODyJMDinVdP6c1sIQPXSrlBQSHqVtmVaFKJFMywH2RTFUVvweqfJuI44z0SkQJvCx
+	XY1Kt3svdjDs4y2Os6cBWX0AHRplhJU3o8ZUWT/ZT/v5WzQxzqAgwCoDexQD+Dt9nyKsNqo6EJS
+	QrWiYOSu/NEN87hZYIwGVobaYQJuLG9ocS8rTREfcvSta0WMoxPNUNx58LAZyiar4=
+X-Received: by 2002:a67:ef8e:0:b0:7aa:d0a9:c5aa with SMTP id ada2fe7eead31-7aad0a9c60dmr280100137.18.1790024234730;
+        Mon, 21 Sep 2026 13:57:14 -0700 (PDT)
 Received: from adriano ([190.215.95.120])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c9e591d496sm286884e0c.2.2026.09.21.13.57.09
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c9e591d496sm286884e0c.2.2026.09.21.13.57.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 13:57:11 -0700 (PDT)
+        Mon, 21 Sep 2026 13:57:14 -0700 (PDT)
 From: Adriano Cordova <adrianox@gmail.com>
 To: Simon Horman <horms@verge.net.au>,
 	Julian Anastasov <ja@ssi.bg>,
@@ -65,10 +67,12 @@ Cc: Florian Westphal <fw@strlen.de>,
 	lvs-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v5 nf-next 0/3] ipvs: add per-service secure_tcp
-Date: Mon, 21 Sep 2026 17:57:03 -0300
-Message-ID: <20260921205706.1055288-1-adrianox@gmail.com>
+Subject: [PATCH v5 nf-next 1/3] ipvs: add flags for per-service secure TCP state table
+Date: Mon, 21 Sep 2026 17:57:04 -0300
+Message-ID: <20260921205706.1055288-2-adrianox@gmail.com>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20260921205706.1055288-1-adrianox@gmail.com>
+References: <20260921205706.1055288-1-adrianox@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -77,70 +81,94 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-IPVS currently exposes secure_tcp as a per-netns sysctl. It switches the
-TCP state machine to the hardened tcp_states_dos table.
+Add IP_VS_SVC_F_SECURE_TCP to mark a virtual service for the
+DoS-hardened TCP connection state table, and
+IP_VS_CONN_F_SECURE_TCP to carry that capability on a connection
+so the TCP state machine can select the hardened table for it.
 
-These patches make it per-service: a virtual service can set
-IP_VS_SVC_F_SECURE_TCP which is passed into IP_VS_CONN_F_SECURE_TCP at
-connection creation. set_tcp_state() then selects tcp_states_dos for those
-connections with IP_VS_CONN_F_SECURE_TCP set and keeps pd->tcp_state_table
-(the netns default, including the nomem floor) otherwise.
+The service flag is 0x0100: bits 0x0008/0x0010/0x0020 are the
+scheduler bits, so leave 0x0040/0x0080 free for schedulers.
 
-  1. uapi: define the per-service secure_tcp flags and stamp the flag in
-     ip_vs_bind_dest() (cache-bypass has no dest)
-  2. honor it in the TCP state machine, resolving the stale FIXME, and
-     document the new default/opt-in split
-  3. kselftest contrasting a secure vs. a plain service
+Set IP_VS_CONN_F_SECURE_TCP on every connection bound to a
+destination whose service carries IP_VS_SVC_F_SECURE_TCP.
 
+Signed-off-by: Adriano Cordova <adrianox@gmail.com>
+---
 Changes in v2:
-- Let IP_VS_SVC_F_SECURE_TCP be 0x0100, leaving 0x0040/0x0080 for the
-  scheduler flags. Let IP_VS_CONN_F_SECURE_TCP be (1 << 17) and no longer
-  in IP_VS_CONN_F_BACKUP_MASK.
-- Set flag in ip_vs_bind_dest() instead of at every ip_vs_conn_new()
+- Let IP_VS_SVC_F_SECURE_TCP be 0x0100, leaving 0x0040/0x0080 free for
+  scheduler flags.
+- Let IP_VS_CONN_F_SECURE_TCP be (1 << 17) and drop it from
+  IP_VS_CONN_F_BACKUP_MASK.
+- Set the flag in ip_vs_bind_dest() instead of at every ip_vs_conn_new()
   call site.
-- selftest: send probes with TTL=1 instead of an nft drop, and fix
-  Sashiko comments.
 
 Changes in v3:
-- Merge patch 1/4 and 2/4
-- Re-send patches (v2 dropped patches 3/4 and 4/4)
+- Merge the uapi flag definition and the ip_vs_bind_dest() stamping into
+  a single patch.
 
-Changes in v4:
-- selftest: check the return values of setsockopt(IP_HDRINCL), sendto()
-  and mnl_socket_bind(), and fail do_add() when IPVS does not reply.
-- selftest: fix the remaining Sashiko comments: check inet_pton(),
-  initialize fam and the parsed addresses, and verify the flags attribute
-  length before copying it.
+(no changes since v3)
 
-Changes in v5:
-- Document secure_tcp as the netns-wide default and the new per-service
-  IP_VS_SVC_F_SECURE_TCP opt-in.
-- selftest: reword the changelog to "a bare SYN followed by a bare ACK".
-- selftest: skip when the ip_vs or ip_vs_rr module is unavailable.
-- selftest: check the probe exit status so that a probe which dies after
-  the SYN cannot leave the secure-side SYN_RECV assertion passing.
+ include/uapi/linux/ip_vs.h      | 2 ++
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++++
+ net/netfilter/ipvs/ip_vs_core.c | 3 +++
+ 3 files changed, 9 insertions(+)
 
-Adriano Cordova (3):
-  ipvs: add flags for per-service secure TCP state table
-  ipvs: tcp: enable per-connection secure_tcp in state machine
-  selftests: netfilter: ipvs: add per-service secure_tcp test
-
- Documentation/networking/ipvs-sysctl.rst      |   4 +
- include/uapi/linux/ip_vs.h                    |   2 +
- net/netfilter/ipvs/ip_vs_conn.c               |   4 +
- net/netfilter/ipvs/ip_vs_core.c               |   3 +
- net/netfilter/ipvs/ip_vs_proto_tcp.c          |  16 +-
- .../testing/selftests/net/netfilter/Makefile  |   6 +
- .../selftests/net/netfilter/gen_tcp_probe.c   | 158 ++++++++
- .../net/netfilter/ipvs_secure_tcp.sh          | 169 +++++++++
- .../net/netfilter/ipvs_secure_tcp_mln.c       | 337 ++++++++++++++++++
- 9 files changed, 692 insertions(+), 7 deletions(-)
- create mode 100644 tools/testing/selftests/net/netfilter/gen_tcp_probe.c
- create mode 100755 tools/testing/selftests/net/netfilter/ipvs_secure_tcp.sh
- create mode 100644 tools/testing/selftests/net/netfilter/ipvs_secure_tcp_mln.c
-
-
-base-commit: 87b80c2f6b05cad9f0ff9136709c62a0f59923e3
+diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+index 2c37c6ac7525..ade170109ff4 100644
+--- a/include/uapi/linux/ip_vs.h
++++ b/include/uapi/linux/ip_vs.h
+@@ -27,6 +27,7 @@
+ 
+ #define IP_VS_SVC_F_SCHED_SH_FALLBACK	IP_VS_SVC_F_SCHED1 /* SH fallback */
+ #define IP_VS_SVC_F_SCHED_SH_PORT	IP_VS_SVC_F_SCHED2 /* SH use port */
++#define IP_VS_SVC_F_SECURE_TCP	0x0100		/* use the hardened TCP table */
+ 
+ /*
+  *      IPVS sync daemon states
+@@ -105,6 +106,7 @@
+ 
+ /* Flags that are not sent to backup server start from bit 16 */
+ #define IP_VS_CONN_F_NFCT	(1 << 16)	/* use netfilter conntrack */
++#define IP_VS_CONN_F_SECURE_TCP	(1 << 17)	/* use the hardened TCP table */
+ 
+ /* Connection flags from destination that can be changed by user space */
+ #define IP_VS_CONN_F_DEST_MASK (IP_VS_CONN_F_FWD_MASK | \
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 6fa3e1dc534c..0b465298b64b 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1090,6 +1090,7 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ {
+ 	unsigned int conn_flags;
+ 	__u32 flags;
++	struct ip_vs_service *svc;
+ 
+ 	/* if dest is NULL, then return directly */
+ 	if (!dest)
+@@ -1102,6 +1103,9 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ 	if (cp->protocol != IPPROTO_UDP)
+ 		conn_flags &= ~IP_VS_CONN_F_ONE_PACKET;
+ 	flags = cp->flags;
++	svc = rcu_dereference(dest->svc);
++	if (svc && (svc->flags & IP_VS_SVC_F_SECURE_TCP))
++		flags |= IP_VS_CONN_F_SECURE_TCP;
+ 	/* Bind with the destination and its corresponding transmitter */
+ 	if (flags & IP_VS_CONN_F_SYNC) {
+ 		/* Synced conns are hashed, so they can not get this flag */
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index ba0957798bad..aa8a3a964ffd 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -784,6 +784,9 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 				      IP_VS_CONN_F_ONE_PACKET : 0;
+ 		union nf_inet_addr daddr = { .all = { 0, 0, 0, 0 } };
+ 
++		if (svc->flags & IP_VS_SVC_F_SECURE_TCP)
++			flags |= IP_VS_CONN_F_SECURE_TCP;
++
+ 		/* create a new connection entry */
+ 		IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __func__);
+ 		{
 -- 
 2.51.0
 
