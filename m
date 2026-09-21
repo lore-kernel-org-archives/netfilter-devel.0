@@ -1,335 +1,458 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B300502D4F
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 22:39:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894A351C046
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 22:44:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030350; cv=none; b=AZuzfaaFpf6DO5XQJCnhbdULBxBY1/7DETrNy6wksnn2C/XMN0RjN7LaTJoQWrYyfo89mmhCLIX+Oeuqe6mTNbtrOVoXCsu+ZKLz79Mrg4qDh+jrbqqte8jYndFPdUyamUCtBb1J9l1GrCDX1XdhLHBXXXljL9Z8zU4AWPSLRFI=
+	t=1790030691; cv=none; b=i1htl26X7MnudHxmGV+fe4m7lRTe0I2gVVjwBdL9kbYRkSKBelxJP0HWGc8v7gCgG7REn4aGeY9o3UtteTJLkqLWFBDP+o6X5VuolBBkxV+QitJOhhCt5Q/isvYNlr5G9MH0haZ83+qmS2ScfTQojAF3pyQAURLrDcZKFuOYoFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030350; c=relaxed/simple;
-	bh=FBeWEYQ1XPzkiNMi2F+iDoJJkwMASWnIsxtoL0cg1Ho=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LqzOXC8+TFK547jk0UrgF0RZWWTrKQDYWgtsw8GWK6S8UakZYXt855uxPZHAR5PlNhnpIghMEpLU36poLxxiwnmXuMKZvyLO/yNw5gdb3BVW4FhewfTTwZ1usuFiAL+Zh/4WqFVzqVD8ojjXN5CoGWfSi8hMu51UIGYoN2pBa7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=bXbOx2S5; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=P4encMdV; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cD9gjta9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=LsNrDlNx; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790030691; c=relaxed/simple;
+	bh=b/w2QCTzhqBiXQb4AzjN2M3mM1Ujft2Q/i3P0al6uYM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QqRd8gJNGFulDYkIWmCWPYvCf+S5agHeOhZfA7HQDMzyxDn7iCYx9yBM1ir7tVS6TF3bYCaUY/p2ZD4w1J1dYv0P2hlIHGmIuUqAzOWVyU3Y77AKfsXBvVrvpGGTmXrAAFFHTTvTm1Si7hgXmY8CUnL0JQ/dmds4NE5QA4aKWjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=U8oOpfOE; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=sdBMYZSK; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="bXbOx2S5";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="P4encMdV";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cD9gjta9";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="LsNrDlNx"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id E18191FF09;
-	Mon, 21 Sep 2026 22:30:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790029808; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=U+FMsSjv6BVB/oCdg5kxZWN92XVCK73VzkTfwY7ve0U=;
-	b=bXbOx2S5MJGJAY9atRrEC+wTUQhnEPRqOy6dlSSZUnuWeiHC3oaPUn1S/6Yc+h9V1QsW8H
-	GSuj1+PqRD5OyjC0CQX0+9blo4L1tR21gOdliWebTOU0ILLkwL7sz1AcvvMLLotPQ5deqX
-	urdyrF4SXRMk4STm2JIy4TAibck6ZZs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790029808;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=U+FMsSjv6BVB/oCdg5kxZWN92XVCK73VzkTfwY7ve0U=;
-	b=P4encMdVyyroNedr4NJOj55ug/VCxWBUqC00dWoh0uWw402N1N89+JFJ1kPGrGJgcwUje7
-	RPzSB4XCCSN632CQ==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=cD9gjta9;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=LsNrDlNx
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790029803; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=U+FMsSjv6BVB/oCdg5kxZWN92XVCK73VzkTfwY7ve0U=;
-	b=cD9gjta9SPQCcIF2XFDBu1RYT+1qJiD0H0gEI0xkyh7F4EFRrxBk1HNz51DXTVqDcXBx8L
-	bIljtQsi2lpmxBKqs62Ah4JHDbaUdoaR6JM9sXxT2JOkwm1KQvfaBnweHfFHAScMp/eWCW
-	S4dUXWUCaDO8o4pU2bYb7APFhvUkNok=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790029803;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=U+FMsSjv6BVB/oCdg5kxZWN92XVCK73VzkTfwY7ve0U=;
-	b=LsNrDlNx+djXVreCqOG/sq76bd7GbVXldDTqRXO8Z80JM8Tpf8ytRmOQgRpy0iZu6nXXHd
-	3J4n/lfWeMmiNICg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4B3F81368D;
-	Mon, 21 Sep 2026 22:30:03 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id foFsB+uvsWpSMQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 21 Sep 2026 22:30:03 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	eric@regit.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Yu Junzhe <junzheyu1@gmail.com>
-Subject: [PATCH nf] netfilter: nft_reject: prevent unbounded recursion in output hooks
-Date: Tue, 22 Sep 2026 00:29:25 +0200
-Message-ID: <20260921222925.3874-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="U8oOpfOE";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="sdBMYZSK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1790030688;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TPgxbULSS/zvX6qwagU7VAmjM6bHsH7Jq1qgcjiY+lQ=;
+	b=U8oOpfOE74UZfdFyV1QUT3NZACtii5PdXXItZ26u+7Xvo+3a0Sira9X4VchJsAizsKf97U
+	uSuiPk0JXANlFF5i4wToyuugxeA6gCYsgE6QyWho7nn3kfQM6AW2wBGisQWMJT2MeljJF9
+	hOzKlEcRjSJnkZRpSEH6TNYmROJx8e0=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-450-dWQAPErWNfWQdKar9qaSrQ-1; Mon, 21 Sep 2026 18:44:47 -0400
+X-MC-Unique: dWQAPErWNfWQdKar9qaSrQ-1
+X-Mimecast-MFC-AGG-ID: dWQAPErWNfWQdKar9qaSrQ_1790030686
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4994d67d0e3so27045295e9.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 15:44:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1790030686; x=1790635486; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=TPgxbULSS/zvX6qwagU7VAmjM6bHsH7Jq1qgcjiY+lQ=;
+        b=sdBMYZSKLAb7NN5BGzL71pRJP1LK9JM+1gSFLk10EB0wyVGxN1I5a/Dhj0MVL/yiDw
+         j3WK1TntTlwlUGAlMT4q5GZNAZDlNP2xegD2sBVxfg3/tGSSY9xPwdzAomJALkawDk0A
+         uTCwiWv+poGMfFXVDzL0JOQ3qyoo59mUiSQAvOFDOGOvnppNC1T26dK558YdtjRz1j3D
+         titw76bwcsFNmo6Vi6WQRYzAurmQWaZCiOxtlmKKT6KcdXu+zYv4V2GqwbJ4EDy9dQ6j
+         RjiVVsloQJBfafatX+uwPV1nJltooFKpFQVG5NbnOFGc6RdmYHnYhb0q+ftWc3YnbGhc
+         X65A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790030686; x=1790635486;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=TPgxbULSS/zvX6qwagU7VAmjM6bHsH7Jq1qgcjiY+lQ=;
+        b=JxXXKM0CDMYWQsXvvJLUrmYVQlcmfcuRc3elfWHPhwHnu22ruc4kWOGJ8s80Ph0N5w
+         ZYR0rvp0uPnKD6qx+K5zI1zrm6/9ebrSug993ogMAXhnEBw14C6dbdf5PXPtXotQRZmd
+         EgXVsGdVCg5Jz6lq+hjf8IvDez1++2Ey1k3QgM3xkr/2S+dp4R4c8wmz4fOy13bWpBP2
+         LF6ylmbDF4B3uCQ7N7ioDuIwpr6HEdInif9OcFJQ9pl6b/9h7p1jr7NXI1mq+UAtbA4o
+         YYyVhT1zW4NPnrrotXBCH8YadIrubqxPOyH8wHV2wWLjVUrPy+C3FIaks/vu3Aiqo0G/
+         OoGg==
+X-Forwarded-Encrypted: i=1; AKwUvByFjmK23bIjKyo4zTEo93nQPHH4xmcwTg8pMLiEGjyreiOc38i6X1F5I+OW2aupDZQ15x7IEwvCCeOhOD7uPXU=@vger.kernel.org
+X-Gm-Message-State: AFuF++kVJQYXNshUsK2MQ9HPXleY8Xy3bOm8Qw6s2dbMofdCKtGwi6CQ
+	B9TH3suBdkr1fiYb7PX2eUzAqLVB7AKd6lFS9ew51wYp7bQpwZUQmXw1qYp0Y/LbRpNsrJZDGpJ
+	Pg/0mdzM7cZsUPDP2QhuJ17jFd9AM7omy30Xg+pYHIbTxQ4oM8PTe0IblGWLzwZb7cbTMfw==
+X-Gm-Gg: AYBFou3ozTQcodXSbZN1gkPXKoJ9QVZ3UrIzC7qhN0msYNwmkJdrJX5xZDb+4EEQu1p
+	GGfqQ5cD4KGJBrasggG9UvznBmKlhPBpihNJjW0+OtBhYT0bSm1ay6NgJ7vjWQi3DsdJeXaoDTS
+	6yUILRJLCg/0eSZn1Mn/X8elmPhsTnX1qlUJSi1BMmrsyuDYGa6fiW/Tazx7cq5eQlCbBcUc0NT
+	EGq4A1wxGyDSlZu/nWz0Utg4OA6BSGat68BsrZ57R3bg7MFZSQw9PGZvuJjpE4fIJGYi0TuHOxU
+	zVMEFQUsXU/9+YsrMFx1WIw9Oekz1T8BJ6Lf3ewSxkCkSGy5wmVTj6xsQp/EH4g9UHCPKWlTwjh
+	UrUSmalpFf33kJZGJn1GdjWY=
+X-Received: by 2002:a05:6000:26c2:b0:487:b32:9d6f with SMTP id ffacd0b85a97d-4871e21beabmr19615274f8f.22.1790030685802;
+        Mon, 21 Sep 2026 15:44:45 -0700 (PDT)
+X-Received: by 2002:a05:6000:26c2:b0:487:b32:9d6f with SMTP id ffacd0b85a97d-4871e21beabmr19615238f8f.22.1790030685299;
+        Mon, 21 Sep 2026 15:44:45 -0700 (PDT)
+Received: from redhat.com (IGLD-80-230-79-236.inter.net.il. [80.230.79.236])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48862731bf9sm26579f8f.1.2026.09.21.15.44.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Sep 2026 15:44:44 -0700 (PDT)
+Date: Mon, 21 Sep 2026 18:44:40 -0400
+From: "Michael S. Tsirkin" <mst@redhat.com>
+To: Paulos Yibelo <habte.yibelo@gmail.com>
+Cc: netdev@vger.kernel.org, richard@nod.at, anton.ivanov@cambridgegreys.com,
+	johannes@sipsolutions.net, willemdebruijn.kernel@gmail.com,
+	jasowangio@gmail.com, eperezma@redhat.com,
+	xuanzhuo@linux.alibaba.com, andrew+netdev@lunn.ch,
+	pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, razor@blackwall.org,
+	idosch@nvidia.com, dsahern@kernel.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, linux-um@lists.infradead.org,
+	virtualization@lists.linux.dev, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v5 1/2] net: validate virtio checksum start after
+ network header
+Message-ID: <20260921183657-mutt-send-email-mst@kernel.org>
+References: <20260920004733.6473-1-habte.yibelo@gmail.com>
+ <20260921025341.44846-1-habte.yibelo@gmail.com>
+ <20260921025341.44846-2-habte.yibelo@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: E18191FF09
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	ARC_NA(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FREEMAIL_CC(0.00)[netfilter.org,strlen.de,nwl.cc,regit.org,suse.de,gmail.com];
-	DKIM_TRACE(0.00)[suse.de:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email,suse.de:mid];
-	RCPT_COUNT_SEVEN(0.00)[8];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com]
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260921025341.44846-2-habte.yibelo@gmail.com>
 
-nftables payload-mangling rules can rewrite packet contents (such as TCP
-flags) before they are evaluated by reject targets. This defeats the
-content-based loop guards, allowing unbounded hook recursion that leads
-to kernel stack exhaustion and panics.
+On Sun, Sep 20, 2026 at 10:53:40PM -0400, Paulos Yibelo wrote:
+> __virtio_net_hdr_to_skb() rejects a CHECKSUM_PARTIAL start smaller than
+> an estimated minimum network-header length. Its input offsets are relative
+> to skb->data.
+> 
+> Using skb_network_offset() here is unsafe. TUN/TAP, virtio-net, and UML
+> parse a received virtio header before skb->network_header is established.
+> On an skb with headroom, the resulting negative offset enlarges the
+> apparent distance to the transport header and can admit a checksum start
+> inside the network header.
+> 
+> Pass the data-relative L3 offset to the converter explicitly. IFF_TUN uses
+> zero, AF_PACKET supplies its established network offset, and Ethernet
+> receive paths parse Ethernet and nested VLAN headers with
+> skb_header_pointer(), without changing skb state. Use the same origin for
+> tunnel-offset validation, and make UML propagate conversion failures.
+> 
+> This does not require a virtual-machine guest. A TUN or TAP device with
+> virtio-net header support is sufficient to reach these paths.
+> 
+> Fixes: 49d14b54a527 ("net: test for not too small csum_start in virtio_net_hdr_to_skb()")
+> Fixes: a2fb4bc4e2a6 ("net: implement virtio helpers to handle UDP GSO tunneling.")
+> Reported-by: Paulos Yibelo <habte.yibelo@gmail.com>
+> Link: https://lore.kernel.org/netdev/20260920004733.6473-2-habte.yibelo@gmail.com/
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Paulos Yibelo <habte.yibelo@gmail.com>
+> ---
+> Changes in v5:
+> - Replace the not-yet-established skb network-header offset with an
+>   explicit data-relative L3 origin.
+> - Cover all in-tree callers, including Ethernet/VLAN receive paths,
+>   tunnel metadata, and UML error propagation.
+> - Drop the prior Acked-by and Reviewed-by tags because the code changed.
+> 
+> Changes in v4:
+> - State that a TUN device is sufficient and no guest is required, as
+>   noted by Michael S. Tsirkin.
+> 
+> Changes in v3:
+> - Keep the network-relative comparison on one line for readability, as
+>   requested by David Ahern.
+> 
+> Changes in v2:
+> - Make nh_min_len an int and remove the casts, as suggested by Michael S.
+>   Tsirkin.
+> 
+>  arch/um/drivers/vector_transports.c | 10 +++-
+>  drivers/net/tun_vnet.h              | 28 ++++++++++-
+>  drivers/net/virtio_net.c            |  8 ++-
+>  include/linux/virtio_net.h          | 76 +++++++++++++++++++++++------
+>  net/packet/af_packet.c              |  6 ++-
+>  5 files changed, 106 insertions(+), 22 deletions(-)
+> 
+> diff --git a/arch/um/drivers/vector_transports.c b/arch/um/drivers/vector_transports.c
+> index ddd127ee9..79bc05fc6 100644
+> --- a/arch/um/drivers/vector_transports.c
+> +++ b/arch/um/drivers/vector_transports.c
+> @@ -197,6 +197,7 @@ static int raw_verify_header(
+>  	uint8_t *header, struct sk_buff *skb, struct vector_private *vp)
+>  {
+>  	struct virtio_net_hdr *vheader = (struct virtio_net_hdr *) header;
+> +	int network_offset;
+>  
+>  	if ((vheader->gso_type != VIRTIO_NET_HDR_GSO_NONE) &&
+>  		(vp->req_size != 65536)) {
+> @@ -209,8 +210,13 @@ static int raw_verify_header(
+>  	if ((vheader->flags & VIRTIO_NET_HDR_F_DATA_VALID) > 0)
+>  		return 1;
+>  
+> -	virtio_net_hdr_to_skb(skb, vheader, virtio_legacy_is_little_endian());
+> -	return 0;
+> +	network_offset = virtio_net_hdr_get_l3_offset(skb, vheader);
+> +	if (network_offset < 0)
+> +		return network_offset;
+> +
+> +	return virtio_net_hdr_to_skb(skb, vheader,
+> +				     virtio_legacy_is_little_endian(),
+> +				     network_offset);
+>  }
+>  
+>  static bool get_uint_param(
+> diff --git a/drivers/net/tun_vnet.h b/drivers/net/tun_vnet.h
+> index f4c652b1f..1c83c359d 100644
+> --- a/drivers/net/tun_vnet.h
+> +++ b/drivers/net/tun_vnet.h
+> @@ -177,10 +177,27 @@ static inline int tun_vnet_hdr_put(int sz, struct iov_iter *iter,
+>  	return __tun_vnet_hdr_put(sz, 0, iter, hdr);
+>  }
+>  
+> +static inline int
+> +tun_vnet_hdr_get_l3_offset(unsigned int flags, const struct sk_buff *skb,
+> +			   const struct virtio_net_hdr *hdr)
+> +{
+> +	if ((flags & TUN_TYPE_MASK) != IFF_TAP)
+> +		return 0;
+> +
+> +	return virtio_net_hdr_get_l3_offset(skb, hdr);
+> +}
+> +
+>  static inline int tun_vnet_hdr_to_skb(unsigned int flags, struct sk_buff *skb,
+>  				      const struct virtio_net_hdr *hdr)
+>  {
+> -	return virtio_net_hdr_to_skb(skb, hdr, tun_vnet_is_little_endian(flags));
+> +	int network_offset = tun_vnet_hdr_get_l3_offset(flags, skb, hdr);
+> +
+> +	if (network_offset < 0)
+> +		return network_offset;
+> +
+> +	return virtio_net_hdr_to_skb(skb, hdr,
+> +				     tun_vnet_is_little_endian(flags),
+> +				     network_offset);
+>  }
+>  
+>  /*
+> @@ -199,10 +216,17 @@ tun_vnet_hdr_tnl_to_skb(unsigned int flags, netdev_features_t features,
+>  			struct sk_buff *skb,
+>  			const struct virtio_net_hdr_v1_hash_tunnel *hdr)
+>  {
+> +	const struct virtio_net_hdr *vnet_hdr = (const struct virtio_net_hdr *)hdr;
+> +	int network_offset = tun_vnet_hdr_get_l3_offset(flags, skb, vnet_hdr);
+> +
+> +	if (network_offset < 0)
+> +		return network_offset;
+> +
+>  	return virtio_net_hdr_tnl_to_skb(skb, hdr,
+>  				features & NETIF_F_GSO_UDP_TUNNEL,
+>  				features & NETIF_F_GSO_UDP_TUNNEL_CSUM,
+> -				tun_vnet_is_little_endian(flags));
+> +				tun_vnet_is_little_endian(flags),
+> +				network_offset);
+>  }
+>  
+>  static inline int tun_vnet_hdr_from_skb(unsigned int flags,
+> diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
+> index e34c52d05..059eeb18e 100644
+> --- a/drivers/net/virtio_net.c
+> +++ b/drivers/net/virtio_net.c
+> @@ -2502,6 +2502,7 @@ static void virtnet_receive_done(struct virtnet_info *vi, struct receive_queue *
+>  {
+>  	struct virtio_net_common_hdr *hdr;
+>  	struct net_device *dev = vi->dev;
+> +	int network_offset;
+>  
+>  	hdr = skb_vnet_common_hdr(skb);
+>  	if (dev->features & NETIF_F_RXHASH && vi->has_rss_hash_report)
+> @@ -2515,9 +2516,12 @@ static void virtnet_receive_done(struct virtnet_info *vi, struct receive_queue *
+>  		goto frame_err;
+>  	}
+>  
+> -	if (virtio_net_hdr_tnl_to_skb(skb, &hdr->tnl_hdr, vi->rx_tnl,
+> +	network_offset = virtio_net_hdr_get_l3_offset(skb, &hdr->hdr);
+> +	if (network_offset < 0 ||
+> +	    virtio_net_hdr_tnl_to_skb(skb, &hdr->tnl_hdr, vi->rx_tnl,
+>  				      vi->rx_tnl_csum,
+> -				      virtio_is_little_endian(vi->vdev))) {
+> +				      virtio_is_little_endian(vi->vdev),
+> +				      network_offset)) {
+>  		net_warn_ratelimited("%s: bad gso: type: %x, size: %u, flags %x tunnel %d tnl csum %d\n",
+>  				     dev->name, hdr->hdr.gso_type,
+>  				     hdr->hdr.gso_size, hdr->hdr.flags,
+> diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
+> index c381b916c..a4c005796 100644
+> --- a/include/linux/virtio_net.h
+> +++ b/include/linux/virtio_net.h
+> @@ -48,11 +48,49 @@ static inline int virtio_net_hdr_set_proto(struct sk_buff *skb,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * Return the L3 offset of an Ethernet frame starting at skb->data.
+> + * The offset is unused without NEEDS_CSUM, so avoid parsing and return zero.
+> + */
+> +static inline int
+> +virtio_net_hdr_get_l3_offset(const struct sk_buff *skb,
+> +			     const struct virtio_net_hdr *hdr)
+> +{
+> +	unsigned int parse_depth = VLAN_MAX_DEPTH;
+> +	const struct ethhdr *eth;
+> +	struct ethhdr ethbuf;
+> +	__be16 protocol;
+> +	int depth = ETH_HLEN;
+> +
+> +	if (!(hdr->flags & VIRTIO_NET_HDR_F_NEEDS_CSUM))
+> +		return 0;
+> +
+> +	eth = skb_header_pointer(skb, 0, sizeof(ethbuf), &ethbuf);
+> +	if (!eth)
+> +		return -EINVAL;
+> +
+> +	protocol = eth->h_proto;
+> +	while (eth_type_vlan(protocol)) {
+> +		const struct vlan_hdr *vh;
+> +		struct vlan_hdr vhdr;
+> +
+> +		vh = skb_header_pointer(skb, depth, sizeof(vhdr), &vhdr);
+> +		if (!vh || !--parse_depth)
+> +			return -EINVAL;
+> +
+> +		protocol = vh->h_vlan_encapsulated_proto;
+> +		depth += VLAN_HLEN;
+> +	}
+> +
+> +	return depth;
+> +}
+> +
+>  static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
+>  					  const struct virtio_net_hdr *hdr,
+> -					  bool little_endian, u8 hdr_gso_type)
+> +					  bool little_endian, u8 hdr_gso_type,
+> +					  int network_offset)
+>  {
+> -	unsigned int nh_min_len = sizeof(struct iphdr);
+> +	int nh_min_len = sizeof(struct iphdr);
 
-Fix this by extracting the per-CPU xmit recursion limit previously used
-by the netdev duplication/forwarding paths into a shared header, and
-apply it to the inet and inet6 reject transmit functions. It disables BH
-while transmitting the skb to address a possible migration to different
-CPU leading to imbalanced decrementation of the recursion counters.
 
-Note that the dev_queue_xmit() path used when CONFIG_BRIDGE_NETFILTER is
-enabled does not require this recursion guard. In that scenario, the
-generated reset packet is transmitted directly at Layer 2. Because the
-packet egresses from a different hook, it cannot synchronously loop.
+So why is this IPv4 specific assumption still here? Confused.
 
-Reported-by: Yu Junzhe <junzheyu1@gmail.com>
-Closes: https://lore.kernel.org/netfilter-devel/20260921061320.543-1-junzheyu1@gmail.com/
-Fixes: bee11dc78fc8 ("netfilter: nft_reject: support for IPv6 and TCP reset")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- include/net/netfilter/nf_dup_netdev.h | 35 ----------------------
- include/net/netfilter/nf_recursion.h  | 42 +++++++++++++++++++++++++++
- net/ipv4/netfilter/nf_reject_ipv4.c   | 12 ++++++++
- net/ipv6/netfilter/nf_reject_ipv6.c   | 13 +++++++++
- net/netfilter/nf_dup_netdev.c         |  1 +
- net/netfilter/nft_fwd_netdev.c        |  1 +
- 6 files changed, 69 insertions(+), 35 deletions(-)
- create mode 100644 include/net/netfilter/nf_recursion.h
 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index f6b05bd80c3f..a39411264614 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -9,41 +9,6 @@
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
--#define NF_RECURSION_LIMIT	2
--
--#ifndef CONFIG_PREEMPT_RT
--static inline bool nf_dev_xmit_recursion(void)
--{
--	return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
--			NF_RECURSION_LIMIT);
--}
--
--static inline void nf_dev_xmit_recursion_inc(void)
--{
--	__this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
--}
--
--static inline void nf_dev_xmit_recursion_dec(void)
--{
--	__this_cpu_dec(softnet_data.xmit.nf_dup_skb_recursion);
--}
--#else
--static inline bool nf_dev_xmit_recursion(void)
--{
--	return unlikely(current->net_xmit.nf_dup_skb_recursion > NF_RECURSION_LIMIT);
--}
--
--static inline void nf_dev_xmit_recursion_inc(void)
--{
--	current->net_xmit.nf_dup_skb_recursion++;
--}
--
--static inline void nf_dev_xmit_recursion_dec(void)
--{
--	current->net_xmit.nf_dup_skb_recursion--;
--}
--#endif
--
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/include/net/netfilter/nf_recursion.h b/include/net/netfilter/nf_recursion.h
-new file mode 100644
-index 000000000000..3e91b78e21b3
---- /dev/null
-+++ b/include/net/netfilter/nf_recursion.h
-@@ -0,0 +1,42 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _NF_RECURSION_H_
-+#define _NF_RECURSION_H_
-+
-+#include <linux/netdevice.h>
-+
-+#define NF_RECURSION_LIMIT	2
-+
-+#ifndef CONFIG_PREEMPT_RT
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
-+			NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	__this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
-+}
-+
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	__this_cpu_dec(softnet_data.xmit.nf_dup_skb_recursion);
-+}
-+#else
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(current->net_xmit.nf_dup_skb_recursion > NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	current->net_xmit.nf_dup_skb_recursion++;
-+}
-+
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	current->net_xmit.nf_dup_skb_recursion--;
-+}
-+#endif
-+
-+#endif /* _NF_RECURSION_H_ */
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 59ec465a9df9..3f227a094312 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -10,6 +10,7 @@
- #include <net/dst.h>
- #include <net/dst_metadata.h>
- #include <net/netfilter/ipv4/nf_reject.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_bridge.h>
- 
-@@ -336,7 +337,18 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
-+	{
-+		local_bh_disable();
-+		if (nf_dev_xmit_recursion()) {
-+			local_bh_enable();
-+			goto free_nskb;
-+		}
-+
-+		nf_dev_xmit_recursion_inc();
- 		ip_local_out(net, nskb->sk, nskb);
-+		nf_dev_xmit_recursion_dec();
-+		local_bh_enable();
-+	}
- 
- 	return;
- 
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 07cdaa10da0d..f69ddfe72030 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -10,6 +10,7 @@
- #include <net/ip6_checksum.h>
- #include <net/dst_metadata.h>
- #include <net/netfilter/ipv6/nf_reject.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
- 
-@@ -409,7 +410,19 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
-+	{
-+		local_bh_disable();
-+		if (nf_dev_xmit_recursion()) {
-+			local_bh_enable();
-+			kfree_skb(nskb);
-+			return;
-+		}
-+
-+		nf_dev_xmit_recursion_inc();
- 		ip6_local_out(net, sk, nskb);
-+		nf_dev_xmit_recursion_dec();
-+		local_bh_enable();
-+	}
- }
- EXPORT_SYMBOL_GPL(nf_send_reset6);
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index c6bd5c29bed6..918716629c15 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -12,6 +12,7 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
-+#include <net/netfilter/nf_recursion.h>
- 
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index a48c2f765bba..7447da931a95 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -14,6 +14,7 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <net/neighbour.h>
- #include <net/ip.h>
- 
--- 
-2.55.0
+>  	unsigned int gso_type = 0;
+>  	unsigned int thlen = 0;
+>  	unsigned int p_off = 0;
+> @@ -98,16 +136,20 @@ static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
+>  		u32 start = __virtio16_to_cpu(little_endian, hdr->csum_start);
+>  		u32 off = __virtio16_to_cpu(little_endian, hdr->csum_offset);
+>  		u32 needed = start + max_t(u32, thlen, off + sizeof(__sum16));
+> +		int transport_offset;
+>  
+>  		if (!pskb_may_pull(skb, needed))
+>  			return -EINVAL;
+>  
+>  		if (!skb_partial_csum_set(skb, start, off))
+>  			return -EINVAL;
+> -		if (skb_transport_offset(skb) < nh_min_len)
+> +
+> +		transport_offset = skb_transport_offset(skb);
+> +		if (transport_offset < nh_min_len || network_offset < 0 ||
+> +		    network_offset > transport_offset - nh_min_len)
+>  			return -EINVAL;
+>  
+> -		nh_min_len = skb_transport_offset(skb);
+> +		nh_min_len = transport_offset;
+>  		p_off = nh_min_len + thlen;
+>  		if (!pskb_may_pull(skb, p_off))
+>  			return -EINVAL;
+> @@ -206,9 +248,11 @@ static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
+>  
+>  static inline int virtio_net_hdr_to_skb(struct sk_buff *skb,
+>  					const struct virtio_net_hdr *hdr,
+> -					bool little_endian)
+> +					bool little_endian,
+> +					int network_offset)
+>  {
+> -	return __virtio_net_hdr_to_skb(skb, hdr, little_endian, hdr->gso_type);
+> +	return __virtio_net_hdr_to_skb(skb, hdr, little_endian, hdr->gso_type,
+> +				       network_offset);
+>  }
+>  
+>  /* This function must be called after virtio_net_hdr_from_skb(). */
+> @@ -287,7 +331,7 @@ static inline int virtio_net_hdr_from_skb(const struct sk_buff *skb,
+>  	return 0;
+>  }
+>  
+> -static inline unsigned int virtio_l3min(bool is_ipv6)
+> +static inline int virtio_l3min(bool is_ipv6)
+>  {
+>  	return is_ipv6 ? sizeof(struct ipv6hdr) : sizeof(struct iphdr);
+>  }
+> @@ -297,18 +341,19 @@ virtio_net_hdr_tnl_to_skb(struct sk_buff *skb,
+>  			  const struct virtio_net_hdr_v1_hash_tunnel *vhdr,
+>  			  bool tnl_hdr_negotiated,
+>  			  bool tnl_csum_negotiated,
+> -			  bool little_endian)
+> +			  bool little_endian, int network_offset)
+>  {
+>  	const struct virtio_net_hdr *hdr = (const struct virtio_net_hdr *)vhdr;
+> -	unsigned int inner_nh, outer_th, inner_th;
+> -	unsigned int inner_l3min, outer_l3min;
+>  	u8 gso_inner_type, gso_tunnel_type;
+>  	bool outer_isv6, inner_isv6;
+> +	int inner_nh, outer_th, inner_th;
+> +	int inner_l3min, outer_l3min;
+>  	int ret;
+>  
+>  	gso_tunnel_type = hdr->gso_type & VIRTIO_NET_HDR_GSO_UDP_TUNNEL;
+>  	if (!gso_tunnel_type)
+> -		return virtio_net_hdr_to_skb(skb, hdr, little_endian);
+> +		return virtio_net_hdr_to_skb(skb, hdr, little_endian,
+> +					     network_offset);
+>  
+>  	/* Tunnel not supported/negotiated, but the hdr asks for it. */
+>  	if (!tnl_hdr_negotiated)
+> @@ -332,19 +377,22 @@ virtio_net_hdr_tnl_to_skb(struct sk_buff *skb,
+>  	outer_isv6 = gso_tunnel_type & VIRTIO_NET_HDR_GSO_UDP_TUNNEL_IPV6;
+>  	inner_isv6 = gso_inner_type == VIRTIO_NET_HDR_GSO_TCPV6;
+>  	inner_l3min = virtio_l3min(inner_isv6);
+> -	outer_l3min = ETH_HLEN + virtio_l3min(outer_isv6);
+> +	outer_l3min = virtio_l3min(outer_isv6);
+>  
+>  	inner_th = __virtio16_to_cpu(little_endian, hdr->csum_start);
+>  	inner_nh = le16_to_cpu(vhdr->inner_nh_offset);
+>  	outer_th = le16_to_cpu(vhdr->outer_th_offset);
+> -	if (outer_th < outer_l3min ||
+> +	if (network_offset < 0 ||
+> +	    outer_th < outer_l3min ||
+> +	    network_offset > outer_th - outer_l3min ||
+>  	    inner_nh < outer_th + sizeof(struct udphdr) ||
+>  	    inner_th < inner_nh + inner_l3min)
+>  		return -EINVAL;
+>  
+>  	/* Let the basic parsing deal with plain GSO features. */
+>  	ret = __virtio_net_hdr_to_skb(skb, hdr, true,
+> -				      hdr->gso_type & ~gso_tunnel_type);
+> +				      hdr->gso_type & ~gso_tunnel_type,
+> +				      network_offset);
+>  	if (ret)
+>  		return ret;
+>  
+> diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
+> index 50cae32ae..04c80e23d 100644
+> --- a/net/packet/af_packet.c
+> +++ b/net/packet/af_packet.c
+> @@ -2901,7 +2901,8 @@ static int tpacket_snd(struct packet_sock *po, struct msghdr *msg)
+>  		}
+>  
+>  		if (has_vnet_hdr) {
+> -			if (virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le())) {
+> +			if (virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le(),
+> +						  skb_network_offset(skb))) {
+>  				tp_len = -EINVAL;
+>  				goto tpacket_error;
+>  			}
+
+Will this do the right thing for ETH_P_IP sockets? even with vlan tags
+in the frame?
+
+
+> @@ -3103,7 +3104,8 @@ static int packet_snd(struct socket *sock, struct msghdr *msg, size_t len)
+>  	packet_parse_headers(skb, sock);
+>  
+>  	if (vnet_hdr_sz) {
+> -		err = virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le());
+> +		err = virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le(),
+> +					    skb_network_offset(skb));
+>  		if (err)
+>  			goto out_free;
+>  		len += vnet_hdr_sz;
+> -- 
+> 2.46.0
 
