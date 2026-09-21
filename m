@@ -1,55 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pz2-f41.google.com (mail-pz2-f41.google.com [74.125.228.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC2D47207E;
-	Sun, 20 Sep 2026 17:50:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 338822F7F1F
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 02:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789926660; cv=none; b=d8MTgHo+dmOOKswD8Y5TjFTD6WqsbTsVXRNQ84nD8N5CU83Fu1AZeBqd68sB11B4x7c5abuHAXZlaD45wj1q5NFsdGP+IpuU1nuToDDxebDnovnFw+LizkFdd49b9lcHLTx/mb0/pztN+Qhf33DgfsBE+v9s4OMePtcB4xFN3+k=
+	t=1789956568; cv=none; b=H5Fm5zdhSzKJ+l93qKzDehtKu3kExWFJtOx03w2A30ui+h/Dj90iZi0ui4TEh+8umgLNiiN5HhR8qqh3vUq3IExq9uc/FPBhnwuBzM3e0/JngQgKvcrBzuFd1A+G4kWj6mF32t8GPVJTO4R5HNkXq8pV6SlQ8z2g/mseF+7mJ2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789926660; c=relaxed/simple;
-	bh=YIF66qllk6GtYeJ+gCXlEew+S2dXgsn/uJ/jKw126qg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lA+kEaVZ/4ABZHO6zjlQjLIpIA0KhJpQdoySIrdJKDNpUZ7R26uqBphINvTU2cNn7ujDrBd2vgWnT2r1s2e+lc7P87huwK8cyRL5cbum8cz/JezJt0tN9pvfqqhQ4/tZ0/6eVeVlZMI+IjWUpbLcn85oNkOdVrZDfL32oCrQBh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PuT6B4IH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789956568; c=relaxed/simple;
+	bh=8V5OMZOqPq5xk5Df+ymOuJosbuaBwier4A19CKE++mY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EA7cGyilkGwSN3Eqypwx1Z2iIMJlv3/OQ66/tqdwHnRGoItyeJpsHl7NkS0GKtpYfUQRmw5fGYcKd2zGHPnEURkGnZzpMD7lmcF0iT/8UhCAsScfQfILNmn5zpOJAPiUSP/ev4SvqIqazn4tJ2ZrcIf0ytI8vUsh0Xza5xUyvjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jfFzlAZ6; arc=none smtp.client-ip=74.125.228.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PuT6B4IH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43741F00893;
-	Sun, 20 Sep 2026 17:50:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789926659;
-	bh=WEiHJJqTfb53NKSiO3STRwLVThzo4igrI6pvysvlz2k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PuT6B4IHXVNDvr43Ky7hmATBjGxsVpCN+yNdTcJ78QdbbIRxQLEwt0PZyAsRZiBKd
-	 nCQabesgz4L0RuXtBBXhRyEChPu/FafWfDrLNXoCnLuphDvW8CL3e5buE4FWHMgfeM
-	 +Nl7awnyaH9I/Re2o2awgM6N/fg79qJaicx4Xsp+blTjfodFK0/wIWT21DeRTt9TOz
-	 pbjuwg1/QLLLNCGuRv48nTusMTe10eyNo3HjFejtFO9Yb690aRRz/opzYv48HmWXUG
-	 Th/0JYHPUIaTpWKc3/nIjS6V6HBlqim9q4nYiTT6iqpsQ4d4WIb7WSf2dqSqJ0RLqx
-	 Qz7mc3XU+LJFw==
-From: Sasha Levin <sashal@kernel.org>
-To: stable@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	David Ahern <dsahern@kernel.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Sasha Levin <sashal@kernel.org>,
-	Benjamin Robin <benjamin.robin@bootlin.com>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jfFzlAZ6"
+Received: by mail-pz2-f41.google.com with SMTP id d2e1a72fcca58-86212a185dcso2902758b3a.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Sep 2026 19:09:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789956566; x=1790561366; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=vZ5lGmm82bDuUdLpxrgGqCRfnXKZWSRYGdIAzjgevKA=;
+        b=jfFzlAZ66CFoZhfFF4owR3Y0dgYVcbS9RPwd/3uszMOJYfiggS8vRvZsQt2rY8nmI+
+         5VxA6Lia/TkBo4LA+dot/uV5vQpJ34C9eEiGsqBSBgsqZpg0XJKPDrt4EggYdBm1lTC/
+         EoLYKtfwab8TxD4ysZMgP0pdZg8gEaJdF61p8T3fnnh2foLTIPU/t01v3mCLfvA017QV
+         kusLk4k+17E/DtzySHU4ebiWCaoBA8yfEj7qusCkYSC+y6qUjf2PQkOznnpltXjbpK2Y
+         WHDQ9LNqNEQRYZ0XwvjxdDjlFbce9qE7bgLxn1MhdzAe/hWrO4iFp+40vSfevpOxYT6v
+         yUHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789956566; x=1790561366;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=vZ5lGmm82bDuUdLpxrgGqCRfnXKZWSRYGdIAzjgevKA=;
+        b=UicMWWgN/JOULmjFhQ3i+wXht3rPtn19zRslBhkPCoXtjizVkppBv1J6WwHooANTTp
+         xAsI7v2SWVK1ZZJ9KT3j2VFO0gYoVC2jszBP9aDt/JMHL0LZD1tKi2b/PSlOVIlwQj7J
+         QBcxNTV+isZ3Wuo1WLJbONhzIanB8KrZ7rVC8kw2QlzR5+BqGFhQDQRUcLZ1pxTnSu4B
+         ddU0stbae6QRaLi/3UCrcA8GbUaSFKfk+24q+ZW/wZ0myxrrhj5CnIFgJkokTDDgYfOs
+         A0cvYOi98OgOuGZeTu9xhPHpV3Ams3JXnY8c3ecUqRD4Him9LBuIieCrgH0/1BA/Xgsy
+         9v3A==
+X-Forwarded-Encrypted: i=1; AKwUvByHaLfxmOYT4VEggx2f2jnVMyOLNr132cZjnVPucAr+3nyBiBL7jyddWBeekDPxYfv5P+vEXeeeYqYyU9gVZJU=@vger.kernel.org
+X-Gm-Message-State: AFuF++kP/14Yo4nL8L9xujkFGO0P97mJTYVjvoPsM21FWpwcIZIUN5NN
+	8H+Lqm4led7f09BVp8WI0hl/phWtM2m+KKYbpbD+1CwfUyrtZ355G/cX
+X-Gm-Gg: AYBFou0eQdk8/6EtffbTjTRuaXLRvaP5bQjEwfaQklRKe1K0Mx1CL2yaOGpJvGzxOma
+	HKnwU0X6+MQtOMKuvYCDWwDi4ld7nGxLJ7hyUl641S26Scs+H5Lsq2U3taZkawOkr9CEoS3Q9MQ
+	ZI5MIdjUzA+z4Kv8UYw41ahZEpWTQa9ccDmhyshllShyYC33ccSPaEl1a6jZVSw4BWEUcuQhzPV
+	AqK/Au1e7omFZv4RimfqRjFlyWysyOtxcixde8Oj7v+1kJl450Mnjwcbw8hkN4CsAY/4lnpEFI4
+	nyTvOLHpYFhjRwA3UNSxEP5cPmuTphNkqSFlJgYBL3vUwry4ms9zG0ndhFllkaNk0KAv28ovqbP
+	jXVPC3p3IMI15eI60u748xkfXuagfUXYzvurSbY5lG0k789mWYehiESEjV65BqocxgFWEgIiZCM
+	RJmWaFY8cMadGKxA9X4xwy2Uy26CIyeCh1ACWGtruhT0rwK+m4uQcOFFk2G7p47aRCiXyCy/Nse
+	n8PVe6NqEHEzrm+SCZBi7VPO+4G6TaR
+X-Received: by 2002:a05:6a21:a02:b0:3d2:2afa:d77 with SMTP id adf61e73a8af0-3dd8c44a3camr15132958637.14.1789956566440;
+        Sun, 20 Sep 2026 19:09:26 -0700 (PDT)
+Received: from 192.168.50.3 ([198.176.50.208])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cc72ae9bac5sm2648184a12.15.2026.09.20.19.09.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 20 Sep 2026 19:09:25 -0700 (PDT)
+From: bestswngs@gmail.com
+To: pablo@netfilter.org,
+	fw@strlen.de,
 	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Miguel Gazquez (Schneider Electric)" <miguel.gazquez@bootlin.com>
-Subject: Re: [PATCH 6.12.y 0/3] netfilter: nf_conntrack_expect: use conntrack GC to reap expectations
-Date: Sun, 20 Sep 2026 13:50:40 -0400
-Message-ID: <2026-09-20-daily-reply-0008-re-nf-conntrack-expect-gc@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260918-cve-2026-80668-v2-v1-0-fcefceb49144@bootlin.com>
-References: <20260918-cve-2026-80668-v2-v1-0-fcefceb49144@bootlin.com>
+	coreteam@netfilter.org
+Cc: phil@nwl.cc,
+	xmei5@asu.edu,
+	Weiming Shi <bestswngs@gmail.com>,
+	co+ee5e50ef2670e5f4@bugs.sh
+Subject: [PATCH nf] netfilter: nft_set_rbtree: skip transaction elements during GC
+Date: Mon, 21 Sep 2026 10:08:22 +0800
+Message-ID: <20260921020821.2587086-2-bestswngs@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,34 +78,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> Backported two other patches in order for the fix to apply cleanly.
+From: Weiming Shi <bestswngs@gmail.com>
 
-Thanks for splitting this per tree, but could you respin? This applies to the
-6.6.y and 6.1.y postings too.
+Since nft_set_commit_update() runs set commit callbacks before processing
+NEWSETELEM transactions, nft_rbtree_gc_scan() can observe elements added by
+the transaction being committed.
 
-6.18.y carries the bug and has no series, so all three are blocked behind it.
-Your 6.12 patches 1/3 and 2/3 apply to 6.18 unchanged, and 3/3 fails only three
-hunks, all because 6.18 spells timer_delete() and timer_container_of() where
-6.12 has del_timer() and from_timer(), on
-deleted lines only.
+The scan records an interval end in rbe_end without checking the element's
+transaction state. A later, unrelated expired start then moves both
+elements to the expired list. The synchronous GC queue can free the new end
+element before the transaction subsequently activates it, causing a
+use-after-free.
 
-Patch 3/3 has no "[ Upstream commit b8b09dc2bf35a00d4e0556b5d6308c7b917ebda2 ]"
-line, so the CVE fix would land with no upstream reference.
+Only consider elements that are fully active in both generations. This
+keeps transaction-state elements out of the GC scan and preserves interval
+pairing across skipped elements.
 
-Patches 2/3 and 3/3 carry no Signed-off-by from you.
+KASAN reports:
 
-In 2/3 the new "return false" in nf_ct_gre_keymap_add() is wrong here:
-the function returns int on these trees, where 0 is success, so the
-error path reports success. It needs a negative errno.
+  BUG: KASAN: slab-use-after-free in nft_setelem_activate
+  nft_setelem_activate net/netfilter/nf_tables_api.c:7047
+  nf_tables_commit net/netfilter/nf_tables_api.c:11137
 
-The series is missing 4aa63842fc92 ("netfilter: nf_conntrack_expect: add
-and use nf_ct_expect_related_pair()"), Fixes: b8b09dc2bf35, already in
-7.1.y and 7.2. Without it the SIP and H.323 helpers re-insert
-expectations they have just unexpected.
+  Allocated by task 130:
+  nft_set_elem_init net/netfilter/nf_tables_api.c:6794
+  nft_add_set_elem net/netfilter/nf_tables_api.c:7523
 
-The Stable-dep-of: 979c13114c0b trailer on 1/3 and 2/3 names a commit
-the series never applies.
+  Freed by task 130:
+  nft_trans_gc_trans_free net/netfilter/nf_tables_api.c:10506
+  rcu_core kernel/rcu/tree.c:2919
 
+Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
+Reported-by: <co+ee5e50ef2670e5f4@bugs.sh>
+Assisted-by: LLM
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+---
+ net/netfilter/nft_set_rbtree.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 9894832281c4b..12431b55752fb 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -900,6 +900,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 		next = rb_next(node);
+ 
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
++			continue;
+ 
+ 		/* elements are reversed in the rbtree for historical reasons,
+ 		 * from highest to lowest value, that is why end element is
 -- 
-Thanks,
-Sasha
+2.55.0
+
