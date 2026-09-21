@@ -1,179 +1,225 @@
-Received: from mail-lr2-f22.google.com (mail-lr2-f22.google.com [74.125.230.86])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B3D03AEF57
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 07:10:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.86
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789974643; cv=pass; b=mbJL5DRjOqwzL4pJ3gwaF3Vs1f2mu1/qeY3F/OuLoDB/uW5irIq2BEaxqU16gg4N1AhLiILfkskEBXysde4qk36fYDlCQuJf1Pj4CG1vDUkp2j+L+YHOyOkdPskyxxgtB5nED0eEaJoBlEX1tWGfGwoweb6km91Ag0mSh0ymesk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789974643; c=relaxed/simple;
-	bh=kJH7+kos1l9lkpvaZyjlUUt9NhEpQOT2pMMtBb2piIw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iua0+vAVp10erPWO/n65wxB29Ohi/rp2I/eKcC8vHO0MqLZDg7GHupLcbsLbDHVV1IjcPTY1XpI2qZzAfUfOnJzZTLV/Jrz2OkrP1Td4dD0+Pe9vio/ZQOHLqnzEqp96NwVDG0WR02YTMX51cUfz2XogWgPkAk/tCvZrZxytHoM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=Hb/5K9Kq; arc=pass smtp.client-ip=74.125.230.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 137C7442376;
+	Mon, 21 Sep 2026 07:49:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789976945; cv=none; b=acSg95huYu+kNqbxW2ss6LYJfqX+muJfC8hUEGp9Pq+HN83qqUz6ZOKAopBXdx+0jzclTB2bUn9Pvvl3qbGJPvE/anWKPS29xZg+6zUTrVwLCS92yIzrxBakjEojAJmVTNMxJfdFOkIO5X9q7pQ34+0KRTornWsFrH/6Y/JaoE4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789976945; c=relaxed/simple;
+	bh=ctLbt7E8aHd2KyZYKdrr0U0k+vd82N4deQeffUNWc9Q=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=JYbghbUpcuiu2IWSbYbvQSo6J0eSREUk3d3ozEArhSrnO48sw3W6B3Jy8tZ2PS0RUrfcm2aLcbNemYfLEeoF8zYj0PTKgg1kEY6Gk25xn0A6uda+yEROq8G8uIxm97Dd8WNvmt+JYP4pQ61I7Nql80qZrRpxqg3ovRp8wxiyVvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QwGeybxN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="Hb/5K9Kq"
-Received: by mail-lr2-f22.google.com with SMTP id 38308e7fff4ca-3a2ff04155bso22112511fa.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 00:10:41 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789974638; cv=none;
-        d=google.com; s=arc-20260327;
-        b=jtAOXSd0/isX7C8QcFtgpH3fJYacmqH3DihHy9mUa7snNehD6fkT3yEZMtwRykmkTU
-         26Ol4TNRyNWIVVcM3K7I+mIYrbkqsWIdQcCqVs6WbnreqzSvjv+3lnfWDubQIs+6QT/r
-         dwi8FuSRoYQAESg4ynR4BJjlVxOu7Dqp84PNBs9gSvf/eEGric6hnGCbER1Gh+dcu/qx
-         0nbWYxRbrsVNOJkD5+Q+AAyefNdQn83pxnTv3upjvcToRu2xN/Az2G7zQXaxXqTAXcSW
-         +qROAOZ0CvW4AzIdoqGcVQt2vCJl/AwZoANwjRNB+3jsEgswCBklZllgYJmq35r2BzRP
-         FOlA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ohcBhfXjMZ0w/piBj8Wfzyl/Cc0Gtqk0dL3r6ReUuIg=;
-        fh=yrKkx8BvA6EFV/fwRntZ62f1HCPPJO3mUVgH+0Jwxec=;
-        b=PToYqqadtizFJF9EUfIi9UoQqx/e1HM80Z9wUrPrCcqm0hgAVtfQJ1uPxfVcfnL50I
-         bRIo9NJS+zUIEctKSVFaig74bUfeRlq5s8lTEYnZoLLijKlbA1SRfMRnCMl7nkE0zlI9
-         0NWYJwLvAl0vOEheDey8mB4zqVL3oaBBExSZe8okzWtZ50Ral40uOfNGltOvbusF5YhO
-         /LYbo/KTJd0SHXNH0QXFfFQ1WYD5ED0XQXR5ISwDiYYoUuqhNAYnmXf3VpDJHhJR8P1l
-         uAxUX8A1CCApTUHoD6qE7pavu0qYaabZ7PfIxGHnTwTa0IsCw39JgSXqo9mIqsU2PGKw
-         bv3A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1789974638; x=1790579438; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=ohcBhfXjMZ0w/piBj8Wfzyl/Cc0Gtqk0dL3r6ReUuIg=;
-        b=Hb/5K9KqMJ3aBi2GtHACmHMerZlDcswpnDm0o6VCgfQNYkS51BtgBLF/vzt5rS9WD5
-         RCYM6xRGh1iUJpVeGwJM8qGnBh747L3cHn1P3aygbG3GFjLxe9mCKoK+eNZF1SsfxP8U
-         sqXF3U5vkCzbLJl+zHiuofQ2CdNcPi4Nn577x2yti2l5TxTXttPjKz5ESWApzFFvsDnY
-         LQK8CAbU6WFrvJd1pYQ2OQkDB+6J99qvYaq6NDrQESh2mjN4JXCxkTIM+UXwqS1joo/Q
-         OqVodN9Eiqw2N0YXKJis5u8XS+1FXZKSo8bKDANYcNzuACGASmnmPQhowBvu2f9f5aap
-         SjMw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789974638; x=1790579438;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ohcBhfXjMZ0w/piBj8Wfzyl/Cc0Gtqk0dL3r6ReUuIg=;
-        b=veTuMRnL0m1JIEs26N5CoywM8iN65sEGp7Iqv+700TdX8Nqp8RROmJzcVaxPp8WxC1
-         S764snaomrg0Et4N7tbGH9zMtLsxNdNMiZdh4Piy77MxuspUFeRCX6/kGfAiL+uD086D
-         2LjjqauX28ISzFSrm4kk4WsXmPCyWXGzSJSLYXj/Nz9yUKxJeQWMpNB/s6Y4HoU+cSWG
-         LG0OuopAR29QbT7rVYwGiXd23dj+wLy3Jd165+LmhcoKW4iPwt9AnH/p1Ud4VyvBHzPV
-         ZKLyLgQhMkcMIrdIMF4HK6hsEKd2bTW70kWYYXBfpymmihi3fzN5pUe0awMYUOXKCT7/
-         b0AQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwaR+YuZVifiZ5INQnba6MHh66RKD1NV8EvXhXGjSFg5YbTa/kIWJg40qcDS4QG0NLg+R/xt+2xTYsX4gx+Up8=@vger.kernel.org
-X-Gm-Message-State: AFuF++lP626YyFfPNkfAVmHcAydY8sC/wiiZV1wf225i1vEhQrdR3fIu
-	y6oRCeskXXoIJHRDc/Z8gkO680sGTAAToKLs/uRAaTumZedEJ0jQcbGmSVzSTG++gx4JQTXaTb/
-	m/xrK9wR2fjFu9bjnOsg/g2E1hJewWhGny6vGXqFKbyQ=
-X-Gm-Gg: AYBFou3b2RXvo452SAbxkokR01NZ5ChUbJZQcNoGJ6q8RnII9X5u7YVDtr1Jcha0n5B
-	0Z6yB+Yjjy0pB2Xvys9FpQXIaugsOIHojAWWWzOuLtHQwInCYOSOD2q3/TQ/Mv88eZUh+fT8Kul
-	IpzH+RgPR5xb+OOzXiOc/IyYxk1/+tSHGVpctHwFme1hdKTeBf7ACxIbXD2Ix/gq2dlm+HvNVPZ
-	oibZWAzTQs3SVGjpQK0OMaLALMFsQlAhaACLQ7E7ZPp5Nk9mZ2hoUvGM3KuzpOoJ4J3VIzvE0NT
-	gM8A/GYiBTZe9BBNvtJiiJ+di6yw5z1VexDBLvfS0D8fioNuQq0pfbAVc7QsTJx6r7zA2ECDoTy
-	sSqCRp/PgNA==
-X-Received: by 2002:a2e:a98c:0:b0:3a5:b187:c7a1 with SMTP id
- 38308e7fff4ca-3a5fbf0215emr21570991fa.9.1789974637997; Mon, 21 Sep 2026
- 00:10:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QwGeybxN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EDDC1F000FF;
+	Mon, 21 Sep 2026 07:49:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789976943;
+	bh=NVIq4N6vDgskO7KzshGLhKNg+pTHDDIJdDhKJcjU99s=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=QwGeybxN3vbV+/HEgDTX1O99nYK8byC1rPflQNRA/cGW5zbto18p3zQ7Lzac9dQu7
+	 P7swAxdflUCwDo8dtybroKExKVR3HES3C6xNpQrg49rRnGURBAhgJjhC8ENjESHOQO
+	 rA2h9L20KIf+VFfJh5IXFVrgb75hgPYaMnAS2sbFaWMkjhbLfPsz97UANkJH5nswi/
+	 g6u7Sbe0UYy0yHJTdklc9008JBN+FUq7gfupCUpO/c7FT302erVOT8yrtKqsL26q7g
+	 6jzE4iN+7FN1dfaWOBOc022owGiOuQ+ridpfzLNVAxznwS975vLm3uscxmCeKM9XgB
+	 2qre1pq9mlinA==
+Subject: Re: [PATCH] netfilter: nf_nat: Fix stale outer UDP checksum on VXLAN
+ encapsulated packets
+From: netdev-bot+sashiko@kernel.org
+To: lvjunyu@cmss.chinamobile.com
+Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org, kuba@kernel.org
+Date: Mon, 21 Sep 2026 07:49:02 +0000
+Message-ID: <178997694260.2160803.768338135360205258@kernel.org>
+In-Reply-To: <20260920074543.525572-1-lvjunyu@cmss.chinamobile.com>
+References: <20260920074543.525572-1-lvjunyu@cmss.chinamobile.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260917030301.5502-1-zihanx@nebusec.ai> <178996076640.2160803.16028832049809238100@kernel.org>
- <e1efae34-24a7-3b24-22b0-6a838aa93d52@ssi.bg>
-In-Reply-To: <e1efae34-24a7-3b24-22b0-6a838aa93d52@ssi.bg>
-From: zihan xi <zihanx@nebusec.ai>
-Date: Mon, 21 Sep 2026 15:10:26 +0800
-X-Gm-Features: AcwNN1UcIHa_FP3_g69sLth774wwgDQwaw2Ruj6A1N9ozW6m1CE6EgqsboVPQSM
-Message-ID: <CAANe3eSYSxU_OhSSsp8aML6XH2a8qm2+nZSmdJAzZ6Q6uxwN2A@mail.gmail.com>
-Subject: Re: [PATCH net v2 1/2] ipvs: avoid stack overflow from recursive
- connection expiration
-To: Julian Anastasov <ja@ssi.bg>
-Cc: netdev-bot+sashiko@kernel.org, horms@verge.net.au, pablo@netfilter.org, 
-	fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, 
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 21, 2026 at 2:50=E2=80=AFPM Julian Anastasov <ja@ssi.bg> wrote:
->
->
->         Hello,
->
-> On Mon, 21 Sep 2026, netdev-bot+sashiko@kernel.org wrote:
->
-> > Thank you for your contribution! Sashiko AI review found 2 potential
-> > issue(s) to consider.
-> >
-> > Critical: 0 =C2=B7 High: 1 (1) =C2=B7 Medium: 0 =C2=B7 Low: 1
-> >
-> > If you believe none of the issues are legitimate, please reply to each
-> > issue of Medium severity or higher and explain why the AI is wrong.
-> > If any of them are legitimate and you plan to respin, please let patchw=
-ork
-> > know by including "pw-bot: cr" as a separate line at the end of your re=
-ply
-> > (one such reply per series is enough).
-> >
-> > - [High] ipvs: use-after-free in ip_vs_conn_expire() due to timer re-
-> >   arming race
-> > - [Low] ip_vs_conn_del_put() (net/netfilter/ipvs/ip_vs_conn.c:1333-1346=
-)
-> >   keeps its old comment "Try to delete connection while holding=E2=80=
-=A6
-> >
-> > Pre-existing issues:
-> > - [High] ip_vs_conn_del_put() (net/netfilter/ipvs/ip_vs_conn.c:1336-134=
-1)
-> >   cancels the controller's timer, drops the caller's only reference on=
-=E2=80=A6
-> >
-> > --
-> >
-> > ipvs: avoid stack overflow from recursive connection expiration
-> >
-> > This changes ip_vs_conn_del_put() to return whether it managed to delet=
-e
-> > the controller's timer, and makes ip_vs_conn_expire() loop back with th=
-e
-> > controller instead of recursing into itself.  The stated goal is to kee=
-p
-> > chain cleanup synchronous while using a single stack frame.
-> >
-> > v1 Link: https://lore.kernel.org/all/cover.1789110326.git.zihanx@nebuse=
-c.ai/
->
->         Zihan, IPVS has conn refcounting which does not look
-> natural: the hash table has reference and the timer callback
-> has no reference. Let me try today to change the refcounting,
-> so that unhashing occurs after last reference is dropped,
-> the conn lookups already use inc_not_zero, so we will try
-> to consider the timer_delete as successful stealing of
-> the refcnt from the timer callback (yes, the callback should
-> hold refcnt, not the hashing). But first let me try if the
-> idea would be successful. As result, your change should
-> be small as before, we should be able to delete conns safely.
->
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Hello Julian,
+Critical: 0 · High: 2 · Medium: 0 · Low: 0
 
-Thanks for looking into this.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-The Sashiko report was generated for v2. I have already sent v3:
-https://lore.kernel.org/all/cover.1789877273.git.zihanx@nebusec.ai/
+- [High] Incomplete fix: in the exact state the new code selects (outer
+  UDP checksum produced by udp_set_csum()'s LCO branch, i.e. a…
+- [High] Wrong discriminator: `skb->encapsulation` does not tell whether
+  the outer UDP checksum field holds a *final* (LCO) value or a *pseudo-…
 
-I'll wait for your refcounting changes and then rework the iterative
-expiration fix on top of them.
+--
 
-Regards,
-Zihan
+netfilter: nf_nat: Fix stale outer UDP checksum on VXLAN encapsulated packets
+
+This adds an explicit csum_replace2() in __udp_manip_pkt() to fix up the
+outer UDP checksum when a NAT port rewrite happens on an encapsulated,
+CHECKSUM_PARTIAL, non-GSO skb.  The goal is to stop remote VTEPs from
+dropping the first packet of a connection with UdpInCsumErrors.
+
+(No Link: tags present in the commit header.)
+
+> diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+> index 64b9bac228ea..35cc6e10b5bb 100644
+> --- a/net/netfilter/nf_nat_proto.c
+> +++ b/net/netfilter/nf_nat_proto.c
+> @@ -57,6 +57,20 @@ __udp_manip_pkt(struct sk_buff *skb,
+>  		nf_csum_update(skb, iphdroff, &hdr->check, tuple, maniptype);
+
+[Severity: High]
+Does the address half of the rewrite still leave the outer checksum wrong
+here?
+
+In the state this patch targets, udp_set_csum() took the LCO branch, so
+uh->check holds a complete (folded and complemented) checksum while
+ip_summed stays CHECKSUM_PARTIAL:
+
+net/ipv4/udp.c:udp_set_csum() {
+	} else if (skb->ip_summed == CHECKSUM_PARTIAL) {
+		uh->check = 0;
+		uh->check = udp_v4_check(len, saddr, daddr, lco_csum(skb));
+
+But nf_csum_update() above, which touches the very same hdr->check, goes
+through nf_nat_ipv4_csum_update() -> inet_proto_csum_replace4(..., true)
+and takes the pseudo-header branch for CHECKSUM_PARTIAL skbs:
+
+net/core/utils.c:inet_proto_csum_replace4() {
+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+		csum_replace4(sum, from, to);
+		...
+	} else if (pseudohdr)
+		*sum = ~csum_fold(csum_add(csum_sub(csum_unfold(*sum),
+						    (__force __wsum)from),
+					   (__force __wsum)to));
+}
+
+Since csum_fold() already complements, ~csum_fold(X) is the uncomplemented
+fold, so the field becomes C + (newip - oldip), whereas a complete checksum
+needs C - (newip - oldip) as csum_replace4() computes.  Is the address delta
+applied with the wrong sign in this state, leaving an error of 2*delta?
+
+MASQUERADE normally rewrites the source address too:
+
+net/netfilter/nf_nat_masquerade.c:nf_nat_masquerade_ipv4()
+	newrange.min_addr.ip = newsrc; /* outgoing interface address */
+
+In the single-netns vxlan + veth topology described in the changelog the
+masqueraded address equals the original one, so delta is zero and only the
+port fixup is exercised.  With a real outgoing interface address change, does
+the remote VTEP still drop the packet with UdpInCsumErrors after this patch?
+
+The same applies on IPv6 via nf_nat_ipv6_csum_update() ->
+inet_proto_csum_replace16(..., pseudohdr=true), which has the identical
+uncomplemented-seed branch.
+
+Would treating the field as a complete checksum for both the address and the
+port update in this state (bypassing the pseudo-header branch of
+nf_csum_update() and using csum_replace4()/csum_replace2()) be the more
+complete fix?
+
+> +		/* For CHECKSUM_PARTIAL encapsulated non-GSO packets,
+> +		 * inet_proto_csum_replace2() above is a no-op because the
+> +		 * port field is data, not pseudo-header. The outer uh->check
+> +		 * was computed by udp_set_csum() with a temporary sport, and
+> +		 * the subsequent NAT sport rewrite leaves it stale. On devices
+> +		 * without hw_enc_features, the software fallback
+> +		 * skb_checksum_help() honors csum_start which points at the
+> +		 * inner transport header and only recomputes the inner
+> +		 * checksum. The stale outer checksum goes out and the
+> +		 * receiver drops the packet with UdpInCsumErrors.
+> +		 */
+> +		if (skb->ip_summed == CHECKSUM_PARTIAL &&
+> +		    skb->encapsulation && !skb_is_gso(skb))
+> +			csum_replace2(&hdr->check, *portptr, newport);
+
+[Severity: High]
+Is skb->encapsulation the right discriminator here?
+
+udp_set_csum() has two non-GSO CHECKSUM_PARTIAL states with opposite
+meanings.  The LCO branch writes a final checksum, but the last else branch
+requests offload of this very header and leaves only a seed in the field:
+
+net/ipv4/udp.c:udp_set_csum() {
+	} else {
+		skb->ip_summed = CHECKSUM_PARTIAL;
+		skb->csum_start = skb_transport_header(skb) - skb->head;
+		skb->csum_offset = offsetof(struct udphdr, check);
+		uh->check = ~udp_v4_check(len, saddr, daddr, 0);
+	}
+}
+
+For vxlan/geneve/fou the second state is hidden only because
+iptunnel_handle_offloads() clears the flag:
+
+net/ipv4/ip_tunnel_core.c:iptunnel_handle_offloads() {
+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+		skb->ip_summed = CHECKSUM_NONE;
+		/* We clear encapsulation here to prevent badly-written drivers ... */
+		skb->encapsulation = 0;
+	}
+}
+
+Producers that set encapsulation themselves and do not call that helper stay
+in the seed state with encapsulation == 1.  SCTP over UDP is one:
+
+net/sctp/output.c:sctp_packet_pack()
+	/* with tp->encap_port set, the CRC is computed in software and
+	 * ip_summed is left alone */
+
+net/sctp/protocol.c:sctp_v4_xmit()
+	skb->encapsulation = 1;
+	...
+	udp_tunnel_xmit_skb(dst_rtable(dst), sk, skb, fl4->saddr, ...);
+
+That packet reaches __udp_manip_pkt() with ip_summed == CHECKSUM_PARTIAL,
+encapsulation == 1, non-zero uh->check (so do_csum is true) and csum_start
+pointing at the outer UDP header.  Does the new csum_replace2() then mutate a
+pseudo-header seed that the NIC or skb_checksum_help() will re-sum over the
+already-rewritten port bytes, making the emitted checksum off by the port
+delta?  The same applies to sctp_v6_xmit() via udp6_set_csum(), where
+uh->check is always non-zero.
+
+In the other direction, does the condition miss LCO packets that are not
+flagged encapsulated?  l2tp_xmit_core() calls udp_set_csum() without ever
+calling iptunnel_handle_offloads() and without setting skb->encapsulation:
+
+net/l2tp/l2tp_core.c:l2tp_xmit_core()
+	udp_set_csum(sk->sk_no_check_tx, skb, inet->inet_saddr,
+		     inet->inet_daddr, udp_len);
+
+so an L2TP/UDP packet in the LCO state would keep its stale outer checksum
+after a NAT port rewrite.
+
+Would testing the offload target itself be more robust, for example only
+fixing up the field when skb_checksum_start(skb) + skb->csum_offset is not
+&hdr->check?
+
+[Severity: Medium]
+The comment states the outer checksum "was computed by udp_set_csum()" and
+that skb_checksum_help() "honors csum_start which points at the inner
+transport header".  Is that unconditionally true for the states the new
+predicate accepts?  In the udp_set_csum() else branch above, csum_start
+points at the outer UDP header, so the comment describes only one of the two
+CHECKSUM_PARTIAL cases the condition matches.
+
+>  		if (!hdr->check)
+>  			hdr->check = CSUM_MANGLED_0;
+>  	}
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260920074543.525572-1-lvjunyu%40cmss.chinamobile.com
