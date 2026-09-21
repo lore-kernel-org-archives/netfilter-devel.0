@@ -1,49 +1,50 @@
-Received: from mail-wm2-f7.google.com (mail-wm2-f7.google.com [74.125.225.135])
+Received: from mail-wm2-f9.google.com (mail-wm2-f9.google.com [74.125.225.137])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3ED54AA1CE
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 14:57:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.135
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C8814AB1CB
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 14:57:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790002640; cv=none; b=uuIV9VvnRDslxEWfUttsRA75ay2Oit69eyWXKZ/bM4vH4wJsGPfgRDfp1n75Q4rOQ1ig0Gbmezt7ZLvHERxemBbr7JDJGolNUwMoVdV47Ju/Csbap9ElT9PWn+TBJapEH0B2WvSODkEu+j+sZtv6++NtsjDEZrB4B0Fr/aGXqS8=
+	t=1790002646; cv=none; b=R38YAoA6bWgQhF/T9n2hUTYY8fd7wf7FkylihpQsxhns/FQHQ2i+sPUVvgjVtlwiWi3NHuTUHMLdAqOJ8WnXMk1zGemx5hex2DuzuV7bumX3W2mu8NCUz8Jzm7bx1bazRKqlMOnaUQS0miiBHH6b+NntQPdNtgIZtFZASJPTTt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790002640; c=relaxed/simple;
-	bh=bOu2j+h1JsGrW/73PwD/ne4SKy+cAAoi4+vaYnS3JPE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Pqp4mvCDS3c4EES7UOZ6b0kBso9ablXp0lv/tsZ4KMIODN/69N9ejTB8Jrveg4S3KJrO+JoCL4LuFUt/qoG9cLCjUcpgTkg4Ebm6z89t3zbS2QPO4HAFR8UuUbGg6mUnnsJrsjRV2weaaJeFWbSDo/yFfVEYcEeXpdDCLDdnKlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.135
+	s=arc-20240116; t=1790002646; c=relaxed/simple;
+	bh=h/e4AULhjSmntZab1cGdfq7OkJUisqf0YdE9X03GDLM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=gyD9UgzPfQu+vJm6RADoZNlrWS/OWZPvNSWa03xkjEjAjiDmrKsElAffYyBc1gj4kFZ3cxEF8uHeVFUaehtJyKW/VEZZaEppaQ7Z+T2w49ZEjDkLMWk6aEkQZ+NgcrLdZHdEAr+W726+YqQThNHZGe9kDqxsiyjhfGA9iXL0yXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.137
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wm2-f7.google.com with SMTP id 5b1f17b1804b1-49e8361492fso12426475e9.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 07:57:15 -0700 (PDT)
+Received: by mail-wm2-f9.google.com with SMTP id 5b1f17b1804b1-49e6bd65693so20716405e9.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 07:57:19 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790002631; x=1790607431;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1ezyNqdfklEHB2imnyaqpGNvPz3WXjxpC3pksDJMQYU=;
-        b=nGtQp3rIoFoqqeqBDUEmZEU8CM8mT7Kl2Ezxut4UtX0g3zxmZm3nX/LtDG8iBU9Q3e
-         a8Qh33SnKjiof0tUK7abwpCag+uh0AQI6WA9CBRey4uuenyTw+gtWhLNYwT9WRZEbd/N
-         7Q8qJq0+pTJRVx4Dwy8TsoZUETXHCSikFrBa6E0YJYPIMWbepWlpwx5cbZ0pJZgtVayP
-         GnxVt9LMpJsjs9rq2OhQrc+oD5VgTidQYNka8MqR1d6e7rOZxVAzxyStEfp0Rdp3OfEv
-         AmqK0VJQ6Ub4V3JPdyMSbaes+nFufNe7fzyeAy/bjFUfuTI92U6U0CdC50Kr8QbCcWOo
-         Jw8g==
-X-Forwarded-Encrypted: i=1; AKwUvBy88IdwmdPT1pdEBWV5zd2aw+DAiOG88BIovHTRVpDcfNVJgyFsXrvBKoW66qUk3nlO4lnIdomz2m5pvJyWOig=@vger.kernel.org
-X-Gm-Message-State: AFuF++lczl422wKOsm2FVjSaCV1DRNt2YdZtegumZmKbm97z+a+94TQk
-	eNYbDDgWE/CKaO0y0nNw9nNxcAQsupGOpejqOpo4/51b/a/IE+Y+8XzC
-X-Gm-Gg: AYBFou1Xtjd3jj5SXBhWTflm80UqRG4i7nDLdwb01O60Pam2yu9SEkfIjoYCXotwImm
-	0vciPrC4SnZbXS/DsQGwNiV2Tew7m879Vig704PMokF5tUHPlJQ7YGqi06RqphIMXX7MfcnZYVs
-	DdsIf7SQs/L85L7O3VB4wxfweKJ0JcRqX4ngxPbW/VBAVhbGg6PI6YW5wI2qXzWRzqm9XGxvJwJ
-	CFsKvmrbq3dKR4bL9lLD7YAPjck33tO3r2BZt9IIvt+GWuRy1AT/flSJ/bpWnBmlFYD2/YqVzWn
-	xOrsBCLrCoO6jEWIHlYRKEJE4LuqFhRd1mGM2JeYh1is4ZVXyj71cuABKJHrv97h11xgtxKKjc0
-	RC+tXJzJkHUI6/IQHyZnzVDT2LM6otTlbA/9XAV7evBrIfGdbfYjZAESMhaOFWv2RduVYsSO3cy
-	b5dzhQZHlVDSZOtllTjb50G/xpgPICeDeCTQn7F/EvHoBgoAZ8sZCB4JGAIU8pBGYZU0JNdWqi6
-	WlhWrCfm6tmBqk1d28UPH3ev1DudKBaM3uICr2WnarRhG6Ox6Be
-X-Received: by 2002:a05:600c:3493:b0:49f:bd3c:bc21 with SMTP id 5b1f17b1804b1-49fc573b55emr150845005e9.28.1790002630316;
-        Mon, 21 Sep 2026 07:57:10 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1790002637; x=1790607437;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=VXSW6q1NZ2VUKtjXQJBrCrLariG7HqyHLR8Ed7NC5Gs=;
+        b=h7NMfUkonwQ1OqfQFIBqzo+vRVqQp4UVJ/EdzpDSOstd7x2g6oAG2AuCTKgvRrc0rA
+         tgi8mhOOIgPXDr8YsECGyGhGMhl/dujT1nGs3muXMMaoKNxggSpsaTUXfIWoGX9klKAm
+         Uu2xSGi8IcQNnXGuj2kBk27iL5eE/X/h6SQsJ2GfNarglihAeyaEW5gRWYHCOxDh6mT+
+         7OddO6DfupfU0h7baREV0AJpcFxzYvbh/NvrrDB8HEoHFuqGbrd1dGPx3gJaC5Y6c+IM
+         azemvJggnLzoVVpBqEn2O9Xuxm2iwa+ASPcpED+0NmAlM5jRj44NHltlVXB9NCCQpo9Y
+         sNZQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwP3KbII5XkhwzQzISavNTSZ+KYhmYFfiaGX3bicmZsqY1Tu95ee7m8mKcLCjqmWx1jHViNYgn33kfp1JmkZBo=@vger.kernel.org
+X-Gm-Message-State: AFuF++nA5944vW/qnPYQWdXysBbeNDfEZLYdxJNDV4hTAt0+uV8GZawd
+	UDmKGy4SKuu84MmGIcHR3488ooJgOC0wX+6KCPiEHuuPGJnTSMVmJGwULL912o1m
+X-Gm-Gg: AYBFou3WTsGjSjNEx/snk2bL/blnOI94NQOUroWgnzTjVUjjQqR/+5rmjHKCuETXJ1S
+	+Ao/QY6GbHZYo8mFjSKzcFlEKHVpEBf3i9OpHbbmRmgQ5N3nb92Xx9LSWrBsrmOG8eFJsEF9/Py
+	XCxyDIL6sbJsp42ozBV21SQiOpCaOojOAae5VSMPUjaHVBihsCXB2ixKQQznsGF/Dnr8G8cFNi8
+	zXi66oM0A3Ctzxm42+8++eCJkW6E3QfUNmujmm35jmQLipL43scYralfitW6iR47zhzxzJb5Fu2
+	nQSALc6jyPsr/ujfis6gBBM5Cm14wqQosikFBGDpSoiUQq/sJk3Sk6VMTzNIBcDR6unEHhMg0y4
+	azAelcHVLOMifyn8hYB3B8xua6G3AWGKv+zTlQgXiWMf9Gkhz6uojAmSHWPfqWlFmoF3YSNfYWi
+	SWLtvMVzeQMHFgaCOog5o1py/6pJyjtYZjvUNs23gt5rwYz3pYpmA92vrp5fegPFW4/zADhnhIj
+	ECObNLPp6xG6pbxRStvE5Uh5R97SN6uTutjlzyFpO8GXijcdZI0
+X-Received: by 2002:a05:600d:4453:10b0:49f:cbf1:e77b with SMTP id 5b1f17b1804b1-49fcbf1e9eamr90041305e9.10.1790002636893;
+        Mon, 21 Sep 2026 07:57:16 -0700 (PDT)
 Received: from im-t490s.redhat.corp (78-80-107-225.customers.tmcz.cz. [78.80.107.225])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fcd0eabfcsm243153905e9.3.2026.09.21.07.57.08
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fcd0eabfcsm243153905e9.3.2026.09.21.07.57.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 07:57:09 -0700 (PDT)
+        Mon, 21 Sep 2026 07:57:16 -0700 (PDT)
 From: Ilya Maximets <i.maximets@ovn.org>
 To: netdev@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -64,11 +65,14 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	coreteam@netfilter.org,
 	linux-kernel@vger.kernel.org,
 	dev@openvswitch.org,
-	Ilya Maximets <i.maximets@ovn.org>
-Subject: [PATCH net 0/6] ovs, net/sched: fixes for UAF after conntrack extension realloc
-Date: Mon, 21 Sep 2026 16:55:42 +0200
-Message-ID: <20260921145655.3167436-1-i.maximets@ovn.org>
+	Ilya Maximets <i.maximets@ovn.org>,
+	stable@vger.kernel.org
+Subject: [PATCH net 2/6] net: openvswitch: conntrack: remove 'add_helper' dead code
+Date: Mon, 21 Sep 2026 16:55:44 +0200
+Message-ID: <20260921145655.3167436-3-i.maximets@ovn.org>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260921145655.3167436-1-i.maximets@ovn.org>
+References: <20260921145655.3167436-1-i.maximets@ovn.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -77,26 +81,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-One clean up change plus two fixes for the UAF on helper extension
-realloc x 2.  First half for OVS and the second half for the similar
-code in act_ct.  This should cover all the known cases of this problem
-in these two modules.
+This variable can only become 'true' when the connection is not
+confirmed, but it is only checked when it is confirmed.  So, it can be
+treated as being always false and just removed.
 
+Fixes: 3c1860543fcc ("openvswitch: add nf_ct_is_confirmed check before assigning the helper")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
+---
+ net/openvswitch/conntrack.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-Ilya Maximets (6):
-  net: openvswitch: conntrack: avoid modifying shared unconfirmed ct
-    entry
-  net: openvswitch: conntrack: remove 'add_helper' dead code
-  net: openvswitch: conntrack: fix helper UAF due to extensions realloc
-  net/sched: act_ct: avoid modifying shared unconfirmed ct entry
-  net/sched: act_ct: remove 'add_helper' dead code
-  net/sched: act_ct: fix helper UAF due to extensions realloc
-
- include/net/netfilter/nf_conntrack.h |  5 ++++
- net/openvswitch/conntrack.c          | 37 +++++++++++++++++++-------
- net/sched/act_ct.c                   | 39 +++++++++++++++++++++-------
- 3 files changed, 61 insertions(+), 20 deletions(-)
-
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index a733029c28dd0..c20f096eef40e 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -778,8 +778,6 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if (ct) {
+-		bool add_helper = false;
+-
+ 		/* Packets starting a new connection must be NATted before the
+ 		 * helper, so that the helper knows about the NAT.  We enforce
+ 		 * this by delaying both NAT and helper calls for unconfirmed
+@@ -811,7 +809,6 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+ 							    GFP_ATOMIC);
+ 			if (err)
+ 				return err;
+-			add_helper = true;
+ 
+ 			/* helper installed, add seqadj if NAT is required */
+ 			if (info->nat && !nfct_seqadj(ct)) {
+@@ -821,13 +818,10 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+ 		}
+ 
+ 		/* Call the helper only if:
+-		 * - nf_conntrack_in() was executed above ("!cached") or a
+-		 *   helper was just attached ("add_helper") for a confirmed
+-		 *   connection, or
++		 * - nf_conntrack_in() was executed above ("!cached"), or
+ 		 * - When committing an unconfirmed connection.
+ 		 */
+-		if ((nf_ct_is_confirmed(ct) ? !cached || add_helper :
+-					      info->commit)) {
++		if ((nf_ct_is_confirmed(ct) ? !cached : info->commit)) {
+ 			int err = nf_ct_helper(skb, ct, ctinfo, info->family);
+ 
+ 			err = verdict_to_errno(err);
 -- 
 2.55.0
 
