@@ -1,251 +1,179 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643E63655E9;
-	Mon, 21 Sep 2026 05:50:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD52331ED7
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Sep 2026 06:13:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789969805; cv=none; b=Q5KG8U/3ZRXk3tkKnA8XkIbKdnga9gOMZmoDTLwYR1t2dd8SN6YCyVbjmxiLN1TIxqlizF2c7JOR0lyY/N9sj89d4vLSdAGfuDfhTKBV+giDY0gWLbj2lbQFtuv1ywePoV2Ow4F5zvMi6LB7XlXyyVZg6fOgsaUjOTaO1WzPOWc=
+	t=1789971206; cv=none; b=BmBdiGmETaKijMeuxmcGtlAy2L7XVOb1QmZueroznQDct4tDVBRNRdF6sDW7OEsrYk3D8JuvZjTFFOP4NR6FyJYVd+0M8ToiQ2JnQRAidlKmiWk2U5iTIVgEoRpztZzGdFdSMGsvsT3TMCAIBVa3BqOaIqv7DW2GzlhwOjW7F4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789969805; c=relaxed/simple;
-	bh=M8vP0e6jFrNQCY7SNUtNMcaQSrU6r/iDwwM514yzC1E=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=r7bzqzAhWqvTTT1huF/SnIAtUuYyOzytZeTCtQh7H2TH6E9pLGxqCQCCtztuh357+bbsSMqAIS+Y3SxsvEfRUOyWrrCZuSdJOpJPmcvjVClBDlFlw3NpLYeAofu8OiDLeLx+ukLkir7RGNi50UTDjqi0WqQlBR9JqVFz9XIpuwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GBD4Sedw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789971206; c=relaxed/simple;
+	bh=3rTdupL47kcB7pOpSsKb4iIveq9v3F1up+yJLJR67Ok=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XO7ww8Pli7YWN+6c6Nbx+oIbpu46n8CjpPNYx3Kz72XcRRL+8vOcANy23ITzAoNzE7FIOznk6ZNz5QfoV+voWgv76aSReODuAki+AtRKGYkYbEhycviofAZMNZIpfya9DY0VihG/r+zv2YflmM+Q11Ywo/F1c2SGbCVxJQD4fFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mp8AKF6U; arc=none smtp.client-ip=74.125.227.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GBD4Sedw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD981F00893;
-	Mon, 21 Sep 2026 05:50:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789969804;
-	bh=UUtxW/zPSah/AqlIGJsrV1W7Qm344eXeJyEKPwetRrg=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=GBD4Sedwu9hhKQjAq+DKR1/OIOBcfRrSVns8KDSJ5nJ/zechHT3UmUUJnKtVEvPIp
-	 g5/evDWWvLjp3hQGK0gCrpuD4Pm9Xw3UthEvfDkkUI8V4kxnAySQfs27HoN4NprXYW
-	 DqiViRv8XCHo8fMj2SfR5Cct7cIQqpOJHh6tNgsPjM6pwolNBxh4yoIhkeNgTpY+MM
-	 33xjkmPwM7qpikePEBLVVKmRvLK3Y6bfbp+SqQw9y1+t/xPcrWrLNWFIMNXE1l9OMR
-	 OBQzOrwTSVxniwUip9/pWYCavjkEC48f66lW1gYdkmruxzB7IFcRW9y/lvRrVJ9Lem
-	 W2trdBFICERxg==
-Subject: Re: [PATCH v4 nf-next 3/3] selftests: netfilter: ipvs: add
- per-service secure_tcp test
-From: netdev-bot+sashiko@kernel.org
-To: adrianox@gmail.com
-Cc: horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org, fw@strlen.de,
- netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, kuba@kernel.org
-Date: Mon, 21 Sep 2026 05:50:02 +0000
-Message-ID: <178996980298.2160803.13730440636881546701@kernel.org>
-In-Reply-To: <20260920054708.988867-4-adrianox@gmail.com>
-References: <20260920054708.988867-4-adrianox@gmail.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mp8AKF6U"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2dd4ef687f5so4065265ad.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Sep 2026 23:13:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789971204; x=1790576004; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=7Iu72UFRQJ+xSZSF5kBVRPs0ErHGDd1b7nGwylpaInY=;
+        b=mp8AKF6UDpRPe8pzKk8sSWXePFnh+Cy516FAZ93PvX06TNACWNEUa0O1M/sBYCbg+L
+         5VKtD2I09moZGpyPMQ7aLkQIuB8J4d5eJWzx1d5H8v1/m98f1K7Dte5NDzU+6tihjAEN
+         OJIqNes81QMyKyUyRcdtKo00zLPK6KavI2p09gGpHqluzdfErllivtKOkhgyCimZOQia
+         3GcBrMvbgUqurcq3uS1jRuw9IyzPuSiiktpF84/L0dZTwSk09uICxdBntbs/Ydk4hwlH
+         Rvuz5VGKyj/I5vjhAbRjsALkGHPJ/r3QkjAT9xYKvb4cNh/G2QR0GIj7/m1cXIhwELQV
+         0Dug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789971204; x=1790576004;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=7Iu72UFRQJ+xSZSF5kBVRPs0ErHGDd1b7nGwylpaInY=;
+        b=or2f4rOjzvnn7XFun3XGS5/hYi9QrrGwVDE6ar2LrUtqCdETFKGUfpwoj/UOXrylhR
+         7+5fKJ3WM3/bSUojMBd70v+fwH9iSoqki6FKEiZRkLqS9A8PPWqqgDsUC3ZadBt+9z8f
+         eOMX+nHfOGrIMy614DUJ17SgC9TQCnJ7h1ggQo9UStRIVqaPZSRdZHaKez8qX/GB5/FJ
+         MhGpq3mGjtLrmoI9MbOm8YQn5+5xN/6/9VHgfwzVcbwP6bJ0UUngLQLE6UT1d2nlCOVm
+         9F2fHBfq4bwBTofSgUrqRE0HmoaXknLXDdd1AMaGvqsEb6Zicu0NSUbEiDcMi5FFX+yG
+         lypg==
+X-Gm-Message-State: AFuF++kM423thQxoVDNEQCdq2NVogwg9mpcyoVtILvjxx5PSgPKtLqIN
+	+d1QGH3Uh6PksU6dDz0pQ68Sk8osaxLRUl7sq2baNZYz1afHVZf4/0jh
+X-Gm-Gg: AYBFou2qe87X9bn7GZtcyaJc8dUNxs/sttFQK9tccb7lHxb3xNkvbhcM7TiLzXmIeOO
+	vRX7reuSnM/bZSsXTdJeCzFEHVv6be3ixuEr3RqCO63s4EsMaz3ZWeZgkHsxhFPOlq6Hf4rc8BT
+	GVUAb5SaGciVkJNh7cIYscQPrZCjqLFEEiwbgQ2a+QdUalJFd7zGg20SLuDxsx3fJ7xp7uDXydp
+	ngTQ/Qu1M2Qf3shAxthiXNc1U17Lcu9XBhr90hdCsLvUCKElzug5gQrsaCZvCzEw1pxgPJd/6ko
+	3EAaEYvmaeixjx22/fPwCeH/zyt8vMZ7l9b1GxAhZZ5wt1Mp36umivctq1R9FksEworbGnq3HYV
+	ZDoEKGGkxKhBGVBEoo7NcjZoOHKnhgN6k7NBhkbj2w2tfPiTs40AJ9RQmhaKCQnI0NDCl722w+P
+	3ZkzQ5tqIj2f8T+tmTJR1biVuRbum+vXK5JtpHj5yg8hp4KwbNfmJUHTbVKcKmLk2bVN9jNzx3w
+	rQa9fiz5JA=
+X-Received: by 2002:a17:903:b87:b0:2d8:d29b:c1e5 with SMTP id d9443c01a7336-2ddb644f014mr176238725ad.0.1789971204182;
+        Sun, 20 Sep 2026 23:13:24 -0700 (PDT)
+Received: from localhost.localdomain ([175.159.181.20])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ddc16b4a8dsm27497765ad.12.2026.09.20.23.13.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 20 Sep 2026 23:13:23 -0700 (PDT)
+From: Yu Junzhe <junzheyu1@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [BUG] netfilter: unbounded nftables reject recursion on inet OUTPUT
+Date: Mon, 21 Sep 2026 06:13:20 +0000
+Message-ID: <20260921061320.543-1-junzheyu1@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Hello,
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 1
+I am reporting unbounded hook recursion on inet OUTPUT: an nftables
+output chain that does a TCP flags payload-set followed by
+"reject with tcp reset" makes nf_send_reset() re-enter the same
+NF_INET_LOCAL_OUT hook until the kernel stack is exhausted.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Summary
+=======
 
-- [Medium] tools/testing/selftests/net/netfilter/ipvs_secure_tcp.sh has
-  no kernel-side prerequisite check and no $ksft_skip path.
-- [Medium] The secure-service assertion cannot distinguish 'per-service
-  secure_tcp worked' from 'the ACK probe never arrived'.
-- [Low] The commit message states "A bare SYN+ACK suffices to test the
-  state machine: the normal service reaches ESTABLISHED, but the secure…
+nft_reject_inet_eval() calls nf_send_reset(), which builds a RST skb
+and transmits it with ip_local_out(). That walks the same OUTPUT
+hooks again.
 
---
+The only loop guard in nf_reject_ip_tcphdr_get() is the packet-content
+check:
 
-selftests: netfilter: ipvs: add per-service secure_tcp test
+  /* No RST for RST. */
+  if (oth->rst)
+          return NULL;
 
-This adds a new netfilter selftest that creates two IPVS TCP services on
-the same VIP, one with IP_VS_SVC_F_SECURE_TCP, and checks the resulting
-connection states with ipvsadm -Lnc.  Two helpers are added: a libmnl
-program to set/query the per-service flag and a raw-socket probe that
-sends a bare SYN followed by a bare ACK.
+If a payload-set runs first and rewrites the TCP flags byte to SYN,
+that guard never sees RST, so another RST is generated. The cycle is:
 
->     Two services share a VIP, one carrying IP_VS_SVC_F_SECURE_TCP.
->     A bare SYN+ACK suffices to test the state machine: the normal
->     service reaches ESTABLISHED, but the secure one stays in SYN_RECV.
+  nft_do_chain
+    -> nft_reject_inet_eval
+      -> nf_send_reset
+        -> ip_local_out
+          -> nf_hook_slow
+            -> nft_do_chain
 
-[Severity: Low]
-Does the changelog wording match what gen_tcp_probe.c actually sends?
+nft_reject_inet_validate() allows NF_INET_LOCAL_OUT.
 
-main() transmits two separate bare segments, a SYN and then a pure ACK:
+This is a legal nftables configuration (payload set + reject with tcp
+reset on an output base chain), including with CAP_NET_ADMIN in a
+network namespace. I do not claim privilege escalation; the result we
+see is local DoS (stack overflow, then panic).
 
-	if (send_seg(fd, &sip, sport, &dip, dport, seq, 1, 0) < 0) {
-	...
-	usleep(100000);
-	if (send_seg(fd, &sip, sport, &dip, dport, seq + 1, 0, 1) < 0) {
+I am aware of the existing recursion bound on the netdev fwd/neigh
+xmit path. nf_send_reset() via ip_local_out() does not use it.
 
-A single segment with both bits set would not show anything, since
-tcp_state_idx() in net/netfilter/ipvs/ip_vs_proto_tcp.c tests rst, then
-syn, then fin, then ack:
+Affected
+========
 
-	if (th->rst)
-		return 3;
-	if (th->syn)
-		return 0;
-	if (th->fin)
-		return 1;
-	if (th->ack)
-		return 2;
+- Confirmed on Linux 6.6.144, KASAN guest (CONFIG_VMAP_STACK not set).
+  On that config the overflowing SP walks into adjacent slab; KASAN
+  first reports a write in __unwind_start while tracking __alloc_skb
+  from the next RST. Those frames are collateral. The defect is
+  unbounded hook recursion.
+- Source review of torvalds/linux master as of 2026-09-21:
+  nf_send_reset() still calls ip_local_out(); the only loop guard is
+  still if (oth->rst); nft_reject_inet_validate() still allows
+  NF_INET_LOCAL_OUT. The PoC was not re-run on tip.
+- Files: net/ipv4/netfilter/nf_reject_ipv4.c,
+  net/netfilter/nft_reject_inet.c
+- Config: CONFIG_NF_TABLES=y, CONFIG_NF_TABLES_INET=y,
+  CONFIG_NFT_REJECT_INET=y (KASAN used for the report)
 
-so SYN|ACK is classified as syn, and the INPUT syn row of both tcp_states
-and tcp_states_dos maps sNO -> sSR, i.e. no difference between the secure
-and the plain service.
+Ruleset that triggers it
+========================
 
-Would "a bare SYN followed by a bare ACK" (the wording already used in the
-gen_tcp_probe.c header comment) be more accurate here?
+  table inet t {
+          chain out {
+                  type filter hook output priority 0;
+                  tcp flags set syn
+                  reject with tcp reset
+          }
+  }
 
-> diff --git a/tools/testing/selftests/net/netfilter/ipvs_secure_tcp.sh b/tools/testing/selftests/net/netfilter/ipvs_secure_tcp.sh
-> new file mode 100755
-> index 000000000000..4d250bcbb2cf
-> --- /dev/null
-> +++ b/tools/testing/selftests/net/netfilter/ipvs_secure_tcp.sh
-> @@ -0,0 +1,153 @@
+Then connect() to 127.0.0.1 in that netns (a SYN on lo).
 
-[ ... ]
+Crash excerpt (minimized PoC, Linux 6.6.144 KASAN)
+==================================================
 
-> +source lib.sh
-> +
-> +ret=0
+BUG: KASAN: use-after-free in __unwind_start+0x36/0x840
+Write of size 112 at addr ff1100000659ff88 by task repro/221
+CPU: 1 PID: 221 Comm: repro Not tainted 6.6.144 #1
+Call Trace:
+  __alloc_skb
+  nf_send_reset
+  nft_reject_inet_eval
+  nft_do_chain
+  nft_do_chain_inet
+  nf_hook_slow
+  __ip_local_out
+  ip_local_out
+  nf_send_reset
+  nft_reject_inet_eval
+  nft_do_chain
+  ... (repeats until stack exhaustion; then GPF / panic)
 
-[ ... ]
+Reproducer
+==========
 
-> +checktool "ipvsadm -v" "run test without ipvsadm"
-> +
-> +setup() {
-> +	setup_ns ns0 ns1 ns2
+A self-contained C PoC (raw NETLINK_NETFILTER batch, no nft binary)
+and a Docker/QEMU package are available on request. VM-only: the
+program overflows the guest kernel stack. Please do not run it on a
+host kernel.
 
-[ ... ]
+I am happy to test patches or send the reproducer.
 
-> +	# load ipvs, then the rr scheduler (separate calls: modprobe treats
-> +	# the second name as a module parameter, not a second module)
-> +	ip netns exec "${ns1}" modprobe ip_vs
-> +	ip netns exec "${ns1}" modprobe ip_vs_rr
-
-[Severity: Medium]
-What happens on a kernel built without CONFIG_IP_VS or without the rr
-scheduler?
-
-The only pre-flight gate is checktool "ipvsadm -v", which validates the
-userspace binary only.  Both modprobe calls in setup() have their exit
-status discarded (no set -e, no ||), so a missing ip_vs goes unnoticed:
-ipvs_secure_tcp_mln add fails, the connection table stays empty, both
-assert_state() calls set ret=1, and the script exits 1.
-
-$ksft_skip is never used anywhere in this script even though lib.sh is
-sourced.  The pre-existing ipvs.sh in the same directory guards this:
-
-	if [ ! -d $sysipvsnet ]; then
-		if ! modprobe -q ip_vs; then
-			echo "skip: could not run test without ipvs module"
-			exit $ksft_skip
-		fi
-	fi
-
-Could the same skip be added here, so unsupported configurations are
-reported as skipped rather than failed?
-
-Note that the helper's get readback cannot be used for feature detection
-either: ip_vs_genl_parse_service() stores the requested bits without
-rejecting unknown ones,
-
-		usvc->flags = (usvc->flags & ~flags.mask) |
-			      (flags.flags & flags.mask);
-
-so a kernel lacking per-service secure_tcp still echoes secure_tcp=1.
-
-> +
-> +	sleep 1
-> +}
-
-[ ... ]
-
-> +assert_state() {
-> +	local port=$1 want=$2
-> +	local got
-> +	got="$(conn_state "$port")"
-> +	echo "  vip ${vip}:${port}: state=${got:-?}"
-> +	if [ "${got:-}" != "$want" ]; then
-> +		echo -e "${RED}FAIL${NC}: vip ${vip}:${port} expected state" \
-> +			"${want}, got ${got:-none}"
-> +		ret=1
-> +	fi
-> +}
-
-[ ... ]
-
-> +	# Push SYN then ACK to each service from the client
-> +	ip netns exec "${ns0}" "$probe" "${cip}" 40000 "${vip}" "${port_secure}"
-> +	ip netns exec "${ns0}" "$probe" "${cip}" 40001 "${vip}" "${port_plain}"
-> +	sleep 1
-
-[ ... ]
-
-> +	assert_state "${port_plain}" ESTABLISHED
-> +	assert_state "${port_secure}" SYN_RECV
-> +}
-
-[Severity: Medium]
-Can assert_state "${port_secure}" SYN_RECV pass without the ACK ever
-being processed?
-
-SYN_RECV is exactly the state the first SYN alone produces.  In
-net/netfilter/ipvs/ip_vs_proto_tcp.c the INPUT syn row is sNO -> sSR in
-both tables, and only the following input ACK differs:
-
-/*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR }}, /* tcp_states */
-/*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSA }}, /* tcp_states_dos */
-
-The probe exit status is discarded here:
-
-	ip netns exec "${ns0}" "$probe" "${cip}" 40000 "${vip}" "${port_secure}"
-
-There is no || and no set -e, while gen_tcp_probe.c main() returns 1 when
-the second send_seg() fails:
-
-	usleep(100000);
-	if (send_seg(fd, &sip, sport, &dip, dport, seq + 1, 0, 1) < 0) {
-		close(fd);
-		return 1;
-	}
-
-So a probe run that dies after the SYN (sendto failure, or the helper
-being killed during the usleep) leaves the connection in SYN_RECV and the
-secure-side assertion still succeeds.  The plain-service assertion is only
-a partial control, since it is a separate invocation with a different
-source port.
-
-Would checking the probe exit status, or asserting something that only the
-processed ACK can produce, make this assertion distinguish the two cases?
-
-> +
-> +trap cleanup EXIT
-> +
-> +setup
-> +test_secure
-> +
-> +if [ "$ret" -ne 0 ]; then
-> +	echo -e "$(basename $0): ${RED}FAIL${NC}"
-> +	exit 1
-> +fi
-> +echo -e "$(basename $0): ${GREEN}PASS${NC}"
-> +exit 0
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260920054708.988867-1-adrianox%40gmail.com
+Thanks,
+Yu Junzhe
+FuzzAnything <fuzzanything@gmail.com>
