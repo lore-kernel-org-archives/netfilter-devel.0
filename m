@@ -1,162 +1,144 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-pz2-f41.google.com (mail-pz2-f41.google.com [74.125.228.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08139489FDB
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 19:19:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790104767; cv=none; b=KVZrRgTth2oegvSkvZYgtZ3x1hSXd7Nh3Ew1EmRQn2sINB4WjZgjDQ6k5TFuhJHW4lBy9IjdZRBWCISf+Qqft6Eg+tAPyFsCm3RmJGd4Zg6F4cd3EQ768LiYWaqwjgMXZiuosH1FcS5QKMAyvr6lFmcgtcbxA11fuaqkkNwE1/c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790104767; c=relaxed/simple;
-	bh=TxfxsaBQAnm+cK/lK1gGhJVPGQJA22+zykHM/6QBpzs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kUDmTQaW+0weZGHKfgU4uHmVW2vdjkEn374VoeMgitOdia9Vx2XnAiNaufstXwwpNVHBEr7Ah2QbKXPGl/SsarVYbTwSXM6PJsTgXOkN4huQjH/iE4AAIxANn611dqs1ybMIFubIlHYj5ceYK04u6bhdfj2ofPfaQPEVewZhr1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Dv1FapSh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=WHy9aSQ5; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=CEYGwZlS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BJvHf7fA; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944F14582D4
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 20:42:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790109781; cv=pass; b=Xw0fjAOd3ZExz0UoUtB70+CjvW0KNxa55l6hZh+LlB4xsCAgpCkJC8XxiG1Pmc1j+YSn2vPwzPDmlepO4k+azKV1YxxQHOaMUWkWdao8YLi6eYrc/kI7bPh0Q+ISYWbvkjgoH9dKNEQQK0srDeSjt9swNULnkVPsktA+l7ihog0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790109781; c=relaxed/simple;
+	bh=clPJAFG+iMbMZ/1lfY4k/HPrMduY365VF1hYyyaPXaY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=o2nhfl3Tms8myVk642/qCjQqsbWTR3mLpwk4qbma7lZD4ZO+WqAPjTFTCWkeMDO8se+DANIy3M5VL4Slfsagnh/aJiSh4sq/4AWbwb60EqIr2Rjjdv9rj9eli/z421SdWUDpp08BpV/zSkCnKvjK9iLkXOeGJWbjLBniO+2RAjQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=inf/3MjU; arc=pass smtp.client-ip=74.125.228.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Dv1FapSh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="WHy9aSQ5";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="CEYGwZlS";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BJvHf7fA"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id ADED821A9E;
-	Tue, 22 Sep 2026 19:19:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790104759; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
-	b=Dv1FapShf5OxjEpbBUSbcwiE1E2yCJkIB2Mi3WFDJ3UB55kL2p+AHHLHxDpC5l/0y4ryeQ
-	TX8gtixfKgZEf/CjSzAt3ihvI6lP9XJsao4PqI+xMcICsFMClqsAScJ6rTxIAVM71s9d0P
-	peetCJHgpz32GQXJ1k1BtCEOH0CM1T4=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790104759;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
-	b=WHy9aSQ5K9Nobutok7RO3q219I2Rl6B4tiYtTomcc7xFkdRlg/2Y8JGvXwSuuDE1luRPgb
-	2LRgwdBxkAFYjzCA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790104755; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
-	b=CEYGwZlSIM/Q8Hm5i0gayUIrEVO4rT0jCHrX7mG0TzH0p+oDHvMpf9iPpFYMQBdajs8Gpv
-	ZeXvPYFlAqNggI+tLKrpoSh6KeIYNu4Y4x63FOuFhXITUtdKqtuDFV20dmGMFtXfTo0dp6
-	vm6ncGQMgXPVoK9Aj8EILgnKjFUJgm8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790104755;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
-	b=BJvHf7fAnQKnXN57+JtK62yPCBT8Sc7WIpRkjq+8VjMPsg3aktfRGn8XJrxUZAklWqZg+e
-	6cjnaR+Zi0mB8RDw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 07D1A13312;
-	Tue, 22 Sep 2026 19:19:14 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id qBKTMrLUsmrkbwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 22 Sep 2026 19:19:14 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	ast@kernel.org,
-	lorenzo@kernel.org,
-	phil@nwl.cc,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	VEGA <vega@nebusec.ai>
-Subject: [PATCH nf] netfilter: bpf: reject invalid NAT manipulation types
-Date: Tue, 22 Sep 2026 21:18:52 +0200
-Message-ID: <20260922191852.5462-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="inf/3MjU"
+Received: by mail-pz2-f41.google.com with SMTP id 41be03b00d2f7-cc4c3304833so197192a12.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 13:42:48 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790109766; cv=none;
+        d=google.com; s=arc-20260327;
+        b=DPFAJ7fwoFC9JwKx37Eu/mUeQCydAVnj577mH4LGk6DwHtGBs4wLElFuVi4VJ7eBQM
+         TlGU8VVU/LtksQ8HrG0NE6zjuZRn6wF1TKkxsEzMinetnAaddNIqKFD36HQlMGczoELb
+         OeThmSgYLdilLTdxb35Dn5U4v/T86NQa9/D7GXC8sUE1rzxihHXw3OcCMMb8busBTDgN
+         q1dC5naNPTfkgEAsHKWvBHB40P/Ierm+tXS4+16fBopszwbvprcZ/TgSdGrF9KPqjN34
+         cXcT2fX1T3/fx7i+81gbooIij6jw3KQbWxm3EZfa+fllLa4ygvsNRHqmn3/SDivga6ZI
+         4NtA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=bTYsFeY7zUNSIttKIg2dRq22CcfMNDzj+vWdXla++ts=;
+        fh=GgLtYtHMYCzET49pTnC9XRekGjZCKGRR1/2dQmx9WwE=;
+        b=OF9XQPtSp/Oe7fEVVd0chqITLWY2LrYVdLe2HigWiLWCN1/9/luu2qfK5DNdxHZ5q0
+         aN4Q6JGAolR0QuD14NI0CrUetnZihWollc7UJjrQZMhFBOdmINHkMFyvUeDw22MIWudd
+         AsR2gLHnRYkfTaU2nvluVwToaeAAJzWddHPCB09ewtVELWM6y++wUPX9iE3ShxSq2N+R
+         B5LOTrkmmrJuONiQPh8PRpjv+nhn5fzDhZZdpoDv/8ciZ9ml3u7GsCDRb41M+UYkM9td
+         vOFmBn9JmSWx04nZaH2aTmDc8X49ZD1+ZkbSwPI76cTbLTOEjtL83R4witYuBfTjSeAl
+         rtyg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790109766; x=1790714566; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=bTYsFeY7zUNSIttKIg2dRq22CcfMNDzj+vWdXla++ts=;
+        b=inf/3MjU3tYDi+cWapNhF1EoZf/mH0nOYitrbEjpBEGiLHx5FWQOsL1le8T6YHHUJG
+         NF4lDKYrgZjYl0Vejgf3crLJqwrnFudfYtvfu2ISayISMrFFkdk6McmFT/ess3qZS64K
+         hioG6XKtifIwiOh97uy/s7wXJKrK3/thMqhtEZ0emawrDkhdO2Poz0mSleYbuXYOmbU6
+         T4IIhE2xjWDyGlIuzQZae2cW8ArS87lOk3olvK/g2a4zvoTpJLOhRfNKFxi4DWEmiyXn
+         saHU6e3nJ1q57XLC299hEtsrrz4MYzqDN2t4JwTJdN9C2FVoSt1wpKjwhIzIt/AlrzrB
+         3+9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790109766; x=1790714566;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bTYsFeY7zUNSIttKIg2dRq22CcfMNDzj+vWdXla++ts=;
+        b=NQQjBU+x1MGGHOrUtAXe8/Ap5fWAtoKuh1Xow3wo+j5R/9bIpAMNz2lttEsPSIrR22
+         5C4yaFEGYXON07f4xAEhH7MX9eaKOf1Xk7TI7phoy9LgqAw8dKPou0mGNP38JkXUAtcQ
+         Yi+HhUpUH9D2dF5NV5Di2HB+IUeapTfOnQbZCXGOGzm809tQmyM2ZJ8tw/dxEDaTyXKW
+         H6/94LXjc309EEwEGanY+MqmWTf7S5Xjl3KSugKRqe+LX6zs1zjZpgj06JziWNRohrz3
+         N3wR3Mqnz/mN7Fw4CfCBXeUSET9OqP18kRL4qElocJtvCE7jMIOM1ypK4J5lRTAJ9MYs
+         AXuQ==
+X-Forwarded-Encrypted: i=1; AKwUvByKVEjmb6bP0VHrnLaj5jjpL6DTAN2PWeCwAn0mwKtIxh6v72rO/GVEyJaGBFpnrNp2UMEgJDsCGgN2hEaXgSQ=@vger.kernel.org
+X-Gm-Message-State: AFuF++n+SKhHV7XZGz6a2MmLFwa1iWcyLI12GFaa0HLXYtSWdu6pCeN7
+	k8T/NDe2BE19Rn3EwAC65IiX5G64yuqaWa+9m2dVF/JWp8t1w6JlME1lawh3x3fcc/vnsDgAYo+
+	aBIvMUwUeovDVT+UZEcxTppZrU6wIMsc=
+X-Gm-Gg: AYBFou365FAGSWa0iYkLvOLu+4ZQWk6nKPag85QjACnC/g6rB2pp26mMVRG5FVnOvOU
+	omdvbx83tFPnh5p8WsMthByxTF3xWAnTaE/MSPPnsa3TGLAxsKQAWsIEcyBn5qLD20VXhnOj+ln
+	iW3XgjZvBiAJTqXij1UlB04GlfMpbwoRFw6GWb5urk/MPvOLYunAL2T7U4r1NZT03U1OIYMRXz8
+	qH2cJHfXI33jNzUxFk9Rzt+s2K8VMZWN/aAxosJjDhoVjkTX/EpAnXdhIfXDyYIoOMPPYkOcd4c
+	kPUhW+aiRO5Lghu/TnyvwEyHJIT3uaKv3mkPjKS0Hs6xSoIAb+9hr6fprzGxuVdWqkoX7bWM9Er
+	Rcx020nWht1sUzeSsyP0TmUToVRHAwhoi3pL6iMBOIBkgktgGaCA/OMqLAVWlGQDVsQ==
+X-Received: by 2002:a05:6a21:6b0f:b0:3d3:ae40:51e3 with SMTP id
+ adf61e73a8af0-3ddf7eb5f73mr622092637.23.1790109766026; Tue, 22 Sep 2026
+ 13:42:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Score: -2.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.997];
-	MIME_GOOD(-0.10)[text/plain];
-	RCPT_COUNT_SEVEN(0.00)[9];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[nebusec.ai:email,suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
+References: <20260921145655.3167436-1-i.maximets@ovn.org> <20260921145655.3167436-5-i.maximets@ovn.org>
+In-Reply-To: <20260921145655.3167436-5-i.maximets@ovn.org>
+From: Xin Long <lucien.xin@gmail.com>
+Date: Tue, 22 Sep 2026 16:42:34 -0400
+X-Gm-Features: AcwNN1W-iOgtFaeoFgTSVoi0VfumM0YOE87MwjOUfMe1Y7AltETdUhTGgq3CSe4
+Message-ID: <CADvbK_c7dS27Vip8OO6vonG89MWTP3PwN_y-YP1TrH0du6HS5g@mail.gmail.com>
+Subject: Re: [PATCH net 4/6] net/sched: act_ct: avoid modifying shared
+ unconfirmed ct entry
+To: Ilya Maximets <i.maximets@ovn.org>
+Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>, Aaron Conole <aconole@redhat.com>, 
+	Eelco Chaudron <echaudro@redhat.com>, Jamal Hadi Salim <jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>, 
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org, dev@openvswitch.org, 
+	stable@vger.kernel.org, Axel Mierczuk <axel.mierczuk@1password.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-As bpf_ct_set_nat_info() is not validating the NAT manipulation type a
-wrong value can be passed directly to nf_nat_setup_info(). This triggers
-the WARN_ON() at nf_nat_setup_info() and if panic_on_warn isn't set,
-then IPS_SRC_NAT_DONE is set without adding nat_bysource and conntrack
-cleanup tries to unlink an uninitialized hlist node.
+On Mon, Sep 21, 2026 at 10:57=E2=80=AFAM Ilya Maximets <i.maximets@ovn.org>=
+ wrote:
+>
+> In a case where skb with an unconfirmed ct entry gets cloned, we may
+> end up processing both again but with different sets of extensions.
+>
+> The series of events:
+>
+>  1. The first clone wants to commit and runs the helpers wiring up
+>     the extension pointer into the expectation list.
+>  2. Then it looses the confirmation keeping the entry unconfirmed.
+>  3. Second clone now wants to commit labels or run NAT and adds the
+>     new extension for that breaking the pointer in the expectation
+>     list causing UAF on the destruction path later.
+>
+> While this is possible to trigger, there should be no practical
+> network pipeline where we need to process both clones without
+> modifications in the same zone.  So, let's just reset the entry in
+> case for some reason we got an skb with a shared one.  This doesn't
+> affect any known use cases, but avoids any potential problems with
+> sharing and modification of the unconfirmed ct entry.
+>
+> Unlike openvswitch module, act_ct allows for NAT without commit.
+> Changing that would be a uAPI break.  So, act_ct needs to reset on NAT
+> regardless of the commit flag to avoid reallocation of the extension
+> space.  This, however, doesn't really change the picture for sensible
+> networking cases as there should be no need to run the same packet
+> twice (before and after the clone) through conntrack without packet
+> header or zone changes and without commit.
+>
+> The fixes tag points to the introduction of helpers, since that's the
+> main UAF trigger for the sharing.
+>
+> Fixes: a21b06e73191 ("net: sched: add helper support in act_ct")
+> Cc: stable@vger.kernel.org
+> Reported-by: Axel Mierczuk <axel.mierczuk@1password.com>
+> Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
 
-Fix this by checking that NAT manipulation type is correct before
-calling nf_nat_setup_info(). In addition, if the WARN_ON is hit, return
-NF_DROP instead of continuing with the processing to avoid similar
-situations in the future.
-
-Reported-by: VEGA <vega@nebusec.ai>
-Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nf_nat_bpf.c  | 3 +++
- net/netfilter/nf_nat_core.c | 5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
-index f9dd85ccea01..7572b58c448b 100644
---- a/net/netfilter/nf_nat_bpf.c
-+++ b/net/netfilter/nf_nat_bpf.c
-@@ -39,6 +39,9 @@ __bpf_kfunc int bpf_ct_set_nat_info(struct nf_conn___init *nfct,
- 	if (proto != NFPROTO_IPV4 && proto != NFPROTO_IPV6)
- 		return -EINVAL;
- 
-+	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
-+		return -EINVAL;
-+
- 	memset(&range, 0, sizeof(struct nf_nat_range2));
- 	range.flags = NF_NAT_RANGE_MAP_IPS;
- 	range.min_addr = *addr;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index a4858c2b2d65..cc8e1e81006d 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -767,8 +767,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	if (nf_ct_is_confirmed(ct))
- 		return NF_ACCEPT;
- 
--	WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
--		maniptype != NF_NAT_MANIP_DST);
-+	if (WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
-+		    maniptype != NF_NAT_MANIP_DST))
-+		return NF_DROP;
- 
- 	if (WARN_ON(nf_nat_initialized(ct, maniptype)))
- 		return NF_DROP;
--- 
-2.55.0
-
+Reviewed-by: Xin Long <lucien.xin@gmail.com>
