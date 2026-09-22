@@ -1,49 +1,50 @@
-Received: from out28-50.mail.aliyun.com (out28-50.mail.aliyun.com [115.124.28.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50A527280A;
-	Thu,  8 Oct 2026 03:16:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.28.50
+Received: from cmccmta2.chinamobile.com (cmccmta2.chinamobile.com [111.22.67.135])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7B05C377004;
+	Thu,  8 Oct 2026 03:19:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.22.67.135
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791429414; cv=none; b=a8PocpGDApWKdzXGGwREYOX9AgZ+knYdPxmD5wdoMuTBkqP0+J7tUN/OdJRZsxD1TqLgjQJa5bUcR+//xFkLrp98RyRlNgrDAakNZT5HItyIhGd5JkWPnvyL35+SjgFns8H4VkYToe/enCLodmqd/bJk77Ql+UB2d3vf+E4tJ/U=
+	t=1791429557; cv=none; b=tGZ/NAAHOOy7PictgGYNZmS8WRGk9EK0nOAy7J4SP/bNY6knDprIirFrYa5KQ5B4q7dHCf0ZIPQBwxJkeXzRK0gW4O+oCL3yAIRq8IKubv/mnJn+Cx8l/pofy4AcvXwZYDRVbrG4mMrXZxWz82A5YI6JFKVJLUelbOiICyJN+Hk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791429414; c=relaxed/simple;
-	bh=5oQn9p0aYhf/qlZsRVnnDZXKe6Z7H5rk/GN70nUQwQ4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Q4zIyyKs1TrqTGoFqmlK0+ze2FhN92UNkBlz89PurVaYxrAK4yHz/nN5jpYfjiOeHoe03CBNRhBFJRseKArkSRpDIVXrVy1MObrn8wXQrsaGiBB6C6pZN7/CEFQqM3Xa9dl3nm6zwsOKnB0rH3U338ylTExRg06WBBajC45vID0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com; spf=pass smtp.mailfrom=xiaopeng.com; dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b=EjQoj/Lr; arc=none smtp.client-ip=115.124.28.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
+	s=arc-20240116; t=1791429557; c=relaxed/simple;
+	bh=ygZeOiN67Rzk+FnquSronkA+wHQJCrOrkL8Gahj1UQ0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZDhBDFPFU1ELw6hiMVZvOdwa52i+NYhAGWoJMaf31y0N6ePO4kiQSuHHFrI0P6rruTwBq/nl0qMx4VFPsmo82ATaE2PdyNEAqeogytiRUMn+NUDNZlqDXc5CGHeAn42lQBvDbWWAJERPQJ1KB4H+HkoLfoZGXUEFoQifa6zsitU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com; spf=pass smtp.mailfrom=cmss.chinamobile.com; dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.b=GQBpAUDt; arc=none smtp.client-ip=111.22.67.135
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b="EjQoj/Lr"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=xiaopeng.com; s=default;
-	t=1791429405; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=fdav0LrHtGdLGLCaHTnJ11uIlMF7U57oWCd+VKzUSWM=;
-	b=EjQoj/LrzZks57auGSEwGnXsbDu2bgDblU0fm4F5TM9YTAq2nHQr3Efm1Seye9ZSos6nRP+z6pqQs3bCj21c6ZBUVTzw6Ay7hGuiyfieovZa+NuUiACJnpu0Z++1hgmyDzEHpHFXRV5XapCTyB5e8jNA1zIq4SVmvQApcCUPD8A=
-X-Alimail-AntiSpam:AC=CONTINUE;BC=0.07436739|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.222871-0.00778521-0.769344;FP=18311476887412018967|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033037032089;MF=guozh23@xiaopeng.com;NM=1;PH=DS;RN=15;RT=15;SR=0;TI=SMTPD_---.jWTK8mo_1791427539;
-Received: from localhost(mailfrom:guozh23@xiaopeng.com fp:SMTPD_---.jWTK8mo_1791427539 cluster:ay29)
-          by smtp.aliyun-inc.com;
-          Thu, 08 Oct 2026 10:45:40 +0800
-From: Guo Zihao <guozh23@xiaopeng.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
-Cc: Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
+	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.b="GQBpAUDt"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=cmss.chinamobile.com; s=default; l=0;
+	h=from:subject:message-id:to:cc:mime-version;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=GQBpAUDtorvm29I2PbDRVgZks3wqK/2xaJWLcaRHer42TMDW4zAfYTwb/pdePVvJXPgMyFqmuSVY2
+	 nUEJe/pNbmSbZo6SQULEPrWGsWBZ3isz3GfumSO8nHKcATR2+3MMmicann56GE+GcZ+SWtMzmNsyz+
+	 f0w9zHPgM1CX9rNc=
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
+	by rmmx-syy-dmz-app07-12007 (RichMail) with SMTP id 2ee76ac70bae06d-b1d6d;
+	Thu, 08 Oct 2026 11:19:11 +0800 (CST)
+X-RM-TRANSID:2ee76ac70bae06d-b1d6d
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from localhost.localdomain (unknown[223.108.79.99])
+	by rmsmtp-syy-appsvr04-12004 (RichMail) with SMTP id 2ee46ac70ba7eb5-03ba6;
+	Thu, 08 Oct 2026 11:19:11 +0800 (CST)
+X-RM-TRANSID:2ee46ac70ba7eb5-03ba6
+From: lvjunyu <lvjunyu@cmss.chinamobile.com>
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
 	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	bridge@lists.linux.dev,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v2] netfilter: ebtables: ebt_802_3: check the LLC fields before reading them
-Date: Thu,  8 Oct 2026 10:45:39 +0800
-Message-ID: <20261008024539.4106699-1-guozh23@xiaopeng.com>
-X-Mailer: git-send-email 2.50.1
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	lvjunyu <lvjunyu@cmss.chinamobile.com>
+Subject: [PATCH v3] netfilter: nf_nat: Fix stale outer UDP checksum on VXLAN encapsulated packets
+Date: Tue, 22 Sep 2026 14:23:05 +0800
+Message-ID: <20260922062305.752147-1-lvjunyu@cmss.chinamobile.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,119 +53,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ebt_802_3_mt() derives the frame pointer from skb_mac_header() and reads
-the LLC fields through it without making sure that those bytes are
-available at all. ebtables guarantees that the Ethernet header is linear,
-but nothing between the receive path and this match pulls the LLC header,
-so a frame that carries nothing past the 14-byte Ethernet header is read
-past the linear area.
+When MASQUERADE --random-fully rewrites the outer UDP source port and
+address of a VXLAN-encapsulated packet whose inner header has
+CHECKSUM_PARTIAL, the outer UDP checksum is not updated correctly.
 
-Also, ebt_802_3_mt() does not need to look at every LLC field for every
-rule. A SAP-only rule reads only dsap and ssap, and a rule without any
-SAP or TYPE constraint selects frames by their 802.3 length field alone,
-which ebt_basic_match() has already handled. Reading the type field there
-was wasted work and could not be checked against anything.
+udp_set_csum() takes the LCO (Local Checksum Offload) branch for
+encapsulated CHECKSUM_PARTIAL non-GSO packets, writing a complete
+(folded and complemented) checksum into uh->check while leaving
+csum_start pointing at the inner transport header.  In this state:
 
-Go through skb_header_pointer() with the mac header offset, which handles
-frames whose LLC header is not in the linear area, and require only the
-bytes each rule actually examines:
+  - inet_proto_csum_replace2() is a no-op (pseudohdr=false,
+    CHECKSUM_PARTIAL)
+  - nf_csum_update() -> inet_proto_csum_replace4(pseudohdr=true)
+    takes the pseudo-header branch which treats uh->check as an
+    uncomplemented seed, applying the address delta with the wrong
+    sign
 
- - no SAP or TYPE constraint: nothing to look at, match right away;
- - SAP-only rule: dsap/ssap, at machdr + 14..15;
- - TYPE rule: the whole union, at machdr + 14..23, which also covers the
-   control byte that selects between the ui and ni views of the union.
+Fix this by using the offload target (csum_start + csum_offset) to
+distinguish the LCO state from the seed/offload state, and temporarily
+flipping ip_summed to CHECKSUM_NONE so both the address and port updates
+use csum_replace*() (the complete-checksum path).
 
-A frame too short to hold the fields a rule examines now fails to match
-that rule. The previous hotdrop approach was dropped because ebtables
-legacy only honors hotdrop when every match of the rule so far has
-matched, so returning false is the only behaviour both front-ends agree
-on. Users who want truncated 802.3 frames dropped can match 802.3 alone.
+Test results (10 connections, single netns vxlan + veth environment):
+  Before fix: ~1080ms avg first-connection latency, 10 SYN retransmits,
+              UdpInCsumErrors incremented per connection
+  After fix:  ~29ms avg first-connection latency, 0 SYN retransmits,
+              UdpInCsumErrors unchanged
 
-Discovered by a static-analysis scan of net/; confirmed by code
-inspection of the receive path and the ebtables core. Not triggered in
-testing; no runtime report is available.
+Fixes: faec18dbb0405 ("netfilter: nat: remove l4proto->manip_pkt")
+Cc: stable@vger.kernel.org
+Signed-off-by: lvjunyu <lvjunyu@cmss.chinamobile.com>
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reviewed-by: Liu Chao <liuc63@xiaopeng.com>
-Signed-off-by: Guo Zihao <guozh23@xiaopeng.com>
 ---
- net/bridge/netfilter/ebt_802_3.c | 47 +++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 10 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
-index 68c2519bd..1a67376d1 100644
---- a/net/bridge/netfilter/ebt_802_3.c
-+++ b/net/bridge/netfilter/ebt_802_3.c
-@@ -9,32 +9,59 @@
-  *
-  */
- #include <linux/module.h>
-+#include <linux/stddef.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/skbuff.h>
- #include <uapi/linux/netfilter_bridge/ebt_802_3.h>
- 
--static struct ebt_802_3_hdr *ebt_802_3_hdr(const struct sk_buff *skb)
--{
--	return (struct ebt_802_3_hdr *)skb_mac_header(skb);
--}
--
- static bool
- ebt_802_3_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct ebt_802_3_info *info = par->matchinfo;
--	const struct ebt_802_3_hdr *hdr = ebt_802_3_hdr(skb);
--	__be16 type = hdr->llc.ui.ctrl & IS_UI ? hdr->llc.ui.type : hdr->llc.ni.type;
-+	struct ebt_802_3_hdr _frame;
-+	const struct ebt_802_3_hdr *frame;
-+	unsigned int hlen;
-+	__be16 type;
-+
-+	/* Without SAP or TYPE constraints the match only selects 802.3
-+	 * frames, which ebt_basic_match() has already decided from the
-+	 * ethertype/length field. Nothing in the LLC header is read.
-+	 */
-+	if (!(info->bitmask & (EBT_802_3_SAP | EBT_802_3_TYPE)))
-+		return true;
-+
-+	/* Only the dsap/ssap pair is examined for a SAP-only rule; the
-+	 * type field (and the control byte that selects between the ui
-+	 * and ni views of the union) is needed for a TYPE rule alone.
-+	 */
-+	hlen = sizeof(_frame);
-+	if (!(info->bitmask & EBT_802_3_TYPE))
-+		hlen = offsetof(struct ebt_802_3_hdr, llc.ui.ctrl);
-+
-+	/* skb->data sits past the Ethernet header on the receive path, so
-+	 * the frame starts at a negative offset from skb->data. Pass the
-+	 * mac header offset so the check follows the frame wherever the
-+	 * hook reset the mac header, and covers paged frames too. A frame
-+	 * too short to hold the LLC fields simply does not match; users
-+	 * who want such frames dropped can match 802.3 alone.
-+	 */
-+	frame = skb_header_pointer(skb, skb_mac_offset(skb), hlen, &_frame);
-+	if (!frame)
-+		return false;
- 
- 	if (info->bitmask & EBT_802_3_SAP) {
--		if (NF_INVF(info, EBT_802_3_SAP, info->sap != hdr->llc.ui.ssap))
-+		if (NF_INVF(info, EBT_802_3_SAP, info->sap != frame->llc.ui.ssap))
- 			return false;
--		if (NF_INVF(info, EBT_802_3_SAP, info->sap != hdr->llc.ui.dsap))
-+		if (NF_INVF(info, EBT_802_3_SAP, info->sap != frame->llc.ui.dsap))
- 			return false;
+Changes in v3:
+- Reword comment to distinguish port delta (no-op) from address
+  delta (wrong sign) as suggested by Sashiko AI review
+
+Changes in v2:
+- Fix both address and port delta (v1 only fixed port delta)
+- Use offload-target test instead of skb->encapsulation as the LCO
+  discriminator (addresses Sashiko AI review feedback)
+- Update comment to describe both CHECKSUM_PARTIAL states
+
+v2: https://lore.kernel.org/netdev/20260921130312.686493-1-lvjunyu@cmss.chinamobile.com/
+---
+ net/netfilter/nf_nat_proto.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 64b9bac228e..6779e9f2812 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -54,9 +54,39 @@ __udp_manip_pkt(struct sk_buff *skb,
+ 		portptr = &hdr->dest;
  	}
- 
- 	if (info->bitmask & EBT_802_3_TYPE) {
--		if (!(hdr->llc.ui.dsap == CHECK_TYPE && hdr->llc.ui.ssap == CHECK_TYPE))
-+		type = frame->llc.ui.ctrl & IS_UI ? frame->llc.ui.type :
-+						    frame->llc.ni.type;
-+		if (!(frame->llc.ui.dsap == CHECK_TYPE &&
-+		      frame->llc.ui.ssap == CHECK_TYPE))
- 			return false;
- 		if (NF_INVF(info, EBT_802_3_TYPE, info->type != type))
- 			return false;
--- 
-2.50.1
+ 	if (do_csum) {
++		/* When udp_set_csum() takes the LCO branch (encapsulated
++		 * CHECKSUM_PARTIAL, non-GSO), uh->check holds a complete
++		 * (folded and complemented) checksum while csum_start
++		 * points at the inner transport header, not at this outer
++		 * udphdr.  In that state:
++		 *   - nf_csum_update() -> inet_proto_csum_replace4(pseudohdr=true)
++		 *     takes the pseudo-header branch and applies the address
++		 *     delta with the wrong sign (to an uncomplemented seed).
++		 *   - inet_proto_csum_replace2(pseudohdr=false) is a no-op:
++		 *     neither branch is taken for CHECKSUM_PARTIAL when
++		 *     pseudohdr is false.
++		 * Temporarily flip ip_summed so both use the csum_replace*()
++		 * path that correctly updates the complete checksum.
++		 *
++		 * The seed/offload branch of udp_set_csum() sets csum_start
++		 * to the outer UDP header, so the offload-target test
++		 * below distinguishes the two states.
++		 */
++		bool lco = skb->ip_summed == CHECKSUM_PARTIAL &&
++			   !skb_is_gso(skb) &&
++			   (skb->head + skb->csum_start + skb->csum_offset) !=
++			   (unsigned char *)&hdr->check;
++
++		if (lco)
++			skb->ip_summed = CHECKSUM_NONE;
++
+ 		nf_csum_update(skb, iphdroff, &hdr->check, tuple, maniptype);
+ 		inet_proto_csum_replace2(&hdr->check, skb, *portptr, newport,
+ 					 false);
++
++		if (lco)
++			skb->ip_summed = CHECKSUM_PARTIAL;
++
+ 		if (!hdr->check)
+ 			hdr->check = CSUM_MANGLED_0;
+ 	}
+--
+2.43.0
+
+
 
