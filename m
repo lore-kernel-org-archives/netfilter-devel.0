@@ -1,140 +1,303 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f0.google.com (mail-wr2-f0.google.com [74.125.225.64])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D755B559C9E
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 15:27:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57E9A55C1B7
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 15:27:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790090826; cv=none; b=hwvNYSfv81MncjDrAliQL2lV/RTAIOiK5y/UZGMwUMepiAh0dQTbNvWsfL4acm2M/aoMsAp8qslb6kJXRJt53r8yQ/jaNQ31h9UUu4Y4eP1FVYTBWKrG8X+cRxXh6oWZZEdCsH6n9tP06Gw132esu8mhraL7kLrhMBBlvPFmtoQ=
+	t=1790090831; cv=none; b=bZDo5tJJod+tiw7STFsHhBdLzl3b/No/Mco7S/69TtYVpeoNCg+SY6bsOO/5utAuIyJTVhaTDpW9FfrcpN2Fs9UqKjWdQUta3q5YoyObfY9c/BvEzctBoUhIM+ZNhzJmHlBfgAGUKsby5ri3dtsFlTZN9PvLG5YOmdTdy85auI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790090826; c=relaxed/simple;
-	bh=/bLyKypnNwfGX2WH2jEoAUwwNIROKLlCEg6+ySEJI08=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=i2TDW2aR9xggO+3FEUtNZNgploiioMt2ImUgM6pFZVA3pNDtK62K2Ebse/bfsDQRps966h0iJa1H2nfk7dQcqPBKwMOVzU7MKE/mR44O/gIohJQb/kM44rxeNxBcWesKAx/Y/205Imr4Awt7+WI/JR2a8jSBK2aPFvzjQSmod+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=S3MtHOrh; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=EvUly7dY; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="S3MtHOrh";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="EvUly7dY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1790090823;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0Htkt20pVczBoadvUlOct83zLwipczk5AidQ8VvN0o0=;
-	b=S3MtHOrhJPPK0ahF4AWHv6bmULD33f5YWq0yMcPOLQkr8SfsSjSX/Gnwdc+tQRuWQ9+7B0
-	Yp9d7r48+AryMb0RcAF5b77XhBGDjrStwhZwNfu9XwvfjxL38sbGxTkTT6Knje9q2Bpn05
-	LSM2w2aosPOX4nGlYA5mXbOqe037ucM=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-631-Hxzv8j_RMNCvblFxOgwb0g-1; Tue, 22 Sep 2026 11:27:02 -0400
-X-MC-Unique: Hxzv8j_RMNCvblFxOgwb0g-1
-X-Mimecast-MFC-AGG-ID: Hxzv8j_RMNCvblFxOgwb0g_1790090821
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-49ccfbe060aso32248845e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 08:27:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1790090821; x=1790695621; darn=vger.kernel.org;
-        h=content-type:mime-version:user-agent:message-id:date:references
-         :in-reply-to:subject:cc:to:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=0Htkt20pVczBoadvUlOct83zLwipczk5AidQ8VvN0o0=;
-        b=EvUly7dYqavQqfq1jXf1ADamLFgaWspaM0f9f9a6J07ar2GatdkBBX2YyerClV28S6
-         vSXvbmSR4JhiDl5QPRGmDjLQLGWYV+Yl+DBt9/LZvEcGiIAkK79vcSZX7+ci5uZD9qH4
-         S0DzDOtF8TT1AOet2Z+NBpdHhVqJM5iJEFNOtvtPRnwNzwD5we0siL9R3WbQqYcjADAG
-         r8F49JDath0Cs8u1kUCjK3v1pmmiun7NktSWBV4iakhx4Vy+R2dQuHEuFA4tsBM2CHWp
-         mh9z4FnlSkEkSG8Ai8PoQdePwM6wjtfsUT5oR34RKPojmfEZspkk1EI9dIIrSYK2RrJY
-         7nqw==
+	s=arc-20240116; t=1790090831; c=relaxed/simple;
+	bh=GfIfs/0EGo/RymnqAeqVdDOWxyk4M7N5a2NnfAHIR8w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=bB4Ptmh26yVn2A1469RtxEELZu7dSLPjAILzCYvyPtFmBjQhF2xREMi+flllY9WvIv+G/NCL5QTjsqQr9gixDlSSWeqvUuNq4RH0al2OyWXvbSnyns2eHKwpU4D5QRyhy7bc+TOooOf8XI6Wb37YoUyJbSOQJK2p1htQyQ25qFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.225.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ovn.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-wr2-f0.google.com with SMTP id ffacd0b85a97d-48861ba835cso11552f8f.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 08:27:09 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790090821; x=1790695621;
-        h=content-type:mime-version:user-agent:message-id:date:references
-         :in-reply-to:subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=0Htkt20pVczBoadvUlOct83zLwipczk5AidQ8VvN0o0=;
-        b=L0UkDn5fJpE8RVCFgRjc+xecVyipRzpUxpF2AUEj6/7fb3ICnVn2LArFp4wcBSynEv
-         kooGI3+cOb+0pEzNw6bcCzQJMH6fKfGEdCaTn1UZqag4CcNpF9ZuGLaGkAUxMEVGTgl2
-         bHOmhqC4c970OuQKxPQIrcKkPNzoV/d4zwY22bIOwqHJ3/lh5ss1eN1DcqM+aCNm44uM
-         t4ccogFWwv0AdtBO/2+MPHnbmdK6mCcE58ZfRLvVXn3bjcYoxk2UKDYotcH89w/l938v
-         NftoJ0s+nGd7R2X875G7LF8YPlMa+VEhSKswWrusgHTzMWoaOlhVOfP/bHJlPtIou2fF
-         rqnw==
-X-Forwarded-Encrypted: i=1; AKwUvBynuJxJKjrYctdppqvj9vnk5n5yKJ4HeMZpNwn5JARWEKmJCh8EAaGLk+86R9TOz+swXlMMKoJM/9P/XAhhqQ0=@vger.kernel.org
-X-Gm-Message-State: AFuF++m3+WaN9bSImZbEncqo4W73AOIjrF1i7Q8ULLX763YzThPyXSFB
-	81Abhmm62Uw2IvzZheOLCn+qoBVhEG3tkbP8nvoP9rNvXr//7E7eAuCZ4pp0ADW3ivnC9m1fXdf
-	UycQ0UKx1/cAfcJrggzf1+YrodTFh2yRpsIf1O17iHdmPVjxxsIKhKpIwyQhTML7uZzkxYw==
-X-Gm-Gg: AYBFou1h6ZpxN8RUe5U31biOEFeEdx9S8ER0jmQR3CH+J6QZfLgXY4439aNOzg+YjuN
-	6DP/MGTGT/oeZn9GOlyd7dyzg9xWFHYLY/Cv/So2LXKFTSp6nd54y5DrzdM/DPOBfxVxUwbHTgA
-	rwGM1nZfCv0OHTH06oLwAAPnKcH8O5twAZoDqGssUmHVWN6S6f97NZ83v95X/Uigy6ILXnPLyn2
-	GVqQO3vZqJEVbfn1r/fow43NxLv0AMgHSuezucOElK343Te15TE5k9lcgNRzhYCxytloFXUu61d
-	9YSQZ+fFMvP9MAeLcLSDaxZZ1V62qh0nyqp4s83UEUbfpW10kJKelUcDmg1HdPweWZtrupZ2n3B
-	SE1Zl/zbJqAD4n641tAO4kWYuDf3a
-X-Received: by 2002:a05:600c:3b05:b0:49c:fa21:e746 with SMTP id 5b1f17b1804b1-49fc57570c8mr185474795e9.28.1790090821096;
-        Tue, 22 Sep 2026 08:27:01 -0700 (PDT)
-X-Received: by 2002:a05:600c:3b05:b0:49c:fa21:e746 with SMTP id 5b1f17b1804b1-49fc57570c8mr185474355e9.28.1790090820708;
-        Tue, 22 Sep 2026 08:27:00 -0700 (PDT)
-Received: from aconole-thinkpadt14gen4.rmtusnh.csb ([216.212.25.12])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fddfd164fsm2995925e9.7.2026.09.22.08.26.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Sep 2026 08:27:00 -0700 (PDT)
-From: Aaron Conole <aconole@redhat.com>
-To: Ilya Maximets <i.maximets@ovn.org>
-Cc: netdev@vger.kernel.org,  Pablo Neira Ayuso <pablo@netfilter.org>,
-  Florian Westphal <fw@strlen.de>,  Phil Sutter <phil@nwl.cc>,  "David S.
- Miller" <davem@davemloft.net>,  Eric Dumazet <edumazet@google.com>,  Jakub
- Kicinski <kuba@kernel.org>,  Paolo Abeni <pabeni@redhat.com>,  Simon
- Horman <horms@kernel.org>,  Eelco Chaudron <echaudro@redhat.com>,  Jamal
- Hadi Salim <jhs@mojatatu.com>,  Jiri Pirko <jiri@resnulli.us>,  Xin Long
- <lucien.xin@gmail.com>,  Marcelo Ricardo Leitner
- <marcelo.leitner@gmail.com>,  netfilter-devel@vger.kernel.org,
-  coreteam@netfilter.org,  linux-kernel@vger.kernel.org,
-  dev@openvswitch.org,  stable@vger.kernel.org,  Axel Mierczuk
- <axel.mierczuk@1password.com>
-Subject: Re: [PATCH net 3/6] net: openvswitch: conntrack: fix helper UAF due
- to extensions realloc
-In-Reply-To: <20260921145655.3167436-4-i.maximets@ovn.org> (Ilya Maximets's
-	message of "Mon, 21 Sep 2026 16:55:45 +0200")
-References: <20260921145655.3167436-1-i.maximets@ovn.org>
-	<20260921145655.3167436-4-i.maximets@ovn.org>
-Date: Tue, 22 Sep 2026 11:26:56 -0400
-Message-ID: <f7tbj9pb933.fsf@aconole-thinkpadt14gen4.rmtusnh.csb>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+        d=1e100.net; s=20260707; t=1790090828; x=1790695628;
+        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=KUv0ScJKS33Zn26FXiz9fHEW+C7p6kp+a2yKDonWs4A=;
+        b=KXOKzMRUjAjNAXZa6djMeJVy1jorfl36KZEOa245qMLjPUMCFdydSNNODJZ2pRj6X4
+         q+gfg/Sg4E9h+uPBse2/MCqn/4kk/TrIewklINEWqmBGscDl9ogFZhplbZr7gNqbmqR4
+         MTa7XCyi9AMvmzoK3h0B7MAgow3d7igC8RXGOg8mwRlEPvOPoCX+k0LH4pwB2JoS2K27
+         hZzZmNSRbUDJhsJ2z4lEE0kNOfaj1V2/6pJgKt/EQJf82gM2rI5EYNv96ZFLAHYg88En
+         ceiUT+xDzsISGYMtyiBJ8R0Gg6BN5jKkGlicBICIUJw7A0/IAYqGE5mODiKvNjUAJ//p
+         PZiw==
+X-Forwarded-Encrypted: i=1; AKwUvBxTFjxMWwokfxDo+fbwAvSiIi3nDeWPI8rRP1t/+5JKeMcjXHjwAxBTDn3VMb371JM9ezR95Jp3+lxc9bnIX0c=@vger.kernel.org
+X-Gm-Message-State: AFuF++nQ63g0HHhetjrTntEqvVcODO8taEXUEPgWCQq28Iild6zDtFZg
+	dcGUuk8PkOjVnegp6qdJE94dzO3+tmw2RMKq26aFjIgi/YrK/S5eWE1w
+X-Gm-Gg: AYBFou0Av4AESSCSWBjKTfcnkO4MyMDR56c85X1mTjpdTsEGe22bm3oB+/j8XrIgJfR
+	t36YIs61nj23m7ldzDffBL7yarV0eXljV1Zs/EqtHkpsktEn0EvoYH5pSlnKfHb0pyvN0Nuyech
+	n5fU7iOs+s4BCUfucu2cOd2ikWGNzVu4oXscTYID6qJG1D9zVsSuLbP9RvaIzWkOS+KACK+hmxN
+	WSGbYJSZhDHbNaU14QVbT9VtSIKF9Kpznc6vtAOtL2fYq2FcJ+Dn8tUadasP0kEEkS1p7bkqVZ6
+	omkrpiHr82XEXOGL0jAiQH1Lpl6OyftulUPckQhv5Pv/6YH2Qi6aViCVfqxZZzQpGgNocur1XP3
+	SB9GlF5VqmScK87zGUh1nvHO3L631Vg1KzBfWTISTUTa7qbnRx+d0EeRol5vqa/nYECAYvIlm2R
+	2ICLyvCyxUraDtwg1l8BLzzUjrchTZlFIIXXEEHIcfAsQ8IqHfyXBOLpb4PpldqCCAYLPcffC0+
+	ZwbfhQAnuO6GSGrDWoylRPlYY0fHqSw6C7n12H141wT4bpecyZnTDhwCw==
+X-Received: by 2002:a05:6000:471e:b0:485:8c17:976f with SMTP id ffacd0b85a97d-4871e36e866mr21205182f8f.49.1790090827399;
+        Tue, 22 Sep 2026 08:27:07 -0700 (PDT)
+Received: from [192.168.88.241] (78-80-107-225.customers.tmcz.cz. [78.80.107.225])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-488627744f5sm6097237f8f.7.2026.09.22.08.27.05
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 22 Sep 2026 08:27:06 -0700 (PDT)
+Message-ID: <af1e5328-7e08-4697-b0d6-dc5b77f51530@ovn.org>
+Date: Tue, 22 Sep 2026 17:27:04 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 1/6] net: openvswitch: conntrack: avoid modifying
+ shared unconfirmed ct entry
+To: netdev-bot+sashiko@kernel.org, i.maximets@ovn.org
+Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, aconole@redhat.com,
+ echaudro@redhat.com, jhs@mojatatu.com, jiri@resnulli.us,
+ lucien.xin@gmail.com, marcelo.leitner@gmail.com,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, dev@openvswitch.org, stable@vger.kernel.org
+References: <20260921145655.3167436-2-i.maximets@ovn.org>
+ <179008911592.2160803.15817354196701627708@kernel.org>
+Content-Language: en-US
+From: Ilya Maximets <i.maximets@ovn.org>
+Autocrypt: addr=i.maximets@ovn.org; keydata=
+ xsFNBF77bOMBEADVZQ4iajIECGfH3hpQMQjhIQlyKX4hIB3OccKl5XvB/JqVPJWuZQRuqNQG
+ /B70MP6km95KnWLZ4H1/5YOJK2l7VN7nO+tyF+I+srcKq8Ai6S3vyiP9zPCrZkYvhqChNOCF
+ pNqdWBEmTvLZeVPmfdrjmzCLXVLi5De9HpIZQFg/Ztgj1AZENNQjYjtDdObMHuJQNJ6ubPIW
+ cvOOn4WBr8NsP4a2OuHSTdVyAJwcDhu+WrS/Bj3KlQXIdPv3Zm5x9u/56NmCn1tSkLrEgi0i
+ /nJNeH5QhPdYGtNzPixKgPmCKz54/LDxU61AmBvyRve+U80ukS+5vWk8zvnCGvL0ms7kx5sA
+ tETpbKEV3d7CB3sQEym8B8gl0Ux9KzGp5lbhxxO995KWzZWWokVUcevGBKsAx4a/C0wTVOpP
+ FbQsq6xEpTKBZwlCpxyJi3/PbZQJ95T8Uw6tlJkPmNx8CasiqNy2872gD1nN/WOP8m+cIQNu
+ o6NOiz6VzNcowhEihE8Nkw9V+zfCxC8SzSBuYCiVX6FpgKzY/Tx+v2uO4f/8FoZj2trzXdLk
+ BaIiyqnE0mtmTQE8jRa29qdh+s5DNArYAchJdeKuLQYnxy+9U1SMMzJoNUX5uRy6/3KrMoC/
+ 7zhn44x77gSoe7XVM6mr/mK+ViVB7v9JfqlZuiHDkJnS3yxKPwARAQABzSJJbHlhIE1heGlt
+ ZXRzIDxpLm1heGltZXRzQG92bi5vcmc+wsGUBBMBCAA+AhsDBQsJCAcCBhUKCQgLAgQWAgMB
+ Ah4BAheAFiEEh+ma1RKWrHCY821auffsd8gpv5YFAmfB9JAFCQyI7q0ACgkQuffsd8gpv5YQ
+ og/8DXt1UOznvjdXRHVydbU6Ws+1iUrxlwnFH4WckoFgH4jAabt25yTa1Z4YX8Vz0mbRhTPX
+ M/j1uORyObLem3of4YCd4ymh7nSu++KdKnNsZVHxMcoiic9ILPIaWYa8kTvyIDT2AEVfn9M+
+ vskM0yDbKa6TAHgr/0jCxbS+mvN0ZzDuR/LHTgy3e58097SWJohj0h3Dpu+XfuNiZCLCZ1/G
+ AbBCPMw+r7baH/0evkX33RCBZwvh6tKu+rCatVGk72qRYNLCwF0YcGuNBsJiN9Aa/7ipkrA7
+ Xp7YvY3Y1OrKnQfdjp3mSXmknqPtwqnWzXvdfkWkZKShu0xSk+AjdFWCV3NOzQaH3CJ67NXm
+ aPjJCIykoTOoQ7eEP6+m3WcgpRVkn9bGK9ng03MLSymTPmdINhC5pjOqBP7hLqYi89GN0MIT
+ Ly2zD4m/8T8wPV9yo7GRk4kkwD0yN05PV2IzJECdOXSSStsf5JWObTwzhKyXJxQE+Kb67Wwa
+ LYJgltFjpByF5GEO4Xe7iYTjwEoSSOfaR0kokUVM9pxIkZlzG1mwiytPadBt+VcmPQWcO5pi
+ WxUI7biRYt4aLriuKeRpk94ai9+52KAk7Lz3KUWoyRwdZINqkI/aDZL6meWmcrOJWCUMW73e
+ 4cMqK5XFnGqolhK4RQu+8IHkSXtmWui7LUeEvO/OwU0EXvts4wEQANCXyDOic0j2QKeyj/ga
+ OD1oKl44JQfOgcyLVDZGYyEnyl6b/tV1mNb57y/YQYr33fwMS1hMj9eqY6tlMTNz+ciGZZWV
+ YkPNHA+aFuPTzCLrapLiz829M5LctB2448bsgxFq0TPrr5KYx6AkuWzOVq/X5wYEM6djbWLc
+ VWgJ3o0QBOI4/uB89xTf7mgcIcbwEf6yb/86Cs+jaHcUtJcLsVuzW5RVMVf9F+Sf/b98Lzrr
+ 2/mIB7clOXZJSgtV79Alxym4H0cEZabwiXnigjjsLsp4ojhGgakgCwftLkhAnQT3oBLH/6ix
+ 87ahawG3qlyIB8ZZKHsvTxbWte6c6xE5dmmLIDN44SajAdmjt1i7SbAwFIFjuFJGpsnfdQv1
+ OiIVzJ44kdRJG8kQWPPua/k+AtwJt/gjCxv5p8sKVXTNtIP/sd3EMs2xwbF8McebLE9JCDQ1
+ RXVHceAmPWVCq3WrFuX9dSlgf3RWTqNiWZC0a8Hn6fNDp26TzLbdo9mnxbU4I/3BbcAJZI9p
+ 9ELaE9rw3LU8esKqRIfaZqPtrdm1C+e5gZa2gkmEzG+WEsS0MKtJyOFnuglGl1ZBxR1uFvbU
+ VXhewCNoviXxkkPk/DanIgYB1nUtkPC+BHkJJYCyf9Kfl33s/bai34aaxkGXqpKv+CInARg3
+ fCikcHzYYWKaXS6HABEBAAHCwXwEGAEIACYCGwwWIQSH6ZrVEpascJjzbVq59+x3yCm/lgUC
+ Z8H0qQUJDIjuxgAKCRC59+x3yCm/loAdD/wJCOhPp9711J18B9c4f+eNAk5vrC9Cj3RyOusH
+ Hebb9HtSFm155Zz3xiizw70MSyOVikjbTocFAJo5VhkyuN0QJIP678SWzriwym+EG0B5P97h
+ FSLBlRsTi4KD8f1Ll3OT03lD3o/5Qt37zFgD4mCD6OxAShPxhI3gkVHBuA0GxF01MadJEjMu
+ jWgZoj75rCLG9sC6L4r28GEGqUFlTKjseYehLw0s3iR53LxS7HfJVHcFBX3rUcKFJBhuO6Ha
+ /GggRvTbn3PXxR5UIgiBMjUlqxzYH4fe7pYR7z1m4nQcaFWW+JhY/BYHJyMGLfnqTn1FsIwP
+ dbhEjYbFnJE9Vzvf+RJcRQVyLDn/TfWbETf0bLGHeF2GUPvNXYEu7oKddvnUvJK5U/BuwQXy
+ TRFbae4Ie96QMcPBL9ZLX8M2K4XUydZBeHw+9lP1J6NJrQiX7MzexpkKNy4ukDzPrRE/ruui
+ yWOKeCw9bCZX4a/uFw77TZMEq3upjeq21oi6NMTwvvWWMYuEKNi0340yZRrBdcDhbXkl9x/o
+ skB2IbnvSB8iikbPng1ihCTXpA2yxioUQ96Akb+WEGopPWzlxTTK+T03G2ljOtspjZXKuywV
+ Wu/eHyqHMyTu8UVcMRR44ki8wam0LMs+fH4dRxw5ck69AkV+JsYQVfI7tdOu7+r465LUfg==
+In-Reply-To: <179008911592.2160803.15817354196701627708@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Ilya Maximets <i.maximets@ovn.org> writes:
+On 9/22/26 4:58 PM, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issue(s) to consider.
+> 
+> Critical: 0 · High: 0 · Medium: 1 · Low: 1 (1)
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [Medium] New behaviour change introduced by the guard in
+>   __ovs_ct_lookup() (net/openvswitch/conntrack.c:741-747): when two skbs…
+> - [Low] nf_ct_shared() is added as an undocumented generic predicate in
+>   include/net/netfilter/nf_conntrack.h:188-191 returning…
+> 
+> Pre-existing issues:
+> - [Low] Peer call site net/sched/act_ct.c (tcf_ct_act()) performs the
+>   same 'cached, unconfirmed ct + commit modifies the extension set'…
+> 
+> --
+> 
+> net: openvswitch: conntrack: avoid modifying shared unconfirmed ct entry
+> 
+> This adds a new nf_ct_shared() helper to the conntrack header and uses it in
+> __ovs_ct_lookup() to reset the cached conntrack entry when an skb arrives at
+> a committing ct action with an unconfirmed entry that is shared with another
+> skb.  The goal is to avoid two clones committing the same unconfirmed entry
+> with different extension sets, which can lead to a use-after-free.
+> 
+> A few questions below.
+> 
+>> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+>> index bc42dd0e10e65..c39425e54d87d 100644
+>> --- a/include/net/netfilter/nf_conntrack.h
+>> +++ b/include/net/netfilter/nf_conntrack.h
+>> @@ -185,6 +185,11 @@ static inline void nf_ct_put(struct nf_conn *ct)
+>>  		nf_ct_destroy(&ct->ct_general);
+>>  }
+>>  
+>> +static inline bool nf_ct_shared(const struct nf_conn *ct)
+>> +{
+>> +	return refcount_read(&ct->ct_general.use) > 1;
+>> +}
+>> +
+> 
+> [Severity: Low]
+> Would it be worth documenting that this predicate is only meaningful for
+> unconfirmed, non-template entries?
+> 
+> The reference accounting comment on struct nf_conn in this same header says
+> the count is "1 for hash table, 1 per skb, plus 1 for any connection(s) we
+> are `master' for".  With that, every confirmed entry owned by a single skb
+> already has use == 2, since __nf_conntrack_confirm() does:
+> 
+> 	/* The caller holds a reference to this object */
+> 	refcount_set(&ct->ct_general.use, 2);
+> 
+> The same is true for a template in use: nf_ct_tmpl_alloc() sets use = 1 and
+> nf_ct_set(skb, tmpl, ...) adds another.  So nf_ct_shared() returns true for
+> an ordinary single-owner confirmed entry and for an in-use template, while
+> the name reads as "more than one skb owns this ct".
 
-> While calling the helpers, a raw pointer to the extensions area is
-> wired into expectations list:
->
->   -> nf_ct_helper()
->    -> helper->help()
->     -> nf_ct_expect_related_report()
->      -> nf_ct_expect_insert()
->       -> hlist_add_head_rcu(&exp->lnode, &master_help->expectations)
->
-> In case the connection is not confirmed yet, more extensions can be
-> added afterwards with *_ext_add() calls reallocating the extension
-> space and leaving the now invalid pointer in the expectations list
-> that is later accessed while removing the expectation.
->
-> Make sure that helpers are called at the end after all the other
-> extensions are already added.
->
-> Note that the helper rejection now leaves the mark and labels set,
-> but that's not different from how the NAT was handled before or how
-> the mark and the labels were handled on confirmation failure.  And
-> there are no atomicity guarantees provided by the API anyway.
->
-> Fixes: cae3a2627520 ("openvswitch: Allow attaching helpers to ct action")
-> Cc: stable@vger.kernel.org
-> Reported-by: Axel Mierczuk <axel.mierczuk@1password.com>
-> Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
-> ---
+The comments in the callers state the cloned skb as an example, not as a
+sole reason for the entry being shared.  "shared" just means there is more
+than one reference here.  I can add a comment to the function itself if
+someone thinks this is not clear enough, but otherwise I'd keep as is.
 
-Reviewed-by: Aaron Conole <aconole@redhat.com>
+> Both consumers at the end of the series check !nf_ct_is_confirmed(ct) first,
+> so there is no misbehaviour today, but a future caller without that check
+> would get a surprising answer.
+> 
+> There is also already an open-coded twin of this test in
+> nf_ct_drop_unconfirmed() in net/netfilter/nfnetlink_queue.c, which states the
+> precondition ("conntrack assumes exclusive skb->_nfct ownership for
+> unconfirmed entries") and applies it only after:
+> 
+> 	if (!ct || nf_ct_is_confirmed(ct))
+> 		return false;
+> 
+> Should that one be converted to the new helper so there is a single
+> definition of "shared"?
 
+nfnetlink_queue needs some work on its own and can be cleaned up separately.
+
+> 
+> [Severity: Low]
+> This isn't a bug introduced by this patch, but the helper lands in the
+> shared netfilter header while the equivalent call site in net/sched/act_ct.c
+> is left alone here.
+> 
+> tcf_ct_act() runs the same sequence on a cached unconfirmed entry, adding
+> extensions and running helpers:
+> 
+> 	err = __nf_ct_try_assign_helper(ct, p->tmpl, GFP_ATOMIC);
+> 	...
+> 	if (p->ct_action & TCA_CT_ACT_NAT && !nfct_seqadj(ct)) {
+> 		if (!nfct_seqadj_ext_add(ct))
+> 			goto drop;
+> 
+> tcf_ct_skb_nfct_cached() has no exclusivity test either.
+> 
+> For what it is worth, the follow-up patch in this series, "net/sched:
+> act_ct: avoid modifying shared unconfirmed ct entry", adds the same guard to
+> tcf_ct_act() and extends it to the NAT-without-commit case, so the gap is
+> closed by the end of the series.  Mentioning that ordering in this changelog
+> might help backporters.
+
+Preexisting, fixed later in the set.
+
+> 
+>> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+>> index 0f433688e17b9..a733029c28dd0 100644
+>> --- a/net/openvswitch/conntrack.c
+>> +++ b/net/openvswitch/conntrack.c
+>> @@ -734,6 +734,18 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+>>  	enum ip_conntrack_info ctinfo;
+>>  	struct nf_conn *ct;
+>>  
+>> +	/* If the ct entry is not confirmed and shared with some other skb,
+>> +	 * e.g., a cloned one, we can't just modify it with the commit as we
+>> +	 * must not modify the extension set.  Reset.
+>> +	 */
+>> +	if (cached && info->commit) {
+>> +		ct = nf_ct_get(skb, &ctinfo);
+>> +		if (ct && !nf_ct_is_confirmed(ct) && nf_ct_shared(ct)) {
+>> +			nf_reset_ct(skb);
+>> +			cached = false;
+>> +		}
+>> +	}
+>> +
+> 
+> [Severity: Medium]
+> Since the test is a point-in-time refcount snapshot, does it exempt the last
+> remaining holder?
+> 
+> With two skbs sharing one unconfirmed entry and both executing ct(commit) in
+> the same zone:
+> 
+>   - the first one to reach the check sees use == 2, so nf_reset_ct() drops
+>     its reference (2 -> 1), nf_conntrack_in() runs again and it commits a
+>     brand new entry with the same tuple.
+> 
+>   - the second holder now sees use == 1, so nf_ct_shared() is false, it
+>     keeps the stale unconfirmed entry and commits that.
+> 
+> __nf_conntrack_confirm() then finds the equal tuple already in
+> nf_conntrack_hash and falls into nf_ct_resolve_clash(), where:
+> 
+> 	l4proto = nf_ct_l4proto_find(nf_ct_protonum(ct));
+> 	if (!l4proto->allow_clash)
+> 		goto drop;
+> 
+> For TCP, SCTP and DCCP that returns NF_DROP, and verdict_to_errno(NF_DROP)
+> == -EINVAL propagates through ovs_ct_commit() and ovs_ct_execute(), so that
+> packet is dropped with OVS_DROP_CONNTRACK.  Before the patch both clones
+> were accepted, as the second nf_conntrack_confirm() was a no-op on the
+> already confirmed shared entry.
+> 
+> For UDP and ICMP the clash resolution succeeds, but __nf_ct_resolve_clash()
+> discards the losing entry, so the mark and labels the second clone just
+> wrote are silently lost.
+> 
+> The changelog says the reset "doesn't affect any known use cases".  Should
+> the drop and the mark/label loss be spelled out there, given both are
+> visible consequences for a pipeline that commits two clones into the same
+> zone?
+> 
+> The clone precondition itself comes from __nf_copy() in
+> include/linux/skbuff.h, which unconditionally takes a ct reference:
+> 
+> 	dst->_nfct = src->_nfct;
+> 	nf_conntrack_get(skb_nfct(src));
+> 
+> and skb_nfct_cached() returns true for the surviving clone since it only
+> checks netns, zone, helper, timeout and force.
+> 
+
+All of that can happen even without cloning.  With or without the changes
+applied.  The entry can be created separately and then clash with the one
+in the skb causing a drop.  This is expected.  The "use case" is also not
+meaningful in practice.
+
+Best regards, Ilya Maximets.
