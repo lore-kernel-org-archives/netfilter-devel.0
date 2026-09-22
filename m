@@ -1,168 +1,115 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 235E8322749
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 09:06:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AE014189BA;
+	Tue, 22 Sep 2026 09:08:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790068011; cv=none; b=LutIxdorIzL/4908W12BsxVTYZ+3rAaKY4cfrkn3WAylumx6Aa5f2qQV4NLU/NCWY97LpgZAopL0yWddRNL97O0mnw3rPEQO26Hamc6XkOY72cJcFjVZE8QuH0W/PMUP+bLI9p9ehapAM8CCM39Y+PbnzVVADd7tEapARgwJ0Wg=
+	t=1790068115; cv=none; b=Ua1P+yz0iEC2EzF72ZlAzRM16SH6nRb4bmhof7IeofHg+8DF++xa8Tgy6sdqteLRT2fmpZEM41VLCu5AUemzwvvpUI9Fh1sW3lo7ENJjk0v6cDFhhlmkfASh38BrPiDMsUKA2nGHOzx9P+QmBLHXAEcO2ZYFxoLpNvFNmlhnfKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790068011; c=relaxed/simple;
-	bh=/XKAimS1eTs1R1edZ5B3aUsTVn4W58SZU4bGJVY5plE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=O0sOrGzyyRDqOL8HckHRdaSx3xymmZJzs3u+I2OYGZs9DUZSLgBVXKEM+WG+NDxZJsTsHx7JV83TD8aFDdFlKFJujNLdJlwJUWCHS9h/i7GX/rf55HjSRt6tCzsguLmNRQej/yC6LGRRG8c/dPwUhL45N6DOTXBu32cCwFchBF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=B+rdXlQa; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=yUbeJA2/; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=2F1dyNyb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=3S/QV8UH; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790068115; c=relaxed/simple;
+	bh=aWEqlZnVkFRgp0qQKu7X23kGg0ZHVehrYng8L//OeY0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=mA3XSBbtkzAIkfzS7/TibvxeEsK93whXPR5qpqj6xD7PlahDHjvrF6uNOpZ8kuTkxtThavJrSWKerpNAld2zkIgUGRgMhk5UJ4QYbpifvJk2SmjUUMp6lGcHAzfCrvvstMICAvBgRbk0VmiqVDt8n7jlnsdQIbLUA2QlusW314Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cwyC67CJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="B+rdXlQa";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="yUbeJA2/";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="2F1dyNyb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="3S/QV8UH"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id E875B21DBA;
-	Tue, 22 Sep 2026 09:06:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790068004; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=E7/kdSA733Ggdbg1tIchJb/5N1XFZXSLbQohBNBgIJs=;
-	b=B+rdXlQauIORHy8PzIATda/49PtN6T16R9rEv9d9itBLB+av0Udpv4bFUHNPVX7fwVrawF
-	JSdtlws4Gjqa19MU6gQ+9a/1/01j9DdMN+VXcsA5QgLnWm5LrmAGNtsVGuBa1bT5PJak1O
-	ZitE4YLpP9NVwz479LFlUqfr5gO0jq0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790068004;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=E7/kdSA733Ggdbg1tIchJb/5N1XFZXSLbQohBNBgIJs=;
-	b=yUbeJA2/aVOKKHrXpCKi0Uww7OwAdLzBg+RjgbCBBDrtBusYb2i8huBafOd+DW+dXuvwbb
-	3v7NHMl2KgO8yLDA==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=2F1dyNyb;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="3S/QV8UH"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790067999; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=E7/kdSA733Ggdbg1tIchJb/5N1XFZXSLbQohBNBgIJs=;
-	b=2F1dyNybxojZg3/TtgADpbsQf8sTpPyLELlT5tNuKDeqI/dKDQo7vrwvwtbDATVVsutgMw
-	RTD2dFjbAVIqU62xIQ6nNBnOjuwwLTIIkpEa6Lc8MAOwsEKpgB8jtGNDcmnEVUkYj1gTaW
-	qs+RacDlh8LeftLql3gGOVUtA8czFJQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790067999;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=E7/kdSA733Ggdbg1tIchJb/5N1XFZXSLbQohBNBgIJs=;
-	b=3S/QV8UHTY7REpzLKELVunM40PUL0PS8xpEXDd/R8wgFKaUJ0m6SyvbN7K/iy2cU+KES3g
-	GpbMHQ2sdWNpzjDw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 67B1D132D3;
-	Tue, 22 Sep 2026 09:06:39 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 6NZbDh9FsmqoTQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 22 Sep 2026 09:06:39 +0000
-Message-ID: <d074d3ea-b6b0-4aa5-98ad-6cc167e28801@suse.de>
-Date: Tue, 22 Sep 2026 11:05:44 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cwyC67CJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C8E61C2BCB8;
+	Tue, 22 Sep 2026 09:08:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1790068114;
+	bh=aWEqlZnVkFRgp0qQKu7X23kGg0ZHVehrYng8L//OeY0=;
+	h=From:Date:Subject:To:Cc:From;
+	b=cwyC67CJTTnwPjKJ8FlgqgfhQDe55lCyCaslHwZ3X993TMNn3NocalVYthl8VVuW7
+	 ZfwrnlMAxCq16OHPmZ4FtZs+YKLJZaVA7BZqI0VvwQtLQJRZ33wfmyaCll0EczpW1v
+	 91d8raG6rRq07cOfbzycDBE+AxHHyvnPhr74o8Hwj8IJtiEbyobgUKuPVMqufQXZN7
+	 UvgTwSXn+qb2X20UsRxTlJIXl8Y9ci/rDHIbqsc7jdlvVB7TyrF5XeS2V1b8Cd2QBY
+	 mO+e8LJfu+AY1QJ8RWPqwnr/QUiov15WSvpojqK8rtIVcreK6cboqkfE3MqnUADQl+
+	 943P103SfCoXg==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1BB1C982FA;
+	Tue, 22 Sep 2026 09:08:34 +0000 (UTC)
+From: Joel Granados <joel.granados@kernel.org>
+Date: Tue, 22 Sep 2026 11:08:13 +0200
+Subject: [PATCH] ipvs: skip committing sync_threshold when proc_dointvec
+ fails
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf] netfilter: nft_reject: prevent unbounded recursion in
- output hooks
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- pablo@netfilter.org, phil@nwl.cc, eric@regit.org,
- Yu Junzhe <junzheyu1@gmail.com>
-References: <20260921222925.3874-1-fmancera@suse.de>
- <arIdrbUtZyaH7QbQ@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <arIdrbUtZyaH7QbQ@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: E875B21DBA
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_TLS_ALL(0.00)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,netfilter.org,nwl.cc,regit.org,gmail.com];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email,suse.de:mid];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
+Message-Id: <20260922-lklm-sysctl-retval-fix-v1-1-7290ea4253a4@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAHxFsmoC/x2M2wpAQBBAf0XzbIpRxK/Iw9odTNalHYnk320ez
+ 6lzHlAOwgpN8kDgU1S2NUKeJmAns46M4iIDZVRmNRH62S+ot9rDY+DjNB4HudD0xlHtbFH1DmK
+ 8B476H7fd+350fIRlaAAAAA==
+X-Change-ID: 20260922-lklm-sysctl-retval-fix-abad29dc37bd
+To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>, netdev@vger.kernel.org, 
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-kernel@vger.kernel.org, 
+ Joel Granados <joel.granados@kernel.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1296;
+ i=joel.granados@kernel.org; h=from:subject:message-id;
+ bh=aWEqlZnVkFRgp0qQKu7X23kGg0ZHVehrYng8L//OeY0=;
+ b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGqyRZGUA0KCGTVtlF++nMgUcIdQrRiZq3RUU
+ /YgHZ0t3bnNBokBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqskWRAAoJELqXzVK3
+ lkFPDmYMAJI5M0li0IFDoGjBI7dEFL6+2/SLWT6ezLqZGKpiiRPP3nCorSqTS0ybmW666HQuCL5
+ dl+yPbeZ7QhF6ret88F/aAbXd0D24GHNSsgns1igp2JdZSpfgJWVFwYXed3twvuH8C7ZOlkpwTY
+ q1MDtTpBcHHo3iasIgrhs3ve760S3aEWRFx0m5t1X1HsiBqF0OPl/4E4A/0D/lKXV3Xll3mhnSA
+ zH+0b2/bmW/N68hXf1BeUgxPRQzrejpqiGy+VTMxfT/XF0fvpktRdIaDPyOeFVRvIfLX+gkPl8b
+ qjWI21hUbFwmQUmDe+gJ1A743mX4qpKw+PuIcR9xo/hk0P3pN05i4WcBUhtfinx7cYQTmjRwZrh
+ 9//gOU3degccRS6r4Ot/Qqyb3+EX0RtqReRilJAdaB5Kvx46ukpCnBvX8vuYHKfDoc2wXLjiOQg
+ S/GVKugi5BLDPXCSqC1jArJQzeBwgwu7Z11zRLwTe70gaQiOU+S7nkCHMrYk9fTuS93/sayKDF5
+ do=
+X-Developer-Key: i=joel.granados@kernel.org; a=openpgp;
+ fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
+X-Endpoint-Received: by B4 Relay for joel.granados@kernel.org/default with
+ auth_id=239
 
-On 9/22/26 8:18 AM, Florian Westphal wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
->> nftables payload-mangling rules can rewrite packet contents (such as TCP
->> flags) before they are evaluated by reject targets. This defeats the
->> content-based loop guards, allowing unbounded hook recursion that leads
->> to kernel stack exhaustion and panics.
->>
->> Fix this by extracting the per-CPU xmit recursion limit previously used
->> by the netdev duplication/forwarding paths into a shared header, and
->> apply it to the inet and inet6 reject transmit functions. It disables BH
->> while transmitting the skb to address a possible migration to different
->> CPU leading to imbalanced decrementation of the recursion counters.
->>
->> Note that the dev_queue_xmit() path used when CONFIG_BRIDGE_NETFILTER is
->> enabled does not require this recursion guard. In that scenario, the
->> generated reset packet is transmitted directly at Layer 2. Because the
->> packet egresses from a different hook, it cannot synchronously loop.
-> 
-> Won't nf_send_unreach() / unrach6 need the same guard?
-> 
-> If not, please explain why those are safe, its not clear to me.
+Forward rc value and skip updating sysctl_sync_threshold when
+proc_dointvec fails. This targets a write such as "5 x" which would fail
+with -EINVAL but would store the first element anyway.
 
-Hi Florian,
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-If I am not wrong, those functions are safe. I initially thought it was 
-needed too but after failing to reproduce the issue in that path I 
-noticed that both icmp_send() and icmp6_send() are protected for 
-recursions by disabling BH and using a xmit lock 
-icmp_xmit_lock()/icmpv6_xmit_lock().
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 4c1c739446b76ea455dab2958a844d05e31a46a7..7c260529238cd2015f1d30abd094d25b056b30fa 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2454,6 +2454,8 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+ 	mutex_lock(&ipvs->sync_mutex);
+ 	memcpy(val, valp, sizeof(val));
+ 	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
++	if (rc)
++		goto out;
+ 	if (write) {
+ 		if (val[0] < 0 || val[1] < 0 ||
+ 		    (val[0] >= val[1] && val[1]))
+@@ -2461,6 +2463,7 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+ 		else
+ 			memcpy(valp, val, sizeof(val));
+ 	}
++out:
+ 	mutex_unlock(&ipvs->sync_mutex);
+ 	return rc;
+ }
 
-I will send a V2 mentioning this in the commit message so it is documented.
+---
+base-commit: 93f51579e7df248780214094418f205253383cc5
+change-id: 20260922-lklm-sysctl-retval-fix-abad29dc37bd
 
-> 
-> Patch looks good otherwise, thanks Fernando.
-> 
+Best regards,
+-- 
+Joel Granados <joel.granados@kernel.org>
 
-Thanks Florian!
+
