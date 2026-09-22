@@ -1,84 +1,83 @@
-Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 690BC3F54D9
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 17:40:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08139489FDB
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 19:19:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790098833; cv=none; b=Y5UNVWGGcu/xszXyK+EfMugjnF1X1V7VQrRszecblnSKqFL689tFYvXMxWBA/qlKsZaR+DTOR+ViDSTELHhD7JVpE2dohpoaQwWHuF906C2OkVt2jI30W7B7oKPPrKh++3IQ4OwCFGisx2HHs/a3wX+vgn2xqkMP1JNBdD82vx8=
+	t=1790104767; cv=none; b=KVZrRgTth2oegvSkvZYgtZ3x1hSXd7Nh3Ew1EmRQn2sINB4WjZgjDQ6k5TFuhJHW4lBy9IjdZRBWCISf+Qqft6Eg+tAPyFsCm3RmJGd4Zg6F4cd3EQ768LiYWaqwjgMXZiuosH1FcS5QKMAyvr6lFmcgtcbxA11fuaqkkNwE1/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790098833; c=relaxed/simple;
-	bh=xWs2nKvEnKcCSbWKBlaysRqdlSEJAqnTt7D60iU/S3c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ixiZQZwXUOu9+O9rWxuwL7ZHVQZ7OwSVywp0Ir6fHYLMHQkN7GDR6JoDHjKPUVv/2LJrO9kaqqyxyAftm5JXGOn3MepHYTmRBui+GZ7J7T6esfh4Fn2QWUbm1CspfvIsJDUZ3tvvSMCOxWo14Ui7vwsLjLwmShoiv9UAFkggAxs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=e8lMBwKA; arc=none smtp.client-ip=74.125.228.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	s=arc-20240116; t=1790104767; c=relaxed/simple;
+	bh=TxfxsaBQAnm+cK/lK1gGhJVPGQJA22+zykHM/6QBpzs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kUDmTQaW+0weZGHKfgU4uHmVW2vdjkEn374VoeMgitOdia9Vx2XnAiNaufstXwwpNVHBEr7Ah2QbKXPGl/SsarVYbTwSXM6PJsTgXOkN4huQjH/iE4AAIxANn611dqs1ybMIFubIlHYj5ceYK04u6bhdfj2ofPfaQPEVewZhr1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Dv1FapSh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=WHy9aSQ5; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=CEYGwZlS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BJvHf7fA; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="e8lMBwKA"
-Received: by mail-pz2-f12.google.com with SMTP id d2e1a72fcca58-85469a3490bso163112b3a.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Sep 2026 10:40:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1790098832; x=1790703632; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=8u+pzk+HNiZCdG2339AV8ATTiqqklCANQ4P670vhRS8=;
-        b=e8lMBwKAvqKeuVTdC7XJ36vCegaN7US2pLQ6U+jKQmbZejy9yRwtt1UgeoXtrN589m
-         2mW/8qDtdMmIr0FjoAHNDBvtNkuMIpZcgwcn+3wMhdqPIbmSK56e67HBltVD9RBJ15sy
-         Bb6MG1tDyGbL0fVmX8AH/ozEpRWCICx5BrDEogo8DPZsVSuP6ksYfJdP7T5guEtIT53q
-         uAu1cnnVCO1m6Pi6RLzNA4j3KQ2CgFFguchh7G+B5rillWK8nmE+xS96yy+7vyZrqsXt
-         lv3sIeBDf74VpxfRol/QhCx4D2JREKmhvG/VLNbH6mxRCJXWluc/zQFadUFGmnvJkqOf
-         kqKA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790098832; x=1790703632;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8u+pzk+HNiZCdG2339AV8ATTiqqklCANQ4P670vhRS8=;
-        b=ErzQs9jxekGWLIqo6e6HK1mnF3uHJ5fvB5V5PNwDYWOUEOEwqVVfjxVwVQNXOOtGTS
-         muraRD+k1vIMMy1ROn8E4tjXJjfmE0AouWybw4QcWSXXYzZV+/exlLZ+UX+XXg0+uIKP
-         qhbikbJXN+VlyKL4TqBRFZi/z8h8rbSwc5mycXwX5GVKKDJQ84p+UxeS3+9HQTPG9Q8L
-         /OyGjLvQIhM1F4oOa67gdLamnyqm8iZfAsMvHaL/DWGOPPkqYwGOvHmH0pQbnMYbLMXl
-         DV4suTJm1FhP6N4x6aCHkuyrMT2mzX45eV7IsRMkx+SPw5djbRxrpjr1qgFyhFR8nAzi
-         EvPQ==
-X-Gm-Message-State: AFuF++l/kiykxgt0iTwSsubFhgwey7qIDwAjBA0CyGgIsfEcDLrIJiQa
-	4AlY1JDAi8W+Rd3Ci5Ni2DpwRDBoaRf+CTQFyzrzPFynGt4bgyCA1KKL13WpVBRu13sNoOdCu5f
-	KIaEr1vm5
-X-Gm-Gg: AYBFou3UodgPL1gzdb2vW1Q2ArSoJLMOxoWnSBM8J0jsvbHt4ge2ihkRDS2Tm8s3Xfz
-	mhO1ViLu55x697gI2CyNU+s0M5oYc4cUj3ZTOLaFZwiIpSMcNi2+JVzXolmFSoUmvYx/OrZnp98
-	bWKXMuZ71qdNeFbaZrvUgBP2125+o/sNYG+gTwhtxijkQQfBM+8MIHgjbI3RmG0jfOlcqUeVrtn
-	M5qKTZLMnrTk1nvqomz63fJsRyICl7BWrjUaLJ/EV956XP9ln2T88BCecGNvAFK/sB1ku2kdV0G
-	3o+A0kfPbmDbJWRhsA711M4Iyv+KoM8MceLYQDVhH0GafGyWSueO+oG6lqJyw6h29B4oBpnzs3n
-	5wUb9yJ241HVFdnr+bD3IqY587fhi7r99d+z9zxjzFBBqjxRDyfabGgEPKLvf2SJTgl/mRNR6No
-	MJbm9KkhmGQxfsL2l1TXEplC63CKmAMIXB+jYOgwcCVh5WGS2YsOdS+otRRmlMANLR9wpHW6zFs
-	SJuJr2D
-X-Received: by 2002:a05:6a00:1ca1:b0:87a:346f:d032 with SMTP id d2e1a72fcca58-87d1c1bcdfemr316026b3a.47.1790098831228;
-        Tue, 22 Sep 2026 10:40:31 -0700 (PDT)
-Received: from enjou-Legion-Y7000P-2019 ([167.71.204.91])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-87d1cfc0843sm147812b3a.12.2026.09.22.10.40.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Sep 2026 10:40:30 -0700 (PDT)
-From: Ren Wei <weir@nebusec.ai>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Dv1FapSh";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="WHy9aSQ5";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="CEYGwZlS";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BJvHf7fA"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id ADED821A9E;
+	Tue, 22 Sep 2026 19:19:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790104759; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
+	b=Dv1FapShf5OxjEpbBUSbcwiE1E2yCJkIB2Mi3WFDJ3UB55kL2p+AHHLHxDpC5l/0y4ryeQ
+	TX8gtixfKgZEf/CjSzAt3ihvI6lP9XJsao4PqI+xMcICsFMClqsAScJ6rTxIAVM71s9d0P
+	peetCJHgpz32GQXJ1k1BtCEOH0CM1T4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790104759;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
+	b=WHy9aSQ5K9Nobutok7RO3q219I2Rl6B4tiYtTomcc7xFkdRlg/2Y8JGvXwSuuDE1luRPgb
+	2LRgwdBxkAFYjzCA==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790104755; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
+	b=CEYGwZlSIM/Q8Hm5i0gayUIrEVO4rT0jCHrX7mG0TzH0p+oDHvMpf9iPpFYMQBdajs8Gpv
+	ZeXvPYFlAqNggI+tLKrpoSh6KeIYNu4Y4x63FOuFhXITUtdKqtuDFV20dmGMFtXfTo0dp6
+	vm6ncGQMgXPVoK9Aj8EILgnKjFUJgm8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790104755;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eki/p2QcNk2PX3bPA94s21pj9KKWpjkZv1dKWbvhy+M=;
+	b=BJvHf7fAnQKnXN57+JtK62yPCBT8Sc7WIpRkjq+8VjMPsg3aktfRGn8XJrxUZAklWqZg+e
+	6cjnaR+Zi0mB8RDw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 07D1A13312;
+	Tue, 22 Sep 2026 19:19:14 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id qBKTMrLUsmrkbwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 22 Sep 2026 19:19:14 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
+Cc: coreteam@netfilter.org,
+	ast@kernel.org,
+	lorenzo@kernel.org,
 	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	kaber@trash.net,
-	vega@nebusec.ai,
-	caoruide123@gmail.com,
-	weir@nebusec.ai
-Subject: [PATCH nf 1/1] netfilter: ecache: bound destroy event redelivery
-Date: Wed, 23 Sep 2026 01:39:56 +0800
-Message-ID: <48840876b129e0094fbd8048e96fb6e3fae51055.1787158072.git.vega.cover-letter@nebusec.ai>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <cover.1787158072.git.vega.cover-letter@nebusec.ai>
-References: <cover.1787158072.git.vega.cover-letter@nebusec.ai>
+	fw@strlen.de,
+	pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	VEGA <vega@nebusec.ai>
+Subject: [PATCH nf] netfilter: bpf: reject invalid NAT manipulation types
+Date: Tue, 22 Sep 2026 21:18:52 +0200
+Message-ID: <20260922191852.5462-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -86,101 +85,78 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Spam-Score: -2.80
+X-Spam-Level: 
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-0.997];
+	MIME_GOOD(-0.10)[text/plain];
+	RCPT_COUNT_SEVEN(0.00)[9];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[nebusec.ai:email,suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[]
+X-Spam-Flag: NO
 
-From: Ruide Cao <caoruide123@gmail.com>
+As bpf_ct_set_nat_info() is not validating the NAT manipulation type a
+wrong value can be passed directly to nf_nat_setup_info(). This triggers
+the WARN_ON() at nf_nat_setup_info() and if panic_on_warn isn't set,
+then IPS_SRC_NAT_DONE is set without adding nat_bysource and conntrack
+cleanup tries to unlink an uninitialized hlist node.
 
-A conntrack whose destroy event cannot be delivered is kept on the
-per-netns ecache list while the workqueue retries the notification.
-The worker stops at the first failure and retries every 10 ms without
-a lifetime limit. A listener that enables NETLINK_BROADCAST_ERROR and
-never drains its receive queue can therefore retain conntracks and
-keep the worker busy indefinitely.
+Fix this by checking that NAT manipulation type is correct before
+calling nf_nat_setup_info(). In addition, if the WARN_ON is hit, return
+NF_DROP instead of continuing with the processing to avoid similar
+situations in the future.
 
-Start a per-netns deadline when redelivery begins. If the listener
-remains congested after the existing 15 second grace period, detach
-all queued entries through the normal evicted-list path and release
-their references. Reset the deadline when the list drains, preserving
-redelivery for transient congestion while preventing permanent
-conntrack retention.
-
-Fixes: dd7669a92c60 ("netfilter: conntrack: optional reliable conntrack event delivery")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Signed-off-by: Ruide Cao <caoruide123@gmail.com>
-Signed-off-by: Ren Wei <weir@nebusec.ai>
+Reported-by: VEGA <vega@nebusec.ai>
+Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- include/net/netfilter/nf_conntrack.h |  1 +
- net/netfilter/nf_conntrack_ecache.c  | 23 ++++++++++++++++++++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ net/netfilter/nf_nat_bpf.c  | 3 +++
+ net/netfilter/nf_nat_core.c | 5 +++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bc42dd0e10e6..d4c646c685b4 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -46,6 +46,7 @@ struct nf_conntrack_net_ecache {
- 	struct delayed_work dwork;
- 	spinlock_t dying_lock;
- 	struct hlist_nulls_head dying_list;
-+	unsigned long retry_deadline;
- };
+diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
+index f9dd85ccea01..7572b58c448b 100644
+--- a/net/netfilter/nf_nat_bpf.c
++++ b/net/netfilter/nf_nat_bpf.c
+@@ -39,6 +39,9 @@ __bpf_kfunc int bpf_ct_set_nat_info(struct nf_conn___init *nfct,
+ 	if (proto != NFPROTO_IPV4 && proto != NFPROTO_IPV6)
+ 		return -EINVAL;
  
- struct nf_conntrack_net {
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index cc8d8e85169f..9280fc947da9 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -31,6 +31,7 @@ static DEFINE_MUTEX(nf_ct_ecache_mutex);
- #define DYING_NULLS_VAL			((1 << 30) + 1)
- #define ECACHE_MAX_JIFFIES		msecs_to_jiffies(10)
- #define ECACHE_RETRY_JIFFIES		msecs_to_jiffies(10)
-+#define ECACHE_RETRY_TIMEOUT		(15 * HZ)
- 
- enum retry_state {
- 	STATE_CONGESTED,
-@@ -52,8 +53,8 @@ static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
- {
- 	unsigned long stop = jiffies + ECACHE_MAX_JIFFIES;
- 	struct hlist_nulls_head evicted_list;
--	enum retry_state ret = STATE_DONE;
- 	struct nf_conntrack_tuple_hash *h;
-+	enum retry_state ret = STATE_DONE;
- 	struct hlist_nulls_node *n;
- 	unsigned int sent;
- 
-@@ -63,6 +64,22 @@ static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
- 	sent = 0;
- 	spin_lock_bh(&cnet->ecache.dying_lock);
- 
-+	if (!cnet->ecache.retry_deadline)
-+		cnet->ecache.retry_deadline = jiffies + ECACHE_RETRY_TIMEOUT;
++	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
++		return -EINVAL;
 +
-+	if (time_after_eq(jiffies, cnet->ecache.retry_deadline)) {
-+		hlist_nulls_for_each_entry_safe(h, n, &cnet->ecache.dying_list,
-+						hnnode) {
-+			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+
-+			hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-+			hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode,
-+					     &evicted_list);
-+		}
-+		ret = STATE_DONE;
-+		goto out_unlock;
-+	}
-+
- 	hlist_nulls_for_each_entry_safe(h, n, &cnet->ecache.dying_list, hnnode) {
- 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+ 	memset(&range, 0, sizeof(struct nf_nat_range2));
+ 	range.flags = NF_NAT_RANGE_MAP_IPS;
+ 	range.min_addr = *addr;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index a4858c2b2d65..cc8e1e81006d 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -767,8 +767,9 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 	if (nf_ct_is_confirmed(ct))
+ 		return NF_ACCEPT;
  
-@@ -89,6 +106,10 @@ static enum retry_state ecache_work_evict_list(struct nf_conntrack_net *cnet)
- 		}
- 	}
+-	WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
+-		maniptype != NF_NAT_MANIP_DST);
++	if (WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
++		    maniptype != NF_NAT_MANIP_DST))
++		return NF_DROP;
  
-+out_unlock:
-+	if (hlist_nulls_empty(&cnet->ecache.dying_list))
-+		cnet->ecache.retry_deadline = 0;
-+
- 	spin_unlock_bh(&cnet->ecache.dying_lock);
- 
- 	hlist_nulls_for_each_entry_safe(h, n, &evicted_list, hnnode) {
+ 	if (WARN_ON(nf_nat_initialized(ct, maniptype)))
+ 		return NF_DROP;
 -- 
-2.47.3
+2.55.0
+
