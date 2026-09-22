@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4F95505D0;
-	Tue, 22 Sep 2026 14:58:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88514552954;
+	Tue, 22 Sep 2026 14:58:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790089123; cv=none; b=E1r/DJUcmvzWO0Gnyom7j/atg/dK9fEOMLyhSeRA0EfNpW840V1D82RKDGZiM/Lb287Ne2jU4gE83VdIWmr5QJgxcPz2Bh2uhN7yAu4bXND2BVoPkAB1hh9OZILw9Cmiy3cSJMSx+8kgRdFLICQ6qf8UCdQ3555T+kE6nFuQkC4=
+	t=1790089125; cv=none; b=Xo7Gax3LdMpR1cDR/D1tsbtDqwP/AHqiK0IVQURwXbBfOrpZ6r7B5/XueWI5QuHYLzudp7MeGmD71a6YaRZTPCGoA0GAwpCZ/MIfTMBUUgTq1ran9I0iKwLkfxRB+nVOas0YmkEW/7bnXamrp+Oh9ylEeFrnnaRdapOzDTjzoUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790089123; c=relaxed/simple;
-	bh=fzHqs63NGI8o75Sd6Odr55ABBX3tXxeFz/gUuJwz35g=;
+	s=arc-20240116; t=1790089125; c=relaxed/simple;
+	bh=h4m9Hef1/FCV5jrzyN6ugFtkqKYyEkyoBQ2zmIPShDA=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=QC0lxF+7V4Z7LhNBz4cq+6MiNmMIK61PZZ3+Ym7pbzW6VJFZrOTVymj7RaXHaIY6l3q1w/8rjCHRG3jhasDBjPT8Id8d9dtJhOnDB8Cn3jjV3AVYHpkSrDbUKNJxPv4ljryecxwrcbcEXYUQp8OTap5TKDUlravuaJdw5poYw0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m3d8rZPq; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=AeutXnhfIOzchWUl+ESFHh0prO6TAYUaZc7lqdyDrgrFqZpItkc5yMr81jIgiXwYUvE/WHkl4es1dpRueVZgQMuV6RKFvu6gud11VtLkdvR+kf9s10go0Muh0rAwNwvlKoMDz+b2jUhzBwxAcMUE54B4fURcoOLTvUJOpNwr7ls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H1bSddWo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m3d8rZPq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF8B1F000FF;
-	Tue, 22 Sep 2026 14:58:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H1bSddWo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 692E11F00893;
+	Tue, 22 Sep 2026 14:58:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790089120;
-	bh=u6KTYkbQclAPbM4tLLukEDyue3dV0gr5VT5nbT0ra3I=;
+	s=k20260515; t=1790089122;
+	bh=GSJ/mGqSW5RuTirkz901iOf8hAWbkhO8pkCL+J/UXlU=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=m3d8rZPqdyvxkFdW+wjZy8k384TJAFlMH6W+uWBedptDVpjhbzpkCkrLHj00rzNU4
-	 ubIDZGnM1alzIzWyfij/5Wem33NT4kykopjzyEv6NEpZmGKTyoVhP78bgKqnPstpBQ
-	 AtXGWL4l11kGv63TO03v6Skz1EkUA2K9mP54I7l69uW91M+lmhfKssddeY+83orUYp
-	 n+t30dG2X73pn4vtZA5dQX42u1agvAUAqHxM3cBishEUDiohNIOuRrCfq3h6lS7TIg
-	 TjNKmNNoXc+tNeMvYuP6s2WidPokiF8++d/BaU6xki7Z1bwBcktjH+DTs8SzNmtrVr
-	 WjRVZbdO/URRg==
-Subject: Re: [PATCH net 3/6] net: openvswitch: conntrack: fix helper UAF due
- to extensions realloc
+	b=H1bSddWo+VxeUIPwxFCRZTAOkZ3ya0qXoxsHw/nNbM5e9D1XGOlkixtni3Y0mHCgO
+	 V1z1sRPPAMrtj4PZGgAb2x8vSW/CZ9pZi4mLDK1GrmJduXiWcEuyiIJGE7/H/ATEgF
+	 ugAWPw/e7Ibvi4qE9wfvgRt2DUrxIc8G8mihMCLcCAleqGieiIiRPWHxG7Fx/W5R0M
+	 HMCoNKvrJqfTB/QxwFRMRrLxSDWTFLgxAry6p0gHdaI7a3J9QVf+d4OHR8cEwrVvBz
+	 TRBKQbPKHVTgCKsAnldm5KGZTsWeQv+53qmf2/Zcv6r3axkrxhZ1WnwGRxHrcFtYwa
+	 Wa6qT9cvCapGA==
+Subject: Re: [PATCH net 4/6] net/sched: act_ct: avoid modifying shared
+ unconfirmed ct entry
 From: netdev-bot+sashiko@kernel.org
 To: i.maximets@ovn.org
 Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
@@ -36,11 +36,11 @@ Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
  jiri@resnulli.us, lucien.xin@gmail.com, marcelo.leitner@gmail.com,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  linux-kernel@vger.kernel.org, dev@openvswitch.org, stable@vger.kernel.org
-Date: Tue, 22 Sep 2026 14:58:39 +0000
-Message-ID: <179008911935.2160803.14933035266780079917@kernel.org>
-In-Reply-To: <20260921145655.3167436-4-i.maximets@ovn.org>
-References: <20260921145655.3167436-4-i.maximets@ovn.org>
-X-sashiko-severity: Low
+Date: Tue, 22 Sep 2026 14:58:40 +0000
+Message-ID: <179008912095.2160803.9187949237353089190@kernel.org>
+In-Reply-To: <20260921145655.3167436-5-i.maximets@ovn.org>
+References: <20260921145655.3167436-5-i.maximets@ovn.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -50,128 +50,174 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 (1) · Low: 0
 
-- [Low] Inaccurate newly added comment in __ovs_ct_lookup()
-  (net/openvswitch/conntrack.c:820-826).
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] tcf_ct_act() now discards an unconfirmed conntrack entry
+  purely because its refcount is >1, without checking whether the…
 
 Pre-existing issues:
-- [Low] Concern (INVALIDATED by later patch in the same series): the
-  identical helper/expectation use-after-free was claimed to remain…
+- [Medium] At this commit, tcf_ct_act() still calls nf_ct_helper()
+  (net/sched/act_ct.c:1106) before the commit block that grows the…
 
 --
 
-net: openvswitch: conntrack: fix helper UAF due to extensions realloc
+net/sched: act_ct: avoid modifying shared unconfirmed ct entry
 
-This moves the nf_ct_helper() call for unconfirmed connections out of
-__ovs_ct_lookup() and into ovs_ct_commit(), after the mark, labels and
-act_ct extensions have been added, so that a later extension realloc
-cannot invalidate the expectation list pointer wired up by the helper.
+tcf_ct_act() now resets the skb conntrack association when the cached entry
+is unconfirmed and its refcount shows it is shared with another skb, so that
+a commit or nat pass cannot grow the extension area of an entry another
+clone still points into.  The nat flag is also hoisted into a local
+variable.
 
-No Link: tags are present in the commit header.
+> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+> index 55f3521edb4c9..e72143d36b119 100644
+> --- a/net/sched/act_ct.c
+> +++ b/net/sched/act_ct.c
 
-> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-> index c20f096eef40e..d3326edcabf76 100644
-> --- a/net/openvswitch/conntrack.c
-> +++ b/net/openvswitch/conntrack.c
-> @@ -817,11 +817,14 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
->  			}
->  		}
+[ ... ]
+
+> @@ -998,6 +998,7 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+>  	retval = p->action;
+>  	commit = p->ct_action & TCA_CT_ACT_COMMIT;
+>  	clear = p->ct_action & TCA_CT_ACT_CLEAR;
+> +	nat = p->ct_action & TCA_CT_ACT_NAT;
+>  	tmpl = p->tmpl;
 >  
-> -		/* Call the helper only if:
-> -		 * - nf_conntrack_in() was executed above ("!cached"), or
-> -		 * - When committing an unconfirmed connection.
-> +		/* Call the helper only if nf_conntrack_in() was executed
-> +		 * above ("!cached").
-> +		 *
-> +		 * For unconfirmed connections it will be called later during
-> +		 * commit as we need to have all the other extensions allocated
-> +		 * before the call.
->  		 */
-> -		if ((nf_ct_is_confirmed(ct) ? !cached : info->commit)) {
-> +		if (nf_ct_is_confirmed(ct) && !cached) {
+>  	tcf_lastuse_update(&c->tcf_tm);
+> @@ -1046,6 +1047,19 @@ TC_INDIRECT_SCOPE int tcf_ct_act(struct sk_buff *skb, const struct tc_action *a,
+>  	 * different zone.
+>  	 */
+>  	cached = tcf_ct_skb_nfct_cached(net, skb, p);
+> +
+> +	/* If the ct entry is not confirmed and shared with some other skb,
+> +	 * e.g., a cloned one, we can't just modify it with a commit or nat
+> +	 * as we must not modify the extension set.  Reset.
+> +	 */
+> +	if (cached && (commit || nat)) {
+> +		ct = nf_ct_get(skb, &ctinfo);
+> +		if (ct && !nf_ct_is_confirmed(ct) && nf_ct_shared(ct)) {
+> +			nf_reset_ct(skb);
+> +			cached = false;
+> +		}
+> +	}
+> +
 
-[Severity: Low]
-Could this comment be made to match the condition below it?  The text says
-the helper is called only if nf_conntrack_in() ran above ("!cached"), but
-the guard is:
+[Severity: Medium]
+Can this drop NAT state that was already applied to the packet?
 
-	if (nf_ct_is_confirmed(ct) && !cached) {
+The condition keys off nf_ct_shared(ct), i.e. refcount > 1, and not off
+whether the sharing skb will ever be re-processed by conntrack.  act_ct
+permits nat without commit, and in that case
+tcf_ct_act_nat()->nf_ct_nat() (net/netfilter/nf_nat_ovs.c) already
+installs the binding and translates the headers on the unconfirmed entry:
 
-The nf_ct_is_confirmed() term isn't mentioned, which can read as if the
-confirmed check were redundant.
-
-The second half of the comment also promises that for unconfirmed
-connections the helper "will be called later during commit".  Isn't that
-only true for the committing path?  __ovs_ct_lookup() is also reached from
-ovs_ct_lookup(), where info->commit is 0 and there is no nf_ct_helper()
-call anywhere in that action:
-
-net/openvswitch/conntrack.c:ovs_ct_lookup() {
+net/netfilter/nf_nat_ovs.c:nf_ct_nat() {
 	...
-	err = __ovs_ct_lookup(net, key, info, skb);
+	/* Add NAT extension if not confirmed yet. */
+	if (!nf_ct_is_confirmed(ct) && !nf_ct_nat_ext_add(ct))
+		return NF_DROP;   /* Can't NAT. */
 	...
+	err = nf_ct_nat_execute(skb, ct, ctinfo, action, range, maniptype);
 }
 
-So for an unconfirmed entry created by nf_conntrack_in() during a plain
-ct() lookup action, the helper is simply never run and there is no later
-commit to run it.  Behaviour here is the same as before the patch (the old
-nf_ct_is_confirmed(ct) ? !cached : info->commit guard skipped it too), so
-this is only about the wording of the new comment.
+If the skb is then cloned by a path that keeps the nfct reference, and a
+later filter runs "action ct zone N commit" on the original, the new block
+sees cached && commit with an unconfirmed, shared entry, calls
+nf_reset_ct(skb) and sets cached = false.  nf_conntrack_in() then re-tracks
+the already translated packet, so the entry that gets committed carries the
+post-NAT tuple as its ORIGINAL tuple and no matching binding, and reply
+traffic is no longer reverse translated.  Before this change the cached,
+NAT'ed unconfirmed entry was simply committed.
 
->  			int err = nf_ct_helper(skb, ct, ctinfo, info->family);
->  
->  			err = verdict_to_errno(err);
-> @@ -1025,6 +1028,14 @@ static int ovs_ct_commit(struct net *net, struct sw_flow_key *key,
->  			return err;
->  
->  		nf_conn_act_ct_ext_add(skb, ct, ctinfo);
-> +
-> +		/* Call the helpers now.  We couldn't do this before as
-> +		 * all the extensions must be allocated before the call.
-> +		 */
-> +		err = nf_ct_helper(skb, ct, ctinfo, info->family);
-> +		err = verdict_to_errno(err);
-> +		if (err)
-> +			return err;
+One note on the trigger: act_mirred and AF_PACKET taps do not produce this
+sharing, since both clear the association on the clone:
 
-[Severity: Low]
-This isn't a bug introduced by this patch, but the same ordering problem
-exists in the other in-tree caller of nf_ct_helper(), tcf_ct_act() in
-net/sched/act_ct.c, which at this commit runs the helper before the
-extension add for unconfirmed entries:
+net/sched/act_mirred.c:tcf_mirred_to_dev() {
+	/* All mirred/redirected skbs should clear previous ct info */
+	nf_reset_ct(skb_to_send);
+}
+
+net/packet/af_packet.c:packet_rcv() {
+	/* drop conntrack reference */
+	nf_reset_ct(skb);
+}
+
+Bridge flood/multicast delivery does keep it, though -
+net/bridge/br_forward.c:deliver_clone() calls skb_clone() with no
+nf_reset_ct(), so __nf_copy() raises ct_general.use on the clone.
+
+Would it be worth mentioning in the changelog that the reset also fires
+when the second pass does commit?  The changelog currently only argues
+about the "without commit" case:
+
+    This, however, doesn't really change the picture for sensible
+    networking cases as there should be no need to run the same packet
+    twice (before and after the clone) through conntrack without packet
+    header or zone changes and without commit.
+
+[Severity: Medium]
+This is a pre-existing ordering problem and is not introduced by this
+patch, but it is worth flagging for backports since the new guard does not
+cover it.
+
+At this commit tcf_ct_act() still runs the helper before the commit block
+grows the extension area of an unconfirmed entry:
 
 net/sched/act_ct.c:tcf_ct_act() {
 	...
-	if (nf_ct_is_confirmed(ct) ? (!cached && !skip_add) : commit) {
+	if (nf_ct_is_confirmed(ct) ? ((!cached && !skip_add) || add_helper) : commit) {
 		err = nf_ct_helper(skb, ct, ctinfo, family);
-	...
+		if (err != NF_ACCEPT)
+			goto nf_error;
+	}
+
 	if (commit) {
-		tcf_ct_act_set_mark(...);
-		tcf_ct_act_set_labels(...);
+		tcf_ct_act_set_mark(ct, p->mark, p->mark_mask);
+		tcf_ct_act_set_labels(ct, p->labels, p->labels_mask);
+
 		if (!nf_ct_is_confirmed(ct))
 			nf_conn_act_ct_ext_add(skb, ct, ctinfo);
 	...
 }
 
-nf_conn_act_ct_ext_add() -> nf_ct_ext_add() -> krealloc() can move ct->ext,
-leaving exp->lnode.pprev (which points into nf_conn_help inside the old
-ext blob, stored by nf_ct_expect_insert() via
-hlist_add_head_rcu(&exp->lnode, &master_help->expectations)) dangling.
+A helper that inserts an expectation links exp->lnode into a list head that
+lives inside ct->ext:
 
-Note this is already handled by the later patch in the same series,
-"net/sched: act_ct: fix helper UAF due to extensions realloc", which moves
-the tcf_ct_act() helper call below the nf_conn_act_ct_ext_add() block, so
-no extension-adding call remains after the helper in either caller by the
-end of the series.  Mentioned here only for completeness.
+net/netfilter/nf_conntrack_expect.c:nf_ct_expect_insert() {
+	hlist_add_head_rcu(&exp->lnode, &master_help->expectations);
+}
 
->  	} else if (IS_ENABLED(CONFIG_NF_CONNTRACK_LABELS) &&
->  		   labels_nonzero(&info->labels.mask)) {
->  		err = ovs_ct_set_labels(ct, key, &info->labels.value,
+and the following nf_ct_ext_add(NF_CT_EXT_ACT_CT) relocates that memory:
+
+net/netfilter/nf_conntrack_extend.c:nf_ct_ext_add() {
+	new = krealloc(old, alloc, gfp);
+}
+
+leaving exp->lnode.pprev pointing into the freed block, which is written
+through when the expectation is unlinked via nf_ct_remove_expectations().
+
+The new reset only fires for cached entries with refcount > 1, so an entry
+that was just tracked (cached == false), or the replacement entry created
+after the reset, still follows the helper-then-realloc sequence with a
+single skb reference.
+
+The later patch in this series ("net/sched: act_ct: fix helper UAF due to
+extensions realloc") moves nf_ct_helper() after the
+nf_conn_act_ct_ext_add() block with the comment "This has to be done after
+all the extensions are already added.", so the ordering is resolved within
+the series.  Given the stable tag here, should the two patches be marked so
+that backporters take the reordering change together with this one?
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260921145655.3167436-1-i.maximets%40ovn.org
