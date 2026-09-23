@@ -1,39 +1,56 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from out-zbxj-a78.jellyfish.systems (out-zbxj-a78.jellyfish.systems [198.54.127.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2931415B82
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 10:56:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9BD4A093B
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 12:13:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790160980; cv=none; b=LcqxVSY1iCrYN6EOdL1aLnuVeufHTwwozNnVl9rwpfKmu32OGQOo2P90MZb8BIeUKPaX6QuA+y6SRVkrwQNVSsahjBFPrYBCJtZWOVVZH5zbbXeg8qS0Zc3webP79Q5WOJQ93lBz0tqC+pV4KLXfRNJm/A4upsP66kqPJxDRydY=
+	t=1790165593; cv=none; b=Ywe97NC8fBwfX152o1n2gpoTJji7z96SrKE7uHWCXMGGwZj1+udfYjb8pa9tkdxams9qOMbm66E0xIoNeqNzlf0pGEzNFoaVXP8GFInEAG/ipRZBGC0WWDG0L7i9nk00ivRUifg8ogCC1DUezHG8G4rPcO+yrhMJynRlE7Daoq8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790160980; c=relaxed/simple;
-	bh=D1UjMPBvqKpxLXa0L/kD02cIJqyf1j2Skhf7zusiCIU=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ntsomLaiXrUl1hg28rUGTK5yb6Tf8gaObNs4JXc5VYF9k70ciLNH52k3f6lWqKxgK75JSkdr5E8F+3Lkjrynl2JLU8ZgL5zb40tibLEwijcIyttqauVxCYn+1KCsdA+r4d6SmytCkMWRlwzhCZm65I179Z4OP/6twpdKZpFQ2KM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MqFto7O2; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1790165593; c=relaxed/simple;
+	bh=zFinCXNLEu0ze4nQ76eS+VO5+LQazasf6eYONc0uDFA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=dqDPCqnX9ImOrGF7maQWcgCtNE0zL3YkSjas5wTIaK8yUv257ejuiN/IPe9+JYg4G8DBCvu65sPm3TDdDWzTiNQvJSct48vvEK54XnsA8Apobl5GH93wazz2XFvj1zSzaNHthX2hxl1u0d/TplFP425l/6WmOMv7BO9RCUC0o0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=f19C2X4t reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MqFto7O2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790160970;
-	bh=eBOw7fLZNKy8KN/A4SGqxu1s9YSuPbNAYRSALxh+OdQ=;
-	h=From:To:Subject:Date:From;
-	b=MqFto7O2++Y9GSz9W4TG3wcwhjqDGEh+sKhIt4xUM0htWtsA/39Eic8E1FhIttggr
-	 WwwHBnHcmH0/BLecLOwZ6hq8Y8fhHv7IyunL3G7+0thewxVip2J0e0UGi8bLi8iMES
-	 vyr/F1ccBa0sC0/nSrHENkYqJkdmsOuQLCOp1qOTY+IVFXC/S9qpPcb7ZbL+G7aPIs
-	 6Ypf9P1Ka7WZHOIL3EUgeUG6pbacTcudo0RKJopXBBuxfy+kfiCoMCBVAzt7T8ydni
-	 JvxvRC66JMU/bUdJ0uZ6YNFErG69aLm0P2OIyhrG33ONUNYIljXoNHvxjpREIZZpUx
-	 8e1/Huyz7II6Q==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 05CD56005B
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 12:56:09 +0200 (CEST)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3] netfilter: flowtable: generalize pending status bit
-Date: Wed, 23 Sep 2026 12:56:06 +0200
-Message-ID: <20260923105606.33592-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="f19C2X4t"
+Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4hqbM132Pbz8sY0;
+	Wed, 23 Sep 2026 12:07:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1790165262;
+	bh=8SuxllwL7FhyID8IKX9Cc3xbMnHEppmrcasVpdKlnN4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=f19C2X4tWCsrqLAP3l0BHWo1F9FR206ZCS4MjcVm3xal4DNo1Jqh2B8ZDVbNxH8tw
+	 2Mi8qevGJSO7EH4OnHTvrPWcPc/GPdn+2MFtVHkjAsqYgzWtH0p1ktAqqh9qDRqF5K
+	 IkVgrfvNOFNFy8+/o9mGzkqAlnPdut3lYpoF9ECjMkx2CmloPZRHHHRwq/nNyqa3gb
+	 2/+dmJKt52a9bVmuaFa27xhoFc2FFK0TnuSFYewHiPYCO83PZKzITj9L2TFHkX9vi2
+	 7E2vAKRFHPowQ9hqOWsJOaUE4svh+AqO54eyAhtXa3eEiVgWY5gpVY3Wv4NQ4zrwnT
+	 xBSNWPv33l+mw==
+From: Rahul Chandelkar <rc@rexion.ai>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
+	Rahul Chandelkar <rc@rexion.ai>
+Subject: [PATCH nf-next v4 1/4] netfilter: conntrack: add shared uint and port parsers for helpers
+Date: Wed, 23 Sep 2026 12:07:35 +0000
+Message-ID: <20260923120738.2844168-1-rc@rexion.ai>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260923091608.2617604-1-rc@rexion.ai>
+References: <20260923091608.2617604-1-rc@rexion.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,99 +58,134 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Envelope-From: rc@rexion.ai
 
-Rename NF_FLOW_HW_PENDING to NF_FLOW_PENDING and use it to inhibit the
-flowtable GC worker until pending offload work has been completed.
+Several conntrack helpers parse integers and port numbers out of
+application-layer payload.  Some open-code simple_strtoul() (which
+requires a NUL-terminated string and returns unsigned long without any
+range check), while nf_conntrack_sip carries its own sip_strtouint().
 
-Apparently, nf_flow_offload_stats() can schedule work to retrieve stats
-while the flow is being removed by GC.
+Add two length-delimited parsers to the conntrack helper core so helpers
+can share one implementation:
 
-And this bit can also be used in a follow up patch to disable GC until
-the flow has been fully added in both directions.
+  nf_ct_helper_parse_uint() - bounded decimal parser that operates on an
+    unterminated buffer, capping the result at UINT_MAX.  Its body is
+    taken from sip_strtouint() so nf_conntrack_sip can drop its private
+    copy in a later patch.
 
-Fixes: 2c8897953f3b ("netfilter: flowtable: Add pending bit for offload work")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  nf_ct_helper_parse_port() - thin wrapper that parses a port and rejects
+    zero and values above 65535.
+
+Both are exported so the IRC, Amanda and SIP helpers can use them.
+
+Signed-off-by: Rahul Chandelkar <rc@rexion.ai>
 ---
-v3: just a rebase on top of net.git
+ include/net/netfilter/nf_conntrack_helper.h |  5 ++
+ net/netfilter/nf_conntrack_helper.c         | 68 +++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
- include/net/netfilter/nf_flow_table.h | 2 +-
- net/netfilter/nf_flow_table_core.c    | 7 ++++++-
- net/netfilter/nf_flow_table_offload.c | 6 +++---
- net/sched/act_ct.c                    | 2 +-
- 4 files changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index f2e2771f188f..f14fd70e8289 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -186,7 +186,7 @@ enum nf_flow_flags {
- 	NF_FLOW_HW,
- 	NF_FLOW_HW_DYING,
- 	NF_FLOW_HW_DEAD,
--	NF_FLOW_HW_PENDING,
-+	NF_FLOW_PENDING,
- 	NF_FLOW_HW_BIDIRECTIONAL,
- 	NF_FLOW_HW_ESTABLISHED,
- };
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 934c6151f558..36bbc7be2f74 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -575,7 +575,12 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
- static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
- 				    struct flow_offload *flow, void *data)
- {
--	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
-+	bool teardown;
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 335b8c43694f..4d5ad5ae1d13 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -184,6 +184,11 @@ nf_ct_helper_expectfn_find_by_name(const char *name);
+ struct nf_ct_helper_expectfn *
+ nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
+ 
++unsigned int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
++				     char **endp);
++int nf_ct_helper_parse_port(const char *cp, unsigned int len,
++			    u16 *port, char **endp);
 +
-+	if (test_bit(NF_FLOW_PENDING, &flow->flags))
-+		return;
-+
-+	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+ extern struct hlist_head *nf_ct_helper_hash;
+ extern unsigned int nf_ct_helper_hsize;
  
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 6757fd89c1f1..4d1de88ce5d5 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1057,7 +1057,7 @@ static void flow_offload_work_handler(struct work_struct *work)
- 			WARN_ON_ONCE(1);
- 	}
- 
--	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
-+	clear_bit(NF_FLOW_PENDING, &offload->flow->flags);
- 	if (offload->cmd == FLOW_CLS_DESTROY) {
- 		/* Publish after the worker's last flow access. */
- 		smp_mb__before_atomic();
-@@ -1089,12 +1089,12 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
- {
- 	struct flow_offload_work *offload;
- 
--	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
-+	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
- 		return NULL;
- 
- 	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
- 	if (!offload) {
--		clear_bit(NF_FLOW_HW_PENDING, &flow->flags);
-+		clear_bit(NF_FLOW_PENDING, &flow->flags);
- 		return NULL;
- 	}
- 
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 9080cb386c16..97d38608a451 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -289,7 +289,7 @@ static bool tcf_ct_flow_is_outdated(const struct flow_offload *flow)
- {
- 	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
- 	       test_bit(IPS_HW_OFFLOAD_BIT, &flow->ct->status) &&
--	       !test_bit(NF_FLOW_HW_PENDING, &flow->flags) &&
-+	       !test_bit(NF_FLOW_PENDING, &flow->flags) &&
- 	       !test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index c30ae3f203be..99b90a54d8a9 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -16,6 +16,7 @@
+ #include <linux/random.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
++#include <linux/ctype.h>
+ #include <linux/netdevice.h>
+ #include <linux/rculist.h>
+ #include <linux/rtnetlink.h>
+@@ -569,6 +570,73 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
  }
+ EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
  
++/* Parse a decimal unsigned integer from a length-delimited buffer that is not
++ * necessarily NUL-terminated.  At most @len bytes are examined.  On success
++ * the parsed value is returned and, if @endp is non-NULL, *@endp points just
++ * past the last digit consumed.  If no digit is found or the value would
++ * exceed UINT_MAX, 0 is returned and *@endp is set to @cp.
++ */
++unsigned int nf_ct_helper_parse_uint(const char *cp, unsigned int len,
++				     char **endp)
++{
++	const unsigned int max = sizeof("4294967295");
++	unsigned int olen = len;
++	const char *s = cp;
++	u64 result = 0;
++
++	if (len > max)
++		len = max;
++
++	while (olen > 0 && isdigit(*s)) {
++		unsigned int value;
++
++		if (len == 0)
++			goto err;
++
++		value = *s - '0';
++		result = result * 10 + value;
++
++		if (result > UINT_MAX)
++			goto err;
++		s++;
++		len--;
++		olen--;
++	}
++
++	if (endp)
++		*endp = (char *)s;
++
++	return result;
++err:
++	if (endp)
++		*endp = (char *)cp;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_parse_uint);
++
++/* Parse a TCP/UDP port (1-65535) from a length-delimited buffer using
++ * nf_ct_helper_parse_uint().  Returns 0 and stores the port in *@port (and the
++ * end pointer in *@endp) on success, or -1 if no digit is found or the value
++ * is out of range.
++ */
++int nf_ct_helper_parse_port(const char *cp, unsigned int len,
++			    u16 *port, char **endp)
++{
++	char *e = (char *)cp;
++	unsigned int val;
++
++	val = nf_ct_helper_parse_uint(cp, len, &e);
++	if (e == cp || val == 0 || val > 65535)
++		return -1;
++
++	*port = val;
++	if (endp)
++		*endp = e;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_parse_port);
++
+ int nf_conntrack_helper_init(void)
+ {
+ 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
 -- 
-2.47.3
+2.43.0
 
