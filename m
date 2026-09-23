@@ -1,37 +1,37 @@
-Received: from out-zbxj-a78.jellyfish.systems (out-zbxj-a78.jellyfish.systems [198.54.127.78])
+Received: from out-zbxj-a71.jellyfish.systems (out-zbxj-a71.jellyfish.systems [198.54.127.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEAF4311C1B
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 13:15:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 301BB55198A
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 15:20:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790169314; cv=none; b=J6Tb0QTjVnwOuc5W921D9puqm1FahWMF827I9h4EbjRKqht+ykEMGMlDV0h6ZvgvLWB7a6Fhvh92kKVSmd7jGSlyIRlJvqyvY4g6GZCCf5ivzDfamo8QV+xDjsS76avOy19Ma6p1T+qqTcjrcLw2OAS4hqkkLFYTULmTpxbwKOs=
+	t=1790176842; cv=none; b=lNjcRivKSpznan4rjfoPeBB9MuEC0fu1IEONDCR52C/YMuItHXfiv11uRsRo0E+j3TaNuG5osswkVUo/iKkOLoLzdiCXiLtYVuIAOrPIdbWZvgZcEMqfuymOOF4oCOOLyhWD12qGutCkPEofXBAMUD7v1WYVoSYfrd/LmBFHRlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790169314; c=relaxed/simple;
-	bh=SBbfOKGI8sf0uZR4Zr6/WeThSRVc6pW0M/M42ACFumo=;
+	s=arc-20240116; t=1790176842; c=relaxed/simple;
+	bh=UyNwsK58/74ia/q4/Csvw18mU/uJ77tmzFC4kNzxtds=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gXlWZDznDLx6CicN4baq5NZyUY2LGevSjrhuRwT3Li+DQ5oUqEAOPoxvcTbu317LP0bFCLoIy2nMyvnMu9a7xMJ12ftR3yry1KkWrQx4b8G29Jetw32MBy7A5lH3gyorZL7abQRBIjiliu+oekZ1jAenMDFcpoXeZYfMiuFc5UM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=PTRkaiwd reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.78
+	 MIME-Version; b=geneePW4CTcsZ7+UMuP/AygRizXG4U1V0u3+++ldVfQzX/9Sjz4wVSSfAVeisQ5WZlv0spL8VnzdKevDVtkfQdNiKMwl6i6op56XBxYBV/QPv6P4hnsASN+VjeUGQSvLNhHXeqgjEHn29uQ5qpX/kFwZTWNews1tnsj1LEY0z3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=GWKCE59A reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.71
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="PTRkaiwd"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="GWKCE59A"
 Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4hqcrk5rVbz6tkh;
-	Wed, 23 Sep 2026 13:15:02 +0000 (UTC)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4hqgW96PkGz2xCv;
+	Wed, 23 Sep 2026 15:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1790169306;
-	bh=PpWvLYkAetBYUfwKXZZWY3lH6daRUogwJjCH3uHpUlA=;
+	s=spacemail; t=1790176503;
+	bh=5v2Hwz6TMmA1awCX8N0iLH3RRUeS+IKPT42VtVbFlDY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PTRkaiwduPN4dlwu+/NkoGP2APoPAK6DCtmgDcUbxdCLK+3Q3jh3tcpSOaTJkiLSe
-	 JV1+A6NQCLIOZ0WaFmMh1XoRu3NCgsAXI5KgSAamVf4/7Zn0N8feiDquipHosSQRu8
-	 DdXANPmhaTluZYFCLyU5SazOOoRhuUkKQxY+NgF9SwDucdOR0kY+9SalfTA2W8IOMp
-	 RdKCBP7LBeyq+s3/jiR1dvKOJIMKt8BlLBDHKYYUGRE8J/G14PReYB/loHDjiIgYYN
-	 V1WREg260jxan7BvRVrFEWj22ytTKomwkriTrM6z2oNM4bFYdVP4Kw17Omt9RXfkkn
-	 Oqy3o8mJ9RKAg==
+	b=GWKCE59Ay6PB0E/ev4AMueKOPQDiomUTzeOoSXcxOEcPbotRttLqYwvT5vPBv080H
+	 vq0OXPhSI/nqjxm8UVIcjL2BzGb1hlX6EzsnKQKxJcxFSJG8YMRx7C/5v+IScJcTUF
+	 Lqgqwqsmv5yjDr4q8EL9po8HRwy1qtnW2YygORnxZGfqTzha3wMuIn3rRI3W8FO3y2
+	 P4S9JAV1zgRlUXQe0JS16O9N0XCUpqEmgVpbf1oiRBeQAo19Z+t/65efWVmunKdvwU
+	 rX0Qb0K7rzgh7AtkFEqpUcV7TOIg+M4y6stPeWYZSh3oElGbOIY6N7H9Dj+fPn3BRi
+	 ayZXrB4hTcd+g==
 From: Rahul Chandelkar <rc@rexion.ai>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -45,9 +45,9 @@ Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
 	pabeni@redhat.com,
 	netdev@vger.kernel.org,
 	Rahul Chandelkar <rc@rexion.ai>
-Subject: [PATCH nf-next v4 2/4] netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
-Date: Wed, 23 Sep 2026 13:15:01 +0000
-Message-ID: <20260923131501.2934482-1-rc@rexion.ai>
+Subject: [PATCH nf-next v4 3/4] netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+Date: Wed, 23 Sep 2026 15:15:01 +0000
+Message-ID: <20260923151501.3093863-1-rc@rexion.ai>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260923091608.2617604-1-rc@rexion.ai>
 References: <20260923091608.2617604-1-rc@rexion.ai>
@@ -60,36 +60,48 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Envelope-From: rc@rexion.ai
 
-parse_dcc() stored the result of simple_strtoul() directly into a u16
-*port, so a DCC port above 65535 was silently truncated (e.g. 65537
-became 1), creating a conntrack expectation for a port that never
-appeared in the DCC command.
+amanda_help() passed the result of simple_strtoul() straight through
+htons() into a __be16.  The digit string is copied into a 6-byte buffer,
+so at most five digits are parsed, but values 65536-99999 still truncated
+on the u16 conversion (e.g. 65537 became 1).
 
-Use nf_ct_helper_parse_port(), which parses the length-delimited buffer
-without relying on NUL termination and rejects port 0 and values above
-65535.
+Use nf_ct_helper_parse_port(), which rejects port 0 and values above
+65535 in one call.  The trailing len is still derived from the parser's
+end pointer for the NAT mangle path.
 
-Fixes: 869f37d8e48f ("[NETFILTER]: nf_conntrack/nf_nat: add IRC helper port")
+Fixes: 16958900578b ("[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port")
 Signed-off-by: Rahul Chandelkar <rc@rexion.ai>
 ---
- net/netfilter/nf_conntrack_irc.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_amanda.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 92360963757a..268ce7c1f9b2 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -88,7 +88,9 @@ static int parse_dcc(char *data, const char *data_end, __be32 *ip,
- 		data++;
- 	}
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 14ae660491f3..f157c96b7d22 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -89,7 +89,7 @@ static int amanda_help(struct sk_buff *skb,
+ 	struct nf_conntrack_tuple *tuple;
+ 	unsigned int dataoff, start, stop, off, i;
+ 	char pbuf[sizeof("65535")], *tmp;
+-	u16 len;
++	u16 len, parsed_port;
+ 	__be16 port;
+ 	int ret = NF_ACCEPT;
+ 	nf_nat_amanda_hook_fn *nf_nat_amanda;
+@@ -132,10 +132,10 @@ static int amanda_help(struct sk_buff *skb,
+ 			break;
+ 		pbuf[len] = '\0';
  
--	*port = simple_strtoul(data, &data, 10);
-+	if (nf_ct_helper_parse_port(data, data_end - data, port, &data))
-+		return -1;
-+
- 	*ad_end_p = data;
+-		port = htons(simple_strtoul(pbuf, &tmp, 10));
+-		len = tmp - pbuf;
+-		if (port == 0 || len > 5)
++		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
+ 			break;
++		port = htons(parsed_port);
++		len = tmp - pbuf;
  
- 	return 0;
+ 		exp = nf_ct_expect_alloc(ct);
+ 		if (exp == NULL) {
 -- 
 2.43.0
 
