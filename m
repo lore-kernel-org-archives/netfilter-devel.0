@@ -1,359 +1,140 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0848549BD7D
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 12:27:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0525361DA7
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 12:35:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790166479; cv=none; b=sGtK8WK7n9ZD+w8X9QYM5bXzU4Vxmb+u7rQpOMsmqjCrFgaGjKacNuEdbtT/d3JjGaPsyoBaYLz0SqB7BDH4yar6zifHIi4JaZ9lWjSqIBlr2JGgIEtKN5segwu7THeWibUg12B7ZqjZBZBXWkpQYK+crXSpIIeKy/uR5EB+BJw=
+	t=1790166936; cv=none; b=cG0IXOa1FXogjQ/ZjJv3nTeNhA4dTWyp0A5QYyWuEPdqmKPVxjQWS0UAXcPY3yXsR1FrfpJCS5c31YtQfwb5zz3dwsKYBScr+TZkPV7zo0lj0r9bfwz1K6fj3cdhcgHX3/G5GJ3KOztlnybtcwAd522LKP45DU+oqDm2iWikRNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790166479; c=relaxed/simple;
-	bh=os1ZrQS8kNoYTpCi8/R2cjgGZbw8tIpGZQo+gb9Uzz8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=sz/AKCBNZebmg6xZlHJzQ+stfae1tULw/muavRsF+gwNP+OUUHBh4CWN2x3qWxkAdgZGtPg38sjeFSrBGsC4cXoF+aq/xTxWKZ7AZEuOPbrff9EhdXqgbCLcT0HSd5KSswqM5Jg62fTOTgYqFB/otbxXdNUzWFJDAKiayDKl38E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 774466038C; Wed, 23 Sep 2026 14:27:52 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next] netfilter: conntrack: add and use nf_ct_get_real()
-Date: Wed, 23 Sep 2026 14:27:41 +0200
-Message-ID: <20260923122741.30468-1-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1790166936; c=relaxed/simple;
+	bh=x7Apl9ihKaoaWZi5tsiyj9XdsN5NTj65ZbJChWnAXUw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=rVRZcEIWzl+CbeZ4QVMT7QW00Djh5KOa2lSjKeBBHocQ7w3X12QceZ7vMBXtSE7f3Wrez+gG7eC3KAaebl1aK+z9wPjOGlXCtSJMP7KNdrXlTDDrdnpwzOS4hExB0VoaPPpUz/Dmw9l3oAL1S2reMxExoCqwQxoY44aiWaJwov0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Uklwd6d0; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=a60OyogU; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Uklwd6d0";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="a60OyogU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1790166933;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UDQWN+qvZeX1gaIgZOYdsKlCuMncX8rgK5IP5SLXF5I=;
+	b=Uklwd6d0eRA+Eyy2vAggML6T0CSrcFOyGz/uLDNGkTBXEtKvXHVdxMzfrbcAJJ8MZsKS4o
+	nbB5R+KH1+FMPRg61ri+N7lC6HmQ1KtlRDnY5WQSlRuguud2ZTNpS/mmBVrJSYlm+ehv84
+	VqzDyxgzwJwRVtOkWI4iLvyS0EFne7w=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-344-RtoWhSB6PcOozIxLbTkp4w-1; Wed, 23 Sep 2026 08:35:31 -0400
+X-MC-Unique: RtoWhSB6PcOozIxLbTkp4w-1
+X-Mimecast-MFC-AGG-ID: RtoWhSB6PcOozIxLbTkp4w_1790166930
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-49e6b5c5f44so12544105e9.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 05:35:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1790166930; x=1790771730; darn=vger.kernel.org;
+        h=content-type:mime-version:user-agent:message-id:date:references
+         :in-reply-to:subject:cc:to:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=UDQWN+qvZeX1gaIgZOYdsKlCuMncX8rgK5IP5SLXF5I=;
+        b=a60OyogUZ+HcW76z3sOpzu0sYxAgSCaskaeDeHAHgy3uDs6dg3MVYweUmRazLxr3rR
+         ky25sj+3BYPckeFqZ9/ZZAv+9ODycMinEgwZb6RqHSNr2d50qhNyYAOmje8D4d5e6LrC
+         XuU6GKQkOPeiN7oSjzbhmnI/IPU1710iM0z+X6+0pTw6gT5HIQonOsxQM8KXSG/8+354
+         V6kpUuxqqeazPwnWB9C3OuRTFGCscX+sDk0vtTg6UdjNkgVN3ucskiq9xdNUDZHd162i
+         hR19Gxv3BEd/vld7hxOsrMoW5mQlRZVo5whjeLwaclQf+DYVVCiy4YqU9fpKCczVboiL
+         LhdA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790166930; x=1790771730;
+        h=content-type:mime-version:user-agent:message-id:date:references
+         :in-reply-to:subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=UDQWN+qvZeX1gaIgZOYdsKlCuMncX8rgK5IP5SLXF5I=;
+        b=dorDWLiyNzxtMVPhgdTmcd1dmF5IiS3QLYmBD0ac8EeJVk9o0/oXrhCm/2IBM8WOD9
+         ZgIJCI+jDO7YGqH6Jd3NHGx6EKR3OnNYPqY9a2C+eZRAFGmIYJr1tDH/S2GvRJZgsGuq
+         QuDk059Y6MQoEisVv/Zdb1Hn/tYyTMXtkGEc+eaZMrwink8614Q4q4RPdBBDLLM3FRd2
+         BMFpap+fGIJHPKxdU0OpM/MW0PhgpwI3CRur88mmMJ4aLEt7xOloe8XYzbvxWiRJzGu4
+         b9eufBwkgYAHc+wqAr/svvi4WhwhnowRlQuqKa33Ep89ovePb2PtiFLojmIGd9/of/xP
+         k1wA==
+X-Forwarded-Encrypted: i=1; AKwUvBy1NLZzgjW0zsy4pMFx+1WHjlMnFUo2SNxDcCu6PwgkfxxgE+fQg99/bYMepdrRCmVRoGZ+IzpWdM6JgVR1tC8=@vger.kernel.org
+X-Gm-Message-State: AFuF++mcP/MsVMF+WqupAfaII0Uw4EluYl0zA3JDNIrPaLdlJTWyLzvO
+	A0cF89aQ4sYksAvzIRQH8LaVAOgxzWP4hs2V/hpTrKt4eGU+yHRl5rAJKP1dXXAQlfFZLHzq5MH
+	/aDTVfmzXrhV5hVk45JQfBH2jn2lGGdodm1zSIMtzB/V3Qk9lOxDd8KYVxPH2XhYaeUt5Tg==
+X-Gm-Gg: AYBFou06t5WHyuteBOIPs4UkrvvndX+UnjqNdvzrp2uK6ozp5g7NsWp08r9aQsSKQv1
+	UgO+hJKo8T75KDngus/o4h9ifaR9ac8vM6gZ7EHqQ9IogE6FOmiIf9Rtd/QWVt7Z7zc1/dgugAA
+	YZCw3x7AuilFp58OOGhep6aRW8+zgg6qZxOY+2Vc3YU/nal31+vBpFxzZD2GvIJ/7XFKaduF2nG
+	VzHq8Ba5A4afRnYgLx8f8NF4ri2HaYySpX8uNkF/mE+C53v6w5h9OJDlxB5wH0Jr23eq8G+SRGa
+	p2rZpxRQQ3/6nlemVh5zY6a8B8/sNbMqyeToosd4WXLrPGEDM3HprhADHxPVmdN/YM2tdKmnb+s
+	XqWTi8M2UbNMR55VDBRQhqjABNIcEq9de6J0sx68=
+X-Received: by 2002:a05:600d:1:b0:49f:e3d4:4c1f with SMTP id 5b1f17b1804b1-49fe3d44c52mr16737105e9.8.1790166930501;
+        Wed, 23 Sep 2026 05:35:30 -0700 (PDT)
+X-Received: by 2002:a05:600d:1:b0:49f:e3d4:4c1f with SMTP id 5b1f17b1804b1-49fe3d44c52mr16736585e9.8.1790166930125;
+        Wed, 23 Sep 2026 05:35:30 -0700 (PDT)
+Received: from aconole-thinkpadt14gen4.rmtusnh.csb ([216.212.25.12])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fde1ccb90sm75125185e9.6.2026.09.23.05.35.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Sep 2026 05:35:29 -0700 (PDT)
+From: Aaron Conole <aconole@redhat.com>
+To: Ilya Maximets <i.maximets@ovn.org>
+Cc: netdev@vger.kernel.org,  Pablo Neira Ayuso <pablo@netfilter.org>,
+  Florian Westphal <fw@strlen.de>,  Phil Sutter <phil@nwl.cc>,  "David S.
+ Miller" <davem@davemloft.net>,  Eric Dumazet <edumazet@google.com>,  Jakub
+ Kicinski <kuba@kernel.org>,  Paolo Abeni <pabeni@redhat.com>,  Simon
+ Horman <horms@kernel.org>,  Eelco Chaudron <echaudro@redhat.com>,  Jamal
+ Hadi Salim <jhs@mojatatu.com>,  Jiri Pirko <jiri@resnulli.us>,  Xin Long
+ <lucien.xin@gmail.com>,  Marcelo Ricardo Leitner
+ <marcelo.leitner@gmail.com>,  netfilter-devel@vger.kernel.org,
+  coreteam@netfilter.org,  linux-kernel@vger.kernel.org,
+  dev@openvswitch.org,  stable@vger.kernel.org,  Axel Mierczuk
+ <axel.mierczuk@1password.com>
+Subject: Re: [PATCH net 6/6] net/sched: act_ct: fix helper UAF due to
+ extensions realloc
+In-Reply-To: <20260921145655.3167436-7-i.maximets@ovn.org> (Ilya Maximets's
+	message of "Mon, 21 Sep 2026 16:55:48 +0200")
+References: <20260921145655.3167436-1-i.maximets@ovn.org>
+	<20260921145655.3167436-7-i.maximets@ovn.org>
+Date: Wed, 23 Sep 2026 08:35:26 -0400
+Message-ID: <f7ta4p89mcx.fsf@aconole-thinkpadt14gen4.rmtusnh.csb>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-Like nf_ct_get() but returns NULL in case skb is still associated
-with a template conntrack object.
+Ilya Maximets <i.maximets@ovn.org> writes:
 
-This patch doesn't fix crashes, hence no fixes tag, but the missing
-template checks in these functions allow for undesireable resp.
-non-deterministic behaviour.  Example:
+> While calling the helpers, a raw pointer to the extensions area is
+> wired into expectations list:
+>
+>   -> nf_ct_helper()
+>    -> helper->help()
+>     -> nf_ct_expect_related_report()
+>      -> nf_ct_expect_insert()
+>       -> hlist_add_head_rcu(&exp->lnode, &master_help->expectations)
+>
+> In case the connection is not confirmed yet, more extensions can be
+> added afterwards with *_ext_add() calls reallocating the extension
+> space and leaving the now invalid pointer in the expectations list
+> that is later accessed while removing the expectation.
+>
+> Make sure that helpers are called at the end after all the other
+> extensions are already added.
+>
+> Note that the helper rejection now leaves the mark and labels set,
+> but that's not different from how the NAT was handled before or how
+> the mark and the labels were handled on confirmation failure.  And
+> there are no atomicity guarantees provided by the API anyway.
+>
+> Fixes: a21b06e73191 ("net: sched: add helper support in act_ct")
+> Cc: stable@vger.kernel.org
+> Reported-by: Axel Mierczuk <axel.mierczuk@1password.com>
+> Signed-off-by: Ilya Maximets <i.maximets@ovn.org>
+> ---
 
-1. netns A: "ct zone set N" attaches shared per-CPU template.
-   Then, CONNMARK --set-mark .. (or any unguarded nf_ct_get() caller
-   reachable before nf_conntrack_in consumes the template) writes
-   ct->mark = 0x1 into that shared object.
-2. nf_conntrack_in() later runs, consumes the template for netns
-   A's real connection — but the shared per-CPU object's mark field still
-   holds 0x1.
-3. netns B, same CPU, next packet hitting ct zone set reuses that same
-   object (oldcnt == 1 again) and gets zone reset, but mark is still 0x1
-   from netns A until something explicitly overwrites it — visible to any
-   subsequent ct mark read in netns B before it's set again.
-
-Many places continue to use nf_ct_get(), because they fall into
-one of the following categories:
-
-1. They actually do want a template, (e.g defrag hook for zone info)
-2. Already do check the template bit
-3. Cannot see a template in the existing pipeline,
-   e.g. NAT functions (template is removed in nf_conntrack_in),
-   synproxy (its in INPUT hook, so after nf_conntrack_in).
-
-net/sched is also left alone, I can't find a way to provide those places
-with a conntrack template. act_ct sets one, but then calls
-nf_conntrack_in() which consumes that template to make a real ct entry.
-
-Same for OVS; I can't find a callpath that would result in arrival of
-skb with a template conntrack.
-
-Assisted-by: LLM
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: also convert nfnetlink_log and make nft_ct.c
- consistent with the xt_conntrack.c change, i.e.
- "templates don't even exist".
-
- include/net/netfilter/nf_conntrack.h | 12 ++++++++++++
- net/ipv4/netfilter/nf_socket_ipv4.c  |  2 +-
- net/ipv6/netfilter/nf_socket_ipv6.c  |  2 +-
- net/netfilter/nfnetlink_log.c        |  2 +-
- net/netfilter/nfnetlink_queue.c      |  4 ++--
- net/netfilter/nft_ct.c               |  4 ++--
- net/netfilter/nft_ct_fast.c          |  4 ++--
- net/netfilter/nft_flow_offload.c     |  2 +-
- net/netfilter/xt_CONNSECMARK.c       |  4 ++--
- net/netfilter/xt_HMARK.c             |  2 +-
- net/netfilter/xt_connbytes.c         |  2 +-
- net/netfilter/xt_connlabel.c         |  2 +-
- net/netfilter/xt_connmark.c          |  4 ++--
- net/netfilter/xt_conntrack.c         |  2 +-
- net/netfilter/xt_helper.c            |  2 +-
- net/netfilter/xt_ipvs.c              |  2 +-
- 16 files changed, 32 insertions(+), 20 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index bc42dd0e10e6..eb55a4dc0d60 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -260,6 +260,18 @@ static inline int nf_ct_is_template(const struct nf_conn *ct)
- 	return test_bit(IPS_TEMPLATE_BIT, &ct->status);
- }
- 
-+/* Like nf_ct_get(), but returns NULL for template conntracks. */
-+static inline struct nf_conn *
-+nf_ct_get_real(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
-+{
-+	struct nf_conn *ct = nf_ct_get(skb, ctinfo);
-+
-+	if (ct && nf_ct_is_template(ct))
-+		return NULL;
-+
-+	return ct;
-+}
-+
- /* It's confirmed if it is, or has been in the hash table. */
- static inline int nf_ct_is_confirmed(const struct nf_conn *ct)
- {
-diff --git a/net/ipv4/netfilter/nf_socket_ipv4.c b/net/ipv4/netfilter/nf_socket_ipv4.c
-index f9c6755f5ec5..e3d0ae943bd4 100644
---- a/net/ipv4/netfilter/nf_socket_ipv4.c
-+++ b/net/ipv4/netfilter/nf_socket_ipv4.c
-@@ -130,7 +130,7 @@ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
- 	 * case this is a reply packet of an established
- 	 * SNAT-ted connection.
- 	 */
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (ct &&
- 	    ((iph->protocol != IPPROTO_ICMP &&
- 	      ctinfo == IP_CT_ESTABLISHED_REPLY) ||
-diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
-index 893f2aeb4711..71a61e3eed4b 100644
---- a/net/ipv6/netfilter/nf_socket_ipv6.c
-+++ b/net/ipv6/netfilter/nf_socket_ipv6.c
-@@ -145,7 +145,7 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
- 	 * case this is a reply packet of an established
- 	 * SNAT-ted connection.
- 	 */
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (ct &&
- 	    ((tproto != IPPROTO_ICMPV6 &&
- 	      ctinfo == IP_CT_ESTABLISHED_REPLY) ||
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index d923f2cb1398..dddbaf6860cc 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -787,7 +787,7 @@ nfulnl_log_packet(struct net *net,
- 	if (inst->flags & NFULNL_CFG_F_CONNTRACK) {
- 		nfnl_ct = rcu_dereference(nfnl_ct_hook);
- 		if (nfnl_ct != NULL) {
--			ct = nf_ct_get(skb, &ctinfo);
-+			ct = nf_ct_get_real(skb, &ctinfo);
- 			if (ct != NULL)
- 				size += nfnl_ct->build_size(ct);
- 		}
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c727668b0c5b..607fe0549d5c 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -786,7 +786,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	if (queue->flags & NFQA_CFG_F_CONNTRACK) {
- 		if (nfnl_ct != NULL) {
--			ct = nf_ct_get(entskb, &ctinfo);
-+			ct = nf_ct_get_real(entskb, &ctinfo);
- 			if (ct != NULL)
- 				size += nfnl_ct->build_size(ct);
- 		}
-@@ -1730,7 +1730,7 @@ static struct nf_conn *nfqnl_ct_parse(const struct nfnl_ct_hook *nfnl_ct,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	struct nf_conn *ct;
- 
--	ct = nf_ct_get(entry->skb, ctinfo);
-+	ct = nf_ct_get_real(entry->skb, ctinfo);
- 	if (ct == NULL)
- 		return NULL;
- 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 3c4c2faa7398..211a4624761a 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -62,7 +62,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 	const struct nf_conntrack_helper *helper;
- 	unsigned int state;
- 
--	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	ct = nf_ct_get_real(pkt->skb, &ctinfo);
- 
- 	switch (priv->key) {
- 	case NFT_CT_STATE:
-@@ -78,7 +78,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 		break;
- 	}
- 
--	if (!ct || nf_ct_is_template(ct))
-+	if (!ct)
- 		goto err;
- 
- 	switch (priv->key) {
-diff --git a/net/netfilter/nft_ct_fast.c b/net/netfilter/nft_ct_fast.c
-index a44524c4fe63..3f0390fe08e6 100644
---- a/net/netfilter/nft_ct_fast.c
-+++ b/net/netfilter/nft_ct_fast.c
-@@ -14,7 +14,7 @@ void nft_ct_get_fast_eval(const struct nft_expr *expr,
- 	const struct nf_conn *ct;
- 	unsigned int state;
- 
--	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	ct = nf_ct_get_real(pkt->skb, &ctinfo);
- 
- 	switch (priv->key) {
- 	case NFT_CT_STATE:
-@@ -30,7 +30,7 @@ void nft_ct_get_fast_eval(const struct nft_expr *expr,
- 		break;
- 	}
- 
--	if (!ct || nf_ct_is_template(ct)) {
-+	if (!ct) {
- 		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 32b4281038dd..1ab1ad2b3c3b 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -64,7 +64,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	if (nft_flow_offload_skip(pkt->skb, nft_pf(pkt)))
- 		goto out;
- 
--	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	ct = nf_ct_get_real(pkt->skb, &ctinfo);
- 	if (!ct)
- 		goto out;
- 
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index 1494b3ee30e1..264982fa1977 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -35,7 +35,7 @@ static void secmark_save(const struct sk_buff *skb)
- 		struct nf_conn *ct;
- 		enum ip_conntrack_info ctinfo;
- 
--		ct = nf_ct_get(skb, &ctinfo);
-+		ct = nf_ct_get_real(skb, &ctinfo);
- 		if (ct && !ct->secmark) {
- 			ct->secmark = skb->secmark;
- 			nf_conntrack_event_cache(IPCT_SECMARK, ct);
-@@ -53,7 +53,7 @@ static void secmark_restore(struct sk_buff *skb)
- 		const struct nf_conn *ct;
- 		enum ip_conntrack_info ctinfo;
- 
--		ct = nf_ct_get(skb, &ctinfo);
-+		ct = nf_ct_get_real(skb, &ctinfo);
- 		if (ct && ct->secmark)
- 			skb->secmark = ct->secmark;
- 	}
-diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
-index 8928ec56c388..f4c8915d921d 100644
---- a/net/netfilter/xt_HMARK.c
-+++ b/net/netfilter/xt_HMARK.c
-@@ -79,7 +79,7 @@ hmark_ct_set_htuple(const struct sk_buff *skb, struct hmark_tuple *t,
- {
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-+	struct nf_conn *ct = nf_ct_get_real(skb, &ctinfo);
- 	struct nf_conntrack_tuple *otuple;
- 	struct nf_conntrack_tuple *rtuple;
- 
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index 1c6ffc7f1622..fedbcc4c81a0 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -30,7 +30,7 @@ connbytes_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct nf_conn_acct *acct;
- 	const struct nf_conn_counter *counters;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (!ct)
- 		return false;
- 
-diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index 87505cdad5f1..a309caae9f84 100644
---- a/net/netfilter/xt_connlabel.c
-+++ b/net/netfilter/xt_connlabel.c
-@@ -25,7 +25,7 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	struct nf_conn *ct;
- 	bool invert = info->options & XT_CONNLABEL_OP_INVERT;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (ct == NULL)
- 		return invert;
- 
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 2cf27f7d59b9..38f0e6af94af 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -32,7 +32,7 @@ connmark_tg_shift(struct sk_buff *skb, const struct xt_connmark_tginfo2 *info)
- 	u_int32_t newmark;
- 	u_int32_t oldmark;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (ct == NULL)
- 		return XT_CONTINUE;
- 
-@@ -134,7 +134,7 @@ connmark_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	enum ip_conntrack_info ctinfo;
- 	const struct nf_conn *ct;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (ct == NULL)
- 		return false;
- 
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index ea299da24734..0122a0b31fac 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -167,7 +167,7 @@ conntrack_mt(const struct sk_buff *skb, struct xt_action_param *par,
- 	const struct nf_conn *ct;
- 	unsigned int statebit;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 
- 	if (ct)
- 		statebit = XT_CONNTRACK_STATE_BIT(ctinfo);
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index a5a167f941e0..f0a6eed39f8a 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -30,7 +30,7 @@ helper_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	enum ip_conntrack_info ctinfo;
- 	bool ret = info->invert;
- 
--	ct = nf_ct_get(skb, &ctinfo);
-+	ct = nf_ct_get_real(skb, &ctinfo);
- 	if (!ct || !ct->master)
- 		return ret;
- 
-diff --git a/net/netfilter/xt_ipvs.c b/net/netfilter/xt_ipvs.c
-index e13c0ffb73a9..2c92e40ffc5f 100644
---- a/net/netfilter/xt_ipvs.c
-+++ b/net/netfilter/xt_ipvs.c
-@@ -115,7 +115,7 @@ ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	if (data->bitmask & XT_IPVS_DIR) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get_real(skb, &ctinfo);
- 
- 		if (ct == NULL) {
- 			match = false;
--- 
-2.55.0
+Reviewed-by: Aaron Conole <aconole@redhat.com>
 
