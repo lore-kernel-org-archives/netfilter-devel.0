@@ -1,176 +1,608 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5853D57C717
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 20:04:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E2A3A8732
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Sep 2026 21:01:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790193864; cv=none; b=XTMPkB12NojLcpEW/q5FBS/2OZOG5xj1fU9Z8442TtgdCGJLElHkbCT4Mcrw4mutgXgocWF8X4xkQGpc8lxhfCwzKRyyujhXzwpyeWVwY9vG5WjzafKLP/776pFNDn4ldA04gntvyyU3rH2AakCZhfYnr8xAQufqPOKogr8Ph3I=
+	t=1790197304; cv=none; b=BQXxe4CXcgZi3h+Jh7g+O8/XatXj/2xu8IwfHOHoYJxqF2zOZPN93R6QSJNYVdhX+zW2fRI+o78O1nvVH9T9sFDn+CdP+2AVu0R5veqc02w/I/lVWRQaRNCHbs4u5kSK7b4+2G6XIVNplnsSrkib9sICvoQH/BQXYgYwPKcIKZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790193864; c=relaxed/simple;
-	bh=dm8vd2cI3IUcKAZDac4ATBd+yxjevNaW1HPKDV7P9qs=;
+	s=arc-20240116; t=1790197304; c=relaxed/simple;
+	bh=55evk6ILTJtGTCyARw0tnvQAAfyTGi70IgWjlC5X3m0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cfNaLfaTaViltrucL+LcxMB1PdJClrBcYj9es/EkN8uuRJYUVA3gPoNtjrAWYqLM1IL0pqLNulscbc9xIAwBuKl3Bj+Hngf0W128HFLpnjhc++ueMy0yxluC3pO812ctJy6ZSUAuBOpOQrdCIjuzxBB5ud1WrgPlbseVB8F8A9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VuliulrX; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=c6QIHhhkRnVvTM/aCBkbBpPjuNXyat7QXpWgbnyXT5LxSKtW7aaGA4hPwey/s/m8sd5UBk06a6Ovqljeo+epvpNjcPUWF2dcp4Aq6KEL18l6lJEHioN2z0kLJ9xLlEKsfugQPhGvS/Xi38LPd1VEEIULqJ14c4wDm975h+Wpms0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CKfrDVtx; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VuliulrX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790193847;
-	bh=dLX+ymAYvRUZ+S3EvpBiKRDHW+hFKALLHbxrPXgihec=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VuliulrXO8F08pdjs6DvM7GHeKY+MzeG+wuFLCqsruQcNbyqON92lTLsT2UamJe8p
-	 lyo0sftQDkWtV1wa8S900M+LRnFvmwLFur9wld/R51GRLq/aKV289LfKtsGgZF3Qe7
-	 jK1aQFQiKZ2orrOTo9/L/9ELrBUhLoiQ+KjX0SgX6ZFKAQUqYK5nB22p+1D5fajcmt
-	 VzhDsO/gQn1+xhSZFt8sA7sWx4u/oHUSVqLZAfFU4oHR6YyxbPFGpNwIItnwtCrioV
-	 0Gtz175V6zj2FUKYSzbBr/jGWYSmqXK3ZsChoTVyP7kyZzzyecdE7PboQoCi95ClcR
-	 6IPLyAbk7QbgA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9EA906005D;
-	Wed, 23 Sep 2026 22:04:07 +0200 (CEST)
-Date: Wed, 23 Sep 2026 22:04:05 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: Re: [PATCH nf,v3] netfilter: nfnetlink_queue: hash queue instance by
- portid too
-Message-ID: <arQwtSh6BNUZ8BsJ@chamomile>
-References: <20260923184047.48492-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CKfrDVtx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790197299; x=1821733299;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=55evk6ILTJtGTCyARw0tnvQAAfyTGi70IgWjlC5X3m0=;
+  b=CKfrDVtx/mVd+R2kwjf7GcTiiWabBrZz10ncUDfJupOS/HqwfwK1JB0S
+   gI6Elx2jcV9i41i4NPleVXGs/9FiyNQZPT3XGckzqDV6LjP63Rropg7Zo
+   xW7dCNp4gCrIdV8yAq5N8BKmyWnViZBy5ird6oaKzc9vopqALREJodo3S
+   sHtBpyyePhYc41tYSQLNZkPfQoPNmHt2bJjDtv3qzKfE5++hIIFSNYMa/
+   BQdalPOcTj0rHp6d0aKNg1y2bagAQlYYTGzNhg0OvmGCIWP20hvrB2R+8
+   4idBCn0LIQ5fnT5kXdsO3gmLmhdrnMZDtX+l6q2IlhIw+CVlBGq6hN/n7
+   w==;
+X-CSE-ConnectionGUID: 0/BGSsvOTNOBa+2jUPslww==
+X-CSE-MsgGUID: uPeuI9EiT+a3dGMal05Ygw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11914"; a="93440303"
+X-IronPort-AV: E=Sophos;i="6.27,119,1787036400"; 
+   d="scan'208";a="93440303"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2026 14:01:36 -0700
+X-CSE-ConnectionGUID: oXEXX0/ITuKBpaYwF4wTvA==
+X-CSE-MsgGUID: bDFFiaC6SCe8ADXe6ntrFw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,119,1787036400"; 
+   d="scan'208";a="278513345"
+Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 23 Sep 2026 14:01:33 -0700
+Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x9U5q-00000000Hja-04uJ;
+	Wed, 23 Sep 2026 21:01:30 +0000
+Date: Thu, 24 Sep 2026 05:00:59 +0800
+From: kernel test robot <lkp@intel.com>
+To: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, coreteam@netfilter.org,
+	pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, eric@regit.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	Yu Junzhe <junzheyu1@gmail.com>
+Subject: Re: [PATCH nf v2] netfilter: nft_reject: prevent unbounded recursion
+ in output hooks
+Message-ID: <202609240424.i9W3b2H2-lkp@intel.com>
+References: <20260922092503.3238-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260923184047.48492-1-pablo@netfilter.org>
+In-Reply-To: <20260922092503.3238-1-fmancera@suse.de>
 
-On Wed, Sep 23, 2026 at 08:40:46PM +0200, Pablo Neira Ayuso wrote:
-> netlink_release() calls netlink_remove() before delivering the
-> NETLINK_URELEASE event. And a new queue instance can be created before
-> delivering such NETLINK_URELEASE event. This allows for two different
-> queue instances with the same portid to co-exist for a little while.
-> Since the instance that is going away is destroyed by portid via netlink
-> notifier, both the newly created instance and the one that is going away
-> with the same portid are destroyed.
+Hi Fernando,
 
-It seems I cannot fix this in this way. I forgot same socket can be
-bound to several queues.
+kernel test robot noticed the following build errors:
 
-> Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v3: - use siphash instead of lazy hash
->     - fix incorrect hlist and wrong instance_lookup_by_portid()
-> 
->  net/netfilter/nfnetlink_queue.c | 36 +++++++++++++++++++++++++++++++--
->  1 file changed, 34 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index c727668b0c5b..a2086c192063 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -69,6 +69,7 @@
->  
->  struct nfqnl_instance {
->  	struct hlist_node hlist;		/* global list of queues */
-> +	struct hlist_node hlist_portid;		/* global list of queues, by portid */
->  	struct rhashtable nfqnl_packet_map;
->  	struct rcu_work	rwork;
->  
-> @@ -96,11 +97,13 @@ typedef int (*nfqnl_cmpfn)(struct nf_queue_entry *, unsigned long);
->  
->  static struct workqueue_struct *nfq_cleanup_wq __read_mostly;
->  static unsigned int nfnl_queue_net_id __read_mostly;
-> +static siphash_aligned_key_t nfnl_queue_hash_key;
->  
->  #define INSTANCE_BUCKETS	16
->  struct nfnl_queue_net {
->  	spinlock_t instances_lock;
->  	struct hlist_head instance_table[INSTANCE_BUCKETS];
-> +	struct hlist_head instance_table_portid[INSTANCE_BUCKETS];
->  };
->  
->  static struct nfnl_queue_net *nfnl_queue_pernet(struct net *net)
-> @@ -113,6 +116,15 @@ static inline u_int8_t instance_hashfn(u_int16_t queue_num)
->  	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
->  }
->  
-> +static inline u8 instance_portid_hashfn(u32 portid)
-> +{
-> +	u64 hash = siphash_1u32(portid, &nfnl_queue_hash_key);
-> +
-> +	net_get_random_once(&nfnl_queue_hash_key, sizeof(nfnl_queue_hash_key));
-> +
-> +	return reciprocal_scale(hash, INSTANCE_BUCKETS);
-> +}
-> +
->  static const struct rhashtable_params nfqnl_rhashtable_params = {
->  	.head_offset = offsetof(struct nf_queue_entry, hash_node),
->  	.key_offset = offsetof(struct nf_queue_entry, id),
-> @@ -136,6 +148,20 @@ instance_lookup(struct nfnl_queue_net *q, u_int16_t queue_num)
->  	return NULL;
->  }
->  
-> +static struct nfqnl_instance *
-> +instance_lookup_by_portid(struct nfnl_queue_net *q, u32 portid)
-> +{
-> +	struct nfqnl_instance *inst;
-> +	struct hlist_head *head;
-> +
-> +	head = &q->instance_table_portid[instance_portid_hashfn(portid)];
-> +	hlist_for_each_entry(inst, head, hlist_portid) {
-> +		if (inst->peer_portid == portid)
-> +			return inst;
-> +	}
-> +	return NULL;
-> +}
-> +
->  static struct nfqnl_instance *
->  instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
->  {
-> @@ -160,7 +186,8 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
->  		goto out_free;
->  
->  	spin_lock(&q->instances_lock);
-> -	if (instance_lookup(q, queue_num)) {
-> +	if (instance_lookup(q, queue_num) ||
-> +	    unlikely(instance_lookup_by_portid(q, portid))) {
->  		err = -EEXIST;
->  		goto out_unlock;
->  	}
-> @@ -172,6 +199,8 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
->  
->  	h = instance_hashfn(queue_num);
->  	hlist_add_head_rcu(&inst->hlist, &q->instance_table[h]);
-> +	h = instance_portid_hashfn(portid);
-> +	hlist_add_head(&inst->hlist_portid, &q->instance_table_portid[h]);
->  
->  	spin_unlock(&q->instances_lock);
->  
-> @@ -208,6 +237,7 @@ static void
->  __instance_destroy(struct nfqnl_instance *inst)
->  {
->  	hlist_del_rcu(&inst->hlist);
-> +	hlist_del(&inst->hlist_portid);
->  
->  	INIT_RCU_WORK(&inst->rwork, instance_destroy_work);
->  	queue_rcu_work(nfq_cleanup_wq, &inst->rwork);
-> @@ -2119,8 +2149,10 @@ static int __net_init nfnl_queue_net_init(struct net *net)
->  	unsigned int i;
->  	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
->  
-> -	for (i = 0; i < INSTANCE_BUCKETS; i++)
-> +	for (i = 0; i < INSTANCE_BUCKETS; i++) {
->  		INIT_HLIST_HEAD(&q->instance_table[i]);
-> +		INIT_HLIST_HEAD(&q->instance_table_portid[i]);
-> +	}
->  
->  	spin_lock_init(&q->instances_lock);
->  
-> -- 
-> 2.47.3
-> 
-> 
+[auto build test ERROR on netfilter-nf/main]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Fernando-Fernandez-Mancera/netfilter-nft_reject-prevent-unbounded-recursion-in-output-hooks/20260922-112503
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20260922092503.3238-1-fmancera%40suse.de
+patch subject: [PATCH nf v2] netfilter: nft_reject: prevent unbounded recursion in output hooks
+config: arm-randconfig-1000-20260924 (https://download.01.org/0day-ci/archive/20260924/202609240424.i9W3b2H2-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 10.5.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260924/202609240424.i9W3b2H2-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202609240424.i9W3b2H2-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   In file included from include/linux/build_bug.h:5,
+                    from include/linux/container_of.h:5,
+                    from include/linux/list.h:5,
+                    from include/linux/module.h:12,
+                    from net/ipv4/netfilter/nf_reject_ipv4.c:6:
+   include/net/netfilter/nf_recursion.h: In function 'nf_dev_xmit_recursion':
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:317:2: note: in expansion of macro 'TYPEOF_UNQUAL'
+     317 |  TYPEOF_UNQUAL(variable) pscr_ret__;    \
+         |  ^~~~~~~~~~~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:318:2: note: in expansion of macro '__verify_pcpu_ptr'
+     318 |  __verify_pcpu_ptr(&(variable));     \
+         |  ^~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:259:2: note: in expansion of macro '__verify_pcpu_ptr'
+     259 |  __verify_pcpu_ptr(ptr);      \
+         |  ^~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:217:30: note: in expansion of macro 'raw_cpu_generic_read'
+     217 | #define raw_cpu_read_1(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:320:23: note: in expansion of macro 'raw_cpu_read_1'
+     320 |  case 1: pscr_ret__ = stem##1(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:221:3: note: in expansion of macro 'TYPEOF_UNQUAL'
+     221 |  (TYPEOF_UNQUAL(*(__p)) __force __kernel *)((__force unsigned long)(__p))
+         |   ^~~~~~~~~~~~~
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:217:30: note: in expansion of macro 'raw_cpu_generic_read'
+     217 | #define raw_cpu_read_1(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:320:23: note: in expansion of macro 'raw_cpu_read_1'
+     320 |  case 1: pscr_ret__ = stem##1(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:217:30: note: in expansion of macro 'raw_cpu_generic_read'
+     217 | #define raw_cpu_read_1(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:320:23: note: in expansion of macro 'raw_cpu_read_1'
+     320 |  case 1: pscr_ret__ = stem##1(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:259:2: note: in expansion of macro '__verify_pcpu_ptr'
+     259 |  __verify_pcpu_ptr(ptr);      \
+         |  ^~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:220:30: note: in expansion of macro 'raw_cpu_generic_read'
+     220 | #define raw_cpu_read_2(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:321:23: note: in expansion of macro 'raw_cpu_read_2'
+     321 |  case 2: pscr_ret__ = stem##2(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:221:3: note: in expansion of macro 'TYPEOF_UNQUAL'
+     221 |  (TYPEOF_UNQUAL(*(__p)) __force __kernel *)((__force unsigned long)(__p))
+         |   ^~~~~~~~~~~~~
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:220:30: note: in expansion of macro 'raw_cpu_generic_read'
+     220 | #define raw_cpu_read_2(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:321:23: note: in expansion of macro 'raw_cpu_read_2'
+     321 |  case 2: pscr_ret__ = stem##2(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:220:30: note: in expansion of macro 'raw_cpu_generic_read'
+     220 | #define raw_cpu_read_2(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:321:23: note: in expansion of macro 'raw_cpu_read_2'
+     321 |  case 2: pscr_ret__ = stem##2(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:259:2: note: in expansion of macro '__verify_pcpu_ptr'
+     259 |  __verify_pcpu_ptr(ptr);      \
+         |  ^~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:223:30: note: in expansion of macro 'raw_cpu_generic_read'
+     223 | #define raw_cpu_read_4(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:322:23: note: in expansion of macro 'raw_cpu_read_4'
+     322 |  case 4: pscr_ret__ = stem##4(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:221:3: note: in expansion of macro 'TYPEOF_UNQUAL'
+     221 |  (TYPEOF_UNQUAL(*(__p)) __force __kernel *)((__force unsigned long)(__p))
+         |   ^~~~~~~~~~~~~
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:223:30: note: in expansion of macro 'raw_cpu_generic_read'
+     223 | #define raw_cpu_read_4(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:322:23: note: in expansion of macro 'raw_cpu_read_4'
+     322 |  case 4: pscr_ret__ = stem##4(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:223:30: note: in expansion of macro 'raw_cpu_generic_read'
+     223 | #define raw_cpu_read_4(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:322:23: note: in expansion of macro 'raw_cpu_read_4'
+     322 |  case 4: pscr_ret__ = stem##4(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:259:2: note: in expansion of macro '__verify_pcpu_ptr'
+     259 |  __verify_pcpu_ptr(ptr);      \
+         |  ^~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:226:30: note: in expansion of macro 'raw_cpu_generic_read'
+     226 | #define raw_cpu_read_8(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:323:23: note: in expansion of macro 'raw_cpu_read_8'
+     323 |  case 8: pscr_ret__ = stem##8(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:221:3: note: in expansion of macro 'TYPEOF_UNQUAL'
+     221 |  (TYPEOF_UNQUAL(*(__p)) __force __kernel *)((__force unsigned long)(__p))
+         |   ^~~~~~~~~~~~~
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:226:30: note: in expansion of macro 'raw_cpu_generic_read'
+     226 | #define raw_cpu_read_8(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:323:23: note: in expansion of macro 'raw_cpu_read_8'
+     323 |  case 8: pscr_ret__ = stem##8(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+>> include/net/netfilter/nf_recursion.h:12:51: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                                                   ^
+   include/linux/compiler.h:77:42: note: in definition of macro 'unlikely'
+      77 | # define unlikely(x) __builtin_expect(!!(x), 0)
+         |                                          ^
+   include/linux/percpu-defs.h:260:2: note: in expansion of macro 'PERCPU_PTR'
+     260 |  PERCPU_PTR(ptr);      \
+         |  ^~~~~~~~~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:82:3: note: in expansion of macro 'raw_cpu_ptr'
+      82 |  *raw_cpu_ptr(&(pcp));      \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:226:30: note: in expansion of macro 'raw_cpu_generic_read'
+     226 | #define raw_cpu_read_8(pcp)  raw_cpu_generic_read(pcp)
+         |                              ^~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:323:23: note: in expansion of macro 'raw_cpu_read_8'
+     323 |  case 8: pscr_ret__ = stem##8(variable); break;   \
+         |                       ^~~~
+   include/linux/percpu-defs.h:407:28: note: in expansion of macro '__pcpu_size_call_return'
+     407 | #define raw_cpu_read(pcp)  __pcpu_size_call_return(raw_cpu_read_, pcp)
+         |                            ^~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:432:2: note: in expansion of macro 'raw_cpu_read'
+     432 |  raw_cpu_read(pcp);      \
+         |  ^~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:12:18: note: in expansion of macro '__this_cpu_read'
+      12 |  return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+         |                  ^~~~~~~~~~~~~~~
+   In file included from include/asm-generic/percpu.h:9,
+                    from arch/arm/include/asm/percpu.h:68,
+                    from include/linux/irqflags.h:19,
+                    from arch/arm/include/asm/bitops.h:28,
+                    from include/linux/bitops.h:67,
+                    from include/linux/log2.h:12,
+                    from include/asm-generic/div64.h:55,
+                    from arch/arm/include/asm/div64.h:114,
+                    from include/linux/math.h:6,
+                    from include/linux/math64.h:6,
+                    from include/linux/time.h:6,
+                    from include/linux/stat.h:19,
+                    from include/linux/module.h:13,
+                    from net/ipv4/netfilter/nf_reject_ipv4.c:6:
+   include/net/netfilter/nf_recursion.h: In function 'nf_dev_xmit_recursion_inc':
+   include/net/netfilter/nf_recursion.h:18:34: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      18 |  __this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+         |                                  ^
+   include/linux/percpu-defs.h:216:47: note: in definition of macro '__verify_pcpu_ptr'
+     216 |  const void __percpu *__vpp_verify = (typeof((ptr) + 0))NULL; \
+         |                                               ^~~
+   include/linux/percpu-defs.h:409:32: note: in expansion of macro '__pcpu_size_call'
+     409 | #define raw_cpu_add(pcp, val)  __pcpu_size_call(raw_cpu_add_, pcp, val)
+         |                                ^~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:444:2: note: in expansion of macro 'raw_cpu_add'
+     444 |  raw_cpu_add(pcp, val);      \
+         |  ^~~~~~~~~~~
+   include/linux/percpu-defs.h:484:30: note: in expansion of macro '__this_cpu_add'
+     484 | #define __this_cpu_inc(pcp)  __this_cpu_add(pcp, 1)
+         |                              ^~~~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:18:2: note: in expansion of macro '__this_cpu_inc'
+      18 |  __this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+         |  ^~~~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:18:34: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      18 |  __this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+         |                                  ^
+   include/linux/percpu-defs.h:363:16: note: in definition of macro '__pcpu_size_call'
+     363 |  switch(sizeof(variable)) {     \
+         |                ^~~~~~~~
+   include/linux/percpu-defs.h:444:2: note: in expansion of macro 'raw_cpu_add'
+     444 |  raw_cpu_add(pcp, val);      \
+         |  ^~~~~~~~~~~
+   include/linux/percpu-defs.h:484:30: note: in expansion of macro '__this_cpu_add'
+     484 | #define __this_cpu_inc(pcp)  __this_cpu_add(pcp, 1)
+         |                              ^~~~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:18:2: note: in expansion of macro '__this_cpu_inc'
+      18 |  __this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+         |  ^~~~~~~~~~~~~~
+   include/net/netfilter/nf_recursion.h:18:34: error: 'struct netdev_xmit' has no member named 'nf_dup_skb_recursion'
+      18 |  __this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+         |                                  ^
+   include/linux/percpu-defs.h:216:47: note: in definition of macro '__verify_pcpu_ptr'
+     216 |  const void __percpu *__vpp_verify = (typeof((ptr) + 0))NULL; \
+         |                                               ^~~
+   include/linux/percpu-defs.h:263:26: note: in expansion of macro 'per_cpu_ptr'
+     263 | #define raw_cpu_ptr(ptr) per_cpu_ptr(ptr, 0)
+         |                          ^~~~~~~~~~~
+   include/asm-generic/percpu.h:87:3: note: in expansion of macro 'raw_cpu_ptr'
+      87 |  *raw_cpu_ptr(&(pcp)) op val;     \
+         |   ^~~~~~~~~~~
+   include/asm-generic/percpu.h:243:34: note: in expansion of macro 'raw_cpu_generic_to_op'
+     243 | #define raw_cpu_add_1(pcp, val)  raw_cpu_generic_to_op(pcp, val, +=)
+         |                                  ^~~~~~~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:364:11: note: in expansion of macro 'raw_cpu_add_1'
+     364 |   case 1: stem##1(variable, __VA_ARGS__);break;  \
+         |           ^~~~
+   include/linux/percpu-defs.h:409:32: note: in expansion of macro '__pcpu_size_call'
+     409 | #define raw_cpu_add(pcp, val)  __pcpu_size_call(raw_cpu_add_, pcp, val)
+         |                                ^~~~~~~~~~~~~~~~
+   include/linux/percpu-defs.h:444:2: note: in expansion of macro 'raw_cpu_add'
+     444 |  raw_cpu_add(pcp, val);      \
+
+
+vim +12 include/net/netfilter/nf_recursion.h
+
+     8	
+     9	#ifndef CONFIG_PREEMPT_RT
+    10	static inline bool nf_dev_xmit_recursion(void)
+    11	{
+  > 12		return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+    13				NF_RECURSION_LIMIT);
+    14	}
+    15	
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
