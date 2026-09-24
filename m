@@ -1,217 +1,117 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E6E6440A0A;
-	Thu, 24 Sep 2026 08:54:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFED94718C3
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 10:46:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790240085; cv=none; b=Ql996eOF25Rvvko/6/jDSg8dDBTcTkMqIlSt02NtxOgjXfK3JnCJXx64wgtV0qmedjdSDC1zflwB8C2nVqMkXYF5EoUxjJoearhUfnSTpHqCDQbgReQNaQa8IQo8SNAn08X0r1zl4zNu+BA66Z83MB5+jr/CFwN0u2iS0WJhVF0=
+	t=1790246782; cv=none; b=WFwpcRqRBMXLjfky8JgSpcn+9qMOjeS/WpiME1Wnq3j4bTMh/Gb0fl30aP6Ofcv4mP9+DeXsIJQBM5s0c9OCkodNNScyp25tYssaeJpbb+jiZf9SXyAlMqJzyMQWb7Xka57RkljFexpEGZO10BGAX9AVxtmSbcJeIBx9FpIcJ7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790240085; c=relaxed/simple;
-	bh=TV8Z7K1B430nmrx4RxP9GhNrhORYFJqb7ijzTdoyBzw=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=GQN4P1KRDp3ihrz+hU5ilwCnJVU1kNlFN7sTx5KfZ60lc8IDBI/QyFPNpA9oNwPwHtRC0VnhJfkHnP3Va3On1vQ2FiqNMxe0posKWKcSU5gEmR9R0773BCzhMOjiOqQml29nIBT+J8XGyLe3K5z6wus4YVm6EtMAQdXuiPlJy5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DIr8ujDr; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DIr8ujDr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 311AD1F00893;
-	Thu, 24 Sep 2026 08:54:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790240084;
-	bh=4UCBH/32GF80p+YqMwpZQ9XIhB9sDp2LihECBye/aG4=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DIr8ujDrKNW1g6JkqymaHjfghHmbJIXAVuOUuFvxERsDC2pMvT+BjXDhrg5+JVYRZ
-	 f2wbrlDX+23iABnSh0R8Rbz75adMIHhcgW4yzRDY2gbTp009yTHeKNpRFgr082IuYx
-	 WgqkgnbH2pmZxfixJ3gcetf5nLJyJFGopB+nCtmpEMce5WewsuVMwdE8E5WUh2cRg5
-	 NlmVVqDQw/LWgpXUG3sZaxYcLAFC8UF2x3roWOPEL5PS1E/lT0ty2lmvgJlRIPO1eJ
-	 4voPIz2qSWQCHlQM+82f7e4fCL3qWQTC5kEpcGEKPnsrp4pf5cq2qzAcIWritxfUhP
-	 8YOPJJ5xJwFbA==
-Subject:
- Re: [PATCH net v5 2/2] ip: reject partial checksums covering network headers
-From: netdev-bot+sashiko@kernel.org
-To: habte.yibelo@gmail.com
-Cc: netdev@vger.kernel.org, richard@nod.at, anton.ivanov@cambridgegreys.com,
- johannes@sipsolutions.net, willemdebruijn.kernel@gmail.com,
- jasowangio@gmail.com, mst@redhat.com, eperezma@redhat.com,
- xuanzhuo@linux.alibaba.com, andrew+netdev@lunn.ch, pablo@netfilter.org,
- fw@strlen.de, phil@nwl.cc, razor@blackwall.org, idosch@nvidia.com,
- dsahern@kernel.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, horms@kernel.org, linux-um@lists.infradead.org,
- virtualization@lists.linux.dev, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev, linux-kernel@vger.kernel.org
-Date: Thu, 24 Sep 2026 08:54:42 +0000
-Message-ID: <179024008278.2160803.5921856763560195179@kernel.org>
-In-Reply-To: <20260921025341.44846-3-habte.yibelo@gmail.com>
-References: <20260921025341.44846-3-habte.yibelo@gmail.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=arc-20240116; t=1790246782; c=relaxed/simple;
+	bh=znOxCj8486MYrWJaS0SHAyr8akLo+IkGK/2igxvF0W0=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=n4xn7+M9u6f1BPBw02p4h4fl2KjnGk+rkvOVLKJZlUcDJB523Mw8WISkvf4Dc2OcCOqZXuzHQ+R8yOLzmFcTUnN/TJK+/L7V7IcmlV/6iPV8APU+yAxmbpgFczZtwvX+rQMDfpoxbFUBJO8UzTOy0kYzfpQiZjm2Gfvhzwi9HSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 948DE60460; Thu, 24 Sep 2026 12:46:17 +0200 (CEST)
+Date: Thu, 24 Sep 2026 12:46:16 +0200
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Subject: conntrack extension preallocation problems
+Message-ID: <arT_eE_oV2ZEx-Zm@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+TL;DR: simple prellocation is not possible, it will result in at least
+192 bytes ct->ext allocation for most use-cases which is hardly
+desirable.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Following extensions exist in tree:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Extension                 |size| activation
+---------------------------------------------
+struct nf_conn_act_ct_ext |  8 | act_ct/ovs only, could be converted to template
+struct nf_conn_acct	  | 32 | sysctl only
+struct nf_conn_labels     | 16 | ruleset (sysctl-like)
+struct nf_conn_seqadj     | 24 | dependency of helper and synproxy
+struct nf_conn_synproxy   | 16 | template
+struct nf_conn_timeout    |  8 | template OR nft_ct objref
+struct nf_conn_tstamp     | 16 | sysctl
+struct nf_conntrack_ecache| 32 | sysctl or template or nft_ct
+struct nf_conn_nat	  |  8 | nft_masq/MASQUERADE/PPTP helper
+struct nf_conn_help       | 56 | expectation / template / nft_ct objref
+                                 (ct helper set X, ct expectation set)
 
-- [High] Incomplete fix: the checksum-start validation is added only at
-  the four fragmentation entry points (ip_do_fragment(),…
+Simple extensions are all those that get enabled based on sysctl
+setting or template. For those init_conntrack() will know they are
+going to be added anyway. This is true for:
 
---
+struct nf_conn_acct	  | 32
+struct nf_conn_labels     | 16
+struct nf_conn_synproxy   | 16
+struct nf_conn_tstamp     | 16
+                            80 bytes
 
-ip: reject partial checksums covering network headers
+Almost-Trivial: could convert to template with a bit of refactoring, no
+backwards compat issues / breakage that I can see:
 
-This adds a check that the CHECKSUM_PARTIAL start offset lies at or after
-the parsed network header before calling skb_checksum_help() in the four
-fragmentation entry points ip_do_fragment(), nf_br_ip_fragment(),
-ip6_fragment() and br_ip6_fragment().  For IPv4 the IHL is read and
-validated first and iph is reacquired after the checksum is completed.
+struct nf_conn_act_ct_ext | 8
 
-Link: https://lore.kernel.org/netdev/20260920004733.6473-3-habte.yibelo@gmail.com/
+The remaining extensions are all problematic, I can't find any other
+solution other than "speculative preallocation if used in ruleset" (can
+be pernet):
 
-> diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-> index a24cc8ee11d3..fa6a74d205e2 100644
-> --- a/net/ipv4/ip_output.c
-> +++ b/net/ipv4/ip_output.c
-> @@ -770,16 +770,28 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
->  	struct ip_frag_state state;
->  	int err = 0;
->  
-> -	/* for offloaded checksums cleanup checksum before fragmentation */
-> -	if (skb->ip_summed == CHECKSUM_PARTIAL &&
-> -	    (err = skb_checksum_help(skb)))
-> -		goto fail;
-> -
->  	/*
->  	 *	Point into the IP datagram header.
->  	 */
->  
->  	iph = ip_hdr(skb);
-> +	hlen = iph->ihl * 4;
-> +	if (unlikely(hlen < sizeof(*iph) || hlen > skb_headlen(skb))) {
-> +		err = -EINVAL;
-> +		goto fail;
-> +	}
-> +
-> +	/* Complete offloaded checksums only after the validated IP header. */
-> +	if (skb->ip_summed == CHECKSUM_PARTIAL) {
-> +		if (unlikely(skb_checksum_start_offset(skb) < (int)hlen)) {
-> +			err = -EINVAL;
-> +			goto fail;
-> +		}
-> +		err = skb_checksum_help(skb);
-> +		if (err)
-> +			goto fail;
-> +		iph = ip_hdr(skb);
-> +	}
+Extension                 |size| problematic case
+-----------------------------------------------------------------------
+struct nf_conn_seqadj     | 24 | depends on helper resp. synproxy
+struct nf_conn_timeout    |  8 | nft_ct objref
+struct nf_conntrack_ecache| 32 | nft_ct expr
+struct nf_conn_nat	  |  8 | masq/-j MASQUERADE or PPTP helper
+struct nf_conn_help       | 56 | nft_ct objref (ct helper set X) nft_ct expr (ct expectation set)
 
-[Severity: High]
-The guard is added at the four fragmentation entry points, but the
-offending csum_start stays on the skb.  Is the bug class named in the
-subject still reachable for packets that are not fragmented?
+128 bytes total, this means kmalloc-192 (due to ext header size).
 
-The generic transmit path completes the same checksum without any
-comparable check:
+NAT: single rule (-j MASQUERADE or rule add ... masq) forces this
+extension to on for all.
+NAT: PPTP helper existence also needs this as dependency
 
-net/core/dev.c:validate_xmit_skb() {
-	...
-		if (skb_csum_hwoffload_help(skb, features))
-			goto out_kfree_skb;
-	...
-}
+ecache: single "ct event set .." is enough to force prealloc for all.
 
-net/core/dev.c:skb_csum_hwoffload_help() {
-	...
-sw_checksum:
-	return skb_checksum_help(skb);
-}
+help: same, single "ct expectation set", "ct helper set " is enough.
+timeout: same, via "ct timeout set ...".
+seqadj: required when "help" extension is used.
 
-and so does xfrm_output():
+I cannot come up with a (backwards compatible) solution for these
+so far (aside from preallocating them all on first rule add).
 
-net/xfrm/xfrm_output.c:xfrm_output() {
-	...
-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
-		err = skb_checksum_help(skb);
-	...
-}
+Even if we would decide to break existing setups, nft_ct is hard to solve,
+we would have to make this "-j CT" alike, where all required extensions
+are passed in one go to a single objref instance.
 
-For the IPv6 case described in the changelog, a tun/tap or virtio client
-can supply csum_start=34 and csum_offset=6 on a non-GSO frame.  In
-__virtio_net_hdr_to_skb() nh_min_len is sizeof(struct iphdr) for non-GSO
-frames, so the ingress check passes with network_offset==ETH_HLEN and
-transport_offset==34:
+"ct helper set" is definitely the worst offender:
+While most conntracks do not need the helper extension in normal
+deployments, we would add the extra baggage for every conntrack.
 
-include/linux/virtio_net.h:__virtio_net_hdr_to_skb() {
-	...
-		transport_offset = skb_transport_offset(skb);
-		if (transport_offset < nh_min_len || network_offset < 0 ||
-		    network_offset > transport_offset - nh_min_len)
-			return -EINVAL;
-	...
-}
+I think we have to consider going back to old times, i.e. rcu protected
+ext storage, plus additional locking to cope with the "cloned unconfirmed
+conntracks" offenders, at least for sake of these remaining 5 extensions,
+else we end up allocating large ct->ext whenever a single conntrack
+helper is used...
 
-After eth_type_trans() pulls ETH_HLEN, skb_checksum_start_offset(skb) is
-20, which is inside the 40 byte IPv6 header.  If the frame fits the MTU it
-never reaches ip6_fragment(), and skb_csum_hwoffload_help() takes the
-sw_checksum path on a device without NETIF_F_HW_CSUM because
-skb_network_header_len(skb) is 20 rather than sizeof(struct ipv6hdr).  Can
-the fold then land at offset 26, inside ipv6_hdr()->daddr, after routing
-and netfilter have already validated the original destination?  The IPv4
-equivalent is a start offset of 20 with ihl*4 up to 60, overwriting option
-bytes of the transmitted packet.
+Unless anyone has a better idea, I will work on this, i.e.:
 
-The same applies to the WARN_ONCE motivation in the changelog:
+- prealloc for trivial cases (sysctl and/or attached template)
+- prealloc for "let's assume most will need it" (masquerade)
+- realloc for all others: helper/seqadj and the existing nft_ct
+  use cases.
 
-    A negative checksum-start offset is rejected
-    by skb_checksum_help(), but only after a WARN_ONCE which can panic a
-    panic_on_warn system.
-
-In skb_checksum_help() the signed offset is compared with the unsigned
-skb_headlen(), so a negative value promotes and takes the
-DO_ONCE_LITE(skb_dump) plus WARN_ONCE() branch:
-
-net/core/dev.c:skb_checksum_help() {
-	...
-	offset = skb_checksum_start_offset(skb);
-	ret = -EINVAL;
-	if (unlikely(offset >= skb_headlen(skb))) {
-		DO_ONCE_LITE(skb_dump, KERN_ERR, skb, false);
-		WARN_ONCE(true, "offset (%d) >= skb_headlen() (%u)\n",
-	...
-}
-
-Any skb that could carry such an offset into ip_do_fragment() also reaches
-skb_csum_hwoffload_help() unchanged when the packet fits the MTU, so is the
-panic_on_warn case still open there?
-
-Would it be preferable to validate where csum_start is established or
-invalidated, that is in skb_partial_csum_set() and
-__virtio_net_hdr_to_skb() relative to the eth_type_trans() pull, or inside
-skb_checksum_help() itself, rather than open coding the same test in four
-consumers?
-
-Since the patch carries its own Fixes: tags and Cc: stable and will be
-backported on its own, could the changelog state whether an ingress side
-companion fix exists, or that the remaining skb_checksum_help() callers are
-knowingly left unguarded?  As written, the subject "reject partial
-checksums covering network headers" reads as a general property while only
-the fragmentation paths are covered.
-
-The memory safety part specific to fragmentation, iph->ihl being mutated
-after routing and then used by the fragmentation loops, does look closed by
-this change.
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260921025341.44846-1-habte.yibelo%40gmail.com
+Because of "clone problem" realloc will become more expensive:
+lock + rcu + dealing with list_head move inside helper area.
