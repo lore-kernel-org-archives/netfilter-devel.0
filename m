@@ -1,81 +1,78 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-vs2-f40.google.com (mail-vs2-f40.google.com [74.125.227.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8EC025C804
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 20:14:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770BD4854EA
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 20:25:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.40
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790280842; cv=none; b=On5SUgtVrEv6YlHFA/t4m5TdKXL3+AHDOVKClqJhQZq3hezIBEwxN8DBIDotOZ1oNu3y/jdhVe7BTMS5LvF51l79fzWuoJ1xccdXPR5hB2t4yL6+Edm2PFeBYk+7F0uHTMdg+yda4X+mFIMCxZqhFB0SWvEYnExeNDYSUlMG9JM=
+	t=1790281564; cv=none; b=gRCOIi2scS4t50Xp5HiuqI/abCR5cuaJ8HlYTo+paf9mBHTrjR3aYsGvI2yOPGxXYXfLga61N9RGQ68BuWPwmyXyCMdHBGNo6Veo90b9N+42/ag+wNdCOKFtOYUrJf9AN7ban2qslRxDHSEZHLdue+VtbFj3t5HT22wKON9eDyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790280842; c=relaxed/simple;
-	bh=C8spGA++nsYeOprH3oXNQhlys6aYkE8DXtLHscAfODQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FZ03Ms0rDArCronnA2yB7+PDKRwpfUAc2Ws62hDlfs0XBR/KmhxizZ0OGfQJ1gggx/zydz0PrDAUmB+wZdEyWFFrywSH6Nz22PDtYH+jCTE2BQUiqjRj9kVkZDH0bJtxuyZ0/lLWADKmuTIc1s/Q1LUJXAVwFUdjWIXYxhjaKlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KEw9PcVw; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=84LDxfi0; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0siLM7oh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=McT2yEIg; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790281564; c=relaxed/simple;
+	bh=uRYPAtAtLif7i10854CTEewWmJAf/TWjXqRBv41TdEI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=U9l8u9J9DzPyxCSd22SEvAPKeQEfFgj6QTx8x/mNP5CXLb9egimtGXgtG+CP+UXm/AKzdkV++aGQAlkR+ZaGlWLbGC5aqPrP9Qnkz0QB7Mvya5fZQs1FOZHhiQFpcKMJmtfq0+EfQuzcl9hxQdT++xAZ2j0qMpy/b+s9wdShvHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XI4oiPFE; arc=none smtp.client-ip=74.125.227.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KEw9PcVw";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="84LDxfi0";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0siLM7oh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="McT2yEIg"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 2F40A2003F;
-	Thu, 24 Sep 2026 20:13:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790280834; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=imY56WktCqYuWcMFPw+7HOJnfLrqNu30THxsPoJLcb0=;
-	b=KEw9PcVwNCzjnwTw/si0M6QXFBBKLqXOdBp6t2oomiHPqhxtc6+obUx4e850zKPiGljhuT
-	fl5ocV6ml5yi9JNt/q9325Rxe42v7nvxR/HO1aPwwtLGSx1M2XoC9Dpye/4aoajxx9o3HN
-	Lu5584STkduyccjhCNcQ1xvCm7kflNs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790280834;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=imY56WktCqYuWcMFPw+7HOJnfLrqNu30THxsPoJLcb0=;
-	b=84LDxfi0rs1OujVkH1FOSdn/giBj5GzFsnjQJJJZXQ3ywDeg97C7OCS6bpSI3kD8Q5DKCI
-	xNoHnBbafz4KJVAA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=0siLM7oh;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=McT2yEIg
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790280830; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=imY56WktCqYuWcMFPw+7HOJnfLrqNu30THxsPoJLcb0=;
-	b=0siLM7oha1ilsqO4fuD5e7O5utHSmaJz+5lMvHfOsTN1BvFlMEVcxH7N1ySGvWgbLM87bE
-	a2SBkJHyFFJxGaY91RmVpwct5rNxMDQCDmqmBQJe2NXtgYTWsTwnj5jnLVjuuM0ZH+j4zF
-	w87RNxT0vf8aupL7rK+znFjZ+eV2mgk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790280830;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=imY56WktCqYuWcMFPw+7HOJnfLrqNu30THxsPoJLcb0=;
-	b=McT2yEIg4TcMq901K09rN2OTqJcpOpdLqdv6L0ozSZQufWrApEIAm5G+/pRW8rRTyoCAP7
-	24sJYF3jPhI3PKBw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 97B0913432;
-	Thu, 24 Sep 2026 20:13:49 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id L1UNGn2EtWqWVgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 24 Sep 2026 20:13:49 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Yu Junzhe <junzheyu1@gmail.com>
-Subject: [PATCH nf v3] netfilter: nft_reject: prevent unbounded recursion in output hooks
-Date: Thu, 24 Sep 2026 22:13:28 +0200
-Message-ID: <20260924201328.6323-1-fmancera@suse.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XI4oiPFE"
+Received: by mail-vs2-f40.google.com with SMTP id ada2fe7eead31-78565b4db79so117806137.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 13:25:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790281556; x=1790886356; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=iv7JMCOOiStR26xduJ20yGu4jGk3+F31OuSygzoMJug=;
+        b=XI4oiPFEvODXpDmkNwakyL26cPhBZO0fAkDbzIYLDNg6xgLvTAkKVqFwgam4Ojh4Zj
+         1GsuEzJTH641jtPyku/gQLRYwtmylTydyUEgM6R0XYjqO6LGZEQI8LQ6hN6nxkyZXhGa
+         7d1Q2uGNumuVABxni+c/deDXTBa1yO+AD0L0ULPNlplrPe2cglZXELUCSDIyrI2aWov5
+         ZX4pL92GWVccxd6S1hNDBIqNpDDlruf1vOlgZCSbcJdlmfUE7ZquB+Trl1/bo7HO6XIU
+         UWlwBKvq/NhavnzSHYDMqsVk5wnicTTlA+E9Is4YjVr0z4S5eJI7duLF57KyhTtzy2Ec
+         1sLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790281556; x=1790886356;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=iv7JMCOOiStR26xduJ20yGu4jGk3+F31OuSygzoMJug=;
+        b=24AOSwHmsMJ/W7e0aYdg2+DjVFvUQ2Qivkg3D3QnYMantqbb/2J7K8cobXnk/NRF2V
+         ciaDj6N+EIiCdnpx0lyTnMCIFRIkP/UAvJ0L1cF9lkeRWz0TCjPEwm3IsXU7F0V8oXmw
+         xL/7Fkxj9c2oP5BsiL7xC2+GheDPzJ1SaXQxdRtvXnhP2dmW/clNkZcAuTTCQpPnX0P7
+         uWJKLKl78qZhG0qJV2GJ16FeU873H3VlycGLx+IOv7Q5KoWZEBdg6n4ba8919BH2NTXO
+         oliK4vEngLw7p43ytR3P6eCbZJvLYsH+bl/5EG6Lv0KxrWI93s23Gy7j4NJTN4PShRfV
+         nnZw==
+X-Gm-Message-State: AFuF++k8dZZwPGN43bEabMXmRd1eEuHop3N8LEzublDIFbd/1Z6TP3GE
+	yW67uE/t1QxmVKNiyhghWVcFsLP+nxwC6eMxMb3+J7e29QJEr8XwAhth
+X-Gm-Gg: AYBFou15aC6oHIwBQpjFWCnAAEdfZhW+ncs8BJm2nMJX4Xcn7EI6JWBnJEvmz0/da+Q
+	aMjiN8pQhm1DSRXCB4ayxV/pQRr30DdgJOkSx4LtBraFuZjlLwpz5R5fzNP/1X9JIPMLeSJxf8c
+	dUP9chtmgit0XWuIsHX9VM56Ibabw/diRL+G5LBU0zN6d/svIwb4nOC2wp8uYnc+Btc9ljYE+tb
+	sZ/cqQsp/kUiU2jZdWr8TXCbsv3VKDIHbcNux94X28OwbPaUKjDimymhEl2zcmN+hhxbmJ1no8u
+	4Hr3zcm41nDqJNVupNGw1hWWy0m5n1rggZKQtJfrUNBuWZ77FhK1/XAdKJGoKQHKNkuqQJi1D9p
+	iFcSbTrWVq/BsVM6B5qzQJDmK9fp1AAm6bxOdDIFtI6jINvRno2W0L1eJ7aUdUzdmYeMMUcjpDL
+	aw7P2Sce4A0VTnVdtuSPOljmR3+G6bfUNaWVR7dtVTPGVbEWjvTH33zVA86XR3KU/49xJCJPbpv
+	3rnxf383xqy
+X-Received: by 2002:a05:6102:c53:b0:7a1:f7c3:3a45 with SMTP id ada2fe7eead31-7af1d6c4296mr1934116137.18.1790281556440;
+        Thu, 24 Sep 2026 13:25:56 -0700 (PDT)
+Received: from adriano.lan ([2803:9810:3dd5:d810:440b:4079:aa61:d217])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-7b0db1d1152sm782102137.6.2026.09.24.13.25.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 24 Sep 2026 13:25:55 -0700 (PDT)
+From: Adriano Cordova <adrianox@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Phil Sutter <phil@nwl.cc>,
+	Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Adriano Cordova <adrianox@gmail.com>
+Subject: [PATCH net-next] netfilter: nf_flow_table_bpf: populate VLAN encap in XDP flowtable lookup
+Date: Thu, 24 Sep 2026 17:25:43 -0300
+Message-ID: <20260924202543.1090535-1-adrianox@gmail.com>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -84,273 +81,62 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 2F40A2003F
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_CONTAINS_FROM(1.00)[];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	FROM_HAS_DN(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MIME_TRACE(0.00)[0:+];
-	FREEMAIL_CC(0.00)[netfilter.org,strlen.de,nwl.cc,suse.de,gmail.com];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email,suse.de:mid];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_DN_SOME(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
 
-nftables payload-mangling rules can rewrite packet contents (such as TCP
-flags) before they are evaluated by reject targets. This defeats the
-content-based loop guards, allowing unbounded hook recursion that leads
-to kernel stack exhaustion and panics.
+encap[] is part of the flow_offload_tuple rhashtable key
+(flow_offload_hash() hashes up to __hash), so a lookup has to fill it like
+the skb path does.  bpf_xdp_flow_lookup() builds its key from struct
+bpf_fib_lookup only, which has no encap fields, so it leaves encap[]
+zeroed and can never match a flow whose tuple carries a VLAN encap.
 
-Fix this by extracting the per-CPU xmit recursion limit previously used
-by the netdev duplication/forwarding paths into a shared header, and
-apply it to the inet and inet6 reject transmit functions. It disables BH
-while transmitting the skb to address a possible migration to different
-CPU leading to imbalanced decrementation of the recursion counters.
+Fill encap[0] from an in-band 802.1Q tag, mirroring the ETH_P_8021Q case
+of nf_flow_tuple_encap().
 
-Note that the dev_queue_xmit() path used when CONFIG_BRIDGE_NETFILTER is
-enabled does not require this recursion guard. In that scenario, the
-generated reset packet is transmitted directly at Layer 2. Because the
-packet egresses from a different hook, it cannot synchronously loop. In
-addition nf_send_unreach() and nf_send_unreach6() are safe as the ICMP
-transmit functions are protected against recursion by the
-icmp_xmit_lock() and icmpv6_xmit_lock() guards.
-
-Reported-by: Yu Junzhe <junzheyu1@gmail.com>
-Closes: https://lore.kernel.org/netfilter-devel/20260921061320.543-1-junzheyu1@gmail.com/
-Fixes: bee11dc78fc8 ("netfilter: nft_reject: support for IPv6 and TCP reset")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Link: https://github.com/xdp-project/xdp-tools/issues/488
+Signed-off-by: Adriano Cordova <adrianox@gmail.com>
 ---
-v3: fixed build robot errors due to the struct member being guarded by
-CONFIG_NF_DUP_NETDEV instead of CONFIG_NETFILTER and renamed the struct
-member too.
----
- include/linux/netdevice_xmit.h        |  4 +--
- include/net/netfilter/nf_dup_netdev.h | 35 ----------------------
- include/net/netfilter/nf_recursion.h  | 42 +++++++++++++++++++++++++++
- net/ipv4/netfilter/nf_reject_ipv4.c   | 12 ++++++++
- net/ipv6/netfilter/nf_reject_ipv6.c   | 13 +++++++++
- net/netfilter/nf_dup_netdev.c         |  1 +
- net/netfilter/nft_fwd_netdev.c        |  1 +
- 7 files changed, 71 insertions(+), 37 deletions(-)
- create mode 100644 include/net/netfilter/nf_recursion.h
+ net/netfilter/nf_flow_table_bpf.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/include/linux/netdevice_xmit.h b/include/linux/netdevice_xmit.h
-index cc232508e695..286ae5a6101e 100644
---- a/include/linux/netdevice_xmit.h
-+++ b/include/linux/netdevice_xmit.h
-@@ -18,8 +18,8 @@ struct netdev_xmit {
- 	u8			sched_mirred_nest;
- 	struct net_device	*sched_mirred_dev[MIRRED_NEST_LIMIT];
- #endif
--#if IS_ENABLED(CONFIG_NF_DUP_NETDEV)
--	u8 nf_dup_skb_recursion;
-+#if IS_ENABLED(CONFIG_NETFILTER)
-+	u8 nf_xmit_skb_recursion;
- #endif
- };
- 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index f6b05bd80c3f..a39411264614 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -9,41 +9,6 @@
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
--#define NF_RECURSION_LIMIT	2
--
--#ifndef CONFIG_PREEMPT_RT
--static inline bool nf_dev_xmit_recursion(void)
--{
--	return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
--			NF_RECURSION_LIMIT);
--}
--
--static inline void nf_dev_xmit_recursion_inc(void)
--{
--	__this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
--}
--
--static inline void nf_dev_xmit_recursion_dec(void)
--{
--	__this_cpu_dec(softnet_data.xmit.nf_dup_skb_recursion);
--}
--#else
--static inline bool nf_dev_xmit_recursion(void)
--{
--	return unlikely(current->net_xmit.nf_dup_skb_recursion > NF_RECURSION_LIMIT);
--}
--
--static inline void nf_dev_xmit_recursion_inc(void)
--{
--	current->net_xmit.nf_dup_skb_recursion++;
--}
--
--static inline void nf_dev_xmit_recursion_dec(void)
--{
--	current->net_xmit.nf_dup_skb_recursion--;
--}
--#endif
--
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/include/net/netfilter/nf_recursion.h b/include/net/netfilter/nf_recursion.h
-new file mode 100644
-index 000000000000..1ac65f7793f1
---- /dev/null
-+++ b/include/net/netfilter/nf_recursion.h
-@@ -0,0 +1,42 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _NF_RECURSION_H_
-+#define _NF_RECURSION_H_
-+
-+#include <linux/netdevice.h>
-+
-+#define NF_RECURSION_LIMIT	2
-+
-+#ifndef CONFIG_PREEMPT_RT
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(__this_cpu_read(softnet_data.xmit.nf_xmit_skb_recursion) >
-+			NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	__this_cpu_inc(softnet_data.xmit.nf_xmit_skb_recursion);
-+}
-+
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	__this_cpu_dec(softnet_data.xmit.nf_xmit_skb_recursion);
-+}
-+#else
-+static inline bool nf_dev_xmit_recursion(void)
-+{
-+	return unlikely(current->net_xmit.nf_xmit_skb_recursion > NF_RECURSION_LIMIT);
-+}
-+
-+static inline void nf_dev_xmit_recursion_inc(void)
-+{
-+	current->net_xmit.nf_xmit_skb_recursion++;
-+}
-+
-+static inline void nf_dev_xmit_recursion_dec(void)
-+{
-+	current->net_xmit.nf_xmit_skb_recursion--;
-+}
-+#endif
-+
-+#endif /* _NF_RECURSION_H_ */
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 59ec465a9df9..3f227a094312 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+diff --git a/net/netfilter/nf_flow_table_bpf.c b/net/netfilter/nf_flow_table_bpf.c
+index cbd5b97a6329..479f8242da2b 100644
+--- a/net/netfilter/nf_flow_table_bpf.c
++++ b/net/netfilter/nf_flow_table_bpf.c
 @@ -10,6 +10,7 @@
- #include <net/dst.h>
- #include <net/dst_metadata.h>
- #include <net/netfilter/ipv4/nf_reject.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_bridge.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/if_vlan.h>
+ #include <net/netfilter/nf_flow_table.h>
+ #include <linux/bpf.h>
+ #include <linux/btf.h>
+@@ -60,6 +61,8 @@ bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple,
+ 		    struct bpf_flowtable_opts *opts, u32 opts_len)
+ {
+ 	struct xdp_buff *xdp = (struct xdp_buff *)ctx;
++	const struct ethhdr *eth = xdp->data;
++	const struct vlan_hdr *vh;
+ 	struct flow_offload_tuple tuple = {
+ 		.iifidx = fib_tuple->ifindex,
+ 		.l3proto = fib_tuple->family,
+@@ -91,6 +94,18 @@ bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple,
+ 		return NULL;
+ 	}
  
-@@ -336,7 +337,18 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
-+	{
-+		local_bh_disable();
-+		if (nf_dev_xmit_recursion()) {
-+			local_bh_enable();
-+			goto free_nskb;
++	/* encap[] is part of the lookup key, fill it from the 802.1Q tag. */
++	if (eth + 1 <= (const struct ethhdr *)xdp->data_end &&
++	    eth->h_proto == htons(ETH_P_8021Q)) {
++		vh = (const struct vlan_hdr *)(eth + 1);
++		if (unlikely(vh + 1 > (const struct vlan_hdr *)xdp->data_end)) {
++			opts->error = -EINVAL;
++			return NULL;
 +		}
-+
-+		nf_dev_xmit_recursion_inc();
- 		ip_local_out(net, nskb->sk, nskb);
-+		nf_dev_xmit_recursion_dec();
-+		local_bh_enable();
++		tuple.encap[0].id = ntohs(vh->h_vlan_TCI);
++		tuple.encap[0].proto = htons(ETH_P_8021Q);
 +	}
- 
- 	return;
- 
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 07cdaa10da0d..f69ddfe72030 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -10,6 +10,7 @@
- #include <net/ip6_checksum.h>
- #include <net/dst_metadata.h>
- #include <net/netfilter/ipv6/nf_reject.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
- 
-@@ -409,7 +410,19 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		dev_queue_xmit(nskb);
- 	} else
- #endif
-+	{
-+		local_bh_disable();
-+		if (nf_dev_xmit_recursion()) {
-+			local_bh_enable();
-+			kfree_skb(nskb);
-+			return;
-+		}
 +
-+		nf_dev_xmit_recursion_inc();
- 		ip6_local_out(net, sk, nskb);
-+		nf_dev_xmit_recursion_dec();
-+		local_bh_enable();
-+	}
- }
- EXPORT_SYMBOL_GPL(nf_send_reset6);
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index c6bd5c29bed6..918716629c15 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -12,6 +12,7 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
-+#include <net/netfilter/nf_recursion.h>
- 
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index a48c2f765bba..7447da931a95 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -14,6 +14,7 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
-+#include <net/netfilter/nf_recursion.h>
- #include <net/neighbour.h>
- #include <net/ip.h>
- 
+ 	tuplehash = bpf_xdp_flow_tuple_lookup(xdp->rxq->dev, &tuple, proto);
+ 	if (IS_ERR(tuplehash)) {
+ 		opts->error = PTR_ERR(tuplehash);
 -- 
-2.55.0
+2.51.0
 
