@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E42BD3264DD;
-	Thu, 24 Sep 2026 08:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E6E6440A0A;
+	Thu, 24 Sep 2026 08:54:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790240084; cv=none; b=KzaIQtQV3rUahnk8KyRyLN2C7HvMAJvwE+/u9BnkpmsC7Ro12jT7D32VZinWH5XH5CsPt+vh9aar7OB5XRlJABS4tNidpw4Ihu0xvtSYckm5Jz25YCXwUCprWyWDk7OCWURV2zObxaVe5QIgLN7oV0frhl0iR5GimAaYvfOQrOI=
+	t=1790240085; cv=none; b=Ql996eOF25Rvvko/6/jDSg8dDBTcTkMqIlSt02NtxOgjXfK3JnCJXx64wgtV0qmedjdSDC1zflwB8C2nVqMkXYF5EoUxjJoearhUfnSTpHqCDQbgReQNaQa8IQo8SNAn08X0r1zl4zNu+BA66Z83MB5+jr/CFwN0u2iS0WJhVF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790240084; c=relaxed/simple;
-	bh=6D3CTgHdu5481mnLKV1gPqeZJ095pUnPyFYt/9xV+nk=;
+	s=arc-20240116; t=1790240085; c=relaxed/simple;
+	bh=TV8Z7K1B430nmrx4RxP9GhNrhORYFJqb7ijzTdoyBzw=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=c36Jzx9u4iMMxwjb/ZDcC0WNR9JggsqN2H/5y411kGc9hjvck03jCQ2fLwCmuvh6IRdgbJ5OcJYvEm95FrfNaINlONiSubUDn7htu+UcdghwdskzjphFNhSktQPy4/DvrtimmqsYSMfciReAjWbkp1XzgkiqtYoA2KKNPwhDwtA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IxRwVj38; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=GQN4P1KRDp3ihrz+hU5ilwCnJVU1kNlFN7sTx5KfZ60lc8IDBI/QyFPNpA9oNwPwHtRC0VnhJfkHnP3Va3On1vQ2FiqNMxe0posKWKcSU5gEmR9R0773BCzhMOjiOqQml29nIBT+J8XGyLe3K5z6wus4YVm6EtMAQdXuiPlJy5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DIr8ujDr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IxRwVj38"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 233091F000FF;
-	Thu, 24 Sep 2026 08:54:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DIr8ujDr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 311AD1F00893;
+	Thu, 24 Sep 2026 08:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790240082;
-	bh=yrKvdoHKHUrs0CoJeIfRXejqns+60AzL+8SidZjSbMU=;
+	s=k20260515; t=1790240084;
+	bh=4UCBH/32GF80p+YqMwpZQ9XIhB9sDp2LihECBye/aG4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=IxRwVj38L74+kDKcCYCdkYQF8nKO0ZnsIc9/rmmL6kfkopkLeddsUKVEaHtlWWFIj
-	 N6rsBFO8xnYezDnBeF1xdwyoHS7z+60zWeHGNcSCdH/pXC5YXN+8BalUu1Qnri+x+c
-	 3Bk5zVomRExPIcYxQ+7TLMOBBMOLmLzAJ66rZX8qsZ4b2Kt9ET3tKvSzY9vqW7i21a
-	 zKJcEzUQSCcAeRAo53rGp21/SmzSZNuDOIMl9hpZQhjnOP3u4Ixg/85QrqxEw3M+kJ
-	 /qCm0oDbtkpx3GL5WovjU8Okb5UDrdkcKE54LyeC3Zo1E4gfY52uLpfXFsQNt7I7d+
-	 D8Ce8oxiJt8hw==
-Subject: Re: [PATCH net v5 1/2] net: validate virtio checksum start after
- network header
+	b=DIr8ujDrKNW1g6JkqymaHjfghHmbJIXAVuOUuFvxERsDC2pMvT+BjXDhrg5+JVYRZ
+	 f2wbrlDX+23iABnSh0R8Rbz75adMIHhcgW4yzRDY2gbTp009yTHeKNpRFgr082IuYx
+	 WgqkgnbH2pmZxfixJ3gcetf5nLJyJFGopB+nCtmpEMce5WewsuVMwdE8E5WUh2cRg5
+	 NlmVVqDQw/LWgpXUG3sZaxYcLAFC8UF2x3roWOPEL5PS1E/lT0ty2lmvgJlRIPO1eJ
+	 4voPIz2qSWQCHlQM+82f7e4fCL3qWQTC5kEpcGEKPnsrp4pf5cq2qzAcIWritxfUhP
+	 8YOPJJ5xJwFbA==
+Subject:
+ Re: [PATCH net v5 2/2] ip: reject partial checksums covering network headers
 From: netdev-bot+sashiko@kernel.org
 To: habte.yibelo@gmail.com
 Cc: netdev@vger.kernel.org, richard@nod.at, anton.ivanov@cambridgegreys.com,
@@ -39,10 +39,10 @@ Cc: netdev@vger.kernel.org, richard@nod.at, anton.ivanov@cambridgegreys.com,
  pabeni@redhat.com, horms@kernel.org, linux-um@lists.infradead.org,
  virtualization@lists.linux.dev, netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org, bridge@lists.linux.dev, linux-kernel@vger.kernel.org
-Date: Thu, 24 Sep 2026 08:54:40 +0000
-Message-ID: <179024008066.2160803.8682461497509944706@kernel.org>
-In-Reply-To: <20260921025341.44846-2-habte.yibelo@gmail.com>
-References: <20260921025341.44846-2-habte.yibelo@gmail.com>
+Date: Thu, 24 Sep 2026 08:54:42 +0000
+Message-ID: <179024008278.2160803.5921856763560195179@kernel.org>
+In-Reply-To: <20260921025341.44846-3-habte.yibelo@gmail.com>
+References: <20260921025341.44846-3-habte.yibelo@gmail.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -53,10 +53,10 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 0
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -64,200 +64,154 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The two AF_PACKET call sites pass skb_network_offset(skb) as the
-  new `network_offset` argument, while every other converted caller…
-- [Medium] In arch/um/drivers/vector_transports.c:raw_verify_header(),
-  the newly added virtio_net_hdr_get_l3_offset() parse and the now-…
+- [High] Incomplete fix: the checksum-start validation is added only at
+  the four fragmentation entry points (ip_do_fragment(),…
 
 --
 
-net: validate virtio checksum start after network header
+ip: reject partial checksums covering network headers
 
-This adds an explicit data-relative L3 offset argument to
-virtio_net_hdr_to_skb() and virtio_net_hdr_tnl_to_skb() so that a
-CHECKSUM_PARTIAL start landing inside the network header is rejected.  A new
-helper virtio_net_hdr_get_l3_offset() parses Ethernet and nested VLAN headers
-with skb_header_pointer(), and all in-tree callers are converted.
+This adds a check that the CHECKSUM_PARTIAL start offset lies at or after
+the parsed network header before calling skb_checksum_help() in the four
+fragmentation entry points ip_do_fragment(), nf_br_ip_fragment(),
+ip6_fragment() and br_ip6_fragment().  For IPv4 the IHL is read and
+validated first and iph is reacquired after the checksum is completed.
 
-Link: https://lore.kernel.org/netdev/20260920004733.6473-2-habte.yibelo@gmail.com/
+Link: https://lore.kernel.org/netdev/20260920004733.6473-3-habte.yibelo@gmail.com/
 
-> diff --git a/arch/um/drivers/vector_transports.c b/arch/um/drivers/vector_transports.c
-> index ddd127ee9678..79bc05fc6f73 100644
-> --- a/arch/um/drivers/vector_transports.c
-> +++ b/arch/um/drivers/vector_transports.c
-> @@ -197,6 +197,7 @@ static int raw_verify_header(
->  	uint8_t *header, struct sk_buff *skb, struct vector_private *vp)
->  {
->  	struct virtio_net_hdr *vheader = (struct virtio_net_hdr *) header;
-> +	int network_offset;
+> diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+> index a24cc8ee11d3..fa6a74d205e2 100644
+> --- a/net/ipv4/ip_output.c
+> +++ b/net/ipv4/ip_output.c
+> @@ -770,16 +770,28 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+>  	struct ip_frag_state state;
+>  	int err = 0;
 >  
->  	if ((vheader->gso_type != VIRTIO_NET_HDR_GSO_NONE) &&
->  		(vp->req_size != 65536)) {
-> @@ -209,8 +210,13 @@ static int raw_verify_header(
->  	if ((vheader->flags & VIRTIO_NET_HDR_F_DATA_VALID) > 0)
->  		return 1;
+> -	/* for offloaded checksums cleanup checksum before fragmentation */
+> -	if (skb->ip_summed == CHECKSUM_PARTIAL &&
+> -	    (err = skb_checksum_help(skb)))
+> -		goto fail;
+> -
+>  	/*
+>  	 *	Point into the IP datagram header.
+>  	 */
 >  
-> -	virtio_net_hdr_to_skb(skb, vheader, virtio_legacy_is_little_endian());
-> -	return 0;
-> +	network_offset = virtio_net_hdr_get_l3_offset(skb, vheader);
-> +	if (network_offset < 0)
-> +		return network_offset;
+>  	iph = ip_hdr(skb);
+> +	hlen = iph->ihl * 4;
+> +	if (unlikely(hlen < sizeof(*iph) || hlen > skb_headlen(skb))) {
+> +		err = -EINVAL;
+> +		goto fail;
+> +	}
 > +
-> +	return virtio_net_hdr_to_skb(skb, vheader,
-> +				     virtio_legacy_is_little_endian(),
-> +				     network_offset);
->  }
-
-[Severity: Medium]
-Is the skb passed to raw_verify_header() already trimmed to the received
-frame length at this point?
-
-prep_skb() in arch/um/drivers/vector_kern.c sets the length from the
-receive buffer capacity, before the recvmsg/recvmmsg:
-
-	skb_put(result, vp->max_packet);
-	result->data_len = len - vp->max_packet;
-	result->len += len - vp->max_packet;
-
-and both receive loops call the verify callback before the trim:
-
-vector_legacy_rx():
-			header_check = vp->verify_header(
-				vp->header_rxbuffer, skb, vp);
-			if (header_check < 0) { ... return 0; }
-		}
-		pskb_trim(skb, pkt_len - vp->rx_header_size);
-
-vector_mmsg_rx() has the same ordering.  The only guarantee before the
-callback is pkt_len > vp->header_size, i.e. one payload byte.
-
-So can the Ethernet and VLAN bytes that virtio_net_hdr_get_l3_offset()
-reads at offsets 0..13 and beyond be bytes recvmsg never wrote, i.e. the
-uninitialised remainder of the allocation, making network_offset and the
-accept/reject decision depend on stale buffer contents whenever the
-received frame is shorter than the parsed span?
-
-Along the same lines, the length checks inside __virtio_net_hdr_to_skb()
-see skb->len as capacity (up to vp->req_size, 65536 with GSO) rather than
-the received length, for instance:
-
-			if (skb->len - p_off > gso_size * UDP_MAX_SEGMENTS)
-				return -EINVAL;
-
-Since raw_verify_header() now returns the converter's error instead of
-discarding it, does this turn the length mismatch into frames dropped with
-rx_encaps_errors, where previously the return value was ignored?  Would it
-be better to move the pskb_trim() ahead of the verify_header() call?
-
-> diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
-> index c381b916c1b5..a4c005796acb 100644
-> --- a/include/linux/virtio_net.h
-> +++ b/include/linux/virtio_net.h
-
-[ ... ]
-
-> @@ -98,16 +136,20 @@ static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
->  		u32 start = __virtio16_to_cpu(little_endian, hdr->csum_start);
->  		u32 off = __virtio16_to_cpu(little_endian, hdr->csum_offset);
->  		u32 needed = start + max_t(u32, thlen, off + sizeof(__sum16));
-> +		int transport_offset;
->  
->  		if (!pskb_may_pull(skb, needed))
->  			return -EINVAL;
->  
->  		if (!skb_partial_csum_set(skb, start, off))
->  			return -EINVAL;
-> -		if (skb_transport_offset(skb) < nh_min_len)
-> +
-> +		transport_offset = skb_transport_offset(skb);
-> +		if (transport_offset < nh_min_len || network_offset < 0 ||
-> +		    network_offset > transport_offset - nh_min_len)
->  			return -EINVAL;
-
-[ ... ]
-
-> diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
-> index 50cae32ae269..04c80e23d7e2 100644
-> --- a/net/packet/af_packet.c
-> +++ b/net/packet/af_packet.c
-> @@ -2901,7 +2901,8 @@ static int tpacket_snd(struct packet_sock *po, struct msghdr *msg)
->  		}
->  
->  		if (has_vnet_hdr) {
-> -			if (virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le())) {
-> +			if (virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le(),
-> +						  skb_network_offset(skb))) {
->  				tp_len = -EINVAL;
->  				goto tpacket_error;
->  			}
-> @@ -3103,7 +3104,8 @@ static int packet_snd(struct socket *sock, struct msghdr *msg, size_t len)
->  	packet_parse_headers(skb, sock);
->  
->  	if (vnet_hdr_sz) {
-> -		err = virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le());
-> +		err = virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le(),
-> +					    skb_network_offset(skb));
->  		if (err)
->  			goto out_free;
->  		len += vnet_hdr_sz;
+> +	/* Complete offloaded checksums only after the validated IP header. */
+> +	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+> +		if (unlikely(skb_checksum_start_offset(skb) < (int)hlen)) {
+> +			err = -EINVAL;
+> +			goto fail;
+> +		}
+> +		err = skb_checksum_help(skb);
+> +		if (err)
+> +			goto fail;
+> +		iph = ip_hdr(skb);
+> +	}
 
 [Severity: High]
-Is skb_network_offset(skb) a strong enough origin here?  Every other
-converted caller derives the offset from the frame bytes via
-virtio_net_hdr_get_l3_offset(), while these two use the network header
-AF_PACKET established itself.
+The guard is added at the four fragmentation entry points, but the
+offending csum_start stays on the skb.  Is the bug class named in the
+subject still reachable for packets that are not fragmented?
 
-In packet_parse_headers() the VLAN adjustment is gated on the
-socket-supplied protocol:
+The generic transmit path completes the same checksum without any
+comparable check:
 
-	if (likely(skb->dev->type == ARPHRD_ETHER) &&
-	    eth_type_vlan(skb->protocol) &&
-	    vlan_get_protocol_and_depth(skb, skb->protocol, &depth) != 0)
-		skb_set_network_header(skb, depth);
+net/core/dev.c:validate_xmit_skb() {
+	...
+		if (skb_csum_hwoffload_help(skb, features))
+			goto out_kfree_skb;
+	...
+}
 
-For SOCK_RAW with an explicit sll_protocol, skb->protocol is the value the
-sender passed, not the frame's EtherType (dev_parse_header_protocol() runs
-only when skb->protocol is 0 or ETH_P_ALL).
+net/core/dev.c:skb_csum_hwoffload_help() {
+	...
+sw_checksum:
+	return skb_checksum_help(skb);
+}
 
-So for a sender that binds with sll_protocol = htons(ETH_P_IP) but writes
-an 802.1Q-tagged frame, network_offset stays 14 while the real IPv4 header
-starts at 18.  With csum_start = 34 and nh_min_len = 20, the new test
-becomes:
+and so does xfrm_output():
 
-	transport_offset = 34;
-	34 < 20                      -> false
-	14 > 34 - 20                 -> 14 > 14 -> false
+net/xfrm/xfrm_output.c:xfrm_output() {
+	...
+	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+		err = skb_checksum_help(skb);
+	...
+}
 
-and the header is accepted, after skb_partial_csum_set() has already set
-ip_summed = CHECKSUM_PARTIAL and transport_header = 34, which is 16 bytes
-inside the IPv4 header spanning 18..37.  Is that not exactly the case the
-commit message says is now rejected?
+For the IPv6 case described in the changelog, a tun/tap or virtio client
+can supply csum_start=34 and csum_offset=6 on a non-GSO frame.  In
+__virtio_net_hdr_to_skb() nh_min_len is sizeof(struct iphdr) for non-GSO
+frames, so the ingress check passes with network_offset==ETH_HLEN and
+transport_offset==34:
 
-Two related cases in the same path:
+include/linux/virtio_net.h:__virtio_net_hdr_to_skb() {
+	...
+		transport_offset = skb_transport_offset(skb);
+		if (transport_offset < nh_min_len || network_offset < 0 ||
+		    network_offset > transport_offset - nh_min_len)
+			return -EINVAL;
+	...
+}
 
-packet_parse_headers() silently ignores a failed
-vlan_get_protocol_and_depth() (more nested tags than that parser accepts),
-leaving network_offset at 14 for a deeper real L3 header.
+After eth_type_trans() pulls ETH_HLEN, skb_checksum_start_offset(skb) is
+20, which is inside the 40 byte IPv6 header.  If the frame fits the MTU it
+never reaches ip6_fragment(), and skb_csum_hwoffload_help() takes the
+sw_checksum path on a device without NETIF_F_HW_CSUM because
+skb_network_header_len(skb) is 20 rather than sizeof(struct ipv6hdr).  Can
+the fold then land at offset 26, inside ipv6_hdr()->daddr, after routing
+and netfilter have already validated the original destination?  The IPv4
+equivalent is a start offset of 20 with ihl*4 up to 60, overwriting option
+bytes of the transmitted packet.
 
-In packet_snd(), the SOCK_RAW short-packet branch resets the network header
-while skb->data still points at the link header:
+The same applies to the WARN_ONCE motivation in the changelog:
 
-	} else if (reserve) {
-		skb_reserve(skb, -reserve);
-		if (len < reserve + sizeof(struct ipv6hdr) &&
-		    dev->min_header_len != hard_header_len)
-			skb_reset_network_header(skb);
-	}
+    A negative checksum-start offset is rejected
+    by skb_checksum_help(), but only after a WARN_ONCE which can panic a
+    panic_on_warn system.
 
-which yields network_offset == 0, and the new bound then reduces to the
-pre-patch csum_start >= 20 check.  Would using
-virtio_net_hdr_get_l3_offset() at both AF_PACKET call sites, as the TAP and
-virtio-net paths do, keep the origin consistent?
+In skb_checksum_help() the signed offset is compared with the unsigned
+skb_headlen(), so a negative value promotes and takes the
+DO_ONCE_LITE(skb_dump) plus WARN_ONCE() branch:
 
-Note the follow-up commit in this area, "ip: reject partial checksums
-covering network headers", only touches ip_do_fragment(), ip6_fragment(),
-nf_br_ip_fragment() and br_ip6_fragment(), so it does not close this
-AF_PACKET path later in the series.
+net/core/dev.c:skb_checksum_help() {
+	...
+	offset = skb_checksum_start_offset(skb);
+	ret = -EINVAL;
+	if (unlikely(offset >= skb_headlen(skb))) {
+		DO_ONCE_LITE(skb_dump, KERN_ERR, skb, false);
+		WARN_ONCE(true, "offset (%d) >= skb_headlen() (%u)\n",
+	...
+}
+
+Any skb that could carry such an offset into ip_do_fragment() also reaches
+skb_csum_hwoffload_help() unchanged when the packet fits the MTU, so is the
+panic_on_warn case still open there?
+
+Would it be preferable to validate where csum_start is established or
+invalidated, that is in skb_partial_csum_set() and
+__virtio_net_hdr_to_skb() relative to the eth_type_trans() pull, or inside
+skb_checksum_help() itself, rather than open coding the same test in four
+consumers?
+
+Since the patch carries its own Fixes: tags and Cc: stable and will be
+backported on its own, could the changelog state whether an ingress side
+companion fix exists, or that the remaining skb_checksum_help() callers are
+knowingly left unguarded?  As written, the subject "reject partial
+checksums covering network headers" reads as a general property while only
+the fragmentation paths are covered.
+
+The memory safety part specific to fragmentation, iph->ihl being mutated
+after routing and then used by the fragmentation loops, does look closed by
+this change.
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260921025341.44846-1-habte.yibelo%40gmail.com
