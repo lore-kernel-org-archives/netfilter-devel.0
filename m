@@ -1,42 +1,41 @@
 Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B2B247607C;
-	Fri, 25 Sep 2026 08:21:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 427F54582E7;
+	Fri, 25 Sep 2026 08:23:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790324518; cv=none; b=X6MFR5OvvNqq9oDy0+XFbpS+OYtzz3V2MooOaxZkmW4ON79KdZTu8k4L/ZpUEifpCWcFxmww7NAZAwOEg1DikXYUBb60e+Ygq+0ONOxziepPwT1Pu2dzuIqoBJLylGgKHQCBhA2YMcCfVckPgRll/GtuqlolFmUwxqHr75Ij7QU=
+	t=1790324613; cv=none; b=RDEr50g0M36y+yCfjwplM8y5nSGE8n/YEzQ4RXCyRdTpf3b0aJcQxwjsLDV26665RtlU+SDduHNmicF+BpTZrqGFXwf+ZS9xMUyRZDlWBbg0RGn7ZvbS/yMmW57mRpSxjQpMnrxo5zJtWE5OAiGiNk90MtF5tUqUdT2pLt179Ls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790324518; c=relaxed/simple;
-	bh=2ckTwF4IVy/Y4ATnzyENRg7sebynBORa64nTlCQ3eQY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=X39zwEkEntPggAaDD4GFfgAV6Nwy/L/ph7pT8vlISVKo/ltD9Kmjx3xLUhfs1u0bfoQ51uS9RLKFxQxz1AKp6m9PlDyrbUSXBkNQM6KcWZJ1YnvqsDGujp6OVKZ1Re29YIREwmad0hiTZIIZ62Os0Lt+aiO4omEeyjn0TrNJ0lM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=0W7haBUw; arc=none smtp.client-ip=185.171.202.116
+	s=arc-20240116; t=1790324613; c=relaxed/simple;
+	bh=+Ts13b74M3XgxNYsIYO9QRi2dZT6XjAWTChb9MYezwE=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=NDwYSsdObSeEY168cDNddbu6toLBQzZZIb5d3dcOi7xBx0gjuPzKbOFr2Zq/MBbVrmWV5S1gRSb6PpAgLjFRijyvUdb4hGLKomqdMnvmeLrJzyHKwOPh6GZYofi5UqmavdBOyG8sXpWYp9WUuNvQPMHnc0y3lo2BpcNX6cTiIw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wMJGuyoO; arc=none smtp.client-ip=185.171.202.116
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="0W7haBUw"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wMJGuyoO"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 8F188C13989;
-	Fri, 25 Sep 2026 08:22:43 +0000 (UTC)
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 17F46C13989;
+	Fri, 25 Sep 2026 08:24:18 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id C77F46073B;
-	Fri, 25 Sep 2026 08:21:55 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 95E8F103294AF;
-	Fri, 25 Sep 2026 10:21:52 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 524BE6073B;
+	Fri, 25 Sep 2026 08:23:30 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 1B71C103294AF;
+	Fri, 25 Sep 2026 10:23:26 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1790324514; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=yZr8kHxnJ4C5buPDl1h/BxtYs8zl+KiT7OUxlH5Z1Ow=;
-	b=0W7haBUwpJfrBQAiwIqaxyyjstPs9HwKJdjE4QgFut0anZXLoy3Hjrt9SUJRvMYUIcHH3w
-	W1g5/87cfFMu8acTzEQxXrVXz1cVmYGZRwQzNx2rlPi1kmbCznx2GDd694JwnTh94oX+j4
-	sLIObI+PlX3GK8pjy4WsS7/TL7kvYeBjJbilSNe+1LcxLrmlSUC0biXYGFypL/P61f4e5G
-	8/hzh0NR+iB/NP0eHvKOi86Wb76i+I/zqTuILzTeqmS35paqv4VIAE/rqTPBhFR1salxn8
-	t/lpRlKeGyyT8LhEJZNHQ3tlwv9cepBhZqYVyWVblbnabkEttQ6mu5E3vszN9w==
+	t=1790324609; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=zzIL5W2Ye25GZnPKQdg462bHYeceCuodqwBjt0Xld3w=;
+	b=wMJGuyoOSDtbRG4/I+0B3E29cEvt+ytywbYZgeDeeCJiUqVtug2bCwsrMuy2/IrqYzusfe
+	tzEQTAApUEKBW9drzt15BGyutDHR36QcZ/vbTc6NX4NShbVIOWlWu65wLaix29ntH0+Hru
+	X2n4ZfCqN8ve6UFKDN1WMAmzp5Qo2IMOR2Hc3jAzEP4o+0zJ7T3APlp0vTkIE+0jEdGpwE
+	2mLBwCMM3AQTLsDhjjAVaDSQzEnrKXuJpJWKdd+3Gh8lsx2bt6oqUJZxL09r74n7awcfui
+	r7zJL5GS6W+f+/z9421jdqLnlPSP1kaYTRDlJ+TRzntOU/NxeP6whsMoXeNyHw==
 From: "Benjamin Robin (Schneider Electric)" <benjamin.robin@bootlin.com>
-Date: Fri, 25 Sep 2026 10:21:43 +0200
-Subject: [PATCH 5.15.y 2/2] netfilter: nf_tables: join hook list via
+Subject: [PATCH 5.10.y 0/2] netfilter: nf_tables: join hook list via
  splice_list_rcu() in commit phase
+Date: Fri, 25 Sep 2026 10:23:24 +0200
+Message-Id: <20260925-cve-2026-52988-5-10-v1-0-19be752e722b@bootlin.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,9 +44,10 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260925-cve-2026-52988-5-15-v1-2-ef05a24139f2@bootlin.com>
-References: <20260925-cve-2026-52988-5-15-v1-0-ef05a24139f2@bootlin.com>
-In-Reply-To: <20260925-cve-2026-52988-5-15-v1-0-ef05a24139f2@bootlin.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMQQ6CMBCF4auQWTukrUxDvYphAcOA4wJNiwRDu
+ LtFlt9L3r9BkqiS4FZsEGXRpK8pw14K4Ec7jYLaZ4MzzpvgCHkRPIDkQl0joTU4EFfXrvXBc4D
+ 8fEcZdP1X70ClNeUXmnNPn+4pPB9J2PcfoOqnrH8AAAA=
+X-Change-ID: 20260925-cve-2026-52988-5-10-f5c43ba696c9
 To: stable@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>, 
  Josh Triplett <josh@joshtriplett.org>, Steven Rostedt <rostedt@goodmis.org>, 
  Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
@@ -64,39 +64,23 @@ Cc: thomas.petazzoni@bootlin.com, rcu@vger.kernel.org,
 X-Mailer: b4 0.15.2
 X-Last-TLS-Session-Version: TLSv1.3
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+I backported an additional patch, which adds list_splice_rcu(), which is
+required.
 
-[ Upstream commit a6134e62dba2ea4f760b29d5226907f447c92400 ]
-
-Publish new hooks in the list into the basechain/flowtable using
-splice_list_rcu() to ensure netlink dump list traversal via rcu is safe
-while concurrent ruleset update is going on.
-
-Fixes: 78d9f48f7f44 ("netfilter: nf_tables: add devices to existing flowtable")
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Benjamin Robin (Schneider Electric) <benjamin.robin@bootlin.com>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Pablo Neira Ayuso (2):
+      rculist: add list_splice_rcu() for private lists
+      netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c1b5b579ccd7..b5273255b738 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9707,8 +9707,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   nft_trans_flowtable(trans),
- 							   &nft_trans_flowtable_hooks(trans),
- 							   NFT_MSG_NEWFLOWTABLE);
--				list_splice(&nft_trans_flowtable_hooks(trans),
--					    &nft_trans_flowtable(trans)->hook_list);
-+				list_splice_rcu(&nft_trans_flowtable_hooks(trans),
-+						&nft_trans_flowtable(trans)->hook_list);
- 			} else {
- 				nft_clear(net, nft_trans_flowtable(trans));
- 				nf_tables_flowtable_notify(&trans->ctx,
+ include/linux/rculist.h       | 29 +++++++++++++++++++++++++++++
+ net/netfilter/nf_tables_api.c |  4 ++--
+ 2 files changed, 31 insertions(+), 2 deletions(-)
+---
+base-commit: 1797d8bf8d0c2e74defad605d14e3553d43a3caf
+change-id: 20260925-cve-2026-52988-5-10-f5c43ba696c9
 
--- 
-2.55.0
+Best regards,
+--  
+Benjamin Robin (Schneider Electric) <benjamin.robin@bootlin.com>
 
