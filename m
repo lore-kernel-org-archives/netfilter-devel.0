@@ -1,79 +1,73 @@
-Received: from mail-vs2-f40.google.com (mail-vs2-f40.google.com [74.125.227.40])
+Received: from mail-pj2-f12.google.com (mail-pj2-f12.google.com [74.125.227.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770BD4854EA
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 20:25:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.40
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 883BA2BEC45
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 02:00:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790281564; cv=none; b=gRCOIi2scS4t50Xp5HiuqI/abCR5cuaJ8HlYTo+paf9mBHTrjR3aYsGvI2yOPGxXYXfLga61N9RGQ68BuWPwmyXyCMdHBGNo6Veo90b9N+42/ag+wNdCOKFtOYUrJf9AN7ban2qslRxDHSEZHLdue+VtbFj3t5HT22wKON9eDyk=
+	t=1790301631; cv=none; b=jxscwMmy75W/AAg0Rh3Xg5Aes1CvRTvmi8vzcIjTl4GPk2rvdxPk4KpDE1AMnBCBdyp8j3YVc3iH6aPvAPYXjofdzk+dQexVTlUuidRZ9vAtghMx2mxdYsTr+z+cuv6DACJUNg4oy5D6NfLtdoHz2GQ8E3T0OX+R0ZZWRqCk48Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790281564; c=relaxed/simple;
-	bh=uRYPAtAtLif7i10854CTEewWmJAf/TWjXqRBv41TdEI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=U9l8u9J9DzPyxCSd22SEvAPKeQEfFgj6QTx8x/mNP5CXLb9egimtGXgtG+CP+UXm/AKzdkV++aGQAlkR+ZaGlWLbGC5aqPrP9Qnkz0QB7Mvya5fZQs1FOZHhiQFpcKMJmtfq0+EfQuzcl9hxQdT++xAZ2j0qMpy/b+s9wdShvHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XI4oiPFE; arc=none smtp.client-ip=74.125.227.40
+	s=arc-20240116; t=1790301631; c=relaxed/simple;
+	bh=B+MQDJkbz2ZurZea5vqo3nhLCU5cbS/MTcfN28h2I6M=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hQdYaGDfHw/2Xl1jvsf88xOzkGsK+TnNCmPEcjFLKuiHKK5yH+Gsfa4D8kU1rNIPeGm3o+Zrg2VI7M4bXfG8PNr1Fp29vgeHVrop49ln+gTyo85GOe4ZphW0oMjk7+YRiIWLMW+1RfDRmlrqAqdmptcvPg2yT1Z5JR6onUPmJFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TfyZPT/x; arc=none smtp.client-ip=74.125.227.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XI4oiPFE"
-Received: by mail-vs2-f40.google.com with SMTP id ada2fe7eead31-78565b4db79so117806137.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 13:25:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TfyZPT/x"
+Received: by mail-pj2-f12.google.com with SMTP id 98e67ed59e1d1-396672b2569so17797a91.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2026 19:00:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790281556; x=1790886356; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790301630; x=1790906430; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=iv7JMCOOiStR26xduJ20yGu4jGk3+F31OuSygzoMJug=;
-        b=XI4oiPFEvODXpDmkNwakyL26cPhBZO0fAkDbzIYLDNg6xgLvTAkKVqFwgam4Ojh4Zj
-         1GsuEzJTH641jtPyku/gQLRYwtmylTydyUEgM6R0XYjqO6LGZEQI8LQ6hN6nxkyZXhGa
-         7d1Q2uGNumuVABxni+c/deDXTBa1yO+AD0L0ULPNlplrPe2cglZXELUCSDIyrI2aWov5
-         ZX4pL92GWVccxd6S1hNDBIqNpDDlruf1vOlgZCSbcJdlmfUE7ZquB+Trl1/bo7HO6XIU
-         UWlwBKvq/NhavnzSHYDMqsVk5wnicTTlA+E9Is4YjVr0z4S5eJI7duLF57KyhTtzy2Ec
-         1sLQ==
+        bh=wdXQvAxDw9Kg7I9/XYmAKp3RYy+BwvAtZIh1L7zo0oo=;
+        b=TfyZPT/xFN1HR3Z5zKavfCc/upNJIEs3sGNuTPXQBh9B5bb4Pn8Y1eC43JWwB7SRAS
+         U+eH6/EhwxeIiut5WMN1XfxkhYa9bB0E4/p0zvLofsO/SxwpXASh4N90Jzd+3d2WdCxh
+         9/953vlZYTS3mqKDFfjfCqaCTuv6KK//+Nd/9bVKo30T1GZ4RW2DdYgJOlJCVomQPT35
+         99g+TuLiixef/eYUAg2I+jBDhPwqiHQV0YVLxvto0Dedo5x0Uc4raGlyAI7B2zKltrWw
+         oXQ+iMNeQkFItH21L6LC7unUP1aAXvwwjT0c+fqCHoFlyqObJtXtm3LWxRUYSr+ijuh8
+         vYKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790281556; x=1790886356;
+        d=1e100.net; s=20260707; t=1790301630; x=1790906430;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=iv7JMCOOiStR26xduJ20yGu4jGk3+F31OuSygzoMJug=;
-        b=24AOSwHmsMJ/W7e0aYdg2+DjVFvUQ2Qivkg3D3QnYMantqbb/2J7K8cobXnk/NRF2V
-         ciaDj6N+EIiCdnpx0lyTnMCIFRIkP/UAvJ0L1cF9lkeRWz0TCjPEwm3IsXU7F0V8oXmw
-         xL/7Fkxj9c2oP5BsiL7xC2+GheDPzJ1SaXQxdRtvXnhP2dmW/clNkZcAuTTCQpPnX0P7
-         uWJKLKl78qZhG0qJV2GJ16FeU873H3VlycGLx+IOv7Q5KoWZEBdg6n4ba8919BH2NTXO
-         oliK4vEngLw7p43ytR3P6eCbZJvLYsH+bl/5EG6Lv0KxrWI93s23Gy7j4NJTN4PShRfV
-         nnZw==
-X-Gm-Message-State: AFuF++k8dZZwPGN43bEabMXmRd1eEuHop3N8LEzublDIFbd/1Z6TP3GE
-	yW67uE/t1QxmVKNiyhghWVcFsLP+nxwC6eMxMb3+J7e29QJEr8XwAhth
-X-Gm-Gg: AYBFou15aC6oHIwBQpjFWCnAAEdfZhW+ncs8BJm2nMJX4Xcn7EI6JWBnJEvmz0/da+Q
-	aMjiN8pQhm1DSRXCB4ayxV/pQRr30DdgJOkSx4LtBraFuZjlLwpz5R5fzNP/1X9JIPMLeSJxf8c
-	dUP9chtmgit0XWuIsHX9VM56Ibabw/diRL+G5LBU0zN6d/svIwb4nOC2wp8uYnc+Btc9ljYE+tb
-	sZ/cqQsp/kUiU2jZdWr8TXCbsv3VKDIHbcNux94X28OwbPaUKjDimymhEl2zcmN+hhxbmJ1no8u
-	4Hr3zcm41nDqJNVupNGw1hWWy0m5n1rggZKQtJfrUNBuWZ77FhK1/XAdKJGoKQHKNkuqQJi1D9p
-	iFcSbTrWVq/BsVM6B5qzQJDmK9fp1AAm6bxOdDIFtI6jINvRno2W0L1eJ7aUdUzdmYeMMUcjpDL
-	aw7P2Sce4A0VTnVdtuSPOljmR3+G6bfUNaWVR7dtVTPGVbEWjvTH33zVA86XR3KU/49xJCJPbpv
-	3rnxf383xqy
-X-Received: by 2002:a05:6102:c53:b0:7a1:f7c3:3a45 with SMTP id ada2fe7eead31-7af1d6c4296mr1934116137.18.1790281556440;
-        Thu, 24 Sep 2026 13:25:56 -0700 (PDT)
-Received: from adriano.lan ([2803:9810:3dd5:d810:440b:4079:aa61:d217])
-        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-7b0db1d1152sm782102137.6.2026.09.24.13.25.52
+        bh=wdXQvAxDw9Kg7I9/XYmAKp3RYy+BwvAtZIh1L7zo0oo=;
+        b=NRrpJHkRUuOZGDEkCVVH7RA5JHe32+yLaP7MjO+SGGRmSgmCgXjynwJefP37F0Kq85
+         xv6QsnjXAqwqKa7XnsfzgyfNNnKFTMeJ3Eg4xRTIMvogKzUfUjwvhWjM8PSiPC5jpOfT
+         7a6NQonVigxQnOeYQhJY+r6sylbhXfPzV8qDCWL04G6TkE3uX2DIKz51000+YRkRFFvz
+         GcfSymC0cJVG/nng688tOw/j5mhuXg0DPxwhFieae3vKyPflt8r+QDEW0GU1Xw9c41jQ
+         vm4vP42k+Gdxno6Ugm3fstaSaMZoxf+sUccHccgLIVwyIJ4AOLayn4Pu3uRgkrAGZjBM
+         qA5A==
+X-Forwarded-Encrypted: i=1; AKwUvBzkYyPxAcuaHsrBFKOMvD+kYOl/JJl6mIwtgPZ5RoPbgV+vqtSYFRHAe+/s8ZzmgWKVuPZyRpeX/KOPia/aET8=@vger.kernel.org
+X-Gm-Message-State: AFuF++kOzzsyyUKnFggD14eAleN3Om/y8ajA/ALJlgvSeqI0v0C7FqHG
+	5oI7Yx+dYrf4fkPrCIscNJUfzObx1p9s3PES+xSOj0VbZHqPoj6XMTnF
+X-Gm-Gg: AYBFou3sAla7LIUSAbwtfKvmqFgAmaKr9huXYA0g/DTMmnJ5Bl9ooAXp/1R2Tdkt3ui
+	zHREVQJ2tHb56rGrljjmF3ezZth9GVJge1cFA4DfWJ1zEK9GY59hQAElngS5Y7mXW5I1TqdsZAE
+	9rUmsjaPdTOGdkXSzIbVRNOxFqi5s0XZEwnkKCGXCqWPUnCd6ytpVe0/UaKjVHesP2E/FBchLco
+	grd/rrkw8m3Y6dqNnWM6qzHBKYr9d7VQVSMcLYJmTdJquFGkdXprAHUQyvZ3u0OQT7bOD7N287V
+	TwpUDe5b6tXOvcwe8epCpRh+nb1Zvtj7zOZn8pMLZtUhutLntsN/jVlnd+O5AHHl79TXjksM3GM
+	FqGIPOJl/ChqgjcfWvQIqEeDLl2NYylGKYqSjhEpsOKktsd/7sMvN8z93gOLoUO7kOlpcZo7Vi7
+	/aRa42gZO/NsOLvO8qWmRSGTIKDKBZFnoKY/Zj98/qWt/oKvMetb9H2i8V1CN/qyICURFaGouaT
+	ZpdQ7eMNQ4=
+X-Received: by 2002:a17:90b:3889:b0:39e:55ce:af15 with SMTP id 98e67ed59e1d1-3a0b28344abmr2168977a91.5.1790301629463;
+        Thu, 24 Sep 2026 19:00:29 -0700 (PDT)
+Received: from localhost.localdomain ([175.159.181.20])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a0ba31f408sm369914a91.3.2026.09.24.19.00.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Sep 2026 13:25:55 -0700 (PDT)
-From: Adriano Cordova <adrianox@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Adriano Cordova <adrianox@gmail.com>
-Subject: [PATCH net-next] netfilter: nf_flow_table_bpf: populate VLAN encap in XDP flowtable lookup
-Date: Thu, 24 Sep 2026 17:25:43 -0300
-Message-ID: <20260924202543.1090535-1-adrianox@gmail.com>
-X-Mailer: git-send-email 2.51.0
+        Thu, 24 Sep 2026 19:00:28 -0700 (PDT)
+From: Yu Junzhe <junzheyu1@gmail.com>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sasha Levin <sashal@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: [PATCH request stable 6.12 6.6 6.1] netfilter: nf_tables_netdev_event UAF of binding chain
+Date: Fri, 25 Sep 2026 02:00:25 +0000
+Message-ID: <20260925020025.616-1-junzheyu1@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,61 +76,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-encap[] is part of the flow_offload_tuple rhashtable key
-(flow_offload_hash() hashes up to __hash), so a lookup has to fill it like
-the skb path does.  bpf_xdp_flow_lookup() builds its key from struct
-bpf_fib_lookup only, which has no encap fields, so it leaves encap[]
-zeroed and can never match a flow whose tuple carries a VLAN encap.
+Hello,
 
-Fill encap[0] from an in-band 802.1Q tag, mirroring the ETH_P_8021Q case
-of nf_flow_tuple_encap().
+Please consider a backport of the following use-after-free to the
+longterm trees that still have it: 6.12, 6.6, and 6.1. 6.18 and newer
+are not affected.
 
-Link: https://github.com/xdp-project/xdp-tools/issues/488
-Signed-off-by: Adriano Cordova <adrianox@gmail.com>
----
- net/netfilter/nf_flow_table_bpf.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+There is no single upstream commit to cherry-pick. On current linux.git
+the netdev notifier no longer calls __nft_release_basechain(); it only
+unregisters the per-device hook. That change arrived as part of the
+netdev-hook rework and does not apply to these stable trees.
 
-diff --git a/net/netfilter/nf_flow_table_bpf.c b/net/netfilter/nf_flow_table_bpf.c
-index cbd5b97a6329..479f8242da2b 100644
---- a/net/netfilter/nf_flow_table_bpf.c
-+++ b/net/netfilter/nf_flow_table_bpf.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/if_vlan.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <linux/bpf.h>
- #include <linux/btf.h>
-@@ -60,6 +61,8 @@ bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple,
- 		    struct bpf_flowtable_opts *opts, u32 opts_len)
- {
- 	struct xdp_buff *xdp = (struct xdp_buff *)ctx;
-+	const struct ethhdr *eth = xdp->data;
-+	const struct vlan_hdr *vh;
- 	struct flow_offload_tuple tuple = {
- 		.iifidx = fib_tuple->ifindex,
- 		.l3proto = fib_tuple->family,
-@@ -91,6 +94,18 @@ bpf_xdp_flow_lookup(struct xdp_md *ctx, struct bpf_fib_lookup *fib_tuple,
- 		return NULL;
- 	}
- 
-+	/* encap[] is part of the lookup key, fill it from the 802.1Q tag. */
-+	if (eth + 1 <= (const struct ethhdr *)xdp->data_end &&
-+	    eth->h_proto == htons(ETH_P_8021Q)) {
-+		vh = (const struct vlan_hdr *)(eth + 1);
-+		if (unlikely(vh + 1 > (const struct vlan_hdr *)xdp->data_end)) {
-+			opts->error = -EINVAL;
-+			return NULL;
-+		}
-+		tuple.encap[0].id = ntohs(vh->h_vlan_TCI);
-+		tuple.encap[0].proto = htons(ETH_P_8021Q);
-+	}
-+
- 	tuplehash = bpf_xdp_flow_tuple_lookup(xdp->rxq->dev, &tuple, proto);
- 	if (IS_ERR(tuplehash)) {
- 		opts->error = PTR_ERR(tuplehash);
--- 
-2.51.0
+Bug
+===
 
+nf_tables_netdev_event() walks table->chains with
+list_for_each_entry_safe. On NETDEV_UNREGISTER of the last hook,
+nft_netdev_event() calls __nft_release_basechain(). Releasing the base
+chain deactivates a JUMP to an NFT_CHAIN_BINDING chain, which
+nft_chain_del()s that successor and nft_immediate_destroy() kfree()s
+it. The walker's saved nr still points at the freed nft_chain.
+
+Still present in:
+
+  linux-6.12.y  (6.12.111)  nft_chain_filter.c: __nft_release_basechain()
+  linux-6.6.y   (6.6.157)
+  linux-6.1.y   (6.1.188)
+
+Gone in linux-6.18.y and linux-7.0.y.
+
+Reproducer (nftables 1.0.9)
+===========================
+
+An anonymous jump is what sets NFT_CHAIN_BINDING (chain flags 0x4).
+Commit the base chain first, then add the jump in a second command.
+Chains are appended to table->chains, and the walker frees the chain
+that follows the base chain. One nft -f that contains both creates the
+binding chain first and does not hit this path.
+
+  ip link add br0 type bridge
+  ip link set br0 up
+  nft -f - <<'EOF'
+  table netdev t {
+          chain in {
+                  type filter hook ingress device "br0" priority 0; policy accept;
+          }
+  }
+  EOF
+  nft add rule netdev t in 'jump { accept; }'
+  ip link del br0
+
+The namespace must still be alive. Netns teardown is too late: nft
+pernet exit wins that race. Needs CAP_NET_ADMIN. Do not run on a host
+kernel.
+
+Confirmed on Linux 6.6.144 KASAN (same __nft_release_basechain() walk
+as 6.6.y and 6.12.y). I have not booted 6.12.111 or 6.1.188.
+
+  BUG: KASAN: slab-use-after-free in nf_tables_netdev_event+0x635/0x970
+  Read of size 8 at addr ff110000037faa20 by task ip/229
+  Freed by task 229:
+    nft_immediate_destroy
+    __nft_release_basechain_now
+    __nft_release_basechain
+    nf_tables_netdev_event
+
+The read is 8 bytes at offset 32 of a kmalloc-128 object
+(nft_chain.list).
+
+Thanks,
+Yu Junzhe
+FuzzAnything <fuzzanything@gmail.com>
