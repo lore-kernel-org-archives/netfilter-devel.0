@@ -1,64 +1,64 @@
-Received: from mail-pj2-f23.google.com (mail-pj2-f23.google.com [74.125.227.151])
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EABF361965
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 16:41:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889493911A8
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 16:41:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790354501; cv=none; b=ad+A0LP4VfcsvGdhufWhoEygsBMuaIXJh+lcmjlDeAUEEy7VZSGBvUm4+sAqCQR+yPwsTbGnbCBU3kQA3D7M8xqxyqnqQDijAk08mO0Dm+LGlpVYYnAhsaG2EeHnilvrZ90q4z5OEvMzdgdiIzgoMwvEHq2x3brQtI4XOd0TUas=
+	t=1790354509; cv=none; b=QkriiIABfKhWpTph409lLM0oH0jPXMfX4fwU5i+gp2cjvpqAm+tE7CsyGMvsFfRLhBbjmXgl/UzgEPLc/mq9fzXBsJpUmcJqdRSZi1uf45sEKzxG9kWNYC4gDm7x7tDAW0x8l/KjjGR2B1BzUn9TS6l8lkq4SJ0aJ/WCysQjYyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790354501; c=relaxed/simple;
-	bh=uErEj7xXzrGiuvpih0CLQN+xUS1ynJdsI6gvvhsGifA=;
+	s=arc-20240116; t=1790354509; c=relaxed/simple;
+	bh=TtrcUjfhGxN+/Il9E+zFlb127nCYs18NSgDSKBIiHpo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DOwdMHPa9KO0jUnll+s4WtZSUkcS9KNw3aXyoAg1mYmJ6OuzWN9qVWcoFIN4Dk3AQd4Aq+6UZb/h3lyY2qkk9mgmuD2+3cS9JmiR2MZ4rFsgrcrz0OgY/qZQN6ngGFvEzVstBkpQvbZ/5c38QCP6veuUVO91/B0nwUM/JLphVHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=CNzWojUX; arc=none smtp.client-ip=74.125.227.151
+	 MIME-Version; b=sCUMsB6rJMUAfriYfgL0+Dv73epxXwa7sSGkpNSivcrPNEfmYapFwqy52yZFRlboJCPMAEtusTaUzbUWOE3L849WC2lgYqsaMpdJUmPkOJxOhobIT2a17B3w45FTqiBwFFAOS7P6bH2soFnNOupLBJ4lkSGPmkSUSZULpkdRUxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=iJ+EAK6T; arc=none smtp.client-ip=74.125.227.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="CNzWojUX"
-Received: by mail-pj2-f23.google.com with SMTP id d9443c01a7336-2d747f066d8so2768725ad.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 09:41:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="iJ+EAK6T"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2dd4b43b20bso4764185ad.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 09:41:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1790354469; x=1790959269; darn=vger.kernel.org;
+        d=nebusec.ai; s=google; t=1790354483; x=1790959283; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=TA+H9EVBy7FAiP8LLZdGujo/BX0RLZ9e9NCfBhtpMyQ=;
-        b=CNzWojUX6dXLzXEkFQoIhwvKuYL0CtK2Y2Au5wYqsvm8JaUzRcp8d9fEpT+bU0oH0F
-         AvjnJj4UcpMmqEL9rjX1cm7oGnPMW00tsC8MRKxO5mUe5yJsKCvh2AFSAvA3/1/lLAmS
-         4tCge0RzUGL3nTr6/tcQyhBNpxNUG8FfDdD6NRQOTNZ1xqoHJ5A6DbkqpLYkgq1KSxpj
-         Uf5WuldNeGCM3WO5PvsSgR1yPjOEpuN37FsMTu7JxvbRuK8rgRd3Lx3iHCrBTlH2EJZ8
-         /+hRdRzsXbd2eWh79gXC4Be+SZGnn7cZIclGV6ooqn6sBNfAoNmU+qpTNv975Q+7DnnC
-         zU2Q==
+        bh=6hQQWvTzGmogv0EMa2VjHO6aB1rZOWzNyIYZn2ueb1k=;
+        b=iJ+EAK6Tjdequ3S+h5hPGfQbsMqbmfJT7FDq2pnWNrnK23ZhbpKwx4DqzclvIKVMqn
+         ZyBZeXIv9FLiqzYu3OU+jlbwubQsqJHZxpGNwvvgFosXIVdLqZM1Hg+PTv/GQvjE2nI1
+         odhYpfnranEYpmHuVqgZK1CaS5EASEtI2/9XiZSccNfrW85cWD0fosvQjOXi7os0kN71
+         wMTogkmpcKCh21LaVCYmbCowjf6uU+k0+0ZbCntlgAbGuCbbFZDlOGCjzGFEALkjyzYx
+         EWZ7QUQFRLi+yx+aIB/xOZgKMXzK5bSxRfowsV77jopGTtE0+AKUg4nnvbf8qNBZ0Yll
+         M9+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790354469; x=1790959269;
+        d=1e100.net; s=20260707; t=1790354483; x=1790959283;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TA+H9EVBy7FAiP8LLZdGujo/BX0RLZ9e9NCfBhtpMyQ=;
-        b=Y21Io6a3PvPz9p8lcQK/o5AUQgg1sV9xsq/UcxmAvfiosBHDcmKRYoOOkBVGL0pZor
-         0ItIm/tPySgzyb0PiyfRVrfFap76h41+0MWaUJv8r1Y+9L29aDgRG79V6dyrcrFsrRsb
-         fkoVq7K5sWUdxKG9FmeT1rebxWrGvyeKH2cF5ia5qfz5c3D1Rx61+Yapv81+cho4BOfU
-         4Cx7yLsAbA1Q570Cqki5kTmg2WJ0oLI28lqSKZY3VF70VgLhxiKl3HQSnabEwDEp+AZJ
-         o4jwRL79DPyovnk1AjVF2RC9uNOyJmiwj/JPfEwPaJb9pIAxg8YG2oj01knqmtbUPDOM
-         emjA==
-X-Forwarded-Encrypted: i=1; AKwUvBwM4lj3U5+Xh+5gg2tRmEy7womY8D8jiBl0Vfi9Mc1aw67rDOgYmGpkxfbWKREr1+BcjctbX3kh6qxyd4htsS4=@vger.kernel.org
-X-Gm-Message-State: AFuF++kqkftN6ZHG+auN2hmLMJp8EkVvKMeZcMWUrb4+oxXLUAwiJ0RT
-	t8g355hWxeHbADh8d2i7Xx4pnEQ9sD6zoVshJIy+Zf1JPS4DgPNSPJ0ogV0ZFy+fErPI
-X-Gm-Gg: AYBFou06GAAMxA7Ve0olMh3ojkrG9eO33WF9UtBEZI3m0RD0ElrVii9pr8hAFZxBqyY
-	VR2bW8S9fKahu6c3mMAglPj8zJThga4d6v5b1k91DvMMHk2y/7bDaespajVVH0AyXjhV25+F/NG
-	xWjChzpe0CYgh2yxeqn8oVRLFnucVMkMOgvbLHJROvY84wBEgY9FM5c5NTad1ZRXa4UhWRE/uHS
-	4ddP2K4fn5mQ6ofYG1WuDPkM+/N6sYTLeynvIC/BGEUywXMkV3qaf8HQ7dCJmjeZyH/NcU5NjtV
-	39ArbvkZf6aDyq4EYAx3NnWSkPJLa2X4AyTZ+XlxkRk+QHiF6EVznrliQ6PhL/6XvXoyYTOitS4
-	4w6qTH5dgiL/uyk7uPwXxQb6e47dsc/u5xsyyfAmCVi4dg3kLWlE4YBUAoMATayU+0XmrfkQhoV
-	5hiUKNVlwrwbG5X8Lt/MFsUAtX4CMjJWTh0ahxc/tzpcK/UoAZNHXvK+xp3b3t+QIr0U7jjkYpy
-	Bz/ZTJUHmu32Gy7crIevHu4awbmIg==
-X-Received: by 2002:a17:903:1209:b0:2df:92df:baa0 with SMTP id d9443c01a7336-2df92dfbd16mr16643095ad.5.1790354469324;
-        Fri, 25 Sep 2026 09:41:09 -0700 (PDT)
+        bh=6hQQWvTzGmogv0EMa2VjHO6aB1rZOWzNyIYZn2ueb1k=;
+        b=MDtc+CWW9+JA1O43ZzohuS5mgiiZnV0d5lH2rK4Dzm+aXVB9DBAGVbzn6dEgtsJMnS
+         QluaTH9H/WaX5O3ZHtOLV4XjgbdkgUHuzttv1hG+ijrMY3Zwul+0zRIHcelJiap5FCSr
+         /Uvp85SLsNwKKlQe8Qjgzs6JeoC9I1Zm+Qjo6CNO0KuPK5DH5eo4KRiuIvy9VwrSdzZg
+         XpTDBdfthyMT5T3ung06ktZzRSdm0wLecR8eX2m4cq+C2rS4J0DWwQxbFS0StnzDqrGk
+         NAuf0tT5kRqnFYo49ExIQ9Eg56BnzxU78dk8KALHYHt2YstP3boxL49zmA1IyHqIGXYB
+         JdVQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzFfg1kW19I5QH10lfySedcdF+TjAZzJj/KS+P5vtMRXsX2pqfWwkXUZX14GR2W29FiAybiudDjfp8fzZ2oSfM=@vger.kernel.org
+X-Gm-Message-State: AFuF++kNUicpp0WO48CUZZCreNiWYtWSB9nleeIsANSRlXIGuxIDRgrt
+	cIlXKOUkK/8SAqIswHctzBWS1ldIbFyBBOw5/OXV7fB/ZQgN6Wkxliu+pzXUQ3+dgRAC
+X-Gm-Gg: AYBFou0sfLjpTHKuNIQ2IXFvZjzR+ThUEIl+PvgnfGJFYTLEi8gSWYlTLJ9NzX2VY+S
+	EdXPNB9UXKxOYNWGULE3T/Fo5NC3v8Ufvvxbx4eU/0Cq6FIuZO1CUXn4KcGnXMoBpC+z9PSNYaU
+	rTMGiAsmSeMSTB1bv8DhogFGTQDi6OE0riQyX/fHN6DFZ8veQJKz7IE4YXeadZDTEyWcX9oNM93
+	r6rny/g65Yc2wF8rBZczn+1dtv5u8LlA5U9JIEaM4aAdcn0ju2Af4t4igYowy0MqQ2kyV+nt9S+
+	ft8NOnmg2zJh1J574tgbzC38+LiAeKqB9zD2RARIBHgw8L+HfOEalM7Nut/4mVe47uQ7wMfQcSV
+	AAqYfVOnvJkcUXV81GCk61BDGD392ZFDLd9AwGtlprgj/XRddWWsl8yBmLCmV5GTtQ7aKVFzTen
+	kIX6CoUwkQtcp4NohwmmTBvU9gCL3ihIh1116g0/MaqZL+deQZK4Hi+x699QGrA1Tut2JTTB7Uj
+	5U0NtC4D3PNxtI3/dZ8EMntaVR9//tMjVaKJXoj
+X-Received: by 2002:a17:903:1447:b0:2dd:c053:ec73 with SMTP id d9443c01a7336-2df7e11ad13mr46713485ad.38.1790354482412;
+        Fri, 25 Sep 2026 09:41:22 -0700 (PDT)
 Received: from 954df21a5119.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2df9146edb4sm13855275ad.81.2026.09.25.09.41.05
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2df9146edb4sm13855275ad.81.2026.09.25.09.41.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Sep 2026 09:41:08 -0700 (PDT)
+        Fri, 25 Sep 2026 09:41:21 -0700 (PDT)
 From: Zihan Xi <zihanx@nebusec.ai>
 To: netdev@vger.kernel.org,
 	lvs-devel@vger.kernel.org,
@@ -68,10 +68,13 @@ Cc: horms@verge.net.au,
 	pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
-	zihanx@nebusec.ai
-Subject: [PATCH nf v5 1/3] ipvs: wait the running timer cb on conn deletion
-Date: Fri, 25 Sep 2026 16:40:46 +0000
-Message-ID: <77588fc74c9f2051fefa31be15e86ab6ce657ffd.1790266803.git.zihanx@nebusec.ai>
+	zihanx@nebusec.ai,
+	stable@vger.kernel.org,
+	Vega <vega@nebusec.ai>,
+	Luxing Yin <root@tr0jan.top>
+Subject: [PATCH nf v5 3/3] ipvs: reject FTP control ports as data ports
+Date: Fri, 25 Sep 2026 16:40:48 +0000
+Message-ID: <a1fcb8b49e266e1cac9cce78498842167ae0f2a3.1790266803.git.zihanx@nebusec.ai>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <cover.1790266803.git.zihanx@nebusec.ai>
 References: <cover.1790266803.git.zihanx@nebusec.ai>
@@ -83,228 +86,87 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+ip_vs_ftp_out() creates a wildcard data connection from the
+server-advertised passive port. If that port is one of the configured FTP
+control ports, ip_vs_conn_new() binds the FTP helper to the new connection
+again. A subsequent wildcard lookup can then extend a controlled-connection
+chain.
 
-Sashiko reports for problem when deleting connections.
+Reject zero and configured control ports before creating passive
+connections. For active mode, reject a zero client port and a data port
+derived from a configured control port.
 
-If connection timer expires, its callback can not be
-concurrently running but if connection is deleted
-the callback can be running on another CPU even
-after all references are released. Before now we
-continued with the connection freeing, risking the
-callback to access the deleted connection after it
-is freed. As ip_vs_conn_del*() run under RCU lock
-there is no risk accessing a freed connection by
-concurrent timer callback as Sashiko warns, may
-be only if our timer expires and we try to delete
-the cp->control chain.
-
-Fix that by failing the ip_vs_conn_unlink() call after
-refcnt is restored to 1 allowing the timer callback
-to be scheduled for new execution which should happen
-after the detected running callback finishes.
-
-One of two things can happen when we detect the
-running callback:
-
-1. the concurrent timer callback can see refcnt 0 and
-do nothing, so we will schedule new timer callback to
-expire the connection after the running one finishes
-
-2. the concurrent timer callback can see refcnt 1 and
-to expire the connection as usually, in this case we
-will see refcnt 0 and will do nothing
-
-Add explicit rcu_read_lock() while deleting the cp->control
-chain to protect from concurrent timer callback for ct to
-expire it before us.
-
-During such races, try to keep 0 in cp->timeout as it is
-a request for deleting our cp->control chain immediately.
-
-Link: https://sashiko.dev/#/patchset/cover.1789435989.git.zihanx%40nebusec.ai
-Fixes: f9200a52eedf ("ipvs: avoid expiring many connections from timer")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Cc: stable@vger.kernel.org
+Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: LLM
+Co-developed-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 103 +++++++++++++++++---------------
- 1 file changed, 54 insertions(+), 49 deletions(-)
+changes in v5:
+  - Rebase this patch on Julian Anastasov's v3 timer-callback fix.
+  - v4 Link: https://lore.kernel.org/all/cover.1790146910.git.zihanx@nebusec.ai/
+changes in v4:
+  - Resend the FTP helper fix as patch 3/3 with the generic cleanup fixes.
+  - v3 Link:
+    https://lore.kernel.org/all/cover.1789877273.git.zihanx@nebusec.ai/
+changes in v3:
+  - Keep the active-mode guard for configured FTP control ports.
+  - v2 Link:
+    https://lore.kernel.org/all/cover.1789435989.git.zihanx@nebusec.ai/
+changes in v2:
+  - Add the active-mode check for a data port derived from a configured
+    control port.
+  - v1 Link:
+    https://lore.kernel.org/all/cover.1789110326.git.zihanx@nebusec.ai/
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 6fa3e1dc534c3..eac185496a8a6 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -313,17 +313,34 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- /* Try to unlink ip_vs_conn from conn_tab.
-  * returns bool success.
-  */
--static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
-+static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp, bool my_cb)
- {
- 	struct netns_ipvs *ipvs = cp->ipvs;
- 	struct hlist_bl_head *head, *head2;
- 	u32 hash_key, hash_key2;
- 	struct ip_vs_rht *t;
--	bool ret = false;
- 	bool use2;
+ net/netfilter/ipvs/ip_vs_ftp.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+index 9e3e005a82635..4822a1a75212d 100644
+--- a/net/netfilter/ipvs/ip_vs_ftp.c
++++ b/net/netfilter/ipvs/ip_vs_ftp.c
+@@ -62,6 +62,17 @@ static unsigned short ports[IP_VS_APP_MAX_PORTS] = {21, 0};
+ module_param_array(ports, ushort, &ports_count, 0444);
+ MODULE_PARM_DESC(ports, "Ports to monitor for FTP control commands");
  
-+	if (!refcount_dec_if_one(&cp->refcnt))
-+		return false;
++static bool is_control_port(u16 port)
++{
++	unsigned int i;
 +
- 	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
--		return refcount_dec_if_one(&cp->refcnt);
-+		return true;
-+
-+	/* Revalidate after conn is excluded from traffic:
-+	 * - not controlling other conns
-+	 * - no pending/running timer callback
-+	 *
-+	 * And the winner is ...
-+	 */
-+	if (atomic_read(&cp->n_control) ||
-+	    (!timer_delete(&cp->timer) && !my_cb)) {
-+		/* Not me? Give the timer callback another chance, even
-+		 * if one is concurrently running during the conn deletion.
-+		 */
-+		refcount_set(&cp->refcnt, 1);
-+		return false;
++	for (i = 0; i < ports_count; i++) {
++		if (ports[i] == port)
++			return true;
 +	}
++	return false;
++}
++
  
- 	rcu_read_lock();
- 	local_bh_disable();
-@@ -337,15 +354,11 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 		      false /* new_hash2 */, &head, &head2);
- 
- 	if (cp->flags & IP_VS_CONN_F_HASHED) {
--		/* Decrease refcnt and unlink conn only if we are last user */
--		if (use2 == ip_vs_conn_use_hash2(cp) &&
--		    refcount_dec_if_one(&cp->refcnt)) {
--			hlist_bl_del_rcu(&cp->hn0.node);
--			if (use2)
--				hlist_bl_del_rcu(&cp->hn1.node);
--			cp->flags &= ~IP_VS_CONN_F_HASHED;
--			ret = true;
--		}
-+		/* Unlink conn as we are the last user */
-+		hlist_bl_del_rcu(&cp->hn0.node);
-+		if (use2)
-+			hlist_bl_del_rcu(&cp->hn1.node);
-+		cp->flags &= ~IP_VS_CONN_F_HASHED;
+ static char *ip_vs_ftp_data_ptr(struct sk_buff *skb, struct ip_vs_iphdr *ipvsh)
+ {
+@@ -319,6 +330,10 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 		return 1;
  	}
  
- 	conn_tab_unlock(head, head2);
-@@ -353,7 +366,7 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 	local_bh_enable();
- 	rcu_read_unlock();
++	/* Do not redirect data to control ports */
++	if (!port || is_control_port(ntohs(port)))
++		return 0;
++
+ 	/* Now update or create a connection entry for it */
+ 	{
+ 		struct ip_vs_conn_param p;
+@@ -529,6 +544,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 		return 1;
+ 	}
  
--	return ret;
-+	return true;
- }
++	if (!port || is_control_port(ntohs(cp->vport) - 1))
++		return 0;
++
+ 	/* Passive mode off */
+ 	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
  
- 
-@@ -1319,34 +1332,29 @@ static void ip_vs_conn_rcu_free(struct rcu_head *head)
- 	kmem_cache_free(ip_vs_conn_cachep, cp);
- }
- 
--/* Try to delete connection while not holding reference */
-+/* Try to delete connection while not holding reference.
-+ * It can be called concurrently and always under RCU lock.
-+ */
- static void ip_vs_conn_del(struct ip_vs_conn *cp)
- {
--	if (timer_delete(&cp->timer)) {
--		/* Drop cp->control chain too */
--		if (cp->control)
--			cp->timeout = 0;
--		ip_vs_conn_expire(&cp->timer);
--	}
--}
-+	struct timer_list *t = (void *)((unsigned long)(&cp->timer) | 1UL);
- 
--/* Try to delete connection while holding reference */
--static void ip_vs_conn_del_put(struct ip_vs_conn *cp)
--{
--	if (timer_delete(&cp->timer)) {
--		/* Drop cp->control chain too */
--		if (cp->control)
--			cp->timeout = 0;
--		__ip_vs_conn_put(cp);
--		ip_vs_conn_expire(&cp->timer);
--	} else {
--		__ip_vs_conn_put(cp);
--	}
-+	/* Drop cp->control chain too */
-+	if (cp->control)
-+		cp->timeout = 0;
-+	ip_vs_conn_expire(t);
- }
- 
-+/* Connection is removed in the following steps:
-+ * - timer expires or connection is deleted
-+ * - there should be no more references (n_control>0 and refcnt>1)
-+ * - there should be no pending timer or a running timer callback (on deletion)
-+ */
- static void ip_vs_conn_expire(struct timer_list *t)
- {
--	struct ip_vs_conn *cp = timer_container_of(cp, t, timer);
-+	bool my_cb = !((unsigned long)t & 1);
-+	struct timer_list *t2 = (void *)((unsigned long)t & ~1UL);
-+	struct ip_vs_conn *cp = timer_container_of(cp, t2, timer);
- 	struct netns_ipvs *ipvs = cp->ipvs;
- 
- 	/*
-@@ -1356,26 +1364,21 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 		goto expire_later;
- 
- 	/* Unlink conn if not referenced anymore */
--	if (likely(ip_vs_conn_unlink(cp))) {
-+	if (likely(ip_vs_conn_unlink(cp, my_cb))) {
- 		struct ip_vs_conn *ct = cp->control;
- 
--		/* delete the timer if it is activated by other users */
--		timer_delete(&cp->timer);
--
- 		/* does anybody control me? */
- 		if (ct) {
--			bool has_ref = !cp->timeout && __ip_vs_conn_get(ct);
--
-+			rcu_read_lock();
- 			ip_vs_control_del(cp);
- 			/* Drop CTL or non-assured TPL if not used anymore */
--			if (has_ref && !atomic_read(&ct->n_control) &&
-+			if (!cp->timeout && !atomic_read(&ct->n_control) &&
- 			    (!(ct->flags & IP_VS_CONN_F_TEMPLATE) ||
- 			     !(ct->state & IP_VS_CTPL_S_ASSURED))) {
- 				IP_VS_DBG(4, "drop controlling connection\n");
--				ip_vs_conn_del_put(ct);
--			} else if (has_ref) {
--				__ip_vs_conn_put(ct);
-+				ip_vs_conn_del(ct);
- 			}
-+			rcu_read_unlock();
- 		}
- 
- 		if ((cp->flags & IP_VS_CONN_F_NFCT) &&
-@@ -1410,13 +1413,15 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 		  refcount_read(&cp->refcnt),
- 		  atomic_read(&cp->n_control));
- 
--	refcount_inc(&cp->refcnt);
--	cp->timeout = 60*HZ;
-+	if (__ip_vs_conn_get(cp)) {
-+		if (cp->timeout || atomic_read(&cp->n_control))
-+			cp->timeout = 60 * HZ;
- 
--	if (ipvs->sync_state & IP_VS_STATE_MASTER)
--		ip_vs_sync_conn(ipvs, cp, sysctl_sync_threshold(ipvs));
-+		if (ipvs->sync_state & IP_VS_STATE_MASTER)
-+			ip_vs_sync_conn(ipvs, cp, sysctl_sync_threshold(ipvs));
- 
--	__ip_vs_conn_put_timer(cp);
-+		__ip_vs_conn_put_timer(cp);
-+	}
- }
- 
- /* Modify timer, so that it expires as soon as possible.
 -- 
 2.43.0
 
