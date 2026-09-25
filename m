@@ -1,293 +1,411 @@
-Received: from mail-oi2-f12.google.com (mail-oi2-f12.google.com [74.125.231.204])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1F54A0125
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 12:58:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.231.204
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790341128; cv=pass; b=W0DFCBcxr0HRl1Sd3w2c1Ou1Doa1YasXils53IcBPLN0blrH6EvtGhQR6HzCLE7CytXD7NjaU8pnWpAtj7xK9klg353qn3NE1iESKysuTHkKiRth5EV/81fJ4wchSvVflUHayl6RYNcOpG5UH7dR+QaaThnyxB6iDVn9E5FhGpo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790341128; c=relaxed/simple;
-	bh=sIrWajdSI55bzVgIeQtT6ejFVBaCkARTp4mZoTp4eO0=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ZM5p/7ljl2pHXVz9KXI2/qinYAvQZCAb94VhcqLuJ0oiNvQmPX3sxLjPuwVVe9Z4zCKkwfXIuds3kF3XnSXD6MW7iLeWEkfA1in2m/8m/8YjrGAmqpF9J7oyG8yMpjGthI8ikDIMK4SYQi3txjW6U5CzFM33S3u2H9t9rhFVBxw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZTn3u7GQ; arc=pass smtp.client-ip=74.125.231.204
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A42024A3847
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 13:50:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790344236; cv=none; b=O54xRyQJbFQGBv8tFns5/HE9WVLGXfZaaWI4kqgSleHA5Wm/OIxBqfQhUDXsdwBWoonbbw/cMkHemJDZZjVieCB5FH8UAgCDUc78X/vVuLhQCwVovGGqgAF16mUFUxuxESsn+qV0oVvo0/x7V+s4uIm59XeVWXE+Mmthoi8WKqI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790344236; c=relaxed/simple;
+	bh=2nUAvBHoBDAc6COuiUbJ8a8c1UKLw97zrQpnEOHF6hg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DHWME8trEWxgn736rec+HtaTsgBuva1+DxtqJNJZEnZhL+7DXN+xnV4ZL1WAfJaRbi3FZqQv5F71MdcTm22UYMN2FWmXFIoDwiMdEeh7lstpawz8JARxEO8qBN+NZsvL+9zov0NRJTIsTeR2iGPUz3Q2A1JE7bCPeam+XyKYf+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=IQxLzTtL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ONAxozdM; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=NOJqzjmF; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Nudo2szi; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZTn3u7GQ"
-Received: by mail-oi2-f12.google.com with SMTP id 5614622812f47-4b37a3688a2so606670b6e.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 05:58:46 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790341125; cv=none;
-        d=google.com; s=arc-20260327;
-        b=h3Yv11hjEfKAT9AunnRzyttK0fLjxi1BLLUuPfkgV0XVBPHGob37A1xK64kOn03eoe
-         nVc5JFtK3cmxOmmwLtzMoAjpb/06YaBsP/UNI1VjnztSKQw3UUsIEJCC72GNsj650lr8
-         EWjA1t7KCdnBuJ7OSsRCsi6riumo5RrDjJyocHszBNJzDhLfHrJ9Xfhm59984pUkMYjI
-         ++eq9uKEyiagB2F0LVQyWGrJuMzd4fXbbtPc9unYphHZvkFjyTmdiuI/ceqaxQCIGVIp
-         zips23psGTIHFbKNZNL2IRffde+ei7Gi6YjB8thmFLIr/KIi4ZWSMxcfELg1aQVgNllq
-         uBWA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
-        fh=/FlCOxlFKSwqRaYO54pdJvDR1jnt606WnNMZ1UBh+k8=;
-        b=KWf+jc0cC+knK3s+q9fk6Kg4qbi7SIumWjHYDLbbFnV0Vvie0ZP+PETzDm4IQsQlSx
-         plG+VaTeuHSM0immK6bn/8/erwkhZPcK12WBceCk+oxFgfdBaSa6l6/CcYSzTyDAbZ+T
-         zKVCExk0jXtv7kVQj/7w89JuMEOStIHYOHCy4tvvzor4ucq8jZC9IJwR/6OLjNQDWlLy
-         y0jLKBOaNqKkh5J2z3Qei7K6ugnhO5lQRZ9u+axrtaQlUTQ4NHE++8Ze9+r37BzzjH97
-         XbZPCFLrD8THjP0vXd7Ii0gamAJhoMmZtZEVj8NpiA7IeGkkchJUbwvVCil2nTpPXq1i
-         HsWQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790341125; x=1790945925; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
-        b=ZTn3u7GQ3Blvti+LYNSSdiK+edFwLYlLnc+uvf/MkgIY7SyWkRDAmz9YmlT8Pks3Zg
-         XYLrAwc5JgZ+LW8xrAlnKWZtLm6Pg43JPrWtjfyb15EPVWUHSVyvZCcEXWNum5RhiAR3
-         LYubxQ2q2vXYBEUPkKBxruXTyFwBfN0nr+s2qmj/1KqWVRpQ7UpQnXu4AlZk9O1el7xy
-         C5ASLcuG1+dWgoEjhzHy6GgD/r5Fl/GLmk/QGwdeaG4Re74QVvbFWpGvJRI1SnQRz1cn
-         f37a88cgcGrmgF2r5aSibEOrvjloWrK0r+VHx+X2EtUJ4sPQsYLafI2dSDHn+cm1NfLn
-         qx2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790341125; x=1790945925;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
-        b=hzNsRcUxfdM6r72SKmVvnHwP55gTEFmamn2EZXpmr7qmqvZDjrk5KXypvoS6xucqFf
-         X3y4T9tLD0IGuXVDNWMAPeFTf7bQtGfvizsfPkkGdaPWuacE2MDYpdF+pGsvFI3OAdDx
-         O13ok4NfRJaenHjFfpbiQt9sm8a0PvhvUYu1yuDvSL0llogktbvrCNSe4poYzXoOymEa
-         TqDuWvQRNScJoA6LmQj522yI+1FxkGXWTAfoXKCjUFobyGv+yXc6oETYfzY76+rW5pjA
-         BA5Uu3wM0iqxwuTCemJyxrXnuiPPWGh5dtClvZ9C6ijvsac8CK1JFshS1aSB2KL0cSjb
-         mY9Q==
-X-Gm-Message-State: AFuF++mFIdigrSwFk0sONpA46sYKeDJmk3L0NlmGj8zGOCbCi3dx7s+t
-	GfGkGxJ7M2dIF5LIJF1a+xwTofnos6om/+zInhSNfgxz2vsn82zjs95TLX/VUn8U74wNhFij6xu
-	Z6CfEYAfWycg/yYco/cob72S/AgqYY4g45c3L
-X-Gm-Gg: AYBFou0BNSGku/Kc21aNZJ95k80cLQP4RApP0gCV19Fqu5DjOTYV1x6omPAPev8Hr0T
-	gMnWcpCkLNjDYHiua/6qP/OHGPYf+WnO2QzeUvBj6tt1/C/6Ka1ysaPV35pGhLQm+P8vaBvvOxM
-	ikkRtOz+L0kjTGMtPayONBrk9KwQnDgYL8v7UuTAG3Jk4rzFzXoQR4DOfA5Z6EHFpX+nL50Qht4
-	rJ/eX8zaa/ES1Wq6B/WSoXa6hQCaV6CzS9SiGNcLukRM/HpkxrNN7fqOA4LA6LO6WVcfclsVjYD
-	4rDfM7NA/TQ3HHemzDQJrjEf73t9JaOfAESzaZD9PmT5yKp0YEx7o2+TT7kLfiFKFh+YLwxKjQJ
-	xZt3gYigwQfEAnSBzFF5m
-X-Received: by 2002:a05:6808:238e:b0:4c2:9b5a:cc20 with SMTP id
- 5614622812f47-4d728e2e485mr5420313b6e.0.1790341125583; Fri, 25 Sep 2026
- 05:58:45 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="IQxLzTtL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ONAxozdM";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="NOJqzjmF";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Nudo2szi"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 417ED21E54;
+	Fri, 25 Sep 2026 13:50:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790344228; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=V0T/vv2+1ttJu//GWuKVgXMphuxAyd0Pp09YPOzekw4=;
+	b=IQxLzTtLobdTH01P4Bx/uXaS4d4x/x+pE6GdPW+oPCgYiLj5I+NsqhbOkk/ntNZlIUNDmw
+	wXTpm1pDUeDvQ/z2mN5k4Ht2mW8EbwRlReiV6d2dZKUb6NC9vdc66REfaT7QRBkqr3c7OU
+	tlccJdj+I9bVdgFIPtVkgJKB3rCKDOM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790344228;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=V0T/vv2+1ttJu//GWuKVgXMphuxAyd0Pp09YPOzekw4=;
+	b=ONAxozdMt1hfH1/iKmjtNpMI534R+ntu+LpCmcepk8+BPyBoSCAM09vZ9c0RNi132/m70+
+	bRTcNEu1nGxFX5AQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=NOJqzjmF;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=Nudo2szi
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790344224; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=V0T/vv2+1ttJu//GWuKVgXMphuxAyd0Pp09YPOzekw4=;
+	b=NOJqzjmFAp0beMqgfH7yKUCkTTciM3ZIVO0OAotB6nUqlGSqKD/BB/aF0RuuXof+Dez5Or
+	fl8k4aL7vlVwrHuEZ3I3aaODlsUQASDQCM83AfRRBH8Z08YcvSDCczPHItcQyWRwyF0oE/
+	PC7EMDdj3Iqdr8qIh5i1G8Hw+c1dkWc=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790344224;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=V0T/vv2+1ttJu//GWuKVgXMphuxAyd0Pp09YPOzekw4=;
+	b=Nudo2szid6YY5KMts7nMl0YdO5Damq2MOj9CA5Da9FAgN6KQ4YiW6p4tCsM0vjsyOlf1Zm
+	m+zS07J4GtKJhMDg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B77AC13274;
+	Fri, 25 Sep 2026 13:50:23 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id AaPaIR98tmqJRgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 25 Sep 2026 13:50:23 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH nf-next v6] netfilter: nf_tables: add math expression support
+Date: Fri, 25 Sep 2026 15:49:52 +0200
+Message-ID: <20260925134952.3790-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Date: Fri, 25 Sep 2026 14:58:09 +0200
-X-Gm-Features: AclHuK9c3GKHvxjaHfi-iBLjrRmzPFraRl5c1wa-qtFU0q67eNUlwFpQ0ibDlCA
-Message-ID: <CABhP=tYtCyr-qzL==98nkmDVZr6x+f8E26V1AAOpMXgZgt0vAQ@mail.gmail.com>
-Subject: nf_queue: hook changes drop or re-queue packets waiting in any nfqueue
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
-	Dan Winship <danwinship@redhat.com>
-Content-Type: multipart/mixed; boundary="000000000000d15545065c4e468d"
+Content-Transfer-Encoding: 8bit
+X-Spam-Score: -3.01
+X-Rspamd-Queue-Id: 417ED21E54
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[6];
+	RCVD_TLS_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:dkim,suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Spam-Flag: NO
 
---000000000000d15545065c4e468d
-Content-Type: text/plain; charset="UTF-8"
+Historically, users have requested support for increasing and decreasing
+TTL value in nftables in order to migrate from iptables.
 
-Hi,
+Following the nftables spirit of flexible and multipurpose expressions,
+this patch introduces "nft_math" expression. This expression allows to
+increase and decrease values stored in the register.
 
-deleting an nftables base chain drops every packet that is waiting for
-a verdict in any nfqueue of the network namespace, including packets
-queued by hooks of other tables and other families. Adding a base chain
-in front of the one that queued a packet makes the packet traverse the
-queuing hook again after the verdict, so userspace sees it twice.
+The math expression intends to be flexible enough in case it needs to be
+extended in the future, e.g implement non-contiguous bitfields
+operations. But for now, non-contiguous payloads are not supported.
 
-We found the first problem in kube-network-policies and kindnet
-(Kubernetes network policy and CNI agents built on nfqueue) [1]. Their
-nftables sync did "add table; delete table; add table" to replace the
-ruleset, and every sync lost the connections being evaluated at that
-moment. The userspace symptom is the verdict for the dropped packet
-failing asynchronously with -ENOENT:
+When loading a u8 or u16 payload into a register we don't know if the
+value is stored at least significant byte or most significant byte. In
+order to handle such cases, introduce a bitmask indicating what is the
+target bit and also use it to handle limits to prevent overflow or
+underflow. Keep in mind that math expression expects that the sreg and
+dreg are in host byteorder, so the user must use nft_byteorder
+expressions as needed.
 
-  "Could not receive message"
-  error="netlink receive: no such file or directory"
+This implementation comes with a libnftnl patch that allows the user to
+generate the following example bytecodes:
 
-The add/delete/add idiom was my mistake. The documented way to replace
-a ruleset atomically is "flush table" (or "flush chain") in the same
-transaction, which keeps the base chains and their hooks, and we need
-to change that. However, it does not cover upgrades. A table written by an
-older version may have a chain and/or sets the new version
-no longer uses. Removing them still requires deleting the table, or
-the chain, at least once at startup, with the same effect on every
-nfqueue in the namespace. Suggestions on how to handle that case are
-welcome.
+- Bytecode to increase the TTL of a packet
 
-Independently of fixing it in our projects, any other component will
-trigger the same problem that applies to any nfqueue consumer.
+table filter inet flags 0 use 1 handle 1
+inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
+inet filter input 4
+  [ payload load 2b @ network header + 8 => reg 1 ]
+  [ math mask 0x000000ff reg 1 + 1 => 1]
+  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
 
-Analysis assisted by AI (v6.18-rc1, unchanged in current mainline)
---------------------------------------------------
+- Bytecode to decrease the TTL of a packet
 
-Deleting a base chain ends in __nf_unregister_net_hook(), which after
-shrinking the hook array calls nf_queue_nf_hook_drop(net)
-(net/netfilter/core.c:522). nfqnl_nf_hook_drop()
-(net/netfilter/nfnetlink_queue.c:1184) walks every nfqnl_instance of
-the namespace and calls nfqnl_flush(inst, NULL, 0), which reinjects all
-entries with NF_DROP. Nothing in that path looks at which hook was
-removed, which table owned it, or which hook queued each entry.
+table filter inet flags 0 use 1 handle 1
+inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
+inet filter input 4
+  [ payload load 2b @ network header + 8 => reg 1 ]
+  [ math mask 0x000000ff reg 1 - 1 => 1]
+  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
 
-The reason is nf_queue_entry::hook_index: the entry stores its position
-in the nf_hook_entries array of its hook point, and nf_reinject()
-resumes the traversal from that index. Any change to the array makes
-the index stale, so on unregister everything queued is dropped.
+- Bytecode to increase the meta mark of a packet
 
-Registering a hook does not drop anything, but it also changes the
-array. When the new hook sorts before the queuing one, nf_reinject()
-finds the new hook at hook_index, does ++i, and nf_iterate() runs the
-queuing hook again. The packet is queued a second time.
+table mangle inet flags 0 use 1 handle 6
+inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
+inet mangle output 2
+  [ meta load mark => reg 1 ]
+  [ math mask 0xffffffff reg 1 + 1 => 1]
+  [ meta set mark with reg 1 ]
 
-History:
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+v2: dropped the byteorder netlink attribute, added bitmask to handle
+LSB/MSB when dealing with u8 and u16, simplified eval logic. I've kept
+nft_math as module, IMHO it would be too much to make it built-in.
+v3: fixed checkpatch warnings, improved Kconfig description and fixed a
+wrong EINVAL return.
+v4: removed NFTA_MATH_LEN as discussed with Phil, added a non-contiguous
+bitmask check
+v5: fixed check on op max value, fixed byteorder inconsistency now
+NLA_U32 for both BITMASK and OP attributes
+v6: rebased in top of recent changes, simplified eval logic and made all
+netlink attributes be32 instead of u32
+---
+ include/uapi/linux/netfilter/nf_tables.h |  25 ++++
+ net/netfilter/Kconfig                    |   9 ++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_math.c                 | 150 +++++++++++++++++++++++
+ 4 files changed, 185 insertions(+)
+ create mode 100644 net/netfilter/nft_math.c
 
-  039b40ee5854 ("netfilter: nf_queue: only call synchronize_net twice
-  if nf_queue is active"), v4.12, removed the nf_hook_cmp() filter from
-  nfqnl_nf_hook_drop() so that only entries queued by the removed hook
-  were dropped. The commit message says: "For the rare case of base
-  chain being unregistered or module removal while nfqueue is in use
-  the extra hiccup due to the packet drops isn't a big deal."
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 0b708153469c..36a5b42c3ddf 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -2019,4 +2019,29 @@ enum nft_tunnel_attributes {
+ };
+ #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
+ 
++/**
++ * enum nft_math_attributes - nftables math expression netlink attributes
++ *
++ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
++ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_MATH_OP: operation to be performed (NLA_U32)
++ * @NFTA_MATH_BITMASK: bitmask to be applied on the operation (NLA_U32)
++ */
++enum nft_math_attributes {
++	NFTA_MATH_UNSPEC,
++	NFTA_MATH_SREG,
++	NFTA_MATH_DREG,
++	NFTA_MATH_OP,
++	NFTA_MATH_BITMASK,
++	__NFTA_MATH_MAX,
++};
++#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
++
++enum nft_math_op {
++	NFT_MATH_OP_INC,
++	NFT_MATH_OP_DEC,
++	__NFT_MATH_OP_MAX,
++};
++#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 09874c26fd13..b2203d7ac08b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -657,6 +657,15 @@ config NFT_SYNPROXY
+ 	  server. This allows to avoid conntrack and server resource usage
+ 	  during SYN-flood attacks.
+ 
++config NFT_MATH
++	tristate "Netfilter nf_tables math expression support"
++	depends on NETFILTER_ADVANCED
++	help
++	  This option enables support for the nftables math expression.
++	  It allows arithmetic operations to be performed on nft registers
++	  content, such as incrementing or decrementing values. Math
++	  expressions can be used in nftables rules to modify packet fields.
++
+ if NF_TABLES_NETDEV
+ 
+ config NF_DUP_NETDEV
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6bf74d488a29..ee50c2dd1f29 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -131,6 +131,7 @@ obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
+ obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
+ obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
+ obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
++obj-$(CONFIG_NFT_MATH)		+= nft_math.o
+ 
+ obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
+ 
+diff --git a/net/netfilter/nft_math.c b/net/netfilter/nft_math.c
+new file mode 100644
+index 000000000000..e8b095a3ef73
+--- /dev/null
++++ b/net/netfilter/nft_math.c
+@@ -0,0 +1,150 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <net/netlink.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_math {
++	u8			sreg;
++	u8			dreg;
++	u32			bitmask;
++	enum nft_math_op	op;
++};
++
++static const struct nla_policy nft_math_policy[NFTA_MATH_MAX + 1] = {
++	[NFTA_MATH_SREG]	= NLA_POLICY_MAX(NLA_BE32, NFT_REG32_MAX),
++	[NFTA_MATH_DREG]	= NLA_POLICY_MAX(NLA_BE32, NFT_REG32_MAX),
++	[NFTA_MATH_OP]		= { .type = NLA_BE32 },
++	[NFTA_MATH_BITMASK]	= { .type = NLA_BE32 },
++};
++
++static void nft_math_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs,
++			  const struct nft_pktinfo *pkt)
++{
++	const struct nft_math *priv = nft_expr_priv(expr);
++	const u32 *src = &regs->data[priv->sreg];
++	u32 *dst = &regs->data[priv->dreg];
++	u32 target, keep, bit_unit;
++
++	target = *src & priv->bitmask;
++	keep = *src & ~priv->bitmask;
++	bit_unit = priv->bitmask & -priv->bitmask;
++
++	switch (priv->op) {
++	case NFT_MATH_OP_INC:
++		if (target == priv->bitmask) {
++			*dst = *src;
++			break;
++		}
++
++		target = target + bit_unit;
++		*dst = target | keep;
++		break;
++	case NFT_MATH_OP_DEC:
++		if (!target) {
++			*dst = *src;
++			break;
++		}
++
++		target = target - bit_unit;
++		*dst = target | keep;
++		break;
++	default:
++		DEBUG_NET_WARN_ONCE(true, "unknown operation in nft_math");
++		*dst = *src;
++		break;
++	}
++}
++
++static int nft_math_init(const struct nft_ctx *ctx,
++			 const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_math *priv = nft_expr_priv(expr);
++	u32 bitmask_check;
++	int err;
++	u32 op;
++
++	if (!tb[NFTA_MATH_SREG] ||
++	    !tb[NFTA_MATH_DREG] ||
++	    !tb[NFTA_MATH_BITMASK] ||
++	    !tb[NFTA_MATH_OP])
++		return -EINVAL;
++
++	err = nft_parse_u32_check(tb[NFTA_MATH_OP], NFT_MATH_OP_MAX, &op);
++	if (err < 0)
++		return -EOPNOTSUPP;
++	priv->op = op;
++
++	priv->bitmask = ntohl(nla_get_be32(tb[NFTA_MATH_BITMASK]));
++	if (!priv->bitmask)
++		return -EINVAL;
++
++	/* check if the bitmask is contiguous, otherwise reject it */
++	bitmask_check = priv->bitmask + (priv->bitmask & -priv->bitmask);
++	if (bitmask_check & (bitmask_check - 1))
++		return -EINVAL;
++
++	err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
++				      sizeof(u32));
++	if (err < 0)
++		return err;
++
++	return nft_parse_register_store(ctx, tb[NFTA_MATH_DREG],
++					&priv->dreg, NULL, NFT_DATA_VALUE,
++					sizeof(u32));
++}
++
++static int nft_math_dump(struct sk_buff *skb,
++			 const struct nft_expr *expr, bool reset)
++{
++	const struct nft_math *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_MATH_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_MATH_DREG, priv->dreg))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_MATH_BITMASK, htonl(priv->bitmask)))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_MATH_OP, htonl(priv->op)))
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_math_type;
++static const struct nft_expr_ops nft_math_op = {
++	.eval		= nft_math_eval,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_math)),
++	.init		= nft_math_init,
++	.dump		= nft_math_dump,
++	.type		= &nft_math_type,
++};
++
++static struct nft_expr_type nft_math_type __read_mostly = {
++	.ops		= &nft_math_op,
++	.name		= "math",
++	.owner		= THIS_MODULE,
++	.policy		= nft_math_policy,
++	.maxattr	= NFTA_MATH_MAX,
++};
++
++static int __init nft_math_module_init(void)
++{
++	return nft_register_expr(&nft_math_type);
++}
++
++static void __exit nft_math_module_exit(void)
++{
++	nft_unregister_expr(&nft_math_type);
++}
++
++module_init(nft_math_module_init);
++module_exit(nft_math_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Fernando Fernandez Mancera <fmancera@suse.de>");
++MODULE_ALIAS_NFT_EXPR("math");
++MODULE_DESCRIPTION("nftables math support to operate with values");
+-- 
+2.55.0
 
-  960632ece694 ("netfilter: convert hook list to an array"), v4.14,
-  replaced the hook pointer in the entry with hook_index.
-
-With nftables base chains managed by userspace daemons, unregistering
-a hook is no longer rare, at least not as rare as before, and it happens in
-namespaces where unrelated nfqueue consumers are running.
-
-Reproducer
-----------
-
-The attached script (AI assisted) uses the nf_queue helper from
-tools/testing/selftests/net/netfilter (gcc -o nf_queue nf_queue.c -lmnl).
-It queues 20 UDP packets to queue 1 from an inet output chain, the
-helper delays every verdict by 100 ms so most packets are waiting when
-the ruleset is changed, and it checks that all 20 are delivered and that
-the helper received each one exactly once.
-
-  $ sudo NF_QUEUE=./nf_queue ./nfqueue-hook-drop.sh
-  PASS: no ruleset change
-        sent 20, queued 20, delivered 20
-  PASS: delete regular chain (no hook) of unrelated table
-        sent 20, queued 20, delivered 20
-  PASS: add base chain to unrelated table (ip6 input)
-        sent 20, queued 20, delivered 20
-  PASS: add base chain after the queuing one (output prio 100)
-        sent 20, queued 20, delivered 20
-  FAIL: add base chain before the queuing one (output prio raw)
-        sent 20, queued 37, delivered 20
-  FAIL: delete base chain of unrelated table (ip6 prerouting)
-        sent 20, queued ?, delivered 3
-        nf_queue (exit status 1): mnl_cb_run: No such file or directory
-  FAIL: delete unrelated table (ip6, no queue rule)
-        sent 20, queued ?, delivered 3
-        nf_queue (exit status 1): mnl_cb_run: No such file or directory
-
-The "unrelated" table is ip6 with a prerouting base chain and no queue
-rule. Deleting it drops the packets queued by the inet output chain of
-another table. The "before" case shows the 17 packets that were waiting
-being queued a second time. Reproduced on 7.1.6; the Go reproducer in
-[1] shows the same drops on 7.0.12, also when the table being recreated
-is not the one with the queue rule.
-
-I can turn this into a test case for nft_queue.sh if that helps.
-
-Happy to test patches or to send a selftest.
-
-Thanks,
-Antonio
-
-[1] https://github.com/kubernetes-sigs/kube-network-policies/issues/402
-    (kernel call path and a standalone Go reproducer by Ben Dwyer,
-    who found the root cause)
-
---000000000000d15545065c4e468d
-Content-Type: text/plain; charset="US-ASCII"; name="nfqueue-hook-drop.sh.txt"
-Content-Disposition: attachment; filename="nfqueue-hook-drop.sh.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <f_mugwimbi0>
-X-Attachment-Id: f_mugwimbi0
-
-IyEvYmluL2Jhc2gKIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMAojCiMgUGFja2V0
-cyB3YWl0aW5nIGZvciBhIHZlcmRpY3QgaW4gYW4gbmZxdWV1ZSBkbyBub3Qgc3Vydml2ZSBjaGFu
-Z2VzIHRvIHRoZQojIG5ldGZpbHRlciBob29rIGFycmF5IG9mIHRoZSBuZXR3b3JrIG5hbWVzcGFj
-ZToKIwojICAtIHVucmVnaXN0ZXJpbmcgYW55IGhvb2sgKGRlbGV0aW5nIGFueSBuZnRhYmxlcyBi
-YXNlIGNoYWluLCBldmVuIG9uZSBvZgojICAgIGFuIHVucmVsYXRlZCB0YWJsZSBvciBmYW1pbHkp
-IGRyb3BzIGV2ZXJ5IHBhY2tldCBxdWV1ZWQgaW4gZXZlcnkKIyAgICBuZnF1ZXVlIGluc3RhbmNl
-IG9mIHRoZSBuYW1lc3BhY2UgKG5mcW5sX25mX2hvb2tfZHJvcCgpKS4KIyAgLSByZWdpc3Rlcmlu
-ZyBhIGhvb2sgaW4gZnJvbnQgb2YgdGhlIG9uZSB0aGF0IHF1ZXVlZCB0aGUgcGFja2V0IG1ha2Vz
-CiMgICAgbmZfcmVpbmplY3QoKSByZXN1bWUgYXQgYSBzdGFsZSBpbmRleCwgc28gdGhlIHBhY2tl
-dCB0cmF2ZXJzZXMgdGhlCiMgICAgcXVldWluZyBob29rIGFnYWluIGFuZCBpcyBxdWV1ZWQgYSBz
-ZWNvbmQgdGltZS4KIwojIE5lZWRzIHRoZSBuZl9xdWV1ZSBoZWxwZXIgZnJvbSB0b29scy90ZXN0
-aW5nL3NlbGZ0ZXN0cy9uZXQvbmV0ZmlsdGVyOgojICAgZ2NjIC1vIG5mX3F1ZXVlIG5mX3F1ZXVl
-LmMgLWxtbmwKIwojIFVzYWdlOiBORl9RVUVVRT0uL25mX3F1ZXVlIC4vbmZxdWV1ZS1ob29rLWRy
-b3Auc2gKCk5GX1FVRVVFPSR7TkZfUVVFVUU6LS4vbmZfcXVldWV9ClBBQ0tFVFM9MjAKcmV0PTAK
-Cm5zPSJuZnEtJChta3RlbXAgLXUgWFhYWFhYKSIKdG1wPSQobWt0ZW1wKQoKY2xlYW51cCgpIHsK
-CWlwIG5ldG5zIHBpZHMgIiRucyIgMj4vZGV2L251bGwgfCB4YXJncyAtciBraWxsIDI+L2Rldi9u
-dWxsCglpcCBuZXRucyBkZWwgIiRucyIgMj4vZGV2L251bGwKCXJtIC1mICIkdG1wIgp9CnRyYXAg
-Y2xlYW51cCBFWElUCgppZiBbICEgLXggIiRORl9RVUVVRSIgXTsgdGhlbgoJZWNobyAiU0tJUDog
-JE5GX1FVRVVFIG5vdCBmb3VuZCwgYnVpbGQgdG9vbHMvdGVzdGluZy9zZWxmdGVzdHMvbmV0L25l
-dGZpbHRlci9uZl9xdWV1ZS5jIiA+JjIKCWV4aXQgNApmaQoKaXAgbmV0bnMgYWRkICIkbnMiIHx8
-IGV4aXQgNAppcCAtbmV0ICIkbnMiIGxpbmsgc2V0IGxvIHVwCgojIFRoZSBVRFAgcGFja2V0cyB0
-byBwb3J0IDEyMzQ1IHRoYXQgdGhlIG5hbWVzcGFjZSBzZW5kcyB0byBpdHNlbGYgYXJlIHF1ZXVl
-ZAojIHRvIHF1ZXVlIDEgYXQgdGhlIElQdjQgb3V0cHV0IGhvb2ssIHdpdGhvdXQgYnlwYXNzIHNv
-IHRoZXkgd2FpdCBmb3IgdGhlCiMgdmVyZGljdC4gVGhlIGNvdW50ZXIgaW4gdGhlIGlucHV0IGNo
-YWluIHRlbGxzIGhvdyBtYW55IHdlcmUgZGVsaXZlcmVkLgojICJ1bnJlbGF0ZWQiIGlzIGEgdGFi
-bGUgb2YgYW5vdGhlciBmYW1pbHkgd2l0aCBhIGJhc2UgY2hhaW4gYW5kIG5vIHF1ZXVlIHJ1bGUu
-CnNldHVwX3J1bGVzZXQoKSB7CglpcCBuZXRucyBleGVjICIkbnMiIG5mdCAtZiAtIDw8RU9GCmZs
-dXNoIHJ1bGVzZXQKdGFibGUgaW5ldCBuZnF0ZXN0IHsKCWNoYWluIG91dHB1dCB7CgkJdHlwZSBm
-aWx0ZXIgaG9vayBvdXRwdXQgcHJpb3JpdHkgZmlsdGVyOyBwb2xpY3kgYWNjZXB0OwoJCXVkcCBk
-cG9ydCAxMjM0NSBxdWV1ZSB0byAxCgl9CgljaGFpbiBpbnB1dCB7CgkJdHlwZSBmaWx0ZXIgaG9v
-ayBpbnB1dCBwcmlvcml0eSBmaWx0ZXI7IHBvbGljeSBhY2NlcHQ7CgkJdWRwIGRwb3J0IDEyMzQ1
-IGNvdW50ZXIgbmFtZSBkZWxpdmVyZWQKCX0KCWNvdW50ZXIgZGVsaXZlcmVkIHt9Cn0KdGFibGUg
-aXA2IHVucmVsYXRlZCB7CgljaGFpbiBwcmVyb3V0aW5nIHsKCQl0eXBlIGZpbHRlciBob29rIHBy
-ZXJvdXRpbmcgcHJpb3JpdHkgZmlsdGVyOyBwb2xpY3kgYWNjZXB0OwoJfQoJY2hhaW4gcmVndWxh
-ciB7Cgl9Cn0KRU9GCn0KCmRlbGl2ZXJlZCgpIHsKCWlwIG5ldG5zIGV4ZWMgIiRucyIgbmZ0IGxp
-c3QgY291bnRlciBpbmV0IG5mcXRlc3QgZGVsaXZlcmVkIHwKCQlzZWQgLW4gJ3MvLipwYWNrZXRz
-IFwoWzAtOV0qXCkgLiovXDEvcCcKfQoKIyBxdWV1ZWQgaXMgaG93IG1hbnkgcGFja2V0cyB0aGUg
-aGVscGVyIHJlY2VpdmVkLCBwcmludGVkIGJ5IG5mX3F1ZXVlIC1jIG9uCiMgYSBjbGVhbiBleGl0
-LiBJdCBleGl0cyBlYXJseSBvbiBFTk9FTlQsIGEgdmVyZGljdCBmb3IgYSBwYWNrZXQgdGhlIGtl
-cm5lbAojIGFscmVhZHkgZHJvcHBlZCwgc28gdGhlIGNvdW50IGlzIG5vdCBhdmFpbGFibGUgaW4g
-dGhhdCBjYXNlLgpxdWV1ZWQoKSB7CglzZWQgLW4gJ3MvXlwoWzAtOV0qXCkgcGFja2V0cyB0b3Rh
-bCQvXDEvcCcgIiR0bXAiCn0KCm5mX3F1ZXVlX3dhaXQoKSB7Cglmb3IgXyBpbiAkKHNlcSA1MCk7
-IGRvCgkJaWYgaXAgbmV0bnMgZXhlYyAiJG5zIiBncmVwIC1xICdeICoxICcgL3Byb2MvbmV0L25l
-dGZpbHRlci9uZm5ldGxpbmtfcXVldWU7IHRoZW4KCQkJcmV0dXJuIDAKCQlmaQoJCXNsZWVwIDAu
-MQoJZG9uZQoJZWNobyAiRkFJTDogbmZfcXVldWUgZGlkIG5vdCBiaW5kIHF1ZXVlIDEiID4mMgoJ
-ZXhpdCAxCn0KCiMgcnVuX2Nhc2UgPGRlc2NyaXB0aW9uPiA8bmZ0IGNvbW1hbmQuLi4+CiMKIyBT
-ZW5kcyBQQUNLRVRTIHBhY2tldHMgd2hpbGUgdGhlIGhlbHBlciBkZWxheXMgZXZlcnkgdmVyZGlj
-dCBieSAxMDBtcywgc28KIyBtb3N0IG9mIHRoZW0gYXJlIHN0aWxsIHdhaXRpbmcgd2hlbiB0aGUg
-bmZ0IGNvbW1hbmQgcnVucywgYW5kIGNoZWNrcyB0aGF0CiMgYWxsIG9mIHRoZW0gYXJlIGRlbGl2
-ZXJlZCBhbmQgdGhhdCBlYWNoIG9uZSB3YXMgcXVldWVkIGV4YWN0bHkgb25jZS4KcnVuX2Nhc2Uo
-KSB7Cglsb2NhbCBkZXNjPSIkMSIKCXNoaWZ0CgoJc2V0dXBfcnVsZXNldCB8fCBleGl0IDEKCglp
-cCBuZXRucyBleGVjICIkbnMiICIkTkZfUVVFVUUiIC1jIC1xIDEgLWQgMTAwIC10IDIgPiIkdG1w
-IiAyPiYxICYKCWxvY2FsIHBpZD0kIQoJbmZfcXVldWVfd2FpdAoKCWlwIG5ldG5zIGV4ZWMgIiRu
-cyIgYmFzaCAtYyAiCgkJZm9yIGkgaW4gXCQoc2VxICRQQUNLRVRTKTsgZG8gZWNobyB4ID4vZGV2
-L3VkcC8xMjcuMC4wLjEvMTIzNDU7IGRvbmUiCglzbGVlcCAwLjMgIyBhIGZldyB2ZXJkaWN0cyBs
-YW5kLCB0aGUgcmVzdCBvZiB0aGUgcGFja2V0cyB3YWl0IGluIHRoZSBxdWV1ZQoKCWlwIG5ldG5z
-IGV4ZWMgIiRucyIgbmZ0ICIkQCIgPi9kZXYvbnVsbAoKCXdhaXQgIiRwaWQiCglsb2NhbCBzdGF0
-dXM9JD8gZ290X2RlbGl2ZXJlZCBnb3RfcXVldWVkCglnb3RfZGVsaXZlcmVkPSQoZGVsaXZlcmVk
-KQoJZ290X3F1ZXVlZD0kKHF1ZXVlZCkKCglpZiBbICIkZ290X2RlbGl2ZXJlZCIgPSAiJFBBQ0tF
-VFMiIF0gJiYgWyAiJGdvdF9xdWV1ZWQiID0gIiRQQUNLRVRTIiBdOyB0aGVuCgkJZWNobyAiUEFT
-UzogJGRlc2MiCgllbHNlCgkJZWNobyAiRkFJTDogJGRlc2MiCgkJcmV0PTEKCWZpCgllY2hvICIg
-ICAgICBzZW50ICRQQUNLRVRTLCBxdWV1ZWQgJHtnb3RfcXVldWVkOi0/fSwgZGVsaXZlcmVkICRn
-b3RfZGVsaXZlcmVkIgoJZ3JlcCAtdiAnXiQnICIkdG1wIiB8IGdyZXAgLXYgJ15ob29rXHxwYWNr
-ZXRzIHRvdGFsJyB8IHNlZCAicy9eLyAgICAgIG5mX3F1ZXVlIChleGl0IHN0YXR1cyAkc3RhdHVz
-KTogLyIKfQoKcnVuX2Nhc2UgIm5vIHJ1bGVzZXQgY2hhbmdlIiBcCglsaXN0IHJ1bGVzZXQKcnVu
-X2Nhc2UgImRlbGV0ZSByZWd1bGFyIGNoYWluIChubyBob29rKSBvZiB1bnJlbGF0ZWQgdGFibGUi
-IFwKCWRlbGV0ZSBjaGFpbiBpcDYgdW5yZWxhdGVkIHJlZ3VsYXIKcnVuX2Nhc2UgImFkZCBiYXNl
-IGNoYWluIHRvIHVucmVsYXRlZCB0YWJsZSAoaXA2IGlucHV0KSIgXAoJYWRkIGNoYWluIGlwNiB1
-bnJlbGF0ZWQgaW5wdXQgJ3sgdHlwZSBmaWx0ZXIgaG9vayBpbnB1dCBwcmlvcml0eSBmaWx0ZXI7
-IH0nCnJ1bl9jYXNlICJhZGQgYmFzZSBjaGFpbiBhZnRlciB0aGUgcXVldWluZyBvbmUgKG91dHB1
-dCBwcmlvIDEwMCkiIFwKCWFkZCBjaGFpbiBpbmV0IG5mcXRlc3QgbGF0ZSAneyB0eXBlIGZpbHRl
-ciBob29rIG91dHB1dCBwcmlvcml0eSAxMDA7IH0nCnJ1bl9jYXNlICJhZGQgYmFzZSBjaGFpbiBi
-ZWZvcmUgdGhlIHF1ZXVpbmcgb25lIChvdXRwdXQgcHJpbyByYXcpIiBcCglhZGQgY2hhaW4gaW5l
-dCBuZnF0ZXN0IGVhcmx5ICd7IHR5cGUgZmlsdGVyIGhvb2sgb3V0cHV0IHByaW9yaXR5IHJhdzsg
-fScKcnVuX2Nhc2UgImRlbGV0ZSBiYXNlIGNoYWluIG9mIHVucmVsYXRlZCB0YWJsZSAoaXA2IHBy
-ZXJvdXRpbmcpIiBcCglkZWxldGUgY2hhaW4gaXA2IHVucmVsYXRlZCBwcmVyb3V0aW5nCnJ1bl9j
-YXNlICJkZWxldGUgdW5yZWxhdGVkIHRhYmxlIChpcDYsIG5vIHF1ZXVlIHJ1bGUpIiBcCglkZWxl
-dGUgdGFibGUgaXA2IHVucmVsYXRlZAoKZXhpdCAkcmV0Cg==
---000000000000d15545065c4e468d--
