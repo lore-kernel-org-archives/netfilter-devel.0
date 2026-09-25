@@ -1,404 +1,76 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24D3C4A3F15
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 13:51:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AADA33B27E2
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 14:09:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790344295; cv=none; b=QIsuqYpJ7icvXbaSMgd2n/1bvWlxIKup55sOIeCAZQKKQ9MyQIPosTcPKGgntE/GCdXUDSNDxgroDIZGzlxpNZ25/mklF0XyHLJh9gN5YZrjgDvNdsRBV3v7cOYzF6Filk19/iBmlPBRDtMkh8ihV9MJsPchA7TfY4gzIRRPc7Y=
+	t=1790345363; cv=none; b=YY0xz37ApXKhevW0OkfiMGfJzrziHyiTs5ym6WaTzC/OqO6uitJ47Tn1+JxSACBnkW7DM/3BeiaqpxRgx8XvjWVywO0UWnvFw5Oq2zhzNa7IsUrMXnuDOjcRo1SXOWXobEO0+9OGp7t9xClQQQtWmvUdhyzNJITUzxhLaNans4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790344295; c=relaxed/simple;
-	bh=3PkbgGJicVUuxMpsQ+nUAl5jh+fcN/n9QCO4/wzBJxU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RUEjDk2v6L6jA9qk0T0vX8CVb2BPFs5OyVO4A38RGF8613hsWz0ECNpT1IFuHo8KC2xYsu+bshco5FOJzeRFGJ4GNzlC3ZVghKGOLNf2YixTfna7Lf6sS489thsC/1JDx1997DfErzBuir/8h0ByGqfBca3PYQFYHzGxyLkFENQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=JH+cifaF; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JY2kLm49; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KmeymR/5; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=5pvi2pUw; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="JH+cifaF";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JY2kLm49";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KmeymR/5";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="5pvi2pUw"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id D3FBE1FDA7;
-	Fri, 25 Sep 2026 13:51:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790344288; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=/b/H0Btznum2EUwiZknl7VAvk0UZPzyedJjfiqLUP1U=;
-	b=JH+cifaF8NDs5R8j2QwRQaeJwR5OaLpMR1GVK+ZHG9z6RiahN+AMfft7wMrRzy9UZhGVw9
-	ZoiIPN+PalI/w9rJXQMTUEHeZjCwO4u5L8lcMACW3hkvO4H6a2/StFViWBSX0n+hLCE4Mx
-	U9ponumS6f6fwlTtIXwyINZ1oNSMRIM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790344288;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=/b/H0Btznum2EUwiZknl7VAvk0UZPzyedJjfiqLUP1U=;
-	b=JY2kLm49NX7RiiDq9D7z/zLD4HN3yIVthld5jde95qDDDUtZr+PmSUCWoSo1VcqMNdrc1v
-	ERtvc9zc6nZTsFAg==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b="KmeymR/5";
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=5pvi2pUw
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790344283; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=/b/H0Btznum2EUwiZknl7VAvk0UZPzyedJjfiqLUP1U=;
-	b=KmeymR/5i4fMT6aekaYFqhDkV7G/JLB4/8sBhjRmMHXV04ON0iW44cfR8Ju4TChvM3MqCU
-	bn3aRtnnmvtiBF8Gcj8T/68JFrO9rDPa36dfvIdBO64TyFCTA0zRVkGUQ2BiUAnB69PXEl
-	XbWmd4wfCWKCnDATFTH5kM4Jwe3Xqmk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790344283;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=/b/H0Btznum2EUwiZknl7VAvk0UZPzyedJjfiqLUP1U=;
-	b=5pvi2pUwj0002EqXTeIXgcxOG5FmemoGsRM4DjvjKC9drrOiC6eGs71kZl+LV/wD2dVB3S
-	3vRUHi3ugBtxC5Cw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 55E1D13274;
-	Fri, 25 Sep 2026 13:51:23 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id lXQgClt8tmphRwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 25 Sep 2026 13:51:23 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH libnftnl v5] expr: add support to math expression
-Date: Fri, 25 Sep 2026 15:51:08 +0200
-Message-ID: <20260925135108.4561-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	s=arc-20240116; t=1790345363; c=relaxed/simple;
+	bh=F59pXC3CI4cBhdCinL55QC54DJn4u/kBt+YaMDBnfWQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DPlJfw1OQ/bPi8NpnB4CK0WI+k2Ajs6bdnZbOAsuds3Atk4ZJx2cTqFXY3hNrb+qRo8WBtXPkBBQ6HNohOEeXu4fexmUnf4AcbBJZan4E63GaKmLWZUpcrvfkusRfBFOSCAEKsqk/Vj9t/56MNHaBFbMe/ubGeS5C94ZvwCOoIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 7531760344; Fri, 25 Sep 2026 16:09:11 +0200 (CEST)
+Date: Fri, 25 Sep 2026 16:09:10 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	Dan Winship <danwinship@redhat.com>
+Subject: Re: nf_queue: hook changes drop or re-queue packets waiting in any
+ nfqueue
+Message-ID: <araAhumrNKQ48-Re@strlen.de>
+References: <CABhP=tYtCyr-qzL==98nkmDVZr6x+f8E26V1AAOpMXgZgt0vAQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: D3FBE1FDA7
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	RCVD_TLS_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email,suse.de:mid];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CABhP=tYtCyr-qzL==98nkmDVZr6x+f8E26V1AAOpMXgZgt0vAQ@mail.gmail.com>
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
-v2: adjusted the new fields and fixed the duplicated "math" on print
-v3: removed NFTNL_EXPR_MATH_LEN and simplified printing
-v4: adjusted byteordering, both bitmask and op are u32
-v5: rebased in top of new changes and adjusted types to be32
----
- include/libnftnl/expr.h             |   8 ++
- include/linux/netfilter/nf_tables.h |  25 ++++
- src/Makefile.am                     |   1 +
- src/expr/math.c                     | 178 ++++++++++++++++++++++++++++
- src/expr_ops.c                      |   2 +
- 5 files changed, 214 insertions(+)
- create mode 100644 src/expr/math.c
+Antonio Ojea <antonio.ojea.garcia@gmail.com> wrote:
+> deleting an nftables base chain drops every packet that is waiting for
+> a verdict in any nfqueue of the network namespace, including packets
+> queued by hooks of other tables and other families. Adding a base chain
+> in front of the one that queued a packet makes the packet traverse the
+> queuing hook again after the verdict, so userspace sees it twice.
+> 
+> We found the first problem in kube-network-policies and kindnet
+> (Kubernetes network policy and CNI agents built on nfqueue) [1]. Their
+> nftables sync did "add table; delete table; add table" to replace the
+> ruleset, and every sync lost the connections being evaluated at that
+> moment. The userspace symptom is the verdict for the dropped packet
+> failing asynchronously with -ENOENT:
+> 
+>   "Could not receive message"
+>   error="netlink receive: no such file or directory"
+> 
+> The add/delete/add idiom was my mistake. The documented way to replace
+> a ruleset atomically is "flush table" (or "flush chain") in the same
+> transaction, which keeps the base chains and their hooks, and we need
+> to change that. However, it does not cover upgrades. A table written by an
+> older version may have a chain and/or sets the new version
+> no longer uses. Removing them still requires deleting the table, or
+> the chain, at least once at startup, with the same effect on every
+> nfqueue in the namespace. Suggestions on how to handle that case are
+> welcome.
+> 
+> Independently of fixing it in our projects, any other component will
+> trigger the same problem that applies to any nfqueue consumer.
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 41e9f30..e21752f 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -364,6 +364,14 @@ enum {
- 	__NFTNL_EXPR_INNER_MAX
- };
- 
-+enum {
-+	NFTNL_EXPR_MATH_SREG	= NFTNL_EXPR_BASE,
-+	NFTNL_EXPR_MATH_DREG,
-+	NFTNL_EXPR_MATH_OP,
-+	NFTNL_EXPR_MATH_BITMASK,
-+	__NFTNL_EXPR_MATH_MAX
-+};
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 7c0c915..ee8df9a 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -2015,4 +2015,29 @@ enum nft_tunnel_attributes {
- };
- #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
- 
-+/**
-+ * enum nft_math_attributes - nftables math expression netlink attributes
-+ *
-+ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_OP: operation to be performed (NLA_U32)
-+ * @NFTA_MATH_BITMASK: bitmask to be applied on the operation (NLA_U32)
-+ */
-+enum nft_math_attributes {
-+	NFTA_MATH_UNSPEC,
-+	NFTA_MATH_SREG,
-+	NFTA_MATH_DREG,
-+	NFTA_MATH_OP,
-+	NFTA_MATH_BITMASK,
-+	__NFTA_MATH_MAX,
-+};
-+#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
-+
-+enum nft_math_op {
-+	NFT_MATH_OP_INC,
-+	NFT_MATH_OP_DEC,
-+	__NFT_MATH_OP_MAX,
-+};
-+#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 14c6dd5..5ac2564 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -62,6 +62,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      expr/synproxy.c	\
- 		      expr/osf.c	\
- 		      expr/xfrm.c	\
-+		      expr/math.c	\
- 		      obj/counter.c	\
- 		      obj/ct_helper.c	\
- 		      obj/quota.c	\
-diff --git a/src/expr/math.c b/src/expr/math.c
-new file mode 100644
-index 0000000..e351b96
---- /dev/null
-+++ b/src/expr/math.c
-@@ -0,0 +1,178 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * (C) 2025 by Fernando Fernandez Mancera <fmancera@suse.de>
-+ */
-+
-+#include <arpa/inet.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include "internal.h"
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/expr.h>
-+#include <libnftnl/rule.h>
-+
-+struct nftnl_expr_math {
-+	enum nft_registers sreg;
-+	enum nft_registers dreg;
-+	enum nft_math_op   op;
-+	uint32_t	   bitmask;
-+};
-+
-+static int nftnl_expr_math_set(struct nftnl_expr *e, uint16_t type,
-+			       const void *data, uint32_t data_len,
-+			       uint32_t byteorder)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	switch(type) {
-+	case NFTNL_EXPR_MATH_SREG:
-+		memcpy(&math->sreg, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_DREG:
-+		memcpy(&math->dreg, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_OP:
-+		memcpy(&math->op, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_BITMASK:
-+		memcpy(&math->bitmask, data, data_len);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const void *
-+nftnl_expr_math_get(const struct nftnl_expr *e, uint16_t type,
-+		    uint32_t *data_len)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	switch(type) {
-+	case NFTNL_EXPR_MATH_SREG:
-+		*data_len = sizeof(math->sreg);
-+		return &math->sreg;
-+	case NFTNL_EXPR_MATH_DREG:
-+		*data_len = sizeof(math->dreg);
-+		return &math->dreg;
-+	case NFTNL_EXPR_MATH_OP:
-+		*data_len = sizeof(math->op);
-+		return &math->op;
-+	case NFTNL_EXPR_MATH_BITMASK:
-+		*data_len = sizeof(math->bitmask);
-+		return &math->bitmask;
-+	}
-+	return NULL;
-+}
-+
-+static void
-+nftnl_expr_math_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	if ((e->flags & (1 << NFTNL_EXPR_MATH_SREG)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_DREG)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_BITMASK)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_OP))) {
-+		mnl_attr_put_u32(nlh, NFTA_MATH_BITMASK, htonl(math->bitmask));
-+		mnl_attr_put_u32(nlh, NFTA_MATH_SREG, htonl(math->sreg));
-+		mnl_attr_put_u32(nlh, NFTA_MATH_DREG, htonl(math->dreg));
-+		mnl_attr_put_u32(nlh, NFTA_MATH_OP, htonl(math->op));
-+	}
-+
-+}
-+
-+static int nftnl_expr_math_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_MATH_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch(type) {
-+	case NFTA_MATH_SREG:
-+	case NFTA_MATH_DREG:
-+	case NFTA_MATH_BITMASK:
-+	case NFTA_MATH_OP:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static int
-+nftnl_expr_math_parse(struct nftnl_expr *e, struct nlattr *attr)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+	struct nlattr *tb[NFTA_MATH_MAX + 1] = {};
-+
-+	if (mnl_attr_parse_nested(attr, nftnl_expr_math_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_MATH_SREG]) {
-+		math->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_SREG]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_SREG);
-+	}
-+
-+	if (tb[NFTA_MATH_DREG]) {
-+		math->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_DREG]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_DREG);
-+	}
-+
-+	if (tb[NFTA_MATH_OP]) {
-+		math->op = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_OP]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_OP);
-+	}
-+
-+	if (tb[NFTA_MATH_BITMASK]) {
-+		math->bitmask = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_BITMASK]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_BITMASK);
-+	}
-+
-+	return 0;
-+}
-+
-+static char op2char(enum nft_math_op op)
-+{
-+	switch (op) {
-+	case NFT_MATH_OP_INC:
-+		return '+';
-+	case NFT_MATH_OP_DEC:
-+		return '-';
-+	default:
-+		return '?';
-+	}
-+}
-+
-+static int
-+nftnl_expr_math_snprintf(char *buf, size_t len,
-+			 uint32_t flags, const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	return snprintf(buf, len, "mask 0x%.8x reg %u %c 1 => %u",
-+			math->bitmask, math->sreg, op2char(math->op),
-+			math->dreg);
-+}
-+
-+static struct attr_policy math_attr_policy[__NFTNL_EXPR_MATH_MAX] = {
-+	[NFTNL_EXPR_MATH_SREG]		= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_DREG]		= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_BITMASK]	= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_OP]		= { .maxlen = sizeof(uint32_t) },
-+};
-+
-+struct expr_ops expr_ops_math = {
-+	.name		= "math",
-+	.alloc_len	= sizeof(struct nftnl_expr_math),
-+	.nftnl_max_attr	= __NFTNL_EXPR_MATH_MAX - 1,
-+	.attr_policy	= math_attr_policy,
-+	.set		= nftnl_expr_math_set,
-+	.get		= nftnl_expr_math_get,
-+	.parse		= nftnl_expr_math_parse,
-+	.build		= nftnl_expr_math_build,
-+	.output		= nftnl_expr_math_snprintf,
-+};
-diff --git a/src/expr_ops.c b/src/expr_ops.c
-index b85f472..b654fa0 100644
---- a/src/expr_ops.c
-+++ b/src/expr_ops.c
-@@ -43,6 +43,7 @@ extern struct expr_ops expr_ops_synproxy;
- extern struct expr_ops expr_ops_tunnel;
- extern struct expr_ops expr_ops_osf;
- extern struct expr_ops expr_ops_xfrm;
-+extern struct expr_ops expr_ops_math;
- 
- static struct expr_ops expr_ops_notrack = {
- 	.name	= "notrack",
-@@ -89,6 +90,7 @@ static struct expr_ops *expr_ops[] = {
- 	&expr_ops_tunnel,
- 	&expr_ops_osf,
- 	&expr_ops_xfrm,
-+	&expr_ops_math,
- 	NULL,
- };
- 
--- 
-2.55.0
+I don't think this is fixable.  You could tell your coding assistant
+to pass const struct nf_hook_ops *reg down into nf_queue_nf_hook_drop().
 
+If thats not NULL, then pass it to a new nfqnl_cmpfn() that only
+drops skbs when the struct nf_queue_entry shares same pf and
+same hooknum as the one in nf_hook_ops arg.
+
+That would limit the impact a bit.
