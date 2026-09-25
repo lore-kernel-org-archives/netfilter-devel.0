@@ -1,404 +1,293 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi2-f12.google.com (mail-oi2-f12.google.com [74.125.231.204])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BBE636E489;
-	Fri, 25 Sep 2026 09:05:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790327159; cv=none; b=B5XwUv5N+FCjVrT2pkJsftQlXMDldsaeHvILmSV1w80MWCBFlOs/3RwNtstuBjGrmBNxbS1H9mYrhA8zuMcuaZyopkvE2wK77frKgT7Li1/VWmAiwGO0K1CKUCPHAidRWv55TkYIRt2vJj76TOnCoR0VzumjLAqaYhU7ZXcoFh8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790327159; c=relaxed/simple;
-	bh=7LV/aD5+mMsAecmyRezNCXaU/dWwdhQYkfV2dObExmQ=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Ii3uqnhOWfBsA0yqKqWcyGoeHaAprVsL/9o1PoT1EQpRARxaID4kHEEfUf13kmHWAjUIGbXfH4A/60jP9GP2k0XZvmPTYNB62po2oCNE0kNAa9nv1/ZuKYK4SbtEOQF92IVD1vQ/azJQTXDfVemHoC1LTOecX7oMGAvKp3c2u0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iJvcx/vd; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1F54A0125
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 12:58:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.231.204
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790341128; cv=pass; b=W0DFCBcxr0HRl1Sd3w2c1Ou1Doa1YasXils53IcBPLN0blrH6EvtGhQR6HzCLE7CytXD7NjaU8pnWpAtj7xK9klg353qn3NE1iESKysuTHkKiRth5EV/81fJ4wchSvVflUHayl6RYNcOpG5UH7dR+QaaThnyxB6iDVn9E5FhGpo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790341128; c=relaxed/simple;
+	bh=sIrWajdSI55bzVgIeQtT6ejFVBaCkARTp4mZoTp4eO0=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=ZM5p/7ljl2pHXVz9KXI2/qinYAvQZCAb94VhcqLuJ0oiNvQmPX3sxLjPuwVVe9Z4zCKkwfXIuds3kF3XnSXD6MW7iLeWEkfA1in2m/8m/8YjrGAmqpF9J7oyG8yMpjGthI8ikDIMK4SYQi3txjW6U5CzFM33S3u2H9t9rhFVBxw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZTn3u7GQ; arc=pass smtp.client-ip=74.125.231.204
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iJvcx/vd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BD8D1F000FF;
-	Fri, 25 Sep 2026 09:05:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790327156;
-	bh=IbK+Lo/xc961CZf/u+zK596Ys68UUBMJlOVSgE8Qj3o=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=iJvcx/vd4cF6OYzQX4pHDBc9zRG7rO83nuTYtE3p6oIFyoGOodpHfL2fv4854l1tS
-	 R59gaKS9BPtBDj2sqyWJKF1wsR0zkn4cU0yYJl/TGFF46V9bcW0EbdEnjoJactZqJt
-	 KYd00NlrsEmqs1iz/dD8z1CngtN62HdWoI1j32OGzcw7geF/JL/KWoDpJgNo3e4q/y
-	 sksMX3yJJkPYxLR5YVDdAi2qj90B67lAHA6iCmf9Za3S/n0bsuOd7OzJtcmiWx/dWn
-	 ZPlAQZBhaLRa3+EGHqKHhbsIVwJq480nfNNwNQPgzW2e70658ZM9gkMTza4ubdK3LE
-	 h94uvLkmej6FA==
-Subject: Re: [PATCH net v6 1/2] net: validate virtio checksum start after
- network header
-From: netdev-bot+sashiko@kernel.org
-To: habte.yibelo@gmail.com
-Cc: netdev@vger.kernel.org, richard@nod.at, anton.ivanov@cambridgegreys.com,
- johannes@sipsolutions.net, willemdebruijn.kernel@gmail.com,
- jasowangio@gmail.com, mst@redhat.com, eperezma@redhat.com,
- xuanzhuo@linux.alibaba.com, andrew+netdev@lunn.ch, pablo@netfilter.org,
- fw@strlen.de, phil@nwl.cc, razor@blackwall.org, idosch@nvidia.com,
- dsahern@kernel.org, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, horms@kernel.org, linux-um@lists.infradead.org,
- virtualization@lists.linux.dev, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev, linux-kernel@vger.kernel.org
-Date: Fri, 25 Sep 2026 09:05:54 +0000
-Message-ID: <179032715478.2160803.9291442689443169324@kernel.org>
-In-Reply-To: <20260922030310.8684-2-habte.yibelo@gmail.com>
-References: <20260922030310.8684-2-habte.yibelo@gmail.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZTn3u7GQ"
+Received: by mail-oi2-f12.google.com with SMTP id 5614622812f47-4b37a3688a2so606670b6e.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 05:58:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790341125; cv=none;
+        d=google.com; s=arc-20260327;
+        b=h3Yv11hjEfKAT9AunnRzyttK0fLjxi1BLLUuPfkgV0XVBPHGob37A1xK64kOn03eoe
+         nVc5JFtK3cmxOmmwLtzMoAjpb/06YaBsP/UNI1VjnztSKQw3UUsIEJCC72GNsj650lr8
+         EWjA1t7KCdnBuJ7OSsRCsi6riumo5RrDjJyocHszBNJzDhLfHrJ9Xfhm59984pUkMYjI
+         ++eq9uKEyiagB2F0LVQyWGrJuMzd4fXbbtPc9unYphHZvkFjyTmdiuI/ceqaxQCIGVIp
+         zips23psGTIHFbKNZNL2IRffde+ei7Gi6YjB8thmFLIr/KIi4ZWSMxcfELg1aQVgNllq
+         uBWA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
+        fh=/FlCOxlFKSwqRaYO54pdJvDR1jnt606WnNMZ1UBh+k8=;
+        b=KWf+jc0cC+knK3s+q9fk6Kg4qbi7SIumWjHYDLbbFnV0Vvie0ZP+PETzDm4IQsQlSx
+         plG+VaTeuHSM0immK6bn/8/erwkhZPcK12WBceCk+oxFgfdBaSa6l6/CcYSzTyDAbZ+T
+         zKVCExk0jXtv7kVQj/7w89JuMEOStIHYOHCy4tvvzor4ucq8jZC9IJwR/6OLjNQDWlLy
+         y0jLKBOaNqKkh5J2z3Qei7K6ugnhO5lQRZ9u+axrtaQlUTQ4NHE++8Ze9+r37BzzjH97
+         XbZPCFLrD8THjP0vXd7Ii0gamAJhoMmZtZEVj8NpiA7IeGkkchJUbwvVCil2nTpPXq1i
+         HsWQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790341125; x=1790945925; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
+        b=ZTn3u7GQ3Blvti+LYNSSdiK+edFwLYlLnc+uvf/MkgIY7SyWkRDAmz9YmlT8Pks3Zg
+         XYLrAwc5JgZ+LW8xrAlnKWZtLm6Pg43JPrWtjfyb15EPVWUHSVyvZCcEXWNum5RhiAR3
+         LYubxQ2q2vXYBEUPkKBxruXTyFwBfN0nr+s2qmj/1KqWVRpQ7UpQnXu4AlZk9O1el7xy
+         C5ASLcuG1+dWgoEjhzHy6GgD/r5Fl/GLmk/QGwdeaG4Re74QVvbFWpGvJRI1SnQRz1cn
+         f37a88cgcGrmgF2r5aSibEOrvjloWrK0r+VHx+X2EtUJ4sPQsYLafI2dSDHn+cm1NfLn
+         qx2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790341125; x=1790945925;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=0sTaZOJGNQAhDW/2ta0aKKuqOnO+M0R8a1b5awxlD+s=;
+        b=hzNsRcUxfdM6r72SKmVvnHwP55gTEFmamn2EZXpmr7qmqvZDjrk5KXypvoS6xucqFf
+         X3y4T9tLD0IGuXVDNWMAPeFTf7bQtGfvizsfPkkGdaPWuacE2MDYpdF+pGsvFI3OAdDx
+         O13ok4NfRJaenHjFfpbiQt9sm8a0PvhvUYu1yuDvSL0llogktbvrCNSe4poYzXoOymEa
+         TqDuWvQRNScJoA6LmQj522yI+1FxkGXWTAfoXKCjUFobyGv+yXc6oETYfzY76+rW5pjA
+         BA5Uu3wM0iqxwuTCemJyxrXnuiPPWGh5dtClvZ9C6ijvsac8CK1JFshS1aSB2KL0cSjb
+         mY9Q==
+X-Gm-Message-State: AFuF++mFIdigrSwFk0sONpA46sYKeDJmk3L0NlmGj8zGOCbCi3dx7s+t
+	GfGkGxJ7M2dIF5LIJF1a+xwTofnos6om/+zInhSNfgxz2vsn82zjs95TLX/VUn8U74wNhFij6xu
+	Z6CfEYAfWycg/yYco/cob72S/AgqYY4g45c3L
+X-Gm-Gg: AYBFou0BNSGku/Kc21aNZJ95k80cLQP4RApP0gCV19Fqu5DjOTYV1x6omPAPev8Hr0T
+	gMnWcpCkLNjDYHiua/6qP/OHGPYf+WnO2QzeUvBj6tt1/C/6Ka1ysaPV35pGhLQm+P8vaBvvOxM
+	ikkRtOz+L0kjTGMtPayONBrk9KwQnDgYL8v7UuTAG3Jk4rzFzXoQR4DOfA5Z6EHFpX+nL50Qht4
+	rJ/eX8zaa/ES1Wq6B/WSoXa6hQCaV6CzS9SiGNcLukRM/HpkxrNN7fqOA4LA6LO6WVcfclsVjYD
+	4rDfM7NA/TQ3HHemzDQJrjEf73t9JaOfAESzaZD9PmT5yKp0YEx7o2+TT7kLfiFKFh+YLwxKjQJ
+	xZt3gYigwQfEAnSBzFF5m
+X-Received: by 2002:a05:6808:238e:b0:4c2:9b5a:cc20 with SMTP id
+ 5614622812f47-4d728e2e485mr5420313b6e.0.1790341125583; Fri, 25 Sep 2026
+ 05:58:45 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Date: Fri, 25 Sep 2026 14:58:09 +0200
+X-Gm-Features: AclHuK9c3GKHvxjaHfi-iBLjrRmzPFraRl5c1wa-qtFU0q67eNUlwFpQ0ibDlCA
+Message-ID: <CABhP=tYtCyr-qzL==98nkmDVZr6x+f8E26V1AAOpMXgZgt0vAQ@mail.gmail.com>
+Subject: nf_queue: hook changes drop or re-queue packets waiting in any nfqueue
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	Dan Winship <danwinship@redhat.com>
+Content-Type: multipart/mixed; boundary="000000000000d15545065c4e468d"
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
+--000000000000d15545065c4e468d
+Content-Type: text/plain; charset="UTF-8"
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 3
+Hi,
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+deleting an nftables base chain drops every packet that is waiting for
+a verdict in any nfqueue of the network namespace, including packets
+queued by hooks of other tables and other families. Adding a base chain
+in front of the one that queued a packet makes the packet traverse the
+queuing hook again after the verdict, so userspace sees it twice.
 
-- [Medium] Undisclosed tightening of an existing uAPI in a stable-tagged
-  patch.
-- [Low] Commit message does not describe the actual defect and states no
-  user-visible symptom for a Fixes:/Cc: stable patch.
-- [Low] The new Ethernet/VLAN parser invoked from raw_verify_header()
-  (arch/um/drivers/vector_transports.c) treats the skb's current length…
-- [Low] Reported for completeness, but the claimed bypass does not reach
-  the asserted malformed geometry.
+We found the first problem in kube-network-policies and kindnet
+(Kubernetes network policy and CNI agents built on nfqueue) [1]. Their
+nftables sync did "add table; delete table; add table" to replace the
+ruleset, and every sync lost the connections being evaluated at that
+moment. The userspace symptom is the verdict for the dropped packet
+failing asynchronously with -ENOENT:
 
---
+  "Could not receive message"
+  error="netlink receive: no such file or directory"
 
-net: validate virtio checksum start after network header
+The add/delete/add idiom was my mistake. The documented way to replace
+a ruleset atomically is "flush table" (or "flush chain") in the same
+transaction, which keeps the base chains and their hooks, and we need
+to change that. However, it does not cover upgrades. A table written by an
+older version may have a chain and/or sets the new version
+no longer uses. Removing them still requires deleting the table, or
+the chain, at least once at startup, with the same effect on every
+nfqueue in the namespace. Suggestions on how to handle that case are
+welcome.
 
-This passes a data-relative L3 offset and L3 protocol into
-__virtio_net_hdr_to_skb() and virtio_net_hdr_tnl_to_skb(), adds an
-Ethernet/VLAN parser (virtio_net_hdr_eth_get_l3_offset()) used by
-AF_PACKET, tap/tun, virtio_net and the UML vector raw transport, and
-tightens the CHECKSUM_PARTIAL minimum-header check accordingly.
+Independently of fixing it in our projects, any other component will
+trigger the same problem that applies to any nfqueue consumer.
 
-Link: https://lore.kernel.org/netdev/20260920004733.6473-2-habte.yibelo@gmail.com/
+Analysis assisted by AI (v6.18-rc1, unchanged in current mainline)
+--------------------------------------------------
 
-A few questions below.
+Deleting a base chain ends in __nf_unregister_net_hook(), which after
+shrinking the hook array calls nf_queue_nf_hook_drop(net)
+(net/netfilter/core.c:522). nfqnl_nf_hook_drop()
+(net/netfilter/nfnetlink_queue.c:1184) walks every nfqnl_instance of
+the namespace and calls nfqnl_flush(inst, NULL, 0), which reinjects all
+entries with NF_DROP. Nothing in that path looks at which hook was
+removed, which table owned it, or which hook queued each entry.
 
-The changelog says:
+The reason is nf_queue_entry::hook_index: the entry stores its position
+in the nf_hook_entries array of its hook point, and nf_reinject()
+resumes the traversal from that index. Any change to the array makes
+the index stale, so on unregister everything queued is dropped.
 
-> __virtio_net_hdr_to_skb() checks a minimum network-header length for
-> CHECKSUM_PARTIAL packets. Its checksum start is relative to skb->data,
-> but some callers have not established skb->network_header when they
-> convert the virtio header.
+Registering a hook does not drop anything, but it also changes the
+array. When the new hook sorts before the queuing one, nf_reinject()
+finds the new hook at hook_index, does ++i, and nf_iterate() runs the
+queuing hook again. The packet is queued a second time.
 
-[Severity: Low]
-Is this the actual defect?  The pre-patch test in __virtio_net_hdr_to_skb()
-is:
+History:
 
-	if (skb_transport_offset(skb) < nh_min_len)
-		return -EINVAL;
+  039b40ee5854 ("netfilter: nf_queue: only call synchronize_net twice
+  if nf_queue is active"), v4.12, removed the nf_hook_cmp() filter from
+  nfqnl_nf_hook_drop() so that only entries queued by the removed hook
+  were dropped. The commit message says: "For the rare case of base
+  chain being unregistered or module removal while nfqueue is in use
+  the extra hiccup due to the packet drops isn't a big deal."
 
-	nh_min_len = skb_transport_offset(skb);
+  960632ece694 ("netfilter: convert hook list to an array"), v4.14,
+  replaced the hook pointer in the entry with hook_index.
 
-which never reads skb->network_header, so an unestablished network header
-does not affect it.
+With nftables base chains managed by userspace daemons, unregistering
+a hook is no longer rare, at least not as rare as before, and it happens in
+namespaces where unrelated nfqueue consumers are running.
 
-What the old test misses looks different: the minimum is measured from
-skb->data, which for the Ethernet-framed callers (AF_PACKET, tap,
-virtio_net, UML raw/tap) is the MAC header, so a csum_start of 20..33 passes
-while leaving fewer than 20 bytes of L3 header.
+Reproducer
+----------
 
-Also, for AF_PACKET the caller does establish the network header before
-conversion:
+The attached script (AI assisted) uses the nf_queue helper from
+tools/testing/selftests/net/netfilter (gcc -o nf_queue nf_queue.c -lmnl).
+It queues 20 UDP packets to queue 1 from an inet output chain, the
+helper delays every verdict by 100 ms so most packets are waiting when
+the ruleset is changed, and it checks that all 20 are delivered and that
+the helper received each one exactly once.
 
-net/packet/af_packet.c:packet_parse_headers() {
-	...
-	if (likely(skb->dev->type == ARPHRD_ETHER) &&
-	    eth_type_vlan(skb->protocol) &&
-	    vlan_get_protocol_and_depth(skb, skb->protocol, &depth) != 0)
-		skb_set_network_header(skb, depth);
-}
+  $ sudo NF_QUEUE=./nf_queue ./nfqueue-hook-drop.sh
+  PASS: no ruleset change
+        sent 20, queued 20, delivered 20
+  PASS: delete regular chain (no hook) of unrelated table
+        sent 20, queued 20, delivered 20
+  PASS: add base chain to unrelated table (ip6 input)
+        sent 20, queued 20, delivered 20
+  PASS: add base chain after the queuing one (output prio 100)
+        sent 20, queued 20, delivered 20
+  FAIL: add base chain before the queuing one (output prio raw)
+        sent 20, queued 37, delivered 20
+  FAIL: delete base chain of unrelated table (ip6 prerouting)
+        sent 20, queued ?, delivered 3
+        nf_queue (exit status 1): mnl_cb_run: No such file or directory
+  FAIL: delete unrelated table (ip6, no queue rule)
+        sent 20, queued ?, delivered 3
+        nf_queue (exit status 1): mnl_cb_run: No such file or directory
 
-Could the changelog describe the data-relative minimum instead of the
-network header, and also state the user-visible symptom?  With two Fixes:
-tags and Cc: stable, and Reported-by: naming the author, there is no
-reproducer or symptom given.  The referenced commit 49d14b54a527 documented
-its own symptom (the "offset (-6) >= skb_headlen() (14)" warning from
-skb_checksum_help() via ip_do_fragment()); is the same warning, a
-mis-placed checksum, or something else being fixed here?
+The "unrelated" table is ip6 with a prerouting base chain and no queue
+rule. Deleting it drops the packets queued by the inet output chain of
+another table. The "before" case shows the 17 packets that were waiting
+being queued a second time. Reproduced on 7.1.6; the Go reproducer in
+[1] shows the same drops on 7.0.12, also when the table being recreated
+is not the one with the queue rule.
 
-> diff --git a/arch/um/drivers/vector_transports.c b/arch/um/drivers/vector_transports.c
-> index ddd127ee96785..5a9d8f49a64ba 100644
-> --- a/arch/um/drivers/vector_transports.c
-> +++ b/arch/um/drivers/vector_transports.c
-> @@ -197,6 +197,8 @@ static int raw_verify_header(
->  	uint8_t *header, struct sk_buff *skb, struct vector_private *vp)
->  {
->  	struct virtio_net_hdr *vheader = (struct virtio_net_hdr *) header;
-> +	__be16 network_protocol;
-> +	int network_offset;
->  
->  	if ((vheader->gso_type != VIRTIO_NET_HDR_GSO_NONE) &&
->  		(vp->req_size != 65536)) {
-> @@ -209,8 +211,14 @@ static int raw_verify_header(
->  	if ((vheader->flags & VIRTIO_NET_HDR_F_DATA_VALID) > 0)
->  		return 1;
->  
-> -	virtio_net_hdr_to_skb(skb, vheader, virtio_legacy_is_little_endian());
-> -	return 0;
-> +	network_offset = virtio_net_hdr_eth_get_l3_offset(skb, vheader,
-> +							  &network_protocol);
-> +	if (network_offset < 0)
-> +		return network_offset;
+I can turn this into a test case for nft_queue.sh if that helps.
 
-[Severity: Low]
-Does this parse bytes that have not been received yet?  Both UML receive
-callers run verify_header() before the skb is trimmed to the recvmsg
-result, and prep_skb() has already set the length to the full buffer
-capacity:
+Happy to test patches or to send a selftest.
 
-arch/um/drivers/vector_kern.c:prep_skb() {
-	...
-	skb_put(result, vp->max_packet);
-	result->data_len = len - vp->max_packet;
-	result->len += len - vp->max_packet;
-	...
-}
+Thanks,
+Antonio
 
-arch/um/drivers/vector_kern.c:vector_legacy_rx() {
-	...
-	header_check = vp->verify_header(vp->header_rxbuffer, skb, vp);
-	...
-	pskb_trim(skb, pkt_len - vp->rx_header_size);
-	...
-}
+[1] https://github.com/kubernetes-sigs/kube-network-policies/issues/402
+    (kernel call path and a standalone Go reproducer by Ben Dwyer,
+    who found the root cause)
 
-vector_mmsg_rx() has the same ordering.
+--000000000000d15545065c4e468d
+Content-Type: text/plain; charset="US-ASCII"; name="nfqueue-hook-drop.sh.txt"
+Content-Disposition: attachment; filename="nfqueue-hook-drop.sh.txt"
+Content-Transfer-Encoding: base64
+Content-ID: <f_mugwimbi0>
+X-Attachment-Id: f_mugwimbi0
 
-virtio_net_hdr_eth_get_l3_offset() bounds its reads with
-skb_header_pointer(), i.e. against skb_headlen(), so for a NEEDS_CSUM frame
-that was truncated inside its Ethernet or nested VLAN headers the parser
-reads stale bytes of the freshly allocated head rather than reporting a
-short header.  The resulting network_offset/network_protocol, and now the
-return value of raw_verify_header(), then come from uninitialized buffer
-contents.
-
-Would it make sense for the callers to establish the received length before
-calling verify_header()?
-
-> +
-> +	return virtio_net_hdr_to_skb(skb, vheader,
-> +				     virtio_legacy_is_little_endian(),
-> +				     network_offset, network_protocol);
->  }
->  
->  static bool get_uint_param(
-
-[ ... ]
-
-> diff --git a/drivers/net/tun_vnet.h b/drivers/net/tun_vnet.h
-> index f4c652b1fa44d..e004213fad22c 100644
-> --- a/drivers/net/tun_vnet.h
-> +++ b/drivers/net/tun_vnet.h
-> @@ -177,10 +177,49 @@ static inline int tun_vnet_hdr_put(int sz, struct iov_iter *iter,
->  	return __tun_vnet_hdr_put(sz, 0, iter, hdr);
->  }
->  
-> +static inline int
-> +tun_vnet_hdr_get_l3_offset(unsigned int flags, const struct sk_buff *skb,
-> +			   const struct virtio_net_hdr *hdr,
-> +			   __be16 *network_protocol)
-> +{
-> +	if ((flags & TUN_TYPE_MASK) != IFF_TAP) {
-> +		u8 version, first_byte;
-> +		const u8 *first;
-> +
-> +		*network_protocol = 0;
-> +		if (!(hdr->flags & VIRTIO_NET_HDR_F_NEEDS_CSUM))
-> +			return 0;
-> +
-> +		first = skb_header_pointer(skb, 0, sizeof(first_byte),
-> +					   &first_byte);
-> +		if (!first)
-> +			return -EINVAL;
-> +
-> +		version = *first >> 4;
-> +		if (version == 4)
-> +			*network_protocol = htons(ETH_P_IP);
-> +		else if (version == 6)
-> +			*network_protocol = htons(ETH_P_IPV6);
-> +		return 0;
-> +	}
-
-[Severity: Low]
-For IFF_TUN this derives network_protocol from the payload version nibble,
-while skb->protocol is set later from the user-supplied tun_pi.proto:
-
-drivers/net/tun.c:tun_get_user() {
-	...
-	case IFF_TUN:
-		if (tun->flags & IFF_NO_PI) {
-			...
-			ip_version = skb->data[0] >> 4;
-			...
-		}
-		skb_reset_mac_header(skb);
-		skb->protocol = pi.proto;
-	...
-}
-
-The nibble/pi.proto consistency check only runs under IFF_NO_PI, so a
-writer can declare pi.proto = ETH_P_IPV6 with a first nibble of 4, keeping
-nh_min_len at sizeof(struct iphdr) while the stack labels the skb IPv6.
-
-That particular combination looks harmless in practice, since
-ip6_rcv_core() drops it before any header parsing:
-
-net/ipv6/ip6_input.c:ip6_rcv_core() {
-	...
-	if (hdr->version != 6) {
-		SKB_DR_SET(reason, UNHANDLED_PROTO);
-		goto err;
-	}
-	...
-}
-
-and a genuine IPv6 payload always yields nibble 6 and thus the intended
-40-byte minimum.  Still, is keying the length bound off the payload nibble
-while the rest of the stack acts on pi.proto intentional here?
-
-> +
-> +	return virtio_net_hdr_eth_get_l3_offset(skb, hdr,
-> +					      network_protocol);
-> +}
-> +
-
-[ ... ]
-
-> diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
-> index e34c52d059d39..8e93dad287911 100644
-> --- a/drivers/net/virtio_net.c
-> +++ b/drivers/net/virtio_net.c
-> @@ -2515,9 +2517,13 @@ static void virtnet_receive_done(struct virtnet_info *vi, struct receive_queue *
->  		goto frame_err;
->  	}
->  
-> -	if (virtio_net_hdr_tnl_to_skb(skb, &hdr->tnl_hdr, vi->rx_tnl,
-> +	network_offset = virtio_net_hdr_eth_get_l3_offset(skb, &hdr->hdr,
-> +							  &network_protocol);
-> +	if (network_offset < 0 ||
-> +	    virtio_net_hdr_tnl_to_skb(skb, &hdr->tnl_hdr, vi->rx_tnl,
->  				      vi->rx_tnl_csum,
-> -				      virtio_is_little_endian(vi->vdev))) {
-> +				      virtio_is_little_endian(vi->vdev),
-> +				      network_offset, network_protocol)) {
->  		net_warn_ratelimited("%s: bad gso: type: %x, size: %u, flags %x tunnel %d tnl csum %d\n",
->  				     dev->name, hdr->hdr.gso_type,
->  				     hdr->hdr.gso_size, hdr->hdr.flags,
-> diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
-> index c381b916c1b54..b89d821a0dd2d 100644
-> --- a/include/linux/virtio_net.h
-> +++ b/include/linux/virtio_net.h
-> @@ -48,16 +48,61 @@ static inline int virtio_net_hdr_set_proto(struct sk_buff *skb,
-
-[ ... ]
-
->  static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
->  					  const struct virtio_net_hdr *hdr,
-> -					  bool little_endian, u8 hdr_gso_type)
-> +					  bool little_endian, u8 hdr_gso_type,
-> +					  int network_offset,
-> +					  __be16 network_protocol)
->  {
-> -	unsigned int nh_min_len = sizeof(struct iphdr);
-> +	int nh_min_len = sizeof(struct iphdr);
->  	unsigned int gso_type = 0;
->  	unsigned int thlen = 0;
->  	unsigned int p_off = 0;
->  	unsigned int ip_proto;
->  
-> +	if (network_protocol == htons(ETH_P_IPV6))
-> +		nh_min_len = sizeof(struct ipv6hdr);
-> +
-
-[ ... ]
-
-> @@ -98,16 +143,20 @@ static inline int __virtio_net_hdr_to_skb(struct sk_buff *skb,
->  		u32 start = __virtio16_to_cpu(little_endian, hdr->csum_start);
->  		u32 off = __virtio16_to_cpu(little_endian, hdr->csum_offset);
->  		u32 needed = start + max_t(u32, thlen, off + sizeof(__sum16));
-> +		int transport_offset;
->  
->  		if (!pskb_may_pull(skb, needed))
->  			return -EINVAL;
->  
->  		if (!skb_partial_csum_set(skb, start, off))
->  			return -EINVAL;
-> -		if (skb_transport_offset(skb) < nh_min_len)
-> +
-> +		transport_offset = skb_transport_offset(skb);
-> +		if (transport_offset < nh_min_len || network_offset < 0 ||
-> +		    network_offset > transport_offset - nh_min_len)
->  			return -EINVAL;
-
-[Severity: Medium]
-Does this change the accepted csum_start range for existing users, and
-should the changelog say so?
-
-The floor moves from 20 (relative to skb->data) to parsed_L3_offset + 20 or
-40: 34 for a plain Ethernet frame, 54 for Ethernet plus IPv6, and more with
-VLAN or QinQ.
-
-Three concrete behaviour changes:
-
-- AF_PACKET sendmsg() and tpacket_snd() now return -EINVAL for virtio
-  headers with csum_start in 20..33 that were accepted before.
-
-- The new
-
-	if (network_protocol == htons(ETH_P_IPV6))
-		nh_min_len = sizeof(struct ipv6hdr);
-
-  applies the 40-byte minimum to any frame whose parsed ethertype is
-  ETH_P_IPV6, whereas previously only VIRTIO_NET_HDR_GSO_TCPV6 did that.
-
-- On the receive side, virtnet_receive_done() now takes the frame_err path
-  (DEV_STATS_INC(rx_frame_errors) plus dev_kfree_skb) for host descriptors
-  that were accepted before.
-
-There is also the non-IP case: when the parsed ethertype is neither
-ETH_P_IPV4 nor ETH_P_IPV6, nh_min_len stays sizeof(struct iphdr), so a
-non-IP Ethernet frame whose checksum field sits close to the L2 header is
-rejected even though it has no 20-byte L3 header at all.  Is that
-intended?
-
-Given the Cc: stable, would it be worth stating the new accept/reject
-boundary in the changelog and adding a selftest that pins it?
-
-> -		nh_min_len = skb_transport_offset(skb);
-> +		nh_min_len = transport_offset;
->  		p_off = nh_min_len + thlen;
->  		if (!pskb_may_pull(skb, p_off))
->  			return -EINVAL;
-
-[ ... ]
-
-> diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
-> index 50cae32ae2692..0b37d5474f868 100644
-> --- a/net/packet/af_packet.c
-> +++ b/net/packet/af_packet.c
-> @@ -3103,7 +3123,7 @@ static int packet_snd(struct socket *sock, struct msghdr *msg, size_t len)
->  	packet_parse_headers(skb, sock);
->  
->  	if (vnet_hdr_sz) {
-> -		err = virtio_net_hdr_to_skb(skb, &vnet_hdr, vio_le());
-> +		err = packet_vnet_hdr_to_skb(skb, &vnet_hdr);
->  		if (err)
->  			goto out_free;
->  		len += vnet_hdr_sz;
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260922030310.8684-1-habte.yibelo%40gmail.com
+IyEvYmluL2Jhc2gKIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMAojCiMgUGFja2V0
+cyB3YWl0aW5nIGZvciBhIHZlcmRpY3QgaW4gYW4gbmZxdWV1ZSBkbyBub3Qgc3Vydml2ZSBjaGFu
+Z2VzIHRvIHRoZQojIG5ldGZpbHRlciBob29rIGFycmF5IG9mIHRoZSBuZXR3b3JrIG5hbWVzcGFj
+ZToKIwojICAtIHVucmVnaXN0ZXJpbmcgYW55IGhvb2sgKGRlbGV0aW5nIGFueSBuZnRhYmxlcyBi
+YXNlIGNoYWluLCBldmVuIG9uZSBvZgojICAgIGFuIHVucmVsYXRlZCB0YWJsZSBvciBmYW1pbHkp
+IGRyb3BzIGV2ZXJ5IHBhY2tldCBxdWV1ZWQgaW4gZXZlcnkKIyAgICBuZnF1ZXVlIGluc3RhbmNl
+IG9mIHRoZSBuYW1lc3BhY2UgKG5mcW5sX25mX2hvb2tfZHJvcCgpKS4KIyAgLSByZWdpc3Rlcmlu
+ZyBhIGhvb2sgaW4gZnJvbnQgb2YgdGhlIG9uZSB0aGF0IHF1ZXVlZCB0aGUgcGFja2V0IG1ha2Vz
+CiMgICAgbmZfcmVpbmplY3QoKSByZXN1bWUgYXQgYSBzdGFsZSBpbmRleCwgc28gdGhlIHBhY2tl
+dCB0cmF2ZXJzZXMgdGhlCiMgICAgcXVldWluZyBob29rIGFnYWluIGFuZCBpcyBxdWV1ZWQgYSBz
+ZWNvbmQgdGltZS4KIwojIE5lZWRzIHRoZSBuZl9xdWV1ZSBoZWxwZXIgZnJvbSB0b29scy90ZXN0
+aW5nL3NlbGZ0ZXN0cy9uZXQvbmV0ZmlsdGVyOgojICAgZ2NjIC1vIG5mX3F1ZXVlIG5mX3F1ZXVl
+LmMgLWxtbmwKIwojIFVzYWdlOiBORl9RVUVVRT0uL25mX3F1ZXVlIC4vbmZxdWV1ZS1ob29rLWRy
+b3Auc2gKCk5GX1FVRVVFPSR7TkZfUVVFVUU6LS4vbmZfcXVldWV9ClBBQ0tFVFM9MjAKcmV0PTAK
+Cm5zPSJuZnEtJChta3RlbXAgLXUgWFhYWFhYKSIKdG1wPSQobWt0ZW1wKQoKY2xlYW51cCgpIHsK
+CWlwIG5ldG5zIHBpZHMgIiRucyIgMj4vZGV2L251bGwgfCB4YXJncyAtciBraWxsIDI+L2Rldi9u
+dWxsCglpcCBuZXRucyBkZWwgIiRucyIgMj4vZGV2L251bGwKCXJtIC1mICIkdG1wIgp9CnRyYXAg
+Y2xlYW51cCBFWElUCgppZiBbICEgLXggIiRORl9RVUVVRSIgXTsgdGhlbgoJZWNobyAiU0tJUDog
+JE5GX1FVRVVFIG5vdCBmb3VuZCwgYnVpbGQgdG9vbHMvdGVzdGluZy9zZWxmdGVzdHMvbmV0L25l
+dGZpbHRlci9uZl9xdWV1ZS5jIiA+JjIKCWV4aXQgNApmaQoKaXAgbmV0bnMgYWRkICIkbnMiIHx8
+IGV4aXQgNAppcCAtbmV0ICIkbnMiIGxpbmsgc2V0IGxvIHVwCgojIFRoZSBVRFAgcGFja2V0cyB0
+byBwb3J0IDEyMzQ1IHRoYXQgdGhlIG5hbWVzcGFjZSBzZW5kcyB0byBpdHNlbGYgYXJlIHF1ZXVl
+ZAojIHRvIHF1ZXVlIDEgYXQgdGhlIElQdjQgb3V0cHV0IGhvb2ssIHdpdGhvdXQgYnlwYXNzIHNv
+IHRoZXkgd2FpdCBmb3IgdGhlCiMgdmVyZGljdC4gVGhlIGNvdW50ZXIgaW4gdGhlIGlucHV0IGNo
+YWluIHRlbGxzIGhvdyBtYW55IHdlcmUgZGVsaXZlcmVkLgojICJ1bnJlbGF0ZWQiIGlzIGEgdGFi
+bGUgb2YgYW5vdGhlciBmYW1pbHkgd2l0aCBhIGJhc2UgY2hhaW4gYW5kIG5vIHF1ZXVlIHJ1bGUu
+CnNldHVwX3J1bGVzZXQoKSB7CglpcCBuZXRucyBleGVjICIkbnMiIG5mdCAtZiAtIDw8RU9GCmZs
+dXNoIHJ1bGVzZXQKdGFibGUgaW5ldCBuZnF0ZXN0IHsKCWNoYWluIG91dHB1dCB7CgkJdHlwZSBm
+aWx0ZXIgaG9vayBvdXRwdXQgcHJpb3JpdHkgZmlsdGVyOyBwb2xpY3kgYWNjZXB0OwoJCXVkcCBk
+cG9ydCAxMjM0NSBxdWV1ZSB0byAxCgl9CgljaGFpbiBpbnB1dCB7CgkJdHlwZSBmaWx0ZXIgaG9v
+ayBpbnB1dCBwcmlvcml0eSBmaWx0ZXI7IHBvbGljeSBhY2NlcHQ7CgkJdWRwIGRwb3J0IDEyMzQ1
+IGNvdW50ZXIgbmFtZSBkZWxpdmVyZWQKCX0KCWNvdW50ZXIgZGVsaXZlcmVkIHt9Cn0KdGFibGUg
+aXA2IHVucmVsYXRlZCB7CgljaGFpbiBwcmVyb3V0aW5nIHsKCQl0eXBlIGZpbHRlciBob29rIHBy
+ZXJvdXRpbmcgcHJpb3JpdHkgZmlsdGVyOyBwb2xpY3kgYWNjZXB0OwoJfQoJY2hhaW4gcmVndWxh
+ciB7Cgl9Cn0KRU9GCn0KCmRlbGl2ZXJlZCgpIHsKCWlwIG5ldG5zIGV4ZWMgIiRucyIgbmZ0IGxp
+c3QgY291bnRlciBpbmV0IG5mcXRlc3QgZGVsaXZlcmVkIHwKCQlzZWQgLW4gJ3MvLipwYWNrZXRz
+IFwoWzAtOV0qXCkgLiovXDEvcCcKfQoKIyBxdWV1ZWQgaXMgaG93IG1hbnkgcGFja2V0cyB0aGUg
+aGVscGVyIHJlY2VpdmVkLCBwcmludGVkIGJ5IG5mX3F1ZXVlIC1jIG9uCiMgYSBjbGVhbiBleGl0
+LiBJdCBleGl0cyBlYXJseSBvbiBFTk9FTlQsIGEgdmVyZGljdCBmb3IgYSBwYWNrZXQgdGhlIGtl
+cm5lbAojIGFscmVhZHkgZHJvcHBlZCwgc28gdGhlIGNvdW50IGlzIG5vdCBhdmFpbGFibGUgaW4g
+dGhhdCBjYXNlLgpxdWV1ZWQoKSB7CglzZWQgLW4gJ3MvXlwoWzAtOV0qXCkgcGFja2V0cyB0b3Rh
+bCQvXDEvcCcgIiR0bXAiCn0KCm5mX3F1ZXVlX3dhaXQoKSB7Cglmb3IgXyBpbiAkKHNlcSA1MCk7
+IGRvCgkJaWYgaXAgbmV0bnMgZXhlYyAiJG5zIiBncmVwIC1xICdeICoxICcgL3Byb2MvbmV0L25l
+dGZpbHRlci9uZm5ldGxpbmtfcXVldWU7IHRoZW4KCQkJcmV0dXJuIDAKCQlmaQoJCXNsZWVwIDAu
+MQoJZG9uZQoJZWNobyAiRkFJTDogbmZfcXVldWUgZGlkIG5vdCBiaW5kIHF1ZXVlIDEiID4mMgoJ
+ZXhpdCAxCn0KCiMgcnVuX2Nhc2UgPGRlc2NyaXB0aW9uPiA8bmZ0IGNvbW1hbmQuLi4+CiMKIyBT
+ZW5kcyBQQUNLRVRTIHBhY2tldHMgd2hpbGUgdGhlIGhlbHBlciBkZWxheXMgZXZlcnkgdmVyZGlj
+dCBieSAxMDBtcywgc28KIyBtb3N0IG9mIHRoZW0gYXJlIHN0aWxsIHdhaXRpbmcgd2hlbiB0aGUg
+bmZ0IGNvbW1hbmQgcnVucywgYW5kIGNoZWNrcyB0aGF0CiMgYWxsIG9mIHRoZW0gYXJlIGRlbGl2
+ZXJlZCBhbmQgdGhhdCBlYWNoIG9uZSB3YXMgcXVldWVkIGV4YWN0bHkgb25jZS4KcnVuX2Nhc2Uo
+KSB7Cglsb2NhbCBkZXNjPSIkMSIKCXNoaWZ0CgoJc2V0dXBfcnVsZXNldCB8fCBleGl0IDEKCglp
+cCBuZXRucyBleGVjICIkbnMiICIkTkZfUVVFVUUiIC1jIC1xIDEgLWQgMTAwIC10IDIgPiIkdG1w
+IiAyPiYxICYKCWxvY2FsIHBpZD0kIQoJbmZfcXVldWVfd2FpdAoKCWlwIG5ldG5zIGV4ZWMgIiRu
+cyIgYmFzaCAtYyAiCgkJZm9yIGkgaW4gXCQoc2VxICRQQUNLRVRTKTsgZG8gZWNobyB4ID4vZGV2
+L3VkcC8xMjcuMC4wLjEvMTIzNDU7IGRvbmUiCglzbGVlcCAwLjMgIyBhIGZldyB2ZXJkaWN0cyBs
+YW5kLCB0aGUgcmVzdCBvZiB0aGUgcGFja2V0cyB3YWl0IGluIHRoZSBxdWV1ZQoKCWlwIG5ldG5z
+IGV4ZWMgIiRucyIgbmZ0ICIkQCIgPi9kZXYvbnVsbAoKCXdhaXQgIiRwaWQiCglsb2NhbCBzdGF0
+dXM9JD8gZ290X2RlbGl2ZXJlZCBnb3RfcXVldWVkCglnb3RfZGVsaXZlcmVkPSQoZGVsaXZlcmVk
+KQoJZ290X3F1ZXVlZD0kKHF1ZXVlZCkKCglpZiBbICIkZ290X2RlbGl2ZXJlZCIgPSAiJFBBQ0tF
+VFMiIF0gJiYgWyAiJGdvdF9xdWV1ZWQiID0gIiRQQUNLRVRTIiBdOyB0aGVuCgkJZWNobyAiUEFT
+UzogJGRlc2MiCgllbHNlCgkJZWNobyAiRkFJTDogJGRlc2MiCgkJcmV0PTEKCWZpCgllY2hvICIg
+ICAgICBzZW50ICRQQUNLRVRTLCBxdWV1ZWQgJHtnb3RfcXVldWVkOi0/fSwgZGVsaXZlcmVkICRn
+b3RfZGVsaXZlcmVkIgoJZ3JlcCAtdiAnXiQnICIkdG1wIiB8IGdyZXAgLXYgJ15ob29rXHxwYWNr
+ZXRzIHRvdGFsJyB8IHNlZCAicy9eLyAgICAgIG5mX3F1ZXVlIChleGl0IHN0YXR1cyAkc3RhdHVz
+KTogLyIKfQoKcnVuX2Nhc2UgIm5vIHJ1bGVzZXQgY2hhbmdlIiBcCglsaXN0IHJ1bGVzZXQKcnVu
+X2Nhc2UgImRlbGV0ZSByZWd1bGFyIGNoYWluIChubyBob29rKSBvZiB1bnJlbGF0ZWQgdGFibGUi
+IFwKCWRlbGV0ZSBjaGFpbiBpcDYgdW5yZWxhdGVkIHJlZ3VsYXIKcnVuX2Nhc2UgImFkZCBiYXNl
+IGNoYWluIHRvIHVucmVsYXRlZCB0YWJsZSAoaXA2IGlucHV0KSIgXAoJYWRkIGNoYWluIGlwNiB1
+bnJlbGF0ZWQgaW5wdXQgJ3sgdHlwZSBmaWx0ZXIgaG9vayBpbnB1dCBwcmlvcml0eSBmaWx0ZXI7
+IH0nCnJ1bl9jYXNlICJhZGQgYmFzZSBjaGFpbiBhZnRlciB0aGUgcXVldWluZyBvbmUgKG91dHB1
+dCBwcmlvIDEwMCkiIFwKCWFkZCBjaGFpbiBpbmV0IG5mcXRlc3QgbGF0ZSAneyB0eXBlIGZpbHRl
+ciBob29rIG91dHB1dCBwcmlvcml0eSAxMDA7IH0nCnJ1bl9jYXNlICJhZGQgYmFzZSBjaGFpbiBi
+ZWZvcmUgdGhlIHF1ZXVpbmcgb25lIChvdXRwdXQgcHJpbyByYXcpIiBcCglhZGQgY2hhaW4gaW5l
+dCBuZnF0ZXN0IGVhcmx5ICd7IHR5cGUgZmlsdGVyIGhvb2sgb3V0cHV0IHByaW9yaXR5IHJhdzsg
+fScKcnVuX2Nhc2UgImRlbGV0ZSBiYXNlIGNoYWluIG9mIHVucmVsYXRlZCB0YWJsZSAoaXA2IHBy
+ZXJvdXRpbmcpIiBcCglkZWxldGUgY2hhaW4gaXA2IHVucmVsYXRlZCBwcmVyb3V0aW5nCnJ1bl9j
+YXNlICJkZWxldGUgdW5yZWxhdGVkIHRhYmxlIChpcDYsIG5vIHF1ZXVlIHJ1bGUpIiBcCglkZWxl
+dGUgdGFibGUgaXA2IHVucmVsYXRlZAoKZXhpdCAkcmV0Cg==
+--000000000000d15545065c4e468d--
