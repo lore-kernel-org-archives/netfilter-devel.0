@@ -1,132 +1,96 @@
-Received: from mail-qv2-f12.google.com (mail-qv2-f12.google.com [74.125.230.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDD004A3F32
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 14:12:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDDB440632;
+	Fri, 25 Sep 2026 14:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790345523; cv=none; b=YPGrSv6XlklsZhU0eHaBG/eFN9mTb5zo+4YRcLz/wdE+vEbiE/zFRbXgFPvBwkxR26jHAaTfJJgimqa7fu7osYCOgJTxXvJweBasfPqgReWrFtZ/vCrBX/lPVK+L1eKNanope02TZ6FPMI/F9q0qtdMP55oQ5eCk8njuiiRD/XI=
+	t=1790346240; cv=none; b=fExl4YP4QN6wbNe9oaS/tuHSshjCBiN9FjfWCkYwDbusA46JnUHIr5vEojIuo/tAnWwSdkpRntSWCcEm92Up4lr3feJ3/oScUfbUAwbf/k3KhVmaJw0XBXDjAWA3J4ROdfuf/eiObXFKvsjXutPRDbVG9ovfE8goJf4/OIP+BoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790345523; c=relaxed/simple;
-	bh=kpB+P5IgBraa5hfYbRLKKdjLjknHhjJvEYrNAH8GIMc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=b+mopalMxWqklVoM6D1JbIlTD0XGhvdqjaSRQ9x4KIe8R8hROFSRkkKjruxCtTbXDF1G0WDIswZIc4Jf4r/QYuGwx+6IbzyN+rFz5upOwMAJ9G8zttTz92qKp2RXA+Nt6ALzzoHyW+eN66of66fFcLfJASmF4rmdJ9GWd54Ydcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=1password.com; spf=pass smtp.mailfrom=agilebits.com; dkim=pass (1024-bit key) header.d=1password.com header.i=@1password.com header.b=nH+kadg8; arc=none smtp.client-ip=74.125.230.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=1password.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=agilebits.com
+	s=arc-20240116; t=1790346240; c=relaxed/simple;
+	bh=MumCk2iQV8NfZ4FIye7VSM07PHu0TroAPaJIbu0QsCo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YYL3iHWW9XCu0cRy/03O00NZ4+idAYDqF3Jo5vTb2GVfWEAbbC/FMbTq4NVD3pG5bdrf1sjDl1A4otopfzNguvsbJzdrPmQIp0nOXAEPK+uUxY7c3i4eMbIF64Dqhtn5i/rBQsBcdMDWF1CzBXdvgmrVtAaJDxumLhPf5pMw7OU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=Uv++AnLt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=1password.com header.i=@1password.com header.b="nH+kadg8"
-Received: by mail-qv2-f12.google.com with SMTP id 6a1803df08f44-91058dd77a2so9034506d6.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Sep 2026 07:12:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1password.com; s=google; t=1790345521; x=1790950321; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=FWmHRI/KalPjXKg4Cpy0gjt++WenU4Jtw+yVPdV0Dtg=;
-        b=nH+kadg8ghdbHzRMicK38xeYz9eaoNXC/Vo+pCEl+iq42earwmE/qeQ6DVLZqfZjI/
-         FaQBwuKAvlKmDVf8NA2pQ8dePGsXIBdgqh0PnM7/p6lmg6JHbyQpoxe/em9Bk5hvAIdV
-         jaZu36q5haKidAKZ4bH+iTz3lgtNxxuVZ3DlY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790345521; x=1790950321;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=FWmHRI/KalPjXKg4Cpy0gjt++WenU4Jtw+yVPdV0Dtg=;
-        b=B6OOPkj9SwZsQ+APzjJBoeqRAN4hv2CfEaRPWSeGYTEoMGV4riYUzxkmRHsCrxxq5Q
-         w88s4dW5QrJhpWHP1LGgEBC2swribG2Af+3hI3+UAbh51HWH/N9W0Cz49HDhrAwJhfuO
-         3fmlkOHex8qd8BCDnuC4eNzJiXh0cYfgLt0ZxgnMk44HDKwVaz5wVGC9ovf3pocmtejt
-         Lc+57JFCOjVbIUMnC2TSvGbsDhxIGrBoLHkNURALClXD+Tatjs3Mg4tiSiF5oNfi0fzr
-         IoZC3MglPPkOEAx4dYoApJ00vvm0S4zKEXqDgqPtApDfxZGVO+PfZerD8YzZ5UJSThKM
-         IzCQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxx0V+BHdnaGqwE3qt8Ha4YwvyHsEzbv4OpWIZKBAyqiitiDxmcV3eNVASGEOJr/Ke9Z0Sqt6LSQ5tBQzs3pbA=@vger.kernel.org
-X-Gm-Message-State: AFuF++k0f4+DsZzum65xatq4/DLXF8c37XaA9KIDycl3lCUplmCPfCFa
-	hQ6a/EJ3Di6+CAdY8Dj+XJXAn1a0WiEwxEhAC/GobWfZpcBE3r3YvnoC42Ne8JGD1ko=
-X-Gm-Gg: AYBFou0aj22Hg9PZrZewCpC9t5JhlLghtp43ZmyO5S3JqDSCpQjyMW7XU0A9DxsuSGv
-	i0ukMNBGM3qjiKc8pryyx+1jetuzNGyIB+MOMBekjFwU0sVI6Jx4zt5KrFEJZxTs4UsuJ8ujcKz
-	YiClK3vpuI724cFotwesxTn8RwrGrXBLLV45WWmDVGMrppHsYxDkrxovTVZ7LfqL2Q1jPkjlgRT
-	0wIdmxym7+1s+UFem/RKK5UjGapgzlsLqBvUqk+snZnjjCnkWIALUgKvk8pz8VyuHL+qPnMf5w/
-	rrPemlui3pwDniRVG9gKcAeTsilBHW0pQGnc5pZfVIu5Y/HB3NGPAL3+c/hRaRan4jnJSAOiHR2
-	QxB4T00EElxzBOFrM5cW+iAfnJ8QbddoBOVR+2WodSDDzDgjZ2fMBwd8t4rhTxUhwt8kOIUwvLL
-	y7BUee2QDSd0edn+jM/i+tBLNVvqFrIpHS1+dGdI9WgOrrF8MLJp/WZxHqhrVjLtIdnMSg1NOiC
-	6g0GAOzCCS1T5t12IHJcZXhmUFCeUL6sotGQ9E2
-X-Received: by 2002:a05:6214:5f02:b0:912:5b19:ed61 with SMTP id 6a1803df08f44-9142f68bfcamr42218396d6.16.1790345520657;
-        Fri, 25 Sep 2026 07:12:00 -0700 (PDT)
-Received: from localhost ([2600:4041:59c3:300:7917:c7f6:28c6:182b])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91430da9123sm17878676d6.16.2026.09.25.07.12.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Sep 2026 07:12:00 -0700 (PDT)
-From: Axel Mierczuk <axel.mierczuk@1password.com>
-To: Julian Anastasov <ja@ssi.bg>,
-	Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="Uv++AnLt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29BEC1F000FF;
+	Fri, 25 Sep 2026 14:23:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1790346238;
+	bh=gPQw0BITWNXX7SKrbkyHcPnZ8F5JrYYZZ0WWmA2r42g=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Uv++AnLtGnniFK5YSTNIX9gVqOtVjJDGfby40Lq4zqDeDFWbXVarO/ZyLtNcLBNCc
+	 Z2eLUo0Iot+3Fv90Wbf434Zu9XeYIpgkxXj9vxSqD7/l23smbMGi7vh7KEPga6TCD9
+	 WOcxsAi+bUb94xioBJoxRw34s2ptPSqJUgXgm8hI=
+Date: Fri, 25 Sep 2026 16:23:53 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: "Benjamin Robin (Schneider Electric)" <benjamin.robin@bootlin.com>
+Cc: stable@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Neeraj Upadhyay <neeraj.upadhyay@kernel.org>,
+	Joel Fernandes <joelagnelf@nvidia.com>,
+	Josh Triplett <josh@joshtriplett.org>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Uladzislau Rezki <urezki@gmail.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Lai Jiangshan <jiangshanlai@gmail.com>,
+	Zqiang <qiang.zhang@linux.dev>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	netfilter-devel@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	Willy Tarreau <w@1wt.eu>,
-	Keith Hoodlet <keith.hoodlet@1password.com>,
-	Axel Mierczuk <axel.mierczuk@1password.com>
-Subject: [PATCH nf 2/2] ipv6: update *offset for non-first fragments in ipv6_find_hdr()
-Date: Fri, 25 Sep 2026 10:11:55 -0400
-Message-ID: <20260925141155.17603-3-axel.mierczuk@1password.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260925141155.17603-1-axel.mierczuk@1password.com>
-References: <20260925141155.17603-1-axel.mierczuk@1password.com>
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, miguel.gazquez@bootlin.com,
+	thomas.petazzoni@bootlin.com, rcu@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 6.18.y 1/2] rculist: add list_splice_rcu() for private
+ lists
+Message-ID: <2026092540-jokester-certify-1339@gregkh>
+References: <20260925-cve-2026-52988-6-18-v1-0-680b24895415@bootlin.com>
+ <20260925-cve-2026-52988-6-18-v1-1-680b24895415@bootlin.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260925-cve-2026-52988-6-18-v1-1-680b24895415@bootlin.com>
 
-The non-first fragment early return is the only successful exit of
-ipv6_find_hdr() that leaves *offset untouched. IPVS used the initial
-offset as if it had been updated.
+On Fri, Sep 25, 2026 at 09:52:23AM +0200, Benjamin Robin (Schneider Electric) wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [ Upstream commit f902877b635551513729bdf9a8d1422c4aab7741 ]
+> 
+> This patch adds a helper function, list_splice_rcu(), to safely splice
+> a private (non-RCU-protected) list into an RCU-protected list.
+> 
+> The function ensures that only the pointer visible to RCU readers
+> (prev->next) is updated using rcu_assign_pointer(), while the rest of
+> the list manipulations are performed with regular assignments, as the
+> source list is private and not visible to concurrent RCU readers.
+> 
+> This is useful for moving elements from a private list into a global
+> RCU-protected list, ensuring safe publication for RCU readers.
+> Subsystems with some sort of batching mechanism from userspace can
+> benefit from this new function.
+> 
+> The function __list_splice_rcu() has been added for clarity and to
+> follow the same pattern as in the existing list_splice*() interfaces,
+> where there is a check to ensure that the list to splice is not
+> empty. Note that __list_splice_rcu() has no documentation for this
+> reason.
+> 
+> Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/linux/rculist.h | 29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
 
-For non-first fragments with target < 0, set *offset immediately
-after the Fragment header, at the start of the fragment payload.
-Callers must still account for the nonzero fragment offset. A
-NEXTHDR_FRAGMENT search continues to return the Fragment header's
-offset. Other target < 0 callers check the returned fragment offset
-or ignore *offset here.
-
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Axel Mierczuk <axel.mierczuk@1password.com>
----
- net/ipv6/exthdrs_core.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv6/exthdrs_core.c b/net/ipv6/exthdrs_core.c
-index 4a9748338cf4..e27f5b8cc154 100644
---- a/net/ipv6/exthdrs_core.c
-+++ b/net/ipv6/exthdrs_core.c
-@@ -179,7 +179,10 @@ EXPORT_SYMBOL_GPL(ipv6_find_tlv);
-  *
-  * Note that non-1st fragment is special case that "the protocol number
-  * of last header" is "next header" field in Fragment header. In this case,
-- * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
-+ * for target < 0, *offset points immediately after the Fragment header,
-+ * at the start of the fragment payload. Callers must still account for
-+ * the nonzero fragment offset before interpreting the payload. The
-+ * fragment offset is stored in *fragoff if fragoff
-  * isn't NULL.
-  *
-  * if flags is not NULL and it's a fragment, then the frag flag
-@@ -261,6 +264,7 @@ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
- 				     hp->nexthdr == NEXTHDR_NONE)) {
- 					if (fragoff)
- 						*fragoff = _frag_off;
-+					*offset = start + sizeof(struct frag_hdr);
- 					return hp->nexthdr;
- 				}
- 				if (!found)
--- 
-2.43.0
+You did not sign off on this commit :(
 
