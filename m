@@ -1,41 +1,42 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A99FC44A3E7;
-	Fri, 25 Sep 2026 08:16:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A97547728D;
+	Fri, 25 Sep 2026 08:16:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790324176; cv=none; b=hdyOgEKCrynyLmglrMVGktFlKDKE4qUXRgpIL3GFFvHwIcdpCe1GHJPyW8Jg9RU9HLCi7tbGj1+3V29ii5OwYUXeXoItN8lv4mL3e8TcYXcNYjlE4WNG9UW2tIHhchbgDhjkUh71nZP74vOykIMo1yf/IknFF+wxkVt1oh6Q3QU=
+	t=1790324179; cv=none; b=NdqpKg50dpjeEg1PMTnQ8X6sl2YNF8nS12DWsQmZ0hnulee+a6Lmk/OfFGKs/+pi8FgJX+DnZ5GwjU6OKO0fPE/l/fjW6Yt900STKJaMnD25Xsinf9xf+Jugh6+wq6TIyJ54ZHvXpOP0W8r3YxVls2dHE1r/wwM6LPKfNBZSWdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790324176; c=relaxed/simple;
-	bh=lYNZTHj4bXk3G76nAjxQmWcB4E5tH2D+9HYzrEAMXRY=;
+	s=arc-20240116; t=1790324179; c=relaxed/simple;
+	bh=Db2t4/6bv/wUf68nck8rEPG1Qa5EqBs2EpF/WGC73Pc=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=D8OpuK+GBUoUzLOA+ZIxdIZl5kqyrrZO8jkkqUFL1eoXZ6K4iVHw26SAuDYxLRwBrofgX0ziUQVHs0b/V8brQh3kSTDpWsYBqmrU0T3TNt/O7wrrZm6CCJVLutnJXpBl6LIitdoBzdFc0bBJN2/6D/KE8p/6RPpTuaXIgevTgrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=u/RIQhyF; arc=none smtp.client-ip=185.246.85.4
+	 In-Reply-To:To:Cc; b=Al1ReBfCSLzMxHRAVRbPqJ2rWeKWuz0dofqoICxJH85L01NZOv5n/sCIUEoEpQcx5XPHlNB2jHIPzG6IxSvDsIfcJ7HvFIFdktwaestU2EgASy7qJJmBxUVXE+TJgqcSu3+BIWdGxLQZN8rNa9e90lSd9FNQlXK+7dnAtF6TMFk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wHf6/P/u; arc=none smtp.client-ip=185.171.202.116
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="u/RIQhyF"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wHf6/P/u"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 359134E41072;
-	Fri, 25 Sep 2026 08:16:13 +0000 (UTC)
+	by smtpout-04.galae.net (Postfix) with ESMTPS id AA700C211F3;
+	Fri, 25 Sep 2026 08:17:03 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 023CD6073B;
-	Fri, 25 Sep 2026 08:16:13 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 6C21110329481;
-	Fri, 25 Sep 2026 10:16:08 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id E4E336073B;
+	Fri, 25 Sep 2026 08:16:15 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id BFD8410329545;
+	Fri, 25 Sep 2026 10:16:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1790324171; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	t=1790324174; h=from:subject:date:message-id:to:cc:mime-version:content-type:
 	 content-transfer-encoding:in-reply-to:references;
-	bh=9zlMNo7dhbIKdnwOjjrU+ow8dEzmY8i59iiS5x+t/FM=;
-	b=u/RIQhyFrCsL1oh9++dh7i3drWBJDVwq8m08y2qovDcpwshqSZFNeQ4t9Jle8W9Efh9NQQ
-	MkcI9AYCXSe1m+vnwruhm5xkL2vW/pGbUGo2BEienjjiJcS5yGPtrQXcdjGrfAAAy8i7rS
-	04dNt9Z10XiMtTczLYw4aWLq7jES92gEk3Ky35JGJ2msCh3bWlCKjbcSXeR48IMHwXuiZ8
-	QwQ2Ho566bWdOWA+dcjKCi1Q/j/sL8Iu7OYVups42/MQMetH0ZJfJv+gH89SnefhFTJbZa
-	jii+kADMXPtujXDqkFSOhDjEUqKxrpxjlIJVMz6mlT7KuSL1B/gCL+TPHlXu5Q==
+	bh=YSsHqt8o+oNPZWRgI6DyJXdECqC82zyiwqS5WKv+Rpk=;
+	b=wHf6/P/uDsTRc+uCLB3PVAreH5XL5Rz/kiGqd4vb3TsiiIWa/0FB2X/Mkw62zx1ZbQLhSt
+	xwdEhc44UGovA6Vptbr/zXr3zgzllkCVMx/JvsMvGchdIGLS5p5QnwHmVvUNwS0S4j1rrJ
+	i6hd52NZResjT6VmA5ETdeBNACPDfxUKPr6hxr4AcSv1dzV+lAjvTpvVPFaGfw4WqK1K7O
+	Bvup3rtIcNKuLHseW5bUo0Fra8FRgnNrckknmunP2cYvOC1LDjnPItzj4dE45uT+UwpvWY
+	ygN9k1HvucIYupZwbOiHHnVSO5bYvnxlkTv6pkQazy+k9ukUKWQ2RAdscYH9hw==
 From: "Benjamin Robin (Schneider Electric)" <benjamin.robin@bootlin.com>
-Date: Fri, 25 Sep 2026 10:15:44 +0200
-Subject: [PATCH 6.1.y 1/2] rculist: add list_splice_rcu() for private lists
+Date: Fri, 25 Sep 2026 10:15:45 +0200
+Subject: [PATCH 6.1.y 2/2] netfilter: nf_tables: join hook list via
+ splice_list_rcu() in commit phase
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -44,7 +45,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260925-cve-2026-52988-6-1-v1-1-ff64026f03ff@bootlin.com>
+Message-Id: <20260925-cve-2026-52988-6-1-v1-2-ff64026f03ff@bootlin.com>
 References: <20260925-cve-2026-52988-6-1-v1-0-ff64026f03ff@bootlin.com>
 In-Reply-To: <20260925-cve-2026-52988-6-1-v1-0-ff64026f03ff@bootlin.com>
 To: stable@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>, 
@@ -61,79 +62,43 @@ To: stable@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
 Cc: thomas.petazzoni@bootlin.com, rcu@vger.kernel.org, 
  linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
  coreteam@netfilter.org, netdev@vger.kernel.org, 
- "Benjamin Robin (Schneider Electric)" <benjamin.robin@bootlin.com>
+ "Benjamin Robin (Schneider Electric)" <benjamin.robin@bootlin.com>, 
+ Sasha Levin <sashal@kernel.org>
 X-Mailer: b4 0.15.2
 X-Last-TLS-Session-Version: TLSv1.3
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit f902877b635551513729bdf9a8d1422c4aab7741 ]
+[ Upstream commit a6134e62dba2ea4f760b29d5226907f447c92400 ]
 
-This patch adds a helper function, list_splice_rcu(), to safely splice
-a private (non-RCU-protected) list into an RCU-protected list.
+Publish new hooks in the list into the basechain/flowtable using
+splice_list_rcu() to ensure netlink dump list traversal via rcu is safe
+while concurrent ruleset update is going on.
 
-The function ensures that only the pointer visible to RCU readers
-(prev->next) is updated using rcu_assign_pointer(), while the rest of
-the list manipulations are performed with regular assignments, as the
-source list is private and not visible to concurrent RCU readers.
-
-This is useful for moving elements from a private list into a global
-RCU-protected list, ensuring safe publication for RCU readers.
-Subsystems with some sort of batching mechanism from userspace can
-benefit from this new function.
-
-The function __list_splice_rcu() has been added for clarity and to
-follow the same pattern as in the existing list_splice*() interfaces,
-where there is a check to ensure that the list to splice is not
-empty. Note that __list_splice_rcu() has no documentation for this
-reason.
-
-Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Fixes: 78d9f48f7f44 ("netfilter: nf_tables: add devices to existing flowtable")
+Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Benjamin Robin (Schneider Electric) <benjamin.robin@bootlin.com>
 ---
- include/linux/rculist.h | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/rculist.h b/include/linux/rculist.h
-index d29740be4833..ad37c0584c23 100644
---- a/include/linux/rculist.h
-+++ b/include/linux/rculist.h
-@@ -204,6 +204,35 @@ static inline void list_replace_rcu(struct list_head *old,
- 	old->prev = LIST_POISON2;
- }
- 
-+static inline void __list_splice_rcu(struct list_head *list,
-+				     struct list_head *prev,
-+				     struct list_head *next)
-+{
-+	struct list_head *first = list->next;
-+	struct list_head *last = list->prev;
-+
-+	last->next = next;
-+	first->prev = prev;
-+	next->prev = last;
-+	rcu_assign_pointer(list_next_rcu(prev), first);
-+}
-+
-+/**
-+ * list_splice_rcu - splice a non-RCU list into an RCU-protected list,
-+ *                   designed for stacks.
-+ * @list:	the non RCU-protected list to splice
-+ * @head:	the place in the existing RCU-protected list to splice
-+ *
-+ * The list pointed to by @head can be RCU-read traversed concurrently with
-+ * this function.
-+ */
-+static inline void list_splice_rcu(struct list_head *list,
-+				   struct list_head *head)
-+{
-+	if (!list_empty(list))
-+		__list_splice_rcu(list, head, head->next);
-+}
-+
- /**
-  * __list_splice_init_rcu - join an RCU-protected list into an existing list.
-  * @list:	the RCU-protected list to splice
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 96b0638c220a..a373a0969e99 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9995,8 +9995,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 							   nft_trans_flowtable(trans),
+ 							   &nft_trans_flowtable_hooks(trans),
+ 							   NFT_MSG_NEWFLOWTABLE);
+-				list_splice(&nft_trans_flowtable_hooks(trans),
+-					    &nft_trans_flowtable(trans)->hook_list);
++				list_splice_rcu(&nft_trans_flowtable_hooks(trans),
++						&nft_trans_flowtable(trans)->hook_list);
+ 			} else {
+ 				nft_clear(net, nft_trans_flowtable(trans));
+ 				nf_tables_flowtable_notify(&trans->ctx,
 
 -- 
 2.55.0
