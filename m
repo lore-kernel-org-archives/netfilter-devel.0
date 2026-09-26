@@ -1,56 +1,56 @@
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com [209.85.218.70])
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com [209.85.208.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ABB038945A
-	for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 10:03:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0BE61FA272
+	for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 10:03:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790417036; cv=none; b=S9HiNEVyUu6buAyrNc1PymcOhNBQPyuZXMhGhXm6OStZxySKZVc/l1KOgpWcj6zS0v/aqVIoUlIeDoczXMmYDJ3DdZrxeULCvh52nTc34d1fczwJTlxGrj4+ev5ZfZus5gyBwSQg5pqsp1j9Ht8uBVorWon6+z0R0+OmbrvpYoo=
+	t=1790417038; cv=none; b=Sj28YmYv/lrEdFaWt0nDq+2kR71NXhvUXHETYk/zHzQ0/x6G+4Ipc/YoI6Rvr+YNvygPPMHxe7IEP8NcmN69toz0nEPm9tt9MjtDITYnOy41IW0eNLkUgTV7uw1mXJeNyEbyhbdK9w5Gvh8OjIKbaWhBvVKKpltXNwlCeag6IFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790417036; c=relaxed/simple;
-	bh=LTLS3O0G6PJ/+N1sTEH50G93El3m120zwivBUHa7E/E=;
+	s=arc-20240116; t=1790417038; c=relaxed/simple;
+	bh=M3H48d42CkY8SzC+ynYgiJ/EzJPASoRzTDFwO4cNo70=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=Nmnxi57xLzXox8f6teAf8+8NC9wLBaY1n5D5Ys45KQrrb81LuVSZU6Xlr/VwQMaebOF/izKRx1reznYhRYuwdYfvfd0qeZNxSWfGfufzfAcXvMJa1/erYsmtLNFZ/Klpn0MHKGr4EvypsIzohCElhGqWDstyZ0yTFzWNEFKnXEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Ta3CxYhH; arc=none smtp.client-ip=209.85.218.70
+	 To:Cc:Content-Type; b=mSgn0aqQClFYpilyOB3kYcYsx98WMRrXwMk0Dv46ed9jlp+2zbzqmh6STnaPjskFv6lT85J0Pd4OhkxkBhS4ZMnpimpseXfVuWSiLHB6wiEswd2gecUkJcutsow1IqcUYimXA5++n50f9FMgQgk5PUPBTrgD49jRUPrPc8qPQ+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=iADVJMLW; arc=none smtp.client-ip=209.85.208.71
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Ta3CxYhH"
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-c2939e341f7so192198666b.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 03:03:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="iADVJMLW"
+Received: by mail-ed1-f71.google.com with SMTP id 4fb4d7f45d1cf-6aafdd5a5f6so824007a12.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 03:03:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790417032; x=1791021832; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1790417034; x=1791021834; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=PfDsZQbjRfQwjgeInb4bSnXRnqbZuAxC+YA0cie2Jbw=;
-        b=Ta3CxYhH7mZsqbNpY9RKJB9GJ1RJq4qH2ONQQywswkmLicER2UNSO8p9XODe/GIue6
-         8jvfVixEzA4OrdkjUiCoiYtsgsDNCt13dIGlflccQpEKgcZh2uAhSb6Ca+dDhg4uuif9
-         l3XAGB7rZ8YnAxN0vrHaarLvEOuixCzHxeOuRQrhWO9hkt6LwCyAdMaGrvQjzTVimKdc
-         DZjFf3HC1tcl7ZDFZfz6hXuAlH3OyTxkTAL6I7zNin4qQjlhWeBL2v+t0yULTJhNi2mv
-         kCwyZAMktYdTe7edRzTC8gAo+5rfu2892Kr/NL4ErH28pcym3LvTa+Zcv7KenxENee+z
-         2rPw==
+        bh=dzpUIKP+r26MOPYzpw8R1RHhGCPwH0D8HOxi456WcCE=;
+        b=iADVJMLW3rCUZOqgoNMPRjH4uEGjEjLyxr9qbpZyssvtxMY2TNYMuiDNo+ML9XfrZb
+         FmExKsmldGGiTaTVB2iRELgAFNd9ex0as636H7DgF9j6DstYaaRQHhueRbzFS5zXLaOF
+         RPNbAbSxHtX9HXLnDxVQXfLtvjGzt0UQX6lVsMsHYCJ+SgAsPw7WL/qiRWgq0NHitOMP
+         CUAbuRig/lVRAEfTOa6SSb1e1WTmJ28N+ABfhsCkqx4kdQxIcRGBkRXo8B55gd4OtUtA
+         2n7vcgcKcLZYTvVLfWxid7DbjwECTrlhdo52ZFmujpS3moyxzcj7PEYz6IsinrPk175y
+         AhdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790417033; x=1791021833;
+        d=1e100.net; s=20260707; t=1790417034; x=1791021834;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=PfDsZQbjRfQwjgeInb4bSnXRnqbZuAxC+YA0cie2Jbw=;
-        b=GLGBkUtWazCXgfo9vz8IDie6n+ZJqiiUkS/sODV2YqgXkMvClu33CDau8T2kAIp+Zh
-         moXL6Zejflm4OvilkaslzabBtx4q8RFCjY7VdBFWaTwYr5z6qM4xjJxBxc34PhBvddH9
-         DTEN/wBG3msdwcZ+sAziEizl66oKv6bKeSWo22zc64lmNKE3zj0qG5+0XLyMQV+uPPiP
-         rRUt5n/Qf3SLtU/GX5B0yQQmGuk1CdJi47SbeqOkWWmxkxCBMx+4TQsGkmwLGt+bEuE6
-         lesWHkyqhjj69yzhdPUhyqTjsT2b1Qf7yR1fOY8wcxa6yUYSuNJN6w3mmrTZhfRNJQ07
-         HG0w==
-X-Gm-Message-State: AFuF++mcOkkV0Zn1ogBrfA8PzheLnuGK35k2dKblnwUQg2ThexeMWzga
-	tmMAyf5fmArd8ea28CYtUvEn1uUNdFGjRZ0ncDop84qYXWLKScIU5bAmN65gnuTdw/EBcB5/Wd+
-	vcV7lJ+6WlnSPddMJEy74iQZGK1GTKKkyaS9r4sgVGXuCA65rCiwYmwGOPM+AWQoIOXjv7JXbZn
-	VjDN3uIO5W46BbcpiXH1f5nZWKZAzSOajAYbKtj7LuAy8=
-X-Received: from ejbwq11.prod.google.com ([2002:a17:907:64b:b0:c2d:b958:c6aa])
- (user=aojea job=prod-delivery.src-stubby-dispatcher) by 2002:a17:907:c609:10b0:c2a:f5c2:5cfb
- with SMTP id a640c23a62f3a-c2af5c26112mr221141366b.7.1790417032037; Sat, 26
- Sep 2026 03:03:52 -0700 (PDT)
-Date: Sat, 26 Sep 2026 10:03:50 +0000
+        bh=dzpUIKP+r26MOPYzpw8R1RHhGCPwH0D8HOxi456WcCE=;
+        b=QraKHxcYYLTGNJFgcacPp8bHp92EZsxDqEwGu/MtDGEy/s3AHJqMlzBkVVmQu7t/SX
+         aozmrH6fWdPAGmaDr6m2hFF5eYGm/x8mKgDAJ1+weMV/VHvJbTz0dPlVn8tviNiv5txA
+         2DzZPjG1UyqMhioHpkT36lq/WAWvfsDLFasj3hyyM1n+OXGmPDmdVDs6sneC2ek3L4PZ
+         7bQfOJYxw7hncYR3zYRp3zm8LVglcBiJEmEpl4Yeckewk0JP15EVYPNIegJ7vwsWwghK
+         7In0rLFYCGRSlU5Tk8aJw1rXKZ4pQ/cHmQPjDnK9RwHf+tb1VZOYvogxn9qyfQHSUsH6
+         ezgA==
+X-Gm-Message-State: AFuF++mR68on2qW4pKPctGqrC/4PVTWiu8Ja+RS6qW+qplMP6oh0Zt4V
+	tn3KDnTU4NqwuPz7n68lmHjUVmLj2uHm1HWPZJ7ZheUXsQyC7B01mo4sKSx6LBkA1r2yk+1GXus
+	k7kEYJAyMUiBBh0rAHPYy2Iz3I2/ElehmuJ5Ye+rkilicTvbqsh7faZAazT1kVAhtSpecmc6+QN
+	BLCk6TRHM1ndB8/pW8GXNQPHqGbfchgpB8HfOZrPHCXVw=
+X-Received: from edoy20.prod.google.com ([2002:aa7:c254:0:b0:6aa:495a:6bc1])
+ (user=aojea job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6402:1f01:b0:6a7:ea54:397
+ with SMTP id 4fb4d7f45d1cf-6aacc8678cfmr5901327a12.40.1790417033506; Sat, 26
+ Sep 2026 03:03:53 -0700 (PDT)
+Date: Sat, 26 Sep 2026 10:03:51 +0000
 In-Reply-To: <araAhumrNKQ48-Re@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -60,240 +60,257 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <araAhumrNKQ48-Re@strlen.de>
 X-Mailer: git-send-email 2.56.0.rc1.315.gc6ed9934b7-goog
-Message-ID: <20260926100351.2987307-1-aojea@google.com>
-Subject: [PATCH nf-next 1/2] netfilter: nf_queue: limit the hook drop flush to
- the unregistered hook point
+Message-ID: <20260926100351.2987307-2-aojea@google.com>
+Subject: [PATCH nf-next 2/2] selftests: netfilter: nft_queue: check the scope
+ of the hook drop flush
 From: Antonio Ojea <aojea@google.com>
 To: netfilter-devel@vger.kernel.org
 Cc: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>
 Content-Type: text/plain; charset="UTF-8"
 
-Unregistering a netfilter hook calls nf_queue_nf_hook_drop(), which makes
-nfqnl_nf_hook_drop() walk every nfqueue instance of the network namespace
-and flush it, reinjecting every packet that waits for a verdict with
-NF_DROP. Deleting an nftables base chain of any table, family and hook
-point therefore drops the packets queued by hooks of unrelated tables,
-families and hook points. The verdict that userspace sends for them
-afterwards fails with -ENOENT.
+Add test_hook_drop_scope. It queues 20 UDP packets from an inet output
+chain to a queue program that holds all verdicts, deletes a base chain
+while they wait, and reads the queue length from
+/proc/net/netfilter/nfnetlink_queue right after the deletion. It then
+releases the queue program and checks with a counter in the input
+chain and the packet total of the queue program that the surviving
+packets are delivered.
 
-Before commit 039b40ee5854 ("netfilter: nf_queue: only call
-synchronize_net twice if nf_queue is active") nf_queue_nf_hook_drop()
-received the removed hook and nfqueue only dropped the entries queued by
-that hook. The commit removed the argument and the comparison because
-base chain removal while nfqueue is in use was rare at the time. With
-base chains added and removed by userspace agents while another program
-holds packets in a queue this is no longer the case. Commit
-960632ece694 ("netfilter: convert hook list to an array") then replaced
-the hook pointer in struct nf_queue_entry with an index into the hook
-array of the hook point, so a comparison per hook is no longer possible.
-A comparison per hook point is: the index of an entry is only stale when
-the array of its own hook point changed.
+Deleting a base chain at another hook point (ip6 prerouting) must keep
+the 20 queued packets. Deleting a base chain at the queueing hook point
+(inet output, another priority) drops them, because the index of a
+queued packet into the hook array of its hook point is stale once that
+array changed. The second case documents the remaining behaviour so
+that a change to it is visible.
 
-Pass the nf_hook_ops being unregistered down to the queue handler and
-add nf_hook_cmp() to nfnetlink_queue, a cmpfn for nfqnl_flush() that
-matches the entries whose state.pf and state.hook are the hook point of
-that hook. The handler takes the nf_hook_ops rather than the family of
-the modified array to keep a single argument with NULL meaning "flush
-everything", which nf_ct_iterate_destroy() uses on module exit. The
-cmpfn resolves the family itself. An NFPROTO_INET hook is registered in
-the IPv4 and the IPv6 array, so it matches the entries of both families;
-nf_unregister_net_hook() calls __nf_unregister_net_hook() for the two
-arrays back to back and the second flush finds nothing left. If the
-shrink of one array fails to allocate, that array keeps its dummy hook
-and its entries stay valid, so the flush for the other family drops
-them without need; no entry with a stale index survives. An
-NFPROTO_INET hook at NF_INET_INGRESS is registered in the netdev ingress
-array, the same mapping that nf_static_key_inc() applies. nfqueue does
-not accept the ingress and egress hooks (nft_queue_validate()), the
-mapping keeps the comparison consistent with the registration.
+To hold the packets without depending on timing, add the -H option to
+the nf_queue helper: it blocks SIGUSR1, reads the first packet and
+waits in sigwait() until it receives SIGUSR1, then sends the verdicts
+as usual. The test sends the signal after the ruleset change, so the
+queue length it reads is exact on slow machines too.
 
-The entries queued from the hook point whose array changed are still
-dropped, their hook_index is stale. Registering a hook in front of the
-one that queued a packet still makes nf_reinject() resume at a stale
-index, so the packet traverses the queueing hook a second time; this is
-not changed here.
+Without the previous patch the first case fails: 0 of 20 packets remain
+queued after the deletion and none is delivered.
 
-Tested with the reproducer script from the thread, unchanged: it queues
-20 UDP packets from an inet output chain to a queue program that delays
-every verdict by 100 ms and changes the ruleset while they wait. Before
-this change deleting an unrelated ip6 base chain or an unrelated ip6
-table delivers 3 of 20 packets and the queue program exits on ENOENT;
-with it all 20 are delivered. Deleting a base chain at the same hook
-point (inet output, another priority, in the same or another table) or
-an ip table with an output base chain still drops the queued packets;
-deleting an ip6 table with an output base chain or a netdev ingress
-chain does not. Adding a base chain in front of the queueing one still
-queues the packets twice. The nft_queue.sh selftest passes, with
-CONFIG_NETFILTER_NETLINK_QUEUE=y and built as a module. The following
-patch adds a test for both outcomes that holds the verdicts instead of
-delaying them.
+The test and the helper option were written with an LLM coding
+assistant from a task description; the author reviewed the result,
+and validated the test in virtme-ng on kernels with and without the
+previous patch.
 
-The code and this commit message were written with an LLM coding
-assistant from a task description that contained the report, the
-suggestion from the thread and the two commits above. The author
-reviewed the result, directed the changes and validated them with the
-reproducer and the selftest in virtme-ng before and after the change.
-
-Suggested-by: Florian Westphal <fw@strlen.de>
-Link: https://lore.kernel.org/netfilter-devel/CABhP=tYtCyr-qzL==98nkmDVZr6x+f8E26V1AAOpMXgZgt0vAQ@mail.gmail.com/
 Assisted-by: LLM
 Signed-off-by: Antonio Ojea <aojea@google.com>
 ---
- include/net/netfilter/nf_queue.h  |  3 +-
- net/netfilter/core.c              |  2 +-
- net/netfilter/nf_conntrack_core.c |  2 +-
- net/netfilter/nf_internals.h      |  2 +-
- net/netfilter/nf_queue.c          |  4 +--
- net/netfilter/nfnetlink_queue.c   | 46 +++++++++++++++++++++++++++++--
- 6 files changed, 51 insertions(+), 8 deletions(-)
+ .../selftests/net/netfilter/nf_queue.c        |  22 +++-
+ .../selftests/net/netfilter/nft_queue.sh      | 108 ++++++++++++++++++
+ 2 files changed, 129 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 4aeffddb7586..494ca3b300cc 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -30,7 +30,8 @@ struct nf_queue_entry {
- struct nf_queue_handler {
- 	int		(*outfn)(struct nf_queue_entry *entry,
- 				 unsigned int queuenum);
--	void		(*nf_hook_drop)(struct net *net);
-+	void		(*nf_hook_drop)(struct net *net,
-+					const struct nf_hook_ops *ops);
- };
+diff --git a/tools/testing/selftests/net/netfilter/nf_queue.c b/tools/testing/selftests/net/netfilter/nf_queue.c
+index 9e56b9d47037..07bc2b319840 100644
+--- a/tools/testing/selftests/net/netfilter/nf_queue.c
++++ b/tools/testing/selftests/net/netfilter/nf_queue.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
  
- void nf_register_queue_handler(const struct nf_queue_handler *qh);
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 11a702065bab..97611e48d304 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -519,7 +519,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 	if (!p)
- 		return;
- 
--	nf_queue_nf_hook_drop(net);
-+	nf_queue_nf_hook_drop(net, reg);
- 	nf_hook_entries_free(p);
- }
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 344f88295976..4b27f8daf265 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2416,7 +2416,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- 
- 		if (atomic_read(&cnet->count) == 0)
- 			continue;
--		nf_queue_nf_hook_drop(net);
-+		nf_queue_nf_hook_drop(net, NULL);
- 	}
- 	up_read(&net_rwsem);
- 
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index 25403023060b..ce5aff2cae71 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -24,7 +24,7 @@
- #define CTA_FILTER_FLAG(ctattr) CTA_FILTER_F_ ## ctattr
- 
- /* nf_queue.c */
--void nf_queue_nf_hook_drop(struct net *net);
-+void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_ops *ops);
- 
- /* nf_log.c */
- int __init netfilter_log_init(void);
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 7f12e56e6e52..d9c805bc8d7c 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -112,14 +112,14 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
- 
--void nf_queue_nf_hook_drop(struct net *net)
-+void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_ops *ops)
+ #include <errno.h>
++#include <signal.h>
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <stdint.h>
+@@ -18,6 +19,7 @@
+ struct options {
+ 	bool count_packets;
+ 	bool gso_enabled;
++	bool hold;
+ 	int verbose;
+ 	unsigned int queue_num;
+ 	unsigned int timeout;
+@@ -31,6 +33,7 @@ static struct options opts;
+ static void help(const char *p)
  {
- 	const struct nf_queue_handler *qh;
- 
- 	rcu_read_lock();
- 	qh = rcu_dereference(nf_queue_handler);
- 	if (qh)
--		qh->nf_hook_drop(net);
-+		qh->nf_hook_drop(net, ops);
- 	rcu_read_unlock();
+ 	printf("Usage: %s [-c|-v [-vv] ] [-t timeout] [-q queue_num] [-Qdst_queue ] [ -d ms_delay ] [-G]\n", p);
++	printf("          [-H] (hold verdicts until SIGUSR1 is received)\n");
  }
- EXPORT_SYMBOL_GPL(nf_queue_nf_hook_drop);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 8b7b39d8a109..4e7ded0b0f3a 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1181,9 +1181,47 @@ static struct notifier_block nfqnl_dev_notifier = {
- 	.notifier_call	= nfqnl_rcv_dev_event,
- };
  
--static void nfqnl_nf_hook_drop(struct net *net)
-+/* Match the entries whose hook_index points into the hook array that
-+ * __nf_unregister_net_hook() replaces when it removes @ops.
-+ *
-+ * ops->pf and ops->hooknum name the hook point as it was registered.
-+ * entry->state.pf and entry->state.hook name the array the packet was
-+ * traversing when it was queued.  They differ where one registration
-+ * covers a different array than its name says, see nf_hook_entry_head():
-+ *
-+ *   NFPROTO_INET, hooknum != NF_INET_INGRESS: hooks_ipv4[] and hooks_ipv6[],
-+ *   entries carry NFPROTO_IPV4 or NFPROTO_IPV6.
-+ *   NFPROTO_INET, NF_INET_INGRESS: dev->nf_hooks_ingress, the array of the
-+ *   NFPROTO_NETDEV/NF_NETDEV_INGRESS hook point, entries carry that pair.
-+ *
-+ * Every other family uses the array of its own name.
-+ */
-+static int nf_hook_cmp(struct nf_queue_entry *entry, unsigned long ops_ptr)
+ static int parse_attr_cb(const struct nlattr *attr, void *data)
+@@ -273,6 +276,7 @@ static int mainloop(void)
+ 	struct mnl_socket *nl;
+ 	struct nlmsghdr *nlh;
+ 	unsigned int portid;
++	sigset_t hold_set;
+ 	char *buf;
+ 	int ret;
+ 
+@@ -282,6 +286,12 @@ static int mainloop(void)
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
++	/* -H: keep SIGUSR1 pending until the first packet is read */
++	sigemptyset(&hold_set);
++	sigaddset(&hold_set, SIGUSR1);
++	if (opts.hold)
++		sigprocmask(SIG_BLOCK, &hold_set, NULL);
++
+ 	nl = open_queue();
+ 	portid = mnl_socket_get_portid(nl);
+ 
+@@ -310,6 +320,13 @@ static int mainloop(void)
+ 		}
+ 
+ 		id = ret - MNL_CB_OK;
++		if (opts.hold) {
++			int sig;
++
++			sigwait(&hold_set, &sig);
++			opts.hold = false;
++		}
++
+ 		if (opts.delay_ms)
+ 			sleep_ms(opts.delay_ms);
+ 
+@@ -329,7 +346,7 @@ static void parse_opts(int argc, char **argv)
+ {
+ 	int c;
+ 
+-	while ((c = getopt(argc, argv, "chvt:q:Q:d:G")) != -1) {
++	while ((c = getopt(argc, argv, "chvt:q:Q:d:GH")) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			opts.count_packets = true;
+@@ -338,6 +355,9 @@ static void parse_opts(int argc, char **argv)
+ 			help(argv[0]);
+ 			exit(0);
+ 			break;
++		case 'H':
++			opts.hold = true;
++			break;
+ 		case 'q':
+ 			opts.queue_num = atoi(optarg);
+ 			if (opts.queue_num > 0xffff)
+diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+index 6136ceec45e0..89a4dd61845e 100755
+--- a/tools/testing/selftests/net/netfilter/nft_queue.sh
++++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+@@ -622,6 +622,113 @@ EOF
+ 	fi
+ }
+ 
++hook_drop_delivered()
 +{
-+	const struct nf_hook_ops *ops = (const struct nf_hook_ops *)ops_ptr;
-+	unsigned int hooknum = ops->hooknum;
-+	u8 pf = ops->pf;
-+
-+	/* same translation as nf_static_key_inc() */
-+	if (pf == NFPROTO_INET && hooknum == NF_INET_INGRESS) {
-+		pf = NFPROTO_NETDEV;
-+		hooknum = NF_NETDEV_INGRESS;
-+	}
-+
-+	if (entry->state.hook != hooknum)
-+		return 0;
-+
-+	if (pf == NFPROTO_INET)
-+		return entry->state.pf == NFPROTO_IPV4 ||
-+		       entry->state.pf == NFPROTO_IPV6;
-+
-+	return entry->state.pf == pf;
++	ip netns exec "$ns1" nft list counter inet nfqscope delivered |
++		sed -n 's/.*packets \([0-9]*\) .*/\1/p'
 +}
 +
-+static void nfqnl_nf_hook_drop(struct net *net, const struct nf_hook_ops *ops)
- {
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
-+	nfqnl_cmpfn cmpfn = NULL;
- 	int i;
- 
- 	/* This function is also called on net namespace error unwind,
-@@ -1196,12 +1234,16 @@ static void nfqnl_nf_hook_drop(struct net *net)
- 	if (!q)
- 		return;
- 
-+	/* ops is NULL on module exit, every entry has to go */
-+	if (ops)
-+		cmpfn = nf_hook_cmp;
++hook_drop_queued()
++{
++	ip netns exec "$ns1" awk '$1 == 1 { print $3 }' /proc/self/net/netfilter/nfnetlink_queue
++}
 +
- 	for (i = 0; i < INSTANCE_BUCKETS; i++) {
- 		struct nfqnl_instance *inst;
- 		struct hlist_head *head = &q->instance_table[i];
++hook_drop_all_queued()
++{
++	[ "$(hook_drop_queued)" = "$1" ]
++}
++
++# hook_drop_case <keep|drop> <description> <nft command...>
++#
++# 1. The inet output chain sends udp packets to port 12345 to queue 1,
++#    the inet input chain counts them once they are accepted.
++# 2. nf_queue -H reads the packets but sends no verdict until it gets
++#    SIGUSR1, so the 20 packets sent stay in the kernel queue.
++# 3. The nft command removes a base chain while they are queued.  The
++#    queue length in /proc right after it tells if the kernel dropped
++#    them: still 20, or 0.
++# 4. SIGUSR1 releases nf_queue.  If the kernel kept the packets they are
++#    accepted now and reach the input counter.  If it dropped them the
++#    first verdict fails with ENOENT and nothing is counted.
++hook_drop_case()
++{
++	local expect="$1"
++	local desc="$2"
++	local packets=20
++	local delivered queued result
++	shift 2
++
++ip netns exec "$ns1" nft -f /dev/stdin <<EOF
++flush ruleset
++table inet nfqscope {
++	chain output {
++		type filter hook output priority 0; policy accept;
++		udp dport 12345 queue num 1
++	}
++	chain input {
++		type filter hook input priority 0; policy accept;
++		udp dport 12345 counter name delivered
++	}
++	chain output2 {
++		type filter hook output priority 100; policy accept;
++	}
++	counter delivered {}
++}
++table ip6 unrelated {
++	chain prerouting {
++		type filter hook prerouting priority 0; policy accept;
++	}
++}
++EOF
++	ip netns exec "$ns1" ./nf_queue -c -q 1 -H -t "$timeout" > "$TMPFILE1" 2>&1 &
++	local nfqpid=$!
++
++	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$ns1" 1
++
++	ip netns exec "$ns1" bash -c \
++		"for i in \$(seq $packets); do echo x > /dev/udp/127.0.0.1/12345; done"
++
++	busywait "$BUSYWAIT_TIMEOUT" hook_drop_all_queued "$packets"
++
++	ip netns exec "$ns1" nft "$@"
++	queued=$(hook_drop_queued)
++
++	kill -USR1 "$nfqpid"
++	wait "$nfqpid"
++	delivered=$(hook_drop_delivered)
++
++	if [ "$queued" = "$packets" ] && [ "$delivered" = "$packets" ] &&
++	   grep -q "^$packets packets total" "$TMPFILE1"; then
++		result="keep"
++	elif [ "$queued" = "0" ] && [ "$delivered" = "0" ]; then
++		result="drop"
++	else
++		result="inconsistent"
++	fi
++
++	if [ "$result" = "$expect" ]; then
++		echo "PASS: $desc: queued packets $result"
++	else
++		echo "FAIL: $desc: queued packets $result, expected $expect" 1>&2
++		echo "      $queued of $packets queued after the change, $delivered delivered" 1>&2
++		ret=1
++	fi
++}
++
++test_hook_drop_scope()
++{
++	# the hook array of another hook point changes, queued packets stay
++	hook_drop_case keep "base chain removed at another hook point" \
++		delete chain ip6 unrelated prerouting
++
++	# the hook array of the queueing hook point changes, the position of
++	# the queued packets in it is stale, they are dropped
++	hook_drop_case drop "base chain removed at the queueing hook point" \
++		delete chain inet nfqscope output2
++
++	ip netns exec "$ns1" nft flush ruleset
++}
++
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+ ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+@@ -668,5 +775,6 @@ test_udp_ct_race
+ # should be last, adds vrf device in ns1 and changes routes
+ test_icmp_vrf
+ test_queue_removal
++test_hook_drop_scope
  
- 		hlist_for_each_entry_rcu(inst, head, hlist)
--			nfqnl_flush(inst, NULL, 0);
-+			nfqnl_flush(inst, cmpfn, (unsigned long)ops);
- 	}
- }
- 
-
-base-commit: 18a7e218cfcdca6666e1f7356533e4c988780b57
+ exit $ret
 -- 
 2.56.0.rc1.315.gc6ed9934b7-goog
 
