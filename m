@@ -1,153 +1,154 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A3E5308F03;
-	Sat, 26 Sep 2026 19:48:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB8137F742
+	for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 20:45:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790452143; cv=none; b=U3wVcbpKe4yCwCgN+d3RV1ck8MfDlwihufvOaw24E5EMVit8VHn2UmVnCrAseV0TFlSD1FUFImy9mL9C7L5rqr1EAaye1piyan5Vk6/x6zoAD4c06NXFRpmVG3wJpWOBy00bC+GUTLGBtV/vxlWmJjEoXGVP3eLgSy3O3Y1OAyk=
+	t=1790455526; cv=none; b=e8ypzVKX9IVGVDD6ADtYkswPSezo/SEnjgIFDSNOk4P88wzMTM1NNooTBhyJXkUywULW6PAVQHwefoPyO9dxY/PDrJKy9GGeEz31zcXxWSZUhyjgjgqnTRxrWHxlpXYjb0QdUlZ/XHf7+vmmkxRqPjhJJ8+gI/ZHOiRv8/aWCHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790452143; c=relaxed/simple;
-	bh=Ibb/6XXCwXQp4NCYZvletoa717y4olArOp/reI1OTVc=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=HQ3S0ATMRT7FlXyqpoq1VwCbv8dcyQyj1K0BlFFyvsNCwtza7WEfkKK8Qfpig2Ez4w+ibzK5XaA5yqIcWDMMevMbCm1Z2l8wGGuTxSNXxNkUGNtBTjE1dMcAmt8HxMYs9aTAPRJpY6G/jH7ugSq1HCuwSSIWwhGHPjxmw3rnawM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=jJQ12Axa; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1790455526; c=relaxed/simple;
+	bh=MqlDK8J55jruNGAuPsjgh2PCNLlgAIqAbN5WMHFdtr0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=SbdFPtMuV3E+t9dqR2UMHEkqmBWFuzezASJp/Cph8AlTACiWe8U/zETCCBOUnGLwKroIv7fV3KUrSWlfUd4Lc3ARKwq/W/824dBgewamD+JmcD2vMgqXM+GndXDeCJ9F2C9fS4GS7dSj1rF6mutCZVPwUH0Y5bMl027DFNrtdN0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TsslIKpV; arc=none smtp.client-ip=74.125.225.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="jJQ12Axa"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 315D9213BC;
-	Sat, 26 Sep 2026 22:48:46 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=r65cERo9nN3Di2tCK7Ta1e4t4LWAALdjLsCb4qNUXHk=; b=jJQ12Axa2HCs
-	kfHXTLDavQxDxR/qvSBGW91RBDI0r2HBTMUiucDSuR1oXZzAiZTPZYrxaYISQ2lK
-	pdEWjpXx8afq8wDxHOYo33WpD8gbbrxNs+pk4Us6pQe8bkgcKhzJzsFMRTXs7sdz
-	rI4OwpOXzQOQWpPUn2o8JENhtBMVoULXeUhezYhuLuU1xj1h6b+nS0mO0mY7mdAW
-	XpOw9qAlflM3aGthodAb/uH4zpKo0DQxURziSqkDUgRyWNbNx6W3F+IPThQg8qU3
-	eZhFeAT0BdaZYPTDTx1KmwSqbSOARglq6E6tOF3aaFq0FATH6bJEs4ZiESr6DXsJ
-	nSQ0xTSr9c0e+89gdBA8yILMUCRN4IWF2ilKrB1S/IYk6TDln1zvOO9aZEl+J0S3
-	mbvgJcKWlVNy4dp47BA/WrEjzYsddagvKihTQWzSrfUpQ435bWtswdd2Dm3zD/DQ
-	FBl92HJcq9hWwN+Q4zgEJBCSj61RepqvUepMzZeKgHdioAJ6ogiQJnAgptq+GwqU
-	gbu+GuvW8TKz2jY54cIOTwTYgpi70VWjKTWNJrtmK3cwwWK6ATCQkapHjj2kE/Hv
-	ofJ86DKV2Uid/1A85+NWOqOplBMfJ+9JszdNlFgkeL1ukhPj7uUYxkz6Z24kyQW3
-	JS9A3hZLh1i7kOgvFfdSmyPy3qM+jVE=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sat, 26 Sep 2026 22:48:46 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 4DCD4608A1;
-	Sat, 26 Sep 2026 22:48:48 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 68QJmeRi056579;
-	Sat, 26 Sep 2026 22:48:40 +0300
-Date: Sat, 26 Sep 2026 22:48:40 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH net] ipvs: Defer application parent freeing until after
- RCU readers
-In-Reply-To: <20260926175129.2612644-1-nicoyip.dev@gmail.com>
-Message-ID: <7ee83494-378a-ea25-6f31-e3164d533594@ssi.bg>
-References: <20260926175129.2612644-1-nicoyip.dev@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TsslIKpV"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-4843f22dcb8so1462798f8f.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2026 13:45:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790455522; x=1791060322; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=LLi/sbHjZerOh2XvyIRDVA+fsCYAAIaxVQV+uCdFySc=;
+        b=TsslIKpVy90omG+tbBI/9YzTN6SiVN6eZKM9CDeSxE9/6eisz5KpnT9Es8HE9+oJ9r
+         Kdn/2+y7xtvUCHPmNTfvFKVT2EPsvsOjOfARWAb6Cik7gfurSKwWJmue/rB4dbeyImep
+         r0sOGBfhSYIWAqOf0+a9vP9rnQm2zASjfWYTkj8hBBcDl3mnXN4L9aeE6rC2b2U9RIuC
+         KvGunak5/N9VpiEhu4fTpdP0YfEgokqPgrMF6zzxVTCNUL6v/BDld5rny+6waKdFodEI
+         KNS7KtBgaFbJ8s7vyKzK/dHklssex6bdz1x0j0JNvi36LLJ5dKRyMA/zx2v2PSQFJ9jM
+         dc1Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790455522; x=1791060322;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=LLi/sbHjZerOh2XvyIRDVA+fsCYAAIaxVQV+uCdFySc=;
+        b=JVsuXKmvgdW804S7UgpaPQeaRUED8x+lPy7RLhZSbBMa2tLZjNKXYruGelkic+YXSW
+         JFVEgtbmPxFK2ZvUAmWAZRolFdt7mWPRmSQpZmSxG6uMSg73C16xygCU4N2Pc7xtS2rL
+         CvfW/TcGxayaeXSobi5SWJVvO8n8iHXAYamf6k6fucxciWFA32NQINtYYPTLY2j2lSAo
+         znCPDEIFIRjQ5kA2mZiw6yEsbidp3osgj8CSeZKQKD9N0WHOyKeqavQY9/E+VghoUkvv
+         kMqOvL+lrFF/8RphXPGJGmhwxPCTJodTjIJebE7mVb6xj9hPnXCraNnYCw7Up2dT8tF/
+         5RSA==
+X-Forwarded-Encrypted: i=1; AKwUvBz/TXvhTqT9mfqByQabRNizx1d3L0z+g2HA0F4Hdv39WNXV9fmMCGjLvNNAn3n8OBmP+FtZ6WOTJKbSsnU6UgM=@vger.kernel.org
+X-Gm-Message-State: AFq9FYIPO2XPBn/eaaqE0YxC5NsC0SaB0fp3l0ofKE3SjkRd3FRAuADH
+	iGXQWpysc/yqJYgzJrnbkZDkwuHVMdsEHntdq3TcFBZEEYRTG7F7cGk5
+X-Gm-Gg: AYBFou2SvdxFbDFDc41/UPZf8danBNV9McO+JqOW6tGToYSD2FTRspVvGyHPodv0VDH
+	vUBq0ay/J2FkMBBxro+2rgRJRwUuTlNJfFdBICXlFwRicBHqG3Xha27UJbC6XHH4mt2JdDZODEb
+	h4lI4R1QoSRrEmVnv6riPDa56Zajl0pJtYQCj4k7XeL0tjQOV/KIz2xouhTb3Bjy1Lb23cq9Hc0
+	d54NyRDZUDIsnfvyWTSZFR59xCY4aaIFZT2o4XP7oxFl5xGMn6H46Tz2Aa0lMLE+gva7dNReNHZ
+	qqPJQc/5cVvV3uj1+3YJERJv/3WHgaQm6Ibw4ZoB6lNKan7zxzP29BwsJCVbKuDF+8hrQgiHECW
+	V61sc7Ipzc6MxxCrqJ9vH5U/rRWzoiVt77jyNBCwa8c1jzlp6ayn+q/pWb00ZhykpFKMXD88l4c
+	IsL8giuCNhjNYH8PhzaLc3cPOfmgSWxVcP0wH9kYyHMMU0QCrdslcZIqdwxsDW2z0+gRoHOZ3sZ
+	ThAsh3PGP4EYUHwDFQq6Q7zfhaHOC6/kfkkDo6VK7qv0qt6okB2f1Qsah3RIozAnZM=
+X-Received: by 2002:a05:6000:644:b0:488:7d0b:e354 with SMTP id ffacd0b85a97d-4887d0be4cfmr9257525f8f.45.1790455522177;
+        Sat, 26 Sep 2026 13:45:22 -0700 (PDT)
+Received: from Raghu007.. (sgyl-44-b2-v4wan-174108-cust110.vm6.cable.virginm.net. [80.1.81.111])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4887a355826sm16394881f8f.18.2026.09.26.13.45.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 26 Sep 2026 13:45:21 -0700 (PDT)
+From: Palla Raghunath <raghunathpalla.0209@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+Cc: Shuah Khan <shuah@kernel.org>,
+	Brigham Campbell <me@brighamcampbell.com>,
+	linux-kernel-mentees@lists.linux.dev,
+	raghunathpalla.0209@gmail.com,
+	linux-kernel@vger.kernel.org,
+	syzbot+5a8667f002726fc59f88@syzkaller.appspotmail.com,
+	Phil Sutter <phil@nwl.cc>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: [PATCH nf] netfilter: ip6t_SYNPROXY: check TCP header before verifying checksum
+Date: Sat, 26 Sep 2026 21:45:18 +0100
+Message-Id: <20260926204519.43402-1-raghunathpalla.0209@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+synproxy_tg6() passes par->thoff to nf_ip6_checksum() before it has
+checked that a TCP header is actually present at that offset.
 
-	Hello,
+par->thoff comes from ipv6_find_hdr(), called by ip6_packet_match()
+with target -1. ipv6_find_hdr() only checks that each extension header's
+first two bytes are in the skb. It then adds that header's declared
+length to the offset and stops at the first non-extension header, so it
+can return an offset past the end of the packet. With
+CHECKSUM_NONE, nf_ip6_checksum() calls skb_checksum(skb, 0, thoff, 0).
+When thoff is larger than skb->len, the BUG_ON(len) in skb_checksum()
+fires:
 
-On Sun, 27 Sep 2026, Chengfeng Ye wrote:
+  kernel BUG at net/core/skbuff.c:3606!
+  RIP: 0010:skb_checksum+0x8b2/0x8c0
+  Call Trace:
+   nf_ip6_checksum+0x1bd/0x320 net/netfilter/utils.c:89
+   synproxy_tg6+0x1a4/0x6e0 net/ipv6/netfilter/ip6t_SYNPROXY.c:21
+   ip6t_do_table+0xd37/0x15b0 net/ipv6/netfilter/ip6_tables.c:366
+   ...
 
-> unregister_ip_vs_app() removes each incarnation from its protocol list and
-> uses call_rcu() to defer freeing it, but frees the parent application
-> immediately. An RCU reader that already found an incarnation can still
-> access the parent through inc->app in ip_vs_app_inc_get().
-> 
-> During FTP helper module unload, the following interleaving is possible:
-> 
->   CPU 0 (RCU reader)                 CPU 1 (module unload)
->   tcp_app_conn_bind()
->     find inc in protocol list
->                                      unregister_ip_vs_app()
->                                        ip_vs_app_inc_release(inc)
->                                          list_del_rcu(&inc->p_list)
->                                          call_rcu(&inc->rcu_head, ...)
->                                        kfree(a)
->     ip_vs_app_inc_get(inc)
->       try_module_get(inc->app->module)
-> 
-> The helper module is already going away, so try_module_get() would fail,
-> but evaluating its argument first reads the freed parent. The subsequent
-> rcu_barrier() in pernet unregistration cannot protect this earlier free.
-> KASAN reported:
-> 
->   BUG: KASAN: slab-use-after-free in ip_vs_app_inc_get+0x7c/0x90
->   Call Trace:
->    ip_vs_app_inc_get+0x7c/0x90
->    tcp_app_conn_bind+0x1bc/0x290
->    ip_vs_conn_new+0x1915/0x20d0
->    ip_vs_schedule+0x697/0xea0
->    tcp_conn_schedule+0x489/0x820
->    ip_vs_in_hook+0x7bf/0x1f40
->   Allocated by task 88:
->    kmemdup_noprof+0x20/0x50
->    register_ip_vs_app+0x12d/0x2c0
->    __ip_vs_ftp_init+0x56/0x160 [ip_vs_ftp]
->   Freed by task 104:
->    kfree+0x131/0x3c0
->    unregister_ip_vs_app+0x2f4/0x5b0
->    unregister_pernet_operations+0x232/0x490
->    unregister_pernet_subsys+0x1c/0x30
->    __do_sys_delete_module+0x346/0x510
-> 
-> Use kfree_rcu() with the existing rcu_head to keep the parent alive until
-> these readers finish. Successful helper references already prevent normal
-> module unload, and incarnation RCU callbacks do not access the parent.
-> 
-> Fixes: 363c97d7435e ("ipvs: convert app locks")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+In the syzbot reproducer, a 60-byte packet carries an AH header, then two
+hop-by-hop headers. The last hop-by-hop header has nexthdr TCP and
+hdrlen 167, so thoff is 1400.
 
-	Looks good to me for the nf tree, thanks!
+Fetch the TCP header with skb_header_pointer() first, as
+nf_reject_ip6_tcphdr_get() already does. This drops packets that do not
+contain a full TCP header at thoff before the checksum is computed.
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: 4ad362282cb4 ("netfilter: add IPv6 SYNPROXY target")
+Reported-by: syzbot+5a8667f002726fc59f88@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=5a8667f002726fc59f88
+Signed-off-by: Palla Raghunath <raghunathpalla.0209@gmail.com>
+---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-> ---
->  net/netfilter/ipvs/ip_vs_app.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-> index 11cbdbaf561d..2c1b47702da2 100644
-> --- a/net/netfilter/ipvs/ip_vs_app.c
-> +++ b/net/netfilter/ipvs/ip_vs_app.c
-> @@ -242,7 +242,7 @@ void unregister_ip_vs_app(struct netns_ipvs *ipvs, struct ip_vs_app *app)
->  		}
->  
->  		list_del(&a->a_list);
-> -		kfree(a);
-> +		kfree_rcu(a, rcu_head);
->  
->  		/* decrease the module use count */
->  		ip_vs_use_count_dec();
-> -- 
-> 2.43.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index d51d0c3e5fe9..04db1f82420b 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -18,13 +18,16 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	struct synproxy_options opts = {};
+ 	struct tcphdr *th, _th;
+ 
+-	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
+-		return NF_DROP;
+-
++	/* par->thoff may point past the end of the packet; make sure a
++	 * full TCP header is present before checksumming up to it.
++	 */
+ 	th = skb_header_pointer(skb, par->thoff, sizeof(_th), &_th);
+ 	if (th == NULL)
+ 		return NF_DROP;
+ 
++	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
++		return NF_DROP;
++
+ 	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
+ 		return NF_DROP;
+ 
+-- 
+2.34.1
 
