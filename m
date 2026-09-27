@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 403CF3EC689;
-	Sun, 27 Sep 2026 22:34:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 327FC3E9C05;
+	Sun, 27 Sep 2026 22:34:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790548486; cv=none; b=P4H0+UqnllqDFFTpfvUViKLqvA8S4EcZ7pMP/DYppv3fAapjj8SsnEuTGuBoAzKwXL8z8bKPMNKmgZ9mTANysnMPFT4X4NZvH4a4fXSIqHl3bs4gJFCfbO9m7OidYdQB1E7BOF58IESp936atWo1Uk4mHnkzSxw6D+5Sl9NE/X8=
+	t=1790548487; cv=none; b=rxCj1M6Hipx0rU9dh/tzpqAId8wBqjS5vbT4XcgRQDy8BUggMGWBe/xlzLnv3TGKd71RgnCtL1Nuiwtr854m40bWSewoms/gyru9snJrMWpHnRZGEI8i3xzby1Y6ZUPHgX2U8CMGNJc7nBY5YGIuit3cjzLab85vDEf6/6fN8vo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790548486; c=relaxed/simple;
-	bh=4gYwHcs6VxAUzCscwk2jN/RrdLOIjIhi7bK99Umriw8=;
+	s=arc-20240116; t=1790548487; c=relaxed/simple;
+	bh=PfDCk0yR3Yzc3Tfx5grAo2h7374Y3I3pej4wNKskY6A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ffNo7VDUR9wDEIkgyq0NyMabdy1TTcbsr7H76Lza6XNdJmu7LQjWBCR71+rGh8H9uPiCYr7mkyDCVLIrOEPIcUyPcYVrkSdDhcAp5GhYF3mxfE1jDuJKiGIRnWWJdLi1Jjm5+44SXR0Eohs4HSdzH93NIjR34o9aYwBL4h+aDSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ezf0MKM/; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version:Content-Type; b=WwoNb+Z3PGtoHxaF1Rndwo41zWj+60IKl2I4Yq4bBgEzEbECVX/kifZmxVTIAFcAl2zIMkqlF89SE924AfTriG0JtroKcSRGwP+SpDnLV7NZWCgB4iSoczaESvvOAqZy+iU4iAXYC5rBjsr7VmjnQDrdEg8bzOqF0y93V6F2rI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CJRJgpDI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ezf0MKM/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CJRJgpDI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790548483;
-	bh=IlZXdrgCBC8giz9MB5wZ38bLFlhw5pg/m5D518qcaNE=;
+	s=2025; t=1790548484;
+	bh=4mqtO9oGnh1dcvUV6IERFu2opOgN9CQOI0rAFeVKXvU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ezf0MKM/ENcPzvgteZOns2vCIl7cnA6Q0xJR2JYw1f6ykEFN2wNSvqz0V6e8GwSMn
-	 /N4CBg/yAwJPoTx6yZxicRPCdj4CrbUq0JlaWUuLtOsDagP6hKHldvAYy9dLrdZ1Qz
-	 MD4uoQX/v1o4UjzuGgJfryB0onv6rPNNfK4d04GHR7DeWjP32/hVDMsyxNkbLysiVB
-	 /ZR5lxpPwOv8QlUflrn/EeJRlnrN5rDuWH9f/vXSY8eYhjX8+kUij8PGGNhJK/2Yl2
-	 tXPVoXAFO+4aC5oTaepH/YwUtuwaC3S2tO+8kOxnPOcnp5DeTCCgJfVxnVbJPrivSR
-	 ijItneNXd6ZJA==
+	b=CJRJgpDI3/4wJ/KFmlHfJJ9oNiUKezYeOcocuCiPJFKJ1/dFRlh0Ju3HSipgjqYRB
+	 USiVOf2q45/qEteQ+d+k9rmQPI6+M0CaKxgAgI/R0pBcSgALQwKwKRS59NLQET29at
+	 zLvA1UWK4Gyg+SKyq0ck7ry5sNweA3OcyK3if64eNrUruF6r2wk2ulHCt0FkuhcJs9
+	 +pZb70NokBj7OATT8oPxenke9hTS4YTWEPiKFMCYMQSk2uLAlJHFKQq2JddOLX1edX
+	 sREgOGkH3VyvbSZzgvfGDaGwt6RIHsRGs0jbZIWRpyQZX7fucq0c0/WpHJzSq6GUNi
+	 kCH/vduL0Nh/w==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CB43C60082;
-	Mon, 28 Sep 2026 00:34:42 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id EBFDA6008F;
+	Mon, 28 Sep 2026 00:34:43 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 02/11] netfilter: conntrack: fix nf_conntrack_expect_max default value in documentation
-Date: Mon, 28 Sep 2026 00:34:27 +0200
-Message-ID: <20260927223436.269024-3-pablo@netfilter.org>
+Subject: [PATCH net-next 03/11] netfilter: osf: remove unreachable break in nf_osf_ttl()
+Date: Mon, 28 Sep 2026 00:34:28 +0200
+Message-ID: <20260927223436.269024-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260927223436.269024-1-pablo@netfilter.org>
 References: <20260927223436.269024-1-pablo@netfilter.org>
@@ -51,43 +51,35 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Shaojie Sun <sunshaojie@kylinos.cn>
+From: Linkui Xiao <xiaolinkui@kylinos.cn>
 
-The documentation for nf_conntrack_expect_max incorrectly states that the
-default value is nf_conntrack_buckets / 256. However, the code in
-nf_conntrack_expect_init() shows:
+In nf_osf_ttl(), the break statement after return in NF_OSF_TTL_TRUE
+case is unreachable dead‑code. The return statement exits the function
+immediately, so break will never execute.
 
-    nf_ct_expect_hsize = nf_conntrack_htable_size / 256;
-    nf_ct_expect_max = nf_ct_expect_hsize * 4;
+Remove the useless break, no functional change.
 
-This means the default value is actually nf_conntrack_buckets / 64
-(i.e. 4 times the hash table size, which defaults to
-nf_conntrack_buckets / 256).
-
-Fix the documentation to reflect the correct default value and add
-explanation of the calculation.
-
-Signed-off-by: Shaojie Sun <sunshaojie@kylinos.cn>
+Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_conntrack-sysctl.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nfnetlink_osf.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 35f889259fcd..4426cce2a73f 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -44,7 +44,7 @@ nf_conntrack_events - BOOLEAN
- 
- nf_conntrack_expect_max - INTEGER
- 	Maximum size of expectation table.  Default value is
--	nf_conntrack_buckets / 256. Minimum is 1.
-+	nf_conntrack_buckets / 64. Minimum is 1.
- 
- nf_conntrack_frag6_high_thresh - INTEGER
- 	default 262144
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index e4835b0f4bb1..c8cd6af95db4 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -36,7 +36,6 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
+ 	switch (ttl_check) {
+ 	case NF_OSF_TTL_TRUE:
+ 		return ip->ttl == f_ttl;
+-		break;
+ 	case NF_OSF_TTL_NOCHECK:
+ 		return 1;
+ 	case NF_OSF_TTL_LESS:
 -- 
 2.47.3
 
