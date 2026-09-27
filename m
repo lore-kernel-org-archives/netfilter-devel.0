@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DEE443B6E2;
-	Sun, 27 Sep 2026 22:34:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB8B3CE495;
+	Sun, 27 Sep 2026 22:34:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790548495; cv=none; b=kYaFbPaq3HKrxHwBu8feLE3GizrZYEU+aYRjlfa5oXqFrViGH37+hbfV8ZtTso2+IHCbdH/ZhY4Skg4N9U86LQOXAxwUAfTl3R1+2FA06g/e0akB28MHWYJQczVnp9YnZUpve8oOVWyk79pazZUd/TyaVIMQ/H6h15MSHpVvrLE=
+	t=1790548497; cv=none; b=nIENsTOnW09fPv2sB3ginGi59wEPFS3ghSOhN4BhbYhJp6346SzH60dgxVOW9VBYlO3UTmW+4qew48zvMjLKI5Oy+rw98l9muIvNtbGkR/opGlUqbgKz6HQC/aTtJR6K+dccaR8OyRQow7A80VR77MbFP0CtMQFw8yX0KGriByI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790548495; c=relaxed/simple;
-	bh=GbLpTuc/MYsvD514xvC87H+ZhoIiNaLpJh3+hJWSXn4=;
+	s=arc-20240116; t=1790548497; c=relaxed/simple;
+	bh=8yUOP4MHPaZjh1o+fymB4lilWgDd9qez7c07r68i8Ww=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PUw8I9IVT7Qwyxl2/rpAYW3xHxOdOXXfMlKq1QHnObVIrIqZrMqJgzlP9KLzmizhQmRNVBA1BPFYjuX0q5bIRzcSFa7X/Uj+UIJTKPc2t215rldP/YpwUU3j5XcYhf56CzPgY+ALrj3ZkfmoVBJ6B5wcqGkb4VwHIcMhADEqm1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dUqE1ty7; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Ea+m6Th5/8DyWgnBk/a8EPaqG7tSX093T4BeYZcs1pYTdupt4LhhcUsc6c8cSPQzpNZUvm4XGaI4fTeMM6uOxvBQw8so019kpvX8JLh0gY6JztrxxYYMtJ6XYj4CzpAwqLtafvhZgySds5mjUbJ9zTnmWkN02y+FhPtY122AsXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IEDPlkpq; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dUqE1ty7"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IEDPlkpq"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790548491;
-	bh=YCfLs5F26p0gwBxG12SMY7+j9VrYV56xz9EUYeBlt6g=;
+	s=2025; t=1790548493;
+	bh=T7kWMpw/KWhgSv7pN6WXS7EDEL0By4VhveIiNgA1jR8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dUqE1ty7XdOkbvbCpsW2qFFVOIzJXMDtqooN7OAGCaF4BDWeuQk4TUjg932jPJUGE
-	 V0BFl+9OFaZJpRwYLvjIUw/FoILWLaPsqUDxjYOJkzGPQodq1OClHmqzVGFN7+VcJW
-	 0eJeVyHCOZyeKu407866uEM/rA8daBTLBMvPV5Wn/4TZU1CyfGU+NVaSZGUDvxhSQO
-	 fjGAfhPGaA5MZ3pABZgosA/OXC1y8wY9vhwhq9Hti7dzQ56wn16omfD+mYxKJyP+QD
-	 FQ+YUcLsQ4smdHNUKYx0hR0haE/dAOznjnD8rLgemhMrjgzx35IJcEylu3ovw5xyAC
-	 AyyYtPgTSfqZA==
+	b=IEDPlkpqwNINgVEJxjWqP1roISUtB930DbkMS0ty+CZv4XJCMoCtoN0AQzn18MDnc
+	 QZUc+w3+BFlISlKWgTmFqMTYSKv6KjyReDVFvZ8Oag41mtvEyE+emvNzfiNnZFPB52
+	 64vreHcujwRsNww62jN5dseY+9zaPHFG888aFOk51+6aT1AKov1C+wKdpR64CyycN2
+	 vUYDNLCn1pKI2tcT3Pf41xWhQNPkLAuC/UzMPMTcM5Dac4OYYBtZL58f9Dlwr+xALB
+	 p8tx6BbeEjVsqM+u1X53wpsMJgDmUPUNPvNPbfgvxvce6ei/aRTd7q0Ep4llPC5ac2
+	 JFaDf8DfnWd9Q==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0A5EE60081;
-	Mon, 28 Sep 2026 00:34:51 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2C1456008F;
+	Mon, 28 Sep 2026 00:34:53 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 09/11] netfilter: nfnetlink: Fix for interrupted hook dumps
-Date: Mon, 28 Sep 2026 00:34:34 +0200
-Message-ID: <20260927223436.269024-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/11] netfilter: ctnetlink: fix inverted IPv6 address match in dump filter
+Date: Mon, 28 Sep 2026 00:34:35 +0200
+Message-ID: <20260927223436.269024-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260927223436.269024-1-pablo@netfilter.org>
 References: <20260927223436.269024-1-pablo@netfilter.org>
@@ -53,292 +53,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Phil Sutter <phil@nwl.cc>
+From: Piotr Kubik <piotr@kubik.pl>
 
-Handling of concurrent hook changes with a dump in progress was
-problematic in nfnl_hook_dump and entirely broken in nfnl_hook_dump_nat.
-Address all issues in a single patch to please the review LLM.
+ctnetlink_filter_match_tuple() rejects an entry when
+!ipv6_addr_cmp(filter, entry) is true. ipv6_addr_cmp() is a memcmp() and
+returns 0 for equal addresses, so the condition is true exactly when the
+addresses match: a CTA_FILTER dump with an IPv6 CTA_IP_SRC or CTA_IP_DST
+skips every entry that matches the requested address and returns all the
+others. The IPv4 branch compares with != and behaves correctly.
 
-Introduce sequence numbers in struct netns_nf to replace pointer
-value-based modification detection which may fail due to memory buffer
-reuse. This also eliminates the need for most manual cb->seq updates and
-excessive array index value checks.
+Observed with libnetfilter_conntrack NFCT_FILTER_DUMP_TUPLE: a dump
+filtered on src 2001:db8::10 returned only the unrelated entries, and a
+dump filtered on ::1 returned every entry except the ::1 ones.
+conntrack-tools does not use the tuple filter for -L, which is why this
+went unnoticed.
 
-Since nat hook updates are protected by a different mutex than others,
-they have to bump their own sequence number. nfnl_hook_dump_nat
-therefore open-codes what nl_dump_check_consistent does but bumps
-cb->seq instead of setting NLM_F_DUMP_INTR flag.
+Use ipv6_addr_equal() so the IPv6 branch mirrors the IPv4 one.
 
-Dumps of many nat hooks was entirely broken since the array index was
-not (re)stored. Use cb->args[1] for that and make sure it is reset upon
-completion as the same dump may loop over multiple arrays of nat hooks.
-
-In nfnl_hook_dump, don't signal NLM_F_DUMP_INTR if
-nfnl_hook_entries_head returns error: This is a permanent condition
-which does not change during a dump. It is already caught by
-nfnl_hook_dump_start though, so should not happen anyway.
-
-In general, access ops array pointer values using READ_ONCE since they
-are assigned to using WRITE_ONCE.
-
-Avoid setting NLM_F_DUMP_INTR flag in garbage memory by calling
-nl_dump_check_consistent only for non-empty skbs. If not a single
-netlink message was created, nfnetlink code will take care of setting
-the flag.
-
-Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-Fixes: b010e2a4a9ac ("netfilter: nfnetlink_hook: Dump nat type chains")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
+Cc: stable@vger.kernel.org
+Signed-off-by: Piotr Kubik <piotr@kubik.pl>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/netfilter.h  |  2 +
- net/netfilter/core.c           | 18 ++++++++-
- net/netfilter/nf_nat_core.c    | 11 +++++
- net/netfilter/nfnetlink_hook.c | 74 ++++++++++++++++++++--------------
- 4 files changed, 73 insertions(+), 32 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index a6a0bf4a247e..7fd78394d1e7 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -33,5 +33,7 @@ struct netns_nf {
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	unsigned int defrag_ipv6_users;
- #endif
-+	unsigned int hook_base_seq;
-+	unsigned int nat_hook_base_seq;
- };
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 675a1034b340..940dea2663e9 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -386,6 +386,15 @@ static void nf_static_key_dec(const struct nf_hook_ops *reg, int pf)
- #endif
- }
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 4e5d7c701436..e8477f792c95 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1098,13 +1098,13 @@ static int ctnetlink_filter_match_tuple(struct nf_conntrack_tuple *filter_tuple,
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		if ((flags & CTA_FILTER_FLAG(CTA_IP_SRC)) &&
+-		    !ipv6_addr_cmp(&filter_tuple->src.u3.in6,
+-				   &ct_tuple->src.u3.in6))
++		    !ipv6_addr_equal(&filter_tuple->src.u3.in6,
++				     &ct_tuple->src.u3.in6))
+ 			return 0;
  
-+static void bump_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.hook_base_seq, base_seq);
-+}
-+
- static int __nf_register_net_hook(struct net *net, int pf,
- 				  const struct nf_hook_ops *reg)
- {
-@@ -430,6 +439,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
- 	if (!IS_ERR(new_hooks)) {
- 		hooks_validate(new_hooks);
- 		rcu_assign_pointer(*pp, new_hooks);
-+		bump_hook_base_seq(net);
+ 		if ((flags & CTA_FILTER_FLAG(CTA_IP_DST)) &&
+-		    !ipv6_addr_cmp(&filter_tuple->dst.u3.in6,
+-				   &ct_tuple->dst.u3.in6))
++		    !ipv6_addr_equal(&filter_tuple->dst.u3.in6,
++				     &ct_tuple->dst.u3.in6))
+ 			return 0;
+ 		break;
  	}
- 
- 	mutex_unlock(&nf_hook_mutex);
-@@ -483,6 +493,7 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- {
- 	struct nf_hook_entries __rcu **pp;
- 	struct nf_hook_entries *p;
-+	bool found;
- 
- 	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
- 	if (!pp)
-@@ -496,7 +507,8 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 		return;
- 	}
- 
--	if (nf_remove_net_hook(p, reg)) {
-+	found = nf_remove_net_hook(p, reg);
-+	if (found) {
- #ifdef CONFIG_NETFILTER_INGRESS
- 		if (nf_ingress_hook(reg, pf))
- 			net_dec_ingress_queue();
-@@ -511,6 +523,8 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 	}
- 
- 	p = __nf_hook_entries_try_shrink(p, pp);
-+	if (found)
-+		bump_hook_base_seq(net);
- 	mutex_unlock(&nf_hook_mutex);
- 	if (!p)
- 		return;
-@@ -784,6 +798,8 @@ static int __net_init netfilter_net_init(struct net *net)
- 		return -ENOMEM;
- 	}
- #endif
-+	net->nf.hook_base_seq = 1;
-+	net->nf.nat_hook_base_seq = 1;
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 84f82957e66b..5ddd5fc95b24 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1160,6 +1160,15 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
-+static void bump_nat_hook_base_seq(struct net *net)
-+{
-+	unsigned int base_seq = READ_ONCE(net->nf.nat_hook_base_seq);
-+
-+	while (++base_seq == 0)
-+		;
-+	smp_store_release(&net->nf.nat_hook_base_seq, base_seq);
-+}
-+
- static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.name		= "nat-follow-master",
- 	.expectfn	= nf_nat_follow_master,
-@@ -1245,6 +1254,7 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		nat_proto_net->nat_hook_ops = nat_ops;
- 
- 	nat_proto_net->users++;
-+	bump_nat_hook_base_seq(net);
- 
- 	mutex_unlock(&nf_nat_proto_mutex);
- 
-@@ -1299,6 +1309,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		goto unlock;
- 	priv = nat_ops[hooknum].priv;
- 	nf_hook_entries_delete_raw(&priv->entries, ops);
-+	bump_nat_hook_base_seq(net);
- 
- 	if (nat_proto_net->users == 0) {
- 		nf_unregister_net_hooks(net, nat_ops, ops_count);
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 95005e9a6066..b05fd79397c5 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -54,7 +54,6 @@ static int nf_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
- 
- struct nfnl_dump_hook_data {
- 	char devname[IFNAMSIZ];
--	unsigned long headv;
- 	u8 hook;
- };
- 
-@@ -338,27 +337,47 @@ nfnl_hook_entries_head(u8 pf, unsigned int hook, struct net *net, const char *de
- }
- 
- static int nfnl_hook_dump_nat(struct sk_buff *nlskb,
--			      const struct nfnl_dump_hook_data *ctx,
--			      const struct nf_hook_ops *ops,
--			      int family, unsigned int seq)
-+			      struct netlink_callback *cb,
-+			      const struct nf_hook_ops *ops, int family)
- {
- 	struct nf_nat_lookup_hook_priv *priv = ops->priv;
--	struct nf_hook_entries *e = rcu_dereference(priv->entries);
-+	struct nfnl_dump_hook_data *ctx = cb->data;
-+	struct net *net = sock_net(nlskb->sk);
- 	struct nf_hook_ops **nat_ops;
--	int i, err;
-+	unsigned int i = cb->args[1];
-+	struct nf_hook_entries *e;
-+	unsigned int base_seq;
-+	int err = 0;
- 
-+	base_seq = smp_load_acquire(&net->nf.nat_hook_base_seq);
-+
-+	e = rcu_dereference(priv->entries);
- 	if (!e)
--		return 0;
-+		goto out;
- 
- 	nat_ops = nf_hook_entries_get_hook_ops(e);
- 
--	for (i = 0; i < e->num_hook_entries; i++) {
--		err = nfnl_hook_dump_one(nlskb, ctx, nat_ops[i],
--					 ops->priority, family, seq);
-+	for (; i < e->num_hook_entries; i++) {
-+		err = nfnl_hook_dump_one(nlskb, ctx,
-+					 READ_ONCE(nat_ops[i]),
-+					 ops->priority, family,
-+					 cb->nlh->nlmsg_seq);
- 		if (err)
--			return err;
-+			break;
-+
- 	}
--	return 0;
-+out:
-+	if (!err)
-+		i = 0;
-+	cb->args[1] = i;
-+
-+	if (cb->args[2] && base_seq != cb->args[2]) {
-+		cb->seq++;
-+		err = -EINTR;
-+	}
-+	cb->args[2] = base_seq;
-+
-+	return err;
- }
- 
- static int nfnl_hook_dump(struct sk_buff *nlskb,
-@@ -373,35 +392,31 @@ static int nfnl_hook_dump(struct sk_buff *nlskb,
- 	unsigned int i = cb->args[0];
- 
- 	rcu_read_lock();
-+	cb->seq = smp_load_acquire(&net->nf.hook_base_seq);
- 
- 	e = nfnl_hook_entries_head(family, ctx->hook, net, ctx->devname);
--	if (!e)
-+	if (!e || IS_ERR(e))
- 		goto done;
- 
--	if (IS_ERR(e)) {
--		cb->seq++;
--		goto done;
--	}
--
--	if ((unsigned long)e != ctx->headv || i >= e->num_hook_entries)
--		cb->seq++;
--
- 	ops = nf_hook_entries_get_hook_ops(e);
- 
- 	for (; i < e->num_hook_entries; i++) {
--		if (ops[i]->hook_ops_type == NF_HOOK_OP_NAT)
--			err = nfnl_hook_dump_nat(nlskb, ctx, ops[i], family,
--						 cb->nlh->nlmsg_seq);
--		else
--			err = nfnl_hook_dump_one(nlskb, ctx, ops[i],
--						 ops[i]->priority, family,
-+		const struct nf_hook_ops *cur = READ_ONCE(ops[i]);
-+
-+		if (cur->hook_ops_type == NF_HOOK_OP_NAT) {
-+			err = nfnl_hook_dump_nat(nlskb, cb, cur, family);
-+		} else {
-+			err = nfnl_hook_dump_one(nlskb, ctx, cur,
-+						 cur->priority, family,
- 						 cb->nlh->nlmsg_seq);
-+		}
- 		if (err)
- 			break;
- 	}
- 
- done:
--	nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
-+	if (nlskb->len > 0)
-+		nl_dump_check_consistent(cb, nlmsg_hdr(nlskb));
- 	rcu_read_unlock();
- 	cb->args[0] = i;
- 	return nlskb->len;
-@@ -442,10 +457,7 @@ static int nfnl_hook_dump_start(struct netlink_callback *cb)
- 		return -ENOMEM;
- 
- 	strscpy(ctx->devname, name, sizeof(ctx->devname));
--	ctx->headv = (unsigned long)head;
- 	ctx->hook = hooknum;
--
--	cb->seq = 1;
- 	cb->data = ctx;
- 
- 	return 0;
 -- 
 2.47.3
 
