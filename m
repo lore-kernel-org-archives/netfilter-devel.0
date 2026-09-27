@@ -1,64 +1,160 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A82CD260565;
-	Sun, 27 Sep 2026 22:07:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8498C37B40A;
+	Sun, 27 Sep 2026 22:08:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546827; cv=none; b=FTYTt21GRnzuRNzJHrPheMNuDeM6Td0XLt54cglskWm1EI8eextmNqsK4zwGXX4+o3J4vedCgYJPP1bbHjIVoBtv+nd/vVW8FTjPYbBEY2eYdKjVJIr59BXZ413FUtLvXKCD4kKEqTwHNWAenMjeiHf4EJXPBs+2ZurH39AOIEA=
+	t=1790546907; cv=none; b=idEf/SunDhaL4lbjYwOK2Cf16Lw+Gql7antgUtVLzwB3571+ccQ+VAdd8fAelmYGphvzH1NhjGW0Ehae++YdjnmAaFeHgFzNAlbI6l103H7t7BvdUvZ88IoHP9b5yifq3hAMODiaVZ4qADFWv67FyYNKyUlEEwClC75Xzb8bvY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790546827; c=relaxed/simple;
-	bh=d+aJz1zKHpn9rY7AAI0z0Bfwgrtc1GkTtmSJdeejdk4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PjzUmkbZGy4N+ZERv6zqFRwdYZ9WcaH49cC9mmwM1W/wnyBgdwlF67oF0hTdRKn5qpi1850mRpbG8/MQ+I5czbCHP2Vup64hQJsnwKrZdEGIfrIWP3dDtscUWnZH55Pe8hAd9lP4jYFHdrb+wrfDcPWDNOV4+Lln7IxbXSrVCcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DRbYTJQj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790546907; c=relaxed/simple;
+	bh=ij8vfrEFQdjSgzIknZJVMVKOanx0UJWCsyX+bHDx4xU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PkfRGHEo8ClPxgsHcliJTFOIeq1S+ceIMNXiLTOtVow2ibKwL7hdTFJcxx5yZbmUDkof1JeKmm8axmisDtDeedAMEzoKOtz0lVTx3tdJlYQeFKRoWsnz8QkJxqVZjUdGEqR0OuJL3Vca0cAn2FIoR8sgGSrOfxqNOm/0ZWh7rnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t/LCiAr/; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DRbYTJQj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 993F11F000FF;
-	Sun, 27 Sep 2026 22:07:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790546826;
-	bh=Gtpu0Nj+ZvaUDoZ3qvo7pqTSdauHwZKukSlMfQ6OCtg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=DRbYTJQjGI7MSfxD5g/6y/vbNqJoUKgNFrV729EBHkR9Xm4oo1SjT6WQITJN0HpuZ
-	 KAbvbcJsuW9oy8+2D58iy+DyyursYPrIsIMEUQXELVg9ggj26b3eN25/ypDpZL6xQe
-	 pN4mMjnIGfVvYZO5sanspA6yEbU9PB09n8D2iRz6nF/QuZ/lz7nB0IwKkJgsTjAsqI
-	 YbKhGGHkEH3Bnn3UHr/H2mcfseHEMEqwnK6kjzg30a5yd6sszm8ViMk+x6U+45oHwc
-	 2Ist9TVbmvwWqJkqYJ84+Ldi17pdK1ln7pB8AUuSoOLIG0w+44OErhv1u4IPjsUDhJ
-	 NKhX0TlURlZUw==
-Date: Sun, 27 Sep 2026 15:07:04 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal
- <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni
- <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nf_tables: serialize offload stats with
- callback unbind
-Message-ID: <20260927150704.62c8c919@kernel.org>
-In-Reply-To: <20260927071520.3693598-1-nicoyip.dev@gmail.com>
-References: <20260927071520.3693598-1-nicoyip.dev@gmail.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t/LCiAr/"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1790546901;
+	bh=KDTBsPIOmVtfNijhSGUsw6tFWU+BiXxGVcQd5iEjIWM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=t/LCiAr/NDqsNqUuCBILBnh29gufQnrq24VbQuDeAI09ZIYcBsVgxek6HV4ReNlmu
+	 2k+2JX6FXnHVNgGzk2FHGt1faKlqtUTPGJUvDDyvj+f8bNqCT1rjDrOFnxLOFZdIXM
+	 EUZTlsWHzptX7Rux40dCLAd8B+ztSVNj4beV2OyPncryTHADLxd4kRfGXiR54c61mN
+	 1mw+P/x5KztexoY/J8UASdkN44gHhPR4p2DSxiYXUblatx522R0tL9USrx30crSAvs
+	 /S/VGK2l3kpQb3OJUyDo4R0do0h2y7GdCTaKfWL4/SB4M/397zVykUPu0PVnsVVtpI
+	 J9JwXDG33TQow==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0610A603D8;
+	Mon, 28 Sep 2026 00:08:20 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net 00/11] Netfilter/IPVS fixes for net
+Date: Mon, 28 Sep 2026 00:08:05 +0200
+Message-ID: <20260927220816.268206-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Sun, 27 Sep 2026 15:15:20 +0800 Chengfeng Ye wrote:
-> Rule GET and dump requests collect hardware statistics under RCU without
-> holding commit_mutex. Callback unbind removes entries from the base
-> chain's flow_block.cb_list and frees them immediately while holding
-> commit_mutex, so RCU does not protect the statistics iterator.
+Hi,
 
-Slow down. Please do not submit more than 8 patches for networking
-at a time. You can revise the already submitted patches but since you
-violated community guidelines we ask you not to submit any new fixes
-for a month.
--- 
-pv-ban: 1mo
+The following batch contains Netfilter fixes for net:
+
+1) Expand existing ipset fix for bitmap sets to disallow comments
+   updates from kernel-side adds, from Florian Westphal.
+
+2) Drop flowtable reference if nf_ct_netns_get() fails, otherwise
+   flowtable cannot ever be removed, from Aohan Mei.
+
+3) nft_rbtree GC should collect end elements that contained in
+   this transaction batch, new or deleted elements are never
+   expired. From Weiming Shi.
+
+4) Restrict nf_nat_bpf so it does not set unknown NF_NAT_MANIP_*
+   values, from Fernando F. Mancera.
+
+5) Flowtable GC must skip flows that are pending hardware updates,
+   generalize the PENDING flag and use it to inhibit GC.
+
+6) Restore flowtable with ieee80211 which broke due to a relatively
+   recent commit, which was pulled in by -stable, causing a regression
+   in 6.18 kernels.
+
+And the following IPVS fixes:
+
+1) Prevent buffer overflow in IPVS sync reported by sashiko, it
+   should only be reproducible on very old 2.6.x kernels,
+   from Julian Anastasov.
+
+2) Fix accounting of cache entries in IPVS LBLC for destinations,
+   from Julian Anastasov.
+
+3) Limit IPVS cache growth for LBLCR and LBLC schedulers,
+   from Zhiling Zou.
+
+4) Restrict IP_VS_CONN_F_ONE_PACKET for normal connections,
+   do not allow to use it with templates. Also from Julian.
+
+5) Sanitize flags in IPVS sync messages received in the backup.
+   From Julian Anastasov.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-27
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 9c572a83037a7dcd653ba3a9cc468c16b857d0c9:
+
+  net/sched: fix potential stack infoleak in em_text_dump() (2026-09-22 19:14:25 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-09-27
+
+for you to fetch changes up to 5957f55e476000330f59193b607abcfc0e89d18a:
+
+  netfilter: flowtable: restore ieee80211 forward path (2026-09-27 22:46:56 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-09-27
+
+----------------------------------------------------------------
+Aohan Mei (1):
+      netfilter: nft_flow_offload: drop flowtable reference on init error path
+
+Fernando Fernandez Mancera (1):
+      netfilter: bpf: reject invalid NAT manipulation types
+
+Florian Westphal (1):
+      netfilter: ipset: do not update comments from kernel-side adds
+
+Julian Anastasov (4):
+      ipvs: fix buffer overflow when sending sync messages
+      ipvs: fix missing counter decrement in lblc
+      ipvs: do not create invisible templates
+      ipvs: filter some flags received in the backup server
+
+Pablo Neira Ayuso (2):
+      netfilter: flowtable: generalize pending status bit
+      netfilter: flowtable: restore ieee80211 forward path
+
+Weiming Shi (1):
+      netfilter: nft_set_rbtree: skip transaction elements during GC
+
+Zhiling Zou (1):
+      ipvs: bound LBLCR and LBLC cache growth
+
+ include/linux/netdevice.h               |  3 ++
+ include/net/netfilter/nf_flow_table.h   |  2 +-
+ net/mac80211/iface.c                    |  7 +++++
+ net/netfilter/ipset/ip_set_bitmap_gen.h |  2 +-
+ net/netfilter/ipvs/ip_vs_conn.c         |  3 ++
+ net/netfilter/ipvs/ip_vs_lblc.c         |  4 +++
+ net/netfilter/ipvs/ip_vs_lblcr.c        |  3 ++
+ net/netfilter/ipvs/ip_vs_sync.c         | 56 ++++++++++++++++++++++++++-------
+ net/netfilter/nf_flow_table_core.c      |  7 ++++-
+ net/netfilter/nf_flow_table_offload.c   | 14 +++------
+ net/netfilter/nf_flow_table_path.c      |  3 ++
+ net/netfilter/nf_nat_bpf.c              |  3 ++
+ net/netfilter/nf_nat_core.c             |  5 +--
+ net/netfilter/nft_flow_offload.c        |  7 ++++-
+ net/netfilter/nft_set_rbtree.c          |  2 ++
+ net/sched/act_ct.c                      |  2 +-
+ 16 files changed, 95 insertions(+), 28 deletions(-)
