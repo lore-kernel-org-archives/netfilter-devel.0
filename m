@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F44E420496;
-	Sun, 27 Sep 2026 17:37:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C746C3290B7;
+	Sun, 27 Sep 2026 17:37:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790530626; cv=none; b=Hqcv8rVrQTjpHcFWaoLOO2defdhsa+rYSQOc/ROA1QjKYV4u6DpN2k4lkcvberLI24by2XSzeAPt4elE6v7zlC55z0lhKi6IMBFCGyU79S2VxHRDfQeUqftKeiUFSxmBkn1oPmMID0wOGpRiymTnUuvgrWq+xc4mufpZgS0Slis=
+	t=1790530630; cv=none; b=l12evZ0uGVz0jUDONvq2pupHQjWKb1wAkfjRMZBo3Qpbzz3J3nhvLQjWx9cAzpTWgNI6mSnj2YRi6dl5MmJMKpAMWbhoW70bh0mPexlVzC7umG+ejvkvkXO/odIwiuaorBJoB4mb2NjymaJiqn+D24ejLYwDWNsybHxc6z9S+gI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790530626; c=relaxed/simple;
-	bh=5EzslHkCQ+Ff7A8HdgxmwyWkRt7ZnEKxV8b826vnOqo=;
+	s=arc-20240116; t=1790530630; c=relaxed/simple;
+	bh=NPH1JMV8CSWl+ZXSUjg5HmyTtc+DZ39hCmWb5Lw5gWU=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=YKtj0A19J6PJm5z6uHRizmIUddwDy6csbil6DCLOZiwlvyD4xMgA/kC/eWTxjRDX/ym+Sp1lLhoguFPo02YKOvn1c2OB70aX52AmbZBxu8b4kDpHR9cKWvtlNbLOts5P/27LrPum4PXsWLd01om47BxeEVFeeNhLL5S21T0X/Tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SVSLo50J; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=h4hDDlSN3xf83ODCdHke0lwqGQWe/Js5lyhOR7Hxu1eU3pdeYzv8gzD0Sa+86T+YfYeFPK+UN+MQ+mbQr0H4TDAFJoLfdE/Z9OJGgwwX436ECn7aOWFTwPYCLQk/rlE5LL3ntuVStMS4lGo66+VTlnhz1rZNBfwxVren0uD++ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fQsIXA4s; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SVSLo50J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72F081F000FF;
-	Sun, 27 Sep 2026 17:37:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fQsIXA4s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C536A1F00893;
+	Sun, 27 Sep 2026 17:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790530625;
-	bh=E2vlPqFFmltpsu0OcQ2TYmItDyHwo154CK4rv1/BEA4=;
+	s=k20260515; t=1790530626;
+	bh=+ESq2+ZtM3KyCClSZigX4CznLK6C+Qxn12joyNbMmiE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=SVSLo50JcjHO8AXGPOXhScfiHTx1wrxuibxnjeCc+yXNo5tNRUroB5laKun0SYdw+
-	 rXT8PKakRwjs+6VBy1zgA1C72vY+kmzZxzXDLankRyEcPgnHhw+xXLvsaSLf5J2B2n
-	 dcW7tubeBWkQAEdP4zhLGF3A3rV5A+ZkZE3hvBTIts6a7wIywpvpcuYIT/5i0EoD1R
-	 m0yw4OWu54LlZZgOw2fwT2nimRYz10GZqkH7M1e9c8KWf2TyLspG18idZjXjt7sqdo
-	 D65T9cjQZl4ZUfDD9/NvQF5eIg0Rw6ajKTFrSvjb1oSp+bG0G9Nl/+tiIjRstdzQxT
-	 oV+lrvRZfJF7A==
-Subject: Re: [PATCH nf-next v4 3/4] netfilter: nf_conntrack_amanda: use
- nf_ct_helper_parse_port()
+	b=fQsIXA4snPiqwkIkXs0E9u0YvCFfSRrWkF5ujv5YdqNvpbuW3Be1q0FjBkwc8W9uq
+	 E04VIp9vrVHgdrgpMlAqoQyrsz/8m3GJmwFMo4i7VdtjUSrmOlyQ4/P+xTPFOsnuk7
+	 vX3PlGmu4RVtyaX3DyA9evmr/nhLdHlju3RG8MWXV/IEi5TSAJgaOzjB7Gt/B867gH
+	 jTUMoY2puEDfiOCClrfRsVYKTQK9mkKioOnrziB/a4LfAJA/KzZC4wBD0nkjinDgiA
+	 ERhNXh+mnA8448NG78SfpWpD7b2zW0c7ELbppZWy6tSPKeFZj8qw5ErsTgcaIutOs9
+	 wJkuriiFvEx0g==
+Subject: Re: [PATCH nf-next v4 4/4] netfilter: nf_conntrack_sip: use shared
+ helper parsers
 From: netdev-bot+sashiko@kernel.org
 To: rc@rexion.ai
 Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, phil@nwl.cc,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org, davem@davemloft.net,
  edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
  netdev@vger.kernel.org
-Date: Sun, 27 Sep 2026 17:37:03 +0000
-Message-ID: <179053062399.2160803.9591526412956900613@kernel.org>
-In-Reply-To: <20260923151501.3093863-1-rc@rexion.ai>
-References: <20260923151501.3093863-1-rc@rexion.ai>
-X-sashiko-severity: High
+Date: Sun, 27 Sep 2026 17:37:05 +0000
+Message-ID: <179053062534.2160803.18214039590923264255@kernel.org>
+In-Reply-To: <20260923171501.3254823-1-rc@rexion.ai>
+References: <20260923171501.3254823-1-rc@rexion.ai>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -51,7 +51,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -59,104 +59,102 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] amanda_help() in net/netfilter/nf_conntrack_amanda.c still
-  silently cuts a port field of six or more digits down to a different,…
+- [Medium] The commit message says "No functional change intended", but
+  the patch changes how sip_parse_port() in…
 
 --
 
-netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+netfilter: nf_conntrack_sip: use shared helper parsers
 
-This patch replaces the simple_strtoul() + htons() port parsing in
-amanda_help() with nf_ct_helper_parse_port(). The goal is to reject port 0
-and values above 65535 instead of silently truncating them to a u16. The
-NAT mangle length is still taken from the parser's end pointer.
+This patch removes the SIP helper's private sip_strtouint() and switches
+its callers to nf_ct_helper_parse_uint(). The digit loop in
+sip_parse_port() is replaced with nf_ct_helper_parse_port(), while the
+SIP-specific handling of ':', the SIP_PORT default and the 1024 minimum
+stay in place. The commit message says no functional change is intended.
 
-> diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-> index 14ae660491f36..f157c96b7d223 100644
-> --- a/net/netfilter/nf_conntrack_amanda.c
-> +++ b/net/netfilter/nf_conntrack_amanda.c
-> @@ -89,7 +89,7 @@ static int amanda_help(struct sk_buff *skb,
->  	struct nf_conntrack_tuple *tuple;
->  	unsigned int dataoff, start, stop, off, i;
->  	char pbuf[sizeof("65535")], *tmp;
-> -	u16 len;
-> +	u16 len, parsed_port;
->  	__be16 port;
->  	int ret = NF_ACCEPT;
->  	nf_nat_amanda_hook_fn *nf_nat_amanda;
-> @@ -132,10 +132,10 @@ static int amanda_help(struct sk_buff *skb,
->  			break;
->  		pbuf[len] = '\0';
+> diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+> index 64bc440b1181f..0e12426227a80 100644
+> --- a/net/netfilter/nf_conntrack_sip.c
+> +++ b/net/netfilter/nf_conntrack_sip.c
+
+[ ... ]
+
+> @@ -199,29 +199,22 @@ static bool sip_parse_port(const char *dptr, const char **endp,
 >  
-> -		port = htons(simple_strtoul(pbuf, &tmp, 10));
-> -		len = tmp - pbuf;
-> -		if (port == 0 || len > 5)
-> +		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
->  			break;
-> +		port = htons(parsed_port);
-> +		len = tmp - pbuf;
+>  	dptr++; /* skip ':' */
+>  
+> -	while (dptr < limit && isdigit(*dptr)) {
+> -		p = p * 10 + (*dptr - '0');
+> -		dptr++;
+> -		len++;
+> -		if (len > 5) /* max "65535" */
+> -			return false;
+> -	}
+> -
+> -	if (len == 0)
+> +	if (nf_ct_helper_parse_port(dptr, limit - dptr, &p, &end))
+>  		return false;
 
-[Severity: High]
-Can a port field with six or more digits still be truncated into a
-different valid port here?
+[Severity: Medium]
+Does this change which ports sip_parse_port() accepts?
 
-pbuf is only 6 bytes, and just before this hunk amanda_help() caps the
-copy at 5 bytes:
+The old loop counted digits and returned false once there were more than
+five, whatever the value. That rejected zero-padded ports such as
+"sip:1.2.3.4:0005060".
 
-	len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
-	if (skb_copy_bits(skb, off, pbuf, len))
-		break;
-	pbuf[len] = '\0';
-
-So nf_ct_helper_parse_port(pbuf, 5, ...) only ever sees the first five
-digits. The range check there only covers the len bytes it is given:
+The shared helper only checks the value:
 
 net/netfilter/nf_conntrack_helper.c:nf_ct_helper_parse_port() {
+    ...
 	val = nf_ct_helper_parse_uint(cp, len, &e);
 	if (e == cp || val == 0 || val > 65535)
 		return -1;
+    ...
 }
 
-Nothing checks whether skb byte off + len is another digit. So a reply
-such as "CONNECT ... DATA 123456\n" would be accepted as port 12345. In
-the same way, 100000 would become 10000 and 655350 would become 65535.
-nf_ct_expect_init() would then install a TCP expectation for a port that
-never appeared on the wire.
+nf_ct_helper_parse_uint() caps the digit count only at
+sizeof("4294967295"), which is 11. As a result, ports of 6 to 11 digits
+with leading zeros, such as ":0005060" or ":00000065535", now parse.
 
-On the NAT path, len = tmp - pbuf is 5 and is passed as matchlen.
-help() in net/netfilter/nf_nat_amanda.c then does:
+That appears to change the outcome for the same packet in several
+callers:
 
-	if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo,
-				      protoff, matchoff, matchlen,
-				      buffer, strlen(buffer))) {
+  - ct_sip_parse_header_uri() used to return -1 for these strings, and
+    process_register_request() and process_register_response() then
+    returned NF_DROP with "cannot parse contact". It now returns 1, so a
+    REGISTER request creates a signalling expectation:
 
-Only the first 5 bytes get replaced, so the extra digit stays in the
-payload. For example, a NAT-chosen port of 40000 would come out as
-"400006", which no longer matches the expectation.
+    sip_help_udp/tcp()->process_sip_msg()->process_sip_request()->
+      process_register_request()->ct_sip_parse_header_uri()->
+        sip_parse_port()
 
-The commit message says:
+  - ct_sip_parse_request() used to return -1 and now succeeds.
 
-    The digit string is copied into a 6-byte buffer,
-    so at most five digits are parsed, but values 65536-99999 still truncated
+  - epaddr_len() and skp_epaddr_len(), the match_len callbacks used by
+    ct_sip_get_header() and ct_sip_walk_headers(), used to return 0,
+    which made the lookup return -1. Now the header matches with a
+    longer matchlen, and nf_nat_sip mangles that range.
 
-and:
+  - process_sip_request() may now set ct_sip_info->forced_dport from a
+    zero-padded Via header that it used to ignore.
 
-    Use nf_ct_helper_parse_port(), which rejects port 0 and values above
-    65535 in one call.
+The sip_strtouint() to nf_ct_helper_parse_uint() swap looks identical.
+The sip_parse_port() conversion is not, and the commit message quoted
+below does not mention it:
 
-With the 5-byte window, is that accurate? Values above 99999 are also
-above 65535, and they still truncate through the window instead of being
-rejected. The later commit "netfilter: nf_conntrack_sip: use shared
-helper parsers" in this series does not touch amanda, so this code is
-unchanged at the end of the series.
+  "No functional change intended."
 
-Would it work to copy one extra byte into pbuf, or to check that skb
-byte off + len is not a digit, and reject the field when the digit run
-is longer than five characters?
+Should the old limit be kept, for example by rejecting end - dptr > 5?
+Otherwise, could the commit message document that leading zeros are now
+accepted?
 
 >  
->  		exp = nf_ct_expect_alloc(ct);
->  		if (exp == NULL) {
+>  	/* reached limit while parsing port */
+> -	if (dptr >= limit)
+> +	if (end >= limit)
+>  		return false;
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260923091608.2617604-1-rc%40rexion.ai
