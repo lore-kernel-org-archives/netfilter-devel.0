@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2E43F12D8;
-	Sun, 27 Sep 2026 22:34:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF1A8421A15;
+	Sun, 27 Sep 2026 22:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790548488; cv=none; b=A2x/M0htNOgBef6KiU2saOorukL5YvFM1kA98b2Ti0KdxAqW+zh0kC0tWNPcNgRPi3oxuuyxhtnl/BjEcNeZJC47XNDn5VWKyo6qmygcZfZqyAoGS0tYi20wPnbxU2DbGXt3rxEWUtm+MaBzdEI3amY5QzTwXOAoycxcrpByirY=
+	t=1790548490; cv=none; b=ruvIm/3nfkZD5vFIEw3MDV0K/ONXO7Gkd8OoFUWe/j1MmyoodK5zT1WsTxfbxhhg4kXQNEAfoFMCEhO0KthJ2LNrhnkHLJGlA+TV0Wcsjr7yDi7Jv+KDTTr/gVnxy+5jNi9AVTtQLMGUn+UJN8YY9wTjQhR5CwDUoRfIzI4eYVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790548488; c=relaxed/simple;
-	bh=0dCRQ0FD7Q2TDhTN8FaeZB0pWvyjZgAcHGG0vQ8tWaU=;
+	s=arc-20240116; t=1790548490; c=relaxed/simple;
+	bh=62JL4b+HPAeJVW1MsD3UgzZHXDBH/4bdO3JOgZG/2ak=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NpmvEbdaPv+4PKeHOUBugUKloGZpeVndIBlDpOtZ6X0hs4ARP7BYRcPwNrh6tzuZg9TLzWp0wkF+ySiJKS04sxOMjxEYHJFPfm4TgkV/FsDwQ7WOKFQ5U2mULi5Q/sP/rcBkARMqYxzCrMwbYx/Zh4IRk0qasIBY3+4tc6D6cYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p2lkk6qp; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Jar+xOSWMzfbvHVCk3s0Yt/r/b987D8T5+D+mrqA2zBfAKcblUqxGvsEvpuQ/Ks9exMxXkZRZHZod3dYaQS6GyXr9goab34xBsTidcyKxXiH3JksLT045yrU7Oe7w2+SAexo5uVRrBg8Ow4kDGhujhpn5XSAKS+J8TJjbuQnFbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CIxu/rsD; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p2lkk6qp"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CIxu/rsD"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790548485;
-	bh=lNY/4NxRy6yUxK+T0r9fV3NfU4CmRVhR4JjsB7g6l1o=;
+	s=2025; t=1790548486;
+	bh=JTg+FejhooZPZLjKd9sSGjAM6rZpOW/XuMYpgbZTbOU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=p2lkk6qpPX8nshARYiLGZuSAGSgH8LKrtTa9yIVm0jKZCuIEvPHyl1svpO+2l9CCW
-	 aLamirgjUq8tVRtr90lo57DGhdAZupU80FXc7ESmhQtXuP8vXQN0iOTniVBPPjQKiR
-	 DD3t91X/LgotQtVyJ9CuJpwql4YVtVoYaTU9LLGvta6HeP3GRCvmbjeiDnBvCFPi8V
-	 qaEXfZvdH70EV22RnZsntt7uTtMzdImwtHCUov8hUR0k88p/h0b4WJJW4l6+6LHhjZ
-	 BoaBA7g7iCtiWwlFmV+ZT2rSQ58yo4/GkkTigcTZHLk+v6h68l0c9isyRT8WBpx+dO
-	 uB3Xk+O44DSzw==
+	b=CIxu/rsDlOQxZLVrVPNIqKpfCNPCYJv3t0ZcXox7DAhot/9Zq5r8cXxiDSxTT6i9A
+	 csHlQpHVPCiwXsNrqPrrUE3g4V67xuOuBFcOKLBzfK6R+/eS+trvXsL0uu69lcb5wG
+	 23D5w33mXXfNG3NHJtaXeZGDOlztIkUYVcUvWgRv1HRaUSgtvYNmtb5QLeoekDs6ui
+	 SDgh6zb6iwzhzUiAb2KT5Mg+jbagwRY1s5KjvQcf6kXruHZAqPlS/iCMThfInsBIdS
+	 VXMDeUW4B/gxNAE9G2XT4bmkqkmWd4liVAYp41dk4BiT37kkMd87U9qAGk6aT8yW2j
+	 98S8nZw2+W1dA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 11E9060058;
-	Mon, 28 Sep 2026 00:34:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4AB8A60081;
+	Mon, 28 Sep 2026 00:34:46 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 04/11] netfilter: fix several typos in comments
-Date: Mon, 28 Sep 2026 00:34:29 +0200
-Message-ID: <20260927223436.269024-5-pablo@netfilter.org>
+Subject: [PATCH net-next 05/11] netfilter: conntrack: Untangle insert_failed counter from others
+Date: Mon, 28 Sep 2026 00:34:30 +0200
+Message-ID: <20260927223436.269024-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260927223436.269024-1-pablo@netfilter.org>
 References: <20260927223436.269024-1-pablo@netfilter.org>
@@ -53,73 +53,39 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Hemanth Selam <hemanth.selam@gmail.com>
+From: Phil Sutter <phil@nwl.cc>
 
-Fix typos reported by scripts/checkpatch.pl using the misspelling list
-in scripts/spelling.txt. Only touches comments, no code changes.
+There is not much sense in incrementing multiple conntrack counters for
+the same situation. Defining insert_failed as a situation where a valid
+packet's conntrack can't be confirmed due to unresolvable clash sets it
+apart from 'drop' (ENOMEM situation) and 'chaintoolong'.
 
-Assisted-by: Cursor:claude-opus-5
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c                                 | 2 +-
- net/netfilter/ipset/ip_set_core.c                               | 2 +-
- net/netfilter/ipvs/ip_vs_sync.c                                 | 2 +-
- tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index db307fa49f3f..cf747e1e17a3 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -58,7 +58,7 @@ static inline int arp_devaddr_compare(const struct arpt_devaddr_info *ap,
- /*
-  * Unfortunately, _b and _mask are not aligned to an int (or long int)
-  * Some arches dont care, unrolling the loop is a win on them.
-- * For other arches, we only have a 16bit alignement.
-+ * For other arches, we only have a 16bit alignment.
-  */
- static unsigned long ifname_compare(const char *_a, const char *_b, const char *_mask)
- {
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 0a86a170ba90..4aeb767088cf 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1426,7 +1426,7 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
- 		return -IPSET_ERR_EXIST_SETNAME2;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d0d9e5ea84a0..53401e21ad99 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1169,7 +1169,6 @@ nf_ct_resolve_clash(struct sk_buff *skb, struct nf_conntrack_tuple_hash *h,
+ 		return ret;
  
- 	/* Features must not change.
--	 * Not an artifical restriction anymore, as we must prevent
-+	 * Not an artificial restriction anymore, as we must prevent
- 	 * possible loops created by swapping in setlist type of sets.
- 	 */
- 	if (!(from->type->features == to->type->features &&
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 5383aeafb0ae..4dacd5af65db 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1344,7 +1344,7 @@ static void set_mcast_pmtudisc(struct sock *sk, int val)
+ drop:
+-	NF_CT_STAT_INC(net, drop);
+ 	NF_CT_STAT_INC(net, insert_failed);
+ 	return NF_DROP;
  }
- 
- /*
-- *      Specifiy default interface for outgoing multicasts
-+ *      Specify default interface for outgoing multicasts
-  */
- static int set_mcast_if(struct sock *sk, struct net_device *dev)
- {
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-index c63d840ead61..f63b7f12b36a 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_icmp_related.sh
-@@ -171,7 +171,7 @@ table inet filter {
- }
- EOF
- 
--# make sure NAT core rewrites adress of icmp error if nat is used according to
-+# make sure NAT core rewrites address of icmp error if nat is used according to
- # conntrack nat information (icmp error will be directed at nsrouter1 address,
- # but it needs to be routed to nsclient1 address).
- ip netns exec "$nsrouter1" nft -f - <<EOF
+@@ -1259,7 +1258,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 		if (chainlen++ > max_chainlen) {
+ chaintoolong:
+ 			NF_CT_STAT_INC(net, chaintoolong);
+-			NF_CT_STAT_INC(net, insert_failed);
+ 			ret = NF_DROP;
+ 			goto dying;
+ 		}
 -- 
 2.47.3
 
