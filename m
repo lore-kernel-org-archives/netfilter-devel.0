@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02C73C378A;
-	Sun, 27 Sep 2026 22:08:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E815F3EB10D;
+	Sun, 27 Sep 2026 22:08:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546918; cv=none; b=K/5EsBknG4kaqyGEaKo4T0tmd9WcmRTWrXXVp0QDFZmqQ52IMgB0wl6gqROhWvhXWDydFb+30hvoLxboBJwQmLMSJRcI6+GwEQpVHltQG6C50eQ0tTM9ERjQCB/05QYM9iX8yLQZo8YSInpxmmICXojeq/4CUA6J6Tw/8XCSwmU=
+	t=1790546918; cv=none; b=qtk9NcvgBl5LlNU4YSV6PeX3jOSPW0Gz23XyrwNnLShjWg7xw18a/q+KK7Yi6GHx36TdOLVAPaK2H6VpTdxZAP3xBLyl+5XMyG9gu2arUzv09/DKAbTCOOt5D1LMsR0ptPVUyta8DK/osEIxpjTl+NNV2MlpTN2aNssugj4xUqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790546918; c=relaxed/simple;
-	bh=y8rG4bxlHU/6227rK0/HCGuXqYtMjzgueAZNdQJqBTI=;
+	bh=x6480Bkp4FMukmxr95Y6+aX959844cxgZnkNbjHndQM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Jv2T7AumY2YRIDndZIW1335c4yoKSuiV6Vw9ErR7fOi0703C2CZCr6MmyddO3BBUBgCe90xNpQJQsHky5nMVyhMYWCg65j1hfMABuYwN/Y0QhJq7DMQiFGTTrn8a6nbw/Zd+pIkh4BJIK4FS/HwTp7l/51/nJGaeF9GEBGpd8vM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uvnyxwGP; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=NTkhiiRsWsj0c9XrnriFX7GM+Jk/u9u+FWRf2TLzS1225uJLDo/znWgbEM6gX2Mw2zicv7awA9jbVXRs1Y50YH3tgEzslA9z0Qnrj8LMEnCNaTNq24MDls+rD4rZdMFf9iiQPLA4KPKVs4yLHmcd4wC/XoXaaiBnNUDkAbYEQqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LC/40+tS; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uvnyxwGP"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LC/40+tS"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790546910;
-	bh=P96IssL/zrnyt9ISfbsP54kwvK4Ib2boV6v4WJGxM/k=;
+	s=2025; t=1790546911;
+	bh=6l5thKv2kTDA338HhHiKkjI3Rp+ZkGjxPqRXLRQ8F/k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uvnyxwGPVgnOH4i8x38zmqsNpVZxQVh6B8JjHNuTfHyqqAjmexwcjU1huvb+AeU4J
-	 mxPthyN6d18EiA0Z4VvR6Pgx521Uy4cRecx8tdRTaWG2ZEuv8ppeZFa9BVZi28PXSO
-	 eB297nI9JsO5YKmAFjB+ZXyQWZEmt9PNR/KnO+snMfBDqyCO4SgkPH3DiVEMYMooHV
-	 aGAoMYa4vh5WzRTK3kSyRuuM+Pa4wiXXuuoB7FaqvAzqnLpOSI5aFcGCNk7wmoJln9
-	 oTEb9b3/9hJDrY185UGpunEZa97X6pz5Xhk93TUUSwErnarCZ35pxV0pH+GPvtV4ID
-	 9AtVZHHeOZ4oA==
+	b=LC/40+tSecYW8/9rKtgxXM+vv3dWYYCW1t7/5smFkS/qHKhgPsvkLo6l0beVd2qxN
+	 nZVO8Eridl6reh8svQW04dpU0aEodPSLZGm2I50WxRBDIuGtqkpOCsKdO8EGLc6SSF
+	 6JJBnquh7dnxPAP6air6P0QaudGh5c8g7fIeoqeCm8mVzi1BYK6E48uHknao4l10DG
+	 4grbPl5wCVasu+pI7jsnJNuY1S5O0JeeIAo/1b3IZB35ejTdO7+4gIEmtIeivMMdUG
+	 CUyX5LRhwmfhwKSlKgca9roncoBRbwgpRAatwoeTRIXQgEgVkJ3vZnNu6AecEVigYB
+	 GzFXa3u68Z36A==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 363C6603E3;
-	Mon, 28 Sep 2026 00:08:30 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 67C6F603E4;
+	Mon, 28 Sep 2026 00:08:31 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 07/11] ipvs: filter some flags received in the backup server
-Date: Mon, 28 Sep 2026 00:08:12 +0200
-Message-ID: <20260927220816.268206-8-pablo@netfilter.org>
+Subject: [PATCH net 08/11] netfilter: nft_set_rbtree: skip transaction elements during GC
+Date: Mon, 28 Sep 2026 00:08:13 +0200
+Message-ID: <20260927220816.268206-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260927220816.268206-1-pablo@netfilter.org>
 References: <20260927220816.268206-1-pablo@netfilter.org>
@@ -53,100 +53,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Weiming Shi <bestswngs@gmail.com>
 
-While the IPVS SYNC protocol is not secure by design
-we can still protect the backup server from messages that
-can wreak havoc.
+Since nft_set_commit_update() runs set commit callbacks before processing
+NEWSETELEM transactions, nft_rbtree_gc_scan() can observe elements added by
+the transaction being committed.
 
-This commit addresses problems from received connection flags
-or their combinations. We now drop messages as follows:
+The scan records an interval end in rbe_end without checking the element's
+transaction state. A later, unrelated expired start then moves both
+elements to the expired list. The synchronous GC queue can free the new end
+element before the transaction subsequently activates it, causing a
+use-after-free.
 
-1. the NO_CPORT+TEMPLATE combination allows lookups for normal
-connections to hit template which can break in many ways.
-While the master does not sync connections with NO_CPORT flag,
-i.e. before they are established, we still accept NO_CPORT
-without TEMPLATE.
+Only consider elements that are fully active in both generations. This
+keeps transaction-state elements out of the GC scan and preserves interval
+pairing across skipped elements.
 
-2. ONE_PACKET: it is not sent by master, so we do not
-expect it in backup. Before now it was ignored by
-IP_VS_CONN_F_BACKUP_MASK for protocol v1 while protocol
-v0 created connections that are not hashed and dropped
-immediately. Better to apply the IP_VS_CONN_F_BACKUP_MASK
-also to the flags from v0 messages for consistency with v1.
+KASAN reports:
 
-Fixes: 87375ab47cd0 ("[IPVS]: ip_vs_ftp breaks connections using persistence")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+  BUG: KASAN: slab-use-after-free in nft_setelem_activate
+  nft_setelem_activate net/netfilter/nf_tables_api.c:7047
+  nf_tables_commit net/netfilter/nf_tables_api.c:11137
+
+  Allocated by task 130:
+  nft_set_elem_init net/netfilter/nf_tables_api.c:6794
+  nft_add_set_elem net/netfilter/nf_tables_api.c:7523
+
+  Freed by task 130:
+  nft_trans_gc_trans_free net/netfilter/nf_tables_api.c:10506
+  rcu_core kernel/rcu/tree.c:2919
+
+Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
+Reported-by: <co+ee5e50ef2670e5f4@bugs.sh>
+Assisted-by: LLM
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_sync.c | 33 ++++++++++++++++++++++++++++++---
- 1 file changed, 30 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index dfa8487ec0c2..1a30817fbbaf 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -954,6 +954,21 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 	ip_vs_conn_put(cp);
- }
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 9894832281c4..12431b55752f 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -900,6 +900,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 		next = rb_next(node);
  
-+/* Check for incompatible flags */
-+static bool ip_vs_sync_validate_flags(u32 flags)
-+{
-+	/* We do not expect NO_CPORT, especially to allow lookups
-+	 * to hit templates
-+	 */
-+	if (flags & IP_VS_CONN_F_NO_CPORT) {
-+		if (flags & IP_VS_CONN_F_TEMPLATE)
-+			return false;
-+	}
-+	if (flags & IP_VS_CONN_F_ONE_PACKET)
-+		return false;
-+	return true;
-+}
-+
- /*
-  *  Process received multicast message for Version 0
-  */
-@@ -977,8 +992,7 @@ static void ip_vs_process_message_v0(struct netns_ipvs *ipvs, const char *buffer
- 			return;
- 		}
- 		s = (struct ip_vs_sync_conn_v0 *) p;
--		flags = ntohs(s->flags) | IP_VS_CONN_F_SYNC;
--		flags &= ~IP_VS_CONN_F_HASHED;
-+		flags = ntohs(s->flags);
- 		if (flags & IP_VS_CONN_F_SEQ_MASK) {
- 			opt = (struct ip_vs_sync_conn_options *)&s[1];
- 			p += FULL_CONN_SIZE;
-@@ -991,6 +1005,13 @@ static void ip_vs_process_message_v0(struct netns_ipvs *ipvs, const char *buffer
- 			p += SIMPLE_CONN_SIZE;
- 		}
- 
-+		if (!ip_vs_sync_validate_flags(flags)) {
-+			IP_VS_DBG(2, "BACKUP v0, Invalid flags 0x%X\n", flags);
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
 +			continue;
-+		}
-+		flags &= IP_VS_CONN_F_BACKUP_MASK;
-+		flags |= IP_VS_CONN_F_SYNC;
-+
- 		state = ntohs(s->state);
- 		if (!(flags & IP_VS_CONN_F_TEMPLATE)) {
- 			pp = ip_vs_proto_get(s->protocol);
-@@ -1146,7 +1167,13 @@ static inline int ip_vs_proc_sync_conn(struct netns_ipvs *ipvs, __u8 *p, __u8 *m
- 	}
  
- 	/* Get flags and Mask off unsupported */
--	flags  = ntohl(s->v4.flags) & IP_VS_CONN_F_BACKUP_MASK;
-+	flags = ntohl(s->v4.flags);
-+	if (!ip_vs_sync_validate_flags(flags)) {
-+		IP_VS_DBG(3, "BACKUP, Invalid flags 0x%X\n", flags);
-+		retc = 25;
-+		goto out;
-+	}
-+	flags &= IP_VS_CONN_F_BACKUP_MASK;
- 	flags |= IP_VS_CONN_F_SYNC;
- 	state = ntohs(s->v4.state);
- 
+ 		/* elements are reversed in the rbtree for historical reasons,
+ 		 * from highest to lowest value, that is why end element is
 -- 
 2.47.3
 
