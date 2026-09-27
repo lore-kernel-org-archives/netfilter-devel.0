@@ -1,199 +1,302 @@
-Received: from mail-dy2-f42.google.com (mail-dy2-f42.google.com [74.125.229.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8773A35A39D
-	for <netfilter-devel@vger.kernel.org>; Sun, 27 Sep 2026 07:15:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83C3939BFFA;
+	Sun, 27 Sep 2026 10:21:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790493339; cv=none; b=KAGP+zl6Gp8GiCIxawTREIWk86viWLmbV+HBkzezpqxEVI93of1l7G3KF9dy0OClzSNOdzSRtcV6Djjp3QZe2TZWpc7iAUqvOdXXhOUEHAX8ySCwhN0pCvMDYeM/6AvM4E90KdEvcbF1M5VWLF+XkbZK3HrciUzoHvLHFkVSUn0=
+	t=1790504518; cv=none; b=nqC7dFmwKrk3ndOwHoOgCzq1iuIclbe5VmWiq3Bfaa/JDkDkR2ypJp5U1CcTdzrFCQ3IaxdvPKy+C4ppqD1gk7PhmuVwzyCPEEuJwL5qzszJDePq9PffRgS8dWjv5wMGY0snp2TDIaDvpBH4NZbdlVA475N+/kQxM7IUUYCSmXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790493339; c=relaxed/simple;
-	bh=rnRLEgdA/1s1yycmRgso3T2+f+ZYJNQr7hOt/feO4pc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Y7Jtjgkhp7nkxxYITYkBQE1W0GMTJ0pEpW0zpBBW5IDbZw0XEzmvnJ5WOfuH9VJpTP9pZX46v65OUQwnqg5HU4UP6nInyjgYz3p2OcueT7unT6HVDdn6Zqc74vj2xIo8g50OLBD9UJGu0Y87yvIXfYprqkWHxtiL6nQbdFb7K4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MArZXFSd; arc=none smtp.client-ip=74.125.229.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790504518; c=relaxed/simple;
+	bh=ecJJrjF+eb/v318TWPHE0Fg3G8ajSdRhYmEMCS2RLEE=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=H56nM95RSFotZe1k/m+kRvsp9pQo7bl6w3702bRDKAFh9OpWNQ9QAAY7A6sUmhsfgbW3Rpp6t+eAtkoK+dYqVzzT25vhVS0Yw93AqE6dXpd+FaEWR/wQiQrv0PMXND5MvCSyZV72WaCmm+XgRItWsP34C8B93HSA2uSRgmMm43U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HAkO6c28; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MArZXFSd"
-Received: by mail-dy2-f42.google.com with SMTP id 5a478bee46e88-34251480737so108512eec.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Sep 2026 00:15:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790493337; x=1791098137; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=QYM2plEZ7R9S62P1nYdznZP0BSc2LbAGxEIGE61a82Q=;
-        b=MArZXFSdcLpj258o7hIWFACjqoPgIPWicBhrkHUfGJX7NqavbOWPxhWoCEd7dUWRsb
-         NUR/fturKbAkT8IAH0nilHxuchUdBsDbpVFuLapj/w6VMdUrAT+WB0EfI65cxLot7OnD
-         i1WMC1iOjczOfhazwflPGZkJ/XAMSYooAgRNOEPrFXrZZgYO9C+8iLtgb4+SZ6VGxPo7
-         1N2gJpmXWim2H3EeUFtC3CMNkd2JktQJhrs5KudM7geZAQg220dWSdXGDuSxt1y2GoBt
-         rk8MukUqqHUEewXuAUPAW4Ja5mbOUvaPs35/2Nca0LyGPJEKn1fd26YrjF4egc8duet5
-         h0sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790493337; x=1791098137;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=QYM2plEZ7R9S62P1nYdznZP0BSc2LbAGxEIGE61a82Q=;
-        b=wq0P0+3ZxtP3PqMi6CylWMEeSCvFAS4qSppy7b04kFHRAHNGxdFrACv2pkVeTftwUr
-         8pqt59n2d5pLf+M7C1wU6nkuGYUrXtfVnqYePhhwhg5iCD4HsDYCoZIT65QbLfSThCa7
-         P4Nvn2WwGc8wchn3FzwTLxn71WZOF7MJwTX5Uv6bNKB4HQCXsS/Dc276iP4pcK04eP6Y
-         pnu1hV1Rw67n0NoYOSruzNZ/YdbP55ESDYG9VkiWfwPm8n+jGpiVjwSu4nmOWyd4yntm
-         CwfVByoN4EQFoaGuPdByDgiyBLtm5x8c3X0oB/LfnemOAp0Ic2KUIyNUQmpFMN4xZpFq
-         jaxw==
-X-Gm-Message-State: AFq9FYITBJOBvOxBYK0Hy2aUEOlIqsnUj9pRRYxCbQOhzan9KrtOeo/E
-	2NTb2OlYo/kXVizaINvvRJSv69ZgNU6AWO+RTZrqljkpedWzpqVsEkBl
-X-Gm-Gg: AYBFou2NTL7hsW+iBAqfrKMbC8pMnggofiZf8wEL7/lqHsPbdy5wljGfLjHZsIugLMR
-	sz/Gm8GsIvc/ikkgPzmXlAyJAoAqDrJrXxZn6FVgn30ls9f8ZJX+jP/qxWDain6GMDm5F8CJ+tB
-	LqgxNzzqD6UIWswa28F21tjOWgwY2bC9PRhgXgRTAW3pTV/6V96PF4xf1RUKgBgkz3CG3wa+PuG
-	IcVbIi3UHvU7fjh6MDofJ99LyuBl3yn6WHFwaLpOO431fKREnCwTa162gKEpgKsV+X7ARncxAtg
-	mpKvTLw5JtDnz6sNbtWJlbS+Hj3gn4BfdGeFsuKP/jmFaE7DMJkZeGcFrHlL09qeR/mWz5lnGaM
-	Gdslm5ISWLw7l8ah2a+RM+eiGGHzYvpIEujIUeRxC8jiMFXibpXvD5Kr7iHHJkjBj6J3BnEQFKh
-	K1THkZ2yJ2JNkvsj9mXw2USQ7qdLfvBTyWsSe9dAwO+ypv9nI9PxZjTeedWYKPe2c71FWJpDYeU
-	ck5C+pkKJLqpMMj8SQQROjdH4G5hFN/BhhC2zQVXgzjEpyOI7EcX0OKnA69ohJcHHlbfA==
-X-Received: by 2002:a05:7301:dd97:b0:33e:6a79:5a81 with SMTP id 5a478bee46e88-3427179721dmr7795597eec.1.1790493336434;
-        Sun, 27 Sep 2026 00:15:36 -0700 (PDT)
-Received: from localhost.localdomain (95.169.12.199.16clouds.com. [95.169.12.199])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34144b4ae50sm19610096eec.17.2026.09.27.00.15.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Sep 2026 00:15:35 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net] netfilter: nf_tables: serialize offload stats with callback unbind
-Date: Sun, 27 Sep 2026 15:15:20 +0800
-Message-ID: <20260927071520.3693598-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HAkO6c28"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BEE01F000FF;
+	Sun, 27 Sep 2026 10:21:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790504517;
+	bh=UA6Y9oe/SxYAD3bxQq1WzruuX/Xvec+oInjKyiJwXHs=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=HAkO6c28YOsxWMSYGUKffsJMQswoxkdAkVWd8uKYXw25PgMgDVUm8rNk0zASU44cM
+	 rqqECyjD/nM7b1LEO4nGfdgqKsPyv9BZf2+aWd4xGEvvluH74rnriYfLTKu2zniVHf
+	 to+SXfIgNEJOlbTmhlLfFd3QP9nmRlXeBbOqup8e1+RC5xtUC9XU0bw/BokYp/YmDn
+	 AwVUIjKaB9+6j7VlHolBGkKoNyRJYD6eq1UxF1syZJxAI1JLjX6Q0hUaMcV9IfA3lc
+	 3CZBRxcoyDHe7edftheRRn7kQZG6e+LaXMujpK2vZ0EvnDkctUTAEJY8+aDx3XtGBl
+	 vMISvSNKwNecA==
+Subject:
+ Re: [PATCH nf v4 1/3] ipvs: wait the running timer cb on conn deletion
+From: netdev-bot+sashiko@kernel.org
+To: zihanx@nebusec.ai
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ lvs-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, horms@verge.net.au, ja@ssi.bg,
+ pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ stable@vger.kernel.org, vega@nebusec.ai, root@tr0jan.top
+Date: Sun, 27 Sep 2026 10:21:55 +0000
+Message-ID: <179050451553.2160803.14284987040537808908@kernel.org>
+In-Reply-To:
+ <dfc9f33299baa890537aacdc3082c85e1a6eccc9.1790146910.git.zihanx@nebusec.ai>
+References:
+ <dfc9f33299baa890537aacdc3082c85e1a6eccc9.1790146910.git.zihanx@nebusec.ai>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Rule GET and dump requests collect hardware statistics under RCU without
-holding commit_mutex. Callback unbind removes entries from the base
-chain's flow_block.cb_list and frees them immediately while holding
-commit_mutex, so RCU does not protect the statistics iterator.
+Thank you for your contribution! Sashiko AI review found 5 potential
+issue(s) to consider.
 
-For example, a rule dump can load a block_cb in nft_setup_cb_call(),
-then a concurrent transaction can unbind the chain and free that callback
-in nft_flow_offload_unbind(). When the dump resumes, it dereferences the
-freed block_cb to invoke its callback.
+Critical: 0 · High: 1 · Medium: 2 · Low: 2
 
-KASAN reported:
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-  BUG: KASAN: slab-use-after-free in nft_setup_cb_call.constprop.0+0x19d/0x200
-  Read of size 8 at addr ffff88810a64d420 by task poc/87
-  Call Trace:
-   nft_setup_cb_call.constprop.0+0x19d/0x200
-   nft_flow_offload_cmd+0x23b/0x480
-   nft_flow_rule_stats+0x89/0x1d0
-   nf_tables_fill_rule_info+0x689/0x8e0
-   __nf_tables_dump_rules+0x256/0x940
-   nf_tables_dump_rules+0x762/0x9f0
-   netlink_dump+0x489/0x1140
-  Allocated by task 86:
-   flow_block_cb_setup_simple+0x443/0x820
-   nft_block_offload_cmd+0x154/0x1e0
-   nft_flow_block_chain+0xf9/0x420
-   nft_flow_rule_offload_commit+0x448/0x5b0
-  Freed by task 88:
-   kfree+0x131/0x3c0
-   nft_flow_offload_unbind+0x29c/0x400
-   nft_block_offload_cmd+0x166/0x1e0
-   nft_flow_block_chain+0xf9/0x420
-   nft_flow_rule_offload_commit+0x18d/0x5b0
+- [High] In ip_vs_conn_unlink() (net/netfilter/ipvs/ip_vs_conn.c), the
+  new abort path tries to put the refcount back to 1 with…
+- [Medium] In ip_vs_conn_unlink(), the new check of
+  atomic_read(&cp->n_control) after the decrement has no acquire…
+- [Medium] ip_vs_conn_unlink() now does refcount_dec_if_one() before its
+  revalidation, and on the restore path the connection stays alive.
+- [Low] Commit message accuracy.
+- [Low] The comment in ip_vs_conn_expire_now() still refers to "the final
+  timer_delete in ip_vs_conn_expire".
 
-Use mutex_trylock() to serialize read-side hardware statistics refresh
-with callback unbind. A blocking acquisition would sleep under RCU and
-reintroduce the commit_mutex -> nfnl_subsys_ipset -> nlk_cb_mutex ->
-commit_mutex lock dependency previously removed from reset dumps.
+--
 
-On contention, skip the hardware refresh and retain the cached counters,
-as when the existing best-effort statistics request fails. Pass the
-caller's lock state so transaction notifications continue to refresh
-statistics under the mutex they already hold. Release an acquired mutex
-before dumping expressions, leaving rule lookup and callback order intact.
+ipvs: wait the running timer cb on conn deletion
 
-Fixes: b72920f6e4a9 ("netfilter: nftables: counter hardware offload support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
----
- net/netfilter/nf_tables_api.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+This patch changes ip_vs_conn_unlink() to drop the refcount from 1 to 0
+first. It then rechecks n_control and timer_delete(), and if either check
+fails it restores the refcount and returns false. ip_vs_conn_del() now
+always calls ip_vs_conn_expire() with a tagged timer pointer to mark the
+deletion path, and ip_vs_conn_del_put() is replaced by RCU protection for
+the cp->control chain.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b59628e6240c..f234dc3f8d1e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3780,7 +3780,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 				    const struct nft_table *table,
- 				    const struct nft_chain *chain,
- 				    const struct nft_rule *rule, u64 handle,
--				    bool reset)
-+				    bool reset, bool commit_locked)
- {
- 	struct nlmsghdr *nlh;
- 	const struct nft_expr *expr, *next;
-@@ -3806,8 +3806,15 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 			goto nla_put_failure;
- 	}
- 
--	if (chain->flags & NFT_CHAIN_HW_OFFLOAD)
--		nft_flow_rule_stats(chain, rule);
-+	if (chain->flags & NFT_CHAIN_HW_OFFLOAD) {
-+		struct nftables_pernet *nft_net = nft_pernet(net);
-+
-+		if (commit_locked || mutex_trylock(&nft_net->commit_mutex)) {
-+			nft_flow_rule_stats(chain, rule);
-+			if (!commit_locked)
-+				mutex_unlock(&nft_net->commit_mutex);
-+		}
-+	}
- 
- 	list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
- 	if (list == NULL)
-@@ -3864,7 +3871,7 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
- 
- 	err = nf_tables_fill_rule_info(skb, ctx->net, ctx->portid, ctx->seq,
- 				       event, flags, ctx->family, ctx->table,
--				       ctx->chain, rule, handle, false);
-+				       ctx->chain, rule, handle, false, true);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -3924,7 +3931,8 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 					NFT_MSG_NEWRULE,
- 					NLM_F_MULTI | NLM_F_APPEND,
- 					table->family,
--					table, chain, rule, handle, ctx->reset) < 0) {
-+					table, chain, rule, handle,
-+					ctx->reset, false) < 0) {
- 			ret = 1;
- 			break;
- 		}
-@@ -4072,7 +4080,7 @@ nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
- 
- 	err = nf_tables_fill_rule_info(skb2, net, portid,
- 				       info->nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
--				       family, table, chain, rule, 0, reset);
-+				       family, table, chain, rule, 0, reset, false);
- 	if (err < 0) {
- 		kfree_skb(skb2);
- 		return ERR_PTR(err);
+Link: https://sashiko.dev/#/patchset/cover.1789435989.git.zihanx%40nebusec.ai
+
+> ipvs: wait the running timer cb on conn deletion
+
+[Severity: Low]
+
+This isn't a bug, but the subject says the deletion path waits for the
+running timer callback. ip_vs_conn_unlink() doesn't wait, since there is no
+timer_delete_sync(). It fails and leaves the work to a later timer run, as
+the body describes. Would a word like "defer" describe this better?
+
+> As ip_vs_conn_del*() run under RCU lock
+> there is no risk accessing a freed connection by
+> concurrent timer callback as Sashiko warns, may
+> be only if our timer expires and we try to delete
+> the cp->control chain.
+
+This seems to contradict the sentence before it, which says the callback
+risked accessing the deleted connection after it was freed. Could it be
+reworded?
+
+The body also doesn't say that ip_vs_conn_del() now calls
+ip_vs_conn_expire() without first needing timer_delete() to succeed. Could
+that be mentioned?
+
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 6fa3e1dc534c3..32cfc02aa2912 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -313,17 +313,34 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
+>  /* Try to unlink ip_vs_conn from conn_tab.
+>   * returns bool success.
+>   */
+> -static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
+> +static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp, bool my_cb)
+>  {
+
+[ ... ]
+
+> +	if (!refcount_dec_if_one(&cp->refcnt))
+> +		return false;
+> +
+
+[Severity: Medium]
+
+The decrement now happens before the revalidation. That means a conn that
+is still hashed, and may end up staying alive, briefly has refcnt == 0.
+Can lookups miss it during that window?
+
+__ip_vs_conn_in_get() and ip_vs_ct_in_get() skip entries where
+__ip_vs_conn_get() fails:
+
+	if (__ip_vs_conn_get(cp)) {
+		/* HIT */
+
+Take a template or FTP control conn whose timer fires while it is gaining
+a controlled conn. The n_control check below restores the refcount and the
+conn stays alive.
+
+A packet arriving in that window could miss the template and create a
+duplicate one, possibly for a different real server. A mid-stream packet
+could also miss its FTP control conn.
+
+Before this patch, a successful refcount_dec_if_one() always led straight
+to the unlink under the bucket lock. A failed lookup could only affect a
+conn that was really going away.
+
+>  	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
+> -		return refcount_dec_if_one(&cp->refcnt);
+> +		return true;
+> +
+> +	/* Revalidate after conn is excluded from traffic:
+> +	 * - not controlling other conns
+> +	 * - no pending/running timer callback
+> +	 *
+> +	 * And the winner is ...
+> +	 */
+> +	if (atomic_read(&cp->n_control) ||
+> +	    (!timer_delete(&cp->timer) && !my_cb)) {
+> +		/* Not me? Give the timer callback another chance, even
+> +		 * if one is concurrently running during the conn deletion.
+> +		 */
+> +		refcount_inc(&cp->refcnt);
+> +		return false;
+> +	}
+
+[Severity: High]
+
+Does this refcount_inc() actually bring refcnt back to 1?
+refcount_dec_if_one() has already moved it from 1 to 0, and refcount_t
+does not allow an increment from 0:
+
+include/linux/refcount.h:__refcount_add() {
+	int old = atomic_fetch_add_relaxed(i, &r->refs);
+	...
+	if (unlikely(!old))
+		refcount_warn_saturate(r, REFCOUNT_ADD_UAF);
+	...
+}
+
+This prints "refcount_t: addition on 0; use-after-free".
+refcount_warn_saturate() then sets refcnt to REFCOUNT_SATURATED, not 1.
+
+>From then on, refcount_dec_if_one() can never succeed for this conn, so
+neither the timer path nor ip_vs_conn_del() can free it.
+
+When the timer runs, the __ip_vs_conn_get() in expire_later succeeds on
+the saturated value, and __ip_vs_conn_put_timer() re-arms the timer for
+60*HZ. The conn never reaches call_rcu(), and ipvs->conn_count is never
+decremented. The dest, conntrack and app references are never dropped
+either.
+
+Wouldn't ip_vs_conn_flush() then loop forever at netns teardown?
+
+	if (atomic_read(&ipvs->conn_count) != 0) {
+		schedule();
+		goto flush_again;
+	}
+
+There seem to be two ways to get here. The first is the race this patch
+is meant to fix:
+
+CPU X                         CPU Y
+cp->timer fires               ip_vs_conn_del(cp)
+ip_vs_conn_expire(cp)           ip_vs_conn_expire()
+                                  ip_vs_conn_unlink(cp, false)
+                                    refcount_dec_if_one() 1 -> 0
+                                    timer_delete() returns 0
+                                    refcount_inc() on refcnt 0
+
+CPU Y can be in ip_vs_conn_flush(), ip_vs_random_dropentry() or the
+expire_nodest_conn flush.
+
+The second is a template or FTP control conn ct:
+
+- Its timer passes the early n_control == 0 check.
+- Meanwhile another CPU runs ip_vs_ct_in_get()->ip_vs_control_add() and
+  then ip_vs_conn_put(ct).
+- The timer's refcount_dec_if_one() then succeeds, but n_control is now
+  non-zero.
+- refcount_inc() then runs on 0 again.
+
+Both cases in the commit message ("One of two things can happen when we
+detect the running callback") assume refcnt goes back to 1.
+
+Was refcount_set(&cp->refcnt, 1) intended here? While refcnt is 0,
+refcount_inc_not_zero() and refcount_dec_if_one() fail in every other
+context.
+
+[Severity: Medium]
+
+Is the atomic_read(&cp->n_control) recheck ordered after
+refcount_dec_if_one()? That function is only a release cmpxchg:
+
+lib/refcount.c:refcount_dec_if_one() {
+	...
+	return atomic_try_cmpxchg_release(&r->refs, &val, 0);
+}
+
+A control dependency on its result orders later stores but not later
+loads. Unlike refcount_dec_and_test(), there is no
+smp_acquire__after_ctrl_dep() here.
+
+Consider a template ct with refcnt 2:
+
+CPU B                               CPU A (ct timer callback)
+                                    ip_vs_conn_expire(ct)
+                                      n_control == 0 check passes
+ip_vs_control_add(cp2, ct)
+  atomic_inc(&ct->n_control)
+ip_vs_conn_put(ct)
+  mod_timer()
+  refcnt 2 -> 1 (release)
+                                    ip_vs_conn_unlink(ct, true)
+                                      refcount_dec_if_one() 1 -> 0
+                                      atomic_read(&ct->n_control)
+                                        may still observe 0
+
+On arm64 or powerpc, can ct then be unlinked and passed to call_rcu()
+while cp2->control still points at it? When cp2 later expires,
+ip_vs_control_del(cp2) would read and decrement ct->n_control in freed
+memory.
+
+Is an smp_acquire__after_ctrl_dep() (or smp_rmb()) needed after a
+successful refcount_dec_if_one() and before reading n_control?
+
+[ ... ]
+
+> @@ -1356,26 +1364,21 @@ static void ip_vs_conn_expire(struct timer_list *t)
+>  		goto expire_later;
+>  
+>  	/* Unlink conn if not referenced anymore */
+> -	if (likely(ip_vs_conn_unlink(cp))) {
+> +	if (likely(ip_vs_conn_unlink(cp, my_cb))) {
+>  		struct ip_vs_conn *ct = cp->control;
+>  
+> -		/* delete the timer if it is activated by other users */
+> -		timer_delete(&cp->timer);
+> -
+
+[Severity: Low]
+
+This isn't a bug, but a comment in ip_vs_conn_expire_now() still refers to
+this call:
+
+	/* Using mod_timer_pending will ensure the timer is not
+	 * modified after the final timer_delete in ip_vs_conn_expire.
+	 */
+
+With this timer_delete() removed, the one that remains is the conditional
+call in ip_vs_conn_unlink(). Could the comment be updated to point there?
+
+[ ... ]
+
 -- 
-2.43.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/cover.1790146910.git.zihanx%40nebusec.ai
