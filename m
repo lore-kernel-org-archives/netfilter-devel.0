@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06BCB3EBF0F;
-	Sun, 27 Sep 2026 22:08:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C57D3D524F;
+	Sun, 27 Sep 2026 22:08:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546920; cv=none; b=eHcjaiNrH65iZDZHA21pF2O6JzBck0Q8AqSo0iOOEbOnwPgrGVcXamFoDS6ti/nJEBjjLGX+TKnaEFyiXy0bxttO50eA3e/SwEsa6vdcSSxdjL7hjt4jCLivY1VG9yOCQZDz4I5xQhqts5YnERuCRmHgfWPpskUHXhh704nun9I=
+	t=1790546921; cv=none; b=p+YnUNcG8JPAZO8RpVcGyB3YYZOjmPCrH5AoEQY25MDyU4DzQllomjF0O75P+vVEAH9AXl+wMAgiUG+RFjztks7AcTMVUSRTEG0aVqU6SuA8EoB6yVi8oXHY6vwlQhgTvMVAkCbfJIbp0IIc0RwbRbR7qQklA7nCAVqSDs72Oek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790546920; c=relaxed/simple;
-	bh=mOqnsWOyy4GVp/T9+O1BWn9qFMORh6me5DUr5ah0U44=;
+	s=arc-20240116; t=1790546921; c=relaxed/simple;
+	bh=wBc++mCfPaS6FjIZmWcp565DpScfiZGYNQWZXr/U4hA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PgQkOdMvNvIoPXgEyhjv5FxX4uZJJPvos0Uwk0RwproRBSXwxdWoJ8Ger/IQi/ZJg0LYmvuxmxOcrpQ6LPJAY90QIj+zc2aUSqIw4Wn2KuwgwH5oOFhsH5z03R3rWJgKAye3Pvqa37ltQJYY+0KbaFLl6t5bRSXP7CzovmTYrr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SfCsG4hu; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=u9P3x+hnOd6R4Y90v3rBxKcuZu0tYk3DpkLsE72l6TEm3O2daCs5STnMimquuvlsRMC8Dgp08cQXpcWald5CnfNX+fUpeLipQTpIqLuJv9pYdP7GccZyOx5UaurAjs1bNpMquREPU/PxYZ64abJ2LDfzi2gu9cdWzjUZrdSC8S0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DUSPllSE; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SfCsG4hu"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DUSPllSE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790546913;
-	bh=F4BItNNQi20kAfu5uNzupYA34Wz6WKneYKeosBW1VgU=;
+	s=2025; t=1790546914;
+	bh=l6ZYG3ENvfaATxlov92K9ik/HcWbzHrlF/HtWiL9XWw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=SfCsG4huqoz4QhxX+Ic85Pmu/48Q17EZXCy0YNfwKzUEp8dep0sBPv0XAlo+vIRNt
-	 DfHWBfIy6XkbDSYfx96y+gYKOYAnGGoDPYVd/LYZDgVd3HAl6kcdG3tmE2e1e3OSAw
-	 JMWuWkIXceEp9noBZJZp/tNs2je6f2/MzNMU49f/xTT5xOzAx3Iro9XuffrI1722/6
-	 S63tiz0qLHUsp1VYP0cdbw6FWEpDL9CNFBMwG3W67c4oxdGRQjIfvz4I9OORvddI2S
-	 qSRJWHDS9RnqvsOc53eUvhI3IbisHny+aD6Uhd/X8T0v/L6Bv8+yjLcbK4uVJLzFYq
-	 il3FSzCARp+hg==
+	b=DUSPllSEhQhTyeGvXzXbSoK+YoQ+V4BDXU5LFVLN++utcjB0+auEW6QANnS2sVDza
+	 hhhV01dhJwlbNi525KdfJA3ty0d87ZvxnZd5+f3plkPMLWUf8QNBZfDGc+H38SeO4A
+	 hkLj1Z3Iusp8e57s/JHmo+x4tJ1642/d+YtcQspr6FkD77J3uzQ749zZe8fLqi1uT/
+	 sfH6DdOr3MKTZeidpSkU/4Ki4B+VNbcPqGZ7jIJHVADE/nmQ0uUbVvIiAuBTGvj7fy
+	 zs9ab4+ITO8Zh0h39Eczbe1Hawr1ub8aDUgdaJHjQY1NrvGsl7yFlIHB6REVgbISm1
+	 E/Vh8q6Sr5gNg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 929F1603DD;
-	Mon, 28 Sep 2026 00:08:32 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BF843603E5;
+	Mon, 28 Sep 2026 00:08:33 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 09/11] netfilter: bpf: reject invalid NAT manipulation types
-Date: Mon, 28 Sep 2026 00:08:14 +0200
-Message-ID: <20260927220816.268206-10-pablo@netfilter.org>
+Subject: [PATCH net 10/11] netfilter: flowtable: generalize pending status bit
+Date: Mon, 28 Sep 2026 00:08:15 +0200
+Message-ID: <20260927220816.268206-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260927220816.268206-1-pablo@netfilter.org>
 References: <20260927220816.268206-1-pablo@netfilter.org>
@@ -53,58 +53,118 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+Rename NF_FLOW_HW_PENDING to NF_FLOW_PENDING and use it to inhibit the
+flowtable GC worker until pending hw offload work has been completed.
 
-As bpf_ct_set_nat_info() is not validating the NAT manipulation type a
-wrong value can be passed directly to nf_nat_setup_info(). This triggers
-the WARN_ON() at nf_nat_setup_info() and if panic_on_warn isn't set,
-then IPS_SRC_NAT_DONE is set without adding nat_bysource and conntrack
-cleanup tries to unlink an uninitialized hlist node.
+Apparently, nf_flow_offload_stats() can schedule work to retrieve stats
+while the flow is being removed by GC.
 
-Fix this by checking that NAT manipulation type is correct before
-calling nf_nat_setup_info(). In addition, if the WARN_ON is hit, return
-NF_DROP instead of continuing with the processing to avoid similar
-situations in the future.
+And this bit can also be used in a follow up patch to disable GC until
+the flow has been fully added in both directions.
 
-Reported-by: VEGA <vega@nebusec.ai>
-Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Revert the reordering done in commit d644b23afe1e ("netfilter:
+flowtable: publish HW_DEAD after worker is done") to prevent a race
+between GC and hw offload handler.
+
+Fixes: 2c8897953f3b ("netfilter: flowtable: Add pending bit for offload work")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_bpf.c  | 3 +++
- net/netfilter/nf_nat_core.c | 5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  2 +-
+ net/netfilter/nf_flow_table_core.c    |  7 ++++++-
+ net/netfilter/nf_flow_table_offload.c | 14 +++++---------
+ net/sched/act_ct.c                    |  2 +-
+ 4 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
-index f9dd85ccea01..7572b58c448b 100644
---- a/net/netfilter/nf_nat_bpf.c
-+++ b/net/netfilter/nf_nat_bpf.c
-@@ -39,6 +39,9 @@ __bpf_kfunc int bpf_ct_set_nat_info(struct nf_conn___init *nfct,
- 	if (proto != NFPROTO_IPV4 && proto != NFPROTO_IPV6)
- 		return -EINVAL;
- 
-+	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
-+		return -EINVAL;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index f2e2771f188f..5b611efaa3cd 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -183,10 +183,10 @@ enum nf_flow_flags {
+ 	NF_FLOW_DNAT,
+ 	NF_FLOW_CLOSING,
+ 	NF_FLOW_TEARDOWN,
++	NF_FLOW_PENDING,
+ 	NF_FLOW_HW,
+ 	NF_FLOW_HW_DYING,
+ 	NF_FLOW_HW_DEAD,
+-	NF_FLOW_HW_PENDING,
+ 	NF_FLOW_HW_BIDIRECTIONAL,
+ 	NF_FLOW_HW_ESTABLISHED,
+ };
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 934c6151f558..36bbc7be2f74 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -575,7 +575,12 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
+-	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
++	bool teardown;
 +
- 	memset(&range, 0, sizeof(struct nf_nat_range2));
- 	range.flags = NF_NAT_RANGE_MAP_IPS;
- 	range.min_addr = *addr;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index a4858c2b2d65..cc8e1e81006d 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -767,8 +767,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	if (nf_ct_is_confirmed(ct))
- 		return NF_ACCEPT;
++	if (test_bit(NF_FLOW_PENDING, &flow->flags))
++		return;
++
++	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
  
--	WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
--		maniptype != NF_NAT_MANIP_DST);
-+	if (WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
-+		    maniptype != NF_NAT_MANIP_DST))
-+		return NF_DROP;
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct) ||
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 6757fd89c1f1..4365859220e6 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -995,6 +995,7 @@ static void flow_offload_work_del(struct flow_offload_work *offload)
+ 	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+ 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+ 		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
++	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+ }
  
- 	if (WARN_ON(nf_nat_initialized(ct, maniptype)))
- 		return NF_DROP;
+ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
+@@ -1056,13 +1057,8 @@ static void flow_offload_work_handler(struct work_struct *work)
+ 		default:
+ 			WARN_ON_ONCE(1);
+ 	}
+-
+-	clear_bit(NF_FLOW_HW_PENDING, &offload->flow->flags);
+-	if (offload->cmd == FLOW_CLS_DESTROY) {
+-		/* Publish after the worker's last flow access. */
+-		smp_mb__before_atomic();
+-		set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+-	}
++	smp_mb__before_atomic();
++	clear_bit(NF_FLOW_PENDING, &offload->flow->flags);
+ 
+ 	kfree(offload);
+ }
+@@ -1089,12 +1085,12 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ {
+ 	struct flow_offload_work *offload;
+ 
+-	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
++	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+ 		return NULL;
+ 
+ 	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+ 	if (!offload) {
+-		clear_bit(NF_FLOW_HW_PENDING, &flow->flags);
++		clear_bit(NF_FLOW_PENDING, &flow->flags);
+ 		return NULL;
+ 	}
+ 
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 55f3521edb4c..626c9a5af0ef 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -289,7 +289,7 @@ static bool tcf_ct_flow_is_outdated(const struct flow_offload *flow)
+ {
+ 	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
+ 	       test_bit(IPS_HW_OFFLOAD_BIT, &flow->ct->status) &&
+-	       !test_bit(NF_FLOW_HW_PENDING, &flow->flags) &&
++	       !test_bit(NF_FLOW_PENDING, &flow->flags) &&
+ 	       !test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
+ }
+ 
 -- 
 2.47.3
 
