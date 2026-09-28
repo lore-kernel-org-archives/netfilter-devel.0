@@ -1,130 +1,172 @@
-Received: from out-zbxj-a65.jellyfish.systems (out-zbxj-a65.jellyfish.systems [198.54.127.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDBE49EC7E
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 19:44:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1BD4D597C
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 20:26:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790624663; cv=none; b=jPBlBwEhzuLERs8oEPS72FU1dSDzAW/YFvy9vClqxptwfsWesi5yb1MnBvUJOaNlBZx3/MCBIbMeRJ6stqaRJjXqG0xSUKuteltZC9WfHImn3Sh6NYTUu6fsZj5qHM8v535bu9UwotJ1Ef2b2N9pT1046AXB9VTlSbAZigE4brY=
+	t=1790627202; cv=none; b=jj4v/NoKBn6on2tMqmTDNgMogEXYavGb+6VDRQ9Nf0+pa/KOUBzTg+rlK+bdsBBJiVQZORg/hDOAlHMJpWMs3beLjymrAXWR/exJhjZIC4LJe7P+mDsNC62iiNezwChhV+KBXpFpXOcbZd6SvEekdOQW4zZdmT7dEd2myKriiEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790624663; c=relaxed/simple;
-	bh=8BtFffJxUMZjdKjUyZLZ65tt7JmrPqUPubeAIwEAWXI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mRjhIWMcxux+J1Aw947+PbGNzATz6uQMgHcsQrvFW0Pw8U7+TcvoBavhMlLJU68bMwNk5QKX4dd1c8j8pdUyciVcRo8SgXjI+Y2SdoSUI7Alv+PYkSm8yN0gst8CCNLuKiV0/5iP7yOruoWLq9xzDRF4eNsdmJ3yi2J9+j1gYhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=ZyULdGNJ reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
+	s=arc-20240116; t=1790627202; c=relaxed/simple;
+	bh=bQBIPk/RiSXlZQywiMTYskTnRMQnXaF3+U43YIPWmvQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=t0JzBO/9ExKhfnAsSiyBpgGPSxz2KVp4X3CnQaa1SZAPrZgVU1AytKPmxrvoLv7gSP8cwl0uIFB4SoUCS4vbAgKpt9X1aYiYiJaCQoCG85Gwt0htSfGXZ1jMhr64X0YLzSNGl0RxU1FewfSBzLfdGPnz3Xh81Tr9zAUSxyUWXQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ehPFQ8CK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="ZyULdGNJ"
-Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4htsFJ2FfDz2x9C;
-	Mon, 28 Sep 2026 19:44:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1790624645;
-	bh=aKwfpfR6D49NNS6/Iw5WZJrvQIJqO5dlq1ymNm9qL/0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ZyULdGNJA+4WLNRmPeLHvG6yct6InDJotMb5DbspdJMKkTZGYXtxuwdD4HsyXlWGm
-	 g4CFUsWDo0H1dYHK5E5HXMyjAQv9O36IaJ5eNfdaexm5Y5XekdzAE8yvXfLrQwG/du
-	 4niefsgqGUprQhglgCOqCtCX8jrlsnZTUR+b+wJbFEfSTM5YLMzYcjwDEvCrFQAVHC
-	 GMrc7OTKgQHRcckfeh/9mgFgSZ0oAZ9IddWNQAIWpecv1HFA6jcjUM3Usm9PMZ+3Gf
-	 vNoWvj37UffKCNDseLHOIjaSTvGynTPsUxolzdIG5zeyPdxbXxKHP3eM8sDTfQryeK
-	 mWgga3xjyUthg==
-From: Rahul Chandelkar <rc@rexion.ai>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	netdev@vger.kernel.org,
-	Rahul Chandelkar <rc@rexion.ai>,
-	Sashiko <netdev-bot+sashiko@kernel.org>
-Subject: [PATCH nf-next v5 3/4] netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
-Date: Mon, 28 Sep 2026 19:44:03 +0000
-Message-ID: <41754da04debbc9e82c77549e1cfc5171ae0f365.1790596690.git.rc@rexion.ai>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1790596690.git.rc@rexion.ai>
-References: <cover.1790596690.git.rc@rexion.ai>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ehPFQ8CK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 471001F000FF;
+	Mon, 28 Sep 2026 20:26:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790627201;
+	bh=6drJPILI7g/pSQbVyLAOTvuJCz16MkW+IIKcnrQMk9A=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=ehPFQ8CKu8lCxqSD9fUZoCmPWongoI4kdz8Z7JhvjU5pjpAfw2ncVD7tx4nkhaI2a
+	 OcalCyf4/yXI4hLdSh56kU/lPzIaxZmKd1ZhKcQHF489wuExJ7hBPQKauOuuLSY/IL
+	 BdMWsPKF1RZrKppEH2/WZMWKkZucb5f66m3kG4PaHRr7LWsRiphyvCPDF76DivqFkZ
+	 ufTB6hlsXse7fkaPeMz57EXQy4SPnSBBP0OLO153nwkZ/HRlUwl97rL3HA/xjG8pAm
+	 KkRl5lNpTUVHAh4n7ld2cy57DmcPzhr0mA/XuvYqE2+Fs8PdGNbt/ZeALOKenVuxD8
+	 HQG3avVyjxE8g==
+Message-ID: <cc29ad91-bb10-4b82-813b-2acea5dab3a7@kernel.org>
+Date: Mon, 28 Sep 2026 22:26:37 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Envelope-From: rc@rexion.ai
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: Netfilter: match "tcp option" with the same type present multiple
+ times
+Content-Language: fr
+To: Florian Westphal <fw@strlen.de>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
+ Netfilter Coreteam <coreteam@netfilter.org>
+References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
+ <arpn7_v8156iSc85@strlen.de>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <arpn7_v8156iSc85@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-amanda_help() passes the result of simple_strtoul() straight through
-htons() into a __be16, so values 65536-99999 are truncated (e.g. 65537
-becomes 1).  In addition, the port field is copied into a buffer that
-only holds five digits, so a longer field such as 123456 is cut down to
-12345 and accepted as a different port, and on the NAT path only its
-first five bytes are mangled.  Either way a conntrack expectation is
-created for a port that never appeared in the reply.
+Hi Florian,
 
-Make pbuf one byte larger so that a sixth digit is copied, and use
-nf_ct_helper_parse_port(), which rejects port 0, values above 65535 and
-digit runs longer than five characters.  The trailing len is still
-derived from the parser's end pointer for the NAT mangle path.
+Thank you for your reply!
 
-Build-tested with allmodconfig and allyesconfig (W=1) and sparse, and
-cross-built for i386 and big-endian powerpc.  The parser
-was also checked in a userspace harness; the change has not been
-run-time tested with Amanda traffic.
+On 28/09/2026 15:13, Florian Westphal wrote:
+> Matthieu Baerts <matttbe@kernel.org> wrote:
+>> Hello Netfilter devs,
+>>
+>> First, thank you for maintaining Netfilter in the kernel and the
+>> userspace tools.
+>>
+>> The MPTCP selftests are switching from IPTables to NFTables, and
+>> Clashiko reported that this part of a rule wouldn't match anything:
+>>
+>>   tcp option mptcp subtype remove-addr drop
+>>
+>> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+>> added to the TCP options, it is added after an MPTCP DSS option (type
+>> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
+>> (type 30) options in the TCP options. It looks like Netfilter doesn't
+>> handle that, because it stops processing other TCP options when the
+>> expected type is found:
+> 
+> Yes, this won't work. 'tcp option X' extracts the
+> option X.
+> 
+> I don't see how this could be fixed within the limitations of the
+> architecture.
 
-Fixes: 16958900578b ("[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port")
-Reported-by: Sashiko <netdev-bot+sashiko@kernel.org>
-Closes: https://lore.kernel.org/all/179053062399.2160803.9591526412956900613@kernel.org/
-Assisted-by: Claude-Code:claude-opus-5-5 sparse
-Signed-off-by: Rahul Chandelkar <rc@rexion.ai>
----
- net/netfilter/nf_conntrack_amanda.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+That's what I was thinking too :-/
 
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 14ae660491f3..a9c1ef1ee415 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -88,7 +88,8 @@ static int amanda_help(struct sk_buff *skb,
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int dataoff, start, stop, off, i;
--	char pbuf[sizeof("65535")], *tmp;
-+	char pbuf[sizeof("65535") + 1], *tmp;
-+	u16 parsed_port;
- 	u16 len;
- 	__be16 port;
- 	int ret = NF_ACCEPT;
-@@ -127,15 +128,19 @@ static int amanda_help(struct sk_buff *skb,
- 			continue;
- 		off += start + search[i].len;
- 
-+		/*
-+		 * pbuf holds one byte more than the longest port so that
-+		 * an over-long digit run is seen and rejected.
-+		 */
- 		len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
- 		if (skb_copy_bits(skb, off, pbuf, len))
- 			break;
- 		pbuf[len] = '\0';
- 
--		port = htons(simple_strtoul(pbuf, &tmp, 10));
--		len = tmp - pbuf;
--		if (port == 0 || len > 5)
-+		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
- 			break;
-+		port = htons(parsed_port);
-+		len = tmp - pbuf;
- 
- 		exp = nf_ct_expect_alloc(ct);
- 		if (exp == NULL) {
+> Just use bpf.
+
+Yes, or with a raw payload expression with NFTables.
+
+>> It looks like it shouldn't stop if the wrong subtype is found, but the
+>> subtype is not compared there if I'm not mistaken. Should there be a fix
+>> to support this case?
+> 
+> I don't know how, unless one would extend the kernel to make it aware of
+> mptcp, which also requires userspace to pass the suboption type to look
+> for in addition to 'mptcp option'.
+
+Should there be a note somewhere in the doc about this limitation?
+Because it looks like it will never be possible to match such subtype.
+
+There are other MPTCP suboptions that can be used with DSS, e.g. MP_PRIO
+and MP_FAIL. But also MP_RST that can be used with FAST_CLOSE.
+
+>> BTW, I'm probably missing something, but adding the following doesn't
+>> seem to have any effect on my side:
+>>
+>>   nft add table ip filter
+>>   nft add chain ip filter OUTPUT \
+>>     { type filter hook output priority filter; policy accept; }
+>>   nft insert rule ip filter OUTPUT tcp option mptcp exists counter drop
+>>
+>> Same with "mptcp subtype mp-capable", other subtypes or other types like
+>> "timestamp". But if I use ...
+>>
+>>   nft insert rule ip filter OUTPUT meta l4proto tcp counter drop
+>>
+>> ... then the drop is effective. Any idea what I'm missing here? :)
+> 
+> No idea.
+> cd git/netfilter.org/nftables/tests/shell; ./run-tests.sh -k testcases/packetpath/tcp_options
+> 
+> passes here.
+> Even tried adding 'tcp option timestamp exists...' to the test, also
+> passes.
+
+Arf, my bad, I still had debugging code, sorry... :/
+
+Cheers,
+Matt
 -- 
-2.43.0
+Sponsored by the NGI0 Core fund.
 
