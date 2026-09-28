@@ -1,102 +1,169 @@
-Received: from out28-4.mail.aliyun.com (out28-4.mail.aliyun.com [115.124.28.4])
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012005.outbound.protection.outlook.com [40.107.200.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4376647A892;
-	Mon, 28 Sep 2026 08:41:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.28.4
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790584917; cv=none; b=oLGaTP8ZKqrZiou3Qd8UrIjJNfK2iM4WTn6sCAD3qV/Fb+URNFiA0rZTcOWiVQHDQrj/ami63WLvHhlr+LnrVbE/O4489S8XsEx3cGmkbNRHUjp0swKMGzp3o0CjwQNtR07qA02OXBNMbjZcx/3/oFF2kfR2JDTIfNzTWqKF8tk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790584917; c=relaxed/simple;
-	bh=v3gOM9xKM25kiLPdYLPpYV0cy5SQRz/kGxq+wHnIwkY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=S/dKNpUDKyCTmqOLoNf9pQTAemneIji0MC66Cint+/iFgIuIKk1XHHlsfU2VnjA1+hJm2GZSdQhotgG6YUi8mozsggo1tJBg2jC6bPWW8WURS7I7gaW+HF3E+1ANe9MCoZN9gM3dUn+SRHEe6Wdy593jFBq+zSgmlx0QojSmt2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com; spf=pass smtp.mailfrom=xiaopeng.com; dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b=PiPJHBYY; arc=none smtp.client-ip=115.124.28.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431D43CCFCC;
+	Mon, 28 Sep 2026 11:15:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.5
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790594152; cv=fail; b=IukGE5gZ14OArN3v4yFJfOfSVMGg1DC/SCXddZkheLFU7EHEbh2jZaPXfOx/KXIyfrRHuYd1YtSNgdQNkYmi4Z6uFNrhcPUQ9zAc9YdXMdujPC7WWR8v+4dnUKtgrgO0TcsKmTeceSiCAMIypX+rPEAyA5dJh7O+QqsvdiwOkhA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790594152; c=relaxed/simple;
+	bh=68/PGj7fjqQVPogEAyncyPmU7vNRAQk8vX4JLzSMR08=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ANjVMsjhsz5RIGIdfXZUky/pdxMEOmL1VWAuBDw8fSUxoIZRPeN66XAsP2BVHig7IVhLXIbyXUNA0Bubp9og0+Y7kDgEMiH1N8QCLTkGoi8vcPZ+qW2HxC3CTTRgQBo4q5TiEMkR2Wv1NuL19VGa5ffdH4MvYsVtHtXG5QCVTaU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rphcV6gc; arc=fail smtp.client-ip=40.107.200.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b="PiPJHBYY"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=xiaopeng.com; s=default;
-	t=1790584906; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=h/Hg/7kgbcbvybprMxwMs5kCsJ442K3BL5TtX+TPyX0=;
-	b=PiPJHBYYz04Xh3SWYQx6oL371C6pIWoel8skjqlGek9BwqFm0L7fCVsJARbiDvRsdGfV3hJPNWaCt9+kvrY9dDnuWzFgV/Zw3go2SrHi8OELH9klxyU6bdIYOcwxAX12NvpfnlETJN+lkq/imbEeerMs8h70dUMuYV6lxACRQHU=
-X-Alimail-AntiSpam:AC=CONTINUE;BC=0.08409569|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_alarm|0.0647855-0.00498656-0.930228;FP=18363400152714730327|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033037031241;MF=guozh23@xiaopeng.com;NM=1;PH=DS;RN=16;RT=16;SR=0;TI=SMTPD_---.jQ2iPUy_1790584903;
-Received: from localhost(mailfrom:guozh23@xiaopeng.com fp:SMTPD_---.jQ2iPUy_1790584903 cluster:ay29)
-          by smtp.aliyun-inc.com;
-          Mon, 28 Sep 2026 16:41:45 +0800
-From: Guo Zihao <guozh23@xiaopeng.com>
-To: netdev-bot+sinfo@kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	bridge@lists.linux.dev,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ebtables: ebt_802_3: drop short frames before the match reads LLC
-Date: Mon, 28 Sep 2026 16:41:43 +0800
-Message-ID: <20260928084143.3163008-1-guozh23@xiaopeng.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260928082858.3009191-1-guozh23@xiaopeng.com>
-References: <20260928082858.3009191-1-guozh23@xiaopeng.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rphcV6gc"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=lGMJxGSi5BcAltkjRxs/MLO6qBn3UHd+vbUIXMkLgKNkx9+wV9cc3zJslSubQ/tkMQzR6MbQ8M2cXnzxpvaFQbui9kZm4YagT9SPCSaoS3E1y3tQboSFSiQF2c8FdJC0NvQzfVR6msl+HwHVY4/ojSSAi+4lznf04laQNksKtxSBmaalQfEK+Dh6/wllH6ecGm4mCv99cxd05ye7s0L2gI3vj1QmdOyB8s33SyAHS8YA7Ol/ziBaYvXS66hqPECGUVxiwYe57k+y1F30n4fJ4cT5aHz9U23JZ/gTF8K7MdwSmbkRoVoqcHxh5jDHmnRUtYrqb9BMuDsvklr2WdX+pw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=4K5Cuf90MZmyV+ZDr35mSe43oXaLYtHs6WaGwBc8FXI=;
+ b=obmXpAyaeBByErtnnsaItEb3Sg3uZUEfVqZOlKLKGbTulzJVQxU3WRV3xySu/GidK4NnbnqAwv8bMKg917jPbRvzwk3YaSgzCEwKyCEm2m8Hj9pq0TZZhc7WSkZVj7VeQBAciZ7uwsu9VdYU3u15qMEWei7+ji5Kj7yJRuHb2nllSj9WcjNkWLcF0donJKwQ74/wUcy0km61U6s0Fx2AIFLzjgZNivr6otXQAT6pEaxgfuor6yGPvx92aVeHCoh8+zgZGLMwzrmcD2NznBouZFKtAkggtGsXkFCenGnEV8XOTFbYb/jxFvNSeRBV2fCpAH6LGLIzIaK12kAfhegeXg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=4K5Cuf90MZmyV+ZDr35mSe43oXaLYtHs6WaGwBc8FXI=;
+ b=rphcV6gcGkzi3fXOUZxbIzRi9KwgHXNt9DEcI7RDDrFvoCFbgrtrYS5BCiJXhzyrYYLEFTCPcmJOjyJXCHf8ilitV8aEBDy+VO5iqqwIR7Ofc8zf0aS+iiLgxVCDNnloRMJAFaCbOUSApe6gNmiFIWccoTY/dGiZCLOa9nYWryc2AMeZt3CCR9jYdE7XEVuIraXcN+/u4hXf16CVhMn/pXkJjuckdDnoKk8vtVj1hI1UO1W5AQ4db/P8GsiqRxrQljslaFjg93CUVHZBzd0YCbI6cvqEb+MEnU3v2SShNpF172ItE0ZMk4F7fFQx0HzZ1MR19f7EpVJRWpM8TsAaQw==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH0PR12MB7957.namprd12.prod.outlook.com (2603:10b6:510:281::22)
+ by DS0PR12MB8527.namprd12.prod.outlook.com (2603:10b6:8:161::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.24; Mon, 28 Sep
+ 2026 11:15:47 +0000
+Received: from PH0PR12MB7957.namprd12.prod.outlook.com
+ ([fe80::9251:acc2:cc63:3499]) by PH0PR12MB7957.namprd12.prod.outlook.com
+ ([fe80::9251:acc2:cc63:3499%3]) with mapi id 15.21.0451.022; Mon, 28 Sep 2026
+ 11:15:46 +0000
+Date: Mon, 28 Sep 2026 14:15:38 +0300
+From: Ido Schimmel <idosch@nvidia.com>
+To: Julian Anastasov <ja@ssi.bg>
+Cc: Axel Mierczuk <axel.mierczuk@1password.com>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
+	Keith Hoodlet <keith.hoodlet@1password.com>
+Subject: Re: [PATCH nf 0/2] ipvs: fix OOB write when NATing ICMPv6 errors
+ quoting non-first fragments
+Message-ID: <20260928111538.GA389451@shredder>
+References: <20260925141155.17603-1-axel.mierczuk@1password.com>
+ <0458880e-5e0f-1f11-7ce2-e0490796c832@ssi.bg>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0458880e-5e0f-1f11-7ce2-e0490796c832@ssi.bg>
+X-ClientProxiedBy: TL2P290CA0029.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:3::19) To PH0PR12MB7957.namprd12.prod.outlook.com
+ (2603:10b6:510:281::22)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR12MB7957:EE_|DS0PR12MB8527:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6bc41fc5-670e-4a5e-3304-08df1d51d83a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|366016|23010399003|10067099003|11063799006|56012099006|4143699003|3023799007|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	H4dMFRvxTHPJFsIGoi9hq486EMG4tEaltQ916FAhqc3qTFsl8rWFVU1HhFylCAvEHPkwMVEAQFWZA48EHbYc8gJChbter2ncT22/goLQz2Ir06nbuvFjrEkeWXneO0HjxGH2JuqqKxh83JgvPAeVI0C9Qr1VxTPAdb6+yq5M+zLQEGErSlynipYETt4uUdbae5Q07Ups520l11JUcULXz1gg0kRJQ7H7CB4CSnC2A6V0MqZRITXufqAdy9k82lXOwqBCntuXmE1mHGOeXHmg+0JnIM7XHjfP7wsh1jx6cc2Ts1PhuDUEMz2P7Y5AtuRHuONDeWzcHWdVbm9S9dlTbPCaQRjWe1rhUFdTK8vH9Ytl5XA8qistVDEo/TbzQ1CUiIo0JbNmts45K50SBljMkJSG2iCQJmLqWBjWjKv9uqPKDezmuyYebx92vuCCJDRNtZsxMR55KNm53iRmEK/jqCx1MA1Vo15UgGR1tDRguE6bWlEQXVYjlE21PHX2O/iK3/uzKHTCwq0TX8Ktg+AhWXUerIMRy1o08QCuZaUlB0toZI8t4Ih8WgLV5vgwXvDHaXFBPqGoHnN3ZXA/C8oGqLiCr4k/wjqVibvyU9mkerEp3f1OIGY5PLIoZm7InzaJqP6xUF4pHT3Z2P4biGAAqxWTa4D/msRQduXG8pp2zwM=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB7957.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(366016)(23010399003)(10067099003)(11063799006)(56012099006)(4143699003)(3023799007)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?pz0xCKW1dn8TBn9dW00RUiy3Ml9QBXxeup+0n7zXtf7jjNGIJtMIHrphz5sf?=
+ =?us-ascii?Q?uehBVV3xZuwQsDZlKlefO0+i5njwOEsfNarGGGiwrVntcyX9J2uhWZ6+ze/8?=
+ =?us-ascii?Q?ij1EJYboNmqX8HwzlUSUOL/U2RJ4MRf2Fn0n3xC8SLt5NvCo0athmE/CC6r0?=
+ =?us-ascii?Q?Ly3BGFevLpbxbs3sm3jB/Fidm42uXifwqD8RMIQm2S5A/AP1rWb9/LvUDl3T?=
+ =?us-ascii?Q?r2OoeWb6jYD8BnUvt/Mb6R0EMXL1BfqDF3Cr7jERBRWUut7vOdoz9BOAYDj0?=
+ =?us-ascii?Q?FqcftaFuKPYAjmqfbDFjkG9rDWrrKotw7S7T++ncrk++UwHSdxLemYwq8af4?=
+ =?us-ascii?Q?OPBpd1MgBgtgTU9oWrbN0v1qlpIvV+5X1Wi1hO6A3j1WFA9zzxfhiuatO4KE?=
+ =?us-ascii?Q?XUEoLRvrV0+GcNUOv0L6MSGqQmfCH3wD0+QqhQ2jeskPOKzmem00iHF+FRXf?=
+ =?us-ascii?Q?n6APLhGGbVWtGt3DP5ghrSrUyYx0tuJT19rPIwJ0g1YK3qlqMmS99lhd2HxM?=
+ =?us-ascii?Q?quMYWY3jr8tTsSBowIIOHIiqR72oMyz7jTDf6TbFOVR7Z9cgSmk6VMtJ8ksg?=
+ =?us-ascii?Q?kNn7nuZn+Wm/3wek0s+HzBYwE5hDcuxFqps1fN7jM4e37QEYp/YIV2b8oa2g?=
+ =?us-ascii?Q?KSHogDBnTbTkqAZ0Z14fGCcbHjEudv9L4Di76VSTNx6arQh/bT5I0s2yvrU7?=
+ =?us-ascii?Q?TeXpSeRw/oE6xThX3A9EqKFBfbFQ5337THMBfhR/KLWNLqnVPEElrbKUQWPb?=
+ =?us-ascii?Q?2hA7bklejNlerF30zYC1Q9oYH9UGO7dmtF00MZbj+KXxSBRmgCJksDDnc4KM?=
+ =?us-ascii?Q?mPZKMMaQI8VziJujCxezIUkQHbsHNDdvzGC4LiVyJMV1eYieR9HijXoywCDc?=
+ =?us-ascii?Q?M9/KtWhgtWh00CrmZNEZQLQYGtNY/Wd6rWyo7YzjPmZ1uKKxB+Eq0/3Rq6hZ?=
+ =?us-ascii?Q?oo5la8FSSfqLVGUDppNPWg8b5jsVV4EcLl9IkLiv2F1oGhfld82ltyOVhUeI?=
+ =?us-ascii?Q?LtPcC1wu9D4OHq/uhfyRS+GJsB+QW7o/IU2AuN6es0Tl6hycCkcj7nw8NXgR?=
+ =?us-ascii?Q?v8VnuSsgA0xI+Rm+D11psxK4zjk4s4oeSxb+NE0d5FW/RLMuME/E7sqO3vdE?=
+ =?us-ascii?Q?rvtbPX/EiCVx5Xg4CyCF0KQxsHOkc5P5L5uGBjKR4bHr6Pa/DztfH8T5JcJ7?=
+ =?us-ascii?Q?ilg7j+IgbjI1wyKyATU6Xdq9IWSKNkxPxeZHEGvt9Bbs+Ym+8IgpZtlFYS1X?=
+ =?us-ascii?Q?y2+7l8EV6cLnfpTbuPtP1h64fncHLA6RbL7mpVWtu4D/xCSUOahZdQGXWLtr?=
+ =?us-ascii?Q?c7/+3wfF6g/ZXtWiYUPO2afH8NUPq9R1acLUn9JvSBjaTf+XLuhXWczM1+Bs?=
+ =?us-ascii?Q?YADISvq//3NT+0XxKK5PYRIDXnCUoVwGOqBubA3AUEW9/ov4xxNZa37x9EmW?=
+ =?us-ascii?Q?+rAS3qcfJNJADGUveVAGTqwq2VSoLbYmea+zTbSSMAGOJf+dOAeQfBAsL79X?=
+ =?us-ascii?Q?e4S4r+VtxyNhiTpZdsncppUhcRDDGQzmmcyqvsAC1KSgjBpBvY1vNnx4p1He?=
+ =?us-ascii?Q?GCY4O55HspL2irgTSAW/mezZZVJTwvaY1cOPob7z6YfUxKJCkbxk33zsFYij?=
+ =?us-ascii?Q?9ApwGafXH59YbpWV+6dDH69fJL+KmiQI5OffkzFDyhB7RCl8o9cFpzj/ezZA?=
+ =?us-ascii?Q?0umTIBWtnA0dNMEY0t4uyix3IRHEVSM3K673sg+pzr7HkGWE?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6bc41fc5-670e-4a5e-3304-08df1d51d83a
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB7957.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2026 11:15:46.8483
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: l8q7ROZ4uRYD8nLQ0DLsSAHzr2D9iDIYEyp5Eros/BDhO3lQU1xz1pPFwFS/US5jEEsK9mAr9RgkxExEzGD+NQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8527
 
-Hi,
+On Fri, Sep 25, 2026 at 08:50:58PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Fri, 25 Sep 2026, Axel Mierczuk wrote:
+> 
+> > This series fixes a 16-byte OOB write past the verified skb area,
+> > reachable through ICMPv6 errors that quote non-first fragments.
+> > Following Julian's suggestion, it preserves ESP ICMPv6 handling.
+> > 
+> > Patch 1 includes the embedded IP header in ciph.len at both ICMPv6
+> > call sites when parsing stops at a non-first fragment. The change
+> > follows the ip_vs_fill_iph_skb_icmp() calls and does not depend on
+> > patch 2.
+> > 
+> > Patch 2 makes ipv6_find_hdr() set *offset to the fragment payload
+> > for non-first fragments when target < 0, so every successful return
+> > updates it. It carries no Fixes tag because it defines an offset
+> > that was previously unspecified.
+> > 
+> > Axel Mierczuk (2):
+> >   ipvs: avoid out-of-bounds write in ip_vs_nat_icmp_v6
+> >   ipv6: update *offset for non-first fragments in ipv6_find_hdr()
+> > 
+> >  net/ipv6/exthdrs_core.c         |  6 +++++-
+> >  net/netfilter/ipvs/ip_vs_core.c | 14 ++++++++++++++
+> >  2 files changed, 19 insertions(+), 1 deletion(-)
+> 
+> 	Both patches look good to me, thanks!
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> 	The ipv6 patch needs review from the net team and
+> may need some Fixes line:
+> 
+> Fixes: b777e0ce7437 ("[NETFILTER]: make ipv6_find_hdr() find transport protocol header")
 
-Replying to the bot's two questions:
+Doesn't patch 2 make patch 1 redundant? It seems that the comments added
+by patch 1 become stale with patch 2, no?
 
-1. How the issue was discovered
-
-Manual code inspection, combined with a static-analysis scan of net/
-that flagged the unchecked skb_mac_header() dereference in
-ebt_802_3_mt(). After the scan report I read the surrounding code by
-hand (ebtables.c ebt_do_table()/ebt_basic_match(), the bridge RX path,
-and eth_type_trans()) to confirm that nothing between the RX entry and
-this match guarantees more than ETH_HLEN (14) linear bytes past the mac
-header is available, and that no pskb_may_pull() runs in between.
-
-2. Whether the issue was actually triggered
-
-Not triggered. This is theoretical, found by code inspection only.
-There is no runtime report, stack trace, or crash log on my side. The
-reasoning chain is:
-
- - ebt_802_3_mt() casts skb_mac_header(skb) directly to
-   struct ebt_802_3_hdr * and dereferences fields up to machdr + 22
-   (the ni branch of the LLC union).
-
- - The ebtables core never calls pskb_may_pull() before running the
-   per-rule matches.
-
- - So an 802.3 frame (length field below 1536) whose skb carries
-   nothing past the 14-byte Ethernet header reaches the match with
-   machdr + 22 pointing into tailroom.
-
-The fix in the patch deliberately chooses a conservative predicate:
-it drops the packet whenever fewer than (ETH_HLEN + ebt 802.3 header
-size) bytes are linear, which can also drop frames whose LLC union is
-technically still inside the linear area but shorter than that. In
-practice the minimum Ethernet frame is 60 bytes, so skb_headlen under
-37 only occurs on truncated or malformed frames, where dropping is
-the reasonable response. Fixing a potential OOB read is not worth
-adding a second rule for.
-
-If a runtime reproducer is needed, I can build one with a raw socket
-and a veth pair, but I think the code-level analysis is conclusive.
-
-Guo Zihao
+If so, why do we need both? Why not send only patch 2 and blame
+63dca2c0b0e7a?
