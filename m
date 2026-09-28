@@ -1,68 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from out-utut-a194.jellyfish.systems (out-utut-a194.jellyfish.systems [198.177.127.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 028A6296BB5;
-	Mon, 28 Sep 2026 16:19:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B794EC659
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 16:29:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.177.127.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790612390; cv=none; b=Bd5tS6vYNx/9lcTfmlLhoOWmWoKBDSLphvbAbHc9kmRbueCKJW2PrGoFEllnTcNczkNpjXgKXR7Axw7FyBunG1ZQyv1jCLnunnJ/g9JhhypkTFQh1Qh30v5FelEomi31z2fC7X7RkgmEpAadYhQ318ArP24CBGI3r+jfbZ/5sWY=
+	t=1790612954; cv=none; b=aDQi9vWy9GBvOPN7vdoXl/WOrWtROx5bWHyEiK+SL56F5krYFjffihtKkTflIglKbBf+mmnb0MW3qfMPRINZUy03QMnJ4TUUxbkRzbaWc+iYXK8Ajrkpx7peBK9ki+0ja9i/jqogJhuffkB9sAct8hjfiCUYgk00JLysQ+OwdRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790612390; c=relaxed/simple;
-	bh=T80pmibn7aSi6N9hDzJvCBDoLXDCN4HDH9fhrQVJ60g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=I3rAQlulHQyGhgvxw/iz4K7HuFg9RmbxFnL9JNy3AoOh+IPscFUHLziumxsks8IvD3vZdTdpZLSAPt+BLpEkrUrKD9orL9A+IgFG26eKQrJolruKLpXeXS8wEIYzeRfjPmoznfdwRNH8rieVwDOt3zStjpyztCRGDnLWiSegha8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TOwiCr9n; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790612954; c=relaxed/simple;
+	bh=GmCsQDu8Z57dznoMxRBT9nUlr6N6NETFackyEN85iWQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AKXAY2Cezf2xgL8gi7grQepdGFAgnm1wxX4qOVPj73BvpfO4zbIedySgai6RFoCCMuuFY6UGgW6QP/ijVFUSaeZejGVQTKhwRnF7NwVtPza8Kpi4D+LyyQEr2gBiXJNx5VRp36I6+lLT6JoNPb5g1nV8ntI4f7wXdS2urkr2UDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=BFNTbaaT reason="key not found in DNS"; arc=none smtp.client-ip=198.177.127.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TOwiCr9n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B6CE1F000FF;
-	Mon, 28 Sep 2026 16:19:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790612388;
-	bh=ZCAoLYZlSrLohEk+mBrzJi43HvKosm2TxiN/tMhp9/s=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=TOwiCr9nqTO8nOQJgFfjCbHjXzP2hi5DPT5YSQ11oB0PBzddsScGVL47uDq3VdRgi
-	 1v0Gd1qH5OzYSSLNcvcGV/aRDj/A+iGZ9ycoIcOiobZIiY/2/R+QeorPTpJAYPc4kp
-	 QHbyHtI8yazJyxSe8jF2QYv2e8KT1TxeKFGd46bHKJmRVFEfHRCrgaHG9R/KTWKD+X
-	 6S8u9U7ACz4keoiOA/t8aR6NJcISvP1W65YB4zdAFNvveDWrmwwT4O+UiL+WfIUsPq
-	 pAR+Gi7xwemlGnwh8ru4gzkEEuOuc8it02faIGlHxM4zrGmhXnP0r0ukERhqGO1g5v
-	 DwCdMVohzSKXQ==
-From: netdev-bot+sinfo@kernel.org
-To: Andrea Parri <parri.andrea@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>,
- Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
- coreteam@netfilter.org, bridge@lists.linux.dev, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: br_netfilter: restore VLAN tag on
- refragmented IPv6 packets
-Date: Mon, 28 Sep 2026 16:19:47 +0000
-Message-ID: <179061238760.31693.2318453255259270234@kernel.org>
-In-Reply-To: <20260928161830.351199-1-parri.andrea@gmail.com>
-References: <20260928161830.351199-1-parri.andrea@gmail.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="BFNTbaaT"
+Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4htmw75yRGz6tkM;
+	Mon, 28 Sep 2026 16:28:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1790612938;
+	bh=Jjt4tGbUn3XaVxYFqdlAHvBDWDRqdX3jcffveL7qe0E=;
+	h=From:To:Cc:Subject:Date:From;
+	b=BFNTbaaTscPETjOPA4VZ2mC1sX63SUvZZUOBIgDqNwT0OCD/hrC8veFTN1vvf00LC
+	 ksmzzHKAFrpfPLuIrUET2RrSmLyAuZ2pWLLzVW/m2PWVyiIkFPbijb/mNCwwAdKfka
+	 kI3NYaiiGSUGCRt8Tg2zd2NRyEn0319A3SH9SOkjANay8UIJshPgL1bBSB/S47oSbS
+	 MibBmb6bd6kDhjSiAcdUG8YPE1tUCwMoSij1Mc6tP8WPbbwcw2K21jn40n681ockro
+	 Cx0A81ics8Xu/OSW5/pII9jE/P5Bp5c1IuUVTMm6/NC/4b401bRsT0Vc2r/zR6+dCW
+	 dnUGEgTgXLBVg==
+From: Rahul Chandelkar <rc@rexion.ai>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
+	Rahul Chandelkar <rc@rexion.ai>
+Subject: [PATCH nf-next v5 0/4] netfilter: conntrack: shared port parser for helpers
+Date: Mon, 28 Sep 2026 16:28:54 +0000
+Message-ID: <cover.1790596690.git.rc@rexion.ai>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Envelope-From: rc@rexion.ai
 
-Hi!
+The IRC and Amanda conntrack helpers parse port numbers from packet
+payload with simple_strtoul(), which returns unsigned long without a
+range check, so a port above 65535 is truncated when it is stored in a
+u16 (65537 becomes 1) and an expectation is created for a port that
+never appeared in the payload.  Amanda also cuts a port field of six or
+more digits down to its first five.  Both problems are present in
+current nf-next.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Instead of open-coding a range check in each helper, this series moves
+the sip_strtouint() parser of nf_conntrack_sip into the helper core as
+nf_ct_helper_parse_uint(), adds nf_ct_helper_parse_port() on top of it,
+and converts the three helpers:
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
+  1/4 adds the two parsers
+  2/4 and 3/4 fix the IRC and Amanda helpers
+  4/4 removes the now duplicate parsing code from the SIP helper
+      (no functional change)
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+Testing: allmodconfig and allyesconfig builds with W=1, sparse, an
+allnoconfig build, i386 and big-endian powerpc cross-builds, and a
+build of each patch in turn.  The old and new sip_parse_port() were
+compared in a userspace harness built from the kernel source on three
+million random inputs with no difference.  The helpers have not been
+run-time tested with IRC, Amanda or SIP traffic.
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Tool use: v4 and v5 were prepared with Claude Code, an AI coding
+assistant, as recorded in the Assisted-by tags.  It wrote most of the
+code changes and changelogs from v3 and the review feedback, and ran
+the builds and tests listed above.  v4 should have carried the tags as
+well; it did not, sorry about that.
+
+Changes in v5:
+  - nf_ct_helper_parse_port(): reject digit runs longer than five
+    characters, so that sip_parse_port() still rejects zero-padded
+    ports and 4/4 has no functional change; return -EINVAL rather
+    than -1
+  - add kernel-doc for both parsers, including their digit limits
+  - amanda: make pbuf one byte larger so that a port field of six or
+    more digits is rejected instead of being cut to its first five
+    digits
+  - irc: remove the dcc_port == 0 test in help(), which can no longer
+    be true
+  - sip: rewrap call sites that no longer fit in 80 columns
+  - add Assisted-by tags
+  (the first four items address the Sashiko review of v4)
+v4: https://lore.kernel.org/all/20260923091608.2617604-1-rc@rexion.ai/
+  - rebase onto nf-next; move sip_strtouint() into the helper core
+    instead of adding a second parser, and convert nf_conntrack_sip
+    (Pablo Neira Ayuso, Phil Sutter, Florian Westphal)
+  - use a real name and target nf-next (Pablo Neira Ayuso)
+v3: https://lore.kernel.org/all/20260503083220.630655-1-rc@rexion.ai/
+  - add nf_ct_helper_parse_uint() and convert nf_conntrack_sip
+    (Phil Sutter)
+v2: https://lore.kernel.org/all/20260501063156.2520780-1-rc@rexion.ai/
+  - add a shared nf_ct_helper_parse_port() in the helper core instead
+    of open-coding range checks (Florian Westphal, Pablo Neira Ayuso)
+v1: https://lore.kernel.org/all/20260430161230.3438973-1-rc@rexion.ai/
+
+Rahul Chandelkar (4):
+  netfilter: conntrack: add shared uint and port parsers for helpers
+  netfilter: nf_conntrack_irc: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+  netfilter: nf_conntrack_sip: use shared helper parsers
+
+ include/net/netfilter/nf_conntrack_helper.h |  5 ++
+ net/netfilter/nf_conntrack_amanda.c         | 13 ++-
+ net/netfilter/nf_conntrack_helper.c         | 79 +++++++++++++++++
+ net/netfilter/nf_conntrack_irc.c            |  9 +-
+ net/netfilter/nf_conntrack_sip.c            | 93 ++++++---------------
+ 5 files changed, 123 insertions(+), 76 deletions(-)
+
+
+base-commit: 87b80c2f6b05cad9f0ff9136709c62a0f59923e3
+-- 
+2.43.0
+
