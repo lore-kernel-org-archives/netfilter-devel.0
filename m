@@ -1,275 +1,183 @@
-Received: from out-93wp-a34.jellyfish.systems (out-93wp-a34.jellyfish.systems [104.207.68.34])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED14634B40F
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 20:49:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=104.207.68.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB65237F00B
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 20:55:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790628556; cv=none; b=VUmu0UpVot8/wWghb+uYmDE2D66OFoQ9wRXPq3hcuLcgjpcW/nyKUVozvLA27jHr0iz11kBnEtVcSzv74E4oo76Txbv0m4CIE/W+U+kDoWcVOI4oHh1wOcIAZQnALrgDVzHMPXDjiINmwe8rrW4OdqC25SnlJWiMF2MBGrbpf74=
+	t=1790628950; cv=none; b=YmDtRK/521jSI12z1lz8dzdnPuZiNf8WuDjXT0uLiMV7ypgD/fBsJnL+X+NO/Mzf+Bl2XfoGa/FB+VmhFFaxDezI8mlNNRWUjy/dQ6HC375n0vuu5uNTIx8j6HjHqOyglBDHZ20ALu79rQlc7Mn/Raf45bXHnoIvoLWNl5mGhFM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790628556; c=relaxed/simple;
-	bh=5M6QjMNqJvQSS95Jj03HrLnqtgFcgUhJ8JkDOGCqW+4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OBK5jadsuaG9TQY2MHjMQuUBNBj4ZHEbhdWQRTQNQm7eUx+GXEFGZ6/N8/SeybmsTWOSuXbVcFW6Tx1TIWFV/+rwl9o79WB1/oDOwu9vJ2F6B0UdAiVA0o+CgCvP7B6FWJcUrsqNu6v3Yit1DQxxdq4VfRJJ7MmfKZ+rraRjPf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=BC6Oxz8J reason="key not found in DNS"; arc=none smtp.client-ip=104.207.68.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
+	s=arc-20240116; t=1790628950; c=relaxed/simple;
+	bh=V7tb3aNt5SuShUXsBlZ76yLZmYZ89Vw2dBGOZyb5BV0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=If+ekuRrf71151JgmOt/BtwGZPexdj2IfgAULv6Ud4jCxCA09PhdbIK44pkbiw0WBwf8xjUsIYX1lrMkx8xP7JEpNBxS98uUlKOFGTUYSKVxTmZ5b/ELteM+JJ0hWHzjo8ya0DU+Q/JHkFQ2+bwV4BtnBHJos6zBAoXSSfXlm2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=LwUHppja; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=RL29oWgy; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=iDJsyBJ6; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JH7phM8b; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="BC6Oxz8J"
-Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="LwUHppja";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="RL29oWgy";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="iDJsyBJ6";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JH7phM8b"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.spacemail.com (Postfix) with ESMTPSA id 4htthL3ZfJz2x99;
-	Mon, 28 Sep 2026 20:49:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
-	s=spacemail; t=1790628547;
-	bh=bs/79qfpGoSWJ7Dn8JekcUQWRfZCEzCTzs3m2yBFoGI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BC6Oxz8J2CLmyy1p/HSPa73gUsLDSk5ZrAASrByxCqxpnjJc7Nr8xKyccWYWiMC9G
-	 WJx2xqK4D8JrwhXv58Oe7ESNrzCO8+QJW4H7Zj5BwlTvIPWcjBOCNO7TGnoV/qEl7o
-	 4HsUfLJrA+x1Gu7YxbIfsNRxYlPPpOtUkGyFl7ec0/G83MMEYl+w7yTZLwkOEQBI7K
-	 XNKfvxVeKDMKluQRlAm41Chwit/SSnprwUnvRxyZZBAXBT5mH/MeMojiIOVAq/PBZU
-	 XySViyMW7m1chjiVWrC7PypL+dUX+tEFHaQC5DJFEi9MaK+klWDlXv2aTEUtL6mfy0
-	 XaltVCHSIYTgA==
-From: Rahul Chandelkar <rc@rexion.ai>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	netdev@vger.kernel.org,
-	Rahul Chandelkar <rc@rexion.ai>
-Subject: [PATCH nf-next v5 4/4] netfilter: nf_conntrack_sip: use shared helper parsers
-Date: Mon, 28 Sep 2026 20:49:05 +0000
-Message-ID: <4c502fdf5a929e1dfd04f7b1be9e20cb19f54bfa.1790596690.git.rc@rexion.ai>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1790596690.git.rc@rexion.ai>
-References: <cover.1790596690.git.rc@rexion.ai>
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 767BA1F785;
+	Mon, 28 Sep 2026 20:55:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790628942; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
+	b=LwUHppjao/v+aZUYXLXvL0ETJVpvClghEdhKNhYn/uc6xTM9JIFSut/C8I6BgQj4iTAQa8
+	5l5SW8fteCP9DTxCAjDCg7vp91SO3jPKL/qXnQQa8Y5J7c2pJE3gfRmxWmcfeqgmUEsteB
+	nxGNFrZD6HmcElIGnG6YUG6QDlcdiko=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790628942;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
+	b=RL29oWgyBb9fYy+bZMM8WxFv4CbcoTEV9Nxj3IDjwGDy06ebTuGOdjTVshFrIp8oxt2f7c
+	e3N73Gn9OJWKvvAQ==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1790628938; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
+	b=iDJsyBJ6a/gEmN/CD69+kjK3ZiQwmFpec5a2q71I1EV2Eywc8ZvrB/hf/oiJLyzbBcuE6e
+	Oi1V2SHQSDCt2foP680dSws5uDa3Ba1qfpbEdmkeoGwyXG/AUIf/QZgPnxiUhvFKZDJI8q
+	HlxNne9TlaLf4AhFvVrWMBxTx/19JYA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1790628938;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
+	b=JH7phM8bISUiat5NxnpuF+/FQhZnko2vIYVsFix1BeAKkneb+fIqDEMQeoDhbC6FL12mTy
+	u4cxRKB5foPWS3DA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 213CA133F3;
+	Mon, 28 Sep 2026 20:55:38 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 1B8MOEnUumqQDgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 28 Sep 2026 20:55:38 +0000
+Message-ID: <f9690303-d022-4dd4-8050-ca8e00f8f71c@suse.de>
+Date: Mon, 28 Sep 2026 22:54:42 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Envelope-From: rc@rexion.ai
+User-Agent: Mozilla Thunderbird
+Subject: Re: Netfilter: match "tcp option" with the same type present multiple
+ times
+To: Matthieu Baerts <matttbe@kernel.org>,
+ Netfilter Devel <netfilter-devel@vger.kernel.org>,
+ Netfilter Coreteam <coreteam@netfilter.org>
+References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spam-Level: 
+X-Spam-Score: -4.30
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.993];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	TO_DN_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
 
-nf_conntrack_sip has its own bounded integer parser, sip_strtouint(),
-and its own digit loop in sip_parse_port().  Equivalent parsers now
-live in the conntrack helper core, so drop the private copies:
+On 9/28/26 2:13 PM, Matthieu Baerts wrote:
+> Hello Netfilter devs,
+> 
+> First, thank you for maintaining Netfilter in the kernel and the
+> userspace tools.
+> 
+> The MPTCP selftests are switching from IPTables to NFTables, and
+> Clashiko reported that this part of a rule wouldn't match anything:
+> 
+>    tcp option mptcp subtype remove-addr drop
+> 
+> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+> added to the TCP options, it is added after an MPTCP DSS option (type
+> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
+> (type 30) options in the TCP options. It looks like Netfilter doesn't
+> handle that, because it stops processing other TCP options when the
+> expected type is found:
+> 
+> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
+>      ...
+> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
+> 		optl = optlen(opt, i);
+> 
+> 		if (priv->type != opt[i])
+> 			continue;
+> 		...
+> 		return;  // <== it will look at the first MPTCP option
+> 	}
+>      ...
+> }
+> 
+> It looks like it shouldn't stop if the wrong subtype is found, but the
+> subtype is not compared there if I'm not mistaken. Should there be a fix
+> to support this case?
+> 
+> For more details about the Clashiko report:
+> 
+> https://lore.kernel.org/179058242453.3145.1450534124183352369@kernel.org
+> 
+> 
+> BTW, I'm probably missing something, but adding the following doesn't
+> seem to have any effect on my side:
+> 
+>    nft add table ip filter
+>    nft add chain ip filter OUTPUT \
+>      { type filter hook output priority filter; policy accept; }
+>    nft insert rule ip filter OUTPUT tcp option mptcp exists counter drop
+> 
+> Same with "mptcp subtype mp-capable", other subtypes or other types like
+> "timestamp". But if I use ...
+> 
+>    nft insert rule ip filter OUTPUT meta l4proto tcp counter drop
+> 
+> ... then the drop is effective. Any idea what I'm missing here? :)
+> 
+> 
+> (Also, it looks like the MPTCP suboptions are not documented in the nft
+> man page :) )
+> 
 
-  - sip_strtouint() is removed and its callers use
-    nf_ct_helper_parse_uint(), which has the same body.  Call sites
-    that no longer fit in 80 columns are rewrapped.
+Tomorrow there should be a patch in netfilter-devel adding it, we 
+definitively should put more work into documentation.
 
-  - sip_parse_port() uses nf_ct_helper_parse_port() for the numeric
-    part, keeping the SIP-specific handling of the ':' separator, the
-    default SIP_PORT and the minimum port of 1024.  The shared parser
-    rejects the same inputs as the old loop: no digits, more than five
-    digits and values above 65535.
-
-No functional change intended.  The old and new sip_parse_port(), taken
-from the kernel source, were compared in a userspace harness on three
-million random inputs with no difference in result, port or end
-pointer.
-
-Assisted-by: Claude-Code:claude-opus-5-5 sparse
-Signed-off-by: Rahul Chandelkar <rc@rexion.ai>
----
- net/netfilter/nf_conntrack_sip.c | 93 +++++++++-----------------------
- 1 file changed, 25 insertions(+), 68 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 64bc440b1181..1264e77720a8 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -183,8 +183,8 @@ static int sip_parse_addr(const struct nf_conn *ct, const char *cp,
- static bool sip_parse_port(const char *dptr, const char **endp,
- 			   const char *limit, __be16 *port)
- {
--	unsigned int p = 0;
--	int len = 0;
-+	char *end;
-+	u16 p;
- 
- 	if (dptr >= limit)
- 		return false;
-@@ -199,29 +199,22 @@ static bool sip_parse_port(const char *dptr, const char **endp,
- 
- 	dptr++; /* skip ':' */
- 
--	while (dptr < limit && isdigit(*dptr)) {
--		p = p * 10 + (*dptr - '0');
--		dptr++;
--		len++;
--		if (len > 5) /* max "65535" */
--			return false;
--	}
--
--	if (len == 0)
-+	if (nf_ct_helper_parse_port(dptr, limit - dptr, &p, &end))
- 		return false;
- 
- 	/* reached limit while parsing port */
--	if (dptr >= limit)
-+	if (end >= limit)
- 		return false;
- 
--	if (p < 1024 || p > 65535)
-+	/* SIP ports below 1024 are not accepted */
-+	if (p < 1024)
- 		return false;
- 
- 	if (port)
- 		*port = htons(p);
- 
- 	if (endp)
--		*endp = dptr;
-+		*endp = end;
- 
- 	return true;
- }
-@@ -270,51 +263,6 @@ static int skp_epaddr_len(const struct nf_conn *ct, const char *dptr,
- 	return epaddr_len(ct, dptr, limit, shift);
- }
- 
--/* simple_strtoul stops after first non-number character.
-- * But as we're not dealing with c-strings, we can't rely on
-- * hitting \r,\n,\0 etc. before moving past end of buffer.
-- *
-- * This is a variant of simple_strtoul, but doesn't require
-- * a c-string.
-- *
-- * If value exceeds UINT_MAX, 0 is returned.
-- */
--static unsigned int sip_strtouint(const char *cp, unsigned int len, char **endp)
--{
--	const unsigned int max = sizeof("4294967295");
--	unsigned int olen = len;
--	const char *s = cp;
--	u64 result = 0;
--
--	if (len > max)
--		len = max;
--
--	while (olen > 0 && isdigit(*s)) {
--		unsigned int value;
--
--		if (len == 0)
--			goto err;
--
--		value = *s - '0';
--		result = result * 10 + value;
--
--		if (result > UINT_MAX)
--			goto err;
--		s++;
--		len--;
--		olen--;
--	}
--
--	if (endp)
--		*endp = (char *)s;
--
--	return result;
--err:
--	if (endp)
--		*endp = (char *)cp;
--	return 0;
--}
--
- /* Parse a SIP request line of the form:
-  *
-  * Request-Line = Method SP Request-URI SP SIP-Version CRLF
-@@ -682,7 +630,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
- 		return 0;
- 
- 	start += strlen(name);
--	*val = sip_strtouint(start, limit - start, (char **)&end);
-+	*val = nf_ct_helper_parse_uint(start, limit - start, (char **)&end);
- 	if (start == end)
- 		return -1;
- 	if (matchoff && matchlen) {
-@@ -1166,7 +1114,9 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
- 		mediaoff += t->len;
- 		medialen -= t->len;
- 
--		port = sip_strtouint(*dptr + mediaoff, *datalen - mediaoff, (char **)&end);
-+		port = nf_ct_helper_parse_uint(*dptr + mediaoff,
-+					       *datalen - mediaoff,
-+					       (char **)&end);
- 		if (port == 0 || *dptr + mediaoff == end)
- 			continue;
- 		if (port < 1024 || port > 65535) {
-@@ -1357,7 +1307,8 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	 */
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
-+		expires = nf_ct_helper_parse_uint(*dptr + matchoff,
-+						  *datalen - matchoff, NULL);
- 
- 	ret = ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
- 				      SIP_HDR_CONTACT, NULL,
-@@ -1467,7 +1418,8 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
-+		expires = nf_ct_helper_parse_uint(*dptr + matchoff,
-+						  *datalen - matchoff, NULL);
- 
- 	while (1) {
- 		unsigned int c_expires = expires;
-@@ -1531,8 +1483,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (*datalen < strlen("SIP/2.0 200"))
- 		return NF_ACCEPT;
--	code = sip_strtouint(*dptr + strlen("SIP/2.0 "),
--			     *datalen - strlen("SIP/2.0 "), NULL);
-+	code = nf_ct_helper_parse_uint(*dptr + strlen("SIP/2.0 "),
-+				       *datalen - strlen("SIP/2.0 "), NULL);
- 	if (!code) {
- 		nf_ct_helper_log(skb, ct, "cannot get code");
- 		return NF_DROP;
-@@ -1543,7 +1495,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 		nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 		return NF_DROP;
- 	}
--	cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
-+	cseq = nf_ct_helper_parse_uint(*dptr + matchoff, *datalen - matchoff,
-+				       (char **)&end);
- 	if (*dptr + matchoff == end) {
- 		nf_ct_helper_log(skb, ct, "cannot get cseq");
- 		return NF_DROP;
-@@ -1613,7 +1566,9 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 			nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 			return NF_DROP;
- 		}
--		cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
-+		cseq = nf_ct_helper_parse_uint(*dptr + matchoff,
-+					       *datalen - matchoff,
-+					       (char **)&end);
- 		if (*dptr + matchoff == end) {
- 			nf_ct_helper_log(skb, ct, "cannot get cseq");
- 			return NF_DROP;
-@@ -1690,7 +1645,9 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 				      &matchoff, &matchlen) <= 0)
- 			break;
- 
--		clen = sip_strtouint(dptr + matchoff, datalen - matchoff, (char **)&end);
-+		clen = nf_ct_helper_parse_uint(dptr + matchoff,
-+					       datalen - matchoff,
-+					       (char **)&end);
- 		if (dptr + matchoff == end)
- 			break;
- 
--- 
-2.43.0
+> Cheers,
+> Matt
 
