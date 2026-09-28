@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D19A509F0D;
-	Mon, 28 Sep 2026 23:55:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB77F50AC15;
+	Mon, 28 Sep 2026 23:55:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790639706; cv=none; b=nCic1/+iZbEtuI67SSUrA8lnTbysUUezEBKLnY0AZ5XO+e4NdESu1z6AmGru8T/kBV1C/2Gqs2oLtSOiewJu4ZRHTs1cilEQhnhtoTgqygFpmBFVIq/M2ys/9rtxo7ZOIIiXLkVV0Q2uILUhn7V7TksZIfbvIhyqKEZ5/29EoEM=
+	t=1790639707; cv=none; b=PlTjz9Uy/tKHMIPUt91vFBCBpKQVfKqbmm5biro1+2iKfYENUMr78VOxwQ++9JRbuTEMzPt5MkIucP7Tb1G8oQmKy5udKTc4n2J7fdL9fNniLkLYxzSAY6Pl3Txm6m3EgfkQ7R5GdNaCxzNxhnkK7cZEaulCClhOLr6kvVj0UrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790639706; c=relaxed/simple;
-	bh=JOCeyUeBaUNSzsxLFNFPvygt9s3owBnVY8LM8GrHiu4=;
+	s=arc-20240116; t=1790639707; c=relaxed/simple;
+	bh=zf29Gt2kDHEVWU5kwUp85rT5hDBBqORRpY0HNsjSpes=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=sLyfpVdLdM9sKnY2lSN9tf3XRrFdvin4B5KMM2j2WqpafB3MOdvDC5SnurSWVfU79Me7R9huCRYeNHKEYY9xD82OLUX9ziEAMizOgcv6Gaf06eLxzkzo/ZM2dUfCSKnb6/rWHmwWXny8qfO6HoC+FrUnHHkRgPrOgDcG0u/htzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kSB0ZCak; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=OLY/bDmmfrvRC35uIVIv8M26Pm3HuMsguifSTr9652/ypBEu9QVXCx6Dm1eQq7Qzh5ETOks1bzqZ/yS7RB0/wXd6M731Cj0zF4H8urFTf8ljKbhI3Z4TSSKhHxdXoTUJsDvQtlQNTeGTD5UG/ejX7Y7vbDGnlWpXWReUnXA0qEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V8VU8dnT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kSB0ZCak"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F5B71F00893;
-	Mon, 28 Sep 2026 23:55:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V8VU8dnT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53F941F000FF;
+	Mon, 28 Sep 2026 23:55:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790639704;
-	bh=F50qz/vLjDVBH+lZEu5P4jYKRWmcSwlF5qV7TrTySMo=;
+	s=k20260515; t=1790639705;
+	bh=QIirEpJkvKIK16eJFYeEMYWOYwXzKi/NHgEhj6srvPI=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=kSB0ZCakmyIb+pG5al12BKm3uU7Uk21epicWshRrYFTSW+q5MLFb8lKp7wgAzc6o7
-	 o9mRULQw6G711WlP4pIKcaC+AMOTf7rTf9dae6bYKUoq/HigIRR8dIa00e7EMuQLoD
-	 FTLl0IR9V5qwPmJ9BhzOWrQGRj/UIooNp99Mv9VJNJRUDFHkSVcGxEBiqdM9tNhsbe
-	 Wz9wRw7d4K2muEqm4viX6xGYOw1ZlPXV9VR/8TK2ZUQZcQphE6wF1WiRrheGBLWUr+
-	 lALz3jEZILNf1IpKHFAlfnhX/eKw5ehWd+t+uGOaVNi5pnG8gAV+ArenoT+8sfCek5
-	 kTk6C1lGoxCFQ==
-Subject: Re: [PATCH net 08/11] netfilter: nft_set_rbtree: skip transaction
- elements during GC
+	b=V8VU8dnTR5/JwHTLJbrIh3jB+G87OZaYKXn3lPNisZOzLv+EClUPTNwleceRWZvPZ
+	 Z8TqdeowTQHL1WYkYT8hDTE//ycn0ro6cSCs6INyv03J5Q20TK3OQX7YXwjo7m6aM6
+	 tzdvxF04ePNLEqUPKEYvv9JV4OO9xUI4XAZTTqgIDDQCarW96jHziOK6+yEX1omsGs
+	 eUTBSE5TzTvD/BcNX+81TjtM7CSPHkGiZ3CsS5Yzqou0Gb/J0iW6VWU9Jm93n7sDwh
+	 j8++XxIZ1ah4b2s6B4t84mm0zDeYybX101biLM24P5vdhLOul+lAGYh+9TD5LDyqwr
+	 8Qz8DqIERb8zw==
+Subject:
+ Re: [PATCH net 10/11] netfilter: flowtable: generalize pending status bit
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Mon, 28 Sep 2026 23:55:03 +0000
-Message-ID: <179063970372.3145.17414936987144600093@kernel.org>
-In-Reply-To: <20260927220816.268206-9-pablo@netfilter.org>
-References: <20260927220816.268206-9-pablo@netfilter.org>
+Date: Mon, 28 Sep 2026 23:55:04 +0000
+Message-ID: <179063970489.3145.12908523239374463658@kernel.org>
+In-Reply-To: <20260927220816.268206-11-pablo@netfilter.org>
+References: <20260927220816.268206-11-pablo@netfilter.org>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -47,10 +47,10 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 (1) · Medium: 0 · Low: 0
+Critical: 0 · High: 1 (1) · Medium: 0 (1) · Low: 1 (1)
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -58,144 +58,240 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The patch does not fix the stale end pairing in
-  nft_rbtree_gc_scan() (net/netfilter/nft_set_rbtree.c).
+- [High] The new NF_FLOW_PENDING gate in nf_flow_offload_gc_step()
+  (nf_flow_table_core.c:580) is a single relaxed test_bit() snapshot.
+- [Low] flow_offload_work_handler() now releases the flow with
+  smp_mb__before_atomic() followed by clear_bit(NF_FLOW_PENDING)…
 
 Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the insertion-
-  time GC path has the same wrong-end pairing, and this commit leaves it…
+- [High] nf_flow_table_free()
+  (net/netfilter/nf_flow_table_core.c:775-788) does not wait for DESTROY…
+- [Medium] The datapath can re-offload a flow that GC has already torn
+  down and removed from hardware, and that rule is never deleted.
+- [Low] In nf_flow_offload_gc_step()
+  (net/netfilter/nf_flow_table_core.c:609-610), the last branch `else if…
 
 --
 
-netfilter: nft_set_rbtree: skip transaction elements during GC
+netfilter: flowtable: generalize pending status bit
 
-This patch makes nft_rbtree_gc_scan() skip any element that is not fully
-active in both generations. The goal is to keep elements added by the
-transaction being committed out of the scan. Without that, a new end
-element could be paired with an unrelated expired start and freed before
-it is activated.
+This renames NF_FLOW_HW_PENDING to NF_FLOW_PENDING. nf_flow_offload_gc_step()
+now skips any flow that has hardware offload work pending. It also moves the
+setting of NF_FLOW_HW_DEAD back into flow_offload_work_del(), reverting
+d644b23afe1e, and clears the pending bit after a barrier at the end of
+flow_offload_work_handler().
 
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index 9894832281c4b..12431b55752fb 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-> @@ -900,6 +900,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
->  		next = rb_next(node);
->  
->  		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-> +		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
-> +			continue;
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 934c6151f558b..36bbc7be2f745 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -575,7 +575,12 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+>  static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+>  				    struct flow_offload *flow, void *data)
+>  {
+> -	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+> +	bool teardown;
+> +
+> +	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+> +		return;
 
 [Severity: High]
-The commit message says this change "preserves interval pairing across
-skipped elements". Is that the case in nft_rbtree_gc_scan()?
+Does this check actually stop GC from freeing a flow while offload work is
+pending? The test_bit() takes one snapshot, and nothing ties it to the
+flow_offload_del() call later in this function.
 
-rbe_end is only cleared after a GC move. When the scan reaches a fully
-active start that has not expired, rbe_end still points at that start's
-own end:
+The datapath can still claim NF_FLOW_PENDING after this check.
+flow_offload_refresh() is reached from nf_flow_offload_forward() and
+tcf_ct_flow_table_lookup() on a flow that was looked up under RCU. It only
+checks NF_FLOW_CLOSING and NF_FLOW_HW:
 
-	if (nft_rbtree_interval_end(rbe)) {
-		rbe_end = rbe;
-		continue;
+net/netfilter/nf_flow_table_core.c:flow_offload_refresh() {
+    ...
+	if (likely(!nf_flowtable_hw_offload(flow_table)) ||
+	    test_bit(NF_FLOW_CLOSING, &flow->flags))
+		return;
+
+	if (test_bit(NF_FLOW_HW, &flow->flags))
+		nf_flow_offload_refresh(flow_table, flow);
+}
+
+nf_flow_offload_refresh() then calls nf_flow_offload_work_alloc() with
+FLOW_CLS_REPLACE. Its test_and_set_bit(NF_FLOW_PENDING) succeeds as soon as
+the DESTROY worker has cleared the bit. TEARDOWN, HW_DYING and HW_DEAD are
+never checked on this path.
+
+Could this sequence happen?
+
+CPU0 (datapath)                  GC / offload workqueue
+flow lookup finds F
+                                 gc_step(): teardown F
+                                   nf_flow_offload_del(), queue DESTROY
+                                 DESTROY worker:
+                                   set_bit(NF_FLOW_HW_DEAD)
+                                   clear_bit(NF_FLOW_PENDING)
+                                 later gc_step():
+                                   test_bit(NF_FLOW_PENDING) == 0
+flow_offload_refresh(F)
+  test_and_set_bit(PENDING)
+  queue FLOW_CLS_REPLACE
+                                   HW_DEAD set -> flow_offload_del()
+                                     call_rcu(flow_offload_free_rcu)
+leaves RCU read section
+                                 flow_offload_free_rcu():
+                                   nf_ct_put(flow->ct); kfree(flow);
+                                 REPLACE worker:
+                                   flow_offload_work_add() on freed F
+                                   clear_bit(NF_FLOW_PENDING) on freed F
+
+call_rcu() only waits for CPU0 to leave its RCU read section. It does not
+wait for the work that CPU0 queued.
+
+GC passes can run back to back through
+nf_flow_table_cleanup()->flush_delayed_work() on successive NETDEV_DOWN
+events. On PREEMPT_RT the reader can also be preempted for a long time.
+
+The commit message says the bit is used "to inhibit the flowtable GC worker
+until pending hw offload work has been completed" and "to prevent a race
+between GC and hw offload handler". Is a re-check of TEARDOWN or HW_DYING
+needed after the fully ordered test_and_set_bit() in
+nf_flow_offload_work_alloc() (or in nf_flow_offload_refresh()) to close
+this?
+
+[Severity: Low]
+Should this be test_bit_acquire()? flow_offload_work_handler() now does
+smp_mb__before_atomic() followed by clear_bit(NF_FLOW_PENDING) as the
+release side. The reader here is a relaxed test_bit(), though, and the
+if/return control dependency only orders later stores, not later loads.
+
+On weakly ordered CPUs such as arm64, GC can see PENDING already cleared by
+a FLOW_CLS_STATS work and still read an old flow->timeout in
+nf_flow_has_expired(). That would be the value from before
+flow_offload_work_stats() stored:
+
+	offload->flow->timeout = max_t(u64, offload->flow->timeout,
+				       lastused + flow_offload_get_timeout(offload->flow));
+
+In that case, could GC tear down a flow that the hardware has just reported
+as active? The HW_DEAD read is in the same word as PENDING, so it is not
+affected.
+
+> +
+> +	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+>  
+>  	if (nf_flow_has_expired(flow) ||
+>  	    nf_ct_is_dying(flow->ct) ||
+
+[Severity: Low]
+This is a pre-existing issue, but the last branch of
+nf_flow_offload_gc_step() still queues stats work without checking
+NF_FLOW_HW_DYING:
+
+	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
+		nf_flow_offload_stats(flow_table, flow);
 	}
-	if (!__nft_set_elem_expired(&rbe->ext, tstamp))
-		continue;
 
-The new skip also leaves rbe_end unchanged. Suppose the scan then reaches
-an expired start with no end directly above it. This code then moves the
-other interval's live end to priv->expired, and nft_rbtree_gc_queue()
-frees it later:
+Take a CLOSING flow whose hardware rule has already been destroyed
+(HW_DYING and HW_DEAD set, TEARDOWN not set). Will GC keep queueing
+FLOW_CLS_STATS work for a cookie the driver has already removed?
 
-	if (rbe_end) {
-		nft_rbtree_gc_elem_move(net, set, priv, rbe_end);
-		rbe_end = NULL;
-	}
+With this patch each of those works also sets NF_FLOW_PENDING, so GC skips
+the flow until the work finishes. The stats result itself is harmless, but
+it adds redundant driver calls and can delay teardown of the flow by up to
+about one GC period. This behaviour dates back to commit fdbaf5163331.
 
-Take the reported trigger shape: a live interval above, the new elements
-skipped, then an expired start without an end. Here the patch seems to
-change only which end gets taken. Before, the new end element was taken,
-which caused the UAF. Now it is the older, fully active end of the
-interval above.
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 6757fd89c1f1a..4365859220e6a 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -995,6 +995,7 @@ static void flow_offload_work_del(struct flow_offload_work *offload)
+>  	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+>  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+>  		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
+> +	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+>  }
 
-Can an orphaned expired start like this be created with the stock nft
-tool? Running nft destroy element on an interval whose start has expired
-seems to be enough:
+[Severity: Medium]
+This isn't a bug introduced by this patch, but can the datapath re-offload a
+flow after this DESTROY work has removed it from hardware?
 
-nf_tables_delsetelem()
-  nft_rbtree_deactivate() on the start
-    -> returns NULL for the expired start, and start_rbe_cookie is
-       reset to 0
-    -> the -ENOENT is ignored for NFT_MSG_DESTROYSETELEM
-  nft_rbtree_deactivate() on the end
-    -> nft_rbtree_deactivate_same_interval() returns true because
-       start_rbe_cookie is 0, so the end is deactivated
+flow_offload_lookup() filters out TEARDOWN only at lookup time.
+flow_offload_refresh() then checks only NF_FLOW_CLOSING and NF_FLOW_HW.
+flow_offload_work_add() does not re-check TEARDOWN, HW_DYING or HW_DEAD
+before it does this:
 
-nft_set_commit_update() then removes the end from the tree with
-nft_trans_elems_remove(). That happens before set->ops->commit() runs
-nft_rbtree_gc_scan(). A crafted start-only NEWSETELEM placed in a gap is
-also accepted by __nft_rbtree_insert() and gives the same shape.
+	err = flow_offload_rule_add(offload, flow_rule);
+	if (err < 0)
+		goto out;
 
-In that case the higher interval [S_hi, E_hi) loses E_hi.
-nft_rbtree_commit() then rebuilds it as [S_hi, next start). If it is the
-topmost interval, it becomes open-ended (to == NULL).
+	set_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
 
-Once S_hi expires, the next scan takes the end of the next live interval
-above it. A later nft delete element on [S_hi, E_hi) also fails with
-ENOENT because E_hi is gone.
+Suppose a reader looks up the flow before GC sets TEARDOWN, and calls
+refresh after this worker has set HW_DEAD and cleared PENDING. The REPLACE
+work then re-installs the hardware rule.
 
-Would it make sense to also clear rbe_end when a fully active start has
-not expired?
+Once the REPLACE work clears PENDING, the next nf_flow_offload_gc_step()
+sees TEARDOWN, HW_DYING and HW_DEAD all set. It calls flow_offload_del()
+without issuing another DESTROY.
 
-	if (!__nft_set_elem_expired(&rbe->ext, tstamp)) {
-		rbe_end = NULL;
-		continue;
-	}
+Doesn't that leave a hardware rule for the 5-tuple, keyed by a cookie that
+points into the freed flow_offload? That rule would keep forwarding traffic
+outside conntrack and the ruleset until the flowtable or block is torn
+down.
 
 [ ... ]
 
+> @@ -1089,12 +1085,12 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+>  {
+>  	struct flow_offload_work *offload;
+>  
+> -	if (test_and_set_bit(NF_FLOW_HW_PENDING, &flow->flags))
+> +	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+>  		return NULL;
+>  
+>  	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+>  	if (!offload) {
+> -		clear_bit(NF_FLOW_HW_PENDING, &flow->flags);
+> +		clear_bit(NF_FLOW_PENDING, &flow->flags);
+>  		return NULL;
+>  	}
+
 [Severity: High]
-This is a pre-existing issue, not one introduced by this patch. The
-insertion-time GC path appears to have the same wrong-end pairing, and
-this patch leaves it unchanged.
+This is a pre-existing issue, but what happens during flowtable teardown if
+this GFP_ATOMIC allocation fails for a DESTROY request?
 
-__nft_rbtree_insert() calls nft_rbtree_gc_elem() when it finds an
-expired start that is active in the current generation. The rb_prev()
-walk stops at the first fully active end, whatever interval that end
-belongs to:
+If it fails, nf_flow_offload_del() returns without setting NF_FLOW_HW_DYING
+and nothing is queued. nf_flow_table_free() then continues with:
 
-net/netfilter/nft_set_rbtree.c:nft_rbtree_gc_elem() {
-    ...
-	while (prev) {
-		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-		if (nft_rbtree_interval_end(rbe_prev) &&
-		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
-			break;
+	nf_flow_table_gc_run(flow_table);
+	nf_flow_table_offload_flush_cleanup(flow_table);
+	rhashtable_destroy(&flow_table->rhashtable);
 
-		prev = rb_prev(prev);
+and nf_flow_table_offload_flush_cleanup() does:
+
+	if (nf_flowtable_hw_offload(flowtable)) {
+		flush_workqueue(nf_flow_offload_del_wq);
+		nf_flow_table_gc_run(flowtable);
 	}
 
-	rbe_prev = NULL;
-	if (prev) {
-		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-		nft_rbtree_gc_elem_move(net, set, priv, rbe_prev);
-	}
-    ...
-}
+The second gc_run now queues the DESTROY work on nf_flow_offload_del_wq,
+and nothing flushes that workqueue afterwards. rhashtable_destroy() does not
+free the entries, so the flow_offload and its ct and dst references are
+leaked.
 
-The comment says end intervals "are coupled with the interval start
-element", but nothing checks that coupling.
+The callers free the flowtable straight away: kfree(flowtable) in
+nf_tables_flowtable_destroy() and kfree(ct_ft) in
+tcf_ct_flow_table_cleanup_work(). The queued work then runs:
 
-Consider a tree that, walked from high to low keys, holds:
+flow_offload_work_handler()
+  read_pnet(&offload->flowtable->net)
+  flow_offload_work_del()
+    flow_offload_tuple_del()
+      nf_flow_offload_tuple()
+        down_read(&flowtable->flow_block_lock)
+        list_for_each_entry(block_cb, block_cb_list, list)
 
-  E_w (active), S_w (live), E_x, S_x (expired)
-
-E_x is either pending deletion in the same batch or already removed by an
-earlier nft destroy element. When an insertion walk reaches S_x, can the
-rb_prev() walk skip E_x and S_w and pick E_w?
-
-If so, nft_rbtree_gc_elem_move() erases E_w, the live end of
-[S_w, E_w), and queues it on priv->expired. The next commit frees it and
-rebuilds S_w as a wider or open-ended interval.
+Isn't this a use-after-free of the nf_flowtable? If the allocation fails
+again in the second pass, the flow is simply leaked.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927220816.268206-2-pablo%40netfilter.org
