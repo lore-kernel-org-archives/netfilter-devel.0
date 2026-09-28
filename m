@@ -1,99 +1,57 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from out-zbxj-a65.jellyfish.systems (out-zbxj-a65.jellyfish.systems [198.54.127.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ACE04F7CBF;
-	Mon, 28 Sep 2026 19:32:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDBE49EC7E
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 19:44:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.65
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790623948; cv=none; b=UFHaM0A2XDRbvkwz3fgreII3KL5cRpGrJzzL8pKJMgfVyhpxxP0iA3cxjSsJS7b45lXw1L9yRzz5ByEpZLGZ5SyX7xScUShwPjfvRJnTD1PqO4F+FKTy/US4IbJPeMM1eMzpYJfjEuyxa9z2Bnzm9mks2cW9JblvtPZlUn0ytCI=
+	t=1790624663; cv=none; b=jPBlBwEhzuLERs8oEPS72FU1dSDzAW/YFvy9vClqxptwfsWesi5yb1MnBvUJOaNlBZx3/MCBIbMeRJ6stqaRJjXqG0xSUKuteltZC9WfHImn3Sh6NYTUu6fsZj5qHM8v535bu9UwotJ1Ef2b2N9pT1046AXB9VTlSbAZigE4brY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790623948; c=relaxed/simple;
-	bh=C78ZJCDay44Y1mcIjKzi7uV4gfTSvPlWq7Nu7pl3vio=;
+	s=arc-20240116; t=1790624663; c=relaxed/simple;
+	bh=8BtFffJxUMZjdKjUyZLZ65tt7JmrPqUPubeAIwEAWXI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O046D8ayvzCH2I+QRyS3CTcx9A+TDVUsjcAfWtP6/BOOhkq91pVgF9YNHbhnz02NX06VYKWnUj4B+Lu1s3h4qNzVTbJCXAeoolej/GJtkLIcMCDcdIBmVYYXd13KRtBIqVFVahUzhpthDFFvwdHw0GrSe88X7FOH4t+HaZjiJug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xGxDWWUw; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BJY8qN+b; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=VH6Go3uQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ZPTWIi5Z; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	 MIME-Version; b=mRjhIWMcxux+J1Aw947+PbGNzATz6uQMgHcsQrvFW0Pw8U7+TcvoBavhMlLJU68bMwNk5QKX4dd1c8j8pdUyciVcRo8SgXjI+Y2SdoSUI7Alv+PYkSm8yN0gst8CCNLuKiV0/5iP7yOruoWLq9xzDRF4eNsdmJ3yi2J9+j1gYhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=ZyULdGNJ reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xGxDWWUw";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BJY8qN+b";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="VH6Go3uQ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZPTWIi5Z"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="ZyULdGNJ"
+Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id B19AB21BA3;
-	Mon, 28 Sep 2026 19:32:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790623940; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0mWjLFQLODU1IvdgCAApYjei1qDVLuiRY3G8VyvqOO4=;
-	b=xGxDWWUwPjiyrHOxrEj+O6ezAyJkB2XoOzDhY9pStbJrx8Tn24Vd0X2GG7KrGw/v0vVUQz
-	PwBDCLZ+i/QfOXy0oVfaFrMqiSCCcZ3aZRN7dfNhrujHanoZqyrDZOp1mCylesDTvcE3sZ
-	Kczd5XnuMK/MvSQQljTZqAvBx0KxylE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790623940;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0mWjLFQLODU1IvdgCAApYjei1qDVLuiRY3G8VyvqOO4=;
-	b=BJY8qN+bJIFgX0L3JxZNMfgN2QEWZ/GIvZsZg4eNIKAXEo/Kelz5u/YZCpsox01cMU0HSk
-	Ng/9rZFx4yMc6NAw==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790623936; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0mWjLFQLODU1IvdgCAApYjei1qDVLuiRY3G8VyvqOO4=;
-	b=VH6Go3uQQLxPDyUnphRPuLijLajOwy3Mgfccph8wVb/+6vtxz3aUWPyFh3OTAOy1oAfRQm
-	OKrc8+3njE6VdWT9BT/RcyPbiLBE+8+MpX7RV1AppDCMjZLw1v9tdTuO4GyWRMLTxYFG9S
-	S295khVs/485qzc9rDiTMk1jDKSKke8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790623936;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0mWjLFQLODU1IvdgCAApYjei1qDVLuiRY3G8VyvqOO4=;
-	b=ZPTWIi5ZvBu8BXpRxbkqgMaB5n6L6JI2VJYFiUwlmpRLz40WwWMhxurOsLQGXCbYuLHiXS
-	ptiIPMGMGSLT0IDw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C66CD13515;
-	Mon, 28 Sep 2026 19:32:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 4RBiFn3AumpWOAAAD6G6ig:T13
-	(envelope-from <fmancera@suse.de>); Mon, 28 Sep 2026 19:32:15 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netdev@vger.kernel.org
-Cc: horms@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@kernel.org,
-	davem@davemloft.net,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4htsFJ2FfDz2x9C;
+	Mon, 28 Sep 2026 19:44:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1790624645;
+	bh=aKwfpfR6D49NNS6/Iw5WZJrvQIJqO5dlq1ymNm9qL/0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ZyULdGNJA+4WLNRmPeLHvG6yct6InDJotMb5DbspdJMKkTZGYXtxuwdD4HsyXlWGm
+	 g4CFUsWDo0H1dYHK5E5HXMyjAQv9O36IaJ5eNfdaexm5Y5XekdzAE8yvXfLrQwG/du
+	 4niefsgqGUprQhglgCOqCtCX8jrlsnZTUR+b+wJbFEfSTM5YLMzYcjwDEvCrFQAVHC
+	 GMrc7OTKgQHRcckfeh/9mgFgSZ0oAZ9IddWNQAIWpecv1HFA6jcjUM3Usm9PMZ+3Gf
+	 vNoWvj37UffKCNDseLHOIjaSTvGynTPsUxolzdIG5zeyPdxbXxKHP3eM8sDTfQryeK
+	 mWgga3xjyUthg==
+From: Rahul Chandelkar <rc@rexion.ai>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>,
-	Eric Dumazet <edumazet@google.com>,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 12/16 net-next v2] netfilter: ipv4: guard ip_route_me_harder() with CONFIG_IPV4
-Date: Mon, 28 Sep 2026 21:30:08 +0200
-Message-ID: <20260928193046.6698-13-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260928193046.6698-1-fmancera@suse.de>
-References: <20260928193046.6698-1-fmancera@suse.de>
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
+	Rahul Chandelkar <rc@rexion.ai>,
+	Sashiko <netdev-bot+sashiko@kernel.org>
+Subject: [PATCH nf-next v5 3/4] netfilter: nf_conntrack_amanda: use nf_ct_helper_parse_port()
+Date: Mon, 28 Sep 2026 19:44:03 +0000
+Message-ID: <41754da04debbc9e82c77549e1cfc5171ae0f365.1790596690.git.rc@rexion.ai>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1790596690.git.rc@rexion.ai>
+References: <cover.1790596690.git.rc@rexion.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -101,54 +59,72 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spam-Score: -2.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.997];
-	MIME_GOOD(-0.10)[text/plain];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[14];
-	TO_DN_SOME(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email];
-	ARC_NA(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	R_RATELIMIT(0.00)[to_ip_from(RLrr9ek4ud4f4qwi71m7motjzt)];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
+X-Envelope-From: rc@rexion.ai
 
-To enable compiling the network stack without IPv4, IPv4 specific packet
-rerouting logic inside netfilter must be bypassed. Therefore, guard
-ip_route_me_harder() with IS_ENABLED(CONFIG_IPV4) so it returns
--EPROTONOSUPPORT when IPv4 is disabled.
+amanda_help() passes the result of simple_strtoul() straight through
+htons() into a __be16, so values 65536-99999 are truncated (e.g. 65537
+becomes 1).  In addition, the port field is copied into a buffer that
+only holds five digits, so a longer field such as 123456 is cut down to
+12345 and accepted as a different port, and on the NAT path only its
+first five bytes are mangled.  Either way a conntrack expectation is
+created for a port that never appeared in the reply.
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Make pbuf one byte larger so that a sixth digit is copied, and use
+nf_ct_helper_parse_port(), which rejects port 0, values above 65535 and
+digit runs longer than five characters.  The trailing len is still
+derived from the parser's end pointer for the NAT mangle path.
+
+Build-tested with allmodconfig and allyesconfig (W=1) and sparse, and
+cross-built for i386 and big-endian powerpc.  The parser
+was also checked in a userspace harness; the change has not been
+run-time tested with Amanda traffic.
+
+Fixes: 16958900578b ("[NETFILTER]: nf_conntrack/nf_nat: add amanda helper port")
+Reported-by: Sashiko <netdev-bot+sashiko@kernel.org>
+Closes: https://lore.kernel.org/all/179053062399.2160803.9591526412956900613@kernel.org/
+Assisted-by: Claude-Code:claude-opus-5-5 sparse
+Signed-off-by: Rahul Chandelkar <rc@rexion.ai>
 ---
- net/ipv4/netfilter.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_conntrack_amanda.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index ce9e1bfa4259..f2d9e0110b77 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -30,6 +30,9 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
- 	struct flow_keys flkeys;
- 	unsigned int hh_len;
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 14ae660491f3..a9c1ef1ee415 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -88,7 +88,8 @@ static int amanda_help(struct sk_buff *skb,
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple *tuple;
+ 	unsigned int dataoff, start, stop, off, i;
+-	char pbuf[sizeof("65535")], *tmp;
++	char pbuf[sizeof("65535") + 1], *tmp;
++	u16 parsed_port;
+ 	u16 len;
+ 	__be16 port;
+ 	int ret = NF_ACCEPT;
+@@ -127,15 +128,19 @@ static int amanda_help(struct sk_buff *skb,
+ 			continue;
+ 		off += start + search[i].len;
  
-+	if (!IS_ENABLED(CONFIG_IPV4))
-+		return -EPROTONOSUPPORT;
-+
- 	sk = sk_to_full_sk(sk);
- 	flags = sk ? inet_sk_flowi_flags(sk) : 0;
++		/*
++		 * pbuf holds one byte more than the longest port so that
++		 * an over-long digit run is seen and rejected.
++		 */
+ 		len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
+ 		if (skb_copy_bits(skb, off, pbuf, len))
+ 			break;
+ 		pbuf[len] = '\0';
  
+-		port = htons(simple_strtoul(pbuf, &tmp, 10));
+-		len = tmp - pbuf;
+-		if (port == 0 || len > 5)
++		if (nf_ct_helper_parse_port(pbuf, len, &parsed_port, &tmp))
+ 			break;
++		port = htons(parsed_port);
++		len = tmp - pbuf;
+ 
+ 		exp = nf_ct_expect_alloc(ct);
+ 		if (exp == NULL) {
 -- 
-2.55.0
+2.43.0
 
