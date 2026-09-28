@@ -1,183 +1,68 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB65237F00B
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2026 20:55:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6998D4F96DF;
+	Mon, 28 Sep 2026 20:56:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790628950; cv=none; b=YmDtRK/521jSI12z1lz8dzdnPuZiNf8WuDjXT0uLiMV7ypgD/fBsJnL+X+NO/Mzf+Bl2XfoGa/FB+VmhFFaxDezI8mlNNRWUjy/dQ6HC375n0vuu5uNTIx8j6HjHqOyglBDHZ20ALu79rQlc7Mn/Raf45bXHnoIvoLWNl5mGhFM=
+	t=1790628963; cv=none; b=Ao7JUPD8Q1p8mpaQ3lAAQqmjLiWaQx/oDquDRPA+m9bczRmMQb1QB6+LVGXd0y68zyJpuQdSmMam08f9e7W0DGK6cSyeKtNZo7I7kxzgoWLCV3Rb77GXFsATowLMk5gkn76nJFZC4PSEFDamDn2S0p/MSxYr7h4nmebfGskjGa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790628950; c=relaxed/simple;
-	bh=V7tb3aNt5SuShUXsBlZ76yLZmYZ89Vw2dBGOZyb5BV0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=If+ekuRrf71151JgmOt/BtwGZPexdj2IfgAULv6Ud4jCxCA09PhdbIK44pkbiw0WBwf8xjUsIYX1lrMkx8xP7JEpNBxS98uUlKOFGTUYSKVxTmZ5b/ELteM+JJ0hWHzjo8ya0DU+Q/JHkFQ2+bwV4BtnBHJos6zBAoXSSfXlm2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=LwUHppja; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=RL29oWgy; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=iDJsyBJ6; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JH7phM8b; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790628963; c=relaxed/simple;
+	bh=x8GQ9TqAFu5driuvo38kqzYt3n324pebOlaNmEELI+s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=TWppzjGekOV+xKt5A+KQp3W2ZJYopjutBTmG1JduZ1e7rRhh5ipPluZRCXGo7StYsEAdLGX8Fxkgifdpr1MSVXsYz3jIjfNgUDHja6F9r0iX5CgoIQ3qPCRA33WJnTpMB3Vs07q2dp7kEhExWCM2ReLAeLKTpC5SKUoC2dnG82U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b4TfXChe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="LwUHppja";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="RL29oWgy";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="iDJsyBJ6";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JH7phM8b"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 767BA1F785;
-	Mon, 28 Sep 2026 20:55:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790628942; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
-	b=LwUHppjao/v+aZUYXLXvL0ETJVpvClghEdhKNhYn/uc6xTM9JIFSut/C8I6BgQj4iTAQa8
-	5l5SW8fteCP9DTxCAjDCg7vp91SO3jPKL/qXnQQa8Y5J7c2pJE3gfRmxWmcfeqgmUEsteB
-	nxGNFrZD6HmcElIGnG6YUG6QDlcdiko=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790628942;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
-	b=RL29oWgyBb9fYy+bZMM8WxFv4CbcoTEV9Nxj3IDjwGDy06ebTuGOdjTVshFrIp8oxt2f7c
-	e3N73Gn9OJWKvvAQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790628938; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
-	b=iDJsyBJ6a/gEmN/CD69+kjK3ZiQwmFpec5a2q71I1EV2Eywc8ZvrB/hf/oiJLyzbBcuE6e
-	Oi1V2SHQSDCt2foP680dSws5uDa3Ba1qfpbEdmkeoGwyXG/AUIf/QZgPnxiUhvFKZDJI8q
-	HlxNne9TlaLf4AhFvVrWMBxTx/19JYA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790628938;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kXn9g8niZAe7JHP7xKRI6ptYk/Y9JnOmT7kr+bEqi6o=;
-	b=JH7phM8bISUiat5NxnpuF+/FQhZnko2vIYVsFix1BeAKkneb+fIqDEMQeoDhbC6FL12mTy
-	u4cxRKB5foPWS3DA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 213CA133F3;
-	Mon, 28 Sep 2026 20:55:38 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 1B8MOEnUumqQDgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 28 Sep 2026 20:55:38 +0000
-Message-ID: <f9690303-d022-4dd4-8050-ca8e00f8f71c@suse.de>
-Date: Mon, 28 Sep 2026 22:54:42 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b4TfXChe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41DF41F000FF;
+	Mon, 28 Sep 2026 20:56:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790628961;
+	bh=PJRu7W6/Or1we5Gv3BgoLEtby0D0Y0UGgfjBHfRc5+k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=b4TfXCheWb3CWkwq2JY/X/FDmzeuqKmsheBHQ/8+l3b9hK27LgqhMvng0tb7IrEeq
+	 9MXHvkt/1HTkdsEL8+d05seA2dbwrfmhoKEyAY7eotAi4L9QcDgTLwprFu5oNSpZAI
+	 uC4+93NhZhh/AxwMCjhSb2gB/JQKTaZD+oZSHAoYZLVIzv14nn5n/Cw9tcs/1SG57Q
+	 akWjf+xZsYsgPSBx4kznLPR4+K4mqt+JaXndsTScG12efjvrnThdGM+lEyrzy9HMFW
+	 7qEYrgC/SbLgOfuUwUBjm/gjlZlB03QefKjWblg3bVOMVdZtz+i5dlk/uIL5POPz8a
+	 NQutiyl+f2Uww==
+From: netdev-bot+sinfo@kernel.org
+To: Rahul Chandelkar <rc@rexion.ai>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next v5 0/4] netfilter: conntrack: shared port parser
+ for helpers
+Date: Mon, 28 Sep 2026 20:56:00 +0000
+Message-ID: <179062896069.31693.871473945227845464@kernel.org>
+In-Reply-To: <cover.1790596690.git.rc@rexion.ai>
+References: <cover.1790596690.git.rc@rexion.ai>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Netfilter: match "tcp option" with the same type present multiple
- times
-To: Matthieu Baerts <matttbe@kernel.org>,
- Netfilter Devel <netfilter-devel@vger.kernel.org>,
- Netfilter Coreteam <coreteam@netfilter.org>
-References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spam-Score: -4.30
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.993];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_DN_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
 
-On 9/28/26 2:13 PM, Matthieu Baerts wrote:
-> Hello Netfilter devs,
-> 
-> First, thank you for maintaining Netfilter in the kernel and the
-> userspace tools.
-> 
-> The MPTCP selftests are switching from IPTables to NFTables, and
-> Clashiko reported that this part of a rule wouldn't match anything:
-> 
->    tcp option mptcp subtype remove-addr drop
-> 
-> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
-> added to the TCP options, it is added after an MPTCP DSS option (type
-> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
-> (type 30) options in the TCP options. It looks like Netfilter doesn't
-> handle that, because it stops processing other TCP options when the
-> expected type is found:
-> 
-> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
->      ...
-> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
-> 		optl = optlen(opt, i);
-> 
-> 		if (priv->type != opt[i])
-> 			continue;
-> 		...
-> 		return;  // <== it will look at the first MPTCP option
-> 	}
->      ...
-> }
-> 
-> It looks like it shouldn't stop if the wrong subtype is found, but the
-> subtype is not compared there if I'm not mistaken. Should there be a fix
-> to support this case?
-> 
-> For more details about the Clashiko report:
-> 
-> https://lore.kernel.org/179058242453.3145.1450534124183352369@kernel.org
-> 
-> 
-> BTW, I'm probably missing something, but adding the following doesn't
-> seem to have any effect on my side:
-> 
->    nft add table ip filter
->    nft add chain ip filter OUTPUT \
->      { type filter hook output priority filter; policy accept; }
->    nft insert rule ip filter OUTPUT tcp option mptcp exists counter drop
-> 
-> Same with "mptcp subtype mp-capable", other subtypes or other types like
-> "timestamp". But if I use ...
-> 
->    nft insert rule ip filter OUTPUT meta l4proto tcp counter drop
-> 
-> ... then the drop is effective. Any idea what I'm missing here? :)
-> 
-> 
-> (Also, it looks like the MPTCP suboptions are not documented in the nft
-> man page :) )
-> 
+Hi!
 
-Tomorrow there should be a patch in netfilter-devel adding it, we 
-definitively should put more work into documentation.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-> Cheers,
-> Matt
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account. If the series needs another revision for
+other reasons, please include the information in the commit messages
+then.
+
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
