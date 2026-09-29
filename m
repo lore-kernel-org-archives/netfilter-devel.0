@@ -1,172 +1,131 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE00052D2BE
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 14:14:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E62751C04D;
+	Tue, 29 Sep 2026 14:36:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790691296; cv=none; b=N8j5JVEnpsFS58p3II6cm+1I26HLvPnsvwrAKzyo22zTJt5OVoRhcBKzvPRAr8AQnqS1rsw91FKCwA2hzRKCADJF/mhqI2it4h6m6ndGlX/BD5rWcYY5ROSi+FgA2XwmD4iaLTBn7/lJ7Mwm2eaJJbF3R2wfH7gkjerC6eUOTc8=
+	t=1790692596; cv=none; b=dtYaUwyh43IifeBPpOO1SO1pif2AB9IyCISVGphFgRATiQ3fkQZWyS5Ig8/jXRZ5JPoZFfwprD/3KrHPQbjYArF7gxW8D16SfC831tg4uROPxJQO2m5dxPBGmJOqjPGFWq1mOqN9msgIPfJYMGA1o5ZlPhfF9IGetGjoEAA/GVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790691296; c=relaxed/simple;
-	bh=oQMqtCVO963LYO6GxnlEYa5pBPRzhOSPTolBTjDzObs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XkTDLrX22+T0dCVNymIFnrMSv15ARFor4FXW+FN7ssO0bD+zHI+SZSb3EAKFNopvRgMHDIO7/OfzrbqZ8Dnf7BQ0aSENHf3D8MwzV72Pgb0IAIl2X3xkZ0zZryokviEx593amIL0qS9Q33PWGmSRfDxKcxjzLMJBT1GcDZXK1AY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KaMxLnSO; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=byn9yehA; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j33fTn4+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Cj2/fFaD; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790692596; c=relaxed/simple;
+	bh=41OyKo8AA7bmoCoxHe40VGXLS46yixBA+0eQ9aV4r94=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=ceLpSGE9H3yj5f8kQWcQ+xrXT+bm3xbml6ouLFox59VS8R22PP4iaZx6NOTj8oU/qtESRo5jXy8S0L6IPowoe9NxZQBE7aLyuc64vOehego18fN+s8LSZXOy9Aksn9eat/A3HS2GtOFmFUru70pIshFJj5FW8h3ObCvq0VvbIhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=MytAsbfq; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KaMxLnSO";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="byn9yehA";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j33fTn4+";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Cj2/fFaD"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 4D16A21BF1;
-	Tue, 29 Sep 2026 14:14:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790691286; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=B2QfYXi/jebmAkFuYfyaa/Yo7bTswCT6tU+KrK/Ga8k=;
-	b=KaMxLnSOKkv+XMUK3k3fbLwI2M0oXHGt3qFlyQOyAjk8ifkDhoAs9E3wKXmLIh4mq4lWLd
-	PFDrBFKcK6eMww01I+JaxQuHKGLmWo9DZ1tCLCObfYVNsZN2X6x/Eoq+o+lWrHwsxvUXkH
-	IgRaKqKDyjxdUHJ6K7pwJeQ2q7XL8zk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790691286;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=B2QfYXi/jebmAkFuYfyaa/Yo7bTswCT6tU+KrK/Ga8k=;
-	b=byn9yehADBITBNgK9pGUj2L9/0yh75qPVmvdCWjPa1WqYPPbojNT9C++fEE+nwEvVEl7Dz
-	whb8UWZfoYETriCQ==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790691282; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=B2QfYXi/jebmAkFuYfyaa/Yo7bTswCT6tU+KrK/Ga8k=;
-	b=j33fTn4+acy64Us1STCokmEdCMHVcmhIweYriOusdPOzdzFkVgpDsux+kuxO/CiWejADhk
-	Lte88KqTdVon6zHiQ79jqx/sle24B4awIEGRSyRYkC03D0b+CsiPLgAPx+Rtei5wABG70M
-	//boxedlfkDu82AKgss1Mso8+D0ZPuE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790691282;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=B2QfYXi/jebmAkFuYfyaa/Yo7bTswCT6tU+KrK/Ga8k=;
-	b=Cj2/fFaDv6hna+txL+FV/GSmKNNIm3wZEY9dcSDJb5NEb011n/c8qFk88piaqeL/yvutGy
-	XTcSubmV0UGXzHBA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D63C9133F1;
-	Tue, 29 Sep 2026 14:14:41 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id BQxwKNHHu2ofTwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 29 Sep 2026 14:14:41 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	matttbe@kernel.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nft] doc: add MPTCP subtypes documentation to man page
-Date: Tue, 29 Sep 2026 16:14:25 +0200
-Message-ID: <20260929141425.4852-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="MytAsbfq"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 6529F213E8;
+	Tue, 29 Sep 2026 17:36:23 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=EFJRJAmInJbL42OH66AUdL96HXKJcoSU80nlGp+WbKU=; b=MytAsbfqtEKX
+	w2/DaNrFpgcJTC5FIpsAQAd4/UvKx4RoSCTbUU2kZ6EJlVYPW3pgfuIrNL390jAQ
+	mKU1LIXqJrTp9QO0g4CA8CF2wwGQGbQsdV6/fZgWqLj5cxPYJj1HjYvAbWO1yiks
+	yOBfSu88alxbrD2SqlPuz1zI0jBa6U6ZZl1UhUaHnj3kP57BmJgQ1VAzxtCtn6sz
+	oxRF0w9ruNvg2vH1Yh/OlrY/QGyIowRHaG9U+R3cqUEcWSmo9kUUqp/H3wDgddX3
+	m6I8bkUxpF9Dlf6dWp4r6xXXd+YHYFD9ZNEw8j4Ma08Qx7DL/XwgNsXH/x5ChycE
+	ZSaqL/d7MeDmSsZWMYLdN0/5FmOwGz1gGJHv+fX2vDBZ8Y1MO3AW9ZzWjc3GZwcN
+	52eILAiBJCvyX7/LyzKI62VcotGPhyZodmf+8B8apnwrz2y5fas+3tqbxguSDnLl
+	U4kd3jZ3KGWjNyCwcKhZHAYo5yzYRS65IqgsERl0d5ePxzr4GIxfZ2lCiPsj4r1h
+	/MQaj4NSm3qRTfiocFxT7XkrLN1h/cpS3phlx7tjqSF/Uh0n1+6BY1emoZ6VFa/O
+	636YY4PnIcN/h+PfSopgBDa+mkIt7V/eNIHYv2/ZP/ajQ/LMFI7VdZa4Ril1k4GN
+	QpU9bJC7OGH5xiFx0gahXaFQ9d4+M5c=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Tue, 29 Sep 2026 17:36:23 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id B1510604D4;
+	Tue, 29 Sep 2026 17:36:25 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 68TEaKQt060712;
+	Tue, 29 Sep 2026 17:36:21 +0300
+Date: Tue, 29 Sep 2026 17:36:20 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+cc: Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
+        edumazet@google.com, horms@kernel.org, fw@strlen.de
+Subject: Re: [PATCH net 00/11] Netfilter/IPVS fixes for net
+In-Reply-To: <aruH1faUO3GEZvcM@chamomile>
+Message-ID: <5d761dbe-b74c-4ebc-116b-34f2b60a69c9@ssi.bg>
+References: <20260927220816.268206-1-pablo@netfilter.org> <20260928191120.28c28fdb@kernel.org> <aruH1faUO3GEZvcM@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.993];
-	MIME_GOOD(-0.10)[text/plain];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	ARC_NA(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	RCPT_COUNT_THREE(0.00)[4];
-	TO_DN_SOME(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
+Content-Type: text/plain; charset=US-ASCII
 
-In addition, document the limitation when there are multiple MPTCP
-options.
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- doc/payload-expression.txt | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+	Hello,
 
-diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-index ceccfdaa..f1de0956 100644
---- a/doc/payload-expression.txt
-+++ b/doc/payload-expression.txt
-@@ -805,6 +805,32 @@ TCP option matching also supports raw expression syntax to access arbitrary opti
- [verse]
- *tcp option* *@*'number'*,*'offset'*,*'length'
- 
-+.MPTCP subtypes
-+[options="header"]
-+|============================
-+|Keyword| Description
-+|mp-capable|
-+Multipath capable
-+|mp-join|
-+Join connection
-+|dss|
-+Data sequence signal
-+|add-addr|
-+Add address
-+|remove-addr|
-+Remove address
-+|mp-prio|
-+Change subflow priority
-+|mp-fail|
-+Fallback to single-path TCP
-+|mp-fastclose|
-+Fast close
-+|mp-tcprst|
-+Subflow reset
-+|============================
-+
-+Data types can be queried with 'nft describe tcp option mptcp subtype'.
-+
- .IP Options
- [options="header"]
- |==================
-@@ -833,6 +859,18 @@ filter input tcp option sack-perm exists counter
- filter input tcp option maxseg size lt 536
- --------------------
- 
-+.matching MPTCP suboptions
-+--------------------
-+filter input tcp option mptcp subtype mp-join drop
-+--------------------
-+
-+[NOTE]
-+====================
-+Netfilter currently evaluates only the first MPTCP option found in the TCP
-+header. If a packet contains multiple MPTCP options, a rule attempting to match
-+the second option will never match.
-+====================
-+
- .matching IPv6 exthdr
- ---------------------
- ip6 filter input frag more-fragments 1 counter
--- 
-2.55.0
+On Tue, 29 Sep 2026, Pablo Neira Ayuso wrote:
+
+> Hi Jakub, Paolo,
+> 
+> On Mon, Sep 28, 2026 at 07:11:20PM -0700, Jakub Kicinski wrote:
+> > On Mon, 28 Sep 2026 00:08:05 +0200 Pablo Neira Ayuso wrote:
+> > > The following batch contains Netfilter fixes for net:
+> > 
+> > I didn't spot anything obviously needing a respin in the AI feedback,
+> > could you confirm that it's good as is? If you have to respin it'd be
+> > good to remove the claim that patch 2 is a nop, Linus is onto us for
+> > sending too many LLM-induced, low impact fixes.
+> 
+> I would say yes too. LLM comments say:
+> 
+> - Patch 2/11 (ipvs): commit description could be improved (yes, there
+>   is always room for improvement in that regard but I think description
+>   is fair fine enough). There is a report on a pre-existing issue, but
+>   I think that can be addressed as a follow up.
+
+	I already have v2 for 2/11, now as 2 patches:
+
+https://sashiko.dev/#/patchset/20260929113436.44306-1-ja%40ssi.bg
+
+	But better to leave it for next week, it is a low
+priority fix. As usually, if we stop 1 patch, it is replaced
+by 2 for the next round :)
+
+> - Patch 3/11 (netfilter): commit description could be improved again,
+>   but patch is good IMO.
+> 
+> - Patch 7/11 (ipvs): there's seem to be another path to abuse this
+>   code LLM found, I would address this as a follow up.
+> 
+> - Patch 8/11 (netfilter): refers to a pre-existing issue.
+>   It also refers to issues with reordering elements of the range,
+>   but this API really need elements in order to work fine, otherwise
+>   overlap detection will likely fire.
+> 
+> - Patch 10/11 (netfilter): refers to a pre-existing issues.
+>   nf_flow_offload_refresh() also needs to be disabled in pending
+>   work is enqueued. Also disable stats fetching for dying hw entries.
+> 
+> In particular, I am observing IPVS patches are getting stuck because
+> of reports of pre-existing issues. Sometimes you find two or three
+> things that need an adjustment, and you can start tackling one of the
+> aspects at a time (because addressing them all at once it not easy).
+> I think it will help Julian if he has a chance to address issues as
+> follow up, unless LLM reports something really sound and compelling
+> that can be classified as a blocker.
+
+	I don't find the LLM reviews wrong, so I don't
+complain :) I'll note if a followup is preferred but in
+most of the time the patches need to be corrected. I try
+to post different patches for the different problems but
+this is also a load for the other maintainers. I hope
+I'll improve with the time but it is true that we are
+overloaded. The only hope is that the bug-report rate will
+slowdown with the time...
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
