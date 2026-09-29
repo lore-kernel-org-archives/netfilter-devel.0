@@ -1,77 +1,108 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mvsmtppost29.nm.naver.com (mvsmtppost29.nm.naver.com [61.247.196.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4509D4C9E0B
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 09:07:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C1E3C5DA1
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 09:10:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.247.196.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790672849; cv=none; b=PMfF+yvKOXFdgaQR05F/ZSFInwt9lJq/8LIhfMlcbG4tgByiQdOnDwmDGxnI1iyLxvRL6jPfoVxc5v706V+/CqmpEv2ZIXzzFphPRjmJ6hRFxDMLziwxyTAphkvx2OK94d1UuCaGLkSLOQ0YEVYMuZpAfHJn35It10XnLTzpkd8=
+	t=1790673056; cv=none; b=MyuF68sAFXN+pyUDsyCywZLsgQgEScodV1EUobWdZSTcQ2NKeGwChPvp8sFDOeDuWAI97ZauKyU7rOJ9SKN1FPK0xk5RvScd04z31yX9UIm4ahtlfOV32E05msU/fo0QRLKSakbEl8poExDAZ0gpUtwl/8XcvZ3cwiW6DhCBZyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790672849; c=relaxed/simple;
-	bh=LSXXC63uvwPL1FU418+vs6BCAdrkvN4Z+SsQe3HxWlE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aiyh6HnjKgF/zvlVTO7+boXHod0XSqwg74IzY8Af9c8Rxme1iMhqJ9zvZVzaLEX0hEGRy4B5WEx60F3STEuxXODCF1TPW2I1xAV4V5Q0AUhMspEytmglZ/idyBlg/LamxAcE8oaMG49YSiMxaFE8P3mXEt3ERRJ3jGlLD2OsaAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nqMDG1AQ; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1790673056; c=relaxed/simple;
+	bh=Cr0LgX6m3eBXuxkyrt/yeKn6lh+aU3VMC1DFijxC+tM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=D2DEIKcjJ0eA5e5Z9Mexh71/c4CiTYmHe4QVsaSWda/tZtvc4Vd94RigsKj3P/lWAc6WihLTmdfny5+YX7v6zlQhNXDldC9ufvj9BxOvGpwJ93GTEECwLFNdnFstumUTGhLdOtpUuHS1ctuD6CNJ5/pvAjEqDdpBlUxYLOIsH4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=JuVaCg1d; arc=none smtp.client-ip=61.247.196.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nqMDG1AQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790672828;
-	bh=clSaHs0Fyld5ZAZhCUrZyLaoHiSTmiuhC40Fqb4hE5M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nqMDG1AQdnd39BRHjUEqb8PycoDKS5+v1cXHQ2JqrRO8kxgzn1QaJQnHGxIsqEDVF
-	 2dcwZyhMDTjFSIzoQEMuqqhp0QjOFUX3rC4p95b3V2cR4Iv6OPLRT3V1Lx8EYEfjJK
-	 1d31qYMV7gGVEugEKqoIHJIfXW3utRPgTZQh4PXdu6Ctgp/buOvUKv8YMw+0kb3HVn
-	 Sd6X7udmUx3oLyMdt6W53/ICC5bYjAdhh0k7Hn2REm+ezLBO0YhWwJD+qY9Y6Knyfz
-	 hN8kiNNFWVFAEeVFlYYf1aiV6TwlfAaXTNw4IdwlDa2LP4lZohLcl+CUdd2AZqCmkq
-	 V5B8R7kIHhifg==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 2A1BE6005B;
-	Tue, 29 Sep 2026 11:07:08 +0200 (CEST)
-Date: Tue, 29 Sep 2026 11:07:04 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>,
-	netfilter-devel@vger.kernel.org, phil@nwl.cc
-Subject: Re: [BUG] netfilter: IPv6 conntrack fragment reassembly truncates
- header offset
-Message-ID: <art_uBuhM9QUosnZ@chamomile>
-References: <622191c6a9b35335b65fdb07f8914b7@cweb016.nm>
- <artmviCh2h4vYLKG@strlen.de>
+	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="JuVaCg1d"
+Received: from cvsendbo016.nm ([10.112.24.39])
+  by mvsmtppost29.nm.naver.com with ESMTP id mju7s91fSyyQhm2UQK9PhQ
+  for <netfilter-devel@vger.kernel.org>;
+  Tue, 29 Sep 2026 09:00:35 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
+	t=1790672435; bh=Cr0LgX6m3eBXuxkyrt/yeKn6lh+aU3VMC1DFijxC+tM=;
+	h=From:To:Subject:Date:Message-ID:From:Subject:Feedback-ID:
+	 X-Works-Security;
+	b=JuVaCg1dg8NKhYp87O3Xv20oYpFIT9CrwD6qm3KHN6zhJc4DR5TqmuFRVi9Hz2+ts
+	 pusLmURrRQ0w40XPhMnuaZRupDNyXzu45hcNcj1H/PNFwy9IIljD8OB5IaUP8KYTWD
+	 ffkdPy6Z/18OBO2w4wFQJuzyvqt6xsaSR8SWOeQGgu5Az6wqafUhg9ABpk85TkK4I7
+	 HxbRcMDc3qFGYiCISX+XhTBgS83gPPE95TwMuTr2kjgTQLwWAaVH+6Fe/xo95qY706
+	 txGdyY1z7z9XuSBEc5rvxMJz5RDadkR/Qy6RbbnCB0t0vrYY9DRyM2/5LRq+8d86/6
+	 op4wPxYebAfIQ==
+X-Session-ID: 3Gsz75-GSnmMt8bnybLwCw
+X-Works-Send-Opt: OPewpzGdjHmdKHFOMr39Ko3YKBmrjAudFqM9KqMqFxIYkEljxBmwjAg=
+X-Works-Smtp-Source: smYdFoglFqJZ+HmdKqgm+6E=
+Received: from localhost.localdomain ([115.136.205.4])
+  by cvnsmtp002.nm.naver.com with ESMTP id 3Gsz75-GSnmMt8bnybLwCw
+  for <multiple recipients>
+  (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384);
+  Tue, 29 Sep 2026 09:00:34 -0000
+From: tjdqudcks0424@naver.com
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	netdev@vger.kernel.org,
+	=?UTF-8?q?=EC=84=B1=EB=B3=91=EC=B0=AC?= <tjdqudcks0424@naver.com>,
+	stable@vger.kernel.org
+Subject: [PATCH net] netfilter: nf_conntrack_reasm: avoid truncating header offset
+Date: Tue, 29 Sep 2026 18:00:27 +0900
+Message-ID: <20260929090027.200041-1-tjdqudcks0424@naver.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <artmviCh2h4vYLKG@strlen.de>
 
-On Tue, Sep 29, 2026 at 09:20:30AM +0200, Florian Westphal wrote:
-> 성병찬 <tjdqudcks0424@naver.com> wrote:
-> > I found a reproducible IPv6 conntrack fragment reassembly bug in:
-> > 
-> >   net/ipv6/netfilter/nf_conntrack_reasm.c
-> > 
-> > Tested kernel:
-> > 
-> >   Linux v7.2.8
-> >   commit 9a66fdc0d7fd55f54235524a73435af99051e46f
-> >   x86_64 with KASAN enabled
-> >
-> > In find_prev_fhdr(), the previous Next Header offset is stored in u8:
-> > 
-> >   u8 prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
-> 
-> Please send a formal patch, thanks.
+From: 성병찬 <tjdqudcks0424@naver.com>
 
-For the record, there is one already.
+find_prev_fhdr() stores the offset of the previous Next Header field in
+an 8-bit variable. A valid IPv6 extension header chain can place that
+field at offset 256, causing the value to wrap to zero.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260822214012.1028305-2-Jeremy.Jean@oss.cyber.gouv.fr/
+The truncated value is later stored in frag_queue.nhoffset and used by
+nf_ct_frag6_reasm() as the index at which the Fragment Header's next
+header value is written. With an offset of 256, this overwrites byte
+zero of the IPv6 header instead of the preceding extension header's
+Next Header field. The reassembled packet is then rejected because its
+IPv6 version field has been corrupted.
 
-But I stumbled on it because lacking a reproducer, sorry.
+Use int for prev_nhoff, matching the type of start and the prevhoff
+output argument.
 
-We can include it in the next batch.
+This was reproduced on Linux v7.2.8 with KASAN enabled. Before the
+change, a control packet with the preceding Next Header field at offset
+248 was delivered, while the equivalent packet at offset 256 was
+dropped and Ip6InHdrErrors increased by one. After the change, both
+packets were delivered and Ip6InHdrErrors did not increase. The
+before/after result was reproduced twice.
+
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Cc: stable@vger.kernel.org
+Signed-off-by: 성병찬 <tjdqudcks0424@naver.com>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 599c49bf0a0a..be72c4346f8b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -398,7 +398,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ {
+ 	u8 nexthdr = ipv6_hdr(skb)->nexthdr;
+ 	const int netoff = skb_network_offset(skb);
+-	u8 prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
++	int prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
+ 	int start = netoff + sizeof(struct ipv6hdr);
+ 	int len = skb->len - start;
+ 	u8 prevhdr = NEXTHDR_IPV6;
+
+base-commit: 72d3fcf802c45d00b300f25b848a93c3a2bd7c7e
+-- 
+2.43.0
+
