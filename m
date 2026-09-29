@@ -1,78 +1,53 @@
-Received: from cvsmtppost21.nm.naver.com (cvsmtppost21.nm.naver.com [114.111.35.34])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B03213C2BB0
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 05:54:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.111.35.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103FA392838
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 07:20:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790661266; cv=none; b=Co7VmHKccOrBzrFEaQDVhcUEC3rGICFUYyUJOxJ2FZpwEYOLXVUCPt6tCxvW5e1dpJyB6SJk0XBzqbu4lZWOs5Igw1HVZ2faIk8B6EnqAmgcEpWCPUIFiwXcFLFFHLQ04NAbx089SMYWcEUWFxD5dVyYXHIs7x/xoLw32uY4b2Q=
+	t=1790666436; cv=none; b=pI4Guv+B9ns06t9/Ud/6REt5S3U7ceo20w1S0CufKWIuvSOBOzdo7A+UOD208d0d/HQLgLG7Z/A2j9qAW1xi/x63OO6ndrM+uC2qQbbPk+AfuR9Bk/BYUmiF5erINie/kysW1KGqSQO4JvgKuMW+yFkuN39EsmdXhFR3eM/owvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790661266; c=relaxed/simple;
-	bh=TqYzMH4jqMACGLgiHmUygTe4obUenlodMGbclslhzR4=;
-	h=MIME-Version:Message-ID:Date:From:To:Cc:Subject:Content-Type; b=OUQLNlpE2nmM7xa21yuTUUnsjCCHpJUpXemDwnhYF0/3dYysaiCvpzPM+Mg009vqBmLIMb0YoKzgh1rmMUiOTFeIJfnD4zmbz3qr29JDry7yyTECiPcgx1KWXs8WVOqH2yw0/gyc+fq/yWFAXdjBWZNb7WMjy5jnmnUrfKBpK9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=nketIrpv; arc=none smtp.client-ip=114.111.35.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="nketIrpv"
-X-Works-Smtp-Source: lXYZFoglFqJCpNmXFAMXWHF0
-Received: from cvsendbo036.nm ([10.112.24.44])
-  by cvsmtppost21.nm.naver.com with ESMTP id OPss2cBQQH++PnHKgDINDQ
-  for <multiple recipients>;
-  Tue, 29 Sep 2026 05:34:07 -0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
-	t=1790660047; bh=TqYzMH4jqMACGLgiHmUygTe4obUenlodMGbclslhzR4=;
-	h=Message-ID:Date:From:To:Subject:From:Subject:Feedback-ID:
-	 X-Works-Security;
-	b=nketIrpv3VLLaaXkEkRFyeGkHXHwNkAgIxPeKkOwsK8xklUMPu/9X30/uJdScpNBq
-	 wjJe4/QSOGaqzRHyWidZDr2CXzjFn7I73ZFBLFh6lZwRIoXLyWki8so+HECuHwu31Q
-	 v/yg8Do5PEe/Kirl7neXnN0IhxHQhB7wNtHfXOfdtqwTAJ2qHdDRotWnmc2BCKA71W
-	 hSUTI9Jo9Vu6iibHA1NCrTOxDewqT0IrxPEeZBKSsPdEwKfz057HcvS6C9UVmuRUV4
-	 bXjiEO+oY2jv2tP2/Jxisi3wGdQRMHKIGEQM/Z+2PbMW6vj+sjfh6b/jrI2sgJgUVb
-	 H6q/vEGc7C10g==
-X-Session-ID: 6a23e56840a079cfe12f61ed73c1adc349e55037e7b7a703291cdbaf1229c9b3
+	s=arc-20240116; t=1790666436; c=relaxed/simple;
+	bh=kCdWgo/03gTHnoBiVR/PqiHWYZlBNm+MidBDdGkX30M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jBjt9LGv2L0z5rb1WODHWAVeN7Xt9U4liEik0H6ngteIBiEh8cw6aeCm9QMqKq9T7m5WpRg2l4JoapU/gs+q4I3cL8HLRzmr3Hb+az5DsSpsLnz7wXYHbVQJB3eC7inpQcMA42ziCvGMQr6KvLieBS2Uvvg9Qaxlv9fvK680Scw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0D01960380; Tue, 29 Sep 2026 09:20:31 +0200 (CEST)
+Date: Tue, 29 Sep 2026 09:20:30 +0200
+From: Florian Westphal <fw@strlen.de>
+To: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc
+Subject: Re: [BUG] netfilter: IPv6 conntrack fragment reassembly truncates
+ header offset
+Message-ID: <artmviCh2h4vYLKG@strlen.de>
+References: <622191c6a9b35335b65fdb07f8914b7@cweb016.nm>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <622191c6a9b35335b65fdb07f8914b7@cweb016.nm>
-Date: Tue, 29 Sep 2026 14:34:07 +0900
-From: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>
-Importance: normal
-To: <netfilter-devel@vger.kernel.org>
-Cc: <pablo@netfilter.org>,
-	<fw@strlen.de>,
-	<phil@nwl.cc>
-Subject: =?utf-8?B?W0JVR10gbmV0ZmlsdGVyOiBJUHY2IGNvbm50cmFjayBmcmFnbWVudCByZWFzc2VtYmx5IA==?=
-	=?utf-8?B?dHJ1bmNhdGVzIGhlYWRlciBvZmZzZXQ=?=
-X-Works-Send-Opt: OPFwpzGdjHmdKHFOMr39Ko3YKHmdjAudFqM9KqMqFxIYkEljxBmwjAg=
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <622191c6a9b35335b65fdb07f8914b7@cweb016.nm>
 
-SGVsbG8sCgpSZXNlbmRpbmcgaW4gcGxhaW4gdGV4dCBiZWNhdXNlIHRoZSBtYWlsaW5nIGxpc3Qg
-cmVqZWN0ZWQgbXkgcHJldmlvdXMKbWVzc2FnZS4KCkkgZm91bmQgYSByZXByb2R1Y2libGUgSVB2
-NiBjb25udHJhY2sgZnJhZ21lbnQgcmVhc3NlbWJseSBidWcgaW46CgogIG5ldC9pcHY2L25ldGZp
-bHRlci9uZl9jb25udHJhY2tfcmVhc20uYwoKVGVzdGVkIGtlcm5lbDoKCiAgTGludXggdjcuMi44
-CiAgY29tbWl0IDlhNjZmZGMwZDdmZDU1ZjU0MjM1NTI0YTczNDM1YWY5OTA1MWU0NmYKICB4ODZf
-NjQgd2l0aCBLQVNBTiBlbmFibGVkCgpJbiBmaW5kX3ByZXZfZmhkcigpLCB0aGUgcHJldmlvdXMg
-TmV4dCBIZWFkZXIgb2Zmc2V0IGlzIHN0b3JlZCBpbiB1ODoKCiAgdTggcHJldl9uaG9mZiA9IG5l
-dG9mZiArIG9mZnNldG9mKHN0cnVjdCBpcHY2aGRyLCBuZXh0aGRyKTsKCkEgdmFsaWQgSVB2NiBl
-eHRlbnNpb24taGVhZGVyIGNoYWluIGNhbiBwbGFjZSB0aGlzIGZpZWxkIGF0IG9mZnNldCAyNTYu
-ClRoZSB2YWx1ZSBpcyB0aGVuIHRydW5jYXRlZCB0byAwLiBEdXJpbmcgZnJhZ21lbnQgcmVhc3Nl
-bWJseSwKbmZfY3RfZnJhZzZfcmVhc20oKSBtb2RpZmllcyBJUHY2IGhlYWRlciBieXRlIDAgaW5z
-dGVhZCBvZiB0aGUgTmV4dApIZWFkZXIgZmllbGQgYXQgb2Zmc2V0IDI1Ni4KClJlc3VsdHMgd2l0
-aCB0aGUgdW5tb2RpZmllZCBrZXJuZWwsIHJlcHJvZHVjZWQgdHdpY2U6CgogIGNvbnRyb2wgb2Zm
-c2V0IDI0ODogZGVsaXZlcmVkCiAgYm91bmRhcnkgb2Zmc2V0IDI1NjogZHJvcHBlZAogIElwNklu
-SGRyRXJyb3JzOiBpbmNyZWFzZWQgYnkgMQoKSSBjaGFuZ2VkIHByZXZfbmhvZmYgZnJvbSB1OCB0
-byBpbnQgYW5kIHJlcGVhdGVkIHRoZSB0ZXN0IHR3aWNlOgoKICBjb250cm9sIG9mZnNldCAyNDg6
-IGRlbGl2ZXJlZAogIGJvdW5kYXJ5IG9mZnNldCAyNTY6IGRlbGl2ZXJlZAogIElwNkluSGRyRXJy
-b3JzOiB1bmNoYW5nZWQKCk5vIEtBU0FOIHJlcG9ydCwgbWVtb3J5IGNvcnJ1cHRpb24sIGluZm9y
-bWF0aW9uIGRpc2Nsb3N1cmUsIHByaXZpbGVnZQplc2NhbGF0aW9uLCBvciBmaXJld2FsbCBieXBh
-c3Mgd2FzIG9ic2VydmVkLiBJIGFtIHJlcG9ydGluZyB0aGlzIGFzIGEKcGFja2V0IGNvcnJ1cHRp
-b24vZHJvcCBjb3JyZWN0bmVzcyBidWcuCgpUaGUgc2FtZSB1OCBkZWNsYXJhdGlvbiBhcHBlYXJz
-IHRvIHJlbWFpbiBpbiBjdXJyZW50IG1haW5saW5lLgoKSSBoYXZlIGEgbWluaW1hbCBDIHJlcHJv
-ZHVjZXIsIGNvbmZpZ3VyYXRpb24sIGxvZ3MsIGFuZCBiZWZvcmUvYWZ0ZXIKcmVzdWx0cyBhdmFp
-bGFibGUuCgpSZWdhcmRzLApzdW5nYnllb25nY2hhbg==
+성병찬 <tjdqudcks0424@naver.com> wrote:
+> I found a reproducible IPv6 conntrack fragment reassembly bug in:
+> 
+>   net/ipv6/netfilter/nf_conntrack_reasm.c
+> 
+> Tested kernel:
+> 
+>   Linux v7.2.8
+>   commit 9a66fdc0d7fd55f54235524a73435af99051e46f
+>   x86_64 with KASAN enabled
+>
+> In find_prev_fhdr(), the previous Next Header offset is stored in u8:
+> 
+>   u8 prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
+
+Please send a formal patch, thanks.
