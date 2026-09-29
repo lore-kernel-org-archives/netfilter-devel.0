@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4480C3BB102
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 09:21:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 256F14CE683
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 09:34:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790673690; cv=none; b=mRcioDiJNWY3bEIjOMeEjaSqP3LGx0hePDq04+igCyb0nnefw3d3/HI43wFGj88WpJQB8xW0DoeijBJDZQBhjTFpvKAN/1jpMX4ojSqOytL3+3HP9ePpuvM9oGqUP/D8o8uAEYrf0iUPWDtHWPDO/cd8O+TxzINSh0RJAYZX7XY=
+	t=1790674459; cv=none; b=b0gyxVlcLbZDHN5gcMxpxuT/8Y3Snf1YrFZkwD6wAhbqyFVGy5kA5qGmOPqlb6IUK7py7V3mglIioUsm7fWAHsKwxFzxVi6Q/LZZibk4gSN1D/OwQLyF1U9TpufjEyXmbx5HmO1b4/XLy9QSNSY/u1SePstScNHs/P7ReypIhn4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790673690; c=relaxed/simple;
-	bh=xKCC4Kc3p6zB5GCooBoneLYDAhrQSEtNrHzXiXUJz3o=;
+	s=arc-20240116; t=1790674459; c=relaxed/simple;
+	bh=Jz533e4zw9ygXoMc10I8j6l1QwX5B8qv0+NXCpTq4Cs=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=i4HyKMyKl+mVCD2zoKF1Xo8bclzaVDqS6XNOvqy1DchP36/pvE/aWsVJs31m2Mebnu4un17HaKaDjzi9HWYx7S08lRTp8AcWnfsEQKwjN4fzp1HthKB/O8A5RKcC2D5gIY2WZd1/PWM4paSuyDW81p33/HdQ8bu9hslWpJ1gaAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W/inYw8v; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=LLTyGMDXiBZ5uurEppfuTVOAkegx0l8zOzIfNkSBzllqB+Vdn1I5xpSq17PfomomvnMxjQtAGU2RLesocLXO6IGhPzF1GP4MtkV9EDOEjXMqxeuaYEk/Ag0/THeMQJWZQohPX5eW8g4RY1VbYDxZT7evjfjXCnKBRNOoGRuMS28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CNJoekom; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W/inYw8v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D51231F000FF;
-	Tue, 29 Sep 2026 09:21:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CNJoekom"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0933C1F000FF;
+	Tue, 29 Sep 2026 09:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790673678;
-	bh=gV4aCqAnPgJnyxH2nfN7Qm6binA2WW4nBypoUepdygI=;
+	s=k20260515; t=1790674457;
+	bh=A2GIzru1jSoIBMTUSdCSMIC8KScXbXWXR52BHh2Vq0Q=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=W/inYw8vfaRv8hepkie5oSYjHBfMe5yrUWsvKviaBPBNFUbeQWKDwnLGCikiC/d4V
-	 DknjzkpK74Xz9T+3e+gmtOrrQJ9VZSSxcSLaTwkC7T4IUSQkSaoN38VgY78RRpthWo
-	 a+i7dFhI0XDt41Jr9++d4s02FA5ohrhLNHmdEAbOhCjUuCjJGpy9lIi8M26UGWKoE4
-	 NnyC/I56g9RQRX0ZHv9dWhhovZZlsZlIRLSqkRgDCMM2S3VZKwZcQrrK/MBsz0aFnY
-	 1/N2K2u7YvuL9V7qxPKyKlz/pwcv4F0ICR3BlMVqiEhI3QYOULtw7U/8Q7qgmncBM4
-	 ZABcRzwOmYQDw==
-Message-ID: <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
-Date: Tue, 29 Sep 2026 11:21:15 +0200
+	b=CNJoekomBhLqNfzHYrPtXdikE0NSgzRXRcxYIv1qYOb9niNjuS0t/Zm8tpYxAJH4K
+	 OrFJHiDLHXAP5v221kuYQu72EmqBe9nmvKyRKXkZjDz5o+sTShTAF8Ds7NGvd5lUD/
+	 UHKn9Gt82nQKrK3xEYV3jZFkHEqHOXsDVxv4EqRww2HC0Ew9avNW2dLcG+dZUXreEZ
+	 oG3T/xwEOxw4NMuDLBPaaCusV2gOIDZftdr1MiUoKWdBMe6JO+4UTDKAQ0oJpRLRk/
+	 +KjC12TjP1XKPimRGPRnFr3DEy2NmwHJL0rZIlc7g2S+7qB3qVQRFlM/1Ok+0Ni+RT
+	 Bll9q/I4saC5g==
+Message-ID: <6260a189-aa8b-42c5-bc85-bc2367656fd5@kernel.org>
+Date: Tue, 29 Sep 2026 11:34:14 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -38,11 +38,11 @@ User-Agent: Mozilla Thunderbird Beta
 Subject: Re: Netfilter: match "tcp option" with the same type present multiple
  times
 Content-Language: fr
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <ej@inai.de>
 Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
  Netfilter Coreteam <coreteam@netfilter.org>
 References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
- <arrhlKkKSSKFp4Sq@chamomile>
+ <ro0285nn-9p34-n561-q86n-1s668021npor@vanv.qr>
 From: Matthieu Baerts <matttbe@kernel.org>
 Autocrypt: addr=matttbe@kernel.org; keydata=
  xsFNBFXj+ekBEADxVr99p2guPcqHFeI/JcFxls6KibzyZD5TQTyfuYlzEp7C7A9swoK5iCvf
@@ -88,27 +88,19 @@ Autocrypt: addr=matttbe@kernel.org; keydata=
  JY6dglzGKnCi/zsmp2+1w559frz4+IC7j/igvJGX4KDDKUs0mlld8J2u2sBXv7CGxdzQoHaz
  lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
 Organization: NGI0 Core
-In-Reply-To: <arrhlKkKSSKFp4Sq@chamomile>
+In-Reply-To: <ro0285nn-9p34-n561-q86n-1s668021npor@vanv.qr>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Pablo,
+Hi Jan,
 
-Thank you for your reply!
-
-On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
-> Hi Mattieu,
+On 28/09/2026 23:54, Jan Engelhardt wrote:
+> On Monday 2026-09-28 14:13, Matthieu Baerts wrote:
 > 
-> On Mon, Sep 28, 2026 at 02:13:16PM +0200, Matthieu Baerts wrote:
->> Hello Netfilter devs,
->>
->> First, thank you for maintaining Netfilter in the kernel and the
->> userspace tools.
->>
 >> The MPTCP selftests are switching from IPTables to NFTables, and
 >> Clashiko reported that this part of a rule wouldn't match anything:
 >>
->>   tcp option mptcp subtype remove-addr drop
+>>  tcp option mptcp subtype remove-addr drop
 >>
 >> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
 >> added to the TCP options, it is added after an MPTCP DSS option (type
@@ -118,40 +110,37 @@ On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
 >> expected type is found:
 >>
 >> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
->>     ...
+>>    ...
 >> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
 >> 		optl = optlen(opt, i);
 >>
->> 		if (priv->type != opt[i])
+>> 		if (		priv->type != opt[i])
 >> 			continue;
 >> 		...
 >> 		return;  // <== it will look at the first MPTCP option
 >> 	}
->>     ...
->> }
->>
->> It looks like it shouldn't stop if the wrong subtype is found, but the
->> subtype is not compared there if I'm not mistaken. Should there be a fix
->> to support this case?
 > 
-> Would it work for you if you can specify what TCP option you want to
-> match? ie.
->  
->     tcp option[2] mptcp subtype remove-addr drop
->                ^
->                |
->                |
->        allow to specify a match at a given tcp option
+> Hm, neither RFC 793 nor 9293 seem to define a general processing rule
+> or error-handling behavior for duplicate or repeated options within
+> the header of a TCP segment.
 
-In my specific use-case, yes it would work. Some MPTCP sub-options will
-always be after another one... when the Linux stack is used.
+From what I understood at the IETF, new TCP extensions can only be
+assigned one "type". If multiple message types should be passed, the
+subtype should be either extracted from the size, or by using another
+TLV inside. (MPTCP is using the two techniques.)
 
-> Or would this be too strict for your use-case and you would prefer
-> that you can match it anywhere?
+(Old extensions like SACK and echo are exceptions, because they are old
+ones.)
 
-I think it would make more sense to match it anywhere. For example, an
-MP_RESET can be used alone, or after an MP_FASTCLOSE. Plus some stacks
-could reorder the options as there is no imposed order.
+> MPTCP RFC 8684 seems to acknowledge that, with:
+> 
+> "it may not be possible to combine all desired options .. on a single
+> packet"
+
+The MPTCP RFC specifies this mainly because of the TCP options space
+restriction (40 bytes). For example, the ADD_ADDR option can take up to
+30 bytes (+2 for the alignment). If you add TCP Timestamp (10 + 2 for
+the alignment) or SACK, you are over the limit.
 
 Cheers,
 Matt
