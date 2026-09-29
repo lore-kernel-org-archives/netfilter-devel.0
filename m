@@ -1,249 +1,216 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C0E5326D1
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Sep 2026 15:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 071983D3008;
+	Tue, 29 Sep 2026 15:40:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790694031; cv=none; b=It45RkirTwnKq7tJDXcadhoM0pUjYiEmta7Ami/xMf4iPB+fVYcZq5stRdrgfijSCpuQQw1l+9+irOnXAa6X4wSia9t8qlsi7HsQ2s1orDbbAECLZM7zlgYm2W0zWl1FI2pYQNAlVeCAZcz7SXg8K+H1reMvwrKBO4W8dcOszKw=
+	t=1790696442; cv=none; b=RtOq2s4JhTaqEmP+NvNPvVHgfn3JNy6PJ5KIMJkP5SNh72xLRMXsLTkWInVR9cSMR/jYxdJ/iGkUPP7lAh0J8x3njS44YNbJlSyZlR7AcpK62LkbmatoeJwAoCSroEwbNlhSi0+Euq+1y1tIskYamU7EEGYrFIsZaHO1E4/Nqbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790694031; c=relaxed/simple;
-	bh=BNsCgDzCMPykj59Z1zlTIgmJmCSM4xpTGPZ8rDMCR7w=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=P57pK7V8npTP+1ED53jv7MCkfWbUov/rpxayY6qE6Em+oRhMtYdh9bMEdz8QJMv5KEzi19Yr7jS278gXnDRRfmraB4dPDOdYgUolACV+oO7Mq45I3YCO0d5bcQTUtYPRVh7wdmrd1vxJjlaB1/Gh8XG0EDVNZPhs+oRu30mJWOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CD76760344; Tue, 29 Sep 2026 16:59:58 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Vega <vega@nebusec.ai>
-Subject: [PATCH nf-next] netfilter: nf_tables: switch chain_types array to rcu
-Date: Tue, 29 Sep 2026 16:59:44 +0200
-Message-ID: <20260929145944.6598-1-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1790696442; c=relaxed/simple;
+	bh=8oZvkVUf2V+gk2Uu/lUv/NwDSxjvHbsrGmM/+th4F/w=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=feakBgyJK95IvaxNQhDXjVxQW9AIHkYMBmqlcfJJEpeHEHV+Gld3QTvLfvn2L44JYBPd2Hgfz0T8U4hM1yo5y92OfUaEdES1w5593rCUJnT6p+XvJIRRYPftUINrEZnAoq0YwL1cTXbIAFBItBS1ftWm506bFinF5ytM4XhRNtU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jppbl6Qo; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jppbl6Qo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC9C1F000FF;
+	Tue, 29 Sep 2026 15:40:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790696440;
+	bh=TI/xXToTOEBcYAWcn46fJFhNOb2NaUUrbJWEAnd5OGM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Jppbl6QoqsktVwqpBgVbumU0mwxDPjdX2+1/8E/f48rhbIz9ZgUI2pAc/+68lSrzm
+	 xp/naV5gZ6OUZ7tkq1e48NPB4bsibo5F56Ndtliik/jLh0AFrSVOxWDYUBlbi60Gij
+	 Xdc4dwKeAL6Bn99/WnEQ6iwCnlmIsuBruNBDiQjuVIbuo0oWCNPUtYJWoLO6y4oSes
+	 FGM24INBe4WF4TDr4kTtw7e+ya3fUxPux9FS0jpECvcURkgSzqloyaPYIdhG2UEwcg
+	 WrSP5KtjWRWgXGLP54opdEpwDGV3/n77+kT4ERipgJMSKbQrnEJivpHbyyvdBDFtkr
+	 kApwTaeo/36tw==
+Subject: Re: [PATCH nf 1/2] ipvs: validate cport in received sync records
+From: netdev-bot+sashiko@kernel.org
+To: axel.mierczuk@1password.com
+Cc: ja@ssi.bg, horms@verge.net.au, pablo@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+ coreteam@netfilter.org, netdev@vger.kernel.org, w@1wt.eu,
+ keith.hoodlet@1password.com, stable@vger.kernel.org, kuba@kernel.org
+Date: Tue, 29 Sep 2026 15:40:39 +0000
+Message-ID: <179069643951.434549.3382665015308925440@kernel.org>
+In-Reply-To: <20260925141115.16126-2-axel.mierczuk@1password.com>
+References: <20260925141115.16126-2-axel.mierczuk@1password.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-LLM quote:
- The global chain_type array is cleared under the nfnetlink subsystem
- mutex, but transaction processing reads it while holding only the pernet
- transaction mutex.
- nf_tables_chain_type_lookup() and nft_chain_parse_hook() dereference
- type->name/hook_mask before try_module_get(type->owner).
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
- Concurrent unloading of a separate provider such as nft_chain_nat can
- unregister and free its static nft_chain_type while a transaction is
- in the unprotected interval, causing a module-memory use-after-free.
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-LLM finding, not observed in practice.  Move this under RCU and grab the
-module owner earlier.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Both nft_chain_route and nft_chain_filter are built into nf_tables.ko:
-only nft_chain_nat needs an extra synchronize_rcu().
+- [Medium] The new check in ip_vs_proc_conn()
+  (net/netfilter/ipvs/ip_vs_sync.c) is incomplete for templates.
+- [Low] The new comment and rejection in ip_vs_proc_conn() say ordinary
+  connections must have NO_CPORT exactly when cport is 0, and records…
 
-Reported-by: Vega <vega@nebusec.ai>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 94 ++++++++++++++++++++++++-----------
- net/netfilter/nft_chain_nat.c |  1 +
- 2 files changed, 65 insertions(+), 30 deletions(-)
+--
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 31fbd5a28937..7fc73206e8d5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1036,32 +1036,67 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
- 	return ++table->hgenerator;
- }
- 
--static const struct nft_chain_type *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
-+static const struct nft_chain_type __rcu *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
- 
- static const struct nft_chain_type *
--__nft_chain_type_get(u8 family, enum nft_chain_types type)
-+__nft_chain_type_peek(u8 family, enum nft_chain_types type)
- {
- 	if (family >= NFPROTO_NUMPROTO ||
- 	    type >= NFT_CHAIN_T_MAX)
- 		return NULL;
- 
--	return chain_type[family][type];
-+	return rcu_dereference_check(chain_type[family][type],
-+				     lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
- }
- 
-+/**
-+ * nft_chain_type_get - look up a chain type by family and id
-+ * @family: netlink family
-+ * @type:   chain type (enum nft_chain_types)
-+ *
-+ * Return: chain type with a held module ref, or NULL.
-+ */
-+static const struct nft_chain_type *
-+nft_chain_type_get(u8 family, enum nft_chain_types type)
-+{
-+	const struct nft_chain_type *t;
-+
-+	rcu_read_lock();
-+	t = __nft_chain_type_peek(family, type);
-+
-+	if (t && !try_module_get(t->owner))
-+		t = NULL;
-+
-+	rcu_read_unlock();
-+	return t;
-+}
-+
-+/**
-+ * __nf_tables_chain_type_lookup - look up a chain type by name
-+ * @nla:    nlattr containing the chain-type name
-+ * @family: netlink family
-+ *
-+ * Return: matching chain type with a held module ref, or NULL.
-+ */
- static const struct nft_chain_type *
- __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
- {
--	const struct nft_chain_type *type;
-+	const struct nft_chain_type *type = NULL, *t;
- 	int i;
- 
-+	rcu_read_lock();
- 	for (i = 0; i < NFT_CHAIN_T_MAX; i++) {
--		type = __nft_chain_type_get(family, i);
--		if (!type)
-+		t = __nft_chain_type_peek(family, i);
-+		if (!t)
- 			continue;
--		if (!nla_strcmp(nla, type->name))
--			return type;
-+
-+		if (!nla_strcmp(nla, t->name) && try_module_get(t->owner)) {
-+			type = t;
-+			break;
-+		}
- 	}
--	return NULL;
-+	rcu_read_unlock();
-+	return type;
- }
- 
- struct nft_module_request {
-@@ -1837,11 +1872,11 @@ static void nf_tables_table_destroy(struct nft_table *table)
- void nft_register_chain_type(const struct nft_chain_type *ctype)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	if (WARN_ON(__nft_chain_type_get(ctype->family, ctype->type))) {
-+	if (WARN_ON(__nft_chain_type_peek(ctype->family, ctype->type))) {
- 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- 		return;
- 	}
--	chain_type[ctype->family][ctype->type] = ctype;
-+	rcu_assign_pointer(chain_type[ctype->family][ctype->type], ctype);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_register_chain_type);
-@@ -1849,7 +1884,7 @@ EXPORT_SYMBOL_GPL(nft_register_chain_type);
- void nft_unregister_chain_type(const struct nft_chain_type *ctype)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	chain_type[ctype->family][ctype->type] = NULL;
-+	RCU_INIT_POINTER(chain_type[ctype->family][ctype->type], NULL);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_unregister_chain_type);
-@@ -2578,10 +2613,6 @@ static int nft_chain_parse_hook(struct net *net,
- 		hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
- 		hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
- 
--		type = __nft_chain_type_get(family, NFT_CHAIN_T_DEFAULT);
--		if (!type)
--			return -EOPNOTSUPP;
--
- 		if (nla[NFTA_CHAIN_TYPE]) {
- 			type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
- 							   family, true);
-@@ -2589,13 +2620,19 @@ static int nft_chain_parse_hook(struct net *net,
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
- 				return PTR_ERR(type);
- 			}
-+		} else {
-+			type = nft_chain_type_get(family, NFT_CHAIN_T_DEFAULT);
-+			if (!type)
-+				return -EOPNOTSUPP;
- 		}
-+
-+		err = -EOPNOTSUPP;
- 		if (hook->num >= NFT_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
--			return -EOPNOTSUPP;
-+			goto out_put_type;
- 
- 		if (type->type == NFT_CHAIN_T_NAT &&
- 		    hook->priority <= NF_IP_PRI_CONNTRACK)
--			return -EOPNOTSUPP;
-+			goto out_put_type;
- 	} else {
- 		if (ha[NFTA_HOOK_HOOKNUM]) {
- 			hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
-@@ -2617,30 +2654,27 @@ static int nft_chain_parse_hook(struct net *net,
- 			}
- 		} else {
- 			type = basechain->type;
-+			__module_get(type->owner);
- 		}
- 	}
- 
--	if (!try_module_get(type->owner)) {
--		if (nla[NFTA_CHAIN_TYPE])
--			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
--		return -ENOENT;
--	}
--
- 	hook->type = type;
- 
- 	INIT_LIST_HEAD(&hook->list);
- 	if (nft_base_chain_netdev(family, hook->num)) {
- 		err = nft_chain_parse_netdev(net, ha, &hook->list, extack, flags);
--		if (err < 0) {
--			module_put(type->owner);
--			return err;
--		}
-+		if (err < 0)
-+			goto out_put_type;
- 	} else if (ha[NFTA_HOOK_DEV] || ha[NFTA_HOOK_DEVS]) {
--		module_put(type->owner);
--		return -EOPNOTSUPP;
-+		err = -EOPNOTSUPP;
-+		goto out_put_type;
- 	}
- 
- 	return 0;
-+
-+out_put_type:
-+	module_put(type->owner);
-+	return err;
- }
- 
- static void nft_chain_release_hook(struct nft_chain_hook *hook)
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index 40e230d8b712..1133f79d8d25 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -131,6 +131,7 @@ static void __exit nft_chain_nat_exit(void)
- #ifdef CONFIG_NF_TABLES_INET
- 	nft_unregister_chain_type(&nft_chain_nat_inet);
- #endif
-+	synchronize_rcu();
- }
- 
- module_init(nft_chain_nat_init);
+ipvs: validate cport in received sync records
+
+This patch adds cport checks to ip_vs_proc_conn() for sync records
+received by the backup. Templates with a nonzero cport are dropped.
+Ordinary connections are dropped unless IP_VS_CONN_F_NO_CPORT is set
+exactly when cport is 0.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+> index 5383aeafb0aed..3998e9a0a391c 100644
+> --- a/net/netfilter/ipvs/ip_vs_sync.c
+> +++ b/net/netfilter/ipvs/ip_vs_sync.c
+> @@ -848,6 +848,25 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
+>  	struct ip_vs_dest *dest;
+>  	struct ip_vs_conn *cp;
+>  
+> +	/* Templates require cport 0. Ordinary connections require
+> +	 * NO_CPORT exactly when cport is 0.
+> +	 */
+> +	if (flags & IP_VS_CONN_F_TEMPLATE) {
+> +		if (param->cport) {
+> +			IP_VS_DBG(2, "BACKUP, template with cport dropped\n");
+> +			kfree(param->pe_data);
+> +			return;
+> +		}
+
+[Severity: Medium]
+Should the template branch also reject IP_VS_CONN_F_NO_CPORT?
+
+A template with cport 0 and IP_VS_CONN_F_NO_CPORT set passes this check.
+The commit message leaves that case to "ipvs: filter some flags received
+in the backup server". That patch is not in this tree, and this one is
+tagged for stable.
+
+In this tree, IP_VS_CONN_F_BACKUP_MASK still includes both NO_CPORT and
+TEMPLATE, so ip_vs_proc_sync_conn() lets the combination through. The v0
+parser applies no mask at all:
+
+net/netfilter/ipvs/ip_vs_sync.c:ip_vs_process_message_v0() {
+    ...
+		flags = ntohs(s->flags) | IP_VS_CONN_F_SYNC;
+		flags &= ~IP_VS_CONN_F_HASHED;
+    ...
+}
+
+A companion fix that only changes IP_VS_CONN_F_BACKUP_MASK would
+therefore not cover v0 records.
+
+If ip_vs_ct_in_get() misses, ip_vs_conn_new() hashes the template and
+turns on the cport-zero fallback:
+
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_new() {
+    ...
+	if (unlikely(flags & IP_VS_CONN_F_NO_CPORT)) {
+		int af_id = ip_vs_af_index(cp->af);
+
+		atomic_inc(&ipvs->no_cport_conns[af_id]);
+	}
+    ...
+}
+
+A later packet from that client, from any source port, misses the first
+lookup. ip_vs_conn_in_get() then retries with cport 0. The match in
+__ip_vs_conn_in_get() has no IP_VS_CONN_F_TEMPLATE exclusion, so the
+retry returns the template:
+
+				    (!p->cport ^
+				     (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
+
+The datapath then treats the template as an ordinary connection:
+
+ip_vs_in_hook()
+  ip_vs_conn_in_get()        /* returns the template */
+  ip_vs_set_state()
+  cp->packet_xmit()
+    ip_vs_conn_fill_cport()  /* NAT: rewrites cport, clears NO_CPORT */
+
+After fill_cport rehashes the template, ip_vs_ct_in_get() no longer finds
+it, which breaks persistence for that client.
+
+set_tcp_state() also changes dest->activeconns for the template, based
+only on IP_VS_CONN_F_INACTIVE. For templates, ip_vs_bind_dest() and
+ip_vs_unbind_dest() only adjust persistconns, so activeconns on the real
+server can drift.
+
+Template state is validated now, so this does not seem to lead to
+out-of-bounds reads. Still, isn't this the same class of problem the
+commit message describes, a template reaching the protocol state machine
+through ip_vs_conn_in_get()?
+
+Would adding "|| (flags & IP_VS_CONN_F_NO_CPORT)" to the template check
+make this patch self-contained and cover the v0 path as well?
+
+> +	} else if (!param->cport && !(flags & IP_VS_CONN_F_NO_CPORT)) {
+> +		IP_VS_DBG(2, "BACKUP, conn without cport dropped\n");
+> +		kfree(param->pe_data);
+> +		return;
+> +	} else if (param->cport && (flags & IP_VS_CONN_F_NO_CPORT)) {
+> +		IP_VS_DBG(2, "BACKUP, conn with cport and NO_CPORT dropped\n");
+> +		kfree(param->pe_data);
+> +		return;
+> +	}
+
+[Severity: Low]
+Can the master itself briefly send a record with a nonzero cport and
+IP_VS_CONN_F_NO_CPORT still set?
+
+ip_vs_conn_fill_cport() can use hn1 (use2, e.g. NAT/FTP data
+connections). In that case the dir 1 pass sets cport while the flag stays
+set. cp->lock is then released, and only the dir 0 pass clears the flag:
+
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_fill_cport() {
+    ...
+	if (cp->flags & IP_VS_CONN_F_NO_CPORT && (!cp->cport || by_me)) {
+		/* If we race with resizing make sure cport is set for dir 1 */
+		if (!cp->cport) {
+			cp->cport = cport;
+			by_me = true;
+		}
+		if (!dir) {
+			atomic_dec(&ipvs->no_cport_conns[af_id]);
+			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
+		}
+    ...
+}
+
+In that window, another CPU can handle a packet of the same connection
+and call ip_vs_sync_conn(). That function copies cp->flags and cp->cport
+without taking cp->lock:
+
+net/netfilter/ipvs/ip_vs_sync.c:ip_vs_sync_conn() {
+    ...
+	s->v4.flags = htonl(cp->flags & ~IP_VS_CONN_F_HASHED);
+	s->v4.state = htons(cp->state);
+	s->v4.protocol = cp->protocol;
+	s->v4.cport = cp->cport;
+    ...
+}
+
+Before this patch, the backup matched such a record to its existing
+cport 0 NO_CPORT connection through the cport-zero fallback. It then
+updated that connection's INACTIVE/SEQ flags and seq options. Now the
+record is dropped.
+
+The next sync record restores the state, so the effect looks small. Is
+the comment "NO_CPORT exactly when cport is 0" accurate, given what the
+master can send in this window?
+
 -- 
-2.55.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
