@@ -1,204 +1,171 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl2-f42.google.com (mail-dl2-f42.google.com [74.125.229.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0657451990
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 20:49:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E19993AFAE2
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 20:54:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790801372; cv=none; b=Jhn94fIahH4aCovrs5O8Qig7x3SBZnpuWG+4BckZveciA2lM3td8Bxd0Vc/9eEw4DROjDZRfG+LupStUipIDCHgBmUZHwG6pZXiEe/Ku5Pe6LhbHYMxGsQPH6t8MXdnCo7og7hi/IGyPhequQTx9ucoCxiLwYjmvZATvV00DPWA=
+	t=1790801671; cv=none; b=brR0M/vLtEnMnU+eyQRS02wCEDH3jQTjFF72ylwHAm1mMeBtfZYKcun/YYkJXq1Z9EswcDNICHXo1XGLtp7P1+XfO7MjNj9EUiEiXtb/EwoXplHKFIF8qiXGa2/tX2aGI/5zKXjyD4c+Ow23Jh+my2lvl5u7QIV0584/VUZYGgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790801372; c=relaxed/simple;
-	bh=Or6gi/bNzGhyD8SZR4tr/7jt7EWtX6PN4KwofZ/Qago=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bpZ4CvrbnyVh9DytbGJHKUdSkHkb7g77sqv1o3py3kZNMmvrG+LsGuaHbEVm6yOtTgfyQp3/GWYFEfucV81dDQ8eFYK40fphPp+RZElq1hYXKA8PS9op9/bRVB1Kr2n4gt3Ijtsgi1G0gEGkuqO/cDPq8Mp93trwuQ5z2lbURnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Z+MEr5bc; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1790801671; c=relaxed/simple;
+	bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
+	h=Message-ID:Date:Content-Type:MIME-Version:From:To:Cc:Subject; b=GEZQ3o/RFajCcs6+HP4+cPdk4AqmVS006nkChL5D4R1uw8zrPhOWXah0g6n0YLW/O+epBWrpnoC0q9M4O9JwDlZR0F/zfJg3xzKkK2pSJ4lxuj2cFKFfhh9fYyvMa3tPKdLyiL5bFQlDapomL+hgohcSeyVwPXpcf6m/rjuI3lA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IVHhTOpJ; arc=none smtp.client-ip=74.125.229.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Z+MEr5bc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790801365;
-	bh=EVZvpQFYTs61dUK66B7iv/wmVcMJ+B6Y82NixjfW3r0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Z+MEr5bcW0K9IAIlJfD/tYBKtpjoucbhW9nbUDluozYFtUM+etXVPLjE51S9M2NPT
-	 qS7x1Xews7nczvs/A4XNyKjPqvPvimZox5xTgbiNEaIG+/kXbohBCr4g5xdwJX1stM
-	 Adx6N94huJUZhNYhukBA0p3ta0UJVjpREux4Th7yEX/qazwO13NhtrdCGw1GxCtI/e
-	 95UtP/BOCsUGbAXVgxWNETYTlC9RwUHqLkeepmSnJ/hIZPeWlT6SJRExRSmfFUN0o/
-	 6DsZLWsgGwhVXNoK78j/JTm1o8GgNo9uHF+0x8AQ/cE5jOFPjHP05Fb2cERsimaytH
-	 7a2KIc81LoASw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6DAB26041C;
-	Wed, 30 Sep 2026 22:49:25 +0200 (CEST)
-Date: Wed, 30 Sep 2026 22:49:22 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Joas Antonio <joasantonio108@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, coreteam@netfilter.org
-Subject: Re: [PATCH net] netfilter: ip6t_NPT: ensure skb is writable before
- header modification
-Message-ID: <ar110uvm8qM1hGEp@chamomile>
-References: <6abd5063.b622e075.2a379c.077a@mx.google.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IVHhTOpJ"
+Received: by mail-dl2-f42.google.com with SMTP id a92af1059eb24-144f47a9b57so5358796c88.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 13:54:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790801669; x=1791406469; darn=vger.kernel.org;
+        h=subject:cc:to:from:content-transfer-encoding:mime-version
+         :content-type:date:message-id:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
+        b=IVHhTOpJbAVJyySm9Ru+NHtGoiBsOh1kFw6f2IFSY7DrpfF+Fz0GfR1VjOMv0hkDem
+         okJYtjI8L27fZAMTlhRfFswg2eNPnrG1MV5Ed59mSloKRIB45mzec7o7+7mUwZdYsOew
+         +F/s9QpifRSOZUMLPGet2aMvKaTvuQ8fo/6wuxMYLEZSz+dZu/2gwMk0CUVbOD1egrbo
+         VnUAl9d06uoSjSoHoDfevg/eWnQQu5SkZ5NMmnNukNIzD2ATtF0f0ZPORz86yaK/2AZc
+         WuIlvnILYt4qwtsPDDsjmeGcsEC+eGnO6d8GQEYJ2vbWd9LGF1aCG9LhTcdzsZGH93Qg
+         SEdw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790801669; x=1791406469;
+        h=subject:cc:to:from:content-transfer-encoding:mime-version
+         :content-type:date:message-id:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
+        b=C5Dd29dB1a5B0SRwbk5ql1DoEJjV68XXMCsJtAjfMJJIgJtxrZdN6Rs2s8RUtT+cWf
+         0rHBDD/iuLUSCbf5PTzq4sy8lylR5pvCTG4rJXEGFQ930JJvfmK/hRzFvaLoTqsBKTrh
+         Jm+oYZ6m9My0FfC0kN+LnPkg5vj44qdui4Pyf7GYViBHyNjbFNABOvCd9st+orntQgbF
+         A4FQwD3zHZgUMGjRmVihvIYl75FSLldTZLMHjrcBJJJ4Yx4c+e3emu8mpGpvokDHIMI/
+         t1RMH2iZhhT4Zjxf5zb0WICC4QZSKTNL/aAWf7bn8chcO4XkWETgNCHbAIIUWkcqONTy
+         pUxg==
+X-Gm-Message-State: AFuF++k42nIW4f+lv7vKPEp9YTA46oAe/WCuLtaZh7kza1n9WIaLQ/Mc
+	8kdduEG9SvWxoVkJ7BPvtrHiWDjszJQYH9CvKpZMTdytyY/2DZ3HHLYF/oiNfLC6Hm6ZNZc3
+X-Gm-Gg: AYBFou0sU6t3sh8W0cTrEx9ogyXY36WiRGqiPaWiFkH9SA80yJsyyzNT57aBZ3ZCvpr
+	txWyi5oOmoi+Iw2zr48l15T46aUYNJ7z3EYqJcAg7GMNK2UzqgIgQB4OiOslCxoLwZ+Plzkiao7
+	wC2pE5XDsrczw+J5QB/kCSEaAKTAbKXppTotnlwWI8Yg036o4hxIycPe26JaLFskSdK6LwhcZdx
+	MtSbS8rd+DVq4keYcz++IPebShEqB8BseNNV4Ot9qDOB213us9ICvTZbMhl1Q1k33PT4+lqBVkU
+	1EIir/RaTzn3qJJItD83CCskVIxSlVstA3UjIlBgv++Iu9I33gOsxkxBgKY8xRjj62Z8E6by/FF
+	MWLuQOt7feKjZuTqVNpPsnMB2iILBJ/29De6N/fVvzLocDs7f6F9ms+cBPNRbac0bFU1f3OdRA8
+	14Wl3+JL3QxaRwqTWDYQ9AG4DDhenY6lONRUirw1a+qZ3Lhxx0efhFy9LbbQkWUp/LGUE32nWxP
+	u5OOpt6WQ2i4/P26jCfuqd9zWw2Be166BQXccOBh1zt3oqw2fBfTOnhGc261oOnooM1g8mjX58b
+	kWxzaFW1mFrPbHj1p5xL5+iX7fSC+/jbT+iyaMS6QdJRDyWyrppMCCeP7ls=
+X-Received: by 2002:a05:701b:2505:b0:146:606e:2117 with SMTP id a92af1059eb24-14d2f7e6e77mr2980025c88.5.1790801668670;
+        Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
+Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([2804:7f0:b103:90e6:2458:51e7:ee0:38f9])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14df44d4f00sm983983c88.14.2026.09.30.13.54.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
+Message-ID: <6abd7704.018c0331.32b1f7.c000@mx.google.com>
+Date: Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <6abd5063.b622e075.2a379c.077a@mx.google.com>
+Content-Transfer-Encoding: base64
+From: Joas Antonio <joasantonio108@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org, fw@strlen.de, coreteam@netfilter.org
+Subject: [PATCH nf-next v2] netfilter: ip6t_NPT: ensure skb is writable before header modification
 
-Hi,
-
-On Wed, Sep 30, 2026 at 11:09:39AM -0700, Joas Antonio wrote:
-> ip6t_snpt_tg() and ip6t_dnpt_tg() modify the IPv6 source/destination
-> address in-place via ip6t_npt_map_pfx() without first calling
-> skb_ensure_writable().  When the skb is cloned (nflog, tee, multicast,
-> tc mirred), the write hits shared data visible to other users of the
-> same buffer:
-> 
->   if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr))
->           ...
-> 
-> ip6t_npt_map_pfx() does the actual in-place modification:
-> 
->   addr->s6_addr32[idx] &= mask;
->   addr->s6_addr32[idx] |= ~mask & npt->dst_pfx.in6.s6_addr32[idx];
-> 
-> Neither target checks writability first.  Every comparable target in
-> the tree does: ipt_ECN (line 32), ebt_dnat (line 24), ebt_snat
-> (line 25), xt_TCPOPTSTRIP (line 52).
-> 
-> Additionally, the ICMPv6 bounced header path uses
-> skb_header_pointer(), which returns a pointer to a stack-local copy
-> for nonlinear skbs.  ip6t_npt_map_pfx() then modifies the copy;
-> changes are silently lost and the inner IPv6 header in ICMPv6 error
-> messages is never translated.
-> 
-> Fix both by adding skb_ensure_writable() before each target function
-> operates, and replacing the skb_header_pointer() + helper pattern
-> with skb_ensure_writable() up to the inner header offset followed by
-> a direct pointer.  Remove the now-unused icmpv6_bounced_ipv6hdr().
-> 
-> Fixes: 8a91bb0c304b ("netfilter: ip6tables: add stateless IPv6-to-IPv6 Network Prefix Translation target")
-> Signed-off-by: Joas Antonio <joasantonio108@gmail.com>
-> ---
-> Testing: verified with NFLOG + SNPT/DNPT rules on a namespace pair
-> that cloned skb data is no longer corrupted after translation.
-> Nonlinear-skb path confirmed by forcing GRO aggregation on the
-> ingress side; inner ICMPv6 header now carries the translated prefix.
-
-This is nf-next material.
-
->  net/ipv6/netfilter/ip6t_NPT.c | 66 ++++++++++++++++++--------------
->  1 file changed, 37 insertions(+), 29 deletions(-)
-> 
-> diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-> index XXXXXXX..XXXXXXX 100644
-> --- a/net/ipv6/netfilter/ip6t_NPT.c
-> +++ b/net/ipv6/netfilter/ip6t_NPT.c
-> @@ -78,57 +78,65 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
->  	return true;
->  }
-> 
-> -static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb,
-> -					      struct ipv6hdr *_bounced_hdr)
-> -{
-> -	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
-> -		return NULL;
-> -
-> -	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
-> -		return NULL;
-> -
-> -	return skb_header_pointer(skb,
-> -				  skb_transport_offset(skb) + sizeof(struct icmp6hdr),
-> -				  sizeof(struct ipv6hdr),
-> -				  _bounced_hdr);
-> -}
-> -
->  static unsigned int
->  ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
->  	const struct ip6t_npt_tginfo *npt = par->targinfo;
-> -	struct ipv6hdr _bounced_hdr;
-> -	struct ipv6hdr *bounced_hdr;
->  	struct in6_addr bounced_pfx;
-> +	struct ipv6hdr *bounced_hdr;
-> +	unsigned int bounced_off;
-> +
-> +	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
-> +		return NF_DROP;
-> 
->  	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
->  		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
->  			    offsetof(struct ipv6hdr, saddr));
->  		return NF_DROP;
->  	}
-> 
->  	/* rewrite dst addr of bounced packet which was sent to dst range */
-> -	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-> -	if (bounced_hdr) {
-> -		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
-> -		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-> -			ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
-> -	}
-> +	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6 ||
-> +	    !icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
-> +		return XT_CONTINUE;
-> +
-> +	bounced_off = skb_transport_offset(skb) + sizeof(struct icmp6hdr);
-> +	if (skb_ensure_writable(skb, bounced_off + sizeof(struct ipv6hdr)))
-> +		return XT_CONTINUE;
-> +
-> +	bounced_hdr = (struct ipv6hdr *)(skb_transport_header(skb) +
-> +					  sizeof(struct icmp6hdr));
-> +	ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
-> +	if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-> +		ip6t_npt_map_pfx(npt, &bounced_hdr->daddr);
-> 
->  	return XT_CONTINUE;
->  }
-> 
->  static unsigned int
->  ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
->  	const struct ip6t_npt_tginfo *npt = par->targinfo;
-> -	struct ipv6hdr _bounced_hdr;
-> -	struct ipv6hdr *bounced_hdr;
->  	struct in6_addr bounced_pfx;
-> +	struct ipv6hdr *bounced_hdr;
-> +	unsigned int bounced_off;
-> +
-> +	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
-> +		return NF_DROP;
-> 
->  	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
->  		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
->  			    offsetof(struct ipv6hdr, daddr));
->  		return NF_DROP;
->  	}
-> 
->  	/* rewrite src addr of bounced packet which was sent from dst range */
-> -	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-> -	if (bounced_hdr) {
-> -		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
-> -		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-> -			ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
-> -	}
-> +	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6 ||
-> +	    !icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
-> +		return XT_CONTINUE;
-> +
-> +	bounced_off = skb_transport_offset(skb) + sizeof(struct icmp6hdr);
-> +	if (skb_ensure_writable(skb, bounced_off + sizeof(struct ipv6hdr)))
-> +		return XT_CONTINUE;
-> +
-> +	bounced_hdr = (struct ipv6hdr *)(skb_transport_header(skb) +
-> +					  sizeof(struct icmp6hdr));
-> +	ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
-> +	if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-> +		ip6t_npt_map_pfx(npt, &bounced_hdr->saddr);
-> 
->  	return XT_CONTINUE;
->  }
-> --
-> 2.43.0
+aXA2dF9zbnB0X3RnKCkgYW5kIGlwNnRfZG5wdF90ZygpIG1vZGlmeSB0aGUgSVB2NiBzb3VyY2Uv
+ZGVzdGluYXRpb24KYWRkcmVzcyBpbi1wbGFjZSB2aWEgaXA2dF9ucHRfbWFwX3BmeCgpIHdpdGhv
+dXQgZmlyc3QgY2FsbGluZwpza2JfZW5zdXJlX3dyaXRhYmxlKCkuICBXaGVuIHRoZSBza2IgaXMg
+Y2xvbmVkIChuZmxvZywgdGVlLCBtdWx0aWNhc3QsCnRjIG1pcnJlZCksIHRoZSB3cml0ZSBoaXRz
+IHNoYXJlZCBkYXRhIHZpc2libGUgdG8gb3RoZXIgdXNlcnMgb2YgdGhlCnNhbWUgYnVmZmVyOgoK
+ICBpZiAoIWlwNnRfbnB0X21hcF9wZngobnB0LCAmaXB2Nl9oZHIoc2tiKS0+c2FkZHIpKQogICAg
+ICAgICAgLi4uCgppcDZ0X25wdF9tYXBfcGZ4KCkgZG9lcyB0aGUgYWN0dWFsIGluLXBsYWNlIG1v
+ZGlmaWNhdGlvbjoKCiAgYWRkci0+czZfYWRkcjMyW2lkeF0gJj0gbWFzazsKICBhZGRyLT5zNl9h
+ZGRyMzJbaWR4XSB8PSB+bWFzayAmIG5wdC0+ZHN0X3BmeC5pbjYuczZfYWRkcjMyW2lkeF07CgpO
+ZWl0aGVyIHRhcmdldCBjaGVja3Mgd3JpdGFiaWxpdHkgZmlyc3QuICBFdmVyeSBjb21wYXJhYmxl
+IHRhcmdldCBpbgp0aGUgdHJlZSBkb2VzOiBpcHRfRUNOIChsaW5lIDMyKSwgZWJ0X2RuYXQgKGxp
+bmUgMjQpLCBlYnRfc25hdAoobGluZSAyNSksIHh0X1RDUE9QVFNUUklQIChsaW5lIDUyKS4KCkFk
+ZGl0aW9uYWxseSwgdGhlIElDTVB2NiBib3VuY2VkIGhlYWRlciBwYXRoIHVzZXMKc2tiX2hlYWRl
+cl9wb2ludGVyKCksIHdoaWNoIHJldHVybnMgYSBwb2ludGVyIHRvIGEgc3RhY2stbG9jYWwgY29w
+eQpmb3Igbm9ubGluZWFyIHNrYnMuICBpcDZ0X25wdF9tYXBfcGZ4KCkgdGhlbiBtb2RpZmllcyB0
+aGUgY29weTsKY2hhbmdlcyBhcmUgc2lsZW50bHkgbG9zdCBhbmQgdGhlIGlubmVyIElQdjYgaGVh
+ZGVyIGluIElDTVB2NiBlcnJvcgptZXNzYWdlcyBpcyBuZXZlciB0cmFuc2xhdGVkLgoKRml4IGJv
+dGggYnkgYWRkaW5nIHNrYl9lbnN1cmVfd3JpdGFibGUoKSBiZWZvcmUgZWFjaCB0YXJnZXQgZnVu
+Y3Rpb24Kb3BlcmF0ZXMsIGFuZCByZXBsYWNpbmcgdGhlIHNrYl9oZWFkZXJfcG9pbnRlcigpICsg
+aGVscGVyIHBhdHRlcm4Kd2l0aCBza2JfZW5zdXJlX3dyaXRhYmxlKCkgdXAgdG8gdGhlIGlubmVy
+IGhlYWRlciBvZmZzZXQgZm9sbG93ZWQgYnkKYSBkaXJlY3QgcG9pbnRlci4gIFJlbW92ZSB0aGUg
+bm93LXVudXNlZCBpY21wdjZfYm91bmNlZF9pcHY2aGRyKCkuCgpGaXhlczogOGE5MWJiMGMzMDRi
+ICgibmV0ZmlsdGVyOiBpcDZ0YWJsZXM6IGFkZCBzdGF0ZWxlc3MgSVB2Ni10by1JUHY2IE5ldHdv
+cmsgUHJlZml4IFRyYW5zbGF0aW9uIHRhcmdldCIpClNpZ25lZC1vZmYtYnk6IEpvYXMgQW50b25p
+byA8am9hc2FudG9uaW8xMDhAZ21haWwuY29tPgotLS0KVGVzdGluZzogdmVyaWZpZWQgd2l0aCBO
+RkxPRyArIFNOUFQvRE5QVCBydWxlcyBvbiBhIG5hbWVzcGFjZSBwYWlyCnRoYXQgY2xvbmVkIHNr
+YiBkYXRhIGlzIG5vIGxvbmdlciBjb3JydXB0ZWQgYWZ0ZXIgdHJhbnNsYXRpb24uCk5vbmxpbmVh
+ci1za2IgcGF0aCBjb25maXJtZWQgYnkgZm9yY2luZyBHUk8gYWdncmVnYXRpb24gb24gdGhlCmlu
+Z3Jlc3Mgc2lkZTsgaW5uZXIgSUNNUHY2IGhlYWRlciBub3cgY2FycmllcyB0aGUgdHJhbnNsYXRl
+ZCBwcmVmaXguCgogbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMgfCA2NiArKysrKysrKysr
+KysrKysrKystLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDM3IGluc2VydGlvbnMoKyks
+IDI5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X05Q
+VC5jIGIvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKaW5kZXggWFhYWFhYWC4uWFhYWFhY
+WCAxMDA2NDQKLS0tIGEvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKKysrIGIvbmV0L2lw
+djYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKQEAgLTc4LDU3ICs3OCw2NSBAQCBzdGF0aWMgYm9vbCBp
+cDZ0X25wdF9tYXBfcGZ4KGNvbnN0IHN0cnVjdCBpcDZ0X25wdF90Z2luZm8gKm5wdCwKIAlyZXR1
+cm4gdHJ1ZTsKIH0KCi1zdGF0aWMgc3RydWN0IGlwdjZoZHIgKmljbXB2Nl9ib3VuY2VkX2lwdjZo
+ZHIoc3RydWN0IHNrX2J1ZmYgKnNrYiwKLQkJCQkJICAgICAgc3RydWN0IGlwdjZoZHIgKl9ib3Vu
+Y2VkX2hkcikKLXsKLQlpZiAoaXB2Nl9oZHIoc2tiKS0+bmV4dGhkciAhPSBJUFBST1RPX0lDTVBW
+NikKLQkJcmV0dXJuIE5VTEw7Ci0KLQlpZiAoIWljbXB2Nl9pc19lcnIoaWNtcDZfaGRyKHNrYikt
+PmljbXA2X3R5cGUpKQotCQlyZXR1cm4gTlVMTDsKLQotCXJldHVybiBza2JfaGVhZGVyX3BvaW50
+ZXIoc2tiLAotCQkJCSAgc2tiX3RyYW5zcG9ydF9vZmZzZXQoc2tiKSArIHNpemVvZihzdHJ1Y3Qg
+aWNtcDZoZHIpLAotCQkJCSAgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSwKLQkJCQkgIF9ib3VuY2Vk
+X2hkcik7Ci19Ci0KIHN0YXRpYyB1bnNpZ25lZCBpbnQKIGlwNnRfc25wdF90ZyhzdHJ1Y3Qgc2tf
+YnVmZiAqc2tiLCBjb25zdCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFtICpwYXIpCiB7CiAJY29uc3Qg
+c3RydWN0IGlwNnRfbnB0X3RnaW5mbyAqbnB0ID0gcGFyLT50YXJnaW5mbzsKLQlzdHJ1Y3QgaXB2
+NmhkciBfYm91bmNlZF9oZHI7Ci0Jc3RydWN0IGlwdjZoZHIgKmJvdW5jZWRfaGRyOwogCXN0cnVj
+dCBpbjZfYWRkciBib3VuY2VkX3BmeDsKKwlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CisJ
+dW5zaWduZWQgaW50IGJvdW5jZWRfb2ZmOworCisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2ti
+LCBzaXplb2Yoc3RydWN0IGlwdjZoZHIpKSkKKwkJcmV0dXJuIE5GX0RST1A7CgogCWlmICghaXA2
+dF9ucHRfbWFwX3BmeChucHQsICZpcHY2X2hkcihza2IpLT5zYWRkcikpIHsKIAkJaWNtcHY2X3Nl
+bmQoc2tiLCBJQ01QVjZfUEFSQU1QUk9CLCBJQ01QVjZfSERSX0ZJRUxELAogCQkJICAgIG9mZnNl
+dG9mKHN0cnVjdCBpcHY2aGRyLCBzYWRkcikpOwogCQlyZXR1cm4gTkZfRFJPUDsKIAl9CgogCS8q
+IHJld3JpdGUgZHN0IGFkZHIgb2YgYm91bmNlZCBwYWNrZXQgd2hpY2ggd2FzIHNlbnQgdG8gZHN0
+IHJhbmdlICovCi0JYm91bmNlZF9oZHIgPSBpY21wdjZfYm91bmNlZF9pcHY2aGRyKHNrYiwgJl9i
+b3VuY2VkX2hkcik7Ci0JaWYgKGJvdW5jZWRfaGRyKSB7Ci0JCWlwdjZfYWRkcl9wcmVmaXgoJmJv
+dW5jZWRfcGZ4LCAmYm91bmNlZF9oZHItPmRhZGRyLCBucHQtPnNyY19wZnhfbGVuKTsKLQkJaWYg
+KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKLQkJ
+CWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPmRhZGRyKTsKLQl9CisJaWYgKGlw
+djZfaGRyKHNrYiktPm5leHRoZHIgIT0gSVBQUk9UT19JQ01QVjYgfHwKKwkgICAgIWljbXB2Nl9p
+c19lcnIoaWNtcDZfaGRyKHNrYiktPmljbXA2X3R5cGUpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7
+CisKKwlib3VuY2VkX29mZiA9IHNrYl90cmFuc3BvcnRfb2Zmc2V0KHNrYikgKyBzaXplb2Yoc3Ry
+dWN0IGljbXA2aGRyKTsKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShza2IsIGJvdW5jZWRfb2Zm
+ICsgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSkpCisJCXJldHVybiBYVF9DT05USU5VRTsKKworCWJv
+dW5jZWRfaGRyID0gKHN0cnVjdCBpcHY2aGRyICopKHNrYl90cmFuc3BvcnRfaGVhZGVyKHNrYikg
+KworCQkJCQkgIHNpemVvZihzdHJ1Y3QgaWNtcDZoZHIpKTsKKwlpcHY2X2FkZHJfcHJlZml4KCZi
+b3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5kYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7CisJaWYg
+KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKKwkJ
+aXA2dF9ucHRfbWFwX3BmeChucHQsICZib3VuY2VkX2hkci0+ZGFkZHIpOwoKIAlyZXR1cm4gWFRf
+Q09OVElOVUU7CiB9Cgogc3RhdGljIHVuc2lnbmVkIGludAogaXA2dF9kbnB0X3RnKHN0cnVjdCBz
+a19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF9hY3Rpb25fcGFyYW0gKnBhcikKIHsKIAljb25z
+dCBzdHJ1Y3QgaXA2dF9ucHRfdGdpbmZvICpucHQgPSBwYXItPnRhcmdpbmZvOwotCXN0cnVjdCBp
+cHY2aGRyIF9ib3VuY2VkX2hkcjsKLQlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CiAJc3Ry
+dWN0IGluNl9hZGRyIGJvdW5jZWRfcGZ4OworCXN0cnVjdCBpcHY2aGRyICpib3VuY2VkX2hkcjsK
+Kwl1bnNpZ25lZCBpbnQgYm91bmNlZF9vZmY7CisKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShz
+a2IsIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gTkZfRFJPUDsKCiAJaWYgKCFp
+cDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmlwdjZfaGRyKHNrYiktPmRhZGRyKSkgewogCQlpY21wdjZf
+c2VuZChza2IsIElDTVBWNl9QQVJBTVBST0IsIElDTVBWNl9IRFJfRklFTEQsCiAJCQkgICAgb2Zm
+c2V0b2Yoc3RydWN0IGlwdjZoZHIsIGRhZGRyKSk7CiAJCXJldHVybiBORl9EUk9QOwogCX0KCiAJ
+LyogcmV3cml0ZSBzcmMgYWRkciBvZiBib3VuY2VkIHBhY2tldCB3aGljaCB3YXMgc2VudCBmcm9t
+IGRzdCByYW5nZSAqLwotCWJvdW5jZWRfaGRyID0gaWNtcHY2X2JvdW5jZWRfaXB2Nmhkcihza2Is
+ICZfYm91bmNlZF9oZHIpOwotCWlmIChib3VuY2VkX2hkcikgewotCQlpcHY2X2FkZHJfcHJlZml4
+KCZib3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5zYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7Ci0J
+CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
+Ci0JCQlpcDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmJvdW5jZWRfaGRyLT5zYWRkcik7Ci0JfQorCWlm
+IChpcHY2X2hkcihza2IpLT5uZXh0aGRyICE9IElQUFJPVE9fSUNNUFY2IHx8CisJICAgICFpY21w
+djZfaXNfZXJyKGljbXA2X2hkcihza2IpLT5pY21wNl90eXBlKSkKKwkJcmV0dXJuIFhUX0NPTlRJ
+TlVFOworCisJYm91bmNlZF9vZmYgPSBza2JfdHJhbnNwb3J0X29mZnNldChza2IpICsgc2l6ZW9m
+KHN0cnVjdCBpY21wNmhkcik7CisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2tiLCBib3VuY2Vk
+X29mZiArIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7CisK
+Kwlib3VuY2VkX2hkciA9IChzdHJ1Y3QgaXB2NmhkciAqKShza2JfdHJhbnNwb3J0X2hlYWRlcihz
+a2IpICsKKwkJCQkJICBzaXplb2Yoc3RydWN0IGljbXA2aGRyKSk7CisJaXB2Nl9hZGRyX3ByZWZp
+eCgmYm91bmNlZF9wZngsICZib3VuY2VkX2hkci0+c2FkZHIsIG5wdC0+c3JjX3BmeF9sZW4pOwor
+CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
+CisJCWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPnNhZGRyKTsKCiAJcmV0dXJu
+IFhUX0NPTlRJTlVFOwogfQotLQoyLjQzLjAK
