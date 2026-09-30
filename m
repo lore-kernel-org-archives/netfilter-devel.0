@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4387F51E43A
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 18:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894D14F68C9
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 18:38:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790793220; cv=none; b=k5wysDU4w05qWswFciLKsK+6d+rRg8W021l4xJ8mMDmw12ME+vR9Oh1ia1LWW+cWx0lp+n4gLPT5TKshcYJdemL98adgAPD6heqII9/Dwb8VRu2TD/BUQb+blwLCBA6iDV80F67TCOVIgz8fPNPIEMm9zhOYnHpa0lGKQx7DxA4=
+	t=1790793533; cv=none; b=YaLlho+xMaJI09QIGbVFKxq2+D+JFJ2ZXIOitluA1gkhaUX2dZ64lUda6H8r9LaDOYFcPdK0MsGoYaOfn5TOrvp2gjbUmX+pbiYUcgwGZ9bx9TjihALb4fAX1M7Q5yPWwflVWma2zSonjV80Ejr34gi8E8gHMsdQn/k0M1jdXss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790793220; c=relaxed/simple;
-	bh=HJjm6WyLXNvzc2hRoMl6epzzzASDL7FyzUjgi9OaLmg=;
+	s=arc-20240116; t=1790793533; c=relaxed/simple;
+	bh=iieVsIn7ITVN1rlUjPcinc1ty4BCTcshpTxrfNuutck=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=K785LENTJX7KMJI3bmpfr67oTAC48DsKzt/PnrPI6wawKi3AKxgiVdGKQPwvACWOowHyf3F8HBHh/Wdff2RmzQr2x9MR3JqATXSbBEALvSrJQSDVD23yJ8T6E4YMZrcqFSeqBWY7/ALIyd842FN2bmBMsV6+AZSV/woesMUrQy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LrfwqPwg; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=NukpgXQHkXTam9w45Rgn9u7KHTosQz88DWb9CstnsU/mLpWYkchx/wtlJKlHyJgxymIfdyxUY2358iCLE43w6bfrEFsbvbuGbfzliYgKz3CCdsgIKYzb/aupvRwryiyXWXT0K87m3VBCivCln8xOmxvPFR+il0QC2xhvwt/WIfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K4tUmSI0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LrfwqPwg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D8C21F00898;
-	Wed, 30 Sep 2026 18:33:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4tUmSI0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB121F0089A;
+	Wed, 30 Sep 2026 18:38:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790793219;
-	bh=kPUUw9cp29gO1W/QzwDho0BggZ2KfrOo/xXGmXuy2bs=;
+	s=k20260515; t=1790793532;
+	bh=wHaviHvNIR6AkpWGE/P+wj8Um1466aWDYS52KbyCFjs=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=LrfwqPwgzPSWNIVKamDOxYoAy7PjOYvcc1GZG72df9zXciqavnAyp32AWAaCXut60
-	 pwUldmFM3rLcAJed8R36jyH539hpc6yqb3U1akXTplndNpwOIfUX09VXT0H14Vw2Bs
-	 RenPKRX22YZ412a3WLgj8tGbMBns8Xpq3bAwG5S4mluOhCYzcqW2jtvu1hCQXH/lEl
-	 c3teik9gAodPFWd5aAHtnoXsb4yLg311HThU226SQ/eLw41ALuhz64O0B8Y+uIAVrq
-	 Yq+IqxzYN2HsZJNHIUOX6ql05/BhvhEfHtE3ulZzMfo1hMh1ZjolRDwekqt81c+lky
-	 MAdTbgqYId21g==
-Message-ID: <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
-Date: Wed, 30 Sep 2026 20:33:36 +0200
+	b=K4tUmSI0xJQC9wocDh9quwh3WN6l1NugKVQ/nNv83Z+xcIbbLeDjdlCylmRGFhrQH
+	 ISpeU2H0oOyfe56yYBjmu2TONNBssruTihe1WIr/bfbKZvIc54NxoFN5A2LIhk6tNR
+	 Jb8jXd+TAwOZbOe1ezGY3SmUCA/seo9wPfUL5UQMkYWkt3Qy7zIdpnSBhVzO2gA/JS
+	 dzj8YTbZVizrM4TXNzpgUThteoQXyzMetZpYLXBXwoDqbLvyioADu58HbFRexdrFkj
+	 11CHfF3ZjTkWTjLHyKiQxLaLVV2ZyKgOwL7nYGyFM0nrjl/fOfw6n1KyYKwXcbsWyM
+	 15ArTrrzQDk0g==
+Message-ID: <ef8c754d-616f-489f-b556-073efa491cd2@kernel.org>
+Date: Wed, 30 Sep 2026 20:38:49 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,18 +35,12 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird Beta
-Subject: Re: Netfilter: match "tcp option" with the same type present multiple
- times
+Subject: Re: [PATCH nft] doc: add MPTCP subtypes documentation to man page
 Content-Language: fr
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
- Netfilter Coreteam <coreteam@netfilter.org>
-References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
- <arrhlKkKSSKFp4Sq@chamomile>
- <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
- <aruMPHNdZq7U9eV9@chamomile>
- <4da35a94-af13-47de-adef-35b5671100b7@kernel.org>
- <arupFwGHewREJJ74@chamomile>
+To: Fernando Fernandez Mancera <fmancera@suse.de>,
+ netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+References: <20260929141425.4852-1-fmancera@suse.de>
 From: Matthieu Baerts <matttbe@kernel.org>
 Autocrypt: addr=matttbe@kernel.org; keydata=
  xsFNBFXj+ekBEADxVr99p2guPcqHFeI/JcFxls6KibzyZD5TQTyfuYlzEp7C7A9swoK5iCvf
@@ -92,186 +86,44 @@ Autocrypt: addr=matttbe@kernel.org; keydata=
  JY6dglzGKnCi/zsmp2+1w559frz4+IC7j/igvJGX4KDDKUs0mlld8J2u2sBXv7CGxdzQoHaz
  lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
 Organization: NGI0 Core
-In-Reply-To: <arupFwGHewREJJ74@chamomile>
+In-Reply-To: <20260929141425.4852-1-fmancera@suse.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Pablo,
+Hi Fernando,
 
-Thank you for your reply!
+On 29/09/2026 16:14, Fernando Fernandez Mancera wrote:
+> In addition, document the limitation when there are multiple MPTCP
+> options.
 
-On 29/09/2026 14:03, Pablo Neira Ayuso wrote:
-> On Tue, Sep 29, 2026 at 12:40:47PM +0200, Matthieu Baerts wrote:
->> On 29/09/2026 12:00, Pablo Neira Ayuso wrote:
->>> On Tue, Sep 29, 2026 at 11:21:15AM +0200, Matthieu Baerts wrote:
->>>> Hi Pablo,
->>>>
->>>> Thank you for your reply!
->>>>
->>>> On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
->>>>> Hi Mattieu,
->>>>>
->>>>> On Mon, Sep 28, 2026 at 02:13:16PM +0200, Matthieu Baerts wrote:
->>>>>> Hello Netfilter devs,
->>>>>>
->>>>>> First, thank you for maintaining Netfilter in the kernel and the
->>>>>> userspace tools.
->>>>>>
->>>>>> The MPTCP selftests are switching from IPTables to NFTables, and
->>>>>> Clashiko reported that this part of a rule wouldn't match anything:
->>>>>>
->>>>>>   tcp option mptcp subtype remove-addr drop
->>>>>>
->>>>>> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
->>>>>> added to the TCP options, it is added after an MPTCP DSS option (type
->>>>>> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
->>>>>> (type 30) options in the TCP options. It looks like Netfilter doesn't
->>>>>> handle that, because it stops processing other TCP options when the
->>>>>> expected type is found:
->>>>>>
->>>>>> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
->>>>>>     ...
->>>>>> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
->>>>>> 		optl = optlen(opt, i);
->>>>>>
->>>>>> 		if (priv->type != opt[i])
->>>>>> 			continue;
->>>>>> 		...
->>>>>> 		return;  // <== it will look at the first MPTCP option
->>>>>> 	}
->>>>>>     ...
->>>>>> }
->>>>>>
->>>>>> It looks like it shouldn't stop if the wrong subtype is found, but the
->>>>>> subtype is not compared there if I'm not mistaken. Should there be a fix
->>>>>> to support this case?
->>>>>
->>>>> Would it work for you if you can specify what TCP option you want to
->>>>> match? ie.
->>>>>  
->>>>>     tcp option[2] mptcp subtype remove-addr drop
->>>>>                ^
->>>>>                |
->>>>>                |
->>>>>        allow to specify a match at a given tcp option
->>>>
->>>> In my specific use-case, yes it would work. Some MPTCP sub-options will
->>>> always be after another one... when the Linux stack is used.
->>>
->>> This would require a smaller patch.
->>
->> I understand. But I guess that still means adding a new option.
->>
->> In my case, it would work, but this might be confusing for people who
->> want to use this filter: they need to know if a suboption can be used
->> with another one. I guess they could have multiple rules to check the
->> presence of a suboption in the first matched type, and in a second one,
->> but that seems confusing. Or maybe not?
-> 
-> You mean, the might want to validate the entire list of suboptions in
-> a particular order, correct? ie. first suboption A then suboption B.
+Thank you for this patch!
 
-Yes, that's one possibility. But initially, I was thinking about having
-two rules (or a set?) to match "the MPTCP subtype is either in the first
-MPTCP option, or the second one (if any)". (Or nft could always say with
-MPTCP by default, check also for a second MPTCP option, if any)
+> diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
+> index ceccfdaa..f1de0956 100644
+> --- a/doc/payload-expression.txt
+> +++ b/doc/payload-expression.txt
 
->>>>> Or would this be too strict for your use-case and you would prefer
->>>>> that you can match it anywhere?
->>>>
->>>> I think it would make more sense to match it anywhere. For example, an
->>>> MP_RESET can be used alone, or after an MP_FASTCLOSE. Plus some stacks
->>>> could reorder the options as there is no imposed order.
->>>
->>> I think this would require a MPTCP subtype parser, ie. make kernel
->>> aware of MPTCP subtypes.
->>
->> In nft_exthdr_tcp_eval(), why can the comparison not be done there
->> instead of copying the data in a register, and compare later on? If the
->> comparison is done directly for a given type and is different, the code
->> could continue and check for the same type. (Or store in multiple
->> registers.)
-> 
-> In nftables, the fetch then cmp instructions are splitted, ie. you
-> first retrieve then you compare (or make a set lookup with it).
-> Builtin comparison should be possible, but it defeats the integration
-> with the set infrastructure.
+(...)
 
-OK, I see.
+> @@ -833,6 +859,18 @@ filter input tcp option sack-perm exists counter
+>  filter input tcp option maxseg size lt 536
+>  --------------------
+>  
+> +.matching MPTCP suboptions
+> +--------------------
+> +filter input tcp option mptcp subtype mp-join drop
+> +--------------------
+> +
+> +[NOTE]
+> +====================
+> +Netfilter currently evaluates only the first MPTCP option found in the TCP
+> +header. If a packet contains multiple MPTCP options, a rule attempting to match
+> +the second option will never match.
 
-If someone gives ...
-
-  tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
-
-... a bitmap could be used, but then that's specific to MPTCP I suppose.
-
->> I don't know if you need something specific to MPTCP, maybe just a way
->> to check all options with the same type.
-> 
-> Going back to this:
-> 
-> "When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
-> added to the TCP options, it is added after an MPTCP DSS option (type
-> 0x30, len >= 8, subtype 0x2)"
-> 
-> Would you like to check for this particular sequence, right? Then
-
-In my case, no particularly -- I just want to count/drop REMOVE_ADDR to
-catch kernel regressions in the selftests -- but I can.
-
-> position-based solution would work, because this would allow to match
-> strictly:
-> 
-> pos = 0, suboption DSS
-> pos = 1, suboption REMOVE_ADDR
-> 
-> This ruleset might break the protocol if there is ever a suboption
-> before DSS.
-
-Indeed. Technically, with MPTCP, we could send the REMOVE_ADDR alone
-(without DSS), or before the DSS, or with another one in between if
-there is room.
-
-> Loose mode is more protocol designer friendly as it does not constrain
-> future updates in the protocol:
-> 
-> "please find MP-TCP suboption REMOVE_ADDR for me"
-> 
-> but security folks might probably say this is ... loose, because it
-> does not validate DSS before and REMOVE_ADDR might come anywhere.
-> Protocol designer would say that this is good for them because this
-> firewall does not constrain future enhancements of the protocol (still
-> raw expressions are possible, then this last statement does not hold
-> anymore).
-> 
-> Which one would you pick? :-)
-
-I would first prefer if people don't drop packets with MPTCP options :-D
-
-Honestly, I'm not sure what people would be interested in doing in
-production, but I guess it would be more: "please match packet with
-MPTCP suboption X, no matter the order". If people are interested in a
-specific packet where MPTCP suboptions are in a specific order, with a
-specific length, I *think* they can use a raw payload expression
-instead, no?
-
-In my case, I just wanted to drop packets with a specific MPTCP
-suboption. It happens that I know exactly which packet I want to block,
-and I can use a raw payload expression, but a simpler rule would be
-welcome :)
-
->>> I would support both of them eventually? Starting by the one above
->>> that allows to match at a given position which looks simpler to
->>> support to me. Then, look into adding a MPTCP subtype parser later?
->>
->> If the second one can be implemented in a simple way, perhaps the first
->> one is not needed? If not, yes, good idea to start with the first one,
->> which might be enough for most people.
-> 
-> Both solutions are feasible IMO, the second needs a bit more work,
-> that's all.
-
-Understood!
+Would it be interesting to give an example? e.g. a rule attempting to
+match 'remove-addr', 'mp-prio' and 'mp-fail' (and 'mp-tcprst' in some
+cases) are not going to catch anything when the traffic is emitted by
+the current Linux kernel stack.
 
 Cheers,
 Matt
