@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE4D45D19F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B41F7448B9B;
 	Wed, 30 Sep 2026 07:42:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790754122; cv=none; b=J+XIOxf3/BGkzi7+9i8ZqEpt18Dbrj83m+BdIEHnnkLrIyGLhKKYoUMoANnzqVG4npUL4SvdrDC7nurO4Dkbbei2G547dyAD9zS3wEKMras5tAEabNRv1JtkxoLZzFNPRSxAOm4ZGWdx6VLLXMnH0FTisaWEZvecpV/cPo69mQ4=
+	t=1790754122; cv=none; b=ohp2prU/Dz7VPYSAgo126tOgSoHvqFWvd8bPHq+afejlYlCogCag7zBJY2O/4KVz4iFrkZS4y3/vGJC2BOYklUAO5NitgBkbTmtZI7RA/nldWZZcw4KPxJXLoM+suvplDmDzHKZ2OMuiRk7pMZ9LOTWG3bdgy9ySjoFEK76vE64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790754122; c=relaxed/simple;
-	bh=mOqnsWOyy4GVp/T9+O1BWn9qFMORh6me5DUr5ah0U44=;
+	bh=x6480Bkp4FMukmxr95Y6+aX959844cxgZnkNbjHndQM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hgXL9Hj4CpXJRyKFUHamSRzsFS/qQAGmB5SaWVRMvhr+xuzS6GvJUMN+2jA6+mW+TCw/95b3k59xTzqozdO8mselB3YjG6GkvxNB2C/fh0AcOLvL6x16UkuXMXiqX78e42jLFZgcoZh55gVNr9K20wWkYNQq98disMReoeS9yzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rGRi2+ZM; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=ZOaSAJU+VG0EzTYxYzz6GOg8vkAT6Q9WsMJ3eK0FXfugleXpy45ibdguoI54x3iqsEWsPLE4kbJGqnV0guvKUn+oV/7jEOoTZYKSOYzDZQ4zTqwteEKDmT0s+lS5hfF9BTYDoY743UVdFab8Xrw6GDueRR0SWn5IvGEkw3QqpuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XJ7YojUb; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rGRi2+ZM"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XJ7YojUb"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1790754117;
-	bh=F4BItNNQi20kAfu5uNzupYA34Wz6WKneYKeosBW1VgU=;
+	s=2025; t=1790754116;
+	bh=6l5thKv2kTDA338HhHiKkjI3Rp+ZkGjxPqRXLRQ8F/k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rGRi2+ZM/TF4R5Lv2KFKJtS8g8favmuFLcq+/0tEC3/J2DS8hZO5EJRcqykWejcd5
-	 v2NwPtoH9MQgiSsfw+x4qFHMwCTgWSH2RuoFHnn2PjMMpZ4uDEaXwm3my6SE5fEIrW
-	 NxI2+Um6rDeRomAQQyyru78W2X3pygwF/AH27ZbuRfJOJ4Qxwlq5UOrHHcmweDyy+J
-	 yr9qS0NDlG+oGVAVyIZY+0kPrTaKXVrL9gOPN/hIdI4JeHI/a0wL20HrxLgVCJE0Nb
-	 rarXhPPG1mwnblKgdBCJ1RbNatK2oGjpAlJH+LsSKu2RAFOMvlhxI1AYA546/znNza
-	 DVEaO48Gu1P5w==
+	b=XJ7YojUb9iLSdt8JP9vklf48+zQoWmN42ah3patcmi4cLWkNodb9/e9xEKyQ8T2vt
+	 tSR/XhSeSNpX3zvlELnjLHc32s/EAePuMUieycJqT9p+U1OqSW2eHF6/IORS9XaRHq
+	 xtiMQtge+Md1p0b68uFqIIwwSr8H8VmlM/MECp+9zCSKqjr6d30GSn0eB6W05ppEpq
+	 W+Qjk1W5FvYcqLw17vjEDvm/MYZY9Fli05fSnYVhrh/PiKYVUSKP4K/0uXQk9RfmYo
+	 ilSA0rpzcZYHq8M2Fh6j7H4yAV7Mcn9mKdsRE/f5rioPt9qxBeXPK2SzC+BVD5ZpiL
+	 QJ3vx2hqwRgjg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0519760710;
-	Wed, 30 Sep 2026 09:41:56 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BDA93606F6;
+	Wed, 30 Sep 2026 09:41:55 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 08/10] netfilter: bpf: reject invalid NAT manipulation types
-Date: Wed, 30 Sep 2026 09:41:39 +0200
-Message-ID: <20260930074142.298353-9-pablo@netfilter.org>
+Subject: [PATCH net 07/10] netfilter: nft_set_rbtree: skip transaction elements during GC
+Date: Wed, 30 Sep 2026 09:41:38 +0200
+Message-ID: <20260930074142.298353-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260930074142.298353-1-pablo@netfilter.org>
 References: <20260930074142.298353-1-pablo@netfilter.org>
@@ -53,58 +53,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+From: Weiming Shi <bestswngs@gmail.com>
 
-As bpf_ct_set_nat_info() is not validating the NAT manipulation type a
-wrong value can be passed directly to nf_nat_setup_info(). This triggers
-the WARN_ON() at nf_nat_setup_info() and if panic_on_warn isn't set,
-then IPS_SRC_NAT_DONE is set without adding nat_bysource and conntrack
-cleanup tries to unlink an uninitialized hlist node.
+Since nft_set_commit_update() runs set commit callbacks before processing
+NEWSETELEM transactions, nft_rbtree_gc_scan() can observe elements added by
+the transaction being committed.
 
-Fix this by checking that NAT manipulation type is correct before
-calling nf_nat_setup_info(). In addition, if the WARN_ON is hit, return
-NF_DROP instead of continuing with the processing to avoid similar
-situations in the future.
+The scan records an interval end in rbe_end without checking the element's
+transaction state. A later, unrelated expired start then moves both
+elements to the expired list. The synchronous GC queue can free the new end
+element before the transaction subsequently activates it, causing a
+use-after-free.
 
-Reported-by: VEGA <vega@nebusec.ai>
-Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Only consider elements that are fully active in both generations. This
+keeps transaction-state elements out of the GC scan and preserves interval
+pairing across skipped elements.
+
+KASAN reports:
+
+  BUG: KASAN: slab-use-after-free in nft_setelem_activate
+  nft_setelem_activate net/netfilter/nf_tables_api.c:7047
+  nf_tables_commit net/netfilter/nf_tables_api.c:11137
+
+  Allocated by task 130:
+  nft_set_elem_init net/netfilter/nf_tables_api.c:6794
+  nft_add_set_elem net/netfilter/nf_tables_api.c:7523
+
+  Freed by task 130:
+  nft_trans_gc_trans_free net/netfilter/nf_tables_api.c:10506
+  rcu_core kernel/rcu/tree.c:2919
+
+Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
+Reported-by: <co+ee5e50ef2670e5f4@bugs.sh>
+Assisted-by: LLM
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_bpf.c  | 3 +++
- net/netfilter/nf_nat_core.c | 5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
-index f9dd85ccea01..7572b58c448b 100644
---- a/net/netfilter/nf_nat_bpf.c
-+++ b/net/netfilter/nf_nat_bpf.c
-@@ -39,6 +39,9 @@ __bpf_kfunc int bpf_ct_set_nat_info(struct nf_conn___init *nfct,
- 	if (proto != NFPROTO_IPV4 && proto != NFPROTO_IPV6)
- 		return -EINVAL;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 9894832281c4..12431b55752f 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -900,6 +900,8 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 		next = rb_next(node);
  
-+	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
-+		return -EINVAL;
-+
- 	memset(&range, 0, sizeof(struct nf_nat_range2));
- 	range.flags = NF_NAT_RANGE_MAP_IPS;
- 	range.min_addr = *addr;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index a4858c2b2d65..cc8e1e81006d 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -767,8 +767,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	if (nf_ct_is_confirmed(ct))
- 		return NF_ACCEPT;
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++		if (!nft_set_elem_active(&rbe->ext, NFT_GENMASK_ANY))
++			continue;
  
--	WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
--		maniptype != NF_NAT_MANIP_DST);
-+	if (WARN_ON(maniptype != NF_NAT_MANIP_SRC &&
-+		    maniptype != NF_NAT_MANIP_DST))
-+		return NF_DROP;
- 
- 	if (WARN_ON(nf_nat_initialized(ct, maniptype)))
- 		return NF_DROP;
+ 		/* elements are reversed in the rbtree for historical reasons,
+ 		 * from highest to lowest value, that is why end element is
 -- 
 2.47.3
 
