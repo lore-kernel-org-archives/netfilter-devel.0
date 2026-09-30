@@ -1,171 +1,280 @@
-Received: from mail-ua2-f42.google.com (mail-ua2-f42.google.com [74.125.226.234])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74829A59
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 18:09:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.226.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4387F51E43A
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 18:33:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790791783; cv=none; b=FhWDKvMzehq6DTZI64dnBDP16LQaS0kPkIOeqAdUOysbJB91Q3/uCDjkX6P4P7+LZW5NhuN6kpmWLdGb/W3Kg/mMm40SJo29ZIPRxUZQ4FhCA/2HDpHZf9EEmAaxLIiBpQ7LkjZa3tb5Xdn05D0dwz4Lnxt8GW1bDQC0za50Yn8=
+	t=1790793220; cv=none; b=k5wysDU4w05qWswFciLKsK+6d+rRg8W021l4xJ8mMDmw12ME+vR9Oh1ia1LWW+cWx0lp+n4gLPT5TKshcYJdemL98adgAPD6heqII9/Dwb8VRu2TD/BUQb+blwLCBA6iDV80F67TCOVIgz8fPNPIEMm9zhOYnHpa0lGKQx7DxA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790791783; c=relaxed/simple;
-	bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-	h=Message-ID:Date:Content-Type:MIME-Version:From:To:Cc:Subject; b=gGUpKH7MreA65sFVQsyY1Vw5HtiBpFk84foX4rqRKAH0WRTbEbE+UmLgrQZ1ZSuzYilOQ/fkwXsi2RLJ6i0eT63XhjWLeusRRCIhUm7VKJIMoMBk5ujX8VNRS1PpstvPdKF55NErR4EzbxmGHwdLKk1q+rQGEQsR0VT8uhKOWTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sLTPtdZo; arc=none smtp.client-ip=74.125.226.234
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790793220; c=relaxed/simple;
+	bh=HJjm6WyLXNvzc2hRoMl6epzzzASDL7FyzUjgi9OaLmg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=K785LENTJX7KMJI3bmpfr67oTAC48DsKzt/PnrPI6wawKi3AKxgiVdGKQPwvACWOowHyf3F8HBHh/Wdff2RmzQr2x9MR3JqATXSbBEALvSrJQSDVD23yJ8T6E4YMZrcqFSeqBWY7/ALIyd842FN2bmBMsV6+AZSV/woesMUrQy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LrfwqPwg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sLTPtdZo"
-Received: by mail-ua2-f42.google.com with SMTP id a1e0cc1a2514c-988cdfb288fso604848241.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 11:09:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790791781; x=1791396581; darn=vger.kernel.org;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-        b=sLTPtdZoxf9p/npkDiX0/H0MYSBsvnEoAGS/u/VxyHrLNnp6+ujMZretLYBeRCTkKL
-         iF8fw2pFhck8o+Mide9lCUFZiN+CwQq51k4tScitAplr9KqQ9DeFDK9+1nOIBtBVLa/c
-         54o5QblKsjpLDighuF2hcZ9SPAviplBQZzWRmqE/8a3+ZS+ZMV6OZ1MkLas3tVAWTqNg
-         lfvZWLwbtd9W+iK5hxIilB4dSYY0pXsRUCJWGE0VGqRTo48nqNFxafgDpbgLf+8Gb9Nz
-         KVJCEmqPZPpCtyhxXKMDWylgfySg/z2w2SS7rafMQWIJaU5KaFB/EyJAvO44mj+o6Rk9
-         ZKtA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790791781; x=1791396581;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-        b=g1fJ8MSuySS4tZ8JCoAWdFsTuaIk3vm3SrDelNlMoby5APKUZmuGL8C0uhNXfTBE1i
-         wGszYcAuFSsAmgMJKdMuhjomfeIHdvZaaBjgg75Rlz2ftT4RNNZvWIK52yZ9gxa1UfSB
-         RfBe3TfUrBBgHAF7CxDyJD6/+i1JU07n38iPnMz/SXy8fnp8XHIJd5Nx2lS7PMX79lU/
-         gNoUvl2fMk26G4dZ/5HVIgpL5fmHdtzErimRlIluYCoBfMnOzCXcZSb8GGJxu/YWjkZ9
-         wxNXu6XyHJm+CJs3BlkprBCjGxDl5DOeYQ0Mmph95x/ape/HK+OpxErXhJ7onVRq/TH+
-         zYRA==
-X-Gm-Message-State: AFq9FYLp849Cwwb/nXM/BvTa0dWc2qfdSEYbiKa4/ISpD6Dd5b9DzQT/
-	iffhmgLUE8LyejOqv0VttZ2YjfarBS4Ud2MS/VLpUSvknVgaT80aq6jv9EqgP/QMAj4=
-X-Gm-Gg: AYBFou0YUSNy+dha46eDikGjtxcWeUhL5SIK1GtMXbM0y5kob6Z5hn4t5A9jqzCrT1F
-	lfJQ9S4hB40yqJ7xOc2QPWrm/vcR6LsCOvPXVobJPQ1O7EZeNzfZJbjMwIUuoAyWEgced5DUhV4
-	bUY7jpUelpUg0cYK0vkMq4kqf9tTDpnXJanttfmKWcCxCJNe/BMC/3W/6oXOoDOZ1nZuyJxNz6I
-	89upYK45O5mkomdiZaHIsh7TdlAO53tZdi4JZEAjfSB+3+b3xPQwaQnmizN4+yed6BIP9w40/SF
-	lBlU2UV2f5DrlfG5U8opQfurKzvocU6PLWBrDN8AiX/CWBF5C25TkYDAEUDEuenQBznImI6JR8J
-	yBy+a/Mj46UvB20W+Uj9WnpJz9Nexci7D9TD1pcNnLtwHqb8inzg7zrtScQvRdAc/t3Tr57p4Q4
-	y9afAdelE01XyoEtGaoZPZ0aEN+obvMKEW+djbZhHNUXGxfALlZxB7R/4sWcakwaDRHHccJc4Qh
-	00uezvl2FJJwYSG/Yd8CyNKYkyXv4fEIcztRGbQynAi9p87evQFoPPSIjhdGDBzwl58jG1kvo73
-	MSOlRALMGhdqjvSmcG1jO8ls0DgcjM+oG8cSowYPQl1We/AcFol68F0uUnl4qhAWWptj6w==
-X-Received: by 2002:a05:6102:1611:b0:7b2:5c91:5119 with SMTP id ada2fe7eead31-7be730a397dmr558262137.20.1790791780304;
-        Wed, 30 Sep 2026 11:09:40 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([2804:7f0:b103:90e6:2458:51e7:ee0:38f9])
-        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-7bfa6cba2fcsm2031137.8.2026.09.30.11.09.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 11:09:39 -0700 (PDT)
-Message-ID: <6abd5063.b622e075.2a379c.077a@mx.google.com>
-Date: Wed, 30 Sep 2026 11:09:39 -0700 (PDT)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LrfwqPwg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D8C21F00898;
+	Wed, 30 Sep 2026 18:33:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790793219;
+	bh=kPUUw9cp29gO1W/QzwDho0BggZ2KfrOo/xXGmXuy2bs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=LrfwqPwgzPSWNIVKamDOxYoAy7PjOYvcc1GZG72df9zXciqavnAyp32AWAaCXut60
+	 pwUldmFM3rLcAJed8R36jyH539hpc6yqb3U1akXTplndNpwOIfUX09VXT0H14Vw2Bs
+	 RenPKRX22YZ412a3WLgj8tGbMBns8Xpq3bAwG5S4mluOhCYzcqW2jtvu1hCQXH/lEl
+	 c3teik9gAodPFWd5aAHtnoXsb4yLg311HThU226SQ/eLw41ALuhz64O0B8Y+uIAVrq
+	 Yq+IqxzYN2HsZJNHIUOX6ql05/BhvhEfHtE3ulZzMfo1hMh1ZjolRDwekqt81c+lky
+	 MAdTbgqYId21g==
+Message-ID: <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
+Date: Wed, 30 Sep 2026 20:33:36 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-From: Joas Antonio <joasantonio108@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org, fw@strlen.de, coreteam@netfilter.org
-Subject: [PATCH net] netfilter: ip6t_NPT: ensure skb is writable before header modification
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: Netfilter: match "tcp option" with the same type present multiple
+ times
+Content-Language: fr
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
+ Netfilter Coreteam <coreteam@netfilter.org>
+References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
+ <arrhlKkKSSKFp4Sq@chamomile>
+ <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
+ <aruMPHNdZq7U9eV9@chamomile>
+ <4da35a94-af13-47de-adef-35b5671100b7@kernel.org>
+ <arupFwGHewREJJ74@chamomile>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <arupFwGHewREJJ74@chamomile>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-aXA2dF9zbnB0X3RnKCkgYW5kIGlwNnRfZG5wdF90ZygpIG1vZGlmeSB0aGUgSVB2NiBzb3VyY2Uv
-ZGVzdGluYXRpb24KYWRkcmVzcyBpbi1wbGFjZSB2aWEgaXA2dF9ucHRfbWFwX3BmeCgpIHdpdGhv
-dXQgZmlyc3QgY2FsbGluZwpza2JfZW5zdXJlX3dyaXRhYmxlKCkuICBXaGVuIHRoZSBza2IgaXMg
-Y2xvbmVkIChuZmxvZywgdGVlLCBtdWx0aWNhc3QsCnRjIG1pcnJlZCksIHRoZSB3cml0ZSBoaXRz
-IHNoYXJlZCBkYXRhIHZpc2libGUgdG8gb3RoZXIgdXNlcnMgb2YgdGhlCnNhbWUgYnVmZmVyOgoK
-ICBpZiAoIWlwNnRfbnB0X21hcF9wZngobnB0LCAmaXB2Nl9oZHIoc2tiKS0+c2FkZHIpKQogICAg
-ICAgICAgLi4uCgppcDZ0X25wdF9tYXBfcGZ4KCkgZG9lcyB0aGUgYWN0dWFsIGluLXBsYWNlIG1v
-ZGlmaWNhdGlvbjoKCiAgYWRkci0+czZfYWRkcjMyW2lkeF0gJj0gbWFzazsKICBhZGRyLT5zNl9h
-ZGRyMzJbaWR4XSB8PSB+bWFzayAmIG5wdC0+ZHN0X3BmeC5pbjYuczZfYWRkcjMyW2lkeF07CgpO
-ZWl0aGVyIHRhcmdldCBjaGVja3Mgd3JpdGFiaWxpdHkgZmlyc3QuICBFdmVyeSBjb21wYXJhYmxl
-IHRhcmdldCBpbgp0aGUgdHJlZSBkb2VzOiBpcHRfRUNOIChsaW5lIDMyKSwgZWJ0X2RuYXQgKGxp
-bmUgMjQpLCBlYnRfc25hdAoobGluZSAyNSksIHh0X1RDUE9QVFNUUklQIChsaW5lIDUyKS4KCkFk
-ZGl0aW9uYWxseSwgdGhlIElDTVB2NiBib3VuY2VkIGhlYWRlciBwYXRoIHVzZXMKc2tiX2hlYWRl
-cl9wb2ludGVyKCksIHdoaWNoIHJldHVybnMgYSBwb2ludGVyIHRvIGEgc3RhY2stbG9jYWwgY29w
-eQpmb3Igbm9ubGluZWFyIHNrYnMuICBpcDZ0X25wdF9tYXBfcGZ4KCkgdGhlbiBtb2RpZmllcyB0
-aGUgY29weTsKY2hhbmdlcyBhcmUgc2lsZW50bHkgbG9zdCBhbmQgdGhlIGlubmVyIElQdjYgaGVh
-ZGVyIGluIElDTVB2NiBlcnJvcgptZXNzYWdlcyBpcyBuZXZlciB0cmFuc2xhdGVkLgoKRml4IGJv
-dGggYnkgYWRkaW5nIHNrYl9lbnN1cmVfd3JpdGFibGUoKSBiZWZvcmUgZWFjaCB0YXJnZXQgZnVu
-Y3Rpb24Kb3BlcmF0ZXMsIGFuZCByZXBsYWNpbmcgdGhlIHNrYl9oZWFkZXJfcG9pbnRlcigpICsg
-aGVscGVyIHBhdHRlcm4Kd2l0aCBza2JfZW5zdXJlX3dyaXRhYmxlKCkgdXAgdG8gdGhlIGlubmVy
-IGhlYWRlciBvZmZzZXQgZm9sbG93ZWQgYnkKYSBkaXJlY3QgcG9pbnRlci4gIFJlbW92ZSB0aGUg
-bm93LXVudXNlZCBpY21wdjZfYm91bmNlZF9pcHY2aGRyKCkuCgpGaXhlczogOGE5MWJiMGMzMDRi
-ICgibmV0ZmlsdGVyOiBpcDZ0YWJsZXM6IGFkZCBzdGF0ZWxlc3MgSVB2Ni10by1JUHY2IE5ldHdv
-cmsgUHJlZml4IFRyYW5zbGF0aW9uIHRhcmdldCIpClNpZ25lZC1vZmYtYnk6IEpvYXMgQW50b25p
-byA8am9hc2FudG9uaW8xMDhAZ21haWwuY29tPgotLS0KVGVzdGluZzogdmVyaWZpZWQgd2l0aCBO
-RkxPRyArIFNOUFQvRE5QVCBydWxlcyBvbiBhIG5hbWVzcGFjZSBwYWlyCnRoYXQgY2xvbmVkIHNr
-YiBkYXRhIGlzIG5vIGxvbmdlciBjb3JydXB0ZWQgYWZ0ZXIgdHJhbnNsYXRpb24uCk5vbmxpbmVh
-ci1za2IgcGF0aCBjb25maXJtZWQgYnkgZm9yY2luZyBHUk8gYWdncmVnYXRpb24gb24gdGhlCmlu
-Z3Jlc3Mgc2lkZTsgaW5uZXIgSUNNUHY2IGhlYWRlciBub3cgY2FycmllcyB0aGUgdHJhbnNsYXRl
-ZCBwcmVmaXguCgogbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMgfCA2NiArKysrKysrKysr
-KysrKysrKystLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDM3IGluc2VydGlvbnMoKyks
-IDI5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X05Q
-VC5jIGIvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKaW5kZXggWFhYWFhYWC4uWFhYWFhY
-WCAxMDA2NDQKLS0tIGEvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKKysrIGIvbmV0L2lw
-djYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKQEAgLTc4LDU3ICs3OCw2NSBAQCBzdGF0aWMgYm9vbCBp
-cDZ0X25wdF9tYXBfcGZ4KGNvbnN0IHN0cnVjdCBpcDZ0X25wdF90Z2luZm8gKm5wdCwKIAlyZXR1
-cm4gdHJ1ZTsKIH0KCi1zdGF0aWMgc3RydWN0IGlwdjZoZHIgKmljbXB2Nl9ib3VuY2VkX2lwdjZo
-ZHIoc3RydWN0IHNrX2J1ZmYgKnNrYiwKLQkJCQkJICAgICAgc3RydWN0IGlwdjZoZHIgKl9ib3Vu
-Y2VkX2hkcikKLXsKLQlpZiAoaXB2Nl9oZHIoc2tiKS0+bmV4dGhkciAhPSBJUFBST1RPX0lDTVBW
-NikKLQkJcmV0dXJuIE5VTEw7Ci0KLQlpZiAoIWljbXB2Nl9pc19lcnIoaWNtcDZfaGRyKHNrYikt
-PmljbXA2X3R5cGUpKQotCQlyZXR1cm4gTlVMTDsKLQotCXJldHVybiBza2JfaGVhZGVyX3BvaW50
-ZXIoc2tiLAotCQkJCSAgc2tiX3RyYW5zcG9ydF9vZmZzZXQoc2tiKSArIHNpemVvZihzdHJ1Y3Qg
-aWNtcDZoZHIpLAotCQkJCSAgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSwKLQkJCQkgIF9ib3VuY2Vk
-X2hkcik7Ci19Ci0KIHN0YXRpYyB1bnNpZ25lZCBpbnQKIGlwNnRfc25wdF90ZyhzdHJ1Y3Qgc2tf
-YnVmZiAqc2tiLCBjb25zdCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFtICpwYXIpCiB7CiAJY29uc3Qg
-c3RydWN0IGlwNnRfbnB0X3RnaW5mbyAqbnB0ID0gcGFyLT50YXJnaW5mbzsKLQlzdHJ1Y3QgaXB2
-NmhkciBfYm91bmNlZF9oZHI7Ci0Jc3RydWN0IGlwdjZoZHIgKmJvdW5jZWRfaGRyOwogCXN0cnVj
-dCBpbjZfYWRkciBib3VuY2VkX3BmeDsKKwlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CisJ
-dW5zaWduZWQgaW50IGJvdW5jZWRfb2ZmOworCisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2ti
-LCBzaXplb2Yoc3RydWN0IGlwdjZoZHIpKSkKKwkJcmV0dXJuIE5GX0RST1A7CgogCWlmICghaXA2
-dF9ucHRfbWFwX3BmeChucHQsICZpcHY2X2hkcihza2IpLT5zYWRkcikpIHsKIAkJaWNtcHY2X3Nl
-bmQoc2tiLCBJQ01QVjZfUEFSQU1QUk9CLCBJQ01QVjZfSERSX0ZJRUxELAogCQkJICAgIG9mZnNl
-dG9mKHN0cnVjdCBpcHY2aGRyLCBzYWRkcikpOwogCQlyZXR1cm4gTkZfRFJPUDsKIAl9CgogCS8q
-IHJld3JpdGUgZHN0IGFkZHIgb2YgYm91bmNlZCBwYWNrZXQgd2hpY2ggd2FzIHNlbnQgdG8gZHN0
-IHJhbmdlICovCi0JYm91bmNlZF9oZHIgPSBpY21wdjZfYm91bmNlZF9pcHY2aGRyKHNrYiwgJl9i
-b3VuY2VkX2hkcik7Ci0JaWYgKGJvdW5jZWRfaGRyKSB7Ci0JCWlwdjZfYWRkcl9wcmVmaXgoJmJv
-dW5jZWRfcGZ4LCAmYm91bmNlZF9oZHItPmRhZGRyLCBucHQtPnNyY19wZnhfbGVuKTsKLQkJaWYg
-KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKLQkJ
-CWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPmRhZGRyKTsKLQl9CisJaWYgKGlw
-djZfaGRyKHNrYiktPm5leHRoZHIgIT0gSVBQUk9UT19JQ01QVjYgfHwKKwkgICAgIWljbXB2Nl9p
-c19lcnIoaWNtcDZfaGRyKHNrYiktPmljbXA2X3R5cGUpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7
-CisKKwlib3VuY2VkX29mZiA9IHNrYl90cmFuc3BvcnRfb2Zmc2V0KHNrYikgKyBzaXplb2Yoc3Ry
-dWN0IGljbXA2aGRyKTsKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShza2IsIGJvdW5jZWRfb2Zm
-ICsgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSkpCisJCXJldHVybiBYVF9DT05USU5VRTsKKworCWJv
-dW5jZWRfaGRyID0gKHN0cnVjdCBpcHY2aGRyICopKHNrYl90cmFuc3BvcnRfaGVhZGVyKHNrYikg
-KworCQkJCQkgIHNpemVvZihzdHJ1Y3QgaWNtcDZoZHIpKTsKKwlpcHY2X2FkZHJfcHJlZml4KCZi
-b3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5kYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7CisJaWYg
-KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKKwkJ
-aXA2dF9ucHRfbWFwX3BmeChucHQsICZib3VuY2VkX2hkci0+ZGFkZHIpOwoKIAlyZXR1cm4gWFRf
-Q09OVElOVUU7CiB9Cgogc3RhdGljIHVuc2lnbmVkIGludAogaXA2dF9kbnB0X3RnKHN0cnVjdCBz
-a19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF9hY3Rpb25fcGFyYW0gKnBhcikKIHsKIAljb25z
-dCBzdHJ1Y3QgaXA2dF9ucHRfdGdpbmZvICpucHQgPSBwYXItPnRhcmdpbmZvOwotCXN0cnVjdCBp
-cHY2aGRyIF9ib3VuY2VkX2hkcjsKLQlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CiAJc3Ry
-dWN0IGluNl9hZGRyIGJvdW5jZWRfcGZ4OworCXN0cnVjdCBpcHY2aGRyICpib3VuY2VkX2hkcjsK
-Kwl1bnNpZ25lZCBpbnQgYm91bmNlZF9vZmY7CisKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShz
-a2IsIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gTkZfRFJPUDsKCiAJaWYgKCFp
-cDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmlwdjZfaGRyKHNrYiktPmRhZGRyKSkgewogCQlpY21wdjZf
-c2VuZChza2IsIElDTVBWNl9QQVJBTVBST0IsIElDTVBWNl9IRFJfRklFTEQsCiAJCQkgICAgb2Zm
-c2V0b2Yoc3RydWN0IGlwdjZoZHIsIGRhZGRyKSk7CiAJCXJldHVybiBORl9EUk9QOwogCX0KCiAJ
-LyogcmV3cml0ZSBzcmMgYWRkciBvZiBib3VuY2VkIHBhY2tldCB3aGljaCB3YXMgc2VudCBmcm9t
-IGRzdCByYW5nZSAqLwotCWJvdW5jZWRfaGRyID0gaWNtcHY2X2JvdW5jZWRfaXB2Nmhkcihza2Is
-ICZfYm91bmNlZF9oZHIpOwotCWlmIChib3VuY2VkX2hkcikgewotCQlpcHY2X2FkZHJfcHJlZml4
-KCZib3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5zYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7Ci0J
-CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
-Ci0JCQlpcDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmJvdW5jZWRfaGRyLT5zYWRkcik7Ci0JfQorCWlm
-IChpcHY2X2hkcihza2IpLT5uZXh0aGRyICE9IElQUFJPVE9fSUNNUFY2IHx8CisJICAgICFpY21w
-djZfaXNfZXJyKGljbXA2X2hkcihza2IpLT5pY21wNl90eXBlKSkKKwkJcmV0dXJuIFhUX0NPTlRJ
-TlVFOworCisJYm91bmNlZF9vZmYgPSBza2JfdHJhbnNwb3J0X29mZnNldChza2IpICsgc2l6ZW9m
-KHN0cnVjdCBpY21wNmhkcik7CisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2tiLCBib3VuY2Vk
-X29mZiArIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7CisK
-Kwlib3VuY2VkX2hkciA9IChzdHJ1Y3QgaXB2NmhkciAqKShza2JfdHJhbnNwb3J0X2hlYWRlcihz
-a2IpICsKKwkJCQkJICBzaXplb2Yoc3RydWN0IGljbXA2aGRyKSk7CisJaXB2Nl9hZGRyX3ByZWZp
-eCgmYm91bmNlZF9wZngsICZib3VuY2VkX2hkci0+c2FkZHIsIG5wdC0+c3JjX3BmeF9sZW4pOwor
-CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
-CisJCWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPnNhZGRyKTsKCiAJcmV0dXJu
-IFhUX0NPTlRJTlVFOwogfQotLQoyLjQzLjAK
+Hi Pablo,
+
+Thank you for your reply!
+
+On 29/09/2026 14:03, Pablo Neira Ayuso wrote:
+> On Tue, Sep 29, 2026 at 12:40:47PM +0200, Matthieu Baerts wrote:
+>> On 29/09/2026 12:00, Pablo Neira Ayuso wrote:
+>>> On Tue, Sep 29, 2026 at 11:21:15AM +0200, Matthieu Baerts wrote:
+>>>> Hi Pablo,
+>>>>
+>>>> Thank you for your reply!
+>>>>
+>>>> On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
+>>>>> Hi Mattieu,
+>>>>>
+>>>>> On Mon, Sep 28, 2026 at 02:13:16PM +0200, Matthieu Baerts wrote:
+>>>>>> Hello Netfilter devs,
+>>>>>>
+>>>>>> First, thank you for maintaining Netfilter in the kernel and the
+>>>>>> userspace tools.
+>>>>>>
+>>>>>> The MPTCP selftests are switching from IPTables to NFTables, and
+>>>>>> Clashiko reported that this part of a rule wouldn't match anything:
+>>>>>>
+>>>>>>   tcp option mptcp subtype remove-addr drop
+>>>>>>
+>>>>>> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+>>>>>> added to the TCP options, it is added after an MPTCP DSS option (type
+>>>>>> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
+>>>>>> (type 30) options in the TCP options. It looks like Netfilter doesn't
+>>>>>> handle that, because it stops processing other TCP options when the
+>>>>>> expected type is found:
+>>>>>>
+>>>>>> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
+>>>>>>     ...
+>>>>>> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
+>>>>>> 		optl = optlen(opt, i);
+>>>>>>
+>>>>>> 		if (priv->type != opt[i])
+>>>>>> 			continue;
+>>>>>> 		...
+>>>>>> 		return;  // <== it will look at the first MPTCP option
+>>>>>> 	}
+>>>>>>     ...
+>>>>>> }
+>>>>>>
+>>>>>> It looks like it shouldn't stop if the wrong subtype is found, but the
+>>>>>> subtype is not compared there if I'm not mistaken. Should there be a fix
+>>>>>> to support this case?
+>>>>>
+>>>>> Would it work for you if you can specify what TCP option you want to
+>>>>> match? ie.
+>>>>>  
+>>>>>     tcp option[2] mptcp subtype remove-addr drop
+>>>>>                ^
+>>>>>                |
+>>>>>                |
+>>>>>        allow to specify a match at a given tcp option
+>>>>
+>>>> In my specific use-case, yes it would work. Some MPTCP sub-options will
+>>>> always be after another one... when the Linux stack is used.
+>>>
+>>> This would require a smaller patch.
+>>
+>> I understand. But I guess that still means adding a new option.
+>>
+>> In my case, it would work, but this might be confusing for people who
+>> want to use this filter: they need to know if a suboption can be used
+>> with another one. I guess they could have multiple rules to check the
+>> presence of a suboption in the first matched type, and in a second one,
+>> but that seems confusing. Or maybe not?
+> 
+> You mean, the might want to validate the entire list of suboptions in
+> a particular order, correct? ie. first suboption A then suboption B.
+
+Yes, that's one possibility. But initially, I was thinking about having
+two rules (or a set?) to match "the MPTCP subtype is either in the first
+MPTCP option, or the second one (if any)". (Or nft could always say with
+MPTCP by default, check also for a second MPTCP option, if any)
+
+>>>>> Or would this be too strict for your use-case and you would prefer
+>>>>> that you can match it anywhere?
+>>>>
+>>>> I think it would make more sense to match it anywhere. For example, an
+>>>> MP_RESET can be used alone, or after an MP_FASTCLOSE. Plus some stacks
+>>>> could reorder the options as there is no imposed order.
+>>>
+>>> I think this would require a MPTCP subtype parser, ie. make kernel
+>>> aware of MPTCP subtypes.
+>>
+>> In nft_exthdr_tcp_eval(), why can the comparison not be done there
+>> instead of copying the data in a register, and compare later on? If the
+>> comparison is done directly for a given type and is different, the code
+>> could continue and check for the same type. (Or store in multiple
+>> registers.)
+> 
+> In nftables, the fetch then cmp instructions are splitted, ie. you
+> first retrieve then you compare (or make a set lookup with it).
+> Builtin comparison should be possible, but it defeats the integration
+> with the set infrastructure.
+
+OK, I see.
+
+If someone gives ...
+
+  tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
+
+... a bitmap could be used, but then that's specific to MPTCP I suppose.
+
+>> I don't know if you need something specific to MPTCP, maybe just a way
+>> to check all options with the same type.
+> 
+> Going back to this:
+> 
+> "When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+> added to the TCP options, it is added after an MPTCP DSS option (type
+> 0x30, len >= 8, subtype 0x2)"
+> 
+> Would you like to check for this particular sequence, right? Then
+
+In my case, no particularly -- I just want to count/drop REMOVE_ADDR to
+catch kernel regressions in the selftests -- but I can.
+
+> position-based solution would work, because this would allow to match
+> strictly:
+> 
+> pos = 0, suboption DSS
+> pos = 1, suboption REMOVE_ADDR
+> 
+> This ruleset might break the protocol if there is ever a suboption
+> before DSS.
+
+Indeed. Technically, with MPTCP, we could send the REMOVE_ADDR alone
+(without DSS), or before the DSS, or with another one in between if
+there is room.
+
+> Loose mode is more protocol designer friendly as it does not constrain
+> future updates in the protocol:
+> 
+> "please find MP-TCP suboption REMOVE_ADDR for me"
+> 
+> but security folks might probably say this is ... loose, because it
+> does not validate DSS before and REMOVE_ADDR might come anywhere.
+> Protocol designer would say that this is good for them because this
+> firewall does not constrain future enhancements of the protocol (still
+> raw expressions are possible, then this last statement does not hold
+> anymore).
+> 
+> Which one would you pick? :-)
+
+I would first prefer if people don't drop packets with MPTCP options :-D
+
+Honestly, I'm not sure what people would be interested in doing in
+production, but I guess it would be more: "please match packet with
+MPTCP suboption X, no matter the order". If people are interested in a
+specific packet where MPTCP suboptions are in a specific order, with a
+specific length, I *think* they can use a raw payload expression
+instead, no?
+
+In my case, I just wanted to drop packets with a specific MPTCP
+suboption. It happens that I know exactly which packet I want to block,
+and I can use a raw payload expression, but a simpler rule would be
+welcome :)
+
+>>> I would support both of them eventually? Starting by the one above
+>>> that allows to match at a given position which looks simpler to
+>>> support to me. Then, look into adding a MPTCP subtype parser later?
+>>
+>> If the second one can be implemented in a simple way, perhaps the first
+>> one is not needed? If not, yes, good idea to start with the first one,
+>> which might be enough for most people.
+> 
+> Both solutions are feasible IMO, the second needs a bit more work,
+> that's all.
+
+Understood!
+
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
+
