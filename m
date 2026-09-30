@@ -1,71 +1,73 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from out-zbxj-a71.jellyfish.systems (out-zbxj-a71.jellyfish.systems [198.54.127.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 552DE3D0908;
-	Wed, 30 Sep 2026 07:44:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB593F660F
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 09:57:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.54.127.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790754280; cv=none; b=i/3EHVtbAZOxTBat+pJ3U94pFbW3ePwlay1TN7ZRN/BYMl9INIapY/FdUMdDMsK1SwhpgE1Rf2fLu8NJmaSfAkv7YJOV6s5B1H2dPedebu/hRQ9zJxKJmAWGRFVnoFoFRrEwp6u9xU45JHCdn8ntvcP6bREf5e5ZZSxP5UrPCw4=
+	t=1790762275; cv=none; b=BJ1hAzZ59PEij7v4O15IsODWlYQ3z2h/4J3gX6BkWYSSEUxAQMlwiC9u6QKq59KkAG7S1kjb9hQEBdsekWdfCLxrLrogoKDda/XEdwvVVdbDOz1QNShT6MY2i/dIiu8rQ0RSyzuQHzrsroS8JUASLwW5heVJR8fGe+LK2vZOf4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790754280; c=relaxed/simple;
-	bh=gp7PRv3WjAiMJrp0DvXpRvTv3mwC8R3NiezXzUE7FxE=;
+	s=arc-20240116; t=1790762275; c=relaxed/simple;
+	bh=HonrRP4VKvHmwihnMqRuRSHdWKMUrL+bDGzbtuJ2+BM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=K6e0+FhtFB1Bi6cU54SvpyRTcBZimNPkAP7T81uwyOP8JLzR6AdqiN5LV5KayqKGVwlv5JHL69C4Rs67FFTRiSBFtmKIQm5O20Pa9YJjzkXpvBkWVTtlXIti7hRZ6vZGJQcWsogbfbKtiX2OnHDN+qynzvxh067rf8Fv6LXc++8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FeC5ow/x; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=itQhWHczDoTbaFFygeM8MYUVHmVHecP011hiLZ0AzxAPrLeUAEVTxcSUTHLyVF5duhLew+hcrZG4Tg9H4AZl9Uo34wEkMfuUjOFqNR90vN7W0gRB02QS+nced8vki5WONsN0NaZC9APzOGB+AvL/AxrZBSBHikOZp1If7HJbLHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai; spf=pass smtp.mailfrom=rexion.ai; dkim=fail (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b=K23bipjF reason="key not found in DNS"; arc=none smtp.client-ip=198.54.127.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rexion.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rexion.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FeC5ow/x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 531331F000FF;
-	Wed, 30 Sep 2026 07:44:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790754278;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=FeC5ow/xVi5rtHUgfzh9bCnKd7olruBvkXaekF3aZiUVrGCZjmiGi3ecubFdfU3KD
-	 yd75mnqQytkjFRBAo4RnyGr+SqXxBbgNMrtZefdaxKhcjP8gqEfkgqDcAn0WWordo8
-	 FuxQmQIp8DlD4KgUfF0IQMhL7GrnXaz0MZ00HLwYI+f1KDKcMQoTg3Q0uBbWGCL505
-	 tQy48SYoLumQQpnT5zvquF8eKroR7Akrn45SSgKJ+lh7h/nWXjebjuHvqF65eBYTZ3
-	 buOPjA62D6NwFYH2KxysPu6qIsaUppfynWE1qlN6wnwUyrfF9GXAeiBHrxWtVLJPNj
-	 FsRHofvj00Xjw==
-From: netdev-bot+sinfo@kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net 01/10] netfilter: ipset: do not update comments from
- kernel-side adds
-Date: Wed, 30 Sep 2026 07:44:37 +0000
-Message-ID: <179075427791.31693.9282935044953902190@kernel.org>
-In-Reply-To: <20260930074142.298353-2-pablo@netfilter.org>
-References: <20260930074142.298353-1-pablo@netfilter.org>
- <20260930074142.298353-2-pablo@netfilter.org>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=rexion.ai header.i=@rexion.ai header.b="K23bipjF"
+Received: from research-box.ec2.internal (ec2-3-80-226-50.compute-1.amazonaws.com [3.80.226.50])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.spacemail.com (Postfix) with ESMTPSA id 4hvr7s0v9fz8sWQ;
+	Wed, 30 Sep 2026 09:57:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rexion.ai;
+	s=spacemail; t=1790762266;
+	bh=dU8BthyBomAlGFd325WDwPW6okd4opYc7MCPhPgLMf4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=K23bipjFlNWREyivigrtGNCF/mV4XU5agX+1BSyLAA+8jJpJnJ8TGPudcOYZtj8hk
+	 2BZQzl1nIOrDmVBKVSbpDv7sONhYvjQA5CRt961ZHaVk3n5ojtvVWmwJXbb1gIyETx
+	 l3Zk3bR9uL6We5bbohXbLCSl8ljoSMFp5a/b1/VDL/iV6JGlNXI9xmb6bH7pm82V45
+	 BM+5wCSyhxuYh+wCYvsRGC55WOg1SnGGnWFIl74MtWqPqFnGcpoV9gm1DnLl7F3C7I
+	 J7rp4hk5ktWlG+eiQsytMsHXgl3VdzCmzS16xx7SaSK41ykSxJJ0FYkkJnsyM5nIGr
+	 b35AGlEozPCbQ==
+From: Rahul Chandelkar <rc@rexion.ai>
+To: netdev-bot+sinfo@kernel.org
+Cc: Rahul Chandelkar <rc@rexion.ai>,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next v5 0/4] netfilter: conntrack: shared port parser for helpers
+Date: Wed, 30 Sep 2026 09:57:44 +0000
+Message-ID: <20260930095744.3681306-1-rc@rexion.ai>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <179062896069.31693.871473945227845464@kernel.org>
+References: <179062896069.31693.871473945227845464@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Envelope-From: rc@rexion.ai
 
-Hi!
+> - How the issue was discovered, e.g. hit in production, hit during
+>   development, syzbot report, manual code inspection, LLM or static
+>   analysis tool scan.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+The IRC and Amanda truncation was found by manual code inspection.
+The over-long Amanda field case in 3/4 was reported by the Sashiko
+review of v4.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
-
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Thanks,
+Rahul
