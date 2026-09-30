@@ -1,132 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f35.google.com (mail-wr2-f35.google.com [74.125.225.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894D14F68C9
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 18:38:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C124457DA
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 19:50:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.99
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790793533; cv=none; b=YaLlho+xMaJI09QIGbVFKxq2+D+JFJ2ZXIOitluA1gkhaUX2dZ64lUda6H8r9LaDOYFcPdK0MsGoYaOfn5TOrvp2gjbUmX+pbiYUcgwGZ9bx9TjihALb4fAX1M7Q5yPWwflVWma2zSonjV80Ejr34gi8E8gHMsdQn/k0M1jdXss=
+	t=1790797860; cv=none; b=JBaRQGpqWMcDiXdRta50BoZrvr8zzL/RvnMWkrXZYv2joJhM1TF8VLZSGeXxvrFaT2YmuuFRJzGDALfodPzus0Y3IEOPVfwzZOFNhBhAk4T0PUISo00DsUoqUheGK+XqTILLy4vZloJt0AESYherS/XtKSc1zSCrvcvnYptYvug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790793533; c=relaxed/simple;
-	bh=iieVsIn7ITVN1rlUjPcinc1ty4BCTcshpTxrfNuutck=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=NukpgXQHkXTam9w45Rgn9u7KHTosQz88DWb9CstnsU/mLpWYkchx/wtlJKlHyJgxymIfdyxUY2358iCLE43w6bfrEFsbvbuGbfzliYgKz3CCdsgIKYzb/aupvRwryiyXWXT0K87m3VBCivCln8xOmxvPFR+il0QC2xhvwt/WIfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K4tUmSI0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790797860; c=relaxed/simple;
+	bh=g8kSnvXNg0KFakuMMNxgd5z8HZ/cGn27nYQqTIEFHGY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=HPduD7NwkEf2tQ6ouSx3+jnlw5lqwslQMi0A/tZnX3kt7np9JTYUGKdXp9CdaD4IhMSfz586zAfiuUnOipA/EgYSmS/4HeES4wkfBTxDwkXBaXLJhJnNWCKOFLQRs/RR9x52CgNyoVFMrvDvUsZKXOEZz7oa6UxeI1WTK2r6GD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hVJn29cp; arc=none smtp.client-ip=74.125.225.99
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4tUmSI0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB121F0089A;
-	Wed, 30 Sep 2026 18:38:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790793532;
-	bh=wHaviHvNIR6AkpWGE/P+wj8Um1466aWDYS52KbyCFjs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=K4tUmSI0xJQC9wocDh9quwh3WN6l1NugKVQ/nNv83Z+xcIbbLeDjdlCylmRGFhrQH
-	 ISpeU2H0oOyfe56yYBjmu2TONNBssruTihe1WIr/bfbKZvIc54NxoFN5A2LIhk6tNR
-	 Jb8jXd+TAwOZbOe1ezGY3SmUCA/seo9wPfUL5UQMkYWkt3Qy7zIdpnSBhVzO2gA/JS
-	 dzj8YTbZVizrM4TXNzpgUThteoQXyzMetZpYLXBXwoDqbLvyioADu58HbFRexdrFkj
-	 11CHfF3ZjTkWTjLHyKiQxLaLVV2ZyKgOwL7nYGyFM0nrjl/fOfw6n1KyYKwXcbsWyM
-	 15ArTrrzQDk0g==
-Message-ID: <ef8c754d-616f-489f-b556-073efa491cd2@kernel.org>
-Date: Wed, 30 Sep 2026 20:38:49 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hVJn29cp"
+Received: by mail-wr2-f35.google.com with SMTP id ffacd0b85a97d-4887f690df6so4148654f8f.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 12:50:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790797854; x=1791402654; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=zG43L4MPOSqtW553TU6Kwtxr/jOwyLkxMDRoqbA2Niw=;
+        b=hVJn29cpn3+KcOHe9SpXVCzTUo8yN2AuOuqmjhAiLUbmkPGjFAgAcGoTpn9s6P3gr4
+         mPL8xwOQEhjbzymBOet/w8JSFmlicmA6aR8Elt3F0KE3Dt+gavy8Jwk2QoeBjo8NV/FV
+         wjF51YRi4f+XfooLc6xkpgFjoA2sVpvA8arD3zA+m/h3diO4mPpxthhhcpKMTTg7RLUu
+         pUC1OOmdKZUXXxtQtBlKsvR9NDZHz0eQdrt2/DLH1xJtou4KqgwAB6oy9ero8nwDy55w
+         1PqBN48jv2E4Iw1C0dpi0rZZgAHYRbAh170N72AfmfuPZzuaFFCTthdwR1HM12r6GXZw
+         2Lzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790797854; x=1791402654;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=zG43L4MPOSqtW553TU6Kwtxr/jOwyLkxMDRoqbA2Niw=;
+        b=jc6rZoCNnUWSQ6bD3Zu7PL6GaMXiZeptgYilOOFUrc7kHBrRcL3tWWYnUdqoTKLNiq
+         HTH0CTn/oZoVa5r6ZqEDS1hr8g1DjskPM3JHW8izA+rBN2HbYB2bJhr4VmCWJoxZAbLY
+         u9nUmhpfXkvvwnZYs/vnipv5uSX/TMb93WEwjNuMfU3c2Y6mTDddndf1ZO7abN26it06
+         DJyyaFHMkhUYUcUL8EK1gq26dgYxaT6y2isjysHeLo7dkOT9NRfuZc65+Rz/bLIuPNMW
+         Sn5Iw9VsSHED3Z2kENE1GL3KwQelIqw0wCSuuOzcG/rl5Pm2BKmMC7NmQJ4lGg8mp56x
+         NEfQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxQVgbTu7dzSb1/lNGdFOsk3ZSdTg/UbIuNMhrrHuI6ZUN0iABtm/O97f/zjQQL6wUrkqjn9dXE+qjQwqsNilY=@vger.kernel.org
+X-Gm-Message-State: AFq9FYLkY2ABy8uLdgEqDivRfBhDsW79942ayeV2qCL0rW543hQsv9CL
+	l9y3dO3oNCwzTXL0XSdiQCjlsNMEvY+HFw7aPjFlmu+RMs7C6t0EqvZQ
+X-Gm-Gg: AYBFou0GHuqNiF8XjZrbnOiTc/HeQddUUk++ikI5y7MWo0tGPWBOI8KodJtAd5k5RZS
+	2WYiQRq807EcbqjHPmlWAun9mZ5rs5OHlW8BwCKgmpIgymrvbNYacqiTQLE0/hoKnmROxfw6JsF
+	OpFif2NDF4pgRPqD/0Qd+r+WCiDeI6tMln1W9ObUPo2BdF1f8tPaAsgALW71NjJzgb04H6HuigT
+	7D3se3fh19rqItJCw7tPGW7R8FD52LYTmhjZmvOwnj/lwcW+fZGtPeOrA3rj4374PbRolwUG7TF
+	fhjPLza4zZ7WDlokEoKSqdlc7YoMuwk99NReLu2GONly9tBVUUveu4Z+UrZgovmYD0MHGI/FBSP
+	FApxgktQPg9GR2tdmEmPt6enjLFrAEztCug91t4XYekCRsAmAsP6LwWzVHtTLdIt2FjiE+O+acS
+	cS4brJzdb8+5P5g0ryQTETgFijwGZ36Fq0Hc7NGaoznjEAWKGhfIE93ICswa8K5EzbAvbhsLYvP
+	n9z+jkMvh/VfMXaIJZWjWNYaeOKLgc8n/Wh3RoeM1mW
+X-Received: by 2002:a05:6000:98d:b0:488:83f7:6352 with SMTP id ffacd0b85a97d-48b0243dbe8mr4875486f8f.4.1790797853873;
+        Wed, 30 Sep 2026 12:50:53 -0700 (PDT)
+Received: from andreayoga.wind3.hub ([31.189.116.68])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48b0692b5c8sm1101574f8f.29.2026.09.30.12.50.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 30 Sep 2026 12:50:53 -0700 (PDT)
+From: Andrea Parri <parri.andrea@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Cc: Andrea Parri <parri.andrea@gmail.com>,
+	Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: br_netfilter: restore VLAN tag on refragmented IPv6 packets
+Date: Wed, 30 Sep 2026 21:50:36 +0200
+Message-ID: <20260930195038.64098-1-parri.andrea@gmail.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <179061238760.31693.2318453255259270234@kernel.org>
+References: <20260928161830.351199-1-parri.andrea@gmail.com> <179061238760.31693.2318453255259270234@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH nft] doc: add MPTCP subtypes documentation to man page
-Content-Language: fr
-To: Fernando Fernandez Mancera <fmancera@suse.de>,
- netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-References: <20260929141425.4852-1-fmancera@suse.de>
-From: Matthieu Baerts <matttbe@kernel.org>
-Autocrypt: addr=matttbe@kernel.org; keydata=
- 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
- lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
-Organization: NGI0 Core
-In-Reply-To: <20260929141425.4852-1-fmancera@suse.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Fernando,
+[ Resending with the full Cc list, which I dropped by mistake in my
+  previous reply. ]
 
-On 29/09/2026 16:14, Fernando Fernandez Mancera wrote:
-> In addition, document the limitation when there are multiple MPTCP
-> options.
+On Mon, Sep 28, 2026 at 04:19:47PM +0000, netdev-bot+sinfo@kernel.org wrote:
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+>
+>  - Whether the issue was actually triggered, or is only theoretical
+>    (e.g. found by code inspection). If it was triggered please include
+>    the symptoms, like the stack trace or error messages.
 
-Thank you for this patch!
+The issue was triggered, not only found by code inspection. I
+reproduced it under virt-ng with a local test on a VLAN-aware bridge
+with br_netfilter and IPv6 conntrack defrag enabled. The test sends a
+fragmented IPv4 packet on one VLAN, then a fragmented IPv6 packet on
+another VLAN that the bridge floods to several ports. The test is
+available on request.
 
-> diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-> index ceccfdaa..f1de0956 100644
-> --- a/doc/payload-expression.txt
-> +++ b/doc/payload-expression.txt
+Symptoms: with the patch not applied, the refragmented IPv6 packets
+leave the bridge with the wrong VLAN tag. This is the tag of the earlier
+IPv4 flow when both refragmentations run on the same CPU. Otherwise the
+packets go out untagged. There is no crash or warning; the only effect
+is the wrong or missing tag on the wire. With the patch applied, all the
+IPv6 fragments keep the correct VLAN tag.
 
-(...)
-
-> @@ -833,6 +859,18 @@ filter input tcp option sack-perm exists counter
->  filter input tcp option maxseg size lt 536
->  --------------------
->  
-> +.matching MPTCP suboptions
-> +--------------------
-> +filter input tcp option mptcp subtype mp-join drop
-> +--------------------
-> +
-> +[NOTE]
-> +====================
-> +Netfilter currently evaluates only the first MPTCP option found in the TCP
-> +header. If a packet contains multiple MPTCP options, a rule attempting to match
-> +the second option will never match.
-
-Would it be interesting to give an example? e.g. a rule attempting to
-match 'remove-addr', 'mp-prio' and 'mp-fail' (and 'mp-tcprst' in some
-cases) are not going to catch anything when the traffic is emitted by
-the current Linux kernel stack.
-
-Cheers,
-Matt
--- 
-Sponsored by the NGI0 Core fund.
-
+Thanks,
+  Andrea
