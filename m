@@ -1,171 +1,162 @@
-Received: from mail-dl2-f42.google.com (mail-dl2-f42.google.com [74.125.229.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from xmbghk7.mail.qq.com (xmbghk7.mail.qq.com [43.163.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E19993AFAE2
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 20:54:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EF712459E1;
+	Thu,  1 Oct 2026 03:53:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=43.163.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790801671; cv=none; b=brR0M/vLtEnMnU+eyQRS02wCEDH3jQTjFF72ylwHAm1mMeBtfZYKcun/YYkJXq1Z9EswcDNICHXo1XGLtp7P1+XfO7MjNj9EUiEiXtb/EwoXplHKFIF8qiXGa2/tX2aGI/5zKXjyD4c+Ow23Jh+my2lvl5u7QIV0584/VUZYGgM=
+	t=1790826804; cv=none; b=hViulU6GVxS1aPlPwzJWu2FMOed9WzUECztP2h1YROuWZzy1ZY6BMwkI9egGk9O8j+V1i5s1mfFi+0mRkK4poi2PJ8GnVUyCrYZJpqnFo008jDKIRH1DXw1KWUkdhVnG2Jv6noVH2blAfMKCNZbF6/P386Tz+hRbr2zC5CdRIxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790801671; c=relaxed/simple;
-	bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-	h=Message-ID:Date:Content-Type:MIME-Version:From:To:Cc:Subject; b=GEZQ3o/RFajCcs6+HP4+cPdk4AqmVS006nkChL5D4R1uw8zrPhOWXah0g6n0YLW/O+epBWrpnoC0q9M4O9JwDlZR0F/zfJg3xzKkK2pSJ4lxuj2cFKFfhh9fYyvMa3tPKdLyiL5bFQlDapomL+hgohcSeyVwPXpcf6m/rjuI3lA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IVHhTOpJ; arc=none smtp.client-ip=74.125.229.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790826804; c=relaxed/simple;
+	bh=9d0ymZB119zdJ/ME8/sBGP7ek/f55wQE7jG2gHR817g=;
+	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
+	 MIME-Version; b=SHkY/ndav8UJGBBpby4JuHXUAy260e0FDyE0XkeWVtnRdQVqEefBW3aGIM0+xjBuuVzlgfleZ4lser7bVW6ib3XcpXGTbSy8/ziaFlohJDee8+Et8IBUtRraIdPM+q9Flu04edM7qBZVBnF691jym2AawngtxeKylArN2xz8rCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=Ygo6YwQT; arc=none smtp.client-ip=43.163.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IVHhTOpJ"
-Received: by mail-dl2-f42.google.com with SMTP id a92af1059eb24-144f47a9b57so5358796c88.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2026 13:54:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790801669; x=1791406469; darn=vger.kernel.org;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-        b=IVHhTOpJbAVJyySm9Ru+NHtGoiBsOh1kFw6f2IFSY7DrpfF+Fz0GfR1VjOMv0hkDem
-         okJYtjI8L27fZAMTlhRfFswg2eNPnrG1MV5Ed59mSloKRIB45mzec7o7+7mUwZdYsOew
-         +F/s9QpifRSOZUMLPGet2aMvKaTvuQ8fo/6wuxMYLEZSz+dZu/2gwMk0CUVbOD1egrbo
-         VnUAl9d06uoSjSoHoDfevg/eWnQQu5SkZ5NMmnNukNIzD2ATtF0f0ZPORz86yaK/2AZc
-         WuIlvnILYt4qwtsPDDsjmeGcsEC+eGnO6d8GQEYJ2vbWd9LGF1aCG9LhTcdzsZGH93Qg
-         SEdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790801669; x=1791406469;
-        h=subject:cc:to:from:content-transfer-encoding:mime-version
-         :content-type:date:message-id:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=y4Sk1wA98XLUzK3+joRGJ/eDky8yOQE1aiwrdJivQ/s=;
-        b=C5Dd29dB1a5B0SRwbk5ql1DoEJjV68XXMCsJtAjfMJJIgJtxrZdN6Rs2s8RUtT+cWf
-         0rHBDD/iuLUSCbf5PTzq4sy8lylR5pvCTG4rJXEGFQ930JJvfmK/hRzFvaLoTqsBKTrh
-         Jm+oYZ6m9My0FfC0kN+LnPkg5vj44qdui4Pyf7GYViBHyNjbFNABOvCd9st+orntQgbF
-         A4FQwD3zHZgUMGjRmVihvIYl75FSLldTZLMHjrcBJJJ4Yx4c+e3emu8mpGpvokDHIMI/
-         t1RMH2iZhhT4Zjxf5zb0WICC4QZSKTNL/aAWf7bn8chcO4XkWETgNCHbAIIUWkcqONTy
-         pUxg==
-X-Gm-Message-State: AFuF++k42nIW4f+lv7vKPEp9YTA46oAe/WCuLtaZh7kza1n9WIaLQ/Mc
-	8kdduEG9SvWxoVkJ7BPvtrHiWDjszJQYH9CvKpZMTdytyY/2DZ3HHLYF/oiNfLC6Hm6ZNZc3
-X-Gm-Gg: AYBFou0sU6t3sh8W0cTrEx9ogyXY36WiRGqiPaWiFkH9SA80yJsyyzNT57aBZ3ZCvpr
-	txWyi5oOmoi+Iw2zr48l15T46aUYNJ7z3EYqJcAg7GMNK2UzqgIgQB4OiOslCxoLwZ+Plzkiao7
-	wC2pE5XDsrczw+J5QB/kCSEaAKTAbKXppTotnlwWI8Yg036o4hxIycPe26JaLFskSdK6LwhcZdx
-	MtSbS8rd+DVq4keYcz++IPebShEqB8BseNNV4Ot9qDOB213us9ICvTZbMhl1Q1k33PT4+lqBVkU
-	1EIir/RaTzn3qJJItD83CCskVIxSlVstA3UjIlBgv++Iu9I33gOsxkxBgKY8xRjj62Z8E6by/FF
-	MWLuQOt7feKjZuTqVNpPsnMB2iILBJ/29De6N/fVvzLocDs7f6F9ms+cBPNRbac0bFU1f3OdRA8
-	14Wl3+JL3QxaRwqTWDYQ9AG4DDhenY6lONRUirw1a+qZ3Lhxx0efhFy9LbbQkWUp/LGUE32nWxP
-	u5OOpt6WQ2i4/P26jCfuqd9zWw2Be166BQXccOBh1zt3oqw2fBfTOnhGc261oOnooM1g8mjX58b
-	kWxzaFW1mFrPbHj1p5xL5+iX7fSC+/jbT+iyaMS6QdJRDyWyrppMCCeP7ls=
-X-Received: by 2002:a05:701b:2505:b0:146:606e:2117 with SMTP id a92af1059eb24-14d2f7e6e77mr2980025c88.5.1790801668670;
-        Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([2804:7f0:b103:90e6:2458:51e7:ee0:38f9])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14df44d4f00sm983983c88.14.2026.09.30.13.54.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
-Message-ID: <6abd7704.018c0331.32b1f7.c000@mx.google.com>
-Date: Wed, 30 Sep 2026 13:54:28 -0700 (PDT)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="Ygo6YwQT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1790826791; bh=tDncEQpuKd8Z+mn7h3Cb2heMt2upVurhUi+ifnbHFrk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Ygo6YwQT+Po2r0wwxQj5rYpNZGa2dH+/WKrPnO3kQ/cVC7CKrZHTnd9SdU6369fBY
+	 SNkZIZPSHdTTGV2Jn2Oye1bgvczNp6L2q4cLKDYRAYN9X9/9BB6M0yVlt+fBwkrm3Q
+	 fbFYesbr5ZVT6NteHF58zFjqYCkJoZukYXIYOErM=
+Received: from localhost.localdomain ([182.239.119.212])
+	by newxmesmtplogicsvrsza73-0.qq.com (NewEsmtp) with SMTP
+	id CEE0A295; Thu, 01 Oct 2026 11:51:46 +0800
+X-QQ-mid: xmsmtpt1790826706t8fs0d3dz
+Message-ID: <tencent_CD037FFEEB8CA462C8403FB30F50EEC6DF06@qq.com>
+X-QQ-XMAILINFO: MllZffuBkEb5em8y5N5Y4wo1phFZS8eLkcCtZIXr8tEQ270FIlzuyT3uXNBE7Z
+	 HqkZKIS9/jzr/3KtMK1cslxrfvBeByDaorcUs+DrI7VqVfuGHRjiGC7dyT8o2ga+l1rKFsj460qW
+	 NsL7528xyEcwvIwBHyYqgJyFXo/9kgnk+cF04ZlB/z3Ja0ThzYMH2rET/LS1kcTs895pzDUfUF5H
+	 gvkCcpEbdFKoLF0Z2MQ36C/cKQj2lV3ogp6T4nQb3/MvcLsj3VT3lYDxOLsgNPuxHVkhlwy0gPuv
+	 1vWIBdzpDhbd1o99dpqLpbJ479nVwdjSbH8DH2zVTdeGdUohHKoMmfKPsdUdv/lK/yPtanjaFeLk
+	 Y4HlA7wQYgAIasHcs7JrYtS0gfyK+6qNo3Qpols/9IOMjYiL+nNK/QeAOVRlE8L6kSE30RbICLAr
+	 hOd8Y8YDn5eW0xYJLJ75JGrbn7iB7Q5KvNUodyVYdCqnxm+qDVEvZFklP6rgawc1MCavq+rkUNJF
+	 c5mZEyQ58pw7B1gC5KiRIqn3zqPDdUtuT0V/GInF0RMbr57I0lJ7UP4jd9mEh9s380rgRD1xaFss
+	 biprEMx6YCu65ufJ/c43f0ny4k6NBB9+LhFVAe1FBvoQWMypeyWK0dZxieDMObpXTIwW5fe0WqeE
+	 a4WckTH5KIfcgXNZHlqmudlCUs+vpxl+HdSkF4PFaCs2gBHNnQuV0goE7H+ZXVuj+55Sxo2zQIlJ
+	 2qCZ80aOtCofMv47aoWa+K5GTdKHVepVFOSrCr2Lka81NN5oEk48t2wsSuqxWKaIyGSsc8kf3BSh
+	 jkqo4+V4QNKK83402VcBKC34HxIV0tvfzuNVrYcUZA4ZMgihb8ilcffsjpx+LH26uXQSw2rjGrS0
+	 UtYVLK6tefsyVAp386Uoxg+Y28ocFtEZEU2BKTc4yOueIymWr5CB6FR9pAWAwpOjbiy8cuBhEmc8
+	 liOhKTSIkIGE7ojMQ18eWwQIbm90325n2VM+cpWVt21MzkrKeEXj87+2MGMZLROyI1A9rujRLVcW
+	 dFz2t64q2nITsvogMu7LEm7PIDv7V1iEDlUZucN479qbZzCXvC3XOdUzT+7jc=
+X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
+From: Ma Xinmeng <1564938642@qq.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	stable@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 6.1] netfilter: nf_tables: fix UAF in nf_tables_netdev_event walker
+Date: Thu,  1 Oct 2026 11:51:30 +0800
+X-OQ-MSGID: <20261001035130.1349-1-1564938642@qq.com>
+X-Mailer: git-send-email 2.49.0.windows.1
+In-Reply-To: <2026-09-25-daily-reply-0003-re-nf-tables-netdev-event-uaf@kernel.org>
+References: <2026-09-25-daily-reply-0003-re-nf-tables-netdev-event-uaf@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-From: Joas Antonio <joasantonio108@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org, fw@strlen.de, coreteam@netfilter.org
-Subject: [PATCH nf-next v2] netfilter: ip6t_NPT: ensure skb is writable before header modification
+Content-Transfer-Encoding: 8bit
 
-aXA2dF9zbnB0X3RnKCkgYW5kIGlwNnRfZG5wdF90ZygpIG1vZGlmeSB0aGUgSVB2NiBzb3VyY2Uv
-ZGVzdGluYXRpb24KYWRkcmVzcyBpbi1wbGFjZSB2aWEgaXA2dF9ucHRfbWFwX3BmeCgpIHdpdGhv
-dXQgZmlyc3QgY2FsbGluZwpza2JfZW5zdXJlX3dyaXRhYmxlKCkuICBXaGVuIHRoZSBza2IgaXMg
-Y2xvbmVkIChuZmxvZywgdGVlLCBtdWx0aWNhc3QsCnRjIG1pcnJlZCksIHRoZSB3cml0ZSBoaXRz
-IHNoYXJlZCBkYXRhIHZpc2libGUgdG8gb3RoZXIgdXNlcnMgb2YgdGhlCnNhbWUgYnVmZmVyOgoK
-ICBpZiAoIWlwNnRfbnB0X21hcF9wZngobnB0LCAmaXB2Nl9oZHIoc2tiKS0+c2FkZHIpKQogICAg
-ICAgICAgLi4uCgppcDZ0X25wdF9tYXBfcGZ4KCkgZG9lcyB0aGUgYWN0dWFsIGluLXBsYWNlIG1v
-ZGlmaWNhdGlvbjoKCiAgYWRkci0+czZfYWRkcjMyW2lkeF0gJj0gbWFzazsKICBhZGRyLT5zNl9h
-ZGRyMzJbaWR4XSB8PSB+bWFzayAmIG5wdC0+ZHN0X3BmeC5pbjYuczZfYWRkcjMyW2lkeF07CgpO
-ZWl0aGVyIHRhcmdldCBjaGVja3Mgd3JpdGFiaWxpdHkgZmlyc3QuICBFdmVyeSBjb21wYXJhYmxl
-IHRhcmdldCBpbgp0aGUgdHJlZSBkb2VzOiBpcHRfRUNOIChsaW5lIDMyKSwgZWJ0X2RuYXQgKGxp
-bmUgMjQpLCBlYnRfc25hdAoobGluZSAyNSksIHh0X1RDUE9QVFNUUklQIChsaW5lIDUyKS4KCkFk
-ZGl0aW9uYWxseSwgdGhlIElDTVB2NiBib3VuY2VkIGhlYWRlciBwYXRoIHVzZXMKc2tiX2hlYWRl
-cl9wb2ludGVyKCksIHdoaWNoIHJldHVybnMgYSBwb2ludGVyIHRvIGEgc3RhY2stbG9jYWwgY29w
-eQpmb3Igbm9ubGluZWFyIHNrYnMuICBpcDZ0X25wdF9tYXBfcGZ4KCkgdGhlbiBtb2RpZmllcyB0
-aGUgY29weTsKY2hhbmdlcyBhcmUgc2lsZW50bHkgbG9zdCBhbmQgdGhlIGlubmVyIElQdjYgaGVh
-ZGVyIGluIElDTVB2NiBlcnJvcgptZXNzYWdlcyBpcyBuZXZlciB0cmFuc2xhdGVkLgoKRml4IGJv
-dGggYnkgYWRkaW5nIHNrYl9lbnN1cmVfd3JpdGFibGUoKSBiZWZvcmUgZWFjaCB0YXJnZXQgZnVu
-Y3Rpb24Kb3BlcmF0ZXMsIGFuZCByZXBsYWNpbmcgdGhlIHNrYl9oZWFkZXJfcG9pbnRlcigpICsg
-aGVscGVyIHBhdHRlcm4Kd2l0aCBza2JfZW5zdXJlX3dyaXRhYmxlKCkgdXAgdG8gdGhlIGlubmVy
-IGhlYWRlciBvZmZzZXQgZm9sbG93ZWQgYnkKYSBkaXJlY3QgcG9pbnRlci4gIFJlbW92ZSB0aGUg
-bm93LXVudXNlZCBpY21wdjZfYm91bmNlZF9pcHY2aGRyKCkuCgpGaXhlczogOGE5MWJiMGMzMDRi
-ICgibmV0ZmlsdGVyOiBpcDZ0YWJsZXM6IGFkZCBzdGF0ZWxlc3MgSVB2Ni10by1JUHY2IE5ldHdv
-cmsgUHJlZml4IFRyYW5zbGF0aW9uIHRhcmdldCIpClNpZ25lZC1vZmYtYnk6IEpvYXMgQW50b25p
-byA8am9hc2FudG9uaW8xMDhAZ21haWwuY29tPgotLS0KVGVzdGluZzogdmVyaWZpZWQgd2l0aCBO
-RkxPRyArIFNOUFQvRE5QVCBydWxlcyBvbiBhIG5hbWVzcGFjZSBwYWlyCnRoYXQgY2xvbmVkIHNr
-YiBkYXRhIGlzIG5vIGxvbmdlciBjb3JydXB0ZWQgYWZ0ZXIgdHJhbnNsYXRpb24uCk5vbmxpbmVh
-ci1za2IgcGF0aCBjb25maXJtZWQgYnkgZm9yY2luZyBHUk8gYWdncmVnYXRpb24gb24gdGhlCmlu
-Z3Jlc3Mgc2lkZTsgaW5uZXIgSUNNUHY2IGhlYWRlciBub3cgY2FycmllcyB0aGUgdHJhbnNsYXRl
-ZCBwcmVmaXguCgogbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMgfCA2NiArKysrKysrKysr
-KysrKysrKystLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDM3IGluc2VydGlvbnMoKyks
-IDI5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X05Q
-VC5jIGIvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKaW5kZXggWFhYWFhYWC4uWFhYWFhY
-WCAxMDA2NDQKLS0tIGEvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKKysrIGIvbmV0L2lw
-djYvbmV0ZmlsdGVyL2lwNnRfTlBULmMKQEAgLTc4LDU3ICs3OCw2NSBAQCBzdGF0aWMgYm9vbCBp
-cDZ0X25wdF9tYXBfcGZ4KGNvbnN0IHN0cnVjdCBpcDZ0X25wdF90Z2luZm8gKm5wdCwKIAlyZXR1
-cm4gdHJ1ZTsKIH0KCi1zdGF0aWMgc3RydWN0IGlwdjZoZHIgKmljbXB2Nl9ib3VuY2VkX2lwdjZo
-ZHIoc3RydWN0IHNrX2J1ZmYgKnNrYiwKLQkJCQkJICAgICAgc3RydWN0IGlwdjZoZHIgKl9ib3Vu
-Y2VkX2hkcikKLXsKLQlpZiAoaXB2Nl9oZHIoc2tiKS0+bmV4dGhkciAhPSBJUFBST1RPX0lDTVBW
-NikKLQkJcmV0dXJuIE5VTEw7Ci0KLQlpZiAoIWljbXB2Nl9pc19lcnIoaWNtcDZfaGRyKHNrYikt
-PmljbXA2X3R5cGUpKQotCQlyZXR1cm4gTlVMTDsKLQotCXJldHVybiBza2JfaGVhZGVyX3BvaW50
-ZXIoc2tiLAotCQkJCSAgc2tiX3RyYW5zcG9ydF9vZmZzZXQoc2tiKSArIHNpemVvZihzdHJ1Y3Qg
-aWNtcDZoZHIpLAotCQkJCSAgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSwKLQkJCQkgIF9ib3VuY2Vk
-X2hkcik7Ci19Ci0KIHN0YXRpYyB1bnNpZ25lZCBpbnQKIGlwNnRfc25wdF90ZyhzdHJ1Y3Qgc2tf
-YnVmZiAqc2tiLCBjb25zdCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFtICpwYXIpCiB7CiAJY29uc3Qg
-c3RydWN0IGlwNnRfbnB0X3RnaW5mbyAqbnB0ID0gcGFyLT50YXJnaW5mbzsKLQlzdHJ1Y3QgaXB2
-NmhkciBfYm91bmNlZF9oZHI7Ci0Jc3RydWN0IGlwdjZoZHIgKmJvdW5jZWRfaGRyOwogCXN0cnVj
-dCBpbjZfYWRkciBib3VuY2VkX3BmeDsKKwlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CisJ
-dW5zaWduZWQgaW50IGJvdW5jZWRfb2ZmOworCisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2ti
-LCBzaXplb2Yoc3RydWN0IGlwdjZoZHIpKSkKKwkJcmV0dXJuIE5GX0RST1A7CgogCWlmICghaXA2
-dF9ucHRfbWFwX3BmeChucHQsICZpcHY2X2hkcihza2IpLT5zYWRkcikpIHsKIAkJaWNtcHY2X3Nl
-bmQoc2tiLCBJQ01QVjZfUEFSQU1QUk9CLCBJQ01QVjZfSERSX0ZJRUxELAogCQkJICAgIG9mZnNl
-dG9mKHN0cnVjdCBpcHY2aGRyLCBzYWRkcikpOwogCQlyZXR1cm4gTkZfRFJPUDsKIAl9CgogCS8q
-IHJld3JpdGUgZHN0IGFkZHIgb2YgYm91bmNlZCBwYWNrZXQgd2hpY2ggd2FzIHNlbnQgdG8gZHN0
-IHJhbmdlICovCi0JYm91bmNlZF9oZHIgPSBpY21wdjZfYm91bmNlZF9pcHY2aGRyKHNrYiwgJl9i
-b3VuY2VkX2hkcik7Ci0JaWYgKGJvdW5jZWRfaGRyKSB7Ci0JCWlwdjZfYWRkcl9wcmVmaXgoJmJv
-dW5jZWRfcGZ4LCAmYm91bmNlZF9oZHItPmRhZGRyLCBucHQtPnNyY19wZnhfbGVuKTsKLQkJaWYg
-KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKLQkJ
-CWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPmRhZGRyKTsKLQl9CisJaWYgKGlw
-djZfaGRyKHNrYiktPm5leHRoZHIgIT0gSVBQUk9UT19JQ01QVjYgfHwKKwkgICAgIWljbXB2Nl9p
-c19lcnIoaWNtcDZfaGRyKHNrYiktPmljbXA2X3R5cGUpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7
-CisKKwlib3VuY2VkX29mZiA9IHNrYl90cmFuc3BvcnRfb2Zmc2V0KHNrYikgKyBzaXplb2Yoc3Ry
-dWN0IGljbXA2aGRyKTsKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShza2IsIGJvdW5jZWRfb2Zm
-ICsgc2l6ZW9mKHN0cnVjdCBpcHY2aGRyKSkpCisJCXJldHVybiBYVF9DT05USU5VRTsKKworCWJv
-dW5jZWRfaGRyID0gKHN0cnVjdCBpcHY2aGRyICopKHNrYl90cmFuc3BvcnRfaGVhZGVyKHNrYikg
-KworCQkJCQkgIHNpemVvZihzdHJ1Y3QgaWNtcDZoZHIpKTsKKwlpcHY2X2FkZHJfcHJlZml4KCZi
-b3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5kYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7CisJaWYg
-KGlwdjZfYWRkcl9jbXAoJmJvdW5jZWRfcGZ4LCAmbnB0LT5zcmNfcGZ4LmluNikgPT0gMCkKKwkJ
-aXA2dF9ucHRfbWFwX3BmeChucHQsICZib3VuY2VkX2hkci0+ZGFkZHIpOwoKIAlyZXR1cm4gWFRf
-Q09OVElOVUU7CiB9Cgogc3RhdGljIHVuc2lnbmVkIGludAogaXA2dF9kbnB0X3RnKHN0cnVjdCBz
-a19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF9hY3Rpb25fcGFyYW0gKnBhcikKIHsKIAljb25z
-dCBzdHJ1Y3QgaXA2dF9ucHRfdGdpbmZvICpucHQgPSBwYXItPnRhcmdpbmZvOwotCXN0cnVjdCBp
-cHY2aGRyIF9ib3VuY2VkX2hkcjsKLQlzdHJ1Y3QgaXB2NmhkciAqYm91bmNlZF9oZHI7CiAJc3Ry
-dWN0IGluNl9hZGRyIGJvdW5jZWRfcGZ4OworCXN0cnVjdCBpcHY2aGRyICpib3VuY2VkX2hkcjsK
-Kwl1bnNpZ25lZCBpbnQgYm91bmNlZF9vZmY7CisKKwlpZiAoc2tiX2Vuc3VyZV93cml0YWJsZShz
-a2IsIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gTkZfRFJPUDsKCiAJaWYgKCFp
-cDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmlwdjZfaGRyKHNrYiktPmRhZGRyKSkgewogCQlpY21wdjZf
-c2VuZChza2IsIElDTVBWNl9QQVJBTVBST0IsIElDTVBWNl9IRFJfRklFTEQsCiAJCQkgICAgb2Zm
-c2V0b2Yoc3RydWN0IGlwdjZoZHIsIGRhZGRyKSk7CiAJCXJldHVybiBORl9EUk9QOwogCX0KCiAJ
-LyogcmV3cml0ZSBzcmMgYWRkciBvZiBib3VuY2VkIHBhY2tldCB3aGljaCB3YXMgc2VudCBmcm9t
-IGRzdCByYW5nZSAqLwotCWJvdW5jZWRfaGRyID0gaWNtcHY2X2JvdW5jZWRfaXB2Nmhkcihza2Is
-ICZfYm91bmNlZF9oZHIpOwotCWlmIChib3VuY2VkX2hkcikgewotCQlpcHY2X2FkZHJfcHJlZml4
-KCZib3VuY2VkX3BmeCwgJmJvdW5jZWRfaGRyLT5zYWRkciwgbnB0LT5zcmNfcGZ4X2xlbik7Ci0J
-CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
-Ci0JCQlpcDZ0X25wdF9tYXBfcGZ4KG5wdCwgJmJvdW5jZWRfaGRyLT5zYWRkcik7Ci0JfQorCWlm
-IChpcHY2X2hkcihza2IpLT5uZXh0aGRyICE9IElQUFJPVE9fSUNNUFY2IHx8CisJICAgICFpY21w
-djZfaXNfZXJyKGljbXA2X2hkcihza2IpLT5pY21wNl90eXBlKSkKKwkJcmV0dXJuIFhUX0NPTlRJ
-TlVFOworCisJYm91bmNlZF9vZmYgPSBza2JfdHJhbnNwb3J0X29mZnNldChza2IpICsgc2l6ZW9m
-KHN0cnVjdCBpY21wNmhkcik7CisJaWYgKHNrYl9lbnN1cmVfd3JpdGFibGUoc2tiLCBib3VuY2Vk
-X29mZiArIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpKQorCQlyZXR1cm4gWFRfQ09OVElOVUU7CisK
-Kwlib3VuY2VkX2hkciA9IChzdHJ1Y3QgaXB2NmhkciAqKShza2JfdHJhbnNwb3J0X2hlYWRlcihz
-a2IpICsKKwkJCQkJICBzaXplb2Yoc3RydWN0IGljbXA2aGRyKSk7CisJaXB2Nl9hZGRyX3ByZWZp
-eCgmYm91bmNlZF9wZngsICZib3VuY2VkX2hkci0+c2FkZHIsIG5wdC0+c3JjX3BmeF9sZW4pOwor
-CWlmIChpcHY2X2FkZHJfY21wKCZib3VuY2VkX3BmeCwgJm5wdC0+c3JjX3BmeC5pbjYpID09IDAp
-CisJCWlwNnRfbnB0X21hcF9wZngobnB0LCAmYm91bmNlZF9oZHItPnNhZGRyKTsKCiAJcmV0dXJu
-IFhUX0NPTlRJTlVFOwogfQotLQoyLjQzLjAK
+This is a 6.1-only fix. Mainline already fixed this bug in fc0133428e7a
+("netfilter: nf_tables: Tolerate chains with no remaining hooks"), which
+6.1 cannot take because it lacks 207296f1a03b ("netfilter: nf_tables:
+allow to create netdev chain without device") and b9703ed44ffb
+("netfilter: nf_tables: support for adding new devices to an existing
+netdev chain"). So 6.1 keeps dropping the chain on the last
+NETDEV_UNREGISTER, and this patch only makes the walker safe.
+
+nf_tables_netdev_event() walks table->chains with
+list_for_each_entry_safe(). On the last NETDEV_UNREGISTER for a base
+chain, nft_netdev_event() calls __nft_release_basechain(), which removes
+that base chain (nft_chain_del()) and destroys its rules. A JUMP/GOTO rule
+targeting an NFT_CHAIN_BINDING chain deactivates and frees that successor
+(nft_immediate_destroy() -> nf_tables_chain_destroy()), so the walker's
+saved "nr" iterator can point at freed memory, triggering a
+slab-use-after-free.
+
+Fix it by restarting the table->chains walk whenever nft_netdev_event()
+released a chain. __nft_release_basechain() removes the base chain from
+the list before returning, so a restart cannot revisit the freed chain and
+the walk terminates.
+
+Signed-off-by: Ma Xinmeng <1564938642@qq.com>
+---
+ net/netfilter/nft_chain_filter.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index d170758..ca6450a 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -318,7 +318,7 @@ static const struct nft_chain_type nft_chain_filter_netdev = {
+ 	},
+ };
+ 
+-static void nft_netdev_event(unsigned long event, struct net_device *dev,
++static bool nft_netdev_event(unsigned long event, struct net_device *dev,
+ 			     struct nft_ctx *ctx)
+ {
+ 	struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
+@@ -326,7 +326,7 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 	int n = 0;
+ 
+ 	if (event != NETDEV_UNREGISTER)
+-		return;
++		return false;
+ 
+ 	list_for_each_entry(hook, &basechain->hook_list, list) {
+ 		if (hook->ops.dev == dev)
+@@ -335,7 +335,7 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 		n++;
+ 	}
+ 	if (!found)
+-		return;
++		return false;
+ 
+ 	if (n > 1) {
+ 		if (!(ctx->chain->table->flags & NFT_TABLE_F_DORMANT))
+@@ -343,7 +343,7 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 
+ 		list_del_rcu(&found->list);
+ 		kfree_rcu(found, rcu);
+-		return;
++		return false;
+ 	}
+ 
+ 	/* UNREGISTER events are also happening on netns exit.
+@@ -353,6 +353,8 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 	 * so we cannot skip exiting net namespaces.
+ 	 */
+ 	__nft_release_basechain(ctx);
++
++	return true;
+ }
+ 
+ static int nf_tables_netdev_event(struct notifier_block *this,
+@@ -380,6 +382,7 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 
+ 		ctx.family = table->family;
+ 		ctx.table = table;
++restart:
+ 		list_for_each_entry_safe(chain, nr, &table->chains, list) {
+ 			if (!nft_is_base_chain(chain))
+ 				continue;
+@@ -390,7 +393,8 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 				continue;
+ 
+ 			ctx.chain = chain;
+-			nft_netdev_event(event, dev, &ctx);
++			if (nft_netdev_event(event, dev, &ctx))
++				goto restart;
+ 		}
+ 	}
+ 	mutex_unlock(&nft_net->commit_mutex);
+-- 
+2.49.0.windows.1
+
