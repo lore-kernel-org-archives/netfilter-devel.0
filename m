@@ -1,108 +1,155 @@
-Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mvsmtppost17.nm.naver.com (mvsmtppost17.nm.naver.com [61.247.196.159])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4023735676B
-	for <netfilter-devel@vger.kernel.org>; Fri,  2 Oct 2026 05:39:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11A6A3612E7
+	for <netfilter-devel@vger.kernel.org>; Fri,  2 Oct 2026 07:52:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.247.196.159
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790919591; cv=none; b=EyrgaJ+vfN4RUHE3psY9lbrdwXzrsEVn1QOo1khlh4zxA4vZtQwneRxQz+P1bbBA3Ku8Dc2/qyflphkujc8pSPw2mqk8AhNJMw9xKi61P9EgkWevwNVH3x5cxv44uA5S21BY19CVRJfcHRpAPSOpb3ykleEkZdOpwjirYgDF4W8=
+	t=1790927558; cv=none; b=b3pcQDTIyxrsmk1nVRJ5ojXh1BUDqsYqT7OxGNTDuPDHCtFW8q+fVDmpwCbXDEgffyDaQhJLDn6yfDAGJxuv5SqMCbi7P/NsvWiUL4CIinB3ftm+vAUmlRaHBE608wKuoWEcZyaMMApZ5R1jwRnwPHeX53Kapxz+8AZw/X9SDbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790919591; c=relaxed/simple;
-	bh=5KKvZn6IaZhVYrolIjH5BvTvKhdtgpU2i+18MXjnZJ4=;
+	s=arc-20240116; t=1790927558; c=relaxed/simple;
+	bh=JUFspoQNePCu3sx+33YwcWSfxBGfUaqgfYRMvB92U5s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=szJopFlFdhqaJzNyRCk/BJwsSJsqrIsyN/azML/2VtLfZbBpqTsocZUog9ce8vpRN6t+5pcjJPBRJIsh6ZlFYXgXj8w+M1iED74RGaacTFuI0VntvisVfwF+HLWZZa5qYkpV6o2enZP/Op72Xcke3zAxmnX6w860wXnb1Uodfbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DeXmLtxY; arc=none smtp.client-ip=74.125.227.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 MIME-Version:Content-Type; b=SNfOc7hfiLcSSdvi6t9iKjD+ESjyMNNvwrrAbSh27mX+cgL5mLZYgzyJKj6INCUv52b6Y6CWE+2T7Z7bU3eINGZELjz1h/tbVxH+8zXtz66KiQHq9y2VXsbSOvn4j/j5fYOwS3wgx+Y2FlRuvdr1tZsw8apDxs+2yEthBdCgweQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=M/SAF4ZV; arc=none smtp.client-ip=61.247.196.159
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DeXmLtxY"
-Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2dd53691be5so47573935ad.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Oct 2026 22:39:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790919589; x=1791524389; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=tHPDs6nkeRx1UXviyEr7eXV4Bpi3Y+X0rLcUXCBs6zw=;
-        b=DeXmLtxYL39qCB1bODhzNM1yCgR1u3discL2qJUNzSnht0Ixm1OcqdghPV3NC5v/De
-         4lt/g+8H5TdHt6sqYAEqafYe/2PWvatc0OzLCkUmNSQAM9SmjmEfkXs99UZ4hYs8VE/S
-         LBMITEEJIybckC+uap/AtlUMz6n/TUPEr5SptOYO0Gp1gwzGhRGq2T61HJD5JG4Mt2AW
-         BgsmY12fR06a/YcwXKzCtSvXgL82PF4aX+xBp/KLScNbmZkBgU2T+wZkaRnXiFDFGwu+
-         Zzt7FsFAaASXkzF79LFKXVeU28FdXLyOGv3YWdEpb+SsQsmJ+Pdl75BSBsz75x+QGKrj
-         7pQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790919589; x=1791524389;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tHPDs6nkeRx1UXviyEr7eXV4Bpi3Y+X0rLcUXCBs6zw=;
-        b=Hsiue/eWxkoI7Gogs6/Y8GyAiAv1jR7P241MhyFmLSpEBntz9kTAhng0mtJ/Hab1Wd
-         3gIJhfJKuFRxt4pglp3IAluwkHbbRjgrsP0Kw0lx70t8esATeE389Xms8TTCaZfeziNp
-         H7+qzrBm22/BKdl0fVuEr/Kiet2C9M5p76Wmizq46asCKnRjh0tZAuS0fR3fM2eMghNr
-         No8vEbOU2FdPmDfR2Wc8hHeq40E0dnpAPaT6TTxEi5t0CSWM1Ot5+TPSpTPe7hECoj4A
-         IQ9xw+2Bdc5ku8RZPBFW6wKiJ7wg7y/VG/TtDw3KUYwlqstxcqf1z252GBaO+bjER3HQ
-         M6jw==
-X-Forwarded-Encrypted: i=1; AKwUvBw3xFK0YMmQrRrg1n/OPNFbB3FErdk+0eilQ5J9AZU0+ln/9uBBQ/5FV34WDFG9JFvkW60uYymsluPMe04QXEA=@vger.kernel.org
-X-Gm-Message-State: AFq9FYKrSqDYARHurWub9izBgE2ejdJ+efGQszqJA/efGEiLycXivHfL
-	QybqK2cNqhwtdpD2oPY0KpzW6rt+PqAYxuY81YPiWhecQS3bOWP6skBr
-X-Gm-Gg: AYBFou0urZNJsaa2IG7jykWcc/9SsvFZ4p6mX+20NLCrpmaeGPQmi35DJ4ELjC4KSs6
-	lcod8GHm/Tg0z0PNVbAl6o2hXUVRyt5b4z0wxkj5zT+kczKoPWGuqGUYDey6NhGk9qLeQ+BXr7k
-	Fnc7WRRsIiGINHgHjMl84X0YOPW449VSKb7TUgxb/tlIvP+00mm9KFA3uUQ01u8G0m+ImQOnRxv
-	Dp71zX8YetSwdw3wBXWRacIaDXGJl8xfDWgyDmfdbzg3krdxFiYLSArE6lDFD0ryqVKQT918RjY
-	avf7GKVXVt7YlNGbx5aKNBMfmx8injuMTStM5VeHhRRwaa2GE+WDcHCx72qECidr02eG6lIVQf/
-	illy3ROzSBJI7xJUsx0Xw/OiNM8UTvXMRxMH4u0mWf7CvFeEnY/a1hqxsvA7wxrCRe4AhPmWQlS
-	hK/fhCb+AuAHOKe//zxgHjPxhHZsn3Z4A1dr33V52fC4OoU9MJdGS0+Tm9IVjUGitVWvKSlrEMO
-	nAchy4MWcU=
-X-Received: by 2002:a17:902:dac1:b0:2e4:b37a:d583 with SMTP id d9443c01a7336-2e4b38a215bmr631455ad.61.1790919589335;
-        Thu, 01 Oct 2026 22:39:49 -0700 (PDT)
-Received: from ancienth-X870E-Nova-WiFi ([125.186.72.2])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e4a59edd6esm3045785ad.12.2026.10.01.22.39.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2026 22:39:48 -0700 (PDT)
-From: Daehyeon Ko <4ncienth@gmail.com>
-To: fw@strlen.de
-Cc: pablo@netfilter.org,
+	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="M/SAF4ZV"
+Received: from cvsendbo022.nm ([10.112.20.47])
+  by mvsmtppost17.nm.naver.com with ESMTP id K+h4fLczRJy68pzOn1gQNg
+  for <netfilter-devel@vger.kernel.org>;
+  Fri, 02 Oct 2026 07:42:26 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
+	t=1790926946; bh=JUFspoQNePCu3sx+33YwcWSfxBGfUaqgfYRMvB92U5s=;
+	h=From:To:Subject:Date:Message-ID:From:Subject:Feedback-ID:
+	 X-Works-Security;
+	b=M/SAF4ZVfrGwM2YufxsBhUbE8wYrHQUZPGKLmWapRtSQoOdPdVFMrq4HhZbh5oZ8Y
+	 EQmrcqugBmNoDvU7P/fN+o04+PIxb5lW/1/qE1mLaS8QMGId1PAr4X5tZrA0keOynH
+	 n9W/WdZSxtJeWqFIgpZYAQuAhxrJBIwi8CnxAK1/9SGlAGY8jZNw5tq+HYhdLdS1ZD
+	 bKNcDoHjp8QMNek7ke6bHBdu02pYHzt0Q6VEvdstVirwXllVadVVSTzZFtrAVzBJSn
+	 cqkfvvTi22XoEIJY1bafL3q2oQ9Vc3jNWXOPdIjWheMKQYDdPQnWljKXxswSnTacYt
+	 /MslqwQ/DxlqQ==
+X-Session-ID: yBsmHpcKQJ2JXoj+LyXm0A
+X-Works-Send-Opt: OsFwpzGdjHmdKHFOMr39Ko3YKHm/jAudFqM9KqMqFxIYkEljxBmwjAg=
+X-Works-Smtp-Source: VqYlaAglFqJZ+HmrFAEd+6E=
+Received: from localhost.localdomain ([115.136.205.4])
+  by cvnsmtp003.nm.naver.com with ESMTP id yBsmHpcKQJ2JXoj+LyXm0A
+  for <multiple recipients>
+  (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384);
+  Fri, 02 Oct 2026 07:42:26 -0000
+From: tjdqudcks0424@naver.com
+To: netdev-bot+sashiko@kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
 	phil@nwl.cc,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: conntrack: avoid recursive master destruction
-Date: Fri,  2 Oct 2026 14:39:41 +0900
-Message-ID: <20261002053941.1132097-1-4ncienth@gmail.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <ar6yM0h2zdVUU4rt@strlen.de>
-References: <20261001180224.1018290-1-4ncienth@gmail.com> <ar6yM0h2zdVUU4rt@strlen.de>
+	stable@vger.kernel.org,
+	kuba@kernel.org
+Subject: Re: [PATCH net] netfilter: nf_conntrack_reasm: avoid truncating header offset
+Date: Fri,  2 Oct 2026 16:42:10 +0900
+Message-ID: <20261002074210.140795-1-tjdqudcks0424@naver.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <179089937913.434549.5874493628033954656@kernel.org>
+References: <20260929090027.200041-1-tjdqudcks0424@naver.com> <179089937913.434549.5874493628033954656@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Thanks for taking a look.
+From: Sung Byeongchan <tjdqudcks0424@naver.com>
 
-I think this check is reasonable for CTA_TUPLE_MASTER, but it does not seem
-to make master chains impossible by itself.  There is another master writer
-in init_conntrack(): expectation fulfillment assigns exp->master to the new
-conntrack.
+Hi,
 
-In particular, ctnetlink_glue_attach_expect() can attach an expectation
-from an NFQUEUE verdict and set assign_helper.  The expected child then has
-both a master and a helper, so it can serve as the master of another
-userspace-helper expectation.  That path does not pass through the proposed
-check and has no cumulative depth bound.
+Resending in plain text because my previous webmail reply was rejected by
+the mailing lists for containing an HTML part.
 
-This helper propagation was intentionally restored by dcb0f9aefdd6
-("netfilter: nf_conntrack_expect: restore helper propagation via
-expectation") for SIP, H.323 and userspace helpers.  Restricting all nested
-masters would therefore need a wider helper/expectation compatibility
-change.
+I independently tested the 16-bit header-offset concern raised in this
+review. The concern is valid and can cause a local kernel panic.
 
-For that reason I think nf_ct_destroy() still needs to be stack-safe.  The
-creation-time check could be added separately if nested conntrackd restore
-should also be rejected.  Does that match your intended invariant?
+This is separate from the existing prev_nhoff u8 truncation issue. To
+isolate the two issues, I tested a current-mainline-based kernel at:
 
-Thanks,
-Daehyeon
+  ce1e0223d8ad4211275c82a17ed6d43ab81e13d9
+
+with only the already-public u8-to-int prev_nhoff fix applied.
+
+The reproducer sends a 65536-byte IPV6_HDRINCL packet to ::1 with the
+real Fragment Header at fhoff=65528. The loopback raw-output path
+reserves 16 bytes of headroom, so:
+
+  headroom + fhoff = 16 + 65528 = 65544
+
+This value is stored in the u16 skb->transport_header field and wraps
+to 8.
+
+With init_on_alloc=1, the wrapped pointer reads the zeroed headroom as
+a Fragment Header with offset 0 and MF clear. Reassembly completes,
+advances network_header from 16 to 24 while skb->data remains at 16,
+and inet_frag_reasm_finish() passes -8 as the unsigned length to
+skb_push().
+
+The resulting diagnostic is:
+
+  skbuff: skb_under_panic: ... len:65520 put:-8 ...
+  kernel BUG at net/core/skbuff.c
+  skb_push
+  inet_frag_reasm_finish
+  nf_ct_frag6_gather
+  ipv6_defrag
+  rawv6_sendmsg
+  Kernel panic - not syncing: Fatal exception in interrupt
+
+I reproduced the panic in three isolated QEMU runs:
+
+  1. Linux v7.2.8 as root
+  2. The mainline-based u8-fixed baseline as root
+  3. The same mainline-based baseline from outer UID 65534 after
+     entering a new user and network namespace
+
+In the third case, the process had CAP_NET_RAW only inside its new
+user and network namespace. No loopback MTU change was required.
+
+The crash runs used nf_conntrack.enable_hooks=1 to activate IPv6
+conntrack defragmentation. I confirmed from the source that an nftables
+ct expression can also acquire the IPv6 defrag hook in the caller's
+network namespace, but I did not perform an additional crash run using
+only that activation method.
+
+I tested the following minimal guard on top of the public u8 fix:
+
+  if (nhoff != (u16)nhoff ||
+      !skb_set_transport_header_careful(skb, fhoff))
+          return -EINVAL;
+
+With an otherwise identical KASAN configuration:
+
+  - the exact crash packet was safely rejected in 3/3 runs;
+  - short fragmented packets passed in 3/3 runs;
+  - the previous offset-248 and offset-256 cases passed in 3/3 runs;
+  - ordinary IPv6 UDP and TCP passed in 3/3 runs;
+  - no KASAN, WARNING, BUG, Oops, or panic was observed.
+
+I searched current mainline history, lore, Patchwork, and
+linux-cve-announce. I found the existing prev_nhoff u8 fix, but did not
+find an existing patch or commit that checks the u16 nhoff storage or
+uses skb_set_transport_header_careful() in this path.
+
+The demonstrated impact is a local kernel-wide denial of service when
+IPv6 conntrack defragmentation is active. The panic occurs before
+packet delivery, so I found no evidence of information disclosure,
+privilege escalation, arbitrary memory corruption, or remote
+reachability.
+
+Would you prefer this check to be folded into the existing prev_nhoff
+patch, or should I submit it as a separate follow-up patch on top of
+that change? I have the reproducer, serial logs, A/B results, and an
+applyable follow-up patch ready.
+
+Regards,
+Sung Byeongchan
