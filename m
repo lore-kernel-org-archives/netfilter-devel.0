@@ -1,61 +1,78 @@
-Received: from out162-62-58-211.mail.qq.com (out162-62-58-211.mail.qq.com [162.62.58.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BABFF21A457;
-	Fri,  2 Oct 2026 04:33:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.58.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4023735676B
+	for <netfilter-devel@vger.kernel.org>; Fri,  2 Oct 2026 05:39:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790915597; cv=none; b=Y6cX5rs47CHVThAELur7qykdtuoAH9JacXQ+y59/pMuTM1NAz1wIiZbo/zT+d6OeexJvqqwQ6TcwDwvNgRY7z8q3Go6eoKomZCDw3lTT3T6x523Q593waaZ9v3d6E6ZhXHe5Kf4FJXSfeNdMMlptUSEuuXn7UDpkWDHi9285u8U=
+	t=1790919591; cv=none; b=EyrgaJ+vfN4RUHE3psY9lbrdwXzrsEVn1QOo1khlh4zxA4vZtQwneRxQz+P1bbBA3Ku8Dc2/qyflphkujc8pSPw2mqk8AhNJMw9xKi61P9EgkWevwNVH3x5cxv44uA5S21BY19CVRJfcHRpAPSOpb3ykleEkZdOpwjirYgDF4W8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790915597; c=relaxed/simple;
-	bh=9LNfvW8DQMUknlb/lG/9lxmKsQuXnu/5WwsR9rsisMA=;
-	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
-	 MIME-Version; b=nXDUVK8x3490fBy7+6jmrQjbzTsR2G2PJftcTAU4N6EeaJB92UsyaQ16C6VmrqLldqBQWxZ0sgjBNEbfjCRCQJYqhs0kN2lBTDYVfk3KhR42en/JxAlLV0N6GCk07PVtaMmpL88y5wp2Sots9bAosqeRYAB9rgP17zfn5FiKnVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=S3OdndIW; arc=none smtp.client-ip=162.62.58.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	s=arc-20240116; t=1790919591; c=relaxed/simple;
+	bh=5KKvZn6IaZhVYrolIjH5BvTvKhdtgpU2i+18MXjnZJ4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=szJopFlFdhqaJzNyRCk/BJwsSJsqrIsyN/azML/2VtLfZbBpqTsocZUog9ce8vpRN6t+5pcjJPBRJIsh6ZlFYXgXj8w+M1iED74RGaacTFuI0VntvisVfwF+HLWZZa5qYkpV6o2enZP/Op72Xcke3zAxmnX6w860wXnb1Uodfbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DeXmLtxY; arc=none smtp.client-ip=74.125.227.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="S3OdndIW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1790915589; bh=EB2J6eVL7vHfJirKa9hAYAOnqQs4/wBWOg7RLq9ctKo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=S3OdndIWheazN8BFYPNFAEgrQFL5jcEvuzoyX/JtxJXEj+7mQE5trC961YPDyO092
-	 VVIgToxhfvUOgoWegi5ad8Z7blA4nx0GBQD7zUSf3AgTfXK0xndFFA5tEefZ1hsEMa
-	 2K5CjPHB/GCFVVOwmIm9CYF8msCTeFfarB8dy6Ng=
-Received: from localhost.localdomain ([182.239.119.53])
-	by newxmesmtplogicsvrsza63-0.qq.com (NewEsmtp) with SMTP
-	id 6579C811; Fri, 02 Oct 2026 12:25:23 +0800
-X-QQ-mid: xmsmtpt1790915123tqpcn1qjm
-Message-ID: <tencent_3EF2E566E214C1068698C581DE374E1E3C09@qq.com>
-X-QQ-XMAILINFO: MpqzBLgWqqkewDs+O/hpfYDbqJLbHuvaqF6+R9G/Eqv05J7l3Joipq4Des5xq2
-	 HtJRkne2LWLCfkoEtT02hBy6vxpfn3haxTzMSLapVUGqJ/fOi9Ai4MUboghzL8bpkAQDoqgzMDjg
-	 nMN1TcHGJ7dvqmIslpHOodDoIF+D278IV+P/lrL5Hkk2T85VRrqFh2OliSRRhnTeAbgF6WlVu+g7
-	 4bEWgvB/x2kKKxAO0Ig4iNdrcuAGXPia0Bcomm8qFfiF5r3kIqFoLNicfoeGCdLUaCUJ888ds+Fh
-	 qrToMRR4IM1KQWjUMXRMDpG4iW3eKqOncR/GCKmeoJ7KmfKYgH06zzO9OFUHh6iicEqYLblybxkU
-	 UcOlxqlfmvTXolkwvnggSthSzBRHpTYzCBbwSWQR9NAplQsoYu61w4/98jPUxB/y2DK3I1+Y3Ykz
-	 jovvszeRS5PU2TJ15irEwCI5s7FWdFHokrLGVI3o+Oid1LbTCLgo7pO8cPMgvvYgKJzCjiWBpNFz
-	 QbAPyfW1+Xxumvla1Fy4Sissxq1xAYRTjTxRnvPHj9TWrMYIb3rZbAOXm5Lp3f8lfYTe+uWuAwci
-	 giD7fFSSJzUUbVsnzTXXcO80TtDwMpFJ7r+McsXwnexFAusE/DGz4rb54JQBRlMbD5mIxLzDGvK7
-	 N2EnDIRo7W45SAjQa/2q+YiMcdvSgg4920fKicOW77uP5Wu06Wu0/ybgsV9TfgHd46MnLHUFgwS0
-	 cWOp8f0t0VGbDnLcmcyIslgvGUspAfAc5vKF6TdgV3q9TKnt4DhwUvCXrUTVwjWDtHuZVZHKwJR+
-	 J9OkqziPTHn4LjPMXFBjGdd7NxcIUwdHRizoKSBQqqBIKtz5biEM37FIHxwEBJaQNMvQI84RwOIg
-	 tvoZ7/tO20H7jT9S/hD/yPfxCqdj9yZCCEexWEEfhc91q30KSIJqNrOGQrpj3NosIfGLNpAowtJD
-	 gcNJ+MtKskoHybizSZCkl5F2GbiRE870UzN5u1RsfrTyVJOtuoGZwOUUrAPyeC/xSMO1PeQ6RmsK
-	 zDDBFEMX/XAvHuk6L799JsqaXqW5nNMShiTVrzg0/aB8jrb5ZaSmGg+Nj3goKqWzG8mALXSID6xz
-	 jnhFJq
-X-QQ-XMRINFO: NI4Ajvh11aEjEMj13RCX7UuhPEoou2bs1g==
-From: Ma Xinmeng <1564938642@qq.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 6.1 1/2] netfilter: nf_tables: allow to create netdev chain without device
-Date: Fri,  2 Oct 2026 12:25:08 +0800
-X-OQ-MSGID: <20261002042509.711-1-1564938642@qq.com>
-X-Mailer: git-send-email 2.49.0.windows.1
-In-Reply-To: <ar4d_JbuojZJuazs@chamomile>
-References: <ar4d_JbuojZJuazs@chamomile>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DeXmLtxY"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2dd53691be5so47573935ad.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Oct 2026 22:39:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790919589; x=1791524389; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=tHPDs6nkeRx1UXviyEr7eXV4Bpi3Y+X0rLcUXCBs6zw=;
+        b=DeXmLtxYL39qCB1bODhzNM1yCgR1u3discL2qJUNzSnht0Ixm1OcqdghPV3NC5v/De
+         4lt/g+8H5TdHt6sqYAEqafYe/2PWvatc0OzLCkUmNSQAM9SmjmEfkXs99UZ4hYs8VE/S
+         LBMITEEJIybckC+uap/AtlUMz6n/TUPEr5SptOYO0Gp1gwzGhRGq2T61HJD5JG4Mt2AW
+         BgsmY12fR06a/YcwXKzCtSvXgL82PF4aX+xBp/KLScNbmZkBgU2T+wZkaRnXiFDFGwu+
+         Zzt7FsFAaASXkzF79LFKXVeU28FdXLyOGv3YWdEpb+SsQsmJ+Pdl75BSBsz75x+QGKrj
+         7pQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790919589; x=1791524389;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=tHPDs6nkeRx1UXviyEr7eXV4Bpi3Y+X0rLcUXCBs6zw=;
+        b=Hsiue/eWxkoI7Gogs6/Y8GyAiAv1jR7P241MhyFmLSpEBntz9kTAhng0mtJ/Hab1Wd
+         3gIJhfJKuFRxt4pglp3IAluwkHbbRjgrsP0Kw0lx70t8esATeE389Xms8TTCaZfeziNp
+         H7+qzrBm22/BKdl0fVuEr/Kiet2C9M5p76Wmizq46asCKnRjh0tZAuS0fR3fM2eMghNr
+         No8vEbOU2FdPmDfR2Wc8hHeq40E0dnpAPaT6TTxEi5t0CSWM1Ot5+TPSpTPe7hECoj4A
+         IQ9xw+2Bdc5ku8RZPBFW6wKiJ7wg7y/VG/TtDw3KUYwlqstxcqf1z252GBaO+bjER3HQ
+         M6jw==
+X-Forwarded-Encrypted: i=1; AKwUvBw3xFK0YMmQrRrg1n/OPNFbB3FErdk+0eilQ5J9AZU0+ln/9uBBQ/5FV34WDFG9JFvkW60uYymsluPMe04QXEA=@vger.kernel.org
+X-Gm-Message-State: AFq9FYKrSqDYARHurWub9izBgE2ejdJ+efGQszqJA/efGEiLycXivHfL
+	QybqK2cNqhwtdpD2oPY0KpzW6rt+PqAYxuY81YPiWhecQS3bOWP6skBr
+X-Gm-Gg: AYBFou0urZNJsaa2IG7jykWcc/9SsvFZ4p6mX+20NLCrpmaeGPQmi35DJ4ELjC4KSs6
+	lcod8GHm/Tg0z0PNVbAl6o2hXUVRyt5b4z0wxkj5zT+kczKoPWGuqGUYDey6NhGk9qLeQ+BXr7k
+	Fnc7WRRsIiGINHgHjMl84X0YOPW449VSKb7TUgxb/tlIvP+00mm9KFA3uUQ01u8G0m+ImQOnRxv
+	Dp71zX8YetSwdw3wBXWRacIaDXGJl8xfDWgyDmfdbzg3krdxFiYLSArE6lDFD0ryqVKQT918RjY
+	avf7GKVXVt7YlNGbx5aKNBMfmx8injuMTStM5VeHhRRwaa2GE+WDcHCx72qECidr02eG6lIVQf/
+	illy3ROzSBJI7xJUsx0Xw/OiNM8UTvXMRxMH4u0mWf7CvFeEnY/a1hqxsvA7wxrCRe4AhPmWQlS
+	hK/fhCb+AuAHOKe//zxgHjPxhHZsn3Z4A1dr33V52fC4OoU9MJdGS0+Tm9IVjUGitVWvKSlrEMO
+	nAchy4MWcU=
+X-Received: by 2002:a17:902:dac1:b0:2e4:b37a:d583 with SMTP id d9443c01a7336-2e4b38a215bmr631455ad.61.1790919589335;
+        Thu, 01 Oct 2026 22:39:49 -0700 (PDT)
+Received: from ancienth-X870E-Nova-WiFi ([125.186.72.2])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e4a59edd6esm3045785ad.12.2026.10.01.22.39.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 01 Oct 2026 22:39:48 -0700 (PDT)
+From: Daehyeon Ko <4ncienth@gmail.com>
+To: fw@strlen.de
+Cc: pablo@netfilter.org,
+	phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: conntrack: avoid recursive master destruction
+Date: Fri,  2 Oct 2026 14:39:41 +0900
+Message-ID: <20261002053941.1132097-1-4ncienth@gmail.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <ar6yM0h2zdVUU4rt@strlen.de>
+References: <20261001180224.1018290-1-4ncienth@gmail.com> <ar6yM0h2zdVUU4rt@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -64,95 +81,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Thanks for taking a look.
 
-Relax netdev chain creation to allow for loading the ruleset, then
-adding/deleting devices at a later stage. Hardware offload does not
-support for this feature yet.
+I think this check is reasonable for CTA_TUPLE_MASTER, but it does not seem
+to make master chains impossible by itself.  There is another master writer
+in init_conntrack(): expectation fulfillment assigns exp->master to the new
+conntrack.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Ma Xinmeng <1564938642@qq.com>
+In particular, ctnetlink_glue_attach_expect() can attach an expectation
+from an NFQUEUE verdict and set assign_helper.  The expected child then has
+both a master and a helper, so it can serve as the master of another
+userspace-helper expectation.  That path does not pass through the proposed
+check and has no cumulative depth bound.
 
-This is a 6.1 backport of upstream commit 207296f1a03b; the hunk for
-nft_delchain_hook() is dropped since that function is not present in 6.1.
----
- net/netfilter/nf_tables_api.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+This helper propagation was intentionally restored by dcb0f9aefdd6
+("netfilter: nf_conntrack_expect: restore helper propagation via
+expectation") for SIP, H.323 and userspace helpers.  Restricting all nested
+masters would therefore need a wider helper/expectation compatibility
+change.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 96b0638c2..18aa388d5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2180,7 +2180,7 @@ struct nft_chain_hook {
- 
- static int nft_chain_parse_netdev(struct net *net,
- 				  struct nlattr *tb[],
--				  struct list_head *hook_list)
-+				  struct list_head *hook_list, u32 flags)
- {
- 	struct nft_hook *hook;
- 	int err;
-@@ -2197,19 +2197,20 @@ static int nft_chain_parse_netdev(struct net *net,
- 		if (err < 0)
- 			return err;
- 
--		if (list_empty(hook_list))
--			return -EINVAL;
--	} else {
--		return -EINVAL;
- 	}
- 
-+	if (flags & NFT_CHAIN_HW_OFFLOAD &&
-+	    list_empty(hook_list))
-+		return -EINVAL;
-+
- 	return 0;
- }
- 
- static int nft_chain_parse_hook(struct net *net,
- 				const struct nlattr * const nla[],
- 				struct nft_chain_hook *hook, u8 family,
--				struct netlink_ext_ack *extack, bool autoload)
-+				struct netlink_ext_ack *extack, bool autoload,
-+				u32 flags)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nlattr *ha[NFTA_HOOK_MAX + 1];
-@@ -2261,7 +2262,7 @@ static int nft_chain_parse_hook(struct net *net,
- 
- 	INIT_LIST_HEAD(&hook->list);
- 	if (nft_base_chain_netdev(family, hook->num)) {
--		err = nft_chain_parse_netdev(net, ha, &hook->list);
-+		err = nft_chain_parse_netdev(net, ha, &hook->list, flags);
- 		if (err < 0) {
- 			module_put(type->owner);
- 			return err;
-@@ -2409,7 +2410,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 			return -EOPNOTSUPP;
- 
- 		err = nft_chain_parse_hook(net, nla, &hook, family, extack,
--					   true);
-+					   true, flags);
- 		if (err < 0)
- 			return err;
- 
-@@ -2574,7 +2575,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 			return -EEXIST;
- 		}
- 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
--					   extack, false);
-+					   extack, false, flags);
- 		if (err < 0)
- 			return err;
- 
-@@ -2795,6 +2796,7 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
- 	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
- }
- 
-+
- static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
- 			      const struct nlattr * const nla[])
- {
--- 
-2.43.0
+For that reason I think nf_ct_destroy() still needs to be stack-safe.  The
+creation-time check could be added separately if nested conntrackd restore
+should also be rejected.  Does that match your intended invariant?
 
+Thanks,
+Daehyeon
