@@ -1,89 +1,87 @@
-Received: from mail-oi1-f197.google.com (mail-oi1-f197.google.com [209.85.167.197])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AB0636197E
-	for <netfilter-devel@vger.kernel.org>; Fri,  2 Oct 2026 20:33:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14033447806;
+	Fri,  2 Oct 2026 21:10:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790973216; cv=none; b=eOhgcJ0FO73NDlYYfppvrpm8pnxFHEm0IyBS3naWESoMH1vYC1olcCMyy4KrEGqidaJroAPksvZf/xnSvo76buld2lkj5FxASApxCR74otW0+ZsN7Z98Vvna2R0dX4mZXEEGezO3UYMpd/De51sV+cCjy+Mk0G4FAe8CqE4rquE=
+	t=1790975449; cv=none; b=d+fVY9J28oASkv1N/coR3VuL90ol6m8zj25MXcISMQajeZIDB+WHqiPlbZRYWK5WhaAanjF8pF8MBC1NeDf1Akkxn/gXETKoSCosj7pY2tl6loot5h/tx7Zc9pTX0/3qDWIRanrIX+rhIYuqTz+rxpQPEsnGDfv/KdpckepbVT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790973216; c=relaxed/simple;
-	bh=mkjv//+y7zh6wyp51u7RnjK0x5syo2h1ZKUZdwBTUt0=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=bP7YmNk9s1D9BkGig/KHZLhtRCaP7UiYmLfWW6F8i5684btTNJNCFp+IC8hfK+71sIGzAfKXPlSnGss1PvKeD6rJkFFA9HHR4FZNoK1Ed/AuyNi5YQo1wurfm7abc1s9M7bW6vuwNXmIE/D9p059UJ4DZYDoIMxGFMrAwHuc6YQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.197
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f197.google.com with SMTP id 5614622812f47-4ec4d68543eso179242b6e.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Oct 2026 13:33:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790973213; x=1791578013;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kW7axytshc47DovEV4O1GtbDR6sHYpDI18xoyUEZ+g8=;
-        b=E11aEgIZH0Yw1yWwbG4Ul4bMmT9jECaswCxwD72TaPtXcIXWnuoSSHfiXAjqWuAXlD
-         9q67rw4gXI8Y+PWmJys6mrzS3Ohn4WMZHru5MXRz04lqJEkQerTk+PmlBLCiK5ckqBex
-         oAMv75rEcmDiiJbgQiJZ8hc/nBlzTudplMtchArG/eBzKJMrLcLt2l0H0OKpKzKR6+is
-         /oALUbmM7La/S0w+eQW4m3aqOyE4tz8LZA9FCyRyyYwCDvqSFOsCWPqxG/xRlHUjKR/8
-         JtcHCO9602NN/C0JazHnQkutqWQtoB/gjpNaGOQ7h9GJH8JkV3TFjx2JtZ3jojcuzcpv
-         FQLg==
-X-Forwarded-Encrypted: i=1; AKwUvBxcKp5DkQg6HoSi8a1VxZklTbDm7Ka7Q+LaOrqRAf5CdmJlbcg7jiXYiKsWoN3MppCCR0Ma5nLudTsMWrbBAms=@vger.kernel.org
-X-Gm-Message-State: AFuF++lapNKJdfhEiV8xZbIKQ/qlwsvYMsnP+gwiEP4V0xKvYZiaEo18
-	SU2l8mLUnrVAAOiE+7x12bnkzU9rcp1shL7+Dh4+olLjpgzVfwETQhWJOMewHEICikTVNkkR+T9
-	B1oYC6a4hxNsFa9kwGhpO3j/wMEJWyarxf/TcIhANOWedO/VSs28bexp2B9s=
+	s=arc-20240116; t=1790975449; c=relaxed/simple;
+	bh=uMQxJiedh5+aMpCouv/cCBo3FkLZHIU4H/N88t8Eol0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=oOSD6WCA7mZLikY9zBQ7nmLo+TgDEbIsHYvDjqa4Jv5/YPJBhn8z2KHnURtxDu6Nkj8n3zqym0CIf5yt5jcJSvjsColLwCKMQPgVO7AoDWSpxH3HwjMt4JVAeizsrNZKQhCKwo+6phxMPL32u0CfY7aj8kirezEx0Cfz2dO4BNM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KgpUlwsO; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KgpUlwsO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C2CF1F0089D;
+	Fri,  2 Oct 2026 21:10:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790975447;
+	bh=Xn7dPoylcas1ZooXl/0zpUpitso8fpXQksjbXJ52BZw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=KgpUlwsOxXQ69ZoA8Uu4jacEkvGi5bzGvkTEwwDxOURHCYSPQxAyj6rExM0YPfkZp
+	 hEKrdtNepVcypbgxpi9M7MgcGyxEe41PwP7p2US6D7q4FWvo6Aydpm2GFPkAGLaqvx
+	 fIXBb0B/Z1WqP/SJCZW5TaoAyYswZPQuI0hiWaPJJEe2OOb161XPIfrpvphjJGRAyX
+	 xC02g5vAKqlOvwHVjeRWPqWS7XT/Yl00VQw9vczPMnzI5XGcQr7ddNHfz59qyexG+Y
+	 t8W+oL2+PtuKU/UoSNOttshAh3GEv+PQZVhiv6OslcAmWGKpQX9j5bFSIS8gf+g45C
+	 mVK0e/n+wUvvg==
+From: Sasha Levin <sashal@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Sasha Levin <sashal@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	stable@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Ma Xinmeng <1564938642@qq.com>
+Subject: Re: [PATCH 6.1 1/2] netfilter: nf_tables: allow to create netdev chain without device
+Date: Fri,  2 Oct 2026 17:10:34 -0400
+Message-ID: <2026-10-02-1-daily-reply-0008-re-nf-tables-netdev-chain-6-1@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <tencent_3EF2E566E214C1068698C581DE374E1E3C09@qq.com>
+References: <ar4d_JbuojZJuazs@chamomile> <tencent_3EF2E566E214C1068698C581DE374E1E3C09@qq.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6809:245:10b0:4f5:5dbd:1328 with SMTP id
- 5614622812f47-4f55dbd1397mr1809095b6e.42.1790973213378; Fri, 02 Oct 2026
- 13:33:33 -0700 (PDT)
-Date: Fri, 02 Oct 2026 13:33:33 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6ac0151d.34119e79.2f92f3.0006.GAE@google.com>
-Subject: [syzbot] Monthly netfilter report (Oct 2026)
-From: syzbot <syzbot+list0253702bfe7b2098992c@syzkaller.appspotmail.com>
-To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello netfilter maintainers/developers,
+> This is a 6.1 backport of upstream commit 207296f1a03b; the hunk for
+> nft_delchain_hook() is dropped since that function is not present in 6.1.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+This series only brings in the prerequisites. The UAF fix itself isn't
+in it:
 
-During the period, 4 new issues were detected and 1 were fixed.
-In total, 12 issues are still open and 201 have already been fixed.
-There is also 1 low-priority issue.
+  fc0133428e7a ("netfilter: nf_tables: Tolerate chains with no remaining hooks")
+  375f222800bc ("netfilter: nf_tables: Simplify chain netdev notifier")
 
-Some of the still happening issues:
+2/2 also adds b9703ed44ffb ("netfilter: nf_tables: support for adding
+new devices to an existing netdev chain") to 6.1 without the later
+fixes for it, none of which 6.1 has:
 
-Ref Crashes Repro Title
-<1> 140     Yes   INFO: rcu detected stall in rescuer_thread (2)
-                  https://syzkaller.appspot.com/bug?extid=d5f7a5097c24c7c2dbbb
-<2> 15      No    BUG: workqueue lockup in batadv_tt_purge
-                  https://syzkaller.appspot.com/bug?extid=61b202fdc410840f0198
-<3> 10      Yes   WARNING in nf_ct_bridge_post
-                  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
-<4> 4       No    WARNING in nf_flow_table_extend_ct_timeout
-                  https://syzkaller.appspot.com/bug?extid=521f7e7e2b974abde99a
-<5> 108     Yes   INFO: task hung in nfnetlink_rcv_msg (5)
-                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
+  043d2acf5722 ("netfilter: nf_tables: drop module reference after updating chain")
+  7eaf837a4eb5 ("netfilter: nf_tables: Fix a memory leak in nf_tables_updchain")
+  1e1fb6f00f52 ("netfilter: nf_tables: reject table flag and netdev basechain updates")
+  216e7bf7402c ("netfilter: nf_tables: skip netdev hook unregistration if table is dormant")
+  688c15017d5c ("netfilter: nf_tables: don't unregister hook when table is dormant")
+  4ffcf5ca81c3 ("netfilter: nf_tables: use rcu chain hook list iterator from netlink dump path")
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+It also needs the netdev chain parts of a6134e62dba2 ("netfilter:
+nf_tables: join hook list via splice_list_rcu() in commit phase") and
+cf5fb87fcdaa ("netfilter: nf_tables: reject duplicate device on
+updates"); 6.1 only has their flowtable parts. Without 043d2acf5722,
+every base chain update that carries a hook leaks a reference on the
+chain type module.
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+Could you send a single 6.1 series in upstream order: the two
+prerequisites, the fixes above, then fc0133428e7a and 375f222800bc?
+Please start each patch with its "commit <sha> upstream." line and add
+a cover letter. An ack from Pablo or Florian would help too.
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
+5.15 and 5.10 have the same UAF. Are you planning to cover them as well?
 
-You may send multiple commands in a single email message.
+-- 
+Thanks,
+Sasha
