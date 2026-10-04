@@ -1,93 +1,83 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C078C223DFF;
-	Sun,  4 Oct 2026 01:42:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E81C23BE146
+	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 16:06:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791078137; cv=none; b=jvfKW4FZCKJpla2vUs08NrHSadTDPqLfPrT8ckvyWb0cpV6tiZ/jI88kLnp18WO7AeA8QNjbVU+bolJ3At/YJ+c0Ka4JR/V4wbgCn1KhqMJv8edjHHzMZTx2P1DOlsy2N3HsyiiawHuqKD7mWyUtX2Zat19PvFNa87k5Za9OcxE=
+	t=1791129987; cv=none; b=AVeUUXMVJi07TA2bTWIcX/16HjrWV59PeWXOTjTme+kWw8913u+v/cqeLttzWWVz8ijeTiqCa9/izRWsZjVXj0yGpkrOkhSJ3KFAyUZERGwFyZU9rZU6mdEoFifAD3KT1GjZ5oo8qHa8uXbESaOHzrBsQzaAXkxj15UiehB7mJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791078137; c=relaxed/simple;
-	bh=9N+2eWbTOHqbqaVDuPJRHZN2V/OgbiPpyNBcplH4KtQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=E11Yci+nacPA+QWPahd9DDoUDCD8NLLAmaO+NWqXWYKuQbq2O0Dr5xerLrcls6ymCgm4BV/NHbs0Zdv+1mn9CkABspLcbyJgSZwFB6hXp8TXW5pmMPbnZeVHb91F6e1NqoC3KO67Vce7D7cC30pqcG0H/s2QRjLKk/ZWgPWTzdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=UAoNICME; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=uPMAe7uN; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=UAoNICME; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=uPMAe7uN; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1791129987; c=relaxed/simple;
+	bh=AITtcoaAIpb4uUeZtALKX3JgmREav8R3aY0e8nMvhXw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aqH9Ji02AdnDzPqu0MTogpEw64Q4beZN8YjgH3O66kxBlQ2PL4d+R0DsRIZXtTEOl3zLAXTUTiNQ1q9GGwYeNnugRXD7F3lFIvl1pf83qge2dntbVbeOwYKaW0lbc36PkUJxvQhwNEEn+HApXcgX00Of+jK6/HnZMSBopokzL/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UWB0PpX8; arc=none smtp.client-ip=209.85.216.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="UAoNICME";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="uPMAe7uN";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="UAoNICME";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="uPMAe7uN"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 36AC61FF20;
-	Sun,  4 Oct 2026 01:42:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791078128; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6a2aMukQHkDeYh+eEepXB2zCYb/RsKgbpWFD27bPbjs=;
-	b=UAoNICME/r3MRFt1Qdv4YDWL8FEIchrXmU0/mr30p163m8MVPsgZVYVGxE3g1eCvZZdJvx
-	Eoj+cKuqfUWRP+2BikM1fLYbJr5iwKACrTF9gIps5nFPHBC+6Cv4FC0phEfqzPmEiFSMJd
-	GTIBCLvNy5M1019Xiah4JswysMjYeMo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791078128;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6a2aMukQHkDeYh+eEepXB2zCYb/RsKgbpWFD27bPbjs=;
-	b=uPMAe7uNaFkxqJjXPjtZhFmrTFnc4MiN4w55XDfQgeHYL8rMwspWlDyxDtbxJXl6T+Xevy
-	G9DZc9JKY3D9KwAw==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=UAoNICME;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=uPMAe7uN
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791078128; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6a2aMukQHkDeYh+eEepXB2zCYb/RsKgbpWFD27bPbjs=;
-	b=UAoNICME/r3MRFt1Qdv4YDWL8FEIchrXmU0/mr30p163m8MVPsgZVYVGxE3g1eCvZZdJvx
-	Eoj+cKuqfUWRP+2BikM1fLYbJr5iwKACrTF9gIps5nFPHBC+6Cv4FC0phEfqzPmEiFSMJd
-	GTIBCLvNy5M1019Xiah4JswysMjYeMo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791078128;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6a2aMukQHkDeYh+eEepXB2zCYb/RsKgbpWFD27bPbjs=;
-	b=uPMAe7uNaFkxqJjXPjtZhFmrTFnc4MiN4w55XDfQgeHYL8rMwspWlDyxDtbxJXl6T+Xevy
-	G9DZc9JKY3D9KwAw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A333813278;
-	Sun,  4 Oct 2026 01:42:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id CzJhDO6uwWo2bgAAD6G6ig:T2
-	(envelope-from <fmancera@suse.de>); Sun, 04 Oct 2026 01:42:07 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UWB0PpX8"
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-381b831d535so819156a91.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 04 Oct 2026 09:06:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791129982; x=1791734782; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=KPCQRYfj3K7cx8lOYemZCxsct2R2cHzCc+gyMPgQVA0=;
+        b=UWB0PpX84irY5u1ik9pACqKNxWiL5S/iHe8RtboCKx4bbfqlsHmXqaKo9HP1qFwapQ
+         pjsQxFdVhl7QAXJGMDt+FG4huM65a7KZ9qopHbFQnmZP4ZNTl30XW/naKkwxs/+6iiqv
+         2vxME+Cwi8+8BNV1BJCOGJb/7ZA8MikhfVs628uMta+UvLrbgDyJVvqee/qqgDk89nCN
+         C4AnR1yTZl2MNnYsPX6va7rJwB5qdkzpXTfZ2itNU+m6zVDj6wArDRIhfT3Rw/w8GUC2
+         UhNG1pKhcOFspa8NUl0GYxCTiOsmu3whdMxL3P381a41Xv9XZibvzY7137RgDfDqU6iN
+         tXkA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791129982; x=1791734782;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=KPCQRYfj3K7cx8lOYemZCxsct2R2cHzCc+gyMPgQVA0=;
+        b=QanjFzubeZhD7t8hPC3da1Zvf/VjmCcF8yCSpiZIzUYUV6gJQT4OMNUUwVtn+1syjo
+         /AkY5WOKt0I9M56JyVgtda9IC+Yfv7/ELtQGgfx3ADimjdX6c6f2k7XDYD+OBj3pkbf8
+         1PTvH7bl83QikMIAB/BR6WQcB8DVF9wcf1zII7WP6dOLBd8VSEog/Pprla88MDw1BZiO
+         /Flx0+A8QaQCrlu8qwR/znEt288vQEz7vPrHs6RUYLXPu8njthB4Jn2Jo/aEmMkgT3Ga
+         iRmKOwFsf7X1T+B+BHZTN3ZEyWvfLA7827lgM6/OMfjmSRoz+je94gobe0rIKra0thPu
+         aHuQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxoMgBeewwkZmgu2T7oRYEAnZHL0sg0SIoIp1majVXFQ07SOlc0LsRB8A1/5iU3ZMltbO9MjayYVfKVBnoWoJA=@vger.kernel.org
+X-Gm-Message-State: AFq9FYI+/TXg1Yg65HbvNyaJ0B6ULkRN1qlibh9NbGOvDLfe7iodFKPu
+	rc7GX6gdGjZ7XQzWoYrrZHCgTWj8DWFwPyfY6gOpNH+zAmxmP99xQzZx
+X-Gm-Gg: AYBFou0tgw5OD9q/ZNJ32xdaCY+U0kIX4R9LzUm5YKHLm1E8JJ9lACPGpgXPwjYFVUd
+	TMEwhOcN0p4nNQgYxpaMC6hrWq5pg3E/w4uGd/HYtmA3u7FD9wRHQu9878Ygiev5tf/7aHXTsQ4
+	DABpQr1RMgsh20zV/ozuXISFrFZl8TEcFKhS56omjJyrPmS8FfSf/zsVcc4jS+wtbrF103rlNHc
+	eS71RFdlrOqis41E2P3MSBokVKMUGi0Tvkz7K2whbKa5ylWYFvbXE1Ag0QJi7QWqXPxyCMPge90
+	jFhgs7j5DEZELXGxKakkVe4eZ9WrP/mHIQWs+ZpB8a0kbrkbCIh39nXeTDOwIX/bYTcE+EJgF89
+	opKorUE9L4K6C1RjZZB3TlYOsK6SaUWhKdRavq5BgB5j7KJuF7HYMMHX+hEOH1iCdYUb5rDVCpb
+	rJkrE0WW1YTJrIanB4A3uhn2bfuONauasikdwOwTzB2uIieU/xv9fPM8J8/xf6pAFyB1DGJg==
+X-Received: by 2002:a17:90b:1d43:b0:39e:1633:d29e with SMTP id 98e67ed59e1d1-3a786736686mr4376078a91.5.1791129982011;
+        Sun, 04 Oct 2026 09:06:22 -0700 (PDT)
+Received: from thangnn-ASUS.. ([2a09:bac5:d45f:e6::17:34f])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a7ad87874esm2760347a91.0.2026.10.04.09.06.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 04 Oct 2026 09:06:21 -0700 (PDT)
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
+	Fernando Fernandez Mancera <ffmancera@riseup.net>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 2/2 nf-next] netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
-Date: Sun,  4 Oct 2026 03:41:44 +0200
-Message-ID: <20261004014144.4330-2-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20261004014144.4330-1-fmancera@suse.de>
-References: <20261004014144.4330-1-fmancera@suse.de>
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com,
+	syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com,
+	syzkaller-bugs@googlegroups.com,
+	Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Subject: [PATCH nf] netfilter: nft_synproxy: only handle pure SYN and ACK packets
+Date: Sun,  4 Oct 2026 23:06:15 +0700
+Message-ID: <20261004160615.142456-1-ngocthang2710.1999@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -95,141 +85,98 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 36AC61FF20
-X-Rspamd-Action: no action
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_CONTAINS_FROM(1.00)[];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,suse.de:dkim];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FROM_HAS_DN(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_DN_SOME(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
-X-Spam-Level: 
 
-nft_exthdr_tcp_set_eval() and nft_exthdr_tcp_strip_eval() fetched the
-TCP header and options through nft_tcp_header_pointer(), which calls
-skb_header_pointer() a second time for the full tcphdr_len into a 60
-bytes stack buffer. Since commit 28427f368f0e ("netfilter: nft_exthdr:
-Fix non-linear header modification") both functions then call
-skb_ensure_writable() and re-read the header from skb->data, so the
-buffer was never used.
+nft_synproxy treats any segment with SYN set as a client's initial SYN
+and any segment with ACK set as the client's final ACK. A SYN-ACK thus
+gets answered with a fresh SYN-ACK cookie.
 
-Only the 20 bytes fixed header is needed to learn tcphdr_len, so fetch
-just that, validate the length as before, and let skb_ensure_writable()
-pull the rest. This also drops the 60 bytes stack buffer from both
-functions.
+If that reply is routed back to the same host, e.g. to a peer address
+covered by an address on lo, it re-enters the input hook, is answered
+again, and never stops. Every such SYN starts its own endless loop over
+the loopback backlog, so NET_RX softirq keeps the CPU busy and memory
+fills with skbs and rtable entries until workqueues stall and the
+machine OOMs.
 
-Comparison of performance in mpps:
+Use the same flag checks as ip(6)t_SYNPROXY: SYN without ACK, FIN or
+RST is an initial SYN; ACK without SYN, FIN or RST is the client ACK.
+Anything else falls through to the next expression.
 
-  op       linear/non-linear     before    after    delta
-==================================================================
-   set,         non-linear       4.193     4.348    +3.7% mpps
-   strip,       non-linear       4.184     4.434    +6.0% mpps
-   set,         linear           5.302     5.427    +2.4% mpps
-   strip,       linear           5.452     5.527    +1.4% mpss
-
-Comparison of performance in ns/expression:
-
-  op       linear/non-linear     before    after    delta
-==================================================================
-   set,         non-linear       34.6      25.3     -9.4  ns
-   strip,       non-linear       35.2      20.8     -14.3 ns
-   set,         linear           23.6      19.7     -3.9  ns
-   strip,       linear           22.9      19.8     -3.1  ns
-
-./scripts/bloat-o-meter exthdr_before.o exthdr_after.o
-add/remove: 0/1 grow/shrink: 3/0 up/down: 233/-207 (26)
-Function                                     old     new   delta
-nft_exthdr_tcp_eval                          792     946    +154
-nft_exthdr_tcp_strip_eval                    825     891     +66
-nft_exthdr_tcp_set_eval                      602     615     +13
-nft_tcp_header_pointer.part.constprop        207       -    -207
-Total: Before=6527, After=6553, chg +0.40%
-
-This also allow the compiler to inline nft_tcp_header_pointer inside
-nft_exthdr_tcp_eval() which could yield some minimal performance gain.
-
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
+Reported-by: syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d7795c8487ca4e20ed88
+Reported-by: syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d0d2f1a65f45b319d25d
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 ---
- net/netfilter/nft_exthdr.c | 26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+Notes (not for the changelog):
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 3492426dccf7..861bab93f435 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -233,16 +233,23 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
- 				    struct nft_regs *regs,
- 				    const struct nft_pktinfo *pkt)
- {
--	u8 buff[sizeof(struct tcphdr) + MAX_TCP_OPTION_SPACE];
- 	struct nft_exthdr *priv = nft_expr_priv(expr);
- 	unsigned int i, optl, tcphdr_len, offset;
--	struct tcphdr *tcph;
-+	struct tcphdr *tcph, _tcph;
- 	u8 *opt;
+Reproduced in QEMU (x86_64, 2 vCPUs, KASAN+lockdep) with syzbot's C
+repro for d7795c8487ca4e20ed88. Minimised: only the nft batch and the
+injected SYN matter, which is exactly the d0d2f1a65f45b319d25d program.
+
+The rule is an inet table, base chain on input, with an unconditional
+"synproxy" expression. The SYN goes from 172.20.20.187 to .170 via tun;
+syzkaller puts 172.20.20.10/24 on lo, so the whole /24 is local and the
+SYN-ACK cookie comes back through lo. Instrumented trace:
+
+  synproxy tx .170->.187 in=syz_tun out=lo syn=1 ack=1
+  synproxy tx .187->.170 in=lo      out=lo syn=1 ack=1
+  synproxy tx .170->.187 in=lo      out=lo syn=1 ack=1
+  ...
+
+Before (3fd2ff60f6d6, full C repro):
+  - synproxy syn_received ~400k per CPU per netns after 15s
+  - rtable 80k -> 295k, skbuff_head_cache >1M, softirq time explodes
+  - "BUG: workqueue lockup", then OOM / hung task, VM wedges
+
+After (2 runs x 300s, full C repro):
+  - no lockup, hung task or OOM
+  - rtable flat (~2.2k), skbuff_head_cache flat (~80k)
+  - syn_received grows slowly (~9.5k/300s): real SYNs still answered
+
+ACK|FIN and ACK|RST no longer hit the cookie check (and its NF_DROP);
+they continue, as with ip(6)t_SYNPROXY's XT_CONTINUE. The usual
+"ct state invalid drop" rule still catches them.
+
+ net/netfilter/nft_synproxy.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 9ed288c9d168..a580cb7324da 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -53,13 +53,13 @@ static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct sk_buff *skb = pkt->skb;
  
--	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
-+	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
-+		goto err;
-+
-+	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
- 	if (!tcph)
- 		goto err;
+-	if (tcp->syn) {
++	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
+ 		/* Initial SYN from client */
+ 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
+ 		synproxy_send_client_synack(net, skb, tcp, opts);
+ 		consume_skb(skb);
+ 		regs->verdict.code = NF_STOLEN;
+-	} else if (tcp->ack) {
++	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
+ 		/* ACK from client */
+ 		if (synproxy_recv_client_ack(net, skb, tcp, opts,
+ 					     ntohl(tcp->seq))) {
+@@ -84,13 +84,13 @@ static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct sk_buff *skb = pkt->skb;
  
-+	tcphdr_len = __tcp_hdrlen(tcph);
-+	if (tcphdr_len < sizeof(*tcph) ||
-+	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
-+		goto err;
-+
- 	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
- 		goto err;
- 
-@@ -313,16 +320,23 @@ static void nft_exthdr_tcp_strip_eval(const struct nft_expr *expr,
- 				      struct nft_regs *regs,
- 				      const struct nft_pktinfo *pkt)
- {
--	u8 buff[sizeof(struct tcphdr) + MAX_TCP_OPTION_SPACE];
- 	struct nft_exthdr *priv = nft_expr_priv(expr);
- 	unsigned int i, tcphdr_len, optl;
--	struct tcphdr *tcph;
-+	struct tcphdr *tcph, _tcph;
- 	u8 *opt;
- 
--	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
-+	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
-+		goto err;
-+
-+	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
- 	if (!tcph)
- 		goto err;
- 
-+	tcphdr_len = __tcp_hdrlen(tcph);
-+	if (tcphdr_len < sizeof(*tcph) ||
-+	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
-+		goto err;
-+
- 	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
- 		goto drop;
- 
+-	if (tcp->syn) {
++	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
+ 		/* Initial SYN from client */
+ 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
+ 		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
+ 		consume_skb(skb);
+ 		regs->verdict.code = NF_STOLEN;
+-	} else if (tcp->ack) {
++	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
+ 		/* ACK from client */
+ 		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
+ 						  ntohl(tcp->seq))) {
 -- 
-2.55.0
+2.43.0
 
