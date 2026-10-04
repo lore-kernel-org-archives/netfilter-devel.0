@@ -1,89 +1,39 @@
-Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34A94A9D49
-	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 21:43:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D53285CBA
+	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 22:17:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791150190; cv=none; b=E2v3idrqBSW7JsrtAxzrlkiOrcQlUJwksoS/YFXWIrVqhFZmrxNWsHgVie7GJpKJ/KvCgd3zMlp0UIeJHr6haJ0YUsjamu2h7MMi5hjAdkl+5k+Fibr5E64sZ8Dg8NTapSH58+rXK6zUfQoHoFL2JNGZwOe8rlHY/9WZf/T7nwo=
+	t=1791152254; cv=none; b=DObPueMDkO2+4hZlAFynH+RFvbsgNXSf36Gugoo7hAJDfXPws/wzbWKwWvSuSCN63N5lc0t2mYuLfvTUVvxszd0LFQV2pS9xF8mbMZ/xLXmJ1cnkoUPczIMea8tizctuYxV/zPcX5IlKptGPG6dnh4N5LKGgXTOMSv3ZIIjGTxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791150190; c=relaxed/simple;
-	bh=ONQ3/fm+VvJcbR2hGlWWmoJvTQ4LkcEql3G60OArTd8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SLQVOVgDTpbKY6Ab4OO3DD5V+CDTIslQXVSODveMOBiYGh1TpIJPpgPV0tUVKcK4D8XsPddQcbDvH/wIhs0QqiyUF783d9AqZcv9AGvJBTCvlJzsO/eo6SLpY9FoAx4cWh+IAeMgjUw7Nnfh+Ezw2oZba6aGZRFKiV3SWty3P7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Tw05ZvwO; arc=none smtp.client-ip=209.85.221.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791152254; c=relaxed/simple;
+	bh=e8geVghGg4HIZkb8Al7IMph1UTCZNLNpVyb7eXX7hjg=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=hPx2miiS4qD7NsAJP8YyLNZ7lmGUZUxqSWNje4XcXuHyBobex1vnicsvYuUiEvBv4iMufn4Pl3Ko+rKT7RbqceciFCYDjDshcjZaFTlo3+tXOl/AF3w6f/2mn+67W4PpNAKbZH0UH9pkRpn4vrEwXj+Zq79FI7OQeyJcNKt/Jsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MPAJAjlR; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tw05ZvwO"
-Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-48c5358fc28so429372f8f.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Oct 2026 14:43:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791150185; x=1791754985; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=44L+w1lo0aEfL1hM5su/VJjhXTZhdo5HD8XfCtpMzH4=;
-        b=Tw05ZvwOODV1gx+0jiHCKped/cJPi82G8/unjkIEmDya/VLQZKaBXscApMH/ZHbGBc
-         HrfqA+4hy+nXSBpR/NBvRa71qLYUzVBXZiJOKB9QujsOG13gJo3O0RvPBA7LHLh4UHY8
-         59kiD3YQrCjUlAIX+NYoozOqpc9Ll5oLHIzngtxwbhkVaZJtekABeZXchxpJvbvncP+Z
-         Tw5sfa4MRj5drP6/+hRFjUHznlyeLzMc+1NAtBDRx+MVDUVmFrJCdn7dtVFj5X1dTvJC
-         rwk4/io0813IUk9ESbIa9EL1i/WtkIt99av2M94TNqDoOUhYvVLuTmmiSEROhO9kivzg
-         no2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791150185; x=1791754985;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=44L+w1lo0aEfL1hM5su/VJjhXTZhdo5HD8XfCtpMzH4=;
-        b=cA8/G9j4hfAWgp/l3UwNgTXudwJix8RMhNy8l6S9w8Wyh1RFYtZQFUH1qGkyEDjb3S
-         XERprkAkMKEmCIx9WXNcUVGTzrr5iiUtYOnFHQv4jEZJ0vFNLwbS8tEgpswbsj9ZTnpZ
-         tYOhOb1fE5079fy6bK+SedPujSIZOTJNy4dbrmhN6WOdB7TQHnL1ZDdhn0OAWXfs5/NI
-         ek8jjS+Ha7ERJGC25nRpLZSzGBv+0sh1PrkDENvKKJJf9ObDgqwalQkyPCB7KvgZQArK
-         thJQSszkbfBM5w9DhnkWcD0su6mYJrTAJBEZjYJ9IkE5iuLwDGAXWEyU9veQB4WWaHVb
-         ybHw==
-X-Forwarded-Encrypted: i=1; AKwUvBzIf0qXhTU3LZJ37AGSbV9c3cKEqNSnKPvkK7Lvfkhx9ly5X0Q6rZM07MQ02r8Q5OR5N7kt2A9gh4CNF2Et/t0=@vger.kernel.org
-X-Gm-Message-State: AFq9FYJzNSurqLiz6qbD0ZAsEUL6WYLouOTJgxv/jmcfVNqTJqxnHZA6
-	Wp+EJ+QGPIAhQ5IDpNmnMfhvaqXuX/NmgV+mR/i6yqYPf/Wi+H5hvpij
-X-Gm-Gg: AYBFou2QAB5EWRs1iN8914j4JW2jggd07i6oYHjX9KOu/ywdMrqiGUut6Jwc6JPsdd2
-	LvSjYxaNEpUoX90zSGyMHGchqtN9B53cvihm5rx5MBD9Q/1HGkNVVB2vSpmzwtecHwd8pyYCUF1
-	qL++5kQNV0baNQ1a4V3AJguiLmNmYmltQb02g1Iu389vesuJ2SgrZMRBNFdPSojgFJlTlF0fYqE
-	IkkCvbWtDjHbWzZrj7NvtgkfxJSbgQHovrcSIWeaJQ7GNIkGllvCY0lAOeWtIT0Cis/ItTP7Vkm
-	RpUa7UWbv/SElQ7k9VNwgh1GSDdrHwaPvtVhM+ZYJjxcXaXXIWoda/8hDwg/NGl7Gf8tpOCc/rf
-	A5Y46MWmPcs6HfAe3KX0/5hWIEEBHHIbuYWVaD5yOC2JZsFiSQw+ywd8hWnOzvgNe+LIym3PNAa
-	R/F6AoaYZxagTY/cTstJiZkEJ4ERAhkj4MpxmGx19IRn/zdrXCWlnJRLzA0SCut4HRGdlOy5oAZ
-	oh9+OErw7zELgyllmMyeMkzHNEu1m7l67Tt+eGpb8A2t4jNYCVRZCNKP4Cr
-X-Received: by 2002:a05:6000:491b:b0:487:834:9307 with SMTP id ffacd0b85a97d-48c48023772mr8504789f8f.50.1791150185325;
-        Sun, 04 Oct 2026 14:43:05 -0700 (PDT)
-Received: from andreayoga.localdomain ([195.122.200.174])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48b38104e07sm19331801f8f.31.2026.10.04.14.43.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 04 Oct 2026 14:43:04 -0700 (PDT)
-From: Andrea Parri <parri.andrea@gmail.com>
-To: netdev-bot+sinfo@kernel.org
-Cc: Andrea Parri <parri.andrea@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Bernhard Thaler <bernhard.thaler@wvnet.at>,
-	coreteam@netfilter.org,
-	bridge@lists.linux.dev,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf v2 0/2] netfilter: preserve bridge egress VLAN tags
-Date: Sun,  4 Oct 2026 23:42:51 +0200
-Message-ID: <20261004214253.5432-1-parri.andrea@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <179114935323.1402591.1020652042294576959@kernel.org>
-References: <20261004212429.3648-1-parri.andrea@gmail.com> <179114935323.1402591.1020652042294576959@kernel.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MPAJAjlR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791152249;
+	bh=mS8uzdj6gYbEIgozTSq9TgBHSwvpmbcHpNh5cCjXqR4=;
+	h=From:To:Subject:Date:From;
+	b=MPAJAjlRJnC0hu/BmymkcfTcwQgafTikg2CZFBwQr0X22eFwymv7hty3HkinWRZYr
+	 Vuqp92q5A/XmZefbAFm1Os0aqfAE+/+g7MyJukxVfYAvj4ThoWNNxFUKdmpyS3Fxko
+	 rPqk/HJzBFPE/fr9zWY3n2sJXPs8JpDt1HpGdzKWWccwtTzYWYaygYeAJrLzE4g694
+	 5PdJhO55+TkIMP+UnjPciRXGloaCHDuF044Yt59DyhBupppsIzytlPsD2QBEtm0t6m
+	 fIq9f1nAurt79ElY1FjqFfzRj04SP74+E0C6RkWX1DuzIHY0KABdY+PGtCpJbeovkt
+	 wXQokVSHL3cAQ==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 21EFC60058
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 Oct 2026 00:17:29 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: flowtable: set on NF_FLOW_HW once flow has been offloaded
+Date: Mon,  5 Oct 2026 00:17:25 +0200
+Message-ID: <20261004221725.367327-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -92,21 +42,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On Sun, Oct 04, 2026 at 09:29:13PM +0000, netdev-bot+sinfo@kernel.org wrote:
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
->
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
+Sashiko reports that refreshing hw offload from packet path is racy
+since flow might be already going away. Since commit 7c549fb7eecd
+("netfilter: flowtable: generalize pending status bit"), GC skips flow
+entries that are still pending to be offloaded. Set on NF_FLOW_HW flag
+once the flow entry has been offloaded.
 
-The issue fixed by the first patch was found by an LLM-assisted scan of
-br_netfilter. The issue fixed by the second patch was reported by the
-Sashiko AI review of v1 [1]. I then confirmed both with a reproducer
-under virtme-ng; the reproduced symptoms are described in each commit
-message.
+Fixes: 8b3646d6e0c4 ("net/sched: act_ct: Support refreshing the flow table entries")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_core.c    | 2 +-
+ net/netfilter/nf_flow_table_offload.c | 3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-[1] https://lore.kernel.org/all/179084999520.434549.4764913674478855382@kernel.org/
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 36bbc7be2f74..3603e72a662c 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -379,7 +379,7 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
+ 	    test_bit(NF_FLOW_CLOSING, &flow->flags))
+ 		return;
+ 
+-	if (test_bit(NF_FLOW_HW, &flow->flags))
++	if (!test_bit(NF_FLOW_HW, &flow->flags))
+ 		nf_flow_offload_refresh(flow_table, flow);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_refresh);
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e6..c40e17bd91a4 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -984,7 +984,7 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
+ 		goto out;
+ 
+ 	set_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+-
++	set_bit(NF_FLOW_HW, &offload->flow->flags);
+ out:
+ 	nf_flow_offload_destroy(flow_rule);
+ }
+@@ -1129,7 +1129,6 @@ void nf_flow_offload_add(struct nf_flowtable *flowtable,
+ 	if (nf_flow_offload_unsupported(flow))
+ 		return;
+ 
+-	set_bit(NF_FLOW_HW, &flow->flags);
+ 	nf_flow_offload_refresh(flowtable, flow);
+ }
+ 
+-- 
+2.47.3
 
-Thanks,
-  Andrea
