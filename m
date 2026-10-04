@@ -1,65 +1,67 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED693BB9FE
-	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 17:16:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2C6C3C9EE7
+	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 17:16:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791134170; cv=none; b=dXgfFvJm8cudh1XZSK5YSPSwewWdYMw9bdsUftA848dF4y7TR+8MAX8VyGon/e6d97w6kTKCVn9zwokKEroCitMAShq8LXMvaTuGU23ZKqTxmL/Aod3ilel1jZp3O3BAltErAxMyUK1WWoT6t1Whhao4Lu2L2gPfELX8GBkkS10=
+	t=1791134173; cv=none; b=MYHIpEu1laySdQskeck+9x13gVlzNnHzTwrMGHhW0s2HDgdQhQos61Ll52lBynBp6L7lld5wSHWUllmS3KdJdblXRlT4DGqomhoKeYZxaQGY8tn3sp7mAjRvaXwJbyKhk2LnHe17EzM5kNqTqunO9isxc0NXVlVS3XIsS6udiYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791134170; c=relaxed/simple;
-	bh=rBHJvSFHLogmhqc8qfoepEplPJGPX9ErzSBr3vdnmXw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pSlpHxgUhXjrntPQmZwUt09fhZIsCV06my4ASxXCFIeIJ3hIx2xsPZEbrc5nc/fdbvWwQ92Ft6WVXzqgYwHqGynF46Gif9ALGdUpmybQEDnDzdX3cyoutJbRGlk373o31MfTkaIBrLQZaFpzVpe/zjMrAgmk96h9gSwANj/DPBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=c5LQ0Ngn; arc=none smtp.client-ip=209.85.218.48
+	s=arc-20240116; t=1791134173; c=relaxed/simple;
+	bh=jF4Qob/CIZ+aOsz95GGtYHR+FbVNyRZVv2203Vcjdm0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TGEhmQsYBN9ygckZV3eGLyCyuKAjMxKfjfnb+ZpMlPouFPPdZdXPkTlzLyytg/gKTjY0i8HBNKD+kGzrLMvohWMaq3R/DtHbPIanp6jdGtFq1AbgFPbRcuWLKlSEKDesEop0gA+M6gczJl1dG2muZKQdweaKvybIDdxQGeqMCnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=OFtXu5EO; arc=none smtp.client-ip=209.85.218.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="c5LQ0Ngn"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c2a25dfbf5fso179021466b.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Oct 2026 10:16:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="OFtXu5EO"
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c2e36c3478aso152525666b.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 04 Oct 2026 10:16:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1791134167; x=1791738967; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=pYMVFKoytfLOZjDdNYvHmJsPemFRuNKvWdr0rA6Xpv0=;
-        b=c5LQ0NgnxmgzgAX9APuwJeLA2LhejR+NZRo8avB1iEDHndr0IP9ah87SWkXn3UEIc4
-         EZFpsIJhByekL7Ry4oalElnDHW2Bn8KXRbsEe6d4E/AGd/MLCGZcjac977RyLymzAp0C
-         K+S5L+0LUvwiJVVFz5KjVU4GOyKWQiijuvkvmulkv1cnny1OWZGPKMNUb5Z2jtR/gn4r
-         jv7N0Xshq316EC4o6u8UMvvGkBLN0ytqd9dw0j0WjO4n7K4M3GE+RGAPZKW+hnVUoqNf
-         OEb5kmTZBWmdHUWDagr37MxGFQ0ZPQx9KbCkXp56dKNkZenLr2HRJRFaDe+Cy7ZpYV/D
-         HeYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791134167; x=1791738967;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=bairaktaris.de; s=google; t=1791134169; x=1791738969; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=pYMVFKoytfLOZjDdNYvHmJsPemFRuNKvWdr0rA6Xpv0=;
-        b=dF0roObVF++D/mMQhxKlq1nnaeRu7awMwWvZFQ+RCZmtvdkqADvQvqGbzPgIl0ytvV
-         vohJZ/SmttSpOOwSouPibabZ9nbfgpoGWKMumq9GE/etyjpWTYLvAdMuxEr9qV0HyNIO
-         Qow7cMGv8LkJ+OppN/7VG/x8YgFKFj5cJE7X2jyprV+o0O3AkZWh4F81FSfcL2620BIS
-         M3oqq8qcnMoSZIb6uIY4ga50laJ5Jly6MIcA4r/H1nOF2TT7RBORjEardYUS4W0Z6XXV
-         aNBZcTh3DmiQ9XcQvyiEnz68r4AHIKQSbnVbluVeFQ43lNBAXbgXQah9kZRfCGs/cV22
-         MyRQ==
-X-Gm-Message-State: AFuF++mH4o9gGJcZsR7K3tIJFz8Q+E7X5q5OgvZfe/gfcmDF3K4FNTqg
-	I9kwB6weqqoPJzShcOZNh0lb8vtLDYmU9jjcDaGppUhbGOgPy4iLylrVcvl5qocNSylT2FTfGLi
-	bSZLDPQ==
-X-Gm-Gg: AYBFou25H+iKQuk0xWc6pEp/1d8XqguSSK2hqPffcaDGjQIU4Alj7vwz1Kob0WtJ+3U
-	1MS9o0tE8PJmOD2wrpe5dkpT2xdoEbhJrlk1AKJN3amVoIgkSPNKYan1OAe/KGOy/EOtMWlzYAx
-	AmAT99uSQQe+wH6QQRhY4s1yXqa/djRjfQI1aiZKZef2WPmHHw8u0MNlHSf4nfZcF4KmbnRQK8T
-	eZ0ejxcKGsyi83zclwCOSD4lp9IweMVRwZ+v6fNCA/hqb7XMNRzZG7s0J4zAX/3nxxYga2SCxBl
-	0R4VvzhC7cV4Sa/MSdhXwbjpmnZOu6BoI4qOrrDB2H+qYD7CmVc6SdXnR6xmI9xqrN+ontZudOT
-	h24Zf7EktBWxy4NpYd2BgMCOvojBEB0ndgA8S+pnIcsm2gKSLer7cEjZbL6GNJVSmsNPNbE5vtD
-	BvCV9Tw9Q5349MfWLfE0LlT73ql8Bk08rxtJVAkaR6hasRYujoThr5gbVrK8uklQlWCCxciwnuW
-	fUOYAEUqwrKC59a+JwddmX6NGEHobJLcEsvzYF003SyGdKjq8UsS7Tk2XYWLMOkE6CpEzu0Ns+v
-	aVRFOif8qeEw03cF3EPbsKeZj3FJB+QTVOG3P3sbqxtc3/t/ZTHx+d+eIyngUotzWvDK8Wp3fhH
-	ImnzbJMfOFCIq0XxbtpqwWE7Tg9rNsIUQVIZXTFFEHENlPgpk5fOlxB9TjxKueIVaTLpf5U2EYc
-	lNNffnKNeu5Se2PrTXqAcmSft8s0YFSLdj0w==
-X-Received: by 2002:a17:907:a648:b0:c26:19de:9138 with SMTP id a640c23a62f3a-c2e6ee5ffa4mr444266466b.43.1791134167223;
-        Sun, 04 Oct 2026 10:16:07 -0700 (PDT)
+        bh=T2jpf56bQMb7dbhx7mwCnMjIEjtvkT40nE2gW2IJYhI=;
+        b=OFtXu5EOfahH4E9FtbGM4+rQOKnXrHVvNiNVPAf+qKJ2OF5yu+2PBb/oDxmoICRCdy
+         pLLd5PX62vw22rSmpHPbR2ZrXFeGyEcDkhMVs15y7ZRrI3ZePgwGy8DgeoeZW+HTE1ad
+         kuEkqy2kxQOWmgcM3RUwvsil0PQhNLOTnLD+0i21cH1GQCBVJejKZL2WZL5odrX0CBte
+         eqsggS5BH/ZIUVbuXPt4huVNC1AdyHHzb6j9TrRMBib8JJuwnWUPG8mMzQitmi462PQB
+         shMdhxIH07XQbJUxEPuHL4yRwHiQxpQEkgyhn3ryjicF7jAhE0MWfUuRH8oHkM+JPa8j
+         Abyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791134169; x=1791738969;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=T2jpf56bQMb7dbhx7mwCnMjIEjtvkT40nE2gW2IJYhI=;
+        b=IwXL+cx/Z39FmZ8Viqr/+rq6duLrXpgANH5tNU9C3d9bse/za9X03b8MTIkEh53jfI
+         r8i6UBhr/XNIkJCKWb7GIpu0uVKvAaux0n21CGhLjfQ2DFnh5sK3NoDEHh/D9XWN8fiq
+         tzMaMCAwCHO938H//v0jHrMhjM5be7Vm60xeHf9hV0qW+aKXm9hIxMA7iiStJvd8iZ/C
+         hroC3T64DtYHyYYkhIQSK8bvncx3+/Knk10bfhdgrd2eKAgXB8zmsEgS/lqkrtieZZeg
+         cIRSp0f9+EiGP3RRMxo2o7dlurtWEj9QOjHuqC+v1l/qr9rjWTmfd3eo5s3nW+YMsq/n
+         5vow==
+X-Gm-Message-State: AFuF++mNyXp2meFmUybVSXBtx+uh+UWZibsk1DFUYTH9lFLfMuTlJvWO
+	4FjlPin2QZAWZapMsToXxKUmazES+WrPymAdXwfr1PZvwqt82cWcVnpDvZ44NIr+bQ9Nh/7PgC3
+	xOk4Lwg==
+X-Gm-Gg: AYBFou3W04M8bnHFHbTSTZSV55KG9UmAtvEUN9arBKlMFm8pOrnTbgtlDj2/pWxDN2D
+	XyNMTS4Re8to7xDt42Kn3ksP7ozN+GLMDVFp6UZgqMWWb57UjTwvcSF2FMHpzla6d4n1mu8r4W3
+	M/nFZfP0he23yuU/HVOR3FKnTIjTEvRkYyrBcD5IJj+sAsCIHmWu1416kmNarhIyyvad72b+u5N
+	hrMDBdD/wh0qc4SeBLTsYqkRDy5i80LHKVOEDSpzrI48h+Ro81RJwpDhXEQX8haJq+wBSy3XhJ+
+	94ldGDo5Fm5g1vHJ1Iv74+gN4yzPFfDtMhsy0xJvgZ6AS7wSLnWqVpSOY4FmW0MAuKSyTk8kVvW
+	EEk0gr6L2MGa7Jv98YTSMBYAyeR0ZQZ6d4hOTw4yuiHOGtyAfhfOSWojxnUEz9kJwWQ95kvZlbE
+	Xz8Qq0T0ggGbdtgc8GERUXDWh6gHDkgcZEic+Ks39wkg9DT9/R2SBFx6Brisn9hCOVKn83lyh10
+	4W7g7eCKTJn7OHRQDe/N/tlXMp1nNFmFqeeluchgw4liUtYZNugILSQXBpTBXN87/46p5m5qmYY
+	MiMRJJFNm/6WqVhW54a+wp1JQQ124CsUokSB3Yy4P4VT/PTwnZd24ORRofy3o0C1yphkyDagX0z
+	Gi97cL9PynkqTLeadf4dStq3W4hk0ySELpCT4HQ1MFUqtpRllFoXE0VhzXJZ0BXS4Ews12Ep0s3
+	UnpfWj+7Xao8O6Yc9jBTtpYhGgwv0qBqvBQQ==
+X-Received: by 2002:a17:906:794e:b0:c2e:4292:d27f with SMTP id a640c23a62f3a-c2e6ed44749mr408428166b.18.1791134168755;
+        Sun, 04 Oct 2026 10:16:08 -0700 (PDT)
 Received: from Desktop (pd9513667.dip0.t-ipconnect.de. [217.81.54.103])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2e878b0e05sm82284366b.5.2026.10.04.10.16.06
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2e878b0e05sm82284366b.5.2026.10.04.10.16.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 04 Oct 2026 10:16:06 -0700 (PDT)
+        Sun, 04 Oct 2026 10:16:07 -0700 (PDT)
 From: Julius Bairaktaris <julius@bairaktaris.de>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
@@ -79,10 +81,12 @@ Cc: pablo@netfilter.org,
 	coreteam@netfilter.org,
 	linux-kselftest@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH nf-next v6 0/2] netfilter: flowtable: tear down bridged flows on layer 2 roaming
-Date: Sun,  4 Oct 2026 19:16:03 +0200
-Message-ID: <20261004171605.3544792-1-julius@bairaktaris.de>
+Subject: [PATCH nf-next v6 1/2] netfilter: flowtable: tear down direct xmit flows when the fdb entry moves
+Date: Sun,  4 Oct 2026 19:16:04 +0200
+Message-ID: <20261004171605.3544792-2-julius@bairaktaris.de>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261004171605.3544792-1-julius@bairaktaris.de>
+References: <20261004171605.3544792-1-julius@bairaktaris.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -91,45 +95,161 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A flowtable flow that transmits straight to a bridge port keeps sending
-to the old port when the host moves to another port, for example a
-Wi-Fi station roaming between access points. Patch 1 makes the flowtable
-gc tear such a flow down. Patch 2 adds selftest cases.
+A direct xmit flow stores the bridge port the fdb resolved when the flow
+was created. When the host moves to another port of the bridge, the flow
+keeps sending to the old port, and packets from the other side keep it
+from timing out. A hardware offloaded flow behaves the same.
 
-v5 tore flows down on the switchdev fdb delete notification, which the
-bridge does not send for every move and not at all without
-CONFIG_NET_SWITCHDEV. v6 checks the path in the gc, as for a stale dst,
-after Florian's review of v4. Eric Woudstra wrote v1 to v4.
+Look the forward path up again in the gc and tear the flow down when the
+bridge now resolves the destination to another port. An aged out fdb
+entry leaves the flow alone, because offloaded packets do not refresh
+it. The tuple stores the route's output device, where the lookup starts,
+and the bridge port, which differs from out.ifidx when the port is a
+vlan device.
 
-Tested on an ipq807x router (OpenWrt, 6.18 backport, out-of-tree PPE
-driver), three runs: without patch 1 a roaming station's download did
-not resume within the 29 s observed; with it the longest gap was 1.1 s.
-Without patch 1 the four selftest cases where the host moves fail; all
-six pass with it, also with CONFIG_NET_SWITCHDEV=n.
+The check adds about 1.4 us per bridged flow and gc run (1800 flows,
+x86 guest with lockdep, 3 runs: 2.2 -> 4.7 ms).
 
-Changes in v6:
-- check the path in the gc instead of using switchdev notifications
-- leave the flow alone when its fdb entry ages out
-- drop the v5 patch that stored the bridge vid; nothing reads it
-- selftest: more cases, including fdb ageing and IPv6
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
+---
+ include/net/netfilter/nf_flow_table.h |  4 +++
+ net/netfilter/nf_flow_table_core.c    | 44 +++++++++++++++++++++++++++
+ net/netfilter/nf_flow_table_path.c    |  7 +++++
+ 3 files changed, 55 insertions(+)
 
-v5: https://lore.kernel.org/netfilter-devel/20260914072541.897040-1-julius@bairaktaris.de/
-v4: https://lore.kernel.org/netfilter-devel/20250925182623.114045-1-ericwouds@gmail.com/
-
-Julius Bairaktaris (2):
-  netfilter: flowtable: tear down direct xmit flows when the fdb entry
-    moves
-  selftests: netfilter: nft_flowtable.sh: roam a host between two bridge
-    ports
-
- include/net/netfilter/nf_flow_table.h         |   4 +
- net/netfilter/nf_flow_table_core.c            |  44 ++++
- net/netfilter/nf_flow_table_path.c            |   7 +
- .../selftests/net/netfilter/nft_flowtable.sh  | 201 ++++++++++++++++++
- 4 files changed, 256 insertions(+)
-
-
-base-commit: 87b80c2f6b05cad9f0ff9136709c62a0f59923e3
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index f2e2771f188f..ba0739247d86 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -164,6 +164,8 @@ struct flow_offload_tuple {
+ 		};
+ 		struct {
+ 			u32		ifidx;
++			u32		path_ifidx;
++			u32		bridge_ifidx;
+ 			u8		h_source[ETH_ALEN];
+ 			u8		h_dest[ETH_ALEN];
+ 		} out;
+@@ -232,6 +234,8 @@ struct nf_flow_route {
+ 		struct {
+ 			u32			ifindex;
+ 			u32			hw_ifindex;
++			u32			path_ifindex;
++			u32			bridge_ifindex;
+ 			u8			h_source[ETH_ALEN];
+ 			u8			h_dest[ETH_ALEN];
+ 			u8			needs_gso_segment:1;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 03241d4bfd5e..0ed379addd41 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -4,6 +4,7 @@
+ #include <linux/module.h>
+ #include <linux/netfilter.h>
+ #include <linux/rhashtable.h>
++#include <linux/etherdevice.h>
+ #include <linux/netdevice.h>
+ #include <net/ip.h>
+ #include <net/ip6_route.h>
+@@ -139,6 +140,9 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 		memcpy(flow_tuple->out.h_source, route->tuple[dir].out.h_source,
+ 		       ETH_ALEN);
+ 		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
++		flow_tuple->out.path_ifidx = route->tuple[dir].out.path_ifindex;
++		flow_tuple->out.bridge_ifidx =
++			route->tuple[dir].out.bridge_ifindex;
+ 		break;
+ 	case FLOW_OFFLOAD_XMIT_XFRM:
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+@@ -565,15 +569,55 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 	nf_ct_put(ct);
+ }
+ 
++/* A direct xmit flow through a bridge is stale once the bridge resolves
++ * its destination to another port. An fdb entry that aged out is not a
++ * move: offloaded packets do not pass the bridge to refresh it.
++ */
++static bool nf_flow_bridge_port_stale(struct net *net,
++				      const struct flow_offload_tuple *tuple)
++{
++	struct net_device_path_ctx ctx = {
++		.ether_type = tuple->l3proto == NFPROTO_IPV4 ?
++			      htons(ETH_P_IP) : htons(ETH_P_IPV6),
++	};
++	struct net_device_path_stack stack;
++	bool stale = false;
++	int i, port = 0;
++
++	if (tuple->xmit_type != FLOW_OFFLOAD_XMIT_DIRECT ||
++	    !tuple->out.bridge_ifidx)
++		return false;
++
++	ether_addr_copy(ctx.daddr, tuple->out.h_dest);
++
++	rcu_read_lock();
++	ctx.dev = dev_get_by_index_rcu(net, tuple->out.path_ifidx);
++	if (ctx.dev && !dev_fill_forward_path(&ctx, &stack)) {
++		/* The last bridge, as in nft_dev_path_info() */
++		for (i = 0; i < stack.num_paths - 1; i++) {
++			if (stack.path[i].type == DEV_PATH_BRIDGE)
++				port = stack.path[i + 1].dev->ifindex;
++		}
++		stale = port && port != tuple->out.bridge_ifidx;
++		dev_fill_forward_path_release(&stack);
++	}
++	rcu_read_unlock();
++
++	return stale;
++}
++
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
++	struct net *net = read_pnet(&flow_table->net);
+ 	bool teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+ 
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct) ||
+ 	    !nf_flow_dst_check(&flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
+ 	    !nf_flow_dst_check(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple) ||
++	    nf_flow_bridge_port_stale(net, &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
++	    nf_flow_bridge_port_stale(net, &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple) ||
+ 	    nf_flow_custom_gc(flow_table, flow)) {
+ 		flow_offload_teardown(flow);
+ 		teardown = true;
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 1e55644f2edb..386d41e6c713 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -88,6 +88,7 @@ struct nft_forward_info {
+ 		__be16	proto;
+ 	} encap[NF_FLOW_TABLE_ENCAP_MAX];
+ 	u8 num_encaps;
++	u32 bridge_ifidx;
+ 	struct flow_offload_tunnel tun;
+ 	struct dst_entry *tun_dst;
+ 	u8 num_tuns;
+@@ -180,6 +181,10 @@ static int nft_dev_path_info(struct net_device_path_stack *stack,
+ 			case DEV_PATH_BR_VLAN_KEEP:
+ 				break;
+ 			}
++			/* dev_fill_forward_path() adds the bridge port after
++			 * the bridge.
++			 */
++			info->bridge_ifidx = stack->path[i + 1].dev->ifindex;
+ 			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 			break;
+ 		default:
+@@ -257,6 +262,8 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
+ 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
+ 		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
++		route->tuple[dir].out.path_ifindex = dst->dev->ifindex;
++		route->tuple[dir].out.bridge_ifindex = info.bridge_ifidx;
+ 		route->tuple[dir].xmit_type = info.xmit_type;
+ 	}
+ 	route->tuple[dir].out.needs_gso_segment = info.needs_gso_segment;
 -- 
 2.53.0
 
