@@ -1,128 +1,71 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BA938F92F;
-	Sun,  4 Oct 2026 19:26:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 722B0450402
+	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 19:59:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791142003; cv=none; b=QFlO4c2gpBCC94/6AdDNttJnykix9ig1A1JN1/SMAhP+XTk+V5unyJzE/i/7mFIpqnUXpuvTPEcERd0FGv5+rNux9ErxWhv82+aaZ+ZEDreA4QfWJnoiwXf6jMVJIqdz2T+6km4FrMeE/X/Vg1eisXRDMFJUUJ337lWXD6uiQb8=
+	t=1791143998; cv=none; b=oVnXzbAMjMrSpall6hC9B2yEK7jFtuDhctHzT39qCWfXs8mS/rahZSv53V7JWFLXJ7QgoYT7kLBZ89mRO1BXjAjhPrQGLgIlruzN1aGJksXkGW1eyqffh3rObm66o9HAKfPCmhSkmmpVm2OUpP1Z1cmk43jr58ISEbRQIxNCSLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791142003; c=relaxed/simple;
-	bh=EZqj9oz9hc/uErnnmjyNBZUXrr48+ZU27QZxpRRKcEU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bQtdIR2URtmFg4SnIPqo1xQB5U5O+vgE0sqsujKUE1aRFpUER4PdG8QJTpOZDIgo9OAcpV/LLQDWfIs/fgEgyVFFcluFCU4wK5zWuQez0QQw+NSO5MiniPg+o5qQcvXCmnm6+jhb2LXP500D8AzU24bw4ORPfrMn3RYcnYEzec0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oju769jK; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1791143998; c=relaxed/simple;
+	bh=AaXFQDGVnS61VeRbZY2j4eY1toZNsIZXmIM8BMoSdBc=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=M4hqy5KS5L1bDC7fsREWRdAeXyflNwpyMEIeoMH2q3e9psJjjUWpEkuYpxYG/BEXQB9aXBMKsR9BsObJdAtlXJL2ghzih7tMjRSfBvOJuVy/PZ83nXujs8pjSt6FKhGb/SMHeScOzgpaKS7YL1y9LOsJlZ62bvxhnNYWfBeJS/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sxTIw0Bf; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oju769jK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sxTIw0Bf"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1791141998;
-	bh=DvHBIiApvl4tSWC5DbD9q2NS2XSoHvWiFwW0/l7xdlI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oju769jKfWggoOLVGJ5WomnnuABTJPPS3vUlQ569aZ8mRIRcon/cnC45yynUkNWeH
-	 sUUUtPLsISfcyI3vk0MLXZonZ5obg6iM4+NSsUvq8SfZgyLuGQMtk1VMy4dxdaMG1P
-	 VORvGmAfZVNKbfhcph9DhDxfDNQbvdVtc0IikKT2f95mqnAl7CMx7D8F3Pe8PqLBCa
-	 jInw9Cek3fRXTT9BeKCuuTA0/RzRjAyCrgcV7XzH3jBRUGJ+m0qBGqLRkMdpQbmEP5
-	 DT9X3EZNcBpQ98sYQ3zhX0Q01IESZ8RWQMOtarCIGuJpMK/s1oQJeEkAwrvLlx2WYc
-	 e/5HfMEBKB4cw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 20FEA602C6;
-	Sun,  4 Oct 2026 21:26:38 +0200 (CEST)
-Date: Sun, 4 Oct 2026 21:26:35 +0200
+	s=2025; t=1791143993;
+	bh=XHEWkjJ8zC6lhZUqf4giqhcDkOXpd2hM6HJhLNIvZEs=;
+	h=From:To:Subject:Date:From;
+	b=sxTIw0BfRFB3hBdus282qR7JHRvNqTwM/fqmGaQqJ64gDOVBpj1prRpT8f3S0gmXh
+	 L4Aiu7pit9ciNg3aoj9G9w6V8bJe3BwTk8ZR6Z5qkDW8VAFMIcZMJDDzpaUQiRe1lW
+	 btG9p+5kY5LRZdEksBp1BQDV/ewiLkb6m6zdwz7QYughuB9nGWwZLTXLwuKIh9b6xq
+	 bUff+7Zt207COJvG63otKWr4+aomXgg8VII+EbVnzdY3wFrEPab7V3H+wCr6DOJy5W
+	 zPscgshX+QagTASLbAu/3hourUbxbTAyl+T1M46AYyA63KJWCPLpCx79VSh00zvAJX
+	 FlafN+EUguz1w==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8C2A660235
+	for <netfilter-devel@vger.kernel.org>; Sun,  4 Oct 2026 21:59:53 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev-bot+sinfo@kernel.org
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net-next 01/11] netfilter: synproxy: fix reset of ct
- seqadj when reopening a connection
-Message-ID: <asKoa2wFW5QneXEA@chamomile>
-References: <20260927223436.269024-1-pablo@netfilter.org>
- <20260927223436.269024-2-pablo@netfilter.org>
- <179054884482.31693.9985445366421543993@kernel.org>
- <armg511ZWKl5ZqhZ@chamomile>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH libnftnl] set: Check array boundary when parsing NFTA_SET_DESC_CONCAT
+Date: Sun,  4 Oct 2026 21:59:50 +0200
+Message-ID: <20261004195950.355927-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <armg511ZWKl5ZqhZ@chamomile>
+Content-Transfer-Encoding: 8bit
 
-Hi,
+When parsing NFTA_SET_DESC_CONCAT coming from the kernel, make sure
+provided list does not go over the boundary, resulting in an array
+overrun. This is hardening for correctness, kernel should not be sending
+a list larger than NFT_REG32_COUNT.
 
-Just a gentle bump to this net-next PR containing Netfilter updates.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/set.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Let me know if there is anything that needs to be addressed.
+diff --git a/src/set.c b/src/set.c
+index a017017e1fb6..6444de0affba 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -548,6 +548,9 @@ nftnl_set_desc_concat_field_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	if (mnl_attr_validate(attr, MNL_TYPE_U32))
+ 		return MNL_CB_ERROR;
+ 
++	if (s->desc.field_count >= NFT_REG32_COUNT)
++		return -1;
++
+ 	s->desc.field_len[s->desc.field_count] = ntohl(mnl_attr_get_u32(attr));
+ 	s->desc.field_count++;
+ 
+-- 
+2.47.3
 
-Thanks.
-
-On Mon, Sep 28, 2026 at 01:04:07AM +0200, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> On Sun, Sep 27, 2026 at 10:40:44PM +0000, netdev-bot+sinfo@kernel.org wrote:
-> > Hi!
-> > 
-> > This is an automated message. This series looks like a fix, but its
-> > commit messages seem to be missing some information:
-> > 
-> >  - How the issue was discovered, e.g. hit in production, hit during
-> >    development, syzbot report, manual code inspection, LLM or static
-> >    analysis tool scan.
-> > 
-> >  - Whether the issue was actually triggered, or is only theoretical
-> >    (e.g. found by code inspection). If it was triggered please include
-> >    the symptoms, like the stack trace or error messages.
-> >
-> > Please do not repost the series just to address the above. Instead,
-> > reply to this email with the missing information, so that reviewers
-> > can take it into account. If the series needs another revision for
-> > other reasons, please include the information in the commit messages
-> > then.
-> >
-> > The evaluation is done by an LLM so it may be wrong, if you think
-> > that is the case please reply and explain.
-> 
-> This are correctness fixes (no crashes to my knowledged, hence I
-> decided to target net-next) as the cover letter specifies:
-> 
-> Patch #1 TCP sequence tracking issue was reported by sashiko as the
->          cover letter says.
-> 
-> Patch #2 Just documentation update to fix incorrect information
->          about the maximum number of expectations.
-> 
-> Patch #3 Just a cleanup patch to remove a break;
-> 
-> Patch #4 Just a cleanup, typos in comments.
-> 
-> Patch #5 and #6 are the result of a human triggered review of the
->          conntrack error stats by Phil Sutter, I think.
-> 
-> Patch #7 is a preparation patch for #8.
-> 
-> Patch #8 removes a unnecessary workqueue flush, submitter does not
->          specify if it is visible in production, I suspect with
->          a very large number of netns it must be. Author does not
->          claim LLM assistance.
-> 
-> Patch #9 is a fix triggered by sashiko report IIRC, I deemed it too
->          large for net so I am routing this rework-fix to net-next.
-> 
-> Patch #10 is a feature fix, IPv6 filtering does not work.
->           I suspect it was found when trying to use this (broken)
->           feature by the submitter.
-> 
-> Patch #11 Ilya Maximets reports the CTA_ZONE filtering feature is
->           not easy to infer from userspace, I don't think LLM
->           triggered this, it looks more like an improvement to help
->           userspace tools discover this feature.
-> 
-> This is human written reply, my cover letter has been generated by me
-> too to provide more context on these patches.
-> 
-> Thanks!
-> 
