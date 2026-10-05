@@ -1,119 +1,72 @@
-Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F33E547073;
-	Mon,  5 Oct 2026 20:16:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4873A3A0E86;
+	Mon,  5 Oct 2026 20:53:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791231378; cv=none; b=jEmJ+28ezySkiQKR8o0a2u1GALCdwMZbyQ75ef+s8S8dWTHJqmQd1Eak4jLN7Z86zU8X1clwEcvoLPQNEsv+A3XjsPG6RtIGXgokCDf9cQn3w8EXHRPka4X8z/H9J1DHFJCQTH0Pgmryzo0UH37XH/ZurwOMW/GVUSEA1f97xYQ=
+	t=1791233632; cv=none; b=SAUl5Fl81q/u42ZJ6U9qv39bfbPx+tWKMwdWDaDLLNaFyvnMTVI1/pjAugvfkj/EuPWxCfA4K3zl23RWV66dJ8q06lYBU017WrfcbTUNSUPZQf/Wxa+0zYQAXENOie9Ct6eF9LkPV3grXB/nQplHmA04qPvdpLRi/n9RbIGwbO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791231378; c=relaxed/simple;
-	bh=/jtXsg7zg5YsVSpKktYmCl2HOLTmXcA3pq8mmylJWnQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rwERS18StRioy8jk7U+DhAVfVIf6hmzWdOYgsQ3ejHHCfdQRXC3nVUN7zH302vsfkFnRN9WX/Bd//rNGPX2sAzJf+tLXcSeqEYyLsdmMQauwjnyjK7Pd3qCsAHQ1B0TS4J6B/nJGDimSQ1pGP+Bcn9z6sbExLtFOqPDLpw3ymuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr; spf=pass smtp.mailfrom=oss.cyber.gouv.fr; dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b=asEDHv88; arc=none smtp.client-ip=51.159.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
+	s=arc-20240116; t=1791233632; c=relaxed/simple;
+	bh=3x5t01ay1qSBp1J/+mth8N83KaCu/K1uZw3wLKlFaek=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UUrpg248KKbOkBTcXaL9qHyqPSxxGP8bgD3NzsQ6azcDO+bsXlunLchE5i6OdjrL0hxPB0d4WJDVS2cpMQT2WGLXzNgH4Xrq0ZksyRvcLRuSNPF8YzrE9527wFZCMfPv2bFOBY1M3nGCMDOfXvXSut9GGXB17unjK0PIxqQMyqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YG3ejdeF; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.b="asEDHv88"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Reply-To:Sender:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References;
-	bh=/3KL0C/nw0xYEK9+GdpscS3wjuMLqlg3B/VsPRrgino=; b=asEDHv88pciBOR1xFCUufLW6gt
-	kl8QeG1uJfbFDwZaT8pH49WRm6kM9NYNK/VLdxAnZh6d3pWot8WNiI05iHi/yWvX6CLfDYB1iZ+ne
-	yrn0TDzoUULw1Q+vdEPk6dddRPd7l/gKQBNxWBFDQU5c8XCynwp5ch8Z12v/NoKzzJ35QVB7KqRZ/
-	1vbBtLHcrnBty5SSmCmc8vunBDyMOgvU5DGYIUMdGtsLeX6ZQZtRNR/hxH3pDPvFyv/XFl5mOKj4Z
-	OvpNsJa/gZw7g5ROvXjNI5uqFBU52pfd7TRyizX5mavqGV1URY5+PBfn+rIx4O8RH8oPAvJTh9Vwy
-	E93KTpBw==;
-Received: from [151.115.150.205] (port=35328 helo=gepetto..)
-	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.100.1)
-	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1xDp6c-0000000FI5a-2Kmn;
-	Mon, 05 Oct 2026 22:16:14 +0200
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>,
-	stable@vger.kernel.org
-Subject: [PATCH nf] netfilter: nft_set_rbtree: reject expired interval ends
-Date: Mon,  5 Oct 2026 20:04:05 +0000
-Message-ID: <20261005200404.3544062-2-Jeremy.Jean@oss.cyber.gouv.fr>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YG3ejdeF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791233615;
+	bh=1pw4mRK8KHKeEH3wBx+GXpr0RKs9zTH6aWVAX8TBUzY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=YG3ejdeFdTshsujcpmAE9hrlvuwQZ3MKC6aDO23rJMWMixXaXfeYOCPx15OXUlTs/
+	 1zi0ZfO+F8JpCmktAD6OPKqxMFnUPwfMrE5g/bU/g4GQXcQIKIEL6eT/7oUjpFSQZG
+	 XzRLIhMJJ/htszx6p1B3s7h88XSa9sZGf+83vRHqIPbtHR5cSu4Wv6AkKTqcvpknhY
+	 BfEse7AWaQ5AmI4TCSZyHhG4NfhF0+qQH6g6XRGg5qZd2I4B4kE/VYJYwPrloKNyEc
+	 IIciA9+NoqELOU63PcG/SuIp77sa5YfIqPnuO09DxCKdi5tgR2vuFFLpyc/fJ+A8Mb
+	 A8fpg8m+Z8G2g==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id EDD5E603D6;
+	Mon,  5 Oct 2026 22:53:34 +0200 (CEST)
+Date: Mon, 5 Oct 2026 22:53:31 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Ilya Maximets <i.maximets@ovn.org>
+Cc: netdev-bot+sinfo@kernel.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, horms@kernel.org,
+	fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net-next 01/11] netfilter: synproxy: fix reset of ct
+ seqadj when reopening a connection
+Message-ID: <asQOSwu0g7m5M43w@chamomile>
+References: <20260927223436.269024-1-pablo@netfilter.org>
+ <20260927223436.269024-2-pablo@netfilter.org>
+ <179054884482.31693.9985445366421543993@kernel.org>
+ <armg511ZWKl5ZqhZ@chamomile>
+ <asKoa2wFW5QneXEA@chamomile>
+ <e909312d-76bd-498b-afec-86a1cd611e1c@ovn.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - pf-012.whm.fr-par.scw.cloud
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - oss.cyber.gouv.fr
-X-Get-Message-Sender-Via: pf-012.whm.fr-par.scw.cloud: authenticated_id: jeremy.jean@oss.cyber.gouv.fr
-X-Authenticated-Sender: pf-012.whm.fr-par.scw.cloud: jeremy.jean@oss.cyber.gouv.fr
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <e909312d-76bd-498b-afec-86a1cd611e1c@ovn.org>
 
-Consider two ranges in a netfilter verdict map:
-* keys 10-19 accept packets, and
-* keys 30-39 jump to chain 'victim'.
-Now, delete the end marker at 20. The lookup array now uses element 30
-as the first range's end, so an INTERVAL_END query for key 15 returns
-element 30, including its jump verdict and chain pointer. This can make
-KASAN reports a UAF after the GC releases reference chain for 30 that
-has expired:
+On Mon, Oct 05, 2026 at 03:04:18PM +0200, Ilya Maximets wrote:
+> FWOn 10/4/26 9:26 PM, Pablo Neira Ayuso wrote:
+> > Hi,
+> > 
+> > Just a gentle bump to this net-next PR containing Netfilter updates.
+> > 
+> > Let me know if there is anything that needs to be addressed.
+> 
+> AFAICT, this PR was merged to net-next on the 29th:
+>   https://git.kernel.org/netdev/net-next/c/0a1a3898ab64fd4f7b90816fc61186d8eb5302a7
+> 
+> The bot was a little confused, but the reply was actually sent:
+>   https://lore.kernel.org/all/179064961102.229594.11396134169189168960.git-patchwork-notify@kernel.org/
 
-  BUG: KASAN: slab-use-after-free in nft_verdict_dump+0xdd/0x110
-  Read of size 8 at addr ff110000009dfb58 by task repro/50
-  ...
-  Call Trace:
-  ...
-   nft_verdict_dump+0xdd/0x110
-   nft_data_dump+0x4d/0x80
-   nf_tables_fill_setelem+0x30b/0x8a0
-   ? __asan_memcpy+0x3c/0x60
-   nf_tables_fill_setelem_info+0x1b0/0x200
-   nft_get_set_elem+0x3fd/0x4b0
-  ...
-  Freed by task 24:
-  ...
-   kfree+0x1a5/0x280
-   nf_tables_trans_destroy_work+0x2cb/0x520
-
-Reject expired endpoints in nft_rbtree_get() before returning them.
-
-Fixes: 2aa34191f06f ("netfilter: nft_set_rbtree: use binary search array in get command")
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
----
- net/netfilter/nft_set_rbtree.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 9894832..1fd9cbe 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -187,6 +187,8 @@ nft_rbtree_get(const struct net *net, const struct nft_set *set,
- 	if (flags & NFT_SET_ELEM_INTERVAL_END) {
- 		if (!interval->to)
- 			return NULL;
-+		if (nft_set_elem_expired(interval->to))
-+			return ERR_PTR(-ENOENT);
- 
- 		rbe = container_of(interval->to, struct nft_rbtree_elem, ext);
- 	} else {
--- 
-2.47.3
-
+Indeed, all then, thanks!
