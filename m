@@ -1,152 +1,309 @@
-Received: from mail.mdapi.ch (mail.mdapi.ch [31.3.128.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34093769F6
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Oct 2026 11:53:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=31.3.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EF05374E64;
+	Mon,  5 Oct 2026 12:11:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791201236; cv=none; b=QAsnUeaTA1t+QKUDHvGSCxqSym/O1v/oSKLmPJ9BPi+d9cykZ2JyxHl9GTDmvb6t77i5bpsSlk9aVUj82d/pnR+QDrG5vWLAB61LNW64HneoMqYQvd796QESn0GkuP78lNYXDF5QeaoEq/p2xuKkb1qUShIU+G8q50v5IWsoTx4=
+	t=1791202279; cv=none; b=q4jxeXM4f3JhAwOvS7PxoQaJ+7mSGU4o6rVCKxCTVlLLipaIHiL9ozjSKfSLTMPNzSmGneRM3URNmVmaDJD7Dc+BwDHgfL/WZ56JaaBBTiUqYq3jDZndx3H63MnNKVZPBO4LQbAk5s+EeACos0yuwu3NGREgM/n/W6NPR+VgzX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791201236; c=relaxed/simple;
-	bh=QnsS/j/9h7FYQmXOBjKfsBtmq7qBG4GfqOqgnQm1Y0o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qyJW9pwtVE5nruYg7zVOFwkbH7t92CbLvIHpmqao9eyxi3/SWub7XYfcntMg9wacllGeTFeBl+/KGOw+eWN9G6//IKsCAskf/YcN2XXMbzekzEQkz20tCCKezNTF6DPLFqJ23yk1HcW18e1egRyE2fVhpQXoWBzkHOpc0QURvKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tillo.ch; spf=pass smtp.mailfrom=tillo.ch; dkim=pass (2048-bit key) header.d=tillo.ch header.i=@tillo.ch header.b=gK7mnksE; arc=none smtp.client-ip=31.3.128.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=tillo.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tillo.ch
+	s=arc-20240116; t=1791202279; c=relaxed/simple;
+	bh=NMNSe3FkVICodJODLNmb6qjWWEtDYnXT0FQbdSuT1As=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=uGhk9A9/8/hotLIwKWlufAb5njxyWaAMmsZeXcx1XTS/gfABeyv6cc/BFzFU7bIP4PqgOhuy81zPeyt08tKwzAW9sXanROssu83Pj/L8BjDVOi5oAKVSUCL+IwsvpBcf7FOvrXDUkOAKMz+tx3gIHYbeDG7U4UjgBCh0OqmBC4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ik4USNNm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=gf4VmEZA; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Kn7WDEnh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=T7zxEmgb; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tillo.ch header.i=@tillo.ch header.b="gK7mnksE"
-From: Martino Dell'Ambrogio <tillo@tillo.ch>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tillo.ch; s=mail202603;
-	t=1791200891;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=DG/TjuwU3+U6oTN/2vcEUMwEJKNff7Uc8Q9Sd10RofU=;
-	b=gK7mnksEziLM6QF/Pu6AJrgz9OSP1vCG7FZ4ktnZnzf74kscJsAJs7qai90OvrUqYwdEm9
-	01kC4l2Zei0JynWJDhno11pXBUvtneFdy1Uw8afVDh9UeRT+DYcanbD8V7AIKcWcRdxi0c
-	zRTDF+yH483+baagWYPeBpvQFUgA6ZCE+plmCGIB9TxQs/16jTWAUS5gOEkpBJK9wahitx
-	8dmLAA2PGlxoGrgFSCc5oXg5TyuUMhjiFbcmxxFd3zwDYbGcGJmjRkEh/eFNOFlpJSl2un
-	9Dge7cNpwr4LmVBIBjwgATposCuIYITIgrjvmR4CveTCHpDBo+jT7PSOMIWdow==
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc
-Subject: hardware flows are left behind when a flowtable is deleted (nf_tables unbinds the offload block at commit time)
-Date: Mon, 5 Oct 2026 13:48:10 +0200
-Message-ID: <20261005134810.312747-1-tillo@tillo.ch>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ik4USNNm";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="gf4VmEZA";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Kn7WDEnh";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="T7zxEmgb"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id B6DB21F453;
+	Mon,  5 Oct 2026 12:11:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1791202271; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
+	b=ik4USNNmK+n9A++JQnnoX3Hz5lwWSOaG50x95D7B/RH40zLOcXnPeNi2AvRYX+izD8z63V
+	K86g8UlIra9NBP6IrOmWk3XFVFrcCBhPfGeHG2vTQXA/N1QuYlGwHY374/DyN6y/N9mm/y
+	q1Hvp3FP58voky8LUsxRgxZ9t1OEIjI=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1791202271;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
+	b=gf4VmEZASS7PbFVF91RYbmofEgwcscJ9lQdRNXlH8FWxu9u1galIC0tn2uZAc3tzGyZWdr
+	zpiRdolC2H52kWAg==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1791202267; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
+	b=Kn7WDEnhbd2e1zHJMM9KDoy07nnKPZC6lJOVBWQ3P33gdrskcGGHnHLaDLcz9NkNIRpWdK
+	8Cd7NqfNxPxSKKh/iY1tcs+dFKu+r1X7jvAIJIwne2W6hRul5T51X1x7N5/vwdCkpvVSof
+	siVqZolmZ9j+Q9l1wSbQgl3RUm8QcMs=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1791202267;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
+	b=T7zxEmgbiD4WEJY66TGQy1rF3j67NkL6lG+sBhiTxXMqrpumnonyKDIeXSZwnxjPNj0K09
+	zXGSZcyrORSJYrAA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E1704132D3;
+	Mon,  5 Oct 2026 12:11:06 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 1C9OLNqTw2qYGAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 05 Oct 2026 12:11:06 +0000
+Message-ID: <bea33147-1a2e-4fba-93ac-7521dd7b6556@suse.de>
+Date: Mon, 5 Oct 2026 14:09:56 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nf-next] netfilter: nf_nat: replace u_int16_t with u16
+To: Carlos Grillet <carlos@carlosgrillet.me>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+References: <20261002201057.132466-1-carlos@carlosgrillet.me>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20261002201057.132466-1-carlos@carlosgrillet.me>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[13];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
+X-Spam-Flag: NO
+X-Spam-Score: -4.30
+X-Spam-Level: 
 
-Deleting a flowtable leaves the flows its devices offloaded behind in the
-hardware. Reported against stable v6.12.108 on a Banana Pi R4 (MT7988,
-mtk_eth_soc PPE) running OpenWrt, and reproduced there; the analysis below is
-from that source and from net.git main, where the function is identical.
+On 10/2/26 10:10 PM, Carlos Grillet wrote:
+> Use the preferred kernel type u16 instead of the POSIX u_int16_t
+> variant across the NAT helpers.
+> 
+> No functional change.
+> 
+> Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
+> ---
+> This supersedes the nf_nat_amanda one-liner from batch 3, which was
+> dropped in favour of a larger changeset:
+> 
+>    https://lore.kernel.org/netfilter-devel/ak5lH1UnFth6oreP@strlen.de/
+> 
+> nf_nat is now converted in one patch, as suggested. The remaining
+> families (nfnetlink, nf_log, x_tables, ...) will follow the same way.
 
-Symptom
+Hi Carlos,
 
-After the flowtable is deleted, the offloaded flows stay BND in the PPE and
-keep forwarding. Their conntrack entries are not released either: they stop
-being refreshed and expire (60 s for UDP), after which the device is
-forwarding flows that exist in hardware only and that conntrack no longer
-knows about. On the router this is visible as entries in
-/sys/kernel/debug/ppe{1,2}/bind with no matching entry in `conntrack -L`.
+given that this is a mechanical change that is not a risk, can they all 
+be handled in a single patch for the netfilter subsystem?
 
-OpenWrt's fw4 deletes and recreates its flowtable in one transaction on every
-firewall reload, so this happens on every reload rather than in some rare
-teardown path.
+Thanks,
+Fernando.
 
-Why
-
-  - Deleting a flowtable moves FLOW_BLOCK_UNBIND to commit time.
-    __nft_unregister_flowtable_net_hooks() asks the driver to unbind, and
-    nf_flow_table_block_setup() frees the driver callback there.
-  - The flowtable itself is freed later, from the transaction destroy work
-    after synchronize_rcu(): nft_commit_release() ->
-    nf_tables_flowtable_destroy() -> type->free() -> nf_flow_table_free().
-    That last step tears the remaining flows down and queues
-    FLOW_CLS_DESTROY for each one.
-  - nf_flow_offload_tuple() delivers those commands by walking
-    flowtable->flow_block.cb_list, which has been empty since the commit. It
-    reports no error for an empty list, so nothing notices.
-
-This is not a race between the last GC run and the unbind: the unbind always
-happens first, at commit time, so the hardware entries are never removed.
-
-It is a regression from 13210fc63f35 ("netfilter: nf_tables: imbalance in
-flowtable binding"). That commit removed the late FLOW_BLOCK_UNBIND from the
-flowtable destroy path, which 5acab91458ce ("netfilter: nf_tables: unbind
-callbacks from flowtable destroy path") had placed after
-nf_flow_table_free() on purpose:
-
-    Callback unbinding needs to be done after nf_flow_table_free(),
-    otherwise entries are not removed from the hardware.
-
-13210fc63f35's thread only checked BIND/UNBIND balance; nothing there is
-about hardware entries left behind. It is in 6.12.y as 2e87c203b72f.
-
-All of the above is read from the sources rather than instrumented at run
-time: nothing here traces cb_list directly. What the reproducer below shows
-is the consequence, and that part is measured.
-
-Reproducer (~2 minutes, one host)
-
-  1. Drive a busy UDP flow (~100 pps) through the flowtable so it binds in
-     hardware: confirm a BND entry in /sys/kernel/debug/ppe*/bind and
-     [HW_OFFLOAD] in `conntrack -L`.
-  2. Delete the flowtable (on OpenWrt: `fw4 reload`, which deletes and
-     recreates it).
-  3. Keep the same socket sending, at a low rate, for longer than the
-     conntrack timeout. The window has to exceed it: a stranded flow still has
-     a conntrack entry until that expires, so a shorter window shows nothing.
-
-  Unpatched: the tuple stays BND and keeps forwarding while conntrack has no
-  entry for it any more.
-  The discriminator has to be per tuple -- bound in hardware AND absent from
-  conntrack. An aggregate "no conntrack entries left" test never fires, because
-  other hosts on the LAN are talking to the same destination.
-
-Scope
-
-Drivers that offload through TC_SETUP_FT and rely on FLOW_CLS_DESTROY to
-release hardware state look affected by inspection: mtk_eth_soc (measured),
-mtk_wed, airoha, mt76 npu, mlx5 representor FT. Drivers that flush their own
-entries when they remove their callback (mlx5 tc_ct, nfp, sfc) are not. Only
-mtk_eth_soc was tested.
-
-A possible fix, and what I measured
-
-Remove the flows using the device before the block is unbound:
-nf_flow_table_offload_setup() on FLOW_BLOCK_UNBIND could call
-nf_flow_table_gc_cleanup(flowtable, dev) first, so the FLOW_CLS_DESTROY is
-delivered while the callback is still on cb_list. That is what the kernel
-already does for indirect devices (nf_flow_table_indr_cleanup()) and on
-NETDEV_DOWN, and one site covers the commit, update, netdev-event and abort
-paths. I am aware that "generalize pending status bit" reworks this area.
-
-I have not sent a patch, but I have built that change and run it on the
-hardware: two images differing by that one hunk and nothing else, the same
-reproducer on each.
-
-  - Unmodified kernel: the reproducer strands the flows. All 4 flows stay
-    bound in the PPE, in 26 of 26 samples taken after the reload -- first
-    sustained 22.7 s in and still true at 167 s, past both the 20 s and the
-    60 s UDP timeouts.
-  - With the change: no flow is left bound with no conntrack entry behind
-    it -- 0 of 4, clean in all 25 samples, and the flows re-bind under the
-    new flowtable.
-
-An orphan check on the patched image (every bound entry cross-referenced
-against conntrack, with a synthetic control entry injected to show the check
-can fire) found none at +10 minutes or +1 hour. The change is carried as a
-downstream patch in OpenWrt.
-
-  - Martino Dell'Ambrogio <tillo@tillo.ch>
-
-Assisted-by: LLM
+> 
+>   include/linux/netfilter/nf_conntrack_sip.h |  2 +-
+>   net/ipv4/netfilter/nf_nat_h323.c           | 10 +++++-----
+>   net/ipv4/netfilter/nf_nat_pptp.c           |  4 ++--
+>   net/netfilter/nf_nat_amanda.c              |  2 +-
+>   net/netfilter/nf_nat_ftp.c                 |  2 +-
+>   net/netfilter/nf_nat_irc.c                 |  2 +-
+>   net/netfilter/nf_nat_sip.c                 |  6 +++---
+>   7 files changed, 14 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
+> index aafa0c04f917..3b66ec4b20c8 100644
+> --- a/include/linux/netfilter/nf_conntrack_sip.h
+> +++ b/include/linux/netfilter/nf_conntrack_sip.h
+> @@ -143,7 +143,7 @@ struct nf_nat_sip_hooks {
+>   				 unsigned int *datalen,
+>   				 unsigned int matchoff,
+>   				 unsigned int matchlen,
+> -				 u_int16_t port);
+> +				 u16 port);
+>   
+>   	unsigned int (*sdp_session)(struct sk_buff *skb,
+>   				    unsigned int protoff,
+> diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+> index 6bcd6734769b..265c1ba5b348 100644
+> --- a/net/ipv4/netfilter/nf_nat_h323.c
+> +++ b/net/ipv4/netfilter/nf_nat_h323.c
+> @@ -186,7 +186,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+>   	struct nf_ct_h323_master *info = nfct_help_data(ct);
+>   	int dir = CTINFO2DIR(ctinfo);
+>   	int i;
+> -	u_int16_t nated_port;
+> +	u16 nated_port;
+>   
+>   	if (!info)
+>   		return -1;
+> @@ -282,7 +282,7 @@ static int nat_t120(struct sk_buff *skb, struct nf_conn *ct,
+>   		    struct nf_conntrack_expect *exp)
+>   {
+>   	int dir = CTINFO2DIR(ctinfo);
+> -	u_int16_t nated_port = ntohs(port);
+> +	u16 nated_port = ntohs(port);
+>   
+>   	/* Set expectations for NAT */
+>   	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
+> @@ -321,7 +321,7 @@ static int nat_h245(struct sk_buff *skb, struct nf_conn *ct,
+>   {
+>   	struct nf_ct_h323_master *info = nfct_help_data(ct);
+>   	int dir = CTINFO2DIR(ctinfo);
+> -	u_int16_t nated_port = ntohs(port);
+> +	u16 nated_port = ntohs(port);
+>   
+>   	if (!info)
+>   		return -1;
+> @@ -402,7 +402,7 @@ static int nat_q931(struct sk_buff *skb, struct nf_conn *ct,
+>   {
+>   	struct nf_ct_h323_master *info = nfct_help_data(ct);
+>   	int dir = CTINFO2DIR(ctinfo);
+> -	u_int16_t nated_port = ntohs(port);
+> +	u16 nated_port = ntohs(port);
+>   	union nf_inet_addr addr;
+>   
+>   	if (!info)
+> @@ -488,7 +488,7 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
+>   			      struct nf_conntrack_expect *exp)
+>   {
+>   	int dir = CTINFO2DIR(ctinfo);
+> -	u_int16_t nated_port;
+> +	u16 nated_port;
+>   
+>   	/* Set expectations for NAT */
+>   	exp->saved_addr = exp->tuple.dst.u3;
+> diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+> index fed5249001a4..5387c288c348 100644
+> --- a/net/ipv4/netfilter/nf_nat_pptp.c
+> +++ b/net/ipv4/netfilter/nf_nat_pptp.c
+> @@ -130,7 +130,7 @@ pptp_outbound_pkt(struct sk_buff *skb,
+>   	struct nf_ct_pptp_master *ct_pptp_info;
+>   	struct nf_conn_nat *nat = nfct_nat(ct);
+>   	struct nf_nat_pptp *nat_pptp_info;
+> -	u_int16_t msg;
+> +	u16 msg;
+>   	__be16 new_callid;
+>   	unsigned int cid_off;
+>   
+> @@ -243,7 +243,7 @@ pptp_inbound_pkt(struct sk_buff *skb,
+>   {
+>   	const struct nf_nat_pptp *nat_pptp_info;
+>   	struct nf_conn_nat *nat = nfct_nat(ct);
+> -	u_int16_t msg;
+> +	u16 msg;
+>   	__be16 new_pcid;
+>   	unsigned int pcid_off;
+>   
+> diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
+> index 330415809425..17b0c1c8d4e1 100644
+> --- a/net/netfilter/nf_nat_amanda.c
+> +++ b/net/netfilter/nf_nat_amanda.c
+> @@ -34,7 +34,7 @@ static unsigned int help(struct sk_buff *skb,
+>   			 struct nf_conntrack_expect *exp)
+>   {
+>   	char buffer[sizeof("65535")];
+> -	u_int16_t port;
+> +	u16 port;
+>   
+>   	/* Connection comes from client. */
+>   	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
+> diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
+> index 25d20e2970ae..0c90165040e0 100644
+> --- a/net/netfilter/nf_nat_ftp.c
+> +++ b/net/netfilter/nf_nat_ftp.c
+> @@ -70,7 +70,7 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+>   			       struct nf_conntrack_expect *exp)
+>   {
+>   	union nf_inet_addr newaddr;
+> -	u_int16_t port;
+> +	u16 port;
+>   	int dir = CTINFO2DIR(ctinfo);
+>   	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
+>   	unsigned int buflen;
+> diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
+> index 89b31fe932ba..140b7d99a887 100644
+> --- a/net/netfilter/nf_nat_irc.c
+> +++ b/net/netfilter/nf_nat_irc.c
+> @@ -39,7 +39,7 @@ static unsigned int help(struct sk_buff *skb,
+>   {
+>   	char buffer[sizeof("4294967296 65635")];
+>   	union nf_inet_addr newaddr;
+> -	u_int16_t port;
+> +	u16 port;
+>   
+>   	/* Reply comes from server. */
+>   	newaddr = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3;
+> diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+> index 8c412bcf6cff..e27c9744054e 100644
+> --- a/net/netfilter/nf_nat_sip.c
+> +++ b/net/netfilter/nf_nat_sip.c
+> @@ -410,7 +410,7 @@ static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+>   	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+>   	struct nf_ct_sip_master *ct_sip_info = nfct_help_data(ct);
+>   	union nf_inet_addr newaddr;
+> -	u_int16_t port;
+> +	u16 port;
+>   	__be16 srcport;
+>   	char buffer[INET6_ADDRSTRLEN + sizeof("[]:nnnnn")];
+>   	unsigned int buflen;
+> @@ -536,7 +536,7 @@ static unsigned int nf_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
+>   				    const char **dptr, unsigned int *datalen,
+>   				    unsigned int matchoff,
+>   				    unsigned int matchlen,
+> -				    u_int16_t port)
+> +				    u16 port)
+>   {
+>   	char buffer[sizeof("nnnnn")];
+>   	unsigned int buflen;
+> @@ -601,7 +601,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+>   	enum ip_conntrack_info ctinfo;
+>   	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+>   	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+> -	u_int16_t port;
+> +	u16 port;
+>   
+>   	/* Connection will come from reply */
+>   	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
 
