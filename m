@@ -1,80 +1,39 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp.forwardemail.net (smtp.forwardemail.net [149.28.215.223])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EF05374E64;
-	Mon,  5 Oct 2026 12:11:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 139E144E656
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 Oct 2026 13:04:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=149.28.215.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791202279; cv=none; b=q4jxeXM4f3JhAwOvS7PxoQaJ+7mSGU4o6rVCKxCTVlLLipaIHiL9ozjSKfSLTMPNzSmGneRM3URNmVmaDJD7Dc+BwDHgfL/WZ56JaaBBTiUqYq3jDZndx3H63MnNKVZPBO4LQbAk5s+EeACos0yuwu3NGREgM/n/W6NPR+VgzX0=
+	t=1791205475; cv=none; b=JFY5YR6kAlgpPxqgDllrvq8LuIDDpR48xm9btoR6icbS/eTrqmWdt0RRbMegzVDVc2LdVjA40Hvs3W28wipkV7mAWAuTBrZik2Oz8Betf1ADnK2WXTFRt9PcC2K16d3/3icot2SWM/1FO9kkuvfNNhvH5g+IdDzn7keiNJMsY3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791202279; c=relaxed/simple;
-	bh=NMNSe3FkVICodJODLNmb6qjWWEtDYnXT0FQbdSuT1As=;
+	s=arc-20240116; t=1791205475; c=relaxed/simple;
+	bh=XgCtgbQRcxPoGRe8mzzM1S1ureZ3oYqdHQgqKRmIIZs=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uGhk9A9/8/hotLIwKWlufAb5njxyWaAMmsZeXcx1XTS/gfABeyv6cc/BFzFU7bIP4PqgOhuy81zPeyt08tKwzAW9sXanROssu83Pj/L8BjDVOi5oAKVSUCL+IwsvpBcf7FOvrXDUkOAKMz+tx3gIHYbeDG7U4UjgBCh0OqmBC4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ik4USNNm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=gf4VmEZA; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Kn7WDEnh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=T7zxEmgb; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	 In-Reply-To:Content-Type; b=Zg3ZgPTmHwyvYRxo2nd87Rgr/MNCjumU5kjztS+0pVpGjCAoPkXi7FRtaGhaOO1IaJDxXB7VcvZC4M5QRDuT6GdxdpM1TLhE96kL79dgN9dURBMJ2CV3xJHs6jnIW+9pKhlkkMms5rJVUpt/V6gb2SyPwUOjR3nMsBbOZPcZkhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ovn.org; spf=pass smtp.mailfrom=fe-bounces.ovn.org; dkim=pass (1024-bit key) header.d=ovn.org header.i=@ovn.org header.b=ADMVgs3F; arc=none smtp.client-ip=149.28.215.223
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ovn.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fe-bounces.ovn.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ik4USNNm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="gf4VmEZA";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Kn7WDEnh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="T7zxEmgb"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id B6DB21F453;
-	Mon,  5 Oct 2026 12:11:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791202271; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
-	b=ik4USNNmK+n9A++JQnnoX3Hz5lwWSOaG50x95D7B/RH40zLOcXnPeNi2AvRYX+izD8z63V
-	K86g8UlIra9NBP6IrOmWk3XFVFrcCBhPfGeHG2vTQXA/N1QuYlGwHY374/DyN6y/N9mm/y
-	q1Hvp3FP58voky8LUsxRgxZ9t1OEIjI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791202271;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
-	b=gf4VmEZASS7PbFVF91RYbmofEgwcscJ9lQdRNXlH8FWxu9u1galIC0tn2uZAc3tzGyZWdr
-	zpiRdolC2H52kWAg==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791202267; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
-	b=Kn7WDEnhbd2e1zHJMM9KDoy07nnKPZC6lJOVBWQ3P33gdrskcGGHnHLaDLcz9NkNIRpWdK
-	8Cd7NqfNxPxSKKh/iY1tcs+dFKu+r1X7jvAIJIwne2W6hRul5T51X1x7N5/vwdCkpvVSof
-	siVqZolmZ9j+Q9l1wSbQgl3RUm8QcMs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791202267;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UgjgUIqUXrg+EmvIXZhJUXz5k9rmyxilEYl1OB1+7V8=;
-	b=T7zxEmgbiD4WEJY66TGQy1rF3j67NkL6lG+sBhiTxXMqrpumnonyKDIeXSZwnxjPNj0K09
-	zXGSZcyrORSJYrAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E1704132D3;
-	Mon,  5 Oct 2026 12:11:06 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 1C9OLNqTw2qYGAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 05 Oct 2026 12:11:06 +0000
-Message-ID: <bea33147-1a2e-4fba-93ac-7521dd7b6556@suse.de>
-Date: Mon, 5 Oct 2026 14:09:56 +0200
+	dkim=pass (1024-bit key) header.d=ovn.org header.i=@ovn.org header.b="ADMVgs3F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ovn.org;
+ h=Content-Transfer-Encoding: Content-Type: In-Reply-To: From: References:
+ Cc: To: Subject: MIME-Version: Date: Message-ID; q=dns/txt;
+ s=fe-13eddc7e57; t=1791205467;
+ bh=2KrfVbD/U4yfYNyvzPDSSWso/SrtmjhxxY8z5tMgGsc=;
+ b=ADMVgs3FLMfzmSNuiasLgPWl+8r7gtWU5IBR2+D/I9qgusyxkkUh15hq+zixQnKxuwtyDQInX
+ ho711T2F0lkkxoLjeu2ISxVRxAk9MtgnhSuZEVYPjEQRet8g2csevxoLT9rY5dxnF9+meb6ZpBI
+ l/7gnMqOzTJteUGVYl/ir0A=
+X-Forward-Email-ID: 6ac3a055667e8e74acdfd199
+X-Forward-Email-Sender: rfc822; i.maximets@ovn.org, smtp.forwardemail.net,
+ 149.28.215.223
+X-Forward-Email-Version: 2.18.1
+X-Forward-Email-Website: https://forwardemail.net
+X-Complaints-To: abuse@forwardemail.net
+X-Report-Abuse: abuse@forwardemail.net
+X-Report-Abuse-To: abuse@forwardemail.net
+Message-ID: <e909312d-76bd-498b-afec-86a1cd611e1c@ovn.org>
+Date: Mon, 5 Oct 2026 15:04:18 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,228 +41,148 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next] netfilter: nf_nat: replace u_int16_t with u16
-To: Carlos Grillet <carlos@carlosgrillet.me>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-References: <20261002201057.132466-1-carlos@carlosgrillet.me>
+Subject: Re: [PATCH net-next 01/11] netfilter: synproxy: fix reset of ct
+ seqadj when reopening a connection
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netdev-bot+sinfo@kernel.org
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, horms@kernel.org, fw@strlen.de, ja@ssi.bg,
+ i.maximets@ovn.org
+References: <20260927223436.269024-1-pablo@netfilter.org>
+ <20260927223436.269024-2-pablo@netfilter.org>
+ <179054884482.31693.9985445366421543993@kernel.org>
+ <armg511ZWKl5ZqhZ@chamomile> <asKoa2wFW5QneXEA@chamomile>
 Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20261002201057.132466-1-carlos@carlosgrillet.me>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Ilya Maximets <i.maximets@ovn.org>
+Autocrypt: addr=i.maximets@ovn.org; keydata=
+ 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
+In-Reply-To: <asKoa2wFW5QneXEA@chamomile>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[13];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
 
-On 10/2/26 10:10 PM, Carlos Grillet wrote:
-> Use the preferred kernel type u16 instead of the POSIX u_int16_t
-> variant across the NAT helpers.
+FWOn 10/4/26 9:26 PM, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> No functional change.
+> Just a gentle bump to this net-next PR containing Netfilter updates.
 > 
-> Signed-off-by: Carlos Grillet <carlos@carlosgrillet.me>
-> ---
-> This supersedes the nf_nat_amanda one-liner from batch 3, which was
-> dropped in favour of a larger changeset:
-> 
->    https://lore.kernel.org/netfilter-devel/ak5lH1UnFth6oreP@strlen.de/
-> 
-> nf_nat is now converted in one patch, as suggested. The remaining
-> families (nfnetlink, nf_log, x_tables, ...) will follow the same way.
+> Let me know if there is anything that needs to be addressed.
 
-Hi Carlos,
+AFAICT, this PR was merged to net-next on the 29th:
+  https://git.kernel.org/netdev/net-next/c/0a1a3898ab64fd4f7b90816fc61186d8eb5302a7
 
-given that this is a mechanical change that is not a risk, can they all 
-be handled in a single patch for the netfilter subsystem?
+The bot was a little confused, but the reply was actually sent:
+  https://lore.kernel.org/all/179064961102.229594.11396134169189168960.git-patchwork-notify@kernel.org/
 
-Thanks,
-Fernando.
+Best regards, Ilya Maximets.
 
 > 
->   include/linux/netfilter/nf_conntrack_sip.h |  2 +-
->   net/ipv4/netfilter/nf_nat_h323.c           | 10 +++++-----
->   net/ipv4/netfilter/nf_nat_pptp.c           |  4 ++--
->   net/netfilter/nf_nat_amanda.c              |  2 +-
->   net/netfilter/nf_nat_ftp.c                 |  2 +-
->   net/netfilter/nf_nat_irc.c                 |  2 +-
->   net/netfilter/nf_nat_sip.c                 |  6 +++---
->   7 files changed, 14 insertions(+), 14 deletions(-)
+> Thanks.
 > 
-> diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-> index aafa0c04f917..3b66ec4b20c8 100644
-> --- a/include/linux/netfilter/nf_conntrack_sip.h
-> +++ b/include/linux/netfilter/nf_conntrack_sip.h
-> @@ -143,7 +143,7 @@ struct nf_nat_sip_hooks {
->   				 unsigned int *datalen,
->   				 unsigned int matchoff,
->   				 unsigned int matchlen,
-> -				 u_int16_t port);
-> +				 u16 port);
->   
->   	unsigned int (*sdp_session)(struct sk_buff *skb,
->   				    unsigned int protoff,
-> diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
-> index 6bcd6734769b..265c1ba5b348 100644
-> --- a/net/ipv4/netfilter/nf_nat_h323.c
-> +++ b/net/ipv4/netfilter/nf_nat_h323.c
-> @@ -186,7 +186,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
->   	struct nf_ct_h323_master *info = nfct_help_data(ct);
->   	int dir = CTINFO2DIR(ctinfo);
->   	int i;
-> -	u_int16_t nated_port;
-> +	u16 nated_port;
->   
->   	if (!info)
->   		return -1;
-> @@ -282,7 +282,7 @@ static int nat_t120(struct sk_buff *skb, struct nf_conn *ct,
->   		    struct nf_conntrack_expect *exp)
->   {
->   	int dir = CTINFO2DIR(ctinfo);
-> -	u_int16_t nated_port = ntohs(port);
-> +	u16 nated_port = ntohs(port);
->   
->   	/* Set expectations for NAT */
->   	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
-> @@ -321,7 +321,7 @@ static int nat_h245(struct sk_buff *skb, struct nf_conn *ct,
->   {
->   	struct nf_ct_h323_master *info = nfct_help_data(ct);
->   	int dir = CTINFO2DIR(ctinfo);
-> -	u_int16_t nated_port = ntohs(port);
-> +	u16 nated_port = ntohs(port);
->   
->   	if (!info)
->   		return -1;
-> @@ -402,7 +402,7 @@ static int nat_q931(struct sk_buff *skb, struct nf_conn *ct,
->   {
->   	struct nf_ct_h323_master *info = nfct_help_data(ct);
->   	int dir = CTINFO2DIR(ctinfo);
-> -	u_int16_t nated_port = ntohs(port);
-> +	u16 nated_port = ntohs(port);
->   	union nf_inet_addr addr;
->   
->   	if (!info)
-> @@ -488,7 +488,7 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
->   			      struct nf_conntrack_expect *exp)
->   {
->   	int dir = CTINFO2DIR(ctinfo);
-> -	u_int16_t nated_port;
-> +	u16 nated_port;
->   
->   	/* Set expectations for NAT */
->   	exp->saved_addr = exp->tuple.dst.u3;
-> diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
-> index fed5249001a4..5387c288c348 100644
-> --- a/net/ipv4/netfilter/nf_nat_pptp.c
-> +++ b/net/ipv4/netfilter/nf_nat_pptp.c
-> @@ -130,7 +130,7 @@ pptp_outbound_pkt(struct sk_buff *skb,
->   	struct nf_ct_pptp_master *ct_pptp_info;
->   	struct nf_conn_nat *nat = nfct_nat(ct);
->   	struct nf_nat_pptp *nat_pptp_info;
-> -	u_int16_t msg;
-> +	u16 msg;
->   	__be16 new_callid;
->   	unsigned int cid_off;
->   
-> @@ -243,7 +243,7 @@ pptp_inbound_pkt(struct sk_buff *skb,
->   {
->   	const struct nf_nat_pptp *nat_pptp_info;
->   	struct nf_conn_nat *nat = nfct_nat(ct);
-> -	u_int16_t msg;
-> +	u16 msg;
->   	__be16 new_pcid;
->   	unsigned int pcid_off;
->   
-> diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
-> index 330415809425..17b0c1c8d4e1 100644
-> --- a/net/netfilter/nf_nat_amanda.c
-> +++ b/net/netfilter/nf_nat_amanda.c
-> @@ -34,7 +34,7 @@ static unsigned int help(struct sk_buff *skb,
->   			 struct nf_conntrack_expect *exp)
->   {
->   	char buffer[sizeof("65535")];
-> -	u_int16_t port;
-> +	u16 port;
->   
->   	/* Connection comes from client. */
->   	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
-> diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-> index 25d20e2970ae..0c90165040e0 100644
-> --- a/net/netfilter/nf_nat_ftp.c
-> +++ b/net/netfilter/nf_nat_ftp.c
-> @@ -70,7 +70,7 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
->   			       struct nf_conntrack_expect *exp)
->   {
->   	union nf_inet_addr newaddr;
-> -	u_int16_t port;
-> +	u16 port;
->   	int dir = CTINFO2DIR(ctinfo);
->   	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
->   	unsigned int buflen;
-> diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
-> index 89b31fe932ba..140b7d99a887 100644
-> --- a/net/netfilter/nf_nat_irc.c
-> +++ b/net/netfilter/nf_nat_irc.c
-> @@ -39,7 +39,7 @@ static unsigned int help(struct sk_buff *skb,
->   {
->   	char buffer[sizeof("4294967296 65635")];
->   	union nf_inet_addr newaddr;
-> -	u_int16_t port;
-> +	u16 port;
->   
->   	/* Reply comes from server. */
->   	newaddr = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3;
-> diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-> index 8c412bcf6cff..e27c9744054e 100644
-> --- a/net/netfilter/nf_nat_sip.c
-> +++ b/net/netfilter/nf_nat_sip.c
-> @@ -410,7 +410,7 @@ static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
->   	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
->   	struct nf_ct_sip_master *ct_sip_info = nfct_help_data(ct);
->   	union nf_inet_addr newaddr;
-> -	u_int16_t port;
-> +	u16 port;
->   	__be16 srcport;
->   	char buffer[INET6_ADDRSTRLEN + sizeof("[]:nnnnn")];
->   	unsigned int buflen;
-> @@ -536,7 +536,7 @@ static unsigned int nf_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
->   				    const char **dptr, unsigned int *datalen,
->   				    unsigned int matchoff,
->   				    unsigned int matchlen,
-> -				    u_int16_t port)
-> +				    u16 port)
->   {
->   	char buffer[sizeof("nnnnn")];
->   	unsigned int buflen;
-> @@ -601,7 +601,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
->   	enum ip_conntrack_info ctinfo;
->   	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
->   	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-> -	u_int16_t port;
-> +	u16 port;
->   
->   	/* Connection will come from reply */
->   	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
+> On Mon, Sep 28, 2026 at 01:04:07AM +0200, Pablo Neira Ayuso wrote:
+>> Hi,
+>>
+>> On Sun, Sep 27, 2026 at 10:40:44PM +0000, netdev-bot+sinfo@kernel.org wrote:
+>>> Hi!
+>>>
+>>> This is an automated message. This series looks like a fix, but its
+>>> commit messages seem to be missing some information:
+>>>
+>>>  - How the issue was discovered, e.g. hit in production, hit during
+>>>    development, syzbot report, manual code inspection, LLM or static
+>>>    analysis tool scan.
+>>>
+>>>  - Whether the issue was actually triggered, or is only theoretical
+>>>    (e.g. found by code inspection). If it was triggered please include
+>>>    the symptoms, like the stack trace or error messages.
+>>>
+>>> Please do not repost the series just to address the above. Instead,
+>>> reply to this email with the missing information, so that reviewers
+>>> can take it into account. If the series needs another revision for
+>>> other reasons, please include the information in the commit messages
+>>> then.
+>>>
+>>> The evaluation is done by an LLM so it may be wrong, if you think
+>>> that is the case please reply and explain.
+>>
+>> This are correctness fixes (no crashes to my knowledged, hence I
+>> decided to target net-next) as the cover letter specifies:
+>>
+>> Patch #1 TCP sequence tracking issue was reported by sashiko as the
+>>          cover letter says.
+>>
+>> Patch #2 Just documentation update to fix incorrect information
+>>          about the maximum number of expectations.
+>>
+>> Patch #3 Just a cleanup patch to remove a break;
+>>
+>> Patch #4 Just a cleanup, typos in comments.
+>>
+>> Patch #5 and #6 are the result of a human triggered review of the
+>>          conntrack error stats by Phil Sutter, I think.
+>>
+>> Patch #7 is a preparation patch for #8.
+>>
+>> Patch #8 removes a unnecessary workqueue flush, submitter does not
+>>          specify if it is visible in production, I suspect with
+>>          a very large number of netns it must be. Author does not
+>>          claim LLM assistance.
+>>
+>> Patch #9 is a fix triggered by sashiko report IIRC, I deemed it too
+>>          large for net so I am routing this rework-fix to net-next.
+>>
+>> Patch #10 is a feature fix, IPv6 filtering does not work.
+>>           I suspect it was found when trying to use this (broken)
+>>           feature by the submitter.
+>>
+>> Patch #11 Ilya Maximets reports the CTA_ZONE filtering feature is
+>>           not easy to infer from userspace, I don't think LLM
+>>           triggered this, it looks more like an improvement to help
+>>           userspace tools discover this feature.
+>>
+>> This is human written reply, my cover letter has been generated by me
+>> too to provide more context on these patches.
+>>
+>> Thanks!
+>>
 
