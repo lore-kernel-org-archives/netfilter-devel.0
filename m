@@ -1,1579 +1,258 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBD23503BF3
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2026 23:20:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F8F4EB866
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2026 23:29:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791328827; cv=none; b=h+NmUQ1jr/YQ/uodbQFgrL0r7LH/EU90XlXJ/ognFRdXkkzDq++pEnjW3s2A2N+T0xBaCD8QymnS4HkhPkanDSR5/ArQDdv68LPr17GBjMVTMAvMnc76aYKlnJJkJ13Ugn3PoH80sZwfDqSkajaaeQekj8MayzzoFLV1VFUz6Dc=
+	t=1791329393; cv=none; b=RcneeWPflBLcCjErm+WM44BeXin24zn/7qG5hdswOwRXUMNMwOzWeQpyplEFbV6ScYiRo2NKGkdtoReHAVv6c2uXf2vro7OapWnombX5Ghl5HJgoFzMmbuVv98bxkwwXNrehx6pkknFmcNxcSHtdDBXBMwWFoDYHj+CkvsdVSRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791328827; c=relaxed/simple;
-	bh=P516KjCi1kW2guE97uPxRHVWC9dK+TsMSStJuoaS31E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eOMiGx+nCDua626nKsrLptuak8XFmJ7Xqf8I1qk7tIn743pa0l2ikbHtFsmuSeJMVoIjC+hILKfflZ0Nkpq2yDfPy7zjsV0VEP5LQ5gxtB0fonTFXl0u0eYStpEWJtlNa5TFzBMEK0dBRVa8hwN/FxBoE5Kvx2IftCdRkrlqbMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B20CD6059E; Wed, 07 Oct 2026 01:20:00 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: shell: add conntrack template attachment test
-Date: Wed,  7 Oct 2026 01:19:53 +0200
-Message-ID: <20261006231953.6338-1-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1791329393; c=relaxed/simple;
+	bh=ocn2LG+3XqWHAzzxWhIw1Vu+5Kvlr0F7F8bwgplAFng=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VbA8YteoKmPpfTgjFS9OhESAsCO/lUKy0hCoGa2lfHkqam/0VwntIxEk52ju1n7xazpWbYcTA/okT+499+JDgUOhT5c9IAI54SYFwv9sVCGn8vb4SSBiHf4ftf465JmPUN0VV+kaxbNC5pb1zsBg7YP6yt0xw091W5ApQB77TKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R56yklVy; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R56yklVy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791329374;
+	bh=wN22jH42qzsOB2M3zzyFxVAGe5YcVbsbfEaORf5jlqg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=R56yklVy3XK+HwPY/8XljDW2YGgilfgFVpQvBFgIRM9wOHi9U4NeKzqPjPWU0O9+o
+	 jiMrQQYbp4Uncci++rYEL1j89ROJugFb4jmP//MiEXjqxOqLalkjMLxiScSdj4KWos
+	 hRLcN3JethX0UThYlHQ6g3rzWsh1R5eaPYNpbdlXugcePbAO+IJkC1nODXSZRaQVds
+	 mBXyTcW9VEXp5AL1iDq/aTkkBLS4gcZSHNg5THLZtVXzIIBBWuXj3Z2twXyFIz6X0p
+	 JQlsGrcn2gPDUuBGwLCmXaQewDI5HGbJiTT4/LAntqf+UJ+dQ3mkOYVtSG1dFoELbn
+	 thX/bka5Osp2g==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D95CA60090;
+	Wed,  7 Oct 2026 01:29:33 +0200 (CEST)
+Date: Wed, 7 Oct 2026 01:29:30 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Matthieu Baerts <matttbe@kernel.org>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
+	Netfilter Coreteam <coreteam@netfilter.org>
+Subject: Re: Netfilter: match "tcp option" with the same type present
+ multiple times
+Message-ID: <asWEWpVJLk0so8zM@chamomile>
+References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
+ <arrhlKkKSSKFp4Sq@chamomile>
+ <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
+ <aruMPHNdZq7U9eV9@chamomile>
+ <4da35a94-af13-47de-adef-35b5671100b7@kernel.org>
+ <arupFwGHewREJJ74@chamomile>
+ <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
 
-Try to attach ct templates at various priorities and check that
-attachmet only works at the acceptable positions: prerouting + output,
-before nf_conntrack_in() on the kernel side.
+Hi Matthieu,
 
-Relax the test for now to not fail on kernels that lack the required
-validation and SKIP if all attachment request work.
+On Wed, Sep 30, 2026 at 08:33:36PM +0200, Matthieu Baerts wrote:
+> Hi Pablo,
+> 
+> Thank you for your reply!
+> 
+> On 29/09/2026 14:03, Pablo Neira Ayuso wrote:
+> > On Tue, Sep 29, 2026 at 12:40:47PM +0200, Matthieu Baerts wrote:
+> >> On 29/09/2026 12:00, Pablo Neira Ayuso wrote:
+> >>> On Tue, Sep 29, 2026 at 11:21:15AM +0200, Matthieu Baerts wrote:
+> >>>> Hi Pablo,
+> >>>>
+> >>>> Thank you for your reply!
+> >>>>
+> >>>> On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
+> >>>>> Hi Mattieu,
+> >>>>>
+> >>>>> On Mon, Sep 28, 2026 at 02:13:16PM +0200, Matthieu Baerts wrote:
+> >>>>>> Hello Netfilter devs,
+> >>>>>>
+> >>>>>> First, thank you for maintaining Netfilter in the kernel and the
+> >>>>>> userspace tools.
+> >>>>>>
+> >>>>>> The MPTCP selftests are switching from IPTables to NFTables, and
+> >>>>>> Clashiko reported that this part of a rule wouldn't match anything:
+> >>>>>>
+> >>>>>>   tcp option mptcp subtype remove-addr drop
+> >>>>>>
+> >>>>>> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+> >>>>>> added to the TCP options, it is added after an MPTCP DSS option (type
+> >>>>>> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
+> >>>>>> (type 30) options in the TCP options. It looks like Netfilter doesn't
+> >>>>>> handle that, because it stops processing other TCP options when the
+> >>>>>> expected type is found:
+> >>>>>>
+> >>>>>> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
+> >>>>>>     ...
+> >>>>>> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
+> >>>>>> 		optl = optlen(opt, i);
+> >>>>>>
+> >>>>>> 		if (priv->type != opt[i])
+> >>>>>> 			continue;
+> >>>>>> 		...
+> >>>>>> 		return;  // <== it will look at the first MPTCP option
+> >>>>>> 	}
+> >>>>>>     ...
+> >>>>>> }
+> >>>>>>
+> >>>>>> It looks like it shouldn't stop if the wrong subtype is found, but the
+> >>>>>> subtype is not compared there if I'm not mistaken. Should there be a fix
+> >>>>>> to support this case?
+> >>>>>
+> >>>>> Would it work for you if you can specify what TCP option you want to
+> >>>>> match? ie.
+> >>>>>  
+> >>>>>     tcp option[2] mptcp subtype remove-addr drop
+> >>>>>                ^
+> >>>>>                |
+> >>>>>                |
+> >>>>>        allow to specify a match at a given tcp option
+> >>>>
+> >>>> In my specific use-case, yes it would work. Some MPTCP sub-options will
+> >>>> always be after another one... when the Linux stack is used.
+> >>>
+> >>> This would require a smaller patch.
+> >>
+> >> I understand. But I guess that still means adding a new option.
+> >>
+> >> In my case, it would work, but this might be confusing for people who
+> >> want to use this filter: they need to know if a suboption can be used
+> >> with another one. I guess they could have multiple rules to check the
+> >> presence of a suboption in the first matched type, and in a second one,
+> >> but that seems confusing. Or maybe not?
+> > 
+> > You mean, the might want to validate the entire list of suboptions in
+> > a particular order, correct? ie. first suboption A then suboption B.
+> 
+> Yes, that's one possibility. But initially, I was thinking about having
+> two rules (or a set?) to match "the MPTCP subtype is either in the first
+> MPTCP option, or the second one (if any)". (Or nft could always say with
+> MPTCP by default, check also for a second MPTCP option, if any)
+>
+> >>>>> Or would this be too strict for your use-case and you would prefer
+> >>>>> that you can match it anywhere?
+> >>>>
+> >>>> I think it would make more sense to match it anywhere. For example, an
+> >>>> MP_RESET can be used alone, or after an MP_FASTCLOSE. Plus some stacks
+> >>>> could reorder the options as there is no imposed order.
+> >>>
+> >>> I think this would require a MPTCP subtype parser, ie. make kernel
+> >>> aware of MPTCP subtypes.
+> >>
+> >> In nft_exthdr_tcp_eval(), why can the comparison not be done there
+> >> instead of copying the data in a register, and compare later on? If the
+> >> comparison is done directly for a given type and is different, the code
+> >> could continue and check for the same type. (Or store in multiple
+> >> registers.)
+> > 
+> > In nftables, the fetch then cmp instructions are splitted, ie. you
+> > first retrieve then you compare (or make a set lookup with it).
+> > Builtin comparison should be possible, but it defeats the integration
+> > with the set infrastructure.
+> 
+> OK, I see.
+> 
+> If someone gives ...
+> 
+>   tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
+> 
+> ... a bitmap could be used, but then that's specific to MPTCP I suppose.
 
-Assisted-by: LLM
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Companion nftables.git shell test for the
- 'netfilter: nft_ct: validate hook and priority for ct zone set' kernel
- patch.
+I think this makes sense from user perspective.
 
- It could be added to nftables.git already, its expected to PASS or
- SKIP only.
+The nft_exthdr expression needs iterate over the whole list of tcp
+options, then if type is 30, make a set lookup to check if the subtype
+value is in the set.
 
- ...te_ct_zone_set_template_attach.sh.json-nft | 918 ++++++++++++++++++
- ...alidate_ct_zone_set_template_attach.sh.nft | 206 ++++
- .../validate_ct_zone_set_template_attach.sh   | 377 +++++++
- 3 files changed, 1501 insertions(+)
- create mode 100644 tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.json-nft
- create mode 100644 tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.nft
- create mode 100755 tests/shell/testcases/transactions/validate_ct_zone_set_template_attach.sh
+Something like:
 
-diff --git a/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.json-nft b/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.json-nft
-new file mode 100644
-index 000000000000..9dd84f95cad9
---- /dev/null
-+++ b/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.json-nft
-@@ -0,0 +1,918 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "prerouting_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "prerouting_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "prerouting_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "forward",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "forward",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "output_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "output_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "output_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "postrouting",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "postrouting",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "ctz",
-+        "chain": "nonbase",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip6",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "prerouting_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "prerouting_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "prerouting_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "forward",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "forward",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "output_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "output_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "output_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "postrouting",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "postrouting",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip6",
-+        "table": "ctz",
-+        "chain": "nonbase",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "bridge",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "prerouting_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "prerouting_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "prerouting_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "forward",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "forward",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "output_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "output_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "output_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "postrouting",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "postrouting",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "bridge",
-+        "table": "ctz",
-+        "chain": "nonbase",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "inet",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "prerouting_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "prerouting_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "prerouting_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "prerouting",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "forward",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "forward",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "output_before",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -201,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "output_at",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -200,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "output_after",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": -199,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "postrouting",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "postrouting",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "name": "ingress",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "ingress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "chain": "prerouting_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "chain": "output_before",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "jump": {
-+              "target": "nonbase"
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "inet",
-+        "table": "ctz",
-+        "chain": "nonbase",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "mangle": {
-+              "key": {
-+                "ct": {
-+                  "key": "zone"
-+                }
-+              },
-+              "value": 1
-+            }
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "arp",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "arp",
-+        "table": "ctz",
-+        "name": "input",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "input",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "arp",
-+        "table": "ctz",
-+        "name": "output",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "output",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "arp",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "netdev",
-+        "name": "ctz",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "ctz",
-+        "name": "ingress",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "ingress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "ctz",
-+        "name": "nonbase",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "ctz",
-+        "name": "egress",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "egress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.nft b/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.nft
-new file mode 100644
-index 000000000000..dee5c6259e0e
---- /dev/null
-+++ b/tests/shell/testcases/transactions/dumps/validate_ct_zone_set_template_attach.sh.nft
-@@ -0,0 +1,206 @@
-+table ip ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200; policy accept;
-+	}
-+
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199; policy accept;
-+	}
-+
-+	chain input {
-+		type filter hook input priority filter; policy accept;
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority filter; policy accept;
-+	}
-+
-+	chain output_before {
-+		type filter hook output priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain output_at {
-+		type filter hook output priority -200; policy accept;
-+	}
-+
-+	chain output_after {
-+		type filter hook output priority -199; policy accept;
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority filter; policy accept;
-+	}
-+
-+	chain nonbase {
-+		ct zone set 1
-+	}
-+}
-+table ip6 ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200; policy accept;
-+	}
-+
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199; policy accept;
-+	}
-+
-+	chain input {
-+		type filter hook input priority filter; policy accept;
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority filter; policy accept;
-+	}
-+
-+	chain output_before {
-+		type filter hook output priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain output_at {
-+		type filter hook output priority -200; policy accept;
-+	}
-+
-+	chain output_after {
-+		type filter hook output priority -199; policy accept;
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority filter; policy accept;
-+	}
-+
-+	chain nonbase {
-+		ct zone set 1
-+	}
-+}
-+table bridge ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority filter - 1; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain prerouting_at {
-+		type filter hook prerouting priority filter; policy accept;
-+	}
-+
-+	chain prerouting_after {
-+		type filter hook prerouting priority filter + 1; policy accept;
-+	}
-+
-+	chain input {
-+		type filter hook input priority 0; policy accept;
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority 0; policy accept;
-+	}
-+
-+	chain output_before {
-+		type filter hook output priority filter - 1; policy accept;
-+	}
-+
-+	chain output_at {
-+		type filter hook output priority filter; policy accept;
-+	}
-+
-+	chain output_after {
-+		type filter hook output priority filter + 1; policy accept;
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority 0; policy accept;
-+	}
-+
-+	chain nonbase {
-+		ct zone set 1
-+	}
-+}
-+table inet ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200; policy accept;
-+	}
-+
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199; policy accept;
-+	}
-+
-+	chain input {
-+		type filter hook input priority filter; policy accept;
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority filter; policy accept;
-+	}
-+
-+	chain output_before {
-+		type filter hook output priority -201; policy accept;
-+		ct zone set 1
-+		jump nonbase
-+	}
-+
-+	chain output_at {
-+		type filter hook output priority -200; policy accept;
-+	}
-+
-+	chain output_after {
-+		type filter hook output priority -199; policy accept;
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority filter; policy accept;
-+	}
-+
-+	chain nonbase {
-+		ct zone set 1
-+	}
-+
-+	chain ingress {
-+		type filter hook ingress priority filter; policy accept;
-+	}
-+}
-+table arp ctz {
-+	chain input {
-+		type filter hook input priority filter; policy accept;
-+	}
-+
-+	chain output {
-+		type filter hook output priority filter; policy accept;
-+	}
-+
-+	chain nonbase {
-+	}
-+}
-+table netdev ctz {
-+	chain ingress {
-+		type filter hook ingress priority filter; policy accept;
-+	}
-+
-+	chain nonbase {
-+	}
-+
-+	chain egress {
-+		type filter hook egress priority filter; policy accept;
-+	}
-+}
-diff --git a/tests/shell/testcases/transactions/validate_ct_zone_set_template_attach.sh b/tests/shell/testcases/transactions/validate_ct_zone_set_template_attach.sh
-new file mode 100755
-index 000000000000..c2dab6ac6b25
---- /dev/null
-+++ b/tests/shell/testcases/transactions/validate_ct_zone_set_template_attach.sh
-@@ -0,0 +1,377 @@
-+#!/bin/bash
-+#
-+# Test ct zone set placement in base chains across all families and hooks.
-+#
-+# ct zone set is only valid in:
-+#  - PREROUTING hook with priority < -200 (before conntrack)
-+#  - OUTPUT hook in ip/ip6/inet families (bridge OUTPUT does not see traffic)
-+#
-+# For every other base chain the kernel must reject both
-+#   'ct zone set <n>'
-+# and
-+#   'jump <non-base-chain containing ct zone set>'
-+#
-+# same for the unsupported families and hooks.
-+
-+set -e
-+
-+expected_fail=0
-+actual_fail=0
-+total=0
-+expected_ok=0
-+actual_ok=0
-+bad=0
-+
-+errlog() {
-+	local fam=$1 chain=$2 what=$3 err=$4
-+
-+	echo "Unxpected $err: add rule $fam ctz $chain $what"
-+	$NFT list table $fam ctz
-+}
-+
-+test_chain() {
-+	local fam=$1 chain=$2 expected=$3
-+	local pass="n"
-+
-+	total=$((total + 1))
-+
-+	if [ "$expected" = "y" ]; then
-+		expected_ok=$((expected_ok + 1))
-+	fi
-+
-+	if $NFT add rule "$fam" ctz "$chain" ct zone set 1; then
-+		# accepted -- jump to non-base chain must also be accepted
-+		if ! $NFT add rule "$fam" ctz "$chain" jump nonbase; then
-+			errlog $fam $chain "jump" "failure"
-+			bad=$((bad + 1))
-+		else
-+			pass="y"
-+			actual_ok=$((actual_ok + 1))
-+		fi
-+	else
-+		if [ "$expected" = "y" ]; then
-+			errlog $fam $chain "ct zone set 1" "failure"
-+			bad=$((bad + 1))
-+			return
-+		fi
-+
-+		# rejected -- jump to non-base chain must also be rejected
-+		if [ "$fam" = "netdev" ] || [ "$fam" = "arp" ] ; then
-+			# non-basechain doesn't have a ct zone set rule.
-+			if $NFT add rule "$fam" ctz "nonbase" ct zone set 1; then
-+				errlog $fam $chain "ct zone set 1" "success"
-+				bad=$((bad + 1))
-+			else
-+				expected_fail=$((expected_fail + 1))
-+			fi
-+
-+			return
-+		fi
-+
-+		if $NFT add rule "$fam" ctz "$chain" jump nonbase; then
-+			errlog $fam $chain "jump" "success"
-+			bad=$((bad + 1))
-+		fi
-+	fi
-+
-+	if [ "$pass" = "y" ] && [ "$expected" = "n" ]; then
-+		errlog $fam "$chain" "both" "success"
-+	fi
-+}
-+
-+# ---------------------------------------------------------------------------
-+# Create tables with base chains in every family / hook.
-+# PREROUTING and OUTPUT each get three chains:
-+#   -201 (before conntrack), -200 (at conntrack), -201 (after conntrack).
-+#
-+# Each table also carries a non-base chain "nonbase" holding
-+# 'ct zone set 1'; no base chain jumps to it at this point.
-+# ---------------------------------------------------------------------------
-+
-+$NFT -f - <<EOF
-+table ip ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201;
-+		policy accept;
-+	}
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200;
-+		policy accept;
-+	}
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199;
-+		policy accept;
-+	}
-+	chain input {
-+		type filter hook input priority 0;
-+		policy accept;
-+	}
-+	chain forward {
-+		type filter hook forward priority 0;
-+		policy accept;
-+	}
-+	chain output_before {
-+		type filter hook output priority -201;
-+		policy accept;
-+	}
-+	chain output_at {
-+		type filter hook output priority -200;
-+		policy accept;
-+	}
-+	chain output_after {
-+		type filter hook output priority -199;
-+		policy accept;
-+	}
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+		ct zone set 1;
-+	}
-+}
-+
-+table ip6 ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201;
-+		policy accept;
-+	}
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200;
-+		policy accept;
-+	}
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199;
-+		policy accept;
-+	}
-+	chain input {
-+		type filter hook input priority 0;
-+		policy accept;
-+	}
-+	chain forward {
-+		type filter hook forward priority 0;
-+		policy accept;
-+	}
-+	chain output_before {
-+		type filter hook output priority -201;
-+		policy accept;
-+	}
-+	chain output_at {
-+		type filter hook output priority -200;
-+		policy accept;
-+	}
-+	chain output_after {
-+		type filter hook output priority -199;
-+		policy accept;
-+	}
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+		ct zone set 1;
-+	}
-+}
-+
-+table bridge ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201;
-+		policy accept;
-+	}
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200;
-+		policy accept;
-+	}
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199;
-+		policy accept;
-+	}
-+	chain input {
-+		type filter hook input priority 0;
-+		policy accept;
-+	}
-+	chain forward {
-+		type filter hook forward priority 0;
-+		policy accept;
-+	}
-+	chain output_before {
-+		type filter hook output priority -201;
-+		policy accept;
-+	}
-+	chain output_at {
-+		type filter hook output priority -200;
-+		policy accept;
-+	}
-+	chain output_after {
-+		type filter hook output priority -199;
-+		policy accept;
-+	}
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+		ct zone set 1;
-+	}
-+}
-+
-+table inet ctz {
-+	chain prerouting_before {
-+		type filter hook prerouting priority -201;
-+		policy accept;
-+	}
-+	chain prerouting_at {
-+		type filter hook prerouting priority -200;
-+		policy accept;
-+	}
-+	chain prerouting_after {
-+		type filter hook prerouting priority -199;
-+		policy accept;
-+	}
-+	chain input {
-+		type filter hook input priority 0;
-+		policy accept;
-+	}
-+	chain forward {
-+		type filter hook forward priority 0;
-+		policy accept;
-+	}
-+	chain output_before {
-+		type filter hook output priority -201;
-+		policy accept;
-+	}
-+	chain output_at {
-+		type filter hook output priority -200;
-+		policy accept;
-+	}
-+	chain output_after {
-+		type filter hook output priority -199;
-+		policy accept;
-+	}
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+		ct zone set 1;
-+	}
-+}
-+
-+table arp ctz {
-+	chain input {
-+		type filter hook input priority 0;
-+		policy accept;
-+	}
-+	chain output {
-+		type filter hook output priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+	}
-+}
-+
-+table netdev ctz {
-+	chain ingress {
-+		type filter hook ingress priority 0;
-+		policy accept;
-+	}
-+	chain nonbase {
-+	}
-+}
-+EOF
-+
-+# Conditionally add netdev egress and inet ingress when supported.
-+if [ "${NFT_TEST_HAVE_netdev_egress}" = "y" ]; then
-+$NFT -f - <<EOF
-+	table netdev ctz {
-+		chain egress {
-+			type filter hook egress priority 0;
-+			policy accept;
-+		}
-+	}
-+EOF
-+fi
-+
-+if [ "${NFT_TEST_HAVE_inet_ingress}" = "y" ]; then
-+$NFT -f - <<EOF
-+	table inet ctz {
-+		chain ingress {
-+			type filter hook ingress priority 0;
-+			policy accept;
-+		}
-+	}
-+EOF
-+fi
-+
-+# ---------------------------------------------------------------------------
-+# Exercise every base chain.
-+# Expected: "y" = ct zone set must be accepted, "n" = must be rejected.
-+# ---------------------------------------------------------------------------
-+
-+# --- inet ---
-+for family in ip ip6 inet; do
-+	test_chain $family prerouting_before y
-+	test_chain $family prerouting_at     n
-+	test_chain $family prerouting_after  n
-+	test_chain $family input             n
-+	test_chain $family forward           n
-+	test_chain $family output_before     y
-+	test_chain $family output_at         n
-+	test_chain $family output_after      n
-+	test_chain $family postrouting       n
-+done
-+
-+# --- bridge (OUTPUT is NOT expected to work) ---
-+test_chain bridge prerouting_before y
-+test_chain bridge prerouting_at     n
-+test_chain bridge prerouting_after  n
-+test_chain bridge input             n
-+test_chain bridge forward           n
-+test_chain bridge output_before     n
-+test_chain bridge output_at         n
-+test_chain bridge output_after      n
-+test_chain bridge postrouting       n
-+
-+# --- arp ---
-+test_chain arp input n
-+test_chain arp output n
-+
-+# --- netdev ---
-+test_chain netdev ingress n
-+
-+# ingress, arp in + out.
-+if [ "${NFT_TEST_HAVE_netdev_egress}" = "y" ]; then
-+	test_chain netdev egress n
-+fi
-+
-+# --- inet ingress (if supported) ---
-+if [ "${NFT_TEST_HAVE_inet_ingress}" = "y" ]; then
-+	test_chain inet ingress n
-+fi
-+
-+# ---------------------------------------------------------------------------
-+# Evaluate results.
-+# ---------------------------------------------------------------------------
-+echo "Bad $bad, actual_ok $actual_ok, expected_ok $expected_ok, total $total"
-+
-+if [ "$bad" -ne 0 ]; then
-+	echo "FAIL: $bad unexpected result(s) out of $total"
-+	exit 1
-+fi
-+
-+# Expected successes and failures matched exactly.
-+if [ "$actual_ok" -eq "$expected_ok" ]; then
-+	exit 0
-+fi
-+
-+actual_ok=$((actual_ok+expected_fail))
-+if [ "$actual_ok" -eq "$total" ]; then
-+	# Every chain accepted ct zone set -- kernel does not enforce the
-+	# restriction, so the test has nothing to verify.
-+	# This can hopefully be removed in the future.
-+	exit 77
-+fi
-+
-+# Unexpected
-+echo "Error: no rules failed, but inconsistent number of passed/failed tests"
-+exit 1
--- 
-2.55.0
+ - loop
+ |  r1 <- exthdr     [ if no more tcp options, break loop ]
+ |  r2 <- lookup(r1) [ if found, break loop ]
 
+but exthdr need to be taugh to resume from the last visited tcp
+option. A new loop expression would wrap these two exthdr and lookup
+expression (similar to nft_inner) and store the iteration context (ie.
+last visited tcp option to continue from there).
+
+exthdr tcp option support needs advertise a new NFT_EXPR_LOOP flag, so
+it can be used with within this new nft_loop expression.
+
+Another question: Would you still like to validate that DSS comes
+before REMOVE_ADDR?
+
+> >> I don't know if you need something specific to MPTCP, maybe just a way
+> >> to check all options with the same type.
+> > 
+> > Going back to this:
+> > 
+> > "When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
+> > added to the TCP options, it is added after an MPTCP DSS option (type
+> > 0x30, len >= 8, subtype 0x2)"
+> > 
+> > Would you like to check for this particular sequence, right? Then
+> 
+> In my case, no particularly -- I just want to count/drop REMOVE_ADDR to
+> catch kernel regressions in the selftests -- but I can.
+> 
+> > position-based solution would work, because this would allow to match
+> > strictly:
+> > 
+> > pos = 0, suboption DSS
+> > pos = 1, suboption REMOVE_ADDR
+> > 
+> > This ruleset might break the protocol if there is ever a suboption
+> > before DSS.
+> 
+> Indeed. Technically, with MPTCP, we could send the REMOVE_ADDR alone
+> (without DSS), or before the DSS, or with another one in between if
+> there is room.
+
+Position matching is too strict.
+
+You can still make it with the raw expression, but I think the native
+matching representation should be more flexible too as you describe.
+
+> > Loose mode is more protocol designer friendly as it does not constrain
+> > future updates in the protocol:
+> > 
+> > "please find MP-TCP suboption REMOVE_ADDR for me"
+> > 
+> > but security folks might probably say this is ... loose, because it
+> > does not validate DSS before and REMOVE_ADDR might come anywhere.
+> > Protocol designer would say that this is good for them because this
+> > firewall does not constrain future enhancements of the protocol (still
+> > raw expressions are possible, then this last statement does not hold
+> > anymore).
+> > 
+> > Which one would you pick? :-)
+> 
+> I would first prefer if people don't drop packets with MPTCP options :-D
+> 
+> Honestly, I'm not sure what people would be interested in doing in
+> production, but I guess it would be more: "please match packet with
+> MPTCP suboption X, no matter the order".
+
+Yes, as discussed, this is more protocol friendly too in terms of
+extensibility.
+
+> If people are interested in a specific packet where MPTCP suboptions
+> are in a specific order, with a specific length, I *think* they can
+> use a raw payload expression instead, no?
+> 
+> In my case, I just wanted to drop packets with a specific MPTCP
+> suboption. It happens that I know exactly which packet I want to block,
+> and I can use a raw payload expression, but a simpler rule would be
+> welcome :)
+
+Makes sense.
+
+This would need an extension in the kernel as Florian has anticipated.
