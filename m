@@ -1,115 +1,116 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C7C09475
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2026 03:57:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F16C352C51
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 Oct 2026 06:50:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791259040; cv=pass; b=R6QrMw5mfZdc0jLgqc35qkr8Ca1sckQp+iJz+/JJANDL8emhKZlXp2uplI3ht5gbejWcmgeL33Wc82QSeLAVehEKv5VTIXU1DTvvKP8aoy58mvbDeB5nl95ecrW+05jPOg90yxPHW/eBQeUMO9EU5DA9KUpjuJ0O8h+j4JyZfXI=
+	t=1791269420; cv=pass; b=IM2LgaS5mpzr8Vdzaj/5pkhYzrQbeXtw94YW7LjJB+q/oSdpS8cYlbASrA/RPJlmnkD+qMLwOpxE9NnYpYZ4oCwfYWgRUR1HT1wTHPUDft5Ly+ZZfiU+IH+cwqRuDY1Y9F1c8oPGmy8cD/pAS7QbxS14UBTcgWl21ZTomFBwPVI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791259040; c=relaxed/simple;
-	bh=AsQPTCijFFnSl6uhcmGXEH58t82NdDV5ST2wdTt6GoE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PxtpMKjQmUe0OI3Hc8ZVSjlGXCM7SUH8pU9fLZ/HSIgGhPJYW2Uz5ABjdDK1ra6tUgEMJLdwLAnea0GwSFtPhIIe6n+ysIUmLLU0JRSqTNGMd1JL1zwd0/pHOFBzj5NwJ7OGFnZxK2WhemvGYG0mFaJs9ai+Cwb31Cs4xWUL4/8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fuZ5d/fB; arc=pass smtp.client-ip=209.85.208.51
+	s=arc-20240116; t=1791269420; c=relaxed/simple;
+	bh=XJC8mnwuYM0KLaAKHJuhy0GpuAFopbEkJ/aam2wcfBA=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=JndzP0A7JsrtpwETYoXCr7Hh7HeyWcrO2s6wj2xbnPdeiGWLTiVBo90Y3iEosoCndmS+8qnOpaoF0mTj55p+IcEuhQYf7lhb9iNoRhL/5lvNM0jKVoGxNU+5iLfbIe/dkkOlAF1JGXkYxRMXKS012R6lEmkMqVQTCoekBBDaqkU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KaeMH66A; arc=pass smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fuZ5d/fB"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-6aa8d04fcddso809715a12.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Oct 2026 20:57:17 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791259036; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KaeMH66A"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c2e8e738ae0so24855366b.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Oct 2026 23:50:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791269417; cv=none;
         d=google.com; s=arc-20260327;
-        b=rYvfPs0KzmJSYrt3GMAEXJlzqE1Gw9xOXrznO50GQpjS8/mFYupq9wkWT3YanFVeJx
-         EYDgTHpnoK+pBRjxzJnhqhjh5ocS4ItKMgA6ofpoIdlZY0A3HH+Wc6jqPnO0K5Ax4nmD
-         N/vT4e6QMaWao4c4o200sByOiKqeSul6NCM/ugktt7Xe2RegjuQ8/4zfKS4UqUxcQwGW
-         2CWBovtLO1Uw3WDmBL9dGzBsPW5vO7IFspWVN3LSsw93oIAhlbdlCgHQZE6Ienig7wwT
-         q4dAh8tXdLWIACIHL4xqL7nwdRPmiGFhlYT7/UdJTj+N1908EjiZ3WIcbfZ+fcjT7lm1
-         GKdQ==
+        b=jVjw9xbwmLy4HmMazYddARTVDxEAbpmEM0A0zZzrM5coNV65y1AeHDnG+6qE9j2T/C
+         SwMvV88J/Y11wkw1e6cn8d3nv0PP1AzlLDQU8gu6kxxVnwly5Cx3BGhMdxam+5uz/3Ny
+         62CGkMWJcybT5WE73h8miYkUBKzTiCVhUmJiyEbYJSIvU8B4W3TihpGOs48xKiTId1nh
+         YcUaya9i7flHwfF+vdmPyO/0sH1MI5TGFB3bzeb/YjEZPoc4AleFFzVdVmqwrItUfEKn
+         1Eh2gTxcb+x6Foefcf7SpNG+4UMu2Queg8B8dBqBN//m4pbHWPt6EMKD1D2oivqU/Wq2
+         Jhag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=AsQPTCijFFnSl6uhcmGXEH58t82NdDV5ST2wdTt6GoE=;
-        fh=mR0cbyxmUQHmfjxk4mYftttVM5KZY6kWflOlGBd9wIQ=;
-        b=G/6baODj6LaS2NEdZolfqCyoS6mgdYWiebukTNaVq+VVmuSAYhJrmQme7DMgQMAG2m
-         g+G+FJ5rs4MpN22Lcj594I6za0ChRuckd6N31CnfWirOIWYG9jBxR3JX65XFh/6P1YlP
-         sfwG8OA6ZRoQPimQrFaY8afht1GR6h465YJpt4bJHHP5E0UopnJmsjueAyQuueXyDRVD
-         JW6k0FGPdkdoB2BdgU2Xa2gLJNU30K6iwzXNJN+b6E29M4uOoLHCk6vbKUjap/pPXSxx
-         uzaNv/TaLpvL/BsWDc4bnvK3px2+Rw1w9UHom1v6l2V3iaRoFOuAU7UVZNdsDSfKg6w6
-         Qkwg==;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=tqsYm2RdTA8FFgoOM+5IDbbKZf3ev28pnZIlHkY/9I4=;
+        fh=nOJbkLmOaZkWQ485QxUS5VRYX1iyTQJMxlnfwG87F8I=;
+        b=DARzJeM5oYz78xnesSNLIfS+8Z4D1K/9FZOv2/CJsippxmad5JfKCjXKgPvDLEFS0s
+         oRwMLV7AsrQNPjUXLCj42dzHEiCa9KT4anr8wjKiG+0ysCZtgyKZWANRNtmRpsvDTIJW
+         lo0HRAQljqo0MtIitZFJA/mFv377+xh8Be8ivDdn3t+KB7oakaLEWkUSl/054htSeGvZ
+         oNFxAQEwBAlKVJjqTMzU1DvhB8vfi2FXBF33uEoz6E7MIWZH04B2AYBX854/UwWxmeQo
+         xko57sNS7XlmgEmFlfjuHkihTeD6lS2eVIwyNYH/IVMBOUlZNo6qViQXEkuEJA2pCBuS
+         HXvw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791259036; x=1791863836; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=AsQPTCijFFnSl6uhcmGXEH58t82NdDV5ST2wdTt6GoE=;
-        b=fuZ5d/fBYdVJWcmI6k/DPPngY255c4n9mWL97UrU2omDaP1i6tXuy6e1feARF9Kgiz
-         mri5EiedH0ERmeU7PZZsa/KQXORrGHU5TAncgNhlFC0Coa3qdytBVFiJVrdU+bQr3apQ
-         /KEbHk+K17Re5XiibuPK8NfxmJWnPxxNCh11mXLjrqXZFvWx38kzshF9rgsE0+BKmjcY
-         drqEU2KA5GC2EZXNJD9q+wTN37hBP42GSRL6CNCnPdiF1aviIWfeU7bPNWGIovu8f0E2
-         6LvDtZudLBH2PyHY+xzjgozHN9zxZnCknXBB3194nfq+bsfxrHRYe2GR+iYUJgv7mUY6
-         oULQ==
+        d=gmail.com; s=20251104; t=1791269417; x=1791874217; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=tqsYm2RdTA8FFgoOM+5IDbbKZf3ev28pnZIlHkY/9I4=;
+        b=KaeMH66AKwELWekBwEaCGSlQ2kIB2ySGAKVHaKUlw8wq319DLYUhxnVd7bKMEndGcu
+         KYD2h1CxkmlO/YBkK72LkGFxWlt6hhzd+DXpHnjl6SpkuaGeuVgxa1SPU0A9RbTmwFBO
+         nIxsGRANI+5cYbptMSI5DuCiNmd8hEWSZcRD9OzcP083O/Mkn4kvWBPMFhX3NeHQNs1I
+         ekxkbH/s0x0cCsW55QvS6cH2ugsApTZo4eSI2DieRA2dP8hU65D9XiKUNKDLlCtbsHSb
+         doSu4xVmOB3nTmONrhzmKMN1xpspH8/CQ5eJbDEtoPsKLZki6OPIfBZDs83JdS/6ZJu+
+         2rew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791259036; x=1791863836;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=AsQPTCijFFnSl6uhcmGXEH58t82NdDV5ST2wdTt6GoE=;
-        b=C2rUbDvxg6B4h8KcqvsMoXS3o3lQ6zECPaxXhpay9rsuFmr3Tdylp4qHo9AFLHJ5Bx
-         pn86f6MzwyOfqFfKoeDN2kzC73RFc8sDylemH5OvyNVi7Tg549OqchDTSyM4WaIiGoy3
-         K1DkgX/TSUHBWlsT+27SlLWbgAa77y1rArJCon4xQJSoqnypDBDCrLM0bFhXLsFP/GPG
-         KQ1xG9tr9ClPsFzUSYBDFx9+EjbX5f2ojZzBrwGRo61XXTIp58LSMyU8A3DNMuI0tMER
-         m51VpzE2C0tPO9nZPYyLJUqR/dDvNZkY/XPLr9UfkCy+VUD3oWYAKJoG8Kb63LaCl/Dz
-         6hMA==
-X-Forwarded-Encrypted: i=1; AKwUvByNI+UtU1fcB1Gc0MieN27wnUK9Xgy6x+aoM2ErSX1Xa/KrG1FC/3L7/eu5bGoxC1k0IYz36YA7FGZQr9q1M6M=@vger.kernel.org
-X-Gm-Message-State: AFq9FYLLNY9IDkONS5dBFhkPZf7J+jkbM9p3NLA/n++j/wXo+0esXFsk
-	ROJIliqgCyEkWe89BYk0HRfBnClNrfE0JR0nfc8VsBfplyHEBSGovFtztPubfYInBP86uQCTh+T
-	KulhZgaemZB7pYgAka/4DUb1d9zJOMhg=
-X-Gm-Gg: AYBFou2rFlijNEz18Gl/Kf09COqwpqwZD2nCE4Ml8H86hi3VeudRpcq5iDjJCydUsuc
-	R1ZbC2mEPeruDoLEOV39Y5Bw1cEpXqK8rzANpLQHE54H0Op8VNfZ9Xvv8/cBJG5p/vmfzQBbS/l
-	oYymw6Fu5bW/i/E1R8T/NSJknct5/froZrPRA17LGYVrv2YaCcl9wMVXLNrJFXxM7prP4wUOXaK
-	HrCEck7pN00traVFX7UAc2i6+xb23CJsVrgzYzHJSpCR0NAD2wDFHHENltrKgy7qUoowaRb+1b0
-	r20i9LHEfe/4gOVi0nk8LkY3ByLCDn+NGgZNkh2JKqOrRHnfPlC8X6Nc
-X-Received: by 2002:a05:6402:2488:b0:6af:a270:b2a7 with SMTP id
- 4fb4d7f45d1cf-6afe280985dmr147282a12.0.1791259035733; Mon, 05 Oct 2026
- 20:57:15 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1791269417; x=1791874217;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=tqsYm2RdTA8FFgoOM+5IDbbKZf3ev28pnZIlHkY/9I4=;
+        b=qBgplXFT/r4MtdT6b+CUR6bA+UEiT88yM+veqcbX4Qb5QlRBEGfasFwxv3VyX10soj
+         DPnpNXTSnXwDTpPJDuFCxjxDWv5F0KfZT5Itm8YwnzN0BdyRHG27iCCp3rdmxtUVzYz9
+         nHl0SSn0OzMYTmYcrlkogHVefTPD6ygSJHycqJ1yqn0f4Dc46NSNc4SwSb251heyxfwk
+         WFAMYEsQHc2EouTwtgoLrF3bOMueziXa3Y1Y0OhYkhuwvGm4QmlVzLD2C7P6YcaTpuvg
+         qQktEtu1lbZwai2LDXMCtWudnESn3tRVT8+teD/r3U9nbBa289udwx+siSWaIkJwWT7J
+         WlOw==
+X-Forwarded-Encrypted: i=1; AKwUvBxh9eJ5u3Q37Qz/XzLI9ABpqydGI+8Vi3/BrajjBTp+Ng8OXYpuL3hBE2piNBxPtIL2cICx4eU6/hukVi63/HQ=@vger.kernel.org
+X-Gm-Message-State: AFuF++kXR8I5K7hZmikZ5lk10uGbysZa65X+wG1CQ0lxDKNC/t+zkEuP
+	Ld704TrwX0lh3yLhpshlD79dz0D4AWrZojPHr7McFa4dW2Aya9iftXY7Ow0Wt/zYZjJuDEoZ3ZH
+	12mIfKBVZPDtOfrGhAGRpNBo5sBftM6A=
+X-Gm-Gg: AYBFou0B8/cMbqhvhLCgkpsQ0OAka7DocmBqJ134YajYJa7N9z5X2DTHN5P35L239jF
+	DsdXofZgD1v+y44T8HCwNMhItu4FqyXl5tzGAiaayDuDKWyNn9owN34S72dpkNBfrEULZf5PpgI
+	MrgGYDDyKlImlVcGe3rF9i2TxgdoQocAAmSwdvNAgsA6DGmJN7eGViiUsEh8q8yugtWHbDO9N25
+	63xdA5aWlnL+olfLwiq6NVzwossGeX3ATEsXzZuzQnBIaE/GKADdpZ+6oONsRqoIU2ndMnV9lZk
+	l6AtaMIZ7qEUiIJwkD/7kwx3388HNnYeHG4LLfuJA+yYDnTT7Bqe5Jcz
+X-Received: by 2002:a17:907:868b:b0:c2d:ca8d:435a with SMTP id
+ a640c23a62f3a-c316a03a07cmr48107466b.38.1791269417167; Mon, 05 Oct 2026
+ 23:50:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAHeizqHDqx3ue1=0QL92ef+6C63Ur+v1Z=d93smgdD5zTj_-Pw@mail.gmail.com>
- <arORyXjxvZUoEAIw@chamomile> <CAHeizqF--yGMCLGBEv9f7Gs=dmbZO6+DwSh7KZjpDgbNonCotA@mail.gmail.com>
- <ar4db-oTyeSGTpCy@chamomile> <ar6DFv-zudWg6i1z@chamomile>
-In-Reply-To: <ar6DFv-zudWg6i1z@chamomile>
 From: Subham Pal <subhampal789@gmail.com>
-Date: Tue, 6 Oct 2026 09:27:04 +0530
-X-Gm-Features: AclHuK-4B_jprqNVXhLiushIvBfXup2XgaXBALX2ddQEQ01QkjBFDMAPA_kUpzg
-Message-ID: <CAHeizqFAFRLf2bGdw-pTLh-ovWFR729Z47obV7m17TrcMb6SVw@mail.gmail.com>
-Subject: Re: [PATCH net 0/2] netfilter: nf_conntrack_h323: fixes for NAT
+Date: Tue, 6 Oct 2026 12:20:05 +0530
+X-Gm-Features: AclHuK80foSKJUG9aXGi4lMnHGQEDESfSk-FDQU10Eg1rsE8o1J9c3o2lczDRbc
+Message-ID: <CAHeizqGJ6WpknaU=WE+PB2A09jWi==-sUUgmc36qgStVDRdSLQ@mail.gmail.com>
+Subject: [PATCH nf-next v2 0/2] netfilter: nf_conntrack_h323: fixes for NAT
  bypass and ASN.1 decode
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: fw@strlen.de, phil@nwl.cc, kaber@trash.net, davem@davemloft.net, 
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, 
+To: Pablo Neira Ayuso <pablo@netfilter.org>, fw@strlen.de
+Cc: phil@nwl.cc, kaber@trash.net, davem@davemloft.net, edumazet@google.com, 
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, 
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
-	stable@vger.kernel.org
+	stable@vger.kernel.org, Subham Pal <subhampal789@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 1, 2026 at 9:28=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.o=
-rg> wrote:
-> > We will need a reproducer here without requiring such hardware.
->
-> This requirement is too strict, apologies, let's remove it.
+This series resolves two separate issues in the Netfilter H.323 helper:
 
-Thank you for understanding and waiving that requirement.
+1. Overly restrictive tuple comparisons across expectation helpers
+   (expect_h245, expect_rtp_rtcp, expect_t120, expect_callforwarding)
+   that bypass NAT payload mangling under DNAT, hairpin routing, and
+   reverse/reply traffic directions.
+2. An ASN.1 PER decoding bug in decode_seq() where absent extension fields
+   are processed before verifying their presence in the extension bitmap,
+   leading to packet bitstream desynchronization or premature aborts.
 
-Per your earlier note regarding the target tree, I will rebase this series
-onto nf-next and post [PATCH nf-next v2 0/2] shortly.
+v1 -> v2:
+  - Retargeted series from net/nf to nf-next per maintainer feedback.
+  - No functional changes to the code.
 
-Regards,
-Subham Pal
+Subham Pal (2):
+  netfilter: nf_conntrack_h323: do not bypass NAT helpers when tuple
+    source matches reply destination
+  netfilter: nf_conntrack_h323: check extension bitmap before decoding
+    components
+
+ net/netfilter/nf_conntrack_h323_asn1.c |  6 +++---
+ net/netfilter/nf_conntrack_h323_main.c | 24 ++++++------------------
+ 2 files changed, 9 insertions(+), 21 deletions(-)
