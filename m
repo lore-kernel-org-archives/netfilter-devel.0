@@ -1,283 +1,146 @@
-Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
+Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024CE4C6512
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 15:49:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791388178; cv=none; b=ce+Wfr226yraszjFmZm/MnC6XS12GeB6R8QL+jnViOEkK2zEGvAf9XUNA7+Bm2S2jJ9kSMCR+BBeYSX3Bq3MNiTIoEm+vPCjsSyldrWB+il+kJU+mZFvfiiAieyHhtid+/axxVCxFuEHLIe/JleEia0CXSc3hsSLjBGAwqvP4as=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791388178; c=relaxed/simple;
-	bh=KrarQrPtDYU5AM1GBZjuZkLk1Hn8XL+7NTcl0FgGXYY=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=B6F3bD0lht8rj/2SYev6/8tkDYwNHS/pHAIWU7ROYVCSGbPApUaK8a2kO6mAQkroFA67+yRIGMko435hY3JfpJ5Qmr6NjpKGrSBjimTPndlITB4bANjoqk088L6vFYRaEtLa8UUKSKjfYXIy7oeXvHWFqXYDUg/P0Hl+I3L0HQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NzOsbz56; arc=none smtp.client-ip=74.125.82.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A71E2369997
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 15:52:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.171
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791388352; cv=pass; b=tNyA7OSILX37HxcYxHEsnsTNFpqs4dHGwuEhe2jH58O3435i7sCk4gopaQommDz6X20r4NFA/a/nYCOrpYOqWu9LUNnGdj4m2R2+pEJXxIQ/PuFvQ3IqszOzwXN3QlOECpH9czEUJ1bMWaGKV7udL2Dpbl3dvB8c2xKSG1vJw4Y=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791388352; c=relaxed/simple;
+	bh=G5QAWNgkx7DW/w2sNZv58uxdaR8uMZDdjmra9Zc4X1I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Akja2SneZjPCUi5SwuUeu0UHjDK2asSI+9/lhHD4AB8vbxaqXaMUy146vS8MZM8bMNcAcRSbYLa8H+anqpC0mEqPqj+FwjZYmMeO2PBrr2VZwu4V/eTUPEyzKp6RnEPHdkNxZFUw5iK9z+IMvD30qZa3K0cbUciHdOKfphoHHMw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=tDqdCqKa; arc=pass smtp.client-ip=74.125.82.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NzOsbz56"
-Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-3516c82e96cso731641eec.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Oct 2026 08:49:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tDqdCqKa"
+Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-33fb4680717so11294834eec.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Oct 2026 08:52:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791388351; cv=none;
+        d=google.com; s=arc-20260327;
+        b=erHofsVmo+WbkhcEoFV9Xzn0r7g+AkZWbNS+7sNlIacRZS0RZiqEf4hSDOXm0tzzWn
+         EqLCwedUNzgrysh7U7aoKAh3Kqzh+C8w3g6FdkDQPRuiMp/zOqdhmoKc8L6diBJLkCbn
+         wYuD1wOK/InCNtODZafKM50I6VUXD7DUvFgGH9jssKAGQGa1ZdqD1YDk2+LtqRA4CfZ2
+         inxO8YlgFufz+btwN6Upm8MXouUMGRr334N+vSr1D6Kq2YbR498jp0jI3iKec1XGR+IL
+         o/cwm1XSEsRuOMBaB1LznfIu/auLCk7fiCWDNNnkiQOIvt6Ui8Ice0giDjikzxilJJ6n
+         A5lg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=ddlJN96nno5/ia6Ry/GbBS7HZ/b+A+h0CpSQK5QF0U8=;
+        fh=9r59rkDjWia3UgVerOL7yevDXwbFbEwpEmgzyOpFjYk=;
+        b=BYaSnusMIEPOJp6Od+cgnwXDPg9pOtLthvh3np431Ua9GB3XEJf/lyPt/UkPJPqWxi
+         NASajJ7ohwVc3rdZR6Ix0Dc0/Hlp68OHp27jp6PdY7hqmOQz7wuwxM3/rImly97iFPxw
+         4pczvAG1umMMOxHQz/+4hZsaUfEzzw8HbPDlrvKtJSWthbTF2oELHOEdCqDwPb5j1rkx
+         gZKFXzJTpZ5lYw16sNACt37fAPrdvMyBA77ifKmEF1CbKOv9UFo2UaYZGHbEACyqKv/j
+         NsQG7PcnyYmKeHB13ixR5lWFdUhwudgbao8yOhR/wEswzxIo9f5PuXbhJ5PIjlTG0HaA
+         twKw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791388175; x=1791992975; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Y+M+jNVGjExhYHY5TOYpx7uQI975MKbRu1QzVKYNZrI=;
-        b=NzOsbz56LAV+6wedWPE68Wg7ZW+FZR06AAkIIaIUaEqNsBvGxG4ONuOpCH2OAFae85
-         nQyoz1pZaBBlXt/vtEA04q3+kUTFZJysOQmcN+0Vl7mr1SmRmJItexTB/Xx37gz89yQn
-         kOsV3OGopwn/t4OmJvNvbHWLUJG0yOwYxc5CEjGVYCiFETvEeTM8WRugxvw86j+OTgqM
-         EwlO448psu/JYtXGXFB9bKgOTgHed6vFNH/Bws+RzTVC66A6UAu+FaQxsvWg14JUumfO
-         8h4wyFAgwSKecFyg5acBz6gLzQzc1Rm1V4M4lQYZsLyFogO2pnU8iHOi2POMX316mf5Q
-         A1kQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791388175; x=1791992975;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1791388351; x=1791993151; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=Y+M+jNVGjExhYHY5TOYpx7uQI975MKbRu1QzVKYNZrI=;
-        b=rMhPEP8efflQl0rY+JZIPlrEu2qOdVfLtVXxuKNuy+rX0msmWB6D8V5xE3sfDf7keH
-         SMZsd/cLyuJjpYrmdApLf1fo54yxZYDg7w4b+i7goAb+oEib98pwcG9RSLO/seoACrSJ
-         pAnJZQ0UhZeMDA8jLUORNdx5d2PU6S5XTtK4tECrD3Gx6bXFju9yJeu0lt+K2AB2KHLv
-         RFeU6yXtDpSvoftOuiRrB5outo+WJ//7vEBOsuFV/aim6nsFo9SrF0RO/gDCu4iF3C2s
-         9wx6LRu4ELm3JL5U+v64ybu++h/0awZGZaoNq9dlfSmSoplovKceEPCk3pPm8qQVSlXI
-         pc+w==
-X-Forwarded-Encrypted: i=1; AKwUvBzGOPDOk+ef185dqB8VN3/w8oTVpSxmI6XTeIllHpCYq+7scHkcPi+fN8mh8PX43wSNyCng8Wo6rN2nGVTsFG0=@vger.kernel.org
-X-Gm-Message-State: AFq9FYKjAPOaqIk21utIqHcE75LciiPYynrImXlEE+u9ElRTbyMgec9E
-	dz3X9KVPcTD9y37NQDfCooxApGyuktUlDJx8DB4prM8a4MAQbOm/C1Qn
-X-Gm-Gg: AYBFou14QUM1LRTT+uDRHDqzS73LjsMAbkz6QwEkLV/HIVq+s5tmRKClgbaD2XgQh2C
-	6cby/xA1keWzDGbQmDZ20Yr9UzdtlqmqcZ8PbZq0dwo2taYJqWI3GzW6Rq5gD1X9NApA8LKHjFh
-	OjEtvVoVCCe0260oqDQglHZ/38ZLwOvnLrGyc3HUaq5TStqqWfdw+RfKkV4FizlUs8DlsSVAo2Z
-	KN8W068ZJQYiwYfTYUa+uAH2kkmXHLTiIn7x+7nZvpGgBky9U8oM1VztDIOtSEcCW32mY5sqWWJ
-	xC98DC+LUVajmpqR7V4PslrpRWf6iDUCM7Xu5AuXo6jS/0XF2FcprO04LJgeubx0mZ1by0tOOc6
-	zcv6LPP/FKc/oNlPD+xi+wGwzu7glNOJjc5b8WowySdSW5dibUN20YYgACfh9PsvgQTmfLEEwPO
-	+SE472lO0BJ4QiM3FSfGObeAcgI7n7c9eL5dx7ZK20XAgt81zA2yo2JwxbT23JLY9Cy+srxBG21
-	EWiCbIDkPW2zePncqDP1oHFhHaoTKzdrEDPCm2Gojx0L/6XGDqEjEpvbZY9scYjQG9YxlxxriOR
-	WxQ2Pq+Ad1J1c5bDiMd8r5Fzh9Y4dw6cx1FMl/IJQrVcHl4KVW0=
-X-Received: by 2002:a05:693c:60d6:b0:351:1230:508d with SMTP id 5a478bee46e88-3515dd4d2fbmr3262965eec.13.1791388137202;
-        Wed, 07 Oct 2026 08:48:57 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([95.173.223.137])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3515abb5389sm9131411eec.2.2026.10.07.08.48.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 08:48:56 -0700 (PDT)
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: [PATCH nf-next v3] netfilter: ip6t_NPT: ensure skb is writable before
- header modification
-Date: Wed, 07 Oct 2026 12:48:51 -0300
-Message-ID: <179138813128.81565.3404247396030440460@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        bh=ddlJN96nno5/ia6Ry/GbBS7HZ/b+A+h0CpSQK5QF0U8=;
+        b=tDqdCqKa3S69UtjqZ6M7NC+G4a7oz+glTXwNSOR4lN5r6NmgAlIp/+1534kwTYl+rV
+         uAQ7FPt4z4iao2lGsFAf1t/YTzg9KGlxfj0do0BtjXQpr8pNhpdmWSdnZ/WaMTwrlH+G
+         U6JvAa1qGLiFlcIjR8283sgXrqUFBvH1wPkBhLKyKsYi9Zwpf08Nxgs0wC0BtL7Pfcqx
+         V/flqkTEw71X4koJSnePdwKlH2F9NTX6oXNZpkfmn8FhNVg3GDWjcax9QdlVJmFAj3+4
+         eJUaoaqPqwWC8srJWV/Iea4Ag/pGzyKOwJydLs+z6XOd3h+1f2uX//PoMZMeyNH4JD1i
+         Gytw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791388351; x=1791993151;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ddlJN96nno5/ia6Ry/GbBS7HZ/b+A+h0CpSQK5QF0U8=;
+        b=ZDKhUuDCDxkICBOXvKWtluJN55GaJVelHRc46Ir6o0fcdHjh8OueKOArSo73Pn90Cp
+         cf3psjvLZeYiNApiLvhzzvcitGO07oRNInYSpjCmHTcxsCIioQRQRHzC96zbaxmYHKON
+         QbBYlQHntnQIVq0D6FJjvdT1qnY4I7wH3HFpTUdtd8UmMiO9sjBhk2m65MSGXzJ1Gniy
+         Dq+grUSU9IZbd44BW0/ywl9emr9USVkVGJzPHL9ICn1zoW1MTTpZnaHaJn/Cxqb/MsJO
+         CnhD6guBoe0L1Fd23oWUi+hDWQeSqAWDewGBhK7pCtkkc21EgVHY2gWVm7vKyOE8xtso
+         ZzWw==
+X-Forwarded-Encrypted: i=1; AKwUvBx/UZW+0auT+CBE1dUsNZjn+cDFji8/2QyRudq+8p7h+Aw4vQX0rU++yoRGfSP8s+7bgJVuB386JicT7zEIuag=@vger.kernel.org
+X-Gm-Message-State: AFq9FYKJABOAziILvg7r303gzIObAhRI+WfjeA5KJL6vc1v/nZG1AYjT
+	i0ASU9DKoO6ifLsW9MyyrtbaAF8vDkueHypSZSkq3nof+JCqb2h0etm6jB1qPnodb7HMdq4JLRB
+	eYjmqlFwHl0p8jrSAR14Cb+n6RaxbSuY=
+X-Gm-Gg: AYBFou1eiE6yAD/XMd739fUqpyk03D8A9oAvqAmP2ubuBZGECaMi7ZK2Trt7AaesdrZ
+	1+KN7OESsULBeWcu45UK8sb/fixXfLoSLV26c13xccU9bxsX0LjAFnnbKN8Yd59scPIDd3K25gz
+	EMwN/ebYMj/PUKcfOwqH0as/gyX6P7ql9z9EfRx2erIKYLqdfRrzYGEHEJIcT4nVa3fvzOwv6Gg
+	pXF1BntJErMiCcUJ6qodSDYv+bGqvcqiVzrtbppqzYspoAyMgMrBNjJsnrLSv1bRxHWkUmfKy01
+	ecyKAptckwEkr7sLHJwtONfKPmWVgM4foQou3sxmmjFsjcO0x7eCs5JidKbpupV2kP/km4BzR5S
+	CGRAobgNQ3869tE9KkjzfxIo=
+X-Received: by 2002:a05:7301:4208:b0:351:1b39:9e49 with SMTP id
+ 5a478bee46e88-3515dd83c6fmr2861584eec.8.1791388350571; Wed, 07 Oct 2026
+ 08:52:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <179138670045.80227.4002052840715926590@gmail.com> <179138703794.2527009.12321622169213831789@kernel.org>
+In-Reply-To: <179138703794.2527009.12321622169213831789@kernel.org>
+From: Joas Antonio <joasantonio108@gmail.com>
+Date: Wed, 7 Oct 2026 12:52:19 -0300
+X-Gm-Features: AclHuK-Khx-Zw915T81qHlg6B6H0bmWM95M5HnMxwh0PMIbv95UhhJY0UUwPEWk
+Message-ID: <CAOCBhwE_JmVTmbuzJc8SEU1ROVyrat=7K-wqTQE=Er0gUy4fLA@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_conntrack_sip: only honour Via: port in
+ original direction
+To: netdev-bot+sinfo@kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ip6t_snpt_tg() and ip6t_dnpt_tg() rewrite the IPv6 source/destination
-address in place via ip6t_npt_map_pfx() without first calling
-skb_ensure_writable().  When the skb data is shared with a clone, the
-write is visible to the other holder of the buffer.
+Hi,
 
-This is easy to hit with DNPT in PREROUTING: a packet socket on the
-ingress interface (tcpdump, or any AF_PACKET listener) queues a clone
-of the incoming skb, and DNPT then rewrites the shared data, so the
-captured copy shows the translated destination instead of the one that
-was on the wire.
+How the issue was discovered: manual code inspection of
+nf_conntrack_sip.c / nf_nat_sip.c, assisted by an LLM (hence the
+Assisted-by: tag), while auditing the conntrack helpers for
+direction-handling issues.
 
-The ICMPv6 error path has the same problem for the embedded IPv6
-header, and a second one: icmpv6_bounced_ipv6hdr() uses
-skb_header_pointer(), which returns a pointer to a stack copy when the
-header is not in the linear area.  ip6t_npt_map_pfx() then modifies
-the copy, so the inner header of such ICMPv6 errors is never
-translated.
+I then confirmed it at runtime on 602042bf29f6 (QEMU, arm64) with
+client -> router -> server network namespaces, the router running
+nft masquerade and a "sip" ct helper on udp/5060. When the server
+sends a request with "Via: SIP/2.0/UDP <server-ip>:4444", the client
+behind the NAT receives that request and a following plain UDP payload
+on port 4444; with the patch applied both arrive on 5060.
 
-Call skb_ensure_writable() on the IPv6 header before translating it,
-and make icmpv6_bounced_ipv6hdr() ensure the embedded header is
-writable and return a pointer into the skb instead of a stack copy.
+Thanks,
+Joas
 
-Fixes: 8a91bb0c304b ("netfilter: ip6tables: add stateless IPv6-to-IPv6 Network Prefix Translation target")
-Fixes: d5608a0578a0 ("netfilter: ip6t_NPT: rewrite addresses in ICMPv6 original packet")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Assisted-by: Claude:claude-opus-5-5
----
-Changes in v3:
-- v2 was hand-edited and does not apply (corrupt hunk); regenerated
-  with git format-patch on top of current mainline.
-- Keep icmpv6_bounced_ipv6hdr() and make it return a writable pointer
-  into the skb instead of open-coding it twice.
-- Commit message: describe the reproducer below instead of the
-  earlier test notes.
 
-Reproducer (tested on 602042bf29f6, arm64, QEMU):
+Em qua., 7 de out. de 2026 =C3=A0s 12:30, <netdev-bot+sinfo@kernel.org> esc=
+reveu:
+>
+> Hi!
+>
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+>
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
+>
+> Please do not repost the series just to address the above. Instead,
+> reply to this email with the missing information, so that reviewers
+> can take it into account. If the series needs another revision for
+> other reasons, please include the information in the commit messages
+> then.
+>
+> The evaluation is done by an LLM so it may be wrong, if you think
+> that is the case please reply and explain.
 
-  ip netns add C; ip netns add R; ip netns add S
-  ip link add cr type veth peer name rc
-  ip link add rs type veth peer name sr
-  ip link set cr netns C; ip link set rc netns R
-  ip link set rs netns R; ip link set sr netns S
-  ip -n C -6 addr add fd00:1::2/64 dev cr nodad; ip -n C link set cr up
-  ip -n R -6 addr add fd00:1::1/64 dev rc nodad; ip -n R link set rc up
-  ip -n R -6 addr add fd00:2::1/64 dev rs nodad; ip -n R link set rs up
-  ip -n S -6 addr add fd00:2::2/64 dev sr nodad; ip -n S link set sr up
-  ip -n C -6 route add default via fd00:1::1
-  ip -n S -6 route add fd00:99::/64 via fd00:2::1
-  ip netns exec R sysctl -w net.ipv6.conf.all.forwarding=1
-  ip netns exec R ip6tables -t mangle -A PREROUTING -i rs \
-          -d fd00:99::/64 -j DNPT --src-pfx fd00:99::/64 --dst-pfx fd00:1::/64
 
-  # AF_PACKET listener on rs that reads its queue 4s later (cap.c below)
-  ip netns exec R ./cap rs 4 &
-  sleep 1
-  # any UDP sender works; send6.c below sends 3 datagrams to port 9999
-  ip netns exec S ./send6 fd00:99::2
-  wait
 
-  before: captured UDP packet, dst=fd00:1::98:0:0:2  (rewritten in the clone)
-  after:  captured UDP packet, dst=fd00:99::2        (as sent on the wire)
-
-cap.c:
-
-  #include <arpa/inet.h>
-  #include <linux/if_ether.h>
-  #include <linux/if_packet.h>
-  #include <net/if.h>
-  #include <netinet/ip6.h>
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <sys/socket.h>
-  #include <unistd.h>
-
-  int main(int argc, char **argv)
-  {
-          struct sockaddr_ll ll = { .sll_family = AF_PACKET,
-                                    .sll_protocol = htons(ETH_P_IPV6),
-                                    .sll_ifindex = if_nametoindex(argv[1]) };
-          int s = socket(AF_PACKET, SOCK_DGRAM, htons(ETH_P_IPV6));
-          char buf[2048], dst[64];
-
-          bind(s, (void *)&ll, sizeof(ll));
-          sleep(atoi(argv[2]));
-          for (;;) {
-                  struct ip6_hdr *h = (void *)buf;
-                  int n = recv(s, buf, sizeof(buf), MSG_DONTWAIT);
-
-                  if (n < (int)sizeof(*h))
-                          break;
-                  if (h->ip6_nxt != IPPROTO_UDP)
-                          continue;
-                  inet_ntop(AF_INET6, &h->ip6_dst, dst, sizeof(dst));
-                  printf("captured UDP packet, dst=%s\n", dst);
-          }
-          return 0;
-  }
-
-send6.c:
-
-  #include <arpa/inet.h>
-  #include <sys/socket.h>
-  #include <unistd.h>
-
-  int main(int argc, char **argv)
-  {
-          struct sockaddr_in6 a = { .sin6_family = AF_INET6,
-                                    .sin6_port = htons(9999) };
-          int s = socket(AF_INET6, SOCK_DGRAM, 0);
-
-          inet_pton(AF_INET6, argv[1], &a.sin6_addr);
-          for (int i = 0; i < 3; i++) {
-                  sendto(s, "npt", 3, 0, (void *)&a, sizeof(a));
-                  usleep(200000);
-          }
-          return 0;
-  }
-
-Kernel config: IP6_NF_IPTABLES, IP6_NF_MANGLE, IP6_NF_TARGET_NPT, PACKET.
-Builds cleanly with W=1.
-
- net/ipv6/netfilter/ip6t_NPT.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
-
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 787c74aa8..e76d202dd 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -77,29 +77,34 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 	return true;
- }
- 
--static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb,
--					      struct ipv6hdr *_bounced_hdr)
-+static struct ipv6hdr *icmpv6_bounced_ipv6hdr(struct sk_buff *skb)
- {
-+	unsigned int offset;
-+
- 	if (ipv6_hdr(skb)->nexthdr != IPPROTO_ICMPV6)
- 		return NULL;
- 
- 	if (!icmpv6_is_err(icmp6_hdr(skb)->icmp6_type))
- 		return NULL;
- 
--	return skb_header_pointer(skb,
--				  skb_transport_offset(skb) + sizeof(struct icmp6hdr),
--				  sizeof(struct ipv6hdr),
--				  _bounced_hdr);
-+	offset = skb_transport_offset(skb) + sizeof(struct icmp6hdr);
-+	if (skb_ensure_writable(skb, offset + sizeof(struct ipv6hdr)))
-+		return NULL;
-+
-+	return (struct ipv6hdr *)(skb_transport_header(skb) +
-+				  sizeof(struct icmp6hdr));
- }
- 
- static unsigned int
- ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ip6t_npt_tginfo *npt = par->targinfo;
--	struct ipv6hdr _bounced_hdr;
- 	struct ipv6hdr *bounced_hdr;
- 	struct in6_addr bounced_pfx;
- 
-+	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
-+		return NF_DROP;
-+
- 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
- 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
- 			    offsetof(struct ipv6hdr, saddr));
-@@ -107,7 +112,7 @@ ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	}
- 
- 	/* rewrite dst addr of bounced packet which was sent to dst range */
--	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-+	bounced_hdr = icmpv6_bounced_ipv6hdr(skb);
- 	if (bounced_hdr) {
- 		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->daddr, npt->src_pfx_len);
- 		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
-@@ -121,10 +126,12 @@ static unsigned int
- ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ip6t_npt_tginfo *npt = par->targinfo;
--	struct ipv6hdr _bounced_hdr;
- 	struct ipv6hdr *bounced_hdr;
- 	struct in6_addr bounced_pfx;
- 
-+	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
-+		return NF_DROP;
-+
- 	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
- 		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
- 			    offsetof(struct ipv6hdr, daddr));
-@@ -132,7 +139,7 @@ ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	}
- 
- 	/* rewrite src addr of bounced packet which was sent from dst range */
--	bounced_hdr = icmpv6_bounced_ipv6hdr(skb, &_bounced_hdr);
-+	bounced_hdr = icmpv6_bounced_ipv6hdr(skb);
- 	if (bounced_hdr) {
- 		ipv6_addr_prefix(&bounced_pfx, &bounced_hdr->saddr, npt->src_pfx_len);
- 		if (ipv6_addr_cmp(&bounced_pfx, &npt->src_pfx.in6) == 0)
--- 
-2.43.0
-
+--=20
+Joas Antonio dos Santos
+Cyber Security Specialist and Ethical Hacker
+joasantonio108@gmail.com
+LinkedIn
