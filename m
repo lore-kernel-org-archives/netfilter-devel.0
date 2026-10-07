@@ -1,93 +1,47 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6FC3F7AAB
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 08:03:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 535F6368D4C
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 08:17:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791360196; cv=none; b=lnLqElLb6uXBmn+9ed4W1M4Sm3Q+PM4OYDtklQBV22MYHi4UoftSAJhmGWRSElOdZa5Fh2oOZ+0HtkG3vAdI22b3N5qUAWrOzwp0Vms1+m+WR2G191D134iYAqwIn7ueqynC3ShI+6PX48qYyD4nxjh6madEJeGKxsrB37eBhbc=
+	t=1791361066; cv=none; b=NilagIubj7UrLo+ibT+9VOhvoAItlJRukjYWLjcZVbgxdD+hRTYFy4ZSzydW/bkfFo5hHegfzg+r284S24ypm1/JbriqJ3KWWcNBce8q7an7PICKh/IW6y40updnxBonV/fbvTCfGURisWW2BNuXsQ4BmgSDClJqFYY/VfiHLt4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791360196; c=relaxed/simple;
-	bh=jWApKTgptFdY1KQeqD93/QRCkr4X3E9F161X5R7eg/o=;
+	s=arc-20240116; t=1791361066; c=relaxed/simple;
+	bh=ypNxC703y/0we+RH+g6IzISIwrzibmYZwIRv0HDrxV0=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MjA17P1sI17b/u0xf1a/aKHHBLT0xVNXsG+daxfVZprH5WOS2w5aQcaG3TfyZjdZbKWJubbxyO6EvRdLOjAEYtBQ7XMKqh+traeiFjzSO5HT/tv31BB/OMmmkk5OCqilzHxpYEx3Sw99uc80mEVt2CkAohUGPNmcIrU+AAa5hHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=OGuqLYQm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=F2qs+CdB; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=iVn3RsEv; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=B5FA78od; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	 In-Reply-To:Content-Type; b=csMx/adgg5OE3xeNEX9RzrmYQHROg8qFmzyMZKgB6SKk3EQ14C9pTE9Y8CE0vObdTWN3Wd56VGPyqGNW1FLvZ2pbYszeNthGs9zfvR9W+NAHcZ5ZDUElbs3O8qQqi7o7ioBXfcVCAddMQYG9Kubh59zkSpAvYDAXPyEE3j/ebFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZPrSq6y4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="OGuqLYQm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="F2qs+CdB";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="iVn3RsEv";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="B5FA78od"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 816B51F7DF;
-	Wed,  7 Oct 2026 08:02:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791360174; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=qENP9ENPVPa7Um4bYKL6cP8mnHA8GkG3MZL4iFVZ92c=;
-	b=OGuqLYQmIvJ3XxjoFzibcN5BOIkjXzmmyEUleKaATSB9jZWJc4/oxBdCViHAgNQq+pHWXh
-	9iTS+vifz/5TofNsS4+zKxRsV0g2DS5524OGaSXlaYUWgdqk7z1q1juBOeCQ4LRO0B+5wZ
-	Y7SxYPo8/LRoVKmmTTWr5YNwxk8HpeA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791360174;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=qENP9ENPVPa7Um4bYKL6cP8mnHA8GkG3MZL4iFVZ92c=;
-	b=F2qs+CdBqGSVolDq3Qpsk1eVMxrMCXoOU0zsXpn0OsJrYLv3OG47s947LeOJ5pxsEzsRUM
-	8jBbefFNACN7amCQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1791360170; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=qENP9ENPVPa7Um4bYKL6cP8mnHA8GkG3MZL4iFVZ92c=;
-	b=iVn3RsEv9/ayXVSczBpdneDynrTtqs2Su7afSSm/iH6617VOkehhobC7FcXcCs83cqIOq4
-	MS2vMFoR9z2Cx5S97xZXFA00/7qLw1HFLCpCLdIPaq5LzNl9R3krI/HlRmjKCUUTQ+4F+x
-	uzgleFOeei/hA/fbg0OPUP5344ztfGk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1791360170;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=qENP9ENPVPa7Um4bYKL6cP8mnHA8GkG3MZL4iFVZ92c=;
-	b=B5FA78odmet4nqUpB+XJMjlBUPSJqJUMZlsZOuDsXzDpvOG44FkSiJus/U17FuOj6AF8p6
-	DCMDaK5F4ElMJ/Bg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1E44E13312;
-	Wed,  7 Oct 2026 08:02:50 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id H/fdNqn8xWp/KAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 07 Oct 2026 08:02:50 +0000
-Message-ID: <4b8e49eb-9a14-4dae-aed9-3bcf35308efc@suse.de>
-Date: Wed, 7 Oct 2026 10:01:51 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZPrSq6y4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99FA1F0089B;
+	Wed,  7 Oct 2026 08:17:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791361062;
+	bh=flapb3rIHWlz5txRaY/A3A+HxK88UBiNKc27LvYa5RI=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=ZPrSq6y4f+NzA+1GvPT14NtGEI3XN2w+17nZBVZ6C/kaSDFLcW6z2q5RL2VYgK7kX
+	 2h50a/MjlH1jh6YwiqSL0pv+yTvvvfh83iTbKNDyZWftzjfoYDJRG+0A/2LpKlT5oh
+	 5oaLkb06Br7LpyQVZA7Mxzhyv0dMpQlzi3dlMpNcCSxzXISE13L6DO44C6IJXzZaZl
+	 mcw20WOO/iNq+ejQ5znMNZLDgxMFjXC6vnG9cy5I8rtDPj1/6F3MG6uRUzXoiA2x3f
+	 XgE62RSz4xFoDiVX587JKC3S5LWcFEldHsbyaJD5pss7MqeikG3+IBSozTxu+67da8
+	 2r8ycSH+nHEuw==
+Message-ID: <230c857e-9560-40d5-8e9e-99d875e3a3c1@kernel.org>
+Date: Wed, 7 Oct 2026 10:17:39 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
+User-Agent: Mozilla Thunderbird Beta
 Subject: Re: Netfilter: match "tcp option" with the same type present multiple
  times
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
- Matthieu Baerts <matttbe@kernel.org>
+Content-Language: fr
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
- Netfilter Coreteam <coreteam@netfilter.org>
+ Netfilter Coreteam <coreteam@netfilter.org>,
+ Fernando Fernandez Mancera <fmancera@suse.de>
 References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
  <arrhlKkKSSKFp4Sq@chamomile>
  <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
@@ -96,145 +50,71 @@ References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
  <arupFwGHewREJJ74@chamomile>
  <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
  <asWEWpVJLk0so8zM@chamomile>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
 In-Reply-To: <asWEWpVJLk0so8zM@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.994];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_DN_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[4];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -4.30
-X-Spam-Level: 
-X-Spam-Flag: NO
 
+Hi Pablo,
 
+Thank you for your reply!
 
-On 10/7/26 1:29 AM, Pablo Neira Ayuso wrote:
-> Hi Matthieu,
-> 
+On 07/10/2026 01:29, Pablo Neira Ayuso wrote:
 > On Wed, Sep 30, 2026 at 08:33:36PM +0200, Matthieu Baerts wrote:
->> Hi Pablo,
->>
->> Thank you for your reply!
->>
 >> On 29/09/2026 14:03, Pablo Neira Ayuso wrote:
 >>> On Tue, Sep 29, 2026 at 12:40:47PM +0200, Matthieu Baerts wrote:
 >>>> On 29/09/2026 12:00, Pablo Neira Ayuso wrote:
 >>>>> On Tue, Sep 29, 2026 at 11:21:15AM +0200, Matthieu Baerts wrote:
->>>>>> Hi Pablo,
->>>>>>
->>>>>> Thank you for your reply!
->>>>>>
->>>>>> On 28/09/2026 23:52, Pablo Neira Ayuso wrote:
->>>>>>> Hi Mattieu,
->>>>>>>
->>>>>>> On Mon, Sep 28, 2026 at 02:13:16PM +0200, Matthieu Baerts wrote:
->>>>>>>> Hello Netfilter devs,
->>>>>>>>
->>>>>>>> First, thank you for maintaining Netfilter in the kernel and the
->>>>>>>> userspace tools.
->>>>>>>>
->>>>>>>> The MPTCP selftests are switching from IPTables to NFTables, and
->>>>>>>> Clashiko reported that this part of a rule wouldn't match anything:
->>>>>>>>
->>>>>>>>    tcp option mptcp subtype remove-addr drop
->>>>>>>>
->>>>>>>> When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
->>>>>>>> added to the TCP options, it is added after an MPTCP DSS option (type
->>>>>>>> 0x30, len >= 8, subtype 0x2). In other words, there will be two MPTCP
->>>>>>>> (type 30) options in the TCP options. It looks like Netfilter doesn't
->>>>>>>> handle that, because it stops processing other TCP options when the
->>>>>>>> expected type is found:
->>>>>>>>
->>>>>>>> net/netfilter/nft_exthdr.c:nft_exthdr_tcp_eval() {
->>>>>>>>      ...
->>>>>>>> 	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
->>>>>>>> 		optl = optlen(opt, i);
->>>>>>>>
->>>>>>>> 		if (priv->type != opt[i])
->>>>>>>> 			continue;
->>>>>>>> 		...
->>>>>>>> 		return;  // <== it will look at the first MPTCP option
->>>>>>>> 	}
->>>>>>>>      ...
->>>>>>>> }
->>>>>>>>
->>>>>>>> It looks like it shouldn't stop if the wrong subtype is found, but the
->>>>>>>> subtype is not compared there if I'm not mistaken. Should there be a fix
->>>>>>>> to support this case?
->>>>>>>
->>>>>>> Would it work for you if you can specify what TCP option you want to
->>>>>>> match? ie.
->>>>>>>   
->>>>>>>      tcp option[2] mptcp subtype remove-addr drop
->>>>>>>                 ^
->>>>>>>                 |
->>>>>>>                 |
->>>>>>>         allow to specify a match at a given tcp option
->>>>>>
->>>>>> In my specific use-case, yes it would work. Some MPTCP sub-options will
->>>>>> always be after another one... when the Linux stack is used.
->>>>>
->>>>> This would require a smaller patch.
->>>>
->>>> I understand. But I guess that still means adding a new option.
->>>>
->>>> In my case, it would work, but this might be confusing for people who
->>>> want to use this filter: they need to know if a suboption can be used
->>>> with another one. I guess they could have multiple rules to check the
->>>> presence of a suboption in the first matched type, and in a second one,
->>>> but that seems confusing. Or maybe not?
->>>
->>> You mean, the might want to validate the entire list of suboptions in
->>> a particular order, correct? ie. first suboption A then suboption B.
->>
->> Yes, that's one possibility. But initially, I was thinking about having
->> two rules (or a set?) to match "the MPTCP subtype is either in the first
->> MPTCP option, or the second one (if any)". (Or nft could always say with
->> MPTCP by default, check also for a second MPTCP option, if any)
->>
->>>>>>> Or would this be too strict for your use-case and you would prefer
->>>>>>> that you can match it anywhere?
->>>>>>
->>>>>> I think it would make more sense to match it anywhere. For example, an
->>>>>> MP_RESET can be used alone, or after an MP_FASTCLOSE. Plus some stacks
->>>>>> could reorder the options as there is no imposed order.
->>>>>
->>>>> I think this would require a MPTCP subtype parser, ie. make kernel
->>>>> aware of MPTCP subtypes.
->>>>
->>>> In nft_exthdr_tcp_eval(), why can the comparison not be done there
->>>> instead of copying the data in a register, and compare later on? If the
->>>> comparison is done directly for a given type and is different, the code
->>>> could continue and check for the same type. (Or store in multiple
->>>> registers.)
->>>
->>> In nftables, the fetch then cmp instructions are splitted, ie. you
->>> first retrieve then you compare (or make a set lookup with it).
->>> Builtin comparison should be possible, but it defeats the integration
->>> with the set infrastructure.
->>
->> OK, I see.
->>
+
+(...)
+
 >> If someone gives ...
 >>
->>    tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
+>>   tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
 >>
 >> ... a bitmap could be used, but then that's specific to MPTCP I suppose.
 > 
@@ -246,9 +126,9 @@ On 10/7/26 1:29 AM, Pablo Neira Ayuso wrote:
 > 
 > Something like:
 > 
->   - loop
->   |  r1 <- exthdr     [ if no more tcp options, break loop ]
->   |  r2 <- lookup(r1) [ if found, break loop ]
+>  - loop
+>  |  r1 <- exthdr     [ if no more tcp options, break loop ]
+>  |  r2 <- lookup(r1) [ if found, break loop ]
 > 
 > but exthdr need to be taugh to resume from the last visited tcp
 > option. A new loop expression would wrap these two exthdr and lookup
@@ -257,90 +137,27 @@ On 10/7/26 1:29 AM, Pablo Neira Ayuso wrote:
 > 
 > exthdr tcp option support needs advertise a new NFT_EXPR_LOOP flag, so
 > it can be used with within this new nft_loop expression.
-> 
 
-Wouldn't this be too complex? I was thinking in something a bit more 
-generic and simpler. E.g a new NFTA_EXTHDR_INNER_TYPE which will work 
-with PRESENT flag.
-
-That way one can match MPTCP options exactly the same way TCP options 
-are matched. The implementation would look first for the TCP option 30 
-and then check the subtype, if it matches return 1 otherwise continue.
-
-This is chained with a CMP_EQ expression.
-
-I have a working patch, let me polish the code and will send it as RFC 
-today so we can discuss it. I like this idea because it could be 
-extended to match similar situations in IPv6 headers or SCTP.
+Yes, this or Fernando's idea (BTW, thank you for looking at that!). Both
+will need to expose a new capability to the userspace from what I
+understand, so any of them are fine for me.
 
 > Another question: Would you still like to validate that DSS comes
 > before REMOVE_ADDR?
-> 
->>>> I don't know if you need something specific to MPTCP, maybe just a way
->>>> to check all options with the same type.
->>>
->>> Going back to this:
->>>
->>> "When an MPTCP REMOVE_ADDR suboption (type 0x30, len >=4, subtype 0x4) is
->>> added to the TCP options, it is added after an MPTCP DSS option (type
->>> 0x30, len >= 8, subtype 0x2)"
->>>
->>> Would you like to check for this particular sequence, right? Then
->>
->> In my case, no particularly -- I just want to count/drop REMOVE_ADDR to
->> catch kernel regressions in the selftests -- but I can.
->>
->>> position-based solution would work, because this would allow to match
->>> strictly:
->>>
->>> pos = 0, suboption DSS
->>> pos = 1, suboption REMOVE_ADDR
->>>
->>> This ruleset might break the protocol if there is ever a suboption
->>> before DSS.
->>
->> Indeed. Technically, with MPTCP, we could send the REMOVE_ADDR alone
->> (without DSS), or before the DSS, or with another one in between if
->> there is room.
-> 
-> Position matching is too strict.
-> 
-> You can still make it with the raw expression, but I think the native
-> matching representation should be more flexible too as you describe.
-> 
->>> Loose mode is more protocol designer friendly as it does not constrain
->>> future updates in the protocol:
->>>
->>> "please find MP-TCP suboption REMOVE_ADDR for me"
->>>
->>> but security folks might probably say this is ... loose, because it
->>> does not validate DSS before and REMOVE_ADDR might come anywhere.
->>> Protocol designer would say that this is good for them because this
->>> firewall does not constrain future enhancements of the protocol (still
->>> raw expressions are possible, then this last statement does not hold
->>> anymore).
->>>
->>> Which one would you pick? :-)
->>
->> I would first prefer if people don't drop packets with MPTCP options :-D
->>
->> Honestly, I'm not sure what people would be interested in doing in
->> production, but I guess it would be more: "please match packet with
->> MPTCP suboption X, no matter the order".
-> 
-> Yes, as discussed, this is more protocol friendly too in terms of
-> extensibility.
-> 
->> If people are interested in a specific packet where MPTCP suboptions
->> are in a specific order, with a specific length, I *think* they can
->> use a raw payload expression instead, no?
->>
->> In my case, I just wanted to drop packets with a specific MPTCP
->> suboption. It happens that I know exactly which packet I want to block,
->> and I can use a raw payload expression, but a simpler rule would be
->> welcome :)
-> 
-> Makes sense.
-> 
-> This would need an extension in the kernel as Florian has anticipated.
+
+I don't think that's needed: the RFC doesn't impose an order nor a
+specific combination. When multiple MPTCP options are used, they are
+notifying two different things.
+
+If people are interested in validating that option A comes before option
+B, that's certainly because they are trying to find a specific pattern
+-- e.g. to identify a specific stack or kernel version -- not to
+identify packets of a certain protocol. For them, they can use other
+techniques, but I don't think we need to increase the complexity to
+support that case. (At least for MPTCP.)
+
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
 
