@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 535F6368D4C
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 08:17:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1377395AFB;
+	Wed,  7 Oct 2026 08:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791361066; cv=none; b=NilagIubj7UrLo+ibT+9VOhvoAItlJRukjYWLjcZVbgxdD+hRTYFy4ZSzydW/bkfFo5hHegfzg+r284S24ypm1/JbriqJ3KWWcNBce8q7an7PICKh/IW6y40updnxBonV/fbvTCfGURisWW2BNuXsQ4BmgSDClJqFYY/VfiHLt4=
+	t=1791361372; cv=none; b=d/Uhg/ZSXHzgzXhAmSMYyHk6kvrO9RWDb+8HnGsQgPjeYHJcxbtk+fFn18Kmv8pGsqtLrZ9hiNX3Lmvn6wyOV3AdyiK0Y8zbOcWxRzJkv5oOl30mvm56uWkTlLbCNb2Sj5YDvbrDQG73v4/Y5RjoUz49JaavZnNcwoSEHyyVI0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791361066; c=relaxed/simple;
-	bh=ypNxC703y/0we+RH+g6IzISIwrzibmYZwIRv0HDrxV0=;
+	s=arc-20240116; t=1791361372; c=relaxed/simple;
+	bh=GuxAnzaKWf6UopysBjcBuyhnD9jmzw3VG2fTP9EbGMw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=csMx/adgg5OE3xeNEX9RzrmYQHROg8qFmzyMZKgB6SKk3EQ14C9pTE9Y8CE0vObdTWN3Wd56VGPyqGNW1FLvZ2pbYszeNthGs9zfvR9W+NAHcZ5ZDUElbs3O8qQqi7o7ioBXfcVCAddMQYG9Kubh59zkSpAvYDAXPyEE3j/ebFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZPrSq6y4; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=fSB2EzR3vtomszPrvvBZ3X7+1VmNoXl0bxOzxBM4KsjK3R6kXqF6GYQlNcGNKAiXT9ekg3DxMZ6he0Uot+CjiZEBO9wpgFFq7zM2SgC1zC9h9aIyWZxEB32aNN1GixeIwwktIAZ09oqEyuOn9LsXQj8qdkqY2SwmDWXyfhYubx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=owj7EXMQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZPrSq6y4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99FA1F0089B;
-	Wed,  7 Oct 2026 08:17:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="owj7EXMQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6614F1F0089C;
+	Wed,  7 Oct 2026 08:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791361062;
-	bh=flapb3rIHWlz5txRaY/A3A+HxK88UBiNKc27LvYa5RI=;
+	s=k20260515; t=1791361371;
+	bh=j/jb4rIebekOrIhzEx/OGMhErwRV4lZ90xfG88fh870=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=ZPrSq6y4f+NzA+1GvPT14NtGEI3XN2w+17nZBVZ6C/kaSDFLcW6z2q5RL2VYgK7kX
-	 2h50a/MjlH1jh6YwiqSL0pv+yTvvvfh83iTbKNDyZWftzjfoYDJRG+0A/2LpKlT5oh
-	 5oaLkb06Br7LpyQVZA7Mxzhyv0dMpQlzi3dlMpNcCSxzXISE13L6DO44C6IJXzZaZl
-	 mcw20WOO/iNq+ejQ5znMNZLDgxMFjXC6vnG9cy5I8rtDPj1/6F3MG6uRUzXoiA2x3f
-	 XgE62RSz4xFoDiVX587JKC3S5LWcFEldHsbyaJD5pss7MqeikG3+IBSozTxu+67da8
-	 2r8ycSH+nHEuw==
-Message-ID: <230c857e-9560-40d5-8e9e-99d875e3a3c1@kernel.org>
-Date: Wed, 7 Oct 2026 10:17:39 +0200
+	b=owj7EXMQa8xb665dUarnqo62ayy3j+gTkfP0ovaZZbTb7Gx/aXcfOw6kyaZsechVL
+	 f4LVX2ljJAnTLHhOXStqJBp5uknqdblghh02GaoC+NIe0STj/wDRCuht4EA+2E2fKD
+	 l4pzR4pOZ7HqhwJEsyGBRvGOqjrG0OhYgJvrYKww0V18AXdcELKFPe8XW/ZIqEVt+B
+	 wNEZYgT15FiBrF2tzuENSUTNyeFZNfJf71MnoeWROa4PmKDocxIslCVX/J71jmqFOJ
+	 X2TeLy1iiu+Gp8j4agplXKKecJyMe0NDLBW28p+s80oDyG0N9U6SBTBtl+kZBPNsm1
+	 Y6qsbK9PvxNsA==
+Message-ID: <b6b1c5b1-1004-4415-924b-b349e95d5cfc@kernel.org>
+Date: Wed, 7 Oct 2026 10:22:48 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,21 +35,12 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird Beta
-Subject: Re: Netfilter: match "tcp option" with the same type present multiple
- times
+Subject: Re: [PATCH nft v2] doc: add MPTCP subtypes documentation to man page
 Content-Language: fr
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
- Netfilter Coreteam <coreteam@netfilter.org>,
- Fernando Fernandez Mancera <fmancera@suse.de>
-References: <a391d81c-0bce-41e6-886e-a558765c6891@kernel.org>
- <arrhlKkKSSKFp4Sq@chamomile>
- <a1e6f81d-d902-4bae-8244-ad936ef70e19@kernel.org>
- <aruMPHNdZq7U9eV9@chamomile>
- <4da35a94-af13-47de-adef-35b5671100b7@kernel.org>
- <arupFwGHewREJJ74@chamomile>
- <6365150c-09d0-4a2c-84e3-ffe6e292e317@kernel.org>
- <asWEWpVJLk0so8zM@chamomile>
+To: Fernando Fernandez Mancera <fmancera@suse.de>, netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ pablo@netfilter.org, fw@strlen.de, phil@nwl.cc
+References: <20261006204803.11155-1-fmancera@suse.de>
 From: Matthieu Baerts <matttbe@kernel.org>
 Autocrypt: addr=matttbe@kernel.org; keydata=
  xsFNBFXj+ekBEADxVr99p2guPcqHFeI/JcFxls6KibzyZD5TQTyfuYlzEp7C7A9swoK5iCvf
@@ -95,66 +86,53 @@ Autocrypt: addr=matttbe@kernel.org; keydata=
  JY6dglzGKnCi/zsmp2+1w559frz4+IC7j/igvJGX4KDDKUs0mlld8J2u2sBXv7CGxdzQoHaz
  lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
 Organization: NGI0 Core
-In-Reply-To: <asWEWpVJLk0so8zM@chamomile>
+In-Reply-To: <20261006204803.11155-1-fmancera@suse.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Pablo,
+Hi Fernando,
 
-Thank you for your reply!
+On 06/10/2026 22:48, Fernando Fernandez Mancera wrote:
+> In addition, document the limitation when there are multiple MPTCP
+> options.
 
-On 07/10/2026 01:29, Pablo Neira Ayuso wrote:
-> On Wed, Sep 30, 2026 at 08:33:36PM +0200, Matthieu Baerts wrote:
->> On 29/09/2026 14:03, Pablo Neira Ayuso wrote:
->>> On Tue, Sep 29, 2026 at 12:40:47PM +0200, Matthieu Baerts wrote:
->>>> On 29/09/2026 12:00, Pablo Neira Ayuso wrote:
->>>>> On Tue, Sep 29, 2026 at 11:21:15AM +0200, Matthieu Baerts wrote:
+Thank you for the v2, it looks good to me!
+
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+
+> diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
+> index ceccfdaa..53e92905 100644
+> --- a/doc/payload-expression.txt
+> +++ b/doc/payload-expression.txt
 
 (...)
 
->> If someone gives ...
->>
->>   tcp option mptcp subtype { mp-capable, mp-join, remove-addr } drop
->>
->> ... a bitmap could be used, but then that's specific to MPTCP I suppose.
-> 
-> I think this makes sense from user perspective.
-> 
-> The nft_exthdr expression needs iterate over the whole list of tcp
-> options, then if type is 30, make a set lookup to check if the subtype
-> value is in the set.
-> 
-> Something like:
-> 
->  - loop
->  |  r1 <- exthdr     [ if no more tcp options, break loop ]
->  |  r2 <- lookup(r1) [ if found, break loop ]
-> 
-> but exthdr need to be taugh to resume from the last visited tcp
-> option. A new loop expression would wrap these two exthdr and lookup
-> expression (similar to nft_inner) and store the iteration context (ie.
-> last visited tcp option to continue from there).
-> 
-> exthdr tcp option support needs advertise a new NFT_EXPR_LOOP flag, so
-> it can be used with within this new nft_loop expression.
+> @@ -833,6 +859,21 @@ filter input tcp option sack-perm exists counter
+>  filter input tcp option maxseg size lt 536
+>  --------------------
+>  
+> +.matching MPTCP suboptions
+> +--------------------
+> +filter input tcp option mptcp subtype mp-join drop
+> +--------------------
+> +
+> +[NOTE]
+> +====================
+> +Netfilter currently evaluates only the first MPTCP option found in the TCP
+> +header. If a packet contains multiple MPTCP options, a rule attempting to match
+> +the second option will never match. Having multiple MPTCP options in the same
+> +packet is valid, e.g the Linux MPTCP stack inserts 'remove-addr', 'mp-prio' and
 
-Yes, this or Fernando's idea (BTW, thank you for looking at that!). Both
-will need to expose a new capability to the userspace from what I
-understand, so any of them are fine for me.
+(small nit: I would have added an extra '.' after 'e.g', but I don't
+think a v3 is needed to fix that.)
 
-> Another question: Would you still like to validate that DSS comes
-> before REMOVE_ADDR?
-
-I don't think that's needed: the RFC doesn't impose an order nor a
-specific combination. When multiple MPTCP options are used, they are
-notifying two different things.
-
-If people are interested in validating that option A comes before option
-B, that's certainly because they are trying to find a specific pattern
--- e.g. to identify a specific stack or kernel version -- not to
-identify packets of a certain protocol. For them, they can use other
-techniques, but I don't think we need to increase the complexity to
-support that case. (At least for MPTCP.)
+> +'mp-fail' after an MPTCP 'dss' option; 'mp-tcprst' can also be inserted after
+> +an 'mp-fastclose'.
+> +====================
+> +
+>  .matching IPv6 exthdr
+>  ---------------------
+>  ip6 filter input frag more-fragments 1 counter
 
 Cheers,
 Matt
