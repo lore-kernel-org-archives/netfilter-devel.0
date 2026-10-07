@@ -1,123 +1,105 @@
-Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C94D42123E
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 18:21:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1757F342523;
+	Wed,  7 Oct 2026 19:44:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791397264; cv=none; b=k/2TfGxwWJ+H+Ald9qfHrvx6uobv40C8xJloeQEzPbX3GlIREHN7Zn1ydgG8LHbOZwdmR3d8ZReUJL29A9NhvdSUJYaxuBlroI4p5Fw9e/ROPrdHkvfWU73IRTWLvGBcR/c+UkqSrAf3/HTohDNIv8OS3aIzf/qR0Ncf2tJndUo=
+	t=1791402250; cv=none; b=BirvuUcfnm10QtDxWxsg9KVtSWjYjFG5qfLCM6OAJ60uGtr9g/dAJMr8k6NS66yFUKPQoYQRxwmeePl9czYLWIxG3EtzMeKU41i8GYGDn9ZeDph1DgzgR3hsSDcwXLtzBwcmYnnBx3BEFxEnveoKbwA2TR9ruMPgy0p+del5VVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791397264; c=relaxed/simple;
-	bh=S8lqsGHYgEi6aN5/92S+XuHxDlvhB7Npr9vaA546jSA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lKdBJZAN+9p2pPmyIZLSolJu8wLbqwFMetzWoCtT3PpV9X6sDk8nEEpXNFlKqxCsypsHASltcYj3+geXOc9xhhcGsC2XclXjmj1UFCOh2Vy3lulcdbYLHvBQyM9xdr+pOB5UZzpx5esMkLNIaO5BodJkCflaphpIN0r9cQH2wUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R0D1T3Xz; arc=none smtp.client-ip=209.85.216.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791402250; c=relaxed/simple;
+	bh=o18PTC159uzGzI09RXEF02jVvQB93yCBG7nAUQJcmII=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kMSBI1+gPHRaXrO9bMGRFEf20or+LupQpnE309K71xHw4gLwrb2sFMB7T4dOSdNEpyia5h8QQ09lh3gwYEdum6qUTyV680A20ePQ0b5qdjE/idcrNkJSl1uS+x4LuOuHWi+mfdCUEtKLdQutYixg7fI4Eep8YGBzRvjiA9ydQQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hQhAJ+q7; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R0D1T3Xz"
-Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3a02551822eso2169247a91.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Oct 2026 11:21:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791397263; x=1792002063; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=E0PgEpbZCp+6pcisuCXGJ1lijywoGJRox1hGYTGYf5s=;
-        b=R0D1T3Xzw4H2/FtthY7LPLRdi5y8bXdLBvqEiUmp4jjLp5Gg9QxeMyDAyK5TowsqBc
-         vEvL9sIjkKp3C9F8k6eyp4j7BCgKJMDiMJCsjNplXzFESqXpwFlTRuaowfY9cSbHG66R
-         FyTI55mWXClMcMKx1cHcvG3I4L/OgWq4brm+Bj/wc7Ql6ibIYy4ZYogJKwKXEqF4UsDQ
-         3RKF8lbNJmq/XTs+UsmqaC3KDhoC0aMTa+7kROBOAqN8/zN94KFQjpmiAPGqjiQCUd5m
-         PJ2R7wyo2JA6d5+UdWyZ9t7MIhG88uqOLgt88vTcmNCdxlnohAwJN1Ga1HHhfaApsXJ+
-         ORww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791397263; x=1792002063;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=E0PgEpbZCp+6pcisuCXGJ1lijywoGJRox1hGYTGYf5s=;
-        b=rAjYo9tJ1pa4m8AYuuCVe8trmQXPAQ8TKTZmyLEHM8qs+oixkrfV13Xp84SjQXgUL+
-         3qjSkgqNMebTFFfgVC1hHRIj+Dlr2UjfmDHPxnCoa7S5HKE6nrJc7aRT31X+AOrOS6v4
-         Ec0Osbay01DfNUEY5OOXs8IVeEUXnrFnJw252YFSMgJx1nTzMrl3MBWD1SbUltAxFzWm
-         b85LQoFF5OCmidxj06RAjbk4boeG2TESgf9UYf/Lo6gZXEeZDnKPKTlmk3ZTn2qwzH4m
-         I/Q+4ny9CNBX/kW0ZJh/19OURVB83m7S0lze0GXHISsYRc2NpUcE9OxjeUe16liNrjZ4
-         MwXw==
-X-Forwarded-Encrypted: i=1; AKwUvBzf4qUMdrWE29fAEoqyb6UE3wIqhgNA5q1yEVjXb2+EWnmWCtyI0NweIlgG2ulPWyMhb4TEVW+nfLPvsLznZH0=@vger.kernel.org
-X-Gm-Message-State: AFq9FYIwyJAQKIxgF+y47nwsjDcpMseNWgZiceSpxW64S4duxspHbN0k
-	7Dw+SceCgdioTuUry6WqI9xNbDb5unlyYV2J9skdd6VoUPJOqvssowQ7SaRKzQ==
-X-Gm-Gg: AYBFou3UTUxcEwBhYd87RmoyfZAoQk9jmrX+tZWsDWCt69ItW0ZGKDViHn0hJ/pcTDb
-	wLkDdrg1fHgpGba7MFJKuEptd7J2m3dKHwmYks+rSgHAyABgE5VmpVZP9G7IBeIm0QMt6YIr/DJ
-	c3nkTbXLQvx4RQtgong17cBSZBjBe+PtwUslmWIuMpJLnksR9rjItM+pRXD1+26lSaVzbgUS4a6
-	rzawmuY05iedGh4Ig92faQh2f9KikZYfLg9PYeg7xtpCwzJT2jqUay6k/SGKlIj6kTIiKpzPGXW
-	OJodhapX9REt4GhUyddx49M7jeH7gD3cQtVMI1WC8hjOxzCXmESY663d0qvYDw+eR/+EqlOp0Gf
-	BXCmIA6slLxwNUODg3MvxhDd0zYjOTBtNaypk85oTsN+Ah2MzgXCBGsaXCgJFu3fxQK/c7SXgZx
-	XPtn1QfmQcYFuxK2BbhIJSzrbco/9ZewhQrgoov3X3xFyqbHxzGDNuL/XAeehYbj+eu2Q=
-X-Received: by 2002:a17:90b:5623:b0:3a7:ed4d:afeb with SMTP id 98e67ed59e1d1-3a8a11997c5mr1995981a91.27.1791397262645;
-        Wed, 07 Oct 2026 11:21:02 -0700 (PDT)
-Received: from dungbv.. ([58.186.69.27])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a9f1ac60b7sm720434a91.8.2026.10.07.11.20.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 11:21:02 -0700 (PDT)
-From: Bui Viet Dung <dungvn2345@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	Bui Viet Dung <dungvn2345@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] netfilter: nft_set_pipapo: skip transaction elements during GC
-Date: Thu,  8 Oct 2026 01:20:57 +0700
-Message-ID: <20261007182057.332512-1-dungvn2345@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hQhAJ+q7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791402245;
+	bh=VUuZxfLDhpvNEXQUPMbnDBpD02PVPPUZQtnIVr/uYEc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=hQhAJ+q75EPvTnnfupVoy8QjHaRkfsdtlqsn8/X8UhQDK3okAMK5eDHlB3+An+Tuq
+	 fXp+Q5SG15+GGE80o4tElokVsxVAjSpj4yZK/RkYP3a+pBDIUkygq/I+LO1iMuvy+4
+	 xGSY1ad1CUEkxlpsCDNzvRMKbMQkqN8HuveOQiknIN0wKVBsSMFXs3G7I3orydDWqO
+	 55khzS+JLc117LkueeEjbdU5j4r7np5ihmj2k28cnLkzYwsIQPJPNybL1ID9aFe7vP
+	 0tkXy02tW9soEWVw9XFIoGjbquKQzqHrVD4inzD/Qy1buYR+6iLopmfY5rwuy0hMtv
+	 Ga8GkK5jo3ABA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 7006D60055;
+	Wed,  7 Oct 2026 21:44:05 +0200 (CEST)
+Date: Wed, 7 Oct 2026 21:44:03 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Joas Antonio <joasantonio108@gmail.com>
+Cc: netdev-bot+sinfo@kernel.org, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_conntrack_sip: only honour Via: port in
+ original direction
+Message-ID: <asahA40Bh9chMyqP@chamomile>
+References: <179138670045.80227.4002052840715926590@gmail.com>
+ <179138703794.2527009.12321622169213831789@kernel.org>
+ <CAOCBhwE_JmVTmbuzJc8SEU1ROVyrat=7K-wqTQE=Er0gUy4fLA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOCBhwE_JmVTmbuzJc8SEU1ROVyrat=7K-wqTQE=Er0gUy4fLA@mail.gmail.com>
 
-Since nft_set_commit_update() runs set commit callbacks before processing
-NEWSETELEM transactions, pipapo_gc_scan() can observe elements added by
-the transaction being committed.
+On Wed, Oct 07, 2026 at 12:52:19PM -0300, Joas Antonio wrote:
+> Hi,
+> 
+> How the issue was discovered: manual code inspection of
+> nf_conntrack_sip.c / nf_nat_sip.c, assisted by an LLM (hence the
+> Assisted-by: tag), while auditing the conntrack helpers for
+> direction-handling issues.
+> 
+> I then confirmed it at runtime on 602042bf29f6 (QEMU, arm64) with
+> client -> router -> server network namespaces, the router running
+> nft masquerade and a "sip" ct helper on udp/5060. When the server
+> sends a request with "Via: SIP/2.0/UDP <server-ip>:4444", the client
+> behind the NAT receives that request and a following plain UDP payload
+> on port 4444; with the patch applied both arrive on 5060.
 
-The scan evaluates elements in priv->clone without checking the element's
-transaction state. Expired elements are deactivated, dropped from
-priv->clone, and queued for GC reclaim via pipapo_gc_queue().
+Sorry, this cannot be nf material.
 
-When the transaction loop in nf_tables_commit() subsequently processes
-NFT_MSG_NEWSETELEM, it calls nft_setelem_activate() on an element pointer
-that has already been handed off to GC reclaim, causing a
-slab-use-after-free.
+It looks fairly theoretical to me, maybe for correctness patch? Is
+this assuming a rogue server and packet spoofing?
 
-Only consider elements that are fully active in both generations, matching
-the fix applied to nft_set_rbtree in commit 86b6471e690c ("netfilter:
-nft_set_rbtree: skip transaction elements during GC"). Advance first_rule
-by rules_f0 before continuing so the loop proceeds to the next rule.
-
-Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
-Cc: stable@vger.kernel.org
-Signed-off-by: Bui Viet Dung <dungvn2345@gmail.com>
----
- net/netfilter/nft_set_pipapo.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 978bb0c0110..48658c09c59 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1745,6 +1745,11 @@ static void pipapo_gc_scan(struct nft_set *set, struct nft_pipapo_match *m)
- 		i--;
- 		e = f->mt[rulemap[i].to].e;
- 
-+		if (!nft_set_elem_active(&e->ext, NFT_GENMASK_ANY)) {
-+			first_rule += rules_f0;
-+			continue;
-+		}
-+
- 		/* synchronous gc never fails, there is no need to set on
- 		 * NFT_SET_ELEM_DEAD_BIT.
- 		 */
--- 
-2.43.0
-
+> Thanks,
+> Joas
+> 
+> 
+> Em qua., 7 de out. de 2026 às 12:30, <netdev-bot+sinfo@kernel.org> escreveu:
+> >
+> > Hi!
+> >
+> > This is an automated message. This series looks like a fix, but its
+> > commit messages seem to be missing some information:
+> >
+> >  - How the issue was discovered, e.g. hit in production, hit during
+> >    development, syzbot report, manual code inspection, LLM or static
+> >    analysis tool scan.
+> >
+> > Please do not repost the series just to address the above. Instead,
+> > reply to this email with the missing information, so that reviewers
+> > can take it into account. If the series needs another revision for
+> > other reasons, please include the information in the commit messages
+> > then.
+> >
+> > The evaluation is done by an LLM so it may be wrong, if you think
+> > that is the case please reply and explain.
+> 
+> 
+> 
+> -- 
+> Joas Antonio dos Santos
+> Cyber Security Specialist and Ethical Hacker
+> joasantonio108@gmail.com
+> LinkedIn
