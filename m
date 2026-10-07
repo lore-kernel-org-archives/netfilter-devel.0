@@ -1,199 +1,145 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C002449E13F
-	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 12:48:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4281738F950
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Oct 2026 12:56:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791377339; cv=none; b=Kw4xrRfpxgEv4Sec8iVG/g8Q0KI6HQ+hZBAmB4x1QIpLgXQ9pbg/4hJOxvlGAeV/4/sp0vL+QLhFCgCOmHoIZ8OwcsFrN4Y2UdzXbfOjQfYZYpL71VpQ4kGBgSusm7AKqZfWzJOt4SGFA/wuMB2zTKL/KHvarK7cnvZJyYT/Z5A=
+	t=1791377773; cv=none; b=N6iVtY2+ddF/SpCIkKJ/iQ8O9n3F6tth1gjpYo2pLa7K2SGb1eJv3QRQcnQZ9PDBC9rciBpX+nXt2LQi/usl4t0m+ABwPFsJLTCIFQrzeYPLKv0bzNLhzrNwJlnIJbTi18X2QaID99n4E+m7iXZ+azyMPgoQkqjIUyi6yQjY+Gw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791377339; c=relaxed/simple;
-	bh=CwPrExAq9YY3wKIH3QvURZ2cyhq5KK3ii5UwxX/8n0M=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Y3WiHYBTEiMyfBnZ4S6Qy7SlA699XRHhf2PwdkJ9HbnmTmqGBt24+MdawGdbcvsc3KUEkPdoy4igpQmw3P84gxFAwOEd8dkrUXEPYrOubMQ1Nbufy/hoNKxHIhuzk96+s/zgV9ZQQasYFNCCHAbYG1P5OHZowGJszL3aBOrQ1vg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A89826028D; Wed, 07 Oct 2026 14:48:48 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next] netfilter: nf_conntrack: limit expectation master chain depth
-Date: Wed,  7 Oct 2026 14:48:43 +0200
-Message-ID: <20261007124843.8158-1-fw@strlen.de>
-X-Mailer: git-send-email 2.55.0
+	s=arc-20240116; t=1791377773; c=relaxed/simple;
+	bh=llvql1LklDvx1A9e8PIaZCG/Ln8E6u0o1UrXALr3mQE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=LuSEFhcDvIWR5DR47G4fwRDcYYkXuMSYTLOGEBD9CcPSieLHpMGs3NdWBmp9PkZCVaFSxey1BNkIfb6wRJhgk69DjEMnxAstWWXD0+3zpp+yKP+0mOF+Ftw2GqK6qZ62iB0AvXLgt91hPpp7XE44QvowIoILe0e8/xJV6F4NhOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=P9KgezAx; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0V6VVqXG; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KuTCoQ5+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=uGtohwUM; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="P9KgezAx";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0V6VVqXG";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KuTCoQ5+";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="uGtohwUM"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id B9D8321BDE;
+	Wed,  7 Oct 2026 12:55:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1791377759; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ejVNQoFIeP/MDLKkcQCKmctUZr0AiZzjSNqTxg7ilps=;
+	b=P9KgezAxo0IQpR8in8HQ83Y67bYPjSPvOWaBBeokW7a/ZoTl1hVXaE+F+deXKrOOwGWWus
+	WCAf3av+Qxb6V8TUUgYts+OgoMLdCh4qH/JnJ7RicStMMWIrOWFMfGF8xkGggLMSTDZHe0
+	9NnvM77VZytkz76mH9XFJ3SuhTivUeo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1791377759;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ejVNQoFIeP/MDLKkcQCKmctUZr0AiZzjSNqTxg7ilps=;
+	b=0V6VVqXG1cTwH7h+EdUdekC8A1w559R6JzdWENcJk7/ZCur/OatvuYrwv6Ac0cKhwMxTAp
+	PQiuG0xDNWTVbbCQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=KuTCoQ5+;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=uGtohwUM
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1791377757; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ejVNQoFIeP/MDLKkcQCKmctUZr0AiZzjSNqTxg7ilps=;
+	b=KuTCoQ5+6868XOBVo8lU923vxrkolaDpasHz+rOd/j+xCCBY2GBNcbaPEe7ZQAMTPG8soU
+	ZKR1Yl9SMnyViUi21lEA+q0hqukIdWiNhe2twmL0Gl0Y4aIo3ss+YnRjSigG7abrPostTv
+	UiFEvYs6thkR3k64gjVF9oYz4xpa/SE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1791377757;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ejVNQoFIeP/MDLKkcQCKmctUZr0AiZzjSNqTxg7ilps=;
+	b=uGtohwUM3b8JqHi1rB0EotBPX5PbAHOsZIjX2NG9SuFEG6acPrA5PubpueMA4XWwAGlRtI
+	ErqDvHBCIutcepAg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7207C13354;
+	Wed,  7 Oct 2026 12:55:57 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id MGmiEF1BxmoDZwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 07 Oct 2026 12:55:57 +0000
+Message-ID: <634dbf1c-805d-4542-a90e-4e92dcc8ce50@suse.de>
+Date: Wed, 7 Oct 2026 14:55:02 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nf-next] selftests: netfilter: fix return value in zone
+ subtest
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20261006230459.2139-1-fw@strlen.de>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20261006230459.2139-1-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spam-Flag: NO
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.50 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-0.980];
+	MIME_GOOD(-0.10)[text/plain];
+	XM_UA_NO_VERSION(0.01)[];
+	MX_GOOD(-0.01)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[strlen.de:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:email,suse.de:dkim];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Action: no action
+X-Spam-Score: -4.50
+X-Spam-Level: 
+X-Rspamd-Queue-Id: B9D8321BDE
 
-A conntrack can point to a master conntrack, which itself may point to
-another master, and so on.  There is currently no bound on how deep this
-chain can grow.
+On 10/7/26 1:04 AM, Florian Westphal wrote:
+> zone subtest prints FAIL, but did not set 'ret=1', so kselftest
+> framework reports success.
+> 
+> While at it, also fail when "nft -f" returns an error.
+> 
+> Noticed thanks to a (broken) local patch that should have caused this
+> selftest (resp. the kselftest framework) to report a failure.
+> 
+> Fixes: 33b8aad21ac1 ("selftests: netfilter: add a vrf+conntrack testcase")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Force a max depth in nf_ct_expect_alloc(): walk the master chain and
-reject allocation if it would exceed 2 levels of nesting.
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Also add ctnetlink_find_get_master and use it so that ctnetlink create
-paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
-and returning a misleading -ENOMEM.
+Regarding the cleanup commit, we can leave that for the moment we have 
+free cycles or for a newbie to take it. I think it would be nice to have 
+but not relevant enough for a re-spin.
 
-This prevents unbounded ct->master->master->... chains.
-
-Assisted-by: LLM
-Reported-by: Daehyeon Ko <4ncienth@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- This is in addition to the recursion removal via
- "[PATCH net v3] netfilter: conntrack: avoid recursive master destruction"
-
- include/net/netfilter/nf_conntrack_helper.h | 15 +++++++++
- net/netfilter/nf_conntrack_expect.c         | 15 +++++++--
- net/netfilter/nf_conntrack_netlink.c        | 36 +++++++++++++++------
- 3 files changed, 53 insertions(+), 13 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 335b8c43694f..617178fd4d8b 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
- 
- #define NF_CT_HELPER_NAME_LEN	16
- 
-+#define NF_CT_MAX_EXPECT_CHAIN_LEN	2
-+
- /* Must be kept in sync with the classes defined by helpers */
- #define NF_CT_MAX_EXPECT_CLASSES	4
- 
-@@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
- 		kfree_rcu(helper, rcu);
- }
- 
-+static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
-+{
-+	unsigned int depth = 0;
-+
-+	while (m->master) {
-+		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
-+			return false;
-+		m = m->master;
-+	}
-+
-+	return true;
-+}
-+
- int nf_conntrack_helper_init(void);
- void nf_conntrack_helper_fini(void);
- 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 06242c86e1dc..e9e796bda577 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -299,13 +299,22 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
- }
- EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
- 
--/* We don't increase the master conntrack refcount for non-fulfilled
-- * conntracks. During the conntrack destruction, the expectations are
-- * always killed before the conntrack itself */
-+/**
-+ * nf_ct_expect_alloc - allocate a new conntrack expectation
-+ * @me: The conntrack to be used as master.
-+ *
-+ * The master conntrack refcount is not incremented; expectations
-+ * are always killed before the master conntrack is destroyed.
-+ *
-+ * Returns a new expectation on success or NULL on failure.
-+ */
- struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- {
- 	struct nf_conntrack_expect *new;
- 
-+	if (!nf_ct_master_acceptable(me))
-+		return NULL;
-+
- 	new = kmem_cache_zalloc(nf_ct_expect_cachep, GFP_ATOMIC);
- 	if (!new)
- 		return NULL;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 4e5d7c701436..628584be222e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2220,6 +2220,26 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
- 	return 0;
- }
- 
-+static struct nf_conn *
-+ctnetlink_find_get_master(struct net *net, const struct nf_conntrack_zone *zone,
-+			  const struct nf_conntrack_tuple *tuple)
-+{
-+	struct nf_conntrack_tuple_hash *master_h;
-+	struct nf_conn *master_ct;
-+
-+	master_h = nf_conntrack_find_get(net, zone, tuple);
-+	if (!master_h)
-+		return ERR_PTR(-ENOENT);
-+
-+	master_ct = nf_ct_tuplehash_to_ctrack(master_h);
-+	if (!nf_ct_master_acceptable(master_ct)) {
-+		nf_ct_put(master_ct);
-+		return ERR_PTR(-EMLINK);
-+	}
-+
-+	return master_ct;
-+}
-+
- static struct nf_conn *
- ctnetlink_create_conntrack(struct net *net,
- 			   const struct nf_conntrack_zone *zone,
-@@ -2345,7 +2365,6 @@ ctnetlink_create_conntrack(struct net *net,
- 	/* setup master conntrack: this is a confirmed expectation */
- 	if (cda[CTA_TUPLE_MASTER]) {
- 		struct nf_conntrack_tuple master;
--		struct nf_conntrack_tuple_hash *master_h;
- 		struct nf_conn *master_ct;
- 
- 		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER,
-@@ -2353,12 +2372,11 @@ ctnetlink_create_conntrack(struct net *net,
- 		if (err < 0)
- 			goto err2;
- 
--		master_h = nf_conntrack_find_get(net, zone, &master);
--		if (master_h == NULL) {
--			err = -ENOENT;
-+		master_ct = ctnetlink_find_get_master(net, zone, &master);
-+		if (IS_ERR(master_ct)) {
-+			err = PTR_ERR(master_ct);
- 			goto err2;
- 		}
--		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
- 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
- 		ct->master = master_ct;
- 	}
-@@ -3602,7 +3620,6 @@ ctnetlink_create_expect(struct net *net,
- 			u_int8_t u3, u32 portid, int report)
- {
- 	struct nf_conntrack_tuple tuple, mask, master_tuple;
--	struct nf_conntrack_tuple_hash *h = NULL;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conn *ct;
- 	int err;
-@@ -3622,10 +3639,9 @@ ctnetlink_create_expect(struct net *net,
- 		return err;
- 
- 	/* Look for master conntrack of this expectation */
--	h = nf_conntrack_find_get(net, zone, &master_tuple);
--	if (!h)
--		return -ENOENT;
--	ct = nf_ct_tuplehash_to_ctrack(h);
-+	ct = ctnetlink_find_get_master(net, zone, &master_tuple);
-+	if (IS_ERR(ct))
-+		return PTR_ERR(ct);
- 
- 	rcu_read_lock();
- 	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
--- 
-2.55.0
-
+Thanks Florian!
