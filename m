@@ -1,82 +1,249 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6CDC388E62
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 17:25:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A793364EAA
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 17:40:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791480311; cv=none; b=GdLouLQyJPQJOdNhjwKrT1OxgNqoBsBIvxZ9+GXKLKPuwNq5RElpc2Q3bKIqPmV+F/WCLCN5DpcaFABTyQV/qruTSPzB25j6NYxnf4wWnqa5EmZMBNU0cKuomDe4wqjjaFoUQj89b1+3WpSD4JEqOGvAc+xFY/DObfxfLqO2bVo=
+	t=1791481257; cv=none; b=jkqRQiZ7DSuKzyltOHpj8kr0bB4uIvhHXnPCnuwVwEXB6APVWov8cOil55riwKqsCdIOt49CDT5E1fAECmVf8lhFVgqYB7hUgaP6wmbpSzwBQEOST4FdtNNDY2Tl4gmv9UiBv01FMYAh5JVwmdnGzLWFMpkVcscPUT33gyf8XT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791480311; c=relaxed/simple;
-	bh=/V/6vMzZ1fhGS2QiYEc2BaHoi5X/GC9+Wlwks8zqcSw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KzMLmNDZvAGuT3Fz2KkZzVm05ZI/anJvj8iuay/VVD73BdLFUSxWUo4v3+j7H/H8LoBFJqkv7yJe3aMtJg3kIZBjXLpTnKRrOFwpkM3PReozqmWUqv+zyQz/c4PWjXEjJaqa084nm9/lORgx4vMnKYqpuebgOF7FanCutqn/UCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 950236059E; Thu, 08 Oct 2026 19:25:00 +0200 (CEST)
-Date: Thu, 8 Oct 2026 19:24:59 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Zixuan Chai <petalzu987@gmail.com>
-Cc: Ren Wei <weir@nebusec.ai>, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, phil@nwl.cc, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, kaber@trash.net, vega@nebusec.ai
-Subject: Re: [PATCH nf 0/1] netfilter: nf_ip6_checksum: validate checksum
- offset
-Message-ID: <asfR13j04mKUELMQ@strlen.de>
-References: <cover.1789660425.git.petalzu987@gmail.com>
- <aq0UpHHbvxjR2jLb@strlen.de>
- <aq1HaYS96SNn7HJY@strlen.de>
- <CADTzadLvrvqbnUipgw4YG+ssa78vm5aUpDSoFZCnwQoOoeMYog@mail.gmail.com>
+	s=arc-20240116; t=1791481257; c=relaxed/simple;
+	bh=/+YAFma9CNOPsZZXJQ9D5Z7wxgExh9EAjzNCi0ShrHo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LthkmYWwjB72D7DlO6lgRzZBD35Vq9XGWVD1vPTWE9pJ273bg3jWVM6XMIciwgNFyig2qPk741WZu0u1QmC07w+8/WL1yNsheb3oIVAxtPIewc3G5kjdBwImTJ465IuxlEfLBCahfrBMpddWgp+/Lrj7I5reVKeOStpJUbhT/HQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 209C121A91;
+	Thu,  8 Oct 2026 17:40:54 +0000 (UTC)
+Authentication-Results: smtp-out1.suse.de;
+	none
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8636213354;
+	Thu,  8 Oct 2026 17:40:53 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id SSvWFaXVx2r8HQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 08 Oct 2026 17:40:53 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	matttbe@kernel.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH nf-next RFC] netfilter: nft_exthdr: add inner option type search for MPTCP
+Date: Thu,  8 Oct 2026 19:40:30 +0200
+Message-ID: <20261008174030.6536-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CADTzadLvrvqbnUipgw4YG+ssa78vm5aUpDSoFZCnwQoOoeMYog@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Pre-Result: action=no action;
+	module=Unknown lua;
+	unknown reason
+X-Spam-Flag: NO
+X-Spam-Score: 0.00
+X-Spam-Level: 
+X-Rspamd-Pre-Result: action=no action;
+	module=Unknown lua;
+	unknown reason
+X-Spamd-Result: default: False [0.00 / 50.00]
 
-Zixuan Chai <petalzu987@gmail.com> wrote:
-> On Fri, 18 Sept 2026 at 22:15, Florian Westphal <fw@strlen.de> wrote:
-> >
-> > Florian Westphal <fw@strlen.de> wrote:
-> > > > We will provide detailed information about the bug in this email,
-> > > > along with a PoC to trigger it.
-> > >
-> > > patch is fine, but could you make another patch that either fixes
-> > > ipv6_find_hdr() or ip6_packet_match() / nft_set_pktinfo_ipv6() as well?
+MPTCP carries each of its suboptions as a separate TCP option of kind
+30. The suboption type is stored in the upper four bits of the third
+byte of the option. A single packet can therefore carry several kind 30
+options, for example a dss followed by an mp-prio.
 
-FTR, ipv6_find_hdr() gained this check in
-ee319bd3a0e9 ("ipv6: do not let ipv6_find_hdr() return an offset past the packet end")
+nft_exthdr_tcp_eval() stops at the first option whose kind equals
+NFTA_EXTHDR_TYPE. A rule such as:
 
-> > To clarify, I agree with this patch, I don't mean that the other
-> > patch should replace this one. I see them as separate issues, so:
-> 
-> When you have a moment, could you please let me know if any further
-> changes would be helpful for this patch? I would be happy to send a
-> revised version if needed.
+  tcp option mptcp subtype mp-prio drop
 
-netfilter patchwork is clogged up/backlogged, unfortunately.
+only ever sees the first MPTCP suboption. If that is a dss, the subtype
+comparison fails and the rule never matches, even though an mp-prio is
+present later in the same header.
 
-> > ipv6_skip_exthdr() may have the same issue.
-> 
-> I have also been looking into the ipv6_skip_exthdr() issue you
-> mentioned. I think it needs further evaluation, but so far I have
-> not been able to construct a PoC similar to the one for the
-> checksum issue.
+Add NFTA_EXTHDR_INNER_TYPE. When present, the expression keeps walking
+the options of the requested kind until one carries the requested inner
+type.  If the end of the options area is reached without a match, the
+expression behaves as if the option was not found: NFT_BREAK, or 0 when
+NFT_EXTHDR_F_PRESENT is set.
 
-> One attempt is this series:
-> https://lore.kernel.org/all/cover.1790082243.git.petalzu987@gmail.com/
-> 
-> I am not sure whether this issue warrants a fix, so I would
-> appreciate your thoughts on whether it is worth pursuing.
+See the generated bytecodes below:
 
-Wrt 2/2 Eric is right, I never reported an issue with i40e.
-The ipv6_skip_exthdr() change in patch 1/2 looks good to me.
+- Bytecode for matching mp-join without using NFT_EXTHDR_F_PRESENT flag.
 
-The other changes in 1/2 should probably be in a different patch;
-I feel its doing too many different things at the same time.
+ip mptcp_exthdr input 3 2
+  [ exthdr load tcpopt 1b @ 30 + 2 inner 1 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0xf0 ) ^ 0x00 ]
+  [ cmp eq reg 1 0x10 ]
+
+- Bytecode for matching mp-join using the NFT_EXTHDR_F_PRESENT flag.
+
+ip mptcp_exthdr input 8 7
+  [ exthdr load tcpopt 1b @ 30 + 0 present inner 1 => reg 1 ]
+  [ cmp eq reg 1 0x01 ]
+
+Note that while using the present flag is more efficient, if we decide
+to use it in nftables command line tool it would change the behavior
+when using old kernels reverting from false negatives to false
+positives.
+
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+Note: I have tested this with a libnftnl patch too and the code needs to
+be polished for the final version as more checks are required on init
+functions.
+---
+ include/uapi/linux/netfilter/nf_tables.h |  2 +
+ net/netfilter/nft_exthdr.c               | 50 +++++++++++++++++++-----
+ 2 files changed, 43 insertions(+), 9 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 0b708153469c..99c977c72641 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -910,6 +910,7 @@ enum nft_exthdr_op {
+  * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
+  * @NFTA_EXTHDR_OP: option match type (NLA_U32)
+  * @NFTA_EXTHDR_SREG: source register (NLA_U32: nft_registers)
++ * @NFTA_EXTHDR_INNER_TYPE: header inner type (NLA_U32)
+  */
+ enum nft_exthdr_attributes {
+ 	NFTA_EXTHDR_UNSPEC,
+@@ -920,6 +921,7 @@ enum nft_exthdr_attributes {
+ 	NFTA_EXTHDR_FLAGS,
+ 	NFTA_EXTHDR_OP,
+ 	NFTA_EXTHDR_SREG,
++	NFTA_EXTHDR_INNER_TYPE,
+ 	__NFTA_EXTHDR_MAX
+ };
+ #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 861bab93f435..984b54d2c6dd 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -24,6 +24,8 @@ struct nft_exthdr {
+ 	u8			dreg;
+ 	u8			sreg;
+ 	u8			flags;
++	u8			inner_type;
++	bool			has_inner;
+ };
+ 
+ static unsigned int optlen(const u8 *opt, unsigned int offset)
+@@ -207,7 +209,15 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
+ 		if (priv->type != opt[i])
+ 			continue;
+ 
+-		if (i + optl > tcphdr_len || priv->len + priv->offset > optl)
++		if (i + optl > tcphdr_len)
++			goto err;
++
++		if (priv->has_inner && priv->type == TCPOPT_MPTCP) {
++			if (!(optl >= 3 && (opt[i + 2] >> 4) == priv->inner_type))
++				continue;
++		}
++
++		if (priv->len + priv->offset > optl)
+ 			goto err;
+ 
+ 		offset = i + priv->offset;
+@@ -507,14 +517,15 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NFT_EXTHDR_F_PRESENT),
+ 	[NFTA_EXTHDR_OP]		= NLA_POLICY_MAX(NLA_BE32, 255),
+ 	[NFTA_EXTHDR_SREG]		= NLA_POLICY_MAX(NLA_BE32, NFT_REG32_MAX),
++	[NFTA_EXTHDR_INNER_TYPE]	= NLA_POLICY_MAX(NLA_BE32, 255),
+ };
+ 
+ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr,
+ 			   const struct nlattr * const tb[])
+ {
++	u32 offset, len, inner_type, flags = 0, op = NFT_EXTHDR_OP_IPV6;
+ 	struct nft_exthdr *priv = nft_expr_priv(expr);
+-	u32 offset, len, flags = 0, op = NFT_EXTHDR_OP_IPV6;
+ 	int err;
+ 
+ 	if (!tb[NFTA_EXTHDR_DREG] ||
+@@ -546,14 +557,27 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 			return err;
+ 	}
+ 
++	if (tb[NFTA_EXTHDR_INNER_TYPE]) {
++		if (op != NFT_EXTHDR_OP_TCPOPT)
++			return -EOPNOTSUPP;
++
++		err = nft_parse_u32_check(tb[NFTA_EXTHDR_INNER_TYPE],
++					  U8_MAX, &inner_type);
++		if (err < 0)
++			return err;
++
++		priv->has_inner = true;
++	}
++
+ 	if ((flags & NFT_EXTHDR_F_PRESENT) && len != 1)
+ 		return -EINVAL;
+ 
+-	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
+-	priv->offset = offset;
+-	priv->len    = len;
+-	priv->flags  = flags;
+-	priv->op     = op;
++	priv->type		= nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
++	priv->offset		= offset;
++	priv->len		= len;
++	priv->flags		= flags;
++	priv->op		= op;
++	priv->inner_type	= inner_type;
+ 
+ 	return nft_parse_register_store(ctx, tb[NFTA_EXTHDR_DREG],
+ 					&priv->dreg, NULL, NFT_DATA_VALUE,
+@@ -574,7 +598,9 @@ static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
+ 	    !tb[NFTA_EXTHDR_LEN])
+ 		return -EINVAL;
+ 
+-	if (tb[NFTA_EXTHDR_DREG] || tb[NFTA_EXTHDR_FLAGS])
++	if (tb[NFTA_EXTHDR_DREG] ||
++	    tb[NFTA_EXTHDR_FLAGS] ||
++	    tb[NFTA_EXTHDR_INNER_TYPE])
+ 		return -EINVAL;
+ 
+ 	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX, &offset);
+@@ -615,7 +641,8 @@ static int nft_exthdr_tcp_strip_init(const struct nft_ctx *ctx,
+ 	    tb[NFTA_EXTHDR_DREG] ||
+ 	    tb[NFTA_EXTHDR_FLAGS] ||
+ 	    tb[NFTA_EXTHDR_OFFSET] ||
+-	    tb[NFTA_EXTHDR_LEN])
++	    tb[NFTA_EXTHDR_LEN] ||
++	    tb[NFTA_EXTHDR_INNER_TYPE])
+ 		return -EINVAL;
+ 
+ 	if (!tb[NFTA_EXTHDR_TYPE])
+@@ -679,6 +706,11 @@ static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_EXTHDR_OP, htonl(priv->op)))
+ 		goto nla_put_failure;
++	if (priv->has_inner) {
++		if (nla_put_be32(skb, NFTA_EXTHDR_INNER_TYPE,  htonl(priv->inner_type)))
++			goto nla_put_failure;
++	}
++
+ 	return 0;
+ 
+ nla_put_failure:
+-- 
+2.55.0
+
