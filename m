@@ -1,83 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C5A74DDB31;
-	Thu,  8 Oct 2026 18:40:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6830148F022
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 23:29:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791484812; cv=none; b=kol+ZRq88GozVRbRFZIMuN6JuW7q6GVlXxDFofIxtfCSRGPjeQWDyZVVa6DgpDwYIfbCMrT9h9W5HWAoVVr6WBqa49v9Syro82CTe4i4tWgGr1sGnzP5Tib84w2qCKyVntSQfX0hEUo4t8V3VxbGf34ipf4V4V1WogbjcBNLqoc=
+	t=1791502177; cv=none; b=awfB3Y1Ylucd+r6EzXtfZutwUovqyqgLlUrxfKcxDei1brhupXcXYnQG1eViEPEOiVtn/nqbHRRVEMvdnQXUXVaofB5o9j98oV+Nj0eWPPd3ajr8fQQTAPa8aHovbMOavFkyF+5kSBypPRlw4RadbdFpXr031TIFrWScE0smac0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791484812; c=relaxed/simple;
-	bh=lHEfRP0X3S/XPTmII8KvHZ2dsrEM/XJZDkdisO/QJZQ=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=CzRubkpDnEtFLdbSW+7eCHgDTVNkwB+CxNHiZxWW1OS0monAwjsZG1epI1efTzY3VTYctqpL6x0Tsc3TJx/MyKuWB9Ur4X8dP5PB5b9Sz887pyZWOtaroYibw4Kmtm7dZjGciICqbj94WRpv5HuyWZEGxTAvU3aSf/gQQbRAgCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MWwuDYT+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791502177; c=relaxed/simple;
+	bh=hajGkdyoxZEnKe4k/ud2e4gQslNuV8jejoA2No3P/K0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KeeltQoQPyuY1GOj9W9o+GuIXLVUhOqS8ztFKfdlQ3Xio7uMHCz8kuTRqqe3qNIKJKwG2Y/e72GqKCFuzXlL4ovyc3oij5cL1aKAUobMM9T3TkFHmhkXhjkoJIMW/oMvS5JEzdSVyXB9JjlHtRZ7qeuyEpWaGLdaaixwnvs8Ld0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JDKFkHS4; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MWwuDYT+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CAAB1F0089D;
-	Thu,  8 Oct 2026 18:40:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791484811;
-	bh=7Rf+eyYaG9U/bMmoktQ3BwZa9LqnSqguhQVu3gdpBEw=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=MWwuDYT+CG8wkzfbibtXBdmSO/dqcwNc+f/L2T/6SVhawzAc/l/XfiRJr0tKWSXDp
-	 KXTOQtiBZ1RJfdtOBIXH920IdhPyXABRXPRS/ubUZ6cJGno8P4DK2EXH0Fcb4wvmPe
-	 iSyNmhVipj49Xr3LK7YGwEHvsOEGiHWwNafexmced6UGxMNOzxaCiIVhTwW3tW/vCT
-	 PE3NNDl49odCjxFJVXXGw92mvFSOF0yOECz22QB0Aae5Zm3ECSSty/LBom27gM/6dD
-	 W9f6hobjll1aDM51rxps2Lz0jxA/zJYkvZ4eT+jHcyHLtmY3SmETbtTNlXsEe3yBrZ
-	 qMhGBebQQQztw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F1750380CEC8;
-	Thu,  8 Oct 2026 18:40:10 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JDKFkHS4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791502170;
+	bh=8zQoBx1PQKq4raoFz+beJHGXiCLkUhT8QSbxzcFF2j0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JDKFkHS408SkfbHNnyS58Uan57Glh6M5D57N9XGmG/EJDvXooDFF3V/KUM1oGcCiu
+	 fqpbMoqwaojAKotyv1gbyXrILlPKT+Snl4V9qMyHD2f697P+rHMleM8cy13kZ2gAw+
+	 jCwpO3xHYnQlY4aiGgvPf/Jy3uTxV37ZbA3t2ztWcLNR1hWtJg+fjOgoANJCMyver1
+	 tBp8UtNVHO08/B9IY7S6bu3lzHgip0muDQFzUJN2snbJiDRqoFJBSi12CbE7ZrTsaB
+	 BLQEksu1LCFmy/SHsqJURMDtGBLlTVBavjCs7T7KTHoEoZDL5Ha+1NNRYtWfUaxrKo
+	 Wxo9Yu0hhXvdA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 691F56007D;
+	Fri,  9 Oct 2026 01:29:30 +0200 (CEST)
+Date: Fri, 9 Oct 2026 01:29:27 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Zixuan Chai <petalzu987@gmail.com>, Ren Wei <weir@nebusec.ai>,
+	netfilter-devel@vger.kernel.org, phil@nwl.cc, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, kaber@trash.net, vega@nebusec.ai
+Subject: Re: [PATCH nf 0/1] netfilter: nf_ip6_checksum: validate checksum
+ offset
+Message-ID: <asgnV5XFaS3V8g4W@chamomile>
+References: <cover.1789660425.git.petalzu987@gmail.com>
+ <aq0UpHHbvxjR2jLb@strlen.de>
+ <aq1HaYS96SNn7HJY@strlen.de>
+ <CADTzadLvrvqbnUipgw4YG+ssa78vm5aUpDSoFZCnwQoOoeMYog@mail.gmail.com>
+ <asfR13j04mKUELMQ@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] ipv4: validate checksum_start before completing
- checksum
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179148480952.386807.5254564638914693441.git-patchwork-notify@kernel.org>
-Date: Thu, 08 Oct 2026 18:40:09 +0000
-References: 
- <0a012b4923e189c4c593ef4f471e5ff0edbe9030.1791412497.git.mst@redhat.com>
-In-Reply-To: 
- <0a012b4923e189c4c593ef4f471e5ff0edbe9030.1791412497.git.mst@redhat.com>
-To: Michael S. Tsirkin <mst@redhat.com>
-Cc: linux-kernel@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
- razor@blackwall.org, steffen.klassert@secunet.com,
- herbert@gondor.apana.org.au, willemdebruijn.kernel@gmail.com,
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <asfR13j04mKUELMQ@strlen.de>
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Wed, 7 Oct 2026 18:42:49 -0400 you wrote:
-> If a packet with bad checksum metadata gets into the ipv4 stack,
-> skb_checksum_help can corrupt the network header and cause a bunch of
-> mischief.
+On Thu, Oct 08, 2026 at 07:24:59PM +0200, Florian Westphal wrote:
+> Zixuan Chai <petalzu987@gmail.com> wrote:
+> > On Fri, 18 Sept 2026 at 22:15, Florian Westphal <fw@strlen.de> wrote:
+> > >
+> > > Florian Westphal <fw@strlen.de> wrote:
+> > > > > We will provide detailed information about the bug in this email,
+> > > > > along with a PoC to trigger it.
+> > > >
+> > > > patch is fine, but could you make another patch that either fixes
+> > > > ipv6_find_hdr() or ip6_packet_match() / nft_set_pktinfo_ipv6() as well?
 > 
-> This was discovered and reported by Paulos, and has been reporoduced
-> by others independently since.
-> 
-> [...]
+> FTR, ipv6_find_hdr() gained this check in
+> ee319bd3a0e9 ("ipv6: do not let ipv6_find_hdr() return an offset past the packet end")
 
-Here is the summary with links:
-  - [net] ipv4: validate checksum_start before completing checksum
-    https://git.kernel.org/netdev/net/c/6785011f8b16
+Then this is fixed upstream in the core, now it validates that the
+offset provides enough room for the announced header.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+This patch is now hardening that can follow up to nf-next using 
+DEBUG_NET_WARN_ON_ONCE?
