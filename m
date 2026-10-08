@@ -1,247 +1,173 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A7AB374A18
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 07:08:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791443315; cv=none; b=I1g1fS/NGEZtqOMLcy+ePQ2HQ/E+xzQAQq9v/AZgjTT3aZviyx6EU0vw6v4JUWGHhOU2Q6wvFETzJV3roCaG3kp6WWP5mJ0pANxOKcNgiuyCn8va5O6nfjuHpqcwzh/O7n60/mukFssnrnm3ENtx5zUPorIQjaAIiCEhpTRw6xs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791443315; c=relaxed/simple;
-	bh=2DQtUVojBklWceYYZ7AkmbMmtb/k+4nBgF6tiNZfdrc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oNsgBnR9gCKxrBITTPMJXzsiZjKcQ3XnHm4TbzUCVa/XVeIuNMlSrBLtonahhsbE7SoXhFkl84StwILvpg7vsn9MOLTk295zSCHj7x9IlJGz9oR+K0KYOJEQjwzekFZNq/x7evjSGigLM29SJgLaRZkhyV3t4/zGoV4fz9iaZ4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=hEU0oWp3; arc=none smtp.client-ip=209.85.214.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9FC53D955B
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 07:29:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.43
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791444551; cv=pass; b=dhQANLJY7aUrM4NBa/OkSbfGu8xHpLGQQjywxBEpNqcimJ09uXSf20z4/iTPrV51eHUgYXxVqJ9F990CE0XoAKFuaBB+kS34ox8egfnOXCfa2/6AwTCOiesmfm93IyKxTXVESncSJi72GB7NcVsXuhrKd01IC5LW/1w4UnEFduQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791444551; c=relaxed/simple;
+	bh=UeBb5/Usyxx4tpcXjikXZiATTLeoysYCvbBWoXLg6pc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RQ8P/tTOhWmIXdldxKdeh5HsBSZv5MB8XcIDhaLi8rHrMDYmeeKfnszx7IktQCTj5JgGEEbKQazl9jD+0uJYwfLvMr1TAV7WHHKrsf0tUV7TZwIEIf3csChkSwIAjO89jWGY8vZKFqshDclAkBA9kENCqvHdYsDdzYvV+uyKAGQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B1m+at3X; arc=pass smtp.client-ip=209.85.208.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="hEU0oWp3"
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2e7006bbf77so5677455ad.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2026 00:08:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B1m+at3X"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6af9f1ebacbso83076a12.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2026 00:29:08 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791444547; cv=none;
+        d=google.com; s=arc-20260327;
+        b=TjtLtZPGfuTxwsJ1W+q/24pW/EUAWFstppjKoUCDPafUVWKMVvLr6cKiyof45jVC+B
+         o6k9mJCvZod4TMIs8kY9KM11V4nXreAWFfwkDDiOa1gmb4vJJj35w9xgwVS7iPl403hT
+         B6ReDL/ojG/d9Fe3CR6dj7/fo0NSVqT5rne2NjI4MPECfYmuk0tWPIltJP5XLuxtLPoV
+         pj/Wi/xuGwVrY9ab6dFpLilQEHa+HfaomOfO05Gpa7kBiKSDb/qtQyaeKygjlLCEtTr5
+         cMJPJFbyOcMDQZ7Ls6ZRoPuoMzD8oykvnBphaX95riziooBHPoMtSuNf3BJwAEJbXZOm
+         PyYQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=9o0oJaFKufMNjlilQDJWX/nZeJhX0+Oq7E8MvusdFBU=;
+        fh=cjCD9Gu4zjuMfYnG6HEs+h/d1NaSXovbvLgeBBEasvk=;
+        b=W9r6RxpyfB6NYo+TaFM2ppBzYuGONEgW38Plj5r+yaCQuLcezgkEsClPrDffVF+rNB
+         gpEMiZFabVQmQq3N1hylmUwo19IYDSInTjXJuhZ2FmyKVkzq+dcdlbW9PuwW509vmrzg
+         zcTt+CjXvihp2fPhq55pr+mTe09vNO8T3Vr/hqE1wTKRp0996Uvzga7Gd0y3nLESKycc
+         d1FH6cCWed1CAx7V+5KajVl29nrlmLwiwVB4Yy3VmbNV2EL3oeKVLqC52hlSo1kPwrP4
+         NKK3n7tbmG1K4hdFlmXEIwEx8WMKhVpOJmJnZ3Dw0+JD83qgBzuMk3IL2I3jgQoxtiUz
+         xUcw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1791443314; x=1792048114; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=WPkff/c113yUwpV+D0vdz5i6exryYraT8pUF3MTk8XE=;
-        b=hEU0oWp3R4f97MUg26lcXS5TofTD4z8/E8vcbm9xs80MKvT4NIvql9W25R9nlKagVj
-         lHk5Mu/IsunZGo7flWP6f8JdqnfxtVk3Lk6NmhxieYWRTpDA+/EynUI4+EqLQNBjPtQk
-         MqujD/QrI4j1id3XRi9lDnA+AEr8MmuIASWT//jUUHmQs5DcAgmH4Il9RvO8yJwZG+Y4
-         t9bTDgWOpR2IGI7pxrC1Imtk63Gm5V46/wYG69jkIPbOIW082ennJ6cneTq4QHX01jwy
-         4rB09UhzLZB9UMOtfF4/WqNXYhBqvVgt7k6uB2z9JKzTa7wVawj0ndRaHhdDmXoPGnPk
-         8Q4Q==
+        d=gmail.com; s=20251104; t=1791444547; x=1792049347; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=9o0oJaFKufMNjlilQDJWX/nZeJhX0+Oq7E8MvusdFBU=;
+        b=B1m+at3XgSsBEgsM4ST3zlmvvf1HVGEdJ2cakEhA6kzw8SlrVFy/OTljpWdHz7aK4k
+         IzWfZR7Maq2TI8Bgr3wzxA5yfYIgha7zWk0Mb8KpvyrhhGvgNqmFi4wZl3xWYx6+tf4J
+         SGt0TR2A/olVuKf37zIUD9/nSbSdY9/7MPU14PkD9zeq6m6/PR8vAgHTHxN/kG4u8phT
+         5QYqmkL7jNd7f29ZCrsL4+Tw4tjVA6D55tvqlAcTeeFxVAAXWqva4I5Vk/mdLQDiwtZH
+         dvVrU39H8Dr/LAvjbOGtE3aXlsAjv/c0zpM8InZHddYRBORen4qgzdxIrk6sf2f5BD59
+         Gg3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791443314; x=1792048114;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=WPkff/c113yUwpV+D0vdz5i6exryYraT8pUF3MTk8XE=;
-        b=o5G2/1kC+qAzcs58nbjnqMW1nh0pWKek9tLM6RqMlQf22YyN2usV5f45BvOyZoj0Lm
-         E/fWaI9rZpStSkoGODS2X5qjtd7S+Q4FLo0oA9Wt+GIfaS850kTUG79+0wj4K/3LDLs0
-         qvcN9d6fcA07cPxTU5ubiTtugpce4aMNBjz8X5plQD7l3thPO+EIiuoFKiK4wZp5TpIN
-         bk9tq7jquOgYaof2U5skcMTP+uXmu60iQgtFGHHsLHAVsNy9BwQCsB88GTaXHiVGElCs
-         PrWNV/PZnvCilIcIyORjbWxOfzxV3tznYLQ8pN6UT0Phudcy1oVH1mXBJKzCtjLMIVmS
-         MpKw==
-X-Gm-Message-State: AFq9FYJs0Zzm9Dh3vAdP/ZQZN4xvgQN5EV7F1brC1FaEH1gK4VYd2miW
-	m1NysVVCVlGnSPNqztfeldWyk2eCDwfO68Iuvxmv/vYVoheY7bTH+3AW/YdH9TT0rIePvAuR/00
-	pCrwDQ7YF
-X-Gm-Gg: AYBFou0FPthRnB389zMhzBKPoQ8qaA2Q/WeJScZbKvEr/dGnekOjlAHpxWSEfq1TYiK
-	sbA6NxbimW0EkXu9rVpadSRs6Bmo5zyHugnNu4mp7pMt5x8E3+H/LEc+6VVQysidDqFENw7VWec
-	Tc+PN1naiiFBymXAgVWp9OOdeHmG/kT1oKSD4Wtx0xcdZXMFGTFRfJmwtToE4vDNLy5i2Pcb0M7
-	7rofJ3HWG/bmcXOD2EJBgNnI7CBIlMiTE/7lr4XhTviLavldFPIJi8hIhfVGoN09d7LYf/H3+S0
-	/wqBMwik4Dj0XcFaua9NufljeVjtyieYP78Iy4tOrnNjifeDOfjxWRylyq4909L26UzXUTesX1w
-	k+cvQXT96+UYmhYcAmQVTUMiaedwSuRfK8HlYMKqDqVnkDh+LvMXyyHopuny5ZZQhsX4o0Ssf5v
-	VedDJ+9VtW38NQviJapJ+J0qx6EXFvXJEuyp1jsd/Sv2i1RaPx4Srt21kY/d2os6fQcgzLK7Oan
-	5U3L4AJ90aBcDBWlGuOMDrgOrl4Lkw2iLix924a
-X-Received: by 2002:a17:903:acc:b0:2e5:dd85:c77c with SMTP id d9443c01a7336-2e60054a36bmr38412645ad.50.1791443313584;
-        Thu, 08 Oct 2026 00:08:33 -0700 (PDT)
-Received: from 954df21a5119.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e6046fe0d9sm20771385ad.20.2026.10.08.00.08.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2026 00:08:32 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	kaber@trash.net,
-	jengelh@medozas.de,
-	vega@nebusec.ai,
-	root@tr0jan.top,
-	zihanx@nebusec.ai
-Subject: [PATCH nf v6 1/1] netfilter: nf_dup: reject TEE and IPv4/IPv6/netdev nft dup in userns
-Date: Thu,  8 Oct 2026 07:08:16 +0000
-Message-ID: <82abaa776053bb3e716095a783722452d87fa039.1791429178.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1791429178.git.zihanx@nebusec.ai>
-References: <cover.1791429178.git.zihanx@nebusec.ai>
+        d=1e100.net; s=20260707; t=1791444547; x=1792049347;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9o0oJaFKufMNjlilQDJWX/nZeJhX0+Oq7E8MvusdFBU=;
+        b=z/wuavCXHv6lLBwLL6L77A6T7HTMsE/mW4c5m/eGQUW+y/1ixHnTquWruM1czINZH0
+         avWch3UxeorZOqjZ3lSamRjaapN2nY/oM23jX6lCjBhS5ppotErWBbB75PniTNxkkdDO
+         OpQodDOhzSQw5CUv8CxPajO7Q+vvkLyomW94wKGUr5NOCVOEYJ0wQzr6Ar0T2aXRvurY
+         SkPYwtOIVCdFEPu3RlrTRiWI1shG55UnhdOaF210jSUH8oQUYOpDAB5IW9KdRgdtKfJr
+         EFPqulFiVq+ibRWUcJh+9BVA6AEGA3XxKXNaXaIiKHjEkS7qZU5QdvnhhoiMsciUPycy
+         3iUA==
+X-Gm-Message-State: AFq9FYJZJvjs1y3EpyBC24LKnvLf9QniZU25csZXgt7SQrzG6ZdnXyUZ
+	5FbuiwXY3qCvYEO7RgXy58wNMQGfDH8IRYjLpPWZie8YFGEjhP3HW/fZ08W4VBM+h4y7ssSlSke
+	+//46f5Zy+wS6bNRRovQsQsBl/IJjzMk=
+X-Gm-Gg: AYBFou1xYb87hTgpATzbAhCdvplhjh2T10T3HRUM99viG908PcweBnzm34bD/oKmyO7
+	m1d08EcMlDVhQezuS8ZofJHHKOXj1A5iHfTfXyvhaATPNocz/uBm26vLtdczRYiK04C5ofK8CWz
+	vK2MJUn0VqQL8ANPPoU7tYMBcu9nCtWpdwOblZiZNuUQgvaXFxlB7l/7Lvw20UkLNUIJH1alRhx
+	wFKTL0xb49wDRF7bljLSgT14fqzPeRd/Lfp1nkC3xoFgB3Z3ZnHlxb6TNxBKPoUznSMFdJBNI+v
+	qqD9I2uoL4+ZRijYJIks+ac3wTamNIe7vdmTuBpT7HbU+DGQM05gHuTsxG1mzoFbPjb8VvAoIRU
+	hd75rmOSOZM4=
+X-Received: by 2002:a17:907:d0b:b0:c2e:e3c:ddf3 with SMTP id
+ a640c23a62f3a-c3190945b02mr159128366b.1.1791444546597; Thu, 08 Oct 2026
+ 00:29:06 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260926175209.2618167-1-nicoyip.dev@gmail.com>
+In-Reply-To: <20260926175209.2618167-1-nicoyip.dev@gmail.com>
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
+Date: Thu, 8 Oct 2026 15:28:54 +0800
+X-Gm-Features: AclHuK9EXpr0HefVuYLsA4YdaqlPkdVI9gNgl9pcgqj8r75fsnYM3PffrDC4sJA
+Message-ID: <CAAo+4rX15W_cvz6VwDDrwkvvo34iSU0snkAuM00-geV0tD0J1Q@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: conntrack: wait for RCU readers before freeing
+ the hash
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	=?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@toke.dk>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The packet-duplication frontends can permit repeated packet duplication and
-resource consumption when configured in a network namespace owned by a
-non-initial user namespace. Users with CAP_NET_ADMIN in that namespace can
-configure the affected rules.
+On Sun, Sep 27, 2026 at 1:52=E2=80=AFAM Chengfeng Ye <nicoyip.dev@gmail.com=
+> wrote:
+>
+> nf_ct_get_tuple_skb() calls into conntrack under rcu_read_lock() without
+> holding a module reference. CAKE can use this hook to look up a packet
+> without an attached conntrack, even during nf_conntrack module teardown.
+>
+> nf_conntrack_cleanup_end() clears nf_ct_hook but frees nf_conntrack_hash
+> without waiting for existing readers. The grace period in per-net cleanup
+> runs while the hook is still published, so a later reader can race as
+> follows:
+>
+>   CPU 0 (packet path)                 CPU 1 (module teardown)
+>   rcu_read_lock()
+>   ct_hook =3D rcu_dereference(nf_ct_hook)
+>                                      RCU_INIT_POINTER(nf_ct_hook, NULL)
+>                                      kvfree(nf_conntrack_hash)
+>   ct_hook->get_tuple_skb()
+>     nf_conntrack_find_get()
+>       access freed hash bucket
+>   rcu_read_unlock()
+>
+> The same missing grace period affects initialization failure after
+> nf_conntrack_init_end() publishes the hook. During module teardown,
+> KASAN reported:
+>
+>   BUG: KASAN: vmalloc-out-of-bounds in __nf_conntrack_find_get.isra.0
+>   Read of size 8 at addr ffffc900012e2ae0 by task poc/90
+>   Call Trace:
+>    __nf_conntrack_find_get.isra.0+0xf87/0x10c0 [nf_conntrack]
+>    nf_conntrack_get_tuple_skb+0x255/0x400 [nf_conntrack]
+>    nf_ct_get_tuple_skb+0x75/0xb0
+>    cake_hash+0xfdb/0x1e10
+>    cake_enqueue+0x5cd/0x36e0
+>    dev_qdisc_enqueue+0x40/0x170
+>    __dev_queue_xmit+0x1e90/0x3110
+>
+> Wait for an RCU grace period after clearing nf_ct_hook, before releasing
+> the hash table and the remaining conntrack resources.
+>
+> Fixes: b60a60405fb9 ("netfilter: Add nf_ct_get_tuple_skb global lookup fu=
+nction")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_core.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntra=
+ck_core.c
+> index d0d9e5ea84a0..b07e94e75d4d 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -2455,6 +2455,7 @@ void nf_conntrack_cleanup_start(void)
+>  void nf_conntrack_cleanup_end(void)
+>  {
+>         RCU_INIT_POINTER(nf_ct_hook, NULL);
+> +       synchronize_rcu();
+>         cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+>         kvfree(nf_conntrack_hash);
+>
+> --
+> 2.43.0
+>
 
-No use case for TEE or nft dup in such namespaces has been identified.
-Reject TEE and IPv4/IPv6/netdev nft dup rule or expression setup with
--EPERM there, without adding checks to packet-processing fast paths.
+Hi,
 
-This is a namespace policy restriction, not a general fix for asynchronous
-duplication behavior. Rules remain installable in init_user_ns-owned
-network namespaces, and their existing packet-processing behavior is
-unchanged.
+The issue still appears in the current nf tree, and I'd appreciate any feed=
+back.
 
-Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
-Fixes: 502061f81d3e ("netfilter: nf_tables: add packet duplication to the netdev family")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
----
-changes in v6:
-  - reroll the unchanged four-file setup-time restriction on nf.git main at
-    ab699d296e06
-  - do not present v5 build or runtime results as v6 validation
-  - v5 Link:
-    https://lore.kernel.org/all/20260929125832.25316-1-zihanx@nebusec.ai/
-changes in v5:
-  - describe the patch as a non-initial-userns setup restriction, not a
-    general recursion fix; state that init_user_ns behavior is unchanged
-  - remove path-specific trigger details and run-specific metrics from the
-    public commit and cover prose
-  - drop d877f07112f1 from Fixes: because it added a later frontend, not the
-    shared duplication behavior addressed by this restriction
-  - record the v5 build and setup-time validation, distinguishing them from
-    earlier unpatched-baseline and root-OOM runs
-  - v4 Link:
-    https://lore.kernel.org/all/cover.1790408011.git.zihanx@nebusec.ai/
-changes in v4:
-  - add Fixes tags for TEE, IPv4/IPv6 nft dup, and netdev nft dup
-    frontends
-  - clarify that fcd53c51d037 only added a synchronous guard
-  - clarify that this restricts non-initial user namespaces and does not
-    fix asynchronous recursion in init_user_ns-owned network namespaces
-  - state explicitly that the netdev loop was not runtime-reproduced
-  - v3 Link:
-    https://lore.kernel.org/all/cover.1790042930.git.zihanx@nebusec.ai/
-changes in v3:
-  - reroll the fix against the latest nf.git main after no follow-up on v2
-  - add the Co-developed-by trailer and matching Signed-off-by
-  - v2 Link:
-    https://lore.kernel.org/all/cover.1788425393.git.zihanx@nebusec.ai/
-changes in v2:
-  - drop the persistent struct sk_buff::nf_duplicated field and nf_copy()
-    change from v1
-  - disable IPv4/IPv6 duplication in non-initial user namespaces
-  - v1 Link:
-    https://lore.kernel.org/all/cover.1787903722.git.zihanx@nebusec.ai/
----
- net/ipv4/netfilter/nft_dup_ipv4.c | 4 ++++
- net/ipv6/netfilter/nft_dup_ipv6.c | 4 ++++
- net/netfilter/nft_dup_netdev.c    | 4 ++++
- net/netfilter/xt_TEE.c            | 4 ++++
- 4 files changed, 16 insertions(+)
-
-diff --git a/net/ipv4/netfilter/nft_dup_ipv4.c b/net/ipv4/netfilter/nft_dup_ipv4.c
-index d53a65ddbd7b..db62e30456e4 100644
---- a/net/ipv4/netfilter/nft_dup_ipv4.c
-+++ b/net/ipv4/netfilter/nft_dup_ipv4.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
-+#include <linux/user_namespace.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-@@ -37,6 +38,9 @@ static int nft_dup_ipv4_init(const struct nft_ctx *ctx,
- 	struct nft_dup_ipv4 *priv = nft_expr_priv(expr);
- 	int err;
- 
-+	if (ctx->net->user_ns != &init_user_ns)
-+		return -EPERM;
-+
- 	if (tb[NFTA_DUP_SREG_ADDR] == NULL)
- 		return -EINVAL;
- 
-diff --git a/net/ipv6/netfilter/nft_dup_ipv6.c b/net/ipv6/netfilter/nft_dup_ipv6.c
-index 95ec27b3971c..6219ef57633e 100644
---- a/net/ipv6/netfilter/nft_dup_ipv6.c
-+++ b/net/ipv6/netfilter/nft_dup_ipv6.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
-+#include <linux/user_namespace.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-@@ -35,6 +36,9 @@ static int nft_dup_ipv6_init(const struct nft_ctx *ctx,
- 	struct nft_dup_ipv6 *priv = nft_expr_priv(expr);
- 	int err;
- 
-+	if (ctx->net->user_ns != &init_user_ns)
-+		return -EPERM;
-+
- 	if (tb[NFTA_DUP_SREG_ADDR] == NULL)
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/nft_dup_netdev.c b/net/netfilter/nft_dup_netdev.c
-index 06866799e946..8d9dfd18475c 100644
---- a/net/netfilter/nft_dup_netdev.c
-+++ b/net/netfilter/nft_dup_netdev.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
-+#include <linux/user_namespace.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-@@ -37,6 +38,9 @@ static int nft_dup_netdev_init(const struct nft_ctx *ctx,
- {
- 	struct nft_dup_netdev *priv = nft_expr_priv(expr);
- 
-+	if (ctx->net->user_ns != &init_user_ns)
-+		return -EPERM;
-+
- 	if (tb[NFTA_DUP_SREG_DEV] == NULL)
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 5d34ceb893ed..51c643987526 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/route.h>
-+#include <linux/user_namespace.h>
- #include <linux/netfilter/x_tables.h>
- #include <net/net_namespace.h>
- #include <net/netns/generic.h>
-@@ -95,6 +96,9 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 	struct xt_tee_tginfo *info = par->targinfo;
- 	struct xt_tee_priv *priv;
- 
-+	if (par->net->user_ns != &init_user_ns)
-+		return -EPERM;
-+
- 	/* 0.0.0.0 and :: not allowed */
- 	if (memcmp(&info->gw, &tee_zero_address,
- 		   sizeof(tee_zero_address)) == 0)
--- 
-2.43.0
-
+Best regards,
+Chengfeng
