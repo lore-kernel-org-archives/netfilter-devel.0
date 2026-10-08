@@ -1,135 +1,134 @@
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+Received: from mail-yx2-f5.google.com (mail-yx2-f5.google.com [74.125.224.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAB6D4E36D4
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 15:28:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.52
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791473333; cv=none; b=cl+qWEYrUXkiNv94kgFnv6wHYUqov7FA5ZLj5EtwRWD4lNLFGP9HPkb42G/A9WIVqBjnPr1XoxjxpR9FEirDqm6rncLr0ZBKkw71IydOC5aiUthAhNsXJ1HBrzA6QmJt19li3f1rKylpbdJdxXl1dvrpmevIBEUrMX1OxfdmYAU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791473333; c=relaxed/simple;
-	bh=9IArv5E0HDoDgrm+EOLj8lDAwLd2ErbcWCrSvCceLBw=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=qzOEk1GurjNqAAI6EBtdiyu0njDrsq8QL/qxK4AY1ecoMRiVpZPxnEuNaMAM98GBiluuhcn8D19LC7skCchaqYW6ob3fR4qAkTI/aVZv08tjRESnidArzk9BpVYH8PieWBtGimNZ7jsgP31I3eozRIKDFwJi+S7F98cOOgJVnHQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NfXIMqsN; arc=none smtp.client-ip=209.85.210.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63ECF2BE656
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 16:02:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.133
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791475322; cv=pass; b=V67l6fqZbtW6v994H38kKbHA8cikrfARvQtd7bYdbTN2ep1/7sYqtGHHPXK1AIPPD1L4BUl4Crjf7yFygSY3tuFmNuHOvKpfqDu1WD47anOLnwmR68RupBtyR86yYdukSBWas1UMH3D7V1XovanSIpJgYCR0zdqIbMPwk8M4s/M=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791475322; c=relaxed/simple;
+	bh=zKZrGNVIyZXHBRCxfwfOKfxmv9vpaw+fFtJmZfucaZk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qCD8pEEvnxly5LoXaU7+Pza6qjX3/++rD3J7r292/gAD/31ayMXxAUERQIHlxD+BRmSXdjiZnWvZxRFj50OrygjV9dtsA4dOVhNIOaGoiXLw7NTsVp2O/0XHgVLeXBK40nEGEqLYXQRpUDh23+ed7jpT2mYqFBAEBlGa/NTw2To=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rPbrEW6i; arc=pass smtp.client-ip=74.125.224.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NfXIMqsN"
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-82478760557so4506868a34.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2026 08:28:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rPbrEW6i"
+Received: by mail-yx2-f5.google.com with SMTP id 956f58d0204a3-672d92bbfd3so2289619d50.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2026 09:02:01 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791475320; cv=none;
+        d=google.com; s=arc-20260327;
+        b=LuC/sGHfXi+dZLxueLIsWpGG9XrsZA2WjL5T42KJmGQvLOQLKgX1e5DijZMB1w/+i5
+         4LfZATpQdVDcerbIlWPpAMwiaSZ9vXoWCYs2UF3Q+9BdXgye7JpUUa/sxB/O+pqxU7jK
+         JOOw/wXh4w5HCdo6cB8jngS+RCegqHhwIuejzA1mA5LO7CABLOoVRm0VWaHJrFdf91eh
+         GleWwe1ZL+k55akFAKbG4MsEgkejnmPF7ZH8puf4CEfy6Qk5H+tu8tFSsUlSAVThGS3P
+         6CGGYY66o02OOWVrNDL/C4xPxLtPSYmFRI+FjmL7RcG5dOf8QLy/zoPKFCg0eKrg5ooz
+         T5lg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=zKZrGNVIyZXHBRCxfwfOKfxmv9vpaw+fFtJmZfucaZk=;
+        fh=hP84dkpPZ4eEH2uOku8PEYFkplzYOgzqYqMo1Xz8auE=;
+        b=kowF26npiB3Af5sb1tzmZ3qiU0LQ6/gCj5n6+bX7ZO2iqdnBhPtnnefuDl8CIyYTRU
+         nFD4YpJGNa6BQ+b3BOfTNiLHSRcVXrT2n0OoIflipoppzNKZyWKlT+jszsCAeLzSE3yK
+         ckup8Ck2bHaazPQ5JCXtiMkCC9CjyY/zUZ/EQD/jxvGOiDSZ/C1sVUAnW0LlpYA/ZPjp
+         mmHBML0i7U6roZBQ8uDAkA40NMRxR4xOwMeE/bImR9vu3bSDWSwdYRMU5ImKH5sSU40S
+         EyWc61r7QC3/8IcfqRja2w7BwQ9MmtPjaNgllE/QCq3sjHAxk23GyDJTFTmFsoMc2Fj9
+         tq8w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791473326; x=1792078126; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1791475320; x=1792080120; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=oQ/GaoOi8qfcW0im1RCBWVWH2WffDR373jza/mtw0gw=;
-        b=NfXIMqsNGbw+vfpL75dXTzLc7fqvSAbsJjc0ESuyn/LJ7Vne/+1t85oReQgCzVV7tK
-         L4Ji2k4CgmqzXdu5jFxVkLWY9Ujb3HpCjAUhbLnvZ6NBm8egTetndOMzAyqyF0WFVlCI
-         Jyx/zMCaI4ahhDdVIwotYc1kCXMdH7SGwuUvJVlanRz0+eRDBjpwF/uoV/P7DxCua1jS
-         s9m/SvkWMrus27hfoe2rcX/gYPNYQ8AaLpcySURnayhUSnvG0ecq3ToaVdzVPN4ZoJn2
-         +cjMa99sDICTA8NF4tpOSYJvY+NqpcTc+be2yLq97VwXvy3L9+7V123p9iof+C6ykb0Y
-         LX+A==
+        bh=zKZrGNVIyZXHBRCxfwfOKfxmv9vpaw+fFtJmZfucaZk=;
+        b=rPbrEW6ivPSw46LZCDhFByYnqU725sPKroIph5mMvWVRZilBEy0fTTjEAbyoXClQIS
+         5P6fp6UFH4ZDAdrkW7D7hhXnWmL/2t3e/fXyF8b8IM4VK/97MbVY8+CJuqykGtyJbSAo
+         9MpYw/zdCkIUkvTW2NaCi++oU6h7EFOWorcbEdZcZOYG11aVKMK1V3fOUsVhvrYw9bs7
+         VY5xQpJyWk+7H8RrBOOusZPS3z2//n6CRypgvW63wD0X//eRh40EA29D9apIyDpOMp7F
+         etQUd8aA2xGE/IQ05vkcr05Qwwn7axR61sqPPo052SV60yFdE2WM19ydU0lwc5v4gNRh
+         CRpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791473326; x=1792078126;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=oQ/GaoOi8qfcW0im1RCBWVWH2WffDR373jza/mtw0gw=;
-        b=ucqWh7r/8spYxMqB/4XSWzXJnEzeaWwKuzaPNZi44lw1yefIsQODJkDDzwoSBB+qHM
-         IXvYD7oncGa9KJuryxkWW0IyfGOvkAfGYhP2hUZrTR706QcvpMI9oPGAwW0/cdYwzX4s
-         PttwvC9H2zmXQHrJJysR5Fd7P6VWxT+AmaylfK0vEh9JKlW2ishZRzzFweTz97lCnVan
-         f8wke+2MEJpaVWWeedZ0eYKfKUEyzHr3vdk6ohTUuLdnOv4O/8EgOIVbSppAIqr5ivx+
-         Dov/QyL2eHnoZGkuCjLQAF3UnqwDjp5I0RLkypt0B3MWZTqQTZIR17d/y+XvVNNmP+DT
-         w/LQ==
-X-Forwarded-Encrypted: i=1; AKwUvByCull1JYacD1iUcDeH1iS2GwX/rxQyl2HcED79xdgawal7/Gh9NaAeixLbK0CJq4qRNqrwmDhFQ6+OAsUzJMU=@vger.kernel.org
-X-Gm-Message-State: AFuF++lrI9IvVERtkl0akAyWaE/oNIzMkgf29W55nbEbERdONVdcqzV2
-	AfRjempr2aSsYJrEtCUPyqPAqjgXwpk6HHD8zbPYTh2If1VBC3mSHJaDHut8HUXlPRuLJk+29cQ
-	=
-X-Gm-Gg: AYBFou22fXTVtcibtykxm6uyFtwfiUt2rI/DaZ4fZboGh1wqFSgWC+Qk+N5iRt6syjF
-	9nC7p+NllZmI2UX8+nzPwRUirvjeo6f47cLWhUNNAvvMgl/KtXfm+pJQ2lZ6wLLIObVPpPP+jpL
-	y0SAnhmrkpJ965wM4cyXSLgV1weW+IGPeu+DPempVwz13ejKhlqLJ1wDodKzDFryQayEP+rKQlv
-	Vd4gTKLgTQFFTchXaMX1Gnf422TTNDQyRRLyDl+qyu8NyqDODwQiA7qcbSN/GkXEAVqC8m2UiKG
-	0OSRj7qcL//Xafwn4cUKuLdPPlK2irQOTVaT6QQ28UDHK+J/h+7OdLSwVln8KDFi14Na8Kp5Jeq
-	FNZYNGd66/0tRHQ66XrParl5p+g9AD/GIl0QkjgKDU8SvM40rlx68ddVhdxIDK/na0uKfb3/tzG
-	knASkDcIY9beopnMY02JgUJeEO8mBEEPHs4e5QkO2/++rApyCGzgpL8ijVUwF/ZMXBQfvLyt/qs
-	v98c2DGW77WQIx5TuoO9/gzwa6KPGcdrJ96vzAHGqlhbSX8uJ1iAHY47aqLOVTHFWKHGKg9aPTq
-	r1taT9o+yCMrwS4ijbQBNUVL/VZ9jBnagt0FZd5nukSicztrYfC0z2g5cCzXQg==
-X-Received: by 2002:a05:6830:349e:b0:800:d883:9988 with SMTP id 46e09a7af769-82ac9d8f975mr7498436a34.0.1791473326271;
-        Thu, 08 Oct 2026 08:28:46 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([2804:7f0:b100:655c:c517:c6a0:13b2:a6e1])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-82adcd0f5d7sm5853429a34.27.2026.10.08.08.28.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2026 08:28:45 -0700 (PDT)
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: [PATCH nf-next v2] netfilter: nf_conntrack_sip: only honour Via: port
- in original direction
-Date: Thu, 08 Oct 2026 12:28:37 -0300
-Message-ID: <179147331732.58100.8577886696698663796@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        d=1e100.net; s=20260707; t=1791475320; x=1792080120;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=zKZrGNVIyZXHBRCxfwfOKfxmv9vpaw+fFtJmZfucaZk=;
+        b=0V9lkZy99GDXiNjMN89K7xGlItfDhOYm9wWKhhEgvYmxjFcDEqy3jv9oLiFNK/0igG
+         uE//WcSwh6kKzrARS7sil0MbEsrxvU/fZt9kfg02SF091VBm64IssZqWljkFY4dIPzUZ
+         5GawYtBzDeWpDDzsDnQQo5ZDkpJlxH5MbiXbn8Gx/LYIeGgxJx1knSUeOyK6sZwydg0i
+         KGsrXyVdmruSgWjmhogpH8IPvG7QvhZuPcr3Wf+bCMc0BwRuIbkyBlSYaNKQQCPbPmpc
+         2qu8hag7ZsBQkPtq5kpcCk8WyxzOZlBHOYA3C65Oyd5hSzOkdFbKFOjEAy/RqaIeQDKs
+         wTDw==
+X-Forwarded-Encrypted: i=1; AKwUvBx/J05bN2wqiWi1jHCtKKSidFWC//9RNtn6n/i76CCxgEXuOPV+SToDTO6X1bTTk7f2b4HT+WWaYm5UjW7O8oA=@vger.kernel.org
+X-Gm-Message-State: AFuF++m4RFH+wkRdR6eKK5+pgxkkllOVXCMu6JkeUTXkupdzR98qhDcI
+	Vp0bOPMnDU2cyeEFK8/va82dW21D3XxrAhyMuTmt69DYLHiQLyZpiVNqQ84jXPe8R3K93+uhdCb
+	InxCrP/dqtkWORdyM3OfFbY71o3ahjMk=
+X-Gm-Gg: AYBFou2dAEprgiwlKI3/5ikfXaLULmF65q9AS/ebC2zfM+Z9LXjK/7Js59YTU4RJZFj
+	8oONG1bYoZSrKnHnn0k1+1d4Y3L5H7O2nwEfjlXqRYJpqAVM4dIldElZ2sjhoNwmtHPwdd91/wX
+	5sAr2KJps+0SgFnMen73BqcvKlOf6smSq95LmhVoIlEfHn2UX/zJModZaBIo/vhQvEDIHTyQlAH
+	sh8q/4fJHK+orWbU2TRuE1g1Jp/MklTVkVIggrJF+mdbLMSWXy3vP5C7kEnKZijq/4CVJ5jaPrn
+	u3bmzYbLWIff+ft1OobiEs/E4PkrtIBH0rDhFAMzb/86xyVeSNbl1ITrtg==
+X-Received: by 2002:a05:690e:1c0a:b0:677:f14f:33f2 with SMTP id
+ 956f58d0204a3-6790a4d9cdfmr2932381d50.126.1791475319873; Thu, 08 Oct 2026
+ 09:01:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <cover.1789660425.git.petalzu987@gmail.com> <aq0UpHHbvxjR2jLb@strlen.de>
+ <aq1HaYS96SNn7HJY@strlen.de>
+In-Reply-To: <aq1HaYS96SNn7HJY@strlen.de>
+From: Zixuan Chai <petalzu987@gmail.com>
+Date: Fri, 9 Oct 2026 00:01:47 +0800
+X-Gm-Features: AclHuK8-Il12ejrwcstANC4jvFXQSbJsfw_17QYwSou1NMz09fzwAMpGdKRV0Wg
+Message-ID: <CADTzadLvrvqbnUipgw4YG+ssa78vm5aUpDSoFZCnwQoOoeMYog@mail.gmail.com>
+Subject: Re: [PATCH nf 0/1] netfilter: nf_ip6_checksum: validate checksum offset
+To: Florian Westphal <fw@strlen.de>
+Cc: Ren Wei <weir@nebusec.ai>, netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	phil@nwl.cc, davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
+	pabeni@redhat.com, horms@kernel.org, kaber@trash.net, vega@nebusec.ai
+Content-Type: text/plain; charset="UTF-8"
 
-The Cisco phone workaround in process_sip_request() records the port
-from the topmost Via: header in ct_sip_info->forced_dport whenever the
-Via address matches the sender of the current request and the port
-differs from the sender's source port.  nf_nat_sip() then rewrites the
-UDP destination port of every reply-direction packet to that value.
+On Fri, 18 Sept 2026 at 22:15, Florian Westphal <fw@strlen.de> wrote:
+>
+> Florian Westphal <fw@strlen.de> wrote:
+> > > We will provide detailed information about the bug in this email,
+> > > along with a PoC to trigger it.
+> >
+> > patch is fine, but could you make another patch that either fixes
+> > ipv6_find_hdr() or ip6_packet_match() / nft_set_pktinfo_ipv6() as well?
+>
+> To clarify, I agree with this patch, I don't mean that the other
+> patch should replace this one. I see them as separate issues, so:
 
-The workaround is meant for phones behind the NAT, i.e. requests in the
-original direction, but the check is done in both directions.  For a
-request arriving in the reply direction, ct->tuplehash[dir].tuple.src
-is the remote peer itself, so the peer meets the condition with a Via:
-line carrying its own address and any port >= 1024.  From then on its
-datagrams on that flow are delivered to the NATed host on the port it
-chose rather than the mapped one.  No spoofing is needed, but the peer
-has to be the SIP server or proxy the client talks to, and the effect
-is limited to that flow.
+When you have a moment, could you please let me know if any further
+changes would be helpful for this patch? I would be happy to send a
+revised version if needed.
 
-Only honour the Via: port for requests in the original direction.
+>
+> Acked-by: Florian Westphal <fw@strlen.de>
+>
+> > If I read this right then ipv6_find_hdr() returns nexthdr 'TCP',
+> > but its clear packet is malformed and that header isn't there.
+>
+> ipv6_skip_exthdr() may have the same issue.
 
-Found by manual inspection of nf_conntrack_sip.c and nf_nat_sip.c,
-assisted by an LLM, and confirmed at runtime with client, router and
-server network namespaces (nft masquerade plus a "sip" ct helper on the
-router): the server's request and a following UDP payload reached the
-client on the Via: port before this change, and the mapped port after.
+I have also been looking into the ipv6_skip_exthdr() issue you
+mentioned. I think it needs further evaluation, but so far I have
+not been able to construct a PoC similar to the one for the
+checksum issue.
 
-Fixes: 7266507d8999 ("netfilter: nf_ct_sip: support Cisco 7941/7945 IP phones")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Assisted-by: Claude:claude-opus-5-5
----
-Changes in v2:
-- Retarget to nf-next as a correctness fix (Pablo).
-- Describe the precondition (rogue SIP peer, no spoofing) and how the
-  issue was found in the commit message.
+One attempt is this series:
+https://lore.kernel.org/all/cover.1790082243.git.petalzu987@gmail.com/
 
- net/netfilter/nf_conntrack_sip.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+I am not sure whether this issue warrants a fix, so I would
+appreciate your thoughts on whether it is worth pursuing.
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 64bc440b1..ef655a0bb 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1586,8 +1586,14 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 	 * router for one of these phones, save the port number from the
- 	 * Via: header so that nf_nat_sip can redirect the responses to
- 	 * the correct port.
-+	 *
-+	 * Only honour the Via: port for requests coming from the phone,
-+	 * i.e. in the original direction.  The remote peer must not be
-+	 * able to pick the destination port of packets delivered to the
-+	 * NATed host.
- 	 */
--	if (ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
-+	if (dir == IP_CT_DIR_ORIGINAL &&
-+	    ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
- 				    SIP_HDR_VIA_UDP, NULL, &matchoff,
- 				    &matchlen, &addr, &port) > 0 &&
- 	    port != ct->tuplehash[dir].tuple.src.u.udp.port &&
+Thanks,
+Zixuan
