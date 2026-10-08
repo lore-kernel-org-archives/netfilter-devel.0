@@ -1,152 +1,143 @@
-Received: from cmccmta2.chinamobile.com (cmccmta2.chinamobile.com [111.22.67.135])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7B05C377004;
-	Thu,  8 Oct 2026 03:19:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.22.67.135
+Received: from cvsmtppost13.nm.naver.com (cvsmtppost13.nm.naver.com [114.111.35.31])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3D0547075
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 05:12:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.111.35.31
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791429557; cv=none; b=tGZ/NAAHOOy7PictgGYNZmS8WRGk9EK0nOAy7J4SP/bNY6knDprIirFrYa5KQ5B4q7dHCf0ZIPQBwxJkeXzRK0gW4O+oCL3yAIRq8IKubv/mnJn+Cx8l/pofy4AcvXwZYDRVbrG4mMrXZxWz82A5YI6JFKVJLUelbOiICyJN+Hk=
+	t=1791436366; cv=none; b=OiDL3iJMu20U9KbQb5YK5SIV2/PEU5noaJfMqe9Cztc50hQ9mpHMCpSeNB7GZIwZyBQ4ZcVRSmRlZ7M+RVvvOELVaxOZ3pkY6Ox567RZgylZvitPzmzgvCYI2HCo/vHqAoBsDyXoXIYc83xttGi51NeJ6gkz7ScTfEhaSkezM64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791429557; c=relaxed/simple;
-	bh=ygZeOiN67Rzk+FnquSronkA+wHQJCrOrkL8Gahj1UQ0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZDhBDFPFU1ELw6hiMVZvOdwa52i+NYhAGWoJMaf31y0N6ePO4kiQSuHHFrI0P6rruTwBq/nl0qMx4VFPsmo82ATaE2PdyNEAqeogytiRUMn+NUDNZlqDXc5CGHeAn42lQBvDbWWAJERPQJ1KB4H+HkoLfoZGXUEFoQifa6zsitU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com; spf=pass smtp.mailfrom=cmss.chinamobile.com; dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.b=GQBpAUDt; arc=none smtp.client-ip=111.22.67.135
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
+	s=arc-20240116; t=1791436366; c=relaxed/simple;
+	bh=QjRwAH8htDnUqAgWGHR86PsqrL3WAOVeYSL+BLIOoOc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZvJ9Z/rHMRN0EjJGTlPGFVpsJFoOUKrmsBMbiEpnTtkldTQhssZkVi+kOJ8GgrQKqOvL/xjYIhhVXfHX94DAIBa8acoGNTR9NtaKrAfvJS5FGvJkZlu1PhmPbMUi6muW+fKqOJ2haVjTeMrHNB4KWLfvzzfqJXTffndUP7Ki/ts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=jNxPkB1O; arc=none smtp.client-ip=114.111.35.31
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.b="GQBpAUDt"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=cmss.chinamobile.com; s=default; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=GQBpAUDtorvm29I2PbDRVgZks3wqK/2xaJWLcaRHer42TMDW4zAfYTwb/pdePVvJXPgMyFqmuSVY2
-	 nUEJe/pNbmSbZo6SQULEPrWGsWBZ3isz3GfumSO8nHKcATR2+3MMmicann56GE+GcZ+SWtMzmNsyz+
-	 f0w9zHPgM1CX9rNc=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
-	by rmmx-syy-dmz-app07-12007 (RichMail) with SMTP id 2ee76ac70bae06d-b1d6d;
-	Thu, 08 Oct 2026 11:19:11 +0800 (CST)
-X-RM-TRANSID:2ee76ac70bae06d-b1d6d
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from localhost.localdomain (unknown[223.108.79.99])
-	by rmsmtp-syy-appsvr04-12004 (RichMail) with SMTP id 2ee46ac70ba7eb5-03ba6;
-	Thu, 08 Oct 2026 11:19:11 +0800 (CST)
-X-RM-TRANSID:2ee46ac70ba7eb5-03ba6
-From: lvjunyu <lvjunyu@cmss.chinamobile.com>
-To: pablo@netfilter.org
-Cc: fw@strlen.de,
-	phil@nwl.cc,
-	netfilter-devel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="jNxPkB1O"
+Received: from cvsendbo023.nm ([10.112.22.35])
+  by cvsmtppost13.nm.naver.com with ESMTP id tasbd4cVR3KQrUNbmb3gIQ
+  for <netfilter-devel@vger.kernel.org>;
+  Thu, 08 Oct 2026 05:02:35 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
+	t=1791435755; bh=QjRwAH8htDnUqAgWGHR86PsqrL3WAOVeYSL+BLIOoOc=;
+	h=From:To:Subject:Date:Message-ID:From:Subject:Feedback-ID:
+	 X-Works-Security;
+	b=jNxPkB1ObuQCTA17Tc9ydfOrsuFe/vStiuKY6cNH0GO6Q9SYKkm4sgHgnf0wHSYg9
+	 85uBRWsleVdinITuYJ9f7CTiGpQ0YFDZp0nfv6UVpn/fxKwiazgr/9C8C9nsw8lug+
+	 Kcjpa3lpM3BLh/75C/5JQ6/f/tyMscQZ4KcQSW2yOAaOLdjDA1+9n6sW15V/vQYcQE
+	 BclfKDof20yZghZTnzeDGirBh+EM2Tits711wqEYq9A4XFtqJTXnKtc3m/4t/Cjnbr
+	 6SUds+0pJlzbaJ0H0GHWUdKl7Z5pRpIAW4DqizrK4QF6C3Qmcvfez3z2MJsTFLp+ny
+	 wJS1LwLeP1CxA==
+X-Session-ID: Q-gMG+F9Royi47dWXuXcFw
+X-Works-Send-Opt: OsRwpzGdjHmdKHFOMr39Ko3YKBmljAudFqM9KqMqFxIYkEljxBmwjAg=
+X-Works-Smtp-Source: rZYmFAulFqJZ+HmdFxKq+6E=
+Received: from localhost.localdomain ([115.136.205.4])
+  by mvnsmtp06.nm.naver.com with ESMTP id Q-gMG+F9Royi47dWXuXcFw
+  for <multiple recipients>
+  (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384);
+  Thu, 08 Oct 2026 05:02:34 -0000
+From: sung byeongchan <tjdqudcks0424@naver.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org,
-	lvjunyu <lvjunyu@cmss.chinamobile.com>
-Subject: [PATCH v3] netfilter: nf_nat: Fix stale outer UDP checksum on VXLAN encapsulated packets
-Date: Tue, 22 Sep 2026 14:23:05 +0800
-Message-ID: <20260922062305.752147-1-lvjunyu@cmss.chinamobile.com>
+	Jakub Kicinski <kuba@kernel.org>,
+	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>,
+	Sashiko <netdev-bot+sashiko@kernel.org>,
+	=?UTF-8?q?=EC=84=B1=EB=B3=91=EC=B0=AC?= <tjdqudcks0424@naver.com>
+Subject: [PATCH net v2] netfilter: nf_conntrack_reasm: avoid truncating header offsets
+Date: Thu,  8 Oct 2026 14:02:25 +0900
+Message-ID: <20261008050225.29543-1-tjdqudcks0424@naver.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260929090027.200041-1-tjdqudcks0424@naver.com>
+References: <20260929090027.200041-1-tjdqudcks0424@naver.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-When MASQUERADE --random-fully rewrites the outer UDP source port and
-address of a VXLAN-encapsulated packet whose inner header has
-CHECKSUM_PARTIAL, the outer UDP checksum is not updated correctly.
+From: 성병찬 <tjdqudcks0424@naver.com>
 
-udp_set_csum() takes the LCO (Local Checksum Offload) branch for
-encapsulated CHECKSUM_PARTIAL non-GSO packets, writing a complete
-(folded and complemented) checksum into uh->check while leaving
-csum_start pointing at the inner transport header.  In this state:
+find_prev_fhdr() stores the offset of the previous Next Header field in
+an 8-bit variable. A valid IPv6 extension header chain can place that
+field at offset 256, causing the value to wrap to zero. Reassembly then
+writes the Fragment Header's next-header value to the wrong byte.
 
-  - inet_proto_csum_replace2() is a no-op (pseudohdr=false,
-    CHECKSUM_PARTIAL)
-  - nf_csum_update() -> inet_proto_csum_replace4(pseudohdr=true)
-    takes the pseudo-header branch which treats uh->check as an
-    uncomplemented seed, applying the address delta with the wrong
-    sign
+Use int for prev_nhoff so the offset is preserved until it is checked by
+its consumer.
 
-Fix this by using the offload target (csum_start + csum_offset) to
-distinguish the LCO state from the seed/offload state, and temporarily
-flipping ip_summed to CHECKSUM_NONE so both the address and port updates
-use csum_replace*() (the complete-checksum path).
+The same path also passes an unchecked offset to two 16-bit consumers:
+frag_queue.nhoffset and skb->transport_header. On the LOCAL_OUT raw path,
+a 65536-byte IPv6 packet can place the Fragment Header at offset 65528.
+With 16 bytes of skb headroom, skb_set_transport_header() truncates 65544
+to 8. In the reproduced path, reassembly subsequently passes -8 as the
+unsigned skb_push() length and triggers skb_under_panic().
 
-Test results (10 connections, single netns vxlan + veth environment):
-  Before fix: ~1080ms avg first-connection latency, 10 SYN retransmits,
-              UdpInCsumErrors incremented per connection
-  After fix:  ~29ms avg first-connection latency, 0 SYN retransmits,
-              UdpInCsumErrors unchanged
+Reject a previous-header offset that cannot be represented by nhoffset,
+and use skb_set_transport_header_careful() to reject a Fragment Header
+offset that cannot be represented relative to skb->head.
 
-Fixes: faec18dbb0405 ("netfilter: nat: remove l4proto->manip_pkt")
+The prev_nhoff widening was previously posted by Jérémy Jean. This
+revision folds it together with the remaining 16-bit checks, as requested
+by Pablo Neira Ayuso.
+
+The 16-bit transport-header failure reproduced on three independent
+boots, including one run from outer UID 65534 in new user and network
+namespaces. With the combined fix, the trigger was rejected safely in
+three runs. Short fragments, ordinary IPv6 TCP and UDP, and the earlier
+offset-248 and offset-256 cases continued to work.
+
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Reported-by: Sashiko <netdev-bot+sashiko@kernel.org>
+Link: https://lore.kernel.org/netfilter-devel/20260822214012.1028305-2-Jeremy.Jean@oss.cyber.gouv.fr/
+Link: https://lore.kernel.org/netfilter-devel/179089937913.434549.5874493628033954656@kernel.org/
+Cc: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
 Cc: stable@vger.kernel.org
-Signed-off-by: lvjunyu <lvjunyu@cmss.chinamobile.com>
-
+Assisted-by: LLM
+Signed-off-by: 성병찬 <tjdqudcks0424@naver.com>
 ---
-
-Changes in v3:
-- Reword comment to distinguish port delta (no-op) from address
-  delta (wrong sign) as suggested by Sashiko AI review
-
 Changes in v2:
-- Fix both address and port delta (v1 only fixed port delta)
-- Use offload-target test instead of skb->encapsulation as the LCO
-  discriminator (addresses Sashiko AI review feedback)
-- Update comment to describe both CHECKSUM_PARTIAL states
+- Fold the remaining u16 nhoffset and transport-header checks into the
+  prev_nhoff fix, as requested by Pablo Neira Ayuso.
+- Add the three-run crash and fixed A/B results.
+- Credit Jérémy Jean's earlier posting of the prev_nhoff widening.
 
-v2: https://lore.kernel.org/netdev/20260921130312.686493-1-lvjunyu@cmss.chinamobile.com/
----
- net/netfilter/nf_nat_proto.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 64b9bac228e..6779e9f2812 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -54,9 +54,39 @@ __udp_manip_pkt(struct sk_buff *skb,
- 		portptr = &hdr->dest;
- 	}
- 	if (do_csum) {
-+		/* When udp_set_csum() takes the LCO branch (encapsulated
-+		 * CHECKSUM_PARTIAL, non-GSO), uh->check holds a complete
-+		 * (folded and complemented) checksum while csum_start
-+		 * points at the inner transport header, not at this outer
-+		 * udphdr.  In that state:
-+		 *   - nf_csum_update() -> inet_proto_csum_replace4(pseudohdr=true)
-+		 *     takes the pseudo-header branch and applies the address
-+		 *     delta with the wrong sign (to an uncomplemented seed).
-+		 *   - inet_proto_csum_replace2(pseudohdr=false) is a no-op:
-+		 *     neither branch is taken for CHECKSUM_PARTIAL when
-+		 *     pseudohdr is false.
-+		 * Temporarily flip ip_summed so both use the csum_replace*()
-+		 * path that correctly updates the complete checksum.
-+		 *
-+		 * The seed/offload branch of udp_set_csum() sets csum_start
-+		 * to the outer UDP header, so the offload-target test
-+		 * below distinguishes the two states.
-+		 */
-+		bool lco = skb->ip_summed == CHECKSUM_PARTIAL &&
-+			   !skb_is_gso(skb) &&
-+			   (skb->head + skb->csum_start + skb->csum_offset) !=
-+			   (unsigned char *)&hdr->check;
-+
-+		if (lco)
-+			skb->ip_summed = CHECKSUM_NONE;
-+
- 		nf_csum_update(skb, iphdroff, &hdr->check, tuple, maniptype);
- 		inet_proto_csum_replace2(&hdr->check, skb, *portptr, newport,
- 					 false);
-+
-+		if (lco)
-+			skb->ip_summed = CHECKSUM_PARTIAL;
-+
- 		if (!hdr->check)
- 			hdr->check = CSUM_MANGLED_0;
- 	}
---
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 599c49bf0a0a..ae25ebc873b0 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -398,7 +398,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ {
+ 	u8 nexthdr = ipv6_hdr(skb)->nexthdr;
+ 	const int netoff = skb_network_offset(skb);
+-	u8 prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
++	int prev_nhoff = netoff + offsetof(struct ipv6hdr, nexthdr);
+ 	int start = netoff + sizeof(struct ipv6hdr);
+ 	int len = skb->len - start;
+ 	u8 prevhdr = NEXTHDR_IPV6;
+@@ -474,7 +474,9 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr)))
+ 		return -ENOMEM;
+ 
+-	skb_set_transport_header(skb, fhoff);
++	if (nhoff != (u16)nhoff ||
++	    !skb_set_transport_header_careful(skb, fhoff))
++		return -EINVAL;
+ 	hdr = ipv6_hdr(skb);
+ 	fhdr = (struct frag_hdr *)skb_transport_header(skb);
+ 
+base-commit: 6d25ffca055a77787c21a36b66c253f76239411b
+-- 
 2.43.0
-
-
 
