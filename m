@@ -1,690 +1,184 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01A3349482D
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Oct 2026 10:33:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFF28438026;
+	Thu,  8 Oct 2026 10:51:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791455639; cv=none; b=UsjgZ+Bk6VYHBfRa37UaCjU+VEfPc+IOqPeB2+CmouquteXM+0h6MEmMW+Kc43GaiufnLM2jn+kxllofFZZ2FeKfVShYU7DZb+gwDvA2TnCG6S48j8V4EwMLTmhIPByt4IdRaZBHMSAvZ7hSoF0kNxYZMqFjiy5317NpwNg7jUQ=
+	t=1791456713; cv=none; b=A3ggcOxQZOCipSk4rd8la5Z/thMwIcJQYA8wYgAXWsMtsX+/oX80zEc664i1IFMR2YybSVfaAFd6WXrxA2gpARl1jf7AVeztoDXjRQzFi+fqX6rBkmfHcFMk/LANe4eXs9RPuqbnkHMRri9IdTmvzPpQikJ8yniwHVTXXTqBHio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791455639; c=relaxed/simple;
-	bh=DjGwBfZSvd8btbI/p2gYfDliUcOIulkFdDUCKy8yYuc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GE+p7tmKQhSmTiyGGGpqL1afzfSBxsmz5lDWW2QeigfpoKwt/UudjgvBug9nV8v5le+q5uBwOXcqH/f+ozg7rBQx7inTS4LToFdXX6nULbsIqA1PDBWK1sVPZnk6u1qxWy30HT4mNr1p9g6pzz5mJfWBMZH9NyfjdrZOeMtlWwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=u1nr0poJ; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	s=arc-20240116; t=1791456713; c=relaxed/simple;
+	bh=IgSi8ze2FTXdDie611B60zd8rg52AoQub9eV5+WPkrY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f43ZcxJJ1gyPaVimEJa85kk7E4HieDUZi+wRYA045T1onMgOqwQ4z8VFEWrOXkltgRCdQ5QdUmhqkYLMri4eJGQV3F6Dog3S/coVW5FEZGf5oW+vGOJKBqSj175MS9J2Do1sCLdNs/kHQiq3txECI5A6FPngWseHfqGLp8NfI08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N0ewA1g2; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="u1nr0poJ"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-887beafb714so1544120b3a.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2026 03:33:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1791455637; x=1792060437; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=zatC3v9UrRkDPdYCnEVUhes38YTr7DH6qxsj5dYxtsw=;
-        b=u1nr0poJWEDCoren6C+hbHZDZtTP46asq+oHkbYZLx+L/PTqKVXYyOWNuRCySQS7gv
-         +LXBMXD2M4rbClc0861Wo+/CVBA35N0U7Cb0xkY3mCNXd4ZtV17/oh/VOcPKYlmXZ3za
-         temLH7WbUFAEOKHvsOhyoMApCrmNRxlou+ykE2+AANkpTRSpJGOj5ZYh4zUhWkn9GEp1
-         grcWWbaM9DeCA5k0TSfmINgqufSIypBLOwCPdvYbaPY6slNRakalj9LBuqh7uj00Q9t9
-         fq+Vxp1N9rLnjVfipUqLwe5Oxlz4OZbigLJMCiwhNeZGVeRKZDS10lCTtZBbkEsLvZuY
-         FoZw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791455637; x=1792060437;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=zatC3v9UrRkDPdYCnEVUhes38YTr7DH6qxsj5dYxtsw=;
-        b=TRbvUXzicYeIwmWwutkJ0ZGg3espZ1JYsNgYr275QAi1cKe1/qfN5GObxZtEUTSmjn
-         nXdLFICgzwdSFMAV2eoiN5p+uUlKrp/RTdujuff1NzGSubBi538Ob3Ygovaew8aBOeDl
-         t38MjSE3t3rqipEp8zPf+zx7pHAxcGy+50Nrsiv0djnSElAtXXH2idnBSu4EoJ4GCpG+
-         lWHmRbn9s3EwdFOG3G6PRdUjB60ML7+HTs8xtQU4Xf+avSnzKFpL5shkRLx6OzB0I60y
-         rukAiMJ0Xa7rCXtIiLj3paLFIX09rKNnsqwwm9z7HdJ7CsqORIApI3QfrJi0VMpknWlg
-         4HcQ==
-X-Gm-Message-State: AFuF++mcfIQsy7XS5Mx/1KqB0mxeCuWHc6Ozy3ukybh16rg/jorWPXSw
-	RB5MoGB2Ibo0oiJY9DM7Q7HyNzWax0bHX3UDzYOUSXcHV9veqfz4zxdrFZ6oqcLWGW3YNeEKRVP
-	M4CutGe++
-X-Gm-Gg: AYBFou3FFoPRUElg/pZQMROqBAOApXx3yyKig6/JKEWEKgu5rNsor1PdwOqNNcpZP9i
-	j9/zZbXGlRxKrfsuNhjhkKjQnLOloXxuzRR3RTCHNPuXIXGYB2sKq3cAELNVdqQ9drqyXl6PTek
-	NlePtfpZtw4z2Pu8oK5uogUisFlJV5wTHdxeJtv8jGxvyl6HHB/3CronkQWEYgse5uL8FYp75na
-	AtEXVSMZiXQjJCFlUmNJ2frZgKuQ3sy0TB5AJeC6w4EO8frhP5RtWoqragOffwa4/w0bgeISMuU
-	mSY0diEDUEJzTIz/u0Nq1bjg4iAgBBUAiY0B5MURNZrJd6vh5H5vvcNKQ+n+AjcSvx9YgfC+u+U
-	A7HfsN+eFuRjHJh9rIaPyy93KgOtkMYK8fi5mVDrIdy+5JaRgG8NlK8i74Xcy8BMc60YDJjjlBI
-	H3U3ZzrVqrOlkG+dSmdF3oErohFT0Ta9QrbwJsuvLpte2GMe+ghJAHvzTxUjqAHN8FIzsBLrDfK
-	g9KN/YcDMm7TCyywCWAk7p5sCZSDA==
-X-Received: by 2002:a05:6a21:3b90:b0:3e0:e60f:2e4c with SMTP id adf61e73a8af0-3e13410d924mr5344280637.66.1791455637088;
-        Thu, 08 Oct 2026 03:33:57 -0700 (PDT)
-Received: from 954df21a5119.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cd0a8bfd740sm2780663a12.5.2026.10.08.03.33.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2026 03:33:56 -0700 (PDT)
-From: Zihan Xi <zihanx@nebusec.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	vega@nebusec.ai,
-	root@tr0jan.top,
-	zihanx@nebusec.ai,
-	enjou1224z@gmail.com
-Subject: [PATCH nf v5 1/1] netfilter: x_tables: avoid holding mutex over faultable user copies
-Date: Thu,  8 Oct 2026 10:33:47 +0000
-Message-ID: <55fb98c47498e0756e17f8d07e82cfcd5022a4b4.1791422956.git.zihanx@nebusec.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1791422956.git.zihanx@nebusec.ai>
-References: <cover.1791422956.git.zihanx@nebusec.ai>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N0ewA1g2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1791456700;
+	bh=4emq/40xD4/yc1153ChVOKdV9NbDgEhWISmsRkHHXCM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=N0ewA1g2OlAd2GMDP6e283JMJ8CdzYV+EWrO0PIsyow5bBGrckEOqIUXXB2l6MZry
+	 7GAARP08XU6e7rq5d8RiemZNVVSYQyl6z3g/O9S8FGtuzXiADx7GHNU8kLxC1GmZhM
+	 5w4nWTS6qHdvfLi3PF0nNK6kHfnYf/BHSjXCF7OVXs3q3oNOiE5vYgrX79q/c1Aggs
+	 0tbD392lKNRSltJ7Uqd6Tf8+tEn/rgQtN1qqoQwAzCvutF4xej8gzT0EAbsxrgu++m
+	 wOeexIguqAUdCsKyLf/bmkpigOhaUNXwigqAPemcqks5bY9NMxTsnmqgBPnjo6WRVF
+	 1DARJUkHjvd2w==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 60B6F60055;
+	Thu,  8 Oct 2026 12:51:40 +0200 (CEST)
+Date: Thu, 8 Oct 2026 12:51:37 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Guo Zihao <guozh23@xiaopeng.com>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux.dev,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v2] netfilter: ebtables: ebt_802_3: check the LLC
+ fields before reading them
+Message-ID: <asd1uX2tWn9LtsUT@chamomile>
+References: <20261008024539.4106699-1-guozh23@xiaopeng.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261008024539.4106699-1-guozh23@xiaopeng.com>
 
-The legacy IPv4, IPv6 and ARP table GET_INFO and GET_ENTRIES paths hold
-the per-family xtables mutexes while copying table data to userspace. A
-faultable destination may sleep indefinitely while the mutex is held,
-blocking unrelated table and registry operations.
+On Thu, Oct 08, 2026 at 10:45:39AM +0800, Guo Zihao wrote:
+> ebt_802_3_mt() derives the frame pointer from skb_mac_header() and reads
+> the LLC fields through it without making sure that those bytes are
+> available at all. ebtables guarantees that the Ethernet header is linear,
+> but nothing between the receive path and this match pulls the LLC header,
+> so a frame that carries nothing past the 14-byte Ethernet header is read
+> past the linear area.
+> 
+> Also, ebt_802_3_mt() does not need to look at every LLC field for every
+> rule. A SAP-only rule reads only dsap and ssap, and a rule without any
+> SAP or TYPE constraint selects frames by their 802.3 length field alone,
+> which ebt_basic_match() has already handled. Reading the type field there
+> was wasted work and could not be checked against anything.
+> 
+> Go through skb_header_pointer() with the mac header offset, which handles
+> frames whose LLC header is not in the linear area, and require only the
+> bytes each rule actually examines:
+> 
+>  - no SAP or TYPE constraint: nothing to look at, match right away;
+>  - SAP-only rule: dsap/ssap, at machdr + 14..15;
+>  - TYPE rule: the whole union, at machdr + 14..23, which also covers the
+>    control byte that selects between the ui and ni views of the union.
+> 
+> A frame too short to hold the fields a rule examines now fails to match
+> that rule. The previous hotdrop approach was dropped because ebtables
+> legacy only honors hotdrop when every match of the rule so far has
+> matched, so returning false is the only behaviour both front-ends agree
+> on. Users who want truncated 802.3 frames dropped can match 802.3 alone.
+> 
+> Discovered by a static-analysis scan of net/; confirmed by code
+> inspection of the receive path and the ebtables core. Not triggered in
+> testing; no runtime report is available.
 
-Disable page faults while each locked user copy runs. For GET_ENTRIES,
-validate the table and requested size while holding the table mutex, then
-release it before faulting in the output range. Reacquire the mutex and
-revalidate the table and size before the nofault copy. If a nofault copy
-fails, fault the range outside the lock and retry the operation up to three
-times after the initial attempt. A failed fault-in returns -EFAULT;
-repeated nofault failures are limited to four attempts in total and then
-return -EFAULT. This avoids discarding a locked counter snapshot on the
-common first fault. Move GET_INFO's fixed-size copy outside the table locks
-and apply the same fault-safe handling to the IPv4/IPv6 compat GET_ENTRIES
-paths.
+If no reproducible crash, then this has to be targeted at nf-next.
 
-The ebtables GET paths use a separate ebt_mutex and are outside this
-IPv4/IPv6/ARP series.
+And llc support has been removed from the kernel IIRC.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
----
-changes in v5:
-  - Rebase the unchanged three-file fix onto nf.git main at
-    ab699d296e06 ("Merge branch
-    'net-always-dissect-gso-packets-in-__virtio_net_hdr_to_skb'").
-  - Resend as a new thread because the v4 series has aged; retain the
-    v4 lore link in the cover and below.
-  - v4 Link:
-    https://lore.kernel.org/all/cover.1790439054.git.zihanx@nebusec.ai/
-changes in v4:
-  - Keep the source diff unchanged from v3 while rebasing it onto refreshed
-    nf.git main at 9c572a83037a ("net/sched: fix potential stack infoleak in
-    em_text_dump()").
-  - Replace the detailed v3 cover text with a concise summary and add the v3
-    link:
-    https://lore.kernel.org/all/cover.1789885804.git.zihanx@nebusec.ai/
-changes in v3:
-  - Validate the table and requested size before fault-in, then revalidate
-    both after lock reacquisition in native and IPv4/IPv6 compat GET_ENTRIES.
-  - Make retry semantics explicit: one initial nofault attempt followed by
-    at most three retries. Keep fault-in and retry decisions outside family
-    mutexes; failed fault-in and exhausted retries return -EFAULT.
-  - Keep the fixed-size GET_INFO copy outside table locks and brace compat
-    lookup error arms.
-  - Clarify ARP-only runtime coverage, privilege scope, helper build,
-    holder/waiter evidence, QEMU configuration, and the NOT RUN
-    crash-log status.
-  - Regenerate the numbered patch and cover with LF line endings; use the
-    standard 0001-*.patch filename.
-  - v2 Link:
-    https://lore.kernel.org/all/cover.1788961415.git.zihanx@nebusec.ai/
-changes in v2:
-  - Rebase onto current nf.git after 0bd7ed1a3263c
-    ("netfilter: arp_tables: remove the 32bit compat interface").
-    ARP GET_INFO and GET_ENTRIES use native paths only; IPv4 and IPv6
-    retain compat handling.
-  - Drop hung_task_panic and the 10-second hung_task timeout from the
-    reproducer, as pointed out by Pablo Neira Ayuso; observe holder/waiter
-    wchan instead.
-  - v1 Link:
-    https://lore.kernel.org/all/cover.1788244146.git.zihanx@nebusec.ai/
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Reviewed-by: Liu Chao <liuc63@xiaopeng.com>
+> Signed-off-by: Guo Zihao <guozh23@xiaopeng.com>
+> ---
+>  net/bridge/netfilter/ebt_802_3.c | 47 +++++++++++++++++++++++++-------
+>  1 file changed, 37 insertions(+), 10 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
+> index 68c2519bd..1a67376d1 100644
+> --- a/net/bridge/netfilter/ebt_802_3.c
+> +++ b/net/bridge/netfilter/ebt_802_3.c
+> @@ -9,32 +9,59 @@
+>   *
+>   */
+>  #include <linux/module.h>
+> +#include <linux/stddef.h>
+>  #include <linux/netfilter/x_tables.h>
+>  #include <linux/netfilter_bridge/ebtables.h>
+>  #include <linux/skbuff.h>
+>  #include <uapi/linux/netfilter_bridge/ebt_802_3.h>
+>  
+> -static struct ebt_802_3_hdr *ebt_802_3_hdr(const struct sk_buff *skb)
+> -{
+> -	return (struct ebt_802_3_hdr *)skb_mac_header(skb);
+> -}
+> -
+>  static bool
+>  ebt_802_3_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+>  	const struct ebt_802_3_info *info = par->matchinfo;
+> -	const struct ebt_802_3_hdr *hdr = ebt_802_3_hdr(skb);
+> -	__be16 type = hdr->llc.ui.ctrl & IS_UI ? hdr->llc.ui.type : hdr->llc.ni.type;
+> +	struct ebt_802_3_hdr _frame;
+> +	const struct ebt_802_3_hdr *frame;
+> +	unsigned int hlen;
+> +	__be16 type;
+> +
+> +	/* Without SAP or TYPE constraints the match only selects 802.3
+> +	 * frames, which ebt_basic_match() has already decided from the
+> +	 * ethertype/length field. Nothing in the LLC header is read.
+> +	 */
+> +	if (!(info->bitmask & (EBT_802_3_SAP | EBT_802_3_TYPE)))
+> +		return true;
+> +
+> +	/* Only the dsap/ssap pair is examined for a SAP-only rule; the
+> +	 * type field (and the control byte that selects between the ui
+> +	 * and ni views of the union) is needed for a TYPE rule alone.
+> +	 */
+> +	hlen = sizeof(_frame);
+> +	if (!(info->bitmask & EBT_802_3_TYPE))
+> +		hlen = offsetof(struct ebt_802_3_hdr, llc.ui.ctrl);
+> +
+> +	/* skb->data sits past the Ethernet header on the receive path, so
+> +	 * the frame starts at a negative offset from skb->data. Pass the
+> +	 * mac header offset so the check follows the frame wherever the
+> +	 * hook reset the mac header, and covers paged frames too. A frame
+> +	 * too short to hold the LLC fields simply does not match; users
+> +	 * who want such frames dropped can match 802.3 alone.
+> +	 */
 
- net/ipv4/netfilter/arp_tables.c | 49 ++++++++++++++++---
- net/ipv4/netfilter/ip_tables.c  | 87 +++++++++++++++++++++++++++++----
- net/ipv6/netfilter/ip6_tables.c | 87 +++++++++++++++++++++++++++++----
- 3 files changed, 197 insertions(+), 26 deletions(-)
+I don't think it is worth to add so many comments in the code for
+this, the skb_header_pointer() call plus what you can retrieve via
+'git annotate' is sufficient to document why this
+skb_header_pointer() is needed.
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index db307fa..a857e67 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -23,6 +23,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/err.h>
-+#include <linux/pagemap.h>
- #include <net/sock.h>
- #include <linux/uaccess.h>
- 
-@@ -695,6 +696,7 @@ static int copy_entries_to_user(unsigned int total_size,
- 
- 	loc_cpu_entry = private->entries;
- 
-+	pagefault_disable();
- 	/* FIXME: use iterator macros --RR */
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
-@@ -719,12 +721,14 @@ static int copy_entries_to_user(unsigned int total_size,
- 	}
- 
-  free_counters:
-+	pagefault_enable();
- 	vfree(counters);
- 	return ret;
- }
- 
- static int get_info(struct net *net, void __user *user, const int *len)
- {
-+	struct arpt_getinfo info;
- 	char name[XT_TABLE_MAXNAMELEN];
- 	struct xt_table *t;
- 	int ret;
-@@ -738,7 +742,6 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	name[XT_TABLE_MAXNAMELEN-1] = '\0';
- 	t = xt_request_find_table_lock(net, NFPROTO_ARP, name);
- 	if (!IS_ERR(t)) {
--		struct arpt_getinfo info;
- 		const struct xt_table_info *private = t->private;
- 
- 		memset(&info, 0, sizeof(info));
-@@ -751,15 +754,14 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 		info.size = private->size;
- 		strscpy(info.name, name);
- 
--		if (copy_to_user(user, &info, *len) != 0)
--			ret = -EFAULT;
--		else
--			ret = 0;
-+		ret = 0;
- 		xt_table_unlock(t);
- 		module_put(t->me);
- 	} else
- 		ret = PTR_ERR(t);
- 
-+	if (!ret && copy_to_user(user, &info, *len) != 0)
-+		ret = -EFAULT;
- 	return ret;
- }
- 
-@@ -769,6 +771,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 	int ret;
- 	struct arpt_get_entries get;
- 	struct xt_table *t;
-+	unsigned int retries = 0;
- 
- 	if (*len < sizeof(get))
- 		return -EINVAL;
-@@ -779,21 +782,51 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
- 
- 	get.name[sizeof(get.name) - 1] = '\0';
- 
-+retry:
-+	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
-+	if (IS_ERR(t)) {
-+		ret = PTR_ERR(t);
-+		goto out;
-+	}
-+
-+	if (get.size != t->private->size) {
-+		ret = -EAGAIN;
-+		module_put(t->me);
-+		xt_table_unlock(t);
-+		goto out;
-+	}
-+
-+	module_put(t->me);
-+	xt_table_unlock(t);
-+
-+	/* Fault in only after validating the table and requested size. */
-+	if (fault_in_safe_writeable((char __user *)uptr->entrytable,
-+				    get.size))
-+		return -EFAULT;
-+
- 	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
- 	if (!IS_ERR(t)) {
- 		const struct xt_table_info *private = t->private;
- 
--		if (get.size == private->size)
-+		if (get.size != private->size) {
-+			ret = -EAGAIN;
-+		} else {
- 			ret = copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
--		else
--			ret = -EAGAIN;
-+		}
- 
- 		module_put(t->me);
- 		xt_table_unlock(t);
- 	} else
- 		ret = PTR_ERR(t);
- 
-+out:
-+	/* Allow three retries after the initial nofault copy. */
-+	if (ret == -EFAULT && retries < 3) {
-+		retries++;
-+		goto retry;
-+	}
-+
- 	return ret;
- }
- 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 809441c..90f4a26 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -21,6 +21,7 @@
- #include <linux/proc_fs.h>
- #include <linux/err.h>
- #include <linux/cpumask.h>
-+#include <linux/pagemap.h>
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -824,6 +825,7 @@ copy_entries_to_user(unsigned int total_size,
- 
- 	loc_cpu_entry = private->entries;
- 
-+	pagefault_disable();
- 	/* FIXME: use iterator macros --RR */
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
-@@ -861,6 +863,7 @@ copy_entries_to_user(unsigned int total_size,
- 	}
- 
-  free_counters:
-+	pagefault_enable();
- 	vfree(counters);
- 	return ret;
- }
-@@ -943,6 +946,7 @@ static int compat_table_info(const struct xt_table_info *info,
- 
- static int get_info(struct net *net, void __user *user, const int *len)
- {
-+	struct ipt_getinfo info;
- 	char name[XT_TABLE_MAXNAMELEN];
- 	struct xt_table *t;
- 	int ret;
-@@ -960,7 +964,6 @@ static int get_info(struct net *net, void __user *user, const int *len)
- #endif
- 	t = xt_request_find_table_lock(net, AF_INET, name);
- 	if (!IS_ERR(t)) {
--		struct ipt_getinfo info;
- 		const struct xt_table_info *private = t->private;
- #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
- 		struct xt_table_info tmp;
-@@ -981,10 +984,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 		info.size = private->size;
- 		strscpy(info.name, name);
- 
--		if (copy_to_user(user, &info, *len) != 0)
--			ret = -EFAULT;
--		else
--			ret = 0;
-+		ret = 0;
- 
- 		xt_table_unlock(t);
- 		module_put(t->me);
-@@ -994,6 +994,8 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	if (in_compat_syscall())
- 		xt_compat_unlock(AF_INET);
- #endif
-+	if (!ret && copy_to_user(user, &info, *len) != 0)
-+		ret = -EFAULT;
- 	return ret;
- }
- 
-@@ -1004,6 +1006,7 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr,
- 	int ret;
- 	struct ipt_get_entries get;
- 	struct xt_table *t;
-+	unsigned int retries = 0;
- 
- 	if (*len < sizeof(get))
- 		return -EINVAL;
-@@ -1013,20 +1016,50 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr,
- 		return -EINVAL;
- 	get.name[sizeof(get.name) - 1] = '\0';
- 
-+retry:
-+	t = xt_find_table_lock(net, AF_INET, get.name);
-+	if (IS_ERR(t)) {
-+		ret = PTR_ERR(t);
-+		goto out;
-+	}
-+
-+	if (get.size != t->private->size) {
-+		ret = -EAGAIN;
-+		module_put(t->me);
-+		xt_table_unlock(t);
-+		goto out;
-+	}
-+
-+	module_put(t->me);
-+	xt_table_unlock(t);
-+
-+	/* Fault in only after validating the table and requested size. */
-+	if (fault_in_safe_writeable((char __user *)uptr->entrytable,
-+				    get.size))
-+		return -EFAULT;
-+
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (!IS_ERR(t)) {
- 		const struct xt_table_info *private = t->private;
--		if (get.size == private->size)
-+		if (get.size != private->size) {
-+			ret = -EAGAIN;
-+		} else {
- 			ret = copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
--		else
--			ret = -EAGAIN;
-+		}
- 
- 		module_put(t->me);
- 		xt_table_unlock(t);
- 	} else
- 		ret = PTR_ERR(t);
- 
-+out:
-+	/* Allow three retries after the initial nofault copy. */
-+	if (ret == -EFAULT && retries < 3) {
-+		retries++;
-+		goto retry;
-+	}
-+
- 	return ret;
- }
- 
-@@ -1561,12 +1594,14 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 
- 	pos = userptr;
- 	size = total_size;
-+	pagefault_disable();
- 	xt_entry_foreach(iter, private->entries, total_size) {
- 		ret = compat_copy_entry_to_user(iter, &pos,
- 						&size, counters, i++);
- 		if (ret != 0)
- 			break;
- 	}
-+	pagefault_enable();
- 
- 	vfree(counters);
- 	return ret;
-@@ -1579,6 +1614,7 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 	int ret;
- 	struct compat_ipt_get_entries get;
- 	struct xt_table *t;
-+	unsigned int retries = 0;
- 
- 	if (*len < sizeof(get))
- 		return -EINVAL;
-@@ -1591,6 +1627,32 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 
- 	get.name[sizeof(get.name) - 1] = '\0';
- 
-+retry:
-+	xt_compat_lock(AF_INET);
-+	t = xt_find_table_lock(net, AF_INET, get.name);
-+	if (!IS_ERR(t)) {
-+		const struct xt_table_info *private = t->private;
-+		struct xt_table_info info;
-+
-+		ret = compat_table_info(private, &info);
-+		if (!ret && get.size != info.size)
-+			ret = -EAGAIN;
-+
-+		xt_compat_flush_offsets(AF_INET);
-+		module_put(t->me);
-+		xt_table_unlock(t);
-+	} else {
-+		ret = PTR_ERR(t);
-+	}
-+	xt_compat_unlock(AF_INET);
-+	if (ret)
-+		goto out;
-+
-+	/* Fault in only after validating the table and requested size. */
-+	if (fault_in_safe_writeable((char __user *)uptr->entrytable,
-+				    get.size))
-+		return -EFAULT;
-+
- 	xt_compat_lock(AF_INET);
- 	t = xt_find_table_lock(net, AF_INET, get.name);
- 	if (!IS_ERR(t)) {
-@@ -1606,10 +1668,17 @@ compat_get_entries(struct net *net, struct compat_ipt_get_entries __user *uptr,
- 		xt_compat_flush_offsets(AF_INET);
- 		module_put(t->me);
- 		xt_table_unlock(t);
--	} else
-+	} else {
- 		ret = PTR_ERR(t);
-+	}
- 
- 	xt_compat_unlock(AF_INET);
-+out:
-+	/* Allow three retries after the initial nofault copy. */
-+	if (ret == -EFAULT && retries < 3) {
-+		retries++;
-+		goto retry;
-+	}
- 	return ret;
- }
- #endif
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 313c4aa..a737c5b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -25,6 +25,7 @@
- #include <linux/proc_fs.h>
- #include <linux/err.h>
- #include <linux/cpumask.h>
-+#include <linux/pagemap.h>
- 
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/x_tables.h>
-@@ -845,6 +846,7 @@ copy_entries_to_user(unsigned int total_size,
- 
- 	loc_cpu_entry = private->entries;
- 
-+	pagefault_disable();
- 	/* FIXME: use iterator macros --RR */
- 	/* ... then go back and fix counters and names */
- 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
-@@ -882,6 +884,7 @@ copy_entries_to_user(unsigned int total_size,
- 	}
- 
-  free_counters:
-+	pagefault_enable();
- 	vfree(counters);
- 	return ret;
- }
-@@ -964,6 +967,7 @@ static int compat_table_info(const struct xt_table_info *info,
- 
- static int get_info(struct net *net, void __user *user, const int *len)
- {
-+	struct ip6t_getinfo info;
- 	char name[XT_TABLE_MAXNAMELEN];
- 	struct xt_table *t;
- 	int ret;
-@@ -981,7 +985,6 @@ static int get_info(struct net *net, void __user *user, const int *len)
- #endif
- 	t = xt_request_find_table_lock(net, AF_INET6, name);
- 	if (!IS_ERR(t)) {
--		struct ip6t_getinfo info;
- 		const struct xt_table_info *private = t->private;
- #ifdef CONFIG_NETFILTER_XTABLES_COMPAT
- 		struct xt_table_info tmp;
-@@ -1002,10 +1005,7 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 		info.size = private->size;
- 		strcpy(info.name, name);
- 
--		if (copy_to_user(user, &info, *len) != 0)
--			ret = -EFAULT;
--		else
--			ret = 0;
-+		ret = 0;
- 
- 		xt_table_unlock(t);
- 		module_put(t->me);
-@@ -1015,6 +1015,8 @@ static int get_info(struct net *net, void __user *user, const int *len)
- 	if (in_compat_syscall())
- 		xt_compat_unlock(AF_INET6);
- #endif
-+	if (!ret && copy_to_user(user, &info, *len) != 0)
-+		ret = -EFAULT;
- 	return ret;
- }
- 
-@@ -1025,6 +1027,7 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
- 	int ret;
- 	struct ip6t_get_entries get;
- 	struct xt_table *t;
-+	unsigned int retries = 0;
- 
- 	if (*len < sizeof(get))
- 		return -EINVAL;
-@@ -1035,20 +1038,50 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
- 
- 	get.name[sizeof(get.name) - 1] = '\0';
- 
-+retry:
-+	t = xt_find_table_lock(net, AF_INET6, get.name);
-+	if (IS_ERR(t)) {
-+		ret = PTR_ERR(t);
-+		goto out;
-+	}
-+
-+	if (get.size != t->private->size) {
-+		ret = -EAGAIN;
-+		module_put(t->me);
-+		xt_table_unlock(t);
-+		goto out;
-+	}
-+
-+	module_put(t->me);
-+	xt_table_unlock(t);
-+
-+	/* Fault in only after validating the table and requested size. */
-+	if (fault_in_safe_writeable((char __user *)uptr->entrytable,
-+				    get.size))
-+		return -EFAULT;
-+
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (!IS_ERR(t)) {
- 		struct xt_table_info *private = t->private;
--		if (get.size == private->size)
-+		if (get.size != private->size) {
-+			ret = -EAGAIN;
-+		} else {
- 			ret = copy_entries_to_user(private->size,
- 						   t, uptr->entrytable);
--		else
--			ret = -EAGAIN;
-+		}
- 
- 		module_put(t->me);
- 		xt_table_unlock(t);
- 	} else
- 		ret = PTR_ERR(t);
- 
-+out:
-+	/* Allow three retries after the initial nofault copy. */
-+	if (ret == -EFAULT && retries < 3) {
-+		retries++;
-+		goto retry;
-+	}
-+
- 	return ret;
- }
- 
-@@ -1575,12 +1608,14 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 
- 	pos = userptr;
- 	size = total_size;
-+	pagefault_disable();
- 	xt_entry_foreach(iter, private->entries, total_size) {
- 		ret = compat_copy_entry_to_user(iter, &pos,
- 						&size, counters, i++);
- 		if (ret != 0)
- 			break;
- 	}
-+	pagefault_enable();
- 
- 	vfree(counters);
- 	return ret;
-@@ -1593,6 +1628,7 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 	int ret;
- 	struct compat_ip6t_get_entries get;
- 	struct xt_table *t;
-+	unsigned int retries = 0;
- 
- 	if (*len < sizeof(get))
- 		return -EINVAL;
-@@ -1605,6 +1641,32 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 
- 	get.name[sizeof(get.name) - 1] = '\0';
- 
-+retry:
-+	xt_compat_lock(AF_INET6);
-+	t = xt_find_table_lock(net, AF_INET6, get.name);
-+	if (!IS_ERR(t)) {
-+		const struct xt_table_info *private = t->private;
-+		struct xt_table_info info;
-+
-+		ret = compat_table_info(private, &info);
-+		if (!ret && get.size != info.size)
-+			ret = -EAGAIN;
-+
-+		xt_compat_flush_offsets(AF_INET6);
-+		module_put(t->me);
-+		xt_table_unlock(t);
-+	} else {
-+		ret = PTR_ERR(t);
-+	}
-+	xt_compat_unlock(AF_INET6);
-+	if (ret)
-+		goto out;
-+
-+	/* Fault in only after validating the table and requested size. */
-+	if (fault_in_safe_writeable((char __user *)uptr->entrytable,
-+				    get.size))
-+		return -EFAULT;
-+
- 	xt_compat_lock(AF_INET6);
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (!IS_ERR(t)) {
-@@ -1620,10 +1682,17 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 		xt_compat_flush_offsets(AF_INET6);
- 		module_put(t->me);
- 		xt_table_unlock(t);
--	} else
-+	} else {
- 		ret = PTR_ERR(t);
-+	}
- 
- 	xt_compat_unlock(AF_INET6);
-+out:
-+	/* Allow three retries after the initial nofault copy. */
-+	if (ret == -EFAULT && retries < 3) {
-+		retries++;
-+		goto retry;
-+	}
- 	return ret;
- }
- #endif
--- 
-2.25.1
-
+> +	frame = skb_header_pointer(skb, skb_mac_offset(skb), hlen, &_frame);
+> +	if (!frame)
+> +		return false;
+>  
+>  	if (info->bitmask & EBT_802_3_SAP) {
+> -		if (NF_INVF(info, EBT_802_3_SAP, info->sap != hdr->llc.ui.ssap))
+> +		if (NF_INVF(info, EBT_802_3_SAP, info->sap != frame->llc.ui.ssap))
+>  			return false;
+> -		if (NF_INVF(info, EBT_802_3_SAP, info->sap != hdr->llc.ui.dsap))
+> +		if (NF_INVF(info, EBT_802_3_SAP, info->sap != frame->llc.ui.dsap))
+>  			return false;
+>  	}
+>  
+>  	if (info->bitmask & EBT_802_3_TYPE) {
+> -		if (!(hdr->llc.ui.dsap == CHECK_TYPE && hdr->llc.ui.ssap == CHECK_TYPE))
+> +		type = frame->llc.ui.ctrl & IS_UI ? frame->llc.ui.type :
+> +						    frame->llc.ni.type;
+> +		if (!(frame->llc.ui.dsap == CHECK_TYPE &&
+> +		      frame->llc.ui.ssap == CHECK_TYPE))
+>  			return false;
+>  		if (NF_INVF(info, EBT_802_3_TYPE, info->type != type))
+>  			return false;
+> -- 
+> 2.50.1
+> 
