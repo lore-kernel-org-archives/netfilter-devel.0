@@ -1,113 +1,94 @@
-Received: from mvsmtppost19.nm.naver.com (mvsmtppost19.nm.naver.com [61.247.196.162])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4E44C6527
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 11:12:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.247.196.162
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99524DA541
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 11:58:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791544361; cv=none; b=Rhve6nadPvGv4inzwNNV5tajD7c4N7X2S+uWva3qWk1gUVEHnbo6pgNVRZb+5fD+6kGW2uawhpW6lIa5Iu3m/96bppL0cHK+mc2PvMYq77bVHk4syM7M7PM/Kr4s/SZkriIk7wAfmXDakLZWG6hiFlmPeKH1EEmusl0e1gtQi4I=
+	t=1791547103; cv=none; b=RbfFqB2A7b3NezTqrmtb5sWClVYL/mDte20XbQ/P1XdwJ31i5BFxnAw9A+Dlzy5VhjAXL0wuBunqP8NNaIHyLevoNXuh3gD0I08j1fkthmGbSlmGjRDWnvCEP5dAa/lSX8PwxSjcXNrU87i3UNQpFnbkYaXhSoFw/MeiKSiFf74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791544361; c=relaxed/simple;
-	bh=YZ6D8MaBCeSfm5NcTzVJ4pgcZJskVzwpfM6Yt50WskA=;
-	h=MIME-Version:Message-ID:Date:From:In-Reply-To:References:To:Cc:
-	 Subject:Content-Type; b=dfN6Ke3yUlct6eeZ0a/wToW9pUKf07Y6R1b/b/I1+FyKuZxfJQAni+vrus0hMT6+Dwbz/jbmAOimBz0YrkEGloKcVWYosSaX+zENsHXYciY8iMDeOkmAYyzQJ5LjlJ04SONJL7488Upr9tcKCLRzr2KhH+pATiA3MMeGx76x9pY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=acoGlsgi; arc=none smtp.client-ip=61.247.196.162
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="acoGlsgi"
-X-Works-Smtp-Source: /dYwFxulFqJCpNmdFAKwWHF0
-Received: from nv1m-hmac-real-36 ([10.174.201.121])
-  by mvsmtppost19.nm.naver.com with ESMTP id 3g5vc-zRQW+nTxEOTgLvyg
-  for <multiple recipients>;
-  Fri, 09 Oct 2026 11:02:24 -0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
-	t=1791543744; bh=YZ6D8MaBCeSfm5NcTzVJ4pgcZJskVzwpfM6Yt50WskA=;
-	h=Message-ID:Date:From:To:Subject:From:Subject:Feedback-ID:
-	 X-Works-Security;
-	b=acoGlsgikJXWEmKD9ZxumWnDUqfjF6cR8Hgosr8T5UqCBlLzfWkAnIQljng2EihiC
-	 9zsGgoOox+pfWjIQJqAtQ9kLfCVIaPnBxfi8rrH+Cg8X15IjeXzQyj4j0qjdbP7R5I
-	 HQfMPGvCxwNHb3FQmVMTBoYm/HZtAspOZIJtB9vPolwlSmhrobVcusy8V49JOjv1eD
-	 wlRoZKK2DLcDraumQIwwTR3q/YuS6bK3tI7y7kVz/PrtKGW8BQ6GlcoovYW6ByPNHR
-	 6d3Iw38BBmc8UzzyXefkHv6Y4iE5Vu02RfU5pCcLHryBFckDltsP/jlgNlIRu9sOsN
-	 R0jEOuoEcqlyg==
-X-Session-ID: b72d4f1cf849da61059310483dad5600518af4410a043615704f94a15ba5d994
+	s=arc-20240116; t=1791547103; c=relaxed/simple;
+	bh=4Kt1TWc7AlXa3KKGPb2yi4cuQvUdlHSUvmoCuuL0Ot0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=U7xv6Vc88p3ihyhJE3OeCh5cCeWivYDgVMOJbuO5ln4/DLLInSoVAjEIhX6kUYlsCbkg/GNTOY2JorPmOSTFjtQh2G7yCOJ+X7NYcaHp1R7GTb64c0t6WXjd6lX/w8oRvpzcUdaHBnOusvadv/dowemo9v9/U8rI2FRpS2X8/2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id E5DEA60337; Fri, 09 Oct 2026 13:58:13 +0200 (CEST)
+Date: Fri, 9 Oct 2026 13:58:08 +0200
+From: Florian Westphal <fw@strlen.de>
+To: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: xt_dccp: handle reserved options as
+ single-byte
+Message-ID: <asjW0HXAbyCOkcjw@strlen.de>
+References: <20261008183814.10521-1-tjdqudcks0424@naver.com>
+ <06fe96ca-ef3e-4a15-9d11-d188164291a4@suse.de>
+ <af8485bf933f5620813e12cdfe68a080@cweb014.nm>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <8a70c7509152ca319cbece812deb9@cweb014.nm>
-Date: Fri, 09 Oct 2026 20:02:24 +0900
-From: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>
-In-Reply-To: <06fe96ca-ef3e-4a15-9d11-d188164291a4@suse.de>
-References: <20261008183814.10521-1-tjdqudcks0424@naver.com>
-	<06fe96ca-ef3e-4a15-9d11-d188164291a4@suse.de>
-Importance: normal
-To: =?utf-8?B?RmVybmFuZG8gRmVybmFuZGV6IE1hbmNlcmE=?= <fmancera@suse.de>,
-	=?utf-8?B?UGFibG8gTmVpcmEgQXl1c28=?= <pablo@netfilter.org>,
-	=?utf-8?B?RmxvcmlhbiBXZXN0cGhhbA==?= <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Subject: =?utf-8?B?UmU6IFtQQVRDSF0gbmV0ZmlsdGVyOiB4dF9kY2NwOiBoYW5kbGUgcmVzZXJ2ZWQgb3B0aQ==?=
-	=?utf-8?B?b25zIGFzIHNpbmdsZS1ieXRl?=
-X-Works-Send-Opt: OPFwpzGdjHmdKHFOMr39Ko3YKHmdjAudFqM9KqMqFxIYkEljxBmwjAg=
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <af8485bf933f5620813e12cdfe68a080@cweb014.nm>
 
-Ci0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCkZyb206ICJGZXJuYW5kbyBGZXJuYW5kZXogTWFu
-Y2VyYSI8Zm1hbmNlcmFAc3VzZS5kZT4gClRvOiA8dGpkcXVkY2tzMDQyNEBuYXZlci5jb20+OyAi
-UGFibG8gTmVpcmEgQXl1c28iPHBhYmxvQG5ldGZpbHRlci5vcmc+OyAiRmxvcmlhbiBXZXN0cGhh
-bCI8ZndAc3RybGVuLmRlPjsgCkNjOiA8bmV0ZmlsdGVyLWRldmVsQHZnZXIua2VybmVsLm9yZz47
-IApTZW50OiAyMDI2LTEwLTA5ICjquIgpIDE3OjM0OjU1IChHTVQrMDk6MDApClN1YmplY3Q6IFJl
-OiBbUEFUQ0hdIG5ldGZpbHRlcjogeHRfZGNjcDogaGFuZGxlIHJlc2VydmVkIG9wdGlvbnMgYXMg
-c2luZ2xlLWJ5dGUKCk9uIDEwLzgvMjYgODozOCBQTSwgdGpkcXVkY2tzMDQyNEBuYXZlci5jb20g
-d3JvdGU6Cj4gRnJvbTogU3VuZyBCeWVvbmdjaGFuIDx0amRxdWRja3MwNDI0QG5hdmVyLmNvbT4K
-PiAKPiBUaGUgRENDUCBVQVBJIGRlZmluZXMgb3B0aW9uIG51bWJlcnMgMyB0aHJvdWdoIDMxIGFz
-IHJlc2VydmVkLiDCoExpa2UKPiBQYWRkaW5nIGFuZCBNYW5kYXRvcnksIHRoZXNlIG9wdGlvbnMg
-b2NjdXB5IG9uZSBieXRlLiDCoGRjY3BfZmluZF9vcHRpb24oKQo+IG9ubHkgdHJlYXRzIHZhbHVl
-cyBiZWxvdyAyIGFzIHNpbmdsZS1ieXRlIGFuZCBpbnRlcnByZXRzIHRoZSBieXRlIGFmdGVyIGEK
-PiByZXNlcnZlZCBvcHRpb24gYXMgYSBUTFYgbGVuZ3RoLgo+IAo+IFRoaXMgY2FuIHNraXAgYSBs
-YXRlciBvcHRpb24gYW5kIGludmVydCBhbiBYVF9EQ0NQX09QVElPTiBydWxlIHJlc3VsdC4gwqBB
-Cj4gbG9jYWwgcHJvZHVjdGlvbi1ob29rIGZpeHR1cmUgaW5zdGFsbGVkIHRoZSBzYW1lIERST1Ag
-cnVsZSBmb3IgSVB2NCBhbmQKPiBJUHY2LiDCoEluIHRocmVlIGZyZXNoIGJvb3RzIHBlciBrZXJu
-ZWwsIGEgdGFyZ2V0LW9ubHkgcGFja2V0IHdhcyBkcm9wcGVkCj4gMjAvMjAgdGltZXMsIHdoaWxl
-IGFkZGluZyByZXNlcnZlZCBvcHRpb24gMyBiZWZvcmUgdGhlIHNhbWUgdGFyZ2V0IGxldAo+IDIw
-LzIwIHBhY2tldHMgcmVhY2ggdGhlIHByb3RlY3RlZCByZWNlaXZlci4gwqBUaGUgZml4ZWQga2Vy
-bmVsIGRyb3BwZWQgYWxsCj4gdHJpZ2dlciBwYWNrZXRzIGluIHRocmVlIGZyZXNoIGJvb3RzIGFu
-ZCBwcmVzZXJ2ZWQgdGhlIG5vcm1hbCBjb250cm9scy4KPiAKPiBUcmVhdCBldmVyeSBvcHRpb24g
-dXAgdG8gRENDUE9fTUFYX1JFU0VSVkVEIGFzIHNpbmdsZS1ieXRlLCBtYXRjaGluZyB0aGUKPiBw
-cm90b2NvbCBkZWZpbml0aW9uLiDCoFRyaWdnZXJpbmcgcmVxdWlyZXMKPiBDT05GSUdfTkVURklM
-VEVSX1hUQUJMRVNfTEVHQUNZLCBDT05GSUdfTkVURklMVEVSX1hUX01BVENIX0RDQ1AsIGFuCj4g
-b3B0aW9uLWJhc2VkIHJ1bGUsIGFuZCByZW1vdGUgcHJvdG9jb2wtMzMgcmVhY2hhYmlsaXR5LiDC
-oFRoZSB0b3VjaGVkIHNvdXJjZQo+IGlzIHVuY2hhbmdlZCBhdCAwYzI2NjlhOWY0YTFkNjA3ZTc1
-OTFhZTUwY2NmM2M0MzJhMGFmZjA4LCB3aGVyZSB0aGUgcGF0Y2gKPiBhcHBsaWVzIGFuZCBidWls
-ZHMgY2xlYW5seS4KPiAKPiBUaGUgZGVtb25zdHJhdGVkIGltcGFjdCBpcyBhIGNvbmRpdGlvbmFs
-IHJlbW90ZSBmaWx0ZXItdmVyZGljdCBieXBhc3MuCj4gTm8gbWVtb3J5LXNhZmV0eSB2aW9sYXRp
-b24sIGluZm9ybWF0aW9uIGRpc2Nsb3N1cmUsIFJDRSwgb3IgTFBFIHdhcwo+IGRlbW9uc3RyYXRl
-ZC4gwqBUaGUgc291cmNlIHJlcHJvZHVjZXIgYW5kIGNvbXBsZXRlIGxvZ3MgYXJlIGF2YWlsYWJs
-ZSBvbgo+IHJlcXVlc3QgYW5kIGFyZSBub3QgaW5jbHVkZWQgaW4gdGhpcyBwdWJsaWMgcmVwb3J0
-Lgo+IAo+IE9wZW5BSSBDb2RleCBhc3Npc3RlZCBzb3VyY2UgaW5zcGVjdGlvbiwgdGVzdCBkZXNp
-Z24sIHBhdGNoIGRyYWZ0aW5nLCBhbmQKPiBldmlkZW5jZSBvcmdhbml6YXRpb24uCj4gCj4gRml4
-ZXM6IDFkM2RlNDE0ZWIyMCAoIltORVRGSUxURVJdOiBOZXcgaXB0YWJsZXMgRENDUCBwcm90b2Nv
-bCBoZWFkZXIgbWF0Y2giKQo+IEFzc2lzdGVkLWJ5OiBMTE0KPiBTaWduZWQtb2ZmLWJ5OiBTdW5n
-IEJ5ZW9uZ2NoYW4gPHRqZHF1ZGNrczA0MjRAbmF2ZXIuY29tPgoKVGhlIGNvbW1pdCBtZXNzYWdl
-IGlzIGEgYml0IHRvbyB2ZXJib3NlIGFuZCBJIGRvdWJ0IHRoaXMgaGFzIGJlZW4gZm91bmQgCmlu
-IGEgcmVhbCBlbnZpcm9ubWVudC4gVGhpcyBtaWdodCBiZSBhIGJpdCB0b28gZXh0cmVtZSBmcm9t
-IG15IHNpZGUgYnV0IApjYW4gd2UgZGl0Y2ggRENDUCBzdXBwb3J0PwoKRENDUCBzb2NrZXQgaW5m
-cmFzdHJ1Y3R1cmUgd2FzIGRlcHJlY2F0ZWQgaW4gMjAyMyBhdCBjb21taXQgYjE0NGZjYWY0NmQ0
-IAooImRjY3A6IFByaW50IGRlcHJlY2F0aW9uIG5vdGljZS4iKSBhbmQgcmVtb3ZlZCBtb3JlIHRo
-YW4gYSB5ZWFyIGFnbyBpbiAKMjAyNSBhdCBjb21taXQgMmE2M2RkMGVkZjM4ICgibmV0OiBSZXRp
-cmUgRENDUCBzb2NrZXQuIikuCgpJIGRvbid0IHRoaW5rIHNvbWVvbmUgaXMgYWN0aXZlbHkgbWF0
-Y2hpbmcgRENDUCB0cmFmZmljIGFzIGEgbWlkZGxlYm94Li4gCndoYXQgZG8geW91IHRoaW5rPwoK
-CgoKClRoYW5rcyBmb3IgdGhlIHJldmlldy4KClRoaXMgd2FzIGZvdW5kIHRocm91Z2ggc291cmNl
-IHJldmlldyBhbmQgcmVwcm9kdWNlZCB3aXRoIGEgY29udHJvbGxlZApsb2NhbCBmaXh0dXJlLCBu
-b3QgZnJvbSBhIHJlYWwtd29ybGQgZGVwbG95bWVudC4gSSBhZ3JlZSB0aGF0IHRoZSBjb21taXQK
-bWVzc2FnZSBjYW4gYmUgc2hvcnRlbmVkLgoKUmVtb3ZpbmcgeHRfZGNjcCBzZWVtcyBicm9hZGVy
-IHRoYW4gdGhpcyBmaXggYmVjYXVzZSBpdCBtYXkgYWZmZWN0CmV4aXN0aW5nIHJ1bGVzIHRoYXQg
-bWF0Y2ggZm9yd2FyZGVkIHByb3RvY29sLTMzIHRyYWZmaWMuIEhvd2V2ZXIsIEkgZG8Kbm90IGhh
-dmUgZXZpZGVuY2Ugb2YgYWN0aXZlIHVzZXJzLgoKSWYgcmVtb3ZhbCBpcyBwcmVmZXJyZWQsIEkg
-Y2FuIHByZXBhcmUgYSBzZXBhcmF0ZSBSRkMgcGF0Y2guIE90aGVyd2lzZSwKSSBjYW4gc2VuZCBh
-IHYyIHdpdGggdGhlIHNhbWUgZml4IGFuZCBhIHNob3J0ZXIgY29tbWl0IG1lc3NhZ2UuCgpQYWJs
-bywgRmxvcmlhbiwgd2hhdCBkaXJlY3Rpb24gd291bGQgeW91IHByZWZlcj8K
+성병찬 <tjdqudcks0424@naver.com> wrote:
+> 
+> -----Original Message-----
+> From: "Fernando Fernandez Mancera"<fmancera@suse.de>
+> To: <tjdqudcks0424@naver.com>; "Pablo Neira Ayuso"<pablo@netfilter.org>; "Florian Westphal"<fw@strlen.de>;
+> Cc: <netfilter-devel@vger.kernel.org>;
+> Sent: 2026-10-09 (금) 17:34:55 (GMT+09:00)
+> Subject: Re: [PATCH] netfilter: xt_dccp: handle reserved options as single-byte
+> 
+> On 10/8/26 8:38 PM, tjdqudcks0424@naver.com wrote:
+> > From: Sung Byeongchan <tjdqudcks0424@naver.com>
+> >
+> > The DCCP UAPI defines option numbers 3 through 31 as reserved.  Like
+> > Padding and Mandatory, these options occupy one byte.  dccp_find_option()
+> > only treats values below 2 as single-byte and interprets the byte after a
+> > reserved option as a TLV length.
+> >
+> > This can skip a later option and invert an XT_DCCP_OPTION rule result.  A
+> > local production-hook fixture installed the same DROP rule for IPv4 and
+> > IPv6.  In three fresh boots per kernel, a target-only packet was dropped
+> > 20/20 times, while adding reserved option 3 before the same target let
+> > 20/20 packets reach the protected receiver.  The fixed kernel dropped all
+> > trigger packets in three fresh boots and preserved the normal controls.
+> >
+> > Treat every option up to DCCPO_MAX_RESERVED as single-byte, matching the
+> > protocol definition.  Triggering requires
+> > CONFIG_NETFILTER_XTABLES_LEGACY, CONFIG_NETFILTER_XT_MATCH_DCCP, an
+> > option-based rule, and remote protocol-33 reachability.  The touched source
+> > is unchanged at 0c2669a9f4a1d607e7591ae50ccf3c432a0aff08, where the patch
+> > applies and builds cleanly.
+> >
+> > The demonstrated impact is a conditional remote filter-verdict bypass.
+> > No memory-safety violation, information disclosure, RCE, or LPE was
+> > demonstrated.  The source reproducer and complete logs are available on
+> > request and are not included in this public report.
+> >
+> > OpenAI Codex assisted source inspection, test design, patch drafting, and
+> > evidence organization.
+> >
+> > Fixes: 1d3de414eb20 ("[NETFILTER]: New iptables DCCP protocol header match")
+> > Assisted-by: LLM
+> > Signed-off-by: Sung Byeongchan <tjdqudcks0424@naver.com>
+> 
+> The commit message is a bit too verbose and I doubt this has been found
+> in a real environment. This might be a bit too extreme from my side but
+> can we ditch DCCP support?
+
+See: 606bd17ef0de ("netfilter: add deprecation warning for dccp support")
+
+> Pablo, Florian, what direction would you prefer?
+
+Well, you already made a fix and it makes more sense from -stable PoV.
+So I'd say: Fix and then zap this thing early in 2027.
