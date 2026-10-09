@@ -1,193 +1,113 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mvsmtppost19.nm.naver.com (mvsmtppost19.nm.naver.com [61.247.196.162])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9053E415B6A
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 10:22:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4E44C6527
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 11:12:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=61.247.196.162
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791541358; cv=none; b=Boir0L89nHC0AgQF/sogIwgWbcxPXvBEqnCCIv/kqoYZ2ys38FWCqMnZQjMk+apZScKCSVl2S3x1TNJ5QJZLcM7Id+sE4eWFbYiEYTt3FDFzqwsTWv1RV31rWktfPWXNVlqN3vucGDV4p/+XY97KXZdEsiGPzN0y/bPbxW4FIRQ=
+	t=1791544361; cv=none; b=Rhve6nadPvGv4inzwNNV5tajD7c4N7X2S+uWva3qWk1gUVEHnbo6pgNVRZb+5fD+6kGW2uawhpW6lIa5Iu3m/96bppL0cHK+mc2PvMYq77bVHk4syM7M7PM/Kr4s/SZkriIk7wAfmXDakLZWG6hiFlmPeKH1EEmusl0e1gtQi4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791541358; c=relaxed/simple;
-	bh=VexQrBDwiveBSOaCruzeIZvKSmvSK+dKY5KxmuIwu30=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=YCMEhkjcVuwKvY+oFul+ELN9tAR6qeMb6RbSJKIJ9+GiWdsbDfQXTa7znbmEJ5lxyvNoBl0fwmOXDVK8/E7t24dkTedEpVghG2STK5deEIOJe+H7hnJSzW4hfHWCzfgukubUj28Xr2/P5wxTdXBgk2rCyUo+5gsDbYrnFZ+cVh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GzaFvz42; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791544361; c=relaxed/simple;
+	bh=YZ6D8MaBCeSfm5NcTzVJ4pgcZJskVzwpfM6Yt50WskA=;
+	h=MIME-Version:Message-ID:Date:From:In-Reply-To:References:To:Cc:
+	 Subject:Content-Type; b=dfN6Ke3yUlct6eeZ0a/wToW9pUKf07Y6R1b/b/I1+FyKuZxfJQAni+vrus0hMT6+Dwbz/jbmAOimBz0YrkEGloKcVWYosSaX+zENsHXYciY8iMDeOkmAYyzQJ5LjlJ04SONJL7488Upr9tcKCLRzr2KhH+pATiA3MMeGx76x9pY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=acoGlsgi; arc=none smtp.client-ip=61.247.196.162
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GzaFvz42"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 734511F000FF;
-	Fri,  9 Oct 2026 10:22:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791541356;
-	bh=qZEEdWky7hoI32w/BNSSaSbCZC+qvKJFxnWe5CLTxLU=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=GzaFvz42Hwed6qcfEkxk88AbvBPx/A+o+BMMxa/gQx1d4ZTpToLlPLf56xrGBuh6S
-	 98WKBAMLof8KxWXCPAh+KsJ5rZQyiZBJfRdsdKP+cKe5iInm0l0KMEs6t355+mtxtD
-	 OFsZQWVvd6ZW+n0eZ/bytkSP5fXFYdzMoHFbJiKo74roidCXo6KnJjFgA0rjRbt+QN
-	 W3QgLaPlYEVHnOKiqysq19Vddz2/KTjMS9f3G9s3ATGeSAfw5+mtTQSyjZwNedT4do
-	 C7gQUNSeN/UcKcQKXRU73nRAouvsvGAvKmrL5j/dZiIpmTcqbPPXbURw9PnP0tI15s
-	 mAjvZiB2VIxUw==
-Message-ID: <3424732e-6dec-4bb8-8f33-6f4b8a430de0@kernel.org>
-Date: Fri, 9 Oct 2026 12:22:32 +0200
+	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="acoGlsgi"
+X-Works-Smtp-Source: /dYwFxulFqJCpNmdFAKwWHF0
+Received: from nv1m-hmac-real-36 ([10.174.201.121])
+  by mvsmtppost19.nm.naver.com with ESMTP id 3g5vc-zRQW+nTxEOTgLvyg
+  for <multiple recipients>;
+  Fri, 09 Oct 2026 11:02:24 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
+	t=1791543744; bh=YZ6D8MaBCeSfm5NcTzVJ4pgcZJskVzwpfM6Yt50WskA=;
+	h=Message-ID:Date:From:To:Subject:From:Subject:Feedback-ID:
+	 X-Works-Security;
+	b=acoGlsgikJXWEmKD9ZxumWnDUqfjF6cR8Hgosr8T5UqCBlLzfWkAnIQljng2EihiC
+	 9zsGgoOox+pfWjIQJqAtQ9kLfCVIaPnBxfi8rrH+Cg8X15IjeXzQyj4j0qjdbP7R5I
+	 HQfMPGvCxwNHb3FQmVMTBoYm/HZtAspOZIJtB9vPolwlSmhrobVcusy8V49JOjv1eD
+	 wlRoZKK2DLcDraumQIwwTR3q/YuS6bK3tI7y7kVz/PrtKGW8BQ6GlcoovYW6ByPNHR
+	 6d3Iw38BBmc8UzzyXefkHv6Y4iE5Vu02RfU5pCcLHryBFckDltsP/jlgNlIRu9sOsN
+	 R0jEOuoEcqlyg==
+X-Session-ID: b72d4f1cf849da61059310483dad5600518af4410a043615704f94a15ba5d994
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH nf-next RFC] netfilter: nft_exthdr: add inner option type
- search for MPTCP
-Content-Language: fr
-To: Fernando Fernandez Mancera <fmancera@suse.de>,
- netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc
-References: <20261008174030.6536-1-fmancera@suse.de>
-From: Matthieu Baerts <matttbe@kernel.org>
-Autocrypt: addr=matttbe@kernel.org; keydata=
- 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
- lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
-Organization: NGI0 Core
-In-Reply-To: <20261008174030.6536-1-fmancera@suse.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Message-ID: <8a70c7509152ca319cbece812deb9@cweb014.nm>
+Date: Fri, 09 Oct 2026 20:02:24 +0900
+From: =?utf-8?B?7ISx67OR7LCs?= <tjdqudcks0424@naver.com>
+In-Reply-To: <06fe96ca-ef3e-4a15-9d11-d188164291a4@suse.de>
+References: <20261008183814.10521-1-tjdqudcks0424@naver.com>
+	<06fe96ca-ef3e-4a15-9d11-d188164291a4@suse.de>
+Importance: normal
+To: =?utf-8?B?RmVybmFuZG8gRmVybmFuZGV6IE1hbmNlcmE=?= <fmancera@suse.de>,
+	=?utf-8?B?UGFibG8gTmVpcmEgQXl1c28=?= <pablo@netfilter.org>,
+	=?utf-8?B?RmxvcmlhbiBXZXN0cGhhbA==?= <fw@strlen.de>
+Cc: <netfilter-devel@vger.kernel.org>
+Subject: =?utf-8?B?UmU6IFtQQVRDSF0gbmV0ZmlsdGVyOiB4dF9kY2NwOiBoYW5kbGUgcmVzZXJ2ZWQgb3B0aQ==?=
+	=?utf-8?B?b25zIGFzIHNpbmdsZS1ieXRl?=
+X-Works-Send-Opt: OPFwpzGdjHmdKHFOMr39Ko3YKHmdjAudFqM9KqMqFxIYkEljxBmwjAg=
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Hi Fernando,
-
-On 08/10/2026 19:40, Fernando Fernandez Mancera wrote:
-> MPTCP carries each of its suboptions as a separate TCP option of kind
-> 30. The suboption type is stored in the upper four bits of the third
-> byte of the option. A single packet can therefore carry several kind 30
-> options, for example a dss followed by an mp-prio.
-> 
-> nft_exthdr_tcp_eval() stops at the first option whose kind equals
-> NFTA_EXTHDR_TYPE. A rule such as:
-> 
->   tcp option mptcp subtype mp-prio drop
-> 
-> only ever sees the first MPTCP suboption. If that is a dss, the subtype
-> comparison fails and the rule never matches, even though an mp-prio is
-> present later in the same header.
-
-Thank you for working on this!
-
-> Add NFTA_EXTHDR_INNER_TYPE. When present, the expression keeps walking
-> the options of the requested kind until one carries the requested inner
-> type.  If the end of the options area is reached without a match, the
-> expression behaves as if the option was not found: NFT_BREAK, or 0 when
-> NFT_EXTHDR_F_PRESENT is set.
-> 
-> See the generated bytecodes below:
-> 
-> - Bytecode for matching mp-join without using NFT_EXTHDR_F_PRESENT flag.
-> 
-> ip mptcp_exthdr input 3 2
->   [ exthdr load tcpopt 1b @ 30 + 2 inner 1 => reg 1 ]
->   [ bitwise reg 1 = ( reg 1 & 0xf0 ) ^ 0x00 ]
->   [ cmp eq reg 1 0x10 ]
-> 
-> - Bytecode for matching mp-join using the NFT_EXTHDR_F_PRESENT flag.
-> 
-> ip mptcp_exthdr input 8 7
->   [ exthdr load tcpopt 1b @ 30 + 0 present inner 1 => reg 1 ]
->   [ cmp eq reg 1 0x01 ]
-> 
-> Note that while using the present flag is more efficient, if we decide
-> to use it in nftables command line tool it would change the behavior
-> when using old kernels reverting from false negatives to false
-> positives.
-
-Could nft use NFTA_EXTHDR_INNER_TYPE if the kernel supports it, and
-fallback to the previous method if not?
-
-Or maybe better to have a new option that will explicitly fail if the
-kernel doesn't support it, not to miss packets on older kernel versions?
-
-(...)
-
-> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-> index 861bab93f435..984b54d2c6dd 100644
-> --- a/net/netfilter/nft_exthdr.c
-> +++ b/net/netfilter/nft_exthdr.c
-
-(...)
-
-> @@ -207,7 +209,15 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
->  		if (priv->type != opt[i])
->  			continue;
->  
-> -		if (i + optl > tcphdr_len || priv->len + priv->offset > optl)
-> +		if (i + optl > tcphdr_len)
-> +			goto err;
-> +
-> +		if (priv->has_inner && priv->type == TCPOPT_MPTCP) {
-
-Why does it need to be limited to MPTCP?
-
-(I understand it is probably easier like that, and that's fine for my
-use-case, but I'm just thinking about extensions that could be done only
-via the userspace.)
-
-> +			if (!(optl >= 3 && (opt[i + 2] >> 4) == priv->inner_type))
-
-Can you not use priv->offset and priv->len not to have something
-specific to MPTCP?
-
-But then, you need to keep the safety check around them before this. And
-you probably need to check that the length is <= 8 at parsing time.
-
-(...)
-
-> @@ -679,6 +706,11 @@ static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *
->  		goto nla_put_failure;
->  	if (nla_put_be32(skb, NFTA_EXTHDR_OP, htonl(priv->op)))
->  		goto nla_put_failure;
-> +	if (priv->has_inner) {
-> +		if (nla_put_be32(skb, NFTA_EXTHDR_INNER_TYPE,  htonl(priv->inner_type)))
-
-(double spaces before htonl())
-
-Cheers,
-Matt
--- 
-Sponsored by the NGI0 Core fund.
-
+Ci0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCkZyb206ICJGZXJuYW5kbyBGZXJuYW5kZXogTWFu
+Y2VyYSI8Zm1hbmNlcmFAc3VzZS5kZT4gClRvOiA8dGpkcXVkY2tzMDQyNEBuYXZlci5jb20+OyAi
+UGFibG8gTmVpcmEgQXl1c28iPHBhYmxvQG5ldGZpbHRlci5vcmc+OyAiRmxvcmlhbiBXZXN0cGhh
+bCI8ZndAc3RybGVuLmRlPjsgCkNjOiA8bmV0ZmlsdGVyLWRldmVsQHZnZXIua2VybmVsLm9yZz47
+IApTZW50OiAyMDI2LTEwLTA5ICjquIgpIDE3OjM0OjU1IChHTVQrMDk6MDApClN1YmplY3Q6IFJl
+OiBbUEFUQ0hdIG5ldGZpbHRlcjogeHRfZGNjcDogaGFuZGxlIHJlc2VydmVkIG9wdGlvbnMgYXMg
+c2luZ2xlLWJ5dGUKCk9uIDEwLzgvMjYgODozOCBQTSwgdGpkcXVkY2tzMDQyNEBuYXZlci5jb20g
+d3JvdGU6Cj4gRnJvbTogU3VuZyBCeWVvbmdjaGFuIDx0amRxdWRja3MwNDI0QG5hdmVyLmNvbT4K
+PiAKPiBUaGUgRENDUCBVQVBJIGRlZmluZXMgb3B0aW9uIG51bWJlcnMgMyB0aHJvdWdoIDMxIGFz
+IHJlc2VydmVkLiDCoExpa2UKPiBQYWRkaW5nIGFuZCBNYW5kYXRvcnksIHRoZXNlIG9wdGlvbnMg
+b2NjdXB5IG9uZSBieXRlLiDCoGRjY3BfZmluZF9vcHRpb24oKQo+IG9ubHkgdHJlYXRzIHZhbHVl
+cyBiZWxvdyAyIGFzIHNpbmdsZS1ieXRlIGFuZCBpbnRlcnByZXRzIHRoZSBieXRlIGFmdGVyIGEK
+PiByZXNlcnZlZCBvcHRpb24gYXMgYSBUTFYgbGVuZ3RoLgo+IAo+IFRoaXMgY2FuIHNraXAgYSBs
+YXRlciBvcHRpb24gYW5kIGludmVydCBhbiBYVF9EQ0NQX09QVElPTiBydWxlIHJlc3VsdC4gwqBB
+Cj4gbG9jYWwgcHJvZHVjdGlvbi1ob29rIGZpeHR1cmUgaW5zdGFsbGVkIHRoZSBzYW1lIERST1Ag
+cnVsZSBmb3IgSVB2NCBhbmQKPiBJUHY2LiDCoEluIHRocmVlIGZyZXNoIGJvb3RzIHBlciBrZXJu
+ZWwsIGEgdGFyZ2V0LW9ubHkgcGFja2V0IHdhcyBkcm9wcGVkCj4gMjAvMjAgdGltZXMsIHdoaWxl
+IGFkZGluZyByZXNlcnZlZCBvcHRpb24gMyBiZWZvcmUgdGhlIHNhbWUgdGFyZ2V0IGxldAo+IDIw
+LzIwIHBhY2tldHMgcmVhY2ggdGhlIHByb3RlY3RlZCByZWNlaXZlci4gwqBUaGUgZml4ZWQga2Vy
+bmVsIGRyb3BwZWQgYWxsCj4gdHJpZ2dlciBwYWNrZXRzIGluIHRocmVlIGZyZXNoIGJvb3RzIGFu
+ZCBwcmVzZXJ2ZWQgdGhlIG5vcm1hbCBjb250cm9scy4KPiAKPiBUcmVhdCBldmVyeSBvcHRpb24g
+dXAgdG8gRENDUE9fTUFYX1JFU0VSVkVEIGFzIHNpbmdsZS1ieXRlLCBtYXRjaGluZyB0aGUKPiBw
+cm90b2NvbCBkZWZpbml0aW9uLiDCoFRyaWdnZXJpbmcgcmVxdWlyZXMKPiBDT05GSUdfTkVURklM
+VEVSX1hUQUJMRVNfTEVHQUNZLCBDT05GSUdfTkVURklMVEVSX1hUX01BVENIX0RDQ1AsIGFuCj4g
+b3B0aW9uLWJhc2VkIHJ1bGUsIGFuZCByZW1vdGUgcHJvdG9jb2wtMzMgcmVhY2hhYmlsaXR5LiDC
+oFRoZSB0b3VjaGVkIHNvdXJjZQo+IGlzIHVuY2hhbmdlZCBhdCAwYzI2NjlhOWY0YTFkNjA3ZTc1
+OTFhZTUwY2NmM2M0MzJhMGFmZjA4LCB3aGVyZSB0aGUgcGF0Y2gKPiBhcHBsaWVzIGFuZCBidWls
+ZHMgY2xlYW5seS4KPiAKPiBUaGUgZGVtb25zdHJhdGVkIGltcGFjdCBpcyBhIGNvbmRpdGlvbmFs
+IHJlbW90ZSBmaWx0ZXItdmVyZGljdCBieXBhc3MuCj4gTm8gbWVtb3J5LXNhZmV0eSB2aW9sYXRp
+b24sIGluZm9ybWF0aW9uIGRpc2Nsb3N1cmUsIFJDRSwgb3IgTFBFIHdhcwo+IGRlbW9uc3RyYXRl
+ZC4gwqBUaGUgc291cmNlIHJlcHJvZHVjZXIgYW5kIGNvbXBsZXRlIGxvZ3MgYXJlIGF2YWlsYWJs
+ZSBvbgo+IHJlcXVlc3QgYW5kIGFyZSBub3QgaW5jbHVkZWQgaW4gdGhpcyBwdWJsaWMgcmVwb3J0
+Lgo+IAo+IE9wZW5BSSBDb2RleCBhc3Npc3RlZCBzb3VyY2UgaW5zcGVjdGlvbiwgdGVzdCBkZXNp
+Z24sIHBhdGNoIGRyYWZ0aW5nLCBhbmQKPiBldmlkZW5jZSBvcmdhbml6YXRpb24uCj4gCj4gRml4
+ZXM6IDFkM2RlNDE0ZWIyMCAoIltORVRGSUxURVJdOiBOZXcgaXB0YWJsZXMgRENDUCBwcm90b2Nv
+bCBoZWFkZXIgbWF0Y2giKQo+IEFzc2lzdGVkLWJ5OiBMTE0KPiBTaWduZWQtb2ZmLWJ5OiBTdW5n
+IEJ5ZW9uZ2NoYW4gPHRqZHF1ZGNrczA0MjRAbmF2ZXIuY29tPgoKVGhlIGNvbW1pdCBtZXNzYWdl
+IGlzIGEgYml0IHRvbyB2ZXJib3NlIGFuZCBJIGRvdWJ0IHRoaXMgaGFzIGJlZW4gZm91bmQgCmlu
+IGEgcmVhbCBlbnZpcm9ubWVudC4gVGhpcyBtaWdodCBiZSBhIGJpdCB0b28gZXh0cmVtZSBmcm9t
+IG15IHNpZGUgYnV0IApjYW4gd2UgZGl0Y2ggRENDUCBzdXBwb3J0PwoKRENDUCBzb2NrZXQgaW5m
+cmFzdHJ1Y3R1cmUgd2FzIGRlcHJlY2F0ZWQgaW4gMjAyMyBhdCBjb21taXQgYjE0NGZjYWY0NmQ0
+IAooImRjY3A6IFByaW50IGRlcHJlY2F0aW9uIG5vdGljZS4iKSBhbmQgcmVtb3ZlZCBtb3JlIHRo
+YW4gYSB5ZWFyIGFnbyBpbiAKMjAyNSBhdCBjb21taXQgMmE2M2RkMGVkZjM4ICgibmV0OiBSZXRp
+cmUgRENDUCBzb2NrZXQuIikuCgpJIGRvbid0IHRoaW5rIHNvbWVvbmUgaXMgYWN0aXZlbHkgbWF0
+Y2hpbmcgRENDUCB0cmFmZmljIGFzIGEgbWlkZGxlYm94Li4gCndoYXQgZG8geW91IHRoaW5rPwoK
+CgoKClRoYW5rcyBmb3IgdGhlIHJldmlldy4KClRoaXMgd2FzIGZvdW5kIHRocm91Z2ggc291cmNl
+IHJldmlldyBhbmQgcmVwcm9kdWNlZCB3aXRoIGEgY29udHJvbGxlZApsb2NhbCBmaXh0dXJlLCBu
+b3QgZnJvbSBhIHJlYWwtd29ybGQgZGVwbG95bWVudC4gSSBhZ3JlZSB0aGF0IHRoZSBjb21taXQK
+bWVzc2FnZSBjYW4gYmUgc2hvcnRlbmVkLgoKUmVtb3ZpbmcgeHRfZGNjcCBzZWVtcyBicm9hZGVy
+IHRoYW4gdGhpcyBmaXggYmVjYXVzZSBpdCBtYXkgYWZmZWN0CmV4aXN0aW5nIHJ1bGVzIHRoYXQg
+bWF0Y2ggZm9yd2FyZGVkIHByb3RvY29sLTMzIHRyYWZmaWMuIEhvd2V2ZXIsIEkgZG8Kbm90IGhh
+dmUgZXZpZGVuY2Ugb2YgYWN0aXZlIHVzZXJzLgoKSWYgcmVtb3ZhbCBpcyBwcmVmZXJyZWQsIEkg
+Y2FuIHByZXBhcmUgYSBzZXBhcmF0ZSBSRkMgcGF0Y2guIE90aGVyd2lzZSwKSSBjYW4gc2VuZCBh
+IHYyIHdpdGggdGhlIHNhbWUgZml4IGFuZCBhIHNob3J0ZXIgY29tbWl0IG1lc3NhZ2UuCgpQYWJs
+bywgRmxvcmlhbiwgd2hhdCBkaXJlY3Rpb24gd291bGQgeW91IHByZWZlcj8K
