@@ -1,72 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DD14E3242;
-	Fri,  9 Oct 2026 15:04:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0737D3515DF
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 15:30:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791558283; cv=none; b=mj5JEXIVuBVcWkkZU3lCFnj7XEn6ZIKLFRd0pTR8JjNXD9TTPJUoGRUunct8zApQREfK33PC+YHcZVIUnX/QaFhUz8JLCps6N2zkrdoDmPg3oMsR64z9n6/6UNoFkvh07eaBycW6Px7dJLxjUOlUfbZ4XKxzAY9oBE+UwPj82xI=
+	t=1791559828; cv=none; b=ufTrUNT/q60YGQRNADYl22KiQBYUf319NzXaLr6aPKmCswVkTcQ4fenVsUnHfA9qBiBIVCoOkMiNRU9/NL5AnvvuO2L0jbFbcWFbFG9b5CiFpPvbPdGEDOiKqOaRihgDMqc9WqdD6R+L34NK8oSwnrczkvaOhAHIQEMdFrqonwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791558283; c=relaxed/simple;
-	bh=x8GQ9TqAFu5driuvo38kqzYt3n324pebOlaNmEELI+s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=f65PS2SW2K0+9rTPQ42gv855Xkd0Byv7bDzlTqm/3Lb7MqrDTXggqjufcrhgGOk0ifbCkmeEz/0aoTPpPl7zY7mMpGx6bwAniIPZe1SLakF6SR2xJlVbOsqO5QBi1z/BnCZJcQhPVlkotMEZxvZrstZdu3G6Qe+bfdonxR9hjfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vx9+TnRm; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vx9+TnRm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 297311F000FF;
-	Fri,  9 Oct 2026 15:04:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791558282;
-	bh=PJRu7W6/Or1we5Gv3BgoLEtby0D0Y0UGgfjBHfRc5+k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Vx9+TnRmKH4AP2NgbOuAqFhoCoBdoxS2W7uUiw385ILRdmbPApTYdNVIMxoguuBF6
-	 A9trxsbn4Cvg+52zk222RT9XmxZL/eAANTmCuFoCppmWKoRw3zjhFGCQbX055sfns4
-	 p2DEsDT2zggmAoYpWgmqLjdjWZM3EMoA85fZ2jzvbL6VEhR5GU+YMxBFXSwke11v7P
-	 r6VVNDyAxGTh2Qf9HDPZxIYKr8aUTX4G03z3ry6wi7qFSdX5MU/7na2b3SJky1QG+M
-	 I8fUY16pQXN5uyqcc0Zb2bC71qVHWgZeFDem6szHBB5m8pws7MLp2ZkkGIKTNN2M9M
-	 C1itnOyOcSo9Q==
-From: netdev-bot+sinfo@kernel.org
-To: Gabriel Goller <g.goller@proxmox.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>,
- Ido Schimmel <idosch@nvidia.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, netdev@vger.kernel.org,
- linux-kselftest@vger.kernel.org
-Subject: Re: [RFC PATCH net-next] netfilter: bridge: refragment reassembled
- packets passed up
-Date: Fri, 09 Oct 2026 15:04:40 +0000
-Message-ID: <179155828067.2527009.9838753386350423335@kernel.org>
-In-Reply-To: <20261009150246.443127-1-g.goller@proxmox.com>
-References: <20261009150246.443127-1-g.goller@proxmox.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	s=arc-20240116; t=1791559828; c=relaxed/simple;
+	bh=5VVYYN/cShBwlv3ANVA3gfr5EYHCtLEkhWFV9gLM5tI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ICiQU21AgIpJCTqFSiq+DXwFzsxGkex+wtqaqKWtQkMHxqyoN5zl0lSCOrS2yhFOBI0Av+KKWqy7TP3GQflM/IxEcwYEnBiTTItKXBBEEQTPcLi9hkb48Bwk3q0P50u0qeUV5GvXqxTtNXmkRQn8dH2yZpC4Kmo3GGFP9dBYaa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 1D3201F7D2;
+	Fri,  9 Oct 2026 15:30:25 +0000 (UTC)
+Authentication-Results: smtp-out2.suse.de;
+	none
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B04E81326D;
+	Fri,  9 Oct 2026 15:30:24 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id sjCQH5AIyWovZQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 09 Oct 2026 15:30:24 +0000
+Message-ID: <29da46f0-3cac-4edb-9f0f-01dcd5f00b93@suse.de>
+Date: Fri, 9 Oct 2026 17:29:26 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] netfilter: xt_dccp: handle reserved options as
+ single-byte
+To: tjdqudcks0424@naver.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+References: <20261008183814.10521-1-tjdqudcks0424@naver.com>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20261008183814.10521-1-tjdqudcks0424@naver.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Pre-Result: action=no action;
+	module=Unknown lua;
+	unknown reason
+X-Spam-Flag: NO
+X-Spamd-Bar: /
+X-Rspamd-Queue-Id: 1D3201F7D2
+X-Rspamd-Pre-Result: action=no action;
+	module=Unknown lua;
+	unknown reason
+X-Rspamd-Action: no action
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Level: 
+X-Spamd-Result: default: False [0.00 / 50.00]
+X-Spam-Score: 0.00
 
-Hi!
+On 10/8/26 8:38 PM, tjdqudcks0424@naver.com wrote:
+> From: Sung Byeongchan <tjdqudcks0424@naver.com>
+> 
+> The DCCP UAPI defines option numbers 3 through 31 as reserved.  Like
+> Padding and Mandatory, these options occupy one byte.  dccp_find_option()
+> only treats values below 2 as single-byte and interprets the byte after a
+> reserved option as a TLV length.
+> 
+> This can skip a later option and invert an XT_DCCP_OPTION rule result.  A
+> local production-hook fixture installed the same DROP rule for IPv4 and
+> IPv6.  In three fresh boots per kernel, a target-only packet was dropped
+> 20/20 times, while adding reserved option 3 before the same target let
+> 20/20 packets reach the protected receiver.  The fixed kernel dropped all
+> trigger packets in three fresh boots and preserved the normal controls.
+> 
+> Treat every option up to DCCPO_MAX_RESERVED as single-byte, matching the
+> protocol definition.  Triggering requires
+> CONFIG_NETFILTER_XTABLES_LEGACY, CONFIG_NETFILTER_XT_MATCH_DCCP, an
+> option-based rule, and remote protocol-33 reachability.  The touched source
+> is unchanged at 0c2669a9f4a1d607e7591ae50ccf3c432a0aff08, where the patch
+> applies and builds cleanly.
+> 
+> The demonstrated impact is a conditional remote filter-verdict bypass.
+> No memory-safety violation, information disclosure, RCE, or LPE was
+> demonstrated.  The source reproducer and complete logs are available on
+> request and are not included in this public report.
+> 
+> OpenAI Codex assisted source inspection, test design, patch drafting, and
+> evidence organization.
+> 
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+I think these two paragraphs do not belong to the commit message. Could 
+you drop them?
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+I think this should go through nf-next tree instead. Could you please 
+add nf-next prefix in your v2?
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+Other than that, the patch looks good to me.
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Thanks,
+Fernando.
+
+> Fixes: 1d3de414eb20 ("[NETFILTER]: New iptables DCCP protocol header match")
+> Assisted-by: LLM
+> Signed-off-by: Sung Byeongchan <tjdqudcks0424@naver.com>
+> ---
+>   net/netfilter/xt_dccp.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+> index 3db81e041af9b..23a4e3e8df7de 100644
+> --- a/net/netfilter/xt_dccp.c
+> +++ b/net/netfilter/xt_dccp.c
+> @@ -62,7 +62,7 @@ dccp_find_option(u_int8_t option,
+>   			return true;
+>   		}
+>   
+> -		if (op[i] < 2 || i == optlen - 1)
+> +		if (op[i] <= DCCPO_MAX_RESERVED || i == optlen - 1)
+>   			i++;
+>   		else
+>   			i += op[i + 1] ? : 1;
+
