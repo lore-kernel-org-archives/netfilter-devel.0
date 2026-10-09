@@ -1,39 +1,39 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9867A3BB112
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 13:06:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55BB4E50A6
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 Oct 2026 14:29:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791551200; cv=none; b=gGk+YpTHGTuAkVJ3kBtSMoRZG7mKD7+DHnu+nvMbUAzG2xKZJy+fV2p4YQwjxaM2n5bPUL++UDIuhEup9LSY4cOJOiwGnx1Wpp/xk1+YVebH1Z6rA6qO9pNSaiZmxrFokOUdtfiMikmd+X2rWWzRuialr3ZvCsPbRVUNtSmZK6I=
+	t=1791556188; cv=none; b=iCB2dmb1oPP7s7ZIs7DESHkEdxRqVCOLwzRLZP/xOq8JG3YuHkHkvEggY4ZWvBQlWQobVEI5UG+TfZeRCXlBi3fdbTvo+2mM9ewUs8TfLuuYZy4kkQ8FeqAXwdxEv9TxIYbMMLHu4SDxq/0EffC3ZbbZYVZC8Rbi1Uh+qsLvXAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791551200; c=relaxed/simple;
-	bh=zDon+82kxGZZZwnJLq3cnsYEWhxWlav8B6QyGrJdXTg=;
+	s=arc-20240116; t=1791556188; c=relaxed/simple;
+	bh=CsNEcSseIDsr0m2RL/k2dyWm7uTwoNCldkmTt/+nYn4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=SjL1WR5qynmvjA4FpHeg9ditHNCzxqlHTIHrzabY1cA2JrrJq+2wuV4ipJFy6HuLn5XenjE2RlBjtEXDt17WW+U1UOo5oeAu3uWrJ/sywslxwNx/2L347YZ0tEJN5SrsFD17o66VwflFcheEQ+F+oj1PF9OARklHDIgWznrJ+mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
+	 In-Reply-To:Content-Type; b=YMQF/XqO0VRqoJBuXF6RuJf6V0Q+ZxY8U5TB2LVi6yh7HoD0YWRK7GHuo5a8ZF1bXs4ohRv+6JIB4/rFsc+iEIMFMoUMOj/Hq5mqaDVe/I2Z5zZqy+lLVFufWINv6Uf5H0RrzlewvNQzNoglWbiEgMOpPURdB8QwDywu7KwF3+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id D47061F7CB;
-	Fri,  9 Oct 2026 13:06:36 +0000 (UTC)
-Authentication-Results: smtp-out2.suse.de;
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 2DE7021B8F;
+	Fri,  9 Oct 2026 14:29:35 +0000 (UTC)
+Authentication-Results: smtp-out1.suse.de;
 	none
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5BEF51326D;
-	Fri,  9 Oct 2026 13:06:36 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0FE9C1368B;
+	Fri,  9 Oct 2026 14:29:34 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id vH11C9zmyGrdSAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 09 Oct 2026 13:06:36 +0000
-Message-ID: <31dae787-d58e-4b45-815d-e79670906767@suse.de>
-Date: Fri, 9 Oct 2026 15:05:34 +0200
+	id A+GNNE36yGrMIwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 09 Oct 2026 14:29:34 +0000
+Message-ID: <e2beb9bc-7b92-4ae4-8190-c99bee8de1ca@suse.de>
+Date: Fri, 9 Oct 2026 16:28:31 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,149 +41,113 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next RFC] netfilter: nft_exthdr: add inner option type
- search for MPTCP
-To: Matthieu Baerts <matttbe@kernel.org>, netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc
-References: <20261008174030.6536-1-fmancera@suse.de>
- <3424732e-6dec-4bb8-8f33-6f4b8a430de0@kernel.org>
+Subject: Re: [PATCH nf] netfilter: ip6t_SYNPROXY: check TCP header before
+ verifying checksum
+To: Palla Raghunath <raghunathpalla.0209@gmail.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Jesper Dangaard Brouer <hawk@kernel.org>, Patrick McHardy <kaber@trash.net>
+Cc: Shuah Khan <shuah@kernel.org>, Brigham Campbell <me@brighamcampbell.com>,
+ linux-kernel-mentees@lists.linux.dev, linux-kernel@vger.kernel.org,
+ syzbot+5a8667f002726fc59f88@syzkaller.appspotmail.com,
+ Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org
+References: <20260926204519.43402-1-raghunathpalla.0209@gmail.com>
 Content-Language: en-US
 From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <3424732e-6dec-4bb8-8f33-6f4b8a430de0@kernel.org>
+In-Reply-To: <20260926204519.43402-1-raghunathpalla.0209@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 X-Rspamd-Pre-Result: action=no action;
 	module=Unknown lua;
 	unknown reason
-X-Spam-Flag: NO
-X-Spam-Score: 0.00
-X-Spam-Level: 
+X-Spamd-Bar: /
+X-Rspamd-Queue-Id: 2DE7021B8F
 X-Rspamd-Pre-Result: action=no action;
 	module=Unknown lua;
 	unknown reason
-X-Spamd-Result: default: False [0.00 / 50.00]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: 0.00
+X-Spam-Level: 
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [0.00 / 50.00];
+	TAGGED_RCPT(0.00)[5a8667f002726fc59f88]
 
-On 10/9/26 12:22 PM, Matthieu Baerts wrote:
-> Hi Fernando,
+On 9/26/26 10:45 PM, Palla Raghunath wrote:
+> synproxy_tg6() passes par->thoff to nf_ip6_checksum() before it has
+> checked that a TCP header is actually present at that offset.
 > 
-> On 08/10/2026 19:40, Fernando Fernandez Mancera wrote:
->> MPTCP carries each of its suboptions as a separate TCP option of kind
->> 30. The suboption type is stored in the upper four bits of the third
->> byte of the option. A single packet can therefore carry several kind 30
->> options, for example a dss followed by an mp-prio.
->>
->> nft_exthdr_tcp_eval() stops at the first option whose kind equals
->> NFTA_EXTHDR_TYPE. A rule such as:
->>
->>    tcp option mptcp subtype mp-prio drop
->>
->> only ever sees the first MPTCP suboption. If that is a dss, the subtype
->> comparison fails and the rule never matches, even though an mp-prio is
->> present later in the same header.
+> par->thoff comes from ipv6_find_hdr(), called by ip6_packet_match()
+> with target -1. ipv6_find_hdr() only checks that each extension header's
+> first two bytes are in the skb. It then adds that header's declared
+> length to the offset and stops at the first non-extension header, so it
+> can return an offset past the end of the packet. With
+> CHECKSUM_NONE, nf_ip6_checksum() calls skb_checksum(skb, 0, thoff, 0).
+> When thoff is larger than skb->len, the BUG_ON(len) in skb_checksum()
+> fires:
 > 
-> Thank you for working on this!
+>    kernel BUG at net/core/skbuff.c:3606!
+>    RIP: 0010:skb_checksum+0x8b2/0x8c0
+>    Call Trace:
+>     nf_ip6_checksum+0x1bd/0x320 net/netfilter/utils.c:89
+>     synproxy_tg6+0x1a4/0x6e0 net/ipv6/netfilter/ip6t_SYNPROXY.c:21
+>     ip6t_do_table+0xd37/0x15b0 net/ipv6/netfilter/ip6_tables.c:366
+>     ...
 > 
->> Add NFTA_EXTHDR_INNER_TYPE. When present, the expression keeps walking
->> the options of the requested kind until one carries the requested inner
->> type.  If the end of the options area is reached without a match, the
->> expression behaves as if the option was not found: NFT_BREAK, or 0 when
->> NFT_EXTHDR_F_PRESENT is set.
->>
->> See the generated bytecodes below:
->>
->> - Bytecode for matching mp-join without using NFT_EXTHDR_F_PRESENT flag.
->>
->> ip mptcp_exthdr input 3 2
->>    [ exthdr load tcpopt 1b @ 30 + 2 inner 1 => reg 1 ]
->>    [ bitwise reg 1 = ( reg 1 & 0xf0 ) ^ 0x00 ]
->>    [ cmp eq reg 1 0x10 ]
->>
->> - Bytecode for matching mp-join using the NFT_EXTHDR_F_PRESENT flag.
->>
->> ip mptcp_exthdr input 8 7
->>    [ exthdr load tcpopt 1b @ 30 + 0 present inner 1 => reg 1 ]
->>    [ cmp eq reg 1 0x01 ]
->>
->> Note that while using the present flag is more efficient, if we decide
->> to use it in nftables command line tool it would change the behavior
->> when using old kernels reverting from false negatives to false
->> positives.
+> In the syzbot reproducer, a 60-byte packet carries an AH header, then two
+> hop-by-hop headers. The last hop-by-hop header has nexthdr TCP and
+> hdrlen 167, so thoff is 1400.
 > 
-> Could nft use NFTA_EXTHDR_INNER_TYPE if the kernel supports it, and
-> fallback to the previous method if not?
+> Fetch the TCP header with skb_header_pointer() first, as
+> nf_reject_ip6_tcphdr_get() already does. This drops packets that do not
+> contain a full TCP header at thoff before the checksum is computed.
 > 
-> Or maybe better to have a new option that will explicitly fail if the
-> kernel doesn't support it, not to miss packets on older kernel versions?
-> 
+> Fixes: 4ad362282cb4 ("netfilter: add IPv6 SYNPROXY target")
+> Reported-by: syzbot+5a8667f002726fc59f88@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=5a8667f002726fc59f88
+> Signed-off-by: Palla Raghunath <raghunathpalla.0209@gmail.com>
+> ---
 
-Well, I was expecting that nft will use the same syntax and only the 
-underlying bytecode would change. If we want to preserve backward 
-compatibility, then we should go with the first option. That is, not 
-using the MFT_EXTHDR_F_PRESENT flag. In such case, the compatibility 
-will be preserved for older kernels.
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-It just adds a bitwise operation overhead which is also the current 
-situation.
+The nftables synproxy eval path is also affected but I think it would be 
+better to keep it in a separate patch in order to facilitate 
+backporting. The issue were introduced at different times and nftables 
+synproxy expression is "recent" compared to the iptables target.
 
-> (...)
-> 
->> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
->> index 861bab93f435..984b54d2c6dd 100644
->> --- a/net/netfilter/nft_exthdr.c
->> +++ b/net/netfilter/nft_exthdr.c
-> 
-> (...)
-> 
->> @@ -207,7 +209,15 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
->>   		if (priv->type != opt[i])
->>   			continue;
->>   
->> -		if (i + optl > tcphdr_len || priv->len + priv->offset > optl)
->> +		if (i + optl > tcphdr_len)
->> +			goto err;
->> +
->> +		if (priv->has_inner && priv->type == TCPOPT_MPTCP) {
-> 
-> Why does it need to be limited to MPTCP?
-> 
-> (I understand it is probably easier like that, and that's fine for my
-> use-case, but I'm just thinking about extensions that could be done only
-> via the userspace.)
-> 
->> +			if (!(optl >= 3 && (opt[i + 2] >> 4) == priv->inner_type))
-> 
-> Can you not use priv->offset and priv->len not to have something
-> specific to MPTCP?
-> 
-> But then, you need to keep the safety check around them before this. And
-> you probably need to check that the length is <= 8 at parsing time.
-> 
+I am sending a patch for the nftables expression and will CC you in case 
+you can test it too.
 
-We could allow that but I do not have an usecase right now. If we do 
-have one, please let me know. This new _INNER_TYPE option can be also 
-used for SCTP for example, but that would need to be implemented later.
+Thanks!
 
-For now, I would stick to MPTCP although the option is flexible enough 
-to be expanded in the future.
-
-> (...)
+>   net/ipv6/netfilter/ip6t_SYNPROXY.c | 9 ++++++---
+>   1 file changed, 6 insertions(+), 3 deletions(-)
 > 
->> @@ -679,6 +706,11 @@ static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *
->>   		goto nla_put_failure;
->>   	if (nla_put_be32(skb, NFTA_EXTHDR_OP, htonl(priv->op)))
->>   		goto nla_put_failure;
->> +	if (priv->has_inner) {
->> +		if (nla_put_be32(skb, NFTA_EXTHDR_INNER_TYPE,  htonl(priv->inner_type)))
-> 
-> (double spaces before htonl())
-
-Oops. Yes, code needs some improvement for example when validating the 
-values during expression initialization, but I want to focus on the idea 
-itself for this RFC.
-
-Thanks for the comments Matthieu!
-
-> 
-> Cheers,
-> Matt
+> diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> index d51d0c3e5fe9..04db1f82420b 100644
+> --- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> +++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> @@ -18,13 +18,16 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+>   	struct synproxy_options opts = {};
+>   	struct tcphdr *th, _th;
+>   
+> -	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
+> -		return NF_DROP;
+> -
+> +	/* par->thoff may point past the end of the packet; make sure a
+> +	 * full TCP header is present before checksumming up to it.
+> +	 */
+>   	th = skb_header_pointer(skb, par->thoff, sizeof(_th), &_th);
+>   	if (th == NULL)
+>   		return NF_DROP;
+>   
+> +	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
+> +		return NF_DROP;
+> +
+>   	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
+>   		return NF_DROP;
+>   
 
