@@ -1,161 +1,173 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B49A4973B0
-	for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2026 12:06:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 050BA491589;
+	Sat, 10 Oct 2026 13:30:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791633997; cv=none; b=UPnw+Co4AIXR71NT1lsfTFU001EjZ04dZRl1yo5GrEJ7+adJbVAsfuBt+d/oedGcQbPt/nDiGqZsyrC5y8LgDnzeYlmQy6XePNWnkvCIDwAJzZTZv88V3bIBC/1QigHPDYoxkGkUtiCP5CAeBy+fpZSc8vnG5uxLd6P6oYnGX9s=
+	t=1791639005; cv=none; b=McKZzPGHAodcMT549b2Tc9IfvT2ef0pQCeFeePhi5RkpL0O2QPLe2zJ4UgIDfGhjXGFAuffJuMYPexv31mwWRFuoxK1hHTxfPri9VtYBESwFjCACn4RlUg2Y8Mtss0LF9j0Dzf+QdOPN38O7/OWbcHc5ZkUVfVsjO+IhV2GEaHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791633997; c=relaxed/simple;
-	bh=c6R/HMX9UdwvshKUArbM+BShOO0B0p0jNJq4Z1oLlXQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=ra5DogLs3MSvVe/xkaNLDV+vm9OrB0rz4CUFy2PXoLQH332SjrExxd8JxLePTgzAktfAD+bdO+51jFtMBAwheIYeTBteVmC6usH8OfN4xGf66mgcGtsDeh9vlX9/eO59X8WCGvBiiK+0VsCO8wHQk/21vwd1aOhmQgpwON36eQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XBQ7+Qik; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791639005; c=relaxed/simple;
+	bh=JOeA7/Juj3GWj37EAgYk4cNWxQojpqCiVvPNTmn+bKg=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=rxnuAUx3lBY9r7HRuwcMwlxU36tCo/gwHwcs2aWDAYyxtXbIw6f8ihak2vYfxrocFlbWuvhyPCfCZtJAiPIJFj9o3E0f1LFGa7pQJ9i9Qq5UxMD78J5tKg39FlciJbIjJd5wB8x1HzEQNXtVvZeROY7sz0lBMDtpcbJ5Hj0xm7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jg0/s4ck; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XBQ7+Qik"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4a1635f7c89so5429115e9.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2026 05:06:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791633992; x=1792238792; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Pf93fAStQFQmMPyWTZnqmgHvVU3/s2D82vsfqUoiRMc=;
-        b=XBQ7+QikmVoz/PJOWWWMLXAUastRMEGijjmpTay0t1cOOZTBbdWC8NUpv6s1p3ApVJ
-         q5LT56oeBWKAblerx3D62ci7iltlvfJq7Md9LwMDlypNsMakftbkspyrCYl+q9JA5fUY
-         aFrjC/Kc/hqDWUb6VPSnHyIcMtWWSdaAb2YBILO3z+BMYis9f8MpSc39FdHySN+zLUBQ
-         dvHxwEKMeYRtSBFbPlAznipLNblDs1lOkFPLiPY6b3Vt1OM/aFfujRXjTdGyST5cfKLK
-         NC93FYs9RrD+zvs8oz//UQouIifuxlotjigxMdsPFBjp2jrGLbxD8HnhNMn4w/T9sPMF
-         XqMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791633992; x=1792238792;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Pf93fAStQFQmMPyWTZnqmgHvVU3/s2D82vsfqUoiRMc=;
-        b=cZ8YUZ/1FoyM/6eRJSq5Ai6a3htQqR2N+HMA5+XnfYoEhGM3XcTxhE2j/c8fU9Gr06
-         jaes+VhEXwRLdzjG+AoM2Bwvq6PFKH0dD0zN6qd7rcrhVDi+q8lqoM1a8yKzL0x8Chbi
-         YvpCEvHVVZHVEEWixS+Qto1YDriVI8Ize7hOn+7A8rgF58ODIqgki4zOrC34WyYepRfB
-         UtTVGo5WJK57bgc0hj/fD0Ko0dWsdhZn3gGqsBiY2utkbk22cWYyVj5V3sWRK3sPtdcR
-         DoxzVFJWOR25OtnmZyFPbQZu122tzpiNfa3iJ7e03ukRn9NDQ9gaiSDuNplotsGXmk+q
-         2U9g==
-X-Forwarded-Encrypted: i=1; AKwUvBwIQtqE893OOJ+C+EIPZGb+UK/blfgk8fOP24eLXHQSwWYM+LkX6ylmkcJ0F2OK/Trzd9ajPOchkaXhtTp2AJg=@vger.kernel.org
-X-Gm-Message-State: AFq9FYLkPkvZBtFvW71YpOdP6rydmDuFVAvuo8tpeNh67N1xclgMPetu
-	WhRg4xzPREoKgULtpNi1qDMDbI7hux4GJu7pAIwFXsiLnWD/dWSvpFpE
-X-Gm-Gg: AYBFou2hN0GH3v7lMr0HSwVz0/UFbckN/xYrWXAB+MDhg5XU9A7HM58aQqkf19I2YUh
-	0U8KW3nXmVbuRldADWuaRY2i43IDuxYVrY0UbJosRp7R294LvBOli3qWjh9loI/s/LRgZjnXpJE
-	jm26nsFOrIDWRJ/ceWz/scshHrRn8L0QB7HfZapQdcDfB5JsrWAEgn/3sPNKzCvsza3QwDKoGxY
-	JelbYQagARql3/xaoNZ+by3w6vn0w0UqsOaeME2l9k5fsU6ODr0NrAhVfnVuzcq1ur2uMtZPpkI
-	SJFrCDtAzSI9g+o0r6ZoFEOfncVs2UrYQTK8yN711LvIRgNoDrTqhQ1Eim92mI+l9/c6dnUYQlL
-	ihnyJYQvd0xAeOpfD6EzK12PM7z3ksEAgzJNeNnfvpOMBnbtiAhItWHwRqTPqOZBoNOgQlcm1Hz
-	rv9mGZvyPj+kMD1MM6LPiA0xtYmrl4FYOgyw07scfT8FXu9GwyEHsODAD7QYSaYzucDwnrNaGzi
-	X5mkrRf3B/JGrqdYAsKxoFDiePSRnXK8tTAiMG6pWTL4M9f8PXQFV5xwjg3CU48B5gmFr0Y30Kn
-	LFkSYNz5iGWJR9P2cHlOFr0uyDsaIR18TnJISlYBW1GKzyhVr69PHSti52wmYkFGjGf42P6ujEQ
-	=
-X-Received: by 2002:a05:600c:8209:b0:4a0:2375:dc1a with SMTP id 5b1f17b1804b1-4a18e4cb771mr86143615e9.21.1791633992086;
-        Sat, 10 Oct 2026 05:06:32 -0700 (PDT)
-Received: from imx93-evk.localdomain (dynamic-2a02-3100-9d3f-0d01-48c7-5d76-0ec6-9dac.310.pool.telefonica.de. [2a02:3100:9d3f:d01:48c7:5d76:ec6:9dac])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a18beabbd0sm150904195e9.12.2026.10.10.05.06.29
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 10 Oct 2026 05:06:30 -0700 (PDT)
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: stable@vger.kernel.org
-Cc: Karl Mehltretter <kmehltretter@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Mukul Sikka <mukul.sikka@broadcom.com>,
-	Keerthana K <keerthana.kalyanasundaram@broadcom.com>,
-	Stefano Brivio <sbrivio@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Brennan Lamoreaux <brennan.lamoreaux@broadcom.com>,
-	Bin Lan <lanbincn@139.com>,
-	XiaoHua Wang <561399680@139.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.1.y v2] netfilter: nft_set_pipapo: restore cloned mapping table memcg accounting
-Date: Sat, 10 Oct 2026 14:06:24 +0200
-Message-Id: <20261010120624.4946-1-kmehltretter@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jg0/s4ck"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928401F00899;
+	Sat, 10 Oct 2026 13:30:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791639003;
+	bh=SBp86mc+EtnQ2CbOzJDZ2KvI0MDHcbGBhqu1BEBEx80=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Jg0/s4ckdQnf73hhIcxDscUUgS37DeDrvLjKjxgMwOC9YkWxLO78eCAPTTn3M5/dq
+	 UA04vfwIiNTQyOtj19VrcQudRzYg5VxZRsBjWSyJEfx7MusbCtuDQ9vx3SjN1lIo+P
+	 STQTqrunvsOgcBCPix+gCa9xLABh247z2+cPTB+JG3AhNsRI2xNW2ATPueBNJ9WRNn
+	 5SOnmJUZm9QFXEVLjudz/bo3v15RPDK2B5UzM2vFjGNb/gQQslYKeDOFB6p4AHUEb1
+	 shpGKCkCJIbAk9fmgn76DfmKxO5DF/XAXwKk9B7eRR8mm3UlyzUdtahjv8Uw0xCVCy
+	 hhAw+5qaDyaWw==
+Subject: Re: [PATCH] netfilter: nf_conntrack_h323: fix NULL pointer deref in
+ decode_seqof()
+From: netdev-bot+sashiko@kernel.org
+To: bsdhenrymartin@gmail.com
+Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
+ edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Date: Sat, 10 Oct 2026 13:30:01 +0000
+Message-ID: <179163900178.434549.6423959143642919606@kernel.org>
+In-Reply-To: <20261009124116.3950469-1-bsdhenrymartin@gmail.com>
+References: <20261009124116.3950469-1-bsdhenrymartin@gmail.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
-The 6.1.y backport of commit 69e687cea79f
-("netfilter: nf_tables: missing objects with no memcg accounting")
-changed the pipapo_clone() mapping-table allocation to
-GFP_KERNEL_ACCOUNT.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-The later stable backport of commit 07ace0bbe03b ("netfilter:
-nft_set_pipapo: do not rely on ZERO_SIZE_PTR") rewrote this allocation
-and changed the flag back to GFP_KERNEL. Upstream applied the
-ZERO_SIZE_PTR change before the memcg accounting change and retains
-GFP_KERNEL_ACCOUNT after both.
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-nft_pipapo_deactivate() clones a populated set before looking up an
-element to delete. If the element is absent, priv->dirty remains false
-and the clone is retained. Its mapping tables therefore remain allocated
-without being charged to the requesting memory cgroup.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Restore GFP_KERNEL_ACCOUNT for the cloned mapping table.
+- [Medium] The commit message says decode_seqof() can be made to
+  dereference NULL through the eight *_Caps.supportedPrefixes rows (and…
+- [Low] The new comment in decode_seqof() is wrong in three ways.
 
-Fixes: a4983e89e3b1 ("netfilter: nft_set_pipapo: do not rely on ZERO_SIZE_PTR")
-Assisted-by: LLM
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
----
-Changes in v2:
-- Split the combined 6.1.y/6.6.y submission into one email per branch.
-- Keep only the Fixes tag for this branch.
-- Refresh the diff against 6.1.189; the code change is unchanged.
-- Add fresh build, runtime and matched A/B results for this branch.
+--
 
-Original submission:
-https://lore.kernel.org/r/20260831194905.45045-1-kmehltretter@gmail.com/
+netfilter: nf_conntrack_h323: fix NULL pointer deref in decode_seqof()
 
-Testing on 6.1.189: built a minimal x86_64 kernel with GCC 15.2.0
-and booted it in QEMU with CONFIG_MEMCG=y. A 64-element two-field
-interval set passed creation, lookup, update, rollback, deletion, flush
-and reuse checks.
+This patch adds a NULL check on f->fields in decode_seqof(). When the
+pointer is NULL it returns H323_ERROR_BOUND. The commit message says an
+attacker can use the eight *_Caps.supportedPrefixes rows to trigger a NULL
+pointer dereference there.
 
-Matched unpatched and patched boots used the same kernel configuration
-and initramfs. During a normal update from a memory cgroup, both cloned
-mapping-table allocations (512 bytes each) had accounted=false without
-the patch. With the patch, both used GFP_KERNEL_ACCOUNT and had
-accounted=true. Both variants passed normal set operations without
-kernel warnings.
+> The eight supportedPrefixes table entries (_H310Caps, _H320Caps,
+> _H321Caps, _H322Caps, _H323Caps, _H324Caps, _VoiceCaps and
+> _T120OnlyCaps, all reached through the _SupportedProtocols CHOICE)
+> are declared SEQOF,SEMI with fields=NULL.  decode_seqof()
+> dereferences f->fields on the first loop iteration whenever the
+> attacker-controlled SEMI count is non-zero, causing a NULL pointer
+> dereference.
 
-Earlier A/B testing on 6.1.186 and 6.6.155 measured 524,288 additional
-charged bytes for the cloned mapping tables of a 32,768-element two-field
-set. An unmodified 6.12.107 control already accounted that allocation.
+[ ... ]
 
- net/netfilter/nft_set_pipapo.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Cc: stable@vger.kernel.org
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 4b37c6684bff..456779003f58 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1466,7 +1466,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 				goto out_mt;
- 
- 			dst->mt = kvmalloc_array(src->rules, sizeof(*src->mt),
--						 GFP_KERNEL);
-+						 GFP_KERNEL_ACCOUNT);
- 			if (!dst->mt)
- 				goto out_mt;
- 
+[Severity: Medium]
+Can decode_seqof() actually be reached for these rows?
+
+The parent entries in _SupportedProtocols in nf_conntrack_h323_types.c
+are:
+
+	{FNAME("h310") SEQ, 1, 1, 3, SKIP | EXT, 0, _H310Caps},
+	...
+	{FNAME("t120-only") SEQ, 1, 1, 3, SKIP | EXT, 0, _T120OnlyCaps},
+
+With lb=1, nonStandardData is the only root component of _H310Caps.
+dataRatesSupported and supportedPrefixes are both extension additions.
+
+The parent is SKIP without DECODE, so decode_seq() sets base to NULL when
+it starts:
+
+	base = (base && (f->attr & DECODE)) ? base + f->offset : NULL;
+
+In the extension loop of decode_seq(), each present extension reads its
+open type length. It then reaches this check before Decoders[son->type]
+is called:
+
+	if (!base || !(son->attr & DECODE)) {
+		...
+		bs->cur += len;
+		continue;
+	}
+
+The supportedPrefixes row is also plain SKIP:
+
+	{FNAME("supportedPrefixes") SEQOF, SEMI, 0, 0, SKIP, 0, NULL},
+
+So it looks like Decoders[SEQOF] is never called for any of the eight
+rows.
+
+The other SEQOF rows in nf_conntrack_h323_types.c that have NULL fields
+seem to fall into two groups:
+
+  - STOP rows. decode_seq() returns H323_ERROR_STOP for these before any
+    decoder runs.
+  - SKIP rows in an extension position. These are skipped by length.
+
+Some examples are Setup_UUIE, Connect_UUIE,
+EndpointType.supportedTunnelledProtocols, RRQ.alternateEndpoints and
+RCF.alternateGatekeeper.
+
+If none of these rows can reach decode_seqof(), the new check is dead
+code. Could this be resent as hardening, without the Cc: stable tag, the
+Fixes: tag and the claim of an attacker-reachable NULL dereference?
+
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+> index 6830c9da3507c..4d66db5bf5f70 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -692,6 +692,13 @@ static int decode_seqof(struct bitstr *bs, const struct field_t *f,
+>  
+>  	/* Decode nested field */
+>  	son = f->fields;
+> +	/*
+> +	 * Malformed table entries may carry a NULL fields pointer (e.g.
+> +	 * the *_Caps.supportedPrefixes SEQOF,SEMI rows); treat them as
+> +	 * undecodable instead of dereferencing NULL when count > 0.
+> +	 */
+> +	if (!son)
+> +		return H323_ERROR_BOUND;
+
+[Severity: Low]
+Is this comment accurate? A few parts of it don't seem to match the code.
+
+The comment calls the *_Caps.supportedPrefixes rows malformed and uses
+them as an example of rows that reach decode_seqof(). As noted above,
+decode_seq() skips them by length. A NULL fields pointer on SKIP and STOP
+rows also looks like the normal convention in nf_conntrack_h323_types.c.
+Many rows use it.
+
+The comment says the problem only occurs "when count > 0". The check
+runs after count has been decoded, though, and it returns an error for
+every count, including 0. Before this patch, count == 0 with a NULL base
+succeeded.
+
+Elsewhere in this file, H323_ERROR_BOUND means the bitstream would run
+past the end of the buffer. Would a different error code fit a missing
+table descriptor better?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261009124116.3950469-1-bsdhenrymartin%40gmail.com
