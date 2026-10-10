@@ -1,80 +1,161 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6076393DDC
-	for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2026 08:47:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5B448820F
+	for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2026 12:05:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791622030; cv=none; b=l7r4698Ge3uMjSxl3oCO8ytorDmlrFduZvcjOeSw4g1IGg0yaRAf9s7NdXGizhYIVM0KilknHSILYlFvSetJeVprfkRdl6rcUrpwXnUf9CwlSFHvJZuNpTYbl7eOaaPXdo972z0M1UAfMrd3o4VpGfNKuspvFOFXLB3llZhNfqY=
+	t=1791633938; cv=none; b=leoO+HX5tAlL7+w8HJMcsfuDobV2ZVVECJhxWaAZsSydwkvOd8miXpqOAHe0Q2Cbcc9MKdZ43iwrpWSJ4U3lkLLn7YthyC/I67hgjibBzpPAmVdhX4DwsYFxfzyzcAi5Dn0bbMqxOxi8OiV0TRxco846yaEsSLPJBcFyuu6Y7Pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791622030; c=relaxed/simple;
-	bh=BosFRCJopyDMi4EOFanGMuMnL8GsHaX4HY/FVpY2zB8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dLFdnhrW0jarc0CPblvDBzjucYeof/NUxVEupN0uiO3VQ54fHXfAiyWl+bFd4NV6RR+/fECmoky24bKQyEARpJV4hZsI1YBIDBBJu0WV7NSHbkZJW6dESZXOSvkGMOlQovH5KPuJlbbbLxtlX7WHJHe5PfAl2c3h3S3bGC1ga8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 909966028B; Sat, 10 Oct 2026 10:46:59 +0200 (CEST)
-Date: Sat, 10 Oct 2026 10:46:59 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Jeremy.Jean@oss.cyber.gouv.fr
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: narrow down range
- completion to anonymous sets
-Message-ID: <asn7d2tlQpi6Zcix@strlen.de>
-References: <20261007220358.1140284-1-pablo@netfilter.org>
- <asc5Bsrgv_w7lVOq@strlen.de>
- <asd18Ow3-mYwVQMS@chamomile>
- <asd2AaXSM9oDeich@chamomile>
+	s=arc-20240116; t=1791633938; c=relaxed/simple;
+	bh=NhU5jgmcvMXag+1LZIKhrLyXbOwnznMb5BiggGYZrHo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=u+KpqK4gj613anfA/CRLKVy9ZqgwR7nWwX7LcLeoBXEFJmKvTCwzNUwcmjA5VVTTndVS0R8KMxVhRm4tJtEqjO2v37apIfolRqNRoSws2kNSpagQ3MgqfMeFWumWWpn3KFlaSdR8p+kH9w35agD+t0dEwxw2Zgqz6xV71h/061s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bnqGdrnD; arc=none smtp.client-ip=209.85.128.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bnqGdrnD"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4a022fee0caso1600975e9.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Oct 2026 05:05:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791633935; x=1792238735; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=iDEA6vjah9q6WFHrSqFGiZ6d9YIFPeL6k7zSaUFmLVI=;
+        b=bnqGdrnD80j71kaEgpZgFe7Yu0mkaTODiSMunlRgRBpEi1DLHw+31lW4kljTej4Fb/
+         kV/OWKKuI0uGQbPAHs4+p68Cu6tsjYjDfDvfYuQmsWUJCAOcCbPxJHIMTEHOF9+DtSTe
+         twvNr6HgpmoX0Xkncpcdq+bF4WBnu7oS9ROR9g5JlRRMyJj2YkdW9j759HteQm/89nRP
+         Dol81SMYdwSqCm6/0s1ghNawibA59iIWDvBD92A8LWmAi4AXphcp/tPV58GJS0zPLM+8
+         hS0f9WAS1Nt8pdAz23yznLbxYqI1zABap5xUO+WtpRdZ6JgpuxBZp95BQh3qtwtASf62
+         881w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791633935; x=1792238735;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=iDEA6vjah9q6WFHrSqFGiZ6d9YIFPeL6k7zSaUFmLVI=;
+        b=0t2VweKKEnUQYNgPb1HFrceGnW/Toq1MSGy739haYy8+1E76oBiynE8jLwIwgXwilJ
+         NoXK6WnWoRimxKSIrjhy6Xq2Pa6+mTe32JaKhazATnkjooIIA43QOM/4cPuYGc6HkrXg
+         sCQ2GHS6Ed3kNSPyJADFugUGOLSb5Ei3kkeSmLupZACLuvRPNsDveyoX2DgNsdpa0bGv
+         t2cxEwNZfi5EsCWfvn3i/qTs+EvR2ccpw0tEKZKvM/buNjz8EhXc6BI78ps6wx629kDJ
+         N3dhgdPFunHpQZ9WlYESKuXrzlqSBcylBxHs49FVwaQqd7mHD0pyau9TVX1L8+gTmgM/
+         A8qA==
+X-Forwarded-Encrypted: i=1; AKwUvBz9kLGMSBwtwNOMZ1elwpj8MM1RErKNFF9e25h1yF3kr8V5NtlDSxrslVTj3/xL/JewJpEZH2c4ctpaYK1inTg=@vger.kernel.org
+X-Gm-Message-State: AFq9FYKove2EDEVjw+Lp/8aXDPe+QKxin2g+pzb1/2WlebMhLTCayy+c
+	Xxg4ooQIaaZqkE0IduHQS3c56aES5AmTXkW+F+Wd8tsK03mBoyYow5Kn
+X-Gm-Gg: AYBFou09L/afuLePSip73ItbcLz4WAz25R9Yw6mZX35F8QXELEe8OlBeDkRGb1biyi/
+	RMfqWwxG49EKo6MpNUJN8yk4EQ5d2xvsOv4udVilTX8iLCj9wl+RRZfCqr9q66RSB6DAXH77+al
+	PJhZkhhEmuZST/Oib3TYikf6AxzIlWnN1rLfsQcAHMFO5pS3HObdvuYx2oaYIbAe4U3259iZmC5
+	ELxfifBQn1tcIjg7J5B5mRl5dg89Z/bvpQYbvEKmyzho/IFl4DYXQCbZKZYRyMLvFk+uBcV2IJB
+	WEBCyxvyfxIZl43m6v4NgvEMHcGAVdIeM9fmX3r6tKjoE8f3Huqikel9j1VGKO9fYLV/WwqBl7o
+	B2/rbAucbMqfziRDmDXMBiqBHBG7P6Tev62iwdDoUnl329usD0COk6lOcoZ4+gtJ1BpLGp8E/18
+	ADmxEULnju8dG+D/nO2I10NlzevsA05lkyh/bHiubqFlVpsSBiZ9XH1hBmZAAGpLn/8ylyXKtOr
+	WlHWQ4jO7RMjqyLo+JGVi/vgl9DCeDSUZfivaZBPlOe9k+wzwnx7BjGIpK4feNl84itxU7ZpSdR
+	Ir3m0BID1kmln+bPhs6zT+DY2TitGJ7RMgtLk5/JoQRmWl/yNEY8zVAHXMHxeNOnx8uufj3rc6I
+	=
+X-Received: by 2002:a05:600c:4e91:b0:4a1:7ec7:a479 with SMTP id 5b1f17b1804b1-4a18e4f56bcmr93767975e9.33.1791633934396;
+        Sat, 10 Oct 2026 05:05:34 -0700 (PDT)
+Received: from imx93-evk.localdomain (dynamic-2a02-3100-9d3f-0d01-48c7-5d76-0ec6-9dac.310.pool.telefonica.de. [2a02:3100:9d3f:d01:48c7:5d76:ec6:9dac])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48db94e33d2sm9457467f8f.9.2026.10.10.05.05.32
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sat, 10 Oct 2026 05:05:33 -0700 (PDT)
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: stable@vger.kernel.org
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Mukul Sikka <mukul.sikka@broadcom.com>,
+	Keerthana K <keerthana.kalyanasundaram@broadcom.com>,
+	Stefano Brivio <sbrivio@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Brennan Lamoreaux <brennan.lamoreaux@broadcom.com>,
+	Bin Lan <lanbincn@139.com>,
+	XiaoHua Wang <561399680@139.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.6.y v2] netfilter: nft_set_pipapo: restore cloned mapping table memcg accounting
+Date: Sat, 10 Oct 2026 14:05:28 +0200
+Message-Id: <20261010120528.4604-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <asd2AaXSM9oDeich@chamomile>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Oct 08, 2026 at 12:52:35PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Oct 08, 2026 at 08:32:54AM +0200, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > For anonymous sets, when adjacent ranges are found, the end element is
-> > > > not added to the set to pack the set representation. Use next start
-> > > > element to complete this interval.
-> > > > 
-> > > > Jérémy Jean says:
-> > > > 
-> > > > Consider two ranges in a netfilter verdict map:
-> > > > * keys 10-19 accept packets, and
-> > > > * keys 30-39 jump to chain 'victim'.
-> > > > Now, delete the end marker at 20. The lookup array now uses element 30
-> > > > as the first range's end, so an INTERVAL_END query for key 15 returns
-> > > > element 30, including its jump verdict and chain pointer. This can make
-> > > > KASAN reports a UAF after the GC releases reference chain for 30 that
-> > > > has expired:
-> > > 
-> > > Dumb question: How is it possible to remove an element if the map is
-> > > anonymous?
-> > 
-> > I suspect this is a strange combination which cannot be reached from
-> > userspace.
-> 
-> I mean, via nft.
+The 6.6.y backport of commit 69e687cea79f
+("netfilter: nf_tables: missing objects with no memcg accounting")
+changed the pipapo_clone() mapping-table allocation to
+GFP_KERNEL_ACCOUNT.
 
-Even with netlink API: DELSETELEM has:
+The later stable backport of commit 07ace0bbe03b ("netfilter:
+nft_set_pipapo: do not rely on ZERO_SIZE_PTR") rewrote this allocation
+and changed the flag back to GFP_KERNEL. Upstream applied the
+ZERO_SIZE_PTR change before the memcg accounting change and retains
+GFP_KERNEL_ACCOUNT after both.
 
-        if (nft_set_is_anonymous(set))
-                return -EOPNOTSUPP;
+nft_pipapo_deactivate() clones a populated set before looking up an
+element to delete. If the element is absent, priv->dirty remains false
+and the clone is retained. Its mapping tables therefore remain allocated
+without being charged to the requesting memory cgroup.
 
-Jérémy, can you share what your reproducer is doing to get the rbtree
-map into the bad state?
+Restore GFP_KERNEL_ACCOUNT for the cloned mapping table.
 
-Thanks!
+Fixes: 32bad10de347 ("netfilter: nft_set_pipapo: do not rely on ZERO_SIZE_PTR")
+Assisted-by: LLM
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+---
+Changes in v2:
+- Split the combined 6.1.y/6.6.y submission into one email per branch.
+- Keep only the Fixes tag for this branch.
+- Refresh the diff against 6.6.158; the code change is unchanged.
+- Add fresh build, runtime and matched A/B results for this branch.
 
-Just to be clear: this patch is fine, but I a) wonder if there is
-some other bug elsewhere, and b) if we can make a test case for
-this for either nftables.git or knft so that this is covered.
+Original submission:
+https://lore.kernel.org/r/20260831194905.45045-1-kmehltretter@gmail.com/
+
+Testing on 6.6.158: built a minimal x86_64 kernel with GCC 15.2.0
+and booted it in QEMU with CONFIG_MEMCG=y. A 64-element two-field
+interval set passed creation, lookup, update, rollback, deletion, flush
+and reuse checks.
+
+Matched unpatched and patched boots used the same kernel configuration
+and initramfs. During a normal update from a memory cgroup, both cloned
+mapping-table allocations (512 bytes each) had accounted=false without
+the patch. With the patch, both used GFP_KERNEL_ACCOUNT and had
+accounted=true. Both variants passed normal set operations without
+kernel warnings.
+
+Earlier A/B testing on 6.1.186 and 6.6.155 measured 524,288 additional
+charged bytes for the cloned mapping tables of a 32,768-element two-field
+set. An unmodified 6.12.107 control already accounted that allocation.
+
+ net/netfilter/nft_set_pipapo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 7c8d28a031ad..4c3bb5d61a3b 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1465,7 +1465,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 				goto out_mt;
+ 
+ 			dst->mt = kvmalloc_array(src->rules, sizeof(*src->mt),
+-						 GFP_KERNEL);
++						 GFP_KERNEL_ACCOUNT);
+ 			if (!dst->mt)
+ 				goto out_mt;
+ 
