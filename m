@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6D50361956;
-	Sun, 11 Oct 2026 22:00:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97580402BA9;
+	Sun, 11 Oct 2026 22:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791756020; cv=none; b=jl3INLz88Dwx0Yr2dzAaA3XlTtak/CC8rbQrsBzKTF+j8/VPv2wvfbf38BhkAlXB9HHpsobll9tSM0Vjyi5ixa3Ib7cNN3WsExS9Hla0mCsfUu9k68Qze0EL4tgNI0c6QkpkOkmVNe/oCD6Eho0nPz5oa7nfm/u1Gdbc+VyUi7M=
+	t=1791756024; cv=none; b=ffjpx5QYcRkRqHfMtwkkW4e5ODPgXTTfx7eykqniCtvo37P2nKUvhPxHeI/WsM6xmhqjISVUncugILYR9l/i0Kl5nPKyJh1bA4kPeXev2L+6Zzsym8ko36FbjuAh5UKa+wMc7r7DAbHBkDY1msTjTcVVBwMe+5nIagJBbpSH7Q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791756020; c=relaxed/simple;
-	bh=HnCqJkIuRxwBGStTIr6OXUzu9gG76G/lzNXoJYeQEYs=;
+	s=arc-20240116; t=1791756024; c=relaxed/simple;
+	bh=32hpkRCRdyFadDzwL9v2B5md/tQdzwLZTbUci/PTS88=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KWzL8pBq7gnI9IBQ0aHSnCQV1wJ6gujpv0e8ct8g68CLI666DFmmD2X2unAOo14AUToBSW+AzUle16YPPpmxumx8zRV6L3a8Nry/8R1dscWP9jhhOjXPbLhylcE7gVkalTywl0FyCk8vO7CcoUs31Z88aHXXkVJDbe0CXYAXIHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vXUfGIaG; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=IlQXCEo0SwTMuSPiOtTsJfCZWgaoxYKd68d0DyQJTo5BJe5jn+9AlUYeXBCqRxeTHZE70DtoiXZVDBTl/yXou+lodOQk+TJq/W9oZVNbBSdk4Q9SFUbfi9B5C4MuN/7Djnsx6i0e34qZVLdbMfFv3OjAYbrr967SXzHaUN/8Rpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=taY7UXHe; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vXUfGIaG"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="taY7UXHe"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1791756017;
-	bh=jgperxEFt3FE9IxpQiAEZ7bJhInLD411myKNIJjGugM=;
+	s=2025; t=1791756020;
+	bh=2bt9GGuXyXQ5LLG0o2hYuWwiv5S6kqH39sCQ5BfSpzc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vXUfGIaG9FVrlf99X+aRFbuzbfYY0x8huftHgjWZF7RjZl1qf6Zl33b1wPnq6Mmhl
-	 l/0V8iXiVdAa4O4a7VmbfrEKqwfdIB5zZ+U7E4cvnPIRA0b7hWXmH32uXdukzLLFrX
-	 J7iNFmIjBYsoGVIbGLKSVi9k6a1ARhewoieBr0V/5cmzNoTNxe+2ON+MHvxavhYanw
-	 ebKTgoKRfNcX+cVDl3oBLB1uLSK3dlgaENvI3LPIC0TaSeeaaSY69bV9HtzoNCuSOh
-	 Q5XcLogS6Sw/Gh6Ep1W6LjyT5pFhyxlKtMmENB2Xb5WTdcJjnP1AH5ZcmArHvg7OIA
-	 1yh3xUsq5hFUA==
+	b=taY7UXHeDIw82BNwIesHHNTHHMwMHjzAccsa+qmaMCmt+zdc1jI8JCK79k2Aq05VX
+	 Y+J+aEn9TA8C9uXG+msL7k/TCDKjsubBSUA7EcjDzs8V7PLsSeLYZr8vHug3MC8ekY
+	 Gi68RfTr6/Ya0lQl11hRxYvJYV2FoDbRxMEqkT02hXyhVuECLImjyo0BulaZxk6t7N
+	 vxwA/jhr5kOjtWNTqavqRwwLge+l94Qasz0KT3PELOSKGMlLlMztPEOQtEQFpKwf0O
+	 giSCQGBtHCCzofmdzDKyLnZuH3KaxbK/3EknDW2Q4MJ1rHyDumQGoXOKi1ADLjm9aH
+	 Otab64wBYClag==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B646D60082;
-	Mon, 12 Oct 2026 00:00:16 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B450060074;
+	Mon, 12 Oct 2026 00:00:19 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 10/15] netfilter: conntrack: fix unlikely UaF in gc worker
-Date: Sun, 11 Oct 2026 23:59:48 +0200
-Message-ID: <20261011215953.1334630-11-pablo@netfilter.org>
+Subject: [PATCH net-next 12/15] netfilter: add nf_skb_sk helper and use it
+Date: Sun, 11 Oct 2026 23:59:50 +0200
+Message-ID: <20261011215953.1334630-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261011215953.1334630-1-pablo@netfilter.org>
 References: <20261011215953.1334630-1-pablo@netfilter.org>
@@ -55,48 +55,167 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-When early-drop scan is enabled, gc_worker() reads tmp->ct_net, resolves
-cnet with nf_ct_pernet(), and reads cnet->count with RCU read lock held but
-before acquiring a reference to tmp.
+nft and xt socket matching pass skb->sk to inet_sk_transparent().
+On the LOCAL_OUT path an IP tunnel transmits while preserving the
+original skb owner, so a non-INET socket (e.g. PF_PACKET) can reach
+these code paths.  This is reachable for nft_socket.c which does allow
+LOCAL_OUT. xt_socket only permits PREROUTING/LOCAL_IN.
 
-Its unlikely but possible that the worker gets preempted before reading
-cnet->count while nf_conntrack_cleanup_net_list manages to unlink all
-conntracks and returns in the mean time.
-This allows for the pernet memory to get free'd.
+nf_nat does this too, but there the inet_sk_transparent() call
+is explicitly restricted to the INPUT hook.
 
-On resume, use after free would occur when the worker reads cnet->count.
+For a packet socket the INET-specific offset lands inside the
+packet statistics area.
 
-This can be solved either via another synchronize_rcu() in
-nf_conntrack_cleanup_net_list or via cheaper flush_work().  If work
-wasn't running no race can happen as next call cannot observe
-already-unlinked conntrack objects.
+Introduce nf_skb_sk() in nf_socket.h which returns skb->sk only when
+it belongs to the given net namespace and passes sk_is_inet().
 
-This is an LLM finding with no reproducer, but it appears to be correct.
+While at it, replace the `sk != skb->sk` refcount test with an
+explicit refcounted flag that is set when the socket is obtained
+via the lookup helper (the path that takes a reference).
 
-Fixes: c6dd940b1f74 ("netfilter: allow early drop of assured conntracks")
+LLM finding, no reproducer, no out-of-bounds memory access.
+
+Assisted-by: LLM
 Reported-by: Vega <vega@nebusec.ai>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ include/net/netfilter/nf_socket.h | 20 ++++++++++++++++++++
+ net/netfilter/nft_socket.c        | 16 +++++++++-------
+ net/netfilter/xt_socket.c         | 26 ++++++++++++++------------
+ 3 files changed, 43 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f9b8927327ba..4c4ca15dfd37 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2506,6 +2506,11 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
- 		goto i_see_dead_people;
+diff --git a/include/net/netfilter/nf_socket.h b/include/net/netfilter/nf_socket.h
+index f9d7bee9bd4e..39047c73b642 100644
+--- a/include/net/netfilter/nf_socket.h
++++ b/include/net/netfilter/nf_socket.h
+@@ -10,4 +10,24 @@ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
+ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 				  const struct net_device *indev);
+ 
++/**
++ * nf_skb_sk - Return the inet socket associated with an skb
++ * @skb: The skb to fetch sk from.
++ * @net: The network namespace the socket must belong to.
++ *
++ * On the output path, skb->sk may be non-INET when the skb is passing
++ * through an IP tunnel.
++ *
++ * Return:
++ * *sk* if it is an INET socket that belongs to @net, %NULL otherwise.
++ */
++static inline struct sock *nf_skb_sk(const struct sk_buff *skb, const struct net *net)
++{
++	struct sock *sk = skb->sk;
++
++	if (sk && net_eq(net, sock_net(sk)) && sk_is_inet(sk))
++		return sk;
++
++	return NULL;
++}
+ #endif
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index 52d892e04261..ea6c2f3dc3ff 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -111,15 +111,17 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			    const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_socket *priv = nft_expr_priv(expr);
+-	struct sk_buff *skb = pkt->skb;
+-	struct sock *sk = skb->sk;
+ 	u32 *dest = &regs->data[priv->dreg];
++	struct sk_buff *skb = pkt->skb;
++	bool refcounted = false;
++	struct sock *sk;
+ 
+-	if (sk && !net_eq(nft_net(pkt), sock_net(sk)))
+-		sk = NULL;
+-
+-	if (!sk)
++	sk = nf_skb_sk(skb, nft_net(pkt));
++	if (!sk) {
+ 		sk = nft_socket_do_lookup(pkt);
++		if (sk)
++			refcounted = true;
++	}
+ 
+ 	if (!sk) {
+ 		regs->verdict.code = NFT_BREAK;
+@@ -159,7 +161,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
  	}
  
-+	/* must wait for current scan loop, worker also looks at
-+	 * struct nf_conntrack_net, which is about to be free'd.
-+	 */
-+	flush_work(&conntrack_gc_work.dwork.work);
-+
- 	list_for_each_entry(net, net_exit_list, exit_list) {
- 		warn_on_keymap_list_leak(net);
- 		nf_conntrack_ecache_pernet_fini(net);
+ out_put_sk:
+-	if (sk != skb->sk)
++	if (refcounted)
+ 		sock_gen_put(sk);
+ }
+ 
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 811e53bee408..cd3fc333ccf1 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -49,14 +49,15 @@ static bool
+ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 	     const struct xt_socket_mtinfo1 *info)
+ {
++	struct sock *sk = nf_skb_sk(skb, xt_net(par));
+ 	struct sk_buff *pskb = (struct sk_buff *)skb;
+-	struct sock *sk = skb->sk;
++	bool refcounted = false;
+ 
+-	if (sk && !net_eq(xt_net(par), sock_net(sk)))
+-		sk = NULL;
+-
+-	if (!sk)
++	if (!sk) {
+ 		sk = nf_sk_lookup_slow_v4(xt_net(par), skb, xt_in(par));
++		if (sk)
++			refcounted = true;
++	}
+ 
+ 	if (sk) {
+ 		bool wildcard;
+@@ -79,7 +80,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 		    transparent && sk_fullsock(sk))
+ 			pskb->mark = READ_ONCE(sk->sk_mark);
+ 
+-		if (sk != skb->sk)
++		if (refcounted)
+ 			sock_gen_put(sk);
+ 
+ 		if (wildcard || !transparent)
+@@ -110,14 +111,15 @@ static bool
+ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++	struct sock *sk = nf_skb_sk(skb, xt_net(par));
+ 	struct sk_buff *pskb = (struct sk_buff *)skb;
+-	struct sock *sk = skb->sk;
++	bool refcounted = false;
+ 
+-	if (sk && !net_eq(xt_net(par), sock_net(sk)))
+-		sk = NULL;
+-
+-	if (!sk)
++	if (!sk) {
+ 		sk = nf_sk_lookup_slow_v6(xt_net(par), skb, xt_in(par));
++		if (sk)
++			refcounted = true;
++	}
+ 
+ 	if (sk) {
+ 		bool wildcard;
+@@ -140,7 +142,7 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ 		    transparent && sk_fullsock(sk))
+ 			pskb->mark = READ_ONCE(sk->sk_mark);
+ 
+-		if (sk != skb->sk)
++		if (refcounted)
+ 			sock_gen_put(sk);
+ 
+ 		if (wildcard || !transparent)
 -- 
 2.47.3
 
