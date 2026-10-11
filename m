@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46B74078D9;
-	Sun, 11 Oct 2026 22:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E989405C3F;
+	Sun, 11 Oct 2026 22:00:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791756024; cv=none; b=b6GezPcpVXhpYxKNuN5rLue0awfwHIWQDETCN9oZoszne7UIQqATWRLZPUaxnih2ZrdBp1RMSlISyBv3q4BaFxlTjyewbLlT3i2tYEr9ZMO6DPQ7v1ji/yYolRGoPg1HMKeHZ033w/WdbBN0WmfCWo6fBcZxgF4vXFxjHM5MZ7M=
+	t=1791756025; cv=none; b=E9yYnMT/oPh1W9TCkippx3voq2L1OYvvEp8qtghZ8lP/sIp2TQWHltl0PhJqmdvoYykrFuGTxmIxymcuAnD39bRZQ63YPNrTUVlGYNHeeiqvsniceX1maj/yKmfslRXQC8wUk9Bn1I8sycGCDLR6NmMLJCLIRCGYnDrcbBrqNoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791756024; c=relaxed/simple;
-	bh=3jqv3Rq7u4yrHk36M9K2O+8rR9uhXOuB0ufChCnj2n4=;
+	s=arc-20240116; t=1791756025; c=relaxed/simple;
+	bh=wpqZcOSN8P8I2cTi+q6eqkJZ1tsuGgLLwIVjn6bBLdw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MLasVELPb3Ynh0rR5t+wpgPDuHAgMFpMeOxnSeNT43E4rtvjaVEXI6w6DgOn0QqMYoMDCYxYQv5jOm7/UFQ5es1ONwUaIVCJTMA8Md06qe9x31SoP2wnp+Jz0Wt/WNW3Sk3iLJ/L0QgeU70/wDZ7F7Ljq7P6AXgvaTaRlcR64GI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DaQzEdjj; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=R+5SScj7IrnxbLClON8kDexoxWPx4oS7Z+xIU+NNYTVkh7r6LrBefFaYE5zPMDzkJrCMIBFeOFeGioDpTLlXdAEW87nYtXg+A2zniQnIAQUDEiNDJcr/bUpRTFhDdX0XKSBwq9bbUA5ZDuk0nBY4QF4aCbu5/5YDSr8rLq0FQgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vAUT8ksc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DaQzEdjj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vAUT8ksc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1791756018;
-	bh=gKlSvCY7t9oDKjgOxia2J5hBJ71Dl1SGpIgZZ4aqLs0=;
+	s=2025; t=1791756022;
+	bh=1jRl6mH7+GAgMEP9S5ESOvvjemmgsmKemDkh+g7Y2fU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DaQzEdjjnHC7IjeUPQHUgx3E6/+SbzypdFd2qGeDxlpkm/Fm+IHYbl+rKQnIW5Lgh
-	 6ci4G4J7/9CxiacqQ5JtO1HWLRH2946DpGbF8QtudNCR2gQZoKMZzk/lwVFENjqB1j
-	 yAwcjgy8mV8PG7PtN8Imo0FtcqGNnHZnT9RLJZ2kY28VsO/wySNP8t3wcFTSeP3QOy
-	 VxRZQZW27kovtJPN5OcgDUMZqy+YE8O/JJ5I1vXycZFVqQAzJigyR8vtRyh9sHHrhm
-	 rmEKAah3wGOiC47NVSzU7V5o1ZJxJNoZkysFPTdaDqUKrAnhTmd+Ts4tto6ErPFnvW
-	 yRTqu+fEYgcFQ==
+	b=vAUT8kscN/aIB56mGyjcuvGk9WPC7UMAQ+SjTL2ikzOvFThJRfLo061W1HwXQcA+/
+	 N+pb6//vGH4GohOwpFGhn/DDAznZ6XhgJ1hutEd+7lHDdpmELdH7RZCcuHIsqQzuMV
+	 6ZSvaveKUV24/MhEfiHelw0f7Sbb9DwGoe9vRY7aI5cpf9I1mV40TlPGZq5bBJV8Rp
+	 eGtZwzG0DHXk1bnPums8Q0ABtk88yA17hOk9ICsO3vba+aV7aVljNiGHBQmKS2ikFC
+	 77bFpGtruZ2SqjqYWkU5IVfgicYcMSFNT12Ibb6ZWV9oAtdrNF2GTjK1JwpBlDa0N6
+	 aS8LeYd6R3oQA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 251CE60060;
-	Mon, 12 Oct 2026 00:00:18 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8843160085;
+	Mon, 12 Oct 2026 00:00:21 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 11/15] netfilter: nf_tables: switch chain_types array to rcu
-Date: Sun, 11 Oct 2026 23:59:49 +0200
-Message-ID: <20261011215953.1334630-12-pablo@netfilter.org>
+Subject: [PATCH net-next 13/15] netfilter: add nf_sk_to_full_sk helper and use it
+Date: Sun, 11 Oct 2026 23:59:51 +0200
+Message-ID: <20261011215953.1334630-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261011215953.1334630-1-pablo@netfilter.org>
 References: <20261011215953.1334630-1-pablo@netfilter.org>
@@ -55,220 +55,96 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-LLM quote:
- The global chain_type array is cleared under the nfnetlink subsystem
- mutex, but transaction processing reads it while holding only the pernet
- transaction mutex.
- nf_tables_chain_type_lookup() and nft_chain_parse_hook() dereference
- type->name/hook_mask before try_module_get(type->owner).
+Some callers of these helpers pass skb->sk as sk_partial argument, but
+for LOCAL_OUT path an IP tunnel transmits while preserving the original
+skb owner, so a non-INET socket (e.g. PF_PACKET) can reach these.
 
- Concurrent unloading of a separate provider such as nft_chain_nat can
- unregister and free its static nft_chain_type while a transaction is
- in the unprotected interval, causing a module-memory use-after-free.
+Like previous patch, add a helper to also check for this case.
+Related to LLM finding in the earlier patch when querying the agent about
+other possible scenarios.
 
-LLM finding, not observed in practice.  Move this under RCU and grab the
-module owner earlier.
-
-Both nft_chain_route and nft_chain_filter are built into nf_tables.ko:
-only nft_chain_nat needs an extra synchronize_rcu().
-
-Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: LLM
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 94 ++++++++++++++++++++++++-----------
- net/netfilter/nft_chain_nat.c |  1 +
- 2 files changed, 65 insertions(+), 30 deletions(-)
+ include/net/netfilter/nf_socket.h | 15 +++++++++++++++
+ net/ipv4/netfilter.c              |  3 ++-
+ net/ipv6/netfilter.c              |  3 ++-
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b59628e6240c..59ac623e6805 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1036,32 +1036,67 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
- 	return ++table->hgenerator;
+diff --git a/include/net/netfilter/nf_socket.h b/include/net/netfilter/nf_socket.h
+index 39047c73b642..f7da3dc150a9 100644
+--- a/include/net/netfilter/nf_socket.h
++++ b/include/net/netfilter/nf_socket.h
+@@ -3,6 +3,7 @@
+ #define _NF_SOCK_H_
+ 
+ #include <net/sock.h>
++#include <net/inet_sock.h>
+ 
+ struct sock *nf_sk_lookup_slow_v4(struct net *net, const struct sk_buff *skb,
+ 				  const struct net_device *indev);
+@@ -30,4 +31,18 @@ static inline struct sock *nf_skb_sk(const struct sk_buff *skb, const struct net
+ 
+ 	return NULL;
  }
- 
--static const struct nft_chain_type *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
-+static const struct nft_chain_type __rcu *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
- 
- static const struct nft_chain_type *
--__nft_chain_type_get(u8 family, enum nft_chain_types type)
-+__nft_chain_type_peek(u8 family, enum nft_chain_types type)
- {
- 	if (family >= NFPROTO_NUMPROTO ||
- 	    type >= NFT_CHAIN_T_MAX)
- 		return NULL;
- 
--	return chain_type[family][type];
-+	return rcu_dereference_check(chain_type[family][type],
-+				     lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
- }
- 
++
 +/**
-+ * nft_chain_type_get - look up a chain type by family and id
-+ * @family: netlink family
-+ * @type:   chain type (enum nft_chain_types)
++ * nf_sk_to_full_sk - Careful access to a full socket
++ * @sk: pointer to a socket
 + *
-+ * Return: chain type with a held module ref, or NULL.
++ * %sk_to_full_sk for use when sk might not be an inet socket.
 + */
-+static const struct nft_chain_type *
-+nft_chain_type_get(u8 family, enum nft_chain_types type)
++static inline struct sock *nf_sk_to_full_sk(struct sock *sk)
 +{
-+	const struct nft_chain_type *t;
++	if (sk && sk_is_inet(sk))
++		return sk_to_full_sk(sk);
 +
-+	rcu_read_lock();
-+	t = __nft_chain_type_peek(family, type);
-+
-+	if (t && !try_module_get(t->owner))
-+		t = NULL;
-+
-+	rcu_read_unlock();
-+	return t;
++	return NULL;
 +}
-+
-+/**
-+ * __nf_tables_chain_type_lookup - look up a chain type by name
-+ * @nla:    nlattr containing the chain-type name
-+ * @family: netlink family
-+ *
-+ * Return: matching chain type with a held module ref, or NULL.
-+ */
- static const struct nft_chain_type *
- __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
- {
--	const struct nft_chain_type *type;
-+	const struct nft_chain_type *type = NULL, *t;
- 	int i;
- 
-+	rcu_read_lock();
- 	for (i = 0; i < NFT_CHAIN_T_MAX; i++) {
--		type = __nft_chain_type_get(family, i);
--		if (!type)
-+		t = __nft_chain_type_peek(family, i);
-+		if (!t)
- 			continue;
--		if (!nla_strcmp(nla, type->name))
--			return type;
-+
-+		if (!nla_strcmp(nla, t->name) && try_module_get(t->owner)) {
-+			type = t;
-+			break;
-+		}
- 	}
--	return NULL;
-+	rcu_read_unlock();
-+	return type;
- }
- 
- struct nft_module_request {
-@@ -1837,11 +1872,11 @@ static void nf_tables_table_destroy(struct nft_table *table)
- void nft_register_chain_type(const struct nft_chain_type *ctype)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	if (WARN_ON(__nft_chain_type_get(ctype->family, ctype->type))) {
-+	if (WARN_ON(__nft_chain_type_peek(ctype->family, ctype->type))) {
- 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- 		return;
- 	}
--	chain_type[ctype->family][ctype->type] = ctype;
-+	rcu_assign_pointer(chain_type[ctype->family][ctype->type], ctype);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_register_chain_type);
-@@ -1849,7 +1884,7 @@ EXPORT_SYMBOL_GPL(nft_register_chain_type);
- void nft_unregister_chain_type(const struct nft_chain_type *ctype)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	chain_type[ctype->family][ctype->type] = NULL;
-+	RCU_INIT_POINTER(chain_type[ctype->family][ctype->type], NULL);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_unregister_chain_type);
-@@ -2581,10 +2616,6 @@ static int nft_chain_parse_hook(struct net *net,
- 		hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
- 		hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
- 
--		type = __nft_chain_type_get(family, NFT_CHAIN_T_DEFAULT);
--		if (!type)
--			return -EOPNOTSUPP;
--
- 		if (nla[NFTA_CHAIN_TYPE]) {
- 			type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
- 							   family, true);
-@@ -2592,13 +2623,19 @@ static int nft_chain_parse_hook(struct net *net,
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
- 				return PTR_ERR(type);
- 			}
-+		} else {
-+			type = nft_chain_type_get(family, NFT_CHAIN_T_DEFAULT);
-+			if (!type)
-+				return -EOPNOTSUPP;
- 		}
-+
-+		err = -EOPNOTSUPP;
- 		if (hook->num >= NFT_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
--			return -EOPNOTSUPP;
-+			goto out_put_type;
- 
- 		if (type->type == NFT_CHAIN_T_NAT &&
- 		    hook->priority <= NF_IP_PRI_CONNTRACK)
--			return -EOPNOTSUPP;
-+			goto out_put_type;
- 	} else {
- 		if (ha[NFTA_HOOK_HOOKNUM]) {
- 			hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
-@@ -2620,30 +2657,27 @@ static int nft_chain_parse_hook(struct net *net,
- 			}
- 		} else {
- 			type = basechain->type;
-+			__module_get(type->owner);
- 		}
- 	}
- 
--	if (!try_module_get(type->owner)) {
--		if (nla[NFTA_CHAIN_TYPE])
--			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_TYPE]);
--		return -ENOENT;
--	}
--
- 	hook->type = type;
- 
- 	INIT_LIST_HEAD(&hook->list);
- 	if (nft_base_chain_netdev(family, hook->num)) {
- 		err = nft_chain_parse_netdev(net, ha, &hook->list, extack, flags);
--		if (err < 0) {
--			module_put(type->owner);
--			return err;
--		}
-+		if (err < 0)
-+			goto out_put_type;
- 	} else if (ha[NFTA_HOOK_DEV] || ha[NFTA_HOOK_DEVS]) {
--		module_put(type->owner);
--		return -EOPNOTSUPP;
-+		err = -EOPNOTSUPP;
-+		goto out_put_type;
- 	}
- 
- 	return 0;
-+
-+out_put_type:
-+	module_put(type->owner);
-+	return err;
- }
- 
- static void nft_chain_release_hook(struct nft_chain_hook *hook)
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index 40e230d8b712..1133f79d8d25 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -131,6 +131,7 @@ static void __exit nft_chain_nat_exit(void)
- #ifdef CONFIG_NF_TABLES_INET
- 	nft_unregister_chain_type(&nft_chain_nat_inet);
  #endif
-+	synchronize_rcu();
- }
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index ce9e1bfa4259..76e1eb40b8ce 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -17,6 +17,7 @@
+ #include <net/xfrm.h>
+ #include <net/ip.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/netfilter/nf_socket.h>
  
- module_init(nft_chain_nat_init);
+ /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
+ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, unsigned int addr_type)
+@@ -30,7 +31,7 @@ int ip_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb, un
+ 	struct flow_keys flkeys;
+ 	unsigned int hh_len;
+ 
+-	sk = sk_to_full_sk(sk);
++	sk = nf_sk_to_full_sk(sk);
+ 	flags = sk ? inet_sk_flowi_flags(sk) : 0;
+ 
+ 	if (addr_type == RTN_UNSPEC)
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index a7025ec87035..70e47ccdf9ae 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -17,14 +17,15 @@
+ #include <net/ip6_route.h>
+ #include <net/xfrm.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/netfilter/nf_socket.h>
+ #include <net/netfilter/nf_conntrack_bridge.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ #include "../bridge/br_private.h"
+ 
+ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff *skb)
+ {
++	struct sock *sk = nf_sk_to_full_sk(sk_partial);
+ 	const struct ipv6hdr *iph = ipv6_hdr(skb);
+-	struct sock *sk = sk_to_full_sk(sk_partial);
+ 	struct net_device *dev = skb_dst_dev(skb);
+ 	struct flow_keys flkeys;
+ 	unsigned int hh_len;
 -- 
 2.47.3
 
