@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8628387566;
-	Sun, 11 Oct 2026 22:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7CE403150;
+	Sun, 11 Oct 2026 22:00:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791756003; cv=none; b=pNr1CV6AtUndnSW/wFyfRTA8SL9ylzYTehLy617PSqWilhQqSyT/Y5o15UpYt7wrckmPUT9LuoPr/6IUua801WU06o8MbuHxrFtCcFNiloCGxPzlJQUSEO0TuEAOESLpUtuNDyGkHXdXeWf/diNRYjgLpWrZi76qp1Py5849iL4=
+	t=1791756004; cv=none; b=u8nvVz6a/nu1dAyyBONtvtf4wNojmsMy1O4GMP3BEaMXBKz6N9QmVl+ll5aEtxd/+hjhcrYgjuMIMFteIwWZM7au8A//zUwzEbfWWLH5dReiKVdaaia+bk6gz7WHK7DcdVfxZ9+6ErqhPdkgamERhhQ9Nb9Nrjp2HRbdMnPmNSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791756003; c=relaxed/simple;
-	bh=RaHOoftn4uL54J6lM1QLM5AKLVbWo8sRMqmdFNql+vc=;
+	s=arc-20240116; t=1791756004; c=relaxed/simple;
+	bh=VnAdcLaoCHkRmKFv2Iunxu7chaYFnMY/THV56wuNbuA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VGfWkukgK2QjAPpYqIbTyatDavbHdDFnmtoyTuzqJH7sBLmfdHAOy7pKWyqqaCeqfIYdH63YYR/6nFu/spezPburI27B3jHmTolE7ABExhBfQ5dGHMWrSYSR8tNVwubJBxC5dmUPxhk3tgx/+0Ee3Mw9a1FutrD7XGhtRo0ONrk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FXu1FvRH; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=WsG0AWhBtc2miyKP4eAk535l4BPrOb7VwoZ2awXJwzR2ffkPs6M8KmgflPLqxhaOi4HFK7ocPF398Ix0mvQWOSbaGHj8wRaLSBJi7443PYZTyuKHnQ5do1BtQba5Eim2qd+SpO6khCcr4wWO2ICKGl3qsI9C/ZqGak2OOvuoHVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Sgq+xzS7; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FXu1FvRH"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Sgq+xzS7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1791755999;
-	bh=nY8Ge8LIbgZMa5CP4CSN2FfE9o/M8QmNqof3KDHOj+k=;
+	s=2025; t=1791756001;
+	bh=VgxcTg6BeEP/WBXUL39BjwpOvumOutBr0NLBzBVUSSQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FXu1FvRHyza6uECb3emmPzei5Hp7W9gVTg4MZmSpOs3CxthmVYZGk1ylakFKL62IQ
-	 s3O/NRRUclj2EzLeUuaVXZ7BXMnnbcV28wopmxvgKPsON4cPyGS9vgVDPlNCSWbg4W
-	 57JJQyicBRf/1UH9wXjwLzAdZi2ilRP6Ln37UMMAa3QRDSS0siRLPwa9X2FsebhDEF
-	 T5hILPuSPhSZCaj+dK3S3LuAQ5Dwci+MVNYeMYS42xG6wxKuc+xHl1h1wdq+ZYMhdy
-	 w9Zcoar22gscScNOIvp2sQx7Z4ohgJEyMAf5tUTnI2VZycC4m9Zofj60nNs8VB87mu
-	 p/Y0SteHQucRw==
+	b=Sgq+xzS7didi5LlwjuOYmoCF1XzBFHZ7EmHuJf5mghTYkUCNJWWJ8VbL1X3+17qiq
+	 JtDGToka8yOYOxR5eqIiVldxO/xUWQ4HClf3Z+JQAN46bh1BdAFGDAxllIzRc+kjI9
+	 TDPbsHgPtwnlBc35bWMzO6Bo2gfcs6qTFRWRXxapOy4tha4C6NNHXQlGejP8/uREvX
+	 bsLZceckGGoLb+5pk+tyysgfCq0gJjLi4tAuYNpf7LJIy/QsJdDVxSZeUsHJ4wt490
+	 pj5mNAWPMaoMzfKVNyN71Ld2YmTYGcnwju3uug3KVGMWq7Ygl3gSNQbkB1Gd/HkwYB
+	 1rwVu2iaqojUg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1D30B60074;
-	Sun, 11 Oct 2026 23:59:59 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BAA5460076;
+	Mon, 12 Oct 2026 00:00:00 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -39,9 +39,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 01/15] netfilter: disable br_netfilter in user namespaces
-Date: Sun, 11 Oct 2026 23:59:39 +0200
-Message-ID: <20261011215953.1334630-2-pablo@netfilter.org>
+Subject: [PATCH net-next 02/15] netfilter: flowtable: recognize IPv4/IPv6 in tunnel proto matching
+Date: Sun, 11 Oct 2026 23:59:40 +0200
+Message-ID: <20261011215953.1334630-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261011215953.1334630-1-pablo@netfilter.org>
 References: <20261011215953.1334630-1-pablo@netfilter.org>
@@ -53,165 +53,44 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
-br_netfilter has way too many bugs, schedule for removal and disable
-the feature in user namespaces.
+Allow the flowtable to parse IPv4-in-IPv6 and IPv6-in-IPv4 tunnels by
+accepting both IPPROTO_IPIP and IPPROTO_IPV6 as the inner protocol when
+walking the outer header in nf_flow_ip4_tunnel_proto() and
+nf_flow_ip6_tunnel_proto(). This is a preliminary patch to support IPv4
+over IPv6 and SIT tunnel flowtable offload.
+Please note IPv4 over IPv6 and SIT tunnel flowtable offloading is not
+enabled yet.
 
-In particular, we get more and more gadgets to have bridge ports escape
-rcu_read_lock() protection, then underlying device gets reconfigured
-(macvlan or something else), then reinject into network stack causes
-crash because net_device is assumed to still have bridge rx data
-associated with it.
-
-br_netfilter is an ancient kludge that emulates ip stack from within the
-bridge and then calls into ipv4/ipv6 netfilter hooks to have bridged
-frames processed via iptables/ip6tables by setting the 'call-iptables'
-sysctls to 1. It is NOT related to ebtables or nftables 'bridge' family
-at all.
-
-Note that in addition to call-iptables, sysctls, the bridge also exposes
-call-iptables per bridge device via netlink and sysfs
-('BROPT_NF_CALL_IPTABLES') toggles.
-
-Those are still available, the brnet structure is scoped to br_netfilter;
-exposing it bridge-wide is a big no-no.
-
-This relies on brnf_device_event() no longer registering the base
-br_netfilter hooks, so while BROPT_NF_CALL_IPTABLES can be set, it
-has no effect because the hooks that evaluate this feature bit
-are never registered.
-
-brnf_init_net can no longer depend on CONFIG_SYSCTL, else such builds
-never disable support in user namespaces.
-
-Cc: Nikolay Aleksandrov <razor@blackwall.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/bridge.rst |  5 +++--
- net/bridge/br_netfilter_hooks.c     | 33 ++++++++++++++++++++---------
- 2 files changed, 26 insertions(+), 12 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/networking/bridge.rst b/Documentation/networking/bridge.rst
-index c1e6ea52c9e5..dded1a6edd60 100644
---- a/Documentation/networking/bridge.rst
-+++ b/Documentation/networking/bridge.rst
-@@ -277,8 +277,9 @@ Netfilter
- =========
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index c8c29a9a1684..42e8de696474 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -326,7 +326,7 @@ static bool nf_flow_ip4_tunnel_proto(struct nf_flowtable_ctx *ctx,
+ 	if (iph->ttl <= 1)
+ 		return false;
  
- The bridge netfilter module is a legacy feature that allows to filter bridged
--packets with iptables and ip6tables. Its use is discouraged. Users should
--consider using nftables for packet filtering.
-+packets with iptables and ip6tables. This feature is scheduled for removal and
-+not available in user namespaces. Consider using nftables for packet filtering
-+instead.
+-	if (iph->protocol == IPPROTO_IPIP) {
++	if (iph->protocol == IPPROTO_IPIP || iph->protocol == IPPROTO_IPV6) {
+ 		ctx->tun.inner_proto = iph->protocol;
+ 		ctx->tun.hdr_size = size;
+ 		ctx->offset += ctx->tun.hdr_size;
+@@ -351,7 +351,7 @@ static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
+ 	if (ipv6_ext_hdr(ip6h->nexthdr))
+ 		return false;
  
- The older ebtables tool is more feature-limited compared to nftables, but
- just like nftables it doesn't need this module either to function.
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0a394e5f4391..e15355ff215a 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -54,6 +54,7 @@ static unsigned int brnf_net_id __read_mostly;
- 
- struct brnf_net {
- 	bool enabled;
-+	bool in_userns;
- 
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header *ctl_hdr;
-@@ -1100,7 +1101,7 @@ static int brnf_device_event(struct notifier_block *unused, unsigned long event,
- 
- 	net = dev_net(dev);
- 	brnet = net_generic(net, brnf_net_id);
--	if (brnet->enabled)
-+	if (brnet->enabled || brnet->in_userns)
- 		return NOTIFY_OK;
- 
- 	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
-@@ -1229,9 +1230,11 @@ static inline void br_netfilter_sysctl_default(struct brnf_net *brnf)
- 	brnf->filter_pppoe_tagged = 0;
- 	brnf->pass_vlan_indev = 0;
- }
-+#endif
- 
- static int br_netfilter_sysctl_init_net(struct net *net)
- {
-+#ifdef CONFIG_SYSCTL
- 	struct ctl_table *table = brnf_table;
- 	struct brnf_net *brnet;
- 
-@@ -1259,25 +1262,39 @@ static int br_netfilter_sysctl_init_net(struct net *net)
- 
- 		return -ENOMEM;
- 	}
--
-+#endif
- 	return 0;
- }
- 
- static void br_netfilter_sysctl_exit_net(struct net *net,
- 					 struct brnf_net *brnet)
- {
--	const struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
-+#ifdef CONFIG_SYSCTL
-+	struct ctl_table_header *header = brnet->ctl_hdr;
-+	const struct ctl_table *table;
- 
--	unregister_net_sysctl_table(brnet->ctl_hdr);
-+	if (!header)
-+		return;
-+
-+	table = header->ctl_table_arg;
-+	unregister_net_sysctl_table(header);
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
-+#endif
- }
- 
- static int __net_init brnf_init_net(struct net *net)
- {
-+	if (net->user_ns != &init_user_ns) {
-+		struct brnf_net *brnet = net_generic(net, brnf_net_id);
-+
-+		brnet->in_userns = true;
-+		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
-+		return 0;
-+	}
-+
- 	return br_netfilter_sysctl_init_net(net);
- }
--#endif
- 
- static void __net_exit brnf_exit_net(struct net *net)
- {
-@@ -1289,15 +1306,11 @@ static void __net_exit brnf_exit_net(struct net *net)
- 		brnet->enabled = false;
- 	}
- 
--#ifdef CONFIG_SYSCTL
- 	br_netfilter_sysctl_exit_net(net, brnet);
--#endif
- }
- 
- static struct pernet_operations brnf_net_ops __read_mostly = {
--#ifdef CONFIG_SYSCTL
- 	.init = brnf_init_net,
--#endif
- 	.exit = brnf_exit_net,
- 	.id   = &brnf_net_id,
- 	.size = sizeof(struct brnf_net),
-@@ -1318,7 +1331,7 @@ static int __init br_netfilter_init(void)
- 	}
- 
- 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
--	printk(KERN_NOTICE "Bridge firewalling registered\n");
-+	pr_warn("br_netfilter is slated for removal in 2027.\n");
- 	return 0;
- }
- 
+-	if (ip6h->nexthdr == IPPROTO_IPV6) {
++	if (ip6h->nexthdr == IPPROTO_IPIP || ip6h->nexthdr == IPPROTO_IPV6) {
+ 		ctx->tun.inner_proto = ip6h->nexthdr;
+ 		ctx->tun.hdr_size = sizeof(*ip6h);
+ 		ctx->offset += ctx->tun.hdr_size;
 -- 
 2.47.3
 
