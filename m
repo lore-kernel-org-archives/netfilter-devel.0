@@ -1,70 +1,73 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from proxmox-new.maurer-it.com (proxmox-new.maurer-it.com [94.136.29.106])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A00736F8FE;
-	Mon, 12 Oct 2026 07:30:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D238645198A;
+	Mon, 12 Oct 2026 08:52:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.136.29.106
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791790239; cv=none; b=MZxnBSWlRzqcT6Q/wHfqK6AUtGNIN6jN6VlSM9ATkgf6Om7vocd+H2DFP6Pt/SgtlW3CDW5LnB8CZkr9ifsGZS7mr7ANVKdKc+1Ko9TxcLSBYHSKiU2rALiuxa2aZsZJ1sWThXfjfN3u7iCLI0KYwwYFwAH4sp93GCbRnSvr6Vo=
+	t=1791795154; cv=none; b=eyTg0wohgPpwYUsknh41MO614RJJ+lL+XOVWd88ZdFFlTyFi+MnKKxoB9tPDpNthfy7kbao/iOWVmCZ9KySLx9nCB1ok+Yxk4Wc/dIxlTz3SuvCXtTzUGX2Go5/+Ovo3pL39zQ2zOa4Su/SGitMvri35zWYaDSPwvRDC18u//jM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791790239; c=relaxed/simple;
-	bh=gp7PRv3WjAiMJrp0DvXpRvTv3mwC8R3NiezXzUE7FxE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=g/0dixHBq9TEMKoSNALm0KEp5fL8DXFvMAzXUdCVB5jVTgssMz6eSWoG9juIwgWiD8OQFBLGayLxH2dohQTtni2KLLX60Vpib/F1tsjlyNKv7XlY32Qe8kUdIV/LDgqCJVKrdcDdHWLqkAHq22V7axhaUxHi14hfziv0loLs2lA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lyvDdFcJ; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lyvDdFcJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E86B11F0089E;
-	Mon, 12 Oct 2026 07:30:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791790238;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=lyvDdFcJ1mHVYVQ190Nc0LXAcbD3tesD/0/fnIy1MNYYBgXIdDi6ligSIKeddFwsS
-	 vKm60IMUkvmR/gSwKX85bzhQBDiciR/mH8rdCSy4RpWZimrmvBNcd4IBf5+9NopQfn
-	 Udk+pn6c0NVSsUhCvZJxj6lrAae0kTawYDfh4DxU1Uwn/nPDjatyFmcD0943Xzcy7D
-	 WHaZ/I8XvTHDe3c5AJ6mAj5ExjDcl+WqHcQnOT/MsvwedLKNc9Nf6/GY7Fty5A3DsW
-	 NU0fJVsPuJ8S7tkz/vs0Qhg0ehFT8RBQN70NPwEgIfkHiO8mBRLqn7cKwsBXG6l5X/
-	 4qU0djbai33Eg==
-From: netdev-bot+sinfo@kernel.org
-To: Guo Zihao <guozh23@xiaopeng.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 1/2] netfilter: ebtables: ebt_802_3: check the
- LLC fields before reading them
-Date: Mon, 12 Oct 2026 07:30:37 +0000
-Message-ID: <179179023747.2527009.10483751544394941789@kernel.org>
-In-Reply-To: <20261012072449.3240201-1-guozh23@xiaopeng.com>
-References: <20261012072449.3240201-1-guozh23@xiaopeng.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	s=arc-20240116; t=1791795154; c=relaxed/simple;
+	bh=G0TvSqZWMzuaHQkc4LLKgNtXBuK7C/XR62simfDeyGs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=u67RMDspwMPlQG5sar8Nb4wUfBDJrcz3ZZypG9+UGXKv1Dx8cVKotk6Z4VKAsMLAY4c0NurDMw6EH3vlDnphnCUth5zflqS1cHGrZ8owcn5/2D+srHtT8cxynSxqbxM3XIqwYeW4UCXrBsT7yCi2OmyS2Z7BjdMb3iH3+TL9rS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com; spf=pass smtp.mailfrom=proxmox.com; arc=none smtp.client-ip=94.136.29.106
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proxmox.com
+Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
+	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id 62A4F47F91;
+	Mon, 12 Oct 2026 10:52:29 +0200 (CEST)
+Date: Mon, 12 Oct 2026 10:52:27 +0200
+From: Gabriel Goller <g.goller@proxmox.com>
+To: netdev-bot+sinfo@kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, bridge@lists.linux.dev, netdev@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org
+Subject: Re: [RFC PATCH net-next] netfilter: bridge: refragment reassembled
+ packets passed up
+Message-ID: <asyew3iKfV_yEX-e@luna.proxmox.com>
+References: <20261009150246.443127-1-g.goller@proxmox.com>
+ <179155828067.2527009.9838753386350423335@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <179155828067.2527009.9838753386350423335@kernel.org>
+User-Agent: NeoMutt/20260504
+X-Bm-Milter-Handled: 55990f41-d878-4baa-be0a-ee34c49e34d2
+X-Bm-Transport-Timestamp: 1791795148774
 
-Hi!
+On 09.10.2026 15:04, netdev-bot+sinfo@kernel.org wrote:
+> Hi!
+> 
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+> 
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
+> 
+> Please do not repost the series just to address the above. Instead,
+> reply to this email with the missing information, so that reviewers
+> can take it into account. If the series needs another revision for
+> other reasons, please include the information in the commit messages
+> then.
+> 
+> The evaluation is done by an LLM so it may be wrong, if you think
+> that is the case please reply and explain.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+The issue was hit in production when bigger udp packets get ip-fragmented
+and then hit a bridge with conntrack enabled. The bridge then reassembles the
+packets for conntrack, but doesn't fragment them again (pass up instead of
+forward, LOCAL_IN instead of POST_ROUTING hook), so they are dropped at the next
+bridge because of the mtu.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
-
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
