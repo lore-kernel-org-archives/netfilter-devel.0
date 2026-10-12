@@ -1,302 +1,220 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f200.google.com (mail-oi1-f200.google.com [209.85.167.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F33874534A9
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 12:28:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C81AC4B4056
+	for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 15:44:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791808093; cv=none; b=im5Uqj/y2YfaeB1j9CLBX8uVeobKnaukMM84S5bjVh5DC03rIlKgvVDrQLlB94scJp8GSY5j0JouUOtI/HDDoy1rUiUHOlVDZ9IEZbxKvCPPpkrjPAJWh2jG0y0QnY/a0W0NIy6cjsqkTuB9osqQiqNaMiPrKmkw9kjXY4Vbi/Y=
+	t=1791819880; cv=none; b=LthkaisSgWWhVS+lOdRkfrfRn/wSxUk0TGY3M+i9iZ7f7VMxlYrKq9Jzxbg7/Flnct1rW/4b/67KdgX+fPDyNLngKEsGP0gPMiXEKYjYWY/lBWOOkX/f8eODBgw811y+BTjsN4rgnZjjC993swAZhx1PzyAatQgYyl3Pe47Z1i4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791808093; c=relaxed/simple;
-	bh=j1NuzG7okDyCIBmbWk4T9+gTMmJEPwWecx4vfBAD8Yk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=EuW5DWJiKDqPdX0THjMTT1ps2UHHovx04KDD8g6adGxM2VSMxddZl///XKx0I562iMOu3qiIVqR/7tXbqVohx1F7TCUc6ddW+07OjsWuhiZd8gDfww8MkGkCuE74JYDn1jbDpA75M9VZgxhZBzuvjzWngF/VciOrINsmfFtWIh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=dQYwo5Mj; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=BQJ2fPuZ; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="dQYwo5Mj";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="BQJ2fPuZ"
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69CC0BI82275902
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 12:28:09 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	OyL0SJk1xJCKjUnKWxUveX80pGedAgDOn+gj9J70eB8=; b=dQYwo5MjcKGHPJIr
-	MlhgOtNKWALkqQL3bheJYCFbF9GAeimCGrQrNt109P0QutklaLcToSAQQ/PmzQWy
-	nIiqMTnUU7Rdq4DRo5mMs4TO3lTg4uqmCCJRaUqs+4xGvzyGNoXsMLCjFSL/3hTV
-	G0qY48CvAEpKg12fnzhXqdW5ohPRLaaD+6IQtcdp0XFAKlSi1rqFqiQs3nqzQold
-	0MWDkbRzPJd7aVnsHyNR20qSeeb11n2ZeAe+YV4CfwGA8Z57ZVy5iCKX8VLRxRFT
-	7f7bcgPXIHhJSJLA8OD6ZERn5AbMtr8DL+5cgYfxcB3XWUxF4XdAw7QJU79TsNvt
-	4/ZnFA==
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h8udq19xj-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 12:28:09 +0000 (GMT)
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-3abfcf726dcso956593a91.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 05:28:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1791808088; x=1792412888; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=OyL0SJk1xJCKjUnKWxUveX80pGedAgDOn+gj9J70eB8=;
-        b=BQJ2fPuZHO96J2YPDSDPZGgbOi6S2qhsr3WHM1DjX8w5Afn8hnRiMYSuoQLzUZ8UJa
-         2ZTQzP1JAxd+qhKsTd2KDyX2hBByXqcp+wJH/Iv9jdoMFhm/fRe6kFGlQEnQ+D8OPl4v
-         S8do9Wp4ZARNKfF4jhLt4NOXJ8M+03NEwUId6hUqqN12c5VlXjPwZtqIRKdCmreBuYhz
-         hevsUYBca/MESQrYIwb4Wglz9p/5mltUIx+wnvCfSd+lqMjjFTt1rlzSq2eeQAdjrJMl
-         O2bmx7nOHFFKU4s4/s/+RVO11sr6i/9D/BJNdObDvVHnyLF3Xd+YwvC4rFgcZV1j321e
-         QEAg==
+	s=arc-20240116; t=1791819880; c=relaxed/simple;
+	bh=bR1O7d6qQN9Efb4Kbpe+rTLzsK7TGqxLRmmK6Ui3Ass=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=Yyyupp7REvqf/GsHcY3HPhlCLYDuMtTDBb6I6e8jYR6W+i61Ie0CyAd6f2s9DRw15XChOa8mRwdkm2XFO+4NuaoihEJXPIvkPYUgUlsvQTkSUKVSBTBbx1lpNH9/O8grb5oScZ8DIFreOnLsvegmnt5QjbSh0MMTfkHXOAZvuFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f200.google.com with SMTP id 5614622812f47-4cc89e86e9eso2977287b6e.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Oct 2026 08:44:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791808088; x=1792412888;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=OyL0SJk1xJCKjUnKWxUveX80pGedAgDOn+gj9J70eB8=;
-        b=kph6LLHXPVSR4FWA9BDHBIFH8qvY17THI7LdYFEs+0UKqIsWWbvVZo1bbrz5MzSgNb
-         u8Oe9hYLKOSxyb4DAbh/JBunsT7EZN4oYZa4Imapo8N37pvbZ+6gSmRlG58PPhOA9wZt
-         UbEAwPOs1oQmOwN5YoeCEw6Xtz5KZoPumdIW8/QEVvN/VwCXat1BsxpT7Vq37RNoLamw
-         a9mqde/TQYB0fHnJ2gX79z1a+6UrgFariU+KEDt0C6a+7l+QICfd//g1qIMSXRrMwVyD
-         4Efhu2PDNgcTBsGkm0+DrUsmeqry2tpRowWkY7T0q4QEMZtBcksiI8LkRqFE81aAyPW0
-         EgBQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxuKA7ZuhUl2iDYP3FdRFydX3OCZZHzkMplQeSd5k4DaQm8a7qW4Y15L5Wm+KbeK75CEzdLrOAhZZCA6Pj019g=@vger.kernel.org
-X-Gm-Message-State: AFq9FYLZOcF35VcC0LWPffeNqwgn4y4ZSexABYiRgJCgirUlDqLAggJX
-	t67kvnGxjP7usktpsP/yZvmyPOxZAZ9e4b4W+TFS6WGdNdnGwHFI/ch04pI4Uo5yePBHyrkLGQH
-	cJn6JbkP0Q8Qv4ReU0fhHuVbNH5TmMv3y8LmapmY+yFP3JrvGipaeaCw8HBDRIVyEIHUPMU8=
-X-Gm-Gg: AYBFou0lf/je+36LGh1gA3ZiVk12nWlezHdWY2KUtOReXrg79K0SKswnN2z9u9CH839
-	19Ig+y3Rt9sHRIp8SWjCDW6liBAY456+q9eTwKTu0pkkgRgzI598CxWiPi50Fk12K3B955E0SNe
-	wvHFDlPBoEtmgjTDuT2mBWZCggUvn+UmxtLrRnaXz4n2sOKw8hudoQX8viOUOr3niMqmoSRtviy
-	HcNwAu0pJA+wsr0YZ/AHtQVNjdsVP6viR/kGDfXeduVqlDvj4NAyeS9e2CPyjrv4n65W3yEukv2
-	bNRkNSyaVlrj4/X5F2GQoNKOOtOsr4iiCy2yoL7+hEkX+UTvy2xKxrJv55cd3AE7YY+ouKeycIu
-	SJ2npUyWUqg09D8RFxbcJgZC03cJjLrfthdwLCKXxDzyYcg==
-X-Received: by 2002:a17:90b:3c8c:b0:3aa:6b5d:a018 with SMTP id 98e67ed59e1d1-3ab3af94c34mr7276487a91.67.1791808088319;
-        Mon, 12 Oct 2026 05:28:08 -0700 (PDT)
-X-Received: by 2002:a17:90b:3c8c:b0:3aa:6b5d:a018 with SMTP id 98e67ed59e1d1-3ab3af94c34mr7276466a91.67.1791808087785;
-        Mon, 12 Oct 2026 05:28:07 -0700 (PDT)
-Received: from [10.239.221.166] ([152.57.95.120])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ab36ed0332sm17600087a91.3.2026.10.12.05.28.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 12 Oct 2026 05:28:07 -0700 (PDT)
-Message-ID: <dcdd3921-69db-4781-814c-6a83a7d3bbd7@oss.qualcomm.com>
-Date: Mon, 12 Oct 2026 17:58:02 +0530
+        d=1e100.net; s=20260707; t=1791819878; x=1792424678;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=GPDFFFGSrqI9ZKgzKXufTUNby0rH4X7Rocq6YYaTbNU=;
+        b=Qe57wz/Tshtjq2ba+ySYsdq2/j+MS2hz4xjTHSTLeTJCfF/qpMylu4MwEAnboduAs9
+         PqJOLzs3A9ecSTq+bUuZGAkqc+5MRcJicsd8Ym7/vLrped17jCpCO4/ryAwvOd6A61kj
+         z/9OOnwWqz/mv+XwhoKfXFY2gGKRk1c2TZ0+JNLGU/1ye2zusMz3D+TD+uTHGzBoX62D
+         l+AI3Gd41TNT9x6iXSYj39OE1kWZy1gKjnuDqIjOKpk4d9qLJ1k1Ky+M3roIiyQ44fEN
+         nEEHLZxnsAqJX1Zc62rDELMBOMWTHoNBevHZUQRopT9cy0oK8R3WRe8LZL4YYUH20eJD
+         dgWA==
+X-Forwarded-Encrypted: i=1; AKwUvBwOEg29aHXZaOS4wlxYindPCXYWc7Vnrun/agINelIZfp2RPwr3Ka5L8irh7BHPBRDv7UmNImGUheWP1R6TJuU=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJz4MXry1/Skej2Eq9QImFNnzDLykqSQMeOzP/VEt07OlYYWf+G
+	vHYoKVp/fDeSqWCSIg5j7jFAs2fTxyLETUdincxG82yUPJtB0vPBJJyZrhYmzGqpsGmE4LhEzkQ
+	iX0NoAC0yrcllRnPjim2b3Vt9K0ZIB1cHLSvBMnPtCNv1GQeT8UmyyyIrbYI=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH net-next] netfilter: nf_conntrack: add ct expression
- support for netdev egress chains
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: fw@strlen.de, phil@nwl.cc, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20261006085844.2694120-1-hari.chandrakanthan@oss.qualcomm.com>
- <asT_37n_6viz9dJa@chamomile>
-Content-Language: en-US
-From: Hari Chandrakanthan <hari.chandrakanthan@oss.qualcomm.com>
-In-Reply-To: <asT_37n_6viz9dJa@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Authority-Analysis: v=2.4 cv=evJKXYpX c=1 sm=1 tr=0 ts=6accd259 cx=c_pps
- a=0uOsjrqzRL749jD1oC5vDA==:117 a=8t6FrhTGQU2+Ya5TYW0Vxg==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
- a=EUspDBNiAAAA:8 a=oc923GDM-3h-CEzwMGEA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
- a=mQ_c8vxmzFEMiUWkPHU9:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEyMDA0OSBTYWx0ZWRfX4Do2N4Bp6QBT
- FdlcjHGFW8gO/vgM5TgIhLRwEnAnr6Lv0OKSeHVFpW9ntdWplNisZ2XNHh3kAMzK+M0d/EncipX
- 1NutEo2nwXClRDpiyGlwLj6BgM6pDGI=
-X-Proofpoint-GUID: 6hoElob0Z_G4mGf91e6mrINIONRStqGP
-X-Proofpoint-ORIG-GUID: 6hoElob0Z_G4mGf91e6mrINIONRStqGP
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEyMDA0OSBTYWx0ZWRfX/BbOqCgwftfw
- SIzhjdu4wC5VOwvzTTntr4zq8DOvOpECWHo3hOatZDJh6GgP710MYleqejCRfUPm865nF+p/DKG
- izfWBiGM1hipV56VM1AdnYt25P9GCtxsMgIedRh0H5cRJ9u/7ymaHUKwF0csRyd7QpeCwnXprpw
- QDQ56t2Kf6prM4YvQxWrF36fTxEGWRcJEf604DY9VY9nMPsV4oQNvyMekg8tiDA63+Y6xJKIjuf
- va+5LH81v3qwpj0H1rH0tPu4u24m36tmjMv5Vbw9w6RGyuEi9dE9gE2O3abipW2YGfOqRtkNyFb
- zBnPA6DmvLH9awTty/3aHCWnA324tkehqDPLSIi0oIH8Q9/H0fMwW3fF3qoHckU40R9F/HFwgP2
- A5MP5IH6fzT6/LTjIK18RthPmWG8q1arA8j3VgJSmjXwPdl0p4d+ikFxsHnbQYRSt/e1mh+vPSa
- D3yszE+RnO7Frty5j0g==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-10-12_04,2026-10-09_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 clxscore=1015 impostorscore=0 lowpriorityscore=0 bulkscore=0
- phishscore=0 adultscore=0 suspectscore=0 malwarescore=0 priorityscore=1501
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610120049
+X-Received: by 2002:a05:6808:680a:b0:4fb:6402:a8ca with SMTP id
+ 5614622812f47-50c4e685340mr10902686b6e.21.1791819877745; Mon, 12 Oct 2026
+ 08:44:37 -0700 (PDT)
+Date: Mon, 12 Oct 2026 08:44:37 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6acd0065.a150a118.27e199.004d.GAE@google.com>
+Subject: [syzbot] [lvs?] INFO: rcu detected stall in ip_vs_estimation_kthread (2)
+From: syzbot <syzbot+022ec9322756662013b5@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@kernel.org, 
+	fw@strlen.de, horms@verge.net.au, ja@ssi.bg, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+
+Hello,
+
+syzbot found the following issue on:
+
+HEAD commit:    7b63ef2d55f2 Merge tag 'for-7.3-rc6-tag' of git://git.kern..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16feaa8e580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=23e5acac5c98285f
+dashboard link: https://syzkaller.appspot.com/bug?extid=022ec9322756662013b5
+compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/6a3c98d82e9c/disk-7b63ef2d.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/3d921ef6c68c/vmlinux-7b63ef2d.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/9d4e9981e5b9/bzImage-7b63ef2d.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+022ec9322756662013b5@syzkaller.appspotmail.com
+
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	Tasks blocked on level-0 rcu_node (CPUs 0-1): P5285/3:b..l
+rcu: 	(detected by 0, t=10503 jiffies, g=348101, q=1610 ncpus=2)
+task:syz-executor    state:R  running task     stack:28200 pid:5285  tgid:5285  ppid:32677  task_flags:0x400040 flags:0x00080002
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5533 [inline]
+ __schedule+0x17db/0x58f0 kernel/sched/core.c:7284
+ preempt_schedule_common+0x7f/0xd0 kernel/sched/core.c:7463
+ preempt_schedule_thunk+0x16/0x40 arch/x86/entry/thunk.S:12
+ __raw_spin_unlock include/linux/spinlock_api_smp.h:201 [inline]
+ _raw_spin_unlock+0x41/0x50 kernel/locking/spinlock.c:213
+ spin_unlock include/linux/spinlock.h:401 [inline]
+ filemap_map_pages+0x1aba/0x2170 mm/filemap.c:3997
+ do_fault_around mm/memory.c:5958 [inline]
+ do_read_fault mm/memory.c:5991 [inline]
+ do_fault mm/memory.c:6134 [inline]
+ do_pte_missing+0x20ae/0x34b0 mm/memory.c:4700
+ handle_pte_fault mm/memory.c:6558 [inline]
+ __handle_mm_fault mm/memory.c:6707 [inline]
+ handle_mm_fault+0x1a53/0x3750 mm/memory.c:6876
+ do_user_addr_fault+0xa4f/0x1340 arch/x86/mm/fault.c:1343
+ handle_page_fault arch/x86/mm/fault.c:1483 [inline]
+ exc_page_fault+0x6a/0xc0 arch/x86/mm/fault.c:1536
+ asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:595
+RIP: 0033:0x7f5254b3f7c0
+RSP: 002b:00007f5254f4fc58 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: 00007f5254f4fc60 RCX: 00007f5254bc6c4c
+RDX: 0000000000000000 RSI: 0000000000000018 RDI: 00007f5254f4fc60
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000001
+R10: 000055557d62f7d0 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000000927c0 R14: 00000000001e199a R15: 00007f5254f4fe40
+ </TASK>
+rcu: rcu_preempt kthread starved for 737 jiffies! g348101 f0x0 RCU_GP_WAIT_FQS(5) ->state=R ->cpu=1
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:R  running task     stack:27496 pid:17    tgid:17    ppid:2      task_flags:0x208040 flags:0x00080000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5533 [inline]
+ __schedule+0x17db/0x58f0 kernel/sched/core.c:7284
+ __schedule_loop kernel/sched/core.c:7361 [inline]
+ schedule+0x164/0x2b0 kernel/sched/core.c:7376
+ schedule_timeout+0x152/0x2c0 kernel/time/sleep_timeout.c:99
+ rcu_gp_fqs_loop+0x30c/0x11f0 kernel/rcu/tree.c:2122
+ rcu_gp_kthread+0x9e/0x2b0 kernel/rcu/tree.c:2330
+ kthread+0x38b/0x480 kernel/kthread.c:436
+ ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+ </TASK>
+rcu: Stack dump where RCU GP kthread last ran:
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 UID: 0 PID: 2226 Comm: ipvs-e:321:0 Tainted: G             L      syzkaller #0 PREEMPT(full) 
+Tainted: [L]=SOFTLOCKUP
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/16/2026
+RIP: 0010:netif_skb_features+0xc5/0xf20 net/core/dev.c:3914
+Code: 4c 89 74 24 10 49 8b 45 00 48 89 44 24 18 48 8d 98 b8 00 00 00 48 89 d8 48 c1 e8 03 48 b9 00 00 00 00 00 fc ff df 80 3c 08 00 <74> 08 48 89 df e8 b1 57 85 f8 4c 8b 33 48 8b 44 24 10 48 8d b8 d0
+RSP: 0018:ffffc90000a17da0 EFLAGS: 00000246
+RAX: 1ffff1100547bc17 RBX: ffff88802a3de0b8 RCX: dffffc0000000000
+RDX: 8000000000000300 RSI: 0000000000000100 RDI: ffff8881d9ce2dc0
+RBP: ffffc90000a17ea0 R08: 0000000000000100 R09: 1ffffffff20f4ccf
+R10: dffffc0000000000 R11: fffffbfff20f4cd0 R12: dffffc0000000000
+R13: ffff8881d9ce2dd0 R14: ffff8881d9ce2dc0 R15: ffff88802a3de000
+FS:  0000000000000000(0000) GS:ffff888124dc6000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f5254b3f7c0 CR3: 000000007eb18000 CR4: 00000000003526f0
+Call Trace:
+ <IRQ>
+ validate_xmit_skb+0xa0/0x1820 net/core/dev.c:4095
+ __dev_queue_xmit+0xb01/0x3920 net/core/dev.c:4945
+ dev_queue_xmit include/linux/netdevice.h:3464 [inline]
+ neigh_hh_output include/net/neighbour.h:544 [inline]
+ neigh_output include/net/neighbour.h:558 [inline]
+ ip_finish_output2+0xbda/0x10b0 net/ipv4/ip_output.c:236
+ NF_HOOK_COND include/linux/netfilter.h:314 [inline]
+ ip_output+0x29f/0x450 net/ipv4/ip_output.c:437
+ synproxy_send_client_synack+0x89b/0xde0 net/netfilter/nf_synproxy_core.c:487
+ nft_synproxy_eval_v4+0x362/0x4e0 net/netfilter/nft_synproxy.c:59
+ nft_synproxy_do_eval+0x389/0x5d0 net/netfilter/nft_synproxy.c:142
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
+ nft_do_chain+0x48d/0x1b10 net/netfilter/nf_tables_core.c:285
+ nft_do_chain_ipv4+0x195/0x290 net/netfilter/nft_chain_filter.c:24
+ nf_hook_entry_hookfn include/linux/netfilter.h:165 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:619
+ nf_hook include/linux/netfilter.h:280 [inline]
+ NF_HOOK+0x21f/0x3c0 include/linux/netfilter.h:323
+ NF_HOOK+0x336/0x3c0 include/linux/netfilter.h:325
+ __netif_receive_skb_one_core net/core/dev.c:6297 [inline]
+ __netif_receive_skb net/core/dev.c:6410 [inline]
+ process_backlog+0xa6b/0x18b0 net/core/dev.c:6761
+ __napi_poll+0xaa/0x330 net/core/dev.c:7830
+ napi_poll net/core/dev.c:7893 [inline]
+ net_rx_action+0x61d/0xf50 net/core/dev.c:8050
+ handle_softirqs+0x226/0x860 kernel/softirq.c:645
+ __do_softirq kernel/softirq.c:679 [inline]
+ invoke_softirq kernel/softirq.c:519 [inline]
+ __irq_exit_rcu+0xcb/0x220 kernel/softirq.c:758
+ irq_exit_rcu+0x9/0x30 kernel/softirq.c:775
+ instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1062 [inline]
+ sysvec_apic_timer_interrupt+0xa6/0xc0 arch/x86/kernel/apic/apic.c:1062
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:674
+RIP: 0010:finish_task_switch+0x413/0xc60 kernel/sched/core.c:5384
+Code: 04 00 00 41 c7 84 24 20 0e 00 00 00 00 00 00 e9 db 06 00 00 49 83 c4 48 4c 89 e7 e8 47 e0 53 0a e8 22 2f 3a 00 fb 4c 8b 65 c8 <49> 8d bc 24 18 17 00 00 48 89 f8 48 c1 e8 03 42 0f b6 04 30 84 c0
+RSP: 0018:ffffc90003c477e0 EFLAGS: 00000206
+RAX: 000000000001ad27 RBX: ffff8880b873c8e0 RCX: 8000000000000001
+RDX: 0000000000000000 RSI: ffffffff8e41727c RDI: ffffffff8c6dad80
+RBP: ffffc90003c47830 R08: ffffffff907a667f R09: 1ffffffff20f4ccf
+R10: dffffc0000000000 R11: fffffbfff20f4cd0 R12: ffff888033593e80
+R13: ffff8880b873c8a8 R14: dffffc0000000000 R15: 1ffff110170e791c
+ context_switch kernel/sched/core.c:5536 [inline]
+ __schedule+0x17e3/0x58f0 kernel/sched/core.c:7284
+ __schedule_loop kernel/sched/core.c:7361 [inline]
+ schedule+0x164/0x2b0 kernel/sched/core.c:7376
+ schedule_timeout+0x152/0x2c0 kernel/time/sleep_timeout.c:99
+ ip_vs_estimation_kthread+0x29ef/0x3950 net/netfilter/ipvs/ip_vs_est.c:216
+ kthread+0x38b/0x480 kernel/kthread.c:436
+ ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+ </TASK>
 
 
-On 10/6/2026 7:34 PM, Pablo Neira Ayuso wrote:
-> On Tue, Oct 06, 2026 at 02:28:44PM +0530, Hari Chandrakanthan wrote:
->> Add support for using the ct expression in nftables netdev egress chains.
->> This enables QoS policy enforcement at the netdev egress hook by
->> allowing ct operations such as copying connmark to packet mark.
->>
->> Add an explicit NFPROTO_NETDEV case in nf_ct_netns_get() and
->> nf_ct_netns_put() that enables conntrack for IPv4, IPv6 and bridge when a
->> ct expression is added to a netdev chain.
->>
->> Restrict ct expression use in the netdev family to egress hooks only, as
->> the connection entry is not yet available at ingress.
->>
->> Sharing this change as an RFC, to get feedback. The patch has been tested
->> by configuring nft rules at netdev egress hook to set ct mark and copy
->> ct mark into skb->mark. Also, the patch is validated at netdev ingress to
->> ensure the nft rule with ct mark set action is rejected.
->>
->> Signed-off-by: Hari Chandrakanthan <hari.chandrakanthan@oss.qualcomm.com>
->> ---
->>   net/netfilter/nf_conntrack_proto.c | 26 ++++++++++++++++++++++++++
->>   net/netfilter/nft_ct.c             | 22 ++++++++++++++++++++++
->>   2 files changed, 48 insertions(+)
->>
->> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
->> index 7a40e4e0e33e..b8ee46262901 100644
->> --- a/net/netfilter/nf_conntrack_proto.c
->> +++ b/net/netfilter/nf_conntrack_proto.c
->> @@ -587,11 +587,36 @@ static int nf_ct_netns_inet_get(struct net *net)
->>   int nf_ct_netns_get(struct net *net, u8 nfproto)
->>   {
->>   	int err;
->> +	bool bridge_acquired = false;
->>   
->>   	switch (nfproto) {
->>   	case NFPROTO_INET:
->>   		err = nf_ct_netns_inet_get(net);
->>   		break;
->> +	case NFPROTO_NETDEV:
->> +		err = nf_ct_netns_do_get(net, NFPROTO_BRIDGE);
-> Hm. This is pulling in the bridge conntrack hooks.
->
->> +		if (err < 0) {
->> +			mutex_lock(&nf_ct_proto_mutex);
->> +			if (nf_ct_bridge_info) {
->> +				/* Module present but hook registration failed.*/
->> +				mutex_unlock(&nf_ct_proto_mutex);
->> +				return err;
->> +			}
->> +			mutex_unlock(&nf_ct_proto_mutex);
->> +			/* Bridge module absent, netdev egress handles routed
->> +			 * traffic too, bridge conntrack is only needed for
->> +			 * bridged frames.
->> +			 */
->> +		} else {
->> +			bridge_acquired = true;
->> +		}
->> +		err = nf_ct_netns_inet_get(net);
-> And inet too.
->
-> I understand this is to deal with a situation where only ct rule is
-> placed in netdev/egress.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-Yes.
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
->
-> Is it really worth? I would expect users already have rules refering
-> to ct from either bridge and/or netdev would match here.
->
-> It looks a bit like too much to enable them all for the "a ct rule in
-> netdev/egress only".
->
-> Probably better solution would be to enable nf_conntrack_in() from the
-> netdev hook (just an earlier call), but this also needs to enable
-> packet defrag from there. Then, enabling all inet and bridge is not
-> required, because netdev/ingress would handle the creation/lookup of
-> the conntrack.
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
-Thanks for suggesting the alternate solution.
-Yes, we can call nf_conntrack_in() at netdev/ingress and nf_confirm()
-at netdev/egress, avoiding the need to enable the inet and bridge
-hooks when ct expressions are used only with netdev hooks.
-I’ll share tested patches to add this support, including the handling of
-packet defrag.
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
 
->> +		if (err < 0) {
->> +			if (bridge_acquired)
->> +				nf_ct_netns_put(net, NFPROTO_BRIDGE);
->> +			return err;
->> +		}
->> +		break;
->>   	case NFPROTO_BRIDGE:
->>   		err = nf_ct_netns_do_get(net, NFPROTO_BRIDGE);
->>   		if (err < 0)
->> @@ -615,6 +640,7 @@ void nf_ct_netns_put(struct net *net, uint8_t nfproto)
->>   {
->>   	switch (nfproto) {
->>   	case NFPROTO_BRIDGE:
->> +	case NFPROTO_NETDEV:
->>   		nf_ct_netns_do_put(net, NFPROTO_BRIDGE);
->>   		fallthrough;
->>   	case NFPROTO_INET:
->> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
->> index 3c4c2faa7398..e90e73475b0c 100644
->> --- a/net/netfilter/nft_ct.c
->> +++ b/net/netfilter/nft_ct.c
->> @@ -649,6 +649,15 @@ static void nft_ct_get_destroy(const struct nft_ctx *ctx,
->>   	nf_ct_netns_put(ctx->net, ctx->family);
->>   }
->>   
->> +static int nft_ct_validate(const struct nft_ctx *ctx,
->> +			   const struct nft_expr *expr)
->> +{
->> +	if (ctx->family != NFPROTO_NETDEV)
->> +		return 0;
->> +
->> +	return nft_chain_validate_hooks(ctx->chain, 1 << NF_NETDEV_EGRESS);
->> +}
->> +
->>   static void nft_ct_set_destroy(const struct nft_ctx *ctx,
->>   			       const struct nft_expr *expr)
->>   {
->> @@ -732,6 +741,7 @@ static const struct nft_expr_ops nft_ct_get_ops = {
->>   	.init		= nft_ct_get_init,
->>   	.destroy	= nft_ct_get_destroy,
->>   	.dump		= nft_ct_get_dump,
->> +	.validate	= nft_ct_validate,
->>   };
->>   
->>   #ifdef CONFIG_MITIGATION_RETPOLINE
->> @@ -742,6 +752,7 @@ static const struct nft_expr_ops nft_ct_get_fast_ops = {
->>   	.init		= nft_ct_get_init,
->>   	.destroy	= nft_ct_get_destroy,
->>   	.dump		= nft_ct_get_dump,
->> +	.validate	= nft_ct_validate,
->>   };
->>   #endif
->>   
->> @@ -752,9 +763,19 @@ static const struct nft_expr_ops nft_ct_set_ops = {
->>   	.init		= nft_ct_set_init,
->>   	.destroy	= nft_ct_set_destroy,
->>   	.dump		= nft_ct_set_dump,
->> +	.validate	= nft_ct_validate,
->>   };
->>   
->>   #ifdef CONFIG_NF_CONNTRACK_ZONES
->> +static int nft_ct_set_zone_validate(const struct nft_ctx *ctx,
->> +				    const struct nft_expr *expr)
->> +{
->> +	if (ctx->family == NFPROTO_NETDEV)
->> +		return -EOPNOTSUPP;
->> +
->> +	return 0;
->> +}
->> +
->>   static const struct nft_expr_ops nft_ct_set_zone_ops = {
->>   	.type		= &nft_ct_type,
->>   	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
->> @@ -762,6 +783,7 @@ static const struct nft_expr_ops nft_ct_set_zone_ops = {
->>   	.init		= nft_ct_set_init,
->>   	.destroy	= nft_ct_set_destroy,
->>   	.dump		= nft_ct_set_dump,
->> +	.validate	= nft_ct_set_zone_validate,
->>   };
->>   #endif
->>   
->> -- 
->> 2.34.1
->>
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
