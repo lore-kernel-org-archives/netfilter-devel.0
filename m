@@ -1,73 +1,78 @@
-Received: from proxmox-new.maurer-it.com (proxmox-new.maurer-it.com [94.136.29.106])
+Received: from out28-196.mail.aliyun.com (out28-196.mail.aliyun.com [115.124.28.196])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D238645198A;
-	Mon, 12 Oct 2026 08:52:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.136.29.106
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1BB534A796;
+	Mon, 12 Oct 2026 09:08:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.28.196
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791795154; cv=none; b=eyTg0wohgPpwYUsknh41MO614RJJ+lL+XOVWd88ZdFFlTyFi+MnKKxoB9tPDpNthfy7kbao/iOWVmCZ9KySLx9nCB1ok+Yxk4Wc/dIxlTz3SuvCXtTzUGX2Go5/+Ovo3pL39zQ2zOa4Su/SGitMvri35zWYaDSPwvRDC18u//jM=
+	t=1791796122; cv=none; b=FgVB3IucFzNF2+1e4XoD7YYe3YntoH+kJw6CRfCMtb8kpVrHIK+aXxtt1LZOeVYSbZyvE7rLtFsvfkuFqBi62vTxYyeopB2zSvKf1d15AiI+nkNIwPAAKrDdcDvTnSYPWu2XqN7a927xkolREWGLr5IWYoRfffnO/I92WOoILl8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791795154; c=relaxed/simple;
-	bh=G0TvSqZWMzuaHQkc4LLKgNtXBuK7C/XR62simfDeyGs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u67RMDspwMPlQG5sar8Nb4wUfBDJrcz3ZZypG9+UGXKv1Dx8cVKotk6Z4VKAsMLAY4c0NurDMw6EH3vlDnphnCUth5zflqS1cHGrZ8owcn5/2D+srHtT8cxynSxqbxM3XIqwYeW4UCXrBsT7yCi2OmyS2Z7BjdMb3iH3+TL9rS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com; spf=pass smtp.mailfrom=proxmox.com; arc=none smtp.client-ip=94.136.29.106
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proxmox.com
-Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
-	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id 62A4F47F91;
-	Mon, 12 Oct 2026 10:52:29 +0200 (CEST)
-Date: Mon, 12 Oct 2026 10:52:27 +0200
-From: Gabriel Goller <g.goller@proxmox.com>
-To: netdev-bot+sinfo@kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
-	Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, bridge@lists.linux.dev, netdev@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org
-Subject: Re: [RFC PATCH net-next] netfilter: bridge: refragment reassembled
- packets passed up
-Message-ID: <asyew3iKfV_yEX-e@luna.proxmox.com>
-References: <20261009150246.443127-1-g.goller@proxmox.com>
- <179155828067.2527009.9838753386350423335@kernel.org>
+	s=arc-20240116; t=1791796122; c=relaxed/simple;
+	bh=odsw1nspqDLtzhjFN7YBFhG9v/fxzPRQkVr8H3riC0c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jaC5gwwWpi0qK4KElnL7WmTse8y4MaZbGOYljnOKfEzS+C3TmRJVA/+cRpQDBbzJkQ94GESRFJ57vmsCIfelvg4WQ72Ex4MxRUwWr/piyhbuZ2I75a65BWZYbi0T4EwyJdN3zVEwCoTz2EhQ5znRo3AI3pj3uDDswxjYoTx44as=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com; spf=pass smtp.mailfrom=xiaopeng.com; dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b=Tn7tK5zm; arc=none smtp.client-ip=115.124.28.196
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b="Tn7tK5zm"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=xiaopeng.com; s=default;
+	t=1791796116; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=xK1kQ29AHu7i9jACy0bPf/jFUizZClRpLg5DsoLoqFE=;
+	b=Tn7tK5zmxkjHarVFFmjh072XenIEmtqtakgC6HyTLZ4Oz+/nhYXWhqaURs9J+qzrpnGn8xuBTMxpiY1ig2h1UBH0XQsYRMDSXfN4HujZ3lOf1Ohpq/IhZlX6zFC71ALzmO5gyDs7ouDIpWKhL704R+aNf+XA9jnuzKWJg1e69m4=
+X-Alimail-AntiSpam:AC=CONTINUE;BC=0.08644862|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_alarm|0.0185914-0.00172889-0.97968;FP=16464164499535474191|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033037022039;MF=zhugl3@xiaopeng.com;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.ja0Vm6s_1791796115;
+Received: from DESKTOP-UL5U09E.xiaopeng.local(mailfrom:zhugl3@xiaopeng.com fp:SMTPD_---.ja0Vm6s_1791796115 cluster:ay29)
+          by smtp.aliyun-inc.com;
+          Mon, 12 Oct 2026 17:08:35 +0800
+From: Guanglei Zhu <zhugl3@xiaopeng.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	liuwb@xiaopeng.com
+Subject: [PATCH] netfilter: nf_conntrack_h323: fix NULL deref in decode_seqof()
+Date: Mon, 12 Oct 2026 17:08:35 +0800
+Message-ID: <20261012090835.920932-1-zhugl3@xiaopeng.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <179155828067.2527009.9838753386350423335@kernel.org>
-User-Agent: NeoMutt/20260504
-X-Bm-Milter-Handled: 55990f41-d878-4baa-be0a-ee34c49e34d2
-X-Bm-Transport-Timestamp: 1791795148774
+Content-Transfer-Encoding: 8bit
 
-On 09.10.2026 15:04, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
-> 
-> Please do not repost the series just to address the above. Instead,
-> reply to this email with the missing information, so that reviewers
-> can take it into account. If the series needs another revision for
-> other reasons, please include the information in the commit messages
-> then.
-> 
-> The evaluation is done by an LLM so it may be wrong, if you think
-> that is the case please reply and explain.
+decode_seqof() loads son from f->fields and dereferences son->attr
+in the item loop without a NULL check.  A number of SEQOF entries
+in nf_conntrack_h323_types.c carry a NULL fields pointer, so a
+crafted packet that makes one of these optional fields present with
+a nonzero item count dereferences NULL in the loop.
 
-The issue was hit in production when bigger udp packets get ip-fragmented
-and then hit a bridge with conntrack enabled. The bridge then reassembles the
-packets for conntrack, but doesn't fragment them again (pass up instead of
-forward, LOCAL_IN instead of POST_ROUTING hook), so they are dropped at the next
-bridge because of the mtu.
+Skip the decoding when fields is NULL.
+
+Signed-off-by: Guanglei Zhu <zhugl3@xiaopeng.com>
+---
+Verified on a KASAN kernel with a test module calling decode_seqof()
+with a fields=NULL SEQOF entry and a nonzero item count: NULL deref
+report at son->attr (read of size 2 at address 0x4).
+
+ net/netfilter/nf_conntrack_h323_asn1.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index 6830c9da3..0d07d0276 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -691,6 +691,8 @@ static int decode_seqof(struct bitstr *bs, const struct field_t *f,
+ 	}
+ 
+ 	/* Decode nested field */
++	if (!f->fields)
++		return H323_ERROR_NONE;
+ 	son = f->fields;
+ 	if (base)
+ 		base -= son->offset;
+-- 
+2.43.0
 
