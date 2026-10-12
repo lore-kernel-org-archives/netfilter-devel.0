@@ -1,176 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out28-101.mail.aliyun.com (out28-101.mail.aliyun.com [115.124.28.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF4E536D4E1;
-	Mon, 12 Oct 2026 06:13:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D6E442FB2;
+	Mon, 12 Oct 2026 07:25:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.28.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791785620; cv=none; b=bwjumjz19hSPb3u2W9hzNqQtkIADgio5jBTh0tAmpK1n//hKYTPJFhlWBiBDONddi0Bd0UM6DGVOrnapuHlzYc62s8Ez5+hnD6VSlvvHa7A+KQyszacxBuEFfUH20F8wYpWLGmSNox3GFNkyLtiVsjM+oNiUKSD8AIF9bluer2Q=
+	t=1791789903; cv=none; b=WXInO+inJmJLkyqi6wgR1htZrhOqrf85uFwUDEZBjYYlDqlAkDvnEQZ/lCY2fpeJQ50zng4NpBS4WpAM6uqNEcf8dWm7+oOrnUluKTDTagnFLr+0CvZ/Orf4xOF14eUEB+jPemxo0TP1ibEgting8gy1Oo5yjrObOzSbMGe2z70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791785620; c=relaxed/simple;
-	bh=iZz2bPV5WngNL4geLGJqviGwHKnnjxqhaqh2GRbUE8g=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=nXlxCrELxjp9TtMMSdqDQwlXo+1bIUuGSa79wdU+2bwKS+8KjIUWdmK0Gkvipusf3uL3qCqkmPGvwolmlaea5c1wFPGxkkim2vkNUz0wkXvWcZ+FPFsECtHPWCXR1UXPrzKGfhRzByf7TxyiGsnZji5FJ4tc004Qe4hA7O0zd+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DKnEcbYC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791789903; c=relaxed/simple;
+	bh=kTOFPMiyuUkUO4cfufsN/R9dXmoNxEfuqHo0ZT2QoeI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=X59KPrl+FqKVv8miQlTDmr4c7xsBufaLEphCBFVttvBNta6UJyfFlXctzQWOQz922mzy+NeYuOeYzS18gPwxR6WbGlXlhnGLZxQtC0HzfwPKM5T7E5G/hqustSnYefUsjmWSMbogXloOfz30rAS2HWd6kq0eyRrwi9jjF7roGJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com; spf=pass smtp.mailfrom=xiaopeng.com; dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b=cXzVOi7s; arc=none smtp.client-ip=115.124.28.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DKnEcbYC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9EED1F0089B;
-	Mon, 12 Oct 2026 06:13:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791785619;
-	bh=8A2NzWuDCmn36ZsBruaeSIAejcK/P07F4bleLBGcRAw=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DKnEcbYCans0dbdiRQycIAOcS2Cmk+bCGqJ9+p5VwUIhl2xN1PU0Wm2rWh3v4vv6e
-	 mChJeglL2GamZ+1n+e8h6peMFq/uxjpatWFB5vHxgzhUtW92A9j1h9o6pKmeO3OOHf
-	 ETyR6aAPQvyFJZedRIB1gNl9YJerdHUcyCBI3zKFOXsYGoSPlzY3CiiCbhrnq773Uc
-	 HT3VEc0RqEyRvHAmW8FfIWhOJg/wjfpnd0lyJkUAITJ6eMlI+eIDs9NYjoFmFZmkz9
-	 qIvP4MV7Y/TjxFuk7OdkoKFG15StlJ8WMc1xKPVQdUHYjmCIS07t9hh6RcIARN0A02
-	 K7yIYCkku1eHw==
-Subject: Re: [PATCH v3] netfilter: nf_nat: Fix stale outer UDP checksum on
- VXLAN encapsulated packets
-From: netdev-bot+sashiko@kernel.org
-To: lvjunyu@cmss.chinamobile.com
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org, kuba@kernel.org
-Date: Mon, 12 Oct 2026 06:13:38 +0000
-Message-ID: <179178561828.434549.9529684167778428667@kernel.org>
-In-Reply-To: <20261008054228.752274-1-lvjunyu@cmss.chinamobile.com>
-References: <20261008054228.752274-1-lvjunyu@cmss.chinamobile.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key) header.d=xiaopeng.com header.i=@xiaopeng.com header.b="cXzVOi7s"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=xiaopeng.com; s=default;
+	t=1791789891; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=LshFPcfkwOJuQoYOlgGdpQH8LbW80ejZatBz6kxl5tE=;
+	b=cXzVOi7sGWMoNgS8A8jg1vyEnIql7+VNMS6ftTx9uSulxCZoKPv+5aAEZomeqnr97Ssc8WtnttgLT2ezGAPuJr5ksbR5VCDWuGKgtXAFgY/8jefONbDOjtjThzlPwhKHjiz4aRA9hyNpUzvr5Gb1gG5ZlWqGJe46QoH+zsKUSVI=
+X-Alimail-AntiSpam:AC=CONTINUE;BC=0.0801817|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_regular_dialog|0.103824-0.00585963-0.890316;FP=13726519755087547156|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033032062159;MF=guozh23@xiaopeng.com;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.jZxax0Z_1791789890;
+Received: from localhost(mailfrom:guozh23@xiaopeng.com fp:SMTPD_---.jZxax0Z_1791789890 cluster:ay29)
+          by smtp.aliyun-inc.com;
+          Mon, 12 Oct 2026 15:24:51 +0800
+From: Guo Zihao <guozh23@xiaopeng.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH nf-next v3 2/2] netfilter: ebtables: ebt_802_3: fix control format test and the ni type offset
+Date: Mon, 12 Oct 2026 15:24:49 +0800
+Message-ID: <20261012072449.3240201-2-guozh23@xiaopeng.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Two long-standing issues in the TYPE match:
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+ - The control format test is (ctrl & IS_UI), which is also true for an
+   S or I format control field (0x01 or 0x02, both two-byte control
+   fields), sending the comparison to the wrong view of the union.
+   Test for the UI control field exactly, the way LLC_PDU_TYPE_IS_U()
+   in include/net/llc_pdu.h does.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+ - When the ni view is picked, struct hdr_ni has a padding byte after
+   orig[3], so its type field sits at llc offset 8 while the type on
+   the wire is at llc offset 7. Every S or I format frame the TYPE
+   match compares has therefore been compared against a shifted type
+   byte plus a payload byte. Read the type through
+   get_unaligned_be16() at the wire offset instead of through the
+   struct.
 
-- [High] The fix covers only one caller, __udp_manip_pkt() in
-  net/netfilter/nf_nat_proto.c.
+The uAPI struct cannot change because ebtables userspace shares it.
 
---
+Signed-off-by: Guo Zihao <guozh23@xiaopeng.com>
+---
+ net/bridge/netfilter/ebt_802_3.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-netfilter: nf_nat: Fix stale outer UDP checksum on VXLAN encapsulated packets
-
-This commit changes __udp_manip_pkt() to detect the LCO state of a
-CHECKSUM_PARTIAL non-GSO skb. That state is when csum_start + csum_offset
-does not point at the outer udphdr check field. In that state the patch
-switches ip_summed to CHECKSUM_NONE for a moment, so the address and port
-deltas are applied to the complete checksum through csum_replace*().
-
-> diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-> index 64b9bac228eae..6779e9f2812d9 100644
-> --- a/net/netfilter/nf_nat_proto.c
-> +++ b/net/netfilter/nf_nat_proto.c
-> @@ -54,9 +54,39 @@ __udp_manip_pkt(struct sk_buff *skb,
->  		portptr = &hdr->dest;
->  	}
->  	if (do_csum) {
-
-[ ... ]
-
-> +		bool lco = skb->ip_summed == CHECKSUM_PARTIAL &&
-> +			   !skb_is_gso(skb) &&
-> +			   (skb->head + skb->csum_start + skb->csum_offset) !=
-> +			   (unsigned char *)&hdr->check;
-> +
-> +		if (lco)
-> +			skb->ip_summed = CHECKSUM_NONE;
-> +
->  		nf_csum_update(skb, iphdroff, &hdr->check, tuple, maniptype);
->  		inet_proto_csum_replace2(&hdr->check, skb, *portptr, newport,
->  					 false);
-> +
-> +		if (lco)
-> +			skb->ip_summed = CHECKSUM_PARTIAL;
-> +
-
-[Severity: High]
-This change only covers the nf_nat path. Can the software flowtable fast
-path still corrupt the outer UDP checksum for the same LCO packets?
-
-Once the conntrack entry is offloaded (for example with "flow add @ft" plus
-MASQUERADE), later packets of the outer VXLAN/Geneve flow take this path:
-
-nf_flow_offload_ip_hook()
-  nf_flow_nat_ip()
-    nf_flow_snat_port() -> nf_flow_nat_port_udp()
-    nf_flow_nat_ip_l4proto() -> nf_flow_nat_ip_udp()
-
-They never reach __udp_manip_pkt().
-
-In net/netfilter/nf_flow_table_ip.c:nf_flow_nat_ip_udp():
-
-	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
-		inet_proto_csum_replace4(&udph->check, skb, addr,
-					 new_addr, true);
-
-There is no check here on whether csum_start + csum_offset points at this
-outer udph->check. Because of that, inet_proto_csum_replace4() takes the
-seed branch:
-
-net/core/utils.c:inet_proto_csum_replace4() {
-	...
-	} else if (pseudohdr)
-		*sum = ~csum_fold(csum_add(csum_sub(csum_unfold(*sum),
-						    (__force __wsum)from),
-					   (__force __wsum)to));
-}
-
-For an LCO complete checksum, this applies the address delta with the
-wrong sign.
-
-In net/netfilter/nf_flow_table_core.c:nf_flow_nat_port_udp():
-
-	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
-		inet_proto_csum_replace2(&udph->check, skb, port,
-					 new_port, false);
-
-With pseudohdr=false under CHECKSUM_PARTIAL, this is a no-op. That is the
-same lost port delta this patch fixes in __udp_manip_pkt().
-
-nf_flow_nat_ipv6_udp() has the same pattern with
-inet_proto_csum_replace16(..., true). IPv6 VXLAN computes the outer
-checksum by default, so udp6_set_csum() takes the LCO branch there too.
-
-If so, the first packets of the flow would be fixed by this patch. Would
-packets after offload still be dropped by the receiver with
-UdpInCsumErrors, which is the symptom the commit message describes?
-
-Other callers make the same assumption. tcf_nat_act() in
-net/sched/act_nat.c calls inet_proto_csum_replace4(&udph->check, skb,
-addr, new_addr, true) under the same condition. In
-net/netfilter/ipvs/ip_vs_proto_udp.c, udp_partial_csum_update() treats
-every CHECKSUM_PARTIAL uh->check as a seed, though it does its own
-arithmetic.
-
-The shared helpers (inet_proto_csum_replace4/16/_by_diff) seem to be where
-the assumption lives. Would a helper-level fix work better than a
-per-caller ip_summed flip? For example, the helpers could take the seed
-path only when:
-
-	skb_checksum_start(skb) + skb->csum_offset == (u8 *)sum
-
-and use csum_replace*() otherwise.
-
-The commit message also doesn't mention these other call sites.
-
->  		if (!hdr->check)
->  			hdr->check = CSUM_MANGLED_0;
->  	}
-
+diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
+index fc49f7c7b..0b4b77dc2 100644
+--- a/net/bridge/netfilter/ebt_802_3.c
++++ b/net/bridge/netfilter/ebt_802_3.c
+@@ -9,6 +9,7 @@
+  *
+  */
+ #include <linux/module.h>
++#include <linux/unaligned.h>
+ #include <linux/stddef.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
+@@ -46,8 +47,17 @@ ebt_802_3_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
+ 
+ 	if (info->bitmask & EBT_802_3_TYPE) {
+-		type = frame->llc.ui.ctrl & IS_UI ? frame->llc.ui.type :
+-						    frame->llc.ni.type;
++		/* IS_UI is the exact UI control field; the S and I formats
++		 * carry two-byte controls, and their type sits at llc offset
++		 * 7 on the wire while the in-kernel hdr_ni has a padding
++		 * byte before its type field.
++		 */
++		if ((frame->llc.ui.ctrl & IS_UI) == IS_UI) {
++			type = frame->llc.ui.type;
++		} else {
++			type = get_unaligned_be16((__be16 *)((u8 *)frame +
++					offsetof(struct ebt_802_3_hdr, llc) + 7));
++		}
+ 		if (!(frame->llc.ui.dsap == CHECK_TYPE &&
+ 		      frame->llc.ui.ssap == CHECK_TYPE))
+ 			return false;
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008054228.752274-1-lvjunyu%40cmss.chinamobile.com
+2.50.1
+
