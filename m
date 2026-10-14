@@ -1,223 +1,371 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A78D4E8E15;
-	Wed, 14 Oct 2026 12:56:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13BD338F230
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2026 21:03:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791982626; cv=none; b=Q1gO+C09nsiIpqoELH0Fl0cLjogSWsZICbvVR7bczXwWHLFiJx1jY9ywwa/oLMVFasyZ0H/UJzmQo5lFJTfTimr9OUQlC5FsgjSBxCo839sfSqCUwmWB49cmU8tRg0hdaHcCWp4Atj8Hmw6/7GTv2QzdDAvrA1BwzUlxPHRpCWY=
+	t=1792011785; cv=none; b=IqNBkoJIPV6hvVrtj0UL5T9Kl+pz9yMAb7fTvdUpxmtYfgI3WjmSGrQ3fMR08RxnUEXMcGpQGdob4A+bbmpXtLcdXVtXPDWLcTi3OZGHZ7eNxFgbgoZ3IM9ggX3UDfqHcJ2hcoKxUKxeHGlrE0xkMEi1ZXrXnUDaztd5Bm9esX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791982626; c=relaxed/simple;
-	bh=ZlqUrwnlMOYpNHBfdwldXhW+FC3EtFNfIIu/l6ZnSiE=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=pk7cNenxdwlZ7QCYY5ceZS2QDWOPqJVLw1YJmjDEVcOZMtF+Jybx2ggKuYzxwOOHYO2YURB2GPAI9c+CiuXGJKbtWLX2ar/wUj/eczWoF4ae3r3Se5Q+mZVtvM2UiMVs4JNCCjS3j/aBIFuhMnUp4Qu20poUUlkKK0G48at35lM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=SJSBUiLq; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1792011785; c=relaxed/simple;
+	bh=n5Mv3zBw6Qc+lD48wliOytGgfxqQRbuVes5uTj3lUzI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BwxDsOjJ9F95nZ5baDA6sucyidZEvrbs0NxaUIzDcHyyCbMQJz8/YMyPGl4Ziq8OVt1PlQFkruRiHIAxCWZselYnbxrD4nffaxXLyzwA45ipsXByG9pGiwGpuRQadGrwBNH5itK0bRgspkjxepR5uUGcQ2v/G8+hHss9WSGNP+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Hf6yOzJx; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="SJSBUiLq"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4j4WJk3jjNzGFDCt;
-	Wed, 14 Oct 2026 14:50:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1791982228; x=1793796629; bh=Bka3a+5gc9
-	LmGmyiRJ/S4p4dH9HwrSoei/gNKkl35rg=; b=SJSBUiLqCAiAd44FhldgqaTgQs
-	5nLBHqrKVlG+9xvB5nkfyxG+t2V/ATGt1LstYYCa1uFRjxA4aTABZRp0KkHhmL1f
-	QC3RgdYRrl/Ewy4MdblvRY7GHzW7ATl0dlvfI4y9mQCUlseOaf7BUyVlzayo97kn
-	kIO/IVd4jwP2IDDdE=
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id N5TZgdhswmsj; Wed, 14 Oct 2026 14:50:28 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4j4WJg4sNSzGFDCf;
-	Wed, 14 Oct 2026 14:50:27 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 9857F340D0D; Wed, 14 Oct 2026 14:50:27 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 967EB340CFB;
-	Wed, 14 Oct 2026 14:50:27 +0200 (CEST)
-Date: Wed, 14 Oct 2026 14:50:27 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Xue Boyang <fuchen.dust@gmail.com>
-cc: Jozsef Kadlecsik <kadlec@netfilter.org>, 
-    Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-    netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-    netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-    Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nf] netfilter: ipset: fix double free on kernel-side
- delete during resize
-In-Reply-To: <20261012163353.4093-1-fuchen.dust@gmail.com>
-Message-ID: <8b1c4c41-d371-1901-0f85-f3d0a1dfd033@blackhole.kfki.hu>
-References: <20261012163353.4093-1-fuchen.dust@gmail.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Hf6yOzJx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792011779;
+	bh=F22UZ4XTM3O/BcX+jwsQV1q/ODj8mMH1mBlyuUZbZOs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Hf6yOzJxybpTfjwT4h8kxqoPWnj+Twhy1NqO5M7xpTGrs6i7ekRX1/gmzr7bi+Lah
+	 aFpApemYIbcb18BxeOGLv/JKmOr/FIkmWH1Id2Oc5N2LB5fIPM90wy8gJBS6FIRjhk
+	 jh06NsqjYoa+IC3+RGCzxT73rAoRLzegjQc+MGzd4MySMgyyws4ELCpFYJx0/2T0NX
+	 thuHQ63CK2cgxtNF85SivXPEKIXCzPfkq+KzvOSnyd44RTnO21qWXcr6XR1NJ/MVva
+	 vMCV8jI2QgdzxyD4VRgc0G2ts6/YBla8jgvFg1EN+N5iTX2bZGUXdkVka3xp4JOU4C
+	 ijK7w1O+zPWag==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8BC956005D;
+	Wed, 14 Oct 2026 23:02:59 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: julius@bairaktaris.de,
+	ericwouds@gmail.com,
+	razor@blackwall.org
+Subject: [PATCH nf-next] netfilter: flowtable: teardown flow reaching bridge port on fdb updates
+Date: Wed, 14 Oct 2026 23:02:56 +0200
+Message-ID: <20261014210256.1573072-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hi,
+The flowtable GC already checks if dst_entries are still valid, but such
+check is lacking for fdb entries when the bypass reaches a bridge port.
+This is an issue in roaming scenarios when the bridge is used.
 
-On Mon, 12 Oct 2026, Xue Boyang wrote:
+Eric Woudstra describes the problem:
 
-> A kernel-side delete, i.e. a delete triggered by the SET target while
-> the set is being resized, is applied to the current table and saved in
-> the resize backlog, to be replayed against the new table when the
-> resize finished. Both tables share the element extensions: the resize
-> copies the element to the new table, keeping the pointer to the
-> extension data, e.g. to the comment. Deleting the element in the
-> current table calls ip_set_ext_destroy() and releases the shared
-> extension. The replay then deletes the copy from the new table and
-> releases the same extension again, i.e. the same rcu_head is queued
-> twice. With CONFIG_DEBUG_OBJECTS_RCU_HEAD (and slub_debug=F, which
-> keeps kfree_rcu() off the sheaf fast path):
->
->  ODEBUG: activate active (active state 1) object type: rcu_head
->  WARNING: lib/debugobjects.c:629 at debug_print_object+0x7b/0x100
->  kvfree_call_rcu(): Double-freed call. rcu_head ffff88810474ce40
->  WARNING: mm/slab_common.c:2041 at kvfree_call_rcu+0x10b/0x140
->  Call Trace:
->   <TASK>
->   debug_object_activate (lib/debugobjects.c:905)
->   kvfree_call_rcu (mm/slab_common.c:2039)
->   hash_ip4_del (net/netfilter/ipset/ip_set_hash_gen.h:1226)
->   hash_ip4_kadt (net/netfilter/ipset/ip_set_hash_ip.c:96)
->   ip_set_del (net/netfilter/ipset/ip_set_core.c:820)
->   set_target_v3 (net/netfilter/xt_set.c:411)
->   ipt_do_table (net/ipv4/netfilter/ip_tables.c:345)
->   nf_hook_slow (net/netfilter/core.c:619)
->   raw_sendmsg (net/ipv4/raw.c:652)
->   __sys_sendto (net/socket.c:2281)
->
-> The double free is reachable from an unprivileged user namespace and
-> permits local privilege escalation.
->
-> Fix this by deferring the delete when a resize is in progress: the
-> element is not deleted in the current table, only saved in the backlog,
-> like it is done for kernel-side adds. The resize copies the element
-> including its extension pointers, and the replayed delete releases the
-> extension exactly once. This also avoids updating the cidr counters
-> twice for the same element.
->
-> Deferred deletes of a failed resize are replayed against the original
-> table, which stays the live table, instead of being dropped.
+"When the host moves to another port of the same bridge, for example a
+station roaming to another access point, the bridge updates its fdb
+entry and the flow keeps sending to the old port. Packets from the other
+end keep hitting the flow and refresh it, so it does not expire while
+the sender retransmits. A hardware offloaded flow behaves the same, and
+none of its packets reaches the software path."
 
-Thank you for your patch! Could you address the issues sashiko raised at 
-https://sashiko.dev/#/patchset/20261012163353.4093-1-fuchen.dust%40gmail.com 
-about it?
+One possibility to address this issue is to subscribe to
+SWITCHDEV_FDB_DEL_TO_DEVICE event notifications, however, this requires
+iterating over the whole flowtable whenever a fdb entry is removed.
 
-Best regards,
-Jozsef
+This patch adds the infrastructure to check if the fdb entry is stale,
+so the flowtable GC can collect tear it down to set up the flowtable
+bypass again with a fresh fdb entry.
 
-> Fixes: f66ee0410b1c ("netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Xue Boyang <fuchen.dust@gmail.com>
-> Assisted-by: LLM DeepSeek-V4.1-Flash
-> ---
->
-> The reproducer (SET --del-set rule plus a userspace add triggering the
-> resize) was run against v7.3-rc5 (mainline tree at 6d25ffca055a):
-> before the patch the double free shows up as the warning quoted in the
-> commit message and as duplicate objects in the SLUB RCU sheaves; with
-> the patch applied it no longer reproduces in repeated runs. The
-> reproducer is not attached; it is available and can be shared privately
-> upon request. Note: the replay of deferred deletes on a resize abort
-> (allocation failure in the copy loop) is covered by review only.
->
-> Found with AI assistance (DeepSeek V4.1 Flash, see Assisted-by); the
-> patch was reviewed, reproduced and tested by hand.
->
-> net/netfilter/ipset/ip_set_hash_gen.h | 48 +++++++++++++++++----------
-> 1 file changed, 31 insertions(+), 17 deletions(-)
->
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 80ca523f304b..d94db604ed6b 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -764,6 +764,7 @@ mtype_resize(struct ip_set *set, bool retried)
-> 	struct hbucket *n, *m;
-> 	struct list_head *l, *lt;
-> 	struct mtype_resize_ad *x;
-> +	LIST_HEAD(backlog);
-> 	u32 i, j, r, nr, key;
-> 	int ret;
->
-> @@ -934,13 +935,21 @@ mtype_resize(struct ip_set *set, bool retried)
-> 	if (ret == -EAGAIN)
-> 		goto retry;
->
-> -	/* Cleanup the backlog of ADD/DEL elements */
-> +	/* Cleanup the backlog of ADD/DEL elements: kernel-side adds were
-> +	 * applied to the original table, which is still the live table,
-> +	 * so they are simply dropped. Kernel-side deletes were deferred,
-> +	 * replay them against the original table.
-> +	 */
-> 	spin_lock_bh(&set->lock);
-> -	list_for_each_safe(l, lt, &orig->ad) {
-> +	list_splice_init(&orig->ad, &backlog);
-> +	spin_unlock_bh(&set->lock);
-> +	list_for_each_safe(l, lt, &backlog) {
-> +		x = list_entry(l, struct mtype_resize_ad, list);
-> 		list_del(l);
-> -		kfree(l);
-> +		if (x->ad == IPSET_DEL)
-> +			mtype_del(set, &x->d, NULL, NULL, 0);
-> +		kfree(x);
-> 	}
-> -	spin_unlock_bh(&set->lock);
-> 	goto out;
->
-> hbwarn:
-> @@ -1217,6 +1226,24 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 			goto out;
->
-> 		ret = 0;
-> +		if (t->resizing && ext && ext->target) {
-> +			/* Resize is in process and kernel side del: do not
-> +			 * delete the element and free its extensions here,
-> +			 * the extensions may be shared with the copy in
-> +			 * the new table. Save the values, the resize replays
-> +			 * the delete against the new table.
-> +			 */
-> +			x = kzalloc_obj(struct mtype_resize_ad, GFP_ATOMIC);
-> +			if (!x)
-> +				/* Don't bother, deleting the element here
-> +				 * could free the shared extensions twice.
-> +				 */
-> +				goto out;
-> +			x->ad = IPSET_DEL;
-> +			memcpy(&x->d, value, sizeof(struct mtype_elem));
-> +			x->flags = flags;
-> +			goto out;
-> +		}
-> 		clear_bit(i, n->used);
-> 		smp_mb__after_atomic();
-> 		if (i + 1 == pos)
-> @@ -1224,19 +1251,6 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 		t->hregion[r].elements--;
-> 		mtype_del_cidr_all(set, h, d);
-> 		ip_set_ext_destroy(set, data);
-> -
-> -		if (t->resizing && ext && ext->target) {
-> -			/* Resize is in process and kernel side del,
-> -			 * save values
-> -			 */
-> -			x = kzalloc_obj(struct mtype_resize_ad, GFP_ATOMIC);
-> -			if (x) {
-> -				x->ad = IPSET_DEL;
-> -				memcpy(&x->d, value,
-> -				       sizeof(struct mtype_elem));
-> -				x->flags = flags;
-> -			}
-> -		}
-> 		for (; i < pos; i++) {
-> 			if (!test_bit(i, n->used))
-> 				k++;
-> -- 
-> 2.53.0
->
->
+Reported-by: Eric Woudstra <ericwouds@gmail.com>
+Reported-by: Julius Bairaktaris <julius@bairaktaris.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
++Cc'ing bridge maintainer, since this adds a new file to net/bridge.
+
+This is an alternative to:
+[PATCH nf-next v5 2/3] netfilter: flowtable: teardown direct xmit flows when the fdb entry moves
+
+ include/linux/netfilter.h             |  9 +++++
+ include/net/netfilter/nf_flow_table.h |  4 +-
+ net/bridge/Makefile                   |  2 +-
+ net/bridge/br.c                       |  4 ++
+ net/bridge/br_nf_utils.c              | 55 +++++++++++++++++++++++++++
+ net/bridge/br_private.h               |  3 ++
+ net/netfilter/core.c                  |  3 ++
+ net/netfilter/nf_flow_table_core.c    | 51 ++++++++++++++++++++++++-
+ net/netfilter/nf_flow_table_path.c    |  5 ++-
+ 9 files changed, 131 insertions(+), 5 deletions(-)
+ create mode 100644 net/bridge/br_nf_utils.c
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index e99afc1414cd..18636a918a67 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -67,6 +67,15 @@ static inline void nf_inet_addr_mask(const union nf_inet_addr *a1,
+ #endif
+ }
+ 
++struct net_bridge;
++
++struct nf_br_utils {
++	bool	(*fdb_valid_dst)(struct net *net, int ifindex,
++				 const unsigned char *addr, __u16 vid);
++};
++
++extern struct nf_br_utils __rcu *nf_br_utils_hook;
++
+ int netfilter_init(void);
+ 
+ struct sk_buff;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 5b611efaa3cd..8d4a97f9f9ec 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -152,6 +152,7 @@ struct flow_offload_tuple {
+ 					xmit_type:3,
+ 					encap_num:2,
+ 					needs_gso_segment:1,
++					bridge_path:1,
+ 					tun_num:2,
+ 					in_vlan_ingress:2;
+ 	u16				mtu;
+@@ -234,7 +235,8 @@ struct nf_flow_route {
+ 			u32			hw_ifindex;
+ 			u8			h_source[ETH_ALEN];
+ 			u8			h_dest[ETH_ALEN];
+-			u8			needs_gso_segment:1;
++			u8			needs_gso_segment:1,
++						bridge_path:1;
+ 		} out;
+ 		enum flow_offload_xmit_type	xmit_type;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index 1203dc19e15c..ccae18d075bb 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -8,7 +8,7 @@ obj-$(CONFIG_BRIDGE) += bridge.o
+ bridge-y	:= br.o br_device.o br_fdb.o br_forward.o br_if.o br_input.o \
+ 			br_ioctl.o br_stp.o br_stp_bpdu.o \
+ 			br_stp_if.o br_stp_timer.o br_netlink.o \
+-			br_netlink_tunnel.o br_arp_nd_proxy.o
++			br_netlink_tunnel.o br_arp_nd_proxy.o br_nf_utils.o
+ 
+ bridge-$(CONFIG_SYSFS) += br_sysfs_if.o br_sysfs_br.o
+ 
+diff --git a/net/bridge/br.c b/net/bridge/br.c
+index a5e5b2db110e..5c1d340f9bd9 100644
+--- a/net/bridge/br.c
++++ b/net/bridge/br.c
+@@ -446,6 +446,8 @@ static int __init br_init(void)
+ 	if (err)
+ 		goto err_out2;
+ 
++	br_nf_utils_init();
++
+ 	err = register_netdevice_notifier(&br_device_notifier);
+ 	if (err)
+ 		goto err_out3;
+@@ -479,6 +481,7 @@ static int __init br_init(void)
+ err_out4:
+ 	unregister_netdevice_notifier(&br_device_notifier);
+ err_out3:
++	br_nf_utils_fini();
+ 	br_nf_core_fini();
+ err_out2:
+ 	unregister_pernet_subsys(&br_net_ops);
+@@ -501,6 +504,7 @@ static void __exit br_deinit(void)
+ 
+ 	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+ 
++	br_nf_utils_fini();
+ 	br_nf_core_fini();
+ 	br_fdb_fini();
+ }
+diff --git a/net/bridge/br_nf_utils.c b/net/bridge/br_nf_utils.c
+new file mode 100644
+index 000000000000..5cb7ca4cdaa8
+--- /dev/null
++++ b/net/bridge/br_nf_utils.c
+@@ -0,0 +1,55 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++#include <linux/netfilter.h>
++
++#include "br_private.h"
++
++static bool nf_br_fdb_valid_dst(struct net *net, int ifindex,
++				const unsigned char *addr, __u16 vid)
++{
++	const struct net_bridge_port *dst;
++	struct net_device *dev, *upper;
++	struct net_bridge_fdb_entry *f;
++	struct net_bridge *br;
++
++	rcu_read_lock();
++	dev = dev_get_by_index_rcu(net, ifindex);
++	if (!dev || !netif_is_bridge_port(dev))
++		goto out;
++
++	upper = netdev_master_upper_dev_get_rcu(dev);
++	if (!upper)
++		goto out;
++
++	br = netdev_priv(upper);
++
++	f = br_fdb_find_rcu(br, addr, vid);
++	if (!f)
++		goto out;
++
++	dst = READ_ONCE(f->dst);
++	if (dst && dst->dev->ifindex == ifindex) {
++		rcu_read_unlock();
++		return true;
++	}
++out:
++	rcu_read_unlock();
++
++	return false;
++}
++
++static struct nf_br_utils nf_br_utils = {
++	.fdb_valid_dst	= nf_br_fdb_valid_dst,
++};
++
++void __init br_nf_utils_init(void)
++{
++	RCU_INIT_POINTER(nf_br_utils_hook, &nf_br_utils);
++}
++
++void br_nf_utils_fini(void)
++{
++	rcu_assign_pointer(nf_br_utils_hook, NULL);
++}
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index b01997ea9508..73d201c75f72 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -2013,6 +2013,9 @@ struct nf_br_ops {
+ };
+ extern const struct nf_br_ops __rcu *nf_br_ops;
+ 
++void br_nf_utils_init(void);
++void br_nf_utils_fini(void);
++
+ /* br_netfilter.c */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ int br_nf_core_init(void);
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 675a1034b340..91b0b3f77472 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -798,6 +798,9 @@ static struct pernet_operations netfilter_net_ops = {
+ 	.exit = netfilter_net_exit,
+ };
+ 
++struct nf_br_utils __rcu *nf_br_utils_hook;
++EXPORT_SYMBOL_GPL(nf_br_utils_hook);
++
+ int __init netfilter_init(void)
+ {
+ 	int ret;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 36bbc7be2f74..04612fc4d490 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -127,6 +127,8 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 
+ 	switch (route->tuple[dir].xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_DIRECT:
++		flow_tuple->bridge_path = route->tuple[dir].out.bridge_path;
++
+ 		if (route->tuple[!dir].in.num_tuns) {
+ 			flow_tuple->dst_cache = dst;
+ 			flow_tuple->dst_cookie =
+@@ -572,6 +574,51 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+ 	nf_ct_put(ct);
+ }
+ 
++static bool nf_flow_dst_valid(struct nf_flowtable *flow_table,
++			      struct flow_offload *flow, int dir)
++{
++	struct flow_offload_tuple *this_tuple = &flow->tuplehash[dir].tuple;
++	struct net *net = read_pnet(&flow_table->net);
++	struct flow_offload_tuple *other_tuple;
++	struct nf_br_utils *br_utils;
++	__u16 vid = 0;
++	bool valid;
++
++	switch (this_tuple->xmit_type) {
++	case FLOW_OFFLOAD_XMIT_NEIGH:
++		valid = nf_flow_dst_check(this_tuple);
++		break;
++	case FLOW_OFFLOAD_XMIT_DIRECT:
++		if (!this_tuple->bridge_path) {
++			valid = true;
++			break;
++		}
++		other_tuple = &flow->tuplehash[!dir].tuple;
++
++		rcu_read_lock();
++		br_utils = rcu_dereference(nf_br_utils_hook);
++		if (!br_utils) {
++			rcu_read_unlock();
++			valid = true;
++			break;
++		}
++
++		if (other_tuple->encap[0].proto == htons(ETH_P_8021Q) ||
++		    other_tuple->encap[0].proto == htons(ETH_P_8021AD))
++			vid = other_tuple->encap[0].id;
++
++		valid = br_utils->fdb_valid_dst(net, this_tuple->out.ifidx,
++						this_tuple->out.h_dest, vid);
++		rcu_read_unlock();
++		break;
++	default:
++		valid = true;
++		break;
++	}
++
++	return valid;
++}
++
+ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 				    struct flow_offload *flow, void *data)
+ {
+@@ -584,8 +631,8 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct) ||
+-	    !nf_flow_dst_check(&flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple) ||
+-	    !nf_flow_dst_check(&flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple) ||
++	    !nf_flow_dst_valid(flow_table, flow, FLOW_OFFLOAD_DIR_ORIGINAL) ||
++	    !nf_flow_dst_valid(flow_table, flow, FLOW_OFFLOAD_DIR_REPLY) ||
+ 	    nf_flow_custom_gc(flow_table, flow)) {
+ 		flow_offload_teardown(flow);
+ 		teardown = true;
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index d90013685bf1..06b3be7b8f6a 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -95,7 +95,8 @@ struct nft_forward_info {
+ 	u8 ingress_vlans;
+ 	u8 h_source[ETH_ALEN];
+ 	u8 h_dest[ETH_ALEN];
+-	bool needs_gso_segment;
++	u8 needs_gso_segment:1,
++	   bridge_path:1;
+ 	enum flow_offload_xmit_type xmit_type;
+ };
+ 
+@@ -183,6 +184,7 @@ static int nft_dev_path_info(struct net_device_path_stack *stack,
+ 			case DEV_PATH_BR_VLAN_KEEP:
+ 				break;
+ 			}
++			info->bridge_path = 1;
+ 			info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+ 			break;
+ 		default:
+@@ -260,6 +262,7 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
+ 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
+ 		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
++		route->tuple[dir].out.bridge_path = info.bridge_path;
+ 		route->tuple[dir].xmit_type = info.xmit_type;
+ 	}
+ 	route->tuple[dir].out.needs_gso_segment = info.needs_gso_segment;
+-- 
+2.47.3
+
