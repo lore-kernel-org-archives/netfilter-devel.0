@@ -1,174 +1,314 @@
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010010.outbound.protection.outlook.com [52.101.85.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com [209.85.208.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D2118B0A;
-	Wed, 14 Oct 2026 03:17:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A65AD4766B1
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2026 07:35:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.177
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791947868; cv=fail; b=APBMFhITEK3n2Y3iziTxVAnFKORuBHbDKPR/p9ZUBuc/rtTz6o44uzxErmWzNK5jgaR54HLlFaK3ZZNV3xBHlk+KTB6QhdFi2xucBHWqfb1YB2crL40xAELES5zj2a8KnqEkOwQQSn7Ss5WAbRrIEvA/7gZHry3lmrGdVCdoPP4=
+	t=1791963358; cv=pass; b=a+DBOLN7w2KeqLBDncHGGNpybdq4o+Bvm8b6I41k3zsx/7wNyRJZByLwvdLZMl/fnN9lQPsn/NcK86zcI5uGmK0rHg7X7Hmg7xt9EgueU58ZV24vvIfFAhX1SklKom/leaNp6xW8m0UKUhYO7WPi9Wn5GbYrMoubmYZfjqHeohU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791947868; c=relaxed/simple;
-	bh=HrXJweVyqGY8PMwJYn+Z447iu+/0+Ha/NuBX4IY6egA=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=a3bEod+rObPS4AbeROhXOSNav0QlhMRU4BPekDpaNBu5DjsolAq/0E7HM2xxBS790h/h4GWxiAqouungE/ovcZ9RHN7SPr558hEnwAuw9/T1y/b0s2lUyIVSQK7E3BQkgeHYZD/ZajtQ0DL4afHDqUUJwu66V0UBPzErsxaZQIs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=FukwMs5c; arc=fail smtp.client-ip=52.101.85.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1791963358; c=relaxed/simple;
+	bh=V3BhjzuK4CBfJUEsxQG8Rb0+bdqLXuKWjYZAbdnCgCs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=b8Oy5zHE+1whHfeSf1xFLZT96EPUVMWO+X2OyersqyyYgq/McZ3/9bCDiltSWz5aP+Vm7lDXupw2LpnjQBtuIIIH3NuqnlQOdak0+O7PqUVbbU6UO2i8AcxLMakujpcu+WCaqKEz6z1DYDbcOngWsgggELvDb3dabm7E45SRsZM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=DAKXyx/3; arc=pass smtp.client-ip=209.85.208.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="FukwMs5c"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=B9lEVvDgYYmxMfeYB8rxEywFZY8N8Ujt7oRL+OYJnlA3oJ5gSTTKr/rFxJxNkqqviCQ3FrfSxK+CWoT6Lwb/zHJzNJyTMBetBcHfytswrh9PG/Mv/lRe1vOAR/9sSPJ+XK+PQ6nlDrY7YKZCOo4iZymRfR4FCBRN/XhHvBMv9tk6ZqOh40jw4gTMV4Y6NJofmJADLzg+Xw/b7zqBbg7yNAtAPc06pgruX8+mA8KNdcx9tr336gzmIfiJIczgQTKWxqUMbVJWgibM3rWzxmM+PzpYtQmb4C+kXmxAewryt3I5NcazdccA//H6MnoMQitj4CcBd2GXsYlHTW58r8jU7A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=7kL8oBs/1JPwv1vs8iPTM+H3vHOob8w+C+Ebxc7ulJk=;
- b=PtrEx2l6Q/IhcrtAXbsxvQHvn3DkXagd5E6uXLMLmvL2Xx/kWuhk/lP10P6HMpf05H3QmXirxX7h3r4Un5gSdNoRlrGDZ6eAHZ5aXJIwFv1w6/ks83fbMcdsqiEIoXuM/hk384b0F85BdGFKeeSksn3SWULGaa+y7LDAhtwXD5+ObUr/G7bQo42HnvdgXrjgJU3TEOA5pgkF63k7wh8kK5qyrLVSJBDd+s0X+7YSmQ/qDCp5wyTC5dHwDjIkpjwfXOyjSzf+tRrbIwinnCy/wkqoe7n3DV2XgIDXO7X4ipIAbCS+fJqciuzhWrSb7xcZSL7HTxgDSD3MRX7dZl8EBQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=7kL8oBs/1JPwv1vs8iPTM+H3vHOob8w+C+Ebxc7ulJk=;
- b=FukwMs5co0TsVm1Qjnwn8EDCw+ZAStWsrK5eFWtL0IRtTFUyYL68CIgo2IqcAzgd6LfxyyT/+SmIRBdCF+nh3dDtp+HRTW6oywNnGE/mqPwQK19N59D/ivnn2EQblYtoVizHDP9mFxZmx/5Y3C0fDutu6OWWZlNWo6w6VselhbJrNtZpYjaN9ygpTLQPN70X6orn5DUE79X0puYkH8cdhpw5oxBHaKOn0fx2TOCqJW+DalYRhDbLbpMVYnl3wN7MdYw927+PngVr83A/5JdsaP9UTIhm7tDCMUk2vqkmT2CBdRGkrlzGDfYpGotDZwTtnI5CBYKjdQ83LgSzFwuv9A==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SAVPR12MB999143.namprd12.prod.outlook.com
- (2603:10b6:806:4e5::21) by DS7PR12MB5909.namprd12.prod.outlook.com
- (2603:10b6:8:7a::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.23; Wed, 14 Oct
- 2026 03:17:41 +0000
-Received: from SAVPR12MB999143.namprd12.prod.outlook.com
- ([fe80::219e:6553:2ec0:3761]) by SAVPR12MB999143.namprd12.prod.outlook.com
- ([fe80::219e:6553:2ec0:3761%4]) with mapi id 15.21.0496.021; Wed, 14 Oct 2026
- 03:17:41 +0000
-Message-ID: <b4aa46a5-dd8a-4520-8574-d008a3877f28@nvidia.com>
-Date: Wed, 14 Oct 2026 11:17:29 +0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next v3 1/3] net/mlx5e: Ignore FLOW_ACTION_PRIORITY on
- flowtable offload
-To: Julius Bairaktaris <julius@bairaktaris.de>, pablo@netfilter.org,
- fw@strlen.de
-Cc: phil@nwl.cc, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, lorenzo@kernel.org, nbd@nbd.name,
- matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, corbet@lwn.net,
- rdunlap@infradead.org, skhan@linuxfoundation.org, linux-doc@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-mediatek@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, saeedm@nvidia.com, leon@kernel.org,
- tariqt@nvidia.com, mbloch@nvidia.com, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261004171636.3545085-1-julius@bairaktaris.de>
- <20261004171636.3545085-2-julius@bairaktaris.de>
-Content-Language: en-US
-From: Jianbo Liu <jianbol@nvidia.com>
-In-Reply-To: <20261004171636.3545085-2-julius@bairaktaris.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SI2PR02CA0022.apcprd02.prod.outlook.com
- (2603:1096:4:195::23) To SAVPR12MB999143.namprd12.prod.outlook.com
- (2603:10b6:806:4e5::21)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="DAKXyx/3"
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-3a9a2cfe1d4so25273071fa.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2026 00:35:55 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791963354; cv=none;
+        d=google.com; s=arc-20260327;
+        b=rkbNG2nb5rh2vhNp9H2eAtbtTVlf2K2NSmPdKTtFLxzd9FlGqgAjlRPIrL8kslbeJY
+         13/UNpygO49vnJ9HEc/iJiKU8sNwPVskSxb13NVZZHAW11m20S3wo+KUJeU4Dduyl5Fn
+         kJr6DabWXmHLCaP7hoRTLTi0WWsLNkAwahWAJDIPD7jlCTFFH4ultsIHzAROd8fPzce2
+         f/+9Vx9q1xjeeVu7IeDj0a8N4kGuGub8VaLKeYPH4Cnc858sRbgi+8GaQEEzoUc7ZBd0
+         x7HNdEN//zAkYuT2xhCGdiduysOxpHpDDvgxGcY0vQjVha5K+oKUw6VP+LjuRmPOrA0m
+         5hAw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=HSNUxD6DfBLOIEWmg+DU/XNxPWCHawo+r3/1wsdCuis=;
+        fh=4+PsLdVwUmFXUfWt6vgGJ3gEh9mGThQ1L7Y0NX0KkCM=;
+        b=gAedveDL1RINoSM8Ycg9dbjvzAQ/E49I/jNAhI4WqWIj0Jt6F1fet2FKFvmfuLHW1w
+         sAbw+YfWQkQycupPpz+YzjukV3Fl7Vr4uj0ryohRk64r10hBlPzeFIWP17obPH3KPBi8
+         uirSIrKGHWcVmFR4tpDAGVTESVvAy+6AH9Wd6Wx8ouGDOWATMWne2lP1nSOZTygdCYpl
+         xXSx47fPqv5/AnzwfJ0b2eFcOvgwHzr/bySFZO7ueryDO/KCuaCW8WPxHAAzKUxDshPs
+         5b8CpG92YrfPo/kFsQkHSv3Sye3POZsULu3YMDnreqYJRv7CG72JoeDdEYvjNjJZtbuV
+         bt3A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=nebusec.ai; s=google; t=1791963354; x=1792568154; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=HSNUxD6DfBLOIEWmg+DU/XNxPWCHawo+r3/1wsdCuis=;
+        b=DAKXyx/30blsPtDeRusWmkqsl3PsL/LTAWLChCq8U2gWvd9OVVEkHsazPIr65x0C/6
+         ZfxV990IIpwjIwsLY0UaoymbPnh2EGnhNXOd+jS0vsQaMCPLYDm8I95DYdizanRNIsQP
+         Kwd4RhwUx8ErEAlcl5tu0Ib7A3hYbsg3K3sBwZTyU/AQaNi89MM0/zoF29SkuVYHIAO0
+         AnPmDhEstYdV0zdmHGvBMVe9iTdvK24WLIbLX3HTkXChhT9ol04HY0M6yDEBfJOM5+tP
+         QEmm6lbe4faM48NVakKHR4gqwbHvVw4Dkw5KPdhdawD1620rWyA1F4/Ok3ZLcwGU7rFB
+         vZ4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791963354; x=1792568154;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=HSNUxD6DfBLOIEWmg+DU/XNxPWCHawo+r3/1wsdCuis=;
+        b=esGPPhZCitHkeRhrNuLa0YzCzSAkgRSlQZBOR0QO7e8hOAOZ+vEqOnrvo66PEfDM54
+         jWQhaa/2PWKAODXuR5wrGT10X3dJfsdCl0JuTTu6ecTk+eiXjMWfRxqGgVg4PLlmTodr
+         /V8e7yZJehEzSBq8pkPilpzneOU3BYThnO2jmUr2i+JnenMNcgCOJ7wY6Cu5NMryWaZg
+         CzDDO3M2ypaSesbSmNbhE5u73Z+0KjRF6E+6ntmzFw2X69r7fUX+IlFhGWM5MAESJ4hv
+         6AJQbTrtifGYHKQvNW8ePAu1y7Sp2gPqnTJL6rjBnj5Xa6a7DT9vxF7G4u/JZefvTbYA
+         Pe9A==
+X-Forwarded-Encrypted: i=1; AKwUvBxh61tx1A3bMZoGrw8T/OSl7pxUhQ8Z20yHnLuOeuQIBayaLhnau4qD6hdF6NTZaYAgEyLO2Py+BS/2zhojoPc=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJLfETbBm1vEJJk2DFRxZRqCO8Hnbvqp8FbycJte+KHfIJdJKNb
+	iqdWIL3qMByoU9zfP/Ph9y1jROGCiGIqjYvVT/nOsi4zbkh9Njt92aWscIqERyAThJ/Qwzlb0q+
+	gs5bm6TwQJsU6cegaEU0wV0jQx+jM1qfTmNYZZjZ9eic=
+X-Gm-Gg: AYBFou2acumDfwUSD8x4ExSttIzS5zmfes/0ejKPfMlS5+XNrOLzNB/FFurz6aezA02
+	xwemrqbEVyYZo7lKvKdyEjMq0AdQlaHju3bhVQP9F/hhiCUa+gFJyMdd5xwLnRY/CcrCHVb+HmS
+	6kzJO0fonYwaoClbV7WVeWul6DvLB8HMcmR7rd5P8RnuBUL30Pzh51hPWhsyz9U+BF58Ilva1Al
+	J5S3S35Qj75rKmVm5M5VqxoFxhxLAUEUEQTBYvz1M0XDmnURVGxGdwCKpDoO8H2xssMQLqsDWuE
+	TB471asFGatp2nWDjy4GztM83/2w/WjwBi0ypZipB3TVubz04hw/0ZT7cOrPpoCkKNw1Dc0vzpJ
+	GxeDSPHdApSg9Yk3CI9fD
+X-Received: by 2002:a2e:b888:0:b0:3a9:740d:51cb with SMTP id
+ 38308e7fff4ca-3a9c55c35bamr29858741fa.14.1791963353472; Wed, 14 Oct 2026
+ 00:35:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SAVPR12MB999143:EE_|DS7PR12MB5909:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5dc0b751-8545-4b35-ea38-08df29a1b4c1
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|366016|1800799024|376014|23010399003|56012099006|4143699003|11063799006|22082099003|18002099003|6133799003|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	kA8f/qsQS36PB7mSdciJr1MEQjR9QaammDV/YaeJZ0bk4Luia2GQREKKY6e+kw6LlWWoWPYyanzIYbORr0MBh69CxV6LMmN3peVwVw2/uXmHbO2r4FeumSa4t4ULwN1mnaGNx+f0FpaTVXaB0QiAB4mEUWviKyCcCd2H8Ccyn/GybmgfCrjhpddbRZJZdO57OLE7EIQTazVqVoSw7JIiKc2POw+2bNmP+/UzfU7hiquldjJfel0LXHclYdGPdfe+FQAeSG29Yc2302DJzDwGLuXtd1TT9DKVjvXO4Q90YkeuLVeRUsuTo58w5daURiJVKdWQnInRwbjDCGJlN0i68B5K+wG9XYmmpL1wAoUBc35s14ndYpUn2ymgg4jhIABFW8dmTP/OuG9He0W86TQOOv3DOw5FBH2XWO9cIhvc+Epis1F4BvbpOwqTunndsShlVfYN6F6+MqWb+x/lU/gHko8B46AellhYGB6GQ5RxhgNiPGtNWhrdZxLxtLJ0fEQ82qNIrFGvN7KHFub28JHepbwQuhoytmxWYPNYX2CLNOSDRh6eIBwHMkMGrlHqWEJFYblrSrzGOocAi4yTQ6sNmCO9ggFnZOfsz5BZr4MnKkKYDf80eMNDyY9JXq4uzsGCBTV8tw55bHK/HCsx26husA==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SAVPR12MB999143.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(366016)(1800799024)(376014)(23010399003)(56012099006)(4143699003)(11063799006)(22082099003)(18002099003)(6133799003)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?djJWTEtkTUMwU3IxWTRwTHZ4dy9mU3RzOEZ4L0NQN2lnc05NMjJ1S0xpM2d6?=
- =?utf-8?B?MFF0M1pMUDNZZkhvbi9jbUJnSnBNYm1ZbHJTcGRmbi9obG9jUU5idnUrWkNN?=
- =?utf-8?B?SVVjaitHYW5JbklaRVE2L0JOL2p0SGM4TU02dkxWbEZENU1wVzUvTFZESmFK?=
- =?utf-8?B?YmNUZ0QzOWlUdFJoMUlObVlpRStERXdBd3c0VTIvWFZLdDlFNDhtcU1TakQx?=
- =?utf-8?B?WlgvMTJLMGk1bXdTTExqYmd6VDJ4UmNCbFY0bXhGaEVMNThjeTYrY254Sk1w?=
- =?utf-8?B?a3NweS9ydW5DNXByR1FqS1ZHYlpMUWY5T2pUcmV2NkpISTN5TnFsY0tsSWpz?=
- =?utf-8?B?S0NBYUxseG9nNElyRWxiNjI5YXJ5VUx4TmR5dTFWV3hSNUZWK0ZTM2ljbkcw?=
- =?utf-8?B?N0IxNXpTL0JIZG8zTUJBYUJxRERIOGlZcERLMFY0dTFhMTFNN2VPOVVkNzNs?=
- =?utf-8?B?bmVtYUh4c1B3QlNjNEttWmdMTmx5d2hYamI3N0R5Y0NHK25TdGFqMlc0Mmhq?=
- =?utf-8?B?M3N3bGVHc0RYQ1M1TzlUaFVvY0pUUCtTSTYxa0g2YUNHR3U5OHRjcHo3cERT?=
- =?utf-8?B?eDQwVHdjK2UvZTVOcGNRdGRoT2dqVnVEOUFKMERHUCtYeG5sSk13SVhESElt?=
- =?utf-8?B?bG1IVTFLSVBZQkZzYTRhN1JuK1J3b3pIelRQNHdIUTJkV0ZBaVkzYjdzR2Mx?=
- =?utf-8?B?L1VmV2xhYXhQYVR2a1RKanMrUy9LSmk1TWVQZFZVWDRlZCtlUUZZMnpVRjlx?=
- =?utf-8?B?QWF5cno5Nk9POVVBdW4yaEQ5T1pVMWZnRGhCMGttYlFETDRRTXl1cFUreHFT?=
- =?utf-8?B?Sk81NnVmYXRzVmlwc0Vna1pVcGhwZ1FobjYvOGlsaUN3SW5SNXE0aHhQY09D?=
- =?utf-8?B?VE05cEtZN2lxbHpLY3JHVUR3WEQ3Z1ZOVXJWZEFyOTc2WXE5aXJiUWUzYmxJ?=
- =?utf-8?B?MG1ObzB5ZFJOUUVzYjc3RWZPTVlHQ0JVM3c0THJiR0NMb1JvZ0J6UjlWZ295?=
- =?utf-8?B?OGJoMjVPcU90RXVhaUJEbEJjcVNzRnVQb2FsL1ZBNTVnZXQ2ZHE4SER1MzlN?=
- =?utf-8?B?emd0dm82YVdVVVR4amE4OHZqS2QvV1B6MTNYQ2lxMElRbk5za2RQYm5XUXM1?=
- =?utf-8?B?MWIyaUtsYXVKa1gzNVBRcUxGOUZSL1RySXRFRHdGQ0FCbEVFcGZ2Yk9pOWla?=
- =?utf-8?B?MGFEWE5vdHkxUDBiejVaMnlseHJLMkRGVklHdXNqYW5INldTL0VQOGNReWlO?=
- =?utf-8?B?UDdYUkVDMUp2NUZwS1gxTlo1M1V0WTZiNGlYVVR1Mkd6MGxYdDc1TEM3S2J4?=
- =?utf-8?B?Wm1YZnlOcFppQlpiSGdOZnc4cWovVFJsT1VqaUczUys4b0pmT3UwdTIrT0JL?=
- =?utf-8?B?Q2oyM1RoaWU3VElQeDZPYkFKdTR1Z3VzNDR3bGJGNHpLWnd6WnFPbGwwT0tW?=
- =?utf-8?B?ZktnbXVmVU9EZlZVYkNOREQwYktueTdDRm5yZ3o0bHFCT3JkazFqTG16N1c5?=
- =?utf-8?B?UmZxMzcvQ21TcFlrVDFZazV0ckdrRE1VWTZvclpQL0RFdlB1NklMSXZzRXBF?=
- =?utf-8?B?QnhpNXVBdDl2Snl5ZlpBSWtKcXN5U1ZieWRYbTZ1bHFWYXArSmJWUnB0VjQ3?=
- =?utf-8?B?REpoUmxtaFNOaUlha1lMMGVRUVlpNzVRWlI3L0JybVZHa082am95b080bG1p?=
- =?utf-8?B?S3oyT05oNHFFWmt1Y0V5WnpMblVLQzhCVkprQk4wZ0VHZnFOVEFkeFdPcnd5?=
- =?utf-8?B?L1V0aFdhSXo0NUhjR1hiQWJpSWtQazYzRVhHS2VrODhCUUEzVXlFR3F3MFBI?=
- =?utf-8?B?czRtSmZ1OU9XOXp2T2RTQkYrNWtBS0FVZlAxUGJHT0lnbCtuZG5YZmR5OHdN?=
- =?utf-8?B?OHdOTU9SaUV2cDlBaTlCaVFadytveG96MnlUY0ljd3h6OHhvUTIzWDVBenla?=
- =?utf-8?B?OVd4MUJLSGM2dVRmUEl2Z3JUakJva1NUS3d1M1d1cTBlYkdZT1VtNWxCR0lm?=
- =?utf-8?B?YUNlZnZnSHJ5L2YwWFFZYklwMXhEdS96L0JWTnpNR3BWaDhMQThpTFQxRWVK?=
- =?utf-8?B?dUtrQzNiM3hPZWhCS2ZVR1JYUW5HMGoxWHlNaWVEZnNPTDhKbU96WDFlMVd2?=
- =?utf-8?B?L09uMG1pdTNncUhTYnBvS2VzV3RoelZocUlCRWRFVURSbEdpeXlwU1ZXNW95?=
- =?utf-8?B?aUtOdFZtSUJ0dXYvbUpLUUFwQTd0cVZLSUg2OExIQjAwNWs1MWdvTEtrSlFx?=
- =?utf-8?B?UjhjOTNBTmNzNmxKTDFtSjRpaVJ4c2haem1zeW1LT1lDMmc0bEdqeVJOVERK?=
- =?utf-8?B?VE9UMDZidVhjUjJCbDE4WUovbzN5VEVIckhNUWZrRzZQa093ZURwUT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5dc0b751-8545-4b35-ea38-08df29a1b4c1
-X-MS-Exchange-CrossTenant-AuthSource: SAVPR12MB999143.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2026 03:17:41.0156
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ADuRsCGrOiriwqV0vWjcxR1hNuzm0gqdRffuL7ryKcXnwmwidk503AdJTK3X4oUhbdn2aKF/j9tJEoJ9tk0D6A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB5909
+References: <cover.1791688819.git.zihanx@nebusec.ai> <9c51ddfce3069d585b6c9b87e7e1bf3a3b0a2761.1791688819.git.zihanx@nebusec.ai>
+ <asukIMajFpbzx3PH@strlen.de>
+In-Reply-To: <asukIMajFpbzx3PH@strlen.de>
+From: zihan xi <zihanx@nebusec.ai>
+Date: Wed, 14 Oct 2026 15:35:39 +0800
+X-Gm-Features: AclHuK8ty6mivB5FIuw80TCTFj2wHhuugNEb7CI7PsW7bvDOZiUh7UalF7d3aMw
+Message-ID: <CAANe3eQSU06GJAaaj8Fd=S+THSJn0Eu+1Bt_E=VNZ0=rAQXnBQ@mail.gmail.com>
+Subject: Re: [PATCH nf v7 1/1] netfilter: nf_dup: preserve duplication guard
+ across NFQUEUE
+To: Florian Westphal <fw@strlen.de>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	mingo@redhat.com, peterz@infradead.org, juri.lelli@redhat.com, 
+	vincent.guittot@linaro.org, dietmar.eggemann@arm.com, rostedt@goodmis.org, 
+	bsegall@google.com, mgorman@suse.de, vschneid@redhat.com, 
+	kprateek.nayak@amd.com, pablo@netfilter.org, phil@nwl.cc, davem@davemloft.net, 
+	edumazet@kernel.org, pabeni@redhat.com, horms@kernel.org, kaber@trash.net, 
+	jengelh@medozas.de, lukas@wunner.de, vega@nebusec.ai, root@tr0jan.top
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Sun, Oct 11, 2026 at 10:58=E2=80=AFPM Florian Westphal <fw@strlen.de> wr=
+ote:
+>
+> Zihan Xi <zihanx@nebusec.ai> wrote:
+> > nf_dup_ipv4() and nf_dup_ipv6() set current->in_nf_duplicate while the
+> > cloned skb traverses output hooks. NFQUEUE can retain the clone and ret=
+urn
+> > NF_STOLEN while that traversal is in progress. Once ip_local_out() or
+> > ip6_local_out() returns, the task-local guard is cleared. NF_ACCEPT the=
+n
+> > resumes hook traversal after the queued hook in the verdict task, where
+> > the guard is no longer set. A later dup rule can clone the packet again=
+,
+> > causing repeated packet processing and resource consumption.
+>
+> I find this waaaaay too complex.
+>
+> >  include/linux/sched.h            |  2 ++
+> >  include/net/netfilter/nf_queue.h |  1 +
+> >  net/ipv4/netfilter/ip_tables.c   |  5 ++++-
+> >  net/ipv4/netfilter/nf_dup_ipv4.c |  5 ++++-
+> >  net/ipv6/netfilter/ip6_tables.c  |  5 ++++-
+> >  net/ipv6/netfilter/nf_dup_ipv6.c |  6 +++++-
+> >  net/netfilter/nf_dup_netdev.c    | 13 ++++++++++++-
+> >  net/netfilter/nf_queue.c         |  4 ++++
+> >  net/netfilter/nfnetlink_queue.c  |  8 +++++++-
+> >  9 files changed, 43 insertions(+), 6 deletions(-)
+>
+> Holy cow...  This is waaaay to large/complex, sorry.
+>
+> >       unsigned                        in_nf_duplicate:1;
+> > +     unsigned                        in_nf_dup_netdev:1;     /* netdev=
+ dup output is active */
+> > +     unsigned                        in_nf_duplicate_reinject:1;     /=
+* NFQUEUE resume */
+>
+> I don't understand this.
+>
+> >       struct nf_hook_state    state;
+> > +     bool                    in_nf_duplicate;        /* skb is on a du=
+plication path */
+>
+> OK.
+>
+> > diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tab=
+les.c
+> > index 809441ced..7c2027ef8 100644
+> > --- a/net/ipv4/netfilter/ip_tables.c
+> > +++ b/net/ipv4/netfilter/ip_tables.c
+> > @@ -14,6 +14,7 @@
+> >  #include <linux/vmalloc.h>
+> >  #include <linux/netdevice.h>
+> >  #include <linux/module.h>
+> > +#include <linux/preempt.h>
+> >  #include <net/ip.h>
+> >  #include <net/compat.h>
+> >  #include <linux/uaccess.h>
+> > @@ -270,7 +271,9 @@ ipt_do_table(void *priv,
+> >        * but it is no problem since absolute verdict is issued by these=
+.
+> >        */
+> >       if (static_key_false(&xt_tee_enabled))
+> > -             jumpstack +=3D private->stacksize * current->in_nf_duplic=
+ate;
+> > +             jumpstack +=3D private->stacksize *
+> > +                          (current->in_nf_duplicate ||
+> > +                           (in_task() && current->in_nf_duplicate_rein=
+ject));
+>
+> ?  Aside from me not getting the need for in_nf_duplicate_reinject, why
+> is the in_task() needed but for in_nf_duplicate its not needed...?
+>
+> As those are bits they even reside on same address...
+>
+> >  {
+> >       struct iphdr *iph;
+> > +     bool in_nf_duplicate_reinject =3D in_task() &&
+> > +                                     current->in_nf_duplicate_reinject=
+;
+>
+> Same question.
+>
+> >  #include <linux/slab.h>
+> >  #include <linux/init.h>
+> >  #include <linux/module.h>
+> > @@ -219,6 +220,9 @@ static int __nf_queue(struct sk_buff *skb, const st=
+ruct nf_hook_state *state,
+> >       *entry =3D (struct nf_queue_entry) {
+> >               .skb    =3D skb,
+> >               .skb_dev =3D skb->dev,
+> > +             .in_nf_duplicate =3D current->in_nf_duplicate ||
+> > +                               (in_task() && current->in_nf_duplicate_=
+reinject) ||
+> > +                               current->in_nf_dup_netdev,
+>
+> Why not simply
+>
+>         .in_nf_dup_netdev =3D current->in_nf_duplicate ?
+>
+>
+> > +     bool old_in_nf_duplicate_reinject;
+> >
+> >       net =3D entry->state.net;
+> >       pf =3D entry->state.pf;
+> > +     old_in_nf_duplicate_reinject =3D current->in_nf_duplicate_reinjec=
+t;
+> > +     current->in_nf_duplicate_reinject |=3D entry->in_nf_duplicate;
+>
+> Don't understand the need to store the old current state here.
+> Nor the "|=3D".
+>
+> > @@ -378,7 +382,7 @@ static void nf_reinject(struct nf_queue_entry *entr=
+y, unsigned int verdict)
+> >       if (!hooks || i >=3D hooks->num_hook_entries) {
+> >               kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+> >               nf_queue_entry_free(entry);
+> > -             return;
+> > +             goto out;
+> >       }
+> >
+> >       hook_entry =3D &hooks->hooks[i];
+> > @@ -417,6 +421,8 @@ static void nf_reinject(struct nf_queue_entry *entr=
+y, unsigned int verdict)
+> >       }
+> >
+> >       nf_queue_entry_free(entry);
+> > +out:
+> > +     current->in_nf_duplicate_reinject =3D old_in_nf_duplicate_reinjec=
+t;
+>
+> ... nor this.  AFAICS the only change we really need is to move the
+> local_bh_disable/enable pair to cover the hook iteration is well in
+> nf_reinject() to avoid BH interference clearing current->in_nf_duplicate
+> resp. acting on wron rect "current" task state.
+>
+> I think we either need to find a way to make this patch way simpler or
+> go back to the "no duplication/TEE in userns".  As I already wrote
+> earlier, I see no use case for dup/TEE is namespaces, except for CI
+> maybe.
+>
+> Also, I think there are many many other ways to make kernel eat lots of
+> RAM, so I don't think there is any need to ftarget nf tree either.
+>
+> Sorry, I know you've been spinning on this for a while, but this is too
+> hard for me to comprehend.
 
+Hi Florian,
 
-On 10/5/2026 1:16 AM, Julius Bairaktaris wrote:
-> The next patch makes the flowtable emit FLOW_ACTION_PRIORITY for flows
-> with a non-zero skb->priority, which on IPv4 includes the priority
-> ip_forward() derives from the TOS by default. mlx5 would reject these
-> rules and stop offloading flows it offloads today.
-> 
-[...]
-> +	/* The eswitch does not apply skb->priority to flowtable flows. */
-> +	if (mlx5e_is_ft_flow(parse_state->flow))
-> +		return 0;
+Thanks again for the review. I tested the simpler approach you suggested:
+extending the local_bh_disable() / local_bh_enable() scope in
+nf_reinject() to cover hook lookup, hook traversal, and okfn execution.
+The experiment changed only nfnetlink_queue.c and built successfully
+against nf.git main at ab699d296e06.
 
-The handler is only in tc_acts_fdb[] and only accepts flowtable flows,
-so NIC mode and tc flower rules are rejected as before. Looks good.
+I ran the IPv6 TEE/NFQUEUE reproducer in a 2-vCPU, 2-GiB QEMU guest
+in a network namespace owned by a non-initial user namespace, with:
 
-The comment says what the code does, but the consequence is worth a line
-in the commit message. Because the action is ignored, the priority only
-reaches packets still on the software fast path, where
-nf_flow_offload_forward() sets skb->priority. Once the flow is offloaded
-to the FDB, mlx5 forwards it without touching skb->priority, so the
-offloaded packets do not carry it. Refusing the flow to honor the
-priority would keep it in software, so ignoring the action and keeping
-the offload is the better tradeoff, it is just not obvious from the code.
+QUEUE_COUNT=3D1
+PAYLOAD=3D1
+TEE_CLONES=3D1
+panic_on_oom=3D0
 
-I checked this on ConnectX-7: with the series the priority-carrying 
-flows stay offloaded to the FDB like plain flows, and without patch 1/3 
-they fallback to software.
+The bounded run reached 68,881 callback iterations in 6.700 seconds and
+exited normally. No OOM, panic, Oops, BUG, or soft lockup was observed.
+This was a bounded resource-consumption run, not an OOM or crash test.
 
-Nit: "prio" already means flow table priority in mlx5; skbedit_prio
-would be clearer. Not a blocker.
+The reproducer continued executing the callback loop throughout the
+bounded run, so extending the BH-disabled region alone does not address
+this case. It protects against BH interference during nf_reinject(), but
+it does not preserve current->in_nf_duplicate across the asynchronous
+NFQUEUE verdict path: the original ip_local_out() or ip6_local_out()
+call has already returned and cleared the task-local guard before
+reinjection starts.
 
-Reviewed-by: Jianbo Liu <jianbol@nvidia.com>
+I have also prepared an unsubmitted two-patch v8 candidate that moves the
+duplication state into the skb, keeping the IP and netdev states separate.
+It requires additional skb metadata handling, GRO compatibility checks,
+and bounded asynchronous netdev duplication using NF_RECURSION_LIMIT.
+Although this avoids the task-local and queue-entry state propagation in
+v7, it introduces its own complexity.
+
+The simpler alternative is the user-namespace restriction you suggested.
+It would reject installation with -EPERM at these four entry points:
+
+xt_TEE.c: tee_tg_check()
+nft_dup_ipv4.c: nft_dup_ipv4_init()
+nft_dup_ipv6.c: nft_dup_ipv6_init()
+nft_dup_netdev.c: nft_dup_netdev_init()
+
+The checks would reject installation of TEE targets and nft dup
+expressions in network
+namespaces whose net->user_ns is not init_user_ns. They would leave the
+packet-processing fast paths and init_user_ns-owned network namespaces
+unchanged, while making the restriction explicit at setup time.
+
+This would be a policy mitigation rather than a general fix for
+asynchronous duplication. It would disable these features in network
+namespaces owned by non-initial user namespaces, including potential CI
+and container use cases, and existing userspace configurations would
+need to handle -EPERM. Any future duplication frontend would also need
+equivalent coverage.
+
+Given your concerns about complexity, I am inclined to pursue the
+user-namespace restriction rather than send the skb-state v8 candidate
+as-is. Would you agree that this is the more appropriate direction, or
+do you think the skb-state approach is worth reviewing further?
+
+Best regards,
+Zihan
