@@ -1,334 +1,211 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8066525A9D
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 12:41:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B147E42125A
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 13:11:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792068118; cv=none; b=aCxLtc2Zq5wXNubfTtKQjZ22jdjvvP//eHhfwRYyAUSlHgodqh74b2Y38ZcHH60MXL2uGJPxJYPr83QCR10gpPjnRyUp63bz6tDEcbwyTYiypJ9bvzRMdwqY6Cl9nSI6hqg458iZ6i5xOOItI1te0yvh01emuFHYFcpTQWcTAFk=
+	t=1792069886; cv=none; b=qDqqoFVtqiyPDx3OQ/xOG1HVN/2pqiKw+EGh5UQU4mHVZJcnVfhMbeHM4Ju7eZTNn/SKMwZNC2gjlOBbD3p5WVy3Xtsl8Tni1LvPyKVW+o5wP4Azb0Vggb/kyZ54ukkpEVnG2/fPtItE6EIAl3CYZcXbHiKnNZHkPdckQ2h1vX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792068118; c=relaxed/simple;
-	bh=qrg0eJdV2vP7kYY8ClAjBocw4aBzi4WlBp77YFs9kk8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kC0oxDiBER61g2N9BqSg8+e8gL+2K3MOIX8dy5s381NvWXe0ttWXPNSSgILRMMKI53tCCb3ek6KECmLDh17mbDlygUSMw8WcW6PlH+NbmHkqQV0vE3omHu4B2GN0UucqxtM+zZdh6Yo3jSjwguJZ9pmocTrD5If3HWo6/Pwcei4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=bDfrIW4Z; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Ac4yv0Rp; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bDfrIW4Z";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ac4yv0Rp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792068114;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YBIQURysnHAtYsYZBEyvPCoDT2vBfeJzj7rU3gaKycI=;
-	b=bDfrIW4Z4rrWSSg99NL0XBW7MVspbcxIw4XMkNNyuO6ncGZXnZQB5gy3ZLVi7trqwtLyFD
-	W7uz6hNJrppQtWpOEg+Fy+9REGZ+TdZXbBV0xYxEnFY7U8O/hTG1tDslUzdbMcnWcH2mY5
-	5V79Xo+079eu4D+ynll+7Sj2gYOkiqQ=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-328-OmXd0ZwpNrm_e5ab5J4mPg-1; Thu, 15 Oct 2026 12:41:53 +0000
-X-MC-Unique: OmXd0ZwpNrm_e5ab5J4mPg-1
-X-Mimecast-MFC-AGG-ID: OmXd0ZwpNrm_e5ab5J4mPg_1792068112
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a1af80b913so29359445e9.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 05:41:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1792068112; x=1792672912; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=YBIQURysnHAtYsYZBEyvPCoDT2vBfeJzj7rU3gaKycI=;
-        b=Ac4yv0RpkJed7a5ha/rqX/XFO81cINkLz90X9vgSBZyjWL7/2InWiEA9pil2RPVEKm
-         Vy1UFzRT2SpakV+CtTWSrFsajizoRJ5TEyzhRr2Zlo8nj1TzpTN4Mney1dY02lC1P4pA
-         ih2H//j3SmGm2vrCZzp/h2lpaP9OdjEeNMTLtfnpmxWjm1Mesy2Nb49XhFq0Umt/XYGS
-         9+s8hWYDcHzFJdCoeIGS2mYVSvLc6ljacn//nhHvmVuA0eFgjUnHce2QziRYlIdEsmaB
-         LhMHJMvH8XyMj/Hd99WOeEMtylI9c5k4UHhx+rMWf1ii/Dh/wiXUjc5Y0f4sZZWdXyFV
-         BIhg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792068112; x=1792672912;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=YBIQURysnHAtYsYZBEyvPCoDT2vBfeJzj7rU3gaKycI=;
-        b=DKwk9HUm6b3XsuVX9p8yc8UeLYdPoJU9ilLMy9OTYqitFHXP8ojkGfp+cMaWFQGr/k
-         gn6TQvPcODxaBCOLymA/pRQuzu7sT1mvDWvgu8X0nlT9oQ+sAw9q0KjBTOOQepM1Idjg
-         ID0McE7iTI17QB6DatHPNYPGJCq7gyfJ+E86Pk5awqBN5v/dslqurV3ymtDtheC8mRk+
-         3F56Z2X2+ia8S0ntU6/DfRQTRb3g6o9YS6SF0/8ijiHxFGI2qV7klAK46+kD1jN+dMrr
-         WaCtK+sNafuGYKcWe53Od9lvoRWpmgSxysS7nGOimW8sTOkTiKbrnGW3bbSKnTynl5HQ
-         qAGg==
-X-Forwarded-Encrypted: i=1; AKwUvBx9qW0GSps0B2dm0nMFyDNVD8fI1+jgD9r+Ir9qYrRNsRiuhJ35X2pgEJtM6pxtf9+ID/d8FY0FM/JdvEp8GAU=@vger.kernel.org
-X-Gm-Message-State: AFq9FYKwYKLj6uslLmNdPHxZvLRyWTtYynQFkFN3DQrrzqDi0XrB4HpW
-	4cjzPznOCW1wzvAph1NRDa5mZdDYZ3xsli+16JiKvzYov9gW1xffy66Fe4QyA6QkBfNy9Xoo/Hb
-	odUQylXoJoDGNDiRUl1Tpzj08cx0tYsIFg7cHsmTkMzEctsz/V2SKmHzUhSvECVLX41NmrehiEr
-	JPsQ==
-X-Gm-Gg: AYBFou33Y+umBxs2j6hHajrQj11ITCbmqF8OnG/RZVPCcf/QWGFmhZ0VlvQr4pYa3z3
-	jNCKM7iiUQqf1Cpcmz+V1RIsnwYKHrXZhWmATC7iMfBuGF8FEHQlfDL0fi1OTszOqqmnW/hoh7N
-	E88/E0hei82xcwk+CP0yO7c9GRldvzRA/nXwUe7j+EtZTsVE9k/lvWRWgFEPwgCjcDnQJkVu4eh
-	0xSBkGa/6LIRlc3Irw6S5Gmuvo3E3+PqcCjLtNGyd5twLOyujC6RIm897OXaUh4alTkD73x+QeR
-	H2il1e/iOVwXDBThqo0lQ16e0cW6+O8ZLu9pwoWGnM219jq2dinOMr5asCvTjS6965xWBg==
-X-Received: by 2002:a05:600c:4594:b0:49d:1fa8:b266 with SMTP id 5b1f17b1804b1-4a18e4d6ac3mr375377955e9.26.1792068111878;
-        Thu, 15 Oct 2026 05:41:51 -0700 (PDT)
-X-Received: by 2002:a05:600c:4594:b0:49d:1fa8:b266 with SMTP id 5b1f17b1804b1-4a18e4d6ac3mr375376365e9.26.1792068109456;
-        Thu, 15 Oct 2026 05:41:49 -0700 (PDT)
-Received: from redhat.com ([2a0d:6fc0:3fd7:5300:3d6b:52a4:a23f:9d0b])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1bd640be0sm52746555e9.1.2026.10.15.05.41.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 05:41:48 -0700 (PDT)
-Date: Thu, 15 Oct 2026 08:41:45 -0400
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
-	Jason Wang <jasowangio@gmail.com>,
-	Eugenio =?utf-8?B?UMOpcmV6?= <eperezma@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org, virtualization@lists.linux.dev,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Max Krasnyansky <maxk@qualcomm.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>, Simon Horman <horms@kernel.org>,
-	David Ahern <dsahern@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev
-Subject: [PATCH net-next v2 6/7] net: add ip4_parse()
-Message-ID: <2645c102b2f73292d1973b82c95def24e48064e1.1792067836.git.mst@redhat.com>
-References: <cover.1792067836.git.mst@redhat.com>
+	s=arc-20240116; t=1792069886; c=relaxed/simple;
+	bh=8PC5AyTsk0SEPtSaQq+iW2D0MyTvgO++6SdmVTraexU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=c4oKyWIysmAHrUwoJqZlvuElITacGaboc3vs9zJrojN8eqxS9xVXXmuJ4xZTFLKGesZJTByhwPc4VGPdjoAtTuSY7h4CxsSXtevOANI4rp/yfkfqXJqasrrUWKrpFRQAoenK3uyPSxXTL25zH5nDYI81muazg3Phumlf065YFjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9BB6E606E2; Thu, 15 Oct 2026 15:11:22 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: ipvs: avoid passing skb->sk to route_me_harder
+Date: Thu, 15 Oct 2026 15:11:12 +0200
+Message-ID: <20261015131116.1314-1-fw@strlen.de>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1792067836.git.mst@redhat.com>
-X-Mailer: git-send-email 2.51.2.2891.g4157995a80.dirty
-X-Mutt-Fcc: =sent
+Content-Transfer-Encoding: 8bit
 
-Multiple places in the net stack open-code the same minimal IPv4 header
-validation: pull the fixed header, check version 4 and IHL >= 5 (where 5
-is the fixed header size in 32-bit units) - and locate the transport
-header at IHL * 4 past the network header.
+skb->sk refers to the original socket and in most cases state->sk and
+skb->sk are the same address.
 
-Add a helper for doing that: it returns the validated header and
-the transport header offset, or NULL if truncated or malformed.
+However, when a packet moves through a tunnel, then skb->sk can be the
+wrong socket type (e.g. ipv4 instead of ipv6).
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Pass the state pointer to IPVS output and ICMP-response helpers in place
+of the bare hook number.  This fixes an alleged NULL deref when handling
+ipv4 -> ipv6 encap, ip6_route_me_harder calls into ip6 routing code
+which assume sk is an ipv6 socket.
+
+Link: https://sashiko.dev/#/patchset/20261011215953.1334630-1-pablo%40netfilter.org
 Assisted-by: LLM
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/ip.h                  | 24 ++++++++++++++++++++++++
- include/linux/virtio_net.h          | 28 +---------------------------
- net/bridge/br_netfilter_hooks.c     | 15 +++++----------
- net/ipv4/ip_input.c                 | 13 +++++--------
- net/ipv4/netfilter/nf_reject_ipv4.c | 13 +++++--------
- 5 files changed, 40 insertions(+), 53 deletions(-)
+ Better solution than
+ https://patchwork.ozlabs.org/project/netfilter-devel/patch/20261001120625.29659-3-fw@strlen.de/
 
-diff --git a/include/linux/ip.h b/include/linux/ip.h
-index d11c25f5030a..98012f6d0efb 100644
---- a/include/linux/ip.h
-+++ b/include/linux/ip.h
-@@ -56,4 +56,28 @@ static inline void iph_set_totlen(struct iphdr *iph, unsigned int len)
- {
- 	iph->tot_len = len <= IP_MAX_MTU ? htons(len) : 0;
+ On could argue that we should still do stronger checks in
+ route_me_harder APIs too (but then it should stricly check that its ipv4
+ resp. ipv6 sk, not 'inet').  It would also be good to review other
+ skb->sk use in netfilter/ipvs, there might be other cases where we
+ potentially pass AF_PACKET (or whatever) sk down into ip/ip6 output engine.
+
+ net/netfilter/ipvs/ip_vs_core.c | 36 +++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index ba0957798bad..dd741df38fec 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -895,24 +895,25 @@ static inline int ip_vs_gather_frags(struct netns_ipvs *ipvs,
  }
-+
-+/*
-+ * Pull and minimally validate the IPv4 header at @nhoff.
-+ * Returns the header and stores the transport header offset in
-+ * @thoff, or NULL if truncated or malformed.  Only the fixed header
-+ * is guaranteed linear; callers that need the options or the
-+ * transport header must pull further.
-+ */
-+static inline struct iphdr *ip4_parse(struct sk_buff *skb,
-+				      unsigned int nhoff,
-+				      unsigned int *thoff)
-+{
-+	struct iphdr *iph;
-+
-+	if (!pskb_may_pull(skb, nhoff + sizeof(struct iphdr)))
-+		return NULL;
-+
-+	iph = (struct iphdr *)(skb->data + nhoff);
-+	if (iph->version != 4 || iph->ihl < sizeof(struct iphdr) / sizeof(u32))
-+		return NULL;
-+
-+	*thoff = nhoff + iph->ihl * sizeof(u32);
-+	return iph;
-+}
- #endif	/* _LINUX_IP_H */
-diff --git a/include/linux/virtio_net.h b/include/linux/virtio_net.h
-index aa2f8ac4657c..85ec1039f73a 100644
---- a/include/linux/virtio_net.h
-+++ b/include/linux/virtio_net.h
-@@ -53,32 +53,6 @@ static inline int virtio_net_hdr_set_proto(struct sk_buff *skb,
+ 
+ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
+-				 struct sk_buff *skb, unsigned int hooknum)
++				 struct sk_buff *skb,
++				 const struct nf_hook_state *state)
+ {
+ 	if (!sysctl_snat_reroute(ipvs))
+ 		return 0;
+ 	/* Reroute replies only to remote clients (FORWARD and LOCAL_OUT) */
+-	if (NF_INET_LOCAL_IN == hooknum)
++	if (NF_INET_LOCAL_IN == state->hook)
+ 		return 0;
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (af == AF_INET6) {
+ 		struct dst_entry *dst = skb_dst(skb);
+ 
+ 		if (dst->dev && !(dst->dev->flags & IFF_LOOPBACK) &&
+-		    ip6_route_me_harder(ipvs->net, skb->sk, skb) != 0)
++		    ip6_route_me_harder(ipvs->net, state->sk, skb) != 0)
+ 			return 1;
+ 	} else
+ #endif
+ 		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL) &&
+-		    ip_route_me_harder(ipvs->net, skb->sk, skb, RTN_LOCAL) != 0)
++		    ip_route_me_harder(ipvs->net, state->sk, skb, RTN_LOCAL) != 0)
+ 			return 1;
+ 
  	return 0;
+@@ -1029,7 +1030,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 				struct ip_vs_conn *cp,
+ 				struct ip_vs_protocol *pp,
+ 				struct ip_vs_iphdr *ciph,
+-				unsigned int toff, unsigned int hooknum)
++				unsigned int toff,
++				const struct nf_hook_state *state)
+ {
+ 	int iproto = af == AF_INET6 ? IPPROTO_ICMPV6 : IPPROTO_ICMP;
+ 	unsigned int verdict = NF_DROP;
+@@ -1063,7 +1065,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		if (!ip_vs_nat_icmp(skb, pp, cp, 1, toff, has_ports, ciph))
+ 			goto out;
+ 
+-	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
++	if (ip_vs_route_me_harder(cp->ipvs, af, skb, state))
+ 		goto out;
+ 
+ after_nat:
+@@ -1089,7 +1091,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+  *	Currently handles error types - unreachable, quench, ttl exceeded.
+  */
+ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+-			  int *related, unsigned int hooknum,
++			  int *related, const struct nf_hook_state *state,
+ 			  struct ip_vs_iphdr *ipvsh)
+ {
+ 	struct icmphdr	_icmph, *ic;
+@@ -1104,7 +1106,7 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 
+ 	/* reassemble IP fragments */
+ 	if (ip_is_fragment(ip_hdr(skb))) {
+-		if (ip_vs_gather_frags(ipvs, skb, ip_vs_defrag_user(hooknum)))
++		if (ip_vs_gather_frags(ipvs, skb, ip_vs_defrag_user(state->hook)))
+ 			return NF_STOLEN;
+ 		if (!ip_vs_fill_iph_skb(AF_INET, skb, false, ipvsh))
+ 			return NF_ACCEPT;
+@@ -1162,12 +1164,12 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 
+ 	snet.ip = ipvsh->saddr.ip;
+ 	return handle_response_icmp(AF_INET, skb, &snet, cp, pp, &ciph,
+-				    ipvsh->len, hooknum);
++				    ipvsh->len, state);
  }
  
--/* TODO: nothing virtio specific here, move to ip.h */
--
--/*
-- * Pull and minimally validate the IPv4 header at @nhoff.
-- * Returns the header and stores the transport header offset in
-- * @thoff, or NULL if truncated or malformed.  Only the fixed header
-- * is guaranteed linear; callers that need the options or the
-- * transport header must pull further.
-- */
--static inline struct iphdr *virtio_net_ip4_parse(struct sk_buff *skb,
--						  unsigned int nhoff,
--						  unsigned int *thoff)
--{
--	struct iphdr *iph;
--
--	if (!pskb_may_pull(skb, nhoff + sizeof(struct iphdr)))
--		return NULL;
--
--	iph = (struct iphdr *)(skb->data + nhoff);
--	if (iph->version != 4 ||
--	    iph->ihl < sizeof(struct iphdr) / sizeof(u32))
--		return NULL;
--
--	*thoff = nhoff + iph->ihl * sizeof(u32);
--	return iph;
--}
- /* Defined in net/core/dev.c, enabled while any network namespace
-  * has net.core.virtio_net_hdr_csum_check set to 0.
-  */
-@@ -126,7 +100,7 @@ virtio_net_l4_start(struct sk_buff *skb, unsigned int nhoff, __be16 proto,
- 		    unsigned int *thoff, int *ip_proto)
+ #ifdef CONFIG_IP_VS_IPV6
+ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+-			     int *related,  unsigned int hooknum,
++			     int *related, const struct nf_hook_state *state,
+ 			     struct ip_vs_iphdr *ipvsh)
  {
- 	if (proto == htons(ETH_P_IP)) {
--		const struct iphdr *iph = virtio_net_ip4_parse(skb, nhoff, thoff);
-+		const struct iphdr *iph = ip4_parse(skb, nhoff, thoff);
+ 	struct icmp6hdr	_icmph, *ic;
+@@ -1222,7 +1224,7 @@ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
  
- 		if (!iph || ip_is_fragment(iph))
- 			return false;
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 0a394e5f4391..e89da0e41542 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -206,18 +206,13 @@ static inline void nf_bridge_pull_encap_header_rcsum(struct sk_buff *skb)
- static int br_validate_ipv4(struct net *net, struct sk_buff *skb)
+ 	snet.in6 = ciph.saddr.in6;
+ 	return handle_response_icmp(AF_INET6, skb, &snet, cp, pp, &ciph,
+-				    ipvsh->len, hooknum);
++				    ipvsh->len, state);
+ }
+ #endif
+ 
+@@ -1437,7 +1439,7 @@ static struct ip_vs_conn *__ip_vs_rs_conn_out(unsigned int hooknum,
+ static unsigned int
+ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+ 		struct ip_vs_conn *cp, struct ip_vs_iphdr *iph,
+-		unsigned int hooknum)
++		const struct nf_hook_state *state)
  {
- 	const struct iphdr *iph;
--	u32 len;
-+	u32 len, thoff;
+ 	struct ip_vs_protocol *pp = pd->pp;
  
--	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+	iph = ip4_parse(skb, 0, &thoff);
-+	if (!iph)
- 		goto inhdr_error;
- 
--	iph = ip_hdr(skb);
--
--	/* Basic sanity checks */
--	if (iph->ihl < 5 || iph->version != 4)
--		goto inhdr_error;
--
--	if (!pskb_may_pull(skb, iph->ihl*4))
-+	if (!pskb_may_pull(skb, thoff))
- 		goto inhdr_error;
- 
- 	iph = ip_hdr(skb);
-@@ -228,7 +223,7 @@ static int br_validate_ipv4(struct net *net, struct sk_buff *skb)
- 	if (skb->len < len) {
- 		__IP_INC_STATS(net, IPSTATS_MIB_INTRUNCATEDPKTS);
+@@ -1479,7 +1481,7 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+ 	 * if it came from this machine itself.  So re-compute
+ 	 * the routing information.
+ 	 */
+-	if (ip_vs_route_me_harder(cp->ipvs, af, skb, hooknum))
++	if (ip_vs_route_me_harder(cp->ipvs, af, skb, state))
  		goto drop;
--	} else if (len < (iph->ihl*4))
-+	} else if (len < thoff)
- 		goto inhdr_error;
  
- 	if (pskb_trim_rcsum(skb, len)) {
-diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
-index 9860178752b8..5adf01763e85 100644
---- a/net/ipv4/ip_input.c
-+++ b/net/ipv4/ip_input.c
-@@ -500,7 +500,7 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
- {
- 	const struct iphdr *iph;
- 	int drop_reason;
--	u32 len;
-+	u32 len, thoff;
+ 	IP_VS_DBG_PKT(10, af, pp, skb, iph->off, "After SNAT");
+@@ -1539,7 +1541,7 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 		if (unlikely(iph.protocol == IPPROTO_ICMPV6)) {
+ 			int related;
+ 			int verdict = ip_vs_out_icmp_v6(ipvs, skb, &related,
+-							hooknum, &iph);
++							state, &iph);
  
- 	/* When the interface is in promisc. mode, drop all the crap
- 	 * that it receives, do not try to analyse it.
-@@ -520,10 +520,6 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
+ 			if (related)
+ 				return verdict;
+@@ -1549,7 +1551,7 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 		if (unlikely(iph.protocol == IPPROTO_ICMP)) {
+ 			int related;
+ 			int verdict = ip_vs_out_icmp(ipvs, skb, &related,
+-						     hooknum, &iph);
++						     state, &iph);
+ 
+ 			if (related)
+ 				return verdict;
+@@ -1579,7 +1581,7 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 			     ipvs, af, skb, &iph);
+ 
+ 	if (likely(cp))
+-		return handle_response(af, skb, pd, cp, &iph, hooknum);
++		return handle_response(af, skb, pd, cp, &iph, state);
+ 
+ 	/* Check for real-server-started requests */
+ 	if (atomic_read(&ipvs->conn_out_counter[ip_vs_af_index(af)])) {
+@@ -1592,7 +1594,7 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 			cp = __ip_vs_rs_conn_out(hooknum, ipvs, af, skb, &iph);
+ 			if (likely(cp))
+ 				return handle_response(af, skb, pd, cp, &iph,
+-						       hooknum);
++						       state);
+ 		}
  	}
  
- 	drop_reason = SKB_DROP_REASON_NOT_SPECIFIED;
--	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--		goto inhdr_error;
--
--	iph = ip_hdr(skb);
- 
- 	/*
- 	 *	RFC1122: 3.2.1.2 MUST silently discard any IP frame that fails the checksum.
-@@ -536,7 +532,8 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
- 	 *	4.	Doesn't have a bogus length
- 	 */
- 
--	if (iph->ihl < 5 || iph->version != 4)
-+	iph = ip4_parse(skb, 0, &thoff);
-+	if (!iph)
- 		goto inhdr_error;
- 
- 	BUILD_BUG_ON(IPSTATS_MIB_ECT1PKTS != IPSTATS_MIB_NOECTPKTS + INET_ECN_ECT_1);
-@@ -546,7 +543,7 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
- 		       IPSTATS_MIB_NOECTPKTS + (iph->tos & INET_ECN_MASK),
- 		       max_t(unsigned short, 1, skb_shinfo(skb)->gso_segs));
- 
--	if (!pskb_may_pull(skb, iph->ihl*4))
-+	if (!pskb_may_pull(skb, thoff))
- 		goto inhdr_error;
- 
- 	iph = ip_hdr(skb);
-@@ -559,7 +556,7 @@ static struct sk_buff *ip_rcv_core(struct sk_buff *skb, struct net *net)
- 		drop_reason = SKB_DROP_REASON_PKT_TOO_SMALL;
- 		__IP_INC_STATS(net, IPSTATS_MIB_INTRUNCATEDPKTS);
- 		goto drop;
--	} else if (len < (iph->ihl*4))
-+	} else if (len < thoff)
- 		goto inhdr_error;
- 
- 	/* Our transport medium may have padded the buffer out. Now we know it
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 59ec465a9df9..42d639854ddf 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -25,22 +25,19 @@ nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
- static int nf_reject_iphdr_validate(struct sk_buff *skb)
- {
- 	struct iphdr *iph;
--	u32 len;
-+	u32 len, thoff;
- 
--	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--		return 0;
--
--	iph = ip_hdr(skb);
--	if (iph->ihl < 5 || iph->version != 4)
-+	iph = ip4_parse(skb, 0, &thoff);
-+	if (!iph)
- 		return 0;
- 
- 	len = ntohs(iph->tot_len);
- 	if (skb->len < len)
- 		return 0;
--	else if (len < (iph->ihl*4))
-+	else if (len < thoff)
- 		return 0;
- 
--	if (!pskb_may_pull(skb, iph->ihl*4))
-+	if (!pskb_may_pull(skb, thoff))
- 		return 0;
- 
- 	return 1;
 -- 
-MST
+2.55.0
 
