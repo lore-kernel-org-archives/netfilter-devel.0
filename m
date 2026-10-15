@@ -1,332 +1,233 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.ideco.ru (smtp.ideco.ru [51.250.56.165])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 726CB4EBAE4
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2026 23:56:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557BC48B383
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 06:53:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.250.56.165
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792022196; cv=none; b=mt+qM3CuwfKDy4LjAHQyTHAGWupincQIWR1pAzd6cYGHVC010DBO6nEDQ+wB98gRRbkGbbtY1X4S+RMJdNrP+1p6mu+pJg0asn+wWzquyOG3zGWyJ6ge35aBWi8c2XX92pBAPKKwlixFiIh2HJ0vgUIPYVgGKQZNXvPJooxrQsw=
+	t=1792047231; cv=none; b=VRJDX8l/kW/uY/Chzu5IwJBTnJFxvspCTbGn76bq0dyWYk/0E7PnT3F1TBHfYvXk+TooIfskC4dDjCWtVOhqRZuiB/y76hgI9vRVPZctmszrcnL7n0pwc3idpaqTrei+cg8QKJsVNVTGTAkqAf+Rgs11wKlF4Igjlzg1w+mapDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792022196; c=relaxed/simple;
-	bh=30D0Qm8jnT+41OzZcm79oVVnN8SNIPkLTbEEPX6X5Xs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PSp9vcoj6LUlnq/muWzEPJs0vhZcQzPMsOMUy53q7b+DsSA8Z0OFBGCgqzfSKqJ+rhMPVVkWYl2/vjTINDMPLvQnNkrpThB2vRqjE517S2idgrbyfvnO5GOuOcRCqXhBL/YZBU/DjTfHZ6d+PmMWD2OVJ8D8RgZ9OYOhskgRd/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=GfST0w2W; arc=none smtp.client-ip=209.85.218.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
+	s=arc-20240116; t=1792047231; c=relaxed/simple;
+	bh=3BJ/xpFg8wehOxNbA2GHDy0mH9lAvotxINILf3oBH+Y=;
+	h=Content-Type:Message-ID:Date:MIME-Version:To:From:Subject; b=u+Ii0cZqEq22OuhjG42qxKNp1vXQoGT1D+lWCzZ3wzd7ztQqYA+t0NWpIqeL2/IIyeI4x+zP6wQXe3SZ8jHS5KngQp/8Ve9u0spJKNqQDy0brdbCzhPNok80iP5ZyLVPwoiL2kFAyd5Ct1Pm9PRhxr8+cdgy/yAoG8/tL2KR5uc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideco.ru; spf=pass smtp.mailfrom=ideco.ru; dkim=pass (2048-bit key) header.d=ideco.ru header.i=@ideco.ru header.b=HEkkV1JG; arc=none smtp.client-ip=51.250.56.165
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideco.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ideco.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="GfST0w2W"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c2dc8cb0decso174567966b.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2026 16:56:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792022193; x=1792626993; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Q2Y2Lz9pIbNgeYo7CVu5aDkzJ2pQ4sXNINeSv3xCPBg=;
-        b=GfST0w2WYot5sC8leg9gHn5xueRwknnGq/xh3OsyjpsEeS36J8+3jNnyJdE/UmHTM1
-         bvM55k+Kemdjdz0KwrQc/CeLuo25Uu9Mgh/iOyT+eSGyBqD2WN6uW4WnTCnMSd5/NcpU
-         dXGj1CRWPf6L1IfXBSwARzNppA2gDq3bfDJyZZnCd6+7IQTXGTetJPRSH/KMJWHd5ye3
-         fF4GD2uf4CCmQtmQP9H4d92nsohk6rKKHXtENsJxQCfYYmdNXZs2tLQaKvA3RXP+SSEB
-         NYFE5Ys451Fy708hDL7nuwzIFDkNMLf1orrxjWR4O2j4lRwoDXQ0+amIj0yyQKJuflsa
-         ugag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792022193; x=1792626993;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Q2Y2Lz9pIbNgeYo7CVu5aDkzJ2pQ4sXNINeSv3xCPBg=;
-        b=seWHWkdb1T7MMalOnFwhf5xfrIZXTfunIl2DaFSKVISZItwn4+Sx8YGvSkJZKQWZR+
-         0CKbAIhuELMzF0QmX+YKXX9hvwdY5jxLG+VU18q05JddDfAwjWEFWBRIcajAW9FE5RZQ
-         1JbV5yXwpgGTV3z166NIz5umSh+KjXrAfV2pv9AJap1/rUnUyY0Fqsu6SpIv/GbxxnrT
-         eosfQ+kmN+92DLaFUP83hhRBtFTZzI3rnHLpxz/v5IF2w7HN8VPpz7KxueczuIk7i5PF
-         MFQ4sV/2tJtSEFXKCBfX4QKg7eC38ZvUG1WftqYyl7hRMDYYT1/Ze4zZjQ5bEeAZjfYf
-         aE7Q==
-X-Gm-Message-State: AFq9FYLrlzhi5wumm7y13dghAUsCK1C5vLWJ93eifj5jQ6En7yVhET+C
-	GdxBg8I6NlmkTM32ObBUxRGmmOFaD34MDKJ0nzRHhE/uYyZuK4tCix2qJvfS81UuyWtsqTz6Lyc
-	+c/R/NLgOAQA=
-X-Gm-Gg: AYBFou32rGjGNFfrUDAIAHGiN5NZ8ZjlrhpfTsxYk3/qvqVrNG7m353vHp50+Hv7frN
-	zA6jJ/ZRYxsQRHEkicGuSFk0wu3UKNmA4GhIQIHsgtXjKznkmBBziEpf9bOT9wxmt0cI1ZPBcGW
-	yqNdzb/mlUprlwEYC7sDWpqdpXTu6MZlxDWglD2pFrFbbeRJoD8a72W5yoPT1xs6zvJS8iYsnrc
-	PgLHyPT9MdEI7j3gFN+Gd/yuu/qsqGy4SP1ZowUE/S7nUYxGt9ytSdzTX2KLB3qYR+rMZY6i/+R
-	aYGHK9OtrLKeNSrxy/3qBHD1WBS85kGklanxcxALsnghlAtfi9PL/c9V86DtqVyuineVp0pZ6Ll
-	pISRrLr6eNpHdkisy+LmfbiErYRe7fDhION2KSdcS14BLwOai452PO2caiiv1HwIjynqprFixom
-	VPRJK57Gc+R4g6JS8uSW5iI9P+NG2oFeCLjayPES61XsrQxHWbMMq1SvLLsTuOkVWt+cuJUKm3A
-	S+SdNxGoCysQMwZI+bQXzTTycDSX3oGiNgCQ1t56q1VsSUHBjADYGFZKhvqNESj7qfE8XTc+JVl
-	nc0MqVV7OOpYxFz2e1qsqUuMDQJ2zGcVX2S1dAm2mmy1JfUGT6OfrGkS69oogtNXolKs6i9LsJ6
-	QCsjaLOGP09k6LRnoGwlWgXcTwW/di5dhcnhgFdIEvS3nywJn3Yvv3XvZD/Gpzg036Ab7glhxqj
-	2J0cGBZIFjKCTYnp7hwZybAJ4=
-X-Received: by 2002:a17:907:7b97:b0:c2e:2944:d6cb with SMTP id a640c23a62f3a-c31a9fed205mr1609413966b.13.1792022192731;
-        Wed, 14 Oct 2026 16:56:32 -0700 (PDT)
-Received: from Desktop (p54affd5a.dip0.t-ipconnect.de. [84.175.253.90])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c3edab12007sm46101666b.82.2026.10.14.16.56.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 16:56:32 -0700 (PDT)
-From: Julius Bairaktaris <julius@bairaktaris.de>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	kadlec@netfilter.org,
-	phil@nwl.cc,
-	horms@kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	shuah@kernel.org,
-	razor@blackwall.org,
-	idosch@nvidia.com,
-	ericwouds@gmail.com,
-	dqfext@gmail.com,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	bridge@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH nf-next v7 2/2] selftests: netfilter: nft_flowtable.sh: roam a host between two bridge ports
-Date: Thu, 15 Oct 2026 01:56:27 +0200
-Message-ID: <20261014235628.197976-3-julius@bairaktaris.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261014235628.197976-1-julius@bairaktaris.de>
-References: <20261014235628.197976-1-julius@bairaktaris.de>
+	dkim=pass (2048-bit key) header.d=ideco.ru header.i=@ideco.ru header.b="HEkkV1JG"
+Received: from [169.254.254.254] (localhost [127.0.0.1])
+	by smtp.ideco.ru (Postfix) with ESMTP id 354602038AD2
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 11:43:37 +0500 (+05)
+Received: from [192.168.1.125] (unknown [5.189.69.153])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.ideco.ru (Postfix) with ESMTPSA id 040F720313B8
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 11:43:34 +0500 (+05)
+DKIM-Filter: OpenDKIM Filter v2.11.0 smtp.ideco.ru 040F720313B8
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ideco.ru; s=ics;
+	t=1792046616; bh=3BJ/xpFg8wehOxNbA2GHDy0mH9lAvotxINILf3oBH+Y=;
+	h=Date:To:From:Subject;
+	b=HEkkV1JGY8jUB49YZGiQVSjDLdghGM6WkRjMWG2PL2mTtXViobwC1dn+/3FiXK7/C
+	 O9PI3aFnz/XC7FA2ZhPJebLTpixLKFvo1lZCS3bZWgynyBueNOMYMpITec6iNRmHtl
+	 Eumgme4QZm7BOwLu3AXtrFPDeuUg6p32bk8uDJwBYajX0it7+Dh8d7RPp+GZvrf0mX
+	 Dc6i1VZkCq7kQ+F36lgb2mhdp/bVJH0pmcGD735KOBkVlpe8bX6JvBbyv74UqClkWH
+	 TCPcCj1YJqX50RhdJP22Bgg6Earc/VRSMxR7P89cpO1nvIH8z99HHu++ikH+EvdjJc
+	 jlBpOaq3ebY+g==
+Content-Type: multipart/mixed; boundary="------------G1DkcpEu02H00sW6kC1EwBQZ"
+Message-ID: <d32c43b5-09bc-49a5-a366-c3fe10f0c6ca@ideco.ru>
+Date: Thu, 15 Oct 2026 11:43:17 +0500
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: netfilter-devel@vger.kernel.org
+Content-Language: en-US
+From: =?UTF-8?B?0JDRgNGC0LXQvCDQqdC10LvQutGD0L3QvtCy?=
+ <a.shchelkunov@ideco.ru>
+Subject: [RFC conntrack-tools] conntrackd: StartupResync and the FTFW HELLO
+ exchange
+
+This is a multi-part message in MIME format.
+--------------G1DkcpEu02H00sW6kC1EwBQZ
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Move a host to another port of a bridge on the router while its flow is
-offloaded, and check that the transfer continues and is offloaded again.
-The cases are plain and vlan bridge ports, "bridge fdb replace", a
-pinned and then deleted fdb entry, an aged out entry (the flow must
-stay), the plain case over IPv6 and on a vlan_filtering bridge.
+Hi,
 
-Without the gc check the transfer stalls when the host moves.
+We observed missing initial state synchronization with conntrackd using
+FTFW over UDP, StartupResync On, and no PollSecs. I would like to check the
+intended behavior before submitting a formal patch.
 
-Assisted-by: Claude:claude-fable-5-1
-Assisted-by: Claude:claude-opus-5-5
-Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
----
- .../selftests/net/netfilter/nft_flowtable.sh  | 204 ++++++++++++++++++
- 1 file changed, 204 insertions(+)
+Versions and scope
+------------------
+We reproduced the behavior with downstream builds of conntrack-tools
+1.4.7 and 1.4.9. The upstream 1.4.7 and 1.4.9 versions of
+src/sync-ftfw.c and src/resync.c are identical. We have not tested current
+upstream Git HEAD.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 449c518bd947d..e6b345ff45b5d 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -851,6 +851,210 @@ test_ipip
- 
- test_bridge
- 
-+# Roam a host between two ports of a bridge on the router while its flow is
-+# offloaded, as a station moving between two access points attached to ports
-+# of one bridge. The host keeps its address and mac on a bridge of its own
-+# and roams by moving that bridge's port, so only the fdb changes. With a vid
-+# the bridge ports are vlan devices, whose ifindex differs from the device
-+# the flow transmits on. With "replace" the router's fdb entry is sticky and
-+# the move is a "bridge fdb replace". With "del" the host stays, its entry is
-+# pinned to the other port and then deleted, and a ping relearns it. With
-+# "age" the host stays and its entry ages out, which must not tear the flow
-+# down. A flow that stays on the fast path leaves no more than a few packets
-+# in the forward chain, the counter tells offloaded from slow path. The
-+# plain roam also runs over IPv6, and on a vlan_filtering bridge, whose fdb
-+# entries are keyed by the pvid of the untagged ports.
-+test_bridge_roam()
-+{
-+	local vid=$1 how=$2 fam=${3:-4} vf=$4
-+	local p0=sr0 p1=sr1 r0=rr0 r1=rr1
-+	local mac=02:00:00:09:01:99
-+	local what="roaming on bridge${vf:+ with vlan_filtering}"
-+	what="$what${vid:+ with vlan ports}${how:+ by fdb $how}"
-+	local hn=10.9.1 wn=10.9.2 dot=. len=24 nodad= ip6= srv=10.9.2.99
-+	local min=10000000
-+	local dev old new slow lpid cpid max=100 win=2
-+
-+	if [ "$fam" = 6 ]; then
-+		hn=dead:9:1 wn=dead:9:2 dot=:: len=64 nodad=nodad ip6=-6
-+		srv="[dead:9:2::99]"
-+		what="$what over IPv6"
-+	fi
-+
-+	setup_ns rns1 rnsr rns2
-+
-+	if ! ip -net "$rnsr" link add br0 type bridge ${vf:+vlan_filtering 1} 2>/dev/null; then
-+		echo "SKIP: could not add bridge for $what"
-+		[ "$ret" -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	ip link add sr0 netns "$rns1" type veth peer name rr0 netns "$rnsr"
-+	ip link add sr1 netns "$rns1" type veth peer name rr1 netns "$rnsr"
-+	ip link add rw0 netns "$rnsr" type veth peer name w0 netns "$rns2"
-+	for dev in sr0 sr1; do
-+		ip -net "$rns1" link set "$dev" up
-+	done
-+	for dev in rr0 rr1; do
-+		ip -net "$rnsr" link set "$dev" up
-+	done
-+
-+	if [ -n "$vid" ]; then
-+		for dev in sr0 sr1; do
-+			ip -net "$rns1" link add link "$dev" name "$dev.$vid" type vlan id "$vid"
-+			ip -net "$rns1" link set "$dev.$vid" up
-+		done
-+		for dev in rr0 rr1; do
-+			ip -net "$rnsr" link add link "$dev" name "$dev.$vid" type vlan id "$vid"
-+			ip -net "$rnsr" link set "$dev.$vid" up
-+		done
-+		p0=sr0.$vid; p1=sr1.$vid; r0=rr0.$vid; r1=rr1.$vid
-+	fi
-+
-+	ip -net "$rnsr" link set "$r0" master br0
-+	ip -net "$rnsr" link set "$r1" master br0
-+	ip -net "$rnsr" addr add $hn${dot}1/$len dev br0 $nodad
-+	ip -net "$rnsr" link set br0 up
-+	ip -net "$rnsr" addr add $wn${dot}1/$len dev rw0 $nodad
-+	ip -net "$rnsr" link set rw0 up
-+	ip netns exec "$rnsr" sysctl -q net.ipv4.ip_forward=1
-+	ip netns exec "$rnsr" sysctl -q net.ipv6.conf.all.forwarding=1
-+
-+	ip -net "$rns1" link add stbr type bridge
-+	ip -net "$rns1" link set stbr address $mac
-+	ip -net "$rns1" link set "$p0" master stbr
-+	ip -net "$rns1" link set stbr up
-+	ip -net "$rns1" addr add $hn${dot}99/$len dev stbr $nodad
-+	ip $ip6 -net "$rns1" route add default via $hn${dot}1
-+
-+	ip -net "$rns2" addr add $wn${dot}99/$len dev w0 $nodad
-+	ip -net "$rns2" link set w0 up
-+	ip $ip6 -net "$rns2" route add default via $wn${dot}1
-+
-+	# no neighbour probes, so the host only sends when it receives
-+	ip -net "$rnsr" neigh replace $hn${dot}99 lladdr $mac nud permanent dev br0
-+	ip -net "$rns1" neigh replace $hn${dot}1 nud permanent dev stbr \
-+		lladdr "$(ip -net "$rnsr" -br link show br0 | awk '{print $3}')"
-+
-+	if ! ip netns exec "$rnsr" nft -f - <<EOF
-+table inet filter {
-+  counter roam_repl { }
-+  flowtable f1 { hook ingress priority 0; devices = { rr0, rr1, rw0 }; }
-+  chain forward {
-+    type filter hook forward priority 0; policy accept;
-+    meta oif "rw0" tcp dport 12345 flow add @f1
-+    meta iif "rw0" tcp sport 12345 counter name roam_repl flow add @f1
-+  }
-+}
-+EOF
-+	then
-+		echo "SKIP: could not load ruleset for $what"
-+		[ "$ret" -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	# the host discards what it receives, its socket byte counter is read
-+	rx_bytes() { ip netns exec "$rns1" ss -tin "dst $srv" 2>/dev/null |
-+		grep -o 'bytes_received:[0-9]*' | head -1 | cut -d: -f2; }
-+	rx_started() { local n; n=$(rx_bytes); [ "${n:-0}" -gt 0 ]; }
-+	# forward chain packets of the reply direction since the last call
-+	slow_pkts() { ip netns exec "$rnsr" nft reset counter inet filter roam_repl |
-+		grep -o 'packets [0-9]*' | cut -d' ' -f2; }
-+	roam_listener_ready() { ss -N "$rns2" -lnt -o "sport = :12345" | grep -q 12345; }
-+
-+	roam_stop() { kill "$cpid" "$lpid" 2>/dev/null; wait "$cpid" "$lpid" 2>/dev/null; }
-+
-+	timeout "$SOCAT_TIMEOUT" ip netns exec "$rns2" socat -u \
-+		OPEN:/dev/zero TCP$fam-LISTEN:12345,reuseaddr &
-+	lpid=$!
-+	if ! busywait "$BUSYWAIT_TIMEOUT" roam_listener_ready; then
-+		echo "FAIL: $what: listener did not start" 1>&2
-+		ret=1
-+		kill "$lpid" 2>/dev/null; wait "$lpid" 2>/dev/null
-+		return
-+	fi
-+	timeout "$SOCAT_TIMEOUT" ip netns exec "$rns1" socat -u \
-+		TCP$fam:$srv:12345 OPEN:/dev/null &
-+	cpid=$!
-+
-+	if ! busywait "$BUSYWAIT_TIMEOUT" rx_started; then
-+		echo "FAIL: $what: transfer did not start" 1>&2
-+		ret=1
-+		roam_stop
-+		return
-+	fi
-+	sleep 2
-+	slow_pkts > /dev/null
-+	old=$(rx_bytes)
-+	sleep 2
-+	new=$(rx_bytes)
-+	slow=$(slow_pkts)
-+	if [ -z "$slow" ] || [ $((${new:-0} - ${old:-0})) -lt $min ] ||
-+	   [ "$slow" -gt 100 ]; then
-+		echo "FAIL: $what: not offloaded before the roam:" \
-+		     "$((${new:-0} - ${old:-0})) bytes, ${slow:-no} forward chain packets" 1>&2
-+		ret=1
-+		roam_stop
-+		return
-+	fi
-+
-+	if [ "$how" = age ]; then
-+		# ageing_time is in centiseconds
-+		ip -net "$rnsr" link set br0 type bridge ageing_time 200
-+		max=0 win=10
-+	elif [ "$how" = del ]; then
-+		bridge -n "$rnsr" fdb replace $mac dev "$r1" master static sticky
-+		sleep 2
-+		bridge -n "$rnsr" fdb del $mac dev "$r1" master static
-+		ip netns exec "$rns1" ping $ip6 -c 2 -W 1 -q $hn${dot}1 >/dev/null 2>&1
-+	else
-+		# roam: move the host bridge to the other port and send on it
-+		if [ "$how" = replace ]; then
-+			bridge -n "$rnsr" fdb replace $mac dev "$r0" master static sticky
-+		fi
-+		ip -net "$rns1" link set "$p0" nomaster
-+		ip -net "$rns1" link set "$p1" master stbr
-+		ip netns exec "$rns1" ping $ip6 -c 2 -W 1 -q $hn${dot}1 >/dev/null 2>&1
-+		if [ "$how" = replace ]; then
-+			bridge -n "$rnsr" fdb replace $mac dev "$r1" master static sticky
-+		fi
-+	fi
-+
-+	# the bytes in flight at the roam drain within the first seconds; a
-+	# stale flow delivers nothing after that, a torn down one resumes and
-+	# is offloaded again.
-+	sleep 4
-+	old=$(rx_bytes)
-+	sleep 4
-+	new=$(rx_bytes)
-+	slow_pkts > /dev/null
-+	sleep $win
-+	slow=$(slow_pkts)
-+	roam_stop
-+
-+	if [ "$how" = age ] &&
-+	   bridge -n "$rnsr" fdb show br br0 | grep -q "$mac.*master"; then
-+		echo "FAIL: $what: the host's fdb entry did not age out" 1>&2
-+		ret=1
-+	elif [ $((${new:-0} - ${old:-0})) -lt $min ]; then
-+		echo "FAIL: $what: transfer stalled after the roam" 1>&2
-+		ret=1
-+	elif [ -z "$slow" ] || [ "$slow" -gt $max ]; then
-+		echo "FAIL: $what: $slow forward chain packets after the roam" 1>&2
-+		ret=1
-+	else
-+		echo "PASS: flow offload for $what"
-+	fi
-+}
-+
-+test_bridge_roam ""
-+test_bridge_roam 100
-+test_bridge_roam "" replace
-+test_bridge_roam "" del
-+test_bridge_roam "" age
-+test_bridge_roam "" "" 6
-+test_bridge_roam "" "" 4 vf
-+
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
- KEY_AES="0x"$(ps -af | md5sum | cut -d " " -f 1)
- SPI1=$RANDOM
--- 
-2.53.0
+Reproducer
+----------
+Use two isolated network namespaces, A and R, connected by a veth pair:
+A has cta, 198.18.62.1/30; R has ctb, 198.18.62.2/30. Bring both veth
+interfaces and both loopback interfaces up. These are test namespaces;
+the commands below run inside the indicated namespace.
+
+Use the following configuration for A (/tmp/ftfw-A.conf):
+
+     Sync {
+         Mode FTFW { StartupResync On }
+         UDP {
+             IPv4_address 198.18.62.1
+             IPv4_Destination_Address 198.18.62.2
+             Interface cta
+             Port 3789
+         }
+     }
+     General {
+         HashSize 32768
+         HashLimit 131072
+         NetlinkEventsReliable on
+         LockFile /tmp/ftfw-A.lock
+         UNIX { Path /tmp/ftfw-A.ctl }
+     }
+
+For R, save /tmp/ftfw-R.conf with the two IP addresses swapped, Interface
+ctb, LockFile /tmp/ftfw-R.lock, and UNIX Path /tmp/ftfw-R.ctl. Keep both
+internal and external caches enabled. Neither configuration has PollSecs.
+
+1. With both conntrackd processes stopped, insert a synthetic entry into
+    A's kernel conntrack table:
+
+        conntrack -I -p tcp -s 192.0.2.62 -d 203.0.113.62 \
+            --sport 61000 --dport 443 --state ESTABLISHED \
+            -u ASSURED,SEEN_REPLY -t 900
+
+2. Start conntrackd in R first:
+
+        conntrackd -C /tmp/ftfw-R.conf
+
+3. After three seconds, start conntrackd in A:
+
+        conntrackd -C /tmp/ftfw-A.conf
+
+4. After ten seconds, inspect A's internal cache and R's external cache
+    from separate shells in their respective namespaces:
+
+        # A:
+        conntrackd -C /tmp/ftfw-A.conf -i
+        # R:
+        conntrackd -C /tmp/ftfw-R.conf -e
+
+    With 1.4.9, A has the synthetic entry, but R's external cache is empty.
+    No application traffic updates the synthetic entry during this test.
+
+In a separate two-node test with 1.4.7 and ten pre-existing entries, we
+observed A internal = 10, R external = 0. A manual request on R:
+
+     conntrackd -C /tmp/ftfw-R.conf -n
+
+recovered all ten entries. With the attached change, both startup tests
+synchronized automatically.
+
+Source analysis and the intended semantics
+-----------------------------------------
+resync_at_startup() immediately queues NET_F_RESYNC. If R starts while A
+is absent, that request cannot be delivered. When A starts, its HELLO
+causes ftfw_recv() to flush rs_queue. This removes R's pending request
+from the resend queue. A requests R's table at its own startup, but this
+does not send A's pre-existing kernel entries to R. A's initial kernel
+dump populates its internal cache without sending those entries.
+
+The documented StartupResync behavior says "A single request will be
+made" and describes synchronization with a peer that was already running.
+I therefore do not want to assume that this startup ordering violates
+the documented contract, or that reliable FTFW delivery applies during
+the HELLO exchange.
+
+Would it be appropriate to keep the startup request pending until the
+HELLO exchange completes, so that the request is sent when it can be
+handled by the peer?
+
+The attached discussion patch contains two related changes:
+
+1. Defer FTFW's initial automatic RESYNC until the local HELLO state is
+    HELLO_DONE and an accepted packet without HELLO arrives from the peer.
+2. Re-arm that pending request on a peer HELLO when StartupResync is on.
+
+The second change also recovers entries created in A's kernel while A's
+conntrackd was stopped. In our 1.4.7 test, restarting A left R with 10 of
+A's 20 entries until R issued a manual request; the patch recovered all
+20 automatically. I consider this second change a policy extension:
+StartupResync currently does not promise resynchronization on peer
+restart. Should it be separate, or controlled by a separate option?
+
+Validation and limitations
+--------------------------
+The patch passed our isolated 1.4.9 checks for R-first startup, A-first
+startup, restart of either daemon, and loss of initial sync packets.
+This is not a test against current upstream HEAD or a large-table
+performance evaluation.
+
+It adds no periodic full-table request, but repeated HELLO exchanges can
+cause extra bulk transfers. The change is gated by StartupResync; the
+NOTRACK startup path is unchanged.
+
+The attachment is a source-only discussion diff against 1.4.9, with the
+same executable changes as our tested downstream patch. We can split
+the two behaviors and update the documentation following your guidance.
+
+Thanks,
+Artem
+
+--------------G1DkcpEu02H00sW6kC1EwBQZ
+Content-Type: text/x-patch; charset=UTF-8;
+ name="ftfw-startup-resync-rfc.patch"
+Content-Disposition: attachment; filename="ftfw-startup-resync-rfc.patch"
+Content-Transfer-Encoding: base64
+
+UkZDOiBjb25udHJhY2tkOiBkZWZlciBGVEZXIFN0YXJ0dXBSZXN5bmMgdW50aWwgdGhlIEhF
+TExPIGV4Y2hhbmdlIGNvbXBsZXRlcwoKQSBzdGFydHVwIFJFU1lOQyBjYW4gYmUgc2VudCB3
+aGlsZSB0aGUgcGVlciBpcyBhYnNlbnQgYW5kIHN1YnNlcXVlbnRseQpyZW1vdmVkIGZyb20g
+dGhlIHJlc2VuZCBxdWV1ZSB3aGVuIHRoZSBwZWVyIHNlbmRzIEhFTExPLiBLZWVwIHRoZSBu
+ZWVkCmZvciByZXN5bmNocm9uaXphdGlvbiBzZXBhcmF0ZWx5IGFuZCBpc3N1ZSBSRVNZTkMg
+YWZ0ZXIgSEVMTE8gY29tcGxldGVzLgoKVGhpcyBkaXNjdXNzaW9uIHBhdGNoIGFsc28gcmUt
+YXJtcyB0aGUgcmVxdWVzdCBvbiBwZWVyIEhFTExPIHdoaWxlClN0YXJ0dXBSZXN5bmMgaXMg
+ZW5hYmxlZC4gUmVzeW5jaHJvbml6aW5nIG9uIHBlZXIgcmVzdGFydCBpcyBhIHBvbGljeQpl
+eHRlbnNpb24gYmV5b25kIHRoZSBkb2N1bWVudGVkIG9uZS1zaG90IHN0YXJ0dXAgYmVoYXZp
+b3IgYW5kIGlzIHJhaXNlZApzZXBhcmF0ZWx5IGluIHRoZSBhY2NvbXBhbnlpbmcgZW1haWwu
+IFJlcGVhdGVkIEhFTExPIGV4Y2hhbmdlcyBjYW4gY2F1c2UKYWRkaXRpb25hbCBidWxrIHRy
+YW5zZmVycy4gTm8gcGVyaW9kaWMgZnVsbC10YWJsZSByZXF1ZXN0IGlzIGFkZGVkLgoKQmFz
+ZWQgb24gY29ubnRyYWNrLXRvb2xzIDEuNC45LiBFeGVjdXRhYmxlIGNoYW5nZXMgbWF0Y2gg
+dGhlIHRlc3RlZApkb3duc3RyZWFtIHBhdGNoOyBjb21tZW50cyBhbmQgdGhpcyBkZXNjcmlw
+dGlvbiBoYXZlIGJlZW4gdHJhbnNsYXRlZC4KCmRpZmYgLS1naXQgYS9zcmMvc3luYy1mdGZ3
+LmMgYi9zcmMvc3luYy1mdGZ3LmMKLS0tIGEvc3JjL3N5bmMtZnRmdy5jCisrKyBiL3NyYy9z
+eW5jLWZ0ZncuYwpAQCAtNTEsNiArNTEsNyBAQAogfTsKIHN0YXRpYyBpbnQgaGVsbG9fc3Rh
+dGUgPSBIRUxMT19JTklUOwogc3RhdGljIGludCBzYXlfaGVsbG9fYmFjazsKK3N0YXRpYyBp
+bnQgcmVzeW5jX3BlbmRpbmc7CiAKIC8qIFhYWDogYWxpdmUgbWVzc2FnZSBleHBpcmF0aW9u
+IGNvbmZpZ3VyYWJsZSAqLwogI2RlZmluZSBBTElWRV9JTlQgMQpAQCAtMTI1LDYgKzEyNiw3
+IEBACiAKIAkvKiBzZXQgYWNrIHdpbmRvdyBzaXplICovCiAJd2luZG93ID0gQ09ORklHKHdp
+bmRvd19zaXplKTsKKwlyZXN5bmNfcGVuZGluZyA9IENPTkZJRyhzdGFydHVwX3Jlc3luYyk7
+CiAKIAlyZXR1cm4gMDsKIH0KQEAgLTMyOCw2ICszMzAsOSBAQAogCiAJaWYgKElTX0hFTExP
+KG5ldCkpIHsKIAkJc2F5X2hlbGxvX2JhY2sgPSAxOworCQkvKiBLZWVwIHRoZSByZXN5bmMg
+cmVxdWVzdCBhY3Jvc3MgdGhlIEhFTExPIHF1ZXVlIGZsdXNoLiAqLworCQlpZiAoQ09ORklH
+KHN0YXJ0dXBfcmVzeW5jKSkKKwkJCXJlc3luY19wZW5kaW5nID0gMTsKIAkJcmV0ID0gMTsK
+IAl9CiAJaWYgKElTX0hFTExPX0JBQ0sobmV0KSkgewpAQCAtNDA4LDggKzQxMywxNSBAQAog
+CX0KIAogb3V0OgotCWlmICgocmV0ID09IE1TR19EQVRBIHx8IHJldCA9PSBNU0dfQ1RMKSkK
+KwlpZiAoKHJldCA9PSBNU0dfREFUQSB8fCByZXQgPT0gTVNHX0NUTCkpIHsKIAkJbmV0aGRy
+X3RyYWNrX3VwZGF0ZV9zZXEobmV0LT5zZXEpOworCQkvKiBXYWl0IGZvciB0aGUgcGVlciB0
+byBsZWF2ZSBpdHMgSEVMTE8gcGhhc2UuICovCisJCWlmIChyZXN5bmNfcGVuZGluZyAmJiBo
+ZWxsb19zdGF0ZSA9PSBIRUxMT19ET05FICYmCisJCSAgICAhSVNfSEVMTE8obmV0KSkgewor
+CQkJcmVzeW5jX3BlbmRpbmcgPSAwOworCQkJcmVzeW5jX3JlcSgpOworCQl9CisJfQogCiAJ
+cmV0dXJuIHJldDsKIH0KZGlmZiAtLWdpdCBhL3NyYy9yZXN5bmMuYyBiL3NyYy9yZXN5bmMu
+YwotLS0gYS9zcmMvcmVzeW5jLmMKKysrIGIvc3JjL3Jlc3luYy5jCkBAIC00NCw1ICs0NCw5
+IEBACiAJaWYgKENPTkZJRyhzdGFydHVwX3Jlc3luYykgPT0gMCkKIAkJcmV0dXJuOwogCisJ
+LyogRlRGVyByZXF1ZXN0cyBhIHJlc3luYyBhZnRlciBjb21wbGV0aW5nIHRoZSBIRUxMTyBl
+eGNoYW5nZS4gKi8KKwlpZiAoQ09ORklHKGZsYWdzKSAmIENURF9TWU5DX0ZURlcpCisJCXJl
+dHVybjsKKwogCXJlc3luY19yZXEoKTsKIH0K
+
+--------------G1DkcpEu02H00sW6kC1EwBQZ--
 
