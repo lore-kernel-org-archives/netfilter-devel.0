@@ -1,89 +1,62 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38E6A4BAA17;
-	Thu, 15 Oct 2026 18:51:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98B4557F723;
+	Thu, 15 Oct 2026 19:36:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792090279; cv=none; b=KUYwETGKSEMo+5csVJXZAO0fKdoMTWVYEydjLiwdKxRb0GV911AGXWDos0WLEOjiw1BQb6EiJzDh3cg3vLIYWH1H03k3+kpt0GvCuoWLWzUOKh8gKOAll9PWUKRN/0sC39zXis4RTjhvlXE7Xu4s8zz+4yc0N+6owRbxRsgcQjk=
+	t=1792092995; cv=none; b=aMepm4jwlN7SioHp/YOMpGLnugEtyi6vN9sDMGCzCjMIXgOZZ3DHzQT74UuvAkK6MBeObhZ5Ob9UimFpM61aRZmVn5attaWvhAhwujJy2hSIw4NxwQNXy0GtwqAZ/1dX9V7I4MuqBZ/G2tbjObLiqY7a2OX6fNvmiLExaA/P6l0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792090279; c=relaxed/simple;
-	bh=PdtEyOd+J/2fiZkaceo5cAeUkPy9uCTBZFkQzoFfpGw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=U5UsRAU4PnchvKk9hLXxkS3TMSEfs5mymWtCloSTaXZB9FSpKdRra3Riv/NnKx4Qw6eGit1+qMHcZRvZa3jE7fkJitf21S77f4JQcZhUac2fX1+9m1R5BBlpUaD6ybTuwnHhrxihT/pTGLFBXycCI+WjBJ2bXyIDESs2dMgJG3s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ewf5R94e; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1792092995; c=relaxed/simple;
+	bh=m53enD+fhYXRe7YAGr6/pnaG5LsPB/DpuQJwbu/DVSI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=dpmqO34HC/kVNWN5z3YAd7zEta9bbSTAhoaqQgbjFxjI9uk+o0xgUfe8tlBwXxPsa88OoUsMF7CK27xBJQa03M+GOqL3CXoEyCRCNqsIfCEQGFK8HEWh6jvdDdVDHTKjE88M8lJn42xfHx0pUq6DjmjSvqntWcDhKXev2vo5rxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PWzlnFg/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ewf5R94e"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=MJmX4b1u5tOTPARyB5qX60siGQ72Kn2GluhVs6oag6Q=; b=ewf5R94evg7Eyo9ZbrhlAriwdj
-	izNfmTeT2CRvXyHnV5jp010NSVYHkz9GshTiBGI3ZASUnEV4rpaYhLrjF0c6m+tq1z1diuUDVSsUO
-	1aSpqEVttvMZGhgkDemWFaDtwdyjK4egcDmhG56NcJOrklJ3eKyn2LPP1/a31oN3kcPKKR+TJAQTV
-	KL8KQy0F6YUU6cFBduNNKS2OxXmXIrdLbGFM+/xPUFikskmY3Tn3Fr/lqWvsbYAagqrQjccnIw1VC
-	uoHfyvflJSoIAljVumj8YThh/DhBh5B/DdxeMD+0aZn/cSuSuD81h1ovgCdrU/seA9iiJNbPRQXjp
-	nFZFs1ZQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1xHQXc-000000004CZ-3Ik4;
-	Thu, 15 Oct 2026 20:51:00 +0200
-Date: Thu, 15 Oct 2026 20:51:00 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-kernel@vger.kernel.org,
-	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
-	Jason Wang <jasowangio@gmail.com>,
-	Eugenio =?utf-8?B?UMOpcmV6?= <eperezma@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org, virtualization@lists.linux.dev,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	Max Krasnyansky <maxk@qualcomm.com>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PWzlnFg/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 889471F000C6;
+	Thu, 15 Oct 2026 19:36:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792092994;
+	bh=C4C5BfXpN++eRrWMlSA6UJCJBD9o9A0XwfvhUhTIWpA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=PWzlnFg/h8LEag42V6R2E+TE04dtVfdX7Ez2GAsf0FKNhuwf8jQyHzfIItMUKlqAT
+	 g7rhc8/Qq+EzqljaXbifgUp3w83mvLsR+mrEiUUQRZY17QoZ32pFj17M8Se4oi6ZBD
+	 rQJ0iOo/X7FyFtXp9a4lDq+WO/E+RjJyG8GMlAGaTokH8lKPNEHqFMXhIuCeaDKUhB
+	 rV9JzVtBnuhrvbWsrO9NTZduQz85ABk8nD6mGxuYT83MUaARbn3p2eJYEzp72uiqCH
+	 dhndon6qPuFwm5LJlnjM7OEFJsJocQrDDlRFkg8zVOFDtaJbAnBPHDtyxuXqXbvEnv
+	 3s98uFRPVO/Tw==
+From: Sasha Levin <sashal@kernel.org>
+To: stable@vger.kernel.org,
+	gregkh@linuxfoundation.org
+Cc: Sasha Levin <sashal@kernel.org>,
+	Felix Fietkau <nbd@nbd.name>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>, Simon Horman <horms@kernel.org>,
-	David Ahern <dsahern@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev
-Subject: Re: [PATCH net-next v2 6/7] net: add ip4_parse()
-Message-ID: <atEglBQ0B1jR5t7q@orbyte.nwl.cc>
-References: <cover.1792067836.git.mst@redhat.com>
- <2645c102b2f73292d1973b82c95def24e48064e1.1792067836.git.mst@redhat.com>
+	Vlad Buslov <vladbu@nvidia.com>,
+	Daniel Golle <daniel@makrotopia.org>,
+	netfilter-devel@vger.kernel.org,
+	Gyokhan Kochmarla <gyokhan@amazon.de>
+Subject: Re: [PATCH 5.10] netfilter: nf_tables: fix bidirectional offload regression
+Date: Thu, 15 Oct 2026 15:35:54 -0400
+Message-ID: <2026-10-15-1-daily-reply-0011-nf-tables-bidirectional-offload@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261015112533.648137-1-gyokhan@amazon.de>
+References: <20261015112533.648137-1-gyokhan@amazon.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2645c102b2f73292d1973b82c95def24e48064e1.1792067836.git.mst@redhat.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Michael,
+> Commit 8f84780b84d6 ("netfilter: flowtable: allow unidirectional rules")
+> made unidirectional flow offload possible, while completely ignoring (and
+> breaking) bidirectional flow offload for nftables.
+> Add the missing flag that was left out as an exercise for the reader :)
 
-On Thu, Oct 15, 2026 at 08:41:45AM -0400, Michael S. Tsirkin wrote:
-> Multiple places in the net stack open-code the same minimal IPv4 header
-> validation: pull the fixed header, check version 4 and IHL >= 5 (where 5
-> is the fixed header size in 32-bit units) - and locate the transport
-> header at IHL * 4 past the network header.
-> 
-> Add a helper for doing that: it returns the validated header and
-> the transport header offset, or NULL if truncated or malformed.
-> 
-> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-> Assisted-by: LLM
+Queued for 6.6, 6.1, 5.15 and 5.10, thanks.
 
-Reviewed-by: Phil Sutter <phil@nwl.cc>
-
-Did you consider nft_inner_parse_l2l3 in net/netfilter/nft_inner.c and
-ip_mc_check_iphdr in net/ipv4/igmp.c as well?
-
-Cheers, Phil
+-- 
+Thanks,
+Sasha
