@@ -1,150 +1,83 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com [209.85.218.70])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A46E2D5C8E;
-	Fri, 16 Oct 2026 12:01:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8E124D09F8
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2026 13:33:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792152115; cv=none; b=cMK66bv4oiGsWYNJoUPM6jHVqP//TNt9JhyFUz0sq8SUWVAM70K1/axP+AVHI/tk+gvfkfLyeBWdddgPhkBpPvPr8kJ6N8MEssE1vG4aTU2pnb6bKJ/zUnTIEuRWAhzOrjFjjtiL8g2GPemu+w8L26ZMojcjROFyea9VIbfVGug=
+	t=1792157591; cv=none; b=QmiwynTHtcm8dDm5wlF1RI1s08XnH2TIEhbPj0VXbXguYxTHj5aR+9Kv8psY1pbEaqM2X+7I9FDNjm7us9czIDXQqfWmj6cqqs9I+kWkk8AVNmrZq2UCvcFLEao9e/Lau6Fm3f8NvaBX7yj4ErHntiUTXt9U4aZjdqp6a8HF/1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792152115; c=relaxed/simple;
-	bh=n5rNZMc8Wy7QvuvnhsJhaLhXdG2NpQ6B8WZe42FDEng=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uWH34GZZ3xaQ+/0go8QbG6onLbqTf75xfYOfGKOCxJQ/1ZcRSArX9mMSGSWJzPkHJHhSdYMMf5HntnKsvAi7rleniPoJL293PPlhXAW8YBBKshdq4/RtndDVA1/La2XVX5rpuiLo2CHlaowWsh7hh8lPdeVHYSViNTuavhvhqU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0E6DB60291; Fri, 16 Oct 2026 14:01:47 +0200 (CEST)
-Date: Fri, 16 Oct 2026 14:01:46 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Hari Chandrakanthan <hari.chandrakanthan@oss.qualcomm.com>
-Cc: pablo@netfilter.org, phil@nwl.cc, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH net-next] netfilter: nf_conntrack: add ct expression
- support for netdev egress chains
-Message-ID: <atISKsTHeHwAXfZf@strlen.de>
-References: <20261006085844.2694120-1-hari.chandrakanthan@oss.qualcomm.com>
- <asTd69Buuk6PisMl@strlen.de>
- <fe6fe48c-df09-41be-acff-bbae33454bd9@oss.qualcomm.com>
- <as0HMjsgUvKd7dAo@strlen.de>
- <67d8e88a-eff0-4c8d-a030-b29b5d86f450@oss.qualcomm.com>
+	s=arc-20240116; t=1792157591; c=relaxed/simple;
+	bh=bK4PZUmX+zASONoSq5WJ3xb+fFaZlwfK9eWVJsHysGM=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=cySglFM/frI68IVRZ+r2P/5+5wAOSSp3wsY9gceMwYlG86w6rD+lDsxTDk9EmFiknSsKmfjJgoqDGcpxHqEIgVX/I57szu0FGZxSGeNCgF9KX8Mkkx3KvvmdGKr613WGNIoWS68iwx0nrlVb/RHa1O2mMsu4RkOWksz8RpOgh+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=AhTgG1jl; arc=none smtp.client-ip=209.85.218.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="AhTgG1jl"
+Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-c2e6affec80so685078166b.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2026 06:33:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1792157588; x=1792762388; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bK4PZUmX+zASONoSq5WJ3xb+fFaZlwfK9eWVJsHysGM=;
+        b=AhTgG1jlNmm+aG+EzrptDUlozc2eg0NlOfIL6JWPtifENW+XjQd7B+DUWF2D6+n+0x
+         5FUulfW1JrrOSOs17pHLdnyEvZRY0Ven+u1bZmW0byWU5HK26apSGxBv6GclYI/oED1E
+         8kjIccVX3xGx1tQ2+FRgKb02i0YTn631bOhkx0rTp70tjV++BrFPPy0UWr4cNAqfj3pi
+         HVis1G5W4t1l4zVmcaHgDVI2pBlOdM3qmQUZWL4om6TqT9KutgDIFUScE82vSTN96Qjw
+         ra56qVTRN1gWdDSmJOwagBE1CLOzZkFfDwtdE0AtchmJH/scfKjzXDJZzx34lRtC3Izd
+         TYYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792157588; x=1792762388;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=bK4PZUmX+zASONoSq5WJ3xb+fFaZlwfK9eWVJsHysGM=;
+        b=j+MYpH+98rWQr9Xlg4Xrjz1RvNRmXgqhPFt5jVbUS6DrL4KgJBQXyW7lp3h21sLlXc
+         /uVhY4j2rUaXUwpigYle/gZMcpdsp40EGzxY+SiId3QVO+gQhGUhBRnTYBRh/778OPUZ
+         wdd5YqQm1nzxf6h+xg9dTRS+KwCMzY1TpyDJYE+igJIIR0fHUNtg0GmEOTe4bZpowazH
+         jNWndc3FvexW4byOadRyoHhqaOHmPTg8Ivk5i/mPRhI5PuJXTsCawLnITlmq+QuHahsm
+         fCT4EhLlwPbkv0RU4bFj2qzrfvxMTscQTsJlrFf15d4cP8CcsfpQmesY2kAdVoMSpoHp
+         DA+Q==
+X-Gm-Message-State: AFq9FYJlyLRw03NpwqTCnKnVK3A6y55XRzHSgD4fayYClm/rlAXTKbN3
+	B9JZRDjGC+jcgZX8xWTGZOq6EFSXW4vZdY+ja6FKDI6G0PDH5v5ti4J6GSUCMie7VooudFjUrTZ
+	aQQ==
+X-Received: from ejdf11.prod.google.com ([2002:a17:906:84b:b0:c39:66e6:4d4d])
+ (user=aojea job=prod-delivery.src-stubby-dispatcher) by 2002:a17:907:971a:b0:c2e:378c:8cee
+ with SMTP id a640c23a62f3a-c31aa05bf43mr2042801866b.34.1792157587668; Fri, 16
+ Oct 2026 06:33:07 -0700 (PDT)
+Date: Fri, 16 Oct 2026 13:33:04 +0000
+In-Reply-To: <20260928185803.335307-1-aojea@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <67d8e88a-eff0-4c8d-a030-b29b5d86f450@oss.qualcomm.com>
+Mime-Version: 1.0
+References: <20260928185803.335307-1-aojea@google.com>
+X-Mailer: git-send-email 2.56.0.176.g3575e65682-goog
+Message-ID: <20261016133304.1755951-1-aojea@google.com>
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: nf_queue: limit the hook drop
+ flush to the unregistered hook point
+From: Antonio Ojea <aojea@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, Antonio Ojea <aojea@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hari Chandrakanthan <hari.chandrakanthan@oss.qualcomm.com> wrote:
-> By netdev/egress only, I mean that the nft rule with a ct expression
-> (e.g., ct mark set) is present only in the egress chain for a netdev,
-> with no other nft conntrack rules in inet or bridge chains.
->
-> For example, it may be possible that only rules similar to the below
-> nft rules are added at the netdev egress chain, with no other ct rule
-> in inet or bridge hooks.
-> 
-> nft add table netdev qos_table
-> 
-> nft add chain netdev qos_table wlan0_qos \
->      { type filter hook egress device "wlan0" priority 0\; }
-> 
-> nft add rule netdev qos_table wlan0_qos \
->      ether daddr 00:03:7f:01:50:65 \
->      ip saddr 192.168.1.10 \
->      ip daddr 192.168.1.20 \
->      ip protocol tcp \
->      tcp sport 12345 \
->      tcp dport 443 \
->      ct mark set 0x10
-> 
-> > Where are the skbs coming from, i.e. though what pipeline?
-> >
-> > Bridge?
-> > Routing?
-> 
-> In the use case that we are trying to address, the device is a Wi-Fi 
-> access point router. It receives the classification rules from a Wi-Fi 
-> client device for QoS prioritization of down-link traffic to the client 
-> (n-tuple to Wi-Fi TID mappings) via SCS. We would like to apply these 
-> classification rules on the access point router using nft rules
-> (ct/skb mark set rules) at the WLAN netdev's egress chain.
+Hi Pablo,
 
-I still see no reason to ever conntrack.  Is this for 'sticky'
-skb->mark ?
+Gentle ping. v2 addresses Florian's feedback on v1: rebased on nf-next
+and the nf_queue_nf_hook_drop() call in nft_ct.c converted as well.
 
-I think conntrack for that is waaay too much overhead and would
-use a nft map for this.
+I rebased and retested the series today on nf-next main (a5e7d8e446af):
+it applies cleanly, builds, and nft_queue.sh passes, including the new
+test_hook_drop_scope.
 
-> >> To address this, as suggested by Pablo, we are considering enabling
-> >> conntrack lookup/creation at
-> >> netdev/ingress. This would allow netdev chains to access conntrack state
-> >> without requiring conntrack
-> >> to be enabled for the inet or bridge families, avoiding unnecessary
-> >> overhead for netdev-only use cases.
-> > FWIW bridge conntrack is already problematic (see recent RFC patch
-> > to refag in INPUT, conntrack is pretty much routing-only.
-> >
-> >> Kindly share your thoughts on this approach.
-> > I think you'd have to explain your use case.
-> >
-> > I thought you only want
-> >
-> > skb-> mark = ct->mark
-> >
-> > from egress. That would imply something else already enabled conntrack
-> > anyway, else you'd have no conntrack marks set that you could read.
-> 
-> As mentioned in the previous comment, in the use case that we are
-> trying to address, the device is a Wi-Fi access point router. It 
-> receives classification rules from a Wi-Fi client device for
-> prioritizing downlink traffic to the client (n-tuple to Wi-Fi TID
-> mappings) via SCS. We would like to apply these rules on the access
-> point router using nft rules (ct/skb mark set rules) at the WLAN
-> netdev egress chain.
-> The nft rules at netdev egress chain achieve the below functionality:
-> 1. If connmark is not set on the first skb seen by the rule,
->     perform flow classification (based on dmac addr and n-tuple) and 
-> store the result in the ct's mark via ct mark set. Typically, this rule 
-> will be skipped when the connmark is already set for the flow.
-> 2. If connmark is already set (for subsequent packets), copy it to
->     skb->mark. Ideally, only this rule should be processed by the vast
->     majority of packets for the flow.
-> There are three advantages we see in this solution for this use case:
-> 1. We wanted to avoid incurring the cost of n-tuple match for every
->     single packet at the netdev egress hook, by applying the
->     classification rule (tuple match and connmark set) only for the 
-> first packets until connmark is set.
+Is there a chance to pick it up for nf-next before the 7.4 merge window,
+or do you prefer that I resend once 7.4-rc1 is out?
 
-Hmmm.  Conntrack has overhead.  Did you check that bringing
-in conntrack into the picture really saves cycles?
-
-If you assume conntrack is already active anyway to provide NAT, etc,
-then my point is moot.  But in that case all that is needed is to
-permit retrieving ct->mark in netdev egress chains, which is much
-simpler and doesn't require conntrack enablement.
-
-> 2. Adding the rules at the egress hook of the netdev restricts the
->     scope of these rules only to packets egressing the netdev of
->     interest, without incurring the cost of processing these rules for
->     traffic egressing on other netdevs in the system or other hooks.
-
-I think that IFF you really need to bring in full-blown conntrack, then
-Pablos proposal makes sense.
-
-However, I think that we really have to make many more changes to
-make this work, even to existing bridge conntrack support.
-
-As-is, bridge conntrack is no 'works out of the box' solution, it
-requires extra setup (conntrack zones) to separate VLANs or you risk
-unwanted cross-vlan-traffic.
-
-I think we'd have to bring at least the vlan id into the nf_conn
-entry and auto-separate such entries if request is coming from
-bridge resp. netdev hook.
+Thanks,
+Antonio
