@@ -1,96 +1,79 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66ED7283FC4
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2026 03:24:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E0CA3E92A5
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2026 08:52:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792121100; cv=none; b=hZywAS4h7Ul3e95Oy/zFqJMRNSUdmbtoVHcaF5Q/yBF3z9BecNLSZqdGv8qPjw43tnaR+QlrIgJKuDvRoro7WCVmfzReIJjgWB7QyGW7PmB1l6A0TlowqM+opOoXqj+m7ysgMBLGSUtZD5CUmbSwj8jNEXaQQYM8jZQaWXKQy08=
+	t=1792140736; cv=none; b=Kp8dn9B/mRYGv7t6ruqiNBK3MKE/VTl/mN3GI46IPed1RVGiXRddxefXL6PDp8gIVdbrTc0Tl+MfjDzCYPzTqIkt+5eoxMpfLeXHEKWMTiUNktaX5niRr+4m4wDaYETp0C4zRo0ZVKPm7ImTDFPwFKfZJKAtu3Ti92mdqZIyygs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792121100; c=relaxed/simple;
-	bh=VAYw88I+9VaH/VE5jLaVfKqISjAXRKl1BsTI072NjBo=;
-	h=From:To:Cc:Subject:Content-Type:MIME-Version; b=HZw4FWU9QDZ+m6k2YHlgR5X2DTeMufTz110nogYIYSQzml8aVTQd/AZM2y2gaRT8kTZ5wuHbreIRL2bcbOLxmWPH1zlTK4CtYlqMYgsc3Wk0R6hwEUStpGAfhDZ2DvDryhZ/OAWngTchND4vPDAPGF8mTfG6DETUezBbb2g/6dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 26fa4ea4c91111f19a56ed5b684f684d-20261016
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:e99a3753-6991-4277-b2ee-7ff55e409373,IP:0,U
-	RL:0,TC:0,Content:-5,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION
-	:release,TS:-5
-X-CID-META: VersionHash:7db8b62,CLOUDID:8924c9f4fdca0f80d0ba0e61f374d9df,BulkI
-	D:nil,BulkQuantity:0,SF:102|136|865|898,TC:nil,Content:0|15|50|99,EDM:-3|-
-	100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0
-	,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 26fa4ea4c91111f19a56ed5b684f684d-20261016
-X-User: yupeng@kylinos.cn
-Received: from [127.0.1.1] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <yupeng@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 898783022; Fri, 16 Oct 2026 11:24:53 +0800
-From: YuPeng <yupeng@kylinos.cn>
+	s=arc-20240116; t=1792140736; c=relaxed/simple;
+	bh=uJ1fw8txAPH7HOgGZLLgBAqtW0qOV0CByG3IzXHMbyw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=QzTRNIm0ikUlbnNe/9JQH1lYYKCaFsaG9h+izrg0geKojrZjbugsbZtrpqXD2yZapnP84oOLsrRcbSZjuvBTkkr7XqqVX4+mJ2gWKd95lx58q0cra51tYkK9o5w60jlVP1m7PwKMQ9v9IVQZYfl1ONz0CaSiKYd8Y/kmcqRNhyM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XR/zxgPc; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XR/zxgPc"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792140725;
+	bh=U7wrGPGvypBKnlXL7pe0M4uIo5aNCdsm4Tg/k5HZnIo=;
+	h=From:To:Subject:Date:From;
+	b=XR/zxgPcDNY8EnDiMjuJmAXxpPwetbKdlWOwrom3KvyLKkhOg0jtFcTVtTrl07ZPU
+	 ZvLiot/g7ssIJ0Mabff7EntwM43JIF6tq528coG4C2cF3Wj+7U8Xk2zJQKiTcRE6K+
+	 UJ2zjl6JQbMyTqoz1mPUNWDusUkMePL0GzMcH4K3qWs6Ohf3G+yV6SpVhohJzSlhrQ
+	 9LTpPhiK0VfOXDCI6ED/TBRMRBdECL1D6ZOtU0TLBTWSLDs6hb9QxqbV9/2mzesmhm
+	 ugeO43lsgajKAUNhbIE1/GO2VyKS0pyAOZGeW1hRq9cpwmaG8J3vMzDAJWpzuI7n1X
+	 LFepJ4c5KkHng==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3B9A260050
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2026 10:52:05 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de, phil@nwl.cc, debianyu@163.com
-Subject: [PATCH] extensions: ebt_string: Remove spurious inverse check for
- --string-icase
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: [PATCH nf-next] netfilter: flowtable: do not hw offload flows in teardown state
+Date: Fri, 16 Oct 2026 10:52:01 +0200
+Message-ID: <20261016085202.1670076-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <20261016032457.aGsnigsngplFaMnyoCZR-AVxNmI_dNbq-9j77nd7-w8@z>
+Content-Transfer-Encoding: 8bit
 
---string-icase is registered as a no_argument option, so getopt_long
-always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
-macro contains a mandatory-argument guard:
+Sashiko reports that refreshing hw offload from packet path is racy
+since the flow might be already going away. Refresh the flow instead via
+GC worker to address this, ie. if hardware offload fails, next GC run
+will give this flow a chance to offload it to hardware.
 
-	if (!optarg) {
-		__ebt_print_error("Option without (mandatory) argument");
-		return -1;
-	}
+Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
+status bit"), GC skips flow entries that are still pending to be
+offloaded. Let's just check for the teardown status bit after the
+pending bit is set on to address this race.
 
-so every use of --string-icase aborts parsing with the misleading error
-"Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
-can never be set.  The option has been broken since it was added in
-commit b1cdae8 ("extensions: Add string filter to ebtables").
-
-Reproducer (no privileges required):
-
-  $ ebtables-legacy --string-icase
-  Option without (mandatory) argument.
-
-The inverse check makes no sense for a flag option that takes no
-argument, so simply remove it.
-
-This fix was originally carried in the Kylin Linux SRPM since 2022;
-the commit message has been rewritten to describe the actual failure
-mode observed on current master.
-
-Signed-off-by: YuPeng <yupeng@kylinos.cn>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/ebt_string.c | 2 --
- 1 file changed, 2 deletions(-)
+Another attempt, aiming at a more simple approach to address the race.
 
-diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
-index 97fbe19..74a1bfa 100644
---- a/extensions/ebt_string.c
-+++ b/extensions/ebt_string.c
-@@ -174,8 +174,6 @@ static int parse(int c, char **argv, int argc, const stru=
-ct ebt_u_entry *entry,
- 		break;
- 	case STRING_ICASE:
- 		ebt_check_option2(flags, OPT_STRING_ICASE);
--		if (ebt_check_inverse2(optarg))
--			ebt_print_error2("Unexpected `!' after --string-icase");
- 		info->u.v1.flags |=3D XT_STRING_FLAG_IGNORECASE;
- 		break;
- 	case STRING:
---=20
-2.39.5
+ net/netfilter/nf_flow_table_offload.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 5aed013d6468..0473696ddb1d 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1101,8 +1101,9 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 		return NULL;
+ 
+ 	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+-	if (!offload) {
++	if (!offload || test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+ 		clear_bit(NF_FLOW_PENDING, &flow->flags);
++		kfree(offload);
+ 		return NULL;
+ 	}
+ 
+-- 
+2.47.3
+
