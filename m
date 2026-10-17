@@ -1,109 +1,107 @@
-Received: from mail-yx1-f53.google.com (mail-yx1-f53.google.com [74.125.224.53])
+Received: from mail-yx1-f54.google.com (mail-yx1-f54.google.com [74.125.224.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E56B4481658
-	for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 10:37:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F9D7479898
+	for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 10:37:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.54
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792233465; cv=pass; b=tUslgcXDISnGsUtgUhfyDGDIP/vOD8dnzIAxDAspQAx6FMFDPoimwIr1pmNNmzEkATv7YTmlsSpnpO9Fz4gR6hzoJbb9UMmsN131OdepVnrZ3l1IQoABgxg+CKhhSwAibfBZX3iSfVOQC8eYYBz5y5TvEyKJZpTUQEtXEkjsNX4=
+	t=1792233481; cv=pass; b=IoZUZpvNPIMWc8Hm/EjNA5uYgBgBDeA4L7QHaUdQrU3JktHp+gfikCvxYllUNY1IEUbZmnnPecWksNCUF5gC6yWMsM7PtMTwUef4qVglp2NukY8uiFBPbc+Qk2NqBNcEdUuGvh/rIQVemOHOU2JGFHstuDaflCfUcbWsxmB/nvY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792233465; c=relaxed/simple;
-	bh=DdTRwYsOyMO2Pon1eB9HGGKKuUN6WYiZ/XENSt+d+ow=;
+	s=arc-20240116; t=1792233481; c=relaxed/simple;
+	bh=lpQm89oJ+ypIsAu728Xi2E+HeQLkTJDqgEphRq69EuQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=i9/qFT11JD+UjqQV3+tPdAUpbl0K+kLX4Eu7kOzuC+NN99xRSALRsTG9V2pTdsmzk0sHcQ+FeSzPxaX62BWjGzagAdz5tFGDUL/q6oc14lHKIUozpEhL6BO2dD8VVTeEA/olUBscJUbU0cSyYoj7UTCcyQ7gjGesMt8KAE72OMY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=Gz8k7RRe; arc=pass smtp.client-ip=74.125.224.53
+	 To:Cc:Content-Type; b=ogwElfp6OTJzzTBzZmVS7+aiPWKijja3OQsqjV7zD9oG9Mk4k1B9WJ6ujVU/rC6c/MPWWyz0K4Z5bjmgRGSTv44ndssvvYwA2lVQIMJeKt4IBP4frA1IxbPHIKWN/whr2nTM3Xig10E9B0s6WAJUw1EBXeo+mOVYtGINTjaS1LQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=uSrfBAHd; arc=pass smtp.client-ip=74.125.224.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="Gz8k7RRe"
-Received: by mail-yx1-f53.google.com with SMTP id 956f58d0204a3-6740e7ae219so610767d50.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 03:37:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792233462; cv=none;
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="uSrfBAHd"
+Received: by mail-yx1-f54.google.com with SMTP id 956f58d0204a3-677af43eed4so712388d50.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 03:37:59 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792233478; cv=none;
         d=google.com; s=arc-20260327;
-        b=KtuDB3TutUhXOpyQt6y3PrpRzDvXiiLKDmX16T73rGV9V28sXyG4xpPWgcd2tx5SS9
-         KPvoCiA1mSXn2/t+IgffJBdj26+34/TYi7oQ8d5L+w1PFWZMrkPIkrW7bsWoxQNE7zGV
-         eiWwTg0/4sQlpZ9cVXr3ZsWaB6358VQK/BYnUUolEjAaRIj9BJ1q/C/eKPOvBTIZQGZG
-         WY3h9v5EHr+uvrunj4JkcC6/iuGXfdf4qkj2GNNsSOsjstyhXwonnMAeCGQZ4jt3E3Pg
-         UxTAy70EcwkgWSF3YwYRRI5PcngJApPkoqlAh9EFn16kP8rfqpjYf4tDqf4wgQvTSkRn
-         7wcA==
+        b=b3a8Uvu2uH3Avb+3YkoEHYH5NzV26nGrDq4+gWSmGkAdtZqFwszfZo9aTS/cs3MT65
+         XgCTdc8wI9BK8dQsmAKpgoiOTkMIBmde+tb786dPMcjj/JfTSgXC9h/5T2YrBqcpKl6p
+         R3dqdhTzXTdqohyJw3iW38vUKcuZJHEToMGmFDTdocEFVDxjpYrkf8a+YOXXwQwTfNeZ
+         ofJ8IurDEjYGJx5vqj1kDQg66xbe83mvUCgMiu4zVAZNtK/fxvDAm3ff6M0Y30Vj66CH
+         hfefIUGZv6q7g//rgNzKH6a6g7AqjRHuSprpvw8liYxoF6wgjLsfBh1BaWA+BqkspuQK
+         m1Vw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature;
-        bh=8xQtVA18Ly6EVrTffA/+C9Ju5Q0HewYi23Ad/Eu06YI=;
-        fh=QunbvaQ4C9YKUh+jeoC2bpmRClLMMAcpASKq0ct3s9w=;
-        b=Z3IB8ztn4ICnk+dMY8bnn11ccEPJtlpYCxMq76NEznKolHproHCqNgHc2qlOUoQ0zn
-         sTN0xMcCr3FgFtqqPcep7qIAXtHK8LoPj/UxKfgFebw5nW8maed5x4SOleSz1d4uj571
-         oMYLcThusl4mJgQxuG7iR1CqA93enNa7ZG4onLy6TaQJmVv+WCBJ5yq5YQUVWz1Qc3kv
-         CHt8SH3bjmanKGEHshvvx/QynuFb/oSP9uUnufQ8TrMcPJpX6mqTia2F/n2A9zJCTR5c
-         oOlQxWbqSsPyy2UMshxjVJgV2Y5yeY/AsQ5NDhIv2+uEm9634dclvRWBSkj99KWMXYmm
-         5N7Q==;
+        bh=MRmDjnl0l5zRiljfJEoqVKQPlK3YrtzEIxHy6EIjrqI=;
+        fh=smm+gLePgRc4O3utR/hrYNMh8ALy6v83+qfCv+np4Sg=;
+        b=WrbiD7Hbh4KTfuI1PjsAq2p+rVom7q3wUAsR0fRG4ys2D12SN0JerxfwQkm7LJxug1
+         E6KtfiVECQIPxRmIgfupaHLYkun4AOLM7KsQyRo09apKK8we8dpy0MC/iEQax3p5WPJO
+         iZczyxTQTb4mbORsvODlAX1E6T4TkZDYjcGQbmeMu1YpIiUZvJlcctzplSTiA4YpZkAP
+         MrBuJ1/3e1GYYW1zdFcJ3K3mv2NpHy2Kbs5Ko44gSpO966sNNBDu8Lfj/vo2U/kGByLt
+         F0hrcmFCr65wNX6sDCmKKPTKzOPYBCl5S3RYZv2GrgEB7faOrxg0HUkEBVLo2C1QtQ8e
+         qDYQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792233462; x=1792838262; darn=vger.kernel.org;
+        d=bairaktaris.de; s=google; t=1792233478; x=1792838278; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=8xQtVA18Ly6EVrTffA/+C9Ju5Q0HewYi23Ad/Eu06YI=;
-        b=Gz8k7RReE/vgqJIU2IlmmvzZtxgqj7Zoz1Pqg9mI57Ea0Zjc9gnNpvTRM8DDyEByI8
-         KR4iQRBvgZjjOWswddPDV1Tl/sWmckZUrR2NlxR2jl42h63QQUetaHO6ieZGz/8wmWZ3
-         MIMzj31omne/mFjOOAKGgAvjQvM4c5omH1sOhnT8KjKTdWh1dAQoSfuwK6uVJCwBNqPh
-         T1TQ6e8QIYjRj9JeRF+24xakerjrFEM5UAcQ4d4Iy3cwyT2oKVeqH5JvCYZfYnk3oJYk
-         emC21QpdAUUd5mZGxoOv7FN+tsAPAl43Cx/+SW3/XatAAY+2Jukl3l07heiWDmO3MnXX
-         02UA==
+        bh=MRmDjnl0l5zRiljfJEoqVKQPlK3YrtzEIxHy6EIjrqI=;
+        b=uSrfBAHdi1kw9pdt1rRTCQCehVBqjUEphMkLAn0rsLnrx+5ggEOimnaLY1KxVWaqt7
+         MFA9g3PukgfK3de9suYNHp+wRQhMIdnXuVX8piqOwIdbYoqI2aqQis6r2p672DZUm2gs
+         3XwloHvq4YrTg3wNq36EM1Ac+3ovf92RV0JIPE+C+vAtZdA5Q7Xe8XUdEhLA5Q5N1QfF
+         shmTiDwC8XYNrOrNQi/qLkSkYM0BcY8Fciu14sFA2gEaD8tz18+6oM3O9/eBUwfYd0Gf
+         6B30H42afOEQhvlU/HpurAov8omsrFT8lMItKRtDOtI48x/FfVgxst8Y5MwIW4GG26eG
+         jUuA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792233462; x=1792838262;
+        d=1e100.net; s=20260707; t=1792233478; x=1792838278;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=8xQtVA18Ly6EVrTffA/+C9Ju5Q0HewYi23Ad/Eu06YI=;
-        b=rnXJuqQMRu6broazmxbyDby6KZzgeKVIV8WpXNWL/Mp08GrzxhL5ZNCgHhVJmaZkiV
-         DcQWGxFDD9DFRUYeSCSx87tdzh7YejsZhz3nRkF8TLtBUPTgcmqbr0Dohpi2rL5DoBzm
-         aW3YaHRsWVZo4yvR5x3IzFJEcZLWDatMiq9+m+Mg4Sj+PVM5i2ERP/mrnxOeGqfgfqWI
-         3TtW9lL+doNr5NIO64+PRmAN24a5kAl/WkRmG2rUG7DXCA9Uao/pJ8gg7vKB4qy308iR
-         o1vXcFSrq+VgOiOpOfZ7MiXCHMT8H3fSlEZTC1bd5qMeqFh3I+ao3jgj0TbeedmkOUGO
-         JT9w==
-X-Gm-Message-State: AFq9FYLD4h0Xcs42/Aj1DK15wv4m2fy5YG8lq1y1SZKBi9vLnEYLzoVh
-	WXGklSmOqAivsYEjVuyt44xfAIINxZig+9Jl6taI+5ScG4u74nSEXAEF2wM93aaM8/RUa/EPQW4
-	2qrE0Kzeur23XSkSJggwzVM9pDX9cQZHONVmAU3M9426kz6pEnqZ4hKgd
-X-Gm-Gg: AYBFou1/I16bI/wfLfvgkxH88oC93Qo9QsNdZZKE1flp3rt12B82cSxgX8pazZYCJev
-	ve5eLGH2O7OWDJjs/vuhTYIVxlDVjH2PNHxL5qdh7yogdSZl0HRvKl/W9UJY90dIVR7QFgIHa6L
-	dlMsMuHRwbgxNe3fgqiKNu4c7m5GZOeeuj6hcEJk0JKhbWMLo8je9AQ9/XcGaXUC5XfBi0DIr6B
-	dCiRtuulDbr8eEgQVKdUbqeYnwXjn6d+mVbAeRrmHajUmQSu9hKo9emL+vYUfwWlFYP1rljN7To
-	p9qocPT4MWt7QTv8eYQp6MmEIMrOcYmX4jS/LkZZsBEeOFKYp/7s0mb7x71MaegcR3IhsfQyO/G
-	yDmN133qlq7Hgkwr5UO2MGqH9QMhnySPl+yD9FKuoWq66a7Od7nkVBMCtTN9wKFnzMmyCpxSETd
-	4WnIY4sM9emdcG5KV+BCLFiSdIIAPpdKskUJB7GuoKIDfYXwP8sZ6+spsIgpMwCoN3f9i12gxBK
-	0GldxJiII++EM15uByY+CDy4uFTRS4VuZC+QibwW8y+/dJKrjqKwgIiRFb9jluD+mk7uYKAibUo
-	Yz1agHpTpo5iJg==
-X-Received: by 2002:a05:690e:1913:b0:674:981:a937 with SMTP id
- 956f58d0204a3-679ca914780mr522735d50.121.1792233461776; Sat, 17 Oct 2026
- 03:37:41 -0700 (PDT)
+        bh=MRmDjnl0l5zRiljfJEoqVKQPlK3YrtzEIxHy6EIjrqI=;
+        b=ZsgBRjDgL9gNrNX33NrSUJPTWkqVwNE0v1fAbhznNOvh9kNvLCPD3Gcaf2I7eN7rGM
+         Gqr+C7gBdttJiTHCM9GPOyXDozW3z7Ri4+ry5PnVk8bR768Q35/czWEuQtTB8BS8LRJP
+         RnJ2EU7g/dl0qs1DkmOVipkXs6Og6RJvurONBcXm9VYwNg/DAtxJk0NxXlGlTSsRe8Wb
+         I0ZQkaQLQ1Br+x2NLiuQTrw7vpFOpWcWlQ0U5zGEPUSDTy35fmvN7G+vjUwxJbDxm6Ru
+         W4gBJsj5ptuJnwHG1zsbz3uVrZwywMI6aljTH2nKynXbYcb6vNQ/p73nvv1MqzbwFgkw
+         PSSQ==
+X-Forwarded-Encrypted: i=1; AKwUvBw+g9yTiKbyqQWyVFWUBjCRMnkZ6YV6qymfSJXm5wJTV/hmsuke9EOmrEQ6bp6deGUwOcu3AA1WcogPPuBWKQU=@vger.kernel.org
+X-Gm-Message-State: AFq9FYKPoG81BlMhMfEn1Wro9ussv9So4BY56lGtWZjt2l+hal6BYn92
+	tpY3hZxeFnTL7OSP1P4DZ9Zjzf4LHglKgQF8JKAlx7ZFSmGqYOJDKGLoEJUgjwGHXP61d5Ge7RE
+	g4FJLrUHOv9wLVEsmEWnqNf60lRtv5CvsAKRSuAWd
+X-Gm-Gg: AYBFou3+DFpK561IWktpghs6S4pAzoqQa9Hp104cYn4aHKdBTjpq5/n47/WxDpvMTFy
+	/4T7tIFN0virutEYBvsNayVyC33HXsUQlOzSro6G+cNvxh7cZF9ArJiZqCzG3+vdycvlXAUqTU5
+	mU7kJBfFCn9RLfm5Q4o9azVMbCAqDEO275VcB43rTko79062HLjnlXA5/Zd+hLc5UPFcZWHVuxI
+	Hq8X7+0d/kbbCrlEvQhXCFXhhUog6cCZL8u+MuE+oEB5EmbABxLTdcOqz8aKfuSIqO+sOOVaLN/
+	jZRJoLARGTDJWUMDhLFpuSzxdBRiL9CI+tvKRcooGh6xbjOytbNdWA+HnnlhMxU46ZfyTMhTVPj
+	pOayiJGCsXaAQOzOttH20/B5xNCxZVQEA8URuh8397fhTz9OE7btndk6fVRgiVU8ohmcaZJt+vM
+	LKBcgQiSJhVYX5xNN6EgjErYIlPxFz6U8N+N0/H2gO5iurCMaJ+NrYLyZojP1O1mGsmUm0omKxr
+	uXh3d1YpN2lebD8rGeyh6NFWtg7Ri7EGGCrEzOgaO81nv0hqmB2KY+OpA6qWHbAQTuqtf8gnQnW
+	fKrJoWzWVvWVHg==
+X-Received: by 2002:a05:690e:4812:b0:677:ac49:ebc4 with SMTP id
+ 956f58d0204a3-679ca883777mr533948d50.67.1792233478237; Sat, 17 Oct 2026
+ 03:37:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261004171616.3544880-1-julius@bairaktaris.de>
-In-Reply-To: <20261004171616.3544880-1-julius@bairaktaris.de>
+References: <20261004171628.3544978-1-julius@bairaktaris.de>
+In-Reply-To: <20261004171628.3544978-1-julius@bairaktaris.de>
 From: Julius Bairaktaris <julius@bairaktaris.de>
-Date: Sat, 17 Oct 2026 10:37:05 +0000
-X-Gm-Features: AclHuK-ma-16nXT2QPoniX4Y6rIglK1_-HkBDcD-pfQT-pjJWoWmgSkOWis1dDQ
-Message-ID: <CAC1t37LLnXEaD2YDSj1iBBxezSKjHGNqm_AR9G4s5Nhy_O=9mA@mail.gmail.com>
-Subject: Re: [PATCH nf-next 0/3] netfilter: flowtable: update upper device
- stats in the fast path
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, andrew+netdev@lunn.ch, 
-	shuah@kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nbd@nbd.name
+Date: Sat, 17 Oct 2026 10:37:21 +0000
+X-Gm-Features: AclHuK82J-XBozK4zoTEoCCy3jbA2RmbzrDB-Adm8RVieBFQXiCNHqYkufTba4U
+Message-ID: <CAC1t37JvSaXzbp_spXteQojKL6EvRLLUrwvwSO5e9pcJ4cpaPQ@mail.gmail.com>
+Subject: Re: [PATCH nf-next v2 0/4] netfilter: offload a TCP flow whose reply
+ is never seen
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Cc: kadlec@netfilter.org, fw@strlen.de, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, geldot@protonmail.com, shuah@kernel.org, 
+	linux-kselftest@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-Hi Pablo, Florian,
+Hi Pablo,
 
-gentle ping on this series. Let me know if you'd like anything
-changed.
+gentle ping on v2. Let me know if you'd like anything changed.
 
 Thanks,
 Julius
@@ -112,41 +110,54 @@ Julius
 Am So., 4. Okt. 2026 um 17:16 Uhr schrieb Julius Bairaktaris
 <julius@bairaktaris.de>:
 >
-> With the software flowtable, packets bypass the bridge, VLAN, PPPoE and
-> tunnel devices above the flowtable device, so their counters only see
-> the first packets of each connection. The classic forwarding path
-> always counts them, so this series does too, without a flag.
+> A router that sees only one direction of a TCP connection, because the
+> reply takes another path, cannot offload it: conntrack marks the
+> client's ACK after the SYN invalid, and the flowtable only takes assured
+> TCP connections. The setup this comes from is two subnets on one L2
+> segment, with the server answering over the shared segment.
 >
-> Patch 1 adds VLAN stats helpers; it touches include/linux/if_vlan.h, so
-> a netdev ack would let it go through nf-next. Patch 2 updates the
-> counters from the fast path with the lengths the classic path counts.
-> Patch 3 adds bridge, VLAN and tunnel counter checks to nft_flowtable.sh,
-> which fail without patches 1 and 2.
+> The series adds no TCP state:
+> - patch 1 hands that ACK to the existing loose pickup in tcp_new(),
+>   gated by nf_conntrack_tcp_loose, as if the SYN had not been seen
+> - patch 2 keeps the reply direction of such a flow on the classic path
+>   until the connection is assured, as act_ct does for UDP
+> - patch 3 offloads the connection in the original direction and caps
+>   the timeout handed back to conntrack at UNACK, as
+>   nf_conntrack_tcp_packet() does
+> - patch 4 adds a selftest, which fails without patches 1 to 3
 >
-> Hardware offloaded flows are not counted. A GSO packet sent through a
-> PPPoE device counts once, not once per segment.
->
-> Cost: struct flow_offload grows from 296 to 328 bytes (slab object 320
-> to 384). Forwarding from a bridge with a VLAN port to a veth in an x86
-> guest, mean of three interleaved runs without/with the series: TCP
-> 55.7/55.0 Gbit/s, 64 byte UDP 177/173 kpps.
+> Pablo, on v1 you asked how TCP tracking copes without the reply
+> direction, and guessed right that the goal is flowtable offload. The
+> connection is tracked like a loose mid-stream pickup today: window
+> checks are off in both directions, and a FIN or RST still takes the
+> flow off the flowtable.
 >
 > This series was written with the help of an AI coding assistant. I have
 > reviewed and tested it.
 >
-> Julius Bairaktaris (3):
->   8021q: add vlan_dev_sw_netstats_rx_add() and
->     vlan_dev_sw_netstats_tx_add()
->   netfilter: flowtable: update upper device stats in the fast path
->   selftests: netfilter: nft_flowtable.sh: check upper device counters
+> Changes in v2:
+> - patch 2: the XDP flowtable lookup does not return the held reply tuple
+> - patch 3: cap the conntrack timeout at UNACK while no reply was seen
+> - rebased onto nf-next
 >
->  include/linux/if_vlan.h                       | 36 ++++++++++
->  include/net/netfilter/nf_flow_table.h         |  8 ++-
->  net/netfilter/nf_flow_table_core.c            |  3 +
->  net/netfilter/nf_flow_table_ip.c              | 53 +++++++++++++++
->  net/netfilter/nf_flow_table_path.c            |  9 +++
->  .../selftests/net/netfilter/nft_flowtable.sh  | 67 +++++++++++++++++++
->  6 files changed, 175 insertions(+), 1 deletion(-)
+> v1: https://lore.kernel.org/netfilter-devel/20260910090052.2034970-1-julius@bairaktaris.de/
+>
+> Gary Dotzler (2):
+>   netfilter: conntrack: pick up a TCP flow whose SYN was never answered
+>   netfilter: nft_flow_offload: offload a TCP flow that has no reply
+>
+> Julius Bairaktaris (2):
+>   netfilter: flowtable: promote a flow offloaded in one direction only
+>   selftests: netfilter: cover a TCP flow whose reply is never seen
+>
+>  include/net/netfilter/nf_conntrack_l4proto.h  |  9 +++
+>  net/netfilter/nf_conntrack_proto_tcp.c        | 16 ++++
+>  net/netfilter/nf_flow_table_bpf.c             |  4 +
+>  net/netfilter/nf_flow_table_core.c            |  5 ++
+>  net/netfilter/nf_flow_table_ip.c              | 26 +++++++
+>  net/netfilter/nft_flow_offload.c              |  6 +-
+>  .../selftests/net/netfilter/nft_flowtable.sh  | 75 +++++++++++++++++++
+>  7 files changed, 139 insertions(+), 2 deletions(-)
 >
 >
 > base-commit: 87b80c2f6b05cad9f0ff9136709c62a0f59923e3
