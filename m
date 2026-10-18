@@ -1,94 +1,39 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F3F53594A
-	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 00:04:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE8C43AB0
+	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 00:06:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792281879; cv=none; b=YFnz+FVHWcmXS2ejJR8Zf+oRRCuPmYJXuTwGcN1aet2gB4HQQFSynkM7AV2cT7lGX93naV5DUyYxKH6psC/6r+irTQXeof4CHl9YCGbIbh0CVaMo89PpUvo0K6g+UdMwiL9TKQxjOzx46b44HLQxER/FFSyeUlYx9JolMFWNTv8=
+	t=1792281975; cv=none; b=n4ruuU9CR7z0ffBk967wvWpqOtO+AtQN6lIWcOkQM8Z5G1Wz03fZNsKlrI6VPmPgR20Zfoc4WG8RuIyhHkeDthscsplP4WWLXxrSykIYT7mAg5kA9463Y2FFNQ/nC5DOESUeV90FSTfirdoy9DwgWlzzWOJ9uwFktcuZxVNfcbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792281879; c=relaxed/simple;
-	bh=CRQqrOceBO7jj8qsVMNU69Rgv5g+O9xd6prK5pGo2OU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dgtRi0APDT0ooXDw6xsgiV9s+vO67Vb4wtYS48eNN9p2Z4/WUHgik4gydiodAiFx5tAw6gc5bJhuLWWi/Xqv/UxeKo9luzxwU+Qa211GVMv4mTxSOBs+zAIlgc8b87BwkRpsYEFmyFK+Cq4QwYltPBgCU4T/Y9Vk4jWLTh3K9tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=wrS99lpF; arc=none smtp.client-ip=209.85.208.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
+	s=arc-20240116; t=1792281975; c=relaxed/simple;
+	bh=MV1LeJq/R19qHH+HUFtbJU08hDkUuVhN/JBSpl6SKWA=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=VDWcT+h8/baZwT/gIgQEezs9t9ouiv11WWY1BGdheMGkMEYHLlIAqFEOKWKytzNZIoCg24B2DZClISpZCyl8H/lXXUyOPG9Q798T/AKWHn0k8MHbJCkQWrrkIkIG2n6r47Jch2bzEVzmhD6UJKdwQr3OHvH+RkgZ3rHw+7ZHxDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R+v0NdNb; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="wrS99lpF"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6aa9164072cso1228702a12.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 17:04:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792281877; x=1792886677; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=CRQqrOceBO7jj8qsVMNU69Rgv5g+O9xd6prK5pGo2OU=;
-        b=wrS99lpFGWtZLKGWR0lQJ1G4dWf0F8rdvLmplwnrl7eZuJj9y+AAVPy61YLO4vSFko
-         ygpRejT+eE5ojuzBoDX+28F6eP5HfClpRry2yUs/T4E5yuE9yIueVhWWuPU2CUjakexC
-         3jj/AmhjLpgdirLaovAR5yC7REB2yQamlkStMvNe8Lenkw0iSrNr88TqvTWyVshTIMT4
-         KlnTQXDnjRgDcPj2gyznwdozndDfPd12mBb2uHrs0jc9yvr8Te4NcCt3BRSAWeXqyCff
-         quM2G7ZepjIb0f8un5GcBM1ep6MkPCx9V2Rk30BGW5FTRQI6/5Uq2QB70eMe6ZDKCiLJ
-         0F/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792281877; x=1792886677;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=CRQqrOceBO7jj8qsVMNU69Rgv5g+O9xd6prK5pGo2OU=;
-        b=JkPqJJ4bV4v5WF9l6Y7JiIE3YajB3/tN5RvPPCUAWNSVntY/PwR15zA//25tZ7Zae1
-         BFZePDmIHAGtPrAVw1YdLgOehiMan4fQvmafP032UEMpVzLsdGheHuNS9kPaHnbDCxA1
-         MURF8XJRYJ6cph8faeAMLiGtU6KhczE7Tc+8ZKUmvCNlrBKBjU5ZW4/4VbFhxYKmlCng
-         UP8MdnySNPvb5T7KVZYFZTSVuWuHeqSewn56RMj50kKuik6gSz6CmwXAIgwNjp4457P7
-         e1blGEM2b7or4t+aShQcw1556GmXxA6AY/vkQhS9twn6PdmbQkPsd9K8IsaS3Wx18s8z
-         Nm7g==
-X-Gm-Message-State: AFq9FYLy13nISmKDgcUMmvWF7GG160sFIqSSSI1NpMUkMF4WPi82nUjj
-	DkYDerie0BZz57u9sULxndqOijKwshKG07SDdTfp1rrqiktvnfhuKkEBjPhcsh9fKw==
-X-Gm-Gg: AYBFou0bHr+ydUHWASn1huSvIN668ag9hRw0Nn3wN3VBbbm3TYk7pGsE+A60lOusQOA
-	yOjeGmJUUKz49KQo1L1JXN7fXLqtMzmgPJgDNXBnCJO9Mn/6FqrCmrUwo6ySYD/DunBIcaBgtFx
-	roY5N05TzwSSQD5QP/1hUmUUxxUk+8mn72egPQnfE4toDSC/xfwCczTUJM1PuHlusWfRwa7++a5
-	o/ergMunIZ3WXuD19Er79iATOQQkPiOjkZc2JmktV4MohwWoYkWNypRe0pOfWzBgdTDIcdYAPPE
-	Ff5YkFh4DXyPd9Eg8RXgb7rLA7m7ZOkfrA1p3V7muhsjM5TzlG32Gg55ujEA4ShB+SVJqP157mJ
-	6MDRAH8iYY3Bv7QXpRbBCI0STy6hQinj7jYhfgMh+87d4/WIWLdA6D00ss7wJaimQyE6gTceJL2
-	xO0heimGeu48hXas1IciHxZFF5D50/TIq1GDF9l8H2vRGK3uSmLOon2HWQmE2UU7clTlUBrgPQ8
-	N/OnfeRwSN24m06COqyRm515WA4zU9/RkDwJJdcfg1yPT29lKFkmc2aCO7pCGJkn7cbvelFgRxg
-	I/JEcIjNaAnqb3/6X12lzzX3nZJAv09/CnCR6V8u6A6orOCX7mgU/W6p+dR28HWwwbljO+jMM2U
-	RkA5hUlMw1R3DMgzZ4613ZP7GMtW39OE0beNSN8MN8cHPCY1UoW+OzGP7XYLZ1a6iJn4q33lP9o
-	ms1PkBMR52CoNxyHXrgnTJeveKIzE33VusN1egIlFLuKzHwWA7kC9Qp12P8OdeAm6pXqIHorvTa
-	/W0WTdG
-X-Received: by 2002:a17:907:9713:b0:c2c:d06f:cf89 with SMTP id a640c23a62f3a-c419a942f35mr242613066b.2.1792281876811;
-        Sat, 17 Oct 2026 17:04:36 -0700 (PDT)
-Received: from Desktop.fritz.box (p200300f247412f10cc8c3f7d773dd5eb.dip0.t-ipconnect.de. [2003:f2:4741:2f10:cc8c:3f7d:773d:d5eb])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c40912ce05csm213267866b.33.2026.10.17.17.04.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Oct 2026 17:04:35 -0700 (PDT)
-From: Julius Bairaktaris <julius@bairaktaris.de>
-To: pablo@netfilter.org
-Cc: netfilter-devel@vger.kernel.org,
-	fw@strlen.de,
-	kadlec@netfilter.org,
-	phil@nwl.cc,
-	horms@kernel.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	shuah@kernel.org,
-	razor@blackwall.org,
-	idosch@nvidia.com,
-	ericwouds@gmail.com,
-	dqfext@gmail.com,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	bridge@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v7 1/2] netfilter: flowtable: tear down direct xmit flows when the fdb entry moves
-Date: Sun, 18 Oct 2026 02:04:33 +0200
-Message-ID: <20261018000433.1466958-1-julius@bairaktaris.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <atCsGx2IRecQNK3r@chamomile>
-References: <atCsGx2IRecQNK3r@chamomile>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R+v0NdNb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792281969;
+	bh=yCVakKsOLO1oDDz9Jhw6wuh7EBNlfwJ4GdpUI0HdFRk=;
+	h=From:To:Subject:Date:From;
+	b=R+v0NdNbNnRBPZ8cG7qPFmacK6fxpUncsmest5fhK6M46Oljb3cpDy7dldWg1Myg8
+	 oUlugGpIBInOeZhKfX6KY4Octufs/LLSzYKJV3zsCfHYdQlqQkkH/5cnnyTttzSd66
+	 4FqfQypwmeD5689URCWvNmWCTwEZfi2UQH7hJiRZH4Tt/pLUSt2i+UtKsTqtJrUskb
+	 LXx44EldynvfbYVZZ6EV2zrDBose10XMoSb7WskD/3R82V5Ent7pJtj+bpgIKE14kB
+	 9/+K3+gYBq3cZYS4P1PFJOWT0wa6AK9couosqIPkTmyhLhAqF9XgYISRzmnsPqoi5x
+	 3oHc9PoQPjAbQ==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2620D600A1
+	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 02:06:09 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 1/2] netfilter: nfnetlink_queue: add helper function to retrieve hook entries
+Date: Sun, 18 Oct 2026 02:06:04 +0200
+Message-ID: <20261018000605.1748752-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -97,50 +42,92 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-(Resent as plain text, the first copy was HTML and did not reach the list.)
+Add nf_queue_hook_entry() and nf_queue_hook_entries() helper functions
+to retrieve hook entries and use them.
 
-Hi Pablo,
+This comes in preparation for a fix to restrict expectation creation to
+nfnetlink_cthelper.
 
-On Thu, Oct 15, 2026 at 12:34:06PM +0200, Pablo Neira Ayuso wrote:
-> > Assisted-by: Claude:claude-opus-5-5
->
-> I did not use this LLM assistance for my patch and I show as
-> co-developer here ;-)
+No functional changes are intended.
 
-The tag covers my changes on top of yours, v8 says so below ---.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue.c | 43 ++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
-> This comment is not needed? LLM likes to bloat code with unnecessary comments.
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a3bc00280051..5b45d67e71cd 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -358,30 +358,45 @@ static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
+ 	return ret;
+ }
+ 
++static const struct nf_hook_entries *
++nf_queue_hook_entries(struct nf_queue_entry *entry)
++{
++	const struct net *net = entry->state.net;
++	u8 pf = entry->state.pf;
++
++	return nf_hook_entries_head(net, pf, entry->state.hook);
++}
++
++static const struct nf_hook_entry *
++nf_queue_hook_entry(const struct nf_hook_entries *hooks,
++		    struct nf_queue_entry *entry)
++{
++	unsigned int i = entry->hook_index;
++
++	if (i >= hooks->num_hook_entries)
++		return NULL;
++
++	return &hooks->hooks[i];
++}
++
+ /* caller must hold rcu read-side lock */
+ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+ 	const struct nf_hook_entry *hook_entry;
+ 	const struct nf_hook_entries *hooks;
+ 	struct sk_buff *skb = entry->skb;
+-	const struct net *net;
+ 	unsigned int i;
+ 	int err;
+-	u8 pf;
+ 
+-	net = entry->state.net;
+-	pf = entry->state.pf;
++	hooks = nf_queue_hook_entries(entry);
++	if (!hooks)
++		goto drop;
+ 
+-	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
++	hook_entry = nf_queue_hook_entry(hooks, entry);
++	if (!hook_entry)
++		goto drop;
+ 
+ 	i = entry->hook_index;
+-	if (!hooks || i >= hooks->num_hook_entries) {
+-		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+-		nf_queue_entry_free(entry);
+-		return;
+-	}
+-
+-	hook_entry = &hooks->hooks[i];
+ 
+ 	/* Continue traversal iff userspace said ok... */
+ 	if (verdict == NF_REPEAT)
+@@ -417,6 +432,10 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 
+ 	nf_queue_entry_free(entry);
++	return;
++drop:
++	kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
++	nf_queue_entry_free(entry);
+ }
+ 
+ /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
+-- 
+2.47.3
 
-Removed.
-
-> Why LLM decided to rename this function? :-)
-
-No reason, back to fdb_valid_dst().
-
-> I think bridge_ifidx is not needed here and I am not sure we can cache
-> this value?
-
-Dropped. The gc now walks from out.ifidx to the bridge port through
-the vlan devices in the encap. A 2-bit port_vlans says how many there
-are.
-
-> Why do we need bridge_vid? See below to explain an alternative.
-
-[...]
-
-> A new flag might be need, but there is room for new flags to annotate
-> this VLAN header came from bridge filter filtering, I understand
-> info->encap is not enough.
-
-Dropped too, there is a bridge_vlan flag now. For an untagged port on
-a vlan_filtering bridge the vid is not in the encap, so the helper
-uses the port pvid.
-
-> Why LLM moved this away from nf_flow_dst_check()?
-
-Moved back, nf_flow_dst_valid() calls both.
-
-v8: https://lore.kernel.org/netfilter-devel/20261017235849.1066624-1-julius@bairaktaris.de/
-
-Thanks,
-Julius
