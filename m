@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814F82DF719;
-	Sun, 18 Oct 2026 00:56:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55DA82F7F0F;
+	Sun, 18 Oct 2026 00:56:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792285010; cv=none; b=Ze5HnKmmYW7iL+o7akMA8JLQaPpgTZfJsrVpTk25esndsXggLVIusj17T7CNPZMtr3hOf03E0KQZGRYvwqiMtkCYNOUoAOAg8c/V8sMI17Koevsq8ho/lVDhLNXaXGwSouCth1uq8jxmky7qj22GIIfJIhs95Ewzzld+geV7xWY=
+	t=1792285012; cv=none; b=OcrgrGy8forRbrlU6pKzxtpFcNiYjZGVRRG9EBeYKLCYRLZocO9gBNXyG86EsGRl4U2Td2nW5T4r3HFaCYdiMau2HWtGD1UgZmczm8MLDCbs0RO+3EsC25JPkaoLq/xQEcmLcB98bQRhVuWoGwG9wLVJNhWsZQrsxxqhGWrNnOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792285010; c=relaxed/simple;
-	bh=YjV+rOYLz2RdAPVt77TuHJtClJzKeBHqDB1deKQALTE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Zvx5RYM4J3w7m3yDqEApZ64nddhazCbsi7SMgCSlXZf/8YMQ4dG9EpTPEOKsusIugFPA2PfRWfzxSk+nxN78ETmyvHiXLOdSWAT2ok/IYT59DW1w5/PUdUri8KGIGNiQPw8CQ8QQZPRl8QJalR4lEbnmMZsQrt+f5B5MDR8JdZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j59037oJ; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1792285012; c=relaxed/simple;
+	bh=RaHOoftn4uL54J6lM1QLM5AKLVbWo8sRMqmdFNql+vc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=WTDx4O5Jddy8C08K9/QDgEPr/4kr6zPvFuszHqSVQIu18xUbyQKt8LbJqUWoa0mfZ4uBN0Q9+rVXCQufb4dgPRdWglnvXjzUMHKAnqRTvMYq/ciJcqB2p+a5RUf7KYBJVibntKwjBZB0qkcpQStrynpzdaicYVtcNCmyiVCUXoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZN7jboDK; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j59037oJ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZN7jboDK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792285005;
-	bh=+rW2fTfedRCps+LZcxg9239fAO2sGTs7XJe15BkPNFI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=j59037oJXkWfFJEHGumURVKXsyGDaoZ5rvghXM8FQCN8KniaCGkSgkMh3LZRAA/U5
-	 RqJigrVW2vADT0MVQjoQW2AGhg96I5Ty0kBXub4Ni/1WvzIjoi7+zBZY00Tnnd/lAN
-	 chdJ1cM77LVD2GoJmVrGYEFZBKtadO9J2Hcvh2mZnfFmC/QrtR9K91omVW8bcyzEBm
-	 OsEMaWb+qsKshBHy415nn2MxdVkC1Ka4glGsSRXb/z9xygZ+2wgXRDMwzuG1sX47vp
-	 OrGp0UKkW9N8G1uCZVfkRbncTyplAJ0m+ev3V/U+9OqNF7upyikE7DO1ebMyDsP3xR
-	 ByG8kZoC9wWew==
+	s=2025; t=1792285008;
+	bh=nY8Ge8LIbgZMa5CP4CSN2FfE9o/M8QmNqof3KDHOj+k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ZN7jboDK93CwGwajaoYV/Wxxbg7ES6UZSe094PutwqqyoJcZVeB7LUkYoUPfYGIPB
+	 TF0Oi+2331WMP6OdLPxLiXysBEhp6RpdVuaUQaj1EpetyoDV9S7AnSAI5pg4+nTGo2
+	 a3RlPWBBan3K25/4CU2DqsW1Atn797eIG5W3EDAuiZrxmNz9gGok8xHDYuX27gyoSd
+	 eYuKCjNc4SjesFQzQ6XOnVIvRQjmWFTkHwHD10YqlIjBbe7ZRhfXmg6wmmB1+Je8BW
+	 CYhPI7n7Cx9vGFTRrFZpp9oFa4ouvUTaJAwwBOVvT9HZcfZ14b9eQfPSxUWk9Mnk7t
+	 gDfMjEojnVrjQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6903260057;
-	Sun, 18 Oct 2026 02:56:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AD80F6005F;
+	Sun, 18 Oct 2026 02:56:47 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,10 +39,12 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 00/15] Netfilter updates for net-next
-Date: Sun, 18 Oct 2026 02:56:23 +0200
-Message-ID: <20261018005638.1776148-1-pablo@netfilter.org>
+Subject: [PATCH net-next 01/15] netfilter: disable br_netfilter in user namespaces
+Date: Sun, 18 Oct 2026 02:56:24 +0200
+Message-ID: <20261018005638.1776148-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261018005638.1776148-1-pablo@netfilter.org>
+References: <20261018005638.1776148-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,131 +53,165 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS updates for net-next:
+br_netfilter has way too many bugs, schedule for removal and disable
+the feature in user namespaces.
 
-1) Disable br_netfilter in userns and schedule it for removal in 2027,
-   from Florian Westphal.
+In particular, we get more and more gadgets to have bridge ports escape
+rcu_read_lock() protection, then underlying device gets reconfigured
+(macvlan or something else), then reinject into network stack causes
+crash because net_device is assumed to still have bridge rx data
+associated with it.
 
-2) Update selftest nft_queue.sh to make it more stable on debug
-   kernels, from Jakub Kicinski.
+br_netfilter is an ancient kludge that emulates ip stack from within the
+bridge and then calls into ipv4/ipv6 netfilter hooks to have bridged
+frames processed via iptables/ip6tables by setting the 'call-iptables'
+sysctls to 1. It is NOT related to ebtables or nftables 'bridge' family
+at all.
 
-3) Fix a overflow in IPVS sync messages which can only happen in very
-   old 2.6 kernels, from Julian Anastasov.
+Note that in addition to call-iptables, sysctls, the bridge also exposes
+call-iptables per bridge device via netlink and sysfs
+('BROPT_NF_CALL_IPTABLES') toggles.
 
-4) Finer grain packet drop in nfnetlink_queue when dependency objects
-   are going away, from Antonio Ojea.
+Those are still available, the brnet structure is scoped to br_netfilter;
+exposing it bridge-wide is a big no-no.
 
-5) Add a selftest for the nfnetlink_queue packet drop case, also
-   from Antonio Ojea.
+This relies on brnf_device_event() no longer registering the base
+br_netfilter hooks, so while BROPT_NF_CALL_IPTABLES can be set, it
+has no effect because the hooks that evaluate this feature bit
+are never registered.
 
-6) Flush conntrack gc worker when existing netns to address a unlikely
-   UaF, from Florian Westphal.
+brnf_init_net can no longer depend on CONFIG_SYSCTL, else such builds
+never disable support in user namespaces.
 
-7) Switch nf_tables chain types to use rcu, otherwise module removal
-   can trigger UaF, also from Florian.
+Cc: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ Documentation/networking/bridge.rst |  5 +++--
+ net/bridge/br_netfilter_hooks.c     | 33 ++++++++++++++++++++---------
+ 2 files changed, 26 insertions(+), 12 deletions(-)
 
-8) Remove redundant parsing in nft_exthdr for the tcp options case,
-   from Fernando F. Mancera.
+diff --git a/Documentation/networking/bridge.rst b/Documentation/networking/bridge.rst
+index c1e6ea52c9e5..dded1a6edd60 100644
+--- a/Documentation/networking/bridge.rst
++++ b/Documentation/networking/bridge.rst
+@@ -277,8 +277,9 @@ Netfilter
+ =========
+ 
+ The bridge netfilter module is a legacy feature that allows to filter bridged
+-packets with iptables and ip6tables. Its use is discouraged. Users should
+-consider using nftables for packet filtering.
++packets with iptables and ip6tables. This feature is scheduled for removal and
++not available in user namespaces. Consider using nftables for packet filtering
++instead.
+ 
+ The older ebtables tool is more feature-limited compared to nftables, but
+ just like nftables it doesn't need this module either to function.
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 0a394e5f4391..e15355ff215a 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -54,6 +54,7 @@ static unsigned int brnf_net_id __read_mostly;
+ 
+ struct brnf_net {
+ 	bool enabled;
++	bool in_userns;
+ 
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header *ctl_hdr;
+@@ -1100,7 +1101,7 @@ static int brnf_device_event(struct notifier_block *unused, unsigned long event,
+ 
+ 	net = dev_net(dev);
+ 	brnet = net_generic(net, brnf_net_id);
+-	if (brnet->enabled)
++	if (brnet->enabled || brnet->in_userns)
+ 		return NOTIFY_OK;
+ 
+ 	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
+@@ -1229,9 +1230,11 @@ static inline void br_netfilter_sysctl_default(struct brnf_net *brnf)
+ 	brnf->filter_pppoe_tagged = 0;
+ 	brnf->pass_vlan_indev = 0;
+ }
++#endif
+ 
+ static int br_netfilter_sysctl_init_net(struct net *net)
+ {
++#ifdef CONFIG_SYSCTL
+ 	struct ctl_table *table = brnf_table;
+ 	struct brnf_net *brnet;
+ 
+@@ -1259,25 +1262,39 @@ static int br_netfilter_sysctl_init_net(struct net *net)
+ 
+ 		return -ENOMEM;
+ 	}
+-
++#endif
+ 	return 0;
+ }
+ 
+ static void br_netfilter_sysctl_exit_net(struct net *net,
+ 					 struct brnf_net *brnet)
+ {
+-	const struct ctl_table *table = brnet->ctl_hdr->ctl_table_arg;
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header *header = brnet->ctl_hdr;
++	const struct ctl_table *table;
+ 
+-	unregister_net_sysctl_table(brnet->ctl_hdr);
++	if (!header)
++		return;
++
++	table = header->ctl_table_arg;
++	unregister_net_sysctl_table(header);
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
++#endif
+ }
+ 
+ static int __net_init brnf_init_net(struct net *net)
+ {
++	if (net->user_ns != &init_user_ns) {
++		struct brnf_net *brnet = net_generic(net, brnf_net_id);
++
++		brnet->in_userns = true;
++		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
++		return 0;
++	}
++
+ 	return br_netfilter_sysctl_init_net(net);
+ }
+-#endif
+ 
+ static void __net_exit brnf_exit_net(struct net *net)
+ {
+@@ -1289,15 +1306,11 @@ static void __net_exit brnf_exit_net(struct net *net)
+ 		brnet->enabled = false;
+ 	}
+ 
+-#ifdef CONFIG_SYSCTL
+ 	br_netfilter_sysctl_exit_net(net, brnet);
+-#endif
+ }
+ 
+ static struct pernet_operations brnf_net_ops __read_mostly = {
+-#ifdef CONFIG_SYSCTL
+ 	.init = brnf_init_net,
+-#endif
+ 	.exit = brnf_exit_net,
+ 	.id   = &brnf_net_id,
+ 	.size = sizeof(struct brnf_net),
+@@ -1318,7 +1331,7 @@ static int __init br_netfilter_init(void)
+ 	}
+ 
+ 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
+-	printk(KERN_NOTICE "Bridge firewalling registered\n");
++	pr_warn("br_netfilter is slated for removal in 2027.\n");
+ 	return 0;
+ }
+ 
+-- 
+2.47.3
 
-9) Remove redundant skb_header_pointer() calls in nft_exthdr for tcp
-   options, from Fernando F. Mancera.
-
-10) Fix conntrack_vrf.sh selftest return value in zone subtest,
-    from Florian Westphal.
-
-11) Restrict raw table in nft_compat to specific family, hook and
-    priority, from Florian Westphal.
-
-Prepare the flowtable to support for IPv4 over IPv6 tunneling and
-vice-versa, this includes 4 patches from Lorenzo Bianconi.
-
-12) Explicitly set inner protocol when popping header, this is not
-    needed for the existing IPIP and IP6IP6 case because skb->protocol
-    remains the same.
-
-13) Simplify tuple tunnel information fill up when parsing outer
-    tunnel IP headers.
-    
-14) Add a new encap_proto which determines the outer tunnel protocol
-    family.
-
-15) Prepare flowtable forwarding path to deal with mixed IPv4-IPv6
-    tunnels.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-10-18
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit a5e7d8e446af9803e37a3b6a4d416fb41178348f:
-
-  Merge branch '100GbE' of git://git.kernel.org/pub/scm/linux/kernel/git/tnguy/next-queue (2026-10-05 17:51:32 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-10-18
-
-for you to fetch changes up to d0107f38162279d9cb0e012210731176265f835d:
-
-  netfilter: flowtable: unify tunnel push for IPv4 and IPv6 (2026-10-18 02:42:04 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-10-18
-
-----------------------------------------------------------------
-Antonio Ojea (2):
-      netfilter: nf_queue: limit the hook drop flush to the unregistered hook point
-      selftests: netfilter: nft_queue: check the scope of the hook drop flush
-
-Fernando Fernandez Mancera (2):
-      netfilter: nft_exthdr: remove redundant op parsing in tcp_set_init
-      netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
-
-Florian Westphal (5):
-      netfilter: disable br_netfilter in user namespaces
-      netfilter: conntrack: fix unlikely UaF in gc worker
-      netfilter: nf_tables: switch chain_types array to rcu
-      selftests: netfilter: fix return value in zone subtest
-      netfilter: nft_compat: restrict raw table targets/matches
-
-Jakub Kicinski (1):
-      selftests: netfilter: nft_queue.sh: only queue icmp echo request/reply
-
-Julian Anastasov (1):
-      ipvs: fix buffer overflow when sending sync messages
-
-Lorenzo Bianconi (4):
-      netfilter: flowtable: set inner protocol when popping tunnel header
-      netfilter: flowtable: populate tunnel tuple regardless of inner protocol
-      netfilter: flowtable: add encap_proto to flow_offload_tunnel
-      netfilter: flowtable: unify tunnel push for IPv4 and IPv6
-
- Documentation/networking/bridge.rst                |   5 +-
- include/linux/netdevice.h                          |   1 +
- include/net/netfilter/nf_flow_table.h              |   1 +
- include/net/netfilter/nf_queue.h                   |   3 +-
- net/bridge/br_netfilter_hooks.c                    |  33 ++--
- net/ipv4/ipip.c                                    |   1 +
- net/ipv6/ip6_tunnel.c                              |   1 +
- net/netfilter/core.c                               |   2 +-
- net/netfilter/ipvs/ip_vs_sync.c                    |  23 +--
- net/netfilter/nf_conntrack_core.c                  |   7 +-
- net/netfilter/nf_flow_table_ip.c                   | 170 +++++++++++++--------
- net/netfilter/nf_flow_table_path.c                 |   2 +
- net/netfilter/nf_internals.h                       |   2 +-
- net/netfilter/nf_queue.c                           |   4 +-
- net/netfilter/nf_tables_api.c                      |  94 ++++++++----
- net/netfilter/nfnetlink_queue.c                    |  41 ++++-
- net/netfilter/nft_chain_nat.c                      |   1 +
- net/netfilter/nft_compat.c                         |  15 ++
- net/netfilter/nft_ct.c                             |   2 +-
- net/netfilter/nft_exthdr.c                         |  34 +++--
- .../selftests/net/netfilter/conntrack_vrf.sh       |  25 ++-
- tools/testing/selftests/net/netfilter/nf_queue.c   |  22 ++-
- tools/testing/selftests/net/netfilter/nft_queue.sh | 110 ++++++++++++-
- 23 files changed, 456 insertions(+), 143 deletions(-)
