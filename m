@@ -1,39 +1,39 @@
-Received: from mail-106117.protonmail.ch (mail-106117.protonmail.ch [79.135.106.117])
+Received: from mail-24422.protonmail.ch (mail-24422.protonmail.ch [109.224.244.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B211C3AFAE3
-	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 05:23:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.117
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2CAD37F30C
+	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 09:47:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792301036; cv=none; b=dUkw2BmLulykD0WTwOctzCwyVZUA2N/UlrQSOgFXMkpd34aN+W+GYv0v4PeQg0mOMi1S77lKgG9QNjd+E65h4yL/rFPQXVTz/e6FjwP4GKv4m0f0+pN3wkNlmIqeKjbz78ItiJ51CgPO1Ad/c6b4L+KH6UXwe0lTUSJHdf2nO+A=
+	t=1792316859; cv=none; b=X7tHVl1evyXGOINfm8XhKglH/szNN9OfwTEtgtNXvjolWNmLh38pmah1383zNl5vz15PwyNk9z9whSbi1y3Yj6B9U1M7vOmxgecw/ncIKh5fYc6aCyo96kHACvrLmdT7Hs59FuKYq34jNtFHB0Xpf885/KL7tsb2sL2lcYqnOaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792301036; c=relaxed/simple;
-	bh=AYLA1eK6MvsrUU+7rsMe2d5a3z3k3C0nwUUncysjajQ=;
-	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=U0bqDbdWabK/4vcigZO3o8vAx1OJaihYeqi0grRFjc/cN5eZcWr4sqkSAqAMTTqyA9MSU2L/NMizCfKiS8AV5gzH7i5yV+BhKyEv+Rt8JZVcnZRDj8vpSRnqNO7fyXJKi2Eud/0lC4gNiIVSoVXfppliekV84S64zbXNZ4Rlilo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=000ty.net; spf=pass smtp.mailfrom=000ty.net; dkim=pass (2048-bit key) header.d=000ty.net header.i=@000ty.net header.b=NASFlShP; arc=none smtp.client-ip=79.135.106.117
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=000ty.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=000ty.net
+	s=arc-20240116; t=1792316859; c=relaxed/simple;
+	bh=64p0GQlp2UzIc5MP/8s6kyYSTiPA0W6VAtw1iaEUteQ=;
+	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=arlim+qHAjX7kMmaazZNBQLuJurSvsKXnmBAA/Z6bYl7Smm+yFejCiz9TuiemxbGQ5Z+nv8FJgAiUc6b02wrItTIUHt7pc8QL7h1Ic1TT3/kdDIE4EVLU2/STMY1k8XJQs7yaCO25TLFXGMHFFrrrUkb4d+1sW0SzuPN6Xp3Cm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=trip-g.com; spf=pass smtp.mailfrom=trip-g.com; dkim=pass (2048-bit key) header.d=trip-g.com header.i=@trip-g.com header.b=yshEf+8C; arc=none smtp.client-ip=109.224.244.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=trip-g.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trip-g.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=000ty.net header.i=@000ty.net header.b="NASFlShP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=000ty.net;
-	s=protonmail2; t=1792301032; x=1792560232;
-	bh=Oicios0xcHzSkuTh3Wq8M+oqJEAXftx9IdU8oTchtC4=;
+	dkim=pass (2048-bit key) header.d=trip-g.com header.i=@trip-g.com header.b="yshEf+8C"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=trip-g.com;
+	s=protonmail2; t=1792316853; x=1792576053;
+	bh=iQUYJDeJ40AsL1tjv+d5HDPPrhtN0RTwYL3LxMizVyw=;
 	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
 	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=NASFlShP1uLBkLLiJEf1tdVS0h9ciT/O9ihAEYmNnSOw0Pxj6tYRDeonpbPG+7nOu
-	 n6bGAZbub0Kqzngm5Y9rM3/HXCOPvE7y8O6CoX+BITaHQIXhc/Ual4YKCz/NXYL4FT
-	 NBOKBMy42pmvXcg3ey1qh36jWK/UDo8Vrhe3Z7o7oo581xX7znNRVAHXdV5QihU0Rf
-	 hhroyUb8NpW+M7YP4d2IybUf1T9eFxiFnIW+mrUnp5DVRts/hoREMSgr7GKu/QTOM3
-	 TJIAhNGrLPKW3waC2tITfkBmalB/MhbABxNdGdgBDDFZr5/M7/6/V+oAp74jmOw2QI
-	 8Zh9HVIsdHWuA==
-Date: Sun, 18 Oct 2026 05:23:47 +0000
-To: netfilter-devel@vger.kernel.org
-From: Tamaki Yanagawa <ty@000ty.net>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, coreteam@netfilter.org, linux-kernel@vger.kernel.org, ty@000ty.net
-Subject: [PATCH nf v2] netfilter: ipset: don't mask the element in place in mtype_test_cidrs()
-Message-ID: <20261018052340.29588-1-ty@000ty.net>
-Feedback-ID: 168296199:user:proton
-X-Pm-Message-ID: 5181db6b60a6da08112c757c2f83389358e54945
+	b=yshEf+8CDpz7/e0DdtfUNn00X5/YFdfABoTCKh4M/0iOajnkfnLfDzOwT5IfBvY9X
+	 isCJU9sE8Y9Etlefb2spuuWulm8aU5DUUL9CLlmeB7Pfgyt6tLbRIFvOp9zqJW7JUx
+	 U7GvNFySvLAmn5BS2zXMEg/9cgiH9wq0Wn6lBNIGsRvT6ThZiQ89ulTRPD2nq8fnlS
+	 hmv5afkO+865phkgh2wh4fJ2PH2ZwEU3tQc+xUh7xaCrtkclECPz7wGrB6AdBmeexd
+	 MRLA1bi37YH+dJcz8woUAuZhi5a2Qt5FBYGm/WvEVD7QpdYjydcqZTdzX7M2jKv5jb
+	 fr9LQRiVTsgCg==
+Date: Sun, 18 Oct 2026 09:47:28 +0000
+To: Ahmed Zaki <anzaki@gmail.com>, netfilter-devel@vger.kernel.org, andrew@lunn.ch, olteanv@gmail.com, pablo@netfilter.org, fw@strlen.de, kuba@kernel.org, pabeni@redhat.com, edumazet@google.com
+From: Gregg <gregg@trip-g.com>
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: flowtable: update netdev stats with HW_OFFLOAD flows
+Message-ID: <dfca2078-e5ad-415e-89c6-eea1d1427dcf@trip-g.com>
+Feedback-ID: 34488774:user:proton
+X-Pm-Message-ID: 45c296a46c487f6d558e4ee84053fdc0eade6c71
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,156 +43,337 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-mtype_test_cidrs() masks the element under test in place with
-mtype_data_netmask() while walking the cidr array from the most to the
-least specific prefix. Since the walk is restarted on concurrent cidr
-array updates, the IPSET_NET_COUNT =3D=3D 1 types (hash:net, hash:net,port,
-hash:ip,port,net, hash:net,iface) rescan with an element already masked
-to the widest prefix tried, so a lookup can wrongly match a more specific
-entry at the network base address (e.g. 10.200.3.4 matching 10.0.0.0/29).
-Work on a local copy of the element that is reinitialised on every scan
-instead.
+Hi Ahmed,
 
-Fixes: e80456d79ec8 ("netfilter: ipset: remove need to allocate memory on d=
-elete operations")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Tamaki Yanagawa <ty@000ty.net>
-Assisted-by: Claude:claude-opus-5-5
----
-v2: work on a local copy of the element instead of restoring it before
-    rescanning (Florian Westphal)
-v1: https://lore.kernel.org/netfilter-devel/20261018035205.1008-1-ty@000ty.=
-net/
+One thing about the final read in flow_offload_work_del(), from
+testing the same idea on an MT7622 router (mtk_eth_soc PPE behind a DSA
+switch, OpenWrt 25.12.5, 6.12):
 
- net/netfilter/ipset/ip_set_hash_gen.h        | 18 +++++++++---------
- net/netfilter/ipset/ip_set_hash_netnet.c     |  4 ++--
- net/netfilter/ipset/ip_set_hash_netportnet.c |  4 ++--
- 3 files changed, 13 insertions(+), 13 deletions(-)
+> +static void flow_offload_work_del(struct flow_offload_work *offload)
+> +{
+> +=09struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> +
+> +=09flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0=
+]);
+> +=09if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+> +=09=09flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
+> +=09=09=09=09=09 &stats[1]);
+> +=09flow_offload_netdev_update(offload, stats);
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip=
-_set_hash_gen.h
-index 80ca523f30..e0d970a25e 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1298,18 +1298,17 @@ mtype_data_match(struct mtype_elem *data, const str=
-uct ip_set_ext *ext,
-  * sizes added to the set
-  */
- static int
--mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
-+mtype_test_cidrs(struct ip_set *set, const struct mtype_elem *orig,
- =09=09 const struct ip_set_ext *ext,
- =09=09 struct ip_set_ext *mext, u32 flags)
- {
- =09struct htype *h =3D set->data;
- =09struct htable *t =3D rcu_dereference_bh(h->table);
- =09struct net_prefixes *nets0;
-+=09struct mtype_elem *data, d;
- =09struct hbucket *n;
--=09struct mtype_elem *data;
- #if IPSET_NET_COUNT =3D=3D 2
- =09struct net_prefixes *nets1;
--=09struct mtype_elem orig =3D *d;
- =09unsigned int seq1;
- =09int ret, i, j, k;
- #else
-@@ -1322,6 +1321,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_ele=
-m *d,
- =09pr_debug("test by nets\n");
- =09rcu_read_lock_bh();
- retry:
-+=09d =3D *orig;
- =09multi =3D 0;
- =09nets0 =3D rcu_dereference_bh(h->rnets[0]);
- =09seq0 =3D read_seqcount_begin(&nets0->seq);
-@@ -1335,18 +1335,18 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_e=
-lem *d,
- =09=09if (!p0.count)
- =09=09=09continue;
- #if IPSET_NET_COUNT =3D=3D 2
--=09=09mtype_data_reset_elem(d, &orig);
--=09=09mtype_data_netmask(d, p0.cidr, false);
-+=09=09mtype_data_reset_elem(&d, orig);
-+=09=09mtype_data_netmask(&d, p0.cidr, false);
- =09=09for (k =3D 0; k < nets1->len && !multi; k++) {
- =09=09=09struct net_prefix p1 =3D READ_ONCE(nets1->nets[k]);
-=20
- =09=09=09if (!p1.count)
- =09=09=09=09continue;
--=09=09=09mtype_data_netmask(d, p1.cidr, true);
-+=09=09=09mtype_data_netmask(&d, p1.cidr, true);
- #else
--=09=09mtype_data_netmask(d, p0.cidr);
-+=09=09mtype_data_netmask(&d, p0.cidr);
- #endif
--=09=09key =3D HKEY(d, h->initval, t->htable_bits);
-+=09=09key =3D HKEY(&d, h->initval, t->htable_bits);
- =09=09n =3D rcu_dereference_bh(hbucket(t, key));
- =09=09if (!n)
- =09=09=09continue;
-@@ -1355,7 +1355,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_ele=
-m *d,
- =09=09=09if (!test_bit_acquire(i, n->used))
- =09=09=09=09continue;
- =09=09=09data =3D ahash_data(n, i, set->dsize);
--=09=09=09if (!mtype_data_equal(data, d, &multi))
-+=09=09=09if (!mtype_data_equal(data, &d, &multi))
- =09=09=09=09continue;
- =09=09=09ret =3D mtype_data_match(data, ext, mext, set, flags);
- =09=09=09if (ret !=3D 0)
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset=
-/ip_set_hash_netnet.c
-index f7c8a1cc30..522ec51374 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -85,7 +85,7 @@ hash_netnet4_data_reset_flags(struct hash_netnet4_elem *e=
-lem, u8 *flags)
-=20
- static void
- hash_netnet4_data_reset_elem(struct hash_netnet4_elem *elem,
--=09=09=09     struct hash_netnet4_elem *orig)
-+=09=09=09     const struct hash_netnet4_elem *orig)
- {
- =09elem->ip[1] =3D orig->ip[1];
- }
-@@ -323,7 +323,7 @@ hash_netnet6_data_reset_flags(struct hash_netnet6_elem =
-*elem, u8 *flags)
-=20
- static void
- hash_netnet6_data_reset_elem(struct hash_netnet6_elem *elem,
--=09=09=09     struct hash_netnet6_elem *orig)
-+=09=09=09     const struct hash_netnet6_elem *orig)
- {
- =09elem->ip[1] =3D orig->ip[1];
- }
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/i=
-pset/ip_set_hash_netportnet.c
-index 61af1ce271..a170b5dd89 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -88,7 +88,7 @@ hash_netportnet4_data_reset_flags(struct hash_netportnet4=
-_elem *elem, u8 *flags)
-=20
- static void
- hash_netportnet4_data_reset_elem(struct hash_netportnet4_elem *elem,
--=09=09=09=09 struct hash_netportnet4_elem *orig)
-+=09=09=09=09 const struct hash_netportnet4_elem *orig)
- {
- =09elem->ip[1] =3D orig->ip[1];
- }
-@@ -382,7 +382,7 @@ hash_netportnet6_data_reset_flags(struct hash_netportne=
-t6_elem *elem, u8 *flags)
-=20
- static void
- hash_netportnet6_data_reset_elem(struct hash_netportnet6_elem *elem,
--=09=09=09=09 struct hash_netportnet6_elem *orig)
-+=09=09=09=09 const struct hash_netportnet6_elem *orig)
- {
- =09elem->ip[1] =3D orig->ip[1];
- }
+FLOW_CLS_STATS returns what the hardware counted since the previous
+query. This read takes the last chunk, but it only goes to the netdev
+counters. Conntrack never sees it, and once it's read the driver won't
+report it again. Today that tail is lost because nobody reads it; with
+this hunk it would still be lost for conntrack.
 
-base-commit: ab699d296e066eb64f51d2a8a1d42237a3b186c8
---=20
-2.52.0.windows.1
+The tail isn't small. nf_flow_offload_stats() only queues a query once
+less than 90% of the offload timeout remains, so a busy flow is polled
+about every 3 s. A flow that ends with a FIN is torn down without the
+traffic since the last poll. Measured on the MT7622, one TCP download
+of exactly 100 MiB (110.27 MB at L3), server closing right after the
+data, conntrack -L read every 2 s:
+
+  last stats poll before the close:   98,735,760
+  with a final read into conntrack:   110,270,254
+
+Without the final read, conntrack stops at the last poll's value, about
+11 MB short here. The exact final value also needed a separate mtk_ppe
+fix in OpenWrt's out-of-tree accounting patch; netfilter isn't involved
+in that part. On a home router with a stock kernel, a fast single
+download ended 41% short in conntrack/ulogd.
+
+The final read could feed both. For example, pull the
+NF_FLOWTABLE_COUNTER / nf_ct_acct_add() block out of
+flow_offload_work_stats() into a helper and call it here next to
+flow_offload_netdev_update(). Or have flow_offload_work_del() simply
+call flow_offload_work_stats(), which is what we did locally:
+
+ static void flow_offload_work_del(struct flow_offload_work *offload)
+ {
+ =09clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
++=09flow_offload_work_stats(offload);
+ =09flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+
+(It also pushes flow->timeout forward, which doesn't matter at that
+point.)
+
+The netdev counters themselves would help us too. The DSA user port
+(wan) misses all offloaded traffic today, which is why we read the
+switch MIB with ethtool instead. I'm happy to test a v3 on MT7622 if
+that's useful.
+
+Thanks,
+gregg
+
+
+On 2026-03-24 16:40, Ahmed Zaki wrote:
+> Some drivers (notably DSA) delegate the nft flowtable HW_OFFLOAD flows
+> to a parent driver. While the parent driver is able to report the
+> offloaded traffic stats directly from the HW, the delegating driver
+> does not report the stats. This fails SNMP-based monitoring tools that
+> rely on netdev stats to report the network traffic.
+>=20
+> Add a new struct pcpu_sw_netstats "fstats" to net_device that gets
+> allocated only if the new flag "flow_offload_via_parent" is set by the
+> driver. The new stats are lazily allocated by the nft flow offloading
+> code when the first flow is offloaded. The stats are updated periodically
+> in flow_offload_work_stats() and also once in flow_offload_work_del()
+> before the flow is deleted. For this, flow_offload_work_del() had to
+> be moved below flow_offload_tuple_stats().
+>=20
+> Signed-off-by: Ahmed Zaki <anzaki@gmail.com>
+> ---
+>  include/linux/netdevice.h             | 45 ++++++++++++
+>  net/core/dev.c                        |  8 +++
+>  net/netfilter/nf_flow_table_offload.c | 98 +++++++++++++++++++++++++--
+>  3 files changed, 145 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+> index 67e25f6d15a4..647758f78213 100644
+> --- a/include/linux/netdevice.h
+> +++ b/include/linux/netdevice.h
+> @@ -1840,6 +1840,11 @@ enum netdev_reg_state {
+>   *=09@stats:=09=09Statistics struct, which was left as a legacy, use
+>   *=09=09=09rtnl_link_stats64 instead
+>   *
+> + *=09@fstats:=09HW offloaded flow statistics: RX/TX packets,
+> + *=09=09=09RX/TX bytes. Lazily allocated by the flow offload
+> + *=09=09=09path on the first offloaded flow for devices that
+> + *=09=09=09set @flow_offload_via_parent. Freed by free_netdev().
+> + *
+>   *=09@core_stats:=09core networking counters,
+>   *=09=09=09do not use this in drivers
+>   *=09@carrier_up_count:=09Number of times the carrier has been up
+> @@ -2048,6 +2053,12 @@ enum netdev_reg_state {
+>   *=09@change_proto_down: device supports setting carrier via IFLA_PROTO_=
+DOWN
+>   *=09@netns_immutable: interface can't change network namespaces
+>   *=09@fcoe_mtu:=09device supports maximum FCoE MTU, 2158 bytes
+> + *=09@flow_offload_via_parent: device delegates nft flowtable hardware
+> + *=09=09=09=09  offload to a parent/conduit device (e.g. DSA
+> + *=09=09=09=09  user ports delegate to their conduit MAC).
+> + *=09=09=09=09  The parent's HW count the offloaded traffic
+> + *=09=09=09=09  but this device's sw netstats path does not.
+> + *=09=09=09=09  @fstats is allocated to fill that gap.
+>   *
+>   *=09@net_notifier_list:=09List of per-net netdev notifier block
+>   *=09=09=09=09that follow this device when it is moved
+> @@ -2233,6 +2244,7 @@ struct net_device {
+> =20
+>  =09struct net_device_stats=09stats; /* not used by modern drivers */
+> =20
+> +=09struct pcpu_sw_netstats __percpu *fstats;
+>  =09struct net_device_core_stats __percpu *core_stats;
+> =20
+>  =09/* Stats to monitor link on/off, flapping */
+> @@ -2463,6 +2475,7 @@ struct net_device {
+>  =09unsigned long=09=09change_proto_down:1;
+>  =09unsigned long=09=09netns_immutable:1;
+>  =09unsigned long=09=09fcoe_mtu:1;
+> +=09unsigned long=09=09flow_offload_via_parent:1;
+> =20
+>  =09struct list_head=09net_notifier_list;
+> =20
+> @@ -2992,6 +3005,38 @@ struct pcpu_lstats {
+> =20
+>  void dev_lstats_read(struct net_device *dev, u64 *packets, u64 *bytes);
+> =20
+> +static inline void dev_fstats_rx_add(struct net_device *dev,
+> +=09=09=09=09     unsigned int packets,
+> +=09=09=09=09     unsigned int len)
+> +{
+> +=09struct pcpu_sw_netstats *fstats;
+> +
+> +=09if (!dev->fstats)
+> +=09=09return;
+> +
+> +=09fstats =3D this_cpu_ptr(dev->fstats);
+> +=09u64_stats_update_begin(&fstats->syncp);
+> +=09u64_stats_add(&fstats->rx_bytes, len);
+> +=09u64_stats_add(&fstats->rx_packets, packets);
+> +=09u64_stats_update_end(&fstats->syncp);
+> +}
+> +
+> +static inline void dev_fstats_tx_add(struct net_device *dev,
+> +=09=09=09=09     unsigned int packets,
+> +=09=09=09=09     unsigned int len)
+> +{
+> +=09struct pcpu_sw_netstats *fstats;
+> +
+> +=09if (!dev->fstats)
+> +=09=09return;
+> +
+> +=09fstats =3D this_cpu_ptr(dev->fstats);
+> +=09u64_stats_update_begin(&fstats->syncp);
+> +=09u64_stats_add(&fstats->tx_bytes, len);
+> +=09u64_stats_add(&fstats->tx_packets, packets);
+> +=09u64_stats_update_end(&fstats->syncp);
+> +}
+> +
+>  static inline void dev_sw_netstats_rx_add(struct net_device *dev, unsign=
+ed int len)
+>  {
+>  =09struct pcpu_sw_netstats *tstats =3D this_cpu_ptr(dev->tstats);
+> diff --git a/net/core/dev.c b/net/core/dev.c
+> index f48dc299e4b2..07fb315ad42c 100644
+> --- a/net/core/dev.c
+> +++ b/net/core/dev.c
+> @@ -11865,6 +11865,7 @@ struct rtnl_link_stats64 *dev_get_stats(struct ne=
+t_device *dev,
+>  {
+>  =09const struct net_device_ops *ops =3D dev->netdev_ops;
+>  =09const struct net_device_core_stats __percpu *p;
+> +=09const struct pcpu_sw_netstats __percpu *fstats;
+> =20
+>  =09/*
+>  =09 * IPv{4,6} and udp tunnels share common stat helpers and use
+> @@ -11893,6 +11894,11 @@ struct rtnl_link_stats64 *dev_get_stats(struct n=
+et_device *dev,
+>  =09=09netdev_stats_to_stats64(storage, &dev->stats);
+>  =09}
+> =20
+> +=09/* This READ_ONCE() pairs with cmpxchg in flow_offload_fstats_ensure(=
+) */
+> +=09fstats =3D READ_ONCE(dev->fstats);
+> +=09if (fstats)
+> +=09=09dev_fetch_sw_netstats(storage, fstats);
+> +
+>  =09/* This READ_ONCE() pairs with the write in netdev_core_stats_alloc()=
+ */
+>  =09p =3D READ_ONCE(dev->core_stats);
+>  =09if (p) {
+> @@ -12212,6 +12218,8 @@ void free_netdev(struct net_device *dev)
+>  =09free_percpu(dev->pcpu_refcnt);
+>  =09dev->pcpu_refcnt =3D NULL;
+>  #endif
+> +=09free_percpu(dev->fstats);
+> +=09dev->fstats =3D NULL;
+>  =09free_percpu(dev->core_stats);
+>  =09dev->core_stats =3D NULL;
+>  =09free_percpu(dev->xdp_bulkq);
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
+w_table_offload.c
+> index b2e4fb6fa011..fc1e67a79904 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -925,13 +925,80 @@ static void flow_offload_work_add(struct flow_offlo=
+ad_work *offload)
+>  =09nf_flow_offload_destroy(flow_rule);
+>  }
+> =20
+> -static void flow_offload_work_del(struct flow_offload_work *offload)
+> +static bool flow_offload_fstats_ensure(struct net_device *dev)
+>  {
+> -=09clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+> -=09flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+> -=09if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+> -=09=09flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
+> -=09set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+> +=09struct pcpu_sw_netstats __percpu *p;
+> +
+> +=09if (!dev->flow_offload_via_parent)
+> +=09=09return false;
+> +
+> +=09/* Pairs with cmpxchg() below. */
+> +=09if (likely(READ_ONCE(dev->fstats)))
+> +=09=09return true;
+> +
+> +=09p =3D __netdev_alloc_pcpu_stats(struct pcpu_sw_netstats, GFP_ATOMIC);
+> +=09if (!p)
+> +=09=09return false;
+> +
+> +=09if (cmpxchg(&dev->fstats, NULL, p))
+> +=09=09free_percpu(p);=09/* lost the race, discard and use winner's */
+> +
+> +=09return true;
+> +}
+> +
+> +static u32 flow_offload_egress_ifidx(const struct flow_offload_tuple *tu=
+ple)
+> +{
+> +=09switch (tuple->xmit_type) {
+> +=09case FLOW_OFFLOAD_XMIT_NEIGH:
+> +=09=09return tuple->ifidx;
+> +=09case FLOW_OFFLOAD_XMIT_DIRECT:
+> +=09=09return tuple->out.ifidx;
+> +=09default:
+> +=09=09return 0;
+> +=09}
+> +}
+> +
+> +static void flow_offload_netdev_update(struct flow_offload_work *offload=
+,
+> +=09=09=09=09       struct flow_stats *stats)
+> +{
+> +=09const struct flow_offload_tuple *tuple;
+> +=09struct net_device *indev, *outdev;
+> +=09struct net *net;
+> +
+> +=09rcu_read_lock();
+> +=09net =3D read_pnet(&offload->flowtable->net);
+> +=09if (stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts) {
+> +=09=09tuple =3D &offload->flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tup=
+le;
+> +=09=09indev =3D dev_get_by_index_rcu(net, tuple->iifidx);
+> +=09=09if (indev && flow_offload_fstats_ensure(indev))
+> +=09=09=09dev_fstats_rx_add(indev,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_ORIGINAL].bytes);
+> +
+> +=09=09outdev =3D dev_get_by_index_rcu(net,
+> +=09=09=09=09=09      flow_offload_egress_ifidx(tuple));
+> +=09=09if (outdev && flow_offload_fstats_ensure(outdev))
+> +=09=09=09dev_fstats_tx_add(outdev,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_ORIGINAL].bytes);
+> +=09}
+> +
+> +=09if (stats[FLOW_OFFLOAD_DIR_REPLY].pkts) {
+> +=09=09tuple =3D &offload->flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple;
+> +=09=09indev =3D dev_get_by_index_rcu(net, tuple->iifidx);
+> +=09=09if (indev && flow_offload_fstats_ensure(indev))
+> +=09=09=09dev_fstats_rx_add(indev,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_REPLY].pkts,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_REPLY].bytes);
+> +
+> +=09=09outdev =3D dev_get_by_index_rcu(net,
+> +=09=09=09=09=09      flow_offload_egress_ifidx(tuple));
+> +=09=09if (outdev && flow_offload_fstats_ensure(outdev))
+> +=09=09=09dev_fstats_tx_add(outdev,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_REPLY].pkts,
+> +=09=09=09=09=09  stats[FLOW_OFFLOAD_DIR_REPLY].bytes);
+> +=09}
+> +=09rcu_read_unlock();
+>  }
+> =20
+>  static void flow_offload_tuple_stats(struct flow_offload_work *offload,
+> @@ -968,6 +1035,25 @@ static void flow_offload_work_stats(struct flow_off=
+load_work *offload)
+>  =09=09=09=09       FLOW_OFFLOAD_DIR_REPLY,
+>  =09=09=09=09       stats[1].pkts, stats[1].bytes);
+>  =09}
+> +
+> +=09flow_offload_netdev_update(offload, stats);
+> +}
+> +
+> +static void flow_offload_work_del(struct flow_offload_work *offload)
+> +{
+> +=09struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> +
+> +=09flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0=
+]);
+> +=09if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+> +=09=09flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
+> +=09=09=09=09=09 &stats[1]);
+> +=09flow_offload_netdev_update(offload, stats);
+> +
+> +=09clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
+> +=09flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
+> +=09if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+> +=09=09flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
+> +=09set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
+>  }
+> =20
+>  static void flow_offload_work_handler(struct work_struct *work)
 
 
