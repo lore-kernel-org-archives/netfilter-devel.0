@@ -1,42 +1,47 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B36297081A
-	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 00:06:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814F82DF719;
+	Sun, 18 Oct 2026 00:56:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792281975; cv=none; b=P6Mk9VECgZOgCpr2YkuOzTJzwhinQYxhhBN1KQW1tvTaYBNDRuwWbvNiyjrzrZukDyJbwW4uVf/ljOA8mX5unwTz02msdsuEykp7Q1tnsqn1gVzWvqYn0v6zOzQMU5ZM3+AFZXZIH7WXZqlaVEsKtX0VhJeguAiMfN0UN397sX8=
+	t=1792285010; cv=none; b=Ze5HnKmmYW7iL+o7akMA8JLQaPpgTZfJsrVpTk25esndsXggLVIusj17T7CNPZMtr3hOf03E0KQZGRYvwqiMtkCYNOUoAOAg8c/V8sMI17Koevsq8ho/lVDhLNXaXGwSouCth1uq8jxmky7qj22GIIfJIhs95Ewzzld+geV7xWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792281975; c=relaxed/simple;
-	bh=2UVU/62kVcA57pKU+yrzvhXKhGqJXNqGh7gzuIPAZ/Q=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gFJYcuFqJDMBPCmg1/DPxz2cnDOgq1K1jHdd5Mpk8H14IBWdUdob+ND8YtGmu1zU8LAOCYMaRBEH0Vqr85J3b/WdiS0Fl2N26KtDsfOvz1eqJy9CtdA1jfD6oARI/kFuqzpQ1+KhWIjvVPE9Aa5NTqRE0xWkOC0IQ1NLed1eKoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Hq/NDETD; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1792285010; c=relaxed/simple;
+	bh=YjV+rOYLz2RdAPVt77TuHJtClJzKeBHqDB1deKQALTE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Zvx5RYM4J3w7m3yDqEApZ64nddhazCbsi7SMgCSlXZf/8YMQ4dG9EpTPEOKsusIugFPA2PfRWfzxSk+nxN78ETmyvHiXLOdSWAT2ok/IYT59DW1w5/PUdUri8KGIGNiQPw8CQ8QQZPRl8QJalR4lEbnmMZsQrt+f5B5MDR8JdZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j59037oJ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Hq/NDETD"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j59037oJ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792281971;
-	bh=xlfMkuHvoM6QYSO6UzI4haCDewKwHGHfLyRxyqkma8g=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=Hq/NDETD4K0C+ty8tgay1RVGN8HiIjhzJ9c+IOo5xOMj6eEPmvNWqDqNjZnTAPJN9
-	 FDNKnFJW1CtqkR4OaBKTV4u6yBsaJk/8kvQz0YNquMz/B3Q3cR3pU2pjXtWo/Xp65Q
-	 Ow6nW/nviwA1mIvthJmpNME7tIE4edhp34hDxztxmpP9V/lIYdBmJOiDcbW5Q3e/cY
-	 p0pZsAaRAMVI9yz7xHoetz5ow11ZPvfB8EFKtQLFhx5sqSnekNKVkG7W5JGT76P5oQ
-	 CF80MRlbphw9gbpxumOJRmIfNGRfa2kT8vnHGxiTNLAy/D9BvAg+zNNsTBzURpayoj
-	 XGZFqrmiyrawQ==
+	s=2025; t=1792285005;
+	bh=+rW2fTfedRCps+LZcxg9239fAO2sGTs7XJe15BkPNFI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=j59037oJXkWfFJEHGumURVKXsyGDaoZ5rvghXM8FQCN8KniaCGkSgkMh3LZRAA/U5
+	 RqJigrVW2vADT0MVQjoQW2AGhg96I5Ty0kBXub4Ni/1WvzIjoi7+zBZY00Tnnd/lAN
+	 chdJ1cM77LVD2GoJmVrGYEFZBKtadO9J2Hcvh2mZnfFmC/QrtR9K91omVW8bcyzEBm
+	 OsEMaWb+qsKshBHy415nn2MxdVkC1Ka4glGsSRXb/z9xygZ+2wgXRDMwzuG1sX47vp
+	 OrGp0UKkW9N8G1uCZVfkRbncTyplAJ0m+ev3V/U+9OqNF7upyikE7DO1ebMyDsP3xR
+	 ByG8kZoC9wWew==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8B2BE600A3
-	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 02:06:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6903260057;
+	Sun, 18 Oct 2026 02:56:45 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 2/2] netfilter: nfnetlink_queue: restrict NFQA_EXP to userspace helpers
-Date: Sun, 18 Oct 2026 02:06:05 +0200
-Message-ID: <20261018000605.1748752-2-pablo@netfilter.org>
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@kernel.org,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net-next 00/15] Netfilter updates for net-next
+Date: Sun, 18 Oct 2026 02:56:23 +0200
+Message-ID: <20261018005638.1776148-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261018000605.1748752-1-pablo@netfilter.org>
-References: <20261018000605.1748752-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,61 +50,131 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Adding expectations to unconfirmed conntracks are problematic because of
-reallocations of the ct extension area can happen while expectations are
-placed in the ct extension expectation list.
+Hi,
 
-NFQA_EXP was added with the purpose of supporting userspace conntrack
-helpers, which create expectations in the postrouting hook with priority
-NF_IP_PRI_CONNTRACK_CONFIRM.
+The following patchset contains Netfilter/IPVS updates for net-next:
 
-Restrict this feature to userspace conntrack helpers.
+1) Disable br_netfilter in userns and schedule it for removal in 2027,
+   from Florian Westphal.
 
-Fixes: bd0779370588 ("netfilter: nfnetlink_queue: allow to attach expectations to conntracks")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue.c | 28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+2) Update selftest nft_queue.sh to make it more stable on debug
+   kernels, from Jakub Kicinski.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 5b45d67e71cd..c2237328cca5 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1758,10 +1758,30 @@ static struct nf_conn *nfqnl_ct_parse(const struct nfnl_ct_hook *nfnl_ct,
- 	if (nfnl_ct->parse(nfqa[NFQA_CT], ct) < 0)
- 		return NULL;
- 
--	if (nfqa[NFQA_EXP])
--		nfnl_ct->attach_expect(nfqa[NFQA_EXP], ct,
--				      NETLINK_CB(entry->skb).portid,
--				      nlmsg_report(nlh));
-+	if (nfqa[NFQA_EXP]) {
-+		const struct nf_hook_entries *hooks;
-+		struct nf_hook_ops **ops;
-+		unsigned int i;
-+
-+		hooks = nf_queue_hook_entries(entry);
-+		if (!hooks)
-+			return NULL;
-+
-+		ops = nf_hook_entries_get_hook_ops(hooks);
-+		if (!ops)
-+			return NULL;
-+
-+		i = entry->hook_index;
-+		if (i >= hooks->num_hook_entries)
-+			return NULL;
-+
-+		if (ops[i]->hooknum == NF_INET_POST_ROUTING &&
-+		    ops[i]->priority == NF_IP_PRI_CONNTRACK_CONFIRM) {
-+			nfnl_ct->attach_expect(nfqa[NFQA_EXP], ct,
-+					       NETLINK_CB(entry->skb).portid,
-+					       nlmsg_report(nlh));
-+		}
-+	}
- 	return ct;
- #else
- 	return NULL;
--- 
-2.47.3
+3) Fix a overflow in IPVS sync messages which can only happen in very
+   old 2.6 kernels, from Julian Anastasov.
 
+4) Finer grain packet drop in nfnetlink_queue when dependency objects
+   are going away, from Antonio Ojea.
+
+5) Add a selftest for the nfnetlink_queue packet drop case, also
+   from Antonio Ojea.
+
+6) Flush conntrack gc worker when existing netns to address a unlikely
+   UaF, from Florian Westphal.
+
+7) Switch nf_tables chain types to use rcu, otherwise module removal
+   can trigger UaF, also from Florian.
+
+8) Remove redundant parsing in nft_exthdr for the tcp options case,
+   from Fernando F. Mancera.
+
+9) Remove redundant skb_header_pointer() calls in nft_exthdr for tcp
+   options, from Fernando F. Mancera.
+
+10) Fix conntrack_vrf.sh selftest return value in zone subtest,
+    from Florian Westphal.
+
+11) Restrict raw table in nft_compat to specific family, hook and
+    priority, from Florian Westphal.
+
+Prepare the flowtable to support for IPv4 over IPv6 tunneling and
+vice-versa, this includes 4 patches from Lorenzo Bianconi.
+
+12) Explicitly set inner protocol when popping header, this is not
+    needed for the existing IPIP and IP6IP6 case because skb->protocol
+    remains the same.
+
+13) Simplify tuple tunnel information fill up when parsing outer
+    tunnel IP headers.
+    
+14) Add a new encap_proto which determines the outer tunnel protocol
+    family.
+
+15) Prepare flowtable forwarding path to deal with mixed IPv4-IPv6
+    tunnels.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-10-18
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit a5e7d8e446af9803e37a3b6a4d416fb41178348f:
+
+  Merge branch '100GbE' of git://git.kernel.org/pub/scm/linux/kernel/git/tnguy/next-queue (2026-10-05 17:51:32 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-10-18
+
+for you to fetch changes up to d0107f38162279d9cb0e012210731176265f835d:
+
+  netfilter: flowtable: unify tunnel push for IPv4 and IPv6 (2026-10-18 02:42:04 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-10-18
+
+----------------------------------------------------------------
+Antonio Ojea (2):
+      netfilter: nf_queue: limit the hook drop flush to the unregistered hook point
+      selftests: netfilter: nft_queue: check the scope of the hook drop flush
+
+Fernando Fernandez Mancera (2):
+      netfilter: nft_exthdr: remove redundant op parsing in tcp_set_init
+      netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
+
+Florian Westphal (5):
+      netfilter: disable br_netfilter in user namespaces
+      netfilter: conntrack: fix unlikely UaF in gc worker
+      netfilter: nf_tables: switch chain_types array to rcu
+      selftests: netfilter: fix return value in zone subtest
+      netfilter: nft_compat: restrict raw table targets/matches
+
+Jakub Kicinski (1):
+      selftests: netfilter: nft_queue.sh: only queue icmp echo request/reply
+
+Julian Anastasov (1):
+      ipvs: fix buffer overflow when sending sync messages
+
+Lorenzo Bianconi (4):
+      netfilter: flowtable: set inner protocol when popping tunnel header
+      netfilter: flowtable: populate tunnel tuple regardless of inner protocol
+      netfilter: flowtable: add encap_proto to flow_offload_tunnel
+      netfilter: flowtable: unify tunnel push for IPv4 and IPv6
+
+ Documentation/networking/bridge.rst                |   5 +-
+ include/linux/netdevice.h                          |   1 +
+ include/net/netfilter/nf_flow_table.h              |   1 +
+ include/net/netfilter/nf_queue.h                   |   3 +-
+ net/bridge/br_netfilter_hooks.c                    |  33 ++--
+ net/ipv4/ipip.c                                    |   1 +
+ net/ipv6/ip6_tunnel.c                              |   1 +
+ net/netfilter/core.c                               |   2 +-
+ net/netfilter/ipvs/ip_vs_sync.c                    |  23 +--
+ net/netfilter/nf_conntrack_core.c                  |   7 +-
+ net/netfilter/nf_flow_table_ip.c                   | 170 +++++++++++++--------
+ net/netfilter/nf_flow_table_path.c                 |   2 +
+ net/netfilter/nf_internals.h                       |   2 +-
+ net/netfilter/nf_queue.c                           |   4 +-
+ net/netfilter/nf_tables_api.c                      |  94 ++++++++----
+ net/netfilter/nfnetlink_queue.c                    |  41 ++++-
+ net/netfilter/nft_chain_nat.c                      |   1 +
+ net/netfilter/nft_compat.c                         |  15 ++
+ net/netfilter/nft_ct.c                             |   2 +-
+ net/netfilter/nft_exthdr.c                         |  34 +++--
+ .../selftests/net/netfilter/conntrack_vrf.sh       |  25 ++-
+ tools/testing/selftests/net/netfilter/nf_queue.c   |  22 ++-
+ tools/testing/selftests/net/netfilter/nft_queue.sh | 110 ++++++++++++-
+ 23 files changed, 456 insertions(+), 143 deletions(-)
