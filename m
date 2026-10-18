@@ -1,53 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9AF94CF47C;
-	Sun, 18 Oct 2026 01:46:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E5B13264F5;
+	Sun, 18 Oct 2026 01:53:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792287965; cv=none; b=GURQdOo08FMfmcMTtABIPdh/1NDm84bwWjzbaPM2rpc+6rOsVb+DhuktIXcI4E1mZkcMJVTupYcueMZCPtvWAAks3rk1NFbM2BJm5QsXyt/5sxeUaqJpjaaHDoEfVos9caC1yUngXQWA+IA6vE2FzgDKmBv4oYiuwZywioTZAlc=
+	t=1792288427; cv=none; b=EJ2Yk+OrwN68/wBbMlqBNOUQkJPCqYoM7cJhoSXxCiocQJiflDsrsmLknA36kczJiBHguHI5eOySIKuMa/6fcdBDHucPbFf+10+L00C/GWLNQE6FR4IAdWOGQWZNSgIKMeaTi0FtlwWYqVj2VGWJUp4MLlp+nemuixloX72Ugbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792287965; c=relaxed/simple;
-	bh=cXiLQRZW03VB/wBlB/RebWIhntevwKkaSzsFxvEmJO4=;
+	s=arc-20240116; t=1792288427; c=relaxed/simple;
+	bh=XCIiK8hlCwzFwF0mXYvpuGixKQNN116lxwDGeZOX/SU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sMXJ/hzvXlUsQAVoObuYK6p2XSxlkPFWeqA4/y9G/s9u8oq1V4gJpsbqNehDlNYu/d5V++D6Xr7zzpNszU5ejZa5qaq3Q7JHPczLtfoRAS2ArcBPNKep+QwXrusezLrKX+uYeaCxiOM0DLLrv/ocEvChxyqmqLoO6kI0cyqvMf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kGRHu5iA; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=IdTbBYdsx/iWaW6OraoZTgmuVh6vWWF3xXX/EeNL+89AUvFiHctKfl08wqHzqIYgPajD8R/zQ8PhiyiaP0t4k0QXOWfq5+uVdDeQUDxrtU3yjd7PE9or2gwQggryoyll81IeBqdOFg4Gmd56AjM+ozi6tH9+inPcnKxwwJ4J2kc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YYYsa08L; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kGRHu5iA"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YYYsa08L"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792287960;
-	bh=3poXjPlgrYbaoLZ20pYt73out2gTIqX1HAZG1VT5Dy4=;
+	s=2025; t=1792288423;
+	bh=aGyrDya+Q51fnSt6cvt2rWR0GqJGNLTVYGw124H+8Wg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kGRHu5iAIhla0Zcp/5NsynD5QmwmgyQ3no6QBW/TGZmg1TTg+MI1qvmcK+Mj+TxAf
-	 Da6/QRHR5+wSR2DOKmeFJMR9qhX5d+OT1Bs+7kGDk9Fczv+QxwRWEvdl3ofkAAvjSV
-	 RPDFiROXYCbakP5/wlOi2/zIlda6fdtH6+R8ygsoMtPfW4Ed2+gvM/eGuFCsQISUfa
-	 0djIcEz655r0Ne7rI7rPRu3eeJ+DsNpDCRWP9R9lPVsU01B/fFQfwasxKHFqVMpCOT
-	 m8VO9LEgyZHyojjY7CZMlRyW5h5G7tPEKIwR3l0B9UUGLjNpGnXa2PPiWP1aoRUsa1
-	 8/+JZAja4jiIA==
+	b=YYYsa08Lj2CA4ia7bwu45mSNDNCBikYK1uGSGe04VEMSlPLRKh+/gVzvdFK3Bc+Qz
+	 4yBRZpVr701q7a1EWipe74wAan2f9Dax4UlgzXWKl67lhUG455vZ6zPBMbMMMuZxSU
+	 9Nf+CtDApQ3H6lLkjp8jp7sTDAWUnjalG53q0UQmCVd8KDf6Bwp4CN8y2RmVP6jxGO
+	 /L4jyk8mnD3AKd4FHY9Fl4mGulpP1eHmAikllyvf9UebXf7tCuAFyNG2l3/7uHelDq
+	 jfY1jVBkPAMqbiJ3hq+fplAIey8QzX/jP4NUpyghVXbwUksPSQHiCAAuwHEqvlvzyA
+	 oZy8aFoNrsxGw==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B651460060;
-	Sun, 18 Oct 2026 03:46:00 +0200 (CEST)
-Date: Sun, 18 Oct 2026 03:45:57 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9304C60057;
+	Sun, 18 Oct 2026 03:53:43 +0200 (CEST)
+Date: Sun, 18 Oct 2026 03:53:40 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Julius Bairaktaris <julius@bairaktaris.de>
-Cc: fw@strlen.de, phil@nwl.cc, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org, lorenzo@kernel.org,
-	nbd@nbd.name, matthias.bgg@gmail.com,
-	angelogioacchino.delregno@collabora.com, andrew+netdev@lunn.ch,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, horms@kernel.org, corbet@lwn.net,
-	rdunlap@infradead.org, skhan@linuxfoundation.org,
-	linux-doc@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, saeedm@nvidia.com,
-	leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 0/3] netfilter: flowtable: carry a priority
- into the offload
-Message-ID: <atQk1d8Tv03iPN7d@chamomile>
-References: <20261004171636.3545085-1-julius@bairaktaris.de>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, phil@nwl.cc,
+	coreteam@netfilter.org, netdev@vger.kernel.org, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, andrew+netdev@lunn.ch, shuah@kernel.org,
+	linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nbd@nbd.name
+Subject: Re: [PATCH nf-next 2/3] netfilter: flowtable: update upper device
+ stats in the fast path
+Message-ID: <atQmpPlfT_DSd9dq@chamomile>
+References: <20261004171616.3544880-1-julius@bairaktaris.de>
+ <20261004171616.3544880-3-julius@bairaktaris.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,70 +51,214 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261004171636.3545085-1-julius@bairaktaris.de>
+In-Reply-To: <20261004171616.3544880-3-julius@bairaktaris.de>
 
-On Sun, Oct 04, 2026 at 07:16:33PM +0200, Julius Bairaktaris wrote:
-> Packets forwarded by the flowtable skip the ruleset, so a priority set
-> with "meta priority set" before "flow add" is lost after the first
-> packets. Patch 2 stores skb->priority in the flow, applies it in the
-> software fast path and passes it to drivers as FLOW_ACTION_PRIORITY.
-> Patch 1 makes mlx5 ignore that action on flowtable flows, so flows it
-> offloads today stay offloaded. Patch 3 adds a selftest.
+On Sun, Oct 04, 2026 at 07:16:15PM +0200, Julius Bairaktaris wrote:
+> The software fast path receives and transmits on the lowest devices of
+> the input and output stacks, so the bridge, VLAN, PPPoE and tunnel
+> devices above them stop counting after the first packets of a
+> connection.
 > 
-> v2 review asked whether this should be a flowtable attribute instead.
-> A per-flow priority covers both one class per flowtable and a class
-> chosen per connection, with existing syntax:
+> Store the ifindexes of these devices from the forward path and update
+> their counters from the fast path. Each device counts what it counts in
+> the classic path: the IP packet plus the headers of the devices above it
+> (PPPoE, outer IP, inner VLAN tag), plus the Ethernet header on transmit
+> for Ethernet devices.
 > 
->   meta priority set 1:3 flow add @ft
->   udp dport 5060 meta priority set 1:3 flow add @ft
+> A GSO packet sent through a PPPoE device is counted once. The classic
+> path segments it in front of the ppp device and counts every segment.
 > 
-> An attribute needs one flowtable per class. nft rejects a device in
-> two flowtables of the same table with -EEXIST, so it also needs one
-> table per class. Pablo, is the per-flow approach fine with you?
+> struct flow_offload grows from 296 to 328 bytes.
+> 
+> Assisted-by: Claude:claude-fable-5-1
 
-I don't understand the "one flowtable per class".
+This does not look very good...
 
-> mlx5 maintainers: patch 1 is needed before patch 2 and is meant to go
-> through nf-next; an Acked-by would allow that.
+I mentioned it is a feature that these counters are not bumped,
+because packets are not passing through this devices in the bypass.
+
+This allows users to see what packets follow classic path?
+
+But if you insist, then explore a way to synchronize these counters
+offline (ie. not from packet path) to see how it looks like.
+
+Even though, I'm not sure lying to userspace that packets are going
+through these devices via stats can be right.
+
+> Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
+> ---
+>  include/net/netfilter/nf_flow_table.h |  8 +++-
+>  net/netfilter/nf_flow_table_core.c    |  3 ++
+>  net/netfilter/nf_flow_table_ip.c      | 53 +++++++++++++++++++++++++++
+>  net/netfilter/nf_flow_table_path.c    |  9 +++++
+>  4 files changed, 72 insertions(+), 1 deletion(-)
 > 
-> The selftest passes with the series, and its priority checks fail with
-> only patch 3 applied (QEMU, three runs). The mlx5, airoha and mtk
-> changes are compile-tested only; Lorenzo, a Tested-by on airoha would
-> be welcome. struct flow_offload grows by 8 bytes.
-> 
-> Changes in v3:
-> - new patch 1 for mlx5
-> - airoha uses the priority for its QoS queue (Lorenzo Bianconi)
-> - describe the tc flower effect and the TOS-derived priority
-> - rebased onto nf-next
-> 
-> v2: https://lore.kernel.org/netfilter-devel/20260902155136.4963-1-julius@bairaktaris.de/
-> v1: https://lore.kernel.org/netfilter-devel/20260901092632.369248-1-julius@bairaktaris.de/
-> 
-> Julius Bairaktaris (3):
->   net/mlx5e: Ignore FLOW_ACTION_PRIORITY on flowtable offload
->   netfilter: flowtable: carry a priority into the offload
->   selftests: netfilter: nft_flowtable.sh: check the priority a flow
->     carries
-> 
->  Documentation/networking/nf_flowtable.rst     |   4 +-
->  drivers/net/ethernet/airoha/airoha_ppe.c      |   3 +
->  .../net/ethernet/mediatek/mtk_ppe_offload.c   |   1 +
->  .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
->  .../mellanox/mlx5/core/en/tc/act/act.c        |   1 +
->  .../mellanox/mlx5/core/en/tc/act/act.h        |   1 +
->  .../mellanox/mlx5/core/en/tc/act/prio.c       |  22 ++++
->  include/net/netfilter/nf_flow_table.h         |   1 +
->  net/netfilter/nf_flow_table_ip.c              |   6 +
->  net/netfilter/nf_flow_table_offload.c         |  11 ++
->  net/netfilter/nft_flow_offload.c              |   2 +
->  .../selftests/net/netfilter/nft_flowtable.sh  | 110 ++++++++++++++++++
->  12 files changed, 162 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/prio.c
-> 
-> 
-> base-commit: 87b80c2f6b05cad9f0ff9136709c62a0f59923e3
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+> index f2e2771f188f..1f451fcf05d0 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -106,6 +106,8 @@ enum flow_offload_xmit_type {
+>  };
+>  
+>  #define NF_FLOW_TABLE_ENCAP_MAX		2
+> +/* Devices above the flowtable device in a forward path. */
+> +#define NF_FLOW_TABLE_UPPER_MAX		(NET_DEVICE_PATH_STACK_MAX - 1)
+>  
+>  struct flow_offload_tunnel {
+>  	union {
+> @@ -153,7 +155,8 @@ struct flow_offload_tuple {
+>  					encap_num:2,
+>  					needs_gso_segment:1,
+>  					tun_num:2,
+> -					in_vlan_ingress:2;
+> +					in_vlan_ingress:2,
+> +					num_uppers:3;
+>  	u16				mtu;
+>  	u32				dst_cookie;
+>  	struct dst_entry		*dst_cache;
+> @@ -171,6 +174,7 @@ struct flow_offload_tuple {
+>  			u32		iifidx;
+>  		} tc;
+>  	};
+> +	u32				upper_ifidx[NF_FLOW_TABLE_UPPER_MAX];
+>  };
+>  
+>  struct flow_offload_tuple_rhash {
+> @@ -228,6 +232,8 @@ struct nf_flow_route {
+>  			u8			num_encaps:2,
+>  						num_tuns:2,
+>  						ingress_vlans:2;
+> +			u32			upper_ifidx[NF_FLOW_TABLE_UPPER_MAX];
+> +			u8			num_uppers;
+>  		} in;
+>  		struct {
+>  			u32			ifindex;
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 03241d4bfd5e..2c9a0d97c9fb 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -122,6 +122,9 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+>  
+>  	flow_tuple->tun = route->tuple[dir].in.tun;
+>  	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
+> +	memcpy(flow_tuple->upper_ifidx, route->tuple[dir].in.upper_ifidx,
+> +	       sizeof(flow_tuple->upper_ifidx));
+> +	flow_tuple->num_uppers = route->tuple[dir].in.num_uppers;
+>  	flow_tuple->needs_gso_segment = route->tuple[dir].out.needs_gso_segment;
+>  	flow_tuple->tun_num = route->tuple[dir].in.num_tuns;
+>  
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index c8c29a9a1684..e1a3511d5f1f 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -453,6 +453,49 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
+>  		nf_flow_ip_tunnel_pop(ctx, skb);
+>  }
+>  
+> +/* The fast path bypasses the devices above the flowtable device. */
+> +static void nf_flow_upper_stats_add(struct net *net,
+> +				    const struct flow_offload_tuple *tuple,
+> +				    bool rx, unsigned int len)
+> +{
+> +	unsigned int n, vlan_hlen = 0;
+> +	struct net_device *dev;
+> +	int i;
+> +
+> +	for (i = 0; i < tuple->num_uppers; i++) {
+> +		dev = dev_get_by_index_rcu(net, tuple->upper_ifidx[i]);
+> +		if (!dev)
+> +			continue;
+> +
+> +		n = len;
+> +		if (!rx && dev->type == ARPHRD_ETHER)
+> +			n += ETH_HLEN;
+> +
+> +		if (is_vlan_dev(dev)) {
+> +			/* Q-in-Q: the outer VLAN device counts the inner tag. */
+> +			n += vlan_hlen;
+> +			if (rx)
+> +				vlan_dev_sw_netstats_rx_add(dev, n);
+> +			else
+> +				vlan_dev_sw_netstats_tx_add(dev, 1, n);
+> +			vlan_hlen += VLAN_HLEN;
+> +		} else if (dev->pcpu_stat_type == NETDEV_PCPU_STAT_TSTATS) {
+> +			if (rx)
+> +				dev_sw_netstats_rx_add(dev, n);
+> +			else
+> +				dev_sw_netstats_tx_add(dev, 1, n);
+> +		}
+> +
+> +		/* The devices below also count this device's header. */
+> +		if (dev->type == ARPHRD_PPP)
+> +			len += PPPOE_SES_HLEN;
+> +		else if (dev->type == ARPHRD_TUNNEL)
+> +			len += sizeof(struct iphdr);
+> +		else if (dev->type == ARPHRD_TUNNEL6)
+> +			len += sizeof(struct ipv6hdr);
+> +	}
+> +}
+> +
+>  static struct flow_offload_tuple_rhash *
+>  nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+>  		       struct nf_flowtable *flow_table, struct sk_buff *skb)
+> @@ -512,6 +555,11 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+>  	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+>  		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+>  
+> +	nf_flow_upper_stats_add(dev_net(ctx->in), &tuplehash->tuple, true,
+> +				skb->len);
+> +	nf_flow_upper_stats_add(dev_net(ctx->in), &flow->tuplehash[!dir].tuple,
+> +				false, skb->len);
+> +
+>  	return 1;
+>  }
+>  
+> @@ -1107,6 +1155,11 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+>  	if (flow_table->flags & NF_FLOWTABLE_COUNTER)
+>  		nf_ct_acct_update(flow->ct, tuplehash->tuple.dir, skb->len);
+>  
+> +	nf_flow_upper_stats_add(dev_net(ctx->in), &tuplehash->tuple, true,
+> +				skb->len);
+> +	nf_flow_upper_stats_add(dev_net(ctx->in), &flow->tuplehash[!dir].tuple,
+> +				false, skb->len);
+> +
+>  	return 1;
+>  }
+>  
+> diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+> index 1e55644f2edb..ba5ac3ebe614 100644
+> --- a/net/netfilter/nf_flow_table_path.c
+> +++ b/net/netfilter/nf_flow_table_path.c
+> @@ -83,6 +83,8 @@ static int nft_dev_fill_forward_path(const struct dst_entry *dst_cache,
+>  
+>  struct nft_forward_info {
+>  	const struct net_device *dev;
+> +	u32 upper_ifidx[NF_FLOW_TABLE_UPPER_MAX];
+> +	u8 num_uppers;
+>  	struct id {
+>  		__u16	id;
+>  		__be16	proto;
+> @@ -187,6 +189,10 @@ static int nft_dev_path_info(struct net_device_path_stack *stack,
+>  		}
+>  	}
+>  
+> +	for (i = 0; info->dev && stack->path[i].dev != info->dev; i++)
+> +		info->upper_ifidx[i] = stack->path[i].dev->ifindex;
+> +	info->num_uppers = i;
+> +
+>  	if (nf_flowtable_hw_offload(&ft->data) &&
+>  	    nft_is_valid_ether_device(info->dev))
+>  		info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
+> @@ -253,6 +259,9 @@ static int nft_dev_forward_path(const struct nft_pktinfo *pkt,
+>  
+>  	route->tuple[!dir].in.num_encaps = info.num_encaps;
+>  	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;
+> +	memcpy(route->tuple[!dir].in.upper_ifidx, info.upper_ifidx,
+> +	       sizeof(info.upper_ifidx));
+> +	route->tuple[!dir].in.num_uppers = info.num_uppers;
+>  
+>  	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
+>  		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
 > -- 
 > 2.53.0
-> 
 > 
