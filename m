@@ -1,107 +1,119 @@
-Received: from mail-yx1-f54.google.com (mail-yx1-f54.google.com [74.125.224.54])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7204A18859B
-	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 02:03:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.54
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792289009; cv=pass; b=YzxQkuXI+FdUzk8wvLkWYiGEQDN3vXOX4KRagU0//FqYBrWbPMHMlFxbRkT6sxxOOYBX/A1DmXoCzBTqVFQ94CGxIvWpw54eyp83EKFA4yo+R1xuV23qe1tOooZcmBOXj55t4LEf53+R1DW1Fp3KkaQEMrKEikp/RHRuIu3KAxk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792289009; c=relaxed/simple;
-	bh=OFvFUXE9xCFsK6/kBrpheywoSYe93LHItZLxp7xrWHk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aysHINSqO2AKjDULQOKgEn3HI3NcJx40wgSRIP2iodl/vxQo12uSs1hwUv/rzeJ//oU87ltuSTCiHLsz4ZeyoMA51HUsZtP3Y+UGDqCecd0GoNNxRYC+9fqucW7KRlVDnlr4HUZekR1W7yJFG4VXT49PrEHAi1GPVhe4uaVY0oU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=Nr0pP7vV; arc=pass smtp.client-ip=74.125.224.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1621A6811
+	for <netfilter-devel@vger.kernel.org>; Sun, 18 Oct 2026 02:11:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792289512; cv=none; b=iHnMkFoqEVFpTFxQz6Kuc8OTRgLgTvg34mZkzd7t/grt6GH93V8gmnqSZpHzRo9tXAkmS5otewiDlsTORR5xJAQG+XjSYfuCzcM+QFnvEsp9pq5d5QddOd6ibl4bWYegHcNPDaaY4Wa+nyt5TQQQUJwYpbCTVnhdk4mNYrcopHQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792289512; c=relaxed/simple;
+	bh=quR7zaG5HvFKkoAcyflM6P6NFsJA2yI0PSyMysQvzs4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=bPljZHcZGU8dYUAt7utcMewQYMtJHGWqbH7BclyinzkK9KG7T+yhTIdg8uinIfbcYtPeawpUIa/TdrSelEKhXLf1LoP0gRAwIAi30fnenqj2wXuNSDrp81zj2VXSAZle41hUcfuL/x993HshG1S0mBZXHqJ4LZjFX3KuXM+oqMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=QQIw8NTp; arc=none smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="Nr0pP7vV"
-Received: by mail-yx1-f54.google.com with SMTP id 956f58d0204a3-677d35fd1d2so1102734d50.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 19:03:28 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792289007; cv=none;
-        d=google.com; s=arc-20260327;
-        b=biMYPHM+nMF8y406bdH6plLLpF4cFbNqEEE/C4gMvU2pKpdKuOflMtTTGkh90TDlPB
-         HArsej1PPgrDcijUOJB/9FC6CsKDVL/CUL0oYYH1RIsMJOG6iZ62t4RpEuP6OUBXvzoI
-         4KHCOZVXTctsyPqgm7zorPdw3m7ohtC3RFT+ierohohVWtrVnmChdZ17txzlnJEMLDOc
-         rcQtOPou2OouFKDaeRt4IFaCyMDGXbIIjaOuXZjY28oN1gD6eczGEsu70da/l05UdiGB
-         zO2lOEaFvOIlPFGMyzWHQIeDEZaiLNcGo6VOe9E/UIpe0F4wwquCi7+sheC5BR07cG4F
-         HZuA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=OFvFUXE9xCFsK6/kBrpheywoSYe93LHItZLxp7xrWHk=;
-        fh=uVUDoKkNpB83kVLigihf/miKfM7HcQcYj7ldrmD2CSY=;
-        b=iqA4dd36BYApgM9DjD5LlRqhJUFqTGcrfKL3y8iECSyfIl12I+vXX+tz5CayTy1ouh
-         sUHu9tM3BDRHXLvBofloYnK5RI3KextMLsNzh76mDDXm2QhOixR5sL53zxx0IQOQTnGu
-         3SxSX4mmzCEkCpMdbLOmB+HluIsoCyI5wJpvL1sd4ScdPqDc/ObQU1lIZ7nDXUD3jXdY
-         F2gxq4zVTltSIQVCu25/eNMkIeL1zy//htpLj3e211G7G/721cPFwyByduRiZ53+BFv7
-         PNlHIpjpXFd46wvS16PIp1ff+jxIim8hYg/O/I3SDPi/nKC0OprQNtzut/PfHXcXuf7k
-         99Hw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="QQIw8NTp"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c3f04e0e65fso149433466b.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2026 19:11:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792289007; x=1792893807; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=OFvFUXE9xCFsK6/kBrpheywoSYe93LHItZLxp7xrWHk=;
-        b=Nr0pP7vVL4KeAR6PNJUeqzMXTnHsB97OF6gWi7jtNwt0qBvNOE0UvtQk1UniP2sCJg
-         5M/VJIGIjHq+HPOlyRCYGgFq4+hcpvO/Gh7ouWmtqrJ8cOL5UppFYGMlGuMVnyz1Snlw
-         JBLVKi3sWjDJ5dn9+KjaPSyVf1n8233GRJLMELG8kbFMKdotnD+w9Bt+04wTuA+d4t8A
-         NRkR4oB9cTTtFiV1C3NDR9W40SApTrVU9m6y/4wWZMiNOOTTd3y+aJ/lOH4Z6k2+WrMr
-         NsNwbLmjdsJ+PBiQl+QLvuUd2q63FglcqUflYsp2CgrbeXe5k3TQDgUUSxzMjniDk+xl
-         XfRg==
+        d=bairaktaris.de; s=google; t=1792289510; x=1792894310; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=quR7zaG5HvFKkoAcyflM6P6NFsJA2yI0PSyMysQvzs4=;
+        b=QQIw8NTpx0NQVnPaElOZevzSeEGsEd1HNJUlehuDS2MEursrdpPIEapiL/nlrwPAE/
+         vq1GtTOJLBBFzsy2D0eKUgVaMXkXNnlc9hM9pcp+OFhy1Qqea/tzUdKQb4PA1t6akFN/
+         cHtMznWJFCw4lQ27SP+Fn0vLmmQnDzceYS703/4CVpDi+IOwlQpwy+l/6eu2+UseMIPO
+         ag5rkYqKZqUJYwHjnvtlCMlqbB16c80fXFZqqfGFY+Fc8LCAzS1UAKU7KONBsC0sLibl
+         4CEkkS5xkd1WiCOa1QExUiKXoKCDozL1d7rLPQHNqv3/HHW6ctYc2n7SAyJEMueDqmDm
+         DxxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792289007; x=1792893807;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=OFvFUXE9xCFsK6/kBrpheywoSYe93LHItZLxp7xrWHk=;
-        b=CHyxJ54knwymdIajL/a6nMerpYDR+rXmsf5zw5pErt8B03dVe5l3EJaB83UwJ6OL6P
-         kPDoWL3qxGTqe/POSlKK5WLTwpirrbGQbZ+8d2TwE+KCn8NPg+sOE9CuKPV1/lxuUlm7
-         VLeQ0rmIVCIo1mwx+YFoBZuvdWafJ15PBu4SL0FiZ4iD8IZUrFbZVgKGwg8NZXIl5uR9
-         ovv/o+5doHqEBEZU+hJ7jW9QpRFpk9QqfJ16pAd1zGnMVTNXWsmnl2Gjl2DNsLUp+H6Q
-         xCAdUSeBe8b6y0AaCEoCwe6LMf6LZPNUMi6XLhPfE+Wux9IfQkikq9I8jsibud8n+wLN
-         VIvA==
-X-Gm-Message-State: AFq9FYJrehinv8OoA1MSvBHjhO7RZnqYSrZRwCLy2cBW4xWCny7dCmPo
-	im2CXB+/6fP0h9LRPFwqkuPd+b3rzPslhKAzMbVhepG2Z38xQmqnIia5fE1wXopNEE1eBePCs5b
-	YmAjmUcq0zzNr0aMgGLGK6qgGlWNIJ5GWjI4lI1vR
-X-Gm-Gg: AYBFou1O2dy+khS9QsnPM9hlHvmLhsfN9bP1DdTKc9QanBrWT6BuVpMkzhaUP6xMSfy
-	H78ktmM1qBVz2oseZxJIHWwYzBnaeLGaIypDTBAmz9gm8wSRgtvq+4flmYuDIgy25fPqTs6u7Y0
-	6kW/8CsqWaBNzof6DbGoOZXT25erBHDZy92MUBkZFjE8KyTg6/nd8m918IqKCgu8G7DLq1UlKAW
-	oKHVaLKjtrmaH9U32x/p8lZiQ3Y/M1LXN7rz62QEKFYjHKursZhFHzXhGiNvxn7SOMZu/1bkRJx
-	sVWXt25Jv45Md5t54fmnYh8U+HCu+JVWxxFEpywcmmElmA37dprWJ8WesNEMQ69jEBoBcTPsEc2
-	bKaNzxax0trRXzX99X+sadD4Q6qcJCB9m8bH2YO+c+r9DNbhMOJtKr51bwy7MsKOScydR/7dtJO
-	C5HSoB3AY4jVkERp19b1w7ZJUhGZDkj1vmaxlyiq10OP3IWT0oFYjTQ+oia7ZHTzbBIQV0sbW6I
-	GLvcE7fV1Fde5OkB2m2GhHgk5vsi2Wmq8xWa5IecsskGJ/6sjxsMfJFWy8OMGBUEmpQp8YxYtPB
-	9MFWjat+krBk9A==
-X-Received: by 2002:a05:690c:c4e9:b0:8b0:f04a:3132 with SMTP id
- 00721157ae682-8b0f2163601mr11361017b3.27.1792289007350; Sat, 17 Oct 2026
- 19:03:27 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792289510; x=1792894310;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=quR7zaG5HvFKkoAcyflM6P6NFsJA2yI0PSyMysQvzs4=;
+        b=IA3/F/gSqOSg3A+xSJOgOA9zhBg1/F9e+ckoyFXzDDDd2/ReYkn+lZdwMW6BkGMg/V
+         NbWSxqj4g9z1x68Bq+XJBE+Jk7ndCc8KK2y/HE+uE1JWi7BmV5mMYp5MUiv/y7Rp0Jb9
+         ro3rarngwZse3QfDN7Ar5hzUFTd4YgJkJ99brq/xs30qi736id+mz9sAU0vnbvEN8K1x
+         sLrcnhhWqJhUFbGbia3goMYnkxxTSSQ8B6vU6tiLKo4oMLMf2MiN4gYgnXGA8olLW6V8
+         IyE4pRUFwydmrjUK/VtuYLVgIa1fc8OaEKk2gf/3KSHFcADhhpfk6HzTaVtjJ58MArS+
+         xsnQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzZ4U/3lNXeCHV/S3pSB+XjhQFf4TP+4wiJATaP3qd8wWXXMI9gt3HQHvaU/QwMdGPhRWeVplXkvv79DaC0NEk=@vger.kernel.org
+X-Gm-Message-State: AFq9FYLpvSWsH3XOHyG5MW0pzLm+oVv+3j+u0oiacIFkO3VhADZv8tnT
+	fQm8Pc2KX129fgORL21jW2QS2zPN/FQ5VWS2TPKpLpNuY1xicwnhIP/4DuTW4PRLtg==
+X-Gm-Gg: AYBFou3YmpAwnzrNbAK5Ss18W+UdN3HNGvJWYGQ6d4z62vqYRIcsMcT+X6LqT1qGrue
+	egABCZA0QsqeAqNtb9KbihgmjjASeTPnDjuUWzwmb+N4nUBl4zf6Q/RrEjn8Q+qoSfNjev7lvjO
+	OD3BJyaw8lG40aE4cdLTqbQN4z7gkU+mTUqbMfmoj0bL1XnrqAX5eFGxBGUCBvnSEeJ0B55KOwa
+	m1Co5FcRlc9N4NnUNJDt74or7a+0E961D8sH2KEaCPz6pBt2fn8we8F3DF6e3qjxKKClt2+lE9l
+	and/sUGSNRaphckH0CkQLGHn7decyJshvo5Hwecme5GNLJXCPSj0Uquf/veHkbC5GaO9qwT4zKv
+	CQXwTRstoQxTRM48iEdA8+SSK0gahqapkY4eKzgFlkikF6WIHpf1Ku5iDQbbRZ+86A3Ov9xoVdP
+	CJGYvASynIC1Vj36o/1NA4QAFuMK9TiwmPeDZuDUtD2e7GG2pi0x3qxHRnZ1PyBXn0vWggvtHA7
+	UkPW2KXexq+q7R8CNsNNHF60UydxOq/cjd1pNmyyOuwVa8MkAgu9vR+xhgaaC75srgrYW4nsKjo
+	kkeBuCGUrr8ur4OhJN/UG/WwyGf0hcjwBEW8yOHbwVx5IMwZP4PLFtTkODRIAnYh097ThJc+o4Z
+	LkXCkbl8b+ou5NNJAfo8Wda+EXyVTUENr/31f38AB06RdwptltaPEdM53vNxSMb4/xthri/2l5S
+	+gGl+QQ4GHlqBaRjiNVfwDFTw19BM0y3/3wBI//vnsQto+6YuVXdlUSS3rF6exkK99UkwhP9YdD
+	GX3z6Ko
+X-Received: by 2002:a17:907:c48b:b0:c35:d50a:1356 with SMTP id a640c23a62f3a-c41a08dc5fcmr283934966b.42.1792289509761;
+        Sat, 17 Oct 2026 19:11:49 -0700 (PDT)
+Received: from Desktop.fritz.box (p200300f247424f103187cc9af620d661.dip0.t-ipconnect.de. [2003:f2:4742:4f10:3187:cc9a:f620:d661])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4091eb1835sm224698366b.79.2026.10.17.19.11.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 17 Oct 2026 19:11:48 -0700 (PDT)
+From: Julius Bairaktaris <julius@bairaktaris.de>
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	lorenzo@kernel.org,
+	nbd@nbd.name,
+	matthias.bgg@gmail.com,
+	angelogioacchino.delregno@collabora.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	corbet@lwn.net,
+	rdunlap@infradead.org,
+	skhan@linuxfoundation.org,
+	linux-doc@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 2/3] netfilter: flowtable: carry a priority into the offload
+Date: Sun, 18 Oct 2026 04:11:45 +0200
+Message-ID: <20261018021145.3769432-1-julius@bairaktaris.de>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <atQkUoH3aa-J5-vf@chamomile>
+References: <atQkUoH3aa-J5-vf@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261004171628.3544978-1-julius@bairaktaris.de>
- <20261018015434.3326758-1-julius@bairaktaris.de> <atQoL7WUM3BvDwbI@chamomile>
-In-Reply-To: <atQoL7WUM3BvDwbI@chamomile>
-From: Julius Bairaktaris <julius@bairaktaris.de>
-Date: Sun, 18 Oct 2026 02:02:49 +0000
-X-Gm-Features: AclHuK8LcA_x4fXjqJQJo4qGB6xwiKVubMehR2hBrYfUz8uLAdhaaMXVC05SGRY
-Message-ID: <CAC1t37JX5HnbU4gPxAE-PkNz=6e_pr2p6ujgEB-3gRi0HjXybg@mail.gmail.com>
-Subject: Re: [PATCH nf-next v2 0/4] netfilter: offload a TCP flow whose reply
- is never seen
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, geldot@protonmail.com, 
-	shuah@kernel.org, linux-kselftest@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-That would be awesome.
+On Sun, Oct 18, 2026 at 03:43:46AM +0200, Pablo Neira Ayuso wrote:
+> I think we already mentioned this only works for hardware, this is a
+> no-go.
 
-I will continue the development downstream and send the items upstream
-after a merge one by one.
+It works in software too. nf_flow_offload_forward() and
+nf_flow_offload_ipv6_forward() set skb->priority from the flow, see the
+nf_flow_table_ip.c hunks. The selftest checks it on veth, without
+hardware offload.
 
-Thanks for your time!
+Julius
