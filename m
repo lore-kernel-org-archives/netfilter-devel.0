@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B4373203B6;
-	Mon, 19 Oct 2026 01:21:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01535331EA4;
+	Mon, 19 Oct 2026 01:21:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792372886; cv=none; b=RGaZVfPe79+iEs+XdtTaa01eFIbDpT9OfM+8OM1iKCupn3TbH0T9IM471XJzTojRuNUNXRt8j8gbvRw+Q/IPgK5oz8EUFisU1vjEAg8r3FN6ic+AxRN6vWubq48/AasA1H8vzOtVSDWHu81nX6fv1wAXppR/bTEYjYogSRs7mzc=
+	t=1792372888; cv=none; b=n854QsHOeGQkN1EU10FjVQCgjuTq4ccXNrCO3gUHyOlc2GZ0KbS2p8ufiLScvUqZD7mBBNRCZ4epe0ZIM3GLc3KKeIeuj+3Dmxa5abL7SDOy1BaDKnxDsXODVpFTa/w3tI70SmyBgIZmwJ47rGnpKi9ZFn1iCbovyIjUJpqg0YQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792372886; c=relaxed/simple;
-	bh=agRtySUqwNO+F555Jh4RHfM+0OJixGtNE6tMn9Fw+nw=;
+	s=arc-20240116; t=1792372888; c=relaxed/simple;
+	bh=e5Xd58moRpR62FS9qqX0UaCpJl+wDgqlhat5GQpKhn0=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=BahD0rDqTcjo66dOureXHZy4xN29SnM2/jc89WZZCZcVrSVfxrvSc9Rsg3CO/kruCEbOyMsSyLj0le22SxztG2v+SDt+bP1m7KNnq649k7c/U5bOKvoRnKxv9J46SdMciCrumXrukpDgmOT5ht/X16gGS0orpQ9c+W0O9z5Vmdg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HilNk+ke; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=SUOlUNtNaMtcXCg0i2S9wINELKgE2MR1vnbYhlHyWM8w5UMjV6LE+zqe+ILOgQZ/N3ohIpxzGohSHIBdbd7aEdByLPkhA8zkRWwTgzoFRUXFNsvre/0O4YeVdT4d/wDAs7HNFDs/M/Q/oaAooSfFdYfW4yVPEwojnnVKl9uAn/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PKdpYMqX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HilNk+ke"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B391F000C5;
-	Mon, 19 Oct 2026 01:21:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PKdpYMqX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679161F000C4;
+	Mon, 19 Oct 2026 01:21:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792372884;
-	bh=kv1OSVzNlZTPOa2nVKJO6tDYAzBEL+8lDRozWK5qx28=;
+	s=k20260515; t=1792372886;
+	bh=U46645cs7EGJYldRql8QKV3YLk2/u49t8CLizs4sWTo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=HilNk+keMUb9Linh4t6FbWwzKUwHFp+J0tYq/Ab56nfvJZTv7u4ZNsqJBxrqXtQGv
-	 ijDqzxK8/8C6+Yza4uLPT94N1GR9PRJJaRlGDvA7SqII2cB5aWDw50c6l982CuCcud
-	 RzsntohxTLqm1RjKY4llMSwjIwlYyXM7hh3s8PaO+NXVlW+l2v09xFrFAEeZsPna+e
-	 tAqjAtGZxfYWPSaqvlXfPU60UxXIlcKHhsP7BVMNyKTzpFaLshG2OCP9uQ8eRkRMZg
-	 ORPqCwf88JxZ3iXVN2fTsUNBQuRd8k22ca8hO7iTKsU4y/yOAHgyTjyg2Ylk2G93Xs
-	 6sUyXyEMa6whQ==
-Subject: Re: [PATCH net-next 05/15] selftests: netfilter: nft_queue: check the
- scope of the hook drop flush
+	b=PKdpYMqXt2P0P8IhxYJMXHVcJwazST7V7DQrNTh/V4TvCabqfrhJfoCAtzn5S/0fM
+	 VECv83OJNTG7LiJtu2MbNkE+Q7Oi8mBQfz5mo4QCHahPXOKJ627YyejJar+HCuTa34
+	 /8U0fMS50hrvrIx2GabuH7ZB3pCsA+O+qBeAsxWwDZQQkJA8iFAPes8mUtynwpWE8Z
+	 HMtyODBimyruaFpkXquDRbV85jUkFv7/PC2/zETSqkF14pfIJB6q+VbPdztpYwM5TN
+	 eOY8hBCLD01/2taI8+n4VM7dBgUDpFzA0NPVjvgzW53XFPKX6+lJV/pZ9d4ofQGC3T
+	 jiwFKDBB9H1Sg==
+Subject: Re: [PATCH net-next 09/15] netfilter: nft_exthdr: avoid 60 bytes
+ stack buffer in TCP option mangling
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Mon, 19 Oct 2026 01:21:23 +0000
-Message-ID: <179237288374.3135.9473018103688224106@kernel.org>
-In-Reply-To: <20261018005638.1776148-6-pablo@netfilter.org>
-References: <20261018005638.1776148-6-pablo@netfilter.org>
+Date: Mon, 19 Oct 2026 01:21:26 +0000
+Message-ID: <179237288600.3135.15119152740392179853@kernel.org>
+In-Reply-To: <20261018005638.1776148-10-pablo@netfilter.org>
+References: <20261018005638.1776148-10-pablo@netfilter.org>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -47,10 +47,10 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 4 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 3
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -58,159 +58,103 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The new test's failure does not reach the script's exit
-  status.
-- [Low] The 'keep' case cannot tell the two halves of nf_hook_cmp()
-  apart.
-- [Low] In hook_drop_case() the exit status of the command under test,
-  `ip netns exec "$ns1" nft "$@"` (line 932), is never checked, and the…
-- [Low] hook_drop_case() ignores the return value of `busywait
-  "$BUSYWAIT_TIMEOUT" hook_drop_all_queued "$packets"` (line 930).
+- [Medium] The commit message says "This patch also updates the logic to
+  drop malformed packets, before this patch NFT_BREAK was used as a…
 
 --
 
-selftests: netfilter: nft_queue: check the scope of the hook drop flush
+netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
 
-This adds test_hook_drop_scope to nft_queue.sh. The test queues 20 UDP
-packets to the nf_queue helper, which holds the verdicts, and deletes a
-base chain while the packets wait. It then checks whether the packets
-were kept or dropped. It also adds a -H option to nf_queue that holds
-verdicts until SIGUSR1 is received.
+This commit changes nft_exthdr_tcp_set_eval() and
+nft_exthdr_tcp_strip_eval() so they no longer call
+nft_tcp_header_pointer(). Each function now reads only the 20 byte fixed
+TCP header with skb_header_pointer(), validates doff, and leaves it to
+skb_ensure_writable() to pull the options. This removes a 60 byte stack
+buffer and a redundant second header copy from both functions.
 
-> diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-> index c8d1f2eb41339..a07652813a4b0 100755
-> --- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-> +++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-
-[ ... ]
-
-> +hook_drop_case()
-> +{
+> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+> index 3492426dccf7f..861bab93f4352 100644
+> --- a/net/netfilter/nft_exthdr.c
+> +++ b/net/netfilter/nft_exthdr.c
+> @@ -233,16 +233,23 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
 
 [ ... ]
 
-> +	ip netns exec "$ns1" bash -c \
-> +		"for i in \$(seq $packets); do echo x > /dev/udp/127.0.0.1/12345; done"
+> -	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
+> +	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+> +		goto err;
 > +
-> +	busywait "$BUSYWAIT_TIMEOUT" hook_drop_all_queued "$packets"
-
-[Severity: Low]
-What happens if this busywait times out? On timeout, loopy_wait() in
-lib.sh just returns 1. It does not abort the caller:
-
-tools/testing/selftests/net/lib.sh:loopy_wait() {
-    ...
-		if ((current_time - start_time > timeout_ms)); then
-			echo -n "$out"
-			return 1
-		fi
-    ...
-}
-
-The return value is ignored here. So the test still deletes the chain
-and classifies the result when fewer than 20 packets were queued, for
-example when some of the sends were lost before they reached the queue.
-
-The drop classification further down only checks for zero:
-
-	elif [ "$queued" = "0" ] && [ "$delivered" = "0" ]; then
-		result="drop"
-
-Could the drop case then report PASS with only part of the batch queued,
-or with nothing queued at all? In the keep case the same situation
-would be reported as inconsistent.
-
-> +
-> +	ip netns exec "$ns1" nft "$@"
-> +	queued=$(hook_drop_queued)
-
-[Severity: Low]
-Should the exit status of this nft command be checked?
-
-Suppose the deletion fails, or test_hook_drop_scope() passes the wrong
-arguments. Then no hook is unregistered and the 20 packets stay queued.
-SIGUSR1 releases them, the input counter reaches 20 and nf_queue prints
-"20 packets total". The keep case would report PASS even though no
-chain was deleted.
-
-Other deletions in this file do check the result, for example in
-test_udp_gro_ct():
-
-	if ! ip netns exec "$nsrouter" nft delete table inet udpq; then
-		echo "FAIL: Could not delete udpq table"
-		ret=1
-
-[ ... ]
-
-> +test_hook_drop_scope()
-> +{
-> +	# the hook array of another hook point changes, queued packets stay
-> +	hook_drop_case keep "base chain removed at another hook point" \
-> +		delete chain ip6 unrelated prerouting
-
-[Severity: Low]
-Does this keep case test the hook number check and the family check in
-nf_hook_cmp() separately? The queued packets are IPv4 (sent to
-127.0.0.1) at NF_INET_LOCAL_OUT. The deleted chain differs from them in
-both family (ip6) and hook (prerouting):
-
-net/netfilter/nfnetlink_queue.c:nf_hook_cmp() {
-    ...
-	if (entry->state.hook != hooknum)
-		return 0;
-
-	if (pf == NFPROTO_INET)
-		return entry->state.pf == NFPROTO_IPV4 ||
-		       entry->state.pf == NFPROTO_IPV6;
-
-	return entry->state.pf == pf;
-}
-
-If nf_hook_cmp() compared only the hook number, or only the family, it
-would still keep the entries and this case would pass. The drop case
-matches on both fields, so it doesn't isolate either check.
-
-Would it make sense to add a chain at the same hook in another family
-(for example ip6 output)? A chain at another hook in the same family
-(for example ip prerouting) would cover the other check.
-
-The testing notes of the previous patch, "netfilter: nf_queue: limit the
-hook drop flush to the unregistered hook point", say that deleting an
-ip6 table with an output base chain does not drop the packets. That
-case isn't encoded in this test.
-
-[ ... ]
-
-> @@ -909,6 +1016,7 @@ test_queue_stress
->  # should be last, adds vrf device in ns1 and changes routes
->  test_icmp_vrf
->  test_queue_removal
-> +test_hook_drop_scope
+> +	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
+>  	if (!tcph)
+>  		goto err;
 >  
->  # turns router into a bridge
->  test_queue_bridge
+> +	tcphdr_len = __tcp_hdrlen(tcph);
+> +	if (tcphdr_len < sizeof(*tcph) ||
+> +	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
+> +		goto err;
+> +
+>  	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
+>  		goto err;
+>  
+> @@ -313,16 +320,23 @@ static void nft_exthdr_tcp_strip_eval(const struct nft_expr *expr,
+
+[ ... ]
+
+> -	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
+> +	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+> +		goto err;
+> +
+> +	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
+>  	if (!tcph)
+>  		goto err;
+>  
+> +	tcphdr_len = __tcp_hdrlen(tcph);
+> +	if (tcphdr_len < sizeof(*tcph) ||
+> +	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
+> +		goto err;
+> +
+>  	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
+>  		goto drop;
 
 [Severity: Medium]
-Does a failure in test_hook_drop_scope() reach the exit status of the
-script? hook_drop_case() records a failure only by setting the global
-ret=1.
 
-test_queue_bridge runs afterwards and calls test_queue() twice.
-test_queue() does this:
+The commit message says:
 
-tools/testing/selftests/net/netfilter/nft_queue.sh:test_queue() {
-    ...
-	wait
-	ret=$?
-    ...
-}
+  This patch also updates the logic to drop malformed packets, before this
+  patch NFT_BREAK was used as a verdict instead.
 
-A bare wait returns 0, so ret is reset to 0 whenever the bridge tests
-pass. The script then reports success with exit $ret.
+Does that match what the diff does? The diff does not touch any verdict
+code. The change in behaviour only comes from removing the second,
+full-length skb_header_pointer() call that nft_tcp_header_pointer() made:
 
-The FAIL line still goes to stderr, but kselftest runners decide pass
-or fail from the exit code. The same reset already affects the earlier
-tests in this sequence.
+  return skb_header_pointer(pkt->skb, nft_thoff(pkt), *tcphdr_len, buffer);
+
+Before this patch, a truncated TCP packet (thoff + doff * 4 > skb->len)
+made that call return NULL. Both functions then took goto err and
+returned NFT_BREAK.
+
+With this patch the 20 byte read succeeds and the doff check passes. The
+packet then fails in skb_ensure_writable()->pskb_may_pull(), and the
+result differs per function:
+
+  nft_exthdr_tcp_strip_eval(): goto drop -> NF_DROP (new)
+  nft_exthdr_tcp_set_eval():   goto err  -> NFT_BREAK (unchanged)
+
+A packet with doff < 5 still takes goto err and gets NFT_BREAK in both
+functions.
+
+As a result, a tcp option reset rule now drops a truncated packet, while
+a tcp option ... set rule treats the same packet as a non-match.
+
+Should the drop policy also cover nft_exthdr_tcp_set_eval() and the
+doff < 5 case? If not, could the commit message say that the change only
+affects truncated options in nft_exthdr_tcp_strip_eval()?
+
+Separately, this isn't a bug, but the new upper bound check:
+
+    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE
+
+can never be true. doff is a 4 bit field, so tcphdr_len is at most 60.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261018005638.1776148-2-pablo%40netfilter.org
