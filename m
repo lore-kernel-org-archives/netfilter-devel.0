@@ -1,72 +1,97 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 766114AA033;
-	Mon, 19 Oct 2026 10:46:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 636C14DE712
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 10:53:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792406816; cv=none; b=t8WkJ/C3Yq73wSRzPcnv10TflGWzTHTNqitHVr1lFxRx1huB6QcgtQf7aqykqmoabV7aDVElU+K4Av2VD6o/tDzXYphJRhxLtXeQq8HYGUymyNMLqlQvRG2r7l1VQC1rm3kK6svCTJ/IsQxwtuERcHyVIlSrtc5RfIJTZvVnSe4=
+	t=1792407187; cv=none; b=qClXOb3pp25/jLdzRtwl9GG1G1LiSsyFgB/DXWPB6yHjWPNfKn3b1I3u1nPTO3lYoZKBsKosPEkeU/BrEupEFU8eqP2pLZIICGRVYstP611JdRMADaKqla8fp2uggECZOfksTA7o/LnmMr1eSGFH2ZpVm/1Ks+8C7HBcplmcDa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792406816; c=relaxed/simple;
-	bh=gLdCKqrr6hcol62cMYJ/wZT3hr6HJcc86qpKgWaGz0g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fN6hlvC09oUaCE4cLTOwckcX4sEIYxDoysrHmMnuX4YrDUkTYSF3J+1VQklJ5kBwSFMm9PzDjet2DeKbEjA7XEyp3YqYkyBwluSMjVicf4Xlck9uVmlDKBbEDQB73OegLgJtOjQncZu/dE2U38BVzdwsaQbAnnlYHu+UEdgjgbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NqVuHlVG; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1792407187; c=relaxed/simple;
+	bh=mXqcORp3c0k/JI9vRxkWcWM/ra2RqgtpfC6MospUu20=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TNkDLp5HQ8V7mksLE+dztBH8qCXIVHnkOdkLFTkJ+x310N/J/VbzV6RLzIGTHosmiS+Z4NsD5yL7TL1QFKHPodst5IjNAsrE/mzbSCqFnglUiB4DSGlU6W3hJPchAfKCeg4BuoYW4DreyzWYSxCgl/TZzqnhSZ8h0AE4IQNFWjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=vs1EWY72; arc=none smtp.client-ip=209.85.208.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NqVuHlVG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792406810;
-	bh=DGKm1vhuj3qCRyUFCSi87tHJ9Sjbvs34QoGxyJaq/U8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NqVuHlVGqYNGtJPrfTBSZYC6IvshiQAopEuPHAKaHufOVliZDN4oa19PRWoaDBuuo
-	 Ew7+fbhIhlG/DEaiwrd4pvwSbfSynNCPBoai+RA785ryGnNL0RlgBGsuO8KUIdsmES
-	 +yF5JvMrsS7yRsgDpaa9N34/5Y0IV6izDzCHXaiJD7qe6rkCfT6GsE3vbQbyu/dyZe
-	 AkpYRrQSgkIvAnpnESpCnx1rP6doQVrTKowxJzUGAddJfFQN5SwLEuoVARc3xZoFjG
-	 9LX64SC9eJkBUKuZIsi/FqsK9m3+GPgxIZS8Y+3OVpkVVsiflEjnK9010JY8BIHuev
-	 7r+SpndYyCDxw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9ABE860051;
-	Mon, 19 Oct 2026 12:46:50 +0200 (CEST)
-Date: Mon, 19 Oct 2026 12:46:47 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev-bot+sinfo@kernel.org
-Cc: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Lorenzo Bianconi <lorenzo@kernel.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: flowtable: fix pmtu discovery in
- nf_flow_tunnel_ip6ip6_push()
-Message-ID: <atX1F6DbOdaKVd43@chamomile>
-References: <179240514712.3290.6021443998153366667@kernel.org>
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="vs1EWY72"
+Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6b1ab2ad719so2821254a12.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 03:53:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bairaktaris.de; s=google; t=1792407182; x=1793011982; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=mXqcORp3c0k/JI9vRxkWcWM/ra2RqgtpfC6MospUu20=;
+        b=vs1EWY72TTdEmqgg9GSothkPq2obVMv8QC9r5XAdgkoE8NNuIVDDGkwXwbb8pnktXI
+         TPsn8u+s8YshT6XpfsSzVPU2XlH8qDLgrmozRU9K5RGxC+Xl+xKb5PSrmoZ3lFQPiZ1T
+         SLGWiDykt9+w4f8Zfe63tOkfymqgy0Hqnu4m1Mpqy28VLNDU+Ea48Jrsjc4vW/VMJvsR
+         tVLbyPAiTgmYFno/8wzKpoMjmVeN1hyhYrQyrYV8mPSOIrm/30esG/yaoFgSD+t2BlaQ
+         m8GWYN92xHDGGy0VIeucD6mvNjf+VhWPcj/f5fRqfSENVX+gQf5iiOumNicfYKl+T7FJ
+         hKDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792407182; x=1793011982;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=mXqcORp3c0k/JI9vRxkWcWM/ra2RqgtpfC6MospUu20=;
+        b=x4K8Kcg80dLmyu/EO9OL6dXkNMD4K8CLEsQw2suNfaYTxjotMmfDhA4yYLsFJJuKqq
+         T1kAlQOZdA/WoHXJAmUdqyPbnAWK3CxnsqxYiPWYdbE35HpzY2hxbgVimyDf6kdVZkCo
+         0cezo7FRsbZlLWOEOaIvOO4IHwkmsmQlqQbjPLEsHg4sbAmhyTV6n7u4WKbqAhUXxYCK
+         ZRh6QEkdiRsskog8Mtlb79Frb1v6gkL+IvN3/tbONJsvS4E944bINvSzAB1HPy9TxZYW
+         0uZd2+EhMaDI79DxsBIuQUEWhdE2K8za8coQ6guzwsTXbqT/0QoBugYJepouzcpeKCx/
+         JkFQ==
+X-Gm-Message-State: AFq9FYIIg7n8rjf82O9zmqGnIFiHTSHGNFzuxH1LoQUz6us8TQav30mC
+	bWpqgI8KjPhLaLAD8ivCuN4F9EaB9AvuttDU6zXMVUyg3fn/5lveyUQ2nDv04gkvDQ==
+X-Gm-Gg: AYBFou2hBvN0BWIg3lph7WzkekRhKfT49ooUbQ2Qu/xiwbdWn2ljww3kq9mGWJkW+V4
+	Znv6Oqng2uKBSgsrIWGdFD1h8pVzINuqMbBoPCzI5mQ2f9+n7VkkjuE6ojOrgoI5duHjsL4IOse
+	YLt8VJ1k6vq4ClUfyHLzo/7HsFRZuSN2PUUq7WQBzWwYKX/tMbyXmOXJCqTnxpIVIi2Ji6JWvdx
+	z8WzZg6CQu3q6CRKmiYo0F5oxEqWbC1MDGLLs0GAv3F06vyM1J4ybrXpIzrfldwA9PphU/rZZ70
+	j7yEi79mS6XrwZ5+Toy1cLcdTF0L1N3vSnKSQSGyq9Zf/2NJDbM0PsYfsFTBpUgHNITVqrhVUlu
+	smy+xgOrioaSmuQFs+wPSFLSdhBkzti/soJaoXmPR7r+RgOZmTpwP8pcrqqs2HodgkdX0B8GEdP
+	67iA5QUND3W4G+H8206xKfhAfBawYIi0R0/pw/HKe9rVOgKspKlRTzCqR5bzjCitkYr9Zep1649
+	xXsG/6dXEYMMabaH5p3Iyag+WDsnysmg4ahe4a78UR+ln3LLjJzkvj93wpZivsLkAPvoUPwtFo+
+	/nLvaNtpCC3t7v58Uu4ckE/TW6JuUqxqAiXi9uHz+Yvx3SfehbAQdFAnisaPTXS01CjIBEXU/up
+	dcfHhT+M/mPi26x2lWJq5E1PGoT04jd0WqS88lCQ3s305I5ilGfvk8dA2HryBZmGIIdKPWjYhAj
+	UbJ3jgcq36WagaDQbx
+X-Received: by 2002:a17:906:7947:b0:c29:22cf:b0f5 with SMTP id a640c23a62f3a-c419f122235mr458126166b.33.1792407181819;
+        Mon, 19 Oct 2026 03:53:01 -0700 (PDT)
+Received: from Desktop.fritz.box ([207.22.61.102])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4091fade41sm345091066b.82.2026.10.19.03.53.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Oct 2026 03:53:01 -0700 (PDT)
+From: Julius Bairaktaris <julius@bairaktaris.de>
+To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com
+Subject: Re: [PATCH nf v2 1/2] netfilter: flowtable: fill the vlan key from the outermost tag only
+Date: Mon, 19 Oct 2026 12:53:00 +0200
+Message-ID: <20261019105300.767810-1-julius@bairaktaris.de>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <atXxYLFOijwbFXqB@chamomile>
+References: <atXxYLFOijwbFXqB@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <179240514712.3290.6021443998153366667@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Oct 19, 2026 at 10:19:07AM +0000, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
-> 
->  - Whether the issue was actually triggered, or is only theoretical
->    (e.g. found by code inspection). If it was triggered please include
->    the symptoms, like the stack trace or error messages.
+On Mon, Oct 19, 2026 at 12:30:56PM +0200, Pablo Neira Ayuso wrote:
+> There are only checks for ETH_P_8021Q in this codepath, no 8021.ad.
 
-Sashiko reported this.
+Right, and the commit message gets the order backwards.
+
+> Why this new check for tuple->in_vlan_ingress & BIT(0)?
+
+It is wrong. It drops the vlan key for PPPoE over VLAN.
+
+As agreed, v3 will follow after the fdb series.
