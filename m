@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1792422189;
-	b=3uwyKDqA2eY7IZ+RD8ylzrAMnOPFKzDal+zmlotMVtVa7PapvJ5L6TV8HXlWUg9DVoiO
-	 J8JeBLHgccxpnI7d381A1rA8gUEeOueYMyN6NL253qPJ5m6QNOpepRzeL/ECK3sR2zjQ1
-	 xE9uzvOupR3HwLqYMkIGewRyC5mA5lJ3Ko3Xn80DSgfxGKAffeY3TRagjum4VsveVSBVv
-	 j+gxLzpFYhcB9OdqHJzGhJVFHkA/oRv1Ol88rAqvSTSIN7Mv5PcBW87CP4OlMKnqJQMAf
-	 AopjrXYaPEGoTW1UxDQLFScU95IjB4pp4C9IaMLOa/FWM5eaKHvYqywQDnUwRcsuQaQ==
+	b=MgVyFFLwve1eqfAJ6gRb2atNoYRpL/hiPnqpsYUBamJKgNMx/XXBIy0phwmEj4SNZ/fz
+	 TWC99Q58uhm9haAEb5mRijECozMpi32kCwVkJNvWc1DWp06vBzyJuYjTm0IMDSM/d3YBQ
+	 qe+8w8gbAlDXxQU9muYZm4WhLL3lJV7YKjZ5/TxSvxLwTswwM00uLu+AldnYx61tG1OrZ
+	 GcEzMCdRe81/uixS0KQ/0HRQdLT9uw754eg8zIvSeMwiokHA8B2FHLsEmoGMphl/NMib7
+	 OnAZCQtcO4m3DweBPXXAozc6aoLvHbciGBew6oAHdfkfIRBMqu6jXqS3Gd09A1ulzOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1792422189;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=CYNpmVXRLHMAAVus7/gfQUc1TWW6VTf4/aSf8Tlez+s=;
-	b=lbARv1J98BU+iKoNBXmtIh5KCiPO6D2gi6YTFW4km6pop2vdmGZP95kABbuy2gMdeDV6
-	 5aNUmQa4MkVFRKjTYDl9iszbRxpmA/g/28gyCmqyDHuaTxdn6N3g+iIiaSeJ+TOX+gYC1
-	 dvt66LLXJ/pSFZ7xZui2IrkbnH74irt2Z0Yyp/rQk1uhdly5WujntYYqh1nzzPC0dAeqR
-	 kEvboHUolvs4uZiay7WAGhzSF466yhI/Er74YNN3Lq1i9SHGI3TxM82j1tyhpjTxzhNUM
-	 Dgj6AAYklbUB4sbSE0Kx0Pvcljz2Nv/mAUSSJgvumFeNfDwnyB0002qCpJpV6An+rUA==
+	bh=c5/ToZfD4LQ3CMw/UKyWzuZvE6sEZcZAHHntN38m0WA=;
+	b=ChlA+FtwRt0iPXV40aZYjAergGEojJT1gfAgylECsHH1tZdz9TSIqZlb2VMEyzqhd7K2
+	 hcaT++sTg4vOyw0sxm0cHFo7z+EIOHUn8a7STiOtYUhASHutLLHnFgdwwULNmmKqpGaSC
+	 U8XDzmSCsiZ01MEoFEIZ5C8sCTw24ClMRSE6ZvpNUfEZsCWnyu7h5lTRuV+36MBS0kjo3
+	 eRbgK6vkxaZwUAIOtnuxo0n23IcG56yFXcduFkmqGttx+E/w6VjAOfRW/7bX8D66b0c2q
+	 Vxuk4a+69IXMTvBXJHTHp1Dk59yGDhQMMQNFdyPErR/5lnmbTrIlqm/zVvEznctxnug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Y803IFXS;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="cHon/KjN";
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5568B607D354;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5616C607D355;
 	Mon, 19 Oct 2026 15:03:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5568B607D354
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5616C607D355
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Y803IFXS
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=cHon/KjN
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792422185;
-	bh=CYNpmVXRLHMAAVus7/gfQUc1TWW6VTf4/aSf8Tlez+s=;
+	s=2025; t=1792422186;
+	bh=c5/ToZfD4LQ3CMw/UKyWzuZvE6sEZcZAHHntN38m0WA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Y803IFXSYCm8RB3z09rcHdIHVTMeVP3SMwuGKtPSBGfBzloQfV45ZvyKESBo9zYwO
-	 kmZSjJBww3RCyhObeCJn3TgvCZC2JyBPIduosSZvPPa2kAiCHm+nJlVj6+N/XOg5xi
-	 xqKgmqkdFoZGMzjN++3w6PfOLxXe7fYHEwvG2sfwzKDSB/zGZ7Z25HnVuni6vn9kZ8
-	 TzdyraFDfQF/KtjZCbwGPFzAFZdTf9dNoLqFEkIauoI55bDn1DAXCTiJJB2LaupJWO
-	 IBh0rkqAUKGG4e8UwVYzUp28rPGCKH3Od5ZjxBvig1Xu/MtZ0fUBwTx2dtdD6V6FPT
-	 HVZ8HI/neLeMQ==
+	b=cHon/KjNKCRlfcO6PzWmnwvquPNdLNPJV16BWf5IWyGGaa6cNbsKy05dU5/hrFN4j
+	 KLoKa9paVT62GDBqJTrWDddldc5ow4eVa0iYcw3dJ9RAyoYnBuSWcSs7jD/2wq7Tf/
+	 7O4eDqfYsoMYPWnXysy/DeI1kCY4Loz1YH0M70wna3HjY/40lpUnIQlrvMjmkf3XO3
+	 Hd29zwSSsCEs9MF8RIoeo390zSY3zqQuPlOgXQG6jE+mS+p+okr8lKTeKfWH5/LCol
+	 vFHVZpd4rCuvw2r2PXP9lO08DeQ431U8/fFZpTN5g9jA4PGJx0AGROJ7hl4PEUe8T9
+	 JYvXPlekaJN3A==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 80FF760074;
-	Mon, 19 Oct 2026 17:03:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0041560076;
+	Mon, 19 Oct 2026 17:03:05 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 05/10] netfilter: flowtable: use the vlan id, not the full tci, in the tuple key
-Date: Mon, 19 Oct 2026 17:02:44 +0200
-Message-ID: <20261019150249.1879516-6-pablo@netfilter.org>
+Subject: [PATCH net 06/10] netfilter: nf_reject: initialize IPCB at inet ingress
+Date: Mon, 19 Oct 2026 17:02:45 +0200
+Message-ID: <20261019150249.1879516-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261019150249.1879516-1-pablo@netfilter.org>
 References: <20261019150249.1879516-1-pablo@netfilter.org>
@@ -73,60 +73,75 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Shuangfeng He <huangya90@gmail.com>
+From: Kyle Zeng <kylebot@openai.com>
 
-nf_flow_tuple_encap() stores the skb vlan tag in the encap tuple id
-using skb_vlan_tag_get(), which returns the unmasked TCI including
-the 3 PCP priority bits. The flowtable entry, however, is programmed
-by nf_dev_path_info() with vlan_dev_vlan_id(), a plain 12-bit VID.
+The inet ingress hook runs before ip_rcv_core() and ip6_rcv_core(), so
+neither IPCB nor IP6CB has been initialized when nft_reject_inet passes
+a packet to nf_send_unreach() or nf_send_unreach6(). skb->cb can
+therefore retain metadata from an earlier protocol layer.
 
-When a NIC delivers RX vlan offload skbs with a non-zero priority
-(an RTL9617C EPON ONU was observed handing over vid 818 skbs with
-tci 0x6332, PCP 3), the runtime lookup key never matches the
-programmed entry, so every packet misses the flow table and
-software flow offload is silently defeated.
+For IPv4, icmp_send() treats IPCB(skb)->opt as parsed IPv4 options.
+Stale option offsets can make __ip_options_echo() copy an
+attacker-controlled length into its 40-byte reply option buffer and
+overflow the stack. On an unpatched v7.2-rc5 kernel, the IPv4
+reproducer produced:
 
-Mask both parse sites to the 12-bit VID so the lookup key matches
-for any priority. The in-header variant has the same problem for
-frames received with PCP != 0 on a non-offload path.
+  BUG: KASAN: stack-out-of-bounds in __ip_options_echo()
+  Write of size 255
 
-The egress side is unaffected: nf_flow_encap_push() restores tags
-from the programmed tuple id, which never carried priority bits.
+For IPv6, icmpv6_send() consumes IP6CB(skb) as parsed IPv6 metadata. It
+always uses iif for source selection and, when MIP6 is enabled, uses
+dsthao as an extension-header offset. These fields must not be stale.
 
-Measured on an RTL9617C ONU (PPPoE over VLAN 818 WAN, NATed 6-flow
-download over a 1G EPON line), before -> after:
+For NF_INET_INGRESS, clear the address-family-specific control block and
+restore its input interface before constructing the ICMP error.  This
+matches similar initialization normally performed by ip_rcv_core() and
+ip6_rcv_core().
 
-  download throughput      377 Mbps -> 936 Mbps
-  CPU0 %soft at that rate    91.5%  ->  70.9%
-
-Fixes: 4cd91f7c290f ("netfilter: flowtable: add vlan support")
-Signed-off-by: Shuangfeng He <huangya90@gmail.com>
+Fixes: 117ca1f8920c ("netfilter: nft_reject_inet: allow to use reject from inet ingress")
+Cc: stable@vger.kernel.org
+Assisted-by: Codex:gpt-5.6-sol Codex:gpt-5.5-cyber
+Signed-off-by: Kyle Zeng <kylebot@openai.com>
+Co-developed-by: David Lee <david.lee@trailofbits.com>
+Signed-off-by: David Lee <david.lee@trailofbits.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nf_reject_ipv4.c | 5 +++++
+ net/ipv6/netfilter/nf_reject_ipv6.c | 5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index c8c29a9a1684..2dec15d402ca 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -170,14 +170,14 @@ static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
- 	int i = 0;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 59ec465a9df9..7cb33af671e2 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -357,6 +357,11 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+ 	if (!skb_valid_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
+ 		return;
  
- 	if (skb_vlan_tag_present(skb)) {
--		tuple->encap[i].id = skb_vlan_tag_get(skb);
-+		tuple->encap[i].id = skb_vlan_tag_get_id(skb);
- 		tuple->encap[i].proto = skb->vlan_proto;
- 		i++;
- 	}
- 	switch (skb->protocol) {
- 	case htons(ETH_P_8021Q):
- 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
--		tuple->encap[i].id = ntohs(veth->h_vlan_TCI);
-+		tuple->encap[i].id = ntohs(veth->h_vlan_TCI) & VLAN_VID_MASK;
- 		tuple->encap[i].proto = skb->protocol;
- 		offset += VLAN_HLEN;
- 		break;
++	if (hook == NF_INET_INGRESS) {
++		memset(IPCB(skb_in), 0, sizeof(*IPCB(skb_in)));
++		IPCB(skb_in)->iif = skb_in->skb_iif;
++	}
++
+ 	if (skb_csum_unnecessary(skb_in) ||
+ 	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
+ 		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 07cdaa10da0d..5e08d8529cc8 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -444,6 +444,11 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
+ 
++	if (hooknum == NF_INET_INGRESS) {
++		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
++		IP6CB(skb_in)->iif = skb_in->skb_iif;
++	}
++
+ 	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+ 		return;
+ 
 -- 
 2.47.3
 
