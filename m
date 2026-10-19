@@ -1,45 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4C174973B1;
-	Mon, 19 Oct 2026 09:13:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21734A4984;
+	Mon, 19 Oct 2026 09:15:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792401185; cv=none; b=hPXm/pC7ptQ2T3XkIrtbw+J4epMbmvpNrDcmr0pfHCe2JMWNSlXOxMelodyPWfMpWTami8DTxbJnuRqm39FhiOPWCvFEzeAmoF9zk2w6/ICFA7aloz8vxpYz4FyRfLy+nTw71ELhylro8sX+hnHjjcCCcSRBDjwl52m3aXl+EBY=
+	t=1792401310; cv=none; b=JUGg3otjGMeB8CsjGwntn3viDN9lCTYdlu424bLYtvu/ncN/QOm9mqb5NFeXlQCKxImZp9cDvDmhAojCZB8iTMnfM+UZ1kK7euvFLv26Foz8GiZId25Ycgys4WKxiDTB9avrX615QF94CW/NDV/KJZYMrHYBqRKZLrxcmeXoKGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792401185; c=relaxed/simple;
-	bh=JWRTXQL8/7H74DBLEueoM00W9qFRrWE/TcTomi2Nd+c=;
+	s=arc-20240116; t=1792401310; c=relaxed/simple;
+	bh=FZL7ndYeOHdmTovZ6tAYZwENLqvM43NyZjkv3QJMFTI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SoNba3ht7zrSfhdrZRC5FF9qRmiRbu+J3nTM1RQmtKwU42fjojKBGYP+0vGA3i+3AtgK3b+bsarGDcG7VMgYCPnSTiYkPkp5gHjfzayAsph6inN2nyb0Vl20JT791HAqwJW+l9AZo81ynA1NTZVELgehjs4dLKpQHNXfkSZv9fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rsHUBcGC; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=YbKke/p90+r18I5SID/q2B9vRHhtDCnMNvojIeI1mBzklK9/m8mzbZcvdV1aQxLmAIm83Nycx5BoEOK3cUwdinXctlTvNNau0p53c0iqatVry7FCtlv5Glp2sTNGoxay2L6ytPvGFMyVQReNQr8B8k2AngKjtSJQA081Qk9RGRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=srJt6LDO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rsHUBcGC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="srJt6LDO"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792401181;
-	bh=8vASRzbOHV4/8J6y2ioPV8ekfmQv6+fBqYtDp4Mpf4k=;
+	s=2025; t=1792401305;
+	bh=T6y3g5J7ds/r2QjU0764xaxxnThaXEnzlpWsniGgi3o=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rsHUBcGC047hxCOTiwU268TMzQ5UmQD/tFgHxFETu7QGpDftuzHCgI+DILV+4Opkg
-	 +gX2AjIMqIgHM+1MpE58kvv7Iyhlse329qxut7PdY2iwsadUTEUYIwavZP2WC/L+RX
-	 WYnDPrcLkSbZFByNt5pwcPSvk1g2UYqhqTFTV3sqdYL1u5upA4pvIf5F1g6ave+yaS
-	 Ah2FJB5bO+LP2aQ4l6mjziDoob8EPeGV1EL4Gb4TsHGewXW78tTwYGThqcEji00EhP
-	 Eq7whCshB9lfjJP+YMWzM5P9qzpsh6iKRnhRrWPlAyhmkNL8P4GEQddPFjckKy44fc
-	 jYwrvl/OxINIg==
+	b=srJt6LDOzi2OcqtQBUYfAn1oFyeNoHtjl4/5Um/1qRFicCFRa21TbkFpntXLYsEu9
+	 gohLYAY40MbRbfA9LiZp6ne8rmIVDuQD+cCFB4yXjDcZ+yq64X+5sR6+2l69AKqRN2
+	 sgBlnyzBBM9Oh+/AjV1elT4KBtcO/p5Km0dB22tXBXZt11ni1EaUHoytOKMbiUV9L1
+	 rW/taUnYbxyyFtsfVicoQwyIJYwA6gQew49Id41j6mrTjSNVuZ24aRD3Kas5uugBAt
+	 u+B9KlIoT425nybR3D7nAAqjcfgnoX1vqYZB+Gx6ZqnTPm8U3Zb0oL26o1jSqb7gEH
+	 wTR2rRpcBOGsw==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 841B760057;
-	Mon, 19 Oct 2026 11:13:01 +0200 (CEST)
-Date: Mon, 19 Oct 2026 11:12:59 +0200
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9984860077;
+	Mon, 19 Oct 2026 11:15:05 +0200 (CEST)
+Date: Mon, 19 Oct 2026 11:15:02 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev-bot+sashiko@kernel.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
 	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net-next 02/15] selftests: netfilter: nft_queue.sh: only
- queue icmp echo request/reply
-Message-ID: <atXfG5EVbX7kcPim@chamomile>
-References: <20261018005638.1776148-3-pablo@netfilter.org>
- <179237288160.3135.9206589655813468272@kernel.org>
+Subject: Re: [PATCH net-next 01/15] netfilter: disable br_netfilter in user
+ namespaces
+Message-ID: <atXfltTumi0mbcME@chamomile>
+References: <20261018005638.1776148-2-pablo@netfilter.org>
+ <179237288041.3135.11774275051307629447@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,32 +49,70 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <179237288160.3135.9206589655813468272@kernel.org>
+In-Reply-To: <179237288041.3135.11774275051307629447@kernel.org>
 
-On Mon, Oct 19, 2026 at 01:21:21AM +0000, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in case
-> you want to address the nit picks below when you respin.
+On Mon, Oct 19, 2026 at 01:21:20AM +0000, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
 > 
-> Low priority / nit picks for your consideration:
+> Critical: 0 · High: 0 · Medium: 1 · Low: 0
 > 
-> - [Low] The commit fixes a reproducible flake in the bridge NFQUEUE
->   selftest (about one failure a day in NIPA), but its message has no…
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [Medium] tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
+>   re-execs itself under `unshare -n` (line 40) and then runs `sysctl…
 > 
 > --
 > 
-> selftests: netfilter: nft_queue.sh: only queue icmp echo request/reply
+> netfilter: disable br_netfilter in user namespaces
 > 
-> The patch changes the ipv4 nfq rule in load_ruleset() so it only queues
-> icmp echo request/reply, which the icmpv6 rule already does. ICMP time
-> exceeded messages left over after the stress test no longer inflate the
-> bridge queue packet counts.
+> This commit disables br_netfilter in network namespaces that are not
+> owned by init_user_ns. In those namespaces it skips registration of the
+> bridge-nf sysctls and of the br_netfilter hooks. It also adds a boot-time
+> warning that the module is slated for removal in 2027, and updates the
+> bridge documentation to match.
 > 
-> > Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> > Reviewed-by: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> > index 0a394e5f43916..e15355ff215a7 100644
+> > --- a/net/bridge/br_netfilter_hooks.c
+> > +++ b/net/bridge/br_netfilter_hooks.c
 > 
-> [Severity: Low]
-> This isn't a bug, but should this have a Fixes: tag?
+> [ ... ]
+> 
+> >  static int __net_init brnf_init_net(struct net *net)
+> >  {
+> > +	if (net->user_ns != &init_user_ns) {
+> > +		struct brnf_net *brnet = net_generic(net, brnf_net_id);
+> > +
+> > +		brnet->in_userns = true;
+> > +		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
+> > +		return 0;
+> > +	}
+> > +
+> >  	return br_netfilter_sysctl_init_net(net);
+> >  }
+> 
+> [Severity: Medium]
+> Should tools/testing/selftests/net/netfilter/br_netfilter_queue.sh be
+> updated along with this change?
+> 
+> That script re-execs itself in a new netns via unshare -n. The new netns
+> inherits the caller's user namespace:
+> 
+>     [ "${1}" != "run" ] && { unshare -n "${0}" run; exit $?; }
+> 
+> It then treats a missing sysctl as a hard failure:
+> 
+>     modprobe -q br_netfilter
+> 
+>     sysctl net.bridge.bridge-nf-call-iptables=1 || exit 1
+> 
+> Suppose the selftests run inside a non-initial user namespace, for
+> example a rootless container or a CI job under unshare -r.
 
-This is nf-next material, no.
+This patch is disabling br_netfilter for userns, so it is normal to me
+that such script run under these assumptions do not work anymore.
