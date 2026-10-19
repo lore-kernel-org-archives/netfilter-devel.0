@@ -1,79 +1,100 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A089E49B456
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 08:50:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5301D346AED
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 09:01:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792399832; cv=none; b=Bk3x4uSkkxMS3bkq4JHQY/qZGIf6RGRwq5zB5a1a9ZPDu+Bw/uDVkcoaI8w5f++OeNQEVcRh8uIidJ1xbZr/CXrlFZQqDF5hQegcS0hGXgf66UpoYpy9mckjfWxzW/SqsD2XgaMtqQTtE/kWTz0RpbbY6KoMki17JRxvR3sba5s=
+	t=1792400487; cv=none; b=MfgwoZ5pevGHx546WrADj0fJVzvJa8e9AscqqhA6NNVnIAsEhv6JTTE4KRVX9/pxUMRUkw79Sei4KZLcGxgeUD3S87hAtHbGTxduXDyrxVgoL0TYU31g8x7/KWQQCEVGWBDHLdO3eN3E2ArSqcxffAusi6sKwNgI2Upwi2Qva0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792399832; c=relaxed/simple;
-	bh=70e6xG+YBySu5wpjxZoPWmyMmzBwNir9ni4AofvN2w4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s9nIlN2A/tJC3MdzMHGvXLvuBwxYVxKz7PwfNG2g/Y+0xtwmCCd6N4UMS1U7kgdNfdKzyZOlD5nnn0lwLEgnZkltrp/P4mZ3KuqhBUh7vD2xOsw54bQeOfpsU7TyS5KI2kNWUsVTWZeSSltg3Q52mRBov3q8Ucn/Xz4EmqHrz2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7363460515; Mon, 19 Oct 2026 10:50:28 +0200 (CEST)
-Date: Mon, 19 Oct 2026 10:50:28 +0200
-From: Florian Westphal <fw@strlen.de>
-To: YuPeng <yupeng@kylinos.cn>
-Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc, debianyu@163.com
-Subject: Re: [PATCH] extensions: ebt_string: Remove spurious inverse check
- for --string-icase
-Message-ID: <atXZ1Fc4HOy--Wam@strlen.de>
-References: <20261016032501.2AA453AAF44@smtp.subspace.kernel.org>
+	s=arc-20240116; t=1792400487; c=relaxed/simple;
+	bh=9rM9MvdYypzSBn/lsJjcgYAkYznkBGWPKjZPTj46ys8=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ZC4yGAI9Tgr83URbvQTEiDb+02KqEdo2UMr4jqKjLff8JGGnOS6atOvvkkS5KcyrlrPZpJams8zYI/3uBkPzpy+oM7vHxo45K/dFRCOo7TLX0U561edW6utc6lN7AlxrXJDEAftEsvsNDIYX3A0nMpbEf4xS4Q7UMvxrOBC43hQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WdACorNQ; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WdACorNQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792400482;
+	bh=GbZtXx8NjreX0wuUh/jmTSO2YYNvZPMCx//6ml94abY=;
+	h=From:To:Subject:Date:From;
+	b=WdACorNQhXTgz1bHRYTBKX9VKAh4+78cdDJuoW8yYGf1Il1ZulB0Q5u7mu6Bad+g1
+	 VNbwZhGaeDyiuZflJPVFaTByfBgEo3RNQV5xcn/NP8nlmQ/EsFrNXx6UOvyOdViliP
+	 NeEiKtSDSUfUwArZDbnGqCUS1rC4cMulI6vPdgW3XDJfr2/9xOuQPEz9MvkGcAoz+c
+	 0v1xvGtBY+ubFRvohQWTdhhN5U4Jxrm7MphXZY6h6pY1/2QKigUixVPgR0KZ+3v+S6
+	 BjNPpVRl++6TdA2ORpU50hYAe9dbYo5w+2nkrOzEIjxK1AC3sdwi+YsAbrnkSa7Coe
+	 x/WeERfcWkc+w==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id C6D2660051
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 11:01:22 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: flowtable: consolidate unsupported hardware offload check
+Date: Mon, 19 Oct 2026 11:01:18 +0200
+Message-ID: <20261019090118.1818306-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261016032501.2AA453AAF44@smtp.subspace.kernel.org>
+Content-Transfer-Encoding: 8bit
 
-YuPeng <yupeng@kylinos.cn> wrote:
-> --string-icase is registered as a no_argument option, so getopt_long
-> always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
-> macro contains a mandatory-argument guard:
-> 
-> 	if (!optarg) {
-> 		__ebt_print_error("Option without (mandatory) argument");
-> 		return -1;
-> 	}
-> 
-> so every use of --string-icase aborts parsing with the misleading error
-> "Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
-> can never be set.  The option has been broken since it was added in
-> commit b1cdae8 ("extensions: Add string filter to ebtables").
-> 
-> Reproducer (no privileges required):
-> 
->   $ ebtables-legacy --string-icase
->   Option without (mandatory) argument.
-> 
-> The inverse check makes no sense for a flag option that takes no
-> argument, so simply remove it.
-> 
-> This fix was originally carried in the Kylin Linux SRPM since 2022;
-> the commit message has been rewritten to describe the actual failure
-> mode observed on current master.
+Move this check to the function that allocates and enqueues the hardware
+offload work. If hardware does not support it, then turn this into noop.
 
-> diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
-> index 97fbe19..74a1bfa 100644
-> --- a/extensions/ebt_string.c
-> +++ b/extensions/ebt_string.c
-> @@ -174,8 +174,6 @@ static int parse(int c, char **argv, int argc, const struct ebt_u_entry *entry,
->  		break;
->  	case STRING_ICASE:
->  		ebt_check_option2(flags, OPT_STRING_ICASE);
-> -		if (ebt_check_inverse2(optarg))
-> -			ebt_print_error2("Unexpected `!' after --string-icase");
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_offload.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-Are you sure?  Probably:
--		if (ebt_check_inverse2(optarg))
-+		if (ebt_check_inverse(optarg))
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e6..44e4c6a64431 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1079,12 +1079,24 @@ static void flow_offload_queue_work(struct flow_offload_work *offload)
+ 	}
+ }
+ 
++static bool nf_flow_offload_unsupported(struct flow_offload *flow)
++{
++	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
++	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
++		return true;
++
++	return false;
++}
++
+ static struct flow_offload_work *
+ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 			   struct flow_offload *flow, unsigned int cmd)
+ {
+ 	struct flow_offload_work *offload;
+ 
++	if (nf_flow_offload_unsupported(flow))
++		return NULL;
++
+ 	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+ 		return NULL;
+ 
+@@ -1102,15 +1114,6 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 	return offload;
+ }
+ 
+-static bool nf_flow_offload_unsupported(struct flow_offload *flow)
+-{
+-	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
+-	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
+-		return true;
+-
+-	return false;
+-}
+-
+ void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
+ 			     struct flow_offload *flow)
+ {
+-- 
+2.47.3
 
-?
