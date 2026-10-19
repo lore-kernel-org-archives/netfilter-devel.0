@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792422194;
-	b=NCfjTIVSpW0apKDgEtPndjpY2pBEIQlp5xbyE6XWE46CDj5rb0Oke5gpssosHE3A2jvM
-	 THcm8rdBFkoDMd5LVIsTapCIvwaTBB2xqllJvx9ILJjdWatwscSu8EfVIue4vlNCYvXel
-	 vro1Ni/b+7u+Pmup74YVz0RIAPv/g6p2Ere2kggyCMJwm/iWR84pHp9I328BqwOgAeQZ+
-	 Ejmpt22zoBRGGOg5ROHpAqGTDIDgCw4PyMYqzddaHHOxOpNRsLL5UsNr6KrNJQQQQZYPi
-	 EETsXVLfRmgBGCc3oBRdIixf6Gh0sSAzYsiVvd3P3cxo8tKV809hAMwXMHaeQAAKGDQ==
+	t=1792422187;
+	b=nqD4dkucD7bf0A2Rp2XvsEAqMieOEd5J7KKZQP2LyXrYs+nzAju8H0/N4BRzP6bfd1iG
+	 CN2y65jOrEVAvfgsGGn5XxZ0P/qANcaRrE9PXtcO8X/1zAGDDCEg6N7Ai0vZy/J58JGZW
+	 02fvmZPyZ+WBi8P/+ZG7jVplbdFGgln0DfvJrfkMPiLSpopomPQ8/JANSVXyR3lhcIQ+A
+	 Jzyjxhq+WgYIauw+ENXVPhcANuODPku5uwLixk//3Icu7N3OnnCdG4kSA7Sf7APIC1/GH
+	 AmpTdFWFZE7LEpqzvP+lXrM9yAimj1eo7fIXwiqP6HxI61Sd74EyNiEpjiS585hPG1g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792422194;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792422187;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=EYYBZweTFbgEHPbYMbybod7rnUu2C7irlTalCiIKRiY=;
-	b=W/cIreMqEsoyVxcqSniye/VFppBH6uie/zAn7mp0XHEJYhzCepVCsXZflddxuofJudfg
-	 19nEAqL431lJPUex5Pb1Cl2DxqiZDxJ67l7HoMkukJMKgC26lwsbQkV6bpaPaui2z6Uj6
-	 QYNfbd+N3V/cPVK4vZmmIXVBUTeV0ERFa+urwM6wxAwSfbv3LOnHBWuPR/oknSnDRHlaa
-	 DmLaLMQEn/EFCWC0Z+evLamiaYd7phSvRxAH/q71Tg1ZLmCZoKvNn1qxZyoRzj1MHTZ1m
-	 4I5Abq1ebZyICS++j/OEEaV7/2egb43xEhlkiy/XQDc5rTD/ibfh0kyTson95vwyLBg==
+	bh=AzkPEoV3uKSzYp0zJzfa2EBj8nbvGyGKjt7kqEJZqvs=;
+	b=Y5GJHmPnX/IZgHz3GIBc2GFW9yFuV3wnLAbDtHwjzLfpzR1MclGLL/hMC9kskapWVvyw
+	 SOgsqGdWFLO48lPgpjxWFp0OpE/x006mMqc7vPWoeaomtzQ126oNSDZgLqxkduQN6ctvS
+	 OhM2d2hQYiwit2jmS9yyCKblzB5S7awJJFnjnd1UhR0vGiZD9QdttT3crqfCqDTzhMK0x
+	 slJ+QfqE0TeWbClpMofd0QmBnBM/UZ2a2+xg1bs38bnS7VrhOU3JtjAnnm98Gnjp4+7vv
+	 DLffcXTvj4KuyvCP+3z6mIyhYDpDOYcY/6m2JNuUeRrQlYLUQXOdU6r6/U/nBF1tdGg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EyPKsr7Q;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=lvnIgZDx;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BAB6607D372;
-	Mon, 19 Oct 2026 15:03:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0BAB6607D372
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4800607D34A;
+	Mon, 19 Oct 2026 15:03:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A4800607D34A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EyPKsr7Q
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=lvnIgZDx
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792422192;
-	bh=EYYBZweTFbgEHPbYMbybod7rnUu2C7irlTalCiIKRiY=;
+	s=2025; t=1792422183;
+	bh=AzkPEoV3uKSzYp0zJzfa2EBj8nbvGyGKjt7kqEJZqvs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EyPKsr7QxrpppeLpBD6bAo0WBFBXRM27ebYP9k8JpW9OHK/XNVsam3JhdP2Qk+cRg
-	 SsrzZFMf41b/JY5FBY1Shh5SkMWdsy0B2RXOXxC35sNbiXjjmObzZzcV0sZ4DxvXaC
-	 T9Q1mi0dIrBvOiiSgyob1Z8uDPPsusqcXB57p8jM6oa00nerr/ja5DlwCdJg59X7Om
-	 KxqcWv0+1Z/oLbQunElkeZb0xBLgWpSS5H0T6UqxlOiq+b2njmsoJNEqVespn9E2xd
-	 fx4UONQIzeLag+iqhrJXRYjyyn0yKWgL+23pWOxMt64gn6gtUlg9XEU5fhu784qSbQ
-	 Q+PLt9bH0DGLA==
+	b=lvnIgZDx3R2WiM17NfgsMRRVk6Ahlujfuw2EkinSmdUoMctsEDLdrPRYi1AXvl/By
+	 sdoaZMy4O90IvHYjJxmf3ZC9tUhmW1nlnmo1tDJ6TRAURp0dcXV+Ro6wRN5UGkvvFk
+	 MN/cwFCt6X4wC4Lo4HVkyl+jgOko1qsEwQqdKbrWrz216xz4KmmVnnQVmJ+gX2ia2R
+	 kpLZuUFXPlwNseKVGC33zVVFskeFQ9mKQD8N67mBTGikl1KUMZwnOcwOFpOWCJBVLc
+	 H6xYA47cIiy2PLoxeOJL9QHjVgabHMX18qNf6cnAkJIIjfNopztrlo3vrB2VJ/qsxH
+	 ChuJDDBe9/3XQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id ED0A660074;
-	Mon, 19 Oct 2026 17:03:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 18BC060060;
+	Mon, 19 Oct 2026 17:03:03 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 10/10] netfilter: nf_conntrack_netlink: fix inverted IPv6 tuple filter
-Date: Mon, 19 Oct 2026 17:02:49 +0200
-Message-ID: <20261019150249.1879516-11-pablo@netfilter.org>
+Subject: [PATCH net 04/10] ipvs: skip committing sync_threshold when proc_dointvec fails
+Date: Mon, 19 Oct 2026 17:02:43 +0200
+Message-ID: <20261019150249.1879516-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261019150249.1879516-1-pablo@netfilter.org>
 References: <20261019150249.1879516-1-pablo@netfilter.org>
@@ -73,50 +73,40 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Liu Chao <liuc63@xiaopeng.com>
+From: Joel Granados <joel.granados@kernel.org>
 
-ctnetlink_filter_match_tuple() returns 0 (no match) when the IPv6
-source or destination address differs from the filter, because the
-!ipv6_addr_cmp() test is inverted.  ipv6_addr_cmp() returns 0 when
-the addresses are equal, so the negation makes the branch trigger on
-a match instead of a mismatch, which is the opposite of the IPv4
-path above.
+Forward rc value and skip updating sysctl_sync_threshold when
+proc_dointvec fails. This targets a write such as "5 x" which would fail
+with -EINVAL but would store the first element anyway.
 
-Drop the '!' so the IPv6 branch returns 0 only when the addresses
-differ, matching the IPv4 semantics and the caller's expectation.
-
-Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
-Cc: stable@vger.kernel.org
-Signed-off-by: Liu Chao <liuc63@xiaopeng.com>
-Reviewed-by: Weibin Liu <liuwb@xiaopeng.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 4e5d7c701436..cc8695d5356d 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1098,13 +1098,13 @@ static int ctnetlink_filter_match_tuple(struct nf_conntrack_tuple *filter_tuple,
- 		break;
- 	case NFPROTO_IPV6:
- 		if ((flags & CTA_FILTER_FLAG(CTA_IP_SRC)) &&
--		    !ipv6_addr_cmp(&filter_tuple->src.u3.in6,
--				   &ct_tuple->src.u3.in6))
-+		    ipv6_addr_cmp(&filter_tuple->src.u3.in6,
-+				  &ct_tuple->src.u3.in6))
- 			return 0;
- 
- 		if ((flags & CTA_FILTER_FLAG(CTA_IP_DST)) &&
--		    !ipv6_addr_cmp(&filter_tuple->dst.u3.in6,
--				   &ct_tuple->dst.u3.in6))
-+		    ipv6_addr_cmp(&filter_tuple->dst.u3.in6,
-+				  &ct_tuple->dst.u3.in6))
- 			return 0;
- 		break;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 3003547dcabe..ce9fe20d6106 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2452,6 +2452,8 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+ 	mutex_lock(&ipvs->sync_mutex);
+ 	memcpy(val, valp, sizeof(val));
+ 	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
++	if (rc)
++		goto out;
+ 	if (write) {
+ 		if (val[0] < 0 || val[1] < 0 ||
+ 		    (val[0] >= val[1] && val[1]))
+@@ -2459,6 +2461,7 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+ 		else
+ 			memcpy(valp, val, sizeof(val));
  	}
++out:
+ 	mutex_unlock(&ipvs->sync_mutex);
+ 	return rc;
+ }
 -- 
 2.47.3
 
