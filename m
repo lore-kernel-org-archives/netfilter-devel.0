@@ -1,100 +1,145 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5301D346AED
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 09:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF26496D40;
+	Mon, 19 Oct 2026 09:11:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792400487; cv=none; b=MfgwoZ5pevGHx546WrADj0fJVzvJa8e9AscqqhA6NNVnIAsEhv6JTTE4KRVX9/pxUMRUkw79Sei4KZLcGxgeUD3S87hAtHbGTxduXDyrxVgoL0TYU31g8x7/KWQQCEVGWBDHLdO3eN3E2ArSqcxffAusi6sKwNgI2Upwi2Qva0c=
+	t=1792401068; cv=none; b=e0HMf982ie0bAVHxu93KnIzorh4F7+xoWbugY9hk97umSasE/SrBnVwF3+6JjQWKx61S248U294w7YrhLIdicudPpCcTisz7DSFt/bkfW5IcB35G9siao1DXaY9IwperUET4/JHHF+gMmArIq9kEw6L1OnJnWp/Kue4BjR8x1wQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792400487; c=relaxed/simple;
-	bh=9rM9MvdYypzSBn/lsJjcgYAkYznkBGWPKjZPTj46ys8=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ZC4yGAI9Tgr83URbvQTEiDb+02KqEdo2UMr4jqKjLff8JGGnOS6atOvvkkS5KcyrlrPZpJams8zYI/3uBkPzpy+oM7vHxo45K/dFRCOo7TLX0U561edW6utc6lN7AlxrXJDEAftEsvsNDIYX3A0nMpbEf4xS4Q7UMvxrOBC43hQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WdACorNQ; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1792401068; c=relaxed/simple;
+	bh=p+jY3tmxwUt019LxwgmVwWOXI6oEZqEVc9D9I+PEr1M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=E3yH9fhoKbPSWejzGx3PK7UZYBBuk5N2aiWVvWUE2rcfDMR3h3+Pytvb99V8IIYvNi6o73bsdKXkHOttJ70mvUOL5uoLDiAXknfGHeLbfB84ENE0cpmOkgPIswJwtP1L6xQUo5KOGA250xIX5uq/1ftpYAbhy6G1Zvd2MlaSIhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OdkLtUQF; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WdACorNQ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OdkLtUQF"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792400482;
-	bh=GbZtXx8NjreX0wuUh/jmTSO2YYNvZPMCx//6ml94abY=;
-	h=From:To:Subject:Date:From;
-	b=WdACorNQhXTgz1bHRYTBKX9VKAh4+78cdDJuoW8yYGf1Il1ZulB0Q5u7mu6Bad+g1
-	 VNbwZhGaeDyiuZflJPVFaTByfBgEo3RNQV5xcn/NP8nlmQ/EsFrNXx6UOvyOdViliP
-	 NeEiKtSDSUfUwArZDbnGqCUS1rC4cMulI6vPdgW3XDJfr2/9xOuQPEz9MvkGcAoz+c
-	 0v1xvGtBY+ubFRvohQWTdhhN5U4Jxrm7MphXZY6h6pY1/2QKigUixVPgR0KZ+3v+S6
-	 BjNPpVRl++6TdA2ORpU50hYAe9dbYo5w+2nkrOzEIjxK1AC3sdwi+YsAbrnkSa7Coe
-	 x/WeERfcWkc+w==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C6D2660051
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 11:01:22 +0200 (CEST)
+	s=2025; t=1792401064;
+	bh=cooeJdd3ZOoKuDT3EFTXdUcEgO8JUE4TEpeg7owRSCU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OdkLtUQFuykNOsUNna630292JZB/GlsKYOHeaRxonMelcM4avycN8CGhYuazZDZQE
+	 68grN8FMDEQbZ865DblqvaiQjJ7oIUr6Bef5xLRidnP+AjNUtsZzvfzzq7tFrLStVp
+	 0nLcjDxDmHSvQc3rsAtGHkVokJP5EGJ2OEdXs4Lz8IRXJI4X8qs4gb/xfVoI7DP90y
+	 4ae5UOBmZpovfF3OH6XMuLnq1UFcmw2z+f7g7hfhumLvgJetfvy1HBFr+lmiqk1sg8
+	 XSjPjTMWKvAB+bC5SGGy47pNcLx/+7xm/wqEPwEZxxpX1C1KwRXfoOtOhqSpwOYIe7
+	 QZLIjsiTq1gvw==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 322D060058;
+	Mon, 19 Oct 2026 11:11:04 +0200 (CEST)
+Date: Mon, 19 Oct 2026 11:11:01 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: flowtable: consolidate unsupported hardware offload check
-Date: Mon, 19 Oct 2026 11:01:18 +0200
-Message-ID: <20261019090118.1818306-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: netdev-bot+sashiko@kernel.org
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net-next 09/15] netfilter: nft_exthdr: avoid 60 bytes
+ stack buffer in TCP option mangling
+Message-ID: <atXepTQ9VUufeOAu@chamomile>
+References: <20261018005638.1776148-10-pablo@netfilter.org>
+ <179237288600.3135.15119152740392179853@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <179237288600.3135.15119152740392179853@kernel.org>
 
-Move this check to the function that allocates and enqueues the hardware
-offload work. If hardware does not support it, then turn this into noop.
+On Mon, Oct 19, 2026 at 01:21:26AM +0000, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
+> 
+> Critical: 0 · High: 0 · Medium: 1 · Low: 0
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [Medium] The commit message says "This patch also updates the logic to
+>   drop malformed packets, before this patch NFT_BREAK was used as a…
+> 
+> --
+> 
+> netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
+> 
+> This commit changes nft_exthdr_tcp_set_eval() and
+> nft_exthdr_tcp_strip_eval() so they no longer call
+> nft_tcp_header_pointer(). Each function now reads only the 20 byte fixed
+> TCP header with skb_header_pointer(), validates doff, and leaves it to
+> skb_ensure_writable() to pull the options. This removes a 60 byte stack
+> buffer and a redundant second header copy from both functions.
+> 
+> > diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+> > index 3492426dccf7f..861bab93f4352 100644
+> > --- a/net/netfilter/nft_exthdr.c
+> > +++ b/net/netfilter/nft_exthdr.c
+> > @@ -233,16 +233,23 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
+> 
+> [ ... ]
+> 
+> > -	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
+> > +	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+> > +		goto err;
+> > +
+> > +	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
+> >  	if (!tcph)
+> >  		goto err;
+> >  
+> > +	tcphdr_len = __tcp_hdrlen(tcph);
+> > +	if (tcphdr_len < sizeof(*tcph) ||
+> > +	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
+> > +		goto err;
+> > +
+> >  	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
+> >  		goto err;
+> >  
+> > @@ -313,16 +320,23 @@ static void nft_exthdr_tcp_strip_eval(const struct nft_expr *expr,
+> 
+> [ ... ]
+> 
+> > -	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
+> > +	if (pkt->tprot != IPPROTO_TCP || pkt->fragoff)
+> > +		goto err;
+> > +
+> > +	tcph = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_tcph), &_tcph);
+> >  	if (!tcph)
+> >  		goto err;
+> >  
+> > +	tcphdr_len = __tcp_hdrlen(tcph);
+> > +	if (tcphdr_len < sizeof(*tcph) ||
+> > +	    tcphdr_len > sizeof(*tcph) + MAX_TCP_OPTION_SPACE)
+> > +		goto err;
+> > +
+> >  	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
+> >  		goto drop;
+> 
+> [Severity: Medium]
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_offload.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+Nothing wrong in this patch.
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 4365859220e6..44e4c6a64431 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1079,12 +1079,24 @@ static void flow_offload_queue_work(struct flow_offload_work *offload)
- 	}
- }
- 
-+static bool nf_flow_offload_unsupported(struct flow_offload *flow)
-+{
-+	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
-+	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
-+		return true;
-+
-+	return false;
-+}
-+
- static struct flow_offload_work *
- nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
- 			   struct flow_offload *flow, unsigned int cmd)
- {
- 	struct flow_offload_work *offload;
- 
-+	if (nf_flow_offload_unsupported(flow))
-+		return NULL;
-+
- 	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
- 		return NULL;
- 
-@@ -1102,15 +1114,6 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
- 	return offload;
- }
- 
--static bool nf_flow_offload_unsupported(struct flow_offload *flow)
--{
--	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.tun_num ||
--	    flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.tun_num)
--		return true;
--
--	return false;
--}
--
- void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
- 			     struct flow_offload *flow)
- {
--- 
-2.47.3
+> The commit message says:
+> 
+>   This patch also updates the logic to drop malformed packets, before this
+>   patch NFT_BREAK was used as a verdict instead.
 
+I added this comment to make this AI robot and it keeps complaining...
+
+> Does that match what the diff does? The diff does not touch any verdict
+> code. The change in behaviour only comes from removing the second,
+> full-length skb_header_pointer() call that nft_tcp_header_pointer() made:
+> 
+>   return skb_header_pointer(pkt->skb, nft_thoff(pkt), *tcphdr_len, buffer);
+> 
+> Before this patch, a truncated TCP packet (thoff + doff * 4 > skb->len)
+> made that call return NULL. Both functions then took goto err and
+> returned NFT_BREAK.
+
+Yes, this is what the comment aims to say.
