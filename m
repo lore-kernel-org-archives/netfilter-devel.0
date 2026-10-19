@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB30253951;
-	Mon, 19 Oct 2026 01:21:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5C28318B9B;
+	Mon, 19 Oct 2026 01:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792372882; cv=none; b=fbkHxplNhie0w+VHa/AGgP3PyTp1aL4+Y31u9suwYS/l1cQMvUlYqawkjMU/EMYzznkOAvhmIeZi5t3RnjEY6dBwkYj1/k3q0WhiRXdhxrd1J8/1ItraXWHJBeM2dbE7hQsQhVuLU5LrFmZmCFcRorPlUftNebcqbg0iNy3a8UQ=
+	t=1792372883; cv=none; b=IstadUOwcOXbBj0AEcWPVy1SJ4sxH/RGjmq+pm3Vlpd75McdJhCZXCBaSqHtrod/iTt0ZIRzgn7B8MMOoAKreqigb9gTIa6WLI0cSIA4duaJ6iNiNsNNocUQGyb8HZoqGiyub9M+ig4sdqZwBskii5N8aWjerKgGn/Jz0Lj55kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792372882; c=relaxed/simple;
-	bh=3Ir8TP71k1No72mzl+a2aflk/XS3VTqfJ00gJ3yVlJ8=;
+	s=arc-20240116; t=1792372883; c=relaxed/simple;
+	bh=NVcMaSCxfwgowDNmogArpsdgt2cMw/9W5Y7T79INjsI=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Dw3xYUT/VpHyatJUjjI05rPicml+qQuNTYanhu5WfUx+CWuU2aW8mAIsuKTogmru6k1Xhd8viJQdPJMWz5azAB56em8PGHVxs20Wn7fHn/u54VUz59luzULGMvO234GaiSd1IJKZcl2Z6enxYEK2fdvUiLF41kELRx8d9gTOPHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kcTeZ0r0; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=lSYLnFBpn5J8pYz/RotXWmPovhe2u3Ed/mvieFVyJW552RHf9DxLzHI6i+j2hiyJerpO+ksW0XUaKL7MGD3vHmY1Z9UpW/Jh8uCH1Rr/VrBNh5T2ZjwZTE46mPms/zi5yS7dzUkRlXVrTuPisrcp45X9wOtvo6EYUekErOy/z+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jhCf0PDS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kcTeZ0r0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD6C11F000C4;
-	Mon, 19 Oct 2026 01:21:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jhCf0PDS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 061681F000C5;
+	Mon, 19 Oct 2026 01:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792372881;
-	bh=BaoUA/IiB69pw5+i5a25POFMR2S2myjx3y6u+M5wcw8=;
+	s=k20260515; t=1792372882;
+	bh=ZpS6rztuZD/3BaQKhTRC6ZBXf8qIWmBhp8++g235x8M=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=kcTeZ0r08fSCiNizJiDxkHgA+kLrVQ4yoy0p8aPXDfMurZYLmVmqMKLdb9Yl2qcqg
-	 4OKQUqmteLSqkGn5/oxeS8oYalw967nLY8ryxfaTBnJ27XdWiLKaf7D10whkVassxB
-	 ULbpohMjqEwdbMKNw4gvaXLAmkufiAZBKjTilBrpBJal6M5lE1ZlDh/42thNz4IZec
-	 LkVDcJQXrWE5c6P5gPJOiKTY126LoV2jnA2AgxCOJMjz0hPkA/D1UA4S8mjtDFe8ZF
-	 hjJZtHyjb2uN8QdyJGtsuovzF0VCcrUn6N/wO5Mmpvjw/PvsRMa4W7/+QvWc/UBpvB
-	 5aX7E2FRZbY0A==
-Subject:
- Re: [PATCH net-next 01/15] netfilter: disable br_netfilter in user namespaces
+	b=jhCf0PDS6qI1KBl9yEth6+M7rt4NjX/eEoB5keaWa1sJcLPAt7vgeOqURNs4G89bT
+	 iBdelcS6Nf5b+y5C6TcemgSinPa20juR6206OqY9IgCHnOOcYkBk00doL4wfbqNETW
+	 TzWEU7jZzuE1mD1U8gMI6tRLWXD5OKPObO3Uj4GCJImixe7XyVY0OY6meMBu4clurb
+	 SgJy9JZUw+oIfPsSlVMc/FAgzRHjYejK5auAvl0wxkOPMe8E2XWmyOvX4FD4JeFnI+
+	 1+7lpTDJ/pR4c5O+tPsFzp6mYfU6hi2q61K84jgbxfF834nEd3NqiMgBI+poQhqP8y
+	 FSPDdkSO1SEDg==
+Subject: Re: [PATCH net-next 02/15] selftests: netfilter: nft_queue.sh: only
+ queue icmp echo request/reply
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Mon, 19 Oct 2026 01:21:20 +0000
-Message-ID: <179237288041.3135.11774275051307629447@kernel.org>
-In-Reply-To: <20261018005638.1776148-2-pablo@netfilter.org>
-References: <20261018005638.1776148-2-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Mon, 19 Oct 2026 01:21:21 +0000
+Message-ID: <179237288160.3135.9206589655813468272@kernel.org>
+In-Reply-To: <20261018005638.1776148-3-pablo@netfilter.org>
+References: <20261018005638.1776148-3-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -47,85 +47,61 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-  re-execs itself under `unshare -n` (line 40) and then runs `sysctl…
+- [Low] The commit fixes a reproducible flake in the bridge NFQUEUE
+  selftest (about one failure a day in NIPA), but its message has no…
 
 --
 
-netfilter: disable br_netfilter in user namespaces
+selftests: netfilter: nft_queue.sh: only queue icmp echo request/reply
 
-This commit disables br_netfilter in network namespaces that are not
-owned by init_user_ns. In those namespaces it skips registration of the
-bridge-nf sysctls and of the br_netfilter hooks. It also adds a boot-time
-warning that the module is slated for removal in 2027, and updates the
-bridge documentation to match.
+The patch changes the ipv4 nfq rule in load_ruleset() so it only queues
+icmp echo request/reply, which the icmpv6 rule already does. ICMP time
+exceeded messages left over after the stress test no longer inflate the
+bridge queue packet counts.
 
-> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-> index 0a394e5f43916..e15355ff215a7 100644
-> --- a/net/bridge/br_netfilter_hooks.c
-> +++ b/net/bridge/br_netfilter_hooks.c
+> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+> Reviewed-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ ... ]
+[Severity: Low]
+This isn't a bug, but should this have a Fixes: tag?
 
->  static int __net_init brnf_init_net(struct net *net)
->  {
-> +	if (net->user_ns != &init_user_ns) {
-> +		struct brnf_net *brnet = net_generic(net, brnf_net_id);
-> +
-> +		brnet->in_userns = true;
-> +		pr_warn_once("br_netfilter no longer supported in user namespaces\n");
-> +		return 0;
-> +	}
-> +
->  	return br_netfilter_sysctl_init_net(net);
->  }
+The flake looks like it started with:
 
-[Severity: Medium]
-Should tools/testing/selftests/net/netfilter/br_netfilter_queue.sh be
-updated along with this change?
+commit 8a2cfe7951f6 ("selftests: nft_queue.sh: add a bridge queue test")
 
-That script re-execs itself in a new netns via unshare -n. The new netns
-inherits the caller's user namespace:
+That commit added test_queue_bridge() and called it at the end of the
+script, after test_queue_stress():
 
-    [ "${1}" != "run" ] && { unshare -n "${0}" run; exit $?; }
+    test_queue_stress
+    ...
+    # turns router into a bridge
+    test_queue_bridge
 
-It then treats a missing sysctl as a hard failure:
+It also loaded the existing "ip protocol icmp queue bypass" rule for the
+bridge family, and then checked exact counts:
 
-    modprobe -q br_netfilter
+    load_ruleset "bridge" "filter" 10
+    test_queue 10 "bridge"
 
-    sysctl net.bridge.bridge-nf-call-iptables=1 || exit 1
+Before that commit, this rule was only loaded for the inet tests. Those
+run before the stress test, so the delayed reassembly timeout ICMP errors
+were never counted.
 
-Suppose the selftests run inside a non-initial user namespace, for
-example a rootless container or a CI job under unshare -r. Then the
-netns created by unshare -n has user_ns != &init_user_ns, and
-brnf_init_net() returns before registering the sysctls. The sysctl
-write fails and the script exits 1, so the test reports FAIL instead of
-SKIP.
+8a2cfe7951f6 says it was added ahead of a kernel fix that checks bridge
+ports are still valid on reinject. That fix could be picked up for
+stable. If the test goes to stable trees without this follow-up, the
+bridge test would flake there as well.
 
-Before this patch the sysctl was present and writable by userns root,
-so the test passed in that environment.
+Would something like this be worth adding?
 
-The sibling test br_netfilter.sh already treats the same condition as a
-skip:
-
-    if ! ip netns exec "$ns0" sysctl -q net.bridge.bridge-nf-call-iptables=1; then
-    	echo "SKIP: bridge netfilter not available"
-    	ret=$ksft_skip
-    fi
-
-Could br_netfilter_queue.sh use the same handling and exit with
-$ksft_skip here?
+Fixes: 8a2cfe7951f6 ("selftests: nft_queue.sh: add a bridge queue test")
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261018005638.1776148-2-pablo%40netfilter.org
