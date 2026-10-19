@@ -1,35 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AC4619B52;
-	Mon, 19 Oct 2026 14:04:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AAD553D571;
+	Mon, 19 Oct 2026 14:05:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418661; cv=none; b=spAnL3SAfXw7ZHrCiuNy32pZ3oEDsXOgxPoDIM8esLo5AE3ypVKZn2hM/FZC+hJzu9vZsmQpG8eToWWQxocSNqFy1KWI5VqEUklsulCL8CCP0ADhxK+DMC7nEDn3uWq+VuI72N3fVpu9N7HmAOTC81eSV2sILzTQ5x65941O8JQ=
+	t=1792418711; cv=none; b=K6J8XbI95ujNK/nqedw0HykNJF44sRLPG7oNRXIgHNPJFUtRhRsR0jeXjxWiEM9UGp6qJDGC3MP+jOj7zxTkQ1bbwEo+yA4YEFmHKPuLsTQSQOUGEfcRB8iVyHWJWocMgFb/v4oLhD97RxBda2uqYH/aNS2cpX+0X1FkThrdiIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418661; c=relaxed/simple;
-	bh=F0O74A15Hj/PmA4Y+S9XNbNxbJ+L1N6bacmXO1alJYI=;
+	s=arc-20240116; t=1792418711; c=relaxed/simple;
+	bh=KOswoNjEcV8ovVzEKJvJY+RaXH0B+Z4iDE3cex5hL9w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tVQB5tt3qAIDMA76zAkOxk6nd071nN7HA8RT5vh54zT66jI+ie8AfOgdBB/pdWPtZ2Iyx3r8Eun3huVteloGtk0sVU5JadRk3Bt78Fyeo6zAXGNXhSopTfHUg1co8/Y1/1ZIS0QbdmYWZv3WVKBNMY892x0B2eTpeU+89qEOTKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j3e7nqz7; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Nj6kaTFPO2rtxWdy61dJiBWGtUO90VhO62ZswqHP23BCizvOBNUkbOfkpHoeYBvER7Bb0NePirhAlfWmbA1KusNi/yy2JH+dFkgEZcMrnyGVZOatlimF64YIVjZoB5v7jOWsdDZMnNvBmyZCmYWAipFHZiIzBcJSzNPGs/NvDcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fBOVmxvu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j3e7nqz7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF8A1F000CB;
-	Mon, 19 Oct 2026 14:04:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fBOVmxvu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADEA71F000CA;
+	Mon, 19 Oct 2026 14:05:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418658;
-	bh=58OqywC5/wj4SBg5Dvs3gdMF0UUQNJNonHWMD0YlIvw=;
+	s=k20260515; t=1792418709;
+	bh=1atrWMidy/mqUqIpPrKw3eieFv9QQz6XVuDdor/tV+c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=j3e7nqz7z+xSSjo9We2cGextq/54FjBdEKJtVJivgnkTjDNJ+6/7Z7n7Nn3gb+PIB
-	 3SDEWcz9MFxlWEzTwgqXZEt1vh+PadaAvKwqY6I6UrO4+7OSdJIbVcdOeOtE5YaPId
-	 AGskqK4p9iivjsWSs9fzJPr5EyX1m6PAXwLviGEZxQvERj99CGT28/vAcBZj/ad/g1
-	 T01uuBdYumKyGMl1yI5sO3CXiGNjx8qjxhEQMYmhvxhdJ80cRS0kNK0hW3N5hT7B4a
-	 VcpjjMCnPFh8xx3s2o0lOQze0r3kMKtRjz6zhjzOw3zj7O5dzPFH4P479Ey460mlPy
-	 rmewYOZz1dS3Q==
+	b=fBOVmxvuuzlVI7nx4UrO4WVGIdWt3t4o8PvVBOrQFkvcBrTx9oGTKWIFhrqHsSMjI
+	 3ja39q2LqBpKX26nSlUQX9g71EulyIjmFmPzFq+B2NGfi7G1Ft1QZkl2H+7LJnMJE9
+	 zcgkqqlR6MShhrvlbe9Wf+mee64TRzmGYWpR/uVqSUnAvBf5fGnUQZS9wyJtpDVyhy
+	 BgJX0XNXMh1veMjZnn7AI85hruEe8VglQ7anIp94ksfXoA5acg1sEOV2oeQN05S3wl
+	 hk16PpBZE5odZFcEjibgZi/DlEseiJWsJyXu3ROSQEE+kYOiRC9GnU7Cs9AmwqpiMu
+	 IGF/al+q7Fc4w==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Sasha Levin <sashal@kernel.org>,
 	fw@strlen.de,
 	davem@davemloft.net,
@@ -40,9 +41,9 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] netfilter: nf_tables: call skb_valid_dst() before skb_dst()
-Date: Mon, 19 Oct 2026 09:51:36 -0400
-Message-ID: <20261019135441.1420968-405-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-6.1] netfilter: tproxy: use DEBUG_NET_WARN_ON_ONCE for protocol fallbacks
+Date: Mon, 19 Oct 2026 09:52:11 -0400
+Message-ID: <20261019135441.1420968-440-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -58,578 +59,453 @@ X-stable-base: Linux 6.18.57
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-[ Upstream commit 689db98e535bf8efb5bc9c36f4fd3de3bd715eb6 ]
+[ Upstream commit 1f0391aea883e99d402d0f77ba3530e4e879350d ]
 
-When fetching the dst_entry from the skb, check if it valid, ie. this is
-not a template dst, for extensions that can be used from the netdev
-ingress and egress chains.
+Replace WARN_ON calls with DEBUG_NET_WARN_ON_ONCE in the default switch
+blocks of nf_tproxy_get_sock_v4 and v6. Unsupported transport protocols
+are already safely handled by returning a NULL socket pointer. This
+prevents unnecessary system panics when panic_on_warn=1 is enabled in
+production systems.
 
+Link: https://patch.msgid.link/cover.1786968834.git.zhilinz@nebusec.ai/
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-The evaluation target is **pending-6.6 (Linux 6.6.157)**. The live
-checkout later moved to mainline v7.3-rc4; all 6.6 findings below are
-from `refs/heads/pending-6.6` (`p-6.6-3-g04810563abb71`).
+This is a two-line datapath `WARN_ON` demotion in netfilter tproxy. The
+`WARN_ON(1)` is present in this 6.12 tree, `DEBUG_NET_WARN_ON_ONCE`
+already exists here, and Pablo later took the change into `-net` because
+that warning is reachable and can panic under `panic_on_warn=1`.
 
-Original commit: `689db98e535bf8efb5bc9c36f4fd3de3bd715eb6` (Pablo Neira
-Ayuso, 2026-07-31). It is **not** an ancestor of pending-6.6.
+===============================================================
+PHASE 1: COMMIT MESSAGE FORENSICS
+===============================================================
 
----
+Step 1.1: PARSE THE SUBJECT LINE
+Record: [netfilter / tproxy] [use] [replace `WARN_ON` with
+`DEBUG_NET_WARN_ON_ONCE` on unsupported-protocol fallbacks in IPv4/IPv6
+tproxy socket lookup]
 
-## PHASE 1: COMMIT MESSAGE FORENSICS
+Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
+Record:
+- Link:
+  https://patch.msgid.link/cover.1786968834.git.zhilinz@nebusec.ai/
+  (cover from Zhiling Zou / nebusec.ai, 2026-08-17)
+- Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de> (author)
+- Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org> (netfilter
+  maintainer)
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, Acked-by:, or Cc:
+  stable (absence expected)
+- Ignore any pipeline "Upstream commit" / Sasha Levin SOB if present
 
-**Step 1.1: PARSE THE SUBJECT LINE**
-- Record: **[netfilter/nf_tables] [call/check] [require a real routing
-  dst, not a metadata template, before using skb_dst()]**
+Notable: the msgid points at an external bug-finding series, not at
+Fernando’s original June nf-next cover. Pablo later described a concrete
+datapath reachability bug.
 
-**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
-- Record:
-  - **Fixes:** none (expected for this review)
-  - **Reported-by / Tested-by / Reviewed-by / Acked-by:** none
-  - **Link:** none in the commit; mailing list found separately
-  - **Cc: stable:** none (expected)
-  - **Signed-off-by:** Pablo Neira Ayuso (netfilter maintainer). Ignore
-    Sasha Levin SOB if present in a candidate wrapper.
+Step 1.3: ANALYZE THE COMMIT BODY TEXT
+Record:
+- Bug: `WARN_ON(1)` in the default arm of the L4 protocol switch in
+  `nf_tproxy_get_sock_v4` / `nf_tproxy_get_sock_v6`.
+- Symptom: kernel warning splat; with `panic_on_warn=1`, a full panic.
+- Failure mode: “unnecessary system panics when panic_on_warn=1”.
+- Root cause (author): unsupported transport protocols are already
+  handled by returning `sk = NULL`; the `WARN_ON` is not needed for
+  correctness.
+- Version info in the message: none.
 
-**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
-- Record:
-  - **Bug:** `skb_dst()` is used as if it were a real
-    `rtable`/`rt6_info`. Packets on netdev/inet ingress/egress often
-    carry a **DST_METADATA** template (tunnels, TC) instead.
-  - **Symptom:** nft `rt` / `meta rtclassid` / `xfrm` evaluate a
-    template dst; `nf_send_reset`/`nf_send_unreach` skip filling a real
-    route and treat the template as an `rtable`.
-  - **Version info:** none in the message. Buggy pattern is old; 6.6
-    still has it.
-  - **Root cause (author):** template dst is not a valid routing dst;
-    must use `skb_valid_dst()` first.
+Step 1.4: DETECT HIDDEN BUG FIXES
+Record: Not a disguised cleanup in the sense of a leak/UAF. It is a real
+defensive fix: a reachable `WARN_ON` in the packet path that can panic
+production/hardened kernels. Originally patch 6/9 of an nf-next “replace
+raw warnings” series; Pablo later moved this specific change to `-net`
+because the warning is reachable.
 
-**Step 1.4: DETECT HIDDEN BUG FIXES**
-- Record: **Not hidden.** It is a real validity check. “Call X before Y”
-  is a missing-check fix, not cleanup.
+===============================================================
+PHASE 2: DIFF ANALYSIS - LINE BY LINE
+===============================================================
 
----
+Step 2.1: INVENTORY THE CHANGES
+Record:
+- `net/ipv4/netfilter/nf_tproxy_ipv4.c`: 1 line changed (`WARN_ON(1)` →
+  `DEBUG_NET_WARN_ON_ONCE(1)`)
+- `net/ipv6/netfilter/nf_tproxy_ipv6.c`: same 1-line change
+- Functions: `nf_tproxy_get_sock_v4`, `nf_tproxy_get_sock_v6`
+- Scope: single-function surgical fix, two files, +0/−0 net (2
+  modifications)
 
-## PHASE 2: DIFF ANALYSIS
+Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
+Record:
+- Before: protocol switch handles TCP and UDP; any other protocol hits
+  `default: WARN_ON(1); sk = NULL;` then returns NULL.
+- After: same NULL return; warning only if `CONFIG_DEBUG_NET=y`, and
+  only once.
+- Path: packet/socket-lookup path for TPROXY, not init. Already a
+  handled fallback, not a crash-without-WARN bug.
 
-**Step 2.1: INVENTORY THE CHANGES**
-- Record:
-  - `net/ipv4/netfilter/nf_reject_ipv4.c` (+4/−2)
-  - `net/ipv6/netfilter/nf_reject_ipv6.c` (+6/−2)
-  - `net/netfilter/nft_meta.c` (+4/−2)
-  - `net/netfilter/nft_rt.c` (+4/−2)
-  - `net/netfilter/nft_xfrm.c` (+8/−1)
-  - **~26 insertions, 9 deletions, 5 files**
-  - Functions: `nf_reject_fill_skb_dst`, `nf_send_reset`,
-    `nf_send_unreach`, `nf_reject6_fill_skb_dst`, `nf_send_reset6`,
-    `nf_send_unreach6`, `nft_meta_get_eval_rtclassid`,
-    `nft_rt_get_eval`, `nft_xfrm_get_eval_out`
-  - **Scope:** small, same-subsystem, surgical
+Step 2.3: IDENTIFY THE BUG MECHANISM
+Record:
+- Category: logic/correctness of assertions in the datapath (WARN-in-
+  packet-path / panic_on_warn DoS), not UAF/leak/race.
+- Mechanism: `WARN_ON(1)` treats “non-TCP/UDP protocol in tproxy lookup”
+  as a kernel bug. Callers can still pass a non-TCP/UDP protocol. The
+  function already returns NULL and callers drop/break. The WARN is the
+  harmful part under `panic_on_warn`.
 
-**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
-- Record:
-  - **Reject fill:** `skb_dst_set()` over a possible existing template →
-    `skb_dst_drop()` then `skb_dst_set()` of a real route.
-  - **Reject send:** `if (!skb_dst()) fill` → `if (!skb_valid_dst())
-    fill`. Template dst no longer counts as “already routed.”
-  - **nft_meta / nft_rt / nft_xfrm:** `skb_dst()` then NULL check →
-    `skb_valid_dst()` then `skb_dst()`. Template dst is treated as
-    missing.
+Step 2.4: ASSESS THE FIX QUALITY
+Record:
+- Obviously correct: fallback already returns NULL; only the assertion
+  changes.
+- Minimal: two identical one-line edits.
+- Regression risk: very low. Production kernels (`CONFIG_DEBUG_NET=n`)
+  compile this to `BUILD_BUG_ON_INVALID(1)`, a compile-time sizeof no-op
+  (`include/linux/build_bug.h`). Debug kernels still warn once.
+- No API, locking, or structure changes.
+- Red flag that does not block backport: this does not fix checkentry
+  itself; it makes the already-safe fallback non-fatal.
 
-**Step 2.3: IDENTIFY THE BUG MECHANISM**
-- Record:
-  - **Category:** logic/correctness + type confusion (metadata dst used
-    as `rtable`/`xfrm_dst`).
-  - **Mechanism:** `skb_valid_dst()` is `dst && !(dst->flags &
-    DST_METADATA)`. Metadata dst is initialized with `dst_blackhole_ops`
-    and **`dev == NULL`**. Using it as `skb_rtable()` reads
-    `rt_flags`/`rt_gw*` from the metadata union; `nft_xfrm` would walk
-    `((xfrm_dst *)dst)->child` if `dst->xfrm` were set.
+===============================================================
+PHASE 3: GIT HISTORY INVESTIGATION
+===============================================================
 
-**Step 2.4: ASSESS THE FIX QUALITY**
-- Record:
-  - **Quality:** obviously correct; same helper already used in
-    `ip_input`, `ip_tunnel`, wireguard, xfrm.
-  - **Minimal:** yes. Include of `net/dst_metadata.h` is required for
-    the helper.
-  - **Regression risk:** low. `meta rtclassid` on a metadata dst
-    currently succeeds with `tclassid == 0`; after the fix it fails
-    closed (`NFT_BREAK`). That is stricter and correct.
-  - **No API/feature additions.**
+Step 3.1: BLAME THE CHANGED LINES
+Record:
+- Introduced by `45ca4e0cf2734` (“netfilter: Libify xt_TPROXY”, Máté
+  Eckl, 2018-06-01).
+- `git merge-base --is-ancestor 45ca4e0cf2734 HEAD` succeeded. Present
+  since the tproxy libification, long before 6.12.
 
----
+Step 3.2: FOLLOW THE FIXES: TAG
+Record: No Fixes: tag. Not applicable. Upstream applied commit is
+`1f0391aea883` (netdev `-net`); `git merge-base --is-ancestor
+1f0391aea883 HEAD` failed, so this tree does not already contain the
+fix.
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
+Record: Recent local history on these files: `21a673bddc8fd` (NULL
+indev), `4a02426787bf0` (BH deadlock), hashinfo via net. No competing
+tproxy WARN change. Standalone; not patch 2/3 of a required series for
+this tree.
 
-**Step 3.1: BLAME THE CHANGED LINES**
-- Record:
-  - Reject `!skb_dst() && fill`: `a0a3ace2a5788` (Florian Westphal,
-    2025-08-20) already **in 6.6** — “don’t leak dst refcount for
-    loopback packets.” That made “any dst present” skip fill, including
-    metadata dst.
-  - `nft_rt_get_eval` `skb_dst` check: `2fa841938c648` (2016), present
-    since nft_rt was added.
-  - **Bug is in 6.6, not new mainline-only code.**
+Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
+Record: Fernando Fernandez Mancera is a regular netfilter contributor in
+this tree (conncount, synproxy, osf, NFQUEUE). Pablo signed off as
+maintainer. Original June 2026 series was a broad WARN→DEBUG_NET
+conversion; only tproxy (and separately conncount) were later taken into
+`-net`.
 
-**Step 3.2: FOLLOW THE FIXES TAG**
-- Record: **No Fixes: tag.** Not applicable. Introducer of the reject
-  skip-fill logic **is** in this tree (`a0a3ace2a5788`).
+Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
+Record: Depends only on `DEBUG_NET_WARN_ON_ONCE` in
+`include/net/net_debug.h`, present in this tree. Both files include
+`linux/skbuff.h` (IPv4 directly; IPv6 via `nf_tproxy.h` → `net/tcp.h` →
+`skbuff.h`), and `skbuff.h` includes `net/net_debug.h`. Applies
+standalone.
 
-**Step 3.3: CHECK FILE HISTORY**
-- Record: Related 6.6 history includes `a0a3ace2a5788` (reject dst leak)
-  and `e64a48c50a1ff` (`nf_conntrack_sip`: validate `skb_dst()` for
-  tc/OVS). Same class of bug already accepted into 6.6. This commit is
-  standalone, not patch 2/N of a required series (it was 8/9 of an nf-
-  next pull, but the diff does not depend on patches 1–7).
+===============================================================
+PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+===============================================================
 
-**Step 3.4: CHECK THE AUTHOR**
-- Record: **Pablo Neira Ayuso is the netfilter maintainer.** Nearby work
-  is normal nf-next flowtable/conncount material; this hunk is
-  independent.
+Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
+Record:
+- `b4 dig -c` not usable: candidate SHA is not in this checkout.
+- lore.kernel.org fetches returned 403.
+- Original submission: [PATCH 6/9 nf-next] 2026-06-01, cover “replace
+  raw warnings with DEBUG_NET_WARN_ON_ONCE”
+  (https://ratatoskr.run/netfilter-devel/2026/06/17074549 and 17074557).
+  Intent: nf-next hardening.
+- Re-posted as [PATCH net 01/10] then [PATCH net,v2 1/9] by Pablo,
+  2026-08-21 / 2026-08-27:
+  https://lists.openwall.net/netdev/2026/08/21/202 and
+  https://lists.openwall.net/netdev/2026/08/27/160
+- Pablo’s cover: “a recent bug found a way to reach WARN_ON from
+  datapath due to insufficient validation of xt_TPROTO checkentry.”
+- Applied to netdev `-net` as `1f0391aea883`; included in the v7.3-rc1
+  networking pull.
+- No NAK found. Florian commented on other patches in the June series,
+  not a NAK of this tproxy hunk.
+- Commit Link cover.1786968834.git.zhilinz@nebusec.ai is dated
+  2026-08-17 (same reporter class as the sch_cake WARN backport already
+  in this tree).
 
-**Step 3.5: DEPENDENT/PREREQUISITE COMMITS**
-- Record:
-  - `skb_valid_dst()` exists in 6.6 `include/net/dst_metadata.h`.
-  - No new helpers required.
-  - **Can apply standalone** with minor context (see Phase 6).
-  - No follow-ups on origin/master after `689db98e535bf`.
+Step 4.2: CHECK WHO REVIEWED THE PATCH
+Record: Recipients on Pablo’s net posting: netfilter-devel, davem, kuba,
+pabeni, edumazet, horms, fw@strlen.de (Florian Westphal), ja@ssi.bg.
+Pablo applied it. No separate Reviewed-by on the commit.
 
----
+Step 4.3: SEARCH FOR THE BUG REPORT
+Record: Direct zhilinz cover fetch from lore 403’d. Independent
+maintainer statement in the `-net` cover is the verified evidence of
+datapath reachability. Same reporter’s analogous `WARN_ON` panic_on_warn
+issue was already backported here as `2504a76e5c069` (“sch_cake: drop
+WARN_ON(1) for malformed packets”).
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
+Record: June 9-patch nf-next series is bulk hardening. Pablo cherry-
+picked tproxy into `-net` because it was shown reachable; conncount in
+the same `-net` pull was explicitly “not known issue”. This tproxy
+commit does not need the rest of that series.
 
-**Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION**
-- Record:
-  - `b4 dig -c 689db98e535bf`: **failed** (lore.kernel.org 503).
-  - Fallback: [PATCH net-next 8/9]
-    https://lists.openwall.net/netdev/2026/07/31/304
-  - Cover: [PATCH net-next 0/9]
-    https://lists.openwall.net/netdev/2026/07/31/319
-  - Submitted to **nf-next / net-next**, not `net` (fixes). Cover: “Call
-    skb_valid_dst() before accessing skb_dst() to ensure dst_entry is
-    not a template.”
-  - Syzbot CI on the nf-next posting: **passed**
-    (https://ci.syzbot.org/series/250b78fc-95ac-4f6f-8746-9f8d8777688b).
-    Not a syzbot crash report.
-  - No NAK found. No reviewer “Cc: stable” found.
+Step 4.5: CHECK STABLE MAILING LIST HISTORY
+Record: lore.kernel.org/stable search 403. UNVERIFIED whether anyone
+already requested/rejected this on stable@. No evidence in-tree that it
+was already applied.
 
-**Step 4.2: CHECK WHO REVIEWED**
-- Record: To/Cc: netfilter-devel, davem, kuba, pabeni, edumazet,
-  fw@strlen.de, horms. **Florian Westphal (nf core) was CC’d.** Applied
-  by Pablo himself. No extra Reviewed-by on the commit.
+===============================================================
+PHASE 5: CODE SEMANTIC ANALYSIS
+===============================================================
 
-**Step 4.3: SEARCH FOR THE BUG REPORT**
-- Record: **No user/syzbot/bugzilla report.** Author-driven correctness
-  fix.
+Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
+Record: `nf_tproxy_get_sock_v4`, `nf_tproxy_get_sock_v6`.
 
-**Step 4.4: RELATED PATCHES AND SERIES**
-- Record: Series 1–7 is flowtable/`fill_forward_path` work; patch 9 is
-  conntrack TCP timeout. **This patch does not depend on them.** Same-
-  class SIP helper fix already in 6.6.
+Step 5.2: TRACE CALLERS
+Record (from grep in this tree):
+- `net/netfilter/xt_TPROXY.c`: `tproxy_tg4`, `tproxy_tg6_v1` (mangle
+  PREROUTING)
+- `net/netfilter/nft_tproxy.c`: `nft_tproxy_eval_v4`,
+  `nft_tproxy_eval_v6`
+- Re-entered from `nf_tproxy_handle_time_wait4` / v6 for TIME_WAIT
+  reopen
+- Exported (`EXPORT_SYMBOL_GPL`)
 
-**Step 4.5: STABLE MAILING LIST HISTORY**
-- Record: lore.kernel.org/stable fetch returned **403**. **UNVERIFIED**
-  whether stable@ discussed this SHA. No evidence it was rejected for
-  stable.
+xt_TPROXY checkentry (`tproxy_tg4_check` / `tproxy_tg6_check`) rejects
+rules that are not `-p tcp`/`-p udp`. Native nft_tproxy returns
+`NFT_BREAK` unless `pkt->tprot` is TCP or UDP. TPROXY target has no
+`.proto` in the `xt_target` struct; protocol restriction is only
+checkentry + nft eval. Pablo’s cover says that checkentry validation is
+insufficient, so the default arm can still run.
 
----
+Step 5.3: TRACE CALLEES
+Record: TCP/UDP hash lookups (`inet_lookup_listener`, `udp4_lib_lookup`,
+IPv6 equivalents), `sock_put` on mismatch. Default arm only sets `sk =
+NULL`. No alloc/lock in the changed path.
 
-## PHASE 5: CODE SEMANTIC ANALYSIS
+Step 5.4: FOLLOW THE CALL CHAIN
+Record: Reachable from netfilter PREROUTING when TPROXY/nft tproxy is
+loaded. Not a syscall on every box, but it is a packet path. With user
+namespaces + CAP_NET_ADMIN in a netns, and with syzbot-style fuzzing of
+iptables/nft compat, it is userspace-reachable once the module is
+present. Native nft IPv4 sets `pkt->tprot = ip->protocol` then checks
+tprot, so that path is consistent; xt_TPROXY uses `iph->protocol` /
+`ipv6_find_hdr()` after a checkentry that Pablo says can be bypassed.
 
-**Step 5.1: KEY FUNCTIONS**
-- Record: listed in 2.1.
+Step 5.5: SEARCH FOR SIMILAR PATTERNS
+Record: Same files still `BUG()` on invalid `lookup_type` (kernel enum,
+not packet proto). Unrelated. Networking policy is to use
+`DEBUG_NET_WARN_ON_ONCE` on datapath asserts (`include/net/net_debug.h`,
+`CONFIG_DEBUG_NET`). This tree already backported a sibling pattern in
+sch_cake.
 
-**Step 5.2: TRACE CALLERS**
-- Record (6.6):
-  - `nf_send_unreach` / `nf_send_reset`: `nft_reject_ipv4_eval`,
-    `nft_reject_inet_eval`, `ipt_REJECT`.
-  - IPv6 equivalents: nft reject ipv6/inet, ip6t_REJECT.
-  - **netdev reject does not use these**; it uses `nf_reject_skb_v4_*` /
-    `nf_reject_skb_v6_*` (unchanged).
-  - `nft_rt_get_eval`: packet path for the `rt` expression; **family
-    limited to ipv4/ipv6/inet** (not netdev).
-  - `nft_xfrm_get_eval_out`: ipv4/ipv6/inet, OUT hooks only.
-  - `nft_meta_get_eval_rtclassid`: **allowed on netdev** (no hook
-    restriction for this key).
+===============================================================
+PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+===============================================================
 
-**Step 5.3: TRACE CALLEES**
-- Record: `skb_valid_dst`, `skb_dst_drop`/`skb_dst_set`,
-  `nf_ip_route`/`nf_ip6_route`, `skb_rtable`, `icmp_send`/`icmpv6_send`,
-  `ip_route_me_harder`.
+Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
+Record: Yes.
+- Tree: `pending-6.12`, `git describe` p-6.12-3-gc504cf0baa3d8, `make
+  kernelversion` 6.12.111 (Makefile 6.12.111).
+- `WARN_ON(1)` at `nf_tproxy_ipv4.c:141` and `nf_tproxy_ipv6.c:140`.
+- Bug introduced 2018 (`45ca4e0cf2734`), present in this branch.
 
-**Step 5.4: FOLLOW THE CALL CHAIN**
-- Record: Reachable from nftables/iptables **REJECT** and from
-  `rt`/`xfrm`/`meta rtclassid` eval. Userspace (`nft`/`iptables`)
-  installs the rules. Overlay tunnels (VXLAN/GENEVE collect-md, TC
-  tunnel_key) attach metadata dst, then the inner packet hits **inet
-  ingress / PRE_ROUTING**. **Yes, reachable.**
+Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
+Record: Surrounding code matches the submitted diff context exactly.
+Expected apply: clean. `DEBUG_NET_WARN_ON_ONCE` already defined. No
+extra include needed.
 
-**Step 5.5: SIMILAR PATTERNS**
-- Record: Same `skb_valid_dst` pattern in `net/ipv4/ip_input.c`,
-  `ip_tunnel.c`, `xfrm_input.c`. 6.6 already has `nf_conntrack_sip` dst
-  validation for tc/OVS.
+Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
+Record: Upstream `1f0391aea883` is not an ancestor. No other commit on
+these files replaces this `WARN_ON`. sch_cake WARN demotion is a
+precedent, not a substitute.
 
----
+===============================================================
+PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+===============================================================
 
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE (6.6.157)
+Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
+Record: netfilter tproxy (`net/ipv4/netfilter`, `net/ipv6/netfilter`,
+used by xt_TPROXY / NFT_TPROXY). Criticality: IMPORTANT (transparent
+proxy / service-mesh / squid / k8s-style TPROXY), not core mm/VFS, not
+staging.
 
-**Step 6.1: DOES THE BUGGY CODE EXIST?**
-- Record: **Yes.**
-  - `nf_reject_ipv4.c`: `if (!skb_dst(oldskb) &&
-    nf_reject_fill_skb_dst...)` and no `skb_dst_drop` before
-    `skb_dst_set`.
-  - Same for IPv6 reject.
-  - `nft_rt.c`: `dst = skb_dst(skb); if (!dst) goto err;`
-  - `nft_meta.c`: `const struct dst_entry *dst = skb_dst(skb); if (!dst)
-    return false;`
-  - `nft_xfrm.c`: `const struct dst_entry *dst = skb_dst(pkt->skb);`
-    then walk `dst->xfrm`.
-  - 6.6 **has** netdev **ingress and egress**
-    (`nft_chain_filter_netdev`), **NF_INET_INGRESS** (inet reject
-    validates it), and `skb_valid_dst()`.
+Step 7.2: ASSESS SUBSYSTEM ACTIVITY
+Record: Mature. TPROXY lookup logic has been stable for years; recent
+commits are bugfixes (NULL indev, BH deadlock), not refactors. Fits “old
+assertion, newly shown reachable.”
 
-**Step 6.2: BACKPORT COMPLICATIONS**
-- Record: **Minor context, not rework.**
-  - 6.6 `nft_rt` uses `(const struct rtable *)dst` not `dst_rtable()`
-    (unchanged context).
-  - 6.6 `nf_send_reset6` uses `skb_dst(oldskb)->dev` not `skb_dst_dev()`
-    (unchanged context). `skb_dst_dev()` exists in 6.6
-    `include/net/dst.h` but is not used in this file.
-  - Functional hunks match 6.6.
+===============================================================
+PHASE 8: IMPACT AND RISK ASSESSMENT
+===============================================================
 
-**Step 6.3: RELATED FIXES ALREADY HERE**
-- Record: `a0a3ace2a5788` (reject dst leak) and `e64a48c50a1ff` (SIP
-  skb_dst). **This metadata-vs-real-dst check is not already applied.**
-  `git merge-base --is-ancestor 689db98e535bf pending-6.6` → not
-  ancestor.
+Step 8.1: DETERMINE WHO IS AFFECTED
+Record: Config-specific: `NF_TPROXY_IPV4`/`IPV6`,
+`NETFILTER_XT_TARGET_TPROXY`, `NFT_TPROXY`. Production transparent-proxy
+users, and fuzzers/hardened kernels that load those modules with
+`panic_on_warn=1`.
 
----
+Step 8.2: DETERMINE THE TRIGGER CONDITIONS
+Record: Packet hits tproxy lookup with protocol ≠ TCP/UDP. Native
+nft_tproxy tries to gate on tprot; xt_TPROXY checkentry tries to require
+`-p tcp|udp`. Pablo stated checkentry is insufficient, so the default
+arm is reachable from the datapath. Not every boot; requires TPROXY in
+the ruleset (or a checkentry bypass). Unprivileged trigger: not from raw
+packets alone without a TPROXY rule; with a loaded rule or netns admin,
+yes. Syzbot-class environments typically have both.
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
+Record:
+- Default: `WARN_ON` splat in dmesg, lookup returns NULL, packet
+  dropped/broken — MEDIUM.
+- `panic_on_warn=1` (syzbot, some hardened/Android/debug distros): panic
+  — HIGH/CRITICAL for those users.
+- Not data corruption or UAF.
 
-**Step 7.1: SUBSYSTEM AND CRITICALITY**
-- Record: **netfilter / nf_tables + IPv4/IPv6 reject.** **IMPORTANT**
-  (firewall/NAT on almost every server/router/container host). Not core
-  mm/scheduler, but production-critical networking.
+Step 8.4: CALCULATE RISK-BENEFIT RATIO
+Record:
+- Benefit: medium-high for TPROXY + panic_on_warn; prevents a panic on a
+  path that already handles the case. Low-medium for default 6.12
+  (warning only).
+- Risk: very low (2 lines, no-op when `CONFIG_DEBUG_NET=n`).
+- Ratio: favorable. Same class as the sch_cake WARN removal already in
+  this 6.12 tree.
 
-**Step 7.2: SUBSYSTEM ACTIVITY**
-- Record: Mature and actively fixed. nft_rt dates to 2016; reject-at-
-  prerouting to 2020 (`f53b9b0bdc59`). Long-lived code.
+===============================================================
+PHASE 9: FINAL SYNTHESIS
+===============================================================
 
----
+Step 9.1: COMPILE THE EVIDENCE
+FOR:
+- `WARN_ON(1)` is in this 6.12 tree since 2018; fix is not.
+- Maintainer placed this in `-net` because the warning is reachable from
+  the datapath.
+- Fallback already returns NULL; the WARN is the only dangerous part
+  under `panic_on_warn`.
+- Two lines, clean apply, `DEBUG_NET_WARN_ON_ONCE` already exists.
+- Same reporter/class as sch_cake WARN backport `2504a76e5c069` already
+  in this tree.
+- TPROXY is a real production feature, not staging.
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+AGAINST:
+- Started as nf-next bulk hardening, not a one-off crash fix.
+- Does not repair checkentry; only demotes the assertion.
+- Default kernels do not panic on WARN.
+- Affects only TPROXY users / fuzzers, not all 6.12 systems.
 
-**Step 8.1: WHO IS AFFECTED**
-- Record: **Config/driver-specific but common:** `nftables`/`iptables`
-  REJECT, `rt`, `meta rtclassid`, `xfrm`, plus overlay/TC metadata dst
-  (Kubernetes, OVN, VXLAN/GENEVE collect-md).
+UNRESOLVED:
+- Exact zhilinz reproducer (lore 403). Relied on Pablo’s `-net` cover
+  instead.
+- Whether stable@ already discussed this (lore stable 403).
+- Precise checkentry-bypass mechanics in 6.12 (nft_compat proto vs
+  actual matches is a plausible hole; not fully reproduced here).
+  Decision does not depend on re-deriving that hole because the
+  maintainer already stated reachability and the fallback is already
+  correct.
 
-**Step 8.2: TRIGGER CONDITIONS**
-- Record: Packet carries DST_METADATA **and** hits reject or those
-  expressions. Common on inet ingress/PRE_ROUTING of collect-md tunnels.
-  Unprivileged users cannot install nft rules (CAP_NET_ADMIN); they
-  **can** send traffic that hits existing rules. Timing race: no.
+Step 9.2: APPLY THE STABLE RULES CHECKLIST
+1. Obviously correct and tested? PASS — two-line assert demotion; Pablo
+   merged to `-net`.
+2. Fixes a real bug that affects users? PASS — reachable datapath WARN;
+   panic with `panic_on_warn=1`.
+3. Important issue? PASS — panic/DoS on hardened and fuzzer configs;
+   warning noise otherwise. Severity HIGH with `panic_on_warn`, MEDIUM
+   without.
+4. Small and contained? PASS — 2 lines, 2 files.
+5. No new features or APIs? PASS.
+6. Can apply to the local tree? PASS — buggy code present, macro
+   present, context matches.
 
-**Step 8.3: FAILURE MODE SEVERITY**
-- Record:
-  - **Verified:** type confusion (`skb_rtable()` on metadata dst);
-    `rt_flags`/`nexthop` taken from the metadata union; reject may skip
-    `nf_reject_fill_skb_dst` and feed `icmp_send`/`ip_route_me_harder` a
-    template dst.
-  - **6.6 `__icmp_send`:** `if (!rt) return` is **not** enough (template
-    is non-NULL); `rt->dst.dev` NULL is handled, then `rt->rt_flags` is
-    still type-confused.
-  - **Not a proven KASAN UAF.** Metadata dst uses `dst_blackhole_ops`,
-    so `ops->mtu` is not NULL. `dst->xfrm` is NULL on metadata dst, so
-    the xfrm walk typically does not follow a garbage `child`.
-  - **Severity: HIGH for firewall correctness** (wrong `rt`/`meta`
-    match; REJECT may not emit RST/ICMP). **MEDIUM as a crash**
-    (plausible UB/type confusion, not a demonstrated oops). Still a real
-    bug in a hot firewall path.
+Step 9.3: CHECK FOR EXCEPTION CATEGORIES
+Record: Not a device-ID/quirk/DT/build/docs exception. Ordinary small
+bugfix.
 
-**Step 8.4: RISK-BENEFIT**
-- Record:
-  - **Benefit:** high for nft/iptables + overlay users; restores
-    intended “no real route → lookup or fail closed.”
-  - **Risk:** low (26 lines, existing helper, fail closed).
-  - **Ratio:** favorable.
+Step 9.4: MAKE YOUR DECISION
+The local tree is 6.12.111. The bug exists here. The fix is a minimal,
+obviously correct datapath change that stops a handled protocol fallback
+from taking down `panic_on_warn` systems. That matches stable policy and
+an existing 6.12 precedent for the same WARN class.
 
----
+What it solves for stable users: a tproxy socket lookup for an
+unsupported L4 protocol currently fires `WARN_ON(1)` even though it
+already returns NULL. On kernels with `panic_on_warn=1` that is a panic;
+otherwise a splat. Backporting only changes the assertion, not lookup
+behavior.
 
-## PHASE 9: FINAL SYNTHESIS
+Risk vs benefit: benefit is avoiding a panic/warning on a real packet
+path; risk is negligible (`CONFIG_DEBUG_NET=n` compiles to a no-op). No
+prerequisites missing in 6.12.
 
-**Step 9.1: EVIDENCE**
+===============================================================
+Verification:
+- [Phase 1] Tags: Link to zhilinz cover (2026-08-17), SOB Fernando +
+  Pablo; no Fixes/syzbot/Cc:stable
+- [Phase 2] Diff: 2 files, `WARN_ON(1)` → `DEBUG_NET_WARN_ON_ONCE(1)` in
+  `nf_tproxy_get_sock_v4/v6` default arms; `sk = NULL` unchanged
+- [Phase 2] Confirmed current 6.12 code still has `WARN_ON(1)` at
+  ipv4:141 and ipv6:140
+- [Phase 3] `git blame`: 45ca4e0cf2734 (2018 Libify xt_TPROXY); ancestor
+  of HEAD
+- [Phase 3] `git merge-base --is-ancestor 1f0391aea883 HEAD`: not in
+  this tree
+- [Phase 3] `DEBUG_NET_WARN_ON_ONCE` in `include/net/net_debug.h` gated
+  on `CONFIG_DEBUG_NET`; `BUILD_BUG_ON_INVALID` is sizeof no-op
+- [Phase 3] `linux/skbuff.h` includes `net/net_debug.h`; both tproxy
+  files get that include
+- [Phase 4] lore/b4: lore 403; used openwall + ratatoskr. Original: nf-
+  next 6/9 2026-06-01; Pablo `-net` 2026-08-21/27 stating datapath
+  reachability via weak xt protocol checkentry
+- [Phase 4] No NAK found; applied as 1f0391aea883 in netdev `-net`
+- [Phase 4] UNVERIFIED: full zhilinz thread body; stable@ discussion
+- [Phase 5] Callers: xt_TPROXY, nft_tproxy, timewait helpers; xt
+  checkentry requires TCP/UDP; nft eval checks tprot; TPROXY `xt_target`
+  has no `.proto`
+- [Phase 6] `git describe`/Makefile: pending-6.12 / 6.12.111; context
+  matches patch; clean apply
+- [Phase 6] Precedent in this tree: 2504a76e5c069 sch_cake WARN_ON drop,
+  Reported-by Zhiling Zou, panic_on_warn
+- [Phase 7] netfilter tproxy, IMPORTANT, mature
+- [Phase 8] Failure: WARN splat or panic_on_warn panic; not
+  UAF/corruption
+- UNVERIFIED: exact checkentry-bypass PoC in 6.12; not used as the sole
+  driver (maintainer statement + existing WARN + safe NULL return are
+  verified)
 
-**FOR:**
-- Real bug: template dst treated as a route.
-- Present in 6.6; `skb_valid_dst()` already exists.
-- Reject skip-fill was introduced/worsened by a commit **already in
-  6.6**.
-- Small, maintainer-authored, obviously correct.
-- Same class as SIP `skb_dst` validation already in 6.6 stable.
-- Realistic trigger: collect-md tunnels + nft/iptables at
-  ingress/prerouting.
-- No follow-up reverting or rewriting this change.
-
-**AGAINST:**
-- Posted as net-next 8/9, not `net`.
-- No Fixes/Cc: stable, no crash report.
-- netdev-family `reject` does not call `nf_send_*`; `nft_rt`/`nft_xfrm`
-  cannot be used on netdev family even in mainline.
-- Crash is not as hard as a NULL `ops` deref (blackhole ops).
-
-**UNRESOLVED:**
-- lore.kernel.org was 503/403; no full review thread beyond Openwall. No
-  stable@ discussion verified.
-
-**Step 9.2: STABLE RULES CHECKLIST**
-1. Obviously correct and tested? **PASS** — helper semantics are clear;
-   syzbot CI passed; in mainline since 2026-07.
-2. Fixes a real bug that affects users? **PASS** — metadata dst on
-   ingress/tunnel paths is real; expressions/reject mishandle it.
-3. Important (crash/security/corruption/deadlock)? **PASS** — firewall
-   mis-eval and failed REJECT replies on overlay/ingress; type-confused
-   `rtable` use. Not a proven panic, but important networking
-   correctness.
-4. Small and contained? **PASS** — 26/9 lines, five netfilter files.
-5. No new features or APIs? **PASS**
-6. Can apply to this tree? **PASS** — minor context (`dst_rtable` /
-   `skb_dst_dev` in unchanged lines only).
-
-**Step 9.3: EXCEPTION CATEGORIES**
-- Record: none (not a device ID/quirk/DT/build/docs exception).
-  Qualifies as a normal bugfix.
-
-**Step 9.4: DECISION**
-This is a small, correct check that 6.6 needs. The tree has the buggy
-`!skb_dst()` reject path, nft `rt`/`meta`/`xfrm` eval, inet ingress, and
-netdev ingress/egress. Benefit outweighs risk.
-
----
-
-### What the commit solves for 6.6 users
-Packets with a **metadata/template dst** (VXLAN/GENEVE collect-md, TC)
-make `skb_dst()` non-NULL, so reject never installs a real route and
-`rt`/`meta rtclassid`/`xfrm` inspect a non-route. Users see wrong nft
-matches and missing TCP RST / ICMP unreachable. The fix uses the
-existing `skb_valid_dst()` helper and drops any template dst before
-attaching a real one.
-
-### Risk vs benefit
-Low risk, high correctness value on firewall + overlay hosts. Apply may
-need a one-line context tweak in `nft_rt.c` and `nf_reject_ipv6.c`.
-
-### Verification
-- **[Phase 1]** Parsed subject/body; tags: only Pablo SOB; no
-  Fixes/Reported-by/stable.
-- **[Phase 2]** Diff: 5 files, +26/−9; `skb_valid_dst` + `skb_dst_drop`
-  before `skb_dst_set`.
-- **[Phase 3]** `git describe` of pending-6.6: `p-6.6-3-g04810563abb71`,
-  Makefile 6.6.157.
-- **[Phase 3]** `git merge-base --is-ancestor 689db98e535bf pending-6.6`
-  → not present.
-- **[Phase 3]** Blame: reject condition `a0a3ace2a5788` (in 6.6); nft_rt
-  `2fa841938c648` (2016).
-- **[Phase 3]** `git show pending-6.6:include/net/dst_metadata.h`:
-  `skb_valid_dst()` present.
-- **[Phase 4]** `b4 dig -c 689db98e535bf`: lore 503, no match.
-- **[Phase 4]** Openwall: net-next 8/9 and 0/9 cover; no NAK.
-- **[Phase 4]** Syzbot CI series passed; not a syzbot bug report.
-- **[Phase 4]** lore.kernel.org/stable: 403, UNVERIFIED.
-- **[Phase 5]** Callers verified via `git grep` on pending-6.6:
-  ipt_REJECT, nft_reject_ipv4/inet; netdev reject uses `nf_reject_skb_*`
-  (not this path).
-- **[Phase 5]** `nft_rt_validate` / `nft_xfrm_validate` reject
-  NFPROTO_NETDEV in both 6.6 and mainline.
-- **[Phase 6]** Buggy `!skb_dst()` / raw `skb_dst()` still in
-  pending-6.6 sources.
-- **[Phase 6]** Context drift: `dst_rtable` and `skb_dst_dev` not used
-  in 6.6 versions of those unchanged lines.
-- **[Phase 7]** nf_tables + reject; important.
-- **[Phase 8]** `__icmp_send` in 6.6 handles NULL `dst->dev` but still
-  reads `rt->rt_flags` from a metadata object.
-- **[Phase 8]** Metadata dst: `dst_init(..., NULL, ...)` +
-  `DST_METADATA` + `dst_blackhole_ops`; `xfrm == NULL`.
-- **UNVERIFIED:** full lore review replies (503); stable@ archive (403).
+The change is small, already handled correctly aside from the warning,
+and belongs on this 6.12 tree.
 
 **YES**
 
- net/ipv4/netfilter/nf_reject_ipv4.c | 6 ++++--
- net/ipv6/netfilter/nf_reject_ipv6.c | 8 ++++++--
- net/netfilter/nft_meta.c            | 6 ++++--
- net/netfilter/nft_rt.c              | 6 ++++--
- net/netfilter/nft_xfrm.c            | 9 ++++++++-
- 5 files changed, 26 insertions(+), 9 deletions(-)
+ net/ipv4/netfilter/nf_tproxy_ipv4.c | 2 +-
+ net/ipv6/netfilter/nf_tproxy_ipv6.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 4626dc46808f3..59ec465a9df98 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -8,6 +8,7 @@
- #include <net/tcp.h>
- #include <net/route.h>
- #include <net/dst.h>
-+#include <net/dst_metadata.h>
- #include <net/netfilter/ipv4/nf_reject.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_bridge.h>
-@@ -263,6 +264,7 @@ static int nf_reject_fill_skb_dst(struct sk_buff *skb_in)
- 	if (!dst)
- 		return -1;
- 
-+	skb_dst_drop(skb_in);
- 	skb_dst_set(skb_in, dst);
- 	return 0;
- }
-@@ -279,7 +281,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	if (!oth)
- 		return;
- 
--	if (!skb_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
-+	if (!skb_valid_dst(oldskb) && nf_reject_fill_skb_dst(oldskb) < 0)
- 		return;
- 
- 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
-@@ -352,7 +354,7 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
- 	if (iph->frag_off & htons(IP_OFFSET))
- 		return;
- 
--	if (!skb_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
-+	if (!skb_valid_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
- 		return;
- 
- 	if (skb_csum_unnecessary(skb_in) ||
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index ef5b7e85cffa8..07cdaa10da0d0 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -8,6 +8,7 @@
- #include <net/ip6_route.h>
- #include <net/ip6_fib.h>
- #include <net/ip6_checksum.h>
-+#include <net/dst_metadata.h>
- #include <net/netfilter/ipv6/nf_reject.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
-@@ -304,6 +305,7 @@ static int nf_reject6_fill_skb_dst(struct sk_buff *skb_in)
- 	if (!dst)
- 		return -1;
- 
-+	skb_dst_drop(skb_in);
- 	skb_dst_set(skb_in, dst);
- 	return 0;
- }
-@@ -336,10 +338,12 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	fl6.fl6_sport = otcph->dest;
- 	fl6.fl6_dport = otcph->source;
- 
--	if (!skb_dst(oldskb)) {
-+	if (!skb_valid_dst(oldskb)) {
- 		nf_ip6_route(net, &dst, flowi6_to_flowi(&fl6), false);
- 		if (!dst)
- 			return;
-+
-+		skb_dst_drop(oldskb);
- 		skb_dst_set(oldskb, dst);
+diff --git a/net/ipv4/netfilter/nf_tproxy_ipv4.c b/net/ipv4/netfilter/nf_tproxy_ipv4.c
+index 041c3f37f237b..5eab7a2dc8ef2 100644
+--- a/net/ipv4/netfilter/nf_tproxy_ipv4.c
++++ b/net/ipv4/netfilter/nf_tproxy_ipv4.c
+@@ -137,7 +137,7 @@ nf_tproxy_get_sock_v4(struct net *net, struct sk_buff *skb,
+ 		}
+ 		break;
+ 	default:
+-		WARN_ON(1);
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		sk = NULL;
  	}
  
-@@ -440,7 +444,7 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
- 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
- 		skb_in->dev = net->loopback_dev;
+diff --git a/net/ipv6/netfilter/nf_tproxy_ipv6.c b/net/ipv6/netfilter/nf_tproxy_ipv6.c
+index b2f59ed9d7cc0..12ec36a6be2e1 100644
+--- a/net/ipv6/netfilter/nf_tproxy_ipv6.c
++++ b/net/ipv6/netfilter/nf_tproxy_ipv6.c
+@@ -136,7 +136,7 @@ nf_tproxy_get_sock_v6(struct net *net, struct sk_buff *skb, int thoff,
+ 		}
+ 		break;
+ 	default:
+-		WARN_ON(1);
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		sk = NULL;
+ 	}
  
--	if (!skb_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
-+	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
- 		return;
- 
- 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 19e6d1c2436af..f3c7b7edb10c0 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -20,6 +20,7 @@
- #include <net/dst.h>
- #include <net/ip.h>
- #include <net/sock.h>
-+#include <net/dst_metadata.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
-@@ -274,11 +275,12 @@ static bool nft_meta_get_eval_ifname(enum nft_meta_keys key, u32 *dest,
- static noinline bool
- nft_meta_get_eval_rtclassid(const struct sk_buff *skb, u32 *dest)
- {
--	const struct dst_entry *dst = skb_dst(skb);
-+	const struct dst_entry *dst;
- 
--	if (!dst)
-+	if (!skb_valid_dst(skb))
- 		return false;
- 
-+	dst = skb_dst(skb);
- 	*dest = dst->tclassid;
- 	return true;
- }
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index ad527f3596c03..cb7dff336bbdc 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -8,6 +8,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/dst.h>
-+#include <net/dst_metadata.h>
- #include <net/ip6_route.h>
- #include <net/route.h>
- #include <net/netfilter/nf_tables.h>
-@@ -59,10 +60,11 @@ void nft_rt_get_eval(const struct nft_expr *expr,
- 	u32 *dest = &regs->data[priv->dreg];
- 	const struct dst_entry *dst;
- 
--	dst = skb_dst(skb);
--	if (!dst)
-+	if (!skb_valid_dst(skb))
- 		goto err;
- 
-+	dst = skb_dst(skb);
-+
- 	switch (priv->key) {
- #ifdef CONFIG_IP_ROUTE_CLASSID
- 	case NFT_RT_CLASSID:
-diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
-index 7ffe6a2690d13..9c9ac27122ad9 100644
---- a/net/netfilter/nft_xfrm.c
-+++ b/net/netfilter/nft_xfrm.c
-@@ -12,6 +12,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/dst_metadata.h>
- #include <linux/in.h>
- #include <net/xfrm.h>
- 
-@@ -177,9 +178,15 @@ static void nft_xfrm_get_eval_out(const struct nft_xfrm *priv,
- 				  struct nft_regs *regs,
- 				  const struct nft_pktinfo *pkt)
- {
--	const struct dst_entry *dst = skb_dst(pkt->skb);
-+	const struct dst_entry *dst;
- 	int i;
- 
-+	if (!skb_valid_dst(pkt->skb)) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
-+	dst = skb_dst(pkt->skb);
- 	for (i = 0; dst && dst->xfrm;
- 	     dst = ((const struct xfrm_dst *)dst)->child, i++) {
- 		if (i < priv->spnum)
 -- 
 2.53.0
 
