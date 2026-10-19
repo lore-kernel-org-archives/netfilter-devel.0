@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FEC433B97D;
-	Mon, 19 Oct 2026 01:21:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E69733BBBD;
+	Mon, 19 Oct 2026 01:21:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792372890; cv=none; b=rNQqSUZ6rLRBFWcjyW8OYS6G376bqvqRlom+/F1RyQU5YrkT6uo/ExW4Gx4Aej8qQNtF/sIPwRHPrw1oLdYW7zdV+Zaim2ddL+YZ+eCe0vabVi04y9q+xPREItk5bEyY9pcV4iYZdPB6jJNjLX07i52tOoD9dA9kLvg6LRZcGuU=
+	t=1792372890; cv=none; b=ewHXK3kGAjL9BcXRoypkE9sOB2HPdIOspgQ2rcj29rlUEi+1XHQtXT07p6zGtI+rfQRHOFyTHFG0kZJvnGUukxPm0+vjwoKALKcTlRDhxbmF8GJsP4VRX9fv/R63MwLme/ypvIwSI6qKyZVhZU4YGC+5rliXkyKHPwWVeflq48A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792372890; c=relaxed/simple;
-	bh=DWDLuhUd3dL1+RP7CK2kD37Ju5Yo8afFksUUaEZGjDo=;
+	bh=5VP3KjHjX35tgk8ZqGg9DJe2uryoUTB/XPZM5LkyR7E=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=MzEWo6fy06MCGl8AeANOFAWusESSEfu3+0aMm3/xX1ZZDa7NqV9emBJufyqNEWQT7mOq7pBGc/IJuY1/R0WvhmdoZktRCo6M/GroPWTPalOaBBI+9IUx+n0P5dV+YwDW24gSxkW8uvPyJIL4wKwDo9Lsbi+/t+tBy088EyeMAd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SyIr7X+7; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=mGuzq778xSFkFqNHidFhf4o1iQMjXVn1EiXHPWMLkqOAuFKSc0iijkJTY1LuaM4ykFaZ+zL+BlQuHS99oq3vfSIFM8JWrNpC/w+bmz81Lwwu/mJICcFhRGFAvIKaubwK0wOtbOCyjcd4k2VHGZjAwnsAZWV9MsRJ2lo6kEE/TEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jH3UJMbA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SyIr7X+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8696C1F000C5;
-	Mon, 19 Oct 2026 01:21:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jH3UJMbA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B93041F000C4;
+	Mon, 19 Oct 2026 01:21:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792372888;
-	bh=SckjzOby05zG37Rs+iZd5jpvtjxUQtaYPC7EXHq3V8Y=;
+	s=k20260515; t=1792372889;
+	bh=dqaAmcNck6BRcT4GbIsdemYT5tbOyjyylL2Bd+Ftnb4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=SyIr7X+72rflchTA3vpHNE53eMFmNKHNhooVPUsFUliIirOCrECwgM4GLZfnM53HO
-	 3C50bnyOB645yXgi09jAOb4KSgS/LYD98zzl6MF9YPcmsumTpVhNUIUTqgRx+iGk8F
-	 CDd4mfI7Hqre00pjYtYlqwcLkV7jnIp8oF8lli00AfQNQ3uI3EsuKIUgFevNqK0kTb
-	 ffZx9lkrR/cxDRhOOq5SINWP9Dn9lj51rtEPtSxr35D4RfES8BcYxG0kbfUz5RJatk
-	 knwY7cdfSpr69/szG7rjsnG4lNHy6MXhmg0uOhBPV2YplmR4Qymbugznn0GGbvS0LW
-	 5n/erdkDyDAwA==
-Subject: Re: [PATCH net-next 11/15] netfilter: nft_compat: restrict raw table
- targets/matches
+	b=jH3UJMbAvNlLqN/WadYwiXUu8Ro5js/sTCvQjaN31/08R1k6F+sUuVUE5UNXXiyg2
+	 8q7no/ThMG1O8wODOJq+7uLvuz3mC1Sg6Y3NKXaljD74LjpjRk+9BRsfytYVyuZvbG
+	 5f6e1qFf/hgyfEXX3efY91ErENQZy6IVDmVnjjFvyG+UNBn0Lxeum9ByiQLRWa8946
+	 xFb9QbyPJKEBrxsygDFQUXRdNo4TahKybb/MGXeDo2q7eX44yl2n2m0aQOFEo+QA53
+	 oezQBMFTofhUAZKuVlC5va9E5fbzUjzJJGiV+dFDT2QlzeCn8pow8PZ23gE2DEJvJI
+	 LertEX20LnPPQ==
+Subject: Re: [PATCH net-next 12/15] netfilter: flowtable: set inner protocol
+ when popping tunnel header
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Mon, 19 Oct 2026 01:21:27 +0000
-Message-ID: <179237288707.3135.2279601200660444288@kernel.org>
-In-Reply-To: <20261018005638.1776148-12-pablo@netfilter.org>
-References: <20261018005638.1776148-12-pablo@netfilter.org>
-X-sashiko-severity: High
+Date: Mon, 19 Oct 2026 01:21:28 +0000
+Message-ID: <179237288830.3135.1355021906814917621@kernel.org>
+In-Reply-To: <20261018005638.1776148-13-pablo@netfilter.org>
+References: <20261018005638.1776148-13-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -47,154 +47,111 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 1
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+- [Low] The commit message says the patch makes nf_flow_ip_tunnel_pop()
+  pop the outer header and set skb->protocol "instead of bailing out…
 
-- [High] The new 'raw' check in nft_compat_chain_validate_dependency()
-  (net/netfilter/nft_compat.c:61) depends on basechain->ops.priority.
-- [Low] The new comment in nft_compat_chain_validate_dependency() says
-  the legacy raw table 'only ever has prerouting/output chains at this…
+Pre-existing issues:
+- [Medium] This problem wasn't introduced by this patch, but
+  nf_flow_ip_tunnel_pop() strips the outer tunnel header with plain…
 
 --
 
-netfilter: nft_compat: restrict raw table targets/matches
+netfilter: flowtable: set inner protocol when popping tunnel header
 
-This patch extends nft_compat_chain_validate_dependency() so that xt
-targets and matches that declare .table = "raw" (CT, NOTRACK) are only
-accepted in ip/ip6 base chains hooked at prerouting or output with
-priority NF_IP_PRI_RAW. The goal is to stop the CT target from being
-loaded at a hook or priority where it would run after conntrack.
+This commit makes nf_flow_ip_tunnel_pop() set skb->protocol from
+ctx->tun.inner_proto after it pulls the outer tunnel header. The commit
+message calls it a preliminary patch for IPv4 over IPv6 and SIT tunnel
+flowtable offload.
 
-> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-> index 63864b9282590..88ddaf47f5879 100644
-> --- a/net/netfilter/nft_compat.c
-> +++ b/net/netfilter/nft_compat.c
-
-[ ... ]
-
-> @@ -45,6 +46,20 @@ static int nft_compat_chain_validate_dependency(const struct nft_ctx *ctx,
->  			type = NFT_CHAIN_T_NAT;
->  		if (basechain->type->type != type)
->  			return -EINVAL;
-> +	} else if (strcmp(tablename, "raw") == 0) {
-> +		/* iptables-nft emulates the legacy raw table, which only
-> +		 * ever has prerouting/output chains at this exact priority.
-> +		 */
+> Pop the outer tunnel header and set skb->protocol to the inner protocol
+> derived from ctx->tun.inner_proto in nf_flow_ip_tunnel_pop(), instead of
+> bailing out unless the tunnel carries IP-in-IP or IPv6-in-IPv6.
 
 [Severity: Low]
-Is this comment accurate? The legacy raw table can also be registered at a
-second priority. In net/ipv4/netfilter/iptable_raw.c:
+Is this description accurate? The early return at the top of
+nf_flow_ip_tunnel_pop() is unchanged by this patch:
 
-static const struct xt_table packet_raw_before_defrag = {
-	.name = "raw",
-	.valid_hooks =  RAW_VALID_HOOKS,
-	.me = THIS_MODULE,
-	.af = NFPROTO_IPV4,
-	.priority = NF_IP_PRI_RAW_BEFORE_DEFRAG,
-};
+	if (ctx->tun.inner_proto != IPPROTO_IPIP &&
+	    ctx->tun.inner_proto != IPPROTO_IPV6)
+		return;
 
-The table is selected when the raw_before_defrag module parameter is set.
-ip6table_raw.c does the same with NF_IP6_PRI_RAW_BEFORE_DEFRAG.
+The only change is the new skb->protocol assignment.
 
-A CT/NOTRACK target at -450 still runs ahead of conntrack. The new check
-below accepts only NF_IP_PRI_RAW, though, so it rejects that priority with
--EINVAL. That makes it stricter than "what xtables enforces", as the
-commit message puts it.
+With the current parsers, that assignment also looks like a no-op:
 
-Should the comment say that iptables-nft always uses -300? Alternatively,
-the check could also accept the before-defrag priority, or any priority
-below NF_IP_PRI_CONNTRACK.
+- nf_flow_ip4_tunnel_proto() sets inner_proto to IPPROTO_IPIP only when
+  the outer header is IPv4.
+- nf_flow_ip6_tunnel_proto() sets IPPROTO_IPV6 only when the outer header
+  is IPv6.
+- nf_flow_encap_pop() calls the pop only when skb->protocol is already
+  the outer family:
 
-> +		if (ctx->family != NFPROTO_IPV4 &&
-> +		    ctx->family != NFPROTO_IPV6)
-> +			return -EINVAL;
+	if (skb->protocol == htons(ETH_P_IP) ||
+	    skb->protocol == htons(ETH_P_IPV6))
+		nf_flow_ip_tunnel_pop(ctx, skb);
+
+So the value written always matches what skb->protocol already holds.
+The rest of the series, up to "netfilter: flowtable: unify tunnel push for
+IPv4 and IPv6", does not change the parsers or this guard.
+
+Could the commit message say that the guard is kept? It could also say
+that the assignment only has an effect once cross-family parsing
+(IPv4-over-IPv6/SIT) is added.
+
+Removing the guard, as the message describes, would not be correct.
+Non-tunnel flows have inner_proto == 0, so they would get skb->protocol
+set to ETH_P_IPV6.
+
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index c8c29a9a16844..29d1a9f4a362b 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -372,6 +372,11 @@ static void nf_flow_ip_tunnel_pop(struct nf_flowtable_ctx *ctx,
+>  
+>  	skb_pull(skb, ctx->tun.hdr_size);
+>  	skb_reset_network_header(skb);
 > +
-> +		if (basechain->ops.hooknum != NF_INET_PRE_ROUTING &&
-> +		    basechain->ops.hooknum != NF_INET_LOCAL_OUT)
-> +			return -EINVAL;
-> +
-> +		if (basechain->ops.priority != NF_IP_PRI_RAW)
-> +			return -EINVAL;
+> +	if (ctx->tun.inner_proto == IPPROTO_IPIP)
+> +		skb->protocol = htons(ETH_P_IP);
+> +	else
+> +		skb->protocol = htons(ETH_P_IPV6);
 
-[Severity: High]
-Can the nf_tables chain validation cache let a jumped-to chain skip this
-priority check?
+[Severity: Medium]
+This is a pre-existing issue and was not introduced by this patch. Should
+the skb_pull() above be skb_pull_rcsum()?
 
-nft_chain_vstate_valid() treats a regular chain as already validated using
-only the calling base chain's type, hooknum and the depth:
+The VLAN and PPPoE cases in nf_flow_encap_pop() in the same file use
+skb_pull_rcsum(). __iptunnel_pull_header() also adjusts the checksum
+before it sets the inner protocol:
 
-net/netfilter/nf_tables_api.c:nft_chain_vstate_valid() {
+net/ipv4/ip_tunnel_core.c:__iptunnel_pull_header() {
     ...
-	if (chain->vstate.depth >= ctx->level &&
-	    chain->vstate.hook_mask[type] & BIT(hooknum))
-		return true;
+	skb_pull_rcsum(skb, hdr_len);
+    ...
+		skb->protocol = inner_proto;
     ...
 }
 
-nft_chain_vstate_update() records only hook_mask[type] and depth, never the
-base chain priority. nft_table_validate() clears vstate only after it has
-walked every base chain, so cached results carry over from one base chain
-to the next.
+This patch adds the skb->protocol step from that pattern, but not the
+checksum adjustment.
 
-Take an ip table named "raw" with:
+Take a CHECKSUM_COMPLETE skb with an outer IPv6 header (ip6ip6 today,
+IPv4-over-IPv6 later). After the pull, skb->csum still includes the 40
+bytes of the removed header. An outer IPv4 header does not cause this,
+because its valid header checksum makes the header's ones'-complement
+sum effectively zero.
 
-  base chain A: type filter, hook prerouting, priority -300, rule "jump X"
-  base chain B: type filter, hook prerouting, priority 0, rule "jump X"
-  regular chain X: an nft_compat rule using the CT target
-
-Chain A is created first. Validating A goes like this:
-
-nft_table_validate()
-  nft_chain_validate(A)
-    nft_immediate_validate()            /* level 1 */
-      nft_chain_validate(X)
-        nft_target_validate()
-          nft_compat_chain_validate_dependency()  /* passes, A is -300 */
-        nft_chain_vstate_update()       /* FILTER/PRE_ROUTING, depth 1 */
-
-Then for B:
-
-  nft_chain_validate(B)
-    nft_immediate_validate()            /* level 1 */
-      nft_chain_validate(X)
-        nft_chain_vstate_valid()        /* true */
-        return 0;
-
-So the new check never runs with B as ctx->chain, and the ruleset is
-accepted.
-
-At runtime, nf_conntrack_in() can leave skb->_nfct == 0 for an invalid
-packet. It also clears any raw-table template before tracking, so an
-unconditional jump in A doesn't help. B then jumps to X after conntrack,
-and xt_ct_target() attaches the template:
-
-	if (skb->_nfct != 0)
-		return XT_CONTINUE;
-
-	if (ct) {
-		refcount_inc(&ct->ct_general.use);
-		nf_ct_set(skb, ct, IP_CT_NEW);
-
-Isn't this the same "after the real conntrack hook has already run" case
-that the commit message says this patch closes? It can be reached with
-CAP_NET_ADMIN in an unprivileged user namespace.
-
-Could the vstate key be made priority-aware (or carry a pre-conntrack
-bit)? Other options would be to skip the cache for chains that hold compat
-expressions with a table dependency, or to run this check for every base
-chain that can reach the rule.
-
->  	}
->  
->  	return 0;
+Suppose such a forwarded skb is looped back into a receive path. One
+example is veth into another netns, where __dev_forward_skb2() keeps
+CHECKSUM_COMPLETE. Would the L4 checksum check then fail on the stale
+skb->csum? The stack would recompute the checksum in software and call
+netdev_rx_csum_fault(), which prints a rate-limited warning.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261018005638.1776148-2-pablo%40netfilter.org
