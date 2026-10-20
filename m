@@ -1,49 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792530045;
-	b=NMI1H4n6oZYHzXxkUHw5X0+r5pzPmskzRcSyvG1aj0HNID2YoyrYSdS0vXKsNX6Lhecu
-	 RaWkIsFWsNolmGcvipPTEaBuTDn+khHkUF1bdcRidmyh3YI29zI/dg8JZx/464zYRLpy6
-	 0oK13oMpmJVN/I+3EZ6xrkZe4X7hmy5+EUusuCtUZg5mzn8uyWtaVoLkF019E6f+NQQQ0
-	 aL5e3qQaSGD+zHdxglS4Ah3ddkcCs5apiBAmb4RSAoI7zP444xUWW9clPEmxrtkYmPsI+
-	 t+Dn+AGjrG5nkGbto9FPRxs+8u5ecEamUr7jK5vuuiV6qcHxzWQqgw51mQclWOZ9t8Q==
+	t=1792530660;
+	b=sPJXANBt8J6KltU2g0PRt04/H9cURabYKioAknO5sWqeU+7ZCLFTjiMzooN3s8UPRGnG
+	 Its75yMW0h1+Q5KgL2GIKHHGyEyVM5dOpSh5SR4nUdZIM2vTQ2vBCoTobO//sGid3NLBH
+	 p0qlk1n+AsSHqpTnV/qBVNaAlQ3nbu1ELGrTWfgmOMiGwI8YuGdFWfKKkCmxWNuZHejnZ
+	 cobiI0HEkX2IUOs1SQQxt64wMTV/2vDVITmA01ZHBqcdDaF59OeFCCB1VRYJb0BgQAlwG
+	 +N6iJ+6490B2dQugYoLEVXO8TOH9R+0UvmT9YhPMGkBU7jbT0UWlebv6Sd5QpysykIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792530045;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=WQmw8JaP3VSFTlCi3DIqvpbvYVlQLx0xSG3G05L6TNA=;
-	b=CGbhNXQjgRTTvutGflpt8KgecOiy1F7iZws57ruCQGXtOlAPx/nlLzn2vpE5KlQHVH9c
-	 y4OW5mQ94CaxadWVUvsv0zv5UBObQOncsEa3tPftuRrhygJAs8IBgrA4Z0chNMdeQIHx7
-	 S9PU90LVhpmv2+gEgWdykADo57Tw6bNarh8leLG5Khg1I4J7zX/ypZGa1n9FT0arWbvWB
-	 KmlIMwCyQSSa60dLl+GAlYRpFtvCDgvQdy258mGI2499CzgplolRr/rObVxObsnYaZEVw
-	 u1y0CvJeKJpmYC2M6VyjqfXQNXhI8olx11y0LFu/RXiSJD6W4B7hfO6REfrld/moGMA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792530660;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=QUYrFt/9/eGDOu6Wr8mvLw1GjBqci4jL1e89f6OPWXI=;
+	b=fLtH3gKDkRgY7/TOiPdv0dWDtj6mUqeyJD6U4GszKmiDuu/0v6L5vRs6ruwLfPZnK6W5
+	 OavDlssnG5CXnUoz4Q+efB5u5hmPskLicXT8QIcHmx1nDkj1Rj/syZHlXT6GRXul6XAFD
+	 RGr50x3r8+uHlC5KJLh9e9wnynSCcDVi75VoP6howDSGUuuqgr7LWx34Kd3B975H++zDx
+	 7ggXms+jwzPBswTcFjjTDDSyawHUId9ZQLZAUwtUnXwy08d/GskZ0Tdx9Pll+0yaFM0gR
+	 zlNDFUWJMOczkACUsGwN8MPRUAqwRV6LE9uBJBeMpnKs7GVFkGrBmwCb5dqC/tBonMg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jzZ+Dg+O;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A2qpvyTb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A3A606A31A;
-	Tue, 20 Oct 2026 21:00:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B77DF606A31B;
+	Tue, 20 Oct 2026 21:10:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jzZ+Dg+O
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC7511F000C9;
-	Tue, 20 Oct 2026 21:00:44 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A2qpvyTb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E5C31F000C9;
+	Tue, 20 Oct 2026 21:10:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792530044;
-	bh=WQmw8JaP3VSFTlCi3DIqvpbvYVlQLx0xSG3G05L6TNA=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=jzZ+Dg+O6hjZ8J8JBRZ0rwHMm+gIBj2rEuiML+0qU9l4sw3Vrkls9y75CSBFbnyAq
-	 cKJLuD7row92eRrhVLsNRE5eS+Mq+O54mf1XnAzuEPASt2ezh9PYGR0fTOFs3iYdpZ
-	 5xXZ3YWNymIu5qxCgcLEwIFe/fWZ1R5WZOXvKKAbs0cXtqUYJUlPwvYZuvsYQsZcB4
-	 3UH1b4UsbjXAqpYmqM+KUNAwuKLldGT3zC/FnC4ebROHaCPxoBw8Rl+N1bCLkxAiZN
-	 HNldVBNhVklEt9Xh5Z5kKJEUDalZlG/HWsnR2afkhIzVfeOVdU0smywweBf4Wg5ker
-	 UP3EwEzqYXjig==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B43AC3809A09;
-	Tue, 20 Oct 2026 21:00:44 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1792530659;
+	bh=QUYrFt/9/eGDOu6Wr8mvLw1GjBqci4jL1e89f6OPWXI=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=A2qpvyTbemM/p00b3GlPlyBMFwlKkhprVh0FQY0JI3o3OsEA1RRTfoKyti41XG4S/
+	 hDJTg/nHMCV2i9Zguygw6Yh8txRACVuY7NeEC20If0KJEnoLKN4RGzLOQZPnLOf/wD
+	 dyh/iDYEB/4tLgDGdq+eoTsK6KZvUQ73+fbPpc4tF5lsBC1H8P0TxlH7aE/NXh0N/9
+	 dvngmcoIGObp7B4yiNfMwHROCHKx3MXgmeRhpgwo0gwB/lPNm+qMtrLZXlep9P2seP
+	 CFYIc4aCH+bgL5KGNGlUslGaenVjYBB9khxg4PJIGVKIuidakiWAVb5g05TWDiR92E
+	 pwftDvOea8SlA==
+Date: Tue, 20 Oct 2026 14:10:58 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, pabeni@redhat.com, edumazet@kernel.org,
+ horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net 00/10] Netfilter/IPVS fixes for net
+Message-ID: <20261020141058.0acdb035@kernel.org>
+In-Reply-To: <20261019150249.1879516-1-pablo@netfilter.org>
+References: <20261019150249.1879516-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -53,74 +59,14 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/15] netfilter: disable br_netfilter in user
- namespaces
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179253004327.208021.16875772320746323664.git-patchwork-notify@kernel.org>
-Date: Tue, 20 Oct 2026 21:00:43 +0000
-References: <20261018005638.1776148-2-pablo@netfilter.org>
-In-Reply-To: <20261018005638.1776148-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Mon, 19 Oct 2026 17:02:39 +0200 Pablo Neira Ayuso wrote:
+> 3) Fix races when handling overload flag in IPVS, this patch
+>    is not perfect but Julian considers this improves the situation.
+>    This was uncovered by LLM. From Julian Anastasov.
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+> 6) Initialize IPCB for inet/ingress reject, uncovered by LLM.
 
-On Sun, 18 Oct 2026 02:56:24 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> br_netfilter has way too many bugs, schedule for removal and disable
-> the feature in user namespaces.
-> 
-> In particular, we get more and more gadgets to have bridge ports escape
-> rcu_read_lock() protection, then underlying device gets reconfigured
-> (macvlan or something else), then reinject into network stack causes
-> crash because net_device is assumed to still have bridge rx data
-> associated with it.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,01/15] netfilter: disable br_netfilter in user namespaces
-    https://git.kernel.org/netdev/net-next/c/18e03721933c
-  - [net-next,02/15] selftests: netfilter: nft_queue.sh: only queue icmp echo request/reply
-    https://git.kernel.org/netdev/net-next/c/99fa01d7d1fe
-  - [net-next,03/15] ipvs: fix buffer overflow when sending sync messages
-    https://git.kernel.org/netdev/net-next/c/3e3fe49e8678
-  - [net-next,04/15] netfilter: nf_queue: limit the hook drop flush to the unregistered hook point
-    https://git.kernel.org/netdev/net-next/c/72ac1c0937df
-  - [net-next,05/15] selftests: netfilter: nft_queue: check the scope of the hook drop flush
-    https://git.kernel.org/netdev/net-next/c/853d419bfb34
-  - [net-next,06/15] netfilter: conntrack: fix unlikely UaF in gc worker
-    https://git.kernel.org/netdev/net-next/c/9836164821a4
-  - [net-next,07/15] netfilter: nf_tables: switch chain_types array to rcu
-    https://git.kernel.org/netdev/net-next/c/a3217c51a317
-  - [net-next,08/15] netfilter: nft_exthdr: remove redundant op parsing in tcp_set_init
-    https://git.kernel.org/netdev/net-next/c/540aab0e415d
-  - [net-next,09/15] netfilter: nft_exthdr: avoid 60 bytes stack buffer in TCP option mangling
-    https://git.kernel.org/netdev/net-next/c/d7c4b903f349
-  - [net-next,10/15] selftests: netfilter: fix return value in zone subtest
-    https://git.kernel.org/netdev/net-next/c/a20a01ae8981
-  - [net-next,11/15] netfilter: nft_compat: restrict raw table targets/matches
-    https://git.kernel.org/netdev/net-next/c/ac364eb4d6d7
-  - [net-next,12/15] netfilter: flowtable: set inner protocol when popping tunnel header
-    https://git.kernel.org/netdev/net-next/c/cae023143d25
-  - [net-next,13/15] netfilter: flowtable: populate tunnel tuple regardless of inner protocol
-    https://git.kernel.org/netdev/net-next/c/97874c7c5f2c
-  - [net-next,14/15] netfilter: flowtable: add encap_proto to flow_offload_tunnel
-    https://git.kernel.org/netdev/net-next/c/3dcafe6cb5e1
-  - [net-next,15/15] netfilter: flowtable: unify tunnel push for IPv4 and IPv6
-    https://git.kernel.org/netdev/net-next/c/d0107f381622
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Could you look over the LLM review for these two specifically?
