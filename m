@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792510656;
-	b=p/WeF067V8Iq9arV/bsuTH2L2K4zpmS+6JVvjeLhoKGMAVpVzw4kZ66Prk+YrFJtgmXm
-	 w9JBSVVJTlKe9Q82rvRE1EwUMki+9uaEkgQThjyqYX5Hi563Pznwy+i/1cgdtdADM3P3X
-	 8tfULo+9K/OcyCsBo9NcqYhaqa6kL7aulNQf4s8PpDP4NUCbfyRqBM5Htr/PFiZv0kipm
-	 /XsnHYpUQjihHvDmIQeZbqH7dH4mxdvEaTfilishz36dyvVGnz/m5CzsPvUTvh4Sd6ndx
-	 76P8jRBz1nmPxm5Ta9j1VrWCB7LodESzSGOTTex3v21MfvY8ceWSiS84PGbCXc6uq4Q==
+	t=1792510686;
+	b=26MmgINSZlRGcWsVZVv9qdiiK/29gRQfFXRyS/5xNyZhkJ6ixsUNncQpKirpH4cHtcqu
+	 Ak3D6ROeDHXVhQArpYEPyARK1u2kiZo/BfXEK8t4FMHOYemI+TAf76seeRhKJdut0kIUu
+	 fnx3aNehTmW0tzQpTf3am96MwUj2+pMveGGd5s7sB1gVjnU0OaBH0kaCc7eG099QdJGqP
+	 l7VBxTW+SZZqmySbXc+5I7voC7ll/HCahzU5uTR0YEfuCgNZPt45Xw864etrdVvKczSly
+	 +fa9l3Nq8X5DGnUH74FLTsqi1vXZrCa9v4v8vs2KFTGZDvpAo2533yFaCqyvGgL2p2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792510656;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792510686;
 	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
 	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
 	 MIME-Version;
-	bh=MgPaeVa1O4c8RDPooyHHn8cbv8AAqk3dwJMcQwrLG/c=;
-	b=GkIprVwhM4ZC3MHHmzZ+kUcsKnWtWE4Gj9qVp2Lt4EFQlROMVgQIuDY/24FiRTR7GZY4
-	 KN6DVy4daklL10RFt4XlhhkgMXWCvQzGw29+Pk7aeYP0D0t78RcCl95pKV14/wSDUjJJ3
-	 YpRUIKcwOYEe6Wqe82XbotreZw8O9cJ2m+JFFFz9FT/MMcvMbrBxgfwsMb7AMe/K1uOb3
-	 JhtfRhzq4xDwBqGqTnxbPbGvYXFcDCMzrVlL7mDkbINHUJt7aukYEq4F554FKo6XtqHWA
-	 ffeVieCrWAgVqPHVk6icRlji/tGIxKQTBwd0B/rCx5rd08rojww0kwolyxqYkpT0CGA==
+	bh=kb7VtS8GkjPRMLpKFBGVZ7+99G77FFFnDQhteJfj4rw=;
+	b=li06JC6TH+D0zFjpO4aryhuZU95BcELyK8kie1FOHEGfpXsnF8YzrqHmvQAnkYpD9he7
+	 hoc6I094MK90aprmbFhhtatE9LKfzt5yIq+yUJwyvqNK1+/LslkAuIvJVhNBghCuuUiJW
+	 VURiVFO/Ukkk6ocsMnDtGQ/S4KTFrJ3edpM+n+EE1MlCtLexJd3rGYsx1jIjXzMu8krXP
+	 4oCuBrh9geASv/EzInG50187WiN7ZwcT9GaTYMRQm0q0qZ7ljx2MhGDXDq4UrlsXIWiPg
+	 BmNvW3idfgTx2mSZoyw4l0vPhN+thMZZu2NA2uyTjabQhMA4MKfkHZd9isutWTA7UHg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBAAD60A381C;
-	Tue, 20 Oct 2026 15:37:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE561F000C4;
-	Tue, 20 Oct 2026 15:37:34 +0000 (UTC)
-Subject: Re: [PATCH net 04/10] ipvs: skip committing sync_threshold when
- proc_dointvec fails
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E197606A339;
+	Tue, 20 Oct 2026 15:38:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1DF41F000C5;
+	Tue, 20 Oct 2026 15:38:05 +0000 (UTC)
+Subject:
+ Re: [PATCH net 06/10] netfilter: nf_reject: initialize IPCB at inet ingress
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 20 Oct 2026 15:37:04 +0000
-Message-ID: <179251062456.3135.7646122634609992432@kernel.org>
-In-Reply-To: <20261019150249.1879516-5-pablo@netfilter.org>
-References: <20261019150249.1879516-5-pablo@netfilter.org>
-X-sashiko-severity: Low
+Date: Tue, 20 Oct 2026 15:37:35 +0000
+Message-ID: <179251065552.3135.365430607202597759@kernel.org>
+In-Reply-To: <20261019150249.1879516-7-pablo@netfilter.org>
+References: <20261019150249.1879516-7-pablo@netfilter.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -51,128 +51,136 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0 (1)
 
-- [Low] The commit fixes a real bug that users can see, but its message
-  has no Fixes: tag and no Cc: stable.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The new IPv6 initializer in nf_send_unreach6() sets
+  IP6CB(skb_in)->iif = skb_in->skb_iif unconditionally.
 
 Pre-existing issues:
-- [Low] Documentation/networking/ipvs-sysctl.rst (sync_threshold entry,
-  around line 311) says "The range of the threshold is from 0 to…
-- [Low] proc_do_sync_threshold() (net/netfilter/ipvs/ip_vs_ctl.c:2462)
-  updates both elements of ipvs->sysctl_sync_threshold[] with a plain…
+- [Low] At NF_INET_INGRESS, the reject helpers do not check the L4
+  checksum of CHECKSUM_COMPLETE packets.
 
 --
 
-ipvs: skip committing sync_threshold when proc_dointvec fails
+netfilter: nf_reject: initialize IPCB at inet ingress
 
-With this patch, proc_do_sync_threshold() returns early when
-proc_dointvec() fails. A partly parsed write such as "5 x" now leaves
-ipvs->sysctl_sync_threshold[] unchanged. Before, the handler updated
-element [0] and still returned -EINVAL.
+The inet ingress hook runs before ip_rcv_core() and ip6_rcv_core(), so
+skb->cb can still hold stale data from an earlier layer. When called from
+NF_INET_INGRESS, nf_send_unreach() and nf_send_unreach6() now clear
+IPCB/IP6CB and restore iif. This stops stale IPv4 option offsets from
+overflowing the stack buffer in __ip_options_echo().
 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 3003547dcabe..ce9fe20d6106 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2452,6 +2452,8 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
->  	mutex_lock(&ipvs->sync_mutex);
->  	memcpy(val, valp, sizeof(val));
->  	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-> +	if (rc)
-> +		goto out;
-
-[Severity: Low]
-This fixes a bug that users can see. Should the commit message have a
-Fixes: tag, and maybe Cc: stable?
-
-Before this change, writing "5 x" or "5 99999999999" to
-/proc/sys/net/ipv4/vs/sync_threshold took this path:
-
-proc_do_sync_threshold()
-  proc_dointvec()
-    do_proc_vec()
-      stores 5 into val[0], then fails on the second element
-      returns -EINVAL
-
-The old handler then checked the mixed pair (5, old val[1]). If that
-pair was valid, it copied it into ipvs->sysctl_sync_threshold[] and
-still returned -EINVAL.
-
-The tmp-copy form of the handler comes from commit 1b90af292e71 ("ipvs:
-Improve robustness to the ipvs sysctl"), which kept this partial update.
-The older direct-write version behaved the same way.
-
-Every other patch in this series has a Fixes: tag, so stable tooling may
-not pick this one up. Would a tag like this one fit?
-
-Fixes: 1b90af292e71 ("ipvs: Improve robustness to the ipvs sysctl")
-
->  	if (write) {
->  		if (val[0] < 0 || val[1] < 0 ||
->  		    (val[0] >= val[1] && val[1]))
+> diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+> index 59ec465a9df9..7cb33af671e2 100644
+> --- a/net/ipv4/netfilter/nf_reject_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+> @@ -357,6 +357,11 @@ void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
+>  	if (!skb_valid_dst(skb_in) && nf_reject_fill_skb_dst(skb_in) < 0)
+>  		return;
+>  
+> +	if (hook == NF_INET_INGRESS) {
+> +		memset(IPCB(skb_in), 0, sizeof(*IPCB(skb_in)));
+> +		IPCB(skb_in)->iif = skb_in->skb_iif;
+> +	}
+> +
+>  	if (skb_csum_unnecessary(skb_in) ||
+>  	    !nf_reject_verify_csum(skb_in, dataoff, proto)) {
+>  		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
 
 [Severity: Low]
-This isn't a bug introduced by this patch, but the entry for this sysctl
-in Documentation/networking/ipvs-sysctl.rst says:
+This is a pre-existing issue and was not introduced by this patch. Since
+this path now has NF_INET_INGRESS handling, though: is the L4 checksum of
+a CHECKSUM_COMPLETE packet ever checked at this hook?
 
-    The range of the threshold is from 0 to sync_period.
+Further down, nf_send_unreach() does:
 
-This check rejects val[0] >= val[1] whenever val[1] is non-zero. So the
-upper bound is exclusive, and writing "50 50" fails with -EINVAL.
+	if (nf_ip_checksum(skb_in, hook, dataoff, proto) == 0)
+		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
 
-Could the documentation say that the threshold must be less than
-sync_period when sync_period is non-zero? The paragraph after it already
-covers the sync_period == 0 case.
+nf_ip_checksum() in net/netfilter/utils.c only verifies for PRE_ROUTING
+and LOCAL_IN:
 
-> @@ -2459,6 +2461,7 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
->  		else
->  			memcpy(valp, val, sizeof(val));
+	case CHECKSUM_COMPLETE:
+		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+			break;
 
-[Severity: Low]
-This is a pre-existing issue, but this memcpy() updates both elements of
-ipvs->sysctl_sync_threshold[] while holding ipvs->sync_mutex, and the
-packet-path readers never take that mutex:
+With hook == NF_INET_INGRESS, csum stays 0, and the reject code reads that
+as a good checksum.
 
-include/net/ip_vs.h:
-static inline int sysctl_sync_threshold(struct netns_ipvs *ipvs)
-{
-	return ipvs->sysctl_sync_threshold[0];
-}
+nf_ip6_checksum() has the same check. It affects
+reject6_csum_ok()->icmpv6_send() in nf_send_unreach6(), and also the TCP
+RST path through nf_reject_ip6_tcphdr_get().
 
-static inline int sysctl_sync_period(struct netns_ipvs *ipvs)
-{
-	return READ_ONCE(ipvs->sysctl_sync_threshold[1]);
-}
+So can an inet ingress reject rule answer a packet with a bad L4 checksum
+with an ICMP/ICMPv6 unreachable or a TCP RST? The same packet would get no
+reply at PRE_ROUTING, or at netdev ingress (NF_NETDEV_INGRESS has the same
+value as NF_INET_PRE_ROUTING).
 
-net/netfilter/ipvs/ip_vs_sync.c:ip_vs_sync_conn_needed() {
-    ...
-	sync_period = sysctl_sync_period(ipvs);
-	if (sync_period > 0) {
-		if (!(cp->flags & IP_VS_CONN_F_TEMPLATE) &&
-		    pkts % sync_period != sysctl_sync_threshold(ipvs))
-			return 0;
-    ...
-}
+Adding NF_INET_INGRESS to that hook list may not be enough on its own. At
+ingress, skb->len can still include link-layer trailer padding, which
+ip_rcv_core()/ip6_rcv_core() would normally trim.
 
-Element [0] is read with a plain load, element [1] with READ_ONCE(), and
-the two are loaded separately.
+This came in with commit 117ca1f8920c ("netfilter: nft_reject_inet: allow
+to use reject from inet ingress").
 
-Can a concurrent sysctl write let ip_vs_sync_conn_needed() see the new
-threshold with the old period, or the other way round? The
-threshold < period rule would then not hold for that packet, and the
-connection could miss one sync.
+> diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+> index 07cdaa10da0d..5e08d8529cc8 100644
+> --- a/net/ipv6/netfilter/nf_reject_ipv6.c
+> +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+> @@ -444,6 +444,11 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+>  	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+>  		skb_in->dev = net->loopback_dev;
+>  
+> +	if (hooknum == NF_INET_INGRESS) {
+> +		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
+> +		IP6CB(skb_in)->iif = skb_in->skb_iif;
+> +	}
 
-It can't crash, because sync_period is loaded once and checked before
-the modulo. KCSAN would probably flag the unannotated plain load and
-store of element [0], though.
+[Severity: Medium]
+The commit message says this matches ip6_rcv_core(). Does that hold for
+packets looped back through lo? ip6_rcv_core() chooses iif based on the
+dst:
 
-Would it be worth using WRITE_ONCE() for each element here and
-READ_ONCE() in sysctl_sync_threshold()?
+	IP6CB(skb)->iif = skb_valid_dst(skb) ?
+				ip6_dst_idev(skb_dst(skb))->dev->ifindex :
+				dev->ifindex;
+
+Its comment explains that a locally generated packet sent to a local
+address on ethX arrives through lo. For scoping, though, it has to be
+treated as arriving on ethX.
+
+loopback_xmit() keeps the dst with skb_dst_force(). Then
+__netif_receive_skb_core() sets skb->skb_iif to lo's ifindex before
+nf_ingress() runs. For an inet ingress reject rule on lo, this code sets
+iif to lo, while ip6_rcv_core() would use the dst's interface.
+
+icmp6_send() uses parm->iif to pick the source address, through
+dev_get_by_index() and ipv6_dev_get_saddr(). It also passes parm->iif to
+icmp6_ext_append() for the RFC 5837 interface information.
+
+Can the resulting ICMPv6 error get the wrong source address, or report lo
+as the incoming interface?
+
+nf_reject6_fill_skb_dst() runs after this block, so the original dst is
+still attached here. Would something like this be closer to
+ip6_rcv_core()?
+
+	IP6CB(skb_in)->iif = skb_valid_dst(skb_in) ?
+		ip6_dst_idev(skb_dst(skb_in))->dev->ifindex :
+		skb_in->skb_iif;
+
+> +
+>  	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+>  		return;
 
 [ ... ]
 
