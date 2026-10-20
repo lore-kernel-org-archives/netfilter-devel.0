@@ -1,73 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.180.15
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792457821;
-	b=PTQHBYWAwFIZ4rBSQwrXudXaQYnnH8REWGOacyzFAFD8G/pRzNnXdwM8FCveOTanX74W
-	 YnxpqWulaEJrXSZ0cOK4bSb22ajhl2tj2o40plqMUwynwrnF0FukG3S9A9taP/8kDidrX
-	 F4qEu+nrlLgFHQCkMIukmSSCUG+ubYCPMAp8jzKAc3WpIlyCoivUV5T6E32qIk4oExIKa
-	 WFfymzaShhmDfBHm+XPC90hhX3RGFeceYsx6/Q8FjLQbJdTsXJZNerFGk3jA2xolK5I2z
-	 3NU+XTwKYORIVnJ1L2l8RnhhyIofuxZxhOK3lfx3X+3+IGucLZZvvvW/WDD4TfpxbZA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792457821;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-ZohoMailClient;
-	bh=ZtyuI4QRG4oxCECc81KPb73a03n4gRDC7MVg7hwxF68=;
-	b=pwGXTIwNkHssxctAhgUun/sF3jkjvkGPysu6HMOpmCumSWtFA8WlCH+VnMhQCczH0Bhq
-	 1jvahQAaivB8dmkPq8fFtJ10ET10XQcougyL5QXyP9W4hFszexIqROVUoi1uzKW1Y1o8u
-	 he9bfayfZmkli8LdXsELvtMgoFMtOLYedAQ4XcaurvM1Sv1m0llMzXGLNWnWWWr2BxVOt
-	 ngSbrc4Eg3o/2F4KiA9wTlo3YuCzDiKKaTMhZ9AIuN4x0Cf39JLbt84u8KX7x1Bpm/nNm
-	 0kafFWHEfhlqIOCZhUelJfcJYmP0rvtXcYIlRGY3qD780loESNKS8at8D0g7awlbjaA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=none header.from=laveeshbansal.com;
-	spf=pass smtp.mailfrom=laveeshbansal.com;
-	dkim=pass header.d=laveeshbansal.com header.i=laveeshb@laveeshbansal.com header.a=rsa-sha256 header.s=zoho header.b=HMSCK+L+;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.180.15
-Received: from sender6-op-o15.zoho.com (sender6-op-o15.zoho.com [165.173.180.15])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.9
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792467469;
+	b=CZ42U+VgMKUcouiPVLd7HecqihiMpQPCQZfZVGwXBDsNTbp2iXVfgvQumeBKKfilD+DC
+	 MtZ3b1KNtr8V8sOZi1nrbvdQFU+CFIhlhkdWxTHiE+S4gu1WXJGNmJdI6pMmykUy4ddtz
+	 subk83uspR2bWrUexAs37DIZMsolmDjcXN6rFgsN6SPLdwdkSQvYvV0gG3hgq/u9XyaYH
+	 9UtcEQM0hkaPM+RUeQ+8oHIR6oHU6vPvcCROEPx0TWtLGhgo+XBT2bHEILPI+TuUt7/aN
+	 Eec6PGtyI+cQpA3r32wQDus/FXvzVG1W+BXJ244yNGVq9YnCCYp3QwylR3JqZcNJNdA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792467469;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:X-Mailer;
+	bh=w0tDSv3cpnMc4Uid9cVH52UuvJ3ZLGLLnvRLmoBwm+Y=;
+	b=4R8AIP7I/QyVQiRoL/YwidZM/Pspuv+5eR9I9qLMBFOxmw4KngwXCufe7CXCLhxGAxsw
+	 2icpIFuNxj925rnnY1daQ0c/hqakPTB0TZzRV6GyyGiIfpkZj8y7dUAlJ+jMMzW2XyHje
+	 6N4uBlTJ7erfvsOKG85Y5P7Esv4Lg82Dx/FtbFW/MJj1yfs/Ad2zQKtzwUtgyDtz1NedI
+	 ryNU900pPN6O+1ok8wWyRja747exMk5BeefCcwzPPLoq9PQB/KaDL+S5CDf2wSTLHrAyX
+	 4H/LXMjbeibZBtRtd3mp201mAgJKL+60sNYygaVL+mApXKG6e3vDNiGrvgqm8cLPH8w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=b6vOF+Fk;
+	arc=none smtp.remote-ip=74.125.229.9
+Received: from mail-dy2-f9.google.com (mail-dy2-f9.google.com [74.125.229.9])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5269C606A31B;
-	Tue, 20 Oct 2026 00:57:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5269C606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=laveeshbansal.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=laveeshbansal.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A57A1606A319
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 03:37:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A57A1606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=laveeshbansal.com header.i=laveeshb@laveeshbansal.com header.a=rsa-sha256 header.s=zoho header.b=HMSCK+L+
-ARC-Seal: i=1; a=rsa-sha256; t=1792457810; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=IGXf7WT/CCKjW6E/ZYQ7Io1CaNwns+62/e4lOkBssBMTt1C0fHih9Tm00SC7QwPissE9RjTKEc/xI/jq9IocGtk+E2od6IHek/m5dObe6NqFnhrGHYKDa9VaTiT7WzR4onLQqtU4RT/gtLuymwEx4Q5BFSd9tIplEAHMCmKIVyc=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1792457810; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=ZtyuI4QRG4oxCECc81KPb73a03n4gRDC7MVg7hwxF68=; 
-	b=DFZFXEvTChkamxAn9J2QlJJ5w0AzkKf7mvLcGZvkaZx0Df7F/HebL9f6rWtGl30DvIC+kdp+EUzJdWs88X2wj3mxC0J4bPlw+HB3pd2gV+OfD+1cVbGwQJ2QG1j7dUgz8iI8u864GSEziloXhoVLf1O8i3N1Pb7ivfVlM9U8+DE=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=laveeshbansal.com;
-	spf=pass  smtp.mailfrom=laveeshb@laveeshbansal.com;
-	dmarc=pass header.from=<laveeshb@laveeshbansal.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1792457810;
-	s=zoho; d=laveeshbansal.com; i=laveeshb@laveeshbansal.com;
-	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=ZtyuI4QRG4oxCECc81KPb73a03n4gRDC7MVg7hwxF68=;
-	b=HMSCK+L+O8L9TDpHIZaPntmRio5522yivDxB6P5DNtao7lLpgYqc68IDH9pImjYR
-	RQphTLwY6VMI8sppqWMvnRTOYKdVt9ddVh6iESs5zOCB7DEfWD2S3xOb6xbjcrD+K6E
-	7AnWfxaIWPZ+DatI0sJwH4mKSmW4X7tDN/NGRvy8=
-Received: by smtp.zohomail.com with SMTPS id 1792457807481180.3103182117402;
-	Mon, 19 Oct 2026 17:56:47 -0700 (PDT)
-From: Laveesh Bansal <laveeshb@laveeshbansal.com>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=b6vOF+Fk
+Received: by mail-dy2-f9.google.com with SMTP id 5a478bee46e88-35e37b4a43cso503042eec.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2026 20:37:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792467468; x=1793072268; darn=vger.kernel.org;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=w0tDSv3cpnMc4Uid9cVH52UuvJ3ZLGLLnvRLmoBwm+Y=;
+        b=b6vOF+Fkog7p9NJYj1mpI6foDtXVIC+Jn2EfosIu36KxBKP1Sl/99ykuQO3meKZ5ig
+         OtyyviABMOD8bINTcfS7lHvEsUlDiqB7ykeAMvEV3foMIzwytjgUiF1LfNtMUyxa4Gxs
+         1WDGnuvh/gqlcrwjDwa2qFAjnErmEAWwoNAC1+kQFhqb4AO76/3YndsRrPr29t2clsrJ
+         T/pUre9GCK4LTOvvJP4hDYSDU8eGOdmDlCbAitzUdav0GN4b9WnYToB8WY+p0qd6AdLE
+         wfVtpQ7UtMmHtUHdHjhOBGZxm7PSmFzsd0u1ZwoYQoLc9jr/U2sM3RAd2WnVVRgyTH5a
+         ykBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792467468; x=1793072268;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=w0tDSv3cpnMc4Uid9cVH52UuvJ3ZLGLLnvRLmoBwm+Y=;
+        b=JzTmVNUSFs7y2qFKa0HfawfbxockAIUAz7HHvlGjZv+l2lcP7IC9JzXtiARLQv+Mff
+         WyaWXKdcJUHXgJ9s99hEcPGcfcym7vv3C2M/LIyjkLB5t9TmobXwSyH+ujGr2DKYn9KK
+         84J5PoCyThT6xqYgHcAvZgS3kMjMZSfj4ThwZ1sbuS8Vga2OXO84d5KI7Q/LMAhYwaLd
+         /X4hz/cGizzj+h8U0gqWGxe25pYi8FTeVxlYc7rm3OD4dySvC/KOEUL0iz7NEwG5n8Dt
+         Usi0qKr6tKrR/dUcRKjwaqjl6p8GvAEJ7q05+46TTQ/o8txbMuo4JgKMKfZ+A3f3JJ63
+         vnPA==
+X-Forwarded-Encrypted: i=1; AKwUvBxzIQ9P3cEdvwH4Gk3t9k8jFQ3s+at3jEiNlDp0XnU81OYTQVmicQfzX7WDcDBwlSW5xLtbtQM9rAYVMGHNOg8=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJP8aLIOHMnE6DoEHhOn+fy9upGMq/oh9eZOuqaT8lrWj9X8/+G
+	uA2wT3x2TtlQuLlfuzGSUKqOnIeWA1s9s2EW4Dlq5POEgk0LQWrAkLSI
+X-Gm-Gg: AYBFou1AicLMqTttGfb+CMDyCJjV9iPjqm9R+UQR4gJK7d8D0catkNkvtEgTiyNE3eM
+	dNZNZe8Ai96XhFqKdizGFE+HEABT0CTXifNcOKGQ8Sus5oxwMrzBaWOLY/8oCh6VY6/tENXnbho
+	J8WMgk07HxP9+eMknfB4eCZ25KHrEQfCLt1z3MlqhB27oj3f2CQAaQ6ctaRqlMao8qImWAwyWCk
+	EgMuA0/nSuxk6qturE0Y6fu31sjVAloNIYTyorVFnRC8+uo+igFNmlfK8fA1+pykPYRF1IItuvc
+	HinnSp7g2NQ/fJYDtiTOrlAurUu2oL3CCKSSa1wh/yQN40BVDaap0mkegLJCfy2fpvux5rhOh+J
+	2FJXV5KPX2L4Ix/um5ar/BApZk9nyPYnXcsrObrzR9vaTPTzKE/3wPItwjGvChp7uBxH8GdjuPh
+	kFevYhC6Ev9/or+62GQQaU6CPPy0rULRC8O+KMFyhcyRJR1wTbC5NqIq0D9vdx2Q==
+X-Received: by 2002:a05:701b:4248:20b0:14b:1ef8:698d with SMTP id a92af1059eb24-18dbabaac5dmr1309794c88.15.1792467467507;
+        Mon, 19 Oct 2026 20:37:47 -0700 (PDT)
+Received: from hhost ([120.231.212.164])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1831ba424a6sm32858053c88.17.2026.10.19.20.37.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Oct 2026 20:37:46 -0700 (PDT)
+Date: Tue, 20 Oct 2026 11:37:40 +0800
+From: Xingyuan Mo <hdthky0@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	bridge@lists.linux.dev,
-	netdev@vger.kernel.org
-Subject: [PATCH 2/2] selftests: netfilter: add bridge conntrack test for vlan protocol mismatch
-Date: Mon, 19 Oct 2026 17:56:42 -0700
-Message-ID: <20261020005642.39494-1-laveeshb@laveeshbansal.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20261020000308.37362-1-laveeshb@laveeshbansal.com>
-References: <20261020000308.37362-1-laveeshb@laveeshbansal.com>
+	Florian Westphal <fw@strlen.de>,
+	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>
+Cc: Xingyuan Mo <hdthky0@gmail.com>
+Subject: [PATCH nf] netfilter: nft_set_rbtree: check catchall_sync return
+ before queue_done
+Message-ID: <20261020033527.514115-1-hdthky0@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -77,245 +94,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ZohoMailClient: External
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email 2.43.0
 
-Add a test for fragmented packets in vlans that are forwarded by a vlan
-filtering bridge with bridge conntrack.
+nft_rbtree_gc_queue() passes the result of nft_trans_gc_catchall_sync()
+straight to nft_trans_gc_queue_sync_done(). When the catchall path flushes
+a full GC batch and nft_trans_gc_alloc() fails, catchall_sync returns
+NULL and queue_sync_done dereferences trans->net (NULL+0x10). Guard the
+call like the pipapo GC path already does.
 
-If the protocol of the vlan tag differs from the vlan_protocol of the
-bridge, the bridge moves the tag into the packet after prerouting, which
-made bridge conntrack warn and drop the fragments. The test uses an 802.1Q
-vlan on an 802.1ad bridge and the reverse, and an 802.1Q vlan on an 802.1Q
-bridge as control.
-
-Send fragmented IPv4 and IPv6 pings through the bridge and check that they
-get through, that conntrack reassembled them and that the kernel did not
-warn. Repeat the first mismatching case with promisc set on the bridge,
-which makes it forward clones of the packets, so that fragmenting them
-takes the slow path.
-
-Assisted-by: LLM
-Signed-off-by: Laveesh Bansal <laveeshb@laveeshbansal.com>
+Fixes: 7d259f021aaa ("netfilter: nft_set_rbtree: prefer sync gc to async worker")
+Assisted-by: opencode:deepseek-v4
+Signed-off-by: Xingyuan Mo <hdthky0@gmail.com>
 ---
- .../testing/selftests/net/netfilter/Makefile  |   1 +
- .../net/netfilter/bridge_ct_vlan_proto.sh     | 182 ++++++++++++++++++
- tools/testing/selftests/net/netfilter/config  |   1 +
- 3 files changed, 184 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
+ net/netfilter/nft_set_rbtree.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index f88dd4ef8d26..314f678f3dfc 100644
---- a/tools/testing/selftests/net/netfilter/Makefile
-+++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -10,6 +10,7 @@ TEST_PROGS := \
- 	br_netfilter.sh \
- 	br_netfilter_queue.sh \
- 	bridge_brouter.sh \
-+	bridge_ct_vlan_proto.sh \
- 	conntrack_clash.sh \
- 	conntrack_dump_flush.sh \
- 	conntrack_icmp_related.sh \
-diff --git a/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
-new file mode 100755
-index 000000000000..19f842e17060
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
-@@ -0,0 +1,182 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# A VLAN filtering bridge moves the vlan tag of a frame into the packet if the
-+# protocol of the tag differs from the vlan_protocol of the bridge, after the
-+# bridge prerouting hooks have run. skb->protocol is a vlan ethertype when the
-+# postrouting hooks see the frame.
-+#
-+# Bridge conntrack defragments IP packets in prerouting and fragments them
-+# again in postrouting. It used to warn and drop fragmented packets that are
-+# forwarded like this.
-+#
-+# Send fragmented ping packets in vlans through a bridge with bridge conntrack
-+# and check that they are forwarded, that they were reassembled by conntrack
-+# and that the kernel does not warn.
-+#
-+#                       ns0 (br0)
-+#   ns1 eth0.100 -- veth0 ------- veth1 -- eth1.100 ns2
-+
-+source lib.sh
-+
-+# TAINT_WARN
-+taint_warn=512
-+
-+checktool "nft --version" "run test without nft tool"
-+checktool "bridge -V" "run test without bridge tool"
-+checktool "ping -V" "run test without ping"
-+
-+read -r t < /proc/sys/kernel/tainted
-+if [ $((t & taint_warn)) -ne 0 ]; then
-+	echo "SKIP: kernel has already warned"
-+	exit "$ksft_skip"
-+fi
-+
-+cleanup() {
-+	cleanup_all_ns
-+}
-+
-+trap cleanup EXIT
-+
-+ret=0
-+
-+# $1: vlan_protocol of the bridge, $2: protocol of the vlan devices
-+setup()
-+{
-+	local br_proto="$1"
-+	local vlan_proto="$2"
-+
-+	setup_ns ns0 ns1 ns2
-+
-+	ip -net "$ns0" link add br0 type bridge vlan_filtering 1 \
-+		vlan_protocol "$br_proto" || return "$ksft_skip"
-+	ip -net "$ns0" link add veth0 type veth peer name eth0 netns "$ns1" || return "$ksft_skip"
-+	ip -net "$ns0" link add veth1 type veth peer name eth1 netns "$ns2" || return "$ksft_skip"
-+
-+	for i in 0 1; do
-+		ip -net "$ns0" link set "veth$i" master br0
-+		ip -net "$ns0" link set "veth$i" up
-+		# If the protocols match, vlan 100 has to be allowed. If not,
-+		# the bridge treats the tag as part of the packet.
-+		if [ "$br_proto" = "802.1q" ] && [ "$vlan_proto" = "802.1q" ]; then
-+			ip netns exec "$ns0" bridge vlan add dev "veth$i" vid 100 ||
-+				return "$ksft_skip"
-+		fi
-+	done
-+	ip -net "$ns0" link set br0 up
-+
-+	ip -net "$ns1" link set eth0 up
-+	ip -net "$ns2" link set eth1 up
-+
-+	ip -net "$ns1" link add link eth0 name eth0.100 type vlan \
-+		protocol "$vlan_proto" id 100 || return "$ksft_skip"
-+	ip -net "$ns2" link add link eth1 name eth1.100 type vlan \
-+		protocol "$vlan_proto" id 100 || return "$ksft_skip"
-+
-+	ip -net "$ns1" link set eth0.100 mtu 1400 up
-+	ip -net "$ns2" link set eth1.100 mtu 1400 up
-+
-+	ip -net "$ns1" addr add 10.0.100.1/24 dev eth0.100
-+	ip -net "$ns2" addr add 10.0.100.2/24 dev eth1.100
-+	ip -net "$ns1" addr add dead:100::1/64 dev eth0.100 nodad
-+	ip -net "$ns2" addr add dead:100::2/64 dev eth1.100 nodad
-+
-+	# Loading a ct rule in the bridge family enables bridge conntrack. The
-+	# postrouting counter sees the packets reassembled by conntrack.
-+	ip netns exec "$ns0" nft -f - <<EOF || return "$ksft_skip"
-+table bridge t {
-+	chain pre {
-+		type filter hook prerouting priority 0; policy accept;
-+		ct state new counter
-+	}
-+	chain post {
-+		type filter hook postrouting priority 0; policy accept;
-+		meta length > 1400 counter
-+	}
-+}
-+EOF
-+
-+	return 0
-+}
-+
-+# $1: vlan_protocol of the bridge, $2: protocol of the vlan devices,
-+# $3: "clone" to make the bridge forward clones, which makes fragmenting take
-+#     the slow path
-+run_case()
-+{
-+	local desc="$2 vlan on $1 bridge${3:+, $3}"
-+	local rc=0
-+
-+	setup "$1" "$2"
-+	rc=$?
-+	if [ "$rc" -ne 0 ]; then
-+		echo "SKIP: could not set up $desc"
-+		return "$rc"
-+	fi
-+
-+	if [ "$3" = "clone" ]; then
-+		# The bridge delivers a clone of the packets it forwards if it
-+		# also receives them.
-+		ip -net "$ns0" link set br0 promisc on
-+	fi
-+
-+	# Wait until the bridge forwards the plain vlan traffic.
-+	if ! busywait 5000 ip netns exec "$ns1" ping -c 1 -W 1 -q 10.0.100.2 >/dev/null 2>&1; then
-+		echo "FAIL: no connectivity through the bridge, $desc"
-+		cleanup_all_ns
-+		return 1
-+	fi
-+
-+	# 3000 bytes of icmp payload do not fit the 1400 byte mtu, the sender
-+	# fragments the packets and bridge conntrack reassembles and fragments
-+	# them again.
-+	for ip in 10.0.100.2 dead:100::2; do
-+		if ip netns exec "$ns1" ping -c 3 -W 2 -s 3000 -q "$ip" >/dev/null; then
-+			echo "PASS: fragmented ping to $ip, $desc"
-+		else
-+			echo "FAIL: fragmented ping to $ip, $desc"
-+			rc=1
-+		fi
-+	done
-+
-+	if ! ip netns exec "$ns0" nft list chain bridge t post | grep -q "packets [1-9]"; then
-+		echo "FAIL: conntrack did not reassemble the packets, $desc"
-+		rc=1
-+	fi
-+
-+	cleanup_all_ns
-+
-+	return $rc
-+}
-+
-+run_all()
-+{
-+	local rc
-+
-+	# bridge protocol, protocol of the vlan devices
-+	for case in "802.1q 802.1q" "802.1ad 802.1q" "802.1q 802.1ad" "802.1ad 802.1q clone"; do
-+		# shellcheck disable=SC2086
-+		run_case $case
-+		rc=$?
-+		if [ "$rc" -eq "$ksft_skip" ]; then
-+			return "$ksft_skip"
-+		fi
-+		[ "$rc" -ne 0 ] && ret=1
-+	done
-+
-+	return 0
-+}
-+
-+run_all
-+rc=$?
-+if [ "$rc" -eq "$ksft_skip" ] && [ "$ret" -eq 0 ]; then
-+	exit "$ksft_skip"
-+fi
-+
-+read -r t < /proc/sys/kernel/tainted
-+if [ $((t & taint_warn)) -ne 0 ]; then
-+	echo "FAIL: kernel warned"
-+	ret=1
-+fi
-+
-+exit $ret
-diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index c3c121b6f300..e91bb10d1072 100644
---- a/tools/testing/selftests/net/netfilter/config
-+++ b/tools/testing/selftests/net/netfilter/config
-@@ -62,6 +62,7 @@ CONFIG_NET_SCH_HTB=m
- CONFIG_NET_SCH_NETEM=m
- CONFIG_NET_VRF=y
- CONFIG_NF_CONNTRACK=m
-+CONFIG_NF_CONNTRACK_BRIDGE=m
- CONFIG_NF_CONNTRACK_EVENTS=y
- CONFIG_NF_CONNTRACK_FTP=m
- CONFIG_NF_CONNTRACK_MARK=y
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 12431b55752f..4338921bd88f 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -953,7 +953,8 @@ static void nft_rbtree_gc_queue(struct nft_set *set)
+ 	}
+ 
+ 	gc = nft_trans_gc_catchall_sync(gc);
+-	nft_trans_gc_queue_sync_done(gc);
++	if (gc)
++		nft_trans_gc_queue_sync_done(gc);
+ }
+ 
+ static u64 nft_rbtree_privsize(const struct nlattr * const nla[],
 -- 
-2.54.0 (Apple Git-157)
+2.43.0
 
