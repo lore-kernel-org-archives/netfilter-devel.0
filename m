@@ -1,43 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792510625;
-	b=M5QzMQhU8va8874+zzIbGhrEGrooybEqnDTdtGWCOqw8p9Q6hJHfgZIBOKhotsbcRuxx
-	 EWJnnAR8WDSd4GtrkkTVwfBU0NflMe/a3VN9jekBSLDI/erJZ/6ats7/pMs0h14lBQHfS
-	 05S32+rU4CP6LbZ37BC5TfLgWEERmVGClITGOw5JC+MckT4GWfeE54MyJJl51qRM2CvPh
-	 ps78H5RVZrTCOifZLTZZSigcASWKpiCNTLUtvdEe5DbmddIKL7t4puJByH2NobPbulEH9
-	 Boo6N7cwBEgAFo4bicAOp0sRpaCblQ58nKmZs+as72tCBbpIaeNZRH8NUgdWMxC9eNg==
+	t=1792510656;
+	b=p/WeF067V8Iq9arV/bsuTH2L2K4zpmS+6JVvjeLhoKGMAVpVzw4kZ66Prk+YrFJtgmXm
+	 w9JBSVVJTlKe9Q82rvRE1EwUMki+9uaEkgQThjyqYX5Hi563Pznwy+i/1cgdtdADM3P3X
+	 8tfULo+9K/OcyCsBo9NcqYhaqa6kL7aulNQf4s8PpDP4NUCbfyRqBM5Htr/PFiZv0kipm
+	 /XsnHYpUQjihHvDmIQeZbqH7dH4mxdvEaTfilishz36dyvVGnz/m5CzsPvUTvh4Sd6ndx
+	 76P8jRBz1nmPxm5Ta9j1VrWCB7LodESzSGOTTex3v21MfvY8ceWSiS84PGbCXc6uq4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792510625;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792510656;
 	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
 	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
 	 MIME-Version;
-	bh=7mUNsRJ9FqrrehbZ9p7OxZS9HaYSeznmG7bAJ6MjNb8=;
-	b=zdA0NfshS+/qeQvziKenS9DdtFRcnuyDQ6CBJN21SG6wgdQ3ZdrM6OLp2U55zqpOl9qa
-	 2cYZAtZYjaitXgHWsAOO/wz/S9BQW4KfJi11fNyv/eDiGP1nRPKmm+9a2Xu3Hyz46nVsm
-	 Lr+LItIeC9lk9+ce4Wy+rFH4gRaLz2Y4z8kTqk37uJdbDrdWyvocmqJ01OpPA4xoZxXsk
-	 cLLigCI12xI0nwi3HJ6xGx20RakoWP9sSamxSGgaczQV3/3VHC238QC05D2FgaB2yuD7z
-	 SiKIq8nodL1kgDvYy//FbnCSItu6xD1PJIywS3NHOgtS5flr/mkJ5CSbKJuhVZ81NsA==
+	bh=MgPaeVa1O4c8RDPooyHHn8cbv8AAqk3dwJMcQwrLG/c=;
+	b=GkIprVwhM4ZC3MHHmzZ+kUcsKnWtWE4Gj9qVp2Lt4EFQlROMVgQIuDY/24FiRTR7GZY4
+	 KN6DVy4daklL10RFt4XlhhkgMXWCvQzGw29+Pk7aeYP0D0t78RcCl95pKV14/wSDUjJJ3
+	 YpRUIKcwOYEe6Wqe82XbotreZw8O9cJ2m+JFFFz9FT/MMcvMbrBxgfwsMb7AMe/K1uOb3
+	 JhtfRhzq4xDwBqGqTnxbPbGvYXFcDCMzrVlL7mDkbINHUJt7aukYEq4F554FKo6XtqHWA
+	 ffeVieCrWAgVqPHVk6icRlji/tGIxKQTBwd0B/rCx5rd08rojww0kwolyxqYkpT0CGA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23A7606A335;
-	Tue, 20 Oct 2026 15:37:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E82F61F000CA;
-	Tue, 20 Oct 2026 15:37:03 +0000 (UTC)
-Subject: Re: [PATCH net 03/10] ipvs: fix more races around the overload flag
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBAAD60A381C;
+	Tue, 20 Oct 2026 15:37:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE561F000C4;
+	Tue, 20 Oct 2026 15:37:34 +0000 (UTC)
+Subject: Re: [PATCH net 04/10] ipvs: skip committing sync_threshold when
+ proc_dointvec fails
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 20 Oct 2026 15:36:33 +0000
-Message-ID: <179251059359.3135.4423672797381402162@kernel.org>
-In-Reply-To: <20261019150249.1879516-4-pablo@netfilter.org>
-References: <20261019150249.1879516-4-pablo@netfilter.org>
-X-sashiko-severity: High
+Date: Tue, 20 Oct 2026 15:37:04 +0000
+Message-ID: <179251062456.3135.7646122634609992432@kernel.org>
+In-Reply-To: <20261019150249.1879516-5-pablo@netfilter.org>
+References: <20261019150249.1879516-5-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -50,268 +51,128 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 1 · Medium: 0 (1) · Low: 2
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] A threshold edit that moves a dest into the overloaded state can
-  race with the unbind of its last connection, and the clear is lost.
-- [Low] A new dest created with no thresholds (u_threshold == 0 and
-  l_threshold == 0) is published with u_threshold_val == 0 instead of…
-- [Low] The commit message and the comments do not match what the code
-  now does.
+- [Low] The commit fixes a real bug that users can see, but its message
+  has no Fixes: tag and no Cc: stable.
 
 Pre-existing issues:
-- [Medium] This problem wasn't introduced by this patch, but on a cache
-  hit ip_vs_lblc_schedule() (net/netfilter/ipvs/ip_vs_lblc.c:509-511)…
+- [Low] Documentation/networking/ipvs-sysctl.rst (sync_threshold entry,
+  around line 311) says "The range of the threshold is from 0 to…
+- [Low] proc_do_sync_threshold() (net/netfilter/ipvs/ip_vs_ctl.c:2462)
+  updates both elements of ipvs->sysctl_sync_threshold[] with a plain…
 
 --
 
-ipvs: fix more races around the overload flag
+ipvs: skip committing sync_threshold when proc_dointvec fails
 
-This commit replaces the IP_VS_DEST_F_OVERLOAD flag with a two-state
-scheme built on l_threshold_val and u_threshold_val. With it,
-ip_vs_bind_dest() and ip_vs_unbind_dest() can change the overload state
-at any count beyond the thresholds, not only at the exact threshold
-values. All schedulers now use the new ip_vs_dest_is_overloaded() helper,
-and struct ip_vs_dest is reordered to keep the hot fields in the first
-cacheline.
-
-Link: https://sashiko.dev/#/patchset/20260810190621.894119-1-pablo%40netfilter.org
-
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 32fde731bceb..9a83bff32569 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-
-[ ... ]
-
-> @@ -973,32 +970,43 @@ struct ip_vs_dest_dst {
->   * and so on.
->   */
->  struct ip_vs_dest {
-
-[ ... ]
-
-> +	/* connection thresholds */
-> +	u32			l_threshold_val;/* used lower threshold */
-> +	u32			u_threshold_val;/* used upper threshold */
-
-[Severity: Low]
-This isn't a bug, but the commit message says:
-
-    To make it work without entering the locked region for
-    every connection, we introduce l_threshold_val.
-
-l_threshold_val already existed. It was added by 8f843441c4e7, and this
-hunk removes the old __u32 l_threshold_val declaration further down. The
-only new field is u_threshold_val. What changed is the meaning: a
-non-zero l_threshold_val now means overloaded, which is what
-ip_vs_dest_is_overloaded() returns.
-
-The field comments here still say "used lower threshold" and "used upper
-threshold". But l_threshold_val now also encodes the overload state, and
-u_threshold_val holds INT_MAX while the dest is overloaded.
-
-The comment above __ip_vs_dest_update_overload() in ip_vs_ctl.c also
-still describes setting and clearing the flag that this patch removes:
-
- * - conns reach u_threshold and exceed it: set the flag
- * - conns go below l_threshold (or 75% of u_threshold): clear the flag
-
-With overload == true, the state is now kept once conns >= l, not when
-conns reach u_threshold.
-
-The new bool overload argument is not documented, and callers use it in
-two ways. __ip_vs_update_dest() passes the current state, while
-ip_vs_bind_dest() and ip_vs_unbind_dest() pass the direction they want.
-
-Could the commit message and these comments be updated? The Fixes:
-target is marked for stable, so this patch will likely be backported
-along with it.
-
-[ ... ]
+With this patch, proc_do_sync_threshold() returns early when
+proc_dointvec() fails. A partly parsed write such as "5 x" now leaves
+ipvs->sysctl_sync_threshold[] unchanged. Before, the handler updated
+element [0] and still returned -EINVAL.
 
 > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 4c1c739446b7..3003547dcabe 100644
+> index 3003547dcabe..ce9fe20d6106 100644
 > --- a/net/netfilter/ipvs/ip_vs_ctl.c
 > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -1309,32 +1309,32 @@ void ip_vs_stats_free(struct ip_vs_stats *stats)
->   * - conns reach u_threshold and exceed it: set the flag
->   * - conns go below l_threshold (or 75% of u_threshold): clear the flag
->   */
-> -static void __ip_vs_dest_update_overload(struct ip_vs_dest *dest, int mode)
-> +static void __ip_vs_dest_update_overload(struct ip_vs_dest *dest, bool overload)
->  {
->  	int conns;
->  	u32 l, u;
->  
->  	lockdep_assert_held(&dest->dst_lock);
->  	u = READ_ONCE(dest->u_threshold);
-> -	if (!u)
-> -		goto unset;
-> -	l = READ_ONCE(dest->l_threshold_val);
-> -	conns = atomic_read(&dest->totalconns);
-> -	if (conns >= (mode > 0 ? l : u)) {
-> -		dest->flags |= IP_VS_DEST_F_OVERLOAD;
-> -		return;
-> +	if (u) {
-> +		/* Low threshold defaults to 75% of upper threshold */
-> +		l = READ_ONCE(dest->l_threshold) ? : (u - (u >> 2));
-> +		conns = atomic_read(&dest->totalconns);
-> +		if (conns >= (overload ? l : u)) {
-> +			WRITE_ONCE(dest->u_threshold_val, INT_MAX);
-> +			WRITE_ONCE(dest->l_threshold_val, l);
-> +			return;
-> +		}
-
-[Severity: High]
-Can a threshold edit race with the unbind of the last connection here,
-and leave the dest overloaded with zero connections?
-
-totalconns is read before l_threshold_val is published, and it is not
-read again afterwards. Meanwhile ip_vs_unbind_dest() reads
-l_threshold_val without dst_lock:
-
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_unbind_dest() {
-    ...
-		tc = atomic_fetch_dec(&dest->totalconns);
-		if (tc <= READ_ONCE(dest->l_threshold_val))
-			ip_vs_dest_update_overload(dest, false);
-    ...
-}
-
-Take a dest with one bound connection. The admin lowers u_threshold to 1
-(so l defaults to 1) while that connection expires:
-
-CPU0 (ip_vs_edit_dest)               CPU1 (ip_vs_conn_expire)
-__ip_vs_update_dest()
-  __ip_vs_dest_update_overload()
-    conns = 1, decides overloaded
-                                     ip_vs_unbind_dest()
-                                       tc = 1, totalconns is now 0
-                                       reads l_threshold_val == 0
-                                       tc <= 0 is false, skips update
-    WRITE_ONCE(dest->u_threshold_val, INT_MAX);
-    WRITE_ONCE(dest->l_threshold_val, l);
-
-After this, ip_vs_dest_is_overloaded() is true while totalconns is 0.
-Every scheduler skips the dest, so no new binds happen, and with no
-connections left there are no unbinds to clear the state. The bind gate
-is also closed, since u_threshold_val == INT_MAX.
-
-Repeating the edit with the same thresholds does not help.
-__ip_vs_update_dest() only calls __ip_vs_dest_update_overload() when
-u_threshold or l_threshold actually change. The dest stays out of
-service until the thresholds change again, or until a template or sync
-conn happens to bind and unbind on it.
-
-The old code in __ip_vs_update_dest() wrote l_threshold_val before
-totalconns was sampled. The same interleaving then made the unbind take
-the lock. This patch moves the gate write after the read.
-
-This looks like the case the commit message describes as lockless
-readers that "may use old threshold values and as result to skip the
-required flag change". Transitions started from ip_vs_bind_dest() seem
-safe, because the connection being bound will unbind later. The admin
-path has no such guarantee.
-
-Would it work to publish l_threshold_val and u_threshold_val first, then
-smp_mb(), then re-read totalconns and revert if it is below l? That
-would pair with the fully ordered atomic_fetch_dec() in
-ip_vs_unbind_dest().
-
-[ ... ]
-
-> @@ -1406,15 +1406,13 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
->  
->  	if (READ_ONCE(dest->u_threshold) != udest->u_threshold ||
->  	    READ_ONCE(dest->l_threshold) != udest->l_threshold) {
-> +		bool overload;
-> +
->  		spin_lock_bh(&dest->dst_lock);
->  		WRITE_ONCE(dest->u_threshold, udest->u_threshold);
->  		WRITE_ONCE(dest->l_threshold, udest->l_threshold);
-> -		/* Low threshold defaults to 75% of upper threshold */
-> -		WRITE_ONCE(dest->l_threshold_val,
-> -			   udest->l_threshold ? :
-> -			   (udest->u_threshold -
-> -			    (udest->u_threshold >> 2)));
-> -		__ip_vs_dest_update_overload(dest, 0);
-> +		overload = ip_vs_dest_is_overloaded(dest);
-> +		__ip_vs_dest_update_overload(dest, overload);
->  		spin_unlock_bh(&dest->dst_lock);
->  	}
+> @@ -2452,6 +2452,8 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+>  	mutex_lock(&ipvs->sync_mutex);
+>  	memcpy(val, valp, sizeof(val));
+>  	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+> +	if (rc)
+> +		goto out;
 
 [Severity: Low]
-Is u_threshold_val ever set to INT_MAX for a new dest that has no
-thresholds?
+This fixes a bug that users can see. Should the commit message have a
+Fixes: tag, and maybe Cc: stable?
 
-ip_vs_new_dest() allocates the dest with kzalloc_obj(), and this block
-is the only place that sets u_threshold_val. If ipvsadm -a is run
-without -x/-y, udest->u_threshold and udest->l_threshold are both 0. The
-condition above is then false, and list_add_rcu() publishes the dest
-with u_threshold_val still 0.
+Before this change, writing "5 x" or "5 99999999999" to
+/proc/sys/net/ipv4/vs/sync_threshold took this path:
 
-So the fast-path check in ip_vs_bind_dest():
+proc_do_sync_threshold()
+  proc_dointvec()
+    do_proc_vec()
+      stores 5 into val[0], then fails on the second element
+      returns -EINVAL
 
-		if (tc >= READ_ONCE(dest->u_threshold_val))
-			ip_vs_dest_update_overload(dest, true);
+The old handler then checked the mixed pair (5, old val[1]). If that
+pair was valid, it copied it into ipvs->sysctl_sync_threshold[] and
+still returned -EINVAL.
 
-is true for the first connections. Each of them takes dst_lock until
-one writes u_threshold_val = INT_MAX. The overload state stays correct
-because l_threshold_val stays 0. Before this patch, the
-tc == u_threshold check never fired when u_threshold was 0.
+The tmp-copy form of the handler comes from commit 1b90af292e71 ("ipvs:
+Improve robustness to the ipvs sysctl"), which kept this partial update.
+The older direct-write version behaved the same way.
 
-Could ip_vs_new_dest() set u_threshold_val to INT_MAX? Or could the
-update always run when add is set?
+Every other patch in this series has a Fixes: tag, so stable tooling may
+not pick this one up. Would a tag like this one fit?
 
-[ ... ]
+Fixes: 1b90af292e71 ("ipvs: Improve robustness to the ipvs sysctl")
 
-> diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-> index 55af77a56929..e1111c3b2721 100644
-> --- a/net/netfilter/ipvs/ip_vs_lblc.c
-> +++ b/net/netfilter/ipvs/ip_vs_lblc.c
-> @@ -418,7 +418,7 @@ __ip_vs_lblc_schedule(struct ip_vs_service *svc)
->  	 * new connection.
->  	 */
->  	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
-> -		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
-> +		if (ip_vs_dest_is_overloaded(dest))
->  			continue;
->  		if (atomic_read(&dest->weight) > 0) {
->  			least = dest;
+>  	if (write) {
+>  		if (val[0] < 0 || val[1] < 0 ||
+>  		    (val[0] >= val[1] && val[1]))
 
-[Severity: Medium]
-This isn't a bug introduced by this patch, but should the cache hit path
-in ip_vs_lblc_schedule() also check ip_vs_dest_is_overloaded()?
+[Severity: Low]
+This isn't a bug introduced by this patch, but the entry for this sysctl
+in Documentation/networking/ipvs-sysctl.rst says:
 
-Only the fallback __ip_vs_lblc_schedule() checks the threshold-based
-state. On a cache hit, the cached dest is returned based on the local
-is_overloaded() heuristic, which only compares activeconns with weight:
+    The range of the threshold is from 0 to sync_period.
 
-net/netfilter/ipvs/ip_vs_lblc.c:ip_vs_lblc_schedule() {
+This check rejects val[0] >= val[1] whenever val[1] is non-zero. So the
+upper bound is exclusive, and writing "50 50" fails with -EINVAL.
+
+Could the documentation say that the threshold must be less than
+sync_period when sync_period is non-zero? The paragraph after it already
+covers the sync_period == 0 case.
+
+> @@ -2459,6 +2461,7 @@ proc_do_sync_threshold(const struct ctl_table *table, int write,
+>  		else
+>  			memcpy(valp, val, sizeof(val));
+
+[Severity: Low]
+This is a pre-existing issue, but this memcpy() updates both elements of
+ipvs->sysctl_sync_threshold[] while holding ipvs->sync_mutex, and the
+packet-path readers never take that mutex:
+
+include/net/ip_vs.h:
+static inline int sysctl_sync_threshold(struct netns_ipvs *ipvs)
+{
+	return ipvs->sysctl_sync_threshold[0];
+}
+
+static inline int sysctl_sync_period(struct netns_ipvs *ipvs)
+{
+	return READ_ONCE(ipvs->sysctl_sync_threshold[1]);
+}
+
+net/netfilter/ipvs/ip_vs_sync.c:ip_vs_sync_conn_needed() {
     ...
-		dest = en->dest;
-		if ((dest->cflags & IP_VS_DEST_CF_AVAILABLE) &&
-		    atomic_read(&dest->weight) > 0 && !is_overloaded(dest, svc))
-			goto out;
+	sync_period = sysctl_sync_period(ipvs);
+	if (sync_period > 0) {
+		if (!(cp->flags & IP_VS_CONN_F_TEMPLATE) &&
+		    pkts % sync_period != sysctl_sync_threshold(ipvs))
+			return 0;
     ...
 }
 
-So a dest that has reached its u_threshold keeps getting new connections
-for cached destination addresses, as long as activeconns <= weight.
+Element [0] is read with a plain load, element [1] with READ_ONCE(), and
+the two are loaded separately.
 
-The LBLCR cache path goes through ip_vs_dest_set_min(), which does check
-the overload state. The same LBLC cache hit condition is in the base
-tree.
+Can a concurrent sysctl write let ip_vs_sync_conn_needed() see the new
+threshold with the old period, or the other way round? The
+threshold < period rule would then not hold for that packet, and the
+connection could miss one sync.
+
+It can't crash, because sync_period is loaded once and checked before
+the modulo. KCSAN would probably flag the unannotated plain load and
+store of element [0], though.
+
+Would it be worth using WRITE_ONCE() for each element here and
+READ_ONCE() in sysctl_sync_threshold()?
 
 [ ... ]
 
