@@ -1,59 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792515105;
-	b=CbpnA+ugDSzyx7T+kDq2TrEDPCfMEg/ElU5OIB2MkR4hrfEK7aEWNGgh/53y2Q3JzD5f
-	 NKo9S5jW6dPGpPPJC3p0dXWDueo9hxIEA/PeAX8viinCSThaRW3YoVxByiiGhFtIdb23R
-	 qbQJ4yjugVaYv2FRcDa4WdVZWciooenjkwKOmA6mDJkYyrwN+QSvhyZSuyEbnaJZAwTPv
-	 Q2+3N/wcmHDSdGZaOKfaGs3AlpDPwa5Yh80IHWFZqgRFxdAF0DVAhGlTM9SHB8WPrF0jP
-	 HNkuZmoJe0KYGvaF866XwA/f1gHtW2EqsVXAjiukBFYFY8IXo2QqVc/w5eLJz9DlGXg==
+	t=1792518367;
+	b=RWmHevlLDYZ6j5W/CRNwo2SLMZu+5Nom7cbLbVOKgCJeDn7jeev17PiceeUCHfOaCPtX
+	 t9+hTvBpB+yaBUlslsKReXhfJPmn7aT/HmM9544miz9UwILKICL4jNkyoJSAw/Yg8BeFE
+	 ptVGMdPrdFAawh9pdtH1wjVwhr1jBYI/M+vNWfVERTyyUbtCbzIHQIR/ik4G2gHsgTM9j
+	 x5RhZ0YLluVR4aRKx3By0nVPDbEN8dzrYCaau2QOmvBf7cOkSl+2uO9y97PEz02Ja99vE
+	 9A8DX2MIELsLGYkZZF727Qbvw37eoC51921QQoyiEB5PCoDCZrMmor9V1YBI4ACfbTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792515105;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=IAtcsgG1Ev+dcev/O8wTn/i2UjNJet0ChJkwktKbtBI=;
-	b=JRIM2lvXUa34Ysa+OFlCERwd+R9uuFOAxpBc4b29X3yzrz7389lHAadTcUUam0EzA3Ut
-	 EYI491Q24aa0l6UM5LwbNcpQXEKpPbYA91Wo7VhIT061HDLIoBVFpUI9CENpiB+bk4QfJ
-	 4EEFgK+iTUucrM92Yamo3IC+vgEOlu/9TunFUqO8fFkSa+b6GdTbsSoj9qmU6ZW6fKowR
-	 qkBKWJyXz/g0y51CGLTD2hyIvYnrLTCP5vdzzXXAhbgN4AcJMadGecoVnfP3jpZX5Q2j7
-	 jxIPXYQJa5mRnD23x7XsqZW58cwuyDEjCTJ+jMZvEUoFSgZxf26xMIBsaHmJkM93c0w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792518367;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=+5/tX9sv2N4Gpfz/4R1fEzBAcSLP22fqPL6nkGZsAOc=;
+	b=NemzYDmFVCTcuaaZqsSdSMvDaCPIEM7CdsN3SYSGtatzCwP7ncb9R9BsQjQ4z68G9x6j
+	 n67fYD3HB6zOkFz2DVsMH2nTEJhvUNZfjA7nvneuwfh88bKR92zDcea2B+ZCwRAuVvdar
+	 /41+mZbJjdHfdn/J2SzIokboXLI95cMJ8rOP48SiikRHeumFkVG0Ku+CQeBTmWvUnZtpe
+	 MDZOXcvidAq69QLr1wvN0xY3losAGsFWDf1k2aJJ16OI1E+zbLEjBxeYkFmtRP5aQByoM
+	 +ft5P4mdjHfLfnyLy5rqQhlLF7LD5tt37aqrqZaPtUasPa16xkycdigOasXd/R1Zw4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bYlnOwQp;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=AEtoF6DI;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 62B48606A328
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 16:51:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 62B48606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33A1A606A31B
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 17:46:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 33A1A606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bYlnOwQp
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=AEtoF6DI
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792515102;
-	bh=IAtcsgG1Ev+dcev/O8wTn/i2UjNJet0ChJkwktKbtBI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bYlnOwQpMtYn0JmCsZlzo1ZCp5ctGWYKtMW3Uz8OCvCRRaw8ag0E0baajl54QHiMX
-	 P1N2Wv6imDVq4K1WYWTYhm8aUAYEgzIt/kBcbTjh8ZypQM1rUgca5WZscoD98D7E7F
-	 iUMzY/r3BRAAi/Krlu8T/qR5YdqgpBfgtf6Odv20spGm46UIld54K3qeCGq24wdV81
-	 j2IeXhO0dXU8SpbWIxbQjeVg8qFfbU9Bb8SaHcXfN9n6USHdli1jxJFXc3ikfDE4rO
-	 WnaqgcjhUlp5hJnOdpfaoo8UQ7iocRxqpX+lkbFZ2L+o4eipoc+VuEV1P7QMagaCMR
-	 XhrTs/2fBohgA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 84D576005E;
-	Tue, 20 Oct 2026 18:51:42 +0200 (CEST)
-Date: Tue, 20 Oct 2026 18:51:39 +0200
+	s=2025; t=1792518364;
+	bh=+5/tX9sv2N4Gpfz/4R1fEzBAcSLP22fqPL6nkGZsAOc=;
+	h=From:To:Subject:Date:From;
+	b=AEtoF6DIpowTkxVHWbhFgUcuVf2VTJHG0xM4HcjMoU50FAXQ4eic/KwLw8phlvzYI
+	 0nNUeDJH6mVme2L7I+ZcHluQkwPRJo6cPhuwbSia6mMUCHkJ5LmTpBoSfhrDdvZhpA
+	 oJtYr0CKCoKlM1zoC6x6sjoeaqV9pDHknODOsDA14rkiQGkAdhIP6Lc4SILT59a7wh
+	 o1NP9BsTxDgIUJ9vLVRZ+Ik7HWrlL4NWrA+Yw0eIXUA00ErRINZHZhw1AKffYAiGCj
+	 LOd/RhlH3eC+XLg3WKh6yFQrfpmxFrHd9WAQ8S0H1GSpWB8p7tiZU46j9ybLgWyYzC
+	 bVxXWBgl4pGmg==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3635660051
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 19:46:04 +0200 (CEST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Trevor Cordes <netfilter@tecnopolis.ca>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: expose named set element count
-Message-ID: <atecG6WNYa6Y2kLL@chamomile>
-References: <atdp-FBVOOKgN0De@pog.tecnopolis.ca>
- <ateYUFIPFZshosqX@chamomile>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v2 1/2] netfilter: nfnetlink_queue: add helper function to retrieve hook entries
+Date: Tue, 20 Oct 2026 19:45:57 +0200
+Message-ID: <20261020174558.1922531-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,53 +61,96 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ateYUFIPFZshosqX@chamomile>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Oct 20, 2026 at 06:35:31PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Oct 20, 2026 at 08:17:44AM -0500, Trevor Cordes wrote:
-> > Hi!  I have an application that can create very large named sets
-> > (dynamically) of IPs.  For monitoring and testing purposes it is useful to
-> > get a count of elements currently in a set.
-> > 
-> > Currently I an running "nft list table inet mytable |wc".  But once the ip
-> > set grows to much over 100k IPs, that command can take around 90 minutes
-> > on my system!  During that time the nft command takes 98% CPU.  That makes
-> > monitoring in this manner nearly impossible.
-> > 
-> > I think the in-kernel code tracks the current number of elements.  Can we
-> > expose this through the Netlink interface so users can get an instant
-> > count of elements with virtually 0 CPU usage?  (Note, I'm not talking the
-> > "size" data point, I'm talking the actual IPs currently in the set.)
-> > 
-> > Less importantly, I'm wondering what is making nft take so long to list
-> > these huge sets.  Maybe the IP numeric sorting and formatting?  If it's
-> > all the sorting, maybe an nft option to disable sorting would help?  Or an
-> > option to disable formatting and have nft just dump the whole wad of IPs
-> > on one line per set?
-> > 
-> > Thanks so much.  Please CC: my on replies because I'm not sure my
-> > subscribe request is working or going anywhere.  The listserv may not like
-> > my mail smarthost.
-> 
-> There is a count field in more recent userspace nft and kernels, what
-> nft and kernel versions are you running?
+Add nf_queue_hook_entry() and nf_queue_hook_entries() helper functions
+to retrieve hook entries and use them.
 
-nft list ruleset
-table ip t {
-        set s {
-                type ipv4_addr
-                size 10 # count 1
-                counter
-                elements = { 1.1.1.1 counter packets 1 bytes 11 }
-        }
-}
+This comes in preparation for a fix to restrict expectation creation to
+nfnetlink_cthelper.
 
-Userspace supports is available since nftables 1.1.5:
-$ git describe --contains 8ff87c8fd483eb3fdab5839cccaf100b593fe92e
-v1.1.4~48
+No functional changes are intended.
 
-And Linux kernel needs to >= v6.17:
-$ git describe --contains 0014af802193a
-v6.16-rc1~132^2~190^2
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes
+
+ net/netfilter/nfnetlink_queue.c | 43 ++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 00b76c25d55c..bd3567f29752 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -358,30 +358,45 @@ static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
+ 	return ret;
+ }
+ 
++static const struct nf_hook_entries *
++nf_queue_hook_entries(struct nf_queue_entry *entry)
++{
++	const struct net *net = entry->state.net;
++	u8 pf = entry->state.pf;
++
++	return nf_hook_entries_head(net, pf, entry->state.hook);
++}
++
++static const struct nf_hook_entry *
++nf_queue_hook_entry(const struct nf_hook_entries *hooks,
++		    struct nf_queue_entry *entry)
++{
++	unsigned int i = entry->hook_index;
++
++	if (i >= hooks->num_hook_entries)
++		return NULL;
++
++	return &hooks->hooks[i];
++}
++
+ /* caller must hold rcu read-side lock */
+ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+ 	const struct nf_hook_entry *hook_entry;
+ 	const struct nf_hook_entries *hooks;
+ 	struct sk_buff *skb = entry->skb;
+-	const struct net *net;
+ 	unsigned int i;
+ 	int err;
+-	u8 pf;
+ 
+-	net = entry->state.net;
+-	pf = entry->state.pf;
++	hooks = nf_queue_hook_entries(entry);
++	if (!hooks)
++		goto drop;
+ 
+-	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
++	hook_entry = nf_queue_hook_entry(hooks, entry);
++	if (!hook_entry)
++		goto drop;
+ 
+ 	i = entry->hook_index;
+-	if (!hooks || i >= hooks->num_hook_entries) {
+-		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+-		nf_queue_entry_free(entry);
+-		return;
+-	}
+-
+-	hook_entry = &hooks->hooks[i];
+ 
+ 	/* Continue traversal iff userspace said ok... */
+ 	if (verdict == NF_REPEAT)
+@@ -417,6 +432,10 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 
+ 	nf_queue_entry_free(entry);
++	return;
++drop:
++	kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
++	nf_queue_entry_free(entry);
+ }
+ 
+ /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
+-- 
+2.47.3
+
