@@ -1,61 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=98.129.92.4
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792502266;
-	b=Oyr8s/iKg1Sihbdpb4amWVvo4WCaFnMzVv753CDTC65ypxQguPrLjwK0AxlJdW5EtE72
-	 cyUf5mUzhM3JJdO+E6IWFp2HeSoV2t6LL0BpkIeZBUgghKYg57f9I26VYOgRr+3uwWoKo
-	 qW4kWQ47KR/Bsn3zlbG+NNLb0u3ccXPRstRNlFtlGOAVX+0dqDU2UyNcGyhFWuOZS6y3v
-	 XDqqudRaHGIFaU6Q53lU8DF+Ljnzdin5NCFUHmYCfTFuX80WmLCRsPmzlvlVcoawATrci
-	 JOq1p7XxHUFK+LNGbPS1Q0rUhqk4SoulCIWm/iC34GVDu8z9NAr1Dskt2cJU/vxkC+w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792502266;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Date:From:To:
-	 Subject:Message-ID:MIME-Version:Content-Type:Content-Disposition:
-	 X-Virus-Scanned:X-Virus-Status;
-	bh=4BDhp9SIqgxJ8CTTS5ngVopqA8SKhM6XdKuEb4011qg=;
-	b=h/smDr/lFKo9fpw92AmKeW3d76uF7sjMVBjBgec3Cft+QuROYwzCSUQOodQMWMznwEPD
-	 Hc712F9LdOW5I0M5gQesLtwl1S+zLfGmIjJM8DrC8aIlyhyLdEqcpZ+QXICXD91Szg5V7
-	 GH9xh7n7KLgfRCd+0B/TBDSCb6f41ZRMfp+hAdLTX1xg5LrfLsrc+9SaJKNv5WY5dujUm
-	 oPUJBH7+L0UUOKJ7whv4XN4oYvpl3IItCN+li6RWHcvCLeHFcqrbYOFzQkbbz0qYBc2fG
-	 PixtKDAylPhSAVEfNtw+4Cva6qjlEVsaWVgxhPc62GQD4anw8EgK/r6B40//ci/5O2w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=tecnopolis.ca;
-	spf=pass smtp.mailfrom=tecnopolis.ca;
-	dkim=pass header.d=tecnopolis.ca header.i=@tecnopolis.ca header.a=rsa-sha256 header.s=mailfwdk1 header.b=aqdj8bHZ;
-	arc=none smtp.remote-ip=98.129.92.4
-Received: from ewordofmouth.com (mail.ewordofmouth.com [98.129.92.4])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.182.15
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792502991;
+	b=Q4kf7re5wHm8oWCcxmvpq3jnmcX01H0ihH2kKCQMd1kKvJsfIozwuQtqU9HkChnon/7d
+	 yYrw29xpOUpzk2tgdKar+05X3Pv2GixAPychK4ZuYuzm6HhDwnx7KFrQwR5j3SS2I1DHi
+	 CtTCZOtQfYdjv3IGqUvWx0Bfesr5ThoeZeFM8U3C1fbZkrqPo9RSBG3Lt8HGAkZDvLaIc
+	 QwAdeJoch2zYrQoSWc6RK5Fifo7ciCYIMyvjENaPtqOeRww/BvDjAeXYL4Azp2Hitko6J
+	 8geDtRMdXQdCShEMCOFk68/TCXDgF8mXl4Ca8qLzIVm493hxhA2iYJJrbVdjMYxKLiA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792502991;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-ZohoMailClient;
+	bh=faqcXlf3am5ayTseexfa5cqCZPxHait6Gq7hGss05/o=;
+	b=u1YDx3wi/TJAybhpA4ffwn2g5W8vdF3Lf6xVkGj5aWvXQoVok8tHDNxTjKKJLVSshpay
+	 xqwP2ljgEOCjc1aJ7KyM9s495U7XhpiZuTAwWf/YfwVMeJLlyoygNA6YNI4CB56kYLP08
+	 a4lnF26zIdAU6w6oa73wZXgBbGRhcbKd8WtkL43alKo6ymnrjmmaFiXxGNimKhQEMNxDO
+	 wk0X3o4CvME9REbCfkNQS0BnETvm3CDOtoUUIyJUXvlXkazgbyHBFyZUaixChpsa1eIGi
+	 njyk0Zy0dtujjO1Y7DySML61BT9zJiU3sXvlKqlFNmCIPi/79wdAAPYees/CNXv9UBw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=none header.from=laveeshbansal.com;
+	spf=pass smtp.mailfrom=laveeshbansal.com;
+	dkim=pass header.d=laveeshbansal.com header.i=laveeshb@laveeshbansal.com header.a=rsa-sha256 header.s=zoho header.b="R2ntOH/z";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.182.15
+Received: from sender5-op-o15.zoho.com (sender5-op-o15.zoho.com [165.173.182.15])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B5E606A31A
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 13:17:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 19B5E606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=tecnopolis.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tecnopolis.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8546760A2626;
+	Tue, 20 Oct 2026 13:29:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8546760A2626
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=laveeshbansal.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=laveeshbansal.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=tecnopolis.ca header.i=@tecnopolis.ca header.a=rsa-sha256 header.s=mailfwdk1 header.b=aqdj8bHZ
-Received: from tecnopolis.ca (S01067085c2fe8a16.wp.shawcable.net [24.78.148.126])
-	(authenticated bits=0)
-	by ewordofmouth.com (8.16.1/8.16.1) with ESMTPSA id 69KDHiUm2622652
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 08:17:45 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tecnopolis.ca;
-	s=mailfwdk1; t=1792502265;
-	bh=4BDhp9SIqgxJ8CTTS5ngVopqA8SKhM6XdKuEb4011qg=;
-	h=Date:From:To:Subject;
-	b=aqdj8bHZatyiBwuUpgb4bIX96tZZjuEk5+LnmpXd5jPJz3IttAz2wF/dvOo1/Gl0l
-	 RYVp+sMzCEIJSEUtDFOb3aMKdSTGeuhfyVPgvMv2NtX3qSTn/wTww9qLgM2RIvHEhA
-	 6aI87D46inAZ9s3NAQ2ia3txupy0Bl/4PpWKrHL4=
-Received: from pog.tecnopolis.ca (localhost.localdomain [127.0.0.1])
-	by tecnopolis.ca (8.18.1/8.18.1) with ESMTP id 69KDHigB4089950
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 08:17:44 -0500
-Received: (from trevor@localhost)
-	by pog.tecnopolis.ca (8.18.1/8.18.1/Submit) id 69KDHi8P4089949
-	for netfilter-devel@vger.kernel.org; Tue, 20 Oct 2026 08:17:44 -0500
-Date: Tue, 20 Oct 2026 08:17:44 -0500
-From: Trevor Cordes <netfilter@tecnopolis.ca>
-To: netfilter-devel@vger.kernel.org
-Subject: expose named set element count
-Message-ID: <atdp-FBVOOKgN0De@pog.tecnopolis.ca>
+	dkim=pass (1024-bit key, unprotected) header.d=laveeshbansal.com header.i=laveeshb@laveeshbansal.com header.a=rsa-sha256 header.s=zoho header.b=R2ntOH/z
+ARC-Seal: i=1; a=rsa-sha256; t=1792502973; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=EuD8bntbTMkMeHimUzqDTvJkp5gf2DKwzcTvVhBYZRbLdSFKytmJR1eJAFbIhoWbf1Tf7+gAjOjBPp/L2+eOihyXKpqlMe4JmcDn6lWy2Ajj9DQLaApTgrVzO7Nod2YCobHoqu2HRm54UbAxE9L+qHReVfOE3+2Jfx6UaqEleP0=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1792502973; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=faqcXlf3am5ayTseexfa5cqCZPxHait6Gq7hGss05/o=; 
+	b=E8c7QAJxpNL6PofIIb4S7ospQ8SfgCZ7q/Jahia6lK97gqRLA6q7/tfY3GrnzRI6XIVs5YdwWSnrLMNALcNJcKdA0Lkvf5tU6WJAE9e0PpAqAWUpw7fUSrfyUu1CoaPhhCA3GQUni0mBVxwsLN2d/Z7FxZTvxwnGSimQZuMXKKY=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=laveeshbansal.com;
+	spf=pass  smtp.mailfrom=laveeshb@laveeshbansal.com;
+	dmarc=pass header.from=<laveeshb@laveeshbansal.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1792502973;
+	s=zoho; d=laveeshbansal.com; i=laveeshb@laveeshbansal.com;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:MIME-Version:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=faqcXlf3am5ayTseexfa5cqCZPxHait6Gq7hGss05/o=;
+	b=R2ntOH/z5zrP4NH6DRLJy731eTb0c/6yaJH66gxC0lYeKUy7fmHPgdS3xOV28yaI
+	DNunMDYmzgh3Iirhx6vnJa9w2Lkt7SYTd0Qn3DlJUaC7WJLpdCTTcEns3oMnI7wIYO4
+	UsUo1etcDjWFji08Hl2zhl8IUd4hzRIqexcSE+fI=
+Received: by smtp.zohomail.com with SMTPS id 1792502972236450.06009507923477;
+	Tue, 20 Oct 2026 06:29:32 -0700 (PDT)
+From: Laveesh Bansal <laveeshb@laveeshbansal.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	netdev@vger.kernel.org
+Subject: [PATCH nf v2] netfilter: bridge: use DEBUG_NET_WARN_ON_ONCE in nf_ct_bridge_refrag()
+Date: Tue, 20 Oct 2026 06:29:11 -0700
+Message-ID: <20261020132911.43696-1-laveeshb@laveeshbansal.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,31 +75,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Virus-Scanned: clamav-milter 1.4.6 at pog.tecnopolis.ca
-X-Virus-Status: Clean
+Content-Transfer-Encoding: 8bit
+X-ZohoMailClient: External
 
-Hi!  I have an application that can create very large named sets
-(dynamically) of IPs.  For monitoring and testing purposes it is useful to
-get a count of elements currently in a set.
+nf_ct_bridge_refrag() warns when skb->protocol is neither IPv4 nor IPv6.
+A vlan filtering bridge can get there with a vlan ethertype: if the
+protocol of the tag of a frame differs from the vlan_protocol of the
+bridge, br_allowed_ingress() moves the tag back into the packet after
+NF_BR_PRE_ROUTING, where bridge conntrack has already defragmented it.
 
-Currently I an running "nft list table inet mytable |wc".  But once the ip
-set grows to much over 100k IPs, that command can take around 90 minutes
-on my system!  During that time the nft command takes 98% CPU.  That makes
-monitoring in this manner nearly impossible.
+Anyone who can send fragments into a port of such a bridge can trigger the
+warning, which takes the machine down with panic_on_warn. The packet is
+dropped either way, so only warn on kernels built with CONFIG_DEBUG_NET.
 
-I think the in-kernel code tracks the current number of elements.  Can we
-expose this through the Netlink interface so users can get an instant
-count of elements with virtually 0 CPU usage?  (Note, I'm not talking the
-"size" data point, I'm talking the actual IPs currently in the set.)
+This only avoids the warning. Such fragmented packets are still dropped.
+syzbot reported the warning. It keeps triggering on CONFIG_DEBUG_NET
+kernels until the vlan tag is handled, which is left for a follow-up:
 
-Less importantly, I'm wondering what is making nft take so long to list
-these huge sets.  Maybe the IP numeric sorting and formatting?  If it's
-all the sorting, maybe an nft option to disable sorting would help?  Or an
-option to disable formatting and have nft just dump the whole wad of IPs
-on one line per set?
+  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
 
-Thanks so much.  Please CC: my on replies because I'm not sure my
-subscribe request is working or going anywhere.  The listserv may not like
-my mail smarthost.
+Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Assisted-by: LLM
+Signed-off-by: Laveesh Bansal <laveeshb@laveeshbansal.com>
+---
+v2:
+- Reduced to DEBUG_NET_WARN_ON_ONCE(), as suggested by Pablo. Handling the
+  vlan tag and the selftest will follow for nf-next.
+- Dropped Reported-by, Closes and Cc: stable. This does not fix the syzbot
+  report, its config has CONFIG_DEBUG_NET=y.
+- Only the commit that added the warning is listed in Fixes:.
+
+v1: https://lore.kernel.org/r/20261020005403.38212-1-laveeshb@laveeshbansal.com
+
+ net/bridge/netfilter/nf_conntrack_bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index b5444335b86f..8c83dc05114b 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -358,7 +358,7 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		nf_br_ip6_fragment(state->net, state->sk, skb, &data, output);
+ 		break;
+ 	default:
+-		WARN_ON_ONCE(1);
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
+ 
+-- 
+2.43.0
+
