@@ -1,58 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792535354;
-	b=GlB7ogK5BYPAeKetRNWopDit2yVoEUGBlx0chzjIoKhXpEWn+ratiptB6XLoArsz/6eW
-	 iVMrNkZqYb7hp4Jekkhn9SvqXQicYWviYtyEUTBro8KyxEnAxT53j80TeiB1T1IYMkrqN
-	 x37XLBGln4nmhHxJjeVdTLe6IwrwWL4LE7Hb3O9NxnDanN4dglz0KLoDhM4TebVG/U+6z
-	 Pvl6LRdzz1qyI3nDo/hXx9DqdQ648QAZApZGTmsExPZsGzvmz6RgoWsH1pX6UJ0YtJIcm
-	 NixTaLo9zMtTDpkDQXTjOnafEW/5a41OGn1vGE1mYvprFV3ss4RSRXcNK2KO7PoTNeg==
+	t=1792536988;
+	b=iUuOmdOlT4ICo+bIo2A5uLIswLSpY6PDgrbo4QOgAHOJwN6tCmwhzJqf6ar2u0zmF0YP
+	 f0FEMI8g0riipAiVvXQXIdm2ibUWqGy8IA/vy6Z65WQMBXqQAWZrJC6DM5DdQDDR5zkZg
+	 ZxvQTG9Nb8B8NqaEBFaXjhs6hWZFq0XJhMxAgz6+ZiOdPDKrGIQQVcHp29QTYFFth33YS
+	 MNeLu5mOO51EBQavW04OGilRDglZ7AVqg06GExXpv6fwrkIQRsdXAWMj8SQCAYHZWPGy/
+	 TVS+q6i1pVJ2L8ejcBXNOL0FTns+GbGh5lcw6F9+lFfLJob4XDbfhdi9FgwU9T1yPjw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792535354;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Spam-Status:X-Spam-Checker-Version;
-	bh=cKexEd8LcvDTEF/kszLQ4gFpnEYlIui7W9UKATALzA0=;
-	b=QxJgWP80yVuFR5Hu4u9wY0mfV8OOACbXQj29RadLO9oVKlMu7AHz5h4AAVPVJT2grli6
-	 vyjMYGFqlO6iyy83Q1ITvphVfZPgDEFlU7eGw+Z1fcVjyHUp/s9SH8dqfPB9cVZU5M6Id
-	 3YTZGW7qQur+GaVhMnruR3SzG4eJa73/Ai/iimuecv9zSYO1ANdDfA1nLONYIElLrie/x
-	 2+ISPK5iU3oZHxFkTfzSyFhEAI0PjHTw7JjeENhIdfcs6HQUUlm9ChOQxU3tRsye+DFg6
-	 PuhB6ZHg3/31tpJQOB09wZrGwV4omYlu8r49TyhAoBE9fGnBrAsJDffbWUWK5FHglyg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792536988;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=PXr+64rR4Tv2EoA7vxV/r7Lq/rz9TNXaSd8Nf7cZy44=;
+	b=AQPzgBxfV2hV1YtdNxjHv5udklVPA6qWQqBmgE6uzeOqXhcCHbmRjBD7SHYLvyCQ+wnn
+	 tb0Kq25R7dhTrL8nAq6BW93GvyyBfPketkDT8RmHtqIJzPvW61gxcHbqb6pA0KCsYhRrn
+	 soocY8uVuxkVWOozmoJIBr4co22h/34onYBOcUsz3vxtZNcjmQjD/esBThPdlBBL2+Vuv
+	 SbFIVpse15cZv7ww5iXP/F03lE7Na6LbCr6A2tkNEDz8CPgckT5vLNMuHiwzNj+o0XkMU
+	 hgl0A61JKUUJxnLH7ru8aTsbhF5QGw0n24krcNhBx+nYsgGbWbjFAX0TQsvFdYSCo7g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=M0aDA1mO;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=AHqSW6mN;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7271A606A31A
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 22:29:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7271A606A31A
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 29DF0606A319
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2026 22:56:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 29DF0606A319
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=M0aDA1mO
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=AHqSW6mN
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1792535352;
-	bh=cKexEd8LcvDTEF/kszLQ4gFpnEYlIui7W9UKATALzA0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=M0aDA1mONHQNy4rRb6j6qiV9/s523CX8l8xbtTI4rIkMxULveIqJPPf4JOzfN6mjN
-	 sTRDaozCXQNEKc+yCGT+L2eynOsdskXnauqI69b7N998moXHGdBiJp6iClnFZr6RQk
-	 BNl/KlTKMwzk9iKWQauSbDuNoSOe/1g32jjcx4cTi/HPrz1WkSC4CH9V+LXWgHhDVV
-	 gvriZ5aiukjfWxl1KNuCoykiqh8+3yEeaUdowiC/WtrhxYUSHKzvLsaKEEBwuSl36P
-	 9RXWrp5xWVENDcd34DHBBP/JerW9LeixPYA8G/lnA3moqFPCiQBESyBPGlOyVKB7DS
-	 EcaEMUCufb5uQ==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2CE9660050;
-	Wed, 21 Oct 2026 00:29:12 +0200 (CEST)
+	s=2025; t=1792536985;
+	bh=PXr+64rR4Tv2EoA7vxV/r7Lq/rz9TNXaSd8Nf7cZy44=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=AHqSW6mN3FLVL8AH0Ogv2p4mDHzkI88seFpHoRDHmhzw/fNA0tnIDa/IAKI1qNjf2
+	 voiQAY1XBxdQWjRqIA66cyra2/VY8jb9KaqRmEpN3l4s5iMHMZZhmWnYCn2xTJWC4p
+	 lIJdpd4jyFEaUyknlkI5lpM3GEAO1YYdltCPmd8SogdX9cpujUGdq0DY+VkrYSkXS+
+	 nkY6mudY9FwcTKMnriCk2slElrz3uAb4NWYPWFC+ka9i+QCfnfG6Gkx0asx/MQXamX
+	 rlHzfWdZ6NH96mTU+JYXNhNibhecNQbyCU1o6vj1kuN5Zty0kL+uk0/pw9Rk6wWrwa
+	 9hMUVKefUmgow==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 3086560050;
+	Wed, 21 Oct 2026 00:56:25 +0200 (CEST)
+Date: Wed, 21 Oct 2026 00:56:22 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: lorenzo@kernel.org
-Subject: [PATCH nf] netfilter: flowtable: use skb_pull_rcsum() to pull IPIP tunnel header
-Date: Wed, 21 Oct 2026 00:29:09 +0200
-Message-ID: <20261020222909.1937894-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Antonio Ojea <aojea@google.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: nf_queue: limit the hook drop
+ flush to the unregistered hook point
+Message-ID: <atfxlqHrKr3n3Qy3@chamomile>
+References: <20260928185803.335307-1-aojea@google.com>
+ <20261016133304.1755951-1-aojea@google.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -62,30 +64,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261016133304.1755951-1-aojea@google.com>
 
-Use skb_pull_rcsum() to pop the IPIP and IP6IP6 tunnel header so this
-works with CHECKSUM_COMPLETE.
+Hi Antonio,
 
-Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_ip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, Oct 16, 2026 at 01:33:04PM +0000, Antonio Ojea wrote:
+> Hi Pablo,
+> 
+> Gentle ping. v2 addresses Florian's feedback on v1: rebased on nf-next
+> and the nf_queue_nf_hook_drop() call in nft_ct.c converted as well.
+> 
+> I rebased and retested the series today on nf-next main (a5e7d8e446af):
+> it applies cleanly, builds, and nft_queue.sh passes, including the new
+> test_hook_drop_scope.
+> 
+> Is there a chance to pick it up for nf-next before the 7.4 merge window,
+> or do you prefer that I resend once 7.4-rc1 is out?
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index bb894c4f2b4a..f9b6119c9db5 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -370,7 +370,7 @@ static void nf_flow_ip_tunnel_pop(struct nf_flowtable_ctx *ctx,
- 	    ctx->tun.inner_proto != IPPROTO_IPV6)
- 		return;
- 
--	skb_pull(skb, ctx->tun.hdr_size);
-+	skb_pull_rcsum(skb, ctx->tun.hdr_size);
- 	skb_reset_network_header(skb);
- }
- 
--- 
-2.47.3
+This is now in the net-next tree:
 
+https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=5d1b850ea3f6e6ba2090ebc437e9bbec1d7e5ae4
+
+according to:
+
+https://lore.kernel.org/netfilter-devel/atXgURtsFB4UFXES@chamomile/T/#u
+
+this needs a follow up. Florian, please, confirm this.
+
+Thanks.
