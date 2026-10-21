@@ -1,62 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792577848;
-	b=uOQBHiIvdmfkB0ULJOv7x1tZ9DWvrytcT7wf5VuEgt8beIXghDZqhm+3LlOQmL/2WDdY
-	 m8H5s428REsviLXDPVT4nvP/X6ef0HX+phvZNjz9nEshaXTh504jsMVkRa/atkD6OO1x2
-	 mWn2NULuo690wHumAW9pxm6/HWKwx4iBcVl9gtwHZ6sQf4nUusvysUthJhSESilnna9/s
-	 ief/qU3uEEsa+uBEXF0gUfMzqzKEinBjwIdYW70xsgrKNBc6URx43E+cp1/NojNmeSXKJ
-	 5jMTWf5lSP+o5bJOxJJGbm/zkz8LKewX2uHtC8riAHgZgseCW+svi3QDuJQhHRDdGeA==
+	t=1792578162;
+	b=tlvlLYTedOcFSlO+WbDLEZhO2H5Car9eOHAPj+XF+n7Aq1vPGfXZ7h7SwiKNyEqzLtpJ
+	 siiW1W0Kqd9shj2PXziGR+X0HayPbS4ZPQseoEjEoW01LSK2KdrBkcso7A1LAKjaraZni
+	 vwcSIveX90gE4byxIDYvuZ0SIsZmsWuwldBKRw8FV7ECtBJP0PNrahnGzGTh/Pzci18A4
+	 SBAuy7i23NRwDOfUaTk723I6W1fBSngV9ugh11n6nUtCeHtlxTEf0mntZ7Hq0e0zAOHKB
+	 lkRjGuvMtF4k0XNhSweXlQmMuUn4tSXEfWf4QtMNk5ao60unuhFpM/lfXcnysQWARKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792577848;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To;
-	bh=PoZ70lGPOlD/1FOjGhMRQJO20juXBS3beq2u8QBnU78=;
-	b=MsU0qrfI3oeUgdaf3SsPvYgHSsvTz1IbZwdIP++27lBv8SK8Xuvw39IjYuqsYVpnYFLV
-	 8k7IY+YjkZHXjiQ0JRBak29/cZLZqCRCkM58IK0XnsQmGpxIOeXE71n3aGPM6WxxVEdlN
-	 CJvPVmwvUbkuf9PhxGehUdtgmYCf5YW/lrg6rCouXb1DByVRuF1o0+iUzeY/aISduasAo
-	 5dVToqDww++mqrRPAdqs2EENxaQ9awK9T8nsG9Zco7mXmElZIzSvXGFceWDUTkplzjH/1
-	 NxVW2DEN4kDIHu7xRHJJ93Voztm4M4av5ZsD8BIQXF7o9QUhyPUuO9B3WYkX3joiiMA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792578162;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=fjmOUTzjnG9WKyz/dz9DMTtRRBqxSQ7bXXS9Ppw6glc=;
+	b=LC1pvHqugVDGlVThlmR4457RvvQ8UOcDeVusX/LODRYx5AMDwvKutuALto8h7iVOAA0J
+	 qVZEg/rgd7QWNfXmm8mhsLCdfHdecw/vPL9VWC58zkQSTFtaqRUro/HQh+xU/S5b8wUEP
+	 OgyqA+LHeiuNJShfLSTPa273E6UApdhKuFdueOnFcU1dvAWdkMTDZ71eQFiAzcTrlYHHP
+	 4pNOI0Qg3fJ7NoCbS0dN9Lpoy0Otc5TGkS+mjs4xm0qTReSc4QqZBQ16lpGEuo5hVQikP
+	 3ZuDCIISCOaWeDuV+JHcMkjZbkHyVS7iskRxxwDvKdhERhxCOEUsyzZNIh+Rtk3yIAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=nwl.cc;
-	spf=pass smtp.mailfrom=nwl.cc;
-	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=DpPjvaaV;
-	arc=none smtp.remote-ip=151.80.46.58
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=TTNVWzcf;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E507606A323
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 10:17:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9E507606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B05606A319
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 10:22:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74B05606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=DpPjvaaV
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=PoZ70lGPOlD/1FOjGhMRQJO20juXBS3beq2u8QBnU78=; b=DpPjvaaVvJJIY8w3boul+r2zPi
-	afdk0ZhZkqkp1LAcdEVMwZ+OArDalKJEeTjp73KbzaLFu1dXLu/HQYsvm5hzI9YfJrgrUDdYbyZhz
-	6WkcxCkND+wrVMfcIVsXYSBWiQJNsn1rRkCWTchwkx21HQlbHo3SKmOC/HOoa2owkffezt9DKD5pZ
-	JIAS1UKSemA7LK9XHLN7rD1J4fGr58g68McRf5TEPEJMqVsveW2UTodufbG3vfwMRe8F9pIH5QhmI
-	uVLqfF69Nz7j23AkB75HV8AeevdsRP49uCp8VakaU3AfQ5jRwXjzoGiQu+sdlWwTZAFVEE5k6Qt3g
-	ifgf91/g==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1xJTNt-000000001LC-1re4;
-	Wed, 21 Oct 2026 12:17:25 +0200
-Date: Wed, 21 Oct 2026 12:17:25 +0200
-From: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=TTNVWzcf
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792578159;
+	bh=fjmOUTzjnG9WKyz/dz9DMTtRRBqxSQ7bXXS9Ppw6glc=;
+	h=From:To:Subject:Date:From;
+	b=TTNVWzcfnbYWyEq5znkX4fO5cS3JXwY/En2P9+59VdD317GWkoNXisiGlnosG0ZOf
+	 h6sn2ohF6gSfWq0YrNJSwmRYQnL42NcOAjx/e8/5ZYcRPWiRxonMLiPFn4uU6UZppj
+	 gC3beu77sNnTaSrB7AKeJRCaa4hw9TFM0HUMZaJcw6kP6wqQGJTAahJj5nRP0jvKkx
+	 dmQ5K3kNzBMt/Dw/2pz+mjeo09JXVbCnFTjXKctrt+UTXmiq6Sw1KIy9YSMOCwAGDW
+	 4gfBRzgjsGv4+x+N+IrYcOF1QSBzFKUk8/JWobHvaqAcguRpaNjHylVjl651krBX35
+	 mFEz2zSB17aTQ==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4826560076
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 12:22:39 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: Balazs Gulacsi <m2gulbal@gmail.com>
-Subject: Re: [iptables PATCH] extensions: libxt_conntrack: Fail on
- untranslatable state match
-Message-ID: <atiRNbVh-1ELNyDX@orbyte.nwl.cc>
-References: <20261008182605.257290-1-phil@nwl.cc>
+Subject: [PATCH nf,v2] netfilter: nf_reject_ipv6: fix locally generated packet to local address
+Date: Wed, 21 Oct 2026 12:22:36 +0200
+Message-ID: <20261021102236.1964881-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,29 +61,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261008182605.257290-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 08, 2026 at 08:23:51PM +0200, Phil Sutter wrote:
-> Iptables' conntrack match supports combined matching on ct->state bits
-> as well as the NAT bits in ct->status. The kernel extension matches if
-> any of the bits is set, i.e. '-m conntrack --ctstate NEW,DNAT' matches
-> packets in either NEW state or DNAT status or both. Therefore,
-> translating this sample match into 'ct status dnat ct state new' is
-> wrong: The nftables rule matches only if both statements match.
-> 
-> The only way to achieve this in nftables seems to be by duplicating the
-> rule which is not feasible within the xlate infrastructure. So instead
-> just abort the translation.
-> 
-> This is a partial revert of commit 1a13277f88099 ("extensions:
-> libxt_conntrack: Fix for ignored ctstates in translation") which turned
-> an incomplete translation into an incorrect one.
-> 
-> Cc: Balazs Gulacsi <m2gulbal@gmail.com>
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1826
-> Fixes: 26ec09bf6b9b6 ("extensions: libxt_conntrack: provide translation for DNAT and SNAT --ctstate")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Set on skb dst before checking if this packet is in the inet/ingress
+path. The inet/ingress hook runs before prerouting, no skb dst should be
+found in most cases.
 
-Patch applied.
+This fixes reject for locally generated packet that are sent to a
+local address on ethX arrives through lo, really perform the same
+handling as ip6_rcv_core().
+
+Reported by sashiko.
+
+Fixes: 73a73d442f99 ("netfilter: nf_reject: initialize IPCB at inet ingress")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: - clarify that inet/ingress does not have skb dst in most cases
+      (LLM gets confused and think that skb dst is always set on in this path ...)
+    - be wary and check that does not return NULL.
+
+ net/ipv6/netfilter/nf_reject_ipv6.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 5e08d8529cc8..59a6ec45b529 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -444,14 +444,24 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
+ 
++	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
++		return;
++
+ 	if (hooknum == NF_INET_INGRESS) {
+ 		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
+-		IP6CB(skb_in)->iif = skb_in->skb_iif;
++		if (skb_valid_dst(skb_in)) {
++			const struct inet6_dev *idev;
++
++			idev = ip6_dst_idev(skb_dst(skb_in));
++			if (idev)
++				IP6CB(skb_in)->iif = idev->dev->ifindex;
++			else
++				IP6CB(skb_in)->iif = skb_in->dev->ifindex;
++		} else {
++			IP6CB(skb_in)->iif = skb_in->dev->ifindex;
++		}
+ 	}
+ 
+-	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+-		return;
+-
+ 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_unreach6);
+-- 
+2.47.3
+
