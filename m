@@ -1,45 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792573425;
-	b=hvwWcmjbDpX46AMxLK1WIr/5S9L5alJPz9sQCD2XSuC1/elO4dP2Xv+V9pSDEyFpXTZz
-	 a15Glomb8X16YxLTLW8+YUFFGFyZTbH1IF6P8OsUmS7uPz04/Q4WLcvoiaSQdvgT2X7RA
-	 axL63uL78/H3z0Dk6XjblvsGYrPSNkySZKBirR7FRpCTak4sLQNpR88f/3dLGk1VvW2uw
-	 CnBWDyfLydG/G8EeKrojlcI7zgVvpzSafRijuhlXaXzQv0PsQ21VgtfhjT33Cwi1XbOfh
-	 NR4YB1wBV6xPRb+1aGJaFVFXe7joxDPVkjPU0+nAxI2QyoJFGqx8EyWmm633orMj0dA==
+	t=1792573660;
+	b=pTKnz8C8EPJ2SEo1uPHD8vKwkFhSPasAxKQ4gEO/9qsG3FBb0kLUD2oLVw3IK3esrZOm
+	 TdTHzf/ywFzb/R58GmnRwuqU0y/swT4yKXHoDi65SuNFceOwKEVb8CkqhTmIET6z0OupI
+	 H5T1/JEYKDRVjN+ZGm9w6ba0uACEsmXklGuTmwO4QOGb5yuod8CSAelYTfm8jkO+/9IiF
+	 wamdANMNEjbDserxldU7nrYnGdfsa7un0CpUWPTdW3ejfJLaQpOgpqR6IZ8Hr/8VfGDKp
+	 k7S9BX9HywPKNs8lcG4eqJaB16xywr5AaeS4iqgk3i0PMwWD+8vX4JPGWv8aPISyv4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792573425;
-	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=CldUw93C0Ojngf/XHy1jZQ3E3Ij6ioRtiYskpa4cLxM=;
-	b=jpgRY+h1z8A61vlN5zfvetKEFmeoldq73Wy9GCRv3dfm6PnC/i6wqgdZGVRKUystAwMT
-	 CLctnZvT7sF1RiSy1Zl+NfdBzTdHuQokwvMrzKXngPLEbXFkub/FSa3w/rAqnjTMmzQ9X
-	 zt7Lf4BAxYWwO+v4oPbq+Q2X2mNtEv5Yij7upGg/bjAS6eZx7uadYcEExpmSbIvKx5lJl
-	 +5UGI2gF1n107ypTOOWesxy4h5+LlnuRA32ZR1xFY4PZMvlHuS2ULhC2cZfne5N4z+iyR
-	 xsUYh3W+e3ujVTxpkQnAgnbjYgVjq3510E8xFfSXaAu3gb8fQby1DMdAUroI2mYUfcA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792573660;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=fli47jFOpTMq19O4Eb7tYCgI9FnYAWk67CymlppNLOo=;
+	b=veLlEKuh8w/bde5FJNPM4/R11CrJRvsqndDc9AVyEe44y/rX9RnXm/88Zzu4SZy/avpN
+	 C4Jj3Ea0yCrW4JviaFnqupaAY5SlIfCmMUGcOqzKk9GZjIIG09uBbcGq6vjc2Y2Vft8OG
+	 5VGJVtzPOITFSrR7blK+lHaaFYRq68uE3rnYpGh/Zm+NO2b+ypY9TA0tEVJ3mRoa1buXb
+	 BRdE2b6lQpb+GBC1RukjdBPjNe0yoWjumCzRyGt2PDApXT22rNylSZaWFfiHmQJFXm75B
+	 ICeWROOEE9JAhkF41uxzpzemmHWyg1JewvuQZnbFsMGj+3FmrmLEzBx327Zw1oScvyQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=strlen.de;
-	spf=pass smtp.mailfrom=strlen.de;
-	arc=none smtp.remote-ip=91.216.245.30
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=CgOT2pPf;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 594AB606A31F
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 09:03:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 594AB606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0E1B060460; Wed, 21 Oct 2026 11:03:42 +0200 (CEST)
-Date: Wed, 21 Oct 2026 11:03:41 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_payload: restrict checksum offsets to
- known values
-Message-ID: <ath_7a3pT6AOj0_l@strlen.de>
-References: <20260904095723.18368-1-fw@strlen.de>
- <ath6GRzpTiUBUS1B@chamomile>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27BF7606A319
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 09:07:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27BF7606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=CgOT2pPf
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1792573658;
+	bh=fli47jFOpTMq19O4Eb7tYCgI9FnYAWk67CymlppNLOo=;
+	h=From:To:Subject:Date:From;
+	b=CgOT2pPfF3OPbLVZ7BhAxZ7NFtjjFN20vAHGCBrrXmbCNUCMXcsA1H05x0dJCqE4A
+	 +4Me+uqeXbx9t1NgJF4ijF5qcR7t8Plf59a9X8q4JBFk98SwyOv6zXwgwStoxGz42J
+	 IpW/ZahRdIIsRHdpb0xsbCarM7a4VlLzWj9DytjLjtQ2VSdC4A64f2gIHjA4Z+e3Ya
+	 qIJTLSSRE4U9vopwWwaItGhv2Cz04wYZoOMw05TbzDjgTu7CVsQB5fb5jwzbQqjhWc
+	 nu5HfHHTGNKeSnVsk+lu9hn+X1hCrlyu8sggZN6WzD8BwZnzF1YIPgrEqyNOxBL/bH
+	 cVd6Kkny9kf0A==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4392260052
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 11:07:38 +0200 (CEST)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_reject_ipv6: fix locally generated packet to local address
+Date: Wed, 21 Oct 2026 11:07:35 +0200
+Message-ID: <20261021090735.1957912-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -49,34 +61,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ath6GRzpTiUBUS1B@chamomile>
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Sep 04, 2026 at 11:57:23AM +0200, Florian Westphal wrote:
-> > We need to prevent userspace from corrupting e.g. tcp->doff, because
-> > many locations in conntrack and conntrack helpers rely on
-> > nf_conntrack_in() having validated the packet headers.
-> > nft_payload allows to alter headers later which invalidates this
-> > assumption.
-> > 
-> > The 'Fixes' commit restricts writes to safe fields, but there is
-> > another side channel: the checksum location.
-> > 
-> > Restrict this too.  Reported via sashiko/gemini.
-> > 
-> > v2: add missing IPPROTO_ICMP handling, else 'icmp code set 42' won't
-> > update icmp checksum.
-> 
-> This patch is now upstream.
-> 
-> Would it be possible to fully/partially revert this patch?
-> 
-> commit 968cc2c96390f06e56ed6a43f935bfebdefed28f
-> Author: Florian Westphal <fw@strlen.de>
-> Date:   Sat May 16 23:23:21 2026 +0800
->  
->     netfilter: disable payload mangling in userns
+Set on skb dst before checking if this packet is in the ingress/inet
+path. This fixes reject for locally generated packet that are sent to a
+local address on ethX arrives through lo, really perform the same
+handling as ip6_rcv_core().
 
-I hope so, I will follow up on this.
+Reported by sashiko.
+
+Fixes: 73a73d442f99 ("netfilter: nf_reject: initialize IPCB at inet ingress")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv6/netfilter/nf_reject_ipv6.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 5e08d8529cc8..91e16120b654 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -444,14 +444,16 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
+ 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+ 		skb_in->dev = net->loopback_dev;
+ 
++	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
++		return;
++
+ 	if (hooknum == NF_INET_INGRESS) {
+ 		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
+-		IP6CB(skb_in)->iif = skb_in->skb_iif;
++		IP6CB(skb_in)->iif = skb_valid_dst(skb_in) ?
++					ip6_dst_idev(skb_dst(skb_in))->dev->ifindex :
++					skb_in->skb_iif;
+ 	}
+ 
+-	if (!skb_valid_dst(skb_in) && nf_reject6_fill_skb_dst(skb_in) < 0)
+-		return;
+-
+ 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_unreach6);
+-- 
+2.47.3
+
