@@ -1,64 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=98.129.92.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792590018;
-	b=Wwenp2lceYAz6tufG4SH40CyEbFa2PmoLUWD+cKQAgjo0F5eKC0fbSjm6skoDV3g1ZNI
-	 4xqFEQ+sy1zPmvW5jB9zxDHjlVWbhQ20Yctmrm9ceBnSwA537VoCqXlRhWYDULkXL2rg0
-	 4mikk02YM5CWD/ZUOXyAFI86uKNWYKfsbmm+cHeg/JioepvDETb3fXWgYLQJXhp9y/hnm
-	 eBI8wEd9WHTnVmRw5Vq3/vIYod8FakIDkZcxCtIqyDKNfQrolThel9sQCbLD1g2PUsL5G
-	 xh9XbAmnwVEpM3UFZfJAsyIVT3BiunLK7Vbodw/vOfYEOwaUcTLSlAiRWXniCTiMHpg==
+	t=1792590159;
+	b=dWPGD2xBvN9cRYO8yxw/U6yfTdl7eypD91qKfP8VPnlSHiqI56wb0JwPbHEPAN/B0249
+	 c3XcGdPUnvmor2lLpvm47hl1FNYxECARo4DeUQtyYg0LgAsPekI4+YelsSNKQo72mFAaB
+	 g9lgIGeAzo9qXr17So6DnnVJGvZaVvmigWYwPCNLMM8Dnm/1wG05H6aPbD+5H19mudBUV
+	 CxYLvSEqfc/QE3pcUxX+wBxVRrIllX+NWLlj4TZArCtneSUePGnodUqD59zSqf3T9e/Vy
+	 rXHem0WMiaYL2Cg/C6LTN6zYXaWr6euznPB1rgnmWP8QkW35Hgdpb93FDuA8iCn1klA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792590018;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To;
-	bh=wV4Mg/OIuGgv1aLTrJYkMSaSo9zuF3rlNySQS1pt5Ew=;
-	b=l5tKjxF5oYRP6w0ruG3npkhC6fAnYYoK6sQNqU56xvn61QIj34UTSiAvVtsMGH5J2UGu
-	 zgu2X3F4QEOBTapKX28BsFF8A+6ddJbgwJoQAXfd2AAVrcJxC9q54bwDra1ESrO9lJ5Az
-	 GL3V1EBl8okBZfXSJRV6Mm6a7gTpKTNIoas86gJIZxxKYG2QTCUkyeuewleSlrFrYiyBo
-	 ZoiuX45ayn92vXr3cygDt+JQuWQy5lddOlAZuZvRxZ9cgcfZX+8wueaaqGnZ5HHo5B+X3
-	 RioUUu3g4vaEC5ZVsvaNhOI5KJV4DFTG7CbziwNsYIiWJTEfOFFOt0D5jJBEvNUhpHQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792590159;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Date:From:To:Cc:
+	 Subject:Message-ID:In-Reply-To:References:X-Mailer:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:X-Virus-Scanned:
+	 X-Virus-Status;
+	bh=3Im8EeV8jfHPhu3EVgsbILzJDwxRLVIAMwLlejct7Yc=;
+	b=aPInz0gBvFYWcC0Ov0xI0UJ3PxjFmVJTtZxHmxy3w6TjPKIuOt1t+Ed2OtBkWEDkjPWB
+	 8dtUdh17yuRXFvudwnQv1aSNotWejS3Tzegqh/rE+tALM2n+uidjedjyB/QooTKrDdhYp
+	 im4/2p5uRC6JA0unaljPwoJrL8tFXHzEVaHuESTGF+s2fR0jfBPJveEzXJqUxR43rJIZx
+	 4at1teMuGQt1gCL1h7Gv/9FtpSDSlGOV4WYjWcapktvOaMGYwSrGGHbR6/8VDgQTrp7IP
+	 I4OOae5tuyZWJNInJxtuDfPlVd4pT8tSd94ivBM+J3MXrRUO5VcheXB/CzAYqpHrZBg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=nwl.cc;
-	spf=pass smtp.mailfrom=nwl.cc;
-	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b="iQ/1TOi7";
-	arc=none smtp.remote-ip=151.80.46.58
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	dmarc=pass header.from=tecnopolis.ca;
+	spf=pass smtp.mailfrom=tecnopolis.ca;
+	dkim=pass header.d=tecnopolis.ca header.i=@tecnopolis.ca header.a=rsa-sha256 header.s=mailfwdk1 header.b=E3gsFeSF;
+	arc=none smtp.remote-ip=98.129.92.4
+Received: from ewordofmouth.com (mail.ewordofmouth.com [98.129.92.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B0B606A31E
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 13:40:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74B0B606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0C3D60A2623
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2026 13:42:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F0C3D60A2623
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=tecnopolis.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tecnopolis.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=iQ/1TOi7
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=wV4Mg/OIuGgv1aLTrJYkMSaSo9zuF3rlNySQS1pt5Ew=; b=iQ/1TOi7/zCtmWZGms6CSbUXQc
-	0iZCv9xGra64p7p8l7/TkG6fAlbElkv3tPSBDTgqF4s7bP2LGNrTKk/u1E1NATBstDDMlQbtQkeUW
-	0fTmmdugcw3dBdMjgNwSqdgVAx3BAXiHa/Xe/Vw40AVjZIh9LvFv1flXUJJJhDnp5YKZ2vb2DYYww
-	dGv2EAIGwmMPvzlknbISOPVAXL9oWM3OuAwzTMLCiGWe4J9YdGys5G9gDfA7+Hv7/mTz0jspSLQBj
-	cmZ3gS8oZVX/zPNhfhQjNh7AZwUsL1Z2G3o0l0Bee/1X3Au19TPvdEWfzHm7j1kQ/tGC77JJodAC/
-	b6mDph/w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1xJWYA-0000000048v-2z8W;
-	Wed, 21 Oct 2026 15:40:14 +0200
-Date: Wed, 21 Oct 2026 15:40:14 +0200
-From: Phil Sutter <phil@nwl.cc>
+	dkim=pass (1024-bit key, unprotected) header.d=tecnopolis.ca header.i=@tecnopolis.ca header.a=rsa-sha256 header.s=mailfwdk1 header.b=E3gsFeSF
+Received: from tecnopolis.ca (S01067085c2fe8a16.wp.shawcable.net [24.78.148.126])
+	(authenticated bits=0)
+	by ewordofmouth.com (8.16.1/8.16.1) with ESMTPSA id 69LDgPHI4190125
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Wed, 21 Oct 2026 08:42:25 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tecnopolis.ca;
+	s=mailfwdk1; t=1792590146;
+	bh=3Im8EeV8jfHPhu3EVgsbILzJDwxRLVIAMwLlejct7Yc=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=E3gsFeSF/Hz1aSmgi4ErN2kh3yIy63IfeKgXF+Q86kn09X+x5BcAy6yhPM+GDT9YN
+	 1sn4Nt2Oohy1BmuJclzTxBmV4Zpg7XNgjdtb4qVn2Z09ABlSaRRuh/nZbQX+du4vrX
+	 zjv+bgQt3H72PkSXuMXyTNokx9UwdP7+vcqAOzuI=
+Received: from pog.tecnopolis.ca (pog.tecnopolis.ca [192.168.100.1])
+	by tecnopolis.ca (8.18.1/8.18.1) with ESMTP id 69LDgPb4274315;
+	Wed, 21 Oct 2026 08:42:25 -0500
+Date: Wed, 21 Oct 2026 08:42:24 -0500
+From: Trevor Cordes <netfilter@tecnopolis.ca>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Balazs Gulacsi <m2gulbal@gmail.com>
-Subject: Re: [iptables PATCH] extensions: libxt_conntrack: Fail on
- untranslatable state match
-Message-ID: <atjAvjdZTYiqalTz@orbyte.nwl.cc>
-References: <20261008182605.257290-1-phil@nwl.cc>
- <atiRNbVh-1ELNyDX@orbyte.nwl.cc>
- <atiUbF-5aXoKdpJk@chamomile>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: expose named set element count
+Message-ID: <20261021084224.5c03b6f7@pog.tecnopolis.ca>
+In-Reply-To: <ateYUFIPFZshosqX@chamomile>
+References: <atdp-FBVOOKgN0De@pog.tecnopolis.ca>
+	<ateYUFIPFZshosqX@chamomile>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -68,72 +68,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <atiUbF-5aXoKdpJk@chamomile>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Virus-Scanned: clamav-milter 1.4.6 at pog.tecnopolis.ca
+X-Virus-Status: Clean
 
-Hi Pablo,
-
-On Wed, Oct 21, 2026 at 12:31:08PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 21, 2026 at 12:17:25PM +0200, Phil Sutter wrote:
-> > On Thu, Oct 08, 2026 at 08:23:51PM +0200, Phil Sutter wrote:
-> > > Iptables' conntrack match supports combined matching on ct->state bits
-> > > as well as the NAT bits in ct->status. The kernel extension matches if
-> > > any of the bits is set, i.e. '-m conntrack --ctstate NEW,DNAT' matches
-> > > packets in either NEW state or DNAT status or both. Therefore,
-> > > translating this sample match into 'ct status dnat ct state new' is
-> > > wrong: The nftables rule matches only if both statements match.
-> > > 
-> > > The only way to achieve this in nftables seems to be by duplicating the
-> > > rule which is not feasible within the xlate infrastructure. So instead
-> > > just abort the translation.
-> > > 
-> > > This is a partial revert of commit 1a13277f88099 ("extensions:
-> > > libxt_conntrack: Fix for ignored ctstates in translation") which turned
-> > > an incomplete translation into an incorrect one.
-> > > 
-> > > Cc: Balazs Gulacsi <m2gulbal@gmail.com>
-> > > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1826
-> > > Fixes: 26ec09bf6b9b6 ("extensions: libxt_conntrack: provide translation for DNAT and SNAT --ctstate")
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+On 2026-10-20 Pablo Neira Ayuso wrote:
+> On Tue, Oct 20, 2026 at 08:17:44AM -0500, Trevor Cordes wrote:
+> > Hi!  I have an application that can create very large named sets
+> > (dynamically) of IPs.  For monitoring and testing purposes it is
+> > useful to get a count of elements currently in a set.
 > > 
-> > Patch applied.
-> 
-> Thanks.
-> 
-> I wonder if it is worth filling the gap and expose snat and dnat
-> through ct state in nftables.
+> > Currently I an running "nft list table inet mytable |wc".  But once
+> > the ip set grows to much over 100k IPs, that command can take
+> > around 90 minutes on my system!  During that time the nft command
+> > takes 98% CPU.  That makes monitoring in this manner nearly
+> > impossible.
+>
+> There is a count field in more recent userspace nft and kernels, what
+> nft and kernel versions are you running?
 
-If it's only for the purpose of providing a translation, I don't think
-it's worth the effort. IMO it's just a niche feature of iptables and we
-don't know how many people actually use it at all.
+Thanks for the quick response (and I got subscribed, yay).  That's
+great news that the feature may already be there.
 
-> This will take time to propagate before we can expose it via userspace
-> (we have here the dilemma of exposing a feature which would be not
-> available in old kernel, but it would in newer ones... without having
-> an easy way to reject from control plane given the cmp and lookup
-> expressions do not have context on the acceptables values.
-> 
-> Such patch should be relatively small.
+kernel 6.12.101 and nftables 1.1.3
 
-I would rather spend the effort on a more fundamental issue in nftables
-I found while searching for a fix, namely the lack of an OR operation.
-When looking at that ticket for the first time, I assumed a(n anonymous)
-helper chain could solve it, but it seems not. To implement an "a OR b"
-rule, we would need verdicts which tell the calling chain it should
-continue with the next statement or break. Let's try with an example:
+Unfortunately we're stuck on slower-moving Debian 13 for this
+production box, and from your version list it appears we may be too far
+behind.
 
-chain c {
-	jump { a return; b return; drop; } next_match verdict
-	next_rule
-}
+Unfortunately, I cannot easily
+nft list ruleset
+because that takes 90+ mins to run.  I could try overnight again.  I
+don't recall seeing a "# count X" part to the output before, so I'm
+guessing I'm too many versions behind?
 
-This serves the 'a || b' requirement in that if either a or b (or both)
-are true, evaluation continues at next_match. But the failing case does
-not work: instead of continuing at next_rule, packet is dropped. Using
-'accept' as the final anonymous chain's rule, we jump to the next hook.
+The main thing though is that I can get that same size 10 # count 1
+output WITHOUT running the full "ruleset", or even a subset -- it would
+absolutely require a command I can run that *omits* the actual
+elements.  Can the latest version do that?  If I run anything that
+lists the 100's of k's of elements, the nft list command shows me
+nothing for 90+ mins then dumps it all at once.
 
-Do we have to introduce a new verdict (possibly reactivating an existing
-NF_* kernel value)?
+I am perfectly fine with waiting until Deb 14 or a newer 13 to get this
+feature that might already be there.  My main concern is that I can
+expect it sometime in the future, so I can turn my frown upside down.
 
-Cheers, Phil
+Thanks!
