@@ -1,50 +1,50 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=57.103.78.81
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=57.103.78.20
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792701943;
-	b=wTxL0NnvXBecKi993dgV0lKwlCDe0a+lXNSQlz/R/K2esQPgf0V6264wR+ocVdKFbP4f
-	 /IHnr+txlWttDggJguqruNpUtrLr5pcAnxyZds3TXF/zTJLyYvpGAfdYXOFPnn8GsXsNx
-	 8vAhMEyXhFV8Dm9MVZ2a5QMQP0PBPbotK9mMp/ydG+ynV2MjSqOE2rHdl5d51epPjwiBe
-	 qgVFSW9fW/kxAQdfrqWQeApUh7awvPBsMVzfklWp/Uvkuszhkm0pNopOVkIVsA9CoS/SH
-	 +MjSlPGQUcUxxe33i9RQtNlDdMEgzCWOeJvlpF/D7FSnDgM0LzpnTUERCyN36M8Phhw==
+	t=1792701946;
+	b=4U4Tv5BMGbOvTPgj800U6ToBbJWEpbt/eDZKRspoGgzKTMt2NO6FO9VKAySJbaHr4mjZ
+	 Rl9fsFOSY+96wEVuuv4tJOYUS7yRLfZ/JxzIgWscsWpwjQO22/S3zAIyrHTSQLZYTinKt
+	 pHNg4fn7dvIawH3/XTB8BjO7P6ttAuuXipEnUwaJqe2qTogR2vGudVoSZ9ZExWRotvubw
+	 58Q3TRbskes/IvXwmGNdSVELOCNvuvFbeYlQHJCWYzU9kzEwLtnA1eHqoiDL+v0c0qTc/
+	 x8f+lRgZEkvvS7DwQlvssLXlFlwfP9kxrz8YiUcJuTBk+yM0RkZGs3VaPlB+5PdoiHQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792701943;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792701946;
 	h=DMARC-Filter:Received:X-ICL-RepId:X-ICL-Out-Info:Dkim-Signature:
 	 mail-alias-created-date:Received:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Proofpoint-Spam-Details-Enc:
-	 X-Authority-Info-Out:X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:X-JNJ;
-	bh=fsf1CCXnDnWCvHaPkNNc5g46CjL9ZdhFgMqREErkUxM=;
-	b=IqUoAkYTNnJRpIaqQ7Ai1KsV12HrFUJeAZp5lfc+b/VkRY4h7pXz8UVpxwI8VmVZJQl6
-	 WNasUnpQWnh/U3l6z+17WoYm2udsZZ99yTHCWJIH/mrLYC0AQ9VR00lPBraa77iagwU1H
-	 mu0nYyzs45K4xp6MnD5q3rMDhTGLaGKKt60M0WSFH/TPIuFXqZVc3lV1MW7PRz5Rxqed0
-	 ug3JtImvB6eDD8LtGXUzLSFHEcj70xDm5Ot1hRFHT4wC9mP6kmrq7nQt58MeqkX6gTpT9
-	 CMeCyX6gOm/vyF7M08Kg8rCXILQxvGJIP9CVuWqBezyYoXW11od5vkVywLJrGgX6ZyQ==
+	 Content-Transfer-Encoding:X-Proofpoint-GUID:X-Authority-Info-Out:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Details-Enc:X-JNJ;
+	bh=VxbzjLgfe7xHVCz51KMSBuDJx86Bya8PdWFRFGJq4WA=;
+	b=3TaiwDG8/X/1FQrpb0FDXT7NSU9Gdqgvc3sVDA4xNVk98quDvmbQDMvFhXDUS2Ow+Ivu
+	 cojozYJJDPkQMI7WftFaFxmXNh7O/HjnSdkuoeT6xPe/XYbZQ9JVu4P+X7C86PnWsrQTa
+	 brTpMGJ24nd04ZPjenAMTOyUf9998WeoBw7BhWr2RJV5Fib3eLHFr+WJPsNghUM9n42B8
+	 JS2BlNaN2x/kIZRMuL40kKrs2kwprasJES8AF31wphYiMDhSWCbRloKSm+/LhHlmk+wJ5
+	 W2Z1E7/THvzIClnnhtzOm0g/eYWLhIZrpZ1ec1TqIo8NFxZVMdN7WHc1CjkwOxo/n4Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=seeber.me;
 	spf=pass smtp.mailfrom=seeber.me;
-	dkim=pass header.d=seeber.me header.i=@seeber.me header.a=rsa-sha256 header.s=sig1 header.b=qIRkx7gf;
-	arc=none smtp.remote-ip=57.103.78.81
-Received: from outbound.st.icloud.com (st-2002j-snip4-8.eps.apple.com [57.103.78.81])
+	dkim=pass header.d=seeber.me header.i=@seeber.me header.a=rsa-sha256 header.s=sig1 header.b=ffUGHcss;
+	arc=none smtp.remote-ip=57.103.78.20
+Received: from outbound.st.icloud.com (st-2002b-snip4-7.eps.apple.com [57.103.78.20])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EF5606A31E
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2026 20:45:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 01EF5606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22E4606A31D
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Oct 2026 20:45:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C22E4606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seeber.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seeber.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=seeber.me header.i=@seeber.me header.a=rsa-sha256 header.s=sig1 header.b=qIRkx7gf
+	dkim=pass (2048-bit key, unprotected) header.d=seeber.me header.i=@seeber.me header.a=rsa-sha256 header.s=sig1 header.b=ffUGHcss
 Received: from outbound.st.icloud.com (unknown [127.0.0.2])
-	by p00-icloudmta-asmtp-us-east-1a-100-percent-4 (Postfix) with ESMTPS id 8A4891800227;
-	Thu, 22 Oct 2026 20:45:41 +0000 (UTC)
-X-ICL-RepId: 01a1655c-c72b-7adb-beff-1dcb70f53f72
-X-ICL-Out-Info: HUtFAUMEWwJACUgBTUQeDx5WFlZNRAJCTQFMHVwDWhxEDlYCWAZLVxQEElwOXw5cMEodVg9SGRwdXFhVCQoYVxVbHUFDWg4SAlpFBU1fDl4fBBdGGVUERx5dVkAZGQJRHFYNV0NUBF9QSQxBUGxaAEcXSB1dGVlvUF0cDh5SDlAVS1ZeCBcGWxQERAFdBV0DQAtKAV0DXgFEF00HXwVSH0IUElwOXw5cMEodVg9SGRwdXEYTGU4bV01aDUAZWAZtFFYVUgRZ
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=seeber.me; s=sig1; t=1792701942; x=1824237942; bh=fsf1CCXnDnWCvHaPkNNc5g46CjL9ZdhFgMqREErkUxM=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=qIRkx7gf4XGw/+toj0CMl09ShU2XPlBByD0WLC3ktlTKSHAJU7sHatxwOmIQN+HcV/WeQ3HHYUt50IOjNAQQAiMzgfnHz6edCsbfjI2/yCL7crF0mpL11ksHI/ZpeK/RNflmoB/UZFkIU7evYO48uZusfa+MQHqr2MEK01AY9HSV3fjwqW7chA4eZ3S9uWQVllNFFfqbPaUQVI/H0jieiWepzY8ZBQTZlNQPAhjw6ZT0tvUtlMKnEcKthaGC83/LHa/BvF8hml8ajuBo0g5izFVNeYQun/alpIMelZaAeHo2qr4dU8WrdgDGUvopxq2I85DVEKK5U8/71zrU52ZxLw==
+	by p00-icloudmta-asmtp-us-east-1a-100-percent-4 (Postfix) with ESMTPS id DF7EE1800115;
+	Thu, 22 Oct 2026 20:45:43 +0000 (UTC)
+X-ICL-RepId: 01a1655c-d049-7cf8-9907-12b40312fd1a
+X-ICL-Out-Info: HUtFAUMEWwJACUgBTUQeDx5WFlZNRAJCTQFMHVwDWhxEDlYCWAZLVxQEElwOXw5cMEodVg9SGRwdXFhVCQoYVxVbHUFDWg4SAlpFBU1fDl4fBBdGGVUERx5dVkAZGQJRHFYNV0NUBF9QSQxBUGxaAEcXSB1dGVlvUF0cDh5SDlAVS1ZeCBcGWxQERAFdBV0DQAtKAV0DXgFEF00HXwVSH0QUElwOXw5cMEodVg9SGRwdXEYTGU4bV01aDUAZWAZtFFYVUgRZ
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=seeber.me; s=sig1; t=1792701944; x=1824237944; bh=VxbzjLgfe7xHVCz51KMSBuDJx86Bya8PdWFRFGJq4WA=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=ffUGHcssSN3WCnuHcO6CCX/7fxfXFAdpQljJSMQKNWtJMb+WfiaXkRTz2un8IE8OiI/Q8TJSdfopzXKQs7QA43b+KgGKmWSBRh0qaN0w+fXCR25NQGl2i5tusjnq9GqGsfCxmGJUt5cNh+AhFdGUmcJrFyPdYWhX96tTGFRxJMUdZoACdrva01bNYlT10pVNbRLMcl7mlx1MM0gjWqXpQzro6SOeBhsC+k+lWSK6HMMx3maz6no1D37yV9/LZdbEk7guu2f2V92xbz99UKjclrptFQkMiS8KT6UBIzYJM+OfYSxct1TsT9OyiUIEsuH0Ce3cNuc30Iui97qkqEWh1w==
 mail-alias-created-date: 1307199970000
 Received: from localhost.localdomain (unknown [17.156.216.30])
-	by p00-icloudmta-asmtp-us-east-1a-100-percent-4 (Postfix) with ESMTPSA id 7A7751800096;
-	Thu, 22 Oct 2026 20:45:40 +0000 (UTC)
+	by p00-icloudmta-asmtp-us-east-1a-100-percent-4 (Postfix) with ESMTPSA id B76801800104;
+	Thu, 22 Oct 2026 20:45:42 +0000 (UTC)
 From: Jochen Seeber <jochen@seeber.me>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
@@ -52,9 +52,9 @@ Cc: pablo@netfilter.org,
 	phil@nwl.cc,
 	jeremy@azazel.net,
 	Jochen Seeber <jochen@seeber.me>
-Subject: [PATCH nft 1/3] src: allow map lookups as operands of bitwise binops
-Date: Thu, 22 Oct 2026 22:45:32 +0200
-Message-ID: <20261022204534.54229-2-jochen@seeber.me>
+Subject: [PATCH nft 3/3] tests: shell: add map lookups as bitwise operands
+Date: Thu, 22 Oct 2026 22:45:34 +0200
+Message-ID: <20261022204534.54229-4-jochen@seeber.me>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261022204534.54229-1-jochen@seeber.me>
 References: <20261022204534.54229-1-jochen@seeber.me>
@@ -68,237 +68,664 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIyMDA4MiBTYWx0ZWRfX6/MVklSz0IW8
- qHaJXeUexjc2t1n1PlsWwpbPX0ChqUnzzHMCoid+5ScaC6/8sWKUUfKyINQaRsM4mgSzwLvY8Mw
- 42Hjd/b1OPUakdWki/+vfvX2jUIFoDT1+6Jins7MPheiZ9eWM0d+SqsvPgG+5Egpyw4aChWff3w
- 5wkYQqwSmMYhYMUZ1iezCSXEmooTmN0y43/dZE6oQULBxH5tG9SUPQxGBJ1QgZ8iPeNsGY4n3r+
- OZX9tOLAIpra3Y+AuV1MYMuX8NIEiuNNlqhJQT905CO4g6YdGN5zNgXqa7siTHgs77hJwVMx+6z
- LpGVGwDnOK2qkFTjJR3r0czlSZqhrrk1UhU4ju4aZ3eVK88vl1G/9ecvZ3YZeU=
-X-Authority-Info-Out: v=2.4 cv=J8qnLQnS c=1 sm=1 tr=0 ts=6ada75f5
+X-Proofpoint-GUID: tzUmcEzus2_6kbFE2J4ZeZ_5-T8fMbwl
+X-Authority-Info-Out: v=2.4 cv=eJYeTXp1 c=1 sm=1 tr=0 ts=6ada75f8
  cx=c_apl:c_pps:t_out a=oyWFxbOnq+dmhQrAPgaJYA==:117
  a=oyWFxbOnq+dmhQrAPgaJYA==:17 a=MKtGQD3n3ToA:10 a=1oJP67jkp3AA:10
- a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=PSO4xYwZUUep2cFDZPQA:9
- a=Hj7XuWabhHpBS0h9:21
-X-Proofpoint-ORIG-GUID: 2DQW_x3-3U81nXTw0i0E21EeFZa_r5iV
-X-Proofpoint-GUID: 2DQW_x3-3U81nXTw0i0E21EeFZa_r5iV
-X-JNJ: AAAAAAABJB7TyppnEVN3LYUdLY+KpVl4+mG9oLSBSfMGz+WwLet4n4Hl81+l0ghyV868LfyZfZGwMgX+qh5DOizQRLPovqmzNWf0DRORU+PJS/5mfWuBO5nLJQItd04wS5nD4REks66SedL+KbnZS3o/O4OQA8Dnvswt1PdXt3ggpsfN4OEJrRoUeonlEwspUhmMZvsphu+7jdszknZM0fDdaY8DK5S3GTvn3uxivjqT+VEXzrYkQrY2fO6IdBXksrJRGFBDvoOI5eHuvYHw9zFSb5Q4zfKMnaDt1mjiDReyTbFPsnc5tAut16j3oQnUE/LRhD1bp9A7T8fXoC6i0qZbvW7utdLkB+DA0IJPlDo40pDceGxDBqz9oFPtRhEBrPi5Igwr/dun8kyj3s4+//SDQCu+Wby+oCUi5dvhBopPBKukpfYtxtBbmZH2A5EEDoxBaeSIpIpBKSxuRHhtex/VZZhPs36qCzxwnESs3kRiTgKmSo4cfvkknrPoQ6ZpwB+AQxUtz3xzTZ9VL3l14/GXXSvGEWEtiuUhgzzGG1pfCuHX0q6RanlzMfq48W221lJHvPhBnRJelJCV9TU3F7zEc/+PjUF7AlrfnWFzz3i4srZNKU3isJ/faFNU5Q1MPnVmc6owRmyO2r5vn0typTGMZ4FnC5dTCS3vbbyrrDFbkWFHIiUa3lDslYqEnronxL/9JlRbVuF9vL/zJvboKmFdAqtve+UGKHldkAq9PvAY+3c2oH1D0gLK3VSbO1d7+Tmx3C8LabPnEKCDcVIQCVulHO47EMd7a1F/Yeq/msOGFVaYaJfhzF0L
+ a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=1ZhqJXtgJzOl9jrqKewA:9
+ a=Vh4d8beRIujCpdfF:21
+X-Proofpoint-ORIG-GUID: tzUmcEzus2_6kbFE2J4ZeZ_5-T8fMbwl
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIyMDA4MiBTYWx0ZWRfXyVxDOzdxBPgj
+ Q00Hw490pwg6kXCj4rCK3TCDyfElHqIbUWl0JecC2z6XablD5m+zkW493hd+zNRNNF6H0NMajuc
+ ksEcNdxgAbSAloZTHqnF8GxeSir52hdO3X8avUa8ofsCIMMgAf0C7h8tWHcyBurKQE343gflpNP
+ ew/0Gap5N5mp/sO512aTYbwX5oQDSLw8UmSf/9sPDu6bGqmb5AUHTRPKeHb3fyfUZ9173P6W3xV
+ 5qvLn7As3oOzBb0JgscuZqe3xAL929oNXX0qOQFv2GBAwxXGyuT60JSBSVuZP6ehRtw3O16zRrl
+ 0fr5du1VXuM/8ZYvYiDiUDYFkca7UNNBU6uWAiwUZplDBpe9jL6iMHqQ6g9MaA=
+X-JNJ: AAAAAAABwMojdzR1E7hsQTA3MFgeAuW+26bq7mibPwrqpeNFVh9eaNrRLfEH2tswAPOx+sFrcBJ1qhGqm6Je9PDYbdZhe+alS9JLRdZqwBwl0GM9D++Wk8JXru7OtrPZqRs1CxaELBx++IWJbP0ZZ2GKtpFfC9qQjj98DtmXY1Nx7izJOMYQiqiiPBy1F2BYO0/VXq8VckW7y+ZwEak1GOZ1xJXTkIML8T+19NC5fT7CWKsAPY2eAHUo7Dd8Z3BtbufPjYYlZwrmXA1C4J1flLjTe+Zyfp9y8KfN8+mbe6UP7NEyO8tbzem18D2xM/2pwuIBwbqa3xdmnWAfV6IY85T0G7sezlrnLO8BjJ5EO8PzPY3V9yozldLZJAphzePYAyeyGSDK9J0PZGRez7UB1CMoVXXwMs7cnnaJ9bmk/OXTuMQlmu4mQuPtmmdoNBn/RtjgmYEB9H7F/S/cmx3rPD0DJbQTLIOU+DaUkpglhhlkq/pekaomwp9cU6/B7mqBvw25EY6P/bDNYMVgHWmkQ9pyv2e7lEElAdMXV1n87N2Fb/gQRlaVCCPgvrvbLMepeEH0/C8QvdRAnbp/FgEulB11H1bslTTML2RznYKWOCD3MzKofroOD1eGzblaZiSqsLSfnYZm5VrHqSpetz+eRFs78egWZFqS0NNzgFWRLaEK7+KopLSEd2uuiOUYqYLGwcau0T0HgYcazMCqq8Wu83W1vI6NeXl7Mbeb+23/w2SGgkBOSBR+g2MzhsihCRjrfQi4/AfyKjkrkOHveXDoCBfi5XYPxFP9Z3pM5UmhLHI=
 
-Since Linux 6.13, the kernel performs AND, OR and XOR on two registers,
-and nft accepts variable right-hand operands such as:
+Add parser tests for a named interval map with concatenated key and for
+an anonymous map as binop operands of mark statements.
 
-  ct mark set ct mark & 0xffff0000 | meta mark & 0xffff
-
-A map lookup could not be such an operand, though. Setting part of the
-packet mark from a map took a chain per map value, or a detour through
-the conntrack mark.
-
-Accept a map lookup enclosed in parentheses as operand of a binop in
-statement expressions, e.g.:
-
-  meta mark set meta mark & 0xffffff80 | (ip daddr . ip saddr map @m)
-
-which yields:
-
-  [ meta load mark => reg 1 ]
-  [ bitwise reg 1 = ( reg 1 & 0xffffff80 ) ^ 0x00000000 ]
-  [ payload load 4b @ network header + 16 => reg 2 ]
-  [ payload load 4b @ network header + 12 => reg 13 ]
-  [ lookup reg 2 set m dreg 2 ]
-  [ bitwise reg 1 = ( reg 1 | reg 2 ) ]
-  [ meta set mark with reg 1 ]
-
-The parentheses are required: without them, the existing grammar takes
-"meta mark & 0xffffff80 | ip daddr . ip saddr" as the map key.
-
-The evaluator flags map lookups as constant, so that statements use the
-map data as is. Clear the flag on binop operands, so that they take the
-register-to-register path, and keep the statement length, which map
-evaluation resets. List map operands in parentheses, so that the output
-parses back.
-
-The new grammar rule also admits a map lookup as concatenation
-component, which linearizes but cannot be listed. Reject it in the
-evaluator.
-
-In JSON, accept a map as right-hand binop operand in statement context
-and parse map key and data independently of the operand position.
-
-This requires Linux kernel >= 6.13.
+Add a packetpath test which checks that a map hit replaces the masked
+bits of the packet mark and keeps the others, and that a map miss
+leaves the mark alone.
 
 Signed-off-by: Jochen Seeber <jochen@seeber.me>
 ---
- doc/statements.txt |  7 +++++++
- src/evaluate.c     | 26 +++++++++++++++++++++++---
- src/expression.c   |  2 ++
- src/parser_bison.y |  4 ++++
- src/parser_json.c  | 15 ++++++++++++++-
- 5 files changed, 50 insertions(+), 4 deletions(-)
+ .../shell/testcases/bitwise/0040mark_binop_14 |  14 +
+ .../shell/testcases/bitwise/0040mark_binop_15 |  13 +
+ .../bitwise/dumps/0040mark_binop_14.json-nft  | 100 +++++++
+ .../bitwise/dumps/0040mark_binop_14.nft       |  11 +
+ .../bitwise/dumps/0040mark_binop_15.json-nft  |  85 ++++++
+ .../bitwise/dumps/0040mark_binop_15.nft       |   6 +
+ .../testcases/packetpath/bitwise_map_operand  |  62 +++++
+ .../dumps/bitwise_map_operand.json-nft        | 250 ++++++++++++++++++
+ .../packetpath/dumps/bitwise_map_operand.nft  |  19 ++
+ 9 files changed, 560 insertions(+)
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_14
+ create mode 100755 tests/shell/testcases/bitwise/0040mark_binop_15
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_14.json-nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_14.nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_15.json-nft
+ create mode 100644 tests/shell/testcases/bitwise/dumps/0040mark_binop_15.nft
+ create mode 100755 tests/shell/testcases/packetpath/bitwise_map_operand
+ create mode 100644 tests/shell/testcases/packetpath/dumps/bitwise_map_operand.json-nft
+ create mode 100644 tests/shell/testcases/packetpath/dumps/bitwise_map_operand.nft
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 7f7b5e60..12d0c508 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -932,6 +932,9 @@ ____
- The 'key' is a value returned by 'expression'.
- // XXX: Write about where map statement can be used (list of statements?)
- 
-+Enclosed in parentheses, a map lookup can also be an operand of the binary
-+operations *&*, *|* and *^*. This requires Linux kernel 6.13 or later.
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_14 b/tests/shell/testcases/bitwise/0040mark_binop_14
+new file mode 100755
+index 00000000..e244ca53
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_14
+@@ -0,0 +1,14 @@
++#!/bin/bash
 +
- .Using the map statement
- ------------------------
- # select DNAT target based on TCP dport:
-@@ -943,6 +946,10 @@ nft add rule ip nat prerouting dnat tcp dport map { 80 : 192.168.1.100, 8888 : 1
- # packets from net 192.168.1.0/24 will appear as originating from 10.0.0.1,
- # packets from net 192.168.2.0/24 will appear as originating from 10.0.0.2
- nft add rule ip nat postrouting snat to ip saddr map { 192.168.1.0/24 : 10.0.0.1, 192.168.2.0/24 : 10.0.0.2 }
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_bitwise_multireg)
 +
-+# replace the lower 7 bits of the packet mark by the value mapped to the
-+# destination and source address, keep the other bits
-+nft add rule ip mangle output 'meta mark set meta mark and 0xffffff80 or (ip daddr . ip saddr map @marks)'
- ------------------------
- 
- VMAP STATEMENT
-diff --git a/src/evaluate.c b/src/evaluate.c
-index f424b987..4fff4b60 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1522,6 +1522,26 @@ static int expr_evaluate_bitwise(struct eval_ctx *ctx, struct expr **expr)
- 	return 0;
- }
- 
-+/*
-+ * Map lookups are flagged constant so that statements use the map data as is.
-+ * As a binop operand, a map lookup is a value only known at runtime.
-+ */
-+static int expr_evaluate_binop_operand(struct eval_ctx *ctx,
-+				       struct expr **operand)
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority filter; }
++  add map t m { type ipv4_addr . ipv4_addr : mark; flags interval; }
++  add rule t c meta mark set meta mark and 0xffffff80 or (ip daddr . ip saddr map @m)
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/0040mark_binop_15 b/tests/shell/testcases/bitwise/0040mark_binop_15
+new file mode 100755
+index 00000000..e696d200
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/0040mark_binop_15
+@@ -0,0 +1,13 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_bitwise_multireg)
++
++set -e
++
++RULESET="
++  add table t
++  add chain t c { type filter hook output priority filter; }
++  add rule t c ct mark set (ip daddr map { 10.0.0.1 : 0x1, 10.0.0.2 : 0x2 }) or ct mark and 0xfffffffc
++"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.json-nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.json-nft
+new file mode 100644
+index 00000000..4613254f
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.json-nft
+@@ -0,0 +1,100 @@
 +{
-+	uint32_t stmt_len = ctx->stmt_len;
-+
-+	if (expr_evaluate(ctx, operand) < 0)
-+		return -1;
-+
-+	if ((*operand)->etype == EXPR_MAP) {
-+		(*operand)->flags &= ~EXPR_F_CONSTANT;
-+		ctx->stmt_len = stmt_len;
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "map": {
++        "family": "ip",
++        "name": "m",
++        "table": "t",
++        "type": [
++          "ipv4_addr",
++          "ipv4_addr"
++        ],
++        "handle": 0,
++        "map": "mark",
++        "flags": [
++          "interval"
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "meta": {
++                  "key": "mark"
++                }
++              },
++              "value": {
++                "|": [
++                  {
++                    "&": [
++                      {
++                        "meta": {
++                          "key": "mark"
++                        }
++                      },
++                      4294967168
++                    ]
++                  },
++                  {
++                    "map": {
++                      "key": {
++                        "concat": [
++                          {
++                            "payload": {
++                              "protocol": "ip",
++                              "field": "daddr"
++                            }
++                          },
++                          {
++                            "payload": {
++                              "protocol": "ip",
++                              "field": "saddr"
++                            }
++                          }
++                        ]
++                      },
++                      "data": "@m"
++                    }
++                  }
++                ]
++              }
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.nft
+new file mode 100644
+index 00000000..739537d6
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_14.nft
+@@ -0,0 +1,11 @@
++table ip t {
++	map m {
++		type ipv4_addr . ipv4_addr : mark
++		flags interval
 +	}
 +
-+	return 0;
++	chain c {
++		type filter hook output priority filter; policy accept;
++		meta mark set meta mark & 0xffffff80 | (ip daddr . ip saddr map @m)
++	}
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.json-nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.json-nft
+new file mode 100644
+index 00000000..a05277e3
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.json-nft
+@@ -0,0 +1,85 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "t",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "mangle": {
++              "key": {
++                "ct": {
++                  "key": "mark"
++                }
++              },
++              "value": {
++                "|": [
++                  {
++                    "map": {
++                      "key": {
++                        "payload": {
++                          "protocol": "ip",
++                          "field": "daddr"
++                        }
++                      },
++                      "data": {
++                        "set": [
++                          [
++                            "10.0.0.1",
++                            1
++                          ],
++                          [
++                            "10.0.0.2",
++                            2
++                          ]
++                        ]
++                      }
++                    }
++                  },
++                  {
++                    "&": [
++                      {
++                        "ct": {
++                          "key": "mark"
++                        }
++                      },
++                      4294967292
++                    ]
++                  }
++                ]
++              }
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.nft
+new file mode 100644
+index 00000000..c77a9b90
+--- /dev/null
++++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_15.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		type filter hook output priority filter; policy accept;
++		ct mark set (ip daddr map { 10.0.0.1 : 0x00000001, 10.0.0.2 : 0x00000002 }) | ct mark & 0xfffffffc
++	}
++}
+diff --git a/tests/shell/testcases/packetpath/bitwise_map_operand b/tests/shell/testcases/packetpath/bitwise_map_operand
+new file mode 100755
+index 00000000..aeed0817
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/bitwise_map_operand
+@@ -0,0 +1,62 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_bitwise_multireg)
++
++set -e
++ret=0
++
++ip link set lo up
++
++$NFT -f - <<EOF
++table ip test-binop {
++	map m {
++		type ipv4_addr . ipv4_addr : mark
++		flags interval
++		elements = { 127.0.0.1 . 127.0.0.0/8 : 0x3 }
++	}
++
++	chain in {
++		type filter hook input priority 0
++
++		icmp type echo-request meta mark 0x4003 counter
++		icmp type echo-request meta mark 0x4005 counter
++	}
++
++	chain out {
++		type filter hook output priority 0
++
++		icmp type echo-request meta mark set 0x4005
++		icmp type echo-request meta mark set meta mark & 0xffffff80 | (ip daddr . ip saddr map @m)
++	}
++}
++EOF
++
++test_match()
++{
++	mark="$1"
++	packets="$2"
++	str=$(printf "mark 0x%08x" $mark)
++
++	if ! $NFT list chain test-binop in | grep "$str" | grep "packets $packets"; then
++		$NFT list chain test-binop in
++		echo "Failed counter for mark $mark: not $packets"
++		ret=1
++	fi
 +}
 +
- /*
-  * Binop expression: both sides must be of integer base type. The left-hand side
-  * may be either constant or non-constant; if it is constant, it must be a
-@@ -1543,7 +1563,7 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
- 					 ctx->recursion.binop);
- 	ctx->recursion.binop++;
- 
--	if (expr_evaluate(ctx, &op->left) < 0)
-+	if (expr_evaluate_binop_operand(ctx, &op->left) < 0)
- 		return -1;
- 	left = op->left;
- 
-@@ -1555,7 +1575,7 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
- 				   left->byteorder, max_shift_len, 0);
- 	}
- 
--	if (expr_evaluate(ctx, &op->right) < 0)
-+	if (expr_evaluate_binop_operand(ctx, &op->right) < 0)
- 		return -1;
- 	right = op->right;
- 
-@@ -1741,7 +1761,6 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		case EXPR_BINOP:
- 		case EXPR_RELATIONAL:
- 		case EXPR_CONCAT:
--		case EXPR_MAP:
- 		case EXPR_PAYLOAD:
- 		case EXPR_EXTHDR:
- 		case EXPR_META:
-@@ -1780,6 +1799,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		case EXPR_LIST:
- 		case EXPR_SET:
- 		case EXPR_SET_REF:
-+		case EXPR_MAP:
- 		case EXPR_MAPPING:
- 		case EXPR_SET_ELEM_CATCHALL:
- 		case EXPR_RANGE_SYMBOL:
-diff --git a/src/expression.c b/src/expression.c
-index 870c7ee1..a1696a24 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -839,6 +839,8 @@ static void binop_arg_print(const struct expr *op, const struct expr *arg,
- 	    expr_binop_precedence[op->op] != 0 &&
- 	    expr_binop_precedence[op->op] < expr_binop_precedence[arg->op])
- 		prec = 1;
-+	else if (arg->etype == EXPR_MAP)
-+		prec = 1;
- 
- 	if (prec)
- 		nft_print(octx, "(");
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 83c0f323..bb56cfe0 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -4000,6 +4000,10 @@ primary_stmt_expr	:	symbol_expr			{ $$ = $1; }
- 			|	fib_expr			{ $$ = $1; }
- 			|	osf_expr			{ $$ = $1; }
- 			|	'('	basic_stmt_expr	')'	{ $$ = $2; }
-+			|	'('	concat_stmt_expr	MAP	map_stmt_expr_set	')'
-+			{
-+				$$ = map_expr_alloc(&@$, $2, $4);
-+			}
- 			;
- 
- shift_stmt_expr		:	primary_stmt_expr
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 14259ea3..33bdba17 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -1533,20 +1533,33 @@ static struct expr *json_parse_set_expr(struct json_ctx *ctx,
- static struct expr *json_parse_map_expr(struct json_ctx *ctx,
- 					const char *type, json_t *root)
- {
-+	uint32_t old_flags = ctx->flags;
- 	json_t *jkey, *jdata;
- 	struct expr *key, *data;
- 
-+	/* on the RHS, a map is only valid as binop operand in a statement */
-+	if (is_RHS(ctx) && !is_STMT(ctx)) {
-+		json_error(ctx, "Expression type map not allowed in context (%s).",
-+			   ctx_flags_to_string(ctx));
-+		return NULL;
++test_ping_and_match()
++{
++	ping="$1"
++	mark="$2"
++	packets="$3"
++
++	ping -q -c 1 "$ping"
++	test_match "$mark" "$packets"
++}
++
++# map hit: low 7 bits replaced by the map value, upper bits kept
++test_ping_and_match "127.0.0.1" 0x4003 1
++# map miss: the lookup breaks the rule, mark is left as is
++test_ping_and_match "127.0.0.2" 0x4005 1
++
++exit $ret
+diff --git a/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.json-nft b/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.json-nft
+new file mode 100644
+index 00000000..64e472d5
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.json-nft
+@@ -0,0 +1,250 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "test-binop",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "test-binop",
++        "name": "in",
++        "handle": 0,
++        "type": "filter",
++        "hook": "input",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "test-binop",
++        "name": "out",
++        "handle": 0,
++        "type": "filter",
++        "hook": "output",
++        "prio": 0,
++        "policy": "accept"
++      }
++    },
++    {
++      "map": {
++        "family": "ip",
++        "name": "m",
++        "table": "test-binop",
++        "type": [
++          "ipv4_addr",
++          "ipv4_addr"
++        ],
++        "handle": 0,
++        "map": "mark",
++        "flags": [
++          "interval"
++        ],
++        "elem": [
++          [
++            {
++              "concat": [
++                "127.0.0.1",
++                {
++                  "prefix": {
++                    "addr": "127.0.0.0",
++                    "len": 8
++                  }
++                }
++              ]
++            },
++            3
++          ]
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test-binop",
++        "chain": "in",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "meta": {
++                  "key": "mark"
++                }
++              },
++              "right": 16387
++            }
++          },
++          {
++            "counter": {
++              "packets": 1,
++              "bytes": 84
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test-binop",
++        "chain": "in",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "meta": {
++                  "key": "mark"
++                }
++              },
++              "right": 16389
++            }
++          },
++          {
++            "counter": {
++              "packets": 1,
++              "bytes": 84
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test-binop",
++        "chain": "out",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "mangle": {
++              "key": {
++                "meta": {
++                  "key": "mark"
++                }
++              },
++              "value": 16389
++            }
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "test-binop",
++        "chain": "out",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "icmp",
++                  "field": "type"
++                }
++              },
++              "right": "echo-request"
++            }
++          },
++          {
++            "mangle": {
++              "key": {
++                "meta": {
++                  "key": "mark"
++                }
++              },
++              "value": {
++                "|": [
++                  {
++                    "&": [
++                      {
++                        "meta": {
++                          "key": "mark"
++                        }
++                      },
++                      4294967168
++                    ]
++                  },
++                  {
++                    "map": {
++                      "key": {
++                        "concat": [
++                          {
++                            "payload": {
++                              "protocol": "ip",
++                              "field": "daddr"
++                            }
++                          },
++                          {
++                            "payload": {
++                              "protocol": "ip",
++                              "field": "saddr"
++                            }
++                          }
++                        ]
++                      },
++                      "data": "@m"
++                    }
++                  }
++                ]
++              }
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.nft b/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.nft
+new file mode 100644
+index 00000000..75d27615
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/dumps/bitwise_map_operand.nft
+@@ -0,0 +1,19 @@
++table ip test-binop {
++	map m {
++		type ipv4_addr . ipv4_addr : mark
++		flags interval
++		elements = { 127.0.0.1 . 127.0.0.0/8 : 0x00000003 }
 +	}
 +
- 	if (json_unpack_err(ctx, root, "{s:o, s:o}",
- 			    "key", &jkey, "data", &jdata))
- 		return NULL;
- 
-+	/* key and data do not depend on the map being a binop operand */
-+	ctx->flags &= ~(CTX_F_PRIMARY | CTX_F_RHS);
++	chain in {
++		type filter hook input priority filter; policy accept;
++		icmp type echo-request meta mark 0x00004003 counter packets 1 bytes 84
++		icmp type echo-request meta mark 0x00004005 counter packets 1 bytes 84
++	}
 +
- 	key = json_parse_map_lhs_expr(ctx, jkey);
- 	if (!key) {
- 		json_error(ctx, "Illegal map expression key.");
-+		ctx->flags = old_flags;
- 		return NULL;
- 	}
- 
- 	data = json_parse_rhs_expr(ctx, jdata);
-+	ctx->flags = old_flags;
- 	if (!data) {
- 		json_error(ctx, "Illegal map expression data.");
- 		expr_free(key);
-@@ -1652,7 +1665,7 @@ static struct expr *json_parse_expr(struct json_ctx *ctx, json_t *root)
- 	} cb_tbl[] = {
- 		{ "concat", json_parse_concat_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_DTYPE | CTX_F_SET_RHS | CTX_F_SES | CTX_F_MAP },
- 		{ "set", json_parse_set_expr, CTX_F_RHS | CTX_F_STMT }, /* allow this as stmt expr because that allows set references */
--		{ "map", json_parse_map_expr, CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS },
-+		{ "map", json_parse_map_expr, CTX_F_RHS | CTX_F_STMT | CTX_F_PRIMARY | CTX_F_SET_RHS },
- 		/* below three are multiton_rhs_expr */
- 		{ "prefix", json_parse_prefix_expr, CTX_F_RHS | CTX_F_SET_RHS | CTX_F_STMT | CTX_F_CONCAT },
- 		{ "range", json_parse_range_expr, CTX_F_RHS | CTX_F_SET_RHS | CTX_F_STMT | CTX_F_CONCAT },
++	chain out {
++		type filter hook output priority filter; policy accept;
++		icmp type echo-request meta mark set 0x00004005
++		icmp type echo-request meta mark set meta mark & 0xffffff80 | (ip daddr . ip saddr map @m)
++	}
++}
 -- 
 2.56.0
 
