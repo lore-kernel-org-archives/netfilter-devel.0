@@ -1,61 +1,43 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792762001;
-	b=vfD0jY6M/Lm43ZszRwSbNDMZPJFHRH84XwSoS5bOD8aE0CHSUWxhGZtp7nbdea3G4gdR
-	 TLX6EkFQMv0Qe1XnNugkLC219O8I4Qp/MntW6ROjM6EzfnELdCQkLEwXo+W35URRjhiOg
-	 BbbXA9NTHvm4hyMB862dLMh2ML1oXDEgwtq5QLUSuWlTNXmpLQCAezUNO/8bLs6i5BENI
-	 fYe/sUtFscFili+mUMffrdYRrnF3aWH9FEGB5FwE3sO5uhsXGt+GDr5O/9BImtWe9bBLv
-	 gRLHfNQ7aekHYnQpNaGMqTzFRLs5aNzN4xVO2sXYh31Pwhy/bJYCM33bVKUiWMbjtqg==
+	t=1792763900;
+	b=iPW267qQVhJNhACjo1/aucHSlyhb8VWJJPxhflf8OIlcYuF3upmz3DA2gzbKitPRKgxs
+	 Kq5W+Vz24D75xnrKTYyxE4mkblsrIX6pCKZW3jDPFs2w9rjUjzFOIAjwdb+Hw9RP0cLfE
+	 VL3FW6igb8Av/mUHjvLhU/iIysViVeCkPcSOfywMKF4rK9zIax10Aur/togfbzg8yar8O
+	 7sV/a+6anKXMK1TMNwpFLwxs7VjAkl/I0ShHJBbdXCtfdwCwcc08RYOKtGvsmzHhbFJoN
+	 EQCL69JXJ6Vv8cVKBzx5a/aVxonMXILBfkflzKszSUturYsn5Aq4HkTKTd8hKLVdnIw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792762001;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=WtRNiZLJCnraYg9H3m1/2nQfOsSShWLJuMiWhF+0Dpk=;
-	b=RNI9O50ZXqS6MChHAZuE79Ygc9DHHmN3Bw25GlN78Vr8O4vHca19OzC4iSZIZCkwCroX
-	 TkuZf5do8LRe894BGklulvMBtGoBirXiD0+PEDDU1bYSF/iOCUe24sDnoOS/bNgC4A9Ke
-	 vdYWQonA2dgQGONdYMHIaprpHCXvO4MjIkWYUjRt1768A+0LF6163bysDoQqqrAMVpXYR
-	 TMKxTeYGbaK9EjVTO0Cu5tLekdyeszSQsdZELACYgGJ2RrQ1gWAg8ZNxTCBOE3Wj0lmNi
-	 10J9Iyb50O4o5Kyoz6wSu9KBD1FEKG7WCLnEVkT2pNpPPh80kfVGmur7G6fUFHK0FcA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763900;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=WkSqxY4ozEGP/cAsWhtBMeaMTgCmB1TvunrwLULNWww=;
+	b=eQS/5Y7p5FuR5OHAOavWq3OhA1yWnjFjS+6+SCQnp+sRHCbS8d4L5HTs/QJJbm2cd+qh
+	 98X9LFX7gJ/Mc1TyHvzt7XeLUem1v2laGzHEkeVCX3FQoRZ1hVCtcHi+jXo0QJOe6Za8O
+	 Ra/Zv6GRPrKARGZWt0WWPjf/Fs/O9k8K/wMFmNZgXCARiS3L73vfi42pkvnnSpjSeIFNg
+	 IyqGWUnmVRSQNID3S7vPN3GZdSdHP+LrrSdBGvM3UyBS9hXtznJtpYML/BrJNjhjxDdog
+	 XEn3jL1QP62P6it4oWvYla1pBSPhEUtywOyXuhFtSDOtZ/iNpwCiC4ayVbGkVmc8Ghg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=nwl.cc;
-	spf=pass smtp.mailfrom=nwl.cc;
-	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=MnALm25J;
-	arc=none smtp.remote-ip=151.80.46.58
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BEF0606A31A
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:26:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2BEF0606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=MnALm25J
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=WtRNiZLJCnraYg9H3m1/2nQfOsSShWLJuMiWhF+0Dpk=; b=MnALm25JFV0epIGw9lUc5oDxPS
-	BGV6ujtD7oDRgPfLExbFmi9i4z7ou+SvJ8svaUoaUVEOtiOnO7p4Y+ap4SCwpf4LhH8J/Ce51X+Qa
-	jj34XsM/ASlf174DykTXmc2q53xBSdj1ZXdVo5RmIAk6B3FaaLKY+T9T+k4FLZwCeqhZS91/x/suR
-	JDkUrd++cSvtATRj/CZg8ThsPpEkmvpcqE/U2y/R7ArgWMSMYSU7OvCyD6BA8l09q13meB4aFdBqp
-	ZB1Mzpsq4rChSpGHpZkpkjegCI6Be2RHJYKkd3LwgWEbS36uZ09OEi03nuKQh+QpK4bCfTCtWSaAu
-	WpWhpiTg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1xKFI6-000000002iK-22Cm
-	for netfilter-devel@vger.kernel.org;
-	Fri, 23 Oct 2026 15:26:38 +0200
-Date: Fri, 23 Oct 2026 15:26:38 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] tests: shell: Fix for spurious fail in
- maps/typeof_maps_add_delete
-Message-ID: <attgjloxT80PCoq0@orbyte.nwl.cc>
-References: <20261023103603.1048380-1-phil@nwl.cc>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD00B606A31A
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AD00B606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0A35B60796; Fri, 23 Oct 2026 15:58:17 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnftnl 0/7] misc LLM fixes
+Date: Fri, 23 Oct 2026 15:57:59 +0200
+Message-ID: <20261023135806.7259-1-fw@strlen.de>
+X-Mailer: git-send-email 2.55.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,20 +47,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261023103603.1048380-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 23, 2026 at 12:36:03PM +0200, Phil Sutter wrote:
-> Testing on a (probably slow) aarch64 machine yielded dump failure since
-> ruleset listing had '# count 1' appended to map size statement. The 3s
-> delay supposedly wasn't long enough for the element to be reapped after
-> disabling.
-> 
-> The test itself seems to perform all desired ruleset checks though, so
-> just drop the stored dumps to avoid this problem.
-> 
-> Fixes: a8260c056a69a ("tests: add dynmap datapath add/delete test case")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+The only thing these changes have in common is that they are all
+LLM findings.
 
-Patch applied.
+1) Prevent out-of-bounds read in str_array.h, this doesn't cause crash, the
+value that is read off the end of the array is not used.
+
+2) Fix NFTNL_CHAIN_TYPE data_len to return the string length, consistent with
+other attributes.
+
+3) Fix fd leak in nftnl_batch_is_supported when mnl_socket_bind() fails.
+Close the already-open socket on the error path.
+
+4) Free partially-allocated sub-objects in nftnl_expr_parse error path via
+nftnl_expr_free. Fixes memory leaks (e.g., dynset set_name) when parsing
+embedded expressions fails after allocation.
+
+5) Allow unsetting NFTNL_FLOWTABLE_SIZE.
+
+6) Fix pointer state inconsistency by freeing the old value only after
+strndup succeeds. Delegate nftnl_parse_str_attr to the fixed helper
+instead of open-coding the same bug.
+
+7) Add nftnl_mem_blob helper for user_data and switch all users to it,
+resolving inconsistent state on alloc failure.
+
+Florian Westphal (7):
+  include: str_array.h: avoid oob read
+  src: chain: fix NFTNL_CHAIN_TYPE data_len
+  src: common: fix fd leak in nftnl_batch_is_supported
+  expr: nftnl_expr_parse: use nftnl_expr_free on error unwind
+  src: flowtable: allow to unset NFTNL_FLOWTABLE_SIZE
+  src: utils: keep old name if strndup fails
+  src: add and use nftnl_mem_blob for user_data
+
+ include/obj.h       |  5 +----
+ include/rule.h      |  5 +----
+ include/set.h       |  5 +----
+ include/set_elem.h  |  6 ++----
+ include/str_array.h |  8 ++++----
+ include/utils.h     | 24 ++++++++++++++++++++++++
+ src/chain.c         | 25 ++++++++-----------------
+ src/common.c        |  5 ++++-
+ src/expr.c          |  2 +-
+ src/flowtable.c     |  1 +
+ src/object.c        | 18 ++++++------------
+ src/rule.c          | 41 +++++++++++++----------------------------
+ src/set.c           | 18 ++++++------------
+ src/set_elem.c      | 31 +++++++++++--------------------
+ src/table.c         | 23 +++++++----------------
+ src/utils.c         | 43 ++++++++++++++++++++++++++++++++-----------
+ 16 files changed, 122 insertions(+), 138 deletions(-)
+-- 
+2.55.0
