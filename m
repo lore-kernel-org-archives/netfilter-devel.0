@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792763907;
-	b=Gr41xhet9V4cE2TerwASGYWLjC93zRzQEi3nRasUziM9adahUx+3UR2L6uVYv8EX94jp
-	 ec0QcRZRg+BPBnPeLuZ2+puKI7OGQrVCECbLhZO4SsKi0hDbrTANQxxi8t2U3f/vdUcWk
-	 BrahM3OCrV+yPZw8H3kkY7nQS8pCygiv4d8PvnECDZQzdbQgC/LNlO77QWxrlA8XucWoz
-	 NRmkl9qjmLPMd2lcjEgBuv5BJyCDDZhQcTYhvnJTS32uRvZ1fLeRh6Jr8UE7lKhRSDH7y
-	 fT+KVYEKxaz7xxkvr97UqfAEyfZs4BOwrhcVuOTsgOAIgylSG96kWXzcxKfcHTzNBBg==
+	t=1792763916;
+	b=HOxbEdzxbbRN/Rg2aONO64UcC0qeCWW4c3ql3QrVX5z+tW78HtYaz5XvE7LUBjZftw42
+	 rp6VxWbV6NT0HXMNinbey5F6XTwfQlVWX7ERKWyoXesmr0EY/5PATKm55r2a4AYo5Vb/q
+	 Zp6yFSOpCMj1kBffHrRrn1n7Wyklo8L4HYCNVCXnEJGo/7NUrMdvvuaWKTO8bcvIJTiNE
+	 Tdr8qmekMBYryjvBLQDIzwqtnABrgCsdnYg9TJWptR5+7b4K9ZJHvMtU4MZZnZcENv0RK
+	 JLhiCF7t12weiC2VhacU+YmqMRiZalXK9bATA45UoIA3b07OxtpQgpy5cNe6McK36jg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792763907;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763916;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=608K0YczLuc+VSBzg1XgNj1cdRagqX2vy3XXy2Rf2yI=;
-	b=OYy5R+LHHSUf3QARHoNR2lHxALJfX3iVTXETVpXs+TsJs0WUMq82HACj32S5ko+CEczx
-	 0q85S1CRS2Ijf28T2buMBODnjEXtMi1edr6r0svsPpECakRqXXRwbyN7ns7JODpv9BRbo
-	 jefYFCbGF4ihwyMkkSEP3bswQq9586ptm4jA6+5zM1jVZmKjqrBTW8lh8SbRrTnEItBOx
-	 +vYwqt+cVPtJp500syFzfQadEAPPUjUZ+TiTfGTgwnPA0yzC/mbkY2JWQ6PW7Tt+4n3ot
-	 lzpf1+fn3RosW9moiQ6RH7tq3BV8u/OjlZEqGOv+DszlvOqJzXQf0sdPCR5ihSG7u6w==
+	bh=V6NcFdsZ1HTj18KZxvDxUjbHxsyD5/NlHODCX95urm8=;
+	b=IQQ8cIh+2llWU7aNJ2677DU4J6sbzhQVpaKRm1hlHzrdzqkcZARTgDmR1oAkAmr5rYbx
+	 iRn8lGh/0tJ8/ApOr8J7hQUCUDTNg9sUopA8rkaQxspWQUfE1vgDEwz6bt3PmoP959/YG
+	 cabWeswt4HWfm4DJH7lZqiRMT44EcZ6h0Q/QFmC48/xg+VZj1g7u8XNd9mOZqdJFZRWha
+	 y5ERPsNhzaVRWY/S23qf/jg+UPrzkq8CyTHOyAl9veSi3FCefnmgHhAJZksFQkmKyI6qO
+	 2HxkWiKKhlOsHqI5WAgl5r9LOj7PWDYtO6pJN+GVgRYFElNb6TAXpCuZpuIuX3z+lnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36246606A31E
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 36246606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA8F606A327
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CFA8F606A327
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 885F160796; Fri, 23 Oct 2026 15:58:25 +0200 (CEST)
+	id 16E4660796; Fri, 23 Oct 2026 15:58:34 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 2/7] src: chain: fix NFTNL_CHAIN_TYPE data_len
-Date: Fri, 23 Oct 2026 15:58:01 +0200
-Message-ID: <20261023135806.7259-3-fw@strlen.de>
+Subject: [PATCH libnftnl 4/7] expr: nftnl_expr_parse: use nftnl_expr_free on error unwind
+Date: Fri, 23 Oct 2026 15:58:03 +0200
+Message-ID: <20261023135806.7259-5-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261023135806.7259-1-fw@strlen.de>
 References: <20261023135806.7259-1-fw@strlen.de>
@@ -51,26 +51,30 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Should return length of string like other attributes.  LLM finding.
+nftnl_expr_alloc already ran ->init(expr) and ->parse may have allocating sub-objects
+in the data[] region, those allocations leak.
+
+Example is dynset.c: parser might have allocated the set_name, then
+encountered a pars error when handling the embedded expressions.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/chain.c | 2 +-
+ src/expr.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/chain.c b/src/chain.c
-index 8433f7db4126..5ee8e128556c 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -345,7 +345,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
- 		*data_len = sizeof(uint32_t);
- 		return &c->family;
- 	case NFTNL_CHAIN_TYPE:
--		*data_len = sizeof(uint32_t);
-+		*data_len = strlen(c->type) + 1;
- 		return c->type;
- 	case NFTNL_CHAIN_DEV:
- 		*data_len = strlen(c->dev) + 1;
+diff --git a/src/expr.c b/src/expr.c
+index 0fec358e7480..6462119e3eb2 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -284,7 +284,7 @@ struct nftnl_expr *nftnl_expr_parse(struct nlattr *attr)
+ 	return expr;
+ 
+ err2:
+-	xfree(expr);
++	nftnl_expr_free(expr);
+ err1:
+ 	return NULL;
+ }
 -- 
 2.55.0
 
