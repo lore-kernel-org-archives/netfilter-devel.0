@@ -1,59 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792746247;
-	b=IV+zXndMioVcEejX6eZDWSuZldauXIymh7U2rOEcAWtiZAwhEPtqgRghpB/Q2jd/Bv/t
-	 p7hwTLwZ3cUBt5jctAz4vt+xgCRe2Nnr49aMZ8SBReUbOmKJ3oF71K9HjOG0u7xIfFFp2
-	 zplUYRuYu7iLzMu4H4shpXGC+hiHYK4io7w7GMn/ojsT94Sg0E2uHzgGYWkIckohz9gPX
-	 WAm3ogaqpIXDSxUS2uuapJZDpNHloanyvj2lEsfZBMAeJUadyKfCjNw3Y1NzBx0LFabYo
-	 wwSyaKmsc0M6w3HVC0qwZya/NlE/CCz+Yg0faVfrt6Q6GNs481v0xlkmWDRTeFpsq4g==
+	t=1792746899;
+	b=kke6npQpIFWD5GlUhyLAtaADeopSYl770QDsvIwSvomEtsvqbWAJ53lnPY/0i9cKS8w/
+	 YXPSQXbjUPcficUOdO+YAvXJYSt52QaFDQntHNVgnZiWNTtJduIVFg4LeEZWrTGQI/nmj
+	 aPTRWcLNeeYXjdHlAYCUf26klNm+MifzlumOoefjfqmKfB15rjWh9NQYG2/xbQpDcxppS
+	 EDOK2dzEf8jKRz14+J7IfziX/xhTABude/24PDgocpBMPxUR0labLRP2G1t6LSquqRduj
+	 XEqtG4Mum/9r0fH8c8DR965nlRTqecwD3C8MD5gXyhOOVtOtzxJljXmpJnzo6rhQNDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792746247;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=hz1aS6k9JYTIHkVB4fRMXL70ayAGOm4KjPKMJxbKxoA=;
-	b=JolpTT3VTsp7Dh7hB5rYiH3FNq+5u1l6Z9XLZuTmisA+Id/d5AvkZYeFCnmmSC7cIPhv
-	 YfvxA+jUSjI1ebxP9ZkV0KVgtAsBs0EAzjkl/u8VJpOCW11Ff6voxdfv7lZuC0wHDE/oy
-	 hITF/6lJMpX2CxXH3LwQvJVHFIHc8JegG2mLMWE4YIliQkyX7X5KiGg21S3MEhp5pj1dY
-	 ZOxFMje146x4Ovn3u8XNCo/vmvCrf04jT8uoAXc6heUiKPallRHDjy/h3mQqO3D/TnPwJ
-	 wn72MxWhCL2FpzCt9DlNRJGCqweZbtUNTFK5405itJPD5+YiPR4HiRIQ7k+tNLLJ4TQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792746899;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=2LxzQwsMxGbz7W5YCRGfzImWlOH7daeKKaYXpVIxKig=;
+	b=35dEctwfUAUe257PmhKX1ueexs/wxMjyZW3GLIlrHObXa+rWc2zRK6r1HkcbiGq4GQxk
+	 qMTqifaanfF2IlA0khBjEOEx3ah25dDqSSdbwXQmdkx72tI5yZiY/w2O631HeqPZNSlaj
+	 l71JMiJWGtFVqNtRir5MgthQEBwbgGaGIeM76MttZpZNZyikA6cpwLA7Yl4kYir2gtpvG
+	 1xbSaCXWWp+YJr3WeLLXxb4SLugp3+bcouzGEcUr+GCZOvvgboFU2atL8JyQnpH5afyh/
+	 NDiDVIDD6GEDCeqcHBQjgGhFZTq1aTwwgs7IKVifw+YH4cmNjGRJgd1EG8w6UYZVXLA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IO8VGDk7;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=fh0w2OQY;
+	arc=none smtp.remote-ip=192.198.163.16
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F418606A325;
-	Fri, 23 Oct 2026 09:04:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09265606A320
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 09:14:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09265606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IO8VGDk7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A3EB1F01825;
-	Fri, 23 Oct 2026 09:04:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792746246;
-	bh=hz1aS6k9JYTIHkVB4fRMXL70ayAGOm4KjPKMJxbKxoA=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=IO8VGDk7iqV49THZhE395BZDd0Dw0uBL2CUzMpxwWxpL6SfiisurgC5jq2w72H+Bt
-	 MdoF+AeEG6lTfVp2Ky6uyi0/ABBohzd5zGhZgbbEZC3uYo+KqnctKqxS6/iJn59Zgv
-	 vIaA9sAS5+mZasinB7xHWE11eKCu77q6xso+sn/nny17lXBiYfWNlmxWqOj8jmWCNk
-	 c+JO41eyt+hOqCNTcJumemvhQnpPeqXhKBf1A8SKP87h24RD1giNfZDsofKfXW3hvR
-	 vrYaBODrIoz4sQ2fnvvw8FQliBnbE6ENMx9q2guH9NzygNfzHmDGcSvKk0D7/DvkCx
-	 djZSSaxIFRGFA==
-Subject: Re: [PATCH 1/2] netfilter: bridge: refragment packets with a vlan tag
- moved by the bridge
-From: netdev-bot+sashiko@kernel.org
-To: laveeshb@laveeshbansal.com
-Cc: pablo@netfilter.org, fw@strlen.de, razor@blackwall.org, idosch@nvidia.com,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- bridge@lists.linux.dev, netdev@vger.kernel.org, kuba@kernel.org
-Date: Fri, 23 Oct 2026 09:04:05 +0000
-Message-ID: <179274624590.3134.14861783086322416790@kernel.org>
-In-Reply-To: <20261020005403.38212-1-laveeshb@laveeshbansal.com>
-References: <20261020005403.38212-1-laveeshb@laveeshbansal.com>
-X-sashiko-severity: Low
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=fh0w2OQY
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792746899; x=1824282899;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=F/Z+W+LAQZDRym2rr3OOprG0rMKYeGdm5AsWNhVd56w=;
+  b=fh0w2OQYFeqsAhGfGT3n2JqY8tltEovUV2iXMgy14sAsRvJX4oyWqV3J
+   ET2ZQk3yDYaDlYsn7wlZIDa3hB5efYkd20egFbB+2/nuz3NHX2f999fmv
+   dGm8otgBARvbTYtOvDqIZaFOB1olhl3MCI7W6/zF4LYbSxn4XxwIYnsPJ
+   auCgclGEb33PFkLTusaQXrE3d92Y548ZymZa29PaLXBQZ42Q3YX6Hm3Zi
+   fo/Jey227TjDOJEwaDiXNUUrh7qnyWHjRdHED3BG1WD/70Ltl036ALvnh
+   PlBU63TIHfuSeMXhL7MBPlOO79EfN98RFDLNwgl671uWG9Ov7HBVGABQ+
+   A==;
+X-CSE-ConnectionGUID: jG5y7AaGTMGJY16fB4Y5ZA==
+X-CSE-MsgGUID: waQ23BrARii1HTWAeIqLFQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11943"; a="1512594"
+X-IronPort-AV: E=Sophos;i="6.27,174,1787036400"; 
+   d="scan'208";a="1512594"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2026 02:14:58 -0700
+X-CSE-ConnectionGUID: bO0DWwUASuW/RVMcEHKMHA==
+X-CSE-MsgGUID: pDBoURfpRx6KlEcKx2IrPg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,174,1787036400"; 
+   d="scan'208";a="3494899"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 23 Oct 2026 02:14:57 -0700
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xKBMT-00000000SSM-3sjI;
+	Fri, 23 Oct 2026 09:14:53 +0000
+Date: Fri, 23 Oct 2026 17:13:54 +0800
+From: kernel test robot <lkp@intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev
+Subject: Re: [PATCH nf,v3 3/3] netfilter: nfnetlink_queue: restrict NFQA_EXP
+ to userspace helpers
+Message-ID: <202610231734.BpEmIh4g-lkp@intel.com>
+References: <20261022155129.2003363-3-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,91 +83,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261022155129.2003363-3-pablo@netfilter.org>
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Hi Pablo,
 
-Low priority / nit picks for your consideration:
+kernel test robot noticed the following build warnings:
 
-- [Low] The comment above nf_ct_bridge_frag_restore()
-  (net/bridge/netfilter/nf_conntrack_bridge.c:396), "Actually only slow…
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on nf-next/main linus/master v7.3 next-20261022]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Pablo-Neira-Ayuso/netfilter-ctnetlink-restrict-expectation-creation-glue-to-userspace-helpers/20261022-175128
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20261022155129.2003363-3-pablo%40netfilter.org
+patch subject: [PATCH nf,v3 3/3] netfilter: nfnetlink_queue: restrict NFQA_EXP to userspace helpers
+config: i386-buildonly-randconfig-1003-20261023 (https://download.01.org/0day-ci/archive/20261023/202610231734.BpEmIh4g-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261023/202610231734.BpEmIh4g-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202610231734.BpEmIh4g-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> net/netfilter/nfnetlink_queue.c:1752:13: warning: 'nfqnl_hook_exp_support' defined but not used [-Wunused-function]
+    1752 | static bool nfqnl_hook_exp_support(struct nf_hook_ops *ops)
+         |             ^~~~~~~~~~~~~~~~~~~~~~
+
+
+vim +/nfqnl_hook_exp_support +1752 net/netfilter/nfnetlink_queue.c
+
+  1751	
+> 1752	static bool nfqnl_hook_exp_support(struct nf_hook_ops *ops)
+  1753	{
+  1754		return (ops->pf == NFPROTO_IPV4 &&
+  1755			(ops->hooknum == NF_INET_POST_ROUTING ||
+  1756			 ops->hooknum == NF_INET_LOCAL_IN) &&
+  1757			ops->priority == NF_IP_PRI_CONNTRACK_CONFIRM) ||
+  1758		       (ops->pf == NFPROTO_IPV6 &&
+  1759			((ops->hooknum == NF_INET_POST_ROUTING &&
+  1760			 ops->priority == NF_IP6_PRI_LAST) ||
+  1761			 (ops->hooknum == NF_INET_LOCAL_IN &&
+  1762			  ops->priority == NF_IP6_PRI_LAST - 1))) ||
+  1763		       (ops->pf == NFPROTO_BRIDGE &&
+  1764			(ops->hooknum == NF_BR_POST_ROUTING ||
+  1765			 ops->priority == NF_IP_PRI_CONNTRACK_CONFIRM));
+  1766	}
+  1767	
 
 --
-
-netfilter: bridge: refragment packets with a vlan tag moved by the bridge
-
-With this patch, nf_ct_bridge_refrag() looks past a vlan tag that
-br_allowed_ingress() moved into the packet after prerouting
-defragmentation. It saves the tag, pulls it off, fragments the inner
-IPv4 or IPv6 packet, and then pushes the tag back onto each fragment in
-nf_ct_bridge_frag_restore() together with the outer protocol.
-
-Closes: https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
-
-> diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-> index b5444335b86f..e16071eb2df0 100644
-> --- a/net/bridge/netfilter/nf_conntrack_bridge.c
-> +++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-
-[ ... ]
-
-> +		proto = data.inband_vlan_encap_proto;
-> +		__skb_pull(skb, VLAN_HLEN);
-> +		skb->protocol = proto;
-
-[ ... ]
-
-> @@ -371,11 +399,18 @@ static int nf_ct_bridge_frag_restore(struct sk_buff *skb,
->  {
->  	int err;
->  
-> -	err = skb_cow_head(skb, ETH_HLEN);
-> +	err = skb_cow_head(skb, ETH_HLEN + (data->inband_vlan_present ? VLAN_HLEN : 0));
->  	if (err) {
->  		kfree_skb(skb);
->  		return -ENOMEM;
->  	}
-> +	if (data->inband_vlan_present) {
-> +		struct vlan_hdr *vhdr = skb_push(skb, VLAN_HLEN);
-> +
-> +		vhdr->h_vlan_TCI = htons(data->inband_vlan_tci);
-> +		vhdr->h_vlan_encapsulated_proto = data->inband_vlan_encap_proto;
-> +		skb->protocol = data->inband_vlan_proto;
-> +	}
-
-[Severity: Low]
-This isn't a bug, but the comment above nf_ct_bridge_frag_restore()
-hasn't been changed and still says:
-
-/* Actually only slow path refragmentation needs this. */
-
-Now that nf_ct_bridge_refrag() pulls the vlan header and sets
-skb->protocol to the inner ethertype before it picks the fast or slow
-path, nf_ct_bridge_frag_restore() is the only code that pushes the
-header back.
-
-The frag_list fast paths also reach this function. nf_br_ip_fragment()
-and br_ip6_fragment() call output() for the head skb and for each
-fraglist member, and that leads to:
-
-output()
-  nf_ct_bridge_refrag_post()
-    nf_ct_bridge_frag_restore()
-
-Suppose a later change skipped the restore on the fast path, as the
-comment suggests is fine. The head fragment would then go out without
-its vlan header. data->mac would still hold the vlan TPID, and
-skb->protocol would be IP or IPv6.
-
-The comment was arguably wrong even before this patch, because
-fraglist members also need the MAC copy and the hwaccel tag. Since the
-fast path now depends on the vlan restore as well, could the comment be
-updated or removed?
-
-> 	if (data->vlan_present)
-> 		__vlan_hwaccel_put_tag(skb, data->vlan_proto, data->vlan_tci);
-> 	else if (skb_vlan_tag_present(skb))
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261020000308.37362-1-laveeshb%40laveeshbansal.com
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
