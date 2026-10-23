@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792763916;
-	b=HOxbEdzxbbRN/Rg2aONO64UcC0qeCWW4c3ql3QrVX5z+tW78HtYaz5XvE7LUBjZftw42
-	 rp6VxWbV6NT0HXMNinbey5F6XTwfQlVWX7ERKWyoXesmr0EY/5PATKm55r2a4AYo5Vb/q
-	 Zp6yFSOpCMj1kBffHrRrn1n7Wyklo8L4HYCNVCXnEJGo/7NUrMdvvuaWKTO8bcvIJTiNE
-	 Tdr8qmekMBYryjvBLQDIzwqtnABrgCsdnYg9TJWptR5+7b4K9ZJHvMtU4MZZnZcENv0RK
-	 JLhiCF7t12weiC2VhacU+YmqMRiZalXK9bATA45UoIA3b07OxtpQgpy5cNe6McK36jg==
+	t=1792763912;
+	b=Rf6UUIS8fEZjHaX476pHP5GFtYeKLgX1LGdKXZV/Ha21TPtNnf4cfsR+hiXNxbx/y5e5
+	 eizN/xlNqb20VmJVacj+NX1u6Xq4+VNIpc3t8p9XX62fCHtuSOHIYwycZgOPRI7GOgY+b
+	 MekYHr5pKEs2z3kb8sIDRgeTb7BN4zi/e+NETGErGNgvVwOvNkRsWOT+KCfWAYHIl8+AK
+	 KrywB4wIo5Xbg3dI1SJkJE4W3FjZ/h+t1gmzhVTBhQCAz/y2KgARJsj2d/nVzX5tm/YlX
+	 knzEMTqMyxR1kvAg+T5ORP1VhoW+WHwVi8xfuHdgZI9+9S7QFDsG2yKrVKS1+tuZdGw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792763916;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763912;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=V6NcFdsZ1HTj18KZxvDxUjbHxsyD5/NlHODCX95urm8=;
-	b=IQQ8cIh+2llWU7aNJ2677DU4J6sbzhQVpaKRm1hlHzrdzqkcZARTgDmR1oAkAmr5rYbx
-	 iRn8lGh/0tJ8/ApOr8J7hQUCUDTNg9sUopA8rkaQxspWQUfE1vgDEwz6bt3PmoP959/YG
-	 cabWeswt4HWfm4DJH7lZqiRMT44EcZ6h0Q/QFmC48/xg+VZj1g7u8XNd9mOZqdJFZRWha
-	 y5ERPsNhzaVRWY/S23qf/jg+UPrzkq8CyTHOyAl9veSi3FCefnmgHhAJZksFQkmKyI6qO
-	 2HxkWiKKhlOsHqI5WAgl5r9LOj7PWDYtO6pJN+GVgRYFElNb6TAXpCuZpuIuX3z+lnQ==
+	bh=qlxsrS26P4SfKN6rxYXPb49qB9/nUPJmFDEGzivHKhg=;
+	b=fo5v2om5so819aC8BoyJlKi9VQuyQMj2fhefvNpQdrwauR0SAdkPgefbvZv8nDgYkuXN
+	 iavXYFC5rBAllwSSj5PLg+w30EmuoWm4HTc+GVGQZQBQ3Dx1bVrQSVYDfa2pzZ5vLIX0Z
+	 z0+E4f2auisU6+oWifkukumYDC9derbT8Yw17NpMD1Dj/yMajo/XX6ZRZsqsZCJlKbJEd
+	 53h4pIkCuWqT8+9OE6vpauVTTJ2oI5xapLFFFWBSXoZO05X5TRlZf7T4F0WYy64G59qyc
+	 Aruq0P1Gc/C4dg/Ugv1O+2KVMgnvlaj70TwCe8yAwPUOigwUjBxd04dPL5bZEipuTWQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA8F606A327
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CFA8F606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6633A606A31A
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6633A606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 16E4660796; Fri, 23 Oct 2026 15:58:34 +0200 (CEST)
+	id CA37160796; Fri, 23 Oct 2026 15:58:29 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 4/7] expr: nftnl_expr_parse: use nftnl_expr_free on error unwind
-Date: Fri, 23 Oct 2026 15:58:03 +0200
-Message-ID: <20261023135806.7259-5-fw@strlen.de>
+Subject: [PATCH libnftnl 3/7] src: common: fix fd leak in nftnl_batch_is_supported
+Date: Fri, 23 Oct 2026 15:58:02 +0200
+Message-ID: <20261023135806.7259-4-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261023135806.7259-1-fw@strlen.de>
 References: <20261023135806.7259-1-fw@strlen.de>
@@ -51,29 +51,36 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nftnl_expr_alloc already ran ->init(expr) and ->parse may have allocating sub-objects
-in the data[] region, those allocations leak.
-
-Example is dynset.c: parser might have allocated the set_name, then
-encountered a pars error when handling the embedded expressions.
+If mnl_socket_bind() fails, the already-open socket `nl` is never closed.
+LLM finding.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/expr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/common.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/src/expr.c b/src/expr.c
-index 0fec358e7480..6462119e3eb2 100644
---- a/src/expr.c
-+++ b/src/expr.c
-@@ -284,7 +284,7 @@ struct nftnl_expr *nftnl_expr_parse(struct nlattr *attr)
- 	return expr;
+diff --git a/src/common.c b/src/common.c
+index e661227c6d43..c92448393b20 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -114,8 +114,10 @@ int nftnl_batch_is_supported(void)
+ 	if (nl == NULL)
+ 		return -1;
  
- err2:
--	xfree(expr);
-+	nftnl_expr_free(expr);
- err1:
- 	return NULL;
+-	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		mnl_socket_close(nl);
+ 		return -1;
++	}
+ 
+ 	b = mnl_nlmsg_batch_start(buf, sizeof(buf));
+ 
+@@ -156,5 +158,6 @@ int nftnl_batch_is_supported(void)
+ 	return (ret == -1 && errno == EINVAL) ? 1 : 0;
+ err:
+ 	mnl_nlmsg_batch_stop(b);
++	mnl_socket_close(nl);
+ 	return -1;
  }
 -- 
 2.55.0
