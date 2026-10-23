@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792763920;
-	b=I9AONLhiTBNnuFWnuGp5MlVeAFHmAST6Lo/syBrjqYES1r4phWX2kXO0jhGQ2JOX7WYb
-	 l3PZmK24MrJA64Dx7DaaqXBIbcrTyWauk9a6dKymB+Iqdtl0pnlOayRErYLOebPxY/sDP
-	 V/wYaTK5aJpT7F5nv8WCBQsvpd2Qw59JKJXD3ioFS2tQDAPrIzDRDLG+bn5P+zr8n7AwT
-	 /Pj1kA4UeCNJqQfYBIWQ5pe3tFUUqrYxvRs1NCgE+32VDPXxebFULNhGi8zoIqyhegGhj
-	 Xm/e6t5X9jutoeuormQiXBdAtZ3U5P797hT36p42wsfxRRDwbirPk6hh84QeM4MSH5Q==
+	t=1792763924;
+	b=PsBwRZIMnjZr2yW7ru2qiDfToTzl1tlgWLu3e5CMDBlaUhSgOjySeHB/veBJBf04kz4y
+	 /MG08qr2AKE4zom0Vs1TvwjN0pI2fJh3igcFm/Dm64RGXveu42utzPNOdtGvN8J7KuWH0
+	 iCrPvNW9CeQ7K+EKzo/+Qg8GnRzMflg0oqpjCdL8aBZhxlKPbMqaEfwBWOekOxrWdhKA5
+	 hRgB1hXisKfnQLcrCFl+m4j0QP2k7nFyEiNy66lv2MYhJzM5iC7LcWQhoF8JA7jhELuNo
+	 JcqQJBOz2Ji6NgnatzgjmQUJwuTEIr4uSo5a++kIYcQePYBncZyW6jE2Wd2NiYYyV3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792763920;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763924;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=e+iKjHvNXYpZtpUHAR1vquw3k47JpM3ZOTtvT8nDIzM=;
-	b=Ag4XPgZo+dskVF4L6sd8KprCyIHXefqaW/QHocSOZpGGoAQTZLb6xq96xjT8s1wUdh43
-	 jx5rkDEPSPwSzU2tsRXKbuPqYdz6D1u+Ldt8x5RofCtklOCGUIheTFnkwQS2BdBXovB0n
-	 SCQTubVxDlxXW+F35MUv2yqhHA0Ddr7ALo5AXkK5Bs78vZTSdRg57vpfM9Rc1w+J7X3wP
-	 b/RgfNNBWTLXgDQUHoexchYNcp5ViWFtMJEN3b6vQdzi3QOdd3YFcEWb95Dy2NivW8UlO
-	 gZTjeUiPEHjJASlxC85HkPCGUDEg0y40V6Smx5u52rbWpQBZlaRwzAsYB8oG+R0O2dw==
+	bh=YPxBi3Vqxd3Ic6ZcIhyuXJVsyxzhS7zl20HxoI3pRO8=;
+	b=nMDPIkLZ/tI3wkJ6gAMSXkXqxWZZPoRTj9wBGwVGL/41bJUViSsq/Of7Uc8gCd8Fgqmt
+	 UQUYxSnYrbms38h5TCiRoto30Xrbn9GSsvj7sGtsRZHuQcqbVAEoK4kRrT0EZh3xNVNOn
+	 JuUZDoEuJfOE8q0WA5lc3Ucqvfk5PsNqDMOgkBEKAGiMZxFoom3tgdqhC+ecHG6rolAaS
+	 1sWgnKk24I0QRYKkYRZl2uA5iBSWHV9tLxuvT0ob3j2CR8icJ0BGotYgwohrYdL1xsMSO
+	 2T9s0L6LUqh/GF8PT8dNnv7vmEveKmqfA+mViwImhZ8CCl/WSTJrxO9Sg6HOezVNxEQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1211606A31A
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1211606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31650606A31A
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 31650606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 577B860796; Fri, 23 Oct 2026 15:58:38 +0200 (CEST)
+	id 9B1C960796; Fri, 23 Oct 2026 15:58:42 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 5/7] src: flowtable: allow to unset NFTNL_FLOWTABLE_SIZE
-Date: Fri, 23 Oct 2026 15:58:04 +0200
-Message-ID: <20261023135806.7259-6-fw@strlen.de>
+Subject: [PATCH libnftnl 6/7] src: utils: keep old name if strndup fails
+Date: Fri, 23 Oct 2026 15:58:05 +0200
+Message-ID: <20261023135806.7259-7-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261023135806.7259-1-fw@strlen.de>
 References: <20261023135806.7259-1-fw@strlen.de>
@@ -51,28 +51,67 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-LLM finding: NFTNL_FLOWTABLE_SIZE was missing, so we fall through
-and do not withdraw the flag.
+LLM finding: flag/pointer state inconsistency on allocation failure.
 
-This is a native uint32_t, so no memory leak occurs here.
+In practice, strndup should never fail for any realistic scenario, however,
+its clearly a bug.
+
+Free old value after allocation succeded, not before.
+
+nftnl_parse_str_attr has the same issue, delegate to the fixed function
+instead of open-coding.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/flowtable.c | 1 +
- 1 file changed, 1 insertion(+)
+ src/utils.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/src/flowtable.c b/src/flowtable.c
-index 27af51c68874..2adb478ee94a 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -72,6 +72,7 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
- 		break;
- 	case NFTNL_FLOWTABLE_HOOKNUM:
- 	case NFTNL_FLOWTABLE_PRIO:
-+	case NFTNL_FLOWTABLE_SIZE:
- 	case NFTNL_FLOWTABLE_USE:
- 	case NFTNL_FLOWTABLE_FAMILY:
- 	case NFTNL_FLOWTABLE_FLAGS:
+diff --git a/src/utils.c b/src/utils.c
+index bbe44b4d532d..ec15f9bc8646 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -139,13 +139,15 @@ void __noreturn __abi_breakage(const char *file, int line, const char *reason)
+ int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
+ 		       uint16_t attr, const void *data, uint32_t data_len)
+ {
+-	if (*flags & (1 << attr))
+-		xfree(*dptr);
++	char *new = strndup(data, data_len);
+ 
+-	*dptr = strndup(data, data_len);
+-	if (!*dptr)
++	if (!new)
+ 		return -1;
+ 
++	if (*flags & (1 << attr))
++		xfree(*dptr);
++
++	*dptr = new;
+ 	*flags |= (1 << attr);
+ 	return 0;
+ }
+@@ -196,14 +198,14 @@ char *nftnl_attr_get_ifname(const struct nlattr *attr)
+ int nftnl_parse_str_attr(const struct nlattr *tb, int attr,
+ 			 const char **field, uint32_t *flags)
+ {
++	const char *s;
++	uint32_t len;
++
+ 	if (!tb)
+ 		return 0;
+ 
+-	if (*flags & (1 << attr))
+-		xfree(*field);
+-	*field = strdup(mnl_attr_get_str(tb));
+-	if (!*field)
+-		return -1;
+-	*flags |= (1 << attr);
+-	return 0;
++	len = mnl_attr_get_payload_len(tb);
++	s = mnl_attr_get_str(tb);
++
++	return nftnl_set_str_attr(field, flags, attr, s, len);
+ }
 -- 
 2.55.0
 
