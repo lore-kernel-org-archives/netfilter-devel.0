@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792746248;
-	b=YchPv1F7A4KMPIJyRvWzHcvswYV+pMD+oWzKchWuP4DECvAN+EXR+s+3zK52sZSgxKMo
-	 9bAVcddrj+A48b0uFqFH1y6O4ONu4D03ghf5xVRhyes3ZoZLH0DL1BVwNH1ClKhqF1duC
-	 x2jEHd9jr8QNZKYGoLraEDA788aLaiajXH3PkP324qfNuUP+vRcaIBMci5ja0ZOMwPGco
-	 Lvh/8JbVFEvQI5zYyDtJcwLhrfM+7KsVVCIuBmD8+XMAcGsFtUUc9af78gd4jc22OeKXH
-	 d3DQ6jwGvXOQdMEmdTbY2vvgX+WY9NxJIRAQ33nRtQeG5NJGp74f+hAG9o2pEs/Ht5Q==
+	t=1792746247;
+	b=IV+zXndMioVcEejX6eZDWSuZldauXIymh7U2rOEcAWtiZAwhEPtqgRghpB/Q2jd/Bv/t
+	 p7hwTLwZ3cUBt5jctAz4vt+xgCRe2Nnr49aMZ8SBReUbOmKJ3oF71K9HjOG0u7xIfFFp2
+	 zplUYRuYu7iLzMu4H4shpXGC+hiHYK4io7w7GMn/ojsT94Sg0E2uHzgGYWkIckohz9gPX
+	 WAm3ogaqpIXDSxUS2uuapJZDpNHloanyvj2lEsfZBMAeJUadyKfCjNw3Y1NzBx0LFabYo
+	 wwSyaKmsc0M6w3HVC0qwZya/NlE/CCz+Yg0faVfrt6Q6GNs481v0xlkmWDRTeFpsq4g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792746248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792746247;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=Qm6mggyFBa11YEU0QCjD5Fk5lL6IMH1f7dPerchKVUE=;
-	b=XTACjF06l6RKrFZdzi6ASefNNSTPnoNfR/hbJA9TDiBYbfqWCA+AYugA5KHjikI7e60C
-	 Xo7j5y2wc9db58MWPhTF/rldOHTfsQTeRzdj6VbtlBoQGonDKiwW4r7sORJ5HiaIL1hFu
-	 UJ2566UfUHEPwbpOUQbqiZE0Lhnvi49m3wFa/5upB8gb4oUlVfHGZMlWz4tJ0gR7SYFRb
-	 6ZbXTbTx9q/lFHsMAtG+5HDp3mc8ah6X6bn0RkZB4FDhekMvo+CpXd0V8hK8abkQLuMX0
-	 b77zPfNTiPDs82mWifgWOPrbNK5YQyQefdmfFBgyO31QPYqvi787WzPetZN0eNgxk8g==
+	bh=hz1aS6k9JYTIHkVB4fRMXL70ayAGOm4KjPKMJxbKxoA=;
+	b=JolpTT3VTsp7Dh7hB5rYiH3FNq+5u1l6Z9XLZuTmisA+Id/d5AvkZYeFCnmmSC7cIPhv
+	 YfvxA+jUSjI1ebxP9ZkV0KVgtAsBs0EAzjkl/u8VJpOCW11Ff6voxdfv7lZuC0wHDE/oy
+	 hITF/6lJMpX2CxXH3LwQvJVHFIHc8JegG2mLMWE4YIliQkyX7X5KiGg21S3MEhp5pj1dY
+	 ZOxFMje146x4Ovn3u8XNCo/vmvCrf04jT8uoAXc6heUiKPallRHDjy/h3mQqO3D/TnPwJ
+	 wn72MxWhCL2FpzCt9DlNRJGCqweZbtUNTFK5405itJPD5+YiPR4HiRIQ7k+tNLLJ4TQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DnBCsOTz;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IO8VGDk7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CEE5606A31D;
-	Fri, 23 Oct 2026 09:04:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F418606A325;
+	Fri, 23 Oct 2026 09:04:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DnBCsOTz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BDE01F01828;
-	Fri, 23 Oct 2026 09:04:07 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IO8VGDk7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A3EB1F01825;
+	Fri, 23 Oct 2026 09:04:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792746247;
-	bh=Qm6mggyFBa11YEU0QCjD5Fk5lL6IMH1f7dPerchKVUE=;
+	s=k20260515; t=1792746246;
+	bh=hz1aS6k9JYTIHkVB4fRMXL70ayAGOm4KjPKMJxbKxoA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DnBCsOTzNMdKB2pJNE+2E9UYRrUzuWSaMMO2PcVdng+vd51zPEqpt0wkUygiGSy/l
-	 WdQQQB2NR0cgCYC5+SQoPrF+URpMM14WbtDZ1m4vNvRiwoNDkESM3fAoZ+785wF9tp
-	 ki67AFL8hFo+NICacOUVQlcxyt8T4i+M4rXpJBIdxq/GzCJZHoqOaOCSFazZ7rz4uj
-	 XyIO63lHQficXvPmvg6gw21JIhmUjsp/voXzrYf8Tfh30ifmXNtvGL9EFWnR1fBZAr
-	 Z6XYnYikEpl2YleZZKodx0CzAb2++yE1040ZQYQCy9yS4vh06rZy+xefBm1BDOfs7c
-	 p3+/9wJXgAkEA==
-Subject: Re: [PATCH 2/2] selftests: netfilter: add bridge conntrack test for
- vlan protocol mismatch
+	b=IO8VGDk7iqV49THZhE395BZDd0Dw0uBL2CUzMpxwWxpL6SfiisurgC5jq2w72H+Bt
+	 MdoF+AeEG6lTfVp2Ky6uyi0/ABBohzd5zGhZgbbEZC3uYo+KqnctKqxS6/iJn59Zgv
+	 vIaA9sAS5+mZasinB7xHWE11eKCu77q6xso+sn/nny17lXBiYfWNlmxWqOj8jmWCNk
+	 c+JO41eyt+hOqCNTcJumemvhQnpPeqXhKBf1A8SKP87h24RD1giNfZDsofKfXW3hvR
+	 vrYaBODrIoz4sQ2fnvvw8FQliBnbE6ENMx9q2guH9NzygNfzHmDGcSvKk0D7/DvkCx
+	 djZSSaxIFRGFA==
+Subject: Re: [PATCH 1/2] netfilter: bridge: refragment packets with a vlan tag
+ moved by the bridge
 From: netdev-bot+sashiko@kernel.org
 To: laveeshb@laveeshbansal.com
 Cc: pablo@netfilter.org, fw@strlen.de, razor@blackwall.org, idosch@nvidia.com,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  bridge@lists.linux.dev, netdev@vger.kernel.org, kuba@kernel.org
-Date: Fri, 23 Oct 2026 09:04:07 +0000
-Message-ID: <179274624702.3134.15694473086180736851@kernel.org>
-In-Reply-To: <20261020005642.39494-1-laveeshb@laveeshbansal.com>
-References: <20261020005642.39494-1-laveeshb@laveeshbansal.com>
-X-sashiko-severity: Medium
+Date: Fri, 23 Oct 2026 09:04:05 +0000
+Message-ID: <179274624590.3134.14861783086322416790@kernel.org>
+In-Reply-To: <20261020005403.38212-1-laveeshb@laveeshbansal.com>
+References: <20261020005403.38212-1-laveeshb@laveeshbansal.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,153 +64,90 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] In bridge_ct_vlan_proto.sh, the check "FAIL: conntrack did not
-  reassemble the packets" cannot detect missing reassembly in the vlan…
-- [Low] In bridge_ct_vlan_proto.sh, run_all() returns ksft_skip as soon
-  as any run_case() returns ksft_skip, even after earlier cases have run.
+- [Low] The comment above nf_ct_bridge_frag_restore()
+  (net/bridge/netfilter/nf_conntrack_bridge.c:396), "Actually only slow…
 
 --
 
-selftests: netfilter: add bridge conntrack test for vlan protocol mismatch
+netfilter: bridge: refragment packets with a vlan tag moved by the bridge
 
-This adds a selftest that sends fragmented IPv4 and IPv6 pings through a
-vlan filtering bridge with bridge conntrack, using vlan tags whose
-protocol differs from (or matches) the bridge's vlan_protocol. It checks
-that the pings get through, that conntrack reassembled the packets, and
-that the kernel did not warn.
+With this patch, nf_ct_bridge_refrag() looks past a vlan tag that
+br_allowed_ingress() moved into the packet after prerouting
+defragmentation. It saves the tag, pulls it off, fragments the inner
+IPv4 or IPv6 packet, and then pushes the tag back onto each fragment in
+nf_ct_bridge_frag_restore() together with the outer protocol.
 
-> diff --git a/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
-> new file mode 100755
-> index 000000000000..19f842e17060
-> --- /dev/null
-> +++ b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
-> @@ -0,0 +1,182 @@
+Closes: https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
 
-[ ... ]
-
-> +	# Loading a ct rule in the bridge family enables bridge conntrack. The
-> +	# postrouting counter sees the packets reassembled by conntrack.
-> +	ip netns exec "$ns0" nft -f - <<EOF || return "$ksft_skip"
-> +table bridge t {
-> +	chain pre {
-> +		type filter hook prerouting priority 0; policy accept;
-> +		ct state new counter
-> +	}
-> +	chain post {
-> +		type filter hook postrouting priority 0; policy accept;
-> +		meta length > 1400 counter
-> +	}
-> +}
-> +EOF
-
-[Severity: Medium]
-Can this counter go up in the mismatch cases even when nothing was
-reassembled?
-
-In the 802.1ad/802.1q, 802.1q/802.1ad and clone cases, __allowed_ingress()
-moves the tag into the packet after prerouting:
-
-net/bridge/br_vlan.c:__allowed_ingress() {
-    ...
-		if (skb->vlan_proto != br->vlan_proto) {
-			/* Protocol-mismatch, empty out vlan_tci for new tag */
-			skb_push(skb, ETH_HLEN);
-			skb = vlan_insert_tag_set_proto(skb, skb->vlan_proto,
-							skb_vlan_tag_get(skb));
-    ...
-}
-
-After that, skb->data sits at the 4 byte in-band vlan header. meta length
-is skb->len, so the post chain sees the IP length plus 4.
-
-With the 1400 byte mtu on eth0.100, each IPv6 fragment is
-40 + 8 + 1352 = 1400 bytes. A fragment that was never reassembled shows up
-in the post chain as 1404 bytes and matches "meta length > 1400". IPv4
-fragments come out at exactly 1400 and don't match.
-
-If bridge conntrack stopped defragmenting, nf_ct_bridge_refrag() would
-return early:
-
-net/bridge/netfilter/nf_conntrack_bridge.c:nf_ct_bridge_refrag() {
-    ...
-	if (!BR_INPUT_SKB_CB(skb)->frag_max_size)
-		return NF_ACCEPT;
-    ...
-}
-
-The fragments would still be forwarded, both pings would succeed, and the
-"packets [1-9]" check in run_case() would still pass. The refragmentation
-path this test targets would then go untested and nothing would flag it.
-
-Also, run_case() checks this one shared counter only once, after both the
-IPv4 and IPv6 pings. So the check can't tell which family was reassembled.
-
-For the mismatch cases, the comment "The postrouting counter sees the
-packets reassembled by conntrack" doesn't look accurate either.
-
-Would one of these work instead: put the counter in prerouting, where the
-tag is still hwaccel; use a threshold above any fragment size (for example
-> 1500); or keep separate "meta nfproto ipv4" and "meta nfproto ipv6"
-counters and check each one after its own ping?
+> diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+> index b5444335b86f..e16071eb2df0 100644
+> --- a/net/bridge/netfilter/nf_conntrack_bridge.c
+> +++ b/net/bridge/netfilter/nf_conntrack_bridge.c
 
 [ ... ]
 
-> +run_all()
-> +{
-> +	local rc
+> +		proto = data.inband_vlan_encap_proto;
+> +		__skb_pull(skb, VLAN_HLEN);
+> +		skb->protocol = proto;
+
+[ ... ]
+
+> @@ -371,11 +399,18 @@ static int nf_ct_bridge_frag_restore(struct sk_buff *skb,
+>  {
+>  	int err;
+>  
+> -	err = skb_cow_head(skb, ETH_HLEN);
+> +	err = skb_cow_head(skb, ETH_HLEN + (data->inband_vlan_present ? VLAN_HLEN : 0));
+>  	if (err) {
+>  		kfree_skb(skb);
+>  		return -ENOMEM;
+>  	}
+> +	if (data->inband_vlan_present) {
+> +		struct vlan_hdr *vhdr = skb_push(skb, VLAN_HLEN);
 > +
-> +	# bridge protocol, protocol of the vlan devices
-> +	for case in "802.1q 802.1q" "802.1ad 802.1q" "802.1q 802.1ad" "802.1ad 802.1q clone"; do
-> +		# shellcheck disable=SC2086
-> +		run_case $case
-> +		rc=$?
-> +		if [ "$rc" -eq "$ksft_skip" ]; then
-> +			return "$ksft_skip"
-> +		fi
-> +		[ "$rc" -ne 0 ] && ret=1
-> +	done
-> +
-> +	return 0
-> +}
-> +
-> +run_all
-> +rc=$?
-> +if [ "$rc" -eq "$ksft_skip" ] && [ "$ret" -eq 0 ]; then
-> +	exit "$ksft_skip"
-> +fi
-> +
-> +read -r t < /proc/sys/kernel/tainted
-> +if [ $((t & taint_warn)) -ne 0 ]; then
-> +	echo "FAIL: kernel warned"
-> +	ret=1
-> +fi
+> +		vhdr->h_vlan_TCI = htons(data->inband_vlan_tci);
+> +		vhdr->h_vlan_encapsulated_proto = data->inband_vlan_encap_proto;
+> +		skb->protocol = data->inband_vlan_proto;
+> +	}
 
 [Severity: Low]
-Is it possible for a warning from an earlier case to get lost here?
+This isn't a bug, but the comment above nf_ct_bridge_frag_restore()
+hasn't been changed and still says:
 
-run_all() returns ksft_skip as soon as any run_case() returns ksft_skip,
-even when earlier cases have already run. The top level then exits with
-ksft_skip before it reads /proc/sys/kernel/tainted.
+/* Actually only slow path refragmentation needs this. */
 
-Say an earlier case triggered a WARN but its pings still passed. ping -c 3
-exits 0 if any reply arrives, so ret stays 0. If setup then fails in a
-later case, for example because the 802.1ad bridge or vlan device can't
-be created, the test reports SKIP and the WARN never gets reported.
+Now that nf_ct_bridge_refrag() pulls the vlan header and sets
+skb->protocol to the inner ethertype before it picks the fast or slow
+path, nf_ct_bridge_frag_restore() is the only code that pushes the
+header back.
 
-The commit message says the test checks "that the kernel did not warn".
-Could the taint check run before the skip decision, or could the test
-fail whenever TAINT_WARN appears during the run?
+The frag_list fast paths also reach this function. nf_br_ip_fragment()
+and br_ip6_fragment() call output() for the head skb and for each
+fraglist member, and that leads to:
+
+output()
+  nf_ct_bridge_refrag_post()
+    nf_ct_bridge_frag_restore()
+
+Suppose a later change skipped the restore on the fast path, as the
+comment suggests is fine. The head fragment would then go out without
+its vlan header. data->mac would still hold the vlan TPID, and
+skb->protocol would be IP or IPv6.
+
+The comment was arguably wrong even before this patch, because
+fraglist members also need the MAC copy and the hwaccel tag. Since the
+fast path now depends on the vlan restore as well, could the comment be
+updated or removed?
+
+> 	if (data->vlan_present)
+> 		__vlan_hwaccel_put_tag(skb, data->vlan_proto, data->vlan_tci);
+> 	else if (skb_vlan_tag_present(skb))
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261020000308.37362-1-laveeshb%40laveeshbansal.com
