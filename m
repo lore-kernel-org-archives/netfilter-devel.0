@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792763904;
-	b=hxGEYVdxJCOdZAVMw9W71mKygyRpRTO4/VnbtfZTd8nCZfw/xTu/8wTawDp/8WTpmBM8
-	 4T1bC/H5+bfwSgk4f+KD/VELbBqhp84wp4Q7htWJGNm3vN+DJjekS/k+/SgG6cYZGB/3A
-	 i6ojHD4q7NE/DnrQP3ArHiD6DgRwLHpwG+4y9Lm2/8odf8SV8VyUtEG4hvTwjhp1RIfdA
-	 LzNhP55GBonp0c3x7ZbCYQ5ReySs0/fkynA/DdlTnT0zd8m87+T3NhfhBz+YF78PsUyX1
-	 fQPxiX69Feh0GTNwvc7AgkLDCxvl1fkzZZipyfEdlL51bdF1g2KLKB/5l0NrAVXX7Gg==
+	t=1792763907;
+	b=Gr41xhet9V4cE2TerwASGYWLjC93zRzQEi3nRasUziM9adahUx+3UR2L6uVYv8EX94jp
+	 ec0QcRZRg+BPBnPeLuZ2+puKI7OGQrVCECbLhZO4SsKi0hDbrTANQxxi8t2U3f/vdUcWk
+	 BrahM3OCrV+yPZw8H3kkY7nQS8pCygiv4d8PvnECDZQzdbQgC/LNlO77QWxrlA8XucWoz
+	 NRmkl9qjmLPMd2lcjEgBuv5BJyCDDZhQcTYhvnJTS32uRvZ1fLeRh6Jr8UE7lKhRSDH7y
+	 fT+KVYEKxaz7xxkvr97UqfAEyfZs4BOwrhcVuOTsgOAIgylSG96kWXzcxKfcHTzNBBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792763904;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763907;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=2spa/5huhp70hu9T5gXShnsfJnzVib4v9RnXnDIp/VU=;
-	b=ax/bwpIo/YmzUIoej+Xnu6gK8fm+QYsaBwzCRXJMN9v7U5fOufbG0LHG0/v6CCrceaKx
-	 QllolTp6bvx5hJNhX/w5jnWkueVymo6dEMyWZgiyDDGkghSK4QE/LvnyUoy3mCRM+ytMu
-	 Rzc/7Ry+Zn0zwB/LEyKq/sLO8VYk8/2tfAkeDOPZcp3YzCQD6PosL27v+gRSRh1UkxCye
-	 VKJ7DkBG5Bzbv4owguD0YjWyQw3zZJLchg4XEwt3WFeHnEnVT8xPZO+7NYLbAadJQVbpu
-	 Baaqmvw/KOq1Cpckdmtg2eO6YfReE4tQ5A2ukfXYP7pfWKq2agxWGoHEm6EbY/iWHEA==
+	bh=608K0YczLuc+VSBzg1XgNj1cdRagqX2vy3XXy2Rf2yI=;
+	b=OYy5R+LHHSUf3QARHoNR2lHxALJfX3iVTXETVpXs+TsJs0WUMq82HACj32S5ko+CEczx
+	 0q85S1CRS2Ijf28T2buMBODnjEXtMi1edr6r0svsPpECakRqXXRwbyN7ns7JODpv9BRbo
+	 jefYFCbGF4ihwyMkkSEP3bswQq9586ptm4jA6+5zM1jVZmKjqrBTW8lh8SbRrTnEItBOx
+	 +vYwqt+cVPtJp500syFzfQadEAPPUjUZ+TiTfGTgwnPA0yzC/mbkY2JWQ6PW7Tt+4n3ot
+	 lzpf1+fn3RosW9moiQ6RH7tq3BV8u/OjlZEqGOv+DszlvOqJzXQf0sdPCR5ihSG7u6w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98408606A31A
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 98408606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36246606A31E
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 36246606A31E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4900C60796; Fri, 23 Oct 2026 15:58:21 +0200 (CEST)
+	id 885F160796; Fri, 23 Oct 2026 15:58:25 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 1/7] include: str_array.h: avoid oob read
-Date: Fri, 23 Oct 2026 15:58:00 +0200
-Message-ID: <20261023135806.7259-2-fw@strlen.de>
+Subject: [PATCH libnftnl 2/7] src: chain: fix NFTNL_CHAIN_TYPE data_len
+Date: Fri, 23 Oct 2026 15:58:01 +0200
+Message-ID: <20261023135806.7259-3-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261023135806.7259-1-fw@strlen.de>
 References: <20261023135806.7259-1-fw@strlen.de>
@@ -51,36 +51,26 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-LLM says:
-The increment expression unconditionally dereferences `array[len]` *before*
-the loop condition can stop it. This is UB on every call regardless of `len > 0`.
-If `array == NULL` and `len == 0`, the *init* expression also segfaults.
-
-Add extra guards.
+Should return length of string like other attributes.  LLM finding.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/str_array.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ src/chain.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/str_array.h b/include/str_array.h
-index 98c9b4f3e6d1..cef71cf2ca63 100644
---- a/include/str_array.h
-+++ b/include/str_array.h
-@@ -14,9 +14,9 @@ void nftnl_str_array_clear(struct nftnl_str_array *sa);
- int nftnl_str_array_set(struct nftnl_str_array *sa, const char * const *array);
- int nftnl_parse_devs(struct nftnl_str_array *sa, const struct nlattr *nest);
- 
--#define nftnl_str_array_foreach(ptr, sa, idx)	\
--	for (idx = 0, ptr = (sa)->array[idx];	\
--	     idx < (sa)->len;			\
--	     ptr = (sa)->array[++idx])
-+#define nftnl_str_array_foreach(ptr, sa, idx)			\
-+	for (idx = 0, ptr = (sa)->len ? (sa)->array[0] : NULL;	\
-+	     idx < (sa)->len; idx++,				\
-+	     ptr = (idx < (sa)->len) ? (sa)->array[idx] : NULL)
- 
- #endif /* LIBNFTNL_STR_ARRAY_H */
+diff --git a/src/chain.c b/src/chain.c
+index 8433f7db4126..5ee8e128556c 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -345,7 +345,7 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
+ 		*data_len = sizeof(uint32_t);
+ 		return &c->family;
+ 	case NFTNL_CHAIN_TYPE:
+-		*data_len = sizeof(uint32_t);
++		*data_len = strlen(c->type) + 1;
+ 		return c->type;
+ 	case NFTNL_CHAIN_DEV:
+ 		*data_len = strlen(c->dev) + 1;
 -- 
 2.55.0
 
