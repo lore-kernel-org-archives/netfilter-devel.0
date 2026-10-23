@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792763912;
-	b=Rf6UUIS8fEZjHaX476pHP5GFtYeKLgX1LGdKXZV/Ha21TPtNnf4cfsR+hiXNxbx/y5e5
-	 eizN/xlNqb20VmJVacj+NX1u6Xq4+VNIpc3t8p9XX62fCHtuSOHIYwycZgOPRI7GOgY+b
-	 MekYHr5pKEs2z3kb8sIDRgeTb7BN4zi/e+NETGErGNgvVwOvNkRsWOT+KCfWAYHIl8+AK
-	 KrywB4wIo5Xbg3dI1SJkJE4W3FjZ/h+t1gmzhVTBhQCAz/y2KgARJsj2d/nVzX5tm/YlX
-	 knzEMTqMyxR1kvAg+T5ORP1VhoW+WHwVi8xfuHdgZI9+9S7QFDsG2yKrVKS1+tuZdGw==
+	t=1792763920;
+	b=I9AONLhiTBNnuFWnuGp5MlVeAFHmAST6Lo/syBrjqYES1r4phWX2kXO0jhGQ2JOX7WYb
+	 l3PZmK24MrJA64Dx7DaaqXBIbcrTyWauk9a6dKymB+Iqdtl0pnlOayRErYLOebPxY/sDP
+	 V/wYaTK5aJpT7F5nv8WCBQsvpd2Qw59JKJXD3ioFS2tQDAPrIzDRDLG+bn5P+zr8n7AwT
+	 /Pj1kA4UeCNJqQfYBIWQ5pe3tFUUqrYxvRs1NCgE+32VDPXxebFULNhGi8zoIqyhegGhj
+	 Xm/e6t5X9jutoeuormQiXBdAtZ3U5P797hT36p42wsfxRRDwbirPk6hh84QeM4MSH5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792763912;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763920;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=qlxsrS26P4SfKN6rxYXPb49qB9/nUPJmFDEGzivHKhg=;
-	b=fo5v2om5so819aC8BoyJlKi9VQuyQMj2fhefvNpQdrwauR0SAdkPgefbvZv8nDgYkuXN
-	 iavXYFC5rBAllwSSj5PLg+w30EmuoWm4HTc+GVGQZQBQ3Dx1bVrQSVYDfa2pzZ5vLIX0Z
-	 z0+E4f2auisU6+oWifkukumYDC9derbT8Yw17NpMD1Dj/yMajo/XX6ZRZsqsZCJlKbJEd
-	 53h4pIkCuWqT8+9OE6vpauVTTJ2oI5xapLFFFWBSXoZO05X5TRlZf7T4F0WYy64G59qyc
-	 Aruq0P1Gc/C4dg/Ugv1O+2KVMgnvlaj70TwCe8yAwPUOigwUjBxd04dPL5bZEipuTWQ==
+	bh=e+iKjHvNXYpZtpUHAR1vquw3k47JpM3ZOTtvT8nDIzM=;
+	b=Ag4XPgZo+dskVF4L6sd8KprCyIHXefqaW/QHocSOZpGGoAQTZLb6xq96xjT8s1wUdh43
+	 jx5rkDEPSPwSzU2tsRXKbuPqYdz6D1u+Ldt8x5RofCtklOCGUIheTFnkwQS2BdBXovB0n
+	 SCQTubVxDlxXW+F35MUv2yqhHA0Ddr7ALo5AXkK5Bs78vZTSdRg57vpfM9Rc1w+J7X3wP
+	 b/RgfNNBWTLXgDQUHoexchYNcp5ViWFtMJEN3b6vQdzi3QOdd3YFcEWb95Dy2NivW8UlO
+	 gZTjeUiPEHjJASlxC85HkPCGUDEg0y40V6Smx5u52rbWpQBZlaRwzAsYB8oG+R0O2dw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6633A606A31A
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6633A606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1211606A31A
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 13:58:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1211606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CA37160796; Fri, 23 Oct 2026 15:58:29 +0200 (CEST)
+	id 577B860796; Fri, 23 Oct 2026 15:58:38 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 3/7] src: common: fix fd leak in nftnl_batch_is_supported
-Date: Fri, 23 Oct 2026 15:58:02 +0200
-Message-ID: <20261023135806.7259-4-fw@strlen.de>
+Subject: [PATCH libnftnl 5/7] src: flowtable: allow to unset NFTNL_FLOWTABLE_SIZE
+Date: Fri, 23 Oct 2026 15:58:04 +0200
+Message-ID: <20261023135806.7259-6-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261023135806.7259-1-fw@strlen.de>
 References: <20261023135806.7259-1-fw@strlen.de>
@@ -51,37 +51,28 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If mnl_socket_bind() fails, the already-open socket `nl` is never closed.
-LLM finding.
+LLM finding: NFTNL_FLOWTABLE_SIZE was missing, so we fall through
+and do not withdraw the flag.
+
+This is a native uint32_t, so no memory leak occurs here.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/common.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ src/flowtable.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/common.c b/src/common.c
-index e661227c6d43..c92448393b20 100644
---- a/src/common.c
-+++ b/src/common.c
-@@ -114,8 +114,10 @@ int nftnl_batch_is_supported(void)
- 	if (nl == NULL)
- 		return -1;
- 
--	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		mnl_socket_close(nl);
- 		return -1;
-+	}
- 
- 	b = mnl_nlmsg_batch_start(buf, sizeof(buf));
- 
-@@ -156,5 +158,6 @@ int nftnl_batch_is_supported(void)
- 	return (ret == -1 && errno == EINVAL) ? 1 : 0;
- err:
- 	mnl_nlmsg_batch_stop(b);
-+	mnl_socket_close(nl);
- 	return -1;
- }
+diff --git a/src/flowtable.c b/src/flowtable.c
+index 27af51c68874..2adb478ee94a 100644
+--- a/src/flowtable.c
++++ b/src/flowtable.c
+@@ -72,6 +72,7 @@ void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
+ 		break;
+ 	case NFTNL_FLOWTABLE_HOOKNUM:
+ 	case NFTNL_FLOWTABLE_PRIO:
++	case NFTNL_FLOWTABLE_SIZE:
+ 	case NFTNL_FLOWTABLE_USE:
+ 	case NFTNL_FLOWTABLE_FAMILY:
+ 	case NFTNL_FLOWTABLE_FLAGS:
 -- 
 2.55.0
 
