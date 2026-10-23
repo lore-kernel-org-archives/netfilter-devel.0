@@ -1,104 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792742722;
-	b=dQ2DH+DHoQbi6AX2MD5xcSmwcb4G/0EsxUic8D+QeJKIxSTzb+mrxwudzeVjOS9mmA0/
-	 RbD3UZFnmSifwX9+OmvgubJ/EpLtw5J4tL6WbQUA1L/LCIGrRxgOEvLKsENiPZDugOj+V
-	 MGqWneXePSgDQNOBIW/AihYW0XPWAuQpIr1RHMZi6U7ryxI0Y5ppSCaTFPrxQmVlYQjtb
-	 w3vSobUH6I4La+rHymJamMUFyGznEyB+OlYreAKx6pPBQ+kycP3qCcyNB4kd9gJJdSzdE
-	 J1Nbjs21gw8gexPb1QgjsYQ4mRwTi3bvo+HNB+KnfibBVag4ro4OwChCGUhqSA+cl6A==
+	t=1792746248;
+	b=YchPv1F7A4KMPIJyRvWzHcvswYV+pMD+oWzKchWuP4DECvAN+EXR+s+3zK52sZSgxKMo
+	 9bAVcddrj+A48b0uFqFH1y6O4ONu4D03ghf5xVRhyes3ZoZLH0DL1BVwNH1ClKhqF1duC
+	 x2jEHd9jr8QNZKYGoLraEDA788aLaiajXH3PkP324qfNuUP+vRcaIBMci5ja0ZOMwPGco
+	 Lvh/8JbVFEvQI5zYyDtJcwLhrfM+7KsVVCIuBmD8+XMAcGsFtUUc9af78gd4jc22OeKXH
+	 d3DQ6jwGvXOQdMEmdTbY2vvgX+WY9NxJIRAQ33nRtQeG5NJGp74f+hAG9o2pEs/Ht5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792742722;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Queue-Id:X-Spam-Level:
-	 X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:
-	 X-Spam-Score;
-	bh=uJe3OQAvGTorhYfKOqlMJuT2mL12mzVhTxsyHo7z7HQ=;
-	b=lGNscGv+4ka8suZJEsD5JMqbuByefgP3eoP2rB3qqB8hFBC+3v1ETqoEolz0E68gNtTQ
-	 JiENtGWDj7t4nHk6MF5dWXtsOa7i28MlCSlC8EVsNPmvR+5PT1iBFI6lEQNKfQ84hVNkk
-	 7HsoMO4RXERWM+YnPIYOO8GPX67f+hon1sPZj7sSCFT/ZJFJiN1QJDYU4JJnoUpU+7u4s
-	 00uBQ0ZHUS5dOV9WkDAm5ob1Bvd9tPMSnG+1qmvLP3V7j4Xo1D3IVD13bDh2ZeOU7BNgE
-	 RGDlyDMdyXzDd6ngz5sMd88d96+BHWjJzjFkrPZWgokXqLlvKqJ0rwDNatTMqUP4gRg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792746248;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=Qm6mggyFBa11YEU0QCjD5Fk5lL6IMH1f7dPerchKVUE=;
+	b=XTACjF06l6RKrFZdzi6ASefNNSTPnoNfR/hbJA9TDiBYbfqWCA+AYugA5KHjikI7e60C
+	 Xo7j5y2wc9db58MWPhTF/rldOHTfsQTeRzdj6VbtlBoQGonDKiwW4r7sORJ5HiaIL1hFu
+	 UJ2566UfUHEPwbpOUQbqiZE0Lhnvi49m3wFa/5upB8gb4oUlVfHGZMlWz4tJ0gR7SYFRb
+	 6ZbXTbTx9q/lFHsMAtG+5HDp3mc8ah6X6bn0RkZB4FDhekMvo+CpXd0V8hK8abkQLuMX0
+	 b77zPfNTiPDs82mWifgWOPrbNK5YQyQefdmfFBgyO31QPYqvi787WzPetZN0eNgxk8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=VleN0kF+;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Vj4jJJU0;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=xrkW1Gvl;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qDVIIIS+;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DnBCsOTz;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A12BB606A31A
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Oct 2026 08:05:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A12BB606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CEE5606A31D;
+	Fri, 23 Oct 2026 09:04:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=VleN0kF+;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Vj4jJJU0;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=xrkW1Gvl;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qDVIIIS+
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id AE1262208C;
-	Fri, 23 Oct 2026 08:05:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1792742719; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uJe3OQAvGTorhYfKOqlMJuT2mL12mzVhTxsyHo7z7HQ=;
-	b=VleN0kF+EcLPWgFdHAJ2cah90suSIkkOikgeXYiSTrIhMPICw/n2h1VdUNYXwN4y5JM7TM
-	+n/5WRshE/LSgDhlrYeVmAuJdc0VjU8bQG3Datii53NKKl6FFQLvIk2GxdOPzXTn6DAj/F
-	MA6HbedJFR9BHQeeycPyKHUkjogNrrM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1792742719;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uJe3OQAvGTorhYfKOqlMJuT2mL12mzVhTxsyHo7z7HQ=;
-	b=Vj4jJJU0y4VtWDJfC4jnoDhfWepH+iRlmYHG1SwpaxDn06Z2tJ0uPo6SKCT3Cyx4Q6dQaN
-	EJgHCyu0UJgFdhAw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=xrkW1Gvl;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=qDVIIIS+
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1792742718; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uJe3OQAvGTorhYfKOqlMJuT2mL12mzVhTxsyHo7z7HQ=;
-	b=xrkW1GvlIpH6YFjPzRIqYuId68WE5+JwgmXSjUsx9oQIt5HZRU2gUvEatBvSvjvwCMgwz+
-	zXNrxfP7kRfA01k0BikeUDL7fQDP8T/AhMHW90AX6b4d+BIAvhjZRTGaqIVW/+u9goUidz
-	wlK6PNg9OyerllzLnPS424UPElbL2iM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1792742718;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uJe3OQAvGTorhYfKOqlMJuT2mL12mzVhTxsyHo7z7HQ=;
-	b=qDVIIIS+UxPbbqbUQ5n0VVJ4b2hOV2cHg6neE1W7j0NwfyP+Putsu2S7GlAFTn2xcdmeTg
-	721fF31EXopW6LBw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5FA89133F6;
-	Fri, 23 Oct 2026 08:05:18 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id CHGpCz4V22qMbAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 23 Oct 2026 08:05:18 +0000
-Message-ID: <5e8c0c60-230b-4a07-bafe-7c8216357ae8@suse.de>
-Date: Fri, 23 Oct 2026 10:04:07 +0200
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DnBCsOTz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BDE01F01828;
+	Fri, 23 Oct 2026 09:04:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792746247;
+	bh=Qm6mggyFBa11YEU0QCjD5Fk5lL6IMH1f7dPerchKVUE=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=DnBCsOTzNMdKB2pJNE+2E9UYRrUzuWSaMMO2PcVdng+vd51zPEqpt0wkUygiGSy/l
+	 WdQQQB2NR0cgCYC5+SQoPrF+URpMM14WbtDZ1m4vNvRiwoNDkESM3fAoZ+785wF9tp
+	 ki67AFL8hFo+NICacOUVQlcxyt8T4i+M4rXpJBIdxq/GzCJZHoqOaOCSFazZ7rz4uj
+	 XyIO63lHQficXvPmvg6gw21JIhmUjsp/voXzrYf8Tfh30ifmXNtvGL9EFWnR1fBZAr
+	 Z6XYnYikEpl2YleZZKodx0CzAb2++yE1040ZQYQCy9yS4vh06rZy+xefBm1BDOfs7c
+	 p3+/9wJXgAkEA==
+Subject: Re: [PATCH 2/2] selftests: netfilter: add bridge conntrack test for
+ vlan protocol mismatch
+From: netdev-bot+sashiko@kernel.org
+To: laveeshb@laveeshbansal.com
+Cc: pablo@netfilter.org, fw@strlen.de, razor@blackwall.org, idosch@nvidia.com,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ bridge@lists.linux.dev, netdev@vger.kernel.org, kuba@kernel.org
+Date: Fri, 23 Oct 2026 09:04:07 +0000
+Message-ID: <179274624702.3134.15694473086180736851@kernel.org>
+In-Reply-To: <20261020005642.39494-1-laveeshb@laveeshbansal.com>
+References: <20261020005642.39494-1-laveeshb@laveeshbansal.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -108,125 +63,154 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf,v4] netfilter: nf_reject_ipv6: fix locally generated
- packet to local address
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-References: <20261022155854.2004977-1-pablo@netfilter.org>
- <396660ef-055b-4311-8e85-455f82636910@suse.de> <atqKCsIbAn35HIse@chamomile>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <atqKCsIbAn35HIse@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: AE1262208C
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-13.50 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	XM_UA_NO_VERSION(0.01)[];
-	MX_GOOD(-0.01)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim,suse.de:email];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Score: -13.50
 
-On 10/23/26 12:11 AM, Pablo Neira Ayuso wrote:
-> On Thu, Oct 22, 2026 at 07:16:01PM +0200, Fernando Fernandez Mancera wrote:
->> On 10/22/26 5:58 PM, Pablo Neira Ayuso wrote:
->>> Fix reject expression in inet/ingress for locally generated IPv6 packets
->>> that are sent to a local address on ethX arrives through lo, really
->>> perform the similar handling as ip6_rcv_core().
->>>
->>> Reported by sashiko.
->>>
->>> Fixes: 73a73d442f99 ("netfilter: nf_reject: initialize IPCB at inet ingress")
->>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>> ---
->>> v4: do not move route lookup before, this seems to interfer with the special loopback case.
->>>
->>>    net/ipv6/netfilter/nf_reject_ipv6.c | 13 ++++++++++++-
->>>    1 file changed, 12 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
->>> index 5e08d8529cc8..8551e40faf04 100644
->>> --- a/net/ipv6/netfilter/nf_reject_ipv6.c
->>> +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
->>> @@ -445,8 +445,19 @@ void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
->>>    		skb_in->dev = net->loopback_dev;
->>>    	if (hooknum == NF_INET_INGRESS) {
->>> +		const struct inet6_dev *idev;
->>> +
->>>    		memset(IP6CB(skb_in), 0, sizeof(*IP6CB(skb_in)));
->>> -		IP6CB(skb_in)->iif = skb_in->skb_iif;
->>> +
->>> +		if (skb_valid_dst(skb_in)) {
->>> +			idev = ip6_dst_idev(skb_dst(skb_in));
->>> +			if (idev)
->>> +				IP6CB(skb_in)->iif = idev->dev->ifindex;
->>> +			else
->>> +				IP6CB(skb_in)->iif = skb_in->dev->ifindex;
->>> +		} else {
->>> +			IP6CB(skb_in)->iif = skb_in->dev->ifindex;
->>> +		}
->>>    	}
->>
->>
->> Hi Pablo, I did a bit of testing and patch LGTM.
-> 
-> May I have your Tested-by: tag?
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Sure thing!
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-Tested-by: Fernando Fernandez Mancera <fmancera@suse.de>
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-> 
->> Could we maybe simplify the code a bit by using a helper? Something like:
->>
->> static int nf_reject6_ingress_iff(const struct sk_buff *skb)
->> {
->> 	const struct inet6_dev *idev;
->>
->> 	if (skb_valid_dst(skb)) {
->> 		idev = ip6_dst_idev(skb_dst(skb));
->> 		if (idev)
->> 			return idev->dev->ifindex;
->> 	}
->>
->> 	return skb->dev->ifindex;
->> }
->>
->> Then at nf_send_unreach6() we can do:
->>
->> IP6CB(skb_in)->iif = nf_reject6_ingress_iif(skb_in);
->>
->> If I am not wrong, compiler should just inline the helper and there should
->> not be a performance hit. In addition, the code is cleaner from my point of
->> view.
->>
->> What do you think?
-> 
-> That sounds fine, I will post a v5.
+- [Medium] In bridge_ct_vlan_proto.sh, the check "FAIL: conntrack did not
+  reassemble the packets" cannot detect missing reassembly in the vlan…
+- [Low] In bridge_ct_vlan_proto.sh, run_all() returns ksft_skip as soon
+  as any run_case() returns ksft_skip, even after earlier cases have run.
 
+--
+
+selftests: netfilter: add bridge conntrack test for vlan protocol mismatch
+
+This adds a selftest that sends fragmented IPv4 and IPv6 pings through a
+vlan filtering bridge with bridge conntrack, using vlan tags whose
+protocol differs from (or matches) the bridge's vlan_protocol. It checks
+that the pings get through, that conntrack reassembled the packets, and
+that the kernel did not warn.
+
+> diff --git a/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
+> new file mode 100755
+> index 000000000000..19f842e17060
+> --- /dev/null
+> +++ b/tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
+> @@ -0,0 +1,182 @@
+
+[ ... ]
+
+> +	# Loading a ct rule in the bridge family enables bridge conntrack. The
+> +	# postrouting counter sees the packets reassembled by conntrack.
+> +	ip netns exec "$ns0" nft -f - <<EOF || return "$ksft_skip"
+> +table bridge t {
+> +	chain pre {
+> +		type filter hook prerouting priority 0; policy accept;
+> +		ct state new counter
+> +	}
+> +	chain post {
+> +		type filter hook postrouting priority 0; policy accept;
+> +		meta length > 1400 counter
+> +	}
+> +}
+> +EOF
+
+[Severity: Medium]
+Can this counter go up in the mismatch cases even when nothing was
+reassembled?
+
+In the 802.1ad/802.1q, 802.1q/802.1ad and clone cases, __allowed_ingress()
+moves the tag into the packet after prerouting:
+
+net/bridge/br_vlan.c:__allowed_ingress() {
+    ...
+		if (skb->vlan_proto != br->vlan_proto) {
+			/* Protocol-mismatch, empty out vlan_tci for new tag */
+			skb_push(skb, ETH_HLEN);
+			skb = vlan_insert_tag_set_proto(skb, skb->vlan_proto,
+							skb_vlan_tag_get(skb));
+    ...
+}
+
+After that, skb->data sits at the 4 byte in-band vlan header. meta length
+is skb->len, so the post chain sees the IP length plus 4.
+
+With the 1400 byte mtu on eth0.100, each IPv6 fragment is
+40 + 8 + 1352 = 1400 bytes. A fragment that was never reassembled shows up
+in the post chain as 1404 bytes and matches "meta length > 1400". IPv4
+fragments come out at exactly 1400 and don't match.
+
+If bridge conntrack stopped defragmenting, nf_ct_bridge_refrag() would
+return early:
+
+net/bridge/netfilter/nf_conntrack_bridge.c:nf_ct_bridge_refrag() {
+    ...
+	if (!BR_INPUT_SKB_CB(skb)->frag_max_size)
+		return NF_ACCEPT;
+    ...
+}
+
+The fragments would still be forwarded, both pings would succeed, and the
+"packets [1-9]" check in run_case() would still pass. The refragmentation
+path this test targets would then go untested and nothing would flag it.
+
+Also, run_case() checks this one shared counter only once, after both the
+IPv4 and IPv6 pings. So the check can't tell which family was reassembled.
+
+For the mismatch cases, the comment "The postrouting counter sees the
+packets reassembled by conntrack" doesn't look accurate either.
+
+Would one of these work instead: put the counter in prerouting, where the
+tag is still hwaccel; use a threshold above any fragment size (for example
+> 1500); or keep separate "meta nfproto ipv4" and "meta nfproto ipv6"
+counters and check each one after its own ping?
+
+[ ... ]
+
+> +run_all()
+> +{
+> +	local rc
+> +
+> +	# bridge protocol, protocol of the vlan devices
+> +	for case in "802.1q 802.1q" "802.1ad 802.1q" "802.1q 802.1ad" "802.1ad 802.1q clone"; do
+> +		# shellcheck disable=SC2086
+> +		run_case $case
+> +		rc=$?
+> +		if [ "$rc" -eq "$ksft_skip" ]; then
+> +			return "$ksft_skip"
+> +		fi
+> +		[ "$rc" -ne 0 ] && ret=1
+> +	done
+> +
+> +	return 0
+> +}
+> +
+> +run_all
+> +rc=$?
+> +if [ "$rc" -eq "$ksft_skip" ] && [ "$ret" -eq 0 ]; then
+> +	exit "$ksft_skip"
+> +fi
+> +
+> +read -r t < /proc/sys/kernel/tainted
+> +if [ $((t & taint_warn)) -ne 0 ]; then
+> +	echo "FAIL: kernel warned"
+> +	ret=1
+> +fi
+
+[Severity: Low]
+Is it possible for a warning from an earlier case to get lost here?
+
+run_all() returns ksft_skip as soon as any run_case() returns ksft_skip,
+even when earlier cases have already run. The top level then exits with
+ksft_skip before it reads /proc/sys/kernel/tainted.
+
+Say an earlier case triggered a WARN but its pings still passed. ping -c 3
+exits 0 if any reply arrives, so ret stays 0. If setup then fails in a
+later case, for example because the 802.1ad bridge or vlan device can't
+be created, the test reports SKIP and the WARN never gets reported.
+
+The commit message says the test checks "that the kernel did not warn".
+Could the taint check run before the skip decision, or could the test
+fail whenever TAINT_WARN appears during the run?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261020000308.37362-1-laveeshb%40laveeshbansal.com
