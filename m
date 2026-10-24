@@ -1,46 +1,46 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.126.134
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.126.133
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792846175;
-	b=vJb0KI/UUjbQNWcR/tJnBOx1N1Km6Av+047D5bXPgk9RwPjeF+DDl8ZW+61mAiNivSzE
-	 kNqPUAFeDvFMNuF1HwhZwuMsuXlVl4M0FayWoLDZ3JiwbFqPb/4HvpLdvHrFc5j09QdbT
-	 fvaSVUhTrcIdYfyHcTE2tMjCJEi6Hzj8SAx4Jl36x5CjHI3p+w/7+Rtqm7k6w47WaZE9v
-	 GameeuZiwoK2uNauq4+GjnBIT+PKJKB5AnB01YQ5myE/GVs0sUYBfraoyZaerNpxq7bBL
-	 3Cy9zxwLi3hLNn/HpvHmKYWf7yBYiJxqtOzrJjw0LUzUVV/956p/MYo4rhDQTc5JQgg==
+	t=1792846190;
+	b=0W6WoFiEV72i3c/0VLB9xKV1tW42oA0pwfmt84Im++G0KTHzLJyZzABtHGjCJJXpzjeg
+	 cEnZY8FqJIGTPB02spBgaxMolYTFsNSzYI3VO4eFshvqPoYuiENTmncr8mk3Hx+t0UCDK
+	 hq/BsJ32nOSInMmAW+0p910jSd9DGRkeHHaQz+e33x71fQEQh1ceJEvFLL5apdIc3vWCB
+	 z/42YN9XKKmprNDTg4huMFqQBP2QqU4PUoja8bClaptRrp8rENJn0N6nvkuu9UTx023CG
+	 luLmv4XTWEygA0JBAVcRqcIuGYx8UGUp5r1zOu35Lvy5yJI339BbCh2TjrpsOTWfsKg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792846175;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792846190;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 MIME-Version:Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:
 	 UI-OutboundReport;
-	bh=p/2AV0saPMIDHKLYTyhSdSQh5/dWISaZKv1R2XF9dIY=;
-	b=nngajfM+XPRovZ486IaFWN3ts6Kek0YrvcFY2jShMqktYqpOYTi3kWchDLgcLbreHWQt
-	 IIrfxrA20umaNpdjvRMFOczcN/pEJeJ2MYD1NUhhlKOBPkm8SecodlhrZfrw2Z7lJzLNJ
-	 vGzwhZAIT2TrV3+UKdn+5qdb4TuAWwiEa8yoBJ6g2dphtyckh1vhNKxVCrLJbrulihXXo
-	 mWUFpIrQ2/GHvCfl4JBwP8Vt9EyBZhykxnekJe/CMGc25s+6QwLf15pwFngwQJEdG8bsq
-	 xPbuMNrvDMF7O9rzq5ZYfQNqWojNH9Ov/cgbvEN8ZzW7bKfuCZ6Ig7cx1IgcAIn/hww==
+	bh=7vj/4hXgvEWT2AGbUwrxEeLTW7Q6LVveos1KAIoI6t0=;
+	b=PUaUdiKRf6JU/1WZsH4uOUzFXq1I7D5wBSfc85vFZINXncG7qxtTLTsztS+LVB6NH50j
+	 gGoaokVjxN2Dj3xssAeERPUcQZZS5Y7m5uODEqkK7cwblEa3qxB6Zd3+c+67EF4DwoH1n
+	 Ls910HexfES9FSGp4PHZXKPoqH5iFdL1+07tNO5GBkkJWEEc6u1qCtwTTo78c1wbXwgCZ
+	 moUPG817xmCdF/ECbTmGBUkStMF89kFRfzhoiHiplHVxsuze5bVy60U9E+tqK9e3eiwTU
+	 QJxk/zu0sRSg6EEqnTSoKrb2wlyYIFF1/DwNXD9Gvup/moSjIS2fvChIY9qpxPXx+Ow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=kernelscan.io;
 	spf=pass smtp.mailfrom=kernelscan.io;
-	arc=none smtp.remote-ip=212.227.126.134
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
+	arc=none smtp.remote-ip=212.227.126.133
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 348CE606A31F;
-	Sat, 24 Oct 2026 12:49:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 348CE606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA0B4606A31A;
+	Sat, 24 Oct 2026 12:49:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BA0B4606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kernelscan.io
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernelscan.io
 Received: from client.hidden.invalid by mrelayeu.kundenserver.de (mreue010
- [213.165.67.97]) with ESMTPSA (Nemesis) id 1M8yPu-1xFflk4AXG-00CH5q; Sat, 24
- Oct 2026 14:49:31 +0200
+ [213.165.67.97]) with ESMTPSA (Nemesis) id 1Mw99Y-1wSdcZ1H2C-017yL6; Sat, 24
+ Oct 2026 14:49:27 +0200
 From: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
 To: stable@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	netfilter-devel@vger.kernel.org
-Subject: [PATCH 5.10.y] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
-Date: Sat, 24 Oct 2026 14:49:30 +0200
-Message-ID: <20261024124930.5397-1-steffen.pfendtner@kernelscan.io>
+Subject: [PATCH 5.15.y] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
+Date: Sat, 24 Oct 2026 14:49:26 +0200
+Message-ID: <20261024124926.5225-1-steffen.pfendtner@kernelscan.io>
 X-Mailer: git-send-email 2.50.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,59 +52,58 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:soROOQMCtV0twiHiIORA0Tu5YlTbNhzAdWhKBfn6t84A/eUpPF0
- EUw8flaWeomZ98x4amOj3ZmvqIqQazS6/OZ6Tbc74ABD7DmcnWe1cLNDGoa6jduwbWLMqzs
- Dch/dZKIVOecy+BEvoNcvkkpc+PgxM4ir8rYjZytu7ysZC2Vo+lH9h0iIEi1AcRyKKTt/d5
- tpqOx0YGEgvje0IsG29bA==
+X-Provags-ID: V03:K1:slqLUBbhv6J6uJuY/0btQx6LKieAcblqn156FzIZBUkacf9Pmnf
+ 2rbDJujz7J2heBEPfM19kaEiK5ftLJeYXHayPe2MH3ie8pUde+7XHZKCb8R4QeDO7YBCVC1
+ V9Cnmmc4QgTsa/TXm9QiYBChvADo2JQnOspN3Jj4lEpktQ+4QRHuXWxLVUhN1ItOD8xWL3U
+ Vp3DvQk4Lwj0WRz3S5lBw==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:Z9mC28rEyCI=;D5/E2R0rDemuE08C71I+JkZ0fV1
- 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
- +yG+XSG
+UI-OutboundReport: notjunk:1;M01:P0:AxhvELT2CUk=;UBSsQ2Qwg3ZPTyHIudJsm9QSYXv
+ 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
 
 From: Inseo An <y0un9sa@gmail.com>
 
@@ -135,7 +134,7 @@ evaluation -- have finished before the chain is freed.
 Fixes: 91c7b38dc9f0 ("netfilter: nf_tables: use new transaction infrastructure to handle chain")
 Signed-off-by: Inseo An <y0un9sa@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-[ Backport to 5.10.y: 5.10 lacks d472e9853d7b ("netfilter: nf_tables:
+[ Backport to 5.15.y: 5.15 lacks d472e9853d7b ("netfilter: nf_tables:
   register hooks last when adding new chain/flowtable"), so the hooks are
   registered before the chain is added to table->chains and there is no
   err_register_hook label. A failing nf_tables_register_hook() can still
@@ -160,10 +159,10 @@ no KASAN reports.
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 63592c73a7a1..9862a34010d0 100644
+index b5273255b738..06e93bb1efef 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2341,8 +2341,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+@@ -2421,8 +2421,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
  	rcu_assign_pointer(chain->rules_gen_1, rules);
  
  	err = nf_tables_register_hook(net, table, chain);
