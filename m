@@ -1,94 +1,94 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.217.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792879444;
-	b=NBxurQ65H9JjQczYNquY9Ag+TKUXSnL2PvpPAAo6ZHEAPdh1Y54/LJ0tB3SPeCCYntMD
-	 PYz17X0URlTG3/9Qsyl7uJXotElzCRE0Oc1b2IYlVgM9Ro0vvwQB3ocu66Ch4ARgoxUYm
-	 MiVelY5wqjnR6/nxJaptEvXvfwQuBmllIlKlCDKQ13WZin+DfQos5VC+8xApdCiCTu6Wa
-	 OZ2l/0kkwMf/7byJClTo5nDvnHWVjalyxRo5NRPay2XRdsxIDnWPDer5wxX+n3scamYyp
-	 rgIwXnUszHn4tI0ZZ4uvNrVLonNd8iVpLTJQj4FH83yrQKk55Eph8lIlbZmYjt9Zx6A==
+	t=1792879925;
+	b=NNHZhBBrV5TKqgqR7xCFUiOZDwRdpL6SKWHqCjrSYF4O8BRbTkXIJHVDJ0G7aCzm0Eqf
+	 zkXR3ZpIWu5B1tp5owZU+fl5WePZ+hthYuWU00Fz+KIWOVweZGbWVqXW7fpXFaUvK0Yvg
+	 bJIri9qLv3hkIffiIE5Nw9Mk2wFe6RXLTTP/mQaDLkiOUg33ovN+ELNbTt27u3n6oS4+s
+	 c7dg0Op+5K+R98uUUlZVGdIOgXhYYyL56Qxf8r4T8MMfAhXN4TcuAcUAE/h4t6n31LFb7
+	 eDaZN8CwqWwSScueXHBuH3Md7Q8edAkjIm9y/fmBN7/wieI9KpWUnluDN0onIyqFBog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792879444;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792879925;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=feA+qfM2JT212n+bZvJFkoTE7dwa45VjU7+TBhyDFMc=;
-	b=EYRurvRJJJWDEyVRn8w4PbtNShrIwIJ6RjJAksdqi3OYwpQpgVseVi/JvVz70kjP9Vbi
-	 rqpaQcKf9/FnP3qWhZy265HwPdrnnF+pAuevUhdmVqXNR4ZH8jI8A9qRrr0uwAlC9zmjb
-	 +Q6gQ+/8OGevi9Z9J5bPkW/ecjXnH1XVzKZz7eVsXNw0CQoQNV+2DEqvOe9YTRo3dzvNi
-	 TZiJaXBG1pvQAW3gMQFSrAZXIFJXI5jcjVTE49G7JyX4Uv9af1klQYWr90TVF1kKa9ODm
-	 6vnIahsVvnM53nQnlmO/gAxGhtfguOQOV/j9WbWt5elNgbVhLD/2XrVRIHrgTLmMXeQ==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=SQndqOKhsFfIKOISSNh+xDt0cI5Z1P7cUyeb3mATAOU=;
+	b=KSqJf/eixgkcqzXdaSqDQKO+FhJyNk0Srdd2yLufSOwjnsoNqatkLI6nvTjzR9V8bo7d
+	 9UBcDZcsZDHbN39w9++NiWME7S/GtnhkBJKJZkL6ae/+fQiytkk8DBH+BTKFI8VpfZXBW
+	 gi+pZXgjZPPibl4A9lieeO3b+2cjAQCr6jvxcGDa3Lp/ZcweYouF3XxTz3GrLfPyM5Xj2
+	 W2gQ4sRd1LN+TyaWhHssVjI0Q7YIVj/SdbBvwJYFNBb66ddZa+Hi28lWyOx7zKnlexiZP
+	 HeJ8FQHc/mL8vykBm+CRyvnY8wyZZxgCsh1AI/v28LL3tgNapp/YcvNiM6JC8hZXaag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=Qpurg3WZ;
-	arc=none smtp.remote-ip=209.85.217.44
-Received: from mail-vs1-f44.google.com (mail-vs1-f44.google.com [209.85.217.44])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=AxLEdh8f;
+	arc=none smtp.remote-ip=209.85.128.52
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FD7B606A31B
-	for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 22:04:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0FD7B606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF241606A32E
+	for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 22:12:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AF241606A32E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=Qpurg3WZ
-Received: by mail-vs1-f44.google.com with SMTP id ada2fe7eead31-7cc603a168fso517360137.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 15:04:02 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=AxLEdh8f
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4a20bde60a0so14699315e9.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 15:12:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792879442; x=1793484242; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=feA+qfM2JT212n+bZvJFkoTE7dwa45VjU7+TBhyDFMc=;
-        b=Qpurg3WZlVKu/5kUAgA3mUMtBMev8bft64H4KwHPRWTz7VAGhMgBHfEU/UmjoBky6m
-         2dn6ym1ynQ6Fr4C5gKOHTfJXH3etTBaq/8bvvGEite2/DQ1cSStxBHJzguex8DVYNEju
-         rfatDNsVtGRzFbxWBzRrJ+rJRn5ptLdr2ISd9WjIximFOjOkOEDMImxDlQOuTZCtvtUQ
-         Un+s+U3s1b4dkc8RqpZ6+jk+RZnNbE0p1eQIajJNCQE2v2SUD6SFnVltPL5MN4Blb9Z+
-         w0capXhjjTmqrLIVjooEoHKPlgtC+qlQ2yZCXxTrxm+kYILlfbNR8EhzufLP7a5c6Exq
-         p6nQ==
+        d=gmail.com; s=20251104; t=1792879923; x=1793484723; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=SQndqOKhsFfIKOISSNh+xDt0cI5Z1P7cUyeb3mATAOU=;
+        b=AxLEdh8ffDOhb9ZrAOULe8cikugy5ihhXq5kTe2ygD2xc0/xQ7m8pMpofXswFb2Sjm
+         UQoVga+dOOGOba7AR3ti2GOhNS+bOmqJLArRj975OqEwmv9jxBMuE4aNOsaw2RxahN5S
+         GUtbo8EvuwtXeRbcBjMa3UOwE27/gqtWFVRU8pRngrDp7uM/dCy6y30AGrgwSJsr4dby
+         iWkymt1/qGThTKS7gsl8cHXzP0oQzmNK1JchEL4cY7J7Dz/FiUW22BtCyceGWOmqgpjI
+         7ebCN2i7F9zJYTxsxEI6dVzk8TneiPvrfTpfqv1wvt/vFQqH5SLgY3z8kjZs05lFjqUS
+         tIHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792879442; x=1793484242;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=feA+qfM2JT212n+bZvJFkoTE7dwa45VjU7+TBhyDFMc=;
-        b=GY/YpTLG2RNB1uLoDXJAHkD/c+otsG3j+ED6H8kFdg8dXcnln8bxw/P29xzCTuqykD
-         yBtRjM0ybsUqlwwvMwMGA7ewxn1jchb2jwHrjh4ydafg+JZeeY2rUK7WK7XuAskZrgYc
-         S2r1v8vAoR58EQKkYBBgu+ROM0JIXBBtJB2Dqk55BMorvaOpTI8jM7k4e6XCfW7Yaax7
-         3fwilWNV9pwECjzFxz9tiyJxrihv0joLQT/EVMe4A7JktNlHkITZVvFHKiOSY8eqxvLv
-         1mhK7V7767p2HNZGYwjUdyUg4yTZR69lj+mdTQECB+irreEMwFnC+MdSr2nTN4adLx/B
-         WbZw==
-X-Forwarded-Encrypted: i=1; AKwUvBzs/41BxW0s0L3ZyXCE485jcxnluMSyTg+BZv8J2mJMHJURe226mr1wHJ0LJm+JsRaYBAYJ1keDL4+rlGj39Vo=@vger.kernel.org
-X-Gm-Message-State: AFq9FYIOxASg4FCBHRbORrrtXbeQlYwoBT5segp+g/XMG3/3CCCBw432
-	BiMP+EULmYfjtYs3lbgYkB1xbFsFQ7URj1TEeGG2nHWMm5iv+Q1iq7xOt7IjZ2wDbEuLxw==
-X-Gm-Gg: AYBFou1Loj6v23ZpFr1cTQs8QW+yO521OQ/1CbOZfFn01gpeRvXsjSaJyRnffjU+WbI
-	Spu8w8Kjgl6tQBumybh1oQk/8r1NUa3em7aZnegUJuagSsdI2Imc5H4Dz1WE8LNwUXmI0OBA4TN
-	NbQa09Md69ukE7UwsVWh9gI/YeMEkaH4wCvN4tqug5KdO5yOvdI3nNks3KTeWTvDvBomx5vkzVy
-	7OoRsqkGbqMJP220QIF9kggCar/x1YeNNOOGYLKLst+KcDQF69q3GfyNgjWMzFM6d+HVGOAlic6
-	/S+OZpCog5gY09I3tk+7UbeYQpAteBJ7hY72JWEa/uJRPgiEFPALG8P3bpb7P4PZWvqU99c41ZC
-	OndYylQbD7EtKf2268yW1a4QY+OGCJ4KN+lipb2KTFnYa4EClFdBNhvbtVDwvKVBzxrkVQzq4Fl
-	re3eo3PVZ1i7ODfT5FLGqZbFVmvsr57ky1p4dcq2XpL2ABPimPMAy012x9B99NEhzpMWLkzRSIb
-	rnp7sZDTn0elwmsXlr3KTnzPPS2GsUnQ2u9SLQCKvoDV/q+vhp1D5kiQu7q/csYd5Yo5kma1u+m
-	6hWDXEvzSPeXjl0WnnlzxhbR62uZayO9Csr3/ovWlEGQbO8z52Q=
-X-Received: by 2002:a05:6102:604e:b0:7a6:a24e:8140 with SMTP id ada2fe7eead31-7ce5cd16fefmr631925137.14.1792879442011;
-        Sat, 24 Oct 2026 15:04:02 -0700 (PDT)
-Received: from 1.0.0.127.in-addr.arpa ([2804:7f0:b101:277b:c08d:c9f9:7c08:79c4])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-9910e80e2d6sm3701696241.12.2026.10.24.15.03.58
+        d=1e100.net; s=20260707; t=1792879923; x=1793484723;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=SQndqOKhsFfIKOISSNh+xDt0cI5Z1P7cUyeb3mATAOU=;
+        b=lhQYh6QUzBAyW0PnRXXK+v9pxfO8ZbWv7asD6B2ku+c5axi/F5sk/s5GusltASYclv
+         RqgIAf8Qpwu7CqzAmQIIzNBqw30GCPZO+PFRVYGr1nuU4mQNyBxykVrgoB1PilQ4LTRt
+         1CWO167X7B1409fNh09kOvaPRE+p6MwpiDrIOOWvN8dBP3/UpQVhaG8C+toYs8au21oi
+         fBj/df9cnoarSStkQ598J01f7DXCTzkfze7NzLp7qLZ1X+NCC+G26IAZEPxQ+4h13BwP
+         Sz0ccGh2ZJj/Ca2Dhyk0DApzH7EgLZqmxbDdLVqyCWcLpPc9EbrZ0SQkCoX//LkDCUeb
+         b21w==
+X-Forwarded-Encrypted: i=1; AKwUvBzBBa1e1hNKYVpLzjSCC6DcfhOqzhxdN2CsMR36ScdHXK3jPqIClOK107KpTYvpVfa0bZvre4Y+TCxiA64l2H8=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJduyruZiZgVY60VL9aiSqtv0lpRSDURz7+4hlVXx1STD+y7+Tg
+	OXybTy51yhUdphA/HTN6mK8M6UC0NZtHzcS/rjohw+u+HovISKJ2X8CH
+X-Gm-Gg: AYBFou0W2bapmdgz76RVxUAYM4292jOhEQ8HK+2Ruqd3UaRMfwSECpqR+yIfoaKME0u
+	P84QaUdNoN3ckQPoSZcyKKuZfnlLo1khH7bsn57yiMTAOEPBq2bNfq7/df+0TQ7qjV5iuqxRWCK
+	koaHJX9Yu8l/9aDSaW1XCN359Aj8Jql30W5YWned5+wLA0D0uD3oX2x6xHd+HINPjEHVuxrZMrj
+	6wqJbWjNJmuK47P4UeXKxmiXvgljEN5eQ+MyIuFpLqvFL4/gn1IKvB0sr6CLjVQYJ998/2NXhsv
+	Ippmkdj+3kbiYe1kD6tbJOQm/XHl0AXp/2B94nMpPexEdYHcs61GwMyjOG4JAhNcOIuvQ0Qzij/
+	CecYvF8J2Cdn/dAznZJ5GXy+ypjeWFPubbNCI6zYTpuYcowVbi6EBrNFvuYC87vd8dDUJtSJu5w
+	K1MlE/Ti09mvJsc0HQ9w8RRZtnbtyaeCRgpdPj8IVtsPsZdrEQRzNvsoDQRGLLGkmbwVOHsCfe7
+	wfrvaqjFyymy+ztmDwqBlqbWltEWT+qemssStBdqCpGT0avETgaUd2uU5cG36TUl260orbmHwe4
+	Qn6Z4NazyeaF3vNRI+vBdTUbnisy27MgyyQk/xH8GJQ5geDQcWiTjcmd1oU81ijCeSgoBcGgQJP
+	Q/4L5B3pkbOC1xkmckQJz3gK1bnzHM9BDAc7q3o7hfDiiDv8STOcElhSEAP9AURk4GaZUV8FsJx
+	ZhW3tTsA3C1nFBjGIHhGOS
+X-Received: by 2002:a05:600c:83c7:b0:4a2:c9b:9b98 with SMTP id 5b1f17b1804b1-4a35ac95f44mr46278555e9.17.1792879922972;
+        Sat, 24 Oct 2026 15:12:02 -0700 (PDT)
+Received: from saif-MS-7E77.lan ([102.29.255.244])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a35a55e99fsm80531705e9.4.2026.10.24.15.12.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 15:04:01 -0700 (PDT)
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>, Weiming Shi <bestswngs@gmail.com>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject:
- [PATCH nf] netfilter: nft_set_pipapo: skip transaction elements during GC
-Date: Sat, 24 Oct 2026 19:03:55 -0300
-Message-ID: <179287943591.17355.17353179557993329094@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Sat, 24 Oct 2026 15:12:02 -0700 (PDT)
+From: SaifAllah benMassaoud <saifmassaoudi18@gmail.com>
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
+	fmancera@suse.de,
+	netfilter-devel@vger.kernel.org,
+	SaifAllah benMassaoud <saifmassaoudi18@gmail.com>
+Subject: [PATCH nf-next v3] netfilter: nft_limit: reject configs whose per-packet cost can overflow
+Date: Sat, 24 Oct 2026 23:09:28 +0100
+Message-ID: <20261024220928.1751040-1-saifmassaoudi18@gmail.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -98,87 +98,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Since nft_set_commit_update() runs set commit callbacks before processing
-NEWSETELEM transactions, pipapo_gc_scan() can observe elements added by
-the transaction being committed: nft_pipapo_commit() calls
-pipapo_gc_scan() on the clone, which already holds the freshly inserted
-(not yet activated) elements.
+Byte-rate limits using long time units (e.g. bytes/week) can overflow
+priv->nsecs * skb->len in the packet-path cost calculation, silently
+defeating the configured rate limit.
 
-pipapo_gc_scan() selects elements to collect using only
-__nft_set_elem_expired(), without checking the element's transaction
-state.  A new element that is already expired at commit time (for
-example a short expiration whose delta elapses during a large batch
-parse) is deactivated, dropped and queued on the synchronous gc list,
-which frees it after an RCU grace period.  The later NEWSETELEM step of
-the same transaction then calls nft_setelem_activate() ->
-nft_pipapo_activate() -> nft_clear() on the already freed element,
-causing a use-after-free.
+Reject such configurations at rule-add time instead, using the GRO
+maximum packet size as a conservative bound on skb length for the
+multiplication check.
 
-This is the pipapo counterpart of the rbtree fix in commit 86b6471e690c
-("netfilter: nft_set_rbtree: skip transaction elements during GC"); the
-rbtree scan gained an nft_set_elem_active() guard but the pipapo scan
-was left unchanged.
-
-Only consider elements that are fully active in both generations, which
-keeps transaction-state elements out of the GC scan.
-
-The use-after-free has the same shape as the rbtree one:
-
-  BUG: KASAN: slab-use-after-free in nft_setelem_activate
-  nft_setelem_activate net/netfilter/nf_tables_api.c
-  nf_tables_commit net/netfilter/nf_tables_api.c
-
-  Allocated by nft_set_elem_init / nft_add_set_elem
-  Freed by nft_trans_gc_trans_free / rcu_core
-
-Fixes: 1e3b9e1c77fe ("netfilter: nf_tables: call set ops .commit when building new ruleset blob")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Assisted-by: Yaga Agent HackerSec Claude:claude-opus-5-5
+Fixes: d2168e849ebf ("netfilter: nft_limit: add per-byte limiting")
+Signed-off-by: SaifAllah benMassaoud <saifmassaoudi18@gmail.com>
 ---
-Compile-tested (arm64, W=1, CONFIG_NF_TABLES=y): nft_set_pipapo.o builds
-with no new warnings.
+ net/netfilter/nft_limit.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-I demonstrated the precondition on a KASAN VM (unpatched 7.3-rc6): adding
-20000 fresh elements with a short timeout (so they are already expired at
-the commit tstamp) to a timeout+interval pipapo set leaves ~0 elements in
-the set afterwards, i.e. pipapo_gc_scan() collects the not-yet-activated
-NEWSETELEM elements during the very commit that adds them - exactly what
-the nft_set_elem_active() guard prevents. I did not capture the KASAN
-splat itself: the free is call_rcu()-deferred (nft_trans_gc_queue_sync_done),
-so the subsequent nft_setelem_activate() -> nft_clear() races the grace
-period, same as the rbtree sibling.
-
-This is the pipapo counterpart of 86b6471e690c ("netfilter:
-nft_set_rbtree: skip transaction elements during GC"): same root cause
-(1e3b9e1c77fe runs set .commit before NEWSETELEM activation), same
-scan-without-active-check pattern, same nft_setelem_activate()
-use-after-free shape. pipapo_gc_scan() was not given the
-nft_set_elem_active() guard that the rbtree scan received.
-
- net/netfilter/nft_set_pipapo.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 978bb0c01..4680969eb 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1745,6 +1745,18 @@ static void pipapo_gc_scan(struct nft_set *set, struct nft_pipapo_match *m)
- 		i--;
- 		e = f->mt[rulemap[i].to].e;
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 167d99b1447f..07dc5c55b0a0 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -13,6 +13,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <linux/netdevice.h>
  
-+		/* Skip entries not fully active in both generations: these are
-+		 * elements inserted by the transaction currently being
-+		 * committed, since nft_set_commit_update() runs the set .commit
-+		 * callback before NEWSETELEM activation.  Collecting such an
-+		 * element here lets synchronous gc free it before
-+		 * nft_setelem_activate() runs on it, causing a use-after-free.
-+		 */
-+		if (!nft_set_elem_active(&e->ext, NFT_GENMASK_ANY)) {
-+			first_rule += rules_f0;
-+			continue;
-+		}
+ struct nft_limit {
+ 	spinlock_t	lock;
+@@ -73,6 +74,9 @@ static int nft_limit_init(struct nft_limit_priv *priv,
+ 	if (check_mul_overflow(unit, NSEC_PER_SEC, &priv->nsecs))
+ 		return -EOVERFLOW;
+ 
++	if (!pkts && priv->nsecs > U64_MAX / GRO_MAX_SIZE)
++		return -EOVERFLOW;
 +
- 		/* synchronous gc never fails, there is no need to set on
- 		 * NFT_SET_ELEM_DEAD_BIT.
- 		 */
+ 	if (tb[NFTA_LIMIT_BURST])
+ 		priv->burst = ntohl(nla_get_be32(tb[NFTA_LIMIT_BURST]));
+ 
+
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+-- 
+2.53.0
+
