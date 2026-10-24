@@ -1,47 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.126.133
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792846190;
-	b=0W6WoFiEV72i3c/0VLB9xKV1tW42oA0pwfmt84Im++G0KTHzLJyZzABtHGjCJJXpzjeg
-	 cEnZY8FqJIGTPB02spBgaxMolYTFsNSzYI3VO4eFshvqPoYuiENTmncr8mk3Hx+t0UCDK
-	 hq/BsJ32nOSInMmAW+0p910jSd9DGRkeHHaQz+e33x71fQEQh1ceJEvFLL5apdIc3vWCB
-	 z/42YN9XKKmprNDTg4huMFqQBP2QqU4PUoja8bClaptRrp8rENJn0N6nvkuu9UTx023CG
-	 luLmv4XTWEygA0JBAVcRqcIuGYx8UGUp5r1zOu35Lvy5yJI339BbCh2TjrpsOTWfsKg==
+	t=1792850112;
+	b=duF8OKMAhd+DULMUC10THb/6K9tLRLWZ4GWRmbI933fYR/5nQQNUfhaKIl8f+jbfV2BQ
+	 cz1LEGWsAuZyBV4OWSr6BZ5LRPG7OoVKCJABTN48JuonOvaF343pPsFVlz0vniC3RRZSZ
+	 DXYEmb8TWECFB2NgnxJ3go/6UniSK4Bbd3ORXlaE3EDaY5xtPwGwcpBwDR2bZLhqYUTa1
+	 zJuWo8fg+T6DiND61FIprzQj7SBmEoQSp4mhY6/laNrs7uTkt27nG5+l3Zm3kJADREwCa
+	 UB1cYPMddxxwXp9ijcOw5uVCiLxCffBBGVmrkPHzlptSbePNkszYLcX9JvTVeJM3DWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792846190;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:
-	 UI-OutboundReport;
-	bh=7vj/4hXgvEWT2AGbUwrxEeLTW7Q6LVveos1KAIoI6t0=;
-	b=PUaUdiKRf6JU/1WZsH4uOUzFXq1I7D5wBSfc85vFZINXncG7qxtTLTsztS+LVB6NH50j
-	 gGoaokVjxN2Dj3xssAeERPUcQZZS5Y7m5uODEqkK7cwblEa3qxB6Zd3+c+67EF4DwoH1n
-	 Ls910HexfES9FSGp4PHZXKPoqH5iFdL1+07tNO5GBkkJWEEc6u1qCtwTTo78c1wbXwgCZ
-	 moUPG817xmCdF/ECbTmGBUkStMF89kFRfzhoiHiplHVxsuze5bVy60U9E+tqK9e3eiwTU
-	 QJxk/zu0sRSg6EEqnTSoKrb2wlyYIFF1/DwNXD9Gvup/moSjIS2fvChIY9qpxPXx+Ow==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792850112;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=3WqILMMasLIfOYc4MgkSAAPs0tyX0HLUjF9zVOhuEpo=;
+	b=taDWvHOdKiLceEVmiczZ3Ken/wG3HfMKHF5lK2vAMs4N7yc+TPxhol4g84Sa9/sBbZro
+	 es9pK1YL+yAuA7Ybi8q6RbB815IMP2qnG5j69CkldfKyI+QNrHWrt4U/YLOthhhT/vuGk
+	 6uBhY/U0kDQ0Ps1TxYrkU7EUCCWCzRMM/wG3Y6zDDqwdsStKuAu8gfqnNUS34V8a8vA4Q
+	 VR9rIUcz30pN9aTBuTbdj8lvm2ahGknHCXsg4Ym2KtpzV6Y2VYiTkxWsadwRX+JgN0EFu
+	 MSEGG7nPIXCRDQ78vt+xmK/fbqUsvVW5drXQnasqVN2QJbIHVTxduyurxSGk+ftP8rQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kernelscan.io;
-	spf=pass smtp.mailfrom=kernelscan.io;
-	arc=none smtp.remote-ip=212.227.126.133
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.133])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=googlemail.com;
+	spf=pass smtp.mailfrom=googlemail.com;
+	dkim=pass header.d=googlemail.com header.i=@googlemail.com header.a=rsa-sha256 header.s=20251104 header.b=h2wkUOqN;
+	arc=none smtp.remote-ip=209.85.208.53
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA0B4606A31A;
-	Sat, 24 Oct 2026 12:49:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BA0B4606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kernelscan.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernelscan.io
-Received: from client.hidden.invalid by mrelayeu.kundenserver.de (mreue010
- [213.165.67.97]) with ESMTPSA (Nemesis) id 1Mw99Y-1wSdcZ1H2C-017yL6; Sat, 24
- Oct 2026 14:49:27 +0200
-From: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
-To: stable@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A21606A31A
+	for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 13:55:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9A21606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=googlemail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=googlemail.com header.i=@googlemail.com header.a=rsa-sha256 header.s=20251104 header.b=h2wkUOqN
+Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6afafc89b48so2885767a12.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2026 06:55:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20251104; t=1792850110; x=1793454910; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=3WqILMMasLIfOYc4MgkSAAPs0tyX0HLUjF9zVOhuEpo=;
+        b=h2wkUOqNbgMTOZH5zpcsL/6TfaB/xXJ4YbtX59B6r6pw+ZGEWePsspoxyszmcEbi17
+         Tm35E3MY326xa7ggG8DkDZSt9B+X380jLSk96DZ1QP3NTEbIc9kDWSBjyARCT0BnL0Hp
+         Iva63qAwAtWryV+YGr42fRqPnSBgnzfpqcfJ/d3BD6W3jrOJ0tXkb4UJtTrYMqEhpIg+
+         Sf4NccdPPevOGO4sKOqmH3QF9q4Q1/WDp1E5joP+5mk8IgM1/1u1xtjHBK0NgZhGaDOr
+         IU6wsnxcA4ht39pITLOXe14VWJrgWGpVsoq8NEhjbPCCiFwMRG1XAuO7Aaz51HMFnh3I
+         QSRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792850110; x=1793454910;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=3WqILMMasLIfOYc4MgkSAAPs0tyX0HLUjF9zVOhuEpo=;
+        b=x4TxeYsHqM3QVkf8IkVho0Ggqsvh7PxyLhXrooivF36BJkFIkW0vDQf+Nzjsy2j+1w
+         CIaETm02A3HxSZxqK1PfYiT7LX0yiSzys1NdEonzXuXmkXrHe/fQbBE5x8B+fRFxHsQW
+         /yP9+6kaUGtmtJxJ9aC1eVd9ni1VrZwdcIGFf1dqm5BGigNfiwJzSYbPmW2SHq7dwaXh
+         zW1fh02pDF6XKtljuNSJMW3fea7N9Au9fGRtaJKxLL+QljeEz4cxVnul2TQsamnJ/b/2
+         aB8c4OO/B8Nksmra78rTUNrcxdtkGBOAPdtCOv+OcCCjtgFOvJB0UF0fddpFu3RVdkTV
+         Adbw==
+X-Gm-Message-State: AFq9FYLwM9z8M5pfdHXHmMUL07dnd8kttqnU3sYwnC4a3wmq7nGxv6Gx
+	GIXk5e0nqn5TRqBdjDo6KZ+RBxxnEzdvV9v/gMhs2nooZFQQF4yOM+m80b+7g2QJ
+X-Gm-Gg: AYBFou3yR38/mumQ6iPc99OTxsWFeOQwkaQ9KGoYhBfbvP9uCFBaCtV6Gjcr6yxnQ9a
+	S6Qn+mTlgVmjViiz3cIsIcCiYFfXmwNwJ+dXRCKEXRDy41XYa/dA/zxKbk81IZpuxlaBBvNDZSd
+	za0Ihej/tzrT+Z16x+C4d16f1pIdwr71og36TtItITXsuyxu41EjpXQdjhvOE+KlG/uLrybpL3I
+	uNY5csE6uNKiJ9WLD/JToGYiSdIcXJRI5HdAADPbFB9E0tXMRhcFBqC3lEAxgX6+D/v/YKAiwP+
+	58/b42OeAMzeFu8sp4IXpiRZLtv0obq9hsM+d3KKh85GvUBRJmmxa+66olZYMDGi8GUpIRlIZVn
+	DLdjIvoKvqWb9sqPc7R3xo6kSzRKImZY2eHea9p4/nK1u8Jq45FAqVDSfKLR7pWfuYz+RP2G89U
+	K51nIJY66+T4FXKvt9PmHQPGxAW6WWb2Olsu02HjW6/2BlMrzqCzEof+W5IrWKsqo2zIhIBVow0
+	55yE69b2QdLwJTbux7P92/zCmIdupQIN/1FOgblk65Oc79djArAOTPdRGhuZbm6ST66IBdfgINZ
+	TqHmR9OOixiG95ykmohx8lAQhhOxIKY6IQE=
+X-Received: by 2002:a05:6402:51cc:b0:6ac:73f8:2e5e with SMTP id 4fb4d7f45d1cf-6b44325de6cmr2843796a12.39.1792850110241;
+        Sat, 24 Oct 2026 06:55:10 -0700 (PDT)
+Received: from development2.visionsystems.local (mail.visionsystems.de. [213.209.99.202])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b4459711d2sm994628a12.17.2026.10.24.06.55.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Oct 2026 06:55:09 -0700 (PDT)
+From: Yegor Yefremov <yegorslists@googlemail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Phil Sutter <phil@nwl.cc>,
 	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: [PATCH 5.15.y] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
-Date: Sat, 24 Oct 2026 14:49:26 +0200
-Message-ID: <20261024124926.5225-1-steffen.pfendtner@kernelscan.io>
-X-Mailer: git-send-email 2.50.1
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yegor Yefremov <yegorslists@googlemail.com>
+Subject: [iptables PATCH] include: linux: drop bundled copy of types.h
+Date: Sat, 24 Oct 2026 15:55:09 +0200
+Message-Id: <20261024135509.4097035-1-yegorslists@googlemail.com>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -52,128 +95,90 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:slqLUBbhv6J6uJuY/0btQx6LKieAcblqn156FzIZBUkacf9Pmnf
- 2rbDJujz7J2heBEPfM19kaEiK5ftLJeYXHayPe2MH3ie8pUde+7XHZKCb8R4QeDO7YBCVC1
- V9Cnmmc4QgTsa/TXm9QiYBChvADo2JQnOspN3Jj4lEpktQ+4QRHuXWxLVUhN1ItOD8xWL3U
- Vp3DvQk4Lwj0WRz3S5lBw==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:AxhvELT2CUk=;UBSsQ2Qwg3ZPTyHIudJsm9QSYXv
- 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
 
-From: Inseo An <y0un9sa@gmail.com>
+The bundled include/linux/types.h is a copy of the kernel UAPI header
+from v3.1-rc3. Since the build uses -I../include, it shadows the system
+<linux/types.h>.
 
-[ Upstream commit 71e99ee20fc3f662555118cf1159443250647533 ]
+Kernel UAPI headers v7.3 changed arm64's asm/sigcontext.h, included via
+<signal.h>, to use the __u128 type from linux/types.h:
 
-nf_tables_addchain() publishes the chain to table->chains via
-list_add_tail_rcu() (in nft_chain_add()) before registering hooks.
-If nf_tables_register_hook() then fails, the error path calls
-nft_chain_del() (list_del_rcu()) followed by nf_tables_chain_destroy()
-with no RCU grace period in between.
+  - __uint128_t vregs[32];
+  + __u128 vregs[32];
 
-This creates two use-after-free conditions:
+The stale copy lacks __u128, so the build fails on arm64:
 
- 1) Control-plane: nf_tables_dump_chains() traverses table->chains
-    under rcu_read_lock(). A concurrent dump can still be walking
-    the chain when the error path frees it.
+  asm/sigcontext.h:81:9: error: unknown type name '__u128'; did you mean '__u32'?
 
- 2) Packet path: for NFPROTO_INET, nf_register_net_hook() briefly
-    installs the IPv4 hook before IPv6 registration fails.  Packets
-    entering nft_do_chain() via the transient IPv4 hook can still be
-    dereferencing chain->blob_gen_X when the error path frees the
-    chain.
+The system header provides everything the bundled copy did (the
+__aligned_u64 and __sum16 types used by iptables have been available
+since well before v3.10), so drop it, as was done for ebtables.
 
-Add synchronize_rcu() between nft_chain_del() and the chain destroy
-so that all RCU readers -- both dump threads and in-flight packet
-evaluation -- have finished before the chain is freed.
-
-Fixes: 91c7b38dc9f0 ("netfilter: nf_tables: use new transaction infrastructure to handle chain")
-Signed-off-by: Inseo An <y0un9sa@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-[ Backport to 5.15.y: 5.15 lacks d472e9853d7b ("netfilter: nf_tables:
-  register hooks last when adding new chain/flowtable"), so the hooks are
-  registered before the chain is added to table->chains and there is no
-  err_register_hook label. A failing nf_tables_register_hook() can still
-  have exposed the chain to the packet path through a transiently
-  registered hook (the IPv4 hook of an inet chain when the IPv6 hook
-  fails to register), so call synchronize_rcu() before the chain is
-  destroyed on that path. This mirrors how the 5.15.y backport of
-  d73f4b53aaae handles the same situation for flowtables. ]
+Link: https://lore.kernel.org/netfilter-devel/CAD04=wrZafKknWixGGRZWtYD_ydfdL4Uk39s_RkwZ6WUEVATKg@mail.gmail.com/
 Assisted-by: Claude:claude-opus-5-5
-Signed-off-by: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
 ---
-Not a clean cherry-pick (see the bracketed note): 5.15 registers the
-chain hook before adding the chain and has no err_register_hook label,
-so the synchronize_rcu() is placed in the hook-registration failure
-branch. A review from the netfilter side would be welcome.
+ include/linux/types.h | 51 -------------------------------------------
+ 1 file changed, 51 deletions(-)
+ delete mode 100644 include/linux/types.h
 
-Build-tested on arm64; boot-tested under QEMU with KASAN: nf_tables
-chain add/list/delete across families works, ruleset flush is clean,
-no KASAN reports.
-
- net/netfilter/nf_tables_api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b5273255b738..06e93bb1efef 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2421,8 +2421,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	rcu_assign_pointer(chain->rules_gen_1, rules);
- 
- 	err = nf_tables_register_hook(net, table, chain);
--	if (err < 0)
-+	if (err < 0) {
-+		synchronize_rcu();
- 		goto err_destroy_chain;
-+	}
- 
- 	if (!nft_use_inc(&table->use)) {
- 		err = -EMFILE;
+diff --git a/include/linux/types.h b/include/linux/types.h
+deleted file mode 100644
+index 630cd3bb..00000000
+--- a/include/linux/types.h
++++ /dev/null
+@@ -1,51 +0,0 @@
+-#ifndef _LINUX_TYPES_H
+-#define _LINUX_TYPES_H
+-
+-#include <asm/types.h>
+-
+-#ifndef __ASSEMBLY__
+-
+-#include <linux/posix_types.h>
+-
+-
+-/*
+- * Below are truly Linux-specific types that should never collide with
+- * any application/library that wants linux/types.h.
+- */
+-
+-#ifdef __CHECKER__
+-#define __bitwise__ __attribute__((bitwise))
+-#else
+-#define __bitwise__
+-#endif
+-#ifdef __CHECK_ENDIAN__
+-#define __bitwise __bitwise__
+-#else
+-#define __bitwise
+-#endif
+-
+-typedef __u16 __bitwise __le16;
+-typedef __u16 __bitwise __be16;
+-typedef __u32 __bitwise __le32;
+-typedef __u32 __bitwise __be32;
+-typedef __u64 __bitwise __le64;
+-typedef __u64 __bitwise __be64;
+-
+-typedef __u16 __bitwise __sum16;
+-typedef __u32 __bitwise __wsum;
+-
+-/*
+- * aligned_u64 should be used in defining kernel<->userspace ABIs to avoid
+- * common 32/64-bit compat problems.
+- * 64-bit values align to 4-byte boundaries on x86_32 (and possibly other
+- * architectures) and to 8-byte boundaries on 64-bit architetures.  The new
+- * aligned_64 type enforces 8-byte alignment so that structs containing
+- * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
+- * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
+- */
+-#define __aligned_u64 __u64 __attribute__((aligned(8)))
+-#define __aligned_be64 __be64 __attribute__((aligned(8)))
+-#define __aligned_le64 __le64 __attribute__((aligned(8)))
+-
+-#endif /*  __ASSEMBLY__ */
+-#endif /* _LINUX_TYPES_H */
 -- 
-2.50.1 (Apple Git-155)
+2.34.1
 
