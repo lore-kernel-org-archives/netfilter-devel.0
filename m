@@ -1,47 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.72.192.73
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.17.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792942426;
-	b=bY9ZECwoELL4YdUdtxjeRPp3i2srue6sVvw/1pch88OmoDaCRgxB3KC083G7ZqF9cIn7
-	 QAyt9B/5+fkJSdJ51o0dm33Hc1jRixUnkLv3cZ7pwxhNxSQAJmVkbAbcUOqewfJkyJomw
-	 CxZqJFZw0hpTHlTQLD7tt74H2R5XkIdnj/3XdjIubfTfldEWRmC6PHg5YEDhNf5xttNUQ
-	 5j/OvnPt/o81h75oLj0ypTyfiKH66alOivPjuvJiS1RvGF1pU6ytYqD+dwvBCvx5+fjPc
-	 ls3EYSNOskqH5DvBhC+vSxSYJ4wZyp6HOi2gc5CiPqS0IFVDqcRru9Z0ds3UEGBJrSg==
+	t=1792942435;
+	b=YcYF7TfUIPy6EzUqxhPHGC/S/Nn6KeMDeTVeD9+rgTLxjXhLsD2MjDVf7LlaOe1lArfn
+	 wgxRWQ1iXdTJhIgeEjNP+Vy68rFVl6tWAzbIXgAL1w0R1jvp50ChtUmE6e3oyIjpxDBUB
+	 hTY3mTO7KzWu+b2+O7hz4mE09Va2+TYXupkUunij8TpqhndCwmX1hOqI40OrKhL0xYq+5
+	 c5X+6GpabiH7KyNCD6aN/p3vVw1OC60mqCGhyohSl4kJMJQDO+AmI2U44K7RS0MyB2tZZ
+	 OsV4bt/4TMLm4vw+ekUBPyJ7SjNx25JWXEo38x1y+ilrmtMqU1k/Mkd+/ZIUyIkz4Bg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792942426;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792942435;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
 	 X-Provags-ID:X-Spam-Flag:UI-OutboundReport;
-	bh=cehBNXVPFwP8lu60EZ3dTh8llabfw1q+edQaO8Vh+5Y=;
-	b=KqfJ4P/ern69BIE0UameyiAGFE9koXGOY36oRzJ5zoPrI4hUDBrKTNL2OIXID5Dv5W4u
-	 w1ZjIpB8P3JCzNw0WClTO61pAgY67640lqMgJNyo8BGJCWPhcQc9wyUfJxehGgIgQdzo2
-	 nmk1K/IleG4FBXtfmmv2Bw8QM/aF4IBE7UzwYnFrlFVuWClbXgbz5JrjXKDvV0+mVx+v2
-	 XfBSBWZJb5rWhJTs7DIIlWlLQI7NEvZYLW7EnlxT8nRzVK5TT7djxFZTtsURw7dwuSsBp
-	 +iiLF1d3YcwahtQKscSExtjKwsuyHdUBwGwrsaYbwjvI8/AKaZ0pAwnSC7WairMWTpA==
+	bh=HTyf5ur55yLdYQwBYCrQ3stmUJEtzGPNmaBJHQGfwG8=;
+	b=xKSFoTKj2/8I8aCTdP7lh0Ij1sr4W2ItRYlJNNSLMudpzLyCmRxykkswdXm0FcVwe2VR
+	 ho4wSDVItyG+i3b0BG22uI4uFOTWQsiHQi/b+M7zGz0tusrzrk8GH5zYwFWiXmFFFxFuu
+	 fo//DIeeFJEZgjqIOhCSAmNB7jS2X9A+jBhCfnrs2l+kJ8T/l505S81Kd8M6QQ/G9Hywn
+	 LM5s3i+BQJDbwkDqqo44gf2TW5UeXOtBj+vF7zEYqMZC2unyF9qEYtUzKNaxUhBnQVOkN
+	 mRDgsrjHhhqNq71TjOyzsGmNc+EgGVnvx9vF2uw0GqRXKIMQAC0NVBZjIqdJ1kkCOjQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=kernelscan.io;
 	spf=pass smtp.mailfrom=kernelscan.io;
-	arc=none smtp.remote-ip=217.72.192.73
-Received: from mout.kundenserver.de (mout.kundenserver.de [217.72.192.73])
+	arc=none smtp.remote-ip=212.227.17.10
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.10])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E9F606A31A;
-	Sun, 25 Oct 2026 15:33:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E2E9F606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA96B606A31B;
+	Sun, 25 Oct 2026 15:33:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA96B606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kernelscan.io
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernelscan.io
 Received: from client.hidden.invalid by mrelayeu.kundenserver.de (mreue107
- [213.165.67.113]) with ESMTPSA (Nemesis) id 1MZk1p-1x6U9Q2dGB-00Il1s; Sun, 25
- Oct 2026 16:33:43 +0100
+ [213.165.67.113]) with ESMTPSA (Nemesis) id 1N5FMB-1wcM8d3DBV-00x1T0; Sun, 25
+ Oct 2026 16:33:46 +0100
 From: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
 To: stable@vger.kernel.org
 Cc: Sasha Levin <sashal@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	netfilter-devel@vger.kernel.org
-Subject: [PATCH v2 5.10.y 1/2] netfilter: nf_tables: always increment set element count
-Date: Sun, 25 Oct 2026 16:32:23 +0100
-Message-ID: <20261025153224.42044-2-steffen.pfendtner@kernelscan.io>
+Subject: [PATCH v2 5.10.y 2/2] netfilter: nf_tables: unconditionally bump set->nelems before insertion
+Date: Sun, 25 Oct 2026 16:32:24 +0100
+Message-ID: <20261025153224.42044-3-steffen.pfendtner@kernelscan.io>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20261025153224.42044-1-steffen.pfendtner@kernelscan.io>
 References: <2026-10-24-1-daily-reply-0010-nft-set-nelems-5-10-bounce@kernel.org>
@@ -56,99 +56,154 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:eONRPlqyAlOsNCBbMMPKZ53NbchN1VvymnXbWTEXd2Xuktm4n4c
- 32IVamK0/9BZScCk6TJer3tn8f+E0qQ9rvxNrCNgJPi1IjMqzH+In/YuHkfjFVQaVEeOOSG
- v1c3HUTRKdrA9qUcBM0V1GaRBeFvWmPHm4hRycU2xoXby5VvJRBCV14zcIXcRwVXqYWl0J8
- mnA9mIlmKFHQbJlKWvheg==
+X-Provags-ID: V03:K1:qQFIMenGGhe3/GKGnIr0iGNuMDV5Ge21vxRWPjqDAjPRt6cddUz
+ XGe5of+ikOR6JT3GTsW053ePgVbSrLHMmxWErx4MQ3UINjXD2caAYXx8IsNaazaA7eZypek
+ JFlcvRXnvG+wdP34eghEqdKz1NaCfrSh70d9hE3SIGo2pm+0UNuZCAWdiddSFbKcCsq7OLP
+ KWJT7dMFluEmGmlb2KeBA==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:U7sWPHENIb8=;sAnoI30GAXVJoUYdWlfcDjgV4oN
- UdQAypQ6AXlSaBhLKm+zVgOPSp27DgqVyhsyUWdHK7FmXTvxcy1R4jrAuNmC0fTppVkWgXB6B
- roppck3e40DDeX90nVv5yi4VqB8TnSRVXrhKr6NsRgO6NJ1l2SA9qVl9tQYjTwmZ6n4WIVZuF
- UY1iK/AiQj83reUhWwBgYFhyHWFWMBDNaFwrQ7KvlsQHycsbIO5UbiPmWztARYNddmI+vU1Er
- 4l577dlK0zICT2Ran3XdrW/N8nUgWks76ZH6uZGcm7+ND4Tfby6sex5loMi8Wxsi//PmoK/AC
- AXOyS1qk3Sp2GNe4w6+QLW9HxOfOnSX5InisiIZQHB2x8pOrhfLSzHCsKWmT8LxSnfw/wRfvo
- bhyoFC8t9ALS1dctCxGpbGhMHd5wuh3aJ8933DE53UosfICYSA6/5MNuFlACdUXNqvgu3fCiF
- kbMgfBcdrB3+ncEbYpewzY5Q4gr9/QxBvFPN4Y75rjzeqogWyDQm+svhUoDnmPYGqeuaiuk2n
- rZKHFYckLWviwcalI6aHqaSQ83H6K9thdMkKKgPgjHR2LxAPk0pCS5Is2ZTYzKl4OG2/AyGV4
- rNWPANEAZeEoeDQu7cJ8hhO+gj96+lfMYeln9aUU6cRTG1CKCsdZETwuXqENSyWvTQpvpg3pG
- jmWjzCzrIxSPx80AogSw4m9YuXv8tpgk46CFyvlBEKwm1dHgq5Es5WVaNR99rOvYaGwN0chcr
- BXyT/jblFI5Qvo4Zq0tqlfM/izDYc2bPlyEIK3FH0EufKVmcqvRjB7fyQCupreN0+96zY7VYh
- WW41rGN/ADMY0+1R6JmNKwZ4YRwfhAPE/TTEBL4bJpECTsgwckpXIkoSTXLfE2imIaj4gDgUq
- gUdhfZaHAM5d6D1pLl0sGzMNL8Tn9qaVbs9KhoNsbedzZT9QfHKylvjRZghWUNUV5r18SJ+O9
- WBSAaHhyFWW+z/6puGO4CizsTLMWUnnpBxpUa2rYvYpHA6X6OdeSs4xgEpuzXLjf+S1UHMJ7a
- 6lpmsEBpN35pcOoD+HBtrN5KdH6CTApYH1n5+pCzmBvuQ9qcgBjzC5wWlb733Io3f4jXWYJuU
- InH7J7Ui8b1+zm1dbTC0xQu1z/j/l/JlRnIL/nBSeM49hiaqEp1ulecWgJjIvT8PjztT1KE0p
- /cGCRF/SZa69cUOAUhSs5V3CcnlgZe6mfeDqxNnsHa6bBYGOCodidcYpRFwsQM/A8lr2FNt4K
- rkA4vFLzfaxWEN4QubnSUK2Uhnq34sDo4G9Uo/S4CWCyiyesVy/Wi6ZVRUpaer9u2LjQQA+o4
- OM05hwhyxB1QAoWrkMrm0JN6/V63akKzyVAht2MISMxk3qQ8ZrSlIcs9rmX+QGoVWAcn/gp/d
- 6XMwEID2xtDdIbwY54KjIaFKxjaSyOIlfWtCusMczlxrW4t4DzaSXj18mlwxSNwhG6jMj4RUP
- i1kFmA4zDgLTTG+d1T9qp1MhInnp7OtGUZ36OAsqMnGKDE9ts5VWZMZEqJE6yOY7dnEv6wSqa
- nK2/7hpKMLcXkKgFEHQ7H0UyIci4oS4M5JKxIqot1jrrn0VRjDWDsyQWU/Q14dj3pk6VYzGAV
- BETEJAQ/KXhmu4D7+BNf75GbAoY/+d0VojqzBq10WaWRVrTDFIZ9AMMBm0UxB5MadmzGDoEn/
- fnU/wm78B4WSIHejdVDM/qmUer7Rfm1hyuu4c/i80FWbTlziEHATMajR7CzTdFeRnagewBXKg
- 6jxjZY5geS7ySGfO12NrDwFwnr//Gy95KJYz94iQdsD3qVNa0/VzDUrOmt1fwBMjNvqRDeHx2
- Ik9S0b2yLa/j6SBjLYrCz/uTMud+lyyXX3qg/nSdNuAj1gUPF/YiC6otQIXLjOKMYgPNZ9EZm
- ENAUCgynE8C4K4ebLFuC44jpYetK5mWpWFYD37NZ7qsRageFijH+1mVwxH3SMJaMj2xHJZi47
- C74N74BPPkgrdSdSsmWZWAjyEupTToinqS3WpI7sJoYc+dcCMAe6zwY8ZdWMZVF+0XkXCQS9A
- 1OvEAhVRJ3fWVF7YNYb8DA3ez8HkmEOs9JfELrYGcKQTTZhZCn/dIMBvqS02eZnXQ0yytfPOt
- etRabKFjzkn+3rjffT8usiSIIA4tMwG38qhJUs6BjWd0KMifsvT5ig6w565QsMBQo4X35J8pV
- +rtRcmsRFvoapWd3MJpLwAyXIM0zbWZSe6RtgTJRkUZEftaG3V0H88PcI+80tUPuX9dY0MKAU
- 5b1neXL3RbLBoryBcDPXLEhtyEgTMGWoeV/D85zJ55bb+30hGfhGGndib9mMg0fm/FWZseaT6
- cBEyS/pLdUpejGllLPjHGTNvVS3Cm550g+YOK437gIN4/dF78EEMZ/ZKHC5EJDoFwTkfBjwr7
- OFnYw/XOarDNxaPpWZRUuJZKwSpZA7CW2F1N5xP8FSStxalRBK8sue+xYX0mEBMg5W5ayK8pn
- RKq8IlB08AO+FCetfiuXN74NWWROA4M/UKIerRx+oWmd6cdNqKgfmk8csYvAgXpQ2KHQyiuho
- Phh6ANBxeCFheTXOsi9F75d+s/xTalgJEECTntgJTiV8zT41hQaYH+OhI4/CVuTHt/ffABVzz
- i8aUVp6P5rdv6u9xbENekrwH7UXM2ae7fswG0H3wUwl6JuPkuLcRCCEPTgR0GQPqCY008xiGn
- 25222+FFZ7srJYho/aFH8kYjsRAgG/Yls3j0/oraw1ySzFEicvCGh7sbbl6i0JqBY2tFhQHvl
- UdQqnopj0wb+bXxFaqlkPXNOBxtoFmMxawkYA3pjPy5LbTIxUkZhn+llJRXaEUxYjlq9KJyPa
- m0kmfqoKiGitgiPyNZaSvqj2Ue6M2Yma1T2yyy90klfE4DKzHNd0I89n3vcOBxiyp7hKyaXr6
- tGzxjIe+QLJuQGHudee6A7P6D081aLGvHMZd63DU2Z4ZQNQJTSbpalA4s1l3+6vEemdCQODkF
- GF4wsM0VmU2PE2GM7qLreCJI/73020+AvfrI6pjReW9bwJ9WMOCvtIhoBwnmga5698hsbCwa+
- +hU26Tw41DBcY4lHuc1kbb18cyJfo2U6HdXhfvK77J0XznRwbahIjKi8mU9tRh+TSUjELXoeT
- /7HsBTdTTLfskrJHgLwS0l4stb19cmaAoiJS4DhrfTCduInEl6oAENJJzW4xmMd1mZYv7zpD6
- 931MG7OdH80qSJa27w4zzVdlgm6audCVb58mxewGkW4RGnZzwDeAEh0ZCUjJsuEUt8H6kz+3s
- vRTDoU36I0AR1Ju578IUu169gNs4Of3I2In2QofQzuVUaAO6w9gTMovoOxKml1ZSSgzx9xcR2
- GI6fQf1roURR4acU/OGobR7pQXyJ2B8rhktMgGxZJ3xutPdthyyLZNBO2hyBr8CFpQVZ4xe
+UI-OutboundReport: notjunk:1;M01:P0:nTYehaS6e5U=;ShxQ4YMrOKUEHZNSAKKYP1g26bx
+ D5DvnOU4Z6UW+R1gOuN+pxWSN/EPEpn1HRBVGxYE4BZyKmN+QKGv1YTiWKDrvbH3jCwb5uLuh
+ 5GoNXKDaueDQFQT6etd0u8nhTQFnNlfh1QdXchKmIiFd+tPCF0OI7MuDaSnS2W5KBvRt4Kkgj
+ Tfc0AhWPLAqDLY+iltFipYDbrDNLGfEh+x7sY0N2RpAjH3dJoyqksoKzyqFjY1TF4iNShwhoI
+ wyGGgu2Y1ZK2ONAy2qXCCDLOMKwYjlp3bOAil7ZZAQvtRjVWGysG4QPYIIenpO+sIr9UKwJui
+ gI/rDrbKfwaVQq31Bfyy9REVlUycaTLC6/r2/VeoclomBaSzWCPhfqUrQuL0ap9JndLCVcJ2u
+ HaLBnM035aItiV5/tJx3lwpi30u9D7SMhPThFbXp8366/hNaEBVOPd+G4PccSjPkve1mYXd+s
+ 6dETqVYOIZaYkkhWcXOOm4gH1ScD6i4PEmqSPPnCuCqmtWyxa5ISj2ilrNnVrD8Xodo2RAhUr
+ 9l/HqvnJCwt/cRjWZ07UFbi1ZG/A8+RKvf41xYUrFHepWCGtP9sEJvl4ZNS4cl/O1H7LpSo7v
+ NesZXt7xWAxoXWq+ZWGZ1HQO+zvFj8PuENb+5ZJQ/Jg+wNyEJN6gghj1YNJZGoBmKAgRhRc0c
+ 0P8EQ1++HgDqgcbCbcwuayBAN3wSmXwmkfluYvKOuOx1D5Vui2Zqgrt2j3CUSuERZSY+dvye8
+ 19IdSArryPbQUXm863ernNcigjYbN/p5wL/DIx7knjxdoR7iiAONquODSLaYcprvrj9+jcdJh
+ IdVcetuTUTqhvTPlSJys4S8twPgFKDgV8ohv93K5GTnzgzXukAHEys+iZe+WaebyO9NcGujv7
+ SFWSuglOolgVD8X5h/QNVFls9Bbh57WioQrRVuETkgcPPoiH1N3o3F1QXQ2WPQTreBeICXPO2
+ CeB4i6X552dTC92AhK2aMUhN1AR/VITq/TwHLx3oGsOoz2nM48d4+o5J+GMXB9N9NuHoMNZq7
+ gEbIR5AO3dbQRdDDg8BWrP42wWs+JTFA6BTQtpeIwTg32oEuCZwhQ3goXt7lBDSSBZXWRqceh
+ OtWw0GiIKIe+/SawjkJJW+0vdDR01+Q8Gd8gUG8lzLCw4VHF+CMdXP32cXuYPg3W86J8mGJu/
+ 2yqM7ogHe54Itnsnsj4Udtuj+eTcmgVRagUTvjt6g9y/sqJKPhrtw3w7RVwK3N++nAnHHtWLq
+ redqpEejSO57NaBiTl3wiiSI2v4tHwM0MMqJBedeDEkV1uLZwbqdL9SJba9v+DDQ3JRXV4CRY
+ VF9asq53dhbm+pvcxY+xr7KCrUo9sQhqLPyT34vg3nHrVdmDDwuc4F4vVM9jfBszGvpw0iVb3
+ cFP7t5Hjovg2zPUzuJ1LMj/xevb0qSSC8sZlgLgQ9YPzv8fqzep3p/+OZEOrra303idP9uzQ/
+ XFHGP+vM7nAiCie+5hvaAI6Sf738Ve59s+lvO24nORWrshxSn2vLiXIedsZzXUjweSs9wMKLS
+ LBKxF4I/2wDcaiMxTqJEjxC9Is0Z5jVMkBO1oKaDbiVFVIsbWjDDMk0MAYaHvAi3HrESz5D2X
+ 8NVlodm3GONIXLenFqNCXyhvFHS6+MuntnGG+CwOiV5BdJOJxnK2nurdGTytKGhHWVS/HiQKa
+ Ro15QhJz/wVbJdtcTTAWadH7BeYsD0bIUAQ8Mqt/5pTgH6mevLul3GmjhiRK77L3RM/bqNF7s
+ 3rtAB1t4qApvWp0Gko4ul41QAPXBvRWQCVY2+tYYQpSPd0XXrkzX69dqZAhKSjr++bXEvPtJ9
+ 32mrEzDKVnzydgx2C8/THik9U7995iPEO0ffYZSdJk12gZZrOCX5uN7QhiZNYHD89SJSRnUVA
+ jEsVXuJTEnRChWzKO9D1w6sjYKJMHVraEbuUSn8957wsZE3TPMIMAooXX/Hdo6get7HPBSXEa
+ 8u33lDOtyHFfD7Q7IMC893J+vdhvXSA90OiIfhEu5Ke1nAo/ObzBukAF+oODuNztlLfpAHXEZ
+ E4uTbkuGY99je63eQsktDHqIf8xppQE6DFSQ49VkVkFX1jRBdtxbqfrJjPQxMuXqBflSOoj6R
+ BRXZeytpNR6LnHZ2tacaGRMVcnq7+wPk20Zxgy/42gt2NO5B6eg8v/1rj32s2EFLlLJaNEREn
+ LDO6dc3PM2NIkGUrNs+x91AZFZQBzU8hb1ukNQxpZaSPYq5MS9N8dbC3Zrc4KbCFxkKdzbYJe
+ 7ZGLkw2+IMiW+n2D3U7NS3Dm8Mni5BrqzSYxTLNnGAIBTsgw7Yh18H5c8QJXg3f+JJRNr4oDx
+ M/peunMUK5xzSollQhzp8PmcWzr1qx77AYLjyT/dEGW9bFnr4fG3nV9hrD/PPisibkH4bbLzk
+ EXZo0Wnc885UwP6vcpWUUbgihqWxuHTGWqFPajwgWaext7AI8qrS99MFS0GPj22fauDIN4e7m
+ 86impMlncZ3hoMfugExpePWi4W8BfkmadNjrzbJcnU8HGt8UonF9YbqZ498hyehYlUxSKbu8/
+ t860y4ehjEYI222QSnfvTI0IcQFPTrlcD+P1evLtIcdKGE3eg5mtl1rc4N1hFqN1eCSUjesE2
+ EzGomNkvy9AsaumGyoXWWpMBnzHjVIhIYblXQiVhjvM/jYbt/A70VKQ69Vx0FjOUyT6x8yrbp
+ ikX1ev1O5aWUma9RLrFwH1WrmoizBglpO3nSngFSaXVTjScrOWzWd5Xvy2+ax7xPgEeX4yoZ5
+ S2GMC2PwNrmRnLiANEmNdibEYmtsX0l+qIbPVpvrOcDEUn95ZgoAaLbN1jhtQPBjfy5oti9TG
+ jEvEC2qECfPIQwc3SoSUF1XKArcvsSgTBBGpIa+3IeIzNlvaSY8Mus7JMwUW2HPkfWkvMON0y
+ hTQAZxv2K4WYLqEKgCnPUFqWPiWMEX0ATOUl4sGZEW+nwvPrQ2QJQv2WFNyyNoyVK0/wHbTuQ
+ pbmtsCvW1IW1SQ81U/Tv2AA5tIb0e83jYgC19wTSKD1fZ3ICZ+3Cmg5x+/cJ/2J6PEK8nnNwa
+ HdRbt/GdVwfAowskaZr82Ip5/9QvDDQ2BREWjyOIyG6DS9r2AsnWIYELv26hYs4TjpVb3e9Rw
+ IWtAh4piKSzbYWwKo1IX2P4SCAeX6EO7+PFYMEux76jCs8ZR7ltoB2PMXq2nvPzHVQ1uB8qpG
+ Nldb7q1HszaFuxFW7jRMaA7z+SGh0y0tasPejwZjrECbokeFxjv2zBw7wNifPFUkT6VcAEHV4
+ LZjdWbsivqs7JFAAAHck7+zpzgi5rhqVejpdzyriX5WYO+dIgEh8CRWOzEPpk/ByAXnJn50xV
+ /dot0gOudL9r8C5f14eq0tnzpl/vh7dt7/3IRSVZaNmrPtnurPtCAJ27sjcYGApMRURRXp8
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit d4b7f29eb85c93893bc27388b37709efbc3c9a0e ]
+[ Upstream commit def602e498a4f951da95c95b1b8ce8ae68aa733a ]
 
-At this time, set->nelems counter only increments when the set has
-a maximum size.
+In case that the set is full, a new element gets published then removed
+without waiting for the RCU grace period, while RCU reader can be
+walking over it already.
 
-All set elements decrement the counter unconditionally, this is
-confusing.
+To address this issue, add the element transaction even if set is full,
+but toggle the set_full flag to report -ENFILE so the abort path safely
+unwinds the set to its previous state.
 
-Increment the counter unconditionally to make this symmetrical.
-This would also allow changing the set maximum size after set creation
-in a later patch.
+As for element updates, decrement set->nelems to restore it.
 
+A simpler fix is to call synchronize_rcu() in the error path.
+However, with a large batch adding elements to already maxed-out set,
+this could cause noticeable slowdown of such batches.
+
+Fixes: 35d0ac9070ef ("netfilter: nf_tables: fix set->nelems counting with no NLM_F_EXCL")
+Reported-by: Inseo An <y0un9sa@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-[ Backport to 5.10.y: 5.10 has no NFT_SET_ELEM_CATCHALL element class,
-  so the catch-all exclusion from the upstream commit is dropped and
-  every element is counted. ]
+[ Backport to 5.10.y: applies on top of d4b7f29eb85c ("netfilter:
+  nf_tables: always increment set element count"), as in 6.1.y. 5.10
+  has neither the nft_set_maxsize() helper (8d738c1869f6) nor the
+  NFT_SET_ELEM_CATCHALL element class, so the ceiling is the same
+  expression the prerequisite inlines, set->size ? set->size +
+  set->ndeact : UINT_MAX, and every element is counted. On the
+  full-set path the element is left in the transaction and unwound by
+  the abort path, which removes it, decrements nelems and frees it only
+  after synchronize_rcu(), instead of the in-place set->ops->remove()
+  this replaces. The update-path hunk from the upstream commit does not
+  apply: 5.10 has no in-place element-update path here. ]
 Assisted-by: Claude:claude-opus-5-5
 Signed-off-by: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 63592c73a7a1..9a0b5a574d9a 100644
+index 9a0b5a574d9a..3bfcf0dec880 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5841,8 +5841,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+@@ -5596,6 +5596,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_data_desc desc;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
++	unsigned int max, nelems;
++	bool set_full = false;
+ 	u32 flags = 0;
+ 	u64 timeout;
+ 	u64 expiration;
+@@ -5806,10 +5808,15 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err_elem_expr;
+ 	expr = NULL;
+ 
++	max = set->size ? set->size + set->ndeact : UINT_MAX;
++	nelems = atomic_inc_return(&set->nelems);
++	if (nelems > max)
++		set_full = true;
++
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL) {
+ 		err = -ENOMEM;
+-		goto err_elem_expr;
++		goto err_set_size;
+ 	}
+ 
+ 	ext->genmask = nft_genmask_cur(ctx->net);
+@@ -5841,20 +5848,15 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
  		goto err_element_clash;
  	}
  
--	if (set->size &&
--	    !atomic_add_unless(&set->nelems, 1, set->size + set->ndeact)) {
-+	if (!atomic_add_unless(&set->nelems, 1,
-+			       set->size ? set->size + set->ndeact : UINT_MAX)) {
- 		err = -ENFILE;
- 		goto err_set_full;
- 	}
+-	if (!atomic_add_unless(&set->nelems, 1,
+-			       set->size ? set->size + set->ndeact : UINT_MAX)) {
+-		err = -ENFILE;
+-		goto err_set_full;
+-	}
+-
+ 	nft_trans_elem(trans) = elem;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+-	return 0;
+ 
+-err_set_full:
+-	set->ops->remove(ctx->net, set, &elem);
++	return set_full ? -ENFILE : 0;
++
+ err_element_clash:
+ 	kfree(trans);
++err_set_size:
++	atomic_dec(&set->nelems);
+ err_elem_expr:
+ 	nf_tables_set_elem_destroy(ctx, set, elem.priv);
+ err_parse_data:
 -- 
 2.39.5
 
