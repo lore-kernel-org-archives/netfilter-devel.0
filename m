@@ -1,50 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.17.10
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792942438;
-	b=vKJj+xttCg0CwPGmf42mjM+z3KAxd9OcUGdMJJjnkrmMxAi3xjzf0EGWjshuIsiPncR8
-	 /cpOTqQemu4rokAoRNtVTFJOU8+isFoaGQGWKBqxpz4rnO56zHsI3mGjX/eBKcarRLR39
-	 o/TXRkT/oAl7RmbRca9YfG9jJDHukcm3FquKNkN60WcX6kMRF0p+HHOBTLzwr+VpIl7oU
-	 n2mjmkdkbG7J8XlGqpGYPnoatOBImLEjzmKiBFM0phbeKy3dIopuf3Gsmqaad7ftKtQXr
-	 1TFnbC9ruEGzLasjT/hyrAtIIICJudZY2XOEA7/1gO0/jivjUvT7IGHY35lEuuVGW+w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792942438;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 X-Provags-ID:X-Spam-Flag:UI-OutboundReport;
-	bh=6iDde28N5U+/BYCUSb1UaVdhM7Joxyzd5OLlYBVHb3g=;
-	b=YUPBFwUhwGVubNVtox0IZP+rq/i4Ze31pYMIDo4Mf4uP28M4adlOlC//MRWoEXwOfPj+
-	 HFDxtoqIfdeotovzEL0ZW3YiMEkbycGWs4UeJRz2mQUudp7sfUyK7TNd7RfkfGlqjsk9W
-	 1zD1ahOOXORdeerRNUPCed02Gx7RW6B0ii44mY2oNcnGcjEVUiZtFINrRfjK0Y+hqtR7N
-	 eNlFDQ56iDp6t0IZbPV88QLN1x+mZfmG3xBc9XNLLijwrybECawqOAssHo64i2JUAGSb3
-	 JJQR4wnt25wDb00L+BrOAmmqHmurv5aClVhntUnOIPK5i/7Lv15img9PEinXEkY6s7A==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kernelscan.io;
-	spf=pass smtp.mailfrom=kernelscan.io;
-	arc=none smtp.remote-ip=212.227.17.10
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.10])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.169
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792946918;
+	b=1UflKqaADsZj5EZgtUmQ7Q8sWtrqDY0sJRnXfqO2tnKiez863mvTqVsB9CAa68wozKgd
+	 yXXJTu0N8Vhh4WWzzwvkswMeJatTmWGzy3uIBnJZysrP9n4EXWdgo53Gy1DMBNCaL/kc4
+	 ArCWUwhN401ZxweMMMf5EH4djHhXwVeAkH5OYKalQgqZ5dsp5LBpyOJJh3arTNlLhafsd
+	 BY6Tkr7LQr7aNo/MCMmlFA+tyKh/pKpwGo6e1d5TDjE69RTziQDCdxSgrwIc7NuQWnbCp
+	 CdnS0dWsonzP/3Wtq2P0BEdohg27df/yh54ZlT1vUsNFbutnEUOzYrownBYZ/jVjDPA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792946918;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=OQ5OjXs0aIahC9OVKlKWWMFSX1nU2p7OCig10Q5/wzk=;
+	b=24pEzLOIScpcBj6WXyFEd0xwRVEd3J8Bd7Gcty6/FbB0cpq520OkyZqCjtchJBw37xVq
+	 l4bgyC8X2OTe5XkIByzQ6udPp7/g+6hFZk25UCKcot9dk49jUyPJS5xliOotERrN1jur2
+	 weMNUtXjU0e/1SYtMRx8gGw4FgdTf6wXtwUEoKp9wzTM5etMEO9QD+d1TrZ+trE7cY7id
+	 F5ARH8w7BM8+Jt/4FDjVRDn+G3i13XblS6mSsD9nR+ZXim+8IN9GmZ5R0KmSCcoioYfJV
+	 qItAiACsE8OSl+AYRkx44SzZNIVLYSNIwKtZntKghEf//aEJcbB0oK0StNiEbAy/JTA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=KYmnvVXK;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.169
+Received: from mail-dy1-f169.google.com (mail-dy1-f169.google.com [74.125.82.169])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 740F4606A32D;
-	Sun, 25 Oct 2026 15:33:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 740F4606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kernelscan.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernelscan.io
-Received: from client.hidden.invalid by mrelayeu.kundenserver.de (mreue107
- [213.165.67.113]) with ESMTPSA (Nemesis) id 1M4aEC-1xJMKg3y0k-00EeJ7; Sun, 25
- Oct 2026 16:33:41 +0100
-From: Steffen Pfendtner <steffen.pfendtner@kernelscan.io>
-To: stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: [PATCH v2 5.10.y 0/2] netfilter: nf_tables: unconditionally bump set->nelems before insertion
-Date: Sun, 25 Oct 2026 16:32:22 +0100
-Message-ID: <20261025153224.42044-1-steffen.pfendtner@kernelscan.io>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <2026-10-24-1-daily-reply-0010-nft-set-nelems-5-10-bounce@kernel.org>
-References: <2026-10-24-1-daily-reply-0010-nft-set-nelems-5-10-bounce@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E65606A31F
+	for <netfilter-devel@vger.kernel.org>; Sun, 25 Oct 2026 16:48:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 67E65606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=KYmnvVXK
+Received: by mail-dy1-f169.google.com with SMTP id 5a478bee46e88-35f036b17easo5967230eec.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Oct 2026 09:48:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792946917; cv=none;
+        d=google.com; s=arc-20260327;
+        b=jCrWHe13PCP7Rg+f9+fx3eMYGuUiMr8MvjgMYYuEnJqPq+LmexNUNYNzkaNLyb2rBa
+         kvA2o+0HS+KPWDT7NR1UO4P5WidX0Q2csXYNBWIchyTW8O22d9VlYMFjJVVTyjWbyUIT
+         Jp/21edFThwYdIdE3eOuFyyMkgWo1frC2AUbCLnOGXXEvm2W+vzJD9BaXk0l4iWF9QNG
+         ZLlHMDkyjlbw9GcKI6um/lwrMVKJ1Vih1TRC8/JfQAbpYokCCXj1C50A52gIEu5xtxxK
+         liCue19lFIK8BR/TKGbCwJOFOjwcP+7snws5bkbMYZ5wFTL9y62MD7+t0vW3UiLPmZbt
+         X3YQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=OQ5OjXs0aIahC9OVKlKWWMFSX1nU2p7OCig10Q5/wzk=;
+        fh=VU5DO+LMZMBUnpQjDixXQVopXb6nwd7C9HkeVLDQ8zY=;
+        b=nFGOqea3ECpysl6nuTj7+xvoejkCQ4HACxDbO6XrQvVUerEddcrb3lcl554HQYb/Lz
+         mZ9q4LC42+7/kDrrv8c6RMXR96TUMnRuo/lipWLg98jfrsA2qggzFoaOUc8e+X5kwD+I
+         5Qe0hgjCxaxANHsO3TDAfWMwz6bL/r0oKSsjByLmRV/ozKFJMbWX/02bt4KC80/wbf5C
+         98VLcTIfVl6kjwOFxxA9xdz2zPu52Us/Hjyu13sGfJ/pCQXRWbVw5cxk1VTh1MKwuxXV
+         NezwkzkRJpZC97QXIkvf7JBSRoK75uZ8B4Shv80Rm0NRXyKCPChIUAgWyzk4LguANZvO
+         9cGA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792946917; x=1793551717; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=OQ5OjXs0aIahC9OVKlKWWMFSX1nU2p7OCig10Q5/wzk=;
+        b=KYmnvVXKqmgzmzcYvgaBaE2o02vTlgFEhxL1z9bImYcjsrPqSwTb/uT4x98PWQ3Avz
+         xmWPMeKQzEN55YHwCXqXnABiZx039OJtIL8+lt6hdomTYYNtNqizDQXSjWavfeHB4LJu
+         dNI274UzUkEtefjRtU2EUFZLWxLV8VPxJgT7c+ARjxaBt6KjMYVAPfn8ub2Kd+fi/pKJ
+         y1IJO9RgQlIwu/psiG2D1NnGKhd1julDHjPg0GejY/VoWMcUo2X9nER+AnjGuTq5jE34
+         pnBaXMrW2nYwKZ09gRlN8+I87/aOlBTdynHQhDr3c3h6CLdyyyerNOEEOldanrfp7vos
+         5fUA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792946917; x=1793551717;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=OQ5OjXs0aIahC9OVKlKWWMFSX1nU2p7OCig10Q5/wzk=;
+        b=fcJBk7Sn5kPgTKGGBhvsHsf9m3/3bWzIOV8MCEB+PNOXOcVS7lX6RFkjlsEK0Jdw2q
+         h2qepf2Bu2IZWeS3VPYpgEWThq6fXgi0z9inmkdXY1wwMq6TcXQ1O3gEEYNcD35U7qcn
+         KrSGh8JpD84hoSjeaRtoh47oTmQyUce7tatfWG25WAjhyFBBkigi0hSA8wBClVE54ZXq
+         CC0Qip7Ys0ZVBYiEJZzvdv9k+EF7QfLEep0psppXusd8oZRiMhfExV+8u9txgzFTsy7W
+         peiGR8he1Vbz2X/maU8hnq2GH7Cc5vIE39BETp1ETULI6rO6GxLdy5SBjVK47kP09lgW
+         gt+w==
+X-Forwarded-Encrypted: i=1; AKwUvBxvecRJc7xL96vEzewsU+nIxFT+vJwrlJqDCgPOfZG9oHfIrGZ3A0RcWmn+wq6GLF1hgkiFmtG9+FErShRfryU=@vger.kernel.org
+X-Gm-Message-State: AFq9FYLEuMAvhujBYLVbNnKda7vITR0crCVAjWAWFwQnmggiVcAM2Gzp
+	gnil0X5WFdWpQrdhPlNchA+jBURyKmGCI0+z8EZ0b1k3KowahxxTi/K2K76fG8U+A0gav7a7YsI
+	M2+/XXLLNXxpL4w4dIb3ZERDIGcjZ+H4=
+X-Gm-Gg: AYBFou1pV7txybGRdwHZZpeoOjrB2yaDeKZ0VsmFzpQqxUdVTpPgLMPGUce3pguO35o
+	cZqJSR2kIYfV0x/dSD3gDRdctMVTgA4LP+uZ61O1Olq0WPjyjj3d8XODS4VajuBFP6CMPakqY/A
+	TDKMzWrorWt+EN/mkujxDV4IFB2MjD2nnmpM95RSov57KiRQm7w1RvsoAhY5OJLihcHjQchpHbD
+	1QgOKDDByb0hwy+yKUthBZONy+RvowZAgVWu+i7x7FSXWY/Ne4l6HHde7SOUbua8E4qJ//FbBUO
+	YzZnvnyv0TQXKWo6vocTewUOJpplcdczllkOfnKikqvV5cWMxhQNSbOjXxrlIHq7K5Fbfwljipj
+	9s6i981wz2C95aHCsnZWkCawYqr6doKIh8fO7LidcAJAmZiW+3wRILx0eoPJ7r5IPM8+SWdNiao
+	otyMFWUbvFPAh8kR5p0lLGh8xOUQ==
+X-Received: by 2002:a05:693c:87dc:20b0:350:2a5c:56c with SMTP id
+ 5a478bee46e88-369e84b1873mr7142255eec.20.1792946917425; Sun, 25 Oct 2026
+ 09:48:37 -0700 (PDT)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -54,100 +105,126 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:L2ENoPxJ0htPrdxyS6i363rsOaxhVR3q3pYtFZIgP0qUNCQRiS8
- Bl3fIbwqb73uOnNd49VT/XUbsp5chjMvDEcxwREdV9Hv1hemvlG9Ut1vcZUy9ecjOv0zY8v
- GPQZEJ0xq8nd4/MQ9dEnk5wfGzx0ECKhlp9dbkljQAXVXImn5ya3EYRgZmCeNYIJ5UnudIG
- M42bJ4mlhfVZu1yAZ2XZQ==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:Onz0uRx/Oto=;GD/C2sP9QoYGEMh985vinLXOF3w
- pGNRgYclweX+CMUrltYvTnFU2CAO3aSa+m3ilWuZfIX/Ne7KanySC3UnqeqIrYsXCYpPJqRav
- dlI1VfbdXcyP3s3Jtv0rt6jtj2Q7ZpRA0ZwGtJ2ZGbgqRtK8C/3JQfngCg+YQ6mP7dzZs+dbR
- 1mgJw3Z52tWKNg2vZDx0t46+iATzqXOYGWSuYpbHEfQ5hfaYBwy3Na+7SgcVpNQuPLgxUXhYz
- 6ygDEcY4iIFHLuWmhN/ml9RAzrKyuTx98yE/zo5AapDOSuvDczGKOTyzJfL3phpvG/ltPaLcV
- y2KIkQfTC+qPRKNDUyFGM90OxXX5EvjecDCAI7yynRuFL29f+1RaAK4fyiL5HAotWMhWe/eVw
- 0fWt3ND7ufL8BGyg1X4pAhlDX+N9FZ3KAfhhj5eBVslanWSj6lDhZIDSRRgJhJhUAZGS1Wn8e
- 0OFzuA92BTpXm0bQ8C0SHp0icU36DdtvaHNmuUw6gcjRegSI/8klWxzt1cs65kTu2/oItYYbK
- r6EDzHLHSte+742rOmXmo1KjCQqxTV/kQbhEfckNesCHiluyv1Lk+6ygs0ynbHNnzaWxHOUh7
- dgzIkrHyV7jBoxam6AMMUULW7sT7i8YWGjh3DBw1MhXTZ6v60c/xRlwVP3AKYXeWu38KcVsYx
- kWpX2ZFgMPMuyo35ATIFvkFFyEm2EHAvM8kZjRJs38qBmntp13Fe+9djNyIw+2fbxHi/iwa3e
- W6qewyOoPLh7epR9rfrOJNjEqat1MqpbT1/ZI1/LoPTPPO2AUFmYrKnnY2GLZNY67CzvzbTPx
- sdZeBGQ3K2Junu1OfIncPhRqAcxVMVHDlrMpQMlGKw766kPWiPO9ocy9ad4d/sMbB5F1uCRGh
- S7cghA91/IPqTniW3AulHxBzre2/ueAKjlmZtb3sbH9IentAwduIfPZXnnPXscY5ip/HB4UEP
- iXcXNjLViNZRDiDmEFYp2eKzH9sV10zekOSPASt+eTubhaMBmL/aprNUOG9CxQIkNKcR3j+CQ
- hyeO/YGc66deUQVdiw3i5CulwuF2NoYOY3wRc5PNaFlnTkHb4CTcGOhFjMYDiuhJsIIOTwED+
- gBabtM8vBJ7e/gX7L02ykT2wcDXcx7PAni8bUykUa+4HmQdN+VKgvLIY978UAfPnokFdS1iWV
- 93sA1hiOZkjfwjYv0YcrC3mqoUgLIsPVx1X1bLrLUNQVuwkvLAtPin/fjWs16IcWNBIWLrbkj
- S4EUQ+heOaMPlOoPUdJ/GJ1t0E/QaHeN+F7DrCZQcWXIpwnq+xRLL8yIKIhZOn5UQB4FgUqKT
- rYnMlZIjdAaGRK0w7xXCJNAip/jADGVrVJ/I+PVfObtI7EdmbtjXWdDVfE8m/4RJAOqRl1s2j
- 2jSXl/lhgsHrshwyCH0dOyR4gfdFN3ZZ5ou63is2Sh1mx8y4kc4MGPU0joKjugqvh7Hee0cI4
- HN2Fh++Zof4p0UQ0cqCABZQhtc4AhEzGvJ6LhA3NnH5qW9etfbT9vNp4ShTbVo1l5UgTkvu9M
- 0UvkMasnql0FlzMKKYs7KyH8joByFdfU2lSNBYtdOam9xPVilL/4RHD9Oy19sutTJiIcMURE5
- H+eyAPsaT+E9adVMmIAdw1UoVNY1UfXPDONPLgvyPx0bqXmu+9YEMCAKhJ6klHUyBHWHoLwql
- OK9h3U06yOg/Z7Wp6aYyasXIrBzSiLAepRWRsxl/4zgPD13Vgycb8j6xMVqPSJDSWJbOffQfT
- 0w0DAuJ/lSo+rO88eLKfDru+IdXguHuin92lPWGf7vX+kizvsRIS4/B6kQuy2cKWoWMGaQvAr
- y/4xEPnWNbJyqEXEnJ3y70cOHXF/BzRG6vYlgO0y8kZd+e1iTPaov3sj7V9ZC/ii2P0a/zniE
- aLGZmwxO5laN8IhAjWEWc2ppCon6xQmsOh98dINyjugTv9y/J6Gj2Ttx+W8c3Suyt8ia8nmCs
- 2m1E4fadiR8jd3CDy1/1Kh7ezGldYWHzYip50zmRacmiciFXzP/3j9CfSEUf6Ify7n/Iwhipm
- +npgvVCduyaxn8VGL5A9Zdqoeq6jKkIUMv9nia9aAnyrkQd6Nx5f1+wKNf70XYsvtQsqUOGkQ
- lIboWag16b9dhGRCFVFhgIzbefTSLgmH0u7Pv4GANohs58QoWgR20ORnozB+FmOwziQm/0nYs
- KKO+RFBAEnBP/HhroGleHtkB0I3jLW9tfcpQL3Kg0wd9PoJofohcswYhoVY2OY3UZDuYl4a0R
- X0hf1lso9TyQ+uEmrFjAMQkzWpPViSDhsg7hyTi1iFk0TpnaYPJCEFVwxMK5y+xEMxLA/+FxA
- mHzJGD15/vJnWF1VwtgbNXW74iZJO1TH0pZ3q7J9ky/h4/4nVicAiN1nOxe+k3oEMA/Nnr4gu
- J11VGucv8Z9uEVpRJJW51Nstk5yxZ4RLiSuKqRM2Xj7vnNPAhUZ32Ih2BDlRTS1GJSetgXGDA
- 8BKHHPdtj3HVK/QgjlEzZV0HapK38uUlwcjZDhBcFmvSpBt8fSf1rLEYbWhI+FyWZaH1Yt6Lg
- 44wHN76fDyq7yplxnwSsTuEsF2a79EXP2oPEbRabItASv5fFs85cXRqVPH7SvWFsEUOmxyrFD
- 2D7O9pJP4DGW76sSFRNMHhmiKUNU6G+GiyIQVt2mheTEXIVjPwYA+QHtyAuSWCHsX21rDV4ZZ
- he4vQfW8yrgf0AiNyh92HSOum4B3Wp0m9rQtiHGDChUiUVaaZ9LHjrXxFHnIjfA59ODqIKBYv
- Xro5ht3g+110nLE0FPs2fVSzL0XIEfHJq8siit/TBYyKGuYVutn+XhwSKdkshYP6LJkyR5FEP
- Efz7BYXXkATmfpJCOQlmC/yJz6Vhc3UduYEQ6JX7LNdtUh4il4m8tfwnAUivh+rhJybUw2Q69
- grZldjs/hIAeRmNGDr+voeFv205/OA4f/CY9JxAVtKZwoMzqs5CCvX8iLRgru+39hZdEbxTTa
- gDF6yeig4FqYDfydXNSGYnekSTV8Lr87jp3DImA5Ucy2j739k7h6tObDtJOaBQY8fj9tyM6I2
- BKb346nJeG1I+da3YMqIr1bwQm5mUl3ESqLIb0m6zKYSjo3smO4etDDKHXLnvQ4ecZ+gYTLzX
- nchXMab5kTanUu35l1eXxLTjJhZPabkJrWRhnGpU4vsUfzcDhn6NpJjdyru4mNbADSSqGjBM3
- 4hYlszMeghsjMWqCMRyxWUistHT0kp9ZB3cLsws7uVQTZKdItCoOMxmdEenlK518Ksx7YIYPT
- LvHANzm/L+0RoGuF/ODlyHQiEIb5FxwmYAlWEdt682rqoHD+IxurwCkBGLwFWnY2TKtCfUB78
- Aqhkl02ddWjjV4CU2xfwV8t0dhcrIlQAxnTDP+E/OGIzzWqpbjlk1kEtAu1Ise0UgdHP2uKNu
- dtQ3t++RsTqjG0a0o2Aw==
+References: <179287943591.17355.17353179557993329094@gmail.com>
+ <at0vzdlVTF8XAzHj@strlen.de> <179288180870.24716.7833838593165388250@gmail.com>
+ <at2V3g-B1Ko2x1iK@strlen.de>
+In-Reply-To: <at2V3g-B1Ko2x1iK@strlen.de>
+From: Joas Antonio <joasantonio108@gmail.com>
+Date: Sun, 25 Oct 2026 13:48:26 -0300
+X-Gm-Features: AclHuK8nWBBaduAuSBl0zsyZnm0f5QTkQEz1Yhbnl-LnIzySkyTP_8D8glFnwKY
+Message-ID: <CAOCBhwFsbHzRuxngYoG3DDOB_KgBL5c0aHvZEVh58Xkeu=h1oA@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: nft_set_pipapo: skip transaction elements
+ during GC
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>, Weiming Shi <bestswngs@gmail.com>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This is the 5.10.y backport of def602e498a4 ("netfilter: nf_tables:
-unconditionally bump set->nelems before insertion"), now with its
-prerequisite d4b7f29eb85c ("netfilter: nf_tables: always increment set
-element count") as patch 1, as in 6.1.y and as in the 5.15.y v2.
+Hi Florian,
 
-Changes in v2:
-- Add d4b7f29eb85c as patch 1/2 (Sasha). 5.10 only counts an element
-  when set->size is non-zero but always decrements, and
-  nft_dynset_init() gives an unsized set a size when a dynset rule
-  binds it. Elements added before the bind are never
-  counted, deleting them drives set->nelems negative, and the new
-  unsigned nelems > max check then returns -ENFILE on an empty set.
-  Reproduced on 5.10 with v1 applied; v2 accepts the add.
-- 1/2 is adapted: 5.10 has no NFT_SET_ELEM_CATCHALL, so every element
-  is counted.
-- 2/2: drop v1's set->size guards on the increment and the error-path
-  atomic_dec(); the ceiling is set->size ? set->size + set->ndeact :
-  UINT_MAX, the same expression 1/2 uses.
-- 2/2: restore Pablo's authorship (Sasha; v1 had no in-body From:).
-- Rebased onto the current queue-5.10.
+You are right, and I was wrong. Sorry for the noise.
 
-Build-tested (arm64, W=1) and boot-tested under QEMU with KASAN on top
-of queue-5.10: the set size limit is still enforced (-ENFILE), counts
-stay correct across delete/re-add and flush, unlimited sets are
-unaffected, dynset (packet path) plus control-plane adds/deletes give
-no spurious -ENFILE, including when the dynset rule binds a set that
-already holds elements. No KASAN reports.
+nft_set_elem_init() does stamp the expiration at parse time:
 
-Florian Westphal (1):
-  netfilter: nf_tables: always increment set element count
+    nf_tables_api.c:6860
+    nft_set_ext_timeout(ext)->expiration =3D get_jiffies_64() + expiration;
 
-Pablo Neira Ayuso (1):
-  netfilter: nf_tables: unconditionally bump set->nelems before
-    insertion
+but I misread where the reference timestamp comes from. It is taken
+in nf_tables_valid_genid(), before the first message of the batch is
+processed, not in nf_tables_commit(). So expiration is always at least
+tstamp + timeout, and the sync gc in pipapo_gc_scan() cannot see a
+new element as expired, no matter how long the transaction takes.
 
- net/netfilter/nf_tables_api.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+The "empty set" I observed is explained by the elements simply timing
+out after the commit (10ms timeout), and the dump skipping expired
+elements. It was not the gc collecting inactive elements. The
+comparison with 86b6471e690c was also wrong.
 
--- 
-2.39.5
+Please drop the patch. I'm withdrawing it.
 
+Thanks for taking the time to check it.
+Joas
+
+
+Em dom., 25 de out. de 2026 =C3=A0s 02:38, Florian Westphal <fw@strlen.de> =
+escreveu:
+>
+> Joas Antonio dos Santos <joasantonio108@gmail.com> wrote:
+> > The catch is that the expiration isn't stamped at activation, it's
+> > stamped when the element is allocated. nft_set_elem_init() does:
+> >
+> >       nft_set_ext_timeout(ext)->expiration =3D get_jiffies_64() + expir=
+ation;
+> >
+> > and that happens back in the parse phase (nft_add_set_elem), while we'r=
+e
+> > still going through the batch. The element only goes active later, in
+> > nf_tables_commit(), which is also where the gc tstamp is taken
+> > (nft_net->tstamp =3D get_jiffies_64()).
+>
+>
+> Can you name the line in the source code?
+> I am not seeing it :-(
+>
+> > So the expiration is really parse_time + timeout, and the commit-time g=
+c
+> > scan checks it against commit_time. If you add a big batch of elements
+> > with a short timeout, they get parsed one by one and the commit only
+> > happens at the very end, so the ones parsed early in the batch have
+> > already gone past their timeout by the time we reach the commit tstamp.
+>
+> Thats not supposed to cause a gc?
+>
+> All the sync gc functions are supposed to check against the reference
+> timestamp taken at the beginning of the transaction start, in
+> nf_tables_valid_genid().
+>
+> They are NOT supposed to check against wall clock time.
+> Even if transaction takes 5 minutes: the sync gc step should
+> NOT observe even a single timed out elemenent.
+>
+> They become stale only AFTER the sync gc step.
+>
+> tstamp is coming from nft_nat->tstamp, i.e. start of transaction.
+> e->ext timestamp therefore should never be in the past compared
+> to that reference time.
+>
+> 1751                 if (__nft_set_elem_expired(&e->ext, tstamp)) {
+> 1752                         if (!nft_trans_gc_space(gc)) {
+> 1753                                 gc =3D nft_trans_gc_alloc(set, 0, GF=
+P_KERNEL);
+> 1754                                 if (!gc)
+>
+> > I confirmed it on an unpatched 7.3-rc6 + KASAN: add 20000 elements with
+> > "timeout 10ms" to an interval+timeout pipapo set (the parse alone takes
+> > ~6s) and the set ends up basically empty. pipapo_gc_scan() collected th=
+e
+> > new, not-yet-activated elements during the same commit that added them.
+>
+> How? I'm not seeing it :-(
+>
+> > It's the same thing you already fixed for rbtree in 86b6471e690c, the
+>
+> I thought that was about false zap of rbtree end nodes which doesn't
+> apply here :-(
+>
+> > races the grace period just like the rbtree case, but the precondition
+> > (gc picking up the not-yet-active elements) reproduces every time.
+>
+> How?
+>
+> > If it'd help, I can respin v2 with the parse-time vs commit-time
+> > expiration written out in the commit message, just let me know.
+>
+> Yes, please explain in detail how time can advance during transaction,
+> because its supposedly impossible.
+
+
+
+--=20
+Joas Antonio dos Santos
+Cyber Security Specialist and Ethical Hacker
+joasantonio108@gmail.com
+LinkedIn
