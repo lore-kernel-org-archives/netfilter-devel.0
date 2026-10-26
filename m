@@ -1,105 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.28.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793016464;
-	b=TUsYVO7Bp6yXtHMZFfsfqgnsmcIcGnq2FBoHyO6MXXcJrCdmEvP0sHddxKpbGj7hXMmr
-	 ob3m6v31GbdVrT3+gFiy6Nd3fg/xc6FWJeYLroiPv18RGMCQXz5QGk3BzPN3tXjl/ISub
-	 nSZ0Mdb8yKAIX37msJUvNCgABCKIo00VzK8NrSGHVLkXIsUHu9Sdvy5jAklu+qiz/HUo3
-	 sA5udj+IT821vajYQ0aTERL1bGhqxahNepyzvu9OsR1xHMl42R5NO8eY61V9hMNIriNyI
-	 4Efk2SgDLAqK4XCDiXKNmqbqex79wIHCoC0dRVL5oN9QWuQh9Smn/L1dpqb+CNzC3iQ==
+	t=1793019207;
+	b=OiByDZ6F+Du4abrpcm8VqPzL/55vZTMm472jVSzya+oyDVJl+jLpGGghAVGcMQ8sKBPo
+	 FQiNr356d7SuX8aAAR53pegAMU2yp4rX3z8YM7WqdXLaIyGUh7RuveYhdy1xZVIVJCnni
+	 Yf4jgs0d9u96hGcDdPeR8fgW1bUFrRE80BkGuEi9hVUdwKNvbZp9hSyrnPP8SHnv7iQwe
+	 2PozQz6tpQJq8ZpiwOKspC0jLlKdGmIqp5XdjPFk2Wv/auCxLW0NRSa6H7ifChAMFc3Io
+	 rN5X1BYhJdAmfwjtT9qx1ue3zKLgzaN8ImWmdKLhYtEKPUhYlnxbTt/aEQJ9gqzkAbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793016464;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spamd-Result:
-	 X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:X-Spam-Score:X-Spam-Level:
-	 X-Rspamd-Queue-Id;
-	bh=wza8EDDM8pse920kWAIpicgvu3xAuz30sMPjmSEZFfo=;
-	b=d4eqoGwCQ9mMzYkYY2Odspcdd8+hq07N76uzYmlpQtOHp3pV/P2s+yMvAi/Jm5cK38uu
-	 2FGJQp8WYxtLQk4nDAmoNYFdXPPFAGsV3/QY+S4DzgTCYeUXGaRfcm5P1ddH/YtUoFQyV
-	 SY8rCtvRhf0mL1GVRPaRdtrFwH67aNeuQ5OdaFhkyhyAlUdGnz26JCWXLFrZfE3DLiHPC
-	 D0VEqzb/7TVuwlam2mAhBayPmprT00T7ow02wxmYWGlwyuPbNLiUdgGAyEtHjjKy21ZpT
-	 TB23+qVPWtFpTVSAfin8vwwwTLXVgQGw3ewIRrqr4/ZIlAehc2mER2uoMgSj5ppWzjw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793019207;
+	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=4sPsWijS0o1vuhCMct6ehUV/2rvCyrpEssuEEpT4abY=;
+	b=OvtRb0ywLae+NntUE46ywdEFIn+Zle7r55qgnhPkIndZwgrNvxQOrpo8lq/hsPQ7h+S+
+	 zrG3zTWL4/kRUe7U9Lo0Xe2UFvj/MYvaWVsWCr2cXm04/HbSd4cK+5okAD4rXQQOtInCB
+	 a7Z5q2IM0bLfD6/FlfOs5T4yBgdg5W7fOSPtHhRMJYHJ1N1HFwyojlk2pv5pt47WFmk+l
+	 ca9+0mv7EQ8hYyEtW81OEG7wX/EwdduP1MWI682WR1eItqRWdsZTwaqLXhvOf4RvW8/ZN
+	 tkU99i84aIWxpRcKm3vQ629CkmUemBqCFuDpXtSdmriNdvAoeGwH8wdrmE2BQH8S/cQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=JlHrn4mo;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=9Yuu1LJa;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1F204N0g;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=TfGuKjdZ;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	dmarc=none header.from=xiaopeng.com;
+	spf=pass smtp.mailfrom=xiaopeng.com;
+	dkim=pass header.d=xiaopeng.com header.i=@xiaopeng.com header.a=rsa-sha256 header.s=default header.b=AWBEHmIh;
+	arc=none smtp.remote-ip=115.124.28.169
+Received: from out28-169.mail.aliyun.com (out28-169.mail.aliyun.com [115.124.28.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA2F606A31D
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2026 12:07:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7FA2F606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C31606A31A;
+	Mon, 26 Oct 2026 12:53:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E3C31606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=xiaopeng.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xiaopeng.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=JlHrn4mo;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=9Yuu1LJa;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1F204N0g;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=TfGuKjdZ
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 6B16821F99;
-	Mon, 26 Oct 2026 12:07:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793016461; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=wza8EDDM8pse920kWAIpicgvu3xAuz30sMPjmSEZFfo=;
-	b=JlHrn4moWH7oDpnicd74+unWXfXd7SjBlGouxTkRc0LqvvsSIT8ZAKbnT9sUXXGopW9PKv
-	4A/iKqaUyyp1tbSHZCwPReOtuPyp5UTXXhZS+6wnuGp7ZJhwW96vS7JLa534HqV4MsiLf2
-	x0gSijwihT5Wg5n//xEzeIVKxUqD8GI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793016461;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=wza8EDDM8pse920kWAIpicgvu3xAuz30sMPjmSEZFfo=;
-	b=9Yuu1LJanN/VJc6DJUpAXpq9EAZnHa1/l24n8FgUSjd1Qf1M4HjtuuldG36ruUekxN3uTe
-	QD0ae1C2SKO6+lBw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=1F204N0g;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=TfGuKjdZ
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793016460; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=wza8EDDM8pse920kWAIpicgvu3xAuz30sMPjmSEZFfo=;
-	b=1F204N0gKwXCKcJnf40aoYl+OiLK6GS/Zn1JAn07c+1zJ+zUu3s0p4vtK26OckKprx2KB9
-	KwykbxLIQ4XOlFOePlyXx781kMylEtOgcHjdg5jHCfe1rg8XDKwVOe/WHdVoYNVOSFy8E+
-	iKM0l8zBEtwxX/BX8TYHVLMcMJt3mFo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793016460;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=wza8EDDM8pse920kWAIpicgvu3xAuz30sMPjmSEZFfo=;
-	b=TfGuKjdZOanRo5UUxGGmW3zJOGQOLRjFUeInKbTGfhaiJGiKK4mZH33hm3k5CMSosnVoyv
-	GOlpZuNlyV2UlbCQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D4BDC13319;
-	Mon, 26 Oct 2026 12:07:39 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id o+kUKYtC32rFIAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 26 Oct 2026 12:07:39 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	phil@nwl.cc,
-	fw@strlen.de,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	VEGA <vega@nebusec.ai>
-Subject: [PATCH nf] netfilter: x_tables: check target name before accessing verdict
-Date: Mon, 26 Oct 2026 13:07:10 +0100
-Message-ID: <20261026120710.4395-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (1024-bit key, unprotected) header.d=xiaopeng.com header.i=@xiaopeng.com header.a=rsa-sha256 header.s=default header.b=AWBEHmIh
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=xiaopeng.com; s=default;
+	t=1793019196; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=4sPsWijS0o1vuhCMct6ehUV/2rvCyrpEssuEEpT4abY=;
+	b=AWBEHmIhQCCnHyNEvCdhbg0f2AuqsF7AlHUVK/HiYovR0/32IKs2kjcIZCP069tXRLWsw/u9r0GZvDRiQBOO+corbwKai9+asfvc8LkSD5n9JSMRfgArWLl/p4/yQ/HuJ7UF0iDP5uKNHdQbTH1bPtR6aLSLpmo5tfDFCJAyKXo=
+X-Alimail-AntiSpam:AC=CONTINUE;BC=0.05106358|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.0177122-0.0906822-0.891606;FP=18328251804473314834|0|0|0|0|-1|-1|-1;HT=maildocker-contentspam033037034138;MF=fangxy@xiaopeng.com;NM=1;PH=DS;RN=13;RT=13;SR=0;TI=SMTPD_---.jq1bEE5_1793019194;
+Received: from localhost.localdomain(mailfrom:fangxy@xiaopeng.com fp:SMTPD_---.jq1bEE5_1793019194 cluster:ay29)
+          by smtp.aliyun-inc.com;
+          Mon, 26 Oct 2026 20:53:15 +0800
+From: Fang Xieyan <fangxy@xiaopeng.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Weibin Liu <liuwb@xiaopeng.com>
+Subject: [PATCH] netfilter: xt_policy: add NULL check for skb_dst() in output policy match
+Date: Mon, 26 Oct 2026 20:53:13 +0800
+Message-ID: <20261026125313.14810-1-fangxy@xiaopeng.com>
+X-Mailer: git-send-email 2.50.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -110,142 +70,38 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-12.01 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:dkim];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_EQ_ENVFROM(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FROM_HAS_DN(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	TO_DN_SOME(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -12.01
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 6B16821F99
 
-Non-standard targets may contain only struct xt_entry_target.
-mark_source_chains() nevertheless reads the target as an
-xt_standard_target before checking its name, potentially reading four
-bytes beyond a header-only target.
+match_policy_out() accesses dst->xfrm without checking whether
+skb_dst() returned NULL. If no dst entry is attached to the skb,
+this dereference is invalid.
 
-Check that the target is standard before reading its verdict.
-Non-standard targets remain handled as fallthrough rules.
+Check dst before accessing dst->xfrm and return -1 when no dst entry
+is present. This follows the existing handling of a dst entry
+without XFRM state and preserves the XT_POLICY_MATCH_NONE semantics
+in policy_mt().
 
-See the following KASAN trace:
-
-BUG: KASAN: slab-out-of-bounds in translate_table+0x1660/0x1a40 [ip6_tables]
-Read of size 4 at addr ffff88800ed56ff8 by task rep/432
-
-Call Trace:
- kasan_report+0xfa/0x120
- translate_table+0x1660/0x1a40 [ip6_tables]
- do_ip6t_set_ctl+0x667/0xa76 [ip6_tables]
- nf_setsockopt+0x77/0xd0
- do_sock_setsockopt+0x118/0x490
- __sys_setsockopt+0xe4/0x160
- __x64_sys_setsockopt+0xbd/0x190
- do_syscall_64+0xde/0x4f0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Allocated by task 432:
- kasan_save_stack+0x2f/0x50
- __kasan_kmalloc+0x7f/0x90
- __kvmalloc_node_noprof+0x1b1/0x5c0
- xt_alloc_table_info+0x3c/0xa0
- do_ip6t_set_ctl+0x5ee/0xa76 [ip6_tables]
- nf_setsockopt+0x77/0xd0
- do_sock_setsockopt+0x118/0x490
- __sys_setsockopt+0xe4/0x160
- __x64_sys_setsockopt+0xbd/0x190
- do_syscall_64+0xde/0x4f0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Reported-by: VEGA <vega@nebusec.ai>
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Code review identified the unchecked dereference. No reachable path
+that passes an skb with a NULL dst to match_policy_out() has been
+identified in current kernels.
+Reviewed-by: Weibin Liu <liuwb@xiaopeng.com>
+Signed-off-by: Fang Xieyan <fangxy@xiaopeng.com>
 ---
- net/ipv4/netfilter/arp_tables.c | 5 +++--
- net/ipv4/netfilter/ip_tables.c  | 5 +++--
- net/ipv6/netfilter/ip6_tables.c | 5 +++--
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ net/netfilter/xt_policy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index cf747e1e17a3..7ff3d1f0ffd4 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -371,11 +371,12 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
+diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
+index ff54e3a8581e..6bbaf92f0cfc 100644
+--- a/net/netfilter/xt_policy.c
++++ b/net/netfilter/xt_policy.c
+@@ -87,7 +87,7 @@ match_policy_out(const struct sk_buff *skb, const struct xt_policy_info *info,
+ 	int strict = info->flags & XT_POLICY_MATCH_STRICT;
+ 	int i, pos;
  
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 809441cedced..b302bd77180a 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -422,11 +422,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
+-	if (dst->xfrm == NULL)
++	if (!dst || dst->xfrm == NULL)
+ 		return -1;
  
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 313c4aac377a..010baaa60665 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -440,11 +440,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
- 
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
+ 	for (i = 0; dst && dst->xfrm;
 -- 
-2.56.0
+2.50.1
 
