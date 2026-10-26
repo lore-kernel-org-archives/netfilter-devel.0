@@ -1,102 +1,102 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793023817;
-	b=Nn7W0oYhszFZySS8YrQ740D0Rl78GL09ZZbIcf2HAm602thIvFWbqHvtiL2CCbyFdGaP
-	 rNvNjorXKL/jsev8yWj9YEwtJ4sVK/F5Inw2l0kmRKfho7sIUUKsMK0GtmOI+rhGm8Nym
-	 bqKCyoxaTGgbqYRXJ/BhaEZQbVtDZd/I9KmzdovQyfQFB8dG+5ByOUSgDDJEkQQOphX/7
-	 aCkJnhCNtVQnYgkszDM6lXUcQA1SHtCVc3AKxFU5W1wa2KRH1jkuS5sUMswpjDloR6oPF
-	 y7AKe0rYZuGrddOkJzCZESbAaPXbD4zYuFqEIH5od08YdnHmsOgDsZ1akrYj8sxN4RQ==
+	t=1793024874;
+	b=IuFEdw7rwySHAzKRtUu+jKsIy++/BDp4OnkCDUfk74LOCaUm0f3xfcaZaG7MsZL1LoQW
+	 8rjz2pzMrks7JCSAEe6VZp7KXTpdT6gljT68w0FQ9sTYg4ld4JnK5fXYdUlmREl4w5Gmg
+	 ibjhX9MlaOANzJK2BtNyLG3C5GIDxC3Ub9fzJDeM3yOp1ry7Ypakrt6fqi83Zjmdk9OO/
+	 0w1U61q7DivQbpANfx9QHQc9zYbDlQibxgs4Wo821z5PsKYfM5cbjB/UaCLiTkHvDK7B/
+	 NJYMV+Da/ljvpplu2OpDLGTZo2oUVC/pCcF3zOXH2ozQYSy0HQBuVBaeCta60fstXhg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793023817;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793024874;
 	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
 	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
 	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding:X-Spam-Flag:X-Spam-Level:
 	 X-Spamd-Result:X-Spam-Score;
-	bh=WM4vAEGlhlHGhMEi1px3qUFAkL1THxHMrZ+7SD9VpUI=;
-	b=FEOVwcl9rqXHBSZ4Qg9XL6n7nVir+XCdQc9pRFX3TCCgtxle3Xf/lYUlxoXBY0O4udOQ
-	 5NE+pA0BKAW2munY3RSv90yC8gttQRXH6fXmtMyqVRkyyzh46XUafRXuugAs5ul3EVMMn
-	 YPB06a2ZyPrDvRe0pfWMX3HqonLGB4Tm6/A1NprtvbE56CdBNtRBqVeenmbEMp0GrLlww
-	 S3os18GHQMiKhjIoOV30bBLp6/lsHITksBaOfvr8/Kn713UMAKmK15O3/OhwjX69F/Orp
-	 qB8M9r3ZHiHPpQy8fPrzMBbTck+hA/OHt/pEwVJ+M/QeSQLASGOtllVOgxm4NQirVqw==
+	bh=pFeiZWUlKA17A5iSBKX4rHu8B6bfw4tdUPbBkbANNOg=;
+	b=gZN9ohrUOktRwzg0YaB7Ta2lbVCl8wsKuuJBPDlc/6bP5MvLT+S/+7ssPTL0NF/9+DH3
+	 1CSwG16nVPRR7njkb/9N4tRbCEMmQo91ZIYkqf3qP3lX27UVQoE6QaZ2ouIrdo7Gt3izv
+	 LAoN48ZzggmDSeHfE+QrwKdbbX3gL0KxgX1+BiAOhVqbihHAgqEO1/ksZ2FjWbI0SLu5+
+	 eU4IUbE9+hVqsCxiCvbD7mLk1mC6/QnT3hIHDVvoQIVZwVSESty/RJvfpUA0nj8e8iaTS
+	 mY3rYkG5Oa85vMXQFe0q2ylVvdkx+5zENzwsydUH20+mhbfC6mZSS7fKtLDtduecUhQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=suse.de;
 	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=M8PpZdww;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=XK0VRyT1;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=M8PpZdww;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=XK0VRyT1;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=kt+hROst;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Pg+rUfTq;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=kt+hROst;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Pg+rUfTq;
 	arc=none smtp.remote-ip=195.135.223.130
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A935606A31F
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2026 14:10:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2A935606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA314606A330
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2026 14:27:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EA314606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=M8PpZdww;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=XK0VRyT1;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=M8PpZdww;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=XK0VRyT1
+	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=kt+hROst;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Pg+rUfTq;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=kt+hROst;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Pg+rUfTq
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 28E90222D1;
-	Mon, 26 Oct 2026 14:10:04 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 27DFD220F1;
+	Mon, 26 Oct 2026 14:27:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793023804; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1793024865; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=WM4vAEGlhlHGhMEi1px3qUFAkL1THxHMrZ+7SD9VpUI=;
-	b=M8PpZdwwPBi8GdZSTVAJs/1VKegcckiCwUXuUa8TdZBzmEDOY2Nc4gUKuHgS2a1WX9vRLy
-	xWTEZZOrnWlVtn7BBnLHSuDlpxjjj351zPOVCdXSL/lSGgPX6rY4sXcrG2QCmrHlcGc/N1
-	DOVoyqxiTB4PhLnGUN41V1R1n57ipb0=
+	bh=pFeiZWUlKA17A5iSBKX4rHu8B6bfw4tdUPbBkbANNOg=;
+	b=kt+hROsteMp4x9NabCiCembg/pzy6uxvQxiktgywWNRvs00G1brlIA1cIjzGglFeHA3ucg
+	tSJljyvuy/Esx2QpRG7BSr8VrUBRJWB6CI3BH68+JHVdzfOUSXYVgA8Cy8bKQKCtvamP9o
+	raek+kJT6/VkyWTx668zrMZx0EmMv44=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793023804;
+	s=susede2_ed25519; t=1793024865;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=WM4vAEGlhlHGhMEi1px3qUFAkL1THxHMrZ+7SD9VpUI=;
-	b=XK0VRyT1SszO2SFQbm8U5dYoFPu4oufO9Kb3gMYZSAKAvnrDx8mrfFDd5pNQwVdvlL/VzO
-	QplSGZqaxYJUZNBg==
+	bh=pFeiZWUlKA17A5iSBKX4rHu8B6bfw4tdUPbBkbANNOg=;
+	b=Pg+rUfTqZewOk36tggGl5vyPTHJctzK/XBFO6/egU1UP+DZwF+MYliZSgHn/XyGS6UJSal
+	rWYmFFFAlBjbwFDA==
 Authentication-Results: smtp-out1.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793023804; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1793024865; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=WM4vAEGlhlHGhMEi1px3qUFAkL1THxHMrZ+7SD9VpUI=;
-	b=M8PpZdwwPBi8GdZSTVAJs/1VKegcckiCwUXuUa8TdZBzmEDOY2Nc4gUKuHgS2a1WX9vRLy
-	xWTEZZOrnWlVtn7BBnLHSuDlpxjjj351zPOVCdXSL/lSGgPX6rY4sXcrG2QCmrHlcGc/N1
-	DOVoyqxiTB4PhLnGUN41V1R1n57ipb0=
+	bh=pFeiZWUlKA17A5iSBKX4rHu8B6bfw4tdUPbBkbANNOg=;
+	b=kt+hROsteMp4x9NabCiCembg/pzy6uxvQxiktgywWNRvs00G1brlIA1cIjzGglFeHA3ucg
+	tSJljyvuy/Esx2QpRG7BSr8VrUBRJWB6CI3BH68+JHVdzfOUSXYVgA8Cy8bKQKCtvamP9o
+	raek+kJT6/VkyWTx668zrMZx0EmMv44=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793023804;
+	s=susede2_ed25519; t=1793024865;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=WM4vAEGlhlHGhMEi1px3qUFAkL1THxHMrZ+7SD9VpUI=;
-	b=XK0VRyT1SszO2SFQbm8U5dYoFPu4oufO9Kb3gMYZSAKAvnrDx8mrfFDd5pNQwVdvlL/VzO
-	QplSGZqaxYJUZNBg==
+	bh=pFeiZWUlKA17A5iSBKX4rHu8B6bfw4tdUPbBkbANNOg=;
+	b=Pg+rUfTqZewOk36tggGl5vyPTHJctzK/XBFO6/egU1UP+DZwF+MYliZSgHn/XyGS6UJSal
+	rWYmFFFAlBjbwFDA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8DD1013319;
-	Mon, 26 Oct 2026 14:10:03 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 83EFA13319;
+	Mon, 26 Oct 2026 14:27:44 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id jYdOFztf32oaJAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 26 Oct 2026 14:10:03 +0000
-Message-ID: <3141c47e-6fa1-4012-a756-db565f7d1c03@suse.de>
-Date: Mon, 26 Oct 2026 15:08:46 +0100
+	id 9FfaFGBj32oCNwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 26 Oct 2026 14:27:44 +0000
+Message-ID: <2888b742-9d02-466a-bd16-33296a686d7c@suse.de>
+Date: Mon, 26 Oct 2026 15:26:38 +0100
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -107,16 +107,17 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix out-of-bounds read in
+Subject: Re: [PATCH nf v2] netfilter: nf_conntrack_sip: fix OOB read in
  ct_sip_parse_transport()
-To: Duc Anh Luu <luuducanh05051995@gmail.com>, pablo@netfilter.org,
- fw@strlen.de
-Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc, coreteam@netfilter.org,
+To: Joas Antonio dos Santos <joasantonio108@gmail.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>, Duc Anh Luu <luuducanh05051995@gmail.com>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261022172248.554687-1-luuducanh05051995@gmail.com>
+References: <179286139765.93379.986858959213810476@gmail.com>
 Content-Language: en-US
 From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20261022172248.554687-1-luuducanh05051995@gmail.com>
+In-Reply-To: <179286139765.93379.986858959213810476@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 X-Spam-Flag: NO
@@ -128,63 +129,52 @@ X-Spamd-Result: default: False [-13.29 / 50.00];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
 	XM_UA_NO_VERSION(0.01)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
 	FREEMAIL_TO(0.00)[gmail.com,netfilter.org,strlen.de];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
 	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCPT_COUNT_SEVEN(0.00)[8];
-	MID_RHS_MATCH_FROM(0.00)[];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo]
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCPT_COUNT_SEVEN(0.00)[9];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[nwl.cc,gmail.com,vger.kernel.org,netfilter.org];
+	MID_RHS_MATCH_FROM(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	URIBL_BLOCKED(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo]
 X-Spam-Score: -13.29
 
-On 10/22/26 7:22 PM, Duc Anh Luu wrote:
-> ct_sip_parse_transport() compares the "transport=" parameter value against
-> "TCP" and "UDP" with a fixed length of 3, without first checking that the
-> parsed value is that long:
+On 10/24/26 7:03 PM, Joas Antonio dos Santos wrote:
+> ct_sip_parse_transport() compares the value of the "transport=" header
+> parameter against "TCP"/"UDP" with strncasecmp(..., 3), but it never
+> checks that the parsed value is at least 3 bytes long.
 > 
-> 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
-> 			       &matchoff, &matchlen)) {
-> 		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
-> 		...
+> ct_sip_parse_param() returns matchlen = end - start, where end is the
+> next ';' or, when there is no ';', the end of the payload buffer
+> (limit = dptr + datalen).  If the "transport=" value is only 1 or 2
+> bytes long and runs exactly to the end of the payload (e.g. a REGISTER
+> request whose Contact header ends in ";transport=T" with no trailing
+> CRLF), matchlen is less than 3 while strncasecmp() still reads up to 3
+> bytes, reading 1-2 bytes past the end of the linearized skb data.
 > 
-> ct_sip_parse_param() sets the value end to the surrounding limit when no
-> ';' delimiter follows, and that limit can be the end of the SIP message
-> (dptr + datalen) when no ',' is present either. A Contact/Via parameter
-> such as "transport=tc" placed at the very end of the payload therefore
-> yields matchlen < 3 with matchoff + matchlen == datalen, and the
-> strncasecmp() reads up to two bytes past the end of the message buffer.
+> Add a matchlen check before the comparison, mirroring the
+> sdp_media_type() pattern a few lines below, so short values cannot reach
+> strncasecmp().
 > 
-> The value of the over-read bytes can also flip the detected transport,
-> so this is not purely a read: a crafted short value can make the helper
-> classify the transport using out-of-bounds data.
+> The bug was found by LLM-assisted manual review of the SIP helper's
+> parsers and confirmed with a userspace ASan harness built from the
+> verbatim parser functions, which reports a heap-buffer-overflow read of
+> size 2 in strncasecmp() called from ct_sip_parse_transport().
 > 
-> Both call sites (process_register_request() and
-> process_register_response()) are reached from attacker-supplied SIP
-> traffic when the nf_conntrack_sip helper is active.
-> 
-> Bound each comparison by matchlen. A value shorter than three characters
-> can never equal "TCP"/"UDP", so this only rejects already-malformed input
-> and leaves valid transports (TCP, UDP, TLS, SCTP, ...) unchanged.
-> 
-> Reachability and behavioural equivalence were verified with a userspace
-> ASan harness built from the verbatim parser functions: the over-read is
-> confirmed as a read past dptr + datalen, and the fix removes it while
-> producing identical results for all well-formed transport values.
-> 
-> Fixes: f5b321bd37fb ("netfilter: nf_conntrack_sip: add TCP support")
-> Signed-off-by: Duc Anh Luu <luuducanh05051995@gmail.com>
-Hi, this is a dup of:
+> Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
+> Link: https://lore.kernel.org/netfilter-devel/20260815133104.50369-1-joasantonio108@gmail.com/
+> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+> Assisted-by: Claude:claude-opus-5-5
 
-https://lore.kernel.org/netfilter-devel/179286139765.93379.986858959213810476@gmail.com/
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Since the v1 was sent earlier, let's stick to that patch.
-
+Thanks!
