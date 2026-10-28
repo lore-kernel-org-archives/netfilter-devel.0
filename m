@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793185634;
-	b=yE0WWbP/0Tby/UhRA/tqKJU3Eaxghfguf+3kPY1cPVFDNR5bgQGRcfn8c5wDTezzWivb
-	 TuB3wkAaNSaMCo2jVa49rl8iCxRZyGtcFT1pTIqNdgOxNZkT8SIVD499prBFRo8H7ffbS
-	 4QSRFr0IoP+Wbx0nChg4NKxneA0oOLvcse0twKE5Z+YSX0P1EdefwT39yoRXO42Kv8XKN
-	 2zUofif7wv5KyT/K4PzmSJH8B2OfL5kFwSqXb8ALqpfWHnDUU6HI/idx3OqcOe7a/6kVO
-	 FXmMH0QJ5G1OYiza3MyAgivlNzJZ8Q/G2prEdpdB51i9Ifx4CzhW56xFiNcrf0KtGfQ==
+	t=1793186742;
+	b=jiVr+kCxFtPM/ViNFFYQW5+YIcJMA6Rk3OLez3GVIkh+WRJYdPGZokH8wVcYmUCCcPi2
+	 gtYYEgBsvOHSnrGgmszEy4A3gFUPP4r11d8PfnfjSWKNTp6U8MezgOHcqw6SYoW2LdtcS
+	 LFMgzRiazstY1wTb7N5wwny8Qugm2qC9Mll+1lvfmNie3xJNhU6CuMzU7E7WJ03fyr33F
+	 uRBSTTkTBPCaxv+TMvs87sw/olwGc9SNmXD0E+06XTsqwaWTSb+roh/3v3UHf/xmvgAH1
+	 XINL4V1WB7sPIyT3tf2c2z27XrwBaKiTHzMZ+THzi1h0slc95gBHDWUnytFYybfXyow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793185634;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793186742;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=LIXhJKAL1toAkLrFn0ZMsbu26eLf5azGCvOky/MAPIg=;
-	b=Gh3ujb407E1v1W7S8GeIocT+n2+VuY+0HED0mLUO6pC9inJc0OGMWaoNdWMVaU9VMSUU
-	 eEumX5gcrtXX+Zivonvs5tJqW4J3wQ9XA3QRYKH44MUjvy2hz+Lp1kv0KaanP3Nlhztm5
-	 fEGwIJbq9a1kbFk4z0xzu+eUSyRFI79QlvrX9ZStrLHArsk8xo+qHg5D96bT56udQs4Co
-	 29+FSNvzhCcr4qTamo6fCzKrJC3CQ4bmlRUQEC5bH1sQfTeyFT+OrUBRfmbIrAh3g5rBo
-	 yhyxsBQ3My09Y9eQaNAGJc0IxZiqiI5Zl62h8U32fuzpKoQw7UZFXIrjar7dJUIHOFw==
+	bh=UPrFPLW9GRAFnc4gRrUL7oB5PZw67n7vrdcaFGxc/3c=;
+	b=joHQesxpLXtUZG6WC8qF6wVAvIAtBc/z0bwcB0seV67ypFC5YxdEZmWZP2FeLN/ZeDk/
+	 h4rhkxe/OcSf0eN3+wINe/ChaqBbVatXn72cFlHMXHITEqLoRqVXjHIWDR3mkcus8sjXw
+	 Oz849RNcKDpuDm7s+WWquVg5gO/ULQv6zuv35sqgxxgkoTAkHCIsHdw1HhJJphcfxmkOt
+	 uc1hNJbTdxeHhklfWi3Uv7a4S+a3U8PK/fmLggRZpGVsxjA4LHVRzS0UJ+q3TuDIrGuiJ
+	 VCyqrQWjcSv1eG/FOWzH7G8KFk5y5awlvPWVMMvUOcF2wyQPJvh5EfvuWPN0HzaQTNg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Eh5zaN55;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ljE+VUA5;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384B2606A321
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 11:07:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 384B2606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DFDD606A31A
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 11:25:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4DFDD606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Eh5zaN55
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ljE+VUA5
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793185629;
-	bh=LIXhJKAL1toAkLrFn0ZMsbu26eLf5azGCvOky/MAPIg=;
+	s=2025; t=1793186739;
+	bh=UPrFPLW9GRAFnc4gRrUL7oB5PZw67n7vrdcaFGxc/3c=;
 	h=From:To:Subject:Date:From;
-	b=Eh5zaN55Jl2ubHO9QCJ11D0ar+GYgQevYYExvVtGBiSFP3fywY323qE/6MWNotFeP
-	 Oz9FU4CYSIlNlrPLYcGCvPji6iJis4svqnDTbbZfskS9abznMvryYbSLFxZAQcNe0N
-	 OWD6t+MRCP3ZJx5iYwqFuR2KnBjAETVFbBYkPLa+FG14lG2tD84WYtJESM6HcwhEJe
-	 7m2KtnGvigMfmQ+6DVcPOKHG1XhpNHopTms6Z617nfuj9qagd7hbdnPl9l503AiPVZ
-	 CDg4OEnTT1f1D8PoF9Cwq0X5mafKSVZ0MyzE7IuXo6qDMMuLG54h/yH4t10zwPTTgr
-	 xVtyQiHIW7BYQ==
+	b=ljE+VUA5eXDAc7rAPFG4kGwM572dlzXwQEbGqL7uhRvErPgmk/cOmn+OjLqKzWqIh
+	 hpMbmAgxfLm1aQp7gW3jQE5Gr/RWmj0YSuDm21pg5vjbqFaqE49gO/gnWUVMZnuH7S
+	 TLHqnw7/nk5fvJUNhIUep1MS5s0fn+MFE/L2TgS27ci7NLiFHIhQXWx2WzYStUJ2qq
+	 kKLQ/OqpjZXvVi8NPlrlnAQPJA4ENRlKGR4iJ83OT0VIXDoc+D9FArEf3F6ki+h6Ji
+	 OQo7f6Uny77p8vn7ybtzPVRXzRK0+DNoPsablxwe4lY/SOG5TKWnu2WJUD9VTYumQk
+	 6+Etv6gTKICNw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1EA4E6005D
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 12:07:09 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id CCBFE60057
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 12:25:38 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
-Date: Wed, 28 Oct 2026 12:07:06 +0100
-Message-ID: <20261028110706.108523-1-pablo@netfilter.org>
+Subject: [PATCH nf,v2] netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
+Date: Wed, 28 Oct 2026 12:25:35 +0100
+Message-ID: <20261028112535.115054-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,20 +63,28 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allocate flow rule object after transaction has been allocation and
-rule deactivation has been performed, otherwise memleak is possible.
-Let the transaction unwind the existing rule deactivation from the
-abort path.
+Allocate flow rule object after transaction has been allocation and rule
+deactivation has been performed, otherwise memleak is possible.  Let the
+transaction unwind the existing rule deactivation from the abort path,
+this needs to update nft_flow_rule_destroy() to skip release if
+flow_rule is null.
+
+While at this, remove check for non-null flow_rule in newrule error path
+now that nft_flow_rule_destroy() is skipped if flow_rule is null.
 
 Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
 Reported-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+v2: fortify nft_flow_rule_destroy() by allowing null pointer when
+    flow_rule is yet undefined, per sashiko feedback.
+
+ net/netfilter/nf_tables_api.c     | 21 +++++++++------------
+ net/netfilter/nf_tables_offload.c |  3 +++
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1c7deca476fa..2d2156d05916 100644
+index 1c7deca476fa..d26867ffc30a 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -777,16 +777,6 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
@@ -111,6 +119,30 @@ index 1c7deca476fa..2d2156d05916 100644
  	return 0;
  }
  
+@@ -4553,8 +4551,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ err_destroy_flow_rule:
+ 	nft_use_dec_restore(&chain->use);
+ err_destroy_flow:
+-	if (flow)
+-		nft_flow_rule_destroy(flow);
++	nft_flow_rule_destroy(flow);
+ err_release_rule:
+ 	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
+ 	nf_tables_rule_destroy(&ctx, rule);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 0ac3c26dfb3d..48b9e58e0c44 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -148,6 +148,9 @@ void nft_flow_rule_destroy(struct nft_flow_rule *flow)
+ 	struct flow_action_entry *entry;
+ 	int i;
+ 
++	if (!flow)
++		return;
++
+ 	flow_action_for_each(i, entry, &flow->rule->action) {
+ 		switch (entry->id) {
+ 		case FLOW_ACTION_REDIRECT:
 -- 
 2.47.3
 
