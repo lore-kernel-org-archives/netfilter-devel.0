@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793199450;
-	b=hjqQmi3DMazWcNj0igiRsIbCmW2WskbWZa7kMEaHqe5TC5PH44/+pa1G2IT7aEPG43D2
-	 jzRdA+K5mdCb0FFHjdbeOSYZPcs0DHKRxKaXZG4m8I8VyyALqg3ymVjQ0h7z88sshe/4m
-	 DXlEW2AheHoQj0EU/s9e9/UHXsoKtqac3Zi+1oBQYn8DURBzGWbWkRefa3KeNnBHC9VID
-	 /hgNgOLmTFmIY3vi0NoAwxcfQqGUSiO5VvwtD0ntfAYtJN19K+giS+fju9ERZYLCpfHRW
-	 KmskNeY3+hbMdSJu0iwaLpvZBv5pe9hw24nlz7VPE2kDGH/p09TveMVOqdGcdIPvGJA==
+	t=1793199454;
+	b=beKxrXwSgW1j+Wc8cfr5Kv+ehgZgH9MmIWFAnrvA9MdazwZ8jfQPkc6As9Y2d+0Pj9Nd
+	 e7xduR7goVoGjjxPBRLfspdXL/1pXaMW6WI++8GSKIGJSPqdO0KOeN+mbTL+yKTlUDpiu
+	 96zzy0lHvUIJoVfMvKOtDiQdQZaHWAIkjGfhCtjOt9vXvlfQGA8X63uqc5E4xKNTyv4rG
+	 Qx8DkhQ3lXuIpI90QYyXbsXxwYANW2OrFiJQdYWT9BkZ0hdQoZlgYoBEOYqIkts2xFrlD
+	 ninTaF0YGg7wC5bTHH3rBTiEeiY6ByuJxh4tAwMbRyiG9TN+gWRd0NCmAXWxcCANSYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793199450;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793199454;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=F67JmIjCUTUbq2UeYUGoENmrWM1p0mhpp71IhxLgVEc=;
-	b=2gmVEE2P4LJG73lBKH0ztM1OjlSUUSSIZVZOgJ/+82WnFkDZtSvwbRYp2rvbxkN2ncKm
-	 lV8ft8FPWVaLXVDShDmfosqV640vVFRIpnsy3+kQrKv1/unYNDU5fm0vEp5tTILhoDmBz
-	 dLelG0M1pXyCOBoAzEThqqNEEO34wKqb56I7SPMiJzK3GSyWzKa8s1OLx40ruHVlj4Puu
-	 W7F66WmMzJcFwdMMBjCGZcQS6li6kvHUnGWCr3H/Hglhw2tzloyfrZhsZ6UWJo6f0JMX5
-	 WoZRDR8+vl/Nj7rKeUsl7yd2V2IXUkayUbCbqgC7p2YP+Z2W34TMCanZDeZy5F48Wrw==
+	bh=mN8oF+BCkugqpRVBISv+1ADUUK8sLtwOwOzCITW48e8=;
+	b=qWYPnqTjG+rEVvv4CJZsrdZJlKFphVbSrPFT3A0QV4rnEyUhdirNwan7msBtddNCvCbF
+	 /vKWzttPpqwci2HoShczM5FZP9PB9+eLVHEmKi5xfdmRlUhFwpfbIjA34WIezGndOXPQR
+	 O0QzmfxwU/spndOx4snMXobiRjJwo8QGXDKRIxN+u2e54mFMj4TcLf6sy0PBxpMKL+Vbk
+	 Mm9jDmV5xSeJ/YxqLEBaeuunMC6r2lFt+snETWL7CXca5F/jlrRNJz7hFN744kgWlATxU
+	 9N+z7aft6xhKSB3s4u2JFY3IApkyf6oaGErIVZ8N2ve+QDzBLEZR2pcg3ZJVn4e6TMQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181A8606A31D
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 181A8606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54277606A31A
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 54277606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 64F6B609D0; Wed, 28 Oct 2026 15:57:28 +0100 (CET)
+	id A3583609D0; Wed, 28 Oct 2026 15:57:32 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libftnl 10/12] src: set_elem: list_del before freeing
-Date: Wed, 28 Oct 2026 15:56:30 +0100
-Message-ID: <20261028145632.7089-11-fw@strlen.de>
+Subject: [PATCH libftnl 11/12] src: udata: clamp buf->end to actally copied size
+Date: Wed, 28 Oct 2026 15:56:31 +0100
+Message-ID: <20261028145632.7089-12-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261028145632.7089-1-fw@strlen.de>
 References: <20261028145632.7089-1-fw@strlen.de>
@@ -52,48 +52,35 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 LLM finding:
-nftnl_expr_free() calls xfree(expr).
-It never calls list_del(&expr->head).
 
-After the loop, expr_list.next/.prev point into freed heap memory.
-Next list_add results in UaF.
+nftnl_udata_buf_space() doesn't tolerate buf->end moving
+past the size.
 
-Looks like noone does such re-use, but as the API allows it, make
-this safe.
+Clamp the end pointer in udata_buf_put so that it matches
+what was actually copied.  After this, nftnl_udata_buf_space()
+will return 0 if the space was exhausted.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/set_elem.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ src/udata.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 3504a2306e47..0170d0ccefd1 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -88,8 +88,10 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
- 		break;
- 	case NFTNL_SET_ELEM_EXPR:
- 	case NFTNL_SET_ELEM_EXPRESSIONS:
--		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
-+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
-+			list_del(&expr->head);
- 			nftnl_expr_free(expr);
-+		}
- 		break;
- 	case NFTNL_SET_ELEM_OBJREF:
- 		xfree(s->objref);
-@@ -167,8 +169,10 @@ __nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr, const void *data,
- 			return -1;
- 		break;
- 	case NFTNL_SET_ELEM_EXPR:
--		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
-+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
-+			list_del(&expr->head);
- 			nftnl_expr_free(expr);
-+		}
+diff --git a/src/udata.c b/src/udata.c
+index a1956571ef5f..11de73402569 100644
+--- a/src/udata.c
++++ b/src/udata.c
+@@ -53,7 +53,10 @@ EXPORT_SYMBOL(nftnl_udata_buf_put);
+ void nftnl_udata_buf_put(struct nftnl_udata_buf *buf, const void *data,
+ 			 uint32_t len)
+ {
+-	memcpy(buf->data, data, len <= buf->size ? len : buf->size);
++	if (len > buf->size)
++		len = buf->size;
++
++	memcpy(buf->data, data, len);
+ 	buf->end = buf->data + len;
+ }
  
- 		expr = (void *)data;
- 		list_add(&expr->head, &s->expr_list);
 -- 
 2.55.0
 
