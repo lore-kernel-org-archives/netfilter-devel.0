@@ -1,67 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=1.95.144.110
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.136
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793154960;
-	b=YQpkejwczZUNVvAYJ9lkGXS+HtHN1MzLy2nxdiWfcK0A16+MsFZcvnqV4siE34mA/O3B
-	 oMiKGo1vHociKgYFawup5Pl62j2w4LQ56J/TpjRgPjb7GIzyS9Nf62ZKg16kaQCkyxBN+
-	 X85AgGrjyMhOUuTY0ERJNKGQFxw4jrhRRc3bGIdiNqehEq6wHIkP2QVIR0aHC7Su2gpeT
-	 wl8PgSI/XiFFfypLt3OkWgZWVHQKZuDKFwRF+qts1mHwnm+LZnK8rqtpOV87GP3PvLYID
-	 LUk9N1f210DXn9+VZ41qm5jYzF1NkSxPbXfPOM/KYAjVVY1hDh082hGlPgZvgkBLzJA==
+	t=1793168574;
+	b=0cYpCtBk9CSLDWFtgxdhIe3Y4KuJ0KNYde+m3sEDcu6OR44obvjatix7MFHuz4ay0J7i
+	 SpB2bJFds/suJj3IqPorp7NQ9VGb/1fLcgnMQdSXc/yAcWTr4I57D1/mWbp1wzKm2SjKh
+	 ZNrhPItvibrAA16TyzYQh/dfEEOJxRk+zM3b2dFaHM8YvQHa9QEwNS5uRqIAjSel/Sdmv
+	 Y/3PWyHIbhTEPcAi1lDNp2xDuxB4bjr7T5y1FODTXpLYWvtISfs73S1d0uO/P/xDBfjgT
+	 GOyCQ2l4U/BECpdIz0Ra2K8d46OfURiMtvqjFAsC92pAk8WnCPL8slNBiO7fL9EZC2A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793154960;
-	h=DMARC-Filter:Received:Received:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:Accept-Language:
-	 Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
-	 x-originating-ip:Content-Type:Content-Transfer-Encoding:MIME-Version;
-	bh=TVR/bders8gsLGGxNVhzSC/dKCCM/SvZvbArKF+vv/w=;
-	b=E+5DMa7hmOMkdX7AD3C1SmPXsVls2gPCrUXyarXz2NPFtqnuBbkVV5fC0XDXJW9jltKU
-	 MBPcVz8E0AbIziUpEYlr/pAuf0vezuhQIEbwwDd4uaT/npb9I2+/c9037nXAflvYZItCq
-	 KXOOTsW3QPc6jV7dXNf3Ubi5BzAuMsPxZLxIjhK/j+wpC72k15//ar7WOY59h43KEutPk
-	 RMj7RcQDJq9GvH46d139qIGnqMba+7G+1ehOjHvDPpPzzFl/4q+h1wkpr+t2eHaeG9zI9
-	 ViUI+3msUno82PWVxz35MR22o6X+3PJ653ags7iNGk0Eny3maEfCBNO7IZH0yAZDPpA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793168574;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:X-Mailer;
+	bh=SulABahkU3rLao+I7j5g0Ph09Yg6H2vGeWdscwhFpIs=;
+	b=S/CaGT9MfqbYAbuKuBV+5mhABf0EprRnn3zsu85Z+bGZETnmUa6ullLH2ifRJFLzbBWP
+	 aXs4kXBhOxj8ptrw9uJXM7Qgj+iI8c7UIQPyxSXHueIZ4kCt9cfZ+XoNxVcK9yEv8Qs02
+	 L2aUjEmQQSMbCt9Z3wziGnWaEXErbkEYghiczbRFslEGfxvVmwiz6Sr/QX7MuqKkMFL+V
+	 4aOmkSi6bWyZI18X+w4PsF+xIOjNIMZmHjZj0kEviVAG6x+mhNslYriq4RA5EUqK5RcC0
+	 C8bIuJksJaPa1/k2+iKWjKz4pLO3rLs6qEom6gDQIeT8n9a2lOtpm20ME6EcPZuYLdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=yinwang.com;
-	spf=pass smtp.mailfrom=yinwang.com;
-	arc=none smtp.remote-ip=1.95.144.110
-Received: from segout02.yinwang.com (segout02.yinwang.com [1.95.144.110])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Bk++MV6k;
+	arc=none smtp.remote-ip=74.125.227.136
+Received: from mail-pj2-f8.google.com (mail-pj2-f8.google.com [74.125.227.136])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54AE2606A31A;
-	Wed, 28 Oct 2026 02:35:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 54AE2606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yinwang.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yinwang.com
-Received: from mail.maildlp.com (unknown [10.15.1.214])
-	by segout02.yinwang.com (SkyGuard) with ESMTPS id 4jDs2q3k8Rz64FT6;
-	Wed, 28 Oct 2026 10:37:23 +0800 (CST)
-Received: from KWEEX06.china.yinwang.com (unknown [10.16.5.49])
-	by mail.maildlp.com (Postfix) with ESMTPS id A2E201A0FF4;
-	Wed, 28 Oct 2026 10:35:54 +0800 (CST)
-Received: from KWEEX08.china.yinwang.com (10.16.0.84) by
- KWEEX06.china.yinwang.com (10.16.5.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Wed, 28 Oct 2026 10:35:54 +0800
-Received: from KWEEX08.china.yinwang.com ([fe80::1c58:6ee9:dd1f:a39d]) by
- KWEEX08.china.yinwang.com ([fe80::1c58:6ee9:dd1f:a39d%8]) with mapi id
- 15.02.2562.049; Wed, 28 Oct 2026 10:35:44 +0800
-From: "huangwenqing (A)" <huangwenqing@yinwang.com>
-To: "pablo@netfilter.org" <pablo@netfilter.org>, "kadlec@netfilter.org"
-	<kadlec@netfilter.org>, "fw@strlen.de" <fw@strlen.de>
-CC: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, "Phil
- Sutter" <phil@nwl.cc>, "wangli (D)" <wangli2@yinwang.com>, guxizhi
-	<guxizhi@yinwang.com>
-Subject: [BUG Report] UAF in ipt_do_table() on table replace (v5.10/v6.6)
-Thread-Topic: [BUG Report] UAF in ipt_do_table() on table replace (v5.10/v6.6)
-Thread-Index: Ad1l8bEV24cQrxkbR+y4apxm7MsIpA==
-Date: Wed, 28 Oct 2026 02:35:44 +0000
-Message-ID: <9fc5fe14207146a4a9d12c12cf17e652@yinwang.com>
-Accept-Language: en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6324606A31A
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 06:22:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A6324606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Bk++MV6k
+Received: by mail-pj2-f8.google.com with SMTP id d9443c01a7336-2e609985789so1589425ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Oct 2026 23:22:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793168573; x=1793773373; darn=vger.kernel.org;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=SulABahkU3rLao+I7j5g0Ph09Yg6H2vGeWdscwhFpIs=;
+        b=Bk++MV6kwfBaTPsFQ9sPW6xVdQXu8QHBLNBmXn+4O5/4UZqCRMXj2JVrOkA0O73ASK
+         UjmfdxIzc591iBllQHPYUS8Ru4hTCYR2k7f5FbUeYKYAjjWddLDzfKFvfFG/tE/iWG7G
+         kdIkEkNgFScyzvf90nJziUXX66iSajGdCM9mpd1XJS5P5JjZVERSO9upDyUKUGCpPLP2
+         l+BaJE36fU2n6FPqKPUz+fXH1HGgGhfJnC4i6Crg0DJFPEcI9WG6MYtV7KFaBPtMBx4t
+         kcnIOMBDqZr88IhosTjC1ODmw/JZP7bnUSLnYqZJEQovxNIYaDtF8V7sVJ5vOpLE1xCB
+         MJIg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793168573; x=1793773373;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=SulABahkU3rLao+I7j5g0Ph09Yg6H2vGeWdscwhFpIs=;
+        b=yTDqoPbU5zdZ8SkkhHPaD1ozsHWQxbVb0Q/PhXiXwNrHLHW/rtpAqnjpnqu8ZIriNj
+         bt7BYG7CN7GwKnKykG1OjMQTj9sRP5V3E2/diSd0vRgm4jWP8yVig4MR9vEGTbLciGzu
+         Rzvh0BliOmnQaBrS+y3WURVEdygBRlEo6ZjzDcZ3qWbpIxwb3Owy3KdRFvYKWXtfjhbk
+         eUSZGUYO/2GXGl+6ODy0iVxdj30/YKXSlI38PJh9tZ3W0ATD6SBTd8W5vb0yfcT9dDFm
+         3kirHGSXWz8jTaQrc/USDgYj5Y7xR7LbT8HnDL+hZkT3krw1dJMweLc1T9G2zLp1F2K0
+         63mw==
+X-Forwarded-Encrypted: i=1; AKwUvBwE9B1LHfTGwr0d+53IP3gHdpLxgiNu8HoAreJuH/U6kTfe/o+KoR8o2EGHLaoDjvZ8x4CKz96pB3lh4mBMGu4=@vger.kernel.org
+X-Gm-Message-State: AFq9FYIyieVZbYBM5gYQ288BkiXiplX+8CVVP3KPEDg/2TrARbzG7rWC
+	4o0wQUjzhCxsV/BOCnF/CgAfoKkzxH5tKVF5Sjjg8HtRavHtMwCPF7xc
+X-Gm-Gg: AYBFou0hTmrhNGk8PkH4GFIxZipSxJ2ZcH7QUbofdaElu/JbvgTZX73D9t6Rl8iyF12
+	Yg2StoumJcMqynGGge197XG9ZK43D/XoFc8bmdGaKxpK9m0w4UI6ZNsG0ohf6h+/T5akRfLJ9fE
+	xmZllR4FHSt47LJkpehiSwXzye1jmbgYmv6QS059YlqjN6OFGrdEppA4a3H1bYyWU5K5TUgFiCn
+	cquIz7PweEc0KI2sV+YUNICtpN0Wn2ibodqZl/YDZvjPMVAsE9kRTWMojRNJ252kAqw0ds6+a/X
+	AEj6WjM+PXleauN2DgSv0XCKWUjLkM4ov//g3eCBO1EcyU7DPmYXiaS2bkG5srooyLjDKtzt1MP
+	AwLfbmo8ji3o23j2Mq1qOGH3Gvgw67Zd+P3twB9OdEdiBOyn7Qy9RJw4j/yK1EuuSl/ywYAugap
+	QE1WlI5u4xzX05oG6BSV2xqWpQn5zZpI1r0ocTj2xpOJL5PhmldoO8itum7wi0pK+bOQCD0RBCI
+	oR4zWfQgpykkNZM8b2Z7InKmCC8RlBZomqEqGsGE327c3Gj4f/rAPFKimdNGBbmkaRz8knhntbp
+	eser/k1vPIq9k2EN1hNg
+X-Received: by 2002:a17:90b:55ce:b0:3ac:9d83:8861 with SMTP id 98e67ed59e1d1-3ae5832af4dmr1018817a91.67.1793168573088;
+        Tue, 27 Oct 2026 23:22:53 -0700 (PDT)
+Received: from hhost ([120.231.212.153])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae5a27f7c7sm1558410a91.2.2026.10.27.23.22.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Oct 2026 23:22:52 -0700 (PDT)
+Date: Wed, 28 Oct 2026 14:22:42 +0800
+From: Xingyuan Mo <hdthky0@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Cc: Xingyuan Mo <hdthky0@gmail.com>
+Subject: [PATCH nf] netfilter: nf_tables: fix flow rule leak in nft_delrule()
+ error path
+Message-ID: <20261028062204.1079089-1-hdthky0@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,166 +103,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email 2.43.0
 
-Hello,
+On the nf_tables_delrule_deactivate() failure path, nft_trans_destroy()
+frees the transaction but not the attached HW offload flow rule. Destroy
+the flow after the transaction to avoid memory leak.
 
-We hit a field panic in ipt_do_table() on an OEM kernel based on
-v5.10.43 (arm64), several times per fleet per week, sometimes as
-reboot storms on the same device; in most logs netd /
-iptables-restore had run 0.7 to 2.2 seconds before the crash.  It
-looks similar to the ip6t_do_table() use-after-free that motivated
-cc00bcaa5899.  Field logs are customer-confidential; a sanitized
-representative stack is at [2].
+Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
+Assisted-by: opencode:deepseek-v4
+Signed-off-by: Xingyuan Mo <hdthky0@gmail.com>
+---
+ net/netfilter/nf_tables_api.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Root cause we suspect is as follows:
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 59ac623e6805..ec56ea8c8436 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -752,7 +752,7 @@ static struct nft_trans *nft_trans_rule_add(struct nft_ctx *ctx, int msg_type,
+ 
+ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+ {
+-	struct nft_flow_rule *flow;
++	struct nft_flow_rule *flow = NULL;
+ 	struct nft_trans *trans;
+ 	int err;
+ 
+@@ -773,6 +773,8 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+ 	err = nf_tables_delrule_deactivate(ctx, rule);
+ 	if (err < 0) {
+ 		nft_trans_destroy(trans);
++		if (flow)
++			nft_flow_rule_destroy(flow);
+ 		return err;
+ 	}
+ 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_PREPARE);
+-- 
+2.43.0
 
-xt_replace_table (setsockopt IPT_SO_SET_REPLACE)
-  table->private =3D newinfo
-  /* ... wait for even xt_recseq on all cpus ... */
-  for_each_possible_cpu(cpu)
-    raw_read_seqcount(&per_cpu(xt_recseq, cpu))   // scan misses a walker
-  return private
-    xt_free_table_info
-      cleanup_entry -> string_mt_destroy -> textsearch_destroy
-        kfree(pattern)                            // old table + matches fr=
-eed
-
-ipt_do_table (reader, packet path, e.g. INPUT softirq)
-  addend =3D xt_write_recseq_begin()          // seq -> odd
-  private =3D READ_ONCE(table->private)       // still the old table
-  ... walk the whole table ...              // reads freed memory
-  xt_write_recseq_end(addend)               // seq -> even
-
-A reader that fetched the old ->private but is missed by this
-single-pass per-CPU scan keeps walking the old table while the
-caller frees it.  Note xt_recseq is a seqcount_t used with
-inverted roles: the entity marking the count (ipt_do_table) is the
-*reader* of the protected data, the data writer (the replacer)
-only polls the count, and nothing anywhere does
-read_seqcount_begin()/retry on it -- it is a hand-rolled per-CPU
-quiescence wait.
-
-We reproduced this on vanilla v6.6.160 + KASAN: forcing the miss
-once -- a single debugger write making the scan read "even" for
-CPUs whose readers are still walking -- reproduces the
-use-after-free with high probability, and the other in-flight
-walkers then fault concurrently, ending in the same panic form as
-the field (setup and method in [1]).  Without the flip we only see
-long-tail wedges (replacers never returning from setsockopt()).
-The flip does not prove the scan misses readers by itself; the
-field crash is our natural occurrence.
-
-History we may be misreading: cc00bcaa5899 (Dec 2020) converted
-this scheme to RCU to fix a reported ip6t_do_table() UAF, was
-reverted in March 2021 (d3d40f237480) because synchronize_rcu()
-slowed table replaces by an order of magnitude (200 iptables
-invocations: 1.16 s -> 11.59 s), and 175e476b8cdf then upgraded two
-of the smp_wmb()s to smp_mb().  Our OEM kernel and current mainline
-are both in that post-revert shape, so the field crash happens on
-a kernel that already carries 175e476b8cdf.  One gap it did not
-touch: xt_write_recseq_end() still only issues smp_wmb() before
-the even store, leaving the walk's loads unordered against it.
-
-Maybe the destruction of the old table could be deferred with
-call_rcu() (as nftables does for replaced rules), which would keep
-the replace latency as it is today while removing this whole class
-of ordering subtleties.
-
-Does anyone have a good idea to solve this problem?  Also, is the
-single-pass scan believed to be correct on all architectures with
-the 175e476b8cdf barriers, and is the end-side smp_wmb()-only
-ordering known or considered harmless?
-
-Best Regards,
-Wenqing Huang
-
-[1] Reproduction on vanilla v6.6.160 + KASAN (QEMU virt-aarch64,
-16 vCPU):
-
-    Kernel: kernel.org linux-6.6.160, arm64 defconfig +
-    CONFIG_KASAN=3Dy (generic) + CONFIG_KASAN_VMALLOC=3Dy, booted with
-    nokaslr.
-
-    Load: per-CPU UDP senders crossing a filter table with ~45
-    xt_string rules, plus processes looping
-    setsockopt(IPT_SO_SET_REPLACE).
-
-    Trigger: the window is narrow, so we forced exactly one event
-    with a debugger.  On entry to xt_replace_table(), flip the
-    per-CPU xt_recseq of the in-flight walkers odd -> even --
-    i.e. make the scan read "even" for CPUs whose readers are
-    still inside the table, the event the scan exists to rule out.
-    This is the single debugger write (no memory poisoning, no
-    page recycling); everything after it was natural: the scan
-    passed, the old table and its xt_string/textsearch allocations
-    were freed, and the walkers still walking were caught by KASAN.
-
-    Full report:
-
-    BUG: KASAN: slab-use-after-free in kmp_find+0x188/0x294
-    Read of size 1 at addr ffff0000c81b8934 by task init/146
-    CPU: 4 PID: 146 Comm: init Not tainted 6.6.160
-
-    Call Trace (access -- an in-flight walker, softirq INPUT path,
-    entered from sendto -> ip_output -> loopback delivery):
-     kmp_find+0x188/0x294
-     skb_find_text+0x130/0x198
-     string_mt+0x6c/0x94
-     ipt_do_table+0x494/0x7e4
-     nf_hook_slow+0xa4/0x148
-     ip_local_deliver+0x264/0x29c
-     ip_rcv+0xb0/0x188
-     __netif_receive_skb+0xac/0x1cc
-     ... process_backlog -> net_rx_action
-
-    Allocated by task 151 (the table install):
-     __kmalloc+0xb8/0x10c
-     kmp_init+0x54/0x2bc
-     textsearch_prepare+0x128/0x18c
-     string_mt_check+0xac/0xcc
-     xt_check_match+0x3c8/0x42c
-     translate_table+0x824/0xb40
-     do_ipt_set_ctl (setsockopt IPT_SO_SET_REPLACE)
-
-    Freed by task 150 (the next replace, tearing down the old
-    table):
-     kfree+0x58/0x78
-     textsearch_destroy+0x5c/0x6c
-     string_mt_destroy+0x30/0x40
-     cleanup_entry+0x124/0x1f0
-     do_ipt_set_ctl+0x800/0x8f4
-     ... __arm64_sys_setsockopt (setsockopt IPT_SO_SET_REPLACE)
-
-    The buggy address belongs to the object at ffff0000c81b8900, 52
-    bytes inside it: the kmp pattern configuration of the old
-    table's xt_string match -- the same object class whose bytes
-    appear as wild match pointers in the field logs.
-
-[2] Sanitized representative field stack (OEM v5.10.43):
-
-    WARNING: CPU: 1 PID: 0 at net/ipv4/netfilter/ip_tables.c:305
-              ipt_do_table+0x48c/0x6c4
-    x8 : 0000000000000000            <- t->u.kernel.target
-    Call trace:
-     ipt_do_table+0x48c/0x6c4
-     iptable_filter_hook+0x30/0x40
-     nf_hook_slow+0xa8/0x1e8
-     ip_local_deliver+0xa8/0x17c
-     ip_rcv+0xfc/0x15c
-     __netif_receive_skb_core+0xe58/0x114c
-    [1.3 ms later]
-    Unable to handle kernel NULL pointer dereference at virtual
-    address 0000000000000030
-    pc : ipt_do_table+0x2d8/0x6c4
-    Kernel panic - not syncing: Oops: Fatal exception in interrupt
-
-    Eleven captured occurrences all fault inside ipt_do_table(), at
-    neighboring instructions of the same 0x6c4-byte function
-    (+0xfc/+0x2ac/+0x2d8/+0x338/+0x48c), always from packet
-    processing.  In other logs the faulting addresses are wild
-    non-canonical (e.g. 0xffffff9c71769000), and in the clearest
-    ones the in-register match pointer contains bytes of xt_string
-    pattern data while the entry pointer is tens of KB past the end
-    of the table blob.  Six product software versions from 2024 to
-    2026 share the same kernel image (same faulting offsets, only
-    the KASLR base differs), so this is a long-standing defect.
