@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793199442;
-	b=W7wrllWXylnJ3eSee9fdgib3TnIDLtjj2/AHRRUSTgsuJwi4QVrMP1c+/dw6XWseuq7s
-	 IGYmzV/O/kjcKJsQU6ZgrEemR7bcLPFoxJ7HrVZOAFP5X6rB7WkiodVD+EyouT4CQMne5
-	 zrVnT3MuRCUrzFnnKrQ2UMRXdjHvmGQA5n+gJkohzFDUrq5FsiE697wCIIJap1rLIuiCA
-	 iI5bAI42iXZGXco4NMhuchNsXUBKQmk6LJaqND5P3hf9gN5DfATtWNMWtn5rg1f4EPbhi
-	 i8cfFeQxEsva5CZaReLee8MKYVMiGo904RFowqraEqNZYxH7vwg1lzuYQ+SZ9TbbM3A==
+	t=1793199446;
+	b=Ft3PxUHqtxLXX6f/kvMduyYZgblN1UPwPRsUlfDQD09jopw0qqW7NOlLcbz0WlkQEya7
+	 QDdLsoamMr/ZGAKkrpCCyScnBprk9BSdL5k0t0ef0uBh0eXozu3VVJqDQq9w+NHuZFoDo
+	 KY2rCP2IsJo21NdCB4xcNwFUvSVXbWbi0+WXQ/JQHpt13vSliB6fEcF9mWr1Kk5Efvov/
+	 BHkjEvV3FFoqawuxA1g0sIgiiimhCXUPPuOFczIgO/FLlVrnpelQ9deyZuZcMb3BgGmLX
+	 lLYaWDfLYS46Wwp0BoVTbq400N3LJtULmMaNEy6hjng4WU4ERZJF4cQ39TxXevqAv5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793199442;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793199446;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=RzrZL6yynDauFLaeQgRfbQQCGc23/DzsgjlFchI0AbA=;
-	b=kZVUMvQMWuRWj1CfFbYzuEy4fnfBSe6rQJeubt6ZeiPkPdic+xhnn4gRBcfH2FwdOsRj
-	 49/tbkoK3U6dP6v9sWG01NIJXyUnuxMECXaudjAbZU+gSPvkmmn2mYgXHsPx796TTcXtW
-	 ou9VpLWAx2MysozdhhcL3BpsZYT1j0zgjJXGaRVTr/vERiT8k14S2uPPrLCmrsTDhqDs1
-	 cE7w+rPvjcAL2+VD/iBk4ru5UPy+9zJX2HkS+/psRPEJaisWpJ2iGWpS1Pq61NQN13sCs
-	 AAv8B8cImS1/ijr8h6YJ7Zr2g+BUYLtMRieC/A4eb138liPes4eFEvxHZJIFBas0E8Q==
+	bh=/+LhhO/3h9ac48SwxL2RtVMYqA41WzI+Egle+DK29rE=;
+	b=ackOnR2VylnZv2XUswVAae0D9bpuBwwMNoOaJIlByXhT/wyaHLdp8b0ij8zA1dLfNuGn
+	 ZiBqjF6EkenXVhyv76Vlwb24T8iaF2/m9RSCaGNSPZaSWjG+VlI1dZrrO7Jj/gL6MzFuN
+	 jtU+Pq3ukBV0S3C/tPSXGGoqQavlTXC+nxXhevRaqkVKWmNYDW8Sa29yCI4mYbPW/1AiF
+	 lFaX2gX3IXa5sQrB7nn2V+yKq9UllS9jpwJyCkrkJmFkCJ+uy0pYPCPwv26pqEGy2F5dG
+	 QynfdEx1vwGskpX1pxxFsA0zUI4HeF9deakm2+yul+NhlD+ENTdLiAB5IanEVty4Rjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF15606A320
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7FF15606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A81DB606A322
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A81DB606A322
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D6AEA609D0; Wed, 28 Oct 2026 15:57:19 +0100 (CET)
+	id 23855609D0; Wed, 28 Oct 2026 15:57:24 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libftnl 08/12] src: set: clear field_len array before copying
-Date: Wed, 28 Oct 2026 15:56:28 +0100
-Message-ID: <20261028145632.7089-9-fw@strlen.de>
+Subject: [PATCH libftnl 09/12] src: set: check for empty list explicitly
+Date: Wed, 28 Oct 2026 15:56:29 +0100
+Message-ID: <20261028145632.7089-10-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261028145632.7089-1-fw@strlen.de>
 References: <20261028145632.7089-1-fw@strlen.de>
@@ -51,39 +51,52 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-LLM flagged:
-      if (data_len > sizeof(s->desc.field_len))
-          return -1;
+LLM finding:
+When s->expr_list is empty the for-init assigns
+expr = container_of(&s->expr_list, nftnl_expr, head).
 
-      memcpy(&s->desc.field_len, data, data_len);
-      for (s->desc.field_count = 0;
-           s->desc.field_count < NFT_REG32_COUNT;
-           s->desc.field_count++) {
-          if (!s->desc.field_len[s->desc.field_count]) // here
+Since `head` is at offset 0 in nftnl_expr, this yields
+expr == (nftnl_expr*)&s->expr_list: a pointer into the middle of the
+nftnl_set struct.
 
-i.e. it relies on the inital zero state.
-
-If for any reason a 2nd call is made that shinks field_len
-array, the loop would read stale count from previous
-incarnation.
+The function returns this bogus pointer.
+Also set data_len to 0; normally users would use the _str getter
+which ignores the data_len anyway, but its better to initialise it
+to a known value.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/set.c | 1 +
- 1 file changed, 1 insertion(+)
+ src/set.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/src/set.c b/src/set.c
-index 22fd4a839f80..fc50f3f28055 100644
+index fc50f3f28055..f06223eaed86 100644
 --- a/src/set.c
 +++ b/src/set.c
-@@ -188,6 +188,7 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
- 		if (data_len > sizeof(s->desc.field_len))
- 			return -1;
+@@ -253,8 +253,6 @@ EXPORT_SYMBOL(nftnl_set_get_data);
+ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 			       uint32_t *data_len)
+ {
+-	struct nftnl_expr *expr;
+-
+ 	if (!(s->flags & (1 << attr)))
+ 		return NULL;
  
-+		memset(&s->desc.field_len, 0, sizeof(s->desc.field_len));
- 		memcpy(&s->desc.field_len, data, data_len);
- 		for (s->desc.field_count = 0;
- 		     s->desc.field_count < NFT_REG32_COUNT;
+@@ -313,9 +311,11 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 	case NFTNL_SET_USERDATA:
+ 		return nftnl_mem_blob_get(&s->user_data, data_len);
+ 	case NFTNL_SET_EXPR:
+-		list_for_each_entry(expr, &s->expr_list, head)
+-			break;
+-		return expr;
++		*data_len = 0;
++		if (list_empty(&s->expr_list))
++			return NULL;
++
++		return list_entry(s->expr_list.next, struct nftnl_expr, head);
+ 	}
+ 	return NULL;
+ }
 -- 
 2.55.0
 
