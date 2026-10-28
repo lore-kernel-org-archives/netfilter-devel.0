@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793199446;
-	b=Ft3PxUHqtxLXX6f/kvMduyYZgblN1UPwPRsUlfDQD09jopw0qqW7NOlLcbz0WlkQEya7
-	 QDdLsoamMr/ZGAKkrpCCyScnBprk9BSdL5k0t0ef0uBh0eXozu3VVJqDQq9w+NHuZFoDo
-	 KY2rCP2IsJo21NdCB4xcNwFUvSVXbWbi0+WXQ/JQHpt13vSliB6fEcF9mWr1Kk5Efvov/
-	 BHkjEvV3FFoqawuxA1g0sIgiiimhCXUPPuOFczIgO/FLlVrnpelQ9deyZuZcMb3BgGmLX
-	 lLYaWDfLYS46Wwp0BoVTbq400N3LJtULmMaNEy6hjng4WU4ERZJF4cQ39TxXevqAv5Q==
+	t=1793199450;
+	b=hjqQmi3DMazWcNj0igiRsIbCmW2WskbWZa7kMEaHqe5TC5PH44/+pa1G2IT7aEPG43D2
+	 jzRdA+K5mdCb0FFHjdbeOSYZPcs0DHKRxKaXZG4m8I8VyyALqg3ymVjQ0h7z88sshe/4m
+	 DXlEW2AheHoQj0EU/s9e9/UHXsoKtqac3Zi+1oBQYn8DURBzGWbWkRefa3KeNnBHC9VID
+	 /hgNgOLmTFmIY3vi0NoAwxcfQqGUSiO5VvwtD0ntfAYtJN19K+giS+fju9ERZYLCpfHRW
+	 KmskNeY3+hbMdSJu0iwaLpvZBv5pe9hw24nlz7VPE2kDGH/p09TveMVOqdGcdIPvGJA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793199446;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793199450;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=/+LhhO/3h9ac48SwxL2RtVMYqA41WzI+Egle+DK29rE=;
-	b=ackOnR2VylnZv2XUswVAae0D9bpuBwwMNoOaJIlByXhT/wyaHLdp8b0ij8zA1dLfNuGn
-	 ZiBqjF6EkenXVhyv76Vlwb24T8iaF2/m9RSCaGNSPZaSWjG+VlI1dZrrO7Jj/gL6MzFuN
-	 jtU+Pq3ukBV0S3C/tPSXGGoqQavlTXC+nxXhevRaqkVKWmNYDW8Sa29yCI4mYbPW/1AiF
-	 lFaX2gX3IXa5sQrB7nn2V+yKq9UllS9jpwJyCkrkJmFkCJ+uy0pYPCPwv26pqEGy2F5dG
-	 QynfdEx1vwGskpX1pxxFsA0zUI4HeF9deakm2+yul+NhlD+ENTdLiAB5IanEVty4Rjg==
+	bh=F67JmIjCUTUbq2UeYUGoENmrWM1p0mhpp71IhxLgVEc=;
+	b=2gmVEE2P4LJG73lBKH0ztM1OjlSUUSSIZVZOgJ/+82WnFkDZtSvwbRYp2rvbxkN2ncKm
+	 lV8ft8FPWVaLXVDShDmfosqV640vVFRIpnsy3+kQrKv1/unYNDU5fm0vEp5tTILhoDmBz
+	 dLelG0M1pXyCOBoAzEThqqNEEO34wKqb56I7SPMiJzK3GSyWzKa8s1OLx40ruHVlj4Puu
+	 W7F66WmMzJcFwdMMBjCGZcQS6li6kvHUnGWCr3H/Hglhw2tzloyfrZhsZ6UWJo6f0JMX5
+	 WoZRDR8+vl/Nj7rKeUsl7yd2V2IXUkayUbCbqgC7p2YP+Z2W34TMCanZDeZy5F48Wrw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A81DB606A322
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A81DB606A322
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181A8606A31D
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 181A8606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 23855609D0; Wed, 28 Oct 2026 15:57:24 +0100 (CET)
+	id 64F6B609D0; Wed, 28 Oct 2026 15:57:28 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libftnl 09/12] src: set: check for empty list explicitly
-Date: Wed, 28 Oct 2026 15:56:29 +0100
-Message-ID: <20261028145632.7089-10-fw@strlen.de>
+Subject: [PATCH libftnl 10/12] src: set_elem: list_del before freeing
+Date: Wed, 28 Oct 2026 15:56:30 +0100
+Message-ID: <20261028145632.7089-11-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261028145632.7089-1-fw@strlen.de>
 References: <20261028145632.7089-1-fw@strlen.de>
@@ -52,51 +52,48 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 LLM finding:
-When s->expr_list is empty the for-init assigns
-expr = container_of(&s->expr_list, nftnl_expr, head).
+nftnl_expr_free() calls xfree(expr).
+It never calls list_del(&expr->head).
 
-Since `head` is at offset 0 in nftnl_expr, this yields
-expr == (nftnl_expr*)&s->expr_list: a pointer into the middle of the
-nftnl_set struct.
+After the loop, expr_list.next/.prev point into freed heap memory.
+Next list_add results in UaF.
 
-The function returns this bogus pointer.
-Also set data_len to 0; normally users would use the _str getter
-which ignores the data_len anyway, but its better to initialise it
-to a known value.
+Looks like noone does such re-use, but as the API allows it, make
+this safe.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/set.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ src/set_elem.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/src/set.c b/src/set.c
-index fc50f3f28055..f06223eaed86 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -253,8 +253,6 @@ EXPORT_SYMBOL(nftnl_set_get_data);
- const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
- 			       uint32_t *data_len)
- {
--	struct nftnl_expr *expr;
--
- 	if (!(s->flags & (1 << attr)))
- 		return NULL;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 3504a2306e47..0170d0ccefd1 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -88,8 +88,10 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
+ 		break;
+ 	case NFTNL_SET_ELEM_EXPR:
+ 	case NFTNL_SET_ELEM_EXPRESSIONS:
+-		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
++		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
++			list_del(&expr->head);
+ 			nftnl_expr_free(expr);
++		}
+ 		break;
+ 	case NFTNL_SET_ELEM_OBJREF:
+ 		xfree(s->objref);
+@@ -167,8 +169,10 @@ __nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr, const void *data,
+ 			return -1;
+ 		break;
+ 	case NFTNL_SET_ELEM_EXPR:
+-		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
++		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
++			list_del(&expr->head);
+ 			nftnl_expr_free(expr);
++		}
  
-@@ -313,9 +311,11 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
- 	case NFTNL_SET_USERDATA:
- 		return nftnl_mem_blob_get(&s->user_data, data_len);
- 	case NFTNL_SET_EXPR:
--		list_for_each_entry(expr, &s->expr_list, head)
--			break;
--		return expr;
-+		*data_len = 0;
-+		if (list_empty(&s->expr_list))
-+			return NULL;
-+
-+		return list_entry(s->expr_list.next, struct nftnl_expr, head);
- 	}
- 	return NULL;
- }
+ 		expr = (void *)data;
+ 		list_add(&expr->head, &s->expr_list);
 -- 
 2.55.0
 
