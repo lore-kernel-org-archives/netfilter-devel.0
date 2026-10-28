@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793199437;
-	b=v0LVLz5D5zFYrhUcFsAEe12nMJIES5yHir4sILO4EJymB0mrmtvf3AZ1pgzARlf14GYK
-	 ARwN/Psk5X6r6gvYOOzbU7p+JW8cnLZ7WK5eJL2mlYQ0whRe8rtqqSL9c39DEAWA27Hi+
-	 FuQqiM7QmXjGSb4JWKMi/wJn+lYIWWzOww6+qXrIegr0df80OXQbkP+7uoo0jh+xQsx6W
-	 LyNu8HIYG2MKtUj87f/HKAGkhtw0CzbA8VPZR6qndl2VGVcug9QmlABkusdPnKaKE5OmD
-	 qdFS419YMOK4Y9J5JUV2LJD+hOsWFJHbrKH7KMHQPEQgZybfSW4Lb/+5eXyrCe9E1Aw==
+	t=1793199442;
+	b=W7wrllWXylnJ3eSee9fdgib3TnIDLtjj2/AHRRUSTgsuJwi4QVrMP1c+/dw6XWseuq7s
+	 IGYmzV/O/kjcKJsQU6ZgrEemR7bcLPFoxJ7HrVZOAFP5X6rB7WkiodVD+EyouT4CQMne5
+	 zrVnT3MuRCUrzFnnKrQ2UMRXdjHvmGQA5n+gJkohzFDUrq5FsiE697wCIIJap1rLIuiCA
+	 iI5bAI42iXZGXco4NMhuchNsXUBKQmk6LJaqND5P3hf9gN5DfATtWNMWtn5rg1f4EPbhi
+	 i8cfFeQxEsva5CZaReLee8MKYVMiGo904RFowqraEqNZYxH7vwg1lzuYQ+SZ9TbbM3A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793199437;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793199442;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=BWK3TawAgEvQYlVcbsy82HDy0rrWrlCoClgnyhrJ2a8=;
-	b=ScMXxoC3YZzc2lyrYJ0yYCCwutZvT6jTsnyVGu4bi767UdfeRHzu+tq39Lb5enRK3vpO
-	 6AJAWeaLrk30/3ZJVrRSFvILw6wwJrpUYTZYpMZ/ZfiPoYnXPQx3JTdJnwdV0Ovrs6xbC
-	 Fnr8QUkAVC1UyJBYY1AjHXI92E+e7STXE/ueSEjBrr8bDVGG4sYq5Ixj+M1et8nKPrCZJ
-	 r6henRByHZgOS8DpsohGr2NFkCHlZMMiTG8CD/2wd2j4s8S+B9FFuQ4ZjKYAAL8VzeCPt
-	 2wCtXV4zkPQOSc64nGVahhWQ8ppU5RKcuBvNVyjn9BxAfO7ETKwwoD+jIa7lEt6YxEw==
+	bh=RzrZL6yynDauFLaeQgRfbQQCGc23/DzsgjlFchI0AbA=;
+	b=kZVUMvQMWuRWj1CfFbYzuEy4fnfBSe6rQJeubt6ZeiPkPdic+xhnn4gRBcfH2FwdOsRj
+	 49/tbkoK3U6dP6v9sWG01NIJXyUnuxMECXaudjAbZU+gSPvkmmn2mYgXHsPx796TTcXtW
+	 ou9VpLWAx2MysozdhhcL3BpsZYT1j0zgjJXGaRVTr/vERiT8k14S2uPPrLCmrsTDhqDs1
+	 cE7w+rPvjcAL2+VD/iBk4ru5UPy+9zJX2HkS+/psRPEJaisWpJ2iGWpS1Pq61NQN13sCs
+	 AAv8B8cImS1/ijr8h6YJ7Zr2g+BUYLtMRieC/A4eb138liPes4eFEvxHZJIFBas0E8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171B6606A325
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 171B6606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF15606A320
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Oct 2026 14:57:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7FF15606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 88A16609D0; Wed, 28 Oct 2026 15:57:15 +0100 (CET)
+	id D6AEA609D0; Wed, 28 Oct 2026 15:57:19 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libftnl 07/12] src: ruleset: remove set_elem member from union
-Date: Wed, 28 Oct 2026 15:56:27 +0100
-Message-ID: <20261028145632.7089-8-fw@strlen.de>
+Subject: [PATCH libftnl 08/12] src: set: clear field_len array before copying
+Date: Wed, 28 Oct 2026 15:56:28 +0100
+Message-ID: <20261028145632.7089-9-fw@strlen.de>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261028145632.7089-1-fw@strlen.de>
 References: <20261028145632.7089-1-fw@strlen.de>
@@ -51,49 +51,39 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-LLM flags this bug:
-case NFTNL_RULESET_SET:
-case NFTNL_RULESET_SET_ELEMS:
-     nftnl_set_free(ctx->set);
-     break;
+LLM flagged:
+      if (data_len > sizeof(s->desc.field_len))
+          return -1;
 
-... because it hints at type confusion, SET_ELEMS
-should call nftnl_set_elem_free(ctx->set_elem).
+      memcpy(&s->desc.field_len, data, data_len);
+      for (s->desc.field_count = 0;
+           s->desc.field_count < NFT_REG32_COUNT;
+           s->desc.field_count++) {
+          if (!s->desc.field_len[s->desc.field_count]) // here
 
-However, this entire API is obsolete, nftables doesn't
-use this anymore.  The last user of NFTNL_RULESET_SET_ELEMS
-went away when the json interface was removed from libnftnl.
+i.e. it relies on the inital zero state.
 
-Drop the member from the union.
+If for any reason a 2nd call is made that shinks field_len
+array, the loop would read stale count from previous
+incarnation.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/ruleset.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ src/set.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/ruleset.c b/src/ruleset.c
-index ac50aa604f98..e0f46dd1b20d 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -36,7 +36,6 @@ struct nftnl_parse_ctx {
- 		struct nftnl_chain	*chain;
- 		struct nftnl_rule		*rule;
- 		struct nftnl_set		*set;
--		struct nftnl_set_elem	*set_elem;
- 	};
- 	void *data;
+diff --git a/src/set.c b/src/set.c
+index 22fd4a839f80..fc50f3f28055 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -188,6 +188,7 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 		if (data_len > sizeof(s->desc.field_len))
+ 			return -1;
  
-@@ -158,9 +157,9 @@ void nftnl_ruleset_ctx_free(const struct nftnl_parse_ctx *ctx)
- 		nftnl_rule_free(ctx->rule);
- 		break;
- 	case NFTNL_RULESET_SET:
--	case NFTNL_RULESET_SET_ELEMS:
- 		nftnl_set_free(ctx->set);
- 		break;
-+	case NFTNL_RULESET_SET_ELEMS:
- 	case NFTNL_RULESET_RULESET:
- 	case NFTNL_RULESET_UNSPEC:
- 		break;
++		memset(&s->desc.field_len, 0, sizeof(s->desc.field_len));
+ 		memcpy(&s->desc.field_len, data, data_len);
+ 		for (s->desc.field_count = 0;
+ 		     s->desc.field_count < NFT_REG32_COUNT;
 -- 
 2.55.0
 
