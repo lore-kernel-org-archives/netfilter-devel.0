@@ -1,60 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793273894;
-	b=xyV3eRSuHvG+WMHpRq5Zwuq2berKpCJ6m2gaTYcdAcrQndlfhfWNqi4rc3veWO3O67Hn
-	 3srhdi9JJmRCjnp/ise7eUTIdZgOOqoN9LKQa5PT+Pb/aWbW+tyaXBD22+wToA0eyTF8U
-	 j64Q/mK20hJTyEkQJE95N+kTAorIgZSqymAQs0kMnODGKlPalyluh2YjghmM1T/Tl7fuB
-	 doEtnPWdAk1N4nM1s93HxWwpRlXX8aLKnyuDrQVyrWcia4m2Z3ZlDFW7BMOSugFjrb9nI
-	 EeRwQQIXqvkaywh5UsTaNSwaIX9MFws8miku2GEJdPaSPhDrUULBvgi016AQTmd61Sw==
+	t=1793273950;
+	b=f27GdAhipDQ/yPYzMi8dkAXLQFlhjt5gjTo9KC0DSPabuk09LUODoiJBzEEk7GhaQTo0
+	 hTd/hd7gIPc5oE1GvTLF+aXPeIqPqRDxBhnaueXT1hwzqRmbA05xRNZOzePs/Rc1qWLyN
+	 bs1zp9ISSDx2s1mkI1Spu5MEABjL+BToI+vr2eSFECk87q5BH57elQz+bOsal9KFyZZsC
+	 qX4ufZ2xp/YyOl1i6smEVt0p2qIwuY/G1LhGtqShsZ2wzIKlTkw6Xyf3G2uig6VQm3gi/
+	 3Kh2h8/GpurIBRt8UzjSQhzVP/pePOkJOmwjPRWyBuzHiBUbaWDmCfptRnKXY8j6keQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793273894;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=cabK4srU/G66Ei8Wu76IfA6Yj6V4c/V/svODtFbiw4E=;
-	b=ZiOFSTCOGqkHvqHiRTmArxQDQNGGDriCCwK7t/9sKCcE2J0jK7WlFLi6iZ8w506JDTJX
-	 Jmh2We5jjVQ0BEDrgZo85BEe1a3zVt8JXuS5ODVt37am9UHXzskAWPLVPzeBQX1YwGeA0
-	 SkTaYoLaQ8marVpYeqSgamRHseeiikDQumny9qQHTe9pcDm/iC6nAmpTFKQBU6VCIbI53
-	 sqFOGBgFzc8m4jcM4euHKVFyO3bJ5q+BX2LiuHIrXKNhnodtAdCACxfVu0RHSshT35tMN
-	 zr6JP7yweKs7Nb9WBMDgcwlPWqJQy/HZNidxljHrH3YKpua874TTogV4afQjmPFyb/A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793273950;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=4Fa+dVL+tkei5HGCuw0Up2bth9t6zX8qPNnesLuyCt8=;
+	b=oueCc9wz7w0ePryloj5CjTEJ1egbZXc008tNDyG+cenw18udC8mp5H5twWEZQhiIYKvj
+	 UbUtmM6PAmuSKvBIssY5HStL/GSkbASzd5MZIsr1j0MjjqKg/jAZ+jQVZHfLaBe+7RT/3
+	 mGB+GB5wHgdU8QZKE+uT+yIsTDzNgmbFV8EAw7/3ezZB38HuRNgwB006Je0gYa9++C1bh
+	 wjJ2x56xGUP2G0XQMlO3h6KAqOFqU1OU3S/Ei0QqtkmATA4x3D0IhwuU4004LN4dUMua5
+	 E8hCIG2flbzkau1Xrj4OXWNLao10qMizH9tuX7UnTsTG+jcnk1ov3DkdpuJWrhcjVWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Fv3G7Lam;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WuOxXL2a;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id B74D8606A31A;
-	Thu, 29 Oct 2026 11:38:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B74D8606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAC0606A31A
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 11:39:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Fv3G7Lam
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793273891;
-	bh=cabK4srU/G66Ei8Wu76IfA6Yj6V4c/V/svODtFbiw4E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Fv3G7Lam7o3OKJHPSDWdNyHvoNQeVpwMhyXaEdBYSlshEJjbWPkM9YfYJ3XZK3DmL
-	 Io2dhZcdeKhBSBG8tIeLRAEhfSZW2kHPNVtEiOWo5fhvMFVXMGcmwzfahfs3zh6Ybe
-	 27d7Kada/Vxs0eSyYXjX7LUM2quGpdSjNhCZkpxslgIIzKPPccPKjDkdAVaZy+Gizj
-	 5oFTdEEKuoeVMQ+0wyTCl+3rBMITcqRqeqse/XVT2JRgpP9RabqrIpm+6hHbztNEe+
-	 2hgNDwQTt7kQyUfnxDO78DL9457Uma50AwIfPpKM0ionPyBEmTZfEhs+Foh3jtcVa8
-	 SI3VH0AUuaXug==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 3679D60077;
-	Thu, 29 Oct 2026 12:38:11 +0100 (CET)
-Date: Thu, 29 Oct 2026 12:38:08 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Koral Ilgun <koralilgun@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, phil@nwl.cc,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Koral Ilgun <koral.ilgun@adtran.com>
-Subject: Re: [PATCH nf] netfilter: nft_flow_offload: do not offload multicast
-Message-ID: <auMwIMerV-LQ-aNL@chamomile>
-References: <20261028205938.662312-1-koralilgun@gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WuOxXL2a
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3045A1F01825;
+	Thu, 29 Oct 2026 11:39:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793273949;
+	bh=4Fa+dVL+tkei5HGCuw0Up2bth9t6zX8qPNnesLuyCt8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WuOxXL2aHSwJhSI9hunNZzCLoF2JNauMvJem+CJl3pFupGNNTCWR25bEnFjtCOs0K
+	 0feiU0qA9f3CMabk5fplHAtVbeALZPyjobFpE9SuCM6upOuWec8rsaNcMo7Ys2SAax
+	 SU2/KPJM2J37ZEh5FRlgRrfP85P/761d/ogoo2rWZI8W4Eur0YJwm5Xf+ARrGVzYFz
+	 E1tF5iVM6vbLe6zf2WryYSAJm4npaYkbouRogOAijb5oWNSrHQazwlQTDYmrvykg4Z
+	 3aE34MG88uclLPXYnUBFSTyKt0vcTDPWJg7zCsdMLjIN/nkIXzljR9JulBPwb4L/Y4
+	 PmiV/iS02OkQw==
+Date: Thu, 29 Oct 2026 12:39:07 +0100
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, nbd@nbd.name
+Subject: Re: [PATCH nf-next,v2 1/2] netfilter: flowtable: retrieve stats on
+ flow deletion
+Message-ID: <auMwW3OirtvvRYE-@lore-desk>
+References: <20261029113405.180889-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -64,79 +56,223 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="FGUDf6c+3m1N1ETj"
 Content-Disposition: inline
-In-Reply-To: <20261028205938.662312-1-koralilgun@gmail.com>
+In-Reply-To: <20261029113405.180889-1-pablo@netfilter.org>
 
-On Wed, Oct 28, 2026 at 01:59:38PM -0700, Koral Ilgun wrote:
-> From: Koral Ilgun <koral.ilgun@adtran.com>
-> 
-> A flow holds one output per direction, which it resolves when it is
-> added. The outputs of a multicast route change when listeners join
-> or leave. So a multicast flow in the flowtable continues to send to
-> the output that it resolved, also after the last listener left, and
-> the counters of the multicast routing stop.
-> 
-> IPv4 multicast stays out of the flowtable only because the reverse
-> route lookup in nft_flow_route() refuses a multicast source address.
-> The IPv6 route lookup has no such check, so IPv6 multicast that
-> ip6mr forwards goes into the flowtable.
-> 
-> Skip a multicast destination for both families, so that the result
-> no longer depends on the route lookup.
+--FGUDf6c+3m1N1ETj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please, target nf-next for this patch.
-
-I agree this is convenient, but you can still restrict to unicast
-traffic via ruleset, so I don't think this qualify as a fix.
-
-> Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
-> Signed-off-by: Koral Ilgun <koral.ilgun@adtran.com>
+> Retrieve stats too when deleting a flow from hardware. Apparently, the
+> existing approach is missing last stats sync with the conntrack entry.
+> Pass the stats object to the driver so it has a chance to populate it
+> at deletion time. Drivers need to be updated to use this new approach.
+>=20
+> Reported-by: Valentin Berezhnoy <dreyksmail@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
-> Tested on an arm64 router with Linux 6.18.54, with an inet flowtable
-> that offloads forwarded flows, and IPv4 and IPv6 multicast routed from
-> the WAN to one VLAN. Without this change, the IPv6 flow went into the
-> flowtable after its first packets: the ip6mr vif counters showed 25 of
-> 1,500 packets, and the receiver still got all 400 packets after its
-> leave. With it, the vif counters showed 1,500 of 1,500, the flow stayed
-> out of the flowtable, and the stream stopped about 2.5 s after the
-> leave. IPv4 multicast stayed out of the flowtable before and after.
-> Unicast IPv4 and IPv6 flows still went into the flowtable.
-> 
->  net/netfilter/nft_flow_offload.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index d3c5651dd699..1fc755e594b0 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -10,6 +10,7 @@
->  #include <linux/netfilter/nf_conntrack_common.h>
->  #include <linux/netfilter/nf_tables.h>
->  #include <net/ip.h>
-> +#include <net/ipv6.h>
->  #include <net/flow.h>
->  #include <net/netfilter/nf_tables.h>
->  #include <net/netfilter/nf_tables_core.h>
-> @@ -35,6 +36,16 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
->  			return true;
+> v2: missing copy of stats to cls_flow.stats for FLOW_CLS_DESTROY
+>=20
+>  net/netfilter/nf_flow_table_offload.c | 46 ++++++++++++++++-----------
+>  1 file changed, 28 insertions(+), 18 deletions(-)
+>=20
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
+w_table_offload.c
+> index 4365859220e6..63b557633f3e 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -928,12 +928,34 @@ static int nf_flow_offload_tuple(struct nf_flowtabl=
+e *flowtable,
 >  	}
->  
-> +	/* A flow keeps the output it resolved at offload time, but the
-> +	 * outputs of a multicast route change when listeners join or leave.
-> +	 */
-> +	switch (family) {
-> +	case NFPROTO_IPV4:
-> +		return ipv4_is_multicast(ip_hdr(skb)->daddr);
-> +	case NFPROTO_IPV6:
-> +		return ipv6_addr_is_multicast(&ipv6_hdr(skb)->daddr);
-> +	}
-> +
->  	return false;
+>  	up_read(&flowtable->flow_block_lock);
+> =20
+> -	if (cmd =3D=3D FLOW_CLS_STATS)
+> +	if (cmd =3D=3D FLOW_CLS_STATS ||
+> +	    cmd =3D=3D FLOW_CLS_DESTROY)
+>  		memcpy(stats, &cls_flow.stats, sizeof(*stats));
+> =20
+>  	return i;
 >  }
->  
-> 
-> base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
-> -- 
-> 2.43.0
-> 
+> =20
+> +static void flow_offload_update_stats(struct flow_offload_work *offload,
+> +				      struct flow_stats *stats)
+> +{
+> +	u64 lastused;
+> +
+> +	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
+> +	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
+> +				       lastused + flow_offload_get_timeout(offload->flow));
+> +
+> +	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
+> +		if (stats[0].pkts)
+> +			nf_ct_acct_add(offload->flow->ct,
+> +				       FLOW_OFFLOAD_DIR_ORIGINAL,
+> +				       stats[0].pkts, stats[0].bytes);
+> +		if (stats[1].pkts)
+> +			nf_ct_acct_add(offload->flow->ct,
+> +				       FLOW_OFFLOAD_DIR_REPLY,
+> +				       stats[1].pkts, stats[1].bytes);
+> +	}
+> +}
+> +
+>  static int flow_offload_tuple_add(struct flow_offload_work *offload,
+>  				  struct nf_flow_rule *flow_rule,
+>  				  enum flow_offload_tuple_dir dir)
+> @@ -948,10 +970,13 @@ static int flow_offload_tuple_add(struct flow_offlo=
+ad_work *offload,
+>  static void flow_offload_tuple_del(struct flow_offload_work *offload,
+>  				   enum flow_offload_tuple_dir dir)
+>  {
+> +	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> +
+>  	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
+>  			      offload->flowtable->priority,
+> -			      FLOW_CLS_DESTROY, NULL,
+> +			      FLOW_CLS_DESTROY, stats,
+>  			      &offload->flowtable->flow_block.cb_list);
+> +	flow_offload_update_stats(offload, stats);
+>  }
+> =20
+>  static int flow_offload_rule_add(struct flow_offload_work *offload,
+> @@ -1011,27 +1036,12 @@ static void flow_offload_tuple_stats(struct flow_=
+offload_work *offload,
+>  static void flow_offload_work_stats(struct flow_offload_work *offload)
+>  {
+>  	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> -	u64 lastused;
+> =20
+>  	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
+>  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+>  		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
+>  					 &stats[1]);
+> -
+> -	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
+> -	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
+> -				       lastused + flow_offload_get_timeout(offload->flow));
+> -
+> -	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
+> -		if (stats[0].pkts)
+> -			nf_ct_acct_add(offload->flow->ct,
+> -				       FLOW_OFFLOAD_DIR_ORIGINAL,
+> -				       stats[0].pkts, stats[0].bytes);
+> -		if (stats[1].pkts)
+> -			nf_ct_acct_add(offload->flow->ct,
+> -				       FLOW_OFFLOAD_DIR_REPLY,
+> -				       stats[1].pkts, stats[1].bytes);
+> -	}
+> +	flow_offload_update_stats(offload, stats);
+>  }
+> =20
+>  static void flow_offload_work_handler(struct work_struct *work)
+> --=20
+> 2.47.3
+>=20
+
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+
+I guess you can add even the patch below.
+
+Regards,
+Lorenzo
+
+=46rom c13752f12d74e35685f427f28659e8cd632d028b Mon Sep 17 00:00:00 2001
+Message-ID: <c13752f12d74e35685f427f28659e8cd632d028b.1793273803.git.lorenz=
+o.bianconi@oss.qualcomm.com>
+=46rom: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+Date: Thu, 29 Oct 2026 12:35:23 +0100
+Subject: [PATCH] net: airoha: update stats on flow deletion
+
+Update this driver to use the new approach to fetch stats on flow
+deletion, introduced by ("netfilter: flowtable: retrieve stats on flow
+deletion").
+
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+---
+ drivers/net/ethernet/airoha/airoha_ppe.c | 31 +++++++++++++++---------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/etherne=
+t/airoha/airoha_ppe.c
+index 92611802801e..35750b61028b 100644
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -1285,6 +1285,23 @@ static int airoha_ppe_flow_offload_replace(struct ai=
+roha_eth *eth,
+ 	return err;
+ }
+=20
++static void airoha_ppe_flow_update_stats(struct airoha_eth *eth,
++					 struct flow_cls_offload *f,
++					 struct airoha_flow_table_entry *e)
++{
++	u32 idle =3D airoha_ppe_entry_idle_time(eth->ppe, e);
++
++	f->stats.lastused =3D jiffies - idle * HZ;
++	if (e->hash !=3D 0xffff) {
++		struct airoha_foe_stats64 stats =3D {};
++
++		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
++		f->stats.pkts +=3D (stats.packets - e->stats.packets);
++		f->stats.bytes +=3D (stats.bytes - e->stats.bytes);
++		e->stats =3D stats;
++	}
++}
++
+ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+ 					   struct flow_cls_offload *f)
+ {
+@@ -1295,6 +1312,7 @@ static int airoha_ppe_flow_offload_destroy(struct air=
+oha_eth *eth,
+ 	if (!e)
+ 		return -ENOENT;
+=20
++	airoha_ppe_flow_update_stats(eth, f, e);
+ 	airoha_ppe_foe_flow_remove_entry(eth->ppe, e);
+ 	rhashtable_remove_fast(&eth->flow_table, &e->node,
+ 			       airoha_flow_table_params);
+@@ -1342,24 +1360,13 @@ static int airoha_ppe_flow_offload_stats(struct air=
+oha_eth *eth,
+ 					 struct flow_cls_offload *f)
+ {
+ 	struct airoha_flow_table_entry *e;
+-	u32 idle;
+=20
+ 	e =3D rhashtable_lookup(&eth->flow_table, &f->cookie,
+ 			      airoha_flow_table_params);
+ 	if (!e)
+ 		return -ENOENT;
+=20
+-	idle =3D airoha_ppe_entry_idle_time(eth->ppe, e);
+-	f->stats.lastused =3D jiffies - idle * HZ;
+-
+-	if (e->hash !=3D 0xffff) {
+-		struct airoha_foe_stats64 stats =3D {};
+-
+-		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
+-		f->stats.pkts +=3D (stats.packets - e->stats.packets);
+-		f->stats.bytes +=3D (stats.bytes - e->stats.bytes);
+-		e->stats =3D stats;
+-	}
++	airoha_ppe_flow_update_stats(eth, f, e);
+=20
+ 	return 0;
+ }
+--=20
+2.56.0
+
+
+--FGUDf6c+3m1N1ETj
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCauMwWwAKCRA6cBh0uS2t
+rM5YAPwPS1ptG14YEJr8k4k1AnCQPAA9Lr9IQDRrJ/OrDTqLawD/dh5H+cxlLAc4
+qwwLIU+vvEMFm37o7V7XxnBed58slQc=
+=aoSl
+-----END PGP SIGNATURE-----
+
+--FGUDf6c+3m1N1ETj--
