@@ -1,52 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793273124;
-	b=fbeE5hx0d8j9f9vNQYFNdkHu8U+nX9kPUUhsZJSWvGN7/Wc1I4FlSfKfDlDOXPqesoKe
-	 wPSisCg6v/692d3n81vwc1fzAlYNOyhe3Rc+S6vDZJ7J0GNbfiuocoYgjwygvwFLec3CG
-	 qZJXycV4gAw5TCCYiH/xOvhNlefsrzliQQdAeJz1xs0ygMWENkgXZWN0En6rF+5QQvv5B
-	 BuEzX+2pErd/39Sd7BOzCsd1CXZ/yDZsSd9KuylbcKSz51TAIwRvFQfk3YgAfnDjkimbg
-	 5ctQcyBGnXUEW7IFKE61noKiAlAkWWb8TGMlsoCCCBRbsuyiRYe7rf16KRJ2kny7nxA==
+	t=1793273347;
+	b=owVJtUEtVdG/FD76jA9TRbk2dTbskYvQ0+Q+TIr4bGcblnHHgHXM9D02X+i/18rv09iy
+	 QgO97e0Qye4zAfkL8NXiSjXMOSvjJmINUiKLbO32eS9vvlBYFaIt4y1+KddTSLc6K92zo
+	 eG/LEuCokRH8Bxq41rLBv9avPRNdj1j9GHzncHNq8Vz9vpc0GXhnpJrafHvLSwumKuMjk
+	 R8aKXtZDpb+umDqW+U6BiZNInqX2jlRl7kz2ZDVz4Yg66qrXRe2mAGpov6JSM2zGNW2ko
+	 dbIYDcSbsn2Aey5StDEfRTWNfkrDL2Ip7RE7z8BkRgyHZPVyYpLPFonnolnI5JBXt4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793273124;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793273347;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=3baaLxirMRy2Nw10Buf6OLwHQ/xCsTYP4rlzeoYGLNc=;
-	b=B00HiGdtyqIY4VUPt2EjZoqfoLzHzn+/aztdiFnKOzGYv95HJcLqcclYnxKaWm/FcyQu
-	 GyFP2p94JbkNGXs1mmzr+/mr5mU+w2GHUCSNOkipQETHd+9ZRPNQWnzZxB4CkGxNp2qED
-	 gxi/yTpGML+q5Pe9iCYvaks2y31iMsnzRd6pC74aWHq7cOXkvOouAdcqz8YjnDWlM2pOE
-	 baYInpC3NTIq88BQqWM9zT9scrifaoSbKolJaDBiwLPriDSulTqLnUdo2SLve6zHeLhiz
-	 NNlBXqGlI3hE+cpdtdu/D/3XcTs9+153RAb6GAmyohkkyphtasguFFWxoqwfiGvTMHw==
+	bh=w//5KaxJ9mfcglq+NoDwzptbD+KUoK1wyq78feWrfkU=;
+	b=cibo2LpFn59KjEKhesergwgMNYewrl2fZ5TQweYAShl5MsIjWPoKFRJz5KUZEo+YYmWM
+	 AmpBrFfMfl+BRO8UXcDtf6Tt0YatV3vpgr8Lotoaa/awcfhFg3h+gP1UIHZ/OIHJdSbNI
+	 8WCxSl4dChFvLCvWnz4sLEvX6nI73QS/GdIRstvQyUx+oGZ3DF9reYkpX81UrnyyWemF9
+	 5GNKWTLR4A3OjG9h5psaO1NCU1NOXwD/eDlwU3/VSHoe1OuZT2R0cwDBm3Vw4nEMkCHXa
+	 XhWhcpdkCLeM3IA+Y6AW3tYr3p6cF+/nK/UVCvI+oT/mqECZVk+B4V+XcE8IZj4NpdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LEF2kK6P;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DD1O4iZk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631E1606A320
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 11:25:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE603606A31A
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 11:29:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LEF2kK6P
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 662D71F01825;
-	Thu, 29 Oct 2026 11:25:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DD1O4iZk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 011DA1F01825;
+	Thu, 29 Oct 2026 11:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793273123;
-	bh=3baaLxirMRy2Nw10Buf6OLwHQ/xCsTYP4rlzeoYGLNc=;
+	s=k20260515; t=1793273346;
+	bh=w//5KaxJ9mfcglq+NoDwzptbD+KUoK1wyq78feWrfkU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=LEF2kK6P3LXi3rTxvOIJGYdkweIRaqzmVCViV29Dh4q2W5KWiVBUdMbyg3jFXLfxG
-	 4y88t++mYvNGs5E1E+vifBFp/8qx2Yd+u3UHLbY7oBEfn0qW6PnzhgH1foHy3phwqq
-	 qDiYgSt/PGgzzshZnPMTjl4w7QhIkN+HeY0TG9z5LcBlW+UrDDN39G8IYyBkhI6nnw
-	 04K1QrZVZJP+CFtMdBlMzmgbJyDRIpQmzVP8Ytty7ok0S5d5nFM+gE/+bAHyCzjN7J
-	 D6sWDvsoKtjoKoeCb7cEusNjzUPNTID0vrOWL10mDBti2fDTP0tHylzyWeU0ilZZCS
-	 F6jlZse92ARCg==
-Date: Thu, 29 Oct 2026 12:25:21 +0100
+	b=DD1O4iZk7+W1WpDSoX1DwAUSIP6A/wI9vLkHYCmMwqOPxTA6zEP90z5RD4yk3A31i
+	 0Zj9bC5emwWawIiBm3ChaYhilfGSo2+aX2WXj+NfpMLcTTk7ooUqmcv8CCzLXm/GaQ
+	 v29XVUxOHbWNsleXxD4+DvqjNGekkWlhAHKhN6TdSmP2xCCYLOM5UwCSMKjZRolQk5
+	 QxQ/swqMhXIj0+w2oAOYCz341KLgD6HxX1NwE0Kb016GHYB0GfnF5P9/1qzFJK5SCC
+	 fqU6l52zgd9H4MR34FelVRCNI8b2vv8Q3X6Z0eheXF0SgbsbynO1VUHmSNpmMKcAb9
+	 wJWHI6tV1G2yQ==
+Date: Thu, 29 Oct 2026 12:29:04 +0100
 From: Lorenzo Bianconi <lorenzo@kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org, nbd@nbd.name
-Subject: Re: [PATCH nf-next 1/2] netfilter: flowtable: retrieve stats on flow
+Subject: Re: [PATCH nf-next 2/2] net: ethernet: mtk_ppe: update stats on flow
  deletion
-Message-ID: <auMtIQQMWdjm4Bsp@lore-desk>
+Message-ID: <auMuANNbWDrhUNnQ@lore-desk>
 References: <20261029111431.179813-1-pablo@netfilter.org>
+ <20261029111431.179813-2-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -57,129 +58,107 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="HqptTbztlr+sKxEG"
+	protocol="application/pgp-signature"; boundary="WWDsNwlFm7aLrlwh"
 Content-Disposition: inline
-In-Reply-To: <20261029111431.179813-1-pablo@netfilter.org>
+In-Reply-To: <20261029111431.179813-2-pablo@netfilter.org>
 
---HqptTbztlr+sKxEG
+--WWDsNwlFm7aLrlwh
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-> Retrieve stats too when deleting a flow from hardware. Apparently, the
-> existing approach is missing last stats sync with the conntrack entry.
-> Pass the stats object to the driver so it has a chance to populate it
-> at deletion time. Drivers need to be updated to use this new approach.
+> Update this driver to use the new approach to fetch stats on flow
+> deletion, introduced by ("netfilter: flowtable: retrieve stats on flow
+> deletion").
 >=20
-> Reported-by: Valentin Berezhnoy <dreyksmail@gmail.com>
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
+
 > ---
->  net/netfilter/nf_flow_table_offload.c | 43 ++++++++++++++++-----------
->  1 file changed, 26 insertions(+), 17 deletions(-)
+>  .../net/ethernet/mediatek/mtk_ppe_offload.c   | 32 ++++++++++++-------
+>  1 file changed, 21 insertions(+), 11 deletions(-)
 >=20
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
-w_table_offload.c
-> index 4365859220e6..53182323f73c 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -934,6 +934,27 @@ static int nf_flow_offload_tuple(struct nf_flowtable=
- *flowtable,
->  	return i;
+> diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/ne=
+t/ethernet/mediatek/mtk_ppe_offload.c
+> index 99b28aaa7cc4..8ca694bb5e1b 100644
+> --- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> +++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> @@ -526,6 +526,24 @@ mtk_flow_offload_replace(struct mtk_eth *eth, struct=
+ flow_cls_offload *f,
+>  	return err;
 >  }
 > =20
-> +static void flow_offload_update_stats(struct flow_offload_work *offload,
-> +				      struct flow_stats *stats)
+> +static void
+> +mtk_flow_offload_update_stats(struct mtk_eth *eth, struct flow_cls_offlo=
+ad *f,
+> +			      struct mtk_flow_entry *entry)
 > +{
-> +	u64 lastused;
+> +	struct mtk_foe_accounting diff;
+> +	u32 idle;
 > +
-> +	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
-> +	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
-> +				       lastused + flow_offload_get_timeout(offload->flow));
+> +	idle =3D mtk_foe_entry_idle_time(eth->ppe[entry->ppe_index], entry);
+> +	f->stats.lastused =3D jiffies - idle * HZ;
 > +
-> +	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
-> +		if (stats[0].pkts)
-> +			nf_ct_acct_add(offload->flow->ct,
-> +				       FLOW_OFFLOAD_DIR_ORIGINAL,
-> +				       stats[0].pkts, stats[0].bytes);
-> +		if (stats[1].pkts)
-> +			nf_ct_acct_add(offload->flow->ct,
-> +				       FLOW_OFFLOAD_DIR_REPLY,
-> +				       stats[1].pkts, stats[1].bytes);
+> +	if (entry->hash !=3D 0xFFFF &&
+> +	    mtk_foe_entry_get_mib(eth->ppe[entry->ppe_index], entry->hash,
+> +				  &diff)) {
+> +		f->stats.pkts +=3D diff.packets;
+> +		f->stats.bytes +=3D diff.bytes;
 > +	}
 > +}
 > +
->  static int flow_offload_tuple_add(struct flow_offload_work *offload,
->  				  struct nf_flow_rule *flow_rule,
->  				  enum flow_offload_tuple_dir dir)
-> @@ -948,10 +969,13 @@ static int flow_offload_tuple_add(struct flow_offlo=
-ad_work *offload,
->  static void flow_offload_tuple_del(struct flow_offload_work *offload,
->  				   enum flow_offload_tuple_dir dir)
+>  static int
+>  mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
 >  {
-> +	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> @@ -536,6 +554,8 @@ mtk_flow_offload_destroy(struct mtk_eth *eth, struct =
+flow_cls_offload *f)
+>  	if (!entry)
+>  		return -ENOENT;
+> =20
+> +	mtk_flow_offload_update_stats(eth, f, entry);
 > +
->  	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
->  			      offload->flowtable->priority,
-> -			      FLOW_CLS_DESTROY, NULL,
-> +			      FLOW_CLS_DESTROY, stats,
->  			      &offload->flowtable->flow_block.cb_list);
-
-according to my understanding nf_flow_offload_tuple() copies the stats just=
- if
-cmd is set to FLOW_CLS_STATS, right? Should we just check if stats is not N=
-ULL
-in nf_flow_offload_tuple() instead?
-
-Regards,
-Lorenzo
-
-> +	flow_offload_update_stats(offload, stats);
->  }
-> =20
->  static int flow_offload_rule_add(struct flow_offload_work *offload,
-> @@ -1011,27 +1035,12 @@ static void flow_offload_tuple_stats(struct flow_=
-offload_work *offload,
->  static void flow_offload_work_stats(struct flow_offload_work *offload)
+>  	mtk_foe_entry_clear(eth->ppe[entry->ppe_index], entry);
+>  	rhashtable_remove_fast(&eth->flow_table, &entry->node,
+>  			       mtk_flow_ht_params);
+> @@ -550,23 +570,13 @@ static int
+>  mtk_flow_offload_stats(struct mtk_eth *eth, struct flow_cls_offload *f)
 >  {
->  	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
-> -	u64 lastused;
+>  	struct mtk_flow_entry *entry;
+> -	struct mtk_foe_accounting diff;
+> -	u32 idle;
 > =20
->  	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
->  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
->  		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
->  					 &stats[1]);
+>  	entry =3D rhashtable_lookup(&eth->flow_table, &f->cookie,
+>  				  mtk_flow_ht_params);
+>  	if (!entry)
+>  		return -ENOENT;
+> =20
+> -	idle =3D mtk_foe_entry_idle_time(eth->ppe[entry->ppe_index], entry);
+> -	f->stats.lastused =3D jiffies - idle * HZ;
 > -
-> -	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
-> -	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
-> -				       lastused + flow_offload_get_timeout(offload->flow));
-> -
-> -	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
-> -		if (stats[0].pkts)
-> -			nf_ct_acct_add(offload->flow->ct,
-> -				       FLOW_OFFLOAD_DIR_ORIGINAL,
-> -				       stats[0].pkts, stats[0].bytes);
-> -		if (stats[1].pkts)
-> -			nf_ct_acct_add(offload->flow->ct,
-> -				       FLOW_OFFLOAD_DIR_REPLY,
-> -				       stats[1].pkts, stats[1].bytes);
+> -	if (entry->hash !=3D 0xFFFF &&
+> -	    mtk_foe_entry_get_mib(eth->ppe[entry->ppe_index], entry->hash,
+> -				  &diff)) {
+> -		f->stats.pkts +=3D diff.packets;
+> -		f->stats.bytes +=3D diff.bytes;
 > -	}
-> +	flow_offload_update_stats(offload, stats);
->  }
+> +	mtk_flow_offload_update_stats(eth, f, entry);
 > =20
->  static void flow_offload_work_handler(struct work_struct *work)
+>  	return 0;
+>  }
 > --=20
 > 2.47.3
 >=20
 
---HqptTbztlr+sKxEG
+--WWDsNwlFm7aLrlwh
 Content-Type: application/pgp-signature; name=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCauMtIQAKCRA6cBh0uS2t
-rPL0AQD/8nwAhda+9dGf8b7fMtd7ZHAvdsG//RVRARPc3p2cLwEAshfXLrYG3PmC
-tUw8UlF/yGZb8eX/hnQHmp7H9pJZZAc=
-=c84p
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCauMuAAAKCRA6cBh0uS2t
+rMB7AP9VQXpYk4k9r07DePu1eGd8g0vf0Jl8iugmukMxPXecNwEA3/p8zflxFacw
+Nz9mAGDsnsu/CPPGw4+47HXzPeav3wA=
+=mQq/
 -----END PGP SIGNATURE-----
 
---HqptTbztlr+sKxEG--
+--WWDsNwlFm7aLrlwh--
