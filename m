@@ -1,102 +1,110 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793279885;
-	b=J0ITgtgQPJdzqW4yQ0XDg1fW1AVY3hT5IkVk360l5EuMQINcv1s4NH/zc2nbPC6xSrA7
-	 VcqkhOfBZGK9M1jpzdzFRyIzwbFvtYoKhjU+AkBheor0Oej+Q+DCkjovMubdWyzGZEOkB
-	 kQ272PzRTUi3EGA1b3VDB54FcL/vF8ZCBJDPumo89vWZBEzs1HyQjU8BmzzJB+Og1hYpk
-	 W2voOUOhyzikkGIqhErwXa1XldXZJYQwa2e8FQwlNyTrao/biFASRIj5vjBFTzofHjEQ5
-	 hRFn6pY5TpvLtcpf75a5bi69sWpjxcko3IU52xS1ACfEzL/z9j+wqsb4P8nqQATVP3g==
+	t=1793279907;
+	b=aEqyJ3SPp9J9VIAzUY3TT8KiCahc7YIbcpwZ+/5pP0+i/VTtupDNPUYPm6EYbFEAbece
+	 eOKmqBY9h6PbH/sDOBu5huAGMtEAJrx4t79G48763c1RJ+ye4wY6aJuuqCWG1QeJboqjc
+	 GJyf7+zobJ/BYia4Nvx3brC2u+w1/4YMAPdmanTJ+m37g5HaKQS46BUgvmj++7Tl/ukNI
+	 Y8W4rMHxQ1dA7n0eWMv///V4FGPh+4vZ7efs3tQp1bhDuKoa9P5bP6Tyn0xiloPDclCY+
+	 iw7TWzKkA/IQaQVg/UO+e9IpMhizS0vZBZvV164D9nUnyjkW2KHngfX5V5WW2+jBDGw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793279885;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spamd-Result:
-	 X-Spam-Score:X-Spam-Level:X-Spam-Flag;
-	bh=vVC+fZb1VVnYyKkEydfk9nnMz1YEvRH4h5saQBN6pds=;
-	b=SvdjZNEtEF4u+w4lW2qfawLm3thK42nsg2SpjkoO+a+QqYQ/MJc+GZty2tQLGpADFt9x
-	 bO2JcQxKNptF39458kHTyx5vcP+bm9acDJK42L/o9UOI03E5DWNeh33qlF9cr3DWdFCCq
-	 VudTzhs866Kw3jnYzKsuXLHg1/5v1/K1MrSAvBCHs1GDnif2IaRyOeTRZqvhV+zQy4owm
-	 iaN6noR1SoVMUvNY2T886yvEwFSAnwe4bN0w0Ai53HI87aajvBaOttjKjMtp+50nBKlC7
-	 80bDTX6AhddYvpoOSw2dX4L6P1UEu2Dfh76EAiSHCXjSJ350KsWhnJkEQYXqC3yQ+Vg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793279907;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:Date:
+	 Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-Spam-Details-Enc:
+	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=2RMmUSzEiFh6e3RV4w1rSoq4IOtUsudgTKepGIytUGs=;
+	b=TKfP5KnSgKamb8ErgpCTMUPeQN+f1UWqE+3H17jQOCq2GuCSGACECbJPgkJ77tWVFTue
+	 mb8H26g86xYm/wqCRv1gGzCUjlNoL4d5xzudfhJEldVSQ/63gyMWwMjALXo/HjvtEWhCw
+	 ffC+Iclq0VNL0+96i+dWlMxF1ryj3x0/GOTj6yqExKEW3vgx2S/W1HJuLb9kqVGZ5Jr3a
+	 N5zBDyfKoveXyBfgdB0AXbpKru/dqNzzZB5C4sR/ULWNWbsI0ypy5C/Qhh0orlLMkFPYs
+	 e0XUrINTahA3v4yiItuYQTyhYooiuJxtqQcRHAYQEudobEvFLfqiny45ZM3lu0fXjJg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b="IiQ9l0T/";
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSYLBDCe;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b="IiQ9l0T/";
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSYLBDCe;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Bdxn+Zst;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Sds+RTdg;
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84464606A31C
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 13:18:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 84464606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09923606A31A
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 13:18:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09923606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=IiQ9l0T/;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSYLBDCe;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=IiQ9l0T/;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSYLBDCe
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 419A522034;
-	Thu, 29 Oct 2026 13:17:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793279877; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=vVC+fZb1VVnYyKkEydfk9nnMz1YEvRH4h5saQBN6pds=;
-	b=IiQ9l0T/x2uTPfxZ9IwHRU386n81M4Bkf4Ts00q5qoqQt54X1UeoFgVBkZTFGj5LqbVwFX
-	t3OX7aZwFMN0aSq71mSxO89EcZifkdp7VyVFVqEeahqEWIAbZsnPSNWqo0RXwQZS62EvOf
-	dRT4Tkerc2mNL4J+9nsSk22UNvO5akY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793279877;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=vVC+fZb1VVnYyKkEydfk9nnMz1YEvRH4h5saQBN6pds=;
-	b=fSYLBDCeOtYfqt/7mLJE5LjnUhoKOZzUnXBpRwrD9iuyPzkyKQFEWyuSLfnoqvNmK1zkmY
-	Ytos544oXitTjGCg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793279877; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=vVC+fZb1VVnYyKkEydfk9nnMz1YEvRH4h5saQBN6pds=;
-	b=IiQ9l0T/x2uTPfxZ9IwHRU386n81M4Bkf4Ts00q5qoqQt54X1UeoFgVBkZTFGj5LqbVwFX
-	t3OX7aZwFMN0aSq71mSxO89EcZifkdp7VyVFVqEeahqEWIAbZsnPSNWqo0RXwQZS62EvOf
-	dRT4Tkerc2mNL4J+9nsSk22UNvO5akY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793279877;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=vVC+fZb1VVnYyKkEydfk9nnMz1YEvRH4h5saQBN6pds=;
-	b=fSYLBDCeOtYfqt/7mLJE5LjnUhoKOZzUnXBpRwrD9iuyPzkyKQFEWyuSLfnoqvNmK1zkmY
-	Ytos544oXitTjGCg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B717B1339F;
-	Thu, 29 Oct 2026 13:17:56 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cJhxIYRH42rndQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 29 Oct 2026 13:17:56 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf-next] netfilter: xt_time: fix monthday computation for dates past 2039
-Date: Thu, 29 Oct 2026 14:17:18 +0100
-Message-ID: <20261029131718.5531-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Bdxn+Zst;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Sds+RTdg
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69TCeULb2762043
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 13:18:26 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=2RMmUSzEiFh6e3RV4w1rSo
+	q4IOtUsudgTKepGIytUGs=; b=Bdxn+ZstBZ+4jMh4RWqkLWpQZRlbQykSCHrtCC
+	RbpiigWILkktP8pl/A3DNp2yGb2pXp1oNWFtXBDSmO2Bgqtb3n2O/sjQJcJf6lvr
+	hPVm8H86YZxZn7qOVUeGekG7GSzV8OmtyH+oMcH14mRg3I63/GvVHcPa//rOuz/W
+	ZGazmdjUXvk8ekiX+vV7IgOC4Edb7lcTxP9e9O3iIUvVYI37iWFoJRlf8LEVKHet
+	tvLF/NL6T2Kkonus9eK0siRqFL6Ym2WYW/u8muclVjkV98mnZbq1I+BF44chB0OC
+	+AApJM4j0H/zcnELZfuhN7EI7VDC/SQjf/7gF7FhKuxRvKlQ==
+Received: from mail-qv1-f70.google.com (mail-qv1-f70.google.com [209.85.219.70])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hm31b0xp4-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 13:18:26 +0000 (GMT)
+Received: by mail-qv1-f70.google.com with SMTP id 6a1803df08f44-91b937ecbb4so42425296d6.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 06:18:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1793279905; x=1793884705; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=2RMmUSzEiFh6e3RV4w1rSoq4IOtUsudgTKepGIytUGs=;
+        b=Sds+RTdg20Xsr7MTM2964a8QO3EW7Qu4Pv9VT1kdu0u+WMYDSusY/3a781H+s1WmX7
+         2kokb3QKwI4lEQqtvubXmKu6tRBNHgK6eTkUqCiqWfwtwX1uAmnxL9/mHrTtCa/TS+U6
+         NUbvhIL1FPYMkCyisXFmIsghic36CzgZ41ljNtLviPqT0+webgKg6IUC161e92/9LetV
+         mo01JqLyAfTiOhSclRv/U34m5ivCqOUmMZpTtU0SX2f1otWBkk+NAbXshNiM9w+f5Ce3
+         fw8WBgqyKoE6Iis0qFdBFROKE4zB+7byXa6LGN35n+3KyN1R2brp3MYhlEIqLx1M7RWS
+         wgDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793279905; x=1793884705;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=2RMmUSzEiFh6e3RV4w1rSoq4IOtUsudgTKepGIytUGs=;
+        b=PFkHfS1KfZq2kWrKGko4sOhpDTgYnQh3GrStvCXriZNZNdyJstjcKNUrS0TC/3Q7l9
+         65ZcHay+0QAMHBbL+DkgcnEZ7dO3KjTBturJ+tLiyvUe4gdFAm6JW5T1uSrStsSF4ole
+         y9rL0QWx32uCZ5wRjt/+6xhRGjAXqBqbFjCpWFtBSSnTiEKJK011+iNiQFxa4ENEPJ+4
+         I99CPl02qj1CV/hFTwYnJpwFP6JJPNrYMtNbxCYNd0PQJnyid1XoXNIjMtVKlMoqsxfi
+         r0lWxJxBWEtW/0J2C7gH1ZzIfJx1AKMqTvvofp3SN+5aWC5hWknuN4ebUla7ZBYS75cp
+         zBFA==
+X-Forwarded-Encrypted: i=1; AKwUvBylq9PZd5pdsCdKp+2qTWXQX81TMYTZvk1O6FlpQHZWUo7WGVDvICLtmf6VqGsh8tfM3XDsV8a4gymnbGgcpl4=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJW0iJjjaYjI9dZ1v8KzmU8W9BDJMCeEXFK13DneVs71xJ09w/e
+	uRUrbe5KmP2tKNGiHDKUuefuwzZqAy2RJ+Q4lPFFIJSJlAlAqvsxswkxNApEK9SbePKyQZ1E1Q0
+	l41E1Voin6XjAiRWbGQ4rTUJY0cj/Qh62XCQBM+EIePQ6hbgKKYKnuK6T/NNL6PPXDzwx6XLULv
+	+SCxE=
+X-Gm-Gg: AYBFou1HVCkiwGi1vZsddcJRM337MHwx0pTlatE7U6Gh3oti/H/Ydm74va1Meg+JI+G
+	ZR8eq0kbz2gnyiDcY5SRtWXKV3oWjpc7I3THSfUgh5uBdyFLtXi+tc5WHmfqiKop46w/8gq7/cY
+	DIVMjVR0gxnD36e4mSO405rEtplDONO2pYpHLaBmO3jKe1389knXyKDqBXK4JgvfiIzIUsOOXGa
+	d8xECPrcZDBAuuULSPpBSzh8Vf9ppkx4fCbt397sRbyKzqLPoeKCmtUmuDx8HpADvpedwSYmdpn
+	FascRJWNjmeYOsR9NLvcoogDIFvq52l2KX6owTORLcLGzu3yfF1vjmAmYMPn9DIdYHThLiogJxn
+	uaB+NvfiDify3W57pXdr+LccC1z2F/myvYyXcsVaW3K9KarIMg+v3SMXxIGKsgBPZ7tnwgF5dFF
+	M9QON/VLJS6I4OPezXBojxOw==
+X-Received: by 2002:a05:620a:4453:b0:93e:4e27:359b with SMTP id af79cd13be357-94408a5f7e4mr854875185a.24.1793279904762;
+        Thu, 29 Oct 2026 06:18:24 -0700 (PDT)
+X-Received: by 2002:a05:620a:4453:b0:93e:4e27:359b with SMTP id af79cd13be357-94408a5f7e4mr854870585a.24.1793279904185;
+        Thu, 29 Oct 2026 06:18:24 -0700 (PDT)
+Received: from localhost (net-93-144-6-81.cust.dsl.teletu.it. [93.144.6.81])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a94f05e4e4sm82381625e9.3.2026.10.29.06.18.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Oct 2026 06:18:22 -0700 (PDT)
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+Date: Thu, 29 Oct 2026 14:18:04 +0100
+Subject: [PATCH nf-next] net: airoha: update stats on flow deletion
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -106,169 +114,123 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-11.80 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.996];
-	MIME_GOOD(-0.10)[text/plain];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,imap1.dmz-prg2.suse.org:helo];
-	FROM_HAS_DN(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	RCPT_COUNT_FIVE(0.00)[6];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Score: -11.80
-X-Spam-Level: 
-X-Spam-Flag: NO
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261029-airoha-ppe-flow-stats-v1-1-5cb0c5af35a2@oss.qualcomm.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3MwQqDMAyA4VeRnBdoyzZ0rzJ2yGaiAWlLU5wgv
+ rvF43f4/x2Mi7LBq9uh8KqmKTb4Wwe/meLEqGMzBBee3oUBSUuaCXNmlCX90SpVw0G+94dnJz0
+ RtDYXFt2u7xuiYOStwuc4TuY2X+JwAAAA
+X-Change-ID: 20261029-airoha-ppe-flow-stats-9fb451e0f8aa
+To: Lorenzo Bianconi <lorenzo@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: nbd@nbd.name, netfilter-devel@vger.kernel.org,
+        Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+X-Mailer: b4 0.14.3
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI5MDA1MSBTYWx0ZWRfX9XCm5pK05ATL
+ CxOz4hWRrg+IZVAMlZRvwrjq1ybiWmJWamzYOt2zbwlKlK8YM6I/uz3ub55pS5cinAKbm91BEXh
+ J4FSk/zPqQ0G1rZFDrwsap+DfnM/CzI=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI5MDA1MSBTYWx0ZWRfX8rbGvreaMmYO
+ +VM0YX0/6s1a9QTsBqLGTPxcM4wJIG3moo0cN86K9qJts7BxHpNt+205RGw6D2X38sDaWHVphiy
+ DWUQpHiIvHsp03rNpCJKxlYhQjqss7JmspscTt+R6QUEP2F2TUd78EyJQsnQBj4gMitoTYsI5JX
+ lFD7o1G7DCewbdBFj5M0oVy+D//JaqrraKaz0aPvZ7lG6rglVncbMpaiaY/YEWZgKwlllZWpdkX
+ k+oKZR4UxDUi7eI1KyfFNx9wZ8/J9cDS+IoQz6WhH4GM0yHbD90SCVCAe7ayeoBov9neyCpV/Tp
+ Qhrm3lxbMVvNF9v7zn2vVk5i2sj0n/wBVRXyTi1/+rjBG7eSeC+Sv0WaBuT8STUibSdi7xxBVMj
+ 0S6g3wQWiag7hfH+efpNM97ReVRIzdzqo5nFUdMPuluMHowfAbqG9nqbVCQTlcoP5fel+oO4acS
+ I/Nf0ZkFuWpVExL8mDw==
+X-Authority-Analysis: v=2.4 cv=A8T5rKWG c=1 sm=1 tr=0 ts=6ae347a2 cx=c_pps
+ a=oc9J++0uMp73DTRD5QyR2A==:117 a=7fYLNvKHbgS61GKHX+yayQ==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
+ a=EUspDBNiAAAA:8 a=gWFirymUfySObOnEGkUA:9 a=QEXdDO2ut3YA:10
+ a=iYH6xdkBrDN1Jqds4HTS:22
+X-Proofpoint-GUID: mjwEpeEpwkraEnYkav5Q9S342hdOkQUx
+X-Proofpoint-ORIG-GUID: mjwEpeEpwkraEnYkav5Q9S342hdOkQUx
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-29_04,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 spamscore=0 bulkscore=0 priorityscore=1501 impostorscore=0
+ malwarescore=0 clxscore=1015 suspectscore=0 lowpriorityscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610290051
 
-iocaltime_3() derives the year from days_since_epoch[], which only has
-entries up to 2039. For any date from 2040-01-01 on, the lookup stays on
-the 2039 entry, so the day-of-year offset is 365 or more. That value is
-used to compute r->monthday, which ends up larger than 31 (32 on
-2040-01-01, and it wraps in the u8 later in the year).
+Update this driver to use the new approach to fetch stats on flow
+deletion, introduced by ("netfilter: flowtable: retrieve stats on flow
+deletion").
 
-Use time64_to_tm() instead of the table walk. It is always built in,
-handles any time64_t, and always returns tm_mday in 1-31, so the table
-and its 2039 limit go away. The result for 1970-2039 is unchanged.
-
-Only the real-time clock reaches localtime_3(), so this is not
-triggerable before the clock passes 2040-01-01 UTC.
-
-This significantly reduces the size of xt_time object.
-
-add/remove: 7/10 grow/shrink: 0/1 up/down: 143/-490 (-347)
-Total: Before=1493, After=1146, chg -23.24%
-
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 ---
-Note: this is just a code cleanup because I keep getting dumb AI reports
-about this. I got already 3 (!!!). Let's just remove the old code and
-use modern mechanisms as it also reduces the object size. Sorry for
-making you review this useless thing.
----
- net/netfilter/xt_time.c | 82 +++--------------------------------------
- 1 file changed, 6 insertions(+), 76 deletions(-)
+ drivers/net/ethernet/airoha/airoha_ppe.c | 31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 2065fce8ef81..f0c4c1d1bc4a 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -13,8 +13,8 @@
- 
- #include <linux/ktime.h>
- #include <linux/module.h>
--#include <linux/rtc.h>
- #include <linux/skbuff.h>
-+#include <linux/time.h>
- #include <linux/types.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_time.h>
-@@ -31,38 +31,7 @@ struct xtm {
- 
- extern struct timezone sys_tz; /* ouch */
- 
--static const u_int16_t days_since_year[] = {
--	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
--};
--
--static const u_int16_t days_since_leapyear[] = {
--	0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335,
--};
--
--/*
-- * Since time progresses forward, it is best to organize this array in reverse,
-- * to minimize lookup time.
-- */
--enum {
--	DSE_FIRST = 2039,
--	SECONDS_PER_DAY = 86400,
--};
--static const u_int16_t days_since_epoch[] = {
--	/* 2039 - 2030 */
--	25202, 24837, 24472, 24106, 23741, 23376, 23011, 22645, 22280, 21915,
--	/* 2029 - 2020 */
--	21550, 21184, 20819, 20454, 20089, 19723, 19358, 18993, 18628, 18262,
--	/* 2019 - 2010 */
--	17897, 17532, 17167, 16801, 16436, 16071, 15706, 15340, 14975, 14610,
--	/* 2009 - 2000 */
--	14245, 13879, 13514, 13149, 12784, 12418, 12053, 11688, 11323, 10957,
--	/* 1999 - 1990 */
--	10592, 10227, 9862, 9496, 9131, 8766, 8401, 8035, 7670, 7305,
--	/* 1989 - 1980 */
--	6940, 6574, 6209, 5844, 5479, 5113, 4748, 4383, 4018, 3652,
--	/* 1979 - 1970 */
--	3287, 2922, 2557, 2191, 1826, 1461, 1096, 730, 365, 0,
--};
-+#define SECONDS_PER_DAY 86400
- 
- /*
-  * Each network packet has a (nano)seconds-since-the-epoch (SSTE) timestamp.
-@@ -102,51 +71,12 @@ static inline void localtime_2(struct xtm *r, time64_t time)
- 
- static void localtime_3(struct xtm *r, time64_t time)
- {
--	unsigned int year, i, w = r->dse;
--
--	/*
--	 * In each year, a certain number of days-since-the-epoch have passed.
--	 * Find the year that is closest to said days.
--	 *
--	 * Consider, for example, w=21612 (2029-03-04). Loop will abort on
--	 * dse[i] <= w, which happens when dse[i] == 21550. This implies
--	 * year == 2009. w will then be 62.
--	 */
--	for (i = 0, year = DSE_FIRST; days_since_epoch[i] > w;
--	    ++i, --year)
--		/* just loop */;
--
--	w -= days_since_epoch[i];
-+	struct tm tm;
- 
--	/*
--	 * By now we have the current year, and the day of the year.
--	 * r->yearday = w;
--	 *
--	 * On to finding the month (like above). In each month, a certain
--	 * number of days-since-New Year have passed, and find the closest
--	 * one.
--	 *
--	 * Consider w=62 (in a non-leap year). Loop will abort on
--	 * dsy[i] < w, which happens when dsy[i] == 31+28 (i == 2).
--	 * Concludes i == 2, i.e. 3rd month => March.
--	 *
--	 * (A different approach to use would be to subtract a monthlength
--	 * from w repeatedly while counting.)
--	 */
--	if (is_leap_year(year)) {
--		/* use days_since_leapyear[] in a leap year */
--		for (i = ARRAY_SIZE(days_since_leapyear) - 1;
--		    i > 0 && days_since_leapyear[i] > w; --i)
--			/* just loop */;
--		r->monthday = w - days_since_leapyear[i] + 1;
--	} else {
--		for (i = ARRAY_SIZE(days_since_year) - 1;
--		    i > 0 && days_since_year[i] > w; --i)
--			/* just loop */;
--		r->monthday = w - days_since_year[i] + 1;
--	}
-+	time64_to_tm(time, 0, &tm);
- 
--	r->month    = i + 1;
-+	r->monthday = tm.tm_mday;	/* 1-31 */
-+	r->month    = tm.tm_mon + 1;	/* 1-12 */
+diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
+index 92611802801e..35750b61028b 100644
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -1285,6 +1285,23 @@ static int airoha_ppe_flow_offload_replace(struct airoha_eth *eth,
+ 	return err;
  }
  
- static bool
++static void airoha_ppe_flow_update_stats(struct airoha_eth *eth,
++					 struct flow_cls_offload *f,
++					 struct airoha_flow_table_entry *e)
++{
++	u32 idle = airoha_ppe_entry_idle_time(eth->ppe, e);
++
++	f->stats.lastused = jiffies - idle * HZ;
++	if (e->hash != 0xffff) {
++		struct airoha_foe_stats64 stats = {};
++
++		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
++		f->stats.pkts += (stats.packets - e->stats.packets);
++		f->stats.bytes += (stats.bytes - e->stats.bytes);
++		e->stats = stats;
++	}
++}
++
+ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+ 					   struct flow_cls_offload *f)
+ {
+@@ -1295,6 +1312,7 @@ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+ 	if (!e)
+ 		return -ENOENT;
+ 
++	airoha_ppe_flow_update_stats(eth, f, e);
+ 	airoha_ppe_foe_flow_remove_entry(eth->ppe, e);
+ 	rhashtable_remove_fast(&eth->flow_table, &e->node,
+ 			       airoha_flow_table_params);
+@@ -1342,24 +1360,13 @@ static int airoha_ppe_flow_offload_stats(struct airoha_eth *eth,
+ 					 struct flow_cls_offload *f)
+ {
+ 	struct airoha_flow_table_entry *e;
+-	u32 idle;
+ 
+ 	e = rhashtable_lookup(&eth->flow_table, &f->cookie,
+ 			      airoha_flow_table_params);
+ 	if (!e)
+ 		return -ENOENT;
+ 
+-	idle = airoha_ppe_entry_idle_time(eth->ppe, e);
+-	f->stats.lastused = jiffies - idle * HZ;
+-
+-	if (e->hash != 0xffff) {
+-		struct airoha_foe_stats64 stats = {};
+-
+-		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
+-		f->stats.pkts += (stats.packets - e->stats.packets);
+-		f->stats.bytes += (stats.bytes - e->stats.bytes);
+-		e->stats = stats;
+-	}
++	airoha_ppe_flow_update_stats(eth, f, e);
+ 
+ 	return 0;
+ }
+
+---
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+change-id: 20261029-airoha-ppe-flow-stats-9fb451e0f8aa
+
+Best regards,
 -- 
-2.56.0
+Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
