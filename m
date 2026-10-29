@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793315221;
-	b=OAhLewPbojcTGcKcX998/I0VW36qIPio7znNqRlaNt8cL4swaj+qbhGMonmk10ii/LJO
-	 vIisvrKBJuDmHcvJSBYCRDR0u4Eo/8xAYEBhA8Ps5QOwABUzjkFaLf4inASurtx1gojFn
-	 9vXEdhxPflo4Vzo58zDnQp2qOvyJ8qvmrG3Q8fiDA2cnbdHpboBtFK5HNPdVnp/1vWuFl
-	 PV2Lw+ClUfb5Wa9i0CzEr5/gbQjaNc1lhsiUA9x3JE32YVRIZDd9UTWR5UZvxE2L1yAoD
-	 UlqxJxrUeUiWm8djl7EpTBQOmw93R85oSYcZKkXT+KiYcflnv+1pfPfP8mGtykPKoTw==
+	t=1793315224;
+	b=Gf9DGOEmB7o4PuWcoYHSnCjnDAf8Nc5gu1BEzPh7rxjbR/axk/F5vX/Rhq2IA5YVxQHQ
+	 B/yADXLgRoD2BWg8nFd0g4wYKZ2P7SAM8tdNSBB4Kgh6y7qCUKu78jV1Ojft9W/yJROEN
+	 ASN1tmkv/Gdx3jQjKn3ipadMRKeV1JZXCZ3JzwWi7N/355nOfKP2ckLtdtzaXz9ofnerW
+	 0ADyrWFgIqg65+e+Iv4wr6AwTqkAAirmgr3z6ckXaNNGfjaInCs5Jdksdc3YSxNZIuILp
+	 69UNzwjMxfBsSzlCSmlJ1dIJU4lP0Xq3yytizI0TCixsG78cDSfad8NDY1+K6RFQQQA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793315221;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793315224;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
 	bh=jouYVAIHfLjvnup8PLlQLtruSdsjeiTCBESkmSsM4WM=;
-	b=oKYnOO9VryRdxh5Oj/NMjop1P2aIBfJmoVnHEblzpPMlHiWc9WvU5x/d9tHX/GXHN65I
-	 PRMBnmTJ3c5o6nU0yBgPlNeWGfaxS9u7y/QXvFPcFcPqISvDrLHHbTPM6BvbiNCE2UHXC
-	 d3vr1vyl2Ti65xB+HbQ09hPNZfjuGuumun3shq7NTq0P1K56NOto9wyRrImIztZ+v8HW7
-	 goYpc9wY8krPyFMIBesBn0MNh7zfeioP1plRg4yg08qViOaTROxoV+9TY1AjstVL1KeOf
-	 jyAvRHOKfIn6K3X0MLFLkvfF+ohpx39QKoBSmwmGK1W7cFtiLnZGS6XA4rd+ITsjBIg==
+	b=Z4b4AVU8KBzPAwuzA7H+94VjfdlsNeDJ1MSqn2v/PUJLdib6gd4ZfLgfAX5Zbz/bXhRz
+	 9GYM5EMJlJNDlN6at8MIXDpq3T6Ap/EE+K+u5LEBZdipmcUquV3J5Lyde7Ya+ewhhgKms
+	 mzRwkO3gPUz6sweafl3UiBb0VP5P+Ed4MPynvVZLqjYx6x5iI1ZdTP+yg7Q5xWs7SB/Dq
+	 hBW0tE+9kA9IQiQYMce3g4Nq90EyoxoSbYoYjE8krlST+1uEANRdIhifDrl9wnTHUyK4g
+	 b40rVX+9Kc+DazMnGVWqPZIu/aeQuozpXVTJOsB7kOsxMETqnJ3h/4FDkkf4D7ce+Lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GA+TU7o5;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dPLBcnFU;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A03BB606A31C
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 23:07:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A03BB606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACB0606A31C
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 23:07:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5ACB0606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GA+TU7o5
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dPLBcnFU
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793315188;
+	s=2025; t=1793315221;
 	bh=jouYVAIHfLjvnup8PLlQLtruSdsjeiTCBESkmSsM4WM=;
 	h=From:To:Subject:Date:From;
-	b=GA+TU7o5sgm2aCHSgpjZ8uiVJWyhFlX1xRxNjQ1Of88jwJqem5kPpGccEObRbbjOY
-	 odT6k5D3J5sgg9n8fNX7Zf0g40VOE3mi22u3fmxAVRLCwSn//XFdonOinHoslVP/5O
-	 FUQlvT/XUfrZbEWWFdIP+aLRxDwc/c/HmHJbj3ir3vlbJwHLhx3KhXQKvfUhFdDrO/
-	 Bc+QTVvBAgd9wHiIl7pM/o+NPrRBWVGSY8tGt/dUZKKYAR09FJ40v978+ls13HGfo9
-	 sG5nZfYTuGoyIJjo6E0ZFjkv+3uMJ2+z44KE85oA5U2xM/Z2Xw/nA08+a5lSskVDnH
-	 2tWj6qewg/rVA==
+	b=dPLBcnFU5jX6cEijYBXD5z2kqw4YZmF7eoBih4n2wvAulgagrNGvOo4BU0xORaNJn
+	 RnPtAxISfhSPw8kXqC3oFVkGOLqkA3PHvdNu9vdD5eAE8jpi8JD5/C8MRJ9nodzwLx
+	 6RKzEh84wgyxHbHbw12m+HFr8q6G5dButJUoQ9tT/xf9aoOd7P7wN3pW8BASy+Hyhe
+	 DYxlaBURtOT3KEpUo2kfp90FUbHvg9oTbKLQJiG9KR7fugVheMU5M0t0mt2eBWuLUN
+	 mPRctHq3CX5TKvOTL0z2r058QKpwCUPmqDi5/ZOHJ8QLUVFpXlhGUkHmnBVbYnNT5V
+	 rqrJ225xzow8g==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8695C6005E
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2026 00:06:28 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0DFDF60056
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2026 00:07:01 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Subject: [PATCH nf,v4] netfilter: flowtable: purge entries immediately when destroying the flowtable
-Date: Fri, 30 Oct 2026 00:06:25 +0100
-Message-ID: <20261029230625.302347-1-pablo@netfilter.org>
+Date: Fri, 30 Oct 2026 00:06:57 +0100
+Message-ID: <20261029230657.302417-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
