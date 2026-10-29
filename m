@@ -1,95 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.49
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793311308;
-	b=OxCqORTr1oVa2ZDof++hz+RDlRVbNrBnU6MRm+ACeEutZ2oS+YH3KOX6aYdgbXHuxDF1
-	 Wt9qebXyDwqgL8B1nT8o+skZYvVrF2xJhuUUPy0VA1uoa5bap2EUgmunkhBHgYB3Mh7v7
-	 Zin4EzWm+vtJNEv60avyCX6sYjaCBtNu/RRDpAAw8btWFIgD7bK5DEP7OvhHsBtXU26ks
-	 rHDUcdgybyHYNLgvEC8kLaFbxLLNSIWhpANr+SkZxXmElt/pZuSAqzBjHgWCvU6exwJEr
-	 m1vQY5fXo8OTqdsLG2W6zobe8NOSLLsaS3ATeDG69Cce0tC3OwzPU/d6l+3Hc+XibEw==
+	t=1793312419;
+	b=PPdOzi5YtBC/gdKUemPQ+WNDuREv3IaP9OqMw74q2wIgJmScYedl1M6wUc1NgDfxVqiR
+	 t69nkjXdGpMztQdu73wQph9SitU/1eLMgeWJt0BH9p8ycW+igu5OQRpsqXOOcuPeabpC9
+	 hTpkfAtlEtzgU52Bz+CZcPKfhXQXWd4ocnaiCOHbIn3gevqcAf4dT1OHRWAL7Ia7sMbNa
+	 E9xkdS2r34PSxNq/pzPa0jGTRkOT15PzDzgpx8BmkSW6SmFvmAYn2ez7l0kn5MaqeubJW
+	 /7MlNiZ3EQponRxN7jdJ9mYAOrNeh3FptVXNGvrh6SYgsSl4XDlzXpmhTphEspfK27Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793311308;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=8Q/lW9fQYT21QznHQjvJzPQJl55ESH89M5aAdKeZYiU=;
-	b=GOWAkP7PV3+TeqvJGgx2ZPjxBJFRnmD5F9fvJadyzVlzMr6DAqBqYlH1SEbRjc0PPeNf
-	 zLp+4OarHHfj7OYVKf1CDfYbv/cZ5qeLwXdC0qQ8AhxoBkGsrfvRVlnHBYTpPcIQHyhEU
-	 UVhIb5GyQGRXzxX8VpEVzM/zXg7xVvYEvKmpp8aus85YczkHn9KGrs7tpx8QHlm9176AB
-	 pHBAecURgcAio/y9he9KD849oZ0lCnyR7wVg15NMvaVbancYJsdg3+af5XHLhbhIRJdBB
-	 sqwKARWCOhGQbsZond9p+rRQhBDak4aWQ4b8XEFawjybhVvR+WVGVCLNc/1ABm3Cydg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793312419;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=TLTZJlW3mJ9y9u/qGK0yIQVgOzybe5bLTX+4cSIfhQQ=;
+	b=qjVlEJAv85pnRgrFj2s8LanvceJ1qCTrxXiWsibINgTyIroj7zyubkWNJCjKZeVUGzh2
+	 86XGsc1OcR9V8kpETFWwKjZLtxmD/7uEb5CxMFzzdfXof5cF84uo4fAKQ2OQf6Vbj0PlU
+	 ZJLfkyqhJ1TFEzDdejZCENzXpG5EjOFMDMNhyZpcuUjusMI7jPuozSRB38/Fg+MwH0c+Z
+	 S958cE4IieSewrAfh+HAGcYZkzHbkPwEmRjIYVol9BmF21a7/qBopUtBgLdudw/Z/qFkE
+	 9FuNH1xoqIeKDZ+xaJMxcDzYggQrfXNEi2DA+K6KH9jLTg1HWZlASbcle35PrZBRB8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HCAjDS8P;
-	arc=none smtp.remote-ip=74.125.82.49
-Received: from mail-dl1-f49.google.com (mail-dl1-f49.google.com [74.125.82.49])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=strlen.de;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6859E606A31C
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 22:01:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6859E606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HCAjDS8P
-Received: by mail-dl1-f49.google.com with SMTP id a92af1059eb24-1931ff67a29so123301c88.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 15:01:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793311307; x=1793916107; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8Q/lW9fQYT21QznHQjvJzPQJl55ESH89M5aAdKeZYiU=;
-        b=HCAjDS8P9gVEmar346ebcMBuz87gARxPe/xf1qL6qqUQlhBC7UJUe7jLP9vJ6TJlKg
-         aM/BfEfx/2F5bUKpkKM1Uyuq9rP33tCJmw4gTpTVBll16BqX39cSCskD5GmBjIjffrZ9
-         2Bn8j+XR2vPmB5dQpovdQA87mUbQ+k4bmLF/+VisJ7d3RVvWRs0UqjIm4JwmxwhB2jCx
-         PNrLJLqcVuRt2v+jvb0kri90HYfx9o8eSuAy2N3pE+DpBA32DiHNvaixs19DWLB+jI/9
-         cs/dAolV6c01s5VO6/HXw78jtPSDFB/C2ZRs4J8Fi6WcWHR4PrBIq2IO77HrnkFg/FnG
-         4iXA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793311307; x=1793916107;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=8Q/lW9fQYT21QznHQjvJzPQJl55ESH89M5aAdKeZYiU=;
-        b=li8N8qf7IgIrK47vbdr/Y5/IOKBn0faaozzyVqaliAqTpGepxKhA7PQk8LzcuOWyn7
-         7XLUm6QRowfQAWmg+UqA70MY0KtYNQ7fpO3yjlyceVi7NzZ3FJunBHda5Fyp6KFLKObR
-         bDVO8M1Zm4UXJpbOxF3Ezwi0IJ1AxmyqJ+6G2XqfrDj9I0lW+UMcPJMsELgsoR1gY6gj
-         6axjl0VeIuww2sxEXicdXJ5JEr3NpqA6XHv4Q0ntrAT1deLWaoVP/jMho7XMIUeKTD3o
-         tbxljau9GKZw0vMqQu7LU9YQwpno1eXTPo9v5DoYhnW/O32xqzlMUCSOJlQsPXZDaBMj
-         ru4Q==
-X-Gm-Message-State: AFq9FYJ7p6+h01Z32y0AOcdwBywKp4H8EWhUhATHMAXndFVnqiVZi1W/
-	JPE4OErNZjMJYyp4Cl8kZOGdzWujUKG2w8H59eZZASkAaJ0aYyJprdRxJF+MuWHn
-X-Gm-Gg: AYBFou2MG91haD6RV6Tkp3R6pIICKctZg1X/o9lvnC/vndYfpUMD4EpFrJi9L35EAfn
-	VrnvV4J5igNkmdItSiUWVrfdZbuOWcHbrGI7P8NzRh0NbbzXQ5RVx9okRDIAuz3xWNswuGP8slY
-	7Px1DDumHEG9GblaFkPBKWw2gVz2KnorugLEaoUUZRve1/mOowb3CmaKUsrlSoRbyfW3jTXpB6n
-	4S86TsH06bcd6+cebc3CemmPemdNWngb15pEG7IHV8D4tJAtDOqMsP/yT1vaJsa7+lUX1d0C3/E
-	OONuDKV0DL2ahBaAVYh1+odMfgnREwohC/1DTC5l2dUAcWZ753Dfp9OeLtOlBslBEOwYD0cUYzI
-	wk+KC3wdRfxNKJYtINCjuGCqiqbswf9rKHKXyOslOuhWwUc8lWWYdyJu0GQ6FfTu6cXf74Q5X3q
-	QnSZ97SPrZrGl1xL4TLib9yMYmA3CPIL5mUPJkJqqAFCal27oExQvdiKpJrcH0cVZ9kJWuYw1dG
-	cteS8nMhvKJheulzlzsmA477LQF9es3JX24bj6Uexrht3bWnO7zlIWTZksEv8rEBvLGcMdRVLNT
-	VNzjejvrWeQEhWmTWWSFRopSBHiY41jry6tu4eUxjeiPdUOpe9QSshva/55jVBoRx6x/MJN62LB
-	k
-X-Received: by 2002:a05:701b:4589:b0:187:eb7f:bb4 with SMTP id a92af1059eb24-1ac5d88c4e4mr385234c88.46.1793311306922;
-        Thu, 29 Oct 2026 15:01:46 -0700 (PDT)
-Received: from samniyama.tailbcd61.ts.net ([76.20.4.3])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1ac1abcd6f1sm1314661c88.20.2026.10.29.15.01.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 15:01:46 -0700 (PDT)
-From: Koral Ilgun <koralilgun@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	fmancera@suse.de,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Koral Ilgun <koral.ilgun@adtran.com>
-Subject: [PATCH nf-next v2] netfilter: nft_flow_offload: do not offload multicast
-Date: Thu, 29 Oct 2026 15:01:44 -0700
-Message-ID: <20261029220144.2474139-1-koralilgun@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ECFB606A31A;
+	Thu, 29 Oct 2026 22:20:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7ECFB606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id B6352609D0; Thu, 29 Oct 2026 23:20:15 +0100 (CET)
+Date: Thu, 29 Oct 2026 23:20:08 +0100
+From: Florian Westphal <fw@strlen.de>
+To: netdev-bot+sashiko@kernel.org
+Cc: fangxy@xiaopeng.com, pablo@netfilter.org, phil@nwl.cc,
+	davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	liuwb@xiaopeng.com, razor@blackwall.org
+Subject: Re: [PATCH] netfilter: xt_policy: add NULL check for skb_dst() in
+ output policy match
+Message-ID: <auPGmOxutnhGGBdK@strlen.de>
+References: <20261026125313.14810-1-fangxy@xiaopeng.com>
+ <179330010531.3134.10986246344071690394@kernel.org>
+ <auOiJdDR7tkMzYAf@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -99,72 +55,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <auOiJdDR7tkMzYAf@strlen.de>
 
-From: Koral Ilgun <koral.ilgun@adtran.com>
+Florian Westphal <fw@strlen.de> wrote:
 
-A flow holds one output per direction, which it resolves when it is
-added. The outputs of a multicast route change when listeners join
-or leave. So a multicast flow in the flowtable continues to send to
-the output that it resolved, also after the last listener left, and
-the counters of the multicast routing stop.
+[ CC Nik ]
 
-A ruleset can keep multicast out with a match before the flow
-offload statement. Without one, IPv4 multicast stays out of the
-flowtable only because the reverse route lookup in nft_flow_route()
-refuses a multicast source address. The IPv6 route lookup has no such
-check, so IPv6 multicast that ip6mr forwards goes into the flowtable.
+> netdev-bot+sashiko@kernel.org <netdev-bot+sashiko@kernel.org> wrote:
+> > Is this statement accurate? There seems to be a reachable path through
+> > br_netfilter on a bridge port that has vlan_tunnel enabled.
+> > 
+> > net/bridge/br_vlan_tunnel.c:br_handle_egress_vlan_tunnel() {
+> >     ...
+> > 	tunnel_id = READ_ONCE(vlan->tinfo.tunnel_id);
+> > 	if (!tunnel_id || unlikely(!skb_vlan_tag_present(skb)))
+> > 		return 0;
+> > 
+> > 	skb_dst_drop(skb);
+> >     ...
+> > 	tunnel_dst = rcu_dereference(vlan->tinfo.tunnel_dst);
+> > 	if (tunnel_dst && dst_hold_safe(&tunnel_dst->dst))
+> > 		skb_dst_set(skb, &tunnel_dst->dst);
+> > 
+> > 	return 0;
+> > }
 
-Skip a multicast destination for both families in the flow offload
-expression itself, so that the result no longer depends on the
-ruleset or on the route lookup.
+Hmm, Nik can you please have a look?  Its strange that we don't return
+an error. dst was dropped, tunnel dst disappeared, hwaccel tag was
+cleared.
 
-Signed-off-by: Koral Ilgun <koral.ilgun@adtran.com>
----
-v2:
-- Target nf-next, and drop the Fixes tag (Pablo).
-- Use the shorter form that Fernando suggested; the result is the same.
-- Say in the commit message that a ruleset can keep multicast out.
-v1: https://lore.kernel.org/all/20261028205938.662312-1-koralilgun@gmail.com/
+Should this return 0 only if skb_dst_set() was called?
 
-Tested with v1, which skips the same packets: on an arm64 router with
-Linux 6.18.54, with an inet flowtable that offloads forwarded flows,
-and IPv4 and IPv6 multicast routed from the WAN to one VLAN. Without
-this change, the IPv6 flow went into the flowtable after its first
-packets: the ip6mr vif counters showed 25 of 1,500 packets, and the
-receiver still got all 400 packets after its leave. With it, the vif
-counters showed 1,500 of 1,500, the flow stayed out of the flowtable,
-and the stream stopped about 2.5 s after the leave. Unicast IPv4 and
-IPv6 flows still went into the flowtable.
+Afaics then callers would toss the skb and we won't pass this
+to inet netfilter hooks.
 
- net/netfilter/nft_flow_offload.c | 5 +++++
- 1 file changed, 5 insertions(+)
+The original code had an unconditional skb_dst_set(),
+assuming tunnel_dst is always there.
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index d3c5651dd699..530e20c7fd45 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -10,6 +10,7 @@
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/ip.h>
-+#include <net/ipv6.h>
- #include <net/flow.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
-@@ -33,6 +34,10 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
- 
- 		if (unlikely(opt->optlen))
- 			return true;
-+
-+		return ipv4_is_multicast(ip_hdr(skb)->daddr);
-+	} else if (family == NFPROTO_IPV6) {
-+		return ipv6_addr_is_multicast(&ipv6_hdr(skb)->daddr);
- 	}
- 
- 	return false;
+That changed with
+cfc579f9d89a ("net: bridge: fix vlan tunnel dst refcnt when egressing")
+fixup.
 
-base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
--- 
-2.43.0
+I'll quote more from report verbatim below for context.
 
+> > So a forwarder can read the old non-zero tunnel_id and then find
+> > tunnel_dst NULL, or holding a dst that dst_hold_safe() rejects. The skb
+> > then goes on like this:
+> > 
+> > __br_forward()
+> >   br_handle_vlan()
+> >     br_handle_egress_vlan_tunnel()   <- dst dropped, none attached
+> >   NF_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD, ...)
+> >     br_nf_forward()
+> >       br_nf_forward_ip()
+> >         NF_HOOK(pf, NF_INET_FORWARD, ...)
+> >           ipt_do_table() / ip6t_do_table()
+> >             policy_mt()
+> >               match_policy_out()     <- dst == NULL
+> > 
+> > br_nf_post_routing() does the same for POSTROUTING, and
+> > policy_mt_check_hooks() allows --dir out in both hooks.
+> > 
+> > The trigger needs a VLAN-filtering bridge with a vlan_tunnel port,
+> > bridge-nf-call-iptables (or ip6tables) enabled, a "-m policy --dir out"
+> > rule in FORWARD or POSTROUTING, and a tunnel mapping delete racing with
+> > forwarded traffic. Given that, the pre-patch code would oops in softirq
+> > context.
+> > 
+> > Could the commit message describe this path, so the change is not taken
+> > as purely defensive?
