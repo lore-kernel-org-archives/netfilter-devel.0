@@ -1,59 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793272488;
-	b=mAcSTpglcCSmvf+uy0xXr6TdMCRXK04tDe+kpZ8F5MpuJWhLCNgh3We0ZlVFuKevRuGB
-	 mx+TsHhb7tY6f2hdAt9DwBAGnpJtjLatCjTFJoI3vnwsvo0IVD141nfzaKBWP8jUY+n3C
-	 G0kwzJ4ymFZ9X059FRN4hDu1SztLFGZ2obzZRgpD9RLzNFvXEVmeLhztFrUDeBXzSnvw9
-	 KheL6exzbU8WbhzDzRy9a6WFf2YROuiJyZZhcthW9CtFXEaK1yxJ94hfvMOfpG8tfk8yR
-	 IgSu7z7hYHASlsIrOOsXTUjW4U57sdSOZ9LiIiboaLGW6fQISPdbLFHrjFiaiNX6Dcg==
+	t=1793273124;
+	b=fbeE5hx0d8j9f9vNQYFNdkHu8U+nX9kPUUhsZJSWvGN7/Wc1I4FlSfKfDlDOXPqesoKe
+	 wPSisCg6v/692d3n81vwc1fzAlYNOyhe3Rc+S6vDZJ7J0GNbfiuocoYgjwygvwFLec3CG
+	 qZJXycV4gAw5TCCYiH/xOvhNlefsrzliQQdAeJz1xs0ygMWENkgXZWN0En6rF+5QQvv5B
+	 BuEzX+2pErd/39Sd7BOzCsd1CXZ/yDZsSd9KuylbcKSz51TAIwRvFQfk3YgAfnDjkimbg
+	 5ctQcyBGnXUEW7IFKE61noKiAlAkWWb8TGMlsoCCCBRbsuyiRYe7rf16KRJ2kny7nxA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793272488;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Spam-Status:X-Spam-Checker-Version;
-	bh=pgfnHfvGX4ol33aKul20Iedt1+Xs2RdQlE8+ysOvVJ8=;
-	b=SYInVSOwH7Sa8nXQQWY6ogkF/hEqLlzd5gg7tojdobetFDrGEYAd7c0lRaV6nh1Pww4w
-	 6GYPlwBf9FniATFQJ+NUVH6aRUhIywDwRl9HMO5C5l/O27MP28nBLI0KZqgfzddKABZXv
-	 d57ffiQzPgfInsyKhPAXRUKn1bh85SFsaIag3intxSYDL+vT/8fC67mGk/77Xep0QA2I/
-	 0frxV6PiDcmIB/qsjuGh0+unnJ+38mry9Ss6dBxhHtOnyGacVhkGapbYy3bQPUn30Unxd
-	 uzg9Btrzzl1FwtswxoLvLHtPfzz6bLV3DfqdEsJZLG4e3HuDuPgSZGeeaz2Upvegf8A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793273124;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=3baaLxirMRy2Nw10Buf6OLwHQ/xCsTYP4rlzeoYGLNc=;
+	b=B00HiGdtyqIY4VUPt2EjZoqfoLzHzn+/aztdiFnKOzGYv95HJcLqcclYnxKaWm/FcyQu
+	 GyFP2p94JbkNGXs1mmzr+/mr5mU+w2GHUCSNOkipQETHd+9ZRPNQWnzZxB4CkGxNp2qED
+	 gxi/yTpGML+q5Pe9iCYvaks2y31iMsnzRd6pC74aWHq7cOXkvOouAdcqz8YjnDWlM2pOE
+	 baYInpC3NTIq88BQqWM9zT9scrifaoSbKolJaDBiwLPriDSulTqLnUdo2SLve6zHeLhiz
+	 NNlBXqGlI3hE+cpdtdu/D/3XcTs9+153RAb6GAmyohkkyphtasguFFWxoqwfiGvTMHw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Ph4f20le;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LEF2kK6P;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F00606A31D
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 11:14:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96F00606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631E1606A320
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2026 11:25:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Ph4f20le
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793272477;
-	bh=pgfnHfvGX4ol33aKul20Iedt1+Xs2RdQlE8+ysOvVJ8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Ph4f20leSvITSdg2wbqt+jrW0V+/Uucs2PZ5O6KQntiOgCEhMqrWl4PywslhYIYT8
-	 Of9q+LKJyheHGG9D2wTJrtoZ49nxcuvonrhwrybJpg02TH6mhpwzZUsJ0jMLlf3Vc2
-	 P12XozAYk+zWwVsuvNxFWZ+nr6KN7d5m9IUy671UQZuSyvn7Eib6pR3mErSy3eZGfA
-	 zqug3q5lot8Gb75/HunNfFvuvTB5qF30/RHqKu8TSdVxvSrvkiI16Y9/yBYpSJkuxa
-	 oC4JFZEwOzKpxV69Wra9SWCaGa0B0GOIHV1yr2J8GUIKJtck2AqHLfvk6dLW3Tnf1P
-	 RQY76UQb+1Leg==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8D90760078;
-	Thu, 29 Oct 2026 12:14:37 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: lorenzo@kernel.org,
-	nbd@nbd.name
-Subject: [PATCH nf-next 1/2] netfilter: flowtable: retrieve stats on flow deletion
-Date: Thu, 29 Oct 2026 12:14:30 +0100
-Message-ID: <20261029111431.179813-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LEF2kK6P
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 662D71F01825;
+	Thu, 29 Oct 2026 11:25:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793273123;
+	bh=3baaLxirMRy2Nw10Buf6OLwHQ/xCsTYP4rlzeoYGLNc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=LEF2kK6P3LXi3rTxvOIJGYdkweIRaqzmVCViV29Dh4q2W5KWiVBUdMbyg3jFXLfxG
+	 4y88t++mYvNGs5E1E+vifBFp/8qx2Yd+u3UHLbY7oBEfn0qW6PnzhgH1foHy3phwqq
+	 qDiYgSt/PGgzzshZnPMTjl4w7QhIkN+HeY0TG9z5LcBlW+UrDDN39G8IYyBkhI6nnw
+	 04K1QrZVZJP+CFtMdBlMzmgbJyDRIpQmzVP8Ytty7ok0S5d5nFM+gE/+bAHyCzjN7J
+	 D6sWDvsoKtjoKoeCb7cEusNjzUPNTID0vrOWL10mDBti2fDTP0tHylzyWeU0ilZZCS
+	 F6jlZse92ARCg==
+Date: Thu, 29 Oct 2026 12:25:21 +0100
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, nbd@nbd.name
+Subject: Re: [PATCH nf-next 1/2] netfilter: flowtable: retrieve stats on flow
+ deletion
+Message-ID: <auMtIQQMWdjm4Bsp@lore-desk>
+References: <20261029111431.179813-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,95 +56,130 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="HqptTbztlr+sKxEG"
+Content-Disposition: inline
+In-Reply-To: <20261029111431.179813-1-pablo@netfilter.org>
 
-Retrieve stats too when deleting a flow from hardware. Apparently, the
-existing approach is missing last stats sync with the conntrack entry.
-Pass the stats object to the driver so it has a chance to populate it
-at deletion time. Drivers need to be updated to use this new approach.
+--HqptTbztlr+sKxEG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reported-by: Valentin Berezhnoy <dreyksmail@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_offload.c | 43 ++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 17 deletions(-)
+> Retrieve stats too when deleting a flow from hardware. Apparently, the
+> existing approach is missing last stats sync with the conntrack entry.
+> Pass the stats object to the driver so it has a chance to populate it
+> at deletion time. Drivers need to be updated to use this new approach.
+>=20
+> Reported-by: Valentin Berezhnoy <dreyksmail@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nf_flow_table_offload.c | 43 ++++++++++++++++-----------
+>  1 file changed, 26 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flo=
+w_table_offload.c
+> index 4365859220e6..53182323f73c 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -934,6 +934,27 @@ static int nf_flow_offload_tuple(struct nf_flowtable=
+ *flowtable,
+>  	return i;
+>  }
+> =20
+> +static void flow_offload_update_stats(struct flow_offload_work *offload,
+> +				      struct flow_stats *stats)
+> +{
+> +	u64 lastused;
+> +
+> +	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
+> +	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
+> +				       lastused + flow_offload_get_timeout(offload->flow));
+> +
+> +	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
+> +		if (stats[0].pkts)
+> +			nf_ct_acct_add(offload->flow->ct,
+> +				       FLOW_OFFLOAD_DIR_ORIGINAL,
+> +				       stats[0].pkts, stats[0].bytes);
+> +		if (stats[1].pkts)
+> +			nf_ct_acct_add(offload->flow->ct,
+> +				       FLOW_OFFLOAD_DIR_REPLY,
+> +				       stats[1].pkts, stats[1].bytes);
+> +	}
+> +}
+> +
+>  static int flow_offload_tuple_add(struct flow_offload_work *offload,
+>  				  struct nf_flow_rule *flow_rule,
+>  				  enum flow_offload_tuple_dir dir)
+> @@ -948,10 +969,13 @@ static int flow_offload_tuple_add(struct flow_offlo=
+ad_work *offload,
+>  static void flow_offload_tuple_del(struct flow_offload_work *offload,
+>  				   enum flow_offload_tuple_dir dir)
+>  {
+> +	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> +
+>  	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
+>  			      offload->flowtable->priority,
+> -			      FLOW_CLS_DESTROY, NULL,
+> +			      FLOW_CLS_DESTROY, stats,
+>  			      &offload->flowtable->flow_block.cb_list);
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 4365859220e6..53182323f73c 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -934,6 +934,27 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
- 	return i;
- }
- 
-+static void flow_offload_update_stats(struct flow_offload_work *offload,
-+				      struct flow_stats *stats)
-+{
-+	u64 lastused;
-+
-+	lastused = max_t(u64, stats[0].lastused, stats[1].lastused);
-+	offload->flow->timeout = max_t(u64, offload->flow->timeout,
-+				       lastused + flow_offload_get_timeout(offload->flow));
-+
-+	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
-+		if (stats[0].pkts)
-+			nf_ct_acct_add(offload->flow->ct,
-+				       FLOW_OFFLOAD_DIR_ORIGINAL,
-+				       stats[0].pkts, stats[0].bytes);
-+		if (stats[1].pkts)
-+			nf_ct_acct_add(offload->flow->ct,
-+				       FLOW_OFFLOAD_DIR_REPLY,
-+				       stats[1].pkts, stats[1].bytes);
-+	}
-+}
-+
- static int flow_offload_tuple_add(struct flow_offload_work *offload,
- 				  struct nf_flow_rule *flow_rule,
- 				  enum flow_offload_tuple_dir dir)
-@@ -948,10 +969,13 @@ static int flow_offload_tuple_add(struct flow_offload_work *offload,
- static void flow_offload_tuple_del(struct flow_offload_work *offload,
- 				   enum flow_offload_tuple_dir dir)
- {
-+	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
-+
- 	nf_flow_offload_tuple(offload->flowtable, offload->flow, NULL, dir,
- 			      offload->flowtable->priority,
--			      FLOW_CLS_DESTROY, NULL,
-+			      FLOW_CLS_DESTROY, stats,
- 			      &offload->flowtable->flow_block.cb_list);
-+	flow_offload_update_stats(offload, stats);
- }
- 
- static int flow_offload_rule_add(struct flow_offload_work *offload,
-@@ -1011,27 +1035,12 @@ static void flow_offload_tuple_stats(struct flow_offload_work *offload,
- static void flow_offload_work_stats(struct flow_offload_work *offload)
- {
- 	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
--	u64 lastused;
- 
- 	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
- 	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
- 		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
- 					 &stats[1]);
--
--	lastused = max_t(u64, stats[0].lastused, stats[1].lastused);
--	offload->flow->timeout = max_t(u64, offload->flow->timeout,
--				       lastused + flow_offload_get_timeout(offload->flow));
--
--	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
--		if (stats[0].pkts)
--			nf_ct_acct_add(offload->flow->ct,
--				       FLOW_OFFLOAD_DIR_ORIGINAL,
--				       stats[0].pkts, stats[0].bytes);
--		if (stats[1].pkts)
--			nf_ct_acct_add(offload->flow->ct,
--				       FLOW_OFFLOAD_DIR_REPLY,
--				       stats[1].pkts, stats[1].bytes);
--	}
-+	flow_offload_update_stats(offload, stats);
- }
- 
- static void flow_offload_work_handler(struct work_struct *work)
--- 
-2.47.3
+according to my understanding nf_flow_offload_tuple() copies the stats just=
+ if
+cmd is set to FLOW_CLS_STATS, right? Should we just check if stats is not N=
+ULL
+in nf_flow_offload_tuple() instead?
 
+Regards,
+Lorenzo
+
+> +	flow_offload_update_stats(offload, stats);
+>  }
+> =20
+>  static int flow_offload_rule_add(struct flow_offload_work *offload,
+> @@ -1011,27 +1035,12 @@ static void flow_offload_tuple_stats(struct flow_=
+offload_work *offload,
+>  static void flow_offload_work_stats(struct flow_offload_work *offload)
+>  {
+>  	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] =3D {};
+> -	u64 lastused;
+> =20
+>  	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
+>  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+>  		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
+>  					 &stats[1]);
+> -
+> -	lastused =3D max_t(u64, stats[0].lastused, stats[1].lastused);
+> -	offload->flow->timeout =3D max_t(u64, offload->flow->timeout,
+> -				       lastused + flow_offload_get_timeout(offload->flow));
+> -
+> -	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
+> -		if (stats[0].pkts)
+> -			nf_ct_acct_add(offload->flow->ct,
+> -				       FLOW_OFFLOAD_DIR_ORIGINAL,
+> -				       stats[0].pkts, stats[0].bytes);
+> -		if (stats[1].pkts)
+> -			nf_ct_acct_add(offload->flow->ct,
+> -				       FLOW_OFFLOAD_DIR_REPLY,
+> -				       stats[1].pkts, stats[1].bytes);
+> -	}
+> +	flow_offload_update_stats(offload, stats);
+>  }
+> =20
+>  static void flow_offload_work_handler(struct work_struct *work)
+> --=20
+> 2.47.3
+>=20
+
+--HqptTbztlr+sKxEG
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCauMtIQAKCRA6cBh0uS2t
+rPL0AQD/8nwAhda+9dGf8b7fMtd7ZHAvdsG//RVRARPc3p2cLwEAshfXLrYG3PmC
+tUw8UlF/yGZb8eX/hnQHmp7H9pJZZAc=
+=c84p
+-----END PGP SIGNATURE-----
+
+--HqptTbztlr+sKxEG--
