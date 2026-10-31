@@ -1,58 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.101
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793447356;
-	b=e2vJNrzB1vwtwjsP3P5TYc/+3DnseJ4yWsKQzZnF5U5NxFW4ZK4rBRfFNectLq32P4w+
-	 CSDIU7cZYlSbw/3D8tiz1QMAiSz9WJC+Hzfkk6fVl9ea6UQFMiSqtygRsnMlaEay4D/qt
-	 FocxufpcQhc9APSNNGbgqP3gcskVUrIkbGLEckAWodMdT3dYaUd5afvcSo8WwhLkULwh1
-	 eIUQuCzOOP+AkHrPobyPqbjK6bi92h82Yd6Uy7Fyx4/lGu38bRB+rfcbJo0p9pptvNubz
-	 t1gSJ9SZD+dozoAmskLKQSyqLMq6YKla66wR0JLJVO++BHid+siwusP5MCITKKL1V6A==
+	t=1793460121;
+	b=F4TCPYFa+Mldod/ksu9wEkceA+iQan2bghy+hrSIg3OasaiTl0No8Pp9IHeUXiSbMJrG
+	 4rQXj34Q4EFk+h3ZVAbdlNn9uyHO47oJwD8HMp6/IN5Bz2DcpsXwrU7R6js5HbPQ9GGwY
+	 o5YGMbCuOZpsbHd3ZJgNBXyMkMbMTyd4idIFpExAhbwQDVvWJiUFKES77pvIw4iob2PKX
+	 TOgaXxoeYvwYPmjvgLJXTK//bETktcf5m9HVbFCT8Tnvc1xFcRvsbzWv4S4gGsAyDXBv2
+	 yv3jc18R19kjlgTDFQufMq0dI/oC/q/Mby6x1Qb0MGwS/D45XcECNyvJmnepCr9ydgg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793447356;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=PJRu7W6/Or1we5Gv3BgoLEtby0D0Y0UGgfjBHfRc5+k=;
-	b=mANONhhdZKoBtgoMUercS/GoISV+5AaavOMokQDJz1GPBCB/WjvaCXo0vWvFdcjyHlGa
-	 ug6faPTAqI2Ar7mLKMF4UdH8nMwM0UtHalU7ycZN7+uOnNgsiZ6KCqqo2h/Pe/H0IOFOg
-	 t1v4kS70K8wmX1u8E2nfdOIDhF4bTp8NpZbGnAvrZGLwRT7bnUraQJPXC5nO5tN01Dtkt
-	 x4ubz0tLT1kJ5wOfNMzACtFAGMf+uAIAeKqd4ZpfeJQkgovNsJYjMm9FwprowgGWw21dn
-	 8taa6+Piq46rYrzPzGgJFAdAyAUaS3CE/52G6nBDyteWSY/DXdy1+5f6/OFUcjMIfUA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793460121;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=SCxhG63YHAFXkOVH8UZ3UYS+hqElctg+27qUKpREdVQ=;
+	b=vZYFyykZYcBIOygn7JNelA/hqnraHS2ciQSLzOKlTY8irMGjQc2foAOS5Gdlvvv02Rwk
+	 hiq26HSc8dR4MKbE2WeCNtqbdYvy3Pc/vSruP5+kqVDgqGyV9iDyJMqYm33hUEuIu40F2
+	 yEAlD2f+n1VQQudY8gh3qqo/HzYkEH4sPT4EfIL6LWaz1lEfHBt+oIHlN/UrcuQoVq3sH
+	 BvjfoY58Yq8s0cfFnedFGc3WY5hRwyLjkc4g2AFv32cCAECOdMbra6Zmiwsw0BcgRNLN0
+	 /n86B4KtobIkBaO/s51mzcXN4CXZaZXI4Ulk3+QILUDFLTMciswIOTCMCJ/h46w3tAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="GU/cbaEo";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=protonmail.com;
+	spf=pass smtp.mailfrom=protonmail.com;
+	dkim=pass header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=Nawok0QF;
+	arc=none smtp.remote-ip=79.135.106.101
+Received: from mail-106101.protonmail.ch (mail-106101.protonmail.ch [79.135.106.101])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD9C606A31A;
-	Sat, 31 Oct 2026 11:49:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91203606A31C
+	for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2026 15:22:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 91203606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GU/cbaEo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75ED61F000C1;
-	Sat, 31 Oct 2026 11:49:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793447355;
-	bh=PJRu7W6/Or1we5Gv3BgoLEtby0D0Y0UGgfjBHfRc5+k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GU/cbaEoA/AMRS9U8oKLMXHMzqGQweVw2RqzwdNol+LUqjVOPQAqkxOsvaAKkkAw2
-	 0yEjug9lWiGzG4ymPYOmJtpkAaRFP6TdIT5baeME6z0FMCRI1WY9wEfUN2fPjTyvh8
-	 BV/qA7enmciwrETf/8tnYvpXrXm66Jh4XbVlu70KVhh6I//7e0HRgWP30l+1kNGZs2
-	 2x/bzNkkwPsX375G671ySQF43qKH9drgWfhS9EOr8PaXX2yLcCCxvxlVSuhVwB1jgu
-	 HgISSkPITLmO/MtuIPfXpHsNj5PLEaQgzt//iDkQeBzNaZu+eLJ3IvGRE3rsVm2ahC
-	 bGNCP1RZFgmOQ==
-From: netdev-bot+sinfo@kernel.org
-To: "Baek Kyu, Kim" <pocj8ur4in@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
- netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: cthelper: report absent filtered deletes
-Date: Sat, 31 Oct 2026 11:49:15 +0000
-Message-ID: <179344735502.3286.1270571604287311699@kernel.org>
-In-Reply-To: <20261031114436.31788-1-pocj8ur4in@gmail.com>
-References: <20261031114436.31788-1-pocj8ur4in@gmail.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (2048-bit key, unprotected) header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=Nawok0QF
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1793460118; x=1793719318;
+	bh=SCxhG63YHAFXkOVH8UZ3UYS+hqElctg+27qUKpREdVQ=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=Nawok0QFnqeha/QtzBbE1sT1OVbWEPohFw7/zxzlvXIXqFf6BThHI9dL1PfPfaVJ5
+	 G3ep3YVVnQmewbcNU2ZGrpiUdxEC4Yz624Zkh4q2Rvo0VQCl3R+c3Zzs1IQE8NF2n8
+	 Tog2jAW3pEBI0gL747SF/gersOlUD7NxVDppn5XwUynjs1ztn3I4rZZiOi6lwYxTnZ
+	 emwCdf6cJgH36wrt+XELb4gFn69AdxQHI4RZ7AX/vpLRihUT9XvFD1DkR5syB/fgJ1
+	 z26RPP5Ab6GdIUxolR4GDD/VJj6ACl8VSbOZB9v664zNgy0iQJdcPhfBBcG+1qbwhn
+	 R2QZleZGd4FuQ==
+Date: Sat, 31 Oct 2026 15:21:55 +0000
+To: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>, "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: Turritopsis Dohrnii Teo En Ming <teo.en.ming@protonmail.com>
+Cc: "ceo@teo-en-ming-corp.com" <ceo@teo-en-ming-corp.com>
+Subject: Changing iptables backend on ipfire 2.29 Core 204 firewall
+Message-ID: <tFPvjiny7aomwwtbNLJpjkgm6IgE6hF9RwKQuO5ZQG6PeyBvL5F4BOOm_7cQTXn-fNYkHZOAQ1rRiGA5QyTPdvTyl8CRMNetEBnnOzr4Glk=@protonmail.com>
+Feedback-ID: 39510961:user:proton
+X-Pm-Message-ID: f8eede5d874ad70b6bead8aaafb3fc12c62dbd61
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -62,21 +61,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Subject: Changing iptables backend on ipfire 2.29 Core 204 firewall
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Good day from Singapore,
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+My ipfire 2.29 Core 204 firewall uses the iptables-legacy backend.
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+[root@ipfire ~]# iptables --version
+iptables v1.8.13 (legacy)
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Can I change it to the nftables backend?
+
+Thank you for your advice.
+
+Regards,
+
+Mr. Turritopsis Dohrnii Teo En Ming
+Targeted Individuals Singapore
+31 Oct 2026 Saturday 11.21 pm Singapore Time
+
+
+
+
+
+
