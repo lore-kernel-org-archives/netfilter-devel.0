@@ -1,65 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793468696;
-	b=UY0fJYhYDGazNnRjEwbdG8ikhaFHAPiWJwB9ogT21BwWxvAE8rYUxWHP7+nr/xBf7sQa
-	 SxKEIT16ebG9oTzDRzJ26Al3JrlEkJ2dXG6IpPDbJeqxmUUNXLVcf7lDcQ5hhVqX0QnXn
-	 OmZ6vY/yJK/8yCGWxa+qR94CVKVr6zGeiVsG9/8VDE6t8qB1PRR5w1DBx7yzKRfrJ68sg
-	 pvojh+DNaiGy3RgVTPhMk6sq9Z4gBFJS/YhCfT37uVU8Az1j9CE9SBDccNLCko+fpRo4J
-	 41f/ES77v4NYeaSWuQb121OqHKq2uIOMR+Kj+U1/r1/yo4gbZNQZDe28ZCQdXoQJsbg==
+	t=1793468754;
+	b=p2ws1EuOls8tTa4KJtUMlHU0hb6QhxE0gD94y72afbkihPBH4FlKvnh6NPGAUnKsJisw
+	 8AXDK4M275vxfiwwkMHr2u46iFOP70RiMxFPv01dBxUuzn8MkfPlU2r8SWbxJvzHxQYwz
+	 9GIOp79RRWrwkX6mCLfvLdXS2kqdT0caoGSuEE+f5zTj5C+3+DYUAsGd2qO7FXn4fIHXZ
+	 ylgdHuki98olYFcdM/ZCd1e3cgPGz8Sr14cxiYqq1w1nQxRdsXIST4rHAZsaQvkyH47iY
+	 ZVGkagOvDl8ECBTB3V88UlTyf90Mjm+OAuqQ/7BdNK7OHQo9TmInWTLhrk0gTT8GXGw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793468696;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793468754;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=YMBT2ijh+QQJnJcDmP6v6P8yLIIn5SX909Rt3fSnSx4=;
-	b=1xsVBwcUfzO6yyEKdEpoYcUTYqKHyqPe5HPjJYRkcXowMdIWQrElom9Cw3yiqP+F/hzD
-	 IfDnNXfXgbVx5LidUC0F5AmBCQ8DxI1V11LLR0et4iP3KlW6wJSwaa93VYwIjiO8FKJxy
-	 qf/53Pw4ClpMDxDSoPA6QpzkmlJM/qQW8fDjMmCZr3VIExa9mECa0JMnEe5DcLb1lFDlb
-	 2JuRwYZtyHP3xk8dbq600JXKU49O7FJjVAtKRdpH/1GhALPP98XQZR9gKQDH2jkyUUat9
-	 RBk4t80RSfgGzwF72rBPDvdxb/KBoNJVhwI8jOXQtK0ihtbUTUAdpjANFwPhl26XVtA==
+	bh=FW3M40bAUPpiu6dtg9ihV+GCZPA7IqkpRgmTwP06LZs=;
+	b=bCvrXu6TaTUfB5UMW/n/212oxE56q+E2Jh3VyORVFoMc9Arv7QN0P7LTrnKq2btJ5vWK
+	 heQgDCWxR269PT1uXyVX9jHwOQgGdeRYzh1lowqrOv5j1mDjKlZNPU/E5bjOWs8SreexN
+	 1N9uGUNdyHjf4kCvJPBMIWrx4T94NX0tkQkfWWspHU+SLNOD90gQ3J3HgnvfscDgY0rFa
+	 +YdH+iQEvD5lixpjNPV6RyOwtMkyzsoaeDESwkoKwPYQfaCzVCCLxq4Bb2Ic0JHxvzgtc
+	 Zt/GaPvK1tZ1UVVWyqGJvxnHkE3n7fSJG915kukZAaM7I6YdpOAzQOu7js7HlFYHDsw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="UbEe/aGp";
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osNMDLr3;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id B3A0A606A31A;
-	Sat, 31 Oct 2026 17:44:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3A0A606A31A
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 172DC606A31E;
+	Sat, 31 Oct 2026 17:45:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 172DC606A31E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UbEe/aGp
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osNMDLr3
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793468685;
-	bh=YMBT2ijh+QQJnJcDmP6v6P8yLIIn5SX909Rt3fSnSx4=;
+	s=2025; t=1793468750;
+	bh=FW3M40bAUPpiu6dtg9ihV+GCZPA7IqkpRgmTwP06LZs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UbEe/aGpzOXH0f6KrxZobb/EJUodVQ1naJPxfHFYxlDy+cXfgjQjbTqeAAMsdzRK6
-	 cTbumJv5gXm7aKQZyng5blfnoSOfbVYoD+pH2CwQzsZuRhS+3ZI2NoDytMjDfLYnum
-	 V4hqVErs5AwVDYP/Wm6iDeth7oMzzrh+sAxA6jjrZdGxg5uVTLt2tZ3O0sfGUduLGr
-	 WH2ntzFUsiCzzlTE53TBxhVDBBXHvtvQJBafpsvtq2hGzXUN2YAG4bzTvxl+NsBZOX
-	 cNxoPA4YfbHhRKU9crC2JJgnb1HUYN/LVP686vx8Tl0tyPMAewUOYjxtOq56RhKwdr
-	 It0+2AGFoZd0Q==
+	b=osNMDLr3OcmDU9BVzLikVYLYpyvo22MJjhzKJgoLClYYXq7oVJ9ZJipE7un6Ya7Yk
+	 LM1+vUlI3gwLOD2XiGnBBM30U2AQYMY4exFuV1H3glNt9Ns+EHoAY+x+i+86Tkbfxb
+	 5Uhse7dHzyVbbJk8osxmTogGw+TdwU8RM2yGYYYSPwnJ0G4zN/GBa6FwXqW6256VuL
+	 c7y+TPrnTN/R0QHddx6/b1ma2yNAfEtBpAz8k/FwCcFVj0YBWFrio1HN9kHmF3skRc
+	 ZFjmJn1nY0TERlaKBy2fwrA9WEePqOxvqcvts5UJQqYh4yJye0J5tFMkv2PPwV6rjV
+	 gW6AmLoT77aTQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C9C746005C;
-	Sat, 31 Oct 2026 18:44:45 +0100 (CET)
-Date: Sat, 31 Oct 2026 18:44:43 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 8784B6005C;
+	Sat, 31 Oct 2026 18:45:50 +0100 (CET)
+Date: Sat, 31 Oct 2026 18:45:47 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: joasantonio108@gmail.com
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: do not pair an expired
- start with another interval's end
-Message-ID: <auYpCzdrOsoWr84Z@chamomile>
-References: <20261031-b4-nft-rbtree-gc-v1-1-51d087c187a6@gmail.com>
+To: syzbot <syzbot+e1a88d8b7e4cf6b51d85@syzkaller.appspotmail.com>
+Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@kernel.org,
+	fw@strlen.de, horms@kernel.org, kuba@kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, phil@nwl.cc,
+	syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [netfilter?] WARNING in nf_flow_offload_gc_step
+Message-ID: <auYpS96ihQOAR_UP@chamomile>
+References: <6ae61c88.6552420f.2a0efc.0003.GAE@google.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,159 +68,100 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261031-b4-nft-rbtree-gc-v1-1-51d087c187a6@gmail.com>
+In-Reply-To: <6ae61c88.6552420f.2a0efc.0003.GAE@google.com>
 
-On Sat, Oct 31, 2026 at 03:54:05PM +0000, Joas Antonio dos Santos via B4 Relay wrote:
-> From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+On Sat, Oct 31, 2026 at 09:51:20AM -0700, syzbot wrote:
+> Hello,
 > 
-> Garbage collection of an expired interval start element also removes its
-> end element. Both the insertion path, nft_rbtree_gc_elem(), and the
-> commit path, nft_rbtree_gc_scan(), find that end element by its position
-> in the tree, and both can pick the end element of a different, live
-> interval:
->
-> - nft_rbtree_gc_elem() walks towards higher keys and skips end elements
->   that are not active in both generations. If the end element of the
->   expired interval is being deleted in the same transaction, the walk
->   skips it, passes the start element of the next interval and takes that
->   interval's end element instead.
+> syzbot found the following issue on:
 > 
-> - nft_rbtree_gc_scan() remembers the last end element it visited in
->   rbe_end, but does not clear it when it visits a live start element. An
->   expired start element without an end element (a start-only element, or
->   an interval whose end element was already removed) then takes the end
->   element of the live interval above it.
+> HEAD commit:    d135ab453a74 Merge tag 'backlight-next-7.4' of git://git.k..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13a51259580000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=6f2905533069b0f5
+> dashboard link: https://syzkaller.appspot.com/bug?extid=e1a88d8b7e4cf6b51d85
+> compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14020995580000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=100c4f0d580000
 > 
-> In both cases the live interval [S, E) loses E: the set no longer holds
-> the interval that userspace added, and deleting [S, E) later fails with
-> ENOENT.
+> Downloadable assets:
+> disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-d135ab45.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/6c39e8158fba/vmlinux-d135ab45.xz
+> kernel image: https://storage.googleapis.com/syzbot-assets/7fb9f97c1f88/bzImage-d135ab45.xz
 > 
-> In the insertion path, stop the walk at the first element that is active
-> in the current generation. Elements added by this transaction are still
-> skipped, as intended by commit 60c0c230c6f0 ("netfilter: nft_set_rbtree:
-> skip end interval element from gc"). If that element is a start element,
-> the expired interval has no end element. If it is an end element that
-> this transaction is removing, leave it to the transaction. In the commit
-> path, clear rbe_end when a live start element is visited.
+> AI-generated root cause summary:
+> In the Netfilter flowtable subsystem, nf_flow_table_extend_ct_timeout() only
+> accounts for IPPROTO_UDP and IPPROTO_TCP when refreshing conntrack timeouts
+> during garbage collection. However, both tc act_ct and nftables flow offload
+> support offloading IPPROTO_GRE connections to the flowtable. When the garbage
+> collector checks an offloaded GRE connection whose timeout has dropped below
+> min_timeout, the missing case in nf_flow_table_extend_ct_timeout() triggers the
+> default: WARN_ON_ONCE(1) branch. In a production kernel without panic_on_warn,
+> the warning does not crash the system and no memory corruption occurs.
 > 
-> Reproduced on current mainline under QEMU (arm64, KASAN), from an
-> unprivileged user in a new user and network namespace:
-> 
-> - insertion path: add [10,20) with a 50ms timeout and [30,40), wait,
->   then in one batch delete the end element 20 and add [12,13).
+> full analysis:  https://syzkaller.appspot.com/x/ai_root_cause?x=e1a88d8b7e4cf6b51d85
 
-I don't follow.
+There is a patch already for this, it will come in the next nf.git PR.
 
-You add [10,20) with 50ms...
-
-and [30,40) with... what timeout?
-
-you wait how long?
-
-You follow up with another batch an you only delete 20?
-
->   Before: a GET for 45 finds an element, the end element 40 is gone and
->   deleting [30,40) fails with ENOENT. After: 45 is not found, 40 is
->   present and the delete succeeds.
+> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+e1a88d8b7e4cf6b51d85@syzkaller.appspotmail.com
 > 
-> - commit path: add [30,40) and a start-only element 10 with a 50ms
->   timeout to a set with a 100ms gc interval, wait, then add [200,201),
->   whose insertion walk stops at the highest element, so only the
->   commit-time scan reaches 10. Before: the end element 40 is gone and
->   deleting [30,40) fails with ENOENT. After: both work.
+> ------------[ cut here ]------------
+> 1
+> WARNING: net/netfilter/nf_flow_table_core.c:553 at nf_flow_table_extend_ct_timeout net/netfilter/nf_flow_table_core.c:553 [inline], CPU#2: kworker/2:2/1358
+> WARNING: net/netfilter/nf_flow_table_core.c:553 at nf_flow_offload_gc_step+0xd84/0xf60 net/netfilter/nf_flow_table_core.c:593, CPU#2: kworker/2:2/1358
+> Modules linked in:
+> CPU: 2 UID: 0 PID: 1358 Comm: kworker/2:2 Not tainted syzkaller #0 PREEMPT(full) 
+> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> Workqueue: events_power_efficient nf_flow_offload_work_gc
+> RIP: 0010:nf_flow_table_extend_ct_timeout net/netfilter/nf_flow_table_core.c:553 [inline]
+> RIP: 0010:nf_flow_offload_gc_step+0xd84/0xf60 net/netfilter/nf_flow_table_core.c:593
+> Code: f8 e9 82 fd ff ff 4c 89 f7 e8 28 e1 6a f8 e9 12 fc ff ff 48 c7 c7 80 f2 c0 8f e8 17 e1 6a f8 e9 ae fc ff ff e8 1d cb f1 f7 90 <0f> 0b 90 41 be 01 00 00 00 e9 7d fc ff ff e8 09 cb f1 f7 48 8b 04
+> RSP: 0018:ffffc9000618fa88 EFLAGS: 00010293
+> RAX: 0000000000000000 RBX: ffff88803e161380 RCX: 0000000000000000
+> RDX: ffff88802c392580 RSI: ffffffff8a1c51f3 RDI: ffff88802c392580
+> RBP: ffff88803e161488 R08: 0000000000000001 R09: 0000000000000011
+> R10: 000000000000002f R11: 0000000000000000 R12: 1ffff92000c31f56
+> R13: ffff88803818f868 R14: 000000000000002f R15: ffffffff8fc0f280
+> FS:  0000000000000000(0000) GS:ffff8880d469c000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000200000012000 CR3: 000000002f277000 CR4: 0000000000352ef0
+> Call Trace:
+>  <TASK>
+>  nf_flow_table_iterate net/netfilter/nf_flow_table_core.c:459 [inline]
+>  nf_flow_table_gc_run net/netfilter/nf_flow_table_core.c:616 [inline]
+>  nf_flow_offload_work_gc+0x11e/0x1e0 net/netfilter/nf_flow_table_core.c:624
+>  process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
+>  process_scheduled_works kernel/workqueue.c:3578 [inline]
+>  worker_thread+0x5ef/0xe50 kernel/workqueue.c:3659
+>  kthread+0x373/0x450 kernel/kthread.c:436
+>  ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+>  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+>  </TASK>
 > 
-> Normal expiry, and a new interval whose end element shares the key of an
-> expired start element (the case handled by 60c0c230c6f0), behave the same
-> before and after. About 39000 random batches on interval sets with
-> timeouts, with and without slab/page allocation fault injection, showed
-> no KASAN, lockdep or WARN reports with the patch applied.
-> 
-> The insertion path issue was found with a small nfnetlink fuzzer. Both
-> paths had been pointed out earlier by the netdev AI review of commit
-> 86b6471e690c ("netfilter: nft_set_rbtree: skip transaction elements
-> during GC"), see the Link below.
-> 
-> Fixes: f718863aca46 ("netfilter: nft_set_rbtree: fix overlap expiration walk")
-> Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
-> Link: https://lore.kernel.org/all/179063970372.3145.17414936987144600093@kernel.org/
-> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-> ---
-> Tool-use note: the fuzzer, the directed tests and the analysis were
-> prepared with help from an LLM-based assistant; I reviewed the change
-> and built and ran all tests myself. Test harness available on request.
-> 
-> This is a resend through the kernel.org web endpoint: my earlier
-> submission of this patch was blocked by my mail provider and never
-> reached the lists.
-> ---
->  net/netfilter/nft_set_rbtree.c | 23 +++++++++++++++++++----
->  1 file changed, 19 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index fbe1750f1..086823067 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-> @@ -215,17 +215,25 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
->  	struct nft_set *set = (struct nft_set *)__set;
->  	struct rb_node *prev = rb_prev(&rbe->node);
->  	struct net *net = read_pnet(&set->net);
-> +	u8 cur_genmask = nft_genmask_cur(net);
->  	struct nft_rbtree_elem *rbe_prev;
->  
->  	/* search for end interval coming before this element.
->  	 * end intervals don't carry a timeout extension, they
->  	 * are coupled with the interval start element.
-> +	 *
-> +	 * Skip elements added in this transaction. The first element
-> +	 * that is active in the current generation is either the end
-> +	 * element of this interval or the start element of another
-> +	 * interval, in which case this interval has no end element.
->  	 */
->  	while (prev) {
->  		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-> -		if (nft_rbtree_interval_end(rbe_prev) &&
-> -		    nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
-> +		if (nft_set_elem_active(&rbe_prev->ext, cur_genmask)) {
-> +			if (!nft_rbtree_interval_end(rbe_prev))
-> +				prev = NULL;
->  			break;
-> +		}
->  
->  		prev = rb_prev(prev);
->  	}
-> @@ -233,7 +241,11 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
->  	rbe_prev = NULL;
->  	if (prev) {
->  		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-> -		nft_rbtree_gc_elem_move(net, set, priv, rbe_prev);
-> +		/* end element is being removed by this transaction */
-> +		if (nft_set_elem_active(&rbe_prev->ext, NFT_GENMASK_ANY))
-> +			nft_rbtree_gc_elem_move(net, set, priv, rbe_prev);
-> +		else
-> +			rbe_prev = NULL;
->  	}
->  
->  	nft_rbtree_gc_elem_move(net, set, priv, rbe);
-> @@ -911,8 +923,11 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
->  			rbe_end = rbe;
->  			continue;
->  		}
-> -		if (!__nft_set_elem_expired(&rbe->ext, tstamp))
-> +		if (!__nft_set_elem_expired(&rbe->ext, tstamp)) {
-> +			/* rbe_end belongs to this live interval */
-> +			rbe_end = NULL;
->  			continue;
-> +		}
->  
->  		/* end element needs to be removed first, it has
->  		 * no timeout extension.
 > 
 > ---
-> base-commit: c339f4010dea8b0d754f84ace70cd1b089878ef8
-> change-id: 20261031-b4-nft-rbtree-gc-1d9c72dba2bd
+> This report is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
 > 
-> Best regards,
-> -- 
-> Joas Antonio dos Santos <joasantonio108@gmail.com>
+> syzbot will keep track of this issue. See:
+> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 > 
+> If the report is already addressed, let syzbot know by replying with:
+> #syz fix: exact-commit-title
+> 
+> If you want syzbot to run the reproducer, reply with:
+> #syz test: git://repo/address.git branch-or-commit-hash
+> If you attach or paste a git patch, syzbot will apply it before testing.
+> 
+> If you want to overwrite report's subsystems, reply with:
+> #syz set subsystems: new-subsystem
+> (See the list of subsystem names on the web dashboard)
+> 
+> If the report is a duplicate of another one, reply with:
+> #syz dup: exact-subject-of-another-report
+> 
+> If you want to undo deduplication, reply with:
+> #syz undup
 > 
