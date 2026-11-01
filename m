@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793572614;
-	b=tBG070xcc8NJROgLYATuE4dpQimpYprZl0TtbEXVV9qEkH47CpxenSxyk2x7Pgpr52eq
-	 NMIhzLIBiJp/+ZnYNiN+55TA0gJWaYJUzg5umhjt9du/7mrYgmQTH9dclsgoho8arDT8D
-	 yWXRjLlrvEC/psZaQXjT6zIRnRZJTI6OMBJLuVSbDFQG3CmhtobElOluknFf9s8sLeDhV
-	 UqEOwr9RcfOKpnRbNFGzgR4OrLaCC8dlNTClDy0ZJ+rPFCwJhAibL5KgotrQNLEVHaH8O
-	 +IuLNXnAM8qsXWbRZ1n+NPVmS96qJE/BuubwSHrsufXMSfvoOLfYg07CCYYFzMOL+VA==
+	t=1793572755;
+	b=ybB88sKiQ77w3zPCZQq3CrN4LuquwLPdJOk9jXwpZ0K/MZ+zLAkaG8nshHF0ceIW3Jb6
+	 pBrrhUrVoNVkoNZSzIj24vmBgFwGwGrJa1Euntz0kQ1S+BmA36QUv6yEjrqhjge6AzL5N
+	 bt99kblMrwbCqReZLlPmCUggRboRooyleS6R545woLX+DclCEjCSF0qHcxI9oR1vngL0w
+	 37ZIPwrIAMCYKUdL0M3upZTNcl9JPUA9kwPL55A6sld016eldLnpZscqQmSbyvfga3aYV
+	 r9svqxbKNeErVVMN/xg2NyfyNyvQrfeXgKgpX8gCUMp82wweF1Ut6Ba9QlCoyS702Og==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793572614;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793572755;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
 	bh=UoOI3jsmWer/TIn9nziRtwwXmGEWEEzJSuSinqSOf+8=;
-	b=4Y4IKd09qphpw7Fhsn4GOZGj1K3PiSGQuVIazATGoNMqQ5LG7pFdNEcackR1jfk6i0UI
-	 Z8kBknOrtyBGH1MCOAQCRYdFCOeDDPRBPjdQ7xK1Jb5X+unMpbhBIZr0eKrMDLwvtCXjI
-	 hHcVyyB7B0Q5kc5GB48nPXfEGk11Jkxbkp00na5r1IM6imbDU6hzTEUjKTBfE3bm3mo7E
-	 islGzkCYVSiWGyr7mwSs2LoTKml5iU4OeNpPliJACf6XW9qcqGeg8UReQlEnzw9POAPNn
-	 24gCf4YtIU/otVAohUpFsnxhnx5DjioXAqLX1kWU9kBJrCAuqQy0xgObPzOVnRLx+1w==
+	b=jt1eYvN11ybAFlh0s36MRuFuQsipglCeA6XRaolb5gADI5rVLVJgPBZ2QtQdKvCEBY3Z
+	 GbquCh3qxEv5CM+aWCNsb1r8/Tsopwy1X5p4CaZIiK9gogNfYOj5Hyj5ZHbpQgywwf5d+
+	 Q4JmGiH6WmYlqL0WVwgZ86+XP7p30a54uIwB2baNUr4mktmV86nJVoIeviP/S4rta77CN
+	 RHY4t575xknJ3KC14N4mw+d83w6v/SA8h5owRwe5jMIgUwiwKfnyCcrNkkBTYc/M5uSk6
+	 nFPjiuzWq7d44uh6PYILbiNeK6ycj8eb3UoFt4CKI0QXxKFuGq8E0a1+1P09gXbX/Dw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vcks8mtS;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=pvYq0kZX;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 374FB606A324
-	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 22:36:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 374FB606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F19606A324
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 22:39:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 40F19606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vcks8mtS
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=pvYq0kZX
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793572603;
+	s=2025; t=1793572751;
 	bh=UoOI3jsmWer/TIn9nziRtwwXmGEWEEzJSuSinqSOf+8=;
 	h=From:To:Subject:Date:From;
-	b=vcks8mtSNnCZU5JcISfggMmVs6M2O9uSizRuFAMa4UkZ9qzYgJqZuvsYhhQmUUSmL
-	 l0hVVAOXdgHSDP+LMArR5cdS8zuJGKitOxMtvhSSxlVDvr2LTCZ80Lsl48zVEQGBON
-	 i/t5N58DoLXJG/39EDGjXTiGLI79foosXmmHuRr7JrwH7Pc+t+AjNcxz4pMRKCoDeO
-	 sct2aSJ2Qcpu3+ycP7TbyiWcWXNf7DjY1r6PzREDtadcDzcekoxCr8Jtc5CC93n1ig
-	 imnFrNxC4mtL56TGs8eqLP4uyP3PiPg74V9oVZQ8r7+co5C/6U7F8RUb5DDMALa+x+
-	 6YGY58mdO3zvg==
+	b=pvYq0kZXPAfUBjowW711WA/7vjYid4s06hxW5yn6OSqCZ7v5Whj/ttXlXjvUMlMHp
+	 DBCALBHeTlIKogqcOfyKk6YDJEYRuCdxWX78bpEAad8jpWudZrx7G4PIiT6MvUS90d
+	 tTDDIxn99ngoQ/blgns214PykFW5NPItY6s7kIkikyqSaJdvoHMJ5dKjPLMIkd+diM
+	 IuDqzLC8zap+XC4KSlapuqv9Z1gaYal8W8QRjNQf0xJ0xUN4CVIfqFd//JlmkJdL/t
+	 likiz0hKPtIMYZltZ3cvp9pgw9Q6HExHVJeXlFaWaIOvNjEv+0aLZH7Q/mTZdPBa3z
+	 FUR/3TA2FsqBQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BD7D960056
-	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 23:36:43 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7BB8060056
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 23:39:11 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nft_ct: reject expectation if conntrack is a expect child
-Date: Sun,  1 Nov 2026 23:36:40 +0100
-Message-ID: <20261101223640.444247-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nft_ct: reject expectation if conntrack has a master
+Date: Sun,  1 Nov 2026 23:39:08 +0100
+Message-ID: <20261101223908.444543-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
