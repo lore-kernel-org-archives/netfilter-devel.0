@@ -1,54 +1,151 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793503333;
-	b=DveTqzu9ObABWxou5oTP9mGevhhR72SkJrdjynZJfBYJyPxjmojNGiv1TT0uRgZZmMfx
-	 HmxK9+cJiUBeZ1HI31QOjnT7vuiqLtNWNSh2CKPHRQ4Z2Y7295pAhdsLT+CQhbqyIcjN1
-	 DKFy9cclxDG7U79p9cvePqu8DbVXi046G0oERtW5RuoqGB0UkxHKFIQyptDtYzOdsRLKp
-	 fSDJs11lUVzPqgoTr3cKwFaibpZJ7xd9LhrK+MQzRGzdhXO8DD7Rt3LL+3vS+u4EoZgvb
-	 qKfrl8el8b+urkJx7hV3kkRTszLah9q2bJbu00ADmzvFMaLPD8obNackjD49Yr3W0Og==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793503333;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
-	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=ASOAS90bvyZ7pXVSBkOD0AtmITigpjXJ5ID4H0IjZVM=;
-	b=B1UmoXjTocPR1hmxzAGuGSsK/4Pvf4R7iKTfU2KZ/e/e306X6kmj8EpkESSPWQzjXWx4
-	 YDHC5mTT9ciUDkFJRpv5pTLoPTy4r7PmdTHamk4c+KHOlSKLTbkxAr9RDEHOo2Zi1nJyg
-	 ztzoJ0Cn2KtFn4s0rrdknsfNP9OooAkr9xCOGeljpO41HhQJFD0ILSO4c6Nc+Sh9rBuL3
-	 UnY3uqF57T6zUshI2Ra2lAhpYS0nKCpHc9yr84ur9pPbWmL1w11pcKtxv9KAQnbHNFnBM
-	 NhR+Q/wvHIDIaDYyXtke+8iu5DT0LgFyD1N1hqmTJPCnrcBy4rCfuduwfva41BBYojg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="TS9L7BV/";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.7.45
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793513727;
+	b=aboSMIovSXRyhJrkDJ5K2vbSUMrPWCWkKRvcP+0bFbeWn0q5LTpswxoFW4H5mvN46tVL
+	 /v1WbDtmabJ1hm9mPKGw894QiS5q80i9yARAIdIZ3XJ8GBrItEC4SzAcb/bpfc1gaPDgb
+	 5YJGf7euzQRuA2BTyfLCcCtkrSj30pGzlkhjTCz0rOeGUXUNDBo/zeIWW0r3pMUP/auuS
+	 dGAjs8Qu3WPGmRzkhrDr7Qtr4HWvbbTcU0yWXrx184iLzsuI7b/kprbkOnZuRM/xn8Z7K
+	 Ji0iTa63o9jmaU9EKlAlY3qtnoUDIJ3E490nbC4KSONOLchth6ZwXh+EoWmbHw4lW7Q==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793513727;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
+	 Thread-Topic:Thread-Index:Date:Message-ID:Accept-Language:
+	 Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
+	 x-ms-publictraffictype:x-ms-traffictypediagnostic:
+	 x-ms-office365-filtering-correlation-id:x-microsoft-antispam:
+	 x-microsoft-antispam-message-info:
+	 x-ms-exchange-antispam-messagedata-chunkcount:
+	 x-ms-exchange-antispam-messagedata-0:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
+	 X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-originalarrivaltime:
+	 X-MS-Exchange-CrossTenant-fromentityheader:
+	 X-MS-Exchange-CrossTenant-id:
+	 X-MS-Exchange-CrossTenant-rms-persistedconsumerorg:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=k+CIKLK6abnHzaStWP3HNCnTnoKnzXzGYXGo7BwGd78=;
+	b=JaCdXJv1Ze+hX3/8k89bLfvSzvx9SzcGOab9H3Q1t4Zeea8IK+4SCunyMnbplpE6Av2B
+	 PatJ+AWuTr5ZRCHrxdRPaxBRME2kESri+4/Pci02f8+ixf3+rPdW1ZW0MhcFdBUH4pfjy
+	 4z9FK2W/uX1H1Qi3KM0pCbxpAamijX3F/Wt81RmTXIiBize6OjqkkD8KuHqHcPnxVG42n
+	 3btjZMG2x6mJ/Oq4TvbC4tEQ4R9FmPKPSiddU043XyFL38eVQ46uK6hQKSbIFFmjnn6Ux
+	 7ZTzzsXzHnqPTx/yn0duyesIsaMofQGmrhKRLsgNqGkUVO/lDWNNxUxzu1ZyJqS+zzA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=outlook.com;
+	spf=pass smtp.mailfrom=outlook.com;
+	dkim=pass header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b=mYqEF4qX;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.7.45
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazolkn19010045.outbound.protection.outlook.com [52.103.7.45])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04F9606A324;
-	Sun,  1 Nov 2026 03:22:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707C6606A332;
+	Sun,  1 Nov 2026 06:15:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 707C6606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TS9L7BV/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396911F000C1;
-	Sun,  1 Nov 2026 03:22:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793503332;
-	bh=ASOAS90bvyZ7pXVSBkOD0AtmITigpjXJ5ID4H0IjZVM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=TS9L7BV/NrJIYxrOAsybZLoQw3AGFMtc+WdaYs+sgZF4kxeXbfosu4J4enSV+IKG0
-	 3Lmwm1w0fWNhqraY5YZzQ9LwTypKrLPZj5pvAyiVJZfyMuqZCUZ46cobsYOwt07Pvt
-	 LSJMMEmD7G3tC6BcNHSui75q74eAxaLxgUhmHLcw=
-Date: Sat, 31 Oct 2026 20:22:11 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Zhiqi Zhang <zhiqizhangg@gmail.com>
-Cc: linux-kernel@vger.kernel.org, kunit-dev@googlegroups.com, Pablo Neira
- Ayuso <pablo@netfilter.org>, Finke Lennart <lfinke@student.ethz.ch>,
- netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] lib/ts_fsm: preserve token types when exporting
- patterns
-Message-Id: <20261031202211.22f18bca7819dbe2d107d17d@linux-foundation.org>
-In-Reply-To: <20261031052307.23533-1-zhiqizhangg@gmail.com>
-References: <20261031052307.23533-1-zhiqizhangg@gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key, unprotected) header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b=mYqEF4qX
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=r2pTmNHQp8Dm+7fh2rnAk05Tm48ySsuU42m1uTP2kuEL5iGv8nMdEekmpp7hndT8eaSftFGWlaamDXs737G5iiCgr0xAGo3cQDPcWIxVQKcE5JUW+5WkkYWD+5aEzv23QOZ4mBNDwd5aLvAPRI+QRc0NWjJHARGFLRMB47YYRk3P7NmPexXvXl6G7M9w8j3WMdx8kdg/WWsYm2awAiM9a0+yxX4JWOdzBqm00SojtLCXPLnFdLekIuV+wwtnfD5o1ikrA3yJw3TkAcqQihoKhK/8ujSCsoUB/fQjrvk7G5ftkB7gFxvFDOxSe0Gjzqs9tWYZ7iR/Lg7az37PztxVjg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
+ bh=k+CIKLK6abnHzaStWP3HNCnTnoKnzXzGYXGo7BwGd78=;
+ b=Sv/2F8KJDEYNBgUim1bmuoM+P/+uV/UPcy167Ruu4ghmexSts3G0aY+NLqCh+nmLL01bIYWFOWkGovwCQUdkTVPRn8fmZdBvzno5OSJ3wroMZ0H4NWV8Mt/46zGRFuurXfb8qT7QcOGNycJNaPbdFz1AxQ4kd1VEv4WiaQdpDV+5rJYGsLoDkE2/Zn9zdqFngJqm99z1iVDuJoTSHko23CZKEzrkXuJjJHiDK1tYmyrNPbJjS9T/fo7gqfVd760A3HZtB4oWSlMbS7n/tGXOBzKa//WG6JGRzhvZ4Xfn9J4kIZ2qVp97KU8MyK/2cll1YOMBzHcjM3fdrHn+cMw36A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=outlook.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=k+CIKLK6abnHzaStWP3HNCnTnoKnzXzGYXGo7BwGd78=;
+ b=mYqEF4qXv7eF85m+IjijFMoBzEAqtWJP9Ta7ulJypgk7UpJ2Xm10VwwmbXm7HtY/5jxG52LlTWtfLFKwjYufCqK0y7mSG9/K6SWL2p/x3+JaGLPJlmpBtm4GdIy1o+WfJlefJOB44FNAX5nhxcWCs5LckVZq+6XGxBEf0LJtIaeDt3gRQMIzviujF1bfJP6ovM6tG7Mb1hbKM8mFCaiwiAIEMbaeRk1dC44yJw9GILyhMbs38Yvmhld9XBVCZxSYl6g2MV1yHF/8m7fqDzHNUB6TJ06TMVjgUn/Xbkmc+DIG8/Gn2KC+7+LJtjYan8v7RhR7HKlDaZVJ21Pkvc0Hsg==
+Received: from SA3PR05MB10385.namprd05.prod.outlook.com
+ (2603:10b6:806:39d::17) by SA1PR05MB8168.namprd05.prod.outlook.com
+ (2603:10b6:806:1e3::13) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.11; Sun, 1 Nov
+ 2026 06:15:24 +0000
+Received: from SA3PR05MB10385.namprd05.prod.outlook.com
+ ([fe80::e22f:a0f5:fcb0:9b0d]) by SA3PR05MB10385.namprd05.prod.outlook.com
+ ([fe80::e22f:a0f5:fcb0:9b0d%6]) with mapi id 15.21.0569.010; Sun, 1 Nov 2026
+ 06:15:24 +0000
+From: Yingjie Wang <x-professor@outlook.com>
+To: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+CC: "horms@verge.net.au" <horms@verge.net.au>, "ja@ssi.bg" <ja@ssi.bg>,
+	"pablo@netfilter.org" <pablo@netfilter.org>, "fw@strlen.de" <fw@strlen.de>,
+	"phil@nwl.cc" <phil@nwl.cc>, "davem@davemloft.net" <davem@davemloft.net>,
+	"edumazet@kernel.org" <edumazet@kernel.org>, "kuba@kernel.org"
+	<kuba@kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: [PATCH nf v2] ipvs: avoid wrapping persistent service timeouts
+Thread-Topic: [PATCH nf v2] ipvs: avoid wrapping persistent service timeouts
+Thread-Index: AQHdachhtPfP04y0I0S6y49AWMIhaQ==
+Date: Sun, 1 Nov 2026 06:15:23 +0000
+Message-ID:
+ <969309eb180c2e577dd6bb54a7d28afcbb2efeb3.1793513714.git.x-professor@outlook.com>
+Accept-Language: en-US, zh-CN
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA3PR05MB10385:EE_|SA1PR05MB8168:EE_
+x-ms-office365-filtering-correlation-id: 5589d706-89e1-47a3-5455-08df37df83e8
+x-microsoft-antispam:
+ BCL:0;ARA:14566002|24021099003|4140399003|25010399006|38102599003|31061999003|41001999006|22091999003|15080799012|24121999003|51005399006|8060799015|8062599012|5062599005|19110799012|1602099012|10035399007|40105399003|26121999007|102099032|440099028|3412199025|4302099013;
+x-microsoft-antispam-message-info:
+ =?iso-8859-1?Q?YT3oUsCvg8w2gS81ELF5Mg5iRYp9TukLMWvYfAp0QdxMvXvv/uatYH0/vl?=
+ =?iso-8859-1?Q?6vdpGwWt+MtKes29ULRk1GdMAVNAHkvtgEuWYcDlgESXrghjBTrh0pViNT?=
+ =?iso-8859-1?Q?s7jScbx9eMfvlHRU/YSw57zTM3EWm/QSbhjvZ7rKQREWW5JK4fueXF42Nz?=
+ =?iso-8859-1?Q?RGdC0Opkk0b7aKksE8e+nlm6ZZHifYDoIDpHxHspWnxx61M7v56MxmE8DZ?=
+ =?iso-8859-1?Q?gYAewJ0hdoOmXj3MaKKPht5Bekwx8lK4xDUpoJOu9O6OTOqQqG7XIoNWIU?=
+ =?iso-8859-1?Q?JA+pqZWz6A//IpWdaABsr+3dqpp1zORrKPnpFTm3f62D3fYrEKVcjykC1F?=
+ =?iso-8859-1?Q?RhVf3eAn3A0dhN26StH6NPOU6Jhgf8E8+J5zwSQI09c0RXyxHq7SVJPb7R?=
+ =?iso-8859-1?Q?IoP/rJ5ddIjuwsDZqFXs2hdrwQeLJWkAKSx+RsyTjgvLZx3Qab4mNG5lqg?=
+ =?iso-8859-1?Q?jL008p6o5+KUuKd+NAkPTm1ojRetcLD70vbLonT+hw2lGLhociyh8djEay?=
+ =?iso-8859-1?Q?Dv9oP2XjMgPnnihoTmaoSTaV8mKeefIKhhZv3y2nfnnspFpPExEnTw9G7D?=
+ =?iso-8859-1?Q?Cd60sNCJNXYXkbCxAnUUyz49UeE3XJXdwlwjpOgZMaLbVuRoZ5d0vXH1jW?=
+ =?iso-8859-1?Q?DOtBZfxUGzJUHQwA+Cj82TRF/Hm4fIaFstDRebP5vni87xCCmhCQ/2s6+t?=
+ =?iso-8859-1?Q?ZPqrHBXpD7/wDLwthklWCuyMEVjCMZZGdwexEJOH7Bd9LQjBnAwubHF6MM?=
+ =?iso-8859-1?Q?O7chXverg5keGYhke0itXW2Y487ZX56g+leZvFA2xhF5Y/ZobnTz/CaU1k?=
+ =?iso-8859-1?Q?VGgcx/6jOUezTZ1Rz4gN/wqQl2zQuHbCLyEX4QMPkvHldX8ejFqNpxpfel?=
+ =?iso-8859-1?Q?o27nMzjXYlvOzNiA1PKDZRwzDCPKlpTJ2QMuHteHNtHY09D4JlRBbEIKKb?=
+ =?iso-8859-1?Q?eR3rFeFg8HAfXn9uufCEvmTt0jr7r1T5HdDQufg6mnrul0cB6cEoKyvQg6?=
+ =?iso-8859-1?Q?KGLuForNKDNx++S6YjbZK/O9TLVzUeDE9nrHMv4K1OsrkYkxw440b2OwrW?=
+ =?iso-8859-1?Q?FWwCjMfjGoW6+XkH1IL8LP2g6nTSrhKUbAhaBzgHqaV8dZtq7hQNdWWmzA?=
+ =?iso-8859-1?Q?85cKJTLBg6FFpzFz+GKGfTwVD5c/49NuaeXI5TVZXbifD5wC/xlOU+w8+W?=
+ =?iso-8859-1?Q?2QW59VP1+tnKNF4kKsB8P3gKfmzwOf1B2IA=3D?=
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?iso-8859-1?Q?Y9w8nj/Y8vgVrFwjrS3fMKwaghd/mzeB686gULc2+Yqgye2lzUK9qfSXfW?=
+ =?iso-8859-1?Q?ct4uj0SsZVk1xjj3nTEUgi5iam6utNLfKoUIOc5cHflsZKkjJ3vu1H2wy/?=
+ =?iso-8859-1?Q?k2YrLf+QekWW4sNdvTXDm/GGqlp07gUZQVXPMDDe1JJ8H00tbLw/TerKm+?=
+ =?iso-8859-1?Q?46didBiQ1zU1wGrm48mYMt1D35RdFnBCNdmxBC6xSnaUziw7+GFLm8qAXw?=
+ =?iso-8859-1?Q?j2p+T5nVGjPSKYnOBXxQ/B7Ylto8/fo0DddV/iJRrDbzFxvNGHk3fnft7A?=
+ =?iso-8859-1?Q?hFLyxgRnDv1ZjsJ/p+v1uRXwWEXxIR3+oYIafOwshE1+bzsgzSbQWLtFLW?=
+ =?iso-8859-1?Q?2ZlEGi81/KZ2WVZAvWRiPJqTBmh2OGTP2b8WLagILDV7oyfEscOpWor1rB?=
+ =?iso-8859-1?Q?EQ7LkeT/5i8I9MnYnfnOSx/56f72q/AdzCl2ddcJHkynWNSmf9ykV4uh3/?=
+ =?iso-8859-1?Q?h3JBmCHw/lMbzsr7QmO5IY53AVnPx2mE/8ruzRgRRbS/YRCQK28UZYhqbn?=
+ =?iso-8859-1?Q?8Y4Vx2cONRh0l/UQfGPhsVkxKUPqpzLw06EVeVeHCCav6m8GvsMFh9kzoO?=
+ =?iso-8859-1?Q?h5bg3UkYx2pHm1RvJ4HzSsUxhnwxlKEGtythdevqAzoafpZm1+EJ6r7IeX?=
+ =?iso-8859-1?Q?BuwxVtku5QSDyrnYHTtDHT6Bypp19Koiw/chreszk6yTyiLixkPf+2BvYn?=
+ =?iso-8859-1?Q?24FGe2AVIJ2sUYMKcTuCaVfiQLp6Zv8M6IF7N1NN6qmnO3JAQaLFtJupNg?=
+ =?iso-8859-1?Q?I6pEEuiX0ZOt7Km8s6xwSJpduRd/UnTodPyzIb3V4YE35woEWAovXvOtox?=
+ =?iso-8859-1?Q?l9x2lR0zcyJyBt5WRuV7ozaYLI+Hr8aRdj5FY5Bnn/mxHbFRJ1zeHjVfTy?=
+ =?iso-8859-1?Q?gotocJ0MFMcqr52U5g0z2YIU5pgpdqJadbo+7QUhedeATQfr6qSxBjd1hZ?=
+ =?iso-8859-1?Q?EMQ5so4jUaX4cDjnK0n7wBHY5usQYGARBMWt78BjVAegmTh/RXEbwnNyB9?=
+ =?iso-8859-1?Q?0qGjuUGBR2cpHJPRXt/JmKK30eB6SmZeFjOwWbTFy8FsH7SLtHhN2g33st?=
+ =?iso-8859-1?Q?JxvkyKk2F5HqVLpbmEUWNivUuCqf6DhZKoFnCIIbJeZciHVW5Tg62KX5Ps?=
+ =?iso-8859-1?Q?rIVQq3S+n1eV9tPpNTyHBzB+6QsN4BECodUoTtYXtJrkW+zaOiA9TakhzF?=
+ =?iso-8859-1?Q?/ZWBP+eYiDFkjNKeI/0fBzsAfo5/OwXK7vTHe2PCDaOQvcCBH1IngE8q6/?=
+ =?iso-8859-1?Q?oh6HcOjlFpDO8XlXrNI/Th596G5MnupDLfJVZ49gQYgG4Q0NLjSBrF+Nhs?=
+ =?iso-8859-1?Q?iO7OPJ01hVziHa4OW7/OnVkIJkgWlDp6K3MrfcRuPtbtDC4+ZgOg+cbrEi?=
+ =?iso-8859-1?Q?esFJbtb/BkrWucb+yaTT2ulgDQ/zjY/+8FziWUAPhAOmJAG142kYyY9p3S?=
+ =?iso-8859-1?Q?VBg3+e0TLku3PLq/?=
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -57,313 +154,408 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+X-OriginatorOrg: outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA3PR05MB10385.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5589d706-89e1-47a3-5455-08df37df83e8
+X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Nov 2026 06:15:24.0114
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR05MB8168
 
-On Sat, 31 Oct 2026 13:23:07 +0800 Zhiqi Zhang <zhiqizhangg@gmail.com> wrote:
-
-> fsm_init() replaces each token type with an internal character-class mask.
-> fsm_get_pattern() then returns these masks as if they were public token
-> types. Exporting a pattern and preparing another FSM configuration from
-> it can therefore change the matching behaviour or fail with -EINVAL.
-> 
-> For example, a single TS_FSM_DIGIT token (type 2) becomes the _D mask (4).
-> Preparing the exported pattern interprets 4 as TS_FSM_PRINT, so the new
-> configuration accepts "A" while the original rejects it. The text ematch
-> dump path uses textsearch_get_pattern() to return patterns to userspace.
-> 
-> Keep the public token types in the configuration and look up their masks
-> in match_token(). This preserves the exported representation without
-> adding another pattern allocation. Initialization still validates every
-> type before it can be used to index token_map.
-> 
-> Add KUnit coverage for exporting and recreating all token types and a
-> sequence with a repeated character class. Also check that exporting and
-> recreating the pattern leaves the original configuration usable.
-> 
-
-The main user of textsearch appears to be netfilter, so please let's
-keep the relevant developers in the loop.
-
-netfilter peeps: I'm seeing a small number of textsearch patches lately
-and I'm totally unfamiliar with it.  Can you please propose a
-MAINTAINERS patch?
-
-hp2:/usr/src/mm> scripts/get_maintainer.pl -f --nogit --nogit-fallback --no-rolestats lib/ts_bm.c lib/ts_fsm.c lib/ts_kmp.c  
-Andrew Morton <akpm@linux-foundation.org>
-linux-kernel@vger.kernel.org
-
-Lonely!
-
-
-
-
-Zhiqi, a thing which is missing from the changelog, and it's really
-important, is a description of the userspace-visible runtime effects of
-the bug.
-
-> I identified this issue. OpenAI Codex helped confirm it and drafted the
-> fix, KUnit tests and changelog. I reviewed the fix, built it and verified
-> that the tests passed.
-
-I'm suspecting "no such effects are known".  But that isn't enough -
-once the issue is out there, LLM-using bad actors might be able to find
-ways of exploiting the bug, so please discuss that aspect also.
-
-My LLM suggested
-
-: The userspace consequence is worth spelling out: dumping and restoring
-: a traffic-control rule can silently change which packets it matches, or
-: fail to restore the rule with EINVAL.
-
-Also, and fyi, it told me
-
-: Related finding: BM/KMP also export transformed patterns. With
-: TS_IGNORECASE, repeated folding of 0xff changes it again
-: (ff -> df -> bf). That's a separate API roundtrip problem, but I found
-: no current userspace dump/restore path exposing it: em_text doesn't
-: enable that flag, and xt_string retains the original pattern.
-
-Also, regarding your patch:
-
-: One small test improvement: after copying the exported pattern, add
-: KUNIT_EXPECT_MEMEQ(test, exported, pattern, len). That directly checks
-: the exported representation as well as its matching behavior.
-
-And I'm thinking that a cc:stable is justified here.
-
-Thanks.
-
-> ---
-> Validation in isolated QEMU TCG guests:
-> - ARM64 GCC 13.3: the same KUnit test and config change from 2/15 passing
->   before the fix to 15/15 passing afterwards.
-> - ARM32 GCC 13.3 and ARM64 Clang 18.1.3: 15/15 passing.
-> - An ARM64 rtnetlink smoke test creates a basic classifier with a text
->   ematch, dumps it, restores its payload, and dumps it again. The DIGIT
->   token changes 2 -> 4 -> 151 before the fix, and stays 2 afterwards.
-> - W=1 for the changed objects: no warnings. Sparse reports no diagnostics
->   for these objects (an unchanged ARM64 vDSO object has a declaration
->   warning). Strict checkpatch passes after suppressing the new-file
->   MAINTAINERS reminder.
-> 
-> Packet traffic, module loading and throughput were not tested. Resolving
-> masks in match_token() adds a lookup on nonliteral matches.
-> 
->  lib/Kconfig.debug                |  14 ++++
->  lib/tests/Makefile               |   1 +
->  lib/tests/textsearch_fsm_kunit.c | 137 +++++++++++++++++++++++++++++++
->  lib/ts_fsm.c                     |   7 +-
->  4 files changed, 153 insertions(+), 6 deletions(-)
->  create mode 100644 lib/tests/textsearch_fsm_kunit.c
-> 
-> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-> index 2d22638ec..416d033b0 100644
-> --- a/lib/Kconfig.debug
-> +++ b/lib/Kconfig.debug
-> @@ -2531,6 +2531,20 @@ config STRING_HELPERS_KUNIT_TEST
->  	depends on KUNIT
->  	default KUNIT_ALL_TESTS
->  
-> +config TEXTSEARCH_FSM_KUNIT_TEST
-> +	tristate "KUnit tests for FSM text search" if !KUNIT_ALL_TESTS
-> +	depends on KUNIT
-> +	select TEXTSEARCH
-> +	select TEXTSEARCH_FSM
-> +	default KUNIT_ALL_TESTS
-> +	help
-> +	  Test that exporting and recreating an FSM text search configuration
-> +	  preserves its matching behaviour. Exercise each public token type
-> +	  and a sequence of tokens with a repeated character class. Check
-> +	  that exporting also leaves the original configuration usable.
-> +
-> +	  If unsure, say N.
-> +
->  config STRING_KUNIT_BENCH
->         bool "Benchmark string functions at runtime"
->         depends on STRING_KUNIT_TEST
-> diff --git a/lib/tests/Makefile b/lib/tests/Makefile
-> index df0537e1b..fa47ef5d3 100644
-> --- a/lib/tests/Makefile
-> +++ b/lib/tests/Makefile
-> @@ -54,6 +54,7 @@ CFLAGS_stackinit_kunit.o += $(call cc-disable-warning, switch-unreachable)
->  obj-$(CONFIG_STACKINIT_KUNIT_TEST) += stackinit_kunit.o
->  obj-$(CONFIG_STRING_KUNIT_TEST) += string_kunit.o
->  obj-$(CONFIG_STRING_HELPERS_KUNIT_TEST) += string_helpers_kunit.o
-> +obj-$(CONFIG_TEXTSEARCH_FSM_KUNIT_TEST) += textsearch_fsm_kunit.o
->  obj-$(CONFIG_USERCOPY_KUNIT_TEST) += usercopy_kunit.o
->  obj-$(CONFIG_UTIL_MACROS_KUNIT) += util_macros_kunit.o
->  obj-$(CONFIG_RATELIMIT_KUNIT_TEST) += test_ratelimit.o
-> diff --git a/lib/tests/textsearch_fsm_kunit.c b/lib/tests/textsearch_fsm_kunit.c
-> new file mode 100644
-> index 000000000..bbf944ef8
-> --- /dev/null
-> +++ b/lib/tests/textsearch_fsm_kunit.c
-> @@ -0,0 +1,137 @@
-> +// SPDX-License-Identifier: GPL-2.0-or-later
-> +/* Tests for exporting and recreating FSM text search configurations. */
-> +
-> +#include <kunit/test.h>
-> +#include <linux/limits.h>
-> +#include <linux/module.h>
-> +#include <linux/string.h>
-> +#include <linux/textsearch.h>
-> +#include <linux/textsearch_fsm.h>
-> +
-> +struct fsm_test_case {
-> +	const char *name;
-> +	u16 type;
-> +	const char *match;
-> +	const char *miss;
-> +};
-> +
-> +static const struct fsm_test_case fsm_test_cases[] = {
-> +	{ "specific", TS_FSM_SPECIFIC, "x", "y" },
-> +	{ "wildcard", TS_FSM_WILDCARD, "A", "" },
-> +	{ "digit", TS_FSM_DIGIT, "7", "A" },
-> +	{ "xdigit", TS_FSM_XDIGIT, "f", "g" },
-> +	{ "print", TS_FSM_PRINT, "A", "\n" },
-> +	{ "alpha", TS_FSM_ALPHA, "A", "7" },
-> +	{ "alnum", TS_FSM_ALNUM, "7", "!" },
-> +	{ "ascii", TS_FSM_ASCII, "A", "\200" },
-> +	{ "cntrl", TS_FSM_CNTRL, "\n", "A" },
-> +	{ "graph", TS_FSM_GRAPH, "!", " " },
-> +	{ "lower", TS_FSM_LOWER, "a", "A" },
-> +	{ "upper", TS_FSM_UPPER, "A", "a" },
-> +	{ "punct", TS_FSM_PUNCT, "!", "A" },
-> +	{ "space", TS_FSM_SPACE, " ", "A" },
-> +};
-> +
-> +static void fsm_case_to_desc(const struct fsm_test_case *params, char *desc)
-> +{
-> +	snprintf(desc, KUNIT_PARAM_DESC_SIZE, "%s", params->name);
-> +}
-> +
-> +KUNIT_ARRAY_PARAM(fsm, fsm_test_cases, fsm_case_to_desc);
-> +
-> +static void fsm_destroy_config(void *conf)
-> +{
-> +	textsearch_destroy(conf);
-> +}
-> +
-> +static void fsm_expect_matches(struct kunit *test, struct ts_config *conf,
-> +			       const struct fsm_test_case *params)
-> +{
-> +	struct ts_state state = {};
-> +	unsigned int pos;
-> +
-> +	pos = textsearch_find_continuous(conf, &state, params->match,
-> +					 strlen(params->match));
-> +	KUNIT_EXPECT_EQ(test, pos, 0U);
-> +	pos = textsearch_find_continuous(conf, &state, params->miss,
-> +					 strlen(params->miss));
-> +	KUNIT_EXPECT_EQ(test, pos, UINT_MAX);
-> +}
-> +
-> +static void fsm_check_roundtrip(struct kunit *test,
-> +				const struct ts_fsm_token *pattern,
-> +				unsigned int len,
-> +				const struct fsm_test_case *params)
-> +{
-> +	struct ts_fsm_token *exported;
-> +	struct ts_config *conf, *recreated;
-> +	int err;
-> +
-> +	conf = textsearch_prepare("fsm", pattern, len, GFP_KERNEL, TS_AUTOLOAD);
-> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, conf);
-> +	err = kunit_add_action_or_reset(test, fsm_destroy_config, conf);
-> +	KUNIT_ASSERT_EQ(test, err, 0);
-> +	fsm_expect_matches(test, conf, params);
-> +
-> +	KUNIT_ASSERT_EQ(test, textsearch_get_pattern_len(conf), len);
-> +	exported = kunit_kmalloc(test, len, GFP_KERNEL);
-> +	KUNIT_ASSERT_NOT_NULL(test, exported);
-> +	memcpy(exported, textsearch_get_pattern(conf), len);
-> +
-> +	/* Exporting a pattern must preserve the existing search behaviour. */
-> +	fsm_expect_matches(test, conf, params);
-> +
-> +	recreated = textsearch_prepare("fsm", exported, len, GFP_KERNEL,
-> +				       TS_AUTOLOAD);
-> +	KUNIT_ASSERT_NOT_ERR_OR_NULL_MSG(test, recreated,
-> +					 "exported token: type=%u recur=%u value=%u",
-> +					 exported->type, exported->recur,
-> +					 exported->value);
-> +	err = kunit_add_action_or_reset(test, fsm_destroy_config, recreated);
-> +	KUNIT_ASSERT_EQ(test, err, 0);
-> +	fsm_expect_matches(test, recreated, params);
-> +	fsm_expect_matches(test, conf, params);
-> +}
-> +
-> +static void fsm_test_pattern_roundtrip(struct kunit *test)
-> +{
-> +	const struct fsm_test_case *params = test->param_value;
-> +	struct ts_fsm_token pattern = {
-> +		.type = params->type,
-> +		.recur = TS_FSM_SINGLE,
-> +		.value = 'x',
-> +	};
-> +
-> +	fsm_check_roundtrip(test, &pattern, sizeof(pattern), params);
-> +}
-> +
-> +static void fsm_test_sequence_roundtrip(struct kunit *test)
-> +{
-> +	static const struct ts_fsm_token pattern[] = {
-> +		{ TS_FSM_DIGIT, TS_FSM_MULTI, 0 },
-> +		{ TS_FSM_SPECIFIC, TS_FSM_SINGLE, ':' },
-> +		{ TS_FSM_UPPER, TS_FSM_SINGLE, 0 },
-> +	};
-> +	static const struct fsm_test_case params = {
-> +		.match = "77:A",
-> +		.miss = "77:a",
-> +	};
-> +
-> +	fsm_check_roundtrip(test, pattern, sizeof(pattern), &params);
-> +}
-> +
-> +static struct kunit_case fsm_kunit_test_cases[] = {
-> +	KUNIT_CASE_PARAM(fsm_test_pattern_roundtrip, fsm_gen_params),
-> +	KUNIT_CASE(fsm_test_sequence_roundtrip),
-> +	{}
-> +};
-> +
-> +static struct kunit_suite fsm_test_suite = {
-> +	.name = "textsearch-fsm",
-> +	.test_cases = fsm_kunit_test_cases,
-> +};
-> +
-> +kunit_test_suite(fsm_test_suite);
-> +
-> +MODULE_DESCRIPTION("FSM text search configuration tests");
-> +MODULE_LICENSE("GPL");
-> diff --git a/lib/ts_fsm.c b/lib/ts_fsm.c
-> index 053615f4f..8725ea6f0 100644
-> --- a/lib/ts_fsm.c
-> +++ b/lib/ts_fsm.c
-> @@ -126,7 +126,7 @@ _W|_L,         _W|_L,        _W|_L,        _W|_L};		/* 252-255 */
->  static inline int match_token(struct ts_fsm_token *t, u8 d)
->  {
->  	if (t->type)
-> -		return (token_lookup_tbl[d] & t->type) != 0;
-> +		return (token_lookup_tbl[d] & token_map[t->type]) != 0;
->  	else
->  		return t->value == d;
->  }
-> @@ -288,11 +288,6 @@ static struct ts_config *fsm_init(const void *pattern, unsigned int len,
->  	fsm->ntokens = ntokens;
->  	memcpy(fsm->tokens, pattern, len);
->  
-> -	for (i = 0; i < fsm->ntokens; i++) {
-> -		struct ts_fsm_token *t = &fsm->tokens[i];
-> -		t->type = token_map[t->type];
-> -	}
-> -
->  	return conf;
->  
->  errout:
-> 
-> base-commit: 2a500a04d6f969318c05f46aedb6e73fc1963a00
-> -- 
-> 2.54.0 (Apple Git-157)
+ip_vs_add_service() and ip_vs_edit_service() convert an unchecked u32=0A=
+timeout from seconds to jiffies with u->timeout * HZ. Both operands are=0A=
+unsigned int, so values above UINT_MAX / HZ wrap.=0A=
+=0A=
+With HZ=3D1000, 4294968 seconds becomes 704 jiffies and is reported back=0A=
+as 0 seconds. Persistence templates copy svc->timeout, so their timer is=0A=
+armed for 0.7 seconds and a client can be moved to another real server=0A=
+long before the configured timeout.=0A=
+=0A=
+ipvsadm limits service persistence and protocol timeouts to 31 days.=0A=
+Enforce the same limit in the kernel and reject larger values with=0A=
+-EINVAL. Convert accepted values through a common helper that clamps=0A=
+them to MAX_JIFFY_OFFSET / HZ on 32-bit systems. Use the helper for=0A=
+timeouts received from the synchronization protocol as well, since those=0A=
+values do not pass through the service configuration checks.=0A=
+=0A=
+Change the service timeout and protocol timeout tables to unsigned long=0A=
+because they store jiffies. With HZ=3D1000, 31 days is 2678400000 jiffies,=
+=0A=
+which does not fit in the signed int used by the protocol tables. This=0A=
+also allows the global protocol timeout interface to represent the full=0A=
+31-day range on 64-bit systems.=0A=
+=0A=
+The overflow was reproduced in an x86-64 QEMU guest with HZ=3D1000. A=0A=
+persistent one-packet UDP service was set to 4294968 seconds, and two=0A=
+datagrams sent 1.5 seconds apart were directed to different real servers=0A=
+after the template expired.=0A=
+=0A=
+On the x86-64 test kernel with HZ=3D1000, 2678401-second service timeouts=
+=0A=
+were accepted and 4294968 seconds read back as 0, while a 2678400-second=0A=
+protocol timeout was rejected. With this change, 2678401 and 4294968=0A=
+seconds are rejected, a failed edit leaves the previous service timeout=0A=
+unchanged, and 2678400-second service and protocol timeouts read back=0A=
+unchanged.=0A=
+=0A=
+On an i386 test kernel with HZ=3D1000, the accepted 2678400-second values=
+=0A=
+were clamped to 1073741 seconds by the 32-bit jiffy limit and read back=0A=
+as such through both interfaces.=0A=
+=0A=
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")=0A=
+Suggested-by: Julian Anastasov <ja@ssi.bg>=0A=
+Link: https://lore.kernel.org/r/4f420fda8690ac470be44b3da284b65501c77bb5.17=
+93430892.git.x-professor@outlook.com=0A=
+Link: https://lore.kernel.org/r/5fa37fba-530c-2c5b-038e-9cb95e34023d@ssi.bg=
+=0A=
+Signed-off-by: Yingjie Wang <x-professor@outlook.com>=0A=
+---=0A=
+=0A=
+Notes:=0A=
+    Changes since v1:=0A=
+    - Follow Julian's suggestion to use the 31-day ipvsadm limit, reject=0A=
+      larger configured values, and clamp accepted values only for the=0A=
+      32-bit jiffy limit.=0A=
+    - Move the conversion helper to include/net/ip_vs.h and use it for=0A=
+      service, protocol and synchronized connection timeouts.=0A=
+    - Store service and protocol timeout ticks in unsigned long values so=
+=0A=
+      the full range is representable.=0A=
+    - Add runtime coverage for the 31-day boundary, failed service updates=
+=0A=
+      and global TCP/UDP timeout readback on x86-64 and i386. The i386 test=
+=0A=
+      also verifies the intended MAX_JIFFY_OFFSET clamp.=0A=
+    =0A=
+    v1: https://lore.kernel.org/r/4f420fda8690ac470be44b3da284b65501c77bb5.=
+1793430892.git.x-professor@outlook.com=0A=
+=0A=
+ include/net/ip_vs.h                   | 20 ++++++++++++---=0A=
+ net/netfilter/ipvs/ip_vs_app.c        |  3 +--=0A=
+ net/netfilter/ipvs/ip_vs_ctl.c        | 35 ++++++++++++++++-----------=0A=
+ net/netfilter/ipvs/ip_vs_proto.c      |  4 +--=0A=
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  6 ++---=0A=
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  |  6 ++---=0A=
+ net/netfilter/ipvs/ip_vs_proto_udp.c  |  6 ++---=0A=
+ net/netfilter/ipvs/ip_vs_sync.c       |  6 ++---=0A=
+ 8 files changed, 52 insertions(+), 34 deletions(-)=0A=
+=0A=
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h=0A=
+index 9a83bff32569..4eaa06b5f991 100644=0A=
+--- a/include/net/ip_vs.h=0A=
++++ b/include/net/ip_vs.h=0A=
+@@ -18,6 +18,7 @@=0A=
+ #include <linux/workqueue.h>=0A=
+ =0A=
+ #include <linux/compiler.h>=0A=
++#include <linux/jiffies.h>=0A=
+ #include <linux/timer.h>=0A=
+ #include <linux/bug.h>=0A=
+ =0A=
+@@ -55,6 +56,18 @@=0A=
+ #define IP_VS_CONN_MAX	(1 << 24)=0A=
+ #endif=0A=
+ =0A=
++/* All timeouts up to 31 days */=0A=
++#define IP_VS_TIMEOUT_MAX_SECS	(86400U * 31)=0A=
++=0A=
++static inline unsigned long ip_vs_timeout_ticks(unsigned int secs)=0A=
++{=0A=
++	secs =3D min_t(unsigned int, secs, IP_VS_TIMEOUT_MAX_SECS);=0A=
++#if BITS_PER_LONG <=3D 32=0A=
++	secs =3D min_t(unsigned int, secs, MAX_JIFFY_OFFSET / HZ);=0A=
++#endif=0A=
++	return (unsigned long)secs * HZ;=0A=
++}=0A=
++=0A=
+ /* svc_table limits */=0A=
+ #define IP_VS_SVC_TAB_MIN_BITS	4=0A=
+ #define IP_VS_SVC_TAB_MAX_BITS	20=0A=
+@@ -776,7 +789,7 @@ struct ip_vs_protocol {=0A=
+ struct ip_vs_proto_data {=0A=
+ 	struct ip_vs_proto_data	*next;=0A=
+ 	struct ip_vs_protocol	*pp;=0A=
+-	int			*timeout_table;	/* protocol timeout table */=0A=
++	unsigned long		*timeout_table;	/* protocol timeout table */=0A=
+ 	atomic_t		appcnt;		/* counter of proto app incs. */=0A=
+ 	struct tcp_states_t	*tcp_state_table;=0A=
+ };=0A=
+@@ -938,7 +951,7 @@ struct ip_vs_service {=0A=
+ 	atomic_t		refcnt;   /* reference counter */=0A=
+ 	__be16			port;	  /* port number for the service */=0A=
+ 	unsigned int		flags;	  /* service status flags */=0A=
+-	unsigned int		timeout;  /* persistent timeout in ticks */=0A=
++	unsigned long		timeout;  /* persistent timeout in ticks */=0A=
+ 	__be32			netmask;  /* grouping granularity, mask/plen */=0A=
+ 	struct netns_ipvs	*ipvs;=0A=
+ =0A=
+@@ -1844,7 +1857,8 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_=
+name);=0A=
+ int ip_vs_protocol_init(void);=0A=
+ void ip_vs_protocol_cleanup(void);=0A=
+ void ip_vs_protocol_timeout_change(struct netns_ipvs *ipvs, int flags);=0A=
+-int *ip_vs_create_timeout_table(int *table, int size);=0A=
++unsigned long *ip_vs_create_timeout_table(const unsigned long *table,=0A=
++					  size_t size);=0A=
+ void ip_vs_tcpudp_debug_packet(int af, struct ip_vs_protocol *pp,=0A=
+ 			       const struct sk_buff *skb, int offset,=0A=
+ 			       const char *msg);=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.=
+c=0A=
+index 11cbdbaf561d..89be90a2c383 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_app.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_app.c=0A=
+@@ -93,8 +93,7 @@ ip_vs_app_inc_new(struct netns_ipvs *ipvs, struct ip_vs_a=
+pp *app, __u16 proto,=0A=
+ =0A=
+ 	if (app->timeouts) {=0A=
+ 		inc->timeout_table =3D=0A=
+-			ip_vs_create_timeout_table(app->timeouts,=0A=
+-						   app->timeouts_size);=0A=
++			kmemdup(app->timeouts, app->timeouts_size, GFP_KERNEL);=0A=
+ 		if (!inc->timeout_table) {=0A=
+ 			ret =3D -ENOMEM;=0A=
+ 			goto out;=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.=
+c=0A=
+index ce9fe20d6106..5f19fd9545a6 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_ctl.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_ctl.c=0A=
+@@ -1766,6 +1766,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_=
+vs_service_user_kern *u,=0A=
+ 	int ret =3D 0;=0A=
+ 	bool grow;=0A=
+ =0A=
++	if (u->timeout > IP_VS_TIMEOUT_MAX_SECS)=0A=
++		return -EINVAL;=0A=
++=0A=
+ 	/* increase the module use count */=0A=
+ 	if (!ip_vs_use_count_inc())=0A=
+ 		return -ENOPROTOOPT;=0A=
+@@ -1864,7 +1867,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_=
+vs_service_user_kern *u,=0A=
+ 	svc->port =3D u->port;=0A=
+ 	svc->fwmark =3D u->fwmark;=0A=
+ 	svc->flags =3D u->flags & ~IP_VS_SVC_F_HASHED;=0A=
+-	svc->timeout =3D u->timeout * HZ;=0A=
++	svc->timeout =3D ip_vs_timeout_ticks(u->timeout);=0A=
+ 	svc->netmask =3D u->netmask;=0A=
+ 	svc->ipvs =3D ipvs;=0A=
+ =0A=
+@@ -1971,6 +1974,9 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct =
+ip_vs_service_user_kern *u)=0A=
+ 	struct netns_ipvs *ipvs =3D svc->ipvs;=0A=
+ 	int af_id =3D ip_vs_af_index(svc->af);=0A=
+ =0A=
++	if (u->timeout > IP_VS_TIMEOUT_MAX_SECS)=0A=
++		return -EINVAL;=0A=
++=0A=
+ 	/*=0A=
+ 	 * Lookup the scheduler, by 'u->sched_name'=0A=
+ 	 */=0A=
+@@ -2031,7 +2037,7 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct =
+ip_vs_service_user_kern *u)=0A=
+ 	 * Set the flags and timeout value=0A=
+ 	 */=0A=
+ 	svc->flags =3D u->flags | IP_VS_SVC_F_HASHED;=0A=
+-	svc->timeout =3D u->timeout * HZ;=0A=
++	svc->timeout =3D ip_vs_timeout_ticks(u->timeout);=0A=
+ 	svc->netmask =3D u->netmask;=0A=
+ =0A=
+ 	old_pe =3D rcu_dereference_protected(svc->pe, 1);=0A=
+@@ -3064,9 +3070,8 @@ static int ip_vs_info_seq_show(struct seq_file *seq, =
+void *v)=0A=
+ 		}=0A=
+ =0A=
+ 		if (svc->flags & IP_VS_SVC_F_PERSISTENT)=0A=
+-			seq_printf(seq, "persistent %d %08X\n",=0A=
+-				svc->timeout,=0A=
+-				ntohl(svc->netmask));=0A=
++			seq_printf(seq, "persistent %lu %08X\n",=0A=
++				   svc->timeout, ntohl(svc->netmask));=0A=
+ 		else=0A=
+ 			seq_putc(seq, '\n');=0A=
+ =0A=
+@@ -3365,36 +3370,38 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipv=
+s, struct ip_vs_timeout_user=0A=
+ 		  u->udp_timeout);=0A=
+ =0A=
+ #ifdef CONFIG_IP_VS_PROTO_TCP=0A=
+-	if (u->tcp_timeout < 0 || u->tcp_timeout > (INT_MAX / HZ) ||=0A=
+-	    u->tcp_fin_timeout < 0 || u->tcp_fin_timeout > (INT_MAX / HZ)) {=0A=
++	if (u->tcp_timeout < 0 ||=0A=
++	    u->tcp_timeout > IP_VS_TIMEOUT_MAX_SECS ||=0A=
++	    u->tcp_fin_timeout < 0 ||=0A=
++	    u->tcp_fin_timeout > IP_VS_TIMEOUT_MAX_SECS) {=0A=
+ 		return -EINVAL;=0A=
+ 	}=0A=
+ #endif=0A=
+ =0A=
+ #ifdef CONFIG_IP_VS_PROTO_UDP=0A=
+-	if (u->udp_timeout < 0 || u->udp_timeout > (INT_MAX / HZ))=0A=
++	if (u->udp_timeout < 0 || u->udp_timeout > IP_VS_TIMEOUT_MAX_SECS)=0A=
+ 		return -EINVAL;=0A=
+ #endif=0A=
+ =0A=
+ #ifdef CONFIG_IP_VS_PROTO_TCP=0A=
+ 	if (u->tcp_timeout) {=0A=
+ 		pd =3D ip_vs_proto_data_get(ipvs, IPPROTO_TCP);=0A=
+-		pd->timeout_table[IP_VS_TCP_S_ESTABLISHED]=0A=
+-			=3D u->tcp_timeout * HZ;=0A=
++		pd->timeout_table[IP_VS_TCP_S_ESTABLISHED] =3D=0A=
++			ip_vs_timeout_ticks(u->tcp_timeout);=0A=
+ 	}=0A=
+ =0A=
+ 	if (u->tcp_fin_timeout) {=0A=
+ 		pd =3D ip_vs_proto_data_get(ipvs, IPPROTO_TCP);=0A=
+-		pd->timeout_table[IP_VS_TCP_S_FIN_WAIT]=0A=
+-			=3D u->tcp_fin_timeout * HZ;=0A=
++		pd->timeout_table[IP_VS_TCP_S_FIN_WAIT] =3D=0A=
++			ip_vs_timeout_ticks(u->tcp_fin_timeout);=0A=
+ 	}=0A=
+ #endif=0A=
+ =0A=
+ #ifdef CONFIG_IP_VS_PROTO_UDP=0A=
+ 	if (u->udp_timeout) {=0A=
+ 		pd =3D ip_vs_proto_data_get(ipvs, IPPROTO_UDP);=0A=
+-		pd->timeout_table[IP_VS_UDP_S_NORMAL]=0A=
+-			=3D u->udp_timeout * HZ;=0A=
++		pd->timeout_table[IP_VS_UDP_S_NORMAL] =3D=0A=
++			ip_vs_timeout_ticks(u->udp_timeout);=0A=
+ 	}=0A=
+ #endif=0A=
+ 	return 0;=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_pr=
+oto.c=0A=
+index 0046aed1fb38..3796cd93c028 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_proto.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_proto.c=0A=
+@@ -185,8 +185,8 @@ void ip_vs_protocol_timeout_change(struct netns_ipvs *i=
+pvs, int flags)=0A=
+ }=0A=
+ =0A=
+ =0A=
+-int *=0A=
+-ip_vs_create_timeout_table(int *table, int size)=0A=
++unsigned long *=0A=
++ip_vs_create_timeout_table(const unsigned long *table, size_t size)=0A=
+ {=0A=
+ 	return kmemdup(table, size, GFP_KERNEL);=0A=
+ }=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_=
+vs_proto_sctp.c=0A=
+index fb8af6b15a39..7e447b99d94c 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c=0A=
+@@ -327,7 +327,7 @@ static const __u8 sctp_states=0A=
+ #define IP_VS_SCTP_MAX_RTO	((60 + 1) * HZ)=0A=
+ =0A=
+ /* Timeout table[state] */=0A=
+-static const int sctp_timeouts[IP_VS_SCTP_S_LAST + 1] =3D {=0A=
++static const unsigned long sctp_timeouts[IP_VS_SCTP_S_LAST + 1] =3D {=0A=
+ 	[IP_VS_SCTP_S_NONE]			=3D 2 * HZ,=0A=
+ 	[IP_VS_SCTP_S_INIT1]			=3D (0 + 3 + 1) * HZ,=0A=
+ 	[IP_VS_SCTP_S_INIT]			=3D IP_VS_SCTP_MAX_RTO,=0A=
+@@ -552,8 +552,8 @@ static int sctp_app_conn_bind(struct ip_vs_conn *cp)=0A=
+ static int __ip_vs_sctp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_d=
+ata *pd)=0A=
+ {=0A=
+ 	ip_vs_init_hash_table(ipvs->sctp_apps, SCTP_APP_TAB_SIZE);=0A=
+-	pd->timeout_table =3D ip_vs_create_timeout_table((int *)sctp_timeouts,=0A=
+-							sizeof(sctp_timeouts));=0A=
++	pd->timeout_table =3D=0A=
++		ip_vs_create_timeout_table(sctp_timeouts, sizeof(sctp_timeouts));=0A=
+ 	if (!pd->timeout_table)=0A=
+ 		return -ENOMEM;=0A=
+ 	return 0;=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_v=
+s_proto_tcp.c=0A=
+index fec0e8b47b71..923405b65a33 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c=0A=
+@@ -326,7 +326,7 @@ static const int tcp_state_off[IP_VS_DIR_LAST] =3D {=0A=
+ /*=0A=
+  *	Timeout table[state]=0A=
+  */=0A=
+-static const int tcp_timeouts[IP_VS_TCP_S_LAST+1] =3D {=0A=
++static const unsigned long tcp_timeouts[IP_VS_TCP_S_LAST + 1] =3D {=0A=
+ 	[IP_VS_TCP_S_NONE]		=3D	2*HZ,=0A=
+ 	[IP_VS_TCP_S_ESTABLISHED]	=3D	15*60*HZ,=0A=
+ 	[IP_VS_TCP_S_SYN_SENT]		=3D	2*60*HZ,=0A=
+@@ -665,8 +665,8 @@ void ip_vs_tcp_conn_listen(struct ip_vs_conn *cp)=0A=
+ static int __ip_vs_tcp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_da=
+ta *pd)=0A=
+ {=0A=
+ 	ip_vs_init_hash_table(ipvs->tcp_apps, TCP_APP_TAB_SIZE);=0A=
+-	pd->timeout_table =3D ip_vs_create_timeout_table((int *)tcp_timeouts,=0A=
+-							sizeof(tcp_timeouts));=0A=
++	pd->timeout_table =3D=0A=
++		ip_vs_create_timeout_table(tcp_timeouts, sizeof(tcp_timeouts));=0A=
+ 	if (!pd->timeout_table)=0A=
+ 		return -ENOMEM;=0A=
+ 	pd->tcp_state_table =3D tcp_states;=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_v=
+s_proto_udp.c=0A=
+index f32785682402..b4de47f8273e 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c=0A=
+@@ -396,7 +396,7 @@ static int udp_app_conn_bind(struct ip_vs_conn *cp)=0A=
+ }=0A=
+ =0A=
+ =0A=
+-static const int udp_timeouts[IP_VS_UDP_S_LAST+1] =3D {=0A=
++static const unsigned long udp_timeouts[IP_VS_UDP_S_LAST + 1] =3D {=0A=
+ 	[IP_VS_UDP_S_NORMAL]		=3D	5*60*HZ,=0A=
+ 	[IP_VS_UDP_S_LAST]		=3D	2*HZ,=0A=
+ };=0A=
+@@ -432,8 +432,8 @@ udp_state_transition(struct ip_vs_conn *cp, int directi=
+on,=0A=
+ static int __udp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_data *pd=
+)=0A=
+ {=0A=
+ 	ip_vs_init_hash_table(ipvs->udp_apps, UDP_APP_TAB_SIZE);=0A=
+-	pd->timeout_table =3D ip_vs_create_timeout_table((int *)udp_timeouts,=0A=
+-							sizeof(udp_timeouts));=0A=
++	pd->timeout_table =3D=0A=
++		ip_vs_create_timeout_table(udp_timeouts, sizeof(udp_timeouts));=0A=
+ 	if (!pd->timeout_table)=0A=
+ 		return -ENOMEM;=0A=
+ 	return 0;=0A=
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_syn=
+c.c=0A=
+index 157f5c8361ab..175b842cdfec 100644=0A=
+--- a/net/netfilter/ipvs/ip_vs_sync.c=0A=
++++ b/net/netfilter/ipvs/ip_vs_sync.c=0A=
+@@ -847,7 +847,7 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, st=
+ruct ip_vs_conn_param *pa=0A=
+ 			    unsigned int flags, unsigned int state,=0A=
+ 			    unsigned int protocol, unsigned int type,=0A=
+ 			    const union nf_inet_addr *daddr, __be16 dport,=0A=
+-			    unsigned long timeout, __u32 fwmark,=0A=
++			    unsigned int timeout, __u32 fwmark,=0A=
+ 			    struct ip_vs_sync_conn_options *opt)=0A=
+ {=0A=
+ 	struct ip_vs_dest *dest;=0A=
+@@ -939,9 +939,7 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, st=
+ruct ip_vs_conn_param *pa=0A=
+ 	 *  - No problem.=0A=
+ 	 */=0A=
+ 	if (timeout) {=0A=
+-		if (timeout > MAX_SCHEDULE_TIMEOUT / HZ)=0A=
+-			timeout =3D MAX_SCHEDULE_TIMEOUT / HZ;=0A=
+-		cp->timeout =3D timeout*HZ;=0A=
++		cp->timeout =3D ip_vs_timeout_ticks(timeout);=0A=
+ 	} else {=0A=
+ 		struct ip_vs_proto_data *pd;=0A=
+ =0A=
+=0A=
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b=0A=
+-- =0A=
+2.43.0=0A=
+=0A=
