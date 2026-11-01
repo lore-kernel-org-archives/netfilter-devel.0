@@ -1,65 +1,67 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793574669;
-	b=l/1fkSEBe/GZnz+xVP/Z856O7dgQ79zLBOfg16m/jrGLXpGqPmuNGKAHTqIZ3qfn31uQ
-	 PVNT56gGgDOkLAeh+QqZM1CFLMID0nZuXaHnKQhL/sgRKfyAayhl8abzd7ssuor5S7NwI
-	 ZrZhS4Mp07rahm5ZuKl8CUUZ1EgvZseglEr46vmGkhPV97SHjUIKPpX9kF9boA8eYA86X
-	 5jk/BLq39gnOhBJwAyUXHVFywfK3NZ79PTHD9mmmRrkvAN/V6XzFY69a/Y94iQnUBGdGi
-	 iq6X/4GNR+Ekc6D5tQdqvXlv8JNw2SGCpvbA/lLIXGlMG6pAUji8ky2hVhDq7ASCwAg==
+	t=1793575442;
+	b=TMtDGlTbljt5zGCZHkr+mXZnDo3NnaCROOw3/KZb/Trz266BHKSDLhmvt+LKEsE3tKY7
+	 0+eioznLEwzd76jjt5lJfhRwdoDsXSTUgVLS5B3B+a2R6WQMnoSZ2LQv49F0XtmAzkEqd
+	 ens9UUkMC2+zfqKlnWoaVZMSRwRXg5TIt6VJKc/h5daOOMTsuULNMB0TViW+T7MOiOE+D
+	 bYK7wTYGnPyBKYZGpk6rkj1CoISyi6nGOMr3rH6+5zrqVt1PWJFbxO9UKwThh+tA5hyOz
+	 rxU0hLs3jozCOpSUj6n2bPuYpBQ6X//YE6bysnTZULvXMF8o0azqJfvBMAzAy91RXqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793574669;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793575442;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=pP4TSECHhZx0zxl/HEDYPKq8T0EGn/TF0YTD8IQWiug=;
-	b=i7+kEilQyxTmVvNEcydYJvd/Lru9d61XIRUTFVd4P5Qg5VhrEkTGNej3OfFogaIG55Ba
-	 OscZcizFanH0lWCgwFGOdFmMMn941sJvEWL3vqh6tNY1UTBiVf069wdRJg07dFyPrHiTB
-	 MZp4EP8+aQfRWxbss8UmA6897NMHi/+WVTm0a9tCwIGsexNgNmafel29qO2DGMfg5AWLH
-	 sXlbrcavxYcCt+KEKLse2Hhz1mQIuLGKjB0VN3nhNOAV6VkrJjKeKiwX+S9tuuqYAQ4qP
-	 CWndk0GMcR9va1NgLQW+CgqWmew6p2x/nv9weWi0/i+s/bN0qS16gIL5tWzfiMPT2dg==
+	bh=Ge9MIPB42VbouvDG+bVn+6h7dY6h9nMEzIi4vXf4uCU=;
+	b=r0GB5lY3JkW7Jy0VaTsydlZk7ZBObAPGtZIrMl90uPJzKeHlfd2QZYxzPrqhks7W1s7N
+	 sUxLIHYbUCMMWMWH0gfAi4zIoT6Sr9mPI9ATpz+yndId70imn2+q/bvLRg/etVf3eonRu
+	 ca9/OCDy4o5EdrGbNIlfLsfuvWhYQJKtPmzmBLmNZP0sccirgc8elr52Ui2LoVCYljBQd
+	 i1q0fm9+ZyKVKWVhiWSXX2c3LNYIhiDlZlRusEzGvmL++AbA5phEamLJE3d6r8vBC5CnP
+	 y7Zdhxc3gH8wK66ScD3J4AArfANimsZFNd0Ja/nrAG7+wV/HjeaLtxGEFvow1XrZOrg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Kby+au8r;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GtuIWiEH;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id A6398606A324;
-	Sun,  1 Nov 2026 23:11:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A6398606A324
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 5C40F606A324;
+	Sun,  1 Nov 2026 23:24:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C40F606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Kby+au8r
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GtuIWiEH
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793574666;
-	bh=pP4TSECHhZx0zxl/HEDYPKq8T0EGn/TF0YTD8IQWiug=;
+	s=2025; t=1793575438;
+	bh=Ge9MIPB42VbouvDG+bVn+6h7dY6h9nMEzIi4vXf4uCU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Kby+au8rk/2gDQQrwaEaUYRsa3sad14btpmCw5JdLOy6c8YuLhSPmxt9BOqC23Gs/
-	 0pkG1xXBnLWsDLuZNFuDt3mV6pmTJzJWx1Vm9NG3OpgudaKJ4Y/xG7yeJQr+/uBMuk
-	 C7JJQ8DV+UijEAUPu4z+c9G/vHyyhmoW5WWzOLrYGuGVJQ+ehI4AXrIVn3dI3QX1FL
-	 xnw9FhWv8G+5El+tNfN98wXyBlGm3CbuFm5oWuL+/M1kd9qQyVar5lyFOS4MkRBFt2
-	 42l2GGz1oOkA/SfJtak0gOyyxVQn+ZRowKY/dfo6u+Xwkk7V3MqB7D3vwTWfkN0BWd
-	 jJQztauMwGqVQ==
+	b=GtuIWiEH+TEt4WOI6KMRoYXq78BIB6FQO4enG0iZPWcUr0DUilzAHoTcXl2ezriUz
+	 0ahO428Rox8GqDoGv/bjHuLRKsDfMgnbHot4m7h1LmXTt2xaZ9EixAm0uuFfP/UpoI
+	 4vIiysVYik55P+8Czf02TpV7q+8GZECC5eRULDREKcCIJhJvp32mZcao2bgx4k0Fwk
+	 L/YBdE1XleEAwT3g865vKkcBhprRlUNKk1VxmB2bLxijhGZJHzNUbrRPNix7fu7Xym
+	 sY4SE2of6zvcT5vtxc2SO/FBAwftf4E6r1NspPhvT3wuaj5vns+ut/wG1GdgmREIu0
+	 Vq+SwuhFL0IVA==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 0A8D460058;
-	Mon,  2 Nov 2026 00:11:06 +0100 (CET)
-Date: Mon, 2 Nov 2026 00:11:03 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6790260078;
+	Mon,  2 Nov 2026 00:23:58 +0100 (CET)
+Date: Mon, 2 Nov 2026 00:23:55 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>
+To: Xingyuan Mo <hdthky0@gmail.com>
 Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
 	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
+	Eric Dumazet <edumazet@kernel.org>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH net v2] netfilter: flowtable: flush delete work after
- final GC
-Message-ID: <aufHB1HXHtm7rw4M@chamomile>
-References: <20260927163248.1002656-1-nicoyip.dev@gmail.com>
+	Simon Horman <horms@kernel.org>,
+	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix flow rule leak in
+ nft_delrule() error path
+Message-ID: <aufKCw9iv5pMj2fy@chamomile>
+References: <20261028062204.1079089-1-hdthky0@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,90 +73,46 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260927163248.1002656-1-nicoyip.dev@gmail.com>
+In-Reply-To: <20261028062204.1079089-1-hdthky0@gmail.com>
 
-On Mon, Sep 28, 2026 at 12:32:48AM +0800, Chengfeng Ye wrote:
-> nf_flow_table_free() can return while delete work still holds a pointer to
-> the flowtable. Its caller can then free the flowtable before the worker
-> accesses it, causing a use-after-free.
-> 
-> nf_flow_offload_del() sets NF_FLOW_HW_DYING only after allocating the work
-> item. If this GFP_ATOMIC allocation fails during the first teardown GC
-> pass, the flow remains eligible for deletion in the final GC pass inside
-> nf_flow_table_offload_flush_cleanup(). That pass runs after the delete
-> workqueue has been flushed, so a successful retry queues work which is
-> not waited for:
-> 
->   teardown worker                         delete worker
->   first GC: work allocation fails
->     NF_FLOW_HW_DYING remains clear
->   flush delete workqueue
->   final GC: allocation succeeds
->     queue FLOW_CLS_DESTROY work
->   destroy rhashtable
->   free flowtable
->                                           access offload->flowtable
-> 
-> Flush the delete workqueue again after the final GC to complete this work
-> before the flowtable can be freed. All flows have already been marked for
-> teardown, so this GC pass only queues delete work, and the delete worker
-> does not queue further offload work.
-> 
-> KASAN reported:
-> 
->   BUG: KASAN: slab-use-after-free in flow_offload_work_handler+0xbe8/0xe30
->   Read of size 8 at addr ffff888109c9fd98 by task kworker/u16:3/397
->   Workqueue: nf_ft_offload_del flow_offload_work_handler
->   Call Trace:
->    flow_offload_work_handler+0xbe8/0xe30
->    process_one_work+0x63a/0x1070
->    worker_thread+0x45b/0xd10
->   Allocated by task 87:
->    nf_tables_newflowtable+0x5d0/0x22f0
->    nfnetlink_rcv_batch+0x1396/0x1d00
->   Freed by task 11:
->    kfree+0x131/0x3c0
->    nf_tables_trans_destroy_work+0xb26/0xeb0
->    process_one_work+0x63a/0x1070
->   Last potentially related work creation:
->    __queue_work+0x68e/0x1030
->    flow_offload_del+0x74c/0xad0
->    nf_flow_offload_gc_step+0x264/0x8e0
->    nf_flow_table_gc_run+0xcd/0x150
->    nf_flow_table_offload_flush_cleanup+0x5c/0x70
->    nf_flow_table_free+0x280/0x350
->    nf_tables_flowtable_destroy+0x71/0x270
+On Wed, Oct 28, 2026 at 02:22:42PM +0800, Xingyuan Mo wrote:
+> On the nf_tables_delrule_deactivate() failure path, nft_trans_destroy()
+> frees the transaction but not the attached HW offload flow rule. Destroy
+> the flow after the transaction to avoid memory leak.
 
-For the record, proposed alternative to this patch:
+For the record, alternative proposed patch:
 
-https://patch.msgid.link/netfilter-devel/20261029230657.302417-1-pablo@netfilter.org/
+https://patch.msgid.link/netfilter-devel/20261028112535.115054-1-pablo@netfilter.org
 
-> Fixes: c921ffe85333 ("netfilter: flowtable: Fix flushing of offloaded flows on free")
-> Cc: stable@vger.kernel.org
-> Assisted-by: GPT-6-Astra
-> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+> Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
+> Assisted-by: opencode:deepseek-v4
+> Signed-off-by: Xingyuan Mo <hdthky0@gmail.com>
 > ---
-> Changes in v2:
-> - Rebase onto current mainline; the independently revalidated one-line fix
->   is unchanged from v1.
+>  net/netfilter/nf_tables_api.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> v1: https://lore.kernel.org/r/20260824115829.205118-1-nicoyip.dev@gmail.com/
-> 
->  net/netfilter/nf_flow_table_offload.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 6757fd89c1f1..728220ba3882 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -1172,6 +1172,7 @@ void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
->  	if (nf_flowtable_hw_offload(flowtable)) {
->  		flush_workqueue(nf_flow_offload_del_wq);
->  		nf_flow_table_gc_run(flowtable);
-> +		flush_workqueue(nf_flow_offload_del_wq);
->  	}
->  }
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 59ac623e6805..ec56ea8c8436 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -752,7 +752,7 @@ static struct nft_trans *nft_trans_rule_add(struct nft_ctx *ctx, int msg_type,
 >  
+>  static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+>  {
+> -	struct nft_flow_rule *flow;
+> +	struct nft_flow_rule *flow = NULL;
+>  	struct nft_trans *trans;
+>  	int err;
+>  
+> @@ -773,6 +773,8 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+>  	err = nf_tables_delrule_deactivate(ctx, rule);
+>  	if (err < 0) {
+>  		nft_trans_destroy(trans);
+> +		if (flow)
+> +			nft_flow_rule_destroy(flow);
+>  		return err;
+>  	}
+>  	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_PREPARE);
 > -- 
 > 2.43.0
 > 
