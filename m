@@ -1,84 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793477601;
-	b=0Q/pmJ55Var4F/8VcpCnhzUF/7OqQLLjOdPXmZpRlYwDRcQ4teeqTyyu9IcR7OtJXEw0
-	 h8DkiIip2iOLKJU09ue91laeYkiTcg+vDcnPSIdR0wp7GFnbU/C5n2M2vT+zKU3e0lFbr
-	 CRibwecVCXEdYXJWRGvqPgZMNJoB3JeGgQkHvidD2z5C5tyWhoRZxeFw0O1iEMYqmnIzA
-	 to9zbL457og8zRLIfoEvdWpOylz1+m+P+0ys3B8q09UEjjsPGHhv9fBfhxtbrIRQw4joJ
-	 G1ZcR3xVajEyxUTTtyoycmdf2/Gi0cZWA1MUb2uTWcxF8tVW8yCiuMdm9ZnhWDxLPEA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793477601;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=cPFfTN6/hzKEJ9Jp6JStK5DFXphnyN3uZMogfrm57M0=;
-	b=S6U9M148Ktoac3Cs28eI8qNgUOP0V2uP3nxyKqyOtPaBn533I6cgKwlVQc0JgiO8d8A1
-	 x2sJpWWBxxEXXXSOd6FcMB+eG4skaIG9ZgeUrvEMzTRuCNr4mC6rGj6aR35xHlR3qkCxK
-	 ZDjg4fMi6x+l4CW41ak8YHofgS3CD6MNZJgJndv4xcpkGTmQHSrauH6BZqd1Kyu+P6gYc
-	 M8WQX2g9HUta5nkdck2X4ZekcI0dpYDto8apGru1JNh9JsIffUxIBVW1ERvnQPeTpJmxU
-	 FMRH829xoDytoza17Qgv6qKGEemWVXwGu91tBO7/7EP40jIVDHDxa8SJu1klopR1Gig==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=MSldMUD4;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.228.135
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793497555;
+	b=NeYwxfTxOLDfSLX+0uCwCrp/A58RTjRoW8J275km+2VglT7iAi1jAqpj5DNoV0DvZ8mF
+	 Hz1HjGQDX/XKMc4KQ1OwP5/HzRZ8XFjJk5zZF32FBY7rg7GbCX6LJpsP/Eqbod5x1QG0Q
+	 9GtyFbGBj6NtXN4HJ2QHS7QZLTddXoX/wfGF86sqZjQ+mtYMFPLMhla7Pgt7YJORWUbr3
+	 ET6lJa6pwpGBLRO3lma98jpe+hfCIAB+SJfI4zIbmjTFfVDHiW8cSKU3WaZmbe3aQ6nXt
+	 BK+D5JLR2mVAHuwFZ8T0nvP3MX93sgefHtzVlm14UaTyquTU9F6/UurvB18fBuCwMBA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793497555;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:MIME-Version:From:Date:X-Gm-Features:Message-ID:Subject:To:
+	 Cc:Content-Type;
+	bh=hGJpUD/K7wiBVPEctZzE0GNNEQVoqOVuF2tGYqislSs=;
+	b=ldKVFESF3NLKX/Duv97rfdjBvwGiQLIbCGWWC7PKGmKypt25aesw6nf4MwfROTxofOQ/
+	 NBXy5G9appGEr9XUfcdmkp0Qc5BcEwZxcSLdN5ixUmdglV8XMtf7rF5LssW+jKcCzAV0g
+	 /n4rs1zgehuStp2G+e1YS6KDaGbvfAehpbtkNffxkNR6xgwZH5XPZqRCr/pekAGui9uei
+	 3USt+MruRYxAamL2U2EsxvTH1AS3bk4F5Wfj4D7ToFuA+lV+shIpqDw/c5IkESP69wES8
+	 YaSC3XDa9Cb0f9dt4mZejk20pRqdUx+1sNl/L6itXR0eVjB2o1x+7gaGaLlGJo1Qj0A==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=none header.from=ikotaslabs.com;
+	spf=pass smtp.mailfrom=ikotaslabs.com;
+	dkim=pass header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b=owtMUGm0;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.228.135
+Received: from mail-ej2-f7.google.com (mail-ej2-f7.google.com [74.125.228.135])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F16606A31A;
-	Sat, 31 Oct 2026 20:13:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 09F16606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08147606A31D
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 01:45:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08147606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ikotaslabs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ikotaslabs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=MSldMUD4
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 229ED21F72;
-	Sat, 31 Oct 2026 22:13:09 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=cPFfTN6/hzKEJ9Jp6JStK5DFXphnyN3uZMogfrm57M0=; b=MSldMUD40SxN
-	Oc/nqD0+2eFqMgpsSOMyF8QenoUqgGCIbswEi9MVdXrvg8nq+VPXqChk4Gf3pNTD
-	4JIF2LAN///G8fogaO5MxHGmj2Fz4aCPSPHGVDNKb49BDcRCdAgaJD3S0IjOwKYK
-	W3XsMNljqBKfVIolK1qyJtZisSzIqG1cLPbV2I/g725GHhrGbO0spFpDP4RI3i2n
-	yRO1fjCrUAzFPfNHVB0ApECEYup2TUiWyjnHH3agPKLgXpd7QnqAo+iaqgFA6Yhc
-	f7+KOpgb0iTJXqN5H7AKTCYwkA/HIEA2pCMGE43x24e793FjQoDv3h/ZMjT44n28
-	KZZTjnQmI/ISeqoQtMPsolABooAosI+KHNxZ0uQiZ6Na3vi81teJBQ+fvVd/nIKu
-	SlumkEMdW3PCtaZd34gyYmqE5PTcyB5AAbjmpmMORdH2R0zkEf0Fbup5i3M/0aKT
-	UtZqtsEQPNrsJxM9xFKBfqtT3CU+Vy0QwhEa5cbDhgrOpakg4Kq1Epophb6gQlwz
-	W/Bt3UTm/cynm/btp3iadhN/TrjO3B/vPdP+O0QJiKYmfssjwSzt5+m+T6aJYuey
-	6vHRNohdF4+BVfLgogL+svUDyOno6GRaAhGm3VyoYmt8pNg7WAD9f9HSwqOfjMEB
-	q2BswHCKydG1hUzx2mHBj9gA+932hbk=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sat, 31 Oct 2026 22:13:08 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 866C2601BB;
-	Sat, 31 Oct 2026 22:13:08 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 69VKD0jG037434;
-	Sat, 31 Oct 2026 22:13:01 +0200
-Date: Sat, 31 Oct 2026 22:13:00 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Yingjie Wang <x-professor@outlook.com>
-cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "horms@verge.net.au" <horms@verge.net.au>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "fw@strlen.de" <fw@strlen.de>, "phil@nwl.cc" <phil@nwl.cc>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "edumazet@kernel.org" <edumazet@kernel.org>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "pabeni@redhat.com" <pabeni@redhat.com>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH nf] ipvs: avoid wrapping persistent service timeouts
-In-Reply-To: <4f420fda8690ac470be44b3da284b65501c77bb5.1793430892.git.x-professor@outlook.com>
-Message-ID: <5fa37fba-530c-2c5b-038e-9cb95e34023d@ssi.bg>
-References: <4f420fda8690ac470be44b3da284b65501c77bb5.1793430892.git.x-professor@outlook.com>
+	dkim=pass (2048-bit key, unprotected) header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b=owtMUGm0
+Received: by mail-ej2-f7.google.com with SMTP id a640c23a62f3a-c40b9a88a5dso150531866b.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2026 18:45:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793497553; cv=none;
+        d=google.com; s=arc-20260327;
+        b=q05/K9sq6cd+qaTw5QzJoACDw0H4gIHTOYy2YrlZzqhdCFBU0bhR4xvJGNCAi9URBm
+         eGBV2O8WIaRcqjluRq/L4tyiTBAcS2SnuGbwCm7tsKKe6Q8/JdwcxUSIxRUYgOYduE1U
+         HOTGamjFQtjelhLXXOO8kv+bzTdORux5nC3jvjJdV31LaLmYtUT4p5EPSyHZJXs9DGxw
+         YX7u7fa5fnH4DIdivD8IC+bCyU2ZoVz0ws7vp1o9t5iYZ+anGMGUAafYhULFnM99JMXz
+         JUShwKpnK8ie1dXQuSdZrsGUfqO50prab1YTkcTw8NNOFiJjyHoHS258r7VDvid7/AiN
+         5TKQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=hGJpUD/K7wiBVPEctZzE0GNNEQVoqOVuF2tGYqislSs=;
+        fh=k69nQsenHpc8S9/4+YrmIKFTmVtIfFeqZGpopBgN4qA=;
+        b=h/76+kXCI7TgpN+n4Kq89l2ouZskSqast33QHxCaXp9QJGqnDYjjKjRDKlDO+wM+y1
+         hPJsJzBktse8Jgw1HGFBAosofsdaOlwjv2gldaC//aBTJREf+CAZXnWruGdwRL3++WCb
+         4dlWlXNEHGmZbX9QojVT4VHe6CumfbIWHfUhEUQwNem4yjfWtldXU6XK8xD5EgwxAq7k
+         zzc0wzLlmis1XK08rTGhE2Uv4ypRlcLnA4Id6DJIgyXSKda1E/lQl/KDvbEUZibZ1y99
+         ZQE7aiaDAzo8j+BuhJRYo71SypE98Nd5pLAZnc01pJuEvTOCT8kBJLb8+UygXjvGGbYo
+         SQ3A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ikotaslabs.com; s=google; t=1793497553; x=1794102353; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hGJpUD/K7wiBVPEctZzE0GNNEQVoqOVuF2tGYqislSs=;
+        b=owtMUGm0OdNJmRFp74HzDid0RKOQfT9ca+jz2J9n0a/6ogdYSnaqzKScCoC2K8h8tK
+         w1dFpL9U9+Oh5B5rH59fhyBQn38g7CWYgJxEBZj3RfvfPDSJfSH4WynUeCQp601BhtsG
+         KAdvCO7JMFK+T9zIg7dhSYCNGG5HgLxyIuXYvoXrMNQWgnGpiWNgp9h0dr91tIcOz21q
+         tYmg0B3W1LukaizHOy08re25PYaQ6CZl7Nm0uaoIeJ0XWsBZAPhKoKp497vuzDEZ0Wlk
+         oz+Kf1Vk2gM/Dse3T9qtJ5ylLcwz7Xb2jA/9hAa/Gc+rNlNPS3xUNyLxyrtWEkj+wlDb
+         cKfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793497553; x=1794102353;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=hGJpUD/K7wiBVPEctZzE0GNNEQVoqOVuF2tGYqislSs=;
+        b=KFa4kztiT9GSzlnv53MQcYEAHTuuECYAAYWlUI/65Y0gBdSBH15CUcoMC8ZWNVxu7Z
+         az6uSS1OxaQZrTPYZCa+m4raS4CfLchmQbSBJ5oK7vSM9lVYI3nwY3SXxvXcum3SmGmE
+         Qx15otdc8rWmJLo3uh5HRAs6EFtSy9leakHe9sVBowHWe+JNXe562UdEqVfRp6OMW+Ms
+         bRoz95YlKaYTxF+EAoOdIoH5kR133wD5FvavJLcFKro2VQEplgCpTCq1H5U3261mDNK2
+         ygbbNH4hd1nxMfOFo/b0oDPUVoPiU3A5z6iPQ7XUOXjQcXwyNCntE2q/qrkYKG05zcOJ
+         WNRw==
+X-Forwarded-Encrypted: i=1; AKwUvByBwUYD9pgOBIZKa9e8sNwtUt9e8GGY++9ug/hllMLkS6IhFVX3IR+JIlE7t9wBnzCkT6A1KJSaIh5jqVc84qY=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJsUtbh0cb04nsIlVF/2FVM/rIdpKDo1qOsOtDF9uCtCNmoYQ/p
+	MsbG+8C113uJgMU9Hx5CVfeTawHDerbA++D8JOvxCauxVFN9Z4cEFZXsYrgKvSIqZpUtW6wvnim
+	hf3o4IwBhA6B6PA2eNJxmJcmSianFtDj3rbW7Ekh+aJg=
+X-Gm-Gg: AYBFou3M32WHxTettK4qNtONy9zdU8ZwuHS9q+n5bT1iU7/w5NRsiMRXNW/iEe7Nmj2
+	XwUngJaX+1S88EYX8YOQhwM4g0ZwOy0uCl5KaEGyR4y50f1kU4Np2Bp+PX+bx/P6hwE43KzvnI2
+	6sNrRemziT2Q1ZmuTh1qX6aEIDkF7egLKsPjPdZ7oPTK5fMO8yenp2rSCl/YalD0Nq5kUCjcYDh
+	GK4i2hf1zQWMowAd6z+XtH7vgATzWWKohbsynvp4tjQ841ZNZtEXm8b0OuNUEbEZ3eDdz1WhhSB
+	azMEoCk1IEY8skvS8X5Q+MehUFQF/xXuZNsQsCiAXR3I/MAUGDz2O6lxzk+MNHJE4L1ndtXfbBA
+	Xmzew7vhJMoMduSW4qJyZRZZuwmeYdkhZipubQsH9ZrEezemYx8L5tNO/xQW3xlvWh9KLIoooZQ
+	ODzxeyCAUVNzbw/0x+ZCOt/AkKhVrOUMgEVVjddCBTOkcFyjgtxdaQ
+X-Received: by 2002:a17:907:7fa5:b0:c2e:4fa2:f3f7 with SMTP id
+ a640c23a62f3a-c4ca7a7256bmr486650866b.22.1793497552755; Sat, 31 Oct 2026
+ 18:45:52 -0700 (PDT)
+Received: from 77377267392 named unknown by gmailapi.google.com with HTTPREST;
+ Sat, 31 Oct 2026 20:45:52 -0500
+Received: from 77377267392 named unknown by gmailapi.google.com with HTTPREST;
+ Sat, 31 Oct 2026 18:45:10 -0700
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -88,154 +106,77 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+From: =?UTF-8?B?5bKp5qmL5ra85LuL?= <ryosuke@ikotaslabs.com>
+Date: Sat, 31 Oct 2026 20:45:52 -0500
+X-Gm-Features: AclHuK_b3bDv0sRbhrEahX0SXn_K2x3jJKE35ZugLZPz44ifFXG_ivfkMJa01gk
+Message-ID: <CAN2NGG5Y_A4ZcH3Wh8A8HeF42zOR=HnUpKYH7zxi7DJeqhwwjQ@mail.gmail.com>
+Subject: [PATCH nf] netfilter: nf_conntrack_reasm: restore IPv6 nhoff after reassembly
+To: pablo@netfilter.org, fw@strlen.de
+Cc: security@kernel.org, phil@nwl.cc, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 
+From 8197824cf0c745a032f6deddfc19fd62302c804e Mon Sep 17 00:00:00 2001
+From: Ryosuke <ryosuke@ikotaslabs.com>
+Date: Sun, 1 Nov 2026 10:43:10 +0900
+Subject: [PATCH nf] netfilter: nf_conntrack_reasm: restore IPv6 nhoff after
+ reassembly
 
-	Hello,
+nf_ct_frag6_reasm() removes the fragment header and resets the transport
+header, but unlike ip6_frag_reasm() it leaves IP6CB(skb)->nhoff set to
+its pre-reassembly value.
 
-On Sat, 31 Oct 2026, Yingjie Wang wrote:
+Subsequent IPv6 local delivery consumes this stale next-header offset
+alongside the updated transport header. As a result, the two cursors
+can point to different protocol boundaries after conntrack
+defragmentation, causing later processing stages to interpret a
+different transport protocol than the one evaluated by conntrack and
+nftables.
 
-> ip_vs_add_service() and ip_vs_edit_service() convert the persistent
-> timeout from seconds to jiffies with u->timeout * HZ. Both operands are
-> unsigned int and the value comes unchecked from the socket API or from
-> IPVS_SVC_ATTR_TIMEOUT, so timeouts above UINT_MAX / HZ wrap.
-> 
-> With HZ=1000, 4294968 seconds becomes 704 jiffies and is reported back
-> as 0 seconds. Persistence templates copy svc->timeout, so their timer is
-> armed for 0.7 seconds and a client can be moved to another real server
-> long before the configured timeout.
-> 
-> A related boundary exists on 32-bit kernels. Some products that fit in
-> unsigned int exceed the maximum safe jiffy delay. For example, 4294967
-> seconds becomes 4294967000 jiffies with HZ=1000. Adding that delay to
-> jiffies wraps, and the timer code can treat the result as already expired.
-> 
-> Limit the seconds value using both the storage width and
-> MAX_JIFFY_OFFSET before multiplying by HZ. Saturate out-of-range values
-> instead of rejecting requests that previously succeeded. Also print the
-> stored unsigned timeout with %u in /proc/net/ip_vs, since a valid stored
-> value can exceed INT_MAX.
-> 
-> The overflow was reproduced in an x86-64 QEMU guest (HZ=1000) through
-> the IPVS socket API. A persistent one-packet UDP service with two real
-> servers was set to 4294968 seconds, and a client in another network
-> namespace sent two datagrams 1.5 seconds apart. On the base kernel the
-> template expired between the datagrams, as it did for a 1-second
-> control, and the second datagram went to the other real server. With
-> this change the template remained present and both datagrams went to the
-> same server. The 300-second control was unchanged.
-> 
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Signed-off-by: Yingjie Wang <x-professor@outlook.com>
-> ---
-> 
-> Notes:
->     ip_vs_set_timeout() rejects global TCP/UDP timeouts above INT_MAX / HZ
->     with -EINVAL. This path saturates instead because the persistent timeout
->     is a __u32 whose full range has always been accepted. Saturation avoids
->     adding a new error result while keeping the stored delay within both the
->     storage width and the safe jiffy range.
-> 
->  net/netfilter/ipvs/ip_vs_ctl.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index ce9fe20d6106a..0d4a113eb5a7f 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -1749,6 +1749,15 @@ static void ip_vs_dest_trash_expire(struct timer_list *t)
->  	spin_unlock(&ipvs->dest_trash_lock);
->  }
->  
-> +/* Convert seconds without overflowing or exceeding a safe jiffy delay. */
-> +static unsigned int ip_vs_svc_timeout(unsigned int timeout)
-> +{
-> +	unsigned long max_secs;
-> +
-> +	max_secs = min_t(unsigned long, UINT_MAX, MAX_JIFFY_OFFSET) / HZ;
-> +	return min_t(unsigned long, timeout, max_secs) * HZ;
-> +}
-> +
+Restore IP6CB(skb)->nhoff from the saved pre-fragment next-header offset
+after reassembly, matching ip6_frag_reasm().
 
-	Better to add something like this in include/net/ip_vs.h,
-it will be used in multiple files:
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Cc: stable@vger.kernel.org
+Assisted-by: Codex:gpt-5
+Signed-off-by: Ryosuke <ryosuke@ikotaslabs.com>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-/* All timeouts up to 31 days */
-#define IP_VS_TIMEOUT_MAX_SECS	(86400 * 31)
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c
+b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 599c49b..ab06b05 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -321,6 +321,7 @@ static int nf_ct_frag6_reasm(struct frag_queue
+*fq, struct sk_buff *skb,
+ 			     int *refs)
+ {
+ 	void *reasm_data;
++	unsigned int nhoff;
+ 	int payload_len;
+ 	u8 ecn;
 
-static inline unsigned long ip_vs_timeout_ticks(unsigned int secs)
-{
-	secs = min_t(unsigned int, secs, IP_VS_TIMEOUT_MAX_SECS);
-#if BITS_PER_LONG <= 32
-	secs = min_t(unsigned int, secs, MAX_JIFFY_OFFSET / HZ);
-#endif
-	return (unsigned long) secs * HZ;
-}
+@@ -345,7 +346,8 @@ static int nf_ct_frag6_reasm(struct frag_queue
+*fq, struct sk_buff *skb,
 
-	The IP_VS_TIMEOUT_MAX_SECS value comes from the ipvsadm
-MAX_TIMEOUT. It is used both for service persistence and the
-protocol timeouts. We have to add checks in ip_vs_add_service and
-ip_vs_edit_service for IP_VS_TIMEOUT_MAX_SECS and to return -EINVAL.
-As the timeout field in struct ip_vs_service is unsigned int, it
-should be changed to unsigned long, it is in ticks. The checks in 
-ip_vs_set_timeout() should be for IP_VS_TIMEOUT_MAX_SECS, not for
-INT_MAX / HZ.
+ 	/* We have to remove fragment header from datagram and to relocate
+ 	 * header in order to calculate ICV correctly. */
+-	skb_network_header(skb)[fq->nhoffset] = skb_transport_header(skb)[0];
++	nhoff = fq->nhoffset;
++	skb_network_header(skb)[nhoff] = skb_transport_header(skb)[0];
+ 	memmove(skb->head + sizeof(struct frag_hdr), skb->head,
+ 		(skb->data - skb->head) - sizeof(struct frag_hdr));
+ 	if (skb_mac_header_was_set(skb))
+@@ -360,6 +362,7 @@ static int nf_ct_frag6_reasm(struct frag_queue
+*fq, struct sk_buff *skb,
+ 	skb->dev = dev;
+ 	ipv6_hdr(skb)->payload_len = htons(payload_len);
+ 	ipv6_change_dsfield(ipv6_hdr(skb), 0xff, ecn);
++	IP6CB(skb)->nhoff = nhoff;
+ 	IP6CB(skb)->frag_max_size = sizeof(struct ipv6hdr) + fq->q.max_size;
+ 	IP6CB(skb)->flags |= IP6SKB_FRAGMENTED;
 
-	Then when we convert the secs to ticks we should use
-ticks = ip_vs_timeout_ticks(secs). This includes svc->timeout and
-the assignments in ip_vs_set_timeout().
-
-	Also, ip_vs_proc_conn() in ip_vs_sync.c should use
-cp->timeout = ip_vs_timeout_ticks(timeout) too, instead of
-MAX_SCHEDULE_TIMEOUT / HZ * HZ. This place is the reason we
-to add the first line in ip_vs_timeout_ticks(), the other
-places will have early check for IP_VS_TIMEOUT_MAX_SECS.
-
-	The idea is to reject timeouts above 31 days but
-to silently clamp the value to MAX_JIFFY_OFFSET / HZ due to
-32-bit platform limits.
-
->  /*
->   *	Add a service into the service hash table
->   */
-> @@ -1864,7 +1873,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
->  	svc->port = u->port;
->  	svc->fwmark = u->fwmark;
->  	svc->flags = u->flags & ~IP_VS_SVC_F_HASHED;
-> -	svc->timeout = u->timeout * HZ;
-> +	svc->timeout = ip_vs_svc_timeout(u->timeout);
->  	svc->netmask = u->netmask;
->  	svc->ipvs = ipvs;
->  
-> @@ -2031,7 +2040,7 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
->  	 * Set the flags and timeout value
->  	 */
->  	svc->flags = u->flags | IP_VS_SVC_F_HASHED;
-> -	svc->timeout = u->timeout * HZ;
-> +	svc->timeout = ip_vs_svc_timeout(u->timeout);
->  	svc->netmask = u->netmask;
->  
->  	old_pe = rcu_dereference_protected(svc->pe, 1);
-> @@ -3064,9 +3073,9 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
->  		}
->  
->  		if (svc->flags & IP_VS_SVC_F_PERSISTENT)
-> -			seq_printf(seq, "persistent %d %08X\n",
-> -				svc->timeout,
-> -				ntohl(svc->netmask));
-> +			seq_printf(seq, "persistent %u %08X\n",
-> +				   svc->timeout,
-> +				   ntohl(svc->netmask));
->  		else
->  			seq_putc(seq, '\n');
->  
-> 
-> base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
-> -- 
-> 2.43.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+-- 
+2.56.0
