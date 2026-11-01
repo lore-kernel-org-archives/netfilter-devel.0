@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793546850;
-	b=WEbtIMEQX4cU5t9MFBk9gO/P+5LXoK/UPYN/NK0T45X3QpWdhWiqSinnizUbFFtFe+bR
-	 5D3gQLFzWj03goFYVsXBLlRkj/j3c4yPpzsUXqiKCZLg+jhEpXO3QlWAxZGJSb0oy7Bnv
-	 CwKWllYWEZpuR8yMBM+ypGhHz6txlmb0MdIoEk04GsSRXIqbkwSpRT6ADYha8sXMSwrNi
-	 Kex9ZOGBFPRDsFw2S5KrT4VjEjExVR7/LR2ca8pPkuTwM1G7K5dmjbHNlygMFCVChGqqC
-	 Wm0DGw8Rn7FWKpHMzVJAP+r5Exu2uFTlekYfj/T3ebV6tq6ALwdcFslkpOtfwZMx8Uw==
+	t=1793546851;
+	b=l0LpasXNvYl+995cN0/JSXenqbOBzOT68vOaHE52YW7EmtktIeK3I3qJ6CoRKksd8Bvh
+	 jVwXANJhfE4ZoA30xWbvXQ23j93KpFKCB4GTDgXHCy+Su7BlH+3mAtqS8JanjlVEIz0tY
+	 HFeh/gKMV8CLnHgn31hwNAV8am/JDU19KKE8JBfQvUax87mmno+PL5xOy4uf6svlN8UMG
+	 Ke1TZ3cHRGZdHpoV4Ss6UWq+HlsjxUjTFJSve65hR8BLJF+sug2Cm0UGMJH5tqE0o2Vwt
+	 f8QRwIBn4H9ZriqZjiLj9Ct5QzONwYwMvtHJt5AE6VRJGxh5wooNcEx3wNICm4r+QMA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793546850;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793546851;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Content-Transfer-Encoding:Message-Id:X-B4-Tracking:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To;
-	bh=+4nzUG8Eh9hiZdWznDqREeSGw1IoSWk9fR43hBL3lQw=;
-	b=FzmnVQBKmnFtJRRsO7sEGflrQZDqtmqHaWJA9YC/K1lzvwlMYIF6VNICKExpqUCWuiMi
-	 pPmfPS8mAwDef97gwNcObBIkXetrSVO9AqRBAnMtajAOPtnkiLyCWLec1tffk2400rk4y
-	 cfhB3tJwn7MBgCauiUfhiUC/UoNDKGn/OEl8OHzjP2cCJRMtROgaOweJf9H67wX6oD15A
-	 nymBBocJ66+P7ox2O3xprbJql6KOzP6ZOmKuvHEfkYbvBD3MGbBz/5G46GRW3GOL7A6g2
-	 zEppjt9sqnIEmECndspzW7wjSi7QEU53GgmuqUIPgncE3WAi7KuCCeg45vjh4Ay9pXw==
+	bh=kzHG3U5mPCWUEex7OY86dtSbzk7Mb6Blykz4xA7vO1w=;
+	b=q6KXNkv3IU9E4Wp74hzU+DiSIqWEVqJrwR21HvFErQQkt2opJOuPk03Gp3VSN+7C1oKV
+	 K4wKfkwZ2oduz7iZfUB6GIwmCXKagZfEMjo28tx+Z1AXajXj7nrJDxIHia6bh9vQytr0o
+	 JUHumnO9uoRDLkhdsP5ggMJmp1Dpr01GWfdWce+49nSWITUZIgCWKCzwN1N+G3O8T0XYU
+	 mQh0LHlSQT3nrKtUq8FhzhEvaqz6nmmEWK1GrZwwPfRLRMyTSaTMwpJPYruO+2qS3O2nQ
+	 YCI0Mye0uhwQMFv1vJPvcDR2Oh6jQ9R5MLbTSOrT6sKXRq018xlh5hC2Iv4LZkCmJRw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZTf+mg0X;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m6+3enpi;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48E1606A324;
-	Sun,  1 Nov 2026 15:27:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A18D606A324;
+	Sun,  1 Nov 2026 15:27:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZTf+mg0X
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m6+3enpi
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1793546849;
-	b=i/Y19f+4CUAcNf2bs537lPQhTHIn+cKBG4rEjtJXpwyGoBnmYrNOWDBcaqluIWMh8t19
-	 gP62/BtqrcpRgs8N4bhElbIMdRt7IyvBKf1paIO766WuzkKaAgi6+qnjqXjchP8NKB1TO
-	 DjW2BjSXA4GtPWpwPCQ6yf4VOCc9xARkJ7cmKscpOA4B0CdIvw+640RPkweVSjWz1/Yha
-	 57HYVwcKV4eGK7OtlplsVNxWLbR5okgJ8zUx0DZBO57/ktVbFQCKca/a+0S1m7e+zWuLS
-	 tyM0cDYEw8iwjP6Zk3V/gjfiey33sudaCFEcPiu4txL6628glpTauiioV16tmxsXLUg==
+	t=1793546850;
+	b=zo1CPIWMBoSJqtx/rcrV3HIK92pmtFV0BbYoG2AJ3PlMZwLQZd3Wj7DvamFyyPKTKWBv
+	 Z2bLGy6mwfF0yWwSDQWiC7hXhLEA65qE/02ydVGFRv2qTiKUmTEtYHw9oDTAM7dpoxD4C
+	 1Wte3ifRMelTlIZugwVt4cxD5q0ChHLXJ2UpEHxgXuEw11OMFprmXL3IhQq6Y5J1BhWYu
+	 1hGE8HUli60C64eku3fDSXTn2s3ad/V/IpHnLI8JV2vA3iIVZC7FiLWHsIOyPlrvqtkXQ
+	 fTdSl7Lm4CQHj+t85lPRfdNV8T+b8L399X04/h9XfHwkrMBnwaYU4ZAaIhppQ3lDgbg==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1793546849;
+	c=relaxed/relaxed; t=1793546850;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:X-B4-Tracking:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To;
-	bh=+4nzUG8Eh9hiZdWznDqREeSGw1IoSWk9fR43hBL3lQw=;
-	b=bST3COLR8t5Wm4US7XqO6BxM08YYtOZEvS+BXGwJx6HK+xA1Tn6rlwTXjTIHj3lTNA2+
-	 0RR081Bjq0FekM4VHJI9zHejVV+QJFP7WnlpCWwfGAcfWqDV+9jKar7ocDHAv1taZGSTp
-	 vhjyn6EORO2JjEqncy151/r+aNdYAuwen0JCf9/RSTaN8JHrp64yl1FNIW/4sb/ZY3wE5
-	 nHw8JigjV3pJv0ryRnjARn/BJYvK0uZrcGCIpwXjjgYK2YyooGnCDRcmk8jHCbieLj9eL
-	 ehb90A827pqq4eeGjeZ3mQsSUUwz6reQ5MX4BTTUspEQhpilgILJBAfzwZARadC290A==
+	bh=kzHG3U5mPCWUEex7OY86dtSbzk7Mb6Blykz4xA7vO1w=;
+	b=ySrAt4x8XykMKt2ZgsNoxRfVHyXzPw0xMrGhPHLmXERDgWyQgctv8zbE8qspWUzXPGNW
+	 dKEY6mQY7burHNYGEQYchWo9d/XsIb9wTZS8GBO2x0SGjnEsWl44i62UXxVqYfIfF13pI
+	 9syLT7kTSHcYN0QStvfnNCIBldiZSrfFWt85ejgxFbzj7ho+fYPW0UiWT8KywPDbk/ePI
+	 ePxqUBsIbVBWJO1KEPcLMu8NnHme5bQpMT3f0pAOxtJhlQo52lDjFP1HCQ0w4oS+Ngq2a
+	 yHClSwz7Tu9V7lPFLFsYceWE2mL8IlrzHRGJyw2IqcPrS+Du4QtmNvOabG3H7bJ+6lQ==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 9B76A1F000C1;
-	Sun,  1 Nov 2026 15:27:28 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 0FB6C1F00919;
+	Sun,  1 Nov 2026 15:27:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793546849;
-	bh=+4nzUG8Eh9hiZdWznDqREeSGw1IoSWk9fR43hBL3lQw=;
+	s=k20260515; t=1793546850;
+	bh=kzHG3U5mPCWUEex7OY86dtSbzk7Mb6Blykz4xA7vO1w=;
 	h=From:Date:Subject:To:Cc:Reply-To;
-	b=ZTf+mg0XNc+yy+VmTBApqV8nh9BgRhQE6Fpytg4JMwhc6I74t0dyeWBq5VAPL2BLp
-	 zmJrPlBYlM4fkpljL+LX52mE/CGQWVjJ8TYKxxt8rrOSVjJPHi9ZswD/DVIJhIJhZ2
-	 gZvD7Q/yF0KOoVFSSjZXr2doyVU2QgKl8/HW2nGndy/L9HJeAmWNWLYOXP5ZSGub51
-	 zfVMcb6SdyMAX3wLUN8Rh8kgdyFI6qouPxp/liPcY/lyJLKwN/uR2HoKejovZ30Pjj
-	 brP8Uuzb4TzED7V20C9ltjKwBHmedMJOW1oMlVJddk2H8IiV8HJTZW5Hym0mrn94jT
-	 Ky5nh35lMIlIA==
+	b=m6+3enpi6FFwopJKYu8PmGOoPAsQjy3vEyOrhoDpNppykMSm00ohsVJTIVmQJRQyI
+	 Bxw9sFarVoROGy8jb9G8A7g7gN/CWxZOBbndI5W2SJZ/P9HR6bx2qRNA2dpTLsBkc8
+	 +y+6Ol3bArLPhwYbSKXQLYu0oVz8KRU2kdi7Zpj0uwDW3LUrH8VFO9kXckrKAP3sU1
+	 8Dz84tqOOxKfs9TehDqVwGLoO0ebuH5FVsMvj33s4abnxA1w9Ir6auTHp1LU2gy0OA
+	 QIALosWQUxytbuoNUMNo7GxnQJhXWt5YhPLXt/5HOCdaCNcyrzdRg4GK7NRFkRW6UR
+	 FM/sZne7s7B3Q==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id EC26C461CD;
-	Sun,  1 Nov 2026 15:27:27 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id 91886461CA;
+	Sun,  1 Nov 2026 15:27:29 +0000 (UTC)
 From: Joas Antonio dos Santos via B4 Relay <devnull+joasantonio108.gmail.com@kernel.org>
-Date: Sun, 01 Nov 2026 15:27:28 +0000
-Subject: [PATCH 6.6.y] netfilter: nf_conntrack_expect: add and use
+Date: Sun, 01 Nov 2026 15:27:30 +0000
+Subject: [PATCH 6.12.y] netfilter: nf_conntrack_expect: add and use
  nf_ct_expect_related_pair()
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -85,10 +85,10 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261101-nfexp-pair-6-6-y-v1-1-049943e85067@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAF9a52oC/x2MQQqAIBAAvxJ7bkPNDPpKdNhqrb2YKEQR/T2JO
- c1h5oHMSTjDUD2Q+JQsRyii6wqWncLGKGtxMMo4rZXG4PmKGEkSusKNvVEzUdtZOxOULCb2cv3
- LEVzjmhum9/0AWvckNWkAAAA=
+Message-Id: <20261101-nfexp-pair-6-12-y-v1-1-56cef5744745@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAGFa52oC/x3MMQqAMAxA0atIZiMmagevIg5VU81SSwuiFO9uc
+ XzD/xmSRJUEY5UhyqVJT19AdQXrYf0uqFsxcMuGqCX0Tu6AwWpEg8T4oOV1oaFns3UOSheiOL3
+ /5wSmIW4emN/3A9wrPilrAAAA
 To: stable@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, 
  Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
@@ -97,11 +97,11 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
  Jaeyeong Lee <iostreampy@proton.me>, 
  Joas Antonio dos Santos <joasantonio108@gmail.com>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793546847; l=8686;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793546849; l=8784;
  i=joasantonio108@gmail.com; s=20261031; h=from:subject:message-id;
- bh=DjhRAkQSNrM96ywt6HuSfqLCSsMNwaYVKFId13iqzyo=;
- b=120TeDZWDWkTiHVeengpma9tElgv6gHbZ22aKx60F1E6/cwxJd84AsTyY2VaXkNp2g3Ftye6g
- QaBxUPY8rqMCaa9SlH0dNBegBIBsFk/jTUms7xQTfgz4FxbCsYBa5D3
+ bh=EqbEn189WmeevYWc7bg9S1G6ESHTGh6V3LrxMu8nVsQ=;
+ b=rD1va6wGfLy2OZ4f9SS+mPgSziTtlnXpjQbcMVxVHaXy6JUS/hUMRjIDgOv3w57K9uRtam7tv
+ wSZQR7yAMvWAKMSGiGSa86vOBz24axNayhy6z8By8rZPkgIoezc9GEA
 X-Developer-Key: i=joasantonio108@gmail.com; a=ed25519;
  pk=ZxAznJT/FcPPdzLrDDFJQm4LLjjHVGBBqDSG3TXS23w=
 X-Endpoint-Received: by B4 Relay for joasantonio108@gmail.com/20261031 with
@@ -150,8 +150,9 @@ and the expect hash.  It is reachable from an unprivileged user and
 network namespace (sip helper + NAT, plus one ctnetlink expectation
 occupying the RTCP port).
 
-Tested on v6.6.161 arm64 with KASAN and DEBUG_LIST, as uid 1000 in a
-new user+net namespace.  Without this patch:
+The affected code is the same in v6.12.115.  Runtime-tested on v6.6.161
+arm64 with KASAN and DEBUG_LIST, as uid 1000 in a new user+net
+namespace; on v6.12.115 the patch is build-tested.  On v6.6.161 without it:
 
   KASAN: maybe wild-memory-access in range [0xdead000000000120-0xdead000000000127]
   pc : nf_ct_unlink_expect_report+0xfc/0x418
@@ -164,7 +165,7 @@ new user+net namespace.  Without this patch:
   Kernel panic - not syncing: Oops: Fatal exception in interrupt
 
 With it, the same reproducer runs clean.  The same backport applies to
-6.12.y and 6.1.y (sent separately); I can share the reproducer
+6.6.y and 6.1.y (sent separately); I can share the reproducer
 privately if useful.
 
 Tool-use note: the analysis, backport and testing were done with help
@@ -233,7 +234,7 @@ index 10e1b0837731..d55994fccf5d 100644
  			break;
  		}
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index f908e64eb814..e153103e04ff 100644
+index f9352dada84e..1e1e3a4a0d1c 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
 @@ -425,7 +425,6 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
@@ -244,7 +245,7 @@ index f908e64eb814..e153103e04ff 100644
  
  	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
  	cnet = nf_ct_pernet(net);
-@@ -525,6 +524,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+@@ -524,6 +523,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
  	if (ret < 0)
  		goto out;
  
@@ -252,7 +253,7 @@ index f908e64eb814..e153103e04ff 100644
  	nf_ct_expect_insert(expect);
  
  	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
-@@ -537,6 +537,39 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+@@ -536,6 +536,39 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
  }
  EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
  
@@ -336,8 +337,8 @@ index 6b00c81084fe..115d955bfaef 100644
  		}
 
 ---
-base-commit: b5a1dc3ad4822c6edfb53429e9a3759c9b0ac2be
-change-id: 20261101-nfexp-pair-6-6-y-720baa3544ba
+base-commit: 03bae623ec326c2738198739625832aab0eb120a
+change-id: 20261101-nfexp-pair-6-12-y-a2cb15426d3f
 
 Best regards,
 -- 
