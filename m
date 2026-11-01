@@ -1,101 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.170
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793548470;
-	b=ia3B4i5o8gGQkZGtPqd0xSBdY29ByHpIC7AaNZEzaCT0UjU+Hc8JZU9ODcYsh6xbNeFI
-	 NNHgIjgZrrRhiW+YRGM/kzVbH3mR+ya6yJOLC1u/NCwROqLEASV9YR/ggLgZQgbh6a8Uv
-	 ir6I7ycq+hVfYVWUvABvNAYr9J21PxAHYbycwjI27pKz88t+FzH29hNmIKhpdRC5aisH+
-	 L5WKFNitWwqEcurwec68mlV8XxnIyykV9Zy3lSQiZJgKe+av/4WaGhARTAwLObo55i9jm
-	 fyCxM/wV2NlDMCbMKk90qGTPrOjNEKlSr/tYg87cLD2NNLIb5PzUzEXswMbGgnXp89A==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793548470;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.2
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793552798;
+	b=ZfLWXq6Sfc1Qga/dzEzWkO3GIL5yepOE5GNogcxDJMnc8rBWSfdNxbMUBHKMXxU0WFMJ
+	 TUc1lG4k9IqXZdhdg78ktV/fXOlozzLqnWcScl5FdwTY2Jp/zzRP14zhoVHH36uIVgpWO
+	 mB4kfNUSqt+Rvkbx4akj1brBpgJqfGB2jhYeYpJqCF+XueRSyGQeShP87kaRyllvQsvpq
+	 TxQhfBGnfzGf3LjR3UtMrB+w1FckPFon6Eqw+YoWX6l7WhnJIfld4uAr/R6JrEYZk7ju6
+	 IvK68R5r/W3gTB2+Unvii1JnuS0KxZD2wqv4jKaG6m4aA9aOn/tXX0Otrhhm0YuUU5A==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793552798;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=8Ol42oqNQB9bpHXLsAG3YClpLWwidNzN9Gqb9wYpJ9Y=;
-	b=nocnmeCUWLj9gol+odSEDOGh0dpnqZpKXXKGJ9ZL61FnJA004uXJqsBi+ezCz/y9so5h
-	 P31JNOiRadXYCG3BKuIcmMmedytABONZOS1JgVRbyl8+19rj+l1tOjOLYpUjmqEKMxbK9
-	 vmPV7KHbZXGxvfJLUF7X2XJRzz5CDYbcQFvbgzCjfleWXclwq9Lf8RmdW5oW4s1adcyLZ
-	 nq2q65yylYQopQPCvhZ3xk0CElGg8UAiUqSt8EKA3aRiuM79rDrFxkdNhejG+itdNMMzZ
-	 1RHqAkE7W26Ly6cNiVSEVaNlFDyihgYip/29EU08NVK+DJvqbhTaANmoLIn65Ol/lTA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=okFL4KW9;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.170
-Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=aw39Qev1JSGYdGzVPWR/rCHqkJas2jqRHE7hOubbX28=;
+	b=kRFvEK2d5w4GBwOz/gAYgiWdvlfYE9v8EOyM7MemMBNMq3tUgfSxEFqXGgQkNWF3J/y6
+	 A7lzJXRKrbGf0zGmQZE/mA31HZHZiWLkOeTWlg5YORsGTiuM/WhmtiJlojeIknG2j0m6D
+	 e4ulf2xVF6ZrNdpfGirXRs9+ARXOtp5QvQq6LuODloRZdfyVfJ4rf2AF0sggp5HF8ABCb
+	 te1ujmAEwW/W71wOO3TvbbLl2fyGokxHLMwA/Qpez+u5+jauJFEOa3fDYg7mHSmA2Tk98
+	 e5OV1yj6gZi5zS3sCFkSS2oO79tUTV8RRKYJIPvwCrA8K3Cs4nKq+CWEDgbWtHGEuMg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=none header.from=ikotaslabs.com;
+	spf=pass smtp.mailfrom=ikotaslabs.com;
+	dkim=pass header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b="fNI/QkZN";
+	arc=none smtp.remote-ip=74.125.229.2
+Received: from mail-dy2-f2.google.com (mail-dy2-f2.google.com [74.125.229.2])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88AB2606A324
-	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 15:54:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 88AB2606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D91B8606A325
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Nov 2026 17:06:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D91B8606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ikotaslabs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ikotaslabs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=okFL4KW9
-Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-36a1947498bso1156125eec.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Nov 2026 07:54:30 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793548470; cv=none;
-        d=google.com; s=arc-20260327;
-        b=YmAj+yBft8+QpRAzMUy4OSrWnPTGCVv0t9cTIhMg2KqCn4FizZbiH5sAfaO1z3inCf
-         /eGLJidzJaqCLozO04SJnwWWH42LcFwMdswi8TFa3GfvfhQUD32g6EroVK7DfaLZV4hs
-         b+39nWwXAOReFUtRPGjWOj9e77zcAkehCdj6RXWZzbDjjHDAFRBCNmxjs+B0KZKJP/lJ
-         FFVPrnaTyFkBfwnGR3WASCVxbGjS1SwqoPC+pmy08RzabIz7ISp9OLlaLHqD7OLguyLn
-         P1Ks5S/VDh932CX8TdU59Q2y28e/M01MtfNJ2tNYlfJ/5hbaCpv7fkKtBTNprd5PMWMN
-         pDLQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=8Ol42oqNQB9bpHXLsAG3YClpLWwidNzN9Gqb9wYpJ9Y=;
-        fh=03YDR3GBY22s8FLuQ/j88hHm3s6hBF69pjSSQ0QbmnQ=;
-        b=FFkXzQdfVVezCm3cxTW5OeihPNJyeG2afyMqzo+DT/x7j9CNP+BINNYOlJwpJ3zkBV
-         651tYfD0UOIbUDnyvPWvBbgHQxWHtHJzCzPJjCMXQJzKxvd92i3GkMkbGx0mLezwXlnK
-         EBnUhZHkkeskWHfcwxKS4O9idUa2b1YeZC28sBmHEMv5wiUu4t1Bah1KzQXqmqP0DZPP
-         bm0BpWctWGUSJfaNQUdiaui8o8DDI5agZ5JB+hOsgE/PJ3NdAURcUDf4CZemAOim7nMa
-         oBzxUCG6gWZQrxsj9FfJ0YXrvhAj0hzMXf+5PCQysv8uIn15r523azi1J/PqLBJiw9N+
-         PS+g==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b=fNI/QkZN
+Received: by mail-dy2-f2.google.com with SMTP id 5a478bee46e88-327b1d5824fso2276195eec.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 01 Nov 2026 09:06:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793548470; x=1794153270; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=8Ol42oqNQB9bpHXLsAG3YClpLWwidNzN9Gqb9wYpJ9Y=;
-        b=okFL4KW9F/hRBawGds3EZGCybauFp9RxsAmEkkieJx+uvAqcSmWR+CdYbiNCjnIVt5
-         BDFKGPdW0PAdmLUSvA30DhawcdbMwdgHoXQ1O0Ll6b4kN9lc/3VFcDJytgWrZJFODTO4
-         zF7tQF5LLuvcvAeVpZm/wW1iF5MS+e2OqOvfyRofB894OhLOZ3faVwC0UesSQ9z3gdJb
-         Tctw0euGgHB1Lx8vIMNnxYR/Ez32P2O2nrFzzptzoq7KgaHbvxZB8RH0bkwbDXQUk/1K
-         +8TwBY0PdUe0Dp8wbGliFSjseD6IGcqObUuearPdJn3ffAkhMTB/Bn6mMiso6PD/1VOM
-         6jPw==
+        d=ikotaslabs.com; s=google; t=1793552797; x=1794157597; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=aw39Qev1JSGYdGzVPWR/rCHqkJas2jqRHE7hOubbX28=;
+        b=fNI/QkZN74Xkc5wdAuCJsKzax9U6M5pX64S35hE8/de2Ts2gsv4GQv18s9qszbQX+1
+         NUTpG8veJFNxhEMyWRt/RQ11dGCkBRMkQDllDK5KsjLFOJ26ye/21KeDfGZgP69yZAKC
+         D9jWiu/aL+owAZAkMG5w95ZDtBWp0tihZb1xaE/uaWZc8TwlxPbrDH5jx/UuEApO83d9
+         eiuy4ER+b/AzZWb/RwhPNf1ggP6bXJ+2wnlyF9a/WuoFkRL8Je9vhpDdu/9w5ukvYOgN
+         qAvv7St3AFf7jfqovHFM9fHrUtYQtL/eOwiiYbo7Mpl3zanoROy4TMNd5sA+JSYxKfpl
+         ACEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793548470; x=1794153270;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=8Ol42oqNQB9bpHXLsAG3YClpLWwidNzN9Gqb9wYpJ9Y=;
-        b=fc/Ve/XfHuy5c1CbWhMpIGBxPjHaWskn8Sdsr/dFboabmY4mVXm8flqVYSiM8lK+KA
-         NiGsRmDVkr198eWxISS38q7hKh9b1bCzdgwUYhgTZIO64bxsaOAp9sJuEyH+YKSDaXux
-         sUmfE9OQfr8dlNCOhRHfqI7rSRcr2wgpN6nzRoY7gmx9fY96ZnJcn4tvd764CY4Liyzf
-         AiQEqc21X4BtmQc61cGDihtJR1zFsosnxQuvzdRgwsrJ439yByUZl5cB2SNDyhVKU4EA
-         U0BqRBNgUWQ8dgl/xLjaI5jG8STTdlOufCGpV1aq87b+YWr+WMIiGAsSta6nKR+2w7f2
-         0+Cw==
-X-Forwarded-Encrypted: i=1; AKwUvBx9HuJZ7EW95gWFkB/kgpIsPtZZaRgOvFkAoSlS8IMern/PWOKltjNsIDI61bCWYmI1Sjw5dyh5CzOc0MDzCgE=@vger.kernel.org
-X-Gm-Message-State: AFq9FYLknGcIA0MeX1hwoNqnMoQ9IWcECIf+SMqiRzNgbGSuG8a0bavD
-	V0rLum69XLHtWqRGZpV+2udjDP+clWCHqmXVES3EJkyzqBZhIogJ5F/vG8Rp1AgMJHKYGQoRw7K
-	iUqIRffUaESxuwbYC3q2NkB5fgiGYi9k=
-X-Gm-Gg: AYBFou3CD0UCrRWG4otiae3rjfMktajvrWg0q5N6RJTvI2aW9pBPzFKvNX+f4nCE2r4
-	RubcPQHX2fS1fN5mbOOD5p5cwGgIGB3nFSxy4Uz2qrTgZO4L4lOnQZmYelSQm9eBsvurPpGTWU7
-	KxAblZifwN29+2YBAPfmf2oOZffJMVf7t7DWXLjKHteKnp6P7I2xbhxexNSMdBU+gzbP9eojfN6
-	8gLdgEhCOlaB0XC26im5/ra7NDKlPNLWMXZmi7mRPdbSZ6BuX2y2MDD57mtmPZjpPnCeH0mGQfd
-	haCvP4ymHGKNnwoWvweVyI/pxQignR0xWz59MBoS9831WGnt8nlMEocFf3QQzC68yReRx3drteD
-	9i0LFqTAH1QTHCf7QnS8fTgpTmoFdmLOF1uc0y6tAEJiCbTVaYFyUi/SsMUBSlkZny0Uy9QcRqq
-	8JuoQX3oPuM5s4uBui2VIx1ncIfg==
-X-Received: by 2002:a05:693c:4151:20b0:36a:f99:ae79 with SMTP id
- 5a478bee46e88-36a4232f3f8mr13332360eec.7.1793548469528; Sun, 01 Nov 2026
- 07:54:29 -0800 (PST)
+        d=1e100.net; s=20260707; t=1793552797; x=1794157597;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=aw39Qev1JSGYdGzVPWR/rCHqkJas2jqRHE7hOubbX28=;
+        b=D6uFTXcMhiROiWmWh0W9G/LqyMWdqoOxWrEvCMx3AJcbA4ip32O3ucQ54Ej6g+02JQ
+         9rhoG1vUK97vjfGVKNwg4iV60bJ6zSPH3aTXZznrpfpTOCLTAag74fNVN0b1U0yZ4+DK
+         54XWK6EpIQF6RYlCMpa+ZzYVXQ5FRaaB86c6N2jWf9IO108OswPrXKs4SaQ9kooRYqg3
+         bxTiUCHOmWNDAex9wQV3QmEQp+IRFVPAcy337ZyIgTYa29FJPun6PtA0bdOa1j7LKP9D
+         smIDgMoG0LLhmQOT5/m4ooWkndh9nAFxuiUPXeIQ6Xbkqgv6dylXocdUzvQeO6TIf/zm
+         5dyg==
+X-Forwarded-Encrypted: i=1; AKwUvBwfLsp2XNIq6Wc+Crz71vl+UxWACWuCmNrs2D0acpVPyICDPWcCqco51+I1aHTVKmgyNd6W25+PwRJqhTbxyb4=@vger.kernel.org
+X-Gm-Message-State: APuU4Z95S8Z/VOfULl0457u2Yk67UiJVDE/U1gVfSrU9q9ea7tux87lr
+	bT52pJbyD0iavLR61f15qj8uLLoH5v55KZhKM/hbdtR5FkfO72SZ2trvb1T37BSEB98F
+X-Gm-Gg: AYBFou2llhj08dSr2ZZ8F6HIDDv4HOlnedCMGCrCJlHcRXn4m4IFzDnc4qSLpvAP65r
+	KyBPMyQz5QArnOWbBnVCLPsiHYtrIRl597VYCvOb5/e+BMuwWhEAM+XShs+wCrlbvxrnZYZhKTF
+	78C7OWRbZiLwv60f7baoHVlKqYQ6U3YGfSvIshWpEnMx+M19X9mPXenkkpTIyrwhVbRY90W0VDy
+	hEZSyd8tQX4Ab7kRHxfqDE5f1dw+8UJsL5EGKxBSHnbzgCwohTiQvSap0qb34klHT6QN3ToLcID
+	RJ0S5ynNu3M9qLM/WCWXzyiOylHtS9ZVGwXIF7PshQ/0vsg3Ize1OV73Eady7glN+UyL/H62I5g
+	RfPul31gKT+U23CA86unqJOs/Z5MX2SW3Pba0Uk1YfRG98Z2AmtmcPuiE3RryPJZCt8MO4eoW35
+	oegIO8yirx7aU6roLQ12eTvQn19OzXAj//Ti0SO1tKoXgyJVGFzDv6Ln8VKnpc+btYbXjGrX+QK
+	nnczeRXwZaKR+WVfP9g6cdfaupvPHuf7yX1ZarGYZAB5w2PCeWEoYIss900iyN6UolgxM/Fm1Ja
+	rscSmnyBb8sHsotLPBP9sCqnuAgeuHXzbjfLoefkxBhM3KnGUGgXun3FaMMRvkhIUOHS5fhuARG
+	C9/5wa4N2h+JJFEGoseG82Cb6GW1baT3A/DZ60CH6zw87j2b3ut87F6iI9b2jRQ==
+X-Received: by 2002:a05:7300:a9f:b0:369:fb01:2eb7 with SMTP id 5a478bee46e88-36a4235f45emr11482457eec.13.1793552796603;
+        Sun, 01 Nov 2026 09:06:36 -0800 (PST)
+Received: from gx81.tail3ecf1.ts.net ([240b:11:99c0:1c00:9e6b:ff:fe84:e26e])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a42902649sm33105165eec.11.2026.11.01.09.06.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 01 Nov 2026 09:06:36 -0800 (PST)
+From: Ryosuke Iwahashi <ryosuke@ikotaslabs.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	security@kernel.org,
+	gregkh@linuxfoundation.org,
+	yudai@ikotaslabs.com,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	stable@vger.kernel.org
+Subject: [PATCH v2 nf] netfilter: nf_conntrack_reasm: restore IPv6 nhoff after reassembly
+Date: Mon,  2 Nov 2026 02:06:33 +0900
+Message-ID: <20261101170633.625161-1-ryosuke@ikotaslabs.com>
+X-Mailer: git-send-email 2.56.0
+In-Reply-To: <2026110155-twisting-autism-009a@gregkh>
+References: <2026110155-twisting-autism-009a@gregkh>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -105,60 +104,64 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261101-nfexp-pair-6-12-y-v1-1-56cef5744745@gmail.com> <2026110153-headfirst-rift-1d96@gregkh>
-In-Reply-To: <2026110153-headfirst-rift-1d96@gregkh>
-From: Joas Antonio <joasantonio108@gmail.com>
-Date: Sun, 1 Nov 2026 12:54:17 -0300
-X-Gm-Features: AclHuK8AXD9H53KSgzNVUTodqPaN2_tNYg1yHV8DPG6o6d5skT37RG4wQLh6XnU
-Message-ID: <CAOCBhwFHdydRCh87VNAnTC0Bh4_2NU_77zViQHUOF1QC_XP5pQ@mail.gmail.com>
-Subject: Re: [PATCH 6.12.y] netfilter: nf_conntrack_expect: add and use nf_ct_expect_related_pair()
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: stable@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
-	Sasha Levin <sashal@kernel.org>, Jaeyeong Lee <iostreampy@proton.me>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Greg,
+nf_ct_frag6_reasm() removes the fragment header and resets the
+transport header, but unlike ip6_frag_reasm() it leaves
+IP6CB(skb)->nhoff set to its pre-reassembly value.
 
-6.18.y does not need it: it does not have b8b09dc2bf35 ("netfilter:
-nf_conntrack_expect: use conntrack GC to reap expectations"), which
-is what makes this follow-up necessary.  In v6.18.60
-nf_ct_unexpect_related() still unlinks the expectation through
-nf_ct_remove_expect() (net/netfilter/nf_conntrack_expect.c:292-297),
-so the SIP/H.323 loops there are fine.  7.3.y has both commits.
+Subsequent IPv6 local delivery consumes this stale next-header offset
+alongside the updated transport header. As a result, the two cursors
+can point to different protocol boundaries after conntrack
+defragmentation, causing later processing stages to interpret a
+different transport protocol than the one evaluated by conntrack and
+nftables.
 
-b8b09dc2bf35 is only in 6.12.y, 6.6.y and 6.1.y (since 6.12.114,
-6.6.160 and 6.1.191), and those are the trees that need this fix.
+Restore IP6CB(skb)->nhoff from the saved pre-fragment next-header
+offset after reassembly, matching ip6_frag_reasm().
 
-If b8b09dc2bf35 is queued for 6.18.y later, 4aa63842fc92 should go
-with it; I can send both for 6.18.y if you want that.
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ryosuke Iwahashi <ryosuke@ikotaslabs.com>
+---
+v2:
+- resend with git send-email formatting
+- use full real name in the author and sign-off
+- no code change
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-thanks,
-Joas
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index be72c4346..634122055 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -321,6 +321,7 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 			     int *refs)
+ {
+ 	void *reasm_data;
++	unsigned int nhoff;
+ 	int payload_len;
+ 	u8 ecn;
+ 
+@@ -345,7 +346,8 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 
+ 	/* We have to remove fragment header from datagram and to relocate
+ 	 * header in order to calculate ICV correctly. */
+-	skb_network_header(skb)[fq->nhoffset] = skb_transport_header(skb)[0];
++	nhoff = fq->nhoffset;
++	skb_network_header(skb)[nhoff] = skb_transport_header(skb)[0];
+ 	memmove(skb->head + sizeof(struct frag_hdr), skb->head,
+ 		(skb->data - skb->head) - sizeof(struct frag_hdr));
+ 	if (skb_mac_header_was_set(skb))
+@@ -360,6 +362,7 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 	skb->dev = dev;
+ 	ipv6_hdr(skb)->payload_len = htons(payload_len);
+ 	ipv6_change_dsfield(ipv6_hdr(skb), 0xff, ecn);
++	IP6CB(skb)->nhoff = nhoff;
+ 	IP6CB(skb)->frag_max_size = sizeof(struct ipv6hdr) + fq->q.max_size;
+ 	IP6CB(skb)->flags |= IP6SKB_FRAGMENTED;
+ 
+-- 
+2.56.0
 
-
-Em dom., 1 de nov. de 2026 =C3=A0s 12:48, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> escreveu:
->
-> On Sun, Nov 01, 2026 at 03:27:30PM +0000, Joas Antonio dos Santos via B4 =
-Relay wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> >
-> > commit 4aa63842fc92de1bce59d4709a0d32e718890bb2 upstream.
->
-> <snip>
->
-> What about a backport for 6.18.y first?
->
-> thanks,
->
-> greg k-h
-
-
-
---=20
-Joas Antonio dos Santos
-Cyber Security Specialist and Ethical Hacker
-joasantonio108@gmail.com
-LinkedIn
