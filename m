@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793581039;
-	b=HlbipDH9H63l6F3j2WY1lx81FZCFloXD3U2+g0xu7qxuMBE9dwLss9R1Eij58twmhNJN
-	 3LiaWyWMfFzb5ztDynJaxVaTbfddvQiM6uGT7BmtkLY4BJQHE9mso3g0S+CR4BDjjqqpq
-	 prspWl9G5Ap27qeg1BplwLeyri6X6HJdBTfq1vau3bXtVa8QXczrITDny+ZUCo5P+rv4w
-	 zDuX9rN5vfYc//pnvfRh+ED8DviFLTN/iK3VmIQrcZ3ECWPzTpbSRUfxCVZQuNO2NzvMN
-	 8MOUycc5G1zuJdljS7unQoroz/4DzQo4gDVp3XaM99FyD1nUs/Qg6CjUxEt0OGQ20MQ==
+	t=1793581045;
+	b=ve+u2TCy6swd/i3MWGkwAvDLTmUEl4YGAmsffLJetHK3F9UINUGRP2SIPSK9LoCg5fp0
+	 9PavKpobaraIDv326zIVTm4jQA0RmnQoVW9HwngvbvFa2VDomaUhWWCBKqPWWiq0PdrzY
+	 3MWJZL0P8Y+MKVBZEUoB8daQnz4SD+T5+WONCR3P5xhqSx2OCwri8bOWvUqmNMnIyx6rM
+	 m5YAzkixYQpWjoXC+H2q2DVlh5hYigVif/Lhy//8uGlN67KLjPZFsIX17+11xk3vosi5n
+	 ctqj4e+MbqYCReipKcGwzMr4WBTABr/h1bUD18sDJjnoDXbqfjjkl4IGSbpnE1nR27g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793581039;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793581045;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=fo470PP63+10tqzrhqq++24kquyeboFFql2psSvwEeM=;
-	b=AkqAODerG36iwsG5BoBSM2ZAh92wva7ftQ+Gi9js6V16IZhf2NmrtgPZRbUROkTmtDBK
-	 nVTE6HluzqRssIr9bA2l4G9KArOfsJZvWXaKK6fPPtIEpVDtG4SyyuyF0MjXJEJx7BzpA
-	 XJhBa5QXoMU6eAaCBVxhCxCx0mYHDQdXC3JC5XDhKPkp5aefDopsrTJGS5QNiWIMxSCVC
-	 sXvQZNci7jSA8igX0thl2OlvxuXQ85I3IAa4Z//6BXA19c8OlWHOjrlo6HNX0AetJ/vuP
-	 lomEGupRkI6sJw/MePu06R69niRdOaxf+JZtliTTrSA/ZPChvGfruaawxQ2I8tKIFOA==
+	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
+	b=ccjU4rMOcR3p9IqDDZRXQr/tQZ4/DW69o51HX665PnARbMw2yOmltrQq2ABx8T9tW9GR
+	 eFiAcEI1jM1T+iSfH3meUBlrdCBeREZoi6GOMhW/MLufvvcZtWWenTQ8ct9maB7XrwzQ0
+	 bVge3vCD2bkgAYQdpm8r/C5gCZM2ecj/97iPbrzEsh9J6A263jUSNe04vQmNEz0wdXRyi
+	 N1+qQBQ5Vqe5fGc0ti3YNbDvtxc9m9QVVhLkKhoksZzEtgElfz5t9oyc/KniXhSyb2blE
+	 k1DrsE4DRUcjfxMtxFsgD1Ltkbhn7IrvdpiBT+WAC2twHaYvrABekoOOHXwyzBnD9hQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UI9fk6QV;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=rkIzKMpX;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F22C606A331;
-	Mon,  2 Nov 2026 00:57:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8F22C606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48374606A33B;
+	Mon,  2 Nov 2026 00:57:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 48374606A33B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UI9fk6QV
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=rkIzKMpX
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793581036;
-	bh=fo470PP63+10tqzrhqq++24kquyeboFFql2psSvwEeM=;
+	s=2025; t=1793581043;
+	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UI9fk6QV2BUqOFgna8M7z8wDABvVgYNCVLO8lNBXy+DJb41Ul7ih9H7ddImsh1xJ8
-	 c4Tud/QVqGE5hRkyAgyuCBU1svDMQ1vCgFMHgLyO3+daCk51rVz4Ex6W6kGbgZtx1E
-	 FFGvCpI7sC83zMhpWskvUae/5XX2PEIWXQhMVIcRh7uEOqHRo47m6fBJrWxopp5eQN
-	 RmA3AFgAwrPMqWzAq77ARwPFOnXDqdbVMNtL+fBuElCeOiW2b7Ieh9VXiuL4aTPPBX
-	 xWVA5oi9WcauQknfAjQbnYulbBzt1JW4Or6yndV3650w6/BOc87+sPbOTyS19BwN6N
-	 6csyOPTawUfIw==
+	b=rkIzKMpXuUMNBP/NN1M+wd+45tYg3NOSsCkNnaBcdVzciBCwIBgwZuqksLCuibkHx
+	 ZmEVWv+y1w1YhKDe6yeJWSxUuKP+0SXeAOzpZFKYG9MxraZ4Tb9HomrHMV9LKNnzTf
+	 tYGJ+o6JLue9f4/46i/x7U2TPitrwd+HGyrd+nBoNszjFJuHJ1+n0qi9dAKemtVdAp
+	 zY2E80XVXqJJqy5pievTZ4EZymtr5pXOaOz942mLg8zdqAhB0x55XhI58NMpPv9GYw
+	 AL1PUBpcOxEBgT1fFZA3bEHRISrsMmajD9NqhdYqwY2oQ9Z06CazepzOKGZ1DRbKIy
+	 l6vIB8FYZDUYg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1AD4E60077;
-	Mon,  2 Nov 2026 01:57:16 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B80916007C;
+	Mon,  2 Nov 2026 01:57:22 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 08/15] netfilter: flowtable: extend ct timeout of offloaded GRE flows
-Date: Mon,  2 Nov 2026 01:56:47 +0100
-Message-ID: <20261102005654.532438-9-pablo@netfilter.org>
+Subject: [PATCH net 12/15] netfilter: nf_conntrack_sip: fix OOB read in ct_sip_parse_transport()
+Date: Mon,  2 Nov 2026 01:56:51 +0100
+Message-ID: <20261102005654.532438-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261102005654.532438-1-pablo@netfilter.org>
 References: <20261102005654.532438-1-pablo@netfilter.org>
@@ -73,70 +73,55 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Michail Andreas Michalopoulos <mike.michalo@gmail.com>
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
 
-Since commit 03428ca5cee9 ("netfilter: conntrack: rework offload nf_conn
-timeout extension logic"), the flowtable gc worker extends the timeout
-of an offloaded conntrack entry from nf_flow_table_extend_ct_timeout()
-once it falls below 5 minutes. That function only knows about TCP and
-UDP and hits WARN_ON_ONCE() for any other layer 4 protocol. However,
-GRE flows can be offloaded too, both via nft_flow_offload and act_ct,
-since commit 4e8d9584d154 ("netfilter: flowtable: Support GRE").
+ct_sip_parse_transport() compares the value of the "transport=" header
+parameter against "TCP"/"UDP" with strncasecmp(..., 3), but it never
+checks that the parsed value is at least 3 bytes long.
 
-The timeout of an offloaded GRE entry drops below that threshold as soon
-as a packet of the flow still goes through conntrack. With ip6gre
-tunnels using the default encapsulation limit this is ordinary traffic:
-the flowtable does not parse the Destination Options header in front of
-GRE, so every packet of the flow takes the classic forwarding path. It
-also happens for a packet with ttl <= 1, which the flowtable fast path
-passes up to the classic forwarding path. nf_conntrack_gre_packet() then
-refreshes ct->timeout to the GRE stream timeout (180 seconds by default),
-and the next gc run triggers, as reported by syzbot:
+ct_sip_parse_param() returns matchlen = end - start, where end is the
+next ';' or, when there is no ';', the end of the payload buffer
+(limit = dptr + datalen).  If the "transport=" value is only 1 or 2
+bytes long and runs exactly to the end of the payload (e.g. a REGISTER
+request whose Contact header ends in ";transport=T" with no trailing
+CRLF), matchlen is less than 3 while strncasecmp() still reads up to 3
+bytes, reading 1-2 bytes past the end of the linearized skb data.
 
-  WARNING: net/netfilter/nf_flow_table_core.c:553 at nf_flow_table_extend_ct_timeout+0x1ee/0x2f0
-  Workqueue: events_power_efficient nf_flow_offload_work_gc
-  Call Trace:
-   nf_flow_offload_gc_step+0x545/0x7b0
-   nf_flow_table_iterate+0x13c/0x1f0
-   nf_flow_offload_work_gc+0x22/0x70
-   process_scheduled_works+0xc3d/0x1630
-   worker_thread+0xa47/0xfb0
-   kthread+0x38b/0x480
+Add a matchlen check before the comparison, mirroring the
+sdp_media_type() pattern a few lines below, so short values cannot reach
+strncasecmp().
 
-Besides the splat, which panics the machine with panic_on_warn, the
-default branch sets the new timeout to 1 jiffy, so the conntrack entry
-expires right away and the offloaded flow is torn down.
+The bug was found by LLM-assisted manual review of the SIP helper's
+parsers and confirmed with a userspace ASan harness built from the
+verbatim parser functions, which reports a heap-buffer-overflow read of
+size 2 in strncasecmp() called from ct_sip_parse_transport().
 
-Handle GRE like UDP and extend the timeout to NF_CT_DAY. GRE conntrack
-has no protocol state to take into account, and NF_CT_DAY is also what
-flow_offload_add() already sets for every offloaded entry, GRE included.
-This also restores the behaviour from before commit 03428ca5cee9, when
-the conntrack gc worker extended offloaded entries of any protocol to
-NF_CT_DAY.
-
-Fixes: 03428ca5cee9 ("netfilter: conntrack: rework offload nf_conn timeout extension logic")
-Reported-by: syzbot+521f7e7e2b974abde99a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=521f7e7e2b974abde99a
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Michail Andreas Michalopoulos <mike.michalo@gmail.com>
+Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
+Link: https://patch.msgid.link/20260815133104.50369-1-joasantonio108@gmail.com/
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Assisted-by: Claude:claude-opus-5-5
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_conntrack_sip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 0d72dc8ae47a..2aa2647ed9df 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -544,6 +544,7 @@ static void nf_flow_table_extend_ct_timeout(struct nf_conn *ct)
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 64bc440b1181..b05dc8858d09 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -701,9 +701,9 @@ static int ct_sip_parse_transport(struct nf_conn *ct, const char *dptr,
  
- 		switch (l4proto) {
- 		case IPPROTO_UDP:
-+		case IPPROTO_GRE:
- 			new_timeout = NF_CT_DAY;
- 			break;
- 		case IPPROTO_TCP:
+ 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
+ 			       &matchoff, &matchlen)) {
+-		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
++		if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "TCP", 3))
+ 			*proto = IPPROTO_TCP;
+-		else if (!strncasecmp(dptr + matchoff, "UDP", strlen("UDP")))
++		else if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "UDP", 3))
+ 			*proto = IPPROTO_UDP;
+ 		else
+ 			return 0;
 -- 
 2.47.3
 
