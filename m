@@ -1,90 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.173
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793642813;
-	b=Kvu5G+/okJI8Zu9HPfCGvCa5BF7RZHPHkt0BIoCZzItMAtWPLscakGh3zs2puTXWLuYL
-	 aFGEyg0ra/wmzM1/DMVnAADIaWHzndrUh/pIqux8cuPmxmeprVTyU2vzOSWjJP5EaPE7U
-	 4+0Ig5LsS9BKYWWlGNdnIbzUqdPZzbXxkQppIeq+dlXH1KcvE7u7ZrFLOz5ikCcZCl486
-	 Y+K142PUiSo2pzeHzVeu0iWxmEvSQjS4rs5hJJAP0BMAqeYgW/d7sJyKGy7XpSocVFW0x
-	 Z5dv8KRESeEI1PiLYhrL2RvTjn/ofzvCQHuhiUSXzEGzaY07JAr5ar9VJ1Ofiw1dJPQ==
+	t=1793653906;
+	b=iGL7gUWQk3g6DXh0SwMASLul2JP6hxXu1zazD6wzDDpkUzk0pHDLk72mNNRafj1LTszk
+	 zlwTrBuWQ0f0fGbXhMLO3qK9an3akPhuOuMmYYmuIxNB6pB04ez1vDq8G9Q96ZSGAZvh2
+	 4QRAHCltSWW9vzLwjb+eRxS2n35bbIYEQ2QPcaZxE1OYzA+LR2+poFYDkZGVswt+V7XhP
+	 HijSZcAH2ZcNmz54UIVZL33Mo5wnbXKAD8n4pXdugg92KaXBolP5LR1Q7RcF6TAlgoF9B
+	 fdc1VaV54NgHaSAozWGu3/u8FVUhIzAdxtsIoYoXqyhhjUoZf4L0co+ysDIbWKkKbCg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793642813;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
-	b=cgkxDZcjivbGaVa6JU/V1hrPRt6kmYuPROLevX1InDeKnhHJBg3Qk+Fzk28er054CVLZ
-	 pZcYU3j7VK0gGHMBIbv4Sh+uMBvUUjKiOdlsviQ3vS0xcEuQoWdO1mB9DYdCgMieXvIxh
-	 hQLdwcnRpfxie1vHmP5x2Q9whTsei7nI/YE0om2MeulJ3HZXSYAkkVDDZIg0CbAe1zGcU
-	 fHvh2ud8vMinX4CjHcIbK4x0s8lXNeZxcEW53UyUg3vaJCcpD5/zG3tp5qU0Qemc4oi9K
-	 7AcPKrSx2glAcqtP8Q6RFfzuI4Fux16/IlB4NW0q2Y1iBgUKfmlpDCUqgOhPxkNgYCQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793653906;
+	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
+	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
+	 References:Subject:Content-Type:Content-Transfer-Encoding;
+	bh=xxWoHxsw4VPFqHPAqACZbusTmTkHUnFSnkXXJwnJ4WA=;
+	b=DFJTc1CEvVIBsE/vDp8FgdYWBusDQZHFflIrh5oW/B32SZLIGQe/MLZMUSFRohzpSU2U
+	 xktzhiRHQ5SNoX/FLja7Diuq1gcdHE3UtQTkXK6Nq0OERx4vpa+G2Ww5cuL9xIULnvD3h
+	 y+IFIc4AxDg4dqPSYsOxaL/9xDSfS5m2zkY5J9FtMxLZ+U7la9gNCnmz0OZTmNMAiZHyx
+	 Gz2MoyzXwSTqpYg4XTdf484CQXDUjGN0sTtN94DawulSJSjyDgd9l4K9YRIZV3n9PBlvz
+	 xTrxEZPMOrda1QqTGCvzAsKlorCC9BUbUbkbci++92fUGXEHEQbVVbL7p0GJLU9PkWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-foundation.org;
-	spf=pass smtp.mailfrom=linuxfoundation.org;
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=eYvbncox;
-	arc=none smtp.remote-ip=209.85.208.173
-Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XZe6+tyY;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 060CE606A32D
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Nov 2026 18:06:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 060CE606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDB1D606A329;
+	Mon,  2 Nov 2026 21:11:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=eYvbncox
-Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-3ab3b29a210so35857551fa.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 10:06:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1793642811; x=1794247611; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
-        b=eYvbncoxnaqB8sYiuJpKROjr0b5aZ9o6aPSeFfsdD0CwHn9NTmeNmGV99niJInz1LM
-         44n2a4yJWvQqW3sPY+14lE9jlUKv7b8BlIJvAxWFCPegB6lXk5b/ClIl32N8i/pqu+Dh
-         ivpz3WP4mFObohHtKbV+CUqNdg8qxbfJjTj2U=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793642811; x=1794247611;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
-        b=WsZ3Ww1AcHnGjFUCEyUnxC7DERuRiWQR9hMfw4gOIHjDLbEXVWsf5PoWGJVvaf2wnT
-         UsdH+bZkt3obiehqR5V9OIrZP/MthZFB3PoNULZ8723Yt8130H42ssOAEi5YJStiUP+U
-         0grni+kD9beWxx63AMXn1A0zJLlFae31cbuqdqCEeYAy2Pedz4e3mQ2az9tSTKL/wfLz
-         9CCyt2Xny+DnDPKw59hwNWmLIwd9zVSIGA4h4nGaerIC4o4mr8nIwGWvEprrEnQcPzp0
-         WIEJQjnNlFGtqHpBLGpYWC4sBY+dv4JIOCPMyJScquBNHWqw+c4Fmv4FdUpmnRfujgkQ
-         432A==
-X-Forwarded-Encrypted: i=1; AKwUvByJHlfNaVCLN42HhkrFtY+v2IgYkTycjySkPa+i01sRgyAlGy9kCVwM89DhdtD5LTz2/G1/psKaRitV+l+pKSI=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/NtZvpTFELx7wiAnCsrD3rEz8Jy176iui6A5MZytJzrVzpctec
-	s0qfNhgjJl3pU9UVnxvOmM7ON3iexEpgk6LaYEObHhv8gewdohGgQ4z7MvPVecDBeS4upZa4K0Q
-	CbXQur22WTw==
-X-Gm-Gg: AYBFou3Byke2r8+Dylk/ZcpB5/VBQGy9QWnuQ4+CnHVeHPqlXTEsSBmjcUC1zoPU1QG
-	TGGMBKFdjmnImr+KJv7h0BFJ7uDMafTn99jh2jOdVeB0j56mZ9whjSiJPS/LScR34DY7tYmR/5N
-	TBEyjiogEoARFa5asH1qIdWs2XFeTK9AKbFPs361f/Mmz0SRVszncMh1om3/81hibzzjuxNdkMT
-	KioHSytDirMtbxkkWuoZzl9T1M6pY5u/Y0rWQ9lkVXAtbR9lGh5HypZA3SoKYsWq8Qj/HmZr9kr
-	6xN+sQ0jjwHVdUvBF7HBKWbWnm50cqGChiaBtTQs9RCn0ktqYMXjDAffekso9u8r1DG298uDQTU
-	IZi/I2gLU7sybJ1b3n4T5DMFNu/02khhdOhEnf8CNesBN3QQnejCe0k39jxQwbRlzfvuCGh8VhZ
-	qZbKLDwp2/4kmsImcmh9w+OB8cmtVPiEMnAV1OrYZ55jllI+qP4uztyznGAyMizgcM9LlUiuDaH
-	SQ+TEarJA+EXX6rLc/ySNxVyKhsGFmtbsTNtJqp/1E7TlWNOG3wfzWulCRAUVOZi3pSp2iYc6xY
-	0+d/7d9NxNSJl0O4Rt96NPH8F1P47Wwm815tc6rAcG9mng5p3CBltwRXeDnoYfoVKN4cheFiJD7
-	yixJAoRTb7JtOg9E1vxZhTuIJChI=
-X-Received: by 2002:a2e:be86:0:b0:3ab:ac4c:186b with SMTP id 38308e7fff4ca-3acb7a65ea4mr22978181fa.9.1793642811174;
-        Mon, 02 Nov 2026 10:06:51 -0800 (PST)
-Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com. [209.85.208.172])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-3acd5c2eee8sm806791fa.15.2026.11.02.10.06.50
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 02 Nov 2026 10:06:50 -0800 (PST)
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3ac65e845a8so38033921fa.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 10:06:50 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBybSY0KHxPBOf76sFo5q7peTfF73o04iKDk5wTiSE5xeVgWP/7lX8JHasm1CxhvjrdrCwZuIMnO+ebtrjNl3gw=@vger.kernel.org
-X-Received: by 2002:a17:907:d94:b0:c2d:c80e:8366 with SMTP id
- a640c23a62f3a-c4ca7426f6emr874452266b.0.1793642348398; Mon, 02 Nov 2026
- 09:59:08 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XZe6+tyY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F96B1F00A16;
+	Mon,  2 Nov 2026 21:11:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793653905;
+	bh=xxWoHxsw4VPFqHPAqACZbusTmTkHUnFSnkXXJwnJ4WA=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=XZe6+tyYLswAenBO8yAzFdeWRzKxvbqg1Ev/mg/a4IY5Ykl6dyrcjlnUec04HQhAB
+	 wUqBfr7XNAis1gRkRlwuGTTv/aLI8n5inKL/pOeo0qX2ZMVH6ZsIHjb5NCZh9zUPL2
+	 o/ohakMyhEJMO6zYmevE4LT4/D6JmGaT3h4w7BN89zF2VUs59WIhKi/DP83L+kUnC9
+	 SsDT8nIZxjYMyLxMxFoJC8PTJcen/wSXsZsrKVj0Q0tCq0A7kxVFkRR+wzfD8le+If
+	 Wl/DtyEEVNWoCvyuUqF5srUDKOCiBW/Gb9kIb+nJ5eqrm2qnqAgrPwEWkqx/H5R5yQ
+	 Crn9JOHwAhkOw==
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 9A2D2F40069;
+	Mon,  2 Nov 2026 16:11:44 -0500 (EST)
+Received: from phl-imap-15 ([10.202.2.104])
+  by phl-compute-10.internal (MEProxy); Mon, 02 Nov 2026 16:11:44 -0500
+X-ME-Sender: <xms:kPzoauT46RzZZAtJ9pk6EmeQC8cMELBagB3u1iMeAaHmOjnENab40A>
+    <xme:kPzoaumk-opmRQlpeWeKnkRMlTth_z6pBLrv31d5JNfpKtehryrVtBuG3qfafkapL
+    0UJlxT0ifcf_WdI3louCiTK_NZW_9YRI03kfo2jNxtQamFkpy63zY0b>
+X-ME-Proxy-Cause: dmFkZTGGTt1pQq16zbZlBikp5z2kGCzhIzyCgkLQFgSXoffQhlPZQXfjBFq1ZiXvdSuuXZ
+    LGfrLfwbRgm8cT/TQHLtmkS2wq/scJf8NlSAUsi0B9JpHEGQcArw2onxUgxSVXeSq73Th3
+    +MD0Qi/P+BTULU9VUvoeDDNpVnNmDbD7jQoN3v4l/IoJhT2uLJVTZ+qQoBDMXBdvnbBuoB
+    9tDR+if4J7M64uHI42/0BjtEfvrRTVsfVuGRQKjlc4H4/Tpb6Ukdvkgbe36C9jT+yX7xq2
+    jBGJCbh4CPX6idD2imiKQ6v9tm9bzRUVfoBUnOyYFMrBkFYiOOBWgnG0kr7aHqxli45kQp
+    ohMXmtjBzal9CB+YgOYOkiE9b51wZucg/4Qex1khPYx+JLGLu0NEFrvGtoRmQ6eE2VafNW
+    CY+B7UtOu2dLLX0YzJKc7HKLrBl+UhzkRfMrCHLaMOitCefJUNU2mkw7vcohOcdeMVRCgw
+    TQWRrq9hCVC/B8Rxe6VYHSl8gHOGuRazDUmW6qr5GDwgwEuKJT0vVpSDws8RN4u7/JR2Bw
+    7Q9JGl1Z/LH2lgcMAQgF+wjiqdsKo0vCxpzH21ZsG7KiWO33lqILFRfkvZC562OP5TxBQG
+    hvqFJiKnoaGgu8gvbQah48jOhQq3KspK10b5m5ASEOwP4kkYmm4PvM17d+KA
+X-ME-Proxy: <xmx:kPzoakThPn76RnRib5bZ_FntPITCT1o4Ovwx9E8rstI1voUg5JpAIA>
+    <xmx:kPzoahfEU2tfoiygDyUOVgUPLZrN0jZ-87YF5q5IhIxNwkm1ztvL0w>
+    <xmx:kPzoatetgw6gOoAhlTHOnt-HZbmjY916FiHHIyaUhhTihCSwAOX_gA>
+    <xmx:kPzoaj1ywieDU5FAFn3LFQMJapowgQlEbMPUeurA4l5-zBDlAnyByg>
+    <xmx:kPzoat9Ejs2zX8NiQVdXzLsXpl7UKGdgzTPDTECnMqAK4pso_NRi0RMI>
+Feedback-ID: ifa6e4810:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 7098678273B; Mon,  2 Nov 2026 16:11:44 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -94,60 +77,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org> <20261102-work-procfs-bugfixes-v1-1-59422ed3e465@kernel.org>
-In-Reply-To: <20261102-work-procfs-bugfixes-v1-1-59422ed3e465@kernel.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 2 Nov 2026 09:58:51 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
-X-Gm-Features: AclHuK_qZTBVsLQIdymgRHScSFenC6XsGggUDmcuOugjrSTbuVkeASUmC_hYPZo
-Message-ID: <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
-Subject: Re: [PATCH RFC 01/38] PCI/proc: don't truncate the position of config
- space accesses
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
-	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
-	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
-	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
-	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
-	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-ThreadId: AFgPYeWZplpR
+Date: Mon, 02 Nov 2026 16:11:23 -0500
+From: "Chuck Lever" <cel@kernel.org>
+To: "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
+ "Jann Horn" <jannh@google.com>, "Josef Bacik" <josef@toxicpanda.com>,
+ "Chris Mason" <mason@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, "Eric Dumazet" <edumazet@kernel.org>,
+ "Thomas Gleixner" <tglx@kernel.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Jonathan Corbet" <corbet@lwn.net>, "Christoph Hellwig" <hch@lst.de>,
+ "Greg Kroah-Hartman" <gregkh@suse.de>,
+ "Joel Granados" <joel.granados@kernel.org>, "Kees Cook" <kees@kernel.org>,
+ "Jan Kara" <jack@suse.cz>, "Jan Kara" <jack@suse.com>,
+ linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-s390@vger.kernel.org,
+ "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+ linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
+ "Linuxppc Dev" <linuxppc-dev@lists.ozlabs.org>, netdev@vger.kernel.org,
+ ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
+ coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
+ jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
+ linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
+ samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
+ linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+ "Takashi Iwai" <tiwai@suse.de>, linux-input@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org
+Message-Id: <7ee779f9-db3d-4829-bdd8-1d09e3f74c43@app.fastmail.com>
+In-Reply-To: <20261102-work-procfs-net-v1-6-982104a4f592@kernel.org>
+References: <20261102-work-procfs-net-v1-0-982104a4f592@kernel.org>
+ <20261102-work-procfs-net-v1-6-982104a4f592@kernel.org>
+Subject: Re: [PATCH RFC 06/11] SUNRPC: let procfs own the seq_file of the cache content
+ file
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Mon, 2 Nov 2026 at 06:22, Christian Brauner <brauner@kernel.org> wrote:
+
+
+On Mon, Nov 2, 2026, at 10:07 AM, Christian Brauner wrote:
+> Declare the seq_operations and let procfs open and free the seq_file of
+> /proc/net/rpc/<cache>/content. ->proc_open() and ->proc_release() only
+> take and drop the module reference and set up ->private now. The
+> rpc_pipefs file is unchanged. Reading the procfs file then no longer
+> holds up its removal when the network namespace goes away.
 >
-> proc_bus_pci_write() truncates the file position to an int. A pwrite()
-> at an offset like 0xfffff000 turns it negative [..]
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-I think this would actually be better with rw_verify_area() just
-checking a per-file maxbytes.
+Acked-by: Chuck Lever <cel@kernel.org>
 
-We already have that logic for lseek and friends - using that fairly
-hacky combination of s_maxbytes and !unsigned_offsets().
 
-We should combine s_maxbytes and unsigned_offsets() at file open time
-into f_maxbytes and check that not just at lseek but in
-rw_verify_area.
-
-And then things like proc_bus_pci could set it's size limit in one single place.
-
-Hmm?
-
-                   Linus
+-- 
+Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
