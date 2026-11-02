@@ -1,49 +1,73 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793633052;
-	b=wHjdsBIM1A6xgE/tcKVXpezblP5eHRhuzQOtW6ITFnizJhESPQInJZ097wOhw4ktXwp4
-	 CdcJ6iS0QNL4YVFkLBBYm8qVuB+nNiigrw0MkYczrisAEtzL8eptls/6+KbpWngB7Omj0
-	 FYLGGfixUJm6mY3p5tJJDS9lW8WpxI2am+htxesGgdMDwBtRvl1ryngTgiqVrVgUOTNZj
-	 RtvHaM6CyaVlP+L2wtYNoZDr7UtiLSbu3AUTnG0vjoF0MVwIuQ/b6DBIzzt4Cv7m+dOow
-	 /Qga9+QWlCKqgbr2cyLRH4wAXEJTk+4/7P5dB6XIOGRhAKNX/zNSz3aQjHR7GTjOHZg==
+	t=1793633074;
+	b=SX/diNGWlY5n2wfj2QL1EBL3ckViy+ZyNgN+4AnWXRLdz3Dkt2h4/lNXbIehpqnxAfFl
+	 KvpANtAMPSQNwo6g7pR7P6qb6EJhvzwbWZUiXOt9Z6oyjJkcoVwwcK5xwpYuw0PeDYm+e
+	 FAZD+LUj/GbnywfGoHemaz9Bkc8fKRs0/EdUrj+NX38Q9J+cXruzr6JkmWIHP91a/S91z
+	 VulFa033pCNNdaxOlc+Y9M0hoYr3LjIiqrf/YabWvK1v82WeCLIKsCpaILdizN4tSbUj4
+	 7NS3hu91saZbhYTj9/Samle1o1evdtbAGevEEl8Bu1ki985tMKatTzFEiloL0SJ7RLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793633052;
-	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
-	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=0DA6RuBvRtTkFqswtNQb2uYlEiZpU59l9tIHU1Ga2j8=;
-	b=xnr0d59GCbpg1Cj1gA6LxtkMTIUHiNkTQmQei5VqZMsulLzQyqRtm3y6dRHcVOr2ALlg
-	 mfZbjS2yQvUQU14NkP1VcEoAh9qIzkGE7N6D6re9AA2+MyCg/D91T1ao+D1J7PSdstvar
-	 iFwd4aO2Nmp/ygc3Fw12PgHJWknW4TUYGgbbDYg6uRj7OODNc2ejqMvt9O2WmsDlA7qFH
-	 TuXde/BsT73PPLfr1Ma6ZwHADTO8JHgEkDbWLgAJfNdONKsu2+GvY7v6IWUOQxjOREWKq
-	 J86vI2Xby8r1NWiNx71Y4z7LAfooq+c/2BvHC8ERTYsXmOsD1rOrP8fPpMI2bwEZidQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793633074;
+	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
+	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
+	 References:Subject:Content-Type:Content-Transfer-Encoding;
+	bh=hWdxbpN4QmmVdM7UmPZX8KG1qjYZ0FQqqjiDA/VJnOE=;
+	b=spAXBCxbQHleKyhifvohJEd5jTb+sF7tf8eVj092LXeuSKIBj/AnUyqxZImJGrggkvKv
+	 iXR+UvDfeL4HsHBTcE+GpX53gRyR/M71grHytDxBSUyrHdvvMUtfLuTaEUuJG2kEBMJvZ
+	 maaSSghjkFuEEUYnGF4rleZJPcHaUs4OPoQbuskx3rPAIuk2yf0G8d+OKmQG9MU7mng2K
+	 pzzEsbicnT+OuUvOt4dcuk5tc5MgR7dX5g9ym8ttVehGIjt2bAJTQq/d+QCG9ilBicfBg
+	 mlqIrHNTkReGNDYF3lfrhQxz9abOw0i8Nwo0w9os8q5PUOVcmrZTT8QWvx5TfeU9QNg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wzv23e35;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ar1yBvIC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 767466098149;
-	Mon,  2 Nov 2026 15:24:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39932609817F;
+	Mon,  2 Nov 2026 15:24:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wzv23e35
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967341F00A16;
-	Mon,  2 Nov 2026 15:23:54 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ar1yBvIC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83CE71F00A1A;
+	Mon,  2 Nov 2026 15:24:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793633052;
-	bh=0DA6RuBvRtTkFqswtNQb2uYlEiZpU59l9tIHU1Ga2j8=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=Wzv23e35LlF722Cfqg73FBGVnhxt+H5uTjMVTnB7asIIrTAol+UsSWODD3A9JMAWW
-	 CHeJx+/sOCjLZSq1s4VoynRxvWm7XhKnNjGUb4tFL3st5AhwGX1X8EXNyiNSob8zfe
-	 hPoA0Jwnc94AejcwzAl8mS34lOo0kwPJnFcg+lOSVQtUdf4OqaeMQYnXbxeWnmbXEb
-	 AX7yo9n+oT0VV5xUQw7x3ALW+dHnEd/WKJEInzk6ceYQfrGKcinK0xZJkLZt2jHfOm
-	 CKZoFbsH8Uf/vBc0GUbzhEZ6RBBP6OGx93Jv1yb/leud/4X919tLDeUZ9h/mDfqa8c
-	 5djzkG/VTzWXw==
-From: Christian Brauner <brauner@kernel.org>
-Date: Mon, 02 Nov 2026 16:07:23 +0100
-Subject: [PATCH RFC 13/27] locking/lockdep: let procfs copy in writes to
- /proc/lock_stat
+	s=k20260515; t=1793633073;
+	bh=hWdxbpN4QmmVdM7UmPZX8KG1qjYZ0FQqqjiDA/VJnOE=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=Ar1yBvIC81AlkQxN0d8lM4DpCwZj6UD5Vo49RyJQFjBo+C5808Pq8HrM+wAoBQjA3
+	 To2qlDBeXG+6aWhFfzFxckZhBp4wkxGPed1kzaSFy7pAwQvGhVqrlWcgSO83vhFh2X
+	 VguJsl3FOT6CuxR1TaO4VAkb6e8ruEaXIJCPuttwfEFk4Yh74hFOxeUwEBHI2DG65H
+	 wXC3Lg/pvX9tz3gCYyulsI43Qty1XcefEQ5+MfZo2VyAYcESwo98NdtxOXW47SccWo
+	 0pNgSCt6egv+4aFZrmrWwjyAqZR0twQlxJCFZhysOjpyNrHyg6qoh3yphtMMZmOs2i
+	 8eby7zmG1MLKw==
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfauth.phl.internal (Postfix) with ESMTP id D2705F4006C;
+	Mon,  2 Nov 2026 10:24:32 -0500 (EST)
+Received: from phl-imap-15 ([10.202.2.104])
+  by phl-compute-10.internal (MEProxy); Mon, 02 Nov 2026 10:24:32 -0500
+X-ME-Sender: <xms:MKvoavSKUiqXlpmsbk4x_EzLxRROHSR_9BdLdFDueZ3aJRiH03Kj7g>
+    <xme:MKvoark1e7oBzVB6EazGgyrtPDptmOfDem8ClEXKKWNQExwA2Ij7Xe2VN3GxRNGuJ
+    6Nb0Vjmr7Yi9pyc_zj52BUYSYBkOd4VYwbZets8y3ullc4HaW72Vhk>
+X-ME-Proxy-Cause: dmFkZTGtfrsnUprxkF5qguts9aGoe/r+VjuJA4ciTNBlyoDayaXNLufHqXhA6kBrvL/iAr
+    3wgAuuQGiHEv3hnNXqMyWwUdK8YFm1/1GrsjxqWJn5YPeS+c8oPtRrq1CDaj1biBFdNRN1
+    4UDFT90xsu5mLrQncUNY4oGNWjrFklK2K5oJ2MwxzwjSIyUfh0eQ+uCGR4Ad/x9dt2ub0M
+    BWqUWU6DkiQJpaWppyDq8vWSYeYF8lsBRui74VDWdPCyh7aOwC/vKR8gbfdjBuW2LNuh38
+    pOYiauMZHD5NvCm9QOJGIhVVM7YyPBnQCZeRPCgGSrnOrifD8zqjkAoefxHqYsUlz3W/c8
+    2gfOCAstyw+OFvae7dc5IVKqvvkOF9OK013F5PDLVpnUdMTyNDeSDKTO+Q9NHexjpfHsZF
+    tbKZF9Rf7RIf1whsHXLWLjMq+b4ZyeDSBs37NkdVKK+HwZOoTwdKbzTWAvsGbubVSxyBjR
+    9mIJqTAVebgWOhe2j1nb/URiMOWpqrzT0jIir8ZzZC89tAvIKTZPESaSS4Twsu+AVwQCAC
+    uJSAyz5JSjxyY4Er8OphrQKWXZ01QU0bT9PA6zml2ntbWClyL02iwuKavM8o4FRKL/uVIz
+    BvdNGuuY82Haqtc0Sse5GZBDGcsxwzOmYAwZ9InALDI5bzNks9gPWh04Lhsg
+X-ME-Proxy: <xmx:MKvoahT_D8YEi8z1Kc6jMTmDVT8yaom17pznx8st6etKxvmXLo0tNg>
+    <xmx:MKvoaqdV5ruPp9h-q8Pz4Hcw8MEfRPRbjyB0g9BJmWVZgqN_7ZRgXA>
+    <xmx:MKvoaicIcxzbsGdb9rhBgLYqyai_zpFk4G7MzepbewkbW5yImYgZGw>
+    <xmx:MKvoak3Gj8PwbUG94UEsXjpXzmTdvm836urUlCGQLL8cRHx2S6OG6g>
+    <xmx:MKvoaq9vQfzYe9eVwTQevoT8-FLqc80cjNDV0v5kJcoDlScaHfwgX72y>
+Feedback-ID: ifa6e4810:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id AE2CD782738; Mon,  2 Nov 2026 10:24:32 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -53,98 +77,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261102-work-procfs-fs-v1-13-d09a996317b3@kernel.org>
+X-ThreadId: AG7Lg66T4xgg
+Date: Mon, 02 Nov 2026 10:24:12 -0500
+From: "Chuck Lever" <cel@kernel.org>
+To: "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
+ "Jann Horn" <jannh@google.com>, "Josef Bacik" <josef@toxicpanda.com>,
+ "Chris Mason" <mason@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, "Eric Dumazet" <edumazet@kernel.org>,
+ "Thomas Gleixner" <tglx@kernel.org>,
+ "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Jonathan Corbet" <corbet@lwn.net>, "Christoph Hellwig" <hch@lst.de>,
+ "Greg Kroah-Hartman" <gregkh@suse.de>,
+ "Joel Granados" <joel.granados@kernel.org>, "Kees Cook" <kees@kernel.org>,
+ "Jan Kara" <jack@suse.cz>, "Jan Kara" <jack@suse.com>,
+ linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-s390@vger.kernel.org,
+ "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+ linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
+ "Linuxppc Dev" <linuxppc-dev@lists.ozlabs.org>, netdev@vger.kernel.org,
+ ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
+ coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
+ jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
+ linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
+ samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
+ linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+ "Takashi Iwai" <tiwai@suse.de>, linux-input@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org
+Message-Id: <097f592a-d943-4740-b99b-8983527095eb@app.fastmail.com>
+In-Reply-To: <20261102-work-procfs-fs-v1-4-d09a996317b3@kernel.org>
 References: <20261102-work-procfs-fs-v1-0-d09a996317b3@kernel.org>
-In-Reply-To: <20261102-work-procfs-fs-v1-0-d09a996317b3@kernel.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, 
- Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
- Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
- NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
- Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
- Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
- Greg Kroah-Hartman <gregkh@suse.de>, 
- Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, 
- Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
- linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
- linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
- linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, 
- ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
- coreteam@netfilter.org, kexec@lists.infradead.org, 
- linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
- netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
- ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
- linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org, 
- linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org, 
- linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
- sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
- linux-doc@vger.kernel.org, linux-serial@vger.kernel.org, 
- linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>, 
- linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
- linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
- linux-debuggers@vger.kernel.org, 
- "Christian Brauner (Amutable)" <brauner@kernel.org>, 
- Chuck Lever <cel@kernel.org>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1505; i=brauner@kernel.org;
- h=from:subject:message-id; bh=8vcSfGoyDeqLJaquRqiN2D+SQsNeRK8HAS3H3FbecE8=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9WG6k0HtsppuIOtP74Igd108lcc3fGSuzcnJdKhtD4
- so7t2c0dZSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAExkkQEjQ+ONtmlOpu7yPdtO
- f6mefC2DpTVNKs/EavHuEoFe/ryYWEaGI5/jjbfc+3ttHUtbJafnBWsGE6vUrY4/vk118NKbYRj
- KAAA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+ <20261102-work-procfs-fs-v1-4-d09a996317b3@kernel.org>
+Subject: Re: [PATCH RFC 04/27] lockd: let procfs copy out reads of nlm_end_grace
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Implement ->proc_write_buf() so procfs copies in what is written before
-it pins the entry, and look at the first character of that copy. Writes
-larger than PAGE_SIZE - 1 bytes fail with -EINVAL now.
 
-Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
----
- kernel/locking/lockdep_proc.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/kernel/locking/lockdep_proc.c b/kernel/locking/lockdep_proc.c
-index 9b034b5b94bd..2a66ea09c2aa 100644
---- a/kernel/locking/lockdep_proc.c
-+++ b/kernel/locking/lockdep_proc.c
-@@ -669,18 +669,14 @@ static int lock_stat_open(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
--static ssize_t lock_stat_write(struct file *file, const char __user *buf,
--			       size_t count, loff_t *ppos)
-+static ssize_t lock_stat_write(struct file *file, char *buf, size_t count,
-+			       loff_t *ppos)
- {
- 	struct lock_class *class;
- 	unsigned long idx;
--	char c;
- 
- 	if (count) {
--		if (get_user(c, buf))
--			return -EFAULT;
--
--		if (c != '0')
-+		if (buf[0] != '0')
- 			return count;
- 
- 		iterate_lock_classes(idx, class) {
-@@ -703,7 +699,7 @@ static int lock_stat_release(struct inode *inode, struct file *file)
- static const struct proc_ops lock_stat_proc_ops = {
- 	.proc_seq_ops	= &lockstat_ops,
- 	.proc_open	= lock_stat_open,
--	.proc_write	= lock_stat_write,
-+	.proc_write_buf	= lock_stat_write,
- 	.proc_release	= lock_stat_release,
- };
- #endif /* CONFIG_LOCK_STAT */
+On Mon, Nov 2, 2026, at 10:07 AM, Christian Brauner wrote:
+> Implement ->proc_read_buf() so procfs copies what is read to userspace
+> after it unpinned the entry.
+>
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+
+Acked-by: Chuck Lever <cel@kernel.org>
+
 
 -- 
-2.53.0
-
+Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
