@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793581044;
-	b=vZqYEJ9eUJyWaEiyiE0fL6j6hVbF1VxUAV8YKBI0/M3jK8tu8PC/5CDSNNB7tNjbGCPf
-	 hIM0Ns6zIQJK67ZtCpREJKxgEXx96Mif67PegTfca7EUrTdQRGnRc0t6e7lCi6xLRFZ7x
-	 c0f6cD1ZWFpTfz5FxTnt3yHzaVZDxk3ZBSRlAFn6cHn1Wi3gChfdopXwlX+y98Ev4ZlA1
-	 pm6yx9kJlLGlwlfyN4S3UpI8+2oQjd4cgmxwHU0NvIOQ4FBYDP9WP4f52nn007AhZ2Yn/
-	 8mFTGSYRkUbN9GSjjYMJX/+t9PC9Yi3Vq3pk0g5by1yfvcXdHegNNznXgPL2v2CltNA==
+	t=1793581047;
+	b=GdOrtwItDZx/LZE3BtMweVfGAxObWcNjCnjxPwDCKE4PflPiEtahPGqNC+h/C4SjSEuP
+	 HNEMPeGwh6M4FVyYRCnp93GJekCYxF4jXOaXy0JP848PPwQsoCWlbmpw/tHWMCSTLwI0B
+	 bmF7BqYzSLrD0dzJ3b5bCz3J2FHi8V3LHtoWgU+vxdZhMHxMib4RIMLanUx6FzHwSKhNO
+	 XOXwPu1BUlt/k7CNDpXBH98OOQhMEiYED0VKxtlnjluwYAQry9vVTUyh6esWbNGyBIL0w
+	 JYQB0VhnXN6nAaOcWtgWn8gJYGuOlKEK/CLx/3MAHohUQjcJa/h8PxV809kU4HUPBkA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793581044;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793581047;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=XClvt/H6YMd9+Exyu1R4Oy60MLFqQ2fw95DTYxl2feU=;
-	b=D64ZGiaODWK5DaYyM0ygW9nMGgtZ1AV+965+a5+5vaK1EXkZBfwjm5v5OQ5PSg6WySn1
-	 4peWdjWRm2mYomfcUI8QwKHt0NU0wb8ZRQvcijFPhC8ZLvFb+ae913JOGyB5eGD791GZy
-	 e3GWvFPXaDWW5+tiRRLEYi1sF+1GNpaZn4It2v4tlgMqeB9Ng8QN5+ryuYauPwOYOqg6z
-	 hPthg/2okk/dfK+a6oR86WJiv+JOXpDmcZGsmrHTG6UE9ijuq2qlepU2MqvUqyktbGT2c
-	 L/ijB1mMz5O7xCnQh7lwdg89baiepW0CXo8AXd5qic+ZYQucgKvfbJbffCAgtk2lTUQ==
+	bh=ERbJJjui3uMopKOsLz17s2PXsaNLTajEI06p8Pfiz/I=;
+	b=mc8GonInoMwCELe5zN/n6JOdqexRaQfPy+7VSBxsAOLDdQZ00Brb5lQzvcgfq886YjxJ
+	 1pZd5wWq2oDLvyun/zjBAh/chBqG7mhLU/Umi4DmbthrxKZlCloDiqs+gLv+1XRuwEs24
+	 UeTkwspvD+TnMUCMg7FntX208wqEztxTe9dPgVLDuPyCRyud4q64XH/pjBMzlE086Dn48
+	 Jyruv06l/ZuiLIcwrjO4aNy7YIaWzjsHXYOK4hQfxJ8mGCseJDxt4q0O07VNBGseKO9wl
+	 AMrLaf4FgrrKb0dXDFtGeDdMlrzxr5HUwMFlJe9rQ0RcY4XsffwmNVzrVpLcK6RayzQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bY4IxbW+;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=veMe6+q4;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807FD60A2613;
-	Mon,  2 Nov 2026 00:57:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 807FD60A2613
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC704606A330;
+	Mon,  2 Nov 2026 00:57:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC704606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bY4IxbW+
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=veMe6+q4
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793581041;
-	bh=XClvt/H6YMd9+Exyu1R4Oy60MLFqQ2fw95DTYxl2feU=;
+	s=2025; t=1793581045;
+	bh=ERbJJjui3uMopKOsLz17s2PXsaNLTajEI06p8Pfiz/I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bY4IxbW+3eQJqmiZ0pMUPXI8fl0ARrX8V3vZLUygczqzIXSikYSIePZ1lRnCDh4cB
-	 5BqsI61zlCm5So30T3H+XFMedQRsuUi1w+6iWNmu/vfZcLbfwJPSkLqw7Le7pU8EBA
-	 h5Jgx2lcz4t7f3BED7xnAnvfgeACM1JszqL50/0huQUSVbd0mxd9vbfsxnY1lR3xqj
-	 Wi0WTZTudyO7X/YBuSr8bt53/wjDUML5JlEh7zhVX4edEduw8X0OwNHuwfQbBMJU7H
-	 C6TQXPTGmURlFbWhop3pTxKJFgqXObrSXkl7vukeSkmjLNN5OUJHEpul62nfahqbRc
-	 A9IXPKv8szg/A==
+	b=veMe6+q4jG6MBdHgbngy8P1Mjndy5iCTd90MNex25fvvKgsAbyLiX0GPP2XNmZ/ax
+	 bdPLHqLCY0iUyX3i+4JykWoXnZzJ4cJDhcKoNZ9ZCgxMiGTuWxWGbJmwbOJlCKLDeM
+	 1CkMO4Up2S40nFvlkBWlP4gGRYQoNUKyJcH98ElR98rUCcKEPW5l8IvNB9ZHSpu70q
+	 24CPtP1Ga2+sVCdFOSSzkuPLzJUnIFLrnsxn4p+E5zaYN/AZRQGzFrOqUmgRB72N1p
+	 4QEbNGCJG6yw6jov0u7NrkYtu2VRxcYq3wk6QgQI2rR63jA7LFSa2b4rTzpnQHQtlH
+	 18JzYzBadGZWg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 43C806005D;
-	Mon,  2 Nov 2026 01:57:21 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5CD3F6005D;
+	Mon,  2 Nov 2026 01:57:24 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 11/15] netfilter: x_tables: check target name before accessing verdict
-Date: Mon,  2 Nov 2026 01:56:50 +0100
-Message-ID: <20261102005654.532438-12-pablo@netfilter.org>
+Subject: [PATCH net 13/15] netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
+Date: Mon,  2 Nov 2026 01:56:52 +0100
+Message-ID: <20261102005654.532438-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261102005654.532438-1-pablo@netfilter.org>
 References: <20261102005654.532438-1-pablo@netfilter.org>
@@ -73,112 +73,84 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+Allocate flow rule object after transaction has been allocation and rule
+deactivation has been performed, otherwise memleak is possible.  Let the
+transaction unwind the existing rule deactivation from the abort path,
+this needs to update nft_flow_rule_destroy() to skip release if
+flow_rule is null.
 
-Non-standard targets may contain only struct xt_entry_target.
-mark_source_chains() nevertheless reads the target as an
-xt_standard_target before checking its name, potentially reading four
-bytes beyond a header-only target.
+While at this, remove check for non-null flow_rule in newrule error path
+now that nft_flow_rule_destroy() is skipped if flow_rule is null.
 
-Check that the target is standard before reading its verdict.
-Non-standard targets remain handled as fallthrough rules.
-
-See the following KASAN trace:
-
-BUG: KASAN: slab-out-of-bounds in translate_table+0x1660/0x1a40 [ip6_tables]
-Read of size 4 at addr ffff88800ed56ff8 by task rep/432
-
-Call Trace:
- kasan_report+0xfa/0x120
- translate_table+0x1660/0x1a40 [ip6_tables]
- do_ip6t_set_ctl+0x667/0xa76 [ip6_tables]
- nf_setsockopt+0x77/0xd0
- do_sock_setsockopt+0x118/0x490
- __sys_setsockopt+0xe4/0x160
- __x64_sys_setsockopt+0xbd/0x190
- do_syscall_64+0xde/0x4f0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Allocated by task 432:
- kasan_save_stack+0x2f/0x50
- __kasan_kmalloc+0x7f/0x90
- __kvmalloc_node_noprof+0x1b1/0x5c0
- xt_alloc_table_info+0x3c/0xa0
- do_ip6t_set_ctl+0x5ee/0xa76 [ip6_tables]
- nf_setsockopt+0x77/0xd0
- do_sock_setsockopt+0x118/0x490
- __sys_setsockopt+0xe4/0x160
- __x64_sys_setsockopt+0xbd/0x190
- do_syscall_64+0xde/0x4f0
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-by: VEGA <vega@nebusec.ai>
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
+Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+Link: https://patch.msgid.link/20261028062204.1079089-1-hdthky0@gmail.com/
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 5 +++--
- net/ipv4/netfilter/ip_tables.c  | 5 +++--
- net/ipv6/netfilter/ip6_tables.c | 5 +++--
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c     | 21 +++++++++------------
+ net/netfilter/nf_tables_offload.c |  3 +++
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index cf747e1e17a3..7ff3d1f0ffd4 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -371,11 +371,12 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 59ac623e6805..8b94b5e7dbdb 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -760,16 +760,6 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+ 	if (trans == NULL)
+ 		return -ENOMEM;
  
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 809441cedced..b302bd77180a 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -422,11 +422,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
+-	if (ctx->chain->flags & NFT_CHAIN_HW_OFFLOAD) {
+-		flow = nft_flow_rule_create(ctx->net, rule);
+-		if (IS_ERR(flow)) {
+-			nft_trans_destroy(trans);
+-			return PTR_ERR(flow);
+-		}
+-
+-		nft_trans_flow_rule(trans) = flow;
+-	}
+-
+ 	err = nf_tables_delrule_deactivate(ctx, rule);
+ 	if (err < 0) {
+ 		nft_trans_destroy(trans);
+@@ -777,6 +767,14 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+ 	}
+ 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_PREPARE);
  
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 313c4aac377a..010baaa60665 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -440,11 +440,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
--				int newpos = t->verdict;
-+				int newpos;
++	if (ctx->chain->flags & NFT_CHAIN_HW_OFFLOAD) {
++		flow = nft_flow_rule_create(ctx->net, rule);
++		if (IS_ERR(flow))
++			return PTR_ERR(flow);
++
++		nft_trans_flow_rule(trans) = flow;
++	}
++
+ 	return 0;
+ }
  
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
-+				    t->verdict >= 0) {
-+					newpos = t->verdict;
- 					/* This a jump; chase it. */
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
+@@ -4570,8 +4568,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ err_destroy_flow_rule:
+ 	nft_use_dec_restore(&chain->use);
+ err_destroy_flow:
+-	if (flow)
+-		nft_flow_rule_destroy(flow);
++	nft_flow_rule_destroy(flow);
+ err_release_rule:
+ 	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
+ 	nf_tables_rule_destroy(&ctx, rule);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 0ac3c26dfb3d..48b9e58e0c44 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -148,6 +148,9 @@ void nft_flow_rule_destroy(struct nft_flow_rule *flow)
+ 	struct flow_action_entry *entry;
+ 	int i;
+ 
++	if (!flow)
++		return;
++
+ 	flow_action_for_each(i, entry, &flow->rule->action) {
+ 		switch (entry->id) {
+ 		case FLOW_ACTION_REDIRECT:
 -- 
 2.47.3
 
