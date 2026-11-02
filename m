@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793581033;
-	b=vqpVbXGe4y1B56QKpWy2eZT/wVlu4rJElJsVR/QtetdCHexOg0bvQj91Sght8s3ikHJB
-	 gtdH2aQu/A3E53vESNQUGXTKKqadSoPZx1t5uicuQ3CQvtvClX8pIXdBTy72D8AORHdO2
-	 v1QJ6rJzkWriVaLuAeeSSqY8jkT7g0IC8NCMHQrMK6VVHWLRduBTYhe9Hs+R83LSyzvCZ
-	 AJ5ojeIQKez9wJPTFojL6tfPTgiPt6+MnYbKxU73nELsOdXp3p2Q47Rt5U/hqDOYMleKh
-	 pJGgPWDaf4bTH1dKSEtp3bjnX1u1jQ8ecm5p4TuVfxoNNhs2AB845U+DU6a6azomXZQ==
+	t=1793581035;
+	b=pA2L00rp8LVtTcAFIyisS3+t0FsTno9SC9w/ncZoTz73ZHLY4g4wUG90aRc3Gl7P0mi0
+	 BqxZkKtllnfWK27nPgP4W3d8fjDr3f/64NBDnypB9J/zdw6WCtqEY0ldUIIHWoxUTCfJf
+	 ynLfzdZEf0kIwiuMfuY1T5gSj8sQT1XHeTzyFfk76AY7kEyMw3WIVEK2QonTOx3S6lK8T
+	 3J0ZH0SvxZTpGHq38wRJsPuGzqHQK02lOK+kFxJXLVn5u0N40HrQ8hqDwQAuwE/i33ehw
+	 hOAbG+ohjeNGxzIrOgjFrgjv2hAhHbHZlwW0gFeCeO47m5/sVDaE3/zJP2aKR1SguxA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793581033;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793581035;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=rtTKULpTnN+Nv7hj6YAwU1fNR5t0PXlCdJ7mWoX/Fc0=;
-	b=WxBjikcx7Pg6N7G+/YQXTxZgG9SMZg1Z6YR+YOcxjAy8x1ZWkq/vtD7XNz1HrwdZnBYc
-	 nwarPkaoSE2D+WqEcAv6o6UET8658wg7borQQrN3uDQSdlMGSyGrZ7BZClkeqK9sIQAAw
-	 5/Bre3ebDJziOawgmxP4RfYl8eoLrFeCeaNVdHhHIWq9HUifJIiTJYRCiyq0djF8JHY4x
-	 12Vh10tMHoAMXxdVc5wXFUUJAr/rXIckgILgfdA1Pgi0+VnutDJ4EE1uzTRcl1+cCQY5g
-	 nbNqp+Xlh5+BSDVw8wofEIvj3fQ5I0h22FzCHkbVH+EbVWK2yVZBy+7y624e52tbhpg==
+	bh=ibSQ9JHfvR9Id4QKEUfIyq8LCimdbREHW1meXTHVyVo=;
+	b=w+LrVbO/zIdJQXq9XJ2wP+KIiFTyPTe32uxCCUm8LzTnALgqqBVG3UcoS3TKPb3T8mxy
+	 rmC4ZK8HXptzrqhl6VB+JPZ6bFYUuGMIxlqCKd9u95rxJiy7Kqa53sibQbd06YlQStQR4
+	 zi+3PW+RtPM92fRrQpjLci1wxj804s6jmOLGjAeypHT0TCHiYXDR4ne0aeIG8u2u5fH7F
+	 wNOOEzMMZTRSUaKQ+Kh5sJWmWoDYMq3yJZtkp6crTX7+mmrb1HhceuN2614qjcDR0uzSC
+	 e1RIbx59IZBF1adkZYozkL5qwEyg/7unpjMZ3XSkSEZvyCY+DfusBA6nVe/tAZ2NrfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dknDax5a;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=C2VyLmv1;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 458E3606A339;
-	Mon,  2 Nov 2026 00:57:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 458E3606A339
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEE360A2624;
+	Mon,  2 Nov 2026 00:57:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1EEE360A2624
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dknDax5a
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=C2VyLmv1
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793581031;
-	bh=rtTKULpTnN+Nv7hj6YAwU1fNR5t0PXlCdJ7mWoX/Fc0=;
+	s=2025; t=1793581033;
+	bh=ibSQ9JHfvR9Id4QKEUfIyq8LCimdbREHW1meXTHVyVo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dknDax5a3I6aEl7RHVBfToDG422Jq93z0IhckCyIkXFlQnCvTsaCYWx6PxLr8Yduy
-	 JfJfMKltm8lUsnxF/rUIF5zuICC3ZAsGNr3kJiJOUhDFq7BiO20fXbqrDOBj2Fmlv3
-	 i4TnM4nD+tPkZ4UgpirS6gsTVwP/rRZ7h1oS2DEsuo2MQhg9Dz9C8DFH5pH651qZge
-	 +vIZPmb/WlxaYfcjBCT8VGLkXEGaCk8pF3AMfZ35wHcOCctSE4beBB4lbmXRsRpDGt
-	 resfnev4M6/cBgSgv9xcbk8RriqgfUyayTGhxSJ0dB2R7dvhgn73fBtTvw1akRYJt/
-	 RI0X20/hEXl4g==
+	b=C2VyLmv106JYuIT2E9pLgom5WuUHLEoVL5XFo84pkQ1QiyFsrjYEVv8JNKzcErUPf
+	 UZ3vGoTuBPJPMFQqCiozW0MlIbd8SjEAX70HcYoFIRaN1s0FtXqiXftW2mPoR8NrYY
+	 SKbSlxfJD9z1BaOfzAIAenTLhcs81PpxaKV208nmlH1iFyV64MNZu3L5xYFra6DAac
+	 KHoboRFvIm1m3RIv/OEet4D00Fk6tJe18G2bWFHslKCC2uxP3C1NkV/SAhMe2HqEAk
+	 yzt1dmgUUktgG9726yVpWvMlCAHgEf9LR40uCx1BKRAzhfo6TV+a5eI4p2a9JPq8gL
+	 ICvIUUDAelTAw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CEE786007A;
-	Mon,  2 Nov 2026 01:57:10 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 735136007B;
+	Mon,  2 Nov 2026 01:57:12 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 05/15] ipvs: do not create conns from packets with port 0
-Date: Mon,  2 Nov 2026 01:56:44 +0100
-Message-ID: <20261102005654.532438-6-pablo@netfilter.org>
+Subject: [PATCH net 06/15] netfilter: nf_conntrack: limit expectation master chain depth
+Date: Mon,  2 Nov 2026 01:56:45 +0100
+Message-ID: <20261102005654.532438-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261102005654.532438-1-pablo@netfilter.org>
 References: <20261102005654.532438-1-pablo@netfilter.org>
@@ -73,108 +73,171 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Florian Westphal <fw@strlen.de>
 
-We should disallow normal connections with cport 0 to be
-created from packets by the scheduler (from clients) or
-by ip_vs_new_conn_out (from real servers) because later
-such traffic can not hit the connection due to the
-NO_CPORT requirement. As result, it can lead to duplicate
-connection for every packet. Do the same for vport 0.
+A conntrack can point to a master conntrack, which itself may point to
+another master, and so on.  There is currently no bound on how deep this
+chain can grow.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Force a max depth in nf_ct_expect_alloc(): walk the master chain and
+reject allocation if it would exceed 2 levels of nesting.
+
+Also add ctnetlink_find_get_master and use it so that ctnetlink create
+paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
+and returning a misleading -ENOMEM.
+
+This prevents unbounded ct->master->master->... chains.
+
+Assisted-by: LLM
+Reported-by: Daehyeon Ko <4ncienth@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 5 +++++
- net/netfilter/ipvs/ip_vs_proto_tcp.c  | 5 +++++
- net/netfilter/ipvs/ip_vs_proto_udp.c  | 4 ++++
- 4 files changed, 16 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_conntrack_helper.h | 15 +++++++++
+ net/netfilter/nf_conntrack_expect.c         | 15 +++++++--
+ net/netfilter/nf_conntrack_netlink.c        | 36 +++++++++++++++------
+ 3 files changed, 53 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 8a3c880fdb26..f3eb72e95024 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1305,6 +1305,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
-  *    In fwmark-VS actual vaddr and vport are unknown to IPVS
-  * 2) Real Server and Virtual Service were NOT configured without port:
-  *    This is to allow match of different VS to the same RS ip-addr
-+ * 3) Client port is not 0
-  */
- struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
- 				      struct ip_vs_dest *dest,
-@@ -1328,7 +1329,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
- 	/* check pre-requisites are satisfied */
- 	if (svc->fwmark)
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 335b8c43694f..617178fd4d8b 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
+ 
+ #define NF_CT_HELPER_NAME_LEN	16
+ 
++#define NF_CT_MAX_EXPECT_CHAIN_LEN	2
++
+ /* Must be kept in sync with the classes defined by helpers */
+ #define NF_CT_MAX_EXPECT_CLASSES	4
+ 
+@@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
+ 		kfree_rcu(helper, rcu);
+ }
+ 
++static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
++{
++	unsigned int depth = 0;
++
++	while (m->master) {
++		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
++			return false;
++		m = m->master;
++	}
++
++	return true;
++}
++
+ int nf_conntrack_helper_init(void);
+ void nf_conntrack_helper_fini(void);
+ 
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 06242c86e1dc..e9e796bda577 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -299,13 +299,22 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
+ 
+-/* We don't increase the master conntrack refcount for non-fulfilled
+- * conntracks. During the conntrack destruction, the expectations are
+- * always killed before the conntrack itself */
++/**
++ * nf_ct_expect_alloc - allocate a new conntrack expectation
++ * @me: The conntrack to be used as master.
++ *
++ * The master conntrack refcount is not incremented; expectations
++ * are always killed before the master conntrack is destroyed.
++ *
++ * Returns a new expectation on success or NULL on failure.
++ */
+ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
+ {
+ 	struct nf_conntrack_expect *new;
+ 
++	if (!nf_ct_master_acceptable(me))
++		return NULL;
++
+ 	new = kmem_cache_zalloc(nf_ct_expect_cachep, GFP_ATOMIC);
+ 	if (!new)
  		return NULL;
--	if (!vport || !dport)
-+	if (!vport || !dport || !cport)
- 		return NULL;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 1f8d94a05240..30428d520e43 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2231,6 +2231,26 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
+ 	return 0;
+ }
  
- 	/* for persistent service first create connection template */
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index fb8af6b15a39..83d1443ebe01 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
- 						 sizeof(_schunkh), &_schunkh);
- 			if (sch) {
-+				/* Accept packet without scheduling? */
- 				if (sch->type == SCTP_CID_ABORT ||
- 				    !(sysctl_sloppy_sctp(ipvs) ||
- 				      sch->type == SCTP_CID_INIT))
-@@ -47,6 +48,10 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 		return 0;
- 	}
- 
-+	/* Do not create connection for port 0, skip the packet */
-+	if (!ports[0] || !ports[1])
-+		return 1;
++static struct nf_conn *
++ctnetlink_find_get_master(struct net *net, const struct nf_conntrack_zone *zone,
++			  const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_tuple_hash *master_h;
++	struct nf_conn *master_ct;
 +
- 	if (likely(!ip_vs_iph_inverse(iph)))
- 		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->daddr, ports[1]);
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index fec0e8b47b71..2e55b62445c6 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 	if (likely(!ip_vs_iph_icmp(iph))) {
- 		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
- 		if (th) {
-+			/* Accept packet without scheduling? */
- 			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
- 				return 1;
- 			ports = &th->source;
-@@ -62,6 +63,10 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 		return 0;
- 	}
- 
-+	/* Do not create connection for port 0, skip the packet */
-+	if (!ports[0] || !ports[1])
-+		return 1;
++	master_h = nf_conntrack_find_get(net, zone, tuple);
++	if (!master_h)
++		return ERR_PTR(-ENOENT);
 +
- 	/* No !th->ack check to allow scheduling on SYN+ACK for Active FTP */
- 
- 	if (likely(!ip_vs_iph_inverse(iph)))
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index f32785682402..92c0b76c1a02 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -52,6 +52,10 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
- 		return 0;
- 	}
- 
-+	/* Do not create connection for port 0, skip the packet */
-+	if (!ports[0] || !ports[1])
-+		return 1;
++	master_ct = nf_ct_tuplehash_to_ctrack(master_h);
++	if (!nf_ct_master_acceptable(master_ct)) {
++		nf_ct_put(master_ct);
++		return ERR_PTR(-EMLINK);
++	}
 +
- 	if (likely(!ip_vs_iph_inverse(iph)))
- 		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->daddr, ports[1]);
++	return master_ct;
++}
++
+ static struct nf_conn *
+ ctnetlink_create_conntrack(struct net *net,
+ 			   const struct nf_conntrack_zone *zone,
+@@ -2356,7 +2376,6 @@ ctnetlink_create_conntrack(struct net *net,
+ 	/* setup master conntrack: this is a confirmed expectation */
+ 	if (cda[CTA_TUPLE_MASTER]) {
+ 		struct nf_conntrack_tuple master;
+-		struct nf_conntrack_tuple_hash *master_h;
+ 		struct nf_conn *master_ct;
+ 
+ 		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER,
+@@ -2364,12 +2383,11 @@ ctnetlink_create_conntrack(struct net *net,
+ 		if (err < 0)
+ 			goto err2;
+ 
+-		master_h = nf_conntrack_find_get(net, zone, &master);
+-		if (master_h == NULL) {
+-			err = -ENOENT;
++		master_ct = ctnetlink_find_get_master(net, zone, &master);
++		if (IS_ERR(master_ct)) {
++			err = PTR_ERR(master_ct);
+ 			goto err2;
+ 		}
+-		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
+ 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+ 		ct->master = master_ct;
+ 	}
+@@ -3613,7 +3631,6 @@ ctnetlink_create_expect(struct net *net,
+ 			u_int8_t u3, u32 portid, int report)
+ {
+ 	struct nf_conntrack_tuple tuple, mask, master_tuple;
+-	struct nf_conntrack_tuple_hash *h = NULL;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conn *ct;
+ 	int err;
+@@ -3633,10 +3650,9 @@ ctnetlink_create_expect(struct net *net,
+ 		return err;
+ 
+ 	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(net, zone, &master_tuple);
+-	if (!h)
+-		return -ENOENT;
+-	ct = nf_ct_tuplehash_to_ctrack(h);
++	ct = ctnetlink_find_get_master(net, zone, &master_tuple);
++	if (IS_ERR(ct))
++		return PTR_ERR(ct);
+ 
+ 	rcu_read_lock();
+ 	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
 -- 
 2.47.3
 
