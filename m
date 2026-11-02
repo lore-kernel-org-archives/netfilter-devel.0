@@ -1,77 +1,109 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793628566;
-	b=IYZ84/o8ZM7TrhMu2e3xOFrgQpF5zohXVBhejQaEwqDLVGXccbXICABlN9+rZLxEWiUU
-	 ViCclifQYcE/6kCEJDCrDHNIeVUHtLXrNTSNUX/6/4tG2lmQ18RZ2A/nSwN6qAigRnTNZ
-	 F+n/5kzyfqWa5aYpbYNtRqyjea9m1ckx9jLWndcw1QPddvS1QqqbSSO8Chp4dFc1prEl9
-	 YqEieaSQXcHbcRe50tN9yeXSMxpZmUA04mY3pUXzMWb+wRmPx0aGByXsL7kzUrYAxAEz2
-	 M+tEH6E0cRkei9RBrZ9RHWYZd2aqZevMrv08D+ikWPXDCBQgKHc6Y+iV0FW+hUMW/2A==
+	t=1793629260;
+	b=pCpHSVZDMMdk6s2/SWjI0YYQxt3cLXCpszddhZgCLrD+zL+P1nSYoDjGmWwEsPGQRuoS
+	 cAF+bgvb4//kt5Wwy5h30dajrh4j4Oyu4lOfrLg9hYjc+HhlN9WcTQLOx97AxD9fJDKmY
+	 GImIjoJ0o5r6bMWBreBX3aZy2fGlhnYDKn1wJzqL6Wxaav6MS4KzJC9Z5/1wzOzE8CLt9
+	 t9NIHnDkbziEWw6zFMPilZPTpBAKhNswWQpO6JtBnrRLy7fpM3gm/E/DWhUO8j+IB6HnY
+	 wm503hZLiIrM4tF2OY8MYwnk+JmVUbqFEciduIYQE6lhvx0uU1BUyMmhHg3uQqZ/32g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793628566;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=fk5hKS/z7e4rz02SHNZkWeQor1IxFkSOfdAO225DaAI=;
-	b=eWkf9mEjqc+gtvAJk2ExtPePZhmiDOaRmafmUbui1GYtshs31RSudOGFZp9zmNUgYscU
-	 dTZJ2P9If5xloU+Ho0fTZ5g5Og0Ita5UChN6wovttd9X36iqD1kj/BSHmBem3N5djcQOU
-	 feS3FIP1CSZ5bJIZ9pZiIBnedDKaw+XvtZbp6jO3XqUHu17eMuIRt5bcHPkTR/DCHXnO1
-	 uEUNHtlkjpHbLhf2D+bqNPZdAYq0nhsDuEfx/hjS5rGreLcYhO3umD4pp1JdRp0F4jFKA
-	 ICegZm8MEHv4XqYP2nbN8Pl+iYMY0YKhHgSJjPXURnOdtqnGZSP07dLhzRP1bOK0z9g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793629260;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Type:X-Developer-Signature:X-Developer-Key:
+	 Content-Transfer-Encoding;
+	bh=AMQhAUoLjC1OsRhPIF0X/aZZvhoGLtnfpHmE2nV4Wn8=;
+	b=w0iUuu25LcgkA3xGhaCiKMEKC4+WEmJvuCSsM7a4JcQzbZkbzH95lmjyghuNDSZ636lM
+	 zDqlTkdA53RBUQ/pfPUtP35lwyf23hoIVTza23nSQ/mxH15ctyh9mOtI68HNAhD4vZQq2
+	 H1pAwc8FT0JABLkWPADeSKIfS3K0Si2FdjU7nGK5JKm78OPZr0ETnE6cVeYr9JSM8ejlT
+	 qSV26qfr4m9ADzs0JeKUvRhT3WqpTt1yNreGV/9s3Zy1LwstRqheSzSloj1kmuJYwmew3
+	 hQf23VzxVy8e0WCjv8ctXarDx8UwmqgUEp8H2W9zOkRKd4ZYX1BHGBPLKByfm8j/6Qg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=mzMpEB0h;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i0H9lG0B;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B2C606A324;
-	Mon,  2 Nov 2026 14:09:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 40B2C606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 821D9606A327;
+	Mon,  2 Nov 2026 14:21:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=mzMpEB0h
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id C83BA21F89;
-	Mon, 02 Nov 2026 16:09:22 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=fk5hKS/z7e4rz02SHNZkWeQor1IxFkSOfdAO225DaAI=; b=mzMpEB0h+WXD
-	lSDLGlLCrkNX/EZ37J9fDVfXBnKsSet2HF5Vmtb3p9vzchFGttaOzAbqSLMlxkDX
-	c0ReF6enLbZCYQAfMsRuRRUJVaryfqk8rTG506RJ3a1gZk+6jdVZVkQuUrarqli+
-	tS06Dryag+gAJa0r0N3gMtEWvvQLMWgUWvaiXhMdE9hk5CZip6QUWFhUOmY5y+1s
-	at+Po9S8M3C/eyj9EvtpgccqkwLvDhVNyWM1mu+rfIHndDr2FlBM0XjY1LUlbfKo
-	DzTawUCWGtUTm2wHN3SdjPnutzOIxr3jGay96OgFYEbTUunvqE0O+TVcHC4/gbil
-	Sjst3cTudcvi0QGI7Zl8MVVQ5Ii/MYjoE3u/nc6RilB51mcsu+jUuKg3bz4XuuJa
-	mr0bw6GEwstV3AsKTQ9GH/XoVU/07m5YBbhyI9VTUGbI4gyZnG9KLFCzfxTDcOAy
-	HlIODK4JOzwCbE1z3eMAqiRuWdfdtcrIJs0wL2zimyfQzFRqceVZSsxyTovhRjVM
-	1aawcifq8YCFY1O8j+eKusLN84W8MRm3a0ypu2Wr7cW9ihWoOx1A7WXzPkMfoc1Z
-	/+uzEUh61PlqfsT0IZXuThuPxKj6C82mC9A2V/jn1p1Au3R7/hlzSO+xy7N5F3tX
-	T1i68YzLjvC7oLImElr3sxm68OWbL3w=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Mon, 02 Nov 2026 16:09:22 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 4331560B9D;
-	Mon,  2 Nov 2026 16:09:22 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A2E9JAA059919;
-	Mon, 2 Nov 2026 16:09:20 +0200
-Date: Mon, 2 Nov 2026 16:09:19 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Yingjie Wang <1075151112@qq.com>
-cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org, horms@verge.net.au,
-        pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
-        edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] ipvs: reject negative sync_refresh_period values
-In-Reply-To: <tencent_C567615098D5B2A71811CFE5CB09C9FFC406@qq.com>
-Message-ID: <7106debb-6452-1ca3-9ff8-506f119700f7@ssi.bg>
-References: <tencent_C567615098D5B2A71811CFE5CB09C9FFC406@qq.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i0H9lG0B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EED4A1F00A24;
+	Mon,  2 Nov 2026 14:20:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793629260;
+	bh=AMQhAUoLjC1OsRhPIF0X/aZZvhoGLtnfpHmE2nV4Wn8=;
+	h=From:To:Cc:Subject:Date;
+	b=i0H9lG0Be05TEfu/3sSSx1mNu2tXsbt81HU4VhWr1YaNjWqP1nbmV2PU6N9fCZNuw
+	 nivi01r4yhBVK5q6ZZ/2sNWNfeS1/SVvtod3GB/cMk9XHlaJxrROzU9uNyaCbwueWN
+	 AE/rw/aIukHRd/bUpfVF3u6Oo+d1/1nWu8xicACG8hfScuBzUWJR1oSKGUI3TT1yza
+	 I6qw7gNhliBS+HPnhAgAxa3M/VUpvB8uzbr6ovyo5O6M56NbveIxMw0j6pJhZqxruk
+	 pALxbTScur8TNXplk3A0Y4Q0gW4y8sE5l288k+10HrKs8+OO7WmnOZctFatwni3om7
+	 HzOPbsKYJ2AYQ==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org
+Cc: Christian Brauner <brauner@kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org
+Subject: [PATCH RFC 0/7] proc: move procfs to what kernfs does
+Date: Mon,  2 Nov 2026 15:19:15 +0100
+Message-ID: <20261102-defizit-jobaussicht-kurios-7016c6e67442@brauner>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -81,123 +113,129 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6321; i=brauner@kernel.org; h=from:subject:message-id; bh=DeFgfcqlv/TY20j7H/EH1gPUF0B7m3TaniK1kcChAz8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9mGNqL7pz+vPzk4KWfT6wfNmBh/f/+az2dnquniC7r OfbdVtpkY5SFgYxLgZZMUUWh3aTcLnlPBWbjTI1YOawMoEMYeDiFICJLNFkZJi9z+Wc51MV9sWG KyZ0i3EcLl3135Rh1V/p2TenWEnnPCln+F99gMWOyX62xk4Du399RQ9XTQsXMmEy4ArfuSn16RK 3R1wA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
+Ok, as mentioned off-list I have an RFC version of getting rid of page
+fault induced stalls in procfs when removing entry which plagues
+networking devices among others.
 
-	Hello,
+There was a hackish very narrow AI solution to a part of this bug class
+that was floated off-list. It used a second buffering mechanism on top
+of seqfiles which was really nasty. Plus, it didn't fix the whole bug
+class, it only eliminated a small portion. If we want to get rid of the
+whole page fault issue we need a bigger hammer. So I tried to work
+through that over the last couple of weeks. The series in a shape where
+it's not totally insane to have someone else look at it. So here it is.
 
-On Mon, 2 Nov 2026, Yingjie Wang wrote:
+I understand it's big but I thought it's probably nicer to look at the
+end result than just making a promise of what it might end up looking
+like.
 
-> net.ipv4.vs.sync_refresh_period is documented as an unsigned number of
-> seconds.  proc_dointvec_jiffies() accepts a signed integer and converts
-> it to jiffies before storing it in an unsigned int field.  Consequently,
-> writing -1 stores UINT_MAX - HZ + 1 jiffies and bypasses the finite
-> bound applied to ordinary positive writes.
-> 
-> This changes the behavior of ip_vs_sync_conn_needed().  With
-> sync_threshold="0 1" (threshold 0, period 1) and
-> sync_refresh_period=-1, only the first of twelve packets requests a
-> sync message; the zero-refresh control requests all twelve.
-> 
-> Store the value in seconds, as documented, and convert it at the single
-> consumer.  Use proc_douintvec_minmax() to reject negative input.  Cap the
-> value at INT_MAX / HZ to preserve the prior jiffies range and avoid
-> overflow in secs_to_jiffies().
-> 
-> The issue was reproduced on an affected 7.0 distribution kernel in a
-> temporary network namespace.  A patched target kernel was built with W=1
-> and exercised in QEMU; -1 is now rejected with EINVAL, zero and positive
-> values retain their behavior, and the HZ=1000 boundary accepts 2147483
-> while rejecting 2147484.
-> 
-> Fixes: 749c42b620a9 ("ipvs: reduce sync rate with time thresholds")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yingjie Wang <1075151112@qq.com>
-> ---
->  include/net/ip_vs.h            | 7 ++++---
->  net/netfilter/ipvs/ip_vs_ctl.c | 8 ++++++--
->  2 files changed, 10 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 9a83bff32569..66f26c3d1f75 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -19,6 +19,7 @@
->  
->  #include <linux/compiler.h>
->  #include <linux/timer.h>
-> +#include <linux/jiffies.h>
+It's not super polished yet and I haven't gotten into sorting out all
+the warts as there were some really gnarly bugs in there like the whole
+readdir mess that repeated entries or terminated early. I think we could
+go a lot further there if we wanted to but I think that blows this out
+of proportion and at some point it becomes difficult to grasp the scope.
+So I'd rather delay that until I have a sense of how acceptable this all
+is.
 
-	This is not needed. The remaining part looks ok. Prefer
-to use "nf" tag for IPVS patches.
+remove_proc_entry() waits until every call into the entry has returned,
+and most of those calls copy to or from userspace with the entry pinned.
 
->  #include <linux/bug.h>
->  
->  #include <net/checksum.h>
-> @@ -1267,7 +1268,7 @@ struct netns_ipvs {
->  	int			sysctl_sloppy_sctp;
->  	int			sysctl_expire_quiescent_template;
->  	int			sysctl_sync_threshold[2];
-> -	unsigned int		sysctl_sync_refresh_period;
-> +	unsigned int		sysctl_sync_refresh_period; /* seconds */
->  	int			sysctl_sync_retries;
->  	int			sysctl_nat_icmp_send;
->  	int			sysctl_pmtu_disc;
-> @@ -1335,7 +1336,7 @@ struct netns_ipvs {
->  #define DEFAULT_SYNC_VER	1
->  #define DEFAULT_SLOPPY_TCP	0
->  #define DEFAULT_SLOPPY_SCTP	0
-> -#define DEFAULT_SYNC_REFRESH_PERIOD	(0U * HZ)
-> +#define DEFAULT_SYNC_REFRESH_PERIOD	0U
->  #define DEFAULT_SYNC_RETRIES		0
->  #define IPVS_SYNC_WAKEUP_RATE	8
->  #define IPVS_SYNC_QLEN_MAX	(IPVS_SYNC_WAKEUP_RATE * 4)
-> @@ -1363,7 +1364,7 @@ static inline int sysctl_sync_period(struct netns_ipvs *ipvs)
->  
->  static inline unsigned int sysctl_sync_refresh_period(struct netns_ipvs *ipvs)
->  {
-> -	return READ_ONCE(ipvs->sysctl_sync_refresh_period);
-> +	return secs_to_jiffies(READ_ONCE(ipvs->sysctl_sync_refresh_period));
->  }
->  
->  static inline int sysctl_sync_retries(struct netns_ipvs *ipvs)
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index ce9fe20d6106..82726b6b5e3a 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2369,6 +2369,8 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
->  
->  #ifdef CONFIG_SYSCTL
->  
-> +static unsigned int sync_refresh_period_max = INT_MAX / HZ;
-> +
->  static int
->  proc_do_conn_max(const struct ctl_table *table, int write,
->  		 void *buffer, size_t *lenp, loff_t *ppos)
-> @@ -2824,9 +2826,11 @@ static struct ctl_table vs_vars[] = {
->  	},
->  	{
->  		.procname	= "sync_refresh_period",
-> -		.maxlen		= sizeof(int),
-> +		.maxlen		= sizeof(unsigned int),
->  		.mode		= 0644,
-> -		.proc_handler	= proc_dointvec_jiffies,
-> +		.proc_handler	= proc_douintvec_minmax,
+A reader or writer can make a page fault in that copy take as long as
+it wants, with userfaultfd or by punching holes into a memfd over and
+over. And the callers of remove_proc_entry() like to hold locks while
+they wait. addrconf holds RTNL when it removes /proc/net/dev_snmp6/<dev>
+and xt_hashlimit holds a mutex that all network namespaces share.
 
-	It is sad that there is no proc_dointvec_jiffies_minmax
+Every network device with IPv6 gets a /proc/net/dev_snmp6/<dev> that
+everyone can read, and addrconf_ifdown() removes it with RTNL held. So
+any local user can keep RTNL for as long as their read stays stalled.
+Until then no device can be registered, removed or renamed and no
+network namespace can be created or torn down.
 
-> +		.extra1		= SYSCTL_ZERO,
-> +		.extra2		= &sync_refresh_period_max,
->  	},
->  	{
->  		.procname	= "sync_retries",
-> 
-> base-commit: cb284914e749388eef402938bdb3115fe1f6d337
-> -- 
-> 2.43.0
+Without privileges a FUSE mount in a user namespace whose daemon never
+answers is enough to stall the copy. Killing the reader ends it, but
+until then whoever removes the file sits in D state.
 
-Regards
+xt_hashlimit removes the proc file of a table with hashlimit_mutex
+held. Every rule insert in every network namespace takes that mutex and
+so does network namespace cleanup. cleanup_net() runs on a single
+workqueue with pernet_ops_rwsem held, so a stalled reader also stops
+every later network namespace teardown and every module load that
+registers pernet operations. xt_recent does the same with recent_mutex.
 
---
-Julian Anastasov <ja@ssi.bg>
+And it's not specific to networking. remove_proc_entry(), proc_remove()
+and remove_proc_subtree() have over 200 callers and plenty of them hold
+locks. A stalled reader of /proc/fs/ext4/<dev>/options holds up the
+unmount of that filesystem with s_umount held, and every sync(2) with
+it. The same goes for PCI hot-removal, for freeing IRQ descriptors,
+which CPU bring-up waits on, and for unplugging a USB sound card.
+syzbot has hit removal under locks before (cf. [1]), and the xt_recent
+deadlock fixed in (1) below is another one.
 
+Stalling the kernel in a copy to or from userspace is a well-known
+exploitation primitive. It's why unprivileged userfaultfd can't do it
+by default anymore since v5.11 (d0d4730ac2e4), and FUSE has been used
+the same way.
+
+kernfs doesn't have that problem. The code of a kernfs file only ever
+runs with the node pinned and never touches userspace memory, kernfs
+copies in and out itself. This moves procfs over to the same scheme.
+
+sysfs has only held its active reference around ->show() and ->store()
+since v2.6.23, the same release that made remove_proc_entry() wait for
+the entry's callers. A copy to userspace couldn't be stalled for long
+back then. userfaultfd only came in v4.3 and FUSE in user namespaces in
+v4.18. configfs moved its copies out of its active reference in v5.3
+and DRM copies ioctl arguments in and out around the driver's handler
+the same way. debugfs still holds its reference across the copies,
+ran into a deadlock with wifi drivers because of it and grew an API to
+cancel operations instead (cf. [2]).
+
+That touches just about every ->proc_read(), ->proc_write() and
+->proc_ioctl() in the tree, so I've split it up into seven series. They
+go out as replies to this mail:
+
+(1) proc: fix a few old bugs in /proc handlers (38 patches)
+
+    Bugs in the handlers and in procfs itself that are a lot older than
+    the conversion and that reviewing it turned up. Most of them are for
+    stable. They come first so they can go there on their own and the
+    conversion doesn't have to bother with that crap.
+
+(2) proc: let procfs own the data path (16 patches)
+
+    The procfs side. procfs owns the seq_file of an entry, copies in
+    writes, copies out reads and copies ioctl arguments in and out, and
+    only calls into an entry with it pinned. proc_create_seq() and
+    friends and the plain seq_file users are switched over here too.
+
+(3) proc: convert the arch and platform entries (22 patches)
+(4) proc: convert the driver entries (23 patches)
+(5) proc: convert the fs, kernel and mm entries (27 patches)
+(6) proc: convert the net entries and the kfifo samples (11 patches)
+
+(7) proc: drop the __user methods (5 patches)
+
+    Drops the old methods for every entry that can be removed and gives
+    the new ones the names kernfs uses, ->proc_read(), ->proc_write()
+    and ->proc_ioctl(). This needs all four conversion series.
+
+The series should all indicate cleanly what dependencies they have so b4
+should be able to pull it for review. But I could be wrong.
+
+With all of it on a KASAN and lockdep kernel the removal selftests of
+every part pass, the proc, pktgen and allocinfo selftests behave like
+without it and the bugs from (1) that reproduce in a VM are gone. Every
+patch builds on its own on x86_64 and i386, and with W=1 on the
+architectures it touches.
+
+[1]: https://lore.kernel.org/r/000000000000f24f4705b6988f3e@google.com
+[2]: https://lore.kernel.org/r/20231109212251.213873-7-johannes@sipsolutions.net
+
+-- 
+Christian Brauner <brauner@kernel.org>
