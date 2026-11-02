@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793629601;
-	b=CTgomip1yfz4yo3Umb3XbXBZ/Ca/KRlQmNqVJyDzeSpShzD1HAlb3PwAcfJ0uBMv91kB
-	 d9H7wXOs0m04xqrogUS7bC9tIaZrrAgT1UHjCR5HjdzvudCrbGMsLRNkeEfChnMdO73jR
-	 MxtwabKkjAoaKbav0xXpwmoazokV+XXXIfyUO5g/D3H//LS0HR+ErB+05h6ucAWTpXtsl
-	 JDJewmqbt/pnpz9g6hmR+yzjww2FdNIzaq6fJkb+DOS0fPEKBsBIT6AbqOH+C2g0rPJ1/
-	 fFGXXZkWF1IhjjOHJLEHLTAGe8auesSLFUPFw29iSRhZpT5jakPrivgMpA2ne3iuYNQ==
+	t=1793629627;
+	b=5o/AAxycrvsC8GT/NhC1uUB6PUjJpTQCoeg2AVZgDzF8+azW5JQ681C/ngny2gxuEAq5
+	 aNgn/TOWTSpL0i0YinTGmJcro3JCCoY8Pay+xtXPujS5e2MinfhcmZDLw/wRBWXprfK5b
+	 TsHSFhpSijJPXd4EH6UqRKsTmmAgZnS3KOQosYxYQbJ8w3KXkHJw3NzQjBjwZtCFj5OmP
+	 OOU1mcr7Ljv9eZu58f0MH6l9rt52E/LTCQ1D5tDN6FaTFz8QNiiEAiSb6g037IiqBPUQl
+	 XCzH0JJPpgcyFZBU4tYvChAq1BcKWYJPOSytC+5HbsNyH2c1WZJEtRDCtch9cvtSr0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793629601;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793629627;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=XyS11ffq54Sp7hLIWVW3dn1ZYIS4v3sn4XvdfnHyHBY=;
-	b=L5h8SRmo3vuQ+iHL19dY6TlTdzRZQGUeNH6HLDemNbI3ZndrYtfmZ7kFdQuVIjSglIqw
-	 VdJMfvAxIjiCMmraclXcPUKYxlTpQzxapMtqf0RTZg754JLqUJX612jIBAa2IFZAkyQyR
-	 45ECPjqEPuy85/1uTddzPeubMCczPksqgsFQfj/dhCkjskXzmqx8AuTkc4/nk8qoaP/hc
-	 Qq7F1OBZUyB2ogbgV3GW9Qh5cSGEs0w7PMGoSSROTbyESaMKz8OlTl420UA9k0NaTj6LQ
-	 opgVu2WLS54oxiZLJPEUwvElG6uQxlvJHA7FUsB1VJCE2Rr2JPaBLFKtK9DqdaQG9og==
+	bh=vzxa9WYWKU2hIPXRh8KIDL7iPDal71uWut2R3PeQ4Y0=;
+	b=tdA8Cy1hQFS8OLE66u4nq6uQvCsIzj7Yuxnnw1iMkhXe5YWzIq16Nn+Hgg9N4IYNHc/v
+	 Da6thucc2bzJtD5dnZqiHgSmxDCuAwPQ6zndob7F/viEF4K4KHwduCXK6HYdr4ZTMpZO7
+	 nKdmctVpeNrRVvpewa03uDYj8q7I4tPwUu1booGVnc6qdLSjatJsx54Or1Ms2gaJJ45Hm
+	 B1SCfGMBZ6na45qT4kcac7zRycii+xR/181IBkLTyHdqczlKbIM1msZUMNiSW/OcjL5OK
+	 rfDBbjGHm7AHk6BZsFoFYX+GnogD3xdwPDASunPVGiRTjf1exEoobYNPcdGkDRVRSRQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oOTHfPnj;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dcbte5hd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91EF2606D821;
-	Mon,  2 Nov 2026 14:26:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9059B607A88C;
+	Mon,  2 Nov 2026 14:27:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oOTHfPnj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35591F00A18;
-	Mon,  2 Nov 2026 14:26:28 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dcbte5hd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 929881F00A1A;
+	Mon,  2 Nov 2026 14:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793629601;
-	bh=XyS11ffq54Sp7hLIWVW3dn1ZYIS4v3sn4XvdfnHyHBY=;
+	s=k20260515; t=1793629627;
+	bh=vzxa9WYWKU2hIPXRh8KIDL7iPDal71uWut2R3PeQ4Y0=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=oOTHfPnjZImvmmRPM2MTN/E/IIH+K1Xm8QDVrH8Oqlt/AJsi4waiHv9CftkJy/6ni
-	 6EIRp0HbnhNfXHCXc4K9VojrITUlGyR3GhezVAOLc4o/UIMtBv2UXRIoUyNcRoDRfl
-	 hwij2c23hqVe3wrkk0JhAPavUcN3D/QHGIgP+swQEOLquf8jyQsTyTqg2D9L7WX2yM
-	 2YVUuBtbVOY3/D4t49N5Yy+FRqPEDXIaeGHoQTT7h7Tt3ELLZfedzkDX06MymVZHGo
-	 gZ83lZ/ZcoL9USNS1bfrcS7dOsq69wrvT9Qy2snDigPKgQfSdgsNGiZ+ZmulPoiK7N
-	 lLvjE7UUh2gCA==
+	b=dcbte5hdW7xjuWRdXMJ9nUGRptVMxwMDxFZD2ZHCRvhATLFLbmCjO/p7ODwW6VkxD
+	 y7TF4q7FxSh3ont9POQCTTY0PwswUZV/ZqG4O8wvRMxs5F8284pF+mcGzm4MaK93NQ
+	 QpE3IepC7NC3BeKk4OMULpvVs62kxU/MrowPIKoZY6XO5y1lgBCb/ZkDGZhuIEq6NW
+	 CebUwpQ9Bu8ybMNIDU6UpP7VHTtt7ORw+YnjUGlgQRZHNtXQRbikAiiBKHiyiL/Vym
+	 Kt3ER8pjmFooN4uaNfApJD5LlOSUElugetgObusGmTVg7V6wXoTDdDCVHauOcLAVDL
+	 k6v5tGZIFoVqg==
 From: Christian Brauner <brauner@kernel.org>
-Date: Mon, 02 Nov 2026 15:21:36 +0100
-Subject: [PATCH RFC 21/38] proc: let proc_remove() remove the entry it was
- given
+Date: Mon, 02 Nov 2026 15:21:38 +0100
+Subject: [PATCH RFC 23/38] proc: don't let NOMMU map procfs files
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -55,7 +54,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261102-work-procfs-bugfixes-v1-21-59422ed3e465@kernel.org>
+Message-Id: <20261102-work-procfs-bugfixes-v1-23-59422ed3e465@kernel.org>
 References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
 In-Reply-To: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
 To: linux-fsdevel@vger.kernel.org
@@ -89,147 +88,116 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
  linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
  linux-debuggers@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>, 
- Chuck Lever <cel@kernel.org>
+ Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4142; i=brauner@kernel.org;
- h=from:subject:message-id; bh=adm/sQF7056an061Kf+c19uk6i/tg5VeFqy/1HsVnNo=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9mJO94Vf79rbgFkGjg/dWX74aWPnxgZ3nnePVE5vOV
- HF8N+le01HKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjAR6Q+MDM3FETYHc1qe353c
- 9GCX1JmypW9EjzP2Bgsk5O+InsxuNJ3hn1riCsbHBiye0iWZCQbb/19b1Pias9fFyzP/0MYJD5e
- u4AAA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3736; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=z8wCFpT+9QBGZHOy3TWX3BTOUWtbXQrp/PYYpjal0N4=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9mJPtsd9LyTjxn8etT/1L5/2vmRnbF3jUb0ZGzE+VN
+ WutAza+7yhlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZiIwGxGhonbJLQPhS/4cP0g
+ 78WZUsuMuwP0t0uVRT6JrMjxPpyY/4WR4cI2pcs8h/Usw6/eF8xTrDD7dyb70sRAec7Qk5mztX6
+ 2cwAA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-proc_remove() looks the entry up by its name in its parent and removes
-whatever it finds there:
+Every procfs file has a ->mmap since commit 786d7e1612f0 ("Fix
+rmmod/read/write races in /proc entries"), whether the entry has a
+->proc_mmap or not. On NOMMU validate_mmap_request() takes that to mean
+the file can be mapped. procfs has no ->mmap_capabilities so a regular
+file gets NOMMU_MAP_COPY, and a private mapping never calls ->mmap at
+all. Instead do_mmap() takes nommu_region_sem for writing and
+do_mmap_private() reads the file into the copy with kernel_read().
 
-  remove_proc_subtree(de->name, de->parent);
+Reading /proc/maps takes nommu_region_sem as well:
 
-If the entry was removed already, say along with its parent, that is
-either nothing or a different entry that got the same name in the
-meantime, and de->parent may well be gone. Two removals of the same
-entry are a bug in the caller, but going by the name turns it into
-removing an entry that belongs to somebody else.
+  mmap(NULL, 4096, PROT_READ, MAP_PRIVATE, open("/proc/maps", O_RDONLY), 0)
 
-Since commit 895b4c0c79b0 ("fs/proc: fix uaf in proc_readdir_de()")
-an entry that was unlinked has an empty rb node. So check for that
-under proc_subdir_lock and otherwise remove the entry itself, with the
-loop of remove_proc_subtree() moved into a helper both of them use.
-Nothing can help a caller that passes an entry that has been freed
-already.
+  do_mmap()                          // down_write(&nommu_region_sem)
+  -> do_mmap_private()
+     -> kernel_read()
+        -> seq_read_iter()
+           -> nommu_region_list_start()   // down_read()
+
+The task hangs for good, holding nommu_region_sem and its own mmap_lock,
+and every mmap(), munmap() and exit after that hangs behind it.
+/proc/maps is 0444 so any user can do that.
+
+Give the procfs files a ->mmap_capabilities on NOMMU that allows
+nothing. Mapping a procfs file then fails with -ENODEV, like mapping a
+file without ->mmap did before 786d7e1612f0. NOMMU never called
+->proc_mmap() for a regular file anyway, procfs never offered
+NOMMU_MAP_DIRECT.
 
 Reported-by: Chris Mason <mason@kernel.org>
-Fixes: a8ca16ea7b0a ("proc: Supply a function to remove a proc entry by PDE")
+Fixes: 786d7e1612f0 ("Fix rmmod/read/write races in /proc entries")
+Cc: stable@vger.kernel.org
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/proc/generic.c | 78 ++++++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 51 insertions(+), 27 deletions(-)
+ fs/proc/inode.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-index 47830d6af255..23fc026d7bbb 100644
---- a/fs/proc/generic.c
-+++ b/fs/proc/generic.c
-@@ -817,33 +817,14 @@ void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
+diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+index b7634f975d98..9933f03ab9fb 100644
+--- a/fs/proc/inode.c
++++ b/fs/proc/inode.c
+@@ -466,6 +466,18 @@ proc_reg_get_unmapped_area(struct file *file, unsigned long orig_addr,
+ 	return rv;
  }
- EXPORT_SYMBOL(remove_proc_entry);
  
--int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
++#ifndef CONFIG_MMU
 +/*
-+ * Remove @root, already erased from its parent, and everything below it.
-+ * Called with proc_subdir_lock held for writing, returns with it dropped.
++ * NOMMU never calls ->proc_mmap() for a regular file. It reads the file into
++ * a private copy instead, with nommu_region_sem held for writing, which
++ * reading /proc/maps takes as well. Don't map procfs files at all.
 + */
-+static int __remove_proc_subtree(struct proc_dir_entry *root)
- {
--	struct proc_dir_entry *root = NULL, *de, *next;
--	const char *fn = name;
--	unsigned int len;
--
--	write_lock(&proc_subdir_lock);
--	if (__xlate_proc_name(name, &parent, &fn) != 0) {
--		write_unlock(&proc_subdir_lock);
--		return -ENOENT;
--	}
--	len = strlen(fn);
-+	struct proc_dir_entry *de = root, *next;
- 
--	root = pde_subdir_find(parent, fn, len);
--	if (!root) {
--		write_unlock(&proc_subdir_lock);
--		return -ENOENT;
--	}
--	if (unlikely(pde_is_permanent(root))) {
--		write_unlock(&proc_subdir_lock);
--		WARN(1, "removing permanent /proc entry '%s/%s'",
--			root->parent->name, root->name);
--		return -EINVAL;
--	}
--	pde_erase(root, parent);
--
--	de = root;
- 	while (1) {
- 		next = pde_subdir_first(de);
- 		if (next) {
-@@ -871,6 +852,34 @@ int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
- 	pde_put(root);
- 	return 0;
- }
-+
-+int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
++static unsigned int proc_reg_mmap_capabilities(struct file *file)
 +{
-+	struct proc_dir_entry *root = NULL;
-+	const char *fn = name;
-+	unsigned int len;
-+
-+	write_lock(&proc_subdir_lock);
-+	if (__xlate_proc_name(name, &parent, &fn) != 0) {
-+		write_unlock(&proc_subdir_lock);
-+		return -ENOENT;
-+	}
-+	len = strlen(fn);
-+
-+	root = pde_subdir_find(parent, fn, len);
-+	if (!root) {
-+		write_unlock(&proc_subdir_lock);
-+		return -ENOENT;
-+	}
-+	if (unlikely(pde_is_permanent(root))) {
-+		write_unlock(&proc_subdir_lock);
-+		WARN(1, "removing permanent /proc entry '%s/%s'",
-+			root->parent->name, root->name);
-+		return -EINVAL;
-+	}
-+	pde_erase(root, parent);
-+	return __remove_proc_subtree(root);
++	return 0;
 +}
- EXPORT_SYMBOL(remove_proc_subtree);
- 
- void *proc_get_parent_data(const struct inode *inode)
-@@ -882,8 +891,23 @@ EXPORT_SYMBOL_GPL(proc_get_parent_data);
- 
- void proc_remove(struct proc_dir_entry *de)
- {
--	if (de)
--		remove_proc_subtree(de->name, de->parent);
-+	if (!de)
-+		return;
++#endif
 +
-+	write_lock(&proc_subdir_lock);
-+	/* Removed already, maybe along with its parent. */
-+	if (RB_EMPTY_NODE(&de->subdir_node)) {
-+		write_unlock(&proc_subdir_lock);
-+		return;
-+	}
-+	if (unlikely(pde_is_permanent(de))) {
-+		write_unlock(&proc_subdir_lock);
-+		WARN(1, "removing permanent /proc entry '%s/%s'",
-+		     de->parent->name, de->name);
-+		return;
-+	}
-+	pde_erase(de, de->parent);
-+	__remove_proc_subtree(de);
- }
- EXPORT_SYMBOL(proc_remove);
- 
+ static int proc_reg_open(struct inode *inode, struct file *file)
+ {
+ 	struct proc_dir_entry *pde = PDE(inode);
+@@ -559,6 +571,9 @@ static const struct file_operations proc_reg_file_ops = {
+ 	.unlocked_ioctl	= proc_reg_unlocked_ioctl,
+ 	.mmap		= proc_reg_mmap,
+ 	.get_unmapped_area = proc_reg_get_unmapped_area,
++#ifndef CONFIG_MMU
++	.mmap_capabilities = proc_reg_mmap_capabilities,
++#endif
+ 	.open		= proc_reg_open,
+ 	.release	= proc_reg_release,
+ };
+@@ -572,6 +587,9 @@ static const struct file_operations proc_iter_file_ops = {
+ 	.unlocked_ioctl	= proc_reg_unlocked_ioctl,
+ 	.mmap		= proc_reg_mmap,
+ 	.get_unmapped_area = proc_reg_get_unmapped_area,
++#ifndef CONFIG_MMU
++	.mmap_capabilities = proc_reg_mmap_capabilities,
++#endif
+ 	.open		= proc_reg_open,
+ 	.release	= proc_reg_release,
+ };
+@@ -586,6 +604,9 @@ static const struct file_operations proc_reg_file_ops_compat = {
+ 	.compat_ioctl	= proc_reg_compat_ioctl,
+ 	.mmap		= proc_reg_mmap,
+ 	.get_unmapped_area = proc_reg_get_unmapped_area,
++#ifndef CONFIG_MMU
++	.mmap_capabilities = proc_reg_mmap_capabilities,
++#endif
+ 	.open		= proc_reg_open,
+ 	.release	= proc_reg_release,
+ };
+@@ -600,6 +621,9 @@ static const struct file_operations proc_iter_file_ops_compat = {
+ 	.compat_ioctl	= proc_reg_compat_ioctl,
+ 	.mmap		= proc_reg_mmap,
+ 	.get_unmapped_area = proc_reg_get_unmapped_area,
++#ifndef CONFIG_MMU
++	.mmap_capabilities = proc_reg_mmap_capabilities,
++#endif
+ 	.open		= proc_reg_open,
+ 	.release	= proc_reg_release,
+ };
 
 -- 
 2.53.0
