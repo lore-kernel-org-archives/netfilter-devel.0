@@ -1,57 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=162.243.164.118
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.173
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793634991;
-	b=x+N35isOe0p3zogQ+4kMEWaIRQktx5o2+yMCXihXyMyESqJP3A05r8jVrugdV3opu5fg
-	 LHXbZN64KZYMLRDw+QaVOX7m3vi92SnkY+Zrjb9WqNDLpaug1p2pl3VgnA87tJlML14Fl
-	 aST03Mk8JhicEd4tcFge+TX13iEp5pLD89LRN6r3UtxxvO9tDwjQ3TxdMC8XVR1gDzSqc
-	 UtHarVg4RTlWf7v47792ym3B1xmNT9tgqFQGyKhVsCRe6tz6HnKqNDPzq8X+684m58iSB
-	 gO+4SfJQb02LFMIiss6bDl8Mc32ZmuRNJJ4Ws0xulIu8P1plo7m7fvfrxmbpsdr/SGg==
+	t=1793642813;
+	b=Kvu5G+/okJI8Zu9HPfCGvCa5BF7RZHPHkt0BIoCZzItMAtWPLscakGh3zs2puTXWLuYL
+	 aFGEyg0ra/wmzM1/DMVnAADIaWHzndrUh/pIqux8cuPmxmeprVTyU2vzOSWjJP5EaPE7U
+	 4+0Ig5LsS9BKYWWlGNdnIbzUqdPZzbXxkQppIeq+dlXH1KcvE7u7ZrFLOz5ikCcZCl486
+	 Y+K142PUiSo2pzeHzVeu0iWxmEvSQjS4rs5hJJAP0BMAqeYgW/d7sJyKGy7XpSocVFW0x
+	 Z5dv8KRESeEI1PiLYhrL2RvTjn/ofzvCQHuhiUSXzEGzaY07JAr5ar9VJ1Ofiw1dJPQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793634991;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=iw0A/6qXyey37hvqhs6dNwEmzIY1VT/a5QdELgvzmDg=;
-	b=tD1mxxK+frvFjMLKdV3OA/Vglnl0JXERrHUTyR6zusID0Afm4LpN8C38SZQ688pRXQUT
-	 94cjtezF1xibNOgNzeWdJ2SMSO5iwSieOJmHZLSdWeD6OPLg2mA1IoVPmA16Vn4g33efy
-	 /ofCtoeKbpV5r7t0bNRg9HqT1xkBhW9WC+JynVXZK5woVAepSkO0yRBrOGNiYa3nK1SJ+
-	 xr7RQy9QiKAkw1sHMbjn5+qGAf6HqtrvUYpVA6rqg4yAItlfX0GNIuk2L9YNL4AZj8/KQ
-	 8cQ/vIEmthShAYTWGx3OXoK2yR5MHIolaa+XIG0HfPGCtx0cvjh0/aw83PTuPsnE06Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793642813;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
+	b=cgkxDZcjivbGaVa6JU/V1hrPRt6kmYuPROLevX1InDeKnhHJBg3Qk+Fzk28er054CVLZ
+	 pZcYU3j7VK0gGHMBIbv4Sh+uMBvUUjKiOdlsviQ3vS0xcEuQoWdO1mB9DYdCgMieXvIxh
+	 hQLdwcnRpfxie1vHmP5x2Q9whTsei7nI/YE0om2MeulJ3HZXSYAkkVDDZIg0CbAe1zGcU
+	 fHvh2ud8vMinX4CjHcIbK4x0s8lXNeZxcEW53UyUg3vaJCcpD5/zG3tp5qU0Qemc4oi9K
+	 7AcPKrSx2glAcqtP8Q6RFfzuI4Fux16/IlB4NW0q2Y1iBgUKfmlpDCUqgOhPxkNgYCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mails.tsinghua.edu.cn;
-	spf=pass smtp.mailfrom=mails.tsinghua.edu.cn;
-	dkim=pass header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.a=rsa-sha256 header.s=dkim header.b=nt59HVOC;
-	arc=none smtp.remote-ip=162.243.164.118
-Received: from zg8tmtyylji0my4xnjqumte4.icoremail.net (zg8tmtyylji0my4xnjqumte4.icoremail.net [162.243.164.118])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D00DD606E032;
-	Mon,  2 Nov 2026 15:56:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D00DD606E032
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=mails.tsinghua.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.tsinghua.edu.cn
+	dmarc=none header.from=linux-foundation.org;
+	spf=pass smtp.mailfrom=linuxfoundation.org;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=eYvbncox;
+	arc=none smtp.remote-ip=209.85.208.173
+Received: from mail-lj1-f173.google.com (mail-lj1-f173.google.com [209.85.208.173])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 060CE606A32D
+	for <netfilter-devel@vger.kernel.org>; Mon,  2 Nov 2026 18:06:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 060CE606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=mails.tsinghua.edu.cn header.i=@mails.tsinghua.edu.cn header.a=rsa-sha256 header.s=dkim header.b=nt59HVOC
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=eYvbncox
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-3ab3b29a210so35857551fa.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 10:06:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=mails.tsinghua.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:
-	Date:Message-Id:MIME-Version:Content-Transfer-Encoding; bh=iw0A/
-	6qXyey37hvqhs6dNwEmzIY1VT/a5QdELgvzmDg=; b=nt59HVOCF3BiLHluALOqA
-	xJpjiVE366RtBkK6daL2Scdcmt1Ix1zqTymDxfZcL3FBna2EijoMjWcEHJpZSPOH
-	qPaHFm2WVLUjZdGrRk5+qyJyp2BFYbBA3a//DClZ5djtaGxLhRW9aMiNou9D/bSk
-	g32SIBfieyrKOr4zhymrlo=
-Received: from localhost.localdomain (unknown [202.112.47.69])
-	by web2 (Coremail) with SMTP id yQQGZQCHtGiosuhqKf0BAQ--.27816S2;
-	Mon, 02 Nov 2026 23:56:24 +0800 (CST)
-From: zhangmh25@mails.tsinghua.edu.cn
-To: netfilter-devel@vger.kernel.org
-Cc: netdev@vger.kernel.org,
-	pablo@netfilter.org,
-	coreteam@netfilter.org,
-	stable@vger.kernel.org,
-	zhangmh25@mails.tsinghua.edu.cn,
-	jianjun@tsinghua.edu.cn
-Subject: [PATCH net] netfilter: nf_reject: validate TCP header length before sending resets
-Date: Mon,  2 Nov 2026 23:56:22 +0800
-Message-Id: <20261102155622.2658789-1-zhangmh25@mails.tsinghua.edu.cn>
-X-Mailer: git-send-email 2.34.1
+        d=linux-foundation.org; s=google; t=1793642811; x=1794247611; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
+        b=eYvbncoxnaqB8sYiuJpKROjr0b5aZ9o6aPSeFfsdD0CwHn9NTmeNmGV99niJInz1LM
+         44n2a4yJWvQqW3sPY+14lE9jlUKv7b8BlIJvAxWFCPegB6lXk5b/ClIl32N8i/pqu+Dh
+         ivpz3WP4mFObohHtKbV+CUqNdg8qxbfJjTj2U=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793642811; x=1794247611;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=/vXXDZI2TLqXD/tqTZGHj/cF0YcMq0fXP1TpWYkM2ME=;
+        b=WsZ3Ww1AcHnGjFUCEyUnxC7DERuRiWQR9hMfw4gOIHjDLbEXVWsf5PoWGJVvaf2wnT
+         UsdH+bZkt3obiehqR5V9OIrZP/MthZFB3PoNULZ8723Yt8130H42ssOAEi5YJStiUP+U
+         0grni+kD9beWxx63AMXn1A0zJLlFae31cbuqdqCEeYAy2Pedz4e3mQ2az9tSTKL/wfLz
+         9CCyt2Xny+DnDPKw59hwNWmLIwd9zVSIGA4h4nGaerIC4o4mr8nIwGWvEprrEnQcPzp0
+         WIEJQjnNlFGtqHpBLGpYWC4sBY+dv4JIOCPMyJScquBNHWqw+c4Fmv4FdUpmnRfujgkQ
+         432A==
+X-Forwarded-Encrypted: i=1; AKwUvByJHlfNaVCLN42HhkrFtY+v2IgYkTycjySkPa+i01sRgyAlGy9kCVwM89DhdtD5LTz2/G1/psKaRitV+l+pKSI=@vger.kernel.org
+X-Gm-Message-State: APuU4Z/NtZvpTFELx7wiAnCsrD3rEz8Jy176iui6A5MZytJzrVzpctec
+	s0qfNhgjJl3pU9UVnxvOmM7ON3iexEpgk6LaYEObHhv8gewdohGgQ4z7MvPVecDBeS4upZa4K0Q
+	CbXQur22WTw==
+X-Gm-Gg: AYBFou3Byke2r8+Dylk/ZcpB5/VBQGy9QWnuQ4+CnHVeHPqlXTEsSBmjcUC1zoPU1QG
+	TGGMBKFdjmnImr+KJv7h0BFJ7uDMafTn99jh2jOdVeB0j56mZ9whjSiJPS/LScR34DY7tYmR/5N
+	TBEyjiogEoARFa5asH1qIdWs2XFeTK9AKbFPs361f/Mmz0SRVszncMh1om3/81hibzzjuxNdkMT
+	KioHSytDirMtbxkkWuoZzl9T1M6pY5u/Y0rWQ9lkVXAtbR9lGh5HypZA3SoKYsWq8Qj/HmZr9kr
+	6xN+sQ0jjwHVdUvBF7HBKWbWnm50cqGChiaBtTQs9RCn0ktqYMXjDAffekso9u8r1DG298uDQTU
+	IZi/I2gLU7sybJ1b3n4T5DMFNu/02khhdOhEnf8CNesBN3QQnejCe0k39jxQwbRlzfvuCGh8VhZ
+	qZbKLDwp2/4kmsImcmh9w+OB8cmtVPiEMnAV1OrYZ55jllI+qP4uztyznGAyMizgcM9LlUiuDaH
+	SQ+TEarJA+EXX6rLc/ySNxVyKhsGFmtbsTNtJqp/1E7TlWNOG3wfzWulCRAUVOZi3pSp2iYc6xY
+	0+d/7d9NxNSJl0O4Rt96NPH8F1P47Wwm815tc6rAcG9mng5p3CBltwRXeDnoYfoVKN4cheFiJD7
+	yixJAoRTb7JtOg9E1vxZhTuIJChI=
+X-Received: by 2002:a2e:be86:0:b0:3ab:ac4c:186b with SMTP id 38308e7fff4ca-3acb7a65ea4mr22978181fa.9.1793642811174;
+        Mon, 02 Nov 2026 10:06:51 -0800 (PST)
+Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com. [209.85.208.172])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-3acd5c2eee8sm806791fa.15.2026.11.02.10.06.50
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Nov 2026 10:06:50 -0800 (PST)
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3ac65e845a8so38033921fa.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 10:06:50 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBybSY0KHxPBOf76sFo5q7peTfF73o04iKDk5wTiSE5xeVgWP/7lX8JHasm1CxhvjrdrCwZuIMnO+ebtrjNl3gw=@vger.kernel.org
+X-Received: by 2002:a17:907:d94:b0:c2d:c80e:8366 with SMTP id
+ a640c23a62f3a-c4ca7426f6emr874452266b.0.1793642348398; Mon, 02 Nov 2026
+ 09:59:08 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -61,96 +94,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:yQQGZQCHtGiosuhqKf0BAQ--.27816S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxurW3Wr1xAr4fGryxXr1fJFb_yoW5AFy5pa
-	47tw1xA39rKryjyFn7uF48JF1rWF4kGF47WFWFy3s3Kwn8Ja18KayS9ry7uayaya1xKF4f
-	XFWjqw4jy3WDJFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUBq14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
-	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC
-	0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr
-	1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IE
-	rcIFxwAKzVCY07xG64k0F24lc7CjxVAaw2AFwI0_JF0_Jw1lc2xSY4AK67AK6ryrMxAIw2
-	8IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4l
-	x2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y0x0EwIxGrw
-	CI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI
-	42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z2
-	80aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VUjDDG7UUUUU==
-X-CM-SenderInfo: x2kd0wlpkskqxpdlz2oowvx0pjkxthxhgxhubq/1tbiAgMTB2roVIJoagAAsD
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org> <20261102-work-procfs-bugfixes-v1-1-59422ed3e465@kernel.org>
+In-Reply-To: <20261102-work-procfs-bugfixes-v1-1-59422ed3e465@kernel.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 2 Nov 2026 09:58:51 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
+X-Gm-Features: AclHuK_qZTBVsLQIdymgRHScSFenC6XsGggUDmcuOugjrSTbuVkeASUmC_hYPZo
+Message-ID: <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
+Subject: Re: [PATCH RFC 01/38] PCI/proc: don't truncate the position of config
+ space accesses
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
+	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
+	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
+	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
+	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
+	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
+	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-From: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
+On Mon, 2 Nov 2026 at 06:22, Christian Brauner <brauner@kernel.org> wrote:
+>
+> proc_bus_pci_write() truncates the file position to an int. A pwrite()
+> at an offset like 0xfffff000 turns it negative [..]
 
-The TCP header validation in both nf_reject_ip_tcphdr_get() and
-nf_reject_ip6_tcphdr_get() checks that the TCP segment is at least
-sizeof(struct tcphdr) long, but does not verify that the header
-length claimed via the data offset is actually present in the packet.
-A peer can send a TCP packet claiming a 60-byte header although only
-the fixed 20-byte header is present.
+I think this would actually be better with rw_verify_area() just
+checking a per-file maxbytes.
 
-The reset generation then computes the ACK number using the claimed
-header length, and the subtraction of the data offset from the TCP
-segment length underflows, producing a wrapped ACK value in the
-generated RST. For a 20-byte segment with doff = 15, ACK bit clear,
-sequence number 0, SYN and FIN clear, the RST carries ack_seq
-0xffffffd8 instead of a meaningful value.
+We already have that logic for lseek and friends - using that fairly
+hacky combination of s_maxbytes and !unsigned_offsets().
 
-Reject TCP headers whose data offset is smaller than the fixed header
-or exceeds the available TCP segment length. This prevents generating
-resets with an ACK number derived from an invalid TCP header length.
+We should combine s_maxbytes and unsigned_offsets() at file open time
+into f_maxbytes and check that not just at lseek but in
+rw_verify_area.
 
-Found during a systematic audit of TCP header validation in the
-netfilter reject paths. Tested in network namespaces with nftables
-"reject with tcp reset" rules: on both IPv4 and IPv6, a probe with
-doff = 15 produced an RST with a wrapped ack_seq; with the fix no
-RST is generated for such packets, while probes with well-formed
-headers still get a correct RST.
+And then things like proc_bus_pci could set it's size limit in one single place.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Fixes: 764d8a9f2407 ("[NETFILTER]: Add IPv6 REJECT target")
-Reported-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
-Reported-by: Jianjun Chen <jianjun@tsinghua.edu.cn>
-Cc: stable@vger.kernel.org
-Signed-off-by: Minghao Zhang <zhangmh25@mails.tsinghua.edu.cn>
----
- net/ipv4/netfilter/nf_reject_ipv4.c | 5 +++++
- net/ipv6/netfilter/nf_reject_ipv6.c | 5 +++++
- 2 files changed, 10 insertions(+)
+Hmm?
 
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 59ec465a9..0e8823a7d 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -189,6 +189,11 @@ nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
- 	if (oth == NULL)
- 		return NULL;
- 
-+	/* Reject invalid or truncated TCP headers. */
-+	if (oth->doff < sizeof(struct tcphdr) / 4 ||
-+	    oldskb->len - ip_hdrlen(oldskb) < (oth->doff << 2))
-+		return NULL;
-+
- 	/* No RST for RST. */
- 	if (oth->rst)
- 		return NULL;
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 07cdaa10d..9dc112e50 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -223,6 +223,11 @@ nf_reject_ip6_tcphdr_get(struct sk_buff *oldskb,
- 	if (otcph == NULL)
- 		return NULL;
- 
-+	/* Reject invalid or truncated TCP headers. */
-+	if (otcph->doff < sizeof(struct tcphdr) / 4 ||
-+	    *otcplen < (otcph->doff << 2))
-+		return NULL;
-+
- 	/* No RST for RST. */
- 	if (otcph->rst) {
- 		pr_debug("RST is set\n");
--- 
-2.34.1
-
+                   Linus
