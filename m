@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793581050;
-	b=BrdFoUbeYR5104l6Qq0IN6iZF9UphZeqsQuIbbDpjiDCv/0n+9iH06+hQCQW4Sn9uYsg
-	 O4QYKcL9+34jgwQdhVfKuA0QV/DF3Y0ZwovUYB/N6fhg3t1J0kOJiNr2ToCIOhJCTPfrk
-	 PM/pR/pIoMnzhjPQUUw3vMT4saS10HWignF5RQzWUvY7Bhjb/AryIJvSIisFYHWFH7svP
-	 Ugk5FL+8Ucfjt7IfyKDGlFLahj5R7fNey3ArHCPw3nRRiG4BDPxxlWi+l3hWWG0PS+ILO
-	 wrCtwfYDdO7VwyMSMIppU9GDygXGauEiB4mQPg3P30++kcU84G+SE/JKsMHvceYa7qA==
+	t=1793581048;
+	b=z8naQo6X40u3+KVkCoAEWu57w6iGfzjOq2toD+KMrvX3fRVE5gMkt1KMNnc8n+ugkEqR
+	 KEQr6WKMPo5QYHGNXDK550latcc/iExa61O705eFGc2QiqCn1i8BH1cDbzNcTafMkSICp
+	 oreruiYvjpmmQUFzDU+rNe07Hm2Tlau1JtZqpAL8sk23dqh6oEvS2i65MUoUhpou8v1lK
+	 k8e0j7NK8hbAaaTCv5jp9ikYjpolBmA+lVerC7bCT88jCaxAMVI6pit5LmAgKPEjrzI86
+	 1mNZ8Pk/yK3Cr1EEMZbalg3HEl/g+JxkZAtkXFTZUi9irtjrnofMcGPFoqGJ2AnLl1w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793581050;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793581048;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=0GlfH3e3DvVlPjKTJC55ueYHxXbJqUklbkL29/+8PgM=;
-	b=Fc3j3hev2fAgRGKAeDi9Dxw0KmrPL5k3xHzimKJ/jHgansNSmHp/ccFPi9Za4xKYCxdk
-	 +jlHxH5AMs7HrgMI+BQXs9tORhZRHNEtLm/CvKAHG49rvWUxCyooiUGbgbVTogC6QPIug
-	 hKL9H/0RkwEQ6k04W0QpsB2drDjR+vVxoXAkB1BnP8n4659xOIn4N41Kvhb4xUgKz3lZy
-	 Kwqa2/pYe6CuFEJ7TrNRwwdZZCUW1YpYjjLTcF0g8rpB92gwVCJgC1tBiqlFcGXgNHwoD
-	 +PP5itfJpmTCDUvosVVMYE9+9LeTqbUl4aDkPi8jtSUN7ReC5v5wO2IdDFkxdfkR+Vg==
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
+	b=WZoBD6d73EQRQtv+7E9NYSklbVBepBUS+wf/lFNkLmVA2XRReuUmnvJLsLuSLg+XU8Y5
+	 7V5z5o/BWMh156r2Ha+ntwp0eQYFLzSCf/1aH/7wSmrfmBl42BrD37IYkHMtQlEKSh/qa
+	 s18isXKWhX8ITwJ/4NUn5Jv9WNTCiPStpRXcqnLELNbKdM8scgfwGGX6nnNemFQNgINXZ
+	 uZ/3/lL8vTlujdaRAJZ8wVZ5P1/LQzhSkz/Be9qIWmetUbY5oS9kBw9/TqejMUjBD+3wr
+	 TLTaQQDzySGvW1908xJV8qW9Z4wV9E/j1xGxXXG3kqkzz3577p4zk3KvEXjIGqTA7Uw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=gIyNkobO;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=TNO635yC;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3EE5606A339;
-	Mon,  2 Nov 2026 00:57:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3EE5606A339
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4322260A261A;
+	Mon,  2 Nov 2026 00:57:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4322260A261A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=gIyNkobO
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=TNO635yC
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793581048;
-	bh=0GlfH3e3DvVlPjKTJC55ueYHxXbJqUklbkL29/+8PgM=;
+	s=2025; t=1793581046;
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gIyNkobOIICACJN6p5DXRNXqaItQezgxjIoMuZ0Gr0bbBJ0GWoc+NN9mr2udxL0rT
-	 tkxsLNlGEZYgLFIDAO2X83Vz1yqWrUoJz/HPIkYpNI6YyaLW5vWtmlN8Zsz5qxq/qj
-	 cv61M/n3rEoUI8sib/6WkzDrZUS54Ol0UhwbO5hLl6dsKRyGg3BwvrMbT5Y76NkEhX
-	 BlpkbqK5Mfvg3tJZ80/zhuhIgrJLjpYrcTNDeFV3HOPMq7zdnv0UGBst+gUslMnjnd
-	 GCXrYK0eZBK45N7JXz3k1T2jEtDnPcuOImrteoC0DmnAN7F6F5zFBKrycyv9JTKBWy
-	 eQNIhYSFhH8+w==
+	b=TNO635yC7orMvNzksFBDp/Ky5/DW3RGwnzo1hbeOaazG9I9hJnltQjkJ4ufuX5LqW
+	 cWg+Q6qElnHPelzmogLXE2JUb9Dxi21iV/VnNeDpMQy7Jcur6rPvjn479n0DNGAUOk
+	 HBlgc1bn0jOLh3wIVLuSXTjlZ8x9BfTIEmWNWaY6qTuP/KQU/fHbT78JnJ4AjqUl3Y
+	 MyYoAOE8TDjGvb+lHeIYadOJdD6YR5CH49xZS07gJkUkp+oCWO6oMo0yhp1AjOVmK2
+	 q1/ZbnFBcBdVznSUNrOmg9PcHSss16XFPoZC0Wf+Z/RlRBK4Y4w5JrzDNs4h4jY67h
+	 kL7I9wOTnkTog==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7926D6007D;
-	Mon,  2 Nov 2026 01:57:27 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E486B6007C;
+	Mon,  2 Nov 2026 01:57:25 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 15/15] netfilter: nat: zero newrange before filling it in
-Date: Mon,  2 Nov 2026 01:56:54 +0100
-Message-ID: <20261102005654.532438-16-pablo@netfilter.org>
+Subject: [PATCH net 14/15] netfilter: xt_recent: do not call remove_proc_entry() under recent_lock
+Date: Mon,  2 Nov 2026 01:56:53 +0100
+Message-ID: <20261102005654.532438-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261102005654.532438-1-pablo@netfilter.org>
 References: <20261102005654.532438-1-pablo@netfilter.org>
@@ -73,87 +73,80 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: "Cen Zhang (Microsoft)" <cenzhang@linux.microsoft.com>
 
-nf_nat_masquerade_ipv4(), nf_nat_masquerade_ipv6(), netmap_tg4() and
-netmap_tg6() each build a stack-local struct nf_nat_range2 from the
-caller-supplied range, inheriting range->flags unmodified. Two of them
-only memset() the min_addr/max_addr members, the other two don't
-memset() anything at all, so newrange.base_proto is left as stack
-garbage.
+recent_proc_net_exit() removes the /proc/net/xt_recent/<name> entries of
+a dying network namespace while holding spin_lock_bh(&recent_lock).
+remove_proc_entry() may sleep: proc_entry_rundown() waits until every
+task that is still inside the entry's file operations has left. A reader
+of such an entry is counted in by proc_reg_read() before
+recent_seq_start() takes recent_lock. So if a read is in flight when the
+namespace is torn down, cleanup_net() sleeps in atomic context holding
+the spinlock that the reader is spinning on, and neither side can ever
+make progress.
 
-If the inherited flags include NF_NAT_RANGE_PROTO_OFFSET,
-nf_nat_l4proto_unique_tuple() reads range->base_proto.all to compute
-the NAT port offset. Neither the NETMAP nor the MASQUERADE targets
-mask the flags field in their checkentry callback, so this
-uninitialized stack value can end up feeding the NAT port selection.
+An unprivileged user can trigger this from a user namespace by adding a
+rule with the "recent" match and reading its proc file while the
+namespace is being destroyed. As recent_lock is global, every later
+attempt to take it spins forever too: the spinning can spread to all
+CPUs, and network namespace teardown stops system-wide.
 
-The per-member memset()s are not enough: they have to enumerate every
-field that must be cleared, and base_proto was missed when
-NF_NAT_RANGE_PROTO_OFFSET/base_proto was added to the struct. memset()
-the whole struct instead, so every member is covered regardless of
-which ones get explicitly assigned afterwards.
+  BUG: sleeping function called from invalid context at
+    kernel/sched/completion.c:116
+   #3: (recent_lock){+...}-{3:3}, at: recent_net_exit+0x2b/0x140
+  Workqueue: netns cleanup_net
+  Call Trace:
+   proc_entry_rundown+0x185/0x1b0
+   remove_proc_entry+0x21a/0x520
+   recent_net_exit+0x7f/0x140
+   cleanup_net+0x414/0x8f0
+  ...
+  rcu: INFO: rcu_preempt self-detected stall on CPU
+  Call Trace:
+   queued_spin_lock_slowpath+0x313/0xc20
+   recent_seq_start+0x87/0x1b0
+   seq_read_iter+0x265/0x11e0
+   proc_reg_read+0x1ab/0x270
 
-There are other places that miss this, but those hardcode .flags so
-nat core won't read from the uninitialized fields.
+Fix by taking recent_mutex instead of recent_lock. According to
+commit a0e889bb1bdc ("[NETFILTER]: recent match: fix "sleeping function
+called from invalid context""), recent_mutex is the lock to use here: it
+protects recent_net->tables and was introduced so that proc entries are
+created and removed without recent_lock held, because those calls may
+sleep. hashlimit_proc_net_exit() does the same for xt_hashlimit.
 
-C99 initializers would be preferrable, but this is a more intrusive
-change.  Lets followup in nf-next and convert others as well.
-
-This is an LLM finding.
-
-Fixes: 2eb0f624b709 ("netfilter: add NAT support for shifted portmap ranges")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 665e205c16c1 ("netfilter: xt_recent: fix namespace destroy path")
+Cc: stable@vger.kernel.org
+Cc: AutonomousCodeSecurity@microsoft.com
+Signed-off-by: Cen Zhang (Microsoft) <cenzhang@linux.microsoft.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_masquerade.c | 4 ++--
- net/netfilter/xt_NETMAP.c         | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/xt_recent.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index 4de6e0a51701..c2a85bd84af1 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -62,8 +62,7 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
- 		nat->masq_index = out->ifindex;
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 55f1f2d89952..00cccf003cff 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -650,14 +650,15 @@ static void __net_exit recent_proc_net_exit(struct net *net)
  
- 	/* Transfer from original range. */
--	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
--	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-+	memset(&newrange, 0, sizeof(newrange));
- 	newrange.flags       = range->flags | NF_NAT_RANGE_MAP_IPS;
- 	newrange.min_addr.ip = newsrc;
- 	newrange.max_addr.ip = newsrc;
-@@ -242,6 +241,7 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 	if (nat)
- 		nat->masq_index = out->ifindex;
+ 	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
+ 	 * that the parent xt_recent proc entry is empty before trying to
+-	 * remove it.
++	 * remove it. Use recent_mutex instead of recent_lock since
++	 * remove_proc_entry() may sleep.
+ 	 */
+-	spin_lock_bh(&recent_lock);
++	mutex_lock(&recent_mutex);
+ 	list_for_each_entry(t, &recent_net->tables, list)
+ 	        remove_proc_entry(t->name, recent_net->xt_recent);
  
-+	memset(&newrange, 0, sizeof(newrange));
- 	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
- 	newrange.min_addr.in6	= src;
- 	newrange.max_addr.in6	= src;
-diff --git a/net/netfilter/xt_NETMAP.c b/net/netfilter/xt_NETMAP.c
-index 7da065a472e0..8bcb3f716d68 100644
---- a/net/netfilter/xt_NETMAP.c
-+++ b/net/netfilter/xt_NETMAP.c
-@@ -44,6 +44,7 @@ netmap_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 				   netmask.ip6[i];
- 	}
+ 	recent_net->xt_recent = NULL;
+-	spin_unlock_bh(&recent_lock);
++	mutex_unlock(&recent_mutex);
  
-+	memset(&newrange, 0, sizeof(newrange));
- 	newrange.flags	= range->flags | NF_NAT_RANGE_MAP_IPS;
- 	newrange.min_addr	= new_addr;
- 	newrange.max_addr	= new_addr;
-@@ -91,8 +92,7 @@ netmap_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- 		new_ip = ip_hdr(skb)->saddr & ~netmask;
- 	new_ip |= mr->range[0].min_ip & netmask;
- 
--	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
--	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-+	memset(&newrange, 0, sizeof(newrange));
- 	newrange.flags	     = mr->range[0].flags | NF_NAT_RANGE_MAP_IPS;
- 	newrange.min_addr.ip = new_ip;
- 	newrange.max_addr.ip = new_ip;
+ 	remove_proc_entry("xt_recent", net->proc_net);
+ }
 -- 
 2.47.3
 
