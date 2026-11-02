@@ -1,72 +1,72 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793653906;
-	b=iGL7gUWQk3g6DXh0SwMASLul2JP6hxXu1zazD6wzDDpkUzk0pHDLk72mNNRafj1LTszk
-	 zlwTrBuWQ0f0fGbXhMLO3qK9an3akPhuOuMmYYmuIxNB6pB04ez1vDq8G9Q96ZSGAZvh2
-	 4QRAHCltSWW9vzLwjb+eRxS2n35bbIYEQ2QPcaZxE1OYzA+LR2+poFYDkZGVswt+V7XhP
-	 HijSZcAH2ZcNmz54UIVZL33Mo5wnbXKAD8n4pXdugg92KaXBolP5LR1Q7RcF6TAlgoF9B
-	 fdc1VaV54NgHaSAozWGu3/u8FVUhIzAdxtsIoYoXqyhhjUoZf4L0co+ysDIbWKkKbCg==
+	t=1793653929;
+	b=1Tur4x8gm14mBksTJdDPtqGxhWWdwfEjGuRFK2p4sRJMB5G8N+w6Q++a1rJVhsLXUX3q
+	 ZdR7Qq9AuLTU3iva+BqYKDj8TOg970oBCWf98iGmU7u7Fmiu6MBdDNxD5CwAUmqJOntfl
+	 FjLlB3v3jC1DJ9ERA5losi1nFUOt6U0H8JehsZIgS+ydr6OEOf2ZWxIFa3HI8oTLu4w5s
+	 Ltwy9xcj6tYzGUiVblROx2IVIY+z6mjXdA+23hemsxoD6zErF7E23fJiuTmBr2QUqlWSH
+	 OIWA7JnVj9jRXAlXURsXS9bCzu+7ohtrTuu85L7XCAKTUy5brvts9v63CLZ/tj8NZQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793653906;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793653929;
 	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
 	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
 	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
 	 References:Subject:Content-Type:Content-Transfer-Encoding;
-	bh=xxWoHxsw4VPFqHPAqACZbusTmTkHUnFSnkXXJwnJ4WA=;
-	b=DFJTc1CEvVIBsE/vDp8FgdYWBusDQZHFflIrh5oW/B32SZLIGQe/MLZMUSFRohzpSU2U
-	 xktzhiRHQ5SNoX/FLja7Diuq1gcdHE3UtQTkXK6Nq0OERx4vpa+G2Ww5cuL9xIULnvD3h
-	 y+IFIc4AxDg4dqPSYsOxaL/9xDSfS5m2zkY5J9FtMxLZ+U7la9gNCnmz0OZTmNMAiZHyx
-	 Gz2MoyzXwSTqpYg4XTdf484CQXDUjGN0sTtN94DawulSJSjyDgd9l4K9YRIZV3n9PBlvz
-	 xTrxEZPMOrda1QqTGCvzAsKlorCC9BUbUbkbci++92fUGXEHEQbVVbL7p0GJLU9PkWg==
+	bh=2GzKULsklpP+bGy2QkTiTCDYRGUHpWIftO7smBM1HBU=;
+	b=fMLMF5AlyWnrK8BGKFxks+t+XoXsRMa32k+Sgwuyb0ZZEmls8mvFKUgNzeLDVwHjv1gs
+	 w3qHOPPlvxDyrTPIJUP3gZrYeWRityGKIFPUU+w6+tJcS4/UlEAccZzLFd4ABJa+p+Gb/
+	 qTKHVba30Em0YlSbKIQ38TpBAi1war9jeWuziYUXVfznTpQyKvZCuIAYZYMNxsk7ir6ul
+	 hQENEOTj3W0uZKCAWGNOqkfuhuOunJevAk9NzASdqAI4LE7InepVA+imsA1Uy61x+pFU2
+	 lXEmGdKpozce//9VeVuPJXwvBcnZxYocA0vSXCLqvL21uAIL6GfQYegN8HM3H5C8Nfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XZe6+tyY;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eOrrqnCu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDB1D606A329;
-	Mon,  2 Nov 2026 21:11:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E30B9606A33E;
+	Mon,  2 Nov 2026 21:12:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XZe6+tyY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F96B1F00A16;
-	Mon,  2 Nov 2026 21:11:45 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eOrrqnCu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59EC01F00A17;
+	Mon,  2 Nov 2026 21:12:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793653905;
-	bh=xxWoHxsw4VPFqHPAqACZbusTmTkHUnFSnkXXJwnJ4WA=;
+	s=k20260515; t=1793653928;
+	bh=2GzKULsklpP+bGy2QkTiTCDYRGUHpWIftO7smBM1HBU=;
 	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=XZe6+tyYLswAenBO8yAzFdeWRzKxvbqg1Ev/mg/a4IY5Ykl6dyrcjlnUec04HQhAB
-	 wUqBfr7XNAis1gRkRlwuGTTv/aLI8n5inKL/pOeo0qX2ZMVH6ZsIHjb5NCZh9zUPL2
-	 o/ohakMyhEJMO6zYmevE4LT4/D6JmGaT3h4w7BN89zF2VUs59WIhKi/DP83L+kUnC9
-	 SsDT8nIZxjYMyLxMxFoJC8PTJcen/wSXsZsrKVj0Q0tCq0A7kxVFkRR+wzfD8le+If
-	 Wl/DtyEEVNWoCvyuUqF5srUDKOCiBW/Gb9kIb+nJ5eqrm2qnqAgrPwEWkqx/H5R5yQ
-	 Crn9JOHwAhkOw==
+	b=eOrrqnCuBcAP2fV3PXFfcEJwMkbwRAGIHp6KCaFjIuyf+sB1JHZdbkgspwPLwt79I
+	 FXcIAf/upp/+9o6XUcQaMC14vFQxQ6eh9W8VfoZZc26/0Zh5MuJ/0TM2e0uyfW4hkA
+	 QLktWfGN7zznzKizwQD5uy/9yLbgnxyAE6t6ani+AKBcNVKVkHnsQ8helsDtzQiS2E
+	 q9cRneHEfj+nRxs45bkIcWQv0qDhG90LIAcSe+kfsWxW/AaFZXLwNirUt+0C02LAuE
+	 8jLD12JMKQWRs2u9qRZKZEaqw2EosZDvi25EsVp4XP0qG99VY/JBpz34fze06k2ZE0
+	 1KTIeVp5fXdhw==
 Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 9A2D2F40069;
-	Mon,  2 Nov 2026 16:11:44 -0500 (EST)
+	by mailfauth.phl.internal (Postfix) with ESMTP id B11A3F40069;
+	Mon,  2 Nov 2026 16:12:07 -0500 (EST)
 Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Mon, 02 Nov 2026 16:11:44 -0500
-X-ME-Sender: <xms:kPzoauT46RzZZAtJ9pk6EmeQC8cMELBagB3u1iMeAaHmOjnENab40A>
-    <xme:kPzoaumk-opmRQlpeWeKnkRMlTth_z6pBLrv31d5JNfpKtehryrVtBuG3qfafkapL
-    0UJlxT0ifcf_WdI3louCiTK_NZW_9YRI03kfo2jNxtQamFkpy63zY0b>
-X-ME-Proxy-Cause: dmFkZTGGTt1pQq16zbZlBikp5z2kGCzhIzyCgkLQFgSXoffQhlPZQXfjBFq1ZiXvdSuuXZ
-    LGfrLfwbRgm8cT/TQHLtmkS2wq/scJf8NlSAUsi0B9JpHEGQcArw2onxUgxSVXeSq73Th3
-    +MD0Qi/P+BTULU9VUvoeDDNpVnNmDbD7jQoN3v4l/IoJhT2uLJVTZ+qQoBDMXBdvnbBuoB
-    9tDR+if4J7M64uHI42/0BjtEfvrRTVsfVuGRQKjlc4H4/Tpb6Ukdvkgbe36C9jT+yX7xq2
-    jBGJCbh4CPX6idD2imiKQ6v9tm9bzRUVfoBUnOyYFMrBkFYiOOBWgnG0kr7aHqxli45kQp
-    ohMXmtjBzal9CB+YgOYOkiE9b51wZucg/4Qex1khPYx+JLGLu0NEFrvGtoRmQ6eE2VafNW
-    CY+B7UtOu2dLLX0YzJKc7HKLrBl+UhzkRfMrCHLaMOitCefJUNU2mkw7vcohOcdeMVRCgw
-    TQWRrq9hCVC/B8Rxe6VYHSl8gHOGuRazDUmW6qr5GDwgwEuKJT0vVpSDws8RN4u7/JR2Bw
-    7Q9JGl1Z/LH2lgcMAQgF+wjiqdsKo0vCxpzH21ZsG7KiWO33lqILFRfkvZC562OP5TxBQG
-    hvqFJiKnoaGgu8gvbQah48jOhQq3KspK10b5m5ASEOwP4kkYmm4PvM17d+KA
-X-ME-Proxy: <xmx:kPzoakThPn76RnRib5bZ_FntPITCT1o4Ovwx9E8rstI1voUg5JpAIA>
-    <xmx:kPzoahfEU2tfoiygDyUOVgUPLZrN0jZ-87YF5q5IhIxNwkm1ztvL0w>
-    <xmx:kPzoatetgw6gOoAhlTHOnt-HZbmjY916FiHHIyaUhhTihCSwAOX_gA>
-    <xmx:kPzoaj1ywieDU5FAFn3LFQMJapowgQlEbMPUeurA4l5-zBDlAnyByg>
-    <xmx:kPzoat9Ejs2zX8NiQVdXzLsXpl7UKGdgzTPDTECnMqAK4pso_NRi0RMI>
+  by phl-compute-10.internal (MEProxy); Mon, 02 Nov 2026 16:12:07 -0500
+X-ME-Sender: <xms:p_zoapr17E29H-fSQ5ao5UDU9J0d0UN9LslRMK2Yot_NizRnTFEkEA>
+    <xme:p_zoamfCE-S7Hs-CSPipIUil3YlwaRZKX7BUg-QHg-cJzQuryMUebhuHqcqrGO2My
+    Eg5TEG_P8cg0UC6V-oxZTejOTfI-6-kMXMS5aIVpyy5EBl8NJuOZyQb>
+X-ME-Proxy-Cause: dmFkZTFs/jmIsOXvjcGBiso32MoDaWgH4iC1UWSX3VoieAjEEqJt3ar33qqWLUiTvp3z55
+    l/lffrpMfJBR21ZDDnKKQZot/S8Ds6UkbBkCGKTei2C0Ja+WhBu0PN0mWrm3sqzz3Jp7lV
+    Jv1K6RPYXiNNlXqdrUFYO5e1msLfI8VSiWnLSS5klgvyo4xAyWRfwC6+MNLjKoERshPwGl
+    Qc55QBtPREQD5fwDYU/ZSFmh2IMYgdQc04iMI0NC2Rh46JSdNO4k9fa1UzFany6ha7zsP4
+    nGREtdukYBrm2r+m/tLuFErrU7i5fnQayX1JE0vmCRKjtAvTf/+g9c8agVHFyS1mBe4TlY
+    tzy1MGmScGSpYH5gbw4YWcUaDYKm/1Gworbe2oPf8WO8Pq2PukV5cF7Hrz1T4e20ZOAfMJ
+    pOtihf6v5J+OVQqXgMGVRx2ye3u0et5TR7tXNZ39eEYU7573MDGaYM5uL/zjFleuwDIH4I
+    piYQUR1gbQveGw7lAmFaS/Opm+cjvdT3L+x2vvPYhPiVWOcMem7oCVHkFnTCXUIAuASgYK
+    Fq1XUHcc2jX+OfUipIn3mT/pvOZ8Aiae+YApdQYl+NDbpGF9WnByqKq1WypdSeLOuEPoUu
+    VP3DHK4bRsNLQUxd4rdJHA9eIoADoM7h61QX7G4aJQstpPOvBTdSCQApZMyQ
+X-ME-Proxy: <xmx:p_zoanP_XSANPspRyS5Nz4OzOu6eC3yx5rafDiBnjc7_rqVeZTRC_Q>
+    <xmx:p_zoaqIm_TXr8TwllRIqoluxHyfJ-0Is5L2yC8VX1VAfDyKD0QbqKQ>
+    <xmx:p_zoah3BURDlw14O83vBX1r6sL6aVVfVLuMLRtQP-g06NREm6axXHg>
+    <xmx:p_zoamXNg_Xnc-8U4wmQ2zDJVgwStaTO4e5-GuWgSZ65ja4A9Fg2tA>
+    <xmx:p_zoarN1EdqzZ9C014dxq8AiKhbVC7SUS8_O_gy6LABwbK1OuH9Qn0Vl>
 Feedback-ID: ifa6e4810:Fastmail
 Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 7098678273B; Mon,  2 Nov 2026 16:11:44 -0500 (EST)
+	id 96E7B78273E; Mon,  2 Nov 2026 16:12:07 -0500 (EST)
 X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -77,8 +77,8 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-ThreadId: AFgPYeWZplpR
-Date: Mon, 02 Nov 2026 16:11:23 -0500
+X-ThreadId: A5s7LfNSi9ds
+Date: Mon, 02 Nov 2026 16:11:47 -0500
 From: "Chuck Lever" <cel@kernel.org>
 To: "Christian Brauner" <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
 Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
@@ -111,23 +111,24 @@ Cc: "Linus Torvalds" <torvalds@linux-foundation.org>,
  "Takashi Iwai" <tiwai@suse.de>, linux-input@vger.kernel.org,
  linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
  linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org
-Message-Id: <7ee779f9-db3d-4829-bdd8-1d09e3f74c43@app.fastmail.com>
-In-Reply-To: <20261102-work-procfs-net-v1-6-982104a4f592@kernel.org>
+Message-Id: <7a864852-252c-4a62-b4f7-33072e33b7dc@app.fastmail.com>
+In-Reply-To: <20261102-work-procfs-net-v1-9-982104a4f592@kernel.org>
 References: <20261102-work-procfs-net-v1-0-982104a4f592@kernel.org>
- <20261102-work-procfs-net-v1-6-982104a4f592@kernel.org>
-Subject: Re: [PATCH RFC 06/11] SUNRPC: let procfs own the seq_file of the cache content
- file
+ <20261102-work-procfs-net-v1-9-982104a4f592@kernel.org>
+Subject: Re: [PATCH RFC 09/11] SUNRPC: drop the ioctl of the procfs channel files
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 
 
 On Mon, Nov 2, 2026, at 10:07 AM, Christian Brauner wrote:
-> Declare the seq_operations and let procfs open and free the seq_file of
-> /proc/net/rpc/<cache>/content. ->proc_open() and ->proc_release() only
-> take and drop the module reference and set up ->private now. The
-> rpc_pipefs file is unchanged. Reading the procfs file then no longer
-> holds up its removal when the network namespace goes away.
+> do_vfs_ioctl() answers FIONREAD for regular files with i_size - f_pos
+> before it gets to the file's ->unlocked_ioctl(). The channel files are
+> regular files, so cache_ioctl_procfs() has never seen FIONREAD and only
+> ever failed other commands with -EINVAL. Drop it. Other commands fail
+> with -ENOTTY now.
+>
+> The rpc_pipefs channel files are regular files as well.
 >
 > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
