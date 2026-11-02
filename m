@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793581037;
-	b=sf/6jsuRs/yQEtJ7qigT01d0DS6uRt5EqP5H3uWWoshnuiVh8hm5Zdek5ukIASkF8nA0
-	 p5q7XKjHuVyDCcQRPqqTtATNnJucXLx+gKRSPTDvJt6XJlsuwP3+OwmDtR24Fc+UB7Atg
-	 ToxinlSCINi1bNz8waNyEdmJyQxp7tfq/ztUqIpwPecSh0Bu9SXPtr9oKEUgjcxzsb7F0
-	 1r6AE0lDLpSBHwpZJ1D3RSog4Oueyv5vQISORNZxAISLIc0Wp3jgsLwKq9s11/e0k2tqq
-	 gQYZPflAigC1xWSY6sKhMf7JOhtAPM7pmuouX3oIMgahjMzu42qGw3vfmdbkPOMiZng==
+	t=1793581042;
+	b=FDAnpqYxssdMZL9C196j0sWinz6yFTlAmjQKLczfkBzpeOPFaTYz3JOK63EOQXL+7PwE
+	 Myqz4XKVpy95tDbNlfDbUHMBPZ9HAbTZXFfFRiHXVPN+fneBaeixBHyTaveZqUFLy/p7f
+	 aV3q9wCDe3OEsoAMQVvDW4/89Ma6jnvmAZJVL8JAYC4/ZzSanCHIFggT6lQRTdjzx45CR
+	 Iys6RczVKskqN/S8NYPlBQfL/5GIdGnbPo8z6bEtWAXeyvTQthXiDsaIl6NzRU2bQ6DoK
+	 odNx1IsgW22HMWguKhK28NSylmWjELk1J+MX+qSykrSoa8Ci8a3ksRk74StMmHvNTKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793581037;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793581042;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
-	b=V2myYjRfHmVBMQN77MqZLTr1MHoqR3U3Bw+dUVvnj6cbwbZPuWEzdMNGo4dHYS10Fl4W
-	 ibrGBV5TbDKbh1/U45wgXOFNH75Al9XFgfuT1tgi2+kOZN6eMr1Sj77Yt0OTu5GLfigu+
-	 f5O4joB3gCjhy2s9GUzYV2rqAY9AEm7Obt6ODMcK76xIAkXQktB0cznHcJ1bEqMnYOGm2
-	 dSSCf+tMbF5kT8sCEwFZi5hCs/4Pl8v0bI4wcPeOo88jeylK6344zAkJfA5k7CYw9zsYu
-	 jU0Tq8K0UgKQDPrd/D81eULWiHHQFBqiY2XnejaYyWcpfhLR60uwzbwD1tumw+KyLQQ==
+	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
+	b=hi3SphseF3t/AuCtpHYfLMT9xAG6LGc9rcU+IxjDJoR4ncX1sGZI1ndV4X8vHKF6neH3
+	 6Up5CV3X0y1SS7iU6hgNpmD19PGt4TFcw2OK5HydLZIsku33BH2HfRTDckEPrxDj6GGvN
+	 UY7LyieJ7USOtOxX+1XYQ3ETbqCSl9GwNekUOEGZ3aX03UM3nCvmGjR7nb9JZdZHCeM8k
+	 tc6ZjIzNuXMW4YjYlpAnAy1C/qdM9/O82Ew11geFkGKei2Cq8VvxqoiQLavUsKmLE+7CQ
+	 ltLoWynfoSnbz+S8gz6Z4q5kl0dt4AuzFjaNaRhJWrBxFyzuEwLWl1V1jSdm5Q/LNtw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Si9lSjvw;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fNN+63Kz;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D767160A2613;
-	Mon,  2 Nov 2026 00:57:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D767160A2613
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DAC3606A327;
+	Mon,  2 Nov 2026 00:57:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DAC3606A327
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Si9lSjvw
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fNN+63Kz
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793581034;
-	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
+	s=2025; t=1793581040;
+	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Si9lSjvw5hKEgChu+S8gJNJXKcsvFuGdqn8IltiYyCTMH44IsLCl9EEqyzXVA86O0
-	 JjZi3brtuAC0FrK/FWxQrwk65iUAmO7LtVMT26v+dnSdbWIQhTMNZ4IFmdXeY4lYF0
-	 md52iXVFVO/yTEU0vy0OpyTeZBbnd0PRCGF3RTJJbNTeURqBi3AU7s1UUZ20dMUiA9
-	 SY6PukmVkvB4vhgR6+AXirlBlb+ViKOs0/3RQBuwxY/PzEXNHNm1wwWre7Z2w+ExvH
-	 MU8LXS4YRWamog5lUEUxWandUnnJ/SuAzn41yI7PWdHg5OqfS85wITww4LmEzDfrvW
-	 XbtNb9PbtDZGA==
+	b=fNN+63KzBne/vokxP5STTF6EJYSdq7x0+knbJEo9nLK0cGrW8Rjg46BlibJ/pulWK
+	 lOA1vM4uBBZOWLgRZp+OVSXCoKJiKfSAOSDPUKszkPCsOqCf9VrqwWwqWb3xmMg+u8
+	 iF5V04noZGH2ORnVt6RP6jJLV+DfJ/acdPGtjfYED/M0Y5CMnDKY5Al/wwXdZCcjYM
+	 AfZU6KVzMlbeoroAWRS1lS22Wz7JsJBJEak4q5jPrshBz/bXBXHTrSiq2LR1BMnn9r
+	 uIkBaZSDfhtJVUycraUqqAO2dcyGVFmpjvp7cksegkoKQRP2cJICszZK2oQbHr4eeY
+	 T9y0LLMBliYrQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2A8B06005D;
-	Mon,  2 Nov 2026 01:57:14 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 77B8A6007A;
+	Mon,  2 Nov 2026 01:57:19 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 07/15] netfilter: nf_dup: preserve guard across NFQUEUE reinjection
-Date: Mon,  2 Nov 2026 01:56:46 +0100
-Message-ID: <20261102005654.532438-8-pablo@netfilter.org>
+Subject: [PATCH net 10/15] netfilter: bridge: use DEBUG_NET_WARN_ON_ONCE in nf_ct_bridge_refrag()
+Date: Mon,  2 Nov 2026 01:56:49 +0100
+Message-ID: <20261102005654.532438-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261102005654.532438-1-pablo@netfilter.org>
 References: <20261102005654.532438-1-pablo@netfilter.org>
@@ -73,118 +73,45 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zihan Xi <zihanx@nebusec.ai>
+From: Laveesh Bansal <laveeshb@laveeshbansal.com>
 
-NFQUEUE can suspend traversal of a duplicated packet while the task-local
-duplication guard is set. The output call then returns and clears the guard
-before a later verdict resumes hook traversal.
+nf_ct_bridge_refrag() warns when skb->protocol is neither IPv4 nor IPv6.
+A vlan filtering bridge can get there with a vlan ethertype: if the
+protocol of the tag of a frame differs from the vlan_protocol of the
+bridge, br_allowed_ingress() moves the tag back into the packet after
+NF_BR_PRE_ROUTING, where bridge conntrack has already defragmented it.
 
-Save the guard in the queue entry and restore it while reinjection
-continues hook traversal. Preserve and restore the verdict task's prior
-state, including nested synchronous reinjection.
+Anyone who can send fragments into a port of such a bridge can trigger the
+warning, which takes the machine down with panic_on_warn. The packet is
+dropped either way, so only warn on kernels built with CONFIG_DEBUG_NET.
 
-Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
+This only avoids the warning. Such fragmented packets are still dropped.
+syzbot reported the warning. It keeps triggering on CONFIG_DEBUG_NET
+kernels until the vlan tag is handled, which is left for a follow-up:
+
+  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
+
+Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
 Assisted-by: LLM
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+Signed-off-by: Laveesh Bansal <laveeshb@laveeshbansal.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_queue.h |  1 +
- net/netfilter/nf_queue.c         |  1 +
- net/netfilter/nfnetlink_queue.c  | 17 ++++++++++++++---
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ net/bridge/netfilter/nf_conntrack_bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 86021c55ba3c..4a8cefd8398d 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -23,6 +23,7 @@ struct nf_queue_entry {
- 	struct net_device	*physout;
- #endif
- 	struct nf_hook_state	state;
-+	bool			in_nf_duplicate;
- 	bool			nf_ct_is_unconfirmed;
- 	u16			size; /* sizeof(entry) + saved route keys */
- 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 166d05e994ac..bd603e3a99a5 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -219,6 +219,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 	*entry = (struct nf_queue_entry) {
- 		.skb	= skb,
- 		.skb_dev = skb->dev,
-+		.in_nf_duplicate = current->in_nf_duplicate,
- 		.state	= *state,
- 		.hook_index = index,
- 		.size	= sizeof(*entry) + route_key_size,
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 90d887546f7d..a8aa7ad832c3 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -44,6 +44,7 @@
- #include <net/sock.h>
- #include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
-+#include <net/net_debug.h>
- #include <net/netns/generic.h>
- 
- #include <linux/atomic.h>
-@@ -365,21 +366,30 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	const struct nf_hook_entry *hook_entry;
- 	const struct nf_hook_entries *hooks;
- 	struct sk_buff *skb = entry->skb;
-+	bool old_in_nf_duplicate;
- 	const struct net *net;
- 	unsigned int i;
- 	int err;
- 	u8 pf;
- 
-+	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
-+			    !entry->in_nf_duplicate,
-+			    "%s called with unexpected duplication guard",
-+			    __func__);
-+	local_bh_disable();
-+	old_in_nf_duplicate = current->in_nf_duplicate;
-+
- 	net = entry->state.net;
- 	pf = entry->state.pf;
- 
-+	current->in_nf_duplicate = entry->in_nf_duplicate;
- 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
- 
- 	i = entry->hook_index;
- 	if (!hooks || i >= hooks->num_hook_entries) {
- 		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
- 		nf_queue_entry_free(entry);
--		return;
-+		goto out;
- 	}
- 
- 	hook_entry = &hooks->hooks[i];
-@@ -402,9 +412,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_STOP:
--		local_bh_disable();
- 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
--		local_bh_enable();
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index b5444335b86f..8c83dc05114b 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -358,7 +358,7 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		nf_br_ip6_fragment(state->net, state->sk, skb, &data, output);
  		break;
- 	case NF_QUEUE:
- 		err = nf_queue(skb, &entry->state, i, verdict);
-@@ -418,6 +426,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	default:
+-		WARN_ON_ONCE(1);
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
  	}
  
- 	nf_queue_entry_free(entry);
-+out:
-+	current->in_nf_duplicate = old_in_nf_duplicate;
-+	local_bh_enable();
- }
- 
- /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
 -- 
 2.47.3
 
