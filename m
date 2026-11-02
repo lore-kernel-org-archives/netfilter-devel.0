@@ -1,75 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793606886;
-	b=Q/LZ3xFLaOjaSoLa+R57ILYY7dmM8aGmh228YzOdCZ2uQcHImMZ4nLdOv6nJfEQKZcYX
-	 ozbvlIQW/3gaLNgsFAUAn6hWEmoHHpm2KFxDtOiU8uhjsCM+K6ZlSBZX/ssUe8ra14zgI
-	 lFDzjCKbxOCnP1bbBAfLzNVJKG22izDfOg8NiXxaFqzyTqp1KH+WEqqW/1tflhSBkGysu
-	 1Aq2OqIIO5OJzDVPAkZqjrx6S5m4vqxUq2Z+W8koIwaOuamdzgNfeVCI7vVe7764MFYCH
-	 7tSqgeHdilKswAxPA7/EMMPRnj5VF/j9Cu4wu9vW1QWOQRlDgEFNIXoa8Lq3CD/XjVA==
+	t=1793606892;
+	b=3l2VdmufL62w2ArEFjNnVv6I9ur2xvTjd2CQnIlwfvsJa5lQcIclbHKDU+1hianQE35L
+	 kavFVBS/KV++1kXXiqtmcOT4Sw6mEbMo7150Hr5gW1tmhbgLznzJzn7bijXCVPNMA5dww
+	 oQg1SLOJjNLKuJVIMcAta72LlTrVWg9Om5UsDB574x14hijwsiXCtwapO7aPtK0WVi6/g
+	 vNO53Hx7qCI1TCEygPgMczlVhYkm3oZqa6BBgVGtXkqwzfZ2eHggFGt2mkOpLdNjJc5q7
+	 2dXslY8RQd4KYLuuezMWD0eeLf1mXWFvNLl5nZ8K4PQQJyjtLAR9cFLPEYs3sj4b7xw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793606886;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793606892;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
 	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
 	 References:MIME-Version:Content-Transfer-Encoding;
-	bh=UXpNPwwg/3VHXxujGKE9fvTZ6+Kbn3xYS2JPLzMac08=;
-	b=U6bkv0OaxsIwIDCRJGxg4PPAI2PJhUnMDAjPoePCnj/5GwbGjgij75qd2AKFQnxOPh97
-	 fTWp2cdT/S5C06q5P+roN5ecvkMaTFudn4o+x7lO392xa5Ayi1gFxoyXzOVDHrrIWJeXQ
-	 lRq+p1cHs5NIH6zOcDBX+heHYQmKZcacWhV488XLYBLYq56E1p3XBvKxa+AlNjOHLo4p+
-	 KOxc1f5sSYbEKBKpBJ50IfhYK5xe/+wZEeZzsyDA5ZoLjLVbDoARCgxGRPFPjVQMMtDwr
-	 xMgpkGvSmp68xzh06FYydb24hlfhBaP5iEnb1DTTakJceW9RlmygfInfjQlOAHwPYew==
+	bh=EPhhyHfUqeA/AqJpPK7Juor0oP5kBUqRo6h5mmhp0B4=;
+	b=L6n5LsO0dZTKMHJUjDLU3/xxjTPf2EGDVnDdK0Yauwp6j49mg7KWx4fV0JZS+MYesLBF
+	 uNl7A8t8B6BzBaalQVeQiux8tj3aqYlMdXmmOS1vG2LefCF+MzcR1ZaH/0hausHICxoo3
+	 Q06CKDJnQAv2iOsNwuojf9kseGL04SwzSfww1pMpMnxE1Aopb/1oJoETQj2ceZqCCXaEm
+	 14MrRhiTqCPXBvFAR5LISiLZ9NWzT8Pr0pGXMJf0ZhpaxfRjlLNBeUj2dZsd8tXWUSly3
+	 BNYDorzJ+UiIHpx6kwny0wuQrGQePLk339HMZN4O+h9WCNabOCpm4NN4PxFuKyoalBg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=ssi.bg;
 	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=J+qGcIWo;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=UmsFVW85;
 	arc=none smtp.remote-ip=193.238.174.39
 Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D41B606A32E;
-	Mon,  2 Nov 2026 08:08:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5D41B606A32E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D277606A324;
+	Mon,  2 Nov 2026 08:08:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2D277606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=J+qGcIWo
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=UmsFVW85
 Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id D4AE821F8B;
-	Mon, 02 Nov 2026 10:07:56 +0200 (EET)
+	by mx.ssi.bg (Potsfix) with ESMTP id B093521F92;
+	Mon, 02 Nov 2026 10:07:57 +0200 (EET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
 	:content-transfer-encoding:date:from:from:in-reply-to:message-id
 	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=UXpNPwwg/3VHXxujGKE9fvTZ6+Kbn3xYS2JPLzMac08=; b=J+qGcIWoRMd/
-	VA5w5tyD3KOjmlQk7kmgaQkKGBtqn1IscVY3f1z+QuG74cXTKKQcrTMMsCa/att3
-	GDlpcAdkAyVnV2IZbHH+eeHEcKyR1yJ85AmOLVYoIkCrj9V85OobRZYfpQLQTBuy
-	Tu3/Xmxsj4s6UXioj7tIcE6qf/iUn+vnDzbwvkqMuFiCdYJlCYMJyYryhGHpXp71
-	Qp6+e/hGotZUP4UKfnfQscU40rAoWt5bF76qBtwgO+lOITM0InUiwNuSTAAjPXnH
-	aIJOBmOsnusDpSKYg05ER4X4yIj5/rA2u6Z97VqVfMFlvb8H14ybvKoPXnn5A/VR
-	C2qoQKwnv8txc8ki/MclFlM5ywG1T4K9+QjngiwtFusmMHjSGtOl10lX1K3khkRn
-	dOFlBw62YQTJxwnFxdtyXgZgF054Xg08cNdUlzkXDKW+p4yL1vr4sevO27r/BVsS
-	2YKMWQXJbAitX0rjM5/uAXL5bzq4BBDn0P2+Koif7MJxJW3ntrXJOYwOW5V7S0Kh
-	v9WlPWE5EfGlm1sDWyGfnzB39ZwQ16pz0W3hoZJLAo/iD7odCtD9VhWXfxFJs/a4
-	om+aUhGVZWw7soqa97ACPJHpinxP2Ocw66gr+g1ktSBwCXzJZzX5zdNMjnhi/+TK
-	JzHkgip3bpWDm5ZGYZ04WMLWzo58dag=
+	 bh=EPhhyHfUqeA/AqJpPK7Juor0oP5kBUqRo6h5mmhp0B4=; b=UmsFVW85bBsi
+	4JzxlsC7QZ+cMBSAj3p3vqKYvbAyDSS0i83rEj6fRYP6QpIx4SZmuqiKlPHtEiKr
+	9jN1YhIjfH0b8vRBN2RrW61ijZhGyUuF6GkMQvkiQi9thpXlP6Ty86eCU+WBrz/V
+	2McD+SouN54oFqoFRgV2CXhZ9fmKluAuDMQ6HJ5DbEgPipvoWYHsVE4RuzLL2/r2
+	ckVoVtwA27YeugSfhV34V7XHi2fu/LypA60q1SRX6fyDoNuR7wlc+Lbfhj7ibbbv
+	AGDfH2fOOZxQykWA+ED8XxHMGpbeoWSB1M0fVp5M0vUxYSVg9Zd7BSC4HwxuxJx7
+	bjnrdqL29G3ldFxbtFcul0n0L0pLyXjqgg2k3TBcNfBWkcl12ZduW4mOaKIi1HmN
+	oLJgOpIoMDUJn2omaWRy4QyXE0P1Z8dwu9JEK/X5Rk9Tp0NUnuq7NkKOTvSN2VB9
+	fiQsrnAnWiAlQodk2OikrTXjMOs8ay+kL5V9oysP6b4rdCt0lSeVMwfIqM0oHmif
+	QrAPbSxQTU91Ot6dMPPoe+n5O4sDyNoCCdAc1JYWlPA/FNVMI7qzFRvk1r78c1Dm
+	nrMyzoU3/C+GO2+fOzJdCgZNQMLOz9Wn3oQEiER6+igjkekNY2MCzCK/dqPSIKq6
+	kNlxV4QGFesWY+UW6U2z8OylCsvcsPI=
 Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
 	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Mon, 02 Nov 2026 10:07:56 +0200 (EET)
+	Mon, 02 Nov 2026 10:07:57 +0200 (EET)
 Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 2D18560BAF;
-	Mon,  2 Nov 2026 10:07:56 +0200 (EET)
+	by box.ssi.bg (Potsfix) with ESMTPSA id 0A08360BAF;
+	Mon,  2 Nov 2026 10:07:57 +0200 (EET)
 Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A287fc0022199;
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A287fSw022203;
 	Mon, 2 Nov 2026 10:07:41 +0200
 Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 6A287faF022198;
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 6A287fCW022202;
 	Mon, 2 Nov 2026 10:07:41 +0200
 From: Julian Anastasov <ja@ssi.bg>
 To: Simon Horman <horms@verge.net.au>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH nf v3 1/2] ipvs: update flags and seqs in backup server under lock
-Date: Mon,  2 Nov 2026 10:07:27 +0200
-Message-ID: <20261102080728.22178-2-ja@ssi.bg>
+Subject: [PATCH nf v3 2/2] ipvs: read flags and seqs in master atomically
+Date: Mon,  2 Nov 2026 10:07:28 +0200
+Message-ID: <20261102080728.22178-3-ja@ssi.bg>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261102080728.22178-1-ja@ssi.bg>
 References: <20261102080728.22178-1-ja@ssi.bg>
@@ -84,62 +84,91 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sashiko reports that we modify the conn flags and seq values in
-the backup server without holding cp->lock. The same is true for
-other fields such as state, old_state and timeout which are
-modified by protocols under lock.
+After we fixed the double read of cp->flags in the master with
+commit 3e3fe49e8678 ("ipvs: fix buffer overflow when sending sync messages")
+Sashiko reports that we should also read the cp->flags and the seqs
+atomically. So if the SEQ_MASK is set, re-read the flags and the
+seqs under cp->lock to provide a snapshot when sending the sync
+message.
 
-Extend the locked region in ip_vs_proc_conn() to update the
-fields atomically.
-
+Fixes: 3e3fe49e8678 ("ipvs: fix buffer overflow when sending sync messages")
 Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927220816.268206-1-pablo%40netfilter.org
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- net/netfilter/ipvs/ip_vs_sync.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_sync.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 157f5c8361ab..39b9bd83bc5c 100644
+index 39b9bd83bc5c..33179852faf6 100644
 --- a/net/netfilter/ipvs/ip_vs_sync.c
 +++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -850,6 +850,7 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 			    unsigned long timeout, __u32 fwmark,
- 			    struct ip_vs_sync_conn_options *opt)
+@@ -539,6 +539,7 @@ static int ip_vs_sync_conn_needed(struct netns_ipvs *ipvs,
+ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
+ 			       int pkts)
  {
-+	struct ip_vs_conn *cp_new = NULL;
- 	struct ip_vs_dest *dest;
- 	struct ip_vs_conn *cp;
++	struct ip_vs_sync_conn_options opts;
+ 	struct ip_vs_sync_mesg_v0 *m;
+ 	struct ip_vs_sync_conn_v0 *s;
+ 	struct ip_vs_sync_buff *buff;
+@@ -557,6 +558,14 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
+ 	if (!ip_vs_sync_conn_needed(ipvs, cp, pkts))
+ 		return;
  
-@@ -891,9 +892,6 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
- 		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
- 		cp->flags = flags;
--		spin_unlock_bh(&cp->lock);
--		if (!dest)
--			ip_vs_try_bind_dest(cp);
- 	} else {
- 		/*
- 		 * Find the appropriate destination for the connection.
-@@ -920,6 +918,8 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 		}
- 		if (!(flags & IP_VS_CONN_F_TEMPLATE))
- 			kfree(param->pe_data);
-+		cp_new = cp;
++	if (flags & IP_VS_CONN_F_SEQ_MASK) {
++		/* Take atomic snapshot of flags and seqs */
 +		spin_lock_bh(&cp->lock);
++		flags = cp->flags;
++		memcpy(&opts, &cp->sync_conn_opt, sizeof(opts));
++		spin_unlock_bh(&cp->lock);
++	}
++
+ 	spin_lock_bh(&ipvs->sync_buff_lock);
+ 	if (!(ipvs->sync_state & IP_VS_STATE_MASTER)) {
+ 		spin_unlock_bh(&ipvs->sync_buff_lock);
+@@ -604,7 +613,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
+ 	if (seq_mask) {
+ 		struct ip_vs_sync_conn_options *opt =
+ 			(struct ip_vs_sync_conn_options *)&s[1];
+-		memcpy(opt, &cp->sync_conn_opt, sizeof(*opt));
++		memcpy(opt, &opts, sizeof(*opt));
  	}
  
- 	if (opt) {
-@@ -951,6 +951,9 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 		else
- 			cp->timeout = (3*60*HZ);
- 	}
-+	spin_unlock_bh(&cp->lock);
-+	if (!dest && !cp_new)
-+		ip_vs_try_bind_dest(cp);
- 	ip_vs_conn_put(cp);
- }
+ 	m->nr_conns++;
+@@ -630,6 +639,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
+  */
+ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
+ {
++	struct ip_vs_sync_conn_options opts;
+ 	struct ip_vs_sync_mesg *m;
+ 	union ip_vs_sync_conn *s;
+ 	struct ip_vs_sync_buff *buff;
+@@ -651,6 +661,13 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
+ 	if (!ip_vs_sync_conn_needed(ipvs, cp, pkts))
+ 		goto control;
+ 	flags = READ_ONCE(cp->flags);
++	if (flags & IP_VS_CONN_F_SEQ_MASK) {
++		/* Take atomic snapshot of flags and seqs */
++		spin_lock_bh(&cp->lock);
++		flags = cp->flags;
++		memcpy(&opts, &cp->sync_conn_opt, sizeof(opts));
++		spin_unlock_bh(&cp->lock);
++	}
  
+ 	/* Sanity checks */
+ 	pe_name_len = 0;
+@@ -752,9 +769,9 @@ void ip_vs_sync_conn(struct netns_ipvs *ipvs, struct ip_vs_conn *cp, int pkts)
+ 	if (seq_mask) {
+ 		*(p++) = IPVS_OPT_SEQ_DATA;
+ 		*(p++) = sizeof(struct ip_vs_sync_conn_options);
+-		hton_seq(&cp->in_seq, (struct ip_vs_seq *)p);
++		hton_seq(&opts.in_seq, (struct ip_vs_seq *)p);
+ 		p += sizeof(struct ip_vs_seq);
+-		hton_seq(&cp->out_seq, (struct ip_vs_seq *)p);
++		hton_seq(&opts.out_seq, (struct ip_vs_seq *)p);
+ 		p += sizeof(struct ip_vs_seq);
+ 	}
+ 	/* Handle pe data */
 -- 
 2.56.0
 
