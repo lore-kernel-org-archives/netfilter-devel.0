@@ -1,63 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793661336;
-	b=tn5RS6fQtDWbCGxjFIEY85tZs/qSxIWMyGCKe+W0xg8kBqxEmGWldSKlC1GzW/75ZPB8
-	 4qUSjDGYGzWsheDcBAYR4pkvt5Kv+umUp8q7/7PJ0bSf9LD1nNtHJCi+eKpTVwTdtnQvi
-	 251mTOQmU3qbx4mjd9pH7Fi/BslVePRGVbhOY6V50/Nb+ReAkr9hVRqIcME+RKZoelO9a
-	 1flCVT3LaEBkIQWGwpbdIZ5godeFHrBuc9gneln9ZVoAkrcdbo77C4XCqTx0w7+gwzT03
-	 NYyFlisJmTtSQ3/JO5doqPIFTuaZ2KylDn4GzpkcKztaAw0NOQs1V+Rw1vNwi46sLog==
+	t=1793664670;
+	b=kPel6XiChKYgK8tF/rZeTygZYu/GufgwXnOc6TGF1eiGq+OgC3AV+1EosGc/C7JNbE9y
+	 +fx+D1MlPvJhujy+fHD3Z9ShL9v7NzeczhUIeNtbEFLfFmbGsmR68KmCGIMBDVT7btgJQ
+	 Syj61FpulGe945N3SGxAY9g21AlII6HdJvN/Z4MjZINiScKePy30rxp5nHIngO7n5Rnlf
+	 NwLF4TQzDEEeTJIMzFSO9o6S6WQvfFtinHZPYs2a/uwgggvWHVqPUM7l6chC9+bf1FbOI
+	 +hiPUpt07xGa3ELNtbUuCIsz5tbf28a6N6QsHL6VQTeflDG2cJH0BS9Igeoc7yyQ8Sw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793661336;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=EMxNL/UewMVZwW9XoJ8tizSZ2fZWJjDE9DftmkLnki8=;
-	b=RNSQicuW6LQnQ8Ew2yJoz2v4YXICHvs+x1Lc7n0atgpN6le9h99Lerr9BAgg7eqIKKwL
-	 YFtquzCpZo8N9612bR7zdGGJ/ZP7pIAMpahmPJFBrZuMmrrRjiVcd6QMEOLRklLZUcsqv
-	 gSwTsh2d6eiF6HaMh29ywYkqfwA6CffUpITpZMdZSNCo/jfkXf4AD9HB6tTEhZloO8Jlw
-	 Al78teryyxdgcy4t81cCZITJQZnXyB3RAii85Y2r6DzR+t3IjkmuWQeZOVGXaJSeHUWm9
-	 jV4Lj9ZOUjh0OQUL/1YDJ7RH/uuB9kIaa+oe/Z84ZV0Sb8MiJLJb/qw/MFzALdrz0IA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793664670;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Spam-Status:X-Spam-Checker-Version;
+	bh=fYx82PF450mtCVkFsMXGvGkBMko96dPNczM0QIVlTyM=;
+	b=vuJsATMShpT+1AL+/4u/yjeR5nHv/vzPEQZABJs1lqgS6MEZFKMJrScqlrtuBeI4j0Dd
+	 /cFENKbeYYT+eSXOCrNSM680Js14I/01iJBxZJ0+KGnBGmBR1GYCSqj4sQNWWenNnLHQE
+	 i87TXgLQ8y/956CcsYuESxG+OEBAfyucHital/0FztNR/ZmJHMFaYFA8dJx8J42fmFKuM
+	 1m8T0u/pkm/4GdRLQBPzqb9vvdMMWHvTwaNsN9FsVQY0REeRX+Q7nAxhH9/FBxRcGZiN/
+	 QiWNz8zZNNhJK0SQxYCVflxQDOrmcJJ1J+jAwVAp5zYL0i3FcpxzHtRCLxGotvlP3oA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=tAU0LVUI;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ndOXkRXi;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 9B9C2606A329;
-	Mon,  2 Nov 2026 23:15:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9B9C2606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B260606A324
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 00:11:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9B260606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=tAU0LVUI
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ndOXkRXi
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793661327;
-	bh=EMxNL/UewMVZwW9XoJ8tizSZ2fZWJjDE9DftmkLnki8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tAU0LVUInlbUZb946+TbPw74xpnHYjx80ryp1pK+lTs59T0wtv4c7BwEbcdYnkfXL
-	 tCW8E9h9TS1yKChcCzUpMoCjCwHs7dyGy14/zzlEO9PVr6A1+nEJaCvtri9ojxDH2s
-	 Xhsb+i7ybVRpU4715Gty80L+4guaYbDzR+P1sYkavuwq6LjPdoXKMzvuPkMhiBVix9
-	 s3AxkTbr5hKm8NKkvquzmbjP4d0AvebYRZ7iD/LAQQe3mweGawlbDFd/EzW7BNo1BM
-	 z9Bp2MPDQB/KsHvFXgbTrPKlXKuBZ9IsL8+5U4+ly4k7J1zIbKJgN0lkuVd7AX3SND
-	 li5RLBKTMnMbA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id ADD5460054;
-	Tue,  3 Nov 2026 00:15:27 +0100 (CET)
-Date: Tue, 3 Nov 2026 00:15:24 +0100
+	s=2025; t=1793664666;
+	bh=fYx82PF450mtCVkFsMXGvGkBMko96dPNczM0QIVlTyM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ndOXkRXigC3QNQDDLZdf/IHJinAlpwF/ZaNwk8NuLAUEzFxxRtrmVKS+ERh2zTkXs
+	 VCjamkomspVPBWHluGaqnHljPRUjHeHFeTK6/XqKvIt8NLClGun31OpMcfOoMLAkRF
+	 Qh28eA2zP+IX0QLzbYF0X7pgxNzICqAGFPEoYPFM9gs0zfg3ORQvl5eCriop7fVp9i
+	 ZZcQQpLfRl7orbHeH5Am+QSbxQ36Y38e4Wd7l70GSTLx1JNpo9EU6LBTMoJiB30tUB
+	 RefiwV26b7i9gcapXAnvf8BZUCRV3UY1LRNiSVSBLqA3b6bR9o6PGP2JwNcysAnVxQ
+	 t0tdoNUm9Jt8w==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8E64960054;
+	Tue,  3 Nov 2026 01:11:06 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev-bot+sinfo@kernel.org
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net 01/15] netfilter: nft_reject: prevent unbounded
- recursion in output hooks
-Message-ID: <aukZjB-Jt_UhRCFb@chamomile>
-References: <20261102005654.532438-1-pablo@netfilter.org>
- <20261102005654.532438-2-pablo@netfilter.org>
- <179358116673.3286.17229865634602635672@kernel.org>
+To: netfilter-devel@vger.kernel.org
+Cc: lorenzo@kernel.org
+Subject: [PATCH nf-next] netfilter: flowtable: do not scrub as crossing netns
+Date: Tue,  3 Nov 2026 01:11:03 +0100
+Message-ID: <20261103001103.564344-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -67,43 +62,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <179358116673.3286.17229865634602635672@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 02, 2026 at 12:59:26AM +0000, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
-> 
->  - Whether the issue was actually triggered, or is only theoretical
->    (e.g. found by code inspection). If it was triggered please include
->    the symptoms, like the stack trace or error messages.
+IPIP tunneling support does not result in crossing a netns, therefore,
+adopt the more conservative variant of skb_scrub_packet() by specifying
+!xnet, keep the existing skb mark in place.
 
-Regarding the automated request, this series was primarily identified
-through LLM-assisted analysis.
+Fixes: d30301ba4b07 ("netfilter: flowtable: Add IPIP tx sw acceleration")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Lorenzo: Do you remember the reason why this is scrubbing as crossing netns?
+There is a LLM report that is flagging this as an issue when interacting with
+other subsystem, eg. packets was marked. At least in the tunnel driver I can
+see this is conditional.
 
-A summary of the discovery and triggering status follows:
+ net/netfilter/nf_flow_table_ip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Issues triggered and verified: Several issues were actively triggered
-and confirmed via automated testing. This includes KASAN reports for
-use-after-free and out-of-bounds access (patches 3, 4, 11), syzbot
-reports for warnings and panics (patches 8 and 10), and a confirmed
-sleeping function call in an atomic context (patch 14). Patch 12 was
-identified via LLM and subsequently verified using a userspace ASan
-harness.
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 19cafae748ab..78bba416dd5b 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -630,7 +630,7 @@ static int nf_flow_tunnel_ip_push(struct net *net, struct sk_buff *skb,
+ 	if (err)
+ 		return err;
+ 
+-	skb_scrub_packet(skb, true);
++	skb_scrub_packet(skb, false);
+ 	skb_clear_hash_if_not_l4(skb);
+ 
+ 	/* Push down and install the IP header. */
+@@ -699,7 +699,7 @@ static int nf_flow_tunnel_ip6_push(struct net *net, struct sk_buff *skb,
+ 	if (err)
+ 		return err;
+ 
+-	skb_scrub_packet(skb, true);
++	skb_scrub_packet(skb, false);
+ 	mtu = dst_mtu(dst) - sizeof(*ip6h);
+ 	mtu = max(mtu, IPV6_MIN_MTU);
+ 	skb_dst_update_pmtu_no_confirm(skb, mtu);
+-- 
+2.47.3
 
-Issues identified via LLM (Preventative):
-The remaining patches were identified via LLM-assisted review. These
-address edge cases to prevent future issues such as unbounded recursion
-(patch 1), infinite loops (patch 2), stale connection growth (commit
-5), chain depth exhaustion (patch 6), guard loss during reinjection
-(patch 7), NULL pointer dereferences (patch 9), memory leaks (patch 13),
-and uninitialized stack data (patch 15).
-
-This is a LLM answer to this automated message.
