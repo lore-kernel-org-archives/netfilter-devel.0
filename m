@@ -1,54 +1,78 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.69
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793680440;
-	b=HZtzig2mn4a3OIdmEkSVrRa2yFnPfCCrJZW56qJbDN/Jcv8k0zflAm9Ufr+Gk8lyai+5
-	 acCQISoaLvhx3w3J0objnqs7hTkTa35Ge50pXaBnTL2ccpUjKLDTFw9KSNjS1j+4Wd4VX
-	 3XQHPm3kJrNVsyLVgUatpSdN5yrR6qC9pcxhUxzViZU8iJMjhIsbvwZ1wFe2k4/6tYHOM
-	 93dDQHbelIsE4VuaZdaypQbT02l7Zh/UKU+PrI/xW5ZkhZgC/sJ9W+htejsFsS51iDkSH
-	 0Ur4iPAc2Wz2BXwwjXGPIHKFAnIhqUKKkvgAzNtryfGkkQfuUgnsoYDVhEjC99GBKFw==
+	t=1793682317;
+	b=z2EyYaFHyg8i9kIvNTL13uPI3ay66vox/y9zVj6k3yVu97hGE+b9vBBsvEtQIoOS59xm
+	 i3p3qMGo7LhMf5D6wU3M6rILr9JQeZtH6wQEvm9ci788iNfVI9DLVNaMlx5h0mlWu2RFJ
+	 Mr4RuJVLPztory1jK1R0+wCKt5o6Sma1KXern+UA6s7w/FKr20dz7zdzqGm2WP9ygnqaN
+	 KTa8ihsc54L4YdUDOncD6SOcRWVywe3wQXlFzi8wkwT6jVa7fx0+kbLjVcW0YpZMvkpTe
+	 d0Ejpllqh2fgkDhCiCyIxU0KPiZvHLgSSlfcKWWuyR9RR34vjYW1JHGk0/HCAXtpySQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793680440;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:MIME-Version:X-Received:Date:
-	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
-	 Subject:From:To:Content-Type;
-	bh=4tPs4mp2bvwQdRd4sbq6CaL9zCSxrf0L6Yrn8je4uH4=;
-	b=FRYecmFJEROWAY4byMSdsijK+S87VMG5NZgdM09qOCHusxT42+G9yKr7PlQrvlE+zbZm
-	 v2XNsnCQvxmWcupF/0rFIvc48hu7RLMbho+cDGAYpjuarM4AuB7Hf6A6Gr8Sm2zNfoaxI
-	 Gtx/WL89sth1miavxXDKju3RUJVrgBL8knl8BLcHAsvYdFakO1fj0HG+L4v1xymxFi50x
-	 bPxLmh1GcXey+mCTbVZvg9dP3E2AK83YeY8sj4N+muOnz/cr/PWBcC2QNrlobKD55P2Pc
-	 1+VyYkV6RP0whUKhJrQy9FCC7Sp08XYp/zWZijAW/VB4h7ST1XR97FFJLwTZkS9/KQA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793682317;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
+	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
+	 Content-Type;
+	bh=imQPTaBy9k6YK2vvioFDfraxaLKMbGcfCrTXO6oQIK8=;
+	b=QPRlHyX1e/q0P4z2XXuoYhoLPAaI6KUlV/2nUCLa5exOfm8+fAUug7TGidYxs4ENLhWr
+	 sen2cMRZsbdfuwf2dvzVM1oAqfmzwNvMTF/aNxGgkv2lKRzUMnAoHy/7r8cQKx2MvZthT
+	 oROOUi6OY7sus3bw1IwvsjTrtzM34Mqdan2Tt41nCD36DQ0JxWOdcsegTottQIPhYY34B
+	 K+f9j1ExY38s3h/7BkGHZ9+kHuUWAe3B2je9mGDm2ef0+UhcfkPVJ5f3lfvhTyYT2l+sH
+	 nMwkKDuGcjp18wnVZAlWvk8ZT74kBs7wstKhtZ9N4/73YpFQa3jcPcF/3XVANolsl6A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=syzkaller.appspotmail.com;
-	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
-	arc=none smtp.remote-ip=209.85.210.69
-Received: from mail-ot1-f69.google.com (mail-ot1-f69.google.com [209.85.210.69])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Dc7OAHpB;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE6FF606A32E
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 04:33:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE6FF606A32E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-8255327a28fso4553185a34.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 20:33:59 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793680439; x=1794285239;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=4tPs4mp2bvwQdRd4sbq6CaL9zCSxrf0L6Yrn8je4uH4=;
-        b=AGoWGkyotzgxTZCgg5tTEJYFOBtJnWyue56Uh7bov35POn8IwA07CY8xqyL6HwgUH/
-         dwlp+266mBtD4vGTuZXaHSg5tLTXatAsf4PVT+GqGoZSDigshlzDyQXHJi9zGDPam38Z
-         Aq9+eKOY3d+T/Ukl3iqtywD1i17azRURr10nKUYH2nnYxhAc52zNBSWtUlzs/T0uxCYo
-         OAuSUjuQ9+p3mOyLDhUP67F0Dnki1ZwapIZVb0QwwcXdKsb20pTx7Hw3pLEmiEmQ6Ui+
-         tJ7LHp3Sv0RAh4gy82Jft8mTh+E73XwcIj1D/nD1GiM279/cSHClWPJP21+UW/nwQ6Vk
-         eJag==
-X-Forwarded-Encrypted: i=1; AKwUvBy80CmzCX2LqfHvZZxcnddIGAEgbb+MQqRmGwNS3cedTl5iOLhj9YsrLvJrkHr3VYS1p2/Dpb2OpUK8RwtKUfY=@vger.kernel.org
-X-Gm-Message-State: AFq9FYKIzntdVMsy2PadnvIItF/GW6OegAT0nwUvHMs3rmUEgVNgVa7q
-	Io+xUdb01y77QCWMCU5trqjFW9azXwkXoe7Qm+qr3YgzqgLYXCXo4p8VYW8rdAHPk6g3mNoyHdv
-	dncudrgXl9uhiP2gJ0koksXAC5hdatutLX7NR8wu510LVa/KuEZIqTQ4SkkY=
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A49606A324;
+	Tue,  3 Nov 2026 05:05:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08A49606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Dc7OAHpB
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id C28FF213F4;
+	Tue, 03 Nov 2026 07:05:11 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=imQPTaBy9k6YK2vvioFDfraxaLKMbGcfCrTXO6oQIK8=; b=Dc7OAHpBKYVa
+	j0+FT65YwJoa/9U3D7X7aNQpbGOpcCETgeG9oXwC9uyDHiPCAuBrSzGnt/83Bd4L
+	r1YFTHAzPoTOps6RBSaSba2TFwdypuejT/LrULnkphZLe1YmS7tyISaGoC8Zg5wo
+	2E+EnIXoBRg8gdh/AlD8jK0Ma3BQveXRx0LT8JZCTLcIgFO1Pjnj9OLHb2rOWHXf
+	WAgLCEXDkOy8cn5xE5ObJAeqoknJqFCAf/4TI+aNeyzqHUqKyDowLfeVTXTva45y
+	9lLIZLWpTVhGZE6CoCK3eUkm5fz8JVc2TKq1S2J7bhkPkAA82cM5rIQr2Mois4Dj
+	4aOT+Ni3HLbWZygJWoGPMTSUQlCd0WXh8xXbNhpUK/xZ4LigWtAtr6A2q7Ddw9b/
+	IMYAezX1FK6dgztRejd3hWYNCc1Ek83ld6BDRo5xLD6hgznp1sptAm1QvVwO9Q6E
+	IoGGEh488LOIs59hOMIEZSZp1p/APd2abg+f68mO7IN+gXiIcpUBeLT6Mo8O2tHq
+	+tB9zLoTta8hWVbacmMVI8suyWevo/E6eFDYLUn6wRkOo06Fl+MGYs+1oVOiunPU
+	KEBUdAsPWS/9aUNUr8DQQTGmpSbo1Z2Zu7unl0ZEgo0pyqWGs1LI7PcAxZAxAVxA
+	DB9Oj75z+tBXKF097zm3kga7SSngt3w=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Tue, 03 Nov 2026 07:05:11 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 3B4FD61E56;
+	Tue,  3 Nov 2026 07:05:11 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A35542b006195;
+	Tue, 3 Nov 2026 07:05:05 +0200
+Date: Tue, 3 Nov 2026 07:05:04 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Axel Mierczuk <axel.mierczuk@1password.com>
+cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        Willy Tarreau <w@1wt.eu>, Keith Hoodlet <keith.hoodlet@1password.com>
+Subject: Re: [PATCH nf 0/2] ipvs: keep templates and cport 0 conns away from
+ packet lookups
+In-Reply-To: <f87eab0c-253a-2d5d-d2e6-f4fb691c9813@ssi.bg>
+Message-ID: <bc3597b9-9fd9-692c-76ec-90904c787d2f@ssi.bg>
+References: <20260925141115.16126-1-axel.mierczuk@1password.com> <002e2c69-ae17-4321-ba3d-74cca0e57123@ssi.bg> <CALb1hrnMJGj5ePZSB89ZW0Uv_oNpepeqgAmGcZxRsLyv64HOYA@mail.gmail.com> <f87eab0c-253a-2d5d-d2e6-f4fb691c9813@ssi.bg>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -58,53 +82,142 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:1910:b0:4dc:1374:99ae with SMTP id
- 5614622812f47-5640e033037mr9173554b6e.56.1793680438963; Mon, 02 Nov 2026
- 20:33:58 -0800 (PST)
-Date: Mon, 02 Nov 2026 20:33:58 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6ae96436.abb90550.19e2c9.0002.GAE@google.com>
-Subject: [syzbot] Monthly netfilter report (Nov 2026)
-From: syzbot <syzbot+list484d79b18bdec1b120a0@syzkaller.appspotmail.com>
-To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed; boundary="-1463811672-1168736756-1793682309=:3469"
 
-Hello netfilter maintainers/developers,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+---1463811672-1168736756-1793682309=:3469
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-During the period, 1 new issues were detected and 0 were fixed.
-In total, 13 issues are still open and 200 have already been fixed.
-There are also 3 low-priority issues.
 
-Some of the still happening issues:
+	Hi Axel,
 
-Ref Crashes Repro Title
-<1> 151     Yes   INFO: rcu detected stall in rescuer_thread (2)
-                  https://syzkaller.appspot.com/bug?extid=d5f7a5097c24c7c2dbbb
-<2> 7       Yes   INFO: task hung in nf_tables_valid_genid (3)
-                  https://syzkaller.appspot.com/bug?extid=83439cb981624bd8d068
-<3> 199     Yes   INFO: rcu detected stall in br_handle_frame (6)
-                  https://syzkaller.appspot.com/bug?extid=f8850bc3986562f79619
-<4> 132     Yes   INFO: task hung in nfnetlink_rcv_msg (5)
-                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
-<5> 98      No    WARNING in nf_conntrack_cleanup_net_list (2)
-                  https://syzkaller.appspot.com/bug?extid=122256c3e2bf6ec9f928
+	Ping after 1 month...
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+On Sat, 3 Oct 2026, Julian Anastasov wrote:
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+> On Wed, 30 Sep 2026, Axel Mierczuk wrote:
+> 
+> > Hi Julian,
+> > 
+> > Sounds good. I will take a look as well and get back to you.
+> > 
+> > On Tue, Sep 29, 2026 at 2:29 PM Julian Anastasov <ja@ssi.bg> wrote:
+> > 
+> >               Hello,
+> > 
+> >       On Fri, 25 Sep 2026, Axel Mierczuk wrote:
+> > 
+> >       > A template received over the unauthenticated sync protocol with a
+> >       > nonzero cport is matched by data packets in ip_vs_conn_in_get() and
+> >       > the protocol state machine runs on it. Patch 1 rejects sync records
+> >       > with inconsistent cport and IP_VS_CONN_F_NO_CPORT combinations on
+> >       > the backup.
+> >       >
+> >       > Patch 2 requires a nonzero cp->cport in ip_vs_conn_out_get() so that
+> >       > templates and connections still waiting for their cport cannot be
+> >       > matched through the out hook.
+> >       >
+> >       > The companion patch "ipvs: filter some flags received in the backup
+> >       > server" rejects template records carrying IP_VS_CONN_F_NO_CPORT.
+> >       >
+> >       > Axel Mierczuk (2):
+> >       >   ipvs: validate cport in received sync records
+> >       >   ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+> >       >
+> >       >  net/netfilter/ipvs/ip_vs_conn.c |  3 ++-
+> >       >  net/netfilter/ipvs/ip_vs_sync.c | 19 +++++++++++++++++++
+> >       >  2 files changed, 21 insertions(+), 1 deletion(-)
+> > 
+> >               Axel, this Sashiko review is shattering:
+> > 
+> >       https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
+> > 
+> >               I'll be back with analyze how should we fix the
+> >       problems...
+> 
+> 	Here is what we have for the Sashiko review:
+> 
+> https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
+> 
+> Patch 1:
+> 
+> Q. Should the template branch also reject IP_VS_CONN_F_NO_CPORT?
+> A. Fixed by "ipvs: filter some flags received in the backup server"
+> which is already in the trees
+> 
+> Q. Can the master itself briefly send a record with a nonzero cport and
+> IP_VS_CONN_F_NO_CPORT still set?
+> A. Harmless
+> 
+> 	So, nothing that needs to change the patch.
+> 
+> Patch 2:
+> 
+> Q1. Does this make the "update or create" lookup in ip_vs_ftp_out() in
+> net/netfilter/ipvs/ip_vs_ftp.c unreachable?
+> A. Looks like we need the same check in ip_vs_conn_out_get:
+> 
+> We should use:
+> 	(!p->vport ^ (!(cp->flags & IP_VS_CONN_F_NO_CPORT)))
+> 
+> instead of the wrong cp->cport check.
+> 
+> 	Using p->vport and not re-reading cp->cport above due to
+> tricks in ip_vs_conn_fill_cport(), see Q4 below.
+> 
+> Q2. Can this lead to a new connection being created for every packet of a
+> flow started by a real server towards client port 0?
+> A. I can provide patch to ignore packets with port 0.
+> 
+> Q3. The commit message assumes that only templates and NO_CPORT entries have
+> cport 0. Does that hold for ordinary MASQ connections scheduled for a
+> client that uses source port 0?
+> A. I can provide patch to ignore packets with port 0.
+> 
+> Q4. Can the two separate plain reads of cp->cport in ip_vs_conn_out_get()
+> see different values?
+> A. We can check p->vport, see Q1
+> 
+> Q5. TEMPLATE and NO_CPORT
+> A. Fixed by "ipvs: filter some flags received in the backup server"
+> which is already in the trees
+> 
+> 	There is the option to create 3th patch "validate vport and dport 
+> in received sync records" in your patchset, so that such change can be 
+> propagated together:
+> 
+> 	} else if (!param->vport) {
+> 		...
+> 	} else if (!dport &&
+> 		   (flags & IP_VS_CONN_F_FWD_MASK) == IP_VS_CONN_F_MASQ) {
+> 		...
+> 	}
+> 
+> 	Because it depends on your "ipvs: validate cport in received sync 
+> records" patch. Such change will prevent sync messages to create
+> connections with port 0 that can be later hit by packets with
+> port 0. But may be such change is not needed.
+> 
+> 	I can provide a separate patch that will disallow connections
+> with 0 in cp->cport/vport created from packets. It will not conflict
+> with your changes.
+> 
+> 	After correcting the check in ip_vs_conn_out_get() lookup misses
+> caused by client port 0 can lead to scheduling for every packet and 
+> creating duplicate connections. The main thing is to isolate cport 0
+> which for the backup server is already in your patch. The remaining part 
+> is to filter it in the scheduler. OTOH, the vport/dport checks are
+> just nice to have. The rule here is, if we do not match cport 0 when 
+> NO_CPORT is not set, we should also not create connections with cport 0.
+> As for the zero vport/dport, I'm not sure, they look harmless.
+> What do you think?
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
+Regards
 
-You may send multiple commands in a single email message.
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1168736756-1793682309=:3469--
+
