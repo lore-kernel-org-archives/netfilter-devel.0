@@ -1,76 +1,80 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793715504;
-	b=S8nfjILBkwxsHJyNczf5/ABo25dmmiVZOtVyq88k9fub90a3lhJAjbywz4oJ3s8kIprZ
-	 TPWf9uPvPoVC8sZcuT5q4I0iTwFdJLJhGzaLuKJ14ttMZDBBUgtZhtFYtUB7vNXULE8aQ
-	 g3HjSNTX8IwJ7l24ivJTeewEFzgsaGLvW6EHieyenvpVXikq4UXpkKPDOZF9n98Pze1Fc
-	 e8ROO9GaWkCcbJUHdlfenK3DVGIoJYp/Wvanzyv0s5lzElG87Jbu+lNy1useSf8Lou+kj
-	 +1hfMSNCFdNHW0nhHpplSXqSbCb/xemNgSjvyGdSHaqW7nVgliGXTXyzk8FqG86yAbw==
+	t=1793717795;
+	b=enjFEsiTBlFlxRydhyxpMYCzwbXqYCRDD6PPxRt1zYVvvUsb61ossHL3pgdKcfy05Enw
+	 ab0IOS0UMT2SK7PPCs9G62SEHQTwXyF66ywdNTjqC4P4IrP23Qa7vfQOd1wvM+krGEYic
+	 7m1kt3o5nSAPIuTaX1AAig6WesYHFIynENxzvbhrYFg9yi8eXxP7tdqGCMSX7wD4l7xgX
+	 tZseZdQRF2IWuCBj7jXISe4lpUOGTEAzYJ7mzm9L8qodoEtnlyH1pkhi/1hHnA8xbHf8b
+	 ngC0aabjJLeBfo4jct4fsHvktzUakeWkPgSL1kJfx+QDFNFzN/Koi5wDpqbPUJzaumQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793715504;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793717795;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
 	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
 	 Content-Type;
-	bh=cwhdyeGYqOmeDqITF9IFDP3190bhKSp0djlCibxuHcM=;
-	b=XjoZqGdWFAk8v78ko78aXD8i4Xt60npiPmOMflnhR+QBWbqQDdfNtGnhF+Qrl0mIKPr3
-	 PF1x30bqaUva8Ut5JlY09fQNatNr806yd7ovojC+NmhxGCwtO2vMMirH0DJ5YwzHaCqTt
-	 mVPSpuIxi2DgU7xKH0VQqchKWIuasWXLqUBx6XTKnkBn3gGcRqITQLsJaSM8f2o58GQQk
-	 TeJML6u15U5VH6VsOFFTEDWpbSWu6KGeOKbuLyEKPH6++FEL2Ft51iao7lrCcLq/UxS24
-	 hxM4Y1OId1GGa2aDAdNAzWfw+NWm0dIv86dI94OHjs3tvrFteMSZFCcIinOTRgVpcVA==
+	bh=VT+LkrT4vnrGeFH9EakLdifSJoARIpmJw19Srjceb+I=;
+	b=4AEatWTV/p5XQQqBiOx5sFQ4dIm7T2t/2m+VnNub5JepTyrDxqbZ7grE1VuajioVni8x
+	 fLlRV8JaoiRlaOsaZbbwxGfuUtj4lhw6HrvK5CJ6uWObGm2jKHLJyGGYM44EJO2JLuK4i
+	 VbdIloZSD+85f814ybnnW8z3mny8XRf274NhcMnOL3OoMmnWQ5pFSLr/JxLuOWwE0vTTF
+	 +NaW534D2Xv4Skzoj8rCxMdPfc7GtKlM8iNWD4RdodatdhLBY7j8YLyzJiPzh67XU5wcT
+	 O6DcjATlZlPkubbTlE/ADrz0FL/blOSqRFBWWuXxkggeuXqUVXUSogJ8hv2/LvhlXTA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=ssi.bg;
 	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=JE82KpPK;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=32zSswWr;
 	arc=none smtp.remote-ip=193.238.174.39
 Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A27A606A32D;
-	Tue,  3 Nov 2026 14:18:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9A27A606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B51606B240;
+	Tue,  3 Nov 2026 14:56:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 86B51606B240
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=JE82KpPK
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=32zSswWr
 Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 6A0F021F8C;
-	Tue, 03 Nov 2026 16:18:13 +0200 (EET)
+	by mx.ssi.bg (Potsfix) with ESMTP id 0285121F8C;
+	Tue, 03 Nov 2026 16:56:31 +0200 (EET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
 	:content-type:content-type:date:from:from:in-reply-to:message-id
 	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=cwhdyeGYqOmeDqITF9IFDP3190bhKSp0djlCibxuHcM=; b=JE82KpPKXrNC
-	dOjPi13LLWsSZTcODSq65jFd7ktUXhAhF7N4c0NgNzUEIYVDVvlfBnN60DntmhjV
-	xx1DkEPeNj9EL1O1AIu8UqWvjqwGAL1fUNj11gJg5sG4gF4Vq/NKRzfsBB40hBK+
-	qpeZ7EGkqtpSw51fr5sL9f04b1BH7XV1khgyJnr0U7RA5UZk8OI5Bs0UTujtuBiw
-	zbWTk3Ii7NFuvVIIoqlv+uK7fAxQbS+WXlqDUu0AX3c4Kybn3XvEeI3dUCmb6+Z/
-	7NUsejQqxSXum3EPu95/6SmSENANT9QgqVJVREcl80ijATnPIf4jiD/y1sON8Zn0
-	Cp8h0fUouiSW/77fK0W/3LqOx70bBggPWEa7Gz/0mwBzev/+7zO8uvJg2tdhSQDZ
-	qIgdlhWyms0XK8/FLcSiX9WUkA0WzTcUnIvPDnpAk8qsx/kZdvkS7Qn569MHvhMq
-	uJRBWaM0vGU16DfkTx41nXYZko7WG4Sd3sdHj2ihSIxpit9fDEnyM8K3weA7UG39
-	AviqoNStmBDojIn20+wjKXnYaevkNGd1K/PhmWlEjlEO1QflO+euCIzUyvay95H4
-	4Rv9tKE1dHz3x2B5S1x/I+qnl0O/gnp8ZoQ2PAH3TfNHtBH/G2oTITqv9OfyC0AN
-	4UVTfKe7BNgfBV/pCTbHb1vbtpNokPY=
+	 bh=VT+LkrT4vnrGeFH9EakLdifSJoARIpmJw19Srjceb+I=; b=32zSswWrbKz/
+	qJ+OwRaomT/QS1p86Qu/Ha9uFFg5ZyBVqek0Qg0jvdZaYjlEbzVzkjTD4CDi8rzs
+	nbIj2j7f+JkOslIqDQkVzoxAMAw4/vesEkzAzRAAzxrO0udMgOf9IbZ4dnhAzODE
+	Z4Dui4KyHVaqFwAFtDhX5Ik1iLNfaJIcLz+8jb6nZwOiXCgJDbvmToyFK7xkCxrC
+	pcr4UW3n7inrofYZ5wlIizGjumtPCO6FvXqVHgIok99vHApoStrSpeqggpNHpIqk
+	n8szucR3/13L0eYBtMm5UqxJoj/g8g5c35gNCrhjOfmfAUhz4CxfGxxA8AgUPjNt
+	xsBbQ7WCEiRT2BK/sOYUv4u5bCAsorqbDyPAFzZ1I6Cne0ze8QVYg2H1yO9+TDum
+	B2jlFaj22QbwZfBLsjzyQzFsHuFYYAlJTR7GwRGtYZG8bHOmkcsT1srwaPv18sn5
+	8B/Mx0L7EptaZdpY444w9lEnAwN6pqp5Srs5w+WLDoqOJcAmrV8ArRkxlgBdWVLK
+	/sRurPtVhJdk6ENeoGNZ75483eDDRD0aH8fGjelhvxmio37Qj63nkjb0oZTm38gm
+	6osrzi/mEJe2d2+/f9FOwlcWep2EB62KHVaVpNWuFNSu0EfCnivm/9a2P8OrA4u5
+	hFNURFP7kAkKzT+1J1espdqOyJofd8I=
 Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
 	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 03 Nov 2026 16:18:13 +0200 (EET)
+	Tue, 03 Nov 2026 16:56:30 +0200 (EET)
 Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id CDE7460F6A;
-	Tue,  3 Nov 2026 16:18:12 +0200 (EET)
+	by box.ssi.bg (Potsfix) with ESMTPSA id 8A9FC61DE8;
+	Tue,  3 Nov 2026 16:56:30 +0200 (EET)
 Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A3EI5MS050363;
-	Tue, 3 Nov 2026 16:18:05 +0200
-Date: Tue, 3 Nov 2026 16:18:05 +0200 (EET)
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A3EuRWc056153;
+	Tue, 3 Nov 2026 16:56:28 +0200
+Date: Tue, 3 Nov 2026 16:56:27 +0200 (EET)
 From: Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-cc: netfilter-devel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@kernel.org, horms@kernel.org, fw@strlen.de
-Subject: Re: [PATCH net 02/15] ipvs: wait grace period while reusing dest
+To: Ren Wei <weir@nebusec.ai>
+cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        dsahern@kernel.org, idosch@nvidia.com,
+        Simon Horman <horms@verge.net.au>,
+        "David S. Miller" <davem@davemloft.net>, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, pablo@netfilter.org, fw@strlen.de,
+        phil@nwl.cc, vega@nebusec.ai, zzyy19904204639@163.com,
+        jiayuan.chen@linux.dev
+Subject: Re: [PATCH nf v2 1/1] ipvs: wait grace period while reusing dest
  from trash
-In-Reply-To: <20261103140308.591690-4-pablo@netfilter.org>
-Message-ID: <15ccbaa8-170c-d920-866f-ece97d6def13@ssi.bg>
-References: <20261103140308.591690-1-pablo@netfilter.org> <20261103140308.591690-4-pablo@netfilter.org>
+In-Reply-To: <5bac9b2d5e34fcfb326761b948afdf64a3b1d7b9.1790244000.git.zzyy19904204639@163.com>
+Message-ID: <6b4a3829-41cb-81b0-547b-5ae4c3839a96@ssi.bg>
+References: <cover.1789473164.git.zzyy19904204639@163.com> <5bac9b2d5e34fcfb326761b948afdf64a3b1d7b9.1790244000.git.zzyy19904204639@163.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -85,7 +89,7 @@ Content-Type: text/plain; charset=US-ASCII
 
 	Hello,
 
-On Tue, 3 Nov 2026, Pablo Neira Ayuso wrote:
+On Sat, 26 Sep 2026, Ren Wei wrote:
 
 > From: Darong Lu <zzyy19904204639@163.com>
 > 
@@ -114,29 +118,50 @@ On Tue, 3 Nov 2026, Pablo Neira Ayuso wrote:
 > trash after an estimator failure are put back without recording a new
 > cookie.
 > 
-> Fixes: ceec4c381681 ("ipvs: convert services to rcu")
-> Cc: stable@vger.kernel.org
 > Reported-by: Vega <vega@nebusec.ai>
 > Reported-by: Darong Lu <zzyy19904204639@163.com>
-> Link: https://patch.msgid.link/cover.1789117690.git.zzyy19904204639@163.com/
+> Fixes: ceec4c381681 ("ipvs: convert services to rcu")
+> Cc: stable@vger.kernel.org
 > Co-developed-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 > Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 > Signed-off-by: Darong Lu <zzyy19904204639@163.com>
 > Signed-off-by: Ren Wei <weir@nebusec.ai>
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> ---
+> Changes since v1:
+> 
+>   - Replace the TWOS-only destination-walk bounds with a general fix for
+>     destination list-node reuse through dest_trash, as requested by Julian.
+>   - Use Jiayuan's get_state_synchronize_rcu()/cond_synchronize_rcu()
+>     scheme so bulk service replacement waits at most once.
+>   - Batch removed destinations on a temporary list and splice them into
+>     dest_trash under one lock acquisition.
+>   - Handle destination rehashes with a saved grace-period cookie and avoid
+>     assigning need_gp after ip_vs_rs_unhash() clears in_rs_table.
+>   - Drop the duplicate list_add() in the estimator-error return path.
+>   - Leave the reported TWOS total_weight and signed weight/overhead
+>     multiplication overflows unchanged. They are pre-existing correctness
+>     issues, unrelated to this RCU iterator invalidation, and outside this
+>     patch's scope. In addition, get_random_u32_below() takes a u32, so the
+>     report's description of a negative random bound is not applicable.
+>   - The report's characterization of RR as having the same unbounded walk
+>     does not apply to the current code: RR limits its traversal to two
+>     passes, so no RR-specific change is needed.
+> 
+> v1 Link: https://lore.kernel.org/all/cover.1789117690.git.zzyy19904204639@163.com/
 > ---
 >  include/net/ip_vs.h            |   4 +-
->  net/netfilter/ipvs/ip_vs_ctl.c | 109 ++++++++++++++++++++++++++-------
+>  net/netfilter/ipvs/ip_vs_ctl.c | 109 ++++++++++++++++++++++++++++++++---------
 >  2 files changed, 90 insertions(+), 23 deletions(-)
 > 
 
 > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index ce9fe20d6106..7f10cf5b48c7 100644
+> index 4c1c739446b7..74cf6d075abf 100644
 > --- a/net/netfilter/ipvs/ip_vs_ctl.c
 > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
 
-> @@ -1566,11 +1615,18 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+> @@ -1568,11 +1617,18 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
 >  
 >  		ret = ip_vs_start_estimator(svc->ipvs, &dest->stats);
 >  		/* On error put back dest into the trash */
@@ -157,11 +182,53 @@ On Tue, 3 Nov 2026, Pablo Neira Ayuso wrote:
 >  			__ip_vs_update_dest(svc, dest, udest, 1);
 > +		}
 
-	BTW, this patch needs a little fix above:
+	According to Sashiko we have a problem with the 
+ip_vs_start_estimator reusing est->list before a grace period:
 
 https://sashiko.dev/#/patchset/20261102005654.532438-1-pablo%40netfilter.org
 
-	I'll post more info soon.
+	I'm not sure yet if we should post v3 or just a followup fix
+would be needed. And the fix against v2 can be to move 
+cond_synchronize_rcu() before ip_vs_start_estimator():
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 4f7ccf50d8c0..2f903e753c20 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1613,20 +1613,22 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 			      IP_VS_DBG_ADDR(svc->af, &dest->vaddr),
+ 			      ntohs(dest->vport));
+ 
++		/* Readers may still follow the n_list/d_list of the
++		 * unlinked dest, wait before linking it again.
++		 */
++		cond_synchronize_rcu(dest->rcu_state);
++		/* need_gp matters only on dest edit, reinit it */
++		dest->need_gp = 0;
++
+ 		ret = ip_vs_start_estimator(svc->ipvs, &dest->stats);
+-		/* On error put back dest into the trash */
+-		if (ret < 0) {
++		/* On error put back dest into the trash but without
++		 * updating the rcu_state because est->list was not
++		 * unlinked now.
++		 */
++		if (ret < 0)
+ 			ip_vs_trash_put_back(svc->ipvs, dest);
+-		} else {
+-			/* Readers may still follow the n_list/d_list of the
+-			 * unlinked dest, wait before linking it again.
+-			 */
+-			cond_synchronize_rcu(dest->rcu_state);
+-			/* need_gp matters only on dest edit, reinit it */
+-			dest->need_gp = 0;
+-
++		else
+ 			__ip_vs_update_dest(svc, dest, udest, 1);
+-		}
+ 	} else {
+ 		/*
+ 		 * Allocate and initialize the dest structure
 
 Regards
 
