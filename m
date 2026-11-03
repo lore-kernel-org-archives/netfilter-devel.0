@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793719824;
-	b=Svw87Fj7VQCGiG4HbNHuSMztaKa9daFpEhagCiI143PXOJy4so4wmlZmZiOQ8yPjQI0A
-	 h8EQhEEh5E453Sg8WueHVoblDiDt5k+4xttHfkBva3u/WMRS6MubF1sXLaizfgUUiNpUU
-	 aYJh5INXze95KBHtmIINyj4nNj39EaJSKD/g8rybcMlpikkRPm3Wq3l58QyDDdG3T4ywH
-	 rydnLeT6a39eqj83FRCB4ImX9x3BeYzEqdUl0AGBajTXpHabLyeqb0ZwgUMw8SMsgwTbW
-	 hytrAVQL6tSOBZq8WuOn1n0qJHvbflMKrNfhTMV7QS7g4K7co1oGcgHRX4nV0i15MVw==
+	t=1793719821;
+	b=JRvu7zxEB8xYFvaZDNbucTgt1CZvrl0I+1HqxtcrZ8KCLotJYI7n0vfgGsq79HpfMNiA
+	 HMwLjLYXwftyxntR7w/G1j4uh6wfReRwWbSqv00O/+V28pWhop6q++yAqDxbN0Zepr4sd
+	 uLUtd/9aApkOrRoW26xadI0c0zAfKebeFeTfxv8UN7TJB7ZcG70gMFb5ohA69Sdt85LUF
+	 DqdmFygPwXM/VmeRQIfwZsECKiD+hGjqdOcyvnEDYxCWv7oq1FK4BprZwxQ2W7xS3kLy2
+	 KeFek7KWzIQEZSACBJgVG5hqPdymSuLb9bXDwPstFnE9vkE9P00NjjMF/Z8WAHImB0Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793719824;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793719821;
 	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
 	 Subject:Content-Language:To:Cc:References:From:Autocrypt:Organization:
 	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=oho5Y7yXnf74OkGYAwqsznrAsAIu5rhuRJEKckrmOpk=;
-	b=DVjhkskPpW0lWazr5Ma+CXH83VEOkvyrjRrINaxSkQ0a2Kr8+S80r49KxHUsLLbyJ5M8
-	 0JzrLRaU2wshUDzGtGaWiJiM9ojPQgvKXX8qkw+mALPbD1k+8Kjn17gcyitScf0kBghOJ
-	 RRsjqh3RSv9+RLe1QoT9qKbhH5KQrpw2P9hgwAgAoIpGJt4zYweWiMt8isgjatSpk7obE
-	 h169TqPCBOb4uVxM3IUweG3QgiExxC+ovOcpmr8rNed1BRYC1CQk1jCu7p4pqX/xSHogO
-	 JXtgMqZi6jsplctbHqXnFiWEjv3CCVbU2pWfISgKVDddiV2z9Z/AhWov2oYNYsjVIIQ==
+	bh=wqMUZYGt8/JtXCLQ/OJktfmQmPOAqO+arF6Ph52aKFc=;
+	b=R2veC8cL+GNss9f2IFFfNubnUAJr6pIJt1VdyocpU6Oq3xuV8IHij+chhL7jjPHSD0XL
+	 4puih06NqEAkiB8dkHIN8WJluMr7+ygJ6Qha7tkkmW+vWfOp46fErRlhoe8bsFv6J6tsq
+	 H7tQBjNqjj/g11hZjP6Brn8h6Qu6Zs83DCIs8mItnhqdNwMD6kQi4jz0IEro4jXpyNalY
+	 bkLRhtmIf6WEgmYmhDppbJvyBuHfKismKKlB1VWicQEI5kkiHm+y7AEbUKXlAEAO6OmjY
+	 JTM5J7niYNWS+8fOYO7l+F9oL7GyK8V8JkAMmiq8Z43Q9G89xe7tIlM2fxsyZIGIong==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hd7lpH2Y;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hcWXlv+9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E39606A332;
-	Tue,  3 Nov 2026 15:30:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hd7lpH2Y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98EA31F00A15;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83970606A327;
 	Tue,  3 Nov 2026 15:30:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hcWXlv+9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 841141F00A1A;
+	Tue,  3 Nov 2026 15:30:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793719823;
-	bh=oho5Y7yXnf74OkGYAwqsznrAsAIu5rhuRJEKckrmOpk=;
+	s=k20260515; t=1793719821;
+	bh=wqMUZYGt8/JtXCLQ/OJktfmQmPOAqO+arF6Ph52aKFc=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=Hd7lpH2YNXbZZ7NAoMm1oer0+kw5wWUokLXU0H0bHqZ7t16G+Mivx91FWRTCEopYo
-	 JauOuurP4/Sa3ZdKsM/yOr4YduTD+bqjCD5PPjq+q2eG/M/7kCx7pjunhjIJcpFH8S
-	 YXtdH9CWHtvKSbZ+ZukmDffuBj8kR+N51ZozOCFQLFNfE7bYD82ioCJ4qWn0gyVhOW
-	 +AmHS1xpBo0gn0qz1cQA/+4DRO2Uu1QGhvwEMWfqLfKEmZuhG8LqOAZMCjDROH8tP6
-	 c8ELgi7fXpByQqLVD+/1GEp3QuJj8hzjCN8Rh6zpiKMI4mJP20D/XNL9a8sbsDwGUT
-	 +Oq8kWaoGmyQA==
-Message-ID: <0c1cf4dc-703e-448c-8514-c86550041401@kernel.org>
-Date: Tue, 3 Nov 2026 16:30:20 +0100
+	b=hcWXlv+9oWPyFioJIa6usTvwkrkRKDynR3Vu9DHd42MtZSKHdt3+cpP26KoV5K2g1
+	 vPRneIZHt5iRJwGZycjZcjBZH6qMHiW2oJmsJjEVZ0yEpfKxUALmWhHCJROFakvqUn
+	 VFiWDOTLaWLkbUw7LQpc4zPFC1iOFjeUhrMRpu4zjOT2yqum3gI/3a9RzRwEkl4J0X
+	 4aTlzW39ke1wCsEOWixGdIHETUhR9rx8sB+Cygb2pLOakzV68Dvd3QK4repYfU+W2T
+	 4k6JyxjwNYbDKQXjc5WmxqQ0aEIrtJlHbo64ODNt5wBwx9iIf+Nirl4xIVfteljJbS
+	 VmJv4U1hBhdZA==
+Message-ID: <2cd43496-dc97-470f-922a-65bcbbb40529@kernel.org>
+Date: Tue, 3 Nov 2026 16:30:13 +0100
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -54,15 +54,14 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird Beta
 Subject: Re: [PATCH net 00/15] Netfilter/IPVS fixes for net
 Content-Language: fr
-To: Florian Westphal <fw@strlen.de>
-Cc: Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>,
- netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, edumazet@kernel.org,
- horms@kernel.org, ja@ssi.bg
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Paolo Abeni <pabeni@redhat.com>, netfilter-devel@vger.kernel.org,
+ davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 References: <20261102005654.532438-1-pablo@netfilter.org>
  <b452b25b-37fd-48ab-a88c-feec6b82e9ec@redhat.com>
  <5dc1159d-e577-442f-a7b2-8d5dcc8cfb01@kernel.org>
- <aunc8YgjvFXsPDeo@strlen.de>
+ <aunlVk2Cn7ocgANE@chamomile> <aunmABdLpFILZvGt@chamomile>
 From: Matthieu Baerts <matttbe@kernel.org>
 Autocrypt: addr=matttbe@kernel.org; keydata=
  xsFNBFXj+ekBEADxVr99p2guPcqHFeI/JcFxls6KibzyZD5TQTyfuYlzEp7C7A9swoK5iCvf
@@ -108,33 +107,99 @@ Autocrypt: addr=matttbe@kernel.org; keydata=
  JY6dglzGKnCi/zsmp2+1w559frz4+IC7j/igvJGX4KDDKUs0mlld8J2u2sBXv7CGxdzQoHaz
  lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
 Organization: NGI0 Core
-In-Reply-To: <aunc8YgjvFXsPDeo@strlen.de>
+In-Reply-To: <aunmABdLpFILZvGt@chamomile>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+Hi Pablo,
 
-On 03/11/2026 14:09, Florian Westphal wrote:
-> Matthieu Baerts <matttbe@kernel.org> wrote:
->> It looks like the patches have not been tested, because of the kdoc
->> issue on patch 6/15:
+On 03/11/2026 14:47, Pablo Neira Ayuso wrote:
+> On Tue, Nov 03, 2026 at 02:44:57PM +0100, Pablo Neira Ayuso wrote:
+>> On Tue, Nov 03, 2026 at 01:27:30PM +0100, Matthieu Baerts wrote:
+>>> Hi Paolo, Pablo,
+>>>
+>>> On 03/11/2026 13:04, Paolo Abeni wrote:
+>>>> On 11/2/26 01:56, Pablo Neira Ayuso wrote:
+>>>>> Hi,
+>>>>>
+>>>>> The following batch contains Netfilter/IPVS fixes for net:
+>>>>>
+>>>>> 1) Add recursion count to nf_reject infrastructure to prevent stack
+>>>>>     overflow, from Fernando F. Mancera.
+>>>>>
+>>>>> 2) Address a infinite loop in RCU list traversal with the TWOS IPVS
+>>>>>     scheduler, from Darong Lu and Julian Anastasov.
+>>>>>
+>>>>> 3) Use kfree_rcu() to release IPVS parent application to fix UaF,
+>>>>>     from Chengfeng Ye.
+>>>>>
+>>>>> 4) Fix UaF in IPVS netns removal path due to releasing per-net protocol
+>>>>>     data too early, from Chengfeng Ye.
+>>>>>
+>>>>> 5) Fix unbounded growth of stale, unmatchable IPVS connection entries,
+>>>>>     from Julian Anastasov.
+>>>>>
+>>>>> 6) Restrict maximum master conntrack chain depth in ctnetlink,
+>>>>>     from Florian Westphal.
+>>>>>
+>>>>> 7) Preserve recursion count on nfqueue reinjection, from Zihan Xi.
+>>>>>
+>>>>> 8) Restore GRE timeout in the flowtable, otherwise, WARN_ON_ONCE()
+>>>>>     is reachable, from Michail Andreas Michalopoulos.
+>>>>>
+>>>>> 9) Check non-null gc transaction in nft_rbtree before queuing it for
+>>>>>     processing, from Xingyuan Mo.
+>>>>>
+>>>>> 10) Replace WARN_ON_ONCE() by DEBUG_NET_WARN_ON_ONCE() in
+>>>>>      nf_conntrack_bridge which is reachable if the protocol of the tag
+>>>>>      of a frame differs from the vlan_protocol of the bridge.
+>>>>>      From Laveesh Bansal.
+>>>>>
+>>>>> 11) Check x_tables target name is non-null before accessing it when
+>>>>>      building a new table, from Fernando F. Mancera.
+>>>>>
+>>>>> 12) Fix out-of-bound memory read in nf_conntrack_sip, from
+>>>>>      Joas Antonio Dos Santos.
+>>>>>
+>>>>> 13) Fix a memleak in nf_tables hardware offload when double deleting
+>>>>>      the same rule, in the same batch.
+>>>>>
+>>>>> 14) Use a mutex in xt_recent netns exit path instead of spinlock,
+>>>>>      since proc unregistration might sleep. From Cen Zhang.
+>>>>>
+>>>>> 15) Zero the nf_nat_range2 struct before filling it up, to avoid
+>>>>>      using stale uninitialized stack data to configure NAT with
+>>>>>      an esoteric NAT flags combination. From Florian Westphal.
+>>>>>
+>>>>> Please, pull these changes from:
+>>>>>
+>>>>>    git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+>>>>> nf-26-11-02
+>>>> I'm sorry, but something went very wrong on the nipa side: the tools did
+>>>> not pick this PR. Do you mind repost it verbatim?
+>>>
+>>> It looks like the patches have not been tested, because of the kdoc
+>>> issue on patch 6/15:
+>>>
+>>> https://netdev-ctrl.bots.linux.dev/logview.html?f=/logs/build/1198360/14931104/kdoc/stdout
 >>
->>
->> https://netdev-ctrl.bots.linux.dev/logview.html?f=/logs/build/1198360/14931104/kdoc/stdout
->>
->> I guess this will need to be fixed in the v2. If it is a false positive,
->> please ping me.
+>> I routinely run checkpath.pl, I will re-check what happened here.
 > 
-> The only effect this test has is that I will stop making kdoc comments.
+> Well, here I have a script that contains checkpatch.pl and the
+> following call as well:
+> 
+> $ scripts/kernel-doc -none net/netfilter/nf_conntrack_expect.c
+> 
+> but it shows nothing here.
 
-Yeah, same on MPTCP side after I got bitten once by that. But then I
-realised checking for errors was very quick, and I added a check on our
-CI side.
+NIPA uses "-Wall". With it, we can see the issue:
 
-  ./scripts/kernel-doc -Werror -Wall -none <directories/files>
+  $ scripts/kernel-doc -Wall -none net/netfilter/nf_conntrack_expect.c
+  Warning: net/netfilter/nf_conntrack_expect.c:311 No description found for return value of 'nf_ct_expect_alloc'
+  Warning: net/netfilter/nf_conntrack_expect.c:311 No description found for return value of 'nf_ct_expect_alloc'
 
-I guess this check has been added to avoid all these small patches just
-fixing kdoc warnings :-/
+(And with -Werror, the script returns a non-zero RC code.)
 
 Cheers,
 Matt
+
