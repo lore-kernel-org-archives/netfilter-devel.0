@@ -1,104 +1,123 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793701084;
-	b=w7jE+9VY2E0yHcUIJOE88rmirk/For8wIOPmcdPppV9hgopYfAqFNIQEBRwXi1YjIar9
-	 tJGyQIMHgtCmHBkEeySPE+3wytV4G+kEs2oFHdoKxVp/VYTsFn/RpzutMDoe9XHiBiojS
-	 dBSYdTuAB6XrFDGem/fQEySIO5eDjDI3VKERXWj0pD9M6Vl1gA6StVVO975CSnQZZ+0Wc
-	 jsBB3eI+/KahsdZ2jNbTfslXeW7UWYfFfyXJiarAOQFUEQpBeJGAPdQr5xdYNU0fkzxdd
-	 IXVypGwzlY9uqtQF1bAlLUzuVXkSscNUKniv/HLEohEdrJ9pVO+N1oven0NXqyZ8eHg==
+	t=1793702480;
+	b=Y6sVxyjNgVrBI7kd4jAEPWbhNHjOyzSEgat4FpacCmt6C15746gx51CLeSol/lG32avR
+	 Jp5TzNkKbo0HdIQGt2bFwuH/Gz90Z3TbeAu1C3yH6BQxPYYOf8j4KBzkrX1TWayR/B47c
+	 qREyQ63/5JU+irVF03n6KPL8pmHZUmTdg1LuE2Qvf74YOiPrwSOjbaae5P+itI4MGbDfG
+	 wRe6upAmJCaYkmPd9W4KgSDk2qYqhhP8qQA77JVJPtVJSrHzUyy/bZSjmKKP6+EcKWQo/
+	 Vm3HMuddx5yTSkX5a09BbTz897oTslXYp6hNC5UwVdSePsJk9OUJ42/brZDG55LKJyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793701084;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Queue-Id:X-Spam-Level:
-	 X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:
-	 X-Spam-Score;
-	bh=yaS7yNbKpjTq/wdFXMRNNfI8QgdsYDKaRsynkutJv80=;
-	b=4xMkIhNaa1ES56UIT+pFn9rOHAUGlyJ2hXziCTLzxaj4OREUL1xUq8pPwuMJhXT1Rghc
-	 8El1RBFBghTHiiTRjStD2Ym4WbxZ5H6EI4qV+fJscNMGMteS5jDge2gn2PwDzO7vVViqr
-	 lbaVE6A7O72Q3neLU+bsYIBx9bmBLOUW/zj9ivEyWsE1vglz1nyqXElChhCDu7Uk18cg+
-	 uNg/g5iLJUn2KLn21eJbOcE9CTqCDyaUiHAYi+cAJp9ysnif5keaOP1184Ckr9fDUniKY
-	 gjisbFfeyJ1ScRf4jNTDYeyrSbo9sWWMJNMkzqkmV5RcpA9dhqJuzfcLbmyOxBc6wkA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793702480;
+	h=DMARC-Filter:Received:Received:Received:Date:Message-ID:From:To:Cc:
+	 Subject:In-Reply-To:References:User-Agent:MIME-Version:Content-Type:
+	 X-Rspamd-Pre-Result:X-Rspamd-Queue-Id:X-Rspamd-Pre-Result:
+	 X-Rspamd-Action:X-Rspamd-Server:X-Spam-Level:X-Spamd-Result:
+	 X-Spam-Flag:X-Spam-Score;
+	bh=n3928gBIWqHxVcE0Q0TQTSHKUQ5+JmJrD1oVco54lEw=;
+	b=SsNNhpNjGYW2vCZtMkflse9ue8YHNtR8+zbGG5fBevd4SYsJ2hVgVPVNH3P4hJ68/df6
+	 pJzUlpQCJkZaDvEKSRGrzteXSeBQenr0ZuEbFckUlTvj1mSY7SiUpQHhtJzfTgqBUtZnX
+	 KGPfx4asqIUjRtWhnSjU4CUWRold3ESi4aGFeWei6yh4oWfgxf10HOQGcthEPH5dIfr9A
+	 fSlITyTca7dNoYNjL+GB7dS6JUM466ks8zqr/C5aLdfQlu+4/Yvz1dG6dh8xowYtyLQE5
+	 nAeYjPv+WK6PboMtJ5JCCWvkviDiVOw6D4DSVf6DVdmuB4kuC/bcd4rs6cfcivrhikQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=suse.de;
 	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=egqFE02S;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=asXO1zHk;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=egqFE02S;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=asXO1zHk;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	arc=none smtp.remote-ip=195.135.223.131
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C9D06082BC5
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 10:18:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6C9D06082BC5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34065606A81D;
+	Tue,  3 Nov 2026 10:41:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 34065606A81D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=egqFE02S;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=asXO1zHk;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=egqFE02S;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=asXO1zHk
 Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9E55B22310;
-	Tue,  3 Nov 2026 10:18:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793701081; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yaS7yNbKpjTq/wdFXMRNNfI8QgdsYDKaRsynkutJv80=;
-	b=egqFE02SJK1yjk3WruMUPAjn9UJqm1TwtOjfODKKUhGvabSQO8lHv3A7M2gVaiT/PXnAc4
-	bpSXAJFbY2yR1a5WPekBvQzw/hr1cb/S31B1PdkefYql01o3v44yE9iWZ0Gz7WSrhLRG4P
-	XjrxaXe2DJR10rTdY4519RSL07vL1jU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793701081;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yaS7yNbKpjTq/wdFXMRNNfI8QgdsYDKaRsynkutJv80=;
-	b=asXO1zHkGvRe0NvSZwePE2uCbQ04j2DpS4+T73G9/zb3zx/r2Rm59gT1Sh2W4/DFYlkN6y
-	r/55jEIa2jfGmQCw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=egqFE02S;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=asXO1zHk
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793701081; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yaS7yNbKpjTq/wdFXMRNNfI8QgdsYDKaRsynkutJv80=;
-	b=egqFE02SJK1yjk3WruMUPAjn9UJqm1TwtOjfODKKUhGvabSQO8lHv3A7M2gVaiT/PXnAc4
-	bpSXAJFbY2yR1a5WPekBvQzw/hr1cb/S31B1PdkefYql01o3v44yE9iWZ0Gz7WSrhLRG4P
-	XjrxaXe2DJR10rTdY4519RSL07vL1jU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793701081;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yaS7yNbKpjTq/wdFXMRNNfI8QgdsYDKaRsynkutJv80=;
-	b=asXO1zHkGvRe0NvSZwePE2uCbQ04j2DpS4+T73G9/zb3zx/r2Rm59gT1Sh2W4/DFYlkN6y
-	r/55jEIa2jfGmQCw==
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 87A641FF84;
+	Tue,  3 Nov 2026 10:41:18 +0000 (UTC)
+Authentication-Results: smtp-out2.suse.de;
+	none
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 277B2134B8;
-	Tue,  3 Nov 2026 10:18:01 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A98D41350A;
+	Tue,  3 Nov 2026 10:41:17 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id sW6/Odi06WoPegAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 03 Nov 2026 10:18:01 +0000
-Message-ID: <4bd1fa01-983c-462f-8ccb-3e8e3d9482db@suse.de>
-Date: Tue, 3 Nov 2026 11:16:37 +0100
+	id fPJkIE266WqxEgAAD6G6ig
+	(envelope-from <tiwai@suse.de>); Tue, 03 Nov 2026 10:41:17 +0000
+Date: Tue, 03 Nov 2026 11:41:09 +0100
+Message-ID: <87ik2exkmy.wl-tiwai@suse.de>
+From: Takashi Iwai <tiwai@suse.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org,
+	Chuck Lever <cel@kernel.org>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH RFC 09/38] ALSA: info: don't write past the end of a data entry
+In-Reply-To: <20261102-work-procfs-bugfixes-v1-9-59422ed3e465@kernel.org>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+	<20261102-work-procfs-bugfixes-v1-9-59422ed3e465@kernel.org>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -107,80 +126,64 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf v3] netfilter: nft_reject: prevent unbounded recursion
- in output hooks
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
- phil@nwl.cc, Yu Junzhe <junzheyu1@gmail.com>
-References: <20260924201328.6323-1-fmancera@suse.de>
- <aufS5GcCmM590Q45@chamomile>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aufS5GcCmM590Q45@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: 9E55B22310
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Rspamd-Queue-Id: 87A641FF84
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
 X-Rspamd-Action: no action
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spam-Level: 
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	REPLY(-4.00)[]
 X-Spam-Flag: NO
-X-Spamd-Result: default: False [-13.50 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	XM_UA_NO_VERSION(0.01)[];
-	MX_GOOD(-0.01)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,netfilter.org,strlen.de,nwl.cc,gmail.com];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:dkim]
-X-Spam-Score: -13.50
+X-Spam-Score: -4.00
 
-On 11/2/26 1:01 AM, Pablo Neira Ayuso wrote:
-> On Thu, Sep 24, 2026 at 10:13:28PM +0200, Fernando Fernandez Mancera wrote:
->> nftables payload-mangling rules can rewrite packet contents (such as TCP
->> flags) before they are evaluated by reject targets. This defeats the
->> content-based loop guards, allowing unbounded hook recursion that leads
->> to kernel stack exhaustion and panics.
->>
->> Fix this by extracting the per-CPU xmit recursion limit previously used
->> by the netdev duplication/forwarding paths into a shared header, and
->> apply it to the inet and inet6 reject transmit functions. It disables BH
->> while transmitting the skb to address a possible migration to different
->> CPU leading to imbalanced decrementation of the recursion counters.
->>
->> Note that the dev_queue_xmit() path used when CONFIG_BRIDGE_NETFILTER is
->> enabled does not require this recursion guard. In that scenario, the
->> generated reset packet is transmitted directly at Layer 2. Because the
->> packet egresses from a different hook, it cannot synchronously loop. In
->> addition nf_send_unreach() and nf_send_unreach6() are safe as the ICMP
->> transmit functions are protected against recursion by the
->> icmp_xmit_lock() and icmpv6_xmit_lock() guards.
+On Mon, 02 Nov 2026 15:21:24 +0100,
+Christian Brauner wrote:
 > 
-> Unrelated to this patch, but should ip_local_out() call in
-> synproxy_send_tcp() be tracked by the recursion counter too?
+> snd_info_entry_write() clamps the count to what is left of the entry
+> by computing entry->size - pos as a size_t. For a position past the end
+> that wraps and the write goes to the driver unclamped, for opl4 into
+> sample memory outside of what the entry covers. At the end of the entry
+> the driver gets a count of 0 and vmalloc(0) warns. Before the clamp
+> moved into the common code the driver ignored such writes. Fail them
+> with -ENOSPC instead, like a block device does at the end of the
+> device. Returning 0 would make writers that use stdio retry forever.
+> 
+> Fixes: d97e1b78239c ("ALSA: info - Check file position validity in common layer")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Hi Pablo, you are right. I have reproduced the same on synproxy. I am 
-sending a patch to nf tree.
+Reviewed-by: Takashi Iwai <tiwai@suse.de>
 
-Thanks for pointing it out Pablo!
+
+thanks,
+
+Takashi
+
+> ---
+>  sound/core/info.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/sound/core/info.c b/sound/core/info.c
+> index c4d57d0809ad..982087bc8575 100644
+> --- a/sound/core/info.c
+> +++ b/sound/core/info.c
+> @@ -171,6 +171,8 @@ static ssize_t snd_info_entry_write(struct file *file, const char __user *buffer
+>  	pos = *offset;
+>  	if (!valid_pos(pos, count))
+>  		return -EIO;
+> +	if (pos >= entry->size)
+> +		return count ? -ENOSPC : 0;
+>  	if (count > 0) {
+>  		size_t maxsize = entry->size - pos;
+>  		count = min(count, maxsize);
+> 
+> -- 
+> 2.53.0
+> 
