@@ -1,79 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793720355;
-	b=fve/xCVR3ZvA31NC02XNpph56dcW1ouVHg4VwgA9kZp37GHTxrn7idQky5U6A1+9kMSj
-	 7GkRJLSlb+MpuJ2oks0SwHjVIVxTg71iPpdFt/Fl2aShgbcBfSO2AQw0B8yVIbciAk02n
-	 kFPQt+Et8zROr1XLvKp8Uebwr8G1RAyVaZoNUtpS1SnippuTm/YEe0ooXshAVkV4MSZQR
-	 IpH1RFCmVXpzuAdX2Jk0jRDhM4xb6M7lEaLuR0SJpJnUF/cp0fFU/5RvetQEYPfssq45X
-	 RvIzLSP98AKFoYyd9g8N1HmT06GlqKR1txy9++T28PlDuMi27Stvut8q/7wnwA3y03w==
+	t=1793721445;
+	b=EDDtDNgUHhSFnMyZQVhjVuEfyZWuiBD1h13ojkv1EHqXMTqprtL1YS4dveB2lipGsXge
+	 4b6SBjmk4GSSiP0EofCMQIC2HM4o1tiRi3G86I/9B9AGJIcYkQT7p4I54edQ6ZKLpIw7O
+	 XB//sl3UvGmNkt4naot1WfukMJvE8rs+3wCwe049kh8XpyZEgaCJo5IzdK+cGzwPUgVai
+	 5NNtc5rkQMTxnOli2XUl3o813DN8v11oqiEe0upigyHK3XJF2JaX/HT6zABGQs3Hay0JM
+	 F6e0NqyiTUrn2IfQkHcCsi5kwrEZHg9QeTEVKA+21im/fLdwrY8F5rAmxDKgU3ZxXog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793720355;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=mhKgjBTtEa3A7AVgCuznDbXkGirC0vT/i1+KnVwVNWc=;
-	b=EA9oF8ws6/FG4lE1my4Epu1rH+yE8KXnLN9Cud1Bsv2o94MDheaJXYJEuFFeUjql9fCf
-	 YGfnAzykXH5E5A3LdP7rxgY3xXWMydT6I+Hzzoj6dhq17Jxqsa2NuSu60Ty7DU6uBUs4a
-	 pbJgw9mERYZFkrgx4hQgM8XpnWol7Ri1V7W7NVHUr51pftTqLdtI0ENmjXqkdqzsomKu5
-	 OhTPOkpMo8X6tAgRcPm1XvPHCdvFIbWw3W7LdgrIknoeMyzjLWeprlEtCJvK1+QiiciUo
-	 BAl87nwMO/Dncq3rhXbpFGH4Xq6BUcTvfByKikUNL0ESyFX+NclBYg4hEHXj40IQHwA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793721445;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=gNzyZBC6D62ObBOksRyz9sJ65IeUrHPgVdzW9BysQek=;
+	b=NpcfIv1ANAlfQzrd8wsraDJZvdMc26Wul4ShgRkwY/C7re52It3OubwL24KFtf3F3Gm7
+	 Meq8Vr2anOn1m5kvNSDLcoSXiscSIkPROB+AO+B8IRFm6gFbQauvdfLATppLZDXDCAk6X
+	 NIThDFy0SRQfr3orHMyVGoPTAvCVQbn0Gv8dyjXx+zZT3bHi5qj+xZcLBhT2lqd0+3gm8
+	 P6ukF4biP3Bq826Q6Wni44KTAPdG/y+JyOgE4HQleP7wDVrEAb+K+mbkdmCGxJreJ2xMX
+	 vlKqdKXx3hC9ewSjwAZzPzLQTO3oVyTrsoGbsoCzD+lxIQ5GV/3kOP110YXupV/rjUQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=rtkSaCSt;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="H6PWEm/Z";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC89606A327;
-	Tue,  3 Nov 2026 15:39:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6CC89606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD41D606D815;
+	Tue,  3 Nov 2026 15:57:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=rtkSaCSt
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id EA07B21F88;
-	Tue, 03 Nov 2026 17:39:11 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=mhKgjBTtEa3A7AVgCuznDbXkGirC0vT/i1+KnVwVNWc=; b=rtkSaCStoMyg
-	u/mhBbVMgbHC0FxrHFLwoHhZ93IheWjTnmSODYNLeWpBOc+//tSQYe9jrLYiPywV
-	3s72EVb/6srY0hp8P7hB3LOGMDMLUvthaLw+CHKX6y5IjSagY+VGb3qe9PoiIj+K
-	iCbUeAnQyK4GSwI/9s/+TF/InsHh6A30NnLs1J90QT9DHXFKvhZC8xnvBw0HU/5U
-	zrZ/gZ//Qh7d8N3VifRpQmEAYqvmgtMjr1UT8JqTb2vObUAYFFAP2PO0TyLATSeJ
-	UeNCb2OG+J0uEDNr+i4r/CBbBe+LkhJvNVDfVCDBFpeG/WraOl+sU20Wy2H2kL2X
-	Wsv4DwI7Ts9qZgYPxrXnflv9bt5yJHneTvkKPOxNANlN2RFpmej/d+bh7ZVD7bSO
-	Lk2Tzof80L24xsJMPOuWOWU1TiZdZN/kjiJ5Wh3J3jak+TolngQEcS7fndfHnswx
-	EBPiwlXw2R9P5bZUST1YewZDmDspmupxYut4h0NIWixRG7/RaDvwVnBMJ9h0PjbC
-	vXTdQon0keI+ritjdZ54VpCW5AQl8IQGkfeI4UUKBxRSgMZVXV5alhORbpCQvjeE
-	TSzQJfI02vBV5FK6bXnvMwx2VAeh9qTt5MIq6t68CIibtMGJKSR6X3KcZkamQaa8
-	7p/tWUjQUNHcm+GB5fgBkjPWOsCHtHk=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 03 Nov 2026 17:39:11 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 440BD61DE8;
-	Tue,  3 Nov 2026 17:39:11 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A3Fd86d061930;
-	Tue, 3 Nov 2026 17:39:09 +0200
-Date: Tue, 3 Nov 2026 17:39:08 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Axel Mierczuk <axel.mierczuk@1password.com>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Willy Tarreau <w@1wt.eu>, Keith Hoodlet <keith.hoodlet@1password.com>
-Subject: Re: [PATCH nf 0/2] ipvs: keep templates and cport 0 conns away from
- packet lookups
-In-Reply-To: <CALb1hrkiDXhnAgbfPZ0sus-uPu+NjKYQuUEbDkmD78KTxy_-VQ@mail.gmail.com>
-Message-ID: <160537ab-b47e-dfd5-c887-ba5d01466ca3@ssi.bg>
-References: <20260925141115.16126-1-axel.mierczuk@1password.com> <002e2c69-ae17-4321-ba3d-74cca0e57123@ssi.bg> <CALb1hrnMJGj5ePZSB89ZW0Uv_oNpepeqgAmGcZxRsLyv64HOYA@mail.gmail.com> <f87eab0c-253a-2d5d-d2e6-f4fb691c9813@ssi.bg> <bc3597b9-9fd9-692c-76ec-90904c787d2f@ssi.bg>
- <CALb1hrkiDXhnAgbfPZ0sus-uPu+NjKYQuUEbDkmD78KTxy_-VQ@mail.gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=H6PWEm/Z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C45A1F000C1;
+	Tue,  3 Nov 2026 15:57:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793721444;
+	bh=gNzyZBC6D62ObBOksRyz9sJ65IeUrHPgVdzW9BysQek=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=H6PWEm/ZPW83hxmsfMz+Ant7GwUD01Z4UOEWjnivIq48H4ArN5Rq7iqfjmNfKObei
+	 Vy1AemAmjLDLatmBo+EygXVVgsOtmMNncps5mSDTLyIn2Dql6vGzaeR3vdZmfmpNxV
+	 ixkRm3knpes5vkDK5TWcX8r6sVJuDQL4FeuQ3KxVnT9iTChgANijOwLzr/n/6bYGJ0
+	 0FcMXLxLRjr6K61bopompM4dqwoFNeBSiahAtzEDOroboY9hFeJQJviJatWR1L4sSG
+	 mSWBU4JnkY2I9ZGSYoBL1noNDDVcVXObYygZ68H7CO4nxJymrnPoWLSd8FsFmwclCl
+	 DC7s12nDF8P6A==
+Subject: Re: [PATCH net] netfilter: nf_reject: validate TCP header length
+ before sending resets
+From: netdev-bot+sashiko@kernel.org
+To: zhangmh25@mails.tsinghua.edu.cn
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ pablo@netfilter.org, coreteam@netfilter.org, stable@vger.kernel.org,
+ jianjun@tsinghua.edu.cn, kuba@kernel.org
+Date: Tue, 03 Nov 2026 15:57:23 +0000
+Message-ID: <179372144385.488856.3773065210102501294@kernel.org>
+In-Reply-To: <20261102155622.2658789-1-zhangmh25@mails.tsinghua.edu.cn>
+References: <20261102155622.2658789-1-zhangmh25@mails.tsinghua.edu.cn>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -83,85 +63,121 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-2044068999-1793720350=:59492"
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
----1463811672-2044068999-1793720350=:59492
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-	Hi Axel,
-
-On Tue, 3 Nov 2026, Axel Mierczuk wrote:
-
-> Hi Julian,
-> 
->       Patch 1:
->       [...]
->               So, nothing that needs to change the patch.
-> 
-> 
-> Agreed, I'll keep it unchanged in v2 with your Acked-by.
-> 
->       Patch 2:
->       Q1. Does this make the "update or create" lookup in ip_vs_ftp_out() in
->       net/netfilter/ipvs/ip_vs_ftp.c unreachable?
->       A. Looks like we need the same check in ip_vs_conn_out_get:
-> 
-> 
->       We should use:
->               (!p->vport ^ (!(cp->flags & IP_VS_CONN_F_NO_CPORT)))
-> 
->        
-> 
->       instead of the wrong cp->cport check.
-> 
-> 
-> You're right, the cp->cport check breaks the ip_vs_ftp_out() lookup.
-> I'll use your check in v2 and fix the commit message.
-> 
->       Q2. Can this lead to a new connection being created for every packet of a
->       flow started by a real server towards client port 0?
->       [...]
->       A. I can provide patch to ignore packets with port 0.
-
-	Just to let you know, this patch was already posted:
-
-ipvs: do not create conns from packets with port 0
-
-> 
-> 
-> Agreed, that belongs in the scheduler. Note the in direction already
-> behaves this way: __ip_vs_conn_in_get() does not match a cport 0
-> entry without NO_CPORT, so a client with source port 0 is already
-> scheduled on every packet. Patch 2 only makes the out direction
-> consistent. Happy to test your patch.
-> 
->               There is the option to create 3th patch "validate vport and dport
->       in received sync records" in your patchset
->       [...]
->       As for the zero vport/dport, I'm not sure, they look harmless.
->       What do you think?
-> 
-> 
-> I'd leave it out. Those entries can only be hit by port 0 packets,
-> which your scheduler patch stops at the source, and keeping the series
-> to cport keeps the stable backport small. 
-> 
-> If you prefer to have it, I'll add it as patch 3.
-
-	Better to skip patch 3 for now, only cport 0 is important.
-
-> I'll send v2 as a fresh thread with a link to v1.
-
-	Very good, thanks!
-
-Regards
+- [High] The patch does not fully close the case it says it closes.
 
 --
-Julian Anastasov <ja@ssi.bg>
----1463811672-2044068999-1793720350=:59492--
 
+netfilter: nf_reject: validate TCP header length before sending resets
+
+This adds a check to nf_reject_ip_tcphdr_get() and
+nf_reject_ip6_tcphdr_get(). It rejects TCP headers whose doff is smaller
+than the fixed header or larger than the available TCP segment. The goal
+is to stop sending an RST whose ack_seq comes from an invalid header
+length.
+
+> diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+> index 7cb33af671e26..5ed97772bbaaf 100644
+> --- a/net/ipv4/netfilter/nf_reject_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+> @@ -189,6 +189,11 @@ nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
+>  	if (oth == NULL)
+>  		return NULL;
+>  
+> +	/* Reject invalid or truncated TCP headers. */
+> +	if (oth->doff < sizeof(struct tcphdr) / 4 ||
+> +	    oldskb->len - ip_hdrlen(oldskb) < (oth->doff << 2))
+> +		return NULL;
+
+[Severity: High]
+Should this check use the length from the IP header instead of
+oldskb->len?
+
+nf_reject_iphdr_validate() only rejects skb->len < tot_len. Also,
+nf_reject_skb_v4_tcp_reset() never trims oldskb:
+
+net/ipv4/netfilter/nf_reject_ipv4.c:nf_reject_iphdr_validate() {
+    ...
+	len = ntohs(iph->tot_len);
+	if (skb->len < len)
+		return 0;
+    ...
+}
+
+The unreach builder in the same file trims before it uses the length:
+
+net/ipv4/netfilter/nf_reject_ipv4.c:nf_reject_skb_v4_unreach() {
+    ...
+	if (pskb_trim_rcsum(oldskb, ntohs(ip_hdr(oldskb)->tot_len)))
+		return NULL;
+    ...
+}
+
+Callers inside the IP stack get an skb that ip_rcv_core() has already
+trimmed. The netdev ingress and bridge reject expressions don't:
+
+nft_do_chain_netdev()
+  nft_reject_netdev_eval()
+    nft_reject_netdev_send_v4_tcp_reset()
+      nf_reject_skb_v4_tcp_reset()
+        nf_reject_ip_tcphdr_get()
+
+nft_reject_br_send_v4_tcp_reset() works the same way. On these paths
+skb->len still counts Ethernet padding and any trailing bytes the sender
+adds.
+
+For those skbs, can a doff that runs past the end of the IP-declared
+segment, but fits inside the trailer, still pass this check?
+
+Take tot_len = 40 (a 20-byte TCP segment), doff = 15 and 40 trailing
+bytes. The check sees 60 >= 60 and passes. nf_ip_checksum() also sums
+over skb->len - dataoff, so it doesn't catch this either. Then
+nf_reject_ip_tcphdr_put() computes:
+
+	tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
+			      oldskb->len - ip_hdrlen(oldskb) -
+			      (oth->doff << 2));
+
+and an RST still goes out. That seems to contradict this part of the
+commit message:
+
+    on both IPv4 and IPv6, a probe with doff = 15 produced an RST with a
+    wrapped ack_seq; with the fix no RST is generated for such packets
+
+A minimum-size frame shows the same thing. With tot_len = 40, 6 bytes of
+padding and doff = 6, the check passes (26 >= 24) and the RST carries
+ack = seq + 2.
+
+The wraparound itself is fixed, because the check and the ack_seq
+calculation now use the same length.
+
+IPv6 looks the same. In nf_reject_ip6_tcphdr_get(), *otcplen is
+oldskb->len - tcphoff. nf_reject_ip6hdr_validate() only rejects
+payload_len + 40 > skb->len, and nf_reject_skb_v6_tcp_reset() never
+trims. The IPv6 unreach path does trim to payload_len, in
+nf_reject_v6_csum_ok(). nft_reject_netdev_send_v6_tcp_reset() and
+nft_reject_br_send_v6_tcp_reset() pass untrimmed skbs into this code.
+
+Would it be better to use ntohs(tot_len) - ip_hdrlen() (and the
+payload_len based length for IPv6) for both this check and the ack_seq
+calculation? Trimming oldskb first, as the unreach paths do, would also
+work.
+
+Either change would also fix an older problem: for well-formed doff = 5
+packets on these paths, ack_seq is off by the padding length.
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261102155622.2658789-1-zhangmh25%40mails.tsinghua.edu.cn
