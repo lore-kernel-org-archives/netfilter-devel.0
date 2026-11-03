@@ -1,103 +1,93 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.45
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793741708;
-	b=ANo0f/1GTvbFBiIez1ggK9mkGdZjU4AhRP4/qI3gMYQjfDqb/Z45SvCm90CViIbkSO3Z
-	 EBTWZk87145c1CFxIUkEoZ7l+OynrW/ezuo83z9hK0zjWwOArQ446P9iOAg9zrh9Gb+Xl
-	 rGo58PqduGdiv9+9gOffid2cQMggO0WJ2sUlvKPlz/F5y7BBKbbegub1aBFydVjcqzp4j
-	 2jzFfXsphqtCNdCdbCWto1fClK5SFHkWe9A3100SEqFb+kccy0jUfit73QL6mi8veCtrT
-	 pmJn8u1tSzMe/ggZ4rIv8kH7604PWqTCDVnPdsLrXwgHLZ6s9fcM1zaZwgFveSOqIvQ==
+	t=1793744599;
+	b=GGz1BXiyEoEV+mrDFvg9mXNy0Q742/Z52z591kSLTIFGntD0kHkikFVGJFyt2D7CzniI
+	 pRKLzUPFkwCP4k1fmiXt4yOLFbaVkM1fhEOI3m+L8MJU6+dupf6XuMaaP6c6An+spPCqi
+	 NGu67O93p+Fu8zcWzdaxuZ6mCUuS4hhreeGvHJnxm9TbldCEPveYjZoO9Y1QxeqPOVS4W
+	 qWI+cN0rgJHPlq8vnOBE35aex+LY1jBKOsQU62kNXu+Hj3ETjwC4L/t0Bl7rfAGwzRxPn
+	 dtSRI9nNEOtq3DoBH8ICQ+6Z9nFtvmYb6b3/IGd8lFDI7eCDV/ZK99jbIth2cWVtvJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793741708;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793744599;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=2/Oq2yxr5c36O2jrWUkxKvnaxXC/ugdrj8Dp7ILTXKU=;
-	b=MEnDyjIdIYchYGVHlx7w7lW8nKJ4Oo4ynvZD2gXV5Q7XphMGCfHuola5n56BAIEySc3r
-	 t/kwrLRgkVZAbz+LjWEBb6Rfm2RFdYDicXWA8JWDbFoVU5fHSygy2Hsh/gV7uRWv8rDwr
-	 WaeCVdVH4F52CNt9fn4VpHD/Qa5o3nPRjXtBRNUCi8UdfX+odtfl9NNESH1aIRx54ZOx8
-	 62d8KbTPFRp6blI/vZd+j+XNIIgrdzX5ifLF6mwam9bkVWwQb3gsU14UQfPzeKxbpBPhY
-	 c/4806GCV0pjHL+gBLmywGo3fUdM1KZyA/6cc61Nr9X1L8qt0yoVWsll2aeHmst+jyw==
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=iGr4yuTjefH8ZNfeidLmCflxZz4RxW5d0w05fPgAcqY=;
+	b=YExYLpqLX9h8lnWtw4LX4B/72VLa8lTcUJVwaRkKJMhFbDcaNZ9FxGTB/+mlMCnWbADv
+	 jlR30j/4uA0NWfJ1eWOpLnnzhNnsjzAl3hJGkC7UAcZfMJh3BZ4//E+A1FfmeY2mzD8jJ
+	 +rRF8P3JWagXtH6jKTu5YoiRrIYHG/8fpZXQk2zOawt6tiFQBDltmo/DtHiRbC6a5E0KO
+	 QQFBNWK2YD4IfUn0PbAI6JOaLTkoCGnWDZaKYOfIxGid63gp7y3Ewx6zSvidybyiWbx21
+	 bfmM9Ts1UO530kYKILPUWMk4cqvB9wBnfY9X3vKIN7MvnZbAxUxZTZPz+s97NnUKV4A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=lysk.ai;
-	spf=pass smtp.mailfrom=lysk.ai;
-	dkim=pass header.d=lysk.ai header.i=@lysk.ai header.a=rsa-sha256 header.s=google header.b=SujUWrcy;
-	arc=none smtp.remote-ip=209.85.218.45
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=c1a4sCHR;
+	arc=none smtp.remote-ip=209.85.221.53
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E41B5606A324
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 21:35:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E41B5606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lysk.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lysk.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5230D606D831
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 22:23:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5230D606D831
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=lysk.ai header.i=@lysk.ai header.a=rsa-sha256 header.s=google header.b=SujUWrcy
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c423b145922so6619966b.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Nov 2026 13:35:07 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=c1a4sCHR
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-48dfc0421d9so57419f8f.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Nov 2026 14:23:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=lysk.ai; s=google; t=1793741706; x=1794346506; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=2/Oq2yxr5c36O2jrWUkxKvnaxXC/ugdrj8Dp7ILTXKU=;
-        b=SujUWrcyDIB78G9Ozq452zDuE/vNNQ0L+EvDHuP97QxnmqaVgqUJxaftfA5bXLdw9V
-         jen9UVfmbKSuCXux5S10rKPyWAHWlB3F7cAKcN+WfkyDHzjUdaVHdDNfu34lkljpTr4B
-         A8LWur6Q4HbENP4vMYSsW00CI0LprtvhzTnQfMFHu8AO1WVbbTG6625aebOepiggqBvR
-         0OT5wublgFG6JLbRrciz+bJwM9/OwpHAn9RIiFIc6utz5ai0IK/dx99fKlvXbNpB4HQm
-         4Fj+nK9awyGJMhLQttYxO19my2qLxj7gmXhxJRZfZ5AFsBmtIE7V7xUHCjDhz/ElvPMo
-         wMkw==
+        d=gmail.com; s=20260707; t=1793744598; x=1794349398; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=iGr4yuTjefH8ZNfeidLmCflxZz4RxW5d0w05fPgAcqY=;
+        b=c1a4sCHRs1R+HVGA0+smgfHw8U77MLHfiDhHaSSDZM0rMyYJM6NJ7y/aLc9PMYvMVE
+         aEImCURBIakHt1zdqXNFUDlV84a+zq9LpoM/Ew4Ftv/eOqVx8RM3fsncbkztSwk0HToa
+         qmHe5uB8FlQrv3tM9B0mYp9yro7N2iJaDYVtBUcGeFYvnatIZpoz4H7ofchRtbc1FeQ6
+         HmUTIn4o6jUP2sEpSnVxWb4t8Bynx1S+XGYDDBPYxgJN8MIenxD88qEmzlw2EgKYjbrH
+         J8ntbQ+3vS64o+r+cxZC3TgvBHdZ620m577ridfNOYiwXfFxvLYn0iqRsn6swLbP0Q0m
+         RuyQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793741706; x=1794346506;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=2/Oq2yxr5c36O2jrWUkxKvnaxXC/ugdrj8Dp7ILTXKU=;
-        b=2cBcwusDbdImx85n0WQOvG9aASpOhteMnMeF7WvMsflNpwox5VGXlKiLynT2bWC1Cy
-         HRVsopbnw9eTgLylfBb8M51WVMcZ3RTSYxPRy3mT+FPXBJEc2dRHIx+07SoKJ0XqmeAQ
-         wKQ5N2QDVt8ygOQOPbfku3bMFg/JBKkZxbstew5YjfKt6XYZOyRSs6jkrNkXwR1qtfnM
-         5wtUdW/jh9gkB3FU5Lkgfp5N34mhPTxBM2dU4UR8apVSwF+Yr0BiNqoP9bXgaKwq8g17
-         L/vAAyNjP+1E5KDUrE4RKNRVCEQa7Ks/oxdSm8srgV0BL+ynNvstB9KEVQfeHLGfJogJ
-         j8tQ==
-X-Forwarded-Encrypted: i=1; AKwUvBy2t5jTph4pmvYXYaLYib+zuiWic16nyrpwUi6xhQX3oNWTIh+zLUsrGXyoKHhF71VqCmcY9aNCLb6+bIhXkoE=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9W1BdXgBrsjkXEGU3PhP9J8rRDsuNQDhAtadrLQlsQla/yImIt
-	nd/MqJBiFKaDaa1lVBfDQXGEu3MKGwfVuWoqAzE5gB/b41Ut18i6pBcWsbpBZ0ApoaF2PvjPISa
-	wxsf+36RJGxPgxQ==
-X-Gm-Gg: AYBFou0EvmrHd5rLqmg8THGhalcVJO2JMcPD3qgmf9dC7vbV911z+YY+U9j3/sI2B7K
-	guNteiBDsTUmvWQ2QNfcAu3OveBk1ui5Lk+RDZY2DmLAHROucqccOROir/2Hp0w3K+xRayEY6Go
-	PRTAOYfs+Vtv8/0t/InmkeAWOb4jGKuRHcs6SThZEZDaSr4Wohl0Cgaw4l4NlEC4y2FqKsh2ryA
-	zT3IXCdA5xNZhBJYA7Nlslrqhf4IotBX+2peYvonAXHorZfBqOeLTbt8fpuxXqBlcqOU2ZPOuCo
-	mMWYiXMi4UdSB7zsdo+N/zvGpc21nNS/B6tm4Zex1KLwNtpkd71gxKzsICmjtrJ2rPQwJ8OeNjj
-	y7ASMTJ22jlCDU001fOGEfbCTYQPGc168KTGvCCLHWKj+qZPd4+9c6EoMOKbUK2A/tCeZcMXNLC
-	tnLZsP3cubo+zB+GUnbu9UO/dGqRJ92q1IbcSOXigVStJxoB5qaPZRV1fX/oZ1YXkqBYMmZugMJ
-	wpNhPegpBPzc441ZAV2+Vc3HUu8H3iKLQN/Z5KXFViLL5f6RvyjqqZSsiPLspQVwFiZMmt6+An1
-	VFAqPgeC45/2fQEYRz4lKJRg6DW/NB6DSYigbtRKl4ifZvIR3Br9gqLGNG3qkv09jSMFff82gT4
-	NGNCCywD9k9pRb/H9cbfFqLKAF5yZzbTELDUXGlaBlrilJvB3YIfcH3SImehxF4vR1ZYqMxztgk
-	3b5jhf8WKKK9R++3PoGZzcGRgxfXqYftJ4uOLqJmKzQ1GaPWHJSi+ceVlOsYYtgwPdeOWWiqKiI
-	htS+czrzGpufMXoJBgglFtJrr6GuRUPG/HjDg==
-X-Received: by 2002:a17:907:724a:b0:c46:645f:cee1 with SMTP id a640c23a62f3a-c4ca7ae41ebmr1308021766b.42.1793741706083;
-        Tue, 03 Nov 2026 13:35:06 -0800 (PST)
-Received: from turris.internal.popcount.org (2a01-110f-4328-c400-0000-0000-0000-0001.aa.ipv6.supernova.orange.pl. [2a01:110f:4328:c400::1])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d0e46a465sm2548766b.58.2026.11.03.13.35.05
+        d=1e100.net; s=20260707; t=1793744598; x=1794349398;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=iGr4yuTjefH8ZNfeidLmCflxZz4RxW5d0w05fPgAcqY=;
+        b=M8UN3kdnDOHwxXDeTc05VZhAVyYw1R05AuQdYVwbbgKg0GXj/caUncYTjf9sLyICkf
+         p8MWPJ8b9AooSawF/B2vC+1pVZ0x2rd6XxCTvsTOGfJCzL4hVAPuc8ZzB/tKwm9TdOMc
+         fZrjfadWQiAi57SlTyTNniJu1upWXc9/qITVyaZlAjMzvDIPPro20AL2jhPXY6VjqSGF
+         g8FImDwyTJ8k0c0ZF/N3sy0ojEu/G6UuXWIYlridb4wkE8yanA0jfZ2Vl7X0sRderkBG
+         GmK4o92YYy/P6hHRPJ7i6XUoYfpNYesNv89J5Sg3Gg7IsrtaK60xuQ5zgeZH/5lLn3o5
+         d40Q==
+X-Gm-Message-State: APuU4Z9tKCtxdNZBKVOkU/hys6P9o4yKRvAdS+wg6FTOFmk/PISHl/TI
+	Apqchu4uZ6G0N/4xMUXFGGfunethOpHpdSb9LnaUQbvisp8RKgbNQw31AEVVEhI=
+X-Gm-Gg: AYBFou3MRh2rIku5ae/kHZE79QUZPu/ZwX+IRL+1NzPszFyYo/G6MDWEvJ+9SO0KliZ
+	NCjHuOl5oJSvHgfXkQKMwj8NlJYimV95o+o+K8pUqWerTG1/1sTBAPbtGzboBHB3Zg9+3LvyJ0H
+	9jORaS1iU/LsuwWhyFSPbxcmDJHfTksb7nB9CUiFCbt1d44c33rtH3XIlp5oSGYAmYAI1Pmuwqw
+	C1mmEhFwb3e/ut0XoWrohxNrPGd8WAAWYAxo2nioKuG3hcvqsiMHpk/0JuuR/BhJeuhM7x0OmG9
+	JSlAoDhiwcKGQuhCRhQkIPyJk2VqoZjnMZvqdAugeGLb8kiK4cWHRBpoACc2yLsSDZOOCzGi4A6
+	oa2AreFi/fh39P3XigxGPSVFf1dOemuCFLqLfZ5hsucHouPoET8Cvy1TjIzrxhq2p9oL979aZKd
+	kD3Rr/3qpyjsetnJdfXIe2aZCXD2Xq6rh3ZbSgJ9pC1reHu0AbG4XXrHKZQwd+d9gpo8klct4g2
+	YjjvOLtujGKDGHmJbAwQ2X730B3eIIAXFtK4rzXbMMrvFeK7B0kh/wVP9DEt3xuhFvd7k/ci0vc
+	AQfWXDb/blmhYhkvX20CWAA3ihaLD50qc2Bro5jvDZX57lbROdmtA1LFfg==
+X-Received: by 2002:a05:6000:26c5:b0:48b:e50:714e with SMTP id ffacd0b85a97d-48e6e50d8a5mr30353676f8f.36.1793744597651;
+        Tue, 03 Nov 2026 14:23:17 -0800 (PST)
+Received: from ps42.lan.pis.avalls.dev ([2a0c:5a83:540e:7d02::ed7])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fed551dc5sm279312f8f.34.2026.11.03.14.23.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Nov 2026 13:35:05 -0800 (PST)
-From: Marek Majkowski <marek@lysk.ai>
-To: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>,
-	Lorenzo Bianconi <lorenzo@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Marek Majkowski <marek@lysk.ai>,
-	netfilter-devel@vger.kernel.org,
+        Tue, 03 Nov 2026 14:23:17 -0800 (PST)
+From: Arnau Valls <vallsfustearnau@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf-next] netfilter: flowtable: tunnel device poisons h_source of fast-path frames
-Date: Tue,  3 Nov 2026 21:34:29 +0000
-Message-ID: <20261103213430.2850-1-marek@lysk.ai>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261101-flowtable-sw-accel-ip6ip-sit-v2-0-c6c282cab5cb@oss.qualcomm.com>
-References: <20261101-flowtable-sw-accel-ip6ip-sit-v2-0-c6c282cab5cb@oss.qualcomm.com>
+	Arnau Valls <vallsfustearnau@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH nf] netfilter: flowtable: remove hw flows before unbinding the flow block
+Date: Tue,  3 Nov 2026 23:22:43 +0100
+Message-ID: <20261103222243.445644-1-vallsfustearnau@gmail.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -109,74 +99,65 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When a flow enters an IP tunnel, the forward path discovered by
-dev_fill_forward_path() starts with a DEV_PATH_TUN entry for the tunnel
-device, followed by whatever carries the outer packet.
-nft_dev_path_info() handles DEV_PATH_TUN in the same switch case as the
-Ethernet-like path types and copies path->dev->dev_addr into
-info->h_source if it is still unset. For a tunnel device dev_addr is not
-an Ethernet address: ip6_tunnel stores the 16-byte local IPv6 there and
-ip_tunnel the 4-byte local IPv4. The tunnel entry is the first one on
-the path, so its "address" wins and poisons h_source: every fast-path
-frame is transmitted with the first bytes of the tunnel local IP address
-as the Ethernet source MAC.
+Since commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
+binding"), deleting a flowtable unbinds the driver callbacks at commit
+time, before nf_flow_table_free() queues FLOW_CLS_DESTROY for the
+remaining flows. The destroy requests find an empty cb_list and the
+flows stay in hardware.
 
-Seen on a DS-Lite setup, LAN -> ip6tnl (IPv4 inside IPv6) -> PPPoE ->
-802.1Q VLAN -> Ethernet, with conntrack flows offloaded through an
-nftables flowtable ('flow add @ft'). The first packets of a flow, still
-on the slow path, and the fast-path packets of the same flow differ only
-in the Ethernet source address:
+Conntrack then times the entries out while the hardware keeps forwarding
+them. Once one direction ages out of the hardware table, its packets hit
+the stack without a conntrack entry and get rejected. This breaks
+long-lived UDP flows such as WireGuard whenever the flowtable is
+recreated, for example on every firewall reload in OpenWrt.
 
-  slow path:  d8:58:d7:00:2e:bd > 80:ac:ac:39:ef:c2, 802.1Q vlan 35,
-              PPPoE [ses 0x454] IP6 2a01:110f:4328:c400::1 >
-              2a01:1000:0:1::2216 next-header IPIP, 192.0.0.2.40010 >
-              1.1.1.1.53
-  fast path:  2a:01:11:0f:43:28 > 80:ac:ac:39:ef:c2, same frame otherwise
+Remove the device's flows on FLOW_BLOCK_UNBIND while the driver is still
+bound, as nf_flow_table_indr_cleanup() does for indirect blocks. The gc
+skips flows with pending offload work, so run one more pass and flush.
 
-As you can see 2a:01:11:0f:43:28 is the start of 2a01:110f:4328:c400::1,
-the tunnel local address. The PPPoE endpoint binds the session to the
-subscriber MAC and silently drops the frames, the effect is that every
-TCP/UDP flow dies the moment it is offloaded, while ICMP, which is never
-offloaded, keeps working. Received traffic is unaffected.
+Tested on MT7981 (mtk_eth_soc PPE) with v7.4-rc1 and 6.12.74. Found and
+fixed with help from an AI assistant (Claude).
 
-Do not let DEV_PATH_TUN poison h_source: skip the assignment for it. The
-real link-layer device appears later on the same path and provides the
-correct address; for a path with no Ethernet device the address stays
-zero as before.
-
-Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
-Signed-off-by: Marek Majkowski <marek@lysk.ai>
+Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
+Cc: stable@vger.kernel.org
+Link: https://github.com/openwrt/openwrt/issues/17915
+Signed-off-by: Arnau Valls <vallsfustearnau@gmail.com>
 ---
-Found while testing this series on a Turris Omnia (Debian, armhf) behind
-a DS-Lite ISP: with the series applied, IPv4 flows through the ip6tnl
-were offloaded but no fast-path frame ever got past the PPPoE
-concentrator. The problem is in the existing DEV_PATH_TUN handling, so
-it applies to net-next with or without this series; with the fix the
-series works here (tested: UDP flows with a fixed source port, TCP, bulk
-downloads through the tunnel). Without the series the same wrong MAC
-should affect ipip and ip6ip6 tunnels in front of PPPoE.
 
- net/netfilter/nf_flow_table_path.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Notes:
+    Reproducer: hw-offloaded UDP flow through NAT, then delete and recreate
+    the flowtable in one transaction (fw4 reload). Without the patch the
+    conntrack entry gets a timeout and the PPE entries stay bound. With it
+    the PPE entries are removed and the flow is offloaded again within a
+    second, no packet loss over six reloads.
+    
+    Not tested: lockdep, other drivers, the indirect block path.
 
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 841f09943..4ca6e09c7 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -121,7 +121,12 @@ static int nft_dev_path_info(struct net_device_path_stack *stack,
- 		case DEV_PATH_PPPOE:
- 		case DEV_PATH_TUN:
- 			info->dev = path->dev;
--			if (is_zero_ether_addr(info->h_source))
-+			/* A tunnel device has no Ethernet address: its dev_addr
-+			 * is the tunnel local IP address. Take h_source from the
-+			 * real link-layer device further down the path.
-+			 */
-+			if (path->type != DEV_PATH_TUN &&
-+			    is_zero_ether_addr(info->h_source))
- 				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
+ net/netfilter/nf_flow_table_offload.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e6..68654d243bae 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1279,6 +1279,15 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 	if (!nf_flowtable_hw_offload(flowtable))
+ 		return nf_flow_offload_xdp_setup(flowtable, dev, cmd);
  
- 			if (path->type == DEV_PATH_ETHERNET ||
++	/* Flush this device's hw flows while the driver is still bound. The
++	 * second gc pass catches flows skipped due to pending offload work.
++	 */
++	if (cmd == FLOW_BLOCK_UNBIND) {
++		nf_flow_table_gc_cleanup(flowtable, dev);
++		nf_flow_table_gc_run(flowtable);
++		nf_flow_table_offload_flush(flowtable);
++	}
++
+ 	if (dev->netdev_ops->ndo_setup_tc)
+ 		err = nf_flow_table_offload_cmd(&bo, flowtable, dev, cmd,
+ 						&extack);
+
+base-commit: 05441d697f7f9a927264f4058cbbc6a03dfcac9d
 -- 
-2.39.5
+2.54.0
 
