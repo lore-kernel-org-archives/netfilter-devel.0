@@ -1,68 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.69
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793673535;
-	b=4gTfWUcjY7wiC74Lt34XpK31MYXGZwW9DWW1UBX8QtSP3ISCN9KA+LfH5aqTK0jxv5WK
-	 YizEywQFPyw/UfUhyzzQvWp4cfxL3+JqCnm5tOvD6jpg6Df0c3y6RVNUwmZMg8albwHS7
-	 ZjqgR/YKmToMUpx5Sw3QT65fFPF2R+UxFXrF8MHYhRg5Kvga1nTyyW56sqf8XnTV7kr6r
-	 NPgQn/WYUTJalYAp+f0qG9xDlEN/4CaldGPObdN7SE8n9Evh6I9Sd8M0dGPmVUQgY3IwG
-	 c/nWzWNUOnvD3fOOgpg5C5Xf47OjUuHKrDn/v8dLfSACvWzUu38TIvWTQKUUZzg7IQQ==
+	t=1793680440;
+	b=HZtzig2mn4a3OIdmEkSVrRa2yFnPfCCrJZW56qJbDN/Jcv8k0zflAm9Ufr+Gk8lyai+5
+	 acCQISoaLvhx3w3J0objnqs7hTkTa35Ge50pXaBnTL2ccpUjKLDTFw9KSNjS1j+4Wd4VX
+	 3XQHPm3kJrNVsyLVgUatpSdN5yrR6qC9pcxhUxzViZU8iJMjhIsbvwZ1wFe2k4/6tYHOM
+	 93dDQHbelIsE4VuaZdaypQbT02l7Zh/UKU+PrI/xW5ZkhZgC/sJ9W+htejsFsS51iDkSH
+	 0Ur4iPAc2Wz2BXwwjXGPIHKFAnIhqUKKkvgAzNtryfGkkQfuUgnsoYDVhEjC99GBKFw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793673535;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=TN2SY+XQuLAGFjbX+RbezYmnQEjGJgVOvTaz5eosea4=;
-	b=Kkavp8s1603zDX/6TPX4jwWZ5ScWQL3lAeD/6r8eEMgk8u32/2YH9qikqJkV0BUe0dG7
-	 SccTuD2MeEuw7T3LKAUfS1DZ59hT4F/umvVDPSyRCKLSo2IZ6/qOIjTSw/70U4EXAJHkv
-	 g5xpYOG8zeOL4jGHEOiltpQCGys4z9yPN9ugC9m1prT6Sd5/vjIOdf3vvCj3r1sAyfYJr
-	 nXI41c7E8mDkSABNZ3IQxXScPVmMnEtwV1jw0uKtlgLLLgd46VrFLvsXvLccT1yTcU8lj
-	 ZylVsmgobF+90bJ9P2O7LNPWN7Rb3u8ysL5ea6SQodlikipwopdmT2y3/csY+41hz0A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793680440;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=4tPs4mp2bvwQdRd4sbq6CaL9zCSxrf0L6Yrn8je4uH4=;
+	b=FRYecmFJEROWAY4byMSdsijK+S87VMG5NZgdM09qOCHusxT42+G9yKr7PlQrvlE+zbZm
+	 v2XNsnCQvxmWcupF/0rFIvc48hu7RLMbho+cDGAYpjuarM4AuB7Hf6A6Gr8Sm2zNfoaxI
+	 Gtx/WL89sth1miavxXDKju3RUJVrgBL8knl8BLcHAsvYdFakO1fj0HG+L4v1xymxFi50x
+	 bPxLmh1GcXey+mCTbVZvg9dP3E2AK83YeY8sj4N+muOnz/cr/PWBcC2QNrlobKD55P2Pc
+	 1+VyYkV6RP0whUKhJrQy9FCC7Sp08XYp/zWZijAW/VB4h7ST1XR97FFJLwTZkS9/KQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=NRcYpaC1;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.210.69
+Received: from mail-ot1-f69.google.com (mail-ot1-f69.google.com [209.85.210.69])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 3B7CE606A327;
-	Tue,  3 Nov 2026 02:38:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3B7CE606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=NRcYpaC1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793673531;
-	bh=TN2SY+XQuLAGFjbX+RbezYmnQEjGJgVOvTaz5eosea4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NRcYpaC1GOTisuAxhZ6NNwgbD6DtvFqxJcv3GaGqve515uCmdumullbCdwNS4oRGF
-	 lnGEjQovZ+8jNRT0cyumU8cch+D+Kv4LS7LeZFQcLOhcjuIAo2NQeWPlwv8JHcC7IE
-	 Ch7px3vOCEvAMtHoxSQVRs/3N1PwA6v3qqQOwpX4Jm5qur0kWIGxljAXJRNSyT0Xza
-	 kvgTfuMmtdbpdUWcCc2zoxpxOogV5N54m5t2YaFQkwiBOz/4gojgRQaF9/DdyPLQ8B
-	 ATvneEPND4QJGNtnLcZGk9Xwm32spmalXHt7DNxa5PRTZY58YhTIptrysilNCIpUiC
-	 lNBbZMWWYWhlw==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5F94460054;
-	Tue,  3 Nov 2026 03:38:51 +0100 (CET)
-Date: Tue, 3 Nov 2026 03:38:48 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Joas Antonio <joasantonio108@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: do not pair an expired
- start with another interval's end
-Message-ID: <aulJOKf7dIxP9mJU@chamomile>
-References: <20261031-b4-nft-rbtree-gc-v1-1-51d087c187a6@gmail.com>
- <auYpCzdrOsoWr84Z@chamomile>
- <auYqSpBFtC0nTDDd@chamomile>
- <CAOCBhwHSe7M39Bq6mYuai=gLcq4nfTC2Z5+nm55EUJmpFmRsQg@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE6FF606A32E
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 04:33:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE6FF606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-8255327a28fso4553185a34.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2026 20:33:59 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793680439; x=1794285239;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=4tPs4mp2bvwQdRd4sbq6CaL9zCSxrf0L6Yrn8je4uH4=;
+        b=AGoWGkyotzgxTZCgg5tTEJYFOBtJnWyue56Uh7bov35POn8IwA07CY8xqyL6HwgUH/
+         dwlp+266mBtD4vGTuZXaHSg5tLTXatAsf4PVT+GqGoZSDigshlzDyQXHJi9zGDPam38Z
+         Aq9+eKOY3d+T/Ukl3iqtywD1i17azRURr10nKUYH2nnYxhAc52zNBSWtUlzs/T0uxCYo
+         OAuSUjuQ9+p3mOyLDhUP67F0Dnki1ZwapIZVb0QwwcXdKsb20pTx7Hw3pLEmiEmQ6Ui+
+         tJ7LHp3Sv0RAh4gy82Jft8mTh+E73XwcIj1D/nD1GiM279/cSHClWPJP21+UW/nwQ6Vk
+         eJag==
+X-Forwarded-Encrypted: i=1; AKwUvBy80CmzCX2LqfHvZZxcnddIGAEgbb+MQqRmGwNS3cedTl5iOLhj9YsrLvJrkHr3VYS1p2/Dpb2OpUK8RwtKUfY=@vger.kernel.org
+X-Gm-Message-State: AFq9FYKIzntdVMsy2PadnvIItF/GW6OegAT0nwUvHMs3rmUEgVNgVa7q
+	Io+xUdb01y77QCWMCU5trqjFW9azXwkXoe7Qm+qr3YgzqgLYXCXo4p8VYW8rdAHPk6g3mNoyHdv
+	dncudrgXl9uhiP2gJ0koksXAC5hdatutLX7NR8wu510LVa/KuEZIqTQ4SkkY=
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -72,60 +58,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAOCBhwHSe7M39Bq6mYuai=gLcq4nfTC2Z5+nm55EUJmpFmRsQg@mail.gmail.com>
+X-Received: by 2002:a05:6808:1910:b0:4dc:1374:99ae with SMTP id
+ 5614622812f47-5640e033037mr9173554b6e.56.1793680438963; Mon, 02 Nov 2026
+ 20:33:58 -0800 (PST)
+Date: Mon, 02 Nov 2026 20:33:58 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6ae96436.abb90550.19e2c9.0002.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Nov 2026)
+From: syzbot <syzbot+list484d79b18bdec1b120a0@syzkaller.appspotmail.com>
+To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Sat, Oct 31, 2026 at 02:55:55PM -0300, Joas Antonio wrote:
-> Hi Pablo,
-> 
-> Sorry, the description was too terse. Answering both mails here.
-> 
-> There is no memory safety issue, and I should have said so explicitly.
-> It is a correctness problem: after GC the set no longer holds what was
-> committed, and the packet path matches keys that were never added.
-> 
-> Exact sequence, raw nfnetlink. The set has NFT_SET_INTERVAL |
-> NFT_SET_TIMEOUT, an ipv4_addr key, no default timeout, and
-> NFTA_SET_GC_INTERVAL = 3600000, so the commit-time scan does not run and
-> only the insertion path is involved.
-> 
-> Batch 1 (NEWSETELEM): start 10 with a 50ms timeout, end 20 with no
-> timeout, start 30 and end 40 with no timeout. Only start 10 expires;
-> [30,40) is permanent.
-> 
-> Wait 200ms.
-> 
-> Batch 2: DELSETELEM of end 20 only, then NEWSETELEM of [12,13). This is
-> not something nft(8) generates, but the kernel accepts it. Inserting 12
-> runs nft_rbtree_gc_elem() on the expired start 10. The walk skips end
-> 20 because it is being deleted in this transaction, passes start 30 and
-> takes end 40 as the end of 10. 10 and 40 are removed, and start 30 is
-> left without an end.
-> 
-> At commit, nft_rbtree_commit() turns 30 into an interval with ->from =
-> 30 and ->to = NULL, and nft_array_lookup_cmp() treats ->to == NULL as
-> open-ended. So nft_rbtree_lookup() matches every key >= 30, while
-> userspace believes the set holds only [30,40). Reading back with
-> GETSETELEM, which uses the same array: without the patch 45 is found,
-> end 40 is gone and deleting [30,40) fails with ENOENT; with the patch
-> 45 is not found, 40 is present and the delete succeeds.
-> 
-> To be fair about the limits: the only trigger I have is crafted
-> nfnetlink from whoever already owns the ruleset (CAP_NET_ADMIN in that
-> netns), so it does not cross a privilege boundary, and I have not found
-> an nft(8) command sequence that reaches the insertion-path case.
+Hello netfilter maintainers/developers,
 
-Ok, then you confirm such sequence makes no sense for nft(8) command.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-> The commit-path case (nft_rbtree_gc_scan() not clearing rbe_end)
-> uses a different sequence without the lone end delete; I can send it
-> in the same detail if useful.
-> 
-> If you consider sets built from such batches unsupported, I think the
-> better fix is to reject deleting a lone interval end element, and I can
-> send that instead; or drop this if it is not worth the churn.
+During the period, 1 new issues were detected and 0 were fixed.
+In total, 13 issues are still open and 200 have already been fixed.
+There are also 3 low-priority issues.
 
-While it would be good if this interface could be tighten in the
-future to reject nonsense, I think it is not worth the churn at this
-stage.
+Some of the still happening issues:
+
+Ref Crashes Repro Title
+<1> 151     Yes   INFO: rcu detected stall in rescuer_thread (2)
+                  https://syzkaller.appspot.com/bug?extid=d5f7a5097c24c7c2dbbb
+<2> 7       Yes   INFO: task hung in nf_tables_valid_genid (3)
+                  https://syzkaller.appspot.com/bug?extid=83439cb981624bd8d068
+<3> 199     Yes   INFO: rcu detected stall in br_handle_frame (6)
+                  https://syzkaller.appspot.com/bug?extid=f8850bc3986562f79619
+<4> 132     Yes   INFO: task hung in nfnetlink_rcv_msg (5)
+                  https://syzkaller.appspot.com/bug?extid=c4b20b80ee6a7a2f5012
+<5> 98      No    WARNING in nf_conntrack_cleanup_net_list (2)
+                  https://syzkaller.appspot.com/bug?extid=122256c3e2bf6ec9f928
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
