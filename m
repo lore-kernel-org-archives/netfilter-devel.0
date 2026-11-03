@@ -1,103 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.175
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793725063;
-	b=00so9eBRMUYMnrHwugVsdHImO81jdgF2+zq76KfAzJ7HXoI1Am3Orr/if8NBTt6ptZG+
-	 5xzuMPGwwqcSNBhvrlrttHxeXZU5D1nRuRF+WP0JTY+vcWxLAUMFzz0i5gxTHPLbGW7vQ
-	 WJChnxm9SsZgXYvK18oK7MsTC/NEFX/tqgzBIB6ruAIqHFvtNDyZAmQuNmLL+jEBsOfYJ
-	 w+0MnPUOOR9B439+F2RVpEgTwn4wvtlKWuz4WImeocNGl2+JDq2OBmSo7c+uRGaTVPwnc
-	 baG9h65vP86okLtCKg6c51DvhOLPNPcTYGoQQD1zupUIbWSg+/etq3RFcAXDQurn3Ig==
+	t=1793725154;
+	b=bEjuERvGbOtj2w3eIPC1vL0NgYeiBAypSSafO3BNjys5MrpcO7+nAj8wrr7TzuneyMtl
+	 Yioe2up7Fm3jEVieLLMq+1nCrgsbkZXsU4fSkJ4etj1c1LJUZG6Qo3H47jSKW/xJ/XJM/
+	 6AotebsgcnUPXaIOkCx92SeNFUzI2UP+5O8Lh+o1pBjhFStRBh2pcppsTIvR0gz0vlqAo
+	 0yuJvMSacJSrxwZSC01ekq25KKa+13lgJCw0lE08wZ50hSLFihdxsVdoxo0CpVZ6InDMj
+	 JNdJ7SUdH8KKk8Uda75tAYx3rWmlDsz5GcAHT4wa+U//sp/a30m0kNbELR208ICcT4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793725063;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spamd-Result:
-	 X-Spam-Score:X-Spam-Level:X-Spam-Flag;
-	bh=0Drh0s7tUYVx2dTOots86+vsH2/DyU0gfHTWsvVuFRw=;
-	b=i/KX5+9Dd/grpVamdljcEmeuzo7ghabLvMkQYAF4gSENhcw6HAwckztjsp3buPGKCUz3
-	 iIWxaIgQMwrH8QmrRwNuov3r1LJ2A60TRXjsqzCxFTmBvzpUXLcY4P9OQuSpE+FRvnBZq
-	 LHOQ3K8/5kHSL0vpX6sJvBiTXKXtlyfuZCbZSkemgiTQE/QLNS+OEPg+Bl37xOVfzucNe
-	 KBWsTm1ylv8jBjmcPyibJgHpfGoa7GT0cwCEBAkroyFqhmUk+O6jUNW0MHgjWl6mPNdAV
-	 Od9Fn9dtAaJF1jf/zzjEkk1G/nZCvNB3aei0wSX0hMXDW10V27d1arXOUT4cbrzPXtQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793725154;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=N2nmgAkk9tKVW9ZZZ6y0Nm3a3F6PCdPuD8mrqugKq5U=;
+	b=Xl1ZgXXyT3NeJkmNklD2GevsdfH0kyT8zq/K172KJyGxUN67wiqu/DzRBuUpPWKCkMS4
+	 b9o/xfkHa1wNrkj2P/svSz1Kp2G6NRg7IvnAzXxTlyUTB/EWFhcqETh/er2PU2pPMtL4+
+	 O+r2Jq99cWc9pqSqPfe37J1cmDOVnU2jGRKR2xXS5UBwNu511ESCWmonN6fyF4vejW3B6
+	 J+LWLPbU4ZS7HrZqP5cwoAYkiJOaPyclFHMOgbuLqUCbDLZO3vJ9X4dE9NZ9pMTWqL9CC
+	 EBBw8PrCC2eyL2LOwJlcYVdKVsfSRecd3EiviluUoyo9f43SGRvCXYLAB0FqiQfvxqw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=GKA8aJ1M;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=LrXITRWE;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1J9WnPEl;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=VGt+qIz7;
-	arc=none smtp.remote-ip=195.135.223.131
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=1password.com;
+	spf=pass smtp.mailfrom=agilebits.com;
+	dkim=pass header.d=1password.com header.i=@1password.com header.a=rsa-sha256 header.s=google header.b=Z2SC43w2;
+	arc=none smtp.remote-ip=209.85.160.175
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49E03606A328
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 16:57:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 49E03606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20D1F606A32D
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Nov 2026 16:59:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 20D1F606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=1password.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=agilebits.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=GKA8aJ1M;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=LrXITRWE;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1J9WnPEl;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=VGt+qIz7
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 184161FB9E;
-	Tue,  3 Nov 2026 16:57:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793725059; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=0Drh0s7tUYVx2dTOots86+vsH2/DyU0gfHTWsvVuFRw=;
-	b=GKA8aJ1MjrXAEpjFi81FEWo4zd/ggAEELdyU5/s5EsKd/gm7BCc3/YxfwlRC30/X3P25Cs
-	dP+k5sEZzP82tAijSFgsFY8OlM1UFO0/XddJNehwiALCmIjShrO0eoI3y9YuRM0gGhOIjm
-	LuiU/2bMVMKs9zEWMjP0af4jDIVGG2s=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793725059;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=0Drh0s7tUYVx2dTOots86+vsH2/DyU0gfHTWsvVuFRw=;
-	b=LrXITRWEWpmmXl2N6VsQUFS760xdeHemWeKfw2rNCH073gK4NqrBnXt/NiOPk+DayCTE9h
-	dvBL5hdEb8tIgYCA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1793725058; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=0Drh0s7tUYVx2dTOots86+vsH2/DyU0gfHTWsvVuFRw=;
-	b=1J9WnPElh6cSZwUWF886CGwXvqtRWLomDpo2ks+kHtpCY9uc9a5w38i4H12HAChsOO3Urj
-	YI+3iliL48FoaVbJwrMplHoq4kl+9BswlhZTd49wcD3mY5B1TOAJEdVsJgmZbsm09zwLXz
-	wPi1/UABRmc5WwF2Ra8OI9yPjFQQ9xM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1793725058;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=0Drh0s7tUYVx2dTOots86+vsH2/DyU0gfHTWsvVuFRw=;
-	b=VGt+qIz7od+5Biu1qIxHECVxrt0Y+Rh3tEAZJFmoNRnAHi6PquAJ+voEARNUIdsMKjBFpM
-	Uq41jcv4shc8LwDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 759C31350A;
-	Tue,  3 Nov 2026 16:57:37 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 4uOMD4ES6mrhIAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 03 Nov 2026 16:57:37 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
+	dkim=pass (1024-bit key, unprotected) header.d=1password.com header.i=@1password.com header.a=rsa-sha256 header.s=google header.b=Z2SC43w2
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-53397554beaso60090161cf.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Nov 2026 08:59:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1password.com; s=google; t=1793725152; x=1794329952; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=N2nmgAkk9tKVW9ZZZ6y0Nm3a3F6PCdPuD8mrqugKq5U=;
+        b=Z2SC43w2Jegfalwfgu+2q/1oAUA+RXjVC6sKz/YdcFg4UC2x+XgGUs+2ttfIx/923/
+         TdyxACU2F8UKQcE2sl3mLgvVVw/hKOoEYrDeQPuRcLkBkRsFm3B2i/KtCPrBTIQNu3tH
+         T540yzoo+oQoP7XQHaclkUpQQ1a5vIlF4Pc28=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793725152; x=1794329952;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=N2nmgAkk9tKVW9ZZZ6y0Nm3a3F6PCdPuD8mrqugKq5U=;
+        b=0XIEDrXvk3r+Jn8GbOqAG9w2onU/FJsCQE09DrDqnj9EK5pZJhmk81TVz781anvZ7D
+         jo9zh8KhDDULZ8HdkKwgrC1xu833DqOzYElRd5RDFGO2mPl9ub2t4adUGTt2zZkQ1aKR
+         yb58s8OgJwqmE6mzZczUual3MvWT5+S+w/PQpYL1obWVssQnrcfGJ6VcyVruT01ICVct
+         gkv60lCbinY2tHG4alrssecyHAKS3hsc7e+S5uRJCm+w15nYtr3xDi81dBKRDMcmBKZA
+         ExiOVxy/99pjeWA/C7njJUSGvgnSBt6z3vzIpnga9YU2nSE+2DFY7lNA9EKLg7BwwG9o
+         wqnQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzwgw5agwlYw4L9q9XDCrTQgkUFTM0R4ojGMrgWeRhwkCHnKjk5dKxefZp1qFqqUv8u+ViIYS9FO90FWVLNbEE=@vger.kernel.org
+X-Gm-Message-State: APuU4Z81tDgLxuFKx/su6PGS6el8NZaDmoUyM70Cfd5bdkaoFPsEx10Q
+	fg/0bfpxqZWibS4kH+Yy5Mt7K4dQYmaM8uxKcBvVGaS2XZLFNnEzX3adNjRvZOHlc7Y=
+X-Gm-Gg: AYBFou2Zq6aFPirGTPHeon8CxBL4STN/qOw/a6gigVKwo2BqIFIVSxBGRtb2d+TIxzT
+	X5lxPsC/qjml8hqh29kkA4tQYaxVdsYysfvtBFfA8YapECkfUqlYwpZ+E7Wc10Hhz/ASz1TYVd+
+	BdhDCJZXZu3JHA6V+yPf6irzSO17MrtZ6P2XTFMFCUELsdRgGT6YgmdJqAZbXVgiDv9ZZhg7rmH
+	+1L/SGIxj3sdd0LIodDfa7R862lWyx7+mR3FvUNVOpcLJYLBDRS4RDLqJahvlKdvrM+0ltf8gbk
+	Qk+NQc4g1GaixcwdrrlYVCKKVzS8FZcn/lXcPwW0U1y+BkkcTXTZ4gKggRJxWHAQpHdEqz65tJS
+	XVD+yk8j/NVIdxkyfzQO/2GzojsIcie6938cY2cFw1ACPinxlSNtbwhV/5aEl2yfu6m8KlKf02N
+	226ADRfdqz5KjBXeyZoAR2JFVvZRLd7hoIoUi3GpBPVgNPK01QVXe6eLtpn9rGrUsFWZtCEamvi
+	J8AGeF3qrsQHhoYOXtKeZ0l2mFt7im/PD1zb04zX6icJNDVAPprcVOASQwBVwOhIq8SOElcuZq6
+	LR2S69xPj8gB+V+TecScPxcudxgCb2pQItDFvdowKXJ0ixP3G1F1vzu3jDh9769y4mdyZ3d0b8M
+	siHJH3A==
+X-Received: by 2002:a05:622a:a584:b0:536:6ae9:f581 with SMTP id d75a77b69052e-542b8ad94a8mr237532011cf.67.1793725151850;
+        Tue, 03 Nov 2026 08:59:11 -0800 (PST)
+Received: from localhost ([2600:4041:59c3:300:a850:2af1:eb93:4121])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ca95caf90sm118485686d6.30.2026.11.03.08.59.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Nov 2026 08:59:10 -0800 (PST)
+From: Axel Mierczuk <axel.mierczuk@1password.com>
+To: ja@ssi.bg,
+	horms@verge.net.au,
+	pablo@netfilter.org
+Cc: fw@strlen.de,
 	phil@nwl.cc,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	VEGA <vega@nebusec.ai>
-Subject: [PATCH nf v2] netfilter: nfnetlink_queue: keep socket ownership when expanding skb
-Date: Tue,  3 Nov 2026 17:57:26 +0100
-Message-ID: <20261103165726.6170-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	w@1wt.eu,
+	Axel Mierczuk <axel.mierczuk@1password.com>
+Subject: [PATCH nf v2 0/2] ipvs: keep templates and cport 0 conns away from packet lookups
+Date: Tue,  3 Nov 2026 11:57:44 -0500
+Message-ID: <20261103165746.39516-1-axel.mierczuk@1password.com>
+X-Mailer: git-send-email 2.50.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -108,100 +101,47 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-11.80 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.995];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[7];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Score: -11.80
-X-Spam-Level: 
-X-Spam-Flag: NO
 
-nfqnl_mangle() replaces the skb with skb_copy_expand() when a verdict
-grows a packet beyond its tailroom. skb_copy_expand() does not copy
-skb->sk, so the replacement is unowned and freeing the original drops
-its socket memory charge.
+A template received over the unauthenticated sync protocol with a
+nonzero cport is matched by data packets in ip_vs_conn_in_get() and
+the protocol state machine runs on it. Patch 1 rejects sync records
+with inconsistent cport and IP_VS_CONN_F_NO_CPORT combinations on
+the backup.
 
-The expanded packet is no longer associated with the process that sent
-it. Therefore xt_owner or xt_cgroup and other socket based matches in
-later rules no longer matches and a later NFQUEUE reports no uid/gid. In
-addition, the expanded packet's memory is not counted towards the
-sender's SO_SNDBUF limit, so the sender can keep producing them while
-they sit in a queue.
+Patch 2 applies the cport rule of __ip_vs_conn_in_get() to
+ip_vs_conn_out_get(): a lookup for client port 0 matches only
+connections flagged IP_VS_CONN_F_NO_CPORT, so templates and cport 0
+connections cannot be matched through the out hook, while the
+"update or create" lookup in ip_vs_ftp_out() keeps working.
 
-skb_copy_expand() was introduced to avoid the SKB_LINEAR_ASSERT in
-skb_put() on non-linear skbs. Address that directly instead, linearize
-the skb, then grow its head in place with pskb_expand_head(), which
-preserves the socket association. While linearize + pskb_expand_head is
-expensive, this is a really slow-path, so this should not be a problem.
+The companion patch "ipvs: filter some flags received in the backup
+server" is already applied and rejects template records carrying
+IP_VS_CONN_F_NO_CPORT.
 
-Please note that the additional head space is not added to skb->truesize
-nor to sk_wmem_alloc, so the socket is charged only for the size the skb
-had when it was sent. Fixing that would require wmem adjustments that
-depend on the skb destructor type, which is not worth the complexity
-here as expanding payload requires CAP_NET_ADMIN and is rare for locally
-generated packets.
+Packets with port 0 are handled separately by Julian's patch "ipvs: do
+not create conns from packets with port 0".
 
-Fixes: e2b58a67b91d ("[NETFILTER]: {ip,ip6,nfnetlink}_queue: fix SKB_LINEAR_ASSERT when mangling packet data")
-Reported-by: VEGA <vega@nebusec.ai>
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
-Note: Florian this is my best attempt to fix the socket ownership issue
-and almost the memory issue completely. If you think a complete fix is
-necessary I would de-prioritize this as it isn't worth it. Anyway, for
-the ownership this should be enough.
----
- net/netfilter/nfnetlink_queue.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+Changes since v1:
+- Patch 1: unchanged, added Acked-by from Julian.
+- Patch 2: test p->vport against IP_VS_CONN_F_NO_CPORT instead of
+  requiring a nonzero cp->cport. The v1 check made the
+  ip_vs_conn_out_get() lookup in ip_vs_ftp_out() always miss, so a
+  duplicate data connection was created for every PASV/EPSV reply,
+  and it read cp->cport twice. Reported by the Sashiko review and
+  Julian. Commit message rewritten.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 90d887546f7d..1c9fd5f70694 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1435,8 +1435,6 @@ static bool nfqnl_validate_write(const void *data, unsigned int data_len,
- static int
- nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int diff)
- {
--	struct sk_buff *nskb;
--
- 	if (e->state.net->user_ns != &init_user_ns)
- 		return -EPERM;
- 
-@@ -1454,14 +1452,11 @@ nfqnl_mangle(void *data, unsigned int data_len, struct nf_queue_entry *e, int di
- 	} else if (diff > 0) {
- 		if (data_len > 0xFFFF)
- 			return -EINVAL;
--		if (diff > skb_tailroom(e->skb)) {
--			nskb = skb_copy_expand(e->skb, skb_headroom(e->skb),
--					       diff, GFP_ATOMIC);
--			if (!nskb)
--				return -ENOMEM;
--			kfree_skb(e->skb);
--			e->skb = nskb;
--		}
-+		if (skb_linearize(e->skb))
-+			return -ENOMEM;
-+		if (diff > skb_tailroom(e->skb) &&
-+		    pskb_expand_head(e->skb, 0, diff - skb_tailroom(e->skb), GFP_ATOMIC))
-+			return -ENOMEM;
- 		skb_put(e->skb, diff);
- 	}
- 	if (skb_ensure_writable(e->skb, data_len))
+v1: https://lore.kernel.org/netfilter-devel/20260925141115.16126-1-axel.mierczuk@1password.com/
+
+Axel Mierczuk (2):
+  ipvs: validate cport in received sync records
+  ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+
+ net/netfilter/ipvs/ip_vs_conn.c |  2 ++
+ net/netfilter/ipvs/ip_vs_sync.c | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+)
+
+
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
 -- 
-2.56.0
+2.50.1 (Apple Git-155)
 
