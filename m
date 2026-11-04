@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793802567;
-	b=1akcyFNC31iCruTVTHd5/WA9NKtn/j+ZxW47Lv3u+3rMqoZgI1WsJypujtG2Fnrp/Q7z
-	 AJZ5M+0p/g+t2y9Gz4Q4zgY6DmT1Eii7CdtrzbMt7trSQXTtfCQvnFDVtEKUUBAy3jFyK
-	 kDBiRIUmmWPOA2oUFm8xZhMJF9DKd8sAIXl/ftcJ+r+3kirUd+rbpAANG3ZcajDqWQP6J
-	 2Chx8DfqVn2HhEa0o31jvtTak5HEfZbvBrPfBsDlC7qX78rE5V1Jbg/7MOdALyJvqbflf
-	 AId7xPj91Sv/BbZ5PGaLfPjrM8uzHDpvwtsalSLnXD+/l/f884ocuXCQnLEGZAonyjw==
+	t=1793802568;
+	b=rCqUgmvBz034X2oeavkdL6i/C5v8uJZ2q2D2hD7MKe2ZvqllpfmqwVF351zCs2G1ulLR
+	 eLhOLGbIqaW5HhA23lqGT3v6hxqCqA86kr3rI9+rXbahyYJIDrpouJHXq5bQK3+y51BZY
+	 TQoob2FoAFkNL/hMoFBtlrqER9aqpR+p9hEFyTHwW3kAYDdQZ6G9r3Y64sy38i6q27tn4
+	 hQI5jA1jdVDgcp2wKboS4PfrXlhykfIfpySFS96YgaIi9usyxmsye13K2LGeoGS1w35cs
+	 mNsLIVu6n9pOgauXllTghrtmuJII/ruCHxRidix0y7EvUg6faIY936NeDTQRWHhwvnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793802567;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793802568;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=Xz3sb8BWuunlpYCoTGvQBeihdIazj1yMmpL1EBO9/qs=;
-	b=4DJ3vRsAbN2DaDmrsWJLn+LmDAlbK3E95Mcp9TdSbfcspdeSg+LZ3qWyAa1eaa1KTMQd
-	 6XMkz2VENTh0S2JeYrqseaOyozm/YO5q1v9G+MCf5GcVHECl9JWPE9YCdROMaBJPPMeph
-	 RniEmJ2/lsCXxYRe3GBlBh6E5sH2ULRGo7haHJourXlUyOYxZxMMxjvnZY4w8vm0ugoh5
-	 Fab/OHG7sgime9t6dwVApsFVmI0NPDIMqlnsVAKJ6VisQx+eWVDh7jvOnxWufnphCQp+l
-	 tO//NR6bS9QgcDk8NHs9Rq0p5fA+kz4keNCTSo34Lvf7DKb+CVx7m/JFfuq4ZDs/7gA==
+	bh=HjZiL2EWVteAt/2L+qFJ7Kn3/mgXU92yKdkjMMjuGU0=;
+	b=ElvKMlGjxCmk+IKGLEJEnyHUhYNVLykSaj0dp+/x7B6HRaLNh/YfTXHajxG/h/3dOkyE
+	 Kj13uf4hnxJWC7XXoS+puYiQq+gwYhZKcrYVtbbZcRwwQ8Gm2mjznz69EFta3sZWIQD1v
+	 uzZK+51hAdEnRJska36VGztK28UUR7t9hR0sIAMqua04dTMwYlz8ouyYyYO5vN6QV89Lp
+	 TJPjX/HRvuMwY84B+33/+jmn+7G1SPRK/t1XI+qicWniZvodyPRsGl1bSYvd8oS6Cak8x
+	 /aMgHdL7fQEREeMBblCJh/BgkHeMIDXqXQpm7E6mHh/xV/jLkBLefVbET4orQNGoFDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gRS1rRHN;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FDCZIwnG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 105AC606A330;
-	Wed,  4 Nov 2026 14:29:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E5A9606A334;
+	Wed,  4 Nov 2026 14:29:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gRS1rRHN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6266B1F000C1;
-	Wed,  4 Nov 2026 14:29:26 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FDCZIwnG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 837691F00A02;
+	Wed,  4 Nov 2026 14:29:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793802566;
-	bh=Xz3sb8BWuunlpYCoTGvQBeihdIazj1yMmpL1EBO9/qs=;
+	s=k20260515; t=1793802568;
+	bh=HjZiL2EWVteAt/2L+qFJ7Kn3/mgXU92yKdkjMMjuGU0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=gRS1rRHNHRSJsts9JvGgJWF3hWpHvNoZuaISWb7KKCRXoc3M+ntSHJBgiKkAtdttR
-	 y4wbhvzvQM8qTcWSI6ugqeLKZoS0OCIuFRIK/aHS+MZBA0fsnruwQN/CG6X+lS8ZRy
-	 ZCHY1lXMRec+WCeL1uT/mi4d+Aejz8YCSDiqxf8GWO9JuEnUDXZQyAMrkKV6pXtIoC
-	 lyxFNqAbUlEzkciJtQR08COMSJlD0r8ExWZley6pOq37uAOEMhbd9SWNDM0qenb2HX
-	 +B2Ce1NGd65XXbKOmAXclPICYTsLYKMDyuA+ieGzZfsLPCZIXRbMToGPf3o2S2sFfh
-	 uI6hEYbJWdauQ==
-Subject: Re: [PATCH net 07/15] netfilter: nf_dup: preserve guard across
- NFQUEUE reinjection
+	b=FDCZIwnGpJ/pgXcBClKdCNK5O2qgTCXxgAm/AGU5VGqmjOfhbmUQ/8pMeANcWbwaG
+	 Jj9lT/O2xHTstkMCsiORL5WbwKECGGdmjXiqn3WlrJWSXbGjKKlDuQ5G9wLC4LJkJv
+	 TKH4Z+r6re9jGTG6/Msl+tWOv4zC46gDIIFVt9rGWA4IiEs6cRDOgReTDrOOy12hCc
+	 kYCy6OysSZYEFMgO0Z6QZLFUXfcq7Hhbrn+wOijBpXHYmTcUjNjJ0CCogKyu+yzv7d
+	 jGjUEl5CpJKcZuWVXYzFglzyT1iw50zj3dU/VFjAzd3Cwi+oFa5H1g4nZqziVWD2l3
+	 JbGMQWMu+8tjQ==
+Subject: Re: [PATCH net 13/15] netfilter: nf_tables: fix memleak when rule
+ deletion fails with hardware offload
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Wed, 04 Nov 2026 14:29:25 +0000
-Message-ID: <179380256596.488856.13512803385415062400@kernel.org>
-In-Reply-To: <20261103140308.591690-9-pablo@netfilter.org>
-References: <20261103140308.591690-9-pablo@netfilter.org>
+Date: Wed, 04 Nov 2026 14:29:27 +0000
+Message-ID: <179380256708.488856.2178919556830092736@kernel.org>
+In-Reply-To: <20261103140308.591690-15-pablo@netfilter.org>
+References: <20261103140308.591690-15-pablo@netfilter.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -70,125 +70,61 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit message for "netfilter: nf_dup: preserve guard across
-  NFQUEUE reinjection" leaves out a behaviour change.
-- [Low] The patch has Cc: stable@vger.kernel.org and Fixes: cd58bcd9787e
-  (2010, xt_TEE), but it reads and writes current->in_nf_duplicate.
+- [Low] The commit message calls the bug fixed in nft_delrule()
+  (net/netfilter/nf_tables_api.c) a plain "memleak", but the old error…
 
 --
 
-netfilter: nf_dup: preserve guard across NFQUEUE reinjection
+netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
 
-This patch saves current->in_nf_duplicate in struct nf_queue_entry when
-a packet is queued. nf_reinject() then restores it while hook traversal
-resumes after a verdict, and puts back the verdict task's previous value
-on exit. BH is now disabled for the whole of nf_reinject().
+The patch moves the flow rule allocation in nft_delrule() so it runs after
+the rule has been deactivated. This means the -ENOENT error path no longer
+drops an already built flow rule. nft_flow_rule_destroy() now accepts a
+NULL flow, and the NULL check in the nf_tables_newrule() error path is
+removed.
 
-> Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
-> Cc: stable@vger.kernel.org
+Link: https://patch.msgid.link/20261028062204.1079089-1-hdthky0@gmail.com/
 
-[Severity: Low]
-
-Will this apply to the stable trees that this Fixes tag covers?
-
-__nf_queue() and nf_reinject() read and write current->in_nf_duplicate.
-That task_struct bit was only added by:
-
-a1f1acb9c5db ("netfilter: nf_dup{4, 6}: Move duplication check to task_struct")
-
-Older stable trees covered by the 2010 Fixes tag, such as 6.12, 6.6, 6.1,
-5.15 and 5.10, still use the per-CPU nf_skb_duplicated guard. That flag
-is also cleared after ip_local_out() returns, so the same bug seems to
-exist there. This patch won't build against those trees, though.
-
-Could a dependency note or backport hint be added? That would make it
-clear those trees need a version that saves and restores the per-CPU
-flag instead.
-
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 90d887546f7db..a8aa7ad832c3f 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-
-[ ... ]
-
-> @@ -365,21 +366,30 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
->  	const struct nf_hook_entry *hook_entry;
->  	const struct nf_hook_entries *hooks;
->  	struct sk_buff *skb = entry->skb;
-> +	bool old_in_nf_duplicate;
->  	const struct net *net;
->  	unsigned int i;
->  	int err;
->  	u8 pf;
->  
-> +	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
-> +			    !entry->in_nf_duplicate,
-> +			    "%s called with unexpected duplication guard",
-> +			    __func__);
-> +	local_bh_disable();
-> +	old_in_nf_duplicate = current->in_nf_duplicate;
-> +
-
-[ ... ]
-
-> @@ -402,9 +412,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
->  	switch (verdict & NF_VERDICT_MASK) {
->  	case NF_ACCEPT:
->  	case NF_STOP:
-> -		local_bh_disable();
->  		entry->state.okfn(entry->state.net, entry->state.sk, skb);
-> -		local_bh_enable();
->  		break;
-
-[ ... ]
-
-> @@ -418,6 +426,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
->  	}
->  
->  	nf_queue_entry_free(entry);
-> +out:
-> +	current->in_nf_duplicate = old_in_nf_duplicate;
-> +	local_bh_enable();
->  }
+> Allocate flow rule object after transaction has been allocation and rule
+> deactivation has been performed, otherwise memleak is possible.  Let the
 
 [Severity: Low]
 
-This isn't a bug, but the commit message doesn't mention that the
-BH-disabled region in nf_reinject() is now much wider.
+The code change looks correct. Should the commit message also mention the
+net_device reference leak?
 
-Before this patch, local_bh_disable() and local_bh_enable() only wrapped
-entry->state.okfn() in the NF_ACCEPT and NF_STOP case. Now every
-reinjected NFQUEUE packet runs with BH disabled, duplicated or not. That
-covers the NF_REPEAT hookfn re-run, nf_reroute(), nf_iterate() and the
-nf_queue() re-queue path.
+Before this patch, when nf_tables_delrule_deactivate() returned -ENOENT in
+nft_delrule(), only the transaction was freed:
 
-The change looks needed, because a softirq running on the current task
-must not see the guard while it is set. Could the commit message say so
-and explain why?
+	err = nf_tables_delrule_deactivate(ctx, rule);
+	if (err < 0) {
+		nft_trans_destroy(trans);
+		return err;
+	}
 
-The message also only says that the guard is cleared:
+nft_trans_destroy() only does kfree(trans). The flow rule already stored
+in nft_trans_flow_rule(trans) never reached nft_flow_rule_destroy().
 
-  "The output call then returns and clears the guard before a later
-  verdict resumes hook traversal."
+Take a rule in an NFT_CHAIN_HW_OFFLOAD chain that uses fwd or dup to a
+device. For that rule, nft_fwd_dup_netdev_offload() in
+net/netfilter/nf_dup_netdev.c holds a device reference that only
+nft_flow_rule_destroy() drops:
 
-It doesn't describe what users see. nf_dup_ipv4() clears the guard
-unconditionally after the output call, and nf_dup_ipv6() does the same:
+	dev = dev_get_by_index(ctx->net, oif);
+	...
+	/* nft_flow_rule_destroy() releases the reference on this device. */
+	entry->dev = dev;
 
-net/ipv4/netfilter/nf_dup_ipv4.c:nf_dup_ipv4() {
-    ...
-	if (nf_dup_ipv4_route(net, skb, gw, oif)) {
-		current->in_nf_duplicate = true;
-		ip_local_out(net, skb->sk, skb);
-		current->in_nf_duplicate = false;
-    ...
-}
+So each failed delete leaked a netdev refcount as well as the memory. A
+leaked refcount can leave unregister_netdevice() waiting for the device to
+become free, and that blocks netns teardown.
 
-Say the duplicate is queued in LOCAL_OUT or POSTROUTING and reinjected
-later. A TEE or nft dup rule further along then duplicates it again. That
-new copy can be queued again, so each verdict makes another copy.
+This path is easy to reach. __nft_rule_lookup() matches only on
+rule->handle and does no genmask check. Deleting the same handle twice in
+one batch therefore hits the -ENOENT path in nft_delrule().
 
-Could the changelog describe this behaviour?
+Could the changelog mention the netdev reference leak, so stable
+backporters can judge the impact of this fix?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
