@@ -1,90 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793823133;
-	b=Kw3CgWt+i4o+ONErhlF/YTDMgn/ddF0yyMcJYVxSAN8fBrXeRkWzIMxxgkQzieH2bTAe
-	 RKbuz5bx9J0Jqbtdpf37hPQzL/S/77IwylYQe30q602T0Sk+UGOff7MIwP0T0wbr1+SWD
-	 nPY+n6mtJiCDYUu8SxDfZrdcFYra0DUjntayMtiNXULO5tO1fihUTDJNze/xff+5m2nr1
-	 bV04NynGTul/DE0itmbWo5Gwu05sNKg/VDJ9vJrKANIP2BewF9LjMWvEqlCLYsNoGcEqT
-	 x/0YEuJPasPPH+hBuWNY5j6xBhdcBLU037Oo8Wxhx15GHo3K5jTc3DaN4WV4OoCu6DQ==
+	t=1793823352;
+	b=rcEb1sN+yQoaNUs7zg4+qZNu/JvHOrGvRoCnAEVSB6+c6hV6FNBrP7tEOjL0oNc8BbN6
+	 ZF1N7ndxdRsje9YMiZzHq20A9iI9eXkVKNZ8BjGUI+vvgtv6W18oIHsrhnoqNOI5HN6py
+	 y5tHVM1lv8VKjoertwxRitLB8cFRYo07wwqnsBqxWDccF8CFuYwh2GcQ6dA36LUc64POi
+	 YgozaFlTNsGWMdVgtsMKTROAO7E9sijqoi6tZ6cR2Q8imNM54vPLkUrKgmRYGfEmn9bdP
+	 AaPBlk2EGmZwE3MWcFkiQF7oV/W+vySr2Sl83emyJDJgHxTPu2SNQ8H5OU120xVsS3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793823133;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-	b=fRLvlJrTkaF4WQIBVGIqVBkovRG4fXpJ1ICcPEFpyFS1uBRVqeGL3rOQqO7YQ66PaW5j
-	 rOSXa8igf/+XwfXGgOqp2+MjcqbGXOmJnEEpXbohG1bDza2eFcklGBdKbTJKwlscZcuhH
-	 +ghTUTnmFs+E+8IrWKslPGxXLTK3vqJaf4XoPrkBR2rkgzUNI8OChCo8HUA9qSVfLdji2
-	 jOv0IJ627d65rIqBOxbqfFerFGZOxek2BesC49WmUTzC0RNe2Zu3yTzFiE1tzNIkfZdun
-	 Krgbd7CDpFcB1P2rpgklv52x3i6lNA3r0rX2tfjihydZsip/gkrRBFpnyRUWjQhSUKA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793823352;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=J+F/M6JjHFkqB5PZQhlDSfh5yN51kNnyBd6UV+ZKrmI=;
+	b=W6VSzHweAkoEPm9hiwxewU/IZxNT6co6dvk56rDBfawNQpBIjVYK/1SAWV2KsBeDAd0X
+	 CZmzISUi63nxCtMwlfitY8PGJQLJ7jFliVi5/viuK9wMVqxWfaJwxbmXNZ8EGqIzqrLnv
+	 qCQdKYjbEnyCjKGakqvs5oRPJ+GGLd6OQ91eD2CuSnZOS5k3Ey9B0/sJ0LAOnjVvpVzb8
+	 ib6UVpozqtM2sc0qCPsYQu94axP4qAB3hqIGikl1PCMzwTV/Kk1x5+Q3V0XMpawNjNO0/
+	 b+bIE2e93uREd8yKEJ9OldErij+kEWMcXgnUX8pEUsyKpjWBdYt++Fm9ezPldqeu/9w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-foundation.org;
-	spf=pass smtp.mailfrom=linuxfoundation.org;
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=IzCCgcHN;
-	arc=none smtp.remote-ip=209.85.218.53
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=D8xOOqIt;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E51666080782
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 20:12:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E51666080782
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F61A6071A07;
+	Wed,  4 Nov 2026 20:15:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F61A6071A07
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=IzCCgcHN
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c4550d8ab15so176932366b.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2026 12:12:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1793823131; x=1794427931; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-        b=IzCCgcHNOb90cC+5Q+ouCET2Ny/4OiV7kgTbqK9AwEzkljILe+XDlcUbDFGh8BPDe+
-         7DVkvl6I5YUFCiMEdEVe6c/azmspFcH1SeG4bgZWXvdkJA9vLnXvq7u3Ev4AZ3VL0QTx
-         O1eeIB6aKuVi570PnFB99wRsvvZFGcbpvON0Y=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793823131; x=1794427931;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-        b=HRZf3eZEJL2S0lsWOY5wzjskUYOIY7kjEkaKfkCG1j85ZfiKZ6eJ4w0UzGZAsQuI1f
-         yjYlIny2SS9pV/HTuIRW6VR9wtAGuG535f/5vC6mt82HdJizP/GnTPPLq5w+gn84/F41
-         6q7pHWHeB+g7RQvRd1EnrUpcFi58ZddIhVIoet5U0qLXzkBSNmCR33w4TQ34lGjYviAI
-         SbdtxlM1PcH4IvYIfVHGmqmcJFehgo06TCaNawKkBWlbgL0qpa4Ixht4Aj5f1rLAVERd
-         XApFlNWakWAwc2RBEdkwJeWgQhSacE5Caz1oe6E7CllUOVHPdPWuPzdEKAnSsOKT24qi
-         JAwA==
-X-Forwarded-Encrypted: i=1; AKwUvBwXO227pJfRMN1L3TzvK8oFZOyh8Rag36e3hPoAyQuaWmtU/RgO+6rixidaIWuY7jRJd+ZWAZ2lryiM9BReE7o=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/3OCsQZDKDa7i065U+yR6FxjS9zMsoEBHHVVxYxvXsWIE+qJkt
-	D7ZhwsobelNvRX6XL3paXCX91cJRJ4lWlsSxZPRLC9aEP11G5c4bP1uc2st2xpKPn7T94EwgTps
-	RsJqJ9v2OrQ==
-X-Gm-Gg: AYBFou0NylNx3EyYmPaQc1nyVEqnOXqNPrfq5X88lb3i/72aoXOGgHTd+ru3ad3hAAP
-	7aXB4TDMX7fRmeuk2pLAf1heiOT/EcvC1yv3nTxninZprkKXXx7igIrSMKyYudR4n9rHk8k0shz
-	q5eMRV+ofjlulmd4CTft41fr5q2l3y9s5SdsTSe9EYRefHa24HmKHkeXKOzzMJwHf7o1ssYN+Rw
-	c//C650AFHH/MZdkm5jSdNWH/DpqfwQ8AQWc1n2XM4gzIe82yyzADYRNWWPQ4xtqEpi7CH06BgZ
-	FlnUMqtRQYvu7iXZ7ZfCzcUXbiuTN7ULJQExms/ufxApsNGXfkn1e/YskTEgwfiVRKd3J+MzKvs
-	p4p49cqoN1qPeyQs1tQyU+0pzSQLyx5m4apvRDWF5lLPGPHDw2EYQpJoHDRbjrUyBI/nGiOz8se
-	Qa1XbiEVoYV0LejxJeHgnxNpL6Cbr4xuU1bP2xbyhVSYcOgCeBR7L+CnCNEfq8OfFNSNspwDVDv
-	ia7zMv45fG+IqVoRtplbQqFXA1JZzEpeJNNxjQ+9DcM2OpFTNmfex6V/SFF+lBAwsrlQMDiCnk4
-	n0sp0uzLrNk7bYfn7lXXqYBedCjZ3U5yzDiFkdNL98hBPTpwhL0Cljdn4mdE29/+1vnt8YXwcjj
-	JdQ==
-X-Received: by 2002:a17:907:9341:b0:c49:cf38:3baf with SMTP id a640c23a62f3a-c4ca795d38emr1524293166b.5.1793823131313;
-        Wed, 04 Nov 2026 12:12:11 -0800 (PST)
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com. [209.85.208.43])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c4d0e48b93dsm105384866b.64.2026.11.04.12.12.11
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 04 Nov 2026 12:12:11 -0800 (PST)
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6b579003f29so82246a12.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2026 12:12:11 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBzqgTM2h+5Ix4DMhTy1MyqbAQukYcMiD+kjWY90gwy+pKmym9M8hsluARo5ygI9SkWGTOvc1pzd+cwYDTGsF+Y=@vger.kernel.org
-X-Received: by 2002:a17:907:60c8:b0:c49:a4b1:9cb1 with SMTP id
- a640c23a62f3a-c4ca795fa50mr1973235866b.3.1793822725121; Wed, 04 Nov 2026
- 12:05:25 -0800 (PST)
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=D8xOOqIt
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id BCE2D21DBE;
+	Wed, 04 Nov 2026 22:15:48 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=J+F/M6Jj
+	HFkqB5PZQhlDSfh5yN51kNnyBd6UV+ZKrmI=; b=D8xOOqItO0zk5Kkb5mZtdipp
+	2oklsITritx13ZhmFokOS9Sv7CyIkD0dvbGA86kEqF6bymY9BU+NJAr8Qdbmm3tD
+	pz6T6iY9+5z2bMiG5uxvoRn86LL292wLOt+Fr62iAJm4gaaQ6GabL//Ti61BRiO7
+	DRUaTVIgZi5TB05TM5idAQ65CNfUUUWzcwCqwgEFlkHFyV/qCtlv4pkw9xCfIldY
+	V9DuH/ijW88QG9NMmid1e8rNizVKviBwJmmep90UFLVxN8tx5ZqkFb1fDfh8qvZY
+	aj30KgQbAeEy+u8f2lawM265mO0nmGydNOmEfx20ifwumeNddp+dGHviKNtjkW/Z
+	v+bQ5Ch/OvvcrhIW/1VZbSH3t0iBmTCDh5moD/Ym/7oasT2DhPtHG1RvboreIUJI
+	ei4vGiPy3MX8iKgmAbMLAg0YlX85g6YtHyszI4oRBvHuoVxvR4K/S7wfhSCaxar9
+	DJqek51r8zBknyFWHLaTt2J6UG+/xjsGetpeVDj131OqMiYot9d/s385cbVxiAcY
+	pxE9ICpxwPKklBCHopm7rgOztXVC2MNIDt5wZrJSEDRGJf5HA4PFSXYR1OTCqOSh
+	evIb8G54JQTiyRAp64++Ahgyn7X/BErEonO1qsoIJgwC9dzxa1h/w2K2XhpOPo1t
+	ONPJzRSqSQ5d6rC8hNg=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 04 Nov 2026 22:15:48 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 2791D60B48;
+	Wed,  4 Nov 2026 22:15:48 +0200 (EET)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A4KFleC147314;
+	Wed, 4 Nov 2026 22:15:47 +0200
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 6A4KFlNw147313;
+	Wed, 4 Nov 2026 22:15:47 +0200
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v2] ipvs: do not create conns from packets with port 0
+Date: Wed,  4 Nov 2026 22:15:30 +0200
+Message-ID: <20261104201530.147292-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -94,51 +80,110 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261104-work-procfs-v2-0-b45cd5789ac5@brauner> <20261104-work-procfs-fs-v2-0-319e0f9a8aae@kernel.org>
-In-Reply-To: <20261104-work-procfs-fs-v2-0-319e0f9a8aae@kernel.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 4 Nov 2026 12:05:08 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
-X-Gm-Features: AclHuK9j_YIgrwhhpWOlnull6heAULBd4dgTqoOhUQQjFm_MgoIgrL1vgPfefvI
-Message-ID: <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
-Subject: Re: [PATCH RESEND v2 00/30] proc: convert the fs, kernel and mm
- entries (Part 5/7)
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
-	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
-	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
-	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
-	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
-	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Wed, 4 Nov 2026 at 11:49, Christian Brauner <brauner@kernel.org> wrote:
->
-> Part 5/7 of "proc: move procfs to what kernfs does", on top of part 2
+We should disallow normal connections with cport 0 to be
+created from packets by the scheduler (from clients) or
+by ip_vs_new_conn_out (from real servers) because later
+such traffic can not hit the connection due to the
+NO_CPORT requirement. As result, it can lead to duplicate
+connection for every packet. Do the same for vport 0.
 
-Christian - way too many patches, re-sent much too often, cc'd to way
-too many people.
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
+Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ Changes in v2:
+ * Drop the packets with port 0 instead of passing them to the local
+   server
 
-Nobody is going to read these repeated resends, and all you are doing
-is clogging up peoples mailboxes.
+ net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 +++-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  | 4 +++-
+ net/netfilter/ipvs/ip_vs_proto_udp.c  | 3 ++-
+ 4 files changed, 10 insertions(+), 4 deletions(-)
 
-             Linus
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index fd503f0efb57..0ed5f6c95ad8 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1305,6 +1305,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
+  *    In fwmark-VS actual vaddr and vport are unknown to IPVS
+  * 2) Real Server and Virtual Service were NOT configured without port:
+  *    This is to allow match of different VS to the same RS ip-addr
++ * 3) Client port is not 0
+  */
+ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+ 				      struct ip_vs_dest *dest,
+@@ -1328,7 +1329,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+ 	/* check pre-requisites are satisfied */
+ 	if (svc->fwmark)
+ 		return NULL;
+-	if (!vport || !dport)
++	if (!vport || !dport || !cport)
+ 		return NULL;
+ 
+ 	/* for persistent service first create connection template */
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index fb8af6b15a39..31431094073d 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
+ 						 sizeof(_schunkh), &_schunkh);
+ 			if (sch) {
++				/* Accept packet without scheduling? */
+ 				if (sch->type == SCTP_CID_ABORT ||
+ 				    !(sysctl_sloppy_sctp(ipvs) ||
+ 				      sch->type == SCTP_CID_INIT))
+@@ -42,7 +43,8 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 			skb, iph->len, sizeof(_ports), &_ports);
+ 	}
+ 
+-	if (!ports) {
++	/* Do not create connection for port 0 */
++	if (!ports || !ports[0] || !ports[1]) {
+ 		*verdict = NF_DROP;
+ 		return 0;
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index fec0e8b47b71..6f1cc9165e0c 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 	if (likely(!ip_vs_iph_icmp(iph))) {
+ 		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
+ 		if (th) {
++			/* Accept packet without scheduling? */
+ 			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
+ 				return 1;
+ 			ports = &th->source;
+@@ -57,7 +58,8 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 			skb, iph->len, sizeof(_ports), &_ports);
+ 	}
+ 
+-	if (!ports) {
++	/* Do not create connection for port 0 */
++	if (!ports || !ports[0] || !ports[1]) {
+ 		*verdict = NF_DROP;
+ 		return 0;
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index f32785682402..0e7b4427d258 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -47,7 +47,8 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 			skb, iph->len, sizeof(_ports), &_ports);
+ 	}
+ 
+-	if (!ports) {
++	/* Do not create connection for port 0 */
++	if (!ports || !ports[0] || !ports[1]) {
+ 		*verdict = NF_DROP;
+ 		return 0;
+ 	}
+-- 
+2.56.0
+
+
