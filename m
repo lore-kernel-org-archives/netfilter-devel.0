@@ -1,81 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.103
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793754006;
-	b=Bpk9fcPoHe9Q2b0Hjx2HpSV7QohdLaPsv6lXy6v8AbeV7ik2zXZ846piOUuGeTGs/NVV
-	 fjEJ0Vl8F2q/IjsC5oOQagXPPBo0l7FUQhVQ0gpGz0tDxTdUvHGpkcy2pPbAvJvrL5LLN
-	 Kv7KMt/n28myjr9BCYKsZkU+Svk6TiI6r/GubXfqTG70yB6JBsy+yiVl9LExDZYM6lKI1
-	 SuQ3/zr70w3YypltPeh/R3IN4h79YK4uWc/rzq0foQgIU00tRPWlYnxDJa/Xz0UEjzO0b
-	 90UPIr8PRHucZlKJ4lKhoLDNj7lZYoyDBfBqhqO3+qbAsQ/VKypaRflcbrZI4QIbcIw==
+	t=1793756953;
+	b=4iUEiKrKu/QeLLcS3ELi+3/VyXSuxlKfTFPIAWluxfRueU5DIE+vsPkoWkMeX4PU62JA
+	 YbW1RfccrZ6v2qFTyxs+L7lFm/r+TtuANgnN5t6k01gG55aEBtS5QdkACKmOPj3q5tm+L
+	 sOXX6tVzDUppxGVplcvPd/Jx1ukflUqZtE+GXznR4Cp2CpK/NSPGE83vF4HXFbthIslv+
+	 gT4KqNsMT8ex7p51NJJPGk1tSBkeL4FINFvtuWAgAXKvzDrIsvKj2enjtpwMrfavWuCn/
+	 4wkkEGjA6+3hhVkHd8i77ohyYI2qWNBKIvlM4sd12cjAOZZcZSfdi/89wI/CxO4BG5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793754006;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=DkN5EBdbPUtDHIozM/fmpd/KL54M6Mf5B1VBYAKsU9k=;
-	b=F0Dl4+VsfmqFo1P/fj8HAp+Xm4XjTeez2E3OH+9VCppoTlzpwco0v4mBiMOxp8JufoNT
-	 022Jy/UhPXQDKs9oOI6kRT9yF0h0ntyyQjODC5bpzUYci2tgD0LGlEpoeF23l+yrGgdmW
-	 RL7s8puyaZwTNx3nDpgS0MtiStUXa+6dvCvRLWhVlKeQTYfPm5mXkbj82hYnFhi5jYb18
-	 PbrJahuRxdFBZn+hHRDCIJwA6wGW3yeq7gBQ8FRvFt7SFHnLMJx8rogkkMwnlRW7sSTI7
-	 RN0jHYgMBKDdk5c78EnMb+DHOa4obx5iKo0nZaA7yw0P3spAdgfS/GPXQ+sKLQ7xvww==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793756953;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=B9+nhlrF2Dcltc/b/gA0HI4sU+fSxvFt8AwHcya3lHg=;
+	b=3xhNIpeU7PuhqPHhHfvz6aDMYQ415TGPfBGhRWHYqMBRWkTagBn8duqn8xtrbP05GRRW
+	 /CnrJ/4LAv43LdF0pqJXR0UM6ZDCf0rSknLNRNQrjQxPgrqXDN6VulesVQBEQ/Ks23DgI
+	 j555pB0MeXj3xpSwvkiLNpJDd5Q4r3SsmrboetBSoXmhSDlVC8e8zOAHO03pv5Ehhpf+W
+	 GnaUaC6gLB//PHW89F63XBTs5UjZF0/CCIq8rwVE8W40lHNZdbtUYOkl6kbmkhy0hS7v/
+	 MQPi+j6IkaD2yBn3wMXSy1SXCDaXJQPR27GhOE/76lugQ1/U7OxWwqCd4D06WHbSEBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=fAAwuHKW;
-	arc=none smtp.remote-ip=198.175.65.20
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WmgCd1z2;
+	arc=none smtp.remote-ip=91.218.175.103
+Received: from mta0.migadu.com (out-103.mta0.migadu.com [91.218.175.103])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA2DA606A326
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 01:00:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA2DA606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 376A1606A32C
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 01:49:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 376A1606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=fAAwuHKW
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793754005; x=1825290005;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=7iNH0ZCFPCuLx066aBsp3hyWUzPD69yXDaRM1P+78Fc=;
-  b=fAAwuHKWa8ewBTSC5uDiq+ZOi6O9KZQULhY8n56JI+OoAIbu4jcOq4+x
-   WMRib7SYv/98PuukymYWPH10KjmACjZ7wq1znGuaTbZybS6x+jiQG6AMm
-   PaFbNS3qF/UCIRh5sNGMySi6lqDdY6Rag/UIlcG5Yg3gzXId7bjL+ZxYU
-   CVaBTUskuBHB4tRcFKnWeEVPMKLawPABcjW1/hmhfF3p7+PfVOMlYrK0b
-   Ei3liTcTCQb3vgvdwhmCkH4z/lLyHOfEsbtdQWYDTW4kQccI5MajiADX5
-   OzvUE3cqdJDuHE32Pz+qutteR45oGUArc38HtHTRW3GZ8k8pTIEF+iJ84
-   w==;
-X-CSE-ConnectionGUID: fwkrkQAmQu2UlmlDNgaU3A==
-X-CSE-MsgGUID: XVsx/k6DRrqky8yiJ53NFw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2528330"
-X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
-   d="scan'208";a="2528330"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 17:00:05 -0800
-X-CSE-ConnectionGUID: iIhjQ9bJQeafV4/CHTOQ6A==
-X-CSE-MsgGUID: NMOFN8axSC2vmazRKiLDig==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
-   d="scan'208";a="7128015"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 03 Nov 2026 17:00:03 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xOPM8-00000000jYV-1XdH;
-	Wed, 04 Nov 2026 01:00:00 +0000
-Date: Wed, 4 Nov 2026 08:59:06 +0800
-From: kernel test robot <lkp@intel.com>
-To: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	coreteam@netfilter.org, phil@nwl.cc, fw@strlen.de,
-	pablo@netfilter.org, Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: Re: [PATCH nf] netfilter: synproxy: prevent unbounded recursion in
- transmit path
-Message-ID: <202611040824.Zozbyqd6-lkp@intel.com>
-References: <20261103125638.4667-1-fmancera@suse.de>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WmgCd1z2
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=ly87kVwc8IX3qQC1upPNiV4ixKwflXWdxxSQPtJr530=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1793756950; v=1; x=1794361750;
+ b=WmgCd1z2xEwibpWazqwjfNFUMb/ti3JB4RI5g7fyRZsn46BHNv976oy8pudR2GVmIAJJvRtf
+ TrX/RUMKekNCUJ4umRhO8sDe3MsN0lQ17l2YjLPHJ85Ak4zEfIrw99VzIKMHFgKZKG5V32FMRE8
+ 5KvQHTjKsDF3UPgEh6FVAgSE=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by mta11.migadu.com with ESMTPS id bf8193c6aca9eaae;
+	Wed, 04 Nov 2026 01:49:10 +0000
+X-Mizu-Trace-ID: bf8193c6aca9eaae
+X-Migadu-Flow: FLOW_OUT
+Date: Wed, 4 Nov 2026 09:49:00 +0800
+From: Hangbin Liu <hangbin.liu@linux.dev>
+To: Sasha Levin <sashal@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	Fernando Fernandez Mancera <fmancera@suse.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	llvm@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH nf-next] selftests: netfilter: nf_queue: drop the no-op
+ loop initializer
+Message-ID: <auqPDIM0z0MbuBhS@fedora>
+References: <20261103165419.687806-1-sashal@kernel.org>
+ <20261103165419.687806-5-sashal@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -87,48 +76,38 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261103125638.4667-1-fmancera@suse.de>
+In-Reply-To: <20261103165419.687806-5-sashal@kernel.org>
 
-Hi Fernando,
+On Tue, Nov 03, 2026 at 11:54:18AM -0500, Sasha Levin wrote:
+> The out-of-order verdict loop starts with "for (ooo_count; ...", and
+> clang warns about the unused expression:
+> 
+>   nf_queue.c:354:10: warning: expression result unused [-Wunused-value]
+> 
+> Leave the initializer empty.
+> 
+> Signed-off-by: Sasha Levin <sashal@kernel.org>
+> ---
+> KernelCI's clang builds show this warning.
+> 
+>  tools/testing/selftests/net/netfilter/nf_queue.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/tools/testing/selftests/net/netfilter/nf_queue.c b/tools/testing/selftests/net/netfilter/nf_queue.c
+> index cca6c3cfa9e46..bc0b2f601a0a4 100644
+> --- a/tools/testing/selftests/net/netfilter/nf_queue.c
+> +++ b/tools/testing/selftests/net/netfilter/nf_queue.c
+> @@ -351,7 +351,7 @@ static int mainloop(void)
+>  		if (opts.out_of_order) {
+>  			ooo_ids[ooo_count] = id;
+>  			if (ooo_count >= 15) {
+> -				for (ooo_count; ooo_count >= 0; ooo_count--) {
+> +				for (; ooo_count >= 0; ooo_count--) {
+>  					nlh = nfq_build_verdict(buf, ooo_ids[ooo_count],
+>  								opts.queue_num, opts.verdict);
+>  					if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+> -- 
+> 2.53.0
+> 
 
-kernel test robot noticed the following build errors:
-
-[auto build test ERROR on netfilter-nf/main]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Fernando-Fernandez-Mancera/netfilter-synproxy-prevent-unbounded-recursion-in-transmit-path/20261103-135638
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20261103125638.4667-1-fmancera%40suse.de
-patch subject: [PATCH nf] netfilter: synproxy: prevent unbounded recursion in transmit path
-config: s390-defconfig (https://download.01.org/0day-ci/archive/20261104/202611040824.Zozbyqd6-lkp@intel.com/config)
-compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261104/202611040824.Zozbyqd6-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611040824.Zozbyqd6-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
->> net/netfilter/nf_synproxy_core.c:24:10: fatal error: 'net/netfilter/nf_recursion.h' file not found
-      24 | #include <net/netfilter/nf_recursion.h>
-         |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   1 error generated.
-
-
-vim +24 net/netfilter/nf_synproxy_core.c
-
-    16	
-    17	#include <net/netfilter/nf_conntrack.h>
-    18	#include <net/netfilter/nf_conntrack_ecache.h>
-    19	#include <net/netfilter/nf_conntrack_extend.h>
-    20	#include <net/netfilter/nf_conntrack_seqadj.h>
-    21	#include <net/netfilter/nf_conntrack_synproxy.h>
-    22	#include <net/netfilter/nf_conntrack_zones.h>
-    23	#include <net/netfilter/nf_synproxy.h>
-  > 24	#include <net/netfilter/nf_recursion.h>
-    25	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Reviewed-by: Hangbin Liu <liuhangbin@kylinos.cn>
