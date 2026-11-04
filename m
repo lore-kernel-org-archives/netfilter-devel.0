@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793819892;
-	b=0WC2/NeojSOuikZwpP6tbgLtF+Ht3MJOkTYTU/ulpoCQV/tUfS/txK1Cp3Q6J/kcnO8j
-	 bDN/IFKQk+trScZS85h5OeGZIz44SmLtNGer+bz0nLtMKf9n8Etsiv3tsvRnCEDpBVRAk
-	 tEN4Kg5fZekD/wOF5XF1lth70ZWKNBC5CWvdc/MrJG/ee0QUCjk/bJi+lp7RNhKvGhe4h
-	 MmeMgXre1qoH8YUhl7/JSSyYz3z9jEJSm7INZx0EkkD3+mqlTgsPABaMsH/RCZd8uCfNA
-	 6m9f01KER/oCY6GywReEZF5K4kCSF9GWvz3hQBXxoL3W1m6hjcgz6fXxFPTKjoq/nbQ==
+	t=1793819935;
+	b=x7hvMCOblRB/wJsibVIPH1tsDz+NvqUH3IkuHPhjbScv8Ow4hLCQsAaIS3TWIjen+6fL
+	 CiNGCKipjyyjc3oBjPDtiq8dA0n5cTa0F68kn2CRM+ZbtGL3GoYWkQN5a9qRNGljAPK92
+	 FlAnp4D4DAIrzECe0Y2xRXqjmBD+V+bMDxMpwUkZRMKYFlCfC0jgM0+xkWyqK+6yVw2Ef
+	 Hb15fcpN72+wJIpDWBKM8iE1D8/J8v9fo6MoLhzpyk3dxzM1FD4ZdF6h96Us2aP+e5vmb
+	 MKgb3Ha2taod67DLOZzI9q3dk3eiG26VxKsrwzhn8l+TC4rBIseijhDJRTzHF7TeTuQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793819892;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793819935;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=gnzz2fT926tAung/y7Xzshf60AQanFXIqjFC5KSqJW4=;
-	b=vDo1+lg+KvvrPDNOKsNcKl+p79r08bTjh0sGyT3cFG+yJVZrGXVtRiBgooa9Eq5C+7Sh
-	 ID28GSnbd4fFW+C73FSeKaQRaIJLrcJh1SnseJ7+PPfIlc/Van+FBv1WcAnBmKAZLKJ5R
-	 lHoPeMbvCUJQUnDayIeLTkIyioplp+PrjeDW9iP/stiK7w50zcJERkL4UMONktd9YauJ0
-	 adgT+C/adnE4IVcKochuqP9s9PHEpJyDwfhht5ldCN4ufKcriqiGZyVXUXft3qsa7dqxM
-	 K60pT4GfKy0LhHkP8gcfHvHdyBgc8byanUGpEw9v8sl72IQJVVy8FdiangpPzMEL4dA==
+	bh=88D9snc5Fvfzc1+bIGylCXCzBagXIGxBtzK0BL7vNTc=;
+	b=0CYiC79dKyO/ZFzrjZC+C0LxaENDKfHmODR7IM6Hjb0YCkVTs6tT0HQe6Cv9B4T4jLkd
+	 zHdYxo/OOsYn7o3ABMxbHWiZFGXJA/MgeoIG59E0G42aFWJyxyhYhughNUR/Rw4HjIktt
+	 UpQvEnTKug3E1VDjMzI61IX73iGhbqYYj9ONbA/8mE0+PWyK0EbH0TWkRZRTVazjvzFLx
+	 /XfslsQyPYEiBxClf1OPpLW32Wlc1RjsJDD/XRFjAFmfWqREwuvgXICkX39e7Rhg4kxkh
+	 04i8m5NypuatLsgE74KJwAIEVq+9qLwaKN1W/Zy2edACqtxG9kFLz6keWduETkLvDLA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DJwoJhhA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GmEE1dbl;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45824606A33E;
-	Wed,  4 Nov 2026 19:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A4E3606BA3A;
+	Wed,  4 Nov 2026 19:18:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DJwoJhhA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5A991F000C1;
-	Wed,  4 Nov 2026 19:17:59 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GmEE1dbl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB631F000C1;
+	Wed,  4 Nov 2026 19:18:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793819891;
-	bh=gnzz2fT926tAung/y7Xzshf60AQanFXIqjFC5KSqJW4=;
+	s=k20260515; t=1793819935;
+	bh=88D9snc5Fvfzc1+bIGylCXCzBagXIGxBtzK0BL7vNTc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DJwoJhhATgLL5xfXdN6OGI5pF+zFeQ4+WjDNEmYUvZTHMkMM3eFBxWoobM0WXpN6L
-	 UN1K0xLPqC6xno0sP505XFwThWfbay58UK+kSTD2vpnLdKzWFKNzP1giv5JOftlPAN
-	 Lav0lUTUsfF4QNMQKGO/ATVDWFOPORj+D8twGViNFcODYJUEtFOTbyZUtap9bjA0h2
-	 /y/zNq9k0GXM/Wcge/kDBQjMR/uKEl2vV60dRTJ8k+gOCXzwPxktA7vZC0dRvivZpp
-	 96DepXBnx1as6j7eZVnuCHwHxCErTDabWI65gJh4HFpjHVsXeCp7TMdzgalcYj5T8Y
-	 Hbm2eKKFQu5Bw==
+	b=GmEE1dblrL6P3slUDpoeGQBfKRlZceqbttyL3CdBYJ2HAmZ9lajl7o6aomohjTG+O
+	 JTa2xT0UeQwIgbWO0as8ILC2qonsH/MA+HbfcPcLDu6enbEF3xp9x5MarktZI1cLNN
+	 p49gpXsJRwhljLb1NoANyo0ZebStjoK1MQAOZ8SsuOmEWt9/Va7qy18DmNx/CKuVDD
+	 F61rqLrBCLbspjHBFEQrO4v5WSYQC3TxQQVgqakQ7sCvVAsMm5tshbmCStW23Fb73C
+	 HKw2C65QpNc+TsBCBKm/WrFquDZj8ghfTEOupR23/RjXQvAJZnpFNNP1XldO5G4qvo
+	 qTnFbXsGFvmcw==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -99,11 +99,10 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-modules@vger.kernel.org,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
-	Chuck Lever <cel@kernel.org>,
-	stable@vger.kernel.org
-Subject: [PATCH RESEND v2 08/51] powerpc/pseries/lparcfg: don't drop the last byte of a write
-Date: Wed,  4 Nov 2026 20:17:57 +0100
-Message-ID: <20261104-work-procfs-bugfixes-v2-8-021c84d852e0@kernel.org>
+	Chuck Lever <cel@kernel.org>
+Subject: [PATCH RESEND v2 11/51] sparc: led: consume the whole write
+Date: Wed,  4 Nov 2026 20:18:41 +0100
+Message-ID: <20261104-work-procfs-bugfixes-v2-11-021c84d852e0@kernel.org>
 In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -117,43 +116,42 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1293; i=brauner@kernel.org; h=from:subject:message-id; bh=N2rHHHUzfsZsGLUBvdMxa3o2qGAAPzh8wsvUFn8S2uA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9brzSemUj37ZpfEJdHNavdhRd85506nnq/+C3P7Y+8 TFiT9g3uaOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiUnIM/0u5vFweH/p6+fPx 1Xd527Vmp+13uFo968XVnftb9sQmFZYxMkz6tCVlybzJutuORSfufHxkyiSRYzOO7z4d/HTf5nt 15WbMAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1161; i=brauner@kernel.org; h=from:subject:message-id; bh=5p0zMz40BbKdivFQo1NNbyIz4tkvEi3yC5tXL4aXaeU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bryxTr/f46JN2aT7fqoMIobterOLr517VZK2/eVbF pMTq1cadJSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAExk6Q5GhpeRX3yP6jdm/nBn TDpmVrDk42u3AsOCWcVRi54YHnqrX8zIcGmRdthP9Rql7VIfc5K5Jlq/vCTExLioUWxJ93Lnjfk ujAA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-lparcfg_write() terminates its copy of the write by overwriting the
-last byte, so a write without a trailing newline loses its last
-character: "partition_entitled_capacity=5" is parsed as an empty value
-and fails with -EINVAL. Terminate behind the copy instead, and refuse a
-write that fills the whole buffer, which can't be terminated.
+led_proc_write() looks at the first eight bytes of a write and returns
+that many, so a writer that loops until everything is written, stdio
+does, sends the rest as a second command. That one is unknown and
+switches the LED off. Return the whole count, the rest is ignored.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
+Fixes: ee1858d3122d ("[SPARC]: Add sun4m LED driver.")
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- arch/powerpc/platforms/pseries/lparcfg.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/led.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/powerpc/platforms/pseries/lparcfg.c b/arch/powerpc/platforms/pseries/lparcfg.c
-index 3280b7968cab..9882f98c0efb 100644
---- a/arch/powerpc/platforms/pseries/lparcfg.c
-+++ b/arch/powerpc/platforms/pseries/lparcfg.c
-@@ -699,13 +699,12 @@ static ssize_t lparcfg_write(struct file *file, const char __user * buf,
- 	if (!firmware_has_feature(FW_FEATURE_SPLPAR))
- 		return -EINVAL;
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+index 9b53ac1fe533..a1478de9fe5d 100644
+--- a/arch/sparc/kernel/led.c
++++ b/arch/sparc/kernel/led.c
+@@ -68,6 +68,7 @@ static int led_proc_open(struct inode *inode, struct file *file)
+ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
+ 			      size_t count, loff_t *ppos)
+ {
++	size_t len = count;
+ 	char *buf = NULL;
  
--	if (count == 0 || count > sizeof(kbuf))
-+	if (count == 0 || count >= sizeof(kbuf))
- 		return -EINVAL;
+ 	if (count > LED_MAX_LENGTH)
+@@ -102,7 +103,7 @@ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
  
- 	if (copy_from_user(kbuf, buf, count))
- 		return -EFAULT;
--
--	kbuf[count - 1] = '\0';
-+	kbuf[count] = '\0';
- 	tmp = strchr(kbuf, '=');
- 	if (!tmp)
- 		return -EINVAL;
+ 	kfree(buf);
+ 
+-	return count;
++	return len;
+ }
+ 
+ static const struct proc_ops led_proc_ops = {
 
 -- 
 2.53.0
