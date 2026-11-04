@@ -1,63 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793763184;
-	b=PGwbt9Oa0n9pi0IZuk1zaWY/YGZYJRAwavNlctH6e5IT/e5UFh0Fo3tMW3VzD4V8IHUT
-	 w6aaX5GeknxhJve9hgwwRK2iaLVIABJUMXW4l4SSTRKufV1BbqgN4D1l2TTbiBVt2nTNx
-	 HWuyoDlWRVjCFpNzX/GBbXO5YWfJiz1kkjagIFVY1hl3kqFtaEOfDGiJD7ngYyeMHZo8Y
-	 2st4sK4tlBMDEtYXCcbEnpOIpec0hS2fB2ozdVsKk6R4cSgE3GcSpG3CFjP3m5fURwE2W
-	 54eNH3rNH3jx+p7UMATVV8SbnZyakznDiSxTzF6TWXAYH7SFK6+qUo79s43SNovnU0w==
+	t=1793771194;
+	b=kvxV8Gz+aiRsiXtqiRPw2s8Vd0XGPYD2z6+d7J+YFEj5gSO4W1M7s/9/NtdzPKpMLaqN
+	 szRDdYG9vRTcRmFqN3lSJ4bjYe5ur3HNHk1hT72VvgkspbDhxPLPx6Og79raSk6+VxnAG
+	 dIOcToylo85r4n1PQFUWxZMPhZE5rISvkTirJl0q8EOTESgPEVZt2xbAWtFBIrPl2VrZH
+	 YA9NJad2mNxZSz0L/pDDazFpNz1d1fFoAElLnSiZemUJz8N67vbihTY8opyE+WhcGnpkP
+	 pO/vSYbBSdzE3ibXqh0e20T7llz4xt66b8R3sPimokPu0GHSDy+uMmP3zEGZMtt8OnA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793763184;
-	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-META:X-CID-BVR:
-	 X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:From:To:Cc:
-	 Subject:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=l8VqXxd/sdfHt2LeZCunmDHUpQmLkttaE3civqC/2uc=;
-	b=rNTNmTiDp0+peRRfNS55idg+Vqw04fop6GWWpvdvIgZMRhRn5P6R+DabwWWmlLS2cnMs
-	 0KLGfYhsDLgOxr+jQkPRbpVTJO2TNgHbEDEM6hB+mq4MJ1iNCZd9ZiZpO5FF7zx6eJyMv
-	 0zJa3GES1p43BQApyB78Pe6qIpuLaqkH6kAuxy+xthYD0VPojJzxFJQ02iHEIRs5t10oP
-	 XtESeaBYUsVpmubB3r3veYkj5O25vy07Q8uWNXsYaDJzLPox2kxiM6kSd6peJY70jAGPA
-	 bPWMJEJCKGHL+Xs8JgwRen9pBBD9PuNVXJwDgQPU52kyAAkP4T4AHli+du9e69L+OhQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793771194;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=ALKW+m44fAiyC37sUwJTPfNcb+dgH1kvoHtEoKQd/UU=;
+	b=5JhKOC/Hk9SHTmIWVTs9gdW/ePEO/gzsEiAjXDMU1CDTJanjEwiZ/gz3dYPguOIZWIOU
+	 gbA6DRu+tznBMEXx05aJqKo6RFZDg4PLq/9BXOGRhy70twZlhxZAQrU07ecMR5k8HM9gl
+	 l8XFL//PkdylTDD78+o+vyxMSWNHaetrQBghW50ED3zZ8DrEu1CC/rmMlP/lPmK8UOU48
+	 lpCeJW1PdL2jBMAsT2NZfIlKX7CE4i2PN6QW0Y7ipU33grp2zI/y25hTi/tCs7HaY2L8F
+	 GkwihKz0u2Z+Z0BcVS9Vme25qWOiFr5t2YO3GXRoJlK9fPKdPQ6fZU7Q+s1TcLPA/XA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=kylinos.cn;
-	spf=pass smtp.mailfrom=kylinos.cn;
-	arc=none smtp.remote-ip=124.126.103.232
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JpQ2OlBU;
+	arc=none smtp.remote-ip=192.198.163.8
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8684606A31B
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 03:33:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8684606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:c578295c-945f-4d84-8d15-e5ab0e360a6d,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:7db8b62,CLOUDID:ea64efadd61072fb2bf8b8ab97d23355,BulkI
-	D:nil,BulkQuantity:0,SF:82|102|136|865|898,TC:nil,Content:0|15|50|99,EDM:-
-	3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
-	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-User: yupeng@kylinos.cn
-Received: from [127.0.1.1] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <yupeng@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 567319487; Wed, 04 Nov 2026 11:32:55 +0800
-From: YuPeng <yupeng@kylinos.cn>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de, phil@nwl.cc, debianyu@163.com
-Subject:
- [PATCH v2] extensions: ebt_string: Fix --string-icase using ebt_check_inverse
-In-Reply-To: <atXZ1Fc4HOy--Wam@strlen.de>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B937606A331
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 05:46:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B937606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JpQ2OlBU
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793771194; x=1825307194;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Mk62jaZ2ayTsTTIc+7nR7H6Khoyr50XODENsIf16K4A=;
+  b=JpQ2OlBUk69twhWJm/mW1pub8DaJT3PIX6xBVtL2GN0bMVoxbLUxKodj
+   mcQ12Z5IWXMO3f7/vRmpjZaxU0wAXxXUmCvQqK8P7Wn4GuBn9vvqhi9FG
+   IFSDfZPWqIIPEC7EqVUI2ohIt6zrxk7iOEeRKV6svrZ566a7jhFQanXos
+   OTsBB3nrQQdg2fI0AarSvKDYSDljJYjdqHLHue/Xp0FrqIA14RKXORMgY
+   kIIEPFWOYYBe8QYyPs89bcge04EBRNabyKNpp1zBJ14cxKduaPxvvjy5+
+   Q4Rca/EjxF1KSelYIAmg06bc5oDnTXgY3vDtzlS8eump1ZMQNwkHMMAXk
+   A==;
+X-CSE-ConnectionGUID: kfkFA/O/RwW85OCih4FDCA==
+X-CSE-MsgGUID: 1jSEBv6nTJOnsq7leQFxew==
+X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2403417"
+X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
+   d="scan'208";a="2403417"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 21:46:33 -0800
+X-CSE-ConnectionGUID: jT0U27Q/RUuNphOoINYBDw==
+X-CSE-MsgGUID: DuphwukhSiOxYn8rmiM80A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
+   d="scan'208";a="6729635"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by orviesa009.jf.intel.com with ESMTP; 03 Nov 2026 21:46:31 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xOTpL-00000000jpj-0uyv;
+	Wed, 04 Nov 2026 05:46:27 +0000
+Date: Wed, 4 Nov 2026 13:46:21 +0800
+From: kernel test robot <lkp@intel.com>
+To: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, coreteam@netfilter.org, phil@nwl.cc,
+	fw@strlen.de, pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: Re: [PATCH nf] netfilter: synproxy: prevent unbounded recursion in
+ transmit path
+Message-ID: <202611041332.BDDaWwCF-lkp@intel.com>
+References: <20261103125638.4667-1-fmancera@suse.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -67,58 +85,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Message-ID: <20261104033301.KRsg3OzsKltEr3dgPb4dUTeLQq3SpMvE5IikEoaYyhs@z>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261103125638.4667-1-fmancera@suse.de>
 
---string-icase is registered as a no_argument option, so getopt_long
-always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
-macro contains a mandatory-argument guard:
+Hi Fernando,
 
-	if (!optarg) {
-		__ebt_print_error("Option without (mandatory) argument");
-		return -1;
-	}
+kernel test robot noticed the following build errors:
 
-so every use of --string-icase aborts parsing with the misleading error
-"Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
-can never be set.  The option has been broken since it was added in
-commit b1cdae8 ("extensions: Add string filter to ebtables").
+[auto build test ERROR on netfilter-nf/main]
 
-Reproducer (no privileges required):
+url:    https://github.com/intel-lab-lkp/linux/commits/Fernando-Fernandez-Mancera/netfilter-synproxy-prevent-unbounded-recursion-in-transmit-path/20261103-135638
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20261103125638.4667-1-fmancera%40suse.de
+patch subject: [PATCH nf] netfilter: synproxy: prevent unbounded recursion in transmit path
+config: sh-allyesconfig (https://download.01.org/0day-ci/archive/20261104/202611041332.BDDaWwCF-lkp@intel.com/config)
+compiler: sh4-linux-gcc (GCC) 16.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261104/202611041332.BDDaWwCF-lkp@intel.com/reproduce)
 
-  $ ebtables-legacy --string-icase
-  Option without (mandatory) argument.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611041332.BDDaWwCF-lkp@intel.com/
 
-Use ebt_check_inverse() instead: it tolerates a NULL optarg and
-returns the current ebt_invert state, which the main option loop
-resets to 0 after every option, so the flag is set as intended and
-the "Unexpected '!'" diagnostic is kept.
+All errors (new ones prefixed by >>):
 
-This fix was originally carried in the Kylin Linux SRPM since 2022;
-the commit message has been rewritten to describe the actual failure
-mode observed on current master.
+>> net/netfilter/nf_synproxy_core.c:24:10: fatal error: net/netfilter/nf_recursion.h: No such file or directory
+      24 | #include <net/netfilter/nf_recursion.h>
+         |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   compilation terminated.
 
-Signed-off-by: YuPeng <yupeng@kylinos.cn>
----
-v2: Use ebt_check_inverse() instead of removing the check entirely,
-    as suggested by Florian Westphal.  No other changes.
 
- extensions/ebt_string.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+vim +24 net/netfilter/nf_synproxy_core.c
 
-diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
-index 97fbe19..cbbe103 100644
---- a/extensions/ebt_string.c
-+++ b/extensions/ebt_string.c
-@@ -174,7 +174,7 @@ static int parse(int c, char **argv, int argc, const stru=
-ct ebt_u_entry *entry,
- 		break;
- 	case STRING_ICASE:
- 		ebt_check_option2(flags, OPT_STRING_ICASE);
--		if (ebt_check_inverse2(optarg))
-+		if (ebt_check_inverse(optarg))
- 			ebt_print_error2("Unexpected `!' after --string-icase");
- 		info->u.v1.flags |=3D XT_STRING_FLAG_IGNORECASE;
- 		break;
---=20
-2.39.5
+    16	
+    17	#include <net/netfilter/nf_conntrack.h>
+    18	#include <net/netfilter/nf_conntrack_ecache.h>
+    19	#include <net/netfilter/nf_conntrack_extend.h>
+    20	#include <net/netfilter/nf_conntrack_seqadj.h>
+    21	#include <net/netfilter/nf_conntrack_synproxy.h>
+    22	#include <net/netfilter/nf_conntrack_zones.h>
+    23	#include <net/netfilter/nf_synproxy.h>
+  > 24	#include <net/netfilter/nf_recursion.h>
+    25	
 
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
