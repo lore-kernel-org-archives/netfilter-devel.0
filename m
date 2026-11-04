@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821450;
-	b=E4h4vT+ymu5tY3LUsqgW7GBlJOF6t3Xn4oZrskRIRQBLzB6ZtvonpF2pE6Ih2Xx9Go+J
-	 yL6ffbhreUYb2EFaUX/e/n5hNTGMBX7aR2foK9DNNg1WF9jlKcNo7CdGSU1dsFO03OwEf
-	 gdI366kloKvAtD3pJqka2z4L/zHkoQdV7NZf45wlGYBAyILz7Kmy+ykgAvdOifossOq8l
-	 0+/SrQP+0TakevGQJEIYzsjBtfccb821l9UdxgLOs3VdgnDF6ygiRJDiBOda7a5wVKvsw
-	 DCHQlDgSHsXBFrnCdcipeyXpwh05NPEFes1Csqa9PxW9e5bVkCjDmzptTavAP7yCQzg==
+	t=1793821480;
+	b=ZfnS9YIpIxM6ZPFSnJjQxYcm4WUvQf9r2MkjJxECn1vtw2jv6nTz4i8LYd4jglxDDTGI
+	 rFOxh9sDhqrnFjTv+hpcs0uVge2Uy+jHBPI/lxHwmUsUE4QPQsdFEIbhjLGIPzn/O2fjf
+	 1wEHIGP/lj2JWFovCHXPOekCSyjUJZUQUsNDYx89GkxO4Elk7yFUeWfQtjdn08ddYrlg/
+	 ak62LKq8Go7BW21KVPYHTXhytZA+qAmFOM58wRdPCWqMk9zmOZWmnFbHjmZQUuJHHI5bA
+	 69eFt5yCNWeGUqt4rfSNHChl3tqvz3U9785Ag37ejm/GEvHcuI2JIZ17QLekKh1OSHw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821450;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821480;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=Z72TnyR4FqZWuZXLi7RAB/58/idtKzOn4i9EyTHtGiw=;
-	b=z2eBNT4cKHnr5HwulOH/4j14EhKTES6MzeE/7AmZGxCz6Y/fqyM5PwL7hjEzAuKcborH
-	 ZdpJd/kWC+606LSAfBS6n4sED2U0W63gc6BkAJmUSU0lqXRice5xTZMuemo2o8yjz6Sjm
-	 CDo2fwkAvPYN9V099lR/+/5OJhrxjsOmXLO42kDd9xNOP3b1+kFUqPMOHngqLC/cEtotp
-	 YaHi4C+jy1OQIxUs9IbPSrJQL1jUq9kt3z26b/Bns0Y7mNkiz5CAo5W5s95TSfad/tE0D
-	 rT4c+/oHbMqNIZNoiVbNruoypvaLPIJXCQ+8c3V/5Is7xMO5/LQkrgI5Q0Oe4zHJ7lQ==
+	bh=0F908CJPgWsUmGeEXwOdb+LqVbJ68uHDJ1pDvsTQFww=;
+	b=rdIWhOA9GpTDEzkcEISkANv0VUSndDVgzNaMkM2+LPJR0f3Z8XWiujdNbUieAUUlwcmX
+	 a6AKzqAg7FRXidDk+8xjmg039S8UrmajMkzVRC+zujgHs8RNJ4oV50kk1qkwQFO4Ay9XO
+	 iCZ6qAuImML1bHceRa8P5ZZzGG7YLTXSmsqkICCiAYyIwAIQ4Ly05aty6wdDPpNUEbeYn
+	 H0wWIq//WKCm4deekU5tyoeGaw5XiA+gbuaY18ChywDSsvefu4w4IJX0HRHzL9z69JaQd
+	 ZmtcNHFBvJaHPp9glnFGakm/jKLvxfxCl3B4LACUDO46yN0CSbpraGZYtpWzuvO8vUA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aicfXnWV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nBYfqhzO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429326070329;
-	Wed,  4 Nov 2026 19:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A482607031F;
+	Wed,  4 Nov 2026 19:44:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aicfXnWV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF0511F00919;
-	Wed,  4 Nov 2026 19:43:57 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nBYfqhzO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72EC61F00A17;
+	Wed,  4 Nov 2026 19:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793821449;
-	bh=Z72TnyR4FqZWuZXLi7RAB/58/idtKzOn4i9EyTHtGiw=;
+	s=k20260515; t=1793821479;
+	bh=0F908CJPgWsUmGeEXwOdb+LqVbJ68uHDJ1pDvsTQFww=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=aicfXnWVc+2sorHSEArN9gD6s+r89vzM3QCItz87jq7xenbwZcKkxAyhEzMN4zilO
-	 XEmAW5nDi6Qpy1HAR+3dogNdprQDzauusCx/5cNW0SrbZVyC5GFUF34a5Ax3Ufz9Ir
-	 pPUXceddaTjvbGaHwgGMseQ+qlmEYJQbjS+TTvruu0qlgjbpKch86CrjWevskZ10dt
-	 CPwtCbH1BlXfDfr1nCeM9GXk83OUHSgxmRLaA86TuRr7s0NevUTTC4SfMspApoUqNj
-	 2Bq8k9a+tUVTivUfQqiyVO9j0Bzx/5RNz+dYk3t96b4Fnb5fexWFIEeXgiYZ4/X6vz
-	 2jCoIj12+zkWQ==
+	b=nBYfqhzOfWIGHsy8c53G5+e95/eOlSF+s0+PYDPiLShDcgF0zVxjVzadNTSbzeGPS
+	 Gev4jrZfOjt5GDc4cXiN0YSRT4TEvVxeJ2FuLYhPV1dedrvI3+Pu2yeGrj82/WNN7U
+	 zCQG6VqNrlF0Qr0UfEw+wC6aUxsz8RLux0n+F+FKqEtWOUz0g4EnG8ntHPfCxNd+jn
+	 UZguQOMxrmrHjsx8VQXG8JjtzywqCzawniFug93OojMezHRM7T0Hoqz+lfYQibeFF9
+	 cZni/cwUgquBfE2XXxNA/dGO3y/WvuRn97YHSCiffyy1RTxslKI+LzMpvfOv8McSjk
+	 yCxQsEs373mbw==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -100,9 +100,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
 	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 07/26] md: let procfs own the wait queue of /proc/mdstat
-Date: Wed,  4 Nov 2026 20:43:55 +0100
-Message-ID: <20261104-work-procfs-drivers-v2-7-245e54e87116@kernel.org>
+Subject: [PATCH RESEND v2 09/26] s390/cio: let procfs copy in writes
+Date: Wed,  4 Nov 2026 20:44:25 +0100
+Message-ID: <20261104-work-procfs-drivers-v2-9-245e54e87116@kernel.org>
 In-Reply-To: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
 References: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -116,111 +116,118 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3404; i=brauner@kernel.org; h=from:subject:message-id; bh=Nn5OVy8ZnyI1nSFUur3mK5MV0AP1ijE3ArueCKeFRT8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97qpelclm2eRivDzv95ei9M8+3HNPnr9QzG/qmrjCP rmm56dyRykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwEQCXzP8L+Ry03raKlfQfVPu 0IPvj5U0WoW+KZ9MOfz5Lev7yvuRzAx/BR75d/79PlNgAlP5pc8HHJqssrPnl5s3P0u6bivP2cv FBgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3388; i=brauner@kernel.org; h=from:subject:message-id; bh=lEA79OgzD1RbbuI3leV0mq7RtW4au2plI+2F9ffJvH8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97qo1Prvbv2jWnmkmH6pDufs/6rfzTKnoEu5evTnGy 2WLm6V9RykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwERk/zIybEjl+VB/KeuDnbef yim235O4L5f4ub8sDT0fcZyRo2NjBCPDPrXc7kQ1lzbL+Yvap+65J7Y7TdL2ycNNJx9pnjvSsWU KKwA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-mdstat_poll() sleeps the poller on md_event_waiters and md_exit() has
-to wake it in a loop until nobody is left on the queue, because the
-queue goes away with the module. procfs owns the queue poll() uses
-now, it outlives the module, and a poll of the removed entry reports
-EPOLLERR | EPOLLPRI, so md_new_event() wakes the pollers through
-proc_poll_notify() and the loop and md_unloading go.
-
-md_exit() removes /proc/mdstat last now. A sysfs store on an inactive
-array doesn't hold the module, so it can still reach md_new_event()
-while md_exit() runs, until destroy_workqueue() has waited for the last
-array to go, and a wake-up through a removed entry is a use after free.
-The static queue didn't mind that, the entry does.
+Implement ->proc_write_buf() for cio_ignore and cio_settle so procfs
+copies in what is written before it pins the entry. cio_ignore parses
+the list from that copy, up to the first NUL like strncpy_from_user()
+handed it to it before. Writes larger than 64k still come up short, now
+through PROC_ENTRY_SHORT_WRITES. Writes to cio_settle larger than
+PAGE_SIZE - 1 bytes fail with -EINVAL now, it never looked at what was
+written.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- drivers/md/md.c | 29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ drivers/s390/cio/blacklist.c | 33 ++++++++++-----------------------
+ drivers/s390/cio/css.c       |  4 ++--
+ 2 files changed, 12 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/md/md.c b/drivers/md/md.c
-index 64abf1743e41..7560dcf0f5c8 100644
---- a/drivers/md/md.c
-+++ b/drivers/md/md.c
-@@ -351,12 +351,12 @@ static bool check_new_feature = true;
-  *  start array, stop array, error, add device, remove device,
-  *  start build, activate spare
-  */
--static DECLARE_WAIT_QUEUE_HEAD(md_event_waiters);
-+static struct proc_dir_entry *mdstat_entry;
- static atomic_t md_event_count;
- void md_new_event(void)
- {
- 	atomic_inc(&md_event_count);
--	wake_up(&md_event_waiters);
-+	proc_poll_notify(mdstat_entry);
- }
- EXPORT_SYMBOL_GPL(md_new_event);
+diff --git a/drivers/s390/cio/blacklist.c b/drivers/s390/cio/blacklist.c
+index 4e02f78f6102..1ec7915be6b3 100644
+--- a/drivers/s390/cio/blacklist.c
++++ b/drivers/s390/cio/blacklist.c
+@@ -12,7 +12,7 @@
  
-@@ -9176,16 +9176,11 @@ static int md_seq_open(struct inode *inode, struct file *file)
- 	return 0;
+ #include <linux/hex.h>
+ #include <linux/init.h>
+-#include <linux/vmalloc.h>
++#include <linux/sizes.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/ctype.h>
+@@ -355,39 +355,24 @@ cio_ignore_proc_seq_show(struct seq_file *s, void *it)
  }
  
--static int md_unloading;
- static __poll_t mdstat_poll(struct file *filp, poll_table *wait)
+ static ssize_t
+-cio_ignore_write(struct file *file, const char __user *user_buf,
++cio_ignore_write(struct file *file, char *buf,
+ 		 size_t user_len, loff_t *offset)
  {
- 	struct seq_file *seq = filp->private_data;
- 	__poll_t mask;
+-	char *buf;
+-	ssize_t rc, ret, i;
++	ssize_t ret, i;
  
--	if (md_unloading)
--		return EPOLLIN|EPOLLRDNORM|EPOLLERR|EPOLLPRI;
--	poll_wait(filp, &md_event_waiters, wait);
--
- 	/* always allow read */
- 	mask = EPOLLIN | EPOLLRDNORM;
+ 	if (*offset)
+ 		return -EINVAL;
+-	if (user_len > 65536)
+-		user_len = 65536;
+-	buf = vzalloc(user_len + 1); /* maybe better use the stack? */
+-	if (buf == NULL)
+-		return -ENOMEM;
  
-@@ -10765,7 +10760,7 @@ static void md_geninit(void)
- {
- 	pr_debug("md: sizeof(mdp_super_t) = %d\n", (int)sizeof(mdp_super_t));
- 
--	proc_create("mdstat", S_IRUGO, NULL, &mdstat_proc_ops);
-+	mdstat_entry = proc_create("mdstat", S_IRUGO, NULL, &mdstat_proc_ops);
- }
- 
- static int __init md_init(void)
-@@ -11074,25 +11069,12 @@ void md_autostart_arrays(int part)
- static __exit void md_exit(void)
- {
- 	struct mddev *mddev;
--	int delay = 1;
- 
- 	unregister_blkdev(MD_MAJOR,"md");
- 	unregister_blkdev(mdp_major, "mdp");
- 	unregister_reboot_notifier(&md_notifier);
- 	unregister_sysctl_table(raid_table_header);
- 
--	/* We cannot unload the modules while some process is
--	 * waiting for us in select() or poll() - wake them up
--	 */
--	md_unloading = 1;
--	while (waitqueue_active(&md_event_waiters)) {
--		/* not safe to leave yet */
--		wake_up(&md_event_waiters);
--		msleep(delay);
--		delay += delay;
+-	if (strncpy_from_user (buf, user_buf, user_len) < 0) {
+-		rc = -EFAULT;
+-		goto out_free;
 -	}
--	remove_proc_entry("mdstat", NULL);
 -
- 	spin_lock(&all_mddevs_lock);
- 	list_for_each_entry(mddev, &all_mddevs, all_mddevs) {
- 		if (!mddev_get(mddev))
-@@ -11112,6 +11094,11 @@ static __exit void md_exit(void)
- 	spin_unlock(&all_mddevs_lock);
- 
- 	destroy_workqueue(md_misc_wq);
-+	/*
-+	 * Only now can nothing reach md_new_event() anymore, which wakes the
-+	 * pollers of /proc/mdstat through its entry.
-+	 */
-+	remove_proc_entry("mdstat", NULL);
- 	md_bitmap_exit();
+-	i = user_len - 1;
++	/* the parser never saw what follows a NUL */
++	i = strnlen(buf, user_len) - 1;
+ 	while ((i >= 0) && (isspace(buf[i]) || (buf[i] == 0))) {
+ 		buf[i] = '\0';
+ 		i--;
+ 	}
+ 	ret = blacklist_parse_proc_parameters(buf);
+ 	if (ret)
+-		rc = ret;
+-	else
+-		rc = user_len;
+-
+-out_free:
+-	vfree (buf);
+-	return rc;
++		return ret;
++	return user_len;
  }
  
+ static const struct seq_operations cio_ignore_proc_seq_ops = {
+@@ -398,9 +383,11 @@ static const struct seq_operations cio_ignore_proc_seq_ops = {
+ };
+ 
+ static const struct proc_ops cio_ignore_proc_ops = {
++	.proc_flags	= PROC_ENTRY_SHORT_WRITES,
+ 	.proc_seq_ops	= &cio_ignore_proc_seq_ops,
+ 	.proc_state_size = sizeof(struct ccwdev_iter),
+-	.proc_write	= cio_ignore_write,
++	.proc_write_buf	= cio_ignore_write,
++	.proc_write_size = SZ_64K,
+ };
+ 
+ static int
+diff --git a/drivers/s390/cio/css.c b/drivers/s390/cio/css.c
+index 54b8b8639694..efd3df3e90ba 100644
+--- a/drivers/s390/cio/css.c
++++ b/drivers/s390/cio/css.c
+@@ -1278,7 +1278,7 @@ static int __init channel_subsystem_init_sync(void)
+ subsys_initcall_sync(channel_subsystem_init_sync);
+ 
+ #ifdef CONFIG_PROC_FS
+-static ssize_t cio_settle_write(struct file *file, const char __user *buf,
++static ssize_t cio_settle_write(struct file *file, char *buf,
+ 				size_t count, loff_t *ppos)
+ {
+ 	int ret;
+@@ -1292,7 +1292,7 @@ static ssize_t cio_settle_write(struct file *file, const char __user *buf,
+ 
+ static const struct proc_ops cio_settle_proc_ops = {
+ 	.proc_open	= nonseekable_open,
+-	.proc_write	= cio_settle_write,
++	.proc_write_buf	= cio_settle_write,
+ };
+ 
+ static int __init cio_settle_init(void)
 
 -- 
 2.53.0
