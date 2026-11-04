@@ -1,110 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821599;
-	b=zzf+n0yQ3l+wPgiCKnPoQtRhhi16RPJqlB1Lon5fDf36NzCRMI8lWGG7DboCEmyfGMby
-	 sIJ7QA1WJO+s/Rj1Xir09qmbeg6MlvJWta2xiqnMfiVcFryO6NW0aWs//fyVTlDvPVreH
-	 bTJSlzRCo9ihkRLCajPAAz1aETL+8op0jAiPTZLrvxSLdM+Z4EPiGb7lJmrFPkFr6LDEi
-	 yu2d1lZi90RZhMCA0CM33K2hohmT9aACl1bcs3o8fw9GYefKNQ8/m28OHalR+UCG3oAL4
-	 ZisMccfV7M9ef+WIo9Mfqz5Fvl5hzgnWneD/0NRRcw6mzC/7sWN65UXZ++LSkuivM5Q==
+	t=1793821614;
+	b=1129wkc8Qlt5L6vdtuaLKZfgusp7R91hsUsQUtynE/TBUulWDjGxOcQ8tyVffm16ntOC
+	 f4btaoSApYYAzjT3RjewZGVuDtPHRspvB7G0X8IX26kKuy62PAnI0iKNgGcIXS2QpcaBl
+	 50tAb0ocr/Pg34Uj4FOjGefJld1qZlOTT8v8H28JIZYzYlIooKHj/8U0z1AL+XU8t3g2o
+	 rx70djLqGsJQpBv0qyi7ltgJ8hSYXkYG4x11u+gHGQs2TnCNy1RcgDYRK1JHctSYqaUHR
+	 oeS8N3gNm0LSVc5T030xAlt58LPegITzDZFKSVowkdjbVggepLa6hNxcqZzBYfPUu6g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821599;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=/po/gL747wOLzB9LODGeMVhVpt9eaPUzZYdg1qfmMOQ=;
-	b=JJYV2t3gjaqXwxk+QLeaAp07RwUQAKSJH1J4eLJ6EYQ/N/y1mYGDjtHXZeuyB9U4AVco
-	 3jkhHERzELwwNtHbSR8r/0iFUWpd9uzoFgC7f+rrhiTm2JdqWr83YZbFqMqK5HxhCiEAX
-	 plMa4EC5I2JdH+4+wJBeBpbWKsoadnzZFYkV1oMMueuuJjq0h6FYVKHDgpzs83L3Rpm8V
-	 vqx+7XDN6fyT0x1HVwJxhANeLgIkE/OY87DqlvJV7BcU1ZRWRizjeB3t/sWC8SbTWHwpM
-	 +faF6wa7MCvOyBbeavQuoGhh1n6DAM91PYLlGFrxclzOs0EMN6ucd6VLwP5mczMJSqA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821614;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
+	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
+	 Content-Type;
+	bh=T9zmPINoXhTtPoNWi8WXSCFP2UdwDfmdo8eVYok8V3w=;
+	b=CqF6e5N7D6O/NigagwxNIVxh0Ifkgxph+bwmEB3YenyhXMfE39HWWuEgkHKKx8b/yK8V
+	 KuJANEI+1JmlK38eYNRZjMFsrA6YyUe5/T6NjRPMVZVHgYrlRbNBD7Jutc0XeuOGQQ3ei
+	 79j4u901gHYgDRsNLqUzkx6yPvSOjDiGP1BptSPCyvO2ncPwVF/0DQ5SAhVXbJRvt6vVa
+	 i5M1hTUIluqYK/2TrqjIp2zKwIZiCco5n0Rms8OvrS1AqaGntlzSZ5yOrDlS5f8vE4Fk6
+	 4jjk2bPHQqQGPto7tvIwb1twi68V0jqheLEOVZ4vkz9im1Xl8It1JrkarPe0W9kflQw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vu3QmSG8;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Op5Yty+e;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E988460C99A8;
-	Wed,  4 Nov 2026 19:46:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D40608C9A1;
+	Wed,  4 Nov 2026 19:46:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D9D40608C9A1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vu3QmSG8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EED91F00A02;
-	Wed,  4 Nov 2026 19:46:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793821598;
-	bh=/po/gL747wOLzB9LODGeMVhVpt9eaPUzZYdg1qfmMOQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Vu3QmSG8t+JAK9mZsZDej94V+u1yCAbvT5TbhGyZYKF4VG+tdMVlWRbHgcrC/9smt
-	 e1lmGvByLoZHLn4MRCoRqzNGL3oHKyd+755yRoujbXsxDrMJ8wTF3nq37hG84ihvIS
-	 pswAt86CUFS4xrridMDShCJi27N9VmQKynKDla/s/sQPGTk6EmYDIuo2oOz3v52WH/
-	 UsgxfKUYcEFsCIlwWXpy4/fUmvqdc7qYDBOiLL9QvZsdr5zl6DNvaVl8bOQvx4ed76
-	 V7L2KsiP6wcIAqtM7ubPlqpQeYHT2fj69s3bJLJI+BHdJxMvrKXJaZ5VqnaTDNIXRQ
-	 MdTfX8VBMSjNg==
-From: Christian Brauner <brauner@kernel.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Jann Horn <jannh@google.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Chris Mason <mason@kernel.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	NeilBrown <neil@brown.name>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Christoph Hellwig <hch@lst.de>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Joel Granados <joel.granados@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Jan Kara <jack@suse.com>,
-	linux-kernel@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linux-wireless@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	netdev@vger.kernel.org,
-	ntfs3@lists.linux.dev,
-	platform-driver-x86@vger.kernel.org,
-	coreteam@netfilter.org,
-	kexec@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	ibm-acpi-devel@lists.sourceforge.net,
-	jfs-discussion@lists.sourceforge.net,
-	linux-alpha@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-cifs@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	linux-hwmon@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-sh@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	samba-technical@lists.samba.org,
-	sparclinux@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-doc@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	linux-atm-general@lists.sourceforge.net,
-	Takashi Iwai <tiwai@suse.de>,
-	linux-input@vger.kernel.org,
-	linux-raid@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-modules@vger.kernel.org,
-	linux-debuggers@vger.kernel.org,
-	"Christian Brauner (Amutable)" <brauner@kernel.org>,
-	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 17/26] fbdev: viafb: let procfs copy in writes
-Date: Wed,  4 Nov 2026 20:46:24 +0100
-Message-ID: <20261104-work-procfs-drivers-v2-17-245e54e87116@kernel.org>
-In-Reply-To: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
-References: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Op5Yty+e
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 27FFE213F4;
+	Wed, 04 Nov 2026 21:46:51 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=T9zmPINoXhTtPoNWi8WXSCFP2UdwDfmdo8eVYok8V3w=; b=Op5Yty+ergpt
+	eF7P1scnzmeSjKbwPhgmkShYXZp4VzK+dD34yVs8921Tac/Ss3xlrFL3RmmsoYjy
+	MckGq1ZNAGoQthbrQDx/oh/P5+xxWMek5VC142REzsbkPGmotUpBDuizRolaHH/u
+	9eWSp9izt1acLt0sonW7cNX/bkCPvnfO5SYmIdySIgbFO3o/ABffVd4usCoBhn+T
+	+Wr43zL9rr6Cc1LSRiVgCywvv/58kg+t4XulaFkXnh3Bp4fIjH9+btIDWdy8ns3j
+	VckrO+oWSxV4PlHRTIvIdokiI9xl0GvTuVQbuP6zI5mj0WrpQDY9CtDYMzjiRzpn
+	e+RFvQ6Xt9OJ92aMVjluLM8l3YZEYK1jSlt0YtFkvv9nTZ/zcSRFQlYms81//KNB
+	G/n4gKaZiUffNVTid9m5AusXYz44tB9F2n2JRVZCEmrN8JgyVlS9+kxfSJXHvNRF
+	YWnDwW5zlrbFBbeTQ5BMdizsByn6DVmBDuUWsscD1q+JlIa7O6kxLSYZhzemY3Hr
+	v0HtJqTysuYEc8kOdQ2mc3UWnd+tfvgiCDftlQ3g4tOZAb8sC+de1XaC7d5RcsCT
+	d2IWUU+pOo0miBSSharwLw82QrXH8/VD60FS8c2NH7142EYIjmyAMJaK97d0uVMa
+	jzccWEuxLk5v76dUyyhC0mjhRRdGPEc=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 04 Nov 2026 21:46:51 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id DA91661CDA;
+	Wed,  4 Nov 2026 21:46:49 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A4JkkEO143152;
+	Wed, 4 Nov 2026 21:46:48 +0200
+Date: Wed, 4 Nov 2026 21:46:46 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Axel Mierczuk <axel.mierczuk@1password.com>
+Subject: Re: [PATCH nf] ipvs: do not create conns from packets with port 0
+In-Reply-To: <20261003095001.20587-1-ja@ssi.bg>
+Message-ID: <95b23fea-9e6c-158d-c989-6f5674e343ee@ssi.bg>
+References: <20261003095001.20587-1-ja@ssi.bg>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -114,214 +79,123 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7373; i=brauner@kernel.org; h=from:subject:message-id; bh=IvpcER7zxYNfDUB5gfp3pz3pT+0GSZCEEAhc7Zgpx0U=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97mp/PeXhAuObU3aJOMp8Y7hT+qDSb6aubgz36f4Fn O4bL86x7ihlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIHzZGhm+b+RVrA02YJQrk FxYoR6zRVdu/O6JP8Bv3q6vmsWf+PWP4n7Xp98KNVmu2PuyuZD9zy+jdAqW5+zumO7b3fjne+G5 uBCsA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-Implement ->proc_write_buf() for the files in /proc/viafb so procfs
-copies in what is written before it pins the entry, and parse what was
-written from that copy. Writes larger than PAGE_SIZE - 1 bytes fail with
--EINVAL now, the output device files refused anything over 63 bytes
-already. kstrtou8_from_user() looked at the first 10 bytes of what was
-written to dfph and dfpl, now the whole write is parsed.
 
-Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
----
- drivers/video/fbdev/via/viafbdev.c | 46 +++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 25 deletions(-)
+	Hello,
 
-diff --git a/drivers/video/fbdev/via/viafbdev.c b/drivers/video/fbdev/via/viafbdev.c
-index 4b617e80a77c..94b303006915 100644
---- a/drivers/video/fbdev/via/viafbdev.c
-+++ b/drivers/video/fbdev/via/viafbdev.c
-@@ -1121,7 +1121,7 @@ static int viafb_dvp0_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_dvp0_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	char buf[20], *value, *pbuf;
- 	u8 reg_val = 0;
-@@ -1129,8 +1129,7 @@ static ssize_t viafb_dvp0_proc_write(struct file *file,
- 	if (count < 1)
- 		return -EINVAL;
- 	length = count > 20 ? 20 : count;
--	if (copy_from_user(&buf[0], buffer, length))
--		return -EFAULT;
-+	memcpy(&buf[0], buffer, length);
- 	buf[length - 1] = '\0';	/*Ensure end string */
- 	pbuf = &buf[0];
- 	for (i = 0; i < 3; i++) {
-@@ -1169,7 +1168,7 @@ static ssize_t viafb_dvp0_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_dvp0_proc_ops = {
- 	.proc_show	= viafb_dvp0_proc_show,
--	.proc_write	= viafb_dvp0_proc_write,
-+	.proc_write_buf	= viafb_dvp0_proc_write,
- };
- 
- static int viafb_dvp1_proc_show(struct seq_file *m, void *v)
-@@ -1183,7 +1182,7 @@ static int viafb_dvp1_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_dvp1_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	char buf[20], *value, *pbuf;
- 	u8 reg_val = 0;
-@@ -1191,8 +1190,7 @@ static ssize_t viafb_dvp1_proc_write(struct file *file,
- 	if (count < 1)
- 		return -EINVAL;
- 	length = count > 20 ? 20 : count;
--	if (copy_from_user(&buf[0], buffer, length))
--		return -EFAULT;
-+	memcpy(&buf[0], buffer, length);
- 	buf[length - 1] = '\0';	/*Ensure end string */
- 	pbuf = &buf[0];
- 	for (i = 0; i < 3; i++) {
-@@ -1225,7 +1223,7 @@ static ssize_t viafb_dvp1_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_dvp1_proc_ops = {
- 	.proc_show	= viafb_dvp1_proc_show,
--	.proc_write	= viafb_dvp1_proc_write,
-+	.proc_write_buf	= viafb_dvp1_proc_write,
- };
- 
- static int viafb_dfph_proc_show(struct seq_file *m, void *v)
-@@ -1237,11 +1235,11 @@ static int viafb_dfph_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_dfph_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	int err;
- 	u8 reg_val;
--	err = kstrtou8_from_user(buffer, count, 0, &reg_val);
-+	err = kstrtou8(buffer, 0, &reg_val);
- 	if (err)
- 		return err;
- 
-@@ -1251,7 +1249,7 @@ static ssize_t viafb_dfph_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_dfph_proc_ops = {
- 	.proc_show	= viafb_dfph_proc_show,
--	.proc_write	= viafb_dfph_proc_write,
-+	.proc_write_buf	= viafb_dfph_proc_write,
- };
- 
- static int viafb_dfpl_proc_show(struct seq_file *m, void *v)
-@@ -1263,11 +1261,11 @@ static int viafb_dfpl_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_dfpl_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	int err;
- 	u8 reg_val;
--	err = kstrtou8_from_user(buffer, count, 0, &reg_val);
-+	err = kstrtou8(buffer, 0, &reg_val);
- 	if (err)
- 		return err;
- 
-@@ -1277,7 +1275,7 @@ static ssize_t viafb_dfpl_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_dfpl_proc_ops = {
- 	.proc_show	= viafb_dfpl_proc_show,
--	.proc_write	= viafb_dfpl_proc_write,
-+	.proc_write_buf	= viafb_dfpl_proc_write,
- };
- 
- static int viafb_vt1636_proc_show(struct seq_file *m, void *v)
-@@ -1313,7 +1311,7 @@ static int viafb_vt1636_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_vt1636_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	char buf[30], *value, *pbuf;
- 	struct IODATA reg_val;
-@@ -1321,8 +1319,7 @@ static ssize_t viafb_vt1636_proc_write(struct file *file,
- 	if (count < 1)
- 		return -EINVAL;
- 	length = count > 30 ? 30 : count;
--	if (copy_from_user(&buf[0], buffer, length))
--		return -EFAULT;
-+	memcpy(&buf[0], buffer, length);
- 	buf[length - 1] = '\0';	/*Ensure end string */
- 	pbuf = &buf[0];
- 	switch (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
-@@ -1404,7 +1401,7 @@ static ssize_t viafb_vt1636_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_vt1636_proc_ops = {
- 	.proc_show	= viafb_vt1636_proc_show,
--	.proc_write	= viafb_vt1636_proc_write,
-+	.proc_write_buf	= viafb_vt1636_proc_write,
- };
- 
- #endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
-@@ -1416,7 +1413,7 @@ static int __maybe_unused viafb_sup_odev_proc_show(struct seq_file *m, void *v)
- 	return 0;
- }
- 
--static ssize_t odev_update(const char __user *buffer, size_t count, u32 *odev)
-+static ssize_t odev_update(const char *buffer, size_t count, u32 *odev)
- {
- 	char buf[64], *ptr = buf;
- 	u32 devices;
-@@ -1424,8 +1421,7 @@ static ssize_t odev_update(const char __user *buffer, size_t count, u32 *odev)
- 
- 	if (count < 1 || count > 63)
- 		return -EINVAL;
--	if (copy_from_user(&buf[0], buffer, count))
--		return -EFAULT;
-+	memcpy(&buf[0], buffer, count);
- 	buf[count] = '\0';
- 	add = buf[0] == '+';
- 	sub = buf[0] == '-';
-@@ -1452,7 +1448,7 @@ static int viafb_iga1_odev_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_iga1_odev_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	u32 dev_on, dev_off, dev_old, dev_new;
- 	ssize_t res;
-@@ -1473,7 +1469,7 @@ static ssize_t viafb_iga1_odev_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_iga1_odev_proc_ops = {
- 	.proc_show	= viafb_iga1_odev_proc_show,
--	.proc_write	= viafb_iga1_odev_proc_write,
-+	.proc_write_buf	= viafb_iga1_odev_proc_write,
- };
- 
- static int viafb_iga2_odev_proc_show(struct seq_file *m, void *v)
-@@ -1483,7 +1479,7 @@ static int viafb_iga2_odev_proc_show(struct seq_file *m, void *v)
- }
- 
- static ssize_t viafb_iga2_odev_proc_write(struct file *file,
--	const char __user *buffer, size_t count, loff_t *pos)
-+	char *buffer, size_t count, loff_t *pos)
- {
- 	u32 dev_on, dev_off, dev_old, dev_new;
- 	ssize_t res;
-@@ -1504,7 +1500,7 @@ static ssize_t viafb_iga2_odev_proc_write(struct file *file,
- 
- static const struct proc_ops viafb_iga2_odev_proc_ops = {
- 	.proc_show	= viafb_iga2_odev_proc_show,
--	.proc_write	= viafb_iga2_odev_proc_write,
-+	.proc_write_buf	= viafb_iga2_odev_proc_write,
- };
- 
- #define IS_VT1636(lvds_chip)	((lvds_chip).lvds_chip_name == VT1636_LVDS)
+On Sat, 3 Oct 2026, Julian Anastasov wrote:
 
--- 
-2.53.0
+> We should disallow normal connections with cport 0 to be
+> created from packets by the scheduler (from clients) or
+> by ip_vs_new_conn_out (from real servers) because later
+> such traffic can not hit the connection due to the
+> NO_CPORT requirement. As result, it can lead to duplicate
+> connection for every packet. Do the same for vport 0.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+
+	Will send new version that drops the packets with port 0, 
+otherwise the connections can succeed with the local server.
+
+pw-bot: changes-requested
+
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c | 5 +++++
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c  | 5 +++++
+>  net/netfilter/ipvs/ip_vs_proto_udp.c  | 4 ++++
+>  4 files changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 397d5392ebed..8cdcab7d6edf 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1306,6 +1306,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
+>   *    In fwmark-VS actual vaddr and vport are unknown to IPVS
+>   * 2) Real Server and Virtual Service were NOT configured without port:
+>   *    This is to allow match of different VS to the same RS ip-addr
+> + * 3) Client port is not 0
+>   */
+>  struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+>  				      struct ip_vs_dest *dest,
+> @@ -1329,7 +1330,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+>  	/* check pre-requisites are satisfied */
+>  	if (svc->fwmark)
+>  		return NULL;
+> -	if (!vport || !dport)
+> +	if (!vport || !dport || !cport)
+>  		return NULL;
+>  
+>  	/* for persistent service first create connection template */
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> index fb8af6b15a39..83d1443ebe01 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> @@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
+>  						 sizeof(_schunkh), &_schunkh);
+>  			if (sch) {
+> +				/* Accept packet without scheduling? */
+>  				if (sch->type == SCTP_CID_ABORT ||
+>  				    !(sysctl_sloppy_sctp(ipvs) ||
+>  				      sch->type == SCTP_CID_INIT))
+> @@ -47,6 +48,10 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  		return 0;
+>  	}
+>  
+> +	/* Do not create connection for port 0, skip the packet */
+> +	if (!ports[0] || !ports[1])
+> +		return 1;
+> +
+>  	if (likely(!ip_vs_iph_inverse(iph)))
+>  		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
+>  					 &iph->daddr, ports[1]);
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> index fec0e8b47b71..2e55b62445c6 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> @@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  	if (likely(!ip_vs_iph_icmp(iph))) {
+>  		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
+>  		if (th) {
+> +			/* Accept packet without scheduling? */
+>  			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
+>  				return 1;
+>  			ports = &th->source;
+> @@ -62,6 +63,10 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  		return 0;
+>  	}
+>  
+> +	/* Do not create connection for port 0, skip the packet */
+> +	if (!ports[0] || !ports[1])
+> +		return 1;
+> +
+>  	/* No !th->ack check to allow scheduling on SYN+ACK for Active FTP */
+>  
+>  	if (likely(!ip_vs_iph_inverse(iph)))
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+> index f32785682402..92c0b76c1a02 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_udp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+> @@ -52,6 +52,10 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  		return 0;
+>  	}
+>  
+> +	/* Do not create connection for port 0, skip the packet */
+> +	if (!ports[0] || !ports[1])
+> +		return 1;
+> +
+>  	if (likely(!ip_vs_iph_inverse(iph)))
+>  		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
+>  					 &iph->daddr, ports[1]);
+> -- 
+> 2.55.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
