@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793802566;
-	b=od66h8V5IxJcXC4Psbwc7Il9AXDdExQr20SUVPeC3rG8BjQdumNPcBPQgmwKfCHHFG1K
-	 C3Vsj3SS60pezy9CdhLrLdiu8Usb8I9kcQAk9qkXCwirpLewnJave04Av//hCje+x4Hlg
-	 8LiPGQHDgpGjLjDSgSW90hMGY8T1d75IzOLe1rIcnr10aeZg5RaqA3ek/4DnMGIOBKpni
-	 4dez3IhBvDiMtkL7QbinObt2e+x97LZuGEQ5ZahY6wXOLbR3QB1e84CUWhGm169JlimXh
-	 gEaasMZ5FYfYSD7F8PGICTjGWjhKV7PWx2LKV3TYWR4cMuAFuDCJcldoLHWvrVZ0l0g==
+	t=1793802567;
+	b=1akcyFNC31iCruTVTHd5/WA9NKtn/j+ZxW47Lv3u+3rMqoZgI1WsJypujtG2Fnrp/Q7z
+	 AJZ5M+0p/g+t2y9Gz4Q4zgY6DmT1Eii7CdtrzbMt7trSQXTtfCQvnFDVtEKUUBAy3jFyK
+	 kDBiRIUmmWPOA2oUFm8xZhMJF9DKd8sAIXl/ftcJ+r+3kirUd+rbpAANG3ZcajDqWQP6J
+	 2Chx8DfqVn2HhEa0o31jvtTak5HEfZbvBrPfBsDlC7qX78rE5V1Jbg/7MOdALyJvqbflf
+	 AId7xPj91Sv/BbZ5PGaLfPjrM8uzHDpvwtsalSLnXD+/l/f884ocuXCQnLEGZAonyjw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793802566;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793802567;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=z3YCQFJFWGrmSKahPQO8CiOfaeEGUDYud9eigNpfAnY=;
-	b=rCCj2YuKhNF7/7eWbKFz8qxQ+yoXn7ZtSIij89tbiYNt/uJRSu5iWRUGVJp0whZsZDrs
-	 RWKfxLoQtCMonqNF1u8nnhFlG3lL3P+05KCQKVr42vGZ0pPIC57T8ve/kKDa2FKoDHtAq
-	 oZCILmqMG+upBes3A28+N7O6jGjUq8ns2jXGK6XWHRDgKbBA3hV9GVHTlkrZlkeoq+bHM
-	 GwgsOhjOgA8E0nuvpINEqOC/B/Ea3tocrvgC38btlXsdqzF3UyVrSE6wtgK2xZk9AKshQ
-	 sXx+Us38QJxSfyJmGWypzMJj4Vs0o9UC9DedpJHFMNyBTk++5AJ+VGuX+LnR4xb11Mg==
+	bh=Xz3sb8BWuunlpYCoTGvQBeihdIazj1yMmpL1EBO9/qs=;
+	b=4DJ3vRsAbN2DaDmrsWJLn+LmDAlbK3E95Mcp9TdSbfcspdeSg+LZ3qWyAa1eaa1KTMQd
+	 6XMkz2VENTh0S2JeYrqseaOyozm/YO5q1v9G+MCf5GcVHECl9JWPE9YCdROMaBJPPMeph
+	 RniEmJ2/lsCXxYRe3GBlBh6E5sH2ULRGo7haHJourXlUyOYxZxMMxjvnZY4w8vm0ugoh5
+	 Fab/OHG7sgime9t6dwVApsFVmI0NPDIMqlnsVAKJ6VisQx+eWVDh7jvOnxWufnphCQp+l
+	 tO//NR6bS9QgcDk8NHs9Rq0p5fA+kz4keNCTSo34Lvf7DKb+CVx7m/JFfuq4ZDs/7gA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wz8axLqu;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gRS1rRHN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E97DE606A32E;
-	Wed,  4 Nov 2026 14:29:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 105AC606A330;
+	Wed,  4 Nov 2026 14:29:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wz8axLqu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CF761F00A02;
-	Wed,  4 Nov 2026 14:29:25 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gRS1rRHN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6266B1F000C1;
+	Wed,  4 Nov 2026 14:29:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793802565;
-	bh=z3YCQFJFWGrmSKahPQO8CiOfaeEGUDYud9eigNpfAnY=;
+	s=k20260515; t=1793802566;
+	bh=Xz3sb8BWuunlpYCoTGvQBeihdIazj1yMmpL1EBO9/qs=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Wz8axLquisUvBrqO/qlAphPlBIBt3lk4/ZmPWu2ObWlP4XZpTrFMYMEbQCcYmgsU3
-	 jy/yEir9gy2CaXgav/JLAkKtVqnOIILTfTy9Rx5Lfbkw+cW6VEAqVbR3dHvT2w2yPQ
-	 ffC/5j6SOsBAREq0fI2fkweSzAd2pw2gYijEYWNaBDFvUP0g1Yl3UfPkQDuuCZXU1j
-	 MIFPX3tGYjVMaHjqxDTymhh07p6kWQr+GeG3vSiRoYF0ciV69rwZkTcheg4QZYuBup
-	 1GphqF2W1A9vZDRXQMoMFlt/lBBew4anBvydol6cQ59ysZC4b31SYBnw0NKVHa5pge
-	 DY6LkDaYozvUw==
-Subject: Re: [PATCH net 06/15] netfilter: nf_conntrack: limit expectation
- master chain depth
+	b=gRS1rRHNHRSJsts9JvGgJWF3hWpHvNoZuaISWb7KKCRXoc3M+ntSHJBgiKkAtdttR
+	 y4wbhvzvQM8qTcWSI6ugqeLKZoS0OCIuFRIK/aHS+MZBA0fsnruwQN/CG6X+lS8ZRy
+	 ZCHY1lXMRec+WCeL1uT/mi4d+Aejz8YCSDiqxf8GWO9JuEnUDXZQyAMrkKV6pXtIoC
+	 lyxFNqAbUlEzkciJtQR08COMSJlD0r8ExWZley6pOq37uAOEMhbd9SWNDM0qenb2HX
+	 +B2Ce1NGd65XXbKOmAXclPICYTsLYKMDyuA+ieGzZfsLPCZIXRbMToGPf3o2S2sFfh
+	 uI6hEYbJWdauQ==
+Subject: Re: [PATCH net 07/15] netfilter: nf_dup: preserve guard across
+ NFQUEUE reinjection
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Wed, 04 Nov 2026 14:29:24 +0000
-Message-ID: <179380256479.488856.1820572025839621863@kernel.org>
-In-Reply-To: <20261103140308.591690-8-pablo@netfilter.org>
-References: <20261103140308.591690-8-pablo@netfilter.org>
-X-sashiko-severity: High
+Date: Wed, 04 Nov 2026 14:29:25 +0000
+Message-ID: <179380256596.488856.13512803385415062400@kernel.org>
+In-Reply-To: <20261103140308.591690-9-pablo@netfilter.org>
+References: <20261103140308.591690-9-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,175 +64,131 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 2
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] The new global limit NF_CT_MAX_EXPECT_CHAIN_LEN = 2, enforced by
-  nf_ct_master_acceptable() inside nf_ct_expect_alloc(), is lower than…
-- [Low] The commit message says only that the patch 'prevents unbounded
-  ct->master->master->... chains'.
-- [Low] The commit message describes ctnetlink_find_get_master() as
-  making 'ctnetlink create paths return -EMLINK instead of falling…
+- [Low] The commit message for "netfilter: nf_dup: preserve guard across
+  NFQUEUE reinjection" leaves out a behaviour change.
+- [Low] The patch has Cc: stable@vger.kernel.org and Fixes: cd58bcd9787e
+  (2010, xt_TEE), but it reads and writes current->in_nf_duplicate.
 
 --
 
-netfilter: nf_conntrack: limit expectation master chain depth
+netfilter: nf_dup: preserve guard across NFQUEUE reinjection
 
-This commit adds nf_ct_master_acceptable(), which walks the ct->master
-chain. It is called from nf_ct_expect_alloc() so that no expectation can
-be created once the chain reaches NF_CT_MAX_EXPECT_CHAIN_LEN (2). The
-commit also adds ctnetlink_find_get_master(), so the ctnetlink create
-paths reject such masters with -EMLINK.
+This patch saves current->in_nf_duplicate in struct nf_queue_entry when
+a packet is queued. nf_reinject() then restores it while hook traversal
+resumes after a verdict, and puts back the verdict task's previous value
+on exit. BH is now disabled for the whole of nf_reinject().
 
-> Also add ctnetlink_find_get_master and use it so that ctnetlink create
-> paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
-> and returning a misleading -ENOMEM.
+> Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
+> Cc: stable@vger.kernel.org
 
 [Severity: Low]
-Is this description accurate for ctnetlink_create_conntrack()? That path
-never reaches nf_ct_expect_alloc(). For CTA_TUPLE_MASTER it assigns the
-master directly:
 
-net/netfilter/nf_conntrack_netlink.c:ctnetlink_create_conntrack() {
-    ...
-		__set_bit(IPS_EXPECTED_BIT, &ct->status);
-		ct->master = master_ct;
-    ...
-}
+Will this apply to the stable trees that this Fixes tag covers?
 
-So on that path, the check in ctnetlink_find_get_master() is the only
-depth enforcement. It does more than fix an errno.
+__nf_queue() and nf_reinject() read and write current->in_nf_duplicate.
+That task_struct bit was only added by:
 
-Could the commit message say this, so the hunk isn't read as cosmetic?
+a1f1acb9c5db ("netfilter: nf_dup{4, 6}: Move duplication check to task_struct")
 
-The misleading -ENOMEM also remains for the other nf_ct_expect_alloc()
-callers, because a NULL return now means either OOM or depth rejection:
+Older stable trees covered by the 2010 Fixes tag, such as 6.12, 6.6, 6.1,
+5.15 and 5.10, still use the per-CPU nf_skb_duplicated guard. That flag
+is also cleared after ip_local_out() returns, so the same bug seems to
+exist there. This patch won't build against those trees, though.
 
-- ctnetlink_alloc_expect() still maps NULL to ERR_PTR(-ENOMEM). It is
-  also reached from ctnetlink_glue_attach_expect() (nfqueue NFQA_EXP),
-  which has no -EMLINK pre-check. nfqnl_ct_parse() ignores that return
-  value, though.
-- The ftp, irc, sane, tftp, amanda and sip helpers log "cannot alloc
-  expectation" and return NF_DROP.
-- nft_ct_expect_obj_eval() returns NF_DROP.
+Could a dependency note or backport hint be added? That would make it
+clear those trees need a version that saves and restores the per-CPU
+flag instead.
 
-> This prevents unbounded ct->master->master->... chains.
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index 90d887546f7db..a8aa7ad832c3f 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
 
-[Severity: Low]
-Should the commit message say what an unbounded chain leads to?
-nf_ct_destroy() releases the master before it frees the ct, so the
-release is not a tail call:
+[ ... ]
 
-net/netfilter/nf_conntrack_core.c:nf_ct_destroy() {
-    ...
-	if (ct->master)
-		nf_ct_put(ct->master);
-
-	nf_conntrack_free(ct);
-}
-
-Suppose the masters have already left the hash table and each child
-holds the last reference to its master. Freeing the leaf then recurses
-nf_ct_put()->nf_ct_destroy()->nf_ct_put()... once per level.
-
-Before this patch, only nf_conntrack_max bounded the depth. There are
-two ways to build a long chain:
-
-- ctnetlink CTA_TUPLE_MASTER, which needs CAP_NET_ADMIN (available
-  inside a user namespace).
-- Q.931 call forwarding from the network. expect_callforwarding() has
-  no loop guard, unlike process_gcf().
-
-This looks like a fix for kernel stack exhaustion, and it has a
-Reported-by. Should it also carry a Fixes: tag and Cc: stable? The other
-netfilter fixes in this batch carry Fixes: tags. Backporters would also
-want to know about the H.323 behaviour change described below.
-
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> index 335b8c43694f8..617178fd4d8bc 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
+> @@ -365,21 +366,30 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+>  	const struct nf_hook_entry *hook_entry;
+>  	const struct nf_hook_entries *hooks;
+>  	struct sk_buff *skb = entry->skb;
+> +	bool old_in_nf_duplicate;
+>  	const struct net *net;
+>  	unsigned int i;
+>  	int err;
+>  	u8 pf;
 >  
->  #define NF_CT_HELPER_NAME_LEN	16
->  
-> +#define NF_CT_MAX_EXPECT_CHAIN_LEN	2
+> +	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
+> +			    !entry->in_nf_duplicate,
+> +			    "%s called with unexpected duplication guard",
+> +			    __func__);
+> +	local_bh_disable();
+> +	old_in_nf_duplicate = current->in_nf_duplicate;
 > +
->  /* Must be kept in sync with the classes defined by helpers */
->  #define NF_CT_MAX_EXPECT_CLASSES	4
+
+[ ... ]
+
+> @@ -402,9 +412,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+>  	switch (verdict & NF_VERDICT_MASK) {
+>  	case NF_ACCEPT:
+>  	case NF_STOP:
+> -		local_bh_disable();
+>  		entry->state.okfn(entry->state.net, entry->state.sk, skb);
+> -		local_bh_enable();
+>  		break;
+
+[ ... ]
+
+> @@ -418,6 +426,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+>  	}
 >  
-> @@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
->  		kfree_rcu(helper, rcu);
+>  	nf_queue_entry_free(entry);
+> +out:
+> +	current->in_nf_duplicate = old_in_nf_duplicate;
+> +	local_bh_enable();
 >  }
->  
-> +static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
-> +{
-> +	unsigned int depth = 0;
-> +
-> +	while (m->master) {
-> +		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
-> +			return false;
-> +		m = m->master;
-> +	}
-> +
-> +	return true;
-> +}
 
-[Severity: High]
-Is a limit of 2 enough for the in-tree H.323 helper? With this check, a
-ct that has a grandmaster can no longer create expectations. Normal
-gatekeeper operation builds a deeper chain than that:
+[Severity: Low]
 
-RAS ct
-  expect_q931() / process_acf() / process_lcf()  (assign_helper = q931)
-Q.931 ct (master = RAS, set by init_conntrack())
-  expect_h245()  (assign_helper = h245)
-H.245 ct (master = Q.931, grandmaster = RAS)
+This isn't a bug, but the commit message doesn't mention that the
+BH-disabled region in nf_reinject() is now much wider.
 
-Now suppose the H.245 ct sees an OpenLogicalChannel:
+Before this patch, local_bh_disable() and local_bh_enable() only wrapped
+entry->state.okfn() in the NF_ACCEPT and NF_STOP case. Now every
+reinjected NFQUEUE packet runs with BH disabled, duplicated or not. That
+covers the NF_REPEAT hookfn re-run, nf_reroute(), nf_iterate() and the
+nf_queue() re-queue path.
 
-h245_help()
-  process_h245()
-    process_olc()
-      process_h245_channel()
-        expect_rtp_rtcp() / expect_t120()
-          nf_ct_expect_alloc(H.245 ct)
-            nf_ct_master_acceptable() -> false
+The change looks needed, because a softirq running on the current task
+must not see the guard while it is set. Could the commit message say so
+and explain why?
 
-expect_rtp_rtcp() then fails:
+The message also only says that the guard is cleared:
 
-	if ((rtp_exp = nf_ct_expect_alloc(ct)) == NULL)
-		return -1;
+  "The output call then returns and clears the guard before a later
+  verdict resumes hook traversal."
 
-and h245_help() drops the packet:
+It doesn't describe what users see. nf_dup_ipv4() clears the guard
+unconditionally after the output call, and nf_dup_ipv6() does the same:
 
-      drop:
-	spin_unlock_bh(&nf_h323_lock);
-	nf_ct_helper_log(skb, ct, "cannot process H.245 message");
-	return NF_DROP;
+net/ipv4/netfilter/nf_dup_ipv4.c:nf_dup_ipv4() {
+    ...
+	if (nf_dup_ipv4_route(net, skb, gw, oif)) {
+		current->in_nf_duplicate = true;
+		ip_local_out(net, skb->sk, skb);
+		current->in_nf_duplicate = false;
+    ...
+}
 
-Wouldn't this drop the H.245 OLC packets of gatekeeper-admitted calls?
-RTP, RTCP and T.120 would then never get expectations.
+Say the duplicate is queued in LOCAL_OUT or POSTROUTING and reinjected
+later. A TEE or nft dup rule further along then duplicates it again. That
+new copy can be queued again, so each verdict makes another copy.
 
-The GCF case fails one level earlier. In process_gcf(), a discovery RAS
-ct expects a registration RAS ct. The helper already bounds this
-recursion itself ("Avoid RAS expectation loops").
-
-If the registration RAS then expects Q.931, that Q.931 ct already has
-two ancestors. Its expect_h245() and fastStart process_olc() calls fail,
-and q931_help() returns NF_DROP with "cannot process Q.931 message".
-
-Does the bound need to be at least 3, or 4 for the GCF plus H.245 plus
-RTP case? Or could the limit apply only to the self-recursive cases,
-such as Q.931 to Q.931 call forwarding via expect_callforwarding()?
+Could the changelog describe this behaviour?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
