@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821248;
-	b=wjTYA/BFerLikYV2AqZatlkDESU/8Ga+7SW2wzDNUu+5MPNSfwiNpf0dcssJoceYjX7Z
-	 X/njJX+8UlqB45//cwqVRhcB+z07HM/Gn7Z/51J5kRsSk9h0JNDO4oYq/Ku/kzkt3C5Lu
-	 Rc7esj3Xut/tIoX494l7Ky/w83K07mhswbaErpL+6lMchmMzsG9PH4PkHxmq+wU+NQ+IJ
-	 MkfrhWf95Py1SZvF9lKTQ48cW+sTKCueYdtw0YRb1DeOn8WgoBFLBNNW1GTwwwbm45WEs
-	 WUrI0uM1cnDPstxSRe2VQm0EWbXLdwzsDuL/DVqyRizCG68KWLzgwLJCYRZdv/BqPgw==
+	t=1793821278;
+	b=oYNFLt+AGHbol7r6tPPRhzyOeZrXoj2qqi9oZt+8O25TcFIqAtDrHTAwqilDtoU4AOQu
+	 /X8OwYTeyBwxVlA8jpOIRvGKCzOg3jyxzvyWeDRT9+sNH3N8xjRAGFrRdPfLYegEFPKrn
+	 ych9Kzr8tKbydGFrjVYF+ni22jzGChmi8yQwFfcXiKPLoHjhF8PS2wrENlA/dUtsIu4LT
+	 Z12N+fkyKeXMQ1iDibdgd7VSU98K41TA8DdG05uvuLzP0z0y9bKmIcd3nsS6fCsJb8lua
+	 FcGWZX92FCxSLM/uZLaPYmRhcPaXtvdBfaEnWu1JBwMqaBqigA+4iWEvWDblW4XYMow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821278;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=ljglEsXifce2qfRBf9KQz9o848Hwgwzekl8g5JPLaig=;
-	b=oxpMo+4K+GOqTFTUe3tku8uVY3YEvWcN6VawhTiU6GQQx7pymfM1OnD+pI9SH9b07sYM
-	 FiQ8XCRsT1oZ+fYg6NNGazhuAWcHvmYrpUI8r6FhlVR/tvwa1mDdliLy372qfsNhsjdDj
-	 Ubsq4Pn+Rlva4VilQlcj/8A56YDwn7CkoBvhlOBWCNwuFAlj75gC96gPLOEydFqJwudjr
-	 XVAAkeyXrNMmR0znBOkuHVQI9zQ5wZYhiyV05Aya5jubJHrTL1qXpxKDtyeMtzGCU2ibV
-	 Q2w8PGEPmhPYAZfmou1PJ/XmNHJyxNMkuciCR+rHGJB9aWhqmE1fce7TEEn6TIvcxGA==
+	bh=zr7obOUiLNzJ4M2rJicyi/Ze6HCzMDPfBdGpZnrgFfM=;
+	b=cu7HYe+FESqQp5LIzes/1vp/lcajVOAMFMG4huA1uzTkiRsU1mMpyxPTJAw4vQ/NjxYS
+	 XUz+t2pvSITeoE6RY9KfiaxX+2a8BULEtDdIoHEhd6jXvOXIhliFtUtvgzuMXXXib0Low
+	 BHUsZzjvKxLmTkFGB26NB5OF4qyA8KEvQVoyL594j3Jhwm7RVjF6p4Sj+L2iIYIpP6DpK
+	 ZwN2ZI4Be0heSmB2rOW5IvCckwfQtBq997qEhVALuvz3mWSTqVBAFMplZtUEAL5CmBUHh
+	 3VW54vp3GJ7kXpwZ32LgoFrcPR5cTqvkTDyadepZri/KQsJi1RI4jTBtUjywZR6mWDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wy0boZ5z;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="TFjDqZZ/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 448136071A0E;
-	Wed,  4 Nov 2026 19:40:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EFAA6072650;
+	Wed,  4 Nov 2026 19:41:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wy0boZ5z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FC2E1F0093A;
-	Wed,  4 Nov 2026 19:40:35 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TFjDqZZ/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79D881F00919;
+	Wed,  4 Nov 2026 19:41:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793821247;
-	bh=ljglEsXifce2qfRBf9KQz9o848Hwgwzekl8g5JPLaig=;
+	s=k20260515; t=1793821277;
+	bh=zr7obOUiLNzJ4M2rJicyi/Ze6HCzMDPfBdGpZnrgFfM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Wy0boZ5zanG430YNSID9PvLo8Hz+/29VvJoJ9WySCgaVz1GS+M9Ng0mKTlmCR6Sp3
-	 Wy6SgMb3/VqyekYQ/1cR/jjtPSaurM/Udr3bvNEYMuoz7g7KxSi3hffidsqtPL6rT+
-	 kNwUs9q+tNP6NBKx59NYF9AsYxVfTGuDi6XKbhHh4hcUsnEviZrGiHrP56E4+mGRvY
-	 JVVBJqh6UNVAz2b97ZBb5pcE8f/kvEg6BQoxsArkq6nlESYRlG+raNwuWLjBL5Fegx
-	 ogU0jkHe5zezEzx7v8f9ltgbWRNKY/tsEAVwKI2tVEh2fNgrnaN9ng+jA/EICHiT9S
-	 CNdt1XlVegAtA==
+	b=TFjDqZZ/yUzLlq0AHrRb5nxWFxABXvXQCDCDepRKxtO/+DBoiHd924rOXqwV39mBk
+	 7xCkrI7XXqopmEBEygr+d7LVUhWDkEjbtByAS2BeniVcX7cUeVHz8fQauHPvv0iTAN
+	 N7eRvtbhE1tCTi/bRw9rc3UYJbpqIAjFGWaWNdO/ByRLbrk2T4vEZCSk1IeyoJGCNP
+	 l+FooINdTw1eqVGKCx+YGE50hLogaFCmEhwRPgTTm9Jo8wQRCWb1gsfGDrq+Yb3o2r
+	 eWpzM29PtQ6IavQhyK8jALEj1OfP2htX9ROHmW9j/4lxcAS1kM28pIz9UvG9ZDYqie
+	 36VczlHeApOTg==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -100,9 +100,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
 	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 20/23] platform/x86: thinkpad_acpi: let procfs copy in writes
-Date: Wed,  4 Nov 2026 20:40:33 +0100
-Message-ID: <20261104-work-procfs-arch-v2-20-2aeb952c9597@kernel.org>
+Subject: [PATCH RESEND v2 22/23] PNP: pnpbios: let procfs copy in writes
+Date: Wed,  4 Nov 2026 20:41:03 +0100
+Message-ID: <20261104-work-procfs-arch-v2-22-2aeb952c9597@kernel.org>
 In-Reply-To: <20261104-work-procfs-arch-v2-0-2aeb952c9597@kernel.org>
 References: <20261104-work-procfs-arch-v2-0-2aeb952c9597@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -116,58 +116,54 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1670; i=brauner@kernel.org; h=from:subject:message-id; bh=B1JM/SyKlO95qrS7p0kfKzr/VxkM25eIJbDMnht8OJo=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97mSx1F3VulFfxXnpV5EtBz+raF7cItzSzr37e8o/J X1NniM3O0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACZydikjw5J2aZXovIq/n3/0 ZQtu+2Fn9/PUc5+zb7fMOXwlwMPtzzxGhsertpXcs3gT5Xh92pP36mKWQvHOiqu49M5OudX+dnL TCTYA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1575; i=brauner@kernel.org; h=from:subject:message-id; bh=IXYMr4OIXAB8ydnfVDKQ7NIihIFaHGo221DwmHIwdwA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97mR/NSPT6HkaC/vt8vZrrZOf7cn8cOajzZze4try1 XtLbIuDO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACYy7RvDf9eUspCkiD7zz/mp M1Q770my3G5f1nJheSLzi75vySe2PWX4K9E+OSP6wK3TV2dX82rV71go8lKvXe+0OfMZ0ZTd8x/ MYgAA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
 Implement ->proc_write_buf() so procfs copies in what is written to
-/proc/acpi/ibm/* before it pins the entry, and hand that copy to
-->write(). procfs already rejects writes larger than PAGE_SIZE - 1
-bytes.
+/proc/bus/pnp/<node> before it pins the entry, and take the node data
+from that copy. A node with more than PAGE_SIZE - 1 bytes of data can't
+be written anymore. I don't think there are any.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- drivers/platform/x86/lenovo/thinkpad_acpi.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/pnp/pnpbios/proc.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/lenovo/thinkpad_acpi.c b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-index 2ee208c82801..8287b36bd90d 100644
---- a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-+++ b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-@@ -882,7 +882,7 @@ static int dispatch_proc_show(struct seq_file *m, void *v)
+diff --git a/drivers/pnp/pnpbios/proc.c b/drivers/pnp/pnpbios/proc.c
+index 14632a8d0da0..00163aedd738 100644
+--- a/drivers/pnp/pnpbios/proc.c
++++ b/drivers/pnp/pnpbios/proc.c
+@@ -171,7 +171,7 @@ static int pnpbios_proc_show(struct seq_file *m, void *v)
+ 	return 0;
  }
  
- static ssize_t dispatch_proc_write(struct file *file,
--			const char __user *userbuf,
-+			char *buf,
- 			size_t count, loff_t *pos)
+-static ssize_t pnpbios_proc_write(struct file *file, const char __user *buf,
++static ssize_t pnpbios_proc_write(struct file *file, char *buf,
+ 				  size_t count, loff_t *pos)
  {
- 	struct ibm_struct *ibm = pde_data(file_inode(file));
-@@ -890,14 +890,8 @@ static ssize_t dispatch_proc_write(struct file *file,
+ 	void *data = pde_data(file_inode(file));
+@@ -191,10 +191,7 @@ static ssize_t pnpbios_proc_write(struct file *file, const char __user *buf,
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	if (copy_from_user(node->data, buf, count)) {
+-		ret = -EFAULT;
+-		goto out;
+-	}
++	memcpy(node->data, buf, count);
+ 	if (pnp_bios_set_dev_node(node->handle, boot, node) != 0) {
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -207,7 +204,7 @@ out:
  
- 	if (!ibm || !ibm->write)
- 		return -EINVAL;
--	if (count > PAGE_SIZE - 1)
--		return -EINVAL;
--
--	char *kernbuf __free(kfree) = memdup_user_nul(userbuf, count);
--	if (IS_ERR(kernbuf))
--		return PTR_ERR(kernbuf);
- 
--	ret = ibm->write(kernbuf);
-+	ret = ibm->write(buf);
- 	if (ret)
- 		return ret;
- 
-@@ -906,7 +900,7 @@ static ssize_t dispatch_proc_write(struct file *file,
- 
- static const struct proc_ops dispatch_proc_ops = {
- 	.proc_show	= dispatch_proc_show,
--	.proc_write	= dispatch_proc_write,
-+	.proc_write_buf	= dispatch_proc_write,
+ static const struct proc_ops pnpbios_proc_ops = {
+ 	.proc_show	= pnpbios_proc_show,
+-	.proc_write	= pnpbios_proc_write,
++	.proc_write_buf	= pnpbios_proc_write,
  };
  
- /****************************************************************************
+ int pnpbios_interface_attach_device(struct pnp_bios_node *node)
 
 -- 
 2.53.0
