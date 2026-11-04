@@ -1,46 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.2
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793782839;
-	b=5FcY0UcmvFDbi9MwyNigm9Gx7fTdAZbEXofy+ue8jLloCoITZU+jyyiW2t7Wavkjnkcr
-	 F7dO7KXtRJ8grbrs6MrxIM4N5M2EDiWmk01ZDpb5jQIo/xeUcOEhoUqccPcd/RoAJQ7/a
-	 23HqzzbAcldKXqWSGAVyPcWRTVFmkHoOJUepvYp+yxHJvhXZCRVaFYjCrtvARxGNksRvr
-	 4CxlvsXwWz1NpKSRQOz5T/hBU9r/ZxNinBhzJKA7b8VnWuXq3cz3Twrf9j5m1mN9g49G6
-	 1ylky73AEyDw8+jfuj4brs/ad1IAzx7KFe1/t6bcDiBM1mguRm1YbPRZ22Jp1NNkR9A==
+	t=1793782843;
+	b=cQNkyFPuqsRs2jhM0SkraNVF/6TPT+OxoO7IJF0TpKFEoUtEMPwfcMN18zCNx7GapmU0
+	 fgUC8JSYVnDXETZIPJUp+hoccusEQJ7mrosj8daMNkcz27iiMQZrHOgbh9lhcCmBQdRYg
+	 RU1Sqz7/pWuHrd4V4H9S26JX7rZAoG3QRk5KVMuBXqKsVBeliFY+jA1bjQOg9HLZlFq5L
+	 ZQdjej8df8srvY2PU+FXOHUwx+C6q+CDSQ7ldCWx77Yot0nQYapC5mYfBunVjH5AfjiA4
+	 57ZcFVEY3+EWoNnCKh0yJrN9OH5KNAVMt0tbW/DzNm1zu2ldcQ0rov526OFpVNVVABg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793782839;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793782843;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=vtX9eU8J3Lmk3qBwxV4wOykn6nF9IeBVyI8Jpue03zQ=;
-	b=LX+JpXcLHS9U8rWQTdwQY3gmneaIhAjbw/21lj4uNw1er2U8vyHUyS2sYl/6plPzXHGo
-	 kiGyIvt6xV2Nlw5wQdfbPe1Ne73fea/ICiNf4lg6/jU5fu213vUiHgFltKTRwd1Ry6Yc3
-	 LiciwwaVK3aoG/bmrXDeukFt9VYmsbT53Voj4WQ8124vgBSO1FKhRXflmm/a6OFbuIyhq
-	 s9j4nywSJR9PFATBfdhpVqp74aaOPycjSloijXL7bJ+WrE/FMgxmmhCKU5vy25nV1b+iS
-	 7WyZwI6JZHHdD3yx/FRM/XyTgJ7MV6tR+47bhL4C66VDhwrIQNwQbKCLE26+EVOci4Q==
+	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:
+	 X-CM-SenderInfo;
+	bh=8H9Y/J3F3inFdF+nnaPoG+JnVtlCMIQn9GwvVhWehH4=;
+	b=DEvgEyVE6qSFeqOfwkxa/Wdzmc+k+wdlY/qOSawjiSWQsxGO5Y5hLSmrOVc/0c2wUtxU
+	 oM+zq2vmrfPXU1Nc3153i2nicnbhhTn8Hq9o6pACFP18uEJLfkVavBkitvWWMOV/rk0kb
+	 SMtS8R0frmi6/Eg5o6UBVa5rlAVjFImL918Rxaa1c2rULvtoKrMSl/s8V6e8ub8XopbEk
+	 r4MMmfDOBck/30gDUoOO9g5/E+ubUKhlHn/xeXAJ/FjBz8DLoXJ4OAfZvAm1537y80Q33
+	 AoYfEEhgtcwcsbL/fWQZeQ7Gb31nkKGkADzvQ92PyBKsLFM4IAKQcyNHu6oyzBVO+7w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=163.com;
 	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Z8N3njDk;
-	arc=none smtp.remote-ip=220.197.31.2
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hgxgTSLT;
+	arc=none smtp.remote-ip=117.135.210.4
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E54CD606A328;
-	Wed,  4 Nov 2026 09:00:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E54CD606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1627B606A326;
+	Wed,  4 Nov 2026 09:00:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1627B606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Z8N3njDk
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hgxgTSLT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=vt
-	X9eU8J3Lmk3qBwxV4wOykn6nF9IeBVyI8Jpue03zQ=; b=Z8N3njDkiP2htBS7bb
-	wriQDgLiqr4BvEkFrWDySTYVRO+98VECIHKn+p8egmdEiZbBY9JgcC4gdcEzaHwl
-	+VMLq884eeIQUUumMe9xE5Rx+lIRqiofZLj5KS1l/UenaTXMTdnP6p2KtjTsL45q
-	bSr3ndJDwBOyJYYDgquZmZWGw=
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=8H
+	9Y/J3F3inFdF+nnaPoG+JnVtlCMIQn9GwvVhWehH4=; b=hgxgTSLTlOtbH4xmAG
+	UeEOUQSBj435U8QuDQbvp/AilR1VxktQgQTbB1JtnGkr4KZz+ReyynSkkcol3t0M
+	R5BsH7TFN2gGTi6Vcyuvep1BXu5g4ZEEDcxF6KTXaKD2BHf0+5KDmbCBkXG6kKnc
+	x55727gvJ4Rw/u4ir71dpvkS8=
 Received: from localhost.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgB3LJju8+pqEDm4Dw--.32829S2;
+	by gzsmtp4 (Coremail) with SMTP id PygvCgB3LJju8+pqEDm4Dw--.32829S3;
 	Wed, 04 Nov 2026 16:59:27 +0800 (CST)
 From: luoqing <l1138897701@163.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -56,10 +57,12 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net 1/2] netfilter: conntrack: avoid secs-to-jiffies overflow in SIP helper
-Date: Wed,  4 Nov 2026 16:59:24 +0800
-Message-Id: <20261104085925.773471-1-l1138897701@163.com>
+Subject: [PATCH net 2/2] netfilter: h323: avoid secs-to-jiffies overflow in RAS timeout
+Date: Wed,  4 Nov 2026 16:59:25 +0800
+Message-Id: <20261104085925.773471-2-l1138897701@163.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261104085925.773471-1-l1138897701@163.com>
+References: <20261104085925.773471-1-l1138897701@163.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -70,77 +73,70 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgB3LJju8+pqEDm4Dw--.32829S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxCr47Zr4rtFyrAF4DCw4xtFb_yoW5WrW5pF
-	Z3t34SyrWxJF4Yya18Cw1kA3Z8Ww4fGa4fWrWYkayrCan8JF1YkFZYgry2qa4kJr4ktr13
-	Za15Wr4jkFn5ArJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07Uq-erUUUUU=
-X-CM-SenderInfo: jorrjmiyzxliqr6rljoofrz/xtbC+Q+N0Wrq8+9h1wAA3A
+X-CM-TRANSID:PygvCgB3LJju8+pqEDm4Dw--.32829S3
+X-Coremail-Antispam: 1Uf129KBjvJXoW7CFWrXF18Gr1kZryUJw4rAFb_yoW8Kw1xpF
+	W5K3srKw4xJr4Yk3Wvk3WkAF4DXw4fGF45Crn8KayrCwn8Jr1v9FWFk3s2ga47trs3Xr43
+	ZF4jqw17G3W0yFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j1PfQUUUUU=
+X-CM-SenderInfo: jorrjmiyzxliqr6rljoofrz/xtbC3Q+N0Wrq8+9HUAAA3F
 
 From: Qing Luo <luoqing@kylinos.cn>
 
-refresh_signalling_expectation() converts the expiry from a SIP
-REGISTER 2xx response with "expires * HZ" in 32-bit arithmetic and
-stores it in a u32.  sip_strtouint() only rejects values above
-UINT_MAX, so the answering registrar controls the input.
+process_rcf() converts info->timeout with "* HZ" twice, once for the
+conntrack refresh and once for the Q.931 expectation, both in 32-bit
+arithmetic.  info->timeout is a u32 decoded from the ASN.1 timeToLive
+field and only checked for being non-zero, so it is remote-controlled
+by both the endpoint (RegistrationRequest) and the gatekeeper
+(RegistrationConfirm).
 
-Expectations are reaped with "(__s32)(exp->timeout - nfct_time_stamp)
-<= 0".  At HZ=1000 an expiry of 2147484 seconds (24.9 days) crosses
-2^31 and the expectation is born expired, while 4294968 seconds wraps
-to 704 jiffies.  Registration refreshes break, or a signalling
-expectation stays pinned for days.
+With the signed expiry test "(__s32)(ct->timeout - nfct_time_stamp)
+<= 0", a timeout of 2147484 seconds (24.9 days) at HZ=1000 is born
+expired, and 4294968 seconds wraps to 704 jiffies.  The RAS connection
+therefore drops mid-call, or the Q.931 expectation stays pinned for
+days after the peer is gone.
 
-Add nf_ct_secs_to_jiffies(), which multiplies in u64 and saturates at
-INT_MAX so the signed expiry test stays positive, and use it for the
-SIP expectation refresh.
+Reuse nf_ct_secs_to_jiffies() for both conversions and compute the
+value once.
 
 Sweeping all 2^32-1 inputs at HZ=1000, the helper never wraps, never
 yields a value that reads as expired, and matches the old expression
-up to INT_MAX / HZ.
+up to INT_MAX / HZ; objdump shows the two 32-bit "imul $0x3e8" in
+ras_help() replaced by a 64-bit multiply plus cmp/cmova saturation.
 
-Fixes: 0f32a40fc91a ("[NETFILTER]: nf_conntrack_sip: create signalling expectations")
+Fixes: f587de0e2feb ("[NETFILTER]: nf_conntrack/nf_nat: add H.323 helper port")
 Cc: stable@vger.kernel.org
 Signed-off-by: Qing Luo <luoqing@kylinos.cn>
 ---
- include/net/netfilter/nf_conntrack.h | 10 ++++++++++
- net/netfilter/nf_conntrack_sip.c     |  3 ++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_h323_main.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index c39425e54d87..b32716084ea8 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -210,6 +210,16 @@ bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 			  u32 extra_jiffies, unsigned int bytes);
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 4cb1665bba02..5e900037fa6f 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1375,9 +1375,11 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
+ 	}
  
-+/* Convert a timeout in seconds to jiffies, saturating at INT_MAX instead of
-+ * wrapping the "secs * HZ" product in u32.
-+ */
-+static inline u32 nf_ct_secs_to_jiffies(u32 secs)
-+{
-+	u64 delta = (u64)secs * HZ;
+ 	if (info->timeout > 0) {
++		u32 timeout = nf_ct_secs_to_jiffies(info->timeout);
 +
-+	return delta > INT_MAX ? INT_MAX : (u32)delta;
-+}
-+
- /* Refresh conntrack for this many jiffies and do accounting */
- static inline void nf_ct_refresh_acct(struct nf_conn *ct,
- 				      enum ip_conntrack_info ctinfo,
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 64bc440b1181..e2fd97f53386 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -891,7 +891,8 @@ static int refresh_signalling_expectation(struct nf_conn *ct,
- 		    exp->tuple.dst.protonum != proto ||
- 		    exp->tuple.dst.u.udp.port != port)
- 			continue;
--		WRITE_ONCE(exp->timeout, nfct_time_stamp + (expires * HZ));
-+		WRITE_ONCE(exp->timeout,
-+			   nfct_time_stamp + nf_ct_secs_to_jiffies(expires));
- 		WRITE_ONCE(exp->flags, exp->flags & ~NF_CT_EXPECT_INACTIVE);
- 		found = 1;
- 		break;
+ 		pr_debug("nf_ct_ras: set RAS connection timeout to "
+ 			 "%u seconds\n", info->timeout);
+-		nf_ct_refresh(ct, info->timeout * HZ);
++		nf_ct_refresh(ct, timeout);
+ 
+ 		/* Set expect timeout */
+ 		spin_lock_bh(&nf_conntrack_expect_lock);
+@@ -1388,8 +1390,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
+ 				 "timeout to %u seconds for",
+ 				 info->timeout);
+ 			nf_ct_dump_tuple(&exp->tuple);
+-			WRITE_ONCE(exp->timeout,
+-				   nfct_time_stamp + (info->timeout * HZ));
++			WRITE_ONCE(exp->timeout, nfct_time_stamp + timeout);
+ 		}
+ 		spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	}
 -- 
 2.25.1
 
