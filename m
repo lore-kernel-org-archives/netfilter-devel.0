@@ -1,75 +1,110 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821614;
-	b=1129wkc8Qlt5L6vdtuaLKZfgusp7R91hsUsQUtynE/TBUulWDjGxOcQ8tyVffm16ntOC
-	 f4btaoSApYYAzjT3RjewZGVuDtPHRspvB7G0X8IX26kKuy62PAnI0iKNgGcIXS2QpcaBl
-	 50tAb0ocr/Pg34Uj4FOjGefJld1qZlOTT8v8H28JIZYzYlIooKHj/8U0z1AL+XU8t3g2o
-	 rx70djLqGsJQpBv0qyi7ltgJ8hSYXkYG4x11u+gHGQs2TnCNy1RcgDYRK1JHctSYqaUHR
-	 oeS8N3gNm0LSVc5T030xAlt58LPegITzDZFKSVowkdjbVggepLa6hNxcqZzBYfPUu6g==
+	t=1793821628;
+	b=yRI6Liarzp3jK275sDuF+hJW7ivNC8t1+fgMtEewuTb7QiMRxDErQdnzNgbarb3kACPd
+	 3ugea0oiLlLmmzA42k5hsUP51NBp/oIlGDbRaMV507WL7exmqWaBos7FjESQjIXGMnHy3
+	 DtOAbc05/7F69p2DHPK1bznfyjc6StHfpj7GmL8vx2WRMRp918AKDfqxRs/w75etSr8lz
+	 pEB8HosXIvVttmtx79r+/575y8rV5h90eRPA9e5QlOaVQ3eiAoYiTlVhz98XNsb+VDWw+
+	 qiKsE1D0zA4VnjQvGY9CsNV5TSItj3PEfczHryCbo7xKuuRhFWDgpzywFFgR8/4GSpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821614;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=T9zmPINoXhTtPoNWi8WXSCFP2UdwDfmdo8eVYok8V3w=;
-	b=CqF6e5N7D6O/NigagwxNIVxh0Ifkgxph+bwmEB3YenyhXMfE39HWWuEgkHKKx8b/yK8V
-	 KuJANEI+1JmlK38eYNRZjMFsrA6YyUe5/T6NjRPMVZVHgYrlRbNBD7Jutc0XeuOGQQ3ei
-	 79j4u901gHYgDRsNLqUzkx6yPvSOjDiGP1BptSPCyvO2ncPwVF/0DQ5SAhVXbJRvt6vVa
-	 i5M1hTUIluqYK/2TrqjIp2zKwIZiCco5n0Rms8OvrS1AqaGntlzSZ5yOrDlS5f8vE4Fk6
-	 4jjk2bPHQqQGPto7tvIwb1twi68V0jqheLEOVZ4vkz9im1Xl8It1JrkarPe0W9kflQw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821628;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
+	bh=zft31zEOyoxpoaQra2tyBUnsx6CBcNbPccBHjIcKUVg=;
+	b=jfor4nVauZqrwusaRWFTqlKuJ1C1wi1P2F6gKGuW9Qwnf6pQ+bqd1EuxBllqN6zsq0vV
+	 bCDpIwzRkQ5BR+c0QGrVWowsvOYMDrb8ZjaNKKbwNpOqPanGMt7GFWmjWyp+L5MlnzHHT
+	 J5xSBCwDtZTSqa1obXHya2YirFvbGUYccKogEBYoeWmJXu5Kw4iKjkjLR7QI854SbImMg
+	 5SVJ8OcgWBW3MWtzfCHHCpBVw8ICenM4oC9COVqOTKF+vHaMuk2TVckp4L3MD7WKO9FwL
+	 D7IR08g4DVQ/gH7huBoDfWrB9FZAxUyZR9u4ow/axoWhpZF6MniVjBc9iX+9R81v1DQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Op5Yty+e;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RajwCGCh;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D40608C9A1;
-	Wed,  4 Nov 2026 19:46:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D9D40608C9A1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62715608E3AC;
+	Wed,  4 Nov 2026 19:47:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=Op5Yty+e
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 27FFE213F4;
-	Wed, 04 Nov 2026 21:46:51 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=T9zmPINoXhTtPoNWi8WXSCFP2UdwDfmdo8eVYok8V3w=; b=Op5Yty+ergpt
-	eF7P1scnzmeSjKbwPhgmkShYXZp4VzK+dD34yVs8921Tac/Ss3xlrFL3RmmsoYjy
-	MckGq1ZNAGoQthbrQDx/oh/P5+xxWMek5VC142REzsbkPGmotUpBDuizRolaHH/u
-	9eWSp9izt1acLt0sonW7cNX/bkCPvnfO5SYmIdySIgbFO3o/ABffVd4usCoBhn+T
-	+Wr43zL9rr6Cc1LSRiVgCywvv/58kg+t4XulaFkXnh3Bp4fIjH9+btIDWdy8ns3j
-	VckrO+oWSxV4PlHRTIvIdokiI9xl0GvTuVQbuP6zI5mj0WrpQDY9CtDYMzjiRzpn
-	e+RFvQ6Xt9OJ92aMVjluLM8l3YZEYK1jSlt0YtFkvv9nTZ/zcSRFQlYms81//KNB
-	G/n4gKaZiUffNVTid9m5AusXYz44tB9F2n2JRVZCEmrN8JgyVlS9+kxfSJXHvNRF
-	YWnDwW5zlrbFBbeTQ5BMdizsByn6DVmBDuUWsscD1q+JlIa7O6kxLSYZhzemY3Hr
-	v0HtJqTysuYEc8kOdQ2mc3UWnd+tfvgiCDftlQ3g4tOZAb8sC+de1XaC7d5RcsCT
-	d2IWUU+pOo0miBSSharwLw82QrXH8/VD60FS8c2NH7142EYIjmyAMJaK97d0uVMa
-	jzccWEuxLk5v76dUyyhC0mjhRRdGPEc=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 04 Nov 2026 21:46:51 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id DA91661CDA;
-	Wed,  4 Nov 2026 21:46:49 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A4JkkEO143152;
-	Wed, 4 Nov 2026 21:46:48 +0200
-Date: Wed, 4 Nov 2026 21:46:46 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Axel Mierczuk <axel.mierczuk@1password.com>
-Subject: Re: [PATCH nf] ipvs: do not create conns from packets with port 0
-In-Reply-To: <20261003095001.20587-1-ja@ssi.bg>
-Message-ID: <95b23fea-9e6c-158d-c989-6f5674e343ee@ssi.bg>
-References: <20261003095001.20587-1-ja@ssi.bg>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RajwCGCh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18A421F00919;
+	Wed,  4 Nov 2026 19:46:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793821628;
+	bh=zft31zEOyoxpoaQra2tyBUnsx6CBcNbPccBHjIcKUVg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=RajwCGChuwyoqoZXwpUtB63CnfJNCXfYV3MXWhfQVc5Ev6XMozMwlvc6X98vleQyv
+	 f9HzBE4v113NX/e1l78y5ttqcWo69gQcs6Ww+sQGKZ3cLiPEcmIedv9Dr8Fupfzesw
+	 W2qdod9xWoMSOmx1XAyg2z9rNs/8Jv2qrPox1n/Zc4FZI6mKO77lTmc1CJ+0psYuJ3
+	 GAD2h5/aLL7ToIPisurMJ320J6bxgj0LUdPq4xrjzKapKKfnTHEzSVwuWV6kBmMycE
+	 p8oPLiWRZfJASR8Mhh1/kUIyHucEcqRy1EkK1gmQTe3G+tur6Iu40MBhi/iT5cSWMY
+	 VmRs6TTIcG5Ww==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org,
+	"Christian Brauner (Amutable)" <brauner@kernel.org>,
+	Chuck Lever <cel@kernel.org>
+Subject: [PATCH RESEND v2 19/26] wifi: ipw2x00: let procfs copy in writes to the debug level
+Date: Wed,  4 Nov 2026 20:46:53 +0100
+Message-ID: <20261104-work-procfs-drivers-v2-19-245e54e87116@kernel.org>
+In-Reply-To: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
+References: <20261104-work-procfs-drivers-v2-0-245e54e87116@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -79,123 +114,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1605; i=brauner@kernel.org; h=from:subject:message-id; bh=SZl2laNUZYNGFN2sYGUP5fs3tBGCqMuq/D28k7CZWwo=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS97up6Oev4hMLPxsZ2136FuR12SNXk+zJzkV2eLvcbC +ML1Vevd5SyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEzkxyZGhh+zNh/MzVMol5A7 Oltna15SsRRnwKr/s7+v+ix/vNn+yDaG/x5P3yxp3xP3fKd4vL9mjb/e893xlTemrnQuFzt//Ms bC34A
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
+Implement ->proc_write_buf() so procfs copies in what is written before
+it pins the entry, and parse the level from that copy. Writes larger
+than PAGE_SIZE - 1 bytes fail with -EINVAL now, and a buffer that can't
+be read fails with -EFAULT instead of looking like it was written.
 
-	Hello,
+Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+---
+ drivers/net/wireless/intel/ipw2x00/libipw_module.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-On Sat, 3 Oct 2026, Julian Anastasov wrote:
+diff --git a/drivers/net/wireless/intel/ipw2x00/libipw_module.c b/drivers/net/wireless/intel/ipw2x00/libipw_module.c
+index 15d9a5efb581..08cc0d7f57c1 100644
+--- a/drivers/net/wireless/intel/ipw2x00/libipw_module.c
++++ b/drivers/net/wireless/intel/ipw2x00/libipw_module.c
+@@ -216,14 +216,13 @@ static int debug_level_proc_show(struct seq_file *m, void *v)
+ }
+ 
+ static ssize_t debug_level_proc_write(struct file *file,
+-		const char __user *buffer, size_t count, loff_t *pos)
++		char *buffer, size_t count, loff_t *pos)
+ {
+ 	char buf[] = "0x00000000\n";
+ 	size_t len = min(sizeof(buf) - 1, count);
+ 	unsigned long val;
+ 
+-	if (copy_from_user(buf, buffer, len))
+-		return count;
++	memcpy(buf, buffer, len);
+ 	buf[len] = 0;
+ 	if (sscanf(buf, "%li", &val) != 1)
+ 		printk(KERN_INFO DRV_NAME
+@@ -236,7 +235,7 @@ static ssize_t debug_level_proc_write(struct file *file,
+ 
+ static const struct proc_ops debug_level_proc_ops = {
+ 	.proc_show	= debug_level_proc_show,
+-	.proc_write	= debug_level_proc_write,
++	.proc_write_buf	= debug_level_proc_write,
+ };
+ #endif				/* CONFIG_LIBIPW_DEBUG */
+ 
 
-> We should disallow normal connections with cport 0 to be
-> created from packets by the scheduler (from clients) or
-> by ip_vs_new_conn_out (from real servers) because later
-> such traffic can not hit the connection due to the
-> NO_CPORT requirement. As result, it can lead to duplicate
-> connection for every packet. Do the same for vport 0.
-> 
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-
-	Will send new version that drops the packets with port 0, 
-otherwise the connections can succeed with the local server.
-
-pw-bot: changes-requested
-
-> ---
->  net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 5 +++++
->  net/netfilter/ipvs/ip_vs_proto_tcp.c  | 5 +++++
->  net/netfilter/ipvs/ip_vs_proto_udp.c  | 4 ++++
->  4 files changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 397d5392ebed..8cdcab7d6edf 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1306,6 +1306,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
->   *    In fwmark-VS actual vaddr and vport are unknown to IPVS
->   * 2) Real Server and Virtual Service were NOT configured without port:
->   *    This is to allow match of different VS to the same RS ip-addr
-> + * 3) Client port is not 0
->   */
->  struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
->  				      struct ip_vs_dest *dest,
-> @@ -1329,7 +1330,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
->  	/* check pre-requisites are satisfied */
->  	if (svc->fwmark)
->  		return NULL;
-> -	if (!vport || !dport)
-> +	if (!vport || !dport || !cport)
->  		return NULL;
->  
->  	/* for persistent service first create connection template */
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index fb8af6b15a39..83d1443ebe01 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
->  						 sizeof(_schunkh), &_schunkh);
->  			if (sch) {
-> +				/* Accept packet without scheduling? */
->  				if (sch->type == SCTP_CID_ABORT ||
->  				    !(sysctl_sloppy_sctp(ipvs) ||
->  				      sch->type == SCTP_CID_INIT))
-> @@ -47,6 +48,10 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  		return 0;
->  	}
->  
-> +	/* Do not create connection for port 0, skip the packet */
-> +	if (!ports[0] || !ports[1])
-> +		return 1;
-> +
->  	if (likely(!ip_vs_iph_inverse(iph)))
->  		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
->  					 &iph->daddr, ports[1]);
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index fec0e8b47b71..2e55b62445c6 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> @@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  	if (likely(!ip_vs_iph_icmp(iph))) {
->  		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
->  		if (th) {
-> +			/* Accept packet without scheduling? */
->  			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
->  				return 1;
->  			ports = &th->source;
-> @@ -62,6 +63,10 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  		return 0;
->  	}
->  
-> +	/* Do not create connection for port 0, skip the packet */
-> +	if (!ports[0] || !ports[1])
-> +		return 1;
-> +
->  	/* No !th->ack check to allow scheduling on SYN+ACK for Active FTP */
->  
->  	if (likely(!ip_vs_iph_inverse(iph)))
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> index f32785682402..92c0b76c1a02 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> @@ -52,6 +52,10 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  		return 0;
->  	}
->  
-> +	/* Do not create connection for port 0, skip the packet */
-> +	if (!ports[0] || !ports[1])
-> +		return 1;
-> +
->  	if (likely(!ip_vs_iph_inverse(iph)))
->  		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
->  					 &iph->daddr, ports[1]);
-> -- 
-> 2.55.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+-- 
+2.53.0
 
