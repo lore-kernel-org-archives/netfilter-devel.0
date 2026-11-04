@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793820303;
-	b=HM3dHblq8X9vJ+zjynIvNU8FB4Tc/YHUlPaTCultAL7Rm/3FuohnC57gsYuXnYmxi9c+
-	 fhedPV2oM+JOQAnywpOA6ibH6337WbbxxIeTAst89/oKB9YwH+kQGysmXQcvtfnUdO3J/
-	 8E9ijTv6dHZ315muc+Y9tpMViouI1VauCBZLGnjzSbxqUXg26cM1zp4OLyPeJEdq6wzvR
-	 43wniRfbdmpl8W3JM2V49HZfAwD15QG1dVuITVGjR+AJesYfagH7FSydFYj0FK8/ydPBP
-	 I30JI5i4Nj7CNicFb0Pwg1pEG+cJfJjx0NdEa6kNF9opC8ekyrcEInwOMiVwhG5k/cQ==
+	t=1793820332;
+	b=SL6OUZgH5bal9Ezs9e0x7INmvGZ+fT1Yf9IEJsvum+MtgC5Ya/lYDI7pculi8/2wJaoY
+	 a9ZhcctXTqWWzb7hz5YTUnJF4TtkOrNW4n70Gs4WzBdxlfDDw8GoMBzmzHD6pSgbVVTwB
+	 gkHVCrEWBRGas5rtgCJH0Uqsyn+f1oy1zIeF+UZUIjwmpNQoGrKKi/TVG0ij0/glppi0Q
+	 Ro40pkLAiiamxkQNXV+F4Y5lQxHd4JTD5iAUMjdeLodRN3ZNatKo/O8FoTc66zf/mnpoA
+	 KbecIYgFfFGoRkeliirlDiuQP71E1bC+QiFlefE3D+kKI+N5n+7JEZ5Aln/SM+hdAiA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793820303;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793820332;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=x8nH5QJkKiZNUTowDxB/hMOFyVkHqFnuwosL7qreMAM=;
-	b=GMhTOkKudtWhb2SH7SfztQlvqSzpnB5XAH7uJ025GjNrJ98L+a5ykBeoLxCCoi9xVWDQ
-	 vMkz57B4IfIC5R8T8chcrzpkgFgkKshndAp49ww0q+GmQ1igvkaFbSSzqWv5u+sfTwb02
-	 o0GIcWXPQlDa+EEw2ItnGusB2S8ws4zcDaPXvEy0viH2YzPO4z1qVGrKkF9yOqtXLsMOP
-	 WmW0FPsvWZ9efUBJzcmciyLJ9LZveo7P6uro61c2G3vK4NPnq/+/OvYWpvuFf9uIm4b9b
-	 AAyebH7yQAXrIXMxAp5XzLAO+1O0032uuAPTDiaQBRX3xTA25yCbId0oMReVvHGo2zg==
+	bh=v5t8qKNo68SCWoforDimF8hL2ZYL+p0Okj8bWoZ1JT0=;
+	b=H3JlDk22X4gEYSi7Nh//o24gu8aykS7iCFhNWUhveL6jfj74FZF+BEwCy5/PUF6hUV8F
+	 FgAsm3Q2sp5yeoWxrQxH5VZqTrqxB7vwrngnmFNMcmGaRGYv52Xr2O6DFRoP5nPYDxoIQ
+	 5MhlFy0+mgl630WC6DrW4JJtvylb9hvgX9bpXOtLbcR/NfVLKbx8uIB/6ila6TIYxMABI
+	 xa5JEh27ca+qFLzvkkPfJmMex+EzQ5jJx5t80e4sgpaas6bECgXMrqpKVMkg2uRhHXsiS
+	 D0OuplmtaLgr1hpeLSZFYFBCEpKGVHkNLHZPH+H5F0AKUcmkEU7jRB/RmcnoTKSLzcw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AOGtv8Mf;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=d2Yp3suk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A2E3607E903;
-	Wed,  4 Nov 2026 19:25:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1464D6084191;
+	Wed,  4 Nov 2026 19:25:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AOGtv8Mf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A96E1F0093A;
-	Wed,  4 Nov 2026 19:24:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=d2Yp3suk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98241F0093A;
+	Wed,  4 Nov 2026 19:25:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793820302;
-	bh=x8nH5QJkKiZNUTowDxB/hMOFyVkHqFnuwosL7qreMAM=;
+	s=k20260515; t=1793820331;
+	bh=v5t8qKNo68SCWoforDimF8hL2ZYL+p0Okj8bWoZ1JT0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=AOGtv8MfSvpV7/N3SPQdxO34HN0jitae0lUNpVEJDAU9XLw0mdF8nEKatSbYah4D4
-	 pJnFyEpZO1zbMa9uji/9OWzr8wEr6lfii12mf0iU2Lh2VjsLavJMVeCqDZp/52sjZ8
-	 3Go4KV6nkkS39oFoJGSvgQnMVnncUKXYL8Mx162m4aQQqRHIlpeUtyYZQRcyHTHG+m
-	 F6SJS7Gx3owS0zf+1GA3KxpXJd3wQWd0E3FPh1GuNLid6UQ0pR28EaGxERe/wN3pMg
-	 +vSX7Zm5D1718tOrlyhaV4OrQ07V2BymOcNC4cPME/yryrTT1k2SVGUu6wuwzfR22j
-	 +9kSochp+NapA==
+	b=d2Yp3suk+xIFUQRM7BO7x7E3aft20rXKQTfKi2EJdB6puqKguKbDO/RzfDRA7X3lV
+	 gSljFhFAbMDcd/asHliyJikYnWdkdW8FRwy3bQh6M+ewh9drJ7d35YOJvdhtwFBPH9
+	 JRwJWLRJM4Vxp/NSD7VcC/GqW0BZH+vd44UCHmE480t5IclYXqoZgoP1rxpP7ASvzi
+	 MV6zaQzy3dS5SCMydWsqMWRJAW6dgE80WRCZ4oN2w3QDfNKA1V+orpBh9N1WCS1BnB
+	 qAK1SagQtlE4k26S60ABDjOQvWS+i75OCJwN1Sg08aifhf820lnDivFXg1KjOzyPpn
+	 JuTk2cFWA7+Bg==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -101,9 +101,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
 	Chuck Lever <cel@kernel.org>,
 	stable@vger.kernel.org
-Subject: [PATCH RESEND v2 36/51] proc: don't let NOMMU map procfs files
-Date: Wed,  4 Nov 2026 20:24:48 +0100
-Message-ID: <20261104-work-procfs-bugfixes-v2-36-021c84d852e0@kernel.org>
+Subject: [PATCH RESEND v2 38/51] powerpc/crash_dump: check ioremap_cache() in copy_oldmem_page()
+Date: Wed,  4 Nov 2026 20:25:17 +0100
+Message-ID: <20261104-work-procfs-bugfixes-v2-38-021c84d852e0@kernel.org>
 In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -117,110 +117,40 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3847; i=brauner@kernel.org; h=from:subject:message-id; bh=JTUUxaAv8g+OiylD/jB4kSfUdacg86Bjtrwx1fOwQ90=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bvzxcvsOxp23JLZfCWya6MPaPHGnRYPLhkVvf4fHB W9U5hb431HKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjCRyk+MDK+PBU/le8dv0ftD 839XV15oaNPWrTw8hs1fHTLi/wid+Mbwv6CPOeDfzSePDj+a/VD2SORxlTWdy84uUOARvTIlTdD JgRcA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1312; i=brauner@kernel.org; h=from:subject:message-id; bh=2dbZnDPFapx3dAW5qeN54CL6hHWBvjsrs28L3h6tsIk=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bvxl/P2Dzo5anu13Tqzf1xxtev7aJSeWp+ezo6b2t N9VrY5U7ChlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZiIaS/D/3hfsRnFFt+mr1Gq mfCx747C6gAR6081CmdVZ93UW9i0TJWRYddzz5Q7xvsdygJ9F50qmvOkfr37pFAJ8balvcaJT6z +8gEA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-Every procfs file has a ->mmap since commit 786d7e1612f0 ("Fix
-rmmod/read/write races in /proc entries"), whether the entry has a
-->proc_mmap or not. On NOMMU validate_mmap_request() takes that to mean
-the file can be mapped. procfs has no ->mmap_capabilities so a regular
-file gets NOMMU_MAP_COPY, and a private mapping never calls ->mmap at
-all. Instead do_mmap() takes nommu_region_sem for writing and
-do_mmap_private() reads the file into the copy with kernel_read().
+copy_oldmem_page() maps a page of the old kernel that isn't in the
+linear mapping with ioremap_cache() and copies from it without checking
+whether the mapping worked. If it didn't, the copy reads from an offset
+into the NULL page. That oopses unless the copy happens to be a user
+copy, whose exception table entries turn the fault into a short copy.
 
-Reading /proc/maps takes nommu_region_sem as well:
-
-  mmap(NULL, 4096, PROT_READ, MAP_PRIVATE, open("/proc/maps", O_RDONLY), 0)
-
-  do_mmap()                          // down_write(&nommu_region_sem)
-  -> do_mmap_private()
-     -> kernel_read()
-        -> seq_read_iter()
-           -> nommu_region_list_start()   // down_read()
-
-The task hangs for good, holding nommu_region_sem and its own mmap_lock,
-and every mmap(), munmap() and exit after that hangs behind it.
-/proc/maps is 0444 so any user can do that.
-
-Give the procfs files a ->mmap_capabilities on NOMMU that allows
-nothing. That covers every entry and not just /proc/maps, procfs can't
-know which entry's read takes nommu_region_sem. Mapping a procfs file
-then fails with -ENODEV, like mapping a file without ->mmap did before
-786d7e1612f0. NOMMU never called ->proc_mmap() for a regular file
-anyway, procfs never offered NOMMU_MAP_DIRECT.
+Return -ENOMEM like the other architectures do. read_from_oldmem()
+turns that into -EFAULT like any other short copy.
 
 Reported-by: Chris Mason <mason@kernel.org>
-Fixes: 786d7e1612f0 ("Fix rmmod/read/write races in /proc entries")
+Fixes: 54c32021eb6f ("[PATCH] powerpc: Add arch-dependent copy_oldmem_page")
 Cc: stable@vger.kernel.org
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/proc/inode.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/powerpc/kernel/crash_dump.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/fs/proc/inode.c b/fs/proc/inode.c
-index b7634f975d98..9933f03ab9fb 100644
---- a/fs/proc/inode.c
-+++ b/fs/proc/inode.c
-@@ -466,6 +466,18 @@ proc_reg_get_unmapped_area(struct file *file, unsigned long orig_addr,
- 	return rv;
- }
- 
-+#ifndef CONFIG_MMU
-+/*
-+ * NOMMU never calls ->proc_mmap() for a regular file. It reads the file into
-+ * a private copy instead, with nommu_region_sem held for writing, which
-+ * reading /proc/maps takes as well. Don't map procfs files at all.
-+ */
-+static unsigned int proc_reg_mmap_capabilities(struct file *file)
-+{
-+	return 0;
-+}
-+#endif
-+
- static int proc_reg_open(struct inode *inode, struct file *file)
- {
- 	struct proc_dir_entry *pde = PDE(inode);
-@@ -559,6 +571,9 @@ static const struct file_operations proc_reg_file_ops = {
- 	.unlocked_ioctl	= proc_reg_unlocked_ioctl,
- 	.mmap		= proc_reg_mmap,
- 	.get_unmapped_area = proc_reg_get_unmapped_area,
-+#ifndef CONFIG_MMU
-+	.mmap_capabilities = proc_reg_mmap_capabilities,
-+#endif
- 	.open		= proc_reg_open,
- 	.release	= proc_reg_release,
- };
-@@ -572,6 +587,9 @@ static const struct file_operations proc_iter_file_ops = {
- 	.unlocked_ioctl	= proc_reg_unlocked_ioctl,
- 	.mmap		= proc_reg_mmap,
- 	.get_unmapped_area = proc_reg_get_unmapped_area,
-+#ifndef CONFIG_MMU
-+	.mmap_capabilities = proc_reg_mmap_capabilities,
-+#endif
- 	.open		= proc_reg_open,
- 	.release	= proc_reg_release,
- };
-@@ -586,6 +604,9 @@ static const struct file_operations proc_reg_file_ops_compat = {
- 	.compat_ioctl	= proc_reg_compat_ioctl,
- 	.mmap		= proc_reg_mmap,
- 	.get_unmapped_area = proc_reg_get_unmapped_area,
-+#ifndef CONFIG_MMU
-+	.mmap_capabilities = proc_reg_mmap_capabilities,
-+#endif
- 	.open		= proc_reg_open,
- 	.release	= proc_reg_release,
- };
-@@ -600,6 +621,9 @@ static const struct file_operations proc_iter_file_ops_compat = {
- 	.compat_ioctl	= proc_reg_compat_ioctl,
- 	.mmap		= proc_reg_mmap,
- 	.get_unmapped_area = proc_reg_get_unmapped_area,
-+#ifndef CONFIG_MMU
-+	.mmap_capabilities = proc_reg_mmap_capabilities,
-+#endif
- 	.open		= proc_reg_open,
- 	.release	= proc_reg_release,
- };
+diff --git a/arch/powerpc/kernel/crash_dump.c b/arch/powerpc/kernel/crash_dump.c
+index 103b6605dd68..1543917bd3e1 100644
+--- a/arch/powerpc/kernel/crash_dump.c
++++ b/arch/powerpc/kernel/crash_dump.c
+@@ -86,6 +86,8 @@ ssize_t copy_oldmem_page(struct iov_iter *iter, unsigned long pfn,
+ 		csize = copy_to_iter(vaddr + offset, csize, iter);
+ 	} else {
+ 		vaddr = ioremap_cache(paddr, PAGE_SIZE);
++		if (!vaddr)
++			return -ENOMEM;
+ 		csize = copy_to_iter(vaddr + offset, csize, iter);
+ 		iounmap(vaddr);
+ 	}
 
 -- 
 2.53.0
