@@ -1,59 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793783104;
-	b=WRe8gG67Q3WngQnkowVIvCie4bfXPnsXGK1JHkh7TRdEwT9dZK6wiu5GCIs34WB3UhhJ
-	 dp5kLLktng81jCyswhXKXmeOh2J3ZXP0QaGUg4ybmojuxKP5TxKRJ8qyUajFKdPDlnOz0
-	 ufhxwfFGJYh5F1ytClG5MRJwzOhbb8ANr0i93GCvIZHugGPpEp+ZMPOEdSqtP10Jlzd7b
-	 ZelMhJXNoFyasBUkf0cxHt3///7CWbTHcZIqTyfXFAA3f3M1daXXAamOSOrRePNoNHYT0
-	 prk0mHKd24hZzH3bYdo82HQ3B6lKleC0zyZaSvRnoSVh5SAJGIOgxqCOtdmXCnzoT5Q==
+	t=1793783351;
+	b=ywPorA+TCn4+qaDr8hVS+WAmHJelqii9/tdf+r8/XMdQMhrI2sQ2E9q5JXYQn7XJ7qLv
+	 kXy4uw7/oO005JhUTqON3EL5ms87Wirpo1i9gOtDW6lEvUVBwWcrG814YbUaAuE8Uaoyk
+	 gZx10UEMDXVuhX5hbs42JYGcR0HtEURisPzeaN1ky06YCHDSJr495HiWdvX2MiOc/0fz9
+	 8LcC8dcj0xkGboy0YV/IerTn+ibji7kel/9qdUrGgvrk+JeRXukYYUR69M9qn72kIsKFN
+	 4nLX+Q/uSZ/b93DD95Go5zPnMaRCGobNiaxBhuh2n8VBL/jNqDQRZ1PyE1NsvL+jFPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793783104;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793783351;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:Auto-Submitted:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
 	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	b=BeJ1+ZEVQLZEJsNPtmgSzO5kLlwOm5eGbYdwldVrJkWMBD6LdvYG4k50bS2S63RpCEJa
-	 pGjCY1v8umHd+sqmD9vC3Rl4AZmI2uPlmArE/hybPcAXm7QX4sDtDcEju0pcLfhvEHhas
-	 nG7ZGMMPwCbkf1pP8X6751AjcoPbWIAW2AbI9Rzta3clg4w+xdrHEDF07NsawQiSf1t/j
-	 eyUxIk0WSSMOsHV7Wqj9+O1ot/GpD/RuILAjPXq12EfZ3T310+GfHAseEWER5t6F48F7a
-	 ZkhYydgeZW3rGvF3CKBm0l+oABrkVifA0P9HfGr7CCRXZdJ6S078nbC0k2iFtrlZHyw==
+	b=pVhc/GWmam4S+Db8ucioq37lfjx4UvAKjNoevi2U+gYYNho9gcLECcE5W+clXF0Dch3Z
+	 TCBLGmUYAYB87DZlk+1iyyaXLTjEfi7ZHL4ygiyBVNIkWQlxTZU3r1hkqVDc2ET8MwMmM
+	 HH4iq5x/DaOaFhlqm7+Qht/YExdUbjDJieURVaUgzw2clbjjydUH1ZEdo4KrR3gy7/V3i
+	 9mPW2v8OwAwPKIHbrnCnVJQimAq4wor6UH6gtHbZ/5LAOgs3YLBxdjw9mBXdvsIU4UIYn
+	 0cYwnKRpvAX55WVg4QDbajrg4eEKcPOJ0hDW0J/x8pDkxonLCJmacPc4ch1Z4uiL3Ww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ogdohVTD;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XQoJ7B1D;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94335606A334;
-	Wed,  4 Nov 2026 09:05:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 327A5606A337;
+	Wed,  4 Nov 2026 09:09:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ogdohVTD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FC791F000C1;
-	Wed,  4 Nov 2026 09:05:03 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XQoJ7B1D
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F5571F00A16;
+	Wed,  4 Nov 2026 09:09:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793783104;
+	s=k20260515; t=1793783350;
 	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ogdohVTDI0cfEuN2qgFTmiIHWT648XiMpHfL/vIfvwvcjW/ZMN6GV6Q3gH7M2c3Hx
-	 QYC2Ou6ihYTksPvaOowqt3sKZpoWIARezoxtisraxJa4X6Ug29G/XpCDX4bxBQMCjq
-	 Q8sCaz4rPha57nBvBkyZogpyDaWfLbd6b7ZpvZxmJH0RvotFfqbr9a2hMGu7LlJKrN
-	 Fo9qhjSWleyAYz+IVcZMm1eHDD14j12KwR0qZeKatavv0u4phPHujqyoiIaNHYiA/I
-	 mWKqAtj/ixP2bp+Pcr27zxzXgYmKHWBqLVzk4sAf/Zj9FKe+4LjeHxDYZ6vNB5IffR
-	 beNkQe4w7v9SQ==
+	b=XQoJ7B1D1kOWsNZMCcaZwagivaRjUdWt2dgmGZEUdWuGM3HvAKfIn30D0LvtHvhPC
+	 x/1bMFGNKlGPYamKYQXV7+LFW91kcxKRBBDxTbDtDYJdkJRpxLsNgxNL4KHEvb3qhM
+	 zySgaTziTU2r7GL/NlUmGCzwZbdaNYh8IARSc7QmPnXjOdgvH1AGRBPuuYk1L/02u7
+	 Ch6AzJqptO5S574IwvUpTP3G57rqv4l1r0eadqcMuffaGTzJ9lGRYFC6XKQQd59cCS
+	 LErqw9PsBHZ3Ind7H3HcfRyuJfocKynDS4RcjqLO3A7RTGVm0RJWnv9gqJZxLm7QYP
+	 vCtBP88hS1ylw==
 From: netdev-bot+sinfo@kernel.org
-To: luoqing <l1138897701@163.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net 1/2] netfilter: conntrack: avoid secs-to-jiffies
- overflow in SIP helper
-Date: Wed, 04 Nov 2026 09:05:02 +0000
-Message-ID: <179378310288.488859.5501372329923288019@kernel.org>
-In-Reply-To: <20261104085925.773471-1-l1138897701@163.com>
-References: <20261104085925.773471-1-l1138897701@163.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net 01/13] netfilter: nft_reject: prevent unbounded
+ recursion in output hooks
+Date: Wed, 04 Nov 2026 09:09:09 +0000
+Message-ID: <179378334968.488859.12612038847819403251@kernel.org>
+In-Reply-To: <20261104090224.750548-2-pablo@netfilter.org>
+References: <20261104090224.750548-1-pablo@netfilter.org>
+ <20261104090224.750548-2-pablo@netfilter.org>
 Auto-Submitted: auto-generated
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
