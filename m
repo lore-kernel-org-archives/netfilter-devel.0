@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793782970;
-	b=TWWhDAjNXTZsXPcWhKJQ+LEaX2azSPec6jrjuJ+hSCBvXLGJqVSQ9jDt3qgke4LACE+w
-	 2Pr2gBLypKpPWr27Ji+mJ5ivGdH61Jek4K9xNvJMld62WMLsogOOStE+t2KLOP/AJ+Q4M
-	 VIJWdGw5HjVgEjme6GKZ8IaTY+8wA1rcbuVfYdzxB4CftgFsAA3evnV57DOiBeatnN/oh
-	 hqkYSwPrk0aA771TrrtQShCLi+F8FTEpcWaUPwZ7Ll5+47qih4upZnH55oNF9MP5PF6sc
-	 7jkRnFpr4m4d+CVSrtwTkwUF5qdwTj8h44qnXiewQ6gX9Q06wqXFZzwxuzGNxwfTrVA==
+	b=xIH5q66hbJUbl1LLDRFrDG2ADdKdqCQzHa0g5DGo3IBdBmP6VSMSYJF+fVezHwowROaf
+	 iL68KJtg3XErw6dnx/TwfCWhtEJ6fgeYFEfWcXABCMueoBQeFRI9sNWAuV9QgTT57mrBg
+	 LbvzlmxJSurrXVuLU3DEvooe5e4jheaB5+505bVZhYi9mgXWNmkEAymJTkKlwKKy/3pE5
+	 Qx3aGapJLmU82SOFJL1qcR4m2C8HBTx+iVf9l7oNryXIok/2GaGZEDZR9KoFvrpH7oCzn
+	 YbfXH2HhAGj1qxBZIXEJcFEX8z9b23idPz7HRUvtQc0F0bzjl7o2eQQoUhZFwdu7B6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793782970;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
-	b=uzEjkvZ0haf+KDJx9GekIG6sNh5smh1H81uAmcosiUMjGv6MRYnF6yEkITuYc+ra8BKg
-	 +cLnK/Tmgd+do/4I4VFfA6mISGn9cKCaaZ9isgSzObQqxxk1pUn6Q51RoywIS+SvrtUtQ
-	 5jWcB7RAIJR9Rf9zDCYpBP41+9ptzVqCC8ZzDR4jsX096mdHi23bv6BxFKyq2gtT5Upq0
-	 eLAsK72zgxrqW6Yfn4nMYrXq2mWpwuyysr39wZvs8QuPZIpID+ll1PQRwiIQHT0Yl4nAG
-	 jNcrWtNaMckFTeCMian3/YWqaOdL5ZsTDtBddy3z8n2kDeZAW87YkfXaueAuqNiA/Kw==
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
+	b=DbEhA8C9mbN1NbID3oasD8shAHwrP3VmvdqiFGL75nnWAKiOjtzQ6H917Pggu9MAQGNI
+	 Yux8vC6rxwtFzOEtO7n5KtouiC/kp2+I0QuLg++/h7BzJg+pXw4VBwSx/fnRNUppBG+QY
+	 y0glJGPUenqMq80SpvAkjN3O5p81D29tcXvP3cpuPAnoP8RwZaXT97UojhEeorgojlwZ3
+	 r+7g5V29hcLvFCWDiEJi8hNk5VQmNpdwKAWiVT2eg1eFUnmFV5aWhL4rxcr9wqCo/3eo2
+	 mlbG6FY0Re5pVBnqFg6y/N0zvq/hipAct8GbFRvj8KTyqjTK2tapW6BVdIFwDLlmf2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="Wb4yHY/m";
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SNZowZtm;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77F6606A33B;
-	Wed,  4 Nov 2026 09:02:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D77F6606A33B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A89606D83F;
+	Wed,  4 Nov 2026 09:02:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18A89606D83F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Wb4yHY/m
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SNZowZtm
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793782957;
-	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
+	s=2025; t=1793782968;
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Wb4yHY/m0X+AwkYMtxGKmL+drCpxCKwv9WsTWhPsKHjrSmbJecYeQbFiHFZHX79Fy
-	 wJk+0hJYEPxEIgiMghf/bR54dJCr/Lx9rqIM2nZwN53wB9AUBYkTPXyUhhZaWJlomI
-	 IeQy4xVNPK+ijvC0cYRDJiPEMzauaSFXd/d5cHLxo5Gqlx4ryfLQzaV7zmD85OER2B
-	 e1s3RPuHCsKjXbgqVt85wYZMo1VPlwGvdikq8w0Bju2q95aeDdwwLOmo4ToRHYbwBy
-	 ozi9vHXd07LaK0VoKM/39Utj3k+817S06WHjjp2jHXhC2wsaJuSmEn5uLMLpdFBD+s
-	 XDB1bQHoikrkA==
+	b=SNZowZtmw7PK4J7Fk5ZI/pi2aEqvB7W9RE2SOFE8MpeBcsfITB1hl5lxVLB3rMPjr
+	 Q6abWOIEUj0Yhm4yLpkJgHmfkAk3I49E88raPVSaF66cb7+pp2E+Xsl8HMu8JeGUB/
+	 4O+Cd9YPUUE8DJ1ELHdIX5oEdgJPoKi1bNNvYYyVshZ8AeyhHn0WCrnooEglZowQMv
+	 MSp0qvhwW5/vKfkLrJPpzL7QJkoknI5k1k9TTs4KTi8/CIQo3u5yQEXf/K1HBNhILf
+	 Pi/KfO+cxgGvxcIRWPjMH9NIcJj8aNHM8/mVwoOZYl5r40L+yLtCOEtwvnXrlhcPKD
+	 mYfm7FDSCUrhw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E10D360088;
-	Wed,  4 Nov 2026 10:02:36 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 086296008A;
+	Wed,  4 Nov 2026 10:02:47 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 03/13] ipvs: fix protocol data lifetime during namespace teardown
-Date: Wed,  4 Nov 2026 10:02:14 +0100
-Message-ID: <20261104090224.750548-4-pablo@netfilter.org>
+Subject: [PATCH net 12/13] netfilter: xt_recent: do not call remove_proc_entry() under recent_lock
+Date: Wed,  4 Nov 2026 10:02:23 +0100
+Message-ID: <20261104090224.750548-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261104090224.750548-1-pablo@netfilter.org>
 References: <20261104090224.750548-1-pablo@netfilter.org>
@@ -73,90 +73,80 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: "Cen Zhang (Microsoft)" <cenzhang@linux.microsoft.com>
 
-IPVS frees its per-net protocol data before control cleanup cancels
-defense work and unregisters the sysctl table. A defense worker can load
-a protocol data pointer, then namespace cleanup can unlink and free that
-object before the worker dereferences pd->pp or pd->next. The worker's
-securetcp_lock does not serialize with protocol cleanup. A concurrent
-defense-mode sysctl write can reach the same timeout update path.
+recent_proc_net_exit() removes the /proc/net/xt_recent/<name> entries of
+a dying network namespace while holding spin_lock_bh(&recent_lock).
+remove_proc_entry() may sleep: proc_entry_rundown() waits until every
+task that is still inside the entry's file operations has left. A reader
+of such an entry is counted in by proc_reg_read() before
+recent_seq_start() takes recent_lock. So if a read is in flight when the
+namespace is torn down, cleanup_net() sleeps in atomic context holding
+the spinlock that the reader is spinning on, and neither side can ever
+make progress.
 
-KASAN reported:
+An unprivileged user can trigger this from a user namespace by adding a
+rule with the "recent" match and reading its proc file while the
+namespace is being destroyed. As recent_lock is global, every later
+attempt to take it spins forever too: the spinning can spread to all
+CPUs, and network namespace teardown stops system-wide.
 
-  BUG: KASAN: slab-use-after-free in ip_vs_protocol_timeout_change
-  Workqueue: events_long defense_work_handler
+  BUG: sleeping function called from invalid context at
+    kernel/sched/completion.c:116
+   #3: (recent_lock){+...}-{3:3}, at: recent_net_exit+0x2b/0x140
+  Workqueue: netns cleanup_net
   Call Trace:
-   ip_vs_protocol_timeout_change+0x1b4/0x1e0
-   update_defense_level+0x63e/0xd80
-   defense_work_handler+0x1e/0xc0
-  Allocated by task 125:
-   ip_vs_protocol_net_init+0xda/0x2f0
-   __ip_vs_init+0x16b/0x240
-   setup_net+0xfc/0x310
-  Freed by task 12:
-   ip_vs_protocol_net_cleanup+0x1d6/0x2e0
-   __ip_vs_cleanup_batch+0x7d/0x100
-   cleanup_net+0x38c/0x770
+   proc_entry_rundown+0x185/0x1b0
+   remove_proc_entry+0x21a/0x520
+   recent_net_exit+0x7f/0x140
+   cleanup_net+0x414/0x8f0
+  ...
+  rcu: INFO: rcu_preempt self-detected stall on CPU
+  Call Trace:
+   queued_spin_lock_slowpath+0x313/0xc20
+   recent_seq_start+0x87/0x1b0
+   seq_read_iter+0x265/0x11e0
+   proc_reg_read+0x1ab/0x270
 
-Run control cleanup before protocol cleanup so that defense work and
-active sysctl handlers have finished before their protocol data is freed.
-Initialize protocols before exposing the control interface, and unwind
-in reverse order, to enforce the same lifetime on initialization failure.
-Protocol initialization and exit do not depend on control state.
+Fix by taking recent_mutex instead of recent_lock. According to
+commit a0e889bb1bdc ("[NETFILTER]: recent match: fix "sleeping function
+called from invalid context""), recent_mutex is the lock to use here: it
+protects recent_net->tables and was introduced so that proc entries are
+created and removed without recent_lock held, because those calls may
+sleep. hashlimit_proc_net_exit() does the same for xt_hashlimit.
 
-Fixes: 9330419d9aa4 ("IPVS: netns, use ip_vs_proto_data as param.")
+Fixes: 665e205c16c1 ("netfilter: xt_recent: fix namespace destroy path")
 Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Cc: AutonomousCodeSecurity@microsoft.com
+Signed-off-by: Cen Zhang (Microsoft) <cenzhang@linux.microsoft.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/xt_recent.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index fd503f0efb57..8a3c880fdb26 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2502,12 +2502,12 @@ static int __net_init __ip_vs_init(struct net *net)
- 	if (ip_vs_estimator_net_init(ipvs) < 0)
- 		goto estimator_fail;
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 55f1f2d89952..00cccf003cff 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -650,14 +650,15 @@ static void __net_exit recent_proc_net_exit(struct net *net)
  
--	if (ip_vs_control_net_init(ipvs) < 0)
--		goto control_fail;
--
- 	if (ip_vs_protocol_net_init(ipvs) < 0)
- 		goto protocol_fail;
+ 	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
+ 	 * that the parent xt_recent proc entry is empty before trying to
+-	 * remove it.
++	 * remove it. Use recent_mutex instead of recent_lock since
++	 * remove_proc_entry() may sleep.
+ 	 */
+-	spin_lock_bh(&recent_lock);
++	mutex_lock(&recent_mutex);
+ 	list_for_each_entry(t, &recent_net->tables, list)
+ 	        remove_proc_entry(t->name, recent_net->xt_recent);
  
-+	if (ip_vs_control_net_init(ipvs) < 0)
-+		goto control_fail;
-+
- 	if (ip_vs_app_net_init(ipvs) < 0)
- 		goto app_fail;
+ 	recent_net->xt_recent = NULL;
+-	spin_unlock_bh(&recent_lock);
++	mutex_unlock(&recent_mutex);
  
-@@ -2527,10 +2527,10 @@ static int __net_init __ip_vs_init(struct net *net)
- conn_fail:
- 	ip_vs_app_net_cleanup(ipvs);
- app_fail:
--	ip_vs_protocol_net_cleanup(ipvs);
--protocol_fail:
- 	ip_vs_control_net_cleanup(ipvs);
- control_fail:
-+	ip_vs_protocol_net_cleanup(ipvs);
-+protocol_fail:
- 	ip_vs_estimator_net_cleanup(ipvs);
- estimator_fail:
- 	net->ipvs = NULL;
-@@ -2547,8 +2547,8 @@ static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
- 		ipvs = net_ipvs(net);
- 		ip_vs_conn_net_cleanup(ipvs);
- 		ip_vs_app_net_cleanup(ipvs);
--		ip_vs_protocol_net_cleanup(ipvs);
- 		ip_vs_control_net_cleanup(ipvs);
-+		ip_vs_protocol_net_cleanup(ipvs);
- 		ip_vs_estimator_net_cleanup(ipvs);
- 		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
- 		net->ipvs = NULL;
+ 	remove_proc_entry("xt_recent", net->proc_net);
+ }
 -- 
 2.47.3
 
