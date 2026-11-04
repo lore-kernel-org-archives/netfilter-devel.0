@@ -1,68 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793782843;
-	b=cQNkyFPuqsRs2jhM0SkraNVF/6TPT+OxoO7IJF0TpKFEoUtEMPwfcMN18zCNx7GapmU0
-	 fgUC8JSYVnDXETZIPJUp+hoccusEQJ7mrosj8daMNkcz27iiMQZrHOgbh9lhcCmBQdRYg
-	 RU1Sqz7/pWuHrd4V4H9S26JX7rZAoG3QRk5KVMuBXqKsVBeliFY+jA1bjQOg9HLZlFq5L
-	 ZQdjej8df8srvY2PU+FXOHUwx+C6q+CDSQ7ldCWx77Yot0nQYapC5mYfBunVjH5AfjiA4
-	 57ZcFVEY3+EWoNnCKh0yJrN9OH5KNAVMt0tbW/DzNm1zu2ldcQ0rov526OFpVNVVABg==
+	t=1793782962;
+	b=D08tS55CrLuCbJcg2VF96EaAW/K61jGZ/mXsz5uFMXBMDcYfPupU7I1lyylHKubFtd2E
+	 9c5RQ6PrTA7x/pZnvYQWD/sqezKOJfWltmHAu6ibMBFK70dpA6hj4emHfIDCCoD/IjQ+Z
+	 3lVuUWMVPAHGIgXdDbfDpH0x3gxa9eNtEd7eC9dOs/f5AiWAU4hWKIsGQuQ3vvreLbJio
+	 Cgn6YrZKqnvmZl+ai0X5RjHOemoaksmp9SI49IyMXge08bBpGAKEQAiRW42tGE/+GCUKy
+	 kPJwg7SXZxStHzI31fs3smOVaoASwn8muMwZwRsbhR0vrUZKzDSfvS545MDGBtba+mw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793782843;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793782962;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:
-	 X-CM-SenderInfo;
-	bh=8H9Y/J3F3inFdF+nnaPoG+JnVtlCMIQn9GwvVhWehH4=;
-	b=DEvgEyVE6qSFeqOfwkxa/Wdzmc+k+wdlY/qOSawjiSWQsxGO5Y5hLSmrOVc/0c2wUtxU
-	 oM+zq2vmrfPXU1Nc3153i2nicnbhhTn8Hq9o6pACFP18uEJLfkVavBkitvWWMOV/rk0kb
-	 SMtS8R0frmi6/Eg5o6UBVa5rlAVjFImL918Rxaa1c2rULvtoKrMSl/s8V6e8ub8XopbEk
-	 r4MMmfDOBck/30gDUoOO9g5/E+ubUKhlHn/xeXAJ/FjBz8DLoXJ4OAfZvAm1537y80Q33
-	 AoYfEEhgtcwcsbL/fWQZeQ7Gb31nkKGkADzvQ92PyBKsLFM4IAKQcyNHu6oyzBVO+7w==
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Spam-Status:X-Spam-Checker-Version;
+	bh=GTxT/20Qc2969O2nV6qvd8EoaHo8CyrPGUWwInAaeyA=;
+	b=hh67PQacyQwQQtKvaSl0LVlXCunrWjqRBmyh7VPJubvJ1QDVvSOHXoEfz/8CbTSV88PS
+	 q5cBhpXp/dVactL7ds2X1GsPJqdc5BzEqQlz9uE6PTsdjjzbZHgx8vggcV57B6B2JFWRn
+	 CYaoO9aVQoWnKCv6tUKBDc+GV6edxFkSMes6p4PrpcWxaJmqfnj0u7PDRi9xOyJ9qTiay
+	 oiBPetlWs+UNyh58LkqhrtWnHpn704sSAeCdazkuZYCpnUdANV/msmPuQ5ELgq2ytFSGw
+	 xOTJFkCQ4MuNuw9aWrns/6er/6imNn6SU41mT2Bp0m7QN2oeqPqj7WgdTSFCJLCbUyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hgxgTSLT;
-	arc=none smtp.remote-ip=117.135.210.4
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=O4wtIEiM;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1627B606A326;
-	Wed,  4 Nov 2026 09:00:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1627B606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07431606A328;
+	Wed,  4 Nov 2026 09:02:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 07431606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hgxgTSLT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=8H
-	9Y/J3F3inFdF+nnaPoG+JnVtlCMIQn9GwvVhWehH4=; b=hgxgTSLTlOtbH4xmAG
-	UeEOUQSBj435U8QuDQbvp/AilR1VxktQgQTbB1JtnGkr4KZz+ReyynSkkcol3t0M
-	R5BsH7TFN2gGTi6Vcyuvep1BXu5g4ZEEDcxF6KTXaKD2BHf0+5KDmbCBkXG6kKnc
-	x55727gvJ4Rw/u4ir71dpvkS8=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgB3LJju8+pqEDm4Dw--.32829S3;
-	Wed, 04 Nov 2026 16:59:27 +0800 (CST)
-From: luoqing <l1138897701@163.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=O4wtIEiM
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1793782952;
+	bh=GTxT/20Qc2969O2nV6qvd8EoaHo8CyrPGUWwInAaeyA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=O4wtIEiMF/ovYc1Dne66D3v/7pR+rr1s5UldJzkNQCfUzkiDsYltU4oMtJKHt042G
+	 elV1caP3T4cga0afXHp6KV7UwTv40Yxj06iwp31C04pzzgTS25nKXEj5RmwREmgW45
+	 ov6Kzi0m1LyYVa8uWPICRrq+2CNX2c8DKQbqyJuImnNFTdL7d20/u1xSsnptpMsnFX
+	 hmPMEEMcf9jXM/UV7lVOvwo01vHwxcuCGP0o22B55ibBi9V7ybX1iw3rDg0pjHHgD5
+	 6528mPnQ6+1qECjoWdxlH4/0I0lOVqzIfdqL4a66Lk7ltkGHmaBijT+WhfODCZEMp0
+	 YlmV+8ZJ0r0AA==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 086C36007D;
+	Wed,  4 Nov 2026 10:02:31 +0100 (CET)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net 2/2] netfilter: h323: avoid secs-to-jiffies overflow in RAS timeout
-Date: Wed,  4 Nov 2026 16:59:25 +0800
-Message-Id: <20261104085925.773471-2-l1138897701@163.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20261104085925.773471-1-l1138897701@163.com>
-References: <20261104085925.773471-1-l1138897701@163.com>
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@kernel.org,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net,v3 00/13] Netfilter/IPVS fixes for net
+Date: Wed,  4 Nov 2026 10:02:11 +0100
+Message-ID: <20261104090224.750548-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -73,70 +70,144 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgB3LJju8+pqEDm4Dw--.32829S3
-X-Coremail-Antispam: 1Uf129KBjvJXoW7CFWrXF18Gr1kZryUJw4rAFb_yoW8Kw1xpF
-	W5K3srKw4xJr4Yk3Wvk3WkAF4DXw4fGF45Crn8KayrCwn8Jr1v9FWFk3s2ga47trs3Xr43
-	ZF4jqw17G3W0yFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j1PfQUUUUU=
-X-CM-SenderInfo: jorrjmiyzxliqr6rljoofrz/xtbC3Q+N0Wrq8+9HUAAA3F
 
-From: Qing Luo <luoqing@kylinos.cn>
+v3: keep back two patches in the series with sashiko reports that
+    suggest they need a bit more work.
 
-process_rcf() converts info->timeout with "* HZ" twice, once for the
-conntrack refresh and once for the Q.931 expectation, both in 32-bit
-arithmetic.  info->timeout is a u32 decoded from the ASN.1 timeToLive
-field and only checked for being non-zero, so it is remote-controlled
-by both the endpoint (RegistrationRequest) and the gatekeeper
-(RegistrationConfirm).
+-o-
 
-With the signed expiry test "(__s32)(ct->timeout - nfct_time_stamp)
-<= 0", a timeout of 2147484 seconds (24.9 days) at HZ=1000 is born
-expired, and 4294968 seconds wraps to 704 jiffies.  The RAS connection
-therefore drops mid-call, or the Q.931 expectation stays pinned for
-days after the peer is gone.
-
-Reuse nf_ct_secs_to_jiffies() for both conversions and compute the
-value once.
-
-Sweeping all 2^32-1 inputs at HZ=1000, the helper never wraps, never
-yields a value that reads as expired, and matches the old expression
-up to INT_MAX / HZ; objdump shows the two 32-bit "imul $0x3e8" in
-ras_help() replaced by a 64-bit multiply plus cmp/cmova saturation.
-
-Fixes: f587de0e2feb ("[NETFILTER]: nf_conntrack/nf_nat: add H.323 helper port")
-Cc: stable@vger.kernel.org
-Signed-off-by: Qing Luo <luoqing@kylinos.cn>
----
- net/netfilter/nf_conntrack_h323_main.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 4cb1665bba02..5e900037fa6f 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1375,9 +1375,11 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 	}
+Hi,
  
- 	if (info->timeout > 0) {
-+		u32 timeout = nf_ct_secs_to_jiffies(info->timeout);
-+
- 		pr_debug("nf_ct_ras: set RAS connection timeout to "
- 			 "%u seconds\n", info->timeout);
--		nf_ct_refresh(ct, info->timeout * HZ);
-+		nf_ct_refresh(ct, timeout);
+The following batch contains Netfilter/IPVS fixes for net, this batch
+addresses LLM findings, several of these fixes has been reproduced by
+syzbot:
  
- 		/* Set expect timeout */
- 		spin_lock_bh(&nf_conntrack_expect_lock);
-@@ -1388,8 +1390,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 				 "timeout to %u seconds for",
- 				 info->timeout);
- 			nf_ct_dump_tuple(&exp->tuple);
--			WRITE_ONCE(exp->timeout,
--				   nfct_time_stamp + (info->timeout * HZ));
-+			WRITE_ONCE(exp->timeout, nfct_time_stamp + timeout);
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
--- 
-2.25.1
+1) Add recursion count to nf_reject infrastructure to prevent stack
+   overflow, from Fernando F. Mancera.
+ 
+2) Use kfree_rcu() to release IPVS parent application to fix UaF,
+   from Chengfeng Ye.
+ 
+3) Fix UaF in IPVS netns removal path due to releasing per-net protocol
+   data too early, from Chengfeng Ye.
+ 
+4) Fix unbounded growth of stale, unmatchable IPVS connection entries,
+   from Julian Anastasov.
+ 
+5) Preserve recursion count on nfqueue reinjection, from Zihan Xi.
+ 
+6) Restore GRE timeout in the flowtable, otherwise, WARN_ON_ONCE()
+   is reachable, from Michail Andreas Michalopoulos.
+ 
+7) Check non-null gc transaction in nft_rbtree before queuing it for
+   processing, from Xingyuan Mo.
+ 
+8) Replace WARN_ON_ONCE() by DEBUG_NET_WARN_ON_ONCE() in
+   nf_conntrack_bridge which is reachable if the protocol of the tag
+   of a frame differs from the vlan_protocol of the bridge.
+   From Laveesh Bansal.
 
+9) Check x_tables target name is non-null before accessing it when
+    building a new table, from Fernando F. Mancera.
+ 
+10) Fix out-of-bound memory read in nf_conntrack_sip, from
+    Joas Antonio Dos Santos.
+ 
+11) Fix a memleak in nf_tables hardware offload when double deleting
+    the same rule, in the same batch.
+ 
+12) Use a mutex in xt_recent netns exit path instead of spinlock,
+    since proc unregistration might sleep. From Cen Zhang.
+
+13) Zero the nf_nat_range2 struct before filling it up, to avoid
+    using stale uninitialized stack data to configure NAT with
+    an esoteric NAT flags combination. From Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-11-04
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit cb284914e749388eef402938bdb3115fe1f6d337:
+
+  net: ipa: Fix double free of the interrupt structure on config error (2026-10-30 19:04:37 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-11-04
+
+for you to fetch changes up to ec993b526a3114f6c3cdd21cb2b148986370361e:
+
+  netfilter: nat: zero newrange before filling it in (2026-11-04 09:48:34 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 26-11-04
+
+----------------------------------------------------------------
+Cen Zhang (Microsoft) (1):
+      netfilter: xt_recent: do not call remove_proc_entry() under recent_lock
+
+Chengfeng Ye (2):
+      ipvs: Defer application parent freeing until after RCU readers
+      ipvs: fix protocol data lifetime during namespace teardown
+
+Fernando Fernandez Mancera (2):
+      netfilter: nft_reject: prevent unbounded recursion in output hooks
+      netfilter: x_tables: check target name before accessing verdict
+
+Florian Westphal (1):
+      netfilter: nat: zero newrange before filling it in
+
+Joas Antonio dos Santos (1):
+      netfilter: nf_conntrack_sip: fix OOB read in ct_sip_parse_transport()
+
+Julian Anastasov (1):
+      ipvs: do not create conns from packets with port 0
+
+Laveesh Bansal (1):
+      netfilter: bridge: use DEBUG_NET_WARN_ON_ONCE in nf_ct_bridge_refrag()
+
+Michail Andreas Michalopoulos (1):
+      netfilter: flowtable: extend ct timeout of offloaded GRE flows
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
+
+Xingyuan Mo (1):
+      netfilter: nft_set_rbtree: check catchall_sync return before queue_done
+
+Zihan Xi (1):
+      netfilter: nf_dup: preserve guard across NFQUEUE reinjection
+
+ include/linux/netdevice_xmit.h             |  4 +--
+ include/net/netfilter/nf_dup_netdev.h      | 35 -------------------------
+ include/net/netfilter/nf_queue.h           |  1 +
+ include/net/netfilter/nf_recursion.h       | 42 ++++++++++++++++++++++++++++++
+ net/bridge/netfilter/nf_conntrack_bridge.c |  2 +-
+ net/ipv4/netfilter/arp_tables.c            |  5 ++--
+ net/ipv4/netfilter/ip_tables.c             |  5 ++--
+ net/ipv4/netfilter/nf_reject_ipv4.c        | 12 +++++++++
+ net/ipv6/netfilter/ip6_tables.c            |  5 ++--
+ net/ipv6/netfilter/nf_reject_ipv6.c        | 13 +++++++++
+ net/netfilter/ipvs/ip_vs_app.c             |  2 +-
+ net/netfilter/ipvs/ip_vs_core.c            | 15 ++++++-----
+ net/netfilter/ipvs/ip_vs_proto_sctp.c      |  5 ++++
+ net/netfilter/ipvs/ip_vs_proto_tcp.c       |  5 ++++
+ net/netfilter/ipvs/ip_vs_proto_udp.c       |  4 +++
+ net/netfilter/nf_conntrack_sip.c           |  4 +--
+ net/netfilter/nf_dup_netdev.c              |  1 +
+ net/netfilter/nf_flow_table_core.c         |  1 +
+ net/netfilter/nf_nat_masquerade.c          |  4 +--
+ net/netfilter/nf_queue.c                   |  1 +
+ net/netfilter/nf_tables_api.c              | 21 +++++++--------
+ net/netfilter/nf_tables_offload.c          |  3 +++
+ net/netfilter/nfnetlink_queue.c            | 17 +++++++++---
+ net/netfilter/nft_fwd_netdev.c             |  1 +
+ net/netfilter/nft_set_rbtree.c             |  3 ++-
+ net/netfilter/xt_NETMAP.c                  |  4 +--
+ net/netfilter/xt_recent.c                  |  7 ++---
+ 27 files changed, 145 insertions(+), 77 deletions(-)
+ create mode 100644 include/net/netfilter/nf_recursion.h
