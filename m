@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793820860;
-	b=QO+KDV9/JEYtMqhhsBEhh198aPKHBkfZqEZCk9HHWIIe+SDm3dga6oI43zZhotoagQ24
-	 fSwB0GmIptvUOyAFU8hLh7MXiWrQVLz03z2vzBYT/GiQ6/U8qXufudiPrucnG2XnERy5j
-	 s6iqJGBL4kM81m9co/IiQKJ7TK6sWLh39guIZlMNEAiwzO5xiGGt1uRbkcj7yqjsT5uLY
-	 uQCSvpctCS4UFIiGj0JivGrDp0KSVCuuWDMKqrNQWnZZ/NocqwYazbBhl/aURVTYEvkkn
-	 v5ftumZQM2vsvtAcfhzxbUzz7GDU3oIgXEydUZZ6DzS1GDtOFY80X8PsuM1/FWyyrvA==
+	t=1793820889;
+	b=SRJkIYHOkgdVsd1n0YqKbaR0a6rvaD3PDlEsbhpKcDNBUh51snH/ch5Dfdijg8pb4/n+
+	 OK5Ema3xGn4bLnr2Q7PbG4M4sq2iOGlM39hQNtenwbarOQf2ASdONS8gBUgvL8yWTNwKm
+	 mjzQuIur+Oc71ffVneKiFvqg1AmFL/TD7Ov6luWkZy8mbZH1+plx7XTyulMFr3vPpMFfF
+	 lMYrS5LaAoFT30orp5DJnShxLUAEOl3WHp3ChJWDUaAKV1lkrXIByUe+00vGYTKu2yNjP
+	 1zWi/dQytfY5Czcqwb2nUr4zYrhUdyP18jzSjOmKu8HdDEaU+iCZ8509vJTF+WIO3BA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793820860;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793820889;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=XPRk8xa2iNqVsjjcUeI0mWPc+8Y/qNwvFsdP9QcHm+Y=;
-	b=INv6CAvfcDL9tL0tBubmouI8P585iiqN7jEfBBiPAIsYD5FDqzQvCDbbj/svpAP/2okW
-	 8Qsy9o5uksZwDa8nbQciIv3lC5qi794qwTDAvPwbhvT3VRS3OXQ7x1aAvMVp66QMOyfhn
-	 TCXM9r72J/P5XL/D0+FZiOWXh5C8UBbJTjjl1ZzD57SPCx+u/tJJaAmVDobKkAeuaC77q
-	 LpwDC4Mz2BTWMzjtNbwTmQe51MZN0y+zZ0aTZshAXhxHonMqOZWrmt1wuPfummUNkEXxN
-	 wQ+9Y13/tVIVXi13hWpxHvWiQQ77riXW2hO3dslQEE64pQRALLVxFVUjOSx6r/KUgeg==
+	bh=G9DC8SgYv8JZwVHB1+A9JWaJc/Eq4lIEWGkaNZA+NZo=;
+	b=ePy0nXB/txYkBP4NCMLqw+Nr8sbtD+xoUsAqT8BzxMfWtFLQpLk7+87YIU0fQ+Aqk0JJ
+	 bdfDyxk/qrvS8yo8Ix35LnorouTv6bYDNY3dyKAvAhp9CEIl5FQZ1HIClSvuJXwYro0XF
+	 SuUXvJKGGdzqp9cvneUSGtX7hKZcFvdj9raYMUmybFtRu4LRehfBxDSP4IY/tWzFtW1zZ
+	 WIHs6Gn3uxrgXzCzdQwOoV4KkCc2ReO/OEjz6QgDekw8ldO6MFg+iGe5ynUZbdOJogsDb
+	 pAQO0ApvuLUc9lj9QG1lXolnGXXo4QezGNK+i7AhslCgTbFbrqlQGPVNxiyil0aQiLQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UNhMpYi9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bT3xqh2f;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B403606E813;
-	Wed,  4 Nov 2026 19:34:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C44A606E813;
+	Wed,  4 Nov 2026 19:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UNhMpYi9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EAED1F000C1;
-	Wed,  4 Nov 2026 19:34:07 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bT3xqh2f
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E851F00919;
+	Wed,  4 Nov 2026 19:34:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793820859;
-	bh=XPRk8xa2iNqVsjjcUeI0mWPc+8Y/qNwvFsdP9QcHm+Y=;
+	s=k20260515; t=1793820888;
+	bh=G9DC8SgYv8JZwVHB1+A9JWaJc/Eq4lIEWGkaNZA+NZo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=UNhMpYi9iBi3sSb8K6vRL3AVudJYWbzQuMGR/ICND1KoaHjOskUuqvumDcfcjfd6K
-	 ijYufZXYFtMMXKypD4aHqfrjcDJ5P9E7mGA88Bbc5XKwZS4J2G6bgAUbtjzgydCj5c
-	 CMbGq978DMlUEIVBNwLUkmICilkcpIuILUWlDTO9oBqCop6Q2rT2BrBKj9tSMvpI5f
-	 mIfr0sAmHMehrxEf8R1Vxd1nxFT9mY8+v+LmVChZXn8FLaY6Ek9gVtZVyHvJ7Cd5NB
-	 lpPZDeCXrjw4w6xWu6pGAbvluUnAnWZKtALorygHi4AAnDmt2IczUeBmgec1AG7dqW
-	 U2/sWDkdd6LGA==
+	b=bT3xqh2fiiofbmQxyJSDAil8oMSPyPdR9Pknc1Ow/A0g14DNyuGJKGS2zSkiyez6r
+	 Cn6rfcvoIVqfNukawCMtK46oBLSRftmHazuw8UgESfV95zpSeehBR4G40ovtdEYgkG
+	 tDDikyyc2mjIuYMytPflhdl0H6hJwOF3Erv/hhKv19GUGdXyMuZYo0eOjO1TdZUSh1
+	 25h8ovGAtccgwzwnnEh3LOCjSML+Cd1N2fHfbAbYnxkF/+nY1QsKnLwGV0oVjfXZzV
+	 IlF0aAUYGoDzGORYf/U02Bf6eEB+GNHNu/IwNYiVkLCivWqYCFOxsroxZZwYEVl20R
+	 faA09Esmdp6qA==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -100,9 +100,9 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
 	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 20/23] selftests/proc: check that a mapped entry can be removed
-Date: Wed,  4 Nov 2026 20:34:05 +0100
-Message-ID: <20261104-work-procfs-core-v2-20-76ace653a773@kernel.org>
+Subject: [PATCH RESEND v2 22/23] proc: own the wait queue of an entry with a ->proc_poll()
+Date: Wed,  4 Nov 2026 20:34:34 +0100
+Message-ID: <20261104-work-procfs-core-v2-22-76ace653a773@kernel.org>
 In-Reply-To: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org>
 References: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -116,227 +116,326 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6487; i=brauner@kernel.org; h=from:subject:message-id; bh=jPDbXGY4cbCvO3GA1X2/Ctdyj/e7Mw7ZeqOfGQfxULg=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bu/8xLCt3Udlh9rJxEtBLOuvKWxb7B30qu+8xJIGm /Db96fUd5SyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwkQ4mR4fwquSyvtz3Ne746 HTn1fX1AAaOl3YVTD7n+Heo0WvX+kQPDfyf/Xm+TiXFyJoacvlEsv149+Fb4tz9xPvfn/NiLR3d aMwAA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=12427; i=brauner@kernel.org; h=from:subject:message-id; bh=vzjlvWReC1JzW9p8OtWxguJhKyglGFnLjXIhSpCi/t0=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bu/htNRf8LXv7Y7LfYm7JWRTF2SskzhXVsrKs1P33 gcj0W3zO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACaiO4mRYbvAusx9ZZq/L37u ul9w8cGUDfVTFarqOtNCqi8evtulvYSR4bNG+Z/g2OsSqz/4rzwcsfvBGruoS8ETX/Z67TtQHDf FnhUA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-Map a memory BAR of a PCI device through /proc/bus/pci and remove the
-device through sysfs:
+An entry with a ->proc_poll() calls poll_wait() on a wait queue of its
+own and procfs pins the entry around that. The pin covers the call, not
+what it leaves behind: the poller stays queued on the entry's queue
+after the call, and so after remove_proc_entry() ran ->proc_release()
+on the still open file and the entry's owner freed the queue with the
+rest. sunrpc had the queue of its channel files in the per-namespace
+cache_detail, which is freed when the namespace goes, so a poll() or
+epoll on such a file across the end of the namespace was a
+use-after-free, fixed for stable by going back to one static queue. md
+works around the same problem at module unload by waking its pollers
+in a loop until none is left.
 
-- the removal doesn't wait for the mapped file
+So do what kernfs does with kernfs_open_node: procfs owns the wait
+queue. Every entry with a ->proc_poll() gets an open node, which lives
+as long as the entry does, and the entry's inode holds the entry, so
+the queue outlives every open file and every poll or epoll entry on it.
+proc_reg_poll() does the poll_wait() on it before it calls the method,
+the owner wakes the pollers with proc_poll_notify(), and procfs wakes
+them when the entry is removed, after which a poll of it reports
+EPOLLERR | EPOLLPRI, like kernfs_fop_poll() does. The open node tracks
+the open files only for the entries whose release hook procfs has to
+call at removal, as before. Which methods an entry has procfs keeps in
+the entry's flags, and whether its files are tracked comes from there
+too: the last close of a file can come after the entry was removed and
+its proc_ops freed with their module.
 
-- the entry is gone
-
-- and reading the file fails with -EIO
-
-The mapping itself survives. /proc/bus/pci maps through the iomem
-address space of /dev/mem and procfs leaves that alone, like the sysfs
-resource files leave theirs, so the test doesn't touch the mapping
-after the removal. What the BAR of a removed device reads like is
-between the reader and the hardware.
-
-Nothing in the test can know which device is safe to remove, so it
-takes the device from PROC_PCI_DEV, skips without it and rescans the bus
-afterwards. It also skips where PCI files can't be mapped or that isn't
-allowed.
+The method still gets the poll_table for now and the entries keep
+sleeping on their own queues until they are converted. The last series
+takes the poll_table away, so that an entry can't hand procfs a queue
+that dies before its files do.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- tools/testing/selftests/proc/.gitignore           |   1 +
- tools/testing/selftests/proc/Makefile             |   1 +
- tools/testing/selftests/proc/proc-remove-mapped.c | 160 ++++++++++++++++++++++
- 3 files changed, 162 insertions(+)
+ fs/proc/generic.c       | 38 ++++++++++++++++++++--------------
+ fs/proc/inode.c         | 55 ++++++++++++++++++++++++++++++++++++-------------
+ fs/proc/internal.h      | 35 ++++++++++++++++++++++++++-----
+ include/linux/proc_fs.h | 11 ++++++++++
+ 4 files changed, 105 insertions(+), 34 deletions(-)
 
-diff --git a/tools/testing/selftests/proc/.gitignore b/tools/testing/selftests/proc/.gitignore
-index e2566cc0ae07..cafd8c263c9a 100644
---- a/tools/testing/selftests/proc/.gitignore
-+++ b/tools/testing/selftests/proc/.gitignore
-@@ -23,6 +23,7 @@
- /proc-pidns
- /proc-remove-slow-sysctl
- /proc-remove-slow-reader
-+/proc-remove-mapped
- /proc-remove-slow-readlink
- /read
- /self
-diff --git a/tools/testing/selftests/proc/Makefile b/tools/testing/selftests/proc/Makefile
-index 6a9bdc999f54..c38297afc244 100644
---- a/tools/testing/selftests/proc/Makefile
-+++ b/tools/testing/selftests/proc/Makefile
-@@ -34,6 +34,7 @@ TEST_GEN_PROGS += proc-sysctl-readdir-churn
- TEST_GEN_PROGS += proc-pidns
- TEST_GEN_PROGS += proc-remove-slow-sysctl
- TEST_GEN_PROGS += proc-remove-slow-reader
-+TEST_GEN_PROGS += proc-remove-mapped
- TEST_GEN_PROGS += proc-remove-slow-readlink
+diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+index ca4025ee7aa8..9c073cb867e5 100644
+--- a/fs/proc/generic.c
++++ b/fs/proc/generic.c
+@@ -466,6 +466,12 @@ static int pde_set_flags(struct proc_dir_entry *pde)
+ 		if (proc_ops->proc_lseek)
+ 			pde->flags |= PROC_ENTRY_proc_lseek;
+ 	}
++	if (proc_ops->proc_poll)
++		pde->flags |= PROC_ENTRY_proc_poll;
++	if (proc_ops->proc_release)
++		pde->flags |= PROC_ENTRY_proc_release;
++	if (proc_ops->proc_mmap)
++		pde->flags |= PROC_ENTRY_proc_mmap;
+ 	if (proc_ops->proc_write_buf) {
+ 		if (WARN_ON_ONCE(proc_ops->proc_write))
+ 			return -EINVAL;
+@@ -503,16 +509,22 @@ static int pde_set_flags(struct proc_dir_entry *pde)
+ 	return 0;
+ }
  
- include ../lib.mk
-diff --git a/tools/testing/selftests/proc/proc-remove-mapped.c b/tools/testing/selftests/proc/proc-remove-mapped.c
-new file mode 100644
-index 000000000000..92860fb2a8f4
---- /dev/null
-+++ b/tools/testing/selftests/proc/proc-remove-mapped.c
-@@ -0,0 +1,160 @@
-+// SPDX-License-Identifier: GPL-2.0
+-/*
+- * procfs has to know the open files of an entry whose ->proc_release() it
+- * calls at removal and whose mappings it undoes then. A permanent entry is
+- * never removed and skips all that, see proc_reg_open().
+- */
+-static bool pde_needs_open_node(const struct proc_dir_entry *pde)
++/* The open node, see struct pde_open_node. */
++static int pde_init_open_node(struct proc_dir_entry *pde)
+ {
+-	if (!S_ISREG(pde->mode) || pde_is_permanent(pde))
+-		return false;
+-	return pde->proc_ops->proc_release || pde->proc_ops->proc_mmap;
++	struct pde_open_node *on;
++
++	if (!S_ISREG(pde->mode))
++		return 0;
++	if (!pde_has_proc_poll(pde) && !pde_tracks_files(pde))
++		return 0;
++	on = kzalloc(sizeof(*on), GFP_KERNEL);
++	if (!on)
++		return -ENOMEM;
++	INIT_LIST_HEAD(&on->files);
++	init_waitqueue_head(&on->poll);
++	pde->open = on;
++	return 0;
+ }
+ 
+ /*
+@@ -574,12 +586,8 @@ struct proc_dir_entry *proc_register(struct proc_dir_entry *dir,
+ 
+ 	if (!S_ISDIR(dp->mode) && pde_set_flags(dp))
+ 		goto out_free_inum;
+-	if (pde_needs_open_node(dp)) {
+-		dp->open = kzalloc(sizeof(*dp->open), GFP_KERNEL);
+-		if (!dp->open)
+-			goto out_free_inum;
+-		INIT_LIST_HEAD(&dp->open->files);
+-	}
++	if (pde_init_open_node(dp))
++		goto out_free_inum;
+ 	if (pde_init_seq_direct(dp))
+ 		goto out_free_inum;
+ 	pde_lockdep_init(dp, key);
+diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+index 59de4681d845..ab30a58879d5 100644
+--- a/fs/proc/inode.c
++++ b/fs/proc/inode.c
+@@ -389,9 +389,15 @@ void proc_entry_rundown(struct proc_dir_entry *de)
+ 		rwsem_release(&de->dep_map, _RET_IP_);
+ 	}
+ 
+-	/* ->open->files can't grow from now on. */
+ 	if (!de->open)
+ 		return;
++	/* a poll of a removed entry reports EPOLLERR, see proc_reg_poll() */
++	if (pde_has_proc_poll(de))
++		wake_up_interruptible_all(&de->open->poll);
++
++	/* ->open->files can't grow from now on. */
++	if (!pde_tracks_files(de))
++		return;
+ 	spin_lock(&de->pde_unload_lock);
+ 	while (!list_empty(&de->open->files)) {
+ 		struct pde_opener *pdeo;
+@@ -555,26 +561,46 @@ static ssize_t proc_reg_write(struct file *file, const char __user *buf, size_t
+ 	return rv;
+ }
+ 
+-static __poll_t pde_poll(struct proc_dir_entry *pde, struct file *file, struct poll_table_struct *pts)
+-{
+-	const auto poll = pde->proc_ops->proc_poll;
+-	if (poll)
+-		return poll(file, pts);
+-	return DEFAULT_POLLMASK;
+-}
+-
 +/*
-+ * Removing a /proc entry with a mapped file open must not wait for that file
-+ * and must leave the file dead. Map a memory BAR of a PCI device through
-+ * /proc/bus/pci and remove the device, which removes its entry. Nothing here
-+ * can know which device is safe to remove and rescan, so it is named in
-+ * PROC_PCI_DEV, e.g. PROC_PCI_DEV=0000:00:03.0.
++ * The pollers of an entry sleep on a wait queue procfs owns, which is there
++ * for as long as the entry's inode is, however the entry's owner goes away.
++ * The owner wakes them through proc_poll_notify(), and procfs does when the
++ * entry is removed: a poll of a removed entry reports EPOLLERR | EPOLLPRI,
++ * like kernfs_fop_poll().
 + */
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <limits.h>
-+#include <linux/pci.h>
-+#include <setjmp.h>
-+#include <signal.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <unistd.h>
-+
-+#include "../kselftest_harness.h"
-+
-+#define DEV_ENV		"PROC_PCI_DEV"
-+#define SYSFS_DEVICES	"/sys/bus/pci/devices/"
-+#define SYSFS_RESCAN	"/sys/bus/pci/rescan"
-+#define PROC_PCI	"/proc/bus/pci/"
-+#define IORESOURCE_MEM	0x00000200
-+
-+static sigjmp_buf fault;
-+
-+static void on_sigbus(int sig)
+ static __poll_t proc_reg_poll(struct file *file, struct poll_table_struct *pts)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	__poll_t rv;
+ 
+-	if (!pde_pin(pde))
++	if (!pde_has_proc_poll(pde))
+ 		return DEFAULT_POLLMASK;
+-	rv = pde_poll(pde, file, pts);
++	poll_wait(file, &pde->open->poll, pts);
++	if (!pde_pin(pde))
++		return DEFAULT_POLLMASK | EPOLLERR | EPOLLPRI;
++	rv = pde->proc_ops->proc_poll(file, pts);
+ 	pde_unpin(pde);
+ 	return rv;
+ }
+ 
++/**
++ * proc_poll_notify - wake up the pollers of an entry
++ * @pde: an entry with a ->proc_poll(), may be NULL
++ *
++ * May be called from any context, as long as the entry is still registered.
++ * procfs doesn't pin it here, the caller keeps it alive like it does for
++ * every other use of the pointer proc_create() returned.
++ */
++void proc_poll_notify(struct proc_dir_entry *pde)
 +{
-+	siglongjmp(fault, 1);
++	if (!pde)
++		return;
++	if (WARN_ON_ONCE(!pde_has_proc_poll(pde)))
++		return;
++	wake_up_interruptible_all(&pde->open->poll);
++}
++EXPORT_SYMBOL_GPL(proc_poll_notify);
++
+ static long pde_ioctl(struct proc_dir_entry *pde, struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	const auto ioctl = pde->proc_ops->proc_ioctl;
+@@ -878,7 +904,8 @@ static int proc_reg_open(struct inode *inode, struct file *file)
+ 	if (!use_pde(pde))
+ 		return -ENOENT;
+ 
+-	if (pde->open) {
++	const bool track = pde_tracks_files(pde);
++	if (track) {
+ 		pdeo = kmem_cache_alloc(pde_opener_cache, GFP_KERNEL);
+ 		if (!pdeo) {
+ 			rv = -ENOMEM;
+@@ -888,7 +915,7 @@ static int proc_reg_open(struct inode *inode, struct file *file)
+ 
+ 	rv = pde_open(pde, inode, file);
+ 
+-	if (pde->open) {
++	if (track) {
+ 		if (rv == 0) {
+ 			/* To know what to release. */
+ 			pdeo->file = file;
+@@ -918,7 +945,7 @@ static int proc_reg_release(struct inode *inode, struct file *file)
+ 		goto out;
+ 	}
+ 
+-	if (!pde->open)
++	if (!pde_tracks_files(pde))
+ 		goto out;
+ 	spin_lock(&pde->pde_unload_lock);
+ 	list_for_each_entry(pdeo, &pde->open->files, lh) {
+diff --git a/fs/proc/internal.h b/fs/proc/internal.h
+index 7a197e2920f8..d2d731706788 100644
+--- a/fs/proc/internal.h
++++ b/fs/proc/internal.h
+@@ -15,6 +15,7 @@
+ #include <linux/sched/coredump.h>
+ #include <linux/sched/task.h>
+ #include <linux/mm.h>
++#include <linux/wait.h>
+ 
+ struct ctl_table_header;
+ struct mempolicy;
+@@ -140,6 +141,26 @@ static inline bool pde_has_proc_ioctl_buf(const struct proc_dir_entry *pde)
+ 	return pde->flags & PROC_ENTRY_proc_ioctl_buf;
+ }
+ 
++static inline bool pde_has_proc_poll(const struct proc_dir_entry *pde)
++{
++	return pde->flags & PROC_ENTRY_proc_poll;
 +}
 +
-+/* the first memory BAR of @dev */
-+static int mem_bar(const char *dev, unsigned long long *start,
-+		   unsigned long long *len)
++/*
++ * procfs has to know the open files of an entry whose ->proc_release() it
++ * calls at removal and whose mappings it undoes then. A permanent entry is
++ * never removed and skips all that, see proc_reg_open(). This looks at the
++ * flags and not at the proc_ops: the last close of a file can come after
++ * the entry was removed and the proc_ops freed with their module, see
++ * proc_reg_release().
++ */
++static inline bool pde_tracks_files(const struct proc_dir_entry *pde)
 +{
-+	unsigned long long s, e, flags;
-+	char path[PATH_MAX];
-+	int ret = -ENODEV;
-+	FILE *f;
-+
-+	snprintf(path, sizeof(path), SYSFS_DEVICES "%s/resource", dev);
-+	f = fopen(path, "r");
-+	if (!f)
-+		return -errno;
-+	while (fscanf(f, "%llx %llx %llx", &s, &e, &flags) == 3) {
-+		if ((flags & IORESOURCE_MEM) && e >= s) {
-+			*start = s;
-+			*len = e - s + 1;
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	fclose(f);
-+	return ret;
++	if (pde_is_permanent(pde))
++		return false;
++	return pde->flags & (PROC_ENTRY_proc_release | PROC_ENTRY_proc_mmap);
 +}
 +
-+static int write_one(const char *path)
-+{
-+	int fd, ret;
-+
-+	fd = open(path, O_WRONLY | O_CLOEXEC);
-+	if (fd < 0)
-+		return -errno;
-+	ret = write(fd, "1", 1) < 0 ? -errno : 0;
-+	close(fd);
-+	return ret;
-+}
-+
-+FIXTURE(pci) {
-+	char dev[16];
-+	char path[64];
-+	bool removed;
-+};
-+
-+FIXTURE_SETUP(pci)
-+{
-+	const char *dev = getenv(DEV_ENV);
-+
-+	self->removed = false;
-+	if (!dev)
-+		SKIP(return, DEV_ENV " isn't set");
-+	/* 0000:BB:DD.F is /proc/bus/pci/BB/DD.F */
-+	if (strlen(dev) != 12 || strncmp(dev, "0000:", 5))
-+		SKIP(return, "%s: not a device in PCI domain 0", dev);
-+	strcpy(self->dev, dev);
-+	snprintf(self->path, sizeof(self->path), PROC_PCI "%.2s/%s",
-+		 dev + 5, dev + 8);
-+	if (access(self->path, R_OK))
-+		SKIP(return, "%s: %s", self->path, strerror(errno));
-+}
-+
-+FIXTURE_TEARDOWN(pci)
-+{
-+	if (self->removed && write_one(SYSFS_RESCAN))
-+		TH_LOG("couldn't rescan the PCI bus for %s", self->dev);
-+}
-+
-+TEST_F(pci, remove_while_mapped)
-+{
-+	long psz = sysconf(_SC_PAGESIZE);
-+	unsigned long long start = 0, len = 0;
-+	char path[PATH_MAX];
-+	volatile unsigned int *p;
-+	unsigned int v;
-+	int fd;
-+
-+	if (mem_bar(self->dev, &start, &len))
-+		SKIP(return, "%s has no memory BAR", self->dev);
-+
-+	fd = open(self->path, O_RDONLY | O_CLOEXEC);
-+	ASSERT_GE(fd, 0);
-+	if (ioctl(fd, PCIIOC_MMAP_IS_MEM)) {
-+		/* no PCI mmap on this architecture, or locked down */
-+		if (errno == EINVAL || errno == EPERM) {
-+			close(fd);
-+			SKIP(return, "PCIIOC_MMAP_IS_MEM: %s", strerror(errno));
-+		}
-+		ASSERT_TRUE(false) {
-+			TH_LOG("PCIIOC_MMAP_IS_MEM: %s", strerror(errno));
-+		}
-+	}
-+	p = mmap(NULL, psz, PROT_READ, MAP_SHARED, fd, start);
-+	if (p == MAP_FAILED)
-+		SKIP(return, "mmap: %s", strerror(errno));
-+
-+	/* The BAR can be read while the device is there. */
-+	ASSERT_NE(signal(SIGBUS, on_sigbus), SIG_ERR);
-+	if (sigsetjmp(fault, 1) == 0) {
-+		v = *p;
-+	} else {
-+		ASSERT_TRUE(false) {
-+			TH_LOG("reading the mapping faulted before the removal");
-+		}
-+	}
-+
-+	/* Removing the device removes its entry. */
-+	snprintf(path, sizeof(path), SYSFS_DEVICES "%s/remove", self->dev);
-+	ASSERT_EQ(write_one(path), 0);
-+	self->removed = true;
-+	EXPECT_EQ(access(self->path, F_OK), -1);
-+
+ /* procfs owns the seq_file, see pde_seq_start() */
+ static inline bool pde_is_seq_file(const struct proc_dir_entry *pde)
+ {
+@@ -388,15 +409,19 @@ struct pde_opener {
+ } __randomize_layout;
+ 
+ /*
+- * The open files of an entry whose ->proc_release() procfs has to call and
+- * whose mappings it has to undo when the entry is removed while they are
+- * still open, that is of an entry with a ->proc_release() or a
+- * ->proc_mmap(). Allocated with the entry, see proc_register().
++ * What procfs keeps for the open files of an entry: the files themselves if
++ * it has to call their ->proc_release() and undo their mappings when the
++ * entry is removed, that is for an entry with a ->proc_release() or a
++ * ->proc_mmap(), and the wait queue their pollers sleep on for an entry with
++ * a ->proc_poll(). Allocated with the entry, see proc_register().
+  */
+ struct pde_open_node {
+-	struct list_head files;		/* who did ->open, but not ->release */
++	/* who did ->open, but not ->release, see pde_tracks_files() */
++	struct list_head files;
+ 	/* of its mappings, the same for all of them, see pde_mmap() */
+ 	const struct vm_operations_struct *vm_ops;
++	/* what poll() and epoll wait on, see proc_poll_notify() */
++	wait_queue_head_t poll;
+ };
+ extern const struct inode_operations proc_link_inode_operations;
+ extern const struct inode_operations proc_pid_link_inode_operations;
+diff --git a/include/linux/proc_fs.h b/include/linux/proc_fs.h
+index feb3228cb5af..8520b18ce1f7 100644
+--- a/include/linux/proc_fs.h
++++ b/include/linux/proc_fs.h
+@@ -47,6 +47,9 @@ enum {
+ 	 */
+ 	PROC_ENTRY_FULL_READS		= 1U << 11,
+ 	PROC_ENTRY_proc_ioctl_buf	= 1U << 12,
++	PROC_ENTRY_proc_poll		= 1U << 13,
++	PROC_ENTRY_proc_release		= 1U << 14,
++	PROC_ENTRY_proc_mmap		= 1U << 15,
+ };
+ 
+ /*
+@@ -81,6 +84,12 @@ struct proc_ops {
+ 	 */
+ 	loff_t	(*proc_lseek)(struct file *, loff_t, int);
+ 	int	(*proc_release)(struct inode *, struct file *);
 +	/*
-+	 * The file is dead. The mapping isn't procfs's to unmap, it lives in
-+	 * the iomem address space of /dev/mem, see proc_bus_pci_open(), and
-+	 * is left alone like a sysfs resource file's.
++	 * procfs owns a wait queue for an entry with a ->proc_poll() and
++	 * does the poll_wait() on it before it calls the method. The owner
++	 * wakes the pollers with proc_poll_notify(). A poll on a removed
++	 * entry reports EPOLLERR | EPOLLPRI.
 +	 */
-+	EXPECT_EQ(pread(fd, &v, sizeof(v), 0), -1);
-+	EXPECT_EQ(errno, EIO);
-+
-+	munmap((void *)p, psz);
-+	close(fd);
-+}
-+
-+TEST_HARNESS_MAIN
+ 	__poll_t (*proc_poll)(struct file *, struct poll_table_struct *);
+ 	long	(*proc_ioctl)(struct file *, unsigned int, unsigned long);
+ #ifdef CONFIG_COMPAT
+@@ -243,6 +252,7 @@ extern void *proc_get_parent_data(const struct inode *);
+ extern void proc_remove(struct proc_dir_entry *);
+ extern void remove_proc_entry(const char *, struct proc_dir_entry *);
+ extern int remove_proc_subtree(const char *, struct proc_dir_entry *);
++void proc_poll_notify(struct proc_dir_entry *pde);
+ 
+ struct proc_dir_entry *proc_create_net_data(const char *name, umode_t mode,
+ 		struct proc_dir_entry *parent, const struct seq_operations *ops,
+@@ -341,6 +351,7 @@ static inline void *proc_get_parent_data(const struct inode *inode) { BUG(); ret
+ static inline void proc_remove(struct proc_dir_entry *de) {}
+ #define remove_proc_entry(name, parent) do {} while (0)
+ static inline int remove_proc_subtree(const char *name, struct proc_dir_entry *parent) { return 0; }
++static inline void proc_poll_notify(struct proc_dir_entry *pde) {}
+ 
+ #define proc_create_net_data(name, mode, parent, ops, state_size, data) ({NULL;})
+ #define proc_create_net_data_write(name, mode, parent, ops, write, state_size, data) ({NULL;})
 
 -- 
 2.53.0
