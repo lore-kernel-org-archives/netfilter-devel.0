@@ -1,43 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793901499;
-	b=AEii3Jos5HjJ3Musi+BXzYAAO4Xvtt8C0JJX+sPHmCYtu95lLCamc3B7zImngt4wK2Ob
-	 z+Nh0ZJcUSesjYTnFTLJT+qUbijToFDoctkb2kUr+o5ItOt7c/JhWVQJudfVnyvPujiFN
-	 tFRuvv8Gdg/1AHirF4AhylxDLCOov8K0Vc14RNfspWEH50Ojaa+CQHAXVN5ft6daco/y+
-	 H/I0BJ0dEY7LVSYEklofQ5n97IdvEp8v2StBYt+DCJ+3VT6rVn4+MnCX1qVQq4rVyuQQi
-	 pJKLuMzExF/+AmvOMymQ5Cc8F7ObHgvaoNrHae0w+zAz7vJ+ujqByLMph8R8RsBrREg==
+	t=1793763184;
+	b=PGwbt9Oa0n9pi0IZuk1zaWY/YGZYJRAwavNlctH6e5IT/e5UFh0Fo3tMW3VzD4V8IHUT
+	 w6aaX5GeknxhJve9hgwwRK2iaLVIABJUMXW4l4SSTRKufV1BbqgN4D1l2TTbiBVt2nTNx
+	 HWuyoDlWRVjCFpNzX/GBbXO5YWfJiz1kkjagIFVY1hl3kqFtaEOfDGiJD7ngYyeMHZo8Y
+	 2st4sK4tlBMDEtYXCcbEnpOIpec0hS2fB2ozdVsKk6R4cSgE3GcSpG3CFjP3m5fURwE2W
+	 54eNH3rNH3jx+p7UMATVV8SbnZyakznDiSxTzF6TWXAYH7SFK6+qUo79s43SNovnU0w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793901499;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=R06pgEfktyfQZu+A3hIs6OXlbuliUPbW7nq6VXPE0zs=;
-	b=xpPrU3qmy2U3BlUWFd77Ck1wBWV/tXXlaeMAVodoXuRZQCWnNLVAKwmuqPyQFwRfAD47
-	 kL7jUet59GTa1OPQepBOZA6bXxnilq/8LDIhkdJZvTd/fRN1lwqIMs4ODF9bkTB35W30A
-	 wfk4EcOuSuOaZuLdd6Q5tXlMyeJvCDBqOaxfp+ycTiAHpJmi8Eh0n4W01i2WSMY9gkwAk
-	 2ywz2/bJS1WZvR/priEECSwGhXygGZyoW2tjYdHT0nSl4j6YxpYf/upx+4l0irZHuY1qH
-	 I1XsGzeyzKsgO3PK1M5mkpJ7bVE9QEkXePDtZljcpR9YD5OuBlNj1y+R03IuyVc5FEA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793763184;
+	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-META:X-CID-BVR:
+	 X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:From:To:Cc:
+	 Subject:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 MIME-Version;
+	bh=l8VqXxd/sdfHt2LeZCunmDHUpQmLkttaE3civqC/2uc=;
+	b=rNTNmTiDp0+peRRfNS55idg+Vqw04fop6GWWpvdvIgZMRhRn5P6R+DabwWWmlLS2cnMs
+	 0KLGfYhsDLgOxr+jQkPRbpVTJO2TNgHbEDEM6hB+mq4MJ1iNCZd9ZiZpO5FF7zx6eJyMv
+	 0zJa3GES1p43BQApyB78Pe6qIpuLaqkH6kAuxy+xthYD0VPojJzxFJQ02iHEIRs5t10oP
+	 XtESeaBYUsVpmubB3r3veYkj5O25vy07Q8uWNXsYaDJzLPox2kxiM6kSd6peJY70jAGPA
+	 bPWMJEJCKGHL+Xs8JgwRen9pBBD9PuNVXJwDgQPU52kyAAkP4T4AHli+du9e69L+OhQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=strlen.de;
-	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
-	arc=none smtp.remote-ip=91.216.245.30
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=kylinos.cn;
+	arc=none smtp.remote-ip=124.126.103.232
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2293D606A329
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 17:58:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2293D606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E425660380; Thu, 05 Nov 2026 18:58:15 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH ipset] tests: hash:net,iface.t: check wildcard refresh ordering
-Date: Thu,  5 Nov 2026 18:58:10 +0100
-Message-ID: <20261105175810.22833-1-fw@strlen.de>
-X-Mailer: git-send-email 2.56.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8684606A31B
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 03:33:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8684606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:c578295c-945f-4d84-8d15-e5ab0e360a6d,IP:0,U
+	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
+	release,TS:0
+X-CID-META: VersionHash:7db8b62,CLOUDID:ea64efadd61072fb2bf8b8ab97d23355,BulkI
+	D:nil,BulkQuantity:0,SF:82|102|136|865|898,TC:nil,Content:0|15|50|99,EDM:-
+	3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
+	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
+X-User: yupeng@kylinos.cn
+Received: from [127.0.1.1] [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <yupeng@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 567319487; Wed, 04 Nov 2026 11:32:55 +0800
+From: YuPeng <yupeng@kylinos.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de, phil@nwl.cc, debianyu@163.com
+Subject:
+ [PATCH v2] extensions: ebt_string: Fix --string-icase using ebt_check_inverse
+In-Reply-To: <atXZ1Fc4HOy--Wam@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -47,42 +67,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Message-ID: <20261104033301.6fepl06bgAJvMxxLy5Hw1g-x-k6uyig0PqEISfmmPjE@z>
 
-When the first wildcard element gets re-added while '-exist (-!)' option
-is given that request must not have side effects.
+--string-icase is registered as a no_argument option, so getopt_long
+always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
+macro contains a mandatory-argument guard:
 
-Check that the verdict isn't altered.
+	if (!optarg) {
+		__ebt_print_error("Option without (mandatory) argument");
+		return -1;
+	}
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+so every use of --string-icase aborts parsing with the misleading error
+"Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
+can never be set.  The option has been broken since it was added in
+commit b1cdae8 ("extensions: Add string filter to ebtables").
+
+Reproducer (no privileges required):
+
+  $ ebtables-legacy --string-icase
+  Option without (mandatory) argument.
+
+Use ebt_check_inverse() instead: it tolerates a NULL optarg and
+returns the current ebt_invert state, which the main option loop
+resets to 0 after every option, so the flag is set as intended and
+the "Unexpected '!'" diagnostic is kept.
+
+This fix was originally carried in the Kylin Linux SRPM since 2022;
+the commit message has been rewritten to describe the actual failure
+mode observed on current master.
+
+Signed-off-by: YuPeng <yupeng@kylinos.cn>
 ---
- Yet another problem with the rewrite.
+v2: Use ebt_check_inverse() instead of removing the check entirely,
+    as suggested by Florian Westphal.  No other changes.
 
- tests/hash:net,iface.t | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ extensions/ebt_string.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tests/hash:net,iface.t b/tests/hash:net,iface.t
-index 9f3d9e36e232..216f7e8a0253 100644
---- a/tests/hash:net,iface.t
-+++ b/tests/hash:net,iface.t
-@@ -289,5 +289,17 @@
- 0 ipset del test 10.0.6.0/24,eth
- # Check the wildcard element was removed
- 1 ipset test test 10.0.6.0/24,eth1
-+0 ipset flush test
-+# Wildcard refresh ordering: add first wildcard, marked nomatch
-+0 ipset add test 10.0.0.0/24,eth wildcard nomatch
-+# Wildcard refresh ordering: add second, overlapping wildcard, matching
-+0 ipset add test 10.0.0.0/24,et wildcard
-+# Wildcard refresh ordering: first-added wildcard must win: nomatch verdict
-+1 ipset test test 10.0.0.1,eth0
-+# Wildcard refresh ordering: refresh the first wildcard with -exist, data unchanged
-+0 ipset -! add test 10.0.0.0/24,eth wildcard nomatch
-+# Wildcard refresh ordering: verdict must still be nomatch.
-+1 ipset test test 10.0.0.1,eth0
-+# Wildcard refresh ordering: destroy set
- 0 ipset destroy test
- # eof
--- 
-2.56.0
+diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
+index 97fbe19..cbbe103 100644
+--- a/extensions/ebt_string.c
++++ b/extensions/ebt_string.c
+@@ -174,7 +174,7 @@ static int parse(int c, char **argv, int argc, const stru=
+ct ebt_u_entry *entry,
+ 		break;
+ 	case STRING_ICASE:
+ 		ebt_check_option2(flags, OPT_STRING_ICASE);
+-		if (ebt_check_inverse2(optarg))
++		if (ebt_check_inverse(optarg))
+ 			ebt_print_error2("Unexpected `!' after --string-icase");
+ 		info->u.v1.flags |=3D XT_STRING_FLAG_IGNORECASE;
+ 		break;
+--=20
+2.39.5
 
