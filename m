@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793820273;
-	b=M7JPBU5YWOrnWb/W5qgreeQxEFtruTZzvfJptWR0iPBLh+C3YYsc7sOQXYh8eo3irg9L
-	 c+O4jauF6kxRd7Y3wYIBTRM0biJsGImDtbhJWqaUeTXbGI/h0+EbyAyrFCqxStvNtuU1E
-	 eQJGNT8xaSmW2q3MpWcSCgwpy059lUKo4PlaGtXgCGEwpSDfCuteUUqylVIS5VDmrQa4G
-	 2vYtckGuacUhrA01C6IQN1Nv3MPWwYjOGCq82Y2PUGle9xAw2haWKiFEeNNAhh7hiMlNf
-	 SPfxYMKqC2OkeMso7QTKcOsblNs7DCn6NBFV503u54d+aF44ew6RBWpkXxIm0MpoGIg==
+	t=1793820317;
+	b=UBMODQuPa+xcM2g7guxlzuEnaYTeySn1a7JMUXGQdzwQG6FKRzxAdCHGnADxPaCb0vqQ
+	 2zIHfazW8bD1FYF0Kf4FU3pwUOsBAZfYuO1IZKK/jet/OCV2JouBiDxKDBoZ6qxN8R0/f
+	 ZWBStB2+lWamFk9vXAnvao/UbHhqZmk/OptQdq3+HxaPxc3ECgrxNUTDkF7HpYvV3eqyJ
+	 eBJx3zAh0T985IeNwDjetuVS+Cki4i1R4Wju6c+N7ZbGi2fJcDTkbcT8i7EIbUcJOTycg
+	 n+YHoq0RP0LlnRKT3b76CuDR/07HOO1zHw2s2SfAzhCcwc8+sZYLJK06GjEL9sD40jw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793820273;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793820317;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=iZnPQiZm1xh8fsSdf/bokwm1XgR51VX0qi8vvYA3hwA=;
-	b=t1hQmWs5w/yIa/Ucf3sYYk5nC3v+tctaS95QdIaUpEVJRkFgZ26j40Atkveo8BBRk7Gp
-	 j9+6geZWsWmQFo1sjzXJJtEXYy5X5kKgcWgGcuP7mCb75jpZ08JbV0IIy8uIesIep0yY6
-	 ov28nyumGJAvVBKjG3+LeSI3hHmZS771B/Fz0xGjNaiZRnKsPABmllZ7d9xUcQAWoOQiY
-	 Hf+qzkOmy73HkKtYsmp63cND9PYYV56IQcjUf5IpyZx+3mhkXMz3UCu8HvVCxrA+OJ80w
-	 cBzHRtGaINBp4CwUq772e1hsnU9uYhbqzyT5H9Gw4pcdJ0NAIhoNpf8FE2daULTdk9Q==
+	bh=xlRe6ByN3zpYNOlJQq83OVbC6fU3d9RayIfuGISBpLE=;
+	b=j6+y/m0YhH1v6rWDv8Uq2Qg4VujRtGv4a+FdPbv/M4bBCmKUh3JsJad4tvf0u0rSUPTU
+	 26BfPJCM0oneh9KBsP4sjurq6CXXUYAkfeh6DIjTQMoYsFruKvB5BGLYjMF0kkelcGeFV
+	 ulvxhW+UA4E2Huaue0jgDTbrOttr90+n/aALkYQSSkqjoapnkrp4RYLURMuLEdZw3/nwi
+	 HWfKyaeLAmRc/uDG2Xy0KD7jtCp3Ed7L5QhB8FGpAnrB9GEys4VHWdu78B8DXUrhTyXeN
+	 NX8ctzbJp7x1mg4oq4c1I+5ayvQY48/H2oDpWG9PlP6jKTzIzj8hz7oxZTuWHqMaxBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="OWOls/Qa";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kkCvPqeJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 626DB606D80A;
-	Wed,  4 Nov 2026 19:24:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DAB86082BC5;
+	Wed,  4 Nov 2026 19:25:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OWOls/Qa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A6D91F00919;
-	Wed,  4 Nov 2026 19:24:20 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kkCvPqeJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D76511F000C1;
+	Wed,  4 Nov 2026 19:25:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793820273;
-	bh=iZnPQiZm1xh8fsSdf/bokwm1XgR51VX0qi8vvYA3hwA=;
+	s=k20260515; t=1793820317;
+	bh=xlRe6ByN3zpYNOlJQq83OVbC6fU3d9RayIfuGISBpLE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=OWOls/Qat2i8BrXb5K71S2uLB9tj4kjTJEbo9UFvy20m8JsJIw6rlM5z7ZgXmAhhg
-	 DX3SJAZObSbZ0q10m0cO34TgAflLOcPAP+hEY5fVaKi7i6rKXFInKLNWloaYRSC+Ks
-	 ljGOlefMkwlxlumGHgHWbLc97n+0vZptHyvo04WmKfXqk+oQZSwiVP5UbhoSw45CC9
-	 o7GTWTT7YXcs5JwSCwntnLmjdKmMt8KgGm4sAZYEtS+zlJv61izpcMBFUi+CEbW/Cc
-	 xRBz49tKkDksLfYIDDAGshWSF63L9oy+SRRSZVZWhxGUtwnTpG3FVQOlOfqrJXfy1c
-	 nLtmp96X09lUw==
+	b=kkCvPqeJt9hXEFyti3iJ1FwuLHxmLXyjHHLihOfXAuh24SOvF5m2sIXA2UBAh8zQQ
+	 tsZTpgZBpzYwBDlu66b4vShl+NYAJTi7OGk2wP7Ucha8AWhX9jcDy7R8S9N5GjeOby
+	 MOJMhwZqq5jk1LHpQtOrhu5TAJznkDJyCPku1XJuUlWnmjNp6Lg/pIqjCYjb2E9pRw
+	 PlIWcj69apuPJIahs9+j3NJIIhvqdlJy8k5li84RC/zXcbSfahqzG08MO06TAxTgGD
+	 MsdlO68zHBsAVPP5uOrOJ4ggSIX4Lm9icnN+egX0bDbSKuctAZGL1q6hKv1U57BXdn
+	 DGKynIt51Y7WQ==
 From: Christian Brauner <brauner@kernel.org>
 To: linux-fsdevel@vger.kernel.org
 Cc: Linus Torvalds <torvalds@linux-foundation.org>,
@@ -99,10 +99,11 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-modules@vger.kernel.org,
 	linux-debuggers@vger.kernel.org,
 	"Christian Brauner (Amutable)" <brauner@kernel.org>,
-	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 34/51] proc: let proc_remove() remove the entry it was given
-Date: Wed,  4 Nov 2026 20:24:18 +0100
-Message-ID: <20261104-work-procfs-bugfixes-v2-34-021c84d852e0@kernel.org>
+	Chuck Lever <cel@kernel.org>,
+	stable@vger.kernel.org
+Subject: [PATCH RESEND v2 37/51] proc/vmcore: don't let vmcore_cleanup() run twice at once
+Date: Wed,  4 Nov 2026 20:25:02 +0100
+Message-ID: <20261104-work-procfs-bugfixes-v2-37-021c84d852e0@kernel.org>
 In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -116,140 +117,51 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4142; i=brauner@kernel.org; h=from:subject:message-id; bh=TWEC0A9DF1l/jNuw2UHiBUJ2nMkOgHxIGSf9WilEatA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bvyaox39LcDtqOvRJ4ZbOT4aq194fNEiYOO6+EM7j 5os/VhY1lHKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjARG32GP1wXpkhH8H/asV76 WPuPyH/OaVaTHH7dNBF8c4GtfEmftRfD//g/MT/EQt8lq2eISbw5HcGTbfBAPPZ1g/kbd1/h09/ keAA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1758; i=brauner@kernel.org; h=from:subject:message-id; bh=gmON/Vwu30bm66aR7FLjt15bWl4pslPspuVjwp92LoI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bvzZL8Hl33wxMMfFJ8kjYsv9ztuaxT/NbubGcJp7u i+Umj2lo5SFQYyLQVZMkcWh3SRcbjlPxWajTA2YOaxMIEMYuDgFYCIcnxj+2TzZ/6BE4al+9D+l /+ZvBS6e1/KbqBD6LzUpOUjjyhHN2YwM69oa4jcaTUuZdOZNvK/7ramu9j/M3Cx9f4RUnOD8bDu LDQA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-proc_remove() looks the entry up by its name in its parent and removes
-whatever it finds there:
+vmcore_cleanup() has a single caller, fadump's release_mem_store() on
+powerpc. That checks fw_dump.dump_active without a lock and calls
+vmcore_cleanup() without one, and kernfs only serializes the writers of
+one open file. So two tasks that write to
+/sys/kernel/fadump/release_mem through different files run
+vmcore_cleanup() at the same time.
 
-  remove_proc_subtree(de->name, de->parent);
+The first one removes /proc/vmcore and waits for its readers in
+proc_remove(). The second one finds the entry already unlinked, returns
+from proc_remove() right away and frees vmcore_list, the ELF headers
+and the device dumps while those readers still walk them. Or both of
+them free the same lists at once.
 
-If the entry was removed already, say along with its parent, that is
-either nothing or a different entry that got the same name in the
-meantime, and de->parent may well be gone. Two removals of the same
-entry are a bug in the caller, but going by the name turns it into
-removing an entry that belongs to somebody else.
-
-Since commit 895b4c0c79b0 ("fs/proc: fix uaf in proc_readdir_de()")
-an entry that was unlinked has an empty rb node. So check for that
-under proc_subdir_lock and otherwise remove the entry itself, with the
-loop of remove_proc_subtree() moved into a helper both of them use.
-Nothing can help a caller that passes an entry that has been freed
-already.
+Serialize vmcore_cleanup() with a mutex of its own. It can't be
+vmcore_mutex, removing /proc/vmcore calls release_vmcore() which takes
+it. The second caller then finds nothing left to free.
 
 Reported-by: Chris Mason <mason@kernel.org>
-Fixes: a8ca16ea7b0a ("proc: Supply a function to remove a proc entry by PDE")
+Fixes: b500afff11f6 ("fadump: Invalidate registration and release reserved memory for general use.")
+Cc: stable@vger.kernel.org
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/proc/generic.c | 78 ++++++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 51 insertions(+), 27 deletions(-)
+ fs/proc/vmcore.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-index 588999058e66..9a0a2fcac7c7 100644
---- a/fs/proc/generic.c
-+++ b/fs/proc/generic.c
-@@ -818,33 +818,14 @@ void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
- }
- EXPORT_SYMBOL(remove_proc_entry);
- 
--int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
-+/*
-+ * Remove @root, already erased from its parent, and everything below it.
-+ * Called with proc_subdir_lock held for writing, returns with it dropped.
-+ */
-+static int __remove_proc_subtree(struct proc_dir_entry *root)
+diff --git a/fs/proc/vmcore.c b/fs/proc/vmcore.c
+index 1fe70c4ecc54..ccb795b85509 100644
+--- a/fs/proc/vmcore.c
++++ b/fs/proc/vmcore.c
+@@ -1764,6 +1764,11 @@ fs_initcall(vmcore_init);
+ /* Cleanup function for vmcore module. */
+ void vmcore_cleanup(void)
  {
--	struct proc_dir_entry *root = NULL, *de, *next;
--	const char *fn = name;
--	unsigned int len;
--
--	write_lock(&proc_subdir_lock);
--	if (__xlate_proc_name(name, &parent, &fn) != 0) {
--		write_unlock(&proc_subdir_lock);
--		return -ENOENT;
--	}
--	len = strlen(fn);
-+	struct proc_dir_entry *de = root, *next;
- 
--	root = pde_subdir_find(parent, fn, len);
--	if (!root) {
--		write_unlock(&proc_subdir_lock);
--		return -ENOENT;
--	}
--	if (unlikely(pde_is_permanent(root))) {
--		write_unlock(&proc_subdir_lock);
--		WARN(1, "removing permanent /proc entry '%s/%s'",
--			root->parent->name, root->name);
--		return -EINVAL;
--	}
--	pde_erase(root, parent);
--
--	de = root;
- 	while (1) {
- 		next = pde_subdir_first(de);
- 		if (next) {
-@@ -872,6 +853,34 @@ int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
- 	pde_put(root);
- 	return 0;
- }
++	/* Not vmcore_mutex, removing /proc/vmcore calls release_vmcore(). */
++	static DEFINE_MUTEX(vmcore_cleanup_mutex);
 +
-+int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
-+{
-+	struct proc_dir_entry *root = NULL;
-+	const char *fn = name;
-+	unsigned int len;
-+
-+	write_lock(&proc_subdir_lock);
-+	if (__xlate_proc_name(name, &parent, &fn) != 0) {
-+		write_unlock(&proc_subdir_lock);
-+		return -ENOENT;
-+	}
-+	len = strlen(fn);
-+
-+	root = pde_subdir_find(parent, fn, len);
-+	if (!root) {
-+		write_unlock(&proc_subdir_lock);
-+		return -ENOENT;
-+	}
-+	if (unlikely(pde_is_permanent(root))) {
-+		write_unlock(&proc_subdir_lock);
-+		WARN(1, "removing permanent /proc entry '%s/%s'",
-+			root->parent->name, root->name);
-+		return -EINVAL;
-+	}
-+	pde_erase(root, parent);
-+	return __remove_proc_subtree(root);
-+}
- EXPORT_SYMBOL(remove_proc_subtree);
- 
- void *proc_get_parent_data(const struct inode *inode)
-@@ -883,8 +892,23 @@ EXPORT_SYMBOL_GPL(proc_get_parent_data);
- 
- void proc_remove(struct proc_dir_entry *de)
- {
--	if (de)
--		remove_proc_subtree(de->name, de->parent);
-+	if (!de)
-+		return;
-+
-+	write_lock(&proc_subdir_lock);
-+	/* Removed already, maybe along with its parent. */
-+	if (RB_EMPTY_NODE(&de->subdir_node)) {
-+		write_unlock(&proc_subdir_lock);
-+		return;
-+	}
-+	if (unlikely(pde_is_permanent(de))) {
-+		write_unlock(&proc_subdir_lock);
-+		WARN(1, "removing permanent /proc entry '%s/%s'",
-+		     de->parent->name, de->name);
-+		return;
-+	}
-+	pde_erase(de, de->parent);
-+	__remove_proc_subtree(de);
- }
- EXPORT_SYMBOL(proc_remove);
- 
++	/* Two writers of fadump's release_mem can get here at once. */
++	guard(mutex)(&vmcore_cleanup_mutex);
+ 	if (proc_vmcore) {
+ 		proc_remove(proc_vmcore);
+ 		proc_vmcore = NULL;
 
 -- 
 2.53.0
