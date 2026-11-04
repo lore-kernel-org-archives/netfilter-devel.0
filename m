@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793782968;
-	b=lgqAWcMB0s9pCNhfXdDr6tEN5rF3Z1SuX+IKuCHvQtYo3fh9d9pzSAfkH/Y90+FDs5FQ
-	 juvmMGgJ5UHYCzj6CBc1DURTy2+0RBwRE3sFPfBY+RIor83Rhl75Fzj/lWhi/bhqaVzUl
-	 bPOpGgxdl2PyKTFu+Q3Nv/lr6PsKO7gOnxiY7mEVeHxD+dDMv1IUo8ZYf4WD9dXVD55HC
-	 uQhnOdff7+NQPP3kKW64xJltZpFqqH6tuzY4aMPCsU009VqNomYTSAaeiXaosA3e2XsVG
-	 7giYy6U/cmL9djM84cxz6/McN2BWZPEqzQma4jtwFh/6hz68YIlVNY+j0NuYHS9g4zg==
+	t=1793782965;
+	b=RhGh9ktUemiDnP2D0vijlkvuBR8e1AZGSZ2XMpaX5rG0pXbtAuBzSH+yZkaGQDWtJD0x
+	 6+0ozmj5zuJjW/R4W+9g3nClhDv2IGa4v8SuDlZPlj8PD/mwPRn8qjbuen+KH8lzUbGe7
+	 Rrk0JcxCDPbHfiPf2mXqhg1jrf/2o8YlzkUYv79A4atMMyWVJFKZN7onWb02bxRZZnGcW
+	 xnb0zcvtCJdUs1OQcmlLsFjessRYnUY2fBVVAg/EVt0EBBiC+95JjVHbWN8bQTOig0lgn
+	 s0Zt7o9M+Kl6/DBfoGR+3dQRVGB9mpRMZG+YUvlerkFd5w7ZFvKkZBE/OZ7O/FMxWLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793782968;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793782965;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
-	b=vkpBwKXsF0BnbNRQ97zN4mcckKYWA06+HE3iRUhfNlhUYnfjwXYDC2B4swbxP1d7+G+S
-	 TFRYAogiRf/g8UDJpyGwXRuItJdr+KeiX+bJ1nZoVCYYb0IDATd3wXnS9aGp25Q7+VNw3
-	 0XcMR7UpgmXXo/4BwJ8AHJTc2X68lRatertelX/tn4hDgayferiFovkxZs5EpLX/19EgI
-	 vj3HX/EsjvoqhPTakQZzyTPOexXM4TZ+ue5kDa9duBqtnCeYhYlGlmVecJGq/76rAChPS
-	 97EMfGzB1VdvhrYlcXaEJ/faSQKWYKLuRdGTNPWVKqIm4yJ/ngqzPRfq9MdUTSO3GNQ==
+	bh=eI6BYAMtH8gnpfLqrP2oq7QPLneAgWxxYSCOTNnXMiM=;
+	b=003+vOjbZ/j9OR0afVpoGXGKbaam4fK2peXVTd3Bmb/s+j/6cnx9m0HsMkuvRuh+Ls4a
+	 dp+nwx4t06phydFFIgwUpNlUGvm5K/Cec49xzF+Pa27ol/rs6G8TtNOKeS1jOAPgPozXG
+	 Qc0c/gbMvpAKMCPVxQkFcdfnLajxBSBBQR62LHsfuLDQNgOpJ748MVfxyyXcA/GkXNLSz
+	 01wnpMGR35t0pWGjs6krHShGhnFQZEzHUY82DDTaLmtxrqy/zu8U2O9+qfH7aEVQE2XVc
+	 y6uPjIkSmYJZIMr4n1aYXlxK3sq+9PFhxSl7OOw7J5Xl6XkzhXebT/sBr+JEQIK0PvA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dabTDRjB;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ugiIdkZR;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6C39606D81F;
-	Wed,  4 Nov 2026 09:02:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C6C39606D81F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9B5606D80D;
+	Wed,  4 Nov 2026 09:02:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E9B5606D80D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dabTDRjB
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ugiIdkZR
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793782966;
-	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
+	s=2025; t=1793782962;
+	bh=eI6BYAMtH8gnpfLqrP2oq7QPLneAgWxxYSCOTNnXMiM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dabTDRjBK9iFxTLshFj42QBvFIhRE7HmwSJ+AdU3ZUCsWhvtY6FqIu+mLgA8PKvbS
-	 5m4KzYOQs9gipBoIr8eJhY+qZkCeR4ejd6ghhFzto8sZ8ncdcby5srSYZdVLJB8YzR
-	 AqtSh3jWCnMRMVr+gXrcMC50rVF3VtnRRLT0jBqwPjzohX6mpYOpLH4uz5I0VbPiqK
-	 zyhOMlDOA/yh+E0LXrop5jy1eKUlTIbh2o7zokd80wT4GvrotyN6DSCI+1Fix0UTH2
-	 8UXU3JgcvVgJLSUfZt73C+ItsZT3RgZgck5X6v1XUk9XTiCN5jBM/ITgZ6pU6wLKxc
-	 wWtisTPvyaB8w==
+	b=ugiIdkZR9K+w5rpSqRC7jjqOl3zNUractnXms+PfPCgJKE7LByvKoOLXJHMQx3vBU
+	 xtLatQW+psjSvjSq6iU5PeU8WwfuOO+UbWfvDF0rwVNYERdIPIPvUrGv5yPDymjsDn
+	 ovA9vUGosww/YO6vnuqxc4RZlk/k7rv1g3caQsoF43r2GaZ1wHTG27R4yKZuv995Rk
+	 /L0+GOYvkPLzSc4OQbglYTfoVCa28S8VD3GnPRxlEtI2I8uGgTIYWeZr46Z4WYPt+C
+	 ZmpGBeciYcf/moY/6jXsxd835SHEcLgdHHFbtAyr4y3tyz6DntoUvwN/b3uiGl9HkG
+	 Bi2j4oLmuV9tA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 93B5360085;
-	Wed,  4 Nov 2026 10:02:45 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id F2B476008D;
+	Wed,  4 Nov 2026 10:02:41 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 10/13] netfilter: nf_conntrack_sip: fix OOB read in ct_sip_parse_transport()
-Date: Wed,  4 Nov 2026 10:02:21 +0100
-Message-ID: <20261104090224.750548-11-pablo@netfilter.org>
+Subject: [PATCH net 07/13] netfilter: nft_set_rbtree: check catchall_sync return before queue_done
+Date: Wed,  4 Nov 2026 10:02:18 +0100
+Message-ID: <20261104090224.750548-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261104090224.750548-1-pablo@netfilter.org>
 References: <20261104090224.750548-1-pablo@netfilter.org>
@@ -73,55 +73,36 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+From: Xingyuan Mo <hdthky0@gmail.com>
 
-ct_sip_parse_transport() compares the value of the "transport=" header
-parameter against "TCP"/"UDP" with strncasecmp(..., 3), but it never
-checks that the parsed value is at least 3 bytes long.
+nft_rbtree_gc_queue() passes the result of nft_trans_gc_catchall_sync()
+straight to nft_trans_gc_queue_sync_done(). When the catchall path flushes
+a full GC batch and nft_trans_gc_alloc() fails, catchall_sync returns
+NULL and queue_sync_done dereferences trans->net (NULL+0x10). Guard the
+call like the pipapo GC path already does.
 
-ct_sip_parse_param() returns matchlen = end - start, where end is the
-next ';' or, when there is no ';', the end of the payload buffer
-(limit = dptr + datalen).  If the "transport=" value is only 1 or 2
-bytes long and runs exactly to the end of the payload (e.g. a REGISTER
-request whose Contact header ends in ";transport=T" with no trailing
-CRLF), matchlen is less than 3 while strncasecmp() still reads up to 3
-bytes, reading 1-2 bytes past the end of the linearized skb data.
-
-Add a matchlen check before the comparison, mirroring the
-sdp_media_type() pattern a few lines below, so short values cannot reach
-strncasecmp().
-
-The bug was found by LLM-assisted manual review of the SIP helper's
-parsers and confirmed with a userspace ASan harness built from the
-verbatim parser functions, which reports a heap-buffer-overflow read of
-size 2 in strncasecmp() called from ct_sip_parse_transport().
-
-Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
-Link: https://patch.msgid.link/20260815133104.50369-1-joasantonio108@gmail.com/
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Assisted-by: Claude:claude-opus-5-5
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: 7d259f021aaa ("netfilter: nft_set_rbtree: prefer sync gc to async worker")
+Assisted-by: opencode:deepseek-v4
+Signed-off-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_sip.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 64bc440b1181..b05dc8858d09 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -701,9 +701,9 @@ static int ct_sip_parse_transport(struct nf_conn *ct, const char *dptr,
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index fbe1750f1ca2..9d685899da70 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -953,7 +953,8 @@ static void nft_rbtree_gc_queue(struct nft_set *set)
+ 	}
  
- 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
- 			       &matchoff, &matchlen)) {
--		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
-+		if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "TCP", 3))
- 			*proto = IPPROTO_TCP;
--		else if (!strncasecmp(dptr + matchoff, "UDP", strlen("UDP")))
-+		else if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "UDP", 3))
- 			*proto = IPPROTO_UDP;
- 		else
- 			return 0;
+ 	gc = nft_trans_gc_catchall_sync(gc);
+-	nft_trans_gc_queue_sync_done(gc);
++	if (gc)
++		nft_trans_gc_queue_sync_done(gc);
+ }
+ 
+ static u64 nft_rbtree_privsize(const struct nlattr * const nla[],
 -- 
 2.47.3
 
