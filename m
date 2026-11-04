@@ -1,60 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793783351;
-	b=ywPorA+TCn4+qaDr8hVS+WAmHJelqii9/tdf+r8/XMdQMhrI2sQ2E9q5JXYQn7XJ7qLv
-	 kXy4uw7/oO005JhUTqON3EL5ms87Wirpo1i9gOtDW6lEvUVBwWcrG814YbUaAuE8Uaoyk
-	 gZx10UEMDXVuhX5hbs42JYGcR0HtEURisPzeaN1ky06YCHDSJr495HiWdvX2MiOc/0fz9
-	 8LcC8dcj0xkGboy0YV/IerTn+ibji7kel/9qdUrGgvrk+JeRXukYYUR69M9qn72kIsKFN
-	 4nLX+Q/uSZ/b93DD95Go5zPnMaRCGobNiaxBhuh2n8VBL/jNqDQRZ1PyE1NsvL+jFPg==
+	t=1793783736;
+	b=heY8DZfjs596eoeBD5Z2sDOUU9B1ozsiyIw9Ub5j5NN18cL3ACo/mUb+8fdUQxz5eknT
+	 AGHLKCBcM82NzD0fuSMaukcw6smbGvzmBLwxSSuq5fKTgnyFK3wIgZtHAwOfjsyOLGNUl
+	 EiCrjnO3XhFFGMySJ3xCOCLWogk3C1BrrMYba4ksBCT8888DurqYn6Vt6hFNjwvkESbOU
+	 /ilzQS+Bmzpgc8XaQVtUdl3qH0LHiLromofkdHAcDZgzYez5ObWIz+6D+m3kF3Mt6fzkT
+	 kzuU+alJ51HWmnUBCnfr72czmjbMxJZizh+ZFsMPXlAwFP7C4rrf0/Ct+Mu9O4f6a7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793783351;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	b=pVhc/GWmam4S+Db8ucioq37lfjx4UvAKjNoevi2U+gYYNho9gcLECcE5W+clXF0Dch3Z
-	 TCBLGmUYAYB87DZlk+1iyyaXLTjEfi7ZHL4ygiyBVNIkWQlxTZU3r1hkqVDc2ET8MwMmM
-	 HH4iq5x/DaOaFhlqm7+Qht/YExdUbjDJieURVaUgzw2clbjjydUH1ZEdo4KrR3gy7/V3i
-	 9mPW2v8OwAwPKIHbrnCnVJQimAq4wor6UH6gtHbZ/5LAOgs3YLBxdjw9mBXdvsIU4UIYn
-	 0cYwnKRpvAX55WVg4QDbajrg4eEKcPOJ0hDW0J/x8pDkxonLCJmacPc4ch1Z4uiL3Ww==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793783736;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=tun3DxnivT6n8ykyvHDle1jgjloMyn9wMMyaVwUBJtE=;
+	b=xmcr7yec+WPhYpeNieSszKshZJXr/3jZlrcW8PLnr+8Zh4T2kyeXJvf1i/aGPlwa+qVS
+	 R6xPzgd1Ro2Z+SaMXtkyN6ZxEdLAAtVN6DqR2QjzGXvdlwahqdhv6qUOiaQl1kLdUMPPo
+	 svBQYusftCZ8mNsJ9Le9tpJsm1Jf6NSf+sX3zXiHp5gTlqJVORtB3x1oNI6PIm6r1kdGV
+	 PolVhj4xUkvFWlKwY7Lk1oM+acc8YBO0v7qi0n7xFCNGfHNKesXbXw7JqXVKcphP3VWel
+	 PHCWI5ukpuhM5nNOHoVBztxqRAXPCZbK895HWGrw28um8DVKOXnYgI8YqQOODf7vdeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XQoJ7B1D;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QF98rpjB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 327A5606A337;
-	Wed,  4 Nov 2026 09:09:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1070606A31B;
+	Wed,  4 Nov 2026 09:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XQoJ7B1D
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F5571F00A16;
-	Wed,  4 Nov 2026 09:09:10 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QF98rpjB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 786C51F000C1;
+	Wed,  4 Nov 2026 09:15:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793783350;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=XQoJ7B1D1kOWsNZMCcaZwagivaRjUdWt2dgmGZEUdWuGM3HvAKfIn30D0LvtHvhPC
-	 x/1bMFGNKlGPYamKYQXV7+LFW91kcxKRBBDxTbDtDYJdkJRpxLsNgxNL4KHEvb3qhM
-	 zySgaTziTU2r7GL/NlUmGCzwZbdaNYh8IARSc7QmPnXjOdgvH1AGRBPuuYk1L/02u7
-	 Ch6AzJqptO5S574IwvUpTP3G57rqv4l1r0eadqcMuffaGTzJ9lGRYFC6XKQQd59cCS
-	 LErqw9PsBHZ3Ind7H3HcfRyuJfocKynDS4RcjqLO3A7RTGVm0RJWnv9gqJZxLm7QYP
-	 vCtBP88hS1ylw==
-From: netdev-bot+sinfo@kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net 01/13] netfilter: nft_reject: prevent unbounded
- recursion in output hooks
-Date: Wed, 04 Nov 2026 09:09:09 +0000
-Message-ID: <179378334968.488859.12612038847819403251@kernel.org>
-In-Reply-To: <20261104090224.750548-2-pablo@netfilter.org>
-References: <20261104090224.750548-1-pablo@netfilter.org>
- <20261104090224.750548-2-pablo@netfilter.org>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	s=k20260515; t=1793783735;
+	bh=tun3DxnivT6n8ykyvHDle1jgjloMyn9wMMyaVwUBJtE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=QF98rpjBzH7nX1jmz4Zo8ykeu0WPbxz0HGt6XxCXrOQ4V4PB3P/wbn5sluIzZ3bgP
+	 woOpkCVq06Ek6V7bKkHEP2phdvrGGARxXAl1OBE0IhgkRUa/IQ935AFbXxh1YUY5bJ
+	 utfjbIjp7LtybAhtZNGHqFcIoDw2mhpfxaUaUe5IHuBCvHt5tgYAPu/YfrtEAf4jWd
+	 v5zbJS1rE1Hby/io2vM2SNwmccLVR3w7pjdFYCtf7rR4Wu4skeBeZ5GH0Q1ajKmHHR
+	 yetiYqpJqieJOdcKUSYdWCjNW5p22mqd+bHsoVYbOTO4y8Ft2ybe6f5kRc5h/hiSzc
+	 /PiiXfUYZ7Gcw==
+Date: Wed, 4 Nov 2026 10:15:18 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 03/38] netfilter: xt_recent: don't remove the proc
+ entries under a spinlock
+Message-ID: <20261104-entgangen-nettigkeiten-intuitiv-f39521735261@brauner>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-3-59422ed3e465@kernel.org>
+ <auig_zhd3L0HEis3@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -64,25 +79,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <auig_zhd3L0HEis3@strlen.de>
 
-Hi!
+On Mon, Nov 02, 2026 at 03:41:03PM +0100, Florian Westphal wrote:
+> Yes, but note that this change is already part of a pending nf -> net
+> merge request.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
-
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
-
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Dropped.
