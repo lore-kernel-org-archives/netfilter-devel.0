@@ -1,127 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882195;
-	b=HPAXYnVjVrRIAAAhkOA+dNuijL6VszJ9VBmwLymdaxatICUBU/U74bGPbooQg0iEjQjT
-	 pMAQwndP6BTvXnMr1wbXtumftJ8x2TFew/SOZaf69aIsV3jkBLVrsmNBeyEVI/nYI4jKp
-	 a8vEWTiLKcmc3KRDYNoWOHtK2Elhmu9MxfWEo86NoqhkYk/iHUQfu/EwgS67zEJKE/we7
-	 DCfHEJh7BNaZte6aj8pQRIq0Q7qrsKFQpvxD/6u44kNYRZOSK2Jz6sdjGWhVueRO6iYR8
-	 tetfQXOghAW/wyD5mxg+iQmPTAJpxm5h/q/Q4Qhjw8++fwg8BDOfUUS492aZ77Thezg==
+	t=1793882745;
+	b=N6GPd4RZJbsEyH52UPQG8xOy/wkQQQDrGGM7z+eQa/BVeJuP/27byw7/SCphZXtsF11l
+	 ZrsnMrnN0xf/Cb5g5+Dhqie9D9XfRVWhd7QFrgypQvrJi92SAlY9leWTx/scbU8oRHDHS
+	 XZYH2Z4pSPcoCZiaBG0YkzIexcZRpqopuyJ8ujJO2qwQXi6IiWcDBLbzTi3czH1GELZOi
+	 /y6l7aS9aTnXsXKefXYty/BP/NsEOaxv+IY2apiNtbZ2iqjZilZYWyLOJGLW6hQ90nEO1
+	 8yZOKTZVaHjJI6FhXy48+nzOuQXf4k4LitFgkvfyvL/Wu3vlbg9VHQOI81tYlahgYwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882195;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Flag:X-Spam-Level:X-Spamd-Result:X-Spam-Score;
-	bh=DpjKnWhAHhajlU0N8yPm40hOORTtvriSHlYmNC33ga8=;
-	b=hBIqKO0nxA/MHaWcy76mBtJVLSG9rU1eaoReUnnbjhvPpepYWUyNnYQcg4jX41elhmt/
-	 SPtzqh32yj6kwhnAOGL373vTwpUPKcQNoznB4MR/nTrDa24YiKNEBlM6KxwSSN9ZL6UaB
-	 n18uRbaGGoqpby6b9Yaiy8f8Gwnkj2OEaFrqawagBayN2JeYhgf31/bXfsQDYpml50pJG
-	 ews98QY6kIlrtQkI3uG0A5iws7iFpjK+DUCLVMGmDxhoFdOdRAv18Qa0qVz107eJN/xQz
-	 2Y25e4sEFALy+4+LOIMDNXuC3gdp44F16Jo/Ha1qYCHROCI+XDCYXwi2x5owSTD5bqA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882745;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
+	bh=svm7yixRXtyszjfWrFTUagcpLvrETnPBpTtC9/J/nhY=;
+	b=KxPQPUMLnBhfZ9q2C1zx/7Ttvmg6cxbp7TWsbW7HU2uaQO22ktspZTEaUmBacu0Vbl3x
+	 VgRv7q2p4iQIdH0Uhj0P8RAd+qcKIOp6MR9oRl8UWaWkaf8OUa3uuRcGeX+Pjev4xV836
+	 E4Zl0RtkRljZG/440aLdzrF+zNL9RAVE+rRnVz0mFIYPN3TnTcD6rb5xAeBWFMSSY8d4V
+	 PG7QSrisd7dKezP5MGDijcTchY2dJRiYqvD6VEa4SHpLeQUVZ27A9+5/tn6+db0DlR1jR
+	 FA6KRuYXN7p83CQJvjRA/reo2iXmPSohuRHEYwqGgKstuu4y4zMefad1QqSD+j0hqhg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=suse.cz;
-	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=JZx76L+g;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b="8/5XD6W9";
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=T3Jse+8w;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=BYgAZw+U;
-	arc=none smtp.remote-ip=195.135.223.131
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=g+V2ZHEy;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14231606A326;
-	Thu,  5 Nov 2026 12:36:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 14231606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D55D1606A32F;
+	Thu,  5 Nov 2026 12:45:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D55D1606A32F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=JZx76L+g;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=8/5XD6W9;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=T3Jse+8w;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=BYgAZw+U
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 6EE151F785;
-	Thu,  5 Nov 2026 12:36:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793882193; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DpjKnWhAHhajlU0N8yPm40hOORTtvriSHlYmNC33ga8=;
-	b=JZx76L+ggOq++v50JrM+txlftOOqxJaKF/tK8uhPwld5Q9GnNQfLXM1whyLb1DsMeHXH/C
-	/uTr5WEx4MoDADem0Lt2IRl8UnJCEvNjej74YyT5VZBSM782Vk2aNTEZTgyxnuBLnPZ/fS
-	Mhf/U17g3frl5lC6gN/6C/6ftmbFF2E=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793882193;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DpjKnWhAHhajlU0N8yPm40hOORTtvriSHlYmNC33ga8=;
-	b=8/5XD6W9JBZBD7IT0Gng8T7errG+mfSR55zIjyH58gQPHLQ3a+6mBXLPeQK6OumZ9O/ASJ
-	a0+wPfZoC8vZgnDQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793882192; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DpjKnWhAHhajlU0N8yPm40hOORTtvriSHlYmNC33ga8=;
-	b=T3Jse+8wWvU2m0agalLdcO3u4gc4aSPygpqteqhLhNd/aBjFrhyiDCC1i0Lv+iYh3z1s6e
-	fnA2+Jf6Yg0jKvkbvYGo3ERh6eFq09U2ijwb8SlUT+DSbyddzL3tu06qm3Tz++uFh8zr+9
-	+TrYzUca/b6bladItMQ0Kk0+pK0H3fw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793882192;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DpjKnWhAHhajlU0N8yPm40hOORTtvriSHlYmNC33ga8=;
-	b=BYgAZw+Ujm4L/dnuxqWK1yrVNISlV/1cL+J702exe7XcXF17FVJLhwkbWz39x0ZpRyHhhI
-	iDaH9TFqNTx9SSCA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1DBD9134F6;
-	Thu,  5 Nov 2026 12:36:32 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id AxmaAFB47Go4MAAAD6G6ig
-	(envelope-from <jack@suse.cz>); Thu, 05 Nov 2026 12:36:32 +0000
-Received: by quack.suse.cz (Postfix, from userid 1000)
-	id 9532FB6E6; Thu, 05 Nov 2026 13:36:31 +0100 (CET)
-Date: Thu, 5 Nov 2026 13:36:31 +0100
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
-	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
-	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
-	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
-	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
-	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH RFC 37/38] proc: don't pin a symlink's entry while
- readlink() copies it out
-Message-ID: <krgvwwpug6brspfpubssohr6cknwd2wtkrxo6uqaoalfi2ay4v@3dtbsctwca3n>
-References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
- <20261102-work-procfs-bugfixes-v1-37-59422ed3e465@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=g+V2ZHEy
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1793882741;
+	bh=svm7yixRXtyszjfWrFTUagcpLvrETnPBpTtC9/J/nhY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=g+V2ZHEyzIdwBjKBp+F03HQHn4qcBhrtxMfT91B2Xx1m1cxMB6IFcqaAEvkuZid6K
+	 CiJi5RtpEb4FVYluGdRrKqvSfFSLDnkCFjQ3LZLC7umRrbrFwH5mUe9TeeQuojwicJ
+	 uA+56pQhWvKhOEwZ3El0peLCQzylw/X8jlkEXVdtw8TgoDWq8LgAaidNRJ8GpFYe1I
+	 TM5/KFqX3LFESf+QOAfyAzg5r5GQoNbUn/eNYH7Df/ubgWYJtRScUk3HC8I3M79i+4
+	 EtNDpGisIK0tZj0lUMNIIvT/8wkbTavM2L3/ONXQtpy+DhHCPO+rAAOuRvZpIpRp1c
+	 QTm7H4bY2+Msw==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 552C660097;
+	Thu,  5 Nov 2026 13:45:41 +0100 (CET)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@kernel.org,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net 01/12] netfilter: nft_reject: prevent unbounded recursion in output hooks
+Date: Thu,  5 Nov 2026 13:45:25 +0100
+Message-ID: <20261105124536.1009301-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
+References: <20261105124536.1009301-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -131,98 +71,241 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261102-work-procfs-bugfixes-v1-37-59422ed3e465@kernel.org>
-X-Spam-Flag: NO
-X-Spam-Level: 
-X-Spamd-Result: default: False [-11.30 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[60];
-	RCVD_TLS_LAST(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.com:email,suse.cz:email]
-X-Spam-Score: -11.30
+Content-Transfer-Encoding: 8bit
 
-On Mon 02-11-26 15:43:28, Christian Brauner wrote:
-> proc_get_link() pins the entry with use_pde() and the delayed call
-> unpins it. vfs_readlink() copies the link to userspace in between. So a
-> page fault in that copy holds up remove_proc_entry() just like the
-> copies of reads and writes do, and the callers hold locks while they
-> wait. /proc/asound/<id> is removed with snd_card_mutex and info_mutex
-> held when a card changes its id.
-> 
-> The pin doesn't keep anything alive. proc_symlink() copies the target
-> and pde_free() frees it with the entry, and the inode holds a reference
-> to the entry. What the pin does is keep a removed symlink from being
-> followed. So check ->in_use instead and drop the delayed call. That
-> also takes an atomic pair off every traversal of /proc/net and
-> /proc/mounts.
-> 
-> Fixes: 7e0e953bb0cf ("procfs: fix race between symlink removals and traversals")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Looks good. Feel free to add:
+nftables payload-mangling rules can rewrite packet contents (such as TCP
+flags) before they are evaluated by reject targets. This defeats the
+content-based loop guards, allowing unbounded hook recursion that leads
+to kernel stack exhaustion and panics.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fix this by extracting the per-CPU xmit recursion limit previously used
+by the netdev duplication/forwarding paths into a shared header, and
+apply it to the inet and inet6 reject transmit functions. It disables BH
+while transmitting the skb to address a possible migration to different
+CPU leading to imbalanced decrementation of the recursion counters.
 
-								Honza
+Note that the dev_queue_xmit() path used when CONFIG_BRIDGE_NETFILTER is
+enabled does not require this recursion guard. In that scenario, the
+generated reset packet is transmitted directly at Layer 2. Because the
+packet egresses from a different hook, it cannot synchronously loop. In
+addition nf_send_unreach() and nf_send_unreach6() are safe as the ICMP
+transmit functions are protected against recursion by the
+icmp_xmit_lock() and icmpv6_xmit_lock() guards.
 
-> ---
->  fs/proc/inode.c | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/fs/proc/inode.c b/fs/proc/inode.c
-> index 9933f03ab9fb..2d65f3c8ec03 100644
-> --- a/fs/proc/inode.c
-> +++ b/fs/proc/inode.c
-> @@ -629,19 +629,19 @@ static const struct file_operations proc_iter_file_ops_compat = {
->  };
->  #endif
->  
-> -static void proc_put_link(void *p)
-> -{
-> -	unuse_pde(p);
-> -}
-> -
->  static const char *proc_get_link(struct dentry *dentry,
->  				 struct inode *inode,
->  				 struct delayed_call *done)
->  {
->  	struct proc_dir_entry *pde = PDE(inode);
-> -	if (!use_pde(pde))
-> +
-> +	/*
-> +	 * No pin. The link lives with the entry, which the inode holds, and a
-> +	 * reader could fault while vfs_readlink() copies it out. Just don't
-> +	 * follow a removed one.
-> +	 */
-> +	if (unlikely(atomic_read(&pde->in_use) < 0))
->  		return ERR_PTR(-EINVAL);
-> -	set_delayed_call(done, proc_put_link, pde);
->  	return pde->data;
->  }
->  
-> 
-> -- 
-> 2.53.0
-> 
+Reported-by: Yu Junzhe <junzheyu1@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/20260921061320.543-1-junzheyu1@gmail.com/
+Fixes: bee11dc78fc8 ("netfilter: nft_reject: support for IPv6 and TCP reset")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netdevice_xmit.h        |  4 +--
+ include/net/netfilter/nf_dup_netdev.h | 35 ----------------------
+ include/net/netfilter/nf_recursion.h  | 42 +++++++++++++++++++++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c   | 12 ++++++++
+ net/ipv6/netfilter/nf_reject_ipv6.c   | 13 +++++++++
+ net/netfilter/nf_dup_netdev.c         |  1 +
+ net/netfilter/nft_fwd_netdev.c        |  1 +
+ 7 files changed, 71 insertions(+), 37 deletions(-)
+ create mode 100644 include/net/netfilter/nf_recursion.h
+
+diff --git a/include/linux/netdevice_xmit.h b/include/linux/netdevice_xmit.h
+index cc232508e695..286ae5a6101e 100644
+--- a/include/linux/netdevice_xmit.h
++++ b/include/linux/netdevice_xmit.h
+@@ -18,8 +18,8 @@ struct netdev_xmit {
+ 	u8			sched_mirred_nest;
+ 	struct net_device	*sched_mirred_dev[MIRRED_NEST_LIMIT];
+ #endif
+-#if IS_ENABLED(CONFIG_NF_DUP_NETDEV)
+-	u8 nf_dup_skb_recursion;
++#if IS_ENABLED(CONFIG_NETFILTER)
++	u8 nf_xmit_skb_recursion;
+ #endif
+ };
+ 
+diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
+index f6b05bd80c3f..a39411264614 100644
+--- a/include/net/netfilter/nf_dup_netdev.h
++++ b/include/net/netfilter/nf_dup_netdev.h
+@@ -9,41 +9,6 @@
+ void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
+ void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
+ 
+-#define NF_RECURSION_LIMIT	2
+-
+-#ifndef CONFIG_PREEMPT_RT
+-static inline bool nf_dev_xmit_recursion(void)
+-{
+-	return unlikely(__this_cpu_read(softnet_data.xmit.nf_dup_skb_recursion) >
+-			NF_RECURSION_LIMIT);
+-}
+-
+-static inline void nf_dev_xmit_recursion_inc(void)
+-{
+-	__this_cpu_inc(softnet_data.xmit.nf_dup_skb_recursion);
+-}
+-
+-static inline void nf_dev_xmit_recursion_dec(void)
+-{
+-	__this_cpu_dec(softnet_data.xmit.nf_dup_skb_recursion);
+-}
+-#else
+-static inline bool nf_dev_xmit_recursion(void)
+-{
+-	return unlikely(current->net_xmit.nf_dup_skb_recursion > NF_RECURSION_LIMIT);
+-}
+-
+-static inline void nf_dev_xmit_recursion_inc(void)
+-{
+-	current->net_xmit.nf_dup_skb_recursion++;
+-}
+-
+-static inline void nf_dev_xmit_recursion_dec(void)
+-{
+-	current->net_xmit.nf_dup_skb_recursion--;
+-}
+-#endif
+-
+ struct nft_offload_ctx;
+ struct nft_flow_rule;
+ 
+diff --git a/include/net/netfilter/nf_recursion.h b/include/net/netfilter/nf_recursion.h
+new file mode 100644
+index 000000000000..1ac65f7793f1
+--- /dev/null
++++ b/include/net/netfilter/nf_recursion.h
+@@ -0,0 +1,42 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _NF_RECURSION_H_
++#define _NF_RECURSION_H_
++
++#include <linux/netdevice.h>
++
++#define NF_RECURSION_LIMIT	2
++
++#ifndef CONFIG_PREEMPT_RT
++static inline bool nf_dev_xmit_recursion(void)
++{
++	return unlikely(__this_cpu_read(softnet_data.xmit.nf_xmit_skb_recursion) >
++			NF_RECURSION_LIMIT);
++}
++
++static inline void nf_dev_xmit_recursion_inc(void)
++{
++	__this_cpu_inc(softnet_data.xmit.nf_xmit_skb_recursion);
++}
++
++static inline void nf_dev_xmit_recursion_dec(void)
++{
++	__this_cpu_dec(softnet_data.xmit.nf_xmit_skb_recursion);
++}
++#else
++static inline bool nf_dev_xmit_recursion(void)
++{
++	return unlikely(current->net_xmit.nf_xmit_skb_recursion > NF_RECURSION_LIMIT);
++}
++
++static inline void nf_dev_xmit_recursion_inc(void)
++{
++	current->net_xmit.nf_xmit_skb_recursion++;
++}
++
++static inline void nf_dev_xmit_recursion_dec(void)
++{
++	current->net_xmit.nf_xmit_skb_recursion--;
++}
++#endif
++
++#endif /* _NF_RECURSION_H_ */
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 7cb33af671e2..4082fa184af8 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -10,6 +10,7 @@
+ #include <net/dst.h>
+ #include <net/dst_metadata.h>
+ #include <net/netfilter/ipv4/nf_reject.h>
++#include <net/netfilter/nf_recursion.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_bridge.h>
+ 
+@@ -336,7 +337,18 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		dev_queue_xmit(nskb);
+ 	} else
+ #endif
++	{
++		local_bh_disable();
++		if (nf_dev_xmit_recursion()) {
++			local_bh_enable();
++			goto free_nskb;
++		}
++
++		nf_dev_xmit_recursion_inc();
+ 		ip_local_out(net, nskb->sk, nskb);
++		nf_dev_xmit_recursion_dec();
++		local_bh_enable();
++	}
+ 
+ 	return;
+ 
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 5e08d8529cc8..7c9464184517 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -10,6 +10,7 @@
+ #include <net/ip6_checksum.h>
+ #include <net/dst_metadata.h>
+ #include <net/netfilter/ipv6/nf_reject.h>
++#include <net/netfilter/nf_recursion.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_bridge.h>
+ 
+@@ -409,7 +410,19 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
+ 		dev_queue_xmit(nskb);
+ 	} else
+ #endif
++	{
++		local_bh_disable();
++		if (nf_dev_xmit_recursion()) {
++			local_bh_enable();
++			kfree_skb(nskb);
++			return;
++		}
++
++		nf_dev_xmit_recursion_inc();
+ 		ip6_local_out(net, sk, nskb);
++		nf_dev_xmit_recursion_dec();
++		local_bh_enable();
++	}
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset6);
+ 
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index c6bd5c29bed6..918716629c15 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -12,6 +12,7 @@
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_offload.h>
+ #include <net/netfilter/nf_dup_netdev.h>
++#include <net/netfilter/nf_recursion.h>
+ 
+ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
+ 				enum nf_dev_hooks hook)
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index a48c2f765bba..7447da931a95 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -14,6 +14,7 @@
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_offload.h>
+ #include <net/netfilter/nf_dup_netdev.h>
++#include <net/netfilter/nf_recursion.h>
+ #include <net/neighbour.h>
+ #include <net/ip.h>
+ 
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.47.3
+
