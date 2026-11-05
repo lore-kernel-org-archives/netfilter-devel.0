@@ -1,75 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793878100;
-	b=FQOZgOJx5kunOLCIz25RwY3AIPSOTlicMy6ml+J7cyZfgbzPo0eI8Q/dbrtBQLpO18Bx
-	 3QmLbgFuY/+bDf7MhJqXL+rMh6rGDt+Zx3LeLT3nq8C/Ice/XkT+0kxCpqi0xznnlpyNT
-	 NMUjJi2qz8RLRdPn0aPAp3El2fIxH6feBet5LAy0kV0YbITYSIw2lQfVEkMwuhRU5htvm
-	 DGMGN1F9iFK7Hr9CH9AHpqzTy85xfoP8g7arDJzyAFWCUPKCtRJ59ncn5owGFzFZ7aiHO
-	 L0+h2K7qq9UkBbOA0Ha214w030Oe6SwNB23epPkb/rowvTvMSCUCLUkUqPN9aS9T/ow==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793878100;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=/DhdHHSKF5ENLCkIBlI46CZSU4/cobTTYN29i/kBP5k=;
-	b=mjQGTcic4H4o5Ufv6mdV0ZcjJIBbJHq6zjSNLWRuVNc3Swb96viVIQe1M25LLjLOAia5
-	 5k3LHffvbeaBz+uBl5W788OQnD+OE4i4c/S/wCaFRv/TCmq3jznxELpuzb63gne3BIYIB
-	 TDO/yfLHhk9qoHoX2K/I3THCNTf0OY9VEhe2ekYGQUyX39D4AjGcBXsIZb2KG1bqtuRsb
-	 R4nh7Kj19W3Bc4Jvf/sQZ2fID7lv9plFnHpLoK1yfQFmg2gSZ7OKfOfP0XBoEkefJXXzl
-	 E7OqCzNh8FPOP9jrRVHOCY8+AUzs4TdRYoFOq/EYvT6Lythbsvcxi4Dn0Ko5i+9HQcg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=SuH7ZXLI;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793878485;
+	b=skbQAsf3a6t8WLsPYjmzDjD9udiSjwSJS9csEiEE/FkcFme7vH8VN/yP74qcta+n+rN+
+	 SyA/oVzRrPBPs1mBN0vNS8p5/0WYIunIr7bMtcvSSsodeIZh/5R7ws6011MbexaF+qY+G
+	 BTgBWfHneMR9fbthSbUkBzyWGDUQTzlql2g5gaezQ57+LDxgJdT4ZMiGkDxMihYwzjUqc
+	 luJ5dy30qaX6uZMiL7LGnjxvsoIy71cFBOLK1QeulKX0o8/vUka7N8MZphIchA/QhFYkX
+	 ylafnn/zNgN0pjufBedceWQp1P/NBlLaKY+18S6bfrtZnKq9EYVB2rVLD3kaHXJG/fA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793878485;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=veU5eEJmhmisKZ128nDh455BlbaM+6zSk3sEeUBzebc=;
+	b=FjtAj4TAENmLWgWLeO1FbENgAv2VQIgYQo2XdbpPbgNUfy6zQD0l1SkPAfyViNnyDyn+
+	 uSgi+ZENB/SuB/hSpoRwmIdkNtfDiwtRMIyGWUi5tkaTbZxOaTsNlZlctDIbFJd/yhLUn
+	 MSPcwhJYMfXBgFpyzJqJlbsa3lN6RFQgX7Ir+3SxdrVDyypoaCgLvMF1wdWcI4N+3ECsY
+	 X7L0PPu0kSPmqzFJHTpwYIMjtpf/q/28WicuO/hAm/qNX0of6TQ1rihz0CgijhjpXFr8A
+	 2lIoBFxbPGnYFEA0vChgEHMCDkQI0SVxVdpfBMI/CHB184kUBlAxY9hhAptPv7nTWrw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nCiWJDDx;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5985606A31B;
+	Thu,  5 Nov 2026 11:34:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nCiWJDDx
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1793878484;
+	b=w1+Wc8ketNGIniacIdaKo9vmWGkwbSWY9ub7eoIO9xfrf2tVf1dTuDsyBLOQENLzcC1p
+	 KuiDb6A3tcdquq/oXBYRUFpX6CICJxufcA9bM0D0kaXdme4MEruWMXh/jswgwRS+eNoMd
+	 uvk62FprwNR3cE3ASanTgwqtYov5WJ+PeNT/i5W53NbktYaX4iKiEoTSVCEClD1R+WUgG
+	 qTk9NizPTcRRtPB1HPebIP//ERFNuaX5+begrGfzpXEBrlsmmWRPozBGy2fAp2FWQdSmL
+	 dqHUH2dtLtv1PS9s438smA0ejsasN4CYUMTC4R9M+Qrqj9xgcNXAdusMFrcHPmkgxqA==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1793878484;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=veU5eEJmhmisKZ128nDh455BlbaM+6zSk3sEeUBzebc=;
+	b=rOEwyPVamgJXHhogrmnm257A4z9xK32wh64WvUEvk6a37pXB1y1nONQREfP7KE9Eh6em
+	 9VIYkwtpniCFJRUxzhauaQoW4RslDZCRvCFRbEDtymSL4lgfUdSChXAtRVamYhwsnE5aT
+	 vw3tysc2UYUrQN66KKLsfD6NKdUMliWe8M24T2j563xsNeUQq1+SEi7HXGHcRxIDq1UK3
+	 adUb1IrQb7h8XvjPU5OP3EFg6TOEH2WOWOSRwsN/bNn+XXpgaylN71m1S4S1qP+Rxjeg5
+	 2EKLQEpocBV+UfGxQ+drWB9wPQII6uAL5f4vKEKSO90d34i8kFFybewYh8StMrbNOLg==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED25606A334;
-	Thu,  5 Nov 2026 11:28:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AED25606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=SuH7ZXLI
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id DE31221DB9;
-	Thu, 05 Nov 2026 13:28:15 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=/DhdHHSKF5ENLCkIBlI46CZSU4/cobTTYN29i/kBP5k=; b=SuH7ZXLIc6dZ
-	c/gNLJGzoZ4LBl3IUboffzYhXkLmT5QyDBTvg6OyCNZ7tfW5xE4d+BhBKWF4qHIY
-	jt3M+Np8nBfVJb+pTyV8iVCRDyTZgeK7a7kC09zLdgyb2e7iWhNZoOkyo3Xcpmk1
-	VGIQpme3UXlkCmxxEufiLEwNTcJtec+LBukX8h1YRHJXuHRbyePiZ/oWKW/3G1xi
-	5aowgPaotrreOSVdBqK3U2C+8df+uPzg/lJ7nJs5FtuZzZjRHLn+igCqXJEYhBAf
-	adfO6qTfMiQHJsV0ka7JFN+HzVX+v9+9QIhxnOgM3eVALYUbF0DYX1f+R8RaDoXu
-	jc13xJVqWu9TDVd+G5rct4Nbj/apo8E5+sw+6+2pq98evsVpXpTDRfJ9/Y08Itwe
-	2hFMWJ7Y8bfrBu44aMM2J6X/sxH74f/RKHbPODkUbm49vLoQxfF0RFk8R97Lnmt1
-	dqcpZlcaMCmwR+wb3vKefbTsh/9FtqcvpDa4/dEt8+fnChUJQykKnNntRqOVWB1S
-	uibTuXZEAj7IcpRxWDOoO6+xOaxcN7/KIeZWLML91+llfB3Nz8pGvi78MDwXkrLU
-	s4p0k6fX852zdLOma0Z4hyXNB54tKy+PPc+XQZddUbk4LOvIpDQ2Hb7sr31un7Uq
-	YnaQgc2Io8zZFd3rx2D04tTpZo4/kzE=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Thu, 05 Nov 2026 13:28:15 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7628960C22;
-	Thu,  5 Nov 2026 13:28:15 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A5BSDa2035968;
-	Thu, 5 Nov 2026 13:28:13 +0200
-Date: Thu, 5 Nov 2026 13:28:13 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Paolo Abeni <pabeni@redhat.com>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
-        davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        edumazet@kernel.org, horms@kernel.org, fw@strlen.de
-Subject: Re: [PATCH net,v3 00/13] Netfilter/IPVS fixes for net
-In-Reply-To: <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
-Message-ID: <f0d18f47-1ca7-a6a8-2c7b-31f53fbee02c@ssi.bg>
-References: <20261104090224.750548-1-pablo@netfilter.org> <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
+	by smtp.kernel.org (Postfix) with ESMTPS id CA1771F000C1;
+	Thu,  5 Nov 2026 11:34:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793878484;
+	bh=veU5eEJmhmisKZ128nDh455BlbaM+6zSk3sEeUBzebc=;
+	h=From:Date:Subject:To:Cc:Reply-To;
+	b=nCiWJDDx14qVQveQy3N0T5dE7AoeeLKk97yFZfcJXVZ2W2peDungSoatQIPw1MzkQ
+	 aIfrXWuzQmNa84q9kGhePxqrMGuBVMaHKse56VMpPMMEVOkoaw7pdmDJFQOEY4FW2e
+	 jWdRPFXOolgm4kl88K4Snec3rJ4WFNdxSC+4zi2lwzniLNwvCatCGMn+V77p+qqrFB
+	 6vFi0QNl/dFQiL7WmgHbC+eVGrmEPS8SynPnKLWcjdf3rBz7YlroP1dXHXze/81soK
+	 j2GpG5EcVna/RNltFukqb1c8SQR1VMfpLgat/SFo60pu/20S+WhwCpUxCn9dJSK+so
+	 ZbCMY77ug76IA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 5D9FD4721B;
+	Thu,  5 Nov 2026 11:34:43 +0000 (UTC)
+From: =?utf-8?q?Jo=C3=A3o_Silva_via_B4_Relay?= <devnull+jgc3silva.gmail.com@kernel.org>
+Date: Thu, 05 Nov 2026 11:34:41 +0000
+Subject: [PATCH nf-next v2] netfilter: flowtable: do not clear the offload
+ bit twice
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -79,34 +83,104 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261105-flowtable-offload-bit-v2-1-0e38b5d818f9@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/4WNQQqDMBBFryKz7pRMxNJ21XuIi2gmOqBJSYK1i
+ Hdv8ALd/cfnv79D4iic4FntEHmVJMEX0JcKhsn4kVFsYdBK34hUjW4On2z6mTG4ko3FXjI6anp
+ nydZ3tlC278hOttPbgnfoecvQlWKSlEP8nn8rnfUf9UpIqJVrHo0elDL0Ghcj83UIC3THcfwAM
+ E4JiMMAAAA=
+X-Change-ID: 20261103-flowtable-offload-bit-f15bfd1d38ed
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, Sven Auhagen <sven.auhagen@voleatech.de>, 
+ Oz Shlomo <ozsh@nvidia.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ =?utf-8?q?Jo=C3=A3o_Silva?= <jgc3silva@gmail.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2370;
+ i=jgc3silva@gmail.com; h=from:subject:message-id;
+ bh=pEeE/GOhABOG0gOkY8kg/Fa2OJZnNxzdRF0CXVgKbts=;
+ b=owEBbQKS/ZANAwAKAfy6ZkDxTpFsAcsmYgBq7GnSsF7Oc/qXwmo77JFHxyKBRPHsGsH174XCB
+ f2VCSD8p/6JAjMEAAEKAB0WIQROyCimFhnPgEUkNBX8umZA8U6RbAUCauxp0gAKCRD8umZA8U6R
+ bI1MD/9a3V58iCD2EZFvmAZ0I8a9ZY98MNDh0FzDTxu14SVg5Bi4pduRDFy2gY8iB+he+JiobME
+ hSMANSCsOkoYFJfd9Wpi/pDSfkFpX3fgBIZ3kBHrTq7QfzsfoqoxTjg41A1TbU6VwYwpqJwcWTX
+ T6DaBsvxHNWJVVr36eBotFCFZDfHwSVZR0/fcuqzuNcmqMvf7Xu7B4Ksymn3e0qQeqMPwMfOXns
+ rPjAlKFWfT2NNULYq2YILMXT0FBH2vHSEDil7wc1WRWXMq7n7vF5ie7Mb7lgFSjOonn2D7jMCxf
+ wqSaSEJKMzVEB9WucEtEucdu1XV2p8QM+paGAggoyvifam1VE9H2VAr3mQrAC0r50vvXY3T7sol
+ ee+z4yIblBCQ6D4SmuIdtm+NzVSHbFtSBaU5pi4U17Gg5wlfnUjBAp3H/pu4tVSFsdH1jwk8zoa
+ Ip9BIigLFn4vdA1znCdOrT6uF9FrjgXL5fVikrUudAVeuO5drXP50DyktnuRqTVu6eounzZZIx7
+ EXztkW1UgWKEU4PM022SoFF0ehRMJc40t8P1HPFSnU2JNIlK6w6coVpK16LR6N7cUq1h+ArhVof
+ YzK4Ku/QydDO+zk2If3Ke0QS4h/gjahIvzSzD3Xy+UjB8v0AP7xjxgSgvbBbgH5KQbYtIeE8Gbz
+ ZUpf/uXoFxlNjCw==
+X-Developer-Key: i=jgc3silva@gmail.com; a=openpgp;
+ fpr=4EC828A61619CF8045243415FCBA6640F14E916C
+X-Endpoint-Received: by B4 Relay for jgc3silva@gmail.com/default with
+ auth_id=1392
+X-Original-From: =?utf-8?q?Jo=C3=A3o_Silva?= <jgc3silva@gmail.com>
+Reply-To: jgc3silva@gmail.com
+Content-Transfer-Encoding: 8bit
 
+From: João Silva <jgc3silva@gmail.com>
 
-	Hello,
+An expired hardware flow remains in the flowtable until its asynchronous
+hardware deletion completes. Teardown clears IPS_OFFLOAD_BIT, so a packet
+can create a replacement flow referencing the same conntrack entry while
+the old flow is still waiting for deletion.
 
-On Thu, 5 Nov 2026, Paolo Abeni wrote:
+The next GC pass calls flow_offload_teardown() on the expired old flow
+again, clearing the replacement's offload bit. More packets can then
+create additional flows for the same conntrack entry. A pending hardware
+work item can also delay deletion and expose the same repeated teardown.
 
-> On 11/4/26 10:02, Pablo Neira Ayuso wrote:
-> > v3: keep back two patches in the series with sashiko reports that
-> >      suggest they need a bit more work.
-> 
-> I *think* Julian additionally suggested dropping/changing patch
-> 
-> ipvs: do not create conns from packets with port 0
-> 
-> but it looks untouched ?!?
-> 
-> Also AI review did not kick on this revision, likely because
-> the bot is confused by the mismatch between cover letter prefix
-> "net,v3" and the patches prefix "net".
-> 
-> I think a new revision may be needed?
+Commit d2d31ea8cd80 ("netfilter: conntrack: fix erronous removal of
+offload bit") closed this window for software flows by unlinking them in
+the same GC pass and made the conntrack state fixup one-shot, but
+hardware flows stay linked until NF_FLOW_HW_DEAD is set.
 
-	The PR contains v1, even v2 has problem and can be
-dropped. I have v3 ready to send later today.
+Make clearing IPS_OFFLOAD_BIT part of the existing one-time teardown
+transition, alongside the conntrack state fixup. Subsequent teardown calls
+must not alter the offload state now owned by a replacement flow.
 
-Regards
+Fixes: e5eaac2beb54 ("netfilter: flowtable: fix TCP flow teardown")
+Signed-off-by: João Silva <jgc3silva@gmail.com>
+---
+Changes in v2:
+- Retarget nf-next instead of nf: the only known affected user is an
+  out-of-tree hardware offload driver (RTL930x, OpenWrt).
+- No code changes.
+- Link to v1: https://lore.kernel.org/r/20261103-flowtable-offload-bit-v1-1-20f5952c00a1@gmail.com
+---
+ net/netfilter/nf_flow_table_core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 0d72dc8ae47a..709b55b74cc7 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -398,9 +398,11 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 
+ void flow_offload_teardown(struct flow_offload *flow)
+ {
++	if (test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
++		return;
++
+ 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
+-	if (!test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
+-		flow_offload_fixup_ct(flow);
++	flow_offload_fixup_ct(flow);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 
+
+---
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+change-id: 20261103-flowtable-offload-bit-f15bfd1d38ed
+
+Best regards,
+-- 
+João Silva <jgc3silva@gmail.com>
+
 
