@@ -1,59 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.2
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793862207;
-	b=nVNQYbYbqe/iDsLTn8zb9sE7CuVien7T/x0ZL5h9SfUD6/MDmCzek+Fzwqi4E02MEY9S
-	 CWdaXLRz6WajqfDqiD+CLbDlGA1QLuaKJGekmgS9Wba4xdxHuxN/snm/NcP0bk+v2fX6n
-	 +S77zrYyAjGXlaibFiPidkPpA0IqGx0MgJt+Jlyc/z2S7DQvPfqMbhTEU0BGo50z0TlDX
-	 CTW83++9WV1oys6uUAoKLXKJ0YVIKaBlPjkoB1J4JB3mwFXRtNjxjDOruQ5pCy3QN2C+Z
-	 jXmgzN8NSgDKpbLHc3ZjsMXfn7GcAg9YXZpuivQOKcvyJnurYd6skSJkjbNWtdx2aAA==
+	t=1793866732;
+	b=DrqBIycndEfsb6d9aF+JotW5JtpYbG9D4tWsPihqZNh0r883Id7V3g+JuGQbkyZPaZQO
+	 8x1HQ0jMaOzDMIlJU2M98V0Qe6mx/CvpfoHI/wd830nO9CLbgXvn8g0O6U/EZq9GYXilI
+	 caxl5Ueihd/aZsLYQLRPKyv1ccpvWpe99ERAAPlxC+mYJB31sVJVrdGqwyd0WudPzEw3S
+	 jy4CYoO5bp0P56B/BjHFek5n+jZ/kdybvxgAq8sUhKCpMHd4RzCMtq4Ap4bGoIpI4GjBl
+	 Na8Fv5+P2CClMrtDUWh3XQtBEdLOa+x7cAwbKvGxcbSJx98xDMQ26PyJlyMZBsfk/hg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793862207;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	b=H9npzdh5j2yeI2tYxNqPA+Ts5joV+rRU0ZcWosngAaYbXDioS0bwo25F9fcwBC4PefyS
-	 Q6vE5ZZOL6OX/tfZsUdfNG7a4aML3fL7dFyvjEHiVZPwIY53G5ImQvxSFgw3bF3CphL6k
-	 xak4fL2xDRKzkhhkk+pZ2M0ivbUYzaoGk2/1bGkqxN+s0ac+TjvjRDQg8mQJx2RzNO3Ii
-	 VCVWH28TIDook6AcTg4rPusDEaXYKVC/kSUlMeHcKbs9m1FYA9311wk29M1aG/3diqk4f
-	 y7I2H1zIfmjqCVk1EKvG1QYtoZsMHZUyneU6V7KNQzjOtJxDp3of1Zz+hjmzUt8sayA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793866732;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:
+	 X-CM-SenderInfo;
+	bh=rRx7QTftZl4uD9/Vj2l2EmlBlFWwHvN6RD3Bmm1PGEI=;
+	b=oQmWHuxsXhfQcQ85v9K51A4dCBV9N+RasBoVOdhnpVsO/dAPhp04HjsbF3VFsAujGHsg
+	 sC3H7ovQDR1gI7cy+7olpR5pQ2A9A+fM+cflRZKtJexkKtubZltMjs/udoMnnx2+PFBI3
+	 eTjds16l1MdYTRlXA7yGDwFRnOgWUnjw0x9O2vhOVbELKRczOBwoMMFUXkD78I5bSlaRL
+	 4F1Uqcw6/tK02vSsAQzrBPy32ke/pfdQPOKNKkE47m90K3W/WPUaXMs2iGrYVNcGNzme5
+	 ZQovj9ECkKfk00OuCG5JjEEPKE/YG0Gl6VMVCYwh/tBiMyycgIQxEI4zfI8CQpu5QNw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TzTGrmi9;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=IvXRymMj;
+	arc=none smtp.remote-ip=117.135.210.2
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5522F606A326;
-	Thu,  5 Nov 2026 07:03:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 305E7606A33A;
+	Thu,  5 Nov 2026 08:18:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 305E7606A33A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TzTGrmi9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CA961F000C1;
-	Thu,  5 Nov 2026 07:03:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793862206;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=TzTGrmi9xfsJumawMXwsx5Sm0b3u3LyMFsY/ejO7spi4+LnmiO4Di+HtGY8nYYaUm
-	 Aqomukvj4KaH3aZiEG5cT2ngBz5Vf0CxNWkBbDUxXnpIIxUmLGgJfyziyM8B6F8Rx7
-	 0z/ar7lcnMlELn1l90bnt0nkl0VlRSpLa5YbjdlUnQbwNhdH9/EHJLhEag8G7h6Z4y
-	 JZ0z1A+rndT3ZfhYZIDRRq0DlTVN15ljANTbugvJ00C+Xy/DdySWjPpAQx0w3B00Qr
-	 iU1sN9wIBPegZhfArstXcLF977sengRkfibdcYwBxHqO8NAUaXMAO6Dot6XOJR6iVS
-	 9HpG/+RQfyYgg==
-From: netdev-bot+sinfo@kernel.org
-To: Qihang <q.h.hack.winter@gmail.com>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, vladbu@nvidia.com,
- ozsh@nvidia.com, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nf_flow_table: defer pernet stats release
- to last flowtable teardown
-Date: Thu, 05 Nov 2026 07:03:25 +0000
-Message-ID: <179386220573.488859.7780877584306117605@kernel.org>
-In-Reply-To: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
-References: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=IvXRymMj
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=rR
+	x7QTftZl4uD9/Vj2l2EmlBlFWwHvN6RD3Bmm1PGEI=; b=IvXRymMjB1xd0yfS7i
+	CzKKwbQzu3/VBszTbAWxXB/rg+P0nVNcxaTrcf5L+8XltRI2k1EjPfDxYshpo4Tb
+	/VTXHKcQHe2JXMF8jBuUMEfIMk85CUyZ7UcZxwSkvmqVPkQfGEI4HaBQMmHe8bPU
+	CKZ3f6R7cic2wCj+JK/d/tiT8=
+Received: from shaos.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wD3nxifO+xqhsacFQ--.31530S2;
+	Thu, 05 Nov 2026 16:17:36 +0800 (CST)
+From: shaos <shawnq1@163.com>
+To: pablo@netfilter.org
+Cc: Sung Byeongchan <tjdqudcks0424@naver.com>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Simon Horman <horms@kernel.org>,
+	coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net] netfilter: xt_dccp: reject short option lengths
+Date: Thu,  5 Nov 2026 08:17:35 +0000
+Message-Id: <20261105081735.749379-1-shawnq1@163.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <179251068646.3135.16276902372052104830@kernel.org>
+References: <179251068646.3135.16276902372052104830@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,25 +72,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wD3nxifO+xqhsacFQ--.31530S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxCF43Gr1DCr45XrWkJF1UJrb_yoWrXw1xp3
+	yYv398tFykKF48JrZrtr109r1rGrsxAFW5u3y5Xr40vanxWr4ak3y0krWY9Fy2vrykW3y3
+	ZFn09w10yw4DA3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jOGYdUUUUU=
+X-CM-SenderInfo: pvkd40jtr6il2tof0z/xtbCzwDM2mrsO6C0AAAA3w
 
-Hi!
+Hello,
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+The 20 October review of the reserved-option fix pointed out that
+`dccp_find_option()` can mistake a short TLV length for the next option
+type. The merged fix did not address that case. I reproduced it on
+top of commit 2edda78aa4eb (the reserved-option fix).
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+With INPUT policy DROP and an ACCEPT rule for `--dccp-option 1`, an IPv4
+DCCP packet containing options `{32, 1}` is accepted. Option 32 is a
+multi-byte option, and length 1 is invalid. The walker advances by one
+byte and then treats that length byte as Mandatory option 1. The rule
+therefore accepts a malformed packet that does not contain option 1.
+This affects firewalls that use DCCP option matches as an allow-list.
+The match requires `CONFIG_NETFILTER_XT_MATCH_DCCP`; a remote sender
+needs reachability to a firewall that uses an option-based DCCP rule.
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
+The reproducer uses raw sockets and a local IPv4 DCCP packet. The QEMU
+runs show the false match on the original kernel and after the merged
+reserved-option fix. With this patch, the malformed packet is dropped.
+A packet with a real Mandatory option 1 is accepted; without option 1,
+it is dropped.
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+The earlier review is here:
+https://lists.openwall.net/netdev/2026/10/20/477
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Tested source revisions:
+- Vulnerable: c03c1a14507dfaf8b856c2608f9ac216021fc222 (Linux 7.3)
+- Vulnerable tree: 30fd2ef82912c26cf3a58ad0ba6afc375fa851ac
+- Prior fix control: 2edda78aa4eb04cd8f112a81897510ee0cdd7099
+- Patch control: 2edda78aa4eb04cd8f112a81897510ee0cdd7099 plus this
+  patch
+
+Git tree at patch base: 8644625317c9d6e32244509e29387fb0c80af0f4
+Compiler: gcc 11.4.0, GNU ld 2.38
+QEMU: 6.2.0, x86-64 TCG, 1024 MiB, 2 CPUs
+
+Console output:
+https://gist.githubusercontent.com/shaos26/a39f036057ddd1c1b78ce2da114b8f3a/raw/6a95ab42fd7f47c2e0113c55bc80a7e86002f222/console-output.txt
+Kernel config:
+https://gist.githubusercontent.com/shaos26/a39f036057ddd1c1b78ce2da114b8f3a/raw/f60c4bca22a42434cac67478e74d6f7c5b28442c/kernel-config.txt
+PoC source:
+https://gist.githubusercontent.com/shaos26/a39f036057ddd1c1b78ce2da114b8f3a/raw/3c45d0d340d804c236503cecf5ffe33f700245d0/poc.c
+
+Check out commit 2edda78aa4eb. From that tree root, copy
+`kernel-config.txt` to `.config` and run:
+
+    make ARCH=x86_64 olddefconfig
+    make ARCH=x86_64 -j"$(nproc)" bzImage
+
+Compile the PoC with:
+
+    gcc -static -O2 -Wall -Wextra -Werror -o poc poc.c
+
+Boot the kernel in a disposable QEMU guest with BusyBox,
+iptables-legacy, and `poc` available. Install this rule:
+
+    iptables-legacy -F INPUT
+    iptables-legacy -P INPUT DROP
+    iptables-legacy -A INPUT -p 33 -m dccp --dccp-option 1 -j ACCEPT
+
+Run `poc badlen1`, `poc present1`, and `poc absent1`. On the unpatched
+kernel, the malformed packet is delivered, the packet with a real
+Mandatory option is delivered, and the packet without option 1 is
+dropped. With this patch, the malformed packet is dropped and the two
+controls keep their expected results. The test needs CAP_NET_RAW to
+synthesize and receive the local packet.
+
+The option walker should reject a TLV length below two before advancing:
+
+Fixes: 1d3de414eb20 ("[NETFILTER]: New iptables DCCP protocol header match")
+Link: https://lists.openwall.net/netdev/2026/10/20/477
+Signed-off-by: shaos <shawnq1@163.com>
+---
+ net/netfilter/xt_dccp.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index 23a4e3e8df7d..e0d7f4374958 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -62,10 +62,15 @@
+ 			return true;
+ 		}
+ 
+-		if (op[i] <= DCCPO_MAX_RESERVED || i == optlen - 1)
++		if (op[i] <= DCCPO_MAX_RESERVED || i == optlen - 1) {
+ 			i++;
+-		else
+-			i += op[i + 1] ? : 1;
++		} else {
++			if (op[i + 1] < 2) {
++				spin_unlock_bh(&dccp_buflock);
++				goto invalid;
++			}
++			i += op[i + 1];
++		}
+ 	}
+ 
+ 	spin_unlock_bh(&dccp_buflock);
+ 	return false;
+-- 
+2.34.1
+
