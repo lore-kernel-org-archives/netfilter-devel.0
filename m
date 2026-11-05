@@ -1,108 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.170
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793872012;
-	b=kCtKG8O28tZ0sFozS9c4X4UjV3rckRcH3hTBVgvSp4OEwSG3U0m0EqJ7CiLZN7aMKjch
-	 9FHowbM+H4gtOJbPHENVIi/Ary2FA5IkV5m3OmqczCrU/YOehAOvedY09tqfOHAkNletZ
-	 KMCYISsZlPU7ejsNgu8xOa5VNYZeS2jb9M55x95WwUMFCp/ddsJne7PnBowWlh+wDf8YK
-	 Ks1clPCb2gH4s6IcBckUN6YhgkeWvgTHx5Hl96U8ayxli3T5VLDxtI9X7gB8FX5jZKK+6
-	 iaZntHPcgAVvOMimsBf8BgHMe8m49S+4V/8fWrn5oZovtA1Mn9MjltUTmh6+YUkfn1w==
+	t=1793872387;
+	b=bfsq/x5zAQTNThzEsRiny45d2QlfLSA7xuh0cffeBBqKIrarPkaKvZwMpRJFaTD/DHNa
+	 /and5tMITIYA3yZUtVAO3V2w87iXRdv2LKMDEtsdxQ5SzIXLXXCMDiP60a/twHFfzBl4U
+	 8lQVh5scGaVFFHdk3yTAeTsGcwWCciTisurrr7IZs5/Lx93ussGI3rXqg79S5FFNhQF2V
+	 1cTAsW9lBbLPDxEkYdxhLGwH1ep7yRq35dRsBUmx96vuEg4qTk1euY4vaIqNhP/5AEHak
+	 qGMdyWs0wLqPh4dERrGsYtfnv/sv1JhrPx957A3yqP9sweebEb3BpQsEeotK+OJR0+A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793872012;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
-	b=vPN8LIlrdbrrCl4aAzpi7lHmVUXPNsZcOhFqf2ElyikIu9+R8geawpVfRopHXUfJUVR1
-	 +naD4mmzJSKhcRaP7hQLKdYhe948THFMT5tp3m1IkLQJNGR9ICLY7Ecy/5Z+KoFmfgiou
-	 PnYcoXrvGAZ+COwchm7T3Rjcsu/PnHiwx1+8OCY/Q1rNOx9nYchzi511IabQCGGgxNhpn
-	 oINZGPt2gTmW6KhCXVb74m12f6rVF2M9OX6oNvHtJqrucF5mPSRsjZXjU7n/nF+qrMw9m
-	 wdi0mPCjljFdVasxl6bfKFGgkI/2frP7DQnZldsn49EK2K2dv8BlCX3f+EU3KU073Xw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793872387;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
+	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type;
+	bh=SqrTjgENN7Dfs+HehxbKPgACeb32UvvfMAFijNHd6N4=;
+	b=wT5av6JMGRIpXXC6yzYEEzQR/RFL384j9bWWIMHX9r0ZshxQTpQ+XAM03kuBTV/oyOTj
+	 xd7x5PbPvvRc7pxnwGKX9fYYnRgK4Bfo26RXTehixxOz0ETV26i5PHpMmlWdfvg5LC01A
+	 gw5D9aKE3WxypuJF3KlaF9jtXtrwveS8ilxtNf/wtZAdqn1BqraLtro5T2D2jV9FBLm7N
+	 +dz/HDp6yRS/DkZxIIvUji8amSemV4WySeFJrg3L6FnJsdngCX9/51PQiUQrSI9LGpJtp
+	 dzMuFb22vIXsrlDxzbyeT+sDEPNCexdgB1nJlYTT8HOC9IX6JiFuB6FE7yRwpIo3anQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=SDbEXYtD;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=IPe7dai3;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=linux-m68k.org;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=209.85.160.170
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAAD7606A31B
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 09:46:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EAAD7606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=SDbEXYtD;
-	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=IPe7dai3
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1793872010;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
-	b=SDbEXYtDBFy+nN/VLO/p7fNZ9zQd79FDJSaSgWTNvnSAiAm7lzG979eOakNO9FK3PorFqy
-	vRZmOf8r2sJoOCBbNMjKr3wjSK1G6e5NTi8dTMF5oVsLu6e9jYDCFa/+tPmYq3Eek1NCcv
-	IDt8qER22bTswxN+Hxih39VvH3j+7zE=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-630-AmBcnIP4MgmNzKJpN_-b-w-1; Thu, 05 Nov 2026 04:46:49 -0500
-X-MC-Unique: AmBcnIP4MgmNzKJpN_-b-w-1
-X-Mimecast-MFC-AGG-ID: AmBcnIP4MgmNzKJpN_-b-w_1793872008
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a1d1f26a63so13226745e9.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 01:46:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1793872008; x=1794476808; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
-        b=IPe7dai3A3TwSaQxmblHBD5Q4Q/rWHpStHnErIm77+s6Yc5s9qvi766wpSRCdtPWTX
-         t4YpOqsSaNYxQIB62IuEpsghxR2yP/0Dadunp4d8kHLfXbyqLR6vj3pS6fee+9MRpGeq
-         2arlYDjKzVJQB4zjAWNYzIRHnNiG+t4j3c942+OTR5sdgAx0QToEvm1pF9N5n5/Av8uY
-         +e8tyDO9hO3WCJToAEElH0YZ/vIi3Ha5vxb3kItfdutfSRYhhkowAPz6S6jJ7ckm1BZp
-         1hSJWq43riqIxkBaOsLQ5f8hEteYXx6j3oG0yb/LniWnX0nlwQ4Bf6+q2Yi2pPnpe2yV
-         grRQ==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F60606D815
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 09:53:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 86F60606D815
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-5365f9a04c5so23477531cf.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 01:53:07 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793872008; x=1794476808;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
-        b=Er5CjJuKahFzB55WtZ5qglaHtLi/i70coszKkT7sbynypdLz1vRwEz97JWPqFBLr16
-         14dQIpwIL53EtKUeH6ip8Na5KVGcn1MdTTRdkoDXwWHgzUbjk9KfYgrR8ZGK77Rap3ML
-         5DQl+E7Mo+lB48eBK5mQBPGQjV2qR4Dppv0pzM5b9/AUTwn/az9y2Ppz9ytmQHzeWVBx
-         NVL3xEmE9YRfqMVqDpBkfcolqLjCBPPWJjV+Tv4/za/bOirqNeYVg1di6qss3U1lgFFu
-         Zf9Syxp5+YCeb4GbP7je29Kt79Gpg5oeJi8LSyMiKfOqxXUMAiPQEIk8fuBWvQ4NO5QN
-         WE8w==
-X-Forwarded-Encrypted: i=1; AKwUvBx8TH07KFpTxCYSr6u0iyJgnV8ni8ckDxrs1I7Kq60vSzzApf6dB0Nnb9H8+8qTHV9mpEcfg5puxaZoE3xr7zg=@vger.kernel.org
-X-Gm-Message-State: APuU4Z8ZA4fzeJHfGuTaGtTMKa1nx31/SKUPvG1+MnjhHZV+LusM2pV3
-	vXeqkedJtY6rlfzIPnZt4XDrwaUjVZ4qR9e1yOCNL3JnVzUzn0+RvlsRU0fpNnI13NLtgAa0cVw
-	PxuvEfooa+qK9uwYozdMd026ZlQ8NpeCmb1mNqozYzcKgobqLNgJ2WcJZmjoK6aItfG7VhA==
-X-Gm-Gg: AYBFou2cLOFsBxfPn48Brif0ATCzhIz1TTgz6eYmbwGwg7rWJl6MdGT38yTakfEcEku
-	GoOoL10gRTrGzih3raWoNWOD0s55EIjJdcLmaFSE2LHI2zXkJunWTLWh0tPoOUyVay8RdTlwWmo
-	MCoIui6zqGw61iZ3OL0SiQLlmgaBe2caNvUmQmz6vAgzeVBNxZYZtHyojtRh9ch4ZPmOBd9trtp
-	Y/4LDwp7PGCm/CJeyPjXpDwmDEBPvXcJgyR+FL8aqwImzPtj4r6p9VJsSEEPAE4zsF7WhVzuJTS
-	6/UYoGapSi5Fq04GPBMAGdkpdnbihtmVOr7ugWgqKCQ1oChJZWWRxJxfEtD+zfHdqGWATHeoSTD
-	j8XoScWs/q+EK5kU1XRSYqdaoaaYXFg4iicCF3YVs48gp4/laSh7+5g9OTJeP7K6Axramy6u6jb
-	3SXY5nyCK5NTkXHDHCC1wixl4aPWdPaITLUcQ1XEDTa7Q=
-X-Received: by 2002:a05:600c:848c:b0:4a5:dc5d:20f7 with SMTP id 5b1f17b1804b1-4ac175669d8mr452190185e9.14.1793872008407;
-        Thu, 05 Nov 2026 01:46:48 -0800 (PST)
-X-Received: by 2002:a05:600c:848c:b0:4a5:dc5d:20f7 with SMTP id 5b1f17b1804b1-4ac175669d8mr452189745e9.14.1793872007952;
-        Thu, 05 Nov 2026 01:46:47 -0800 (PST)
-Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b411de95b4sm84246655e9.0.2026.11.05.01.46.47
+        d=1e100.net; s=20260707; t=1793872386; x=1794477186;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=SqrTjgENN7Dfs+HehxbKPgACeb32UvvfMAFijNHd6N4=;
+        b=2AKwjwo/ad8FAxz6P+M+ipKbrNdJGZbvUhuYCtia8pM4Bgngv2tCq5Q4NHkTFsjrYZ
+         QWoIiUFtIAFlMGPQ76BUuAnn4uyk2a/z1OsmmARt4TokoCR3l6AFVntlGQFPNDcdozWd
+         uZ17dP+VMwyMUqc1+O1ZEOTw6eQZPvNjmAcBxB6osD9kMjHyR1nwrMSN18ba65JxtBYL
+         k+Vsutem93ylTbFPYgU1UrYl+jlznXHXH5LzY33Hqt0yshcNxNPNqIBIlWscItp9+Td9
+         5Deh6mSY9BE75TsPNspVuxTT0QSnjs1MRP2fiOU1GUZ3quPnbBdTsYiiHZJbPW2We1aq
+         ZbGA==
+X-Forwarded-Encrypted: i=1; AKwUvBwEiv9nQzVBRy9y/VEbqz9R85YKYhc3Hg948ySsxrCpbPHCDSDMnjZNRaetn/K1DSVos+N1UDgIOdDyebwm6yY=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9TIlNNLnBXngBhKoVqi9ZV3oQo04QaF8mlZSIykyLZ98KjxjfB
+	PdAC4gJDpO6Fkx78VrKfdHzUT8fx5+9tZhyEfHJ8+tLE2OhP4Oqh76fVHxtqbGDqhG8=
+X-Gm-Gg: AYBFou2ULFe3z3Fi2F5M4HSyoKb4RhFpqb+CHArKk1kmS5Ig1YGGlmbXKx7rAKaMZY9
+	L0w7C7Mj3kj3wl7hOTiRPWQUUBEzWORa+7bNCeQ7C3/GIWAdX+aLnQEobHYjwY9wSYgjG6SetIz
+	xl1Mp3F5D8GRhmAqgN41jX4pcoiEPiEWLccBlNao3KWzpAYfCit98wT9b8RulQW5pFGF67dJMjZ
+	MVgJvLTlJdk7WCw36g3KnO/VKuq7iyR5KP65Vzvo876ox7jJagHUFPB/znEk0G0JmUeyAsQo73D
+	ersQtuAkKRO0ye/bSaIXJuND6qAbWLoaTy3lsrUetApAmRv0gfxF9z6SCAZovSrNg1SesOfUhr+
+	FY3xY4dsFT51aCFOCh1imd5+OQ9flcYa5dwjeaKtknX5eALVqXp6K0C6Gv0V25v29fSWo/xcgzQ
+	MftXc5HkSr4UOtPA5wihCoQFBXDPBvG2U0WIFNlkErzpYvGyKGAIZT70nTeGPT5gDSN8IdQvlrH
+	k7Vu2TFJyQNT9PRJaY2kf5kEQYzJ1CRuRISMHwYZmGXSoEyDPHqslqC3ExbqLIG1/R/v6SIJ5dZ
+	2BBuY9NwmVJM8mVBL+E011oKerB7zdArR0p5szGWE+HxVDb24VsIKGMcvMXyR3hk9RDu2g==
+X-Received: by 2002:a05:622a:2b08:b0:534:3634:6960 with SMTP id d75a77b69052e-542b704622amr300668501cf.43.1793872386415;
+        Thu, 05 Nov 2026 01:53:06 -0800 (PST)
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com. [209.85.160.182])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-54b1086dc29sm48101141cf.10.2026.11.05.01.53.05
+        for <netfilter-devel@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 01:46:47 -0800 (PST)
-Message-ID: <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
-Date: Thu, 5 Nov 2026 10:46:46 +0100
+        Thu, 05 Nov 2026 01:53:05 -0800 (PST)
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-53c4b82919fso21020901cf.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 01:53:05 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBwtGquZpw8gb8+H96Q4WC1cHFZn0a2A0Y8VYN1SZXRJCu4Soo/Y4TVKghr5xmV99QWSwwXMjw5VlfLWa7ByQGM=@vger.kernel.org
+X-Received: by 2002:a05:6102:3ec5:b0:7cc:2bb7:131d with SMTP id
+ ada2fe7eead31-7d072baa484mr7324212137.9.1793871885062; Thu, 05 Nov 2026
+ 01:44:45 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -112,33 +80,61 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net,v3 00/13] Netfilter/IPVS fixes for net
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-References: <20261104090224.750548-1-pablo@netfilter.org>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261104090224.750548-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org> <20261104-work-procfs-bugfixes-v2-10-021c84d852e0@kernel.org>
+In-Reply-To: <20261104-work-procfs-bugfixes-v2-10-021c84d852e0@kernel.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 5 Nov 2026 10:44:33 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdUy1RYKG0g8OWss3AD-jyYx3DXL0K7ABYkFUdxTxZ9VdQ@mail.gmail.com>
+X-Gm-Features: AclHuK9D-nB8icBns0zdoQH8fV1cfUPJ6LOey8o_VlUZpDIGqKC4cFf8-j5-HdE
+Message-ID: <CAMuHMdUy1RYKG0g8OWss3AD-jyYx3DXL0K7ABYkFUdxTxZ9VdQ@mail.gmail.com>
+Subject: Re: [PATCH RESEND v2 10/51] zorro: size the proc files like what they serve
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
+	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
+	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
+	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
+	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
+	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
+	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On 11/4/26 10:02, Pablo Neira Ayuso wrote:
-> v3: keep back two patches in the series with sashiko reports that
->      suggest they need a bit more work.
+On Wed, 4 Nov 2026 at 20:18, Christian Brauner <brauner@kernel.org> wrote:
+> The files under /proc/bus/zorro hand out a struct ConfigDev and seek
+> within that, but their size says sizeof(struct zorro_dev). Say
+> sizeof(struct ConfigDev).
+>
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-I *think* Julian additionally suggested dropping/changing patch
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-ipvs: do not create conns from packets with port 0
+Gr{oetje,eeting}s,
 
-but it looks untouched ?!?
+                        Geert
 
-Also AI review did not kick on this revision, likely because
-the bot is confused by the mismatch between cover letter prefix
-"net,v3" and the patches prefix "net".
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-I think a new revision may be needed?
-
-/P
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
