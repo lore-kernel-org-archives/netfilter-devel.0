@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882745;
-	b=ZUZ7BakAbaJ5YPtdRIHDBeUcIi70uAgMCqEZN25qkKEfvvk7yHIzB5VVDpKwpVtIPQzr
-	 sm0nuoLxyo6MDGMH7zJ6D95kd1e4mNw3UEQAsIERjSTOM/G/uP7dUZmlDQ1b+gnyuG+1e
-	 o9gDFx0vRWl/nLttTJwti030wa7puMEc6NkgiMIMC+v1HJUZpN4HIEvoY9JRQJ5o5bfd/
-	 79wWLU5N8VFHrV1Cy6OVclDr2S5Hybm9OONSUYsrPTU3+gS4uqWmESyemdVeXajiHb1SD
-	 EpsfP9RASEjo1IYsytMJz5Ekf9l+SlCfEM1OWa2HQBwg3vPYYrXn1iQn3s5bMPQD4Dg==
+	t=1793882751;
+	b=dz0ejqY+OOVvX/uBuLDs7GDZMFvWLo16fIIJe/zv8eYoWDjc191WisVQJdcngml7X7Mi
+	 R+lxRuWl0ghW/rdGNUVLYsuXK82IXeayDUa2V1uqwr7Z6oH9EthULGGN6pRL5yNnBvMnj
+	 iUiZbDDDvOZFC/H+ZMCgaC2AIOD7FWrrarqiyJoPreLKbRdBK8WFsluQqIZvdCynNRnWX
+	 JmRy0OL5IvKOSr7/oKfcox4YyM4mfTL8/3pU52ox89WgWy2SCpgg9qu0GTlKrAaiTYH/c
+	 yqF2fbEoonFKUmkrM139BQLVDnVqZQWHR+T0+5CnjIi3P0FRWzcDQk/2tuiwYU9dx5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882745;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882751;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=tGglPb/JNoW60gebCDiplQzdX4hezWP6upe63JPqTbE=;
-	b=o3PZzPW21G6eSY/kt2YyUqrjO706fXm8oFug9W2j0Gj1XXnTNQiDjG90pVqF757OQO3z
-	 7kCCHrsGUccTqfSHPbS8UufQ9w8xVBvTLgqTyfgSZFbTuhxKb2HO6Biw2FJBRA9wNgpVu
-	 y7CJo4rmCgacIldZ8AML7WRgN25Gn8dLSBAjocfExY3Mh2ExFiSgkKtM1fVm2TJgBi5kn
-	 zsPvclncoQeiNM6D1KgP3oXsOhOujfwbZipWjSOGlT0nlUuR1IsYjNaPpiZXrJ7/HbybF
-	 7Rjrs4fRyJ30FiN011qHMFeTStaGtXWRiA4nd4GO4tjeN60leOLpNxH3tgK9mJ8qfVw==
+	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
+	b=wv6cpaC9k+V9VZCNWwLa0+X1q9XgWrMOLfEXC9FhvAojzbVldq529NC0OUUzD1FHxbv5
+	 d/oOWnJ7ImEelnVwJWXczwtJLCsdm30WolbnGrhqCJTKmvA73BQ0GuW+yK6UsDnNU96tO
+	 2W8TL8olFv71xFU0TmqGt+4OGa6Rfd/RGmVJsrgt/rxT+s5OJjWTuuUKGmD2TV3UABhvd
+	 xgbxFz+qf1egsaml6REaRJEpN03TMB8FA+euI69tfId9rx7MtBYoI0nxp1zrIg7YiHB/8
+	 xxFAg8y5J4ilswnEM8TruZOhiAUe/V0/S3mnhJYVpea339e1HjvwT+ipyDC0KyXNsfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="o1u/gH9K";
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=B9G31my3;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEBEA606A336;
-	Thu,  5 Nov 2026 12:45:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EEBEA606A336
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AE5606D835;
+	Thu,  5 Nov 2026 12:45:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18AE5606D835
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=o1u/gH9K
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=B9G31my3
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882743;
-	bh=tGglPb/JNoW60gebCDiplQzdX4hezWP6upe63JPqTbE=;
+	s=2025; t=1793882749;
+	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=o1u/gH9K6/2cTmieobmKQXQtGqut9lh9cpxpQMiXZolu0zM/ikS7kIQ/FjL0qxz/w
-	 uZPot+bCL0z2gtvaANP40J0FuIXq0fTd6i6xCx2Y+BfAxbOD80c56T+gfbfyq9k6mQ
-	 +RvIteLWGCjhFFiQtkniBNBWR9AeTAc3qz7ay8/F9njrpaGsw0Fau0PwXvYkkk6lOL
-	 ThAosJbZoWPoRk+v4CoIDDS0rpyOa+/QXBb3LO4iyR8PQ7S6KKUDYB7hUZIGZtvJbd
-	 W3QOx49ORC6UXkXdIvftY24EhOMTsKqLLE/D7FZlJFzHwr2t6hmTyfR9hhmhTiz8RG
-	 yAYfLW9JQXB5A==
+	b=B9G31my3uxJYAv4FSiDRTuNohUuHu7s+anXoDouGBTesTCaggrnQ4Tz6FDVAhRNVD
+	 1TDEUtmtMCRt/H+oSCdQ33nTSNUuQTFy2Ta9XvqOkLDiq/pbsVYtN6S0MAL1xWfInX
+	 NN3B8l+JarZm/JAqH62LqI5bg42uXHAEBA+7GOUHLUpk/4SSTCsBqYA9JF0c/TfNuo
+	 4gwHGdquOu3J8ev2e4zWhekOcPOHjQR68nBKa+Iv7iDtT77XV/i+fxAQ54twxcUc4+
+	 Pd6cMNhvbFPhUPCkURD+xvlcG/j4Ur3DpgeZcuyRKOLAFMOn9vz47WtMW4gwGMtIrI
+	 Ov1DhJ5EmkNag==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AC5B760096;
-	Thu,  5 Nov 2026 13:45:42 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E1C0B60097;
+	Thu,  5 Nov 2026 13:45:48 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 02/12] ipvs: Defer application parent freeing until after RCU readers
-Date: Thu,  5 Nov 2026 13:45:26 +0100
-Message-ID: <20261105124536.1009301-3-pablo@netfilter.org>
+Subject: [PATCH net 07/12] netfilter: bridge: use DEBUG_NET_WARN_ON_ONCE in nf_ct_bridge_refrag()
+Date: Thu,  5 Nov 2026 13:45:31 +0100
+Message-ID: <20261105124536.1009301-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,76 +73,45 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Laveesh Bansal <laveeshb@laveeshbansal.com>
 
-unregister_ip_vs_app() removes each incarnation from its protocol list and
-uses call_rcu() to defer freeing it, but frees the parent application
-immediately. An RCU reader that already found an incarnation can still
-access the parent through inc->app in ip_vs_app_inc_get().
+nf_ct_bridge_refrag() warns when skb->protocol is neither IPv4 nor IPv6.
+A vlan filtering bridge can get there with a vlan ethertype: if the
+protocol of the tag of a frame differs from the vlan_protocol of the
+bridge, br_allowed_ingress() moves the tag back into the packet after
+NF_BR_PRE_ROUTING, where bridge conntrack has already defragmented it.
 
-During FTP helper module unload, the following interleaving is possible:
+Anyone who can send fragments into a port of such a bridge can trigger the
+warning, which takes the machine down with panic_on_warn. The packet is
+dropped either way, so only warn on kernels built with CONFIG_DEBUG_NET.
 
-  CPU 0 (RCU reader)                 CPU 1 (module unload)
-  tcp_app_conn_bind()
-    find inc in protocol list
-                                     unregister_ip_vs_app()
-                                       ip_vs_app_inc_release(inc)
-                                         list_del_rcu(&inc->p_list)
-                                         call_rcu(&inc->rcu_head, ...)
-                                       kfree(a)
-    ip_vs_app_inc_get(inc)
-      try_module_get(inc->app->module)
+This only avoids the warning. Such fragmented packets are still dropped.
+syzbot reported the warning. It keeps triggering on CONFIG_DEBUG_NET
+kernels until the vlan tag is handled, which is left for a follow-up:
 
-The helper module is already going away, so try_module_get() would fail,
-but evaluating its argument first reads the freed parent. The subsequent
-rcu_barrier() in pernet unregistration cannot protect this earlier free.
-KASAN reported:
+  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
 
-  BUG: KASAN: slab-use-after-free in ip_vs_app_inc_get+0x7c/0x90
-  Call Trace:
-   ip_vs_app_inc_get+0x7c/0x90
-   tcp_app_conn_bind+0x1bc/0x290
-   ip_vs_conn_new+0x1915/0x20d0
-   ip_vs_schedule+0x697/0xea0
-   tcp_conn_schedule+0x489/0x820
-   ip_vs_in_hook+0x7bf/0x1f40
-  Allocated by task 88:
-   kmemdup_noprof+0x20/0x50
-   register_ip_vs_app+0x12d/0x2c0
-   __ip_vs_ftp_init+0x56/0x160 [ip_vs_ftp]
-  Freed by task 104:
-   kfree+0x131/0x3c0
-   unregister_ip_vs_app+0x2f4/0x5b0
-   unregister_pernet_operations+0x232/0x490
-   unregister_pernet_subsys+0x1c/0x30
-   __do_sys_delete_module+0x346/0x510
-
-Use kfree_rcu() with the existing rcu_head to keep the parent alive until
-these readers finish. Successful helper references already prevent normal
-module unload, and incarnation RCU callbacks do not access the parent.
-
-Fixes: 363c97d7435e ("ipvs: convert app locks")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Assisted-by: LLM
+Signed-off-by: Laveesh Bansal <laveeshb@laveeshbansal.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_app.c | 2 +-
+ net/bridge/netfilter/nf_conntrack_bridge.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 11cbdbaf561d..2c1b47702da2 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -242,7 +242,7 @@ void unregister_ip_vs_app(struct netns_ipvs *ipvs, struct ip_vs_app *app)
- 		}
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index b5444335b86f..8c83dc05114b 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -358,7 +358,7 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		nf_br_ip6_fragment(state->net, state->sk, skb, &data, output);
+ 		break;
+ 	default:
+-		WARN_ON_ONCE(1);
++		DEBUG_NET_WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
  
- 		list_del(&a->a_list);
--		kfree(a);
-+		kfree_rcu(a, rcu_head);
- 
- 		/* decrease the module use count */
- 		ip_vs_use_count_dec();
 -- 
 2.47.3
 
