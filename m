@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882747;
-	b=lzItkeAklfRuTon6qY4g69ZfWu7AFma+4hkWWsfQfe1iHLvD4axRON1jfHq9E09A0AHF
-	 c1Zzrn0KT0BSXkTiiOLIMC4zHe9aFv1CA7Uykhj0IjkeuAaJUs5TN/pBz8BsPF7IflABN
-	 iSZd0FUNy7WhieXeZ8ZeyUIbWXHymYpXSJLyGt7Dpw7Z37F+3wc8KsDsjyGqAZmKwA3k+
-	 Co6mGc7b25TqiV49hm+fe4PvHvGlTwevLzEbhkIVqfYo0+LthJSg+d/hFcWlbSwz6qhxa
-	 FpWJbqocFAsPTmcBQwYxu2XivFJ2q8ZKwtG5vqW41+8BSgJuzqKEnp8crZI36HZiGOA==
+	t=1793882754;
+	b=zXe/IcZ2z2Dj4FSKlEXm+iO2R2Y/KyC1Pjadyt/W7a3wMreajshftOuBzxx8E99FkLIn
+	 GoO/5Y98DDWuw4V9GV2rvXNxbC5Qt71uSKa+aW83X4W2zzMy5tvD8GdwJ/PYuLAUw5qEa
+	 QQ4vz+exrykWfAz6KZNk0LcmC7VbMCM0l3hhBh1WoKmvzmzRhGJv8E0m3RldqkIBeJc8W
+	 gBjTJ4pJLOFSppL71WLPod4nFOcEmv/cZnNyzz6GXsJzfLb9/gQezCINOIDZwNTIjr+uk
+	 l42IWL0fNYXbgjAQ7NZfE+uqZXGNp2h2dhfKv0HPFmfFJzKIRhH2JJwsCzZXBXe7HqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882747;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882754;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
-	b=BJjzneHeq6e54mKFskgZEKRLXPlJLlFZAQ39ZDpDeKa4rHPUJLTAVtSmeKe6T/S1a4Tc
-	 OW6eQ8guRWonmgsPhHyli8mJhpCsC68K+091jxZwty5s9Dv9TUd3VcLim1HTo7N1W8Sdk
-	 VL2JovhYtqCZY8Qc2DLvAtoKUGgXyKng/UnIhDrsoQ7d4m5/Ia3InctRWuHU70vWtr+O1
-	 WMFPN+aVLzcCRT1cJMxgjSj5DNc8M/pFwLti9W997vRijJuNt87W9WUpyNYpQK9HpN5Ea
-	 GBeFZiBJ0+XueRs8x8WvPdc39599+ahStbOq0ZDSEh8Mce24U66/tWhVQ8+8Wv0GVZw==
+	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
+	b=KIAyI0Qs/8Ykh0fVTeu4lXEt8hegZ42q4En48EJnqZLNCnCUUGm4Ibkj8oxX3hXPzDqD
+	 3tOvShyswZT+vF8BPnm5aUlL9wNoRW4dpUvsLK36/+EfBHwnSvcNljyY0WqKbdrk51F7N
+	 GDlTOmL+9TLdcgID/59WhzeYHIye2O4ELl0UJQA8+9+iDPqwe54wRalbpV/mnD2rtO+M+
+	 nT381wnJxlDDRf6UFFvYK7lo4VZYrc9pIrL8F6hLuFFJFQZwRsbPHew9ChjxrDl0Tljtz
+	 AgnlQaSOgWjsqMcFV4Bz3Cv1P3XJ70Jp9+HAE+7uSFxCPar0skEhZHpqnoMfJVD9twg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EAyj1oZc;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=MYMpoK8X;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43AAE606A330;
-	Thu,  5 Nov 2026 12:45:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 43AAE606A330
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F11B606EE98;
+	Thu,  5 Nov 2026 12:45:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9F11B606EE98
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EAyj1oZc
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=MYMpoK8X
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882745;
-	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
+	s=2025; t=1793882751;
+	bh=FuJwpB61dP51oRlLlxUKS/oBV8WRen9wZFI8yNkRer0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EAyj1oZcQNumuik1HHZTXFgqZfDDqAMHaDEFSCSMXIFwZsFUZGRCKZMbX/fFnqScT
-	 xxjovaAiK46OEE90079+2OChwGdg0vl7ZRJ34HQk/7g5PG67CHDJcKviApmHhxfrAG
-	 7UIUnLUsfg1742Y7G/7NhzwL+/zs4T88u0JhQQSPm3XLr0RHKZ9UlTL96oIcNfA3az
-	 6r0KN5vixstsGB60tsnnYyj66BPBoDm2HVf/NzefMNj252bvp9H5Em6TmIdwtyOqQ9
-	 kenCxZg3+bVtsvLZt3endNzIpVKKfdtKGzgKL7+ktRg2A7wYDw2nCvtkmKFAlfWRen
-	 cDSLnqy0lIE0w==
+	b=MYMpoK8XKhCz860LU83Wgk1jxan6Sp/VBiuazIkhrNMzsq8vDaw9SRisAipMF1Xhx
+	 cPZJf5+SRGc0aTAfMznG+OZHACkl0yNJqsGGG9waYQjnKbZnfC9OKOxXTpUd6fJO2t
+	 xsFP7bf/TTFFWc3ql7qqmbH7VZr5pq5OEhr0x2yBlNfed6bCz50k16fKhJvbSM7YxB
+	 +BmHA+PAFWDMCebLBC/yo4ZIZ35vEnbZ2I0Vib+nnYmm2sPa91Q5gDm8bl+hLB9QmQ
+	 ICN5WLOnfKfI9kF/ftECs0vV9sILcLs2FliABTQFBTjurKQfjkI80sVT0lzPtVeiox
+	 Hgf1W6XKF5qqw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3E01460097;
-	Thu,  5 Nov 2026 13:45:45 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4E1AB60082;
+	Thu,  5 Nov 2026 13:45:51 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 04/12] netfilter: nf_dup: preserve guard across NFQUEUE reinjection
-Date: Thu,  5 Nov 2026 13:45:28 +0100
-Message-ID: <20261105124536.1009301-5-pablo@netfilter.org>
+Subject: [PATCH net 09/12] netfilter: nf_conntrack_sip: fix OOB read in ct_sip_parse_transport()
+Date: Thu,  5 Nov 2026 13:45:33 +0100
+Message-ID: <20261105124536.1009301-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,118 +73,55 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zihan Xi <zihanx@nebusec.ai>
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
 
-NFQUEUE can suspend traversal of a duplicated packet while the task-local
-duplication guard is set. The output call then returns and clears the guard
-before a later verdict resumes hook traversal.
+ct_sip_parse_transport() compares the value of the "transport=" header
+parameter against "TCP"/"UDP" with strncasecmp(..., 3), but it never
+checks that the parsed value is at least 3 bytes long.
 
-Save the guard in the queue entry and restore it while reinjection
-continues hook traversal. Preserve and restore the verdict task's prior
-state, including nested synchronous reinjection.
+ct_sip_parse_param() returns matchlen = end - start, where end is the
+next ';' or, when there is no ';', the end of the payload buffer
+(limit = dptr + datalen).  If the "transport=" value is only 1 or 2
+bytes long and runs exactly to the end of the payload (e.g. a REGISTER
+request whose Contact header ends in ";transport=T" with no trailing
+CRLF), matchlen is less than 3 while strncasecmp() still reads up to 3
+bytes, reading 1-2 bytes past the end of the linearized skb data.
 
-Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
-Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Assisted-by: LLM
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
+Add a matchlen check before the comparison, mirroring the
+sdp_media_type() pattern a few lines below, so short values cannot reach
+strncasecmp().
+
+The bug was found by LLM-assisted manual review of the SIP helper's
+parsers and confirmed with a userspace ASan harness built from the
+verbatim parser functions, which reports a heap-buffer-overflow read of
+size 2 in strncasecmp() called from ct_sip_parse_transport().
+
+Fixes: ea45f12a2766d ("[NETFILTER]: nf_conntrack_sip: parse SIP headers properly")
+Link: https://patch.msgid.link/20260815133104.50369-1-joasantonio108@gmail.com/
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Assisted-by: Claude:claude-opus-5-5
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_queue.h |  1 +
- net/netfilter/nf_queue.c         |  1 +
- net/netfilter/nfnetlink_queue.c  | 17 ++++++++++++++---
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 86021c55ba3c..4a8cefd8398d 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -23,6 +23,7 @@ struct nf_queue_entry {
- 	struct net_device	*physout;
- #endif
- 	struct nf_hook_state	state;
-+	bool			in_nf_duplicate;
- 	bool			nf_ct_is_unconfirmed;
- 	u16			size; /* sizeof(entry) + saved route keys */
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 64bc440b1181..b05dc8858d09 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -701,9 +701,9 @@ static int ct_sip_parse_transport(struct nf_conn *ct, const char *dptr,
  
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 166d05e994ac..bd603e3a99a5 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -219,6 +219,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 	*entry = (struct nf_queue_entry) {
- 		.skb	= skb,
- 		.skb_dev = skb->dev,
-+		.in_nf_duplicate = current->in_nf_duplicate,
- 		.state	= *state,
- 		.hook_index = index,
- 		.size	= sizeof(*entry) + route_key_size,
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 90d887546f7d..a8aa7ad832c3 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -44,6 +44,7 @@
- #include <net/sock.h>
- #include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
-+#include <net/net_debug.h>
- #include <net/netns/generic.h>
- 
- #include <linux/atomic.h>
-@@ -365,21 +366,30 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	const struct nf_hook_entry *hook_entry;
- 	const struct nf_hook_entries *hooks;
- 	struct sk_buff *skb = entry->skb;
-+	bool old_in_nf_duplicate;
- 	const struct net *net;
- 	unsigned int i;
- 	int err;
- 	u8 pf;
- 
-+	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
-+			    !entry->in_nf_duplicate,
-+			    "%s called with unexpected duplication guard",
-+			    __func__);
-+	local_bh_disable();
-+	old_in_nf_duplicate = current->in_nf_duplicate;
-+
- 	net = entry->state.net;
- 	pf = entry->state.pf;
- 
-+	current->in_nf_duplicate = entry->in_nf_duplicate;
- 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
- 
- 	i = entry->hook_index;
- 	if (!hooks || i >= hooks->num_hook_entries) {
- 		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
- 		nf_queue_entry_free(entry);
--		return;
-+		goto out;
- 	}
- 
- 	hook_entry = &hooks->hooks[i];
-@@ -402,9 +412,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_STOP:
--		local_bh_disable();
- 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
--		local_bh_enable();
- 		break;
- 	case NF_QUEUE:
- 		err = nf_queue(skb, &entry->state, i, verdict);
-@@ -418,6 +426,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	}
- 
- 	nf_queue_entry_free(entry);
-+out:
-+	current->in_nf_duplicate = old_in_nf_duplicate;
-+	local_bh_enable();
- }
- 
- /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
+ 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
+ 			       &matchoff, &matchlen)) {
+-		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
++		if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "TCP", 3))
+ 			*proto = IPPROTO_TCP;
+-		else if (!strncasecmp(dptr + matchoff, "UDP", strlen("UDP")))
++		else if (matchlen >= 3 && !strncasecmp(dptr + matchoff, "UDP", 3))
+ 			*proto = IPPROTO_UDP;
+ 		else
+ 			return 0;
 -- 
 2.47.3
 
