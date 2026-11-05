@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882756;
-	b=KKnr1QtoirKQmq5CyB8PtQYxRIT4ZXNoF6ke75rsjFqBnhkbM1ROIcVa8Xr0WG5PW+0P
-	 Naz7ofdUyGaTafwEbRIDLjKHmo6wxdAMwk1aZUlRI6zznPATKXMVLtoyfECdh76IzrJ7t
-	 xOfXn/5BTHqAfv2FQZ4SGUfYIzvWP6QsWs/EtJmb/OgZ9j29ukVDrvWKZUPKgGWXwjzmm
-	 gjVfsS9V8KEFwS7OxBYOaukegyM+ERKTlOWlu4MKjeXLrV4znJLeHgJ8p4GrLNseNg/eT
-	 hzy+38P9ffyh8qGUpr8rPblY4nkcUCym+yi11hFN5hBOFG/4ddXovW8bLApXffZp/AQ==
+	t=1793882747;
+	b=lzItkeAklfRuTon6qY4g69ZfWu7AFma+4hkWWsfQfe1iHLvD4axRON1jfHq9E09A0AHF
+	 c1Zzrn0KT0BSXkTiiOLIMC4zHe9aFv1CA7Uykhj0IjkeuAaJUs5TN/pBz8BsPF7IflABN
+	 iSZd0FUNy7WhieXeZ8ZeyUIbWXHymYpXSJLyGt7Dpw7Z37F+3wc8KsDsjyGqAZmKwA3k+
+	 Co6mGc7b25TqiV49hm+fe4PvHvGlTwevLzEbhkIVqfYo0+LthJSg+d/hFcWlbSwz6qhxa
+	 FpWJbqocFAsPTmcBQwYxu2XivFJ2q8ZKwtG5vqW41+8BSgJuzqKEnp8crZI36HZiGOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882756;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882747;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
-	b=dSp/ag4ehR52/sKG6r0qq1P34V9XHVN2+JZtlCciM8rWdMWl2HGOmnK304ScOG+rtY1S
-	 o9xSG7IFQvll8WXRpKaYCy7KQs3Cf+DmRwZdQ2i1DvgxPRIrqL9WLvXUEuuzCrhia+2R2
-	 qiXFISENImSx09an2hdaqGAJjJnWgsJt65yws3+m/jhaOfTLmP3wq9bbKSDKPl6dtdBBH
-	 lyyyj1l5ZgBRVL0oSmvWKTs51A/ullgRRqd9x4zmVmon2t9Mpl/PfqRoaYuXzGyB4B4/u
-	 Ixm2Cx4rRy0ytzXEm2V/0dQeFsp+NAJPIxboSRLqHw8bmD/1GYIRCo6z1VsLfRVfeVg==
+	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
+	b=BJjzneHeq6e54mKFskgZEKRLXPlJLlFZAQ39ZDpDeKa4rHPUJLTAVtSmeKe6T/S1a4Tc
+	 OW6eQ8guRWonmgsPhHyli8mJhpCsC68K+091jxZwty5s9Dv9TUd3VcLim1HTo7N1W8Sdk
+	 VL2JovhYtqCZY8Qc2DLvAtoKUGgXyKng/UnIhDrsoQ7d4m5/Ia3InctRWuHU70vWtr+O1
+	 WMFPN+aVLzcCRT1cJMxgjSj5DNc8M/pFwLti9W997vRijJuNt87W9WUpyNYpQK9HpN5Ea
+	 GBeFZiBJ0+XueRs8x8WvPdc39599+ahStbOq0ZDSEh8Mce24U66/tWhVQ8+8Wv0GVZw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ty9wGFuP;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EAyj1oZc;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DD7606D809;
-	Thu,  5 Nov 2026 12:45:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D2DD7606D809
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43AAE606A330;
+	Thu,  5 Nov 2026 12:45:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 43AAE606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ty9wGFuP
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EAyj1oZc
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882754;
-	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
+	s=2025; t=1793882745;
+	bh=kuc0tSs2t8YhL7Z9z30YhIe5qV0tfMkKwJx3EJPkeDo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ty9wGFuPIZ3qbD5jyhaRfokULlv5wc93G6y5hwPNakSQ4asdJR8Mvmv+LQx6CVtTJ
-	 VN5OYaCruP9SLltlyyp3+NzmfZUNiwfO7XWdOY+JXVN8wmj5wNHTwVgjf1qxjbDFEu
-	 CSJKsJIGNWfnXANElUOnmctjMs9mfjkrI5LVhZZNU4CIxIrlUsFB4psuLpAHPnv7/j
-	 eLS4isGsZqxab+IIHcn81hEt3F0vj/jH9WFB+wjCDsn3NwcNkVj0MDUM5xou1voJj9
-	 tNN5WBbWH3+A48CTmp/6WrA7P0MccJZds5y2Vv11rv/lYxQXfC7t9RsUHse1Rv+Rxa
-	 xsLFUHro9t2PA==
+	b=EAyj1oZcQNumuik1HHZTXFgqZfDDqAMHaDEFSCSMXIFwZsFUZGRCKZMbX/fFnqScT
+	 xxjovaAiK46OEE90079+2OChwGdg0vl7ZRJ34HQk/7g5PG67CHDJcKviApmHhxfrAG
+	 7UIUnLUsfg1742Y7G/7NhzwL+/zs4T88u0JhQQSPm3XLr0RHKZ9UlTL96oIcNfA3az
+	 6r0KN5vixstsGB60tsnnYyj66BPBoDm2HVf/NzefMNj252bvp9H5Em6TmIdwtyOqQ9
+	 kenCxZg3+bVtsvLZt3endNzIpVKKfdtKGzgKL7+ktRg2A7wYDw2nCvtkmKFAlfWRen
+	 cDSLnqy0lIE0w==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BFB8560096;
-	Thu,  5 Nov 2026 13:45:53 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3E01460097;
+	Thu,  5 Nov 2026 13:45:45 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 11/12] netfilter: xt_recent: do not call remove_proc_entry() under recent_lock
-Date: Thu,  5 Nov 2026 13:45:35 +0100
-Message-ID: <20261105124536.1009301-12-pablo@netfilter.org>
+Subject: [PATCH net 04/12] netfilter: nf_dup: preserve guard across NFQUEUE reinjection
+Date: Thu,  5 Nov 2026 13:45:28 +0100
+Message-ID: <20261105124536.1009301-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,80 +73,118 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: "Cen Zhang (Microsoft)" <cenzhang@linux.microsoft.com>
+From: Zihan Xi <zihanx@nebusec.ai>
 
-recent_proc_net_exit() removes the /proc/net/xt_recent/<name> entries of
-a dying network namespace while holding spin_lock_bh(&recent_lock).
-remove_proc_entry() may sleep: proc_entry_rundown() waits until every
-task that is still inside the entry's file operations has left. A reader
-of such an entry is counted in by proc_reg_read() before
-recent_seq_start() takes recent_lock. So if a read is in flight when the
-namespace is torn down, cleanup_net() sleeps in atomic context holding
-the spinlock that the reader is spinning on, and neither side can ever
-make progress.
+NFQUEUE can suspend traversal of a duplicated packet while the task-local
+duplication guard is set. The output call then returns and clears the guard
+before a later verdict resumes hook traversal.
 
-An unprivileged user can trigger this from a user namespace by adding a
-rule with the "recent" match and reading its proc file while the
-namespace is being destroyed. As recent_lock is global, every later
-attempt to take it spins forever too: the spinning can spread to all
-CPUs, and network namespace teardown stops system-wide.
+Save the guard in the queue entry and restore it while reinjection
+continues hook traversal. Preserve and restore the verdict task's prior
+state, including nested synchronous reinjection.
 
-  BUG: sleeping function called from invalid context at
-    kernel/sched/completion.c:116
-   #3: (recent_lock){+...}-{3:3}, at: recent_net_exit+0x2b/0x140
-  Workqueue: netns cleanup_net
-  Call Trace:
-   proc_entry_rundown+0x185/0x1b0
-   remove_proc_entry+0x21a/0x520
-   recent_net_exit+0x7f/0x140
-   cleanup_net+0x414/0x8f0
-  ...
-  rcu: INFO: rcu_preempt self-detected stall on CPU
-  Call Trace:
-   queued_spin_lock_slowpath+0x313/0xc20
-   recent_seq_start+0x87/0x1b0
-   seq_read_iter+0x265/0x11e0
-   proc_reg_read+0x1ab/0x270
-
-Fix by taking recent_mutex instead of recent_lock. According to
-commit a0e889bb1bdc ("[NETFILTER]: recent match: fix "sleeping function
-called from invalid context""), recent_mutex is the lock to use here: it
-protects recent_net->tables and was introduced so that proc entries are
-created and removed without recent_lock held, because those calls may
-sleep. hashlimit_proc_net_exit() does the same for xt_hashlimit.
-
-Fixes: 665e205c16c1 ("netfilter: xt_recent: fix namespace destroy path")
+Fixes: cd58bcd9787e ("netfilter: xt_TEE: have cloned packet travel through Xtables too")
 Cc: stable@vger.kernel.org
-Cc: AutonomousCodeSecurity@microsoft.com
-Signed-off-by: Cen Zhang (Microsoft) <cenzhang@linux.microsoft.com>
+Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: LLM
+Co-developed-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Luxing Yin <root@tr0jan.top>
+Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_recent.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_queue.h |  1 +
+ net/netfilter/nf_queue.c         |  1 +
+ net/netfilter/nfnetlink_queue.c  | 17 ++++++++++++++---
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 55f1f2d89952..00cccf003cff 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -650,14 +650,15 @@ static void __net_exit recent_proc_net_exit(struct net *net)
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 86021c55ba3c..4a8cefd8398d 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -23,6 +23,7 @@ struct nf_queue_entry {
+ 	struct net_device	*physout;
+ #endif
+ 	struct nf_hook_state	state;
++	bool			in_nf_duplicate;
+ 	bool			nf_ct_is_unconfirmed;
+ 	u16			size; /* sizeof(entry) + saved route keys */
  
- 	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
- 	 * that the parent xt_recent proc entry is empty before trying to
--	 * remove it.
-+	 * remove it. Use recent_mutex instead of recent_lock since
-+	 * remove_proc_entry() may sleep.
- 	 */
--	spin_lock_bh(&recent_lock);
-+	mutex_lock(&recent_mutex);
- 	list_for_each_entry(t, &recent_net->tables, list)
- 	        remove_proc_entry(t->name, recent_net->xt_recent);
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 166d05e994ac..bd603e3a99a5 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -219,6 +219,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 	*entry = (struct nf_queue_entry) {
+ 		.skb	= skb,
+ 		.skb_dev = skb->dev,
++		.in_nf_duplicate = current->in_nf_duplicate,
+ 		.state	= *state,
+ 		.hook_index = index,
+ 		.size	= sizeof(*entry) + route_key_size,
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 90d887546f7d..a8aa7ad832c3 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -44,6 +44,7 @@
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/net_debug.h>
+ #include <net/netns/generic.h>
  
- 	recent_net->xt_recent = NULL;
--	spin_unlock_bh(&recent_lock);
-+	mutex_unlock(&recent_mutex);
+ #include <linux/atomic.h>
+@@ -365,21 +366,30 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	const struct nf_hook_entry *hook_entry;
+ 	const struct nf_hook_entries *hooks;
+ 	struct sk_buff *skb = entry->skb;
++	bool old_in_nf_duplicate;
+ 	const struct net *net;
+ 	unsigned int i;
+ 	int err;
+ 	u8 pf;
  
- 	remove_proc_entry("xt_recent", net->proc_net);
++	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
++			    !entry->in_nf_duplicate,
++			    "%s called with unexpected duplication guard",
++			    __func__);
++	local_bh_disable();
++	old_in_nf_duplicate = current->in_nf_duplicate;
++
+ 	net = entry->state.net;
+ 	pf = entry->state.pf;
+ 
++	current->in_nf_duplicate = entry->in_nf_duplicate;
+ 	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
+ 
+ 	i = entry->hook_index;
+ 	if (!hooks || i >= hooks->num_hook_entries) {
+ 		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+ 		nf_queue_entry_free(entry);
+-		return;
++		goto out;
+ 	}
+ 
+ 	hook_entry = &hooks->hooks[i];
+@@ -402,9 +412,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	switch (verdict & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_STOP:
+-		local_bh_disable();
+ 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
+-		local_bh_enable();
+ 		break;
+ 	case NF_QUEUE:
+ 		err = nf_queue(skb, &entry->state, i, verdict);
+@@ -418,6 +426,9 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 
+ 	nf_queue_entry_free(entry);
++out:
++	current->in_nf_duplicate = old_in_nf_duplicate;
++	local_bh_enable();
  }
+ 
+ /* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
 -- 
 2.47.3
 
