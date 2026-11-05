@@ -1,54 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.206
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793844847;
-	b=nTLTOKD8fy9S547ryKYVjEp24jwTRrDPa9TQkWFmpTDxF/lHi5332jqBqDIr68m2i939
-	 nNE/vCf/x7NefKhoy+NdZ0DmxL/Su6eT4ENNk7SxlepCzHOI2LCEptmJIs3ctrU3qrrrP
-	 XVA6uDt0kkDWN3hCZL5vUAGZNVt57Q/AgemhrVi29lFyUJHTEoOksGDzvKFhiJ2tOxbYa
-	 8go8w8X7ThDcFnCta5fYiVFUVq+smojY8FgN0SrCBiW0NiFg0DSzoRAuJe7iuO0NflEmz
-	 vW7T5JwqKScHsyhUkd4j7MSbmZdScAb6kujyFSlH8FFw9ne5U6afiwWIeEpAYKocGhw==
+	t=1793854523;
+	b=ft4y2jybYt9uaw5MTdhJFZDc6dDM7uqFo50jmIoJfP9oo+3uvcAsInWxLMOZgypawbp7
+	 WumQUPZAvrd0uCHgNQDFBZApnXWMghav4NxHo7sAQYFnHg5Opfw5fmmeJ/5jThK5YrKAg
+	 n+lAonU/21XW70+LL3wpK9y956OsNBGCICG+r0/Y4jj3NEPiG8i67QkgGzR61/XxtmbnK
+	 by4ZKjWcPJMx4CwRAbsms0C28rw4p9yjmw33QBOBoOl2ha3sQOP+OtwY0jIKrtNlSK2Te
+	 jjQpD24Gcszsj6Ly3qLEip5r03GUwBY2Nzj9ySUHjHnkeWGiV7xiF0V+5bpBC/uzSZg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793844847;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=tXeq94tKXH8bHOz1amsH5XRU51n2PYOOTkgxfF1PjyI=;
-	b=pvfurC5rXLoGezuxDMJca027+G/b2+RljqLa/FUoLe20+HDXPl3TEJCEYitfUkCfm/04
-	 yhvYxDdS8EU7bWs+eUythi+/bxEJxDjrbqtNdyNjETDb7zJ2xnhk7QUUvVIm/L+gTu+4R
-	 hjd4UQkLziM/lYDDz6pM4feRDzcRJuCzGr1zM5Gchc+wgY4UjPaRgkH8Zk6BC4Ufkw5jO
-	 V14yxPrT2ftehZMrF/Q8EMq1GHMqXGwKJ9EOvF2ETgzQrZx0Cjx5UYadYdxiW3rU4xYlR
-	 HiCrYz7A/nacrAckGfCC94FcyLk80Rw2sWXVgazKcjThSYNL0QZeY9lg9iNO9pBNrCg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793854523;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
+	b=c9pPBsGw5/WdxzEWDxGyTssCp9TczJpz4/z1IV8dATIWrDBZQ78xwenZItQfNnoIF7Lk
+	 zUnuMZdq1a9q6U0OH7mj9mJGKuy89bq/6Qdhi5yxfBMIuLwIjT6PJd6YroNejEySAlzO0
+	 /xq+ZeVkzxlWHDfwWtOOuxNOPo866YLJpvPJIhSjWW5ipDVJRmTy/4N4XIY3CVNvO16ZZ
+	 Xp2bW98VlrKFXpm3IcDx2anFKtrRtxlQSmEA+lOOiJXbdXdtp+zLjfwA2ODE1mfpuhdjS
+	 giiftfQTnkKvmIpHO018CwF8nA1uHzJCI0khxzF95+udu5jN69mGmALLlDBya7SfYWA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=j2sTp789;
-	arc=none smtp.remote-ip=91.218.175.206
-Received: from mta0.migadu.com (out-206.mta0.migadu.com [91.218.175.206])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=mTKYyYeV;
+	arc=none smtp.remote-ip=209.85.216.54
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52FC4606D802
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 02:14:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 52FC4606D802
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D3A7606A328
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 04:55:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D3A7606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=j2sTp789
-X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=l5hRS8qgzR0WOCPLF0tQbQ+of37lp1oZsgw+XUQqwhg=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1793844844; v=1; x=1794449644;
- b=j2sTp789TAzH4+lGZ7lYWfaDwj4tzc9cwnz9VymVYz+93eIx1j2P1wIewQP0NcIfVbJQKLyf
- 0DO8NIIghKzDouBSBnDym1wAnQyGpqJsD9irj2dQSZrGObeDZJB96QtjMGxheDIwPErfv1cfpzT
- zdnAQ3fG/Xx2Ge3hDWonFfXo=
-X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 7ce234fbb2517b84;
-	Thu, 05 Nov 2026 02:14:03 +0000
-X-Mizu-Trace-ID: 7ce234fbb2517b84
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <fc4939cc-84ec-4c5c-88a7-658ca800377d@linux.dev>
-Date: Thu, 5 Nov 2026 10:15:13 +0800
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=mTKYyYeV
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3ad0c2e71ebso217396a91.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2026 20:55:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793854522; x=1794459322; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
+        b=mTKYyYeVr7uxttrPBh/zbgdicB4GtUsAEPY7xWdW42ONQLpFWniKAVmHzgolRVnz1R
+         7cGjdcpTCPUuQy/A64lwRFiyY3CHLGj3nlqbK6AEQwT2zG7biKPOWYGbyqYZoXfGRvF9
+         VMNjEFP/372eFVw5FbTuSsi8X8vRwpvlmPjZMD5VyyudE8jzRBB7z6J5DpdMGoY7Hq5p
+         KRhkUg8+WaJVVEcdue/XWCVzhYJgAPz+7SROTuyUkDUJZGvY0euOB/3t+nKtd4g2liXU
+         30ygp2YrQxS3ncCjh2vsNdYieq6M3aMH+1rBdw0W/ieO4AuFjVJakOI9Kr5nAz8+hS5n
+         ycYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793854522; x=1794459322;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
+        b=cE0/OwzjyuYN/O4oDfGdDltY37ub4FnUv6y40o+vTOL0sRuy2Hh7qV3jXCqSo676Bw
+         iu4sKtJu4q0ugVNq5ZKK1iKik+DHZUQ9k+Y4wjM9xmmiPWFm78SmS3ulf9Dc+I5P0A9y
+         +Z1loF0QuzfXlZo85vZNCzVCYN4I5S6bVDHC/ZT7NlkY1TRsX2nAkL+0Es5FMi2Ppvl4
+         VGyuUrSdlikNBd6vuls+jUGeSnHHDhyD9ktUkl++Gwjp8jHC3xsOnCCvjIkjKxhdzdeU
+         UP+1ryzL0zav0xyDjz2z4EPpirOrQb0mMWC3+rGx1+jqU/9Yn1rSySKN9MFA/UU2ai8m
+         sSew==
+X-Forwarded-Encrypted: i=1; AKwUvBx8wv7+VhQu/+ofWEVkJaAL//MQsMrHmmqANXE6822djgKHS8MJi7KAAadN8oJzT6aMCC99dZVrU8cZBpkbG1Q=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8L2ZqGKu7seLtsy4IVOlV5M0XShNlSFj8UcpNJM/V1PyXMrLDe
+	KnVtwLQRB+8+3u0K5CLPbMJtOWx9jsaMBYTMWd3u/NkeuQ7ky9WiFF0D
+X-Gm-Gg: AYBFou1jPLH+eCoU30XzKBCgYmUYcJu+2qJgezHZooWuYcZLI7/PG75deihpjbJcOQd
+	hdvLgYogw4DG1C8Gin2sLTScSADHwXvp8idZXoSw4aaCLFDOawiWScCpoSAAJtPqJRbO2I/SlGe
+	4iUm+0FbxVTvcMKqyK4EbuOzxFFfIAv46YPYn09G9DtmVfbFxHF489hai52evtFnW7Fz713iXnz
+	2FYxdmdfLnWzKWAKzX1O3z3fLXEi5yGYjP56D1gNMRli8nIFLf8BgAoURX/cP1KJ6BQievT/vRT
+	an8DfF9P0n9NtVWFLlyAtHKf7BwtEI4Nwc0y5MkNWaCTQDhUxRhmeQ2iRpX5hwyZ/PklyvLLQSQ
+	A3xYsiysCmq7qp9Ig3cghgMaGs+GURSX6swkrhIbTyYPlSOiUzcMt7VIqwjzip1gnn0nX0jJMne
+	uwfX2nbOwNuZ7K5aEF6ELcNRymAE3Pae+mfGvEux81r6z/a5hyLvy/fTcKfS7Ld+ZGcaGLCIkc1
+	DaujihQsZYAvqZI6uFGA1fh/2moVgqi+8evMXFkQL62a0va/uLWt2ExQ7x4OemAqqgTZW1hX/ys
+	JxvmMY0iws1xEhvtwOMvMQyWKD62V3aXV/LgrcmCTWx89sGrnDTTdR3A7EGt
+X-Received: by 2002:a17:90b:4487:b0:3ac:9c37:9422 with SMTP id 98e67ed59e1d1-3ae89626108mr25602011a91.2.1793854521680;
+        Wed, 04 Nov 2026 20:55:21 -0800 (PST)
+Received: from localhost.localdomain ([189.1.242.96])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b0944eb1d1sm3726000a91.0.2026.11.04.20.55.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 20:55:20 -0800 (PST)
+From: Yiqi Sun <sunyiqixm@gmail.com>
+To: fuchen.dust@gmail.com
+Cc: coreteam@netfilter.org,
+	fw@strlen.de,
+	kadlec@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org,
+	phil@nwl.cc,
+	stable@vger.kernel.org
+Subject: Re: [PATCH nf v3] netfilter: ipset: fix double free on kernel-side delete during resize
+Date: Thu,  5 Nov 2026 12:52:10 +0800
+Message-Id: <20261105045210.1179991-1-sunyiqixm@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20261026102957.5530-1-fuchen.dust@gmail.com>
+References: <20261025090609.v2reply.4093.fuchen.dust@gmail.com> <20261026102957.5530-1-fuchen.dust@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -58,189 +104,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RESEND v2 01/51] alloc_tag: don't remove /proc/allocinfo
- under the codetag module lock
-To: Christian Brauner <brauner@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
- Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>,
- Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>,
- Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>,
- Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
- Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados
- <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>,
- Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>,
- linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
- linux-um@lists.infradead.org, linux-wireless@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org,
- ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org,
- coreteam@netfilter.org, kexec@lists.infradead.org,
- linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
- netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
- ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net,
- linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org,
- linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org,
- linux-usb@vger.kernel.org, samba-technical@lists.samba.org,
- sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
- linux-doc@vger.kernel.org, linux-serial@vger.kernel.org,
- linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>,
- linux-input@vger.kernel.org, linux-raid@vger.kernel.org,
- linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org,
- linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>,
- stable@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- Suren Baghdasaryan <surenb@google.com>
-References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
- <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
-Content-Language: en-US
-From: Hao Ge <hao.ge@linux.dev>
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-1-021c84d852e0@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Cc Suren
+Hi,
 
-Hi Christian
+I discovered the same double-free during ipset hash resize
+and confirmed its exploitability by successfully exploiting it
+in my test environment.
 
-On 2026/11/5 03:06, Christian Brauner wrote:
-> codetag_alloc_module_section() takes the codetag type's mod_lock for
-> writing and calls reserve_module_tags() with it held. When that can't
-> reserve the tags, because the section's alignment doesn't fit, because
-> there are too many tags for the page flag bits or because the memory
-> for them can't be allocated, it shuts memory allocation profiling down
-> and removes /proc/allocinfo, still with mod_lock held.
-> 
-> remove_proc_entry() waits until every reader of the entry has let go of
-> it, and a reader of /proc/allocinfo takes mod_lock for reading in
-> allocinfo_start() while it holds the entry. So a module load that hits
-> one of those paths while /proc/allocinfo is being read waits for the
-> reader and the reader waits for the module load, for good.
-> 
-> Let a work item remove the entry in that case. The profiling is shut
-> down right away like before, the file just goes a moment later.
-> 
-> Fixes: 4835f747d3ed ("alloc_tag: support for page allocation tag compression")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+While reviewing this fix, I noticed two remaining issues with the
+deferred operations in net/netfilter/ipset/ip_set_hash_gen.h:
+
+1. Failure-path replay can resurrect a deleted element.
+
+In mtype_resize(), cleanup clears orig->resizing before reaching the new
+drain path. Packet-path operations can then modify the original table
+directly, while earlier operations are still waiting in the backlog.
+
+For example, starting with A absent:
+
+  - During resize, a packet-path ADD inserts A into the original table
+    and also queues an ADD in orig->ad.
+  - A bucket allocation in the resize copy loop fails. cleanup clears
+    orig->resizing and waits for an RCU grace period.
+  - Before drain replays the backlog, a later packet-path DEL removes A
+    from the original table and returns success without queuing a DEL.
+  - drain replays the earlier ADD, inserting A again.
+
+The final state therefore contradicts the later successful DEL. Before
+this change, the failure path discarded the queued ADD, so this sequence
+left A absent.
+
+The set->lock around list_splice_init() protects the list, but does not
+serialize replay with packet-path updates under the region locks. The
+RCU grace period does not prevent new updates either. Could failure-path
+replay preserve ordering with those updates as well as within the backlog?
+
+2. The new deferred-ADD branch can return success without queuing the ADD.
+
+In mtype_add(), the new branch for an existing element sets ret = 0 and
+jumps to resize. If allocation of struct mtype_resize_ad fails there,
+the existing "Don't bother" path goes to out with ret still zero.
+
+For example, starting with A present:
+
+  - During resize, a packet-path DEL queues a deletion of A, leaving A
+    in the original table.
+  - A subsequent packet-path ADD of A, without IPSET_FLAG_EXIST, takes
+    the new branch.
+  - Backlog allocation fails, but the ADD returns success.
+  - Replaying the queued DEL leaves A absent because no ADD was queued.
+
+This branch relies entirely on the backlog to preserve the ADD after
+the pending DEL. Allocation failure should at least return -ENOMEM for
+this deferred-only case, consistent with the deferred-DEL path.
+
+Validation of the two review findings above used a userspace harness
+containing the extracted add/delete functions and failure-path replay
+code, with lock/RCU stubs. Both sequences produced the incorrect final
+state with v3; the corresponding unpatched baseline cases did not.
+The baseline was mainline commit 05441d697f7f ("Merge tag 'cocci-7.4-rc1'
+of git://git.kernel.org/pub/scm/linux/kernel/git/jlawall/linux"). These
+are deterministic control-flow checks, not reproductions on a running
+kernel.
+
+This review and the harness were prepared with AI assistance.
 
 Thanks.
-
-is this a problem you have hit in practice?
-Sashiko discovered this issue earlier and reported it as follows:
-
-> diff --git a/mm/alloc_tag.c b/mm/alloc_tag.c
-> index 2070e682fe106..112a014d4b890 100644
-> --- a/mm/alloc_tag.c
-> +++ b/mm/alloc_tag.c
-> @@ -950,10 +950,12 @@ static void *reserve_module_tags(struct module *mod, unsigned long size,
->  		int grow_res;
->  
->  		module_tags.size = offset + size;
-> -		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-> +		if (!tags_addressable()) {
->  			shutdown_mem_profiling(true);
-This is a pre-existing issue, but does this shutdown_mem_profiling(true) call
-introduce an AB-BA deadlock between /proc/allocinfo file readers (pde->in_use)
-and module loading (cttype->mod_lock)?
-A user reading /proc/allocinfo acquires the procfs in_use reference in
-use_pde(), then blocks on down_read(&alloc_tag_cttype->mod_lock) in
-allocinfo_start().
-Concurrently, if a module loads and tags_addressable() fails,
-codetag_alloc_module_section() holds down_write(&cttype->mod_lock) and calls
-shutdown_mem_profiling(true), which removes the proc entry. This removal waits
-indefinitely for the in_use reference to drop to zero, hanging both procfs
-reads and module loading.
-> -			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-> -				mod->name, NR_UNUSED_PAGEFLAG_BITS);
-> +			pr_warn_once("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-> +				     mod->name, NR_UNUSED_PAGEFLAG_BITS);
-> +			release_module_tags(mod, false);
-> +			return ERR_PTR(-EAGAIN);
->  		}
->  
->  		grow_res = vm_module_tags_populate();
-
-I previously sent a patch with a comparable idea, though Sashiko remained unconvinced.
-
-[patch]: https://lore.kernel.org/all/20260817062726.106511-3-hao.ge@linux.dev/
-
-[Sashiko's objections]: https://sashiko.dev/#/patchset/20260817062726.106511-1-hao.ge@linux.dev
-
-Could this patch perhaps wait for mine? No worries if this is inconvenient.
-
-Best regards                                                                                                                                                                                                                                                                  
-Hao
-
-> ---
->  mm/alloc_tag.c | 27 ++++++++++++++++++++++++---
->  1 file changed, 24 insertions(+), 3 deletions(-)
-> 
-> diff --git a/mm/alloc_tag.c b/mm/alloc_tag.c
-> index 82e2c3448dcf..7d7ad6704953 100644
-> --- a/mm/alloc_tag.c
-> +++ b/mm/alloc_tag.c
-> @@ -15,6 +15,7 @@
->  #include <linux/seq_file.h>
->  #include <linux/string_choices.h>
->  #include <linux/vmalloc.h>
-> +#include <linux/workqueue.h>
->  #include <linux/kmemleak.h>
->  #include <uapi/linux/alloc_tag.h>
->  
-> @@ -604,6 +605,26 @@ static void shutdown_mem_profiling(bool remove_file)
->  	mem_profiling_support = false;
->  }
->  
-> +static void remove_allocinfo_file(struct work_struct *work)
-> +{
-> +	remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
-> +}
-> +static DECLARE_WORK(remove_allocinfo_work, remove_allocinfo_file);
-> +
-> +/*
-> + * A module's tags are reserved with the codetag module lock held for
-> + * writing, and a reader of /proc/allocinfo takes that lock with the entry
-> + * pinned. Removing the entry there would wait for that reader for good, so
-> + * let a work item do it.
-> + */
-> +static void shutdown_mem_profiling_async(void)
-> +{
-> +	if (!mem_profiling_support)
-> +		return;
-> +	shutdown_mem_profiling(false);
-> +	schedule_work(&remove_allocinfo_work);
-> +}
-> +
->  void __init alloc_tag_sec_init(void)
->  {
->  	struct alloc_tag *last_codetag;
-> @@ -855,7 +876,7 @@ static void *reserve_module_tags(struct module *mod, unsigned long size,
->  		align = 1;
->  
->  	if (!ensure_alignment(align, &prepend)) {
-> -		shutdown_mem_profiling(true);
-> +		shutdown_mem_profiling_async();
->  		pr_err("%s: alignment %lu is incompatible with allocation tag indexing. Memory allocation profiling is disabled!\n",
->  			mod->name, align);
->  		return ERR_PTR(-EINVAL);
-> @@ -905,14 +926,14 @@ unlock:
->  
->  		module_tags.size = offset + size;
->  		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-> -			shutdown_mem_profiling(true);
-> +			shutdown_mem_profiling_async();
->  			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
->  				mod->name, NR_UNUSED_PAGEFLAG_BITS);
->  		}
->  
->  		grow_res = vm_module_tags_populate();
->  		if (grow_res) {
-> -			shutdown_mem_profiling(true);
-> +			shutdown_mem_profiling_async();
->  			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
->  			       mod->name);
->  			return ERR_PTR(grow_res);
-> 
