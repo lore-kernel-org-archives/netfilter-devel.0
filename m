@@ -1,63 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.198
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793763184;
-	b=PGwbt9Oa0n9pi0IZuk1zaWY/YGZYJRAwavNlctH6e5IT/e5UFh0Fo3tMW3VzD4V8IHUT
-	 w6aaX5GeknxhJve9hgwwRK2iaLVIABJUMXW4l4SSTRKufV1BbqgN4D1l2TTbiBVt2nTNx
-	 HWuyoDlWRVjCFpNzX/GBbXO5YWfJiz1kkjagIFVY1hl3kqFtaEOfDGiJD7ngYyeMHZo8Y
-	 2st4sK4tlBMDEtYXCcbEnpOIpec0hS2fB2ozdVsKk6R4cSgE3GcSpG3CFjP3m5fURwE2W
-	 54eNH3rNH3jx+p7UMATVV8SbnZyakznDiSxTzF6TWXAYH7SFK6+qUo79s43SNovnU0w==
+	t=1793913452;
+	b=BsuWK6EgjDA8UH8WH8bYpWHvQJYzxkwcE+UoKobeWZhHF2n3441VoODGAjwvDiSEnO3Z
+	 +4hdbmGfXiTU5LEbuz/EzAgPYXes41FHrL8B0vo56/o+iZR2FNDYNOcVnjGcxMdFn3zv4
+	 bLZuYTqfHjTldeYYh/qKAOjMN/08fRJ3O4dxjPqtNva691rTWpdYMU5KZfExVszZLdOe+
+	 hk/YtFJM1eGs/mEA3ka33dETx5q4xNv3owZjdj8DWq+30oCDXSHUWxvvwg8ons5YrgA4b
+	 PwkgQAa9HbcGg0V6DTFoSU4XVfOaWERnBwbiiG/GF+z2NkdkHKBiQ6zezccHOAXTHBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793763184;
-	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-META:X-CID-BVR:
-	 X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:From:To:Cc:
-	 Subject:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=l8VqXxd/sdfHt2LeZCunmDHUpQmLkttaE3civqC/2uc=;
-	b=rNTNmTiDp0+peRRfNS55idg+Vqw04fop6GWWpvdvIgZMRhRn5P6R+DabwWWmlLS2cnMs
-	 0KLGfYhsDLgOxr+jQkPRbpVTJO2TNgHbEDEM6hB+mq4MJ1iNCZd9ZiZpO5FF7zx6eJyMv
-	 0zJa3GES1p43BQApyB78Pe6qIpuLaqkH6kAuxy+xthYD0VPojJzxFJQ02iHEIRs5t10oP
-	 XtESeaBYUsVpmubB3r3veYkj5O25vy07Q8uWNXsYaDJzLPox2kxiM6kSd6peJY70jAGPA
-	 bPWMJEJCKGHL+Xs8JgwRen9pBBD9PuNVXJwDgQPU52kyAAkP4T4AHli+du9e69L+OhQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793913452;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=kKvT1WZP63DDiif92MikpmY+JmPHkMKG8ncW+5LMjTE=;
+	b=lxq/73Hp52OXvtBdqWhH3RrP+C00U5hvVnoAW13n3F9XXivNvz82qQOBCJQwuY+qTpC5
+	 ui+Iw1zdQzkuVWlvDTLOe8clXyAnOxAszW2yK5cGgyuiJRHtKXB8hNlRdfYijjtRS9HhO
+	 gkx9uhKNIs0q/zX3xyEGsy878wzR5o1w1k1ES326yt7r+CJqHm8iQgPmlLQ/s0o4M4bKP
+	 Iadhxd1cXfS7CCNek6PErTeNkfb4t9FtjNTjQ8/Hm2lKLDeDKsLx6EFHJIwvK5lpLrV4l
+	 OVMViLRfqUagu0N3vutEX9rwA2w0xwaHV4E/PbklLknMC1FxtcY3+nXF8sGm496E3KQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=kylinos.cn;
-	spf=pass smtp.mailfrom=kylinos.cn;
-	arc=none smtp.remote-ip=124.126.103.232
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.167.198
+Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8684606A31B
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 03:33:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8684606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:c578295c-945f-4d84-8d15-e5ab0e360a6d,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:7db8b62,CLOUDID:ea64efadd61072fb2bf8b8ab97d23355,BulkI
-	D:nil,BulkQuantity:0,SF:82|102|136|865|898,TC:nil,Content:0|15|50|99,EDM:-
-	3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
-	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-User: yupeng@kylinos.cn
-Received: from [127.0.1.1] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <yupeng@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 567319487; Wed, 04 Nov 2026 11:32:55 +0800
-From: YuPeng <yupeng@kylinos.cn>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de, phil@nwl.cc, debianyu@163.com
-Subject:
- [PATCH v2] extensions: ebt_string: Fix --string-icase using ebt_check_inverse
-In-Reply-To: <atXZ1Fc4HOy--Wam@strlen.de>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A242606A32F
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 21:17:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5A242606A32F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f198.google.com with SMTP id 5614622812f47-4f9b643ae53so1796254b6e.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 13:17:31 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793913451; x=1794518251;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=kKvT1WZP63DDiif92MikpmY+JmPHkMKG8ncW+5LMjTE=;
+        b=NvOwDiQ4ULj0CFGMGx5op5ofbwbK3vRb6yTYbjvi1tv2oxUGZBxJINYRfNVPni4Wgh
+         QqCJ6UN4rcBzKm7MLNml7mAnBvk2P9ESef0ZhUEoFT5Wy852gSEpoCmzzS/11QaCveTg
+         kGVRYiSW3C6X/Ba+GF67dXlXDkrB0vp+RynrnRsA1s28np/CjTkY4JSr4bqXPSeZbwnu
+         xgiEiWFWEnX8wGAnj/ZLY902e6q1ilKMNPqoSWJCaBfNz4MafyoW0TnjhISRZmWLwHmw
+         MDLjpL+919SYz+oTUcH+uvzhe8GknosPM87Z23z/aCx5uPH5z4qJQvX3Eg/CVRUsZHpI
+         nAEw==
+X-Forwarded-Encrypted: i=1; AKwUvBzZoeqztpzWQBsSdoXD6R2niCq/dLI5z0WyF0h6cZKzNoUjHwBf5n0vC7h/v20hi6YFVhHHeSb1SfUD0dyc084=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9CcS1MqpMcz4q/tf+9DiEHD2LFKD7X2RVhIIKxLIcWXafJYWi4
+	iDI6fYQ3tjuxULl+qpjB7sJsBt+P0XQTNLtCACsZ+Pq3Gp6AUbkM+tNCbxwInaJ/oKAZoGd9y1X
+	PFUtvlwslPhPBIkrZHtZa8QYEXofoP/7j/Rk1Lt80MNC1QOobo0HIGe0yEdk=
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -67,58 +58,155 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Message-ID: <20261104033301.6fepl06bgAJvMxxLy5Hw1g-x-k6uyig0PqEISfmmPjE@z>
+X-Received: by 2002:a05:6808:1985:b0:55c:8ee:a9c4 with SMTP id
+ 5614622812f47-567e115e036mr383926b6e.43.1793913451254; Thu, 05 Nov 2026
+ 13:17:31 -0800 (PST)
+Date: Thu, 05 Nov 2026 13:17:31 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6aecf26b.382bd2ce.33e041.0002.GAE@google.com>
+Subject: [syzbot] [netfilter?] WARNING in xt_dnat_target_v2
+From: syzbot <syzbot+2e819f6641708bb6ab9d@syzkaller.appspotmail.com>
+To: fw@strlen.de, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
---string-icase is registered as a no_argument option, so getopt_long
-always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
-macro contains a mandatory-argument guard:
+Hello,
 
-	if (!optarg) {
-		__ebt_print_error("Option without (mandatory) argument");
-		return -1;
-	}
+syzbot found the following issue on:
 
-so every use of --string-icase aborts parsing with the misleading error
-"Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
-can never be set.  The option has been broken since it was added in
-commit b1cdae8 ("extensions: Add string filter to ebtables").
+HEAD commit:    787268686c64 ipmr, ip6mr: queue netlink route queries out ..
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
+console output: https://syzkaller.appspot.com/x/log.txt?x=170b444e580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d30e1495ee3ac817
+dashboard link: https://syzkaller.appspot.com/bug?extid=2e819f6641708bb6ab9d
+compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=108b444e580000
 
-Reproducer (no privileges required):
+AI-generated root cause summary:
+When an incoming TCP packet is rejected by an nftables reject rule
+(nft_reject_ipv4_eval), nf_send_reset() creates a TCP RST reply and attaches the
+original packet's conntrack entry via nf_ct_attach(), marking its ctinfo as
+IP_CT_RELATED_REPLY. As the RST packet traverses the NF_INET_LOCAL_OUT hook,
+nf_nat_ipv4_fn() passes it to nf_nat_inet_fn() because it is not an ICMP packet.
+In nf_nat_inet_fn(), IP_CT_RELATED_REPLY falls through to evaluation of
+uninitialized NAT mappings, executing rules in the LOCAL_OUT NAT chain. If the
+chain includes an xtables DNAT target (evaluated via nft_compat),
+xt_dnat_target_v2() triggers WARN_ON because its assertion checks only for
+IP_CT_NEW or IP_CT_RELATED, omitting IP_CT_RELATED_REPLY.
 
-  $ ebtables-legacy --string-icase
-  Option without (mandatory) argument.
+full analysis:  https://syzkaller.appspot.com/x/ai_root_cause?x=2e819f6641708bb6ab9d
 
-Use ebt_check_inverse() instead: it tolerates a NULL optarg and
-returns the current ebt_invert state, which the main option loop
-resets to 0 after every option, so the flag is set as intended and
-the "Unexpected '!'" diagnostic is kept.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+2e819f6641708bb6ab9d@syzkaller.appspotmail.com
 
-This fix was originally carried in the Kylin Linux SRPM since 2022;
-the commit message has been rewritten to describe the actual failure
-mode observed on current master.
+------------[ cut here ]------------
+!(ct != NULL && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED))
+WARNING: net/netfilter/xt_nat.c:154 at xt_dnat_target_v2+0x97/0xc0 net/netfilter/xt_nat.c:153, CPU#0: syz-executor145/6031
+Modules linked in:
+CPU: 0 UID: 0 PID: 6031 Comm: syz-executor145 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/15/2026
+RIP: 0010:xt_dnat_target_v2+0x97/0xc0 net/netfilter/xt_nat.c:153
+Code: 74 22 41 83 e7 07 41 83 c7 fd bf fe ff ff ff 44 89 fe e8 ac 1e 90 f7 41 83 ff fe 72 25 e8 91 19 90 f7 eb 09 e8 8a 19 90 f7 90 <0f> 0b 90 4c 89 f7 48 89 de ba 01 00 00 00 5b 41 5e 41 5f e9 21 17
+RSP: 0018:ffffc90000006de0 EFLAGS: 00010246
+RAX: ffffffff8a38fc64 RBX: ffff8880614cd418 RCX: ffff88807c979f40
+RDX: 0000000000000100 RSI: 0000000000000100 RDI: 00000000fffffffe
+RBP: ffffc90000006ed0 R08: 0000000000000100 R09: 0000000000000000
+R10: ffffc900000070b0 R11: ffffffff8a38fbb0 R12: ffffffff919e5438
+R13: 1ffff92000000dc4 R14: ffff8880247c8900 R15: 0000000000000001
+FS:  0000555563505400(0000) GS:ffff88812361d000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffe16ab8280 CR3: 0000000034dea000 CR4: 00000000003526f0
+Call Trace:
+ <IRQ>
+ nft_target_eval_xt+0x1ad/0x2b0 net/netfilter/nft_compat.c:100
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
+ nft_do_chain+0x48d/0x1b10 net/netfilter/nf_tables_core.c:285
+ nft_nat_do_chain+0x360/0x4b0 net/netfilter/nft_chain_nat.c:32
+ nf_nat_inet_fn+0x5de/0xb50 net/netfilter/nf_nat_core.c:931
+ nf_nat_ipv4_fn net/netfilter/nf_nat_proto.c:583 [inline]
+ nf_nat_ipv4_local_fn+0x18c/0x570 net/netfilter/nf_nat_proto.c:738
+ nf_hook_entry_hookfn include/linux/netfilter.h:165 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:633
+ nf_hook+0x22a/0x3a0 include/linux/netfilter.h:280
+ __ip_local_out+0x558/0x6a0 net/ipv4/ip_output.c:120
+ ip_local_out+0x2a/0x190 net/ipv4/ip_output.c:129
+ nf_send_reset+0xd8d/0x1530 net/ipv4/netfilter/nf_reject_ipv4.c:339
+ nft_reject_ipv4_eval+0xf6/0x230 net/ipv4/netfilter/nft_reject_ipv4.c:30
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
+ nft_do_chain+0x48d/0x1b10 net/netfilter/nf_tables_core.c:285
+ nft_do_chain_ipv4+0x195/0x290 net/netfilter/nft_chain_filter.c:24
+ nf_hook_entry_hookfn include/linux/netfilter.h:165 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:633
+ nf_hook include/linux/netfilter.h:280 [inline]
+ NF_HOOK+0x21f/0x3c0 include/linux/netfilter.h:323
+ __netif_receive_skb_one_core net/core/dev.c:6433 [inline]
+ __netif_receive_skb net/core/dev.c:6546 [inline]
+ process_backlog+0xa6b/0x18b0 net/core/dev.c:6897
+ __napi_poll+0xaa/0x330 net/core/dev.c:7977
+ napi_poll net/core/dev.c:8040 [inline]
+ net_rx_action+0x61d/0xf50 net/core/dev.c:8197
+ handle_softirqs+0x265/0x8d0 kernel/softirq.c:669
+ do_softirq+0x77/0xd0 kernel/softirq.c:569
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0x100/0x140 kernel/softirq.c:473
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:923 [inline]
+ __dev_queue_xmit+0x1efb/0x3920 net/core/dev.c:5121
+ neigh_output include/net/neighbour.h:554 [inline]
+ ip_finish_output2+0xc4b/0x10b0 net/ipv4/ip_output.c:236
+ NF_HOOK_COND include/linux/netfilter.h:314 [inline]
+ ip_output+0x29f/0x450 net/ipv4/ip_output.c:437
+ __ip_queue_xmit+0x10df/0x1b10 net/ipv4/ip_output.c:533
+ __tcp_transmit_skb+0x2d06/0x47b0 net/ipv4/tcp_output.c:1773
+ tcp_transmit_skb net/ipv4/tcp_output.c:1790 [inline]
+ tcp_connect+0x1a7e/0x4990 net/ipv4/tcp_output.c:4451
+ tcp_v4_connect+0x1264/0x1b20 net/ipv4/tcp_ipv4.c:348
+ __inet_stream_connect+0x28c/0xf50 net/ipv4/af_inet.c:684
+ inet_stream_connect+0x66/0xa0 net/ipv4/af_inet.c:755
+ connect_socket net/socket.c:2143 [inline]
+ __sys_connect_file net/socket.c:2168 [inline]
+ __sys_connect+0x316/0x450 net/socket.c:2185
+ __do_sys_connect net/socket.c:2191 [inline]
+ __se_sys_connect net/socket.c:2188 [inline]
+ __x64_sys_connect+0x7a/0x90 net/socket.c:2188
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f81c24b2ff7
+Code: 48 89 fa 4c 89 df e8 98 1d 00 00 8b 93 08 03 00 00 59 5e 48 83 f8 fc 74 1a 5b c3 0f 1f 84 00 00 00 00 00 48 8b 44 24 10 0f 05 <5b> c3 0f 1f 80 00 00 00 00 83 e2 39 83 fa 08 75 de e8 23 ff ff ff
+RSP: 002b:00007ffe16aca280 EFLAGS: 00000202 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 0000555563505400 RCX: 00007f81c24b2ff7
+RDX: 0000000000000010 RSI: 00007ffe16aca300 RDI: 0000000000000005
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000202 R12: 00000000d2040002
+R13: 00007f81c24eed50 R14: 00007ffe16aca300 R15: 00007f81c24ec06c
+ </TASK>
 
-Signed-off-by: YuPeng <yupeng@kylinos.cn>
+
 ---
-v2: Use ebt_check_inverse() instead of removing the check entirely,
-    as suggested by Florian Westphal.  No other changes.
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
- extensions/ebt_string.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
-diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
-index 97fbe19..cbbe103 100644
---- a/extensions/ebt_string.c
-+++ b/extensions/ebt_string.c
-@@ -174,7 +174,7 @@ static int parse(int c, char **argv, int argc, const stru=
-ct ebt_u_entry *entry,
- 		break;
- 	case STRING_ICASE:
- 		ebt_check_option2(flags, OPT_STRING_ICASE);
--		if (ebt_check_inverse2(optarg))
-+		if (ebt_check_inverse(optarg))
- 			ebt_print_error2("Unexpected `!' after --string-icase");
- 		info->u.v1.flags |=3D XT_STRING_FLAG_IGNORECASE;
- 		break;
---=20
-2.39.5
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
