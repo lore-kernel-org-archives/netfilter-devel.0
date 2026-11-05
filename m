@@ -1,127 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.231.198
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793878887;
-	b=LjjJrj8265QV8imSZMpLBoTXDJ2FVbWTRlx6S1Pw6OdWuzUuKzT8k2KxRRH/S6Ngi1mZ
-	 TPkpDSG/zOdOZdSFacUpXap4yDJEnkKgrHY1VuYFG2eS7uEVAkSJUHRLr5kAlvmfH4rm7
-	 omB9y/Rk4J6JR+R+pWL+UKU2znPU+ymQhSGHEjDPHaIzfqlH/6SUhWq2tYc8O7NfXiSdM
-	 WtGxkUYgaz8CZEub/39EKxzA6XPWn8gBR1zy7U7J1kXMoXbckckWWevDbn9a4cGX/Dgpf
-	 1yKM1sXcVZngzDwHjP2XPkk5yC8tfXi7B04Z2JdWPn9Xc6KlrrdD3ZxnTKiijkIoAxw==
+	t=1793879309;
+	b=dFbRyHHqdnFAwzOcgbaYj0TD9uK2jfyHsGMDiw1hkHhFJkEuLfAupy2KeVzFXgs4haHh
+	 dfFhrVFcgt8/RgzC+oqIOCiZX31ke1dOT8YMk9fwg341GzB9vuGkhAtZWmckIwk75/x+x
+	 /9rtu3dCbovE90jPgA7RtBv+RrXelylkKBRvpPpHGV7zHgMGgiR8CJhZlOUAqu3x+KNHn
+	 Ioq8aZXGhTzxomxvW/+Ic4U4tOdIqsUaKwbroHR28rD5+VNvM0ImXZ0dsdkhTYn2n/pzb
+	 YmCIMuum9BGfiqJZCBfKjtPfZRFVSCcksGYsq22jW1RJd2iF0EJ5gwZ00i+1gcRSfrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793878887;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Flag:X-Spam-Level:X-Spamd-Result:X-Spam-Score;
-	bh=lCeU7WqtPlFL0u28tAWE4TptrCsWoJqXXac/H5Y8UUQ=;
-	b=dtr8vQSGAhO2+phFSjmLjvvv9ELYzzDtS0aNdmEji+5q/q/bdqDo3HKvS4CllIaMP2yD
-	 Dn4yHrk1Ck+9czKcKEkD8sWfZlBb/PuZJAuweTO8mgrfI/xsYg78+LGKUNhDp1S0P/eKK
-	 wXvKjxff3UpVTyPt0T/Sr8vwSN63sX6S1rtKJTCJdHunuA8v6Wec6FSymTECr3y3Goawd
-	 K7gwKl1myFUekCoBBjbNdS5rHcgT6p5AHNqCFJDyVKf/dm7YxMNXWaO468WXzOgTSwh/U
-	 Uiu33TgczNUo220+gX0BYddUdCYNBK2jWbjmDOxzsrEvEZ8EIosF/BtspwLkhTxTd4A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793879309;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=hg7j3aQDkYF3jTcoB7Va9I6kezijOkG/5q0FsvMla1Q=;
+	b=eg8owq2KZurX38pU4WuxwNofVNSU3fD8Ibenp8fxKFsxd/35CIKXe2BHzFjiTQ/s/Iz/
+	 ym1uatte4/BsBPronzp9D5xVtfSHlkn9Hpi1C9dAQzjePkCDdc5gMhoOlhlvIfITV6RcB
+	 3zVYHJ/DEE+Sby4yEblbz1PlwQG9RM6fEc1epXtkBuUsgxs4irvKfcukYOo3xKe1Fav8I
+	 s4iLHaw/Fx2UqTThHckjyOAontxB77tDeilmBpwv03QClkhPYQH1DBNiPBUtgzJhNzaGG
+	 u8QxQB0Eeas/Nmw+Up05U9zNgJ9wXWej2T88s2ZfOB8zqkbNhc8yRTTTBfewejp4J6w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=suse.cz;
-	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=sVeVtJRH;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vuwkzsBE;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=sVeVtJRH;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vuwkzsBE;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=PW8KOHRd;
+	arc=none smtp.remote-ip=74.125.231.198
+Received: from mail-oi2-f6.google.com (mail-oi2-f6.google.com [74.125.231.198])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEA20606A329;
-	Thu,  5 Nov 2026 11:41:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DEA20606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3AA7606CE85
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 11:48:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3AA7606CE85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=sVeVtJRH;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vuwkzsBE;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=sVeVtJRH;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vuwkzsBE
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 1E66A21EFE;
-	Thu,  5 Nov 2026 11:41:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793878885; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lCeU7WqtPlFL0u28tAWE4TptrCsWoJqXXac/H5Y8UUQ=;
-	b=sVeVtJRHmCez1LTgkgxlC7ymMIoqBUxHEcpbPuiTw+LbDT4oPlHADz2Nup5Y4XkVnbVoDk
-	it5vmGnaVZfno1DYDqX11TE+/cZqz+5DBii4SNDMZd47SSrwV/j/qOrqaptU0Cbv8IOz2R
-	SNKUKTm79wLZzIjQ8Z0k9Nr+vLNViV0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793878885;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lCeU7WqtPlFL0u28tAWE4TptrCsWoJqXXac/H5Y8UUQ=;
-	b=vuwkzsBEcCG36qlub78Ir05oWJttjLgL1QqDCsASqboi7pG0u6LKGZy4KCtzu9Qqsj7mam
-	/axyOJZeWj8zunDA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1793878885; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lCeU7WqtPlFL0u28tAWE4TptrCsWoJqXXac/H5Y8UUQ=;
-	b=sVeVtJRHmCez1LTgkgxlC7ymMIoqBUxHEcpbPuiTw+LbDT4oPlHADz2Nup5Y4XkVnbVoDk
-	it5vmGnaVZfno1DYDqX11TE+/cZqz+5DBii4SNDMZd47SSrwV/j/qOrqaptU0Cbv8IOz2R
-	SNKUKTm79wLZzIjQ8Z0k9Nr+vLNViV0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1793878885;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lCeU7WqtPlFL0u28tAWE4TptrCsWoJqXXac/H5Y8UUQ=;
-	b=vuwkzsBEcCG36qlub78Ir05oWJttjLgL1QqDCsASqboi7pG0u6LKGZy4KCtzu9Qqsj7mam
-	/axyOJZeWj8zunDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EF13B134F6;
-	Thu,  5 Nov 2026 11:41:24 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id +avfL2Rr7Go4dQAAD6G6ig
-	(envelope-from <jack@suse.cz>); Thu, 05 Nov 2026 11:41:24 +0000
-Received: by quack.suse.cz (Postfix, from userid 1000)
-	id 60CBBB6BA; Thu, 05 Nov 2026 12:41:20 +0100 (CET)
-Date: Thu, 5 Nov 2026 12:41:20 +0100
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
-	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
-	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
-	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
-	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
-	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH RFC 16/38] proc: don't walk through a non-directory when
- resolving a name
-Message-ID: <xhnd2xzehnh35nmgphm2euuyulbwoz2fbxf7zmfn3hvdbcualr@ltehycoskzll>
-References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
- <20261102-work-procfs-bugfixes-v1-16-59422ed3e465@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=PW8KOHRd
+Received: by mail-oi2-f6.google.com with SMTP id 5614622812f47-550f311b527so811083b6e.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 03:48:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793879307; x=1794484107; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hg7j3aQDkYF3jTcoB7Va9I6kezijOkG/5q0FsvMla1Q=;
+        b=PW8KOHRdWbSwfyWxw+XKu/l+tmM288fhr1OYE5FJZVbxY5ulQxNFff0Jf6SiE/gFaQ
+         kbVQ0XqUg/v1s2B33XaTrmKPbrtM5Fg9qn7LHQHbGR7y/IOkRBew0BlcAeXBUgkxjdQ2
+         hXqub0fyoZBkGtRoB9djCFqwGMOvReGM/Asv8hNLv2j6h5ubRnri5KYbcLhB/bbCK3Ua
+         1mXyXFa6AWGyovLrO3TVrYlztFu6wte90iVz+bV2gQZ/43ZPki0FSGsKi1VvKmZOIFII
+         S+7hj+lurEb7FvmUcuDytAzT5TU8bD+xgrH7ot3UqY7EsjdIaRgeQsxVgxrJxpuw84Kl
+         xvVA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793879307; x=1794484107;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=hg7j3aQDkYF3jTcoB7Va9I6kezijOkG/5q0FsvMla1Q=;
+        b=W61Oa8+jnNoX2q2WJjPEOW049rBjLM1EcqJlIsJBgYOxS2amAd7exKlzEYwSrkYgSB
+         Pf5HmdeuAEg8zQIzheoikdxjUvboNxzNxexuBv1EH7cubpSRhgYq+xwKA5WTOKX+Lect
+         6clYl4suBP2wzWLaDkZKVa2nXp+gKFWYEPfCemQaOSnZBIOVQYBn9XvQatpwTtOsww4I
+         BcfKFEeSjQlYsi4janSzBMAf6DGZ1rRZqSWSMnftrMyMdW54S7E7MeUfqy7K/l2HIpjt
+         ze9HRgCaaqLiJW3AHvoQ0lQKoEzQETJT3cBbfrgUTGNsJHQF95KNgcOgpZPUcZVPwXrP
+         ffQg==
+X-Gm-Message-State: APuU4Z9tXrz1Asud1hawwE7VT7s4bdh1Rz2rUN4D0ADv+GF5ZM1OXfDf
+	rFtFSAov+5VDS3FDFqgvLUXsjTpA8XSOtu5UGUZKcr8jyCt831p8/fjT
+X-Gm-Gg: AYBFou3vAE0uvn/oJlIeiyBqXd3NMaZJDpp9uAQzCwWqQVgViDcx+rty9ygB9bYLu+y
+	xQRvdV22elYlRQmxqmyDtxa4Vd0papfgzgv+L30cTRUNaJ/Ldo1cNbeOd5J+pkWn8+uobrFCu2e
+	NqZGv8iLKZjmKHU88mhp3rhGDekqdwQGr5D3jwjoTRrKRQ2knv33L+RXe1uhX1blJT2RjekUCHO
+	jArr/ok0E1+XR5TrX2W44V28il4BOxnwBdm+c6Wh221NyFvJqx9HA+40UKgVJ9qH+Tf/RDnnOax
+	3Om7CZxUM6nmUBdAWkWZQLZTW/BCJ9u6Ysz35Ko9MxZZRD7pwxr9cAfEJXlDlL06plV1InmvIgP
+	WJiSVMqVKNpo/cC9CMGxqhxVU7wY9/YvagPrHeJHtaGdMrVM/WGaxy0rSxcAON2AMWpJzkEL0MA
+	vKQ3TAR0Wc0NBAA4JJ9afEeFepoqXRXshMgwj6oeG6L2MyZsQocWyiXhNnwBg72BP0YKNSaRa/N
+	kli65RNDm8bmXziy31r+VHhwlXKgoX4E/yTarCHsQwiHg26YdI+A1RITuS+K8SBjy13Ztfnnp46
+	Tz4HqLLQ63j7SyNbKXfSQtfS8WEZBWSA+iwp0CC5KSLwd9DQxvU7VGYD1KDQdwB8tSpR
+X-Received: by 2002:a05:6808:1793:b0:553:66a3:d863 with SMTP id 5614622812f47-5640dc200damr13347009b6e.21.1793879307507;
+        Thu, 05 Nov 2026 03:48:27 -0800 (PST)
+Received: from localhost.localdomain ([14.116.239.41])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-567a9f93e30sm4054807b6e.13.2026.11.05.03.48.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Nov 2026 03:48:26 -0800 (PST)
+From: Henry Martin <bsdhenrymartin@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	stable@vger.kernel.org,
+	Henry Martin <bsdhenrymartin@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: fix pernet use-after-free on UNREGISTER rebroadcast
+Date: Thu,  5 Nov 2026 19:48:17 +0800
+Message-ID: <20261105114817.3033625-1-bsdhenrymartin@gmail.com>
+X-Mailer: git-send-email 2.43.7
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -131,104 +100,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261102-work-procfs-bugfixes-v1-16-59422ed3e465@kernel.org>
-X-Spam-Flag: NO
-X-Spam-Level: 
-X-Spamd-Result: default: False [-11.30 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[60];
-	RCVD_TLS_LAST(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,suse.cz:email,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -11.30
+Content-Transfer-Encoding: 8bit
 
-On Mon 02-11-26 15:21:31, Christian Brauner wrote:
-> __xlate_proc_name() walks the components of a name like "a/b/c" and
-> takes whatever it finds for "a" and "b" as the directory to go on in.
-> It never checks that they actually are directories. So
-> proc_create("file/x") hangs x into the subdir tree of the regular file
-> "file". Nobody can look x up there, but remove_proc_subtree() on the
-> file removes and frees x along with it, behind the back of whoever
-> registered x.
-> 
-> pktgen passes the name the writer of "add_device" picks to
-> proc_create_data(), and only the part in front of the '@' has to name
-> a network device:
-> 
->   echo "add_device lo@"   > /proc/net/pktgen/kpktgend_0
->   echo "add_device lo@/x" > /proc/net/pktgen/kpktgend_1
->   echo "rem_device_all"   > /proc/net/pktgen/kpktgend_0
->   echo "rem_device_all"   > /proc/net/pktgen/kpktgend_1
-> 
-> The third write frees both entries and the fourth one makes kpktgend_1
-> call proc_remove() on the freed second one:
-> 
->   BUG: KASAN: slab-use-after-free in proc_remove+0x8f/0xa0
->   Read of size 8 at addr ff110001134c8e70 by task kpktgend_1/243
->   Call Trace:
->    proc_remove+0x8f/0xa0
->    pktgen_remove_device.isra.0+0x118/0x500
->    pktgen_rem_all_ifs+0xeb/0x1a0
->    pktgen_thread_worker+0x1b42/0x7280
-> 
-> The files of a network namespace belong to the root of its user
-> namespace and these writes don't require a capability. So once pktgen
-> is loaded an unprivileged user can do this in namespaces of its own.
-> 
-> Treat a component that isn't a directory like one that doesn't exist.
-> All names with a '/' that the tree passes in as literals only walk
-> through directories. pktgen is fixed separately to not pass such names
-> in the first place.
-> 
-> Reported-by: Chris Mason <mason@kernel.org>
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+A device unregistered outside its netns teardown can be stuck in
+netdev_wait_allrefs_any() while the pernet exit handlers of its
+netns run to completion.  The nftables pernet storage is freed on
+that path.  The rebroadcasts then hit the nf_tables netdev
+notifiers (base chain, flowtable, offload), which read the freed
+storage via nft_pernet() and take commit_mutex on it, e.g. on
+mainline v7.4-rc1 (KASAN build):
 
-Looks good. Feel free to add:
+    BUG: KASAN: slab-use-after-free in nf_tables_netdev_event+0x17c
+    Read of size 8 at addr ffff88811061c980 by task ip/422
+    Call Trace:
+     nf_tables_netdev_event+0x17c/0x1c0
+    Freed by task 62:
+     kfree+0x161/0x450
+     net_passive_dec+0xe5/0x180
+     cleanup_net+0x45a/0x780
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Skip the rebroadcasts in all three notifiers, which are the only
+NETDEV_UNREGISTER events delivered with reg_state ==
+NETREG_UNREGISTERED.  This mirrors commit fd0909e963ed8
+("netdev-genl: ignore NETDEV_UNREGISTER rebroadcasts").
 
-								Honza
+This issue was discovered by Tencent CodeBuddy Security.
 
-> ---
->  fs/proc/generic.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-> index 2b1971da4a85..c560c96a64eb 100644
-> --- a/fs/proc/generic.c
-> +++ b/fs/proc/generic.c
-> @@ -170,7 +170,7 @@ static int __xlate_proc_name(const char *name, struct proc_dir_entry **ret,
->  	de = *ret ?: &proc_root;
->  	while ((next = strchr(cp, '/')) != NULL) {
->  		de = pde_subdir_find(de, cp, next - cp);
-> -		if (!de) {
-> +		if (!de || !S_ISDIR(de->mode)) {
->  			WARN(1, "name '%s'\n", name);
->  			return -ENOENT;
->  		}
-> 
-> -- 
-> 2.53.0
-> 
+Fixes: 8a4fc54b07d75 ("net: get rid of rtnl_lock_unregistering()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+---
+ net/netfilter/nf_tables_api.c     | 9 +++++++++
+ net/netfilter/nf_tables_offload.c | 8 ++++++++
+ net/netfilter/nft_chain_filter.c  | 9 +++++++++
+ 3 files changed, 26 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 59ac623e6805f..e43a1b9fefc36 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9902,6 +9902,15 @@ static int nf_tables_flowtable_event(struct notifier_block *this,
+ 	    event != NETDEV_CHANGENAME)
+ 		return NOTIFY_DONE;
+ 
++	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
++	 * while waiting for the last references to be dropped; the
++	 * netns and its nftables pernet storage may already be torn
++	 * down by then.
++	 */
++	if (event == NETDEV_UNREGISTER &&
++	    READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
++		return NOTIFY_DONE;
++
+ 	net = dev_net(dev);
+ 	nft_net = nft_pernet(net);
+ 	mutex_lock(&nft_net->commit_mutex);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 0ac3c26dfb3d1..d360e233d0366 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -672,6 +672,14 @@ static int nft_offload_netdev_event(struct notifier_block *this,
+ 	if (event != NETDEV_UNREGISTER)
+ 		return NOTIFY_DONE;
+ 
++	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
++	 * while waiting for the last references to be dropped; the
++	 * netns and its nftables pernet storage may already be torn
++	 * down by then.
++	 */
++	if (READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
++		return NOTIFY_DONE;
++
+ 	nft_net = nft_pernet(net);
+ 	mutex_lock(&nft_net->commit_mutex);
+ 	chain = __nft_offload_get_chain(nft_net, dev);
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index e04e689f22284..b3cfe8d426753 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -412,6 +412,15 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 	    event != NETDEV_CHANGENAME)
+ 		return NOTIFY_DONE;
+ 
++	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
++	 * while waiting for the last references to be dropped; the
++	 * netns and its nftables pernet storage may already be torn
++	 * down by then.
++	 */
++	if (event == NETDEV_UNREGISTER &&
++	    READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
++		return NOTIFY_DONE;
++
+ 	nft_net = nft_pernet(dev_net(dev));
+ 	mutex_lock(&nft_net->commit_mutex);
+ 
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.43.7
+
