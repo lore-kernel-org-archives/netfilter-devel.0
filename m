@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882751;
-	b=dz0ejqY+OOVvX/uBuLDs7GDZMFvWLo16fIIJe/zv8eYoWDjc191WisVQJdcngml7X7Mi
-	 R+lxRuWl0ghW/rdGNUVLYsuXK82IXeayDUa2V1uqwr7Z6oH9EthULGGN6pRL5yNnBvMnj
-	 iUiZbDDDvOZFC/H+ZMCgaC2AIOD7FWrrarqiyJoPreLKbRdBK8WFsluQqIZvdCynNRnWX
-	 JmRy0OL5IvKOSr7/oKfcox4YyM4mfTL8/3pU52ox89WgWy2SCpgg9qu0GTlKrAaiTYH/c
-	 yqF2fbEoonFKUmkrM139BQLVDnVqZQWHR+T0+5CnjIi3P0FRWzcDQk/2tuiwYU9dx5Q==
+	t=1793882746;
+	b=AeF3cfucrEMS2HaSxkLKFyAlHh6FTMTIz9EaVGdCagH4Gwz0A5vQxQQIcp6mfL5iQHyW
+	 Tk5cycRSK2N+r7hyRqU539gMD4W69m6VtqyqHTmUwsAyOrp/NPliSAEo8gssAMIrtsSA6
+	 AWdeUmL5YYiEKauxlZECkFFOCmyVdGUZ7y0hF1AWp1V3u/WzroV9DfjTJ90EY3HVCblUt
+	 QtHalZaliQPhbpT6qfDhTg4IoCYN56PhasQ7LnayBifGRxUM27y47WM0kedLo4+Lxl8dt
+	 Mj1GJF+iKbmvx5ZLwcEOxmH+nm+D8py3pjrLCiNBADxAr92kOxV+9HMXV9/g8Q9gL8w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882751;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882746;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
-	b=wv6cpaC9k+V9VZCNWwLa0+X1q9XgWrMOLfEXC9FhvAojzbVldq529NC0OUUzD1FHxbv5
-	 d/oOWnJ7ImEelnVwJWXczwtJLCsdm30WolbnGrhqCJTKmvA73BQ0GuW+yK6UsDnNU96tO
-	 2W8TL8olFv71xFU0TmqGt+4OGa6Rfd/RGmVJsrgt/rxT+s5OJjWTuuUKGmD2TV3UABhvd
-	 xgbxFz+qf1egsaml6REaRJEpN03TMB8FA+euI69tfId9rx7MtBYoI0nxp1zrIg7YiHB/8
-	 xxFAg8y5J4ilswnEM8TruZOhiAUe/V0/S3mnhJYVpea339e1HjvwT+ipyDC0KyXNsfQ==
+	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
+	b=IzZbkgoepD0XSgNmqqteCY2Kc3YJM15UiYjsqebv5fF7qM/4h1/ngqcLkknRkj0p5v+g
+	 d4+VFl/FQdR1jq0e01amH9pJh+LMVkbidREw3pQqiD2nVeRXauAZSUZgX0gIAG8xHntrU
+	 m+vZdiXnKhNWODBZYyyZWB48SH8OfjLXbgwGydGyM+6phAjbeD/T+ZGTOwVTbqJ6oMjJ6
+	 2hDMeqzNtfDdDxbFJ6LZGuotnqS9+SXF15V+V6CrhNyyiJs7BYQMgcPu3VhNMqfdhzZn9
+	 MRuIPxZlTd82+MqFfnyrxS3MGSBYxjpoRx28QBdpVSMTgIHRJ0KtdaEvsCvFXIC4l8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=B9G31my3;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vtKnT0Of;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AE5606D835;
-	Thu,  5 Nov 2026 12:45:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18AE5606D835
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46753606A32C;
+	Thu,  5 Nov 2026 12:45:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46753606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=B9G31my3
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vtKnT0Of
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882749;
-	bh=bRwI7uwCHVVt6T7DMLyhA8VEKQ0FrttDo22yhPZt5LE=;
+	s=2025; t=1793882744;
+	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=B9G31my3uxJYAv4FSiDRTuNohUuHu7s+anXoDouGBTesTCaggrnQ4Tz6FDVAhRNVD
-	 1TDEUtmtMCRt/H+oSCdQ33nTSNUuQTFy2Ta9XvqOkLDiq/pbsVYtN6S0MAL1xWfInX
-	 NN3B8l+JarZm/JAqH62LqI5bg42uXHAEBA+7GOUHLUpk/4SSTCsBqYA9JF0c/TfNuo
-	 4gwHGdquOu3J8ev2e4zWhekOcPOHjQR68nBKa+Iv7iDtT77XV/i+fxAQ54twxcUc4+
-	 Pd6cMNhvbFPhUPCkURD+xvlcG/j4Ur3DpgeZcuyRKOLAFMOn9vz47WtMW4gwGMtIrI
-	 Ov1DhJ5EmkNag==
+	b=vtKnT0OffbbQB+UdkwWfOi5+dQWip8oHsnLW1OabTFgzSclERkHzi+o/LHMq+5Jnx
+	 ZvdUglDnRlqd+INNUWGUlm5bCfbuAUg3+EIqmogluHAhkZN01TuVi8VzUU8zbP6sXk
+	 oDUjZx8TlnwNXONmcwTNVsu32qfO6Gqg0fISfF32ixDDjGd4V596/9rTwKRxKuXp8w
+	 z6gUnjKBbxjGpdb6ke7IxG2uocDn5ye+g8tyxa/eAKFZTWvp/ui/0Ih1NY8LqRpcRB
+	 Ab3cRY33exfgErRZkCjr7UUPD+o92mmBgAE0rVHn48kibRiIfxdl4K5Mi2EX/G1X9C
+	 +A76RmUKdhc+Q==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E1C0B60097;
-	Thu,  5 Nov 2026 13:45:48 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 08A9E60082;
+	Thu,  5 Nov 2026 13:45:43 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 07/12] netfilter: bridge: use DEBUG_NET_WARN_ON_ONCE in nf_ct_bridge_refrag()
-Date: Thu,  5 Nov 2026 13:45:31 +0100
-Message-ID: <20261105124536.1009301-8-pablo@netfilter.org>
+Subject: [PATCH net 03/12] ipvs: fix protocol data lifetime during namespace teardown
+Date: Thu,  5 Nov 2026 13:45:27 +0100
+Message-ID: <20261105124536.1009301-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,45 +73,90 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Laveesh Bansal <laveeshb@laveeshbansal.com>
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-nf_ct_bridge_refrag() warns when skb->protocol is neither IPv4 nor IPv6.
-A vlan filtering bridge can get there with a vlan ethertype: if the
-protocol of the tag of a frame differs from the vlan_protocol of the
-bridge, br_allowed_ingress() moves the tag back into the packet after
-NF_BR_PRE_ROUTING, where bridge conntrack has already defragmented it.
+IPVS frees its per-net protocol data before control cleanup cancels
+defense work and unregisters the sysctl table. A defense worker can load
+a protocol data pointer, then namespace cleanup can unlink and free that
+object before the worker dereferences pd->pp or pd->next. The worker's
+securetcp_lock does not serialize with protocol cleanup. A concurrent
+defense-mode sysctl write can reach the same timeout update path.
 
-Anyone who can send fragments into a port of such a bridge can trigger the
-warning, which takes the machine down with panic_on_warn. The packet is
-dropped either way, so only warn on kernels built with CONFIG_DEBUG_NET.
+KASAN reported:
 
-This only avoids the warning. Such fragmented packets are still dropped.
-syzbot reported the warning. It keeps triggering on CONFIG_DEBUG_NET
-kernels until the vlan tag is handled, which is left for a follow-up:
+  BUG: KASAN: slab-use-after-free in ip_vs_protocol_timeout_change
+  Workqueue: events_long defense_work_handler
+  Call Trace:
+   ip_vs_protocol_timeout_change+0x1b4/0x1e0
+   update_defense_level+0x63e/0xd80
+   defense_work_handler+0x1e/0xc0
+  Allocated by task 125:
+   ip_vs_protocol_net_init+0xda/0x2f0
+   __ip_vs_init+0x16b/0x240
+   setup_net+0xfc/0x310
+  Freed by task 12:
+   ip_vs_protocol_net_cleanup+0x1d6/0x2e0
+   __ip_vs_cleanup_batch+0x7d/0x100
+   cleanup_net+0x38c/0x770
 
-  https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
+Run control cleanup before protocol cleanup so that defense work and
+active sysctl handlers have finished before their protocol data is freed.
+Initialize protocols before exposing the control interface, and unwind
+in reverse order, to enforce the same lifetime on initialization failure.
+Protocol initialization and exit do not depend on control state.
 
-Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
-Assisted-by: LLM
-Signed-off-by: Laveesh Bansal <laveeshb@laveeshbansal.com>
+Fixes: 9330419d9aa4 ("IPVS: netns, use ip_vs_proto_data as param.")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/nf_conntrack_bridge.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipvs/ip_vs_core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index b5444335b86f..8c83dc05114b 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -358,7 +358,7 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
- 		nf_br_ip6_fragment(state->net, state->sk, skb, &data, output);
- 		break;
- 	default:
--		WARN_ON_ONCE(1);
-+		DEBUG_NET_WARN_ON_ONCE(1);
- 		return NF_DROP;
- 	}
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index fd503f0efb57..8a3c880fdb26 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2502,12 +2502,12 @@ static int __net_init __ip_vs_init(struct net *net)
+ 	if (ip_vs_estimator_net_init(ipvs) < 0)
+ 		goto estimator_fail;
  
+-	if (ip_vs_control_net_init(ipvs) < 0)
+-		goto control_fail;
+-
+ 	if (ip_vs_protocol_net_init(ipvs) < 0)
+ 		goto protocol_fail;
+ 
++	if (ip_vs_control_net_init(ipvs) < 0)
++		goto control_fail;
++
+ 	if (ip_vs_app_net_init(ipvs) < 0)
+ 		goto app_fail;
+ 
+@@ -2527,10 +2527,10 @@ static int __net_init __ip_vs_init(struct net *net)
+ conn_fail:
+ 	ip_vs_app_net_cleanup(ipvs);
+ app_fail:
+-	ip_vs_protocol_net_cleanup(ipvs);
+-protocol_fail:
+ 	ip_vs_control_net_cleanup(ipvs);
+ control_fail:
++	ip_vs_protocol_net_cleanup(ipvs);
++protocol_fail:
+ 	ip_vs_estimator_net_cleanup(ipvs);
+ estimator_fail:
+ 	net->ipvs = NULL;
+@@ -2547,8 +2547,8 @@ static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
+ 		ipvs = net_ipvs(net);
+ 		ip_vs_conn_net_cleanup(ipvs);
+ 		ip_vs_app_net_cleanup(ipvs);
+-		ip_vs_protocol_net_cleanup(ipvs);
+ 		ip_vs_control_net_cleanup(ipvs);
++		ip_vs_protocol_net_cleanup(ipvs);
+ 		ip_vs_estimator_net_cleanup(ipvs);
+ 		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
+ 		net->ipvs = NULL;
 -- 
 2.47.3
 
